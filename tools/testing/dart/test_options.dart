@@ -109,7 +109,7 @@ class TestOptionsParser {
               'arch',
               'The architecture to run tests for',
               ['-a', '--arch'],
-              ['all', 'ia32', 'x64', 'arm', 'arm64', 'mips',
+              ['all', 'ia32', 'x64', 'arm', 'armv5te', 'arm64', 'mips',
                'simarm', 'simarm64', 'simmips'],
               'ia32'),
           new _TestOptionSpecification(

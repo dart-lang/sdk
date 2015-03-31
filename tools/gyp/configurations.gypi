@@ -17,6 +17,7 @@
       ['"<(target_arch)"=="ia32"', { 'dart_target_arch': 'IA32', }],
       ['"<(target_arch)"=="x64"', { 'dart_target_arch': 'X64', }],
       ['"<(target_arch)"=="arm"', { 'dart_target_arch': 'ARM', }],
+      ['"<(target_arch)"=="armv5te"', { 'dart_target_arch': 'ARMV5TE', }],
       ['"<(target_arch)"=="arm64"', { 'dart_target_arch': 'ARM64', }],
       ['"<(target_arch)"=="simarm"', { 'dart_target_arch': 'SIMARM', }],
       ['"<(target_arch)"=="simarm64"', { 'dart_target_arch': 'SIMARM64', }],
@@ -62,6 +63,13 @@
       },
 
       'Dart_arm_Base': {
+        'abstract': 1,
+        'defines': [
+          'TARGET_ARCH_ARM',
+        ],
+      },
+
+      'Dart_armv5te_Base': {
         'abstract': 1,
         'defines': [
           'TARGET_ARCH_ARM',
@@ -242,6 +250,42 @@
           'Dart_Base', 'Dart_arm_Base', 'Dart_Release',
           'Dart_Linux_Base',
           'Dart_Linux_arm_Base',
+          'Dart_Linux_Release',
+        ],
+      },
+
+      'DebugXARMV5TE': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_armv5te_Base', 'Dart_Debug',
+          'Dart_Linux_Base',
+          'Dart_Linux_xarmv5te_Base',
+          'Dart_Linux_Debug',
+        ],
+      },
+
+      'ReleaseXARMV5TE': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_armv5te_Base', 'Dart_Release',
+          'Dart_Linux_Base',
+          'Dart_Linux_xarmv5te_Base',
+          'Dart_Linux_Release',
+        ],
+      },
+
+      'DebugARMV5TE': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_armv5te_Base', 'Dart_Debug',
+          'Dart_Linux_Base',
+          'Dart_Linux_armv5te_Base',
+          'Dart_Linux_Debug',
+        ],
+      },
+
+      'ReleaseARMV5TE': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_armv5te_Base', 'Dart_Release',
+          'Dart_Linux_Base',
+          'Dart_Linux_armv5te_Base',
           'Dart_Linux_Release',
         ],
       },

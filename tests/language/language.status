@@ -111,6 +111,6 @@ large_class_declaration_test: SkipSlow # Times out. Issue 20352
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 gc_test: SkipSlow # Times out flakily. Issue 20956
 
-[ $compiler == none && $runtime == vm && ( $arch == simarm || $arch == arm || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
+[ $compiler == none && $runtime == vm && ( $arch == simarm || $arch == arm || $arch == armv5te || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
 

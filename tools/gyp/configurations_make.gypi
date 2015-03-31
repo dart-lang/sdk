@@ -81,6 +81,39 @@
         ],
       },
 
+      # ARMv5 cross-build
+      'Dart_Linux_xarmv5te_Base': {
+        'abstract': 1,
+        'target_conditions': [
+        ['_toolset=="target"', {
+          'cflags': [
+            '-mthumb',
+            '-mlong-calls',
+            '-march=armv5te',
+            '-mfloat-abi=soft',
+            '-Wno-psabi', # suppresses va_list warning
+            '-fno-strict-overflow',
+          ],
+        }],
+        ['_toolset=="host"', {
+          'cflags': ['-m32', '-msse2'],
+          'ldflags': ['-m32'],
+        }]]
+      },
+
+      # ARMv5 native build
+      'Dart_Linux_armv5te_Base': {
+        'abstract': 1,
+        'cflags': [
+          '-mthumb',
+          '-mlong-calls',
+          '-march=armv5te',
+          '-mfloat-abi=soft',
+          '-Wno-psabi', # suppresses va_list warning
+          '-fno-strict-overflow',
+        ],
+      },
+
       # ARM64 cross-build
       'Dart_Linux_xarm64_Base': {
         'abstract': 1,

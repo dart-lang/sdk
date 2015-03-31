@@ -3270,11 +3270,10 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
 // optimized function and there may be extra space for spill slots to
 // allocate. We must also set up the pool pointer for the function.
 void Assembler::EnterOsrFrame(intptr_t extra_size) {
-  // The offset for the PC marker is adjusted by the difference in PC offset
-  // between stores and other instructions. In particular, on some ARMv5's the
-  // PC offset for stores is 12 and the offset in other instructions is 8.
-  const intptr_t offset = CodeSize() -
-      (TargetCPUFeatures::store_pc_read_offset() - Instr::kPCReadOffset);
+  // mov(IP, Operand(PC)) loads PC + Instr::kPCReadOffset (8). This may be
+  // different from EntryPointToPcMarkerOffset().
+  const intptr_t offset =
+      CodeSize() + Instr::kPCReadOffset - EntryPointToPcMarkerOffset();
 
   Comment("EnterOsrFrame");
   mov(IP, Operand(PC));

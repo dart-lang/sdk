@@ -55,7 +55,7 @@ def BuildOptions():
       default=False, action="store_true")
   result.add_option("-a", "--arch",
       help='Target architectures (comma-separated).',
-      metavar='[all,ia32,x64,simarm,arm,simmips,mips,simarm64,arm64,]',
+      metavar='[all,ia32,x64,simarm,arm,armv5te,simmips,mips,simarm64,arm64,]',
       default=utils.GuessArchitecture())
   result.add_option("--os",
     help='Target OSs (comma-separated).',
@@ -105,7 +105,7 @@ def ProcessOptions(options, args):
       print "Unknown mode %s" % mode
       return False
   for arch in options.arch:
-    archs = ['ia32', 'x64', 'simarm', 'arm', 'simmips', 'mips',
+    archs = ['ia32', 'x64', 'simarm', 'arm', 'armv5te', 'simmips', 'mips',
              'simarm64', 'arm64',]
     if not arch in archs:
       print "Unknown arch %s" % arch
@@ -123,7 +123,7 @@ def ProcessOptions(options, args):
         print ("Cross-compilation to %s is not supported on host os %s."
                % (os_name, HOST_OS))
         return False
-      if not arch in ['ia32', 'arm', 'arm64', 'mips']:
+      if not arch in ['ia32', 'arm', 'armv5te', 'arm64', 'mips']:
         print ("Cross-compilation to %s is not supported for architecture %s."
                % (os_name, arch))
         return False
@@ -161,6 +161,7 @@ def GetToolchainPrefix(target_os, arch, options):
   # TODO(zra): Find default MIPS and ARM64 Linux cross-compilers.
 
   return None
+
 
 def SetTools(arch, target_os, options):
   toolsOverride = None

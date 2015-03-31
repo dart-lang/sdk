@@ -48,7 +48,9 @@ def GuessOS():
 # Try to guess the host architecture.
 def GuessArchitecture():
   os_id = platform.machine()
-  if os_id.startswith('arm'):
+  if os_id.startswith('armv5te'):
+    return 'armv5te'
+  elif os_id.startswith('arm'):
     return 'arm'
   elif os_id.startswith('aarch64'):
     return 'arm64'
@@ -220,6 +222,7 @@ ARCH_FAMILY = {
   'ia32': 'ia32',
   'x64': 'ia32',
   'arm': 'arm',
+  'armv5te': 'arm',
   'arm64': 'arm',
   'mips': 'mips',
   'simarm': 'ia32',
@@ -553,7 +556,11 @@ def DartBinary():
   else:
     arch = GuessArchitecture()
     system = GuessOS()
-    if arch == 'arm':
+    if arch == 'armv5te':
+      # TODO(zra): This binary does not exist, yet. Check one in once we have
+      # sufficient stability.
+      return os.path.join(dart_binary_prefix, system, 'dart-armv5te')
+    elif arch == 'arm':
       return os.path.join(dart_binary_prefix, system, 'dart-arm')
     elif arch == 'arm64':
       return os.path.join(dart_binary_prefix, system, 'dart-arm64')
