@@ -60,6 +60,7 @@ BENCHMARK(CorelibIsolateStartup) {
   const int kNumIterations = 1000;
   Timer timer(true, "CorelibIsolateStartup");
   Isolate* isolate = Isolate::Current();
+  Thread::ExitIsolate();
   for (int i = 0; i < kNumIterations; i++) {
     timer.Start();
     TestCase::CreateTestIsolate();
