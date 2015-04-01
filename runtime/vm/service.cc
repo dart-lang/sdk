@@ -529,7 +529,7 @@ void Service::SetEventMask(uint32_t mask) {
 void Service::SendEvent(intptr_t eventFamilyId,
                         intptr_t eventType,
                         const Object& eventMessage) {
-  ASSERT(!ServiceIsolate::IsServiceIsolate(Isolate::Current()));
+  ASSERT(!ServiceIsolate::IsServiceIsolateDescendant(Isolate::Current()));
   if (!ServiceIsolate::IsRunning()) {
     return;
   }
@@ -592,7 +592,7 @@ void Service::SendEvent(intptr_t eventFamilyId,
 
 
 void Service::HandleGCEvent(GCEvent* event) {
-  if (ServiceIsolate::IsServiceIsolate(Isolate::Current())) {
+  if (ServiceIsolate::IsServiceIsolateDescendant(Isolate::Current())) {
     return;
   }
   JSONStream js;
@@ -2419,7 +2419,7 @@ class ServiceIsolateVisitor : public IsolateVisitor {
 
   void VisitIsolate(Isolate* isolate) {
     if ((isolate != Dart::vm_isolate()) &&
-        !ServiceIsolate::IsServiceIsolate(isolate)) {
+        !ServiceIsolate::IsServiceIsolateDescendant(isolate)) {
       jsarr_->AddValue(isolate);
     }
   }

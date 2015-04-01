@@ -20,6 +20,7 @@ class ServiceIsolate : public AllStatic {
   static bool Exists();
   static bool IsRunning();
   static bool IsServiceIsolate(Isolate* isolate);
+  static bool IsServiceIsolateDescendant(Isolate* isolate);
   static Dart_Port Port();
 
   static Dart_Port WaitForLoadPort();
@@ -56,6 +57,7 @@ class ServiceIsolate : public AllStatic {
   static Isolate* isolate_;
   static Dart_Port port_;
   static Dart_Port load_port_;
+  static Dart_Port origin_;
 
   friend class Dart;
   friend class RunServiceTask;
