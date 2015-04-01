@@ -1126,50 +1126,48 @@ class AssistProcessor {
   }
 
   void _addProposal_removeTypeAnnotation() {
-    AstNode typeStart = null;
-    AstNode typeEnd = null;
+    VariableDeclarationList variableList;
     // try top-level variable
     {
       TopLevelVariableDeclaration declaration =
           node.getAncestor((node) => node is TopLevelVariableDeclaration);
       if (declaration != null) {
-        TypeName typeNode = declaration.variables.type;
-        if (typeNode != null) {
-          VariableDeclaration field = declaration.variables.variables[0];
-          typeStart = declaration;
-          typeEnd = field;
-        }
+        variableList = declaration.variables;
       }
     }
     // try class field
-    {
+    if (variableList == null) {
       FieldDeclaration fieldDeclaration =
           node.getAncestor((node) => node is FieldDeclaration);
       if (fieldDeclaration != null) {
-        TypeName typeNode = fieldDeclaration.fields.type;
-        if (typeNode != null) {
-          VariableDeclaration field = fieldDeclaration.fields.variables[0];
-          typeStart = fieldDeclaration;
-          typeEnd = field;
-        }
+        variableList = fieldDeclaration.fields;
       }
     }
     // try local variable
-    {
+    if (variableList == null) {
       VariableDeclarationStatement statement =
           node.getAncestor((node) => node is VariableDeclarationStatement);
       if (statement != null) {
-        TypeName typeNode = statement.variables.type;
-        if (typeNode != null) {
-          VariableDeclaration variable = statement.variables.variables[0];
-          typeStart = typeNode;
-          typeEnd = variable;
-        }
+        variableList = statement.variables;
       }
     }
+    if (variableList == null) {
+      _coverageMarker();
+      return;
+    }
+    // we need a type
+    TypeName typeNode = variableList.type;
+    if (typeNode == null) {
+      _coverageMarker();
+      return;
+    }
     // add edit
-    if (typeStart != null && typeEnd != null) {
-      SourceRange typeRange = rangeStartStart(typeStart, typeEnd);
+    Token keyword = variableList.keyword;
+    VariableDeclaration firstVariable = variableList.variables[0];
+    SourceRange typeRange = rangeStartStart(typeNode, firstVariable);
+    if (keyword != null && keyword.lexeme != 'var') {
+      _addReplaceEdit(typeRange, '');
+    } else {
       _addReplaceEdit(typeRange, 'var ');
     }
     // add proposal

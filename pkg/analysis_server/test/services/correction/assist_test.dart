@@ -2324,6 +2324,19 @@ class A {
 ''');
   }
 
+  void test_removeTypeAnnotation_classField_OK_final() {
+    resolveTestUnit('''
+class A {
+  final int v = 1;
+}
+''');
+    assertHasAssistAt('v = ', AssistKind.REMOVE_TYPE_ANNOTATION, '''
+class A {
+  final v = 1;
+}
+''');
+  }
+
   void test_removeTypeAnnotation_localVariable_OK() {
     resolveTestUnit('''
 main() {
@@ -2337,12 +2350,47 @@ main() {
 ''');
   }
 
+  void test_removeTypeAnnotation_localVariable_OK_const() {
+    resolveTestUnit('''
+main() {
+  const int v = 1;
+}
+''');
+    assertHasAssistAt('int ', AssistKind.REMOVE_TYPE_ANNOTATION, '''
+main() {
+  const v = 1;
+}
+''');
+  }
+
+  void test_removeTypeAnnotation_localVariable_OK_final() {
+    resolveTestUnit('''
+main() {
+  final int v = 1;
+}
+''');
+    assertHasAssistAt('int ', AssistKind.REMOVE_TYPE_ANNOTATION, '''
+main() {
+  final v = 1;
+}
+''');
+  }
+
   void test_removeTypeAnnotation_topLevelVariable_OK() {
     resolveTestUnit('''
 int V = 1;
 ''');
     assertHasAssistAt('int ', AssistKind.REMOVE_TYPE_ANNOTATION, '''
 var V = 1;
+''');
+  }
+
+  void test_removeTypeAnnotation_topLevelVariable_OK_final() {
+    resolveTestUnit('''
+final int V = 1;
+''');
+    assertHasAssistAt('int ', AssistKind.REMOVE_TYPE_ANNOTATION, '''
+final V = 1;
 ''');
   }
 
