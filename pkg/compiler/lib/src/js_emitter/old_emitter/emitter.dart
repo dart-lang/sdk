@@ -520,15 +520,64 @@ class OldEmitter implements Emitter {
         handler.getLazilyInitializedFieldsForEmission();
     if (!lazyFields.isEmpty) {
       needsLazyInitializer = true;
-      for (VariableElement element in Elements.sortedByPosition(lazyFields)) {
-        jsAst.Expression init =
-            buildLazilyInitializedStaticField(element);
-        if (init == null) continue;
-        output.addBuffer(
-            jsAst.prettyPrint(init, compiler, monitor: compiler.dumpInfoTask));
-        output.add("$N");
+      List<jsAst.Expression> laziesInfo = buildLaziesInfo(lazyFields);
+      jsAst.Statement code = js.statement('''
+      (function(lazies) {
+        if (#notInMinifiedMode) {
+          var descriptorLength = 4;
+        } else {
+          var descriptorLength = 3;
+        }
+
+        for (var i = 0; i < lazies.length; i += descriptorLength) {
+          var fieldName = lazies [i];
+          var getterName = lazies[i + 1];
+          var lazyValue = lazies[i + 2];
+          if (#notInMinifiedMode) {
+            var staticName = lazies[i + 3];
+          }
+
+          // We build the lazy-check here:
+          //   lazyInitializer(fieldName, getterName, lazyValue, staticName);
+          // 'staticName' is used for error reporting in non-minified mode.
+          // 'lazyValue' must be a closure that constructs the initial value.
+          if (#notInMinifiedMode) {
+            #lazy(fieldName, getterName, lazyValue, staticName);
+          } else {
+            #lazy(fieldName, getterName, lazyValue);
+          }
+        }
+      })(#laziesInfo)
+      ''', {'notInMinifiedMode': !compiler.enableMinification,
+            'laziesInfo': new jsAst.ArrayInitializer(laziesInfo),
+            'lazy': js(lazyInitializerName)});
+
+      output.addBuffer(
+          jsAst.prettyPrint(code, compiler, monitor: compiler.dumpInfoTask));
+      output.add("$N");
+    }
+  }
+
+  List<jsAst.Expression> buildLaziesInfo(List<VariableElement> lazies) {
+    List<jsAst.Expression> laziesInfo = <jsAst.Expression>[];
+    for (VariableElement element in Elements.sortedByPosition(lazies)) {
+      jsAst.Expression code = backend.generatedCode[element];
+      // The code is null if we ended up not needing the lazily
+      // initialized field after all because of constant folding
+      // before code generation.
+      if (code == null) continue;
+      if (compiler.enableMinification) {
+        laziesInfo.addAll([js.string(namer.globalPropertyName(element)),
+                           js.string(namer.lazyInitializerName(element)),
+                           code]);
+      } else {
+        laziesInfo.addAll([js.string(namer.globalPropertyName(element)),
+                           js.string(namer.lazyInitializerName(element)),
+                           code,
+                           js.string(element.name)]);
       }
     }
+    return laziesInfo;
   }
 
   jsAst.Expression buildLazilyInitializedStaticField(
@@ -558,16 +607,16 @@ class OldEmitter implements Emitter {
     if (compiler.enableMinification) {
       return js('#(#,#,#)',
           [js(lazyInitializerName),
-              js.string(namer.globalPropertyName(element)),
-              js.string(namer.lazyInitializerName(element)),
-              code]);
+           js.string(namer.globalPropertyName(element)),
+           js.string(namer.lazyInitializerName(element)),
+           code]);
     } else {
       return js('#(#,#,#,#)',
           [js(lazyInitializerName),
-              js.string(namer.globalPropertyName(element)),
-              js.string(namer.lazyInitializerName(element)),
-              code,
-              js.string(element.name)]);
+           js.string(namer.globalPropertyName(element)),
+           js.string(namer.lazyInitializerName(element)),
+           code,
+           js.string(element.name)]);
     }
   }
 
@@ -742,8 +791,8 @@ class OldEmitter implements Emitter {
                   }
                 } else {
                   if (result === sentinelInProgress)
-                    // In minified mode, static name might not have been
-                    // provided, so fall back to the minified fieldName.
+                    // In minified mode, static name is not provided, so fall
+                    // back to the minified fieldName.
                     #cyclicThrow(staticName || fieldName);
                 }
 
@@ -1285,6 +1334,9 @@ class OldEmitter implements Emitter {
     // constants to be set up.
     emitStaticNonFinalFieldInitializations(mainOutput, mainOutputUnit);
     interceptorEmitter.emitTypeToInterceptorMap(program, mainOutput);
+    if (compiler.enableMinification) {
+      mainOutput.add(';');
+    }
     emitLazilyInitializedStaticFields(mainOutput);
 
     mainOutput.add('\n');

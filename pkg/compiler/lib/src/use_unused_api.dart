@@ -269,6 +269,8 @@ useTypes() {
 
 useCodeEmitterTask(js_emitter.CodeEmitterTask codeEmitterTask) {
   codeEmitterTask.oldEmitter.clearCspPrecompiledNodes();
+  codeEmitterTask.oldEmitter.
+      buildLazilyInitializedStaticField(null, isolateProperties: null);
 }
 
 useScript(dart2jslib.Script script) {
