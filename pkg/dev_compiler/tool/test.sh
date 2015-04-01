@@ -42,8 +42,7 @@ dart -c test/all_tests.dart || fail
 
 # validate codegen_test output
 pushd test/codegen/ &> /dev/null
-rm -r actual/dev_compiler/ actual/server_mode/dev_compiler/ \
-  actual/sunflower/dev_compiler
+rm -r actual/dev_compiler/ actual/sunflower/dev_compiler
 diff $DIFF_ARGS > /dev/null || show_diff
 popd &> /dev/null
 

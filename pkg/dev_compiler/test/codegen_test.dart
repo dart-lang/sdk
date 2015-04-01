@@ -20,6 +20,9 @@ import 'package:dev_compiler/devc.dart';
 import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/dependency_graph.dart'
     show defaultRuntimeFiles;
+import 'package:dev_compiler/src/utils.dart'
+    show computeHash, computeHashFromFile;
+import 'package:html/parser.dart' as html;
 
 final ArgParser argParser = new ArgParser()
   ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
@@ -227,7 +230,6 @@ main(arguments) {
           .writeAsStringSync(compilerMessages.toString());
 
       var expectedFiles = [
-        'html_input.html',
         'dir/html_input_a.js',
         'dir/html_input_b.js',
         'dir/html_input_c.js',
@@ -237,11 +239,37 @@ main(arguments) {
         'dev_compiler/runtime/messages.css'
       ]..addAll(expectedRuntime);
 
+      // Parse the HTML file and verify its contents were expected.
+      var htmlPath = path.join(actualDir, 'server_mode', 'html_input.html');
+      var doc = html.parse(new File(htmlPath).readAsStringSync());
+
       for (var filepath in expectedFiles) {
-        var outFile = new File(path.join(actualDir, 'server_mode', filepath));
-        expect(outFile.existsSync(), success,
-            reason: '${outFile.path} was created iff compilation succeeds');
+        var outPath = path.join(actualDir, 'server_mode', filepath);
+        expect(new File(outPath).existsSync(), success,
+            reason: '$outPath was created iff compilation succeeds');
+
+        var query;
+        if (filepath.endsWith('js')) {
+          var hash;
+          if (filepath.startsWith('dev_compiler')) {
+            hash = computeHashFromFile(outPath);
+          } else {
+            // TODO(jmesserly): see if we can get this to return the same
+            // answer as computeHashFromFile.
+            hash = computeHash(new File(outPath).readAsStringSync());
+          }
+          query = 'script[src="cached/$hash/$filepath"]';
+        } else {
+          var hash = computeHashFromFile(outPath);
+          query = 'link[href="cached/$hash/$filepath"]';
+        }
+        expect(doc.querySelector(query), isNotNull,
+            reason: "should find `$query` in $htmlPath for $outPath");
       }
+
+      // Clean up the server mode folder, otherwise it causes diff churn.
+      var dir = new Directory(path.join(actualDir, 'server_mode'));
+      if (dir.existsSync()) dir.deleteSync(recursive: true);
     });
   }
 }
