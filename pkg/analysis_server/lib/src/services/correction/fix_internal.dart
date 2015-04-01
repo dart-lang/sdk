@@ -376,6 +376,9 @@ class FixProcessor {
     }
     ClassDeclaration classDeclaration =
         node.getAncestor((node) => node is ClassDeclaration);
+    if (classDeclaration == null) {
+      return;
+    }
     // prepare names of uninitialized final fields
     List<String> fieldNames = <String>[];
     for (ClassMember member in classDeclaration.members) {
@@ -2396,9 +2399,8 @@ class FixProcessor {
   static void _addSuperTypeProposals(
       SourceBuilder sb, Set<DartType> alreadyAdded, DartType type) {
     if (type != null &&
-        !alreadyAdded.contains(type) &&
-        type.element is ClassElement) {
-      alreadyAdded.add(type);
+        type.element is ClassElement &&
+        alreadyAdded.add(type)) {
       ClassElement element = type.element as ClassElement;
       sb.addSuggestion(LinkedEditSuggestionKind.TYPE, element.name);
       _addSuperTypeProposals(sb, alreadyAdded, element.supertype);

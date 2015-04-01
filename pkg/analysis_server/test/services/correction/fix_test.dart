@@ -421,6 +421,22 @@ main() {
     _assertLinkedGroup(change.linkedEditGroups[0], ['named(int ', 'named(1']);
   }
 
+  void test_createConstructorForFinalFields_inTopLevelMethod() {
+    resolveTestUnit('''
+main() {
+  final int v;
+}
+''');
+    assertNoFix(FixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS);
+  }
+
+  void test_createConstructorForFinalFields_topLevelField() {
+    resolveTestUnit('''
+final int v;
+''');
+    assertNoFix(FixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS);
+  }
+
   void test_createConstructorSuperExplicit() {
     resolveTestUnit('''
 class A {
