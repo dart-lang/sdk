@@ -1643,8 +1643,7 @@ RawFunction* Debugger::FindBestFit(const Script& script,
         for (intptr_t pos = 0; pos < num_functions; pos++) {
           function ^= functions.At(pos);
           ASSERT(!function.IsNull());
-          if (function.is_debuggable() &&
-              FunctionContains(function, script, token_pos)) {
+          if (FunctionContains(function, script, token_pos)) {
             SelectBestFit(&best_fit, &function);
           }
         }
@@ -1656,8 +1655,7 @@ RawFunction* Debugger::FindBestFit(const Script& script,
         for (intptr_t pos = 0; pos < num_closures; pos++) {
           function ^= closures.At(pos);
           ASSERT(!function.IsNull());
-          if (function.is_debuggable() &&
-              FunctionContains(function, script, token_pos)) {
+          if (FunctionContains(function, script, token_pos)) {
             SelectBestFit(&best_fit, &function);
           }
         }
