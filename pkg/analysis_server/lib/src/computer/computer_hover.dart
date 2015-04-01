@@ -95,17 +95,20 @@ class DartUnitHoverComputer {
         // description
         hover.elementDescription = element.toString();
         hover.elementKind = element.kind.displayName;
-        // containing class
-        ClassElement containingClass =
-            element.getAncestor((e) => e is ClassElement);
-        if (containingClass != null) {
-          hover.containingClassDescription = containingClass.toString();
-        }
-        // containing library
-        LibraryElement library = element.library;
-        if (library != null) {
-          hover.containingLibraryName = library.name;
-          hover.containingLibraryPath = library.source.fullName;
+        // not local element
+        if (element.enclosingElement is! ExecutableElement) {
+          // containing class
+          ClassElement containingClass =
+              element.getAncestor((e) => e is ClassElement);
+          if (containingClass != null) {
+            hover.containingClassDescription = containingClass.toString();
+          }
+          // containing library
+          LibraryElement library = element.library;
+          if (library != null) {
+            hover.containingLibraryName = library.name;
+            hover.containingLibraryPath = library.source.fullName;
+          }
         }
         // documentation
         String dartDoc = element.computeDocumentationComment();

@@ -7677,8 +7677,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 
   @override
   void appendTo(StringBuffer buffer) {
-    buffer.write(enclosingElement.displayName);
-    buffer.write(".");
     buffer.write(displayName);
     super.appendTo(buffer);
   }
