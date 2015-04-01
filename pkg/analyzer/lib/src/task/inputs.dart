@@ -41,12 +41,12 @@ abstract class ListTaskInputMixin<E> implements ListTaskInput<E> {
     return (this as ListTaskInputImpl<AnalysisTarget>).toList(valueResult.of);
   }
 
-  TaskInput<Map<E, dynamic /*V*/ >> toMap(
+  MapTaskInput<E, dynamic /*V*/ > toMap(
       UnaryFunction<E, dynamic /*<V>*/ > mapper) {
     return new ListToMapTaskInput<E, dynamic /*V*/ >(this, mapper);
   }
 
-  TaskInput<Map<AnalysisTarget, dynamic /*V*/ >> toMapOf(
+  MapTaskInput<AnalysisTarget, dynamic /*V*/ > toMapOf(
       ResultDescriptor /*<V>*/ valueResult) {
     return (this as ListTaskInputImpl<AnalysisTarget>).toMap(valueResult.of);
   }
@@ -113,7 +113,8 @@ class ListToListTaskInputBuilder<B, E>
  * input to the task.
  */
 class ListToMapTaskInput<B, E>
-    extends _ListToCollectionTaskInput<B, E, Map<B, E>> {
+    extends _ListToCollectionTaskInput<B, E, Map<B, E>>
+    with MapTaskInputMixin<B, E> {
   /**
    * Initialize a result accessor to use the given [baseAccessor] to access a
    * list of values that can be passed to the given [generateTaskInputs] to
@@ -153,6 +154,125 @@ class ListToMapTaskInputBuilder<B, E>
   @override
   void _initResultValue() {
     _resultValue = new HashMap<B, E>();
+  }
+}
+
+/**
+ * A mixin-ready implementation of [MapTaskInput].
+ */
+abstract class MapTaskInputMixin<K, V> implements MapTaskInput<K, V> {
+  TaskInput<List /*<E>*/ > toFlattenList(
+      BinaryFunction<K, dynamic /*element of V*/, dynamic /*<E>*/ > mapper) {
+    return new MapToFlattenListTaskInput<K, dynamic /*element of V*/, dynamic /*E*/ >(
+        this as MapTaskInput<K, List /*<element of V>*/ >, mapper);
+  }
+}
+
+/**
+ * A [TaskInput] that is computed by the following steps.
+ *
+ * First the [base] task input is used to compute a [Map]-valued result.
+ * The values of the [Map] must be [List]s.
+ *
+ * The given [mapper] is used to transform each key / value pair of the [Map]
+ * into task inputs.
+ *
+ * Finally, each of the task inputs are used to access analysis results,
+ * and the list of the results is used as the input.
+ */
+class MapToFlattenListTaskInput<K, V, E> implements TaskInput<List<E>> {
+  final MapTaskInput<K, List<V>> base;
+  final BinaryFunction<K, V, E> mapper;
+
+  MapToFlattenListTaskInput(this.base, this.mapper);
+
+  @override
+  TaskInputBuilder<List> createBuilder() {
+    return new MapToFlattenListTaskInputBuilder<K, V, E>(base, mapper);
+  }
+}
+
+/**
+ * The [TaskInputBuilder] for [MapToFlattenListTaskInput].
+ */
+class MapToFlattenListTaskInputBuilder<K, V, E>
+    implements TaskInputBuilder<List<E>> {
+  final MapTaskInput<K, List<V>> base;
+  final BinaryFunction<K, V, E> mapper;
+
+  TaskInputBuilder currentBuilder;
+  Map<K, List<V>> baseMap;
+  Iterator<K> keyIterator;
+  Iterator<V> valueIterator;
+
+  final List<E> inputValue = <E>[];
+
+  MapToFlattenListTaskInputBuilder(this.base, this.mapper) {
+    currentBuilder = base.createBuilder();
+  }
+
+  @override
+  ResultDescriptor get currentResult {
+    if (currentBuilder == null) {
+      return null;
+    }
+    return currentBuilder.currentResult;
+  }
+
+  AnalysisTarget get currentTarget {
+    if (currentBuilder == null) {
+      return null;
+    }
+    return currentBuilder.currentTarget;
+  }
+
+  @override
+  void set currentValue(Object value) {
+    if (currentBuilder == null) {
+      throw new StateError(
+          'Cannot set the result value when there is no current result');
+    }
+    currentBuilder.currentValue = value;
+  }
+
+  @override
+  bool moveNext() {
+    // Prepare base Map.
+    if (baseMap == null) {
+      if (currentBuilder.moveNext()) {
+        return true;
+      }
+      baseMap = currentBuilder.inputValue;
+      keyIterator = baseMap.keys.iterator;
+      // Done with this builder.
+      currentBuilder = null;
+    }
+    // Prepare the next result value.
+    if (currentBuilder != null) {
+      if (currentBuilder.moveNext()) {
+        return true;
+      }
+      // Add the result value for the current Map key/value.
+      E resultValue = currentBuilder.inputValue;
+      inputValue.add(resultValue);
+      // Done with this builder.
+      currentBuilder = null;
+    }
+    // Move to the next Map value.
+    if (valueIterator != null && valueIterator.moveNext()) {
+      K key = keyIterator.current;
+      V value = valueIterator.current;
+      currentBuilder = mapper(key, value).createBuilder();
+      return moveNext();
+    }
+    // Move to the next Map key.
+    if (keyIterator.moveNext()) {
+      K key = keyIterator.current;
+      valueIterator = baseMap[key].iterator;
+      return moveNext();
+    }
+    // No more Map values/keys to transform.
+    return false;
   }
 }
 

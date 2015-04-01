@@ -1326,6 +1326,45 @@ class C extends A {}
       expect(classC.supertype.displayName, 'A');
     }
   }
+
+  test_perform_deep() {
+    Source sourceA = _newSource('/a.dart', '''
+library a;
+import 'b.dart';
+class A extends B {}
+''');
+    _newSource('/b.dart', '''
+library b;
+import 'c.dart';
+part 'b2.dart';
+class B extends B2 {}
+''');
+    _newSource('/b2.dart', '''
+part of b;
+class B2 extends C {}
+''');
+    _newSource('/c.dart', '''
+library c;
+class C {}
+''');
+    _computeResult(sourceA, LIBRARY_ELEMENT5);
+    expect(task, new isInstanceOf<ResolveLibraryTypeNamesTask>());
+    // validate
+    LibraryElement library = outputs[LIBRARY_ELEMENT5];
+    {
+      ClassElement clazz = library.getType('A');
+      expect(clazz.displayName, 'A');
+      clazz = clazz.supertype.element;
+      expect(clazz.displayName, 'B');
+      clazz = clazz.supertype.element;
+      expect(clazz.displayName, 'B2');
+      clazz = clazz.supertype.element;
+      expect(clazz.displayName, 'C');
+      clazz = clazz.supertype.element;
+      expect(clazz.displayName, 'Object');
+      expect(clazz.supertype, isNull);
+    }
+  }
 }
 
 @reflectiveTest

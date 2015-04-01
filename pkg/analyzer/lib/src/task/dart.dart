@@ -24,6 +24,7 @@ import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:analyzer/src/task/inputs.dart';
 
 /**
  * The errors produced while resolving a library directives.
@@ -2011,8 +2012,11 @@ class ResolveLibraryTypeNamesTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(Source libSource) {
     return <String, TaskInput>{
       LIBRARY_INPUT: LIBRARY_ELEMENT4.of(libSource),
-      'resolvedUnits': UNITS.of(libSource).toMap((Source source) =>
-          RESOLVED_UNIT4.of(new LibraryUnitTarget(libSource, source)))
+      'resolvedUnits': IMPORT_SOURCE_CLOSURE
+          .of(libSource)
+          .toMapOf(UNITS)
+          .toFlattenList((Source library, Source unit) =>
+              RESOLVED_UNIT4.of(new LibraryUnitTarget(library, unit)))
     };
   }
 
