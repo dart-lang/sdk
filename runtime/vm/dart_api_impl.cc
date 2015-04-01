@@ -1286,7 +1286,7 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
                                             const uint8_t* snapshot,
                                             void* callback_data,
                                             char** error) {
-  TRACE_API_CALL(CURRENT_FUNC);
+  CHECK_NO_ISOLATE(Isolate::Current());
   char* isolate_name = BuildIsolateName(script_uri, main);
   Isolate* isolate = Dart::CreateIsolate(isolate_name);
   free(isolate_name);

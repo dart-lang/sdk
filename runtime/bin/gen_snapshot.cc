@@ -587,6 +587,7 @@ int main(int argc, char** argv) {
         DartUtils::PrepareForScriptLoading(package_root, false, builtin_lib);
     CHECK_RESULT(result);
     Dart_ExitScope();
+    Dart_ExitIsolate();
 
     UriResolverIsolateScope::isolate = isolate;
 
