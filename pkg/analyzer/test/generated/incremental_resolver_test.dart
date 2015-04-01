@@ -305,6 +305,66 @@ class B<T> = Object with M<T>;
 ''');
   }
 
+  void test_false_constructor_keywordConst_add() {
+    _assertDoesNotMatch(r'''
+class A {
+  A();
+}
+''', r'''
+class A {
+  const A();
+}
+''');
+  }
+
+  void test_false_constructor_keywordConst_remove() {
+    _assertDoesNotMatch(r'''
+class A {
+  const A();
+}
+''', r'''
+class A {
+  A();
+}
+''');
+  }
+
+  void test_false_constructor_keywordFactory_add() {
+    _assertDoesNotMatch(r'''
+class A {
+  A();
+  A.foo() {
+    return new A();
+  }
+}
+''', r'''
+class A {
+  A();
+  factory A.foo() {
+    return new A();
+  }
+}
+''');
+  }
+
+  void test_false_constructor_keywordFactory_remove() {
+    _assertDoesNotMatch(r'''
+class A {
+  A();
+  factory A.foo() {
+    return new A();
+  }
+}
+''', r'''
+class A {
+  A();
+  A.foo() {
+    return new A();
+  }
+}
+''');
+  }
+
   void test_false_constructor_parameters_list_add() {
     _assertDoesNotMatch(r'''
 class A {

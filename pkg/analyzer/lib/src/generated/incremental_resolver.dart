@@ -185,6 +185,8 @@ class DeclarationMatcher extends RecursiveAstVisitor {
         ? _enclosingClass.unnamedConstructor
         : _enclosingClass.getNamedConstructor(constructorName.name);
     _processElement(element);
+    _assertEquals(node.constKeyword != null, element.isConst);
+    _assertEquals(node.factoryKeyword != null, element.isFactory);
     _assertCompatibleParameters(node.parameters, element.parameters);
     // TODO(scheglov) debug null Location
     if (element != null) {
