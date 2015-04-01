@@ -877,20 +877,6 @@ class OldEmitter implements Emitter {
     }
   }
 
-  String get markerFun => 'markerFun';
-
-  void emitMarkerFun(CodeOutput output) {
-    jsAst.Statement markerFunStmt = js.statement('''
-      // This function is used to mark the end of the inheritance chain so that
-      // finishAddStubsHelper knows where to stop searching for deferred work.
-      // We have to put it at the top level so that we only get one instance of
-      // it even if we call parseReflectionData multiple times, e.g., due to 
-      // deferred loading.
-      function #() {}''', markerFun);
-    output.addBuffer(jsAst.prettyPrint(markerFunStmt, compiler));
-    output.add(N);
-  }
-
   void emitConvertToFastObjectFunction(CodeOutput output) {
     List<jsAst.Statement> debugCode = <jsAst.Statement>[];
     if (DEBUG_FAST_OBJECTS) {
@@ -1354,7 +1340,6 @@ class OldEmitter implements Emitter {
 
     emitConvertToFastObjectFunction(mainOutput);
     emitConvertToSlowObjectFunction(mainOutput);
-    emitMarkerFun(mainOutput);
 
     for (String globalObject in Namer.reservedGlobalObjectNames) {
       mainOutput.add('$globalObject = convertToFastObject($globalObject)$N');
