@@ -271,10 +271,6 @@ class _Bigint extends _IntegerImplementation implements int {
       c = (d & bm) << bs;
     }
     r_digits[ds] = c;
-    i = ds;
-    while (--i >= 0) {
-      r_digits[i] = 0;
-    }
   }
 
   // Return this << n.
@@ -302,6 +298,10 @@ class _Bigint extends _IntegerImplementation implements int {
     var r_used = x_used + ds + 1;
     assert(r_digits.length >= r_used + 2 + (r_used & 1));  // +2 for 64-bit.
     _lsh(x_digits, x_used, n, r_digits);
+    var i = ds;
+    while (--i >= 0) {
+      r_digits[i] = 0;
+    }
     if (r_digits[r_used - 1] == 0) {
       r_used--;  // Clamp result.
     } else if (r_used.isOdd) {

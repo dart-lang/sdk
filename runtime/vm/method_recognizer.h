@@ -155,7 +155,7 @@ namespace dart {
 #define CORE_LIB_INTRINSIC_LIST(V)                                             \
   V(_Smi, ~, Smi_bitNegate, 134149043)                                         \
   V(_Smi, get:bitLength, Smi_bitLength, 869986288)                             \
-  V(_Bigint, _lsh, Bigint_lsh, 399808874)                                      \
+  V(_Bigint, _lsh, Bigint_lsh, 1318834243)                                     \
   V(_Bigint, _rsh, Bigint_rsh, 1239668932)                                     \
   V(_Bigint, _absAdd, Bigint_absAdd, 222437051)                                \
   V(_Bigint, _absSub, Bigint_absSub, 599465997)                                \
@@ -401,7 +401,7 @@ namespace dart {
 
 // A list of core function that should never be inlined.
 #define INLINE_BLACK_LIST(V)                                                   \
-  V(_Bigint, _lsh, Bigint_lsh, 399808874)                                      \
+  V(_Bigint, _lsh, Bigint_lsh, 1318834243)                                     \
   V(_Bigint, _rsh, Bigint_rsh, 1239668932)                                     \
   V(_Bigint, _absAdd, Bigint_absAdd, 222437051)                                \
   V(_Bigint, _absSub, Bigint_absSub, 599465997)                                \
