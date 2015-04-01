@@ -28,7 +28,7 @@ main() {
       ])
     ]).create();
 
-    var pub = pubRun(args: ["script"]);
+    var pub = pubRun(args: ["bin/script"]);
 
     pub.stdout.expect("ready");
     for (var signal in [ProcessSignal.SIGHUP, ProcessSignal.SIGINT]) {
