@@ -144,6 +144,48 @@ class BoolState extends InstanceState {
 }
 
 /**
+ * An [AstCloner] that copies the necessary information from the AST to allow
+ * const constructor initializers to be evaluated.
+ */
+class ConstantAstCloner extends AstCloner {
+  ConstantAstCloner() : super(true);
+
+  @override
+  InstanceCreationExpression visitInstanceCreationExpression(
+      InstanceCreationExpression node) {
+    InstanceCreationExpression expression =
+        super.visitInstanceCreationExpression(node);
+    expression.evaluationResult = node.evaluationResult;
+    return expression;
+  }
+
+  @override
+  RedirectingConstructorInvocation visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation invocation =
+        super.visitRedirectingConstructorInvocation(node);
+    invocation.staticElement = node.staticElement;
+    return invocation;
+  }
+
+  @override
+  SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) {
+    SimpleIdentifier identifier = super.visitSimpleIdentifier(node);
+    identifier.staticElement = node.staticElement;
+    return identifier;
+  }
+
+  @override
+  SuperConstructorInvocation visitSuperConstructorInvocation(
+      SuperConstructorInvocation node) {
+    SuperConstructorInvocation invocation =
+        super.visitSuperConstructorInvocation(node);
+    invocation.staticElement = node.staticElement;
+    return invocation;
+  }
+}
+
+/**
  * Instances of the class `ConstantEvaluator` evaluate constant expressions to
  * produce their compile-time value. According to the Dart Language
  * Specification:
@@ -652,8 +694,7 @@ class ConstantValueComputer {
       ConstructorElementImpl constructor =
           declaration.element as ConstructorElementImpl;
       constructor.constantInitializers =
-          new ConstantValueComputer_InitializerCloner()
-              .cloneNodeList(initializers);
+          new ConstantAstCloner().cloneNodeList(initializers);
     } else if (constNode is FormalParameter) {
       if (constNode is DefaultFormalParameter) {
         DefaultFormalParameter parameter = constNode;
@@ -1086,51 +1127,6 @@ class ConstantValueComputer {
   static bool isValidPublicSymbol(String name) => name.isEmpty ||
       name == "void" ||
       new JavaPatternMatcher(_PUBLIC_SYMBOL_PATTERN, name).matches();
-}
-
-/**
- * An [AstCloner] that copies the necessary information from the AST to allow
- * const constructor initializers to be evaluated.
- */
-class ConstantValueComputer_InitializerCloner extends AstCloner {
-  // TODO(brianwilkerson) Investigate replacing uses of this class with uses of
-  // AstCloner and ResolutionCopier.
-
-  ConstantValueComputer_InitializerCloner() : super(true);
-
-  @override
-  InstanceCreationExpression visitInstanceCreationExpression(
-      InstanceCreationExpression node) {
-    InstanceCreationExpression expression =
-        super.visitInstanceCreationExpression(node);
-    expression.evaluationResult = node.evaluationResult;
-    return expression;
-  }
-
-  @override
-  RedirectingConstructorInvocation visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
-    RedirectingConstructorInvocation invocation =
-        super.visitRedirectingConstructorInvocation(node);
-    invocation.staticElement = node.staticElement;
-    return invocation;
-  }
-
-  @override
-  SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) {
-    SimpleIdentifier identifier = super.visitSimpleIdentifier(node);
-    identifier.staticElement = node.staticElement;
-    return identifier;
-  }
-
-  @override
-  SuperConstructorInvocation visitSuperConstructorInvocation(
-      SuperConstructorInvocation node) {
-    SuperConstructorInvocation invocation =
-        super.visitSuperConstructorInvocation(node);
-    invocation.staticElement = node.staticElement;
-    return invocation;
-  }
 }
 
 /**
