@@ -251,6 +251,18 @@ class OpTypeTest {
     assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
+  test_CatchClause_onType() {
+    // TypeName  CatchClause  TryStatement
+    addTestSource('class A {a() {try{var x;} on ^ {}}}');
+    assertOpType(typeNames: true);
+  }
+
+  test_CatchClause_onType_noBrackets() {
+    // TypeName  CatchClause  TryStatement
+    addTestSource('class A {a() {try{var x;} on ^}}');
+    assertOpType(typeNames: true);
+  }
+
   test_CatchClause_typed() {
     // Block  CatchClause  TryStatement
     addTestSource('class A {a() {try{var x;} on E catch (e) {^}}}');

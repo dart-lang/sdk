@@ -1927,7 +1927,7 @@ class Q {
       "8+==",
       "9+==",
       "0+k"
-    ], failingTests: '5689');
+    ], failingTests: '689');
 
     // keywords
     buildTests('test014', '''
@@ -2100,8 +2100,7 @@ class T {
 
     buildTests('test031',
         '''class Caster {} m() {try {} on Cas!1ter catch (CastBlock) {!2}}''',
-        <String>["1+Caster", "1-CastBlock", "2+Caster", "2+CastBlock"],
-        failingTests: '1');
+        <String>["1+Caster", "1-CastBlock", "2+Caster", "2+CastBlock"]);
 
     buildTests('test032', '''
 const ONE = 1;

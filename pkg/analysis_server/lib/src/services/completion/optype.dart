@@ -166,6 +166,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitCatchClause(CatchClause node) {
+    if (identical(entity, node.exceptionType)) {
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     // Make suggestions in the body of the class declaration
     if (node.members.contains(entity) || identical(entity, node.rightBracket)) {
