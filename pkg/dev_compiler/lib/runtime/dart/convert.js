@@ -16,10 +16,10 @@ var convert;
         return this.decoder.convert(encoded);
       }
       fuse(other) {
-        return new _FusedCodec(this, other);
+        return new (_FusedCodec$(S, T, dynamic))(this, other);
       }
       get inverted() {
-        return new _InvertedCodec(this);
+        return new (_InvertedCodec$(T, S))(this);
       }
     }
     return Codec;
@@ -77,7 +77,7 @@ var convert;
       Converter() {
       }
       fuse(other) {
-        return new _FusedConverter(this, other);
+        return new (_FusedConverter$(S, T, dynamic))(this, other);
       }
       startChunkedConversion(sink) {
         throw new core.UnsupportedError(`This converter does not support chunked conversions: ${this}`);
@@ -1364,7 +1364,7 @@ var convert;
       super.Converter();
     }
     convert(data) {
-      let lines = new core.List();
+      let lines = new (core.List$(core.String))();
       _LineSplitterSink._addSlice(data, 0, data.length, true, lines.add);
       return lines;
     }

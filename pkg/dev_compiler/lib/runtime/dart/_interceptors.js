@@ -29,25 +29,25 @@ var _interceptors;
         if (dart.notNull(!(typeof length == 'number')) || dart.notNull(length) < 0) {
           throw new core.ArgumentError(`Length must be a non-negative integer: ${length}`);
         }
-        return new JSArray.markFixed(new Array(length));
+        return new JSArray$(E).markFixed(new Array(length));
       }
       emptyGrowable() {
-        return new JSArray.markGrowable([]);
+        return new JSArray$(E).markGrowable([]);
       }
       growable(length) {
         if (dart.notNull(!(typeof length == 'number')) || dart.notNull(length) < 0) {
           throw new core.ArgumentError(`Length must be a non-negative integer: ${length}`);
         }
-        return new JSArray.markGrowable(new Array(length));
+        return new JSArray$(E).markGrowable(new Array(length));
       }
       typed(allocation) {
         return dart.as(allocation, JSArray$(E));
       }
       markFixed(allocation) {
-        return dart.as(JSArray.markFixedList(new JSArray.typed(allocation)), JSArray$(E));
+        return dart.as(JSArray.markFixedList(new JSArray$(E).typed(allocation)), JSArray$(E));
       }
       markGrowable(allocation) {
-        return dart.as(new JSArray.typed(allocation), JSArray$(E));
+        return dart.as(new JSArray$(E).typed(allocation), JSArray$(E));
       }
       static markFixedList(list) {
         list.fixed$length = Array;
@@ -116,7 +116,7 @@ var _interceptors;
         _internal.IterableMixinWorkaround.removeWhereList(this, (element) => !dart.notNull(test(element)));
       }
       where(f) {
-        return new _internal.IterableMixinWorkaround().where(this, f);
+        return new (_internal.IterableMixinWorkaround$(E))().where(this, f);
       }
       expand(f) {
         return _internal.IterableMixinWorkaround.expand(this, f);
@@ -151,16 +151,16 @@ var _interceptors;
         return list.join(separator);
       }
       take(n) {
-        return new _internal.IterableMixinWorkaround().takeList(this, n);
+        return new (_internal.IterableMixinWorkaround$(E))().takeList(this, n);
       }
       takeWhile(test) {
-        return new _internal.IterableMixinWorkaround().takeWhile(this, test);
+        return new (_internal.IterableMixinWorkaround$(E))().takeWhile(this, test);
       }
       skip(n) {
-        return new _internal.IterableMixinWorkaround().skipList(this, n);
+        return new (_internal.IterableMixinWorkaround$(E))().skipList(this, n);
       }
       skipWhile(test) {
-        return new _internal.IterableMixinWorkaround().skipWhile(this, test);
+        return new (_internal.IterableMixinWorkaround$(E))().skipWhile(this, test);
       }
       reduce(combine) {
         return dart.as(_internal.IterableMixinWorkaround.reduce(this, combine), E);
@@ -202,10 +202,10 @@ var _interceptors;
         }
         if (start == end)
           return new core.List$(E).from([]);
-        return new JSArray.markGrowable(this.slice(start, end));
+        return new JSArray$(E).markGrowable(this.slice(start, end));
       }
       getRange(start, end) {
-        return new _internal.IterableMixinWorkaround().getRangeList(this, start, end);
+        return new (_internal.IterableMixinWorkaround$(E))().getRangeList(this, start, end);
       }
       get first() {
         if (dart.notNull(this.length) > 0)
@@ -259,7 +259,7 @@ var _interceptors;
         return _internal.IterableMixinWorkaround.every(this, f);
       }
       get reversed() {
-        return new _internal.IterableMixinWorkaround().reversedList(this);
+        return new (_internal.IterableMixinWorkaround$(E))().reversedList(this);
       }
       sort(compare) {
         if (compare === void 0)
@@ -301,16 +301,16 @@ var _interceptors;
       toList(opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
         if (growable) {
-          return new JSArray.markGrowable(this.slice());
+          return new JSArray$(E).markGrowable(this.slice());
         } else {
-          return new JSArray.markFixed(this.slice());
+          return new JSArray$(E).markFixed(this.slice());
         }
       }
       toSet() {
-        return new core.Set.from(this);
+        return new core.Set$(E).from(this);
       }
       get iterator() {
-        return new _internal.ListIterator(this);
+        return new (_internal.ListIterator$(E))(this);
       }
       get hashCode() {
         return _js_helper.Primitives.objectHashCode(this);
@@ -342,7 +342,7 @@ var _interceptors;
         this[index] = value;
       }
       asMap() {
-        return new _internal.IterableMixinWorkaround().asMapList(this);
+        return new (_internal.IterableMixinWorkaround$(E))().asMapList(this);
       }
     }
     JSArray[dart.implements] = () => [core.List$(E), JSIndexable];
@@ -1213,7 +1213,7 @@ var _interceptors;
   function _symbolMapToStringMap(map) {
     if (map == null)
       return null;
-    let result = new core.Map();
+    let result = new (core.Map$(core.String, dynamic))();
     map.forEach((key, value) => {
       result.set(_symbolToString(key), value);
     });

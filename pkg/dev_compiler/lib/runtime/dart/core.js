@@ -1074,8 +1074,8 @@ var core;
         if (generator === void 0)
           generator = null;
         if (dart.notNull(count) <= 0)
-          return new _internal.EmptyIterable();
-        return new _GeneratorIterable(count, generator);
+          return new (_internal.EmptyIterable$(E))();
+        return new (exports._GeneratorIterable$(E))(count, generator);
       }
       join(separator) {
         if (separator === void 0)
@@ -1117,7 +1117,7 @@ var core;
         super.IterableBase();
       }
       get iterator() {
-        return new _GeneratorIterator(this[_start], this[_end], this[_generator]);
+        return new (_GeneratorIterator$(E))(this[_start], this[_end], this[_generator]);
       }
       get length() {
         return dart.notNull(this[_end]) - dart.notNull(this[_start]);
@@ -1128,17 +1128,17 @@ var core;
           return this;
         let newStart = dart.notNull(this[_start]) + dart.notNull(count);
         if (dart.notNull(newStart) >= dart.notNull(this[_end]))
-          return new _internal.EmptyIterable();
-        return new _GeneratorIterable.slice(newStart, this[_end], this[_generator]);
+          return new (_internal.EmptyIterable$(E))();
+        return new exports._GeneratorIterable$(E).slice(newStart, this[_end], this[_generator]);
       }
       take(count) {
         RangeError.checkNotNegative(count, "count");
         if (count == 0)
-          return new _internal.EmptyIterable();
+          return new (_internal.EmptyIterable$(E))();
         let newEnd = dart.notNull(this[_start]) + dart.notNull(count);
         if (dart.notNull(newEnd) >= dart.notNull(this[_end]))
           return this;
-        return new _GeneratorIterable.slice(this[_start], newEnd, this[_generator]);
+        return new exports._GeneratorIterable$(E).slice(this[_start], newEnd, this[_generator]);
       }
       static [_id](n) {
         return n;
@@ -1196,12 +1196,12 @@ var core;
         if (length === void 0)
           length = new _ListConstructorSentinel();
         if (dart.equals(length, new _ListConstructorSentinel())) {
-          return new _interceptors.JSArray.emptyGrowable();
+          return new _interceptors.JSArray$(E).emptyGrowable();
         }
-        return new _interceptors.JSArray.fixed(length);
+        return new _interceptors.JSArray$(E).fixed(length);
       }
       filled(length, fill) {
-        let result = new _interceptors.JSArray.fixed(length);
+        let result = new _interceptors.JSArray$(E).fixed(length);
         if (length != 0 && dart.notNull(fill != null)) {
           for (let i = 0; dart.notNull(i) < dart.notNull(result.length); i = dart.notNull(i) + 1) {
             result.set(i, fill);
@@ -1222,7 +1222,7 @@ var core;
             return _$;
           }).bind(this)(new List$(E).from([]));
         } else {
-          result = new List(length);
+          result = new (List$(E))(length);
         }
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           result.set(i, generator(i));
@@ -1240,19 +1240,19 @@ var core;
   let Map$ = dart.generic(function(K, V) {
     class Map extends Object {
       Map() {
-        return new collection.LinkedHashMap();
+        return new (collection.LinkedHashMap$(K, V))();
       }
       from(other) {
-        return new collection.LinkedHashMap.from(other);
+        return new collection.LinkedHashMap$(K, V).from(other);
       }
       identity() {
-        return new collection.LinkedHashMap.identity();
+        return new collection.LinkedHashMap$(K, V).identity();
       }
       fromIterable(iterable, opts) {
-        return new collection.LinkedHashMap.fromIterable(iterable, opts);
+        return new collection.LinkedHashMap$(K, V).fromIterable(iterable, opts);
       }
       fromIterables(keys, values) {
-        return new collection.LinkedHashMap.fromIterables(keys, values);
+        return new collection.LinkedHashMap$(K, V).fromIterables(keys, values);
       }
     }
     dart.defineNamedConstructor(Map, 'from');
@@ -1296,13 +1296,13 @@ var core;
   let Set$ = dart.generic(function(E) {
     class Set extends collection.IterableBase$(E) {
       Set() {
-        return new collection.LinkedHashSet();
+        return new (collection.LinkedHashSet$(E))();
       }
       identity() {
-        return new collection.LinkedHashSet.identity();
+        return new collection.LinkedHashSet$(E).identity();
       }
       from(elements) {
-        return new collection.LinkedHashSet.from(elements);
+        return new collection.LinkedHashSet$(E).from(elements);
       }
     }
     Set[dart.implements] = () => [_internal.EfficientLength];
@@ -2869,7 +2869,7 @@ var core;
       } else if (parts.length != 8) {
         error('an address without a wildcard must contain exactly 8 parts');
       }
-      let bytes = new List(16);
+      let bytes = new (List$(int))(16);
       for (let i = 0, index = 0; dart.notNull(i) < dart.notNull(parts.length); i = dart.notNull(i) + 1) {
         let value = parts.get(i);
         if (value == -1) {
@@ -3018,7 +3018,7 @@ var core;
   function _symbolMapToStringMap(map) {
     if (map == null)
       return null;
-    let result = new Map();
+    let result = new (Map$(String, dynamic))();
     map.forEach((key, value) => {
       result.set(_symbolToString(key), value);
     });

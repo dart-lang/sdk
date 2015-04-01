@@ -145,7 +145,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   // TODO(jmesserly): this is a temporary workaround for `Symbol` in core,
   // until we have better name tracking.
-  String get _SYMBOL => currentLibrary.isDartCore ? 'dart.JsSymbol' : 'Symbol';
+  String get _SYMBOL {
+    var name = currentLibrary.name;
+    if (name == 'dart.core' || name == 'dart._internal') return 'dart.JsSymbol';
+    return 'Symbol';
+  }
 
   @override
   JS.Statement visitCompilationUnit(CompilationUnit node) {
@@ -1354,7 +1358,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   visitConstructorName(ConstructorName node) {
-    var typeName = _visit(node.type.name);
+    var typeName = _visit(node.type);
     if (node.name != null) {
       return js.call(
           '#.#', [typeName, _jsMemberName(node.name.name, isStatic: true)]);
@@ -1870,6 +1874,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // Discard following clauses, if any, as they are unreachable.
     if (clause.exceptionType == null) return then;
 
+    // TODO(jmesserly): this is inconsistent with [visitIsExpression], which
+    // has special case for typeof.
     return new JS.If(js.call('dart.is(#, #)', [
       _visit(_catchParameter),
       _emitTypeName(clause.exceptionType.type),

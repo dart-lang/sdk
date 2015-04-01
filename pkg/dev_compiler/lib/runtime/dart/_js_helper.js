@@ -99,10 +99,10 @@ var _js_helper;
         }
       }
       get keys() {
-        return new _ConstantMapKeyIterable(this);
+        return new (_ConstantMapKeyIterable$(K))(this);
       }
       get values() {
-        return new _internal.MappedIterable(this[_keys], dart.closureWrap(((key) => this[_fetch](key)).bind(this), "(K) → V"));
+        return new (_internal.MappedIterable$(K, V))(this[_keys], dart.closureWrap(((key) => this[_fetch](key)).bind(this), "(K) → V"));
       }
     }
     ConstantStringMap[dart.implements] = () => [_internal.EfficientLength];
@@ -159,7 +159,7 @@ var _js_helper;
       }
       [_getMap]() {
         if (!this.$map) {
-          let backingMap = new collection.LinkedHashMap();
+          let backingMap = new (collection.LinkedHashMap$(K, V))();
           this.$map = fillLiteralMap(this[_jsData], backingMap);
         }
         return this.$map;
@@ -688,7 +688,7 @@ var _js_helper;
       return this.pattern;
     }
     groups(groups_) {
-      let result = new core.List();
+      let result = new (core.List$(core.String))();
       for (let g of groups_) {
         result.add(this.group(g));
       }
@@ -698,7 +698,7 @@ var _js_helper;
   StringMatch[dart.implements] = () => [core.Match];
   // Function allMatchesInStringUnchecked: (String, String, int) → List<Match>
   function allMatchesInStringUnchecked(needle, haystack, startIndex) {
-    let result = new core.List();
+    let result = new (core.List$(core.Match))();
     let length = haystack.length;
     let patternLength = needle.length;
     while (true) {
@@ -1457,7 +1457,7 @@ var _js_helper;
       let namedArgumentsStartIndex = dart.notNull(this[_arguments].length) - dart.notNull(namedArgumentCount);
       if (namedArgumentCount == 0)
         return dart.map();
-      let map = new core.Map();
+      let map = new (core.Map$(core.Symbol, dynamic))();
       for (let i = 0; dart.notNull(i) < dart.notNull(namedArgumentCount); i = dart.notNull(i) + 1) {
         map.set(new _internal.Symbol.unvalidated(dart.as(this[_namedArgumentNames].get(i), core.String)), this[_arguments].get(dart.notNull(namedArgumentsStartIndex) + dart.notNull(i)));
       }
@@ -3235,7 +3235,7 @@ var _js_helper;
   // Function throwNoSuchMethod: (dynamic, dynamic, dynamic, dynamic) → void
   function throwNoSuchMethod(obj, name, arguments$, expectedArgumentNames) {
     let memberName = new _internal.Symbol.unvalidated(dart.as(name, core.String));
-    throw new core.NoSuchMethodError(obj, memberName, dart.as(arguments$, core.List), new core.Map(), dart.as(expectedArgumentNames, core.List));
+    throw new core.NoSuchMethodError(obj, memberName, dart.as(arguments$, core.List), new (core.Map$(core.Symbol, dynamic))(), dart.as(expectedArgumentNames, core.List));
   }
   // Function throwCyclicInit: (String) → void
   function throwCyclicInit(staticName) {
@@ -3659,7 +3659,7 @@ var _js_helper;
       return dart.map();
     },
     get _loadedLibraries() {
-      return new core.Set();
+      return new (core.Set$(core.String))();
     }
   });
   exports.deferredLoadHook = null;
@@ -3697,7 +3697,7 @@ var _js_helper;
     let index = uri.lastIndexOf('/');
     uri = `${uri.substring(0, dart.notNull(index) + 1)}${hunkName}`;
     if (dart.notNull(Primitives.isJsshell) || dart.notNull(Primitives.isD8)) {
-      return exports._loadingLibraries.set(hunkName, new async.Future(() => {
+      return exports._loadingLibraries.set(hunkName, new (async.Future$(core.Null))(() => {
         try {
           new Function(`load("${uri}")`)();
         } catch (error) {
@@ -3708,8 +3708,8 @@ var _js_helper;
         return null;
       }));
     } else if (_isolate_helper.isWorker()) {
-      return exports._loadingLibraries.set(hunkName, new async.Future(() => {
-        let completer = new async.Completer();
+      return exports._loadingLibraries.set(hunkName, new (async.Future$(core.Null))(() => {
+        let completer = new (async.Completer$(core.Null))();
         _isolate_helper.enterJsAsync();
         let leavingFuture = dart.as(completer.future.whenComplete(() => {
           _isolate_helper.leaveJsAsync();
@@ -3743,8 +3743,8 @@ var _js_helper;
         return leavingFuture;
       }));
     }
-    return exports._loadingLibraries.set(hunkName, new async.Future(() => {
-      let completer = new async.Completer();
+    return exports._loadingLibraries.set(hunkName, new (async.Future$(core.Null))(() => {
+      let completer = new (async.Completer$(core.Null))();
       let script = document.createElement("script");
       script.type = "text/javascript";
       script.src = uri;

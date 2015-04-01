@@ -616,7 +616,7 @@ class Printer implements NodeVisitor {
 
   visitNew(New node) {
     out("new ");
-    visitNestedExpression(node.target, CALL,
+    visitNestedExpression(node.target, ACCESS,
                           newInForInit: inForInit, newAtStatementBegin: false);
     out("(");
     visitCommaSeparated(node.arguments, ASSIGNMENT,

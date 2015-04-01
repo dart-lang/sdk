@@ -713,6 +713,8 @@ class New extends Call {
   accept(NodeVisitor visitor) => visitor.visitNew(this);
 
   New _clone() => new New(target, arguments);
+
+  int get precedenceLevel => ACCESS;
 }
 
 class Binary extends Expression {
@@ -948,7 +950,7 @@ class PropertyAccess extends Expression {
 
   PropertyAccess _clone() => new PropertyAccess(receiver, selector);
 
-  int get precedenceLevel => CALL;
+  int get precedenceLevel => ACCESS;
 }
 
 abstract class Literal extends Expression {

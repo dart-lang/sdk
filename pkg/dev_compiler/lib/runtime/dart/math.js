@@ -37,13 +37,13 @@ var math;
         return _JenkinsSmiHash.hash2(this.x.hashCode, this.y.hashCode);
       }
       ['+'](other) {
-        return new Point(dart.as(this.x['+'](other.x), T), dart.as(this.y['+'](other.y), T));
+        return new (Point$(T))(dart.as(this.x['+'](other.x), T), dart.as(this.y['+'](other.y), T));
       }
       ['-'](other) {
-        return new Point(dart.as(this.x['-'](other.x), T), dart.as(this.y['-'](other.y), T));
+        return new (Point$(T))(dart.as(this.x['-'](other.x), T), dart.as(this.y['-'](other.y), T));
       }
       ['*'](factor) {
-        return new Point(dart.as(this.x['*'](factor), T), dart.as(this.y['*'](factor), T));
+        return new (Point$(T))(dart.as(this.x['*'](factor), T), dart.as(this.y['*'](factor), T));
       }
       get magnitude() {
         return sqrt(dart.notNull(this.x['*'](this.x)) + dart.notNull(this.y['*'](this.y)));
@@ -97,7 +97,7 @@ var math;
           let y0 = max(this.top, other.top);
           let y1 = min(this.top['+'](this.height), other.top['+'](other.height));
           if (dart.notNull(y0) <= dart.notNull(y1)) {
-            return new Rectangle(dart.as(x0, T), dart.as(y0, T), dart.as(dart.notNull(x1) - dart.notNull(x0), T), dart.as(dart.notNull(y1) - dart.notNull(y0), T));
+            return new (Rectangle$(T))(dart.as(x0, T), dart.as(y0, T), dart.as(dart.notNull(x1) - dart.notNull(x0), T), dart.as(dart.notNull(y1) - dart.notNull(y0), T));
           }
         }
         return null;
@@ -110,7 +110,7 @@ var math;
         let bottom = max(this.top['+'](this.height), other.top['+'](other.height));
         let left = min(this.left, other.left);
         let top = min(this.top, other.top);
-        return new Rectangle(dart.as(left, T), dart.as(top, T), dart.as(dart.notNull(right) - dart.notNull(left), T), dart.as(dart.notNull(bottom) - dart.notNull(top), T));
+        return new (Rectangle$(T))(dart.as(left, T), dart.as(top, T), dart.as(dart.notNull(right) - dart.notNull(left), T), dart.as(dart.notNull(bottom) - dart.notNull(top), T));
       }
       containsRectangle(another) {
         return dart.notNull(this.left['<='](another.left)) && dart.notNull(this.left['+'](this.width)) >= dart.notNull(another.left) + dart.notNull(another.width) && dart.notNull(this.top['<='](another.top)) && dart.notNull(this.top['+'](this.height)) >= dart.notNull(another.top) + dart.notNull(another.height);
@@ -119,16 +119,16 @@ var math;
         return core.num['>='](another.x, this.left) && dart.notNull(another.x) <= dart.notNull(this.left['+'](this.width)) && core.num['>='](another.y, this.top) && dart.notNull(another.y) <= dart.notNull(this.top['+'](this.height));
       }
       get topLeft() {
-        return new Point(this.left, this.top);
+        return new (Point$(T))(this.left, this.top);
       }
       get topRight() {
-        return new Point(dart.as(this.left['+'](this.width), T), this.top);
+        return new (Point$(T))(dart.as(this.left['+'](this.width), T), this.top);
       }
       get bottomRight() {
-        return new Point(dart.as(this.left['+'](this.width), T), dart.as(this.top['+'](this.height), T));
+        return new (Point$(T))(dart.as(this.left['+'](this.width), T), dart.as(this.top['+'](this.height), T));
       }
       get bottomLeft() {
-        return new Point(this.left, dart.as(this.top['+'](this.height), T));
+        return new (Point$(T))(this.left, dart.as(this.top['+'](this.height), T));
       }
     }
     return _RectangleBase;
@@ -148,7 +148,7 @@ var math;
         let width = dart.as(core.num['-'](max(a.x, b.x), left), T);
         let top = dart.as(min(a.y, b.y), T);
         let height = dart.as(core.num['-'](max(a.y, b.y), top), T);
-        return new Rectangle(left, top, width, height);
+        return new (Rectangle$(T))(left, top, width, height);
       }
     }
     dart.defineNamedConstructor(Rectangle, 'fromPoints');
@@ -171,7 +171,7 @@ var math;
         let width = dart.as(core.num['-'](max(a.x, b.x), left), T);
         let top = dart.as(min(a.y, b.y), T);
         let height = dart.as(core.num['-'](max(a.y, b.y), top), T);
-        return new MutableRectangle(left, top, width, height);
+        return new (MutableRectangle$(T))(left, top, width, height);
       }
       get width() {
         return this[_width];

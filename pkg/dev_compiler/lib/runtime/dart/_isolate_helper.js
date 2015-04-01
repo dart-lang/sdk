@@ -24,7 +24,7 @@ var _isolate_helper;
   class _Serializer extends core.Object {
     _Serializer(opts) {
       let serializeSendPorts = opts && 'serializeSendPorts' in opts ? opts.serializeSendPorts : true;
-      this.serializedObjectIds = new core.Map.identity();
+      this.serializedObjectIds = new core.Map$(dynamic, core.int).identity();
       this[_serializeSendPorts] = dart.as(serializeSendPorts, core.bool);
     }
     serialize(x) {
@@ -430,8 +430,8 @@ var _isolate_helper;
       this.managers = null;
       this[_nativeDetectEnvironment]();
       this.topEventLoop = new _EventLoop();
-      this.isolates = new core.Map();
-      this.managers = new core.Map();
+      this.isolates = new (core.Map$(core.int, _IsolateContext))();
+      this.managers = new (core.Map$(core.int, dynamic))();
       if (this.isWorker) {
         this.mainManager = new _MainManagerStub();
         this[_nativeInitWorkerMessageHandler]();
@@ -479,8 +479,8 @@ var _isolate_helper;
   class _IsolateContext extends core.Object {
     _IsolateContext() {
       this.id = ((x$) => exports._globalState.nextIsolateId = dart.notNull(x$) + 1, x$).bind(this)(exports._globalState.nextIsolateId);
-      this.ports = new core.Map();
-      this.weakPorts = new core.Set();
+      this.ports = new (core.Map$(core.int, RawReceivePortImpl))();
+      this.weakPorts = new (core.Set$(core.int))();
       this.isolateStatics = _foreign_helper.JS_CREATE_ISOLATE();
       this.controlPort = new RawReceivePortImpl[_controlPort]();
       this.pauseCapability = new isolate.Capability();
@@ -733,7 +733,7 @@ var _isolate_helper;
   let _runHelper = Symbol('_runHelper');
   class _EventLoop extends core.Object {
     _EventLoop() {
-      this.events = new collection.Queue();
+      this.events = new (collection.Queue$(_IsolateEvent))();
       this[_activeJsAsyncCount] = 0;
     }
     enqueue(isolate, fn, msg) {
@@ -1023,7 +1023,7 @@ var _isolate_helper;
     }
     static [_startWorker](functionName, uri, args, message, isSpawnUri, startPaused, replyPort, onError) {
       if (args != null)
-        args = new core.List.from(args);
+        args = new core.List$(core.String).from(args);
       if (exports._globalState.isWorker) {
         exports._globalState.mainManager.postMessage(_serializeMessage(dart.map({command: 'spawn-worker', functionName: functionName, args: args, msg: message, uri: uri, isSpawnUri: isSpawnUri, startPaused: startPaused, replyPort: replyPort})));
       } else {
@@ -1036,7 +1036,7 @@ var _isolate_helper;
       }
       message = _clone(message);
       if (args != null)
-        args = new core.List.from(args);
+        args = new core.List$(core.String).from(args);
       exports._globalState.topEventLoop.enqueue(new _IsolateContext(), () => {
         let func = IsolateNatives[_getJSFunctionFromName](functionName);
         IsolateNatives[_startIsolate](dart.as(func, core.Function), args, message, isSpawnUri, startPaused, replyPort);
@@ -1111,7 +1111,7 @@ var _isolate_helper;
     },
     set thisScript(_) {},
     get workerIds() {
-      return new core.Expando();
+      return new (core.Expando$(core.int))();
     }
   });
   let _checkReplyTo = Symbol('_checkReplyTo');
