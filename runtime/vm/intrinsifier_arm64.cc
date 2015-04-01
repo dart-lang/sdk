@@ -689,6 +689,16 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Bigint_lsh(Assembler* assembler) {
+  // TODO(regis): Implement.
+}
+
+
+void Intrinsifier::Bigint_rsh(Assembler* assembler) {
+  // TODO(regis): Implement.
+}
+
+
 void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   // static void _absAdd(Uint32List digits, int used,
   //                     Uint32List a_digits, int a_used,

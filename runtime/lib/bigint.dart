@@ -285,7 +285,7 @@ class _Bigint extends _IntegerImplementation implements int {
       return _dlShift(ds);
     }
     var r_used = _used + ds + 1;
-    var r_digits = new Uint32List(r_used + (r_used & 1));
+    var r_digits = new Uint32List(r_used + 2 + (r_used & 1));  // +2 for 64-bit.
     _lsh(_digits, _used, n, r_digits);
     return new _Bigint(_neg, r_used, r_digits);
   }
@@ -300,7 +300,7 @@ class _Bigint extends _IntegerImplementation implements int {
       return _dlShiftDigits(x_digits, x_used, ds, r_digits);
     }
     var r_used = x_used + ds + 1;
-    assert(r_digits.length >= r_used + (r_used & 1));
+    assert(r_digits.length >= r_used + 2 + (r_used & 1));  // +2 for 64-bit.
     _lsh(x_digits, x_used, n, r_digits);
     if (r_digits[r_used - 1] == 0) {
       r_used--;  // Clamp result.
@@ -971,9 +971,9 @@ class _Bigint extends _IntegerImplementation implements int {
     var y_digits;
     var y_used;
     if (nsh > 0) {
-      y_digits = new Uint32List(a._used + 3);  // +3 for normalization.
+      y_digits = new Uint32List(a._used + 5);  // +5 for norm. and 64-bit.
       y_used = _lShiftDigits(a._digits, a._used, nsh, y_digits);
-      r_digits = new Uint32List(_used + 3);  // +3 for normalization.
+      r_digits = new Uint32List(_used + 5);  // +5 for normalization and 64-bit.
       r_used = _lShiftDigits(_digits, _used, nsh, r_digits);
     } else {
       y_digits = a._digits;
@@ -1359,7 +1359,7 @@ class _Bigint extends _IntegerImplementation implements int {
     if (e == 0) return 1;
     m = m._toBigint();
     final m_used = m._used;
-    final m_used2p2 = 2*m_used + 2;
+    final m_used2p4 = 2*m_used + 4;
     final e_bitlen = e.bitLength;
     if (e_bitlen <= 0) return 1;
     final bool cannotUseMontgomery = m.isEven || _abs() >= m;
@@ -1368,8 +1368,8 @@ class _Bigint extends _IntegerImplementation implements int {
           new _Classic(m) : new _Montgomery(m);
       // TODO(regis): Should we use Barrett reduction for an even modulus and a
       // large exponent?
-      var r_digits = new Uint32List(m_used2p2);
-      var r2_digits = new Uint32List(m_used2p2);
+      var r_digits = new Uint32List(m_used2p4);
+      var r2_digits = new Uint32List(m_used2p4);
       var g_digits = new Uint32List(m_used + (m_used & 1));
       var g_used = z._convert(this, g_digits);
       // Initialize r with g.
@@ -1411,10 +1411,10 @@ class _Bigint extends _IntegerImplementation implements int {
     g_digits[1] = new Uint32List(m_used + (m_used & 1));
     g_used[1] = z._convert(this, g_digits[1]);
     if (k > 1) {
-      var g2_digits = new Uint32List(m_used2p2);
+      var g2_digits = new Uint32List(m_used2p4);
       var g2_used = z._sqr(g_digits[1], g_used[1], g2_digits);
       while (n <= km) {
-        g_digits[n] = new Uint32List(m_used2p2);
+        g_digits[n] = new Uint32List(m_used2p4);
         g_used[n] = z._mul(g2_digits, g2_used,
                            g_digits[n - 2], g_used[n - 2],
                            g_digits[n]);
@@ -1425,7 +1425,7 @@ class _Bigint extends _IntegerImplementation implements int {
     var is1 = true;
     var r_digits = _ONE._digits;
     var r_used = _ONE._used;
-    var r2_digits = new Uint32List(m_used2p2);
+    var r2_digits = new Uint32List(m_used2p4);
     var r2_used;
     var e_digits = e._digits;
     var j = e._used - 1;
@@ -1449,7 +1449,7 @@ class _Bigint extends _IntegerImplementation implements int {
         --j;
       }
       if (is1) {  // r == 1, don't bother squaring or multiplying it.
-        r_digits = new Uint32List(m_used2p2);
+        r_digits = new Uint32List(m_used2p4);
         r_used = g_used[w];
         var gw_digits = g_digits[w];
         var ri = r_used + (r_used & 1);  // Copy leading zero if any.

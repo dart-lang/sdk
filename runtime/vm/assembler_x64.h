@@ -627,6 +627,8 @@ class Assembler : public ValueObject {
   void sarq(Register reg, const Immediate& imm);
   void sarq(Register operand, Register shifter);
   void shldq(Register dst, Register src, const Immediate& imm);
+  void shldq(Register dst, Register src, Register shifter);
+  void shrdq(Register dst, Register src, Register shifter);
 
   void incl(const Address& address);
   void decl(const Address& address);

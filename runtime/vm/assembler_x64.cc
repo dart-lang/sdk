@@ -2299,6 +2299,28 @@ void Assembler::shldq(Register dst, Register src, const Immediate& imm) {
 }
 
 
+void Assembler::shldq(Register dst, Register src, Register shifter) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  ASSERT(shifter == RCX);
+  Operand operand(src);
+  EmitOperandREX(dst, operand, REX_W);
+  EmitUint8(0x0F);
+  EmitUint8(0xA5);
+  EmitOperand(src & 7, Operand(dst));
+}
+
+
+void Assembler::shrdq(Register dst, Register src, Register shifter) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  ASSERT(shifter == RCX);
+  Operand operand(src);
+  EmitOperandREX(dst, operand, REX_W);
+  EmitUint8(0x0F);
+  EmitUint8(0xAD);
+  EmitOperand(src & 7, Operand(dst));
+}
+
+
 void Assembler::incl(const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(address);
