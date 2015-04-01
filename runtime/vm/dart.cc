@@ -151,7 +151,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   Dart_EnterScope();
   Api::InitHandles();
 
-  Isolate::SetCurrent(NULL);  // Unregister the VM isolate from this thread.
+  Thread::ExitIsolate();  // Unregister the VM isolate from this thread.
   Isolate::SetCreateCallback(create);
   Isolate::SetInterruptCallback(interrupt);
   Isolate::SetUnhandledExceptionCallback(unhandled);
@@ -180,7 +180,7 @@ const char* Dart::Cleanup() {
   thread_pool_ = NULL;
 
   // Set the VM isolate as current isolate.
-  Isolate::SetCurrent(vm_isolate_);
+  Thread::EnterIsolate(vm_isolate_);
 
   // There is a planned and known asymmetry here: We exit one scope for the VM
   // isolate to account for the scope that was entered in Dart_InitOnce.

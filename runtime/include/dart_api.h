@@ -952,12 +952,10 @@ DART_EXPORT Dart_Handle Dart_DebugName();
  * Enters an isolate. After calling this function,
  * the current isolate will be set to the provided isolate.
  *
- * Requires there to be no current isolate.
+ * Requires there to be no current isolate. Multiple threads may not be in
+ * the same isolate at once.
  */
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate);
-/* TODO(turnidge): Describe what happens if two threads attempt to
- * enter the same isolate simultaneously. Check for this in the code.
- * Describe whether isolates are allowed to migrate. */
 
 /**
  * Notifies the VM that the current isolate is about to make a blocking call.

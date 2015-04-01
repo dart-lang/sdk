@@ -274,7 +274,11 @@ void ThreadPool::Worker::Loop() {
 
     // Release monitor while handling the task.
     monitor_.Exit();
+    Thread::EnsureInit();
     task->Run();
+    ASSERT(Isolate::Current() == NULL);
+    // Prevent unintended sharing of state between tasks.
+    Thread::CleanUp();
     delete task;
     monitor_.Enter();
 

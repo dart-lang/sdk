@@ -536,7 +536,7 @@ void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
   object##_handle_(NULL),
 
 Isolate::Isolate()
-  :   mutator_thread_(new Thread(this)),
+  :   mutator_thread_(NULL),
       vm_tag_(0),
       store_buffer_(),
       message_notify_callback_(NULL),
@@ -604,7 +604,7 @@ Isolate::Isolate()
 }
 
 Isolate::Isolate(Isolate* original)
-  :   mutator_thread_(new Thread(this)),
+  :   mutator_thread_(NULL),
       vm_tag_(0),
       store_buffer_(true),
       class_table_(original->class_table()),
@@ -685,7 +685,6 @@ Isolate::~Isolate() {
   delete spawn_state_;
   delete log_;
   log_ = NULL;
-  delete mutator_thread_;
 }
 
 
@@ -694,31 +693,6 @@ bool Isolate::IsIsolateOf(Thread* thread) {
   return this == thread->isolate();
 }
 #endif  // DEBUG
-
-
-void Isolate::SetCurrent(Isolate* current) {
-  Isolate* old_current = Current();
-  if (old_current != NULL) {
-    old_current->set_vm_tag(VMTag::kIdleTagId);
-    old_current->set_thread_state(NULL);
-    Profiler::EndExecution(old_current);
-  }
-  if (current != NULL) {
-    Thread::SetCurrent(current->mutator_thread());
-    ASSERT(current->thread_state() == NULL);
-    InterruptableThreadState* thread_state =
-        ThreadInterrupter::GetCurrentThreadState();
-#if defined(DEBUG)
-    CheckForDuplicateThreadState(thread_state);
-#endif
-    ASSERT(thread_state != NULL);
-    Profiler::BeginExecution(current);
-    current->set_thread_state(thread_state);
-    current->set_vm_tag(VMTag::kVMTagId);
-  } else {
-    Thread::SetCurrent(NULL);
-  }
-}
 
 
 void Isolate::InitOnce() {
@@ -740,7 +714,7 @@ Isolate* Isolate::Init(const char* name_prefix, bool is_vm_isolate) {
 
   // TODO(5411455): For now just set the recently created isolate as
   // the current isolate.
-  SetCurrent(result);
+  Thread::EnterIsolate(result);
 
   // Setup the isolate specific resuable handles.
 #define REUSABLE_HANDLE_ALLOCATION(object)                                     \
@@ -1441,7 +1415,7 @@ void Isolate::Shutdown() {
 
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
-  SetCurrent(NULL);
+  Thread::ExitIsolate();
   Profiler::ShutdownProfilingForIsolate(this);
 }
 

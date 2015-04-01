@@ -15,19 +15,28 @@ class CHA;
 class Isolate;
 
 // A VM thread; may be executing Dart code or performing helper tasks like
-// garbage collection or compilation.
+// garbage collection or compilation. The Thread structure associated with
+// a thread is allocated when the thread enters an isolate, and destroyed
+// upon exiting an isolate or an explicit call to CleanUp.
 class Thread {
  public:
-  explicit Thread(Isolate* isolate)
-      : isolate_(isolate),
-        cha_(NULL) {}
-
-  static void InitOnce();
-
+  // The currently executing thread, or NULL if not yet initialized.
   static Thread* Current() {
     return reinterpret_cast<Thread*>(OSThread::GetThreadLocal(thread_key_));
   }
-  static void SetCurrent(Thread* current);
+
+  // Makes the current thread enter 'isolate'. Also calls EnsureInit.
+  static void EnterIsolate(Isolate* isolate);
+  // Makes the current thread exit its isolate. Also calls CleanUp.
+  static void ExitIsolate();
+
+  // Initializes the current thread as a VM thread, if not already done.
+  static void EnsureInit();
+  // Clears the state of the current thread.
+  static void CleanUp();
+
+  // Called at VM startup.
+  static void InitOnce();
 
   // The topmost zone used for allocation in this thread.
   Zone* zone() {
@@ -46,6 +55,12 @@ class Thread {
 
   Isolate* isolate_;
   CHA* cha_;
+
+  Thread()
+      : isolate_(NULL),
+        cha_(NULL) {}
+
+  static void SetCurrent(Thread* current);
 
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };

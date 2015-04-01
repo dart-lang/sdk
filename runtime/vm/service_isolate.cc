@@ -611,7 +611,7 @@ class RunServiceTask : public ThreadPool::Task {
       return;
     }
 
-    Isolate::SetCurrent(NULL);
+    Thread::ExitIsolate();
 
     ServiceIsolate::ConstructExitMessageAndCache(isolate);
 

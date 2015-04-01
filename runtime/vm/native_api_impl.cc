@@ -48,7 +48,7 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
   }
   // Start the native port without a current isolate.
   IsolateSaver saver(Isolate::Current());
-  Isolate::SetCurrent(NULL);
+  Thread::ExitIsolate();
 
   NativeMessageHandler* nmh = new NativeMessageHandler(name, handler);
   Dart_Port port_id = PortMap::CreatePort(nmh);
@@ -60,7 +60,7 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
 DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
   // Close the native port without a current isolate.
   IsolateSaver saver(Isolate::Current());
-  Isolate::SetCurrent(NULL);
+  Thread::ExitIsolate();
 
   // TODO(turnidge): Check that the port is native before trying to close.
   return PortMap::ClosePort(native_port_id);

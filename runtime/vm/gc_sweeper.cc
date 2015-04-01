@@ -113,7 +113,7 @@ class SweeperTask : public ThreadPool::Task {
   }
 
   virtual void Run() {
-    Isolate::SetCurrent(task_isolate_);
+    Thread::EnterIsolate(task_isolate_);
     GCSweeper sweeper;
 
     HeapPage* page = first_;
@@ -143,7 +143,7 @@ class SweeperTask : public ThreadPool::Task {
       old_space_->set_tasks(old_space_->tasks() - 1);
       ml.Notify();
     }
-    Isolate::SetCurrent(NULL);
+    Thread::ExitIsolate();
     delete task_isolate_;
   }
 

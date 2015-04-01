@@ -1358,7 +1358,10 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   CHECK_NO_ISOLATE(Isolate::Current());
   // TODO(16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
-  Isolate::SetCurrent(iso);
+  if (iso->mutator_thread() != NULL) {
+    FATAL("Multiple mutators within one isolate is not supported.");
+  }
+  Thread::EnterIsolate(iso);
 }
 
 
@@ -1386,7 +1389,7 @@ DART_EXPORT void Dart_IsolateUnblocked() {
 
 DART_EXPORT void Dart_ExitIsolate() {
   CHECK_ISOLATE(Isolate::Current());
-  Isolate::SetCurrent(NULL);
+  Thread::ExitIsolate();
 }
 
 

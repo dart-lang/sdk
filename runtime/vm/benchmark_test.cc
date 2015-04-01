@@ -67,7 +67,7 @@ BENCHMARK(CorelibIsolateStartup) {
     Dart_ShutdownIsolate();
   }
   benchmark->set_score(timer.TotalElapsedTime() / kNumIterations);
-  Isolate::SetCurrent(isolate);
+  Thread::EnterIsolate(isolate);
 }
 
 
