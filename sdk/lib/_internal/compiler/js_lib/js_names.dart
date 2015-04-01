@@ -130,7 +130,8 @@ class _LazyReflectiveNamesMap {
     return result;
   }
 
-  int get _jsMangledNamesLength => JS('int', '#.length', _jsMangledNames);
+  int get _jsMangledNamesLength => JS('int', 'Object.keys(#).length',
+      _jsMangledNames);
 
   String operator[](String key) {
     if (_cache == null || _jsMangledNamesLength != _cacheLength) {
