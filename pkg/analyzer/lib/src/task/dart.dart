@@ -291,6 +291,12 @@ final ResultDescriptor<TypeProvider> TYPE_PROVIDER =
     new ResultDescriptor<TypeProvider>('TYPE_PROVIDER', null);
 
 /**
+ * The used [Element]s of a [LibraryUnitTarget].
+ */
+final ResultDescriptor<UsedElements> USED_ELEMENTS =
+    new ResultDescriptor<UsedElements>('USED_ELEMENTS', null);
+
+/**
  * The errors produced while verifying a compilation unit.
  *
  * The list will be empty if there were no errors, but will not be `null`.
@@ -1663,6 +1669,64 @@ class ExportNamespaceBuilder {
 }
 
 /**
+ * A task that builds [USED_ELEMENTS] for a unit.
+ */
+class GatherUsedElementsTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [RESOLVED_UNIT] input.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'GatherUsedElementsTask', createTask, buildInputs,
+      <ResultDescriptor>[USED_ELEMENTS]);
+
+  GatherUsedElementsTask(InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    CompilationUnitElement unitElement = unit.element;
+    LibraryElement libraryElement = unitElement.library;
+    //
+    // Prepare visited elements.
+    //
+    GatherUsedElementsVisitor visitor =
+        new GatherUsedElementsVisitor(libraryElement);
+    unit.accept(visitor);
+    //
+    // Record outputs.
+    //
+    outputs[USED_ELEMENTS] = visitor.usedElements;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(LibraryUnitTarget target) {
+    return <String, TaskInput>{UNIT_INPUT: RESOLVED_UNIT.of(target)};
+  }
+
+  /**
+   * Create a [GatherUsedElementsTask] based on the given [target] in
+   * the given [context].
+   */
+  static GatherUsedElementsTask createTask(
+      AnalysisContext context, LibraryUnitTarget target) {
+    return new GatherUsedElementsTask(context, target);
+  }
+}
+
+/**
  * A task that generates [HINTS] for a unit.
  */
 class GenerateHintsTask extends SourceBasedAnalysisTask {
@@ -2389,6 +2453,11 @@ class _ExportSourceClosureTaskInput implements TaskInput<List<Source>> {
 }
 
 /**
+ * The kind of the source closure to build.
+ */
+enum _SourceClosureKind { IMPORT, EXPORT }
+
+/**
  * A [TaskInput] whose value is a list of library sources imported directly
  * or indirectly by the target [Source].
  */
@@ -2401,11 +2470,6 @@ class _ImportSourceClosureTaskInput implements TaskInput<List<Source>> {
   TaskInputBuilder<List<Source>> createBuilder() =>
       new _SourceClosureTaskInputBuilder(target, _SourceClosureKind.IMPORT);
 }
-
-/**
- * The kind of the source closure to build.
- */
-enum _SourceClosureKind { IMPORT, EXPORT }
 
 /**
  * A [TaskInputBuilder] to build values for [_ImportSourceClosureTaskInput].

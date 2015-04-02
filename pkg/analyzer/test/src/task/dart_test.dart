@@ -42,6 +42,7 @@ main() {
   runReflectiveTests(BuildLibraryElementTaskTest);
   runReflectiveTests(BuildPublicNamespaceTaskTest);
   runReflectiveTests(BuildTypeProviderTaskTest);
+  runReflectiveTests(GatherUsedElementsTaskTest);
   runReflectiveTests(GenerateHintsTaskTest);
   runReflectiveTests(ParseDartTaskTest);
   runReflectiveTests(ResolveUnitTypeNamesTaskTest);
@@ -1122,6 +1123,52 @@ class BuildTypeProviderTaskTest extends _AbstractDartTaskTest {
 }
 
 @reflectiveTest
+class GatherUsedElementsTaskTest extends _AbstractDartTaskTest {
+  UsedElements usedElements;
+  Set<String> usedElementNames;
+
+  test_perform_localVariable() {
+    Source source = _newSource('/test.dart', r'''
+main() {
+  var v1 = 1;
+  var v2 = 2;
+  print(v2);
+}''');
+    _computeUsedElements(source);
+    // validate
+    expect(usedElementNames, unorderedEquals(['v2']));
+  }
+
+  test_perform_method() {
+    Source source = _newSource('/test.dart', r'''
+class A {
+  _m1() {}
+  _m2() {}
+}
+
+main(A a, p) {
+  a._m2();
+  p._m3();
+}
+''');
+    _computeUsedElements(source);
+    // validate
+    print(usedElementNames);
+    print(usedElements.members);
+    expect(usedElementNames, unorderedEquals(['A', 'a', 'p', '_m2']));
+    expect(usedElements.members, unorderedEquals(['_m2', '_m3']));
+  }
+
+  void _computeUsedElements(Source source) {
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, USED_ELEMENTS);
+    expect(task, new isInstanceOf<GatherUsedElementsTask>());
+    usedElements = outputs[USED_ELEMENTS];
+    usedElementNames = usedElements.elements.map((e) => e.name).toSet();
+  }
+}
+
+@reflectiveTest
 class GenerateHintsTaskTest extends _AbstractDartTaskTest {
   test_perform_bestPractices_missingReturn() {
     Source source = _newSource('/test.dart', '''
@@ -1663,6 +1710,7 @@ class _AbstractDartTaskTest extends EngineTestCase {
     taskManager.addTaskDescriptor(BuildEnumMemberElementsTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildFunctionTypeAliasesTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildTypeProviderTask.DESCRIPTOR);
+    taskManager.addTaskDescriptor(GatherUsedElementsTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(GenerateHintsTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(ResolveUnitTypeNamesTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(ResolveLibraryTypeNamesTask.DESCRIPTOR);
