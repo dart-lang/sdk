@@ -22,6 +22,8 @@ duplicate_export_negative_test: Fail # Issue 6134
 if_null_evaluation_order_test: Fail
 if_null_precedence_test: Fail
 if_null_behavior_test: Fail
+if_null_assignment_behavior_test: Fail
+if_null_assignment_static_test: Fail
 
 [ $compiler == dart2dart ]
 deferred_load_library_wrong_args_test/none: Fail # Issue 17523

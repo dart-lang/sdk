@@ -9892,6 +9892,24 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
+  void test_visitAssignmentExpression_compoundIfNull_differentTypes() {
+    // double d; d ??= 0
+    Expression node = AstFactory.assignmentExpression(
+        _resolvedVariable(_typeProvider.doubleType, 'd'),
+        TokenType.QUESTION_QUESTION_EQ, _resolvedInteger(0));
+    expect(_analyze(node), same(_typeProvider.numType));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitAssignmentExpression_compoundIfNull_sameTypes() {
+    // int i; i ??= 0
+    Expression node = AstFactory.assignmentExpression(
+        _resolvedVariable(_typeProvider.intType, 'i'),
+        TokenType.QUESTION_QUESTION_EQ, _resolvedInteger(0));
+    expect(_analyze(node), same(_typeProvider.intType));
+    _listener.assertNoErrors();
+  }
+
   void test_visitAssignmentExpression_simple() {
     // i = 0
     InterfaceType intType = _typeProvider.intType;

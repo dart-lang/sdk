@@ -157,6 +157,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         overrideType = propagatedType;
       }
       _resolver.overrideExpression(node.leftHandSide, overrideType, true);
+    } else if (operator == sc.TokenType.QUESTION_QUESTION_EQ) {
+      // The static type of a compound assignment using ??= is the least upper
+      // bound of the static types of the LHS and RHS.
+      _analyzeLeastUpperBound(node, node.leftHandSide, node.rightHandSide);
+      return null;
     } else {
       ExecutableElement staticMethodElement = node.staticElement;
       DartType staticType = _computeStaticReturnType(staticMethodElement);

@@ -63,6 +63,8 @@ ref_before_declaration_test/06: MissingCompileTimeError
 if_null_evaluation_order_test: CompileTimeError
 if_null_precedence_test: CompileTimeError
 if_null_behavior_test: CompileTimeError
+if_null_assignment_behavior_test: CompileTimeError
+if_null_assignment_static_test: CompileTimeError
 
 
 # VM specific tests that should not be run by dart2js.

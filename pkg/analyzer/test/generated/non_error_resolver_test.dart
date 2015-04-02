@@ -6,6 +6,7 @@ library engine.non_error_resolver_test;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
@@ -2302,6 +2303,36 @@ f({String x: '0'}) {
     Source source = addSource(r'''
 f([String x = '0']) {
 }''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_invalidAssignment_ifNullAssignment_compatibleType() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    Source source = addSource('''
+void f(int i) {
+  num n;
+  n ??= i;
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_invalidAssignment_ifNullAssignment_sameType() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    Source source = addSource('''
+void f(int i) {
+  int j;
+  j ??= i;
+}
+''');
     resolve(source);
     assertNoErrors(source);
     verify([source]);

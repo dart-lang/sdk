@@ -146,7 +146,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   Object visitAssignmentExpression(AssignmentExpression node) {
     sc.Token operator = node.operator;
     sc.TokenType operatorType = operator.type;
-    if (operatorType != sc.TokenType.EQ) {
+    if (operatorType != sc.TokenType.EQ &&
+        operatorType != sc.TokenType.QUESTION_QUESTION_EQ) {
       operatorType = _operatorFromCompoundAssignment(operatorType);
       Expression leftHandSide = node.leftHandSide;
       if (leftHandSide != null) {

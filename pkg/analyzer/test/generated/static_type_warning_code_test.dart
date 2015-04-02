@@ -355,6 +355,21 @@ main() {
     verify([source]);
   }
 
+  void test_invalidAssignment_ifNullAssignment() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    Source source = addSource('''
+void f(int i) {
+  double d;
+  d ??= i;
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    verify([source]);
+  }
+
   void test_invalidAssignment_instanceVariable() {
     Source source = addSource(r'''
 class A {

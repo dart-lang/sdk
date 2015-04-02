@@ -309,7 +309,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     sc.TokenType operatorType = node.operator.type;
     Expression lhs = node.leftHandSide;
     Expression rhs = node.rightHandSide;
-    if (operatorType == sc.TokenType.EQ) {
+    if (operatorType == sc.TokenType.EQ ||
+        operatorType == sc.TokenType.QUESTION_QUESTION_EQ) {
       _checkForInvalidAssignment(lhs, rhs);
     } else {
       _checkForInvalidCompoundAssignment(node, lhs, rhs);
