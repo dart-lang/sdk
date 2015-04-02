@@ -24,7 +24,6 @@ import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
-import 'package:analyzer/src/task/inputs.dart';
 
 /**
  * The errors produced while resolving a library directives.

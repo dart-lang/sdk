@@ -1137,21 +1137,19 @@ int main() {
   }
 
   test_perform_dart2js() {
-    // TODO(scheglov) There is a bug - we need to finish building
-    // TypeProvider hierarchies before validating "expr is CoreType".
-//    Source source = _newSource('/test.dart', '''
-//main(p) {
-//  if (p is double) {
-//    print('double');
-//  }
-//}
-//''');
-//    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
-//    _computeResult(target, HINTS);
-//    expect(task, new isInstanceOf<GenerateHintsTask>());
-//    // validate
-//    _fillErrorListener(HINTS);
-//    errorListener.assertErrorsWithCodes(<ErrorCode>[HintCode.IS_DOUBLE]);
+    Source source = _newSource('/test.dart', '''
+main(p) {
+  if (p is double) {
+    print('double');
+  }
+}
+''');
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, HINTS);
+    expect(task, new isInstanceOf<GenerateHintsTask>());
+    // validate
+    _fillErrorListener(HINTS);
+    errorListener.assertErrorsWithCodes(<ErrorCode>[HintCode.IS_DOUBLE]);
   }
 
   test_perform_deadCode() {
