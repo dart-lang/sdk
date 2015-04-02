@@ -3,12 +3,22 @@
 //
 
 interface Service {
+  // Returns global information about the Dart VM.
   getVM() VM
 
+  // Changes the debugging name for some isolate.
+  setName(isolateId string, name string) Response
+
+  // Returns information about an isolate.
+  getIsolate(isolateId string) Isolate
+
+  // Returns a list of vm flags and their values.
   getFlagList() FlagList
 
+  // Sets the value of a vm flag
   setFlag(name string, value string) Response
 
+  // Loads an object by id from an isolate.
   getObject(isolateId string, objectId string) Object
 
   // The response is a subtype of Object or ObjectRef.
@@ -48,7 +58,7 @@ interface Service {
   getCoverage(isolateId string, targetId string) CodeCoverage
 
   // Returns call site cache information for a function.
-  getCallSiteData(isolateId string, targetId string) _CallSiteData
+  _getCallSiteData(isolateId string, targetId string) _CallSiteData
 
   // Returns a full cpu profile for an isolate.
   //
@@ -97,20 +107,26 @@ interface Service {
   getTypeArgumentsList(isolateId string,
                        onlyWithInstantiations bool) TypeArgumentsList
 
+  // Gets a list of isolate metrics.
   getIsolateMetricList(isolateId string,
                        type MetricSelector) MetricList
 
+  // Gets a specific isolate metric by id.
   getIsolateMetric(isolateId string,
                    metricId string) Metric
 
+  // Gets a list of vm metrics.
   getVMMetricList() MetricList
 
+  // Gets a specific vm metric by id.
   getVMMetric(metricId string) Metric
 
+  // A test rpc for vm requests.
+  _echoVM(text string) _EchoResponse
+
+  // A test rpc for isolate requests.
   _echo(isolateId string,
         text string) _EchoResponse
-
-  _echoVM(text string) _EchoResponse
 
   // Triggers a ServiceEvent with EventType '_Echo'.
   _triggerEchoEvent(isolateId string,
@@ -142,32 +158,353 @@ struct Response {
 }
 
 
+// An asynchronous notification from the VM Service.
+struct ServiceEvent extends Response {
+  // What kind of event is this?
+  eventType ServiceEventType
+
+  // The isolate with which this event is associated.
+  isolate IsolateRef
+
+  // The breakpoint associated with this event, if applicable.
+  //
+  // This is provided for the events:
+  //   <code>PauseBreakpoint</code>
+  //   <code>BreakpointAdded</code>
+  //   <code>BreakpointRemoved</code>
+  //   <code>BreakpointResolved</code>
+  breakpoint Breakpoint [optional]
+
+  // The top stack frame associated with this event, if applicable.
+  //
+  // This is provided for the events:
+  //   <code>PauseBreakpoint</code>
+  //   <code>PauseInterrupted</code>
+  //   <code>PauseException</code>
+  //
+  // For the <code>Resume</code> event, the top frame is provided at
+  // all times except for the initial resume event that is delivered
+  // when an isolate begins execution.
+  topFrame Frame [optional]
+
+  // The exception associated with this event, if this is a
+  // <code>PauseException</code> event.
+  exception InstanceRef [optional]
+}
+
+
+// The type of a service event.
+enum ServiceEventType {
+  // Notification that a new isolate has started.
+  IsolateStart
+
+  // Notification that an isolate has exited.
+  IsolateExit
+
+  // Notification that isolate identifying information has changed.
+  // Currently used to notify of changes to the isolate debugging name
+  // via <code>setName</code>.
+  IsolateUpdate
+
+  // An isolate has paused at start, before executing code.
+  PauseStart
+
+  // An isolate has paused at exit, before terminating.
+  PauseExit
+
+  // An isolate has paused at a breakpoint or due to stepping.
+  PauseBreakpoint
+
+  // An isolate has paused due to interruption via <code>pause</code>.
+  PauseInterrupted
+
+  // An isolate has paused due to an exception.
+  //
+  // TODO(turnidge): Allow user to toggle pause-on-exceptions.
+  PauseException
+
+  // An isolate has started or resumed execution.
+  Resume
+
+  // A breakpoint has been added for an isolate.
+  BreakpointAdded
+
+  // An unresolved breakpoint has been resolved for an isolate.
+  BreakpointResolved
+
+  // A breakpoint has been removed.
+  BreakpointRemoved
+
+  // A garbage collection event.
+  GC
+
+  // The object graph is being delivered.  This is triggered via
+  // <code>requestHeapSnapshot</code>.
+  _Graph
+}
+
+
 struct VM extends Response {
-  placeholder int
+  // Word length on target architecture (e.g. 32, 64).
+  architectureBits int
+
+  // The CPU we are generating code for.
+  targetCPU string
+
+  // The CPU we are actually running on.
+  hostCPU string
+
+  // The Dart VM version string.
+  version string
+
+  // The process id for the VM.
+  pid string
+
+  // The time that the VM started in milliseconds since the epoch.
+  //
+  // Suitable to pass to DateTime.fromMillisecondsSinceEpoch.
+  startTime int
+
+  // A list of isolates running in the VM.
+  isolates []IsolateRef
+
+  // Are assertions enabled in the VM?
+  //
+  // TODO(turnidge): Move to some sort of general settings list?
+  _assertsEnabled bool
+
+  // Are type checks enabled in the VM?
+  //
+  // TODO(turnidge): Move to some sort of general settings list?
+  _typeChecksEnabled bool
 }
 
 
+// A reference to an an isolate.
+struct IsolateRef extends Object {
+  // A numeric id for this isolate, represented as a string.  Unique.
+  number string
+
+  // A name identifying this isolate.  Not guaranteed to be unique.
+  name string
+}
+
+
+// An isolate running in the VM.
+struct Isolate {
+  // A numeric id for this isolate, represented as a string.  Unique.
+  number string
+
+  // A name identifying this isolate.  Not guaranteed to be unique.
+  name string
+
+  // The time that the VM started in milliseconds since the epoch.
+  //
+  // Suitable to pass to DateTime.fromMillisecondsSinceEpoch.
+  startTime int
+
+  // The entry function for this isolate.
+  entry FunctionRef [optional]
+
+  // The number of live ports for this isolate.
+  livePorts int
+
+  // Will this isolate pause when exiting?
+  pauseOnExit bool
+
+  // The last pause event delivered to the isolate.  If the isolate is
+  // running, this will be a resume event.
+  pauseEvent ServiceEvent
+
+  // The error that is causing this isolate to exit, if applicable.
+  error Error [optional]
+
+  // The root library for this isolate.
+  rootLib LibraryRef
+
+  // A list of all libraries for this isolate.
+  libraries []LibraryRef
+
+  // A list of all breakpoints for this isolate.
+  breakpoints []Breakpoint
+
+  // A list of features enabled for this isolate.
+  features []string
+
+  // TODO
+  heaps int
+
+  // TODO
+  tagCounters int
+}
+
+
+// A list of flags.
 struct FlagList extends Response {
-  placeholder int
+  // A list of all flags which are set to default values.
+  unmodifiedFlags []Flag
+
+  // A list of all flags which have been modified by the user.
+  modifiedFlags []Flag
 }
 
 
-struct _EchoResponse extends Response {
-  text string
+// A single flag.
+struct Flag {
+  // The name of the flag.
+  name string
+
+  // A description of the flag.
+  comment string
+
+  // The type of the flag.
+  flagType FlagType
 }
 
 
-// Persistent objects in the vm are returned as subclasses of Object.
+// The type of a flag.
+enum FlagType {
+  bool
+  int
+  uint64_t
+  string
+}
+
+
+// A reference to a persistent object that lives in some isolate.
+struct ObjectRef extends Response {
+  // A unique identifier for an object.  Passed to
+  // <code>getObject</code> to load the full object.
+  id string
+}
+
+
+// A persistent object that lives in some isolate.
 struct Object extends Response {
-  // The object <code>id</code> can be used to refer to a persistent
-  // object inside the vm or an isolate.
-  id  string
+  // A unique identifier for this object.
+  id string
+}
+
+
+// TODO(turnidge): null type
+// TODO(turnidge): VMObject.
+
+
+// A reference to a Dart language class.
+struct ClassRef extends ObjectRef {
+  // The name of this class.
+  name string
+
+  // A vm internal name, provided only when it is different than name.
+  _vmName string
+}
+
+
+// A Dart language class.
+struct Class extends Object {
+  // The name of this class.
+  name string
+
+  // A vm internal name, provided only when it is different than name.
+  _vmName string
+
+  // The error which occurred during class finalization, if it exists.
+  error InstanceRef [optional]
+
+  // Is this an abstract class?
+  abstract bool
+
+  // Is this a const class?
+  const bool
+
+  // Has this class been finalized?
+  finalized bool
+
+  // Is this class implemented?
+  implemented bool
+
+  // Is this a vm patch class?
+  patch bool
+
+  // The library which contains this class.
+  library LibraryRef
+
+  // The script which defines this class.  May be missing for some
+  // classes.
+  script ScriptRef
+
+  // The superclass of this class, if any.
+  super ClassRef [optional]
+
+  // A list of interface types for this class.
+  interfaces []TypeRef
+
+  // A list of fields in this class.  Does not include fields from
+  // superclasses.
+  fields []FieldRef
+
+  // A list of functions in this class.  Does not include functions
+  // from superclasses.
+  functions []FunctionRef
+
+  // A list of subclasses of this class.
+  subclasses []ClassRef
+
+  // Allocation statistics for this class, if available.
+  allocationStats ClassHeapStats [optional]
+}
+
+
+struct ClassHeapStats extends Response {
+  TODO int
+}
+
+
+// A reference to a type arguments vector.
+struct TypeArgumentsRef extends ObjectRef {
+  // A name for this type argument list.
+  name string
+
+  // A vm internal name, provided only when it is different than name.
+  _vmName string
+}
+
+
+// The type argument vector for some instantiated generic type.
+struct TypeArguments extends Object {
+  // A name for this type argument list.
+  name string
+
+  // A vm internal name, provided only when it is different than name.
+  _vmName string
+
+  // A list of types.
+  types []TypeRef
+}
+
+
+// Represents an error object inside the VM.
+struct Error extends Object {
+  // An error message
+  message string
+}
+
+
+// A <code>InstanceRef</code> encodes a reference to a
+// <code>Instance</code> object.
+struct InstanceRef extends ObjectRef {
+  TODO int
+}
+
+
+struct TypeRef extends InstanceRef {
+  TODO2 int
 }
 
 
 // An <code>Instance</code> represents a Dart-language object.
 struct Instance extends Object {
-  placeholder int
+  TODO int
 }
 
 
@@ -179,62 +516,32 @@ struct Breakpoint extends Object {
 }
 
 
-// References to persistent objects in the vm are returned as
-// subclasses of ObjectRef.
-struct ObjectRef extends Response {
-  // The object <code>id</code> can be used to refer to a persistent
-  // object inside the vm or an isolate.
-  id  string
-}
-
-
 // A <code>CodeRef</code> encodes a reference to a <code>Code</code> object.
 struct CodeRef extends ObjectRef {
-  placeholder int
+  TODO int
 }
 
 
-struct ClassRef extends ObjectRef {
-  placeholder int
-}
-
-
-struct TypeArgumentsRef extends ObjectRef {
-  placeholder int
+struct LibraryRef extends ObjectRef {
+  TODO int
 }
 
 
 // A <code>FunctionRef</code> encodes a reference to a <code>Function</code> object.
 struct FunctionRef extends ObjectRef {
-  placeholder int
+  TODO int
 }
 
 
 // A <code>FieldRef</code> encodes a reference to a <code>Field</code> object.
 struct FieldRef extends ObjectRef {
-  placeholder int
-}
-
-
-// A <code>InstanceRef</code> encodes a reference to a <code>Instance</code> object.
-struct InstanceRef extends ObjectRef {
-  placeholder int
+  TODO int
 }
 
 
 // A <code>ScriptRef</code> encodes a reference to a <code>Script</code> object.
 struct ScriptRef extends ObjectRef {
-  placeholder int
-}
-
-
-struct Class extends Object {
-  placeholder int
-}
-
-
-struct TypeArguments extends Object {
-  placeholder int
+  TODO int
 }
 
 
@@ -273,7 +580,7 @@ struct Stack extends Response {
 
 
 struct CodeCoverage extends Response {
-  placeholder int
+  TODO int
 }
 
 
@@ -392,14 +699,14 @@ struct Metric extends Response {
 
 
 struct Gauge extends Metric {
-  value double
-  min double
-  max double
+  value float
+  min float
+  max float
 }
 
 
 struct Counter extends Metric {
-  value double
+  value float
 }
 
 
@@ -430,6 +737,11 @@ enum TagSelector {
 // A <code>MetricSelector</code> is used to indicate which list of metrics
 // should be retrieved from an isolate.
 enum MetricSelector {
-  Dart,
-  Native,
+  Dart
+  Native
+}
+
+
+struct _EchoResponse extends Response {
+  text string
 }

@@ -2438,7 +2438,6 @@ static const MethodParameter* get_vm_params[] = {
 static bool GetVM(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "VM");
-  jsobj.AddProperty("id", "vm");
   jsobj.AddProperty("architectureBits", static_cast<intptr_t>(kBitsPerWord));
   jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
@@ -2447,11 +2446,10 @@ static bool GetVM(Isolate* isolate, JSONStream* js) {
   // pids > 53-bits (when consumed by JavaScript).
   // TODO(johnmccutchan): Codify how integers are sent across the service.
   jsobj.AddPropertyF("pid", "%" Pd "", OS::ProcessId());
-  jsobj.AddProperty("assertsEnabled", isolate->AssertsEnabled());
-  jsobj.AddProperty("typeChecksEnabled", isolate->TypeChecksEnabled());
+  jsobj.AddProperty("_assertsEnabled", isolate->AssertsEnabled());
+  jsobj.AddProperty("_typeChecksEnabled", isolate->TypeChecksEnabled());
   int64_t start_time_millis = (Dart::vm_isolate()->start_time() /
                                kMicrosecondsPerMillisecond);
-  jsobj.AddProperty64("refreshTime", OS::GetCurrentTimeMillis());
   jsobj.AddProperty64("startTime", start_time_millis);
   // Construct the isolate list.
   {
@@ -2547,7 +2545,7 @@ static ServiceMethodDescriptor service_methods_[] = {
     eval_frame_params },
   { "getAllocationProfile", GetAllocationProfile,
     get_allocation_profile_params },
-  { "getCallSiteData", GetCallSiteData,
+  { "_getCallSiteData", GetCallSiteData,
     get_call_site_data_params },
   { "getClassList", GetClassList,
     get_class_list_params },

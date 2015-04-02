@@ -89,7 +89,7 @@ testMonomorphic(Isolate isolate) async {
   Library lib = await isolate.rootLib.load();
   ServiceFunction func =
      lib.functions.singleWhere((f) => f.name == 'monomorphic');
-  Map response = await isolate.invokeRpcNoUpgrade('getCallSiteData',
+  Map response = await isolate.invokeRpcNoUpgrade('_getCallSiteData',
                                                   { 'targetId': func.id });
   expect(response['type'], equals('CodeCoverage'));
   Map callSite = response['coverage'].single['callSites'].single;
@@ -102,7 +102,7 @@ testPolymorphic(Isolate isolate) async {
   Library lib = await isolate.rootLib.load();
   ServiceFunction func =
      lib.functions.singleWhere((f) => f.name == 'polymorphic');
-  Map response = await isolate.invokeRpcNoUpgrade('getCallSiteData',
+  Map response = await isolate.invokeRpcNoUpgrade('_getCallSiteData',
                                                   { 'targetId': func.id });
   expect(response['type'], equals('CodeCoverage'));
   Map callSite = response['coverage'].single['callSites'].single;
@@ -115,7 +115,7 @@ testMegamorphic(Isolate isolate) async {
   Library lib = await isolate.rootLib.load();
   ServiceFunction func =
      lib.functions.singleWhere((f) => f.name == 'megamorphic');
-  Map response = await isolate.invokeRpcNoUpgrade('getCallSiteData',
+  Map response = await isolate.invokeRpcNoUpgrade('_getCallSiteData',
                                                   { 'targetId': func.id });
   expect(response['type'], equals('CodeCoverage'));
   Map callSite = response['coverage'].single['callSites'].single;
@@ -129,7 +129,7 @@ testStaticCall(Isolate isolate) async {
   Library lib = await isolate.rootLib.load();
   ServiceFunction func =
      lib.functions.singleWhere((f) => f.name == 'staticCall');
-  Map response = await isolate.invokeRpcNoUpgrade('getCallSiteData',
+  Map response = await isolate.invokeRpcNoUpgrade('_getCallSiteData',
                                                   { 'targetId': func.id });
   expect(response['type'], equals('CodeCoverage'));
   Map callSite = response['coverage'].single['callSites'].single;
@@ -142,7 +142,7 @@ testConstructorCall(Isolate isolate) async {
   Library lib = await isolate.rootLib.load();
   ServiceFunction func =
      lib.functions.singleWhere((f) => f.name == 'constructorCall');
-  Map response = await isolate.invokeRpcNoUpgrade('getCallSiteData',
+  Map response = await isolate.invokeRpcNoUpgrade('_getCallSiteData',
                                                   { 'targetId': func.id });
   expect(response['type'], equals('CodeCoverage'));
   Map callSite = response['coverage'].single['callSites'].single;
@@ -155,7 +155,7 @@ testTopLevelCall(Isolate isolate) async {
   Library lib = await isolate.rootLib.load();
   ServiceFunction func =
      lib.functions.singleWhere((f) => f.name == 'topLevelCall');
-  Map response = await isolate.invokeRpcNoUpgrade('getCallSiteData',
+  Map response = await isolate.invokeRpcNoUpgrade('_getCallSiteData',
                                                   { 'targetId': func.id });
   expect(response['type'], equals('CodeCoverage'));
   Map callSite = response['coverage'].single['callSites'].single;
@@ -168,7 +168,7 @@ testSuperCall(Isolate isolate) async {
   Library lib = await isolate.rootLib.load();
   Class cls = await lib.classes.singleWhere((f) => f.name == 'Sub').load();
   ServiceFunction func = cls.functions.singleWhere((f) => f.name == 'bar');
-  Map response = await isolate.invokeRpcNoUpgrade('getCallSiteData',
+  Map response = await isolate.invokeRpcNoUpgrade('_getCallSiteData',
                                                   { 'targetId': func.id });
   expect(response['type'], equals('CodeCoverage'));
   Map callSite = response['coverage'].single['callSites'].single;

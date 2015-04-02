@@ -4120,16 +4120,10 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
     JSONArray interfaces_array(&jsobj, "interfaces");
     const Array& interface_array = Array::Handle(interfaces());
     Type& interface_type = Type::Handle();
-    Class& interface_cls = Class::Handle();
     if (!interface_array.IsNull()) {
       for (intptr_t i = 0; i < interface_array.Length(); ++i) {
-        // TODO(turnidge): Use the Type directly once regis has added
-        // types to the vmservice.
         interface_type ^= interface_array.At(i);
-        if (interface_type.HasResolvedTypeClass()) {
-          interface_cls = interface_type.type_class();
-          interfaces_array.AddValue(interface_cls);
-        }
+        interfaces_array.AddValue(interface_type);
       }
     }
   }
@@ -4430,8 +4424,6 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(Name());
   AddNameProperties(&jsobj, user_name, vm_name);
-  jsobj.AddProperty("length", Length());
-  jsobj.AddProperty("numInstantiations", NumInstantiations());
   if (ref) {
     return;
   }
@@ -4444,7 +4436,7 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
     }
   }
   if (!IsInstantiated()) {
-    JSONArray jsarr(&jsobj, "instantiations");
+    JSONArray jsarr(&jsobj, "_instantiations");
     Array& prior_instantiations = Array::Handle(instantiations());
     ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
     TypeArguments& type_args = TypeArguments::Handle();

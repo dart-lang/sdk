@@ -310,7 +310,7 @@ abstract class Coverage {
     if (this is! Isolate) {
       params['targetId'] = id;
     }
-    return isolate.invokeRpcNoUpgrade('getCallSiteData', params).then(
+    return isolate.invokeRpcNoUpgrade('_getCallSiteData', params).then(
         (ObservableMap map) {
           var coverage = new ServiceObject._fromMap(isolate, map);
           assert(coverage.type == 'CodeCoverage');
@@ -572,12 +572,11 @@ abstract class VM extends ServiceObjectOwner {
     architectureBits = map['architectureBits'];
     var startTimeMillis = map['startTime'];
     startTime = new DateTime.fromMillisecondsSinceEpoch(startTimeMillis);
-    var refreshTimeMillis = map['refreshTime'];
-    refreshTime = new DateTime.fromMillisecondsSinceEpoch(refreshTimeMillis);
+    refreshTime = new DateTime.now();
     notifyPropertyChange(#upTime, 0, 1);
-    assertsEnabled = map['assertsEnabled'];
     pid = map['pid'];
-    typeChecksEnabled = map['typeChecksEnabled'];
+    assertsEnabled = map['_assertsEnabled'];
+    typeChecksEnabled = map['_typeChecksEnabled'];
     _removeDeadIsolates(map['isolates']);
   }
 
@@ -1632,7 +1631,7 @@ class Class extends ServiceObject with Coverage {
   @reflectable final functions = new ObservableList<ServiceFunction>();
 
   @observable Class superclass;
-  @reflectable final interfaces = new ObservableList<Class>();
+  @reflectable final interfaces = new ObservableList<Instance>();
   @reflectable final subclasses = new ObservableList<Class>();
 
   bool get canCache => true;
@@ -1678,6 +1677,10 @@ class Class extends ServiceObject with Coverage {
     subclasses.clear();
     subclasses.addAll(map['subclasses']);
     subclasses.sort(ServiceObject.LexicalSortName);
+
+    interfaces.clear();
+    interfaces.addAll(map['interfaces']);
+    interfaces.sort(ServiceObject.LexicalSortName);
 
     fields.clear();
     fields.addAll(map['fields']);

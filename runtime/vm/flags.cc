@@ -463,8 +463,6 @@ void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
 void Flags::PrintJSON(JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "FlagList");
-  jsobj.AddProperty("id", "flags");
-
   {
     JSONArray jsarr(&jsobj, "unmodifiedFlags");
     for (intptr_t i = 0; i < num_flags_; ++i) {

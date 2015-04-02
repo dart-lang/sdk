@@ -1079,7 +1079,7 @@ TEST_CASE(Service_VM) {
 
   Service::HandleRootMessage(service_msg);
   handler.HandleNextMessage();
-  EXPECT_SUBSTRING("\"type\":\"VM\",\"id\":\"vm\"", handler.msg());
+  EXPECT_SUBSTRING("\"type\":\"VM\"", handler.msg());
   EXPECT_SUBSTRING("\"targetCPU\"", handler.msg());
   EXPECT_SUBSTRING("\"hostCPU\"", handler.msg());
   EXPECT_SUBSTRING("\"version\"", handler.msg());
@@ -1112,7 +1112,7 @@ TEST_CASE(Service_Flags) {
   // Make sure we can get the FlagList.
   Service::HandleRootMessage(service_msg);
   handler.HandleNextMessage();
-  EXPECT_SUBSTRING("\"type\":\"FlagList\",\"id\":\"flags\"", handler.msg());
+  EXPECT_SUBSTRING("\"type\":\"FlagList\"", handler.msg());
   EXPECT_SUBSTRING(
       "\"name\":\"service_testing_flag\",\"comment\":\"Comment\","
       "\"flagType\":\"bool\",\"valueAsString\":\"false\"",

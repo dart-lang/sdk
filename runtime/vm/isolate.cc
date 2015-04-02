@@ -1583,12 +1583,6 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     jsobj.AddProperty("error", error, false);
   }
 
-  {
-    JSONObject typeargsRef(&jsobj, "canonicalTypeArguments");
-    typeargsRef.AddProperty("type", "@TypeArgumentsList");
-    typeargsRef.AddProperty("id", "typearguments");
-    typeargsRef.AddProperty("name", "canonical type arguments");
-  }
   bool is_io_enabled = false;
   {
     const GrowableObjectArray& libs =
