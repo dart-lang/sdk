@@ -21,14 +21,25 @@ main() {
 
   Element makeListElement() =>
     new Element.html('<ul class="foo bar baz">'
-        '<li class="quux qux"><li class="meta">'
-        '<li class="classy lassy"><li class="qux lassy"></ul>');
+        '<li class="quux qux">'
+        '<li class="meta">'
+        '<li class="classy lassy">'
+        '<li class="qux lassy">'
+        '</ul>');
 
   Set<String> makeClassSet() => makeElementWithClasses().classes;
 
   Set<String> extractClasses(Element el) {
     final match = new RegExp('class="([^"]+)"').firstMatch(el.outerHtml);
     return new LinkedHashSet.from(match[1].split(' '));
+  }
+
+  /// Returns a canonical string for Set<String> and lists of Element's classes.
+  String view(var e) {
+    if (e is Set) return '${e.toList()..sort()}';
+    if (e is Element) return view(e.classes);
+    if (e is Iterable) return '${e.map(view).toList()}';
+    throw new ArgumentError('Cannot make canonical view string for: $e}');
   }
 
   test('affects the "class" attribute', () {
@@ -168,8 +179,28 @@ main() {
     expect(classes, orderedEquals(['qux','bar', 'foo']));
   });
 
+  test('retainAll', () {
+    final classes = makeClassSet();
+    classes.retainAll(['bar', 'baz', 'qux']);
+    expect(classes, orderedEquals(['bar', 'baz']));
+  });
+
+  test('removeWhere', () {
+    final classes = makeClassSet();
+    classes.removeWhere((s) => s.startsWith('b'));
+    expect(classes, orderedEquals(['foo']));
+  });
+
+  test('retainWhere', () {
+    final classes = makeClassSet();
+    classes.retainWhere((s) => s.startsWith('b'));
+    expect(classes, orderedEquals(['bar', 'baz']));
+  });
+
   test('containsAll', () {
     final classes = makeClassSet();
+    expect(classes.containsAll(['foo', 'baz']), isTrue);
+    expect(classes.containsAll(['foo', 'qux']), isFalse);
     expect(classes.containsAll(['foo', 'baz'].toSet()), isTrue);
     expect(classes.containsAll(['foo', 'qux'].toSet()), isFalse);
   });
@@ -196,13 +227,29 @@ main() {
     expect(classes, orderedEquals(['foo', 'bar', 'aardvark', 'baz']));
   });
 
+
   Element listElement;
 
   ElementList<Element> listElementSetup() {
     listElement = makeListElement();
     document.documentElement.children.add(listElement);
-    return document.queryAll('li');
+    return document.querySelectorAll('li');
   }
+
+  tearDown(() {
+    if (listElement != null) {
+      document.documentElement.children.remove(listElement);
+      listElement = null;
+    }
+  });
+
+  test('list_view', () {
+    // Test that the 'view' helper function is behaving.
+    var elements = listElementSetup();
+    expect(view(elements.classes), '[classy, lassy, meta, quux, qux]');
+    expect(view(elements),
+        '[[quux, qux], [meta], [classy, lassy], [lassy, qux]]');
+  });
 
   test('listClasses=', () {
     var elements =  listElementSetup();
@@ -214,24 +261,20 @@ main() {
     }
 
     elements.classes = [];
-    for (Element e in elements) {
-      expect(e.classes, []);
-    }
-    document.documentElement.children.remove(listElement);
+    expect(view(elements.classes), '[]');
+    expect(view(elements), '[[], [], [], []]');
   });
 
   test('listMap', () {
     var elements = listElementSetup();
     expect(elements.classes.map((c) => c.toUpperCase()).toList(),
         unorderedEquals(['QUX', 'QUUX', 'META', 'CLASSY', 'LASSY']));
-    document.documentElement.children.remove(listElement);
   });
 
   test('listContains', () {
     var elements = listElementSetup();
     expect(elements.classes.contains('lassy'), isTrue);
     expect(elements.classes.contains('foo'), isFalse);
-    document.documentElement.children.remove(listElement);
   });
 
 
@@ -240,98 +283,85 @@ main() {
     var added = elements.classes.add('lassie');
     expect(added, isNull);
 
-    expect(elements.classes,
-        unorderedEquals(['lassie', 'qux', 'quux', 'meta', 'classy', 'lassy']));
-    for (Element e in elements) {
-      expect(e.classes, anyOf(unorderedEquals(['quux', 'qux', 'lassie']),
-          unorderedEquals(['meta', 'lassie']),
-          unorderedEquals(['classy', 'lassy', 'lassie']),
-          unorderedEquals(['qux', 'lassy', 'lassie'])));
-    }
-    document.documentElement.children.remove(listElement);
+    expect(view(elements.classes), '[classy, lassie, lassy, meta, quux, qux]');
+    expect(view(elements),
+        '[[lassie, quux, qux], [lassie, meta], [classy, lassie, lassy], '
+        '[lassie, lassy, qux]]');
   });
 
   test('listRemove', () {
     var elements = listElementSetup();
     expect(elements.classes.remove('lassi'), isFalse);
-    expect(elements.classes,
-        unorderedEquals(['qux', 'quux', 'meta', 'classy', 'lassy']));
-    for (Element e in elements) {
-      expect(e.classes, anyOf(unorderedEquals(['quux', 'qux']),
-          unorderedEquals(['meta']), unorderedEquals(['classy', 'lassy']),
-          unorderedEquals(['qux', 'lassy'])));
-    }
+    expect(view(elements.classes), '[classy, lassy, meta, quux, qux]');
+    expect(view(elements),
+        '[[quux, qux], [meta], [classy, lassy], [lassy, qux]]');
 
     expect(elements.classes.remove('qux'), isTrue);
-    expect(elements.classes,
-        unorderedEquals(['quux', 'meta', 'classy', 'lassy']));
-    for (Element e in elements) {
-      expect(e.classes, anyOf(unorderedEquals(['quux']),
-          unorderedEquals(['meta']), unorderedEquals(['classy', 'lassy']),
-          unorderedEquals(['lassy'])));
-    }
-    document.documentElement.children.remove(listElement);
+    expect(view(elements.classes), '[classy, lassy, meta, quux]');
+    expect(view(elements), '[[quux], [meta], [classy, lassy], [lassy]]');
   });
 
   test('listToggle', () {
     var elements = listElementSetup();
     elements.classes.toggle('qux');
-    expect(elements.classes,
-        unorderedEquals(['qux', 'quux', 'meta', 'classy', 'lassy']));
-    for (Element e in elements) {
-      expect(e.classes, anyOf(unorderedEquals(['quux']),
-          unorderedEquals(['meta', 'qux']), unorderedEquals(['classy', 'lassy',
-          'qux']), unorderedEquals(['lassy'])));
-    }
-    document.documentElement.children.remove(listElement);
+    expect(view(elements.classes), '[classy, lassy, meta, quux, qux]');
+    expect(view(elements),
+        '[[quux], [meta, qux], [classy, lassy, qux], [lassy]]');
   });
 
   test('listAddAll', () {
     var elements = listElementSetup();
     elements.classes.addAll(['qux', 'lassi', 'sassy']);
-    expect(elements.classes,
-        unorderedEquals(['qux', 'quux', 'meta', 'classy', 'lassy', 'sassy',
-        'lassi']));
-    for (Element e in elements) {
-      expect(e.classes, anyOf(
-          unorderedEquals(['quux', 'qux', 'lassi', 'sassy']),
-          unorderedEquals(['meta', 'qux', 'lassi', 'sassy']),
-          unorderedEquals(['classy', 'lassy', 'qux', 'lassi','sassy']),
-          unorderedEquals(['lassy', 'qux', 'lassi', 'sassy'])));
-    }
-    document.documentElement.children.remove(listElement);
+    expect(view(elements.classes),
+        '[classy, lassi, lassy, meta, quux, qux, sassy]');
+    expect(view(elements),
+        '[[lassi, quux, qux, sassy], [lassi, meta, qux, sassy], '
+        '[classy, lassi, lassy, qux, sassy], [lassi, lassy, qux, sassy]]');
   });
 
   test('listRemoveAll', () {
     var elements = listElementSetup();
     elements.classes.removeAll(['qux', 'lassy', 'meta']);
-    expect(elements.classes,
-        unorderedEquals(['quux','classy']));
-    for (Element e in elements) {
-      expect(e.classes, anyOf(unorderedEquals(['quux']),
-          unorderedEquals([]), unorderedEquals(['classy'])));
-    }
-    document.documentElement.children.remove(listElement);
+    expect(view(elements.classes), '[classy, quux]');
+    expect(view(elements), '[[quux], [], [classy], []]');
+
   });
 
   test('listToggleAll', () {
     var elements = listElementSetup();
     elements.classes.toggleAll(['qux', 'meta', 'mornin']);
-    expect(elements.classes,
-        unorderedEquals(['qux', 'quux', 'meta', 'classy', 'lassy', 'mornin']));
-    for (Element e in elements) {
-      expect(e.classes, anyOf(unorderedEquals(['quux', 'meta', 'mornin']),
-          unorderedEquals(['qux', 'mornin']),
-          unorderedEquals(['classy', 'lassy', 'qux', 'mornin', 'meta']),
-          unorderedEquals(['lassy', 'mornin', 'meta'])));
-    }
-    document.documentElement.children.remove(listElement);
+    expect(view(elements.classes), '[classy, lassy, meta, mornin, quux, qux]');
+    expect(view(elements),
+        '[[meta, mornin, quux], [mornin, qux], '
+        '[classy, lassy, meta, mornin, qux], [lassy, meta, mornin]]');
+
+  });
+
+  test('listRetainAll', () {
+    var elements = listElementSetup();
+    elements.classes.retainAll(['bar', 'baz', 'qux']);
+    expect(view(elements.classes), '[qux]');
+    expect(view(elements), '[[qux], [], [], [qux]]');
+  });
+
+  test('listRemoveWhere', () {
+    var elements = listElementSetup();
+    elements.classes.removeWhere((s) => s.startsWith('q'));
+    expect(view(elements.classes), '[classy, lassy, meta]');
+    expect(view(elements),
+        '[[], [meta], [classy, lassy], [lassy]]');
+  });
+
+  test('listRetainWhere', () {
+    var elements = listElementSetup();
+    elements.classes.retainWhere((s) => s.startsWith('q'));
+    expect(view(elements.classes), '[quux, qux]');
+    expect(view(elements), '[[quux, qux], [], [], [qux]]');
   });
 
   test('listContainsAll', () {
     var elements = listElementSetup();
     expect(elements.classes.containsAll(['qux', 'meta', 'mornin']), isFalse);
     expect(elements.classes.containsAll(['qux', 'lassy', 'classy']), isTrue);
-    document.documentElement.children.remove(listElement);
   });
 }
