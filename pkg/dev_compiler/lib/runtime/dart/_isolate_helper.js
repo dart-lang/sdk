@@ -826,6 +826,9 @@ var _isolate_helper;
       return !!self.postMessage;
     }
   });
+  class _MainFunction extends core.Function {}
+  class _MainFunctionArgs extends core.Function {}
+  class _MainFunctionArgsMessage extends core.Function {}
   let _getEventData = Symbol('_getEventData');
   let _getJSFunctionFromName = Symbol('_getJSFunctionFromName');
   let _startIsolate = Symbol('_startIsolate');

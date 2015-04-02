@@ -1,8 +1,7 @@
 var constructors;
 (function(exports) {
   'use strict';
-  class A extends core.Object {
-  }
+  class A extends core.Object {}
   class B extends core.Object {
     B() {
     }

@@ -3,9 +3,9 @@ var core;
   'use strict';
   class Object {
     constructor() {
-      var name = this.constructor.name;
-      var init = this[name];
-      var result = void 0;
+      let name = this.constructor.name;
+      let init = this[name];
+      let result = void 0;
       if (init)
         result = init.apply(this, arguments);
       return result === void 0 ? this : result;
@@ -55,6 +55,26 @@ var core;
     }
   }
   dart.defineNamedConstructor(bool, 'fromEnvironment');
+  let _toMangledNames = dart.JsSymbol('_toMangledNames');
+  class Function extends Object {
+    static apply(f, positionalArguments, namedArguments) {
+      if (namedArguments === void 0)
+        namedArguments = null;
+      return _js_helper.Primitives.applyFunction(f, positionalArguments, namedArguments == null ? null : Function[_toMangledNames](namedArguments));
+    }
+    static [_toMangledNames](namedArguments) {
+      let result = dart.as(dart.map(), Map$(String, dynamic));
+      namedArguments.forEach(dart.closureWrap((symbol, value) => {
+        result.set(_symbolToString(dart.as(symbol, Symbol)), value);
+      }, "(Symbol, dynamic) → void"));
+      return result;
+    }
+  }
+  let Comparator$ = dart.generic(function(T) {
+    class Comparator extends Function {}
+    return Comparator;
+  });
+  let Comparator = Comparator$();
   let Comparable$ = dart.generic(function(T) {
     class Comparable extends Object {
       static compare(a, b) {
@@ -63,7 +83,7 @@ var core;
     }
     return Comparable;
   });
-  let Comparable = Comparable$(dart.dynamic);
+  let Comparable = Comparable$();
   let _internal$ = dart.JsSymbol('_internal');
   let _now = dart.JsSymbol('_now');
   let _brokenDownDateToMillisecondsSinceEpoch = dart.JsSymbol('_brokenDownDateToMillisecondsSinceEpoch');
@@ -537,12 +557,9 @@ var core;
       return _js_helper.Primitives.extractStackTrace(this);
     }
   }
-  class AssertionError extends Error {
-  }
-  class TypeError extends AssertionError {
-  }
-  class CastError extends Error {
-  }
+  class AssertionError extends Error {}
+  class TypeError extends AssertionError {}
+  class CastError extends Error {}
   class NullThrownError extends Error {
     toString() {
       return "Throw of null.";
@@ -1025,22 +1042,7 @@ var core;
     Expando._keyCount = 0;
     return Expando;
   });
-  let Expando = Expando$(dart.dynamic);
-  let _toMangledNames = dart.JsSymbol('_toMangledNames');
-  class Function extends Object {
-    static apply(f, positionalArguments, namedArguments) {
-      if (namedArguments === void 0)
-        namedArguments = null;
-      return _js_helper.Primitives.applyFunction(f, positionalArguments, namedArguments == null ? null : Function[_toMangledNames](namedArguments));
-    }
-    static [_toMangledNames](namedArguments) {
-      let result = dart.as(dart.map(), Map$(String, dynamic));
-      namedArguments.forEach(dart.closureWrap((symbol, value) => {
-        result.set(_symbolToString(dart.as(symbol, Symbol)), value);
-      }, "(Symbol, dynamic) → void"));
-      return result;
-    }
-  }
+  let Expando = Expando$();
   // Function identical: (Object, Object) → bool
   function identical(a, b) {
     return _js_helper.Primitives.identicalImplementation(a, b);
@@ -1097,7 +1099,12 @@ var core;
     dart.defineNamedConstructor(Iterable, 'generate');
     return Iterable;
   });
-  let Iterable = Iterable$(dart.dynamic);
+  let Iterable = Iterable$();
+  let _Generator$ = dart.generic(function(E) {
+    class _Generator extends Function {}
+    return _Generator;
+  });
+  let _Generator = _Generator$();
   let _end = dart.JsSymbol('_end');
   let _start = dart.JsSymbol('_start');
   let _generator = dart.JsSymbol('_generator');
@@ -1176,20 +1183,18 @@ var core;
     _GeneratorIterator[dart.implements] = () => [Iterator$(E)];
     return _GeneratorIterator;
   });
-  let _GeneratorIterator = _GeneratorIterator$(dart.dynamic);
+  let _GeneratorIterator = _GeneratorIterator$();
   let BidirectionalIterator$ = dart.generic(function(E) {
-    class BidirectionalIterator extends Object {
-    }
+    class BidirectionalIterator extends Object {}
     BidirectionalIterator[dart.implements] = () => [Iterator$(E)];
     return BidirectionalIterator;
   });
-  let BidirectionalIterator = BidirectionalIterator$(dart.dynamic);
+  let BidirectionalIterator = BidirectionalIterator$();
   let Iterator$ = dart.generic(function(E) {
-    class Iterator extends Object {
-    }
+    class Iterator extends Object {}
     return Iterator;
   });
-  let Iterator = Iterator$(dart.dynamic);
+  let Iterator = Iterator$();
   let List$ = dart.generic(function(E) {
     class List extends Object {
       List(length) {
@@ -1236,7 +1241,7 @@ var core;
     dart.defineNamedConstructor(List, 'generate');
     return List;
   });
-  let List = List$(dart.dynamic);
+  let List = List$();
   let Map$ = dart.generic(function(K, V) {
     class Map extends Object {
       Map() {
@@ -1261,7 +1266,7 @@ var core;
     dart.defineNamedConstructor(Map, 'fromIterables');
     return Map;
   });
-  let Map = Map$(dart.dynamic, dart.dynamic);
+  let Map = Map$();
   let _uninstantiable = dart.JsSymbol('_uninstantiable');
   class Null extends Object {
     [_uninstantiable]() {
@@ -1272,8 +1277,7 @@ var core;
     }
   }
   dart.defineNamedConstructor(Null, _uninstantiable);
-  class Pattern extends Object {
-  }
+  class Pattern extends Object {}
   // Function print: (Object) → void
   function print(object) {
     let line = `${object}`;
@@ -1283,8 +1287,7 @@ var core;
       dart.dinvokef(_internal.printToZone, line);
     }
   }
-  class Match extends Object {
-  }
+  class Match extends Object {}
   class RegExp extends Object {
     RegExp(source, opts) {
       let multiLine = opts && 'multiLine' in opts ? opts.multiLine : false;
@@ -1312,13 +1315,11 @@ var core;
   });
   dart.defineLazyClassGeneric(exports, 'Set', {get: Set$});
   let Sink$ = dart.generic(function(T) {
-    class Sink extends Object {
-    }
+    class Sink extends Object {}
     return Sink;
   });
-  let Sink = Sink$(dart.dynamic);
-  class StackTrace extends Object {
-  }
+  let Sink = Sink$();
+  class StackTrace extends Object {}
   let _frequency = dart.JsSymbol('_frequency');
   let _stop = dart.JsSymbol('_stop');
   let _initTicker = dart.JsSymbol('_initTicker');
@@ -1638,15 +1639,13 @@ var core;
     }
   }
   StringBuffer[dart.implements] = () => [StringSink];
-  class StringSink extends Object {
-  }
+  class StringSink extends Object {}
   class Symbol extends Object {
     Symbol(name) {
       return new _internal.Symbol(name);
     }
   }
-  class Type extends Object {
-  }
+  class Type extends Object {}
   let _writeAuthority = dart.JsSymbol('_writeAuthority');
   let _userInfo = dart.JsSymbol('_userInfo');
   let _host = dart.JsSymbol('_host');
@@ -3035,8 +3034,11 @@ var core;
   exports.override = override;
   exports.proxy = proxy;
   exports.bool = bool;
-  exports.Comparable = Comparable;
+  exports.Comparator$ = Comparator$;
+  exports.Comparator = Comparator;
+  exports.Function = Function;
   exports.Comparable$ = Comparable$;
+  exports.Comparable = Comparable;
   exports.DateTime = DateTime;
   exports.double = double;
   exports.num = num;
@@ -3062,30 +3064,30 @@ var core;
   exports.Exception = Exception;
   exports.FormatException = FormatException;
   exports.IntegerDivisionByZeroException = IntegerDivisionByZeroException;
-  exports.Expando = Expando;
   exports.Expando$ = Expando$;
-  exports.Function = Function;
+  exports.Expando = Expando;
   exports.identical = identical;
   exports.identityHashCode = identityHashCode;
   exports.int = int;
   exports.Invocation = Invocation;
-  exports.Iterable = Iterable;
   exports.Iterable$ = Iterable$;
-  exports.BidirectionalIterator = BidirectionalIterator;
+  exports.Iterable = Iterable;
   exports.BidirectionalIterator$ = BidirectionalIterator$;
-  exports.Iterator = Iterator;
+  exports.BidirectionalIterator = BidirectionalIterator;
   exports.Iterator$ = Iterator$;
-  exports.List = List;
+  exports.Iterator = Iterator;
   exports.List$ = List$;
-  exports.Map = Map;
+  exports.List = List;
   exports.Map$ = Map$;
+  exports.Map = Map;
   exports.Null = Null;
   exports.Pattern = Pattern;
   exports.print = print;
   exports.Match = Match;
   exports.RegExp = RegExp;
-  exports.Sink = Sink;
+  exports.Set$ = Set$;
   exports.Sink$ = Sink$;
+  exports.Sink = Sink;
   exports.StackTrace = StackTrace;
   exports.Stopwatch = Stopwatch;
   exports.String = String;

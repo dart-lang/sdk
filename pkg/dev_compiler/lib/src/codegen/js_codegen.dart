@@ -68,10 +68,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   /// Classes we have not emitted yet. Values can be [ClassDeclaration] or
   /// [ClassTypeAlias].
-  final _pendingClasses = new HashMap<ClassElement, CompilationUnitMember>();
+  final _pendingClasses = new HashMap<Element, CompilationUnitMember>();
 
   /// Memoized results of [_lazyClass].
-  final _lazyClassMemo = new HashMap<ClassElement, bool>();
+  final _lazyClassMemo = new HashMap<Element, bool>();
 
   /// Memoized results of [_inLibraryCycle].
   final _libraryCycleMemo = new HashMap<LibraryElement, bool>();
@@ -108,7 +108,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // * provides a mapping from ClassElement back to the ClassDeclaration.
     for (var unit in library.partsThenLibrary) {
       for (var decl in unit.declarations) {
-        if (decl is ClassDeclaration || decl is ClassTypeAlias) {
+        if (decl is ClassDeclaration ||
+            decl is ClassTypeAlias ||
+            decl is FunctionTypeAlias) {
           _pendingClasses[decl.element] = decl;
         }
       }
@@ -260,8 +262,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   visitFunctionTypeAlias(FunctionTypeAlias node) {
-    // TODO(vsm): Do we need to record type info the generated code for a
-    // typedef?
+    // If we've already emitted this class, skip it.
+    var type = node.element.type;
+    if (_pendingClasses.remove(node.element) == null) return null;
+
+    var classDecl = new JS.ClassDeclaration(new JS.ClassExpression(
+        new JS.Identifier(type.name),
+        _emitTypeName(rules.provider.functionType), []));
+
+    return _finishClassDef(type, classDecl);
   }
 
   @override
@@ -270,8 +279,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   @override
   JS.Statement visitClassTypeAlias(ClassTypeAlias node) {
     // If we've already emitted this class, skip it.
-    var classElem = node.element;
-    if (_pendingClasses.remove(classElem) == null) return null;
+    var type = node.element.type;
+    if (_pendingClasses.remove(node.element) == null) return null;
 
     var name = node.name.name;
     var heritage =
@@ -279,14 +288,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var classDecl = new JS.ClassDeclaration(
         new JS.ClassExpression(new JS.Identifier(name), heritage, []));
 
-    return _finishClassDef(classElem, classDecl);
+    return _finishClassDef(type, classDecl);
   }
 
   @override
   JS.Statement visitClassDeclaration(ClassDeclaration node) {
     // If we've already emitted this class, skip it.
-    var classElem = node.element;
-    if (_pendingClasses.remove(classElem) == null) return null;
+    var type = node.element.type;
+    if (_pendingClasses.remove(node.element) == null) return null;
     if (_getJsNameAnnotation(node) != null) return null;
 
     currentClass = node;
@@ -302,13 +311,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       }
     }
 
-    var classExpr = new JS.ClassExpression(new JS.Identifier(classElem.name),
+    var classExpr = new JS.ClassExpression(new JS.Identifier(type.name),
         _classHeritage(node), _emitClassMethods(node, ctors, fields));
 
-    var body = _finishClassMembers(classElem, classExpr, ctors, staticFields);
+    var body =
+        _finishClassMembers(node.element, classExpr, ctors, staticFields);
     currentClass = null;
 
-    return _finishClassDef(classElem, body);
+    return _finishClassDef(type, body);
   }
 
   @override
@@ -318,26 +328,23 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// Given a class element and body, complete the class declaration.
   /// This handles generic type parameters, laziness (in library-cycle cases),
   /// and ensuring dependencies are loaded first.
-  JS.Statement _finishClassDef(ClassElement classElem, JS.Statement body) {
-    var name = classElem.name;
+  JS.Statement _finishClassDef(ParameterizedType type, JS.Statement body) {
+    var name = type.name;
     var genericName = '$name\$';
 
     JS.Statement genericDef;
     JS.Expression genericInst;
-    if (classElem.typeParameters.isNotEmpty) {
-      genericDef = _emitGenericClassDef(classElem, body);
-      var dynamicArgs = new List.filled(
-          classElem.typeParameters.length, js.call('dart.dynamic'));
-
+    if (type.typeParameters.isNotEmpty) {
+      genericDef = _emitGenericClassDef(type, body);
       var target = genericName;
-      if (_needQualifiedName(classElem)) {
+      if (_needQualifiedName(type.element)) {
         target = js.call('#.#', [_exportsVar, genericName]);
       }
-      genericInst = js.call('#(#)', [target, dynamicArgs]);
+      genericInst = js.call('#()', [target]);
     }
 
     // The base class and all mixins must be declared before this class.
-    if (_lazyClass(classElem)) {
+    if (_lazyClass(type)) {
       // TODO(jmesserly): the lazy class def is a simple solution for now.
       // We may want to consider other options in the future.
 
@@ -364,45 +371,51 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     if (genericDef != null) {
       body = js.statement('{ #; let # = #; }', [genericDef, name, genericInst]);
-      if (isPublic(name)) _exports.add(genericName);
     }
 
-    if (classElem.type.isObject) return body;
+    if (type.isObject) return body;
 
     // If we're not lazy, we still need to ensure our dependencies are
     // generated first.
     var classDefs = <JS.Statement>[];
-    _emitClassIfNeeded(classDefs, classElem.supertype.element);
-    for (var m in classElem.mixins) {
-      _emitClassIfNeeded(classDefs, m.element);
+    if (type is InterfaceType) {
+      _emitClassIfNeeded(classDefs, type.superclass);
+      for (var m in type.element.mixins) {
+        _emitClassIfNeeded(classDefs, m);
+      }
+    } else if (type is FunctionType) {
+      _emitClassIfNeeded(classDefs, rules.provider.functionType);
     }
     classDefs.add(body);
     return _statement(classDefs);
   }
 
-  void _emitClassIfNeeded(List<JS.Statement> defs, ClassElement base) {
+  void _emitClassIfNeeded(List<JS.Statement> defs, DartType base) {
     // We can only emit classes from this library.
-    if (base.library != currentLibrary) return;
+    if (base.element.library != currentLibrary) return;
 
-    var baseNode = _pendingClasses[base];
+    var baseNode = _pendingClasses[base.element];
     if (baseNode != null) defs.add(visitClassDeclaration(baseNode));
   }
 
   /// Returns true if the supertype or mixins aren't loaded.
   /// If that is the case, we'll emit a lazy class definition.
-  bool _lazyClass(ClassElement cls) {
-    if (cls.type.isObject) return false;
+  bool _lazyClass(DartType type) {
+    if (type.isObject) return false;
 
-    assert(cls.library == currentLibrary);
-    var result = _lazyClassMemo[cls];
+    // Use the element as the key, as those are unique whereas generic types
+    // can have their arguments substituted.
+    assert(type.element.library == currentLibrary);
+    var result = _lazyClassMemo[type.element];
     if (result != null) return result;
 
-    result = _classMightNotBeLoaded(cls.supertype.element);
-    for (var mixin in cls.mixins) {
-      if (result) break;
-      result = _classMightNotBeLoaded(mixin.element);
+    if (type is InterfaceType) {
+      result = _typeMightNotBeLoaded(type.superclass) ||
+          type.mixins.any(_typeMightNotBeLoaded);
+    } else if (type is FunctionType) {
+      result = _typeMightNotBeLoaded(rules.provider.functionType);
     }
-    return _lazyClassMemo[cls] = result;
+    return _lazyClassMemo[type.element] = result;
   }
 
   /// Curated order to minimize lazy classes needed by dart:core and its
@@ -426,16 +439,17 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// optimal way. For example, we could order the libraries in a cycle to
   /// minimize laziness. However, we currently assume we cannot control the
   /// order that the cycle of libraries will be loaded in.
-  bool _classMightNotBeLoaded(ClassElement cls) {
-    if (cls.library == currentLibrary) return _lazyClass(cls);
+  bool _typeMightNotBeLoaded(DartType type) {
+    var library = type.element.library;
+    if (library == currentLibrary) return _lazyClass(type);
 
     // The SDK is a special case: we optimize the order to prevent laziness.
-    if (cls.library.isInSdk) {
+    if (library.isInSdk) {
       // SDK is loaded before non-SDK libraies
       if (!currentLibrary.isInSdk) return false;
 
       // Compute the order of both SDK libraries. If unknown, assume it's after.
-      var classOrder = CORELIB_ORDER.indexOf(cls.library.name);
+      var classOrder = CORELIB_ORDER.indexOf(library.name);
       if (classOrder == -1) classOrder = CORELIB_ORDER.length;
 
       var currentOrder = CORELIB_ORDER.indexOf(currentLibrary.name);
@@ -449,7 +463,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       // library, do the normal cycle check. (Not all SDK libs are cycles.)
     }
 
-    return _inLibraryCycle(cls.library);
+    return _inLibraryCycle(library);
   }
 
   /// Returns true if [library] depends on the [currentLibrary] via some
@@ -475,10 +489,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return _libraryCycleMemo[library] = result;
   }
 
-  JS.Statement _emitGenericClassDef(ClassElement cls, JS.Statement body) {
-    var name = cls.name;
+  JS.Statement _emitGenericClassDef(ParameterizedType type, JS.Statement body) {
+    var name = type.name;
     var genericName = '$name\$';
-    var typeParams = cls.typeParameters.map((p) => p.name);
+    var typeParams = type.typeParameters.map((p) => p.name);
+    if (isPublic(name)) _exports.add(genericName);
     return js.statement('let # = dart.generic(function(#) { #; return #; });', [
       genericName,
       typeParams,
@@ -635,10 +650,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       var args = new JS.Identifier('arguments', allowRename: false);
       body = js.statement('''{
         // Get the class name for this instance.
-        var name = this.constructor.name;
+        let name = this.constructor.name;
         // Call the default constructor.
-        var init = this[name];
-        var result = void 0;
+        let init = this[name];
+        let result = void 0;
         if (init) result = init.apply(this, #);
         return result === void 0 ? this : result;
       }''', args);
@@ -1026,10 +1041,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   bool _needQualifiedName(Element element) {
     var lib = element.library;
-
-    return lib != null &&
-        (lib != currentLibrary ||
-            element is ClassElement && _lazyClass(element));
+    if (lib == null) return false;
+    if (lib != currentLibrary) return true;
+    if (element is ClassElement) return _lazyClass(element.type);
+    if (element is FunctionTypeAliasElement) return _lazyClass(element.type);
+    return false;
   }
 
   JS.Node _emitDPutIfDynamic(

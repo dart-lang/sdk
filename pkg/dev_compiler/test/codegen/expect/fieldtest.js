@@ -16,7 +16,7 @@ var fieldtest;
     }
     return B;
   });
-  let B = B$(dart.dynamic);
+  let B = B$();
   // Function foo: (A) → int
   function foo(a) {
     core.print(a.x);
@@ -61,8 +61,8 @@ var fieldtest;
   }
   // Exports:
   exports.A = A;
-  exports.B = B;
   exports.B$ = B$;
+  exports.B = B;
   exports.foo = foo;
   exports.bar = bar;
   exports.baz = baz;

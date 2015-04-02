@@ -1,10 +1,8 @@
 var typed_data;
 (function(exports) {
   'use strict';
-  class ByteBuffer extends core.Object {
-  }
-  class TypedData extends core.Object {
-  }
+  class ByteBuffer extends core.Object {}
+  class TypedData extends core.Object {}
   let _ = Symbol('_');
   let _littleEndian = Symbol('_littleEndian');
   class Endianness extends core.Object {

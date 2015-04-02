@@ -155,8 +155,7 @@ var isolate;
       return _isolate_helper.IsolateNatives.currentIsolate;
     }
   });
-  class SendPort extends core.Object {
-  }
+  class SendPort extends core.Object {}
   SendPort[dart.implements] = () => [Capability];
   class ReceivePort extends core.Object {
     ReceivePort() {

@@ -1,8 +1,7 @@
 var _internal;
 (function(exports) {
   'use strict';
-  class EfficientLength extends core.Object {
-  }
+  class EfficientLength extends core.Object {}
   let ListIterable$ = dart.generic(function(E) {
     class ListIterable extends collection.IterableBase$(E) {
       ListIterable() {
@@ -224,7 +223,7 @@ var _internal;
     ListIterable[dart.implements] = () => [EfficientLength];
     return ListIterable;
   });
-  let ListIterable = ListIterable$(dart.dynamic);
+  let ListIterable = ListIterable$();
   let _iterable = dart.JsSymbol('_iterable');
   let _start = dart.JsSymbol('_start');
   let _endOrLength = dart.JsSymbol('_endOrLength');
@@ -315,7 +314,7 @@ var _internal;
     }
     return SubListIterable;
   });
-  let SubListIterable = SubListIterable$(dart.dynamic);
+  let SubListIterable = SubListIterable$();
   let _length = dart.JsSymbol('_length');
   let _index = dart.JsSymbol('_index');
   let _current = dart.JsSymbol('_current');
@@ -347,7 +346,12 @@ var _internal;
     ListIterator[dart.implements] = () => [core.Iterator$(E)];
     return ListIterator;
   });
-  let ListIterator = ListIterator$(dart.dynamic);
+  let ListIterator = ListIterator$();
+  let _Transformation$ = dart.generic(function(S, T) {
+    class _Transformation extends core.Function {}
+    return _Transformation;
+  });
+  let _Transformation = _Transformation$();
   let _ = dart.JsSymbol('_');
   let _f = dart.JsSymbol('_f');
   let MappedIterable$ = dart.generic(function(S, T) {
@@ -388,7 +392,7 @@ var _internal;
     dart.defineNamedConstructor(MappedIterable, _);
     return MappedIterable;
   });
-  let MappedIterable = MappedIterable$(dart.dynamic, dart.dynamic);
+  let MappedIterable = MappedIterable$();
   let EfficientLengthMappedIterable$ = dart.generic(function(S, T) {
     class EfficientLengthMappedIterable extends MappedIterable$(S, T) {
       EfficientLengthMappedIterable(iterable, func) {
@@ -398,7 +402,7 @@ var _internal;
     EfficientLengthMappedIterable[dart.implements] = () => [EfficientLength];
     return EfficientLengthMappedIterable;
   });
-  let EfficientLengthMappedIterable = EfficientLengthMappedIterable$(dart.dynamic, dart.dynamic);
+  let EfficientLengthMappedIterable = EfficientLengthMappedIterable$();
   let _iterator = dart.JsSymbol('_iterator');
   let MappedIterator$ = dart.generic(function(S, T) {
     class MappedIterator extends core.Iterator$(T) {
@@ -422,7 +426,7 @@ var _internal;
     }
     return MappedIterator;
   });
-  let MappedIterator = MappedIterator$(dart.dynamic, dart.dynamic);
+  let MappedIterator = MappedIterator$();
   let _source = dart.JsSymbol('_source');
   let MappedListIterable$ = dart.generic(function(S, T) {
     class MappedListIterable extends ListIterable$(T) {
@@ -441,7 +445,12 @@ var _internal;
     MappedListIterable[dart.implements] = () => [EfficientLength];
     return MappedListIterable;
   });
-  let MappedListIterable = MappedListIterable$(dart.dynamic, dart.dynamic);
+  let MappedListIterable = MappedListIterable$();
+  let _ElementPredicate$ = dart.generic(function(E) {
+    class _ElementPredicate extends core.Function {}
+    return _ElementPredicate;
+  });
+  let _ElementPredicate = _ElementPredicate$();
   let WhereIterable$ = dart.generic(function(E) {
     class WhereIterable extends collection.IterableBase$(E) {
       WhereIterable(iterable$, f$) {
@@ -455,7 +464,7 @@ var _internal;
     }
     return WhereIterable;
   });
-  let WhereIterable = WhereIterable$(dart.dynamic);
+  let WhereIterable = WhereIterable$();
   let WhereIterator$ = dart.generic(function(E) {
     class WhereIterator extends core.Iterator$(E) {
       WhereIterator(iterator$, f$) {
@@ -477,7 +486,12 @@ var _internal;
     }
     return WhereIterator;
   });
-  let WhereIterator = WhereIterator$(dart.dynamic);
+  let WhereIterator = WhereIterator$();
+  let _ExpandFunction$ = dart.generic(function(S, T) {
+    class _ExpandFunction extends core.Function {}
+    return _ExpandFunction;
+  });
+  let _ExpandFunction = _ExpandFunction$();
   let ExpandIterable$ = dart.generic(function(S, T) {
     class ExpandIterable extends collection.IterableBase$(T) {
       ExpandIterable(iterable$, f$) {
@@ -491,7 +505,7 @@ var _internal;
     }
     return ExpandIterable;
   });
-  let ExpandIterable = ExpandIterable$(dart.dynamic, dart.dynamic);
+  let ExpandIterable = ExpandIterable$();
   let _currentExpansion = dart.JsSymbol('_currentExpansion');
   let _nextExpansion = dart.JsSymbol('_nextExpansion');
   let ExpandIterator$ = dart.generic(function(S, T) {
@@ -525,7 +539,7 @@ var _internal;
     ExpandIterator[dart.implements] = () => [core.Iterator$(T)];
     return ExpandIterator;
   });
-  let ExpandIterator = ExpandIterator$(dart.dynamic, dart.dynamic);
+  let ExpandIterator = ExpandIterator$();
   let _takeCount = dart.JsSymbol('_takeCount');
   let TakeIterable$ = dart.generic(function(E) {
     class TakeIterable extends collection.IterableBase$(E) {
@@ -550,7 +564,7 @@ var _internal;
     dart.defineNamedConstructor(TakeIterable, _);
     return TakeIterable;
   });
-  let TakeIterable = TakeIterable$(dart.dynamic);
+  let TakeIterable = TakeIterable$();
   let EfficientLengthTakeIterable$ = dart.generic(function(E) {
     class EfficientLengthTakeIterable extends TakeIterable$(E) {
       EfficientLengthTakeIterable(iterable, takeCount) {
@@ -566,7 +580,7 @@ var _internal;
     EfficientLengthTakeIterable[dart.implements] = () => [EfficientLength];
     return EfficientLengthTakeIterable;
   });
-  let EfficientLengthTakeIterable = EfficientLengthTakeIterable$(dart.dynamic);
+  let EfficientLengthTakeIterable = EfficientLengthTakeIterable$();
   let _remaining = dart.JsSymbol('_remaining');
   let TakeIterator$ = dart.generic(function(E) {
     class TakeIterator extends core.Iterator$(E) {
@@ -592,7 +606,7 @@ var _internal;
     }
     return TakeIterator;
   });
-  let TakeIterator = TakeIterator$(dart.dynamic);
+  let TakeIterator = TakeIterator$();
   let TakeWhileIterable$ = dart.generic(function(E) {
     class TakeWhileIterable extends collection.IterableBase$(E) {
       TakeWhileIterable(iterable$, f$) {
@@ -606,7 +620,7 @@ var _internal;
     }
     return TakeWhileIterable;
   });
-  let TakeWhileIterable = TakeWhileIterable$(dart.dynamic);
+  let TakeWhileIterable = TakeWhileIterable$();
   let _isFinished = dart.JsSymbol('_isFinished');
   let TakeWhileIterator$ = dart.generic(function(E) {
     class TakeWhileIterator extends core.Iterator$(E) {
@@ -633,7 +647,7 @@ var _internal;
     }
     return TakeWhileIterator;
   });
-  let TakeWhileIterator = TakeWhileIterator$(dart.dynamic);
+  let TakeWhileIterator = TakeWhileIterator$();
   let _skipCount = dart.JsSymbol('_skipCount');
   let SkipIterable$ = dart.generic(function(E) {
     class SkipIterable extends collection.IterableBase$(E) {
@@ -666,7 +680,7 @@ var _internal;
     dart.defineNamedConstructor(SkipIterable, _);
     return SkipIterable;
   });
-  let SkipIterable = SkipIterable$(dart.dynamic);
+  let SkipIterable = SkipIterable$();
   let EfficientLengthSkipIterable$ = dart.generic(function(E) {
     class EfficientLengthSkipIterable extends SkipIterable$(E) {
       EfficientLengthSkipIterable(iterable, skipCount) {
@@ -682,7 +696,7 @@ var _internal;
     EfficientLengthSkipIterable[dart.implements] = () => [EfficientLength];
     return EfficientLengthSkipIterable;
   });
-  let EfficientLengthSkipIterable = EfficientLengthSkipIterable$(dart.dynamic);
+  let EfficientLengthSkipIterable = EfficientLengthSkipIterable$();
   let SkipIterator$ = dart.generic(function(E) {
     class SkipIterator extends core.Iterator$(E) {
       SkipIterator(iterator$, skipCount$) {
@@ -703,7 +717,7 @@ var _internal;
     }
     return SkipIterator;
   });
-  let SkipIterator = SkipIterator$(dart.dynamic);
+  let SkipIterator = SkipIterator$();
   let SkipWhileIterable$ = dart.generic(function(E) {
     class SkipWhileIterable extends collection.IterableBase$(E) {
       SkipWhileIterable(iterable$, f$) {
@@ -717,7 +731,7 @@ var _internal;
     }
     return SkipWhileIterable;
   });
-  let SkipWhileIterable = SkipWhileIterable$(dart.dynamic);
+  let SkipWhileIterable = SkipWhileIterable$();
   let _hasSkipped = dart.JsSymbol('_hasSkipped');
   let SkipWhileIterator$ = dart.generic(function(E) {
     class SkipWhileIterator extends core.Iterator$(E) {
@@ -743,7 +757,7 @@ var _internal;
     }
     return SkipWhileIterator;
   });
-  let SkipWhileIterator = SkipWhileIterator$(dart.dynamic);
+  let SkipWhileIterator = SkipWhileIterator$();
   let EmptyIterable$ = dart.generic(function(E) {
     class EmptyIterable extends collection.IterableBase$(E) {
       EmptyIterable() {
@@ -840,7 +854,7 @@ var _internal;
     EmptyIterable[dart.implements] = () => [EfficientLength];
     return EmptyIterable;
   });
-  let EmptyIterable = EmptyIterable$(dart.dynamic);
+  let EmptyIterable = EmptyIterable$();
   let EmptyIterator$ = dart.generic(function(E) {
     class EmptyIterator extends core.Object {
       EmptyIterator() {
@@ -855,14 +869,13 @@ var _internal;
     EmptyIterator[dart.implements] = () => [core.Iterator$(E)];
     return EmptyIterator;
   });
-  let EmptyIterator = EmptyIterator$(dart.dynamic);
+  let EmptyIterator = EmptyIterator$();
   let BidirectionalIterator$ = dart.generic(function(T) {
-    class BidirectionalIterator extends core.Object {
-    }
+    class BidirectionalIterator extends core.Object {}
     BidirectionalIterator[dart.implements] = () => [core.Iterator$(T)];
     return BidirectionalIterator;
   });
-  let BidirectionalIterator = BidirectionalIterator$(dart.dynamic);
+  let BidirectionalIterator = BidirectionalIterator$();
   let _rangeCheck = dart.JsSymbol('_rangeCheck');
   let IterableMixinWorkaround$ = dart.generic(function(T) {
     class IterableMixinWorkaround extends core.Object {
@@ -1219,7 +1232,7 @@ var _internal;
     }
     return IterableMixinWorkaround;
   });
-  let IterableMixinWorkaround = IterableMixinWorkaround$(dart.dynamic);
+  let IterableMixinWorkaround = IterableMixinWorkaround$();
   class IterableElementError extends core.Object {
     static noElement() {
       return new core.StateError("No element");
@@ -1275,7 +1288,7 @@ var _internal;
     }
     return FixedLengthListMixin;
   });
-  let FixedLengthListMixin = FixedLengthListMixin$(dart.dynamic);
+  let FixedLengthListMixin = FixedLengthListMixin$();
   let UnmodifiableListMixin$ = dart.generic(function(E) {
     class UnmodifiableListMixin extends core.Object {
       set(index, value) {
@@ -1347,19 +1360,17 @@ var _internal;
     UnmodifiableListMixin[dart.implements] = () => [core.List$(E)];
     return UnmodifiableListMixin;
   });
-  let UnmodifiableListMixin = UnmodifiableListMixin$(dart.dynamic);
+  let UnmodifiableListMixin = UnmodifiableListMixin$();
   let FixedLengthListBase$ = dart.generic(function(E) {
-    class FixedLengthListBase extends dart.mixin(FixedLengthListMixin$(E)) {
-    }
+    class FixedLengthListBase extends dart.mixin(FixedLengthListMixin$(E)) {}
     return FixedLengthListBase;
   });
-  let FixedLengthListBase = FixedLengthListBase$(dart.dynamic);
+  let FixedLengthListBase = FixedLengthListBase$();
   let UnmodifiableListBase$ = dart.generic(function(E) {
-    class UnmodifiableListBase extends dart.mixin(UnmodifiableListMixin$(E)) {
-    }
+    class UnmodifiableListBase extends dart.mixin(UnmodifiableListMixin$(E)) {}
     return UnmodifiableListBase;
   });
-  let UnmodifiableListBase = UnmodifiableListBase$(dart.dynamic);
+  let UnmodifiableListBase = UnmodifiableListBase$();
   let _backedList = dart.JsSymbol('_backedList');
   class _ListIndicesIterable extends ListIterable$(core.int) {
     _ListIndicesIterable(backedList) {
@@ -1435,7 +1446,7 @@ var _internal;
     ListMapView[dart.implements] = () => [core.Map$(core.int, E)];
     return ListMapView;
   });
-  let ListMapView = ListMapView$(dart.dynamic);
+  let ListMapView = ListMapView$();
   let ReversedListIterable$ = dart.generic(function(E) {
     class ReversedListIterable extends ListIterable$(E) {
       ReversedListIterable(source) {
@@ -1451,7 +1462,7 @@ var _internal;
     }
     return ReversedListIterable;
   });
-  let ReversedListIterable = ReversedListIterable$(dart.dynamic);
+  let ReversedListIterable = ReversedListIterable$();
   class UnmodifiableListError extends core.Object {
     static add() {
       return new core.UnsupportedError("Cannot add to unmodifiable List");
@@ -1834,69 +1845,69 @@ var _internal;
   let POWERS_OF_TEN = /* Unimplemented const */new core.List.from([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22]);
   // Exports:
   exports.EfficientLength = EfficientLength;
-  exports.ListIterable = ListIterable;
   exports.ListIterable$ = ListIterable$;
-  exports.SubListIterable = SubListIterable;
+  exports.ListIterable = ListIterable;
   exports.SubListIterable$ = SubListIterable$;
-  exports.ListIterator = ListIterator;
+  exports.SubListIterable = SubListIterable;
   exports.ListIterator$ = ListIterator$;
-  exports.MappedIterable = MappedIterable;
+  exports.ListIterator = ListIterator;
   exports.MappedIterable$ = MappedIterable$;
-  exports.EfficientLengthMappedIterable = EfficientLengthMappedIterable;
+  exports.MappedIterable = MappedIterable;
   exports.EfficientLengthMappedIterable$ = EfficientLengthMappedIterable$;
-  exports.MappedIterator = MappedIterator;
+  exports.EfficientLengthMappedIterable = EfficientLengthMappedIterable;
   exports.MappedIterator$ = MappedIterator$;
-  exports.MappedListIterable = MappedListIterable;
+  exports.MappedIterator = MappedIterator;
   exports.MappedListIterable$ = MappedListIterable$;
-  exports.WhereIterable = WhereIterable;
+  exports.MappedListIterable = MappedListIterable;
   exports.WhereIterable$ = WhereIterable$;
-  exports.WhereIterator = WhereIterator;
+  exports.WhereIterable = WhereIterable;
   exports.WhereIterator$ = WhereIterator$;
-  exports.ExpandIterable = ExpandIterable;
+  exports.WhereIterator = WhereIterator;
   exports.ExpandIterable$ = ExpandIterable$;
-  exports.ExpandIterator = ExpandIterator;
+  exports.ExpandIterable = ExpandIterable;
   exports.ExpandIterator$ = ExpandIterator$;
-  exports.TakeIterable = TakeIterable;
+  exports.ExpandIterator = ExpandIterator;
   exports.TakeIterable$ = TakeIterable$;
-  exports.EfficientLengthTakeIterable = EfficientLengthTakeIterable;
+  exports.TakeIterable = TakeIterable;
   exports.EfficientLengthTakeIterable$ = EfficientLengthTakeIterable$;
-  exports.TakeIterator = TakeIterator;
+  exports.EfficientLengthTakeIterable = EfficientLengthTakeIterable;
   exports.TakeIterator$ = TakeIterator$;
-  exports.TakeWhileIterable = TakeWhileIterable;
+  exports.TakeIterator = TakeIterator;
   exports.TakeWhileIterable$ = TakeWhileIterable$;
-  exports.TakeWhileIterator = TakeWhileIterator;
+  exports.TakeWhileIterable = TakeWhileIterable;
   exports.TakeWhileIterator$ = TakeWhileIterator$;
-  exports.SkipIterable = SkipIterable;
+  exports.TakeWhileIterator = TakeWhileIterator;
   exports.SkipIterable$ = SkipIterable$;
-  exports.EfficientLengthSkipIterable = EfficientLengthSkipIterable;
+  exports.SkipIterable = SkipIterable;
   exports.EfficientLengthSkipIterable$ = EfficientLengthSkipIterable$;
-  exports.SkipIterator = SkipIterator;
+  exports.EfficientLengthSkipIterable = EfficientLengthSkipIterable;
   exports.SkipIterator$ = SkipIterator$;
-  exports.SkipWhileIterable = SkipWhileIterable;
+  exports.SkipIterator = SkipIterator;
   exports.SkipWhileIterable$ = SkipWhileIterable$;
-  exports.SkipWhileIterator = SkipWhileIterator;
+  exports.SkipWhileIterable = SkipWhileIterable;
   exports.SkipWhileIterator$ = SkipWhileIterator$;
-  exports.EmptyIterable = EmptyIterable;
+  exports.SkipWhileIterator = SkipWhileIterator;
   exports.EmptyIterable$ = EmptyIterable$;
-  exports.EmptyIterator = EmptyIterator;
+  exports.EmptyIterable = EmptyIterable;
   exports.EmptyIterator$ = EmptyIterator$;
-  exports.BidirectionalIterator = BidirectionalIterator;
+  exports.EmptyIterator = EmptyIterator;
   exports.BidirectionalIterator$ = BidirectionalIterator$;
-  exports.IterableMixinWorkaround = IterableMixinWorkaround;
+  exports.BidirectionalIterator = BidirectionalIterator;
   exports.IterableMixinWorkaround$ = IterableMixinWorkaround$;
+  exports.IterableMixinWorkaround = IterableMixinWorkaround;
   exports.IterableElementError = IterableElementError;
-  exports.FixedLengthListMixin = FixedLengthListMixin;
   exports.FixedLengthListMixin$ = FixedLengthListMixin$;
-  exports.UnmodifiableListMixin = UnmodifiableListMixin;
+  exports.FixedLengthListMixin = FixedLengthListMixin;
   exports.UnmodifiableListMixin$ = UnmodifiableListMixin$;
-  exports.FixedLengthListBase = FixedLengthListBase;
+  exports.UnmodifiableListMixin = UnmodifiableListMixin;
   exports.FixedLengthListBase$ = FixedLengthListBase$;
-  exports.UnmodifiableListBase = UnmodifiableListBase;
+  exports.FixedLengthListBase = FixedLengthListBase;
   exports.UnmodifiableListBase$ = UnmodifiableListBase$;
-  exports.ListMapView = ListMapView;
+  exports.UnmodifiableListBase = UnmodifiableListBase;
   exports.ListMapView$ = ListMapView$;
-  exports.ReversedListIterable = ReversedListIterable;
+  exports.ListMapView = ListMapView;
   exports.ReversedListIterable$ = ReversedListIterable$;
+  exports.ReversedListIterable = ReversedListIterable;
   exports.UnmodifiableListError = UnmodifiableListError;
   exports.NonGrowableListError = NonGrowableListError;
   exports.makeListFixedLength = makeListFixedLength;

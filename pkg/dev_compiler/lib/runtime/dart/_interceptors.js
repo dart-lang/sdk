@@ -354,26 +354,23 @@ var _interceptors;
     dart.defineNamedConstructor(JSArray, 'markGrowable');
     return JSArray;
   });
-  let JSArray = JSArray$(dart.dynamic);
+  let JSArray = JSArray$();
   let JSMutableArray$ = dart.generic(function(E) {
-    class JSMutableArray extends JSArray$(E) {
-    }
+    class JSMutableArray extends JSArray$(E) {}
     JSMutableArray[dart.implements] = () => [JSMutableIndexable];
     return JSMutableArray;
   });
-  let JSMutableArray = JSMutableArray$(dart.dynamic);
+  let JSMutableArray = JSMutableArray$();
   let JSFixedArray$ = dart.generic(function(E) {
-    class JSFixedArray extends JSMutableArray$(E) {
-    }
+    class JSFixedArray extends JSMutableArray$(E) {}
     return JSFixedArray;
   });
-  let JSFixedArray = JSFixedArray$(dart.dynamic);
+  let JSFixedArray = JSFixedArray$();
   let JSExtendableArray$ = dart.generic(function(E) {
-    class JSExtendableArray extends JSMutableArray$(E) {
-    }
+    class JSExtendableArray extends JSMutableArray$(E) {}
     return JSExtendableArray;
   });
-  let JSExtendableArray = JSExtendableArray$(dart.dynamic);
+  let JSExtendableArray = JSExtendableArray$();
   let _MIN_INT32 = Symbol('_MIN_INT32');
   let _MAX_INT32 = Symbol('_MAX_INT32');
   let _handleIEtoString = Symbol('_handleIEtoString');
@@ -764,12 +761,9 @@ var _interceptors;
     }
   }
   JSDouble[dart.implements] = () => [core.double];
-  class JSPositiveInt extends JSInt {
-  }
-  class JSUInt32 extends JSPositiveInt {
-  }
-  class JSUInt31 extends JSUInt32 {
-  }
+  class JSPositiveInt extends JSInt {}
+  class JSUInt32 extends JSPositiveInt {}
+  class JSUInt31 extends JSUInt32 {}
   let _defaultSplit = Symbol('_defaultSplit');
   let _isWhitespace = Symbol('_isWhitespace');
   let _skipLeadingWhitespace = Symbol('_skipLeadingWhitespace');
@@ -1365,12 +1359,9 @@ var _interceptors;
     }
   }
   JSNull[dart.implements] = () => [core.Null];
-  class JSIndexable extends core.Object {
-  }
-  class JSMutableIndexable extends JSIndexable {
-  }
-  class JSObject extends core.Object {
-  }
+  class JSIndexable extends core.Object {}
+  class JSMutableIndexable extends JSIndexable {}
+  class JSObject extends core.Object {}
   class JavaScriptObject extends Interceptor {
     JavaScriptObject() {
       super.Interceptor();
@@ -1397,15 +1388,15 @@ var _interceptors;
     }
   }
   // Exports:
-  exports.JSArray = JSArray;
   exports.JSArray$ = JSArray$;
+  exports.JSArray = JSArray;
   exports.Interceptor = Interceptor;
-  exports.JSMutableArray = JSMutableArray;
   exports.JSMutableArray$ = JSMutableArray$;
-  exports.JSFixedArray = JSFixedArray;
+  exports.JSMutableArray = JSMutableArray;
   exports.JSFixedArray$ = JSFixedArray$;
-  exports.JSExtendableArray = JSExtendableArray;
+  exports.JSFixedArray = JSFixedArray;
   exports.JSExtendableArray$ = JSExtendableArray$;
+  exports.JSExtendableArray = JSExtendableArray;
   exports.JSNumber = JSNumber;
   exports.JSInt = JSInt;
   exports.JSDouble = JSDouble;

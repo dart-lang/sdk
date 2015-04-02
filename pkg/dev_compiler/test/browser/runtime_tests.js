@@ -262,4 +262,16 @@ suite('instanceOf', () => {
     //checkType((x) => x, type((void _(x)) {}));
   });
 
+  test('mixins', () => {
+    let c = collection;
+    var s1 = new (c.SplayTreeSet$(String))();
+
+    checkType(s1, c.IterableMixin);
+    checkType(s1, c.IterableMixin$(String));
+    checkType(s1, c.IterableMixin$(int), false);
+
+    checkType(s1, c.SetMixin);
+    checkType(s1, c.SetMixin$(String));
+    checkType(s1, c.SetMixin$(int), false);
+  });
 });

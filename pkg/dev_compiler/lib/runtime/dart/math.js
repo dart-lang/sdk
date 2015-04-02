@@ -61,7 +61,7 @@ var math;
     }
     return Point;
   });
-  let Point = Point$(dart.dynamic);
+  let Point = Point$();
   class Random extends core.Object {
     Random(seed) {
       if (seed === void 0)
@@ -133,7 +133,7 @@ var math;
     }
     return _RectangleBase;
   });
-  let _RectangleBase = _RectangleBase$(dart.dynamic);
+  let _RectangleBase = _RectangleBase$();
   let Rectangle$ = dart.generic(function(T) {
     class Rectangle extends _RectangleBase$(T) {
       Rectangle(left, top, width, height) {
@@ -154,7 +154,7 @@ var math;
     dart.defineNamedConstructor(Rectangle, 'fromPoints');
     return Rectangle;
   });
-  let Rectangle = Rectangle$(dart.dynamic);
+  let Rectangle = Rectangle$();
   let _width = Symbol('_width');
   let _height = Symbol('_height');
   let MutableRectangle$ = dart.generic(function(T) {
@@ -194,7 +194,7 @@ var math;
     dart.defineNamedConstructor(MutableRectangle, 'fromPoints');
     return MutableRectangle;
   });
-  let MutableRectangle = MutableRectangle$(dart.dynamic);
+  let MutableRectangle = MutableRectangle$();
   // Function _clampToZero: (num) → num
   function _clampToZero(value) {
     dart.assert(dart.notNull(value) < 0);
@@ -427,13 +427,13 @@ var math;
   _Random._POW2_27_D = 1.0 * (1 << 27);
   _Random._MASK32 = 4294967295;
   // Exports:
-  exports.Point = Point;
   exports.Point$ = Point$;
+  exports.Point = Point;
   exports.Random = Random;
-  exports.Rectangle = Rectangle;
   exports.Rectangle$ = Rectangle$;
-  exports.MutableRectangle = MutableRectangle;
+  exports.Rectangle = Rectangle;
   exports.MutableRectangle$ = MutableRectangle$;
+  exports.MutableRectangle = MutableRectangle;
   exports.E = E;
   exports.LN10 = LN10;
   exports.LN2 = LN2;

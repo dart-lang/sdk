@@ -96,7 +96,7 @@ var dart, _js_helper;
   dart.dbinary = dbinary;
 
   function cast(obj, type) {
-    //TODO(vsm): handle non-nullable types
+    // TODO(vsm): handle non-nullable types
     if (obj == null) return obj;
     let actual = getRuntimeType(obj);
     if (isSubtype(actual, type)) return obj;
@@ -189,7 +189,11 @@ var dart, _js_helper;
     }
 
     // Function subtyping.
-    // TODO(jmesserly): implement.
+    // TODO(jmesserly): implement this properly.
+    if (isClassSubType(t1, core.Function) &&
+        isClassSubType(t2, core.Function)) {
+      return true;
+    }
     return false;
   }
 
@@ -234,6 +238,15 @@ var dart, _js_helper;
 
     // Check superclass.
     if (isClassSubType(t1.__proto__, t2)) return true;
+
+    // Check mixins.
+    let mixins = safeGetOwnProperty(t1, dart.mixins);
+    if (mixins) {
+      for (let m1 of mixins) {
+        // TODO(jmesserly): remove the != null check once we can load core libs.
+        if (m1 != null && isClassSubType(m1, t2)) return true;
+      }
+    }
 
     // Check interfaces.
     let getInterfaces = safeGetOwnProperty(t1, dart.implements);
@@ -371,10 +384,12 @@ var dart, _js_helper;
         // Run them backwards so most-derived mixin is initialized first.
         for (let i = mixins.length - 1; i >= 0; i--) {
           let mixin = mixins[i];
-          mixin.prototype[mixin.name].call(this);
+          let init = mixin.prototype[mixin.name];
+          if (init) init.call(this);
         }
         // Run base initializer.
-        base.prototype[base.name].apply(this, arguments);
+        let init = base.prototype[base.name];
+        if (init) init.apply(this, arguments);
       }
     }
     // Copy each mixin's methods, with later ones overwriting earlier entries.

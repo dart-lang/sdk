@@ -12,10 +12,9 @@ var dom;
     }
   }
   let overload = new Overload();
-  class Event extends core.Object {
-  }
-  class RenderingContext extends core.Object {
-  }
+  class EventListener extends core.Function {}
+  class Event extends core.Object {}
+  class RenderingContext extends core.Object {}
   class CanvasDrawingStyles extends core.Object {
     CanvasDrawingStyles() {
       this.lineWidth = null;
@@ -28,12 +27,12 @@ var dom;
       this.textBaseline = null;
     }
   }
-  class CanvasPathMethods extends core.Object {
-  }
+  class CanvasPathMethods extends core.Object {}
   // Exports:
   exports.JsName = JsName;
   exports.Overload = Overload;
   exports.overload = overload;
+  exports.EventListener = EventListener;
   exports.Event = Event;
   exports.RenderingContext = RenderingContext;
   exports.CanvasDrawingStyles = CanvasDrawingStyles;

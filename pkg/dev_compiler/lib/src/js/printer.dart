@@ -962,17 +962,21 @@ class Printer implements NodeVisitor {
       visit(node.heritage);
     }
     spaceOut();
-    out('{');
-    lineOut();
-    indentMore();
-    for (var method in node.methods) {
-      indent();
-      visit(method);
+    if (node.methods.isNotEmpty) {
+      out('{');
       lineOut();
+      indentMore();
+      for (var method in node.methods) {
+        indent();
+        visit(method);
+        lineOut();
+      }
+      indentLess();
+      indent();
+      out('}');
+    } else {
+      out('{}');
     }
-    indentLess();
-    indent();
-    out('}');
   }
 
   visitMethod(Method node) {

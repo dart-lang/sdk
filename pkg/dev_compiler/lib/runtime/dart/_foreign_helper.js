@@ -31,8 +31,7 @@ var _foreign_helper;
   // Function JS_CURRENT_ISOLATE_CONTEXT: () → IsolateContext
   function JS_CURRENT_ISOLATE_CONTEXT() {
   }
-  class IsolateContext extends core.Object {
-  }
+  class IsolateContext extends core.Object {}
   // Function JS_CALL_IN_ISOLATE: (dynamic, Function) → dynamic
   function JS_CALL_IN_ISOLATE(isolate, func) {
   }

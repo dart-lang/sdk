@@ -24,7 +24,7 @@ var convert;
     }
     return Codec;
   });
-  let Codec = Codec$(dart.dynamic, dart.dynamic);
+  let Codec = Codec$();
   class Encoding extends Codec$(core.String, core.List$(core.int)) {
     Encoding() {
       super.Codec();
@@ -89,7 +89,7 @@ var convert;
     Converter[dart.implements] = () => [async.StreamTransformer];
     return Converter;
   });
-  let Converter = Converter$(dart.dynamic, dart.dynamic);
+  let Converter = Converter$();
   class _UnicodeSubsetEncoder extends Converter$(core.String, core.List$(core.int)) {
     _UnicodeSubsetEncoder(subsetMask) {
       this[_subsetMask] = subsetMask;
@@ -143,8 +143,7 @@ var convert;
     }
   }
   StringConversionSinkMixin[dart.implements] = () => [StringConversionSink];
-  class StringConversionSinkBase extends StringConversionSinkMixin {
-  }
+  class StringConversionSinkBase extends StringConversionSinkMixin {}
   class _UnicodeSubsetEncoderSink extends StringConversionSinkBase {
     _UnicodeSubsetEncoderSink(subsetMask, sink$) {
       this[_subsetMask] = subsetMask;
@@ -242,7 +241,7 @@ var convert;
     dart.defineNamedConstructor(ChunkedConversionSink, 'withCallback');
     return ChunkedConversionSink;
   });
-  let ChunkedConversionSink = ChunkedConversionSink$(dart.dynamic);
+  let ChunkedConversionSink = ChunkedConversionSink$();
   class ByteConversionSink extends ChunkedConversionSink$(core.List$(core.int)) {
     ByteConversionSink() {
       super.ChunkedConversionSink();
@@ -372,6 +371,11 @@ var convert;
     }
   }
   _ByteCallbackSink._INITIAL_BUFFER_SIZE = 1024;
+  let _ChunkedConversionCallback$ = dart.generic(function(T) {
+    class _ChunkedConversionCallback extends core.Function {}
+    return _ChunkedConversionCallback;
+  });
+  let _ChunkedConversionCallback = _ChunkedConversionCallback$();
   let _accumulated = Symbol('_accumulated');
   let _SimpleCallbackSink$ = dart.generic(function(T) {
     class _SimpleCallbackSink extends ChunkedConversionSink$(T) {
@@ -389,7 +393,7 @@ var convert;
     }
     return _SimpleCallbackSink;
   });
-  let _SimpleCallbackSink = _SimpleCallbackSink$(dart.dynamic);
+  let _SimpleCallbackSink = _SimpleCallbackSink$();
   let _EventSinkAdapter$ = dart.generic(function(T) {
     class _EventSinkAdapter extends core.Object {
       _EventSinkAdapter(sink$) {
@@ -405,7 +409,7 @@ var convert;
     _EventSinkAdapter[dart.implements] = () => [ChunkedConversionSink$(T)];
     return _EventSinkAdapter;
   });
-  let _EventSinkAdapter = _EventSinkAdapter$(dart.dynamic);
+  let _EventSinkAdapter = _EventSinkAdapter$();
   let _eventSink = Symbol('_eventSink');
   let _chunkedSink = Symbol('_chunkedSink');
   let _ConverterStreamEventSink$ = dart.generic(function(S, T) {
@@ -429,7 +433,7 @@ var convert;
     _ConverterStreamEventSink[dart.implements] = () => [async.EventSink$(S)];
     return _ConverterStreamEventSink;
   });
-  let _ConverterStreamEventSink = _ConverterStreamEventSink$(dart.dynamic, dart.dynamic);
+  let _ConverterStreamEventSink = _ConverterStreamEventSink$();
   let _first = Symbol('_first');
   let _second = Symbol('_second');
   let _FusedCodec$ = dart.generic(function(S, M, T) {
@@ -448,7 +452,7 @@ var convert;
     }
     return _FusedCodec;
   });
-  let _FusedCodec = _FusedCodec$(dart.dynamic, dart.dynamic, dart.dynamic);
+  let _FusedCodec = _FusedCodec$();
   let _codec = Symbol('_codec');
   let _InvertedCodec$ = dart.generic(function(T, S) {
     class _InvertedCodec extends Codec$(T, S) {
@@ -468,7 +472,7 @@ var convert;
     }
     return _InvertedCodec;
   });
-  let _InvertedCodec = _InvertedCodec$(dart.dynamic, dart.dynamic);
+  let _InvertedCodec = _InvertedCodec$();
   let _FusedConverter$ = dart.generic(function(S, M, T) {
     class _FusedConverter extends Converter$(S, T) {
       _FusedConverter(first$, second) {
@@ -485,7 +489,7 @@ var convert;
     }
     return _FusedConverter;
   });
-  let _FusedConverter = _FusedConverter$(dart.dynamic, dart.dynamic, dart.dynamic);
+  let _FusedConverter = _FusedConverter$();
   let HTML_ESCAPE = new HtmlEscape();
   let _$ = Symbol('_');
   let _name = Symbol('_name');
@@ -626,6 +630,8 @@ var convert;
     }
   }
   let JSON = new JsonCodec();
+  class _Reviver extends core.Function {}
+  class _ToEncodable extends core.Function {}
   let _reviver = Symbol('_reviver');
   let _toEncodable$ = Symbol('_toEncodable');
   class JsonCodec extends Codec$(core.Object, core.String) {
@@ -1459,6 +1465,7 @@ var convert;
     }
   }
   dart.defineNamedConstructor(ClosableStringSink, 'fromStringSink');
+  class _StringSinkCloseCallback extends core.Function {}
   class _ClosableStringSink extends core.Object {
     _ClosableStringSink(sink$, callback$) {
       this[_sink] = sink$;
@@ -2333,18 +2340,18 @@ var convert;
   exports.ASCII = ASCII;
   exports.AsciiCodec = AsciiCodec;
   exports.Encoding = Encoding;
-  exports.Codec = Codec;
   exports.Codec$ = Codec$;
-  exports.Converter = Converter;
+  exports.Codec = Codec;
   exports.Converter$ = Converter$;
+  exports.Converter = Converter;
   exports.AsciiEncoder = AsciiEncoder;
   exports.StringConversionSinkBase = StringConversionSinkBase;
   exports.StringConversionSinkMixin = StringConversionSinkMixin;
   exports.AsciiDecoder = AsciiDecoder;
   exports.ByteConversionSinkBase = ByteConversionSinkBase;
   exports.ByteConversionSink = ByteConversionSink;
-  exports.ChunkedConversionSink = ChunkedConversionSink;
   exports.ChunkedConversionSink$ = ChunkedConversionSink$;
+  exports.ChunkedConversionSink = ChunkedConversionSink;
   exports.HTML_ESCAPE = HTML_ESCAPE;
   exports.HtmlEscapeMode = HtmlEscapeMode;
   exports.HtmlEscape = HtmlEscape;

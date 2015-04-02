@@ -61,7 +61,7 @@ var _js_helper;
     dart.defineNamedConstructor(ConstantMap, _$);
     return ConstantMap;
   });
-  let ConstantMap = ConstantMap$(dart.dynamic, dart.dynamic);
+  let ConstantMap = ConstantMap$();
   let _jsObject = Symbol('_jsObject');
   let _keys = Symbol('_keys');
   let _fetch = Symbol('_fetch');
@@ -109,7 +109,7 @@ var _js_helper;
     dart.defineNamedConstructor(ConstantStringMap, _$);
     return ConstantStringMap;
   });
-  let ConstantStringMap = ConstantStringMap$(dart.dynamic, dart.dynamic);
+  let ConstantStringMap = ConstantStringMap$();
   let _protoValue = Symbol('_protoValue');
   let ConstantProtoMap$ = dart.generic(function(K, V) {
     class ConstantProtoMap extends ConstantStringMap$(K, V) {
@@ -131,7 +131,7 @@ var _js_helper;
     dart.defineNamedConstructor(ConstantProtoMap, _$);
     return ConstantProtoMap;
   });
-  let ConstantProtoMap = ConstantProtoMap$(dart.dynamic, dart.dynamic);
+  let ConstantProtoMap = ConstantProtoMap$();
   let _map = Symbol('_map');
   let _ConstantMapKeyIterable$ = dart.generic(function(K) {
     class _ConstantMapKeyIterable extends collection.IterableBase$(K) {
@@ -148,7 +148,7 @@ var _js_helper;
     }
     return _ConstantMapKeyIterable;
   });
-  let _ConstantMapKeyIterable = _ConstantMapKeyIterable$(dart.dynamic);
+  let _ConstantMapKeyIterable = _ConstantMapKeyIterable$();
   let _jsData = Symbol('_jsData');
   let _getMap = Symbol('_getMap');
   let GeneralConstantMap$ = dart.generic(function(K, V) {
@@ -188,7 +188,7 @@ var _js_helper;
     }
     return GeneralConstantMap;
   });
-  let GeneralConstantMap = GeneralConstantMap$(dart.dynamic, dart.dynamic);
+  let GeneralConstantMap = GeneralConstantMap$();
   // Function contains: (String, String) → bool
   function contains(userAgent, name) {
     return userAgent.indexOf(name) != -1;
@@ -1339,8 +1339,7 @@ var _js_helper;
     }
   }
   let patch = new _Patch();
-  class InternalMap extends core.Object {
-  }
+  class InternalMap extends core.Object {}
   // Function requiresPreamble: () → dynamic
   function requiresPreamble() {
   }
@@ -2822,8 +2821,7 @@ var _js_helper;
   function closureFromTearOff(receiver, functions, reflectionInfo, isStatic, jsArguments, name) {
     return Closure.fromTearOff(receiver, _interceptors.JSArray.markFixedList(dart.as(functions, core.List)), _interceptors.JSArray.markFixedList(dart.as(reflectionInfo, core.List)), !!isStatic, jsArguments, name);
   }
-  class TearOffClosure extends Closure {
-  }
+  class TearOffClosure extends Closure {}
   let _self = Symbol('_self');
   let _target = Symbol('_target');
   let _name = Symbol('_name');
@@ -3182,8 +3180,7 @@ var _js_helper;
   }
   dart.defineLazyClass(exports, {
     get JavaScriptIndexingBehavior() {
-      class JavaScriptIndexingBehavior extends _interceptors.JSMutableIndexable {
-      }
+      class JavaScriptIndexingBehavior extends _interceptors.JSMutableIndexable {}
       return JavaScriptIndexingBehavior;
     }
   });
@@ -3650,6 +3647,7 @@ var _js_helper;
     let isolateTagGetter = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.GET_ISOLATE_TAG);
     return isolateTagGetter(name);
   }
+  class LoadLibraryFunctionType extends core.Function {}
   // Function _loadLibraryWrapper: (String) → () → Future<Null>
   function _loadLibraryWrapper(loadId) {
     return () => loadDeferredLibrary(loadId);
@@ -3662,6 +3660,7 @@ var _js_helper;
       return new (core.Set$(core.String))();
     }
   });
+  class DeferredLoadCallback extends core.Function {}
   exports.deferredLoadHook = null;
   // Function loadDeferredLibrary: (String) → Future<Null>
   function loadDeferredLibrary(loadId) {
@@ -3786,14 +3785,14 @@ var _js_helper;
   exports.NoInline = NoInline;
   exports.IrRepresentation = IrRepresentation;
   exports.Native = Native;
-  exports.ConstantMap = ConstantMap;
   exports.ConstantMap$ = ConstantMap$;
-  exports.ConstantStringMap = ConstantStringMap;
+  exports.ConstantMap = ConstantMap;
   exports.ConstantStringMap$ = ConstantStringMap$;
-  exports.ConstantProtoMap = ConstantProtoMap;
+  exports.ConstantStringMap = ConstantStringMap;
   exports.ConstantProtoMap$ = ConstantProtoMap$;
-  exports.GeneralConstantMap = GeneralConstantMap;
+  exports.ConstantProtoMap = ConstantProtoMap;
   exports.GeneralConstantMap$ = GeneralConstantMap$;
+  exports.GeneralConstantMap = GeneralConstantMap;
   exports.contains = contains;
   exports.arrayLength = arrayLength;
   exports.arrayGet = arrayGet;
@@ -4003,6 +4002,8 @@ var _js_helper;
   exports.random64 = random64;
   exports.jsonEncodeNative = jsonEncodeNative;
   exports.getIsolateAffinityTag = getIsolateAffinityTag;
+  exports.LoadLibraryFunctionType = LoadLibraryFunctionType;
+  exports.DeferredLoadCallback = DeferredLoadCallback;
   exports.loadDeferredLibrary = loadDeferredLibrary;
   exports.MainError = MainError;
   exports.missingMain = missingMain;
