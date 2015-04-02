@@ -261,6 +261,9 @@ int getExpressionParentPrecedence(AstNode node) {
   if (parent is ParenthesizedExpression) {
     return 0;
   }
+  if (parent is IndexExpression && parent.index == node) {
+    return 0;
+  }
   return getExpressionPrecedence(parent);
 }
 
