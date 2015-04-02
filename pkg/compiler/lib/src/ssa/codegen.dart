@@ -1472,25 +1472,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitInterceptor(HInterceptor node) {
-    if (node.isConditionalConstantInterceptor) {
-      assert(node.inputs.length == 2);
-      use(node.receiver);
-      js.Expression receiverExpression = pop();
-      use(node.conditionalConstantInterceptor);
-      js.Expression constant = pop();
-      push(js.js('# && #', [receiverExpression, constant]));
-    } else {
-      assert(node.inputs.length == 1);
-      registry.registerSpecializedGetInterceptor(node.interceptedClasses);
-      String name =
-          backend.namer.nameForGetInterceptor(node.interceptedClasses);
-      var isolate = new js.VariableUse(
-          backend.namer.globalObjectFor(backend.interceptorsLibrary));
-      use(node.receiver);
-      List<js.Expression> arguments = <js.Expression>[pop()];
-      push(js.propertyCall(isolate, name, arguments), node);
-      registry.registerUseInterceptor();
-    }
+    registry.registerSpecializedGetInterceptor(node.interceptedClasses);
+    String name = backend.namer.nameForGetInterceptor(node.interceptedClasses);
+    var isolate = new js.VariableUse(
+        backend.namer.globalObjectFor(backend.interceptorsLibrary));
+    use(node.receiver);
+    List<js.Expression> arguments = <js.Expression>[pop()];
+    push(js.propertyCall(isolate, name, arguments), node);
+    registry.registerUseInterceptor();
   }
 
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
