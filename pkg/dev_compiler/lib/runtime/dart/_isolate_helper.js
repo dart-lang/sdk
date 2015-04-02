@@ -478,7 +478,7 @@ var _isolate_helper;
   let _addRegistration = Symbol('_addRegistration');
   class _IsolateContext extends core.Object {
     _IsolateContext() {
-      this.id = ((x$) => exports._globalState.nextIsolateId = dart.notNull(x$) + 1, x$).bind(this)(exports._globalState.nextIsolateId);
+      this.id = ((x$) => exports._globalState.nextIsolateId = dart.notNull(x$) + 1, x$)(exports._globalState.nextIsolateId);
       this.ports = new (core.Map$(core.int, RawReceivePortImpl))();
       this.weakPorts = new (core.Set$(core.int))();
       this.isolateStatics = _foreign_helper.JS_CREATE_ISOLATE();
@@ -1008,17 +1008,17 @@ var _isolate_helper;
         uri = ".js";
       let port = new isolate.ReceivePort();
       let completer = dart.as(new async.Completer(), async.Completer$(core.List));
-      port.first.then(((msg) => {
+      port.first.then((msg) => {
         if (dart.equals(dart.dindex(msg, 0), _SPAWNED_SIGNAL)) {
           completer.complete(msg);
         } else {
           dart.assert(dart.equals(dart.dindex(msg, 0), _SPAWN_FAILED_SIGNAL));
           completer.completeError(dart.dindex(msg, 1));
         }
-      }).bind(this));
+      });
       let signalReply = port.sendPort;
       if (dart.notNull(exports._globalState.useWorkers) && !dart.notNull(isLight)) {
-        IsolateNatives[_startWorker](functionName, uri, args, message, isSpawnUri, startPaused, signalReply, ((message) => completer.completeError(message)).bind(this));
+        IsolateNatives[_startWorker](functionName, uri, args, message, isSpawnUri, startPaused, signalReply, (message) => completer.completeError(message));
       } else {
         IsolateNatives[_startNonWorker](functionName, uri, args, message, isSpawnUri, startPaused, signalReply);
       }
@@ -1090,7 +1090,7 @@ var _isolate_helper;
         };
       }(_foreign_helper.DART_CLOSURE_TO_JS(IsolateNatives[_processWorkerMessage]), worker);
       worker.onmessage = processWorkerMessageTrampoline;
-      let workerId = ((x$) => exports._globalState.nextManagerId = dart.notNull(x$) + 1, x$).bind(this)(exports._globalState.nextManagerId);
+      let workerId = ((x$) => exports._globalState.nextManagerId = dart.notNull(x$) + 1, x$)(exports._globalState.nextManagerId);
       IsolateNatives.workerIds.set(worker, workerId);
       exports._globalState.managers.set(workerId, worker);
       worker.postMessage(_serializeMessage(dart.map({command: 'start', id: workerId, replyTo: _serializeMessage(replyPort), args: args, msg: _serializeMessage(message), isSpawnUri: isSpawnUri, startPaused: startPaused, functionName: functionName})));

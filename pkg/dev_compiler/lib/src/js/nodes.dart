@@ -890,6 +890,8 @@ class ArrowFun extends FunctionExpression {
   final List<Identifier> params;
   final body; // Expression or Block
 
+  bool _bindThisWorkaround; // lazy initialized
+
   ArrowFun(this.params, this.body);
 
   accept(NodeVisitor visitor) => visitor.visitArrowFun(this);
@@ -901,10 +903,29 @@ class ArrowFun extends FunctionExpression {
 
   ArrowFun _clone() => new ArrowFun(params, body);
 
+  /// This is a workaround for V8 arrow function bindings being not yet
+  /// implemented. See <https://code.google.com/p/v8/issues/detail?id=2700>
+  bool get bindThisWorkaround {
+    if (_bindThisWorkaround != null) return _bindThisWorkaround;
+    var visitor = new _ThisFinder();
+    body.accept(visitor);
+    return _bindThisWorkaround = visitor.found;
+  }
+
   /// Ensure parens always get generated if necessary.
   // TODO(jmesserly): I'm not sure the printer is handling this correctly for
   // function() { ... } either.
-  int get precedenceLevel => ASSIGNMENT;
+  int get precedenceLevel => bindThisWorkaround ? CALL : ASSIGNMENT;
+}
+
+class _ThisFinder extends BaseVisitor {
+  bool found = false;
+  visitThis(This node) {
+    found = true;
+  }
+  visitNode(Node node) {
+    if (!found) super.visitNode(node);
+  }
 }
 
 class AsyncModifier {

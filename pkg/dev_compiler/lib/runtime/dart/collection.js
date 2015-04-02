@@ -151,7 +151,7 @@ var collection;
         return ((_) => {
           _.addAll(other);
           return _;
-        }).bind(this)(this.toSet());
+        })(this.toSet());
       }
       intersection(other) {
         let result = this.toSet();
@@ -843,7 +843,7 @@ var collection;
           _.writeAll(parts, ", ");
           _.write(rightDelimiter);
           return _;
-        }).bind(this)(new core.StringBuffer(leftDelimiter)).toString();
+        })(new core.StringBuffer(leftDelimiter)).toString();
       }
       static iterableToFullString(iterable, leftDelimiter, rightDelimiter) {
         if (leftDelimiter === void 0)
@@ -2013,7 +2013,7 @@ var collection;
         IterableBase[_toStringVisiting].add(m);
         result.write('{');
         let first = true;
-        m.forEach(((k, v) => {
+        m.forEach((k, v) => {
           if (!dart.notNull(first)) {
             result.write(', ');
           }
@@ -2021,7 +2021,7 @@ var collection;
           result.write(k);
           result.write(': ');
           result.write(v);
-        }).bind(this));
+        });
         result.write('}');
       } finally {
         dart.assert(core.identical(IterableBase[_toStringVisiting].last, m));
@@ -3302,7 +3302,7 @@ var collection;
         return ((_) => {
           _.addAll(other);
           return _;
-        }).bind(this)(this[_clone]());
+        })(this[_clone]());
       }
       [_clone]() {
         let set = new (SplayTreeSet$(E))(dart.closureWrap(this[_comparator], "(E, E) → int"), this[_validKey]);

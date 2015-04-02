@@ -1681,7 +1681,7 @@ var _js_helper;
         ((_$) => {
           _$.sort();
           return _$;
-        }).bind(this)(positions.keys.toList()).forEach(((name) => {
+        })(positions.keys.toList()).forEach(((name) => {
           this.cachedSortedIndices.set(((x$) => index = dart.notNull(x$) + 1, x$)(index), positions.get(name));
         }).bind(this));
       }
@@ -1838,7 +1838,7 @@ var _js_helper;
       if (typeof performance.now != "function")
         return;
       Primitives.timerFrequency = 1000000;
-      Primitives.timerTicks = (() => (1000 * performance.now()).floor()).bind(this);
+      Primitives.timerTicks = () => (1000 * performance.now()).floor();
     }
     static get isD8() {
       return typeof version == "function" && typeof os == "object" && "system" in os;
@@ -2025,12 +2025,12 @@ var _js_helper;
       }
       let names = '';
       if (dart.notNull(namedArguments != null) && !dart.notNull(namedArguments.isEmpty)) {
-        namedArguments.forEach(((name, argument) => {
+        namedArguments.forEach((name, argument) => {
           names = `${names}$${name}`;
           namedArgumentList.add(name);
           arguments$.add(argument);
           argumentCount = dart.notNull(argumentCount) + 1;
-        }).bind(this));
+        });
       }
       let selectorName = `${_foreign_helper.JS_GET_NAME("CALL_PREFIX")}$${argumentCount}${names}`;
       return dart.dinvoke(func, 'noSuchMethod', createUnmangledInvocationMirror(dart.throw_("Unimplemented SymbolLiteral: #call"), selectorName, JSInvocationMirror.METHOD, arguments$, namedArgumentList));
@@ -2088,13 +2088,13 @@ var _js_helper;
         defaultArguments.set(parameterName, defaultValue);
       }
       let bad = false;
-      namedArguments.forEach(((parameter, value) => {
+      namedArguments.forEach((parameter, value) => {
         if (defaultArguments.containsKey(parameter)) {
           defaultArguments.set(parameter, value);
         } else {
           bad = true;
         }
-      }).bind(this));
+      });
       if (bad) {
         return Primitives.functionNoSuchMethod(func, positionalArguments, namedArguments);
       }

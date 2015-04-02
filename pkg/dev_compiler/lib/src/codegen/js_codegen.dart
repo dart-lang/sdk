@@ -928,8 +928,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (node.parent is FunctionDeclaration) {
       return new JS.Fun(params, _visit(node.body));
     } else {
-      var bindThis = _maybeBindThis(node.body);
-
       String code;
       AstNode body;
       var nodeBody = node.body;
@@ -940,7 +938,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         code = '(#) => { #; }';
         body = nodeBody;
       }
-      return js.call('($code)$bindThis', [params, _visit(body)]);
+      return js.call(code, [params, _visit(body)]);
     }
   }
 
@@ -1547,7 +1545,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   bool _isNull(Expression expr) => expr is NullLiteral;
 
-  // TODO(jmesserly, vsm): Refactor this logic.
   SimpleIdentifier _createTemporary(String name, DartType type) {
     // We use an invalid source location to signal that this is a temporary.
     // See [_isTemporary].
@@ -1577,13 +1574,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     increment.staticType = type;
     var write = _emitAssignment(expr, increment);
 
-    var bindThis = _maybeBindThis(expr);
-    return js.call("((#) => (#, #))$bindThis(#)", [
-      _visit(tmp),
-      write,
-      _visit(tmp),
-      _visit(expr)
-    ]);
+    return js.call(
+        "((#) => (#, #))(#)", [_visit(tmp), write, _visit(tmp), _visit(expr)]);
   }
 
   @override
@@ -1678,8 +1670,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       // In the general case we need to capture the target expression into
       // a temporary. This uses a lambda to get a temporary scope, and it also
       // remains valid in an expression context.
-      // TODO(jmesserly): need a better way to handle temps.
-      // TODO(jmesserly): special case for parent is ExpressionStatement?
       _cascadeTarget = _createTemporary('_', node.target.staticType);
 
       var body = _visitList(node.cascadeSections);
@@ -1687,8 +1677,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         body.add(js.statement('return #;', _visit(_cascadeTarget)));
       }
 
-      var bindThis = _maybeBindThis(node.cascadeSections);
-      result = js.call('((#) => { # })$bindThis(#)', [
+      result = js.call('((#) => { # })(#)', [
         _visit(_cascadeTarget),
         body,
         _visit(node.target)
@@ -2193,14 +2182,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return new JS.Identifier(jsLibraryName(library));
   }
 
-  String _maybeBindThis(node) {
-    if (currentClass == null) return '';
-    var visitor = _BindThisVisitor._instance;
-    visitor._bindThis = false;
-    node.accept(visitor);
-    return visitor._bindThis ? '.bind(this)' : '';
-  }
-
   static bool _needsImplicitThis(Element e) =>
       e is PropertyAccessorElement && !e.variable.isStatic ||
           e is ClassMemberElement && !e.isStatic && e is! ConstructorElement;
@@ -2252,26 +2233,6 @@ class _AssignmentFinder extends RecursiveAstVisitor {
     if (node.inSetterContext() && node.staticElement == _variable) {
       _potentiallyMutated = true;
     }
-  }
-}
-
-/// This is a workaround for V8 arrow function bindings being not yet
-/// implemented. See issue #43
-// TODO(jmesserly): cleaner to handle this workaround on the JS side.
-class _BindThisVisitor extends RecursiveAstVisitor {
-  static _BindThisVisitor _instance = new _BindThisVisitor();
-  bool _bindThis = false;
-
-  @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
-    if (JSCodegenVisitor._needsImplicitThis(node.staticElement)) {
-      _bindThis = true;
-    }
-  }
-
-  @override
-  visitThisExpression(ThisExpression node) {
-    _bindThis = true;
   }
 }
 

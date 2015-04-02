@@ -136,14 +136,18 @@ var isolate;
         let error = new RemoteError(errorDescription, stackDescription);
         controller.addError(error, error.stackTrace);
       }
-      controller = new async.StreamController.broadcast({sync: true, onListen: (() => {
+      controller = new async.StreamController.broadcast({
+        sync: true,
+        onListen: (() => {
           port = new RawReceivePort(handleError);
           this.addErrorListener(port.sendPort);
-        }).bind(this), onCancel: (() => {
+        }).bind(this),
+        onCancel: (() => {
           this.removeErrorListener(port.sendPort);
           port.close();
           port = null;
-        }).bind(this)});
+        }).bind(this)
+      });
       return controller.stream;
     }
   }

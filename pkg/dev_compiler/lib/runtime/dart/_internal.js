@@ -303,7 +303,7 @@ var _internal;
         let result = growable ? ((_) => {
           _.length = length;
           return _;
-        }).bind(this)(new (core.List$(E))()) : new (core.List$(E))(length);
+        })(new (core.List$(E))()) : new (core.List$(E))(length);
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           result.set(i, this[_iterable].elementAt(dart.notNull(start) + dart.notNull(i)));
           if (dart.notNull(this[_iterable].length) < dart.notNull(end))

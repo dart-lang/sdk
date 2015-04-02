@@ -782,7 +782,7 @@ var core;
         }
       }
       if (this[_namedArguments] != null) {
-        this[_namedArguments].forEach(((key, value) => {
+        this[_namedArguments].forEach((key, value) => {
           if (dart.notNull(i) > 0) {
             sb.write(", ");
           }
@@ -790,7 +790,7 @@ var core;
           sb.write(": ");
           sb.write(Error.safeToString(value));
           i = dart.notNull(i) + 1;
-        }).bind(this));
+        });
       }
       if (this[_existingArgumentNames] == null) {
         return `NoSuchMethodError : method not found: '${this[_memberName]}'\n` + `Receiver: ${Error.safeToString(this[_receiver])}\n` + `Arguments: [${sb}]`;
@@ -1225,7 +1225,7 @@ var core;
           result = ((_$) => {
             _$.length = length;
             return _$;
-          }).bind(this)(new List$(E).from([]));
+          })(new List$(E).from([]));
         } else {
           result = new (List$(E))(length);
         }
@@ -2349,7 +2349,7 @@ var core;
         return Uri[_normalize](query, start, end, dart.as(Uri[_queryCharTable], List$(int)));
       let result = new StringBuffer();
       let first = true;
-      queryParameters.forEach(dart.closureWrap(((key, value) => {
+      queryParameters.forEach(dart.closureWrap((key, value) => {
         if (!dart.notNull(first)) {
           result.write("&");
         }
@@ -2359,7 +2359,7 @@ var core;
           result.write("=");
           result.write(Uri.encodeQueryComponent(dart.as(value, String)));
         }
-      }).bind(this), "(String, String) → void"));
+      }, "(String, String) → void"));
       return result.toString();
     }
     static [_makeFragment](fragment, start, end) {
