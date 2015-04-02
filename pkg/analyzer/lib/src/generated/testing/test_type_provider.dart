@@ -159,6 +159,7 @@ class TestTypeProvider implements TypeProvider {
         ElementFactory.namedParameter2("defaultValue", _boolType)
       ];
       fromEnvironment.factory = true;
+      fromEnvironment.isCycleFree = true;
       boolElement.constructors = <ConstructorElement>[fromEnvironment];
     }
     return _boolType;
@@ -421,6 +422,7 @@ class TestTypeProvider implements TypeProvider {
         ElementFactory.namedParameter2("defaultValue", _stringType)
       ];
       fromEnvironment.factory = true;
+      fromEnvironment.isCycleFree = true;
       stringElement.constructors = <ConstructorElement>[fromEnvironment];
     }
     return _stringType;
@@ -433,6 +435,7 @@ class TestTypeProvider implements TypeProvider {
       ConstructorElementImpl constructor = ElementFactory.constructorElement(
           symbolClass, null, true, [stringType]);
       constructor.factory = true;
+      constructor.isCycleFree = true;
       symbolClass.constructors = <ConstructorElement>[constructor];
       _symbolType = symbolClass.type;
     }
@@ -532,6 +535,7 @@ class TestTypeProvider implements TypeProvider {
       ElementFactory.namedParameter2("defaultValue", _intType)
     ];
     fromEnvironment.factory = true;
+    fromEnvironment.isCycleFree = true;
     intElement.constructors = <ConstructorElement>[fromEnvironment];
     List<FieldElement> fields = <FieldElement>[
       ElementFactory.fieldElement("NAN", true, false, true, _doubleType),

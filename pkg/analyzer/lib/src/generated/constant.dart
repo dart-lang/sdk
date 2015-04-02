@@ -145,7 +145,7 @@ class BoolState extends InstanceState {
 
 /**
  * An [AstCloner] that copies the necessary information from the AST to allow
- * const constructor initializers to be evaluated.
+ * constants to be evaluated.
  */
 class ConstantAstCloner extends AstCloner {
   ConstantAstCloner() : super(true);
@@ -155,7 +155,7 @@ class ConstantAstCloner extends AstCloner {
       InstanceCreationExpression node) {
     InstanceCreationExpression expression =
         super.visitInstanceCreationExpression(node);
-    expression.evaluationResult = node.evaluationResult;
+    expression.constantHandle = node.constantHandle;
     return expression;
   }
 
@@ -282,8 +282,8 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
    * A table mapping constant variable elements to the declarations of those
    * variables.
    */
-  final HashMap<VariableElement, VariableDeclaration> variableMap =
-      new HashMap<VariableElement, VariableDeclaration>();
+  final HashMap<PotentiallyConstVariableElement, VariableDeclaration> variableMap =
+      new HashMap<PotentiallyConstVariableElement, VariableDeclaration>();
 
   /**
    * A table mapping constant constructors to the declarations of those
@@ -336,9 +336,8 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
     super.visitVariableDeclaration(node);
     Expression initializer = node.initializer;
     if (initializer != null && node.isConst) {
-      VariableElement element = node.element;
-      if (element != null) {
-        variableMap[element] = node;
+      if (node.element != null) {
+        variableMap[node.element as PotentiallyConstVariableElement] = node;
       }
     }
     return null;
@@ -407,7 +406,7 @@ class ConstantValueComputer {
   /**
    * A table mapping constant variables to the declarations of those variables.
    */
-  HashMap<VariableElement, VariableDeclaration> _variableDeclarationMap;
+  HashMap<PotentiallyConstVariableElement, VariableDeclaration> _variableDeclarationMap;
 
   /**
    * A table mapping constant constructors to the declarations of those
@@ -482,8 +481,9 @@ class ConstantValueComputer {
       referenceGraph.addNode(declaration);
       declaration.initializer.accept(referenceFinder);
     });
-    constructorDeclarationMap.forEach((ConstructorElement element,
+    constructorDeclarationMap.forEach((ConstructorElementImpl element,
         ConstructorDeclaration declaration) {
+      element.isCycleFree = false;
       ConstructorElement redirectedConstructor =
           _getConstRedirectedConstructor(element);
       if (redirectedConstructor != null) {
@@ -651,18 +651,20 @@ class ConstantValueComputer {
   void _computeValueFor(AstNode constNode) {
     beforeComputeValue(constNode);
     if (constNode is VariableDeclaration) {
-      VariableDeclaration declaration = constNode;
-      VariableElement element = declaration.element;
+      VariableElement element = constNode.element;
       RecordingErrorListener errorListener = new RecordingErrorListener();
       ErrorReporter errorReporter =
           new ErrorReporter(errorListener, element.source);
       DartObjectImpl dartObject =
-          declaration.initializer.accept(createConstantVisitor(errorReporter));
+          (element as PotentiallyConstVariableElement).constantInitializer
+              .accept(createConstantVisitor(errorReporter));
       if (dartObject != null) {
         if (!_runtimeTypeMatch(dartObject, element.type)) {
-          errorReporter.reportErrorForNode(
-              CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
-              declaration, [dartObject.type, element.type]);
+          errorReporter.reportErrorForElement(
+              CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, element, [
+            dartObject.type,
+            element.type
+          ]);
         }
       }
       (element as VariableElementImpl).evaluationResult =
@@ -674,7 +676,8 @@ class ConstantValueComputer {
         // Couldn't resolve the constructor so we can't compute a value.
         // No problem - the error has already been reported.
         // But we still need to store an evaluation result.
-        expression.evaluationResult = new EvaluationResultImpl.con1(null);
+        expression.constantHandle.evaluationResult =
+            new EvaluationResultImpl.con1(null);
         return;
       }
       RecordingErrorListener errorListener = new RecordingErrorListener();
@@ -686,15 +689,17 @@ class ConstantValueComputer {
       DartObjectImpl result = _evaluateConstructorCall(constNode,
           expression.argumentList.arguments, constructor, constantVisitor,
           errorReporter);
-      expression.evaluationResult =
+      expression.constantHandle.evaluationResult =
           new EvaluationResultImpl.con2(result, errorListener.errors);
     } else if (constNode is ConstructorDeclaration) {
-      ConstructorDeclaration declaration = constNode;
-      NodeList<ConstructorInitializer> initializers = declaration.initializers;
-      ConstructorElementImpl constructor =
-          declaration.element as ConstructorElementImpl;
-      constructor.constantInitializers =
-          new ConstantAstCloner().cloneNodeList(initializers);
+      // No evaluation needs to be done; constructor declarations are only in
+      // the dependency graph to ensure that any constants referred to in
+      // initializer lists and parameter defaults are evaluated before
+      // invocations of the constructor.  However we do need to annotate the
+      // element as being free of constant evaluation cycles so that later code
+      // will know that it is safe to evaluate.
+      ConstructorElementImpl constructor = constNode.element;
+      constructor.isCycleFree = true;
     } else if (constNode is FormalParameter) {
       if (constNode is DefaultFormalParameter) {
         DefaultFormalParameter parameter = constNode;
@@ -792,6 +797,14 @@ class ConstantValueComputer {
   DartObjectImpl _evaluateConstructorCall(AstNode node,
       NodeList<Expression> arguments, ConstructorElement constructor,
       ConstantVisitor constantVisitor, ErrorReporter errorReporter) {
+    if (!_getConstructorBase(constructor).isCycleFree) {
+      // It's not safe to evaluate this constructor, so bail out.
+      // TODO(paulberry): ensure that a reasonable error message is produced
+      // in this case, as well as other cases involving constant expression
+      // circularities (e.g. "compile-time constant expression depends on
+      // itself")
+      return new DartObjectImpl.validWithUnknownValue(constructor.returnType);
+    }
     int argumentCount = arguments.length;
     List<DartObjectImpl> argumentValues =
         new List<DartObjectImpl>(argumentCount);
@@ -869,11 +882,10 @@ class ConstantValueComputer {
       // In the former case, the best we can do is consider it an unknown value.
       // In the latter case, the error has already been reported, so considering
       // it an unknown value will suppress further errors.
-      return constantVisitor._validWithUnknownValue(definingClass);
+      return new DartObjectImpl.validWithUnknownValue(definingClass);
     }
     beforeGetConstantInitializers(constructor);
-    ConstructorElementImpl constructorBase =
-        _getConstructorBase(constructor) as ConstructorElementImpl;
+    ConstructorElementImpl constructorBase = _getConstructorBase(constructor);
     List<ConstructorInitializer> initializers =
         constructorBase.constantInitializers;
     if (initializers == null) {
@@ -882,7 +894,7 @@ class ConstantValueComputer {
       // const instance using a non-const constructor, or the node we're
       // visiting is involved in a cycle).  The error has already been reported,
       // so consider it an unknown value to suppress further errors.
-      return constantVisitor._validWithUnknownValue(definingClass);
+      return new DartObjectImpl.validWithUnknownValue(definingClass);
     }
     HashMap<String, DartObjectImpl> fieldMap =
         new HashMap<String, DartObjectImpl>();
@@ -1099,7 +1111,7 @@ class ConstantValueComputer {
     return redirectedConstructor;
   }
 
-  ConstructorElement _getConstructorBase(ConstructorElement constructor) {
+  ConstructorElementImpl _getConstructorBase(ConstructorElement constructor) {
     while (constructor is ConstructorMember) {
       constructor = (constructor as ConstructorMember).baseElement;
     }
@@ -1359,7 +1371,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
     ParameterizedType thenType = thenResult.type;
     ParameterizedType elseType = elseResult.type;
-    return _validWithUnknownValue(
+    return new DartObjectImpl.validWithUnknownValue(
         thenType.getLeastUpperBound(elseType) as InterfaceType);
   }
 
@@ -1661,22 +1673,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     // TODO(brianwilkerson) Figure out which error to report.
     _error(node, null);
     return null;
-  }
-
-  DartObjectImpl _validWithUnknownValue(InterfaceType type) {
-    if (type.element.library.isDartCore) {
-      String typeName = type.name;
-      if (typeName == "bool") {
-        return new DartObjectImpl(type, BoolState.UNKNOWN_VALUE);
-      } else if (typeName == "double") {
-        return new DartObjectImpl(type, DoubleState.UNKNOWN_VALUE);
-      } else if (typeName == "int") {
-        return new DartObjectImpl(type, IntState.UNKNOWN_VALUE);
-      } else if (typeName == "String") {
-        return new DartObjectImpl(type, StringState.UNKNOWN_VALUE);
-      }
-    }
-    return new DartObjectImpl(type, GenericState.UNKNOWN_VALUE);
   }
 
   /**
@@ -2127,6 +2123,25 @@ class DartObjectImpl implements DartObject {
    * Initialize a newly created object to have the given [type] and [_state].
    */
   DartObjectImpl(this.type, this._state);
+
+  /**
+   * Create an object to represent an unknown value.
+   */
+  factory DartObjectImpl.validWithUnknownValue(InterfaceType type) {
+    if (type.element.library.isDartCore) {
+      String typeName = type.name;
+      if (typeName == "bool") {
+        return new DartObjectImpl(type, BoolState.UNKNOWN_VALUE);
+      } else if (typeName == "double") {
+        return new DartObjectImpl(type, DoubleState.UNKNOWN_VALUE);
+      } else if (typeName == "int") {
+        return new DartObjectImpl(type, IntState.UNKNOWN_VALUE);
+      } else if (typeName == "String") {
+        return new DartObjectImpl(type, StringState.UNKNOWN_VALUE);
+      }
+    }
+    return new DartObjectImpl(type, GenericState.UNKNOWN_VALUE);
+  }
 
   @override
   bool get boolValue {
@@ -4791,7 +4806,7 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
   /**
    * A table mapping constant variables to the declarations of those variables.
    */
-  final HashMap<VariableElement, VariableDeclaration> _variableDeclarationMap;
+  final HashMap<PotentiallyConstVariableElement, VariableDeclaration> _variableDeclarationMap;
 
   /**
    * A table mapping constant constructors to the declarations of those

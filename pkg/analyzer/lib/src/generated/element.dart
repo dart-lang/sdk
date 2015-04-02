@@ -1493,7 +1493,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 /**
  * A [FieldElement] for a 'const' field that has an initializer.
  */
-class ConstFieldElementImpl extends FieldElementImpl {
+class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   /**
    * The result of evaluating this variable's initializer.
    */
@@ -1523,16 +1523,23 @@ class ConstFieldElementImpl extends FieldElementImpl {
  * A [LocalVariableElement] for a local 'const' variable that has an
  * initializer.
  */
-class ConstLocalVariableElementImpl extends LocalVariableElementImpl {
+class ConstLocalVariableElementImpl extends LocalVariableElementImpl
+    with ConstVariableElement {
   /**
    * The result of evaluating this variable's initializer.
    */
   EvaluationResultImpl _result;
 
   /**
+   * Initialize a newly created local variable element to have the given [name]
+   * and [offset].
+   */
+  ConstLocalVariableElementImpl(String name, int offset) : super(name, offset);
+
+  /**
    * Initialize a newly created local variable element to have the given [name].
    */
-  ConstLocalVariableElementImpl(Identifier name) : super.forNode(name);
+  ConstLocalVariableElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -1627,6 +1634,12 @@ class ConstructorElementImpl extends ExecutableElementImpl
    * of this constructor's name, or `null` if not named.
    */
   int nameEnd;
+
+  /**
+   * True if this constructor has been found by constant evaluation to be free
+   * of redirect cycles, and is thus safe to evaluate.
+   */
+  bool isCycleFree = false;
 
   /**
    * Initialize a newly created constructor element to have the given [name] and
@@ -1826,7 +1839,8 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
  * A [TopLevelVariableElement] for a top-level 'const' variable that has an
  * initializer.
  */
-class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl {
+class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
+    with ConstVariableElement {
   /**
    * The result of evaluating this variable's initializer.
    */
@@ -1845,6 +1859,30 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl {
   void set evaluationResult(EvaluationResultImpl result) {
     this._result = result;
   }
+}
+
+/**
+ * Mixin used by elements that represent constant variables and have
+ * initializers.
+ *
+ * Note that in correct Dart code, all constant variables must have
+ * initializers.  However, analyzer also needs to handle incorrect Dart code,
+ * in which case there might be some constant variables that lack initializers.
+ * This interface is only used for constant variables that have initializers.
+ *
+ * This class is not intended to be part of the public API for analyzer.
+ */
+abstract class ConstVariableElement implements PotentiallyConstVariableElement {
+  /**
+   * If this element represents a constant variable, and it has an initializer,
+   * a copy of the initializer for the constant.  Otherwise `null`.
+   *
+   * Note that in correct Dart code, all constant variables must have
+   * initializers.  However, analyzer also needs to handle incorrect Dart code,
+   * in which case there might be some constant variables that lack
+   * initializers.
+   */
+  Expression constantInitializer;
 }
 
 /**
@@ -3732,7 +3770,7 @@ abstract class FieldElement
  * A concrete implementation of a [FieldElement].
  */
 class FieldElementImpl extends PropertyInducingElementImpl
-    implements FieldElement {
+    with PotentiallyConstVariableElement implements FieldElement {
   /**
    * An empty list of field elements.
    */
@@ -7335,7 +7373,7 @@ abstract class LocalVariableElement implements LocalElement, VariableElement {}
  * A concrete implementation of a [LocalVariableElement].
  */
 class LocalVariableElementImpl extends VariableElementImpl
-    implements LocalVariableElement {
+    with PotentiallyConstVariableElement implements LocalVariableElement {
   /**
    * An empty list of field elements.
    */
@@ -8525,6 +8563,27 @@ class ParameterMember extends VariableMember implements ParameterElement {
 }
 
 /**
+ * Interface used by elements that might represent constant variables.
+ *
+ * This class may be used as a mixin in the case where [constInitializer] is
+ * known to return null.
+ *
+ * This class is not intended to be part of the public API for analyzer.
+ */
+abstract class PotentiallyConstVariableElement {
+  /**
+   * If this element represents a constant variable, and it has an initializer,
+   * a copy of the initializer for the constant.  Otherwise `null`.
+   *
+   * Note that in correct Dart code, all constant variables must have
+   * initializers.  However, analyzer also needs to handle incorrect Dart code,
+   * in which case there might be some constant variables that lack
+   * initializers.
+   */
+  Expression get constantInitializer => null;
+}
+
+/**
  * A prefix used to import one or more libraries into another library.
  */
 abstract class PrefixElement implements Element {
@@ -9305,7 +9364,7 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {}
  * A concrete implementation of a [TopLevelVariableElement].
  */
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
-    implements TopLevelVariableElement {
+    with PotentiallyConstVariableElement implements TopLevelVariableElement {
   /**
    * An empty list of top-level variable elements.
    */

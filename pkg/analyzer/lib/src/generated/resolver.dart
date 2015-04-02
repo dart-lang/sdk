@@ -2846,6 +2846,14 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (node.isConst) {
+      node.constantHandle = new ConstantInstanceCreationHandle();
+    }
+    return super.visitInstanceCreationExpression(node);
+  }
+
+  @override
   Object visitLabeledStatement(LabeledStatement node) {
     bool onSwitchStatement = node.statement is SwitchStatement;
     for (Label label in node.labels) {
@@ -3064,7 +3072,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       SimpleIdentifier variableName = node.name;
       LocalVariableElementImpl variable;
       if (isConst && hasInitializer) {
-        variable = new ConstLocalVariableElementImpl(variableName);
+        variable = new ConstLocalVariableElementImpl.forNode(variableName);
       } else {
         variable = new LocalVariableElementImpl.forNode(variableName);
       }
@@ -10869,6 +10877,9 @@ class ResolverVisitor extends ScopedVisitor {
     } finally {
       _enclosingFunction = outerFunction;
     }
+    ConstructorElementImpl constructor = node.element;
+    constructor.constantInitializers =
+        new ConstantAstCloner().cloneNodeList(node.initializers);
     return null;
   }
 
@@ -11309,6 +11320,16 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitTypeName(TypeName node) => null;
+
+  @override
+  Object visitVariableDeclaration(VariableDeclaration node) {
+    super.visitVariableDeclaration(node);
+    if (node.element.isConst && node.initializer != null) {
+      (node.element as ConstVariableElement).constantInitializer =
+          new ConstantAstCloner().cloneNode(node.initializer);
+    }
+    return null;
+  }
 
   @override
   Object visitWhileStatement(WhileStatement node) {
@@ -15400,7 +15421,8 @@ class _UnusedElementsVerifier extends RecursiveElementVisitor {
     String name = element.name;
     if (name != null) {
       for (int index = name.length - 1; index >= 0; --index) {
-        if (name.codeUnitAt(index) != 0x5F) { // 0x5F => '_'
+        if (name.codeUnitAt(index) != 0x5F) {
+          // 0x5F => '_'
           return false;
         }
       }
