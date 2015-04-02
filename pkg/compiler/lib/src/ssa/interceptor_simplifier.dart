@@ -110,47 +110,8 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       return graph.thisInstruction;
     }
 
-    ClassElement constantInterceptor;
-    ClassWorld classWorld = compiler.world;
-    JavaScriptBackend backend = compiler.backend;
-    if (input.canBeNull()) {
-      if (input.isNull()) {
-        constantInterceptor = backend.jsNullClass;
-      }
-    } else if (input.isInteger(compiler)) {
-      constantInterceptor = backend.jsIntClass;
-    } else if (input.isDouble(compiler)) {
-      constantInterceptor = backend.jsDoubleClass;
-    } else if (input.isBoolean(compiler)) {
-      constantInterceptor = backend.jsBoolClass;
-    } else if (input.isString(compiler)) {
-      constantInterceptor = backend.jsStringClass;
-    } else if (input.isArray(compiler)) {
-      constantInterceptor = backend.jsArrayClass;
-    } else if (input.isNumber(compiler) &&
-        !interceptedClasses.contains(backend.jsIntClass) &&
-        !interceptedClasses.contains(backend.jsDoubleClass)) {
-      // If the method being intercepted is not defined in [int] or [double] we
-      // can safely use the number interceptor.  This is because none of the
-      // [int] or [double] methods are called from a method defined on [num].
-      constantInterceptor = backend.jsNumberClass;
-    } else {
-      // Try to find constant interceptor for a native class.  If the receiver
-      // is constrained to a leaf native class, we can use the class's
-      // interceptor directly.
-
-      // TODO(sra): Key DOM classes like Node, Element and Event are not leaf
-      // classes.  When the receiver type is not a leaf class, we might still be
-      // able to use the receiver class as a constant interceptor.  It is
-      // usually the case that methods defined on a non-leaf class don't test
-      // for a subclass or call methods defined on a subclass.  Provided the
-      // code is completely insensitive to the specific instance subclasses, we
-      // can use the non-leaf class directly.
-      ClassElement element = input.instructionType.singleClass(classWorld);
-      if (element != null && element.isNative) {
-        constantInterceptor = element;
-      }
-    }
+    ClassElement constantInterceptor = tryComputeConstantInterceptorFromType(
+        input.instructionType, interceptedClasses);
 
     if (constantInterceptor == null) return null;
 
@@ -164,6 +125,54 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     ConstantValue constant =
         new InterceptorConstantValue(constantInterceptor.thisType);
     return graph.addConstant(constant, compiler);
+  }
+
+  ClassElement tryComputeConstantInterceptorFromType(
+      TypeMask type,
+      Set<ClassElement> interceptedClasses) {
+
+    ClassWorld classWorld = compiler.world;
+    JavaScriptBackend backend = compiler.backend;
+    if (type.isNullable) {
+      if (type.isEmpty) {
+        return backend.jsNullClass;
+      }
+    } else if (type.containsOnlyInt(classWorld)) {
+      return backend.jsIntClass;
+    } else if (type.containsOnlyDouble(classWorld)) {
+      return backend.jsDoubleClass;
+    } else if (type.containsOnlyBool(classWorld)) {
+      return backend.jsBoolClass;
+    } else if (type.containsOnlyString(classWorld)) {
+      return backend.jsStringClass;
+    } else if (type.satisfies(backend.jsArrayClass, classWorld)) {
+      return backend.jsArrayClass;
+    } else if (type.containsOnlyNum(classWorld) &&
+        !interceptedClasses.contains(backend.jsIntClass) &&
+        !interceptedClasses.contains(backend.jsDoubleClass)) {
+      // If the method being intercepted is not defined in [int] or [double] we
+      // can safely use the number interceptor.  This is because none of the
+      // [int] or [double] methods are called from a method defined on [num].
+      return backend.jsNumberClass;
+    } else {
+      // Try to find constant interceptor for a native class.  If the receiver
+      // is constrained to a leaf native class, we can use the class's
+      // interceptor directly.
+
+      // TODO(sra): Key DOM classes like Node, Element and Event are not leaf
+      // classes.  When the receiver type is not a leaf class, we might still be
+      // able to use the receiver class as a constant interceptor.  It is
+      // usually the case that methods defined on a non-leaf class don't test
+      // for a subclass or call methods defined on a subclass.  Provided the
+      // code is completely insensitive to the specific instance subclasses, we
+      // can use the non-leaf class directly.
+      ClassElement element = type.singleClass(classWorld);
+      if (element != null && element.isNative) {
+        return element;
+      }
+    }
+
+    return null;
   }
 
   HInstruction findDominator(Iterable<HInstruction> instructions) {
@@ -274,6 +283,32 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     if (constantInterceptor != null) {
       node.block.rewrite(node, constantInterceptor);
       return false;
+    }
+
+    // Do we have an 'almost constant' interceptor?  The receiver could be
+    // `null` but not any other JavaScript falsy value, `null` values cause
+    // `NoSuchMethodError`s, and if the receiver was not null we would have a
+    // constant interceptor `C`.  Then we can use `(receiver && C)` for the
+    // interceptor.
+    if (receiver.canBeNull() && !node.isConditionalConstantInterceptor) {
+      if (!interceptedClasses.contains(backend.jsNullClass)) {
+        // Can use `(receiver && C)` only if receiver is either null or truthy.
+        if (!(receiver.canBePrimitiveNumber(compiler) ||
+            receiver.canBePrimitiveBoolean(compiler) ||
+            receiver.canBePrimitiveString(compiler))) {
+          ClassElement interceptorClass = tryComputeConstantInterceptorFromType(
+              receiver.instructionType.nonNullable(), interceptedClasses);
+          if (interceptorClass != null) {
+            HInstruction constantInstruction =
+                graph.addConstant(
+                    new InterceptorConstantValue(interceptorClass.thisType),
+                    compiler);
+            node.conditionalConstantInterceptor = constantInstruction;
+            constantInstruction.usedBy.add(node);
+            return false;
+          }
+        }
+      }
     }
 
     // Try creating a one-shot interceptor or optimized is-check
