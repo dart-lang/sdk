@@ -1736,6 +1736,11 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
   /**
+   * The name of a list of [USED_ELEMENTS] for each library unit input.
+   */
+  static const String USED_ELEMENTS_INPUT = 'USED_ELEMENTS_INPUT';
+
+  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
@@ -1756,17 +1761,23 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
     // Prepare inputs.
     //
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    List<UsedElements> usedElementsList = getRequiredInput(USED_ELEMENTS_INPUT);
     CompilationUnitElement unitElement = unit.element;
     LibraryElement libraryElement = unitElement.library;
     //
-    // Use the HintGenerator to generate errors.
+    // Generate errors.
     //
     // TODO(scheglov) move collecting used imports into a separate task
 //      unit.accept(_importsVerifier);
     // Dead code analysis.
     unit.accept(new DeadCodeVerifier(errorReporter));
-    // TODO(scheglov) move collecting used elements into a separate task
-//      unit.accept(_usedElementsVisitor);
+    // Unused elements.
+    {
+      UsedElements usedElements = new UsedElements.merge(usedElementsList);
+      UnusedElementsVerifier visitor =
+          new UnusedElementsVerifier(errorListener, usedElements);
+      unitElement.accept(visitor);
+    }
     // Dart2js analysis.
     if (context.analysisOptions.dart2jsHint) {
       unit.accept(new Dart2JSVerifier(errorReporter));
@@ -1791,7 +1802,14 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
    * given [target].
    */
   static Map<String, TaskInput> buildInputs(LibraryUnitTarget target) {
-    return <String, TaskInput>{UNIT_INPUT: RESOLVED_UNIT.of(target)};
+    Source libSource = target.library;
+    return <String, TaskInput>{
+      UNIT_INPUT: RESOLVED_UNIT.of(target),
+      USED_ELEMENTS_INPUT: UNITS.of(libSource).toList((unit) {
+        LibraryUnitTarget target = new LibraryUnitTarget(libSource, unit);
+        return USED_ELEMENTS.of(target);
+      })
+    };
   }
 
   /**

@@ -1153,8 +1153,6 @@ main(A a, p) {
 ''');
     _computeUsedElements(source);
     // validate
-    print(usedElementNames);
-    print(usedElements.members);
     expect(usedElementNames, unorderedEquals(['A', 'a', 'p', '_m2']));
     expect(usedElements.members, unorderedEquals(['_m2', '_m3']));
   }
@@ -1244,6 +1242,63 @@ main() {
     // validate
     _fillErrorListener(HINTS);
     errorListener.assertErrorsWithCodes(<ErrorCode>[TodoCode.TODO]);
+  }
+
+  test_perform_unusedElements_class() {
+    Source source = _newSource('/test.dart', '''
+class _A {}
+class _B {}
+main() {
+  new _A();
+}
+''');
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, HINTS);
+    expect(task, new isInstanceOf<GenerateHintsTask>());
+    // validate
+    _fillErrorListener(HINTS);
+    errorListener.assertErrorsWithCodes(<ErrorCode>[HintCode.UNUSED_ELEMENT]);
+  }
+
+  test_perform_unusedElements_localVariable() {
+    Source source = _newSource('/test.dart', '''
+main() {
+  var v = 42;
+}
+''');
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, HINTS);
+    expect(task, new isInstanceOf<GenerateHintsTask>());
+    // validate
+    _fillErrorListener(HINTS);
+    errorListener
+        .assertErrorsWithCodes(<ErrorCode>[HintCode.UNUSED_LOCAL_VARIABLE]);
+  }
+
+  test_perform_unusedElements_method() {
+    Source source = _newSource('/my_lib.dart', '''
+library my_lib;
+part 'my_part.dart';
+class A {
+  _ma() {}
+  _mb() {}
+  _mc() {}
+}
+''');
+    _newSource('/my_part.dart', '''
+part of my_lib;
+
+f(A a) {
+  a._mb();
+}
+''');
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, HINTS);
+    expect(task, new isInstanceOf<GenerateHintsTask>());
+    // validate
+    _fillErrorListener(HINTS);
+    errorListener.assertErrorsWithCodes(
+        <ErrorCode>[HintCode.UNUSED_ELEMENT, HintCode.UNUSED_ELEMENT]);
   }
 }
 

@@ -4558,7 +4558,7 @@ class HintGenerator {
           .generateDuplicateImportHints(definingCompilationUnitErrorReporter);
       _importsVerifier
           .generateUnusedImportHints(definingCompilationUnitErrorReporter);
-      _library.accept(new _UnusedElementsVerifier(
+      _library.accept(new UnusedElementsVerifier(
           _errorListener, _usedElementsVisitor.usedElements));
     });
   }
@@ -14952,6 +14952,157 @@ class TypeResolverVisitor extends ScopedVisitor {
 }
 
 /**
+ * Instances of the class [UnusedElementsVerifier] traverse an element
+ * structure looking for cases of [HintCode.UNUSED_ELEMENT] and
+ * [HintCode.UNUSED_LOCAL_VARIABLE].
+ */
+class UnusedElementsVerifier extends RecursiveElementVisitor {
+  /**
+   * The error listener to which errors will be reported.
+   */
+  final AnalysisErrorListener _errorListener;
+
+  /**
+   * The elements know to be used.
+   */
+  final UsedElements _usedElements;
+
+  /**
+   * Create a new instance of the [UnusedElementsVerifier].
+   */
+  UnusedElementsVerifier(this._errorListener, this._usedElements);
+
+  @override
+  visitClassElement(ClassElement element) {
+    if (!_isUsedElement(element)) {
+      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element, [
+        element.kind.displayName,
+        element.displayName
+      ]);
+    }
+    super.visitClassElement(element);
+  }
+
+  @override
+  visitFieldElement(FieldElement element) {
+    if (!_isReadMember(element)) {
+      _reportErrorForElement(
+          HintCode.UNUSED_FIELD, element, [element.displayName]);
+    }
+    super.visitFieldElement(element);
+  }
+
+  @override
+  visitFunctionElement(FunctionElement element) {
+    if (!_isUsedElement(element)) {
+      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element, [
+        element.kind.displayName,
+        element.displayName
+      ]);
+    }
+    super.visitFunctionElement(element);
+  }
+
+  @override
+  visitLocalVariableElement(LocalVariableElement element) {
+    if (!_isUsedElement(element) && !_isNamedUnderscore(element)) {
+      HintCode errorCode;
+      if (_usedElements.isCatchException(element)) {
+        errorCode = HintCode.UNUSED_CATCH_CLAUSE;
+      } else if (_usedElements.isCatchStackTrace(element)) {
+        errorCode = HintCode.UNUSED_CATCH_STACK;
+      } else {
+        errorCode = HintCode.UNUSED_LOCAL_VARIABLE;
+      }
+      _reportErrorForElement(errorCode, element, [element.displayName]);
+    }
+  }
+
+  @override
+  visitMethodElement(MethodElement element) {
+    if (!_isUsedMember(element)) {
+      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element, [
+        element.kind.displayName,
+        element.displayName
+      ]);
+    }
+    super.visitMethodElement(element);
+  }
+
+  @override
+  visitPropertyAccessorElement(PropertyAccessorElement element) {
+    if (!_isUsedMember(element)) {
+      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element, [
+        element.kind.displayName,
+        element.displayName
+      ]);
+    }
+    super.visitPropertyAccessorElement(element);
+  }
+
+  bool _isNamedUnderscore(LocalVariableElement element) {
+    String name = element.name;
+    if (name != null) {
+      for (int index = name.length - 1; index >= 0; --index) {
+        if (name.codeUnitAt(index) != 0x5F) {
+          // 0x5F => '_'
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  bool _isReadMember(Element element) {
+    if (element.isPublic) {
+      return true;
+    }
+    if (element.isSynthetic) {
+      return true;
+    }
+    return _usedElements.readMembers.contains(element.displayName);
+  }
+
+  bool _isUsedElement(Element element) {
+    if (element.isSynthetic) {
+      return true;
+    }
+    if (element is LocalVariableElement ||
+        element is FunctionElement && !element.isStatic) {
+      // local variable or function
+    } else {
+      if (element.isPublic) {
+        return true;
+      }
+    }
+    return _usedElements.elements.contains(element);
+  }
+
+  bool _isUsedMember(Element element) {
+    if (element.isPublic) {
+      return true;
+    }
+    if (element.isSynthetic) {
+      return true;
+    }
+    if (_usedElements.members.contains(element.displayName)) {
+      return true;
+    }
+    return _usedElements.elements.contains(element);
+  }
+
+  void _reportErrorForElement(
+      ErrorCode errorCode, Element element, List<Object> arguments) {
+    if (element != null) {
+      _errorListener.onError(new AnalysisError.con2(element.source,
+          element.nameOffset, element.displayName.length, errorCode,
+          arguments));
+    }
+  }
+}
+
+/**
  * A container with sets of used [Element]s.
  */
 class UsedElements {
@@ -14984,6 +15135,20 @@ class UsedElements {
    * library.
    */
   final HashSet<String> readMembers = new HashSet<String>();
+
+  UsedElements();
+
+  factory UsedElements.merge(List<UsedElements> parts) {
+    UsedElements result = new UsedElements();
+    for (UsedElements part in parts) {
+      result.elements.addAll(part.elements);
+      result.catchExceptionElements.addAll(part.catchExceptionElements);
+      result.catchStackTraceElements.addAll(part.catchStackTraceElements);
+      result.members.addAll(part.members);
+      result.readMembers.addAll(part.readMembers);
+    }
+    return result;
+  }
 
   void addCatchException(LocalVariableElement element) {
     if (element != null) {
@@ -15326,155 +15491,4 @@ class _TypeResolverVisitor_visitClassMembersInScope
 
   @override
   Object visitWithClause(WithClause node) => null;
-}
-
-/**
- * Instances of the class [_UnusedElementsVerifier] traverse an element
- * structure looking for cases of [HintCode.UNUSED_ELEMENT] and
- * [HintCode.UNUSED_LOCAL_VARIABLE].
- */
-class _UnusedElementsVerifier extends RecursiveElementVisitor {
-  /**
-   * The error listener to which errors will be reported.
-   */
-  final AnalysisErrorListener _errorListener;
-
-  /**
-   * The elements know to be used.
-   */
-  final UsedElements _usedElements;
-
-  /**
-   * Create a new instance of the [_UnusedElementsVerifier].
-   */
-  _UnusedElementsVerifier(this._errorListener, this._usedElements);
-
-  @override
-  visitClassElement(ClassElement element) {
-    if (!_isUsedElement(element)) {
-      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element, [
-        element.kind.displayName,
-        element.displayName
-      ]);
-    }
-    super.visitClassElement(element);
-  }
-
-  @override
-  visitFieldElement(FieldElement element) {
-    if (!_isReadMember(element)) {
-      _reportErrorForElement(
-          HintCode.UNUSED_FIELD, element, [element.displayName]);
-    }
-    super.visitFieldElement(element);
-  }
-
-  @override
-  visitFunctionElement(FunctionElement element) {
-    if (!_isUsedElement(element)) {
-      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element, [
-        element.kind.displayName,
-        element.displayName
-      ]);
-    }
-    super.visitFunctionElement(element);
-  }
-
-  @override
-  visitLocalVariableElement(LocalVariableElement element) {
-    if (!_isUsedElement(element) && !_isNamedUnderscore(element)) {
-      HintCode errorCode;
-      if (_usedElements.isCatchException(element)) {
-        errorCode = HintCode.UNUSED_CATCH_CLAUSE;
-      } else if (_usedElements.isCatchStackTrace(element)) {
-        errorCode = HintCode.UNUSED_CATCH_STACK;
-      } else {
-        errorCode = HintCode.UNUSED_LOCAL_VARIABLE;
-      }
-      _reportErrorForElement(errorCode, element, [element.displayName]);
-    }
-  }
-
-  @override
-  visitMethodElement(MethodElement element) {
-    if (!_isUsedMember(element)) {
-      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element, [
-        element.kind.displayName,
-        element.displayName
-      ]);
-    }
-    super.visitMethodElement(element);
-  }
-
-  @override
-  visitPropertyAccessorElement(PropertyAccessorElement element) {
-    if (!_isUsedMember(element)) {
-      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element, [
-        element.kind.displayName,
-        element.displayName
-      ]);
-    }
-    super.visitPropertyAccessorElement(element);
-  }
-
-  bool _isNamedUnderscore(LocalVariableElement element) {
-    String name = element.name;
-    if (name != null) {
-      for (int index = name.length - 1; index >= 0; --index) {
-        if (name.codeUnitAt(index) != 0x5F) {
-          // 0x5F => '_'
-          return false;
-        }
-      }
-      return true;
-    }
-    return false;
-  }
-
-  bool _isReadMember(Element element) {
-    if (element.isPublic) {
-      return true;
-    }
-    if (element.isSynthetic) {
-      return true;
-    }
-    return _usedElements.readMembers.contains(element.displayName);
-  }
-
-  bool _isUsedElement(Element element) {
-    if (element.isSynthetic) {
-      return true;
-    }
-    if (element is LocalVariableElement ||
-        element is FunctionElement && !element.isStatic) {
-      // local variable or function
-    } else {
-      if (element.isPublic) {
-        return true;
-      }
-    }
-    return _usedElements.elements.contains(element);
-  }
-
-  bool _isUsedMember(Element element) {
-    if (element.isPublic) {
-      return true;
-    }
-    if (element.isSynthetic) {
-      return true;
-    }
-    if (_usedElements.members.contains(element.displayName)) {
-      return true;
-    }
-    return _usedElements.elements.contains(element);
-  }
-
-  void _reportErrorForElement(
-      ErrorCode errorCode, Element element, List<Object> arguments) {
-    if (element != null) {
-      _errorListener.onError(new AnalysisError.con2(element.source,
-          element.nameOffset, element.displayName.length, errorCode,
-          arguments));
-    }
-  }
 }
