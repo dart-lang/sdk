@@ -2300,15 +2300,34 @@ class HInterceptor extends HInstruction {
   // This field should originally be null to allow GVN'ing all
   // [HInterceptor] on the same input.
   Set<ClassElement> interceptedClasses;
+
+  // inputs[0] is initially the only input, the receiver.
+
+  // inputs[1] is a constant interceptor when the interceptor is a constant
+  // except for a `null` receiver.  This is used when the receiver can't be
+  // falsy, except for `null`, allowing the generation of code like
+  //
+  //     (a && C.JSArray_methods).get$first(a)
+  //
+
   HInterceptor(HInstruction receiver, TypeMask type)
       : super(<HInstruction>[receiver], type) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     setUseGvn();
   }
+
   String toString() => 'interceptor on $interceptedClasses';
   accept(HVisitor visitor) => visitor.visitInterceptor(this);
   HInstruction get receiver => inputs[0];
+
+  bool get isConditionalConstantInterceptor => inputs.length == 2;
+  HInstruction get conditionalConstantInterceptor => inputs[1];
+  void set conditionalConstantInterceptor(HConstant constant) {
+    assert(!isConditionalConstantInterceptor);
+    inputs.add(constant);
+  }
+
   bool isInterceptor(Compiler compiler) => true;
 
   int typeCode() => HInstruction.INTERCEPTOR_TYPECODE;
