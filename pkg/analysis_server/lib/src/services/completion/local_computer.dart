@@ -92,17 +92,17 @@ class LocalComputer extends DartCompletionComputer {
         optype.includeVoidReturnSuggestions) {
       _LocalVisitor localVisitor =
           new _LocalVisitor(request, request.offset, optype);
-      localVisitor.visit(request.node);
+      localVisitor.visit(request.target.containingNode);
     }
     if (optype.includeStatementLabelSuggestions ||
         optype.includeCaseLabelSuggestions) {
       _LabelVisitor labelVisitor = new _LabelVisitor(request,
           optype.includeStatementLabelSuggestions,
           optype.includeCaseLabelSuggestions);
-      labelVisitor.visit(request.node);
+      labelVisitor.visit(request.target.containingNode);
     }
     if (optype.includeConstructorSuggestions) {
-      new _ConstructorVisitor(request).visit(request.node);
+      new _ConstructorVisitor(request).visit(request.target.containingNode);
     }
 
     // If target is an argument in an argument list
@@ -429,11 +429,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   final DartCompletionRequest request;
   final OpType optype;
 
-  /**
-   * The simple identifier that is being completed, or `null` if none.
-   */
-  SimpleIdentifier targetId;
-
   _LocalVisitor(this.request, int offset, this.optype) : super(offset);
 
   @override
@@ -631,13 +626,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     }
   }
 
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    // Record the visited identifier so as not to suggest it
-    targetId = node;
-    return super.visitSimpleIdentifier(node);
-  }
-
   void _addParameterInfo(
       CompletionSuggestion suggestion, FormalParameterList parameters) {
     var paramList = parameters.parameters;
@@ -676,7 +664,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   CompletionSuggestion _addSuggestion(SimpleIdentifier id, TypeName returnType,
       bool isDeprecated, int defaultRelevance, {ClassDeclaration classDecl}) {
-    if (id != null && !identical(id, targetId)) {
+    if (id != null) {
       String completion = id.name;
       if (completion != null && completion.length > 0 && completion != '_') {
         CompletionSuggestion suggestion = new CompletionSuggestion(

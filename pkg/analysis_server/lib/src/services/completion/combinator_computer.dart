@@ -22,14 +22,15 @@ class CombinatorComputer extends DartCompletionComputer {
 
   @override
   bool computeFast(DartCompletionRequest request) {
-    builder = request.node.accept(new _CombinatorAstVisitor(request));
+    builder = request.target.containingNode
+        .accept(new _CombinatorAstVisitor(request));
     return builder == null;
   }
 
   @override
   Future<bool> computeFull(DartCompletionRequest request) {
     if (builder != null) {
-      return builder.execute(request.node);
+      return builder.execute(request.target.containingNode);
     }
     return new Future.value(false);
   }
@@ -54,11 +55,6 @@ class _CombinatorAstVisitor
   @override
   _CombinatorSuggestionBuilder visitNode(AstNode node) {
     return null;
-  }
-
-  @override
-  _CombinatorSuggestionBuilder visitSimpleIdentifier(SimpleIdentifier node) {
-    return node.parent.accept(this);
   }
 }
 

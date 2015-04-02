@@ -26,9 +26,10 @@ class InvocationComputer extends DartCompletionComputer {
   bool computeFast(DartCompletionRequest request) {
     OpType optype = request.optype;
     if (optype.includeInvocationSuggestions) {
-      builder = request.node.accept(new _InvocationAstVisitor(request));
+      builder = request.target.containingNode
+          .accept(new _InvocationAstVisitor(request));
       if (builder != null) {
-        return builder.computeFast(request.node);
+        return builder.computeFast(request.target.containingNode);
       }
     }
 
@@ -38,7 +39,7 @@ class InvocationComputer extends DartCompletionComputer {
   @override
   Future<bool> computeFull(DartCompletionRequest request) {
     if (builder != null) {
-      return builder.computeFull(request.node);
+      return builder.computeFull(request.target.containingNode);
     }
     return new Future.value(false);
   }
@@ -56,9 +57,6 @@ class _ExpressionSuggestionBuilder implements SuggestionBuilder {
 
   @override
   Future<bool> computeFull(AstNode node) {
-    if (node is SimpleIdentifier) {
-      node = node.parent;
-    }
     if (node is MethodInvocation) {
       node = (node as MethodInvocation).realTarget;
     } else if (node is PropertyAccess) {
@@ -89,7 +87,7 @@ class _InvocationAstVisitor extends GeneralizingAstVisitor<SuggestionBuilder> {
   _InvocationAstVisitor(this.request);
 
   @override
-  visitConstructorName(ConstructorName node) {
+  SuggestionBuilder visitConstructorName(ConstructorName node) {
     // some PrefixedIdentifier nodes are transformed into
     // ConstructorName nodes during the resolution process.
     return new _PrefixedIdentifierSuggestionBuilder(request);
@@ -115,11 +113,6 @@ class _InvocationAstVisitor extends GeneralizingAstVisitor<SuggestionBuilder> {
   @override
   SuggestionBuilder visitPropertyAccess(PropertyAccess node) {
     return new _ExpressionSuggestionBuilder(request);
-  }
-
-  @override
-  SuggestionBuilder visitSimpleIdentifier(SimpleIdentifier node) {
-    return node.parent.accept(this);
   }
 }
 
@@ -254,9 +247,6 @@ class _PrefixedIdentifierSuggestionBuilder
 
   @override
   Future<bool> computeFull(AstNode node) {
-    if (node is SimpleIdentifier) {
-      node = node.parent;
-    }
     if (node is ConstructorName) {
       // some PrefixedIdentifier nodes are transformed into
       // ConstructorName nodes during the resolution process.

@@ -39,25 +39,24 @@ class ImportedComputer extends DartCompletionComputer {
           shouldWaitForLowPrioritySuggestions;
       // If target is an argument in an argument list
       // then suggestions may need to be adjusted
-      suggestionsComputed = builder.computeFast(request.node);
+      suggestionsComputed = builder.computeFast(request.target.containingNode);
       return suggestionsComputed && request.target.argIndex == null;
     }
     return true;
   }
 
   @override
-  Future<bool> computeFull(DartCompletionRequest request) {
+  Future<bool> computeFull(DartCompletionRequest request) async {
     if (builder != null) {
       if (!suggestionsComputed) {
-        return builder.computeFull(request.node).then((bool result) {
-          _updateSuggestions(request);
-          return result;
-        });
+        bool result = await builder.computeFull(request.target.containingNode);
+        _updateSuggestions(request);
+        return result;
       }
       _updateSuggestions(request);
-      return new Future.value(true);
+      return true;
     }
-    return new Future.value(false);
+    return false;
   }
 
   /**
@@ -158,7 +157,8 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
         }
       }
       addSuggestion(elem, relevance: relevance);
-    };
+    }
+    ;
   }
 
   /**

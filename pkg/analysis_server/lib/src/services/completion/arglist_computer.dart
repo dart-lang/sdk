@@ -22,14 +22,15 @@ class ArgListComputer extends DartCompletionComputer {
 
   @override
   bool computeFast(DartCompletionRequest request) {
-    builder = request.node.accept(new _ArgListAstVisitor(request));
+    builder =
+        request.target.containingNode.accept(new _ArgListAstVisitor(request));
     return builder == null;
   }
 
   @override
   Future<bool> computeFull(DartCompletionRequest request) {
     if (builder != null) {
-      return builder.compute(request.node);
+      return builder.compute(request.target.containingNode);
     }
     return new Future.value(false);
   }

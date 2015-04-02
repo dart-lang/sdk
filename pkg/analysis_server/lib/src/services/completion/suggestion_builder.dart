@@ -377,7 +377,7 @@ class InterfaceTypeSuggestionBuilder {
    */
   static void suggestionsFor(DartCompletionRequest request, DartType type) {
     CompilationUnit compilationUnit =
-        request.node.getAncestor((AstNode node) => node is CompilationUnit);
+        request.target.containingNode.getAncestor((n) => n is CompilationUnit);
     LibraryElement library = compilationUnit.element.library;
     if (type is DynamicTypeImpl) {
       type = request.cache.objectClassElement.type;
@@ -442,7 +442,8 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   static void suggestionsFor(DartCompletionRequest request,
       CompletionSuggestionKind kind, LibraryElement library, bool typesOnly) {
     if (library != null) {
-      library.visitChildren(new LibraryElementSuggestionBuilder(request, kind, typesOnly));
+      library.visitChildren(
+          new LibraryElementSuggestionBuilder(request, kind, typesOnly));
     }
   }
 }

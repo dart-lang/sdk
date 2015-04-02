@@ -11,6 +11,7 @@ import 'package:analysis_server/src/protocol.dart' as protocol
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/common_usage_computer.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/completion_target.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_computer.dart';
@@ -521,6 +522,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
             request.unit = unit;
             request.node =
                 new NodeLocator.con1(completionOffset).searchWithin(unit);
+            request.target =
+                new CompletionTarget.forOffset(unit, completionOffset);
             resolved = true;
             if (!fullAnalysis) {
               break;
