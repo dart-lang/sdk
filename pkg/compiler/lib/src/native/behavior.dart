@@ -6,13 +6,13 @@ part of native;
 
 /// This class is a temporary work-around until we get a more powerful DartType.
 class SpecialType {
-final String name;
-const SpecialType._(this.name);
+  final String name;
+  const SpecialType._(this.name);
 
-/// The type Object, but no subtypes:
-static const JsObject = const SpecialType._('=Object');
+  /// The type Object, but no subtypes:
+  static const JsObject = const SpecialType._('=Object');
 
-int get hashCode => name.hashCode;
+  int get hashCode => name.hashCode;
 }
 
 /**
@@ -58,6 +58,13 @@ class NativeBehavior {
   js.Template codeTemplate;
 
   final SideEffects sideEffects = new SideEffects.empty();
+
+  String toString() {
+    return 'NativeBehavior(returns: ${typesReturned}, '
+        'creates: ${typesInstantiated}, '
+        'sideEffects: ${sideEffects})';
+  }
+
 
   /// Processes the type specification string of a call to JS and stores the
   /// result in the [typesReturned] and [typesInstantiated]. It furthermore
