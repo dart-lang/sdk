@@ -62,8 +62,8 @@ main() {
    * expected propagated type of the element.
    */
   checkHover(String target, int length, List<String> descriptionRegexps,
-      String kind, List<String> staticTypeRegexps, {bool isCore: false,
-      String docRegexp: null, bool isLiteral: false,
+      String kind, List<String> staticTypeRegexps, {bool isLocal: false,
+      bool isCore: false, String docRegexp: null, bool isLiteral: false,
       List<String> parameterRegexps: null, propagatedType: null}) {
     int offset = text.indexOf(target);
     return sendAnalysisGetHover(pathname, offset).then((result) {
@@ -74,7 +74,7 @@ main() {
       if (isCore) {
         expect(basename(info.containingLibraryPath), equals('core.dart'));
         expect(info.containingLibraryName, equals('dart.core'));
-      } else if (isLiteral) {
+      } else if (isLocal || isLiteral) {
         expect(info.containingLibraryPath, isNull);
         expect(info.containingLibraryName, isNull);
       } else {
@@ -141,52 +141,44 @@ main() {
     // request is made.  So wait for analysis to finish before testing anything.
     return analysisFinished.then((_) {
       List<Future> tests = [];
-      tests.add(checkHover('topLevelVar;', 11,
-          ['List', 'topLevelVar'], 'top level variable', ['List']));
-      tests.add(checkHover('func(', 4, [
-        'func',
-        'int',
-        'param'
-      ], 'function', ['int', 'void'], docRegexp: 'Documentation for func'));
+      tests.add(checkHover('topLevelVar;', 11, [
+        'List',
+        'topLevelVar'
+      ], 'top level variable', ['List']));
+      tests.add(checkHover(
+          'func(', 4, ['func', 'int', 'param'], 'function', ['int', 'void'],
+          docRegexp: 'Documentation for func'));
       tests.add(checkHover('int param', 3, ['int'], 'class', ['int'],
           isCore: true, docRegexp: '.*'));
       tests.add(checkHover('param)', 5, ['int', 'param'], 'parameter', ['int'],
-          docRegexp: 'Documentation for func'));
+          isLocal: true, docRegexp: 'Documentation for func'));
       tests.add(checkHover('num localVar', 3, ['num'], 'class', ['num'],
           isCore: true, docRegexp: '.*'));
-      tests.add(checkHover('localVar =', 8, [
-        'num',
-        'localVar'
-      ], 'local variable', ['num'], propagatedType: 'int'));
+      tests.add(checkHover(
+          'localVar =', 8, ['num', 'localVar'], 'local variable', ['num'],
+          isLocal: true, propagatedType: 'int'));
       tests.add(checkHover('topLevelVar.length;', 11, [
         'List',
         'topLevelVar'
       ], 'top level variable', ['List']));
-      tests.add(checkHover('length;', 6, [
-        'get',
-        'length',
-        'int'
-      ], 'getter', ['int'], isCore: true, docRegexp: '.*'));
-      tests.add(checkHover('length =', 6, [
-        'set',
-        'length',
-        'int'
-      ], 'setter', ['int'], isCore: true, docRegexp: '.*'));
+      tests.add(checkHover(
+          'length;', 6, ['get', 'length', 'int'], 'getter', ['int'],
+          isCore: true, docRegexp: '.*'));
+      tests.add(checkHover(
+          'length =', 6, ['set', 'length', 'int'], 'setter', ['int'],
+          isCore: true, docRegexp: '.*'));
       tests.add(checkHover('param;', 5, ['int', 'param'], 'parameter', ['int'],
-          docRegexp: 'Documentation for func', parameterRegexps: ['.*']));
+          isLocal: true,
+          docRegexp: 'Documentation for func',
+          parameterRegexps: ['.*']));
       tests.add(checkHover('add(', 3, ['List', 'add'], 'method', null,
           isCore: true, docRegexp: '.*'));
-      tests.add(checkHover('localVar)', 8, [
-        'num',
-        'localVar'
-      ], 'local variable', [
-        'num'
-      ], parameterRegexps: ['.*'], propagatedType: 'int'));
-      tests.add(checkHover('func(35', 4, [
-        'func',
-        'int',
-        'param'
-      ], 'function', null, docRegexp: 'Documentation for func'));
+      tests.add(checkHover(
+          'localVar)', 8, ['num', 'localVar'], 'local variable', ['num'],
+          isLocal: true, parameterRegexps: ['.*'], propagatedType: 'int'));
+      tests.add(checkHover(
+          'func(35', 4, ['func', 'int', 'param'], 'function', null,
+          docRegexp: 'Documentation for func'));
       tests.add(checkHover('35', 2, null, null, ['int'],
           isLiteral: true, parameterRegexps: ['int', 'param']));
       tests.add(checkNoHover('comment'));
