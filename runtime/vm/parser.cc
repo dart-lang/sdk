@@ -62,7 +62,7 @@ DEFINE_FLAG_HANDLER(CheckedModeHandler,
 
 
 // Quick access to the current isolate and zone.
-#define I (thread()->isolate())
+#define I (isolate())
 #define Z (zone())
 
 
@@ -318,7 +318,7 @@ void Parser::TryStack::AddNodeForFinallyInlining(AstNode* node) {
 
 // For parsing a compilation unit.
 Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
-    : thread_(Thread::Current()),
+    : isolate_(Thread::Current()->isolate()),
       script_(Script::Handle(zone(), script.raw())),
       tokens_iterator_(TokenStream::Handle(zone(), script.tokens()),
                        token_pos),
@@ -347,7 +347,7 @@ Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
 Parser::Parser(const Script& script,
                ParsedFunction* parsed_function,
                intptr_t token_position)
-    : thread_(Thread::Current()),
+    : isolate_(Thread::Current()->isolate()),
       script_(Script::Handle(zone(), script.raw())),
       tokens_iterator_(TokenStream::Handle(zone(), script.tokens()),
                        token_position),
