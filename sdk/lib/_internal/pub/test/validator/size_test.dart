@@ -22,12 +22,12 @@ main() {
 
   setUp(d.validPackage.create);
 
-  integration('should consider a package valid if it is <= 10 MB', () {
+  integration('considers a package valid if it is <= 100 MB', () {
     expectNoValidationError(size(100));
-    expectNoValidationError(size(10 * math.pow(2, 20)));
+    expectNoValidationError(size(100 * math.pow(2, 20)));
   });
 
-  integration('should consider a package invalid if it is more than 10 MB', () {
-    expectValidationError(size(10 * math.pow(2, 20) + 1));
+  integration('considers a package invalid if it is more than 100 MB', () {
+    expectValidationError(size(100 * math.pow(2, 20) + 1));
   });
 }
