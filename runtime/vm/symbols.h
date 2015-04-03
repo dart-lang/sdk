@@ -334,6 +334,7 @@ class ObjectPointerVisitor;
   V(DartVMService, "dart:vmservice")                                           \
   V(DartProfiler, "dart:profiler")                                             \
   V(DartIOLibName, "dart.io")                                                  \
+  V(EvalSourceUri, "evaluate:source")                                          \
   V(_Random, "_Random")                                                        \
   V(_state, "_state")                                                          \
   V(_A, "_A")                                                                  \

@@ -2817,7 +2817,9 @@ static RawFunction* EvaluateHelper(const Class& cls,
   const String& func_src =
       String::Handle(BuildClosureSource(param_names, expr));
   Script& script = Script::Handle();
-  script = Script::New(Symbols::Empty(), func_src, RawScript::kSourceTag);
+  script = Script::New(Symbols::EvalSourceUri(),
+                       func_src,
+                       RawScript::kSourceTag);
   // In order to tokenize the source, we need to get the key to mangle
   // private names from the library from which the class originates.
   const Library& lib = Library::Handle(cls.library());
