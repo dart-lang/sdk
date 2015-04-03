@@ -41,20 +41,12 @@ assert (_isCanceled); _PendingEvents events = _pending;
  return events;
 }
  void onData(void handleData(T event)) {
-if (handleData == null) handleData = DEVC$RT.wrap((void f(dynamic __u74)) {
-void c(dynamic x0) => f(x0);
- return f == null ? null : c;
+if (handleData == null) handleData = DEVC$RT.cast(_nullDataHandler, __t64, DEVC$RT.type((__t62<T> _) {
 }
-, _nullDataHandler, __t77, DEVC$RT.type((__t75<T> _) {
+), "CompositeCast", """line 153, column 42 of dart:async/stream_impl.dart: """, _nullDataHandler is __t62<T>, false);
+ _onData = ((__x68) => DEVC$RT.cast(__x68, __t66, DEVC$RT.type((__t62<T> _) {
 }
-), "Wrap", """line 153, column 42 of dart:async/stream_impl.dart: """, _nullDataHandler is __t75<T>);
- _onData = ((__x82) => DEVC$RT.wrap((dynamic f(dynamic __u79)) {
-dynamic c(dynamic x0) => f(x0);
- return f == null ? null : c;
-}
-, __x82, __t80, DEVC$RT.type((__t75<T> _) {
-}
-), "Wrap", """line 154, column 15 of dart:async/stream_impl.dart: """, __x82 is __t75<T>))(_zone.registerUnaryCallback(handleData));
+), "CompositeCast", """line 154, column 15 of dart:async/stream_impl.dart: """, __x68 is __t62<T>, false))(_zone.registerUnaryCallback(handleData));
 }
  void onError(Function handleError) {
 if (handleError == null) handleError = _nullErrorHandler;
@@ -185,10 +177,10 @@ assert (!_isCanceled); assert (!_isPaused); assert (!_inCallback); bool wasInput
  void sendError() {
 if (_isCanceled && !_waitsForCancel) return; _state |= _STATE_IN_CALLBACK;
  if (_onError is ZoneBinaryCallback) {
-  _zone.runBinaryGuarded(DEVC$RT.cast(_onError, Function, __t83, "ImplicitCast", """line 358, column 32 of dart:async/stream_impl.dart: """, _onError is __t83, true), error, stackTrace);
+  _zone.runBinaryGuarded(DEVC$RT.cast(_onError, Function, __t69, "ImplicitCast", """line 358, column 32 of dart:async/stream_impl.dart: """, _onError is __t69, true), error, stackTrace);
   }
  else {
-  _zone.runUnaryGuarded(DEVC$RT.cast(_onError, Function, __t80, "ImplicitCast", """line 360, column 31 of dart:async/stream_impl.dart: """, _onError is __t80, true), error);
+  _zone.runUnaryGuarded(DEVC$RT.cast(_onError, Function, __t66, "ImplicitCast", """line 360, column 31 of dart:async/stream_impl.dart: """, _onError is __t66, true), error);
   }
  _state &= ~_STATE_IN_CALLBACK;
 }
@@ -468,15 +460,7 @@ _state &= ~_SCHEDULED;
  final Zone _zone;
  _AsBroadcastStreamController<T> _controller;
  StreamSubscription<T> _subscription;
- _AsBroadcastStream(this._source, void onListenHandler(StreamSubscription subscription), void onCancelHandler(StreamSubscription subscription)) : _onListenHandler = ((__x89) => DEVC$RT.wrap((dynamic f(dynamic __u86)) {
-dynamic c(dynamic x0) => f(x0);
- return f == null ? null : c;
-}
-, __x89, __t80, __t87, "Wrap", """line 813, column 28 of dart:async/stream_impl.dart: """, __x89 is __t87))(Zone.current.registerUnaryCallback(onListenHandler)), _onCancelHandler = ((__x91) => DEVC$RT.wrap((dynamic f(dynamic __u90)) {
-dynamic c(dynamic x0) => f(x0);
- return f == null ? null : c;
-}
-, __x91, __t80, __t87, "Wrap", """line 814, column 28 of dart:async/stream_impl.dart: """, __x91 is __t87))(Zone.current.registerUnaryCallback(onCancelHandler)), _zone = Zone.current {
+ _AsBroadcastStream(this._source, void onListenHandler(StreamSubscription subscription), void onCancelHandler(StreamSubscription subscription)) : _onListenHandler = ((__x74) => DEVC$RT.cast(__x74, __t66, __t72, "CompositeCast", """line 813, column 28 of dart:async/stream_impl.dart: """, __x74 is __t72, false))(Zone.current.registerUnaryCallback(onListenHandler)), _onCancelHandler = ((__x75) => DEVC$RT.cast(__x75, __t66, __t72, "CompositeCast", """line 814, column 28 of dart:async/stream_impl.dart: """, __x75 is __t72, false))(Zone.current.registerUnaryCallback(onCancelHandler)), _zone = Zone.current {
 _controller = new _AsBroadcastStreamController<T>(_onListen, _onCancel);
 }
  bool get isBroadcast => true;
@@ -656,8 +640,8 @@ _Future<bool> hasNext = DEVC$RT.cast(_futureOrPrefetch, dynamic, DEVC$RT.type((_
  _state = _STATE_EXTRA_DONE;
 }
 }
- typedef void __t75<T>(T __u76);
- typedef void __t77(dynamic __u78);
- typedef dynamic __t80(dynamic __u81);
- typedef dynamic __t83(dynamic __u84, dynamic __u85);
- typedef void __t87(StreamSubscription<dynamic> __u88);
+ typedef void __t62<T>(T __u63);
+ typedef void __t64(dynamic __u65);
+ typedef dynamic __t66(dynamic __u67);
+ typedef dynamic __t69(dynamic __u70, dynamic __u71);
+ typedef void __t72(StreamSubscription<dynamic> __u73);

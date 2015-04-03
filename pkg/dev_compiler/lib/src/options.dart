@@ -79,7 +79,7 @@ class RulesOptions extends TypeOptions {
 
   /// Whether to wrap closures for compatibility.
   final bool wrapClosures;
-  static const wrapClosuresDefault = true;
+  static const wrapClosuresDefault = false;
 
   RulesOptions({this.allowConstCasts: true, this.covariantGenerics: true,
       this.inferDownwards: inferDownwardsDefault, this.relaxedCasts: true,

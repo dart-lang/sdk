@@ -386,7 +386,6 @@ void main() {
           Left f = left;
           Left2 g = f;
         }
-        // TODO(leafp) Decide on ClosureWrap vs DownCast (or error).
         {
           Top f;
           f = top;
@@ -396,23 +395,23 @@ void main() {
         }
         {
           Left f;
-          f = /*warning:ClosureWrap*/top;
+          f = /*warning:DownCastComposite*/top;
           f = left;
-          f = /*warning:ClosureWrap*/right; // Should we reject this?
+          f = /*warning:DownCastComposite*/right; // Should we reject this?
           f = bot;
         }
         {
           Right f;
-          f = /*warning:ClosureWrap*/top;
-          f = /*warning:ClosureWrap*/left; // Should we reject this?
+          f = /*warning:DownCastComposite*/top;
+          f = /*warning:DownCastComposite*/left; // Should we reject this?
           f = right;
           f = bot;
         }
         {
           Bot f;
-          f = /*warning:ClosureWrap*/top;
-          f = /*warning:ClosureWrap*/left;
-          f = /*warning:ClosureWrap*/right;
+          f = /*warning:DownCastComposite*/top;
+          f = /*warning:DownCastComposite*/left;
+          f = /*warning:DownCastComposite*/right;
           f = bot;
         }
       }
@@ -453,23 +452,23 @@ void main() {
         }
         {
           Left f;
-          f = /*warning:ClosureWrap*/top;
+          f = /*warning:DownCastComposite*/top;
           f = left;
-          f = /*warning:ClosureWrap*/right; // Should we reject this?
+          f = /*warning:DownCastComposite*/right; // Should we reject this?
           f = bot;
         }
         {
           Right f;
-          f = /*warning:ClosureWrap*/top;
-          f = /*warning:ClosureWrap*/left; // Should we reject this?
+          f = /*warning:DownCastComposite*/top;
+          f = /*warning:DownCastComposite*/left; // Should we reject this?
           f = right;
           f = bot;
         }
         {
           Bot f;
-          f = /*warning:ClosureWrap*/top;
-          f = /*warning:ClosureWrap*/left;
-          f = /*warning:ClosureWrap*/right;
+          f = /*warning:DownCastComposite*/top;
+          f = /*warning:DownCastComposite*/left;
+          f = /*warning:DownCastComposite*/right;
           f = bot;
         }
       }
@@ -503,23 +502,23 @@ void main() {
         }
         {
           Left f;
-          f = /*warning:ClosureWrap*/top;
+          f = /*warning:DownCastComposite*/top;
           f = left;
-          f = /*warning:ClosureWrap*/right;
+          f = /*warning:DownCastComposite*/right;
           f = bot;
         }
         {
           Right f;
-          f = /*warning:ClosureWrap*/top;
-          f = /*warning:ClosureWrap*/left;
+          f = /*warning:DownCastComposite*/top;
+          f = /*warning:DownCastComposite*/left;
           f = right;
           f = bot;
         }
         {
           Bottom f;
-          f = /*warning:ClosureWrap*/top;
-          f = /*warning:ClosureWrap*/left;
-          f = /*warning:ClosureWrap*/right;
+          f = /*warning:DownCastComposite*/top;
+          f = /*warning:DownCastComposite*/left;
+          f = /*warning:DownCastComposite*/right;
           f = bot;
         }
       }
@@ -551,23 +550,23 @@ void main() {
         }
         {
           Function2<B, B> f;
-          f = /*warning:ClosureWrap*/top;
+          f = /*warning:DownCastComposite*/top;
           f = left;
-          f = /*warning:ClosureWrap*/right; // Should we reject this?
+          f = /*warning:DownCastComposite*/right; // Should we reject this?
           f = bot;
         }
         {
           Function2<A, A> f;
-          f = /*warning:ClosureWrap*/top;
-          f = /*warning:ClosureWrap*/left; // Should we reject this?
+          f = /*warning:DownCastComposite*/top;
+          f = /*warning:DownCastComposite*/left; // Should we reject this?
           f = right;
           f = bot;
         }
         {
           Function2<A, B> f;
-          f = /*warning:ClosureWrap*/top;
-          f = /*warning:ClosureWrap*/left;
-          f = /*warning:ClosureWrap*/right;
+          f = /*warning:DownCastComposite*/top;
+          f = /*warning:DownCastComposite*/left;
+          f = /*warning:DownCastComposite*/right;
           f = bot;
         }
       }
@@ -596,19 +595,19 @@ void main() {
           top = top;
           top = left;
 
-          left = /*warning:ClosureWrap*/top;
+          left = /*warning:DownCastComposite*/top;
           left = left;
-          left = /*warning:ClosureWrap*/right; // Should we reject this?
+          left = /*warning:DownCastComposite*/right; // Should we reject this?
           left = bot;
 
-          right = /*warning:ClosureWrap*/top;
-          right = /*warning:ClosureWrap*/left; // Should we reject this?
+          right = /*warning:DownCastComposite*/top;
+          right = /*warning:DownCastComposite*/left; // Should we reject this?
           right = right;
           right = bot;
 
-          bot = /*warning:ClosureWrap*/top;
-          bot = /*warning:ClosureWrap*/left;
-          bot = /*warning:ClosureWrap*/right;
+          bot = /*warning:DownCastComposite*/top;
+          bot = /*warning:DownCastComposite*/left;
+          bot = /*warning:DownCastComposite*/right;
           bot = bot;
         }
       }
@@ -631,20 +630,20 @@ void main() {
       BToA top(AToB f) => f;
       AToB left(AToB f) => f;
       BToA right(BToA f) => f;
-      AToB _bot(BToA f) => /*warning:ClosureWrap*/f;
+      AToB _bot(BToA f) => /*warning:DownCastComposite*/f;
       AToB bot(BToA f) => f as AToB;
 
       Function2<B, A> top(AToB f) => f;
       Function2<A, B> left(AToB f) => f;
       Function2<B, A> right(BToA f) => f;
-      Function2<A, B> _bot(BToA f) => /*warning:ClosureWrap*/f;
+      Function2<A, B> _bot(BToA f) => /*warning:DownCastComposite*/f;
       Function2<A, B> bot(BToA f) => f as Function2<A, B>;
 
 
       BToA top(Function2<A, B> f) => f;
       AToB left(Function2<A, B> f) => f;
       BToA right(Function2<B, A> f) => f;
-      AToB _bot(Function2<B, A> f) => /*warning:ClosureWrap*/f;
+      AToB _bot(Function2<B, A> f) => /*warning:DownCastComposite*/f;
       AToB bot(Function2<B, A> f) => f as AToB;
 
       void main() {
@@ -657,24 +656,24 @@ void main() {
         }
         {
           Function2<AToB, AToB> f; // Left
-          f = /*warning:ClosureWrap*/top;
+          f = /*warning:DownCastComposite*/top;
           f = left;
-          f = /*warning:ClosureWrap*/right; // Should we reject this?
+          f = /*warning:DownCastComposite*/right; // Should we reject this?
           f = bot;
         }
         {
           Function2<BToA, BToA> f; // Right
-          f = /*warning:ClosureWrap*/top;
-          f = /*warning:ClosureWrap*/left; // Should we reject this?
+          f = /*warning:DownCastComposite*/top;
+          f = /*warning:DownCastComposite*/left; // Should we reject this?
           f = right;
           f = bot;
         }
         {
           Function2<BToA, AToB> f; // Bot
           f = bot;
-          f = /*warning:ClosureWrap*/left;
-          f = /*warning:ClosureWrap*/top;
-          f = /*warning:ClosureWrap*/left;
+          f = /*warning:DownCastComposite*/left;
+          f = /*warning:DownCastComposite*/top;
+          f = /*warning:DownCastComposite*/left;
         }
       }
    '''
@@ -702,19 +701,19 @@ void main() {
           top = top;
           top = left;
 
-          left = /*pass should be warning:ClosureWrap*/top;
+          left = /*pass should be warning:DownCastComposite*/top;
           left = left;
           left = /*pass should be severe:StaticTypeError*/right;
           left = bot;
 
-          right = /*pass should be warning:ClosureWrap*/top;
+          right = /*pass should be warning:DownCastComposite*/top;
           right = /*pass should be severe:StaticTypeError*/left;
           right = right;
           right = bot;
 
-          bot = /*pass should be warning:ClosureWrap*/top;
-          bot = /*pass should be warning:ClosureWrap*/left;
-          bot = /*pass should be warning:ClosureWrap*/right;
+          bot = /*pass should be warning:DownCastComposite*/top;
+          bot = /*pass should be warning:DownCastComposite*/left;
+          bot = /*pass should be warning:DownCastComposite*/right;
           bot = bot;
         }
       }
@@ -759,7 +758,7 @@ void main() {
          r = /*severe:StaticTypeError*/nn;
          r = /*severe:StaticTypeError*/nnn;
 
-         o = /*severe:StaticTypeError*/r;
+         o = /*warning:DownCastComposite*/r;
          o = o;
          o = /*severe:StaticTypeError*/n;
          o = /*severe:StaticTypeError*/rr;
@@ -789,17 +788,17 @@ void main() {
          rr = /*severe:StaticTypeError*/nn;
          rr = /*severe:StaticTypeError*/nnn;
 
-         ro = /*severe:StaticTypeError*/r;
+         ro = /*warning:DownCastComposite*/r;
          ro = /*severe:StaticTypeError*/o;
          ro = /*severe:StaticTypeError*/n;
-         ro = /*severe:StaticTypeError*/rr;
+         ro = /*warning:DownCastComposite*/rr;
          ro = ro;
          ro = /*severe:StaticTypeError*/rn;
          ro = oo;
          ro = /*severe:StaticTypeError*/nn;
          ro = /*severe:StaticTypeError*/nnn;
 
-         rn = /*severe:StaticTypeError*/r;
+         rn = /*warning:DownCastComposite*/r;
          rn = /*severe:StaticTypeError*/o;
          rn = /*severe:StaticTypeError*/n;
          rn = /*severe:StaticTypeError*/rr;
@@ -809,11 +808,11 @@ void main() {
          rn = /*severe:StaticTypeError*/nn;
          rn = /*severe:StaticTypeError*/nnn;
 
-         oo = /*severe:StaticTypeError*/r;
-         oo = /*severe:StaticTypeError*/o;
+         oo = /*warning:DownCastComposite*/r;
+         oo = /*warning:DownCastComposite*/o;
          oo = /*severe:StaticTypeError*/n;
-         oo = /*severe:StaticTypeError*/rr;
-         oo = /*severe:StaticTypeError*/ro;
+         oo = /*warning:DownCastComposite*/rr;
+         oo = /*warning:DownCastComposite*/ro;
          oo = /*severe:StaticTypeError*/rn;
          oo = oo;
          oo = /*severe:StaticTypeError*/nn;
@@ -821,7 +820,7 @@ void main() {
 
          nn = /*severe:StaticTypeError*/r;
          nn = /*severe:StaticTypeError*/o;
-         nn = /*severe:StaticTypeError*/n;
+         nn = /*warning:DownCastComposite*/n;
          nn = /*severe:StaticTypeError*/rr;
          nn = /*severe:StaticTypeError*/ro;
          nn = /*severe:StaticTypeError*/rn;
@@ -831,12 +830,12 @@ void main() {
 
          nnn = /*severe:StaticTypeError*/r;
          nnn = /*severe:StaticTypeError*/o;
-         nnn = /*severe:StaticTypeError*/n;
+         nnn = /*warning:DownCastComposite*/n;
          nnn = /*severe:StaticTypeError*/rr;
          nnn = /*severe:StaticTypeError*/ro;
          nnn = /*severe:StaticTypeError*/rn;
          nnn = /*severe:StaticTypeError*/oo;
-         nnn = /*severe:StaticTypeError*/nn;
+         nnn = /*warning:DownCastComposite*/nn;
          nnn = nnn;
       }
    '''
@@ -863,7 +862,7 @@ void main() {
            f = new A();
            f = /*severe:StaticTypeError*/new B();
            f = i2i;
-           f = /*warning:ClosureWrap*/n2n;
+           f = /*warning:DownCastComposite*/n2n;
            f = /*warning:DownCastComposite*/(i2i as Object);
            f = /*warning:DownCastComposite*/(n2n as Function);
          }
@@ -871,7 +870,7 @@ void main() {
            N2N f;
            f = /*severe:StaticTypeError*/new A();
            f = new B();
-           f = /*warning:ClosureWrap*/i2i;
+           f = /*warning:DownCastComposite*/i2i;
            f = n2n;
            f = /*warning:DownCastComposite*/(i2i as Object);
            f = /*warning:DownCastComposite*/(n2n as Function);
@@ -936,7 +935,7 @@ void main() {
         f2 = /*severe:StaticTypeError*/(int x) => -x;
       }
    '''
-    });
+    }, wrapClosures: true);
   });
 
   test('Generic subtyping: invariance', () {

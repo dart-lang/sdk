@@ -37,19 +37,11 @@ toEncodable(var object)}
 ) {
 if (toEncodable == null) toEncodable = _toEncodable;
  if (toEncodable == null) return encoder.convert(value);
- return new JsonEncoder(DEVC$RT.wrap((dynamic f(dynamic __u6)) {
-dynamic c(dynamic x0) => f(x0);
- return f == null ? null : c;
-}
-, toEncodable, __t9, __t7, "Wrap", """line 142, column 28 of dart:convert/json.dart: """, toEncodable is __t7)).convert(value);
+ return new JsonEncoder(DEVC$RT.cast(toEncodable, __t8, __t6, "CompositeCast", """line 142, column 28 of dart:convert/json.dart: """, toEncodable is __t6, false)).convert(value);
 }
  JsonEncoder get encoder {
 if (_toEncodable == null) return const JsonEncoder();
- return new JsonEncoder(DEVC$RT.wrap((dynamic f(dynamic __u11)) {
-dynamic c(dynamic x0) => f(x0);
- return f == null ? null : c;
-}
-, _toEncodable, __t9, __t7, "Wrap", """line 147, column 28 of dart:convert/json.dart: """, _toEncodable is __t7));
+ return new JsonEncoder(DEVC$RT.cast(_toEncodable, __t8, __t6, "CompositeCast", """line 147, column 28 of dart:convert/json.dart: """, _toEncodable is __t6, false));
 }
  JsonDecoder get decoder {
 if (_reviver == null) return const JsonDecoder();
@@ -60,7 +52,7 @@ if (_reviver == null) return const JsonDecoder();
  final Function _toEncodable;
  const JsonEncoder([Object toEncodable(Object nonSerializable)]) : this.indent = null, this._toEncodable = toEncodable;
  const JsonEncoder.withIndent(this.indent, [Object toEncodable(Object nonSerializable)]) : this._toEncodable = toEncodable;
- String convert(Object object) => _JsonStringStringifier.stringify(object, DEVC$RT.cast(_toEncodable, Function, __t9, "ImplicitCast", """line 243, column 48 of dart:convert/json.dart: """, _toEncodable is __t9, true), indent);
+ String convert(Object object) => _JsonStringStringifier.stringify(object, DEVC$RT.cast(_toEncodable, Function, __t8, "ImplicitCast", """line 243, column 48 of dart:convert/json.dart: """, _toEncodable is __t8, true), indent);
  ChunkedConversionSink<Object> startChunkedConversion(Sink<String> sink) {
 if (sink is! StringConversionSink) {
 sink = new StringConversionSink.from(sink);
@@ -72,14 +64,14 @@ return new _JsonUtf8EncoderSink(sink._sink, _toEncodable, JsonUtf8Encoder._utf8E
 }
 ), StringConversionSink, "ImplicitCast", """line 262, column 33 of dart:convert/json.dart: """, sink is StringConversionSink, true), _toEncodable, indent);
 }
- Stream<String> bind(Stream<Object> stream) => ((__x12) => DEVC$RT.cast(__x12, DEVC$RT.type((DDC$async$.Stream<dynamic> _) {
+ Stream<String> bind(Stream<Object> stream) => ((__x10) => DEVC$RT.cast(__x10, DEVC$RT.type((DDC$async$.Stream<dynamic> _) {
 }
 ), DEVC$RT.type((DDC$async$.Stream<String> _) {
 }
-), "CompositeCast", """line 266, column 49 of dart:convert/json.dart: """, __x12 is DDC$async$.Stream<String>, false))(super.bind(stream));
+), "CompositeCast", """line 266, column 49 of dart:convert/json.dart: """, __x10 is DDC$async$.Stream<String>, false))(super.bind(stream));
  Converter<Object, dynamic> fuse(Converter<String, dynamic> other) {
 if (other is Utf8Encoder) {
-return new JsonUtf8Encoder(indent, DEVC$RT.cast(_toEncodable, Function, __t13, "CompositeCast", """line 270, column 42 of dart:convert/json.dart: """, _toEncodable is __t13, false));
+return new JsonUtf8Encoder(indent, DEVC$RT.cast(_toEncodable, Function, __t11, "CompositeCast", """line 270, column 42 of dart:convert/json.dart: """, _toEncodable is __t11, false));
 }
  return super.fuse(other);
 }
@@ -109,7 +101,7 @@ int length = end - start;
 }
  bytes.add(chunk);
 }
- _JsonUtf8Stringifier.stringify(object, _indent, DEVC$RT.cast(_toEncodable, Function, __t13, "CompositeCast", """line 352, column 36 of dart:convert/json.dart: """, _toEncodable is __t13, false), _bufferSize, addChunk);
+ _JsonUtf8Stringifier.stringify(object, _indent, DEVC$RT.cast(_toEncodable, Function, __t11, "CompositeCast", """line 352, column 36 of dart:convert/json.dart: """, _toEncodable is __t11, false), _bufferSize, addChunk);
  if (bytes.length == 1) return bytes[0];
  int length = 0;
  for (int i = 0; i < bytes.length; i++) {
@@ -135,11 +127,11 @@ byteSink = new ByteConversionSink.from(sink);
  return new _JsonUtf8EncoderSink(byteSink, _toEncodable, _indent, _bufferSize);
 }
  Stream<List<int>> bind(Stream<Object> stream) {
-return ((__x15) => DEVC$RT.cast(__x15, DEVC$RT.type((DDC$async$.Stream<dynamic> _) {
+return ((__x13) => DEVC$RT.cast(__x13, DEVC$RT.type((DDC$async$.Stream<dynamic> _) {
 }
 ), DEVC$RT.type((DDC$async$.Stream<List<int>> _) {
 }
-), "CompositeCast", """line 391, column 12 of dart:convert/json.dart: """, __x15 is DDC$async$.Stream<List<int>>, false))(super.bind(stream));
+), "CompositeCast", """line 391, column 12 of dart:convert/json.dart: """, __x13 is DDC$async$.Stream<List<int>>, false))(super.bind(stream));
 }
  Converter<Object, dynamic> fuse(Converter<List<int>, dynamic> other) {
 return super.fuse(other);
@@ -156,7 +148,7 @@ throw new StateError("Only one call to add allowed");
 }
  _isDone = true;
  ClosableStringSink stringSink = _sink.asStringSink();
- _JsonStringStringifier.printOn(o, stringSink, DEVC$RT.cast(_toEncodable, Function, __t9, "ImplicitCast", """line 425, column 51 of dart:convert/json.dart: """, _toEncodable is __t9, true), _indent);
+ _JsonStringStringifier.printOn(o, stringSink, DEVC$RT.cast(_toEncodable, Function, __t8, "ImplicitCast", """line 425, column 51 of dart:convert/json.dart: """, _toEncodable is __t8, true), _indent);
  stringSink.close();
 }
  void close() {
@@ -176,7 +168,7 @@ if (_isDone) {
 throw new StateError("Only one call to add allowed");
 }
  _isDone = true;
- _JsonUtf8Stringifier.stringify(object, _indent, DEVC$RT.cast(_toEncodable, Function, __t13, "CompositeCast", """line 455, column 53 of dart:convert/json.dart: """, _toEncodable is __t13, false), _bufferSize, _addChunk);
+ _JsonUtf8Stringifier.stringify(object, _indent, DEVC$RT.cast(_toEncodable, Function, __t11, "CompositeCast", """line 455, column 53 of dart:convert/json.dart: """, _toEncodable is __t11, false), _bufferSize, _addChunk);
  _sink.close();
 }
  void close() {
@@ -210,7 +202,7 @@ _isDone = true;
  static const int CHAR_u = 0x75;
  final List _seen = new List();
  final Function _toEncodable;
- _JsonStringifier(Object _toEncodable(Object o)) : _toEncodable = ((__x16) => DEVC$RT.cast(__x16, dynamic, Function, "DynamicCast", """line 547, column 24 of dart:convert/json.dart: """, __x16 is Function, true))((_toEncodable != null) ? _toEncodable : _defaultToEncodable);
+ _JsonStringifier(Object _toEncodable(Object o)) : _toEncodable = ((__x14) => DEVC$RT.cast(__x14, dynamic, Function, "DynamicCast", """line 547, column 24 of dart:convert/json.dart: """, __x14 is Function, true))((_toEncodable != null) ? _toEncodable : _defaultToEncodable);
  void writeString(String characters);
  void writeStringSlice(String characters, int start, int end);
  void writeCharCode(int charCode);
@@ -340,11 +332,7 @@ writeString(',');
  void writeMap(Map<String, Object> map) {
 writeString('{');
  String separator = '"';
- map.forEach(((__x25) => DEVC$RT.wrap((dynamic f(String __u17, dynamic __u18)) {
-dynamic c(String x0, dynamic x1) => f(x0, x1);
- return f == null ? null : c;
-}
-, __x25, __t22, __t19, "WrapLiteral", """line 721, column 17 of dart:convert/json.dart: """, __x25 is __t19))((String key, value) {
+ map.forEach(((__x21) => DEVC$RT.cast(__x21, __t18, __t15, "InferableClosure", """line 721, column 17 of dart:convert/json.dart: """, __x21 is __t15, false))((String key, value) {
 writeString(separator);
  separator = ',"';
  writeStringContent(key);
@@ -405,7 +393,7 @@ writeString(",\n");
 }
 }
  class _JsonStringStringifier extends _JsonStringifier {final StringSink _sink;
- _JsonStringStringifier(this._sink, _toEncodable) : super(DEVC$RT.cast(_toEncodable, dynamic, __t7, "CompositeCast", """line 798, column 60 of dart:convert/json.dart: """, _toEncodable is __t7, false));
+ _JsonStringStringifier(this._sink, _toEncodable) : super(DEVC$RT.cast(_toEncodable, dynamic, __t6, "CompositeCast", """line 798, column 60 of dart:convert/json.dart: """, _toEncodable is __t6, false));
  static String stringify(object, toEncodable(object), String indent) {
 StringBuffer output = new StringBuffer();
  printOn(object, output, toEncodable, indent);
@@ -444,7 +432,7 @@ for (int i = 0; i < count; i++) writeString(_indent);
  final Function addChunk;
  Uint8List buffer;
  int index = 0;
- _JsonUtf8Stringifier(toEncodable, int bufferSize, this.addChunk) : super(DEVC$RT.cast(toEncodable, dynamic, __t7, "CompositeCast", """line 874, column 15 of dart:convert/json.dart: """, toEncodable is __t7, false)), this.bufferSize = bufferSize, buffer = new Uint8List(bufferSize);
+ _JsonUtf8Stringifier(toEncodable, int bufferSize, this.addChunk) : super(DEVC$RT.cast(toEncodable, dynamic, __t6, "CompositeCast", """line 874, column 15 of dart:convert/json.dart: """, toEncodable is __t6, false)), this.bufferSize = bufferSize, buffer = new Uint8List(bufferSize);
  static void stringify(Object object, List<int> indent, toEncodableFunction(Object o), int bufferSize, void addChunk(Uint8List chunk, int start, int end)) {
 _JsonUtf8Stringifier stringifier;
  if (indent != null) {
@@ -555,8 +543,8 @@ writeByte(indent[i]);
 }
 }
 }
- typedef Object __t7(Object __u8);
- typedef dynamic __t9(dynamic __u10);
- typedef dynamic __t13(Object __u14);
- typedef void __t19(String __u20, Object __u21);
- typedef dynamic __t22(String __u23, dynamic __u24);
+ typedef Object __t6(Object __u7);
+ typedef dynamic __t8(dynamic __u9);
+ typedef dynamic __t11(Object __u12);
+ typedef void __t15(String __u16, Object __u17);
+ typedef dynamic __t18(String __u19, dynamic __u20);

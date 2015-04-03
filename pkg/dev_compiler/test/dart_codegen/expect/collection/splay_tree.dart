@@ -479,13 +479,9 @@ if (_validKey(element)) _remove(DEVC$RT.cast(element, Object, E, "CompositeCast"
 }
 }
  void retainAll(Iterable<Object> elements) {
-SplayTreeSet<E> retainSet = new SplayTreeSet<E>(DEVC$RT.wrap((int f(dynamic __u28, dynamic __u29)) {
-int c(dynamic x0, dynamic x1) => f(x0, x1);
- return f == null ? null : c;
+SplayTreeSet<E> retainSet = new SplayTreeSet<E>(DEVC$RT.cast(_comparator, __t23, DEVC$RT.type((__t28<E> _) {
 }
-, _comparator, __t23, DEVC$RT.type((__t30<E> _) {
-}
-), "Wrap", """line 773, column 53 of dart:collection/splay_tree.dart: """, _comparator is __t30<E>), _validKey);
+), "CompositeCast", """line 773, column 53 of dart:collection/splay_tree.dart: """, _comparator is __t28<E>, false), _validKey);
  int modificationCount = _modificationCount;
  for (Object object in elements) {
 if (modificationCount != _modificationCount) {
@@ -506,26 +502,18 @@ if (!_validKey(object)) return null;
  return _root.key;
 }
  Set<E> intersection(Set<E> other) {
-Set<E> result = new SplayTreeSet<E>(DEVC$RT.wrap((int f(dynamic __u33, dynamic __u34)) {
-int c(dynamic x0, dynamic x1) => f(x0, x1);
- return f == null ? null : c;
+Set<E> result = new SplayTreeSet<E>(DEVC$RT.cast(_comparator, __t23, DEVC$RT.type((__t28<E> _) {
 }
-, _comparator, __t23, DEVC$RT.type((__t30<E> _) {
-}
-), "Wrap", """line 799, column 41 of dart:collection/splay_tree.dart: """, _comparator is __t30<E>), _validKey);
+), "CompositeCast", """line 799, column 41 of dart:collection/splay_tree.dart: """, _comparator is __t28<E>, false), _validKey);
  for (E element in this) {
 if (other.contains(element)) result.add(element);
 }
  return result;
 }
  Set<E> difference(Set<E> other) {
-Set<E> result = new SplayTreeSet<E>(DEVC$RT.wrap((int f(dynamic __u35, dynamic __u36)) {
-int c(dynamic x0, dynamic x1) => f(x0, x1);
- return f == null ? null : c;
+Set<E> result = new SplayTreeSet<E>(DEVC$RT.cast(_comparator, __t23, DEVC$RT.type((__t28<E> _) {
 }
-, _comparator, __t23, DEVC$RT.type((__t30<E> _) {
-}
-), "Wrap", """line 807, column 41 of dart:collection/splay_tree.dart: """, _comparator is __t30<E>), _validKey);
+), "CompositeCast", """line 807, column 41 of dart:collection/splay_tree.dart: """, _comparator is __t28<E>, false), _validKey);
  for (E element in this) {
 if (!other.contains(element)) result.add(element);
 }
@@ -535,13 +523,9 @@ if (!other.contains(element)) result.add(element);
 return _clone()..addAll(other);
 }
  SplayTreeSet<E> _clone() {
-var set = new SplayTreeSet<E>(DEVC$RT.wrap((int f(dynamic __u37, dynamic __u38)) {
-int c(dynamic x0, dynamic x1) => f(x0, x1);
- return f == null ? null : c;
+var set = new SplayTreeSet<E>(DEVC$RT.cast(_comparator, __t23, DEVC$RT.type((__t28<E> _) {
 }
-, _comparator, __t23, DEVC$RT.type((__t30<E> _) {
-}
-), "Wrap", """line 819, column 35 of dart:collection/splay_tree.dart: """, _comparator is __t30<E>), _validKey);
+), "CompositeCast", """line 819, column 35 of dart:collection/splay_tree.dart: """, _comparator is __t28<E>, false), _validKey);
  set._count = _count;
  set._root = _copyNode(_root);
  return set;
@@ -560,4 +544,4 @@ _clear();
  typedef bool __t16(dynamic __u17);
  typedef int __t20<K>(K __u21, K __u22);
  typedef int __t23(dynamic __u24, dynamic __u25);
- typedef int __t30<E>(E __u31, E __u32);
+ typedef int __t28<E>(E __u29, E __u30);

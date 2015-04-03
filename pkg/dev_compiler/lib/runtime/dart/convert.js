@@ -659,12 +659,12 @@ var convert;
         toEncodable = this[_toEncodable$];
       if (toEncodable == null)
         return this.encoder.convert(value);
-      return new JsonEncoder(dart.closureWrap(toEncodable, "(Object) → Object")).convert(value);
+      return new JsonEncoder(dart.as(toEncodable, dart.throw_("Unimplemented type (Object) → Object"))).convert(value);
     }
     get encoder() {
       if (this[_toEncodable$] == null)
         return new JsonEncoder();
-      return new JsonEncoder(dart.closureWrap(this[_toEncodable$], "(Object) → Object"));
+      return new JsonEncoder(dart.as(this[_toEncodable$], dart.throw_("Unimplemented type (Object) → Object")));
     }
     get decoder() {
       if (this[_reviver] == null)
@@ -1018,13 +1018,13 @@ var convert;
     writeMap(map) {
       this.writeString('{');
       let separator = '"';
-      map.forEach(dart.closureWrap(((key, value) => {
+      map.forEach(dart.as(((key, value) => {
         this.writeString(separator);
         separator = ',"';
         this.writeStringContent(key);
         this.writeString('":');
         this.writeObject(value);
-      }).bind(this), "(String, Object) → void"));
+      }).bind(this), dart.throw_("Unimplemented type (String, Object) → void")));
       this.writeString('}');
     }
   }

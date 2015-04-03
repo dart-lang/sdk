@@ -61,10 +61,10 @@ var async;
       }
       fromFuture(future) {
         let controller = new (StreamController$(T))({sync: true});
-        future.then(dart.closureWrap((value) => {
+        future.then(dart.as((value) => {
           controller._add(dart.as(value, T));
           controller._closeUnchecked();
-        }, "(T) → dynamic"), {
+        }, dart.throw_("Unimplemented type (T) → dynamic")), {
           onError: (error, stackTrace) => {
             controller._addError(error, dart.as(stackTrace, core.StackTrace));
             controller._closeUnchecked();
@@ -79,7 +79,7 @@ var async;
         if (computation === void 0)
           computation = null;
         if (computation == null)
-          computation = dart.closureWrap((i) => null, "(int) → T");
+          computation = dart.as((i) => null, dart.throw_("Unimplemented type (int) → T"));
         let timer = null;
         let computationCount = 0;
         let controller = null;
@@ -127,7 +127,7 @@ var async;
         return controller.stream;
       }
       eventTransformed(source, mapSink) {
-        return dart.as(new _BoundSinkStream(source, dart.closureWrap(mapSink, "(EventSink<dynamic>) → EventSink")), Stream$(T));
+        return dart.as(new _BoundSinkStream(source, dart.as(mapSink, _SinkMapper)), Stream$(T));
       }
       get isBroadcast() {
         return false;
@@ -135,7 +135,7 @@ var async;
       asBroadcastStream(opts) {
         let onListen = opts && 'onListen' in opts ? opts.onListen : null;
         let onCancel = opts && 'onCancel' in opts ? opts.onCancel : null;
-        return new (_AsBroadcastStream$(T))(this, dart.closureWrap(onListen, "(StreamSubscription<dynamic>) → void"), dart.closureWrap(onCancel, "(StreamSubscription<dynamic>) → void"));
+        return new (_AsBroadcastStream$(T))(this, dart.as(onListen, dart.throw_("Unimplemented type (StreamSubscription<dynamic>) → void")), dart.as(onCancel, dart.throw_("Unimplemented type (StreamSubscription<dynamic>) → void")));
       }
       where(test) {
         return new (_WhereStream$(T))(this, test);
@@ -410,9 +410,9 @@ var async;
       get length() {
         let future = new (_Future$(core.int))();
         let count = 0;
-        this.listen(dart.closureWrap((_) => {
+        this.listen(dart.as((_) => {
           count = dart.notNull(count) + 1;
-        }, "(T) → void"), {
+        }, dart.throw_("Unimplemented type (T) → void")), {
           onError: future[_completeError],
           onDone: () => {
             future._complete(count);
@@ -424,9 +424,9 @@ var async;
       get isEmpty() {
         let future = new (_Future$(core.bool))();
         let subscription = null;
-        subscription = this.listen(dart.closureWrap((_) => {
+        subscription = this.listen(dart.as((_) => {
           _cancelAndValue(subscription, future, false);
-        }, "(T) → void"), {
+        }, dart.throw_("Unimplemented type (T) → void")), {
           onError: future[_completeError],
           onDone: () => {
             future._complete(true);
@@ -730,7 +730,7 @@ var async;
               controller.addError(new TimeoutException("No stream event", timeLimit), null);
             };
           } else {
-            onTimeout = dart.closureWrap(zone.registerUnaryCallback(onTimeout), "(EventSink<dynamic>) → void");
+            onTimeout = dart.as(zone.registerUnaryCallback(onTimeout), dart.throw_("Unimplemented type (EventSink<dynamic>) → void"));
             let wrapper = new _ControllerEventSinkWrapper(null);
             timeout = () => {
               wrapper[_sink] = controller;
@@ -910,8 +910,8 @@ var async;
       }
       onData(handleData) {
         if (handleData == null)
-          handleData = dart.closureWrap(_nullDataHandler, "(T) → void");
-        this[_onData] = dart.closureWrap(this[_zone].registerUnaryCallback(handleData), "(T) → void");
+          handleData = dart.as(_nullDataHandler, dart.throw_("Unimplemented type (T) → void"));
+        this[_onData] = dart.as(this[_zone].registerUnaryCallback(handleData), _DataHandler);
       }
       onError(handleError) {
         if (handleError == null)
@@ -1496,9 +1496,9 @@ var async;
       }
       [_sendDone]() {
         if (!dart.notNull(this[_isEmpty])) {
-          this[_forEachListener](dart.closureWrap((subscription) => {
+          this[_forEachListener](dart.as((subscription) => {
             subscription._close();
-          }, "(_BufferingStreamSubscription<T>) → void"));
+          }, dart.throw_("Unimplemented type (_BufferingStreamSubscription<T>) → void")));
         } else {
           dart.assert(this[_doneFuture] != null);
           dart.assert(this[_doneFuture][_mayComplete]);
@@ -2087,7 +2087,7 @@ var async;
         let onError = opts && 'onError' in opts ? opts.onError : null;
         let result = new _Future();
         if (!dart.notNull(core.identical(result[_zone], _ROOT_ZONE))) {
-          f = dart.closureWrap(result[_zone].registerUnaryCallback(f), "(T) → dynamic");
+          f = dart.as(result[_zone].registerUnaryCallback(f), dart.throw_("Unimplemented type (T) → dynamic"));
           if (onError != null) {
             onError = _registerErrorHandler(onError, result[_zone]);
           }
@@ -2101,7 +2101,7 @@ var async;
         if (!dart.notNull(core.identical(result[_zone], _ROOT_ZONE))) {
           onError = _registerErrorHandler(onError, result[_zone]);
           if (test != null)
-            test = dart.closureWrap(result[_zone].registerUnaryCallback(test), "(dynamic) → bool");
+            test = dart.as(result[_zone].registerUnaryCallback(test), dart.throw_("Unimplemented type (dynamic) → bool"));
         }
         this[_addListener](new _FutureListener.catchError(result, onError, test));
         return result;
@@ -3449,8 +3449,8 @@ var async;
     class _AsBroadcastStream extends Stream$(T) {
       _AsBroadcastStream(source$, onListenHandler, onCancelHandler) {
         this[_source] = source$;
-        this[_onListenHandler] = dart.closureWrap(Zone.current.registerUnaryCallback(onListenHandler), "(StreamSubscription<dynamic>) → void");
-        this[_onCancelHandler] = dart.closureWrap(Zone.current.registerUnaryCallback(onCancelHandler), "(StreamSubscription<dynamic>) → void");
+        this[_onListenHandler] = dart.as(Zone.current.registerUnaryCallback(onListenHandler), _broadcastCallback);
+        this[_onCancelHandler] = dart.as(Zone.current.registerUnaryCallback(onCancelHandler), _broadcastCallback);
         this[_zone] = Zone.current;
         this[_controller] = null;
         this[_subscription] = null;
@@ -4234,7 +4234,7 @@ var async;
         let onDone = opts && 'onDone' in opts ? opts.onDone : null;
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         cancelOnError = core.identical(true, cancelOnError);
-        let subscription = new _SinkTransformerStreamSubscription(this[_stream], dart.closureWrap(this[_sinkMapper], "(EventSink<dynamic>) → EventSink"), onData, onError, onDone, cancelOnError);
+        let subscription = new _SinkTransformerStreamSubscription(this[_stream], dart.as(this[_sinkMapper], _SinkMapper), onData, onError, onDone, cancelOnError);
         return subscription;
       }
     }
@@ -4289,15 +4289,15 @@ var async;
         let handleData = opts && 'handleData' in opts ? opts.handleData : null;
         let handleError = opts && 'handleError' in opts ? opts.handleError : null;
         let handleDone = opts && 'handleDone' in opts ? opts.handleDone : null;
-        super._StreamSinkTransformer(dart.closureWrap((outputSink) => {
+        super._StreamSinkTransformer(dart.as((outputSink) => {
           if (handleData == null)
-            handleData = dart.closureWrap(_StreamHandlerTransformer[_defaultHandleData], "(S, EventSink<T>) → void");
+            handleData = dart.as(_StreamHandlerTransformer[_defaultHandleData], dart.throw_("Unimplemented type (S, EventSink<T>) → void"));
           if (handleError == null)
-            handleError = dart.closureWrap(_StreamHandlerTransformer[_defaultHandleError], "(Object, StackTrace, EventSink<T>) → void");
+            handleError = dart.as(_StreamHandlerTransformer[_defaultHandleError], dart.throw_("Unimplemented type (Object, StackTrace, EventSink<T>) → void"));
           if (handleDone == null)
             handleDone = _StreamHandlerTransformer[_defaultHandleDone];
           return new (_HandlerEventSink$(S, T))(handleData, handleError, handleDone, outputSink);
-        }, "(EventSink<T>) → EventSink<S>"));
+        }, _SinkMapper));
       }
       bind(stream) {
         return super.bind(stream);
@@ -4369,7 +4369,7 @@ var async;
       if (dart.equals(Zone.current, Zone.ROOT)) {
         return Zone.current.createPeriodicTimer(duration, callback);
       }
-      return Zone.current.createPeriodicTimer(duration, dart.closureWrap(Zone.current.bindUnaryCallback(callback, {runGuarded: true}), "(Timer) → void"));
+      return Zone.current.createPeriodicTimer(duration, dart.as(Zone.current.bindUnaryCallback(callback, {runGuarded: true}), dart.throw_("Unimplemented type (Timer) → void")));
     }
     static run(callback) {
       new Timer(core.Duration.ZERO, callback);
@@ -4857,7 +4857,7 @@ var async;
   // Function _rootCreatePeriodicTimer: (Zone, ZoneDelegate, Zone, Duration, (Timer) → void) → Timer
   function _rootCreatePeriodicTimer(self, parent, zone, duration, callback) {
     if (!dart.notNull(core.identical(_ROOT_ZONE, zone))) {
-      callback = dart.closureWrap(zone.bindUnaryCallback(callback), "(Timer) → void");
+      callback = dart.as(zone.bindUnaryCallback(callback), dart.throw_("Unimplemented type (Timer) → void"));
     }
     return Timer._createPeriodicTimer(duration, callback);
   }

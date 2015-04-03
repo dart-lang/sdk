@@ -2,12 +2,12 @@
 info: line 10, column 6 of test/dart_codegen/types/c.dart: [DynamicCast] f4(3) (dynamic) will need runtime check to cast to type A
   f3(f4(3));
      ^^^^^
-warning: line 11, column 6 of test/dart_codegen/types/c.dart: [ClosureWrap] f4 ((dynamic) → dynamic) will need to be wrapped with a closure of type (A) → A
+warning: line 11, column 6 of test/dart_codegen/types/c.dart: [DownCastComposite] f4 ((dynamic) → dynamic) will need runtime check to cast to type (A) → A
   f1(f4);
      ^^
 info: line 10, column 14 of test/dart_codegen/types/d.dart: [DynamicCast] f4("""hello""") (dynamic) will need runtime check to cast to type A
   var x = f3(f4("""hello"""));
              ^^^^^^^^^^^^^^^
-warning: line 11, column 14 of test/dart_codegen/types/d.dart: [ClosureWrap] f4 ((dynamic) → dynamic) will need to be wrapped with a closure of type (A) → A
+warning: line 11, column 14 of test/dart_codegen/types/d.dart: [DownCastComposite] f4 ((dynamic) → dynamic) will need runtime check to cast to type (A) → A
   var y = f1(f4);
              ^^

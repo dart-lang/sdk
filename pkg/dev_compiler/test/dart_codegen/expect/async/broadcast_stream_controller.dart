@@ -237,19 +237,11 @@ subscription._addError(error, stackTrace);
 }
  void _sendDone() {
 if (!_isEmpty) {
-_forEachListener(((__x8) => DEVC$RT.wrap((dynamic f(_BroadcastSubscription<T> __u3)) {
-dynamic c(_BroadcastSubscription<T> x0) => f(DEVC$RT.cast(x0, DEVC$RT.type((_BufferingStreamSubscription<T> _) {
+_forEachListener(((__x7) => DEVC$RT.cast(__x7, DEVC$RT.type((__t5<T> _) {
 }
-), DEVC$RT.type((_BroadcastSubscription<T> _) {
+), DEVC$RT.type((__t3<T> _) {
 }
-), "CastParam", """line 372, column 24 of dart:async/broadcast_stream_controller.dart: """, x0 is _BroadcastSubscription<T>, false));
- return f == null ? null : c;
-}
-, __x8, DEVC$RT.type((__t6<T> _) {
-}
-), DEVC$RT.type((__t4<T> _) {
-}
-), "WrapLiteral", """line 372, column 24 of dart:async/broadcast_stream_controller.dart: """, __x8 is __t4<T>))((_BroadcastSubscription<T> subscription) {
+), "InferableClosure", """line 372, column 24 of dart:async/broadcast_stream_controller.dart: """, __x7 is __t3<T>, false))((_BroadcastSubscription<T> subscription) {
 subscription._close();
 }
 ));
@@ -358,5 +350,5 @@ return new _Future.immediate(null);
  bool get isPaused => _pauseCount > 0;
  Future asFuture([Object value]) => new _Future();
 }
- typedef void __t4<T>(_BufferingStreamSubscription<T> __u5);
- typedef dynamic __t6<T>(_BroadcastSubscription<T> __u7);
+ typedef void __t3<T>(_BufferingStreamSubscription<T> __u4);
+ typedef dynamic __t5<T>(_BroadcastSubscription<T> __u6);

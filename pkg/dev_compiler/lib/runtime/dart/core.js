@@ -64,9 +64,9 @@ var core;
     }
     static [_toMangledNames](namedArguments) {
       let result = dart.as(dart.map(), Map$(String, dynamic));
-      namedArguments.forEach(dart.closureWrap((symbol, value) => {
+      namedArguments.forEach(dart.as((symbol, value) => {
         result.set(_symbolToString(dart.as(symbol, Symbol)), value);
-      }, "(Symbol, dynamic) → void"));
+      }, dart.throw_("Unimplemented type (Symbol, dynamic) → void")));
       return result;
     }
   }
@@ -2034,7 +2034,7 @@ var core;
       return false;
     }
     static [_checkNonWindowsPathReservedCharacters](segments, argumentError) {
-      segments.forEach(dart.closureWrap((segment) => {
+      segments.forEach(dart.as((segment) => {
         if (dart.dinvoke(segment, 'contains', "/")) {
           if (argumentError) {
             throw new ArgumentError(`Illegal path character ${segment}`);
@@ -2042,12 +2042,12 @@ var core;
             throw new UnsupportedError(`Illegal path character ${segment}`);
           }
         }
-      }, "(String) → void"));
+      }, dart.throw_("Unimplemented type (String) → void")));
     }
     static [_checkWindowsPathReservedCharacters](segments, argumentError, firstSegment) {
       if (firstSegment === void 0)
         firstSegment = 0;
-      segments.skip(firstSegment).forEach(dart.closureWrap((segment) => {
+      segments.skip(firstSegment).forEach(dart.as((segment) => {
         if (dart.dinvoke(segment, 'contains', new RegExp('["*/:<>?\\\\|]'))) {
           if (argumentError) {
             throw new ArgumentError("Illegal character in path");
@@ -2055,7 +2055,7 @@ var core;
             throw new UnsupportedError("Illegal character in path");
           }
         }
-      }, "(String) → void"));
+      }, dart.throw_("Unimplemented type (String) → void")));
     }
     static [_checkWindowsDriveLetter](charCode, argumentError) {
       if (dart.notNull(Uri[_UPPER_CASE_A]) <= dart.notNull(charCode) && dart.notNull(charCode) <= dart.notNull(Uri[_UPPER_CASE_Z]) || dart.notNull(Uri[_LOWER_CASE_A]) <= dart.notNull(charCode) && dart.notNull(charCode) <= dart.notNull(Uri[_LOWER_CASE_Z])) {
@@ -2329,7 +2329,7 @@ var core;
       if (path != null) {
         result = Uri[_normalize](path, start, end, dart.as(Uri[_pathCharOrSlashTable], List$(int)));
       } else {
-        result = pathSegments.map(dart.closureWrap((s) => Uri[_uriEncode](dart.as(Uri[_pathCharTable], List$(int)), dart.as(s, String)), "(String) → dynamic")).join("/");
+        result = pathSegments.map(dart.as((s) => Uri[_uriEncode](dart.as(Uri[_pathCharTable], List$(int)), dart.as(s, String)), dart.throw_("Unimplemented type (String) → dynamic"))).join("/");
       }
       if (dart.dload(result, 'isEmpty')) {
         if (isFile)
@@ -2349,7 +2349,7 @@ var core;
         return Uri[_normalize](query, start, end, dart.as(Uri[_queryCharTable], List$(int)));
       let result = new StringBuffer();
       let first = true;
-      queryParameters.forEach(dart.closureWrap((key, value) => {
+      queryParameters.forEach(dart.as((key, value) => {
         if (!dart.notNull(first)) {
           result.write("&");
         }
@@ -2359,7 +2359,7 @@ var core;
           result.write("=");
           result.write(Uri.encodeQueryComponent(dart.as(value, String)));
         }
-      }, "(String, String) → void"));
+      }, dart.throw_("Unimplemented type (String, String) → void")));
       return result.toString();
     }
     static [_makeFragment](fragment, start, end) {
@@ -2758,7 +2758,7 @@ var core;
     }
     static splitQueryString(query, opts) {
       let encoding = opts && 'encoding' in opts ? opts.encoding : convert.UTF8;
-      return dart.as(query.split("&").fold(dart.map(), dart.closureWrap((map, element) => {
+      return dart.as(query.split("&").fold(dart.map(), dart.as((map, element) => {
         let index = dart.as(dart.dinvoke(element, 'indexOf', "="), int);
         if (index == -1) {
           if (!dart.equals(element, "")) {
@@ -2770,7 +2770,7 @@ var core;
           dart.dsetindex(map, Uri.decodeQueryComponent(dart.as(key, String), {encoding: encoding}), Uri.decodeQueryComponent(dart.as(value, String), {encoding: encoding}));
         }
         return map;
-      }, "(dynamic, String) → dynamic")), Map$(String, String));
+      }, dart.throw_("Unimplemented type (dynamic, String) → dynamic"))), Map$(String, String));
     }
     static parseIPv4Address(host) {
       // Function error: (String) → void
@@ -2781,13 +2781,13 @@ var core;
       if (bytes.length != 4) {
         error('IPv4 address should contain exactly 4 parts');
       }
-      return dart.as(bytes.map(dart.closureWrap((byteString) => {
+      return dart.as(bytes.map(dart.as((byteString) => {
         let byte = int.parse(dart.as(byteString, String));
         if (dart.notNull(byte) < 0 || dart.notNull(byte) > 255) {
           error('each part must be in the range of `0..255`');
         }
         return byte;
-      }, "(String) → dynamic")).toList(), List$(int));
+      }, dart.throw_("Unimplemented type (String) → dynamic"))).toList(), List$(int));
     }
     static parseIPv6Address(host, start, end) {
       if (start === void 0)

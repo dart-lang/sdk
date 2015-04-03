@@ -47,21 +47,21 @@ var collection;
             if (equals == null) {
               return new (_HashMap$(K, V))();
             }
-            hashCode = dart.closureWrap(_defaultHashCode, "(K) → int");
+            hashCode = dart.as(_defaultHashCode, dart.throw_("Unimplemented type (K) → int"));
           } else {
             if (dart.notNull(core.identical(core.identityHashCode, hashCode)) && dart.notNull(core.identical(core.identical, equals))) {
               return new (_IdentityHashMap$(K, V))();
             }
             if (equals == null) {
-              equals = dart.closureWrap(_defaultEquals, "(K, K) → bool");
+              equals = dart.as(_defaultEquals, dart.throw_("Unimplemented type (K, K) → bool"));
             }
           }
         } else {
           if (hashCode == null) {
-            hashCode = dart.closureWrap(_defaultHashCode, "(K) → int");
+            hashCode = dart.as(_defaultHashCode, dart.throw_("Unimplemented type (K) → int"));
           }
           if (equals == null) {
-            equals = dart.closureWrap(_defaultEquals, "(K, K) → bool");
+            equals = dart.as(_defaultEquals, dart.throw_("Unimplemented type (K, K) → bool"));
           }
         }
         return new (_CustomHashMap$(K, V))(equals, hashCode, isValidKey);
@@ -393,21 +393,21 @@ var collection;
             if (equals == null) {
               return new (_HashSet$(E))();
             }
-            hashCode = dart.closureWrap(_defaultHashCode, "(E) → int");
+            hashCode = dart.as(_defaultHashCode, dart.throw_("Unimplemented type (E) → int"));
           } else {
             if (dart.notNull(core.identical(core.identityHashCode, hashCode)) && dart.notNull(core.identical(core.identical, equals))) {
               return new (_IdentityHashSet$(E))();
             }
             if (equals == null) {
-              equals = dart.closureWrap(_defaultEquals, "(E, E) → bool");
+              equals = dart.as(_defaultEquals, dart.throw_("Unimplemented type (E, E) → bool"));
             }
           }
         } else {
           if (hashCode == null) {
-            hashCode = dart.closureWrap(_defaultHashCode, "(E) → int");
+            hashCode = dart.as(_defaultHashCode, dart.throw_("Unimplemented type (E) → int"));
           }
           if (equals == null) {
-            equals = dart.closureWrap(_defaultEquals, "(E, E) → bool");
+            equals = dart.as(_defaultEquals, dart.throw_("Unimplemented type (E, E) → bool"));
           }
         }
         return new (_CustomHashSet$(E))(equals, hashCode, isValidKey);
@@ -1011,21 +1011,21 @@ var collection;
             if (equals == null) {
               return new (_LinkedHashMap$(K, V))();
             }
-            hashCode = dart.closureWrap(_defaultHashCode, "(K) → int");
+            hashCode = dart.as(_defaultHashCode, dart.throw_("Unimplemented type (K) → int"));
           } else {
             if (dart.notNull(core.identical(core.identityHashCode, hashCode)) && dart.notNull(core.identical(core.identical, equals))) {
               return new (_LinkedIdentityHashMap$(K, V))();
             }
             if (equals == null) {
-              equals = dart.closureWrap(_defaultEquals, "(K, K) → bool");
+              equals = dart.as(_defaultEquals, dart.throw_("Unimplemented type (K, K) → bool"));
             }
           }
         } else {
           if (hashCode == null) {
-            hashCode = dart.closureWrap(_defaultHashCode, "(K) → int");
+            hashCode = dart.as(_defaultHashCode, dart.throw_("Unimplemented type (K) → int"));
           }
           if (equals == null) {
-            equals = dart.closureWrap(_defaultEquals, "(K, K) → bool");
+            equals = dart.as(_defaultEquals, dart.throw_("Unimplemented type (K, K) → bool"));
           }
         }
         return new (_LinkedCustomHashMap$(K, V))(equals, hashCode, isValidKey);
@@ -1080,21 +1080,21 @@ var collection;
             if (equals == null) {
               return new (_LinkedHashSet$(E))();
             }
-            hashCode = dart.closureWrap(_defaultHashCode, "(E) → int");
+            hashCode = dart.as(_defaultHashCode, dart.throw_("Unimplemented type (E) → int"));
           } else {
             if (dart.notNull(core.identical(core.identityHashCode, hashCode)) && dart.notNull(core.identical(core.identical, equals))) {
               return new (_LinkedIdentityHashSet$(E))();
             }
             if (equals == null) {
-              equals = dart.closureWrap(_defaultEquals, "(E, E) → bool");
+              equals = dart.as(_defaultEquals, dart.throw_("Unimplemented type (E, E) → bool"));
             }
           }
         } else {
           if (hashCode == null) {
-            hashCode = dart.closureWrap(_defaultHashCode, "(E) → int");
+            hashCode = dart.as(_defaultHashCode, dart.throw_("Unimplemented type (E) → int"));
           }
           if (equals == null) {
-            equals = dart.closureWrap(_defaultEquals, "(E, E) → bool");
+            equals = dart.as(_defaultEquals, dart.throw_("Unimplemented type (E, E) → bool"));
           }
         }
         return new (_LinkedCustomHashSet$(E))(equals, hashCode, isValidKey);
@@ -3259,7 +3259,7 @@ var collection;
         }
       }
       retainAll(elements) {
-        let retainSet = new (SplayTreeSet$(E))(dart.closureWrap(this[_comparator], "(E, E) → int"), this[_validKey]);
+        let retainSet = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.throw_("Unimplemented type (E, E) → int")), this[_validKey]);
         let modificationCount = this[_modificationCount];
         for (let object of elements) {
           if (modificationCount != this[_modificationCount]) {
@@ -3283,7 +3283,7 @@ var collection;
         return this[_root].key;
       }
       intersection(other) {
-        let result = new (SplayTreeSet$(E))(dart.closureWrap(this[_comparator], "(E, E) → int"), this[_validKey]);
+        let result = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.throw_("Unimplemented type (E, E) → int")), this[_validKey]);
         for (let element of this) {
           if (other.contains(element))
             result.add(element);
@@ -3291,7 +3291,7 @@ var collection;
         return result;
       }
       difference(other) {
-        let result = new (SplayTreeSet$(E))(dart.closureWrap(this[_comparator], "(E, E) → int"), this[_validKey]);
+        let result = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.throw_("Unimplemented type (E, E) → int")), this[_validKey]);
         for (let element of this) {
           if (!dart.notNull(other.contains(element)))
             result.add(element);
@@ -3305,7 +3305,7 @@ var collection;
         })(this[_clone]());
       }
       [_clone]() {
-        let set = new (SplayTreeSet$(E))(dart.closureWrap(this[_comparator], "(E, E) → int"), this[_validKey]);
+        let set = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.throw_("Unimplemented type (E, E) → int")), this[_validKey]);
         set[_count] = this[_count];
         set[_root] = this[_copyNode](this[_root]);
         return set;
