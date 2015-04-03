@@ -1835,7 +1835,7 @@ class Fclass extends Bclass !Awith !B Eclass {}''', <String>[
       "B-Ctype",
       "C+Bclass",
       "C-Eclass"
-    ], failingTests: '12345679ABC');
+    ], failingTests: '23467ABC');
 
     // keywords
     buildTests('test009', '''
@@ -1852,7 +1852,7 @@ typ!7edef !5n!6''', <String>[
       "5+TestFn2",
       "6+num",
       "7+typedef"
-    ], failingTests: '12347');
+    ], failingTests: '1234');
 
     buildTests('test010', '''
 class test !8<!1t !2 !3extends String,!4 List,!5 !6>!7 {}
@@ -1969,7 +1969,7 @@ class Q {
       "J+if",
       "K+else",
       "L+return"
-    ], failingTests: '123456789ABCDEFGHJKL');
+    ], failingTests: '59BCDEHK');
 
     // operators in function
     buildTests('test015', '''f(a,b,c) => a + b * c !1;''', <String>["1+=="],
@@ -1995,11 +1995,11 @@ class Q {
       "6+hide",
       "7+show",
       "8-null"
-    ], failingTests: '1234567');
+    ], failingTests: '1567');
 
     // keywords
     buildTests('test018', '''!1part !2of foo;''', <String>["1+part", "2+of"],
-        failingTests: '12');
+        failingTests: '2');
 
     buildTests('test019', '''
 var truefalse = 0;

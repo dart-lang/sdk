@@ -520,8 +520,6 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
               context.getResolvedCompilationUnit(testSource, library);
           if (unit != null) {
             request.unit = unit;
-            request.node =
-                new NodeLocator.con1(completionOffset).searchWithin(unit);
             request.target =
                 new CompletionTarget.forOffset(unit, completionOffset);
             resolved = true;

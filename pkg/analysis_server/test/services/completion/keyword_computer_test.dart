@@ -63,7 +63,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
   void assertSuggestKeywords(Iterable<Keyword> expectedKeywords,
       [int relevance = DART_RELEVANCE_KEYWORD]) {
     Set<Keyword> actualKeywords = new Set<Keyword>();
-    request.suggestions.forEach((CompletionSuggestion s) {
+    for (CompletionSuggestion s in request.suggestions) {
       if (s.kind == CompletionSuggestionKind.KEYWORD) {
         Keyword k = Keyword.keywords[s.completion];
         if (k == null) {
@@ -73,13 +73,8 @@ class KeywordComputerTest extends AbstractCompletionTest {
             fail('Duplicate keyword suggested: ${s.completion}');
           }
         }
-        expect(s.relevance, equals(relevance), reason: k.toString());
-        expect(s.selectionOffset, equals(s.completion.length));
-        expect(s.selectionLength, equals(0));
-        expect(s.isDeprecated, equals(false));
-        expect(s.isPotential, equals(false));
       }
-    });
+    };
     if (expectedKeywords.any((k) => k is String)) {
       StringBuffer msg = new StringBuffer();
       msg.writeln('Expected set should be:');
@@ -97,6 +92,16 @@ class KeywordComputerTest extends AbstractCompletionTest {
       _appendKeywords(msg, actualKeywords);
       fail(msg.toString());
     }
+    for (CompletionSuggestion s in request.suggestions) {
+      if (s.kind == CompletionSuggestionKind.KEYWORD) {
+        Keyword k = Keyword.keywords[s.completion];
+        expect(s.relevance, equals(relevance), reason: k.toString());
+        expect(s.selectionOffset, equals(s.completion.length));
+        expect(s.selectionLength, equals(0));
+        expect(s.isDeprecated, equals(false));
+        expect(s.isPotential, equals(false));
+      }
+    };
   }
 
   @override
@@ -173,21 +178,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
     ], DART_RELEVANCE_HIGH);
   }
 
-  test_class() {
-    addTestSource('class A ^');
-    expect(computeFast(), isTrue);
-    assertSuggestKeywords(
-        [Keyword.EXTENDS, Keyword.IMPLEMENTS], DART_RELEVANCE_HIGH);
-  }
-
-  test_class2() {
-    addTestSource('class A e^');
-    expect(computeFast(), isTrue);
-    assertSuggestKeywords(
-        [Keyword.EXTENDS, Keyword.IMPLEMENTS], DART_RELEVANCE_HIGH);
-  }
-
-  test_class3() {
+  test_class4() {
     addTestSource('class A e^ { }');
     expect(computeFast(), isTrue);
     assertSuggestKeywords(
@@ -253,6 +244,27 @@ class KeywordComputerTest extends AbstractCompletionTest {
     addTestSource('class ^');
     expect(computeFast(), isTrue);
     assertSuggestKeywords([]);
+  }
+
+  test_class_noBody() {
+    addTestSource('class A ^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        [Keyword.EXTENDS, Keyword.IMPLEMENTS], DART_RELEVANCE_HIGH);
+  }
+
+  test_class_noBody2() {
+    addTestSource('class A e^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        [Keyword.EXTENDS, Keyword.IMPLEMENTS], DART_RELEVANCE_HIGH);
+  }
+
+  test_class_noBody3() {
+    addTestSource('class A e^ String foo;');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        [Keyword.EXTENDS, Keyword.IMPLEMENTS], DART_RELEVANCE_HIGH);
   }
 
   test_class_with() {

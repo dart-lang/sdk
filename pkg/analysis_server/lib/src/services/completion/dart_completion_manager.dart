@@ -122,11 +122,10 @@ class DartCompletionManager extends CompletionManager {
     return request.performance.logElapseTime('computeFast', () {
       CompilationUnit unit = context.parseCompilationUnit(source);
       request.unit = unit;
-      request.node = new NodeLocator.con1(request.offset).searchWithin(unit);
       request.target = new CompletionTarget.forOffset(unit, request.offset);
       request.replacementOffset = request.offset;
       request.replacementLength = 0;
-      if (request.node == null) {
+      if (request.offset < 0 || request.offset > unit.end) {
         sendResults(request, true);
         return [];
       }
@@ -173,7 +172,6 @@ class DartCompletionManager extends CompletionManager {
       }
       request.performance.logElapseTime('computeFull', () {
         request.unit = unit;
-        request.node = new NodeLocator.con1(request.offset).searchWithin(unit);
         // TODO(paulberry): Do we need to invoke _ReplacementOffsetBuilder
         // again?
         request.target = new CompletionTarget.forOffset(unit, request.offset);
@@ -279,18 +277,8 @@ class DartCompletionRequest extends CompletionRequest {
   CompilationUnit unit;
 
   /**
-   * The node in which the completion occurred. This node
-   * may or may not be resolved when [DartCompletionComputer.computeFast]
-   * is called but is resolved when [DartCompletionComputer.computeFull].
-   */
-  AstNode node;
-
-  /**
    * The completion target.  This determines what part of the parse tree
    * will receive the newly inserted text.
-   *
-   * TODO(paulberry) gradually transition code over to using this rather than
-   * [node].
    */
   CompletionTarget target;
 
