@@ -189,6 +189,7 @@ css_test/functional: Fail # Issues 21710
 [ $runtime == ie11 ]
 custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
 canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
+node_validator_test: Pass, RuntimeError # Issues 20657, 20659.
 worker_test/functional: Pass, Fail # Issues 20659.
 transferables_test: Pass, Fail # Issues 20659.
 
@@ -376,6 +377,9 @@ postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (tim
 
 [ $compiler == dart2js && ($runtime == drt || $runtime ==chrome) ]
 wheelevent_test: Fail # Issue 12958
+
+[ $compiler == dart2js && $runtime == ff && $system == windows ]
+node_validator_test: Fail # Issue 22564
 
 [ $compiler == dart2js &&  $runtime == chrome]
 svgelement_test/supported_altGlyph: RuntimeError # Issue 22154
