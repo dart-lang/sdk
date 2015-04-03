@@ -198,7 +198,10 @@ String summaryToString(GlobalSummary summary) {
   // Declare columns and add header
   table.declareColumn('package');
   table.declareColumn('AnalyzerError', abbreviate: true);
-  infoTypes.forEach((type) => table.declareColumn('$type', abbreviate: true));
+  var activeInfoTypes =
+      infoTypes.where((type) => counter.totals['$type'] != null);
+  activeInfoTypes
+      .forEach((type) => table.declareColumn('$type', abbreviate: true));
   table.declareColumn('LinesOfCode', abbreviate: true);
   table.addHeader();
 
@@ -207,7 +210,8 @@ String summaryToString(GlobalSummary summary) {
   for (var package in counter.errorCount.keys) {
     appendCount(package);
     appendCount(counter.errorCount[package]['AnalyzerError']);
-    infoTypes.forEach((e) => appendCount(counter.errorCount[package]['$e']));
+    activeInfoTypes
+        .forEach((e) => appendCount(counter.errorCount[package]['$e']));
     appendCount(counter.linesOfCode[package]);
   }
 
@@ -216,7 +220,7 @@ String summaryToString(GlobalSummary summary) {
   table.addHeader();
   table.addEntry('total');
   appendCount(counter.totals['AnalyzerError']);
-  infoTypes.forEach((type) => appendCount(counter.totals['$type']));
+  activeInfoTypes.forEach((type) => appendCount(counter.totals['$type']));
   appendCount(counter.totalLinesOfCode);
 
   appendPercent(count, total) {
@@ -228,7 +232,8 @@ String summaryToString(GlobalSummary summary) {
   var totalLOC = counter.totalLinesOfCode;
   table.addEntry('%');
   appendPercent(counter.totals['AnalyzerError'], totalLOC);
-  infoTypes.forEach((type) => appendPercent(counter.totals['$type'], totalLOC));
+  activeInfoTypes
+      .forEach((type) => appendPercent(counter.totals['$type'], totalLOC));
   appendCount(100);
 
   return table.toString();

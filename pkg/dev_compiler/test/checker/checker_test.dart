@@ -29,7 +29,7 @@ void main() {
       }
 
       void bar(a) {
-        foo(/*info:DynamicCast,warning:DynamicInvoke*/a.x);
+        foo(/*info:DynamicCast,info:DynamicInvoke*/a.x);
       }
 
       typedef DynFun(x);
@@ -40,24 +40,24 @@ void main() {
       void main() {
         var a = new A();
         bar(a);
-        (/*warning:DynamicInvoke*/bar1(a));
+        (/*info:DynamicInvoke*/bar1(a));
         var b = bar;
-        (/*warning:DynamicInvoke*/b(a));
+        (/*info:DynamicInvoke*/b(a));
         var f1 = foo;
         f1("hello");
         dynamic f2 = foo;
-        (/*warning:DynamicInvoke*/f2("hello"));
+        (/*info:DynamicInvoke*/f2("hello"));
         DynFun f3 = foo;
-        (/*warning:DynamicInvoke*/f3("hello"));
-        (/*warning:DynamicInvoke*/f3(42));
+        (/*info:DynamicInvoke*/f3("hello"));
+        (/*info:DynamicInvoke*/f3(42));
         StrFun f4 = foo;
         f4("hello");
         a.baz1("hello");
         var b1 = a.baz1;
-        (/*warning:DynamicInvoke*/b1("hello"));
+        (/*info:DynamicInvoke*/b1("hello"));
         A.baz2("hello");
         var b2 = A.baz2;
-        (/*warning:DynamicInvoke*/b2("hello"));
+        (/*info:DynamicInvoke*/b2("hello"));
     '''
     });
   });
@@ -1852,7 +1852,7 @@ void main() {
             a = a & b;
             a = a ^ b;
             a = a | b;
-            c = (/*pass should be warning:DynamicInvoke*/c + b);
+            c = (/*pass should be info:DynamicInvoke*/c + b);
           }
        '''
     });
@@ -1922,7 +1922,7 @@ void main() {
             a &= b;
             a ^= b;
             a |= b;
-            (/*warning:DynamicInvoke*/c += b);
+            (/*info:DynamicInvoke*/c += b);
           }
        '''
     });

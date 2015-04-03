@@ -5,6 +5,6 @@ warning: line 14, column 21 of test/codegen/methods.dart: [DownCastImplicit] b (
 warning: line 19, column 12 of test/codegen/methods.dart: [DownCastImplicit] a + b (num) will need runtime check to cast to type int
     return a + b;
            ^^^^^
-warning: line 49, column 3 of test/codegen/methods.dart: [DynamicInvoke] f.bar("Bar's call method!") requires dynamic invoke
+info: line 49, column 3 of test/codegen/methods.dart: [DynamicInvoke] f.bar("Bar's call method!") requires dynamic invoke
   f.bar("Bar's call method!");
   ^^^^^^^^^^^^^^^^^^^^^^^^^^^

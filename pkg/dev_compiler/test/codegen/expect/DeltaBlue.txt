@@ -1,5 +1,5 @@
 // Messages from compiling DeltaBlue.dart
-warning: line 63, column 7 of test/codegen/BenchmarkBase.dart: [DynamicInvoke] f() requires dynamic invoke
+info: line 63, column 7 of test/codegen/BenchmarkBase.dart: [DynamicInvoke] f() requires dynamic invoke
       f();
       ^^^
 info: line 130, column 18 of test/codegen/DeltaBlue.dart: [DynamicCast] mark (dynamic) will need runtime check to cast to type int

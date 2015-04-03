@@ -129,7 +129,7 @@ class UnitCoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
     if (node is ClosureWrap) return "Wrap";
     if (node is DynamicCast) return "DynamicCast";
     if (node is AssignmentCast) return "AssignmentCast";
-    if (node is InferableClosure) return "InferableClosure";
+    if (node is UninferredClosure) return "InferableClosure";
     if (node is DownCastComposite) return "CompositeCast";
     if (node is DownCastImplicit) return "ImplicitCast";
     assert(false);

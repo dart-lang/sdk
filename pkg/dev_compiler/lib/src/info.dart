@@ -244,7 +244,7 @@ abstract class DownCast extends Conversion {
     if (expression is FunctionExpression) {
       // fromT should be an exact type - this will almost certainly fail at
       // runtime.
-      return new InferableClosure(rules, expression, cast);
+      return new UninferredClosure(rules, expression, cast);
     }
     if (expression is InstanceCreationExpression) {
       // fromT should be an exact type - this will almost certainly fail at
@@ -315,10 +315,9 @@ class AssignmentCast extends DownCast {
 //   List<String> l = [1, 2, 3]; // Inference reveals static type error
 // We're marking all as warnings for now.
 //
-
-// A "down cast" on a closure literal.
-class InferableClosure extends DownCast {
-  InferableClosure(TypeRules rules, FunctionExpression expression, Cast cast)
+// TODO(vsm,leafp): Remove this.
+class UninferredClosure extends DownCast {
+  UninferredClosure(TypeRules rules, FunctionExpression expression, Cast cast)
       : super._internal(rules, expression, cast);
 
   final Level level = Level.WARNING;
@@ -476,7 +475,7 @@ class DynamicInvoke extends Conversion {
   DartType _getConvertedType() => rules.provider.dynamicType;
 
   String get message => '$expression requires dynamic invoke';
-  Level get level => Level.WARNING;
+  Level get level => Level.INFO;
 
   accept(AstVisitor visitor) {
     if (visitor is ConversionVisitor) {
