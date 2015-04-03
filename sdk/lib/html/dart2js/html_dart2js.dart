@@ -55,12 +55,14 @@ import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT, JS_CONST;
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:_js_helper' show
     convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,
-    JSName, Native, Null, Returns,
+    JSName, Native, Null, Returns, Inline, ForceInline,
     findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord,
     makeLeafDispatchRecord;
 import 'dart:_interceptors' show
-    Interceptor, JSExtendableArray, findInterceptorConstructorForType,
-    findConstructorForNativeSubclassType, getNativeInterceptor,
+    Interceptor, JSExtendableArray, JSUInt31,
+    findInterceptorConstructorForType,
+    findConstructorForNativeSubclassType,
+    getNativeInterceptor,
     setDispatchProperty;
 
 export 'dart:math' show Rectangle, Point;
@@ -34891,6 +34893,12 @@ abstract class CssClassSet implements Set<String> {
    *
    * If [shouldAdd] is true, then we always add that [value] to the element. If
    * [shouldAdd] is false then we always remove [value] from the element.
+   *
+   * If this corresponds to one element, returns `true` if [value] is present
+   * after the operation, and returns `false` if [value] is absent after the
+   * operation.
+   *
+   * If this corresponds to many elements, `null` is always returned.
    */
   bool toggle(String value, [bool shouldAdd]);
 
@@ -34917,7 +34925,7 @@ abstract class CssClassSet implements Set<String> {
    * If this corresponds to one element. Returns true if [value] was added to
    * the set, otherwise false.
    *
-   * If this corresponds to many elements, null is always returned.
+   * If this corresponds to many elements, `null` is always returned.
    */
   bool add(String value);
 
@@ -34957,90 +34965,6 @@ abstract class CssClassSet implements Set<String> {
    * [iterable] from the element.
    */
   void toggleAll(Iterable<String> iterable, [bool shouldAdd]);
-}
-
-/**
- * A set (union) of the CSS classes that are present in a set of elements.
- * Implemented separately from _ElementCssClassSet for performance.
- */
-class _MultiElementCssClassSet extends CssClassSetImpl {
-  final Iterable<Element> _elementIterable;
-  Iterable<_ElementCssClassSet> _elementCssClassSetIterable;
-
-  _MultiElementCssClassSet(this._elementIterable) {
-    _elementCssClassSetIterable = new List.from(_elementIterable).map(
-        (e) => new _ElementCssClassSet(e));
-  }
-
-  Set<String> readClasses() {
-    var s = new LinkedHashSet<String>();
-    _elementCssClassSetIterable.forEach(
-        (_ElementCssClassSet e) => s.addAll(e.readClasses()));
-    return s;
-  }
-
-  void writeClasses(Set<String> s) {
-    var classes = s.join(' ');
-    for (Element e in _elementIterable) {
-      e.className = classes;
-    }
-  }
-
-  /**
-   * Helper method used to modify the set of css classes on this element.
-   *
-   *   f - callback with:
-   *   s - a Set of all the css class name currently on this element.
-   *
-   *   After f returns, the modified set is written to the
-   *       className property of this element.
-   */
-  modify( f(Set<String> s)) {
-    _elementCssClassSetIterable.forEach((_ElementCssClassSet e) => e.modify(f));
-  }
-
-  /**
-   * Adds the class [value] to the element if it is not on it, removes it if it
-   * is.
-   */
-  bool toggle(String value, [bool shouldAdd]) =>
-      _elementCssClassSetIterable.fold(false,
-          (bool changed, _ElementCssClassSet e) =>
-              e.toggle(value, shouldAdd) || changed);
-
-  /**
-   * Remove the class [value] from element, and return true on successful
-   * removal.
-   *
-   * This is the Dart equivalent of jQuery's
-   * [removeClass](http://api.jquery.com/removeClass/).
-   */
-  bool remove(Object value) => _elementCssClassSetIterable.fold(false,
-      (bool changed, _ElementCssClassSet e) => e.remove(value) || changed);
-}
-
-class _ElementCssClassSet extends CssClassSetImpl {
-
-  final Element _element;
-
-  _ElementCssClassSet(this._element);
-
-  Set<String> readClasses() {
-    var s = new LinkedHashSet<String>();
-    var classname = _element.className;
-
-    for (String name in classname.split(' ')) {
-      String trimmed = name.trim();
-      if (!trimmed.isEmpty) {
-        s.add(trimmed);
-      }
-    }
-    return s;
-  }
-
-  void writeClasses(Set<String> s) {
-    _element.className = s.join(' ');
-  }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35303,6 +35227,254 @@ final _WIDTH = ['right', 'left'];
 final _CONTENT = 'content';
 final _PADDING = 'padding';
 final _MARGIN = 'margin';
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * A set (union) of the CSS classes that are present in a set of elements.
+ * Implemented separately from _ElementCssClassSet for performance.
+ */
+class _MultiElementCssClassSet extends CssClassSetImpl {
+  final Iterable<Element> _elementIterable;
+
+  // TODO(sra): Perhaps we should store the DomTokenList instead.
+  final List<CssClassSetImpl> _sets;
+
+  factory _MultiElementCssClassSet(Iterable<Element> elements) {
+    return new _MultiElementCssClassSet._(elements,
+        elements.map((Element e) => e.classes).toList());
+  }
+
+  _MultiElementCssClassSet._(this._elementIterable, this._sets);
+
+  Set<String> readClasses() {
+    var s = new LinkedHashSet<String>();
+    _sets.forEach((CssClassSetImpl e) => s.addAll(e.readClasses()));
+    return s;
+  }
+
+  void writeClasses(Set<String> s) {
+    var classes = s.join(' ');
+    for (Element e in _elementIterable) {
+      e.className = classes;
+    }
+  }
+
+  /**
+   * Helper method used to modify the set of css classes on this element.
+   *
+   *   f - callback with:
+   *   s - a Set of all the css class name currently on this element.
+   *
+   *   After f returns, the modified set is written to the
+   *       className property of this element.
+   */
+  modify( f(Set<String> s)) {
+    _sets.forEach((CssClassSetImpl e) => e.modify(f));
+  }
+
+  /**
+   * Adds the class [value] to the element if it is not on it, removes it if it
+   * is.
+   *
+   * TODO(sra): It seems wrong to collect a 'changed' flag like this when the
+   * underlying toggle returns an 'is set' flag.
+   */
+  bool toggle(String value, [bool shouldAdd]) =>
+      _sets.fold(false,
+          (bool changed, CssClassSetImpl e) =>
+              e.toggle(value, shouldAdd) || changed);
+
+  /**
+   * Remove the class [value] from element, and return true on successful
+   * removal.
+   *
+   * This is the Dart equivalent of jQuery's
+   * [removeClass](http://api.jquery.com/removeClass/).
+   */
+  bool remove(Object value) => _sets.fold(false,
+      (bool changed, CssClassSetImpl e) => e.remove(value) || changed);
+}
+
+class _ElementCssClassSet extends CssClassSetImpl {
+  final Element _element;
+
+  _ElementCssClassSet(this._element);
+
+  Set<String> readClasses() {
+    var s = new LinkedHashSet<String>();
+    var classname = _element.className;
+
+    for (String name in classname.split(' ')) {
+      String trimmed = name.trim();
+      if (!trimmed.isEmpty) {
+        s.add(trimmed);
+      }
+    }
+    return s;
+  }
+
+  void writeClasses(Set<String> s) {
+    _element.className = s.join(' ');
+  }
+
+  int get length => _classListLength(_classListOf(_element));
+  bool get isEmpty => length == 0;
+  bool get isNotEmpty => length != 0;
+
+  void clear() {
+    _element.className = '';
+  }
+
+  bool contains(String value) {
+    return _contains(_element, value);
+  }
+
+  bool add(String value) {
+    return _add(_element, value);
+  }
+
+  bool remove(Object value) {
+    return value is String && _remove(_element, value);
+  }
+
+  bool toggle(String value, [bool shouldAdd]) {
+    return _toggle(_element, value, shouldAdd);
+  }
+
+  void addAll(Iterable<String> iterable) {
+    _addAll(_element, iterable);
+  }
+
+  void removeAll(Iterable<String> iterable) {
+    _removeAll(_element, iterable);
+  }
+
+  void retainAll(Iterable<String> iterable) {
+    _removeWhere(_element, iterable.toSet().contains, false);
+  }
+
+  void removeWhere(bool test(String name)) {
+    _removeWhere(_element, test, true);
+  }
+
+  void retainWhere(bool test(String name)) {
+    _removeWhere(_element, test, false);
+  }
+
+  static bool _contains(Element _element, String value) {
+    return _classListContains(_classListOf(_element), value);
+  }
+
+  static bool _add(Element _element, String value) {
+    DomTokenList list = _classListOf(_element);
+    // Compute returned result independently of action upon the set. One day we
+    // will be able to optimize it way if unused.
+    bool added = !_classListContains(list, value);
+    _classListAdd(list, value);
+    return added;
+  }
+
+  static bool _remove(Element _element, String value) {
+    DomTokenList list = _classListOf(_element);
+    bool removed = _classListContains(list, value);
+    _classListRemove(list, value);
+    return removed;
+  }
+
+  static bool _toggle(Element _element, String value, bool shouldAdd) {
+    // There is no value that can be passed as the second argument of
+    // DomTokenList.toggle that behaves the same as passing one argument.
+    // `null` is seen as false, meaning 'remove'.
+    return shouldAdd == null
+        ? _toggleDefault(_element, value)
+        : _toggleOnOff(_element, value, shouldAdd);
+  }
+
+  static bool _toggleDefault(Element _element, String value) {
+    DomTokenList list = _classListOf(_element);
+    return _classListToggle1(list, value);
+  }
+
+  static bool _toggleOnOff(Element _element, String value, bool shouldAdd) {
+    DomTokenList list = _classListOf(_element);
+    // IE's toggle does not take a second parameter. We would prefer:
+    //
+    //    return _classListToggle2(list, value, shouldAdd);
+    //
+    if (shouldAdd) {
+      _classListAdd(list, value);
+      return true;
+    } else {
+      _classListRemove(list, value);
+      return false;
+    }
+  }
+
+  static void _addAll(Element _element, Iterable<String> iterable) {
+    DomTokenList list = _classListOf(_element);
+    for (String value in iterable) {
+      _classListAdd(list, value);
+    }
+  }
+
+  static void _removeAll(Element _element, Iterable<String> iterable) {
+    DomTokenList list = _classListOf(_element);
+    for (var value in iterable) {
+      _classListRemove(list, value);
+    }
+  }
+
+  static void _removeWhere(
+      Element _element, bool test(String name), bool doRemove) {
+    DomTokenList list = _classListOf(_element);
+    int i = 0;
+    while (i < _classListLength(list)) {
+      String item = list.item(i);
+      if (doRemove == test(item)) {
+        _classListRemove(list, item);
+      } else {
+        ++i;
+      }
+    }
+  }
+
+  // A collection of static methods for DomTokenList. These methods are a
+  // work-around for the lack of annotations to express the full behaviour of
+  // the DomTokenList methods.
+
+  static DomTokenList _classListOf(Element e) =>
+      JS('returns:DomTokenList;creates:DomTokenList;effects:none;depends:all;',
+         '#.classList', e);
+
+  static int _classListLength(DomTokenList list) =>
+      JS('returns:JSUInt31;effects:none;depends:all;', '#.length', list);
+
+  static bool _classListContains(DomTokenList list, String value) =>
+      JS('returns:bool;effects:none;depends:all;',
+          '#.contains(#)', list, value);
+
+  static void _classListAdd(DomTokenList list, String value) {
+    // list.add(value);
+    JS('', '#.add(#)', list, value);
+  }
+
+  static void _classListRemove(DomTokenList list, String value) {
+    // list.remove(value);
+    JS('', '#.remove(#)', list, value);
+  }
+
+  static bool _classListToggle1(DomTokenList list, String value) {
+    return JS('bool', '#.toggle(#)', list, value);
+  }
+
+  static bool _classListToggle2(
+      DomTokenList list, String value, bool shouldAdd) {
+    return JS('bool', '#.toggle(#, #)', list, value, shouldAdd);
+  }
+}
 
 /**
  * Class representing a

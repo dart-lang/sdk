@@ -52,12 +52,14 @@ import 'dart:web_gl' show RenderingContext;
 import 'dart:web_sql';
 import 'dart:_js_helper' show
     convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,
-    JSName, Native, Null, Returns,
+    JSName, Native, Null, Returns, Inline, ForceInline,
     findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord,
     makeLeafDispatchRecord;
 import 'dart:_interceptors' show
-    Interceptor, JSExtendableArray, findInterceptorConstructorForType,
-    findConstructorForNativeSubclassType, getNativeInterceptor,
+    Interceptor, JSExtendableArray, JSUInt31,
+    findInterceptorConstructorForType,
+    findConstructorForNativeSubclassType,
+    getNativeInterceptor,
     setDispatchProperty;
 import 'dart:_isolate_helper' show IsolateNatives;
 import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT, JS_CONST;
@@ -71,6 +73,7 @@ part '$AUXILIARY_DIR/CanvasImageSource.dart';
 part '$AUXILIARY_DIR/CrossFrameTypes.dart';
 part '$AUXILIARY_DIR/CssClassSet.dart';
 part '$AUXILIARY_DIR/CssRectangle.dart';
+part '$AUXILIARY_DIR/dart2js_CssClassSet.dart';
 part '$AUXILIARY_DIR/Dimension.dart';
 part '$AUXILIARY_DIR/EventListener.dart';
 part '$AUXILIARY_DIR/EventStreamProvider.dart';

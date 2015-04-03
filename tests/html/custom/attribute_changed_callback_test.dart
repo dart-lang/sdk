@@ -84,9 +84,7 @@ main() {
       b.attributes.remove('data-v');
       expect(B.invocations, ['data-v: x => null']);
     });
-  });
 
-  group('unsupported_on_polyfill', () {
     test('add, change ID', () {
       B.invocations = [];
 
@@ -98,6 +96,12 @@ main() {
       b.attributes.remove('id');
       expect(B.invocations, ['id: x => null']);
     });
+  });
+
+  group('unsupported_on_polyfill', () {
+
+    // If these tests start passing, don't remove the status suppression. Move
+    // the tests to the fullYy_supported group.
 
     test('add, change classes', () {
       var b = new B();
