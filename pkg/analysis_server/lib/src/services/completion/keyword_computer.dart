@@ -70,7 +70,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     if (entity == node.name) {
       return;
     }
-    if (entity == node.rightBracket) {
+    if (entity == node.rightBracket || entity is ClassMember) {
       _addSuggestions([
         Keyword.CONST,
         Keyword.DYNAMIC,

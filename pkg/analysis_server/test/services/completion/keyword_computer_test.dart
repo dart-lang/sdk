@@ -20,6 +20,19 @@ main() {
 
 @reflectiveTest
 class KeywordComputerTest extends AbstractCompletionTest {
+  static const List<Keyword> CLASS_BODY_KEYWORDS = const [
+    Keyword.CONST,
+    Keyword.DYNAMIC,
+    Keyword.FACTORY,
+    Keyword.FINAL,
+    Keyword.GET,
+    Keyword.OPERATOR,
+    Keyword.SET,
+    Keyword.STATIC,
+    Keyword.VAR,
+    Keyword.VOID
+  ];
+
   static const List<Keyword> IN_BLOCK_IN_CLASS = const [
     Keyword.ASSERT,
     Keyword.CASE,
@@ -178,11 +191,35 @@ class KeywordComputerTest extends AbstractCompletionTest {
     ], DART_RELEVANCE_HIGH);
   }
 
-  test_class4() {
+  test_class() {
     addTestSource('class A e^ { }');
     expect(computeFast(), isTrue);
     assertSuggestKeywords(
         [Keyword.EXTENDS, Keyword.IMPLEMENTS], DART_RELEVANCE_HIGH);
+  }
+
+  test_class_body() {
+    addTestSource('class A {^}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(CLASS_BODY_KEYWORDS);
+  }
+
+  test_class_body_beginning() {
+    addTestSource('class A {^ var foo;}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(CLASS_BODY_KEYWORDS);
+  }
+
+  test_class_body_between() {
+    addTestSource('class A {var bar; ^ var foo;}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(CLASS_BODY_KEYWORDS);
+  }
+
+  test_class_body_end() {
+    addTestSource('class A {var foo; ^}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(CLASS_BODY_KEYWORDS);
   }
 
   test_class_extends() {
@@ -366,23 +403,6 @@ class A {
     addTestSource('main() {{}^}');
     expect(computeFast(), isTrue);
     assertSuggestKeywords(IN_BLOCK_NOT_IN_CLASS);
-  }
-
-  test_in_class() {
-    addTestSource('class A {^}');
-    expect(computeFast(), isTrue);
-    assertSuggestKeywords([
-      Keyword.CONST,
-      Keyword.DYNAMIC,
-      Keyword.FACTORY,
-      Keyword.FINAL,
-      Keyword.GET,
-      Keyword.OPERATOR,
-      Keyword.SET,
-      Keyword.STATIC,
-      Keyword.VAR,
-      Keyword.VOID
-    ]);
   }
 
   test_library() {

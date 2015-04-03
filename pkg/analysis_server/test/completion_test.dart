@@ -1969,7 +1969,7 @@ class Q {
       "J+if",
       "K+else",
       "L+return"
-    ], failingTests: '59BCDEHK');
+    ], failingTests: '59BCHK');
 
     // operators in function
     buildTests('test015', '''f(a,b,c) => a + b * c !1;''', <String>["1+=="],
