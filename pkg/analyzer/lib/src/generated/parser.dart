@@ -3454,7 +3454,9 @@ class Parser {
     StringLexemeHelper helper = new StringLexemeHelper(lexeme, isFirst, isLast);
     int start = helper.start;
     int end = helper.end;
-    if (end - start + 1 < 0) {
+    bool stringEndsAfterStart = end >= start;
+    assert(stringEndsAfterStart);
+    if (!stringEndsAfterStart) {
       AnalysisEngine.instance.logger.logError(
           "Internal error: computeStringValue($lexeme, $isFirst, $isLast)");
       return "";
@@ -4228,7 +4230,8 @@ class Parser {
       } finally {
         _inInitializer = wasInInitializer;
       }
-    } else if (_matches(TokenType.PERIOD) || _matches(TokenType.QUESTION_PERIOD)) {
+    } else if (_matches(TokenType.PERIOD) ||
+        _matches(TokenType.QUESTION_PERIOD)) {
       Token operator = getAndAdvance();
       return new PropertyAccess(prefix, operator, parseSimpleIdentifier());
     } else {
@@ -7822,8 +7825,8 @@ class Parser {
     Token nextToken = _skipSimpleIdentifier(token);
     if (nextToken != null) {
       return nextToken;
-    } else if (_tokenMatches(token, TokenType.CLOSE_PAREN)
-            || _tokenMatches(token, TokenType.COMMA)) {
+    } else if (_tokenMatches(token, TokenType.CLOSE_PAREN) ||
+        _tokenMatches(token, TokenType.COMMA)) {
       // If the `id.` is followed by something that cannot produce a valid
       // structure then assume this is a prefixed identifier but missing the
       // trailing identifier

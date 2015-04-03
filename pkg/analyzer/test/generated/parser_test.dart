@@ -1559,9 +1559,8 @@ class Foo {
   }
 
   void test_missingMethodParameters_void_block() {
-    MethodDeclaration method = parse3("parseClassMember",
-        <Object>["C"], "void m {} }",
-        [ParserErrorCode.MISSING_METHOD_PARAMETERS]);
+    MethodDeclaration method = parse3("parseClassMember", <Object>["C"],
+        "void m {} }", [ParserErrorCode.MISSING_METHOD_PARAMETERS]);
     expect(method.parameters, hasLength(0));
   }
 
@@ -1866,8 +1865,7 @@ class Foo {
 
   void test_topLevel_getter() {
     FunctionDeclaration funct = parse3("parseCompilationUnitMember",
-        <Object>[emptyCommentAndMetadata()],
-        "get x => 7;");
+        <Object>[emptyCommentAndMetadata()], "get x => 7;");
     expect(funct.functionExpression.parameters, isNull);
   }
 
@@ -8956,6 +8954,23 @@ void''');
     expect((secondString as SimpleStringLiteral).value, "b");
   }
 
+  void test_parseStringLiteral_endsWithInterpolation() {
+    StringLiteral literal = parse4('parseStringLiteral', r"'x$y'");
+    expect(literal, new isInstanceOf<StringInterpolation>());
+    StringInterpolation interpolation = literal;
+    expect(interpolation.elements, hasLength(3));
+    expect(interpolation.elements[0], new isInstanceOf<InterpolationString>());
+    InterpolationString element0 = interpolation.elements[0];
+    expect(element0.value, 'x');
+    expect(
+        interpolation.elements[1], new isInstanceOf<InterpolationExpression>());
+    InterpolationExpression element1 = interpolation.elements[1];
+    expect(element1.expression, new isInstanceOf<SimpleIdentifier>());
+    expect(interpolation.elements[2], new isInstanceOf<InterpolationString>());
+    InterpolationString element2 = interpolation.elements[2];
+    expect(element2.value, '');
+  }
+
   void test_parseStringLiteral_interpolated() {
     StringInterpolation literal =
         parse4("parseStringLiteral", "'a \${b} c \$this d'");
@@ -8973,6 +8988,23 @@ void''');
         parse4("parseStringLiteral", "'''\\x20\na'''");
     expect(literal.literal, isNotNull);
     expect(literal.value, " \na");
+  }
+
+  void test_parseStringLiteral_multiline_endsWithInterpolation() {
+    StringLiteral literal = parse4('parseStringLiteral', r"'''x$y'''");
+    expect(literal, new isInstanceOf<StringInterpolation>());
+    StringInterpolation interpolation = literal;
+    expect(interpolation.elements, hasLength(3));
+    expect(interpolation.elements[0], new isInstanceOf<InterpolationString>());
+    InterpolationString element0 = interpolation.elements[0];
+    expect(element0.value, 'x');
+    expect(
+        interpolation.elements[1], new isInstanceOf<InterpolationExpression>());
+    InterpolationExpression element1 = interpolation.elements[1];
+    expect(element1.expression, new isInstanceOf<SimpleIdentifier>());
+    expect(interpolation.elements[2], new isInstanceOf<InterpolationString>());
+    InterpolationString element2 = interpolation.elements[2];
+    expect(element2.value, '');
   }
 
   void test_parseStringLiteral_multiline_escapedBackslash() {
@@ -9026,6 +9058,40 @@ void''');
     expect(literal.value, "\\t\na");
   }
 
+  void test_parseStringLiteral_multiline_quoteAfterInterpolation() {
+    StringLiteral literal = parse4('parseStringLiteral', r"""'''$x'y'''""");
+    expect(literal, new isInstanceOf<StringInterpolation>());
+    StringInterpolation interpolation = literal;
+    expect(interpolation.elements, hasLength(3));
+    expect(interpolation.elements[0], new isInstanceOf<InterpolationString>());
+    InterpolationString element0 = interpolation.elements[0];
+    expect(element0.value, '');
+    expect(
+        interpolation.elements[1], new isInstanceOf<InterpolationExpression>());
+    InterpolationExpression element1 = interpolation.elements[1];
+    expect(element1.expression, new isInstanceOf<SimpleIdentifier>());
+    expect(interpolation.elements[2], new isInstanceOf<InterpolationString>());
+    InterpolationString element2 = interpolation.elements[2];
+    expect(element2.value, "'y");
+  }
+
+  void test_parseStringLiteral_multiline_startsWithInterpolation() {
+    StringLiteral literal = parse4('parseStringLiteral', r"'''${x}y'''");
+    expect(literal, new isInstanceOf<StringInterpolation>());
+    StringInterpolation interpolation = literal;
+    expect(interpolation.elements, hasLength(3));
+    expect(interpolation.elements[0], new isInstanceOf<InterpolationString>());
+    InterpolationString element0 = interpolation.elements[0];
+    expect(element0.value, '');
+    expect(
+        interpolation.elements[1], new isInstanceOf<InterpolationExpression>());
+    InterpolationExpression element1 = interpolation.elements[1];
+    expect(element1.expression, new isInstanceOf<SimpleIdentifier>());
+    expect(interpolation.elements[2], new isInstanceOf<InterpolationString>());
+    InterpolationString element2 = interpolation.elements[2];
+    expect(element2.value, 'y');
+  }
+
   void test_parseStringLiteral_multiline_twoSpaces() {
     SimpleStringLiteral literal = parse4("parseStringLiteral", "'''  \na'''");
     expect(literal.literal, isNotNull);
@@ -9044,10 +9110,44 @@ void''');
     expect(literal.value, " a\nb");
   }
 
+  void test_parseStringLiteral_quoteAfterInterpolation() {
+    StringLiteral literal = parse4('parseStringLiteral', r"""'$x"'""");
+    expect(literal, new isInstanceOf<StringInterpolation>());
+    StringInterpolation interpolation = literal;
+    expect(interpolation.elements, hasLength(3));
+    expect(interpolation.elements[0], new isInstanceOf<InterpolationString>());
+    InterpolationString element0 = interpolation.elements[0];
+    expect(element0.value, '');
+    expect(
+        interpolation.elements[1], new isInstanceOf<InterpolationExpression>());
+    InterpolationExpression element1 = interpolation.elements[1];
+    expect(element1.expression, new isInstanceOf<SimpleIdentifier>());
+    expect(interpolation.elements[2], new isInstanceOf<InterpolationString>());
+    InterpolationString element2 = interpolation.elements[2];
+    expect(element2.value, '"');
+  }
+
   void test_parseStringLiteral_single() {
     SimpleStringLiteral literal = parse4("parseStringLiteral", "'a'");
     expect(literal.literal, isNotNull);
     expect(literal.value, "a");
+  }
+
+  void test_parseStringLiteral_startsWithInterpolation() {
+    StringLiteral literal = parse4('parseStringLiteral', r"'${x}y'");
+    expect(literal, new isInstanceOf<StringInterpolation>());
+    StringInterpolation interpolation = literal;
+    expect(interpolation.elements, hasLength(3));
+    expect(interpolation.elements[0], new isInstanceOf<InterpolationString>());
+    InterpolationString element0 = interpolation.elements[0];
+    expect(element0.value, '');
+    expect(
+        interpolation.elements[1], new isInstanceOf<InterpolationExpression>());
+    InterpolationExpression element1 = interpolation.elements[1];
+    expect(element1.expression, new isInstanceOf<SimpleIdentifier>());
+    expect(interpolation.elements[2], new isInstanceOf<InterpolationString>());
+    InterpolationString element2 = interpolation.elements[2];
+    expect(element2.value, 'y');
   }
 
   void test_parseSuperConstructorInvocation_named() {

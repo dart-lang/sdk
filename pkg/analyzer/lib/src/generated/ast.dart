@@ -16703,28 +16703,30 @@ class StringLexemeHelper {
   int end;
 
   StringLexemeHelper(this.lexeme, this.isFirst, this.isLast) {
-    isRaw = StringUtilities.startsWithChar(lexeme, 0x72);
-    if (isRaw) {
-      start++;
-    }
-    if (StringUtilities.startsWith3(lexeme, start, 0x27, 0x27, 0x27)) {
-      isSingleQuoted = true;
-      isMultiline = true;
-      start += 3;
-      start = _trimInitialWhitespace(start);
-    } else if (StringUtilities.startsWith3(lexeme, start, 0x22, 0x22, 0x22)) {
-      isSingleQuoted = false;
-      isMultiline = true;
-      start += 3;
-      start = _trimInitialWhitespace(start);
-    } else if (start < lexeme.length && lexeme.codeUnitAt(start) == 0x27) {
-      isSingleQuoted = true;
-      isMultiline = false;
-      start++;
-    } else if (start < lexeme.length && lexeme.codeUnitAt(start) == 0x22) {
-      isSingleQuoted = false;
-      isMultiline = false;
-      start++;
+    if (isFirst) {
+      isRaw = StringUtilities.startsWithChar(lexeme, 0x72);
+      if (isRaw) {
+        start++;
+      }
+      if (StringUtilities.startsWith3(lexeme, start, 0x27, 0x27, 0x27)) {
+        isSingleQuoted = true;
+        isMultiline = true;
+        start += 3;
+        start = _trimInitialWhitespace(start);
+      } else if (StringUtilities.startsWith3(lexeme, start, 0x22, 0x22, 0x22)) {
+        isSingleQuoted = false;
+        isMultiline = true;
+        start += 3;
+        start = _trimInitialWhitespace(start);
+      } else if (start < lexeme.length && lexeme.codeUnitAt(start) == 0x27) {
+        isSingleQuoted = true;
+        isMultiline = false;
+        start++;
+      } else if (start < lexeme.length && lexeme.codeUnitAt(start) == 0x22) {
+        isSingleQuoted = false;
+        isMultiline = false;
+        start++;
+      }
     }
     end = lexeme.length;
     if (isLast) {
