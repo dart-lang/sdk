@@ -8,18 +8,14 @@ import 'package:unittest/html_config.dart';
 import 'dart:collection';
 import 'dart:html';
 
-main() {
-  useHtmlConfiguration();
+Element makeElement() => new Element.tag('div');
 
-  Element makeElement() => new Element.tag('div');
-
-  Element makeElementWithChildren() =>
-    new Element.html("<div><br/><img/><input/></div>");
-
-  Element makeElementWithClasses() =>
+Element makeElementWithClasses() =>
     new Element.html('<div class="foo bar baz"></div>');
 
-  Element makeListElement() =>
+Set<String> makeClassSet() => makeElementWithClasses().classes;
+
+Element makeListElement() =>
     new Element.html('<ul class="foo bar baz">'
         '<li class="quux qux">'
         '<li class="meta">'
@@ -27,20 +23,37 @@ main() {
         '<li class="qux lassy">'
         '</ul>');
 
-  Set<String> makeClassSet() => makeElementWithClasses().classes;
+Element listElement;
+
+ElementList<Element> listElementSetup() {
+  listElement = makeListElement();
+  document.documentElement.children.add(listElement);
+  return document.querySelectorAll('li');
+}
+
+void listElementTearDown() {
+  if (listElement != null) {
+    document.documentElement.children.remove(listElement);
+    listElement = null;
+  }
+}
+
+/// Returns a canonical string for Set<String> and lists of Element's classes.
+String view(var e) {
+  if (e is Set) return '${e.toList()..sort()}';
+  if (e is Element) return view(e.classes);
+  if (e is Iterable) return '${e.map(view).toList()}';
+  throw new ArgumentError('Cannot make canonical view string for: $e}');
+}
+
+main() {
+  useHtmlConfiguration();
 
   Set<String> extractClasses(Element el) {
     final match = new RegExp('class="([^"]+)"').firstMatch(el.outerHtml);
     return new LinkedHashSet.from(match[1].split(' '));
   }
 
-  /// Returns a canonical string for Set<String> and lists of Element's classes.
-  String view(var e) {
-    if (e is Set) return '${e.toList()..sort()}';
-    if (e is Element) return view(e.classes);
-    if (e is Iterable) return '${e.map(view).toList()}';
-    throw new ArgumentError('Cannot make canonical view string for: $e}');
-  }
 
   test('affects the "class" attribute', () {
     final el = makeElementWithClasses();
@@ -227,21 +240,7 @@ main() {
     expect(classes, orderedEquals(['foo', 'bar', 'aardvark', 'baz']));
   });
 
-
-  Element listElement;
-
-  ElementList<Element> listElementSetup() {
-    listElement = makeListElement();
-    document.documentElement.children.add(listElement);
-    return document.querySelectorAll('li');
-  }
-
-  tearDown(() {
-    if (listElement != null) {
-      document.documentElement.children.remove(listElement);
-      listElement = null;
-    }
-  });
+  tearDown(listElementTearDown);
 
   test('list_view', () {
     // Test that the 'view' helper function is behaving.
