@@ -1,4 +1,16 @@
 part of dart.core;
+ class JsName {final String name;
+ const JsName({
+  this.name}
+);
+}
+ class JsPeerInterface {final String name;
+ const JsPeerInterface({
+this.name}
+);
+}
+ class SupportJsExtensionMethod {const SupportJsExtensionMethod();
+}
  class Deprecated {final String expires;
  const Deprecated(String expires) : this.expires = expires;
  String toString() => "Deprecated feature. Will be removed $expires";

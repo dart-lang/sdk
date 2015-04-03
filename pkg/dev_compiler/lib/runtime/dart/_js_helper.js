@@ -74,7 +74,7 @@ var _js_helper;
         super[_$]();
       }
       containsValue(needle) {
-        return this.values.any((value) => dart.equals(value, needle));
+        return this.values[core.$any]((value) => dart.equals(value, needle));
       }
       containsKey(key) {
         if (!(typeof key == 'string'))
@@ -139,11 +139,11 @@ var _js_helper;
         this[_map] = map$;
         super.IterableBase();
       }
-      get iterator() {
-        return this[_map][_keys].iterator;
+      get [core.$iterator]() {
+        return this[_map][_keys][core.$iterator];
       }
-      get length() {
-        return this[_map][_keys].length;
+      get [core.$length]() {
+        return this[_map][_keys][core.$length];
       }
     }
     return _ConstantMapKeyIterable;
@@ -558,9 +558,9 @@ var _js_helper;
       let match = dart.as(regexp.exec(string), core.List);
       if (match == null)
         return null;
-      if (match.get(dart.notNull(match.length) - 1) != null)
+      if (match[core.$get](dart.notNull(match[core.$length]) - 1) != null)
         return null;
-      match.length = 1;
+      match[core.$length] = 1;
       return new _MatchImplementation(this, dart.as(match, core.List$(core.String)));
     }
     matchAsPrefix(string, start) {
@@ -594,21 +594,21 @@ var _js_helper;
       return this[_match].index;
     }
     get end() {
-      return dart.notNull(this.start) + dart.notNull(this[_match].get(0).length);
+      return dart.notNull(this.start) + dart.notNull(this[_match][core.$get](0).length);
     }
     group(index) {
-      return this[_match].get(index);
+      return this[_match][core.$get](index);
     }
     get(index) {
       return this.group(index);
     }
     get groupCount() {
-      return dart.notNull(this[_match].length) - 1;
+      return dart.notNull(this[_match][core.$length]) - 1;
     }
     groups(groups) {
       let out = dart.as(new core.List.from([]), core.List$(core.String));
       for (let i of groups) {
-        out.add(this.group(i));
+        out[core.$add](this.group(i));
       }
       return out;
     }
@@ -624,7 +624,7 @@ var _js_helper;
       this[_start] = start$;
       super.IterableBase();
     }
-    get iterator() {
+    get [core.$iterator]() {
       return new _AllMatchesIterator(this[_re], this[_string], this[_start]);
     }
   }
@@ -645,7 +645,7 @@ var _js_helper;
       if (this[_string] == null)
         return false;
       if (dart.notNull(this[_nextIndex]) <= dart.notNull(this[_string].length)) {
-        let match = this[_regExp]._execGlobal(this[_string], this[_nextIndex]);
+        let match = this[_regExp][_execGlobal](this[_string], this[_nextIndex]);
         if (match != null) {
           this[_current] = match;
           let nextIndex = match.end;
@@ -664,7 +664,7 @@ var _js_helper;
   _AllMatchesIterator[dart.implements] = () => [core.Iterator$(core.Match)];
   // Function firstMatchAfter: (JSSyntaxRegExp, String, int) → Match
   function firstMatchAfter(regExp, string, start) {
-    return regExp._execGlobal(string, start);
+    return regExp[_execGlobal](string, start);
   }
   class StringMatch extends core.Object {
     StringMatch(start, input, pattern) {
@@ -690,7 +690,7 @@ var _js_helper;
     groups(groups_) {
       let result = new (core.List$(core.String))();
       for (let g of groups_) {
-        result.add(this.group(g));
+        result[core.$add](this.group(g));
       }
       return result;
     }
@@ -706,7 +706,7 @@ var _js_helper;
       if (position == -1) {
         break;
       }
-      result.add(new StringMatch(position, haystack, needle));
+      result[core.$add](new StringMatch(position, haystack, needle));
       let endIndex = dart.notNull(position) + dart.notNull(patternLength);
       if (endIndex == length) {
         break;
@@ -1206,8 +1206,8 @@ var _js_helper;
     dart.assert(isJsObject(s));
     dart.assert(isJsObject(t));
     let names = _interceptors.JSArray.markFixedList(dart.as(Object.getOwnPropertyNames(t), core.List));
-    for (let i = 0; dart.notNull(i) < dart.notNull(names.length); i = dart.notNull(i) + 1) {
-      let name = names.get(i);
+    for (let i = 0; dart.notNull(i) < dart.notNull(names[core.$length]); i = dart.notNull(i) + 1) {
+      let name = names[core.$get](i);
       if (!Object.hasOwnProperty.call(s, name)) {
         return false;
       }
@@ -1416,7 +1416,7 @@ var _js_helper;
       let name = dart.as(this[_memberName], core.String);
       let unmangledName = _js_names.mangledNames.get(name);
       if (unmangledName != null) {
-        name = unmangledName.split(':').get(0);
+        name = unmangledName.split(':')[core.$get](0);
       } else {
         if (_js_names.mangledNames.get(this[_internalName]) == null) {
           core.print(`Warning: '${name}' is used reflectively but not in MirrorsUsed. ` + "This will break minified code.");
@@ -1440,25 +1440,25 @@ var _js_helper;
     get positionalArguments() {
       if (this.isGetter)
         return /* Unimplemented const */new core.List.from([]);
-      let argumentCount = dart.notNull(this[_arguments].length) - dart.notNull(this[_namedArgumentNames].length);
+      let argumentCount = dart.notNull(this[_arguments][core.$length]) - dart.notNull(this[_namedArgumentNames][core.$length]);
       if (argumentCount == 0)
         return /* Unimplemented const */new core.List.from([]);
       let list = new core.List.from([]);
       for (let index = 0; dart.notNull(index) < dart.notNull(argumentCount); index = dart.notNull(index) + 1) {
-        list.add(this[_arguments].get(index));
+        list[core.$add](this[_arguments][core.$get](index));
       }
       return dart.as(makeLiteralListConst(list), core.List);
     }
     get namedArguments() {
       if (this.isAccessor)
         return dart.map();
-      let namedArgumentCount = this[_namedArgumentNames].length;
-      let namedArgumentsStartIndex = dart.notNull(this[_arguments].length) - dart.notNull(namedArgumentCount);
+      let namedArgumentCount = this[_namedArgumentNames][core.$length];
+      let namedArgumentsStartIndex = dart.notNull(this[_arguments][core.$length]) - dart.notNull(namedArgumentCount);
       if (namedArgumentCount == 0)
         return dart.map();
       let map = new (core.Map$(core.Symbol, dynamic))();
       for (let i = 0; dart.notNull(i) < dart.notNull(namedArgumentCount); i = dart.notNull(i) + 1) {
-        map.set(new _internal.Symbol.unvalidated(dart.as(this[_namedArgumentNames].get(i), core.String)), this[_arguments].get(dart.notNull(namedArgumentsStartIndex) + dart.notNull(i)));
+        map.set(new _internal.Symbol.unvalidated(dart.as(this[_namedArgumentNames][core.$get](i), core.String)), this[_arguments][core.$get](dart.notNull(namedArgumentsStartIndex) + dart.notNull(i)));
       }
       return map;
     }
@@ -1505,7 +1505,7 @@ var _js_helper;
       }
     }
     static invokeFromMirror(invocation, victim) {
-      let cached = invocation._getCachedInvocation(victim);
+      let cached = invocation[_getCachedInvocation](victim);
       if (dart.dload(cached, 'isNoSuchMethod')) {
         return dart.dinvoke(cached, 'invokeOn', victim, invocation);
       } else {
@@ -1513,7 +1513,7 @@ var _js_helper;
       }
     }
     static getCachedInvocation(invocation, victim) {
-      return invocation._getCachedInvocation(victim);
+      return invocation[_getCachedInvocation](victim);
     }
   }
   JSInvocationMirror[dart.implements] = () => [core.Invocation];
@@ -1540,7 +1540,7 @@ var _js_helper;
           arguments$ = new core.List.from(arguments$);
       } else {
         arguments$ = new core.List.from([victim]);
-        arguments$.addAll(arguments$);
+        arguments$[core.$addAll](arguments$);
         if (this.cachedInterceptor != null)
           receiver = this.cachedInterceptor;
       }
@@ -1561,30 +1561,30 @@ var _js_helper;
       let fullParameterCount = dart.notNull(this.info.requiredParameterCount) + dart.notNull(this.info.optionalParameterCount);
       if (!dart.notNull(this.isIntercepted)) {
         if (dart.is(arguments$, _interceptors.JSArray)) {
-          providedArgumentCount = arguments$.length;
+          providedArgumentCount = arguments$[core.$length];
           if (dart.notNull(providedArgumentCount) < dart.notNull(fullParameterCount)) {
             arguments$ = new core.List.from(arguments$);
           }
         } else {
           arguments$ = new core.List.from(arguments$);
-          providedArgumentCount = arguments$.length;
+          providedArgumentCount = arguments$[core.$length];
         }
       } else {
         arguments$ = new core.List.from([victim]);
-        arguments$.addAll(arguments$);
+        arguments$[core.$addAll](arguments$);
         if (this.cachedInterceptor != null)
           receiver = this.cachedInterceptor;
-        providedArgumentCount = dart.notNull(arguments$.length) - 1;
+        providedArgumentCount = dart.notNull(arguments$[core.$length]) - 1;
       }
       if (dart.notNull(this.info.areOptionalParametersNamed) && dart.notNull(providedArgumentCount) > dart.notNull(this.info.requiredParameterCount)) {
-        throw new UnimplementedNoSuchMethodError(`Invocation of unstubbed method '${this.info.reflectionName}'` + ` with ${arguments$.length} arguments.`);
+        throw new UnimplementedNoSuchMethodError(`Invocation of unstubbed method '${this.info.reflectionName}'` + ` with ${arguments$[core.$length]} arguments.`);
       } else if (dart.notNull(providedArgumentCount) < dart.notNull(this.info.requiredParameterCount)) {
         throw new UnimplementedNoSuchMethodError(`Invocation of unstubbed method '${this.info.reflectionName}'` + ` with ${providedArgumentCount} arguments (too few).`);
       } else if (dart.notNull(providedArgumentCount) > dart.notNull(fullParameterCount)) {
         throw new UnimplementedNoSuchMethodError(`Invocation of unstubbed method '${this.info.reflectionName}'` + ` with ${providedArgumentCount} arguments (too many).`);
       }
       for (let i = providedArgumentCount; dart.notNull(i) < dart.notNull(fullParameterCount); i = dart.notNull(i) + 1) {
-        arguments$.add(getMetadata(this.info.defaultValue(i)));
+        arguments$[core.$add](getMetadata(this.info.defaultValue(i)));
       }
       return this.jsFunction.apply(receiver, arguments$);
     }
@@ -1679,13 +1679,13 @@ var _js_helper;
         }
         let index = 0;
         ((_$) => {
-          _$.sort();
+          _$[core.$sort]();
           return _$;
-        })(positions.keys.toList()).forEach(((name) => {
-          this.cachedSortedIndices.set(((x$) => index = dart.notNull(x$) + 1, x$)(index), positions.get(name));
+        })(positions.keys[core.$toList]())[core.$forEach](((name) => {
+          this.cachedSortedIndices[core.$set](((x$) => index = dart.notNull(x$) + 1, x$)(index), positions.get(name));
         }).bind(this));
       }
-      return dart.as(this.cachedSortedIndices.get(unsortedIndex), core.int);
+      return dart.as(this.cachedSortedIndices[core.$get](unsortedIndex), core.int);
     }
     computeFunctionRti(jsConstructor) {
       if (typeof this.functionType == "number") {
@@ -1856,7 +1856,7 @@ var _js_helper;
     static [_fromCharCodeApply](array) {
       let result = "";
       let kMaxApply = 500;
-      let end = array.length;
+      let end = array[core.$length];
       for (let i = 0; dart.notNull(i) < dart.notNull(end); i = kMaxApply) {
         let subarray = null;
         if (dart.notNull(end) <= dart.notNull(kMaxApply)) {
@@ -1874,10 +1874,10 @@ var _js_helper;
         if (!(typeof i == 'number'))
           throw new core.ArgumentError(i);
         if (dart.dbinary(i, '<=', 65535)) {
-          a.add(dart.as(i, core.int));
+          a[core.$add](dart.as(i, core.int));
         } else if (dart.dbinary(i, '<=', 1114111)) {
-          a.add(55296['+'](dart.dbinary(dart.dbinary(dart.dbinary(i, '-', 65536), '>>', 10), '&', 1023)));
-          a.add(56320['+'](dart.dbinary(i, '&', 1023)));
+          a[core.$add](55296['+'](dart.dbinary(dart.dbinary(dart.dbinary(i, '-', 65536), '>>', 10), '&', 1023)));
+          a[core.$add](56320['+'](dart.dbinary(i, '&', 1023)));
         } else {
           throw new core.ArgumentError(i);
         }
@@ -1919,13 +1919,13 @@ var _js_helper;
       let d = Primitives.lazyAsJsDate(receiver);
       let match = dart.as(/\((.*)\)/.exec(d.toString()), core.List);
       if (match != null)
-        return dart.as(match.get(1), core.String);
+        return dart.as(match[core.$get](1), core.String);
       match = dart.as(/^[A-Z,a-z]{3}\s[A-Z,a-z]{3}\s\d+\s\d{2}:\d{2}:\d{2}\s([A-Z]{3,5})\s\d{4}$/.exec(d.toString()), core.List);
       if (match != null)
-        return dart.as(match.get(1), core.String);
+        return dart.as(match[core.$get](1), core.String);
       match = dart.as(/(?:GMT|UTC)[+-]\d{4}/.exec(d.toString()), core.List);
       if (match != null)
-        return dart.as(match.get(0), core.String);
+        return dart.as(match[core.$get](0), core.String);
       return "";
     }
     static getTimeZoneOffsetInMinutes(receiver) {
@@ -2020,15 +2020,15 @@ var _js_helper;
       let arguments$ = new core.List.from([]);
       let namedArgumentList = new core.List.from([]);
       if (positionalArguments != null) {
-        argumentCount = positionalArguments.length;
-        arguments$.addAll(positionalArguments);
+        argumentCount = positionalArguments[core.$length];
+        arguments$[core.$addAll](positionalArguments);
       }
       let names = '';
       if (dart.notNull(namedArguments != null) && !dart.notNull(namedArguments.isEmpty)) {
         namedArguments.forEach((name, argument) => {
           names = `${names}$${name}`;
-          namedArgumentList.add(name);
-          arguments$.add(argument);
+          namedArgumentList[core.$add](name);
+          arguments$[core.$add](argument);
           argumentCount = dart.notNull(argumentCount) + 1;
         });
       }
@@ -2076,7 +2076,7 @@ var _js_helper;
       } else {
         positionalArguments = new core.List.from([]);
       }
-      if (info.requiredParameterCount != positionalArguments.length) {
+      if (info.requiredParameterCount != positionalArguments[core.$length]) {
         return Primitives.functionNoSuchMethod(func, positionalArguments, namedArguments);
       }
       let defaultArguments = new core.Map();
@@ -2098,7 +2098,7 @@ var _js_helper;
       if (bad) {
         return Primitives.functionNoSuchMethod(func, positionalArguments, namedArguments);
       }
-      positionalArguments.addAll(defaultArguments.values);
+      positionalArguments[core.$addAll](defaultArguments.values);
       return jsFunction.apply(func, positionalArguments);
     }
     static [_mangledNameMatchesType](mangledName, type) {
@@ -2624,8 +2624,8 @@ var _js_helper;
       }
       prototype[_foreign_helper.JS_SIGNATURE_NAME()] = signatureFunction;
       prototype[callName] = trampoline;
-      for (let i = 1; dart.notNull(i) < dart.notNull(functions.length); i = dart.notNull(i) + 1) {
-        let stub = functions.get(i);
+      for (let i = 1; dart.notNull(i) < dart.notNull(functions[core.$length]); i = dart.notNull(i) + 1) {
+        let stub = functions[core.$get](i);
         let stubCallName = stub.$callName;
         if (stubCallName != null) {
           prototype[stubCallName] = isStatic ? stub : Closure.forwardCallTo(receiver, stub, isIntercepted);
@@ -2878,8 +2878,8 @@ var _js_helper;
     static computeFieldNamed(fieldName) {
       let template = new BoundClosure('self', 'target', 'receiver', 'name');
       let names = _interceptors.JSArray.markFixedList(dart.as(Object.getOwnPropertyNames(template), core.List));
-      for (let i = 0; dart.notNull(i) < dart.notNull(names.length); i = dart.notNull(i) + 1) {
-        let name = names.get(i);
+      for (let i = 0; dart.notNull(i) < dart.notNull(names[core.$length]); i = dart.notNull(i) + 1) {
+        let name = names[core.$get](i);
         if (template[name] === fieldName) {
           return name;
         }
@@ -3174,7 +3174,7 @@ var _js_helper;
   }
   // Function checkDeferredIsLoaded: (String, String) → void
   function checkDeferredIsLoaded(loadId, uri) {
-    if (!dart.notNull(exports._loadedLibraries.contains(loadId))) {
+    if (!dart.notNull(exports._loadedLibraries[core.$contains](loadId))) {
       throw new DeferredNotLoadedError(uri);
     }
   }
@@ -3326,17 +3326,17 @@ var _js_helper;
           result[_foreign_helper.JS_FUNCTION_TYPE_RETURN_TYPE_TAG()] = this.returnType.toRti();
         }
       }
-      if (dart.notNull(this.parameterTypes != null) && !dart.notNull(this.parameterTypes.isEmpty)) {
+      if (dart.notNull(this.parameterTypes != null) && !dart.notNull(this.parameterTypes[core.$isEmpty])) {
         result[_foreign_helper.JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG()] = RuntimeFunctionType.listToRti(this.parameterTypes);
       }
-      if (dart.notNull(this.optionalParameterTypes != null) && !dart.notNull(this.optionalParameterTypes.isEmpty)) {
+      if (dart.notNull(this.optionalParameterTypes != null) && !dart.notNull(this.optionalParameterTypes[core.$isEmpty])) {
         result[_foreign_helper.JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG()] = RuntimeFunctionType.listToRti(this.optionalParameterTypes);
       }
       if (this.namedParameters != null) {
         let namedRti = Object.create(null);
         let keys = _js_names.extractKeys(this.namedParameters);
-        for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
-          let name = keys.get(i);
+        for (let i = 0; dart.notNull(i) < dart.notNull(keys[core.$length]); i = dart.notNull(i) + 1) {
+          let name = keys[core.$get](i);
           let rti = dart.dinvoke(this.namedParameters[name], 'toRti');
           namedRti[name] = rti;
         }
@@ -3356,21 +3356,21 @@ var _js_helper;
       let result = '(';
       let needsComma = false;
       if (this.parameterTypes != null) {
-        for (let i = 0; dart.notNull(i) < dart.notNull(this.parameterTypes.length); i = dart.notNull(i) + 1) {
-          let type = this.parameterTypes.get(i);
+        for (let i = 0; dart.notNull(i) < dart.notNull(this.parameterTypes[core.$length]); i = dart.notNull(i) + 1) {
+          let type = this.parameterTypes[core.$get](i);
           if (needsComma)
             result = ', ';
           result = `${type}`;
           needsComma = true;
         }
       }
-      if (dart.notNull(this.optionalParameterTypes != null) && !dart.notNull(this.optionalParameterTypes.isEmpty)) {
+      if (dart.notNull(this.optionalParameterTypes != null) && !dart.notNull(this.optionalParameterTypes[core.$isEmpty])) {
         if (needsComma)
           result = ', ';
         needsComma = false;
         result = '[';
-        for (let i = 0; dart.notNull(i) < dart.notNull(this.optionalParameterTypes.length); i = dart.notNull(i) + 1) {
-          let type = this.optionalParameterTypes.get(i);
+        for (let i = 0; dart.notNull(i) < dart.notNull(this.optionalParameterTypes[core.$length]); i = dart.notNull(i) + 1) {
+          let type = this.optionalParameterTypes[core.$get](i);
           if (needsComma)
             result = ', ';
           result = `${type}`;
@@ -3383,8 +3383,8 @@ var _js_helper;
         needsComma = false;
         result = '{';
         let keys = _js_names.extractKeys(this.namedParameters);
-        for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
-          let name = keys.get(i);
+        for (let i = 0; dart.notNull(i) < dart.notNull(keys[core.$length]); i = dart.notNull(i) + 1) {
+          let name = keys[core.$get](i);
           if (needsComma)
             result = ', ';
           let rti = dart.dinvoke(this.namedParameters[name], 'toRti');
@@ -3470,10 +3470,10 @@ var _js_helper;
       return new RuntimeTypePlain(rti.name);
     } else if (rti.constructor == Array) {
       let list = dart.as(rti, core.List);
-      let name = list.get(0).name;
+      let name = list[core.$get](0).name;
       let arguments$ = new core.List.from([]);
-      for (let i = 1; dart.notNull(i) < dart.notNull(list.length); i = dart.notNull(i) + 1) {
-        arguments$.add(convertRtiToRuntimeType(list.get(i)));
+      for (let i = 1; dart.notNull(i) < dart.notNull(list[core.$length]); i = dart.notNull(i) + 1) {
+        arguments$[core.$add](convertRtiToRuntimeType(list[core.$get](i)));
       }
       return new RuntimeTypeGeneric(name, dart.as(arguments$, core.List$(RuntimeType)), rti);
     } else if ("func" in rti) {
@@ -3519,7 +3519,7 @@ var _js_helper;
       return this.rti = result;
     }
     toString() {
-      return `${this.name}<${this.arguments.join(", ")}>`;
+      return `${this.name}<${this.arguments[core.$join](", ")}>`;
     }
   }
   let _typeData = Symbol('_typeData');
@@ -3670,15 +3670,15 @@ var _js_helper;
     let hashes = dart.as(hashesMap[loadId], core.List$(core.String));
     if (uris == null)
       return dart.as(new async.Future.value(null), async.Future$(core.Null));
-    let indices = new core.List.generate(uris.length, dart.as((i) => i, dart.throw_("Unimplemented type (int) → dynamic")));
+    let indices = new core.List.generate(uris[core.$length], dart.as((i) => i, dart.throw_("Unimplemented type (int) → dynamic")));
     let isHunkLoaded = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.IS_HUNK_LOADED);
     let isHunkInitialized = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.IS_HUNK_INITIALIZED);
-    let indicesToLoad = indices.where((i) => !isHunkLoaded(hashes.get(i))).toList();
-    return dart.as(async.Future.wait(dart.as(indicesToLoad.map((i) => _loadHunk(uris.get(i))), core.Iterable$(async.Future))).then(dart.as((_) => {
-      let indicesToInitialize = indices.where((i) => !isHunkInitialized(hashes.get(i))).toList();
+    let indicesToLoad = indices[core.$where]((i) => !isHunkLoaded(hashes[core.$get](i)))[core.$toList]();
+    return dart.as(async.Future.wait(dart.as(indicesToLoad[core.$map]((i) => _loadHunk(uris[core.$get](i))), core.Iterable$(async.Future))).then(dart.as((_) => {
+      let indicesToInitialize = indices[core.$where]((i) => !isHunkInitialized(hashes[core.$get](i)))[core.$toList]();
       for (let i of indicesToInitialize) {
         let initializer = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.INITIALIZE_LOADED_HUNK);
-        initializer(hashes.get(i));
+        initializer(hashes[core.$get](i));
       }
       let updated = exports._loadedLibraries.add(loadId);
       if (dart.notNull(updated) && dart.notNull(exports.deferredLoadHook != null)) {

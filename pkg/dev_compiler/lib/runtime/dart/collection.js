@@ -8,11 +8,11 @@ var collection;
         this[_source] = source;
         super.UnmodifiableListBase();
       }
-      get length() {
-        return this[_source].length;
+      get [core.$length]() {
+        return this[_source][core.$length];
       }
-      get(index) {
-        return this[_source].elementAt(index);
+      [core.$get](index) {
+        return this[_source][core.$elementAt](index);
       }
     }
     return UnmodifiableListView;
@@ -36,6 +36,8 @@ var collection;
     return _Hasher;
   });
   let _Hasher = _Hasher$();
+  let _fillMapWithMappedIterable = Symbol('_fillMapWithMappedIterable');
+  let _fillMapWithIterables = Symbol('_fillMapWithIterables');
   let HashMap$ = dart.generic(function(K, V) {
     class HashMap extends core.Object {
       HashMap(opts) {
@@ -80,12 +82,12 @@ var collection;
         let key = opts && 'key' in opts ? opts.key : null;
         let value = opts && 'value' in opts ? opts.value : null;
         let map = new (HashMap$(K, V))();
-        Maps._fillMapWithMappedIterable(map, iterable, key, value);
+        Maps[_fillMapWithMappedIterable](map, iterable, key, value);
         return map;
       }
       fromIterables(keys, values) {
         let map = new (HashMap$(K, V))();
-        Maps._fillMapWithIterables(map, keys, values);
+        Maps[_fillMapWithIterables](map, keys, values);
         return map;
       }
     }
@@ -100,10 +102,10 @@ var collection;
   let _newSet = Symbol('_newSet');
   let SetMixin$ = dart.generic(function(E) {
     class SetMixin extends core.Object {
-      get isEmpty() {
+      get [core.$isEmpty]() {
         return this.length == 0;
       }
-      get isNotEmpty() {
+      get [core.$isNotEmpty]() {
         return this.length != 0;
       }
       clear() {
@@ -128,7 +130,7 @@ var collection;
         let toRemove = new core.List.from([]);
         for (let element of this) {
           if (test(element))
-            toRemove.add(element);
+            toRemove[core.$add](element);
         }
         this.removeAll(toRemove);
       }
@@ -136,7 +138,7 @@ var collection;
         let toRemove = new core.List.from([]);
         for (let element of this) {
           if (!dart.notNull(test(element)))
-            toRemove.add(element);
+            toRemove[core.$add](element);
         }
         this.removeAll(toRemove);
       }
@@ -156,7 +158,7 @@ var collection;
       intersection(other) {
         let result = this.toSet();
         for (let element of this) {
-          if (!dart.notNull(other.contains(element)))
+          if (!dart.notNull(other[core.$contains](element)))
             result.remove(element);
         }
         return result;
@@ -164,26 +166,26 @@ var collection;
       difference(other) {
         let result = this.toSet();
         for (let element of this) {
-          if (other.contains(element))
+          if (other[core.$contains](element))
             result.remove(element);
         }
         return result;
       }
-      toList(opts) {
+      [core.$toList](opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
         let result = growable ? ((_) => {
-          _.length = this.length;
+          _[core.$length] = this.length;
           return _;
         }).bind(this)(new (core.List$(E))()) : new (core.List$(E))(this.length);
         let i = 0;
         for (let element of this)
-          result.set(((x$) => i = dart.notNull(x$) + 1, x$)(i), element);
+          result[core.$set](((x$) => i = dart.notNull(x$) + 1, x$)(i), element);
         return result;
       }
-      map(f) {
+      [core.$map](f) {
         return new (_internal.EfficientLengthMappedIterable$(E, dynamic))(this, f);
       }
-      get single() {
+      get [core.$single]() {
         if (dart.notNull(this.length) > 1)
           throw _internal.IterableElementError.tooMany();
         let it = this.iterator;
@@ -195,18 +197,18 @@ var collection;
       toString() {
         return IterableBase.iterableToFullString(this, '{', '}');
       }
-      where(f) {
+      [core.$where](f) {
         return new (_internal.WhereIterable$(E))(this, f);
       }
-      expand(f) {
+      [core.$expand](f) {
         return new (_internal.ExpandIterable$(E, dynamic))(this, f);
       }
-      forEach(f) {
+      [core.$forEach](f) {
         for (let element of this)
           f(element);
       }
-      reduce(combine) {
-        let iterator = this.iterator;
+      [core.$reduce](combine) {
+        let iterator = this[core.$iterator];
         if (!dart.notNull(iterator.moveNext())) {
           throw _internal.IterableElementError.noElement();
         }
@@ -216,23 +218,23 @@ var collection;
         }
         return value;
       }
-      fold(initialValue, combine) {
+      [core.$fold](initialValue, combine) {
         let value = initialValue;
         for (let element of this)
           value = dart.dinvokef(combine, value, element);
         return value;
       }
-      every(f) {
+      [core.$every](f) {
         for (let element of this) {
           if (!dart.notNull(f(element)))
             return false;
         }
         return true;
       }
-      join(separator) {
+      [core.$join](separator) {
         if (separator === void 0)
           separator = "";
-        let iterator = this.iterator;
+        let iterator = this[core.$iterator];
         if (!dart.notNull(iterator.moveNext()))
           return "";
         let buffer = new core.StringBuffer();
@@ -249,33 +251,33 @@ var collection;
         }
         return buffer.toString();
       }
-      any(test) {
+      [core.$any](test) {
         for (let element of this) {
           if (test(element))
             return true;
         }
         return false;
       }
-      take(n) {
+      [core.$take](n) {
         return new (_internal.TakeIterable$(E))(this, n);
       }
-      takeWhile(test) {
+      [core.$takeWhile](test) {
         return new (_internal.TakeWhileIterable$(E))(this, test);
       }
-      skip(n) {
+      [core.$skip](n) {
         return new (_internal.SkipIterable$(E))(this, n);
       }
-      skipWhile(test) {
+      [core.$skipWhile](test) {
         return new (_internal.SkipWhileIterable$(E))(this, test);
       }
-      get first() {
+      get [core.$first]() {
         let it = this.iterator;
         if (!dart.notNull(it.moveNext())) {
           throw _internal.IterableElementError.noElement();
         }
         return dart.as(it.current, E);
       }
-      get last() {
+      get [core.$last]() {
         let it = this.iterator;
         if (!dart.notNull(it.moveNext())) {
           throw _internal.IterableElementError.noElement();
@@ -286,7 +288,7 @@ var collection;
         } while (it.moveNext());
         return result;
       }
-      firstWhere(test, opts) {
+      [core.$firstWhere](test, opts) {
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         for (let element of this) {
           if (test(element))
@@ -296,7 +298,7 @@ var collection;
           return orElse();
         throw _internal.IterableElementError.noElement();
       }
-      lastWhere(test, opts) {
+      [core.$lastWhere](test, opts) {
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         let result = null;
         let foundMatching = false;
@@ -312,7 +314,7 @@ var collection;
           return orElse();
         throw _internal.IterableElementError.noElement();
       }
-      singleWhere(test) {
+      [core.$singleWhere](test) {
         let result = null;
         let foundMatching = false;
         for (let element of this) {
@@ -328,7 +330,7 @@ var collection;
           return result;
         throw _internal.IterableElementError.noElement();
       }
-      elementAt(index) {
+      [core.$elementAt](index) {
         if (!(typeof index == 'number'))
           throw new core.ArgumentError.notNull("index");
         core.RangeError.checkNotNegative(index, "index");
@@ -359,7 +361,7 @@ var collection;
       difference(other) {
         let result = this[_newSet]();
         for (let element of this) {
-          if (!dart.notNull(other.contains(element)))
+          if (!dart.notNull(other[core.$contains](element)))
             result.add(element);
         }
         return result;
@@ -367,12 +369,12 @@ var collection;
       intersection(other) {
         let result = this[_newSet]();
         for (let element of this) {
-          if (other.contains(element))
+          if (other[core.$contains](element))
             result.add(element);
         }
         return result;
       }
-      toSet() {
+      [core.$toSet]() {
         return ((_) => {
           _.addAll(this);
           return _;
@@ -430,28 +432,28 @@ var collection;
   let HashSet = HashSet$();
   let IterableMixin$ = dart.generic(function(E) {
     class IterableMixin extends core.Object {
-      map(f) {
+      [core.$map](f) {
         return new (_internal.MappedIterable$(E, dynamic))(this, f);
       }
-      where(f) {
+      [core.$where](f) {
         return new (_internal.WhereIterable$(E))(this, f);
       }
-      expand(f) {
+      [core.$expand](f) {
         return new (_internal.ExpandIterable$(E, dynamic))(this, f);
       }
-      contains(element) {
+      [core.$contains](element) {
         for (let e of this) {
           if (dart.equals(e, element))
             return true;
         }
         return false;
       }
-      forEach(f) {
+      [core.$forEach](f) {
         for (let element of this)
           f(element);
       }
-      reduce(combine) {
-        let iterator = this.iterator;
+      [core.$reduce](combine) {
+        let iterator = this[core.$iterator];
         if (!dart.notNull(iterator.moveNext())) {
           throw _internal.IterableElementError.noElement();
         }
@@ -461,23 +463,23 @@ var collection;
         }
         return value;
       }
-      fold(initialValue, combine) {
+      [core.$fold](initialValue, combine) {
         let value = initialValue;
         for (let element of this)
           value = dart.dinvokef(combine, value, element);
         return value;
       }
-      every(f) {
+      [core.$every](f) {
         for (let element of this) {
           if (!dart.notNull(f(element)))
             return false;
         }
         return true;
       }
-      join(separator) {
+      [core.$join](separator) {
         if (separator === void 0)
           separator = "";
-        let iterator = this.iterator;
+        let iterator = this[core.$iterator];
         if (!dart.notNull(iterator.moveNext()))
           return "";
         let buffer = new core.StringBuffer();
@@ -494,21 +496,21 @@ var collection;
         }
         return buffer.toString();
       }
-      any(f) {
+      [core.$any](f) {
         for (let element of this) {
           if (f(element))
             return true;
         }
         return false;
       }
-      toList(opts) {
+      [core.$toList](opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
         return new core.List$(E).from(this, {growable: growable});
       }
-      toSet() {
+      [core.$toSet]() {
         return new core.Set$(E).from(this);
       }
-      get length() {
+      get [core.$length]() {
         dart.assert(!dart.is(this, _internal.EfficientLength));
         let count = 0;
         let it = this.iterator;
@@ -517,32 +519,32 @@ var collection;
         }
         return count;
       }
-      get isEmpty() {
+      get [core.$isEmpty]() {
         return !dart.notNull(this.iterator.moveNext());
       }
-      get isNotEmpty() {
+      get [core.$isNotEmpty]() {
         return !dart.notNull(this.isEmpty);
       }
-      take(n) {
+      [core.$take](n) {
         return new (_internal.TakeIterable$(E))(this, n);
       }
-      takeWhile(test) {
+      [core.$takeWhile](test) {
         return new (_internal.TakeWhileIterable$(E))(this, test);
       }
-      skip(n) {
+      [core.$skip](n) {
         return new (_internal.SkipIterable$(E))(this, n);
       }
-      skipWhile(test) {
+      [core.$skipWhile](test) {
         return new (_internal.SkipWhileIterable$(E))(this, test);
       }
-      get first() {
+      get [core.$first]() {
         let it = this.iterator;
         if (!dart.notNull(it.moveNext())) {
           throw _internal.IterableElementError.noElement();
         }
         return dart.as(it.current, E);
       }
-      get last() {
+      get [core.$last]() {
         let it = this.iterator;
         if (!dart.notNull(it.moveNext())) {
           throw _internal.IterableElementError.noElement();
@@ -553,7 +555,7 @@ var collection;
         } while (it.moveNext());
         return result;
       }
-      get single() {
+      get [core.$single]() {
         let it = this.iterator;
         if (!dart.notNull(it.moveNext()))
           throw _internal.IterableElementError.noElement();
@@ -562,7 +564,7 @@ var collection;
           throw _internal.IterableElementError.tooMany();
         return result;
       }
-      firstWhere(test, opts) {
+      [core.$firstWhere](test, opts) {
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         for (let element of this) {
           if (test(element))
@@ -572,7 +574,7 @@ var collection;
           return orElse();
         throw _internal.IterableElementError.noElement();
       }
-      lastWhere(test, opts) {
+      [core.$lastWhere](test, opts) {
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         let result = null;
         let foundMatching = false;
@@ -588,7 +590,7 @@ var collection;
           return orElse();
         throw _internal.IterableElementError.noElement();
       }
-      singleWhere(test) {
+      [core.$singleWhere](test) {
         let result = null;
         let foundMatching = false;
         for (let element of this) {
@@ -604,7 +606,7 @@ var collection;
           return result;
         throw _internal.IterableElementError.noElement();
       }
-      elementAt(index) {
+      [core.$elementAt](index) {
         if (!(typeof index == 'number'))
           throw new core.ArgumentError.notNull("index");
         core.RangeError.checkNotNegative(index, "index");
@@ -631,28 +633,28 @@ var collection;
     class IterableBase extends core.Object {
       IterableBase() {
       }
-      map(f) {
+      [core.$map](f) {
         return new (_internal.MappedIterable$(E, dynamic))(this, f);
       }
-      where(f) {
+      [core.$where](f) {
         return new (_internal.WhereIterable$(E))(this, f);
       }
-      expand(f) {
+      [core.$expand](f) {
         return new (_internal.ExpandIterable$(E, dynamic))(this, f);
       }
-      contains(element) {
+      [core.$contains](element) {
         for (let e of this) {
           if (dart.equals(e, element))
             return true;
         }
         return false;
       }
-      forEach(f) {
+      [core.$forEach](f) {
         for (let element of this)
           f(element);
       }
-      reduce(combine) {
-        let iterator = this.iterator;
+      [core.$reduce](combine) {
+        let iterator = this[core.$iterator];
         if (!dart.notNull(iterator.moveNext())) {
           throw _internal.IterableElementError.noElement();
         }
@@ -662,23 +664,23 @@ var collection;
         }
         return value;
       }
-      fold(initialValue, combine) {
+      [core.$fold](initialValue, combine) {
         let value = initialValue;
         for (let element of this)
           value = dart.dinvokef(combine, value, element);
         return value;
       }
-      every(f) {
+      [core.$every](f) {
         for (let element of this) {
           if (!dart.notNull(f(element)))
             return false;
         }
         return true;
       }
-      join(separator) {
+      [core.$join](separator) {
         if (separator === void 0)
           separator = "";
-        let iterator = this.iterator;
+        let iterator = this[core.$iterator];
         if (!dart.notNull(iterator.moveNext()))
           return "";
         let buffer = new core.StringBuffer();
@@ -695,21 +697,21 @@ var collection;
         }
         return buffer.toString();
       }
-      any(f) {
+      [core.$any](f) {
         for (let element of this) {
           if (f(element))
             return true;
         }
         return false;
       }
-      toList(opts) {
+      [core.$toList](opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
         return new core.List$(E).from(this, {growable: growable});
       }
-      toSet() {
+      [core.$toSet]() {
         return new core.Set$(E).from(this);
       }
-      get length() {
+      get [core.$length]() {
         dart.assert(!dart.is(this, _internal.EfficientLength));
         let count = 0;
         let it = this.iterator;
@@ -718,32 +720,32 @@ var collection;
         }
         return count;
       }
-      get isEmpty() {
+      get [core.$isEmpty]() {
         return !dart.notNull(this.iterator.moveNext());
       }
-      get isNotEmpty() {
+      get [core.$isNotEmpty]() {
         return !dart.notNull(this.isEmpty);
       }
-      take(n) {
+      [core.$take](n) {
         return new (_internal.TakeIterable$(E))(this, n);
       }
-      takeWhile(test) {
+      [core.$takeWhile](test) {
         return new (_internal.TakeWhileIterable$(E))(this, test);
       }
-      skip(n) {
+      [core.$skip](n) {
         return new (_internal.SkipIterable$(E))(this, n);
       }
-      skipWhile(test) {
+      [core.$skipWhile](test) {
         return new (_internal.SkipWhileIterable$(E))(this, test);
       }
-      get first() {
+      get [core.$first]() {
         let it = this.iterator;
         if (!dart.notNull(it.moveNext())) {
           throw _internal.IterableElementError.noElement();
         }
         return dart.as(it.current, E);
       }
-      get last() {
+      get [core.$last]() {
         let it = this.iterator;
         if (!dart.notNull(it.moveNext())) {
           throw _internal.IterableElementError.noElement();
@@ -754,7 +756,7 @@ var collection;
         } while (it.moveNext());
         return result;
       }
-      get single() {
+      get [core.$single]() {
         let it = this.iterator;
         if (!dart.notNull(it.moveNext()))
           throw _internal.IterableElementError.noElement();
@@ -763,7 +765,7 @@ var collection;
           throw _internal.IterableElementError.tooMany();
         return result;
       }
-      firstWhere(test, opts) {
+      [core.$firstWhere](test, opts) {
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         for (let element of this) {
           if (test(element))
@@ -773,7 +775,7 @@ var collection;
           return orElse();
         throw _internal.IterableElementError.noElement();
       }
-      lastWhere(test, opts) {
+      [core.$lastWhere](test, opts) {
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         let result = null;
         let foundMatching = false;
@@ -789,7 +791,7 @@ var collection;
           return orElse();
         throw _internal.IterableElementError.noElement();
       }
-      singleWhere(test) {
+      [core.$singleWhere](test) {
         let result = null;
         let foundMatching = false;
         for (let element of this) {
@@ -805,7 +807,7 @@ var collection;
           return result;
         throw _internal.IterableElementError.noElement();
       }
-      elementAt(index) {
+      [core.$elementAt](index) {
         if (!(typeof index == 'number'))
           throw new core.ArgumentError.notNull("index");
         core.RangeError.checkNotNegative(index, "index");
@@ -832,12 +834,12 @@ var collection;
           return `${leftDelimiter}...${rightDelimiter}`;
         }
         let parts = new core.List.from([]);
-        IterableBase[_toStringVisiting].add(iterable);
+        IterableBase[_toStringVisiting][core.$add](iterable);
         try {
           IterableBase[_iterablePartsToStrings](iterable, parts);
         } finally {
-          dart.assert(core.identical(IterableBase[_toStringVisiting].last, iterable));
-          IterableBase[_toStringVisiting].removeLast();
+          dart.assert(core.identical(IterableBase[_toStringVisiting][core.$last], iterable));
+          IterableBase[_toStringVisiting][core.$removeLast]();
         }
         return ((_) => {
           _.writeAll(parts, ", ");
@@ -854,19 +856,19 @@ var collection;
           return `${leftDelimiter}...${rightDelimiter}`;
         }
         let buffer = new core.StringBuffer(leftDelimiter);
-        IterableBase[_toStringVisiting].add(iterable);
+        IterableBase[_toStringVisiting][core.$add](iterable);
         try {
           buffer.writeAll(iterable, ", ");
         } finally {
-          dart.assert(core.identical(IterableBase[_toStringVisiting].last, iterable));
-          IterableBase[_toStringVisiting].removeLast();
+          dart.assert(core.identical(IterableBase[_toStringVisiting][core.$last], iterable));
+          IterableBase[_toStringVisiting][core.$removeLast]();
         }
         buffer.write(rightDelimiter);
         return buffer.toString();
       }
       static [_isToStringVisiting](o) {
-        for (let i = 0; dart.notNull(i) < dart.notNull(IterableBase[_toStringVisiting].length); i = dart.notNull(i) + 1) {
-          if (core.identical(o, IterableBase[_toStringVisiting].get(i)))
+        for (let i = 0; dart.notNull(i) < dart.notNull(IterableBase[_toStringVisiting][core.$length]); i = dart.notNull(i) + 1) {
+          if (core.identical(o, IterableBase[_toStringVisiting][core.$get](i)))
             return true;
         }
         return false;
@@ -880,12 +882,12 @@ var collection;
         let ELLIPSIS_SIZE = 3;
         let length = 0;
         let count = 0;
-        let it = iterable.iterator;
+        let it = iterable[core.$iterator];
         while (dart.notNull(length) < dart.notNull(LENGTH_LIMIT) || dart.notNull(count) < dart.notNull(HEAD_COUNT)) {
           if (!dart.notNull(it.moveNext()))
             return;
           let next = `${it.current}`;
-          parts.add(next);
+          parts[core.$add](next);
           length = dart.notNull(next.length) + dart.notNull(OVERHEAD);
           count = dart.notNull(count) + 1;
         }
@@ -896,18 +898,18 @@ var collection;
         if (!dart.notNull(it.moveNext())) {
           if (dart.notNull(count) <= dart.notNull(HEAD_COUNT) + dart.notNull(TAIL_COUNT))
             return;
-          ultimateString = dart.as(parts.removeLast(), core.String);
-          penultimateString = dart.as(parts.removeLast(), core.String);
+          ultimateString = dart.as(parts[core.$removeLast](), core.String);
+          penultimateString = dart.as(parts[core.$removeLast](), core.String);
         } else {
           penultimate = it.current;
           count = dart.notNull(count) + 1;
           if (!dart.notNull(it.moveNext())) {
             if (dart.notNull(count) <= dart.notNull(HEAD_COUNT) + 1) {
-              parts.add(`${penultimate}`);
+              parts[core.$add](`${penultimate}`);
               return;
             }
             ultimateString = `${penultimate}`;
-            penultimateString = dart.as(parts.removeLast(), core.String);
+            penultimateString = dart.as(parts[core.$removeLast](), core.String);
             length = dart.notNull(ultimateString.length) + dart.notNull(OVERHEAD);
           } else {
             ultimate = it.current;
@@ -919,10 +921,10 @@ var collection;
               count = dart.notNull(count) + 1;
               if (dart.notNull(count) > dart.notNull(MAX_COUNT)) {
                 while (dart.notNull(length) > dart.notNull(LENGTH_LIMIT) - dart.notNull(ELLIPSIS_SIZE) - dart.notNull(OVERHEAD) && dart.notNull(count) > dart.notNull(HEAD_COUNT)) {
-                  length = dart.as(dart.dbinary(dart.dload(parts.removeLast(), 'length'), '+', OVERHEAD), core.int);
+                  length = dart.as(dart.dbinary(dart.dload(parts[core.$removeLast](), 'length'), '+', OVERHEAD), core.int);
                   count = dart.notNull(count) - 1;
                 }
-                parts.add("...");
+                parts[core.$add]("...");
                 return;
               }
             }
@@ -932,22 +934,22 @@ var collection;
           }
         }
         let elision = null;
-        if (dart.notNull(count) > dart.notNull(parts.length) + dart.notNull(TAIL_COUNT)) {
+        if (dart.notNull(count) > dart.notNull(parts[core.$length]) + dart.notNull(TAIL_COUNT)) {
           elision = "...";
           length = dart.notNull(ELLIPSIS_SIZE) + dart.notNull(OVERHEAD);
         }
-        while (dart.notNull(length) > dart.notNull(LENGTH_LIMIT) && dart.notNull(parts.length) > dart.notNull(HEAD_COUNT)) {
-          length = dart.as(dart.dbinary(dart.dload(parts.removeLast(), 'length'), '+', OVERHEAD), core.int);
+        while (dart.notNull(length) > dart.notNull(LENGTH_LIMIT) && dart.notNull(parts[core.$length]) > dart.notNull(HEAD_COUNT)) {
+          length = dart.as(dart.dbinary(dart.dload(parts[core.$removeLast](), 'length'), '+', OVERHEAD), core.int);
           if (elision == null) {
             elision = "...";
             length = dart.notNull(ELLIPSIS_SIZE) + dart.notNull(OVERHEAD);
           }
         }
         if (elision != null) {
-          parts.add(elision);
+          parts[core.$add](elision);
         }
-        parts.add(penultimateString);
-        parts.add(ultimateString);
+        parts[core.$add](penultimateString);
+        parts[core.$add](ultimateString);
       }
     }
     IterableBase[dart.implements] = () => [core.Iterable$(E)];
@@ -1044,12 +1046,12 @@ var collection;
         let key = opts && 'key' in opts ? opts.key : null;
         let value = opts && 'value' in opts ? opts.value : null;
         let map = new (LinkedHashMap$(K, V))();
-        Maps._fillMapWithMappedIterable(map, iterable, key, value);
+        Maps[_fillMapWithMappedIterable](map, iterable, key, value);
         return map;
       }
       fromIterables(keys, values) {
         let map = new (LinkedHashMap$(K, V))();
-        Maps._fillMapWithIterables(map, keys, values);
+        Maps[_fillMapWithIterables](map, keys, values);
         return map;
       }
       [_literal](keyValuePairs) {
@@ -1140,7 +1142,7 @@ var collection;
         this[_insertAfter](this[_previous], entry);
       }
       addAll(entries) {
-        entries.forEach(dart.as(((entry) => this[_insertAfter](this[_previous], dart.as(entry, E))).bind(this), dart.throw_("Unimplemented type (E) → void")));
+        entries[core.$forEach](dart.as(((entry) => this[_insertAfter](this[_previous], dart.as(entry, E))).bind(this), dart.throw_("Unimplemented type (E) → void")));
       }
       remove(entry) {
         if (!dart.equals(entry[_list], this))
@@ -1148,10 +1150,10 @@ var collection;
         this[_unlink](entry);
         return true;
       }
-      get iterator() {
+      get [core.$iterator]() {
         return new (_LinkedListIterator$(E))(this);
       }
-      get length() {
+      get [core.$length]() {
         return this[_length];
       }
       clear() {
@@ -1165,19 +1167,19 @@ var collection;
         this[_next] = this[_previous] = this;
         this[_length] = 0;
       }
-      get first() {
+      get [core.$first]() {
         if (core.identical(this[_next], this)) {
           throw new core.StateError('No such element');
         }
         return dart.as(this[_next], E);
       }
-      get last() {
+      get [core.$last]() {
         if (core.identical(this[_previous], this)) {
           throw new core.StateError('No such element');
         }
         return dart.as(this[_previous], E);
       }
-      get single() {
+      get [core.$single]() {
         if (core.identical(this[_previous], this)) {
           throw new core.StateError('No such element');
         }
@@ -1186,7 +1188,7 @@ var collection;
         }
         return dart.as(this[_next], E);
       }
-      forEach(action) {
+      [core.$forEach](action) {
         let modificationCount = this[_modificationCount];
         let current = this[_next];
         while (!dart.notNull(core.identical(current, this))) {
@@ -1197,7 +1199,7 @@ var collection;
           current = current[_next];
         }
       }
-      get isEmpty() {
+      get [core.$isEmpty]() {
         return this[_length] == 0;
       }
       [_insertAfter](entry, newEntry) {
@@ -1272,7 +1274,7 @@ var collection;
         return this[_list];
       }
       unlink() {
-        this[_list]._unlink(this);
+        this[_list][_unlink](this);
       }
       get next() {
         if (core.identical(this[_next], this[_list]))
@@ -1286,10 +1288,10 @@ var collection;
         return dart.as(this[_previous], E);
       }
       insertAfter(entry) {
-        this[_list]._insertAfter(this, entry);
+        this[_list][_insertAfter](this, entry);
       }
       insertBefore(entry) {
-        this[_list]._insertAfter(this[_previous], entry);
+        this[_list][_insertAfter](this[_previous], entry);
       }
     }
     LinkedListEntry[dart.implements] = () => [_LinkedListLink];
@@ -1299,85 +1301,85 @@ var collection;
   let _filter = Symbol('_filter');
   let ListMixin$ = dart.generic(function(E) {
     class ListMixin extends core.Object {
-      get iterator() {
+      get [core.$iterator]() {
         return new (_internal.ListIterator$(E))(this);
       }
-      elementAt(index) {
-        return this.get(index);
+      [core.$elementAt](index) {
+        return this[core.$get](index);
       }
-      forEach(action) {
-        let length = this.length;
+      [core.$forEach](action) {
+        let length = this[core.$length];
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          action(this.get(i));
-          if (length != this.length) {
+          action(this[core.$get](i));
+          if (length != this[core.$length]) {
             throw new core.ConcurrentModificationError(this);
           }
         }
       }
-      get isEmpty() {
+      get [core.$isEmpty]() {
         return this.length == 0;
       }
-      get isNotEmpty() {
+      get [core.$isNotEmpty]() {
         return !dart.notNull(this.isEmpty);
       }
-      get first() {
+      get [core.$first]() {
         if (this.length == 0)
           throw _internal.IterableElementError.noElement();
-        return this.get(0);
+        return this[core.$get](0);
       }
-      get last() {
+      get [core.$last]() {
         if (this.length == 0)
           throw _internal.IterableElementError.noElement();
-        return this.get(dart.notNull(this.length) - 1);
+        return this[core.$get](dart.notNull(this.length) - 1);
       }
-      get single() {
+      get [core.$single]() {
         if (this.length == 0)
           throw _internal.IterableElementError.noElement();
         if (dart.notNull(this.length) > 1)
           throw _internal.IterableElementError.tooMany();
-        return this.get(0);
+        return this[core.$get](0);
       }
-      contains(element) {
-        let length = this.length;
-        for (let i = 0; dart.notNull(i) < dart.notNull(this.length); i = dart.notNull(i) + 1) {
-          if (dart.equals(this.get(i), element))
+      [core.$contains](element) {
+        let length = this[core.$length];
+        for (let i = 0; dart.notNull(i) < dart.notNull(this[core.$length]); i = dart.notNull(i) + 1) {
+          if (dart.equals(this[core.$get](i), element))
             return true;
-          if (length != this.length) {
+          if (length != this[core.$length]) {
             throw new core.ConcurrentModificationError(this);
           }
         }
         return false;
       }
-      every(test) {
-        let length = this.length;
+      [core.$every](test) {
+        let length = this[core.$length];
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          if (!dart.notNull(test(this.get(i))))
+          if (!dart.notNull(test(this[core.$get](i))))
             return false;
-          if (length != this.length) {
+          if (length != this[core.$length]) {
             throw new core.ConcurrentModificationError(this);
           }
         }
         return true;
       }
-      any(test) {
-        let length = this.length;
+      [core.$any](test) {
+        let length = this[core.$length];
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          if (test(this.get(i)))
+          if (test(this[core.$get](i)))
             return true;
-          if (length != this.length) {
+          if (length != this[core.$length]) {
             throw new core.ConcurrentModificationError(this);
           }
         }
         return false;
       }
-      firstWhere(test, opts) {
+      [core.$firstWhere](test, opts) {
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
-        let length = this.length;
+        let length = this[core.$length];
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          let element = this.get(i);
+          let element = this[core.$get](i);
           if (test(element))
             return element;
-          if (length != this.length) {
+          if (length != this[core.$length]) {
             throw new core.ConcurrentModificationError(this);
           }
         }
@@ -1385,14 +1387,14 @@ var collection;
           return orElse();
         throw _internal.IterableElementError.noElement();
       }
-      lastWhere(test, opts) {
+      [core.$lastWhere](test, opts) {
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
-        let length = this.length;
+        let length = this[core.$length];
         for (let i = dart.notNull(length) - 1; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
-          let element = this.get(i);
+          let element = this[core.$get](i);
           if (test(element))
             return element;
-          if (length != this.length) {
+          if (length != this[core.$length]) {
             throw new core.ConcurrentModificationError(this);
           }
         }
@@ -1400,12 +1402,12 @@ var collection;
           return orElse();
         throw _internal.IterableElementError.noElement();
       }
-      singleWhere(test) {
-        let length = this.length;
+      [core.$singleWhere](test) {
+        let length = this[core.$length];
         let match = null;
         let matchFound = false;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          let element = this.get(i);
+          let element = this[core.$get](i);
           if (test(element)) {
             if (matchFound) {
               throw _internal.IterableElementError.tooMany();
@@ -1413,7 +1415,7 @@ var collection;
             matchFound = true;
             match = element;
           }
-          if (length != this.length) {
+          if (length != this[core.$length]) {
             throw new core.ConcurrentModificationError(this);
           }
         }
@@ -1421,7 +1423,7 @@ var collection;
           return match;
         throw _internal.IterableElementError.noElement();
       }
-      join(separator) {
+      [core.$join](separator) {
         if (separator === void 0)
           separator = "";
         if (this.length == 0)
@@ -1430,127 +1432,127 @@ var collection;
         buffer.writeAll(this, separator);
         return buffer.toString();
       }
-      where(test) {
+      [core.$where](test) {
         return new (_internal.WhereIterable$(E))(this, test);
       }
-      map(f) {
+      [core.$map](f) {
         return new _internal.MappedListIterable(this, f);
       }
-      expand(f) {
+      [core.$expand](f) {
         return new (_internal.ExpandIterable$(E, dynamic))(this, f);
       }
-      reduce(combine) {
-        let length = this.length;
+      [core.$reduce](combine) {
+        let length = this[core.$length];
         if (length == 0)
           throw _internal.IterableElementError.noElement();
-        let value = this.get(0);
+        let value = this[core.$get](0);
         for (let i = 1; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          value = combine(value, this.get(i));
-          if (length != this.length) {
+          value = combine(value, this[core.$get](i));
+          if (length != this[core.$length]) {
             throw new core.ConcurrentModificationError(this);
           }
         }
         return value;
       }
-      fold(initialValue, combine) {
+      [core.$fold](initialValue, combine) {
         let value = initialValue;
-        let length = this.length;
+        let length = this[core.$length];
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          value = dart.dinvokef(combine, value, this.get(i));
-          if (length != this.length) {
+          value = dart.dinvokef(combine, value, this[core.$get](i));
+          if (length != this[core.$length]) {
             throw new core.ConcurrentModificationError(this);
           }
         }
         return value;
       }
-      skip(count) {
+      [core.$skip](count) {
         return new (_internal.SubListIterable$(E))(this, count, null);
       }
-      skipWhile(test) {
+      [core.$skipWhile](test) {
         return new (_internal.SkipWhileIterable$(E))(this, test);
       }
-      take(count) {
+      [core.$take](count) {
         return new (_internal.SubListIterable$(E))(this, 0, count);
       }
-      takeWhile(test) {
+      [core.$takeWhile](test) {
         return new (_internal.TakeWhileIterable$(E))(this, test);
       }
-      toList(opts) {
+      [core.$toList](opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
         let result = null;
         if (growable) {
           result = ((_) => {
-            _.length = this.length;
+            _[core.$length] = this.length;
             return _;
           }).bind(this)(new (core.List$(E))());
         } else {
           result = new (core.List$(E))(this.length);
         }
         for (let i = 0; dart.notNull(i) < dart.notNull(this.length); i = dart.notNull(i) + 1) {
-          result.set(i, this.get(i));
+          result[core.$set](i, this[core.$get](i));
         }
         return result;
       }
-      toSet() {
+      [core.$toSet]() {
         let result = new (core.Set$(E))();
         for (let i = 0; dart.notNull(i) < dart.notNull(this.length); i = dart.notNull(i) + 1) {
-          result.add(this.get(i));
+          result.add(this[core.$get](i));
         }
         return result;
       }
-      add(element) {
-        this.set(((x$) => this.length = dart.notNull(x$) + 1, x$).bind(this)(this.length), element);
+      [core.$add](element) {
+        this[core.$set](((x$) => this[core.$length] = dart.notNull(x$) + 1, x$).bind(this)(this[core.$length]), element);
       }
-      addAll(iterable) {
+      [core.$addAll](iterable) {
         for (let element of iterable) {
-          this.set(((x$) => this.length = dart.notNull(x$) + 1, x$).bind(this)(this.length), element);
+          this[core.$set](((x$) => this[core.$length] = dart.notNull(x$) + 1, x$).bind(this)(this[core.$length]), element);
         }
       }
-      remove(element) {
-        for (let i = 0; dart.notNull(i) < dart.notNull(this.length); i = dart.notNull(i) + 1) {
-          if (dart.equals(this.get(i), element)) {
-            this.setRange(i, dart.notNull(this.length) - 1, this, dart.notNull(i) + 1);
-            this.length = 1;
+      [core.$remove](element) {
+        for (let i = 0; dart.notNull(i) < dart.notNull(this[core.$length]); i = dart.notNull(i) + 1) {
+          if (dart.equals(this[core.$get](i), element)) {
+            this[core.$setRange](i, dart.notNull(this[core.$length]) - 1, this, dart.notNull(i) + 1);
+            this[core.$length] = 1;
             return true;
           }
         }
         return false;
       }
-      removeWhere(test) {
+      [core.$removeWhere](test) {
         ListMixin[_filter](this, test, false);
       }
-      retainWhere(test) {
+      [core.$retainWhere](test) {
         ListMixin[_filter](this, test, true);
       }
       static [_filter](source, test, retainMatching) {
         let retained = new core.List.from([]);
-        let length = source.length;
+        let length = source[core.$length];
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          let element = source.get(i);
+          let element = source[core.$get](i);
           if (dart.dinvokef(test, element) == retainMatching) {
-            retained.add(element);
+            retained[core.$add](element);
           }
-          if (length != source.length) {
+          if (length != source[core.$length]) {
             throw new core.ConcurrentModificationError(source);
           }
         }
-        if (retained.length != source.length) {
-          source.setRange(0, retained.length, retained);
-          source.length = retained.length;
+        if (retained[core.$length] != source[core.$length]) {
+          source[core.$setRange](0, retained[core.$length], retained);
+          source[core.$length] = retained[core.$length];
         }
       }
-      clear() {
-        this.length = 0;
+      [core.$clear]() {
+        this[core.$length] = 0;
       }
-      removeLast() {
+      [core.$removeLast]() {
         if (this.length == 0) {
           throw _internal.IterableElementError.noElement();
         }
-        let result = this.get(dart.notNull(this.length) - 1);
+        let result = this[core.$get](dart.notNull(this.length) - 1);
         this.length = dart.notNull(this.length) - 1;
         return result;
       }
-      sort(compare) {
+      [core.$sort](compare) {
         if (compare === void 0)
           compare = null;
         if (compare == null) {
@@ -1559,60 +1561,60 @@ var collection;
         }
         _internal.Sort.sort(this, compare);
       }
-      shuffle(random) {
+      [core.$shuffle](random) {
         if (random === void 0)
           random = null;
         if (random == null)
           random = new math.Random();
-        let length = this.length;
+        let length = this[core.$length];
         while (dart.notNull(length) > 1) {
           let pos = random.nextInt(length);
           length = 1;
-          let tmp = this.get(length);
-          this.set(length, this.get(pos));
-          this.set(pos, tmp);
+          let tmp = this[core.$get](length);
+          this[core.$set](length, this[core.$get](pos));
+          this[core.$set](pos, tmp);
         }
       }
-      asMap() {
+      [core.$asMap]() {
         return new (_internal.ListMapView$(E))(this);
       }
-      sublist(start, end) {
+      [core.$sublist](start, end) {
         if (end === void 0)
           end = null;
-        let listLength = this.length;
+        let listLength = this[core.$length];
         if (end == null)
           end = listLength;
         core.RangeError.checkValidRange(start, end, listLength);
         let length = dart.notNull(end) - dart.notNull(start);
         let result = new (core.List$(E))();
-        result.length = length;
+        result[core.$length] = length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          result.set(i, this.get(dart.notNull(start) + dart.notNull(i)));
+          result[core.$set](i, this[core.$get](dart.notNull(start) + dart.notNull(i)));
         }
         return result;
       }
-      getRange(start, end) {
-        core.RangeError.checkValidRange(start, end, this.length);
+      [core.$getRange](start, end) {
+        core.RangeError.checkValidRange(start, end, this[core.$length]);
         return new (_internal.SubListIterable$(E))(this, start, end);
       }
-      removeRange(start, end) {
-        core.RangeError.checkValidRange(start, end, this.length);
+      [core.$removeRange](start, end) {
+        core.RangeError.checkValidRange(start, end, this[core.$length]);
         let length = dart.notNull(end) - dart.notNull(start);
-        this.setRange(start, dart.notNull(this.length) - dart.notNull(length), this, end);
-        this.length = length;
+        this.setRange(start, dart.notNull(this[core.$length]) - dart.notNull(length), this, end);
+        this[core.$length] = length;
       }
-      fillRange(start, end, fill) {
+      [core.$fillRange](start, end, fill) {
         if (fill === void 0)
           fill = null;
-        core.RangeError.checkValidRange(start, end, this.length);
+        core.RangeError.checkValidRange(start, end, this[core.$length]);
         for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
-          this.set(i, fill);
+          this[core.$set](i, fill);
         }
       }
-      setRange(start, end, iterable, skipCount) {
+      [core.$setRange](start, end, iterable, skipCount) {
         if (skipCount === void 0)
           skipCount = 0;
-        core.RangeError.checkValidRange(start, end, this.length);
+        core.RangeError.checkValidRange(start, end, this[core.$length]);
         let length = dart.notNull(end) - dart.notNull(start);
         if (length == 0)
           return;
@@ -1623,121 +1625,121 @@ var collection;
           otherList = dart.as(iterable, core.List);
           otherStart = skipCount;
         } else {
-          otherList = iterable.skip(skipCount).toList({growable: false});
+          otherList = iterable[core.$skip](skipCount)[core.$toList]({growable: false});
           otherStart = 0;
         }
-        if (dart.notNull(otherStart) + dart.notNull(length) > dart.notNull(otherList.length)) {
+        if (dart.notNull(otherStart) + dart.notNull(length) > dart.notNull(otherList[core.$length])) {
           throw _internal.IterableElementError.tooFew();
         }
         if (dart.notNull(otherStart) < dart.notNull(start)) {
           for (let i = dart.notNull(length) - 1; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
-            this.set(dart.notNull(start) + dart.notNull(i), dart.as(otherList.get(dart.notNull(otherStart) + dart.notNull(i)), E));
+            this[core.$set](dart.notNull(start) + dart.notNull(i), dart.as(otherList[core.$get](dart.notNull(otherStart) + dart.notNull(i)), E));
           }
         } else {
           for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-            this.set(dart.notNull(start) + dart.notNull(i), dart.as(otherList.get(dart.notNull(otherStart) + dart.notNull(i)), E));
+            this[core.$set](dart.notNull(start) + dart.notNull(i), dart.as(otherList[core.$get](dart.notNull(otherStart) + dart.notNull(i)), E));
           }
         }
       }
-      replaceRange(start, end, newContents) {
-        core.RangeError.checkValidRange(start, end, this.length);
+      [core.$replaceRange](start, end, newContents) {
+        core.RangeError.checkValidRange(start, end, this[core.$length]);
         if (!dart.is(newContents, _internal.EfficientLength)) {
-          newContents = newContents.toList();
+          newContents = newContents[core.$toList]();
         }
         let removeLength = dart.notNull(end) - dart.notNull(start);
-        let insertLength = newContents.length;
+        let insertLength = newContents[core.$length];
         if (dart.notNull(removeLength) >= dart.notNull(insertLength)) {
           let delta = dart.notNull(removeLength) - dart.notNull(insertLength);
           let insertEnd = dart.notNull(start) + dart.notNull(insertLength);
-          let newLength = dart.notNull(this.length) - dart.notNull(delta);
-          this.setRange(start, insertEnd, newContents);
+          let newLength = dart.notNull(this[core.$length]) - dart.notNull(delta);
+          this[core.$setRange](start, insertEnd, newContents);
           if (delta != 0) {
-            this.setRange(insertEnd, newLength, this, end);
-            this.length = newLength;
+            this[core.$setRange](insertEnd, newLength, this, end);
+            this[core.$length] = newLength;
           }
         } else {
           let delta = dart.notNull(insertLength) - dart.notNull(removeLength);
-          let newLength = dart.notNull(this.length) + dart.notNull(delta);
+          let newLength = dart.notNull(this[core.$length]) + dart.notNull(delta);
           let insertEnd = dart.notNull(start) + dart.notNull(insertLength);
-          this.length = newLength;
-          this.setRange(insertEnd, newLength, this, end);
-          this.setRange(start, insertEnd, newContents);
+          this[core.$length] = newLength;
+          this[core.$setRange](insertEnd, newLength, this, end);
+          this[core.$setRange](start, insertEnd, newContents);
         }
       }
-      indexOf(element, startIndex) {
+      [core.$indexOf](element, startIndex) {
         if (startIndex === void 0)
           startIndex = 0;
-        if (dart.notNull(startIndex) >= dart.notNull(this.length)) {
+        if (dart.notNull(startIndex) >= dart.notNull(this[core.$length])) {
           return -1;
         }
         if (dart.notNull(startIndex) < 0) {
           startIndex = 0;
         }
-        for (let i = startIndex; dart.notNull(i) < dart.notNull(this.length); i = dart.notNull(i) + 1) {
-          if (dart.equals(this.get(i), element)) {
+        for (let i = startIndex; dart.notNull(i) < dart.notNull(this[core.$length]); i = dart.notNull(i) + 1) {
+          if (dart.equals(this[core.$get](i), element)) {
             return i;
           }
         }
         return -1;
       }
-      lastIndexOf(element, startIndex) {
+      [core.$lastIndexOf](element, startIndex) {
         if (startIndex === void 0)
           startIndex = null;
         if (startIndex == null) {
-          startIndex = dart.notNull(this.length) - 1;
+          startIndex = dart.notNull(this[core.$length]) - 1;
         } else {
           if (dart.notNull(startIndex) < 0) {
             return -1;
           }
-          if (dart.notNull(startIndex) >= dart.notNull(this.length)) {
-            startIndex = dart.notNull(this.length) - 1;
+          if (dart.notNull(startIndex) >= dart.notNull(this[core.$length])) {
+            startIndex = dart.notNull(this[core.$length]) - 1;
           }
         }
         for (let i = startIndex; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
-          if (dart.equals(this.get(i), element)) {
+          if (dart.equals(this[core.$get](i), element)) {
             return i;
           }
         }
         return -1;
       }
-      insert(index, element) {
+      [core.$insert](index, element) {
         core.RangeError.checkValueInInterval(index, 0, this.length, "index");
-        if (index == this.length) {
+        if (index == this[core.$length]) {
           this.add(element);
           return;
         }
         if (!(typeof index == 'number'))
           throw new core.ArgumentError(index);
-        this.length = dart.notNull(this.length) + 1;
-        this.setRange(dart.notNull(index) + 1, this.length, this, index);
-        this.set(index, element);
+        this[core.$length] = dart.notNull(this[core.$length]) + 1;
+        this.setRange(dart.notNull(index) + 1, this[core.$length], this, index);
+        this[core.$set](index, element);
       }
-      removeAt(index) {
-        let result = this.get(index);
-        this.setRange(index, dart.notNull(this.length) - 1, this, dart.notNull(index) + 1);
+      [core.$removeAt](index) {
+        let result = this[core.$get](index);
+        this.setRange(index, dart.notNull(this[core.$length]) - 1, this, dart.notNull(index) + 1);
         this.length = dart.notNull(this.length) - 1;
         return result;
       }
-      insertAll(index, iterable) {
+      [core.$insertAll](index, iterable) {
         core.RangeError.checkValueInInterval(index, 0, this.length, "index");
         if (dart.is(iterable, _internal.EfficientLength)) {
-          iterable = iterable.toList();
+          iterable = iterable[core.$toList]();
         }
-        let insertionLength = iterable.length;
-        this.length = insertionLength;
-        this.setRange(dart.notNull(index) + dart.notNull(insertionLength), this.length, this, index);
+        let insertionLength = iterable[core.$length];
+        this[core.$length] = insertionLength;
+        this.setRange(dart.notNull(index) + dart.notNull(insertionLength), this[core.$length], this, index);
         this.setAll(index, iterable);
       }
-      setAll(index, iterable) {
+      [core.$setAll](index, iterable) {
         if (dart.is(iterable, core.List)) {
-          this.setRange(index, dart.notNull(index) + dart.notNull(iterable.length), iterable);
+          this.setRange(index, dart.notNull(index) + dart.notNull(iterable[core.$length]), iterable);
         } else {
           for (let element of iterable) {
-            this.set(((x$) => index = dart.notNull(x$) + 1, x$)(index), element);
+            this[core.$set](((x$) => index = dart.notNull(x$) + 1, x$)(index), element);
           }
         }
       }
-      get reversed() {
+      get [core.$reversed]() {
         return new (_internal.ReversedListIterable$(E))(this);
       }
       toString() {
@@ -1777,22 +1779,22 @@ var collection;
         return false;
       }
       putIfAbsent(key, ifAbsent) {
-        if (this.keys.contains(key)) {
+        if (this.keys[core.$contains](key)) {
           return this.get(key);
         }
         return this.set(key, ifAbsent());
       }
       containsKey(key) {
-        return this.keys.contains(key);
+        return this.keys[core.$contains](key);
       }
       get length() {
-        return this.keys.length;
+        return this.keys[core.$length];
       }
       get isEmpty() {
-        return this.keys.isEmpty;
+        return this.keys[core.$isEmpty];
       }
       get isNotEmpty() {
-        return this.keys.isNotEmpty;
+        return this.keys[core.$isNotEmpty];
       }
       get values() {
         return new (_MapBaseValueIterable$(V))(this);
@@ -1844,25 +1846,25 @@ var collection;
         this[_map] = map$;
         super.IterableBase();
       }
-      get length() {
+      get [core.$length]() {
         return this[_map].length;
       }
-      get isEmpty() {
+      get [core.$isEmpty]() {
         return this[_map].isEmpty;
       }
-      get isNotEmpty() {
+      get [core.$isNotEmpty]() {
         return this[_map].isNotEmpty;
       }
-      get first() {
-        return dart.as(this[_map].get(this[_map].keys.first), V);
+      get [core.$first]() {
+        return dart.as(this[_map].get(this[_map].keys[core.$first]), V);
       }
-      get single() {
-        return dart.as(this[_map].get(this[_map].keys.single), V);
+      get [core.$single]() {
+        return dart.as(this[_map].get(this[_map].keys[core.$single]), V);
       }
-      get last() {
-        return dart.as(this[_map].get(this[_map].keys.last), V);
+      get [core.$last]() {
+        return dart.as(this[_map].get(this[_map].keys[core.$last]), V);
       }
-      get iterator() {
+      get [core.$iterator]() {
         return new (_MapBaseValueIterator$(V))(this[_map]);
       }
     }
@@ -1875,7 +1877,7 @@ var collection;
     class _MapBaseValueIterator extends core.Object {
       _MapBaseValueIterator(map) {
         this[_map] = map;
-        this[_keys] = map.keys.iterator;
+        this[_keys] = map.keys[core.$iterator];
         this[_current] = null;
       }
       moveNext() {
@@ -1955,8 +1957,6 @@ var collection;
   });
   let UnmodifiableMapView = UnmodifiableMapView$();
   let _id = Symbol('_id');
-  let _fillMapWithMappedIterable = Symbol('_fillMapWithMappedIterable');
-  let _fillMapWithIterables = Symbol('_fillMapWithIterables');
   class Maps extends core.Object {
     static containsValue(map, value) {
       for (let v of map.values) {
@@ -1983,7 +1983,7 @@ var collection;
       return v;
     }
     static clear(map) {
-      for (let k of map.keys.toList()) {
+      for (let k of map.keys[core.$toList]()) {
         map.remove(k);
       }
     }
@@ -1993,24 +1993,24 @@ var collection;
       }
     }
     static getValues(map) {
-      return map.keys.map((key) => map.get(key));
+      return map.keys[core.$map]((key) => map.get(key));
     }
     static length(map) {
-      return map.keys.length;
+      return map.keys[core.$length];
     }
     static isEmpty(map) {
-      return map.keys.isEmpty;
+      return map.keys[core.$isEmpty];
     }
     static isNotEmpty(map) {
-      return map.keys.isNotEmpty;
+      return map.keys[core.$isNotEmpty];
     }
     static mapToString(m) {
-      if (IterableBase._isToStringVisiting(m)) {
+      if (IterableBase[_isToStringVisiting](m)) {
         return '{...}';
       }
       let result = new core.StringBuffer();
       try {
-        IterableBase[_toStringVisiting].add(m);
+        IterableBase[_toStringVisiting][core.$add](m);
         result.write('{');
         let first = true;
         m.forEach((k, v) => {
@@ -2024,8 +2024,8 @@ var collection;
         });
         result.write('}');
       } finally {
-        dart.assert(core.identical(IterableBase[_toStringVisiting].last, m));
-        IterableBase[_toStringVisiting].removeLast();
+        dart.assert(core.identical(IterableBase[_toStringVisiting][core.$last], m));
+        IterableBase[_toStringVisiting][core.$removeLast]();
       }
       return result.toString();
     }
@@ -2042,8 +2042,8 @@ var collection;
       }
     }
     static [_fillMapWithIterables](map, keys, values) {
-      let keyIterator = keys.iterator;
-      let valueIterator = values.iterator;
+      let keyIterator = keys[core.$iterator];
+      let valueIterator = values[core.$iterator];
       let hasNextKey = keyIterator.moveNext();
       let hasNextValue = valueIterator.moveNext();
       while (dart.notNull(hasNextKey) && dart.notNull(hasNextValue)) {
@@ -2087,10 +2087,10 @@ var collection;
         next[_previous] = this;
       }
       append(e) {
-        new (DoubleLinkedQueueEntry$(E))(e)._link(this, this[_next]);
+        new (DoubleLinkedQueueEntry$(E))(e)[_link](this, this[_next]);
       }
       prepend(e) {
-        new (DoubleLinkedQueueEntry$(E))(e)._link(this[_previous], this);
+        new (DoubleLinkedQueueEntry$(E))(e)[_link](this[_previous], this);
       }
       remove() {
         this[_previous][_next] = this[_next];
@@ -2103,10 +2103,10 @@ var collection;
         return this;
       }
       previousEntry() {
-        return this[_previous]._asNonSentinelEntry();
+        return this[_previous][_asNonSentinelEntry]();
       }
       nextEntry() {
-        return this[_next]._asNonSentinelEntry();
+        return this[_next][_asNonSentinelEntry]();
       }
       get element() {
         return this[_element];
@@ -2157,7 +2157,7 @@ var collection;
         }
         return dart.as(list, DoubleLinkedQueue$(E));
       }
-      get length() {
+      get [core.$length]() {
         return this[_elementCount];
       }
       addLast(value) {
@@ -2217,13 +2217,13 @@ var collection;
       retainWhere(test) {
         this[_filter](test, false);
       }
-      get first() {
+      get [core.$first]() {
         return this[_sentinel][_next].element;
       }
-      get last() {
+      get [core.$last]() {
         return this[_sentinel][_previous].element;
       }
-      get single() {
+      get [core.$single]() {
         if (core.identical(this[_sentinel][_next], this[_sentinel][_previous])) {
           return this[_sentinel][_next].element;
         }
@@ -2235,7 +2235,7 @@ var collection;
       firstEntry() {
         return this[_sentinel].nextEntry();
       }
-      get isEmpty() {
+      get [core.$isEmpty]() {
         return core.identical(this[_sentinel][_next], this[_sentinel]);
       }
       clear() {
@@ -2251,7 +2251,7 @@ var collection;
           entry = nextEntry;
         }
       }
-      get iterator() {
+      get [core.$iterator]() {
         return new (_DoubleLinkedQueueIterator$(E))(this[_sentinel]);
       }
       toString() {
@@ -2322,17 +2322,17 @@ var collection;
       }
       from(elements) {
         if (dart.is(elements, core.List)) {
-          let length = elements.length;
+          let length = elements[core.$length];
           let queue = dart.as(new ListQueue(dart.notNull(length) + 1), ListQueue$(E));
-          dart.assert(dart.notNull(queue[_table].length) > dart.notNull(length));
+          dart.assert(dart.notNull(queue[_table][core.$length]) > dart.notNull(length));
           let sourceList = elements;
-          queue[_table].setRange(0, length, dart.as(sourceList, core.Iterable$(E)), 0);
+          queue[_table][core.$setRange](0, length, dart.as(sourceList, core.Iterable$(E)), 0);
           queue[_tail] = length;
           return queue;
         } else {
           let capacity = ListQueue[_INITIAL_CAPACITY];
           if (dart.is(elements, _internal.EfficientLength)) {
-            capacity = elements.length;
+            capacity = elements[core.$length];
           }
           let result = new (ListQueue$(E))(capacity);
           for (let element of dart.as(elements, core.Iterable$(E))) {
@@ -2341,49 +2341,49 @@ var collection;
           return result;
         }
       }
-      get iterator() {
+      get [core.$iterator]() {
         return new (_ListQueueIterator$(E))(this);
       }
-      forEach(action) {
+      [core.$forEach](action) {
         let modificationCount = this[_modificationCount];
-        for (let i = this[_head]; i != this[_tail]; i = dart.notNull(i) + 1 & dart.notNull(this[_table].length) - 1) {
-          action(this[_table].get(i));
+        for (let i = this[_head]; i != this[_tail]; i = dart.notNull(i) + 1 & dart.notNull(this[_table][core.$length]) - 1) {
+          action(this[_table][core.$get](i));
           this[_checkModification](modificationCount);
         }
       }
-      get isEmpty() {
+      get [core.$isEmpty]() {
         return this[_head] == this[_tail];
       }
-      get length() {
-        return dart.notNull(this[_tail]) - dart.notNull(this[_head]) & dart.notNull(this[_table].length) - 1;
+      get [core.$length]() {
+        return dart.notNull(this[_tail]) - dart.notNull(this[_head]) & dart.notNull(this[_table][core.$length]) - 1;
       }
-      get first() {
+      get [core.$first]() {
         if (this[_head] == this[_tail])
           throw _internal.IterableElementError.noElement();
-        return this[_table].get(this[_head]);
+        return this[_table][core.$get](this[_head]);
       }
-      get last() {
+      get [core.$last]() {
         if (this[_head] == this[_tail])
           throw _internal.IterableElementError.noElement();
-        return this[_table].get(dart.notNull(this[_tail]) - 1 & dart.notNull(this[_table].length) - 1);
+        return this[_table][core.$get](dart.notNull(this[_tail]) - 1 & dart.notNull(this[_table][core.$length]) - 1);
       }
-      get single() {
+      get [core.$single]() {
         if (this[_head] == this[_tail])
           throw _internal.IterableElementError.noElement();
         if (dart.notNull(this.length) > 1)
           throw _internal.IterableElementError.tooMany();
-        return this[_table].get(this[_head]);
+        return this[_table][core.$get](this[_head]);
       }
-      elementAt(index) {
+      [core.$elementAt](index) {
         core.RangeError.checkValidIndex(index, this);
-        return this[_table].get(dart.notNull(this[_head]) + dart.notNull(index) & dart.notNull(this[_table].length) - 1);
+        return this[_table][core.$get](dart.notNull(this[_head]) + dart.notNull(index) & dart.notNull(this[_table][core.$length]) - 1);
       }
-      toList(opts) {
+      [core.$toList](opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
         let list = null;
         if (growable) {
           list = ((_) => {
-            _.length = this.length;
+            _[core.$length] = this.length;
             return _;
           }).bind(this)(new (core.List$(E))());
         } else {
@@ -2398,21 +2398,21 @@ var collection;
       addAll(elements) {
         if (dart.is(elements, core.List)) {
           let list = dart.as(elements, core.List);
-          let addCount = list.length;
-          let length = this.length;
-          if (dart.notNull(length) + dart.notNull(addCount) >= dart.notNull(this[_table].length)) {
+          let addCount = list[core.$length];
+          let length = this[core.$length];
+          if (dart.notNull(length) + dart.notNull(addCount) >= dart.notNull(this[_table][core.$length])) {
             this[_preGrow](dart.notNull(length) + dart.notNull(addCount));
-            this[_table].setRange(length, dart.notNull(length) + dart.notNull(addCount), dart.as(list, core.Iterable$(E)), 0);
+            this[_table][core.$setRange](length, dart.notNull(length) + dart.notNull(addCount), dart.as(list, core.Iterable$(E)), 0);
             this[_tail] = addCount;
           } else {
-            let endSpace = dart.notNull(this[_table].length) - dart.notNull(this[_tail]);
+            let endSpace = dart.notNull(this[_table][core.$length]) - dart.notNull(this[_tail]);
             if (dart.notNull(addCount) < dart.notNull(endSpace)) {
-              this[_table].setRange(this[_tail], dart.notNull(this[_tail]) + dart.notNull(addCount), dart.as(list, core.Iterable$(E)), 0);
+              this[_table][core.$setRange](this[_tail], dart.notNull(this[_tail]) + dart.notNull(addCount), dart.as(list, core.Iterable$(E)), 0);
               this[_tail] = addCount;
             } else {
               let preSpace = dart.notNull(addCount) - dart.notNull(endSpace);
-              this[_table].setRange(this[_tail], dart.notNull(this[_tail]) + dart.notNull(endSpace), dart.as(list, core.Iterable$(E)), 0);
-              this[_table].setRange(0, preSpace, dart.as(list, core.Iterable$(E)), endSpace);
+              this[_table][core.$setRange](this[_tail], dart.notNull(this[_tail]) + dart.notNull(endSpace), dart.as(list, core.Iterable$(E)), 0);
+              this[_table][core.$setRange](0, preSpace, dart.as(list, core.Iterable$(E)), endSpace);
               this[_tail] = preSpace;
             }
           }
@@ -2423,8 +2423,8 @@ var collection;
         }
       }
       remove(object) {
-        for (let i = this[_head]; i != this[_tail]; i = dart.notNull(i) + 1 & dart.notNull(this[_table].length) - 1) {
-          let element = this[_table].get(i);
+        for (let i = this[_head]; i != this[_tail]; i = dart.notNull(i) + 1 & dart.notNull(this[_table][core.$length]) - 1) {
+          let element = this[_table][core.$get](i);
           if (dart.equals(element, object)) {
             this[_remove](i);
             this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
@@ -2438,14 +2438,14 @@ var collection;
         let modificationCount = this[_modificationCount];
         let i = this[_head];
         while (i != this[_tail]) {
-          let element = this[_table].get(i);
+          let element = this[_table][core.$get](i);
           let remove = core.identical(removeMatching, test(element));
           this[_checkModification](modificationCount);
           if (remove) {
             i = this[_remove](i);
             modificationCount = this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
           } else {
-            i = dart.notNull(i) + 1 & dart.notNull(this[_table].length) - 1;
+            i = dart.notNull(i) + 1 & dart.notNull(this[_table][core.$length]) - 1;
           }
         }
       }
@@ -2457,8 +2457,8 @@ var collection;
       }
       clear() {
         if (this[_head] != this[_tail]) {
-          for (let i = this[_head]; i != this[_tail]; i = dart.notNull(i) + 1 & dart.notNull(this[_table].length) - 1) {
-            this[_table].set(i, null);
+          for (let i = this[_head]; i != this[_tail]; i = dart.notNull(i) + 1 & dart.notNull(this[_table][core.$length]) - 1) {
+            this[_table][core.$set](i, null);
           }
           this[_head] = this[_tail] = 0;
           this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
@@ -2471,8 +2471,8 @@ var collection;
         this[_add](element);
       }
       addFirst(element) {
-        this[_head] = dart.notNull(this[_head]) - 1 & dart.notNull(this[_table].length) - 1;
-        this[_table].set(this[_head], element);
+        this[_head] = dart.notNull(this[_head]) - 1 & dart.notNull(this[_table][core.$length]) - 1;
+        this[_table][core.$set](this[_head], element);
         if (this[_head] == this[_tail])
           this[_grow]();
         this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
@@ -2481,18 +2481,18 @@ var collection;
         if (this[_head] == this[_tail])
           throw _internal.IterableElementError.noElement();
         this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
-        let result = this[_table].get(this[_head]);
-        this[_table].set(this[_head], null);
-        this[_head] = dart.notNull(this[_head]) + 1 & dart.notNull(this[_table].length) - 1;
+        let result = this[_table][core.$get](this[_head]);
+        this[_table][core.$set](this[_head], null);
+        this[_head] = dart.notNull(this[_head]) + 1 & dart.notNull(this[_table][core.$length]) - 1;
         return result;
       }
       removeLast() {
         if (this[_head] == this[_tail])
           throw _internal.IterableElementError.noElement();
         this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
-        this[_tail] = dart.notNull(this[_tail]) - 1 & dart.notNull(this[_table].length) - 1;
-        let result = this[_table].get(this[_tail]);
-        this[_table].set(this[_tail], null);
+        this[_tail] = dart.notNull(this[_tail]) - 1 & dart.notNull(this[_table][core.$length]) - 1;
+        let result = this[_table][core.$get](this[_tail]);
+        this[_table][core.$set](this[_tail], null);
         return result;
       }
       static [_isPowerOf2](number) {
@@ -2514,24 +2514,24 @@ var collection;
         }
       }
       [_add](element) {
-        this[_table].set(this[_tail], element);
-        this[_tail] = dart.notNull(this[_tail]) + 1 & dart.notNull(this[_table].length) - 1;
+        this[_table][core.$set](this[_tail], element);
+        this[_tail] = dart.notNull(this[_tail]) + 1 & dart.notNull(this[_table][core.$length]) - 1;
         if (this[_head] == this[_tail])
           this[_grow]();
         this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
       }
       [_remove](offset) {
-        let mask = dart.notNull(this[_table].length) - 1;
+        let mask = dart.notNull(this[_table][core.$length]) - 1;
         let startDistance = dart.notNull(offset) - dart.notNull(this[_head]) & dart.notNull(mask);
         let endDistance = dart.notNull(this[_tail]) - dart.notNull(offset) & dart.notNull(mask);
         if (dart.notNull(startDistance) < dart.notNull(endDistance)) {
           let i = offset;
           while (i != this[_head]) {
             let prevOffset = dart.notNull(i) - 1 & dart.notNull(mask);
-            this[_table].set(i, this[_table].get(prevOffset));
+            this[_table][core.$set](i, this[_table][core.$get](prevOffset));
             i = prevOffset;
           }
-          this[_table].set(this[_head], null);
+          this[_table][core.$set](this[_head], null);
           this[_head] = dart.notNull(this[_head]) + 1 & dart.notNull(mask);
           return dart.notNull(offset) + 1 & dart.notNull(mask);
         } else {
@@ -2539,32 +2539,32 @@ var collection;
           let i = offset;
           while (i != this[_tail]) {
             let nextOffset = dart.notNull(i) + 1 & dart.notNull(mask);
-            this[_table].set(i, this[_table].get(nextOffset));
+            this[_table][core.$set](i, this[_table][core.$get](nextOffset));
             i = nextOffset;
           }
-          this[_table].set(this[_tail], null);
+          this[_table][core.$set](this[_tail], null);
           return offset;
         }
       }
       [_grow]() {
-        let newTable = new (core.List$(E))(dart.notNull(this[_table].length) * 2);
-        let split = dart.notNull(this[_table].length) - dart.notNull(this[_head]);
-        newTable.setRange(0, split, this[_table], this[_head]);
-        newTable.setRange(split, dart.notNull(split) + dart.notNull(this[_head]), this[_table], 0);
+        let newTable = new (core.List$(E))(dart.notNull(this[_table][core.$length]) * 2);
+        let split = dart.notNull(this[_table][core.$length]) - dart.notNull(this[_head]);
+        newTable[core.$setRange](0, split, this[_table], this[_head]);
+        newTable[core.$setRange](split, dart.notNull(split) + dart.notNull(this[_head]), this[_table], 0);
         this[_head] = 0;
-        this[_tail] = this[_table].length;
+        this[_tail] = this[_table][core.$length];
         this[_table] = newTable;
       }
       [_writeToList](target) {
-        dart.assert(dart.notNull(target.length) >= dart.notNull(this.length));
+        dart.assert(dart.notNull(target[core.$length]) >= dart.notNull(this.length));
         if (dart.notNull(this[_head]) <= dart.notNull(this[_tail])) {
           let length = dart.notNull(this[_tail]) - dart.notNull(this[_head]);
-          target.setRange(0, length, this[_table], this[_head]);
+          target[core.$setRange](0, length, this[_table], this[_head]);
           return length;
         } else {
-          let firstPartSize = dart.notNull(this[_table].length) - dart.notNull(this[_head]);
-          target.setRange(0, firstPartSize, this[_table], this[_head]);
-          target.setRange(firstPartSize, dart.notNull(firstPartSize) + dart.notNull(this[_tail]), this[_table], 0);
+          let firstPartSize = dart.notNull(this[_table][core.$length]) - dart.notNull(this[_head]);
+          target[core.$setRange](0, firstPartSize, this[_table], this[_head]);
+          target[core.$setRange](firstPartSize, dart.notNull(firstPartSize) + dart.notNull(this[_tail]), this[_table], 0);
           return dart.notNull(this[_tail]) + dart.notNull(firstPartSize);
         }
       }
@@ -2600,13 +2600,13 @@ var collection;
         return this[_current];
       }
       moveNext() {
-        this[_queue]._checkModification(this[_modificationCount]);
+        this[_queue][_checkModification](this[_modificationCount]);
         if (this[_position] == this[_end]) {
           this[_current] = null;
           return false;
         }
-        this[_current] = dart.as(this[_queue][_table].get(this[_position]), E);
-        this[_position] = dart.notNull(this[_position]) + 1 & dart.notNull(this[_queue][_table].length) - 1;
+        this[_current] = dart.as(this[_queue][_table][core.$get](this[_position]), E);
+        this[_position] = dart.notNull(this[_position]) + 1 & dart.notNull(this[_queue][_table][core.$length]) - 1;
         return true;
       }
     }
@@ -2831,7 +2831,7 @@ var collection;
         let compare = opts && 'compare' in opts ? opts.compare : null;
         let isValidKey = opts && 'isValidKey' in opts ? opts.isValidKey : null;
         let map = new (SplayTreeMap$(K, V))(compare, isValidKey);
-        Maps._fillMapWithMappedIterable(map, iterable, key, value);
+        Maps[_fillMapWithMappedIterable](map, iterable, key, value);
         return map;
       }
       fromIterables(keys, values, compare, isValidKey) {
@@ -2840,7 +2840,7 @@ var collection;
         if (isValidKey === void 0)
           isValidKey = null;
         let map = new (SplayTreeMap$(K, V))(compare, isValidKey);
-        Maps._fillMapWithIterables(map, keys, values);
+        Maps[_fillMapWithIterables](map, keys, values);
         return map;
       }
       [_compare](key1, key2) {
@@ -3035,12 +3035,12 @@ var collection;
         this[_currentNode] = null;
         if (tree[_root] == null)
           return;
-        let compare = tree._splay(startKey);
+        let compare = tree[_splay](startKey);
         this[_splayCount] = tree[_splayCount];
         if (dart.notNull(compare) < 0) {
           this[_findLeftMostDescendent](tree[_root].right);
         } else {
-          this[_workList].add(tree[_root]);
+          this[_workList][core.$add](tree[_root]);
         }
       }
       get current() {
@@ -3050,33 +3050,33 @@ var collection;
       }
       [_findLeftMostDescendent](node) {
         while (node != null) {
-          this[_workList].add(node);
+          this[_workList][core.$add](node);
           node = node.left;
         }
       }
       [_rebuildWorkList](currentNode) {
-        dart.assert(!dart.notNull(this[_workList].isEmpty));
-        this[_workList].clear();
+        dart.assert(!dart.notNull(this[_workList][core.$isEmpty]));
+        this[_workList][core.$clear]();
         if (currentNode == null) {
           this[_findLeftMostDescendent](this[_tree][_root]);
         } else {
-          this[_tree]._splay(currentNode.key);
+          this[_tree][_splay](currentNode.key);
           this[_findLeftMostDescendent](this[_tree][_root].right);
-          dart.assert(!dart.notNull(this[_workList].isEmpty));
+          dart.assert(!dart.notNull(this[_workList][core.$isEmpty]));
         }
       }
       moveNext() {
         if (this[_modificationCount] != this[_tree][_modificationCount]) {
           throw new core.ConcurrentModificationError(this[_tree]);
         }
-        if (this[_workList].isEmpty) {
+        if (this[_workList][core.$isEmpty]) {
           this[_currentNode] = null;
           return false;
         }
         if (this[_tree][_splayCount] != this[_splayCount] && dart.notNull(this[_currentNode] != null)) {
           this[_rebuildWorkList](this[_currentNode]);
         }
-        this[_currentNode] = this[_workList].removeLast();
+        this[_currentNode] = this[_workList][core.$removeLast]();
         this[_findLeftMostDescendent](this[_currentNode].right);
         return true;
       }
@@ -3086,26 +3086,27 @@ var collection;
     return _SplayTreeIterator;
   });
   let _SplayTreeIterator = _SplayTreeIterator$();
+  let _copyNode = Symbol('_copyNode');
   let _SplayTreeKeyIterable$ = dart.generic(function(K) {
     class _SplayTreeKeyIterable extends IterableBase$(K) {
       _SplayTreeKeyIterable(tree$) {
         this[_tree] = tree$;
         super.IterableBase();
       }
-      get length() {
+      get [core.$length]() {
         return this[_tree][_count];
       }
-      get isEmpty() {
+      get [core.$isEmpty]() {
         return this[_tree][_count] == 0;
       }
-      get iterator() {
+      get [core.$iterator]() {
         return new (_SplayTreeKeyIterator$(K))(this[_tree]);
       }
-      toSet() {
+      [core.$toSet]() {
         let setOrMap = this[_tree];
         let set = new (SplayTreeSet$(K))(dart.as(setOrMap[_comparator], dart.throw_("Unimplemented type (K, K) → int")), dart.as(setOrMap[_validKey], dart.throw_("Unimplemented type (dynamic) → bool")));
         set[_count] = this[_tree][_count];
-        set[_root] = set._copyNode(this[_tree][_root]);
+        set[_root] = set[_copyNode](this[_tree][_root]);
         return set;
       }
     }
@@ -3119,13 +3120,13 @@ var collection;
         this[_map] = map$;
         super.IterableBase();
       }
-      get length() {
+      get [core.$length]() {
         return this[_map][_count];
       }
-      get isEmpty() {
+      get [core.$isEmpty]() {
         return this[_map][_count] == 0;
       }
-      get iterator() {
+      get [core.$iterator]() {
         return new (_SplayTreeValueIterator$(K, V))(this[_map]);
       }
     }
@@ -3174,7 +3175,6 @@ var collection;
   });
   let _SplayTreeNodeIterator = _SplayTreeNodeIterator$();
   let _clone = Symbol('_clone');
-  let _copyNode = Symbol('_copyNode');
   let SplayTreeSet$ = dart.generic(function(E) {
     class SplayTreeSet extends dart.mixin(_SplayTree$(E), IterableMixin$(E), SetMixin$(E)) {
       SplayTreeSet(compare, isValidKey) {
@@ -3200,36 +3200,36 @@ var collection;
       [_compare](e1, e2) {
         return dart.dinvokef(this[_comparator], e1, e2);
       }
-      get iterator() {
+      get [core.$iterator]() {
         return new (_SplayTreeKeyIterator$(E))(this);
       }
-      get length() {
+      get [core.$length]() {
         return this[_count];
       }
-      get isEmpty() {
+      get [core.$isEmpty]() {
         return this[_root] == null;
       }
-      get isNotEmpty() {
+      get [core.$isNotEmpty]() {
         return this[_root] != null;
       }
-      get first() {
+      get [core.$first]() {
         if (this[_count] == 0)
           throw _internal.IterableElementError.noElement();
         return dart.as(this[_first].key, E);
       }
-      get last() {
+      get [core.$last]() {
         if (this[_count] == 0)
           throw _internal.IterableElementError.noElement();
         return dart.as(this[_last].key, E);
       }
-      get single() {
+      get [core.$single]() {
         if (this[_count] == 0)
           throw _internal.IterableElementError.noElement();
         if (dart.notNull(this[_count]) > 1)
           throw _internal.IterableElementError.tooMany();
         return this[_root].key;
       }
-      contains(object) {
+      [core.$contains](object) {
         return dart.notNull(dart.dinvokef(this[_validKey], object)) && this[_splay](dart.as(object, E)) == 0;
       }
       add(element) {
@@ -3285,7 +3285,7 @@ var collection;
       intersection(other) {
         let result = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.throw_("Unimplemented type (E, E) → int")), this[_validKey]);
         for (let element of this) {
-          if (other.contains(element))
+          if (other[core.$contains](element))
             result.add(element);
         }
         return result;
@@ -3293,7 +3293,7 @@ var collection;
       difference(other) {
         let result = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.throw_("Unimplemented type (E, E) → int")), this[_validKey]);
         for (let element of this) {
-          if (!dart.notNull(other.contains(element)))
+          if (!dart.notNull(other[core.$contains](element)))
             result.add(element);
         }
         return result;
@@ -3322,7 +3322,7 @@ var collection;
       clear() {
         this[_clear]();
       }
-      toSet() {
+      [core.$toSet]() {
         return this[_clone]();
       }
       toString() {
@@ -3395,7 +3395,7 @@ var collection;
         return dart.notNull(this[_findBucketIndex](bucket, key)) >= 0;
       }
       containsValue(value) {
-        return this[_computeKeys]().any(((each) => dart.equals(this.get(each), value)).bind(this));
+        return this[_computeKeys]()[core.$any](((each) => dart.equals(this.get(each), value)).bind(this));
       }
       addAll(other) {
         other.forEach(((key, value) => {
@@ -3493,7 +3493,7 @@ var collection;
       }
       forEach(action) {
         let keys = this[_computeKeys]();
-        for (let i = 0, length = keys.length; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
+        for (let i = 0, length = keys[core.$length]; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let key = keys[i];
           action(dart.as(key, K), this.get(key));
           if (keys !== this[_keys]) {
@@ -3647,20 +3647,20 @@ var collection;
       get(key) {
         if (!dart.notNull(dart.dinvokef(this[_validKey], key)))
           return null;
-        return super._get(key);
+        return super[_get](key);
       }
       set(key, value) {
-        super._set(key, value);
+        super[_set](key, value);
       }
       containsKey(key) {
         if (!dart.notNull(dart.dinvokef(this[_validKey], key)))
           return false;
-        return super._containsKey(key);
+        return super[_containsKey](key);
       }
       remove(key) {
         if (!dart.notNull(dart.dinvokef(this[_validKey], key)))
           return null;
-        return super._remove(key);
+        return super[_remove](key);
       }
       [_computeHashCode](key) {
         return this[_hashCode](dart.as(key, K)) & 0x3ffffff;
@@ -3688,19 +3688,19 @@ var collection;
         this[_map] = map$;
         super.IterableBase();
       }
-      get length() {
+      get [core.$length]() {
         return dart.as(dart.dload(this[_map], '_length'), core.int);
       }
-      get isEmpty() {
+      get [core.$isEmpty]() {
         return dart.equals(dart.dload(this[_map], '_length'), 0);
       }
-      get iterator() {
+      get [core.$iterator]() {
         return new (HashMapKeyIterator$(E))(this[_map], dart.as(dart.dinvoke(this[_map], '_computeKeys'), core.List));
       }
-      contains(element) {
+      [core.$contains](element) {
         return dart.as(dart.dinvoke(this[_map], 'containsKey', element), core.bool);
       }
-      forEach(f) {
+      [core.$forEach](f) {
         let keys = dart.as(dart.dinvoke(this[_map], '_computeKeys'), core.List);
         for (let i = 0, length = keys.length; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           f(dart.as(keys[i], E));
@@ -3802,7 +3802,7 @@ var collection;
         return dart.notNull(this[_findBucketIndex](bucket, key)) >= 0;
       }
       containsValue(value) {
-        return this.keys.any(dart.as(((each) => dart.equals(this.get(each), value)).bind(this), dart.throw_("Unimplemented type (K) → bool")));
+        return this.keys[core.$any](dart.as(((each) => dart.equals(this.get(each), value)).bind(this), dart.throw_("Unimplemented type (K) → bool")));
       }
       addAll(other) {
         other.forEach(((key, value) => {
@@ -4050,20 +4050,20 @@ var collection;
       get(key) {
         if (!dart.notNull(dart.dinvokef(this[_validKey], key)))
           return null;
-        return super._get(key);
+        return super[_get](key);
       }
       set(key, value) {
-        super._set(key, value);
+        super[_set](key, value);
       }
       containsKey(key) {
         if (!dart.notNull(dart.dinvokef(this[_validKey], key)))
           return false;
-        return super._containsKey(key);
+        return super[_containsKey](key);
       }
       remove(key) {
         if (!dart.notNull(dart.dinvokef(this[_validKey], key)))
           return null;
-        return super._remove(key);
+        return super[_remove](key);
       }
       [_computeHashCode](key) {
         return this[_hashCode](dart.as(key, K)) & 0x3ffffff;
@@ -4097,19 +4097,19 @@ var collection;
         this[_map] = map$;
         super.IterableBase();
       }
-      get length() {
+      get [core.$length]() {
         return dart.as(dart.dload(this[_map], '_length'), core.int);
       }
-      get isEmpty() {
+      get [core.$isEmpty]() {
         return dart.equals(dart.dload(this[_map], '_length'), 0);
       }
-      get iterator() {
+      get [core.$iterator]() {
         return new (LinkedHashMapKeyIterator$(E))(this[_map], dart.as(dart.dload(this[_map], '_modifications'), core.int));
       }
-      contains(element) {
+      [core.$contains](element) {
         return dart.as(dart.dinvoke(this[_map], 'containsKey', element), core.bool);
       }
-      forEach(f) {
+      [core.$forEach](f) {
         let cell = dart.as(dart.dload(this[_map], '_first'), LinkedHashMapCell);
         let modifications = dart.as(dart.dload(this[_map], '_modifications'), core.int);
         while (cell != null) {
@@ -4174,19 +4174,19 @@ var collection;
       [_newSet]() {
         return new (_HashSet$(E))();
       }
-      get iterator() {
+      get [core.$iterator]() {
         return new (HashSetIterator$(E))(this, this[_computeElements]());
       }
-      get length() {
+      get [core.$length]() {
         return this[_length];
       }
-      get isEmpty() {
+      get [core.$isEmpty]() {
         return this[_length] == 0;
       }
-      get isNotEmpty() {
+      get [core.$isNotEmpty]() {
         return !dart.notNull(this.isEmpty);
       }
-      contains(object) {
+      [core.$contains](object) {
         if (_HashSet[_isStringElement](object)) {
           let strings = this[_strings];
           return strings == null ? false : _HashSet[_hasTableEntry](strings, object);
@@ -4206,7 +4206,7 @@ var collection;
       }
       lookup(object) {
         if (dart.notNull(_HashSet[_isStringElement](object)) || dart.notNull(_HashSet[_isNumericElement](object))) {
-          return dart.as(this.contains(object) ? object : null, E);
+          return dart.as(this[core.$contains](object) ? object : null, E);
         }
         return this[_lookup](object);
       }
@@ -4218,7 +4218,7 @@ var collection;
         let index = this[_findBucketIndex](bucket, object);
         if (dart.notNull(index) < 0)
           return null;
-        return dart.as(bucket.get(index), E);
+        return dart.as(bucket[core.$get](index), E);
       }
       add(element) {
         if (_HashSet[_isStringElement](element)) {
@@ -4441,22 +4441,22 @@ var collection;
         return this[_hasher](dart.as(element, E)) & 0x3ffffff;
       }
       add(object) {
-        return super._add(object);
+        return super[_add](object);
       }
-      contains(object) {
+      [core.$contains](object) {
         if (!dart.notNull(dart.dinvokef(this[_validKey], object)))
           return false;
-        return super._contains(object);
+        return super[_contains](object);
       }
       lookup(object) {
         if (!dart.notNull(dart.dinvokef(this[_validKey], object)))
           return null;
-        return super._lookup(object);
+        return super[_lookup](object);
       }
       remove(object) {
         if (!dart.notNull(dart.dinvokef(this[_validKey], object)))
           return false;
-        return super._remove(object);
+        return super[_remove](object);
       }
     }
     return _CustomHashSet;
@@ -4511,19 +4511,19 @@ var collection;
       [_unsupported](operation) {
         throw `LinkedHashSet: unsupported ${operation}`;
       }
-      get iterator() {
+      get [core.$iterator]() {
         return dart.as(new LinkedHashSetIterator(this, this[_modifications]), core.Iterator$(E));
       }
-      get length() {
+      get [core.$length]() {
         return this[_length];
       }
-      get isEmpty() {
+      get [core.$isEmpty]() {
         return this[_length] == 0;
       }
-      get isNotEmpty() {
+      get [core.$isNotEmpty]() {
         return !dart.notNull(this.isEmpty);
       }
-      contains(object) {
+      [core.$contains](object) {
         if (_LinkedHashSet[_isStringElement](object)) {
           let strings = this[_strings];
           if (strings == null)
@@ -4549,7 +4549,7 @@ var collection;
       }
       lookup(object) {
         if (dart.notNull(_LinkedHashSet[_isStringElement](object)) || dart.notNull(_LinkedHashSet[_isNumericElement](object))) {
-          return dart.as(this.contains(object) ? object : null, E);
+          return dart.as(this[core.$contains](object) ? object : null, E);
         } else {
           return this[_lookup](object);
         }
@@ -4562,9 +4562,9 @@ var collection;
         let index = this[_findBucketIndex](bucket, object);
         if (dart.notNull(index) < 0)
           return null;
-        return dart.as(dart.dload(bucket.get(index), '_element'), E);
+        return dart.as(dart.dload(bucket[core.$get](index), '_element'), E);
       }
-      forEach(action) {
+      [core.$forEach](action) {
         let cell = this[_first];
         let modifications = this[_modifications];
         while (cell != null) {
@@ -4575,12 +4575,12 @@ var collection;
           cell = cell[_next];
         }
       }
-      get first() {
+      get [core.$first]() {
         if (this[_first] == null)
           throw new core.StateError("No elements");
         return dart.as(this[_first][_element], E);
       }
-      get last() {
+      get [core.$last]() {
         if (this[_last] == null)
           throw new core.StateError("No elements");
         return dart.as(this[_last][_element], E);
@@ -4813,26 +4813,26 @@ var collection;
         return this[_hasher](dart.as(element, E)) & 0x3ffffff;
       }
       add(element) {
-        return super._add(element);
+        return super[_add](element);
       }
-      contains(object) {
+      [core.$contains](object) {
         if (!dart.notNull(dart.dinvokef(this[_validKey], object)))
           return false;
-        return super._contains(object);
+        return super[_contains](object);
       }
       lookup(object) {
         if (!dart.notNull(dart.dinvokef(this[_validKey], object)))
           return null;
-        return super._lookup(object);
+        return super[_lookup](object);
       }
       remove(object) {
         if (!dart.notNull(dart.dinvokef(this[_validKey], object)))
           return false;
-        return super._remove(object);
+        return super[_remove](object);
       }
       containsAll(elements) {
         for (let element of elements) {
-          if (!dart.notNull(dart.dinvokef(this[_validKey], element)) || !dart.notNull(this.contains(element)))
+          if (!dart.notNull(dart.dinvokef(this[_validKey], element)) || !dart.notNull(this[core.$contains](element)))
             return false;
         }
         return true;
@@ -4840,7 +4840,7 @@ var collection;
       removeAll(elements) {
         for (let element of elements) {
           if (dart.dinvokef(this[_validKey], element)) {
-            super._remove(element);
+            super[_remove](element);
           }
         }
       }

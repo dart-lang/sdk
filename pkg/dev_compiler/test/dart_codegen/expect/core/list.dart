@@ -1,5 +1,5 @@
 part of dart.core;
- abstract class List<E> implements Iterable<E>, EfficientLength {external factory List([int length]);
+ @SupportJsExtensionMethod() @JsPeerInterface(name: 'Array') abstract class List<E> implements Iterable<E>, EfficientLength {external factory List([int length]);
  external factory List.filled(int length, E fill);
  external factory List.from(Iterable elements, {
   bool growable : true}

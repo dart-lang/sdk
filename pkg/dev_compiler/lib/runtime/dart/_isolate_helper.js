@@ -21,6 +21,7 @@ var _isolate_helper;
   let _receivePortId = Symbol('_receivePortId');
   let _receivePort = Symbol('_receivePort');
   let _id = Symbol('_id');
+  let _getJSFunctionName = Symbol('_getJSFunctionName');
   class _Serializer extends core.Object {
     _Serializer(opts) {
       let serializeSendPorts = opts && 'serializeSendPorts' in opts ? opts.serializeSendPorts : true;
@@ -96,21 +97,21 @@ var _isolate_helper;
     }
     serializeArray(x) {
       let serialized = new core.List.from([]);
-      serialized.length = x.length;
-      for (let i = 0; dart.notNull(i) < dart.notNull(x.length); i = dart.notNull(i) + 1) {
-        serialized.set(i, this.serialize(x.get(i)));
+      serialized[core.$length] = x[core.$length];
+      for (let i = 0; dart.notNull(i) < dart.notNull(x[core.$length]); i = dart.notNull(i) + 1) {
+        serialized[core.$set](i, this.serialize(x[core.$get](i)));
       }
       return serialized;
     }
     serializeArrayInPlace(x) {
-      for (let i = 0; dart.notNull(i) < dart.notNull(x.length); i = dart.notNull(i) + 1) {
-        x.set(i, this.serialize(x.get(i)));
+      for (let i = 0; dart.notNull(i) < dart.notNull(x[core.$length]); i = dart.notNull(i) + 1) {
+        x[core.$set](i, this.serialize(x[core.$get](i)));
       }
       return x;
     }
     serializeMap(x) {
       let serializeTearOff = this.serialize;
-      return new core.List.from(['map', x.keys.map(dart.as(serializeTearOff, dart.throw_("Unimplemented type (dynamic) → dynamic"))).toList(), x.values.map(dart.as(serializeTearOff, dart.throw_("Unimplemented type (dynamic) → dynamic"))).toList()]);
+      return new core.List.from(['map', x.keys[core.$map](dart.as(serializeTearOff, dart.throw_("Unimplemented type (dynamic) → dynamic")))[core.$toList](), x.values[core.$map](dart.as(serializeTearOff, dart.throw_("Unimplemented type (dynamic) → dynamic")))[core.$toList]()]);
     }
     serializeJSObject(x) {
       if (!!x.constructor && x.constructor !== Object) {
@@ -118,9 +119,9 @@ var _isolate_helper;
       }
       let keys = dart.as(Object.keys(x), core.List);
       let values = new core.List.from([]);
-      values.length = keys.length;
-      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
-        values.set(i, this.serialize(x[keys.get(i)]));
+      values[core.$length] = keys[core.$length];
+      for (let i = 0; dart.notNull(i) < dart.notNull(keys[core.$length]); i = dart.notNull(i) + 1) {
+        values[core.$set](i, this.serialize(x[keys[core.$get](i)]));
       }
       return new core.List.from(['js-object', keys, values]);
     }
@@ -141,7 +142,7 @@ var _isolate_helper;
       return new core.List.from(['capability', x[_id]]);
     }
     serializeClosure(x) {
-      let name = IsolateNatives._getJSFunctionName(x);
+      let name = IsolateNatives[_getJSFunctionName](x);
       if (name == null) {
         this.unsupported(x, "Closures can't be transmitted:");
       }
@@ -156,6 +157,7 @@ var _isolate_helper;
     }
   }
   let _adjustSendPorts = Symbol('_adjustSendPorts');
+  let _getJSFunctionFromName = Symbol('_getJSFunctionFromName');
   class _Deserializer extends core.Object {
     _Deserializer(opts) {
       let adjustSendPorts = opts && 'adjustSendPorts' in opts ? opts.adjustSendPorts : true;
@@ -235,48 +237,48 @@ var _isolate_helper;
     deserializeRef(x) {
       dart.assert(dart.equals(dart.dindex(x, 0), 'ref'));
       let serializationId = dart.as(dart.dindex(x, 1), core.int);
-      return this.deserializedObjects.get(serializationId);
+      return this.deserializedObjects[core.$get](serializationId);
     }
     deserializeByteBuffer(x) {
       dart.assert(dart.equals(dart.dindex(x, 0), 'buffer'));
       let result = dart.as(dart.dindex(x, 1), _native_typed_data.NativeByteBuffer);
-      this.deserializedObjects.add(result);
+      this.deserializedObjects[core.$add](result);
       return result;
     }
     deserializeTypedData(x) {
       dart.assert(dart.equals(dart.dindex(x, 0), 'typed'));
       let result = dart.as(dart.dindex(x, 1), _native_typed_data.NativeTypedData);
-      this.deserializedObjects.add(result);
+      this.deserializedObjects[core.$add](result);
       return result;
     }
     deserializeArrayInPlace(x) {
-      for (let i = 0; dart.notNull(i) < dart.notNull(x.length); i = dart.notNull(i) + 1) {
-        x.set(i, this.deserialize(x.get(i)));
+      for (let i = 0; dart.notNull(i) < dart.notNull(x[core.$length]); i = dart.notNull(i) + 1) {
+        x[core.$set](i, this.deserialize(x[core.$get](i)));
       }
       return x;
     }
     deserializeFixed(x) {
       dart.assert(dart.equals(dart.dindex(x, 0), 'fixed'));
       let result = dart.as(dart.dindex(x, 1), core.List);
-      this.deserializedObjects.add(result);
+      this.deserializedObjects[core.$add](result);
       return new _interceptors.JSArray.markFixed(this.deserializeArrayInPlace(dart.as(result, _interceptors.JSArray)));
     }
     deserializeExtendable(x) {
       dart.assert(dart.equals(dart.dindex(x, 0), 'extendable'));
       let result = dart.as(dart.dindex(x, 1), core.List);
-      this.deserializedObjects.add(result);
+      this.deserializedObjects[core.$add](result);
       return new _interceptors.JSArray.markGrowable(this.deserializeArrayInPlace(dart.as(result, _interceptors.JSArray)));
     }
     deserializeMutable(x) {
       dart.assert(dart.equals(dart.dindex(x, 0), 'mutable'));
       let result = dart.as(dart.dindex(x, 1), core.List);
-      this.deserializedObjects.add(result);
+      this.deserializedObjects[core.$add](result);
       return this.deserializeArrayInPlace(dart.as(result, _interceptors.JSArray));
     }
     deserializeConst(x) {
       dart.assert(dart.equals(dart.dindex(x, 0), 'const'));
       let result = dart.as(dart.dindex(x, 1), core.List);
-      this.deserializedObjects.add(result);
+      this.deserializedObjects[core.$add](result);
       return new _interceptors.JSArray.markFixed(this.deserializeArrayInPlace(dart.as(result, _interceptors.JSArray)));
     }
     deserializeMap(x) {
@@ -284,10 +286,10 @@ var _isolate_helper;
       let keys = dart.as(dart.dindex(x, 1), core.List);
       let values = dart.as(dart.dindex(x, 2), core.List);
       let result = dart.map();
-      this.deserializedObjects.add(result);
-      keys = keys.map(this.deserialize).toList();
-      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
-        result.set(keys.get(i), this.deserialize(values.get(i)));
+      this.deserializedObjects[core.$add](result);
+      keys = keys[core.$map](this.deserialize)[core.$toList]();
+      for (let i = 0; dart.notNull(i) < dart.notNull(keys[core.$length]); i = dart.notNull(i) + 1) {
+        result.set(keys[core.$get](i), this.deserialize(values[core.$get](i)));
       }
       return result;
     }
@@ -308,13 +310,13 @@ var _isolate_helper;
       } else {
         result = new _WorkerSendPort(managerId, isolateId, receivePortId);
       }
-      this.deserializedObjects.add(result);
+      this.deserializedObjects[core.$add](result);
       return result;
     }
     deserializeRawSendPort(x) {
       dart.assert(dart.equals(dart.dindex(x, 0), 'raw sendport'));
       let result = dart.as(dart.dindex(x, 1), isolate.SendPort);
-      this.deserializedObjects.add(result);
+      this.deserializedObjects[core.$add](result);
       return result;
     }
     deserializeJSObject(x) {
@@ -322,17 +324,17 @@ var _isolate_helper;
       let keys = dart.as(dart.dindex(x, 1), core.List);
       let values = dart.as(dart.dindex(x, 2), core.List);
       let o = {};
-      this.deserializedObjects.add(o);
-      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
-        o[keys.get(i)] = this.deserialize(values.get(i));
+      this.deserializedObjects[core.$add](o);
+      for (let i = 0; dart.notNull(i) < dart.notNull(keys[core.$length]); i = dart.notNull(i) + 1) {
+        o[keys[core.$get](i)] = this.deserialize(values[core.$get](i));
       }
       return o;
     }
     deserializeClosure(x) {
       dart.assert(dart.equals(dart.dindex(x, 0), 'function'));
       let name = dart.as(dart.dindex(x, 1), core.String);
-      let result = dart.as(IsolateNatives._getJSFunctionFromName(name), core.Function);
-      this.deserializedObjects.add(result);
+      let result = dart.as(IsolateNatives[_getJSFunctionFromName](name), core.Function);
+      this.deserializedObjects[core.$add](result);
       return result;
     }
     deserializeDartObject(x) {
@@ -342,7 +344,7 @@ var _isolate_helper;
       let instanceFromClassId = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.INSTANCE_FROM_CLASS_ID);
       let initializeObject = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.INITIALIZE_EMPTY_INSTANCE);
       let emptyInstance = instanceFromClassId(classId);
-      this.deserializedObjects.add(emptyInstance);
+      this.deserializedObjects[core.$add](emptyInstance);
       this.deserializeArrayInPlace(dart.as(fields, _interceptors.JSArray));
       return initializeObject(classId, emptyInstance, fields);
     }
@@ -476,6 +478,7 @@ var _isolate_helper;
   let _updateGlobalState = Symbol('_updateGlobalState');
   let _setGlobals = Symbol('_setGlobals');
   let _addRegistration = Symbol('_addRegistration');
+  let _close = Symbol('_close');
   class _IsolateContext extends core.Object {
     _IsolateContext() {
       this.id = ((x$) => exports._globalState.nextIsolateId = dart.notNull(x$) + 1, x$)(exports._globalState.nextIsolateId);
@@ -508,9 +511,9 @@ var _isolate_helper;
       if (!dart.notNull(this.isPaused))
         return;
       this.pauseTokens.remove(resume);
-      if (this.pauseTokens.isEmpty) {
-        while (this.delayedEvents.isNotEmpty) {
-          let event = this.delayedEvents.removeLast();
+      if (this.pauseTokens[core.$isEmpty]) {
+        while (this.delayedEvents[core.$isNotEmpty]) {
+          let event = this.delayedEvents[core.$removeLast]();
           exports._globalState.topEventLoop.prequeue(event);
         }
         this.isPaused = false;
@@ -578,7 +581,7 @@ var _isolate_helper;
       this.errorPorts.remove(port);
     }
     handleUncaughtError(error, stackTrace) {
-      if (this.errorPorts.isEmpty) {
+      if (this.errorPorts[core.$isEmpty]) {
         if (dart.notNull(this.errorsAreFatal) && dart.notNull(core.identical(this, exports._globalState.rootContext))) {
           return;
         }
@@ -592,15 +595,15 @@ var _isolate_helper;
         return;
       }
       let message = new core.List(2);
-      message.set(0, dart.dinvoke(error, 'toString'));
-      message.set(1, stackTrace == null ? null : stackTrace.toString());
+      message[core.$set](0, dart.dinvoke(error, 'toString'));
+      message[core.$set](1, stackTrace == null ? null : stackTrace.toString());
       for (let port of this.errorPorts)
         port.send(message);
     }
     eval(code) {
       let old = exports._globalState.currentContext;
       exports._globalState.currentContext = this;
-      this._setGlobals();
+      this[_setGlobals]();
       let result = null;
       this[_isExecutingEvent] = true;
       try {
@@ -619,7 +622,7 @@ var _isolate_helper;
         this[_isExecutingEvent] = false;
         exports._globalState.currentContext = old;
         if (old != null)
-          old._setGlobals();
+          old[_setGlobals]();
         if (this[_scheduledControlEvents] != null) {
           while (dart.dload(this[_scheduledControlEvents], 'isNotEmpty')) {
             dart.dinvokef(dart.dinvoke(this[_scheduledControlEvents], 'removeFirst'));
@@ -699,7 +702,7 @@ var _isolate_helper;
       this[_addRegistration](portId, port);
     }
     [_updateGlobalState]() {
-      if (dart.notNull(this.ports.length) - dart.notNull(this.weakPorts.length) > 0 || dart.notNull(this.isPaused) || !dart.notNull(this.initialized)) {
+      if (dart.notNull(this.ports.length) - dart.notNull(this.weakPorts[core.$length]) > 0 || dart.notNull(this.isPaused) || !dart.notNull(this.initialized)) {
         exports._globalState.isolates.set(this.id, this);
       } else {
         this.kill();
@@ -710,7 +713,7 @@ var _isolate_helper;
         dart.dinvoke(this[_scheduledControlEvents], 'clear');
       }
       for (let port of this.ports.values) {
-        port._close();
+        port[_close]();
       }
       this.ports.clear();
       this.weakPorts.clear();
@@ -743,7 +746,7 @@ var _isolate_helper;
       this.events.addFirst(event);
     }
     dequeue() {
-      if (this.events.isEmpty)
+      if (this.events[core.$isEmpty])
         return null;
       return this.events.removeFirst();
     }
@@ -798,7 +801,7 @@ var _isolate_helper;
     }
     process() {
       if (this.isolate.isPaused) {
-        this.isolate.delayedEvents.add(this);
+        this.isolate.delayedEvents[core.$add](this);
         return;
       }
       this.isolate.eval(this.fn);
@@ -830,11 +833,9 @@ var _isolate_helper;
   class _MainFunctionArgs extends core.Function {}
   class _MainFunctionArgsMessage extends core.Function {}
   let _getEventData = Symbol('_getEventData');
-  let _getJSFunctionFromName = Symbol('_getJSFunctionFromName');
   let _startIsolate = Symbol('_startIsolate');
   let _log = Symbol('_log');
   let _consoleLog = Symbol('_consoleLog');
-  let _getJSFunctionName = Symbol('_getJSFunctionName');
   let _allocate = Symbol('_allocate');
   let _startWorker = Symbol('_startWorker');
   let _startNonWorker = Symbol('_startNonWorker');
@@ -1130,6 +1131,7 @@ var _isolate_helper;
   }
   _BaseSendPort[dart.implements] = () => [isolate.SendPort];
   let _isClosed = Symbol('_isClosed');
+  let _add = Symbol('_add');
   class _NativeJsSendPort extends _BaseSendPort {
     _NativeJsSendPort(receivePort$, isolateId) {
       this[_receivePort] = receivePort$;
@@ -1148,7 +1150,7 @@ var _isolate_helper;
       }
       exports._globalState.topEventLoop.enqueue(isolate, (() => {
         if (!dart.notNull(this[_receivePort][_isClosed])) {
-          this[_receivePort]._add(msg);
+          this[_receivePort][_add](msg);
         }
       }).bind(this), `receive ${message}`);
     }
@@ -1187,8 +1189,6 @@ var _isolate_helper;
   _WorkerSendPort[dart.implements] = () => [isolate.SendPort];
   let _handler = Symbol('_handler');
   let _nextFreeId = Symbol('_nextFreeId');
-  let _close = Symbol('_close');
-  let _add = Symbol('_add');
   class RawReceivePortImpl extends core.Object {
     RawReceivePortImpl(handler) {
       this[_handler] = handler;

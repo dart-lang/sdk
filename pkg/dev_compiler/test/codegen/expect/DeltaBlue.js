@@ -20,7 +20,7 @@ var DeltaBlue;
       this.name = name;
     }
     nextWeaker() {
-      return /* Unimplemented const */new core.List$(Strength).from([STRONG_PREFERRED, PREFERRED, STRONG_DEFAULT, NORMAL, WEAK_DEFAULT, WEAKEST]).get(this.value);
+      return /* Unimplemented const */new core.List$(Strength).from([STRONG_PREFERRED, PREFERRED, STRONG_DEFAULT, NORMAL, WEAK_DEFAULT, WEAKEST])[core.$get](this.value);
     }
     static stronger(s1, s2) {
       return dart.notNull(s1.value) < dart.notNull(s2.value);
@@ -251,10 +251,10 @@ var DeltaBlue;
       this.stay = true;
     }
     addConstraint(c) {
-      this.constraints.add(c);
+      this.constraints[core.$add](c);
     }
     removeConstraint(c) {
-      this.constraints.remove(c);
+      this.constraints[core.$remove](c);
       if (dart.equals(this.determinedBy, c))
         this.determinedBy = null;
     }
@@ -275,8 +275,8 @@ var DeltaBlue;
       let unsatisfied = this.removePropagateFrom(out);
       let strength = REQUIRED;
       do {
-        for (let i = 0; dart.notNull(i) < dart.notNull(unsatisfied.length); i = dart.notNull(i) + 1) {
-          let u = unsatisfied.get(i);
+        for (let i = 0; dart.notNull(i) < dart.notNull(unsatisfied[core.$length]); i = dart.notNull(i) + 1) {
+          let u = unsatisfied[core.$get](i);
           if (dart.equals(u.strength, strength))
             this.incrementalAdd(u);
         }
@@ -290,8 +290,8 @@ var DeltaBlue;
       let mark = this.newMark();
       let plan = new Plan();
       let todo = sources;
-      while (dart.notNull(todo.length) > 0) {
-        let c = todo.removeLast();
+      while (dart.notNull(todo[core.$length]) > 0) {
+        let c = todo[core.$removeLast]();
         if (c.output().mark != mark && dart.notNull(c.inputsKnown(mark))) {
           plan.addConstraint(c);
           c.output().mark = mark;
@@ -302,17 +302,17 @@ var DeltaBlue;
     }
     extractPlanFromConstraints(constraints) {
       let sources = new core.List$(Constraint).from([]);
-      for (let i = 0; dart.notNull(i) < dart.notNull(constraints.length); i = dart.notNull(i) + 1) {
-        let c = constraints.get(i);
+      for (let i = 0; dart.notNull(i) < dart.notNull(constraints[core.$length]); i = dart.notNull(i) + 1) {
+        let c = constraints[core.$get](i);
         if (dart.notNull(c.isInput()) && dart.notNull(c.isSatisfied()))
-          sources.add(c);
+          sources[core.$add](c);
       }
       return this.makePlan(sources);
     }
     addPropagate(c, mark) {
       let todo = new core.List$(Constraint).from([c]);
-      while (dart.notNull(todo.length) > 0) {
-        let d = todo.removeLast();
+      while (dart.notNull(todo[core.$length]) > 0) {
+        let d = todo[core.$removeLast]();
         if (d.output().mark == mark) {
           this.incrementalRemove(c);
           return false;
@@ -328,19 +328,19 @@ var DeltaBlue;
       out.stay = true;
       let unsatisfied = new core.List$(Constraint).from([]);
       let todo = new core.List$(Variable).from([out]);
-      while (dart.notNull(todo.length) > 0) {
-        let v = todo.removeLast();
-        for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints.length); i = dart.notNull(i) + 1) {
-          let c = v.constraints.get(i);
+      while (dart.notNull(todo[core.$length]) > 0) {
+        let v = todo[core.$removeLast]();
+        for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints[core.$length]); i = dart.notNull(i) + 1) {
+          let c = v.constraints[core.$get](i);
           if (!dart.notNull(c.isSatisfied()))
-            unsatisfied.add(c);
+            unsatisfied[core.$add](c);
         }
         let determining = v.determinedBy;
-        for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints.length); i = dart.notNull(i) + 1) {
-          let next = v.constraints.get(i);
+        for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints[core.$length]); i = dart.notNull(i) + 1) {
+          let next = v.constraints[core.$get](i);
           if (dart.notNull(!dart.equals(next, determining)) && dart.notNull(next.isSatisfied())) {
             next.recalculate();
-            todo.add(next.output());
+            todo[core.$add](next.output());
           }
         }
       }
@@ -348,10 +348,10 @@ var DeltaBlue;
     }
     addConstraintsConsumingTo(v, coll) {
       let determining = v.determinedBy;
-      for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints.length); i = dart.notNull(i) + 1) {
-        let c = v.constraints.get(i);
+      for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints[core.$length]); i = dart.notNull(i) + 1) {
+        let c = v.constraints[core.$get](i);
         if (dart.notNull(!dart.equals(c, determining)) && dart.notNull(c.isSatisfied()))
-          coll.add(c);
+          coll[core.$add](c);
       }
     }
   }
@@ -360,14 +360,14 @@ var DeltaBlue;
       this.list = new core.List$(Constraint).from([]);
     }
     addConstraint(c) {
-      this.list.add(c);
+      this.list[core.$add](c);
     }
     size() {
-      return this.list.length;
+      return this.list[core.$length];
     }
     execute() {
-      for (let i = 0; dart.notNull(i) < dart.notNull(this.list.length); i = dart.notNull(i) + 1) {
-        this.list.get(i).execute();
+      for (let i = 0; dart.notNull(i) < dart.notNull(this.list[core.$length]); i = dart.notNull(i) + 1) {
+        this.list[core.$get](i).execute();
       }
     }
   }
@@ -407,7 +407,7 @@ var DeltaBlue;
     for (let i = 0; dart.notNull(i) < dart.notNull(n); i = dart.notNull(i) + 1) {
       src = new Variable("src", i);
       dst = new Variable("dst", i);
-      dests.add(dst);
+      dests[core.$add](dst);
       new StayConstraint(src, NORMAL);
       new ScaleConstraint(src, scale, offset, dst, REQUIRED);
     }
@@ -419,12 +419,12 @@ var DeltaBlue;
       core.print("Projection 2 failed");
     change(scale, 5);
     for (let i = 0; dart.notNull(i) < dart.notNull(n) - 1; i = dart.notNull(i) + 1) {
-      if (dests.get(i).value != dart.notNull(i) * 5 + 1000)
+      if (dests[core.$get](i).value != dart.notNull(i) * 5 + 1000)
         core.print("Projection 3 failed");
     }
     change(offset, 2000);
     for (let i = 0; dart.notNull(i) < dart.notNull(n) - 1; i = dart.notNull(i) + 1) {
-      if (dests.get(i).value != dart.notNull(i) * 5 + 2000)
+      if (dests[core.$get](i).value != dart.notNull(i) * 5 + 2000)
         core.print("Projection 4 failed");
     }
   }

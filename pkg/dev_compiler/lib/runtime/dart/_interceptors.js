@@ -1,360 +1,6 @@
 var _interceptors;
 (function(exports) {
   'use strict';
-  class Interceptor extends core.Object {
-    Interceptor() {
-    }
-    ['=='](other) {
-      return core.identical(this, other);
-    }
-    get hashCode() {
-      return _js_helper.Primitives.objectHashCode(this);
-    }
-    toString() {
-      return _js_helper.Primitives.objectToString(this);
-    }
-    noSuchMethod(invocation) {
-      throw new core.NoSuchMethodError(this, invocation.memberName, invocation.positionalArguments, invocation.namedArguments);
-    }
-    get runtimeType() {
-      return _js_helper.getRuntimeType(this);
-    }
-  }
-  let JSArray$ = dart.generic(function(E) {
-    class JSArray extends Interceptor {
-      JSArray() {
-        super.Interceptor();
-      }
-      fixed(length) {
-        if (dart.notNull(!(typeof length == 'number')) || dart.notNull(length) < 0) {
-          throw new core.ArgumentError(`Length must be a non-negative integer: ${length}`);
-        }
-        return new JSArray$(E).markFixed(new Array(length));
-      }
-      emptyGrowable() {
-        return new JSArray$(E).markGrowable([]);
-      }
-      growable(length) {
-        if (dart.notNull(!(typeof length == 'number')) || dart.notNull(length) < 0) {
-          throw new core.ArgumentError(`Length must be a non-negative integer: ${length}`);
-        }
-        return new JSArray$(E).markGrowable(new Array(length));
-      }
-      typed(allocation) {
-        return dart.as(allocation, JSArray$(E));
-      }
-      markFixed(allocation) {
-        return dart.as(JSArray.markFixedList(new JSArray$(E).typed(allocation)), JSArray$(E));
-      }
-      markGrowable(allocation) {
-        return dart.as(new JSArray$(E).typed(allocation), JSArray$(E));
-      }
-      static markFixedList(list) {
-        list.fixed$length = Array;
-        return dart.as(list, core.List);
-      }
-      checkMutable(reason) {
-        if (!dart.is(this, JSMutableArray)) {
-          throw new core.UnsupportedError(dart.as(reason, core.String));
-        }
-      }
-      checkGrowable(reason) {
-        if (!dart.is(this, JSExtendableArray)) {
-          throw new core.UnsupportedError(dart.as(reason, core.String));
-        }
-      }
-      add(value) {
-        this.checkGrowable('add');
-        this.push(value);
-      }
-      removeAt(index) {
-        if (!(typeof index == 'number'))
-          throw new core.ArgumentError(index);
-        if (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(this.length)) {
-          throw new core.RangeError.value(index);
-        }
-        this.checkGrowable('removeAt');
-        return dart.as(this.splice(index, 1)[0], E);
-      }
-      insert(index, value) {
-        if (!(typeof index == 'number'))
-          throw new core.ArgumentError(index);
-        if (dart.notNull(index) < 0 || dart.notNull(index) > dart.notNull(this.length)) {
-          throw new core.RangeError.value(index);
-        }
-        this.checkGrowable('insert');
-        this.splice(index, 0, value);
-      }
-      insertAll(index, iterable) {
-        this.checkGrowable('insertAll');
-        _internal.IterableMixinWorkaround.insertAllList(this, index, iterable);
-      }
-      setAll(index, iterable) {
-        this.checkMutable('setAll');
-        _internal.IterableMixinWorkaround.setAllList(this, index, iterable);
-      }
-      removeLast() {
-        this.checkGrowable('removeLast');
-        if (this.length == 0)
-          throw new core.RangeError.value(-1);
-        return dart.as(this.pop(), E);
-      }
-      remove(element) {
-        this.checkGrowable('remove');
-        for (let i = 0; dart.notNull(i) < dart.notNull(this.length); i = dart.notNull(i) + 1) {
-          if (dart.equals(this.get(i), element)) {
-            this.splice(i, 1);
-            return true;
-          }
-        }
-        return false;
-      }
-      removeWhere(test) {
-        _internal.IterableMixinWorkaround.removeWhereList(this, test);
-      }
-      retainWhere(test) {
-        _internal.IterableMixinWorkaround.removeWhereList(this, (element) => !dart.notNull(test(element)));
-      }
-      where(f) {
-        return new (_internal.IterableMixinWorkaround$(E))().where(this, f);
-      }
-      expand(f) {
-        return _internal.IterableMixinWorkaround.expand(this, f);
-      }
-      addAll(collection) {
-        for (let e of collection) {
-          this.add(e);
-        }
-      }
-      clear() {
-        this.length = 0;
-      }
-      forEach(f) {
-        let length = this.length;
-        for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          f(dart.as(this[i], E));
-          if (length != this.length) {
-            throw new core.ConcurrentModificationError(this);
-          }
-        }
-      }
-      map(f) {
-        return _internal.IterableMixinWorkaround.mapList(this, f);
-      }
-      join(separator) {
-        if (separator === void 0)
-          separator = "";
-        let list = new core.List(this.length);
-        for (let i = 0; dart.notNull(i) < dart.notNull(this.length); i = dart.notNull(i) + 1) {
-          list.set(i, `${this.get(i)}`);
-        }
-        return list.join(separator);
-      }
-      take(n) {
-        return new (_internal.IterableMixinWorkaround$(E))().takeList(this, n);
-      }
-      takeWhile(test) {
-        return new (_internal.IterableMixinWorkaround$(E))().takeWhile(this, test);
-      }
-      skip(n) {
-        return new (_internal.IterableMixinWorkaround$(E))().skipList(this, n);
-      }
-      skipWhile(test) {
-        return new (_internal.IterableMixinWorkaround$(E))().skipWhile(this, test);
-      }
-      reduce(combine) {
-        return dart.as(_internal.IterableMixinWorkaround.reduce(this, combine), E);
-      }
-      fold(initialValue, combine) {
-        return _internal.IterableMixinWorkaround.fold(this, initialValue, combine);
-      }
-      firstWhere(test, opts) {
-        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
-        return dart.as(_internal.IterableMixinWorkaround.firstWhere(this, test, orElse), E);
-      }
-      lastWhere(test, opts) {
-        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
-        return dart.as(_internal.IterableMixinWorkaround.lastWhereList(this, test, orElse), E);
-      }
-      singleWhere(test) {
-        return dart.as(_internal.IterableMixinWorkaround.singleWhere(this, test), E);
-      }
-      elementAt(index) {
-        return this.get(index);
-      }
-      sublist(start, end) {
-        if (end === void 0)
-          end = null;
-        _js_helper.checkNull(start);
-        if (!(typeof start == 'number'))
-          throw new core.ArgumentError(start);
-        if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(this.length)) {
-          throw new core.RangeError.range(start, 0, this.length);
-        }
-        if (end == null) {
-          end = this.length;
-        } else {
-          if (!(typeof end == 'number'))
-            throw new core.ArgumentError(end);
-          if (dart.notNull(end) < dart.notNull(start) || dart.notNull(end) > dart.notNull(this.length)) {
-            throw new core.RangeError.range(end, start, this.length);
-          }
-        }
-        if (start == end)
-          return new core.List$(E).from([]);
-        return new JSArray$(E).markGrowable(this.slice(start, end));
-      }
-      getRange(start, end) {
-        return new (_internal.IterableMixinWorkaround$(E))().getRangeList(this, start, end);
-      }
-      get first() {
-        if (dart.notNull(this.length) > 0)
-          return this.get(0);
-        throw new core.StateError("No elements");
-      }
-      get last() {
-        if (dart.notNull(this.length) > 0)
-          return this.get(dart.notNull(this.length) - 1);
-        throw new core.StateError("No elements");
-      }
-      get single() {
-        if (this.length == 1)
-          return this.get(0);
-        if (this.length == 0)
-          throw new core.StateError("No elements");
-        throw new core.StateError("More than one element");
-      }
-      removeRange(start, end) {
-        this.checkGrowable('removeRange');
-        let receiverLength = this.length;
-        if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(receiverLength)) {
-          throw new core.RangeError.range(start, 0, receiverLength);
-        }
-        if (dart.notNull(end) < dart.notNull(start) || dart.notNull(end) > dart.notNull(receiverLength)) {
-          throw new core.RangeError.range(end, start, receiverLength);
-        }
-        _internal.Lists.copy(this, end, this, start, dart.notNull(receiverLength) - dart.notNull(end));
-        this.length = dart.notNull(receiverLength) - (dart.notNull(end) - dart.notNull(start));
-      }
-      setRange(start, end, iterable, skipCount) {
-        if (skipCount === void 0)
-          skipCount = 0;
-        this.checkMutable('set range');
-        _internal.IterableMixinWorkaround.setRangeList(this, start, end, iterable, skipCount);
-      }
-      fillRange(start, end, fillValue) {
-        if (fillValue === void 0)
-          fillValue = null;
-        this.checkMutable('fill range');
-        _internal.IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
-      }
-      replaceRange(start, end, iterable) {
-        this.checkGrowable('removeRange');
-        _internal.IterableMixinWorkaround.replaceRangeList(this, start, end, iterable);
-      }
-      any(f) {
-        return _internal.IterableMixinWorkaround.any(this, f);
-      }
-      every(f) {
-        return _internal.IterableMixinWorkaround.every(this, f);
-      }
-      get reversed() {
-        return new (_internal.IterableMixinWorkaround$(E))().reversedList(this);
-      }
-      sort(compare) {
-        if (compare === void 0)
-          compare = null;
-        this.checkMutable('sort');
-        _internal.IterableMixinWorkaround.sortList(this, compare);
-      }
-      shuffle(random) {
-        if (random === void 0)
-          random = null;
-        _internal.IterableMixinWorkaround.shuffleList(this, random);
-      }
-      indexOf(element, start) {
-        if (start === void 0)
-          start = 0;
-        return _internal.IterableMixinWorkaround.indexOfList(this, element, start);
-      }
-      lastIndexOf(element, start) {
-        if (start === void 0)
-          start = null;
-        return _internal.IterableMixinWorkaround.lastIndexOfList(this, element, start);
-      }
-      contains(other) {
-        for (let i = 0; dart.notNull(i) < dart.notNull(this.length); i = dart.notNull(i) + 1) {
-          if (dart.equals(this.get(i), other))
-            return true;
-        }
-        return false;
-      }
-      get isEmpty() {
-        return this.length == 0;
-      }
-      get isNotEmpty() {
-        return !dart.notNull(this.isEmpty);
-      }
-      toString() {
-        return collection.ListBase.listToString(this);
-      }
-      toList(opts) {
-        let growable = opts && 'growable' in opts ? opts.growable : true;
-        if (growable) {
-          return new JSArray$(E).markGrowable(this.slice());
-        } else {
-          return new JSArray$(E).markFixed(this.slice());
-        }
-      }
-      toSet() {
-        return new core.Set$(E).from(this);
-      }
-      get iterator() {
-        return new (_internal.ListIterator$(E))(this);
-      }
-      get hashCode() {
-        return _js_helper.Primitives.objectHashCode(this);
-      }
-      get length() {
-        return dart.as(this.length, core.int);
-      }
-      set length(newLength) {
-        if (!(typeof newLength == 'number'))
-          throw new core.ArgumentError(newLength);
-        if (dart.notNull(newLength) < 0)
-          throw new core.RangeError.value(newLength);
-        this.checkGrowable('set length');
-        this.length = newLength;
-      }
-      get(index) {
-        if (!(typeof index == 'number'))
-          throw new core.ArgumentError(index);
-        if (dart.notNull(index) >= dart.notNull(this.length) || dart.notNull(index) < 0)
-          throw new core.RangeError.value(index);
-        return dart.as(this[index], E);
-      }
-      set(index, value) {
-        this.checkMutable('indexed set');
-        if (!(typeof index == 'number'))
-          throw new core.ArgumentError(index);
-        if (dart.notNull(index) >= dart.notNull(this.length) || dart.notNull(index) < 0)
-          throw new core.RangeError.value(index);
-        this[index] = value;
-      }
-      asMap() {
-        return new (_internal.IterableMixinWorkaround$(E))().asMapList(this);
-      }
-    }
-    JSArray[dart.implements] = () => [core.List$(E), JSIndexable];
-    dart.defineNamedConstructor(JSArray, 'fixed');
-    dart.defineNamedConstructor(JSArray, 'emptyGrowable');
-    dart.defineNamedConstructor(JSArray, 'growable');
-    dart.defineNamedConstructor(JSArray, 'typed');
-    dart.defineNamedConstructor(JSArray, 'markFixed');
-    dart.defineNamedConstructor(JSArray, 'markGrowable');
-    return JSArray;
-  });
-  let JSArray = JSArray$();
   let JSMutableArray$ = dart.generic(function(E) {
     class JSMutableArray extends JSArray$(E) {}
     JSMutableArray[dart.implements] = () => [JSMutableIndexable];
@@ -381,6 +27,25 @@ var _interceptors;
   let _shrReceiverPositive = Symbol('_shrReceiverPositive');
   let _shrOtherPositive = Symbol('_shrOtherPositive');
   let _shrBothPositive = Symbol('_shrBothPositive');
+  class Interceptor extends core.Object {
+    Interceptor() {
+    }
+    ['=='](other) {
+      return core.identical(this, other);
+    }
+    get hashCode() {
+      return _js_helper.Primitives.objectHashCode(this);
+    }
+    toString() {
+      return _js_helper.Primitives.objectToString(this);
+    }
+    noSuchMethod(invocation) {
+      throw new core.NoSuchMethodError(this, invocation.memberName, invocation.positionalArguments, invocation.namedArguments);
+    }
+    get runtimeType() {
+      return _js_helper.getRuntimeType(this);
+    }
+  }
   class JSNumber extends Interceptor {
     JSNumber() {
       super.Interceptor();
@@ -863,11 +528,11 @@ var _interceptors;
           continue;
         }
         let end = matchStart;
-        result.add(this.substring(start, end));
+        result[core.$add](this.substring(start, end));
         start = matchEnd;
       }
       if (dart.notNull(start) < dart.notNull(this.length) || dart.notNull(length) > 0) {
-        result.add(this.substring(start));
+        result[core.$add](this.substring(start));
       }
       return result;
     }
@@ -1192,10 +857,10 @@ var _interceptors;
       this[_string] = string$;
       super.UnmodifiableListBase();
     }
-    get length() {
+    get [core.$length]() {
       return this[_string].length;
     }
-    get(i) {
+    [core.$get](i) {
       return this[_string].codeUnitAt(i);
     }
   }
@@ -1291,8 +956,8 @@ var _interceptors;
     if (exports.mapTypeToInterceptor == null)
       return null;
     let map = dart.as(exports.mapTypeToInterceptor, core.List);
-    for (let i = 0; dart.notNull(i) + 1 < dart.notNull(map.length); i = 3) {
-      if (dart.equals(type, map.get(i))) {
+    for (let i = 0; dart.notNull(i) + 1 < dart.notNull(map[core.$length]); i = 3) {
+      if (dart.equals(type, map[core.$get](i))) {
         return i;
       }
     }
@@ -1304,7 +969,7 @@ var _interceptors;
     if (index == null)
       return null;
     let map = dart.as(exports.mapTypeToInterceptor, core.List);
-    return map.get(dart.notNull(index) + 1);
+    return map[core.$get](dart.notNull(index) + 1);
   }
   // Function findConstructorForNativeSubclassType: (Type, String) → dynamic
   function findConstructorForNativeSubclassType(type, name) {
@@ -1312,7 +977,7 @@ var _interceptors;
     if (index == null)
       return null;
     let map = dart.as(exports.mapTypeToInterceptor, core.List);
-    let constructorMap = map.get(dart.notNull(index) + 2);
+    let constructorMap = map[core.$get](dart.notNull(index) + 2);
     let constructorFn = constructorMap[name];
     return constructorFn;
   }
@@ -1388,9 +1053,6 @@ var _interceptors;
     }
   }
   // Exports:
-  exports.JSArray$ = JSArray$;
-  exports.JSArray = JSArray;
-  exports.Interceptor = Interceptor;
   exports.JSMutableArray$ = JSMutableArray$;
   exports.JSMutableArray = JSMutableArray;
   exports.JSFixedArray$ = JSFixedArray$;
@@ -1398,6 +1060,7 @@ var _interceptors;
   exports.JSExtendableArray$ = JSExtendableArray$;
   exports.JSExtendableArray = JSExtendableArray;
   exports.JSNumber = JSNumber;
+  exports.Interceptor = Interceptor;
   exports.JSInt = JSInt;
   exports.JSDouble = JSDouble;
   exports.JSPositiveInt = JSPositiveInt;

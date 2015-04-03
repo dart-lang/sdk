@@ -42,6 +42,11 @@ Annotation _getAnnotation(AnnotatedNode node, String name) => node.metadata
 Annotation _getJsNameAnnotation(AnnotatedNode node) =>
     _getAnnotation(node, "JsName");
 
+// TODO(jacobr): we would like to do something like the following
+// but we don't have summary support yet.
+// bool _supportJsExtensionMethod(AnnotatedNode node) =>
+//    _getAnnotation(node, "SupportJsExtensionMethod") != null;
+
 class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final LibraryInfo libraryInfo;
   final TypeRules rules;
@@ -60,11 +65,46 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   ClassDeclaration currentClass;
   ConstantEvaluator _constEvaluator;
 
-  final _exports = <String>[];
+  final _exports = new Set<String>();
   final _lazyFields = <VariableDeclaration>[];
   final _properties = <FunctionDeclaration>[];
   final _privateNames = new HashSet<String>();
   final _pendingPrivateNames = <String>[];
+  final _extensionMethodNames = new HashSet<String>();
+  final _pendingExtensionMethodNames = <String>[];
+
+  InterfaceType _fillDynamicTypeArgs(InterfaceType t) {
+    var d = rules.provider.dynamicType;
+    return t.substitute4(new List.filled(t.typeArguments.length, d));
+  }
+  // TODO(jacobr): determine the the set of types with extension methods from
+  // the annotations rather than hard coding the list once the analyzer
+  // supports summaries.
+  List<InterfaceType> _jsExtensionMethodTypes;
+  List<InterfaceType> get jsExtensionMethodTypes {
+    if (_jsExtensionMethodTypes != null) return _jsExtensionMethodTypes;
+    _jsExtensionMethodTypes = <InterfaceType>[
+      rules.provider.listType,
+      rules.provider.iterableType
+    ].map(_fillDynamicTypeArgs).toList();
+    return _jsExtensionMethodTypes;
+  }
+
+  Map<ClassElement, Set<String>> _extensionMethods;
+
+  Map<ClassElement, Set<String>> get extensionMethods {
+    if (_extensionMethods != null) return _extensionMethods;
+    _extensionMethods = new HashMap<ClassElement, HashSet<String>>();
+
+    for (var type in jsExtensionMethodTypes) {
+      var names = new HashSet<String>();
+      var e = type.element;
+      names.addAll(e.methods.map((m) => m.name));
+      names.addAll(e.accessors.map((m) => m.name));
+      _extensionMethods[e] = names;
+    }
+    return _extensionMethods;
+  }
 
   /// Classes we have not emitted yet. Values can be [ClassDeclaration] or
   /// [ClassTypeAlias].
@@ -145,6 +185,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   JS.Statement _initPrivateSymbol(String name) => js.statement(
       'let # = $_SYMBOL(#);', [new JSTemporary(name), js.string(name, "'")]);
 
+  JS.Statement _initExtensionMethodSymbol(String name) => js.statement(
+      'let # = $_SYMBOL(#);', [new JS.Identifier(name), js.string(name, "'")]);
+
   // TODO(jmesserly): this is a temporary workaround for `Symbol` in core,
   // until we have better name tracking.
   String get _SYMBOL {
@@ -173,6 +216,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         if (_pendingPrivateNames.isNotEmpty) {
           body.addAll(_pendingPrivateNames.map(_initPrivateSymbol));
           _pendingPrivateNames.clear();
+        }
+        if (_pendingExtensionMethodNames.isNotEmpty) {
+          body.addAll(
+              _pendingExtensionMethodNames.map(_initExtensionMethodSymbol));
+          _pendingExtensionMethodNames.clear();
         }
         body.add(code);
       }
@@ -367,7 +415,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       ]);
     }
 
-    if (isPublic(name)) _exports.add(name);
+    if (isPublic(name)) _addExport(name);
 
     if (genericDef != null) {
       body = js.statement('{ #; let # = #; }', [genericDef, name, genericInst]);
@@ -521,6 +569,34 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   /// Emit class members that can be generated as methods.
   /// Anything not handled here will be addressed in [_finishClassMembers].
+  Iterable<InterfaceType> getMatchingExtensionMethodTypes(InterfaceType type) =>
+      jsExtensionMethodTypes.where((t) => rules.isSubTypeOf(type, t));
+
+  LibraryElement getExtensionLibrary(
+      Iterable<InterfaceType> extensionTypes, String name) {
+    var library = null;
+    for (var type in extensionTypes) {
+      var element = type.element;
+      if (extensionMethods[element].contains(name)) {
+        assert(library == null || library == element.library);
+        library = element.library;
+      }
+    }
+    return library;
+  }
+
+  JS.Expression nameIfExtension(Expression target, String name) {
+    var targetType = rules.getStaticType(target);
+    if (targetType is! InterfaceType) return null;
+    var extensionLibrary =
+        getExtensionLibrary(getMatchingExtensionMethodTypes(targetType), name);
+    if (extensionLibrary == null) return null;
+    return js.call('#.#', [
+      _libraryName(extensionLibrary),
+      _emitExtensionMethodName(name)
+    ]);
+  }
+
   List<JS.Method> _emitClassMethods(ClassDeclaration node,
       List<ConstructorDeclaration> ctors, List<FieldDeclaration> fields) {
     var element = node.element;
@@ -533,12 +609,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (ctors.isEmpty && !isObject) {
       jsMethods.add(_emitImplicitConstructor(node, name, fields));
     }
-
+    var extensionTypes = getMatchingExtensionMethodTypes(element.type);
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
         jsMethods.add(_emitConstructor(member, name, fields, isObject));
       } else if (member is MethodDeclaration) {
-        jsMethods.add(_visit(member));
+        jsMethods.add(_emitMethodDeclaration(member, extensionTypes));
       }
     }
 
@@ -585,7 +661,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       if (member.name != null) {
         body.add(js.statement('dart.defineNamedConstructor(#, #);', [
           name,
-          _jsMemberName(member.name.name, isStatic: true)
+          _emitMemberName(member.name.name, isStatic: true)
         ]));
       }
     }
@@ -670,7 +746,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   JS.Expression _constructorName(String className, SimpleIdentifier name) {
     if (name == null) return js.string(className, "'");
-    return _jsMemberName(name.name, isStatic: true);
+    return _emitMemberName(name.name, isStatic: true);
   }
 
   JS.Block _emitConstructorBody(
@@ -781,7 +857,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         if (p is FieldFormalParameter) {
           var name = p.identifier.name;
           body.add(
-              js.statement('this.# = #;', [_jsMemberName(name), _visit(p)]));
+              js.statement('this.# = #;', [_emitMemberName(name), _visit(p)]));
           unsetFields.remove(name);
         }
       }
@@ -811,7 +887,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
           value = new JS.LiteralNull();
         }
       }
-      body.add(js.statement('this.# = #;', [_jsMemberName(name), value]));
+      body.add(js.statement('this.# = #;', [_emitMemberName(name), value]));
     });
 
     return _statement(body);
@@ -873,8 +949,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
   }
 
-  @override
-  JS.Method visitMethodDeclaration(MethodDeclaration node) {
+  JS.Method _emitMethodDeclaration(
+      MethodDeclaration node, Iterable<InterfaceType> extensionTypes) {
     if (node.isAbstract || _externalOrNative(node)) {
       return null;
     }
@@ -882,8 +958,32 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var params = _visit(node.parameters);
     if (params == null) params = [];
 
-    return new JS.Method(_jsMemberName(node.name.name, isStatic: node.isStatic),
-        new JS.Fun(params, _visit(node.body)),
+    var memberName;
+    var extensionLibrary;
+
+    if (!node.isStatic) {
+      extensionLibrary = getExtensionLibrary(extensionTypes, node.name.name);
+    }
+
+    if (extensionLibrary != null) {
+      var extensionMethodName = _extensionMethodName(node.name.name);
+      if (extensionLibrary == libraryInfo.library.library) {
+        // TODO(jacobr): need to do a better job ensuring that extension method
+        // name symbols do not conflict with other symbols before we can let
+        // user defined libraries define extension methods.
+        if (_extensionMethodNames.add(extensionMethodName)) {
+          _pendingExtensionMethodNames.add(extensionMethodName);
+          _addExport(extensionMethodName);
+        }
+      }
+      memberName = js.call('#.#', [
+        _libraryName(extensionLibrary),
+        js.string(extensionMethodName, "'")
+      ]);
+    } else {
+      memberName = _emitMemberName(node.name.name, isStatic: node.isStatic);
+    }
+    return new JS.Method(memberName, new JS.Fun(params, _visit(node.body)),
         isGetter: node.isGetter,
         isSetter: node.isSetter,
         isStatic: node.isStatic);
@@ -910,7 +1010,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     body.add(new JS.FunctionDeclaration(
         new JS.Identifier(name), _visit(node.functionExpression)));
 
-    if (isPublic(name)) _exports.add(name);
+    if (isPublic(name)) _addExport(name);
     return _statement(body);
   }
 
@@ -979,7 +1079,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     // instance member
     if (currentClass != null && _needsImplicitThis(e)) {
-      return js.call('this.#', _jsMemberName(name));
+      return js.call('this.#', _emitMemberName(name));
     }
 
     // static member
@@ -987,7 +1087,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         e.isStatic &&
         variable.enclosingElement is ClassElement) {
       var className = (variable.enclosingElement as ClassElement).name;
-      return js.call('#.#', [className, _jsMemberName(name, isStatic: true)]);
+      return js.call('#.#', [className, _emitMemberName(name, isStatic: true)]);
     }
 
     // initializing formal parameter, e.g. `Point(this.x)`
@@ -1046,7 +1146,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return false;
   }
 
-  JS.Node _emitDPutIfDynamic(
+  JS.Node _emitDSetIfDynamic(
       Expression target, SimpleIdentifier id, Expression rhs) {
     if (rules.isDynamicTarget(target)) {
       return js.call('dart.dput(#, #, #)', [
@@ -1063,27 +1163,31 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   JS.Node visitAssignmentExpression(AssignmentExpression node) {
     var lhs = node.leftHandSide;
     var rhs = node.rightHandSide;
-    return _emitAssignment(lhs, rhs, node.parent);
+    return _emitSet(lhs, rhs, node.parent);
   }
 
-  JS.Node _emitAssignment(Expression lhs, Expression rhs, [AstNode parent]) {
+  JS.Node _emitSet(Expression lhs, Expression rhs, [AstNode parent]) {
     if (lhs is IndexExpression) {
       String code;
       var target = _getTarget(lhs);
       if (rules.isDynamicTarget(target)) {
         code = 'dart.dsetindex(#, #, #)';
-      } else {
-        code = '#.set(#, #)';
+        return js.call(code, [_visit(target), _visit(lhs.index), _visit(rhs)]);
       }
-      return js.call(code, [_visit(target), _visit(lhs.index), _visit(rhs)]);
+      return js.call('#.#(#, #)', [
+        _visit(target),
+        _emitMemberName('[]=', target: target),
+        _visit(lhs.index),
+        _visit(rhs)
+      ]);
     }
 
     if (lhs is PropertyAccess) {
-      var result = _emitDPutIfDynamic(_getTarget(lhs), lhs.propertyName, rhs);
+      var result = _emitDSetIfDynamic(_getTarget(lhs), lhs.propertyName, rhs);
       if (result != null) return result;
     } else if (lhs is PrefixedIdentifier) {
       // TODO(vsm): Is this the right code if the prefix is a library?
-      var result = _emitDPutIfDynamic(lhs.prefix, lhs.identifier, rhs);
+      var result = _emitDSetIfDynamic(lhs.prefix, lhs.identifier, rhs);
       if (result != null) return result;
     }
 
@@ -1158,7 +1262,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     var targetJs;
     if (target != null) {
-      targetJs = js.call('#.#', [_visit(target), node.methodName.name]);
+      targetJs = js.call('#.#', [
+        _visit(target),
+        _emitMemberName(node.methodName.name, target: target)
+      ]);
     } else {
       targetJs = _visit(node.methodName);
     }
@@ -1269,7 +1376,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         var name = field.name.name;
         body.add(js.statement(
             'let # = #;', [new JS.Identifier(name), _visitInitializer(field)]));
-        if (isPublic(name)) _exports.add(name);
+        if (isPublic(name)) _addExport(name);
       } else if (_isFieldInitConstant(field)) {
         body.add(js.statement(
             '# = #;', [_visit(field.name), _visitInitializer(field)]));
@@ -1279,6 +1386,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
 
     return _statement(body);
+  }
+
+  _addExport(String name) {
+    if (!_exports.add(name)) throw 'Duplicate top level name found: $name';
   }
 
   @override
@@ -1375,7 +1486,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var typeName = _visit(node.type);
     if (node.name != null) {
       return js.call(
-          '#.#', [typeName, _jsMemberName(node.name.name, isStatic: true)]);
+          '#.#', [typeName, _emitMemberName(node.name.name, isStatic: true)]);
     }
     return typeName;
   }
@@ -1572,7 +1683,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     one.staticType = rules.provider.intType;
     var increment = AstBuilder.binaryExpression(tmp, op.lexeme[0], one);
     increment.staticType = type;
-    var write = _emitAssignment(expr, increment);
+    var write = _emitSet(expr, increment);
 
     return js.call(
         "((#) => (#, #))(#)", [_visit(tmp), write, _visit(tmp), _visit(expr)]);
@@ -1603,7 +1714,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var one = AstBuilder.integerLiteral(1);
     one.staticType = rules.provider.intType;
     var increment = AstBuilder.binaryExpression(expr, op.lexeme[0], one);
-    return _emitAssignment(expr, increment);
+    return _emitSet(expr, increment);
   }
 
   @override
@@ -1631,7 +1742,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
 
     // Call the operator
-    var opString = _jsMemberName(op.lexeme, unary: true);
+    var opString = _emitMemberName(op.lexeme, unary: true);
     if (rules.isDynamicTarget(expr)) {
       // dynamic dispatch
       return js.call('dart.dunary(#, #)', [opString, _visit(expr)]);
@@ -1728,38 +1839,42 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (node.prefix.staticElement is PrefixElement) {
       return _visit(node.identifier);
     } else {
-      return _visitGet(node.prefix, node.identifier);
+      return _emitGet(node.prefix, node.identifier);
     }
   }
 
   @override
   visitPropertyAccess(PropertyAccess node) =>
-      _visitGet(_getTarget(node), node.propertyName);
+      _emitGet(_getTarget(node), node.propertyName);
 
   /// Shared code for [PrefixedIdentifier] and [PropertyAccess].
-  _visitGet(Expression target, SimpleIdentifier name) {
+  _emitGet(Expression target, SimpleIdentifier name) {
     if (rules.isDynamicTarget(target)) {
       return js.call(
           'dart.dload(#, #)', [_visit(target), js.string(name.name, "'")]);
     } else {
       var e = name.staticElement;
-      return js.call('#.#', [
+      var ret = js.call('#.#', [
         _visit(target),
-        _jsMemberName(name.name, isStatic: e is ExecutableElement && e.isStatic)
+        _emitMemberName(name.name,
+            isStatic: e is ExecutableElement && e.isStatic, target: target)
       ]);
+      return ret;
     }
   }
 
   @override
   visitIndexExpression(IndexExpression node) {
     var target = _getTarget(node);
-    var code;
     if (rules.isDynamicTarget(target)) {
-      code = 'dart.dindex(#, #)';
-    } else {
-      code = '#.get(#)';
+      return js.call('dart.dindex(#, #)', [_visit(target), _visit(node.index)]);
     }
-    return js.call(code, [_visit(target), _visit(node.index)]);
+
+    return js.call('#.#(#)', [
+      _visit(target),
+      _emitMemberName('[]', target: target),
+      _visit(node.index)
+    ]);
   }
 
   /// Gets the target of a [PropertyAccess] or [IndexExpression].
@@ -2145,28 +2260,38 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// Equality is a bit special, it is generated via the Dart `equals` runtime
   /// helper, that checks for null. The user defined method is called '=='.
   ///
-  JS.Expression _jsMemberName(String name,
-      {bool unary: false, bool isStatic: false}) {
+  JS.Expression _emitMemberName(String name,
+      {bool unary: false, bool isStatic: false, Expression target}) {
+    if (isStatic == false && target != null) {
+      var ret = nameIfExtension(target, name);
+      if (ret != null) return ret;
+    }
     if (name.startsWith('_')) {
       if (_privateNames.add(name)) _pendingPrivateNames.add(name);
       return new JSTemporary(name);
     }
-    if (name == '[]') {
-      name = 'get';
-    } else if (name == '[]=') {
-      name = 'set';
-    } else if (unary && name == '-') {
-      name = 'unary-';
-    } else if (isStatic && invalidJSStaticMethodName(name)) {
+    return _propertyName(_jsMemberName(name, unary: unary, isStatic: isStatic));
+  }
+
+  String _jsMemberName(String name, {bool unary: false, bool isStatic: false}) {
+    if (name == '[]') return 'get';
+    if (name == '[]=') return 'set';
+    if (unary && name == '-') return 'unary-';
+    if (isStatic && invalidJSStaticMethodName(name)) {
       // Choose an string name. Use an invalid identifier so it won't conflict
       // with any valid member names.
       // TODO(jmesserly): this works around the problem, but I'm pretty sure we
       // don't need it, as static methods seemed to work. The only concrete
       // issue we saw was in the defineNamedConstructor helper function.
-      name = '$name*';
+      return '$name*';
     }
-    return _propertyName(name);
+    return name;
   }
+
+  JS.LiteralString _emitExtensionMethodName(String name) =>
+      js.string(_extensionMethodName(name), "'");
+
+  String _extensionMethodName(String name) => '\$${_jsMemberName(name)}';
 
   bool _externalOrNative(node) =>
       node.externalKeyword != null || _functionBody(node) is NativeFunctionBody;

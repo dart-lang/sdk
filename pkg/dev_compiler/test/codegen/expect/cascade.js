@@ -65,8 +65,8 @@ var cascade;
   // Function test_VariableDeclaration_first: () → void
   function test_VariableDeclaration_first() {
     let a = ((_) => {
-      _.length = 2;
-      _.add(3);
+      _[core.$length] = 2;
+      _[core.$add](3);
       return _;
     })(new core.List.from([])), b = 2;
     core.print(a);

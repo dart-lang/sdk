@@ -31,6 +31,7 @@ part of dart.core;
  * the iteration, which is typically signalled by throwing a
  * [ConcurrentModificationError] when it is detected.
  */
+@SupportJsExtensionMethods()
 abstract class Iterable<E> {
   const Iterable();
 

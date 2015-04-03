@@ -1,5 +1,5 @@
 part of dart.core;
- abstract class Iterable<E> {const Iterable();
+ @SupportJsExtensionMethods() abstract class Iterable<E> {const Iterable();
  factory Iterable.generate(int count, [E generator(int index)]) {
   if (count <= 0) return new EmptyIterable<E>();
    return new _GeneratorIterable<E>(count, generator);
@@ -48,7 +48,7 @@ part of dart.core;
  final _Generator<E> _generator;
  _GeneratorIterable(this._end, E generator(int n)) : _start = 0, _generator = ((__x10) => DEVC$RT.cast(__x10, dynamic, DEVC$RT.type((__t8<E> _) {
 }
-), "CompositeCast", """line 319, column 22 of dart:core/iterable.dart: """, __x10 is __t8<E>, false))((generator != null) ? generator : _id);
+), "CompositeCast", """line 320, column 22 of dart:core/iterable.dart: """, __x10 is __t8<E>, false))((generator != null) ? generator : _id);
  _GeneratorIterable.slice(this._start, this._end, this._generator);
  Iterator<E> get iterator => new _GeneratorIterator<E>(_start, _end, _generator);
  int get length => _end - _start;

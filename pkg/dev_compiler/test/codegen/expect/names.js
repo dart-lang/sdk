@@ -24,7 +24,7 @@ var names;
   // Function main: () → dynamic
   function main() {
     core.print(exports.exports);
-    core.print(new Foo()._foo());
+    core.print(new Foo()[_foo$]());
     core.print(_foo());
     core.print(new Frame['caller*'](new core.List.from([1, 2, 3])));
     let eval$ = Frame['callee*'];
