@@ -25,7 +25,8 @@ abstract class TypeRules {
   // TODO(vsm): The default implementation is not ignoring the return type,
   // only the restricted override is.
   bool isFunctionSubTypeOf(FunctionType f1, FunctionType f2,
-      {bool ignoreReturn: false}) => isSubTypeOf(f1, f2);
+          {bool fuzzyArrows: true, bool ignoreReturn: false}) =>
+      isSubTypeOf(f1, f2);
 
   bool isBoolType(DartType t) => t == provider.boolType;
   bool isDoubleType(DartType t) => t == provider.doubleType;
@@ -193,8 +194,11 @@ class RestrictedRules extends TypeRules {
   /// Check that f1 is a subtype of f2. [ignoreReturn] is used in the DDC
   /// checker to determine whether f1 would be a subtype of f2 if the return
   /// type of f1 is set to match f2's return type.
+  // [fuzzyArrows] indicates whether or not the f1 and f2 should be
+  // treated as fuzzy arrow types (and hence dynamic parameters to f2 treated as
+  // bottom).
   bool isFunctionSubTypeOf(FunctionType f1, FunctionType f2,
-      {bool dynamicIsBottom: false, bool ignoreReturn: false}) {
+      {bool fuzzyArrows: true, bool ignoreReturn: false}) {
     final r1s = f1.normalParameterTypes;
     final o1s = f1.optionalParameterTypes;
     final n1s = f1.namedParameterTypes;
@@ -217,7 +221,8 @@ class RestrictedRules extends TypeRules {
       // Check that every named parameter in f2 has a match in f1
       for (String k2 in n2s.keys) {
         if (!n1s.containsKey(k2)) return false;
-        if (!isSubTypeOf(n2s[k2], n1s[k2], dynamicIsBottom: true)) return false;
+        if (!isSubTypeOf(n2s[k2], n1s[k2],
+            dynamicIsBottom: fuzzyArrows)) return false;
       }
     }
     // If we get here, we either have no named parameters,
@@ -239,13 +244,16 @@ class RestrictedRules extends TypeRules {
     int oo = o2s.length; // optional in both
 
     for (int i = 0; i < rr; ++i) {
-      if (!isSubTypeOf(r2s[i], r1s[i], dynamicIsBottom: true)) return false;
+      if (!isSubTypeOf(r2s[i], r1s[i],
+          dynamicIsBottom: fuzzyArrows)) return false;
     }
     for (int i = 0, j = rr; i < or; ++i, ++j) {
-      if (!isSubTypeOf(r2s[j], o1s[i], dynamicIsBottom: true)) return false;
+      if (!isSubTypeOf(r2s[j], o1s[i],
+          dynamicIsBottom: fuzzyArrows)) return false;
     }
     for (int i = or, j = 0; i < oo; ++i, ++j) {
-      if (!isSubTypeOf(o2s[j], o1s[i], dynamicIsBottom: true)) return false;
+      if (!isSubTypeOf(o2s[j], o1s[i],
+          dynamicIsBottom: fuzzyArrows)) return false;
     }
     return true;
   }
@@ -571,10 +579,27 @@ class DownwardsInference {
   void annotateInstanceCreationExpression(
       InstanceCreationExpression e, List<DartType> targs) {}
 
+  /// Called for cast from dynamic required for inference to succeed
+  void annotateCastFromDynamic(Expression e, DartType t) {}
+
+  /// Called for each function expression return type inferred
+  void annotateFunctionExpression(FunctionExpression e, DartType returnType) {}
+
   /// Downward inference
   bool inferExpression(Expression e, DartType t, List<String> errors) {
-    if (e is Conversion) return inferExpression(e.node, t, errors);
+    // Don't cast top level expressions, only sub-expressions
+    return _inferExpression(e, t, errors, cast: false);
+  }
+
+  /// Downward inference
+  bool _inferExpression(Expression e, DartType t, List<String> errors,
+      {cast: true}) {
+    if (e is Conversion) return _inferExpression(e.node, t, errors);
     if (rules.isSubTypeOf(rules.getStaticType(e), t)) return true;
+    if (cast && rules.getStaticType(e).isDynamic) {
+      annotateCastFromDynamic(e, t);
+      return true;
+    }
     if (e is FunctionExpression) return _inferFunctionExpression(e, t, errors);
     if (e is ListLiteral) return _inferListLiteral(e, t, errors);
     if (e is MapLiteral) return _inferMapLiteral(e, t, errors);
@@ -708,7 +733,7 @@ class DownwardsInference {
       for (var arg in pArgs) {
         if (pi >= pTypes.length) return false;
         var argType = pTypes[pi];
-        if (!inferExpression(arg, argType, errors)) return false;
+        if (!_inferExpression(arg, argType, errors)) return false;
         pi++;
       }
       var nTypes = fType.namedParameterTypes;
@@ -719,7 +744,7 @@ class DownwardsInference {
         String name = nameNode.name;
         var argType = nTypes[name];
         if (argType == null) return false;
-        if (!inferExpression(arg, argType, errors)) return false;
+        if (!_inferExpression(arg, argType, errors)) return false;
       }
     }
     annotateInstanceCreationExpression(e, targs);
@@ -727,34 +752,44 @@ class DownwardsInference {
   }
 
   bool _inferNamedExpression(NamedExpression e, DartType t, errors) {
-    return inferExpression(e.expression, t, errors);
+    return _inferExpression(e.expression, t, errors);
   }
 
   bool _inferFunctionExpression(FunctionExpression e, DartType t, errors) {
     if (t is! FunctionType) return false;
-    var returnT = (t as FunctionType).returnType;
-    if (returnT.isDynamic) return false;
+    var fType = (t as FunctionType);
     var eType = e.staticType;
     if (eType is! FunctionType) return false;
+
+    // We have a function literal, so we can treat the arrow type
+    // as non-fuzzy.  Since we're not improving on parameter types
+    // currently, if this check fails then we cannot succeed, so
+    // bail out.  Otherwise, we never need to check the parameter types
+    // again.
+    if (!rules.isFunctionSubTypeOf(eType, fType,
+        fuzzyArrows: false, ignoreReturn: true)) return false;
+
+    // This only entered inference because of fuzzy typing.
+    // The function type is already specific enough, we can just
+    // succeed and treat it as a successful inference
+    if (rules.isSubTypeOf(eType.returnType, fType.returnType)) return true;
+
+    // Fuzzy typing again, handle the void case (not caught by the previous)
+    if (fType.returnType.isVoid) return true;
+
     if (e.body is! ExpressionFunctionBody) return false;
     var body = (e.body as ExpressionFunctionBody).expression;
-    if (!inferExpression(body, returnT, errors)) return false;
+    if (!_inferExpression(body, fType.returnType, errors)) return false;
+
     // TODO(leafp): Try narrowing the argument types if possible
     // to get better code in the function body.  This requires checking
     // that the body is well-typed at the more specific type.
-    var element = (e.element as ExecutableElementImpl);
-    var oldReturnT = element.returnType;
-    element.returnType = returnT;
-    // Work around dynamic as bottom for now by handling function literals
-    // with dynamic arguments specially.  We already know the body is typable
-    // at the chosen type, and if all args are dynamic, then function must be
-    // typeable.
-    if ((eType as FunctionType).parameters.every((x) => x.type.isDynamic)) {
-      return true;
-    }
-    if (rules.isSubTypeOf(e.staticType, t)) return true;
-    element.returnType = oldReturnT;
-    return false;
+
+    // At this point, we know that the parameter types are in the appropriate subtype
+    // relation, and we have checked that we can type the body at the appropriate return
+    // type, so we can are done.
+    annotateFunctionExpression(e, fType.returnType);
+    return true;
   }
 
   bool _inferListLiteral(ListLiteral e, DartType t, errors) {
@@ -771,7 +806,7 @@ class DownwardsInference {
     var etype = targs[0];
     assert(!etype.isDynamic);
     var elements = e.elements;
-    var b = elements.every((e) => inferExpression(e, etype, errors));
+    var b = elements.every((e) => _inferExpression(e, etype, errors));
     if (b) annotateListLiteral(e, targs);
     return b;
   }
@@ -792,8 +827,8 @@ class DownwardsInference {
     assert(!(kType.isDynamic && vType.isDynamic));
     var entries = e.entries;
     bool inferEntry(MapLiteralEntry entry) {
-      return inferExpression(entry.key, kType, errors) &&
-          inferExpression(entry.value, vType, errors);
+      return _inferExpression(entry.key, kType, errors) &&
+          _inferExpression(entry.value, vType, errors);
     }
     var b = entries.every(inferEntry);
     if (b) annotateMapLiteral(e, targs);

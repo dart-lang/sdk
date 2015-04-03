@@ -332,14 +332,14 @@ writeString(',');
  void writeMap(Map<String, Object> map) {
 writeString('{');
  String separator = '"';
- map.forEach(((__x21) => DEVC$RT.cast(__x21, __t18, __t15, "InferableClosure", """line 721, column 17 of dart:convert/json.dart: """, __x21 is __t15, false))((String key, value) {
+ map.forEach((String key, value) {
 writeString(separator);
  separator = ',"';
  writeStringContent(key);
  writeString('":');
  writeObject(value);
 }
-));
+);
  writeString('}');
 }
 }
@@ -546,5 +546,3 @@ writeByte(indent[i]);
  typedef Object __t6(Object __u7);
  typedef dynamic __t8(dynamic __u9);
  typedef dynamic __t11(Object __u12);
- typedef void __t15(String __u16, Object __u17);
- typedef dynamic __t18(String __u19, dynamic __u20);

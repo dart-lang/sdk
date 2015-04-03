@@ -39,6 +39,15 @@ class _Inference extends DownwardsInference {
   _Inference(TypeRules rules, this._tm) : super(rules);
 
   @override
+  void annotateCastFromDynamic(Expression e, DartType t) {
+    var cast = Coercion.cast(e.staticType, t);
+    var node = new DynamicCast(rules, e, cast);
+    if (!NodeReplacer.replace(e, node)) {
+      _log.severe("Failed to replace node for DownCast");
+    }
+  }
+
+  @override
   void annotateListLiteral(ListLiteral e, List<DartType> targs) {
     var tNames = targs.map(_tm.typeNameFromDartType).toList();
     e.typeArguments = AstBuilder.typeArgumentList(tNames);
@@ -64,6 +73,12 @@ class _Inference extends DownwardsInference {
     cName.type = typeName;
     var rawType = (e.staticType.element as ClassElement).type;
     e.staticType = rawType.substitute4(targs);
+  }
+
+  @override
+  void annotateFunctionExpression(FunctionExpression e, DartType returnType) {
+    // Implicitly changes e.staticType
+    (e.element as ExecutableElementImpl).returnType = returnType;
   }
 }
 

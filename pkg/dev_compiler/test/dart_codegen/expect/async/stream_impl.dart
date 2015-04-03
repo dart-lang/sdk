@@ -41,12 +41,12 @@ assert (_isCanceled); _PendingEvents events = _pending;
  return events;
 }
  void onData(void handleData(T event)) {
-if (handleData == null) handleData = DEVC$RT.cast(_nullDataHandler, __t64, DEVC$RT.type((__t62<T> _) {
+if (handleData == null) handleData = DEVC$RT.cast(_nullDataHandler, __t57, DEVC$RT.type((__t55<T> _) {
 }
-), "CompositeCast", """line 153, column 42 of dart:async/stream_impl.dart: """, _nullDataHandler is __t62<T>, false);
- _onData = ((__x68) => DEVC$RT.cast(__x68, __t66, DEVC$RT.type((__t62<T> _) {
+), "CompositeCast", """line 153, column 42 of dart:async/stream_impl.dart: """, _nullDataHandler is __t55<T>, false);
+ _onData = ((__x61) => DEVC$RT.cast(__x61, __t59, DEVC$RT.type((__t55<T> _) {
 }
-), "CompositeCast", """line 154, column 15 of dart:async/stream_impl.dart: """, __x68 is __t62<T>, false))(_zone.registerUnaryCallback(handleData));
+), "CompositeCast", """line 154, column 15 of dart:async/stream_impl.dart: """, __x61 is __t55<T>, false))(_zone.registerUnaryCallback(handleData));
 }
  void onError(Function handleError) {
 if (handleError == null) handleError = _nullErrorHandler;
@@ -177,10 +177,10 @@ assert (!_isCanceled); assert (!_isPaused); assert (!_inCallback); bool wasInput
  void sendError() {
 if (_isCanceled && !_waitsForCancel) return; _state |= _STATE_IN_CALLBACK;
  if (_onError is ZoneBinaryCallback) {
-  _zone.runBinaryGuarded(DEVC$RT.cast(_onError, Function, __t69, "ImplicitCast", """line 358, column 32 of dart:async/stream_impl.dart: """, _onError is __t69, true), error, stackTrace);
+  _zone.runBinaryGuarded(DEVC$RT.cast(_onError, Function, __t62, "ImplicitCast", """line 358, column 32 of dart:async/stream_impl.dart: """, _onError is __t62, true), error, stackTrace);
   }
  else {
-  _zone.runUnaryGuarded(DEVC$RT.cast(_onError, Function, __t66, "ImplicitCast", """line 360, column 31 of dart:async/stream_impl.dart: """, _onError is __t66, true), error);
+  _zone.runUnaryGuarded(DEVC$RT.cast(_onError, Function, __t59, "ImplicitCast", """line 360, column 31 of dart:async/stream_impl.dart: """, _onError is __t59, true), error);
   }
  _state &= ~_STATE_IN_CALLBACK;
 }
@@ -460,7 +460,7 @@ _state &= ~_SCHEDULED;
  final Zone _zone;
  _AsBroadcastStreamController<T> _controller;
  StreamSubscription<T> _subscription;
- _AsBroadcastStream(this._source, void onListenHandler(StreamSubscription subscription), void onCancelHandler(StreamSubscription subscription)) : _onListenHandler = ((__x74) => DEVC$RT.cast(__x74, __t66, __t72, "CompositeCast", """line 813, column 28 of dart:async/stream_impl.dart: """, __x74 is __t72, false))(Zone.current.registerUnaryCallback(onListenHandler)), _onCancelHandler = ((__x75) => DEVC$RT.cast(__x75, __t66, __t72, "CompositeCast", """line 814, column 28 of dart:async/stream_impl.dart: """, __x75 is __t72, false))(Zone.current.registerUnaryCallback(onCancelHandler)), _zone = Zone.current {
+ _AsBroadcastStream(this._source, void onListenHandler(StreamSubscription subscription), void onCancelHandler(StreamSubscription subscription)) : _onListenHandler = ((__x67) => DEVC$RT.cast(__x67, __t59, __t65, "CompositeCast", """line 813, column 28 of dart:async/stream_impl.dart: """, __x67 is __t65, false))(Zone.current.registerUnaryCallback(onListenHandler)), _onCancelHandler = ((__x68) => DEVC$RT.cast(__x68, __t59, __t65, "CompositeCast", """line 814, column 28 of dart:async/stream_impl.dart: """, __x68 is __t65, false))(Zone.current.registerUnaryCallback(onCancelHandler)), _zone = Zone.current {
 _controller = new _AsBroadcastStreamController<T>(_onListen, _onCancel);
 }
  bool get isBroadcast => true;
@@ -640,8 +640,8 @@ _Future<bool> hasNext = DEVC$RT.cast(_futureOrPrefetch, dynamic, DEVC$RT.type((_
  _state = _STATE_EXTRA_DONE;
 }
 }
- typedef void __t62<T>(T __u63);
- typedef void __t64(dynamic __u65);
- typedef dynamic __t66(dynamic __u67);
- typedef dynamic __t69(dynamic __u70, dynamic __u71);
- typedef void __t72(StreamSubscription<dynamic> __u73);
+ typedef void __t55<T>(T __u56);
+ typedef void __t57(dynamic __u58);
+ typedef dynamic __t59(dynamic __u60);
+ typedef dynamic __t62(dynamic __u63, dynamic __u64);
+ typedef void __t65(StreamSubscription<dynamic> __u66);

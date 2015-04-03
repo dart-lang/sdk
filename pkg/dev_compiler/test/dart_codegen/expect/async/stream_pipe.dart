@@ -130,7 +130,7 @@ sink._add(inputEvent);
  void _handleData(S inputEvent, _EventSink<T> sink) {
 T outputEvent;
  try {
-outputEvent = ((__x76) => DEVC$RT.cast(__x76, dynamic, T, "CompositeCast", """line 235, column 21 of dart:async/stream_pipe.dart: """, __x76 is T, false))(_transform(inputEvent));
+outputEvent = ((__x69) => DEVC$RT.cast(__x69, dynamic, T, "CompositeCast", """line 235, column 21 of dart:async/stream_pipe.dart: """, __x69 is T, false))(_transform(inputEvent));
 }
  catch (e, s) {
 _addErrorWithReplacement(sink, e, s);

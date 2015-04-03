@@ -1493,16 +1493,17 @@ void main() {
         }
         {
           Function2<int, List<String>> l0 = (int x) => null;
-          Function2<int, List<String>> l1 = /*info:InferredTypeClosure*/(int x) => /*info:InferredTypeLiteral*/["hello"];
+          Function2<int, List<String>> l1 = /*info:InferredTypeClosure*/(int x) => ["hello"];
           Function2<int, List<String>> l2 = /*severe:StaticTypeError*/(String x) => ["hello"];
           Function2<int, List<String>> l3 = /*warning:InferableClosure should be severe:StaticTypeError*/(int x) => [3];
           Function2<int, List<String>> l4 = /*warning:InferableClosure should be severe:StaticTypeError*/(int x) {return [3]};
         }
         {
-          Function2<int, int> l0 = /*warning:InferableClosure should be info:InferredTypeClosure*/(x) => x;
-          Function2<int, int> l1 = /*warning:InferableClosure should be info:InferredTypeClosure*/(x) => x+1;
-          Function2<int, String> l2 = /*warning:InferableClosure should be severe:StaticTypeError*/(x) => x;
-          Function2<int, String> l3 = /*warning:InferableClosure should be severe:StaticTypeError*/(x) => /*warning:DynamicInvoke should be pass*/x.substring(3);
+          Function2<int, int> l0 = /*info:InferredTypeClosure*/(x) => x;
+          Function2<int, int> l1 = /*info:InferredTypeClosure*/(x) => x+1;
+          Function2<int, String> l2 = /*info:InferredTypeClosure should be severe:StaticTypeError*/(x) => x;
+          Function2<int, String> l3 = /*info:InferredTypeClosure should be severe:StaticTypeError*/(x) => /*warning:DynamicInvoke should be pass*/x.substring(3);
+          Function2<String, String> l4 = /*info:InferredTypeClosure*/(x) => /*warning:DynamicInvoke should be pass*/x.substring(3);
         }
       }
       '''

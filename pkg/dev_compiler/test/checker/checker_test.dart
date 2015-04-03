@@ -935,7 +935,7 @@ void main() {
         f2 = /*severe:StaticTypeError*/(int x) => -x;
       }
    '''
-    }, wrapClosures: true);
+    }, wrapClosures: true, inferDownwards: false);
   });
 
   test('Generic subtyping: invariance', () {
