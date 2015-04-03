@@ -137,7 +137,7 @@ class UnitCoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
   @override
   Object visitInferredTypeBase(InferredTypeBase node) {
     var expr = node.node;
-    var b = _inferrer.inferExpression(expr, node.type);
+    var b = _inferrer.inferExpression(expr, node.type, <String>[]);
     assert(b);
     if (!NodeReplacer.replace(node, expr)) {
       _log.severe("Failed to replace node for InferredType");

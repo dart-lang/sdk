@@ -212,7 +212,8 @@ abstract class DownCast extends Conversion {
       'to cast to type $convertedType';
 
   // Factory to create correct DownCast variant.
-  static StaticInfo create(TypeRules rules, Expression expression, Cast cast) {
+  static StaticInfo create(TypeRules rules, Expression expression, Cast cast,
+      {String reason}) {
     final fromT = cast.fromType;
     final toT = cast.toType;
 
@@ -224,7 +225,8 @@ abstract class DownCast extends Conversion {
     // Handle null call specially.
     if (expression is NullLiteral) {
       if (rules.isNonNullableType(toT)) {
-        return new StaticTypeError(rules, expression, toT);
+        reason = "null is invalid as a $toT";
+        return new StaticTypeError(rules, expression, toT, reason: reason);
       } else {
         // We should only get here if some coercion is required.
         assert(rules.maybeNonNullableType(toT));
@@ -237,7 +239,7 @@ abstract class DownCast extends Conversion {
     if (expression is Literal) {
       // fromT should be an exact type - this will almost certainly fail at
       // runtime.
-      return new StaticTypeError(rules, expression, toT);
+      return new StaticTypeError(rules, expression, toT, reason: reason);
     }
     if (expression is FunctionExpression) {
       // fromT should be an exact type - this will almost certainly fail at
@@ -247,7 +249,7 @@ abstract class DownCast extends Conversion {
     if (expression is InstanceCreationExpression) {
       // fromT should be an exact type - this will almost certainly fail at
       // runtime.
-      return new StaticTypeError(rules, expression, toT);
+      return new StaticTypeError(rules, expression, toT, reason: reason);
     }
 
     // Composite cast: these are more likely to fail.
@@ -496,13 +498,16 @@ abstract class StaticError extends StaticInfo {
 class StaticTypeError extends StaticError {
   final DartType baseType;
   final DartType expectedType;
+  String reason = null;
 
-  StaticTypeError(TypeRules rules, Expression expression, this.expectedType)
+  StaticTypeError(TypeRules rules, Expression expression, this.expectedType,
+      {this.reason})
       : baseType = rules.getStaticType(expression),
         super(expression);
 
   String get message =>
-      'Type check failed: $node ($baseType) is not of type $expectedType';
+      'Type check failed: $node ($baseType) is not of type $expectedType' +
+          ((reason == null) ? '' : ' because $reason');
 }
 
 class InvalidVariableDeclaration extends StaticError {

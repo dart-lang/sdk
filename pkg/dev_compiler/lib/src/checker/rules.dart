@@ -493,13 +493,18 @@ class RestrictedRules extends TypeRules {
     final Coercion c = _coerceTo(fromT, toT, options.wrapClosures);
     if (c is Identity) return null;
     if (c is CoercionError) return new StaticTypeError(this, expr, toT);
-    if (options.inferDownwards && inferrer.inferExpression(expr, toT)) {
-      return InferredType.create(this, expr, toT);
+    var reason = null;
+    if (options.inferDownwards) {
+      var errors = <String>[];
+      var ok = inferrer.inferExpression(expr, toT, errors);
+      if (ok) return InferredType.create(this, expr, toT);
+      reason = (errors.isNotEmpty) ? errors.first : null;
     }
     if (constContext && !options.allowConstCasts) {
-      return new StaticTypeError(this, expr, toT);
+      reason = (reason == null) ? "Cast not allowed in const context" : reason;
+      return new StaticTypeError(this, expr, toT, reason: reason);
     }
-    if (c is Cast) return DownCast.create(this, expr, c);
+    if (c is Cast) return DownCast.create(this, expr, c, reason: reason);
     if (c is Wrapper) return ClosureWrap.create(this, expr, c, toT);
     assert(false);
     return null;
@@ -567,15 +572,16 @@ class DownwardsInference {
       InstanceCreationExpression e, List<DartType> targs) {}
 
   /// Downward inference
-  bool inferExpression(Expression e, DartType t) {
-    if (e is Conversion) return inferExpression(e.node, t);
+  bool inferExpression(Expression e, DartType t, List<String> errors) {
+    if (e is Conversion) return inferExpression(e.node, t, errors);
     if (rules.isSubTypeOf(rules.getStaticType(e), t)) return true;
-    if (e is FunctionExpression) return _inferFunctionExpression(e, t);
-    if (e is ListLiteral) return _inferListLiteral(e, t);
-    if (e is MapLiteral) return _inferMapLiteral(e, t);
-    if (e is NamedExpression) return _inferNamedExpression(e, t);
+    if (e is FunctionExpression) return _inferFunctionExpression(e, t, errors);
+    if (e is ListLiteral) return _inferListLiteral(e, t, errors);
+    if (e is MapLiteral) return _inferMapLiteral(e, t, errors);
+    if (e is NamedExpression) return _inferNamedExpression(e, t, errors);
     if (e is InstanceCreationExpression) return _inferInstanceCreationExpression(
-        e, t);
+        e, t, errors);
+    errors.add("$e cannot be typed as $t");
     return false;
   }
 
@@ -661,7 +667,7 @@ class DownwardsInference {
   /// These assume that e is not already a subtype of t
 
   bool _inferInstanceCreationExpression(
-      InstanceCreationExpression e, DartType t) {
+      InstanceCreationExpression e, DartType t, errors) {
     var arguments = e.argumentList.arguments;
     var rawType = rules.getStaticType(e);
     // rawType is the instantiated type of the instance
@@ -702,7 +708,7 @@ class DownwardsInference {
       for (var arg in pArgs) {
         if (pi >= pTypes.length) return false;
         var argType = pTypes[pi];
-        if (!inferExpression(arg, argType)) return false;
+        if (!inferExpression(arg, argType, errors)) return false;
         pi++;
       }
       var nTypes = fType.namedParameterTypes;
@@ -713,18 +719,18 @@ class DownwardsInference {
         String name = nameNode.name;
         var argType = nTypes[name];
         if (argType == null) return false;
-        if (!inferExpression(arg, argType)) return false;
+        if (!inferExpression(arg, argType, errors)) return false;
       }
     }
     annotateInstanceCreationExpression(e, targs);
     return true;
   }
 
-  bool _inferNamedExpression(NamedExpression e, DartType t) {
-    return inferExpression(e.expression, t);
+  bool _inferNamedExpression(NamedExpression e, DartType t, errors) {
+    return inferExpression(e.expression, t, errors);
   }
 
-  bool _inferFunctionExpression(FunctionExpression e, DartType t) {
+  bool _inferFunctionExpression(FunctionExpression e, DartType t, errors) {
     if (t is! FunctionType) return false;
     var returnT = (t as FunctionType).returnType;
     if (returnT.isDynamic) return false;
@@ -732,7 +738,7 @@ class DownwardsInference {
     if (eType is! FunctionType) return false;
     if (e.body is! ExpressionFunctionBody) return false;
     var body = (e.body as ExpressionFunctionBody).expression;
-    if (!inferExpression(body, returnT)) return false;
+    if (!inferExpression(body, returnT, errors)) return false;
     // TODO(leafp): Try narrowing the argument types if possible
     // to get better code in the function body.  This requires checking
     // that the body is well-typed at the more specific type.
@@ -751,7 +757,7 @@ class DownwardsInference {
     return false;
   }
 
-  bool _inferListLiteral(ListLiteral e, DartType t) {
+  bool _inferListLiteral(ListLiteral e, DartType t, errors) {
     var dyn = rules.provider.dynamicType;
     var listT = rules.provider.listType.substitute4([dyn]);
     // List <: t (using dart rules) must be true
@@ -765,12 +771,12 @@ class DownwardsInference {
     var etype = targs[0];
     assert(!etype.isDynamic);
     var elements = e.elements;
-    var b = elements.every((e) => inferExpression(e, etype));
+    var b = elements.every((e) => inferExpression(e, etype, errors));
     if (b) annotateListLiteral(e, targs);
     return b;
   }
 
-  bool _inferMapLiteral(MapLiteral e, DartType t) {
+  bool _inferMapLiteral(MapLiteral e, DartType t, errors) {
     var dyn = rules.provider.dynamicType;
     var mapT = rules.provider.mapType.substitute4([dyn, dyn]);
     // Map <: t (using dart rules) must be true
@@ -786,8 +792,8 @@ class DownwardsInference {
     assert(!(kType.isDynamic && vType.isDynamic));
     var entries = e.entries;
     bool inferEntry(MapLiteralEntry entry) {
-      return inferExpression(entry.key, kType) &&
-          inferExpression(entry.value, vType);
+      return inferExpression(entry.key, kType, errors) &&
+          inferExpression(entry.value, vType, errors);
     }
     var b = entries.every(inferEntry);
     if (b) annotateMapLiteral(e, targs);
