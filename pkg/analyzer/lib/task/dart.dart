@@ -5,6 +5,7 @@
 library analyzer.task.dart;
 
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -64,12 +65,29 @@ final ListResultDescriptor<Source> INCLUDED_PARTS =
     new ListResultDescriptor<Source>('INCLUDED_PARTS', Source.EMPTY_ARRAY);
 
 /**
+ * A flag specifying whether a library is dependent on code that is only
+ * available in a client.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ResultDescriptor<bool> IS_CLIENT =
+    new ResultDescriptor<bool>('IS_CLIENT', false);
+
+/**
  * A flag specifying whether a library is launchable.
  *
  * The result is only available for targets representing a Dart library.
  */
 final ResultDescriptor<bool> IS_LAUNCHABLE =
     new ResultDescriptor<bool>('IS_LAUNCHABLE', false);
+
+/**
+ * The fully built [LibraryElement] associated with a library.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT =
+    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT', null);
 
 /**
  * The compilation unit AST produced while parsing a compilation unit.
