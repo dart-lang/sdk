@@ -51,6 +51,7 @@ abstract class num implements Comparable<num> {
   num operator +(num other);
   num operator -(num other);
   num operator *(num other);
+  num operator %(num other);
   num operator /(num other);
   int toInt();
   num abs();

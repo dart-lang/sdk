@@ -77,7 +77,16 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   final List<int> offsets = <int>[];
   final List<int> lengths = <int>[];
 
-  Set<String> _usedNames = new Set<String>();
+  /**
+   * The map of local names to their visibility ranges.
+   */
+  Map<String, List<SourceRange>> _localNames = <String, List<SourceRange>>{};
+
+  /**
+   * The set of names that are referenced without any qualifier.
+   */
+  Set<String> _unqualifiedNames = new Set<String>();
+
   Set<String> _excludedNames = new Set<String>();
   List<RefactoringMethodParameter> _parameters = <RefactoringMethodParameter>[];
   Map<String, RefactoringMethodParameter> _parametersMap =
@@ -356,7 +365,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
           return result;
         }
       }
-      if (_usedNames.contains(parameter.name)) {
+      if (_isParameterNameConflictWithBody(parameter)) {
         result.addError(format(
             "'{0}' is already used as a name in the selected code",
             parameter.name));
@@ -626,6 +635,26 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     _ExtractMethodAnalyzer analyzer = new _ExtractMethodAnalyzer(unit, range);
     utils.unit.accept(analyzer);
     return analyzer.status.isOK;
+  }
+
+  bool _isParameterNameConflictWithBody(RefactoringMethodParameter parameter) {
+    String id = parameter.id;
+    String name = parameter.name;
+    List<SourceRange> parameterRanges = _parameterReferencesMap[id];
+    List<SourceRange> otherRanges = _localNames[name];
+    for (SourceRange parameterRange in parameterRanges) {
+      if (otherRanges != null) {
+        for (SourceRange otherRange in otherRanges) {
+          if (parameterRange.intersects(otherRange)) {
+            return true;
+          }
+        }
+      }
+    }
+    if (_unqualifiedNames.contains(name)) {
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -973,56 +1002,64 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<Object> {
   }
 }
 
-class _InitializeParametersVisitor extends GeneralizingAstVisitor<Object> {
+class _InitializeParametersVisitor extends GeneralizingAstVisitor {
   final ExtractMethodRefactoringImpl ref;
   final List<VariableElement> assignedUsedVariables;
 
   _InitializeParametersVisitor(this.ref, this.assignedUsedVariables);
 
   @override
-  Object visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     SourceRange nodeRange = rangeNode(node);
-    if (ref.selectionRange.covers(nodeRange)) {
-      // analyze local variable
-      VariableElement variableElement =
-          getLocalOrParameterVariableElement(node);
-      if (variableElement != null) {
-        // name of the named expression
-        if (isNamedExpressionName(node)) {
-          return null;
-        }
-        // if declared outside, add parameter
-        if (!ref._isDeclaredInSelection(variableElement)) {
-          String variableName = variableElement.displayName;
-          // add parameter
-          RefactoringMethodParameter parameter =
-              ref._parametersMap[variableName];
-          if (parameter == null) {
-            DartType parameterType = node.bestType;
-            String parameterTypeCode = ref._getTypeCode(parameterType);
-            parameter = new RefactoringMethodParameter(
-                RefactoringMethodParameterKind.REQUIRED, parameterTypeCode,
-                variableName, id: variableName);
-            ref._parameters.add(parameter);
-            ref._parametersMap[variableName] = parameter;
-          }
-          // add reference to parameter
-          ref._addParameterReference(variableName, nodeRange);
-        }
-        // remember, if assigned and used after selection
-        if (isLeftHandOfAssignment(node) &&
-            ref._isUsedAfterSelection(variableElement)) {
-          if (!assignedUsedVariables.contains(variableElement)) {
-            assignedUsedVariables.add(variableElement);
-          }
-        }
+    if (!ref.selectionRange.covers(nodeRange)) {
+      return;
+    }
+    String name = node.name;
+    // analyze local variable
+    VariableElement variableElement = getLocalOrParameterVariableElement(node);
+    if (variableElement != null) {
+      // name of the named expression
+      if (isNamedExpressionName(node)) {
+        return;
       }
-      // remember declaration names
-      if (node.inDeclarationContext()) {
-        ref._usedNames.add(node.name);
+      // if declared outside, add parameter
+      if (!ref._isDeclaredInSelection(variableElement)) {
+        // add parameter
+        RefactoringMethodParameter parameter = ref._parametersMap[name];
+        if (parameter == null) {
+          DartType parameterType = node.bestType;
+          String parameterTypeCode = ref._getTypeCode(parameterType);
+          parameter = new RefactoringMethodParameter(
+              RefactoringMethodParameterKind.REQUIRED, parameterTypeCode, name,
+              id: name);
+          ref._parameters.add(parameter);
+          ref._parametersMap[name] = parameter;
+        }
+        // add reference to parameter
+        ref._addParameterReference(name, nodeRange);
+      }
+      // remember, if assigned and used after selection
+      if (isLeftHandOfAssignment(node) &&
+          ref._isUsedAfterSelection(variableElement)) {
+        if (!assignedUsedVariables.contains(variableElement)) {
+          assignedUsedVariables.add(variableElement);
+        }
       }
     }
-    return null;
+    // remember information for conflicts checking
+    if (variableElement is LocalElement) {
+      // declared local elements
+      LocalElement localElement = variableElement as LocalElement;
+      if (node.inDeclarationContext()) {
+        ref._localNames.putIfAbsent(name, () => <SourceRange>[]);
+        ref._localNames[name].add(localElement.visibleRange);
+      }
+    } else {
+      // unqualified non-local names
+      if (!node.isQualified) {
+        ref._unqualifiedNames.add(name);
+      }
+    }
   }
 }
 

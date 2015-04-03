@@ -3078,11 +3078,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       }
       element = variable;
       Block enclosingBlock = node.getAncestor((node) => node is Block);
-      int functionEnd = node.offset + node.length;
-      int blockEnd = enclosingBlock.offset + enclosingBlock.length;
       // TODO(brianwilkerson) This isn't right for variables declared in a for
       // loop.
-      variable.setVisibleRange(functionEnd, blockEnd - functionEnd - 1);
+      variable.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
       _currentHolder.addLocalVariable(variable);
       variableName.staticElement = element;
     } else {
