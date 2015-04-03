@@ -37276,6 +37276,12 @@ abstract class CssClassSet implements Set<String> {
    *
    * If [shouldAdd] is true, then we always add that [value] to the element. If
    * [shouldAdd] is false then we always remove [value] from the element.
+   *
+   * If this corresponds to one element, returns `true` if [value] is present
+   * after the operation, and returns `false` if [value] is absent after the
+   * operation.
+   *
+   * If this corresponds to many elements, `null` is always returned.
    */
   bool toggle(String value, [bool shouldAdd]);
 
@@ -37302,7 +37308,7 @@ abstract class CssClassSet implements Set<String> {
    * If this corresponds to one element. Returns true if [value] was added to
    * the set, otherwise false.
    *
-   * If this corresponds to many elements, null is always returned.
+   * If this corresponds to many elements, `null` is always returned.
    */
   bool add(String value);
 
@@ -37343,6 +37349,10 @@ abstract class CssClassSet implements Set<String> {
    */
   void toggleAll(Iterable<String> iterable, [bool shouldAdd]);
 }
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /**
  * A set (union) of the CSS classes that are present in a set of elements.
