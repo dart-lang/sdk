@@ -13,12 +13,6 @@ abstract class CssClassSet implements Set<String> {
    *
    * If [shouldAdd] is true, then we always add that [value] to the element. If
    * [shouldAdd] is false then we always remove [value] from the element.
-   *
-   * If this corresponds to one element, returns `true` if [value] is present
-   * after the operation, and returns `false` if [value] is absent after the
-   * operation.
-   *
-   * If this corresponds to many elements, `null` is always returned.
    */
   bool toggle(String value, [bool shouldAdd]);
 
@@ -45,7 +39,7 @@ abstract class CssClassSet implements Set<String> {
    * If this corresponds to one element. Returns true if [value] was added to
    * the set, otherwise false.
    *
-   * If this corresponds to many elements, `null` is always returned.
+   * If this corresponds to many elements, null is always returned.
    */
   bool add(String value);
 
@@ -85,4 +79,88 @@ abstract class CssClassSet implements Set<String> {
    * [iterable] from the element.
    */
   void toggleAll(Iterable<String> iterable, [bool shouldAdd]);
+}
+
+/**
+ * A set (union) of the CSS classes that are present in a set of elements.
+ * Implemented separately from _ElementCssClassSet for performance.
+ */
+class _MultiElementCssClassSet extends CssClassSetImpl {
+  final Iterable<Element> _elementIterable;
+  Iterable<_ElementCssClassSet> _elementCssClassSetIterable;
+
+  _MultiElementCssClassSet(this._elementIterable) {
+    _elementCssClassSetIterable = new List.from(_elementIterable).map(
+        (e) => new _ElementCssClassSet(e));
+  }
+
+  Set<String> readClasses() {
+    var s = new LinkedHashSet<String>();
+    _elementCssClassSetIterable.forEach(
+        (_ElementCssClassSet e) => s.addAll(e.readClasses()));
+    return s;
+  }
+
+  void writeClasses(Set<String> s) {
+    var classes = s.join(' ');
+    for (Element e in _elementIterable) {
+      e.className = classes;
+    }
+  }
+
+  /**
+   * Helper method used to modify the set of css classes on this element.
+   *
+   *   f - callback with:
+   *   s - a Set of all the css class name currently on this element.
+   *
+   *   After f returns, the modified set is written to the
+   *       className property of this element.
+   */
+  modify( f(Set<String> s)) {
+    _elementCssClassSetIterable.forEach((_ElementCssClassSet e) => e.modify(f));
+  }
+
+  /**
+   * Adds the class [value] to the element if it is not on it, removes it if it
+   * is.
+   */
+  bool toggle(String value, [bool shouldAdd]) =>
+      _elementCssClassSetIterable.fold(false,
+          (bool changed, _ElementCssClassSet e) =>
+              e.toggle(value, shouldAdd) || changed);
+
+  /**
+   * Remove the class [value] from element, and return true on successful
+   * removal.
+   *
+   * This is the Dart equivalent of jQuery's
+   * [removeClass](http://api.jquery.com/removeClass/).
+   */
+  bool remove(Object value) => _elementCssClassSetIterable.fold(false,
+      (bool changed, _ElementCssClassSet e) => e.remove(value) || changed);
+}
+
+class _ElementCssClassSet extends CssClassSetImpl {
+
+  final Element _element;
+
+  _ElementCssClassSet(this._element);
+
+  Set<String> readClasses() {
+    var s = new LinkedHashSet<String>();
+    var classname = _element.className;
+
+    for (String name in classname.split(' ')) {
+      String trimmed = name.trim();
+      if (!trimmed.isEmpty) {
+        s.add(trimmed);
+      }
+    }
+    return s;
+  }
+
+  void writeClasses(Set<String> s) {
+    _element.className = s.join(' ');
+  }
 }
