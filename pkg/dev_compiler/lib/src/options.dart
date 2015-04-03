@@ -79,10 +79,11 @@ class RulesOptions extends TypeOptions {
 
   /// Whether to wrap closures for compatibility.
   final bool wrapClosures;
+  static const wrapClosuresDefault = true;
 
   RulesOptions({this.allowConstCasts: true, this.covariantGenerics: true,
       this.inferDownwards: inferDownwardsDefault, this.relaxedCasts: true,
-      this.ignoreTypes: false, this.wrapClosures: true});
+      this.ignoreTypes: false, this.wrapClosures: wrapClosuresDefault});
 }
 
 class JSCodeOptions {
@@ -219,10 +220,11 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
       this.dumpInfo: false, this.dumpInfoFile, this.dumpSrcDir,
       this.forceCompile: false, this.formatOutput: false,
       this.cheapTestFormat: false, this.ignoreTypes: false,
-      this.wrapClosures: true, this.outputDir, this.outputDart: false,
-      this.useColors: true, this.covariantGenerics: true,
-      this.relaxedCasts: true, this.useMultiPackage: false,
-      this.packageRoot: 'packages/', this.packagePaths: const <String>[],
+      this.wrapClosures: RulesOptions.wrapClosuresDefault, this.outputDir,
+      this.outputDart: false, this.useColors: true,
+      this.covariantGenerics: true, this.relaxedCasts: true,
+      this.useMultiPackage: false, this.packageRoot: 'packages/',
+      this.packagePaths: const <String>[],
       this.inferDownwards: RulesOptions.inferDownwardsDefault,
       this.inferFromOverrides: ResolverOptions.inferFromOverridesDefault,
       this.inferTransitively: ResolverOptions.inferTransitivelyDefault,
@@ -309,7 +311,9 @@ final ArgParser argParser = new ArgParser()
       help: 'Use covariant generics', defaultsTo: true)
   ..addFlag('ignore-types',
       help: 'Ignore types during codegen', defaultsTo: false)
-  ..addFlag('wrap-closures', help: 'wrap closures implicitly', defaultsTo: true)
+  ..addFlag('wrap-closures',
+      help: 'wrap closures implicitly',
+      defaultsTo: RulesOptions.wrapClosuresDefault)
   ..addFlag('relaxed-casts',
       help: 'Cast between Dart assignable types', defaultsTo: true)
   ..addOption('nonnullable',

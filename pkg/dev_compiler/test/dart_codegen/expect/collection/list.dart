@@ -289,12 +289,12 @@ RangeError.checkValidRange(start, end, this.length);
   }
  if (otherStart < start) {
   for (int i = length - 1; i >= 0; i--) {
-    this[start + i] = ((__x11) => DEVC$RT.cast(__x11, dynamic, E, "CompositeCast", """line 381, column 27 of dart:collection/list.dart: """, __x11 is E, false))(otherList[otherStart + i]);
+    this[start + i] = ((__x5) => DEVC$RT.cast(__x5, dynamic, E, "CompositeCast", """line 381, column 27 of dart:collection/list.dart: """, __x5 is E, false))(otherList[otherStart + i]);
     }
   }
  else {
   for (int i = 0; i < length; i++) {
-    this[start + i] = ((__x12) => DEVC$RT.cast(__x12, dynamic, E, "CompositeCast", """line 385, column 27 of dart:collection/list.dart: """, __x12 is E, false))(otherList[otherStart + i]);
+    this[start + i] = ((__x6) => DEVC$RT.cast(__x6, dynamic, E, "CompositeCast", """line 385, column 27 of dart:collection/list.dart: """, __x6 is E, false))(otherList[otherStart + i]);
     }
   }
 }

@@ -40,9 +40,9 @@ part of dart.collection;
  int get length => _map.length;
  bool get isEmpty => _map.isEmpty;
  bool get isNotEmpty => _map.isNotEmpty;
- V get first => ((__x13) => DEVC$RT.cast(__x13, dynamic, V, "CompositeCast", """line 122, column 18 of dart:collection/maps.dart: """, __x13 is V, false))(_map[_map.keys.first]);
- V get single => ((__x14) => DEVC$RT.cast(__x14, dynamic, V, "CompositeCast", """line 123, column 19 of dart:collection/maps.dart: """, __x14 is V, false))(_map[_map.keys.single]);
- V get last => ((__x15) => DEVC$RT.cast(__x15, dynamic, V, "CompositeCast", """line 124, column 17 of dart:collection/maps.dart: """, __x15 is V, false))(_map[_map.keys.last]);
+ V get first => ((__x7) => DEVC$RT.cast(__x7, dynamic, V, "CompositeCast", """line 122, column 18 of dart:collection/maps.dart: """, __x7 is V, false))(_map[_map.keys.first]);
+ V get single => ((__x8) => DEVC$RT.cast(__x8, dynamic, V, "CompositeCast", """line 123, column 19 of dart:collection/maps.dart: """, __x8 is V, false))(_map[_map.keys.single]);
+ V get last => ((__x9) => DEVC$RT.cast(__x9, dynamic, V, "CompositeCast", """line 124, column 17 of dart:collection/maps.dart: """, __x9 is V, false))(_map[_map.keys.last]);
  Iterator<V> get iterator => new _MapBaseValueIterator<V>(_map);
 }
  class _MapBaseValueIterator<V> implements Iterator<V> {final Iterator _keys;
@@ -51,7 +51,7 @@ part of dart.collection;
  _MapBaseValueIterator(Map map) : _map = map, _keys = map.keys.iterator;
  bool moveNext() {
 if (_keys.moveNext()) {
-_current = ((__x16) => DEVC$RT.cast(__x16, dynamic, V, "CompositeCast", """line 144, column 18 of dart:collection/maps.dart: """, __x16 is V, false))(_map[_keys.current]);
+_current = ((__x10) => DEVC$RT.cast(__x10, dynamic, V, "CompositeCast", """line 144, column 18 of dart:collection/maps.dart: """, __x10 is V, false))(_map[_keys.current]);
  return true;
 }
  _current = null;

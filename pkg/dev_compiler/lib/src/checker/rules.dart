@@ -570,6 +570,7 @@ class DownwardsInference {
   bool inferExpression(Expression e, DartType t) {
     if (e is Conversion) return inferExpression(e.node, t);
     if (rules.isSubTypeOf(rules.getStaticType(e), t)) return true;
+    if (e is FunctionExpression) return _inferFunctionExpression(e, t);
     if (e is ListLiteral) return _inferListLiteral(e, t);
     if (e is MapLiteral) return _inferMapLiteral(e, t);
     if (e is NamedExpression) return _inferNamedExpression(e, t);
@@ -721,6 +722,33 @@ class DownwardsInference {
 
   bool _inferNamedExpression(NamedExpression e, DartType t) {
     return inferExpression(e.expression, t);
+  }
+
+  bool _inferFunctionExpression(FunctionExpression e, DartType t) {
+    if (t is! FunctionType) return false;
+    var returnT = (t as FunctionType).returnType;
+    if (returnT.isDynamic) return false;
+    var eType = e.staticType;
+    if (eType is! FunctionType) return false;
+    if (e.body is! ExpressionFunctionBody) return false;
+    var body = (e.body as ExpressionFunctionBody).expression;
+    if (!inferExpression(body, returnT)) return false;
+    // TODO(leafp): Try narrowing the argument types if possible
+    // to get better code in the function body.  This requires checking
+    // that the body is well-typed at the more specific type.
+    var element = (e.element as ExecutableElementImpl);
+    var oldReturnT = element.returnType;
+    element.returnType = returnT;
+    // Work around dynamic as bottom for now by handling function literals
+    // with dynamic arguments specially.  We already know the body is typable
+    // at the chosen type, and if all args are dynamic, then function must be
+    // typeable.
+    if ((eType as FunctionType).parameters.every((x) => x.type.isDynamic)) {
+      return true;
+    }
+    if (rules.isSubTypeOf(e.staticType, t)) return true;
+    element.returnType = oldReturnT;
+    return false;
   }
 
   bool _inferListLiteral(ListLiteral e, DartType t) {

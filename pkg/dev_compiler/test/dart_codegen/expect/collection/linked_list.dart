@@ -13,13 +13,7 @@ part of dart.collection;
   _insertAfter(_previous, entry);
   }
  void addAll(Iterable<E> entries) {
-  entries.forEach(((__x10) => DEVC$RT.wrap((void f(dynamic __u5)) {
-    void c(dynamic x0) => f(x0);
-     return f == null ? null : c;
-    }
-  , __x10, __t8, DEVC$RT.type((__t6<E> _) {
-    }
-  ), "WrapLiteral", """line 65, column 21 of dart:collection/linked_list.dart: """, __x10 is __t6<E>))((entry) => _insertAfter(_previous, DEVC$RT.cast(entry, dynamic, E, "CompositeCast", """line 65, column 56 of dart:collection/linked_list.dart: """, entry is E, false))));
+  entries.forEach((entry) => _insertAfter(_previous, DEVC$RT.cast(entry, dynamic, E, "CompositeCast", """line 65, column 56 of dart:collection/linked_list.dart: """, entry is E, false)));
   }
  bool remove(E entry) {
   if (entry._list != this) return false;
@@ -139,5 +133,3 @@ _list._insertAfter(this, entry);
 _list._insertAfter(_previous, entry);
 }
 }
- typedef void __t6<E>(E __u7);
- typedef void __t8(dynamic __u9);

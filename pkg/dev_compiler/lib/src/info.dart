@@ -385,6 +385,9 @@ class InferredType extends InferredTypeBase {
     if (expression is InstanceCreationExpression) {
       return new InferredTypeAllocation(rules, expression, type);
     }
+    if (expression is FunctionExpression) {
+      return new InferredTypeClosure(rules, expression, type);
+    }
     return new InferredType(rules, expression, type);
   }
 }
@@ -398,6 +401,12 @@ class InferredTypeLiteral extends InferredTypeBase {
 // An inferred type for a non-literal allocation site.
 class InferredTypeAllocation extends InferredTypeBase {
   InferredTypeAllocation(TypeRules rules, Expression expression, DartType type)
+      : super._internal(rules, expression, type);
+}
+
+// An inferred type for a closure expression
+class InferredTypeClosure extends InferredTypeBase {
+  InferredTypeClosure(TypeRules rules, Expression expression, DartType type)
       : super._internal(rules, expression, type);
 }
 

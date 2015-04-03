@@ -1140,7 +1140,7 @@ var collection;
         this[_insertAfter](this[_previous], entry);
       }
       addAll(entries) {
-        entries.forEach(dart.closureWrap(((entry) => this[_insertAfter](this[_previous], dart.as(entry, E))).bind(this), "(E) → void"));
+        entries.forEach(dart.as(((entry) => this[_insertAfter](this[_previous], dart.as(entry, E))).bind(this), dart.throw_("Unimplemented type (E) → void")));
       }
       remove(entry) {
         if (!dart.equals(entry[_list], this))
@@ -3374,7 +3374,7 @@ var collection;
         return new (HashMapKeyIterable$(K))(this);
       }
       get values() {
-        return new (_internal.MappedIterable$(K, V))(this.keys, dart.closureWrap(((each) => this.get(each)).bind(this), "(K) → V"));
+        return new (_internal.MappedIterable$(K, V))(this.keys, dart.as(((each) => this.get(each)).bind(this), dart.throw_("Unimplemented type (K) → V")));
       }
       containsKey(key) {
         if (_HashMap[_isStringKey](key)) {
@@ -3775,7 +3775,7 @@ var collection;
         return new (LinkedHashMapKeyIterable$(K))(this);
       }
       get values() {
-        return new (_internal.MappedIterable$(K, V))(this.keys, dart.closureWrap(((each) => this.get(each)).bind(this), "(K) → V"));
+        return new (_internal.MappedIterable$(K, V))(this.keys, dart.as(((each) => this.get(each)).bind(this), dart.throw_("Unimplemented type (K) → V")));
       }
       containsKey(key) {
         if (_LinkedHashMap[_isStringKey](key)) {
@@ -3802,7 +3802,7 @@ var collection;
         return dart.notNull(this[_findBucketIndex](bucket, key)) >= 0;
       }
       containsValue(value) {
-        return this.keys.any(dart.closureWrap(((each) => dart.equals(this.get(each), value)).bind(this), "(K) → bool"));
+        return this.keys.any(dart.as(((each) => dart.equals(this.get(each), value)).bind(this), dart.throw_("Unimplemented type (K) → bool")));
       }
       addAll(other) {
         other.forEach(((key, value) => {

@@ -494,7 +494,7 @@ _queue._checkModification(_modificationCount);
 _current = null;
  return false;
 }
- _current = ((__x17) => DEVC$RT.cast(__x17, dynamic, E, "CompositeCast", """line 738, column 16 of dart:collection/queue.dart: """, __x17 is E, false))(_queue._table[_position]);
+ _current = ((__x11) => DEVC$RT.cast(__x11, dynamic, E, "CompositeCast", """line 738, column 16 of dart:collection/queue.dart: """, __x11 is E, false))(_queue._table[_position]);
  _position = (_position + 1) & (_queue._table.length - 1);
  return true;
 }
