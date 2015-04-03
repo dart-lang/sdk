@@ -5437,13 +5437,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
     return fragment.nodes.where((e) => e is SvgElement).single;
   }
 
-  _AttributeClassSet _cssClassSet;
-  CssClassSet get classes {
-    if (_cssClassSet == null) {
-      _cssClassSet = new _AttributeClassSet(this);
-    }
-    return _cssClassSet;
-  }
+  CssClassSet get classes => new _AttributeClassSet(this);
 
   List<Element> get children => new FilteredElementList<Element>(this);
 
