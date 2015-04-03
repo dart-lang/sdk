@@ -1544,16 +1544,21 @@ AstNode* Parser::BuildClosureCall(intptr_t token_pos,
 }
 
 
-void Parser::SkipBlock() {
-  ASSERT(CurrentToken() == Token::kLBRACE);
+void Parser::SkipToMatching() {
+  Token::Kind opening_token = CurrentToken();
+  ASSERT((opening_token == Token::kLBRACE) ||
+         (opening_token == Token::kLPAREN));
   GrowableArray<Token::Kind> token_stack(8);
-  // Adding the first kLBRACE here, because it will be consumed in the loop
-  // right away.
-  token_stack.Add(CurrentToken());
-  const intptr_t block_start_pos = TokenPos();
+  GrowableArray<intptr_t> token_pos_stack(8);
+  // Adding the first opening brace here, because it will be consumed
+  // in the loop right away.
+  token_stack.Add(opening_token);
+  const intptr_t start_pos =  TokenPos();
+  intptr_t opening_pos = start_pos;
+  token_pos_stack.Add(start_pos);
   bool is_match = true;
   bool unexpected_token_found = false;
-  Token::Kind token;
+  Token::Kind token = opening_token;
   intptr_t token_pos;
   do {
     ConsumeToken();
@@ -1564,15 +1569,22 @@ void Parser::SkipBlock() {
       case Token::kLPAREN:
       case Token::kLBRACK:
         token_stack.Add(token);
+        token_pos_stack.Add(token_pos);
         break;
       case Token::kRBRACE:
-        is_match = token_stack.RemoveLast() == Token::kLBRACE;
+        opening_token = token_stack.RemoveLast();
+        opening_pos = token_pos_stack.RemoveLast();
+        is_match = opening_token == Token::kLBRACE;
         break;
       case Token::kRPAREN:
-        is_match = token_stack.RemoveLast() == Token::kLPAREN;
+        opening_token = token_stack.RemoveLast();
+        opening_pos = token_pos_stack.RemoveLast();
+        is_match = opening_token == Token::kLPAREN;
         break;
       case Token::kRBRACK:
-        is_match = token_stack.RemoveLast() == Token::kLBRACK;
+        opening_token = token_stack.RemoveLast();
+        opening_pos = token_pos_stack.RemoveLast();
+        is_match = opening_token == Token::kLBRACK;
         break;
       case Token::kEOS:
         unexpected_token_found = true;
@@ -1583,10 +1595,31 @@ void Parser::SkipBlock() {
     }
   } while (!token_stack.is_empty() && is_match && !unexpected_token_found);
   if (!is_match) {
-    ReportError(token_pos, "unbalanced '%s'", Token::Str(token));
+    const Error& error = Error::Handle(
+        LanguageError::NewFormatted(Error::Handle(),
+            script_, opening_pos, Report::kWarning, Heap::kNew,
+            "unbalanced '%s' opens here", Token::Str(opening_token)));
+    ReportErrors(error, script_, token_pos,
+                 "unbalanced '%s'", Token::Str(token));
   } else if (unexpected_token_found) {
-    ReportError(block_start_pos, "unterminated block");
+    ReportError(start_pos, "unterminated '%s'", Token::Str(opening_token));
   }
+}
+
+
+
+void Parser::SkipBlock() {
+  ASSERT(CurrentToken() == Token::kLBRACE);
+  SkipToMatching();
+}
+
+
+// Skips tokens up to and including matching closing parenthesis.
+void Parser::SkipToMatchingParenthesis() {
+  ASSERT(CurrentToken() == Token::kLPAREN);
+  SkipToMatching();
+  ASSERT(CurrentToken() == Token::kRPAREN);
+  ConsumeToken();
 }
 
 
@@ -3364,23 +3397,6 @@ void Parser::SkipIf(Token::Kind token) {
   if (CurrentToken() == token) {
     ConsumeToken();
   }
-}
-
-
-// Skips tokens up to matching closing parenthesis.
-void Parser::SkipToMatchingParenthesis() {
-  Token::Kind current_token = CurrentToken();
-  ASSERT(current_token == Token::kLPAREN);
-  int level = 0;
-  do {
-    if (current_token == Token::kLPAREN) {
-      level++;
-    } else if (current_token == Token::kRPAREN) {
-      level--;
-    }
-    ConsumeToken();
-    current_token = CurrentToken();
-  } while ((level > 0) && (current_token != Token::kEOS));
 }
 
 

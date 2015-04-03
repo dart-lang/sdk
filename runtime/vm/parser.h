@@ -324,9 +324,10 @@ class Parser : public ValueObject {
   bool IsYieldKeyword();
 
   void SkipIf(Token::Kind);
+  void SkipToMatching();
+  void SkipToMatchingParenthesis();
   void SkipBlock();
   intptr_t SkipMetadata();
-  void SkipToMatchingParenthesis();
   void SkipTypeArguments();
   void SkipType(bool allow_void);
   void SkipInitializers();
