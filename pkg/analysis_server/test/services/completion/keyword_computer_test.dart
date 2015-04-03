@@ -33,6 +33,47 @@ class KeywordComputerTest extends AbstractCompletionTest {
     Keyword.VOID
   ];
 
+  static const List<Keyword> DECLARATION_KEYWORDS = const [
+    Keyword.ABSTRACT,
+    Keyword.CLASS,
+    Keyword.CONST,
+    Keyword.DYNAMIC,
+    Keyword.FINAL,
+    Keyword.TYPEDEF,
+    Keyword.VAR,
+    Keyword.VOID
+  ];
+
+  static const List<Keyword> DIRECTIVE_AND_DECLARATION_KEYWORDS = const [
+    Keyword.ABSTRACT,
+    Keyword.CLASS,
+    Keyword.CONST,
+    Keyword.DYNAMIC,
+    Keyword.EXPORT,
+    Keyword.FINAL,
+    Keyword.IMPORT,
+    Keyword.PART,
+    Keyword.TYPEDEF,
+    Keyword.VAR,
+    Keyword.VOID
+  ];
+
+  static const List<Keyword> DIRECTIVE_DECLARATION_AND_LIBRARY_KEYWORDS =
+      const [
+    Keyword.ABSTRACT,
+    Keyword.CLASS,
+    Keyword.CONST,
+    Keyword.DYNAMIC,
+    Keyword.EXPORT,
+    Keyword.FINAL,
+    Keyword.IMPORT,
+    Keyword.LIBRARY,
+    Keyword.PART,
+    Keyword.TYPEDEF,
+    Keyword.VAR,
+    Keyword.VOID
+  ];
+
   static const List<Keyword> IN_BLOCK_IN_CLASS = const [
     Keyword.ASSERT,
     Keyword.CASE,
@@ -87,7 +128,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
           }
         }
       }
-    };
+    }
     if (expectedKeywords.any((k) => k is String)) {
       StringBuffer msg = new StringBuffer();
       msg.writeln('Expected set should be:');
@@ -114,7 +155,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
         expect(s.isDeprecated, equals(false));
         expect(s.isPotential, equals(false));
       }
-    };
+    }
   }
 
   @override
@@ -125,59 +166,27 @@ class KeywordComputerTest extends AbstractCompletionTest {
   test_after_class() {
     addTestSource('class A {} ^');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords([
-      Keyword.ABSTRACT,
-      Keyword.CLASS,
-      Keyword.CONST,
-      Keyword.FINAL,
-      Keyword.TYPEDEF,
-      Keyword.VAR
-    ], DART_RELEVANCE_HIGH);
+    assertSuggestKeywords(DECLARATION_KEYWORDS, DART_RELEVANCE_HIGH);
   }
 
   test_after_class2() {
     addTestSource('class A {} c^');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords([
-      Keyword.ABSTRACT,
-      Keyword.CLASS,
-      Keyword.CONST,
-      Keyword.FINAL,
-      Keyword.TYPEDEF,
-      Keyword.VAR
-    ], DART_RELEVANCE_HIGH);
+    assertSuggestKeywords(DECLARATION_KEYWORDS, DART_RELEVANCE_HIGH);
   }
 
   test_after_import() {
     addTestSource('import foo; ^');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords([
-      Keyword.ABSTRACT,
-      Keyword.CLASS,
-      Keyword.CONST,
-      Keyword.EXPORT,
-      Keyword.FINAL,
-      Keyword.IMPORT,
-      Keyword.PART,
-      Keyword.TYPEDEF,
-      Keyword.VAR
-    ], DART_RELEVANCE_HIGH);
+    assertSuggestKeywords(
+        DIRECTIVE_AND_DECLARATION_KEYWORDS, DART_RELEVANCE_HIGH);
   }
 
   test_after_import2() {
     addTestSource('import foo; c^');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords([
-      Keyword.ABSTRACT,
-      Keyword.CLASS,
-      Keyword.CONST,
-      Keyword.EXPORT,
-      Keyword.FINAL,
-      Keyword.IMPORT,
-      Keyword.PART,
-      Keyword.TYPEDEF,
-      Keyword.VAR
-    ], DART_RELEVANCE_HIGH);
+    assertSuggestKeywords(
+        DIRECTIVE_AND_DECLARATION_KEYWORDS, DART_RELEVANCE_HIGH);
   }
 
   test_before_import() {
@@ -331,18 +340,8 @@ class KeywordComputerTest extends AbstractCompletionTest {
   test_empty() {
     addTestSource('^');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords([
-      Keyword.ABSTRACT,
-      Keyword.CLASS,
-      Keyword.CONST,
-      Keyword.EXPORT,
-      Keyword.FINAL,
-      Keyword.IMPORT,
-      Keyword.LIBRARY,
-      Keyword.PART,
-      Keyword.TYPEDEF,
-      Keyword.VAR
-    ], DART_RELEVANCE_HIGH);
+    assertSuggestKeywords(
+        DIRECTIVE_DECLARATION_AND_LIBRARY_KEYWORDS, DART_RELEVANCE_HIGH);
   }
 
   test_function_body_inClass_constructorInitializer() {
@@ -408,17 +407,8 @@ class A {
   test_library() {
     addTestSource('library foo;^');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords([
-      Keyword.ABSTRACT,
-      Keyword.CLASS,
-      Keyword.CONST,
-      Keyword.EXPORT,
-      Keyword.FINAL,
-      Keyword.IMPORT,
-      Keyword.PART,
-      Keyword.TYPEDEF,
-      Keyword.VAR
-    ], DART_RELEVANCE_HIGH);
+    assertSuggestKeywords(
+        DIRECTIVE_AND_DECLARATION_KEYWORDS, DART_RELEVANCE_HIGH);
   }
 
   test_library_name() {
@@ -442,50 +432,22 @@ class A {
   test_part_of() {
     addTestSource('part of foo;^');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords([
-      Keyword.ABSTRACT,
-      Keyword.CLASS,
-      Keyword.CONST,
-      Keyword.EXPORT,
-      Keyword.FINAL,
-      Keyword.IMPORT,
-      Keyword.PART,
-      Keyword.TYPEDEF,
-      Keyword.VAR
-    ], DART_RELEVANCE_HIGH);
+    assertSuggestKeywords(
+        DIRECTIVE_AND_DECLARATION_KEYWORDS, DART_RELEVANCE_HIGH);
   }
 
   test_partial_class() {
     addTestSource('cl^');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords([
-      Keyword.ABSTRACT,
-      Keyword.CLASS,
-      Keyword.CONST,
-      Keyword.EXPORT,
-      Keyword.FINAL,
-      Keyword.IMPORT,
-      Keyword.LIBRARY,
-      Keyword.PART,
-      Keyword.TYPEDEF,
-      Keyword.VAR
-    ], DART_RELEVANCE_HIGH);
+    assertSuggestKeywords(
+        DIRECTIVE_DECLARATION_AND_LIBRARY_KEYWORDS, DART_RELEVANCE_HIGH);
   }
 
   test_partial_class2() {
     addTestSource('library a; cl^');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords([
-      Keyword.ABSTRACT,
-      Keyword.CLASS,
-      Keyword.CONST,
-      Keyword.EXPORT,
-      Keyword.FINAL,
-      Keyword.IMPORT,
-      Keyword.PART,
-      Keyword.TYPEDEF,
-      Keyword.VAR
-    ], DART_RELEVANCE_HIGH);
+    assertSuggestKeywords(
+        DIRECTIVE_AND_DECLARATION_KEYWORDS, DART_RELEVANCE_HIGH);
   }
 
   void _appendKeywords(StringBuffer msg, Iterable<Keyword> keywords) {

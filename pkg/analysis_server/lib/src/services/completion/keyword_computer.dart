@@ -119,9 +119,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
         Keyword.ABSTRACT,
         Keyword.CLASS,
         Keyword.CONST,
+        Keyword.DYNAMIC,
         Keyword.FINAL,
         Keyword.TYPEDEF,
-        Keyword.VAR
+        Keyword.VAR,
+        Keyword.VOID
       ], DART_RELEVANCE_HIGH);
     }
   }
