@@ -1054,6 +1054,24 @@ class C2 {
     assertOpType(invocation: true);
   }
 
+  test_PropertyAccess_noTarget() {
+    // SimpleIdentifier  PropertyAccess  ExpressionStatement
+    addTestSource('main() {.^}');
+    assertOpType();
+  }
+
+  test_PropertyAccess_noTarget2() {
+    // SimpleIdentifier  PropertyAccess  CascadeExpressions
+    addTestSource('main() {.^.}');
+    assertOpType();
+  }
+
+  test_PropertyAccess_noTarget3() {
+    // SimpleIdentifier  PropertyAccess  CascadeExpressions
+    addTestSource('main() {..^}');
+    assertOpType();
+  }
+
   test_PropertyAccess_selector() {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement  Block
     addTestSource('class A {a() {"hello".length.^}}');

@@ -3498,6 +3498,26 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_PropertyAccess_noTarget() {
+    // SimpleIdentifier  PropertyAccess  ExpressionStatement
+    addSource('/testAB.dart', 'class Foo { }');
+    addTestSource('class C {foo(){.^}}');
+    computeFast();
+    return computeFull((bool result) {
+      assertNoSuggestions();
+    });
+  }
+
+  test_PropertyAccess_noTarget2() {
+    // SimpleIdentifier  PropertyAccess  ExpressionStatement
+    addSource('/testAB.dart', 'class Foo { }');
+    addTestSource('main() {.^}');
+    computeFast();
+    return computeFull((bool result) {
+      assertNoSuggestions();
+    });
+  }
+
   test_PropertyAccess_selector() {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement  Block
     addTestSource('class A {a() {"hello".length.^}}');

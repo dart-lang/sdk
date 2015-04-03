@@ -644,10 +644,10 @@ class Foo {this.!1}''', <String>["1-Object"], failingTests: '1');
         }''', <String>["1+HttpResponse"]);
 
     buildTests('testCommentSnippets083', '''
-main() {(.!1)}''', <String>["1-toString"], failingTests: '1');
+main() {(.!1)}''', <String>["1-toString"]);
 
     buildTests('testCommentSnippets083a', '''
-main() { .!1 }''', <String>["1-toString"], failingTests: '1');
+main() { .!1 }''', <String>["1-toString"]);
 
     buildTests('testCommentSnippets083b', '''
 main() { null.!1 }''', <String>["1+toString"], failingTests: '1');
@@ -2011,11 +2011,9 @@ main() {
     buildTests('test020', '''var x = null.!1''', <String>["1+toString"],
         failingTests: '1');
 
-    buildTests('test021', '''var x = .!1''', <String>["1-toString"],
-        failingTests: '1');
+    buildTests('test021', '''var x = .!1''', <String>["1-toString"]);
 
-    buildTests('test022', '''var x = .!1;''', <String>["1-toString"],
-        failingTests: '1');
+    buildTests('test022', '''var x = .!1;''', <String>["1-toString"]);
 
     buildTests('test023', '''
 class Map{getKeys(){}}
