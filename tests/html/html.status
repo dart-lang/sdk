@@ -36,6 +36,7 @@ storage_quota_test: Fail # Support for promises.
 
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
+fontface_test: Fail # Fontface not supported on these.
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not supportfontface_test: Fail # Fontface not supported on these.
 element_animate_test: Fail # Element.animate not supported on these browsers.
 
