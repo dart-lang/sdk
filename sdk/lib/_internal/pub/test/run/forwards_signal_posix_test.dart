@@ -9,7 +9,6 @@ import '../test_pub.dart';
 
 const _catchableSignals = const [
   ProcessSignal.SIGHUP,
-  ProcessSignal.SIGINT,
   ProcessSignal.SIGTERM,
   ProcessSignal.SIGUSR1,
   ProcessSignal.SIGUSR2,
@@ -21,7 +20,6 @@ import 'dart:io';
 
 main() {
   ProcessSignal.SIGHUP.watch().listen(print);
-  ProcessSignal.SIGINT.watch().listen(print);
   ProcessSignal.SIGTERM.watch().listen(print);
   ProcessSignal.SIGUSR1.watch().listen(print);
   ProcessSignal.SIGUSR2.watch().listen(print);

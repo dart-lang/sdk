@@ -12,7 +12,6 @@ import 'dart:io';
 
 main() {
   ProcessSignal.SIGHUP.watch().listen(print);
-  ProcessSignal.SIGINT.watch().listen(print);
 
   print("ready");
 }
@@ -31,10 +30,8 @@ main() {
     var pub = pubRun(args: ["bin/script"]);
 
     pub.stdout.expect("ready");
-    for (var signal in [ProcessSignal.SIGHUP, ProcessSignal.SIGINT]) {
-      pub.signal(signal);
-      pub.stdout.expect(signal.toString());
-    }
+    pub.signal(Process.SIGINT);
+    pub.stdout.expect("SIGINT");
 
     pub.kill();
   });

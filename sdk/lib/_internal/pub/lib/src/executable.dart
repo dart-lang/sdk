@@ -19,11 +19,16 @@ import 'log.dart' as log;
 import 'utils.dart';
 
 /// All signals that can be caught by a Dart process.
+///
+/// This intentionally omits SIGINT. SIGINT usually comes from a user pressing
+/// Control+C on the terminal, and the terminal automatically passes the signal
+/// to all processes in the process tree. If we forwarded it manually, the
+/// subprocess would see two instances, which could cause problems. Instead, we
+/// just ignore it and let the terminal pass it to the subprocess.
 final _catchableSignals = Platform.isWindows
-    ? [ProcessSignal.SIGHUP, ProcessSignal.SIGINT]
+    ? [ProcessSignal.SIGHUP]
     : [
         ProcessSignal.SIGHUP,
-        ProcessSignal.SIGINT,
         ProcessSignal.SIGTERM,
         ProcessSignal.SIGUSR1,
         ProcessSignal.SIGUSR2,
@@ -145,7 +150,7 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
 
   var process = await Process.start(Platform.executable, vmArgs);
 
-  _ignoreSignals();
+  _forwardSignals(process);
 
   // Note: we're not using process.std___.pipe(std___) here because
   // that prevents pub from also writing to the output streams.
@@ -191,7 +196,7 @@ Future<int> runSnapshot(String path, Iterable<String> args, {recompile(),
   runProcess(input) async {
     var process = await Process.start(Platform.executable, vmArgs);
 
-    _ignoreSignals();
+    _forwardSignals(process);
 
     // Note: we're not using process.std___.pipe(std___) here because
     // that prevents pub from also writing to the output streams.
@@ -211,14 +216,17 @@ Future<int> runSnapshot(String path, Iterable<String> args, {recompile(),
   return runProcess(stdin2);
 }
 
-/// Ignore all catchable signals.
-///
-/// All signals are automatically sent to all processes in the tree, so this
-/// makes the child process responsible for dealing with the signals as it sees
-/// fit.
-void _ignoreSignals() {
+/// Forwards all catchable signals to [process].
+void _forwardSignals(Process process) {
+  // See [_catchableSignals].
+  ProcessSignal.SIGINT.watch().listen(
+      (_) => log.fine("Ignoring SIGINT in pub."));
+
   for (var signal in _catchableSignals) {
-    signal.watch().listen((_) => log.fine("Ignoring $signal in pub."));
+    signal.watch().listen((_) {
+      log.fine("Forwarding $signal to running process.");
+      process.kill(signal);
+    });
   }
 }
 
