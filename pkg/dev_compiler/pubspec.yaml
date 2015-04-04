@@ -9,7 +9,7 @@ dependencies:
   cli_util: ^0.0.1
   crypto: ^0.9.0
   # We pin a specific version to ensure everyone is formatting the code exactly
-  # the same way. This is because any change in dart_style, even non-braking
+  # the same way. This is because any change in dart_style, even non-breaking
   # changes, may change the output format.
   dart_style: 0.1.7
   html: ^0.12.0
