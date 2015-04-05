@@ -20070,6 +20070,7 @@ void Capability::PrintJSONImpl(JSONStream* stream, bool ref) const {
 RawReceivePort* ReceivePort::New(Dart_Port id,
                                  bool is_control_port,
                                  Heap::Space space) {
+  ASSERT(id != ILLEGAL_PORT);
   Isolate* isolate = Isolate::Current();
   const SendPort& send_port =
       SendPort::Handle(isolate, SendPort::New(id, isolate->origin_id()));
@@ -20110,6 +20111,7 @@ RawSendPort* SendPort::New(Dart_Port id, Heap::Space space) {
 RawSendPort* SendPort::New(Dart_Port id,
                            Dart_Port origin_id,
                            Heap::Space space) {
+  ASSERT(id != ILLEGAL_PORT);
   SendPort& result = SendPort::Handle();
   {
     RawObject* raw = Object::Allocate(SendPort::kClassId,

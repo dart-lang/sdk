@@ -1174,6 +1174,11 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle object);
 
 /**
  * Returns a new SendPort with the provided port id.
+ *
+ * \param port_id The destination port.
+ *
+ * \return A new SendPort if no errors occurs. Otherwise returns
+ *   an error handle.
  */
 DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id);
 

@@ -7141,6 +7141,20 @@ void NewNativePort_send321(Dart_Port dest_port_id,
 }
 
 
+TEST_CASE(IllegalNewSendPort) {
+  Dart_Handle error = Dart_NewSendPort(ILLEGAL_PORT);
+  EXPECT(Dart_IsError(error));
+  EXPECT(Dart_IsApiError(error));
+}
+
+
+TEST_CASE(IllegalPost) {
+  Dart_Handle message = Dart_True();
+  bool success = Dart_Post(ILLEGAL_PORT, message);
+  EXPECT(!success);
+}
+
+
 UNIT_TEST_CASE(NewNativePort) {
   // Create a port with a bogus handler.
   Dart_Port error_port = Dart_NewNativePort("Foo", NULL, true);

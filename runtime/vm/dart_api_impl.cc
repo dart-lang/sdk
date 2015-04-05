@@ -1611,6 +1611,9 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  if (port_id == ILLEGAL_PORT) {
+    return false;
+  }
   const Object& object = Object::Handle(isolate, Api::UnwrapHandle(handle));
   uint8_t* data = NULL;
   MessageWriter writer(&data, &allocator, false);
@@ -1625,6 +1628,11 @@ DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
+  if (port_id == ILLEGAL_PORT) {
+    return Api::NewError("%s: illegal port_id %" Pd64 ".",
+                         CURRENT_FUNC,
+                         port_id);
+  }
   return Api::NewHandle(isolate, SendPort::New(port_id));
 }
 
