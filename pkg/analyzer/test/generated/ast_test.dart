@@ -2767,6 +2767,11 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("@deprecated m() {}", declaration);
   }
 
+  void test_visitMethodInvocation_conditional() {
+    _assertSource("t?.m()", AstFactory.methodInvocation(
+        AstFactory.identifier3("t"), "m", null, TokenType.QUESTION_PERIOD));
+  }
+
   void test_visitMethodInvocation_noTarget() {
     _assertSource("m()", AstFactory.methodInvocation2("m"));
   }

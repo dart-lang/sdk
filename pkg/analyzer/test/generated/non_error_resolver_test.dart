@@ -4933,6 +4933,21 @@ class Bar extends Foo {
     verify([source]);
   }
 
+  void test_undefinedGetter_typeLiteral_conditionalAccess() {
+    // When applied to a type literal, the conditional access operator '?.' can
+    // be used to access instance getters of Type.
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    Source source = addSource('''
+class A {}
+f() => A?.hashCode;
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_undefinedGetter_typeSubstitution() {
     Source source = addSource(r'''
 class A<E> {
@@ -5006,6 +5021,21 @@ main() {
     resolve(source);
     assertNoErrors(source);
     // A call to verify(source) fails as '(() => null)()' isn't resolved.
+  }
+
+  void test_undefinedMethod_typeLiteral_conditionalAccess() {
+    // When applied to a type literal, the conditional access operator '?.' can
+    // be used to access instance methods of Type.
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    Source source = addSource('''
+class A {}
+f() => A?.toString();
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
   }
 
   void test_undefinedOperator_index() {

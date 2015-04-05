@@ -593,10 +593,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       propagatedType = _getPropagatedType(target);
       //
       // If this method invocation is of the form 'C.m' where 'C' is a class,
-      // then we don't call resolveInvokedElement(..) which walks up the class
-      // hierarchy, instead we just look for the member in the type only.
+      // then we don't call resolveInvokedElement(...) which walks up the class
+      // hierarchy, instead we just look for the member in the type only.  This
+      // does not apply to conditional method invocation (i.e. 'C?.m(...)').
       //
-      ClassElementImpl typeReference = getTypeReference(target);
+      bool isConditional = node.operator.type == sc.TokenType.QUESTION_PERIOD;
+      ClassElementImpl typeReference = getTypeReference(target, isConditional);
       if (typeReference != null) {
         staticElement =
             propagatedElement = _resolveElement(typeReference, methodName);
@@ -855,7 +857,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     // Otherwise, the prefix is really an expression that happens to be a simple
     // identifier and this is really equivalent to a property access node.
     //
-    _resolvePropertyAccess(prefix, identifier);
+    _resolvePropertyAccess(prefix, identifier, false);
     return null;
   }
 
@@ -911,7 +913,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       return null;
     }
     SimpleIdentifier propertyName = node.propertyName;
-    _resolvePropertyAccess(target, propertyName);
+    _resolvePropertyAccess(target, propertyName,
+        node.operator.type == sc.TokenType.QUESTION_PERIOD);
     return null;
   }
 
@@ -2443,17 +2446,18 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   void _resolvePropertyAccess(
-      Expression target, SimpleIdentifier propertyName) {
+      Expression target, SimpleIdentifier propertyName, bool isConditional) {
     DartType staticType = _getStaticType(target);
     DartType propagatedType = _getPropagatedType(target);
     Element staticElement = null;
     Element propagatedElement = null;
     //
     // If this property access is of the form 'C.m' where 'C' is a class,
-    // then we don't call resolveProperty(..) which walks up the class
-    // hierarchy, instead we just look for the member in the type only.
+    // then we don't call resolveProperty(...) which walks up the class
+    // hierarchy, instead we just look for the member in the type only.  This
+    // does not apply to conditional property accesses (i.e. 'C?.m').
     //
-    ClassElementImpl typeReference = getTypeReference(target);
+    ClassElementImpl typeReference = getTypeReference(target, isConditional);
     if (typeReference != null) {
       // TODO(brianwilkerson) Why are we setting the propagated element here?
       // It looks wrong.
@@ -2701,10 +2705,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   /**
    * Checks whether the given [expression] is a reference to a class. If it is
    * then the element representing the class is returned, otherwise `null` is
-   * returned.
+   * returned.  [isConditional] indicates whether [expression] is to the left
+   * of a '?.' opertator.
    */
-  static ClassElementImpl getTypeReference(Expression expression) {
-    if (expression is Identifier) {
+  static ClassElementImpl getTypeReference(
+      Expression expression, bool isConditional) {
+    if (!isConditional && expression is Identifier) {
       Element staticElement = expression.staticElement;
       if (staticElement is ClassElementImpl) {
         return staticElement;

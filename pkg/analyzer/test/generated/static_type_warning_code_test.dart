@@ -1397,6 +1397,22 @@ var a = A.B;''');
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
+  void test_undefinedGetter_static_conditionalAccess() {
+    // The conditional access operator '?.' cannot be used to access static
+    // fields.
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    Source source = addSource('''
+class A {
+  static var x;
+}
+var a = A?.x;
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
+  }
+
   void test_undefinedGetter_void() {
     Source source = addSource(r'''
 class T {
@@ -1549,6 +1565,22 @@ main() {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
+  void test_undefinedMethod_static_conditionalAccess() {
+    // The conditional access operator '?.' cannot be used to access static
+    // methods.
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    Source source = addSource('''
+class A {
+  static void m() {}
+}
+f() { A?.m(); }
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
+
   void test_undefinedOperator_indexBoth() {
     Source source = addSource(r'''
 class A {}
@@ -1621,6 +1653,22 @@ f(T e1) { e1.m = 0; }''');
     Source source = addSource(r'''
 class A {}
 f() { A.B = 0;}''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
+  }
+
+  void test_undefinedSetter_static_conditionalAccess() {
+    // The conditional access operator '?.' cannot be used to access static
+    // fields.
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    Source source = addSource('''
+class A {
+  static var x;
+}
+f() { A?.x = 1; }
+''');
     resolve(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }

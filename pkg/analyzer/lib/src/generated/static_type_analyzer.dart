@@ -1626,8 +1626,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     return parent is TypeName ||
         (parent is PrefixedIdentifier &&
             (parent.parent is TypeName || identical(parent.prefix, node))) ||
-        (parent is PropertyAccess && identical(parent.target, node)) ||
-        (parent is MethodInvocation && identical(node, parent.target));
+        (parent is PropertyAccess &&
+            identical(parent.target, node) &&
+            parent.operator.type == TokenType.PERIOD) ||
+        (parent is MethodInvocation &&
+            identical(node, parent.target) &&
+            parent.operator.type == TokenType.PERIOD);
   }
 
   /**

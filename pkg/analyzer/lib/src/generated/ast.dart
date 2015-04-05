@@ -18156,7 +18156,10 @@ class ToSourceVisitor implements AstVisitor<Object> {
     if (node.isCascaded) {
       _writer.print("..");
     } else {
-      _visitNodeWithSuffix(node.target, ".");
+      if (node.target != null) {
+        node.target.accept(this);
+        _writer.print(node.operator.lexeme);
+      }
     }
     _visitNode(node.methodName);
     _visitNode(node.argumentList);

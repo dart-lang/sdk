@@ -157,4 +157,20 @@ main() {
     // also generated in the case of e1[e2] ??= e3.
     (<B>[null])[0] ??= new C(); /// 35: static type warning
   }
+
+  // The static type of e1?.v op= e2 is the static type of e1.v op e2,
+  // therefore the static type of e1?.v ??= e2 is the static type of
+  // e1.v ?? e2, which is the LUB of the static types of e1?.v and e2.
+  (new ClassWithInstanceGetters()?.a ??= new A()).a; /// 36: ok
+  Expect.throws(() => (new ClassWithInstanceGetters()?.a ??= new A()).b, noMethod); /// 37: static type warning
+  (new ClassWithInstanceGetters()?.a ??= new B()).a; /// 38: ok
+  (new ClassWithInstanceGetters()?.a ??= new B()).b; /// 39: static type warning
+  if (!checkedMode) {
+    (new ClassWithInstanceGetters()?.b ??= new A()).a; /// 40: ok
+    Expect.throws(() => (new ClassWithInstanceGetters()?.b ??= new A()).b, noMethod); /// 41: static type warning
+
+    // Exactly the same static warnings that would be caused by e1.v ??= e2 are
+    // also generated in the case of e1?.v ??= e2.
+    new ClassWithInstanceGetters()?.b ??= new C(); /// 42: static type warning
+  }
 }

@@ -1302,6 +1302,18 @@ class Foo {
         [ParserErrorCode.INVALID_OPERATOR]);
   }
 
+  void test_invalidOperatorAfterSuper_assignableExpression() {
+    _enableNullAwareOperators = true;
+    parse3('parseAssignableExpression', <Object>[false], 'super?.v',
+        [ParserErrorCode.INVALID_OPERATOR_FOR_SUPER]);
+  }
+
+  void test_invalidOperatorAfterSuper_primaryExpression() {
+    _enableNullAwareOperators = true;
+    parse4('parsePrimaryExpression', 'super?.v',
+        [ParserErrorCode.INVALID_OPERATOR_FOR_SUPER]);
+  }
+
   void test_invalidOperatorForSuper() {
     parse4("parseUnaryExpression", "++super",
         [ParserErrorCode.INVALID_OPERATOR_FOR_SUPER]);

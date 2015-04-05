@@ -524,6 +524,9 @@ if_null_precedence_test: CompileTimeError
 if_null_behavior_test: CompileTimeError
 if_null_assignment_behavior_test: CompileTimeError
 if_null_assignment_static_test: CompileTimeError
+conditional_property_assignment_test: CompileTimeError
+conditional_property_access_test: CompileTimeError
+conditional_method_invocation_test: CompileTimeError
 
 # Issue 16391. These tests are supposed to produce a compile time
 # error in checked mode, but they don't:

@@ -65,6 +65,10 @@ if_null_precedence_test: CompileTimeError
 if_null_behavior_test: CompileTimeError
 if_null_assignment_behavior_test: CompileTimeError
 if_null_assignment_static_test: CompileTimeError
+conditional_property_assignment_test: CompileTimeError
+conditional_property_access_test: CompileTimeError
+conditional_method_invocation_test: CompileTimeError
+super_conditional_operator_test/none: CompileTimeError
 
 
 # VM specific tests that should not be run by dart2js.

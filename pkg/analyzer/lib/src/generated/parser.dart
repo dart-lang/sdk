@@ -3591,12 +3591,16 @@ class Parser {
    *
    *     assignableExpression ::=
    *         primary (arguments* assignableSelector)+
-   *       | 'super' assignableSelector
+   *       | 'super' unconditionalAssignableSelector
    *       | identifier
    *
-   *     assignableSelector ::=
+   *     unconditionalAssignableSelector ::=
    *         '[' expression ']'
    *       | '.' identifier
+   *
+   *     assignableSelector ::=
+   *         unconditionalAssignableSelector
+   *       | '?.' identifier
    */
   void _ensureAssignable(Expression expression) {
     if (expression != null && !expression.isAssignable) {
@@ -4155,13 +4159,13 @@ class Parser {
    *
    *     assignableExpression ::=
    *         primary (arguments* assignableSelector)+
-   *       | 'super' assignableSelector
+   *       | 'super' unconditionalAssignableSelector
    *       | identifier
    */
   Expression _parseAssignableExpression(bool primaryAllowed) {
     if (_matchesKeyword(Keyword.SUPER)) {
       return _parseAssignableSelector(
-          new SuperExpression(getAndAdvance()), false);
+          new SuperExpression(getAndAdvance()), false, allowConditional: false);
     }
     //
     // A primary expression can start with an identifier. We resolve the
@@ -4211,13 +4215,19 @@ class Parser {
    * Parse an assignable selector. The [prefix] is the expression preceding the
    * selector. The [optional] is `true` if the selector is optional. Return the
    * assignable selector that was parsed, or the original prefix if there was no
-   * assignable selector.
+   * assignable selector.  If [allowConditional] is false, then the '?.'
+   * operator will still be parsed, but a parse error will be generated.
    *
-   *     assignableSelector ::=
+   *     unconditionalAssignableSelector ::=
    *         '[' expression ']'
    *       | '.' identifier
+   *
+   *     assignableSelector ::=
+   *         unconditionalAssignableSelector
+   *       | '?.' identifier
    */
-  Expression _parseAssignableSelector(Expression prefix, bool optional) {
+  Expression _parseAssignableSelector(Expression prefix, bool optional,
+      {bool allowConditional: true}) {
     if (_matches(TokenType.OPEN_SQUARE_BRACKET)) {
       Token leftBracket = getAndAdvance();
       bool wasInInitializer = _inInitializer;
@@ -4232,6 +4242,9 @@ class Parser {
       }
     } else if (_matches(TokenType.PERIOD) ||
         _matches(TokenType.QUESTION_PERIOD)) {
+      if (_matches(TokenType.QUESTION_PERIOD) && !allowConditional) {
+        _reportErrorForCurrentToken(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER);
+      }
       Token operator = getAndAdvance();
       return new PropertyAccess(prefix, operator, parseSimpleIdentifier());
     } else {
@@ -6705,7 +6718,7 @@ class Parser {
    *
    *     primary ::=
    *         thisExpression
-   *       | 'super' assignableSelector
+   *       | 'super' unconditionalAssignableSelector
    *       | functionExpression
    *       | literal
    *       | identifier
@@ -6727,8 +6740,10 @@ class Parser {
     if (_matchesKeyword(Keyword.THIS)) {
       return new ThisExpression(getAndAdvance());
     } else if (_matchesKeyword(Keyword.SUPER)) {
+      // TODO(paulberry): verify with Gilad that "super" must be followed by
+      // unconditionalAssignableSelector in this case.
       return _parseAssignableSelector(
-          new SuperExpression(getAndAdvance()), false);
+          new SuperExpression(getAndAdvance()), false, allowConditional: false);
     } else if (_matchesKeyword(Keyword.NULL)) {
       return new NullLiteral(getAndAdvance());
     } else if (_matchesKeyword(Keyword.FALSE)) {

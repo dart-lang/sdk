@@ -194,4 +194,11 @@ main() {
   check(2, () => x[y] ??= bad(), ['x', 'y', 'x[1]']);                 /// 24: continued
   xGetValue = new C('x'); yGetValue = 1; zGetValue = 2;          /// 25: ok
   check(2, () => x[y] ??= z, ['x', 'y', 'x[1]', 'z', 'x[1]=2']); /// 25: continued
+
+  // e1?.v ??= e2 is equivalent to ((x) => x == null ? null : x.v ??= e2)(e1).
+  check(null, () => x?.v ??= bad(), ['x']); /// 26: ok
+  xGetValue = new C('x'); xGetValue.vGetValue = 1; /// 27: ok
+  check(1, () => x?.v ??= bad(), ['x', 'x.v']);     /// 27: continued
+  xGetValue = new C('x'); yGetValue = 1;                 /// 28: ok
+  check(1, () => x?.v ??= y, ['x', 'x.v', 'y', 'x.v=1']); /// 28: continued
 }

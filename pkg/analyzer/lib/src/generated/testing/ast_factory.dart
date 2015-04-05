@@ -622,8 +622,9 @@ class AstFactory {
       parameters, body);
 
   static MethodInvocation methodInvocation(Expression target, String methodName,
-      [List<Expression> arguments]) => new MethodInvocation(target,
-      target == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD),
+      [List<Expression> arguments,
+      TokenType operator = TokenType.PERIOD]) => new MethodInvocation(target,
+      target == null ? null : TokenFactory.tokenFromType(operator),
       identifier3(methodName), argumentList(arguments));
 
   static MethodInvocation methodInvocation2(String methodName,

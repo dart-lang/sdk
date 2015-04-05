@@ -24,6 +24,9 @@ if_null_precedence_test: Fail
 if_null_behavior_test: Fail
 if_null_assignment_behavior_test: Fail
 if_null_assignment_static_test: Fail
+conditional_property_assignment_test: Fail
+conditional_property_access_test: Fail
+conditional_method_invocation_test: Fail
 
 [ $compiler == dart2dart ]
 deferred_load_library_wrong_args_test/none: Fail # Issue 17523
