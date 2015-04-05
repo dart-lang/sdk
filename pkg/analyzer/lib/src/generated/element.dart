@@ -10271,6 +10271,22 @@ abstract class VariableElement implements Element {
   bool get isFinal;
 
   /**
+   * Return `true` if this variable is potentially mutated somewhere in a
+   * closure. This information is only available for local variables (including
+   * parameters) and only after the compilation unit containing the variable has
+   * been resolved.
+   */
+  bool get isPotentiallyMutatedInClosure;
+
+  /**
+   * Return `true` if this variable is potentially mutated somewhere in its
+   * scope. This information is only available for local variables (including
+   * parameters) and only after the compilation unit containing the variable has
+   * been resolved.
+   */
+  bool get isPotentiallyMutatedInScope;
+
+  /**
    * Return the resolved [VariableDeclaration] node that declares this
    * [VariableElement].
    *
@@ -10371,20 +10387,10 @@ abstract class VariableElementImpl extends ElementImpl
   @override
   bool get isFinal => hasModifier(Modifier.FINAL);
 
-  /**
-   * Return `true` if this variable is potentially mutated somewhere in a
-   * closure. This information is only available for local variables (including
-   * parameters) and only after the compilation unit containing the variable has
-   * been resolved.
-   */
+  @override
   bool get isPotentiallyMutatedInClosure => false;
 
-  /**
-   * Return `true` if this variable is potentially mutated somewhere in its
-   * scope. This information is only available for local variables (including
-   * parameters) and only after the compilation unit containing the variable has
-   * been resolved.
-   */
+  @override
   bool get isPotentiallyMutatedInScope => false;
 
   @override
@@ -10435,6 +10441,14 @@ abstract class VariableMember extends Member implements VariableElement {
 
   @override
   bool get isFinal => baseElement.isFinal;
+
+  @override
+  bool get isPotentiallyMutatedInClosure =>
+      baseElement.isPotentiallyMutatedInClosure;
+
+  @override
+  bool get isPotentiallyMutatedInScope =>
+      baseElement.isPotentiallyMutatedInScope;
 
   @override
   VariableDeclaration get node => baseElement.node;

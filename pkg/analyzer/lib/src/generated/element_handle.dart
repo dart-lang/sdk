@@ -1072,6 +1072,14 @@ abstract class VariableElementHandle extends ElementHandle
   bool get isFinal => actualElement.isFinal;
 
   @override
+  bool get isPotentiallyMutatedInClosure =>
+      actualElement.isPotentiallyMutatedInClosure;
+
+  @override
+  bool get isPotentiallyMutatedInScope =>
+      actualElement.isPotentiallyMutatedInScope;
+
+  @override
   VariableDeclaration get node => actualElement.node;
 
   @override

@@ -1566,6 +1566,16 @@ NoSuchClass f() => null;
 
 @reflectiveTest
 class ResolveVariableReferencesTaskTest extends _AbstractDartTaskTest {
+  /**
+   * Verify that the mutated states of the given [variable] correspond to the
+   * [mutatedInClosure] and [mutatedInScope] matchers.
+   */
+  void expectMutated(VariableElement variable, Matcher mutatedInClosure,
+      Matcher mutatedInScope) {
+    expect(variable.isPotentiallyMutatedInClosure, mutatedInClosure);
+    expect(variable.isPotentiallyMutatedInScope, mutatedInScope);
+  }
+
   test_perform_local() {
     Source source = _newSource('/test.dart', '''
 main() {
@@ -1587,26 +1597,10 @@ main() {
     // validate
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
     FunctionElement main = unit.element.functions[0];
-    {
-      var v1 = main.localVariables[0] as VariableElementImpl;
-      expect(v1.isPotentiallyMutatedInClosure, isFalse);
-      expect(v1.isPotentiallyMutatedInScope, isFalse);
-    }
-    {
-      var v2 = main.localVariables[1] as VariableElementImpl;
-      expect(v2.isPotentiallyMutatedInClosure, isFalse);
-      expect(v2.isPotentiallyMutatedInScope, isTrue);
-    }
-    {
-      var v3 = main.localVariables[2] as VariableElementImpl;
-      expect(v3.isPotentiallyMutatedInClosure, isTrue);
-      expect(v3.isPotentiallyMutatedInScope, isTrue);
-    }
-    {
-      var v4 = main.localVariables[3] as VariableElementImpl;
-      expect(v4.isPotentiallyMutatedInClosure, isTrue);
-      expect(v4.isPotentiallyMutatedInScope, isTrue);
-    }
+    expectMutated(main.localVariables[0], isFalse, isFalse);
+    expectMutated(main.localVariables[1], isFalse, isTrue);
+    expectMutated(main.localVariables[2], isTrue, isTrue);
+    expectMutated(main.localVariables[3], isTrue, isTrue);
   }
 
   test_perform_parameter() {
@@ -1626,26 +1620,10 @@ main(p1, p2, p3, p4) {
     // validate
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
     FunctionElement main = unit.element.functions[0];
-    {
-      var p1 = main.parameters[0] as VariableElementImpl;
-      expect(p1.isPotentiallyMutatedInClosure, isFalse);
-      expect(p1.isPotentiallyMutatedInScope, isFalse);
-    }
-    {
-      var p2 = main.parameters[1] as VariableElementImpl;
-      expect(p2.isPotentiallyMutatedInClosure, isFalse);
-      expect(p2.isPotentiallyMutatedInScope, isTrue);
-    }
-    {
-      var p3 = main.parameters[2] as VariableElementImpl;
-      expect(p3.isPotentiallyMutatedInClosure, isTrue);
-      expect(p3.isPotentiallyMutatedInScope, isTrue);
-    }
-    {
-      var p4 = main.parameters[3] as VariableElementImpl;
-      expect(p4.isPotentiallyMutatedInClosure, isTrue);
-      expect(p4.isPotentiallyMutatedInScope, isTrue);
-    }
+    expectMutated(main.parameters[0], isFalse, isFalse);
+    expectMutated(main.parameters[1], isFalse, isTrue);
+    expectMutated(main.parameters[2], isTrue, isTrue);
+    expectMutated(main.parameters[3], isTrue, isTrue);
   }
 }
 

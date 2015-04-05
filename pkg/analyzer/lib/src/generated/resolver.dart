@@ -11596,7 +11596,7 @@ class ResolverVisitor extends ScopedVisitor {
     VariableElement element = getPromotionStaticElement(expression);
     if (element != null) {
       // may be mutated somewhere in closure
-      if ((element as VariableElementImpl).isPotentiallyMutatedInClosure) {
+      if (element.isPotentiallyMutatedInClosure) {
         return;
       }
       // prepare current variable type
