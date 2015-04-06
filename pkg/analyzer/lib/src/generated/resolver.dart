@@ -11159,11 +11159,7 @@ class ResolverVisitor extends ScopedVisitor {
           new List<Map<VariableElement, DartType>>();
       perBranchOverrides.add(thenOverrides);
       perBranchOverrides.add(elseOverrides);
-      if (AnalysisEngine.instance.enableUnionTypes) {
-        _overrideManager.joinOverrides(perBranchOverrides);
-      } else {
-        _overrideManager.mergeOverrides(perBranchOverrides);
-      }
+      _overrideManager.mergeOverrides(perBranchOverrides);
     }
     return null;
   }
@@ -12898,79 +12894,6 @@ class TypeOverrideManager {
       return null;
     }
     return _currentScope.getType(element);
-  }
-
-  /**
-   * Update overrides assuming `perBranchOverrides` is the collection of per-branch overrides
-   * for *all* branches flowing into a join point. If a variable is updated in each per-branch
-   * override, then its type before the branching is ignored. Otherwise, its type before the
-   * branching is merged with all updates in the branches.
-   *
-   * Although this method would do the right thing for a single set of overrides, we require there
-   * to be at least two override sets. Instead use `applyOverrides` for to apply a single set.
-   *
-   * For example, for the code
-   *
-   * <pre>
-   *   if (c) {
-   *     ...
-   *   } else {
-   *     ...
-   *   }
-   * </pre>
-   * the `perBranchOverrides` would include overrides for the then and else branches, and for
-   * the code
-   *
-   * <pre>
-   *   ...
-   *   while(c) {
-   *     ...
-   *   }
-   * </pre>
-   * the `perBranchOverrides` would include overrides for before the loop and for the loop
-   * body.
-   *
-   * @param perBranchOverrides one set of overrides for each (at least two) branch flowing into the
-   *          join point
-   */
-  void joinOverrides(List<Map<VariableElement, DartType>> perBranchOverrides) {
-    if (perBranchOverrides.length < 2) {
-      throw new IllegalArgumentException(
-          "There is no point in joining zero or one override sets.");
-    }
-    Set<VariableElement> allElements = new HashSet<VariableElement>();
-    Set<VariableElement> commonElements =
-        new HashSet<VariableElement>.from(perBranchOverrides[0].keys.toSet());
-    for (Map<VariableElement, DartType> os in perBranchOverrides) {
-      // Union: elements updated in some branch.
-      allElements.addAll(os.keys.toSet());
-      // Intersection: elements updated in all branches.
-      commonElements.retainAll(os.keys.toSet());
-    }
-    Set<VariableElement> uncommonElements = allElements;
-    // Difference: elements updated in some but not all branches.
-    uncommonElements.removeAll(commonElements);
-    Map<VariableElement, DartType> joinOverrides =
-        new HashMap<VariableElement, DartType>();
-    // The common elements were updated in all branches, so their type
-    // before branching can be ignored.
-    for (VariableElement e in commonElements) {
-      joinOverrides[e] = perBranchOverrides[0][e];
-      for (Map<VariableElement, DartType> os in perBranchOverrides) {
-        joinOverrides[e] = UnionTypeImpl.union([joinOverrides[e], os[e]]);
-      }
-    }
-    // The uncommon elements were updated in some but not all branches,
-    // so they may still have the type they had before branching.
-    for (VariableElement e in uncommonElements) {
-      joinOverrides[e] = getBestType(e);
-      for (Map<VariableElement, DartType> os in perBranchOverrides) {
-        if (os.containsKey(e)) {
-          joinOverrides[e] = UnionTypeImpl.union([joinOverrides[e], os[e]]);
-        }
-      }
-    }
-    applyOverrides(joinOverrides);
   }
 
   /**

@@ -2209,29 +2209,6 @@ n(int i) {}''');
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_unionTypeMethodMerge() {
-    enableUnionTypes(false);
-    Source source = addSource(r'''
-class A {
-  int m(int x) => 0;
-}
-class B {
-  String m(String x) => '0';
-}
-f(A a, B b) {
-  var ab;
-  if (0 < 1) {
-    ab = a;
-  } else {
-    ab = b;
-  }
-  ab.m(0.5);
-}''');
-    resolve(source);
-    assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
-    verify([source]);
-  }
-
   void test_deadCode_deadBlock_conditionalElse() {
     Source source = addSource(r'''
 f() {
@@ -2654,27 +2631,6 @@ class A {
   @deprecated
   m() {}
   n() {m();}
-}''');
-    resolve(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  void test_deprecatedAnnotationUse_deprecatedMethodCalledOnUnionType() {
-    enableUnionTypes(false);
-    Source source = addSource(r'''
-class A {
-  @deprecated f() => 0;
-}
-class B extends A {}
-main(A a, B b) {
-  var x;
-  if (0 < 1) {
-    x = a;
-  } else {
-    x = b;
-  }
-  x.f(); // Here [x] has type [{A,B}] but we still want the deprecation warning.
 }''');
     resolve(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
@@ -3134,28 +3090,6 @@ class B {
     a2 = new A();
     a += a2;
   }
-}''');
-    resolve(source);
-    assertErrors(source, [HintCode.UNDEFINED_METHOD]);
-  }
-
-  void test_undefinedMethod_unionType_noSuchMethod() {
-    enableUnionTypes(false);
-    Source source = addSource(r'''
-class A {
-  int m(int x) => 0;
-}
-class B {
-  String m() => '0';
-}
-f(A a, B b) {
-  var ab;
-  if (0 < 1) {
-    ab = a;
-  } else {
-    ab = b;
-  }
-  ab.n();
 }''');
     resolve(source);
     assertErrors(source, [HintCode.UNDEFINED_METHOD]);
@@ -6549,21 +6483,6 @@ f(var message, var dynamic_) {
     verify([source]);
   }
 
-  void test_issue20904BuggyTypePromotionAtIfJoin_2() {
-    // https://code.google.com/p/dart/issues/detail?id=20904
-    enableUnionTypes(false);
-    Source source = addSource(r'''
-f(var message) {
-  if (message is Function) {
-    message = '';
-  }
-  int s = message;
-}''');
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   void test_issue20904BuggyTypePromotionAtIfJoin_3() {
     // https://code.google.com/p/dart/issues/detail?id=20904
     Source source = addSource(r'''
@@ -7748,16 +7667,6 @@ class ResolverTestCase extends EngineTestCase {
     return library;
   }
 
-  /**
-   * Enable optionally strict union types for the current test.
-   *
-   * @param strictUnionTypes `true` if union types should be strict.
-   */
-  void enableUnionTypes(bool strictUnionTypes) {
-    AnalysisEngine.instance.enableUnionTypes = true;
-    AnalysisEngine.instance.strictUnionTypes = strictUnionTypes;
-  }
-
   Expression findTopLevelConstantExpression(
           CompilationUnit compilationUnit, String name) =>
       findTopLevelDeclaration(compilationUnit, name).initializer;
@@ -7783,10 +7692,6 @@ class ResolverTestCase extends EngineTestCase {
    */
   void reset() {
     analysisContext2 = AnalysisContextFactory.contextWithCore();
-    // These defaults are duplicated for the editor in
-    // editor/tools/plugins/com.google.dart.tools.core/.options .
-    AnalysisEngine.instance.enableUnionTypes = false;
-    AnalysisEngine.instance.strictUnionTypes = false;
   }
 
   /**
@@ -12635,21 +12540,6 @@ A f(var p) {
     expect(variableName.propagatedType, same(typeA));
   }
 
-  void test_issue20904BuggyTypePromotionAtIfJoin_2() {
-    // https://code.google.com/p/dart/issues/detail?id=20904
-    enableUnionTypes(false);
-    String code = r'''
-f(var message) {
-  if (message is Function) {
-    message = '';
-  }
-  message; // marker
-}''';
-    DartType t = _findMarkedIdentifier(code, "; // marker").propagatedType;
-    expect(typeProvider.stringType == t, isFalse);
-    expect(typeProvider.functionType == t, isFalse);
-  }
-
   void test_issue20904BuggyTypePromotionAtIfJoin_5() {
     // https://code.google.com/p/dart/issues/detail?id=20904
     //
@@ -12861,34 +12751,6 @@ f5(x) {
   // Propagated type is [int] here: correct.
   return y; // marker
 }''', null, typeProvider.intType);
-  }
-
-  void test_mergePropagatedTypesAtJoinPoint_6() {
-    // https://code.google.com/p/dart/issues/detail?id=19929
-    //
-    // Labeled [break]s are unsafe for the purposes of
-    // [isAbruptTerminationStatement].
-    //
-    // This is tricky: the [break] jumps back above the [if], making
-    // it into a loop of sorts. The [if] type-propagation code assumes
-    // that [break] does not introduce a loop.
-    enableUnionTypes(false);
-    String code = r'''
-f() {
-  var x = 0;
-  var c = false;
-  L: 
-  if (c) {
-  } else {
-    x = '';
-    c = true;
-    break L;
-  }
-  x; // marker
-}''';
-    DartType t = _findMarkedIdentifier(code, "; // marker").propagatedType;
-    expect(typeProvider.intType.isSubtypeOf(t), isTrue);
-    expect(typeProvider.stringType.isSubtypeOf(t), isTrue);
   }
 
   void test_mutatedOutsideScope() {

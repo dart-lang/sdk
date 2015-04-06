@@ -4817,9 +4817,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         type.isDartCoreFunction ||
         type.isObject) {
       return true;
-    } else if (type is UnionType) {
-      return (type as UnionTypeImpl).internalUnionTypeIsLessSpecificThan(
-          this, withDynamic, visitedTypePairs);
     } else if (type is! FunctionType) {
       return false;
     } else if (this == type) {
@@ -4935,9 +4932,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         type.isDartCoreFunction ||
         type.isObject) {
       return true;
-    } else if (type is UnionType) {
-      return (type as UnionTypeImpl).internalUnionTypeIsSuperTypeOf(
-          this, visitedTypePairs);
     } else if (type is! FunctionType) {
       return false;
     } else if (this == type) {
@@ -6133,9 +6127,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     //
     if (type.isDynamic) {
       return true;
-    } else if (type is UnionType) {
-      return (type as UnionTypeImpl).internalUnionTypeIsLessSpecificThan(
-          this, withDynamic, visitedTypePairs);
     } else if (type is! InterfaceType) {
       return false;
     }
@@ -6153,9 +6144,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return true;
     } else if (type is TypeParameterType) {
       return false;
-    } else if (type is UnionType) {
-      return (type as UnionTypeImpl).internalUnionTypeIsSuperTypeOf(
-          this, visitedTypePairs);
     } else if (type is FunctionType) {
       // This implementation assumes transitivity
       // for function type subtyping on the RHS, but a literal reading
@@ -9489,46 +9477,9 @@ abstract class TypeImpl implements DartType {
    * infinite loops.
    */
   bool isAssignableTo2(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
-    // Strictness matters for union types on the LHS, but not for union types
-    // on the RHS.
-    if (this is UnionType) {
-      if (AnalysisEngine.instance.strictUnionTypes) {
-        // *Every* element on the LHS must be assignable to the RHS.
-        // We recursively fall into the next case when the RHS is also a union:
-        // the order here is important!
-        for (DartType left in (this as UnionType).elements) {
-          // Would have to cast to [TypeImpl] to call the [visitedTypePairs]
-          // version here.
-          if (!left.isAssignableTo(type)) {
-            return false;
-          }
-        }
-        return true;
-      } else {
-        // *Some* element on the LHS must be assignable to the RHS.
-        for (DartType left in (this as UnionType).elements) {
-          // Would have to cast to [TypeImpl] to call the [visitedTypePairs]
-          // version here.
-          if (left.isAssignableTo(type)) {
-            return true;
-          }
-        }
-        return false;
-      }
-    } else if (type is UnionType) {
-      // The LHS, which is not a union, must be assignable to *some* element
-      // on the RHS.
-      for (DartType right in type.elements) {
-        if (this.isAssignableTo2(right, visitedTypePairs)) {
-          return true;
-        }
-      }
-      return false;
-    } else {
-      // For non union types we use the language spec definition of [<=>].
-      return isSubtypeOf2(type, visitedTypePairs) ||
-          (type as TypeImpl).isSubtypeOf2(this, visitedTypePairs);
-    }
+    // We use the language spec definition of [<=>].
+    return isSubtypeOf2(type, visitedTypePairs) ||
+        (type as TypeImpl).isSubtypeOf2(this, visitedTypePairs);
   }
 
   @override
@@ -9981,221 +9932,6 @@ class UndefinedTypeImpl extends TypeImpl {
 }
 
 /**
- * A union of other types. Union types are "flattened" in the sense that a union
- * type never contains another union type.
- */
-abstract class UnionType implements DartType {
-  /**
-   * Return an immutable view of the types in this union type.
-   */
-  Set<DartType> get elements;
-}
-
-/**
- * In addition to the methods of the `UnionType` interface we add a factory
- * method `union` for building unions.
- */
-class UnionTypeImpl extends TypeImpl implements UnionType {
-  /**
-   * The types in this union.
-   */
-  final Set<DartType> _types;
-
-  /**
-   * This constructor should only be called by the `union` factory: it does not
-   * check that its argument [types] contains no union types.
-   */
-  UnionTypeImpl(this._types) : super(null, null);
-
-  @override
-  String get displayName {
-    StringBuffer buffer = new StringBuffer();
-    String prefix = "{";
-    for (DartType t in _types) {
-      buffer.write(prefix);
-      buffer.write(t.displayName);
-      prefix = ",";
-    }
-    buffer.write("}");
-    return buffer.toString();
-  }
-
-  @override
-  Set<DartType> get elements => _types;
-
-  @override
-  int get hashCode => _types.hashCode;
-
-  @override
-  bool operator ==(Object other) {
-    if (other == null || other is! UnionType) {
-      return false;
-    } else if (identical(this, other)) {
-      return true;
-    } else {
-      return javaSetEquals(_types, (other as UnionType).elements);
-    }
-  }
-
-  @override
-  void appendTo(StringBuffer buffer, Set<DartType> visitedTypes) {
-    if (!visitedTypes.add(this)) {
-      buffer.write(name == null ? '...' : name);
-      return;
-    }
-    String prefix = "{";
-    for (DartType type in _types) {
-      buffer.write(prefix);
-      (type as TypeImpl).appendTo(buffer, visitedTypes);
-      prefix = ",";
-    }
-    buffer.write("}");
-  }
-
-  @override
-  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) =>
-      this == object;
-
-  @override
-  int internalHashCode(List<DartType> visitedTypes) => hashCode;
-
-  @override
-  bool internalIsMoreSpecificThan(DartType type, bool withDynamic,
-      Set<TypeImpl_TypePair> visitedTypePairs) {
-    // What version of subtyping do we want? See discussion below in
-    // [internalIsSubtypeOf].
-    if (AnalysisEngine.instance.strictUnionTypes) {
-      // The less unsound version: all.
-      for (DartType t in _types) {
-        if (!(t as TypeImpl).internalIsMoreSpecificThan(
-            type, withDynamic, visitedTypePairs)) {
-          return false;
-        }
-      }
-      return true;
-    } else {
-      // The more unsound version: any.
-      for (DartType t in _types) {
-        if ((t as TypeImpl).internalIsMoreSpecificThan(
-            type, withDynamic, visitedTypePairs)) {
-          return true;
-        }
-      }
-      return false;
-    }
-  }
-
-  @override
-  bool internalIsSubtypeOf(
-      DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
-    if (AnalysisEngine.instance.strictUnionTypes) {
-      // The less unsound version: all.
-      //
-      // For this version to make sense we also need to redefine assignment
-      // compatibility [<=>].
-      // See discussion above.
-      for (DartType t in _types) {
-        if (!(t as TypeImpl).internalIsSubtypeOf(type, visitedTypePairs)) {
-          return false;
-        }
-      }
-      return true;
-    } else {
-      // The more unsound version: any.
-      for (DartType t in _types) {
-        if ((t as TypeImpl).internalIsSubtypeOf(type, visitedTypePairs)) {
-          return true;
-        }
-      }
-      return false;
-    }
-  }
-
-  /**
-   * The more-specific-than test for union types on the RHS is uniform in
-   * non-union LHSs. So, other `TypeImpl`s can call this method to implement
-   * [internalIsMoreSpecificThan] for union types.
-   */
-  bool internalUnionTypeIsLessSpecificThan(DartType type, bool withDynamic,
-      Set<TypeImpl_TypePair> visitedTypePairs) {
-    // This implementation does not make sense when [type] is a union type,
-    // at least for the "less unsound" version of [internalIsMoreSpecificThan]
-    // above.
-    if (type is UnionType) {
-      throw new IllegalArgumentException("Only non-union types are supported.");
-    }
-    for (DartType t in _types) {
-      if ((type as TypeImpl).internalIsMoreSpecificThan(
-          t, withDynamic, visitedTypePairs)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * The supertype test for union types is uniform in non-union subtypes. So,
-   * other `TypeImpl`s can call this method to implement `internalIsSubtypeOf`
-   * for union types.
-   */
-  bool internalUnionTypeIsSuperTypeOf(
-      DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
-    // This implementation does not make sense when [type] is a union type,
-    // at least for the "less unsound" version of [internalIsSubtypeOf] above.
-    if (type is UnionType) {
-      throw new IllegalArgumentException("Only non-union types are supported.");
-    }
-    for (DartType t in _types) {
-      if ((type as TypeImpl).internalIsSubtypeOf(t, visitedTypePairs)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  DartType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes) {
-    List<DartType> out = new List<DartType>();
-    for (DartType t in _types) {
-      out.add(t.substitute2(argumentTypes, parameterTypes));
-    }
-    return union(out);
-  }
-
-  /**
-   * Return the union of the given [types]. Any unions in the [types] will be
-   * flattened in the returned union. If there is only one type after flattening
-   * then it will be returned directly, instead of a singleton union. Nulls are
-   * discarded, unless all types are null, in which case an exception is raised.
-   */
-  static DartType union(List<DartType> types) {
-    Set<DartType> set = new HashSet<DartType>();
-    for (DartType t in types) {
-      if (t is UnionType) {
-        set.addAll(t.elements);
-      } else {
-        if (t != null) {
-          set.add(t);
-        }
-      }
-    }
-    if (set.length == 0) {
-      // TODO(collinsn): better to return [null] here? The use case is e.g.
-      //
-      //   union(null, null) ==> null;
-      //
-      // instead of raising an exception.
-      throw new IllegalArgumentException("No known use case for empty unions.");
-    } else if (set.length == 1) {
-      return set.first;
-    } else {
-      return new UnionTypeImpl(set);
-    }
-  }
-}
-
-/**
  * An element included into a library using some URI.
  */
 abstract class UriReferencedElement implements Element {
@@ -10516,10 +10252,6 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   @override
   bool internalIsSubtypeOf(
       DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
-    if (type is UnionType) {
-      return (type as UnionTypeImpl).internalUnionTypeIsSuperTypeOf(
-          this, visitedTypePairs);
-    }
     // The only subtype relations that pertain to void are therefore:
     // void <: void (by reflexivity)
     // bottom <: void (as bottom is a subtype of all types).

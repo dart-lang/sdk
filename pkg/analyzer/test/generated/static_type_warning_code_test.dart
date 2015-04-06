@@ -683,29 +683,6 @@ f(B<A> b) {}''');
     verify([source]);
   }
 
-  void test_notEnoughRequiredArguments_mergedUnionTypeMethod() {
-    enableUnionTypes(false);
-    Source source = addSource(r'''
-class A {
-  int m(int x) => 0;
-}
-class B {
-  String m(String x) => '0';
-}
-f(A a, B b) {
-  var ab;
-  if (0 < 1) {
-    ab = a;
-  } else {
-    ab = b;
-  }
-  ab.m();
-}''');
-    resolve(source);
-    assertErrors(source, [StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS]);
-    verify([source]);
-  }
-
   void test_returnOfInvalidType_async_future_int_mismatches_future_null() {
     Source source = addSource('''
 import 'dart:async';
