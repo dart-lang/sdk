@@ -42,7 +42,7 @@ main() {
   runReflectiveTests(BuildLibraryElementTaskTest);
   runReflectiveTests(BuildPublicNamespaceTaskTest);
   runReflectiveTests(BuildTypeProviderTaskTest);
-  runReflectiveTests(GatherUsedElementsTaskTest);
+  runReflectiveTests(GatherUsedLocalElementsTaskTest);
   runReflectiveTests(GenerateHintsTaskTest);
   runReflectiveTests(ParseDartTaskTest);
   runReflectiveTests(ResolveUnitTypeNamesTaskTest);
@@ -1123,8 +1123,8 @@ class BuildTypeProviderTaskTest extends _AbstractDartTaskTest {
 }
 
 @reflectiveTest
-class GatherUsedElementsTaskTest extends _AbstractDartTaskTest {
-  UsedElements usedElements;
+class GatherUsedLocalElementsTaskTest extends _AbstractDartTaskTest {
+  UsedLocalElements usedElements;
   Set<String> usedElementNames;
 
   test_perform_localVariable() {
@@ -1159,9 +1159,9 @@ main(A a, p) {
 
   void _computeUsedElements(Source source) {
     LibraryUnitTarget target = new LibraryUnitTarget(source, source);
-    _computeResult(target, USED_ELEMENTS);
-    expect(task, new isInstanceOf<GatherUsedElementsTask>());
-    usedElements = outputs[USED_ELEMENTS];
+    _computeResult(target, USED_LOCAL_ELEMENTS);
+    expect(task, new isInstanceOf<GatherUsedLocalElementsTask>());
+    usedElements = outputs[USED_LOCAL_ELEMENTS];
     usedElementNames = usedElements.elements.map((e) => e.name).toSet();
   }
 }
@@ -1743,7 +1743,7 @@ class _AbstractDartTaskTest extends EngineTestCase {
     taskManager.addTaskDescriptor(BuildEnumMemberElementsTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildFunctionTypeAliasesTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildTypeProviderTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(GatherUsedElementsTask.DESCRIPTOR);
+    taskManager.addTaskDescriptor(GatherUsedLocalElementsTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(GenerateHintsTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(ResolveUnitTypeNamesTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(ResolveLibraryTypeNamesTask.DESCRIPTOR);

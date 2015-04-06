@@ -291,10 +291,10 @@ final ResultDescriptor<TypeProvider> TYPE_PROVIDER =
     new ResultDescriptor<TypeProvider>('TYPE_PROVIDER', null);
 
 /**
- * The used [Element]s of a [LibraryUnitTarget].
+ * The used local [Element]s of a [LibraryUnitTarget].
  */
-final ResultDescriptor<UsedElements> USED_ELEMENTS =
-    new ResultDescriptor<UsedElements>('USED_ELEMENTS', null);
+final ResultDescriptor<UsedLocalElements> USED_LOCAL_ELEMENTS =
+    new ResultDescriptor<UsedLocalElements>('USED_LOCAL_ELEMENTS', null);
 
 /**
  * The errors produced while verifying a compilation unit.
@@ -1669,9 +1669,9 @@ class ExportNamespaceBuilder {
 }
 
 /**
- * A task that builds [USED_ELEMENTS] for a unit.
+ * A task that builds [USED_LOCAL_ELEMENTS] for a unit.
  */
-class GatherUsedElementsTask extends SourceBasedAnalysisTask {
+class GatherUsedLocalElementsTask extends SourceBasedAnalysisTask {
   /**
    * The name of the [RESOLVED_UNIT] input.
    */
@@ -1682,9 +1682,10 @@ class GatherUsedElementsTask extends SourceBasedAnalysisTask {
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'GatherUsedElementsTask', createTask, buildInputs,
-      <ResultDescriptor>[USED_ELEMENTS]);
+      <ResultDescriptor>[USED_LOCAL_ELEMENTS]);
 
-  GatherUsedElementsTask(InternalAnalysisContext context, AnalysisTarget target)
+  GatherUsedLocalElementsTask(
+      InternalAnalysisContext context, AnalysisTarget target)
       : super(context, target);
 
   @override
@@ -1698,13 +1699,13 @@ class GatherUsedElementsTask extends SourceBasedAnalysisTask {
     //
     // Prepare visited elements.
     //
-    GatherUsedElementsVisitor visitor =
-        new GatherUsedElementsVisitor(libraryElement);
+    GatherUsedLocalElementsVisitor visitor =
+        new GatherUsedLocalElementsVisitor(libraryElement);
     unit.accept(visitor);
     //
     // Record outputs.
     //
-    outputs[USED_ELEMENTS] = visitor.usedElements;
+    outputs[USED_LOCAL_ELEMENTS] = visitor.usedElements;
   }
 
   /**
@@ -1717,12 +1718,12 @@ class GatherUsedElementsTask extends SourceBasedAnalysisTask {
   }
 
   /**
-   * Create a [GatherUsedElementsTask] based on the given [target] in
+   * Create a [GatherUsedLocalElementsTask] based on the given [target] in
    * the given [context].
    */
-  static GatherUsedElementsTask createTask(
+  static GatherUsedLocalElementsTask createTask(
       AnalysisContext context, LibraryUnitTarget target) {
-    return new GatherUsedElementsTask(context, target);
+    return new GatherUsedLocalElementsTask(context, target);
   }
 }
 
@@ -1736,7 +1737,7 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
   /**
-   * The name of a list of [USED_ELEMENTS] for each library unit input.
+   * The name of a list of [USED_LOCAL_ELEMENTS] for each library unit input.
    */
   static const String USED_ELEMENTS_INPUT = 'USED_ELEMENTS_INPUT';
 
@@ -1761,7 +1762,8 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
     // Prepare inputs.
     //
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
-    List<UsedElements> usedElementsList = getRequiredInput(USED_ELEMENTS_INPUT);
+    List<UsedLocalElements> usedElementsList =
+        getRequiredInput(USED_ELEMENTS_INPUT);
     CompilationUnitElement unitElement = unit.element;
     LibraryElement libraryElement = unitElement.library;
     //
@@ -1773,9 +1775,10 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
     unit.accept(new DeadCodeVerifier(errorReporter));
     // Unused elements.
     {
-      UsedElements usedElements = new UsedElements.merge(usedElementsList);
-      UnusedElementsVerifier visitor =
-          new UnusedElementsVerifier(errorListener, usedElements);
+      UsedLocalElements usedElements =
+          new UsedLocalElements.merge(usedElementsList);
+      UnusedLocalElementsVerifier visitor =
+          new UnusedLocalElementsVerifier(errorListener, usedElements);
       unitElement.accept(visitor);
     }
     // Dart2js analysis.
@@ -1807,7 +1810,7 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
       UNIT_INPUT: RESOLVED_UNIT.of(target),
       USED_ELEMENTS_INPUT: UNITS.of(libSource).toList((unit) {
         LibraryUnitTarget target = new LibraryUnitTarget(libSource, unit);
-        return USED_ELEMENTS.of(target);
+        return USED_LOCAL_ELEMENTS.of(target);
       })
     };
   }

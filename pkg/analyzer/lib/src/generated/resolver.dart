@@ -4350,16 +4350,16 @@ class FunctionTypeScope extends EnclosedScope {
 }
 
 /**
- * An [AstVisitor] that fills [UsedElements].
+ * An [AstVisitor] that fills [UsedLocalElements].
  */
-class GatherUsedElementsVisitor extends RecursiveAstVisitor {
-  final UsedElements usedElements = new UsedElements();
+class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
+  final UsedLocalElements usedElements = new UsedLocalElements();
 
   final LibraryElement _enclosingLibrary;
   ClassElement _enclosingClass;
   ExecutableElement _enclosingExec;
 
-  GatherUsedElementsVisitor(this._enclosingLibrary);
+  GatherUsedLocalElementsVisitor(this._enclosingLibrary);
 
   @override
   visitCatchClause(CatchClause node) {
@@ -4526,14 +4526,14 @@ class HintGenerator {
    */
   InheritanceManager _manager;
 
-  GatherUsedElementsVisitor _usedElementsVisitor;
+  GatherUsedLocalElementsVisitor _usedElementsVisitor;
 
   HintGenerator(this._compilationUnits, this._context, this._errorListener) {
     _library = _compilationUnits[0].element.library;
     _importsVerifier = new ImportsVerifier(_library);
     _enableDart2JSHints = _context.analysisOptions.dart2jsHint;
     _manager = new InheritanceManager(_compilationUnits[0].element.library);
-    _usedElementsVisitor = new GatherUsedElementsVisitor(_library);
+    _usedElementsVisitor = new GatherUsedLocalElementsVisitor(_library);
   }
 
   void generateForLibrary() {
@@ -4556,7 +4556,7 @@ class HintGenerator {
           .generateDuplicateImportHints(definingCompilationUnitErrorReporter);
       _importsVerifier
           .generateUnusedImportHints(definingCompilationUnitErrorReporter);
-      _library.accept(new UnusedElementsVerifier(
+      _library.accept(new UnusedLocalElementsVerifier(
           _errorListener, _usedElementsVisitor.usedElements));
     });
   }
@@ -14950,11 +14950,11 @@ class TypeResolverVisitor extends ScopedVisitor {
 }
 
 /**
- * Instances of the class [UnusedElementsVerifier] traverse an element
- * structure looking for cases of [HintCode.UNUSED_ELEMENT] and
- * [HintCode.UNUSED_LOCAL_VARIABLE].
+ * Instances of the class [UnusedLocalElementsVerifier] traverse an element
+ * structure looking for cases of [HintCode.UNUSED_ELEMENT],
+ * [HintCode.UNUSED_FIELD], [HintCode.UNUSED_LOCAL_VARIABLE], etc.
  */
-class UnusedElementsVerifier extends RecursiveElementVisitor {
+class UnusedLocalElementsVerifier extends RecursiveElementVisitor {
   /**
    * The error listener to which errors will be reported.
    */
@@ -14963,12 +14963,12 @@ class UnusedElementsVerifier extends RecursiveElementVisitor {
   /**
    * The elements know to be used.
    */
-  final UsedElements _usedElements;
+  final UsedLocalElements _usedElements;
 
   /**
-   * Create a new instance of the [UnusedElementsVerifier].
+   * Create a new instance of the [UnusedLocalElementsVerifier].
    */
-  UnusedElementsVerifier(this._errorListener, this._usedElements);
+  UnusedLocalElementsVerifier(this._errorListener, this._usedElements);
 
   @override
   visitClassElement(ClassElement element) {
@@ -15102,8 +15102,9 @@ class UnusedElementsVerifier extends RecursiveElementVisitor {
 
 /**
  * A container with sets of used [Element]s.
+ * All these elements are defined in a single compilation unit or a library.
  */
-class UsedElements {
+class UsedLocalElements {
   /**
    * Resolved, locally defined elements that are used or potentially can be
    * used.
@@ -15134,11 +15135,11 @@ class UsedElements {
    */
   final HashSet<String> readMembers = new HashSet<String>();
 
-  UsedElements();
+  UsedLocalElements();
 
-  factory UsedElements.merge(List<UsedElements> parts) {
-    UsedElements result = new UsedElements();
-    for (UsedElements part in parts) {
+  factory UsedLocalElements.merge(List<UsedLocalElements> parts) {
+    UsedLocalElements result = new UsedLocalElements();
+    for (UsedLocalElements part in parts) {
       result.elements.addAll(part.elements);
       result.catchExceptionElements.addAll(part.catchExceptionElements);
       result.catchStackTraceElements.addAll(part.catchStackTraceElements);
