@@ -16730,11 +16730,13 @@ class StringLexemeHelper {
     }
     end = lexeme.length;
     if (isLast) {
-      if (StringUtilities.endsWith3(lexeme, 0x22, 0x22, 0x22) ||
-          StringUtilities.endsWith3(lexeme, 0x27, 0x27, 0x27)) {
+      if (start + 3 <= end &&
+          (StringUtilities.endsWith3(lexeme, 0x22, 0x22, 0x22) ||
+              StringUtilities.endsWith3(lexeme, 0x27, 0x27, 0x27))) {
         end -= 3;
-      } else if (StringUtilities.endsWithChar(lexeme, 0x22) ||
-          StringUtilities.endsWithChar(lexeme, 0x27)) {
+      } else if (start + 1 <= end &&
+          (StringUtilities.endsWithChar(lexeme, 0x22) ||
+              StringUtilities.endsWithChar(lexeme, 0x27))) {
         end -= 1;
       }
     }
