@@ -42,6 +42,7 @@ main() {
   runReflectiveTests(BuildLibraryElementTaskTest);
   runReflectiveTests(BuildPublicNamespaceTaskTest);
   runReflectiveTests(BuildTypeProviderTaskTest);
+  runReflectiveTests(GatherUsedImportedElementsTaskTest);
   runReflectiveTests(GatherUsedLocalElementsTaskTest);
   runReflectiveTests(GenerateHintsTaskTest);
   runReflectiveTests(ParseDartTaskTest);
@@ -1150,6 +1151,40 @@ class BuildTypeProviderTaskTest extends _AbstractDartTaskTest {
 }
 
 @reflectiveTest
+class GatherUsedImportedElementsTaskTest extends _AbstractDartTaskTest {
+  UsedImportedElements usedElements;
+  Set<String> usedElementNames;
+
+  test_perform() {
+    _newSource('/a.dart', r'''
+library lib_a;
+class A {}
+''');
+    _newSource('/b.dart', r'''
+library lib_b;
+class B {}
+''');
+    Source source = _newSource('/test.dart', r'''
+import 'a.dart';
+import 'b.dart';
+main() {
+  new A();
+}''');
+    _computeUsedElements(source);
+    // validate
+    expect(usedElementNames, unorderedEquals(['A']));
+  }
+
+  void _computeUsedElements(Source source) {
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, USED_IMPORTED_ELEMENTS);
+    expect(task, new isInstanceOf<GatherUsedImportedElementsTask>());
+    usedElements = outputs[USED_IMPORTED_ELEMENTS];
+    usedElementNames = usedElements.elements.map((e) => e.name).toSet();
+  }
+}
+
+@reflectiveTest
 class GatherUsedLocalElementsTaskTest extends _AbstractDartTaskTest {
   UsedLocalElements usedElements;
   Set<String> usedElementNames;
@@ -1240,6 +1275,67 @@ main() {
     errorListener.assertErrorsWithCodes(<ErrorCode>[HintCode.DEAD_CODE]);
   }
 
+  test_perform_imports_duplicateImport() {
+    _newSource('/a.dart', r'''
+library lib_a;
+class A {}
+''');
+    Source source = _newSource('/test.dart', r'''
+import 'a.dart';
+import 'a.dart';
+main() {
+  new A();
+}
+''');
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, HINTS);
+    expect(task, new isInstanceOf<GenerateHintsTask>());
+    // validate
+    _fillErrorListener(HINTS);
+    errorListener.assertErrorsWithCodes(<ErrorCode>[HintCode.DUPLICATE_IMPORT]);
+  }
+
+  test_perform_imports_unusedImport_one() {
+    _newSource('/a.dart', r'''
+library lib_a;
+class A {}
+''');
+    _newSource('/b.dart', r'''
+library lib_b;
+class B {}
+''');
+    Source source = _newSource('/test.dart', r'''
+import 'a.dart';
+import 'b.dart';
+main() {
+  new A();
+}''');
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, HINTS);
+    expect(task, new isInstanceOf<GenerateHintsTask>());
+    // validate
+    _fillErrorListener(HINTS);
+    errorListener.assertErrorsWithCodes(<ErrorCode>[HintCode.UNUSED_IMPORT]);
+  }
+
+  test_perform_imports_unusedImport_zero() {
+    _newSource('/a.dart', r'''
+library lib_a;
+class A {}
+''');
+    Source source = _newSource('/test.dart', r'''
+import 'a.dart';
+main() {
+  new A();
+}''');
+    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    _computeResult(target, HINTS);
+    expect(task, new isInstanceOf<GenerateHintsTask>());
+    // validate
+    _fillErrorListener(HINTS);
+    errorListener.assertNoErrors();
+  }
+
   test_perform_overrideVerifier() {
     Source source = _newSource('/test.dart', '''
 class A {}
@@ -1271,7 +1367,7 @@ main() {
     errorListener.assertErrorsWithCodes(<ErrorCode>[TodoCode.TODO]);
   }
 
-  test_perform_unusedElements_class() {
+  test_perform_unusedLocalElements_class() {
     Source source = _newSource('/test.dart', '''
 class _A {}
 class _B {}
@@ -1287,7 +1383,7 @@ main() {
     errorListener.assertErrorsWithCodes(<ErrorCode>[HintCode.UNUSED_ELEMENT]);
   }
 
-  test_perform_unusedElements_localVariable() {
+  test_perform_unusedLocalElements_localVariable() {
     Source source = _newSource('/test.dart', '''
 main() {
   var v = 42;
@@ -1302,7 +1398,7 @@ main() {
         .assertErrorsWithCodes(<ErrorCode>[HintCode.UNUSED_LOCAL_VARIABLE]);
   }
 
-  test_perform_unusedElements_method() {
+  test_perform_unusedLocalElements_method() {
     Source source = _newSource('/my_lib.dart', '''
 library my_lib;
 part 'my_part.dart';
@@ -1770,6 +1866,7 @@ class _AbstractDartTaskTest extends EngineTestCase {
     taskManager.addTaskDescriptor(BuildEnumMemberElementsTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildFunctionTypeAliasesTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(BuildTypeProviderTask.DESCRIPTOR);
+    taskManager.addTaskDescriptor(GatherUsedImportedElementsTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(GatherUsedLocalElementsTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(GenerateHintsTask.DESCRIPTOR);
     taskManager.addTaskDescriptor(ResolveUnitTypeNamesTask.DESCRIPTOR);

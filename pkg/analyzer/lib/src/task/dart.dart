@@ -281,7 +281,13 @@ final ResultDescriptor<TypeProvider> TYPE_PROVIDER =
     new ResultDescriptor<TypeProvider>('TYPE_PROVIDER', null);
 
 /**
- * The used local [Element]s of a [LibraryUnitTarget].
+ * The [UsedImportedElements] of a [LibraryUnitTarget].
+ */
+final ResultDescriptor<UsedImportedElements> USED_IMPORTED_ELEMENTS =
+    new ResultDescriptor<UsedImportedElements>('USED_IMPORTED_ELEMENTS', null);
+
+/**
+ * The [UsedLocalElements] of a [LibraryUnitTarget].
  */
 final ResultDescriptor<UsedLocalElements> USED_LOCAL_ELEMENTS =
     new ResultDescriptor<UsedLocalElements>('USED_LOCAL_ELEMENTS', null);
@@ -1659,6 +1665,65 @@ class ExportNamespaceBuilder {
 }
 
 /**
+ * A task that builds [USED_IMPORTED_ELEMENTS] for a unit.
+ */
+class GatherUsedImportedElementsTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [RESOLVED_UNIT] input.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'GatherUsedImportedElementsTask', createTask, buildInputs,
+      <ResultDescriptor>[USED_IMPORTED_ELEMENTS]);
+
+  GatherUsedImportedElementsTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    CompilationUnitElement unitElement = unit.element;
+    LibraryElement libraryElement = unitElement.library;
+    //
+    // Prepare used imported elements.
+    //
+    GatherUsedImportedElementsVisitor visitor =
+        new GatherUsedImportedElementsVisitor(libraryElement);
+    unit.accept(visitor);
+    //
+    // Record outputs.
+    //
+    outputs[USED_IMPORTED_ELEMENTS] = visitor.usedElements;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(LibraryUnitTarget target) {
+    return <String, TaskInput>{UNIT_INPUT: RESOLVED_UNIT.of(target)};
+  }
+
+  /**
+   * Create a [GatherUsedImportedElementsTask] based on the given [target] in
+   * the given [context].
+   */
+  static GatherUsedImportedElementsTask createTask(
+      AnalysisContext context, LibraryUnitTarget target) {
+    return new GatherUsedImportedElementsTask(context, target);
+  }
+}
+
+/**
  * A task that builds [USED_LOCAL_ELEMENTS] for a unit.
  */
 class GatherUsedLocalElementsTask extends SourceBasedAnalysisTask {
@@ -1671,7 +1736,7 @@ class GatherUsedLocalElementsTask extends SourceBasedAnalysisTask {
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'GatherUsedElementsTask', createTask, buildInputs,
+      'GatherUsedLocalElementsTask', createTask, buildInputs,
       <ResultDescriptor>[USED_LOCAL_ELEMENTS]);
 
   GatherUsedLocalElementsTask(
@@ -1687,7 +1752,7 @@ class GatherUsedLocalElementsTask extends SourceBasedAnalysisTask {
     CompilationUnitElement unitElement = unit.element;
     LibraryElement libraryElement = unitElement.library;
     //
-    // Prepare visited elements.
+    // Prepare used local elements.
     //
     GatherUsedLocalElementsVisitor visitor =
         new GatherUsedLocalElementsVisitor(libraryElement);
@@ -1729,7 +1794,12 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
   /**
    * The name of a list of [USED_LOCAL_ELEMENTS] for each library unit input.
    */
-  static const String USED_ELEMENTS_INPUT = 'USED_ELEMENTS_INPUT';
+  static const String USED_LOCAL_ELEMENTS_INPUT = 'USED_LOCAL_ELEMENTS';
+
+  /**
+   * The name of a list of [USED_IMPORTED_ELEMENTS] for each library unit input.
+   */
+  static const String USED_IMPORTED_ELEMENTS_INPUT = 'USED_IMPORTED_ELEMENTS';
 
   /**
    * The task descriptor describing this kind of task.
@@ -1752,21 +1822,28 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
     // Prepare inputs.
     //
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
-    List<UsedLocalElements> usedElementsList =
-        getRequiredInput(USED_ELEMENTS_INPUT);
+    List<UsedImportedElements> usedImportedElementsList =
+        getRequiredInput(USED_IMPORTED_ELEMENTS_INPUT);
+    List<UsedLocalElements> usedLocalElementsList =
+        getRequiredInput(USED_LOCAL_ELEMENTS_INPUT);
     CompilationUnitElement unitElement = unit.element;
     LibraryElement libraryElement = unitElement.library;
     //
     // Generate errors.
     //
-    // TODO(scheglov) move collecting used imports into a separate task
-//      unit.accept(_importsVerifier);
-    // Dead code analysis.
     unit.accept(new DeadCodeVerifier(errorReporter));
-    // Unused elements.
+    // Verify imports.
+    {
+      ImportsVerifier verifier = new ImportsVerifier();
+      verifier.addImports(unit);
+      usedImportedElementsList.forEach(verifier.removeUsedElements);
+      verifier.generateDuplicateImportHints(errorReporter);
+      verifier.generateUnusedImportHints(errorReporter);
+    }
+    // Unused local elements.
     {
       UsedLocalElements usedElements =
-          new UsedLocalElements.merge(usedElementsList);
+          new UsedLocalElements.merge(usedLocalElementsList);
       UnusedLocalElementsVerifier visitor =
           new UnusedLocalElementsVerifier(errorListener, usedElements);
       unitElement.accept(visitor);
@@ -1798,9 +1875,13 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
     Source libSource = target.library;
     return <String, TaskInput>{
       UNIT_INPUT: RESOLVED_UNIT.of(target),
-      USED_ELEMENTS_INPUT: UNITS.of(libSource).toList((unit) {
+      USED_LOCAL_ELEMENTS_INPUT: UNITS.of(libSource).toList((unit) {
         LibraryUnitTarget target = new LibraryUnitTarget(libSource, unit);
         return USED_LOCAL_ELEMENTS.of(target);
+      }),
+      USED_IMPORTED_ELEMENTS_INPUT: UNITS.of(libSource).toList((unit) {
+        LibraryUnitTarget target = new LibraryUnitTarget(libSource, unit);
+        return USED_IMPORTED_ELEMENTS.of(target);
       })
     };
   }
