@@ -25,12 +25,14 @@ String format(String pattern,
  */
 String formatList(String pattern, List<Object> arguments) {
   if (arguments == null || arguments.isEmpty) {
+    assert(!pattern.contains(new RegExp(r'\{(\d+)\}')));
     return pattern;
   }
   return pattern.replaceAllMapped(new RegExp(r'\{(\d+)\}'), (match) {
     String indexStr = match.group(1);
     int index = int.parse(indexStr);
     Object arg = arguments[index];
+    assert(arg != null);
     return arg != null ? arg.toString() : null;
   });
 }

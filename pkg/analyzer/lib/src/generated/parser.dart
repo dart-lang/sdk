@@ -4243,7 +4243,8 @@ class Parser {
     } else if (_matches(TokenType.PERIOD) ||
         _matches(TokenType.QUESTION_PERIOD)) {
       if (_matches(TokenType.QUESTION_PERIOD) && !allowConditional) {
-        _reportErrorForCurrentToken(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER);
+        _reportErrorForCurrentToken(
+            ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, [_currentToken.lexeme]);
       }
       Token operator = getAndAdvance();
       return new PropertyAccess(prefix, operator, parseSimpleIdentifier());
@@ -5678,8 +5679,9 @@ class Parser {
         }
         Token functionDefinition = getAndAdvance();
         if (_matchesKeyword(Keyword.RETURN)) {
-          _reportErrorForToken(
-              ParserErrorCode.UNEXPECTED_TOKEN, getAndAdvance());
+          _reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken,
+              [_currentToken.lexeme]);
+          _advance();
         }
         Expression expression = parseExpression2();
         Token semicolon = null;
