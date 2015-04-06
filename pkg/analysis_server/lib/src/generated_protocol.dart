@@ -5644,6 +5644,7 @@ class AnalysisErrorType implements Enum {
  *   "enableAsync": optional bool
  *   "enableDeferredLoading": optional bool
  *   "enableEnums": optional bool
+ *   "enableNullAwareOperators": optional bool
  *   "generateDart2jsHints": optional bool
  *   "generateHints": optional bool
  *   "generateLints": optional bool
@@ -5651,14 +5652,14 @@ class AnalysisErrorType implements Enum {
  */
 class AnalysisOptions implements HasToJson {
   /**
-   * Deprecated/
+   * Deprecated
    *
    * True if the client wants to enable support for the proposed async feature.
    */
   bool enableAsync;
 
   /**
-   * Deprecated/
+   * Deprecated
    *
    * True if the client wants to enable support for the proposed deferred
    * loading feature.
@@ -5666,11 +5667,17 @@ class AnalysisOptions implements HasToJson {
   bool enableDeferredLoading;
 
   /**
-   * Deprecated/
+   * Deprecated
    *
    * True if the client wants to enable support for the proposed enum feature.
    */
   bool enableEnums;
+
+  /**
+   * True if the client wants to enable support for the proposed "null aware
+   * operators" feature.
+   */
+  bool enableNullAwareOperators;
 
   /**
    * True if hints that are specific to dart2js should be generated. This
@@ -5690,7 +5697,7 @@ class AnalysisOptions implements HasToJson {
    */
   bool generateLints;
 
-  AnalysisOptions({this.enableAsync, this.enableDeferredLoading, this.enableEnums, this.generateDart2jsHints, this.generateHints, this.generateLints});
+  AnalysisOptions({this.enableAsync, this.enableDeferredLoading, this.enableEnums, this.enableNullAwareOperators, this.generateDart2jsHints, this.generateHints, this.generateLints});
 
   factory AnalysisOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -5709,6 +5716,10 @@ class AnalysisOptions implements HasToJson {
       if (json.containsKey("enableEnums")) {
         enableEnums = jsonDecoder._decodeBool(jsonPath + ".enableEnums", json["enableEnums"]);
       }
+      bool enableNullAwareOperators;
+      if (json.containsKey("enableNullAwareOperators")) {
+        enableNullAwareOperators = jsonDecoder._decodeBool(jsonPath + ".enableNullAwareOperators", json["enableNullAwareOperators"]);
+      }
       bool generateDart2jsHints;
       if (json.containsKey("generateDart2jsHints")) {
         generateDart2jsHints = jsonDecoder._decodeBool(jsonPath + ".generateDart2jsHints", json["generateDart2jsHints"]);
@@ -5721,7 +5732,7 @@ class AnalysisOptions implements HasToJson {
       if (json.containsKey("generateLints")) {
         generateLints = jsonDecoder._decodeBool(jsonPath + ".generateLints", json["generateLints"]);
       }
-      return new AnalysisOptions(enableAsync: enableAsync, enableDeferredLoading: enableDeferredLoading, enableEnums: enableEnums, generateDart2jsHints: generateDart2jsHints, generateHints: generateHints, generateLints: generateLints);
+      return new AnalysisOptions(enableAsync: enableAsync, enableDeferredLoading: enableDeferredLoading, enableEnums: enableEnums, enableNullAwareOperators: enableNullAwareOperators, generateDart2jsHints: generateDart2jsHints, generateHints: generateHints, generateLints: generateLints);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AnalysisOptions");
     }
@@ -5737,6 +5748,9 @@ class AnalysisOptions implements HasToJson {
     }
     if (enableEnums != null) {
       result["enableEnums"] = enableEnums;
+    }
+    if (enableNullAwareOperators != null) {
+      result["enableNullAwareOperators"] = enableNullAwareOperators;
     }
     if (generateDart2jsHints != null) {
       result["generateDart2jsHints"] = generateDart2jsHints;
@@ -5759,6 +5773,7 @@ class AnalysisOptions implements HasToJson {
       return enableAsync == other.enableAsync &&
           enableDeferredLoading == other.enableDeferredLoading &&
           enableEnums == other.enableEnums &&
+          enableNullAwareOperators == other.enableNullAwareOperators &&
           generateDart2jsHints == other.generateDart2jsHints &&
           generateHints == other.generateHints &&
           generateLints == other.generateLints;
@@ -5772,6 +5787,7 @@ class AnalysisOptions implements HasToJson {
     hash = _JenkinsSmiHash.combine(hash, enableAsync.hashCode);
     hash = _JenkinsSmiHash.combine(hash, enableDeferredLoading.hashCode);
     hash = _JenkinsSmiHash.combine(hash, enableEnums.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, enableNullAwareOperators.hashCode);
     hash = _JenkinsSmiHash.combine(hash, generateDart2jsHints.hashCode);
     hash = _JenkinsSmiHash.combine(hash, generateHints.hashCode);
     hash = _JenkinsSmiHash.combine(hash, generateLints.hashCode);

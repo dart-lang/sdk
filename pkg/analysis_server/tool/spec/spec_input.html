@@ -1,4 +1,3 @@
-
 <html>
   <head>
     <meta charset="UTF-8"/>
@@ -6,7 +5,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.5.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.6.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -1935,7 +1934,7 @@
         <object>
           <field name="enableAsync" optional="true">
             <ref>bool</ref>
-            <p><b><i>Deprecated</i></b>/<p>
+            <p><b><i>Deprecated</i></b></p>
             <p>
               True if the client wants to enable support for the
               proposed async feature.
@@ -1943,7 +1942,7 @@
           </field>
           <field name="enableDeferredLoading" optional="true">
             <ref>bool</ref>
-            <p><b><i>Deprecated</i></b>/<p>
+            <p><b><i>Deprecated</i></b></p>
             <p>
               True if the client wants to enable support for the
               proposed deferred loading feature.
@@ -1951,10 +1950,17 @@
           </field>
           <field name="enableEnums" optional="true">
             <ref>bool</ref>
-            <p><b><i>Deprecated</i></b>/<p>
+            <p><b><i>Deprecated</i></b></p>
             <p>
               True if the client wants to enable support for the
               proposed enum feature.
+            </p>
+          </field>
+          <field name="enableNullAwareOperators" optional="true">
+            <ref>bool</ref>
+            <p>
+              True if the client wants to enable support for the
+              proposed "null aware operators" feature.
             </p>
           </field>
           <field name="generateDart2jsHints" optional="true">

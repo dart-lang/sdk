@@ -1022,6 +1022,7 @@ final Matcher isAnalysisErrorType = new MatchesEnum("AnalysisErrorType", [
  *   "enableAsync": optional bool
  *   "enableDeferredLoading": optional bool
  *   "enableEnums": optional bool
+ *   "enableNullAwareOperators": optional bool
  *   "generateDart2jsHints": optional bool
  *   "generateHints": optional bool
  *   "generateLints": optional bool
@@ -1032,6 +1033,7 @@ final Matcher isAnalysisOptions = new LazyMatcher(() => new MatchesJsonObject(
     "enableAsync": isBool,
     "enableDeferredLoading": isBool,
     "enableEnums": isBool,
+    "enableNullAwareOperators": isBool,
     "generateDart2jsHints": isBool,
     "generateHints": isBool,
     "generateLints": isBool
