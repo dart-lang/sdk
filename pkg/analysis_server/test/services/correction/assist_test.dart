@@ -1290,6 +1290,28 @@ main(String str) {
 ''');
   }
 
+  void test_convertToIsNotEmpty_wrong_noBang() {
+    verifyNoTestUnitErrors = false;
+    resolveTestUnit('''
+main(String str) {
+  ~str.isEmpty;
+}
+''');
+    assertNoAssistAt('isEmpty;', AssistKind.CONVERT_INTO_IS_NOT_EMPTY);
+  }
+
+  void test_convertToIsNotEmpty_wrong_noIsNotEmpty() {
+    resolveTestUnit('''
+class A {
+  bool get isEmpty => false;
+}
+main(A a) {
+  !a.isEmpty;
+}
+''');
+    assertNoAssistAt('isEmpty;', AssistKind.CONVERT_INTO_IS_NOT_EMPTY);
+  }
+
   void test_convertToIsNotEmpty_wrong_notInPrefixExpression() {
     resolveTestUnit('''
 main(String str) {
@@ -1308,16 +1330,91 @@ main(int p) {
     assertNoAssistAt('isEven;', AssistKind.CONVERT_INTO_IS_NOT_EMPTY);
   }
 
-  void test_convertToIsNotEmpty_wrote_noIsNotEmpty() {
+  void test_encapsulateField_BAD_alreadyPrivate() {
     resolveTestUnit('''
 class A {
-  bool get isEmpty => false;
+  int _test = 42;
 }
 main(A a) {
-  !a.isEmpty;
+  print(a._test);
 }
 ''');
-    assertNoAssistAt('isEmpty;', AssistKind.CONVERT_INTO_IS_NOT_EMPTY);
+    assertNoAssistAt('_test =', AssistKind.ENCAPSULATE_FIELD);
+  }
+
+  void test_encapsulateField_BAD_multipleFields() {
+    resolveTestUnit('''
+class A {
+  int aaa, bbb, ccc;
+}
+main(A a) {
+  print(a.bbb);
+}
+''');
+    assertNoAssistAt('bbb, ', AssistKind.ENCAPSULATE_FIELD);
+  }
+
+  void test_encapsulateField_BAD_parseError() {
+    verifyNoTestUnitErrors = false;
+    resolveTestUnit('''
+class A {
+  int; // marker
+}
+main(A a) {
+  print(a.test);
+}
+''');
+    assertNoAssistAt('; // marker', AssistKind.ENCAPSULATE_FIELD);
+  }
+
+  void test_encapsulateField_OK_hasType() {
+    resolveTestUnit('''
+class A {
+  int test = 42;
+}
+main(A a) {
+  print(a.test);
+}
+''');
+    assertHasAssistAt('test = 42', AssistKind.ENCAPSULATE_FIELD, '''
+class A {
+  int _test = 42;
+
+  int get test => _test;
+
+  void set test(int test) {
+    _test = test;
+  }
+}
+main(A a) {
+  print(a.test);
+}
+''');
+  }
+
+  void test_encapsulateField_OK_noType() {
+    resolveTestUnit('''
+class A {
+  var test = 42;
+}
+main(A a) {
+  print(a.test);
+}
+''');
+    assertHasAssistAt('test = 42', AssistKind.ENCAPSULATE_FIELD, '''
+class A {
+  var _test = 42;
+
+  get test => _test;
+
+  void set test(test) {
+    _test = test;
+  }
+}
+main(A a) {
+  print(a.test);
+}
+''');
   }
 
   void test_exchangeBinaryExpressionArguments_OK_compare() {
