@@ -82,10 +82,10 @@ var cascade;
   let Base = Base$();
   class Foo extends Base$(core.int) {
     test_final_field_generic(t) {
-      this.x.add(1);
-      this.x.add(2);
-      this.x.add(3);
-      this.x.add(4);
+      this.x[core.$add](1);
+      this.x[core.$add](2);
+      this.x[core.$add](3);
+      this.x[core.$add](4);
     }
   }
   // Exports:
