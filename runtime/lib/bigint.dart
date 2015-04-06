@@ -65,6 +65,16 @@ class _Bigint extends _IntegerImplementation implements int {
   static _Bigint _ZERO = new _Bigint._fromInt(0);
   static _Bigint _ONE = new _Bigint._fromInt(1);
 
+  // Result cache for last _divRem call.
+  static Uint32List _lastDividend_digits;
+  static int _lastDividend_used;
+  static Uint32List _lastDivisor_digits;
+  static int _lastDivisor_used;
+  static Uint32List _lastQuoRem_digits;
+  static int _lastQuoRem_used;
+  static int _lastRem_used;
+  static int _lastRem_nsh;
+
   // Internal data structure.
   bool get _neg native "Bigint_getNeg";
   int get _used native "Bigint_getUsed";
@@ -192,7 +202,7 @@ class _Bigint extends _IntegerImplementation implements int {
     if (x_used == 0) {
       return 0;
     }
-    if (n == 0 && r_digits == x_digits) {
+    if (n == 0 && identical(r_digits, x_digits)) {
       return x_used;
     }
     final r_used = x_used + n;
@@ -944,20 +954,56 @@ class _Bigint extends _IntegerImplementation implements int {
 
   // Return trunc(this / a), a != 0.
   _Bigint _div(_Bigint a) {
-    return _divRem(a, true);
+    assert(a._used > 0);
+    if (_used < a._used) {
+      return _ZERO;
+    }
+    _divRem(a);
+    // Return quotient, i.e.
+    // _lastQuoRem_digits[_lastRem_used.._lastQuoRem_used-1] with proper sign.
+    var lastQuo_used = _lastQuoRem_used - _lastRem_used;
+    var quo_digits = _cloneDigits(_lastQuoRem_digits,
+                                  _lastRem_used,
+                                  _lastQuoRem_used,
+                                  lastQuo_used);
+    var quo = new _Bigint(false, lastQuo_used, quo_digits);
+    if ((_neg != a._neg) && (quo._used > 0)) {
+      quo = quo._negate();
+    }
+    return quo;
   }
 
   // Return this - a * trunc(this / a), a != 0.
   _Bigint _rem(_Bigint a) {
-    return _divRem(a, false);
-  }
-
-  // Return trunc(this / a), a != 0, if div == true.
-  // Return this - a * trunc(this / a), a != 0, if div == false.
-  _Bigint _divRem(_Bigint a, bool div) {
     assert(a._used > 0);
     if (_used < a._used) {
-      return div ? _ZERO : this;
+      return this;
+    }
+    _divRem(a);
+    // Return remainder, i.e.
+    // denormalized _lastQuoRem_digits[0.._lastRem_used-1] with proper sign.
+    var rem_digits = _cloneDigits(_lastQuoRem_digits,
+                                  0,
+                                  _lastRem_used,
+                                  _lastRem_used);
+    var rem = new _Bigint(false, _lastRem_used, rem_digits);
+    if (_lastRem_nsh > 0) {
+      rem = rem._rShift(_lastRem_nsh);  // Denormalize remainder.
+    }
+    if (_neg && (rem._used > 0)) {
+      rem = rem._negate();
+    }
+    return rem;
+  }
+
+  // Cache concatenated positive quotient and normalized positive remainder.
+  void _divRem(_Bigint a) {
+    // Check if result is already cached (identical on Bigint is too expensive).
+    if ((this._used == _lastDividend_used) &&
+        (a._used == _lastDivisor_used) &&
+        identical(this._digits, _lastDividend_digits) &&
+        identical(a._digits, _lastDivisor_digits)) {
+      return;
     }
     var nsh = _DIGIT_BITS - _nbits(a._digits[a._used - 1]);
     // For 64-bit processing, make sure y has an even number of digits.
@@ -1049,26 +1095,15 @@ class _Bigint extends _IntegerImplementation implements int {
       }
       i -= d0;
     }
-    if (div) {
-      // Return quotient, i.e. r_digits[y_used..r_used-1] with proper sign.
-      r_digits = _cloneDigits(r_digits, y_used, r_used, r_used - y_used);
-      var r = new _Bigint(false, r_used - y_used, r_digits);
-      if (_neg != a._neg && r._used > 0) {
-        r = r._negate();
-      }
-      return r;
-    }
-    // Return remainder, i.e. denormalized r_digits[0..y_used-1] with
-    // proper sign.
-    r_digits = _cloneDigits(r_digits, 0, y_used, y_used);
-    var r = new _Bigint(false, y_used, r_digits);
-    if (nsh > 0) {
-      r = r._rShift(nsh);  // Denormalize remainder.
-    }
-    if (_neg && r._used > 0) {
-      r = r._negate();
-    }
-    return r;
+    // Cache result.
+    _lastDividend_digits = _digits;
+    _lastDividend_used = _used;
+    _lastDivisor_digits = a._digits;
+    _lastDivisor_used = a._used;
+    _lastQuoRem_digits = r_digits;
+    _lastQuoRem_used = r_used;
+    _lastRem_used = y_used;
+    _lastRem_nsh = nsh;
   }
 
   // Customized version of _rem() minimizing allocations for use in reduction.
