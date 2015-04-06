@@ -1141,8 +1141,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     BUILD_LIBRARY_ERRORS,
     CLASS_ELEMENTS,
     LIBRARY_ELEMENT1,
-    IS_LAUNCHABLE,
-    HAS_HTML_IMPORT
+    IS_LAUNCHABLE
   ]);
 
   /**
@@ -1182,13 +1181,11 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       Source partSource = partUnit.element.source;
       partUnitMap[partSource] = partUnit;
     }
-    Source htmlSource = context.sourceFactory.forUri(DartSdk.DART_HTML);
     //
     // Update "part" directives.
     //
     LibraryIdentifier libraryNameNode = null;
     String partsLibraryName = _UNKNOWN_LIBRARY_NAME;
-    bool hasHtmlImport = false;
     bool hasPartDirective = false;
     FunctionElement entryPoint =
         _findEntryPoint(definingCompilationUnitElement);
@@ -1196,9 +1193,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     List<CompilationUnitElementImpl> sourcedCompilationUnits =
         <CompilationUnitElementImpl>[];
     for (Directive directive in definingCompilationUnit.directives) {
-      if (directive is ImportDirective) {
-        hasHtmlImport = hasHtmlImport || directive.source == htmlSource;
-      } else if (directive is LibraryDirective) {
+      if (directive is LibraryDirective) {
         if (libraryNameNode == null) {
           libraryNameNode = directive.name;
           directivesToResolve.add(directive);
@@ -1286,7 +1281,6 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     outputs[CLASS_ELEMENTS] = classElements;
     outputs[LIBRARY_ELEMENT1] = libraryElement;
     outputs[IS_LAUNCHABLE] = entryPoint != null;
-    outputs[HAS_HTML_IMPORT] = hasHtmlImport;
   }
 
   /**
@@ -1461,7 +1455,11 @@ class BuildSourceClosuresTask extends SourceBasedAnalysisTask {
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'BuildExportSourceClosureTask', createTask, buildInputs,
-      <ResultDescriptor>[IMPORT_SOURCE_CLOSURE, EXPORT_SOURCE_CLOSURE]);
+      <ResultDescriptor>[
+    IMPORT_SOURCE_CLOSURE,
+    EXPORT_SOURCE_CLOSURE,
+    IS_CLIENT
+  ]);
 
   BuildSourceClosuresTask(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -1474,11 +1472,13 @@ class BuildSourceClosuresTask extends SourceBasedAnalysisTask {
   void internalPerform() {
     List<Source> importClosure = getRequiredInput(IMPORT_CLOSURE_INPUT);
     List<Source> exportClosure = getRequiredInput(EXPORT_CLOSURE_INPUT);
+    Source htmlSource = context.sourceFactory.forUri(DartSdk.DART_HTML);
     //
     // Record outputs.
     //
     outputs[IMPORT_SOURCE_CLOSURE] = importClosure;
     outputs[EXPORT_SOURCE_CLOSURE] = exportClosure;
+    outputs[IS_CLIENT] = importClosure.contains(htmlSource);
   }
 
   /**

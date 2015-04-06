@@ -34,14 +34,6 @@ final ListResultDescriptor<Source> EXPORTED_LIBRARIES =
     new ListResultDescriptor<Source>('EXPORTED_LIBRARIES', Source.EMPTY_ARRAY);
 
 /**
- * A flag specifying whether a library imports 'dart:html'.
- *
- * The result is only available for targets representing a Dart library.
- */
-final ResultDescriptor<bool> HAS_HTML_IMPORT =
-    new ResultDescriptor<bool>('HAS_HTML_IMPORT', false);
-
-/**
  * The sources of the libraries that are imported into a library.
  *
  * Not `null`.

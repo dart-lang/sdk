@@ -745,11 +745,10 @@ part of lib;
 part of lib;
 '''
     });
-    expect(outputs, hasLength(5));
+    expect(outputs, hasLength(4));
     // simple outputs
     expect(outputs[BUILD_LIBRARY_ERRORS], isEmpty);
     expect(outputs[IS_LAUNCHABLE], isFalse);
-    expect(outputs[HAS_HTML_IMPORT], isFalse);
     // LibraryElement output
     expect(libraryElement, isNotNull);
     expect(libraryElement.entryPoint, isNull);
@@ -871,15 +870,6 @@ part 'part.dart';
 '''
     });
     _assertErrorsWithCodes([CompileTimeErrorCode.PART_OF_NON_PART]);
-  }
-
-  test_perform_hasHtmlImport() {
-    _performBuildTask({
-      '/lib.dart': '''
-import 'dart:html';
-'''
-    });
-    expect(outputs[HAS_HTML_IMPORT], isTrue);
   }
 
   test_perform_isLaunchable_inDefiningUnit() {
@@ -1105,6 +1095,43 @@ library lib_d;
       expect(closure, contains(sourceD));
       expect(closure, contains(coreSource));
     }
+  }
+
+  test_perform_isClient_false() {
+    Source sourceA = _newSource('/a.dart', '''
+library lib_a;
+import 'b.dart';
+''');
+    _newSource('/b.dart', '''
+library lib_b;
+''');
+    _computeResult(sourceA, IS_CLIENT);
+    expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+    expect(outputs[IS_CLIENT], isFalse);
+  }
+
+  test_perform_isClient_true_direct() {
+    Source sourceA = _newSource('/a.dart', '''
+library lib_a;
+import 'dart:html';
+''');
+    _computeResult(sourceA, IS_CLIENT);
+    expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+    expect(outputs[IS_CLIENT], isTrue);
+  }
+
+  test_perform_isClient_true_indirect() {
+    Source sourceA = _newSource('/a.dart', '''
+library lib_a;
+import 'b.dart';
+''');
+    _newSource('/b.dart', '''
+library lib_b;
+import 'dart:html';
+''');
+    _computeResult(sourceA, IS_CLIENT);
+    expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+    expect(outputs[IS_CLIENT], isTrue);
   }
 }
 
