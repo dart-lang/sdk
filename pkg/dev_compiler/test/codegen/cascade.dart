@@ -68,3 +68,13 @@ void test_VariableDeclaration_first() {
       b = 2;
   print(a);
 }
+
+class Base<T> {
+  final List<T> x = <T>[];
+}
+
+class Foo extends Base<int> {
+  void test_final_field_generic(t) {
+    x..add(1)..add(2)..add(3)..add(4);
+  }
+}

@@ -1802,14 +1802,31 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// True is the expression can be evaluated multiple times without causing
   /// code execution. This is true for final fields. This can be true for local
   /// variables, if:
-  /// * they are not assigned within the [context].
+  ///
+  /// * they are not assigned within the [context] scope.
   /// * they are not assigned in a function closure anywhere.
+  ///
+  /// This method is used to avoid creating temporaries in cases where we know
+  /// we can safely re-evaluate [node] multiple times in [context]. This lets
+  /// us generate prettier code.
+  ///
+  /// This method is conservative: it should never return `true` unless it is
+  /// certain the [node] is stateless, because generated code may rely on the
+  /// correctness of a `true` value. However it may return `false` for things
+  /// that are in fact, stateless.
   bool _isStateless(Expression node, [AstNode context]) {
     if (node is SimpleIdentifier) {
       var e = node.staticElement;
       if (e is PropertyAccessorElement) e = e.variable;
-      if (e is VariableElementImpl && !e.isSynthetic) {
+      if (e is VariableElement && !e.isSynthetic) {
         if (e.isFinal) return true;
+
+        // TODO(jmesserly): remove this when isPotentiallyMutated* is available
+        // without the implementation class. Technically we shouldn't hit the
+        // ParameterMember case based on current usage of _isStateless, but this
+        // makes it clear we shouldn't rely on *Impl class.
+        if (e is Member) e = e.baseElement;
+
         if (e is LocalVariableElementImpl || e is ParameterElementImpl) {
           // make sure the local isn't mutated in the context.
           return !_isPotentiallyMutated(e, context);
@@ -2314,6 +2331,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
 /// Returns true if the local variable is potentially mutated within [context].
 /// This accounts for closures that may have been created outside of [context].
+// TODO(jmesserly): change type annotation to not be *Impl once
+// isPotentiallyMutated is available on VariableElement.
 bool _isPotentiallyMutated(VariableElementImpl e, [AstNode context]) {
   if (e.isPotentiallyMutatedInClosure) {
     // TODO(jmesserly): this returns true incorrectly in some cases, because

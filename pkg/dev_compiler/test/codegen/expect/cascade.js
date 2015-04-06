@@ -71,6 +71,23 @@ var cascade;
     })(new core.List.from([])), b = 2;
     core.print(a);
   }
+  let Base$ = dart.generic(function(T) {
+    class Base extends core.Object {
+      Base() {
+        this.x = new core.List$(T).from([]);
+      }
+    }
+    return Base;
+  });
+  let Base = Base$();
+  class Foo extends Base$(core.int) {
+    test_final_field_generic(t) {
+      this.x.add(1);
+      this.x.add(2);
+      this.x.add(3);
+      this.x.add(4);
+    }
+  }
   // Exports:
   exports.A = A;
   exports.test_closure_with_mutate = test_closure_with_mutate;
@@ -80,4 +97,7 @@ var cascade;
   exports.test_VariableDeclaration_single = test_VariableDeclaration_single;
   exports.test_VariableDeclaration_last = test_VariableDeclaration_last;
   exports.test_VariableDeclaration_first = test_VariableDeclaration_first;
+  exports.Base$ = Base$;
+  exports.Base = Base;
+  exports.Foo = Foo;
 })(cascade || (cascade = {}));
