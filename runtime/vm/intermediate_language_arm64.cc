@@ -5090,7 +5090,9 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                         licm_hoisted_ ? ICData::kHoisted : 0);
   if (IsNullCheck()) {
     __ CompareObject(locs()->in(0).reg(), Object::null_object(), PP);
-    __ b(deopt, EQ);
+    ASSERT(DeoptIfNull() || DeoptIfNotNull());
+    Condition cond = DeoptIfNull() ? EQ : NE;
+    __ b(deopt, cond);
     return;
   }
 

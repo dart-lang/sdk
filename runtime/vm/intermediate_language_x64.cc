@@ -5503,7 +5503,8 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (IsNullCheck()) {
     __ CompareObject(locs()->in(0).reg(),
                      Object::null_object(), PP);
-    __ j(EQUAL, deopt);
+    Condition cond = DeoptIfNull() ? EQUAL : NOT_EQUAL;
+    __ j(cond, deopt);
     return;
   }
 

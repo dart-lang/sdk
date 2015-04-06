@@ -5939,7 +5939,9 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (IsNullCheck()) {
     __ CompareImmediate(locs()->in(0).reg(),
                         reinterpret_cast<intptr_t>(Object::null()));
-    __ b(deopt, EQ);
+    ASSERT(DeoptIfNull() || DeoptIfNotNull());
+    Condition cond = DeoptIfNull() ? EQ : NE;
+    __ b(deopt, cond);
     return;
   }
 

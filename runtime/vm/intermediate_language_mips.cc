@@ -4670,7 +4670,12 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                         ICData::kDeoptCheckClass,
                                         licm_hoisted_ ? ICData::kHoisted : 0);
   if (IsNullCheck()) {
-    __ BranchEqual(locs()->in(0).reg(), Object::null_object(), deopt);
+    if (DeoptIfNull()) {
+      __ BranchEqual(locs()->in(0).reg(), Object::null_object(), deopt);
+    } else {
+      ASSERT(DeoptIfNotNull());
+      __ BranchNotEqual(locs()->in(0).reg(), Object::null_object(), deopt);
+    }
     return;
   }
 
