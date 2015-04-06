@@ -6,7 +6,7 @@ library test.services.completion.dart.local;
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
-import 'package:analysis_server/src/services/completion/local_computer.dart';
+import 'package:analysis_server/src/services/completion/local_reference_contributor.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';

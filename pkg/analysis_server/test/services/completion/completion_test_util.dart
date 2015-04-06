@@ -14,8 +14,8 @@ import 'package:analysis_server/src/services/completion/completion_manager.dart'
 import 'package:analysis_server/src/services/completion/completion_target.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
-import 'package:analysis_server/src/services/completion/imported_computer.dart';
-import 'package:analysis_server/src/services/completion/invocation_computer.dart';
+import 'package:analysis_server/src/services/completion/imported_reference_contributor.dart';
+import 'package:analysis_server/src/services/completion/prefixed_element_contributor.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';

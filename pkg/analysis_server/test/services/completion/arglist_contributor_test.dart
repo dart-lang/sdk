@@ -5,7 +5,7 @@
 library test.services.completion.dart.arglist;
 
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/services/completion/arglist_computer.dart';
+import 'package:analysis_server/src/services/completion/arglist_contributor.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';

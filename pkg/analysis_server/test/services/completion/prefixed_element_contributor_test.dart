@@ -8,7 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
-import 'package:analysis_server/src/services/completion/invocation_computer.dart';
+import 'package:analysis_server/src/services/completion/prefixed_element_contributor.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
