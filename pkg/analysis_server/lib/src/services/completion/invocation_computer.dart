@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.computer.dart.invocation;
+library services.completion.contributor.dart.invocation;
 
 import 'dart:async';
 
@@ -16,10 +16,10 @@ import 'package:analyzer/src/generated/element.dart';
 import '../../protocol_server.dart' show CompletionSuggestionKind;
 
 /**
- * A computer for calculating invocation / access suggestions
+ * A contributor for calculating invocation / access suggestions
  * `completion.getSuggestions` request results.
  */
-class InvocationComputer extends DartCompletionComputer {
+class PrefixedElementContributor extends DartCompletionContributor {
   SuggestionBuilder builder;
 
   @override

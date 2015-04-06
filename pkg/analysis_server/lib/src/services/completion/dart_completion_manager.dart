@@ -41,15 +41,15 @@ const int DART_RELEVANCE_LOW = 500;
 const int DART_RELEVANCE_PARAMETER = 1059;
 
 /**
- * The base class for computing code completion suggestions.
+ * The base class for contributing code completion suggestions.
  */
-abstract class DartCompletionComputer {
+abstract class DartCompletionContributor {
   /**
    * Computes the initial set of [CompletionSuggestion]s based on
    * the given completion context. The compilation unit and completion node
    * in the given completion context may not be resolved.
    * This method should execute quickly and not block waiting for any analysis.
-   * Returns `true` if the computer's work is complete
+   * Returns `true` if the contributor's work is complete
    * or `false` if [computeFull] should be called to complete the work.
    */
   bool computeFast(DartCompletionRequest request);
@@ -69,23 +69,24 @@ abstract class DartCompletionComputer {
 class DartCompletionManager extends CompletionManager {
   final SearchEngine searchEngine;
   final DartCompletionCache cache;
-  List<DartCompletionComputer> computers;
+  List<DartCompletionContributor> contributors;
   CommonUsageComputer commonUsageComputer;
 
   DartCompletionManager(
       AnalysisContext context, this.searchEngine, Source source, this.cache,
-      [this.computers, this.commonUsageComputer])
+      [this.contributors, this.commonUsageComputer])
       : super(context, source) {
-    if (computers == null) {
-      computers = [
-        // LocalComputer before ImportedComputer
+    if (contributors == null) {
+      contributors = [
+        // LocalReferenceContributor before ImportedReferenceContributor
         // because local suggestions take precedence
-        new LocalComputer(),
-        new ImportedComputer(),
-        new KeywordComputer(),
-        new ArgListComputer(),
-        new CombinatorComputer(),
-        new InvocationComputer()
+        // and can hide other suggestions with the same name
+        new LocalReferenceContributor(),
+        new ImportedReferenceContributor(),
+        new KeywordContributor(),
+        new ArgListContributor(),
+        new CombinatorContributor(),
+        new PrefixedElementContributor()
       ];
     }
     if (commonUsageComputer == null) {
@@ -116,9 +117,9 @@ class DartCompletionManager extends CompletionManager {
   /**
    * Compute suggestions based upon cached information only
    * then send an initial response to the client.
-   * Return a list of computers for which [computeFull] should be called
+   * Return a list of contributors for which [computeFull] should be called
    */
-  List<DartCompletionComputer> computeFast(DartCompletionRequest request) {
+  List<DartCompletionContributor> computeFast(DartCompletionRequest request) {
     return request.performance.logElapseTime('computeFast', () {
       CompilationUnit unit = context.parseCompilationUnit(source);
       request.unit = unit;
@@ -140,8 +141,8 @@ class DartCompletionManager extends CompletionManager {
         request.replacementLength = token.length;
       }
 
-      List<DartCompletionComputer> todo = new List.from(computers);
-      todo.removeWhere((DartCompletionComputer c) {
+      List<DartCompletionContributor> todo = new List.from(contributors);
+      todo.removeWhere((DartCompletionContributor c) {
         return request.performance.logElapseTime('computeFast ${c.runtimeType}',
             () {
           return c.computeFast(request);
@@ -155,11 +156,11 @@ class DartCompletionManager extends CompletionManager {
 
   /**
    * If there is remaining work to be done, then wait for the unit to be
-   * resolved and request that each remaining computer finish their work.
+   * resolved and request that each remaining contributor finish their work.
    * Return a [Future] that completes when the last notification has been sent.
    */
   Future computeFull(
-      DartCompletionRequest request, List<DartCompletionComputer> todo) {
+      DartCompletionRequest request, List<DartCompletionContributor> todo) {
     request.performance.logStartTime('waitForAnalysis');
     return waitForAnalysis().then((CompilationUnit unit) {
       if (controller.isClosed) {
@@ -176,7 +177,7 @@ class DartCompletionManager extends CompletionManager {
         // again?
         request.target = new CompletionTarget.forOffset(unit, request.offset);
         int count = todo.length;
-        todo.forEach((DartCompletionComputer c) {
+        todo.forEach((DartCompletionContributor c) {
           String name = c.runtimeType.toString();
           String completeTag = 'computeFull $name complete';
           request.performance.logStartTime(completeTag);
@@ -201,7 +202,7 @@ class DartCompletionManager extends CompletionManager {
         searchEngine, source, completionRequest.offset, cache,
         completionRequest.performance);
     request.performance.logElapseTime('compute', () {
-      List<DartCompletionComputer> todo = computeFast(request);
+      List<DartCompletionContributor> todo = computeFast(request);
       if (!todo.isEmpty) {
         computeFull(request, todo);
       }
@@ -271,8 +272,8 @@ class DartCompletionRequest extends CompletionRequest {
 
   /**
    * The compilation unit in which the completion was requested. This unit
-   * may or may not be resolved when [DartCompletionComputer.computeFast]
-   * is called but is resolved when [DartCompletionComputer.computeFull].
+   * may or may not be resolved when [DartCompletionContributor.computeFast]
+   * is called but is resolved when [DartCompletionContributor.computeFull].
    */
   CompilationUnit unit;
 

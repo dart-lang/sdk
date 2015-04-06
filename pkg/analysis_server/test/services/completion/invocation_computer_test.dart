@@ -16,11 +16,11 @@ import 'completion_test_util.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(InvocationComputerTest);
+  runReflectiveTests(PrefixedElementContributorTest);
 }
 
 @reflectiveTest
-class InvocationComputerTest extends AbstractSelectorSuggestionTest {
+class PrefixedElementContributorTest extends AbstractSelectorSuggestionTest {
   @override
   CompletionSuggestion assertSuggestInvocationField(String name, String type,
       {int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
@@ -70,8 +70,8 @@ void f(Derived d) {
   }
 
   @override
-  void setUpComputer() {
-    computer = new InvocationComputer();
+  void setUpContributor() {
+    contributor = new PrefixedElementContributor();
   }
 
   test_generic_field() {

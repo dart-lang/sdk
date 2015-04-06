@@ -36,7 +36,7 @@ int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
 abstract class AbstractCompletionTest extends AbstractContextTest {
   Index index;
   SearchEngineImpl searchEngine;
-  DartCompletionComputer computer;
+  DartCompletionContributor contributor;
   String testFile = '/completionTest.dart';
   Source testSource;
   CompilationUnit testUnit;
@@ -321,7 +321,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   CompletionSuggestion assertSuggestLibraryPrefix(String prefix,
       [int relevance = DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
-    // Library prefix should only be suggested by ImportedComputer
+    // Library prefix should only be suggested by ImportedReferenceContributor
     return assertNotSuggested(prefix);
   }
 
@@ -350,7 +350,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   CompletionSuggestion assertSuggestNamedConstructor(
       String name, String returnType, [int relevance = DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
-    if (computer is InvocationComputer) {
+    if (contributor is PrefixedElementContributor) {
       CompletionSuggestion cs =
           assertSuggest(name, csKind: kind, relevance: relevance);
       protocol.Element element = cs.element;
@@ -413,7 +413,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
 
   void assertSuggestTopLevelVarGetterSetter(String name, String returnType,
       [int relevance = DART_RELEVANCE_DEFAULT]) {
-    if (computer is ImportedComputer) {
+    if (contributor is ImportedReferenceContributor) {
       assertSuggestGetter(name, returnType);
       assertSuggestSetter(name);
     } else {
@@ -424,7 +424,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   bool computeFast() {
     _computeFastCalled = true;
     _completionManager = new DartCompletionManager(context, searchEngine,
-        testSource, cache, [computer], new CommonUsageComputer({}));
+        testSource, cache, [contributor], new CommonUsageComputer({}));
     var result = _completionManager.computeFast(request);
     expect(request.replacementOffset, isNotNull);
     expect(request.replacementLength, isNotNull);
@@ -436,7 +436,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
       expect(computeFast(), isFalse);
     }
     resolve(fullAnalysis);
-    return computer.computeFull(request).then(assertFunction);
+    return contributor.computeFull(request).then(assertFunction);
   }
 
   void failedCompletion(String message,
@@ -542,21 +542,21 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     super.setUp();
     index = createLocalMemoryIndex();
     searchEngine = new SearchEngineImpl(index);
-    setUpComputer();
+    setUpContributor();
   }
 
-  void setUpComputer();
+  void setUpContributor();
 }
 
 /**
- * Common tests for `ImportedTypeComputerTest`, `InvocationComputerTest`,
- * and `LocalComputerTest`.
+ * Common tests for `ImportedTypeContributorTest`, `InvocationContributorTest`,
+ * and `LocalContributorTest`.
  */
 abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   /**
-   * Assert that the ImportedComputer uses cached results to produce identical
-   * suggestions to the original set of suggestions.
+   * Assert that the ImportedReferenceContributor uses cached results
+   * to produce identical suggestions to the original set of suggestions.
    */
   void assertCachedCompute(_) {
     // Subclasses override
@@ -565,7 +565,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   CompletionSuggestion assertSuggestImportedClass(String name,
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
       int relevance: DART_RELEVANCE_DEFAULT}) {
-    if (computer is ImportedComputer) {
+    if (contributor is ImportedReferenceContributor) {
       return assertSuggestClass(name, relevance: relevance, kind: kind);
     } else {
       return assertNotSuggested(name);
@@ -593,7 +593,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       String name, String returnType, [bool isDeprecated = false,
       int relevance = DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
-    if (computer is ImportedComputer) {
+    if (contributor is ImportedReferenceContributor) {
       return assertSuggestFunctionTypeAlias(
           name, returnType, isDeprecated, relevance, kind);
     } else {
@@ -621,7 +621,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   CompletionSuggestion assertSuggestImportedTopLevelVar(
       String name, String returnType, [int relevance = DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
-    if (computer is ImportedComputer) {
+    if (contributor is ImportedReferenceContributor) {
       return assertSuggestTopLevelVar(name, returnType, relevance, kind);
     } else {
       return assertNotSuggested(name);
@@ -630,7 +630,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   CompletionSuggestion assertSuggestInvocationClass(String name,
       [int relevance = DART_RELEVANCE_DEFAULT]) {
-    if (computer is InvocationComputer) {
+    if (contributor is PrefixedElementContributor) {
       return assertSuggestClass(name, relevance: relevance);
     } else {
       return assertNotSuggested(name);
@@ -645,7 +645,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   CompletionSuggestion assertSuggestInvocationGetter(
       String name, String returnType,
       {int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
-    if (computer is InvocationComputer) {
+    if (contributor is PrefixedElementContributor) {
       return assertSuggestGetter(name, returnType,
           relevance: relevance, isDeprecated: isDeprecated);
     } else {
@@ -656,7 +656,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   CompletionSuggestion assertSuggestInvocationMethod(
       String name, String declaringType, String returnType,
       [int relevance = DART_RELEVANCE_DEFAULT]) {
-    if (computer is InvocationComputer) {
+    if (contributor is PrefixedElementContributor) {
       return assertSuggestMethod(name, declaringType, returnType,
           relevance: relevance);
     } else {
@@ -666,7 +666,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   CompletionSuggestion assertSuggestInvocationSetter(String name,
       [int relevance = DART_RELEVANCE_DEFAULT]) {
-    if (computer is InvocationComputer) {
+    if (contributor is PrefixedElementContributor) {
       return assertSuggestSetter(name);
     } else {
       return assertNotSuggested(name);
@@ -676,7 +676,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   CompletionSuggestion assertSuggestInvocationTopLevelVar(
       String name, String returnType,
       [int relevance = DART_RELEVANCE_DEFAULT]) {
-    if (computer is InvocationComputer) {
+    if (contributor is PrefixedElementContributor) {
       return assertSuggestTopLevelVar(name, returnType, relevance);
     } else {
       return assertNotSuggested(name);
@@ -1283,7 +1283,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       //    'num',
       //    false,
       //    COMPLETION_RELEVANCE_LOW);
-      if (computer is ImportedComputer) {
+      if (contributor is ImportedReferenceContributor) {
         // TODO(danrubel) should be top level var suggestion
         assertSuggestGetter('T1', 'String');
       }
@@ -2460,7 +2460,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       expect(request.replacementLength, 0);
       assertNotSuggested('Object');
       // TODO(danrubel) should return top level var rather than getter
-      if (computer is ImportedComputer) {
+      if (contributor is ImportedReferenceContributor) {
         //assertSuggestImportedTopLevelVar('T1', 'int');
         assertSuggestGetter('T1', 'int');
       }
@@ -2495,7 +2495,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       expect(request.replacementLength, 0);
       assertSuggestImportedClass('Object');
       // TODO(danrubel) should return top level var rather than getter
-      if (computer is ImportedComputer) {
+      if (contributor is ImportedReferenceContributor) {
         //assertSuggestImportedTopLevelVar('T1', 'int');
         assertSuggestGetter('T1', 'int');
       }
@@ -2652,7 +2652,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestImportedFunction('nowIsIt', null);
       assertNotSuggested('T1');
       // TODO (danrubel) this really should be TopLevelVar not getter/setter
-      if (computer is ImportedComputer) {
+      if (contributor is ImportedReferenceContributor) {
         assertSuggestGetter('newT1', 'int');
       }
       assertNotSuggested('z');
@@ -2710,7 +2710,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       expect(request.replacementLength, 0);
       assertSuggestImportedClass('Object');
       // TODO(danrubel) Should be top level variable
-      if (computer is ImportedComputer) {
+      if (contributor is ImportedReferenceContributor) {
         assertSuggestGetter('T1', 'int');
         // assertSuggestImportedTopLevelVar('T1', 'int');
       }
@@ -2743,7 +2743,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       expect(request.replacementOffset, completionOffset - 1);
       expect(request.replacementLength, 1);
       // TODO(danrubel) Should be top level variable
-      if (computer is ImportedComputer) {
+      if (contributor is ImportedReferenceContributor) {
         assertSuggestGetter('T1', 'int');
         // assertSuggestImportedTopLevelVar('T1', 'int');
       }
@@ -2770,7 +2770,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       expect(request.replacementOffset, completionOffset - 1);
       expect(request.replacementLength, 1);
       // TODO(danrubel) Should be top level variable
-      if (computer is ImportedComputer) {
+      if (contributor is ImportedReferenceContributor) {
         assertSuggestGetter('T1', 'int');
         // assertSuggestImportedTopLevelVar('T1', 'int');
       }

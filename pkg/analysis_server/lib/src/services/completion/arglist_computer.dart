@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.computer.dart.arglist;
+library services.completion.contributor.dart.arglist;
 
 import 'dart:async';
 
@@ -14,10 +14,10 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
 /**
- * A computer for calculating `completion.getSuggestions` request results
+ * A contributor for calculating `completion.getSuggestions` request results
  * when the cursor position is inside the arguments to a method call.
  */
-class ArgListComputer extends DartCompletionComputer {
+class ArgListContributor extends DartCompletionContributor {
   _ArgListSuggestionBuilder builder;
 
   @override

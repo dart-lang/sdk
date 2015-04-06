@@ -13,14 +13,14 @@ import 'completion_test_util.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ArgListComputerTest);
+  runReflectiveTests(ArgListContributorTest);
 }
 
 @reflectiveTest
-class ArgListComputerTest extends AbstractCompletionTest {
+class ArgListContributorTest extends AbstractCompletionTest {
   @override
-  void setUpComputer() {
-    computer = new ArgListComputer();
+  void setUpContributor() {
+    contributor = new ArgListContributor();
   }
 
   test_ArgumentList_imported_function_0() {

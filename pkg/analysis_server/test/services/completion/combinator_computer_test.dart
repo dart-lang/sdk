@@ -14,14 +14,14 @@ import 'completion_test_util.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(CombinatorComputerTest);
+  runReflectiveTests(CombinatorContributorTest);
 }
 
 @reflectiveTest
-class CombinatorComputerTest extends AbstractCompletionTest {
+class CombinatorContributorTest extends AbstractCompletionTest {
   @override
-  void setUpComputer() {
-    computer = new CombinatorComputer();
+  void setUpContributor() {
+    contributor = new CombinatorContributor();
   }
 
   test_Block_inherited_local() {

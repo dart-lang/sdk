@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.computer.dart.combinator;
+library services.completion.contributor.dart.combinator;
 
 import 'dart:async';
 
@@ -14,10 +14,10 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
 /**
- * A computer for calculating `completion.getSuggestions` request results
+ * A contributor for calculating `completion.getSuggestions` request results
  * for the import combinators show and hide.
  */
-class CombinatorComputer extends DartCompletionComputer {
+class CombinatorContributor extends DartCompletionContributor {
   _CombinatorSuggestionBuilder builder;
 
   @override

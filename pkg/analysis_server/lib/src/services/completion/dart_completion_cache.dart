@@ -127,7 +127,7 @@ class DartCompletionCache extends CompletionCache {
     assert(unit.element.source == source);
 
     // Exclude elements from local library
-    // because they are provided by LocalComputer
+    // because they are provided by LocalReferenceContributor
     Set<LibraryElement> excludedLibs = new Set<LibraryElement>();
     excludedLibs.add(unit.element.enclosingElement);
 
@@ -237,7 +237,7 @@ class DartCompletionCache extends CompletionCache {
               });
             } else {
               // Exclude elements from prefixed imports
-              // because they are provided by InvocationComputer
+              // because they are provided by PrefixedElementContributor
               _addLibraryPrefixSuggestion(importElem);
               excludedLibs.add(importElem.importedLibrary);
             }

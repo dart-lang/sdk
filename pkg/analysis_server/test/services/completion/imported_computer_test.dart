@@ -23,11 +23,11 @@ import 'completion_test_util.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ImportedComputerTest);
+  runReflectiveTests(ImportedReferenceContributorTest);
 }
 
 @reflectiveTest
-class ImportedComputerTest extends AbstractSelectorSuggestionTest {
+class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
   void assertCached(String completion) {
     DartCompletionCache cache = request.cache;
     if (!isCached(cache.importedTypeSuggestions, completion) &&
@@ -39,12 +39,12 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
   }
 
   /**
-   * Assert that the ImportedComputer uses cached results to produce identical
-   * suggestions to the original set of suggestions.
+   * Assert that the ImportedReferenceContributor uses cached results
+   * to produce identical suggestions to the original set of suggestions.
    */
   @override
   assertCachedCompute(_) {
-    if (!(computer as ImportedComputer).shouldWaitForLowPrioritySuggestions) {
+    if (!(contributor as ImportedReferenceContributor).shouldWaitForLowPrioritySuggestions) {
       return null;
     }
     expect(request.unit.element, isNotNull);
@@ -58,7 +58,7 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
     /*
      * Calculate a new completion at the same location
      */
-    setUpComputer();
+    setUpContributor();
     int replacementOffset = request.replacementOffset;
     int replacementLength = request.replacementLength;
     request = new DartCompletionRequest(context, searchEngine, testSource,
@@ -98,7 +98,7 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
       // Results from cache might need to be adjusted
       // if target is a function argument in an argument list
       resolve(false);
-      return computer.computeFull(request).then((bool result) {
+      return contributor.computeFull(request).then((bool result) {
         expect(result, isTrue);
         expect(request.unit.element, isNotNull);
         assertResultsFromCache(oldSuggestions);
@@ -174,8 +174,8 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
       suggestions.any((CompletionSuggestion s) => s.completion == completion);
 
   @override
-  void setUpComputer() {
-    computer = new ImportedComputer(shouldWaitForLowPrioritySuggestions: true);
+  void setUpContributor() {
+    contributor = new ImportedReferenceContributor(shouldWaitForLowPrioritySuggestions: true);
   }
 
   @override
@@ -255,11 +255,11 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
       Z D2() {int x;}
       class X {a() {var f; {var x;} ^ var r;} void b() { }}
       class Z { }''');
-    (computer as ImportedComputer).shouldWaitForLowPrioritySuggestions = false;
+    (contributor as ImportedReferenceContributor).shouldWaitForLowPrioritySuggestions = false;
     computeFast();
     return computeFull((bool result) {
       assertSuggestImportedClass('C');
-      // Assert computer does not wait for or include low priority results
+      // Assert contributor does not wait for or include low priority results
       // from non-imported libraries unless instructed to do so.
       assertNotSuggested('H');
     });
@@ -658,7 +658,7 @@ class C extends B with M1, M2 {
     computeFast();
     return computeFull((bool result) {
       assertSuggestImportedClass('ClassInLocalContext');
-      // Assert computer does not include results from 2nd context.
+      // Assert contributor does not include results from 2nd context.
       assertNotSuggested('ClassFromAnotherContext');
     });
   }

@@ -15,11 +15,11 @@ import 'completion_test_util.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(KeywordComputerTest);
+  runReflectiveTests(KeywordContributorTest);
 }
 
 @reflectiveTest
-class KeywordComputerTest extends AbstractCompletionTest {
+class KeywordContributorTest extends AbstractCompletionTest {
   static const List<Keyword> CLASS_BODY_KEYWORDS = const [
     Keyword.CONST,
     Keyword.DYNAMIC,
@@ -159,8 +159,8 @@ class KeywordComputerTest extends AbstractCompletionTest {
   }
 
   @override
-  void setUpComputer() {
-    computer = new KeywordComputer();
+  void setUpContributor() {
+    contributor = new KeywordContributor();
   }
 
   test_after_class() {

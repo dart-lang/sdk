@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.computer.dart.local;
+library services.completion.contributor.dart.local;
 
 import 'dart:async';
 
@@ -77,10 +77,10 @@ String _nameForType(TypeName type) {
 }
 
 /**
- * A computer for calculating `completion.getSuggestions` request results
+ * A contributor for calculating `completion.getSuggestions` request results
  * for the local library in which the completion is requested.
  */
-class LocalComputer extends DartCompletionComputer {
+class LocalReferenceContributor extends DartCompletionContributor {
   @override
   bool computeFast(DartCompletionRequest request) {
     OpType optype = request.optype;

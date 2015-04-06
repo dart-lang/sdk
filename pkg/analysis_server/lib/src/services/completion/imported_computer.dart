@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.computer.dart.toplevel;
+library services.completion.contributor.dart.toplevel;
 
 import 'dart:async';
 import 'dart:collection';
@@ -17,15 +17,15 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
 /**
- * A computer for calculating imported class and top level variable
+ * A contributor for calculating imported class and top level variable
  * `completion.getSuggestions` request results.
  */
-class ImportedComputer extends DartCompletionComputer {
+class ImportedReferenceContributor extends DartCompletionContributor {
   bool shouldWaitForLowPrioritySuggestions;
   bool suggestionsComputed;
   _ImportedSuggestionBuilder builder;
 
-  ImportedComputer({this.shouldWaitForLowPrioritySuggestions: false});
+  ImportedReferenceContributor({this.shouldWaitForLowPrioritySuggestions: false});
 
   @override
   bool computeFast(DartCompletionRequest request) {
@@ -190,7 +190,7 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
       // and include any inherited imported members
       List<String> inheritedTypes = new List<String>();
       visitInheritedTypes(classDecl, (_) {
-        // local declarations are handled by the local computer
+        // local declarations are handled by the local reference contributor
       }, (String typeName) {
         inheritedTypes.add(typeName);
       });

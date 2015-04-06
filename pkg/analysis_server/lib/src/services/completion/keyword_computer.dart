@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.computer.dart.keyword;
+library services.completion.contributor.dart.keyword;
 
 import 'dart:async';
 
@@ -12,10 +12,10 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
 /**
- * A computer for calculating `completion.getSuggestions` request results
+ * A contributor for calculating `completion.getSuggestions` request results
  * for the local library in which the completion is requested.
  */
-class KeywordComputer extends DartCompletionComputer {
+class KeywordContributor extends DartCompletionContributor {
   @override
   bool computeFast(DartCompletionRequest request) {
     request.target.containingNode.accept(new _KeywordVisitor(request));

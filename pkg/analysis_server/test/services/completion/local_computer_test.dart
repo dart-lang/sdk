@@ -14,11 +14,11 @@ import 'completion_test_util.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(LocalComputerTest);
+  runReflectiveTests(LocalReferenceContributorTest);
 }
 
 @reflectiveTest
-class LocalComputerTest extends AbstractSelectorSuggestionTest {
+class LocalReferenceContributorTest extends AbstractSelectorSuggestionTest {
   @override
   CompletionSuggestion assertSuggestLocalClass(String name,
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
@@ -94,7 +94,7 @@ class LocalComputerTest extends AbstractSelectorSuggestionTest {
   CompletionSuggestion assertSuggestLocalVariable(
       String name, String returnType,
       {int relevance: DART_RELEVANCE_LOCAL_VARIABLE}) {
-    // Local variables should only be suggested by LocalComputer
+    // Local variables should only be suggested by LocalReferenceContributor
     CompletionSuggestion cs = assertSuggest(name,
         csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
@@ -145,8 +145,8 @@ class C extends B with M1, M2 {
   }
 
   @override
-  void setUpComputer() {
-    computer = new LocalComputer();
+  void setUpContributor() {
+    contributor = new LocalReferenceContributor();
   }
 
   test_missing_params_function() {
