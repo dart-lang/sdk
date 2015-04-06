@@ -1,6 +1,82 @@
+// <h2>Connecting to the VM Service</h2>
 //
-// TODO(turnidge): Finish writing an idl description of the service protocol.
+// TODO(turnidge): Describe how to connect, etc.
 //
+// <h2>Types</h2>
+//
+// Every non-error response returned by the VM Service has the
+// <code>type</code> property.  This allows the client distinguish
+// between different kinds of responses.
+//
+// If the type name of a response begins with an <code>@</code>
+// character then that response is a _reference_.  If the type name of
+// a response does not begin with an <code>@</code> character then
+// that response is an _object_ (or sometimes _full object_).  A
+// reference is meant to be a subset of a full object with just enough
+// information for the client to generate a reasonable-looking link.
+//
+// For example, an isolate reference may look like this...
+//
+//     {
+//       type: "@Isolate",
+//       id: "isolates/123",
+//       name: "worker"
+//     }
+//
+// ... and a full isolate object would have additional properties:
+//
+//     {
+//       type: "Isolate",
+//       id: "isolates/123",
+//       name: "worker"
+//       entry: ...
+//       heaps: ...
+//       topFrame: ...
+//       ...
+//     }
+//
+// <h2>IDs and Names</h2>
+//
+// Many responses returned by the VM Service have an <code>id</code>
+// property.  This is an identifier used to request an object from an
+// isolate using the <code>getObject</code> rpc.  If two responses
+// have the same id then they refer to the same object.  The converse
+// is not true: the same object may occasionally be returned with two
+// different ids.
+//
+// The client must not parse ids -- they must be treated as opaque
+// strings.  We reserve the right to change the ids of objects.
+//
+// TODO(turnidge): Describe id/handle expiration.  Provide guidance on
+// which responses are cacheable/constant.  Perhaps this needs to be
+// signaled in the Response itself.
+//
+// Many responses have the <code>name</code> property.  Names are
+// provided so that objects can be displayed in a way that a Dart
+// language programmer would find sensible.
+//
+// Note that names are not unique.  Many objects will have the same
+// name.
+//
+// <h2>Private Properties</h2>
+//
+// Some properties returned by the VM Service begin with an underscore
+// (&#95;) character.  These properties are called _private
+// properties_.  Private properties provide private information
+// specific to the VM's implementation.  Private properties may be
+// added, removed, or changed at any time with any release of the VM.
+// They are provided for those tools that need this level of internal
+// access, such as the Observatory.
+//
+// For example, some responses will have the <code>_vmType</code>
+// property.  This provides the VM-internal type name of an object,
+// and is provided only when this type name differs from the
+// <code>type</code> property.
+//
+// <b>If your application relies on private properties, you should expect
+// to update it when new versions of the VM are released.</b>
+//
+// <hr>
 
 interface Service {
   // Returns global information about the Dart VM.
@@ -140,10 +216,10 @@ interface Service {
 }
 
 
-// Every top level response returned by the Service interface extends
-// <code>Response</code>.  This allows the client to distinguish
-// between different kinds of responses by using the <code>type</code>
-// property.
+// Every non-error top level response returned by the Service
+// interface extends <code>Response</code>.  This allows the client to
+// distinguish between different kinds of responses by using the
+// <code>type</code> property.
 struct Response {
   // Every response returned by the VM Service has the
   // <code>type</code> property.  This allows the client distinguish
@@ -390,13 +466,106 @@ struct Object extends Response {
 // TODO(turnidge): VMObject.
 
 
+// A reference to a Dart language library.
+struct LibraryRef extends ObjectRef {
+  // The name of this library.
+  name string
+
+  // The url of this library.
+  url string
+}
+
+
+// A Dart language library.
+struct Library extends Object {
+  // The name of this library.
+  name string
+
+  // The url of this library.
+  url string
+
+  // A list of the imports for this library.
+  imports []LibraryRef
+
+  // A list of the scripts which constitute this library.
+  scripts []ScriptRef
+
+  // A list of the top-level variables in this library.
+  variables []FieldRef
+
+  // A list of the top-level functions in this library.
+  functions []FunctionRef
+
+  // A list of all classes in this library.
+  classes []ClassRef
+}
+
+
+// A reference to a Dart language script.
+struct ScriptRef extends ObjectRef {
+  // A name for this script.
+  name string
+
+  // What kind of script is this?
+  kind ScriptKind
+}
+
+
+// A  Dart language script.
+struct Script extends Object {
+  // A name for this script.
+  name string
+
+  // What kind of script is this?
+  kind ScriptKind
+
+  // The library which owns this script.
+  library LibraryRef
+
+  // The source code for this script.  For certain built-in scripts,
+  // this may be reconstructed without source comments.
+  source string
+
+  // A table encoding a mapping from token position to line and column.
+  //
+  // Each entry in the array consists of a line number followed by
+  // (tokenPos, columnNumber) pairs:
+  //
+  //    [lineNumber, (tokenPos, columnNumber)*]
+  // 
+  // For example, the following table:
+  //
+  //    [[1, 100, 5, 101, 8],[2, 102, 7]]
+  //
+  // Encodes the following mapping:
+  //
+  //    tokenPos  line   column
+  //    --------  ------ ------
+  //    100       1      5
+  //    101       1      8
+  //    102       2      7
+  //
+  // TODO(turnidge): The tool I'm using does not support [][].
+  // tokenPosTable [][]int
+  tokenPosTable int
+}
+
+
+enum ScriptKind {
+  script
+  library
+  source
+  patch
+}
+
+
 // A reference to a Dart language class.
 struct ClassRef extends ObjectRef {
   // The name of this class.
   name string
 
   // A vm internal name, provided only when it is different than name.
-  _vmName string
+  _vmName string [optional]
 }
 
 
@@ -406,7 +575,7 @@ struct Class extends Object {
   name string
 
   // A vm internal name, provided only when it is different than name.
-  _vmName string
+  _vmName string [optional]
 
   // The error which occurred during class finalization, if it exists.
   error InstanceRef [optional]
@@ -457,6 +626,243 @@ struct Class extends Object {
 
 struct ClassHeapStats extends Response {
   TODO int
+}
+
+
+// A reference to a Dart language field or variable.
+struct FieldRef extends ObjectRef {
+  // The name of this field.
+  name string
+
+  // A vm internal name, provided only when it is different than name.
+  _vmName string [optional]
+
+  // The value of this field, if the field is static.
+  value InstanceRef [optional]
+
+  // The owner of this field, which can be either a LibraryRef for a
+  // ClassRef.
+  owner ObjectRef
+
+  // The declared type of this field.
+  declaredType TypeRef
+
+  // Is this field const?
+  const bool
+
+  // Is this field final?
+  final bool
+
+  // Is this field static?
+  static bool
+}
+
+
+// A Dart language field or variable.
+struct Field extends ObjectRef {
+  // The name of this field.
+  name string
+
+  // A vm internal name, provided only when it is different than name.
+  _vmName string [optional]
+
+  // The value of this field, if the field is static.
+  value InstanceRef [optional]
+
+  // The owner of this field, which can be either a LibraryRef for a
+  // ClassRef.
+  owner ObjectRef
+
+  // The declared type of this field.
+  declaredType TypeRef
+
+  // Is this field const?
+  const bool
+
+  // Is this field final?
+  final bool
+
+  // Is this field static?
+  static bool
+
+  // The script containing this feild.
+  script ScriptRef [optional]
+
+  // The token position of this field.
+  tokenPos int [optional]
+
+  // Have we seen null assigned to this field?
+  _guardNullable bool
+
+  // Have we seen a single class assigned to this field?
+  //
+  // TODO(johnmccutchan): This can actually be a string 'unknown' or
+  // 'dynamic' or a ClassRef.  Change how this is encoded.
+  _guardClass string
+
+  // Have we seen a fixed length list assigned to this field?
+  //
+  // TODO(johnmccutchan): This can actually be a string 'unknown' or
+  // 'dynamic' or a ClassRef.  Change how this is encoded.
+  _guardLength string
+}
+
+
+// A reference to a Dart language function.
+struct FunctionRef extends ObjectRef {
+  // The name of this function.
+  name string
+
+  // A vm internal name, provided only when it is different than name.
+  _vmName string [optional]
+
+  // The owner of this field, which can be a LibraryRef, ClassRef, or
+  // a FunctionRef.
+  owner ObjectRef
+
+  // What kind of function is this?
+  kind FunctionKind
+}
+
+
+// A Dart language function.
+struct Function extends ObjectRef {
+  // The name of this function.
+  name string
+
+  // A vm internal name, provided only when it is different than name.
+  _vmName string [optional]
+
+  // What kind of function is this?
+  kind FunctionKind
+
+  // The owner of this field, which can be a LibraryRef, ClassRef, or
+  // a FunctionRef.
+  owner ObjectRef
+
+  // Is this function static?
+  //
+  // TODO(turnidge): This is inconsistent with FieldRef.
+  static bool
+
+  // Is this function const?
+  const bool
+
+  // The script containing this function.
+  script ScriptRef [optional]
+
+  // The first token position of this function.
+  tokenPos int [optional]
+
+  // The last token position of this function.
+  endTokenPos int [optional]
+
+  // The compiled code associated with this function.
+  code CodeRef [optional]
+
+  // Are we able to generate optimized code for this function?
+  _optimizable bool
+
+  // Are we able to inline this function?
+  _inlinable bool
+
+  // The unoptimized version of this function, if retained.
+  _unoptimizedCode CodeRef [optional]
+
+  // An indicator of how actively this function is used.
+  _usageCounter int
+
+  // TODO(johnmccutchan): Document.
+  _optimizedCallSiteCount int
+
+  // How many times has this function been deoptimized?
+  _deoptimizations int
+}
+
+
+enum FunctionKind {
+  RegularFunction
+  ClosureFunction
+  GetterFunction
+  SetterFunction
+  Constructor
+  ImplicitGetter
+  ImplicitSetter
+  ImplicitStaticFinalGetter
+  IrregexpFunction
+  StaticInitializer
+  MethodExtractor
+  NoSuchMethodDispatcher
+  InvokeFieldDispatcher
+  Collected
+  Native
+  Stub
+  Tag
+}
+
+
+// A reference to a compiled code object in the Dart VM.
+struct CodeRef extends ObjectRef {
+  // A name for this code object
+  name string
+
+  // A vm internal name, provided only when it is different than name.
+  _vmName string [optional]
+
+  // What kind of code object is this?
+  kind CodeKind
+
+  // Was this code generated using the optimizing compiler?
+  _optimized bool
+}
+
+
+// A compiled code object in the Dart VM.
+struct Code extends Object {
+  // A name for this code object
+  name string
+
+  // A vm internal name, provided only when it is different than name.
+  _vmName string [optional]
+
+  // What kind of code object is this?
+  kind CodeKind
+
+  // Was this code generated using the optimizing compiler?
+  _optimized bool
+
+  // The function which corresponds to this compiled code.
+  function FunctionRef
+
+  // The start address of the generated code as a hex string.
+  _startAddress string
+
+  // The end address of the generated code as a hex string.
+  _endAddress string
+
+  // The object pool associated with this code object.
+  _objectPool UNDOCUMENTED [optional]
+
+  // The disassembly of this code object.
+  _disassembly UNDOCUMENTED [optional]
+
+  // The pc descriptor table for this code object.
+  _descriptors UNDOCUMENTED [optional]
+
+  // The inlined function table for this code object.
+  _inlinedFunctions UNDOCUMENTED [optional]
+
+  // Inline interval information for this code object.
+  _inlinedIntervals UNDOCUMENTED [optional]
+}
+
+
+enum CodeKind {
+  Dart
+  Native
+  Stub
+  Tag
+  Collected
 }
 
 
@@ -513,35 +919,6 @@ struct Breakpoint extends Object {
   breakpointNumber int
   resolved         bool
   location         Location
-}
-
-
-// A <code>CodeRef</code> encodes a reference to a <code>Code</code> object.
-struct CodeRef extends ObjectRef {
-  TODO int
-}
-
-
-struct LibraryRef extends ObjectRef {
-  TODO int
-}
-
-
-// A <code>FunctionRef</code> encodes a reference to a <code>Function</code> object.
-struct FunctionRef extends ObjectRef {
-  TODO int
-}
-
-
-// A <code>FieldRef</code> encodes a reference to a <code>Field</code> object.
-struct FieldRef extends ObjectRef {
-  TODO int
-}
-
-
-// A <code>ScriptRef</code> encodes a reference to a <code>Script</code> object.
-struct ScriptRef extends ObjectRef {
-  TODO int
 }
 
 
@@ -744,4 +1121,9 @@ enum MetricSelector {
 
 struct _EchoResponse extends Response {
   text string
+}
+
+
+struct UNDOCUMENTED {
+  TODO int
 }

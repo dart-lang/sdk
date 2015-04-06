@@ -38,8 +38,7 @@
 
       <template if="{{ ref.isClosure }}">
         <a on-click="{{ goto }}" _href="{{ url }}">
-          <!-- TODO(turnidge): Switch this to fully-qualified function -->
-          {{ ref.closureFunc.name }}
+          {{ ref.closureFunc.qualifiedName }}
         </a>
       </template>
 

@@ -14,12 +14,9 @@
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ function.isolate }}"></isolate-nav-menu>
-      <template if="{{ function.owningClass != null }}">
-        <!-- TODO(turnidge): Add library nav menu here. -->
-        <class-nav-menu cls="{{ function.owningClass }}"></class-nav-menu>
-      </template>
-      <template if="{{ function.owningLibrary != null }}">
-        <library-nav-menu library="{{ function.owningLibrary }}"></library-nav-menu>
+      <library-nav-menu library="{{ function.library }}"></library-nav-menu>
+      <template if="{{ function.dartOwner is ServiceClass }}">
+        <class-nav-menu cls="{{ function.dartOwner }}"></class-nav-menu>
       </template>
       <nav-menu link="{{ makeLink('/inspect', function) }}" anchor="{{ function.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refreshCoverage }}" label="Refresh Coverage"></nav-refresh>
@@ -39,23 +36,10 @@
             {{ function.kind.toString() }}
           </div>
         </div>
-        <template if="{{ function.parent != null }}">
-          <div class="memberItem">
-            <div class="memberName">parent function</div>
-            <div class="memberValue">
-              <function-ref ref="{{ function.parent }}"></function-ref>
-            </div>
-          </div>
-        </template>
         <div class="memberItem">
           <div class="memberName">owner</div>
           <div class="memberValue">
-            <template if="{{ function.owningClass != null }}">
-              <class-ref ref="{{ function.owningClass }}"></class-ref>
-            </template>
-            <template if="{{ function.owningLibrary != null }}">
-              <library-ref ref="{{ function.owningLibrary }}"></library-ref>
-            </template>
+            <any-service-ref ref="{{ function.dartOwner }}"></any-service-ref>
           </div>
         </div>
         <div class="memberItem">

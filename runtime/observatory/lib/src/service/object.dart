@@ -1822,19 +1822,19 @@ class FunctionKind {
   bool hasDartCode() => isDart() || isStub();
   static FunctionKind fromJSON(String value) {
     switch(value) {
-      case 'kRegularFunction': return kRegularFunction;
-      case 'kClosureFunction': return kClosureFunction;
-      case 'kGetterFunction': return kGetterFunction;
-      case 'kSetterFunction': return kSetterFunction;
-      case 'kConstructor': return kConstructor;
-      case 'kImplicitGetter': return kImplicitGetterFunction;
-      case 'kImplicitSetter': return kImplicitSetterFunction;
-      case 'kImplicitStaticFinalGetter': return kImplicitStaticFinalGetter;
-      case 'kIrregexpFunction': return kIrregexpFunction;
-      case 'kStaticInitializer': return kStaticInitializer;
-      case 'kMethodExtractor': return kMethodExtractor;
-      case 'kNoSuchMethodDispatcher': return kNoSuchMethodDispatcher;
-      case 'kInvokeFieldDispatcher': return kInvokeFieldDispatcher;
+      case 'RegularFunction': return kRegularFunction;
+      case 'ClosureFunction': return kClosureFunction;
+      case 'GetterFunction': return kGetterFunction;
+      case 'SetterFunction': return kSetterFunction;
+      case 'Constructor': return kConstructor;
+      case 'ImplicitGetter': return kImplicitGetterFunction;
+      case 'ImplicitSetter': return kImplicitSetterFunction;
+      case 'ImplicitStaticFinalGetter': return kImplicitStaticFinalGetter;
+      case 'IrregexpFunction': return kIrregexpFunction;
+      case 'StaticInitializer': return kStaticInitializer;
+      case 'MethodExtractor': return kMethodExtractor;
+      case 'NoSuchMethodDispatcher': return kNoSuchMethodDispatcher;
+      case 'InvokeFieldDispatcher': return kInvokeFieldDispatcher;
       case 'Collected': return kCollected;
       case 'Native': return kNative;
       case 'Stub': return kStub;
@@ -1865,11 +1865,11 @@ class FunctionKind {
 }
 
 class ServiceFunction extends ServiceObject with Coverage {
-  @observable Class owningClass;
-  @observable Library owningLibrary;
+  // owner is a Library, Class, or ServiceFunction.
+  @observable ServiceObject dartOwner;
+  @observable Library library;
   @observable bool isStatic;
   @observable bool isConst;
-  @observable ServiceFunction parent;
   @observable Script script;
   @observable int tokenPos;
   @observable int endTokenPos;
@@ -1895,17 +1895,21 @@ class ServiceFunction extends ServiceObject with Coverage {
 
     _upgradeCollection(map, isolate);
 
-    owningClass = map.containsKey('owningClass') ? map['owningClass'] : null;
-    owningLibrary = map.containsKey('owningLibrary') ? map['owningLibrary'] : null;
+    dartOwner = map['owner'];
     kind = FunctionKind.fromJSON(map['kind']);
     isDart = !kind.isSynthetic();
 
-    if (parent == null) {
-      qualifiedName = (owningClass != null) ?
-          "${owningClass.name}.${name}" :
-          name;
+    if (dartOwner is ServiceFunction) {
+      library = dartOwner.library;
+      qualifiedName = "${dartOwner.qualifiedName}.${name}";
+
+    } else if (dartOwner is Class) {
+      library = dartOwner.library;
+      qualifiedName = "${dartOwner.name}.${name}";
+
     } else {
-      qualifiedName = "${parent.qualifiedName}.${name}";
+      library = dartOwner;
+      qualifiedName = name;
     }
 
     if (mapIsRef) {
@@ -1915,22 +1919,23 @@ class ServiceFunction extends ServiceObject with Coverage {
     _loaded = true;
     isStatic = map['static'];
     isConst = map['const'];
-    parent = map['parent'];
     script = map['script'];
     tokenPos = map['tokenPos'];
     endTokenPos = map['endTokenPos'];
-    code = _convertNull(map['code']);
-    unoptimizedCode = _convertNull(map['unoptimizedCode']);
-    isOptimizable = map['optimizable'];
-    isInlinable = map['inlinable'];
-    deoptimizations = map['deoptimizations'];
-    usageCounter = map['usageCounter'];
+    code = map['code'];
+    isOptimizable = map['_optimizable'];
+    isInlinable = map['_inlinable'];
+    unoptimizedCode = map['_unoptimizedCode'];
+    deoptimizations = map['_deoptimizations'];
+    usageCounter = map['_usageCounter'];
   }
 }
 
 
 class Field extends ServiceObject {
-  @observable var /* Library or Class */ owner;
+  // Library or Class.
+  @observable ServiceObject dartOwner;
+  @observable Library library;
   @observable Instance declaredType;
   @observable bool isStatic;
   @observable bool isFinal;
@@ -1953,27 +1958,34 @@ class Field extends ServiceObject {
 
     name = map['name'];
     vmName = (map.containsKey('vmName') ? map['vmName'] : name);
-    owner = map['owner'];
+    dartOwner = map['owner'];
     declaredType = map['declaredType'];
     isStatic = map['static'];
     isFinal = map['final'];
     isConst = map['const'];
     value = map['value'];
 
+    if (dartOwner is Class) {
+      library = dartOwner.library;
+
+    } else {
+      library = dartOwner;
+    }
+
     if (mapIsRef) {
       return;
     }
 
-    guardNullable = map['guardNullable'];
-    guardClass = map['guardClass'];
-    guardLength = map['guardLength'];
+    guardNullable = map['_guardNullable'];
+    guardClass = map['_guardClass'];
+    guardLength = map['_guardLength'];
     script = map['script'];
     tokenPos = map['tokenPos'];
 
     _loaded = true;
   }
 
-  String toString() => 'Field(${owner.name}.$name)';
+  String toString() => 'Field(${darOwner.name}.$name)';
 }
 
 
@@ -2109,7 +2121,7 @@ class Script extends ServiceObject with Coverage {
   @observable String kind;
   @observable int firstTokenPos;
   @observable int lastTokenPos;
-  @observable Library owningLibrary;
+  @observable Library library;
   bool get canCache => true;
   bool get immutable => true;
 
@@ -2143,7 +2155,7 @@ class Script extends ServiceObject with Coverage {
     }
     _parseTokenPosTable(map['tokenPosTable']);
     _processSource(map['source']);
-    owningLibrary = map['owningLibrary'];
+    library = map['library'];
   }
 
   void _parseTokenPosTable(List<List<int>> table) {
@@ -2554,29 +2566,29 @@ class Code extends ServiceObject {
   void _update(ObservableMap m, bool mapIsRef) {
     name = m['name'];
     vmName = (m.containsKey('vmName') ? m['vmName'] : name);
-    isOptimized = m['optimized'] != null ? m['optimized'] : false;
+    isOptimized = m['_optimized'];
     kind = CodeKind.fromString(m['kind']);
-    startAddress = int.parse(m['start'], radix:16);
-    endAddress = int.parse(m['end'], radix:16);
-    function = isolate.getFromMap(m['function']);
     if (mapIsRef) {
       return;
     }
     _loaded = true;
-    objectPool = isolate.getFromMap(m['objectPool']);
-    var disassembly = m['disassembly'];
+    startAddress = int.parse(m['_startAddress'], radix:16);
+    endAddress = int.parse(m['_endAddress'], radix:16);
+    function = isolate.getFromMap(m['function']);
+    objectPool = isolate.getFromMap(m['_objectPool']);
+    var disassembly = m['_disassembly'];
     if (disassembly != null) {
       _processDisassembly(disassembly);
     }
-    var descriptors = m['descriptors'];
+    var descriptors = m['_descriptors'];
     if (descriptors != null) {
       descriptors = descriptors['members'];
       _processDescriptors(descriptors);
     }
     hasDisassembly = (instructions.length != 0) && (kind == CodeKind.Dart);
     inlinedFunctions.clear();
-    var inlinedFunctionsTable = m['inlinedFunctions'];
-    var inlinedIntervals = m['inlinedIntervals'];
+    var inlinedFunctionsTable = m['_inlinedFunctions'];
+    var inlinedIntervals = m['_inlinedIntervals'];
     if (inlinedFunctionsTable != null) {
       // Iterate and upgrade each ServiceFunction.
       for (var i = 0; i < inlinedFunctionsTable.length; i++) {
@@ -2883,14 +2895,6 @@ class MetricPoller {
       });
     }
   }
-}
-
-// Convert any ServiceMaps representing a null instance into an actual null.
-_convertNull(obj) {
-  if (obj.isNull) {
-    return null;
-  }
-  return obj;
 }
 
 // Returns true if [map] is a service map. i.e. it has the following keys:

@@ -54,6 +54,7 @@ class ObjectPointerVisitor;
   V(_EnumNames, "_enum_names")                                                 \
   V(ExprTemp, ":expr_temp")                                                    \
   V(AnonymousClosure, "<anonymous closure>")                                   \
+  V(ImplicitClosure, "<implicit closure>")                                     \
   V(ClosureParameter, ":closure")                                              \
   V(PhaseParameter, ":phase")                                                  \
   V(TypeArgumentsParameter, ":type_arguments")                                 \

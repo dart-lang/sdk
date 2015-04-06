@@ -1173,7 +1173,7 @@ TEST_CASE(Service_Scripts) {
       "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
       "\"name\":\"test-lib\","
       "\"kind\":\"script\","
-      "\"owningLibrary\":{\"type\":\"@Library\","
+      "\"library\":{\"type\":\"@Library\","
       "\"id\":\"libraries\\/%" Pd "\",\"name\":\"\","
       "\"url\":\"test-lib\"},"
       "\"source\":\"var port;\\n\\nmain() {\\n}\","

@@ -58,10 +58,10 @@ var tests = [
       expect(stack.type, equals('Stack'));
       expect(stack['frames'].length, greaterThanOrEqualTo(2));
       expect(stack['frames'][0]['function'].name, equals('printValue'));
-      expect(stack['frames'][0]['function'].owningClass.name, equals('MyClass'));
+      expect(stack['frames'][0]['function'].dartOwner.name, equals('MyClass'));
 
       var lib = isolate.rootLib;
-      var cls = stack['frames'][0]['function'].owningClass;
+      var cls = stack['frames'][0]['function'].dartOwner;
       var instance = stack['frames'][0]['vars'][0]['value'];
 
       List evals = [];

@@ -227,6 +227,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 4) {
       ctx = Closure::context(closure);
       ASSERT(ctx.num_variables() == 0);
 #endif
+      // Get the parent function so that we get the right function name.
+      func = func.parent_function();
       Spawn(isolate, new IsolateSpawnState(port.Id(),
                                            func,
                                            message,

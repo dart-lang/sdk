@@ -4210,8 +4210,8 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("classes", js.ToCString(), buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Function\",\"id\":\"\",\"name\":\"toString\","
-        "\"owningClass\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"bool\"},"
-        "\"kind\":\"kRegularFunction\"}",
+        "\"owner\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"bool\"},"
+        "\"kind\":\"RegularFunction\"}",
         buffer);
   }
   // Library reference
