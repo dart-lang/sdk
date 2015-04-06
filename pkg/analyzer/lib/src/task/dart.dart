@@ -179,16 +179,6 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT5 =
     new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT5', null);
 
 /**
- * The partial [LibraryElement] associated with a library.
- *
- * Implicit constructors are built for every [ClassElement] requiring them.
- *
- * The result is only available for targets representing a Dart library.
- */
-final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT6 =
-    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT6', null);
-
-/**
  * The errors produced while parsing a compilation unit.
  *
  * The list will be empty if there were no errors, but will not be `null`.
@@ -1066,8 +1056,8 @@ class BuildFunctionTypeAliasesTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * An artifitial task that does nothing except to force building constructors
- * for for the defining and part units of a library.
+ * This task finishes building [LIBRARY_ELEMENT] by forcing building
+ * constructors for classes in the defining and part units of a library.
  */
 class BuildLibraryConstructorsTask extends SourceBasedAnalysisTask {
   /**
@@ -1080,7 +1070,7 @@ class BuildLibraryConstructorsTask extends SourceBasedAnalysisTask {
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'BuildLibraryConstructorsTask', createTask, buildInputs,
-      <ResultDescriptor>[LIBRARY_ELEMENT6]);
+      <ResultDescriptor>[LIBRARY_ELEMENT]);
 
   BuildLibraryConstructorsTask(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -1092,7 +1082,7 @@ class BuildLibraryConstructorsTask extends SourceBasedAnalysisTask {
   @override
   void internalPerform() {
     LibraryElement library = getRequiredInput(LIBRARY_INPUT);
-    outputs[LIBRARY_ELEMENT6] = library;
+    outputs[LIBRARY_ELEMENT] = library;
   }
 
   /**
@@ -2119,7 +2109,7 @@ class ResolveLibraryTypeNamesTask extends SourceBasedAnalysisTask {
  */
 class ResolveReferencesTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [LIBRARY_ELEMENT6] input.
+   * The name of the [LIBRARY_ELEMENT] input.
    */
   static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
 
@@ -2173,7 +2163,7 @@ class ResolveReferencesTask extends SourceBasedAnalysisTask {
    */
   static Map<String, TaskInput> buildInputs(LibraryUnitTarget target) {
     return <String, TaskInput>{
-      LIBRARY_INPUT: LIBRARY_ELEMENT6.of(target.library),
+      LIBRARY_INPUT: LIBRARY_ELEMENT.of(target.library),
       UNIT_INPUT: RESOLVED_UNIT5.of(target)
     };
   }
@@ -2259,7 +2249,7 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
  */
 class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [LIBRARY_ELEMENT6] input.
+   * The name of the [LIBRARY_ELEMENT] input.
    */
   static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
 
@@ -2312,7 +2302,7 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
    */
   static Map<String, TaskInput> buildInputs(LibraryUnitTarget target) {
     return <String, TaskInput>{
-      LIBRARY_INPUT: LIBRARY_ELEMENT6.of(target.library),
+      LIBRARY_INPUT: LIBRARY_ELEMENT.of(target.library),
       UNIT_INPUT: RESOLVED_UNIT4.of(target)
     };
   }

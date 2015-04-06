@@ -675,9 +675,9 @@ class C2 = C1 with M2;
 class C1 = B with M1;
 class C3 = B with M2;
 ''');
-    _computeResult(source, LIBRARY_ELEMENT6);
+    _computeResult(source, LIBRARY_ELEMENT);
     expect(task, new isInstanceOf<BuildLibraryConstructorsTask>());
-    LibraryElement libraryElement = outputs[LIBRARY_ELEMENT6];
+    LibraryElement libraryElement = outputs[LIBRARY_ELEMENT];
     // C1
     {
       ClassElement classElement = libraryElement.getType('C2');
