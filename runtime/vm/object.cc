@@ -6245,7 +6245,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
   }
   ASSERT(!IsSignatureFunction() && !IsClosureFunction());
   // Create closure function.
-  const String& closure_name = Symbols::ImplicitClosure();
+  const String& closure_name = String::Handle(name());
   const Function& closure_function = Function::Handle(
       NewClosureFunction(closure_name, *this, token_pos()));
 
@@ -6579,7 +6579,7 @@ RawString* Function::QualifiedUserVisibleName() const {
   const Class& cls = Class::Handle(Owner());
 
   if (IsClosureFunction()) {
-    if (IsLocalFunction()) {
+    if (IsLocalFunction() && !IsImplicitClosureFunction()) {
       const Function& parent = Function::Handle(parent_function());
       tmp = parent.QualifiedUserVisibleName();
     } else {

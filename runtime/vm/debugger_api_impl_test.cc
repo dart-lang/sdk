@@ -2103,7 +2103,7 @@ TEST_CASE(Debug_GetClosureInfo) {
   EXPECT_TRUE(res);
   EXPECT_VALID(name);
   EXPECT(Dart_IsString(name));
-  EXPECT_STREQ("foo.<implicit closure>", ToCString(name));
+  EXPECT_STREQ("foo", ToCString(name));
   EXPECT(Dart_IsString(sig));
   EXPECT_STREQ("() => void", ToCString(sig));
   EXPECT(Dart_IsString(loc.script_url));
