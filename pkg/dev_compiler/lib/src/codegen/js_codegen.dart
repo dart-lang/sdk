@@ -27,7 +27,6 @@ import 'package:dev_compiler/src/js/js_ast.dart' show js;
 import 'package:dev_compiler/src/checker/rules.dart';
 import 'package:dev_compiler/src/info.dart';
 import 'package:dev_compiler/src/options.dart';
-import 'package:dev_compiler/src/report.dart';
 import 'package:dev_compiler/src/utils.dart';
 
 import 'code_generator.dart';
@@ -50,12 +49,6 @@ Annotation _getJsNameAnnotation(AnnotatedNode node) =>
 class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final LibraryInfo libraryInfo;
   final TypeRules rules;
-
-  // TODO(jmesserly): this is needed because RestrictedTypeRules can send
-  // messages to CheckerReporter, for things like missing types.
-  // We should probably refactor so this can't happen, as codegen would be too
-  // late to be issuing these messages.
-  final CheckerReporter _checkerReporter;
 
   /// The variable for the target of the current `..` cascade expression.
   SimpleIdentifier _cascadeTarget;
@@ -116,7 +109,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// Memoized results of [_inLibraryCycle].
   final _libraryCycleMemo = new HashMap<LibraryElement, bool>();
 
-  JSCodegenVisitor(this.libraryInfo, this.rules, this._checkerReporter);
+  JSCodegenVisitor(this.libraryInfo, this.rules);
 
   LibraryElement get currentLibrary => libraryInfo.library;
 
@@ -201,7 +194,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var source = node.element.source;
 
     _constEvaluator = new ConstantEvaluator(source, rules.provider);
-    _checkerReporter.enterSource(source);
 
     // TODO(jmesserly): scriptTag, directives.
     var body = <JS.Statement>[];
@@ -229,8 +221,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // Flush any unwritten fields/properties.
     _flushLazyFields(body);
     _flushLibraryProperties(body);
-
-    _checkerReporter.leaveSource();
 
     assert(_pendingPrivateNames.isEmpty);
     return _statement(body);
@@ -2386,9 +2376,8 @@ class JSGenerator extends CodeGenerator {
   JSGenerator(String outDir, Uri root, TypeRules rules, this.options)
       : super(outDir, root, rules);
 
-  String generateLibrary(
-      LibraryUnit unit, LibraryInfo info, CheckerReporter reporter) {
-    var jsTree = new JSCodegenVisitor(info, rules, reporter).emitLibrary(unit);
+  String generateLibrary(LibraryUnit unit, LibraryInfo info) {
+    var jsTree = new JSCodegenVisitor(info, rules).emitLibrary(unit);
 
     var outputPath = path.join(outDir, jsOutputPath(info, root));
     new Directory(path.dirname(outputPath)).createSync(recursive: true);

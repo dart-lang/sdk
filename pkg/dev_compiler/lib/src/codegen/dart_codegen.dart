@@ -18,7 +18,6 @@ import 'package:path/path.dart' as path;
 import 'package:dev_compiler/src/info.dart';
 import 'package:dev_compiler/src/checker/rules.dart';
 import 'package:dev_compiler/src/options.dart';
-import 'package:dev_compiler/src/report.dart';
 import 'package:dev_compiler/src/utils.dart' as utils;
 import 'ast_builder.dart';
 import 'code_generator.dart' as codegenerator;
@@ -435,16 +434,13 @@ class DartGenerator extends codegenerator.CodeGenerator {
     out.finalize();
   }
 
-  String generateLibrary(
-      LibraryUnit library, LibraryInfo info, CheckerReporter reporter) {
+  String generateLibrary(LibraryUnit library, LibraryInfo info) {
     _vm = new reifier.VariableManager();
     _extraImports = new Set<LibraryElement>();
 
     for (var unit in library.partsThenLibrary) {
       var outputDir = makeOutputDirectory(info, unit);
-      reporter.enterSource(unit.element.source);
       generateUnit(unit, info, outputDir);
-      reporter.leaveSource();
     }
 
     _extraImports = null;
@@ -476,13 +472,10 @@ class EmptyDartGenerator extends codegenerator.CodeGenerator {
   EmptyDartGenerator(String outDir, Uri root, TypeRules rules, this.options)
       : super(outDir, root, rules);
 
-  String generateLibrary(
-      LibraryUnit library, LibraryInfo info, CheckerReporter reporter) {
+  String generateLibrary(LibraryUnit library, LibraryInfo info) {
     for (var unit in library.partsThenLibrary) {
       var outputDir = makeOutputDirectory(info, unit);
-      reporter.enterSource(unit.element.source);
       generateUnit(unit, info, outputDir);
-      reporter.leaveSource();
     }
     return null;
   }

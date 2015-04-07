@@ -347,6 +347,17 @@ class CodeChecker extends RecursiveAstVisitor {
         _reporter = reporter,
         _overrideChecker = new _OverrideChecker(rules, reporter, options);
 
+  @override
+  visitCompilationUnit(CompilationUnit unit) {
+    void report(Expression expr) {
+      _reporter.log(new MissingTypeError(expr));
+    }
+    var callback = _rules.reportMissingType;
+    _rules.reportMissingType = report;
+    unit.visitChildren(this);
+    _rules.reportMissingType = callback;
+  }
+
   _visitMaybeConst(AstNode n, visitNode(AstNode n)) {
     var o = _constantContext;
     if (!o) {

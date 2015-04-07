@@ -68,8 +68,8 @@ class Compiler {
           : new LogReporter(options.useColors);
     }
     var graph = new SourceGraph(resolver.context, reporter, options);
-    var rules = new RestrictedRules(resolver.context.typeProvider, reporter,
-        options: options);
+    var rules =
+        new RestrictedRules(resolver.context.typeProvider, options: options);
     var checker = new CodeChecker(rules, reporter, options);
     var inputFile = options.entryPointFile;
     var uri = inputFile.startsWith('dart:') || inputFile.startsWith('package:')
@@ -177,7 +177,7 @@ class Compiler {
       _reporter.enterSource(unitSource);
       // TODO(sigmund): integrate analyzer errors with static-info (issue #6).
       failureInLib = _resolver.logErrors(unitSource, _reporter) || failureInLib;
-      unit.visitChildren(_checker);
+      _checker.visitCompilationUnit(unit);
       if (_checker.failure) failureInLib = true;
       _reporter.leaveSource();
     }
@@ -187,7 +187,7 @@ class Compiler {
     }
 
     for (var cg in _generators) {
-      var hash = cg.generateLibrary(libraryUnit, current, _reporter);
+      var hash = cg.generateLibrary(libraryUnit, current);
       if (_hashing) node.cachingHash = hash;
     }
     _reporter.leaveLibrary();

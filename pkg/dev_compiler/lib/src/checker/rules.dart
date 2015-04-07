@@ -10,13 +10,14 @@ import 'package:analyzer/src/generated/resolver.dart';
 
 import 'package:dev_compiler/src/info.dart';
 import 'package:dev_compiler/src/options.dart';
-import 'package:dev_compiler/src/report.dart' show CheckerReporter;
 
 abstract class TypeRules {
   final TypeProvider provider;
   LibraryInfo currentLibraryInfo = null;
 
   TypeRules(TypeProvider this.provider);
+
+  MissingTypeReporter reportMissingType;
 
   bool isSubTypeOf(DartType t1, DartType t2);
   bool isAssignable(DartType t1, DartType t2);
@@ -51,6 +52,8 @@ abstract class TypeRules {
 class DartRules extends TypeRules {
   DartRules(TypeProvider provider) : super(provider);
 
+  MissingTypeReporter reportMissingType = null;
+
   bool isSubTypeOf(DartType t1, DartType t2) {
     return t1.isSubtypeOf(t2);
   }
@@ -79,8 +82,10 @@ class DartRules extends TypeRules {
   bool isDynamicCall(Expression call) => true;
 }
 
+typedef void MissingTypeReporter(Expression expr);
+
 class RestrictedRules extends TypeRules {
-  final CheckerReporter _reporter;
+  MissingTypeReporter reportMissingType = null;
   final RulesOptions options;
   final List<DartType> _nonnullableTypes;
   DownwardsInference inferrer;
@@ -102,7 +107,7 @@ class RestrictedRules extends TypeRules {
     }
   }
 
-  RestrictedRules(TypeProvider provider, this._reporter, {this.options})
+  RestrictedRules(TypeProvider provider, {this.options})
       : _nonnullableTypes = <DartType>[],
         super(provider) {
     var types = options.nonnullableTypes;
@@ -113,7 +118,7 @@ class RestrictedRules extends TypeRules {
   DartType getStaticType(Expression expr) {
     var type = expr.staticType;
     if (type != null) return type;
-    _reporter.log(new MissingTypeError(expr));
+    if (reportMissingType != null) reportMissingType(expr);
     return provider.dynamicType;
   }
 

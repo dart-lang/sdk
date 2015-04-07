@@ -13,7 +13,6 @@ import 'package:path/path.dart' as path;
 
 import 'package:dev_compiler/src/info.dart';
 import 'package:dev_compiler/src/utils.dart' show canonicalLibraryName;
-import 'package:dev_compiler/src/report.dart';
 import 'package:dev_compiler/src/checker/rules.dart';
 
 abstract class CodeGenerator {
@@ -132,6 +131,5 @@ abstract class CodeGenerator {
   /// Return a hash, if any, that can be used for caching purposes. When two
   /// invocations to this function return the same hash, the underlying
   /// code-generator generated the same code.
-  String generateLibrary(
-      LibraryUnit unit, LibraryInfo info, CheckerReporter reporter);
+  String generateLibrary(LibraryUnit unit, LibraryInfo info);
 }
