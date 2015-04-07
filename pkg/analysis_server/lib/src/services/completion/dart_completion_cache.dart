@@ -18,7 +18,6 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 
 /**
  * The `DartCompletionCache` contains cached information from a prior code

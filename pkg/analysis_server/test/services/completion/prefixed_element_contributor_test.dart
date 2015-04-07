@@ -142,6 +142,7 @@ void f(C<int> c) {
     addTestSource('import "dart:async" as bar; foo() {bar.^}');
     return computeFull((bool result) {
       assertSuggestClass('Future');
+      assertNotSuggested('loadLibrary');
     });
   }
 
@@ -150,6 +151,15 @@ void f(C<int> c) {
     addTestSource('import "dart:async" as bar; foo() {bar.^ print("f")}');
     return computeFull((bool result) {
       assertSuggestClass('Future');
+    });
+  }
+
+  test_libraryPrefix_deferred() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('import "dart:async" deferred as bar; foo() {bar.^}');
+    return computeFull((bool result) {
+      assertSuggestClass('Future');
+      assertSuggestFunction('loadLibrary', 'void');
     });
   }
 
