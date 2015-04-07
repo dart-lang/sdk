@@ -52,32 +52,14 @@ dynamic cast(dynamic obj, Type staticType) {
 
 bool instanceOf(dynamic obj, Type staticType) {
   // This is our 'is' equivalent.
-  if (obj == null) {
-    // Only true for the Object type.
-    return staticType == Object || staticType == dynamic || staticType == Null;
-  }
-
   Type runtimeType = obj.runtimeType;
   return _isSubType(reflectType(runtimeType), reflectType(staticType));
 }
 
 bool isGroundType(Type type) {
-  // These are types allow in is / as expressions.
+  // These are types allowed in is / as expressions.
   final mirror = reflectType(type);
-  // Disallow functions.
-  if (mirror is FunctionTypeMirror) return false;
-  if (mirror is TypedefMirror) return false;
-  // Disallow generic type parameters.
-  if (mirror is TypeVariableMirror) return false;
-
-  if (mirror is ClassMirror) {
-    return _isRawClass(mirror);
-  }
-
-  // Only dynamic should be left.  Should this be allowed?
-  // It's not particularly useful.
-  assert(mirror.reflectedType == dynamic);
-  return true;
+  return _isGroundTypeMirror(mirror);
 }
 
 final _primitiveMap = {
@@ -151,7 +133,7 @@ bool _isFunctionSubType(TypeMirror ret1, List<ParameterMirror> params1,
     ParameterMirror p2 = params2[i];
 
     // Contravariant parameter types.
-    if (!_isSubType(p2.type, p1.type)) {
+    if (!_isSubType(p2.type, p1.type, dynamicIsBottom: true)) {
       return false;
     }
 
@@ -191,21 +173,18 @@ bool _isClassSubType(ClassMirror m1, ClassMirror m2) {
   // - S<dynamic, ..., dynamic> !<: S<T1, ..., Tn>
   if (m1 == m2) return true;
 
-  if (m1.hasReflectedType && m1.reflectedType == Object) return false;
+  if (_isTop(m1)) return false;
 
   // Check if m1 and m2 have the same raw type.  If so, check covariance on
   // type parameters.
   if (m1.originalDeclaration == m2.originalDeclaration) {
+    if (_isRawClass(m2)) return true;
+    if (_isRawClass(m1)) return false;
+
     final typeArguments1 = m1.typeArguments;
     final typeArguments2 = m2.typeArguments;
     final length = typeArguments1.length;
-    if (typeArguments2.length == 0) {
-      // m2 is the raw form of m1
-      return true;
-    } else if (typeArguments1.length == 0) {
-      // m1 is raw, but m2 is not
-      return false;
-    }
+    assert(typeArguments1.isNotEmpty && typeArguments2.isNotEmpty);
     assert(typeArguments2.length == length);
     for (var i = 0; i < length; ++i) {
       var typeArgument1 = typeArguments1[i];
@@ -220,6 +199,10 @@ bool _isClassSubType(ClassMirror m1, ClassMirror m2) {
   // Check superclass.
   if (_isClassSubType(m1.superclass, m2)) return true;
 
+  // Check for mixins.  The mixin getter returns the original class if there is
+  // no mixin.
+  if (m1 != m1.mixin && _isClassSubType(m1.mixin, m2)) return true;
+
   // Check interfaces.
   for (final parent in m1.superinterfaces) {
     if (_isClassSubType(parent, m2)) return true;
@@ -228,12 +211,59 @@ bool _isClassSubType(ClassMirror m1, ClassMirror m2) {
   return false;
 }
 
+final _dynamicMirror = reflectType(dynamic);
+final _objectMirror = reflectType(Object);
+
+bool _isBottom(TypeMirror t, {bool dynamicIsBottom: false}) {
+  if (t == _dynamicMirror && dynamicIsBottom) return true;
+  // TODO(vsm): Do we need an explicit representation of Bottom?
+  return false;
+}
+
+bool _isTop(TypeMirror t, {bool dynamicIsBottom: false}) {
+  if (t == _dynamicMirror && !dynamicIsBottom) return true;
+  if (t == _objectMirror) return true;
+  return false;
+}
+
+bool _isGroundTypeMirror(TypeMirror mirror) {
+  // This is a runtime type - we should not see type parameters here.
+  assert(mirror is! TypeVariableMirror);
+
+  // Allow only 'raw' functions.
+  if (mirror is TypedefMirror) {
+    return _isRawFunction(mirror.referent);
+  }
+  if (mirror is FunctionTypeMirror) {
+    return _isRawFunction(mirror);
+  }
+
+  // Allow only 'raw' classes.
+  if (mirror is ClassMirror) {
+    return _isRawClass(mirror);
+  }
+
+  // Only dynamic should be left.  Should this be allowed?
+  // It's not particularly useful.
+  assert(mirror.reflectedType == dynamic);
+  return true;
+}
+
+bool _isRawFunction(FunctionTypeMirror mirror) {
+  var returnType = mirror.returnType;
+  if (!_isTop(returnType)) return false;
+  for (var parameter in mirror.parameters) {
+    var paramType = parameter.type;
+    if (!_isBottom(paramType, dynamicIsBottom: true)) return false;
+  }
+  return true;
+}
+
 bool _isRawClass(ClassMirror mirror) {
   // Allow only raw types.
   if (mirror == mirror.originalDeclaration) return true;
-  final dynamicMirror = reflectType(dynamic);
   for (var typeArgument in mirror.typeArguments) {
-    if (typeArgument != dynamicMirror) return false;
+    if (!_isTop(typeArgument)) return false;
   }
   return true;
 }
@@ -254,20 +284,27 @@ bool _reflects(TypeMirror mirror, Type t) {
   return mirror.hasReflectedType && mirror.reflectedType == t;
 }
 
-bool _isSubType(TypeMirror t1, TypeMirror t2) {
+bool _isSubType(TypeMirror t1, TypeMirror t2, {bool dynamicIsBottom: false}) {
   t1 = _canonicalizeTypeMirror(t1);
   t2 = _canonicalizeTypeMirror(t2);
 
+  if (t1 is TypeVariableMirror) {
+    t1 = t1.upperBound;
+  }
+
   if (t1 == t2) return true;
 
-  // In Dart, dynamic is effectively both top and bottom.
-  // Here, we treat dynamic as top - the base type of everything.
-  if (_reflects(t1, dynamic)) return false;
-  if (_reflects(t2, dynamic)) return true;
+  // Trivially true.
+  if (_isTop(t2, dynamicIsBottom: dynamicIsBottom) ||
+      _isBottom(t1, dynamicIsBottom: dynamicIsBottom)) {
+    return true;
+  }
 
-  // Object only subtypes dynamic and Object.
-  if (_reflects(t2, Object)) return true;
-  if (_reflects(t1, Object)) return false;
+  // Trivially false.
+  if (_isTop(t1, dynamicIsBottom: dynamicIsBottom) ||
+      _isBottom(t2, dynamicIsBottom: dynamicIsBottom)) {
+    return false;
+  }
 
   // "Traditional" name-based subtype check.
   final c1 = t1 as ClassMirror;

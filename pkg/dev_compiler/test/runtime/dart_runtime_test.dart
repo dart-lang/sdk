@@ -35,6 +35,7 @@ class BB<T, U> extends AA<U, T> {
 
 class CC extends BB<String, List> {}
 
+typedef Func2(x, y);
 typedef B Foo(B b, String s);
 
 A bar1(C c, String s) => null;
@@ -52,6 +53,13 @@ class Bar {
 
 class Baz {
   Foo call = (B b, String s) => null;
+}
+
+class Checker<T> {
+  void isGround(bool expected) => expect(isGroundType(T), equals(expected));
+  void isGroundList(bool expected) => expect(isGroundType(new List<T>().runtimeType), equals(expected));
+  void check(x, bool expected) => checkType(x, T, expected);
+  void checkList(x, bool expected) => checkType(x, type((List<T> _) {}), expected);
 }
 
 bool dartIs(expr, Type type) {
@@ -138,8 +146,8 @@ void main() {
     expect(isGroundType(Map), isTrue);
     expect(isGroundType(m1.runtimeType), isFalse);
     expect(isGroundType(type((Map<String, String> _) {})), isFalse);
-    expect(isGroundType(m2.runtimeType), isFalse);
-    expect(isGroundType(type((Map<Object, Object> _) {})), isFalse);
+    expect(isGroundType(m2.runtimeType), isTrue);
+    expect(isGroundType(type((Map<Object, Object> _) {})), isTrue);
     expect(isGroundType(m3.runtimeType), isTrue);
     expect(isGroundType(type((Map _) {})), isTrue);
     expect(isGroundType(m4.runtimeType), isTrue);
@@ -156,6 +164,12 @@ void main() {
     checkType(m1, m1.runtimeType);
     checkType(m1, type((Map<String, String> _) {}));
 
+    // Object == dynamic == top as a type parameter
+    checkType(m2, m3.runtimeType);
+    checkType(m2, Map);
+    checkType(m3, m2.runtimeType);
+    checkType(m3, type((Map<Object, Object> _) {}));
+
     // Covariance on generics
     checkType(m1, m2.runtimeType);
     checkType(m1, type((Map<Object, Object> _) {}));
@@ -169,7 +183,17 @@ void main() {
 
     // Raw generic types
     checkType(m5, Map);
+    checkType(m5, type((Map<Object, Object> _) {}));
     checkType(m4, Map);
+    checkType(m4, type((Map<Object, Object> _) {}));
+
+    // Mixin: the actual implementation class should implement MapMixin
+    checkType(m1, MapMixin);
+    checkType(m1, type((MapMixin<String, String> _) {}));
+    checkType(m1, type((MapMixin<Object, Object> _) {}));
+    checkType(m5, MapMixin);
+    checkType(m5, type((MapMixin<String, String> _) {}), false);
+    checkType(m5, type((MapMixin<Object, Object> _) {}));
   });
 
   test('generic and inheritance', () {
@@ -219,6 +243,7 @@ void main() {
   test('Functions', () {
     // - return type: Dart is bivariant.  We're covariant.
     // - param types: Dart is bivariant.  We're contravariant.
+    expect(isGroundType(Func2), isTrue);
     expect(isGroundType(Foo), isFalse);
     expect(isGroundType(type((B _(B _1, String _2)) {})), isFalse);
     checkType(bar1, Foo, false);
@@ -227,8 +252,9 @@ void main() {
     checkType(bar2, type((B _(B _1, String _2)) {}), false);
     checkType(bar3, Foo);
     checkType(bar3, type((B _(B _1, String _2)) {}));
-    checkType(bar4, Foo);
-    checkType(bar4, type((B _(B _1, String _2)) {}));
+    checkType(bar4, Foo, false);
+    // TODO(vsm): Revisit.  bar4 is (B, *) -> B.  Perhaps it should be treated as top for a reified object.
+    checkType(bar4, type((B _(B _1, String _2)) {}), false);
     checkType(bar5, Foo);
     checkType(bar5, type((B _(B _1, String _2)) {}));
     checkType(bar6, Foo, false);
@@ -245,6 +271,19 @@ void main() {
 
   test('void', () {
     checkType((x) => x, type((void _(x)) {}));
+  });
+
+  test('null', () {
+    checkType(null, Object);
+    checkType(null, Null);
+    checkType(null, dynamic);
+    checkType(null, int, false);
+    checkType(null, String, false);
+    checkType(null, Map, false);
+
+    expect(cast(null, Object), equals(null));
+    expect(cast(null, String), equals(null));
+    expect(cast(null, Map), equals(null));
   });
 
   test('Function objects', () {
@@ -271,5 +310,23 @@ void main() {
     checkArity(bar8, 2, 2);
     checkArity(() {}, 0, 0);
     checkArity((a, [b]) {}, 1, 2);
+  });
+
+  test('type variable', () {
+    var stringChecker = new Checker<String>();
+    stringChecker.isGround(true);
+    stringChecker.isGroundList(false);
+
+    stringChecker.check(5, false);
+    stringChecker.check("hello", true);
+    stringChecker.check(null, false);
+
+    var objectChecker = new Checker<Object>();
+    objectChecker.isGround(true);
+    objectChecker.isGroundList(true);
+
+    objectChecker.check(5, true);
+    objectChecker.check("hello", true);
+    objectChecker.check(null, true);
   });
 }
