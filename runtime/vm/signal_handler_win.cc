@@ -43,7 +43,7 @@ void SignalHandler::Install(SignalAction action) {
 }
 
 
-void SignalHandler::Remove(SignalAction action) {
+void SignalHandler::Remove() {
   UNIMPLEMENTED();
 }
 
