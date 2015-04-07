@@ -369,15 +369,16 @@ main() {
 
       testHtml('blocks foreignObject content',
         validator,
-        '<svg xmlns="http://www.w3.org/2000/svg>'
+        '<svg xmlns="http://www.w3.org/2000/svg">'
           '<foreignobject width="100" height="150">'
             '<body xmlns="http://www.w3.org/1999/xhtml">'
               '<div>Some content</div>'
             '</body>'
           '</foreignobject>'
+          '<number>42</number>'
         '</svg>',
-        '<svg xmlns="http://www.w3.org/2000/svg>'
-          '<foreignobject width="100" height="150"></foreignobject>'
+        '<svg xmlns="http://www.w3.org/2000/svg">'
+          '<number>42</number>'
         '</svg>');
     });
 

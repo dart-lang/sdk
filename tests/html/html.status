@@ -378,9 +378,6 @@ postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (tim
 [ $compiler == dart2js && ($runtime == drt || $runtime ==chrome) ]
 wheelevent_test: Fail # Issue 12958
 
-[ $compiler == dart2js && $runtime == ff && $system == windows ]
-node_validator_test: Fail # Issue 22564
-
 [ $compiler == dart2js &&  $runtime == chrome]
 svgelement_test/supported_altGlyph: RuntimeError # Issue 22154
 
