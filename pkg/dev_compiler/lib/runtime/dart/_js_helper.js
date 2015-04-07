@@ -964,7 +964,7 @@ var _js_helper;
       return getConstructorName(type);
     } else if (typeof type == 'number') {
       if (onTypeVariable == null) {
-        return dart.as(dart.dinvoke(type, 'toString'), core.String);
+        return type.toString();
       } else {
         return onTypeVariable(dart.as(type, core.int));
       }
@@ -1367,10 +1367,10 @@ var _js_helper;
     } else if (value == null) {
       return 'null';
     }
-    let res = dart.dinvoke(value, 'toString');
+    let res = value.toString();
     if (!(typeof res == 'string'))
       throw new core.ArgumentError(value);
-    return dart.as(res, core.String);
+    return res;
   }
   // Function createInvocationMirror: (String, dynamic, dynamic, dynamic, dynamic) → dynamic
   function createInvocationMirror(name, internalName, kind, arguments$, argumentNames) {
@@ -2196,7 +2196,7 @@ var _js_helper;
   }
   // Function toStringWrapper: () → dynamic
   function toStringWrapper() {
-    return dart.dinvoke(this.dartException, 'toString');
+    return this.dartException.toString();
   }
   // Function throwExpression: (dynamic) → dynamic
   function throwExpression(ex) {
@@ -2523,7 +2523,7 @@ var _js_helper;
   // Function objectHashCode: (dynamic) → int
   function objectHashCode(object) {
     if (dart.notNull(object == null) || typeof object != 'object') {
-      return dart.as(dart.dload(object, 'hashCode'), core.int);
+      return object.hashCode;
     } else {
       return Primitives.objectHashCode(object);
     }
@@ -2845,7 +2845,7 @@ var _js_helper;
       if (this[_receiver] == null) {
         receiverHashCode = Primitives.objectHashCode(this[_self]);
       } else if (typeof this[_receiver] != 'object') {
-        receiverHashCode = dart.as(dart.dload(this[_receiver], 'hashCode'), core.int);
+        receiverHashCode = this[_receiver].hashCode;
       } else {
         receiverHashCode = Primitives.objectHashCode(this[_receiver]);
       }

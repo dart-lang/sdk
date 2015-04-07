@@ -185,7 +185,7 @@ var isolate;
       this.stackTrace = stackTrace;
     }
     toString() {
-      return 'IsolateUnhandledException: exception while handling message: ' + `${this.message} \n  ` + `${dart.dinvoke(dart.dinvoke(this.source, 'toString'), 'replaceAll', "\n", "\n  ")}\n` + 'original stack trace:\n  ' + `${this.stackTrace.toString().replaceAll("\n", "\n  ")}`;
+      return 'IsolateUnhandledException: exception while handling message: ' + `${this.message} \n  ` + `${this.source.toString().replaceAll("\n", "\n  ")}\n` + 'original stack trace:\n  ' + `${this.stackTrace.toString().replaceAll("\n", "\n  ")}`;
     }
   }
   _IsolateUnhandledException[dart.implements] = () => [core.Exception];

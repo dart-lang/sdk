@@ -110,6 +110,8 @@ final Map<String, String> mockSdkSources = {
         void print(Object o) {}
 
         class Object {
+          int get hashCode {}
+          Type get runtimeType {}
           String toString(){}
         }
         class Function {}

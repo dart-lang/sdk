@@ -16,7 +16,13 @@ void main() {
 
   test('conversion and dynamic invoke', () {
     testChecker({
+      '/helper.dart': '''
+      dynamic toString = (int x) => x + 42;
+      dynamic hashCode = "hello";
+      ''',
       '/main.dart': '''
+      import 'helper.dart' as helper;
+
       class A {
         String x = "hello world";
 
@@ -28,9 +34,15 @@ void main() {
         print(str);
       }
 
+      class B {
+        String toString([int arg]) => arg.toString();
+      }
+
       void bar(a) {
         foo(/*info:DynamicCast,info:DynamicInvoke*/a.x);
       }
+
+      baz() => new B();
 
       typedef DynFun(x);
       typedef StrFun(String x);
@@ -58,6 +70,27 @@ void main() {
         A.baz2("hello");
         var b2 = A.baz2;
         (/*info:DynamicInvoke*/b2("hello"));
+
+        dynamic a1 = new B();
+        (/*info:DynamicInvoke*/a1.x);
+        a1.toString();
+        (/*info:DynamicInvoke*/a1.toString(42));
+        var toStringClosure = a1.toString;
+        (/*info:DynamicInvoke*/a1.toStringClosure());
+        (/*info:DynamicInvoke*/a1.toStringClosure(42));
+        (/*info:DynamicInvoke*/a1.toStringClosure("hello"));
+        a1.hashCode;
+
+        dynamic toString = () => null;
+        (/*info:DynamicInvoke*/toString());
+
+        (/*info:DynamicInvoke*/helper.toString());
+        var toStringClosure2 = helper.toString;
+        (/*info:DynamicInvoke*/toStringClosure2());
+        int hashCode = /*info:DynamicCast*/helper.hashCode;
+
+        baz().toString();
+        baz().hashCode;
     '''
     });
   });

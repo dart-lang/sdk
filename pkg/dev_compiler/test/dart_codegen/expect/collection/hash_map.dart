@@ -1,6 +1,6 @@
 part of dart.collection;
  bool _defaultEquals(a, b) => a == b;
- int _defaultHashCode(a) => DEVC$RT.cast(a.hashCode, dynamic, int, "DynamicCast", """line 10, column 28 of dart:collection/hash_map.dart: """, a.hashCode is int, true);
+ int _defaultHashCode(a) => a.hashCode;
  typedef bool _Equality<K>(K a, K b);
  typedef int _Hasher<K>(K object);
  abstract class HashMap<K, V> implements Map<K, V> {external factory HashMap({

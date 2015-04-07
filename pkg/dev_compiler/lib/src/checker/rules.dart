@@ -10,6 +10,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 
 import 'package:dev_compiler/src/info.dart';
 import 'package:dev_compiler/src/options.dart';
+import 'package:dev_compiler/src/utils.dart' as utils;
 
 abstract class TypeRules {
   final TypeProvider provider;
@@ -45,7 +46,6 @@ abstract class TypeRules {
 
   bool isDynamic(DartType t);
   bool isDynamicTarget(Expression expr);
-  bool isDynamicGet(Expression expr);
   bool isDynamicCall(Expression call);
 }
 
@@ -78,7 +78,6 @@ class DartRules extends TypeRules {
   /// By default, all invocations are dynamic in Dart.
   bool isDynamic(DartType t) => true;
   bool isDynamicTarget(Expression expr) => true;
-  bool isDynamicGet(Expression expr) => true;
   bool isDynamicCall(Expression call) => true;
 }
 
@@ -530,17 +529,8 @@ class RestrictedRules extends TypeRules {
   bool isDynamic(DartType t) => options.ignoreTypes || t.isDynamic;
 
   /// Returns `true` if the target expression is dynamic.
-  bool isDynamicTarget(Expression expr) =>
-      options.ignoreTypes || getStaticType(expr).isDynamic;
-
-  /// Returns `true` if the expression is a dynamic property access or prefixed
-  /// identifier.
-  bool isDynamicGet(Expression expr) {
-    if (options.ignoreTypes) return true;
-    var t = getStaticType(expr);
-    // TODO(jmesserly): we should not allow all property gets on `Function`
-    return t.isDynamic || t.isDartCoreFunction;
-  }
+  bool isDynamicTarget(Expression target) =>
+      options.ignoreTypes || utils.isDynamicTarget(target);
 
   /// Returns `true` if the expression is a dynamic function call or method
   /// invocation.

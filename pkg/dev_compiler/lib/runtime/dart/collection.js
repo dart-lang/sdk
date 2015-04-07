@@ -24,7 +24,7 @@ var collection;
   }
   // Function _defaultHashCode: (dynamic) → int
   function _defaultHashCode(a) {
-    return dart.as(dart.dload(a, 'hashCode'), core.int);
+    return a.hashCode;
   }
   let _Equality$ = dart.generic(function(K) {
     class _Equality extends core.Function {}
@@ -3569,7 +3569,7 @@ var collection;
         return dart.notNull(dart.is(key, core.num)) && (key & 0x3ffffff) === key;
       }
       [_computeHashCode](key) {
-        return dart.dload(key, 'hashCode') & 0x3ffffff;
+        return key.hashCode & 0x3ffffff;
       }
       static [_hasTableEntry](table, key) {
         let entry = table[key];
@@ -3977,7 +3977,7 @@ var collection;
         return dart.notNull(dart.is(key, core.num)) && (key & 0x3ffffff) === key;
       }
       [_computeHashCode](key) {
-        return dart.dload(key, 'hashCode') & 0x3ffffff;
+        return key.hashCode & 0x3ffffff;
       }
       static [_getTableEntry](table, key) {
         return table[key];
@@ -4353,7 +4353,7 @@ var collection;
         return dart.notNull(dart.is(element, core.num)) && (element & 0x3ffffff) === element;
       }
       [_computeHashCode](element) {
-        return dart.dload(element, 'hashCode') & 0x3ffffff;
+        return element.hashCode & 0x3ffffff;
       }
       static [_hasTableEntry](table, key) {
         let entry = table[key];
@@ -4725,7 +4725,7 @@ var collection;
         return dart.notNull(dart.is(element, core.num)) && (element & 0x3ffffff) === element;
       }
       [_computeHashCode](element) {
-        return dart.dload(element, 'hashCode') & 0x3ffffff;
+        return element.hashCode & 0x3ffffff;
       }
       static [_getTableEntry](table, key) {
         return table[key];

@@ -24,7 +24,7 @@ var async;
       this.stackTrace = stackTrace;
     }
     toString() {
-      return dart.as(dart.dinvoke(this.error, 'toString'), core.String);
+      return this.error.toString();
     }
   }
   AsyncError[dart.implements] = () => [core.Error];

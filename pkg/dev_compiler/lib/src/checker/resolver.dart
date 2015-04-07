@@ -664,11 +664,71 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
     }
   }
 
+  Map<String, DartType> _objectMemberMap = null;
+
+  Map<String, DartType> _getObjectMemberMap() {
+    if (_objectMemberMap == null) {
+      _objectMemberMap = new Map<String, DartType>();
+      var objectType = _typeProvider.objectType;
+      var element = objectType.element;
+      // Only record methods (including getters) with no parameters.  As parameters are contravariant wrt
+      // type, using Object's version may be too strict.
+      // Add instance methods.
+      element.methods
+          .where((method) => !method.isStatic && method.parameters.isEmpty)
+          .forEach((method) {
+        _objectMemberMap[method.name] = method.type;
+      });
+      // Add getters.
+      element.accessors
+          .where((member) => !member.isStatic && member.isGetter)
+          .forEach((member) {
+        _objectMemberMap[member.name] = member.type.returnType;
+      });
+    }
+    return _objectMemberMap;
+  }
+
+  List<DartType> _sealedTypes = null;
+
+  bool _isSealed(DartType t) {
+    if (_sealedTypes == null) {
+      // TODO(vsm): Use the analyzer's list - see dartbug.com/23125.
+      _sealedTypes = <DartType>[
+        _typeProvider.nullType,
+        _typeProvider.numType,
+        _typeProvider.intType,
+        _typeProvider.doubleType,
+        _typeProvider.boolType,
+        _typeProvider.stringType
+      ];
+    }
+    return _sealedTypes.contains(t);
+  }
+
   @override // to propagate types to identifiers
   visitMethodInvocation(MethodInvocation node) {
     // TODO(sigmund): follow up with analyzer team - why is this needed?
     visitSimpleIdentifier(node.methodName);
     super.visitMethodInvocation(node);
+
+    // Search for Object methods.
+    var objectMap = _getObjectMemberMap();
+    var name = node.methodName.name;
+    if (node.staticType.isDynamic &&
+        objectMap.containsKey(name) &&
+        isDynamicTarget(node.target)) {
+      var type = objectMap[name];
+      if (type is FunctionType && node.argumentList.arguments.isEmpty) {
+        node.target.staticType = _typeProvider.objectType;
+        node.methodName.staticType = type;
+        // Only infer the type of the overall expression if we have an exact
+        // type - e.g., a sealed type.  Otherwise, it may be too strict.
+        if (_isSealed(type.returnType)) {
+          node.staticType = type.returnType;
+        }
+      }
+    }
 
     var e = node.methodName.staticElement;
     if (e is FunctionElement &&
@@ -688,6 +748,39 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
         if (classElem != null) node.staticType = classElem.type;
       }
     }
+  }
+
+  void _inferObjectAccess(
+      Expression node, Expression target, SimpleIdentifier id) {
+    // Search for Object accesses.
+    var objectMap = _getObjectMemberMap();
+    var name = id.name;
+    if (node.staticType.isDynamic &&
+        objectMap.containsKey(name) &&
+        isDynamicTarget(target)) {
+      target.staticType = _typeProvider.objectType;
+      var type = objectMap[name];
+      id.staticType = type;
+      // Only infer the type of the overall expression if we have an exact
+      // type - e.g., a sealed type.  Otherwise, it may be too strict.
+      if (_isSealed(type)) {
+        node.staticType = type;
+      }
+    }
+  }
+
+  @override
+  visitPropertyAccess(PropertyAccess node) {
+    super.visitPropertyAccess(node);
+
+    _inferObjectAccess(node, node.target, node.propertyName);
+  }
+
+  @override
+  visitPrefixedIdentifier(PrefixedIdentifier node) {
+    super.visitPrefixedIdentifier(node);
+
+    _inferObjectAccess(node, node.prefix, node.identifier);
   }
 
   @override

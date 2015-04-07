@@ -46,14 +46,14 @@ if (_buffer.isNotEmpty) _flush();
  Iterator iterator = objects.iterator;
  if (!iterator.moveNext()) return; if (separator.isEmpty) {
 do {
-_chunkedSink.add(((__x15) => DEVC$RT.cast(__x15, dynamic, String, "DynamicCast", """line 147, column 26 of dart:convert/string_conversion.dart: """, __x15 is String, true))(iterator.current.toString()));
+_chunkedSink.add(iterator.current.toString());
 }
  while (iterator.moveNext());}
  else {
-_chunkedSink.add(((__x16) => DEVC$RT.cast(__x16, dynamic, String, "DynamicCast", """line 150, column 24 of dart:convert/string_conversion.dart: """, __x16 is String, true))(iterator.current.toString()));
+_chunkedSink.add(iterator.current.toString());
  while (iterator.moveNext()) {
 write(separator);
- _chunkedSink.add(((__x17) => DEVC$RT.cast(__x17, dynamic, String, "DynamicCast", """line 153, column 26 of dart:convert/string_conversion.dart: """, __x17 is String, true))(iterator.current.toString()));
+ _chunkedSink.add(iterator.current.toString());
 }
 }
 }

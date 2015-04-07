@@ -595,7 +595,7 @@ var _isolate_helper;
         return;
       }
       let message = new core.List(2);
-      message[core.$set](0, dart.dinvoke(error, 'toString'));
+      message[core.$set](0, error.toString());
       message[core.$set](1, stackTrace == null ? null : stackTrace.toString());
       for (let port of this.errorPorts)
         port.send(message);

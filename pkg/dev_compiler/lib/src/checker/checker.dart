@@ -577,7 +577,7 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   visitPropertyAccess(PropertyAccess node) {
-    if (_rules.isDynamicGet(node.realTarget)) {
+    if (node.staticType.isDynamic && _rules.isDynamicTarget(node.realTarget)) {
       _recordDynamicInvoke(node);
     }
     node.visitChildren(this);
@@ -585,9 +585,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
   visitPrefixedIdentifier(PrefixedIdentifier node) {
     final target = node.prefix;
-    // Check if the prefix is a library - PrefixElement denotes a library
-    // access.
-    if (target.staticElement is! PrefixElement && _rules.isDynamicGet(target)) {
+    if (_rules.isDynamicTarget(target)) {
       _recordDynamicInvoke(node);
     }
     node.visitChildren(this);

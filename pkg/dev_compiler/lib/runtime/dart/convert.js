@@ -30,7 +30,7 @@ var convert;
       super.Codec();
     }
     decodeStream(byteStream) {
-      return dart.as(byteStream.transform(dart.as(this.decoder, async.StreamTransformer$(core.List$(core.int), dynamic))).fold(new core.StringBuffer(), (buffer, string) => dart.dinvoke(buffer, 'write', string), buffer).then((buffer) => dart.dinvoke(buffer, 'toString')), async.Future$(core.String));
+      return dart.as(byteStream.transform(dart.as(this.decoder, async.StreamTransformer$(core.List$(core.int), dynamic))).fold(new core.StringBuffer(), (buffer, string) => dart.dinvoke(buffer, 'write', string), buffer).then((buffer) => buffer.toString()), async.Future$(core.String));
     }
     static getByName(name) {
       if (name == null)
@@ -1532,13 +1532,13 @@ var convert;
         return;
       if (separator.isEmpty) {
         do {
-          this[_chunkedSink].add(dart.as(dart.dinvoke(iterator.current, 'toString'), core.String));
+          this[_chunkedSink].add(iterator.current.toString());
         } while (iterator.moveNext());
       } else {
-        this[_chunkedSink].add(dart.as(dart.dinvoke(iterator.current, 'toString'), core.String));
+        this[_chunkedSink].add(iterator.current.toString());
         while (iterator.moveNext()) {
           this.write(separator);
-          this[_chunkedSink].add(dart.as(dart.dinvoke(iterator.current, 'toString'), core.String));
+          this[_chunkedSink].add(iterator.current.toString());
         }
       }
     }

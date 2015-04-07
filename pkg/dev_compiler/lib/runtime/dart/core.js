@@ -2748,7 +2748,7 @@ var core;
     get hashCode() {
       // Function combine: (dynamic, dynamic) → int
       function combine(part, current) {
-        return dart.as(dart.dbinary(dart.dbinary(dart.dbinary(current, '*', 31), '+', dart.dload(part, 'hashCode')), '&', 1073741823), int);
+        return dart.as(dart.dbinary(dart.dbinary(dart.dbinary(current, '*', 31), '+', part.hashCode), '&', 1073741823), int);
       }
       return combine(this.scheme, combine(this.userInfo, combine(this.host, combine(this.port, combine(this.path, combine(this.query, combine(this.fragment, 1)))))));
     }

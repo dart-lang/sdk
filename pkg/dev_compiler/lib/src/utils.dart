@@ -16,7 +16,9 @@ import 'package:analyzer/src/generated/ast.dart'
         CompilationUnit,
         Identifier,
         AnnotatedNode,
-        AstNode;
+        AstNode,
+        Expression,
+        SimpleIdentifier;
 import 'package:analyzer/src/generated/engine.dart'
     show ParseDartTask, AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source;
@@ -199,6 +201,12 @@ _MemberTypeGetter _memberTypeGetter(ExecutableElement member) {
   }
   ;
   return f;
+}
+
+bool isDynamicTarget(Expression target) {
+  return target != null &&
+      !(target is SimpleIdentifier && target.staticElement is PrefixElement) &&
+      target.staticType.isDynamic;
 }
 
 /// Returns an ANSII color escape sequence corresponding to [levelName]. Colors
