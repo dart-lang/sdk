@@ -4284,24 +4284,13 @@ class CssRule extends NativeFieldWrapperClass2 {
 
   @DomName('CSSStyleDeclaration.setProperty')
   void setProperty(String propertyName, String value, [String priority]) {
-    return _setPropertyHelper(_browserPropertyName(propertyName),
-      value, priority);
-  }
-
-  String _browserPropertyName(String propertyName) {
-    String name = _readCache(propertyName);
-    if (name is String) return name;
     if (_supportsProperty(_camelCase(propertyName))) {
-      name = propertyName;
+      return _setPropertyHelper(propertyName, value, priority);
     } else {
-      name = Device.cssPrefix + propertyName;
+      return _setPropertyHelper(Device.cssPrefix + propertyName, value,
+          priority);
     }
-    _writeCache(propertyName, name);
-    return name;
   }
-
-  static String _readCache(String key) => null;
-  static void _writeCache(String key, value) {}
 
   static String _camelCase(String hyphenated) {
     // The "ms" prefix is always lowercased.
