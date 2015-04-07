@@ -880,9 +880,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   @override
   js.Expression visitConditional(js.Conditional node) {
     if (!shouldTransform(node.then) && !shouldTransform(node.otherwise)) {
-      return withExpression(node.condition, (js.Expression condition) {
-        return js.js('# ? # : #', [condition, node.then, node.otherwise]);
-      }, store: false);
+      return js.js('# ? # : #', [visitExpression(node.condition),
+                                 visitExpression(node.then),
+                                 visitExpression(node.otherwise)]);
     }
     int thenLabel = newLabel("then");
     int joinLabel = newLabel("join");
@@ -969,10 +969,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     if (!shouldTransform(node)) {
       bool oldInsideUntranslatedBreakable = insideUntranslatedBreakable;
       insideUntranslatedBreakable = true;
-      withExpression(node.condition, (js.Expression condition) {
-        addStatement(js.js.statement('do {#} while (#)',
-                                     [node.body, condition]));
-      }, store: false);
+      addStatement(js.js.statement('do {#} while (#)',
+                                   [translateInBlock(node.body),
+                                    visitExpression(node.condition)]));
       insideUntranslatedBreakable = oldInsideUntranslatedBreakable;
       return;
     }
@@ -1348,7 +1347,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
       for (js.SwitchClause clause in node.cases) {
         if (clause is js.Case) {
           labels[i] = newLabel("case");
-          clauses.add(new js.Case(clause.expression, gotoAndBreak(labels[i])));
+          clauses.add(new js.Case(visitExpression(clause.expression),
+                                  gotoAndBreak(labels[i])));
         } else if (clause is js.Default) {
           labels[i] = newLabel("default");
           clauses.add(new js.Default(gotoAndBreak(labels[i])));
