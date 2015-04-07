@@ -438,8 +438,11 @@ class Assembler : public ValueObject {
              Condition cond = AL);
   void umlal(Register rd_lo, Register rd_hi, Register rn, Register rm,
              Condition cond = AL);
-  void umaal(Register rd_lo, Register rd_hi, Register rn, Register rm,
-             Condition cond = AL);
+
+  // Emulation of this instruction uses IP and the condition codes. Therefore,
+  // none of the registers can be IP, and the instruction can only be used
+  // unconditionally.
+  void umaal(Register rd_lo, Register rd_hi, Register rn, Register rm);
 
   // Division instructions.
   void sdiv(Register rd, Register rn, Register rm, Condition cond = AL);

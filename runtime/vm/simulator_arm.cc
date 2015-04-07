@@ -1728,6 +1728,10 @@ void Simulator::DecodeType01(Instr* instr) {
           case 3: {
             // Registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
             // Format(instr, "mls'cond's 'rn, 'rm, 'rs, 'rd");
+            if (TargetCPUFeatures::arm_version() != ARMv7) {
+              UnimplementedInstruction(instr);
+              break;
+            }
             rd_val = get_register(rd);
             // fall through
           }
@@ -1779,6 +1783,10 @@ void Simulator::DecodeType01(Instr* instr) {
           case 2:
             // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
             // Format(instr, "umaal'cond's 'rd, 'rn, 'rm, 'rs");
+            if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+              // umaal is only in ARMv6 and above.
+              UnimplementedInstruction(instr);
+            }
           case 5:
             // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
             // Format(instr, "umlal'cond's 'rd, 'rn, 'rm, 'rs");

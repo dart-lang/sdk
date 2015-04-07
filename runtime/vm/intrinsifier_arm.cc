@@ -917,9 +917,6 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
 
 
 void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
-  if (TargetCPUFeatures::arm_version() != ARMv7) {
-    return;
-  }
   // Pseudo code:
   // static int _mulAdd(Uint32List x_digits, int xi,
   //                    Uint32List m_digits, int i,
@@ -1022,9 +1019,6 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
 
 
 void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
-  if (TargetCPUFeatures::arm_version() != ARMv7) {
-    return;
-  }
   // Pseudo code:
   // static int _sqrAdd(Uint32List x_digits, int i,
   //                    Uint32List a_digits, int used) {
@@ -1144,9 +1138,6 @@ void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
 
 
 void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
-  if (TargetCPUFeatures::arm_version() != ARMv7) {
-    return;
-  }
   // Pseudo code:
   // static int _mulMod(Uint32List args, Uint32List digits, int i) {
   //   uint32_t rho = args[_RHO];  // _RHO == 2.
@@ -1444,44 +1435,41 @@ void Intrinsifier::MathSqrt(Assembler* assembler) {
 //    _state[kSTATE_LO] = state & _MASK_32;
 //    _state[kSTATE_HI] = state >> 32;
 void Intrinsifier::Random_nextState(Assembler* assembler) {
-  // No 32x32 -> 64 bit multiply/accumulate on ARMv5 or ARMv6.
-  if (TargetCPUFeatures::arm_version() == ARMv7) {
-    const Library& math_lib = Library::Handle(Library::MathLibrary());
-    ASSERT(!math_lib.IsNull());
-    const Class& random_class = Class::Handle(
-        math_lib.LookupClassAllowPrivate(Symbols::_Random()));
-    ASSERT(!random_class.IsNull());
-    const Field& state_field = Field::ZoneHandle(
-        random_class.LookupInstanceField(Symbols::_state()));
-    ASSERT(!state_field.IsNull());
-    const Field& random_A_field = Field::ZoneHandle(
-        random_class.LookupStaticField(Symbols::_A()));
-    ASSERT(!random_A_field.IsNull());
-    ASSERT(random_A_field.is_const());
-    const Instance& a_value = Instance::Handle(random_A_field.value());
-    const int64_t a_int_value = Integer::Cast(a_value).AsInt64Value();
-    // 'a_int_value' is a mask.
-    ASSERT(Utils::IsUint(32, a_int_value));
-    int32_t a_int32_value = static_cast<int32_t>(a_int_value);
+  const Library& math_lib = Library::Handle(Library::MathLibrary());
+  ASSERT(!math_lib.IsNull());
+  const Class& random_class = Class::Handle(
+      math_lib.LookupClassAllowPrivate(Symbols::_Random()));
+  ASSERT(!random_class.IsNull());
+  const Field& state_field = Field::ZoneHandle(
+      random_class.LookupInstanceField(Symbols::_state()));
+  ASSERT(!state_field.IsNull());
+  const Field& random_A_field = Field::ZoneHandle(
+      random_class.LookupStaticField(Symbols::_A()));
+  ASSERT(!random_A_field.IsNull());
+  ASSERT(random_A_field.is_const());
+  const Instance& a_value = Instance::Handle(random_A_field.value());
+  const int64_t a_int_value = Integer::Cast(a_value).AsInt64Value();
+  // 'a_int_value' is a mask.
+  ASSERT(Utils::IsUint(32, a_int_value));
+  int32_t a_int32_value = static_cast<int32_t>(a_int_value);
 
-    __ ldr(R0, Address(SP, 0 * kWordSize));  // Receiver.
-    __ ldr(R1, FieldAddress(R0, state_field.Offset()));  // Field '_state'.
-    // Addresses of _state[0] and _state[1].
+  __ ldr(R0, Address(SP, 0 * kWordSize));  // Receiver.
+  __ ldr(R1, FieldAddress(R0, state_field.Offset()));  // Field '_state'.
+  // Addresses of _state[0] and _state[1].
 
-    const int64_t disp_0 = Instance::DataOffsetFor(kTypedDataUint32ArrayCid);
-    const int64_t disp_1 = disp_0 +
-        Instance::ElementSizeFor(kTypedDataUint32ArrayCid);
+  const int64_t disp_0 = Instance::DataOffsetFor(kTypedDataUint32ArrayCid);
+  const int64_t disp_1 = disp_0 +
+      Instance::ElementSizeFor(kTypedDataUint32ArrayCid);
 
-    __ LoadImmediate(R0, a_int32_value);
-    __ LoadFromOffset(kWord, R2, R1, disp_0 - kHeapObjectTag);
-    __ LoadFromOffset(kWord, R3, R1, disp_1 - kHeapObjectTag);
-    __ mov(R6, Operand(0));  // Zero extend unsigned _state[kSTATE_HI].
-    // Unsigned 32-bit multiply and 64-bit accumulate into R6:R3.
-    __ umlal(R3, R6, R0, R2);  // R6:R3 <- R6:R3 + R0 * R2.
-    __ StoreToOffset(kWord, R3, R1, disp_0 - kHeapObjectTag);
-    __ StoreToOffset(kWord, R6, R1, disp_1 - kHeapObjectTag);
-    __ Ret();
-  }
+  __ LoadImmediate(R0, a_int32_value);
+  __ LoadFromOffset(kWord, R2, R1, disp_0 - kHeapObjectTag);
+  __ LoadFromOffset(kWord, R3, R1, disp_1 - kHeapObjectTag);
+  __ mov(R6, Operand(0));  // Zero extend unsigned _state[kSTATE_HI].
+  // Unsigned 32-bit multiply and 64-bit accumulate into R6:R3.
+  __ umlal(R3, R6, R0, R2);  // R6:R3 <- R6:R3 + R0 * R2.
+  __ StoreToOffset(kWord, R3, R1, disp_0 - kHeapObjectTag);
+  __ StoreToOffset(kWord, R6, R1, disp_1 - kHeapObjectTag);
+  __ Ret();
 }
 
 

@@ -696,12 +696,6 @@ void ARMDecoder::DecodeType01(Instr* instr) {
       }
     } else if (instr->IsMultiplyOrSyncPrimitive()) {
       if (instr->Bit(24) == 0) {
-        if ((TargetCPUFeatures::arm_version() != ARMv7) &&
-            (instr->Bits(21, 3) != 0)) {
-          // mla ... smlal only supported on armv7.
-          Unknown(instr);
-          return;
-        }
         // multiply instructions
         switch (instr->Bits(21, 3)) {
           case 0: {
@@ -715,11 +709,19 @@ void ARMDecoder::DecodeType01(Instr* instr) {
             break;
           }
           case 2: {
+            if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+              Unknown(instr);
+              return;
+            }
             // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
             Format(instr, "umaal'cond's 'rd, 'rn, 'rm, 'rs");
             break;
           }
           case 3: {
+            if (TargetCPUFeatures::arm_version() != ARMv7) {
+              Unknown(instr);
+              return;
+            }
             // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
             Format(instr, "mls'cond's 'rn, 'rm, 'rs, 'rd");
             break;
@@ -739,17 +741,17 @@ void ARMDecoder::DecodeType01(Instr* instr) {
             Format(instr, "smull'cond's 'rd, 'rn, 'rm, 'rs");
             break;
           }
-          case 7: {
-            // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
-            Format(instr, "smlal'cond's 'rd, 'rn, 'rm, 'rs");
-            break;
-          }
           default: {
             Unknown(instr);  // Not used.
             break;
           }
         }
       } else {
+        if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+          // strex and ldrex are only supported after ARMv6.
+          Unknown(instr);
+          return;
+        }
         // synchronization primitives
         switch (instr->Bits(20, 4)) {
           case 8: {
@@ -1470,7 +1472,8 @@ void ARMDecoder::InstructionDecode(uword pc) {
   Instr* instr = Instr::At(pc);
 
   if (instr->ConditionField() == kSpecialCondition) {
-    if (instr->InstructionBits() == static_cast<int32_t>(0xf57ff01f)) {
+    if ((instr->InstructionBits() == static_cast<int32_t>(0xf57ff01f)) &&
+        (TargetCPUFeatures::arm_version() != ARMv5TE)) {
       Format(instr, "clrex");
     } else {
       if (instr->IsSIMDDataProcessing()) {

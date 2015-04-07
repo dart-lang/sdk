@@ -410,13 +410,8 @@ void Assembler::muls(Register rd, Register rn, Register rm, Condition cond) {
 void Assembler::mla(Register rd, Register rn,
                     Register rm, Register ra, Condition cond) {
   // rd <- ra + rn * rm.
-  if (TargetCPUFeatures::arm_version() == ARMv7) {
-    // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
-    EmitMulOp(cond, B21, ra, rd, rn, rm);
-  } else {
-    mul(IP, rn, rm, cond);
-    add(rd, ra, Operand(IP), cond);
-  }
+  // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
+  EmitMulOp(cond, B21, ra, rd, rn, rm);
 }
 
 
@@ -442,33 +437,33 @@ void Assembler::smull(Register rd_lo, Register rd_hi,
 
 void Assembler::umull(Register rd_lo, Register rd_hi,
                       Register rn, Register rm, Condition cond) {
-  ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
   // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
   EmitMulOp(cond, B23, rd_lo, rd_hi, rn, rm);
 }
 
 
-void Assembler::smlal(Register rd_lo, Register rd_hi,
-                      Register rn, Register rm, Condition cond) {
-  ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
-  // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
-  EmitMulOp(cond, B23 | B22 | B21, rd_lo, rd_hi, rn, rm);
-}
-
-
 void Assembler::umlal(Register rd_lo, Register rd_hi,
                       Register rn, Register rm, Condition cond) {
-  ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
   // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
   EmitMulOp(cond, B23 | B21, rd_lo, rd_hi, rn, rm);
 }
 
 
 void Assembler::umaal(Register rd_lo, Register rd_hi,
-                      Register rn, Register rm, Condition cond) {
-  ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
-  // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
-  EmitMulOp(cond, B22, rd_lo, rd_hi, rn, rm);
+                      Register rn, Register rm) {
+  ASSERT(rd_lo != IP);
+  ASSERT(rd_hi != IP);
+  ASSERT(rn != IP);
+  ASSERT(rm != IP);
+  if (TargetCPUFeatures::arm_version() != ARMv5TE) {
+    // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+    EmitMulOp(AL, B22, rd_lo, rd_hi, rn, rm);
+  } else {
+    mov(IP, Operand(0));
+    umlal(rd_lo, IP, rn, rm);
+    adds(rd_lo, rd_lo, Operand(rd_hi));
+    adc(rd_hi, IP, Operand(0));
+  }
 }
 
 

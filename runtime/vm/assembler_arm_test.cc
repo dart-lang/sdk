@@ -844,26 +844,14 @@ ASSEMBLER_TEST_RUN(QuotientRemainder, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Multiply64To64, assembler) {
-#if defined(USING_SIMULATOR)
-  const ARMVersion version = TargetCPUFeatures::arm_version();
-  HostCPUFeatures::set_arm_version(ARMv7);
-#endif
-  if (TargetCPUFeatures::arm_version() == ARMv7) {
-    __ Push(R4);
-    __ mov(IP, Operand(R0));
-    __ mul(R4, R2, R1);
-    __ umull(R0, R1, R2, IP);
-    __ mla(R2, IP, R3, R4);
-    __ add(R1, R2, Operand(R1));
-    __ Pop(R4);
-  } else {
-    __ LoadImmediate(R0, 6);
-    __ LoadImmediate(R1, 0);
-  }
+  __ Push(R4);
+  __ mov(IP, Operand(R0));
+  __ mul(R4, R2, R1);
+  __ umull(R0, R1, R2, IP);
+  __ mla(R2, IP, R3, R4);
+  __ add(R1, R2, Operand(R1));
+  __ Pop(R4);
   __ bx(LR);
-#if defined(USING_SIMULATOR)
-  HostCPUFeatures::set_arm_version(version);
-#endif
 }
 
 
@@ -891,48 +879,9 @@ ASSEMBLER_TEST_RUN(Multiply32To64, test) {
 }
 
 
-ASSEMBLER_TEST_GENERATE(MultiplyAccum32To64, assembler) {
-#if defined(USING_SIMULATOR)
-  const ARMVersion version = TargetCPUFeatures::arm_version();
-  HostCPUFeatures::set_arm_version(ARMv7);
-#endif
-  if (TargetCPUFeatures::arm_version() == ARMv7) {
-    __ smlal(R0, R1, R0, R2);
-  } else {
-    __ LoadImmediate(R0, 3);
-    __ LoadImmediate(R1, 0);
-  }
-  __ bx(LR);
-#if defined(USING_SIMULATOR)
-  HostCPUFeatures::set_arm_version(version);
-#endif
-}
-
-
-ASSEMBLER_TEST_RUN(MultiplyAccum32To64, test) {
-  EXPECT(test != NULL);
-  typedef int64_t (*MultiplyAccum32To64)
-      (int64_t operand0, int64_t operand1) DART_UNUSED;
-  EXPECT_EQ(3, EXECUTE_TEST_CODE_INT64_LL(MultiplyAccum32To64, test->entry(),
-                                          -3, -2));
-}
-
-
 ASSEMBLER_TEST_GENERATE(MultiplyAccumAccum32To64, assembler) {
-#if defined(USING_SIMULATOR)
-  const ARMVersion version = TargetCPUFeatures::arm_version();
-  HostCPUFeatures::set_arm_version(ARMv7);
-#endif
-  if (TargetCPUFeatures::arm_version() == ARMv7) {
-    __ umaal(R0, R1, R2, R3);
-  } else {
-    __ LoadImmediate(R0, 3 + 7 + 5 * 11);
-    __ LoadImmediate(R1, 0);
-  }
+  __ umaal(R0, R1, R2, R3);
   __ bx(LR);
-#if defined(USING_SIMULATOR)
-  HostCPUFeatures::set_arm_version(version);
-#endif
 }
 
 
