@@ -9,7 +9,6 @@ cross_frame_test: Skip # Test reloads itself. Issue 18558
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Issue 18931 (Disabled for Chrome 35 roll)
-custom/attribute_changed_callback_test/fully_supported: Fail # Issue 23107
 form_data_test/functional: Skip # Issue 19726
 indexeddb_1_test/functional: Skip # Issue 19512 (timing out)
 indexeddb_4_test: Skip # Issue 19726
@@ -38,7 +37,7 @@ storage_quota_test: Fail # Support for promises.
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 fontface_test: Fail # Fontface not supported on these.
-custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not supportfontface_test: Fail # Fontface not supported on these.
+custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 element_animate_test: Fail # Element.animate not supported on these browsers.
 
 [ $compiler == none && $runtime == dartium && $system == macos]

@@ -4,6 +4,7 @@
 
 library attribute_changed_callback_test;
 
+import 'dart:async';
 import 'dart:html';
 import 'dart:js' as js;
 import 'package:unittest/html_individual_config.dart';
@@ -90,11 +91,15 @@ main() {
 
       var b = new B();
       b.id = 'x';
-      expect(B.invocations, ['created', 'id: null => x']);
-
-      B.invocations = [];
-      b.attributes.remove('id');
-      expect(B.invocations, ['id: x => null']);
+      
+      return new Future.delayed(new Duration(milliseconds: 1))
+        .then((_) => expect(B.invocations, ['created', 'id: null => x']))
+        .then((_) {
+           B.invocations = [];
+           b.attributes.remove('id');
+         })
+        .then((_) => new Future.delayed(new Duration(milliseconds: 1)))
+        .then((_) => expect(B.invocations, ['id: x => null'])); 
     });
   });
 
