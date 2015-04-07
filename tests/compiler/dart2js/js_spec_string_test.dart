@@ -28,10 +28,16 @@ void test(String specString,
           {List returns,
            List creates,
            SideEffects expectedSideEffects,
+           NativeThrowBehavior expectedThrows,
+           bool expectedNew,
+           bool expectedGvn,
            bool expectError: false}) {
   List actualReturns = [];
   List actualCreates = [];
   SideEffects actualSideEffects;
+  NativeThrowBehavior actualThrows;
+  bool actualNew;
+  bool actualGvn;
   Listener listener = new Listener();
   try {
     NativeBehavior.processSpecString(
@@ -39,6 +45,9 @@ void test(String specString,
         null,
         specString,
         setSideEffects: (effects) { actualSideEffects = effects; },
+        setThrows: (b) { actualThrows = b; },
+        setIsAllocation: (b) { actualNew = b; },
+        setUseGvn: (b) { actualGvn = b; },
         resolveType: (t) => t,
         typesReturned: actualReturns, typesInstantiated: actualCreates,
         objectType: OBJECT, nullType: NULL);
@@ -48,9 +57,16 @@ void test(String specString,
     return;
   }
   Expect.isNull(listener.errorMessage, 'Unexpected internal error.');
-  Expect.listEquals(returns, actualReturns, 'Unexpected returns.');
-  Expect.listEquals(creates, actualCreates, 'Unexpected creates.');
+  if (returns != null) {
+    Expect.listEquals(returns, actualReturns, 'Unexpected returns.');
+  }
+  if (creates != null) {
+    Expect.listEquals(creates, actualCreates, 'Unexpected creates.');
+  }
   Expect.equals(expectedSideEffects, actualSideEffects);
+  Expect.equals(expectedThrows, actualThrows);
+  Expect.equals(expectedNew, actualNew);
+  Expect.equals(expectedGvn, actualGvn);
 }
 
 void testWithSideEffects(String specString,
@@ -217,6 +233,8 @@ void main() {
   testWithSideEffects('returns:A;', returns: ['A'], creates: []);
   testWithSideEffects('returns:A|B;', returns: ['A', 'B'], creates: []);
   testWithSideEffects('returns:A|B|C;', returns: ['A', 'B', 'C'], creates: []);
+  testWithSideEffects('returns: A| B |C ;',
+      returns: ['A', 'B', 'C'], creates: []);
 
   testWithSideEffects('creates:void;', expectError: true);
   testWithSideEffects('creates:;', expectError: true);
@@ -236,4 +254,28 @@ void main() {
       returns: ['A', 'B'], creates: ['A', 'C']);
   testWithSideEffects(' returns:A|B|C;   creates:A;  ',
       returns: ['A', 'B', 'C'], creates: ['A']);
+
+  test('throws:must', expectedThrows: NativeThrowBehavior.MUST);
+  test('throws:may', expectedThrows: NativeThrowBehavior.MAY);
+  test('throws:never', expectedThrows: NativeThrowBehavior.NEVER);
+  test('throws:null(1)',
+      expectedThrows:
+          NativeThrowBehavior.MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS);
+
+  test('new:true', expectedNew: true);
+  test('new:false', expectedNew: false);
+  test('returns:A;new:true', returns: ['A'], expectedNew: true);
+  test(' new : true ;  returns:A;', returns: ['A'], expectedNew: true);
+  test('new:true;returns:A;new:true', expectError: true);
+
+  test('gvn:true', expectedGvn: true);
+  test('gvn:false', expectedGvn: false);
+  test('returns:A;gvn:true', returns: ['A'], expectedGvn: true);
+  test(' gvn : true ;  returns:A;', returns: ['A'], expectedGvn: true);
+  test('gvn:true;returns:A;gvn:true', expectError: true);
+
+  test('gvn: true; new: true', expectError: true);
+  test('gvn: true; new: false', expectedGvn: true, expectedNew: false);
+  test('gvn: false; new: true', expectedGvn: false, expectedNew: true);
+  test('gvn: false; new: false', expectedGvn: false, expectedNew: false);
 }
