@@ -1342,6 +1342,15 @@ main(A a) {
     assertNoAssistAt('_test =', AssistKind.ENCAPSULATE_FIELD);
   }
 
+  void test_encapsulateField_BAD_final() {
+    resolveTestUnit('''
+class A {
+  final int test = 42;
+}
+''');
+    assertNoAssistAt('test =', AssistKind.ENCAPSULATE_FIELD);
+  }
+
   void test_encapsulateField_BAD_multipleFields() {
     resolveTestUnit('''
 class A {
@@ -1352,6 +1361,15 @@ main(A a) {
 }
 ''');
     assertNoAssistAt('bbb, ', AssistKind.ENCAPSULATE_FIELD);
+  }
+
+  void test_encapsulateField_BAD_notOnName() {
+    resolveTestUnit('''
+class A {
+  int test = 1 + 2 + 3;
+}
+''');
+    assertNoAssistAt('+ 2', AssistKind.ENCAPSULATE_FIELD);
   }
 
   void test_encapsulateField_BAD_parseError() {
@@ -1367,10 +1385,20 @@ main(A a) {
     assertNoAssistAt('; // marker', AssistKind.ENCAPSULATE_FIELD);
   }
 
+  void test_encapsulateField_BAD_static() {
+    resolveTestUnit('''
+class A {
+  static int test = 42;
+}
+''');
+    assertNoAssistAt('test =', AssistKind.ENCAPSULATE_FIELD);
+  }
+
   void test_encapsulateField_OK_hasType() {
     resolveTestUnit('''
 class A {
   int test = 42;
+  A(this.test);
 }
 main(A a) {
   print(a.test);
@@ -1385,6 +1413,7 @@ class A {
   void set test(int test) {
     _test = test;
   }
+  A(this._test);
 }
 main(A a) {
   print(a.test);

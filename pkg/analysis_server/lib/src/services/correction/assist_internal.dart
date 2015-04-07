@@ -679,9 +679,19 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
+    // not interesting for static
+    if (fieldDeclaraton.isStatic) {
+      _coverageMarker();
+      return;
+    }
     // has a parse error
     VariableDeclarationList variableList = fieldDeclaraton.fields;
     if (variableList.keyword == null && variableList.type == null) {
+      _coverageMarker();
+      return;
+    }
+    // not interesting for final
+    if (variableList.isFinal) {
       _coverageMarker();
       return;
     }
@@ -693,15 +703,35 @@ class AssistProcessor {
     }
     VariableDeclaration field = fields.first;
     SimpleIdentifier nameNode = field.name;
+    FieldElement fieldElement = nameNode.staticElement;
     // should have a public name
     String name = nameNode.name;
     if (Identifier.isPrivateName(name)) {
       _coverageMarker();
       return;
     }
-    // prepare change
-    String eol2 = eol + eol;
+    // should be on the name
+    if (nameNode != node) {
+      _coverageMarker();
+      return;
+    }
+    // rename field
     _addReplaceEdit(rangeNode(nameNode), '_$name');
+    // update references in constructors
+    ClassDeclaration classDeclaration = fieldDeclaraton.parent;
+    for (ClassMember member in classDeclaration.members) {
+      if (member is ConstructorDeclaration) {
+        for (FormalParameter parameter in member.parameters.parameters) {
+          ParameterElement parameterElement = parameter.element;
+          if (parameterElement is FieldFormalParameterElement &&
+              parameterElement.field == fieldElement) {
+            _addReplaceEdit(rangeNode(parameter.identifier), '_$name');
+          }
+        }
+      }
+    }
+    // add accessors
+    String eol2 = eol + eol;
     String typeNameCode =
         variableList.type != null ? _getNodeText(variableList.type) + ' ' : '';
     String getterCode = '$eol2  ${typeNameCode}get $name => _$name;';
