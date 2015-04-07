@@ -1058,6 +1058,35 @@ RawError* Compiler::CompileFunction(Thread* thread,
 }
 
 
+void Compiler::EnsureUnoptimizedCode(Thread* thread,
+                                     const Function& function) {
+  if (function.unoptimized_code() != Object::null()) {
+    return;
+  }
+  Code& original_code = Code::ZoneHandle(thread->zone());
+  if (function.HasCode()) {
+    original_code = function.CurrentCode();
+  }
+  CompilationPipeline* pipeline =
+      CompilationPipeline::New(thread->zone(), function);
+  const Error& error = Error::Handle(
+      CompileFunctionHelper(pipeline, function, false, Isolate::kNoDeoptId));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+  }
+  // Since CompileFunctionHelper replaces the current code, re-attach the
+  // the original code if the function was already compiled.
+  if (!original_code.IsNull() &&
+      (original_code.raw() != function.CurrentCode())) {
+    function.AttachCode(original_code);
+  }
+  ASSERT(function.unoptimized_code() != Object::null());
+  if (FLAG_trace_compiler) {
+    ISL_Print("Ensure unoptimized code for %s\n", function.ToCString());
+  }
+}
+
+
 RawError* Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id) {

@@ -100,11 +100,13 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   builder->MarkFrameStart();
 
   // Callee's PC marker is not used anymore. Pass Code::null() to set to 0.
-  builder->AddPcMarker(Code::Handle(), slot_ix++);
+  builder->AddPcMarker(Function::Handle(), slot_ix++);
 
   // Current FP and PC.
   builder->AddCallerFp(slot_ix++);
-  builder->AddReturnAddress(current->code(), deopt_id(), slot_ix++);
+  builder->AddReturnAddress(Function::Handle(current->code().function()),
+                            deopt_id(),
+                            slot_ix++);
 
   // Emit all values that are needed for materialization as a part of the
   // expression stack for the bottom-most frame. This guarantees that GC
@@ -119,7 +121,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   }
 
   // Current PC marker and caller FP.
-  builder->AddPcMarker(current->code(), slot_ix++);
+  builder->AddPcMarker(Function::Handle(current->code().function()), slot_ix++);
   builder->AddCallerFp(slot_ix++);
 
   Environment* previous = current;
@@ -127,7 +129,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   while (current != NULL) {
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
-    builder->AddReturnAddress(current->code(),
+    builder->AddReturnAddress(Function::Handle(current->code().function()),
                               Isolate::ToDeoptAfter(current->deopt_id()),
                               slot_ix++);
 
@@ -149,7 +151,8 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     }
 
     // PC marker and caller FP.
-    builder->AddPcMarker(current->code(), slot_ix++);
+    builder->AddPcMarker(Function::Handle(current->code().function()),
+                         slot_ix++);
     builder->AddCallerFp(slot_ix++);
 
     // Iterate on the outer environment.

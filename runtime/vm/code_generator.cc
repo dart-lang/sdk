@@ -1440,6 +1440,7 @@ void DeoptimizeAt(const Code& optimized_code, uword pc) {
       optimized_code.GetDeoptInfoAtPc(pc, &deopt_reason, &deopt_flags));
   ASSERT(!deopt_info.IsNull());
   const Function& function = Function::Handle(optimized_code.function());
+  Compiler::EnsureUnoptimizedCode(Thread::Current(), function);
   const Code& unoptimized_code = Code::Handle(function.unoptimized_code());
   ASSERT(!unoptimized_code.IsNull());
   // The switch to unoptimized code may have already occurred.
@@ -1573,9 +1574,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
     ASSERT(code.raw() == optimized_code.raw());
 
     // Some sanity checking of the optimized/unoptimized code.
-    const Code& unoptimized_code = Code::Handle(function.unoptimized_code());
     ASSERT(!optimized_code.IsNull() && optimized_code.is_optimized());
-    ASSERT(!unoptimized_code.IsNull() && !unoptimized_code.is_optimized());
   }
 #endif
 

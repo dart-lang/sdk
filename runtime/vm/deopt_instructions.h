@@ -85,6 +85,7 @@ class DeoptContext {
     dest_frame_ = dest_frame;
   }
 
+  Thread* thread() const { return thread_; }
   Zone* zone() const { return thread_->zone(); }
 
   intptr_t source_frame_size() const { return source_frame_size_; }
@@ -151,6 +152,27 @@ class DeoptContext {
         value,
         reinterpret_cast<RawObject**>(slot),
         deferred_slots_);
+  }
+
+  void DeferRetAddrMaterialization(intptr_t index,
+                                   intptr_t deopt_id,
+                                   intptr_t* slot) {
+    deferred_slots_ = new DeferredRetAddr(
+        index,
+        deopt_id,
+        reinterpret_cast<RawObject**>(slot),
+        deferred_slots_);
+  }
+
+  void DeferPcMarkerMaterialization(intptr_t index, intptr_t* slot) {
+    deferred_slots_ = new DeferredPcMarker(
+        index,
+        reinterpret_cast<RawObject**>(slot),
+        deferred_slots_);
+  }
+
+  void DeferPpMaterialization(intptr_t index, RawObject** slot) {
+    deferred_slots_ = new DeferredPp(index, slot, deferred_slots_);
   }
 
   DeferredObject* GetDeferredObject(intptr_t idx) const {
@@ -409,14 +431,14 @@ class DeoptInfoBuilder : public ValueObject {
   const GrowableObjectArray& object_table() { return object_table_; }
 
   // Return address before instruction.
-  void AddReturnAddress(const Code& code,
+  void AddReturnAddress(const Function& function,
                         intptr_t deopt_id,
                         intptr_t dest_index);
 
   // Copy from optimized frame to unoptimized.
   void AddCopy(Value* value, const Location& source_loc, intptr_t dest_index);
-  void AddPcMarker(const Code& code, intptr_t dest_index);
-  void AddPp(const Code& code, intptr_t dest_index);
+  void AddPcMarker(const Function& function, intptr_t dest_index);
+  void AddPp(const Function& function, intptr_t dest_index);
   void AddCallerFp(intptr_t dest_index);
   void AddCallerPp(intptr_t dest_index);
   void AddCallerPc(intptr_t dest_index);

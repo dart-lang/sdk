@@ -1797,9 +1797,6 @@ class Function : public Object {
 
   RawCode* unoptimized_code() const { return raw_ptr()->unoptimized_code_; }
   void set_unoptimized_code(const Code& value) const;
-  static intptr_t unoptimized_code_offset() {
-    return OFFSET_OF(RawFunction, unoptimized_code_);
-  }
   bool HasCode() const;
 
   static intptr_t instructions_offset() {

@@ -6,6 +6,7 @@
 
 #include "vm/assembler.h"
 #include "vm/code_patcher.h"
+#include "vm/compiler.h"
 #include "vm/intermediate_language.h"
 #include "vm/locations.h"
 #include "vm/parser.h"
@@ -377,34 +378,9 @@ class DeoptRetAddressInstr : public DeoptInstr {
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    Code& code = Code::Handle(deopt_context->zone());
-    code ^= deopt_context->ObjectAt(object_table_index_);
-    ASSERT(!code.IsNull());
-    uword continue_at_pc = code.GetPcForDeoptId(deopt_id_,
-                                                RawPcDescriptors::kDeopt);
-    ASSERT(continue_at_pc != 0);
-    *dest_addr = continue_at_pc;
-
-    uword pc = code.GetPcForDeoptId(deopt_id_, RawPcDescriptors::kIcCall);
-    if (pc != 0) {
-      // If the deoptimization happened at an IC call, update the IC data
-      // to avoid repeated deoptimization at the same site next time around.
-      ICData& ic_data = ICData::Handle();
-      CodePatcher::GetInstanceCallAt(pc, code, &ic_data);
-      if (!ic_data.IsNull()) {
-        ic_data.AddDeoptReason(deopt_context->deopt_reason());
-      }
-    } else {
-      const Function& function = Function::Handle(code.function());
-      if (deopt_context->HasDeoptFlag(ICData::kHoisted)) {
-        // Prevent excessive deoptimization.
-        function.set_allows_hoisting_check_class(false);
-      }
-
-      if (deopt_context->HasDeoptFlag(ICData::kGeneralized)) {
-        function.set_allows_bounds_check_generalization(false);
-      }
-    }
+    *dest_addr = Smi::RawValue(0);
+    deopt_context->DeferRetAddrMaterialization(
+        object_table_index_, deopt_id_, dest_addr);
   }
 
   intptr_t object_table_index() const { return object_table_index_; }
@@ -641,33 +617,9 @@ class DeoptPcMarkerInstr : public DeoptInstr {
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    Code& code = Code::Handle(deopt_context->zone());
-    code ^= deopt_context->ObjectAt(object_table_index_);
-    if (code.IsNull()) {
-      // Callee's PC marker is not used (pc of Deoptimize stub). Set to 0.
-      *dest_addr = 0;
-      return;
-    }
-    const Function& function =
-        Function::Handle(deopt_context->zone(), code.function());
-    ASSERT(function.HasCode());
-    const intptr_t pc_marker =
-        code.EntryPoint() + Assembler::EntryPointToPcMarkerOffset();
-    *dest_addr = pc_marker;
-    // Increment the deoptimization counter. This effectively increments each
-    // function occurring in the optimized frame.
-    function.set_deoptimization_counter(function.deoptimization_counter() + 1);
-    if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
-      OS::PrintErr("Deoptimizing %s (count %d)\n",
-          function.ToFullyQualifiedCString(),
-          function.deoptimization_counter());
-    }
-    // Clear invocation counter so that hopefully the function gets reoptimized
-    // only after more feedback has been collected.
-    function.set_usage_counter(0);
-    if (function.HasOptimizedCode()) {
-      function.SwitchToUnoptimizedCode();
-    }
+    *dest_addr = Smi::RawValue(0);
+    deopt_context->DeferPcMarkerMaterialization(
+        object_table_index_, dest_addr);
   }
 
  private:
@@ -695,11 +647,9 @@ class DeoptPpInstr : public DeoptInstr {
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    Code& code = Code::Handle(deopt_context->zone());
-    code ^= deopt_context->ObjectAt(object_table_index_);
-    ASSERT(!code.IsNull());
-    const intptr_t pp = reinterpret_cast<intptr_t>(code.ObjectPool());
-    *dest_addr = pp;
+    *dest_addr = Smi::RawValue(0);
+    deopt_context->DeferPpMaterialization(object_table_index_,
+        reinterpret_cast<RawObject**>(dest_addr));
   }
 
  private:
@@ -890,8 +840,11 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
   // from the simulator.
   ASSERT(Isolate::IsDeoptAfter(ret_address_instr->deopt_id()));
   ASSERT(!object_table.IsNull());
+  Function& function = Function::Handle();
+  function ^= object_table.At(ret_address_instr->object_table_index());
   ASSERT(code != NULL);
-  *code ^= object_table.At(ret_address_instr->object_table_index());
+  Compiler::EnsureUnoptimizedCode(Thread::Current(), function);
+  *code ^= function.unoptimized_code();
   ASSERT(!code->IsNull());
   uword res = code->GetPcForDeoptId(ret_address_instr->deopt_id(),
                                     RawPcDescriptors::kDeopt);
@@ -1083,33 +1036,27 @@ FpuRegisterSource DeoptInfoBuilder::ToFpuRegisterSource(
   }
 }
 
-void DeoptInfoBuilder::AddReturnAddress(const Code& code,
+void DeoptInfoBuilder::AddReturnAddress(const Function& function,
                                         intptr_t deopt_id,
                                         intptr_t dest_index) {
-  // Check that deopt_id exists.
-  // TODO(vegorov): verify after deoptimization targets as well.
-#ifdef DEBUG
-  ASSERT(Isolate::IsDeoptAfter(deopt_id) ||
-         (code.GetPcForDeoptId(deopt_id, RawPcDescriptors::kDeopt) != 0));
-#endif
-  const intptr_t object_table_index = FindOrAddObjectInTable(code);
+  const intptr_t object_table_index = FindOrAddObjectInTable(function);
   ASSERT(dest_index == FrameSize());
   instructions_.Add(
       new(zone()) DeoptRetAddressInstr(object_table_index, deopt_id));
 }
 
 
-void DeoptInfoBuilder::AddPcMarker(const Code& code,
+void DeoptInfoBuilder::AddPcMarker(const Function& function,
                                    intptr_t dest_index) {
-  intptr_t object_table_index = FindOrAddObjectInTable(code);
+  intptr_t object_table_index = FindOrAddObjectInTable(function);
   ASSERT(dest_index == FrameSize());
   instructions_.Add(new(zone()) DeoptPcMarkerInstr(object_table_index));
 }
 
 
-void DeoptInfoBuilder::AddPp(const Code& code,
+void DeoptInfoBuilder::AddPp(const Function& function,
                              intptr_t dest_index) {
-  intptr_t object_table_index = FindOrAddObjectInTable(code);
+  intptr_t object_table_index = FindOrAddObjectInTable(function);
   ASSERT(dest_index == FrameSize());
   instructions_.Add(new(zone()) DeoptPpInstr(object_table_index));
 }

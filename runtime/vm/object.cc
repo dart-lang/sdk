@@ -5101,7 +5101,7 @@ void Function::SwitchToUnoptimizedCode() const {
   Isolate* isolate = Isolate::Current();
   const Code& current_code = Code::Handle(isolate, CurrentCode());
 
-  if (FLAG_trace_disabling_optimized_code) {
+  if (FLAG_trace_deoptimization) {
     OS::Print("Disabling optimized code: '%s' entry: %#" Px "\n",
       ToFullyQualifiedCString(),
       current_code.EntryPoint());

@@ -8020,7 +8020,9 @@ class Environment : public ZoneAllocated {
         fixed_parameter_count_(fixed_parameter_count),
         deopt_id_(deopt_id),
         parsed_function_(parsed_function),
-        outer_(outer) { }
+        outer_(outer) {
+    ASSERT(!parsed_function_.code().IsNull());
+  }
 
 
   GrowableArray<Value*> values_;

@@ -4,12 +4,15 @@
 
 #include "vm/deferred_objects.h"
 
+#include "vm/code_patcher.h"
+#include "vm/compiler.h"
 #include "vm/deopt_instructions.h"
 #include "vm/flags.h"
 #include "vm/object.h"
 
 namespace dart {
 
+DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 
 
@@ -93,6 +96,112 @@ void DeferredObjectRef::Materialize(DeoptContext* deopt_context) {
     OS::PrintErr("writing instance of class %s ref at %" Px ".\n",
                  cls.ToCString(),
                  reinterpret_cast<uword>(slot()));
+  }
+}
+
+
+void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
+  Function& function = Function::Handle(deopt_context->zone());
+  function ^= deopt_context->ObjectAt(index_);
+  Compiler::EnsureUnoptimizedCode(deopt_context->thread(), function);
+  const Code& code =
+      Code::Handle(deopt_context->zone(), function.unoptimized_code());
+  // Check that deopt_id exists.
+  // TODO(vegorov): verify after deoptimization targets as well.
+#ifdef DEBUG
+  ASSERT(Isolate::IsDeoptAfter(deopt_id_) ||
+         (code.GetPcForDeoptId(deopt_id_, RawPcDescriptors::kDeopt) != 0));
+#endif
+
+  uword continue_at_pc = code.GetPcForDeoptId(deopt_id_,
+                                              RawPcDescriptors::kDeopt);
+  ASSERT(continue_at_pc != 0);
+  uword* dest_addr = reinterpret_cast<uword*>(slot());
+  *dest_addr = continue_at_pc;
+
+  if (FLAG_trace_deoptimization_verbose) {
+    OS::PrintErr("materializing return addr at 0x%" Px ": 0x%" Px "\n",
+                 reinterpret_cast<uword>(slot()), continue_at_pc);
+  }
+
+  uword pc = code.GetPcForDeoptId(deopt_id_, RawPcDescriptors::kIcCall);
+  if (pc != 0) {
+    // If the deoptimization happened at an IC call, update the IC data
+    // to avoid repeated deoptimization at the same site next time around.
+    ICData& ic_data = ICData::Handle();
+    CodePatcher::GetInstanceCallAt(pc, code, &ic_data);
+    if (!ic_data.IsNull()) {
+      ic_data.AddDeoptReason(deopt_context->deopt_reason());
+    }
+  } else {
+    if (deopt_context->HasDeoptFlag(ICData::kHoisted)) {
+      // Prevent excessive deoptimization.
+      function.set_allows_hoisting_check_class(false);
+    }
+
+    if (deopt_context->HasDeoptFlag(ICData::kGeneralized)) {
+      function.set_allows_bounds_check_generalization(false);
+    }
+  }
+}
+
+
+void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
+  uword* dest_addr = reinterpret_cast<uword*>(slot());
+  Function& function = Function::Handle(deopt_context->zone());
+  function ^= deopt_context->ObjectAt(index_);
+  if (function.IsNull()) {
+    // Callee's PC marker is not used (pc of Deoptimize stub). Set to 0.
+    *dest_addr = 0;
+    return;
+  }
+  Compiler::EnsureUnoptimizedCode(deopt_context->thread(), function);
+  const Code& code =
+      Code::Handle(deopt_context->zone(), function.unoptimized_code());
+  ASSERT(!code.IsNull());
+  ASSERT(function.HasCode());
+  const intptr_t pc_marker =
+      code.EntryPoint() + Assembler::EntryPointToPcMarkerOffset();
+  *dest_addr = pc_marker;
+
+  if (FLAG_trace_deoptimization_verbose) {
+    OS::PrintErr("materializing pc marker at 0x%" Px ": %s, %s\n",
+                 reinterpret_cast<uword>(slot()), code.ToCString(),
+                 function.ToCString());
+  }
+
+  // Increment the deoptimization counter. This effectively increments each
+  // function occurring in the optimized frame.
+  function.set_deoptimization_counter(function.deoptimization_counter() + 1);
+  if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
+    OS::PrintErr("Deoptimizing %s (count %d)\n",
+        function.ToFullyQualifiedCString(),
+        function.deoptimization_counter());
+  }
+  // Clear invocation counter so that hopefully the function gets reoptimized
+  // only after more feedback has been collected.
+  function.set_usage_counter(0);
+  if (function.HasOptimizedCode()) {
+    function.SwitchToUnoptimizedCode();
+  }
+}
+
+
+void DeferredPp::Materialize(DeoptContext* deopt_context) {
+  Function& function = Function::Handle(deopt_context->zone());
+  function ^= deopt_context->ObjectAt(index_);
+  ASSERT(!function.IsNull());
+  Compiler::EnsureUnoptimizedCode(deopt_context->thread(), function);
+  const Code& code =
+      Code::Handle(deopt_context->zone(), function.unoptimized_code());
+  ASSERT(!code.IsNull());
+  ASSERT(code.ObjectPool() != Object::null());
+  *slot() = code.ObjectPool();
+
+  if (FLAG_trace_deoptimization_verbose) {
+    OS::PrintErr("materializing pp at 0x%" Px ": 0x%" Px "\n",
+                 reinterpret_cast<uword>(slot()),
+                 reinterpret_cast<uword>(code.ObjectPool()));
   }
 }
 
