@@ -117,13 +117,33 @@ $endif
 
   @DomName('CSSStyleDeclaration.setProperty')
   void setProperty(String propertyName, String value, [String priority]) {
-    if (_supportsProperty(_camelCase(propertyName))) {
-      return _setPropertyHelper(propertyName, value, priority);
-    } else {
-      return _setPropertyHelper(Device.cssPrefix + propertyName, value,
-          priority);
-    }
+    return _setPropertyHelper(_browserPropertyName(propertyName),
+      value, priority);
   }
+
+  String _browserPropertyName(String propertyName) {
+    String name = _readCache(propertyName);
+    if (name is String) return name;
+    if (_supportsProperty(_camelCase(propertyName))) {
+      name = propertyName;
+    } else {
+      name = Device.cssPrefix + propertyName;
+    }
+    _writeCache(propertyName, name);
+    return name;
+  }
+
+$if DART2JS
+  static final _propertyCache = JS('', '{}');
+  static String _readCache(String key) =>
+    JS('String|Null', '#[#]', _propertyCache, key);
+  static void _writeCache(String key, String value) {
+    JS('void', '#[#] = #', _propertyCache, key, value);
+  }
+$else
+  static String _readCache(String key) => null;
+  static void _writeCache(String key, value) {}
+$endif
 
   static String _camelCase(String hyphenated) {
 $if DART2JS
@@ -142,18 +162,9 @@ $endif
 
 $if DART2JS
   void _setPropertyHelper(String propertyName, String value, [String priority]) {
-    // try/catch for IE9 which throws on unsupported values.
-    try {
-      if (value == null) value = '';
-      if (priority == null) {
-        priority = '';
-      }
-      JS('void', '#.setProperty(#, #, #)', this, propertyName, value, priority);
-      // Bug #2772, IE9 requires a poke to actually apply the value.
-      if (JS('bool', '!!#.setAttribute', this)) {
-        JS('void', '#.setAttribute(#, #)', this, propertyName, value);
-      }
-    } catch (e) {}
+    if (value == null) value = '';
+    if (priority == null) priority = '';
+    JS('void', '#.setProperty(#, #, #)', this, propertyName, value, priority);
   }
 
   /**
