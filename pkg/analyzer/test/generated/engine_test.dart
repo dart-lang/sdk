@@ -5494,6 +5494,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  LibraryResolverFactory get libraryResolverFactory {
+    fail("Unexpected invocation of getLibraryResolverFactory");
+    return null;
+  }
+  @override
   ResolverVisitorFactory get resolverVisitorFactory {
     fail("Unexpected invocation of getResolverVisitorFactory");
     return null;

@@ -574,6 +574,10 @@ class _TestContext implements ExtendedAnalysisContext {
       baseContext.refactoringUnsafeSources;
 
   @override
+  LibraryResolverFactory get libraryResolverFactory =>
+      baseContext.libraryResolverFactory;
+
+  @override
   ResolverVisitorFactory get resolverVisitorFactory =>
       baseContext.resolverVisitorFactory;
 

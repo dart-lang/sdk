@@ -35,6 +35,8 @@ import 'utilities_dart.dart';
 typedef void ImplicitConstructorBuilderCallback(ClassElement classElement,
     ClassElement superclassElement, void computation());
 
+typedef LibraryResolver LibraryResolverFactory(AnalysisContext context);
+
 typedef ResolverVisitor ResolverVisitorFactory(
     Library library, Source source, TypeProvider typeProvider);
 
@@ -7683,6 +7685,11 @@ class LibraryResolver {
   TypeProvider _typeProvider;
 
   /**
+   * The object used to access the types from the core library.
+   */
+  TypeProvider get typeProvider => _typeProvider;
+
+  /**
    * A table mapping library sources to the information being maintained for those libraries.
    */
   HashMap<Source, Library> _libraryMap = new HashMap<Source, Library>();
@@ -7818,7 +7825,7 @@ class LibraryResolver {
     // method and punt the decision to the clients.
     //
     //if (analyzeAll) {
-    _resolveReferencesAndTypes();
+    resolveReferencesAndTypes();
     //} else {
     //  resolveReferencesAndTypes(targetLibrary);
     //}
@@ -7899,7 +7906,7 @@ class LibraryResolver {
     // method and punt the decision to the clients.
     //
     //if (analyzeAll) {
-    _resolveReferencesAndTypes();
+    resolveReferencesAndTypes();
     //} else {
     //  resolveReferencesAndTypes(targetLibrary);
     //}
@@ -8467,7 +8474,7 @@ class LibraryResolver {
    * @throws AnalysisException if any of the identifiers could not be resolved or if any of the
    *           libraries could not have their types analyzed
    */
-  void _resolveReferencesAndTypes() {
+  void resolveReferencesAndTypes() {
     for (Library library in _librariesInCycles) {
       _resolveReferencesAndTypesInLibrary(library);
     }
@@ -12809,7 +12816,7 @@ class TypeOverrideManager {
   /**
    * The current override scope, or `null` if no scope has been entered.
    */
-  TypeOverrideManager_TypeOverrideScope _currentScope;
+  TypeOverrideManager_TypeOverrideScope currentScope;
 
   /**
    * Apply a set of overrides that were previously captured.
@@ -12817,10 +12824,10 @@ class TypeOverrideManager {
    * @param overrides the overrides to be applied
    */
   void applyOverrides(Map<VariableElement, DartType> overrides) {
-    if (_currentScope == null) {
+    if (currentScope == null) {
       throw new IllegalStateException("Cannot apply overrides without a scope");
     }
-    _currentScope.applyOverrides(overrides);
+    currentScope.applyOverrides(overrides);
   }
 
   /**
@@ -12830,11 +12837,11 @@ class TypeOverrideManager {
    * @return the overrides in the current scope
    */
   Map<VariableElement, DartType> captureLocalOverrides() {
-    if (_currentScope == null) {
+    if (currentScope == null) {
       throw new IllegalStateException(
           "Cannot capture local overrides without a scope");
     }
-    return _currentScope.captureLocalOverrides();
+    return currentScope.captureLocalOverrides();
   }
 
   /**
@@ -12846,28 +12853,28 @@ class TypeOverrideManager {
    */
   Map<VariableElement, DartType> captureOverrides(
       VariableDeclarationList variableList) {
-    if (_currentScope == null) {
+    if (currentScope == null) {
       throw new IllegalStateException(
           "Cannot capture overrides without a scope");
     }
-    return _currentScope.captureOverrides(variableList);
+    return currentScope.captureOverrides(variableList);
   }
 
   /**
    * Enter a new override scope.
    */
   void enterScope() {
-    _currentScope = new TypeOverrideManager_TypeOverrideScope(_currentScope);
+    currentScope = new TypeOverrideManager_TypeOverrideScope(currentScope);
   }
 
   /**
    * Exit the current override scope.
    */
   void exitScope() {
-    if (_currentScope == null) {
+    if (currentScope == null) {
       throw new IllegalStateException("No scope to exit");
     }
-    _currentScope = _currentScope._outerScope;
+    currentScope = currentScope._outerScope;
   }
 
   /**
@@ -12890,10 +12897,10 @@ class TypeOverrideManager {
    * @return the overridden type of the given element
    */
   DartType getType(Element element) {
-    if (_currentScope == null) {
+    if (currentScope == null) {
       return null;
     }
-    return _currentScope.getType(element);
+    return currentScope.getType(element);
   }
 
   /**
@@ -12906,9 +12913,9 @@ class TypeOverrideManager {
   void mergeOverrides(List<Map<VariableElement, DartType>> perBranchOverrides) {
     for (Map<VariableElement, DartType> branch in perBranchOverrides) {
       branch.forEach((VariableElement variable, DartType branchType) {
-        DartType currentType = _currentScope.getType(variable);
+        DartType currentType = currentScope.getType(variable);
         if (currentType != branchType) {
-          _currentScope.resetType(variable);
+          currentScope.resetType(variable);
         }
       });
     }
@@ -12921,10 +12928,10 @@ class TypeOverrideManager {
    * @param type the overridden type of the given element
    */
   void setType(VariableElement element, DartType type) {
-    if (_currentScope == null) {
+    if (currentScope == null) {
       throw new IllegalStateException("Cannot override without a scope");
     }
-    _currentScope.setType(element, type);
+    currentScope.setType(element, type);
   }
 }
 
@@ -13073,28 +13080,28 @@ class TypePromotionManager {
   /**
    * The current promotion scope, or `null` if no scope has been entered.
    */
-  TypePromotionManager_TypePromoteScope _currentScope;
+  TypePromotionManager_TypePromoteScope currentScope;
 
   /**
    * Returns the elements with promoted types.
    */
-  Iterable<Element> get promotedElements => _currentScope.promotedElements;
+  Iterable<Element> get promotedElements => currentScope.promotedElements;
 
   /**
    * Enter a new promotions scope.
    */
   void enterScope() {
-    _currentScope = new TypePromotionManager_TypePromoteScope(_currentScope);
+    currentScope = new TypePromotionManager_TypePromoteScope(currentScope);
   }
 
   /**
    * Exit the current promotion scope.
    */
   void exitScope() {
-    if (_currentScope == null) {
+    if (currentScope == null) {
       throw new IllegalStateException("No scope to exit");
     }
-    _currentScope = _currentScope._outerScope;
+    currentScope = currentScope._outerScope;
   }
 
   /**
@@ -13118,10 +13125,10 @@ class TypePromotionManager {
    * @return the promoted type of the given element
    */
   DartType getType(Element element) {
-    if (_currentScope == null) {
+    if (currentScope == null) {
       return null;
     }
-    return _currentScope.getType(element);
+    return currentScope.getType(element);
   }
 
   /**
@@ -13131,10 +13138,10 @@ class TypePromotionManager {
    * @param type the promoted type of the given element
    */
   void setType(Element element, DartType type) {
-    if (_currentScope == null) {
+    if (currentScope == null) {
       throw new IllegalStateException("Cannot promote without a scope");
     }
-    _currentScope.setType(element, type);
+    currentScope.setType(element, type);
   }
 }
 

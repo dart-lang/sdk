@@ -497,7 +497,7 @@ class ArgumentList extends AstNode {
    * then return the parameter element representing the parameter to which the
    * value of the given expression will be bound. Otherwise, return `null`.
    */
-  @deprecated // Use "expression.propagatedParameterElement"
+  @deprecated // Use "expression.staticParameterElement"
   ParameterElement getStaticParameterElementFor(Expression expression) {
     return _getStaticParameterElementFor(expression);
   }
@@ -865,7 +865,7 @@ class AssignmentExpression extends Expression {
    * representing the parameter to which the value of the right operand will be
    * bound. Otherwise, return `null`.
    */
-  @deprecated // Use "expression.propagatedParameterElement"
+  @deprecated // Use "expression.staticParameterElement"
   ParameterElement get staticParameterElementForRightHandSide {
     return _staticParameterElementForRightHandSide;
   }
@@ -3344,7 +3344,7 @@ class BinaryExpression extends Expression {
    * representing the parameter to which the value of the right operand will be
    * bound. Otherwise, return `null`.
    */
-  @deprecated // Use "expression.propagatedParameterElement"
+  @deprecated // Use "expression.staticParameterElement"
   ParameterElement get staticParameterElementForRightOperand {
     return _staticParameterElementForRightOperand;
   }
