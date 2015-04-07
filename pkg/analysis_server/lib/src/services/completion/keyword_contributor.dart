@@ -106,6 +106,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
         return;
       }
     }
+    if (previousMember is ImportDirective) {
+      if (previousMember.semicolon == null || previousMember.semicolon.isSynthetic) {
+        // If the prior member is an unfinished import directive
+        // then the user is probably finishing that
+        _addImportDirectiveKeywords(previousMember);
+        return;
+      }
+    }
     if (previousMember == null || previousMember is Directive) {
       if (previousMember == null &&
           !node.directives.any((d) => d is LibraryDirective)) {
@@ -125,6 +133,27 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
         Keyword.VAR,
         Keyword.VOID
       ], DART_RELEVANCE_HIGH);
+    }
+  }
+
+  @override
+  visitImportDirective(ImportDirective node) {
+    if (entity == node.asKeyword) {
+      if (node.deferredKeyword == null) {
+        _addSuggestion(Keyword.DEFERRED, DART_RELEVANCE_HIGH);
+      }
+    }
+    if (entity == node.semicolon) {
+      _addImportDirectiveKeywords(node);
+    }
+  }
+
+  void _addImportDirectiveKeywords(ImportDirective node) {
+    if (node.asKeyword == null) {
+      _addSuggestion(Keyword.AS, DART_RELEVANCE_HIGH);
+      if (node.deferredKeyword == null) {
+        _addSuggestion(Keyword.DEFERRED, DART_RELEVANCE_HIGH);
+      }
     }
   }
 

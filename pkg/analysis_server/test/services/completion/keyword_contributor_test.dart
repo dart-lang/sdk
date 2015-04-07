@@ -176,14 +176,14 @@ class KeywordContributorTest extends AbstractCompletionTest {
   }
 
   test_after_import() {
-    addTestSource('import foo; ^');
+    addTestSource('import "foo"; ^');
     expect(computeFast(), isTrue);
     assertSuggestKeywords(
         DIRECTIVE_AND_DECLARATION_KEYWORDS, DART_RELEVANCE_HIGH);
   }
 
   test_after_import2() {
-    addTestSource('import foo; c^');
+    addTestSource('import "foo"; c^');
     expect(computeFast(), isTrue);
     assertSuggestKeywords(
         DIRECTIVE_AND_DECLARATION_KEYWORDS, DART_RELEVANCE_HIGH);
@@ -402,6 +402,66 @@ class A {
     addTestSource('main() {{}^}');
     expect(computeFast(), isTrue);
     assertSuggestKeywords(IN_BLOCK_NOT_IN_CLASS);
+  }
+
+  test_import() {
+    addTestSource('import "foo" deferred as foo ^;');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([], DART_RELEVANCE_HIGH);
+  }
+
+  test_import_as() {
+    addTestSource('import "foo" deferred ^;');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.AS], DART_RELEVANCE_HIGH);
+  }
+
+  test_import_as2() {
+    addTestSource('import "foo" deferred a^;');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.AS], DART_RELEVANCE_HIGH);
+  }
+
+  test_import_as3() {
+    addTestSource('import "foo" deferred a^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.AS], DART_RELEVANCE_HIGH);
+  }
+
+  test_import_deferred() {
+    addTestSource('import "foo" ^ as foo;');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.DEFERRED], DART_RELEVANCE_HIGH);
+  }
+
+  test_import_deferred_not() {
+    addTestSource('import "foo" as foo ^;');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([], DART_RELEVANCE_HIGH);
+  }
+
+  test_import_deferred_as() {
+    addTestSource('import "foo" ^;');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.AS, Keyword.DEFERRED], DART_RELEVANCE_HIGH);
+  }
+
+  test_import_deferred_as2() {
+    addTestSource('import "foo" d^;');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.AS, Keyword.DEFERRED], DART_RELEVANCE_HIGH);
+  }
+
+  test_import_deferred_as3() {
+    addTestSource('import "foo" ^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.AS, Keyword.DEFERRED], DART_RELEVANCE_HIGH);
+  }
+
+  test_import_deferred_as4() {
+    addTestSource('import "foo" d^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.AS, Keyword.DEFERRED], DART_RELEVANCE_HIGH);
   }
 
   test_library() {
