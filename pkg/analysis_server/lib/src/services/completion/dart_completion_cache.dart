@@ -18,6 +18,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 
 /**
  * The `DartCompletionCache` contains cached information from a prior code
@@ -277,6 +278,20 @@ class DartCompletionCache extends CompletionCache {
    */
   void _addNonImportedElementSuggestions(
       List<SearchMatch> matches, Set<LibraryElement> excludedLibs) {
+
+    // Exclude internal Dart SDK libraries
+    for (var lib in context.sourceFactory.dartSdk.sdkLibraries) {
+      if (lib.isInternal) {
+        Source libUri = context.sourceFactory.forUri(lib.shortName);
+        if (libUri != null) {
+          LibraryElement libElem = context.getLibraryElement(libUri);
+          if (libElem != null) {
+            excludedLibs.add(libElem);
+          }
+        }
+      }
+    }
+
     AnalysisContext sdkContext = context.sourceFactory.dartSdk.context;
     matches.forEach((SearchMatch match) {
       if (match.kind == MatchKind.DECLARATION) {

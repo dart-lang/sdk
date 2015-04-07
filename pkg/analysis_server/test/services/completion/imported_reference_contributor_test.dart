@@ -175,7 +175,8 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
 
   @override
   void setUpContributor() {
-    contributor = new ImportedReferenceContributor(shouldWaitForLowPrioritySuggestions: true);
+    contributor = new ImportedReferenceContributor(
+        shouldWaitForLowPrioritySuggestions: true);
   }
 
   @override
@@ -225,6 +226,17 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
     });
   }
 
+  test_internal_sdk_libs() {
+    addTestSource('main() {p^}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggest('print');
+      assertSuggest('pow', relevance: DART_RELEVANCE_LOW);
+      // Do not suggest completions from internal SDK library
+      assertNotSuggested('printToConsole');
+    });
+  }
+
   test_Block_partial_results() {
     // Block  BlockFunctionBody  MethodDeclaration
     addSource('/testAB.dart', '''
@@ -255,7 +267,8 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
       Z D2() {int x;}
       class X {a() {var f; {var x;} ^ var r;} void b() { }}
       class Z { }''');
-    (contributor as ImportedReferenceContributor).shouldWaitForLowPrioritySuggestions = false;
+    ImportedReferenceContributor contributor = this.contributor;
+    contributor.shouldWaitForLowPrioritySuggestions = false;
     computeFast();
     return computeFull((bool result) {
       assertSuggestImportedClass('C');
