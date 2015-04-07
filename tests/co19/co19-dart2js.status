@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+LayoutTests/fast/innerHTML/innerHTML-svg-write_t01: Skip # Temporary suppression, WIP alanknight
+
 [ $compiler == dart2js ]
 Language/03_Overview/1_Scoping_A02_t05: CompileTimeError # Issue 21072
 Language/03_Overview/1_Scoping_A02_t06: CompileTimeError # Issue 21072

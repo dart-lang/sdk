@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:svg' as svg;
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:unittest/html_individual_config.dart';
 import 'utils.dart';
 
 
@@ -47,7 +47,7 @@ void testHtml(String name, NodeValidator validator, String html,
 }
 
 main() {
-  useHtmlConfiguration();
+  useHtmlIndividualConfiguration();
 
   group('DOM sanitization', () {
     var validator = new NodeValidatorBuilder.common();
