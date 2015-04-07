@@ -3261,50 +3261,6 @@ m(i) {
     verify([source]);
   }
 
-  void test_unusedElement_class_inClassMember() {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class _A {
-  static staticMethod() {
-    new _A();
-  }
-  instanceMethod() {
-    new _A();
-  }
-}
-''');
-    resolve(source);
-    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
-    verify([source]);
-  }
-
-  void test_unusedElement_class_inConstructorName() {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class _A {
-  _A() {}
-  _A.named() {}
-}
-''');
-    resolve(source);
-    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
-    verify([source]);
-  }
-
-  void test_unusedElement_class_isExpression() {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class _A {}
-main(p) {
-  if (p is _A) {
-  }
-}
-''');
-    resolve(source);
-    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
-    verify([source]);
-  }
-
   void test_unusedElement_class_isUsed_extends() {
     enableUnusedElement = true;
     Source source = addSource(r'''
@@ -3367,7 +3323,51 @@ main() {
     verify([source]);
   }
 
-  void test_unusedElement_class_noReference() {
+  void test_unusedElement_class_notUsed_inClassMember() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class _A {
+  static staticMethod() {
+    new _A();
+  }
+  instanceMethod() {
+    new _A();
+  }
+}
+''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_class_notUsed_inConstructorName() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class _A {
+  _A() {}
+  _A.named() {}
+}
+''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_class_notUsed_isExpression() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class _A {}
+main(p) {
+  if (p is _A) {
+  }
+}
+''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_class_notUsed_noReference() {
     enableUnusedElement = true;
     Source source = addSource(r'''
 class _A {}
@@ -3378,7 +3378,7 @@ main() {
     verify([source]);
   }
 
-  void test_unusedElement_class_variableDeclaration() {
+  void test_unusedElement_class_notUsed_variableDeclaration() {
     enableUnusedElement = true;
     Source source = addSource(r'''
 class _A {}
@@ -3388,6 +3388,29 @@ main() {
 }
 print(x) {}
 ''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_enum_isUsed_fieldReference() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+enum _MyEnum {A, B, C}
+main() {
+  print(_MyEnum.B);
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_enum_notUsed_noReference() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+enum _MyEnum {A, B, C}
+main() {
+}''');
     resolve(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
@@ -3499,6 +3522,40 @@ main() {
 _f(int p) {
   _f(p - 1);
 }
+main() {
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_functionTypeAlias_isUsed_reference() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+typedef _F(a, b);
+main(_F f) {
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_functionTypeAlias_isUsed_variableDeclaration() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+typedef _F(a, b);
+class A {
+  _F f;
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_functionTypeAlias_notUsed_noReference() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+typedef _F(a, b);
 main() {
 }''');
     resolve(source);

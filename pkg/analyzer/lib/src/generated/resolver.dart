@@ -4570,7 +4570,9 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
       if (parent2 is IsExpression) {
         return;
       }
-      if (parent2 is VariableDeclarationList) {
+      // We need to instantiate/extend/implement a class to actually use it.
+      // OTOH, function type aliases are used to define closure structures.
+      if (parent2 is VariableDeclarationList && element is ClassElement) {
         return;
       }
     }
@@ -14911,6 +14913,17 @@ class UnusedLocalElementsVerifier extends RecursiveElementVisitor {
       ]);
     }
     super.visitFunctionElement(element);
+  }
+
+  @override
+  visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
+    if (!_isUsedElement(element)) {
+      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element, [
+        element.kind.displayName,
+        element.displayName
+      ]);
+    }
+    super.visitFunctionTypeAliasElement(element);
   }
 
   @override
