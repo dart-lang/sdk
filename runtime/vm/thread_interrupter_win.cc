@@ -110,6 +110,12 @@ void ThreadInterrupter::InstallSignalHandler() {
   // Nothing to do on Windows.
 }
 
+
+void ThreadInterrupter::RemoveSignalHandler() {
+  // Nothing to do on Windows.
+}
+
+
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_WINDOWS)

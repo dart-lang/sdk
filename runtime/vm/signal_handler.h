@@ -44,6 +44,7 @@ typedef void (*SignalAction)(int signal, siginfo_t* info,
 class SignalHandler : public AllStatic {
  public:
   static void Install(SignalAction action);
+  static void Remove();
   static uintptr_t GetProgramCounter(const mcontext_t& mcontext);
   static uintptr_t GetFramePointer(const mcontext_t& mcontext);
   static uintptr_t GetCStackPointer(const mcontext_t& mcontext);
