@@ -490,7 +490,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
 
     _processes.remove(_serviceId);
 
-    return new _ProcessResult(
+    return new ProcessResult(
         result[0],
         result[1],
         getOutput(result[2], stdoutEncoding),
@@ -602,7 +602,7 @@ Future<ProcessResult> _runNonInteractiveProcess(String path,
     Future stderr = foldStream(p.stderr, stderrEncoding);
 
     return Future.wait([p.exitCode, stdout, stderr]).then((result) {
-      return new _ProcessResult(pid, result[0], result[1], result[2]);
+      return new ProcessResult(pid, result[0], result[1], result[2]);
     });
   });
 }
@@ -624,17 +624,4 @@ ProcessResult _runNonInteractiveProcessSync(
                                  runInShell,
                                  ProcessStartMode.NORMAL);
   return process._runAndWait(stdoutEncoding, stderrEncoding);
-}
-
-
-class _ProcessResult implements ProcessResult {
-  const _ProcessResult(int this.pid,
-                       int this.exitCode,
-                       this.stdout,
-                       this.stderr);
-
-  final int pid;
-  final int exitCode;
-  final stdout;
-  final stderr;
 }
