@@ -32,8 +32,14 @@ class B extends HtmlElement {
 
   static var invocations = [];
 
+  Completer completer;
+  
   void attributeChanged(name, oldValue, newValue) {
     invocations.add('$name: $oldValue => $newValue');
+    if (completer != null) {
+      completer.complete('value changed to $newValue');
+      completer = null;
+    }
   }
 }
 
@@ -90,16 +96,19 @@ main() {
       B.invocations = [];
 
       var b = new B();
+      var completer = new Completer();
+      b.completer = completer;
       b.id = 'x';
-      
-      return new Future.delayed(new Duration(milliseconds: 1))
+      return completer.future
         .then((_) => expect(B.invocations, ['created', 'id: null => x']))
         .then((_) {
-           B.invocations = [];
-           b.attributes.remove('id');
-         })
-        .then((_) => new Future.delayed(new Duration(milliseconds: 1)))
-        .then((_) => expect(B.invocations, ['id: x => null'])); 
+          B.invocations = [];
+          var secondCompleter = new Completer();
+          b.completer = secondCompleter;
+          b.attributes.remove('id');
+          return secondCompleter.future;
+        })
+       .then((_) => expect(B.invocations, ['id: x => null'])); 
     });
   });
 
