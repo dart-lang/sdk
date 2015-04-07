@@ -40554,7 +40554,7 @@ class _SameOriginUriPolicy implements UriPolicy {
         _hiddenAnchor.protocol == _loc.protocol) ||
         (_hiddenAnchor.hostname == '' &&
         _hiddenAnchor.port == '' &&
-        _hiddenAnchor.protocol == ':');
+        (_hiddenAnchor.protocol == ':' || _hiddenAnchor.protocol == ''));
   }
 }
 
