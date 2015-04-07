@@ -1300,9 +1300,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if ((representation() == kUnboxedUint32) ||
       (representation() == kUnboxedInt32)) {
     const Register result = locs()->out(0).reg();
-    if ((index_scale() == 1) && index.IsRegister()) {
-      __ SmiUntag(index.reg());
-    }
     switch (class_id()) {
       case kTypedDataInt32ArrayCid:
         ASSERT(representation() == kUnboxedInt32);
