@@ -3995,7 +3995,7 @@ class ChildEntities extends Object with IterableMixin implements Iterable {
  * >     [ImplementsClause]?
  * >     '{' [ClassMember]* '}'
  */
-class ClassDeclaration extends CompilationUnitMember {
+class ClassDeclaration extends NamedCompilationUnitMember {
   /**
    * The 'abstract' keyword, or `null` if the keyword was absent.
    */
@@ -4005,11 +4005,6 @@ class ClassDeclaration extends CompilationUnitMember {
    * The token representing the 'class' keyword.
    */
   Token classKeyword;
-
-  /**
-   * The name of the class being declared.
-   */
-  SimpleIdentifier _name;
 
   /**
    * The type parameters for the class, or `null` if the class does not have any
@@ -4071,8 +4066,7 @@ class ClassDeclaration extends CompilationUnitMember {
       TypeParameterList typeParameters, ExtendsClause extendsClause,
       WithClause withClause, ImplementsClause implementsClause,
       this.leftBracket, List<ClassMember> members, this.rightBracket)
-      : super(comment, metadata) {
-    _name = _becomeParentOf(name);
+      : super(comment, metadata, name) {
     _typeParameters = _becomeParentOf(typeParameters);
     _extendsClause = _becomeParentOf(extendsClause);
     _withClause = _becomeParentOf(withClause);
@@ -4144,18 +4138,6 @@ class ClassDeclaration extends CompilationUnitMember {
    * Return the members defined by the class.
    */
   NodeList<ClassMember> get members => _members;
-
-  /**
-   * Return the name of the class being declared.
-   */
-  SimpleIdentifier get name => _name;
-
-  /**
-   * Set the name of the class being declared to the given [identifier].
-   */
-  void set name(SimpleIdentifier identifier) {
-    _name = _becomeParentOf(identifier);
-  }
 
   /**
    * Return the native clause for this class, or `null` if the class does not
@@ -4295,11 +4277,6 @@ abstract class ClassMember extends Declaration {
  */
 class ClassTypeAlias extends TypeAlias {
   /**
-   * The name of the class being declared.
-   */
-  SimpleIdentifier _name;
-
-  /**
    * The type parameters for the class, or `null` if the class does not have any
    * type parameters.
    */
@@ -4344,8 +4321,7 @@ class ClassTypeAlias extends TypeAlias {
       SimpleIdentifier name, TypeParameterList typeParameters, this.equals,
       this.abstractKeyword, TypeName superclass, WithClause withClause,
       ImplementsClause implementsClause, Token semicolon)
-      : super(comment, metadata, keyword, semicolon) {
-    _name = _becomeParentOf(name);
+      : super(comment, metadata, keyword, name, semicolon) {
     _typeParameters = _becomeParentOf(typeParameters);
     _superclass = _becomeParentOf(superclass);
     _withClause = _becomeParentOf(withClause);
@@ -4385,18 +4361,6 @@ class ClassTypeAlias extends TypeAlias {
    * Return `true` if this class is declared to be an abstract class.
    */
   bool get isAbstract => abstractKeyword != null;
-
-  /**
-   * Return the name of the class being declared.
-   */
-  SimpleIdentifier get name => _name;
-
-  /**
-   * Set the name of the class being declared to the given [identifier].
-   */
-  void set name(SimpleIdentifier name) {
-    _name = _becomeParentOf(name);
-  }
 
   /**
    * Return the name of the superclass of the class being declared.
@@ -4843,7 +4807,8 @@ class CompilationUnit extends AstNode {
 }
 
 /**
- * A node that declares a name within the scope of a compilation unit.
+ * A node that declares one or more names within the scope of a compilation
+ * unit.
  *
  * > compilationUnitMember ::=
  * >     [ClassDeclaration]
@@ -5871,8 +5836,8 @@ class ContinueStatement extends Statement {
 }
 
 /**
- * A node that represents the declaration of a name. Each declared name is
- * visible within a name scope.
+ * A node that represents the declaration of one or more names. Each declared
+ * name is visible within a name scope.
  */
 abstract class Declaration extends AnnotatedNode {
   /**
@@ -6600,16 +6565,11 @@ class EnumConstantDeclaration extends Declaration {
  * > enumType ::=
  * >     metadata 'enum' [SimpleIdentifier] '{' [SimpleIdentifier] (',' [SimpleIdentifier])* (',')? '}'
  */
-class EnumDeclaration extends CompilationUnitMember {
+class EnumDeclaration extends NamedCompilationUnitMember {
   /**
    * The 'enum' keyword.
    */
   Token enumKeyword;
-
-  /**
-   * The name of the enumeration.
-   */
-  SimpleIdentifier _name;
 
   /**
    * The left curly bracket.
@@ -6635,8 +6595,7 @@ class EnumDeclaration extends CompilationUnitMember {
   EnumDeclaration(Comment comment, List<Annotation> metadata, this.enumKeyword,
       SimpleIdentifier name, this.leftBracket,
       List<EnumConstantDeclaration> constants, this.rightBracket)
-      : super(comment, metadata) {
-    _name = _becomeParentOf(name);
+      : super(comment, metadata, name) {
     _constants = new NodeList<EnumConstantDeclaration>(this, constants);
   }
 
@@ -6677,18 +6636,6 @@ class EnumDeclaration extends CompilationUnitMember {
   @deprecated // Use "this.enumKeyword"
   set keyword(Token token) {
     enumKeyword = token;
-  }
-
-  /**
-   * Return the name of the enumeration.
-   */
-  SimpleIdentifier get name => _name;
-
-  /**
-   * Set the name of the enumeration to the given [name].
-   */
-  void set name(SimpleIdentifier name) {
-    _name = _becomeParentOf(name);
   }
 
   @override
@@ -7906,7 +7853,7 @@ abstract class FunctionBody extends AstNode {
  * > functionSignature ::=
  * >     [Type]? ('get' | 'set')? [SimpleIdentifier] [FormalParameterList]
  */
-class FunctionDeclaration extends CompilationUnitMember {
+class FunctionDeclaration extends NamedCompilationUnitMember {
   /**
    * The token representing the 'external' keyword, or `null` if this is not an
    * external function.
@@ -7925,11 +7872,6 @@ class FunctionDeclaration extends CompilationUnitMember {
   Token propertyKeyword;
 
   /**
-   * The name of the function, or `null` if the function is not named.
-   */
-  SimpleIdentifier _name;
-
-  /**
    * The function expression being wrapped.
    */
   FunctionExpression _functionExpression;
@@ -7945,9 +7887,8 @@ class FunctionDeclaration extends CompilationUnitMember {
   FunctionDeclaration(Comment comment, List<Annotation> metadata,
       this.externalKeyword, TypeName returnType, this.propertyKeyword,
       SimpleIdentifier name, FunctionExpression functionExpression)
-      : super(comment, metadata) {
+      : super(comment, metadata, name) {
     _returnType = _becomeParentOf(returnType);
-    _name = _becomeParentOf(name);
     _functionExpression = _becomeParentOf(functionExpression);
   }
 
@@ -8004,18 +7945,6 @@ class FunctionDeclaration extends CompilationUnitMember {
    */
   bool get isSetter => propertyKeyword != null &&
       (propertyKeyword as KeywordToken).keyword == Keyword.SET;
-
-  /**
-   * Return the name of the function, or `null` if the function is not named.
-   */
-  SimpleIdentifier get name => _name;
-
-  /**
-   * Set the name of the function to the given [identifier].
-   */
-  void set name(SimpleIdentifier identifier) {
-    _name = _becomeParentOf(identifier);
-  }
 
   /**
    * Return the return type of the function, or `null` if no return type was
@@ -8310,11 +8239,6 @@ class FunctionTypeAlias extends TypeAlias {
   TypeName _returnType;
 
   /**
-   * The name of the function type being declared.
-   */
-  SimpleIdentifier _name;
-
-  /**
    * The type parameters for the function type, or `null` if the function type
    * does not have any type parameters.
    */
@@ -8336,9 +8260,8 @@ class FunctionTypeAlias extends TypeAlias {
       TypeName returnType, SimpleIdentifier name,
       TypeParameterList typeParameters, FormalParameterList parameters,
       Token semicolon)
-      : super(comment, metadata, keyword, semicolon) {
+      : super(comment, metadata, keyword, name, semicolon) {
     _returnType = _becomeParentOf(returnType);
-    _name = _becomeParentOf(name);
     _typeParameters = _becomeParentOf(typeParameters);
     _parameters = _becomeParentOf(parameters);
   }
@@ -8355,18 +8278,6 @@ class FunctionTypeAlias extends TypeAlias {
   @override
   FunctionTypeAliasElement get element =>
       _name != null ? (_name.staticElement as FunctionTypeAliasElement) : null;
-
-  /**
-   * Return the name of the function type being declared.
-   */
-  SimpleIdentifier get name => _name;
-
-  /**
-   * Set the name of the function type being declared to the given [name].
-   */
-  void set name(SimpleIdentifier name) {
-    _name = _becomeParentOf(name);
-  }
 
   /**
    * Return the parameters associated with the function type.
@@ -8580,7 +8491,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitClassDeclaration(ClassDeclaration node) =>
-      visitCompilationUnitMember(node);
+      visitNamedCompilationUnitMember(node);
 
   R visitClassMember(ClassMember node) => visitDeclaration(node);
 
@@ -8650,7 +8561,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitEnumDeclaration(EnumDeclaration node) =>
-      visitCompilationUnitMember(node);
+      visitNamedCompilationUnitMember(node);
 
   @override
   R visitExportDirective(ExportDirective node) => visitNamespaceDirective(node);
@@ -8689,7 +8600,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitFunctionDeclaration(FunctionDeclaration node) =>
-      visitCompilationUnitMember(node);
+      visitNamedCompilationUnitMember(node);
 
   @override
   R visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
@@ -8774,6 +8685,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitMethodInvocation(MethodInvocation node) => visitExpression(node);
+
+  R visitNamedCompilationUnitMember(NamedCompilationUnitMember node) =>
+      visitCompilationUnitMember(node);
 
   @override
   R visitNamedExpression(NamedExpression node) => visitExpression(node);
@@ -8893,7 +8807,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitTryStatement(TryStatement node) => visitStatement(node);
 
-  R visitTypeAlias(TypeAlias node) => visitCompilationUnitMember(node);
+  R visitTypeAlias(TypeAlias node) => visitNamedCompilationUnitMember(node);
 
   @override
   R visitTypeArgumentList(TypeArgumentList node) => visitNode(node);
@@ -11920,6 +11834,39 @@ class MethodInvocation extends Expression {
     _safelyVisitChild(_target, visitor);
     _safelyVisitChild(_methodName, visitor);
     _safelyVisitChild(_argumentList, visitor);
+  }
+}
+
+/**
+ * A node that declares a single name within the scope of a compilation unit.
+ */
+abstract class NamedCompilationUnitMember extends CompilationUnitMember {
+  /**
+   * The name of the member being declared.
+   */
+  SimpleIdentifier _name;
+
+  /**
+   * Initialize a newly created compilation unit member with the given [name].
+   * Either or both of the [comment] and [metadata] can be `null` if the member
+   * does not have the corresponding attribute.
+   */
+  NamedCompilationUnitMember(
+      Comment comment, List<Annotation> metadata, SimpleIdentifier name)
+      : super(comment, metadata) {
+    _name = _becomeParentOf(name);
+  }
+
+  /**
+   * Return the name of the member being declared.
+   */
+  SimpleIdentifier get name => _name;
+
+  /**
+   * Set the name of the member being declared to the given [identifier].
+   */
+  void set name(SimpleIdentifier identifier) {
+    _name = _becomeParentOf(identifier);
   }
 }
 
@@ -18728,7 +18675,7 @@ class TryStatement extends Statement {
  * >     classTypeAlias
  * >   | functionTypeAlias
  */
-abstract class TypeAlias extends CompilationUnitMember {
+abstract class TypeAlias extends NamedCompilationUnitMember {
   /**
    * The token representing the 'typedef' keyword.
    */
@@ -18745,8 +18692,8 @@ abstract class TypeAlias extends CompilationUnitMember {
    * attribute.
    */
   TypeAlias(Comment comment, List<Annotation> metadata, this.typedefKeyword,
-      this.semicolon)
-      : super(comment, metadata);
+      SimpleIdentifier name, this.semicolon)
+      : super(comment, metadata, name);
 
   @override
   Token get endToken => semicolon;

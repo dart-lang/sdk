@@ -226,7 +226,7 @@ abstract class ClassElement implements Element {
    * so parsing and resolving will be performed.
    */
   @override
-  AstNode get node;
+  NamedCompilationUnitMember get node;
 
   /**
    * Return the superclass of this class, or `null` if the class represents the
@@ -702,7 +702,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @override
-  AstNode get node {
+  NamedCompilationUnitMember get node {
     if (isEnum) {
       return getNodeMatching((node) => node is EnumDeclaration);
     } else {
