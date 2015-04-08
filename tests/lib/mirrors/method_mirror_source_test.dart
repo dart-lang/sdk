@@ -100,7 +100,8 @@ main() {
   expectSource(reflect(a), "() {}");
 
   // Function at first line.
-  expectSource(reflectClass(SomethingInOther).owner.declarations[#main],
+  LibraryMirror otherLib = reflectClass(SomethingInOther).owner;
+  expectSource(otherLib.declarations[#main],
 """main() {
   print("Blah");
 }""");
