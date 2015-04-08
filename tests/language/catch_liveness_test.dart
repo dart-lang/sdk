@@ -4,10 +4,10 @@
 
 import "package:expect/expect.dart";
 
-@AssumeDynamic @NoInline
+@AssumeDynamic() @NoInline()
 foo() => 1;
 
-@AssumeDynamic @NoInline
+@AssumeDynamic() @NoInline()
 throwException() => throw 'x';
 
 main() {
