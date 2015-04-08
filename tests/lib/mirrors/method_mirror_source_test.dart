@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:mirrors";
-
 import "package:expect/expect.dart";
+import "method_mirror_source_other.dart";
 
 expectSource(Mirror mirror, String source) {
   MethodMirror methodMirror;
@@ -14,7 +14,7 @@ expectSource(Mirror mirror, String source) {
     methodMirror = mirror as MethodMirror;
   }
   Expect.isTrue(methodMirror is MethodMirror);
-  Expect.equals(methodMirror.source, source);
+  Expect.equals(source, methodMirror.source);
 }
 
 foo1() {}
@@ -98,4 +98,10 @@ main() {
   var a = () {};
   expectSource(reflect(namedClosure), "namedClosure(x,y,z) => 1;");
   expectSource(reflect(a), "() {}");
+
+  // Function at first line.
+  expectSource(reflectClass(SomethingInOther).owner.declarations[#main],
+"""main() {
+  print("Blah");
+}""");
 }
