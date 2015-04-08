@@ -519,7 +519,8 @@ class ASTEmitter
     // that may occur in expression context, but could not be inlined anywhere.
     if (stmt.variable.element is FunctionElement &&
         stmt.value is tree.FunctionExpression &&
-        !context.declaredVariables.contains(stmt.variable)) {
+        !context.declaredVariables.contains(stmt.variable) &&
+        stmt.variable.writeCount == 1) {
       tree.FunctionExpression functionExp = stmt.value;
       FunctionExpression function =
           makeSubFunction(functionExp.definition, context);

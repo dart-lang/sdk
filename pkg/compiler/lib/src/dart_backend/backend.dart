@@ -168,11 +168,6 @@ class DartBackend extends Backend {
     applyCpsPass(new RedundantPhiEliminator());
     applyCpsPass(new ShrinkingReducer());
 
-    // Do not rewrite the IR after variable allocation.  Allocation
-    // makes decisions based on an approximation of IR variable live
-    // ranges that can be invalidated by transforming the IR.
-    new cps_ir.RegisterAllocator(context.internalError).visit(cpsDefinition);
-
     tree_builder.Builder builder =
         new tree_builder.Builder(context.internalError);
     tree_ir.ExecutableDefinition treeDefinition = builder.build(cpsDefinition);
@@ -188,7 +183,7 @@ class DartBackend extends Backend {
     }
 
     applyTreePass(new StatementRewriter());
-    applyTreePass(new CopyPropagator());
+    applyTreePass(new VariableMerger());
     applyTreePass(new LoopRewriter());
     applyTreePass(new LogicalRewriter());
 

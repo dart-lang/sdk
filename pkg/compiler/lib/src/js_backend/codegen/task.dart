@@ -179,10 +179,6 @@ class CpsFunctionCompiler implements FunctionCompiler {
     applyCpsPass(new RedundantPhiEliminator());
     applyCpsPass(new ShrinkingReducer());
 
-    // Do not rewrite the IR after variable allocation.  Allocation
-    // makes decisions based on an approximation of IR variable live
-    // ranges that can be invalidated by transforming the IR.
-    new cps.RegisterAllocator(compiler.internalError).visit(cpsNode);
     return cpsNode;
   }
 
@@ -209,7 +205,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
     }
 
     applyTreePass(new StatementRewriter());
-    applyTreePass(new CopyPropagator());
+    applyTreePass(new VariableMerger());
     applyTreePass(new LoopRewriter());
     applyTreePass(new LogicalRewriter());
 

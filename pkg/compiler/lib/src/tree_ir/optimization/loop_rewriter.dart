@@ -43,13 +43,6 @@ class LoopRewriter extends RecursiveVisitor with PassMixin {
   }
 
   Statement visitAssign(Assign node) {
-    // Clean up redundant assignments left behind in the previous phase.
-    Expression value = node.value;
-    if (value is VariableUse && node.variable == value.variable) {
-      --node.variable.readCount;
-      --node.variable.writeCount;
-      return visitStatement(node.next);
-    }
     visitExpression(node.value);
     node.next = visitStatement(node.next);
     return node;

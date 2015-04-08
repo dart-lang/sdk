@@ -395,11 +395,11 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
         node.elseStatement,
         (t,f) => new Conditional(node.condition, t, f)..processed = true);
     if (reduced != null) {
-      if (reduced.next is Break) {
-        // In case the break can now be inlined.
-        reduced = visitStatement(reduced);
-      }
-      return reduced;
+      // TODO(asgerf): Avoid revisiting nodes or visiting nodes that we created.
+      //               This breaks the assumption that all subexpressions are
+      //               variable uses, and it can be expensive.
+      // Revisit in case the break can now be inlined.
+      return visitStatement(reduced);
     }
 
     return node;
@@ -584,6 +584,17 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
         return new Return(e);
       }
     }
+    if (s is Assign && t is Assign &&
+        s.variable == t.variable &&
+        isSameVariable(s.value, t.value)) {
+      Statement next = combineStatements(s.next, t.next);
+      if (next != null) {
+        s.next = next;
+        --t.variable.writeCount;
+        --(t.value as VariableUse).variable.readCount;
+        return s;
+      }
+    }
     return null;
   }
 
@@ -654,28 +665,34 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     // NOTE: We name variables here as if S is in the then-then position.
     Statement outerThen = getBranch(outerIf, branch1);
     Statement outerElse = getBranch(outerIf, !branch1);
-    if (outerThen is If && outerElse is Break) {
+    if (outerThen is If) {
       If innerIf = outerThen;
       Statement innerThen = getBranch(innerIf, branch2);
       Statement innerElse = getBranch(innerIf, !branch2);
-      if (innerElse is Break && innerElse.target == outerElse.target) {
+      Statement combinedElse = combineStatements(innerElse, outerElse);
+      if (combinedElse != null) {
         // We always put S in the then branch of the result, and adjust the
         // condition expression if S was actually found in the else branch(es).
         outerIf.condition = new LogicalOperator.and(
             makeCondition(outerIf.condition, branch1),
             makeCondition(innerIf.condition, branch2));
         outerIf.thenStatement = innerThen;
-        --innerElse.target.useCount;
 
         // Try to inline the remaining break.  Do not propagate assignments.
         inEmptyEnvironment(() {
-          outerIf.elseStatement = visitStatement(outerElse);
+          // TODO(asgerf): Avoid quadratic cost from repeated processing. This
+          //               should be easier after we introduce basic blocks.
+          outerIf.elseStatement = visitStatement(combinedElse);
         });
 
-        return outerIf.elseStatement is If && innerThen is Break;
+        return outerIf.elseStatement is If;
       }
     }
     return false;
+  }
+
+  static bool isSameVariable(Expression e1, Expression e2) {
+    return e1 is VariableUse && e2 is VariableUse && e1.variable == e2.variable;
   }
 
   Expression makeCondition(Expression e, bool polarity) {

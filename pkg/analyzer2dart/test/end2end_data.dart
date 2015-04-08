@@ -256,6 +256,14 @@ main() {
   print(a);
   return a;
 }
+''', '''
+main() {
+  var a;
+  print(0);
+  a = "";
+  print(a);
+  return a;
+}
 '''),
 
     const TestSpec('''
@@ -272,6 +280,12 @@ main(a) {
   if (a) {
     a = "";
   }
+  print(a);
+  return a;
+}
+''', '''
+main(a) {
+  a = a ? "" : a;
   print(a);
   return a;
 }
@@ -741,12 +755,10 @@ main(a) {
 }
 ''', '''
 main(a) {
-  var v0 = a.iterator, i;
+  var v0 = a.iterator;
   while (v0.moveNext()) {
-    i = v0.current;
-    print(i);
-    i = 0;
-    print(i);
+    print(v0.current);
+    print(0);
   }
 }
 '''),

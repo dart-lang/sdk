@@ -3,8 +3,10 @@ library tree_ir.optimization;
 import '../tree_ir_nodes.dart';
 import '../../elements/elements.dart';
 import '../../constants/values.dart' as values;
+import 'variable_merger.dart';
 
-part 'copy_propagator.dart';
+export 'variable_merger.dart' show VariableMerger;
+
 part 'logical_rewriter.dart';
 part 'loop_rewriter.dart';
 part 'statement_rewriter.dart';
@@ -37,3 +39,4 @@ abstract class PassMixin implements Pass {
     rewriteExecutableDefinition(root);
   }
 }
+
