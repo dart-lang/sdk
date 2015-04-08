@@ -5969,13 +5969,19 @@ class Parser {
     } else if (deferredToken != null) {
       _reportErrorForCurrentToken(
           ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT);
-    } else if (!_matches(TokenType.SEMICOLON) &&
-        _tokenMatchesKeyword(_peek(), Keyword.AS)) {
-      _reportErrorForCurrentToken(
-          ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken]);
-      _advance();
-      asToken = getAndAdvance();
-      prefix = parseSimpleIdentifier();
+    } else if (!_matches(TokenType.SEMICOLON)) {
+      Token nextToken = _peek();
+      if (_tokenMatchesKeyword(nextToken, Keyword.AS) ||
+          _tokenMatchesString(nextToken, _SHOW) ||
+          _tokenMatchesString(nextToken, _HIDE)) {
+        _reportErrorForCurrentToken(
+            ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken]);
+        _advance();
+        if (_matchesKeyword(Keyword.AS)) {
+          asToken = getAndAdvance();
+          prefix = parseSimpleIdentifier();
+        }
+      }
     }
     List<Combinator> combinators = _parseCombinators();
     Token semicolon = _expectSemicolon();

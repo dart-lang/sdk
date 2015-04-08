@@ -107,7 +107,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       }
     }
     if (previousMember is ImportDirective) {
-      if (previousMember.semicolon == null || previousMember.semicolon.isSynthetic) {
+      if (previousMember.semicolon == null ||
+          previousMember.semicolon.isSynthetic) {
         // If the prior member is an unfinished import directive
         // then the user is probably finishing that
         _addImportDirectiveKeywords(previousMember);
@@ -143,7 +144,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
         _addSuggestion(Keyword.DEFERRED, DART_RELEVANCE_HIGH);
       }
     }
-    if (entity == node.semicolon) {
+    if (entity == node.semicolon || node.combinators.contains(entity)) {
       _addImportDirectiveKeywords(node);
     }
   }
