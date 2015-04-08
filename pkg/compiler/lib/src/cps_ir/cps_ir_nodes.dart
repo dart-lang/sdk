@@ -497,13 +497,11 @@ class InvokeContinuation extends Expression {
   bool isRecursive;
 
   InvokeContinuation(Continuation cont, List<Primitive> args,
-                     {recursive: false})
+                     {this.isRecursive: false})
       : continuation = new Reference<Continuation>(cont),
-        arguments = _referenceList(args),
-        isRecursive = recursive {
-    assert(cont.parameters == null ||
-        cont.parameters.length == args.length);
-    if (recursive) cont.isRecursive = true;
+        arguments = _referenceList(args) {
+    assert(cont.parameters == null || cont.parameters.length == args.length);
+    if (isRecursive) cont.isRecursive = true;
   }
 
   /// A continuation invocation whose target and arguments will be filled
@@ -511,10 +509,9 @@ class InvokeContinuation extends Expression {
   ///
   /// Used as a placeholder for a jump whose target is not yet created
   /// (e.g., in the translation of break and continue).
-  InvokeContinuation.uninitialized({recursive: false})
+  InvokeContinuation.uninitialized({this.isRecursive: false})
       : continuation = null,
-        arguments = null,
-        isRecursive = recursive;
+        arguments = null;
 
   accept(Visitor visitor) => visitor.visitInvokeContinuation(this);
 }
@@ -656,7 +653,7 @@ class LiteralList extends Primitive {
   final GenericType type;
   final List<Reference<Primitive>> values;
 
-  LiteralList(this.type, Iterable<Primitive> values)
+  LiteralList(this.type, List<Primitive> values)
       : this.values = _referenceList(values);
 
   accept(Visitor visitor) => visitor.visitLiteralList(this);
@@ -718,11 +715,11 @@ class Continuation extends Definition<Continuation> implements InteriorNode {
   int parent_index;
 
   // A continuation is recursive if it has any recursive invocations.
-  bool isRecursive = false;
+  bool isRecursive;
 
   bool get isReturnContinuation => body == null;
 
-  Continuation(this.parameters);
+  Continuation(this.parameters, {this.isRecursive: false});
 
   Continuation.retrn() : parameters = <Parameter>[new Parameter(null)];
 

@@ -411,7 +411,7 @@ class SExpressionUnstringifier {
     List<Primitive> args = parsePrimitiveList();
 
     tokens.consumeEnd();
-    return new InvokeContinuation(cont, args, recursive: isRecursive);
+    return new InvokeContinuation(cont, args, isRecursive: isRecursive);
   }
 
   /// (InvokeMethod receiver method (args) cont)
