@@ -1275,9 +1275,6 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                    locs);
   __ Comment("InstanceCall return");
   __ Drop(argument_count);
-#if defined(DEBUG)
-  __ LoadImmediate(S4, kInvalidObjectPointer);
-#endif
 }
 
 
@@ -1361,10 +1358,6 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
                    &target_label,
                    RawPcDescriptors::kUnoptStaticCall,
                    locs);
-#if defined(DEBUG)
-  __ LoadImmediate(S4, kInvalidObjectPointer);
-  __ LoadImmediate(S5, kInvalidObjectPointer);
-#endif
   __ Drop(argument_count);
 }
 
@@ -1453,13 +1446,6 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                            Isolate::kNoDeoptId,
                            token_pos);
     }
-#if defined(DEBUG)
-    if (!is_optimizing()) {
-      // Do this *after* adding the pc descriptor!
-      __ LoadImmediate(S4, kInvalidObjectPointer);
-      __ LoadImmediate(S5, kInvalidObjectPointer);
-    }
-#endif
     __ Comment("EqualityRegRegCompare return");
     // Stub returns result in CMPRES1 (if it is 0, then left and right are
     // equal).

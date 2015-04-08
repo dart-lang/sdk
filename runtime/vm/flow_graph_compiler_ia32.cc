@@ -1224,10 +1224,6 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
                    RawPcDescriptors::kUnoptStaticCall,
                    locs);
   __ Drop(argument_count);
-#if defined(DEBUG)
-  __ movl(ECX, Immediate(kInvalidObjectPointer));
-  __ movl(EDX, Immediate(kInvalidObjectPointer));
-#endif
 }
 
 
@@ -1298,9 +1294,6 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                    RawPcDescriptors::kIcCall,
                    locs);
   __ Drop(argument_count);
-#if defined(DEBUG)
-  __ movl(EDX, Immediate(kInvalidObjectPointer));
-#endif
 }
 
 
@@ -1443,13 +1436,6 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                            Isolate::kNoDeoptId,
                            token_pos);
     }
-#if defined(DEBUG)
-    if (!is_optimizing()) {
-      // Do this *after* adding the pc descriptor!
-      __ movl(EDX, Immediate(kInvalidObjectPointer));
-      __ movl(ECX, Immediate(kInvalidObjectPointer));
-    }
-#endif
     // Stub returns result in flags (result of a cmpl, we need ZF computed).
     __ popl(right);
     __ popl(left);
