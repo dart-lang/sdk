@@ -501,9 +501,11 @@ abstract class IrBuilder {
   }
 
   ir.Primitive _buildInvokeCall(ir.Primitive target,
-                                Selector selector,
-                                List<ir.Definition> arguments) {
-    Selector callSelector = new Selector.callClosureFrom(selector);
+                                 Selector selector,
+                                 List<ir.Definition> arguments) {
+    Selector callSelector = new Selector.callClosure(
+        selector.argumentCount,
+        selector.namedArguments);
     return _buildInvokeDynamic(target, callSelector, arguments);
   }
 

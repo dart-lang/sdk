@@ -46,8 +46,6 @@ abstract class Name {
   /// privacy into account.
   bool isSimilarTo(Name other);
   int get similarHashCode;
-  
-  LibraryElement get library;
 }
 
 class PublicName implements Name {
@@ -74,8 +72,6 @@ class PublicName implements Name {
   bool isSimilarTo(Name other) =>
       text == other.text && isSetter == other.isSetter;
   int get similarHashCode => text.hashCode + 11 * isSetter.hashCode;
-  
-  LibraryElement get library => null;
 
   String toString() => isSetter ? '$text=' : text;
 }

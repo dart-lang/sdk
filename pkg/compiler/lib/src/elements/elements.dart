@@ -980,9 +980,6 @@ abstract class ExecutableElement extends Element
 abstract class MemberElement extends Element implements ExecutableElement {
   /// The local functions defined within this member.
   List<FunctionElement> get nestedClosures;
-
-  /// The name of this member taking privacy into account.
-  Name get memberName;
 }
 
 /// A function, variable or parameter defined in an executable context.
@@ -1256,8 +1253,8 @@ abstract class ConstructorElement extends FunctionElement
 }
 
 /// JavaScript backend specific element for the body of constructor.
-// TODO(johnniwinther): Remove this class from the element model.
-abstract class ConstructorBodyElement extends MethodElement {
+// TODO(johnniwinther): Remove this class for the element model.
+abstract class ConstructorBodyElement extends FunctionElement {
   FunctionElement get constructor;
 }
 

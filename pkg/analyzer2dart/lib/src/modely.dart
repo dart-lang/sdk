@@ -720,8 +720,7 @@ class TopLevelVariableElementY extends ElementY
     with AnalyzableElementY,
          AstElementY,
          TopLevelElementMixin,
-         VariableElementMixin,
-         MemberElementMixin
+         VariableElementMixin
     implements dart2js.FieldElement {
 
   analyzer.TopLevelVariableElement get element => super.element;
@@ -811,8 +810,7 @@ class ConstructorElementY extends ElementY
     with AnalyzableElementY,
          AstElementY,
          FunctionElementMixin,
-         ClassMemberMixin,
-         MemberElementMixin
+         ClassMemberMixin
     implements dart2js.ConstructorElement {
 
   analyzer.ConstructorElement get element => super.element;
@@ -863,8 +861,7 @@ class InstanceMethodElementY extends ElementY
     with AnalyzableElementY,
          AstElementY,
          FunctionElementMixin,
-         ClassMemberMixin,
-         MemberElementMixin
+         ClassMemberMixin
     implements dart2js.MethodElement {
 
   analyzer.MethodElement get element => super.element;
@@ -890,8 +887,4 @@ class InstanceMethodElementY extends ElementY
 
   @override
   get nestedClosures => unsupported('nestedClosures');
-}
-
-abstract class MemberElementMixin implements dart2js.MemberElement {
-  dart2js.Name get memberName => new dart2js.Name(name, library);
 }

@@ -16,12 +16,12 @@ import 'package:compiler/src/dart_types.dart' as dart_types
     show DartType;
 import 'package:compiler/src/elements/elements.dart'
    show Entity, Element, Elements, Local, TypeVariableElement, ErroneousElement,
-         TypeDeclarationElement, ExecutableElement, PublicName;
+         TypeDeclarationElement, ExecutableElement;
 import 'package:compiler/src/elements/modelx.dart'
     show ErroneousElementX, TypeVariableElementX;
 import 'package:compiler/src/tree/tree.dart' show LiteralDartString;
 import 'package:compiler/src/universe/universe.dart'
-    show Selector, SelectorKind, CallStructure;
+    show Selector, SelectorKind;
 import 'package:compiler/src/cps_ir/cps_ir_nodes.dart';
 
 /// Used whenever a node constructed by [SExpressionUnstringifier] needs a
@@ -190,8 +190,7 @@ class SExpressionUnstringifier {
     } else {
       kind = SelectorKind.CALL;
     }
-    return new Selector(kind, new PublicName(name), 
-        new CallStructure.unnamed(argumentCount));
+    return new Selector(kind, name, null, argumentCount);
   }
 
   /// Returns the tokens in s. Note that string literals are not necessarily

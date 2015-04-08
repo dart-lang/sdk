@@ -236,8 +236,8 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
     if (selector.name == name) return selector;
     JavaScriptBackend backend = compiler.backend;
     Selector newSelector = new Selector(
-        SelectorKind.CALL, new Name(name, backend.interceptorsLibrary),
-        new CallStructure(selector.argumentCount));
+        SelectorKind.CALL, name, backend.interceptorsLibrary,
+        selector.argumentCount);
     return selector.mask == null
         ? newSelector
         : new TypedSelector(selector.mask, newSelector, compiler.world);

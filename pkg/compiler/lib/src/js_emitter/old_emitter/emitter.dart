@@ -337,7 +337,8 @@ class OldEmitter implements Emitter {
   }
 
   String getReflectionNameInternal(elementOrSelector, String mangledName) {
-    String name = namer.privateName(elementOrSelector.memberName);
+    String name =
+        namer.privateName(elementOrSelector.library, elementOrSelector.name);
     if (elementOrSelector.isGetter) return name;
     if (elementOrSelector.isSetter) {
       if (!mangledName.startsWith(namer.setterPrefix)) return '$name=';
@@ -364,9 +365,9 @@ class OldEmitter implements Emitter {
       String namedArguments = '';
       bool isConstructor = false;
       if (elementOrSelector is Selector) {
-        CallStructure callStructure = elementOrSelector.callStructure;
-        positionalParameterCount = callStructure.positionalArgumentCount;
-        namedArguments = namedParametersAsReflectionNames(callStructure);
+        Selector selector = elementOrSelector;
+        positionalParameterCount = selector.positionalArgumentCount;
+        namedArguments = namedParametersAsReflectionNames(selector);
       } else {
         FunctionElement function = elementOrSelector;
         if (function.isConstructor) {
@@ -380,9 +381,12 @@ class OldEmitter implements Emitter {
           for (Element e in signature.optionalParameters) {
             names.add(e.name);
           }
-          CallStructure callStructure =
-              new CallStructure(positionalParameterCount, names);
-          namedArguments = namedParametersAsReflectionNames(callStructure);
+          Selector selector = new Selector.call(
+              function.name,
+              function.library,
+              positionalParameterCount,
+              names);
+          namedArguments = namedParametersAsReflectionNames(selector);
         } else {
           // Named parameters are handled differently by mirrors. For unnamed
           // parameters, they are actually required if invoked
@@ -409,9 +413,9 @@ class OldEmitter implements Emitter {
         'Do not know how to reflect on this $element.');
   }
 
-  String namedParametersAsReflectionNames(CallStructure structure) {
-    if (structure.isUnnamed) return '';
-    String names = structure.getOrderedNamedArguments().join(':');
+  String namedParametersAsReflectionNames(Selector selector) {
+    if (selector.getOrderedNamedArguments().isEmpty) return '';
+    String names = selector.getOrderedNamedArguments().join(':');
     return ':$names';
   }
 

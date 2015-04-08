@@ -93,7 +93,7 @@ class TypeVariableHandler {
               typeVariableElement.node,
               typeVariableType,
               typeVariableConstructor,
-              const CallStructure.unnamed(3),
+              new Selector.callConstructor('', null, 3),
               arguments,
               arguments);
       ConstantValue value = constant.value;

@@ -42,8 +42,8 @@ class NsmEmitter extends CodeEmitterHelper {
       }
 
       List<jsAst.Expression> argNames =
-          selector.callStructure.getOrderedNamedArguments().map((String name) =>
-              js.string(name)).toList();
+               selector.getOrderedNamedArguments().map((String name) =>
+                   js.string(name)).toList();
       int type = selector.invocationMirrorKind;
       if (!haveVeryFewNoSuchMemberHandlers &&
           isTrivialNsmHandler(type, argNames, selector, jsName) &&

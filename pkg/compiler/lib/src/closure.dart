@@ -93,7 +93,7 @@ abstract class CapturedVariable {}
 // TODO(ahe): These classes continuously cause problems.  We need to
 // find a more general solution.
 class ClosureFieldElement extends ElementX
-    implements FieldElement, CapturedVariable {
+    implements VariableElement, CapturedVariable {
   /// The [BoxLocal] or [LocalElement] being accessed through the field.
   final Local local;
 
@@ -146,9 +146,6 @@ class ClosureFieldElement extends ElementX
   accept(ElementVisitor visitor) => visitor.visitClosureFieldElement(this);
 
   Element get analyzableElement => closureClass.methodElement.analyzableElement;
-
-  @override
-  List<FunctionElement> get nestedClosures => const <FunctionElement>[];
 }
 
 // TODO(ahe): These classes continuously cause problems.  We need to find
@@ -229,7 +226,7 @@ class BoxLocal extends Local {
 // TODO(ngeoffray, ahe): These classes continuously cause problems.  We need to
 // find a more general solution.
 class BoxFieldElement extends ElementX
-    implements TypedElement, CapturedVariable, FieldElement {
+    implements TypedElement, CapturedVariable {
   final BoxLocal box;
 
   BoxFieldElement(String name, this.variableElement, BoxLocal box)
@@ -243,33 +240,6 @@ class BoxFieldElement extends ElementX
   final VariableElement variableElement;
 
   accept(ElementVisitor visitor) => visitor.visitBoxFieldElement(this);
-
-  @override
-  bool get hasNode => false;
-
-  @override
-  bool get hasResolvedAst => false;
-
-  @override
-  Expression get initializer {
-    throw new UnsupportedError("BoxFieldElement.initializer");
-  }
-
-  @override
-  MemberElement get memberContext => box.executableContext.memberContext;
-
-  @override
-  List<FunctionElement> get nestedClosures => const <FunctionElement>[];
-
-  @override
-  Node get node {
-    throw new UnsupportedError("BoxFieldElement.node");
-  }
-
-  @override
-  ResolvedAst get resolvedAst {
-    throw new UnsupportedError("BoxFieldElement.resolvedAst");
-  }
 }
 
 /// A local variable used encode the direct (uncaptured) references to [this].
@@ -284,8 +254,7 @@ class ThisLocal extends Local {
 }
 
 /// Call method of a closure class.
-class SynthesizedCallMethodElementX extends BaseFunctionElementX
-    implements MethodElement {
+class SynthesizedCallMethodElementX extends BaseFunctionElementX {
   final LocalFunctionElement expression;
 
   SynthesizedCallMethodElementX(String name,

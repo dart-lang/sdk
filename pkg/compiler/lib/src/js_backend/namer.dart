@@ -496,27 +496,23 @@ class Namer {
    *
    * The resulting name is a *proposed name* and is never minified.
    */
-  String privateName(Name originalName) {
-    String text = originalName.text;
-
+  String privateName(LibraryElement library, String originalName) {
     // Public names are easy.
-    if (!originalName.isPrivate) return text;
-
-    LibraryElement library = originalName.library;
+    if (!isPrivateName(originalName)) return originalName;
 
     // The first library asking for a short private name wins.
     LibraryElement owner =
-        shortPrivateNameOwners.putIfAbsent(text, () => library);
+        shortPrivateNameOwners.putIfAbsent(originalName, () => library);
 
     if (owner == library) {
-      return text;
+      return originalName;
     } else {
       // Make sure to return a private name that starts with _ so it
       // cannot clash with any public names.
       // The name is still not guaranteed to be unique, since both the library
       // name and originalName could contain $ symbols.
       String libraryName = _disambiguateGlobal(library);
-      return '_$libraryName\$${text}';
+      return '_$libraryName\$${originalName}';
     }
   }
 
@@ -562,9 +558,9 @@ class Namer {
   ///
   /// This is used for the annotated names of `call`, and for the proposed name
   /// for other instance methods.
-  List<String> callSuffixForStructure(CallStructure callStructure) {
-    List<String> suffixes = ['${callStructure.argumentCount}'];
-    suffixes.addAll(callStructure.getOrderedNamedArguments());
+  List<String> callSuffixForSelector(Selector selector) {
+    List<String> suffixes = ['${selector.argumentCount}'];
+    suffixes.addAll(selector.getOrderedNamedArguments());
     return suffixes;
   }
 
@@ -586,13 +582,14 @@ class Namer {
 
   /// Annotated name for the member being invoked by [selector].
   String invocationName(Selector selector) {
+    LibraryElement library = selector.library;
     switch (selector.kind) {
       case SelectorKind.GETTER:
-        String disambiguatedName = _disambiguateMember(selector.memberName);
+        String disambiguatedName = _disambiguateMember(library, selector.name);
         return deriveGetterName(disambiguatedName);
 
       case SelectorKind.SETTER:
-        String disambiguatedName = _disambiguateMember(selector.memberName);
+        String disambiguatedName = _disambiguateMember(library, selector.name);
         return deriveSetterName(disambiguatedName);
 
       case SelectorKind.OPERATOR:
@@ -602,13 +599,13 @@ class Namer {
         return disambiguatedName; // Operators are not annotated.
 
       case SelectorKind.CALL:
-        List<String> suffix = callSuffixForStructure(selector.callStructure);
+        List<String> suffix = callSuffixForSelector(selector);
         if (selector.name == Compiler.CALL_OPERATOR_NAME) {
           // Derive the annotated name for this variant of 'call'.
           return deriveCallMethodName(suffix);
         }
         String disambiguatedName =
-            _disambiguateMember(selector.memberName, suffix);
+            _disambiguateMember(library, selector.name, suffix);
         return disambiguatedName; // Methods other than call are not annotated.
 
       default:
@@ -628,9 +625,9 @@ class Namer {
    * Returns the disambiguated name for the given field, used for constructing
    * the getter and setter names.
    */
-  String fieldAccessorName(FieldElement element) {
+  String fieldAccessorName(Element element) {
     return element.isInstanceMember
-        ? _disambiguateMember(element.memberName)
+        ? _disambiguateMember(element.library, element.name)
         : _disambiguateGlobal(element);
   }
 
@@ -638,7 +635,7 @@ class Namer {
    * Returns name of the JavaScript property used to store a static or instance
    * field.
    */
-  String fieldPropertyName(FieldElement element) {
+  String fieldPropertyName(Element element) {
     return element.isInstanceMember
         ? instanceFieldPropertyName(element)
         : _disambiguateGlobal(element);
@@ -666,7 +663,7 @@ class Namer {
   /**
    * Returns the JavaScript property name used to store an instance field.
    */
-  String instanceFieldPropertyName(FieldElement element) {
+  String instanceFieldPropertyName(Element element) {
     ClassElement enclosingClass = element.enclosingClass;
 
     if (element.hasFixedBackendName) {
@@ -706,7 +703,7 @@ class Namer {
     // No superclass uses the disambiguated name as a property name, so we can
     // use it for this field. This generates nicer field names since otherwise
     // the field name would have to be mangled.
-    return _disambiguateMember(element.memberName);
+    return _disambiguateMember(element.library, element.name);
   }
 
   bool _isShadowingSuperField(Element element) {
@@ -720,10 +717,10 @@ class Namer {
   }
 
   /// Annotated name for the setter of [element].
-  String setterForElement(MemberElement element) {
+  String setterForElement(Element element) {
     // We dynamically create setters from the field-name. The setter name must
     // therefore be derived from the instance field-name.
-    String name = _disambiguateMember(element.memberName);
+    String name = _disambiguateMember(element.library, element.name);
     return deriveSetterName(name);
   }
 
@@ -742,17 +739,26 @@ class Namer {
   }
 
   /// Annotated name for the getter of [element].
-  String getterForElement(MemberElement element) {
+  String getterForElement(Element element) {
     // We dynamically create getters from the field-name. The getter name must
     // therefore be derived from the instance field-name.
-    String name = _disambiguateMember(element.memberName);
+    String name = _disambiguateMember(element.library, element.name);
     return deriveGetterName(name);
   }
 
-  /// Property name for the getter of an instance member with [originalName].
-  String getterForMember(Name originalName) {
-    String disambiguatedName = _disambiguateMember(originalName);
+  /// Property name for the getter of an instance member with [originalName]
+  /// in [library].
+  ///
+  /// [library] may be `null` if [originalName] is known to be public.
+  String getterForMember(LibraryElement library, String originalName) {
+    String disambiguatedName = _disambiguateMember(library, originalName);
     return deriveGetterName(disambiguatedName);
+  }
+
+  /// Property name for the getter or a public instance member with
+  /// [originalName].
+  String getterForPublicMember(String originalName) {
+    return getterForMember(null, originalName);
   }
 
   /// Disambiguated name for a compiler-owned global variable.
@@ -816,19 +822,23 @@ class Namer {
   /// The resulting name, and its associated annotated names, are unique
   /// to the ([originalName], [suffixes]) pair within the instance-member
   /// namespace.
-  String _disambiguateMember(Name originalName,
+  String _disambiguateMember(LibraryElement library,
+                             String originalName,
                              [List<String> suffixes = const []]) {
+    // For private names, a library must be given.
+    assert(isPublicName(originalName) || library != null);
+
     // Build a string encoding the library name, if the name is private.
-    String libraryKey = originalName.isPrivate
-            ? _disambiguateGlobal(originalName.library)
+    String libraryKey = isPrivateName(originalName)
+            ? _disambiguateGlobal(library)
             : '';
 
     // In the unique key, separate the name parts by '@'.
     // This avoids clashes since the original names cannot contain that symbol.
-    String key = '$libraryKey@${originalName.text}@${suffixes.join('@')}';
+    String key = '$libraryKey@$originalName@${suffixes.join('@')}';
     String newName = userInstanceMembers[key];
     if (newName == null) {
-      String proposedName = privateName(originalName);
+      String proposedName = privateName(library, originalName);
       if (!suffixes.isEmpty) {
         // In the proposed name, separate the name parts by '$', because the
         // proposed name must be a valid identifier, but not necessarily unique.

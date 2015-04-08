@@ -1161,12 +1161,12 @@ class ConstantEmitter
   @override
   Expression visitConstructed(ConstructedConstantExpression exp,
                               BuilderContext<Statement> context) {
-    int positionalArgumentCount = exp.callStructure.positionalArgumentCount;
+    int positionalArgumentCount = exp.selector.positionalArgumentCount;
     List<Argument> args = new List<Argument>.generate(
         positionalArgumentCount,
         (i) => visit(exp.arguments[i], context));
-    for (int i = 0; i < exp.callStructure.namedArgumentCount; ++i) {
-      args.add(new NamedArgument(exp.callStructure.namedArguments[i],
+    for (int i = 0; i < exp.selector.namedArgumentCount; ++i) {
+      args.add(new NamedArgument(exp.selector.namedArguments[i],
           visit(exp.arguments[positionalArgumentCount + i], context)));
     }
 

@@ -11,7 +11,7 @@ part of dart2js.js_emitter;
 class ContainerBuilder extends CodeEmitterHelper {
 
   void addMemberMethod(DartMethod method, ClassBuilder builder) {
-    MethodElement member = method.element;
+    FunctionElement member = method.element;
     String name = method.name;
     FunctionSignature parameters = member.functionSignature;
     jsAst.Expression code = method.code;
@@ -163,14 +163,15 @@ class ContainerBuilder extends CodeEmitterHelper {
                 '"new ${Elements.reconstructConstructorName(member)}"');
       } else {
         reflectionName =
-            js.string(namer.privateName(member.memberName));
+            js.string(namer.privateName(member.library, member.name));
       }
       expressions
           ..add(reflectionName)
           ..addAll(task.metadataCollector
               .computeMetadata(member).map(js.number));
     } else if (isClosure && canBeApplied) {
-      expressions.add(js.string(namer.privateName(member.memberName)));
+      expressions.add(js.string(namer.privateName(member.library,
+                                                  member.name)));
     }
 
     jsAst.ArrayInitializer arrayInit =

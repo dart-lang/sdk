@@ -24,7 +24,7 @@ import 'js_emitter.dart' show
     RuntimeTypeGenerator,
     TypeTestProperties;
 
-import '../elements/elements.dart' show ParameterElement, MethodElement;
+import '../elements/elements.dart' show ParameterElement;
 
 import '../universe/universe.dart' show Universe;
 import '../deferred_load.dart' show DeferredLoadTask, OutputUnit;
@@ -371,7 +371,7 @@ class ProgramBuilder {
     if (element == backend.closureClass) {
       // We add a special getter here to allow for tearing off a closure from
       // itself.
-      String name = namer.getterForMember(Selector.CALL_NAME);
+      String name = namer.getterForPublicMember(Compiler.CALL_OPERATOR_NAME);
       js.Fun function = js.js('function() { return this; }');
       callStubs.add(_buildStubMethod(name, function));
     }
@@ -485,7 +485,7 @@ class ProgramBuilder {
     return optionalParameterDefaultValues;
   }
 
-  DartMethod _buildMethod(MethodElement element) {
+  DartMethod _buildMethod(FunctionElement element) {
     String name = namer.methodPropertyName(element);
     js.Expression code = backend.generatedCode[element];
 
@@ -578,7 +578,7 @@ class ProgramBuilder {
     }
   }
 
-  List<ParameterStubMethod> _generateParameterStubs(MethodElement element,
+  List<ParameterStubMethod> _generateParameterStubs(FunctionElement element,
                                                     bool canTearOff) {
 
     if (!_methodNeedsStubs(element)) return const <ParameterStubMethod>[];

@@ -19,7 +19,7 @@ import '../resolution/semantic_visitor.dart';
 import '../resolution/operators.dart' as op;
 import '../scanner/scannerlib.dart' show Token, isUserDefinableOperator;
 import '../tree/tree.dart' as ast;
-import '../universe/universe.dart' show SelectorKind, CallStructure;
+import '../universe/universe.dart' show SelectorKind;
 import 'cps_ir_nodes.dart' as ir;
 import 'cps_ir_builder.dart';
 
@@ -187,7 +187,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
   ///
   /// For the Dart backend, returns [arguments].
   List<ir.Primitive> normalizeStaticArguments(
-      CallStructure callStructure,
+      Selector selector,
       FunctionElement target,
       List<ir.Primitive> arguments);
 
@@ -924,10 +924,8 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
   ir.Primitive visitUnary(ast.Send node,
                           op.UnaryOperator operator, ast.Node expression, _) {
     // TODO(johnniwinther): Clean up the creation of selectors.
-    Selector selector = new Selector(
-        SelectorKind.OPERATOR,
-        new PublicName(operator.selectorName),
-        CallStructure.NO_ARGS);
+    Selector selector =
+        new Selector(SelectorKind.OPERATOR, operator.selectorName, null, 0);
     ir.Primitive receiver = translateReceiver(expression);
     return irBuilder.buildDynamicInvocation(receiver, selector, const []);
   }
@@ -939,10 +937,8 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       FunctionElement function,
       _) {
     // TODO(johnniwinther): Clean up the creation of selectors.
-    Selector selector = new Selector(
-        SelectorKind.OPERATOR,
-        new PublicName(operator.selectorName),
-        CallStructure.NO_ARGS);
+    Selector selector =
+        new Selector(SelectorKind.OPERATOR, operator.selectorName, null, 0);
     return irBuilder.buildSuperInvocation(function, selector, const []);
   }
 
@@ -958,9 +954,9 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
   // semantic correlation between arguments and invocation.
   List<ir.Primitive> translateStaticArguments(ast.NodeList nodeList,
                                               Element element,
-                                              CallStructure callStructure) {
+                                              Selector selector) {
     List<ir.Primitive> arguments = nodeList.nodes.mapToList(visit);
-    return normalizeStaticArguments(callStructure, element, arguments);
+    return normalizeStaticArguments(selector, element, arguments);
   }
 
   ir.Primitive translateCallInvoke(ir.Primitive target,
@@ -1036,7 +1032,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       return giveup(node, 'handleStaticFunctionInvoke: foreign: $function');
     }
     return irBuilder.buildStaticInvocation(function, selector,
-        translateStaticArguments(arguments, function, selector.callStructure),
+        translateStaticArguments(arguments, function, selector),
         sourceInformation: sourceInformationBuilder.buildCall(node));
   }
 
@@ -1718,8 +1714,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       Selector selector, _) {
     List<ir.Primitive> arguments =
         node.send.arguments.mapToList(visit, growable:false);
-    arguments = normalizeStaticArguments(
-        selector.callStructure, constructor, arguments);
+    arguments = normalizeStaticArguments(selector, constructor, arguments);
     return irBuilder.buildConstructorInvocation(
         constructor, selector, type, arguments);
   }
@@ -2019,7 +2014,7 @@ class DartIrBuilderVisitor extends IrBuilderVisitor {
   }
 
   List<ir.Primitive> normalizeStaticArguments(
-      CallStructure callStructure,
+      Selector selector,
       FunctionElement target,
       List<ir.Primitive> arguments) {
     return arguments;
@@ -2550,7 +2545,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
 
   /// Inserts default arguments and normalizes order of named arguments.
   List<ir.Primitive> normalizeStaticArguments(
-      CallStructure callStructure,
+      Selector selector,
       FunctionElement target,
       List<ir.Primitive> arguments) {
     target = target.implementation;
@@ -2583,7 +2578,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       // find them in [compiledNamedArguments]. If found, we use the
       // value in the temporary list, otherwise the default value.
       signature.orderedOptionalParameters.forEach((ParameterElement element) {
-        int nameIndex = callStructure.namedArguments.indexOf(element.name);
+        int nameIndex = selector.namedArguments.indexOf(element.name);
         if (nameIndex != -1) {
           int translatedIndex = offset + nameIndex;
           result.add(arguments[translatedIndex]);
@@ -2599,17 +2594,16 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   List<ir.Primitive> normalizeDynamicArguments(
       Selector selector,
       List<ir.Primitive> arguments) {
-    CallStructure callStructure = selector.callStructure;
-    assert(arguments.length == callStructure.argumentCount);
+    assert(arguments.length == selector.argumentCount);
     // Optimization: don't copy the argument list for trivial cases.
-    if (callStructure.namedArguments.isEmpty) return arguments;
+    if (selector.namedArguments.isEmpty) return arguments;
     List<ir.Primitive> result = <ir.Primitive>[];
-    for (int i=0; i < callStructure.positionalArgumentCount; i++) {
+    for (int i=0; i < selector.positionalArgumentCount; i++) {
       result.add(arguments[i]);
     }
-    for (String argName in callStructure.getOrderedNamedArguments()) {
-      int nameIndex = callStructure.namedArguments.indexOf(argName);
-      int translatedIndex = callStructure.positionalArgumentCount + nameIndex;
+    for (String argName in selector.getOrderedNamedArguments()) {
+      int nameIndex = selector.namedArguments.indexOf(argName);
+      int translatedIndex = selector.positionalArgumentCount + nameIndex;
       result.add(arguments[translatedIndex]);
     }
     return result;
