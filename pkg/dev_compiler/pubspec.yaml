@@ -1,10 +1,7 @@
 name: dev_compiler
 description: Dart dev checker / compiler
 dependencies:
-  analyzer:
-    git:
-      url: https://github.com/dart-lang/ddc_analyzer.git
-      ref: e3c06e1e133c4c492434ba5e1318b6d3d576116a
+  analyzer: ^0.24.3
   args: ^0.12.1
   cli_util: ^0.0.1
   crypto: ^0.9.0
@@ -24,11 +21,6 @@ dependencies:
 dev_dependencies:
   pub_semver: ^1.1.0
   unittest: ^0.11.0
-dependency_overrides:
-  analyzer:
-    git:
-      url: https://github.com/dart-lang/ddc_analyzer.git
-      ref: e3c06e1e133c4c492434ba5e1318b6d3d576116a
 executables:
   # Similar to "analyzer.dart" and its command line "dartanalyzer", we use
   # "dartdevc" and "devc.dart"

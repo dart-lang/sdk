@@ -601,7 +601,6 @@ class TypeManager {
         assert(false);
       }
       if (type is VoidType) return;
-      assert(type is! UnionType);
       print(type.toString());
       assert(false);
     }
