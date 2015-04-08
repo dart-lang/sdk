@@ -270,14 +270,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _isInStaticMethod = false;
     _boolType = _typeProvider.boolType;
     _intType = _typeProvider.intType;
-    _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = <InterfaceType>[
-      _typeProvider.nullType,
-      _typeProvider.numType,
-      _intType,
-      _typeProvider.doubleType,
-      _boolType,
-      _typeProvider.stringType
-    ];
+    _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = _typeProvider.nonSubtypableTypes;
   }
 
   @override

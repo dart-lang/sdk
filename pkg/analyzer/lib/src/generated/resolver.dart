@@ -13212,43 +13212,31 @@ class TypePromotionManager_TypePromoteScope {
 abstract class TypeProvider {
   /**
    * Return the type representing the built-in type 'bool'.
-   *
-   * @return the type representing the built-in type 'bool'
    */
   InterfaceType get boolType;
 
   /**
    * Return the type representing the type 'bottom'.
-   *
-   * @return the type representing the type 'bottom'
    */
   DartType get bottomType;
 
   /**
    * Return the type representing the built-in type 'Deprecated'.
-   *
-   * @return the type representing the built-in type 'Deprecated'
    */
   InterfaceType get deprecatedType;
 
   /**
    * Return the type representing the built-in type 'double'.
-   *
-   * @return the type representing the built-in type 'double'
    */
   InterfaceType get doubleType;
 
   /**
    * Return the type representing the built-in type 'dynamic'.
-   *
-   * @return the type representing the built-in type 'dynamic'
    */
   DartType get dynamicType;
 
   /**
    * Return the type representing the built-in type 'Function'.
-   *
-   * @return the type representing the built-in type 'Function'
    */
   InterfaceType get functionType;
 
@@ -13269,8 +13257,6 @@ abstract class TypeProvider {
 
   /**
    * Return the type representing the built-in type 'int'.
-   *
-   * @return the type representing the built-in type 'int'
    */
   InterfaceType get intType;
 
@@ -13286,15 +13272,17 @@ abstract class TypeProvider {
 
   /**
    * Return the type representing the built-in type 'List'.
-   *
-   * @return the type representing the built-in type 'List'
    */
   InterfaceType get listType;
 
   /**
+   * Return a list containing all of the types that cannot be either extended or
+   * implemented.
+   */
+  List<InterfaceType> get nonSubtypableTypes;
+
+  /**
    * Return the type representing the built-in type 'Map'.
-   *
-   * @return the type representing the built-in type 'Map'
    */
   InterfaceType get mapType;
 
@@ -13305,29 +13293,21 @@ abstract class TypeProvider {
 
   /**
    * Return the type representing the built-in type 'Null'.
-   *
-   * @return the type representing the built-in type 'null'
    */
   InterfaceType get nullType;
 
   /**
    * Return the type representing the built-in type 'num'.
-   *
-   * @return the type representing the built-in type 'num'
    */
   InterfaceType get numType;
 
   /**
    * Return the type representing the built-in type 'Object'.
-   *
-   * @return the type representing the built-in type 'Object'
    */
   InterfaceType get objectType;
 
   /**
    * Return the type representing the built-in type 'StackTrace'.
-   *
-   * @return the type representing the built-in type 'StackTrace'
    */
   InterfaceType get stackTraceType;
 
@@ -13343,22 +13323,16 @@ abstract class TypeProvider {
 
   /**
    * Return the type representing the built-in type 'String'.
-   *
-   * @return the type representing the built-in type 'String'
    */
   InterfaceType get stringType;
 
   /**
    * Return the type representing the built-in type 'Symbol'.
-   *
-   * @return the type representing the built-in type 'Symbol'
    */
   InterfaceType get symbolType;
 
   /**
    * Return the type representing the built-in type 'Type'.
-   *
-   * @return the type representing the built-in type 'Type'
    */
   InterfaceType get typeType;
 
@@ -13560,6 +13534,16 @@ class TypeProviderImpl implements TypeProvider {
 
   @override
   InterfaceType get mapType => _mapType;
+
+  @override
+  List<InterfaceType> get nonSubtypableTypes => <InterfaceType>[
+    nullType,
+    numType,
+    intType,
+    doubleType,
+    boolType,
+    stringType
+  ];
 
   @override
   DartObjectImpl get nullObject {
