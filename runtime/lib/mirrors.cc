@@ -240,8 +240,9 @@ static RawInstance* CreateFunctionTypeMirror(const Class& cls,
 
 
 static RawInstance* CreateMethodMirror(const Function& func,
-                                       const Instance& owner_mirror) {
-  const Array& args = Array::Handle(Array::New(12));
+                                       const Instance& owner_mirror,
+                                       const AbstractType& instantiator) {
+  const Array& args = Array::Handle(Array::New(13));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(func)));
 
   String& name = String::Handle(func.name());
@@ -249,17 +250,18 @@ static RawInstance* CreateMethodMirror(const Function& func,
   args.SetAt(1, name);
 
   args.SetAt(2, owner_mirror);
-  args.SetAt(3, Bool::Get(func.is_static()));
-  args.SetAt(4, Bool::Get(func.is_abstract()));
-  args.SetAt(5, Bool::Get(func.IsGetterFunction()));
-  args.SetAt(6, Bool::Get(func.IsSetterFunction()));
+  args.SetAt(3, instantiator);
+  args.SetAt(4, Bool::Get(func.is_static()));
+  args.SetAt(5, Bool::Get(func.is_abstract()));
+  args.SetAt(6, Bool::Get(func.IsGetterFunction()));
+  args.SetAt(7, Bool::Get(func.IsSetterFunction()));
 
   bool isConstructor = (func.kind() == RawFunction::kConstructor);
-  args.SetAt(7, Bool::Get(isConstructor));
-  args.SetAt(8, Bool::Get(isConstructor && func.is_const()));
-  args.SetAt(9, Bool::Get(isConstructor && func.IsGenerativeConstructor()));
-  args.SetAt(10, Bool::Get(isConstructor && func.is_redirecting()));
-  args.SetAt(11, Bool::Get(isConstructor && func.IsFactory()));
+  args.SetAt(8, Bool::Get(isConstructor));
+  args.SetAt(9, Bool::Get(isConstructor && func.is_const()));
+  args.SetAt(10, Bool::Get(isConstructor && func.IsGenerativeConstructor()));
+  args.SetAt(11, Bool::Get(isConstructor && func.is_redirecting()));
+  args.SetAt(12, Bool::Get(isConstructor && func.IsFactory()));
 
   return CreateMirror(Symbols::_LocalMethodMirror(), args);
 }
@@ -747,7 +749,7 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
 
-  if (type.IsInstantiated()) {
+  if (type.IsInstantiated() || instantiator.IsNull()) {
     return type.Canonicalize();
   }
 
@@ -864,7 +866,7 @@ DEFINE_NATIVE_ENTRY(FunctionTypeMirror_call_method, 2) {
   const Class& cls = Class::Handle(ref.GetClassReferent());
   const Function& func = Function::Handle(CallMethod(cls));
   ASSERT(!func.IsNull());
-  return CreateMethodMirror(func, owner_mirror);
+  return CreateMethodMirror(func, owner_mirror, AbstractType::Handle());
 }
 
 
@@ -1009,11 +1011,14 @@ DEFINE_NATIVE_ENTRY(ClassMirror_mixin_instantiated, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(ClassMirror_members, 2) {
+DEFINE_NATIVE_ENTRY(ClassMirror_members, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance,
                                owner_mirror,
                                arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
+  GET_NATIVE_ARGUMENT(AbstractType,
+                      owner_instantiator,
+                      arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(2));
   const Class& klass = Class::Handle(ref.GetClassReferent());
 
   const Error& error = Error::Handle(klass.EnsureIsFinalized(isolate));
@@ -1047,7 +1052,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_members, 2) {
         (func.kind() == RawFunction::kRegularFunction ||
         func.kind() == RawFunction::kGetterFunction ||
         func.kind() == RawFunction::kSetterFunction)) {
-      member_mirror = CreateMethodMirror(func, owner_mirror);
+      member_mirror = CreateMethodMirror(func, owner_mirror,
+                                         owner_instantiator);
       member_mirrors.Add(member_mirror);
     }
   }
@@ -1056,11 +1062,14 @@ DEFINE_NATIVE_ENTRY(ClassMirror_members, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(ClassMirror_constructors, 2) {
+DEFINE_NATIVE_ENTRY(ClassMirror_constructors, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance,
                                owner_mirror,
                                arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
+  GET_NATIVE_ARGUMENT(AbstractType,
+                      owner_instantiator,
+                      arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(2));
   const Class& klass = Class::Handle(ref.GetClassReferent());
 
   const Error& error = Error::Handle(klass.EnsureIsFinalized(isolate));
@@ -1079,7 +1088,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_constructors, 2) {
   for (intptr_t i = 0; i < num_functions; i++) {
     func ^= functions.At(i);
     if (func.is_reflectable() && func.kind() == RawFunction::kConstructor) {
-      constructor_mirror = CreateMethodMirror(func, owner_mirror);
+      constructor_mirror = CreateMethodMirror(func, owner_mirror,
+                                              owner_instantiator);
       constructor_mirrors.Add(constructor_mirror);
     }
   }
@@ -1134,7 +1144,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 2) {
           (func.kind() == RawFunction::kRegularFunction ||
           func.kind() == RawFunction::kGetterFunction ||
           func.kind() == RawFunction::kSetterFunction)) {
-        member_mirror = CreateMethodMirror(func, owner_mirror);
+        member_mirror = CreateMethodMirror(func, owner_mirror,
+                                           AbstractType::Handle());
         member_mirrors.Add(member_mirror);
       }
     }
@@ -1384,7 +1395,19 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_function, 1) {
       // the equality test.
       function = function.parent_function();
     }
-    return CreateMethodMirror(function, Instance::null_instance());
+
+    Type& instantiator = Type::Handle();
+    if (closure.IsClosure()) {
+      const TypeArguments& arguments =
+          TypeArguments::Handle(Closure::GetTypeArguments(closure));
+      const Class& cls =
+          Class::Handle(Isolate::Current()->object_store()->object_class());
+      instantiator = Type::New(cls, arguments, Scanner::kNoSourcePos);
+      instantiator.SetIsFinalized();
+    }
+    return CreateMethodMirror(function,
+                              Instance::null_instance(),
+                              instantiator);
   }
   return Instance::null();
 }
@@ -1829,12 +1852,13 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
 }
 
 
-DEFINE_NATIVE_ENTRY(MethodMirror_owner, 1) {
+DEFINE_NATIVE_ENTRY(MethodMirror_owner, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  GET_NATIVE_ARGUMENT(AbstractType, instantiator, arguments->NativeArgAt(1));
   const Function& func = Function::Handle(ref.GetFunctionReferent());
   if (func.IsNonImplicitClosureFunction()) {
     return CreateMethodMirror(Function::Handle(
-        func.parent_function()), Object::null_instance());
+        func.parent_function()), Object::null_instance(), instantiator);
   }
   const Class& owner = Class::Handle(func.Owner());
   if (owner.IsTopLevel()) {

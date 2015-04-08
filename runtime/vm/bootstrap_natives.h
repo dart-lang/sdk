@@ -314,8 +314,8 @@ namespace dart {
   V(ClassMirror_interfaces_instantiated, 1)                                    \
   V(ClassMirror_mixin, 1)                                                      \
   V(ClassMirror_mixin_instantiated, 2)                                         \
-  V(ClassMirror_members, 2)                                                    \
-  V(ClassMirror_constructors, 2)                                               \
+  V(ClassMirror_members, 3)                                                    \
+  V(ClassMirror_constructors, 3)                                               \
   V(LibraryMirror_members, 2)                                                  \
   V(LibraryMirror_libraryDependencies, 2)                                      \
   V(ClassMirror_invoke, 5)                                                     \
@@ -334,7 +334,7 @@ namespace dart {
   V(FunctionTypeMirror_call_method, 2)                                         \
   V(FunctionTypeMirror_parameters, 2)                                          \
   V(FunctionTypeMirror_return_type, 2)                                         \
-  V(MethodMirror_owner, 1)                                                     \
+  V(MethodMirror_owner, 2)                                                     \
   V(MethodMirror_parameters, 2)                                                \
   V(MethodMirror_return_type, 2)                                               \
   V(MethodMirror_source, 1)                                                    \

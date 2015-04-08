@@ -693,11 +693,12 @@ class _LocalClassMirror extends _LocalObjectMirror
   ClassMirror get mixin {
     if (_mixin == null) {
       if (_isMixinAlias) {
-        Type mixinType = _nativeMixinInstantiated(_trueSuperclass._reflectedType,
-                                                  _instantiator);
+        Type mixinType = _nativeMixinInstantiated(
+            _trueSuperclass._reflectedType, _instantiator);
         _mixin = reflectType(mixinType);
       } else {
-        Type mixinType = _nativeMixinInstantiated(_reflectedType, _instantiator);
+        Type mixinType = _nativeMixinInstantiated(_reflectedType,
+                                                  _instantiator);
         if (mixinType == null) {
           // The reflectee is not a mixin application.
           _mixin = this;
@@ -778,7 +779,8 @@ class _LocalClassMirror extends _LocalObjectMirror
   Map<Symbol, Mirror> get _members {
     if (_cachedMembers == null) {
       var whoseMembers = _isMixinAlias ? _trueSuperclass : this;
-      _cachedMembers = _makeMemberMap(mixin._computeMembers(whoseMembers.mixin._reflectee));
+      _cachedMembers = _makeMemberMap(mixin._computeMembers(
+          _instantiator, whoseMembers.mixin._reflectee));
     }
     return _cachedMembers;
   }
@@ -796,7 +798,7 @@ class _LocalClassMirror extends _LocalObjectMirror
   Map<Symbol, MethodMirror> _cachedConstructors;
   Map<Symbol, MethodMirror> get _constructors {
     if (_cachedConstructors == null) {
-      var constructorsList = _computeConstructors(_reflectee);
+      var constructorsList = _computeConstructors(_instantiator, _reflectee);
       var stringName = _n(simpleName);
       constructorsList.forEach((c) => c._patchConstructorName(stringName));
       _cachedConstructors =
@@ -943,10 +945,10 @@ class _LocalClassMirror extends _LocalObjectMirror
   static _nativeMixinInstantiated(reflectedType, instantiator)
       native "ClassMirror_mixin_instantiated";
 
-  _computeMembers(reflectee)
+  _computeMembers(reflectee, instantiator)
       native "ClassMirror_members";
 
-  _computeConstructors(reflectee)
+  _computeConstructors(reflectee, instantiator)
       native "ClassMirror_constructors";
 
   _invoke(reflectee, memberName, arguments, argumentNames)
@@ -1357,6 +1359,7 @@ class _LocalCombinatorMirror extends _LocalMirror implements CombinatorMirror {
 
 class _LocalMethodMirror extends _LocalDeclarationMirror
     implements MethodMirror {
+  final Type _instantiator;
   final bool isStatic;
   final bool isAbstract;
   final bool isGetter;
@@ -1374,6 +1377,7 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
   _LocalMethodMirror(reflectee,
                      String simpleName,
                      this._owner,
+                     this._instantiator,
                      this.isStatic,
                      this.isAbstract,
                      this.isGetter,
@@ -1391,7 +1395,7 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
     // For nested closures it is possible, that the mirror for the owner has not
     // been created yet.
     if (_owner == null) {
-      _owner = _MethodMirror_owner(_reflectee);
+      _owner = _MethodMirror_owner(_reflectee, _instantiator);
     }
     return _owner;
   }
@@ -1401,12 +1405,6 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
 
   bool get isTopLevel => owner is LibraryMirror;
   bool get isSynthetic => false;
-
-  Type get _instantiator {
-    var o = owner;
-    while (o is MethodMirror) o = o.owner;
-    return o._instantiator;
-  }
 
   TypeMirror _returnType = null;
   TypeMirror get returnType {
@@ -1473,7 +1471,7 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
 
   String toString() => "MethodMirror on '${MirrorSystem.getName(simpleName)}'";
 
-  static dynamic _MethodMirror_owner(reflectee)
+  static dynamic _MethodMirror_owner(reflectee, instantiator)
       native "MethodMirror_owner";
 
   static dynamic _MethodMirror_return_type(reflectee, instantiator)
@@ -1571,9 +1569,7 @@ class _LocalParameterMirror extends _LocalVariableMirror
   }
 
   Type get _instantiator {
-    var o = owner;
-    while (o is MethodMirror) o = o.owner;
-    return o._instantiator;
+    return owner._instantiator;
   }
 
   TypeMirror _type = null;
