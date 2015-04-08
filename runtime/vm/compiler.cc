@@ -845,7 +845,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
   if (deopt_table_length > 0) {
     ISL_Print("DeoptInfo: {\n");
     Smi& offset = Smi::Handle();
-    DeoptInfo& info = DeoptInfo::Handle();
+    TypedData& info = TypedData::Handle();
     Smi& reason_and_flags = Smi::Handle();
     for (intptr_t i = 0; i < deopt_table_length; ++i) {
       DeoptTable::GetEntry(deopt_table, i, &offset, &info, &reason_and_flags);
@@ -855,7 +855,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
       ISL_Print("%4" Pd ": 0x%" Px "  %s  (%s)\n",
                 i,
                 start + offset.Value(),
-                info.ToCString(),
+                DeoptInfo::ToCString(deopt_table, info),
                 DeoptReasonToCString(
                     static_cast<ICData::DeoptReasonId>(reason)));
     }

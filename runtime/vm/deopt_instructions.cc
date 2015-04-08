@@ -28,7 +28,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
                            intptr_t* cpu_registers)
     : code_(code.raw()),
       object_table_(code.object_table()),
-      deopt_info_(DeoptInfo::null()),
+      deopt_info_(TypedData::null()),
       dest_frame_is_allocated_(false),
       dest_frame_(NULL),
       dest_frame_size_(0),
@@ -44,7 +44,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
       deferred_slots_(NULL),
       deferred_objects_count_(0),
       deferred_objects_(NULL) {
-  const DeoptInfo& deopt_info = DeoptInfo::Handle(
+  const TypedData& deopt_info = TypedData::Handle(
       code.GetDeoptInfoAtPc(frame->pc(), &deopt_reason_, &deopt_flags_));
   ASSERT(!deopt_info.IsNull());
   deopt_info_ = deopt_info.raw();
@@ -81,7 +81,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
   }
   caller_fp_ = GetSourceFp();
 
-  dest_frame_size_ = deopt_info.FrameSize();
+  dest_frame_size_ = DeoptInfo::FrameSize(deopt_info);
 
   if (dest_options == kDestIsAllocated) {
     dest_frame_ = new intptr_t[dest_frame_size_];
@@ -204,7 +204,6 @@ static bool IsObjectInstruction(DeoptInstr::Kind kind) {
     case DeoptInstr::kCallerPc:
       return false;
 
-    case DeoptInstr::kSuffix:
     case DeoptInstr::kMaterializeObject:
     default:
       // We should not encounter these instructions when filling stack slots.
@@ -218,15 +217,15 @@ static bool IsObjectInstruction(DeoptInstr::Kind kind) {
 
 void DeoptContext::FillDestFrame() {
   const Code& code = Code::Handle(code_);
-  const DeoptInfo& deopt_info = DeoptInfo::Handle(deopt_info_);
+  const TypedData& deopt_info = TypedData::Handle(deopt_info_);
 
-  const intptr_t len = deopt_info.TranslationLength();
-  GrowableArray<DeoptInstr*> deopt_instructions(len);
+  GrowableArray<DeoptInstr*> deopt_instructions;
   const Array& deopt_table = Array::Handle(code.deopt_info_array());
   ASSERT(!deopt_table.IsNull());
-  deopt_info.ToInstructions(deopt_table, &deopt_instructions);
+  DeoptInfo::Unpack(deopt_table, deopt_info, &deopt_instructions);
 
-  const intptr_t frame_size = deopt_info.FrameSize();
+  const intptr_t len = deopt_instructions.length();
+  const intptr_t frame_size = dest_frame_size_;
 
   // For now, we never place non-objects in the deoptimized frame if
   // the destination frame is a copy.  This allows us to copy the
@@ -241,7 +240,8 @@ void DeoptContext::FillDestFrame() {
   // described as part of the expression stack for the bottom-most deoptimized
   // frame. They will be used during materialization and removed from the stack
   // right before control switches to the unoptimized code.
-  const intptr_t num_materializations = deopt_info.NumMaterializations();
+  const intptr_t num_materializations =
+      DeoptInfo::NumMaterializations(deopt_instructions);
   PrepareForDeferredMaterialization(num_materializations);
   for (intptr_t from_index = 0, to_index = kDartFrameFixedSize;
        from_index < num_materializations;
@@ -713,56 +713,6 @@ class DeoptCallerPcInstr : public DeoptInstr {
 };
 
 
-// Deoptimization instruction that indicates the rest of this DeoptInfo is a
-// suffix of another one.  The suffix contains the info number (0 based
-// index in the deopt table of the DeoptInfo to share) and the length of the
-// suffix.
-class DeoptSuffixInstr : public DeoptInstr {
- public:
-  DeoptSuffixInstr(intptr_t info_number, intptr_t suffix_length)
-      : info_number_(info_number), suffix_length_(suffix_length) {
-    ASSERT(info_number >= 0);
-    ASSERT(suffix_length >= 0);
-  }
-
-  explicit DeoptSuffixInstr(intptr_t source_index)
-      : info_number_(InfoNumber::decode(source_index)),
-        suffix_length_(SuffixLength::decode(source_index)) {
-  }
-
-  virtual intptr_t source_index() const {
-    return InfoNumber::encode(info_number_) |
-        SuffixLength::encode(suffix_length_);
-  }
-  virtual DeoptInstr::Kind kind() const { return kSuffix; }
-
-  virtual const char* ArgumentsToCString() const {
-    return Thread::Current()->zone()->PrintToString(
-        "%" Pd ":%" Pd, info_number_, suffix_length_);
-  }
-
-  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    // The deoptimization info is uncompressed by translating away suffixes
-    // before executing the instructions.
-    UNREACHABLE();
-  }
-
- private:
-  // Static decoder functions in DeoptInstr have access to the bitfield
-  // definitions.
-  friend class DeoptInstr;
-
-  static const intptr_t kFieldWidth = kBitsPerWord / 2;
-  class InfoNumber : public BitField<intptr_t, 0, kFieldWidth> { };
-  class SuffixLength : public BitField<intptr_t, kFieldWidth, kFieldWidth> { };
-
-  const intptr_t info_number_;
-  const intptr_t suffix_length_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeoptSuffixInstr);
-};
-
-
 // Write reference to a materialized object with the given index into the
 // stack slot.
 class DeoptMaterializedObjectRefInstr : public DeoptInstr {
@@ -823,13 +773,6 @@ class DeoptMaterializeObjectInstr : public DeoptInstr {
 };
 
 
-intptr_t DeoptInstr::DecodeSuffix(intptr_t source_index,
-                                  intptr_t* info_number) {
-  *info_number = DeoptSuffixInstr::InfoNumber::decode(source_index);
-  return DeoptSuffixInstr::SuffixLength::decode(source_index);
-}
-
-
 uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
                                 const Array& object_table,
                                 Code* code) {
@@ -888,8 +831,6 @@ DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t source_index) {
       return new DeoptCallerPpInstr();
     case kCallerPc:
       return new DeoptCallerPcInstr();
-    case kSuffix:
-      return new DeoptSuffixInstr(source_index);
     case kMaterializedObjectRef:
       return new DeoptMaterializedObjectRefInstr(source_index);
     case kMaterializeObject:
@@ -933,8 +874,6 @@ const char* DeoptInstr::KindToCString(Kind kind) {
       return "callerpp";
     case kCallerPc:
       return "callerpc";
-    case kSuffix:
-      return "suffix";
     case kMaterializedObjectRef:
       return "ref";
     case kMaterializeObject:
@@ -1216,19 +1155,22 @@ intptr_t DeoptInfoBuilder::FindMaterialization(
 }
 
 
-RawDeoptInfo* DeoptInfoBuilder::CreateDeoptInfo(const Array& deopt_table) {
-  // TODO(vegorov): enable compression of deoptimization info containing object
-  // materialization instructions.
-  const bool disable_compression =
-      (instructions_[0]->kind() == DeoptInstr::kMaterializeObject);
+static uint8_t* ZoneReAlloc(uint8_t* ptr,
+                            intptr_t old_size,
+                            intptr_t new_size) {
+  return Isolate::Current()->current_zone()->Realloc<uint8_t>(
+      ptr, old_size, new_size);
+}
 
+
+RawTypedData* DeoptInfoBuilder::CreateDeoptInfo(const Array& deopt_table) {
   intptr_t length = instructions_.length();
 
   // Count the number of instructions that are a shared suffix of some deopt
   // info already written.
   TrieNode* suffix = trie_root_;
   intptr_t suffix_length = 0;
-  if (FLAG_compress_deopt_info && !disable_compression) {
+  if (FLAG_compress_deopt_info) {
     for (intptr_t i = length - 1; i >= 0; --i) {
       TrieNode* node = suffix->FindChild(*instructions_[i]);
       if (node == NULL) break;
@@ -1237,33 +1179,51 @@ RawDeoptInfo* DeoptInfoBuilder::CreateDeoptInfo(const Array& deopt_table) {
     }
   }
 
+
   // Allocate space for the translation.  If the shared suffix is longer
   // than one instruction, we replace it with a single suffix instruction.
-  if (suffix_length > 1) length -= (suffix_length - 1);
-  const DeoptInfo& deopt_info =
-      DeoptInfo::Handle(zone(), DeoptInfo::New(length));
+  const bool use_suffix = suffix_length > 1;
+  if (use_suffix) {
+    length -= (suffix_length - 1);
+  }
+
+  uint8_t* buffer;
+  typedef WriteStream::Raw<sizeof(intptr_t), intptr_t> Writer;
+  WriteStream stream(&buffer, ZoneReAlloc, 2 * length * kWordSize);
+
+  Writer::Write(&stream, FrameSize());
+
+  if (use_suffix) {
+    Writer::Write(&stream, suffix_length);
+    Writer::Write(&stream, suffix->info_number());
+  } else {
+    Writer::Write(&stream, 0);
+  }
 
   // Write the unshared instructions and build their sub-tree.
-  TrieNode* node = NULL;
-  intptr_t write_count = (suffix_length > 1) ? length - 1 : length;
-  for (intptr_t i = 0; i < write_count; ++i) {
+  TrieNode* node = use_suffix ? suffix : trie_root_;
+  const intptr_t write_count = use_suffix ? length - 1 : length;
+  for (intptr_t i = write_count - 1; i >= 0; --i) {
     DeoptInstr* instr = instructions_[i];
-    deopt_info.SetAt(i, instr->kind(), instr->source_index());
-    TrieNode* child = node;
-    node = new(zone()) TrieNode(instr, current_info_number_);
+    Writer::Write(&stream, instr->kind());
+    Writer::Write(&stream, instr->source_index());
+
+    TrieNode* child = new(zone()) TrieNode(instr, current_info_number_);
     node->AddChild(child);
+    node = child;
   }
 
-  if (suffix_length > 1) {
-    suffix->AddChild(node);
-    DeoptInstr* instr =
-        new(zone()) DeoptSuffixInstr(suffix->info_number(), suffix_length);
-    deopt_info.SetAt(length - 1, instr->kind(), instr->source_index());
-  } else {
-    trie_root_->AddChild(node);
+  const TypedData& deopt_info = TypedData::Handle(zone(), TypedData::New(
+      kTypedDataUint8ArrayCid, stream.bytes_written(), Heap::kOld));
+  {
+    NoSafepointScope no_safepoint;
+    memmove(deopt_info.DataAddr(0),
+            stream.buffer(),
+            stream.bytes_written());
   }
 
-  ASSERT(deopt_info.VerifyDecompression(instructions_, deopt_table));
+  ASSERT(DeoptInfo::VerifyDecompression(
+      instructions_, deopt_table, deopt_info));
   instructions_.Clear();
   materializations_.Clear();
   frame_start_ = -1;
@@ -1280,7 +1240,7 @@ intptr_t DeoptTable::SizeFor(intptr_t length) {
 void DeoptTable::SetEntry(const Array& table,
                           intptr_t index,
                           const Smi& offset,
-                          const DeoptInfo& info,
+                          const TypedData& info,
                           const Smi& reason) {
   ASSERT((table.Length() % kEntrySize) == 0);
   intptr_t i = index * kEntrySize;
@@ -1299,7 +1259,7 @@ intptr_t DeoptTable::GetLength(const Array& table) {
 void DeoptTable::GetEntry(const Array& table,
                           intptr_t index,
                           Smi* offset,
-                          DeoptInfo* info,
+                          TypedData* info,
                           Smi* reason) {
   intptr_t i = index * kEntrySize;
   *offset ^= table.At(i);

@@ -290,7 +290,7 @@ TEST_CASE(Service_Objects) {
   handler.filterMsg("size");
   EXPECT_STREQ(
       "{\"type\":\"bool\","
-      "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/46\","
+      "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/45\","
       "\"name\":\"bool\"},"
       "\"fields\":[],\"id\":\"objects\\/bool-true\","
       "\"valueAsString\":\"true\"}",
@@ -304,7 +304,7 @@ TEST_CASE(Service_Objects) {
   handler.filterMsg("_vmName");
   EXPECT_STREQ(
       "{\"type\":\"int\",\"_vmType\":\"Smi\","
-      "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
+      "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/41\","
       "\"name\":\"_Smi\",},"
       "\"fields\":[],"
       "\"id\":\"objects\\/int-123\","

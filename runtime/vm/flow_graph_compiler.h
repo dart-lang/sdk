@@ -126,7 +126,7 @@ class CompilerDeoptInfo : public ZoneAllocated {
   }
   virtual ~CompilerDeoptInfo() { }
 
-  RawDeoptInfo* CreateDeoptInfo(FlowGraphCompiler* compiler,
+  RawTypedData* CreateDeoptInfo(FlowGraphCompiler* compiler,
                                 DeoptInfoBuilder* builder,
                                 const Array& deopt_table);
 

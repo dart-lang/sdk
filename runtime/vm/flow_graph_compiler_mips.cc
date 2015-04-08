@@ -73,12 +73,12 @@ void FlowGraphCompiler::ExitIntrinsicMode() {
 }
 
 
-RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
+RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                  DeoptInfoBuilder* builder,
                                                  const Array& deopt_table) {
   if (deopt_env_ == NULL) {
     ++builder->current_info_number_;
-    return DeoptInfo::null();
+    return TypedData::null();
   }
 
   intptr_t stack_height = compiler->StackSize();

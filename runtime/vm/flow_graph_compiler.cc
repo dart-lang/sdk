@@ -862,7 +862,7 @@ void FlowGraphCompiler::FinalizeDeoptInfo(const Code& code) {
     const Array& array =
         Array::Handle(Array::New(deopt_info_table_size, Heap::kOld));
     Smi& offset = Smi::Handle();
-    DeoptInfo& info = DeoptInfo::Handle();
+    TypedData& info = TypedData::Handle();
     Smi& reason_and_flags = Smi::Handle();
     for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
       offset = Smi::New(deopt_infos_[i]->pc_offset());

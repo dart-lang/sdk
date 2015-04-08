@@ -35,7 +35,6 @@ namespace dart {
   V(Stackmap)                                                                  \
   V(LocalVarDescriptors)                                                       \
   V(ExceptionHandlers)                                                         \
-  V(DeoptInfo)                                                                 \
   V(Context)                                                                   \
   V(ContextScope)                                                              \
   V(ICData)                                                                    \
@@ -1244,19 +1243,6 @@ class RawExceptionHandlers : public RawObject {
 };
 
 
-// Contains an array of deoptimization commands, e.g., move a specific register
-// into a specific slot of unoptimized frame.
-class RawDeoptInfo : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(DeoptInfo);
-
-  RawSmi* length_;  // Number of deoptimization commands
-
-  // Variable length data follows here.
-  intptr_t* data() { OPEN_ARRAY_START(intptr_t, intptr_t); }
-  const intptr_t* data() const { OPEN_ARRAY_START(intptr_t, intptr_t); }
-};
-
-
 class RawContext : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Context);
 
@@ -2154,7 +2140,6 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
          (index == kStackmapCid) ||
          (index == kLocalVarDescriptorsCid) ||
          (index == kExceptionHandlersCid) ||
-         (index == kDeoptInfoCid) ||
          (index == kCodeCid) ||
          (index == kContextScopeCid) ||
          (index == kInstanceCid) ||

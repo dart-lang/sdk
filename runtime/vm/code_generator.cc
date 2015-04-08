@@ -1436,7 +1436,7 @@ void DeoptimizeAt(const Code& optimized_code, uword pc) {
   ASSERT(optimized_code.is_optimized());
   ICData::DeoptReasonId deopt_reason = ICData::kDeoptUnknown;
   uint32_t deopt_flags = 0;
-  const DeoptInfo& deopt_info = DeoptInfo::Handle(
+  const TypedData& deopt_info = TypedData::Handle(
       optimized_code.GetDeoptInfoAtPc(pc, &deopt_reason, &deopt_flags));
   ASSERT(!deopt_info.IsNull());
   const Function& function = Function::Handle(optimized_code.function());
