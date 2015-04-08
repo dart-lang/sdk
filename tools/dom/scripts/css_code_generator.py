@@ -7,7 +7,7 @@
 """Generates CSSStyleDeclaration template file from css property definitions
 defined in WebKit."""
 
-import tempfile, os
+import tempfile, os, re
 
 COMMENT_LINE_PREFIX = '   * '
 # TODO(efortuna): Pull from DEPS so that we have latest css *in sync* with our
@@ -16,6 +16,20 @@ SOURCE_PATH = 'CSSPropertyNames.in'
 #SOURCE_PATH = 'Source/WebCore/css/CSSPropertyNames.in'
 TEMPLATE_FILE = '../templates/html/impl/impl_CSSStyleDeclaration.darttemplate'
 
+# These are the properties that are supported on all Dart project supported
+# browsers as camelCased names on the CssStyleDeclaration.
+BROWSER_PATHS = [
+    'cssProperties.CSS21.txt',  # Remove when we have samples from all browsers.
+    'cssProperties.ie9.txt',
+    'cssProperties.ie10.txt',
+    'cssProperties.ie11.txt',
+    'cssProperties.ff36.txt',
+    'cssProperties.chrome40.txt',
+    'cssProperties.safari-7.1.3.txt',
+    'cssProperties.mobileSafari-8.2.txt',
+    'cssProperties.iPad4Air.onGoogleSites.txt',
+    ]
+
 # Supported annotations for any specific CSS properties.
 annotated = {
   'transition': '''@SupportedBrowser(SupportedBrowser.CHROME)
@@ -23,6 +37,12 @@ annotated = {
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)'''
 }
+
+class Error:
+  def __init__(self, message):
+    self.message = message
+  def __repr__(self):
+    return self.message
 
 def camelCaseName(name):
   """Convert a CSS property name to a lowerCamelCase name."""
@@ -35,16 +55,34 @@ def camelCaseName(name):
       words.append(word)
   return ''.join(words)
 
+def dashifyName(camelName):
+  def fix(match):
+    return '-' + match.group(0).lower()
+  return re.sub(r'[A-Z]', fix, camelName)
+
+def isCommentLine(line):
+  return line.strip() == '' or line.startswith('#') or line.startswith('//')
+
+def readCssProperties(filename):
+  data = open(filename).readlines()
+  data = sorted([d.strip() for d in set(data) if not isCommentLine(d)])
+  return data
+
 def GenerateCssTemplateFile():
   data = open(SOURCE_PATH).readlines()
 
   # filter CSSPropertyNames.in to only the properties
   # TODO(efortuna): do we also want CSSPropertyNames.in?
-  data = [d[:-1] for d in data
-          if len(d) > 1
-          and not d.startswith('#')
-          and not d.startswith('//')
+  data = [d.strip() for d in data
+          if not isCommentLine(d)
           and not '=' in d]
+
+  browser_props = [readCssProperties(file) for file in BROWSER_PATHS]
+  universal_properties = reduce(
+        lambda a, b: set(a).intersection(b), browser_props)
+  universal_properties = universal_properties.difference(['cssText'])
+  universal_properties = universal_properties.intersection(
+        map(camelCaseName, data))
 
   class_file = open(TEMPLATE_FILE, 'w')
 
@@ -60,8 +98,11 @@ def GenerateCssTemplateFile():
 //   %s
 
 part of $LIBRARYNAME;
+""" % SOURCE_PATH)
 
-$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS) class $CLASSNAME $EXTENDS with
+
+  class_file.write("""
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
     $(CLASSNAME)Base $IMPLEMENTS {
   factory $CLASSNAME() => new CssStyleDeclaration.css('');
 
@@ -187,6 +228,28 @@ $else
   static bool get supportsTransitions => true;
 $endif
 $!MEMBERS
+$if DART2JS
+""")
+
+  for camelName in sorted(universal_properties):
+    property = dashifyName(camelName)
+    class_file.write("""
+  /** Gets the value of "%s" */
+  String get %s => this._%s;
+
+  /** Sets the value of "%s" */
+  void set %s(String value) {
+    _%s = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('%s')
+  String _%s;
+    """ % (property, camelName, camelName,
+           property, camelName, camelName,
+           camelName, camelName))
+
+  class_file.write("""
+$endif
 }
 
 class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
@@ -206,6 +269,32 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
     _elementCssStyleDeclarationSetIterable.forEach((e) =>
         e.setProperty(propertyName, value, priority));
   }
+
+""")
+
+  class_file.write("""
+$if DART2JS
+  void _setAll(String propertyName, String value) {
+    value = value == null ? '' : value;
+    for (Element element in _elementIterable) {
+      JS('void', '#.style[#] = #', element, propertyName, value);
+    }
+  }
+""")
+
+
+  for camelName in sorted(universal_properties):
+    property = dashifyName(camelName)
+    class_file.write("""
+  /** Sets the value of "%s" */
+  void set %s(String value) {
+    _setAll('%s', value);
+  }
+    """ % (property, camelName, camelName))
+
+  class_file.write("""
+$endif
+
   // Important note: CssStyleDeclarationSet does NOT implement every method
   // available in CssStyleDeclaration. Some of the methods don't make so much
   // sense in terms of having a resonable value to return when you're
@@ -216,12 +305,12 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
 abstract class CssStyleDeclarationBase {
   String getPropertyValue(String propertyName);
   void setProperty(String propertyName, String value, [String priority]);
-""" % SOURCE_PATH)
+""")
 
   class_lines = [];
 
   seen = set()
-  for prop in sorted(data, key=lambda p: camelCaseName(p)):
+  for prop in sorted(data, key=camelCaseName):
     camel_case_name = camelCaseName(prop)
     upper_camel_case_name = camel_case_name[0].upper() + camel_case_name[1:];
     css_name = prop.replace('-webkit-', '')

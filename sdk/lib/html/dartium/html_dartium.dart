@@ -4234,7 +4234,7 @@ class CssRule extends NativeFieldWrapperClass2 {
 
 
 @DomName('CSSStyleDeclaration')
- class CssStyleDeclaration  extends NativeFieldWrapperClass2 with
+class CssStyleDeclaration  extends NativeFieldWrapperClass2 with
     CssStyleDeclarationBase  {
   factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
 
@@ -4393,6 +4393,9 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
     _elementCssStyleDeclarationSetIterable.forEach((e) =>
         e.setProperty(propertyName, value, priority));
   }
+
+
+
   // Important note: CssStyleDeclarationSet does NOT implement every method
   // available in CssStyleDeclaration. Some of the methods don't make so much
   // sense in terms of having a resonable value to return when you're
