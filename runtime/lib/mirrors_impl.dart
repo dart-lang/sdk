@@ -15,16 +15,6 @@ class _InternalMirrorError {
   String toString() => _msg;
 }
 
-Map _filterMap(Map<Symbol, dynamic> old_map, bool filter(Symbol key, value)) {
-  Map new_map = new Map<Symbol, dynamic>();
-  old_map.forEach((key, value) {
-    if (filter(key, value)) {
-      new_map[key] = value;
-    }
-  });
-  return new UnmodifiableMapView(new_map);
-}
-
 Map _makeMemberMap(List mirrors) {
   return new UnmodifiableMapView<Symbol, DeclarationMirror>(
       new Map<Symbol, DeclarationMirror>.fromIterable(
@@ -785,16 +775,6 @@ class _LocalClassMirror extends _LocalObjectMirror
     return _cachedMembers;
   }
 
-  Map<Symbol, MethodMirror> _cachedMethods;
-  Map<Symbol, MethodMirror> get _methods {
-    if (_cachedMethods == null) {
-      _cachedMethods = _filterMap(
-          _members,
-          (key, value) => (value is MethodMirror && value.isRegularMethod));
-    }
-    return _cachedMethods;
-  }
-
   Map<Symbol, MethodMirror> _cachedConstructors;
   Map<Symbol, MethodMirror> get _constructors {
     if (_cachedConstructors == null) {
@@ -1017,8 +997,6 @@ class _LocalFunctionTypeMirror extends _LocalClassMirror
   get typeVariables => emptyList;
   get typeArguments => emptyList;
   get metadata => emptyList;
-  Map<Symbol, Mirror> get members => emptyMap;
-  Map<Symbol, MethodMirror> get constructors => emptyMap;
 
   String toString() => "FunctionTypeMirror on '${_n(simpleName)}'";
 
