@@ -5148,7 +5148,7 @@ RawJSRegExp* RegExpEngine::CreateJSRegExp(Zone* zone,
                                           const String& pattern,
                                           bool multi_line,
                                           bool ignore_case) {
-  const JSRegExp& regexp = JSRegExp::Handle(JSRegExp::New(0));
+  const JSRegExp& regexp = JSRegExp::Handle(JSRegExp::New());
 
   regexp.set_pattern(pattern);
 

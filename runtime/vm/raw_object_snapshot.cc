@@ -2751,12 +2751,9 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
   ASSERT(kind == Snapshot::kMessage);
 
-  // Read the length so that we can determine instance size to allocate.
-  intptr_t len = reader->ReadSmiValue();
-
   // Allocate JSRegExp object.
   JSRegExp& regex = JSRegExp::ZoneHandle(
-      reader->zone(), JSRegExp::New(len, HEAP_SPACE(kind)));
+      reader->zone(), JSRegExp::New(HEAP_SPACE(kind)));
   reader->AddBackRef(object_id, &regex, kIsDeserialized);
 
   // Set the object tags.
@@ -2770,8 +2767,7 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
   regex.StoreNonPointer(&regex.raw_ptr()->type_flags_,
                         reader->Read<int8_t>());
 
-  // TODO(5411462): Need to implement a way of recompiling the regex.
-
+  // TODO(18854): Need to implement a way of recreating the irrexp functions.
   return regex.raw();
 }
 
@@ -2789,15 +2785,10 @@ void RawJSRegExp::WriteTo(SnapshotWriter* writer,
   writer->WriteIndexedObject(kJSRegExpCid);
   writer->WriteTags(writer->GetObjectTags(this));
 
-  // Write out the data length field.
-  writer->Write<RawObject*>(ptr()->data_length_);
-
   // Write out all the other fields.
   writer->Write<RawObject*>(ptr()->num_bracket_expressions_);
   writer->WriteObjectImpl(ptr()->pattern_);
   writer->Write<int8_t>(ptr()->type_flags_);
-
-  // Do not write out the data part which is native.
 }
 
 

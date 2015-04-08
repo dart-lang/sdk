@@ -1868,9 +1868,8 @@ class RawJSRegExp : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(JSRegExp);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->data_length_);
+    return reinterpret_cast<RawObject**>(&ptr()->num_bracket_expressions_);
   }
-  RawSmi* data_length_;
   RawSmi* num_bracket_expressions_;
   RawString* pattern_;  // Pattern to be used for matching.
   RawFunction* one_byte_function_;
@@ -1885,9 +1884,6 @@ class RawJSRegExp : public RawInstance {
   // type: Uninitialized, simple or complex.
   // flags: Represents global/local, case insensitive, multiline.
   int8_t type_flags_;
-
-  // Variable length data follows here.
-  uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
 };
 
 

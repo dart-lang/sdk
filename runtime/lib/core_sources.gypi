@@ -43,8 +43,6 @@
     'object.cc',
     'object_patch.dart',
     'regexp.cc',
-    'regexp_jsc.cc',
-    'regexp_jsc.h',
     'regexp_patch.dart',
     'stacktrace.cc',
     'stacktrace.dart',

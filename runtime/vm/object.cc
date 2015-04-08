@@ -20346,21 +20346,16 @@ void JSRegExp::set_num_bracket_expressions(intptr_t value) const {
 }
 
 
-RawJSRegExp* JSRegExp::New(intptr_t len, Heap::Space space) {
-  if (len < 0 || len > kMaxElements) {
-    // This should be caught before we reach here.
-    FATAL1("Fatal error in JSRegexp::New: invalid len %" Pd "\n", len);
-  }
+RawJSRegExp* JSRegExp::New(Heap::Space space) {
   JSRegExp& result = JSRegExp::Handle();
   {
     RawObject* raw = Object::Allocate(JSRegExp::kClassId,
-                                      JSRegExp::InstanceSize(len),
+                                      JSRegExp::InstanceSize(),
                                       space);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.set_type(kUnitialized);
     result.set_flags(0);
-    result.SetLength(len);
   }
   return result.raw();
 }

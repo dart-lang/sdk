@@ -7496,24 +7496,11 @@ class JSRegExp : public Instance {
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
 
-  static const intptr_t kBytesPerElement = 1;
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
-
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawJSRegExp) == OFFSET_OF_RETURNED_VALUE(RawJSRegExp, data));
-    if (FLAG_use_jscre) {
-      return 0;
-    }
     return RoundedAllocationSize(sizeof(RawJSRegExp));
   }
 
-  static intptr_t InstanceSize(intptr_t len) {
-    ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(
-        sizeof(RawJSRegExp) + (len * kBytesPerElement));
-  }
-
-  static RawJSRegExp* New(intptr_t length, Heap::Space space = Heap::kNew);
+  static RawJSRegExp* New(Heap::Space space = Heap::kNew);
 
  private:
   void set_type(RegExType type) const {
@@ -7530,12 +7517,6 @@ class JSRegExp : public Instance {
   }
   intptr_t flags() const {
     return FlagsBits::decode(raw_ptr()->type_flags_);
-  }
-
-  void SetLength(intptr_t value) const {
-    // This is only safe because we create a new Smi, which does not cause
-    // heap allocation.
-    StoreSmi(&raw_ptr()->data_length_, Smi::New(value));
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(JSRegExp, Instance);

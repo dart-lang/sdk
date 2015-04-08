@@ -169,13 +169,6 @@ intptr_t RawObject::SizeFromClass() const {
       instance_size = ExceptionHandlers::InstanceSize(num_handlers);
       break;
     }
-    case kJSRegExpCid: {
-      const RawJSRegExp* raw_jsregexp =
-          reinterpret_cast<const RawJSRegExp*>(this);
-      intptr_t data_length = Smi::Value(raw_jsregexp->ptr()->data_length_);
-      instance_size = JSRegExp::InstanceSize(data_length);
-      break;
-    }
     case kFreeListElement: {
       uword addr = RawObject::ToAddr(const_cast<RawObject*>(this));
       FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
@@ -888,9 +881,8 @@ intptr_t RawJSRegExp::VisitJSRegExpPointers(RawJSRegExp* raw_obj,
                                             ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
-  intptr_t length = Smi::Value(raw_obj->ptr()->data_length_);
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return JSRegExp::InstanceSize(length);
+  return JSRegExp::InstanceSize();
 }
 
 

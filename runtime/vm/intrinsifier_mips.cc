@@ -1969,9 +1969,6 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
 
 
 void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
-  if (FLAG_use_jscre) {
-    return;
-  }
   static const intptr_t kRegExpParamOffset = 2 * kWordSize;
   static const intptr_t kStringParamOffset = 1 * kWordSize;
   // start_index smi is located at 0.

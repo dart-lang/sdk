@@ -353,7 +353,6 @@
       'dependencies': [
         'libdart_lib_withcore',
         'libdart_vm',
-        'libjscre',
         'libdouble_conversion',
         'generate_version_cc_file#host',
       ],
