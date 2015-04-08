@@ -41,7 +41,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t exitframe_last_param_slot_from_fp = 2;
 
   __ SetPrologueOffset();
-  __ TraceSimMsg("CallToRuntimeStub");
+  __ Comment("CallToRuntimeStub");
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
   __ sw(ZR, Address(SP, 2 * kWordSize));  // Push 0 for the PC marker
   __ sw(RA, Address(SP, 1 * kWordSize));
@@ -101,7 +101,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
     ASSERT(retval_offset == 3 * kWordSize);
   // Retval is next to 1st argument.
   __ delay_slot()->addiu(A3, A2, Immediate(kWordSize));
-  __ TraceSimMsg("CallToRuntimeStub return");
+  __ Comment("CallToRuntimeStub return");
 
   // Mark that the isolate is executing Dart code.
   __ LoadImmediate(A2, VMTag::kDartTagId);
@@ -150,7 +150,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
   __ SetPrologueOffset();
-  __ TraceSimMsg("CallNativeCFunctionStub");
+  __ Comment("CallNativeCFunctionStub");
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
   __ sw(ZR, Address(SP, 2 * kWordSize));  // Push 0 for the PC marker
   __ sw(RA, Address(SP, 1 * kWordSize));
@@ -218,7 +218,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 #else
   __ BranchLink(&NativeEntry::NativeCallWrapperLabel());
 #endif
-  __ TraceSimMsg("CallNativeCFunctionStub return");
+  __ Comment("CallNativeCFunctionStub return");
 
   // Mark that the isolate is executing Dart code.
   __ LoadImmediate(A2, VMTag::kDartTagId);
@@ -248,7 +248,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
   __ SetPrologueOffset();
-  __ TraceSimMsg("CallNativeCFunctionStub");
+  __ Comment("CallNativeCFunctionStub");
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
   __ sw(ZR, Address(SP, 2 * kWordSize));  // Push 0 for the PC marker
   __ sw(RA, Address(SP, 1 * kWordSize));
@@ -311,7 +311,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // the MIPS ABI.
   __ mov(T9, T5);
   __ jalr(T9);
-  __ TraceSimMsg("CallNativeCFunctionStub return");
+  __ Comment("CallNativeCFunctionStub return");
 
   // Mark that the isolate is executing Dart code.
   __ LoadImmediate(A2, VMTag::kDartTagId);
@@ -331,7 +331,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 // Input parameters:
 //   S4: arguments descriptor array.
 void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
-  __ TraceSimMsg("CallStaticFunctionStub");
+  __ Comment("CallStaticFunctionStub");
   __ EnterStubFrame();
   // Setup space on stack for return value and preserve arguments descriptor.
 
@@ -341,7 +341,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ sw(TMP, Address(SP, 0 * kWordSize));
 
   __ CallRuntime(kPatchStaticCallRuntimeEntry, 0);
-  __ TraceSimMsg("CallStaticFunctionStub return");
+  __ Comment("CallStaticFunctionStub return");
 
   // Get Code object result and restore arguments descriptor array.
   __ lw(T0, Address(SP, 0 * kWordSize));
@@ -362,7 +362,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  __ TraceSimMsg("FixCallersTarget");
+  __ Comment("FixCallersTarget");
   __ EnterStubFrame();
   // Setup space on stack for return value and preserve arguments descriptor.
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
@@ -387,7 +387,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 // Called from object allocate instruction when the allocation stub has been
 // disabled.
 void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
-  __ TraceSimMsg("FixAllocationStubTarget");
+  __ Comment("FixAllocationStubTarget");
   __ EnterStubFrame();
   // Setup space on stack for return value.
   __ addiu(SP, SP, Immediate(-1 * kWordSize));
@@ -412,7 +412,7 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
 // A0: element type (preserved).
 // A1: length (preserved).
 void StubCode::GenerateFixAllocateArrayStubTargetStub(Assembler* assembler) {
-  __ TraceSimMsg("FixAllocationStubTarget");
+  __ Comment("FixAllocationStubTarget");
   __ EnterStubFrame();
   // Setup space on stack for return value.
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
@@ -441,7 +441,7 @@ void StubCode::GenerateFixAllocateArrayStubTargetStub(Assembler* assembler) {
 //   FP[kParamEndSlotFromFp + 1]: Last argument.
 static void PushArgumentsArray(Assembler* assembler) {
   StubCode* stub_code = Isolate::Current()->stub_code();
-  __ TraceSimMsg("PushArgumentsArray");
+  __ Comment("PushArgumentsArray");
   // Allocate array to store arguments of caller.
   __ LoadImmediate(A0, reinterpret_cast<intptr_t>(Object::null()));
   // A0: Null element type for raw Array.
@@ -449,7 +449,7 @@ static void PushArgumentsArray(Assembler* assembler) {
   const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
   const ExternalLabel array_label(array_stub.EntryPoint());
   __ BranchLink(&array_label);
-  __ TraceSimMsg("PushArgumentsArray return");
+  __ Comment("PushArgumentsArray return");
   // V0: newly allocated array.
   // A1: Smi-tagged argument count, may be zero (was preserved by the stub).
   __ Push(V0);  // Array is in V0 and on top of stack.
@@ -513,7 +513,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
       kNumberOfFRegisters * kWordSize;
 
   __ SetPrologueOffset();
-  __ TraceSimMsg("GenerateDeoptimizationSequence");
+  __ Comment("GenerateDeoptimizationSequence");
   // DeoptimizeCopyFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
   __ addiu(SP, SP, Immediate(-kPushedRegistersSize * kWordSize));
@@ -670,7 +670,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 // The newly allocated object is returned in V0.
 void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
     uword* entry_patch_offset, uword* patch_code_pc_offset) {
-  __ TraceSimMsg("AllocateArrayStub");
+  __ Comment("AllocateArrayStub");
   *entry_patch_offset = assembler->CodeSize();
   Label slow_case;
 
@@ -793,7 +793,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ sw(A1, Address(SP, 1 * kWordSize));
   __ sw(A0, Address(SP, 0 * kWordSize));
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
-  __ TraceSimMsg("AllocateArrayStub return");
+  __ Comment("AllocateArrayStub return");
   // Pop arguments; result is popped in IP.
   __ lw(V0, Address(SP, 2 * kWordSize));
   __ lw(A1, Address(SP, 1 * kWordSize));
@@ -815,7 +815,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 //   A2 : arguments array.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Save frame pointer coming in.
-  __ TraceSimMsg("InvokeDartCodeStub");
+  __ Comment("InvokeDartCodeStub");
   __ EnterFrame();
 
   // Save new context and C++ ABI callee-saved registers.
@@ -901,7 +901,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // We are calling into Dart code, here, so there is no need to call through
   // T9 to match the ABI.
   __ jalr(A0);  // S4 is the arguments descriptor array.
-  __ TraceSimMsg("InvokeDartCodeStub return");
+  __ Comment("InvokeDartCodeStub return");
 
   // Get rid of arguments pushed on the stack.
   __ AddImmediate(SP, FP, kExitLinkSlotFromEntryFp * kWordSize);
@@ -948,7 +948,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 // Output:
 //   V0: new allocated RawContext object.
 void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
-  __ TraceSimMsg("AllocateContext");
+  __ Comment("AllocateContext");
   if (FLAG_inline_alloc) {
     Label slow_case;
     Heap* heap = Isolate::Current()->heap();
@@ -1067,7 +1067,7 @@ DECLARE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, Isolate* isolate);
 //   T0: Address (i.e. object) being stored into.
 void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Save values being destroyed.
-  __ TraceSimMsg("UpdateStoreBufferStub");
+  __ Comment("UpdateStoreBufferStub");
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
   __ sw(T3, Address(SP, 2 * kWordSize));
   __ sw(T2, Address(SP, 1 * kWordSize));
@@ -1127,7 +1127,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ EnterCallRuntimeFrame(1 * kWordSize);
   __ LoadIsolate(A0);
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
-  __ TraceSimMsg("UpdateStoreBufferStub return");
+  __ Comment("UpdateStoreBufferStub return");
   // Restore callee-saved registers, tear down frame.
   __ LeaveCallRuntimeFrame();
   __ Ret();
@@ -1143,7 +1143,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 void StubCode::GenerateAllocationStubForClass(
     Assembler* assembler, const Class& cls,
     uword* entry_patch_offset, uword* patch_code_pc_offset) {
-  __ TraceSimMsg("AllocationStubForClass");
+  __ Comment("AllocationStubForClass");
   *entry_patch_offset = assembler->CodeSize();
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
@@ -1259,7 +1259,7 @@ void StubCode::GenerateAllocationStubForClass(
     __ sw(T7, Address(SP, 0 * kWordSize));
   }
   __ CallRuntime(kAllocateObjectRuntimeEntry, 2);  // Allocate object.
-  __ TraceSimMsg("AllocationStubForClass return");
+  __ Comment("AllocationStubForClass return");
   // Pop result (newly allocated object).
   __ lw(V0, Address(SP, 2 * kWordSize));
   __ addiu(SP, SP, Immediate(3 * kWordSize));  // Pop arguments.
@@ -1312,7 +1312,7 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
 // Cannot use function object from ICData as it may be the inlined
 // function and not the top-scope function.
 void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
-  __ TraceSimMsg("OptimizedUsageCounterIncrement");
+  __ Comment("OptimizedUsageCounterIncrement");
   Register ic_reg = S5;
   Register func_reg = T0;
   if (FLAG_trace_optimized_ic_calls) {
@@ -1337,7 +1337,7 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
 // Loads function into 'temp_reg'.
 void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
                                              Register temp_reg) {
-  __ TraceSimMsg("UsageCounterIncrement");
+  __ Comment("UsageCounterIncrement");
   Register ic_reg = S5;
   Register func_reg = temp_reg;
   ASSERT(temp_reg == T0);
@@ -1433,7 +1433,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     const RuntimeEntry& handle_ic_miss,
     Token::Kind kind,
     RangeCollectionMode range_collection_mode) {
-  __ TraceSimMsg("NArgsCheckInlineCacheStub");
+  __ Comment("NArgsCheckInlineCacheStub");
   ASSERT(num_args > 0);
 #if defined(DEBUG)
   { Label ok;
@@ -1572,7 +1572,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Pass IC data object.
   __ sw(S5, Address(SP, (num_slots - num_args - 4) * kWordSize));
   __ CallRuntime(handle_ic_miss, num_args + 1);
-  __ TraceSimMsg("NArgsCheckInlineCacheStub return");
+  __ Comment("NArgsCheckInlineCacheStub return");
   // Pop returned function object into T3.
   // Restore arguments descriptor array and IC data array.
   __ lw(T3, Address(SP, (num_slots - 3) * kWordSize));
@@ -1760,7 +1760,7 @@ void StubCode::GenerateThreeArgsOptimizedCheckInlineCacheStub(
 // S5: ICData
 void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, T0);
-  __ TraceSimMsg("UnoptimizedStaticCallStub");
+  __ Comment("UnoptimizedStaticCallStub");
 #if defined(DEBUG)
   { Label ok;
     // Check that the IC data array has NumArgsTested() == 0.
@@ -1952,7 +1952,7 @@ void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
 // A2: cache array.
 // Result in V0: null -> not found, otherwise result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  __ TraceSimMsg("SubtypeNTestCacheStub");
+  __ Comment("SubtypeNTestCacheStub");
   ASSERT((1 <= n) && (n <= 3));
   if (n > 1) {
     // Get instance type arguments.
@@ -2095,7 +2095,7 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
 // T0: function to be reoptimized.
 // S4: argument descriptor (preserved).
 void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
-  __ TraceSimMsg("OptimizeFunctionStub");
+  __ Comment("OptimizeFunctionStub");
   __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
   __ sw(S4, Address(SP, 2 * kWordSize));
@@ -2104,7 +2104,7 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ sw(TMP, Address(SP, 1 * kWordSize));
   __ sw(T0, Address(SP, 0 * kWordSize));
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
-  __ TraceSimMsg("OptimizeFunctionStub return");
+  __ Comment("OptimizeFunctionStub return");
   __ lw(T0, Address(SP, 1 * kWordSize));  // Get Code object
   __ lw(S4, Address(SP, 2 * kWordSize));  // Restore argument descriptor.
   __ addiu(SP, SP, Immediate(3 * kWordSize));  // Discard argument.
@@ -2132,7 +2132,6 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
                                                     const Register right,
                                                     const Register temp1,
                                                     const Register temp2) {
-  __ TraceSimMsg("IdenticalWithNumberCheckStub");
   __ Comment("IdenticalWithNumberCheckStub");
   Label reference_compare, done, check_mint, check_bigint;
   // If any of the arguments is Smi do reference compare.
@@ -2191,7 +2190,7 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ mov(A0, left);
   __ mov(A1, right);
   __ CallRuntime(kBigintCompareRuntimeEntry, 2);
-  __ TraceSimMsg("IdenticalWithNumberCheckStub return");
+  __ Comment("IdenticalWithNumberCheckStub return");
   // Result in V0, 0 means equal.
   __ LeaveStubFrame();
   __ b(&done);

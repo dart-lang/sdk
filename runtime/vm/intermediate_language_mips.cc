@@ -54,7 +54,7 @@ LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
 void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // In SSA mode, we need an explicit push. Nothing to do in non-SSA mode
   // where PushArgument is handled by BindInstr::EmitNativeCode.
-  __ TraceSimMsg("PushArgumentInstr");
+  __ Comment("PushArgumentInstr");
   if (compiler->is_optimizing()) {
     Location value = locs()->in(0);
     if (value.IsRegister()) {
@@ -86,7 +86,7 @@ LocationSummary* ReturnInstr::MakeLocationSummary(Zone* zone,
 // The entry needs to be patchable, no inlined objects are allowed in the area
 // that will be overwritten by the patch instructions: a branch macro sequence.
 void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("ReturnInstr");
+  __ Comment("ReturnInstr");
   Register result = locs()->in(0).reg();
   ASSERT(result == V0);
 
@@ -99,7 +99,6 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #if defined(DEBUG)
   Label stack_ok;
   __ Comment("Stack Check");
-  __ TraceSimMsg("Stack Check");
   const intptr_t fp_sp_dist =
       (kFirstLocalSlotFromFp + 1 - compiler->StackSize()) * kWordSize;
   ASSERT(fp_sp_dist <= 0);
@@ -309,7 +308,7 @@ LocationSummary* LoadLocalInstr::MakeLocationSummary(Zone* zone,
 
 
 void LoadLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("LoadLocalInstr");
+  __ Comment("LoadLocalInstr");
   Register result = locs()->out(0).reg();
   __ LoadFromOffset(result, FP, local().index() * kWordSize);
 }
@@ -325,7 +324,7 @@ LocationSummary* StoreLocalInstr::MakeLocationSummary(Zone* zone,
 
 
 void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("StoreLocalInstr");
+  __ Comment("StoreLocalInstr");
   Register value = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
   ASSERT(result == value);  // Assert that register assignment is correct.
@@ -345,7 +344,7 @@ LocationSummary* ConstantInstr::MakeLocationSummary(Zone* zone,
 void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
   if (!locs()->out(0).IsInvalid()) {
-    __ TraceSimMsg("ConstantInstr");
+    __ Comment("ConstantInstr");
     Register result = locs()->out(0).reg();
     __ LoadObject(result, value());
   }
@@ -457,7 +456,7 @@ void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register obj = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
 
-  __ TraceSimMsg("AssertBooleanInstr");
+  __ Comment("AssertBooleanInstr");
   EmitAssertBoolean(obj, token_pos(), deopt_id(), locs(), compiler);
   ASSERT(obj == result);
 }
@@ -508,7 +507,7 @@ static void LoadValueCid(FlowGraphCompiler* compiler,
                          Register value_cid_reg,
                          Register value_reg,
                          Label* value_is_smi = NULL) {
-  __ TraceSimMsg("LoadValueCid");
+  __ Comment("LoadValueCid");
   Label done;
   if (value_is_smi == NULL) {
     __ LoadImmediate(value_cid_reg, kSmiCid);
@@ -558,7 +557,7 @@ static RelationOperator TokenKindToUintRelOp(Token::Kind kind) {
 static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
                                   Condition true_condition,
                                   BranchLabels labels) {
-  __ TraceSimMsg("ControlInstruction::EmitBranchOnCondition");
+  __ Comment("ControlInstruction::EmitBranchOnCondition");
   if (labels.fall_through == labels.false_label) {
     // If the next block is the false successor, fall through to it.
     __ BranchOnCondition(true_condition, labels.true_label);
@@ -577,7 +576,6 @@ static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
 static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                      const LocationSummary& locs,
                                      Token::Kind kind) {
-  __ TraceSimMsg("EmitSmiComparisonOp");
   __ Comment("EmitSmiComparisonOp");
   const Location left = locs.in(0);
   const Location right = locs.in(1);
@@ -598,7 +596,6 @@ static Condition EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
                                            const LocationSummary& locs,
                                            Token::Kind kind,
                                            BranchLabels labels) {
-  __ TraceSimMsg("EmitUnboxedMintEqualityOp");
   __ Comment("EmitUnboxedMintEqualityOp");
   ASSERT(Token::IsEqualityOperator(kind));
   PairLocation* left_pair = locs.in(0).AsPairLocation();
@@ -630,7 +627,6 @@ static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
                                              const LocationSummary& locs,
                                              Token::Kind kind,
                                              BranchLabels labels) {
-  __ TraceSimMsg("EmitUnboxedMintComparisonOp");
   __ Comment("EmitUnboxedMintComparisonOp");
   PairLocation* left_pair = locs.in(0).AsPairLocation();
   Register left_lo = left_pair->At(0).reg();
@@ -773,8 +769,7 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                           BranchInstr* branch) {
-  __ TraceSimMsg("EqualityCompareInstr");
-  __ Comment("EqualityCompareInstr:BranchCode");
+  __ Comment("EqualityCompareInstr::EmitBranchCode");
   ASSERT((kind() == Token::kNE) || (kind() == Token::kEQ));
 
   BranchLabels labels = compiler->CreateBranchLabels(branch);
@@ -950,7 +945,7 @@ Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
 
 
 void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("RelationalOpInstr");
+  __ Comment("RelationalOpInstr");
 
   Label is_true, is_false;
   BranchLabels labels = { &is_true, &is_false, &is_false };
@@ -970,7 +965,7 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                        BranchInstr* branch) {
-  __ TraceSimMsg("RelationalOpInstr");
+  __ Comment("RelationalOpInstr");
 
   BranchLabels labels = compiler->CreateBranchLabels(branch);
   Condition true_condition = EmitComparisonCode(compiler, labels);
@@ -985,7 +980,7 @@ LocationSummary* NativeCallInstr::MakeLocationSummary(Zone* zone,
 
 
 void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("NativeCallInstr");
+  __ Comment("NativeCallInstr");
   Register result = locs()->out(0).reg();
 
   // Push the result place holder initialized to NULL.
@@ -1049,7 +1044,7 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register char_code = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
 
-  __ TraceSimMsg("StringFromCharCodeInstr");
+  __ Comment("StringFromCharCodeInstr");
 
   __ LoadImmediate(result,
                    reinterpret_cast<uword>(Symbols::PredefinedAddress()));
@@ -1071,7 +1066,7 @@ LocationSummary* StringToCharCodeInstr::MakeLocationSummary(Zone* zone,
 
 
 void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("StringToCharCodeInstr");
+  __ Comment("StringToCharCodeInstr");
 
   ASSERT(cid_ == kOneByteStringCid);
   Register str = locs()->in(0).reg();
@@ -1262,7 +1257,7 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
 
 
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("LoadIndexedInstr");
+  __ Comment("LoadIndexedInstr");
   // The array register points to the backing store for external arrays.
   const Register array = locs()->in(0).reg();
   const Location index = locs()->in(1);
@@ -1485,7 +1480,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
 
 
 void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("StoreIndexedInstr");
+  __ Comment("StoreIndexedInstr");
   // The array register points to the backing store for external arrays.
   const Register array = locs()->in(0).reg();
   const Location index = locs()->in(1);
@@ -1617,7 +1612,7 @@ LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Zone* zone,
 
 
 void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("GuardFieldClassInstr");
+  __ Comment("GuardFieldClassInstr");
 
   const intptr_t value_cid = value()->Type()->ToCid();
   const intptr_t field_cid = field().guarded_cid();
@@ -2090,7 +2085,7 @@ LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Zone* zone,
 //
 // This is safe only so long as LoadStaticFieldInstr cannot deoptimize.
 void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("LoadStaticFieldInstr");
+  __ Comment("LoadStaticFieldInstr");
   Register field = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
   __ LoadFromOffset(result, field, Field::value_offset() - kHeapObjectTag);
@@ -2109,7 +2104,7 @@ LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
 
 
 void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("StoreStaticFieldInstr");
+  __ Comment("StoreStaticFieldInstr");
   Register value = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
 
@@ -2223,7 +2218,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
 
 
 void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("CreateArrayInstr");
+  __ Comment("CreateArrayInstr");
   const Register kLengthReg = A1;
   const Register kElemTypeReg = A0;
   const Register kResultReg = V0;
@@ -2372,7 +2367,7 @@ LocationSummary* InstantiateTypeInstr::MakeLocationSummary(Zone* zone,
 
 
 void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("InstantiateTypeInstr");
+  __ Comment("InstantiateTypeInstr");
   Register instantiator_reg = locs()->in(0).reg();
   Register result_reg = locs()->out(0).reg();
 
@@ -2413,7 +2408,7 @@ LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary(
 
 void InstantiateTypeArgumentsInstr::EmitNativeCode(
     FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("InstantiateTypeArgumentsInstr");
+  __ Comment("InstantiateTypeArgumentsInstr");
   Register instantiator_reg = locs()->in(0).reg();
   Register result_reg = locs()->out(0).reg();
   ASSERT(instantiator_reg == T0);
@@ -2563,7 +2558,7 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->temp(0).reg() == T1);
   ASSERT(locs()->out(0).reg() == V0);
 
-  __ TraceSimMsg("AllocateContextInstr");
+  __ Comment("AllocateContextInstr");
   __ LoadImmediate(T1, num_context_variables());
   StubCode* stub_code = compiler->isolate()->stub_code();
   const ExternalLabel label(stub_code->AllocateContextEntryPoint());
@@ -2591,7 +2586,7 @@ void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register temp = locs()->temp(0).reg();
 
   Label call_runtime, no_call;
-  __ TraceSimMsg("InitStaticFieldInstr");
+  __ Comment("InitStaticFieldInstr");
 
   __ lw(temp, FieldAddress(field, Field::value_offset()));
   __ BranchEqual(temp, Object::sentinel(), &call_runtime);
@@ -2631,7 +2626,7 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register context_value = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
 
-  __ TraceSimMsg("CloneContextInstr");
+  __ Comment("CloneContextInstr");
 
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ LoadObject(TMP, Object::null_object());  // Make room for the result.
@@ -2711,14 +2706,12 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
     if (FLAG_use_osr) {
       uword flags_address = Isolate::Current()->stack_overflow_flags_address();
       Register value = instruction_->locs()->temp(0).reg();
-      __ TraceSimMsg("CheckStackOverflowSlowPathOsr");
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
       __ LoadImmediate(TMP, flags_address);
       __ LoadImmediate(value, Isolate::kOsrRequest);
       __ sw(value, Address(TMP));
     }
-    __ TraceSimMsg("CheckStackOverflowSlowPath");
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
     compiler->SaveLiveRegisters(instruction_->locs());
@@ -2756,7 +2749,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
 
 
 void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("CheckStackOverflowInstr");
+  __ Comment("CheckStackOverflowInstr");
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
@@ -2791,7 +2784,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       compiler->AddDeoptStub(shift_left->deopt_id(), ICData::kDeoptBinarySmiOp)
       : NULL;
 
-  __ TraceSimMsg("EmitSmiShiftLeft");
+  __ Comment("EmitSmiShiftLeft");
 
   if (locs.in(1).IsConstant()) {
     const Object& constant = locs.in(1).constant();
@@ -2930,7 +2923,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
 
 
 void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("BinarySmiOpInstr");
+  __ Comment("BinarySmiOpInstr");
   if (op_kind() == Token::kSHL) {
     EmitSmiShiftLeft(compiler, this);
     return;
@@ -2959,7 +2952,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
       }
       case Token::kSUB: {
-        __ TraceSimMsg("kSUB imm");
+        __ Comment("kSUB imm");
         if (deopt == NULL) {
           __ AddImmediate(result, left, -imm);
         } else {
@@ -3019,7 +3012,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         // sarl operation masks the count to 5 bits.
         const intptr_t kCountLimit = 0x1F;
         const intptr_t value = Smi::Cast(constant).Value();
-        __ TraceSimMsg("kSHR");
+        __ Comment("kSHR");
         __ sra(result, left, Utils::Minimum(value + kSmiTagSize, kCountLimit));
         __ SmiTag(result);
         break;
@@ -3046,7 +3039,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kSUB: {
-      __ TraceSimMsg("kSUB");
+      __ Comment("kSUB");
       if (deopt == NULL) {
         __ subu(result, left, right);
       } else {
@@ -3056,7 +3049,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kMUL: {
-      __ TraceSimMsg("kMUL");
+      __ Comment("kMUL");
       __ sra(TMP, left, kSmiTagSize);
       __ mult(TMP, right);
       __ mflo(result);
@@ -4595,7 +4588,7 @@ LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
 
 
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("PolymorphicInstanceCallInstr");
+  __ Comment("PolymorphicInstanceCallInstr");
   ASSERT(ic_data().NumArgsTested() == 1);
   if (!with_checks()) {
     ASSERT(ic_data().HasOneTarget());
@@ -4639,7 +4632,7 @@ LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone,
 
 
 void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("BranchInstr");
+  __ Comment("BranchInstr");
   comparison()->EmitBranchCode(compiler, this);
 }
 
@@ -4741,7 +4734,7 @@ LocationSummary* CheckSmiInstr::MakeLocationSummary(Zone* zone,
 
 
 void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("CheckSmiInstr");
+  __ Comment("CheckSmiInstr");
   Register value = locs()->in(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                         ICData::kDeoptCheckSmi,
@@ -5395,7 +5388,7 @@ LocationSummary* GotoInstr::MakeLocationSummary(Zone* zone,
 
 
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("GotoInstr");
+  __ Comment("GotoInstr");
   if (!compiler->is_optimizing()) {
     if (FLAG_emit_edge_counters) {
       compiler->EmitEdgeCounter();
@@ -5510,7 +5503,6 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
 
 
 void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("StrictCompareInstr");
   __ Comment("StrictCompareInstr");
   ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
 
@@ -5532,7 +5524,7 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                         BranchInstr* branch) {
-  __ TraceSimMsg("StrictCompareInstr::EmitBranchCode");
+  __ Comment("StrictCompareInstr::EmitBranchCode");
   ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
 
   BranchLabels labels = compiler->CreateBranchLabels(branch);
@@ -5568,7 +5560,6 @@ LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,
 
 
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("AllocateObjectInstr");
   __ Comment("AllocateObjectInstr");
   Isolate* isolate = compiler->isolate();
   StubCode* stub_code = isolate->stub_code();
@@ -5611,7 +5602,7 @@ LocationSummary* GrowRegExpStackInstr::MakeLocationSummary(
 void GrowRegExpStackInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register typed_data = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  __ TraceSimMsg("GrowRegExpStackInstr");
+  __ Comment("GrowRegExpStackInstr");
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ LoadObject(TMP, Object::null_object());
   __ sw(TMP, Address(SP, 1 * kWordSize));
