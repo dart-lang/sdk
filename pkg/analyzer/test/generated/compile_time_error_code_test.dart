@@ -5251,8 +5251,7 @@ main() {
     resolve(source);
     assertErrors(source, [
       CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
-      CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
-      StaticTypeWarningCode.RETURN_OF_INVALID_TYPE
+      CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
     ]);
     verify([source]);
   }

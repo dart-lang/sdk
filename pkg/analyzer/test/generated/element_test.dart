@@ -2633,8 +2633,9 @@ class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   void test_isAssignableTo_void() {
+    InterfaceTypeImpl intType = _typeProvider.intType;
     expect(
-        VoidTypeImpl.instance.isAssignableTo(_typeProvider.intType), isFalse);
+        VoidTypeImpl.instance.isAssignableTo(intType), isFalse);
   }
 
   void test_isDirectSupertypeOf_extends() {

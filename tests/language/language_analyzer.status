@@ -518,6 +518,9 @@ compile_time_constant10_test/none: CompileTimeError # Issue 21177
 
 const_dynamic_type_literal_test: CompileTimeError # Issue 22989
 
+regress_21912_test/02: StaticWarning # Issue 21912
+regress_22976_test/02: StaticWarning # Issue 22976
+
 # Null-aware operators aren't implemented in the Java-based analyzer.
 if_null_evaluation_order_test: CompileTimeError
 if_null_precedence_test: CompileTimeError
