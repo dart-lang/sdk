@@ -154,7 +154,7 @@ class _LocalDeclarationFinder extends LocalDeclarationVisitor {
       VariableDeclarationList varList, VariableDeclaration varDecl) {}
 
   void _addArgListSuggestion(FormalParameterList parameters) {
-    if (parameters.parameters.length == 0) {
+    if (parameters == null || parameters.parameters.length == 0) {
       return;
     }
     StringBuffer completion = new StringBuffer('(');

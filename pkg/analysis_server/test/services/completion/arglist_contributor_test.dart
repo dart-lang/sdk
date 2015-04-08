@@ -23,6 +23,14 @@ class ArgListContributorTest extends AbstractCompletionTest {
     contributor = new ArgListContributor();
   }
 
+  test_ArgumentList_getter() {
+    addTestSource('class A {int get foo => 7; main() {foo(^)}');
+    computeFast();
+    return computeFull((bool result) {
+      assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
+    });
+  }
+
   test_ArgumentList_imported_function_0() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addSource('/libA.dart', '''
