@@ -46,7 +46,7 @@ class FormatException implements Exception {
   final String message;
 
   /**
-   * The actual source input that caused the error.
+   * The actual source input which caused the error.
    *
    * This is usually a [String], but can be other types too.
    * If it is a string, parts of it may be included in the [toString] message.
@@ -73,8 +73,8 @@ class FormatException implements Exception {
   /**
    * Creates a new FormatException with an optional error [message].
    *
-   * Optionally also supply the actual [source] that had the incorrect format,
-   * and an [offset] in the format where a problem was detected.
+   * Optionally also supply the actual [source] with the incorrect format,
+   * and the [offset] in the format where a problem was detected.
    */
   const FormatException([this.message = "", this.source, this.offset]);
 

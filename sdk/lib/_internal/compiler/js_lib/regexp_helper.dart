@@ -101,7 +101,7 @@ class JSSyntaxRegExp implements RegExp {
     // Dart exception.
     String errorMessage = JS('String', r'String(#)', regexp);
     throw new FormatException(
-        "Illegal RegExp pattern: $source, $errorMessage");
+        "Illegal RegExp pattern ($errorMessage)", source);
   }
 
   Match firstMatch(String string) {

@@ -673,7 +673,9 @@ class Primitives {
   @NoInline()
   static double _parseDoubleError(String source,
                                   double handleError(String source)) {
-    if (handleError == null) throw new FormatException(source);
+    if (handleError == null) {
+      throw new FormatException("Invalid double", source);
+    }
     return handleError(source);
   }
 
