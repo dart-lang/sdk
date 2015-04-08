@@ -4629,6 +4629,15 @@ class SimpleParserTest extends ParserTestCase {
     ParserTestCase.parseCompilationUnit("class C { C() : a = \"\${(){}}\"; }");
   }
 
+  void test_import_as_show() {
+    ParserTestCase.parseCompilationUnit("import 'dart:math' as M show E;");
+  }
+
+  void test_import_show_hide() {
+    ParserTestCase.parseCompilationUnit(
+        "import 'import1_lib.dart' show hide, show hide ugly;");
+  }
+
   void test_isFunctionDeclaration_nameButNoReturn_block() {
     expect(_isFunctionDeclaration("f() {}"), isTrue);
   }

@@ -5969,7 +5969,9 @@ class Parser {
     } else if (deferredToken != null) {
       _reportErrorForCurrentToken(
           ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT);
-    } else if (!_matches(TokenType.SEMICOLON)) {
+    } else if (!_matches(TokenType.SEMICOLON) &&
+        !_matchesString(_SHOW) &&
+        !_matchesString(_HIDE)) {
       Token nextToken = _peek();
       if (_tokenMatchesKeyword(nextToken, Keyword.AS) ||
           _tokenMatchesString(nextToken, _SHOW) ||
