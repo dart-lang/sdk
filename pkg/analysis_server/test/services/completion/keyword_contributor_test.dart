@@ -434,6 +434,12 @@ class A {
     assertSuggestKeywords([Keyword.DEFERRED], DART_RELEVANCE_HIGH);
   }
 
+  test_import_deferred2() {
+    addTestSource('import "foo" d^ as foo;');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.DEFERRED], DART_RELEVANCE_HIGH);
+  }
+
   test_import_deferred_not() {
     addTestSource('import "foo" as foo ^;');
     expect(computeFast(), isTrue);

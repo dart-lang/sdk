@@ -3269,6 +3269,16 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
     parseExpression("m(f() => 0);", [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
+  void test_importDirectivePartial() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(
+        "import 'b.dart' d as b;",
+        [ParserErrorCode.UNEXPECTED_TOKEN]);
+    ImportDirective importDirective = unit.childEntities.first;
+    expect(importDirective.asKeyword, isNotNull);
+    expect(unit.directives, hasLength(1));
+    expect(unit.declarations, hasLength(0));
+  }
+
   void test_incomplete_conditionalExpression() {
     parseExpression("x ? 0", [
       ParserErrorCode.EXPECTED_TOKEN,
