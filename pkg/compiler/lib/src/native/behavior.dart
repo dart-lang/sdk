@@ -221,7 +221,8 @@ class NativeBehavior {
         .toList();
     if (specs.last == "") specs.removeLast();  // Allow separator to terminate.
 
-    assert(validTags == null || validTags.toSet().removeAll(validTags).isEmpty);
+    assert(validTags == null ||
+           (validTags.toSet()..removeAll(validTags)).isEmpty);
     if (validTags == null) validTags = knownTags;
 
     Map<String, String> values = <String, String>{};
