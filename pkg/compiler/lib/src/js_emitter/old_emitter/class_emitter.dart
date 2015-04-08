@@ -48,7 +48,7 @@ class ClassEmitter extends CodeEmitterHelper {
       // We add a special getter here to allow for tearing off a closure from
       // itself.
       jsAst.Fun function = js('function() { return this; }');
-      String name = namer.getterForPublicMember(Compiler.CALL_OPERATOR_NAME);
+      String name = namer.getterForMember(Selector.CALL_NAME);
       builder.addProperty(name, function);
     }
 
@@ -103,7 +103,7 @@ class ClassEmitter extends CodeEmitterHelper {
     bool fieldsAdded = false;
 
     for (Field field in fields) {
-      VariableElement fieldElement = field.element;
+      FieldElement fieldElement = field.element;
       String name = field.name;
       String accessorName = field.accessorName;
       bool needsGetter = field.needsGetter;
@@ -126,7 +126,7 @@ class ClassEmitter extends CodeEmitterHelper {
         }
         fieldMetadata.add(metadata);
         recordMangledField(fieldElement, accessorName,
-            namer.privateName(fieldElement.library, fieldElement.name));
+            namer.privateName(fieldElement.memberName));
         String fieldName = name;
         String fieldCode = '';
         String reflectionMarker = '';
@@ -376,7 +376,7 @@ class ClassEmitter extends CodeEmitterHelper {
     bool isInstantiated =
         compiler.codegenWorld.directlyInstantiatedClasses.contains(element);
 
-    void visitField(Element holder, VariableElement field) {
+    void visitField(Element holder, FieldElement field) {
       assert(invariant(element, field.isDeclaration));
       String name = field.name;
 

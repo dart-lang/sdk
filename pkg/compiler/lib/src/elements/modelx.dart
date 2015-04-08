@@ -168,6 +168,8 @@ abstract class ElementX extends Element {
 
   LibraryElement get library => enclosingElement.library;
 
+  Name get memberName => new Name(name, library);
+
   LibraryElement get implementationLibrary {
     Element element = this;
     while (!identical(element.kind, ElementKind.LIBRARY)) {

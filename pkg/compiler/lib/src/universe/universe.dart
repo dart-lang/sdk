@@ -228,230 +228,78 @@ class SelectorKind {
   String toString() => name;
 }
 
-class Selector {
-  final SelectorKind kind;
-  final String name;
-  final LibraryElement library; // Library is null for non-private selectors.
+/// The structure of the arguments at a call-site.
+// TODO(johnniwinther): Should these be cached?
+// TODO(johnniwinther): Should isGetter/isSetter be part of the call structure
+// instead of the selector?
+class CallStructure {
+  static const CallStructure NO_ARGS = const CallStructure.unnamed(0);
+  static const CallStructure ONE_ARG = const CallStructure.unnamed(1);
+  static const CallStructure TWO_ARGS = const CallStructure.unnamed(2);
 
-  // The numbers of arguments of the selector. Includes named arguments.
+  /// The numbers of arguments of the call. Includes named arguments.
   final int argumentCount;
-  final List<String> namedArguments;
-  final List<String> _orderedNamedArguments;
-  final int hashCode;
 
-  static const String INDEX_NAME ="[]";
-  static const String INDEX_SET_NAME = "[]=";
-  static const String CALL_NAME = Compiler.CALL_OPERATOR_NAME;
+  /// The number of named arguments of the call.
+  int get namedArgumentCount => 0;
 
-  Selector.internal(this.kind,
-                    this.name,
-                    this.library,
-                    this.argumentCount,
-                    this.namedArguments,
-                    this._orderedNamedArguments,
-                    this.hashCode) {
-    assert(kind == SelectorKind.INDEX
-           || (name != INDEX_NAME && name != INDEX_SET_NAME));
-    assert(kind == SelectorKind.OPERATOR
-           || kind == SelectorKind.INDEX
-           || !Elements.isOperatorName(name));
-    assert(kind == SelectorKind.CALL
-           || kind == SelectorKind.GETTER
-           || kind == SelectorKind.SETTER
-           || Elements.isOperatorName(name));
-    assert(!isPrivateName(name) || library != null);
-  }
+  /// The number of positional argument of the call.
+  int get positionalArgumentCount => argumentCount;
 
-  static Map<int, List<Selector>> canonicalizedValues =
-      new Map<int, List<Selector>>();
+  const CallStructure.unnamed(this.argumentCount);
 
-  factory Selector(SelectorKind kind,
-                   String name,
-                   LibraryElement library,
-                   int argumentCount,
-                   [List<String> namedArguments]) {
-    if (!isPrivateName(name)) library = null;
-    if (namedArguments == null) namedArguments = const <String>[];
-    int hashCode = computeHashCode(
-        kind, name, library, argumentCount, namedArguments);
-    List<Selector> list = canonicalizedValues.putIfAbsent(hashCode,
-        () => <Selector>[]);
-    for (int i = 0; i < list.length; i++) {
-      Selector existing = list[i];
-      if (existing.match(kind, name, library, argumentCount, namedArguments)) {
-        assert(existing.hashCode == hashCode);
-        assert(existing.mask == null);
-        return existing;
-      }
+  factory CallStructure(int argumentCount, [List<String> namedArguments]) {
+    if (namedArguments == null || namedArguments.isEmpty) {
+      return new CallStructure.unnamed(argumentCount);
     }
-    List<String> orderedNamedArguments = namedArguments.isEmpty
-        ? const <String>[]
-        : <String>[];
-    Selector result = new Selector.internal(
-        kind, name, library, argumentCount,
-        namedArguments, orderedNamedArguments,
-        hashCode);
-    list.add(result);
-    return result;
+    return new NamedCallStructure(argumentCount, namedArguments);
   }
 
-  factory Selector.fromElement(Element element) {
-    String name = element.name;
-    if (element.isFunction) {
-      if (name == '[]') {
-        return new Selector.index();
-      } else if (name == '[]=') {
-        return new Selector.indexSet();
-      }
-      FunctionSignature signature =
-          element.asFunctionElement().functionSignature;
-      int arity = signature.parameterCount;
-      List<String> namedArguments = null;
-      if (signature.optionalParametersAreNamed) {
-        namedArguments =
-            signature.orderedOptionalParameters.map((e) => e.name).toList();
-      }
-      if (element.isOperator) {
-        // Operators cannot have named arguments, however, that doesn't prevent
-        // a user from declaring such an operator.
-        return new Selector(
-            SelectorKind.OPERATOR, name, null, arity, namedArguments);
-      } else {
-        return new Selector.call(
-            name, element.library, arity, namedArguments);
-      }
-    } else if (element.isSetter) {
-      return new Selector.setter(name, element.library);
-    } else if (element.isGetter) {
-      return new Selector.getter(name, element.library);
-    } else if (element.isField) {
-      return new Selector.getter(name, element.library);
-    } else if (element.isConstructor) {
-      return new Selector.callConstructor(name, element.library);
-    } else {
-      throw new SpannableAssertionFailure(
-          element, "Can't get selector from $element");
+  /// `true` if this call has named arguments.
+  bool get isNamed => false;
+
+  /// `true` if this call has no named arguments.
+  bool get isUnnamed => true;
+
+  /// The names of the named arguments in call-site order.
+  List<String> get namedArguments => const <String>[];
+
+  /// The names of the named arguments in canonicalized order.
+  List<String> getOrderedNamedArguments() => const <String>[];
+
+  /// A description of the argument structure.
+  String structureToString() => 'arity=$argumentCount';
+
+  String toString() => 'CallStructure(${structureToString()})';
+
+  Selector get callSelector {
+    return new Selector(SelectorKind.CALL, Selector.CALL_NAME, this);
+  }
+
+  bool match(CallStructure other) {
+    if (identical(this, other)) return true;
+    return this.argumentCount == other.argumentCount
+        && this.namedArgumentCount == other.namedArgumentCount
+        && sameNames(this.namedArguments, other.namedArguments);
+  }
+
+  // TODO(johnniwinther): Cache hash code?
+  int get hashCode {
+    int named = namedArguments.length;
+    int hash = mixHashCodeBits(argumentCount, named);
+    for (int i = 0; i < named; i++) {
+      hash = mixHashCodeBits(hash, namedArguments[i].hashCode);
     }
+    return hash;
   }
 
-  factory Selector.getter(String name, LibraryElement library)
-      => new Selector(SelectorKind.GETTER, name, library, 0);
-
-  factory Selector.getterFrom(Selector selector)
-      => new Selector(SelectorKind.GETTER, selector.name, selector.library, 0);
-
-  factory Selector.setter(String name, LibraryElement library)
-      => new Selector(SelectorKind.SETTER, name, library, 1);
-
-  factory Selector.unaryOperator(String name)
-      => new Selector(SelectorKind.OPERATOR,
-                      Elements.constructOperatorName(name, true),
-                      null, 0);
-
-  factory Selector.binaryOperator(String name)
-      => new Selector(SelectorKind.OPERATOR,
-                      Elements.constructOperatorName(name, false),
-                      null, 1);
-
-  factory Selector.index()
-      => new Selector(SelectorKind.INDEX,
-                      Elements.constructOperatorName(INDEX_NAME, false),
-                      null, 1);
-
-  factory Selector.indexSet()
-      => new Selector(SelectorKind.INDEX,
-                      Elements.constructOperatorName(INDEX_SET_NAME, false),
-                      null, 2);
-
-  factory Selector.call(String name,
-                        LibraryElement library,
-                        int arity,
-                        [List<String> namedArguments])
-      => new Selector(SelectorKind.CALL, name, library, arity, namedArguments);
-
-  factory Selector.callClosure(int arity, [List<String> namedArguments])
-      => new Selector(SelectorKind.CALL, CALL_NAME, null,
-                      arity, namedArguments);
-
-  factory Selector.callClosureFrom(Selector selector)
-      => new Selector(SelectorKind.CALL, CALL_NAME, null,
-                      selector.argumentCount, selector.namedArguments);
-
-  factory Selector.callConstructor(String name, LibraryElement library,
-                                   [int arity = 0,
-                                    List<String> namedArguments])
-      => new Selector(SelectorKind.CALL, name, library,
-                      arity, namedArguments);
-
-  factory Selector.callDefaultConstructor()
-      => new Selector(SelectorKind.CALL, "", null, 0);
-
-  bool get isGetter => identical(kind, SelectorKind.GETTER);
-  bool get isSetter => identical(kind, SelectorKind.SETTER);
-  bool get isCall => identical(kind, SelectorKind.CALL);
-  bool get isClosureCall {
-    String callName = Compiler.CALL_OPERATOR_NAME;
-    return isCall && name == callName;
-  }
-
-  bool get isIndex => identical(kind, SelectorKind.INDEX) && argumentCount == 1;
-  bool get isIndexSet => identical(kind, SelectorKind.INDEX) && argumentCount == 2;
-
-  bool get isOperator => identical(kind, SelectorKind.OPERATOR);
-  bool get isUnaryOperator => isOperator && argumentCount == 0;
-
-  /** Check whether this is a call to 'assert'. */
-  bool get isAssert => isCall && identical(name, "assert");
-
-  int get namedArgumentCount => namedArguments.length;
-  int get positionalArgumentCount => argumentCount - namedArgumentCount;
-
-  bool get hasExactMask => false;
-  TypeMask get mask => null;
-  Selector get asUntyped => this;
-
-  /**
-   * The member name for invocation mirrors created from this selector.
-   */
-  String get invocationMirrorMemberName =>
-      isSetter ? '$name=' : name;
-
-  int get invocationMirrorKind {
-    const int METHOD = 0;
-    const int GETTER = 1;
-    const int SETTER = 2;
-    int kind = METHOD;
-    if (isGetter) {
-      kind = GETTER;
-    } else if (isSetter) {
-      kind = SETTER;
-    }
-    return kind;
-  }
-
-  bool appliesUnnamed(Element element, World world) {
-    assert(sameNameHack(element, world));
-    return appliesUntyped(element, world);
-  }
-
-  bool appliesUntyped(Element element, World world) {
-    assert(sameNameHack(element, world));
-    if (Elements.isUnresolved(element)) return false;
-    if (isPrivateName(name) && library != element.library) return false;
-    if (world.isForeign(element)) return true;
-    if (element.isSetter) return isSetter;
-    if (element.isGetter) return isGetter || isCall;
-    if (element.isField) {
-      return isSetter
-          ? !element.isFinal && !element.isConst
-          : isGetter || isCall;
-    }
-    if (isGetter) return true;
-    if (isSetter) return false;
-    return signatureApplies(element);
+  bool operator ==(other) {
+    if (other is! CallStructure) return false;
+    return match(other);
   }
 
   bool signatureApplies(FunctionElement function) {
+    if (Elements.isUnresolved(function)) return false;
     FunctionSignature parameters = function.functionSignature;
     if (argumentCount > parameters.parameterCount) return false;
     int requiredParameterCount = parameters.requiredParameterCount;
@@ -482,18 +330,6 @@ class Selector {
       }
       return true;
     }
-  }
-
-  bool sameNameHack(Element element, World world) {
-    // TODO(ngeoffray): Remove workaround checks.
-    return element.isConstructor ||
-           name == element.name ||
-           name == 'assert' && world.isAssertMethod(element);
-  }
-
-  bool applies(Element element, World world) {
-    if (!sameNameHack(element, world)) return false;
-    return appliesUnnamed(element, world);
   }
 
   /**
@@ -564,21 +400,20 @@ class Selector {
    * Returns [:true:] if the signature of the [caller] matches the
    * signature of the [callee], [:false:] otherwise.
    */
-  static bool addForwardingElementArgumentsToList(
-      FunctionElement caller,
-      List list,
-      FunctionElement callee,
-      compileArgument(Element element),
-      compileConstant(Element element),
-      World world) {
+  static /*<T>*/ bool addForwardingElementArgumentsToList(
+      ConstructorElement caller,
+      List/*<T>*/ list,
+      ConstructorElement callee,
+      /*T*/ compileArgument(ParameterElement element),
+      /*T*/ compileConstant(ParameterElement element)) {
 
     FunctionSignature signature = caller.functionSignature;
-    Map mapping = new Map();
+    Map<Node, ParameterElement> mapping = <Node, ParameterElement>{};
 
     // TODO(ngeoffray): This is a hack that fakes up AST nodes, so
     // that we can call [addArgumentsToList].
-    Link computeCallNodesFromParameters() {
-      LinkBuilder builder = new LinkBuilder();
+    Link<Node> computeCallNodesFromParameters() {
+      LinkBuilder<Node> builder = new LinkBuilder<Node>();
       signature.forEachRequiredParameter((ParameterElement element) {
         Node node = element.node;
         mapping[node] = element;
@@ -599,29 +434,28 @@ class Selector {
       return builder.toLink();
     }
 
-    internalCompileArgument(Node node) {
+    /*T*/ internalCompileArgument(Node node) {
       return compileArgument(mapping[node]);
     }
 
     Link<Node> nodes = computeCallNodesFromParameters();
 
-    // Synthesize a selector for the call.
+    // Synthesize a structure for the call.
     // TODO(ngeoffray): Should the resolver do it instead?
     List<String> namedParameters;
     if (signature.optionalParametersAreNamed) {
-      namedParameters =
-          signature.optionalParameters.mapToList((e) => e.name);
+      namedParameters = signature.optionalParameters.mapToList((e) => e.name);
     }
-    Selector selector = new Selector.call(callee.name,
-                                          caller.library,
-                                          signature.parameterCount,
-                                          namedParameters);
-
-    if (!selector.applies(callee, world)) return false;
-    list.addAll(selector.makeArgumentsList(nodes,
-                                           callee,
-                                           internalCompileArgument,
-                                           compileConstant));
+    CallStructure callStructure =
+        new CallStructure(signature.parameterCount, namedParameters);
+    if (!callStructure.signatureApplies(callee)) {
+      return false;
+    }
+    list.addAll(callStructure.makeArgumentsList(
+        nodes,
+        callee,
+        internalCompileArgument,
+        compileConstant));
 
     return true;
   }
@@ -632,59 +466,32 @@ class Selector {
     }
     return true;
   }
+}
 
-  bool match(SelectorKind kind,
-             String name,
-             LibraryElement library,
-             int argumentCount,
-             List<String> namedArguments) {
-    return this.kind == kind
-        && this.name == name
-        && identical(this.library, library)
-        && this.argumentCount == argumentCount
-        && this.namedArguments.length == namedArguments.length
-        && sameNames(this.namedArguments, namedArguments);
+///
+class NamedCallStructure extends CallStructure {
+  final List<String> namedArguments;
+  final List<String> _orderedNamedArguments = <String>[];
+
+  NamedCallStructure(int argumentCount, this.namedArguments)
+      : super.unnamed(argumentCount) {
+    assert(namedArguments.isNotEmpty);
   }
 
-  static int computeHashCode(SelectorKind kind,
-                             String name,
-                             LibraryElement library,
-                             int argumentCount,
-                             List<String> namedArguments) {
-    // Add bits from name and kind.
-    int hash = mixHashCodeBits(name.hashCode, kind.hashCode);
-    // Add bits from the library.
-    if (library != null) hash = mixHashCodeBits(hash, library.hashCode);
-    // Add bits from the unnamed arguments.
-    hash = mixHashCodeBits(hash, argumentCount);
-    // Add bits from the named arguments.
-    int named = namedArguments.length;
-    hash = mixHashCodeBits(hash, named);
-    for (int i = 0; i < named; i++) {
-      hash = mixHashCodeBits(hash, namedArguments[i].hashCode);
-    }
-    return hash;
-  }
+  @override
+  bool get isNamed => true;
 
-  // TODO(kasperl): Move this out so it becomes useful in other places too?
-  static int mixHashCodeBits(int existing, int value) {
-    // Spread the bits of value. Try to stay in the 30-bit range to
-    // avoid overflowing into a more expensive integer representation.
-    int h = value & 0x1fffffff;
-    h += ((h & 0x3fff) << 15) ^ 0x1fffcd7d;
-    h ^= (h >> 10);
-    h += ((h & 0x3ffffff) << 3);
-    h ^= (h >> 6);
-    h += ((h & 0x7ffffff) << 2) + ((h & 0x7fff) << 14);
-    h ^= (h >> 16);
-    // Combine the two hash values.
-    int high = existing >> 15;
-    int low = existing & 0x7fff;
-    return ((high * 13) ^ (low * 997) ^ h) & SMI_MASK;
-  }
+  @override
+  bool get isUnnamed => false;
 
+  @override
+  int get namedArgumentCount => namedArguments.length;
+
+  @override
+  int get positionalArgumentCount => argumentCount - namedArgumentCount;
+
+  @override
   List<String> getOrderedNamedArguments() {
-    if (namedArguments.isEmpty) return namedArguments;
     if (!_orderedNamedArguments.isEmpty) return _orderedNamedArguments;
 
     _orderedNamedArguments.addAll(namedArguments);
@@ -694,25 +501,273 @@ class Selector {
     return _orderedNamedArguments;
   }
 
-  String namedArgumentsToString() {
-    if (namedArgumentCount > 0) {
-      StringBuffer result = new StringBuffer();
-      for (int i = 0; i < namedArgumentCount; i++) {
-        if (i != 0) result.write(', ');
-        result.write(namedArguments[i]);
+  @override
+  String structureToString() {
+    return 'arity=$argumentCount, named=[${namedArguments.join(', ')}]';
+  }
+}
+
+class Selector {
+  final SelectorKind kind;
+  final Name memberName;
+  final CallStructure callStructure;
+
+  final int hashCode;
+
+  int get argumentCount => callStructure.argumentCount;
+  int get namedArgumentCount => callStructure.namedArgumentCount;
+  int get positionalArgumentCount => callStructure.positionalArgumentCount;
+  List<String> get namedArguments => callStructure.namedArguments;
+
+  String get name => memberName.text;
+
+  LibraryElement get library => memberName.library;
+
+  static const Name INDEX_NAME = const PublicName("[]");
+  static const Name INDEX_SET_NAME = const PublicName("[]=");
+  static const Name CALL_NAME = const PublicName(Compiler.CALL_OPERATOR_NAME);
+
+  Selector.internal(this.kind,
+                    this.memberName,
+                    this.callStructure,
+                    this.hashCode) {
+    assert(kind == SelectorKind.INDEX ||
+           (memberName != INDEX_NAME && memberName != INDEX_SET_NAME));
+    assert(kind == SelectorKind.OPERATOR ||
+           kind == SelectorKind.INDEX ||
+           !Elements.isOperatorName(memberName.text));
+    assert(kind == SelectorKind.CALL ||
+           kind == SelectorKind.GETTER ||
+           kind == SelectorKind.SETTER ||
+           Elements.isOperatorName(memberName.text));
+  }
+
+  // TODO(johnniwinther): Extract caching.
+  static Map<int, List<Selector>> canonicalizedValues =
+      new Map<int, List<Selector>>();
+
+  factory Selector(SelectorKind kind,
+                   Name name,
+                   CallStructure callStructure) {
+    // TODO(johnniwinther): Maybe use equality instead of implicit hashing.
+    int hashCode = computeHashCode(kind, name, callStructure);
+    List<Selector> list = canonicalizedValues.putIfAbsent(hashCode,
+        () => <Selector>[]);
+    for (int i = 0; i < list.length; i++) {
+      Selector existing = list[i];
+      if (existing.match(kind, name, callStructure)) {
+        assert(existing.hashCode == hashCode);
+        assert(existing.mask == null);
+        return existing;
       }
-      return "[$result]";
     }
-    return '';
+    Selector result = new Selector.internal(
+        kind, name, callStructure, hashCode);
+    list.add(result);
+    return result;
+  }
+
+  factory Selector.fromElement(Element element) {
+    String name = element.name;
+    if (element.isFunction) {
+      if (name == '[]') {
+        return new Selector.index();
+      } else if (name == '[]=') {
+        return new Selector.indexSet();
+      }
+      FunctionSignature signature =
+          element.asFunctionElement().functionSignature;
+      int arity = signature.parameterCount;
+      List<String> namedArguments = null;
+      if (signature.optionalParametersAreNamed) {
+        namedArguments =
+            signature.orderedOptionalParameters.map((e) => e.name).toList();
+      }
+      if (element.isOperator) {
+        // Operators cannot have named arguments, however, that doesn't prevent
+        // a user from declaring such an operator.
+        return new Selector(
+            SelectorKind.OPERATOR,
+            new PublicName(name),
+            new CallStructure(arity, namedArguments));
+      } else {
+        return new Selector.call(
+            name, element.library, arity, namedArguments);
+      }
+    } else if (element.isSetter) {
+      return new Selector.setter(name, element.library);
+    } else if (element.isGetter) {
+      return new Selector.getter(name, element.library);
+    } else if (element.isField) {
+      return new Selector.getter(name, element.library);
+    } else if (element.isConstructor) {
+      return new Selector.callConstructor(name, element.library);
+    } else {
+      throw new SpannableAssertionFailure(
+          element, "Can't get selector from $element");
+    }
+  }
+
+  factory Selector.getter(String name, LibraryElement library)
+      => new Selector(SelectorKind.GETTER,
+                      new Name(name, library),
+                      CallStructure.NO_ARGS);
+
+  factory Selector.getterFrom(Selector selector)
+      => new Selector(SelectorKind.GETTER,
+                      selector.memberName,
+                      CallStructure.NO_ARGS);
+
+  factory Selector.setter(String name, LibraryElement library)
+      => new Selector(SelectorKind.SETTER,
+                      new Name(name, library, isSetter: true),
+                      CallStructure.ONE_ARG);
+
+  factory Selector.unaryOperator(String name) => new Selector(
+      SelectorKind.OPERATOR,
+      new PublicName(Elements.constructOperatorName(name, true)),
+      CallStructure.NO_ARGS);
+
+  factory Selector.binaryOperator(String name) => new Selector(
+      SelectorKind.OPERATOR,
+      new PublicName(Elements.constructOperatorName(name, false)),
+      CallStructure.ONE_ARG);
+
+  factory Selector.index()
+      => new Selector(SelectorKind.INDEX, INDEX_NAME,
+                      CallStructure.ONE_ARG);
+
+  factory Selector.indexSet()
+      => new Selector(SelectorKind.INDEX, INDEX_SET_NAME,
+                      CallStructure.TWO_ARGS);
+
+  factory Selector.call(String name,
+                        LibraryElement library,
+                        int arity,
+                        [List<String> namedArguments])
+      => new Selector(SelectorKind.CALL,
+          new Name(name, library),
+          new CallStructure(arity, namedArguments));
+
+  factory Selector.callClosure(int arity, [List<String> namedArguments])
+      => new Selector(SelectorKind.CALL, CALL_NAME,
+                      new CallStructure(arity, namedArguments));
+
+  factory Selector.callClosureFrom(Selector selector)
+      => new Selector(SelectorKind.CALL, CALL_NAME, selector.callStructure);
+
+  factory Selector.callConstructor(String name, LibraryElement library,
+                                   [int arity = 0,
+                                    List<String> namedArguments])
+      => new Selector(SelectorKind.CALL, new Name(name, library),
+                      new CallStructure(arity, namedArguments));
+
+  factory Selector.callDefaultConstructor()
+      => new Selector(
+          SelectorKind.CALL,
+          const PublicName(''),
+          CallStructure.NO_ARGS);
+
+  bool get isGetter => kind == SelectorKind.GETTER;
+  bool get isSetter => kind == SelectorKind.SETTER;
+  bool get isCall => kind == SelectorKind.CALL;
+  bool get isClosureCall => isCall && memberName == CALL_NAME;
+
+  bool get isIndex => kind == SelectorKind.INDEX && argumentCount == 1;
+  bool get isIndexSet => kind == SelectorKind.INDEX && argumentCount == 2;
+
+  bool get isOperator => kind == SelectorKind.OPERATOR;
+  bool get isUnaryOperator => isOperator && argumentCount == 0;
+
+  /** Check whether this is a call to 'assert'. */
+  bool get isAssert => isCall && identical(name, "assert");
+
+  bool get hasExactMask => false;
+  TypeMask get mask => null;
+  Selector get asUntyped => this;
+
+  /**
+   * The member name for invocation mirrors created from this selector.
+   */
+  String get invocationMirrorMemberName =>
+      isSetter ? '$name=' : name;
+
+  int get invocationMirrorKind {
+    const int METHOD = 0;
+    const int GETTER = 1;
+    const int SETTER = 2;
+    int kind = METHOD;
+    if (isGetter) {
+      kind = GETTER;
+    } else if (isSetter) {
+      kind = SETTER;
+    }
+    return kind;
+  }
+
+  bool appliesUnnamed(Element element, World world) {
+    assert(sameNameHack(element, world));
+    return appliesUntyped(element, world);
+  }
+
+  bool appliesUntyped(Element element, World world) {
+    assert(sameNameHack(element, world));
+    if (Elements.isUnresolved(element)) return false;
+    if (memberName.isPrivate && memberName.library != element.library) {
+      // TODO(johnniwinther): Maybe this should be
+      // `memberName != element.memberName`.
+      return false;
+    }
+    if (world.isForeign(element)) return true;
+    if (element.isSetter) return isSetter;
+    if (element.isGetter) return isGetter || isCall;
+    if (element.isField) {
+      return isSetter
+          ? !element.isFinal && !element.isConst
+          : isGetter || isCall;
+    }
+    if (isGetter) return true;
+    if (isSetter) return false;
+    return signatureApplies(element);
+  }
+
+  bool signatureApplies(FunctionElement function) {
+    return callStructure.signatureApplies(function);
+  }
+
+  bool sameNameHack(Element element, World world) {
+    // TODO(ngeoffray): Remove workaround checks.
+    return element.isConstructor ||
+           name == element.name ||
+           name == 'assert' && world.isAssertMethod(element);
+  }
+
+  bool applies(Element element, World world) {
+    if (!sameNameHack(element, world)) return false;
+    return appliesUnnamed(element, world);
+  }
+
+  bool match(SelectorKind kind,
+             Name memberName,
+             CallStructure callStructure) {
+    return this.kind == kind
+        && this.memberName == memberName
+        && this.callStructure.match(callStructure);
+  }
+
+  static int computeHashCode(SelectorKind kind,
+                             Name name,
+                             CallStructure callStructure) {
+    // Add bits from name and kind.
+    int hash = mixHashCodeBits(name.hashCode, kind.hashCode);
+    // Add bits from the call structure.
+    return mixHashCodeBits(hash, callStructure.hashCode);
   }
 
   String toString() {
-    String named = '';
     String type = '';
-    if (namedArgumentCount > 0) named = ', named=${namedArgumentsToString()}';
     if (mask != null) type = ', mask=$mask';
-    return 'Selector($kind, $name, '
-           'arity=$argumentCount$named$type)';
+    return 'Selector($kind, $name, ${callStructure.structureToString()}$type)';
   }
 
   Selector extendIfReachesAll(Compiler compiler) {
@@ -730,11 +785,8 @@ class TypedSelector extends Selector {
   TypedSelector.internal(this.mask, Selector selector, int hashCode)
       : asUntyped = selector,
         super.internal(selector.kind,
-                       selector.name,
-                       selector.library,
-                       selector.argumentCount,
-                       selector.namedArguments,
-                       selector._orderedNamedArguments,
+                       selector.memberName,
+                       selector.callStructure,
                        hashCode) {
     assert(mask != null);
     assert(asUntyped.mask == null);
@@ -758,7 +810,7 @@ class TypedSelector extends Selector {
         .putIfAbsent(untyped, () => new Map<TypeMask, TypedSelector>());
     TypedSelector result = map[mask];
     if (result == null) {
-      int hashCode = Selector.mixHashCodeBits(untyped.hashCode, mask.hashCode);
+      int hashCode = mixHashCodeBits(untyped.hashCode, mask.hashCode);
       result = map[mask] = new TypedSelector.internal(mask, untyped, hashCode);
     }
     return result;

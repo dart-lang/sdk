@@ -38,21 +38,22 @@ class ParameterStubGenerator {
   ParameterStubMethod generateParameterStub(FunctionElement member,
                                             Selector selector,
                                             Selector callSelector) {
+    CallStructure callStructure = selector.callStructure;
     FunctionSignature parameters = member.functionSignature;
-    int positionalArgumentCount = selector.positionalArgumentCount;
+    int positionalArgumentCount = callStructure.positionalArgumentCount;
     if (positionalArgumentCount == parameters.parameterCount) {
-      assert(selector.namedArgumentCount == 0);
+      assert(callStructure.isUnnamed);
       return null;
     }
-    if (parameters.optionalParametersAreNamed
-        && selector.namedArgumentCount == parameters.optionalParameterCount) {
+    if (parameters.optionalParametersAreNamed &&
+        callStructure.namedArgumentCount == parameters.optionalParameterCount) {
       // If the selector has the same number of named arguments as the element,
       // we don't need to add a stub. The call site will hit the method
       // directly.
       return null;
     }
     JavaScriptConstantCompiler handler = backend.constants;
-    List<String> names = selector.getOrderedNamedArguments();
+    List<String> names = callStructure.getOrderedNamedArguments();
 
     bool isInterceptedMethod = backend.isInterceptedMethod(member);
 
@@ -186,8 +187,8 @@ class ParameterStubGenerator {
   // (1) foo$2(a, b) => MyClass.foo$4$c$d.call(this, a, b, null, null)
   // (2) foo$3$c(a, b, c) => MyClass.foo$4$c$d(this, a, b, c, null);
   // (3) foo$3$d(a, b, d) => MyClass.foo$4$c$d(this, a, b, null, d);
-  List<ParameterStubMethod> generateParameterStubs(FunctionElement member,
-                                                 {bool canTearOff: true}) {
+  List<ParameterStubMethod> generateParameterStubs(MethodElement member,
+                                                   {bool canTearOff: true}) {
     if (member.enclosingElement.isClosure) {
       ClosureClassElement cls = member.enclosingElement;
       if (cls.supertype.element == backend.boundClosureClass) {
@@ -243,9 +244,10 @@ class ParameterStubGenerator {
     // Start with the callSelectors since they imply the generation of the
     // non-call version.
     for (Selector selector in callSelectors) {
-      Selector renamedSelector = new Selector.call(
-          member.name, member.library,
-          selector.argumentCount, selector.namedArguments);
+      Selector renamedSelector = new Selector(
+          SelectorKind.CALL,
+          member.memberName,
+          selector.callStructure);
       renamedCallSelectors.add(renamedSelector);
 
       if (!renamedSelector.appliesUnnamed(member, compiler.world)) continue;
