@@ -59,6 +59,9 @@ ref_before_declaration_test/04: MissingCompileTimeError
 ref_before_declaration_test/05: MissingCompileTimeError
 ref_before_declaration_test/06: MissingCompileTimeError
 
+regress_22976_test/01: CompileTimeError # Issue 23132
+regress_22976_test/02: CompileTimeError # Issue 23132
+
 # Null-aware operators aren't implemented in dart2js yet.
 if_null_evaluation_order_test: CompileTimeError
 if_null_precedence_test: CompileTimeError
