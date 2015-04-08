@@ -530,8 +530,8 @@ class RestrictedResolverVisitor extends ResolverVisitor {
   @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     if (skipMethodBodies) {
-      node.accept(elementResolver_J2DAccessor);
-      node.accept(typeAnalyzer_J2DAccessor);
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
       return null;
     } else {
       return super.visitMethodDeclaration(node);
@@ -541,8 +541,8 @@ class RestrictedResolverVisitor extends ResolverVisitor {
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     if (skipMethodBodies) {
-      node.accept(elementResolver_J2DAccessor);
-      node.accept(typeAnalyzer_J2DAccessor);
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
       return null;
     } else {
       return super.visitFunctionDeclaration(node);
@@ -552,8 +552,8 @@ class RestrictedResolverVisitor extends ResolverVisitor {
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     if (skipMethodBodies) {
-      node.accept(elementResolver_J2DAccessor);
-      node.accept(typeAnalyzer_J2DAccessor);
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
       return null;
     } else {
       return super.visitConstructorDeclaration(node);
@@ -576,7 +576,7 @@ class _ResolverState {
   void restore(ResolverVisitor visitor) {
     visitor.promoteManager.currentScope = promotionScope;
     visitor.overrideManager.currentScope = overrideScope;
-    visitor.nameScope_J2DAccessor = nameScope;
+    visitor.nameScope = nameScope;
   }
 }
 

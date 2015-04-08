@@ -4,7 +4,7 @@ dependencies:
   analyzer:
     git:
       url: https://github.com/dart-lang/ddc_analyzer.git
-      ref: 901ecfffe7c29db4ac4db2f8ac90ea790b995895
+      ref: e3c06e1e133c4c492434ba5e1318b6d3d576116a
   args: ^0.12.1
   cli_util: ^0.0.1
   crypto: ^0.9.0
@@ -28,7 +28,7 @@ dependency_overrides:
   analyzer:
     git:
       url: https://github.com/dart-lang/ddc_analyzer.git
-      ref: 901ecfffe7c29db4ac4db2f8ac90ea790b995895
+      ref: e3c06e1e133c4c492434ba5e1318b6d3d576116a
 executables:
   # Similar to "analyzer.dart" and its command line "dartanalyzer", we use
   # "dartdevc" and "devc.dart"

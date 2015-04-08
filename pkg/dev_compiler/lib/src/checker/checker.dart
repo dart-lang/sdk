@@ -472,7 +472,7 @@ class CodeChecker extends RecursiveAstVisitor {
     int len = list.length;
     for (int i = 0; i < len; ++i) {
       Expression arg = list[i];
-      ParameterElement element = node.getStaticParameterElementFor(arg);
+      ParameterElement element = arg.staticParameterElement;
       if (element == null) {
         if (type.parameters.length < len) {
           // We found an argument mismatch, the analyzer will report this too,

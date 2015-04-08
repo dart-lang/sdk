@@ -2926,10 +2926,8 @@ var async;
               result = dart.as(this[_onCancel](), Future);
             } catch (e) {
               let s = dart.stackTrace(e);
-              result = ((_$) => {
-                _$[_asyncCompleteError](e, s);
-                return _$;
-              })(new _Future());
+              result = new _Future();
+              result[_asyncCompleteError](e, s);
             }
 
           } else {

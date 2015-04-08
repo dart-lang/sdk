@@ -1481,10 +1481,8 @@ var collection;
         let growable = opts && 'growable' in opts ? opts.growable : true;
         let result = null;
         if (growable) {
-          result = ((_) => {
-            _[core.$length] = this.length;
-            return _;
-          }).bind(this)(new (core.List$(E))());
+          result = new (core.List$(E))();
+          result[core.$length] = this.length;
         } else {
           result = new (core.List$(E))(this.length);
         }
@@ -2382,10 +2380,8 @@ var collection;
         let growable = opts && 'growable' in opts ? opts.growable : true;
         let list = null;
         if (growable) {
-          list = ((_) => {
-            _[core.$length] = this.length;
-            return _;
-          }).bind(this)(new (core.List$(E))());
+          list = new (core.List$(E))();
+          list[core.$length] = this.length;
         } else {
           list = new (core.List$(E))(this.length);
         }
