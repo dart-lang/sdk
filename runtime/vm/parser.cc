@@ -8310,6 +8310,23 @@ void Parser::CheckAsyncOpInTryBlock(LocalScope** try_scope,
 }
 
 
+// Build an AST node for static call to Dart function print(str).
+// Used during debugging to insert print in generated dart code.
+AstNode* Parser::DartPrint(const char* str) {
+  const Library& lib = Library::Handle(Library::CoreLibrary());
+  const Function& print_fn = Function::ZoneHandle(
+      Z, lib.LookupFunctionAllowPrivate(Symbols::print()));
+  ASSERT(!print_fn.IsNull());
+  ArgumentListNode* one_arg = new(Z) ArgumentListNode(Scanner::kNoSourcePos);
+  String& msg = String::Handle(String::NewFormatted("%s", str));
+  one_arg->Add(new(Z) LiteralNode(Scanner::kNoSourcePos,
+               String::ZoneHandle(Symbols::New(msg))));
+  AstNode* print_call =
+      new(Z) StaticCallNode(Scanner::kNoSourcePos, print_fn, one_arg);
+  return print_call;
+}
+
+
 AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   TRACE_PARSER("ParseAwaitForStatement");
   ASSERT(IsAwaitKeyword());
@@ -8477,7 +8494,6 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
                                                loop_var_assignment_pos);
     ASSERT(loop_var_assignment != NULL);
   }
-
   current_block_->statements->Add(loop_var_assignment);
 
   // Now parse the for-in loop statement or block.

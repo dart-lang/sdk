@@ -350,6 +350,8 @@ class Parser : public ValueObject {
   void SkipQualIdent();
   void SkipFunctionPreamble();
 
+  AstNode* DartPrint(const char* str);
+
   void CheckConstructorCallTypeArguments(intptr_t pos,
                                          const Function& constructor,
                                          const TypeArguments& type_arguments);

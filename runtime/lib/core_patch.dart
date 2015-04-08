@@ -36,12 +36,14 @@ class _AsyncStarStreamController {
   bool isAdding = false;
   bool onListenReceived = false;
   bool isScheduled = false;
+  bool isSuspendedAtYield = false;
   Completer cancellationCompleter = null;
 
   Stream get stream => controller.stream;
 
   void runBody() {
     isScheduled = false;
+    isSuspendedAtYield = false;
     asyncStarBody();
   }
 
@@ -62,15 +64,17 @@ class _AsyncStarStreamController {
   // The generator would translate a 'yield e' statement to
   // controller.add(e);
   // suspend;
-  // if (controller.isCanelled) return;
+  // if (controller.isCancelled) return;
   bool add(event) {
     if (!onListenReceived) _fatal("yield before stream is listened to!");
+    if (isSuspendedAtYield) _fatal("unexpected yield");
     // If stream is cancelled, tell caller to exit the async generator.
     if (!controller.hasListener) {
       return true;
     }
     controller.add(event);
     scheduleGenerator();
+    isSuspendedAtYield = true;
     return false;
   }
 
@@ -131,7 +135,9 @@ class _AsyncStarStreamController {
   }
 
   onResume() {
-    scheduleGenerator();
+    if (isSuspendedAtYield) {
+      scheduleGenerator();
+    }
   }
 
   onCancel() {
