@@ -10,6 +10,13 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:observatory/service_io.dart';
 
+bool _isWebSocketDisconnect(e) {
+  if (e is! ServiceException) {
+    return false;
+  }
+  return (e as ServiceException).message == 'WebSocket disconnected';
+}
+
 // This invocation should set up the state being tested.
 const String _TESTEE_MODE_FLAG = "--testee-mode";
 
@@ -102,13 +109,20 @@ void runIsolateTests(List<String> mainArgs,
       var testIndex = 0;
       var totalTests = tests.length - 1;
       var name = Platform.script.pathSegments.last;
-      new WebSocketVM(new WebSocketVMTarget(addr)).load()
-          .then((VM vm) => vm.isolates.first.load())
-          .then((Isolate isolate) => Future.forEach(tests, (test) {
-            print('Running $name [$testIndex/$totalTests]');
-            testIndex++;
-            return test(isolate);
-          })).then((_) => process.requestExit());
+      runZoned(() {
+        new WebSocketVM(new WebSocketVMTarget(addr)).load()
+            .then((VM vm) => vm.isolates.first.load())
+            .then((Isolate isolate) => Future.forEach(tests, (test) {
+              print('Running $name [$testIndex/$totalTests]');
+              testIndex++;
+              return test(isolate);
+            })).then((_) => process.requestExit());
+      }, onError: (e, st) {
+        if (!_isWebSocketDisconnect(e)) {
+          print('Unexpected exception in service tests: $e $st');
+          throw e;
+        }
+      });
     });
   }
 }
@@ -156,12 +170,19 @@ Future runVMTests(List<String> mainArgs,
       var testIndex = 0;
       var totalTests = tests.length - 1;
       var name = Platform.script.pathSegments.last;
-      new WebSocketVM(new WebSocketVMTarget(addr)).load()
-          .then((VM vm) => Future.forEach(tests, (test) {
-            print('Running $name [$testIndex/$totalTests]');
-            testIndex++;
-            return test(vm);
-          })).then((_) => process.requestExit());
+      runZoned(() {
+        new WebSocketVM(new WebSocketVMTarget(addr)).load()
+            .then((VM vm) => Future.forEach(tests, (test) {
+              print('Running $name [$testIndex/$totalTests]');
+              testIndex++;
+              return test(vm);
+            })).then((_) => process.requestExit());
+      }, onError: (e, st) {
+        if (!_isWebSocketDisconnect(e)) {
+          print('Unexpected exception in service tests: $e $st');
+          throw e;
+        }
+      });
     });
   }
 }
