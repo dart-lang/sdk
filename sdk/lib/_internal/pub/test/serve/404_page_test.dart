@@ -39,7 +39,7 @@ main() {
       expect(response.statusCode, equals(404));
 
       // Should mention the asset that can't be found.
-      expect(response.body, contains('&quot;&#x2F;packages&quot;'));
+      expect(response.body, contains('&quot;/packages&quot;'));
     });
 
     endPubServe();
