@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $arch == simarm || $arch == simmips || $arch == simarm64]
+observatory/test/*: Skip # Slow
+
 [ $compiler == dart2dart ]
 # The transformations of dart2dart are not guaranteed to preserve the
 # state/properties of the VM that the Observatory tests are inspecting.
