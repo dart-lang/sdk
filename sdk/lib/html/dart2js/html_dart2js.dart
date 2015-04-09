@@ -13273,7 +13273,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 	     element.lastChild !== childNodes[childNodes.length -1]) {
 	   return true;
 	 }
-	 if (element.children) {
+	 if (element.children) { // On Safari, children can apparently be null.
   	   if (!((element.children instanceof HTMLCollection) ||
                (element.children instanceof NodeList))) {
 	     return true;
@@ -40822,11 +40822,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     if (parent == null) {
       node.remove();
     } else {
-      try {
-        parent._removeChild(node);
-      } catch (e) {
-        node.outerHtml = '';
-      }
+      parent._removeChild(node);
     }
   }
   

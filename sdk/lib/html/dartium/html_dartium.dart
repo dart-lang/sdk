@@ -40640,11 +40640,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     if (parent == null) {
       node.remove();
     } else {
-      try {
-        parent._removeChild(node);
-      } catch (e) {
-        node.outerHtml = '';
-      }
+      parent._removeChild(node);
     }
   }
   
