@@ -619,11 +619,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
           if (byte == _CharCode.CR) {
             _state = _State.HEADER_ENDING;
           } else if (byte == _CharCode.LF) {
-            if (_headersEnd()) {
-              return;
-            } else {
-              break;
-            }
+            _state = _State.HEADER_ENDING;
+            _index--;  // Make the new state see the LF again.
           } else {
             // Start of new header field.
             _headerField.add(_toLowerCaseByte(byte));
@@ -697,11 +694,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
             if (byte == _CharCode.CR) {
               _state = _State.HEADER_ENDING;
             } else if (byte == _CharCode.LF) {
-              if (_headersEnd()) {
-                return;
-              } else {
-                break;
-              }
+              _state = _State.HEADER_ENDING;
+              _index--;  // Make the new state see the LF again.
             } else {
               // Start of new header field.
               _headerField.add(_toLowerCaseByte(byte));
