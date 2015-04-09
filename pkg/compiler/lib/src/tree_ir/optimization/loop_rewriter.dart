@@ -27,45 +27,23 @@ part of tree_ir.optimization;
 ///
 /// Note that the above pattern needs no iteration since nested ifs
 /// have been collapsed previously in the [StatementRewriter] phase.
-class LoopRewriter extends RecursiveVisitor with PassMixin {
+class LoopRewriter extends RecursiveTransformer
+                   implements Pass {
   String get passName => 'Loop rewriter';
 
   Set<Label> usedContinueLabels = new Set<Label>();
 
-  void rewriteExecutableDefinition(ExecutableDefinition root) {
-    root.body = visitStatement(root.body);
+  void rewrite(RootNode root) {
+    root.replaceEachBody(visitStatement);
   }
 
-  Statement visitLabeledStatement(LabeledStatement node) {
-    node.body = visitStatement(node.body);
-    node.next = visitStatement(node.next);
-    return node;
-  }
-
-  Statement visitAssign(Assign node) {
-    visitExpression(node.value);
-    node.next = visitStatement(node.next);
-    return node;
-  }
-
-  Statement visitReturn(Return node) {
-    visitExpression(node.value);
-    return node;
-  }
-
-  Statement visitBreak(Break node) {
-    return node;
+  @override
+  void visitInnerFunction(FunctionDefinition node) {
+    node.body = new LoopRewriter().visitStatement(node.body);
   }
 
   Statement visitContinue(Continue node) {
     usedContinueLabels.add(node.target);
-    return node;
-  }
-
-  Statement visitIf(If node) {
-    visitExpression(node.condition);
-    node.thenStatement = visitStatement(node.thenStatement);
-    node.elseStatement = visitStatement(node.elseStatement);
     return node;
   }
 
@@ -98,42 +76,4 @@ class LoopRewriter extends RecursiveVisitor with PassMixin {
     }
     return node;
   }
-
-  Statement visitWhileCondition(WhileCondition node) {
-    // Note: not reachable but the implementation is trivial
-    visitExpression(node.condition);
-    node.body = visitStatement(node.body);
-    node.next = visitStatement(node.next);
-    return node;
-  }
-
-  Statement visitExpressionStatement(ExpressionStatement node) {
-    visitExpression(node.expression);
-    node.next = visitStatement(node.next);
-    return node;
-  }
-
-  Statement visitTry(Try node) {
-    node.tryBody = visitStatement(node.tryBody);
-    node.catchBody = visitStatement(node.catchBody);
-    return node;
-  }
-
-  Statement visitFunctionDeclaration(FunctionDeclaration node) {
-    new LoopRewriter().rewrite(node.definition);
-    node.next = visitStatement(node.next);
-    return node;
-  }
-
-  void visitFunctionExpression(FunctionExpression node) {
-    new LoopRewriter().rewrite(node.definition);
-  }
-
-  Statement visitSetField(SetField node) {
-    visitExpression(node.object);
-    visitExpression(node.value);
-    node.next = visitStatement(node.next);
-    return node;
-  }
-
 }

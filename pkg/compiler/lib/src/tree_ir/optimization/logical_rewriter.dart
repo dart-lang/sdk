@@ -54,38 +54,23 @@ part of tree_ir.optimization;
 ///   x && !!y          (!!y validated by [isBooleanValued])
 ///   x && y            (double negation removed by [putInBooleanContext])
 ///
-class LogicalRewriter extends Visitor<Statement, Expression> with PassMixin {
+class LogicalRewriter extends RecursiveTransformer
+                      implements Pass {
   String get passName => 'Logical rewriter';
+
+  @override
+  void rewrite(RootNode node) {
+    node.replaceEachBody(visitStatement);
+  }
 
   /// Statement to be executed next by natural fallthrough. Although fallthrough
   /// is not introduced in this phase, we need to reason about fallthrough when
   /// evaluating the benefit of swapping the branches of an [If].
   Statement fallthrough;
 
-  void rewriteExecutableDefinition(ExecutableDefinition root) {
-    root.body = visitStatement(root.body);
-  }
-
-  void rewriteConstructorDefinition(ConstructorDefinition root) {
-    if (root.isAbstract) return;
-    List<Initializer> initializers = root.initializers;
-    for (int i = 0; i < initializers.length; ++i) {
-      initializers[i] = visitExpression(initializers[i]);
-    }
-    root.body = visitStatement(root.body);
-  }
-
-  Expression visitFieldInitializer(FieldInitializer node) {
-    node.body = visitStatement(node.body);
-    return node;
-  }
-
-  visitSuperInitializer(SuperInitializer node) {
-    List<Statement> arguments = node.arguments;
-    for (int i = 0; i < arguments.length; ++i) {
-      arguments[i] = visitStatement(arguments[i]);
-    }
-    return node;
+  @override
+  void visitInnerFunction(FunctionDefinition node) {
+    new LogicalRewriter().rewrite(node);
   }
 
   Statement visitLabeledStatement(LabeledStatement node) {
@@ -94,25 +79,6 @@ class LogicalRewriter extends Visitor<Statement, Expression> with PassMixin {
     node.body = visitStatement(node.body);
     fallthrough = savedFallthrough;
     node.next = visitStatement(node.next);
-    return node;
-  }
-
-  Statement visitAssign(Assign node) {
-    node.value = visitExpression(node.value);
-    node.next = visitStatement(node.next);
-    return node;
-  }
-
-  Statement visitReturn(Return node) {
-    node.value = visitExpression(node.value);
-    return node;
-  }
-
-  Statement visitBreak(Break node) {
-    return node;
-  }
-
-  Statement visitContinue(Continue node) {
     return node;
   }
 
@@ -160,98 +126,9 @@ class LogicalRewriter extends Visitor<Statement, Expression> with PassMixin {
     return node;
   }
 
-  Statement visitWhileTrue(WhileTrue node) {
-    node.body = visitStatement(node.body);
-    return node;
-  }
-
   Statement visitWhileCondition(WhileCondition node) {
     node.condition = makeCondition(node.condition, true, liftNots: false);
     node.body = visitStatement(node.body);
-    node.next = visitStatement(node.next);
-    return node;
-  }
-
-  Statement visitTry(Try node) {
-    node.tryBody = visitStatement(node.tryBody);
-    node.catchBody = visitStatement(node.catchBody);
-    return node;
-  }
-
-  Statement visitExpressionStatement(ExpressionStatement node) {
-    node.expression = visitExpression(node.expression);
-    node.next = visitStatement(node.next);
-    return node;
-  }
-
-  Expression visitVariableUse(VariableUse node) {
-    return node;
-  }
-
-  Expression visitInvokeStatic(InvokeStatic node) {
-    _rewriteList(node.arguments);
-    return node;
-  }
-
-  Expression visitInvokeMethod(InvokeMethod node) {
-    node.receiver = visitExpression(node.receiver);
-    _rewriteList(node.arguments);
-    return node;
-  }
-
-  Expression visitInvokeMethodDirectly(InvokeMethodDirectly node) {
-    node.receiver = visitExpression(node.receiver);
-    _rewriteList(node.arguments);
-    return node;
-  }
-
-  Expression visitInvokeConstructor(InvokeConstructor node) {
-    _rewriteList(node.arguments);
-    return node;
-  }
-
-  Expression visitConcatenateStrings(ConcatenateStrings node) {
-    _rewriteList(node.arguments);
-    return node;
-  }
-
-  Expression visitLiteralList(LiteralList node) {
-    _rewriteList(node.values);
-    return node;
-  }
-
-  Expression visitLiteralMap(LiteralMap node) {
-    node.entries.forEach((LiteralMapEntry entry) {
-      entry.key = visitExpression(entry.key);
-      entry.value = visitExpression(entry.value);
-    });
-    return node;
-  }
-
-  Expression visitTypeOperator(TypeOperator node) {
-    node.receiver = visitExpression(node.receiver);
-    return node;
-  }
-
-  Expression visitConstant(Constant node) {
-    return node;
-  }
-
-  Expression visitThis(This node) {
-    return node;
-  }
-
-  Expression visitReifyTypeVar(ReifyTypeVar node) {
-    return node;
-  }
-
-  Expression visitFunctionExpression(FunctionExpression node) {
-    new LogicalRewriter().rewrite(node.definition);
-    return node;
-  }
-
-  Statement visitFunctionDeclaration(FunctionDeclaration node) {
-    new LogicalRewriter().rewrite(node.definition);
     node.next = visitStatement(node.next);
     return node;
   }
@@ -319,37 +196,6 @@ class LogicalRewriter extends Visitor<Statement, Expression> with PassMixin {
   Expression visitLogicalOperator(LogicalOperator node) {
     node.left = makeCondition(node.left, true);
     node.right = makeCondition(node.right, true);
-    return node;
-  }
-
-  Statement visitSetField(SetField node) {
-    node.object = visitExpression(node.object);
-    node.value = visitExpression(node.value);
-    node.next = visitStatement(node.next);
-    return node;
-  }
-
-  Expression visitGetField(GetField node) {
-    node.object = visitExpression(node.object);
-    return node;
-  }
-
-  Expression visitCreateBox(CreateBox node) {
-    return node;
-  }
-
-  Expression visitCreateInstance(CreateInstance node) {
-    _rewriteList(node.arguments);
-    return node;
-  }
-
-  Expression visitReifyRuntimeType(ReifyRuntimeType node) {
-    node.value = visitExpression(node.value);
-    return node;
-  }
-
-  Expression visitReadTypeVariable(ReadTypeVariable node) {
-    node.target = visitExpression(node.target);
     return node;
   }
 
@@ -498,17 +344,5 @@ class LogicalRewriter extends Visitor<Statement, Expression> with PassMixin {
     }
   }
 
-  /// Destructively updates each entry of [l] with the result of visiting it.
-  void _rewriteList(List<Expression> l) {
-    for (int i = 0; i < l.length; i++) {
-      l[i] = visitExpression(l[i]);
-    }
-  }
-
-  @override
-  Expression visitTypeExpression(TypeExpression node) {
-    _rewriteList(node.arguments);
-    return node;
-  }
 }
 

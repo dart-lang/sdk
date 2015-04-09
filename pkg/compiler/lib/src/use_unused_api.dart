@@ -15,6 +15,7 @@ import 'constants/values.dart' as constants;
 import 'cps_ir/cps_ir_builder.dart' as ir_builder;
 import 'cps_ir/cps_ir_builder_task.dart' as ir_builder;
 import 'cps_ir/cps_ir_nodes_sexpr.dart' as cps_ir_nodes_sexpr;
+import 'tree_ir/tree_ir_nodes.dart' as tree_ir;
 import 'dart_types.dart' as dart_types;
 import 'dart2js.dart' as dart2js;
 import 'dart2jslib.dart' as dart2jslib;
@@ -73,6 +74,7 @@ void main(List<String> arguments) {
   useScript(null);
   useProgramBuilder(null);
   useSemanticVisitor();
+  useTreeVisitors();
 }
 
 useApi() {
@@ -286,4 +288,19 @@ useProgramBuilder(program_builder.ProgramBuilder builder) {
 useSemanticVisitor() {
   new semantic_visitor.BulkVisitor().apply(null, null);
   new semantic_visitor.TraversalVisitor(null).apply(null, null);
+}
+
+class DummyTreeVisitor extends tree_ir.RootVisitor
+                          with tree_ir.InitializerVisitor {
+  visitFunctionDefinition(tree_ir.FunctionDefinition node) {}
+  visitConstructorDefinition(tree_ir.ConstructorDefinition node) {}
+  visitFieldDefinition(tree_ir.FieldDefinition node) {}
+
+  visitFieldInitializer(tree_ir.FieldInitializer node) {}
+  visitSuperInitializer(tree_ir.SuperInitializer node) {}
+}
+
+useTreeVisitors() {
+  new DummyTreeVisitor().visitRootNode(null);
+  new DummyTreeVisitor().visitInitializer(null);
 }

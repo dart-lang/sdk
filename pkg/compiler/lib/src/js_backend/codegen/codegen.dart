@@ -23,7 +23,8 @@ class CodegenBailout {
   }
 }
 
-class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
+class CodeGenerator extends tree_ir.StatementVisitor
+                    with tree_ir.ExpressionVisitor<js.Expression> {
   final CodegenRegistry registry;
 
   final Glue glue;
@@ -592,16 +593,6 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   visitFunctionDeclaration(tree_ir.FunctionDeclaration node) {
-    return errorUnsupportedNode(node);
-  }
-
-  @override
-  visitFieldInitializer(tree_ir.FieldInitializer node) {
-    return errorUnsupportedNode(node);
-  }
-
-  @override
-  visitSuperInitializer(tree_ir.SuperInitializer node) {
     return errorUnsupportedNode(node);
   }
 

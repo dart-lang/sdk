@@ -7,7 +7,6 @@ library tree_ir_tracer;
 import 'dart:async' show EventSink;
 import '../tracer.dart';
 import 'tree_ir_nodes.dart';
-import 'optimization/optimization.dart';
 
 class Block {
   Label label;
@@ -22,6 +21,10 @@ class Block {
   /// `null` if not inside a try block.
   Block catcher;
 
+  /// True if this block is the entry point to one of the bodies
+  /// (constructors can have multiple bodies).
+  bool isEntryPoint = false;
+
   String get name => 'B$index';
 
   Block([this.label]);
@@ -35,7 +38,7 @@ class Block {
 class BlockCollector extends StatementVisitor {
   // Accumulate a list of blocks.  The current block is the last block in
   // the list.
-  final List<Block> blocks = [new Block()..index = 0];
+  final List<Block> blocks = [];
 
   // Map tree [Label]s (break or continue targets) and [Statement]s
   // (if targets) to blocks.
@@ -58,17 +61,11 @@ class BlockCollector extends StatementVisitor {
     blocks.add(block);
   }
 
-  void collect(ExecutableDefinition node) {
-    if (node.body != null) {
-      if (node is ConstructorDefinition) {
-        for (Initializer initializer in node.initializers) {
-          if (initializer is FieldInitializer) {
-            visitStatement(initializer.body);
-          }
-        }
-      }
-      visitStatement(node.body);
-    }
+  void collect(RootNode node) {
+    node.forEachBody((Statement body) {
+      _addBlock(new Block()..isEntryPoint = true);
+      visitStatement(body);
+    });
   }
 
   visitLabeledStatement(LabeledStatement node) {
@@ -183,30 +180,29 @@ class BlockCollector extends StatementVisitor {
 
 }
 
-class TreeTracer extends TracerUtil with StatementVisitor, PassMixin {
-  // TODO(asgerf): Fix visitors so we don't have to use PassMixin here.
+class TreeTracer extends TracerUtil with StatementVisitor {
   String get passName => null;
 
   final EventSink<String> output;
 
   TreeTracer(this.output);
 
+  List<Variable> parameters;
   Names names;
   BlockCollector collector;
   int statementCounter;
 
-  void traceGraph(String name, ExecutableDefinition node) {
-    if (node is FunctionDefinition && node.isAbstract) return;
-    if (node is FieldDefinition && node.body == null) return;
+  void traceGraph(String name, RootNode node) {
+    if (node.isEmpty) return;
+    parameters = node.parameters;
     tag("cfg", () {
       printProperty("name", name);
-      rewrite(node);
+      printRootNode(node);
       collector.blocks.forEach(printBlock);
     });
   }
 
-  @override
-  void rewriteExecutableDefinition(ExecutableDefinition node) {
+  void printRootNode(RootNode node) {
     collector = new BlockCollector();
     names = new Names();
     statementCounter = 0;
@@ -231,6 +227,10 @@ class TreeTracer extends TracerUtil with StatementVisitor, PassMixin {
         });
       });
       tag("HIR", () {
+        if (block.isEntryPoint) {
+          String params = parameters.map(names.varName).join(', ');
+          printStatement(null, 'Entry ($params)');
+        }
         if (block.label != null) {
           printStatement(null,
               "Label ${block.name}, useCount=${block.label.useCount}");
