@@ -17,20 +17,24 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 class _TopElementData {
   final String name;
-  final int elementId;
+  final int elementId1;
+  final int elementId2;
+  final int elementId3;
 
   factory _TopElementData(ElementCodec elementCodec, Element element) {
-    return new _TopElementData._(
-        element.name, elementCodec.encode(element, false));
+    return new _TopElementData._(element.name, elementCodec.encode1(element),
+        elementCodec.encode2(element), elementCodec.encode3(element));
   }
 
-  _TopElementData._(this.name, this.elementId);
+  _TopElementData._(
+      this.name, this.elementId1, this.elementId2, this.elementId3);
 
   Element getElement(AnalysisContext context, ElementCodec elementCodec) {
-    return elementCodec.decode(context, elementId);
+    return elementCodec.decode(context, elementId1, elementId2, elementId3);
   }
 }
 
@@ -156,17 +160,23 @@ class FileNodeManager implements NodeManager {
   }
 
   RelationKeyData _readElementRelationKey(_DataInputStream stream) {
-    int elementId = stream.readInt();
+    int elementId1 = stream.readInt();
+    int elementId2 = stream.readInt();
+    int elementId3 = stream.readInt();
     int relationshipId = stream.readInt();
-    return new RelationKeyData.forData(elementId, relationshipId);
+    return new RelationKeyData.forData(
+        elementId1, elementId2, elementId3, relationshipId);
   }
 
   LocationData _readLocationData(_DataInputStream stream) {
-    int elementId = stream.readInt();
+    int elementId1 = stream.readInt();
+    int elementId2 = stream.readInt();
+    int elementId3 = stream.readInt();
     int offset = stream.readInt();
     int length = stream.readInt();
     int flags = stream.readInt();
-    return new LocationData.forData(elementId, offset, length, flags);
+    return new LocationData.forData(
+        elementId1, elementId2, elementId3, offset, length, flags);
   }
 
   IndexNode _readNode(_DataInputStream stream) {
@@ -204,7 +214,9 @@ class FileNodeManager implements NodeManager {
   }
 
   void _writeElementRelationKey(_DataOutputStream stream, RelationKeyData key) {
-    stream.writeInt(key.elementId);
+    stream.writeInt(key.elementId1);
+    stream.writeInt(key.elementId2);
+    stream.writeInt(key.elementId3);
     stream.writeInt(key.relationshipId);
   }
 
@@ -224,7 +236,9 @@ class FileNodeManager implements NodeManager {
       _writeElementRelationKey(stream, key);
       stream.writeInt(locations.length);
       for (LocationData location in locations) {
-        stream.writeInt(location.elementId);
+        stream.writeInt(location.elementId1);
+        stream.writeInt(location.elementId2);
+        stream.writeInt(location.elementId3);
         stream.writeInt(location.offset);
         stream.writeInt(location.length);
         stream.writeInt(location.flags);
@@ -305,18 +319,19 @@ class IndexNode {
    */
   List<InspectLocation> inspect_getRelations(String name, int elementId) {
     List<InspectLocation> result = <InspectLocation>[];
-    _relations.forEach((RelationKeyData key, locations) {
-      if (key.elementId == elementId) {
-        for (LocationData location in locations) {
-          Relationship relationship =
-              _relationshipCodec.decode(key.relationshipId);
-          List<String> path =
-              _elementCodec.inspect_decodePath(location.elementId);
-          result.add(new InspectLocation(name, relationship, path,
-              location.offset, location.length, location.flags));
-        }
-      }
-    });
+    // TODO(scheglov) restore index inspections?
+//    _relations.forEach((RelationKeyData key, locations) {
+//      if (key.elementId == elementId) {
+//        for (LocationData location in locations) {
+//          Relationship relationship =
+//              _relationshipCodec.decode(key.relationshipId);
+//          List<String> path =
+//              _elementCodec.inspect_decodePath(location.elementId);
+//          result.add(new InspectLocation(name, relationship, path,
+//              location.offset, location.length, location.flags));
+//        }
+//      }
+//    });
     return result;
   }
 
@@ -361,15 +376,20 @@ class LocationData {
   static const int _FLAG_QUALIFIED = 1 << 0;
   static const int _FLAG_RESOLVED = 1 << 1;
 
-  final int elementId;
+  final int elementId1;
+  final int elementId2;
+  final int elementId3;
   final int offset;
   final int length;
   final int flags;
 
-  LocationData.forData(this.elementId, this.offset, this.length, this.flags);
+  LocationData.forData(this.elementId1, this.elementId2, this.elementId3,
+      this.offset, this.length, this.flags);
 
   LocationData.forObject(ElementCodec elementCodec, Location location)
-      : elementId = elementCodec.encode(location.element, false),
+      : elementId1 = elementCodec.encode1(location.element),
+        elementId2 = elementCodec.encode2(location.element),
+        elementId3 = elementCodec.encode3(location.element),
         offset = location.offset,
         length = location.length,
         flags = (location.isQualified ? _FLAG_QUALIFIED : 0) |
@@ -377,7 +397,13 @@ class LocationData {
 
   @override
   int get hashCode {
-    return 31 * (31 * elementId + offset) + length;
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, elementId1);
+    hash = JenkinsSmiHash.combine(hash, elementId2);
+    hash = JenkinsSmiHash.combine(hash, elementId3);
+    hash = JenkinsSmiHash.combine(hash, offset);
+    hash = JenkinsSmiHash.combine(hash, length);
+    return JenkinsSmiHash.finish(hash);
   }
 
   @override
@@ -386,7 +412,9 @@ class LocationData {
       return false;
     }
     LocationData other = obj;
-    return other.elementId == elementId &&
+    return other.elementId1 == elementId1 &&
+        other.elementId2 == elementId2 &&
+        other.elementId3 == elementId3 &&
         other.offset == offset &&
         other.length == length &&
         other.flags == flags;
@@ -396,7 +424,8 @@ class LocationData {
    * Returns a {@link Location} that is represented by this {@link LocationData}.
    */
   Location getLocation(AnalysisContext context, ElementCodec elementCodec) {
-    Element element = elementCodec.decode(context, elementId);
+    Element element =
+        elementCodec.decode(context, elementId1, elementId2, elementId3);
     if (element == null) {
       return null;
     }
@@ -461,20 +490,35 @@ abstract class NodeManager {
  * An [Element] to [Location] relation key.
  */
 class RelationKeyData {
-  final int elementId;
+  final int elementId1;
+  final int elementId2;
+  final int elementId3;
   final int relationshipId;
 
-  RelationKeyData.forData(this.elementId, this.relationshipId);
+  RelationKeyData.forData(
+      this.elementId1, this.elementId2, this.elementId3, this.relationshipId);
 
   RelationKeyData.forObject(ElementCodec elementCodec,
       RelationshipCodec relationshipCodec, Element element,
       Relationship relationship)
-      : elementId = elementCodec.encode(element, true),
+      : elementId1 = elementCodec.encode1(element),
+        elementId2 = elementCodec.encode2(element),
+        elementId3 = elementCodec.encode3(element),
         relationshipId = relationshipCodec.encode(relationship);
 
   @override
   int get hashCode {
-    return 31 * elementId + relationshipId;
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, elementId1);
+    hash = JenkinsSmiHash.combine(hash, elementId2);
+    hash = JenkinsSmiHash.combine(hash, elementId3);
+    hash = JenkinsSmiHash.combine(hash, relationshipId);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() {
+    return 'Key($elementId2, $elementId2, $elementId3, $relationshipId)';
   }
 
   @override
@@ -483,7 +527,9 @@ class RelationKeyData {
       return false;
     }
     RelationKeyData other = obj;
-    return other.elementId == elementId &&
+    return other.elementId1 == elementId1 &&
+        other.elementId2 == elementId2 &&
+        other.elementId3 == elementId3 &&
         other.relationshipId == relationshipId;
   }
 }
@@ -746,42 +792,44 @@ class SplitIndexStore implements IndexStore {
       String name) {
     Map<List<String>, List<InspectLocation>> result =
         <List<String>, List<InspectLocation>>{};
-    // prepare elements
-    Map<int, List<String>> elementMap = _elementCodec.inspect_getElements(name);
-    // prepare relations with each element
-    List<Future> futures = <Future>[];
-    if (_nodeManager is FileNodeManager) {
-      List<String> nodeNames =
-          (_nodeManager as FileNodeManager).inspect_getAllNodeNames();
-      nodeNames.forEach((nodeName) {
-        Future<IndexNode> nodeFuture = _nodeManager.getNode(nodeName);
-        Future relationsFuture = nodeFuture.then((node) {
-          if (node != null) {
-            elementMap.forEach((int elementId, List<String> elementPath) {
-              List<InspectLocation> relations =
-                  node.inspect_getRelations(nodeName, elementId);
-              List<InspectLocation> resultLocations = result[elementPath];
-              if (resultLocations == null) {
-                resultLocations = <InspectLocation>[];
-                result[elementPath] = resultLocations;
-              }
-              resultLocations.addAll(relations);
-            });
-          }
-        });
-        futures.add(relationsFuture);
-      });
-    }
-    // wait for all nodex
-    return Future.wait(futures).then((_) {
-      return result;
-    });
+    // TODO(scheglov) restore index inspections?
+    return new Future.value(result);
+//    // prepare elements
+//    Map<int, List<String>> elementMap = _elementCodec.inspect_getElements(name);
+//    // prepare relations with each element
+//    List<Future> futures = <Future>[];
+//    if (_nodeManager is FileNodeManager) {
+//      List<String> nodeNames =
+//          (_nodeManager as FileNodeManager).inspect_getAllNodeNames();
+//      nodeNames.forEach((nodeName) {
+//        Future<IndexNode> nodeFuture = _nodeManager.getNode(nodeName);
+//        Future relationsFuture = nodeFuture.then((node) {
+//          if (node != null) {
+//            elementMap.forEach((int elementId, List<String> elementPath) {
+//              List<InspectLocation> relations =
+//                  node.inspect_getRelations(nodeName, elementId);
+//              List<InspectLocation> resultLocations = result[elementPath];
+//              if (resultLocations == null) {
+//                resultLocations = <InspectLocation>[];
+//                result[elementPath] = resultLocations;
+//              }
+//              resultLocations.addAll(relations);
+//            });
+//          }
+//        });
+//        futures.add(relationsFuture);
+//      });
+//    }
+//    // wait for all nodex
+//    return Future.wait(futures).then((_) {
+//      return result;
+//    });
   }
 
   @override
   void recordRelationship(
       Element element, Relationship relationship, Location location) {
-    if (element == null || element.location == null) {
+    if (element == null || element is MultiplyDefinedElement) {
       return;
     }
     if (location == null) {

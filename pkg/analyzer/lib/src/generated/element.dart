@@ -6766,6 +6766,11 @@ abstract class LibraryElement implements Element {
   List<LibraryElement> get visibleLibraries;
 
   /**
+   * Return the element at the given [offset], maybe `null` if no such element.
+   */
+  Element getElementAt(int offset);
+
+  /**
    * Return a list containing all of the imports that share the given [prefix],
    * or an empty array if there are no such imports.
    */
@@ -6833,6 +6838,11 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * defined for this library, or `null` if the element has not yet been created.
    */
   FunctionElement _loadLibraryFunction;
+
+  /**
+   * A map from offsets to elements of this library at these offsets.
+   */
+  final Map<int, Element> _elementMap = new HashMap<int, Element>();
 
   /**
    * The export [Namespace] of this library, `null` if it has not been
@@ -7131,6 +7141,14 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       }
     }
     return null;
+  }
+
+  @override
+  Element getElementAt(int offset) {
+    if (_elementMap.isEmpty) {
+      accept(new _BuildOffsetToElementMap(_elementMap));
+    }
+    return _elementMap[offset];
   }
 
   @override
@@ -10104,4 +10122,22 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   @override
   VoidTypeImpl substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes) => this;
+}
+
+/**
+ * A visitor that visit all the elements recursively and fill the given [map].
+ */
+class _BuildOffsetToElementMap extends GeneralizingElementVisitor {
+  final Map<int, Element> map;
+
+  _BuildOffsetToElementMap(this.map);
+
+  @override
+  void visitElement(Element element) {
+    int offset = element.nameOffset;
+    if (offset != -1) {
+      map[offset] = element;
+    }
+    super.visitElement(element);
+  }
 }
