@@ -53,7 +53,7 @@ void testHtml(String name, NodeValidator validator, String html,
 main() {
   useHtmlIndividualConfiguration();
 
-  group('DOM sanitization', () {
+  group('DOM_sanitization', () {
     var validator = new NodeValidatorBuilder.common();
 
     testHtml('allows simple constructs',
