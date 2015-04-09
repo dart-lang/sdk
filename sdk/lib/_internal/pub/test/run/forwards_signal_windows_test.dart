@@ -30,8 +30,8 @@ main() {
     var pub = pubRun(args: ["bin/script"]);
 
     pub.stdout.expect("ready");
-    pub.signal(Process.SIGINT);
-    pub.stdout.expect("SIGINT");
+    pub.signal(ProcessSignal.SIGHUP);
+    pub.stdout.expect("SIGHUP");
 
     pub.kill();
   });
