@@ -578,7 +578,7 @@ class Uri {
       for (int i = 0; i < authority.length; i++) {
         if (authority.codeUnitAt(i) == _AT_SIGN) {
           hasUserInfo = true;
-          userInfo = authority.substring(start, i);
+          userInfo = authority.substring(0, i);
           hostStart = i + 1;
           break;
         }
