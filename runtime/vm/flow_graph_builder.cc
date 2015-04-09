@@ -2382,6 +2382,8 @@ void EffectGraphVisitor::BuildLetTempExpressions(LetNode* node) {
     node->InitializerAt(i)->Visit(&for_value);
     Append(for_value);
     Value* temp_val = for_value.value();
+    ASSERT(!node->TempAt(i)->HasIndex() ||
+           (node->TempAt(i)->index() == GetCurrentTempLocalIndex()));
     node->TempAt(i)->set_index(GetCurrentTempLocalIndex());
     Do(new(Z) PushTempInstr(temp_val));
     owner()->AllocateTemp();
