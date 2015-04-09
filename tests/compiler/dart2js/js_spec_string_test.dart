@@ -20,6 +20,10 @@ class Listener implements DiagnosticListener {
     errorMessage = message;
     throw "error";
   }
+  reportError(spannable, kind, arguments) {
+    errorMessage = '$arguments';  // E.g.  "{text: Duplicate tag 'new'.}"
+    throw "error";
+  }
 
   noSuchMethod(_) => null;
 }
@@ -53,10 +57,10 @@ void test(String specString,
         objectType: OBJECT, nullType: NULL);
   } catch (e) {
     Expect.isTrue(expectError);
-    Expect.isNotNull(listener.errorMessage, 'Internal error expected.');
+    Expect.isNotNull(listener.errorMessage, 'Error expected.');
     return;
   }
-  Expect.isNull(listener.errorMessage, 'Unexpected internal error.');
+  Expect.isNull(listener.errorMessage, 'Unexpected error.');
   if (returns != null) {
     Expect.listEquals(returns, actualReturns, 'Unexpected returns.');
   }
