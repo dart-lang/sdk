@@ -150,6 +150,42 @@ class HttpParserTest {
     testWrite(requestData, 1);
   }
 
+  static void _testParseRequestLean(String request,
+                                    String expectedMethod,
+                                    String expectedUri,
+                                    {int expectedTransferLength: 0,
+                                     int expectedBytesReceived: 0,
+                                     Map expectedHeaders: null,
+                                     bool chunked: false,
+                                     bool upgrade: false,
+                                     int unparsedLength: 0,
+                                     bool connectionClose: false,
+                                     String expectedVersion: "1.1"}) {
+    _testParseRequest(request,
+                      expectedMethod,
+                      expectedUri,
+                      expectedTransferLength: expectedTransferLength,
+                      expectedBytesReceived: expectedBytesReceived,
+                      expectedHeaders: expectedHeaders,
+                      chunked: chunked,
+                      upgrade: upgrade,
+                      unparsedLength: unparsedLength,
+                      connectionClose: connectionClose,
+                      expectedVersion: expectedVersion);
+    // Same test but with only \n instead of \r\n terminating each header line.
+    _testParseRequest(request.replaceAll('\r', ''),
+                      expectedMethod,
+                      expectedUri,
+                      expectedTransferLength: expectedTransferLength,
+                      expectedBytesReceived: expectedBytesReceived,
+                      expectedHeaders: expectedHeaders,
+                      chunked: chunked,
+                      upgrade: upgrade,
+                      unparsedLength: unparsedLength,
+                      connectionClose: connectionClose,
+                      expectedVersion: expectedVersion);
+  }
+
   static void _testParseInvalidRequest(String request) {
     _HttpParser httpParser;
     bool errorCalled;
@@ -356,33 +392,33 @@ class HttpParserTest {
         "SEARCH",
         // Methods with HTTP prefix.
         "H", "HT", "HTT", "HTTP", "HX", "HTX", "HTTX", "HTTPX"];
+    methods = ['GET'];
     methods.forEach((method) {
        request = "$method / HTTP/1.1\r\n\r\n";
-      _testParseRequest(request, method, "/");
+      _testParseRequestLean(request, method, "/");
        request = "$method /index.html HTTP/1.1\r\n\r\n";
-      _testParseRequest(request, method, "/index.html");
+      _testParseRequestLean(request, method, "/index.html");
     });
-
     request = "GET / HTTP/1.0\r\n\r\n";
-    _testParseRequest(request, "GET", "/",
-                      expectedVersion: "1.0",
-                      connectionClose: true);
+    _testParseRequestLean(request, "GET", "/",
+                          expectedVersion: "1.0",
+                          connectionClose: true);
 
     request = "GET / HTTP/1.0\r\nConnection: keep-alive\r\n\r\n";
-    _testParseRequest(request, "GET", "/", expectedVersion: "1.0");
+    _testParseRequestLean(request, "GET", "/", expectedVersion: "1.0");
 
     request = """
 POST /test HTTP/1.1\r
 AAA: AAA\r
 \r
 """;
-    _testParseRequest(request, "POST", "/test");
+    _testParseRequestLean(request, "POST", "/test");
 
     request = """
 POST /test HTTP/1.1\r
 \r
 """;
-    _testParseRequest(request, "POST", "/test");
+    _testParseRequestLean(request, "POST", "/test");
 
     request = """
 POST /test HTTP/1.1\r
@@ -393,7 +429,7 @@ X-Header-B: bbb\r
     headers = new Map();
     headers["header-a"] = "AAA";
     headers["x-header-b"] = "bbb";
-    _testParseRequest(request, "POST", "/test", expectedHeaders: headers);
+    _testParseRequestLean(request, "POST", "/test", expectedHeaders: headers);
 
     request = """
 POST /test HTTP/1.1\r
@@ -405,7 +441,7 @@ Empty-Header-2:\r
     headers = new Map();
     headers["empty-header-1"] = "";
     headers["empty-header-2"] = "";
-    _testParseRequest(request, "POST", "/test", expectedHeaders: headers);
+    _testParseRequestLean(request, "POST", "/test", expectedHeaders: headers);
 
     request = """
 POST /test HTTP/1.1\r
@@ -416,7 +452,7 @@ X-Header-B:\t \t bbb\r
     headers = new Map();
     headers["header-a"] = "AAA";
     headers["x-header-b"] = "bbb";
-    _testParseRequest(request, "POST", "/test", expectedHeaders: headers);
+    _testParseRequestLean(request, "POST", "/test", expectedHeaders: headers);
 
     request = """
 POST /test HTTP/1.1\r
@@ -431,18 +467,18 @@ X-Header-B:           b\r
     headers = new Map();
     headers["header-a"] = "AAA";
     headers["x-header-b"] = "bbb";
-    _testParseRequest(request, "POST", "/test", expectedHeaders: headers);
+    _testParseRequestLean(request, "POST", "/test", expectedHeaders: headers);
 
     request = """
 POST /test HTTP/1.1\r
 Content-Length: 10\r
 \r
 0123456789""";
-    _testParseRequest(request,
-                      "POST",
-                      "/test",
-                      expectedTransferLength: 10,
-                      expectedBytesReceived: 10);
+    _testParseRequestLean(request,
+                          "POST",
+                          "/test",
+                          expectedTransferLength: 10,
+                          expectedBytesReceived: 10);
 
     // Test connection close header.
     request = "GET /test HTTP/1.1\r\nConnection: close\r\n\r\n";

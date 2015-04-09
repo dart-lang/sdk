@@ -334,6 +334,74 @@ class _HttpParser extends Stream<_HttpIncoming> {
     }
   }
 
+  // Process end of headers. Returns true if the parser should stop
+  // parsing and return. This will be in case of either an upgrade
+  // request or a request or response with an empty body.
+  bool _headersEnd() {
+    _headers._mutable = false;
+
+    _transferLength = _headers.contentLength;
+    // Ignore the Content-Length header if Transfer-Encoding
+    // is chunked (RFC 2616 section 4.4)
+    if (_chunked) _transferLength = -1;
+
+    // If a request message has neither Content-Length nor
+    // Transfer-Encoding the message must not have a body (RFC
+    // 2616 section 4.3).
+    if (_messageType == _MessageType.REQUEST &&
+        _transferLength < 0 &&
+       _chunked == false) {
+       _transferLength = 0;
+    }
+    if (_connectionUpgrade) {
+      _state = _State.UPGRADED;
+      _transferLength = 0;
+    }
+    _createIncoming(_transferLength);
+    if (_requestParser) {
+      _incoming.method =
+          new String.fromCharCodes(_method);
+      _incoming.uri =
+          Uri.parse(
+              new String.fromCharCodes(_uri_or_reason_phrase));
+    } else {
+      _incoming.statusCode = _statusCode;
+      _incoming.reasonPhrase =
+          new String.fromCharCodes(_uri_or_reason_phrase);
+    }
+    _method.clear();
+    _uri_or_reason_phrase.clear();
+    if (_connectionUpgrade) {
+      _incoming.upgraded = true;
+      _parserCalled = false;
+      var tmp = _incoming;
+      _closeIncoming();
+      _controller.add(tmp);
+      return true;
+    }
+    if (_transferLength == 0 ||
+        (_messageType == _MessageType.RESPONSE && _noMessageBody)) {
+      _reset();
+      var tmp = _incoming;
+      _closeIncoming();
+      _controller.add(tmp);
+      return false;
+    } else if (_chunked) {
+      _state = _State.CHUNK_SIZE;
+      _remainingContent = 0;
+    } else if (_transferLength > 0) {
+      _remainingContent = _transferLength;
+      _state = _State.BODY;
+    } else {
+      // Neither chunked nor content length. End of body
+      // indicated by close.
+      _state = _State.BODY;
+    }
+    _parserCalled = false;
+    _controller.add(_incoming);
+    return true;
+  }
+
   // From RFC 2616.
   // generic-message = start-line
   //                   *(message-header CRLF)
@@ -487,8 +555,13 @@ class _HttpParser extends Stream<_HttpIncoming> {
               throw new HttpException("Invalid response line");
             }
           } else {
-            _expect(byte, _CharCode.CR);
-            _state = _State.REQUEST_LINE_ENDING;
+            if (byte == _CharCode.CR) {
+              _state = _State.REQUEST_LINE_ENDING;
+            } else {
+              _expect(byte, _CharCode.LF);
+              _messageType = _MessageType.REQUEST;
+              _state = _State.HEADER_START;
+            }
           }
           break;
 
@@ -545,6 +618,12 @@ class _HttpParser extends Stream<_HttpIncoming> {
           _headers = new _HttpHeaders(version);
           if (byte == _CharCode.CR) {
             _state = _State.HEADER_ENDING;
+          } else if (byte == _CharCode.LF) {
+            if (_headersEnd()) {
+              return;
+            } else {
+              break;
+            }
           } else {
             // Start of new header field.
             _headerField.add(_toLowerCaseByte(byte));
@@ -566,6 +645,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
         case _State.HEADER_VALUE_START:
           if (byte == _CharCode.CR) {
             _state = _State.HEADER_VALUE_FOLDING_OR_ENDING;
+          } else if (byte == _CharCode.LF) {
+            _state = _State.HEADER_VALUE_FOLD_OR_END;
           } else if (byte != _CharCode.SP && byte != _CharCode.HT) {
             // Start of new header value.
             _headerValue.add(byte);
@@ -576,6 +657,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
         case _State.HEADER_VALUE:
           if (byte == _CharCode.CR) {
             _state = _State.HEADER_VALUE_FOLDING_OR_ENDING;
+          } else if (byte == _CharCode.LF) {
+            _state = _State.HEADER_VALUE_FOLD_OR_END;
           } else {
             _headerValue.add(byte);
           }
@@ -613,6 +696,12 @@ class _HttpParser extends Stream<_HttpIncoming> {
 
             if (byte == _CharCode.CR) {
               _state = _State.HEADER_ENDING;
+            } else if (byte == _CharCode.LF) {
+              if (_headersEnd()) {
+                return;
+              } else {
+                break;
+              }
             } else {
               // Start of new header field.
               _headerField.add(_toLowerCaseByte(byte));
@@ -623,67 +712,11 @@ class _HttpParser extends Stream<_HttpIncoming> {
 
         case _State.HEADER_ENDING:
           _expect(byte, _CharCode.LF);
-          _headers._mutable = false;
-
-          _transferLength = _headers.contentLength;
-          // Ignore the Content-Length header if Transfer-Encoding
-          // is chunked (RFC 2616 section 4.4)
-          if (_chunked) _transferLength = -1;
-
-          // If a request message has neither Content-Length nor
-          // Transfer-Encoding the message must not have a body (RFC
-          // 2616 section 4.3).
-          if (_messageType == _MessageType.REQUEST &&
-              _transferLength < 0 &&
-              _chunked == false) {
-            _transferLength = 0;
-          }
-          if (_connectionUpgrade) {
-            _state = _State.UPGRADED;
-            _transferLength = 0;
-          }
-          _createIncoming(_transferLength);
-          if (_requestParser) {
-            _incoming.method =
-                new String.fromCharCodes(_method);
-            _incoming.uri =
-                Uri.parse(
-                    new String.fromCharCodes(_uri_or_reason_phrase));
-          } else {
-            _incoming.statusCode = _statusCode;
-            _incoming.reasonPhrase =
-                new String.fromCharCodes(_uri_or_reason_phrase);
-          }
-          _method.clear();
-          _uri_or_reason_phrase.clear();
-          if (_connectionUpgrade) {
-            _incoming.upgraded = true;
-            _parserCalled = false;
-            var tmp = _incoming;
-            _closeIncoming();
-            _controller.add(tmp);
+          if (_headersEnd()) {
             return;
-          }
-          if (_transferLength == 0 ||
-              (_messageType == _MessageType.RESPONSE && _noMessageBody)) {
-            _reset();
-            var tmp = _incoming;
-            _closeIncoming();
-            _controller.add(tmp);
-            break;
-          } else if (_chunked) {
-            _state = _State.CHUNK_SIZE;
-            _remainingContent = 0;
-          } else if (_transferLength > 0) {
-            _remainingContent = _transferLength;
-            _state = _State.BODY;
           } else {
-            // Neither chunked nor content length. End of body
-            // indicated by close.
-            _state = _State.BODY;
+            break;
           }
-          _parserCalled = false;
-          _controller.add(_incoming);
           return;
 
         case _State.CHUNK_SIZE_STARTING_CR:
