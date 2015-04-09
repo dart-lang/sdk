@@ -44,6 +44,8 @@ class IrBuilderTask extends CompilerTask {
   final Map<Element, ir.RootNode> nodes = <Element, ir.RootNode>{};
   final bool generateSourceMap;
 
+  String bailoutMessage = null;
+
   IrBuilderTask(Compiler compiler, {this.generateSourceMap: true})
       : super(compiler);
 
@@ -56,7 +58,11 @@ class IrBuilderTask extends CompilerTask {
   }
 
   ir.RootNode buildNode(AstElement element) {
-    if (!canBuild(element)) return null;
+    bailoutMessage = null;
+    if (!canBuild(element)) {
+      bailoutMessage = 'unsupported element ${element.name}:${element.kind}';
+      return null;
+    }
 
     TreeElements elementsMapping = element.resolvedAst.elements;
     element = element.implementation;
@@ -72,7 +78,9 @@ class IrBuilderTask extends CompilerTask {
           : new DartIrBuilderVisitor(
               elementsMapping, compiler, sourceInformationBuilder);
       ir.RootNode irNode = builder.buildExecutable(element);
-      if (irNode != null) {
+      if (irNode == null) {
+        bailoutMessage = builder.bailoutMessage;
+      } else {
         nodes[element] = irNode;
       }
       return irNode;
@@ -160,6 +168,8 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
 
   @override
   bulkHandleNode(ast.Node node, String message, _) => giveup(node, message);
+
+  String bailoutMessage = null;
 
   @override
   ir.Primitive apply(ast.Node node, _) => node.accept(this);
@@ -1759,20 +1769,21 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
   }
 
   void internalError(ast.Node node, String message) {
-    giveup(node);
+    giveup(node, message);
   }
 
   @override
   visitNode(ast.Node node) {
     internalError(node, "Unhandled node");
   }
+
+  dynamic giveup(ast.Node node, [String reason]) {
+    bailoutMessage = '($node): $reason';
+    throw ABORT_IRNODE_BUILDER;
+  }
 }
 
 final String ABORT_IRNODE_BUILDER = "IrNode builder aborted";
-
-dynamic giveup(ast.Node node, [String reason]) {
-  throw ABORT_IRNODE_BUILDER;
-}
 
 /// Classifies local variables and local functions as captured, if they
 /// are accessed from within a nested function.
@@ -1794,6 +1805,13 @@ class DartCapturedVariables extends ast.Visitor {
 
   List<TryStatementInfo> tryNestingStack = <TryStatementInfo>[];
   bool get inTryStatement => tryNestingStack.isNotEmpty;
+
+  String bailoutMessage = null;
+
+  giveup(ast.Node node, [String reason]) {
+    bailoutMessage = '($node): $reason';
+    throw ABORT_IRNODE_BUILDER;
+  }
 
   void markAsCaptured(Local local) {
     capturedVariables.add(local);
@@ -1927,7 +1945,12 @@ class DartIrBuilderVisitor extends IrBuilderVisitor {
   DartIrBuilder makeIRBuilder(ast.Node node, ExecutableElement element) {
     DartCapturedVariables closures = new DartCapturedVariables(elements);
     if (!element.isSynthesized) {
-      closures.visit(node);
+      try {
+        closures.visit(node);
+      } catch (e) {
+        bailoutMessage = closures.bailoutMessage;
+        rethrow;
+      }
     }
     return new DartIrBuilder(compiler.backend.constantSystem,
                              element,

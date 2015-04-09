@@ -108,7 +108,11 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
     cps.FunctionDefinition cpsNode = irBuilderTask.buildNode(element);
     if (cpsNode == null) {
-      giveUp('unable to build cps definition of $element');
+      if (irBuilderTask.bailoutMessage == null) {
+        giveUp('unable to build cps definition of $element');
+      } else {
+        giveUp(irBuilderTask.bailoutMessage);
+      }
     }
     if (element.isInstanceMember && !element.isGenerativeConstructorBody) {
       Selector selector = new Selector.fromElement(cpsNode.element);
