@@ -8,16 +8,19 @@ import 'dart:convert';
 
 const _NOOP = 'Nothing_to_escape';
 
-const _TEST_INPUT = '<A </test> of \u00A0 "double" & \'single\' values>';
+const _TEST_INPUT = """<A </test> of \xA0 "double" & 'single' values>""";
 
-const _OUTPUT_UNKNOWN = '&lt;A &lt;&#x2F;test&gt; of &nbsp; &quot;double&quot; &amp; '
-  '&#x27;single&#x27; values&gt;';
+const _OUTPUT_UNKNOWN = '&lt;A &lt;/test&gt; of \xA0 &quot;double&quot; &amp; '
+  '&#39;single&#39; values&gt;';
 
-const _OUTPUT_ATTRIBUTE = "<A </test> of &nbsp; &quot;double&quot; &amp; "
-  "\'single\' values>";
+const _OUTPUT_ATTRIBUTE =
+    "<A </test> of \xA0 &quot;double&quot; &amp; 'single' values>";
 
-const _OUTPUT_ELEMENT = '&lt;A &lt;&#x2F;test&gt; of &nbsp; "double" &amp; '
-  '\'single\' values&gt;';
+const _OUTPUT_SQ_ATTRIBUTE =
+    '<A </test> of \xA0 "double" &amp; &#39;single&#39; values>';
+
+const _OUTPUT_ELEMENT =
+    """&lt;A &lt;/test&gt; of \xA0 "double" &amp; 'single' values&gt;""";
 
 void _testMode(HtmlEscape escape, String input, String expected) {
   _testConvert(escape, input, expected);
@@ -80,6 +83,7 @@ void main() {
   _testMode(const HtmlEscape(), _TEST_INPUT, _OUTPUT_UNKNOWN);
   _testMode(const HtmlEscape(HtmlEscapeMode.UNKNOWN), _TEST_INPUT, _OUTPUT_UNKNOWN);
   _testMode(const HtmlEscape(HtmlEscapeMode.ATTRIBUTE), _TEST_INPUT, _OUTPUT_ATTRIBUTE);
+  _testMode(const HtmlEscape(HtmlEscapeMode.SQ_ATTRIBUTE), _TEST_INPUT, _OUTPUT_SQ_ATTRIBUTE);
   _testMode(const HtmlEscape(HtmlEscapeMode.ELEMENT), _TEST_INPUT, _OUTPUT_ELEMENT);
   _testMode(HTML_ESCAPE, _NOOP, _NOOP);
 }
