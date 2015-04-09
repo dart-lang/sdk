@@ -294,3 +294,4 @@ regress_21795_test: RuntimeError # Issue 12605
 # Marked with Pass,RuntimeError to avoid undetected compile-time failures.
 *deferred*: Pass,RuntimeError # Issue 17458
 cha_deopt*: Pass,RuntimeError # Issue 17458
+regress_22443_test: Pass,RuntimeError # Issue 17458
