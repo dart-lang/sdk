@@ -3198,6 +3198,29 @@ main() {
 ''');
   }
 
+  void test_false_constConstructor_initializer() {
+    _resolveUnit(r'''
+class C {
+  final int x;
+  const C(this.x);
+  const C.foo() : x = 0;
+}
+main() {
+  const {const C(0): 0, const C.foo(): 1};
+}
+''');
+    _updateAndValidate(r'''
+class C {
+  final int x;
+  const C(this.x);
+  const C.foo() : x = 1;
+}
+main() {
+  const {const C(0): 0, const C.foo(): 1};
+}
+''', expectedSuccess: false);
+  }
+
   void test_false_topLevelFunction_name() {
     _resolveUnit(r'''
 a() {}

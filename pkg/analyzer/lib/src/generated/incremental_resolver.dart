@@ -1243,9 +1243,9 @@ class PoorMansIncrementalResolver {
         }
         // Find nodes covering the "old" and "new" token ranges.
         AstNode oldNode =
-            _findNodeCovering(_oldUnit, beginOffsetOld, endOffsetOld);
+            _findNodeCovering(_oldUnit, beginOffsetOld, endOffsetOld - 1);
         AstNode newNode =
-            _findNodeCovering(newUnit, beginOffsetNew, endOffsetNew);
+            _findNodeCovering(newUnit, beginOffsetNew, endOffsetNew - 1);
         logger.log(() => 'oldNode: $oldNode');
         logger.log(() => 'newNode: $newNode');
         // Try to find the smallest common node, a FunctionBody currently.
@@ -1257,6 +1257,12 @@ class PoorMansIncrementalResolver {
           for (int i = 0; i < length; i++) {
             AstNode oldParent = oldParents[i];
             AstNode newParent = newParents[i];
+            if (oldParent is ConstructorInitializer ||
+                newParent is ConstructorInitializer) {
+              logger.log('Failure: changes in constant constructor initializers'
+                  ' may cause external changes in constant objects.');
+              return false;
+            }
             if (oldParent is FunctionDeclaration &&
                     newParent is FunctionDeclaration ||
                 oldParent is MethodDeclaration &&
