@@ -33,6 +33,7 @@ def BuildArguments():
   result.add_argument("--pub-executable", help="pub executable", default=None)
   result.add_argument("--directory", help="observatory root", default=None)
   result.add_argument("--command", help="[get, build, deploy]", default=None)
+  result.add_argument("--silent", help="silence all output", default=False)
   return result
 
 def ProcessOptions(options, args):
@@ -49,38 +50,48 @@ def ProcessOptions(options, args):
 def ChangeDirectory(directory):
   os.chdir(directory);
 
-def PubGet(dart_executable, pub_executable, pkg_root):
+def PubGet(dart_executable, pub_executable, pkg_root, silent):
   # Always remove pubspec.lock before running 'pub get'.
   try:
     os.remove('pubspec.lock');
   except OSError as e:
     pass
-  if (pub_executable != None):
-    return subprocess.call([pub_executable,
-                            'get',
-                            '--offline'])
-  else:
-    return subprocess.call(['python',
-                            RUN_PUB,
-                            '--package-root=' + pkg_root,
-                            '--dart-executable=' + dart_executable,
-                            'get',
-                            '--offline'])
+  with open(os.devnull, 'wb') as silent_sink:
+    if (pub_executable != None):
+      return subprocess.call([pub_executable,
+                              'get',
+                              '--offline'],
+                              stdout=silent_sink if silent else None,
+                              stderr=silent_sink if silent else None)
+    else:
+      return subprocess.call(['python',
+                              RUN_PUB,
+                              '--package-root=' + pkg_root,
+                              '--dart-executable=' + dart_executable,
+                              'get',
+                              '--offline'],
+                              stdout=silent_sink if silent else None,
+                              stderr=silent_sink if silent else None,)
 
-def PubBuild(dart_executable, pub_executable, pkg_root, output_dir):
-  if (pub_executable != None):
-    return subprocess.call([pub_executable,
-                            'build',
-                            '--output',
-                            output_dir])
-  else:
-    return subprocess.call(['python',
-                            RUN_PUB,
-                            '--package-root=' + pkg_root,
-                            '--dart-executable=' + dart_executable,
-                            'build',
-                            '--output',
-                            output_dir])
+def PubBuild(dart_executable, pub_executable, pkg_root, silent, output_dir):
+  with open(os.devnull, 'wb') as silent_sink:
+    if (pub_executable != None):
+      return subprocess.call([pub_executable,
+                              'build',
+                              '--output',
+                              output_dir],
+                              stdout=silent_sink if silent else None,
+                              stderr=silent_sink if silent else None,)
+    else:
+      return subprocess.call(['python',
+                              RUN_PUB,
+                              '--package-root=' + pkg_root,
+                              '--dart-executable=' + dart_executable,
+                              'build',
+                              '--output',
+                              output_dir],
+                              stdout=silent_sink if silent else None,
+                              stderr=silent_sink if silent else None,)
 
 def Deploy(input_dir, output_dir):
   shutil.rmtree(output_dir)
@@ -99,11 +110,13 @@ def ExecuteCommand(options, args):
   if (cmd == 'get'):
     return PubGet(options.dart_executable,
                   options.pub_executable,
-                  options.package_root)
+                  options.package_root,
+                  options.silent)
   elif (cmd == 'build'):
     return PubBuild(options.dart_executable,
                     options.pub_executable,
                     options.package_root,
+                    options.silent,
                     args[0])
   elif (cmd == 'deploy'):
     Deploy('build', 'deployed')
