@@ -42,7 +42,7 @@ checkResult(TestSpec result) {
   void checkOutput(String elementName,
                    dart2js.Element element,
                    String expectedOutput) {
-    RootNode ir = convertedWorld.getIr(element);
+    ExecutableDefinition ir = convertedWorld.getIr(element);
     if (expectedOutput == null) {
       expect(ir, isNull,
           reason: "\nInput:\n${result.input}\n"

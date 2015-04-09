@@ -26,11 +26,11 @@ abstract class Expression extends Node implements Receiver, Argument {
   bool get assignable => false;
 }
 
-abstract class RootNode extends Node {
+abstract class ExecutableDefinition extends Node {
   elements.Element get element;
 }
 
-class FieldDefinition extends RootNode {
+class FieldDefinition extends ExecutableDefinition {
   final elements.Element element;
   final Expression initializer;
   FieldDefinition(this.element, this.initializer);
@@ -322,7 +322,7 @@ class SuperInitializer extends Initializer {
   SuperInitializer(this.target, this.arguments);
 }
 
-class FunctionExpression extends Expression implements RootNode {
+class FunctionExpression extends Expression implements ExecutableDefinition {
   final TypeAnnotation returnType;
   String name;
   final Parameters parameters;

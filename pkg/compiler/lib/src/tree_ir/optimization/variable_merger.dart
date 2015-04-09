@@ -13,30 +13,37 @@ import '../../elements/elements.dart' show Local, ParameterElement;
 /// This phase cleans up artifacts introduced by the translation through CPS,
 /// where each source variable is translated into several copies. The copies
 /// are merged again when they are not live simultaneously.
-class VariableMerger extends RecursiveVisitor implements Pass {
+class VariableMerger extends RecursiveVisitor with PassMixin {
   String get passName => 'Variable merger';
 
-  void rewrite(RootNode node) {
-    rewriteFunction(node);
-    node.forEachBody(visitStatement);
-  }
-
   @override
-  void visitInnerFunction(FunctionDefinition node) {
-    rewriteFunction(node);
+  void rewriteExecutableDefinition(ExecutableDefinition node) {
+    visitExecutableDefinition(node);
   }
 
   /// Rewrites the given function.
   /// This is called for the outermost function and inner functions.
-  void rewriteFunction(RootNode node) {
-    node.forEachBody((Statement body) {
-      BlockGraphBuilder builder = new BlockGraphBuilder();
-      builder.build(node.parameters, body);
-      _computeLiveness(builder.blocks);
-      Map<Variable, Variable> subst =
-          _computeRegisterAllocation(builder.blocks);
-      new SubstituteVariables(subst).apply(node);
-    });
+  void rewriteFunction(ExecutableDefinition node) {
+    BlockGraphBuilder builder = new BlockGraphBuilder();
+    builder.visitExecutableDefinition(node);
+    _computeLiveness(builder.blocks);
+    Map<Variable, Variable> subst = _computeRegisterAllocation(builder.blocks);
+    new SubstituteVariables(subst).visitExecutableDefinition(node);
+  }
+
+  visitFunctionDefinition(FunctionDefinition node) {
+    super.visitFunctionDefinition(node); // Recurse to visit inner functions.
+    rewriteFunction(node);
+  }
+
+  visitFieldDefinition(FieldDefinition node) {
+    super.visitFieldDefinition(node);
+    rewriteFunction(node);
+  }
+
+  visitConstructorDefinition(ConstructorDefinition node) {
+    super.visitConstructorDefinition(node);
+    rewriteFunction(node);
   }
 }
 
@@ -109,15 +116,8 @@ class BlockGraphBuilder extends RecursiveVisitor {
   /// them from the control-flow graph entirely.
   Set<Variable> _ignoredVariables = new Set<Variable>();
 
-  void build(List<Variable> parameters, Statement body) {
+  BlockGraphBuilder() {
     _currentBlock = newBlock();
-    parameters.forEach(write);
-    visitStatement(body);
-  }
-
-  @override
-  void visitInnerFunction(FunctionDefinition node) {
-    // Do nothing. Inner functions are traversed in VariableMerger.
   }
 
   /// Creates a new block with the current exception handler or [catchBlock]
@@ -244,6 +244,26 @@ class BlockGraphBuilder extends RecursiveVisitor {
     // The function variable is final, hence cannot be merged.
     ignoreVariable(node.variable);
     visitStatement(node.next);
+    // Do not traverse inner function.
+  }
+
+  visitFunctionExpression(FunctionExpression node) {
+    // Do not traverse inner function.
+  }
+
+  visitFunctionDefinition(FunctionDefinition node) {
+    // Function parameters are treated as write operations at the entry point,
+    // so they can potentially be merged with other copies of the parameter.
+    // Note that function parameters always have distinct source variables,
+    // so we don't risk accidentally merging two parameters.
+    node.parameters.forEach(write);
+    visitStatement(node.body);
+  }
+
+  visitConstructorDefinition(ConstructorDefinition node) {
+    node.parameters.forEach(write);
+    node.initializers.forEach(visitInitializer);
+    visitStatement(node.body);
   }
 }
 
@@ -454,7 +474,7 @@ Map<Variable, Variable> _computeRegisterAllocation(List<Block> blocks) {
 }
 
 /// Performs variable substitution and removes redundant assignments.
-class SubstituteVariables extends RecursiveTransformer {
+class SubstituteVariables extends RecursiveVisitor {
 
   Map<Variable, Variable> mapping;
 
@@ -476,22 +496,40 @@ class SubstituteVariables extends RecursiveTransformer {
     return w;
   }
 
-  void apply(RootNode node) {
-    for (int i = 0; i < node.parameters.length; ++i) {
-      node.parameters[i] = replaceWrite(node.parameters[i]);
+  void replaceParameters(List<Variable> parameters) {
+    for (int i = 0; i < parameters.length; ++i) {
+      parameters[i] = replaceWrite(parameters[i]);
     }
-    node.replaceEachBody(visitStatement);
   }
 
-  @override
-  void visitInnerFunction(FunctionDefinition node) {
-    // Do nothing. Inner functions are traversed in VariableMerger.
-  }
-
-  Expression visitVariableUse(VariableUse node) {
+  visitVariableUse(VariableUse node) {
     node.variable = replaceRead(node.variable);
-    return node;
   }
+
+  visitFunctionDefinition(FunctionDefinition node) {
+    replaceParameters(node.parameters);
+    node.body = visitStatement(node.body);
+  }
+
+  visitConstructorDefinition(ConstructorDefinition node) {
+    replaceParameters(node.parameters);
+    node.initializers.forEach(visitInitializer);
+    node.body = visitStatement(node.body);
+  }
+
+  visitFieldInitializer(FieldInitializer node) {
+    node.body = visitStatement(node.body);
+  }
+
+  visitSuperInitializer(SuperInitializer node) {
+    for (int i = 0; i<node.arguments.length; ++i) {
+      node.arguments[i] = visitStatement(node.arguments[i]);
+    }
+  }
+
+  // Statement visitors should return the transformed statement so we
+  // can remove redundant assignments.
+  Statement visitStatement(Statement node) => super.visitStatement(node);
 
   Statement visitAssign(Assign node) {
     node.variable = replaceWrite(node.variable);
@@ -509,6 +547,68 @@ class SubstituteVariables extends RecursiveTransformer {
       }
     }
 
+    return node;
+  }
+
+  Statement visitLabeledStatement(LabeledStatement node) {
+    node.body = visitStatement(node.body);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  Statement visitReturn(Return node) {
+    visitExpression(node.value);
+    return node;
+  }
+
+  Statement visitBreak(Break node) {
+    return node;
+  }
+
+  Statement visitContinue(Continue node) {
+    return node;
+  }
+
+  Statement visitIf(If node) {
+    visitExpression(node.condition);
+    node.thenStatement = visitStatement(node.thenStatement);
+    node.elseStatement = visitStatement(node.elseStatement);
+    return node;
+  }
+
+  Statement visitWhileTrue(WhileTrue node) {
+    node.body = visitStatement(node.body);
+    return node;
+  }
+
+  Statement visitWhileCondition(WhileCondition node) {
+    visitExpression(node.condition);
+    node.body = visitStatement(node.body);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  Statement visitFunctionDeclaration(FunctionDeclaration node) {
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  Statement visitExpressionStatement(ExpressionStatement node) {
+    visitExpression(node.expression);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  Statement visitTry(Try node) {
+    node.tryBody = visitStatement(node.tryBody);
+    node.catchBody = visitStatement(node.catchBody);
+    return node;
+  }
+
+  Statement visitSetField(SetField node) {
+    visitExpression(node.object);
+    visitExpression(node.value);
+    node.next = visitStatement(node.next);
     return node;
   }
 }

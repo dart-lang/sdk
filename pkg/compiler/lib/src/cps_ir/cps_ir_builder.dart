@@ -798,13 +798,13 @@ abstract class IrBuilder {
   }
 
   ir.SuperInitializer makeSuperInitializer(ConstructorElement target,
-                                           List<ir.Body> arguments,
+                                           List<ir.RunnableBody> arguments,
                                            Selector selector) {
     return new ir.SuperInitializer(target, arguments, selector);
   }
 
   ir.FieldInitializer makeFieldInitializer(FieldElement element,
-                                           ir.Body body) {
+                                           ir.RunnableBody body) {
     return new ir.FieldInitializer(element, body);
   }
 
@@ -814,18 +814,18 @@ abstract class IrBuilder {
     if (initializer == null) {
       return new ir.FieldDefinition.withoutInitializer(state.currentElement);
     } else {
-      ir.Body body = makeBody(initializer);
+      ir.RunnableBody body = makeRunnableBody(initializer);
       return new ir.FieldDefinition(state.currentElement, body);
     }
   }
 
-  ir.Body makeBody([ir.Primitive value]) {
+  ir.RunnableBody makeRunnableBody([ir.Primitive value]) {
     if (value == null) {
       _ensureReturn();
     } else {
       buildReturn(value);
     }
-    return new ir.Body(_root, state.returnContinuation);
+    return new ir.RunnableBody(_root, state.returnContinuation);
   }
 
   /// Create a [ir.FunctionDefinition] for [element] using [_root] as the body.
@@ -842,9 +842,9 @@ abstract class IrBuilder {
           message: "Local constants for abstract method $element: "
                    "${state.localConstants}"));
       return new ir.FunctionDefinition.abstract(
-          element, state.functionParameters, defaults);
+          element, state.thisParameter, state.functionParameters, defaults);
     } else {
-      ir.Body body = makeBody();
+      ir.RunnableBody body = makeRunnableBody();
       return new ir.FunctionDefinition(
           element, state.thisParameter, state.functionParameters, body,
           state.localConstants, defaults);
@@ -868,7 +868,7 @@ abstract class IrBuilder {
   ir.ConstructorDefinition makeConstructorDefinition(
       List<ConstantExpression> defaults, List<ir.Initializer> initializers) {
     FunctionElement element = state.currentElement;
-    ir.Body body = makeBody();
+    ir.RunnableBody body = makeRunnableBody();
     return new ir.ConstructorDefinition(
         element, state.thisParameter, state.functionParameters, body, initializers,
         state.localConstants, defaults);

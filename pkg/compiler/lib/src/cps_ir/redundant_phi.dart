@@ -12,14 +12,13 @@ part of dart2js.cps_ir.optimizers;
 /// (except for feedback). Redundant parameters are removed from the
 /// continuation signature, all invocations, and replaced within the
 /// continuation body.
-class RedundantPhiEliminator extends RecursiveVisitor implements Pass {
+class RedundantPhiEliminator extends RecursiveVisitor with PassMixin {
   String get passName => 'Redundant phi elimination';
 
   final Set<Continuation> workSet = new Set<Continuation>();
 
   @override
-  void rewrite(RootNode root) {
-    if (root.isEmpty) return;
+  void rewriteExecutableDefinition(final ExecutableDefinition root) {
 
     // Set all parent pointers.
     new ParentVisitor().visit(root);

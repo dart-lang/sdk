@@ -40,15 +40,18 @@ js.Node getCodeForMain(Compiler compiler) {
   return compiler.enqueuer.codegen.generatedCode[mainFunction];
 }
 
-js.Node getJsNodeForElement(Compiler compiler, Element element) {
+js.Node getJsNodeForElement(Compiler compiler,
+                                Element element) {
   return compiler.enqueuer.codegen.generatedCode[element];
 }
 
-ir.RootNode getIrNodeForElement(Compiler compiler, Element element) {
+ir.ExecutableDefinition getIrNodeForElement(Compiler compiler,
+                                            Element element) {
   return compiler.irBuilder.getIr(element);
 }
 
-String getCodeForMethod(Compiler compiler, String name) {
+String getCodeForMethod(Compiler compiler,
+                        String name) {
   Element foundElement;
   for (Element element in compiler.enqueuer.codegen.generatedCode.keys) {
     if (element.toString() == name) {

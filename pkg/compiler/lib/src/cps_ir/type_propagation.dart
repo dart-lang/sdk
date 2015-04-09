@@ -93,7 +93,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
  * Implemented according to 'Constant Propagation with Conditional Branches'
  * by Wegman, Zadeck.
  */
-class TypePropagator<T> extends Pass {
+class TypePropagator<T> extends PassMixin {
   String get passName => 'Sparse constant propagation';
 
   final types.DartTypes _dartTypes;
@@ -112,9 +112,7 @@ class TypePropagator<T> extends Pass {
       : _types = <Node, _AbstractValue>{};
 
   @override
-  void rewrite(RootNode root) {
-    if (root.isEmpty) return;
-
+  void rewriteExecutableDefinition(ExecutableDefinition root) {
     // Set all parent pointers.
     new ParentVisitor().visit(root);
 
@@ -152,7 +150,7 @@ class _TransformingVisitor extends RecursiveVisitor {
 
   _TransformingVisitor(this.reachable, this.values, this.internalError);
 
-  void transform(RootNode root) {
+  void transform(ExecutableDefinition root) {
     visit(root);
   }
 
@@ -349,7 +347,7 @@ class _TypePropagationVisitor<T> implements Visitor {
           new _AbstractValue<T>.unknown(typeSystem.dynamicType),
       this.typeSystem = typeSystem;
 
-  void analyze(RootNode root) {
+  void analyze(ExecutableDefinition root) {
     reachableNodes.clear();
     defWorkset.clear();
     nodeWorklist.clear();
@@ -419,7 +417,9 @@ class _TypePropagationVisitor<T> implements Visitor {
   void visit(Node node) { node.accept(this); }
 
   void visitFieldDefinition(FieldDefinition node) {
-    setReachable(node.body);
+    if (node.hasInitializer) {
+      setReachable(node.body);
+    }
   }
 
   void visitFunctionDefinition(FunctionDefinition node) {
@@ -436,7 +436,7 @@ class _TypePropagationVisitor<T> implements Visitor {
     setReachable(node.body);
   }
 
-  void visitBody(Body node) {
+  void visitRunnableBody(RunnableBody node) {
     setReachable(node.body);
   }
 
@@ -747,7 +747,7 @@ class _TypePropagationVisitor<T> implements Visitor {
   void visitMutableVariable(MutableVariable node) {
     // [MutableVariable]s are bound either as parameters to
     // [FunctionDefinition]s, by [LetMutable], or by [DeclareFunction].
-    if (node.parent is RootNode) {
+    if (node.parent is FunctionDefinition) {
       // Just like immutable parameters, the values of mutable parameters are
       // never constant.
       // TODO(karlklose): remove reference to the element model.
@@ -769,7 +769,7 @@ class _TypePropagationVisitor<T> implements Visitor {
     // TODO(karlklose): remove reference to the element model.
     T type = (source is ParameterElement) ? typeSystem.getParameterType(source)
         : typeSystem.dynamicType;
-    if (node.parent is RootNode) {
+    if (node.parent is FunctionDefinition) {
       // Functions may escape and thus their parameters must be non-constant.
       setValue(node, nonConst(type));
     } else if (node.parent is Continuation) {

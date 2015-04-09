@@ -55,7 +55,8 @@ class CpsElementVisitor extends analyzer.SimpleElementVisitor<ir.Node> {
   }
 
   @override
-  ir.RootNode visitConstructorElement(analyzer.ConstructorElement element) {
+  ir.ExecutableDefinition visitConstructorElement(
+      analyzer.ConstructorElement element) {
     CpsGeneratingVisitor visitor = new CpsGeneratingVisitor(converter, element);
     if (!element.isFactory) {
       ConstructorDeclaration constructorDeclaration = node;

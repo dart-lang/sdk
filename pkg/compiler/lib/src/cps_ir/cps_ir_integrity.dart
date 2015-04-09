@@ -26,7 +26,7 @@ const bool ENABLE_DUMP = tracer.TRACE_FILTER_PATTERN != null;
 ///
 class CheckCpsIntegrity extends RecursiveVisitor {
 
-  RootNode topLevelNode;
+  ExecutableDefinition topLevelNode;
 
   Set<Definition> seenDefinitions = new Set<Definition>();
   Map<Definition, Set<Reference>> seenReferences =
@@ -78,7 +78,7 @@ class CheckCpsIntegrity extends RecursiveVisitor {
   }
 
   @override
-  visitBody(Body node) {
+  visitRunnableBody(RunnableBody node) {
     markAsSeen(node.returnContinuation);
     if (!node.returnContinuation.isReturnContinuation) {
       error('Return continuation with a body', node);
@@ -209,7 +209,7 @@ class CheckCpsIntegrity extends RecursiveVisitor {
           '$sexpr\n';
   }
 
-  void check(RootNode node) {
+  void check(ExecutableDefinition node) {
     topLevelNode = node;
     visit(node);
 

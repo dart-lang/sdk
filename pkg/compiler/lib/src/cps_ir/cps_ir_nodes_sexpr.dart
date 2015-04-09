@@ -62,7 +62,7 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
 
   String visitFieldDefinition(FieldDefinition node) {
     String name = node.element.name;
-    if (node.body != null) {
+    if (node.hasInitializer) {
       String body = visit(node.body);
       return '$indentation(FieldDefinition $name () return\n'
              '$body)';
@@ -111,7 +111,7 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     return '$indentation(SuperInitializer $target $selector (\n$arguments)';
   }
 
-  String visitBody(Body node) {
+  String visitRunnableBody(RunnableBody node) {
     namer.setReturnContinuation(node.returnContinuation);
     return indentBlock(() => visit(node.body));
   }

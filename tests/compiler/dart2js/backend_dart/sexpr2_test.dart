@@ -25,7 +25,7 @@ runTest(TestSpec result) {
     void checkOutput(String elementName,
                      Element element,
                      String expectedOutput) {
-      RootNode ir = compiler.irBuilder.getIr(element);
+      ExecutableDefinition ir = compiler.irBuilder.getIr(element);
       if (expectedOutput == null) {
         Expect.isNull(ir, "\nInput:\n${result.input}\n"
                           "No CPS IR expected for $element");

@@ -8,7 +8,7 @@ part of dart2js.cps_ir.optimizers;
  * [ShrinkingReducer] applies shrinking reductions to CPS terms as described
  * in 'Compiling with Continuations, Continued' by Andrew Kennedy.
  */
-class ShrinkingReducer extends Pass {
+class ShrinkingReducer extends PassMixin {
   String get passName => 'Shrinking reductions';
 
   Set<_ReductionTask> _worklist;
@@ -17,9 +17,7 @@ class ShrinkingReducer extends Pass {
 
   /// Applies shrinking reductions to root, mutating root in the process.
   @override
-  void rewrite(RootNode root) {
-    if (root.isEmpty) return;
-
+  void rewriteExecutableDefinition(ExecutableDefinition root) {
     _worklist = new Set<_ReductionTask>();
     _RedexVisitor redexVisitor = new _RedexVisitor(_worklist);
 
@@ -466,7 +464,7 @@ class _RemovalVisitor extends RecursiveVisitor {
       Continuation cont = reference.definition;
       Node parent = cont.parent;
       // The parent might be the deleted sentinel, or it might be a
-      // Body if the continuation is the return continuation.
+      // RunnableBody if the continuation is the return continuation.
       if (parent is LetCont) {
         if (cont.isRecursive && cont.hasAtMostOneUse) {
           // Convert recursive to nonrecursive continuations.  If the
@@ -496,7 +494,7 @@ class ParentVisitor extends RecursiveVisitor {
     });
   }
 
-  processBody(Body node) {
+  processRunnableBody(RunnableBody node) {
     node.returnContinuation.parent = node;
     node.body.parent = node;
   }
@@ -518,7 +516,7 @@ class ParentVisitor extends RecursiveVisitor {
   }
 
   processSuperInitializer(SuperInitializer node) {
-    node.arguments.forEach((Body argument) => argument.parent = node);
+    node.arguments.forEach((RunnableBody argument) => argument.parent = node);
   }
 
   processLetPrim(LetPrim node) {

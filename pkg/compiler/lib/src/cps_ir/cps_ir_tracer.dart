@@ -21,50 +21,44 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visit(cps_ir.Node node) => node.accept(this);
 
-  void traceGraph(String name, cps_ir.RootNode node) {
-    if (node.isEmpty) return; // Don't bother printing an empty trace.
+  void traceGraph(String name, cps_ir.ExecutableDefinition graph) {
     tag("cfg", () {
       printProperty("name", name);
-
-      names = new Names();
-      BlockCollector builder = new BlockCollector(names);
-      builder.visit(node);
-
-      for (Block block in builder.entries) {
-        printBlock(block, entryPointParameters: node.parameters);
-      }
-      for (Block block in builder.cont2block.values) {
-        printBlock(block);
-      }
-      names = null;
+      visit(graph);
     });
   }
 
   // Temporary field used during tree walk
   Names names;
 
+  printDefinition(cps_ir.ExecutableDefinition node) {
+    names = new Names();
+    BlockCollector builder = new BlockCollector(names);
+    builder.visit(node);
+
+    for (Block block in builder.entries) {
+      printBlock(block);
+    }
+    for (Block block in builder.cont2block.values) {
+      printBlock(block);
+    }
+    names = null;
+  }
+
   visitFieldDefinition(cps_ir.FieldDefinition node) {
-    unexpectedNode(node);
+    if (node.hasInitializer) {
+      printDefinition(node);
+    }
   }
 
   visitFunctionDefinition(cps_ir.FunctionDefinition node) {
-    unexpectedNode(node);
+    if (node.isAbstract) return;
+    printDefinition(node);
   }
 
   visitConstructorDefinition(cps_ir.ConstructorDefinition node) {
-    unexpectedNode(node);
-  }
-
-  visitFieldInitializer(cps_ir.FieldInitializer node) {
-    unexpectedNode(node);
-  }
-
-  visitSuperInitializer(cps_ir.SuperInitializer node) {
-    unexpectedNode(node);
-  }
-
-  visitBody(cps_ir.Body node) {
-    unexpectedNode(node);
+    if (node.isAbstract) return;
+    printDefinition(node);
   }
 
   // Bodies and initializers are not visited.  They contain continuations which
@@ -74,6 +68,15 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     throw 'The IR tracer reached an unexpected IR instruction: $node';
   }
 
+  visitRunnableBody(cps_ir.RunnableBody node) {
+    unexpectedNode(node);
+  }
+  visitFieldInitializer(cps_ir.FieldInitializer node) {
+    unexpectedNode(node);
+  }
+  visitSuperInitializer(cps_ir.SuperInitializer node) {
+    unexpectedNode(node);
+  }
 
   int countUses(cps_ir.Definition definition) {
     int count = 0;
@@ -85,9 +88,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return count;
   }
 
-  /// If [entryPointParameters] is given, this block is an entry point
-  /// and [entryPointParameters] is the list of function parameters.
-  printBlock(Block block, {List<cps_ir.Definition> entryPointParameters}) {
+  printBlock(Block block) {
     tag("block", () {
       printProperty("name", block.name);
       printProperty("from_bci", -1);
@@ -103,10 +104,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
         });
       });
       tag("HIR", () {
-        if (entryPointParameters != null) {
-          String params = entryPointParameters.map(names.name).join(', ');
-          printStmt('x0', 'Entry ($params)');
-        }
         for (cps_ir.Parameter param in block.parameters) {
           String name = names.name(param);
           printStmt(name, "Parameter $name [useCount=${countUses(param)}]");
@@ -415,7 +412,7 @@ class BlockCollector implements cps_ir.Visitor {
   final Map<cps_ir.Continuation, Block> cont2block =
       <cps_ir.Continuation, Block>{};
   final Set<Block> entries = new Set<Block>();
-  Block currentBlock;
+  Block current_block;
 
   Names names;
   BlockCollector(this.names);
@@ -432,7 +429,9 @@ class BlockCollector implements cps_ir.Visitor {
   visit(cps_ir.Node node) => node.accept(this);
 
   visitFieldDefinition(cps_ir.FieldDefinition node) {
-    visit(node.body);
+    if (node.hasInitializer) {
+      visit(node.body);
+    }
   }
 
   visitFunctionDefinition(cps_ir.FunctionDefinition node) {
@@ -440,13 +439,12 @@ class BlockCollector implements cps_ir.Visitor {
   }
 
   visitConstructorDefinition(cps_ir.ConstructorDefinition node) {
-    node.initializers.forEach(visit);
     visit(node.body);
   }
 
-  visitBody(cps_ir.Body node) {
-    currentBlock = new Block(names.name(node), [], node.body);
-    entries.add(currentBlock);
+  visitRunnableBody(cps_ir.RunnableBody node) {
+    current_block = new Block(names.name(node), [], node.body);
+    entries.add(current_block);
     visit(node.body);
   }
 
@@ -479,7 +477,7 @@ class BlockCollector implements cps_ir.Visitor {
   void addEdgeToContinuation(cps_ir.Reference continuation) {
     cps_ir.Definition target = continuation.definition;
     if (target is cps_ir.Continuation && !target.isReturnContinuation) {
-      currentBlock.addEdgeTo(getBlock(target));
+      current_block.addEdgeTo(getBlock(target));
     }
   }
 
@@ -522,11 +520,11 @@ class BlockCollector implements cps_ir.Visitor {
   visitBranch(cps_ir.Branch exp) {
     cps_ir.Continuation trueTarget = exp.trueContinuation.definition;
     if (!trueTarget.isReturnContinuation) {
-      currentBlock.addEdgeTo(getBlock(trueTarget));
+      current_block.addEdgeTo(getBlock(trueTarget));
     }
     cps_ir.Continuation falseTarget = exp.falseContinuation.definition;
     if (!falseTarget.isReturnContinuation) {
-      currentBlock.addEdgeTo(getBlock(falseTarget));
+      current_block.addEdgeTo(getBlock(falseTarget));
     }
   }
 
@@ -535,10 +533,10 @@ class BlockCollector implements cps_ir.Visitor {
   }
 
   visitContinuation(cps_ir.Continuation c) {
-    var old_node = currentBlock;
-    currentBlock = getBlock(c);
+    var old_node = current_block;
+    current_block = getBlock(c);
     visit(c.body);
-    currentBlock = old_node;
+    current_block = old_node;
   }
 
   // Primitives and conditions are not visited when searching for blocks.

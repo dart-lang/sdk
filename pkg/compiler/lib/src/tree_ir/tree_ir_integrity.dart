@@ -16,7 +16,7 @@ import 'tree_ir_nodes.dart';
 /// - Variables must not have more than one declaration.
 ///
 class CheckTreeIntegrity extends RecursiveVisitor {
-  RootNode topLevelNode;
+  ExecutableDefinition topLevelNode;
 
   Map<Variable, int> varReads = <Variable, int>{};
   Map<Variable, int> varWrites = <Variable, int>{};
@@ -85,9 +85,22 @@ class CheckTreeIntegrity extends RecursiveVisitor {
     node.catchParameters.forEach(undeclare);
   }
 
+  visitFunctionDefinition(FunctionDefinition node) {
+    node.parameters.forEach(declare);
+    if (node.body != null) visitStatement(node.body);
+    node.parameters.forEach(undeclare);
+  }
+
+  visitConstructorDefinition(ConstructorDefinition node) {
+    node.parameters.forEach(declare);
+    if (node.initializers != null) node.initializers.forEach(visitInitializer);
+    if (node.body != null) visitStatement(node.body);
+    node.parameters.forEach(undeclare);
+  }
+
   visitFunctionDeclaration(FunctionDeclaration node) {
     declare(node.variable);
-    checkBody(node.definition);
+    visitFunctionDefinition(node.definition);
     visitStatement(node.next);
     undeclare(node.variable);
     if (varWrites[node.variable] > 1) {
@@ -146,23 +159,13 @@ class CheckTreeIntegrity extends RecursiveVisitor {
     labelUses[node.target]++;
   }
 
-  visitInnerFunction(FunctionDefinition node) {
-    checkBody(node);
-  }
-
-  void checkBody(RootNode node) {
-    node.parameters.forEach(declare);
-    node.forEachBody(visitStatement);
-    node.parameters.forEach(undeclare);
-  }
-
   dynamic error(String message) {
     throw 'Tree IR integrity violation in ${topLevelNode.element}:\n$message';
   }
 
-  void check(RootNode node) {
+  void check(ExecutableDefinition node) {
     topLevelNode = node;
-    checkBody(node);
+    visitExecutableDefinition(node);
 
     // Verify reference counters for all variables.
     List<Variable> seenVariables = new List<Variable>();

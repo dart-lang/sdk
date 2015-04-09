@@ -16,8 +16,8 @@ import 'backend_ast_emitter.dart' show TypeGenerator;
 
 /// Translates the backend AST to Dart frontend AST.
 tree.Node emit(dart2js.TreeElementMapping treeElements,
-               RootNode root) {
-  return new TreePrinter(treeElements).makeDefinition(root);
+               ExecutableDefinition definition) {
+  return new TreePrinter(treeElements).makeDefinition(definition);
 }
 
 /// If true, the unparser will insert a coment in front of every function
@@ -32,7 +32,7 @@ class TreePrinter {
 
   TreePrinter([this.treeElements]);
 
-  tree.Node makeDefinition(RootNode node) {
+  tree.Node makeDefinition(ExecutableDefinition node) {
     if (node is FieldDefinition) {
       tree.Node definition;
       if (node.initializer == null) {
