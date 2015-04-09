@@ -353,6 +353,7 @@ String _filePathFromUri(String userUri) {
     case 'package':
       return _filePathFromUri(_resolvePackageUri(uri).toString());
     case 'data':
+    case 'embedder-package':
     case 'http':
     case 'https':
       return uri.toString();
