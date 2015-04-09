@@ -75,7 +75,7 @@ class DependencyComputer {
           return phase.expand((config) {
             var id = config.id;
             if (id.isBuiltInTransformer) return [];
-            if (id.package != _graph.entrypoint.root.name &&
+            if (package.name != _graph.entrypoint.root.name &&
                 !config.canTransformPublicFiles) {
               return [];
             }

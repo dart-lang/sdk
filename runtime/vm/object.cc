@@ -8462,6 +8462,12 @@ RawString* Script::GetSnippet(intptr_t from_line,
   }
 
   while (scan_position != length) {
+    if (snippet_start == -1) {
+      if ((line == from_line) && (column == from_column)) {
+        snippet_start = scan_position;
+      }
+    }
+
     char c = src.CharAt(scan_position);
     if (c == '\n') {
       line++;
@@ -8477,11 +8483,7 @@ RawString* Script::GetSnippet(intptr_t from_line,
     scan_position++;
     column++;
 
-    if (snippet_start == -1) {
-      if ((line == from_line) && (column == from_column)) {
-        snippet_start = scan_position;
-      }
-    } else if ((line == to_line) && (column == to_column)) {
+    if ((line == to_line) && (column == to_column)) {
       snippet_end = scan_position;
       break;
     }
