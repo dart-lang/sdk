@@ -11,7 +11,7 @@ const SCRIPT = """
 import 'dart:io';
 
 main() {
-  ProcessSignal.SIGHUP.watch().listen(print);
+  ProcessSignal.SIGHUP.watch().first.then(print);
 
   print("ready");
 }
