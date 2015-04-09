@@ -20,6 +20,10 @@ class Listener implements DiagnosticListener {
     errorMessage = message;
     throw "error";
   }
+  reportError(spannable, kind, message) {
+    errorMessage = message;
+    throw "error";
+  }
 
   noSuchMethod(_) => null;
 }
