@@ -6,6 +6,7 @@ library concrete_types_inferrer;
 
 import 'dart:collection' show Queue, IterableBase;
 import '../native/native.dart' as native;
+import '../closure.dart' show BoxFieldElement;
 import '../dart2jslib.dart' hide Selector, TypedSelector;
 import '../dart_types.dart' show DartType, TypeKind;
 import '../elements/elements.dart';
@@ -1773,7 +1774,7 @@ class ConcreteTypesInferrer
    */
   void ensureFieldInitialized(Element field) {
     // This is test is needed for fitering out BoxFieldElements.
-    if (field is FieldElement && inferredFieldTypes[field] == null) {
+    if (field is! BoxFieldElement && inferredFieldTypes[field] == null) {
       analyzeFieldInitialization(field);
     }
   }

@@ -1500,7 +1500,7 @@ class InitializerResolver {
     final String className = lookupTarget.name;
     verifyThatConstructorMatchesCall(constructor,
                                      calledConstructor,
-                                     selector,
+                                     selector.callStructure,
                                      isImplicitSuperCall,
                                      call,
                                      className,
@@ -1519,11 +1519,6 @@ class InitializerResolver {
     if (classElement != visitor.compiler.objectClass) {
       assert(superClass != null);
       assert(superClass.resolutionState == STATE_DONE);
-      String constructorName = '';
-      Selector callToMatch = new Selector.call(
-          constructorName,
-          classElement.library,
-          0);
 
       final bool isSuperCall = true;
       ClassElement lookupTarget = getSuperOrThisLookupTarget(constructor,
@@ -1537,7 +1532,7 @@ class InitializerResolver {
       final bool isImplicitSuperCall = true;
       verifyThatConstructorMatchesCall(constructor,
                                        calledConstructor,
-                                       callToMatch,
+                                       CallStructure.NO_ARGS,
                                        isImplicitSuperCall,
                                        functionNode,
                                        className,
@@ -1550,7 +1545,7 @@ class InitializerResolver {
   void verifyThatConstructorMatchesCall(
       FunctionElement caller,
       ConstructorElementX lookedupConstructor,
-      Selector call,
+      CallStructure call,
       bool isImplicitSuperCall,
       Node diagnosticNode,
       String className,
@@ -1567,7 +1562,7 @@ class InitializerResolver {
           diagnosticNode, kind, {'constructorName': fullConstructorName});
     } else {
       lookedupConstructor.computeSignature(visitor.compiler);
-      if (!call.applies(lookedupConstructor, visitor.compiler.world)) {
+      if (!call.signatureApplies(lookedupConstructor)) {
         MessageKind kind = isImplicitSuperCall
                            ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
                            : MessageKind.NO_MATCHING_CONSTRUCTOR;
@@ -4859,6 +4854,11 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
                                      String constructorName) {
     cls.ensureResolved(compiler);
     Element result = cls.lookupConstructor(constructorName);
+    // TODO(johnniwinther): Use [Name] for lookup.
+    if (isPrivateName(constructorName) &&
+        resolver.enclosingElement.library != cls.library) {
+      result = null;
+    }
     if (result == null) {
       String fullConstructorName = Elements.constructorNameForDiagnostics(
               cls.name,

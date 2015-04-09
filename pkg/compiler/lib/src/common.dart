@@ -11,6 +11,7 @@ export 'constants/values.dart' show
     TypeConstantValue;
 
 export 'dart2jslib.dart' show
+    CallStructure,
     CompilerTask,
     Compiler,
     ConstantEnvironment,

@@ -232,6 +232,8 @@ mixin_with_two_implicit_constructors_test: Fail # Issue 11889
 # Calling unresolved class constructor:
 call_nonexistent_constructor_test/01: Fail # Issue 13082
 call_nonexistent_constructor_test/02: Fail # Issue 13082
+private_access_test/05: Fail # Issue 13082
+private_access_test/06: Fail # Issue 13082
 
 bad_override_test/01: Fail # Issue 11496
 bad_override_test/02: Fail # Issue 11496

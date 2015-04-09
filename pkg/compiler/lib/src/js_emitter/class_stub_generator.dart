@@ -151,7 +151,7 @@ class ClassStubGenerator {
         new List.generate(selector.argumentCount, (i) => '\$$i');
 
     List<jsAst.Expression> argNames =
-        selector.getOrderedNamedArguments().map((String name) =>
+        selector.callStructure.getOrderedNamedArguments().map((String name) =>
             js.string(name)).toList();
 
     String methodName = selector.invocationMirrorMemberName;

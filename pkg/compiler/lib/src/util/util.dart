@@ -18,6 +18,23 @@ part 'link.dart';
 /// Smi range.
 const int SMI_MASK = 0x3fffffff;
 
+/// Mix the bits of [value] and merge them with [existing].
+int mixHashCodeBits(int existing, int value) {
+  // Spread the bits of value. Try to stay in the 30-bit range to
+  // avoid overflowing into a more expensive integer representation.
+  int h = value & 0x1fffffff;
+  h += ((h & 0x3fff) << 15) ^ 0x1fffcd7d;
+  h ^= (h >> 10);
+  h += ((h & 0x3ffffff) << 3);
+  h ^= (h >> 6);
+  h += ((h & 0x7ffffff) << 2) + ((h & 0x7fff) << 14);
+  h ^= (h >> 16);
+  // Combine the two hash values.
+  int high = existing >> 15;
+  int low = existing & 0x7fff;
+  return ((high * 13) ^ (low * 997) ^ h) & SMI_MASK;
+}
+
 /**
  * Tagging interface for classes from which source spans can be generated.
  */

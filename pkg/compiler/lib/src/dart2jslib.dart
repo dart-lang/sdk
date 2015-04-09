@@ -68,7 +68,7 @@ export 'scanner/scannerlib.dart' show isUserDefinableOperator,
                                       isBinaryOperator,
                                       isTernaryOperator,
                                       isMinusOperator;
-export 'universe/universe.dart' show Selector, TypedSelector;
+export 'universe/universe.dart' show CallStructure, Selector, TypedSelector;
 export 'util/util.dart'
     show Spannable,
          CURRENT_ELEMENT_SPANNABLE,
