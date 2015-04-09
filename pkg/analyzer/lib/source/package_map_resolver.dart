@@ -7,6 +7,7 @@ library source.package_map_resolver;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/asserts.dart' as asserts;
+import 'package:path/path.dart' as pathos;
 
 /**
  * A [UriResolver] implementation for the `package:` scheme that uses a map of
@@ -83,12 +84,13 @@ class PackageMapUriResolver extends UriResolver {
       for (int i = 0; i < pkgFolders.length; i++) {
         Folder pkgFolder = pkgFolders[i];
         String pkgFolderPath = pkgFolder.path;
-        // TODO(paulberry): figure out the right thing to do for Windows.
         if (pkgFolderPath.length > bestMatchLength &&
-            sourcePath.startsWith(pkgFolderPath + '/')) {
+            sourcePath.startsWith(pkgFolderPath + pathos.context.separator)) {
           String relPath = sourcePath.substring(pkgFolderPath.length + 1);
           if (_isReversibleTranslation(pkgFolders, i, relPath)) {
-            bestMatch = Uri.parse('$PACKAGE_SCHEME:$pkgName/$relPath');
+            List<String> relPathComponents = pathos.context.split(relPath);
+            String relUriPath = pathos.posix.joinAll(relPathComponents);
+            bestMatch = Uri.parse('$PACKAGE_SCHEME:$pkgName/$relUriPath');
             bestMatchLength = pkgFolderPath.length;
           }
         }

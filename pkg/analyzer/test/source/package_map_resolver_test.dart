@@ -176,7 +176,7 @@ class _PackageMapUriResolverTest {
     }
   }
 
-  void test_restoreAmbiguous() {
+  void test_restoreAbsolute_ambiguous() {
     const file1 = '/foo1/lib/bar.dart';
     const file2 = '/foo2/lib/bar.dart';
     provider.newFile(file1, 'library bar');
@@ -200,7 +200,7 @@ class _PackageMapUriResolverTest {
     expect(resolver.restoreAbsolute(source2), isNull);
   }
 
-  void test_restoreLongestMatch() {
+  void test_restoreAbsolute_longestMatch() {
     const file1 = '/foo1/bar1/lib.dart';
     const file2 = '/foo2/bar2/lib.dart';
     provider.newFile(file1, 'library lib');
