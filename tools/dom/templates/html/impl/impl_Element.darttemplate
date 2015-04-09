@@ -1387,6 +1387,38 @@ $endif
    * used when an explicit accessor is not available.
    */
   ElementEvents get on => new ElementEvents(this);
+  
+  /**
+   * Verify if any of the attributes that we use in the sanitizer look unexpected,
+   * possibly indicating DOM clobbering attacks.
+   *
+   * Those attributes are: attributes, lastChild, children, previousNode and tagName.
+   */
+$if DART2JS
+  bool get _hasCorruptedAttributes {
+     return JS('bool', r'''
+       (function(element) {
+         if (!(element.attributes instanceof NamedNodeMap)) {
+	   return true;
+	 }
+	 var childNodes = element.childNodes;
+	 if (element.lastChild &&
+	     element.lastChild !== childNodes[childNodes.length -1]) {
+	   return true;
+	 }
+	 if (element.children) { // On Safari, children can apparently be null.
+  	   if (!((element.children instanceof HTMLCollection) ||
+               (element.children instanceof NodeList))) {
+	     return true;
+	   }
+	 }
+	 return false;
+          })(#)''', this);
+  }
+$else
+  // Dartium isn't affected by these attacks, because it goes directly to the C++ API.
+  bool get _hasCorruptedAttributes => false;
+$endif
 
 $if DART2JS
   @DomName('Element.offsetHeight')

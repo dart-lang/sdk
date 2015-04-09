@@ -54,6 +54,7 @@ keyboard_event_test: Fail # Issue 13902
 isolates_test: Fail # Issue 13921
 indexeddb_3_test: Skip # Issue 19578.  Timeouts and RuntimeError
 fileapi_test/getFile: Pass, Fail # Issue 20488
+node_validator_test/dom_clobbering: Skip # Dartium is immune to DOM clobbering, so the HTML passes through the sanitizer.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) && $mode == debug ]
 websocket_test/websocket: Skip # Issue 17666

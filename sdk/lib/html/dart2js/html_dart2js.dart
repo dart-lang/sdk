@@ -13255,6 +13255,33 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    * used when an explicit accessor is not available.
    */
   ElementEvents get on => new ElementEvents(this);
+  
+  /**
+   * Verify if any of the attributes that we use in the sanitizer look unexpected,
+   * possibly indicating DOM clobbering attacks.
+   *
+   * Those attributes are: attributes, lastChild, children, previousNode and tagName.
+   */
+  bool get _hasCorruptedAttributes {
+     return JS('bool', r'''
+       (function(element) {
+         if (!(element.attributes instanceof NamedNodeMap)) {
+	   return true;
+	 }
+	 var childNodes = element.childNodes;
+	 if (element.lastChild &&
+	     element.lastChild !== childNodes[childNodes.length -1]) {
+	   return true;
+	 }
+	 if (element.children) {
+  	   if (!((element.children instanceof HTMLCollection) ||
+               (element.children instanceof NodeList))) {
+	     return true;
+	   }
+	 }
+	 return false;
+          })(#)''', this);
+  }
 
   @DomName('Element.offsetHeight')
   @DocsEditable()
@@ -40773,29 +40800,50 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   _ValidatingTreeSanitizer(this.validator) {}
 
   void sanitizeTree(Node node) {
-    void walk(Node node) {
-      sanitizeNode(node);
+    void walk(Node node, Node parent) {
+      sanitizeNode(node, parent);
 
       var child = node.lastChild;
       while (child != null) {
         // Child may be removed during the walk.
         var nextChild = child.previousNode;
-        walk(child);
+        walk(child, node);
         child = nextChild;
       }
     }
-    walk(node);
+    walk(node, null);
   }
 
-  void sanitizeNode(Node node) {
+  /// Aggressively try to remove node.
+  void _removeNode(Node node, Node parent) {
+    // If we have the parent, it's presumably already passed more sanitization or
+    // is the fragment, so ask it to remove the child. And if that fails try to
+    // set the outer html.
+    if (parent == null) {
+      node.remove();
+    } else {
+      try {
+        parent._removeChild(node);
+      } catch (e) {
+        node.outerHtml = '';
+      }
+    }
+  }
+  
+  void sanitizeNode(Node node, Node parent) {
     switch (node.nodeType) {
       case Node.ELEMENT_NODE:
         Element element = node;
+        if (element._hasCorruptedAttributes) {
+          window.console.warn('Removing element due to corrupted attributes on <${element}>');
+          _removeNode(node, parent);
+          break;
+        }
         var attrs = element.attributes;
         if (!validator.allowsElement(element)) {
           window.console.warn(
               'Removing disallowed element <${element.tagName}>');
-          element.remove();
+          _removeNode(node, parent);
           break;
         }
 
@@ -40804,7 +40852,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
           if (!validator.allowsAttribute(element, 'is', isAttr)) {
             window.console.warn('Removing disallowed type extension '
                 '<${element.tagName} is="$isAttr">');
-            element.remove();
+            _removeNode(node, parent);
             break;
           }
         }
@@ -40833,7 +40881,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       case Node.CDATA_SECTION_NODE:
         break;
       default:
-        node.remove();
+        _removeNode(node, parent);
     }
   }
 }

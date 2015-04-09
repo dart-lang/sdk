@@ -4,7 +4,6 @@
 
 library validator_test;
 
-import 'dart:async';
 import 'dart:html';
 import 'dart:svg' as svg;
 import 'package:unittest/unittest.dart';
@@ -19,6 +18,11 @@ void validateHtml(String html, String reference, NodeValidator validator) {
   var b = document.body.createFragment(reference,
       treeSanitizer: nullSanitizer);
 
+  // Prevent a false pass when both the html and the reference both get entirely
+  // deleted, which is technically a match, but unlikely to be what we meant.
+  if (reference != '') {
+    expect(b.childNodes.length > 0, isTrue);
+  }
   validateNodeTree(a, b);
 }
 
@@ -131,7 +135,7 @@ main() {
     });
   });
 
-  group('URI sanitization', () {
+  group('URI_sanitization', () {
     var recorder = new RecordingUriValidator();
     var validator = new NodeValidatorBuilder()..allowHtml5(uriPolicy: recorder);
 
@@ -354,7 +358,16 @@ main() {
       '<svg xmlns="http://www.w3.org/2000/svg>'
         '<script></script>'
       '</svg>',
-      '<svg xmlns="http://www.w3.org/2000/svg></svg>');
+      '');
+
+    testHtml('blocks script elements but allows other',
+      validator,
+      '<svg xmlns="http://www.w3.org/2000/svg>'
+        '<script></script><ellipse cx="200" cy="80" rx="100" ry="50"></ellipse>'
+      '</svg>',
+      '<svg xmlns="http://www.w3.org/2000/svg>'
+        '<ellipse cx="200" cy="80" rx="100" ry="50"></ellipse>'
+      '</svg>');
 
     testHtml('blocks script handlers',
       validator,
@@ -455,5 +468,48 @@ main() {
       expect(element is svg.SvgSvgElement, isTrue);
       expect(element.children[0] is svg.ImageElement, isTrue);
     });
+  });
+
+  group('dom_clobbering', () {
+    var validator = new NodeValidatorBuilder.common();
+
+    testHtml('DOM clobbering of attributes with single node',
+    validator,
+    "<form onmouseover='alert(1)'><input name='attributes'>",
+    "");
+
+    testHtml('DOM clobbering of attributes with multiple nodes',
+    validator,
+    "<form onmouseover='alert(1)'><input name='attributes'>"
+    "<input name='attributes'>",
+    "");
+
+    testHtml('DOM clobbering of lastChild',
+    validator,
+    "<form><input name='lastChild'><input onmouseover='alert(1)'>",
+    "");
+
+    testHtml('DOM clobbering of both children and lastChild',
+    validator,
+    "<form><input name='lastChild'><input name='children'>"
+    "<input id='children'><input onmouseover='alert(1)'>",
+    "");
+
+    testHtml('DOM clobbering of both children and lastChild, different order',
+    validator,
+    "<form><input name='children'><input name='children'>"
+    "<input id='children' name='lastChild'>"
+    "<input id='bad' onmouseover='alert(1)'>",
+    "");
+
+    testHtml('tagName makes containing form invalid',
+    validator,
+    "<form onmouseover='alert(2)'><input name='tagName'>",
+    "");
+
+    testHtml('tagName without mouseover',
+    validator,
+    "<form><input name='tagName'>",
+    "");
   });
 }
