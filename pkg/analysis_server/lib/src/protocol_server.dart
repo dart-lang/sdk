@@ -213,18 +213,6 @@ NavigationTarget newNavigationTarget_fromElement(
     engine.Element element, int fileToIndex(String file)) {
   ElementKind kind = newElementKind_fromEngine(element.kind);
   Location location = newLocation_fromElement(element);
-  // TODO(scheglov) debug null Location
-  if (location == null) {
-    String desc = 'location == null';
-    try {
-      desc += ' for: $element';
-      desc += ' of type: ${element.runtimeType}';
-      desc += ' element.location: ${element.location}';
-      desc += ' element.context: ${element.context}';
-      desc += ' element.source: ${element.source}';
-    } catch (e) {}
-    throw new ArgumentError(desc);
-  }
   String file = location.file;
   int fileIndex = fileToIndex(file);
   return new NavigationTarget(kind, fileIndex, location.offset, location.length,
