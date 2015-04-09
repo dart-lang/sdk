@@ -22,6 +22,7 @@ import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart' show ExitDetector;
 import 'package:analyzer/src/generated/scanner.dart';
@@ -62,6 +63,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   final CompilationUnit unit;
   final int selectionOffset;
   final int selectionLength;
+  AnalysisContext context;
   CompilationUnitElement unitElement;
   LibraryElement libraryElement;
   SourceRange selectionRange;
@@ -69,6 +71,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
 
   String returnType;
+  String variableType;
   String name;
   bool extractAll = true;
   bool canCreateGetter = false;
@@ -93,6 +96,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       <String, RefactoringMethodParameter>{};
   Map<String, List<SourceRange>> _parameterReferencesMap =
       <String, List<SourceRange>>{};
+  bool _hasAwait = false;
   DartType _returnType;
   String _returnVariableName;
   AstNode _parentMember;
@@ -106,6 +110,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       this.selectionOffset, this.selectionLength) {
     unitElement = unit.element;
     libraryElement = unitElement.library;
+    context = libraryElement.context;
     selectionRange = new SourceRange(selectionOffset, selectionLength);
     utils = new CorrectionUtils(unit);
   }
@@ -182,6 +187,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     }
     // prepare parts
     result.addStatus(_initializeParameters());
+    _initializeHasAwait();
     _initializeReturnType();
     // occurrences
     _initializeOccurrences();
@@ -226,17 +232,17 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       } else {
         StringBuffer sb = new StringBuffer();
         // may be returns value
-        if (_selectionStatements != null && returnType != 'void') {
+        if (_selectionStatements != null && variableType != null) {
           // single variable assignment / return statement
           if (_returnVariableName != null) {
             String occurrenceName =
                 occurence._parameterOldToOccurrenceName[_returnVariableName];
             // may be declare variable
             if (!_parametersMap.containsKey(_returnVariableName)) {
-              if (returnType.isEmpty) {
+              if (variableType.isEmpty) {
                 sb.write('var ');
               } else {
-                sb.write(returnType);
+                sb.write(variableType);
                 sb.write(' ');
               }
             }
@@ -246,6 +252,10 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
           } else {
             sb.write('return ');
           }
+        }
+        // await
+        if (_hasAwait) {
+          sb.write('await ');
         }
         // invocation itself
         sb.write(name);
@@ -302,6 +312,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
             declarationSource += ';';
           }
         }
+        // optional 'async' body modifier
+        String asyncKeyword = _hasAwait ? ' async' : '';
         // expression
         if (_selectionExpression != null) {
           // add return type
@@ -309,15 +321,15 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
             annotations += '$returnType ';
           }
           // just return expression
-          declarationSource =
-              '${annotations}${signature} => ${returnExpressionSource};';
+          declarationSource = '$annotations$signature$asyncKeyword => ';
+          declarationSource += '$returnExpressionSource;';
         }
         // statements
         if (_selectionStatements != null) {
           if (returnType.isNotEmpty) {
             annotations += returnType + ' ';
           }
-          declarationSource = '${annotations}${signature} {${eol}';
+          declarationSource = '$annotations$signature$asyncKeyword {$eol';
           declarationSource += returnExpressionSource;
           if (_returnVariableName != null) {
             declarationSource +=
@@ -532,6 +544,16 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     return utils.getTypeSource(type, librariesToImport);
   }
 
+  void _initializeHasAwait() {
+    _HasAwaitVisitor visitor = new _HasAwaitVisitor();
+    if (_selectionExpression != null) {
+      _selectionExpression.accept(visitor);
+    } else if (_selectionStatements != null) {
+      _selectionStatements.forEach((statement) => statement.accept(visitor));
+    }
+    _hasAwait = visitor.result;
+  }
+
   /**
    * Fills [_occurrences] field.
    */
@@ -609,15 +631,33 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   }
 
   void _initializeReturnType() {
+    InterfaceType futureType = context.typeProvider.futureType;
     if (_selectionFunctionExpression != null) {
+      variableType = '';
       returnType = '';
     } else if (_returnType == null) {
-      returnType = 'void';
+      variableType = null;
+      if (_hasAwait) {
+        returnType = _getTypeCode(futureType);
+      } else {
+        returnType = 'void';
+      }
+    } else if (_returnType.isDynamic) {
+      variableType = '';
+      if (_hasAwait) {
+        returnType = _getTypeCode(futureType);
+      } else {
+        returnType = '';
+      }
     } else {
-      returnType = _getTypeCode(_returnType);
-    }
-    if (returnType == 'dynamic') {
-      returnType = '';
+      variableType = _getTypeCode(_returnType);
+      if (_hasAwait) {
+        if (_returnType.element != futureType.element) {
+          returnType = _getTypeCode(futureType.substitute4([_returnType]));
+        }
+      } else {
+        returnType = variableType;
+      }
     }
   }
 
@@ -881,6 +921,23 @@ class _GetSourcePatternVisitor extends GeneralizingAstVisitor {
             nodeRange.length, patternName));
       }
     }
+  }
+}
+
+class _HasAwaitVisitor extends GeneralizingAstVisitor {
+  bool result = false;
+
+  @override
+  visitAwaitExpression(AwaitExpression node) {
+    result = true;
+  }
+
+  @override
+  visitForEachStatement(ForEachStatement node) {
+    if (node.awaitKeyword != null) {
+      result = true;
+    }
+    super.visitForEachStatement(node);
   }
 }
 
