@@ -27,7 +27,7 @@ class PrefixedElementContributor extends DartCompletionContributor {
   @override
   bool computeFast(DartCompletionRequest request) {
     OpType optype = request.optype;
-    if (optype.includeInvocationSuggestions) {
+    if (optype.isPrefixed) {
       builder = request.target.containingNode
           .accept(new _InvocationAstVisitor(request));
       if (builder != null) {

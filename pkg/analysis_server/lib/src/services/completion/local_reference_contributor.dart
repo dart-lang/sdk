@@ -87,22 +87,24 @@ class LocalReferenceContributor extends DartCompletionContributor {
 
     // Collect suggestions from the specific child [AstNode] that contains
     // the completion offset and all of its parents recursively.
-    if (optype.includeReturnValueSuggestions ||
-        optype.includeTypeNameSuggestions ||
-        optype.includeVoidReturnSuggestions) {
-      _LocalVisitor localVisitor =
-          new _LocalVisitor(request, request.offset, optype);
-      localVisitor.visit(request.target.containingNode);
-    }
-    if (optype.includeStatementLabelSuggestions ||
-        optype.includeCaseLabelSuggestions) {
-      _LabelVisitor labelVisitor = new _LabelVisitor(request,
-          optype.includeStatementLabelSuggestions,
-          optype.includeCaseLabelSuggestions);
-      labelVisitor.visit(request.target.containingNode);
-    }
-    if (optype.includeConstructorSuggestions) {
-      new _ConstructorVisitor(request).visit(request.target.containingNode);
+    if (!optype.isPrefixed) {
+      if (optype.includeReturnValueSuggestions ||
+          optype.includeTypeNameSuggestions ||
+          optype.includeVoidReturnSuggestions) {
+        _LocalVisitor localVisitor =
+            new _LocalVisitor(request, request.offset, optype);
+        localVisitor.visit(request.target.containingNode);
+      }
+      if (optype.includeStatementLabelSuggestions ||
+          optype.includeCaseLabelSuggestions) {
+        _LabelVisitor labelVisitor = new _LabelVisitor(request,
+            optype.includeStatementLabelSuggestions,
+            optype.includeCaseLabelSuggestions);
+        labelVisitor.visit(request.target.containingNode);
+      }
+      if (optype.includeConstructorSuggestions) {
+        new _ConstructorVisitor(request).visit(request.target.containingNode);
+      }
     }
 
     // If target is an argument in an argument list

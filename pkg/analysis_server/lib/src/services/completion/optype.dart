@@ -21,11 +21,6 @@ class OpType {
   bool includeConstructorSuggestions = false;
 
   /**
-   * Indicates whether invocation suggestions should be included.
-   */
-  bool includeInvocationSuggestions = false;
-
-  /**
    * Indicates whether type names should be suggested.
    */
   bool includeTypeNameSuggestions = false;
@@ -53,6 +48,11 @@ class OpType {
   bool includeCaseLabelSuggestions = false;
 
   /**
+   * Indicates whether the completion target is prefixed.
+   */
+  bool isPrefixed = false;
+
+  /**
    * Determine the suggestions that should be made based upon the given
    * [CompletionTarget] and [offset].
    */
@@ -70,8 +70,7 @@ class OpType {
    */
   bool get includeOnlyTypeNameSuggestions => includeTypeNameSuggestions &&
       !includeReturnValueSuggestions &&
-      !includeVoidReturnSuggestions &&
-      !includeInvocationSuggestions;
+      !includeVoidReturnSuggestions;
 }
 
 class _OpTypeAstVisitor extends GeneralizingAstVisitor {
@@ -100,7 +99,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       optype.includeTypeNameSuggestions = true;
       optype.includeReturnValueSuggestions = true;
     } else if (identical(entity, node.constructorName)) {
-      optype.includeInvocationSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.isPrefixed = true;
     }
   }
 
@@ -161,7 +162,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   @override
   void visitCascadeExpression(CascadeExpression node) {
     if (node.cascadeSections.contains(entity)) {
-      optype.includeInvocationSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.includeVoidReturnSuggestions = true;
+      optype.isPrefixed = true;
     }
   }
 
@@ -211,7 +214,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       if (type != null) {
         SimpleIdentifier prefix = type.name;
         if (prefix != null) {
-          optype.includeInvocationSuggestions = true;
+          optype.includeConstructorSuggestions = true;
+          optype.isPrefixed = true;
         }
       }
     }
@@ -408,12 +412,19 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
+    bool isThis = node.target is ThisExpression;
     if (identical(entity, node.operator) && offset > node.operator.offset) {
       // The cursor is between the two dots of a ".." token, so we need to
       // generate the completions we would generate after a "." token.
-      optype.includeInvocationSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = !isThis;
+      optype.includeVoidReturnSuggestions = true;
+      optype.isPrefixed = true;
     } else if (identical(entity, node.methodName)) {
-      optype.includeInvocationSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = !isThis;
+      optype.includeVoidReturnSuggestions = true;
+      optype.isPrefixed = true;
     }
   }
 
@@ -452,7 +463,15 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (identical(entity, node.identifier)) {
-      optype.includeInvocationSuggestions = true;
+      optype.isPrefixed = true;
+      if (node.parent is TypeName && node.parent.parent is ConstructorName) {
+        optype.includeConstructorSuggestions = true;
+      } else {
+        optype.includeReturnValueSuggestions = true;
+        optype.includeTypeNameSuggestions = true;
+        optype.includeVoidReturnSuggestions =
+            node.parent is ExpressionStatement;
+      }
     }
   }
 
@@ -466,6 +485,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
+    bool isThis = node.target is ThisExpression;
     if (node.realTarget is SimpleIdentifier && node.realTarget.isSynthetic) {
       // If the access has no target (empty string)
       // then don't suggest anything
@@ -474,9 +494,16 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (identical(entity, node.operator) && offset > node.operator.offset) {
       // The cursor is between the two dots of a ".." token, so we need to
       // generate the completions we would generate after a "." token.
-      optype.includeInvocationSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = !isThis;
+      optype.includeVoidReturnSuggestions = true;
+      optype.isPrefixed = true;
     } else if (identical(entity, node.propertyName)) {
-      optype.includeInvocationSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions =
+          !isThis && (node.parent is! CascadeExpression);
+      optype.includeVoidReturnSuggestions = true;
+      optype.isPrefixed = true;
     }
   }
 

@@ -30,17 +30,19 @@ class ImportedReferenceContributor extends DartCompletionContributor {
   @override
   bool computeFast(DartCompletionRequest request) {
     OpType optype = request.optype;
-    if (optype.includeReturnValueSuggestions ||
-        optype.includeTypeNameSuggestions ||
-        optype.includeVoidReturnSuggestions ||
-        optype.includeConstructorSuggestions) {
-      builder = new _ImportedSuggestionBuilder(request, optype);
-      builder.shouldWaitForLowPrioritySuggestions =
-          shouldWaitForLowPrioritySuggestions;
-      // If target is an argument in an argument list
-      // then suggestions may need to be adjusted
-      suggestionsComputed = builder.computeFast(request.target.containingNode);
-      return suggestionsComputed && request.target.argIndex == null;
+    if (!optype.isPrefixed) {
+      if (optype.includeReturnValueSuggestions ||
+          optype.includeTypeNameSuggestions ||
+          optype.includeVoidReturnSuggestions ||
+          optype.includeConstructorSuggestions) {
+        builder = new _ImportedSuggestionBuilder(request, optype);
+        builder.shouldWaitForLowPrioritySuggestions =
+            shouldWaitForLowPrioritySuggestions;
+        // If target is an argument in an argument list
+        // then suggestions may need to be adjusted
+        suggestionsComputed = builder.computeFast(request.target.containingNode);
+        return suggestionsComputed && request.target.argIndex == null;
+      }
     }
     return true;
   }
