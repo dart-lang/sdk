@@ -810,7 +810,7 @@ class IncrementalResolver {
   /**
    * The element for the library containing the compilation unit being resolved.
    */
-  LibraryElement _definingLibrary;
+  LibraryElementImpl _definingLibrary;
 
   /**
    * The [DartEntry] corresponding to the source being resolved.
@@ -894,6 +894,8 @@ class IncrementalResolver {
       _generateLints(rootNode);
       // update entry errors
       _updateEntry();
+      // notify library
+      _definingLibrary.afterIncrementalResolution();
       // OK
       return true;
     } finally {

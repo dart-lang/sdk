@@ -803,6 +803,9 @@ class LibraryElementHandle extends ElementHandle implements LibraryElement {
   List<LibraryElement> get visibleLibraries => actualElement.visibleLibraries;
 
   @override
+  Element getElementAt(int offset) => actualElement.getElementAt(offset);
+
+  @override
   List<ImportElement> getImportsWithPrefix(PrefixElement prefixElement) =>
       actualElement.getImportsWithPrefix(prefixElement);
 

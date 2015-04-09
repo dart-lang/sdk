@@ -298,9 +298,9 @@ class A {
     int id1 = codec.encode1(element);
     int id2 = codec.encode2(element);
     int id3 = codec.encode3(element);
-    expect(id1, ElementCodec.NAMED_FILE_ID);
+    expect(id1, -1);
     expect(id2, isNonNegative);
-    expect(id3, ElementCodec.NAMED_KIND_ID);
+    expect(id3, ElementKind.NAME.ordinal);
   }
 
   void test_encode_nullLibraryElement() {

@@ -6842,7 +6842,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /**
    * A map from offsets to elements of this library at these offsets.
    */
-  final Map<int, Element> _elementMap = new HashMap<int, Element>();
+  final Map<int, Element> _offsetToElementMap = new HashMap<int, Element>();
 
   /**
    * The export [Namespace] of this library, `null` if it has not been
@@ -7119,6 +7119,13 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
 
+  /**
+   * This method is invoked after this library was incrementally resolved.
+   */
+  void afterIncrementalResolution() {
+    _offsetToElementMap.clear();
+  }
+
   @override
   ElementImpl getChild(String identifier) {
     if ((_definingCompilationUnit as CompilationUnitElementImpl).identifier ==
@@ -7145,10 +7152,10 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   Element getElementAt(int offset) {
-    if (_elementMap.isEmpty) {
-      accept(new _BuildOffsetToElementMap(_elementMap));
+    if (_offsetToElementMap.isEmpty) {
+      accept(new _BuildOffsetToElementMap(_offsetToElementMap));
     }
-    return _elementMap[offset];
+    return _offsetToElementMap[offset];
   }
 
   @override

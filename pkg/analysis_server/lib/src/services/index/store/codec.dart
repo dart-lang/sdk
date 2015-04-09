@@ -66,8 +66,6 @@ class ContextCodec {
  * A helper that encodes/decodes [Element]s to/from integers.
  */
 class ElementCodec {
-  static const int NAMED_FILE_ID = -1;
-  static const int NAMED_KIND_ID = -1;
   static const int _CONSTRUCTOR_KIND_BASE = -100;
 
   final StringCodec _stringCodec;
@@ -122,11 +120,13 @@ class ElementCodec {
 
   /**
    * Returns the first component of the [element] id.
+   * In the most cases it is an encoding of the [element]'s file path.
+   * If the given [element] is not defined in a file, returns `-1`.
    */
   int encode1(Element element) {
     Source source = element.source;
     if (source == null) {
-      return NAMED_FILE_ID;
+      return -1;
     }
     String filePath = source.fullName;
     return _stringCodec.encode(filePath);
@@ -134,6 +134,7 @@ class ElementCodec {
 
   /**
    * Returns the second component of the [element] id.
+   * In the most cases it is the [element]'s name offset.
    */
   int encode2(Element element) {
     if (element is NameElement) {
@@ -148,11 +149,9 @@ class ElementCodec {
 
   /**
    * Returns the third component of the [element] id.
+   * In the most cases it is the [element]'s kind.
    */
   int encode3(Element element) {
-    if (element is NameElement) {
-      return NAMED_KIND_ID;
-    }
     if (element is ConstructorElement) {
       ClassElement classElement = element.enclosingElement;
       int constructorIndex = classElement.constructors.indexOf(element);
