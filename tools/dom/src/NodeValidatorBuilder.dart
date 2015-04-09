@@ -455,9 +455,8 @@ class _SvgNodeValidator implements NodeValidator {
     }
     // Firefox 37 has issues with creating foreign elements inside a
     // foreignobject tag as SvgElement. We don't want foreignobject contents
-    // anyway, so just remove the whole tree outright. And we can't rely
-    // on IE recognizing the SvgForeignObject type, so go by tagName. Bug 23144
-    if (element is svg.SvgElement && element.tagName == 'foreignObject') {
+    // anyway, so just remove the whole tree outright.
+    if (element is svg.ForeignObjectElement) {
       return false;
     }
     if (element is svg.SvgElement) {

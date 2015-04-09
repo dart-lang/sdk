@@ -340,9 +340,7 @@ main() {
     });
 
     group('allowSvg', () {
-      var validator = new NodeValidatorBuilder()
-        ..allowSvg()
-        ..allowTextElements();
+      var validator = new NodeValidatorBuilder()..allowSvg();
 
       testHtml('allows basic SVG',
         validator,
@@ -377,10 +375,10 @@ main() {
               '<div>Some content</div>'
             '</body>'
           '</foreignobject>'
-          '<b>42</b>'
+          '<number>42</number>'
         '</svg>',
         '<svg xmlns="http://www.w3.org/2000/svg">'
-          '<b>42</b>'
+          '<number>42</number>'
         '</svg>');
     });
 
