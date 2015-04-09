@@ -91,12 +91,17 @@ part of tree_ir.optimization;
  * This may trigger a flattening of nested ifs in case the eliminated label
  * separated two ifs.
  */
-class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
+class StatementRewriter extends Transformer implements Pass {
   String get passName => 'Statement rewriter';
+
+  @override
+  void rewrite(RootNode node) {
+    node.replaceEachBody(visitStatement);
+  }
 
   // The binding environment.  The rightmost element of the list is the nearest
   // available enclosing binding.
-  List<Assign> environment;
+  List<Assign> environment = <Assign>[];
 
   /// Binding environment for variables that are assigned to effectively
   /// constant expressions (see [isEffectivelyConstant]).
@@ -128,41 +133,12 @@ class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
     return newJump != null ? newJump : jump;
   }
 
-  rewriteExecutableDefinition(ExecutableDefinition definition) {
-    inEmptyEnvironment(() {
-      definition.body = visitStatement(definition.body);
-    });
-  }
-
-  void rewriteConstructorDefinition(ConstructorDefinition definition) {
-    if (definition.isAbstract) return;
-    definition.initializers.forEach(visitExpression);
-    rewriteExecutableDefinition(definition);
-  }
-
   void inEmptyEnvironment(void action()) {
     List<Assign> oldEnvironment = environment;
     environment = <Assign>[];
     action();
     assert(environment.isEmpty);
     environment = oldEnvironment;
-  }
-
-  Expression visitFieldInitializer(FieldInitializer node) {
-    inEmptyEnvironment(() {
-      node.body = visitStatement(node.body);
-    });
-    return node;
-  }
-
-  Expression visitSuperInitializer(SuperInitializer node) {
-    inEmptyEnvironment(() {
-      for (int i = node.arguments.length - 1; i >= 0; --i) {
-        node.arguments[i] = visitStatement(node.arguments[i]);
-        assert(environment.isEmpty);
-      }
-    });
-    return node;
   }
 
   Expression visitExpression(Expression e) => e.processed ? e : e.accept(this);

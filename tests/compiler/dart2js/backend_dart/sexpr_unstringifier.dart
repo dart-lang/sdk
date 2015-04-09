@@ -318,7 +318,7 @@ class SExpressionUnstringifier {
 
     tokens.consumeEnd();
     return new FunctionDefinition(element, thisParameter, parameters,
-        new RunnableBody(body, cont), null, null);
+        new Body(body, cont), null, null);
   }
 
   /// (IsTrue arg)

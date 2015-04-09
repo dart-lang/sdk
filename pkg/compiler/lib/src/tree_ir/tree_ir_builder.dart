@@ -120,7 +120,7 @@ class Builder implements cps_ir.Visitor<Node> {
     return new VariableUse(getVariable(reference.definition));
   }
 
-  ExecutableDefinition build(cps_ir.ExecutableDefinition node) {
+  RootNode build(cps_ir.RootNode node) {
     // TODO(asgerf): Don't have build AND buildXXX as public API.
     if (node is cps_ir.FieldDefinition) {
       return buildField(node);
@@ -138,7 +138,7 @@ class Builder implements cps_ir.Visitor<Node> {
 
   FieldDefinition buildField(cps_ir.FieldDefinition node) {
     Statement body;
-    if (node.hasInitializer) {
+    if (!node.isEmpty) {
       currentElement = node.element;
       returnContinuation = node.body.returnContinuation;
 
@@ -168,7 +168,7 @@ class Builder implements cps_ir.Visitor<Node> {
     List<Variable> parameters =
         node.parameters.map(addFunctionParameter).toList();
     Statement body;
-    if (!node.isAbstract) {
+    if (!node.isEmpty) {
       returnContinuation = node.body.returnContinuation;
       phiTempVar = new Variable(node.element, null);
       body = visit(node.body);
@@ -185,7 +185,7 @@ class Builder implements cps_ir.Visitor<Node> {
         node.parameters.map(addFunctionParameter).toList();
     List<Initializer> initializers;
     Statement body;
-    if (!node.isAbstract) {
+    if (!node.isEmpty) {
       initializers = node.initializers.map(visit).toList();
       returnContinuation = node.body.returnContinuation;
 
@@ -350,7 +350,7 @@ class Builder implements cps_ir.Visitor<Node> {
 
   Initializer visitSuperInitializer(cps_ir.SuperInitializer node) {
     List<Statement> arguments =
-        node.arguments.map((cps_ir.RunnableBody argument) {
+        node.arguments.map((cps_ir.Body argument) {
       returnContinuation = argument.returnContinuation;
       return visit(argument.body);
     }).toList();
@@ -375,7 +375,7 @@ class Builder implements cps_ir.Visitor<Node> {
     }
   }
 
-  Statement visitRunnableBody(cps_ir.RunnableBody node) {
+  Statement visitBody(cps_ir.Body node) {
     return visit(node.body);
   }
 

@@ -209,7 +209,8 @@ abstract class Invoke {
 ///     child.parent = parent;
 ///     parent.body  = child;
 abstract class InteriorNode extends Node {
-  Expression body;
+  Expression get body;
+  void set body(Expression body);
 }
 
 /// Invoke a static function or static field getter/setter.
@@ -726,19 +727,28 @@ class Continuation extends Definition<Continuation> implements InteriorNode {
   accept(Visitor visitor) => visitor.visitContinuation(this);
 }
 
-abstract class ExecutableDefinition implements Node {
-  RunnableBody get body;
+abstract class RootNode extends Node {
   Element get element;
 
-  applyPass(Pass pass);
+  /// True if there is no body for this root node.
+  ///
+  /// In some parts of the compiler, empty root nodes are used as placeholders
+  /// for abstract methods, external constructors, fields without initializers,
+  /// etc.
+  bool get isEmpty;
+
+  /// List of parameters, or an empty list if this is a field.
+  /// For fields, this list is immutable.
+  List<Definition> get parameters;
 }
 
 // This is basically a function definition with an empty parameter list and a
 // field element instead of a function element and no const declarations, and
 // never a getter or setter, though that's less important.
-class FieldDefinition extends Node implements ExecutableDefinition {
+class FieldDefinition extends RootNode implements DartSpecificNode {
   final FieldElement element;
-  RunnableBody body;
+  List<Definition> get parameters => const <Definition>[];
+  final Body body;
 
   FieldDefinition(this.element, this.body);
 
@@ -746,26 +756,8 @@ class FieldDefinition extends Node implements ExecutableDefinition {
       : this.body = null;
 
   accept(Visitor visitor) => visitor.visitFieldDefinition(this);
-  applyPass(Pass pass) => pass.rewriteFieldDefinition(this);
 
-  /// `true` if this field has no initializer.
-  ///
-  /// If `true` [body] is `null`.
-  ///
-  /// This is different from a initializer that is `null`. Consider this class:
-  ///
-  ///     class Class {
-  ///       final field;
-  ///       Class.a(this.field);
-  ///       Class.b() : this.field = null;
-  ///       Class.c();
-  ///     }
-  ///
-  /// If `field` had an initializer, possibly `null`, constructors `Class.a` and
-  /// `Class.b` would be invalid, and since `field` has no initializer
-  /// constructor `Class.c` is invalid. We therefore need to distinguish the two
-  /// cases.
-  bool get hasInitializer => body != null;
+  bool get isEmpty => body == null;
 }
 
 /// Identifies a mutable variable.
@@ -779,22 +771,21 @@ class MutableVariable extends Definition {
   accept(Visitor v) => v.visitMutableVariable(this);
 }
 
-class RunnableBody extends InteriorNode {
+class Body extends InteriorNode {
   Expression body;
   final Continuation returnContinuation;
-  RunnableBody(this.body, this.returnContinuation);
-  accept(Visitor visitor) => visitor.visitRunnableBody(this);
+  Body(this.body, this.returnContinuation);
+  accept(Visitor visitor) => visitor.visitBody(this);
 }
 
 /// A function definition, consisting of parameters and a body.  The parameters
 /// include a distinguished continuation parameter (held by the body).
-class FunctionDefinition extends Node
-    implements ExecutableDefinition {
+class FunctionDefinition extends RootNode {
   final FunctionElement element;
   final Parameter thisParameter;
   /// Mixed list of [Parameter]s and [MutableVariable]s.
   final List<Definition> parameters;
-  final RunnableBody body;
+  final Body body;
   final List<ConstDeclaration> localConstants;
 
   /// Values for optional parameters.
@@ -808,26 +799,22 @@ class FunctionDefinition extends Node
       this.defaultParameterValues);
 
   FunctionDefinition.abstract(this.element,
-                              this.thisParameter,
                               this.parameters,
                               this.defaultParameterValues)
       : body = null,
+        thisParameter = null,
         localConstants = const <ConstDeclaration>[];
 
   accept(Visitor visitor) => visitor.visitFunctionDefinition(this);
-  applyPass(Pass pass) => pass.rewriteFunctionDefinition(this);
 
-  /// Returns `true` if this function is abstract or external.
-  ///
-  /// If `true`, [body] is `null` and [localConstants] is empty.
-  bool get isAbstract => body == null;
+  bool get isEmpty => body == null;
 }
 
 abstract class Initializer extends Node implements DartSpecificNode {}
 
 class FieldInitializer extends Initializer {
   final FieldElement element;
-  final RunnableBody body;
+  final Body body;
 
   FieldInitializer(this.element, this.body);
   accept(Visitor visitor) => visitor.visitFieldInitializer(this);
@@ -835,36 +822,46 @@ class FieldInitializer extends Initializer {
 
 class SuperInitializer extends Initializer {
   final ConstructorElement target;
-  final List<RunnableBody> arguments;
+  final List<Body> arguments;
   final Selector selector;
   SuperInitializer(this.target, this.arguments, this.selector);
   accept(Visitor visitor) => visitor.visitSuperInitializer(this);
 }
 
-class ConstructorDefinition extends FunctionDefinition {
+class ConstructorDefinition extends RootNode implements DartSpecificNode {
+  final ConstructorElement element;
+  final Parameter thisParameter;
+  /// Mixed list of [Parameter]s and [MutableVariable]s.
+  final List<Definition> parameters;
+  final Body body;
+  final List<ConstDeclaration> localConstants;
   final List<Initializer> initializers;
 
-  ConstructorDefinition(ConstructorElement element,
-                        Definition thisParameter, // only Dart
-                        List<Definition> parameters,
-                        RunnableBody body,
+  /// Values for optional parameters.
+  final List<ConstantExpression> defaultParameterValues;
+
+  ConstructorDefinition(this.element,
+                        this.thisParameter,
+                        this.parameters,
+                        this.body,
                         this.initializers,
-                        List<ConstDeclaration> localConstants,
-                        List<ConstantExpression> defaultParameterValues)
-  : super(element, thisParameter, parameters, body, localConstants,
-          defaultParameterValues);
+                        this.localConstants,
+                        this.defaultParameterValues);
 
   // 'Abstract' here means "has no body" and is used to represent external
   // constructors.
   ConstructorDefinition.abstract(
-      ConstructorElement element,
-      List<Definition> parameters,
-      List<ConstantExpression> defaultParameterValues)
-      : initializers = null,
-        super.abstract(element, null, parameters, defaultParameterValues);
+      this.element,
+      this.parameters,
+      this.defaultParameterValues)
+      : body = null,
+        initializers = null,
+        thisParameter = null,
+        localConstants = const <ConstDeclaration>[];
 
   accept(Visitor visitor) => visitor.visitConstructorDefinition(this);
-  applyPass(Pass pass) => pass.rewriteConstructorDefinition(this);
+
+  bool get isEmpty => body == null;
 }
 
 /// Converts the internal representation of a type to a Dart object of type
@@ -931,7 +928,7 @@ abstract class Visitor<T> {
   T visitFieldDefinition(FieldDefinition node);
   T visitFunctionDefinition(FunctionDefinition node);
   T visitConstructorDefinition(ConstructorDefinition node);
-  T visitRunnableBody(RunnableBody node);
+  T visitBody(Body node);
 
   // Initializers
   T visitFieldInitializer(FieldInitializer node);
@@ -992,9 +989,9 @@ class RecursiveVisitor implements Visitor {
 
   processReference(Reference ref) {}
 
-  processRunnableBody(RunnableBody node) {}
-  visitRunnableBody(RunnableBody node) {
-    processRunnableBody(node);
+  processBody(Body node) {}
+  visitBody(Body node) {
+    processBody(node);
     visit(node.returnContinuation);
     visit(node.body);
   }
@@ -1002,7 +999,7 @@ class RecursiveVisitor implements Visitor {
   processFieldDefinition(FieldDefinition node) {}
   visitFieldDefinition(FieldDefinition node) {
     processFieldDefinition(node);
-    if (node.hasInitializer) {
+    if (node.body != null) {
       visit(node.body);
     }
   }
@@ -1012,7 +1009,7 @@ class RecursiveVisitor implements Visitor {
     processFunctionDefinition(node);
     if (node.thisParameter != null) visit(node.thisParameter);
     node.parameters.forEach(visit);
-    if (!node.isAbstract) {
+    if (node.body != null) {
       visit(node.body);
     }
   }
@@ -1022,8 +1019,10 @@ class RecursiveVisitor implements Visitor {
     processConstructorDefinition(node);
     if (node.thisParameter != null) visit(node.thisParameter);
     node.parameters.forEach(visit);
-    if (!node.isAbstract) {
+    if (node.initializers != null) {
       node.initializers.forEach(visit);
+    }
+    if (node.body != null) {
       visit(node.body);
     }
   }

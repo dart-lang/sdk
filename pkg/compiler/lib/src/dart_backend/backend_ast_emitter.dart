@@ -15,8 +15,8 @@ import '../universe/universe.dart';
 import '../tree/tree.dart' as tree show Modifiers;
 
 /// Translates the dart_tree IR to Dart backend AST.
-ExecutableDefinition emit(tree.ExecutableDefinition definition) {
-  return new ASTEmitter().emit(definition, new BuilderContext<Statement>());
+RootNode emit(tree.RootNode root) {
+  return new ASTEmitter().emit(root);
 }
 
 // TODO(johnniwinther): Split into function/block state.
@@ -203,29 +203,25 @@ class BuilderContext<T> {
   Iterable<T> get statements => _statementBuffer;
 }
 
-
 /// Translates the dart_tree IR to Dart backend AST.
 /// An instance of this class should only be used once; a fresh emitter
 /// must be created for each function to be emitted.
 class ASTEmitter
-    extends tree.Visitor1<dynamic, Expression, BuilderContext<Statement>> {
+  extends tree.StatementVisitor1<dynamic, BuilderContext<Statement>>
+     with tree.ExpressionVisitor1<Expression, BuilderContext<Statement>>,
+          tree.RootVisitor1<RootNode, BuilderContext<Statement>>,
+          tree.InitializerVisitor1<Initializer, BuilderContext<Statement>> {
 
-  ExecutableDefinition emit(tree.ExecutableDefinition definition,
-                            BuilderContext<Statement> context) {
-    if (definition is tree.FieldDefinition) {
-      return emitField(definition, context);
-    } else if (definition is tree.ConstructorDefinition) {
-      return emitConstructor(definition, context);
-    }
-    assert(definition is tree.FunctionDefinition);
-    return emitFunction(definition, context);
+  RootNode emit(tree.RootNode node) {
+    return visitRootNode(node, new BuilderContext<Statement>());
   }
 
-  FieldDefinition emitField(tree.FieldDefinition definition,
-                            BuilderContext<Statement> context) {
+  @override
+  FieldDefinition visitFieldDefinition(tree.FieldDefinition definition,
+                                       BuilderContext<Statement> context) {
     context.currentElement = definition.element;
     Expression initializer;
-    if (definition.hasInitializer) {
+    if (!definition.isEmpty) {
       visitStatement(definition.body, context);
       List<Statement> bodyParts;
       for (tree.Variable variable in context.variableNames.keys) {
@@ -273,11 +269,14 @@ class ASTEmitter
     return false;
   }
 
-  FunctionExpression emitConstructor(tree.ConstructorDefinition definition,
-                                     BuilderContext<Statement> context) {
+  @override
+  FunctionExpression visitConstructorDefinition(
+        tree.ConstructorDefinition definition,
+        BuilderContext<Statement> context) {
     context.currentElement = definition.element;
 
-    Parameters parameters = emitRootParameters(definition, context);
+    Parameters parameters = emitRootParameters(
+        definition, definition.defaultParameterValues, context);
 
     // Declare parameters.
     for (tree.Variable param in definition.parameters) {
@@ -286,13 +285,13 @@ class ASTEmitter
       context.declaredVariables.add(param);
     }
 
-    List<Expression> initializers;
+    List<Initializer> initializers;
     Statement body;
 
-    if (!definition.isAbstract) {
+    if (!definition.isEmpty) {
       initializers =
           definition.initializers.map((tree.Initializer initializer) {
-        return visitExpression(initializer, context);
+        return visitInitializer(initializer, context);
       }).toList();
 
       context.firstStatement = definition.body;
@@ -344,11 +343,14 @@ class ASTEmitter
         ..element = context.currentElement;
   }
 
-  FunctionExpression emitFunction(tree.FunctionDefinition definition,
-                                  BuilderContext<Statement> context) {
+  @override
+  FunctionExpression visitFunctionDefinition(
+        tree.FunctionDefinition definition,
+        BuilderContext<Statement> context) {
     context.currentElement = definition.element;
 
-    Parameters parameters = emitRootParameters(definition, context);
+    Parameters parameters = emitRootParameters(
+        definition, definition.defaultParameterValues, context);
 
     // Declare parameters.
     for (tree.Variable param in definition.parameters) {
@@ -358,7 +360,7 @@ class ASTEmitter
     }
 
     Statement body;
-    if (definition.isAbstract) {
+    if (definition.isEmpty) {
       body = new EmptyStatement();
     } else {
       context.firstStatement = definition.body;
@@ -414,7 +416,8 @@ class ASTEmitter
 
   /// Emits parameters that are not nested inside other parameters.
   /// Root parameters can have default values, while inner parameters cannot.
-  Parameters emitRootParameters(tree.FunctionDefinition function,
+  Parameters emitRootParameters(tree.RootNode function,
+                                List<ConstantExpression> defaults,
                                 BuilderContext<Statement> context) {
     FunctionType functionType = function.element.type;
     List<Parameter> required = TypeGenerator.createParameters(
@@ -427,7 +430,7 @@ class ASTEmitter
             ? functionType.namedParameterTypes
             : functionType.optionalParameterTypes,
         context: context,
-        defaultValues: function.defaultParameterValues,
+        defaultValues: defaults,
         elements: function.parameters.skip(required.length)
             .map((p) => p.element));
     return new Parameters(required, optional, optionalParametersAreNamed);
@@ -877,7 +880,8 @@ class ASTEmitter
 
   FunctionExpression makeSubFunction(tree.FunctionDefinition function,
                                      BuilderContext<Statement> context) {
-    return emit(function, new BuilderContext<Statement>.inner(context));
+    return visitFunctionDefinition(function,
+        new BuilderContext<Statement>.inner(context));
   }
 
   @override
@@ -921,14 +925,14 @@ class ASTEmitter
   }
 
   @override
-  Expression visitFieldInitializer(tree.FieldInitializer node,
+  Initializer visitFieldInitializer(tree.FieldInitializer node,
                                    BuilderContext<Statement> context) {
     return new FieldInitializer(node.element,
         ensureExpression(buildInInitializerContext(node.body, context)));
   }
 
   @override
-  Expression visitSuperInitializer(tree.SuperInitializer node,
+  Initializer visitSuperInitializer(tree.SuperInitializer node,
                                    BuilderContext<Statement> context) {
     List<Argument> arguments = node.arguments.map((tree.Statement argument) {
       return ensureExpression(buildInInitializerContext(argument, context));
@@ -1258,14 +1262,12 @@ class UnshadowParameters extends tree.RecursiveVisitor {
   /// Parameters that are used in a context where it is shadowed.
   Set<tree.Variable> hasShadowedUse = new Set<tree.Variable>();
 
-  void unshadow(tree.ExecutableDefinition definition) {
-    // Fields have no parameters.
-    if (definition is tree.FieldDefinition) return;
-    visitFunctionDefinition(definition);
+  void unshadow(tree.RootNode definition) {
+    if (definition.isEmpty) return;
+    unshadowFunction(definition);
   }
 
-  visitFunctionDefinition(tree.FunctionDefinition definition) {
-    if (definition.isAbstract) return;
+  void unshadowFunction(tree.RootNode definition) {
     var oldShadow = shadowedParameters;
     var oldEnvironment = environment;
     environment = new Map<String, tree.Variable>.from(environment);
@@ -1277,7 +1279,7 @@ class UnshadowParameters extends tree.RecursiveVisitor {
       }
       environment[param.element.name] = param;
     }
-    visitStatement(definition.body);
+    definition.forEachBody(visitStatement);
     environment = oldEnvironment;
     shadowedParameters = oldShadow;
 
@@ -1287,12 +1289,18 @@ class UnshadowParameters extends tree.RecursiveVisitor {
         tree.Variable newParam = new tree.Variable(definition.element,
             param.element);
         definition.parameters[i] = newParam;
-        definition.body = new tree.Assign(param, new tree.VariableUse(newParam),
-            definition.body);
+        definition.replaceEachBody((tree.Statement body) {
+          return new tree.Assign(param, new tree.VariableUse(newParam), body);
+        });
         newParam.writeCount = 1; // Being a parameter counts as a write.
         param.writeCount--; // Not a parameter anymore.
       }
     }
+  }
+
+  @override
+  void visitInnerFunction(tree.FunctionDefinition definition) {
+    unshadowFunction(definition);
   }
 
   @override
