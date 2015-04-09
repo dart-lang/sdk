@@ -10,8 +10,6 @@ part of cli;
 List<String> _splitLine(String line) {
   line = line.trimLeft();
   var args = [];
-  var codes = line.codeUnits;
-
   int pos = 0;
   while (pos < line.length) {
     int startPos = pos;

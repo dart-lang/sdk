@@ -56,7 +56,6 @@ var tests = [
   return isolate.rootLib.load().then((_) {
       // Set up a listener to wait for breakpoint events.
       Completer completer = new Completer();
-      List events = [];
       var subscription;
       subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
         if (event.eventType == ServiceEvent.kPauseBreakpoint) {
@@ -94,7 +93,6 @@ var tests = [
 (Isolate isolate) {
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
-  List events = [];
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
     if (event.eventType == ServiceEvent.kPauseBreakpoint) {
@@ -123,7 +121,6 @@ var tests = [
 (Isolate isolate) {
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
-  List events = [];
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
     if (event.eventType == ServiceEvent.kBreakpointRemoved) {
@@ -159,7 +156,6 @@ var tests = [
 (Isolate isolate) {
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
-  List events = [];
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
     if (event.eventType == ServiceEvent.kPauseBreakpoint) {

@@ -8,7 +8,6 @@ library call_site_data_test;
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
-import 'dart:async';
 
 class A { foo() => 'A'; }
 class B { foo() => 'B'; }

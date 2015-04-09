@@ -377,7 +377,7 @@ abstract class VM extends ServiceObjectOwner {
       if (data != null) {
         map['_data'] = data;
       }
-    } catch (e, st) {
+    } catch (_) {
       Logger.root.severe('Ignoring malformed event response: ${response}');
       return;
     }
@@ -1900,12 +1900,14 @@ class ServiceFunction extends ServiceObject with Coverage {
     isDart = !kind.isSynthetic();
 
     if (dartOwner is ServiceFunction) {
-      library = dartOwner.library;
-      qualifiedName = "${dartOwner.qualifiedName}.${name}";
+      ServiceFunction ownerFunction = dartOwner;
+      library = ownerFunction.library;
+      qualifiedName = "${ownerFunction.qualifiedName}.${name}";
 
     } else if (dartOwner is Class) {
-      library = dartOwner.library;
-      qualifiedName = "${dartOwner.name}.${name}";
+      Class ownerClass = dartOwner;
+      library = ownerClass.library;
+      qualifiedName = "${ownerClass.name}.${name}";
 
     } else {
       library = dartOwner;
@@ -1966,7 +1968,8 @@ class Field extends ServiceObject {
     value = map['value'];
 
     if (dartOwner is Class) {
-      library = dartOwner.library;
+      Class ownerClass = dartOwner;
+      library = ownerClass.library;
 
     } else {
       library = dartOwner;
@@ -1985,7 +1988,7 @@ class Field extends ServiceObject {
     _loaded = true;
   }
 
-  String toString() => 'Field(${darOwner.name}.$name)';
+  String toString() => 'Field(${dartOwner.name}.$name)';
 }
 
 

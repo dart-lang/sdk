@@ -8,7 +8,6 @@ library test_helper;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:unittest/unittest.dart';
 import 'package:observatory/service_io.dart';
 
 // This invocation should set up the state being tested.

@@ -6,18 +6,17 @@
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
-import 'dart:async';
 
-printSync() {  // Line 11
+printSync() {  // Line 10
   print('sync');
 }
-printAsync() async {  // Line 14
+printAsync() async {  // Line 13
   print('async');
 }
-printAsyncStar() async* {  // Line 17
+printAsyncStar() async* {  // Line 16
   print('async*');
 }
-printSyncStar() sync* {  // Line 20
+printSyncStar() sync* {  // Line 19
   print('sync*');
 }
 
@@ -35,7 +34,7 @@ testeeDo() {
   var stream = printAsyncStar();
   var iterator = printSyncStar();
 
-  print('middle');  // Line 38.
+  print('middle');  // Line 37.
 
   future.then((v) => print(v));
   stream.toList();
@@ -46,19 +45,19 @@ testAsync(Isolate isolate) async {
   await isolate.rootLib.load();
   var script = isolate.rootLib.scripts[0];
 
-  var bp1 = await isolate.addBreakpoint(script, 11);
+  var bp1 = await isolate.addBreakpoint(script, 10);
   expect(bp1, isNotNull);
   expect(bp1 is Breakpoint, isTrue);
-  var bp2 = await isolate.addBreakpoint(script, 14);
+  var bp2 = await isolate.addBreakpoint(script, 13);
   expect(bp2, isNotNull);
   expect(bp2 is Breakpoint, isTrue);
-  var bp3 = await isolate.addBreakpoint(script, 17);
+  var bp3 = await isolate.addBreakpoint(script, 16);
   expect(bp3, isNotNull);
   expect(bp3 is Breakpoint, isTrue);
-  var bp4 = await isolate.addBreakpoint(script, 20);
+  var bp4 = await isolate.addBreakpoint(script, 19);
   expect(bp4, isNotNull);
   expect(bp4 is Breakpoint, isTrue);
-  var bp5 = await isolate.addBreakpoint(script, 38);
+  var bp5 = await isolate.addBreakpoint(script, 37);
   print("BP5 - $bp5");
   expect(bp5, isNotNull);
   expect(bp5 is Breakpoint, isTrue);

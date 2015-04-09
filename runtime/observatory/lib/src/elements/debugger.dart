@@ -789,8 +789,6 @@ class RefreshStackCommand extends DebuggerCommand {
   RefreshStackCommand(Debugger debugger) : super(debugger, 'stack', []);
 
   Future run(List<String> args) {
-    Set<Script> scripts = debugger.stackElement.activeScripts();
-    List pending = [];
     return debugger.refreshStack();
   }
 
@@ -1029,23 +1027,25 @@ class ObservatoryDebugger extends Debugger {
 
   void _onEvent(ServiceEvent event) {
     switch(event.eventType) {
-      case ServiceEvent.kIsolateStart: {
-        var iso = event.owner;
-        console.print(
-            "Isolate ${iso.number} '${iso.name}' has been created");
-        break;
-      }
-
-      case ServiceEvent.kIsolateExit: {
-        var iso = event.owner;
-        if (iso == isolate) {
-          console.print("The current isolate has exited");
-        } else {
+      case ServiceEvent.kIsolateStart:
+        {
+          var iso = event.owner;
           console.print(
-              "Isolate ${iso.number} '${iso.name}' has exited");
+              "Isolate ${iso.number} '${iso.name}' has been created");
         }
         break;
-      }
+
+      case ServiceEvent.kIsolateExit:
+        {
+          var iso = event.owner;
+          if (iso == isolate) {
+            console.print("The current isolate has exited");
+          } else {
+            console.print(
+                "Isolate ${iso.number} '${iso.name}' has exited");
+          }
+        }
+        break;
 
       case ServiceEvent.kIsolateUpdate:
         var iso = event.owner;
@@ -1176,7 +1176,6 @@ class DebuggerPageElement extends ObservatoryElement {
     var stackDiv = $['stackDiv'];
     var splitterDiv = $['splitterDiv'];
     var cmdDiv = $['commandDiv'];
-    var consoleDiv = $['consoleDiv'];
 
     int navbarHeight = navbarDiv.clientHeight;
     int splitterHeight = splitterDiv.clientHeight;

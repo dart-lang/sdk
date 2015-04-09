@@ -5,7 +5,6 @@
 
 import 'dart:async';
 import 'dart:isolate' as I;
-import 'dart:math';
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -28,7 +27,7 @@ Future before() async {
   print('spawned all isolates');
 }
 
-Future during() {
+Future during() async {
 }
 
 var tests = [
