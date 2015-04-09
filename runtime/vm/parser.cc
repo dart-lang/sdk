@@ -10654,8 +10654,8 @@ ArgumentListNode* Parser::ParseActualParameters(
   } else {
     arguments = implicit_arguments;
   }
-  const GrowableObjectArray& names = GrowableObjectArray::Handle(Z,
-      GrowableObjectArray::New(Heap::kOld));
+  const GrowableObjectArray& names =
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New(Heap::kOld));
   bool named_argument_seen = false;
   if (LookaheadToken(1) != Token::kRPAREN) {
     String& arg_name = String::Handle(Z);
@@ -10675,7 +10675,7 @@ ArgumentListNode* Parser::ParseActualParameters(
             ReportError("duplicate named argument");
           }
         }
-        names.Add(*CurrentLiteral());
+        names.Add(*CurrentLiteral(), Heap::kOld);
         ConsumeToken();  // ident.
         ConsumeToken();  // colon.
       } else if (named_argument_seen) {
