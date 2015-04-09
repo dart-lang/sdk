@@ -4999,6 +4999,14 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Code for a variable shift amount.
     Register shift = locs()->in(1).reg();
 
+    // Code below assumes shift amount is not 0 (cannot shift by 32 - 0).
+    Label non_zero_shift, done;
+    __ bne(shift, ZR, &non_zero_shift);
+    __ delay_slot()->mov(out_lo, left_lo);
+    __ b(&done);
+    __ delay_slot()->mov(out_hi, left_hi);
+    __ Bind(&non_zero_shift);
+
     // Deopt if shift is larger than 63 or less than 0.
     if (has_shift_count_check()) {
       __ sltiu(CMPRES1, shift, Immediate(2*(kMintShiftCountLimit + 1)));
@@ -5012,11 +5020,11 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     switch (op_kind()) {
       case Token::kSHR: {
-        Label large_shift, done;
+        Label large_shift;
         __ sltiu(CMPRES1, shift, Immediate(32));
         __ beq(CMPRES1, ZR, &large_shift);
 
-        // shift < 32.
+        // 0 < shift < 32.
         __ delay_slot()->ori(TMP, ZR, Immediate(32));
         __ subu(TMP, TMP, shift);  // TMP = 32 - shift; 0 < TMP <= 31.
         __ sllv(out_lo, left_hi, TMP);
@@ -5030,15 +5038,14 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ sra(out_hi, left_hi, 31);
         __ srav(out_lo, left_hi, shift);  // Only 5 low bits of shift used.
 
-        __ Bind(&done);
         break;
       }
       case Token::kSHL: {
-        Label large_shift, done;
+        Label large_shift;
         __ sltiu(CMPRES1, shift, Immediate(32));
         __ beq(CMPRES1, ZR, &large_shift);
 
-        // shift < 32.
+        // 0 < shift < 32.
         __ delay_slot()->ori(TMP, ZR, Immediate(32));
         __ subu(TMP, TMP, shift);  // TMP = 32 - shift; 0 < TMP <= 31.
         __ srlv(out_hi, left_lo, TMP);
@@ -5072,12 +5079,12 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         } else {
           __ mov(out_lo, ZR);
         }
-        __ Bind(&done);
         break;
       }
       default:
         UNREACHABLE();
     }
+    __ Bind(&done);
   }
 }
 
