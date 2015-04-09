@@ -1211,7 +1211,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       export "dart:math" hide max;
       class A {int x;}
       @deprecated D1() {int x;}
-      class _B { }''');
+      class _B {boo() { partBoo() {}} }''');
     addSource('/testCD.dart', '''
       String T1;
       var _T2;
@@ -1233,7 +1233,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       int T5;
       var _T6;
       String get T7 => 'hello';
-      set T8(int value) { }
+      set T8(int value) { partT8() {} }
       Z D2() {int x;}
       class X {
         int get clog => 8;
@@ -1260,10 +1260,12 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       // Don't suggest locals out of scope
       assertNotSuggested('r');
       assertNotSuggested('x');
+      assertNotSuggested('partT8');
 
       assertSuggestImportedClass('A');
       assertNotSuggested('_B');
       assertSuggestImportedClass('C');
+      assertNotSuggested('partBoo');
       // hidden element suggested as low relevance
       // but imported results are partially filtered
       //assertSuggestImportedClass('D', COMPLETION_RELEVANCE_LOW);
@@ -1299,6 +1301,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalSetter('blog');
       // TODO (danrubel) suggest HtmlElement as low relevance
       assertNotSuggested('HtmlElement');
+      assertSuggestImportedClass('Uri');
+      assertNotSuggested('parseIPv6Address');
+      assertNotSuggested('parseHex');
     });
   }
 
@@ -1436,6 +1441,58 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalMethod('f2', 'F', null);
       assertSuggestLocalMethod('i2', 'I', null);
       assertSuggestLocalMethod('m2', 'M', 'int');
+    });
+  }
+
+  test_Block_local_function() {
+    addSource('/testAB.dart', '''
+      export "dart:math" hide max;
+      class A {int x;}
+      @deprecated D1() {int x;}
+      class _B {boo() { partBoo() {}} }''');
+    addSource('/testCD.dart', '''
+      String T1;
+      var _T2;
+      class C { }
+      class D { }''');
+    addSource('/testEEF.dart', '''
+      class EE { }
+      class F { }''');
+    addSource('/testG.dart', 'class G { }');
+    addSource('/testH.dart', '''
+      class H { }
+      int T3;
+      var _T4;'''); // not imported
+    addTestSource('''
+      import "/testAB.dart";
+      import "/testCD.dart" hide D;
+      import "/testEEF.dart" show EE;
+      import "/testG.dart" as g;
+      int T5;
+      var _T6;
+      String get T7 => 'hello';
+      set T8(int value) { partT8() {} }
+      Z D2() {int x;}
+      class X {
+        int get clog => 8;
+        set blog(value) { }
+        a() {
+          var f;
+          localF(int arg1) { }
+          {var x;}
+          p^ var r;
+        }
+        void b() { }}
+      class Z { }''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 1);
+      expect(request.replacementLength, 1);
+
+      assertNotSuggested('partT8');
+      assertNotSuggested('partBoo');
+      assertNotSuggested('parseIPv6Address');
+      assertNotSuggested('parseHex');
     });
   }
 

@@ -100,6 +100,15 @@ abstract class Map<K, V> extends Object {
 external bool identical(Object a, Object b);
 
 void print(Object object) {}
+
+class Uri {
+  static List<int> parseIPv6Address(String host, [int start = 0, int end]) {
+    int parseHex(int start, int end) {
+      return 0;
+    }
+    return null;
+  }
+}
 ''');
 
   static const _MockSdkLibrary LIB_ASYNC = const _MockSdkLibrary('dart:async',

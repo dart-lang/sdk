@@ -310,8 +310,14 @@ class DartCompletionCache extends CompletionCache {
    */
   void _addSuggestion(Element element, int relevance) {
     if (element is ExecutableElement) {
+      // Do not suggest operators or local functions
       if (element.isOperator) {
         return;
+      }
+      if (element is FunctionElement) {
+        if (element.enclosingElement is! CompilationUnitElement) {
+          return;
+        }
       }
     }
 
