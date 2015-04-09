@@ -95,8 +95,8 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     return withBuilder(
         new DartIrBuilder(DART_CONSTANT_SYSTEM,
                           element,
-                          // TODO(johnniwinther): Supported closure variables.
-                          new NullCapturedVariables()),
+                          // TODO(johnniwinther): Support closure variables.
+                          new Set<dart2js.Local>()),
         () {
       irBuilder.buildFunctionHeader(
           constructor.parameters.map(converter.convertElement));
@@ -114,8 +114,8 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     return withBuilder(
         new DartIrBuilder(DART_CONSTANT_SYSTEM,
                           element,
-                          // TODO(johnniwinther): Supported closure variables.
-                          new NullCapturedVariables()),
+                          // TODO(johnniwinther): Support closure variables.
+                          new Set<dart2js.Local>()),
         () {
       irBuilder.buildFieldInitializerHeader();
       ir.Primitive initializer = build(node.initializer);
@@ -129,8 +129,8 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     return withBuilder(
         new DartIrBuilder(DART_CONSTANT_SYSTEM,
                           element,
-                          // TODO(johnniwinther): Supported closure variables.
-                          new NullCapturedVariables()),
+                          // TODO(johnniwinther): Support closure variables.
+                          new Set<dart2js.Local>()),
         () {
       irBuilder.buildFunctionHeader(
           function.parameters.map(converter.convertElement));
@@ -584,8 +584,4 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
         buildTryBlock: subbuild(node.body),
         catchClauseInfos: catchClauseInfos);
   }
-}
-
-class NullCapturedVariables extends DartCapturedVariables {
-  NullCapturedVariables() : super(null);
 }

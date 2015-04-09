@@ -142,6 +142,14 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
   final Compiler compiler;
   final SourceInformationBuilder sourceInformationBuilder;
 
+  /// A map from try statements in the source to analysis information about
+  /// them.
+  ///
+  /// The analysis information includes the set of variables that must be
+  /// copied into [ir.MutableVariable]s on entry to the try and copied out on
+  /// exit.
+  Map<ast.TryStatement, TryStatementInfo> tryStatements = null;
+
   // In SSA terms, join-point continuation parameters are the phis and the
   // continuation invocation arguments are the corresponding phi inputs.  To
   // support name introduction and renaming for source level variables, we use
@@ -471,7 +479,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
 
   visitTryStatement(ast.TryStatement node) {
     // Try/catch is not yet implemented in the JS backend.
-    if (this.irBuilder.tryStatements == null) {
+    if (tryStatements == null) {
       return giveup(node, 'try/catch in the JS backend');
     }
     // Multiple catch blocks are not yet implemented.
@@ -503,7 +511,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
     }
 
     irBuilder.buildTry(
-        tryStatementInfo: irBuilder.tryStatements[node],
+        tryStatementInfo: tryStatements[node],
         buildTryBlock: subbuild(node.tryBlock),
         catchClauseInfos: catchClauseInfos);
   }
@@ -1817,6 +1825,18 @@ class DartCapturedVariables extends ast.Visitor {
     capturedVariables.add(local);
   }
 
+  analyze(ast.Node node) {
+    visit(node);
+    // Variables that are captured by a closure are boxed for their entire
+    // lifetime, so they never need to be boxed on entry to a try block.
+    // They are not filtered out before this because we cannot identify all
+    // of them in the same pass (they may be captured by a closure after the
+    // try statement).
+    for (TryStatementInfo info in tryStatements.values) {
+      info.boxedOnEntry.removeAll(capturedVariables);
+    }
+  }
+
   visit(ast.Node node) => node.accept(this);
 
   visitNode(ast.Node node) {
@@ -1942,19 +1962,25 @@ class DartIrBuilderVisitor extends IrBuilderVisitor {
                        SourceInformationBuilder sourceInformationBuilder)
       : super(elements, compiler, sourceInformationBuilder);
 
-  DartIrBuilder makeIRBuilder(ast.Node node, ExecutableElement element) {
-    DartCapturedVariables closures = new DartCapturedVariables(elements);
+  DartIrBuilder makeIRBuilder(ExecutableElement element,
+                              Set<Local> capturedVariables) {
+    return new DartIrBuilder(compiler.backend.constantSystem,
+                             element,
+                             capturedVariables);
+  }
+
+  DartCapturedVariables _analyzeCapturedVariables(ExecutableElement element,
+                                                  ast.Node node) {
+    DartCapturedVariables variables = new DartCapturedVariables(elements);
     if (!element.isSynthesized) {
       try {
-        closures.visit(node);
+        variables.analyze(node);
       } catch (e) {
-        bailoutMessage = closures.bailoutMessage;
+        bailoutMessage = variables.bailoutMessage;
         rethrow;
       }
     }
-    return new DartIrBuilder(compiler.backend.constantSystem,
-                             element,
-                             closures);
+    return variables;
   }
 
   /// Recursively builds the IR for the given nested function.
@@ -2003,7 +2029,10 @@ class DartIrBuilderVisitor extends IrBuilderVisitor {
     assert(fieldDefinition != null);
     assert(elements[fieldDefinition] != null);
 
-    IrBuilder builder = makeIRBuilder(fieldDefinition, element);
+    DartCapturedVariables variables =
+        _analyzeCapturedVariables(element, fieldDefinition);
+    tryStatements = variables.tryStatements;
+    IrBuilder builder = makeIRBuilder(element, variables.capturedVariables);
 
     return withBuilder(builder, () {
       builder.buildFieldInitializerHeader(
@@ -2034,7 +2063,10 @@ class DartIrBuilderVisitor extends IrBuilderVisitor {
       }
     }
 
-    IrBuilder builder = makeIRBuilder(node, element);
+    DartCapturedVariables variables =
+        _analyzeCapturedVariables(element, node);
+    tryStatements = variables.tryStatements;
+    IrBuilder builder = makeIRBuilder(element, variables.capturedVariables);
 
     return withBuilder(builder, () => _makeFunctionBody(element, node));
   }

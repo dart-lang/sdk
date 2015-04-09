@@ -416,17 +416,6 @@ class ThisParameterLocal implements Local {
 abstract class IrBuilder {
   IrBuilder _makeInstance();
 
-  // TODO(johnniwinther): Remove this from the [IrBuilder].
-  /// A map from TryStatements in the AST to their analysis information.
-  ///
-  /// This includes which variables should be copied into [ir.MutableVariable]s
-  /// on entry to the try and copied out on exit.
-  Map<ast.TryStatement, TryStatementInfo> get tryStatements;
-
-  /// The set of local variables that will spend their lifetime as
-  /// [ir.MutableVariable]s due to being captured by a nested function.
-  Set<Local> get mutableCapturedVariables;
-
   /// True if [local] should currently be accessed from a [ir.MutableVariable].
   bool isInMutableVariable(Local local);
 
@@ -1593,11 +1582,7 @@ abstract class IrBuilder {
     // we can not identify all of them in the same pass where we identify the
     // variables assigned in the try (they may be captured by a closure after
     // the try statement).
-    Iterable<LocalVariableElement> boxedOnEntry =
-        tryStatementInfo.boxedOnEntry.where((LocalVariableElement variable) {
-      return !tryCatchBuilder.mutableCapturedVariables.contains(variable);
-    });
-    for (LocalVariableElement variable in boxedOnEntry) {
+    for (LocalVariableElement variable in tryStatementInfo.boxedOnEntry) {
       assert(!tryCatchBuilder.isInMutableVariable(variable));
       ir.Primitive value = tryCatchBuilder.buildLocalGet(variable);
       tryCatchBuilder.makeMutableVariable(variable);
@@ -1607,7 +1592,7 @@ abstract class IrBuilder {
     IrBuilder tryBuilder = tryCatchBuilder.makeDelimitedBuilder();
 
     void interceptJumps(JumpCollector collector) {
-      collector.enterTry(boxedOnEntry);
+      collector.enterTry(tryStatementInfo.boxedOnEntry);
     }
     void restoreJumps(JumpCollector collector) {
       collector.leaveTry();
@@ -1624,7 +1609,7 @@ abstract class IrBuilder {
     tryBuilder.state.continueCollectors.forEach(restoreJumps);
 
     IrBuilder catchBuilder = tryCatchBuilder.makeDelimitedBuilder();
-    for (LocalVariableElement variable in boxedOnEntry) {
+    for (LocalVariableElement variable in tryStatementInfo.boxedOnEntry) {
       assert(catchBuilder.isInMutableVariable(variable));
       ir.Primitive value = catchBuilder.buildLocalGet(variable);
       // Note that we remove the variable from the set of mutable variables
@@ -1902,9 +1887,6 @@ class DartIrBuilderSharedState {
   final Map<Local, ir.MutableVariable> local2mutable =
       <Local, ir.MutableVariable>{};
 
-  // Move this to the IrBuilderVisitor.
-  final DartCapturedVariables capturedVariables;
-
   /// Creates a [MutableVariable] for the given local.
   void makeMutableVariable(Local local) {
     ir.MutableVariable variable =
@@ -1915,8 +1897,8 @@ class DartIrBuilderSharedState {
   /// [MutableVariable]s that should temporarily be treated as registers.
   final Set<Local> registerizedMutableVariables = new Set<Local>();
 
-  DartIrBuilderSharedState(this.capturedVariables) {
-    capturedVariables.capturedVariables.forEach(makeMutableVariable);
+  DartIrBuilderSharedState(Set<Local> capturedVariables) {
+    capturedVariables.forEach(makeMutableVariable);
   }
 }
 
@@ -1935,17 +1917,9 @@ class DartIrBuilder extends IrBuilder {
 
   DartIrBuilder(ConstantSystem constantSystem,
                 ExecutableElement currentElement,
-                DartCapturedVariables capturedVariables)
+                Set<Local> capturedVariables)
       : dartState = new DartIrBuilderSharedState(capturedVariables) {
     _init(constantSystem, currentElement);
-  }
-
-  Map<ast.TryStatement, TryStatementInfo> get tryStatements {
-    return dartState.capturedVariables.tryStatements;
-  }
-
-  Set<Local> get mutableCapturedVariables {
-    return dartState.capturedVariables.capturedVariables;
   }
 
   bool isInMutableVariable(Local local) {
