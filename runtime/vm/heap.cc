@@ -639,7 +639,7 @@ void Heap::RecordAfterGC() {
   stats_.after_.old_ = old_space_->GetCurrentUsage();
   ASSERT(gc_in_progress_);
   gc_in_progress_ = false;
-  if (Service::NeedsGCEvents()) {
+  if (Service::NeedsEvents()) {
     GCEvent event(stats_);
     Service::HandleGCEvent(&event);
   }

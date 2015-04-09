@@ -221,7 +221,7 @@ ActivationFrame::ActivationFrame(
 
 
 bool Debugger::HasEventHandler() {
-  return (event_handler_ != NULL) || Service::NeedsDebuggerEvents();
+  return (event_handler_ != NULL) || Service::NeedsEvents();
 }
 
 
@@ -233,7 +233,7 @@ void Debugger::InvokeEventHandler(DebuggerEvent* event) {
   //
   // kBreakpointResolved events are handled differently in the vm
   // service, so suppress them here.
-  if (Service::NeedsDebuggerEvents() &&
+  if (Service::NeedsEvents() &&
       (event->type() != DebuggerEvent::kBreakpointResolved)) {
     ServiceEvent service_event(event);
     Service::HandleEvent(&service_event);
@@ -243,7 +243,7 @@ void Debugger::InvokeEventHandler(DebuggerEvent* event) {
     (*event_handler_)(event);
   }
 
-  if (Service::NeedsDebuggerEvents() && event->IsPauseEvent()) {
+  if (Service::NeedsEvents() && event->IsPauseEvent()) {
     // If we were paused, notify the service that we have resumed.
     ServiceEvent service_event(event->isolate(), ServiceEvent::kResume);
     service_event.set_top_frame(event->top_frame());
@@ -286,7 +286,7 @@ void Debugger::SignalIsolateInterrupted() {
 // than the regular debugger breakpoint notifications.
 static void SendServiceBreakpointEvent(ServiceEvent::EventType type,
                                        SourceBreakpoint* bpt) {
-  if (Service::NeedsDebuggerEvents() /*&& !bpt->IsOneShot()*/) {
+  if (Service::NeedsEvents()) {
     ServiceEvent service_event(Isolate::Current(), type);
     service_event.set_breakpoint(bpt);
     Service::HandleEvent(&service_event);

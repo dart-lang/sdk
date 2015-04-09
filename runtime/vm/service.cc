@@ -44,7 +44,6 @@ DECLARE_FLAG(bool, enable_asserts);
 // TODO(johnmccutchan): Unify embedder service handler lists and their APIs.
 EmbedderServiceHandler* Service::isolate_service_handler_head_ = NULL;
 EmbedderServiceHandler* Service::root_service_handler_head_ = NULL;
-uint32_t Service::event_mask_ = 0;
 struct ServiceMethodDescriptor;
 ServiceMethodDescriptor* FindMethod(const char* method_name);
 
@@ -501,33 +500,12 @@ void Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
 }
 
 
-bool Service::EventMaskHas(uint32_t mask) {
-  return (event_mask_ & mask) != 0;
-}
-
-
 bool Service::NeedsEvents() {
   return ServiceIsolate::IsRunning();
 }
 
 
-bool Service::NeedsDebuggerEvents() {
-  return NeedsEvents() && EventMaskHas(kEventFamilyDebugMask);
-}
-
-
-bool Service::NeedsGCEvents() {
-  return NeedsEvents() && EventMaskHas(kEventFamilyGCMask);
-}
-
-
-void Service::SetEventMask(uint32_t mask) {
-  event_mask_ = mask;
-}
-
-
-void Service::SendEvent(intptr_t eventFamilyId,
-                        intptr_t eventType,
+void Service::SendEvent(intptr_t eventType,
                         const Object& eventMessage) {
   ASSERT(!ServiceIsolate::IsServiceIsolateDescendant(Isolate::Current()));
   if (!ServiceIsolate::IsRunning()) {
@@ -537,18 +515,10 @@ void Service::SendEvent(intptr_t eventFamilyId,
   ASSERT(isolate != NULL);
   HANDLESCOPE(isolate);
 
-  // Construct a list of the form [eventFamilyId, eventMessage].
-  //
-  // TODO(turnidge): Revisit passing the eventFamilyId here at all.
-  const Array& list = Array::Handle(Array::New(2));
-  ASSERT(!list.IsNull());
-  list.SetAt(0, Integer::Handle(Integer::New(eventFamilyId)));
-  list.SetAt(1, eventMessage);
-
   // Push the event to port_.
   uint8_t* data = NULL;
   MessageWriter writer(&data, &allocator, false);
-  writer.WriteMessage(list);
+  writer.WriteMessage(eventMessage);
   intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
     OS::Print("vm-service: Pushing event of type %" Pd ", len %" Pd "\n",
@@ -560,8 +530,7 @@ void Service::SendEvent(intptr_t eventFamilyId,
 }
 
 
-void Service::SendEvent(intptr_t eventFamilyId,
-                        const String& meta,
+void Service::SendEvent(const String& meta,
                         const uint8_t* data,
                         intptr_t size) {
   // Bitstream: [meta data size (big-endian 64 bit)] [meta data (UTF-8)] [data]
@@ -587,7 +556,7 @@ void Service::SendEvent(intptr_t eventFamilyId,
   }
   ASSERT(offset == total_bytes);
   // TODO(turnidge): Pass the real eventType here.
-  SendEvent(eventFamilyId, 0, message);
+  SendEvent(0, message);
 }
 
 
@@ -599,7 +568,7 @@ void Service::HandleGCEvent(GCEvent* event) {
   event->PrintJSON(&js);
   const String& message = String::Handle(String::New(js.ToCString()));
   // TODO(turnidge): Pass the real eventType here.
-  SendEvent(kEventFamilyGC, 0, message);
+  SendEvent(0, message);
 }
 
 
@@ -607,7 +576,7 @@ void Service::HandleEvent(ServiceEvent* event) {
   JSONStream js;
   event->PrintJSON(&js);
   const String& message = String::Handle(String::New(js.ToCString()));
-  SendEvent(kEventFamilyDebug, event->type(), message);
+  SendEvent(event->type(), message);
 }
 
 
@@ -802,8 +771,7 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
   }
   const String& message = String::Handle(String::New(js.ToCString()));
   uint8_t data[] = {0, 128, 255};
-  // TODO(koda): Add 'testing' event family.
-  SendEvent(kEventFamilyDebug, message, data, sizeof(data));
+  SendEvent(message, data, sizeof(data));
 }
 
 
@@ -2236,12 +2204,11 @@ void Service::SendGraphEvent(Isolate* isolate) {
   {
     JSONObject jsobj(&js);
     jsobj.AddProperty("type", "ServiceEvent");
-    jsobj.AddPropertyF("id", "_graphEvent");
     jsobj.AddProperty("eventType", "_Graph");
     jsobj.AddProperty("isolate", isolate);
   }
   const String& message = String::Handle(String::New(js.ToCString()));
-  SendEvent(kEventFamilyDebug, message, buffer, stream.bytes_written());
+  SendEvent(message, buffer, stream.bytes_written());
 }
 
 

@@ -6,20 +6,16 @@ part of vmservice;
 
 // A service client.
 abstract class Client {
-  /// A port for receipt of asynchronous service events.
-  final RawReceivePort eventPort = new RawReceivePort();
   final VMService service;
+  final bool sendEvents;
 
-  Client(this.service) {
-    eventPort.handler = (response) {
-      post(null, response);
-    };
+  Client(this.service, { bool sendEvents: true })
+      : this.sendEvents = sendEvents {
     service._addClient(this);
   }
 
   /// When implementing, call [close] when the network connection closes.
   void close() {
-    eventPort.close();
     service._removeClient(this);
   }
 
@@ -37,8 +33,8 @@ abstract class Client {
     }
   }
 
-  /// When implementing, responsible for sending [response] to the client.
-  void post(var seq, dynamic response);
+  // Sends a result to the client.  Implemented in subclasses.
+  void post(var seq, dynamic result);
 
   dynamic toJson() {
     return {

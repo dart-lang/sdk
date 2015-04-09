@@ -251,16 +251,6 @@ class ServiceIsolateNatives : public AllStatic {
     Service::HandleRootMessage(message);
   }
 
-  static void SetEventMask(Dart_NativeArguments args) {
-    NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Isolate* isolate = arguments->isolate();
-    StackZone stack_zone(isolate);
-    Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
-    HANDLESCOPE(isolate);
-    GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(0));
-    Service::SetEventMask(mask.AsTruncatedUint32Value());
-  }
-
   static void OnStart(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
     Isolate* isolate = arguments->isolate();
@@ -321,8 +311,6 @@ static ServiceNativeEntry _ServiceNativeEntries[] = {
     ServiceIsolateNatives::SendIsolateServiceMessage},
   {"VMService_SendRootServiceMessage", 1,
     ServiceIsolateNatives::SendRootServiceMessage},
-  {"VMService_SetEventMask", 1,
-    ServiceIsolateNatives::SetEventMask},
   {"VMService_OnStart", 0,
     ServiceIsolateNatives::OnStart },
   {"VMService_OnExit", 0,
