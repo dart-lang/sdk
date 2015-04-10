@@ -290,7 +290,7 @@ indexeddb_1_test/functional: Skip # Times out. Issue 21433
 indexeddb_2_test: RuntimeError # Issue 21433
 indexeddb_4_test: RuntimeError # Issue 21433
 indexeddb_5_test: RuntimeError # Issue 21433
-wheelevent_test: RuntimeError # Issue 21434
+wheelevent_test: RuntimeError # Issue 21434, 12958
 js_test: RuntimeError # Issue 21434
 
 [ $runtime == opera ]
