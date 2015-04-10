@@ -57,8 +57,7 @@ main() {
   print(2);
 }""", """
 function() {
-  var i;
-  i = 0;
+  var i = 0;
   L1:
     while (true) {
       if (P.identical(V.foo(true), true)) {

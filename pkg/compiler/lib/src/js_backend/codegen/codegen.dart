@@ -59,18 +59,52 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
     List<js.Parameter> parameters = new List<js.Parameter>();
     Set<tree_ir.Variable> parameterSet = new Set<tree_ir.Variable>();
+    Set<String> declaredVariables = new Set<String>();
 
     for (tree_ir.Variable parameter in function.parameters) {
       String name = getVariableName(parameter);
       parameters.add(new js.Parameter(name));
       parameterSet.add(parameter);
+      declaredVariables.add(name);
     }
 
     List<js.VariableInitialization> jsVariables = <js.VariableInitialization>[];
 
+    // Declare variables with an initializer. Pull statements into the
+    // initializer until we find a statement that cannot be pulled in.
+    int accumulatorIndex = 0;
+    while (accumulatorIndex < accumulator.length) {
+      js.Node node = accumulator[accumulatorIndex];
+
+      // Check that node is an assignment to a local variable.
+      if (node is! js.ExpressionStatement) break;
+      js.ExpressionStatement stmt = node;
+      if (stmt.expression is! js.Assignment) break;
+      js.Assignment assign = stmt.expression;
+      if (assign.leftHandSide is! js.VariableUse) break;
+      if (assign.op != null) break; // Compound assignment.
+      js.VariableUse use = assign.leftHandSide;
+
+      // We cannot declare a variable more than once.
+      if (!declaredVariables.add(use.name)) break;
+
+      js.VariableInitialization jsVariable = new js.VariableInitialization(
+        new js.VariableDeclaration(use.name),
+        assign.value);
+      jsVariables.add(jsVariable);
+
+      ++accumulatorIndex;
+    }
+
+    // Discard the statements that were pulled in the initializer.
+    if (accumulatorIndex > 0) {
+      accumulator = accumulator.sublist(accumulatorIndex);
+    }
+
+    // Declare remaining variables.
     for (tree_ir.Variable variable in variableNames.keys) {
-      if (parameterSet.contains(variable)) continue;
       String name = getVariableName(variable);
+      if (declaredVariables.contains(name)) continue;
       js.VariableInitialization jsVariable = new js.VariableInitialization(
         new js.VariableDeclaration(name),
         null);
@@ -107,10 +141,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
     }
 
     // Synthesize a variable name that isn't used elsewhere.
-    // The [usedVariableNames] set is shared between nested emitters,
-    // so this also prevents clash with variables in an enclosing/inner scope.
-    // The renaming phase after codegen will further prefix local variables
-    // so they cannot clash with top-level variables or fields.
     String prefix = variable.element == null ? 'v' : variable.element.name;
     int counter = 0;
     name = glue.safeVariableName(variable.element == null

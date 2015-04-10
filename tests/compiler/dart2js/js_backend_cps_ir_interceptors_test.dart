@@ -19,8 +19,7 @@ main() {
 }""",
 r"""
 function() {
-  var g;
-  g = 1;
+  var g = 1;
   P.print(J.getInterceptor$ns(g).$add(g, 3));
   return null;
 }"""),
@@ -37,8 +36,7 @@ main() {
 }""",
 r"""
 function() {
-  var l, i, v0, x, j;
-  l = ["hest", ["h", "e", "s", "t"]];
+  var l = ["hest", ["h", "e", "s", "t"]], i, v0, x, j;
   P.print(J.getInterceptor$as(l).get$length(l));
   i = 0;
   L0:

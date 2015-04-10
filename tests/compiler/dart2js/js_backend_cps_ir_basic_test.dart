@@ -26,9 +26,7 @@ main() {
   print('($m)');
 }""",r"""
 function() {
-  var l, m;
-  l = [1, 2, 3];
-  m = P.LinkedHashMap_LinkedHashMap$_literal(["s", 1]);
+  var l = [1, 2, 3], m = P.LinkedHashMap_LinkedHashMap$_literal(["s", 1]);
   P.print("()");
   P.print("(" + true + ")");
   P.print("(" + 1 + ")");
@@ -81,9 +79,7 @@ main() {
   """,
   """
 function() {
-  var a, b;
-  a = 10;
-  b = 1;
+  var a = 10, b = 1;
   P.print(b);
   P.print(a);
   P.print(a);
@@ -162,8 +158,7 @@ var foo = 0;
 main() { print(foo = 42); }
 """, r"""
 function() {
-  var v0;
-  v0 = 42;
+  var v0 = 42;
   $.foo = v0;
   P.print(v0);
   return null;

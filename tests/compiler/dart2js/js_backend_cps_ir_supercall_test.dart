@@ -64,8 +64,7 @@ main() {
 }""",
 r"""
 function(x) {
-  var v0;
-  v0 = this.field;
+  var v0 = this.field;
   return J.getInterceptor$ns(x).$add(x, v0);
 }"""),
 

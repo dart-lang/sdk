@@ -21,8 +21,7 @@ main(x) {
 """,
 r"""
 function(x) {
-  var _box_0, a;
-  _box_0 = {};
+  var _box_0 = {}, a;
   _box_0._captured_x_0 = x;
   a = new V.main_a(_box_0);
   x = _box_0._captured_x_0;
@@ -55,8 +54,7 @@ main() {
 """,
 r"""
 function() {
-  var _box_0, a, x;
-  _box_0 = {};
+  var _box_0 = {}, a, x;
   _box_0._captured_x_0 = 122;
   a = new V.main_closure(_box_0);
   x = _box_0._captured_x_0;
@@ -78,8 +76,7 @@ main() {
 """,
 r"""
 function() {
-  var _box_0, a, x;
-  _box_0 = {};
+  var _box_0 = {}, a, x;
   _box_0._captured_x_0 = 122;
   a = new V.main_closure(_box_0);
   x = _box_0._captured_x_0;
@@ -99,9 +96,7 @@ main() {
 """,
 r"""
 function() {
-  var a, i;
-  a = null;
-  i = 0;
+  var a = null, i = 0;
   while (P.identical(J.getInterceptor$n(i).$lt(i, 10), true)) {
     a = new V.main_closure(i);
     i = J.getInterceptor$ns(i).$add(i, 1);
