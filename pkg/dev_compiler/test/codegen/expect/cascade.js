@@ -73,6 +73,15 @@ var cascade;
     })(), b = 2;
     core.print(a);
   }
+  // Function test_increment: () → void
+  function test_increment() {
+    let a = new A();
+    let y = ((() => {
+      a.x = dart.dbinary(a.x, '+', 1);
+      a.x = dart.dbinary(a.x, '-', 1);
+      return a;
+    })());
+  }
   let Base$ = dart.generic(function(T) {
     class Base extends core.Object {
       Base() {
@@ -99,6 +108,7 @@ var cascade;
   exports.test_VariableDeclaration_single = test_VariableDeclaration_single;
   exports.test_VariableDeclaration_last = test_VariableDeclaration_last;
   exports.test_VariableDeclaration_first = test_VariableDeclaration_first;
+  exports.test_increment = test_increment;
   exports.Base$ = Base$;
   exports.Base = Base;
   exports.Foo = Foo;

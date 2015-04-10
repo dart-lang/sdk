@@ -43,7 +43,19 @@ var try_catch;
       if (dart.is(e, core.String)) {
         let t = dart.stackTrace(e);
         throw e;
-      }
+      } else
+        throw e;
+    }
+
+  }
+  // Function wub: () → dynamic
+  function wub() {
+    try {
+      throw "on without exception parameter";
+    } catch (e$) {
+      if (dart.is(e$, core.String)) {
+      } else
+        throw e$;
     }
 
   }
@@ -53,11 +65,13 @@ var try_catch;
     bar();
     baz();
     qux();
+    wub();
   }
   // Exports:
   exports.foo = foo;
   exports.bar = bar;
   exports.baz = baz;
   exports.qux = qux;
+  exports.wub = wub;
   exports.main = main;
 })(try_catch || (try_catch = {}));

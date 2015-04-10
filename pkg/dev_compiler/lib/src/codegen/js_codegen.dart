@@ -1760,8 +1760,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     } else if (expr is PropertyAccess) {
       PropertyAccess prop = expr;
       return new PropertyAccess(
-          _bindValue(scope, 'o', prop.target, context: context), prop.operator,
-          prop.propertyName)..staticType = expr.staticType;
+          _bindValue(scope, 'o', _getTarget(prop), context: context),
+          prop.operator, prop.propertyName)..staticType = expr.staticType;
     } else if (expr is PrefixedIdentifier) {
       PrefixedIdentifier ident = expr;
       return new PrefixedIdentifier(
@@ -2022,14 +2022,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // This could incorrectly shadow a user's name.
     var savedCatch = _catchParameter;
 
-    if (clauses.length == 1) {
+    if (clauses.length == 1 && clauses.single.exceptionParameter != null) {
       // Special case for a single catch.
       _catchParameter = clauses.single.exceptionParameter;
     } else {
       _catchParameter = _createTemporary('e', rules.provider.dynamicType);
     }
 
-    JS.Statement catchBody = null;
+    JS.Statement catchBody = js.statement('throw #;', _visit(_catchParameter));
     for (var clause in clauses.reversed) {
       catchBody = _catchClauseGuard(clause, catchBody);
     }

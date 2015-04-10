@@ -69,6 +69,13 @@ void test_VariableDeclaration_first() {
   print(a);
 }
 
+void test_increment() {
+  var a = new A();
+  var y = a
+    ..x += 1
+    ..x -= 1;
+}
+
 class Base<T> {
   final List<T> x = <T>[];
 }

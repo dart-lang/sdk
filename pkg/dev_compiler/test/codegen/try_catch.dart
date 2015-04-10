@@ -38,9 +38,17 @@ qux() {
   }
 }
 
+wub() {
+  try {
+    throw "on without exception parameter";
+  } on String {
+  }
+}
+
 main() {
   foo();
   bar();
   baz();
   qux();
+  wub();
 }

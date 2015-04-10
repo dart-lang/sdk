@@ -11,3 +11,9 @@ info: line 27, column 5 of test/codegen/cascade.dart: [DynamicInvoke] ..x() requ
 info: line 28, column 5 of test/codegen/cascade.dart: [DynamicInvoke] ..x() requires dynamic invoke
     ..x();
     ^^^^^
+info: line 75, column 5 of test/codegen/cascade.dart: [DynamicInvoke] ..x += 1 requires dynamic invoke
+    ..x += 1
+    ^^^^^^^^
+info: line 76, column 5 of test/codegen/cascade.dart: [DynamicInvoke] ..x -= 1 requires dynamic invoke
+    ..x -= 1;
+    ^^^^^^^^
