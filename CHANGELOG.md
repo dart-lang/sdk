@@ -1,3 +1,27 @@
+## 1.9.2 (2015-04)
+
+This is a bug fix release which merges a number of commits from `bleeding_edge`.
+
+* dart2js: Addresses as issue with minified Javascript output with CSP enabled -
+  [r44453](https://code.google.com/p/dart/source/detail?r=44453)
+
+* Editor: Fixes accidental updating of files in the pub cache during rename 
+  refactoring - [r44677](https://code.google.com/p/dart/source/detail?r=44677)
+
+* Editor: Resolves 
+  [issue 23032](https://code.google.com/p/dart/issues/detail?id=23032)
+  regarding skipped breakpoints on Windows -
+  [r44824](https://code.google.com/p/dart/source/detail?r=44824)
+
+* Fix MethodMirror.source when the method is on the first line in a script -
+  [r44957](https://code.google.com/p/dart/source/detail?r=44957),
+  [r44976](https://code.google.com/p/dart/source/detail?r=44976)
+
+
+* Resolves [issue 23084](https://code.google.com/p/dart/issues/detail?id=23084):
+  Pub can fail to load transformers necessary for local development -
+  [r44876](https://code.google.com/p/dart/source/detail?r=44876)
+
 ## 1.9.1 (2015-03-25)
 
 ### Language changes
