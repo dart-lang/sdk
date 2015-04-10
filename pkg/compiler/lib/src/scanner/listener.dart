@@ -2161,8 +2161,13 @@ class NodeListener extends ElementListener {
     Statement body = popNode();
     Expression expression = popNode();
     Node declaredIdentifier = popNode();
-    pushNode(new ForIn(declaredIdentifier, expression, body,
-                       awaitToken, forToken, inKeyword));
+    if (awaitToken == null) {
+      pushNode(new SyncForIn(declaredIdentifier, expression, body,
+                             forToken, inKeyword));
+    } else {
+      pushNode(new AsyncForIn(declaredIdentifier, expression, body, awaitToken,
+                              forToken, inKeyword));
+    }
   }
 
   void endMetadataStar(int count, bool forParameter) {

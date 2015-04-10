@@ -3598,8 +3598,21 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     registry.registerDynamicInvocation(selector);
   }
 
-  visitForIn(ForIn node) {
-    LibraryElement library = enclosingElement.library;
+  visitAsyncForIn(AsyncForIn node) {
+    registry.registerAsyncForIn(node);
+    registry.setCurrentSelector(node, compiler.currentSelector);
+    registry.registerDynamicGetter(compiler.currentSelector);
+    registry.setMoveNextSelector(node, compiler.moveNextSelector);
+    registry.registerDynamicInvocation(compiler.moveNextSelector);
+
+    visit(node.expression);
+
+    Scope blockScope = new BlockScope(scope);
+    visitForInDeclaredIdentifierIn(node.declaredIdentifier, node, blockScope);
+    visitLoopBodyIn(node, node.body, blockScope);
+  }
+
+  visitSyncForIn(SyncForIn node) {
     registry.setIteratorSelector(node, compiler.iteratorSelector);
     registry.registerDynamicGetter(compiler.iteratorSelector);
     registry.setCurrentSelector(node, compiler.currentSelector);
@@ -3608,8 +3621,15 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     registry.registerDynamicInvocation(compiler.moveNextSelector);
 
     visit(node.expression);
+
     Scope blockScope = new BlockScope(scope);
-    Node declaration = node.declaredIdentifier;
+    visitForInDeclaredIdentifierIn(node.declaredIdentifier, node, blockScope);
+    visitLoopBodyIn(node, node.body, blockScope);
+  }
+
+  visitForInDeclaredIdentifierIn(Node declaration, ForIn node,
+                                 Scope blockScope) {
+    LibraryElement library = enclosingElement.library;
 
     bool oldAllowFinalWithoutInitializer = allowFinalWithoutInitializer;
     allowFinalWithoutInitializer = true;
@@ -3659,7 +3679,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // loopVariable may be null if it could not be resolved.
       registry.setForInVariable(node, loopVariable);
     }
-    visitLoopBodyIn(node, node.body, blockScope);
   }
 
   visitLabel(Label node) {
