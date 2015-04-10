@@ -85,6 +85,9 @@ suite('instanceOf', () => {
   let cast = dart.as;
   let instanceOf = dart.is;
   let getRuntimeType = dart.getRuntimeType;
+  let runtimeType = dart.runtimeType;
+  let functionType = dart.functionType;
+  let typedef = dart.typedef;
 
   let Object = core.Object;
   let String = core.String;
@@ -105,6 +108,45 @@ suite('instanceOf', () => {
   let BB$ = generic((T, U) => class BB extends AA$(U, T) {});
   let BB = BB$();
   class CC extends BB$(String, List) {}
+
+  let Func2 = typedef('Func2', () => functionType(dynamic, [dynamic, dynamic]));
+  let Foo = typedef('Foo', () => functionType(B, [B, String]));
+
+  let FuncG$ = generic((T, U) => typedef('FuncG', () => functionType(T, [T, U])))
+  let FuncG = FuncG$();
+
+  // TODO(vsm): Revisit when we encode types on functions properly.
+  // A bar1(C c, String s) => null;
+  function bar1(c, s) { return null; }
+  bar1[runtimeType] = functionType(A, [C, String]);
+
+  // bar2(B b, String s) => null;
+  function bar2(b, s) { return null; }
+  bar2[runtimeType] = functionType(dynamic, [B, String]);
+
+  // B bar3(B b, Object o) => null;
+  function bar3(b, o) { return null; }
+  bar3[runtimeType] = functionType(B, [B, Object]);
+
+  // B bar4(B b, o) => null;
+  function bar4(b, o) { return null; }
+  bar4[runtimeType] = functionType(B, [B, dynamic]);
+
+  // C bar5(A a, Object o) => null;
+  function bar5(a, o) { return null; }
+  bar5[runtimeType] = functionType(C, [A, Object]);
+
+  // B bar6(B b, String s, String o) => null;
+  function bar6(b, s, o) { return null; }
+  bar6[runtimeType] = functionType(B, [B, String, String]);
+
+  // B bar7(B b, String s, [Object o]) => null;
+  function bar7(b, s, o) { return null; }
+  bar7[runtimeType] = functionType(B, [B, String], [Object]);
+
+  // B bar8(B b, String s, {Object p}) => null;
+  function bar8(b, s, o) { return null; }
+  bar8[runtimeType] = functionType(B, [B, String], {p: Object});
 
   function checkType(x, type, expectedTrue) {
     if (expectedTrue === undefined) expectedTrue = true;
@@ -273,5 +315,40 @@ suite('instanceOf', () => {
     checkType(s1, c.SetMixin);
     checkType(s1, c.SetMixin$(String));
     checkType(s1, c.SetMixin$(int), false);
+  });
+
+  test('Functions', () => {
+    // - return type: Dart is bivariant.  We're covariant.
+    // - param types: Dart is bivariant.  We're contravariant.
+    expect(isGroundType(Func2), true);
+    expect(isGroundType(Foo), false);
+    expect(isGroundType(functionType(B, [B, String])), false);
+    checkType(bar1, Foo, false);
+    checkType(bar1, functionType(B, [B, String]), false);
+    checkType(bar2, Foo, false);
+    checkType(bar2, functionType(B, [B, String]), false);
+    checkType(bar3, Foo);
+    checkType(bar3, functionType(B, [B, String]));
+    checkType(bar4, Foo, false);
+    // TODO(vsm): Revisit.  bar4 is (B, *) -> B.  Perhaps it should be treated as top for a reified object.
+    checkType(bar4, functionType(B, [B, String]), false);
+    checkType(bar5, Foo);
+    checkType(bar5, functionType(B, [B, String]));
+    checkType(bar6, Foo, false);
+    checkType(bar6, functionType(B, [B, String]), false);
+    checkType(bar7, Foo);
+    checkType(bar7, functionType(B, [B, String]));
+    checkType(bar7, bar6[runtimeType]);
+    checkType(bar8, Foo);
+    checkType(bar8, functionType(B, [B, String]));
+    checkType(bar8, bar6[runtimeType], false);
+    checkType(bar7, bar8[runtimeType], false);
+    checkType(bar8, bar7[runtimeType], false);
+
+    // Parameterized typedefs
+    expect(isGroundType(FuncG), true);
+    expect(isGroundType(FuncG$(B, String)), false);
+    checkType(bar1, FuncG$(B, String), false);
+    checkType(bar3, FuncG$(B, String));
   });
 });

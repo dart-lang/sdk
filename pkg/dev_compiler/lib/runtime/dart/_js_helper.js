@@ -102,7 +102,7 @@ var _js_helper;
         return new (_ConstantMapKeyIterable$(K))(this);
       }
       get values() {
-        return new (_internal.MappedIterable$(K, V))(this[_keys], dart.as(((key) => this[_fetch](key)).bind(this), dart.throw_("Unimplemented type (K) → V")));
+        return new (_internal.MappedIterable$(K, V))(this[_keys], dart.as(((key) => this[_fetch](key)).bind(this), dart.functionType(V, [K])));
       }
     }
     ConstantStringMap[dart.implements] = () => [_internal.EfficientLength];
@@ -1456,7 +1456,7 @@ var _js_helper;
       let namedArgumentsStartIndex = dart.notNull(this[_arguments][core.$length]) - dart.notNull(namedArgumentCount);
       if (namedArgumentCount == 0)
         return dart.map();
-      let map = new (core.Map$(core.Symbol, dynamic))();
+      let map = new (core.Map$(core.Symbol, dart.dynamic))();
       for (let i = 0; dart.notNull(i) < dart.notNull(namedArgumentCount); i = dart.notNull(i) + 1) {
         map.set(new _internal.Symbol.unvalidated(dart.as(this[_namedArgumentNames][core.$get](i), core.String)), this[_arguments][core.$get](dart.notNull(namedArgumentsStartIndex) + dart.notNull(i)));
       }
@@ -1733,7 +1733,7 @@ var _js_helper;
     }
     static parseInt(source, radix, handleError) {
       if (handleError == null)
-        handleError = dart.as(Primitives[_throwFormatException], dart.throw_("Unimplemented type (String) → int"));
+        handleError = dart.as(Primitives[_throwFormatException], dart.functionType(core.int, [core.String]));
       checkString(source);
       let match = /^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i.exec(source);
       let digitsIndex = 1;
@@ -1785,7 +1785,7 @@ var _js_helper;
     static parseDouble(source, handleError) {
       checkString(source);
       if (handleError == null)
-        handleError = dart.as(Primitives[_throwFormatException], dart.throw_("Unimplemented type (String) → double"));
+        handleError = dart.as(Primitives[_throwFormatException], dart.functionType(core.double, [core.String]));
       if (!/^\s*[+-]?(?:Infinity|NaN|(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(source)) {
         return handleError(source);
       }
@@ -3232,7 +3232,7 @@ var _js_helper;
   // Function throwNoSuchMethod: (dynamic, dynamic, dynamic, dynamic) → void
   function throwNoSuchMethod(obj, name, arguments$, expectedArgumentNames) {
     let memberName = new _internal.Symbol.unvalidated(dart.as(name, core.String));
-    throw new core.NoSuchMethodError(obj, memberName, dart.as(arguments$, core.List), new (core.Map$(core.Symbol, dynamic))(), dart.as(expectedArgumentNames, core.List));
+    throw new core.NoSuchMethodError(obj, memberName, dart.as(arguments$, core.List), new (core.Map$(core.Symbol, dart.dynamic))(), dart.as(expectedArgumentNames, core.List));
   }
   // Function throwCyclicInit: (String) → void
   function throwCyclicInit(staticName) {
@@ -3647,7 +3647,7 @@ var _js_helper;
     let isolateTagGetter = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.GET_ISOLATE_TAG);
     return isolateTagGetter(name);
   }
-  class LoadLibraryFunctionType extends core.Function {}
+  let LoadLibraryFunctionType = dart.typedef('LoadLibraryFunctionType', () => dart.functionType(async.Future$(core.Null), []));
   // Function _loadLibraryWrapper: (String) → () → Future<Null>
   function _loadLibraryWrapper(loadId) {
     return () => loadDeferredLibrary(loadId);
@@ -3660,7 +3660,7 @@ var _js_helper;
       return new (core.Set$(core.String))();
     }
   });
-  class DeferredLoadCallback extends core.Function {}
+  let DeferredLoadCallback = dart.typedef('DeferredLoadCallback', () => dart.functionType(dart.void, []));
   exports.deferredLoadHook = null;
   // Function loadDeferredLibrary: (String) → Future<Null>
   function loadDeferredLibrary(loadId) {
@@ -3670,7 +3670,7 @@ var _js_helper;
     let hashes = dart.as(hashesMap[loadId], core.List$(core.String));
     if (uris == null)
       return dart.as(new async.Future.value(null), async.Future$(core.Null));
-    let indices = dart.as(new core.List.generate(uris[core.$length], dart.as((i) => i, dart.throw_("Unimplemented type (int) → dynamic"))), core.List$(core.int));
+    let indices = dart.as(new core.List.generate(uris[core.$length], dart.as((i) => i, dart.functionType(dart.dynamic, [core.int]))), core.List$(core.int));
     let isHunkLoaded = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.IS_HUNK_LOADED);
     let isHunkInitialized = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.IS_HUNK_INITIALIZED);
     let indicesToLoad = indices[core.$where]((i) => !isHunkLoaded(hashes[core.$get](i)))[core.$toList]();
@@ -3684,13 +3684,13 @@ var _js_helper;
       if (dart.notNull(updated) && dart.notNull(exports.deferredLoadHook != null)) {
         exports.deferredLoadHook();
       }
-    }, dart.throw_("Unimplemented type (List<dynamic>) → dynamic"))), async.Future$(core.Null));
+    }, dart.functionType(dart.dynamic, [core.List]))), async.Future$(core.Null));
   }
   // Function _loadHunk: (String) → Future<Null>
   function _loadHunk(hunkName) {
     let future = exports._loadingLibraries.get(hunkName);
     if (future != null) {
-      return dart.as(future.then(dart.as((_) => null, dart.throw_("Unimplemented type (Null) → dynamic"))), async.Future$(core.Null));
+      return dart.as(future.then(dart.as((_) => null, dart.functionType(dart.dynamic, [core.Null]))), async.Future$(core.Null));
     }
     let uri = _isolate_helper.IsolateNatives.thisScript;
     let index = uri.lastIndexOf('/');

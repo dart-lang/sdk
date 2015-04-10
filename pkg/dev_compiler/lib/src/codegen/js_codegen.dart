@@ -304,11 +304,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var type = node.element.type;
     if (_pendingClasses.remove(node.element) == null) return null;
 
-    var classDecl = new JS.ClassDeclaration(new JS.ClassExpression(
-        new JS.Identifier(type.name),
-        _emitTypeName(rules.provider.functionType), []));
+    var name = type.name;
+    var result = js.statement('let # = dart.typedef(#, () => #);', [
+      new JS.Identifier(name),
+      js.string(name, "'"),
+      _emitTypeName(node.element.type, lowerTypedef: true)
+    ]);
 
-    return _finishClassDef(type, classDecl);
+    return _finishClassDef(type, result);
   }
 
   @override
@@ -1093,10 +1096,59 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return new JS.Identifier(name);
   }
 
-  JS.Expression _emitTypeName(DartType type) {
+  JS.ArrayInitializer _emitTypeNames(List<DartType> types) {
+    return new JS.ArrayInitializer(types.map(_emitTypeName).toList());
+  }
+
+  JS.ObjectInitializer _emitTypeProperties(Map<String, DartType> types) {
+    var properties = <JS.Property>[];
+    types.forEach((name, type) {
+      var key = new JS.LiteralString(name);
+      var value = _emitTypeName(type);
+      properties.add(new JS.Property(key, value));
+    });
+    return new JS.ObjectInitializer(properties);
+  }
+
+  JS.Expression _emitTypeName(DartType type, {bool lowerTypedef: false}) {
+    // The void and dynamic types are not defined in core.
+    if (type.isVoid) {
+      return js.call('dart.void');
+    } else if (type.isDynamic) {
+      return js.call('dart.dynamic');
+    }
+
     var name = type.name;
     var element = type.element;
-    if (name == '') {
+    if (name == '' || lowerTypedef && type is FunctionType) {
+      if (type is FunctionType) {
+        // TODO(vsm): Support all parameter types.
+        var returnType = type.returnType;
+        var parameterTypes = type.normalParameterTypes;
+        var optionalTypes = type.optionalParameterTypes;
+        var namedTypes = type.namedParameterTypes;
+        if (namedTypes.isEmpty) {
+          if (optionalTypes.isEmpty) {
+            return js.call('dart.functionType(#, #)', [
+              _emitTypeName(returnType),
+              _emitTypeNames(parameterTypes)
+            ]);
+          } else {
+            return js.call('dart.functionType(#, #, #)', [
+              _emitTypeName(returnType),
+              _emitTypeNames(parameterTypes),
+              _emitTypeNames(optionalTypes)
+            ]);
+          }
+        } else {
+          assert(optionalTypes.isEmpty);
+          return js.call('dart.functionType(#, #, #)', [
+            _emitTypeName(returnType),
+            _emitTypeNames(parameterTypes),
+            _emitTypeProperties(namedTypes)
+          ]);
+        }
+      }
       // TODO(jmesserly): remove when we're using coercion reifier.
       return _unimplementedCall('Unimplemented type $type');
     }

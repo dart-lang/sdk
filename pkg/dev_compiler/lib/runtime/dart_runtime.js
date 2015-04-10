@@ -126,7 +126,15 @@ var dart, _js_helper;
     // Undefined is handled above. For historical reasons,
     // typeof null == "object" in JS.
     if (obj === null) return core.Null;
-    return obj.constructor;
+    // TODO(vsm): Should we treat Dart and JS objects differently here?
+    // E.g., we can check if obj instanceof core.Object to differentiate.
+    var result = obj[dart.runtimeType];
+    if (result) return result;
+    result = obj.constructor;
+    if (result == Function) {
+      return getFunctionType(obj);
+    }
+    return result;
   }
   dart.getRuntimeType = getRuntimeType;
 
@@ -170,18 +178,35 @@ var dart, _js_helper;
   }
   dart.isSubtype = isSubtype;
 
-  function isSubtype_(t1, t2) {
+  function _isBottom(type, dynamicIsBottom) {
+    return (type == dart.dynamic && dynamicIsBottom) || type == dart.bottom;
+  }
+
+  function _isTop(type, dynamicIsBottom) {
+    return type == core.Object || (type == dart.dynamic && !dynamicIsBottom);
+  }
+
+  function isSubtype_(t1, t2, opt_dynamicIsBottom) {
+    let dynamicIsBottom =
+      opt_dynamicIsBottom === void 0 ? false : opt_dynamicIsBottom;
+
     t1 = canonicalType(t1);
     t2 = canonicalType(t2);
     if (t1 == t2) return true;
 
     // In Dart, dynamic is effectively both top and bottom.
-    // Here, we treat dynamic as top - the base type of everything.
-    if (t1 == dart.dynamic) return false;
-    if (t2 == dart.dynamic) return true;
+    // Here, we treat dynamic as one or the other depending on context,
+    // but not both.
 
-    if (t2 == core.Object) return true;
-    if (t1 == core.Object) return false;
+    // Trivially true.
+    if (_isTop(t2, dynamicIsBottom) || _isBottom(t1, dynamicIsBottom)) {
+      return true;
+    }
+
+    // Trivially false.
+    if (_isTop(t1, dynamicIsBottom) || _isBottom(t2, dynamicIsBottom)) {
+      return false;
+    }
 
     // "Traditional" name-based subtype check.
     if (isClassSubType(t1, t2)) {
@@ -189,10 +214,11 @@ var dart, _js_helper;
     }
 
     // Function subtyping.
-    // TODO(jmesserly): implement this properly.
-    if (isClassSubType(t1, core.Function) &&
-        isClassSubType(t2, core.Function)) {
-      return true;
+    // TODO(vsm): Handle Objects with call methods.  Those are functions
+    // even if they do not *nominally* subtype core.Function.
+    if (isFunctionType(t1) &&
+        isFunctionType(t2)) {
+      return isFunctionSubType(t1, t2);
     }
     return false;
   }
@@ -211,6 +237,9 @@ var dart, _js_helper;
     if (t1 == t2) return true;
 
     if (t1 == core.Object) return false;
+
+    // If t1 is a JS Object, we may not hit core.Object.
+    if (t1 == null) return t2 == core.Object || t2 == dart.dynamic;
 
     // Check if t1 and t2 have the same raw type.  If so, check covariance on
     // type parameters.
@@ -260,17 +289,27 @@ var dart, _js_helper;
     return false;
   }
 
-  function closureWrap(obj, type) {
-    // TODO(vsm): Remove this once we handle in the checker.
-    return obj;
-  }
-  dart.closureWrap = closureWrap;
-
-
   // TODO(jmesserly): this isn't currently used, but it could be if we want
   // `obj is NonGroundType<T,S>` to be rejected at runtime instead of compile
-  // time. Also TODO: update this to handle functions.
+  // time.
   function isGroundType(type) {
+    // TODO(vsm): Cache this if we start using it at runtime.
+
+    if (type instanceof AbstractFunctionType) {
+      if (!_isTop(type.returnType, false)) return false;
+      for (var i = 0; i < type.args.length; ++i) {
+        if (!_isBottom(type.args[i], true)) return false;
+      }
+      for (var i = 0; i < type.optionals.length; ++i) {
+        if (!_isBottom(type.optionals[i], true)) return false;
+      }
+      var names = Object.getOwnPropertyNames(type.named);
+      for (var i = 0; i < names.length; ++i) {
+        if (!_isBottom(type.named[names[i]], true)) return false;
+      }
+      return true;
+    }
+
     let typeArgs = safeGetOwnProperty(type, dart.typeArguments);
     if (!typeArgs) return true;
     for (let t of typeArgs) {
@@ -300,6 +339,207 @@ var dart, _js_helper;
     return x;
   }
   dart.notNull = notNull;
+
+  function _typeName(type) {
+    var name = type.name;
+    if (!name) throw 'Unexpected type: ' + type;
+    return name;
+  }
+
+  class AbstractFunctionType {
+    constructor() {
+      this._stringValue = null;
+    }
+
+    get name() {
+      if (this._stringValue) return this._stringValue;
+
+      var buffer = '(';
+      for (var i = 0; i < this.args.length; ++i) {
+        if (i > 0) {
+          buffer += ', ';
+        }
+        buffer += _typeName(this.args[i]);
+      }
+      if (this.optionals.length > 0) {
+        if (this.args.length > 0) buffer += ', ';
+        buffer += '[';
+        for (var i = 0; i < this.optionals.length; ++i) {
+          if (i > 0) {
+            buffer += ', ';
+          }
+          buffer += _typeName(this.optionals[i]);
+        }
+        buffer += ']';
+      } else if (this.named.length > 0) {
+        if (this.args.length > 0) buffer += ', ';
+        buffer += '{';
+        let names = Object.getOwnPropertyNames(this.named).sort();
+        for (var i = 0; i < names.length; ++i) {
+          if (i > 0) {
+            buffer += ', ';
+          }
+          buffer += names[i] + ': ' + _typeName(this.named[names[i]]);
+        }
+        buffer += '}';
+      }
+
+      buffer += ') -> ' + _typeName(this.returnType);
+      this._stringValue = buffer;
+      return buffer;
+    }
+  }
+
+  class FunctionType extends AbstractFunctionType {
+    constructor(returnType, args, optionals, named) {
+      super();
+      this.returnType = returnType;
+      this.args = args;
+      this.optionals = optionals;
+      this.named = named;
+    }
+  }
+
+  function functionType(returnType, args, extra) {
+    // TODO(vsm): Cache / memomize?
+    var optionals;
+    var named;
+    if (extra === void 0) {
+      optionals = [];
+      named = {};
+    } else if (extra instanceof Array) {
+      optionals = extra;
+      named = {};
+    } else {
+      optionals = [];
+      named = extra;
+    }
+    return new FunctionType(returnType, args, optionals, named);
+  }
+  dart.functionType = functionType;
+
+  class Typedef extends AbstractFunctionType {
+    constructor(name, closure) {
+      super();
+      this._name = name;
+      this._closure = closure;
+      this._functionType = null;
+    }
+
+    get name() {
+      return this._name;
+    }
+
+    get functionType() {
+      if (!this._functionType) {
+        this._functionType = this._closure();
+      }
+      return this._functionType;
+    }
+
+    get returnType() {
+      return this.functionType.returnType;
+    }
+
+    get args() {
+      return this.functionType.args;
+    }
+
+    get optionals() {
+      return this.functionType.optionals;
+    }
+
+    get named() {
+      return this.functionType.named;
+    }
+  }
+
+  function typedef(name, closure) {
+    return new Typedef(name, closure);
+  }
+  dart.typedef = typedef;
+
+  function isFunctionType(type) {
+    return isClassSubType(type, core.Function) || type instanceof AbstractFunctionType;
+  }
+
+  function getFunctionType(obj) {
+    // TODO(vsm): Encode this properly on the function for Dart-generated code.
+    var args = Array.apply(null, new Array(obj.length)).map(function(){return core.Object});
+    return functionType(dart.bottom, args);
+  }
+
+  function isFunctionSubType(ft1, ft2) {
+    if (ft2 == core.Function) {
+      return true;
+    }
+
+    let ret1 = ft1.returnType;
+    let ret2 = ft2.returnType;
+
+    if (!isSubtype_(ret1, ret2)) {
+      // Covariant return types
+      // Note, void (which can only appear as a return type) is effectively
+      // treated as dynamic.  If the base return type is void, we allow any
+      // subtype return type.
+      // E.g., we allow:
+      //   () -> int <: () -> void
+      if (ret2 != dart.void) {
+        return false;
+      }
+    }
+
+    let args1 = ft1.args;
+    let args2 = ft2.args;
+
+    if (args1.length > args2.length) {
+      return false;
+    }
+
+    for (var i = 0; i < args1.length; ++i) {
+      if (!isSubtype_(args2[i], args1[i], true)) {
+        return false;
+      }
+    }
+
+    let optionals1 = ft1.optionals;
+    let optionals2 = ft2.optionals;
+
+    if (args1.length + optionals1.length < args2.length + optionals2.length) {
+      return false;
+    }
+
+    var j = 0;
+    for (var i = args1.length; i < args2.length; ++i, ++j) {
+      if (!isSubtype_(args2[i], optionals1[j], true)) {
+        return false;
+      }
+    }
+
+    for (var i = 0; i < optionals2.length; ++i, ++j) {
+      if (!isSubtype_(optionals2[i], optionals1[j], true)) {
+        return false;
+      }
+    }
+
+    let named1 = ft1.named;
+    let named2 = ft2.named;
+
+    let names = Object.getOwnPropertyNames(named2);
+    for (var i = 0; i < names.length; ++i) {
+      let name = names[i];
+      let n1 = named1[name]
+      let n2 = named2[name];
+      if (n1 === void 0) {
+        return false;
+      }
+      if (!isSubtype_(n2, n1, true)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 
   /**
    * Defines a lazy property.
@@ -508,6 +748,11 @@ var dart, _js_helper;
   // TODO(jmesserly): right now this is a sentinel. It should be a type object
   // of some sort, assuming we keep around `dynamic` at runtime.
   dart.dynamic = { toString() { return 'dynamic'; } };
+  dart.void = { toString() { return 'void'; } };
+  dart.bottom = { toString() { return 'bottom'; } };
+
+  // TODO(vsm): How should we encode the runtime type?
+  dart.runtimeType = Symbol('runtimeType');
 
   dart.JsSymbol = Symbol;
 

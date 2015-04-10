@@ -16,7 +16,7 @@ var convert;
         return this.decoder.convert(encoded);
       }
       fuse(other) {
-        return new (_FusedCodec$(S, T, dynamic))(this, other);
+        return new (_FusedCodec$(S, T, dart.dynamic))(this, other);
       }
       get inverted() {
         return new (_InvertedCodec$(T, S))(this);
@@ -30,7 +30,7 @@ var convert;
       super.Codec();
     }
     decodeStream(byteStream) {
-      return dart.as(byteStream.transform(dart.as(this.decoder, async.StreamTransformer$(core.List$(core.int), dynamic))).fold(new core.StringBuffer(), (buffer, string) => dart.dinvoke(buffer, 'write', string), buffer).then((buffer) => buffer.toString()), async.Future$(core.String));
+      return dart.as(byteStream.transform(dart.as(this.decoder, async.StreamTransformer$(core.List$(core.int), dart.dynamic))).fold(new core.StringBuffer(), (buffer, string) => dart.dinvoke(buffer, 'write', string), buffer).then((buffer) => buffer.toString()), async.Future$(core.String));
     }
     static getByName(name) {
       if (name == null)
@@ -77,7 +77,7 @@ var convert;
       Converter() {
       }
       fuse(other) {
-        return new (_FusedConverter$(S, T, dynamic))(this, other);
+        return new (_FusedConverter$(S, T, dart.dynamic))(this, other);
       }
       startChunkedConversion(sink) {
         throw new core.UnsupportedError(`This converter does not support chunked conversions: ${this}`);
@@ -372,7 +372,7 @@ var convert;
   }
   _ByteCallbackSink._INITIAL_BUFFER_SIZE = 1024;
   let _ChunkedConversionCallback$ = dart.generic(function(T) {
-    class _ChunkedConversionCallback extends core.Function {}
+    let _ChunkedConversionCallback = dart.typedef('_ChunkedConversionCallback', () => dart.functionType(dart.void, [T]));
     return _ChunkedConversionCallback;
   });
   let _ChunkedConversionCallback = _ChunkedConversionCallback$();
@@ -630,8 +630,8 @@ var convert;
     }
   }
   let JSON = new JsonCodec();
-  class _Reviver extends core.Function {}
-  class _ToEncodable extends core.Function {}
+  let _Reviver = dart.typedef('_Reviver', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
+  let _ToEncodable = dart.typedef('_ToEncodable', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   let _reviver = Symbol('_reviver');
   let _toEncodable$ = Symbol('_toEncodable');
   class JsonCodec extends Codec$(core.Object, core.String) {
@@ -659,12 +659,12 @@ var convert;
         toEncodable = this[_toEncodable$];
       if (toEncodable == null)
         return this.encoder.convert(value);
-      return new JsonEncoder(dart.as(toEncodable, dart.throw_("Unimplemented type (Object) → Object"))).convert(value);
+      return new JsonEncoder(dart.as(toEncodable, dart.functionType(core.Object, [core.Object]))).convert(value);
     }
     get encoder() {
       if (this[_toEncodable$] == null)
         return new JsonEncoder();
-      return new JsonEncoder(dart.as(this[_toEncodable$], dart.throw_("Unimplemented type (Object) → Object")));
+      return new JsonEncoder(dart.as(this[_toEncodable$], dart.functionType(core.Object, [core.Object])));
     }
     get decoder() {
       if (this[_reviver] == null)
@@ -690,7 +690,7 @@ var convert;
       super.Converter();
     }
     convert(object) {
-      return _JsonStringStringifier.stringify(object, dart.as(this[_toEncodable$], dart.throw_("Unimplemented type (dynamic) → dynamic")), this.indent);
+      return _JsonStringStringifier.stringify(object, dart.as(this[_toEncodable$], dart.functionType(dart.dynamic, [dart.dynamic])), this.indent);
     }
     startChunkedConversion(sink) {
       if (!dart.is(sink, StringConversionSink)) {
@@ -705,7 +705,7 @@ var convert;
     }
     fuse(other) {
       if (dart.is(other, Utf8Encoder)) {
-        return new JsonUtf8Encoder(this.indent, dart.as(this[_toEncodable$], dart.throw_("Unimplemented type (Object) → dynamic")));
+        return new JsonUtf8Encoder(this.indent, dart.as(this[_toEncodable$], dart.functionType(dart.dynamic, [core.Object])));
       }
       return super.fuse(other);
     }
@@ -750,7 +750,7 @@ var convert;
         }
         bytes[core.$add](chunk);
       }
-      _JsonUtf8Stringifier.stringify(object, this[_indent], dart.as(this[_toEncodable$], dart.throw_("Unimplemented type (Object) → dynamic")), this[_bufferSize], addChunk);
+      _JsonUtf8Stringifier.stringify(object, this[_indent], dart.as(this[_toEncodable$], dart.functionType(dart.dynamic, [core.Object])), this[_bufferSize], addChunk);
       if (bytes[core.$length] == 1)
         return bytes[core.$get](0);
       let length = 0;
@@ -798,7 +798,7 @@ var convert;
       }
       this[_isDone] = true;
       let stringSink = this[_sink].asStringSink();
-      _JsonStringStringifier.printOn(o, stringSink, dart.as(this[_toEncodable$], dart.throw_("Unimplemented type (dynamic) → dynamic")), this[_indent]);
+      _JsonStringStringifier.printOn(o, stringSink, dart.as(this[_toEncodable$], dart.functionType(dart.dynamic, [dart.dynamic])), this[_indent]);
       stringSink.close();
     }
     close() {}
@@ -821,7 +821,7 @@ var convert;
         throw new core.StateError("Only one call to add allowed");
       }
       this[_isDone] = true;
-      _JsonUtf8Stringifier.stringify(object, this[_indent], dart.as(this[_toEncodable$], dart.throw_("Unimplemented type (Object) → dynamic")), this[_bufferSize], this[_addChunk]);
+      _JsonUtf8Stringifier.stringify(object, this[_indent], dart.as(this[_toEncodable$], dart.functionType(dart.dynamic, [core.Object])), this[_bufferSize], this[_addChunk]);
       this[_sink].close();
     }
     close() {
@@ -1024,7 +1024,7 @@ var convert;
         this.writeStringContent(key);
         this.writeString('":');
         this.writeObject(value);
-      }).bind(this), dart.throw_("Unimplemented type (String, Object) → void")));
+      }).bind(this), dart.functionType(dart.void, [core.String, core.Object])));
       this.writeString('}');
     }
   }
@@ -1095,7 +1095,7 @@ var convert;
   class _JsonStringStringifier extends _JsonStringifier {
     _JsonStringStringifier(sink$, _toEncodable) {
       this[_sink] = sink$;
-      super._JsonStringifier(dart.as(_toEncodable, dart.throw_("Unimplemented type (Object) → Object")));
+      super._JsonStringifier(dart.as(_toEncodable, dart.functionType(core.Object, [core.Object])));
     }
     static stringify(object, toEncodable, indent) {
       let output = new core.StringBuffer();
@@ -1140,7 +1140,7 @@ var convert;
       this.bufferSize = bufferSize;
       this.buffer = new typed_data.Uint8List(bufferSize);
       this.index = 0;
-      super._JsonStringifier(dart.as(toEncodable, dart.throw_("Unimplemented type (Object) → Object")));
+      super._JsonStringifier(dart.as(toEncodable, dart.functionType(core.Object, [core.Object])));
     }
     static stringify(object, indent, toEncodableFunction, bufferSize, addChunk) {
       let stringifier = null;
@@ -1465,7 +1465,7 @@ var convert;
     }
   }
   dart.defineNamedConstructor(ClosableStringSink, 'fromStringSink');
-  class _StringSinkCloseCallback extends core.Function {}
+  let _StringSinkCloseCallback = dart.typedef('_StringSinkCloseCallback', () => dart.functionType(dart.void, []));
   class _ClosableStringSink extends core.Object {
     _ClosableStringSink(sink$, callback$) {
       this[_sink] = sink$;

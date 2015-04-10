@@ -31,7 +31,7 @@ var isolate;
     static spawn(entryPoint, message, opts) {
       let paused = opts && 'paused' in opts ? opts.paused : false;
       try {
-        return dart.as(_isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(dart.as((msg) => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), dart.throw_("Unimplemented type (List<dynamic>) → dynamic"))), async.Future$(Isolate));
+        return dart.as(_isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(dart.as((msg) => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), dart.functionType(dart.dynamic, [core.List]))), async.Future$(Isolate));
       } catch (e) {
         let st = dart.stackTrace(e);
         return new async.Future$(Isolate).error(e, st);
@@ -53,7 +53,7 @@ var isolate;
         } else if (args != null) {
           throw new core.ArgumentError(`Args must be a list of Strings ${args}`);
         }
-        return dart.as(_isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(dart.as((msg) => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), dart.throw_("Unimplemented type (List<dynamic>) → dynamic"))), async.Future$(Isolate));
+        return dart.as(_isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(dart.as((msg) => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), dart.functionType(dart.dynamic, [core.List]))), async.Future$(Isolate));
       } catch (e) {
         let st = dart.stackTrace(e);
         return new async.Future$(Isolate).error(e, st);

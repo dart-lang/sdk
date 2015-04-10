@@ -346,7 +346,7 @@ var _internal;
   });
   let ListIterator = ListIterator$();
   let _Transformation$ = dart.generic(function(S, T) {
-    class _Transformation extends core.Function {}
+    let _Transformation = dart.typedef('_Transformation', () => dart.functionType(T, [S]));
     return _Transformation;
   });
   let _Transformation = _Transformation$();
@@ -445,7 +445,7 @@ var _internal;
   });
   let MappedListIterable = MappedListIterable$();
   let _ElementPredicate$ = dart.generic(function(E) {
-    class _ElementPredicate extends core.Function {}
+    let _ElementPredicate = dart.typedef('_ElementPredicate', () => dart.functionType(core.bool, [E]));
     return _ElementPredicate;
   });
   let _ElementPredicate = _ElementPredicate$();
@@ -486,7 +486,7 @@ var _internal;
   });
   let WhereIterator = WhereIterator$();
   let _ExpandFunction$ = dart.generic(function(S, T) {
-    class _ExpandFunction extends core.Function {}
+    let _ExpandFunction = dart.typedef('_ExpandFunction', () => dart.functionType(core.Iterable$(T), [S]));
     return _ExpandFunction;
   });
   let _ExpandFunction = _ExpandFunction$();
@@ -498,7 +498,7 @@ var _internal;
         super.IterableBase();
       }
       get [core.$iterator]() {
-        return new (ExpandIterator$(S, T))(this[_iterable][core.$iterator], dart.as(this[_f], dart.throw_("Unimplemented type (S) → Iterable<T>")));
+        return new (ExpandIterator$(S, T))(this[_iterable][core.$iterator], dart.as(this[_f], dart.functionType(core.Iterable$(T), [S])));
       }
     }
     return ExpandIterable;
@@ -613,7 +613,7 @@ var _internal;
         super.IterableBase();
       }
       get [core.$iterator]() {
-        return new (TakeWhileIterator$(E))(this[_iterable][core.$iterator], dart.as(this[_f], dart.throw_("Unimplemented type (E) → bool")));
+        return new (TakeWhileIterator$(E))(this[_iterable][core.$iterator], dart.as(this[_f], dart.functionType(core.bool, [E])));
       }
     }
     return TakeWhileIterable;
@@ -724,7 +724,7 @@ var _internal;
         super.IterableBase();
       }
       get [core.$iterator]() {
-        return new (SkipWhileIterator$(E))(this[_iterable][core.$iterator], dart.as(this[_f], dart.throw_("Unimplemented type (E) → bool")));
+        return new (SkipWhileIterator$(E))(this[_iterable][core.$iterator], dart.as(this[_f], dart.functionType(core.bool, [E])));
       }
     }
     return SkipWhileIterable;
@@ -1059,7 +1059,7 @@ var _internal;
         return buffer.toString();
       }
       where(iterable, f) {
-        return new (WhereIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(f, dart.throw_("Unimplemented type (T) → bool")));
+        return new (WhereIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(f, dart.functionType(core.bool, [T])));
       }
       static map(iterable, f) {
         return new MappedIterable(iterable, f);
@@ -1074,13 +1074,13 @@ var _internal;
         return new (SubListIterable$(T))(dart.as(list, core.Iterable$(T)), 0, n);
       }
       takeWhile(iterable, test) {
-        return new (TakeWhileIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(test, dart.throw_("Unimplemented type (T) → bool")));
+        return new (TakeWhileIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(test, dart.functionType(core.bool, [T])));
       }
       skipList(list, n) {
         return new (SubListIterable$(T))(dart.as(list, core.Iterable$(T)), n, null);
       }
       skipWhile(iterable, test) {
-        return new (SkipWhileIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(test, dart.throw_("Unimplemented type (T) → bool")));
+        return new (SkipWhileIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(test, dart.functionType(core.bool, [T])));
       }
       reversedList(list) {
         return new (ReversedListIterable$(T))(dart.as(list, core.Iterable$(T)));

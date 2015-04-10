@@ -27,12 +27,12 @@ var collection;
     return a.hashCode;
   }
   let _Equality$ = dart.generic(function(K) {
-    class _Equality extends core.Function {}
+    let _Equality = dart.typedef('_Equality', () => dart.functionType(core.bool, [K, K]));
     return _Equality;
   });
   let _Equality = _Equality$();
   let _Hasher$ = dart.generic(function(K) {
-    class _Hasher extends core.Function {}
+    let _Hasher = dart.typedef('_Hasher', () => dart.functionType(core.int, [K]));
     return _Hasher;
   });
   let _Hasher = _Hasher$();
@@ -49,21 +49,21 @@ var collection;
             if (equals == null) {
               return new (_HashMap$(K, V))();
             }
-            hashCode = dart.as(_defaultHashCode, dart.throw_("Unimplemented type (K) → int"));
+            hashCode = dart.as(_defaultHashCode, dart.functionType(core.int, [K]));
           } else {
             if (dart.notNull(core.identical(core.identityHashCode, hashCode)) && dart.notNull(core.identical(core.identical, equals))) {
               return new (_IdentityHashMap$(K, V))();
             }
             if (equals == null) {
-              equals = dart.as(_defaultEquals, dart.throw_("Unimplemented type (K, K) → bool"));
+              equals = dart.as(_defaultEquals, dart.functionType(core.bool, [K, K]));
             }
           }
         } else {
           if (hashCode == null) {
-            hashCode = dart.as(_defaultHashCode, dart.throw_("Unimplemented type (K) → int"));
+            hashCode = dart.as(_defaultHashCode, dart.functionType(core.int, [K]));
           }
           if (equals == null) {
-            equals = dart.as(_defaultEquals, dart.throw_("Unimplemented type (K, K) → bool"));
+            equals = dart.as(_defaultEquals, dart.functionType(core.bool, [K, K]));
           }
         }
         return new (_CustomHashMap$(K, V))(equals, hashCode, isValidKey);
@@ -183,7 +183,7 @@ var collection;
         return result;
       }
       [core.$map](f) {
-        return new (_internal.EfficientLengthMappedIterable$(E, dynamic))(this, f);
+        return new (_internal.EfficientLengthMappedIterable$(E, dart.dynamic))(this, f);
       }
       get [core.$single]() {
         if (dart.notNull(this.length) > 1)
@@ -201,7 +201,7 @@ var collection;
         return new (_internal.WhereIterable$(E))(this, f);
       }
       [core.$expand](f) {
-        return new (_internal.ExpandIterable$(E, dynamic))(this, f);
+        return new (_internal.ExpandIterable$(E, dart.dynamic))(this, f);
       }
       [core.$forEach](f) {
         for (let element of this)
@@ -395,21 +395,21 @@ var collection;
             if (equals == null) {
               return new (_HashSet$(E))();
             }
-            hashCode = dart.as(_defaultHashCode, dart.throw_("Unimplemented type (E) → int"));
+            hashCode = dart.as(_defaultHashCode, dart.functionType(core.int, [E]));
           } else {
             if (dart.notNull(core.identical(core.identityHashCode, hashCode)) && dart.notNull(core.identical(core.identical, equals))) {
               return new (_IdentityHashSet$(E))();
             }
             if (equals == null) {
-              equals = dart.as(_defaultEquals, dart.throw_("Unimplemented type (E, E) → bool"));
+              equals = dart.as(_defaultEquals, dart.functionType(core.bool, [E, E]));
             }
           }
         } else {
           if (hashCode == null) {
-            hashCode = dart.as(_defaultHashCode, dart.throw_("Unimplemented type (E) → int"));
+            hashCode = dart.as(_defaultHashCode, dart.functionType(core.int, [E]));
           }
           if (equals == null) {
-            equals = dart.as(_defaultEquals, dart.throw_("Unimplemented type (E, E) → bool"));
+            equals = dart.as(_defaultEquals, dart.functionType(core.bool, [E, E]));
           }
         }
         return new (_CustomHashSet$(E))(equals, hashCode, isValidKey);
@@ -433,13 +433,13 @@ var collection;
   let IterableMixin$ = dart.generic(function(E) {
     class IterableMixin extends core.Object {
       [core.$map](f) {
-        return new (_internal.MappedIterable$(E, dynamic))(this, f);
+        return new (_internal.MappedIterable$(E, dart.dynamic))(this, f);
       }
       [core.$where](f) {
         return new (_internal.WhereIterable$(E))(this, f);
       }
       [core.$expand](f) {
-        return new (_internal.ExpandIterable$(E, dynamic))(this, f);
+        return new (_internal.ExpandIterable$(E, dart.dynamic))(this, f);
       }
       [core.$contains](element) {
         for (let e of this) {
@@ -634,13 +634,13 @@ var collection;
       IterableBase() {
       }
       [core.$map](f) {
-        return new (_internal.MappedIterable$(E, dynamic))(this, f);
+        return new (_internal.MappedIterable$(E, dart.dynamic))(this, f);
       }
       [core.$where](f) {
         return new (_internal.WhereIterable$(E))(this, f);
       }
       [core.$expand](f) {
-        return new (_internal.ExpandIterable$(E, dynamic))(this, f);
+        return new (_internal.ExpandIterable$(E, dart.dynamic))(this, f);
       }
       [core.$contains](element) {
         for (let e of this) {
@@ -1013,21 +1013,21 @@ var collection;
             if (equals == null) {
               return new (_LinkedHashMap$(K, V))();
             }
-            hashCode = dart.as(_defaultHashCode, dart.throw_("Unimplemented type (K) → int"));
+            hashCode = dart.as(_defaultHashCode, dart.functionType(core.int, [K]));
           } else {
             if (dart.notNull(core.identical(core.identityHashCode, hashCode)) && dart.notNull(core.identical(core.identical, equals))) {
               return new (_LinkedIdentityHashMap$(K, V))();
             }
             if (equals == null) {
-              equals = dart.as(_defaultEquals, dart.throw_("Unimplemented type (K, K) → bool"));
+              equals = dart.as(_defaultEquals, dart.functionType(core.bool, [K, K]));
             }
           }
         } else {
           if (hashCode == null) {
-            hashCode = dart.as(_defaultHashCode, dart.throw_("Unimplemented type (K) → int"));
+            hashCode = dart.as(_defaultHashCode, dart.functionType(core.int, [K]));
           }
           if (equals == null) {
-            equals = dart.as(_defaultEquals, dart.throw_("Unimplemented type (K, K) → bool"));
+            equals = dart.as(_defaultEquals, dart.functionType(core.bool, [K, K]));
           }
         }
         return new (_LinkedCustomHashMap$(K, V))(equals, hashCode, isValidKey);
@@ -1082,21 +1082,21 @@ var collection;
             if (equals == null) {
               return new (_LinkedHashSet$(E))();
             }
-            hashCode = dart.as(_defaultHashCode, dart.throw_("Unimplemented type (E) → int"));
+            hashCode = dart.as(_defaultHashCode, dart.functionType(core.int, [E]));
           } else {
             if (dart.notNull(core.identical(core.identityHashCode, hashCode)) && dart.notNull(core.identical(core.identical, equals))) {
               return new (_LinkedIdentityHashSet$(E))();
             }
             if (equals == null) {
-              equals = dart.as(_defaultEquals, dart.throw_("Unimplemented type (E, E) → bool"));
+              equals = dart.as(_defaultEquals, dart.functionType(core.bool, [E, E]));
             }
           }
         } else {
           if (hashCode == null) {
-            hashCode = dart.as(_defaultHashCode, dart.throw_("Unimplemented type (E) → int"));
+            hashCode = dart.as(_defaultHashCode, dart.functionType(core.int, [E]));
           }
           if (equals == null) {
-            equals = dart.as(_defaultEquals, dart.throw_("Unimplemented type (E, E) → bool"));
+            equals = dart.as(_defaultEquals, dart.functionType(core.bool, [E, E]));
           }
         }
         return new (_LinkedCustomHashSet$(E))(equals, hashCode, isValidKey);
@@ -1142,7 +1142,7 @@ var collection;
         this[_insertAfter](this[_previous], entry);
       }
       addAll(entries) {
-        entries[core.$forEach](dart.as(((entry) => this[_insertAfter](this[_previous], dart.as(entry, E))).bind(this), dart.throw_("Unimplemented type (E) → void")));
+        entries[core.$forEach](dart.as(((entry) => this[_insertAfter](this[_previous], dart.as(entry, E))).bind(this), dart.functionType(dart.void, [E])));
       }
       remove(entry) {
         if (!dart.equals(entry[_list], this))
@@ -1439,7 +1439,7 @@ var collection;
         return new _internal.MappedListIterable(this, f);
       }
       [core.$expand](f) {
-        return new (_internal.ExpandIterable$(E, dynamic))(this, f);
+        return new (_internal.ExpandIterable$(E, dart.dynamic))(this, f);
       }
       [core.$reduce](combine) {
         let length = this[core.$length];
@@ -2611,7 +2611,7 @@ var collection;
   });
   let _ListQueueIterator = _ListQueueIterator$();
   let _Predicate$ = dart.generic(function(T) {
-    class _Predicate extends core.Function {}
+    let _Predicate = dart.typedef('_Predicate', () => dart.functionType(core.bool, [T]));
     return _Predicate;
   });
   let _Predicate = _Predicate$();
@@ -3100,7 +3100,7 @@ var collection;
       }
       [core.$toSet]() {
         let setOrMap = this[_tree];
-        let set = new (SplayTreeSet$(K))(dart.as(setOrMap[_comparator], dart.throw_("Unimplemented type (K, K) → int")), dart.as(setOrMap[_validKey], dart.throw_("Unimplemented type (dynamic) → bool")));
+        let set = new (SplayTreeSet$(K))(dart.as(setOrMap[_comparator], dart.functionType(core.int, [K, K])), dart.as(setOrMap[_validKey], dart.functionType(core.bool, [dart.dynamic])));
         set[_count] = this[_tree][_count];
         set[_root] = set[_copyNode](this[_tree][_root]);
         return set;
@@ -3255,7 +3255,7 @@ var collection;
         }
       }
       retainAll(elements) {
-        let retainSet = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.throw_("Unimplemented type (E, E) → int")), this[_validKey]);
+        let retainSet = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.functionType(core.int, [E, E])), this[_validKey]);
         let modificationCount = this[_modificationCount];
         for (let object of elements) {
           if (modificationCount != this[_modificationCount]) {
@@ -3279,7 +3279,7 @@ var collection;
         return this[_root].key;
       }
       intersection(other) {
-        let result = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.throw_("Unimplemented type (E, E) → int")), this[_validKey]);
+        let result = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.functionType(core.int, [E, E])), this[_validKey]);
         for (let element of this) {
           if (other[core.$contains](element))
             result.add(element);
@@ -3287,7 +3287,7 @@ var collection;
         return result;
       }
       difference(other) {
-        let result = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.throw_("Unimplemented type (E, E) → int")), this[_validKey]);
+        let result = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.functionType(core.int, [E, E])), this[_validKey]);
         for (let element of this) {
           if (!dart.notNull(other[core.$contains](element)))
             result.add(element);
@@ -3301,7 +3301,7 @@ var collection;
         })(this[_clone]());
       }
       [_clone]() {
-        let set = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.throw_("Unimplemented type (E, E) → int")), this[_validKey]);
+        let set = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.functionType(core.int, [E, E])), this[_validKey]);
         set[_count] = this[_count];
         set[_root] = this[_copyNode](this[_root]);
         return set;
@@ -3370,7 +3370,7 @@ var collection;
         return new (HashMapKeyIterable$(K))(this);
       }
       get values() {
-        return new (_internal.MappedIterable$(K, V))(this.keys, dart.as(((each) => this.get(each)).bind(this), dart.throw_("Unimplemented type (K) → V")));
+        return new (_internal.MappedIterable$(K, V))(this.keys, dart.as(((each) => this.get(each)).bind(this), dart.functionType(V, [K])));
       }
       containsKey(key) {
         if (_HashMap[_isStringKey](key)) {
@@ -3771,7 +3771,7 @@ var collection;
         return new (LinkedHashMapKeyIterable$(K))(this);
       }
       get values() {
-        return new (_internal.MappedIterable$(K, V))(this.keys, dart.as(((each) => this.get(each)).bind(this), dart.throw_("Unimplemented type (K) → V")));
+        return new (_internal.MappedIterable$(K, V))(this.keys, dart.as(((each) => this.get(each)).bind(this), dart.functionType(V, [K])));
       }
       containsKey(key) {
         if (_LinkedHashMap[_isStringKey](key)) {
@@ -3798,7 +3798,7 @@ var collection;
         return dart.notNull(this[_findBucketIndex](bucket, key)) >= 0;
       }
       containsValue(value) {
-        return this.keys[core.$any](dart.as(((each) => dart.equals(this.get(each), value)).bind(this), dart.throw_("Unimplemented type (K) → bool")));
+        return this.keys[core.$any](dart.as(((each) => dart.equals(this.get(each), value)).bind(this), dart.functionType(core.bool, [K])));
       }
       addAll(other) {
         other.forEach(((key, value) => {

@@ -79,15 +79,15 @@ var core;
       return _js_helper.Primitives.applyFunction(f, positionalArguments, namedArguments == null ? null : Function[_toMangledNames](namedArguments));
     }
     static [_toMangledNames](namedArguments) {
-      let result = dart.as(dart.map(), Map$(String, dynamic));
+      let result = dart.as(dart.map(), Map$(String, dart.dynamic));
       namedArguments.forEach(dart.as((symbol, value) => {
         result.set(_symbolToString(dart.as(symbol, Symbol)), value);
-      }, dart.throw_("Unimplemented type (Symbol, dynamic) → void")));
+      }, dart.functionType(dart.void, [Symbol, dart.dynamic])));
       return result;
     }
   }
   let Comparator$ = dart.generic(function(T) {
-    class Comparator extends Function {}
+    let Comparator = dart.typedef('Comparator', () => dart.functionType(int, [T, T]));
     return Comparator;
   });
   let Comparator = Comparator$();
@@ -1118,7 +1118,7 @@ var core;
   });
   let Iterable = Iterable$();
   let _Generator$ = dart.generic(function(E) {
-    class _Generator extends Function {}
+    let _Generator = dart.typedef('_Generator', () => dart.functionType(E, [int]));
     return _Generator;
   });
   let _Generator = _Generator$();
@@ -2064,7 +2064,7 @@ var core;
             throw new UnsupportedError(`Illegal path character ${segment}`);
           }
         }
-      }, dart.throw_("Unimplemented type (String) → void")));
+      }, dart.functionType(dart.void, [String])));
     }
     static [_checkWindowsPathReservedCharacters](segments, argumentError, firstSegment) {
       if (firstSegment === void 0)
@@ -2077,7 +2077,7 @@ var core;
             throw new UnsupportedError("Illegal character in path");
           }
         }
-      }, dart.throw_("Unimplemented type (String) → void")));
+      }, dart.functionType(dart.void, [String])));
     }
     static [_checkWindowsDriveLetter](charCode, argumentError) {
       if (dart.notNull(Uri[_UPPER_CASE_A]) <= dart.notNull(charCode) && dart.notNull(charCode) <= dart.notNull(Uri[_UPPER_CASE_Z]) || dart.notNull(Uri[_LOWER_CASE_A]) <= dart.notNull(charCode) && dart.notNull(charCode) <= dart.notNull(Uri[_LOWER_CASE_Z])) {
@@ -2351,7 +2351,7 @@ var core;
       if (path != null) {
         result = Uri[_normalize](path, start, end, dart.as(Uri[_pathCharOrSlashTable], List$(int)));
       } else {
-        result = pathSegments[exports.$map](dart.as((s) => Uri[_uriEncode](dart.as(Uri[_pathCharTable], List$(int)), dart.as(s, String)), dart.throw_("Unimplemented type (String) → dynamic")))[exports.$join]("/");
+        result = pathSegments[exports.$map](dart.as((s) => Uri[_uriEncode](dart.as(Uri[_pathCharTable], List$(int)), dart.as(s, String)), dart.functionType(dart.dynamic, [String])))[exports.$join]("/");
       }
       if (dart.dload(result, 'isEmpty')) {
         if (isFile)
@@ -2381,7 +2381,7 @@ var core;
           result.write("=");
           result.write(Uri.encodeQueryComponent(dart.as(value, String)));
         }
-      }, dart.throw_("Unimplemented type (String, String) → void")));
+      }, dart.functionType(dart.void, [String, String])));
       return result.toString();
     }
     static [_makeFragment](fragment, start, end) {
@@ -2792,7 +2792,7 @@ var core;
           dart.dsetindex(map, Uri.decodeQueryComponent(dart.as(key, String), {encoding: encoding}), Uri.decodeQueryComponent(dart.as(value, String), {encoding: encoding}));
         }
         return map;
-      }, dart.throw_("Unimplemented type (dynamic, String) → dynamic"))), Map$(String, String));
+      }, dart.functionType(dart.dynamic, [dart.dynamic, String]))), Map$(String, String));
     }
     static parseIPv4Address(host) {
       // Function error: (String) → void
@@ -2809,7 +2809,7 @@ var core;
           error('each part must be in the range of `0..255`');
         }
         return byte;
-      }, dart.throw_("Unimplemented type (String) → dynamic")))[exports.$toList](), List$(int));
+      }, dart.functionType(dart.dynamic, [String])))[exports.$toList](), List$(int));
     }
     static parseIPv6Address(host, start, end) {
       if (start === void 0)
@@ -3039,7 +3039,7 @@ var core;
   function _symbolMapToStringMap(map) {
     if (map == null)
       return null;
-    let result = new (Map$(String, dynamic))();
+    let result = new (Map$(String, dart.dynamic))();
     map.forEach((key, value) => {
       result.set(_symbolToString(key), value);
     });

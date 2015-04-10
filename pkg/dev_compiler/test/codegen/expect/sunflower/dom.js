@@ -12,7 +12,7 @@ var dom;
     }
   }
   let overload = new Overload();
-  class EventListener extends core.Function {}
+  let EventListener = dart.typedef('EventListener', () => dart.functionType(dart.void, [Event]));
   class Event extends core.Object {}
   class RenderingContext extends core.Object {}
   class CanvasDrawingStyles extends core.Object {

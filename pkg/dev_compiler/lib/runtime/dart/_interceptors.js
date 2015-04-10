@@ -872,7 +872,7 @@ var _interceptors;
   function _symbolMapToStringMap(map) {
     if (map == null)
       return null;
-    let result = new (core.Map$(core.String, dynamic))();
+    let result = new (core.Map$(core.String, dart.dynamic))();
     map.forEach((key, value) => {
       result.set(_symbolToString(key), value);
     });

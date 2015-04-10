@@ -25,7 +25,7 @@ var _isolate_helper;
   class _Serializer extends core.Object {
     _Serializer(opts) {
       let serializeSendPorts = opts && 'serializeSendPorts' in opts ? opts.serializeSendPorts : true;
-      this.serializedObjectIds = new core.Map$(dynamic, core.int).identity();
+      this.serializedObjectIds = new core.Map$(dart.dynamic, core.int).identity();
       this[_serializeSendPorts] = dart.as(serializeSendPorts, core.bool);
     }
     serialize(x) {
@@ -111,7 +111,7 @@ var _isolate_helper;
     }
     serializeMap(x) {
       let serializeTearOff = this.serialize;
-      return new core.List.from(['map', x.keys[core.$map](dart.as(serializeTearOff, dart.throw_("Unimplemented type (dynamic) → dynamic")))[core.$toList](), x.values[core.$map](dart.as(serializeTearOff, dart.throw_("Unimplemented type (dynamic) → dynamic")))[core.$toList]()]);
+      return new core.List.from(['map', x.keys[core.$map](dart.as(serializeTearOff, dart.functionType(dart.dynamic, [dart.dynamic])))[core.$toList](), x.values[core.$map](dart.as(serializeTearOff, dart.functionType(dart.dynamic, [dart.dynamic])))[core.$toList]()]);
     }
     serializeJSObject(x) {
       if (!!x.constructor && x.constructor !== Object) {
@@ -433,7 +433,7 @@ var _isolate_helper;
       this[_nativeDetectEnvironment]();
       this.topEventLoop = new _EventLoop();
       this.isolates = new (core.Map$(core.int, _IsolateContext))();
-      this.managers = new (core.Map$(core.int, dynamic))();
+      this.managers = new (core.Map$(core.int, dart.dynamic))();
       if (this.isWorker) {
         this.mainManager = new _MainManagerStub();
         this[_nativeInitWorkerMessageHandler]();
@@ -829,9 +829,9 @@ var _isolate_helper;
       return !!self.postMessage;
     }
   });
-  class _MainFunction extends core.Function {}
-  class _MainFunctionArgs extends core.Function {}
-  class _MainFunctionArgsMessage extends core.Function {}
+  let _MainFunction = dart.typedef('_MainFunction', () => dart.functionType(dart.dynamic, []));
+  let _MainFunctionArgs = dart.typedef('_MainFunctionArgs', () => dart.functionType(dart.dynamic, [dart.dynamic]));
+  let _MainFunctionArgsMessage = dart.typedef('_MainFunctionArgsMessage', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
   let _getEventData = Symbol('_getEventData');
   let _startIsolate = Symbol('_startIsolate');
   let _log = Symbol('_log');
@@ -955,7 +955,7 @@ var _isolate_helper;
       let replyPort = dart.dindex(msg, 'replyPort');
       IsolateNatives.spawn(dart.as(dart.dindex(msg, 'functionName'), core.String), dart.as(dart.dindex(msg, 'uri'), core.String), dart.as(dart.dindex(msg, 'args'), core.List$(core.String)), dart.dindex(msg, 'msg'), false, dart.as(dart.dindex(msg, 'isSpawnUri'), core.bool), dart.as(dart.dindex(msg, 'startPaused'), core.bool)).then(dart.as((msg) => {
         dart.dinvoke(replyPort, 'send', msg);
-      }, dart.throw_("Unimplemented type (List<dynamic>) → dynamic")), {
+      }, dart.functionType(dart.dynamic, [core.List])), {
         onError: (errorMessage) => {
           dart.dinvoke(replyPort, 'send', new core.List.from([_SPAWN_FAILED_SIGNAL, errorMessage]));
         }
