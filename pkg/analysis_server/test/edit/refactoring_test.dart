@@ -7,9 +7,11 @@ library test.edit.refactoring;
 import 'dart:async';
 
 import 'package:analysis_server/src/edit/edit_domain.dart';
+import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
+import 'package:analyzer/src/plugin/plugin_impl.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
@@ -609,13 +611,6 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   List<RefactoringKind> kinds;
 
   /**
-   * Tests that there is a RENAME refactoring available at the [search] offset.
-   */
-  Future assertHasRenameRefactoring(String code, String search) async {
-    return assertHasKind(code, search, RefactoringKind.RENAME, true);
-  }
-
-  /**
    * Tests that there is refactoring of the given [kind] is available at the
    * [search] offset.
    */
@@ -630,6 +625,13 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
       matcher = isNot(matcher);
     }
     expect(kinds, matcher);
+  }
+
+  /**
+   * Tests that there is a RENAME refactoring available at the [search] offset.
+   */
+  Future assertHasRenameRefactoring(String code, String search) async {
+    return assertHasKind(code, search, RefactoringKind.RENAME, true);
   }
 
   @override
@@ -667,8 +669,17 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     createProject();
-    handler = new EditDomainHandler(server);
+    ExtensionManager manager = new ExtensionManager();
+    ServerPlugin plugin = new ServerPlugin();
+    manager.processPlugins([plugin]);
+    handler = new EditDomainHandler(server, plugin);
     server.handlers = [handler];
+  }
+
+  Future test_convertMethodToGetter_hasElement() {
+    return assertHasKind('''
+int getValue() => 42;
+''', 'getValue', RefactoringKind.CONVERT_METHOD_TO_GETTER, true);
   }
 
   Future test_extractLocal() async {
@@ -681,12 +692,6 @@ main() {
     await getRefactoringsForString('1 + 2');
     expect(kinds, contains(RefactoringKind.EXTRACT_LOCAL_VARIABLE));
     expect(kinds, contains(RefactoringKind.EXTRACT_METHOD));
-  }
-
-  Future test_convertMethodToGetter_hasElement() {
-    return assertHasKind('''
-int getValue() => 42;
-''', 'getValue', RefactoringKind.CONVERT_METHOD_TO_GETTER, true);
   }
 
   Future test_rename_hasElement_class() {
@@ -1702,9 +1707,12 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   @override
   void setUp() {
     super.setUp();
-    server.handlers = [new EditDomainHandler(server),];
     createProject();
-    handler = new EditDomainHandler(server);
+    ExtensionManager manager = new ExtensionManager();
+    ServerPlugin plugin = new ServerPlugin();
+    manager.processPlugins([plugin]);
+    handler = new EditDomainHandler(server, plugin);
+    server.handlers = [handler];
   }
 }
 

@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.src.correction.fix;
+library analysis_server.src.services.correction.fix_internal;
 
 import 'dart:collection';
 
+import 'package:analysis_server/edit/fix/fix_core.dart';
+import 'package:analysis_server/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/protocol.dart'
     hide AnalysisError, Element, ElementKind;
 import 'package:analysis_server/src/protocol_server.dart'
@@ -36,6 +38,18 @@ import 'package:path/path.dart';
  * A predicate is a one-argument function that returns a boolean value.
  */
 typedef bool ElementPredicate(Element argument);
+
+/**
+ * A sketch of an implementation of the current FixProcessor (in fix_internal)
+ * as a fix contributor.
+ */
+class DefaultFixContributor extends DartFixContributor {
+  @override
+  List<Fix> internalComputeFixes(CompilationUnit unit, AnalysisError error) {
+    FixProcessor processor = new FixProcessor(unit, error);
+    return processor.compute();
+  }
+}
 
 /**
  * The computer for Dart fixes.
@@ -319,7 +333,7 @@ class FixProcessor {
       FunctionBody body = node.getAncestor((n) => n is FunctionBody);
       if (body.keyword == null) {
         _addReplaceEdit(rf.rangeStartLength(body, 0), 'async ');
-        _addFix(FixKind.ADD_ASYNC, []);
+        _addFix(DartFixKind.ADD_ASYNC, []);
         return true;
       }
     }
@@ -329,7 +343,7 @@ class FixProcessor {
   void _addFix_boolInsteadOfBoolean() {
     SourceRange range = rf.rangeError(error);
     _addReplaceEdit(range, 'bool');
-    _addFix(FixKind.REPLACE_BOOLEAN_WITH_BOOL, []);
+    _addFix(DartFixKind.REPLACE_BOOLEAN_WITH_BOOL, []);
   }
 
   void _addFix_createClass() {
@@ -362,7 +376,7 @@ class FixProcessor {
       _insertBuilder(sb, unitElement);
       _addLinkedPosition('NAME', sb, rf.rangeNode(node));
       // add proposal
-      _addFix(FixKind.CREATE_CLASS, [name]);
+      _addFix(DartFixKind.CREATE_CLASS, [name]);
     }
   }
 
@@ -409,7 +423,7 @@ class FixProcessor {
     // insert source
     _insertBuilder(sb, unitElement);
     // add proposal
-    _addFix(FixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS, []);
+    _addFix(DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS, []);
   }
 
   void _addFix_createConstructor_insteadOfSyntheticDefault() {
@@ -471,7 +485,7 @@ class FixProcessor {
     // insert source
     _insertBuilder(sb, targetElement);
     // add proposal
-    _addFix(FixKind.CREATE_CONSTRUCTOR, [constructorName]);
+    _addFix(DartFixKind.CREATE_CONSTRUCTOR, [constructorName]);
   }
 
   void _addFix_createConstructor_named() {
@@ -535,7 +549,7 @@ class FixProcessor {
       _addLinkedPosition('NAME', sb, rf.rangeNode(name));
     }
     // add proposal
-    _addFix(FixKind.CREATE_CONSTRUCTOR, [constructorName]);
+    _addFix(DartFixKind.CREATE_CONSTRUCTOR, [constructorName]);
   }
 
   void _addFix_createConstructorSuperExplicit() {
@@ -601,7 +615,7 @@ class FixProcessor {
       _insertBuilder(sb, unitElement);
       // add proposal
       String proposalName = _getConstructorProposalName(superConstructor);
-      _addFix(FixKind.ADD_SUPER_CONSTRUCTOR_INVOCATION, [proposalName]);
+      _addFix(DartFixKind.ADD_SUPER_CONSTRUCTOR_INVOCATION, [proposalName]);
     }
   }
 
@@ -673,7 +687,7 @@ class FixProcessor {
       _insertBuilder(sb, unitElement);
       // add proposal
       String proposalName = _getConstructorProposalName(superConstructor);
-      _addFix(FixKind.CREATE_CONSTRUCTOR_SUPER, [proposalName]);
+      _addFix(DartFixKind.CREATE_CONSTRUCTOR_SUPER, [proposalName]);
     }
   }
 
@@ -755,7 +769,7 @@ class FixProcessor {
       _addLinkedPosition('NAME', sb, rf.rangeNode(node));
     }
     // add proposal
-    _addFix(FixKind.CREATE_FIELD, [name]);
+    _addFix(DartFixKind.CREATE_FIELD, [name]);
   }
 
   void _addFix_createFunction_forFunctionType() {
@@ -889,7 +903,7 @@ class FixProcessor {
       _addLinkedPosition('NAME', sb, rf.rangeNode(node));
     }
     // add proposal
-    _addFix(FixKind.CREATE_GETTER, [name]);
+    _addFix(DartFixKind.CREATE_GETTER, [name]);
   }
 
   void _addFix_createImportUri() {
@@ -905,7 +919,7 @@ class FixProcessor {
           change.addEdit(file, -1, edit);
           doSourceChange_addSourceEdit(change, context, source, edit);
         }
-        _addFix(FixKind.CREATE_FILE, [file]);
+        _addFix(DartFixKind.CREATE_FILE, [file]);
       }
     }
   }
@@ -923,7 +937,7 @@ class FixProcessor {
           assignment.operator.type == TokenType.EQ &&
           assignment.parent is ExpressionStatement) {
         _addInsertEdit(node.offset, 'var ');
-        _addFix(FixKind.CREATE_LOCAL_VARIABLE, [name]);
+        _addFix(DartFixKind.CREATE_LOCAL_VARIABLE, [name]);
         return;
       }
     }
@@ -961,7 +975,7 @@ class FixProcessor {
     // add linked positions
     _addLinkedPosition('NAME', sb, rf.rangeNode(node));
     // add proposal
-    _addFix(FixKind.CREATE_LOCAL_VARIABLE, [name]);
+    _addFix(DartFixKind.CREATE_LOCAL_VARIABLE, [name]);
   }
 
   void _addFix_createMissingOverrides(List<ExecutableElement> elements) {
@@ -1018,7 +1032,7 @@ class FixProcessor {
     // add proposal
     exitPosition = new Position(file, insertOffset);
     _insertBuilder(sb, unitElement);
-    _addFix(FixKind.CREATE_MISSING_OVERRIDES, [numElements]);
+    _addFix(DartFixKind.CREATE_MISSING_OVERRIDES, [numElements]);
   }
 
   void _addFix_createMissingOverrides_single(SourceBuilder sb,
@@ -1096,7 +1110,7 @@ class FixProcessor {
     _insertBuilder(sb, unitElement);
     exitPosition = new Position(file, insertOffset);
     // add proposal
-    _addFix(FixKind.CREATE_NO_SUCH_METHOD, []);
+    _addFix(DartFixKind.CREATE_NO_SUCH_METHOD, []);
   }
 
   void _addFix_createPartUri() {
@@ -1109,7 +1123,7 @@ class FixProcessor {
         SourceEdit edit = new SourceEdit(0, 0, 'part of $libName;$eol$eol');
         change.addEdit(file, -1, edit);
         doSourceChange_addSourceEdit(change, context, source, edit);
-        _addFix(FixKind.CREATE_FILE, [file]);
+        _addFix(DartFixKind.CREATE_FILE, [file]);
       }
     }
   }
@@ -1129,7 +1143,7 @@ class FixProcessor {
     }
     _addReplaceEdit(rf.rangeNode(typeName), returnTypeCode);
     // add proposal
-    _addFix(FixKind.REPLACE_RETURN_TYPE_FUTURE, []);
+    _addFix(DartFixKind.REPLACE_RETURN_TYPE_FUTURE, []);
   }
 
   void _addFix_importLibrary(FixKind kind, String importPath) {
@@ -1194,7 +1208,7 @@ class FixProcessor {
       if (prefix != null) {
         SourceRange range = rf.rangeStartLength(node, 0);
         _addReplaceEdit(range, '${prefix.displayName}.');
-        _addFix(FixKind.IMPORT_LIBRARY_PREFIX, [
+        _addFix(DartFixKind.IMPORT_LIBRARY_PREFIX, [
           libraryElement.displayName,
           prefix.displayName
         ]);
@@ -1218,7 +1232,7 @@ class FixProcessor {
         String newShowCode = 'show ${StringUtils.join(showNames, ", ")}';
         _addReplaceEdit(
             rf.rangeOffsetEnd(showCombinator), newShowCode, unitLibraryElement);
-        _addFix(FixKind.IMPORT_LIBRARY_SHOW, [libraryName]);
+        _addFix(DartFixKind.IMPORT_LIBRARY_SHOW, [libraryName]);
         // we support only one import without prefix
         return;
       }
@@ -1250,7 +1264,7 @@ class FixProcessor {
           continue;
         }
         // add import
-        _addFix_importLibrary(FixKind.IMPORT_LIBRARY_SDK, libraryUri);
+        _addFix_importLibrary(DartFixKind.IMPORT_LIBRARY_SDK, libraryUri);
       }
     }
     // check project libraries
@@ -1285,14 +1299,14 @@ class FixProcessor {
           String libraryPackageUri = findAbsoluteUri(context, libraryFile);
           if (libraryPackageUri != null) {
             _addFix_importLibrary(
-                FixKind.IMPORT_LIBRARY_PROJECT, libraryPackageUri);
+                DartFixKind.IMPORT_LIBRARY_PROJECT, libraryPackageUri);
             continue;
           }
         }
         // relative URI
         String relativeFile = relative(libraryFile, from: unitLibraryFolder);
         relativeFile = split(relativeFile).join('/');
-        _addFix_importLibrary(FixKind.IMPORT_LIBRARY_PROJECT, relativeFile);
+        _addFix_importLibrary(DartFixKind.IMPORT_LIBRARY_PROJECT, relativeFile);
       }
     }
   }
@@ -1330,7 +1344,7 @@ class FixProcessor {
       }
       int insertOffset = error.offset + error.length;
       _addInsertEdit(insertOffset, ';');
-      _addFix(FixKind.INSERT_SEMICOLON, []);
+      _addFix(DartFixKind.INSERT_SEMICOLON, []);
     }
   }
 
@@ -1339,7 +1353,7 @@ class FixProcessor {
       IsExpression isExpression = coveredNode as IsExpression;
       _addReplaceEdit(
           rf.rangeEndEnd(isExpression.expression, isExpression), ' != null');
-      _addFix(FixKind.USE_NOT_EQ_NULL, []);
+      _addFix(DartFixKind.USE_NOT_EQ_NULL, []);
     }
   }
 
@@ -1348,7 +1362,7 @@ class FixProcessor {
       IsExpression isExpression = coveredNode as IsExpression;
       _addReplaceEdit(
           rf.rangeEndEnd(isExpression.expression, isExpression), ' == null');
-      _addFix(FixKind.USE_EQ_EQ_NULL, []);
+      _addFix(DartFixKind.USE_EQ_EQ_NULL, []);
     }
   }
 
@@ -1357,7 +1371,7 @@ class FixProcessor {
         node.getAncestor((node) => node is ClassDeclaration);
     String className = enclosingClass.name.name;
     _addInsertEdit(enclosingClass.classKeyword.offset, 'abstract ');
-    _addFix(FixKind.MAKE_CLASS_ABSTRACT, [className]);
+    _addFix(DartFixKind.MAKE_CLASS_ABSTRACT, [className]);
   }
 
   void _addFix_removeParameters_inGetterDeclaration() {
@@ -1366,7 +1380,7 @@ class FixProcessor {
       FunctionBody body = method.body;
       if (method.name == node && body != null) {
         _addReplaceEdit(rf.rangeEndStart(node, body), ' ');
-        _addFix(FixKind.REMOVE_PARAMETERS_IN_GETTER_DECLARATION, []);
+        _addFix(DartFixKind.REMOVE_PARAMETERS_IN_GETTER_DECLARATION, []);
       }
     }
   }
@@ -1376,7 +1390,7 @@ class FixProcessor {
       MethodInvocation invocation = node.parent as MethodInvocation;
       if (invocation.methodName == node && invocation.target != null) {
         _addRemoveEdit(rf.rangeEndEnd(node, invocation));
-        _addFix(FixKind.REMOVE_PARENTHESIS_IN_GETTER_INVOCATION, []);
+        _addFix(DartFixKind.REMOVE_PARENTHESIS_IN_GETTER_INVOCATION, []);
       }
     }
   }
@@ -1392,7 +1406,7 @@ class FixProcessor {
     _addRemoveEdit(rf.rangeEndEnd(expression, asExpression));
     _removeEnclosingParentheses(asExpression, expressionPrecedence);
     // done
-    _addFix(FixKind.REMOVE_UNNECASSARY_CAST, []);
+    _addFix(DartFixKind.REMOVE_UNNECASSARY_CAST, []);
   }
 
   void _addFix_removeUnusedCatchClause() {
@@ -1402,7 +1416,7 @@ class FixProcessor {
           catchClause.exceptionParameter == node) {
         _addRemoveEdit(
             rf.rangeStartStart(catchClause.catchKeyword, catchClause.body));
-        _addFix(FixKind.REMOVE_UNUSED_CATCH_CLAUSE, []);
+        _addFix(DartFixKind.REMOVE_UNUSED_CATCH_CLAUSE, []);
       }
     }
   }
@@ -1414,7 +1428,7 @@ class FixProcessor {
           catchClause.stackTraceParameter == node &&
           catchClause.exceptionParameter != null) {
         _addRemoveEdit(rf.rangeEndEnd(catchClause.exceptionParameter, node));
-        _addFix(FixKind.REMOVE_UNUSED_CATCH_STACK, []);
+        _addFix(DartFixKind.REMOVE_UNUSED_CATCH_STACK, []);
       }
     }
   }
@@ -1429,7 +1443,7 @@ class FixProcessor {
     // remove the whole line with import
     _addRemoveEdit(utils.getLinesRange(rf.rangeNode(importDirective)));
     // done
-    _addFix(FixKind.REMOVE_UNUSED_IMPORT, []);
+    _addFix(DartFixKind.REMOVE_UNUSED_IMPORT, []);
   }
 
   void _addFix_replaceImportUri() {
@@ -1452,7 +1466,7 @@ class FixProcessor {
           // add fix
           SourceRange range = rf.rangeNode(node);
           _addReplaceEdit(range, "'$fixedUri'");
-          _addFix(FixKind.REPLACE_IMPORT_URI, [fixedUri]);
+          _addFix(DartFixKind.REPLACE_IMPORT_URI, [fixedUri]);
         }
       }
     }
@@ -1461,14 +1475,14 @@ class FixProcessor {
   void _addFix_replaceVarWithDynamic() {
     SourceRange range = rf.rangeError(error);
     _addReplaceEdit(range, 'dynamic');
-    _addFix(FixKind.REPLACE_VAR_WITH_DYNAMIC, []);
+    _addFix(DartFixKind.REPLACE_VAR_WITH_DYNAMIC, []);
   }
 
   void _addFix_replaceWithConstInstanceCreation() {
     if (coveredNode is InstanceCreationExpression) {
       var instanceCreation = coveredNode as InstanceCreationExpression;
       _addReplaceEdit(rf.rangeToken(instanceCreation.keyword), 'const');
-      _addFix(FixKind.USE_CONST, []);
+      _addFix(DartFixKind.USE_CONST, []);
     }
   }
 
@@ -1498,7 +1512,7 @@ class FixProcessor {
         _addReplaceEdit(rf.rangeNode(node), closestName);
         // add proposal
         if (closestName != null) {
-          _addFix(FixKind.CHANGE_TO, [closestName]);
+          _addFix(DartFixKind.CHANGE_TO, [closestName]);
         }
       }
     }
@@ -1555,7 +1569,7 @@ class FixProcessor {
       if (finder._element != null) {
         String closestName = finder._element.name;
         _addReplaceEdit(rf.rangeNode(node), closestName);
-        _addFix(FixKind.CHANGE_TO, [closestName]);
+        _addFix(DartFixKind.CHANGE_TO, [closestName]);
       }
     }
   }
@@ -1602,7 +1616,7 @@ class FixProcessor {
     _insertBuilder(sb, unitElement);
     _addLinkedPosition('NAME', sb, rf.rangeNode(node));
     // add proposal
-    _addFix(FixKind.CREATE_FUNCTION, [name]);
+    _addFix(DartFixKind.CREATE_FUNCTION, [name]);
   }
 
   void _addFix_undefinedFunction_useSimilar() {
@@ -1626,7 +1640,7 @@ class FixProcessor {
       if (finder._element != null) {
         String closestName = finder._element.name;
         _addReplaceEdit(rf.rangeNode(node), closestName);
-        _addFix(FixKind.CHANGE_TO, [closestName]);
+        _addFix(DartFixKind.CHANGE_TO, [closestName]);
       }
     }
   }
@@ -1710,7 +1724,7 @@ class FixProcessor {
         _addLinkedPosition('NAME', sb, rf.rangeNode(node));
       }
       // add proposal
-      _addFix(FixKind.CREATE_METHOD, [name]);
+      _addFix(DartFixKind.CREATE_METHOD, [name]);
     }
   }
 
@@ -1794,7 +1808,7 @@ class FixProcessor {
         _addInsertEdit(offset, fieldParametersCode);
       }
       // add proposal
-      _addFix(FixKind.ADD_FIELD_FORMAL_PARAMETERS, []);
+      _addFix(DartFixKind.ADD_FIELD_FORMAL_PARAMETERS, []);
     }
   }
 
@@ -1814,7 +1828,7 @@ class FixProcessor {
         _addRemoveEdit(rf.rangeStartStart(n, binary.leftOperand));
         _addRemoveEdit(rf.rangeEndEnd(binary.rightOperand, n));
         // add proposal
-        _addFix(FixKind.USE_EFFECTIVE_INTEGER_DIVISION, []);
+        _addFix(DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION, []);
         // done
         break;
       }
@@ -1835,7 +1849,7 @@ class FixProcessor {
       SourceRange range = rf.rangeNode(target);
       _addReplaceEdit(range, declaringTypeCode);
       // add proposal
-      _addFix(FixKind.CHANGE_TO_STATIC_ACCESS, [declaringType]);
+      _addFix(DartFixKind.CHANGE_TO_STATIC_ACCESS, [declaringType]);
     }
   }
 
@@ -1967,7 +1981,7 @@ class FixProcessor {
     _addProposal_createFunction(functionType, name, unitSource, insertOffset,
         false, prefix, sourcePrefix, sourceSuffix, unitElement);
     // add proposal
-    _addFix(FixKind.CREATE_FUNCTION, [name]);
+    _addFix(DartFixKind.CREATE_FUNCTION, [name]);
   }
 
   /**
@@ -1996,7 +2010,7 @@ class FixProcessor {
         _inStaticContext(), prefix, sourcePrefix, sourceSuffix,
         targetClassElement);
     // add proposal
-    _addFix(FixKind.CREATE_METHOD, [name]);
+    _addFix(DartFixKind.CREATE_METHOD, [name]);
   }
 
   /**

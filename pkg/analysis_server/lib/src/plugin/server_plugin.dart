@@ -4,6 +4,8 @@
 
 library analysis_server.src.plugin.server_plugin;
 
+import 'package:analysis_server/edit/fix/fix_core.dart';
+import 'package:analysis_server/plugin/fix.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
@@ -12,6 +14,7 @@ import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/plugin/plugin.dart';
 
 /**
@@ -32,6 +35,12 @@ class ServerPlugin implements Plugin {
   static const String DOMAIN_EXTENSION_POINT = 'domain';
 
   /**
+   * The simple identifier of the extension point that allows plugins to
+   * register new fix contributors with the server.
+   */
+  static const String FIX_CONTRIBUTOR_EXTENSION_POINT = 'fixContributor';
+
+  /**
    * The unique identifier of this plugin.
    */
   static const String UNIQUE_IDENTIFIER = 'analysis_server.core';
@@ -41,6 +50,12 @@ class ServerPlugin implements Plugin {
    * server.
    */
   ExtensionPoint domainExtensionPoint;
+
+  /**
+   * The extension point that allows plugins to register new fix contributors
+   * with the server.
+   */
+  ExtensionPoint fixContributorExtensionPoint;
 
   /**
    * Initialize a newly created plugin.
@@ -63,27 +78,44 @@ class ServerPlugin implements Plugin {
         .toList();
   }
 
+  /**
+   * Return a list containing all of the fix contributors that were contributed.
+   */
+  List<FixContributor> fixContributors() {
+    return fixContributorExtensionPoint.extensions;
+  }
+
   @override
   void registerExtensionPoints(RegisterExtensionPoint registerExtensionPoint) {
     domainExtensionPoint = registerExtensionPoint(
         DOMAIN_EXTENSION_POINT, _validateDomainExtension);
+    fixContributorExtensionPoint = registerExtensionPoint(
+        FIX_CONTRIBUTOR_EXTENSION_POINT, _validateFixContributorExtension);
   }
 
   @override
   void registerExtensions(RegisterExtension registerExtension) {
+    //
+    // Register domains.
+    //
     String domainId = Plugin.join(UNIQUE_IDENTIFIER, DOMAIN_EXTENSION_POINT);
     registerExtension(
         domainId, (AnalysisServer server) => new ServerDomainHandler(server));
     registerExtension(
         domainId, (AnalysisServer server) => new AnalysisDomainHandler(server));
-    registerExtension(
-        domainId, (AnalysisServer server) => new EditDomainHandler(server));
+    registerExtension(domainId,
+        (AnalysisServer server) => new EditDomainHandler(server, this));
     registerExtension(
         domainId, (AnalysisServer server) => new SearchDomainHandler(server));
     registerExtension(domainId,
         (AnalysisServer server) => new CompletionDomainHandler(server));
     registerExtension(domainId,
         (AnalysisServer server) => new ExecutionDomainHandler(server));
+    //
+    // Register fix contributors.
+    //
+    registerExtension(
+        FIX_CONTRIBUTOR_EXTENSION_POINT_ID, new DefaultFixContributor());
   }
 
   /**
@@ -95,6 +127,17 @@ class ServerPlugin implements Plugin {
       String id = domainExtensionPoint.uniqueIdentifier;
       throw new ExtensionError(
           'Extensions to $id must be a RequestHandlerFactory');
+    }
+  }
+
+  /**
+   * Validate the given extension by throwing an [ExtensionError] if it is not a
+   * valid fix contributor.
+   */
+  void _validateFixContributorExtension(Object extension) {
+    if (extension is! FixContributor) {
+      String id = domainExtensionPoint.uniqueIdentifier;
+      throw new ExtensionError('Extensions to $id must be a FixContributor');
     }
   }
 }

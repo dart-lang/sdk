@@ -2,46 +2,43 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.correction.fix;
+library analysis_server.src.services.correction.fix;
 
-import 'package:analysis_server/src/protocol.dart' show SourceChange;
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analysis_server/edit/fix/fix_core.dart';
+import 'package:analysis_server/src/plugin/server_plugin.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 
 /**
- * Computes [Fix]s for the given [AnalysisError].
- *
- * Returns the computed [Fix]s, not `null`.
+ * Compute and return the fixes available for the given [error]. The error was
+ * reported after it's source was analyzed in the given [context]. The [plugin]
+ * is used to get the list of fix contributors.
  */
-List<Fix> computeFixes(CompilationUnit unit, AnalysisError error) {
-  var processor = new FixProcessor(unit, error);
-  List<Fix> fixes = processor.compute();
-  fixes.sort((Fix a, Fix b) {
-    return a.kind.relevance - b.kind.relevance;
-  });
-  return fixes;
-}
-
-/**
- * A description of a single proposed fix for some problem.
- */
-class Fix {
-  final FixKind kind;
-  final SourceChange change;
-
-  Fix(this.kind, this.change);
-
-  @override
-  String toString() {
-    return '[kind=$kind, change=$change]';
+List<Fix> computeFixes(
+    ServerPlugin plugin, AnalysisContext context, AnalysisError error) {
+  List<Fix> fixes = <Fix>[];
+  List<FixContributor> contributors = plugin.fixContributors();
+  for (FixContributor contributor in contributors) {
+    try {
+      List<Fix> contributedFixes = contributor.computeFixes(context, error);
+      if (contributedFixes != null) {
+        fixes.addAll(contributedFixes);
+      }
+    } catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logError(
+          'Exception from fix contributor: ${contributor.runtimeType}',
+          new CaughtException(exception, stackTrace));
+    }
   }
+  fixes.sort(Fix.SORT_BY_RELEVANCE);
+  return fixes;
 }
 
 /**
  * An enumeration of possible quick fix kinds.
  */
-class FixKind {
+class DartFixKind {
   static const ADD_ASYNC =
       const FixKind('ADD_ASYNC', 50, "Add 'async' modifier");
   static const ADD_FIELD_FORMAL_PARAMETERS = const FixKind(
@@ -99,8 +96,8 @@ class FixKind {
       "Remove parentheses in getter invocation");
   static const REMOVE_UNNECASSARY_CAST =
       const FixKind('REMOVE_UNNECASSARY_CAST', 50, "Remove unnecessary cast");
-  static const REMOVE_UNUSED_CATCH_CLAUSE = const FixKind(
-      'REMOVE_UNUSED_CATCH', 50, "Remove unused 'catch' clause");
+  static const REMOVE_UNUSED_CATCH_CLAUSE =
+      const FixKind('REMOVE_UNUSED_CATCH', 50, "Remove unused 'catch' clause");
   static const REMOVE_UNUSED_CATCH_STACK = const FixKind(
       'REMOVE_UNUSED_CATCH_STACK', 50, "Remove unused stack trace variable");
   static const REMOVE_UNUSED_IMPORT =
@@ -122,13 +119,4 @@ class FixKind {
       const FixKind('USE_EQ_EQ_NULL', 50, "Use == null instead of 'is Null'");
   static const USE_NOT_EQ_NULL =
       const FixKind('USE_NOT_EQ_NULL', 50, "Use != null instead of 'is! Null'");
-
-  final name;
-  final int relevance;
-  final String message;
-
-  const FixKind(this.name, this.relevance, this.message);
-
-  @override
-  String toString() => name;
 }

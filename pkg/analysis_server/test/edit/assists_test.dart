@@ -7,7 +7,9 @@ library test.edit.assists;
 import 'dart:async';
 
 import 'package:analysis_server/src/edit/edit_domain.dart';
+import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analyzer/src/plugin/plugin_impl.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
@@ -39,7 +41,10 @@ class AssistsTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     createProject();
-    handler = new EditDomainHandler(server);
+    ExtensionManager manager = new ExtensionManager();
+    ServerPlugin plugin = new ServerPlugin();
+    manager.processPlugins([plugin]);
+    handler = new EditDomainHandler(server, plugin);
   }
 
   Future test_removeTypeAnnotation() {
