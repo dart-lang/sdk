@@ -11,14 +11,78 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/local_declaration_visitor.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
+
+void _addNamedParameterSuggestion(
+    DartCompletionRequest request, List<String> namedArgs, String name) {
+  if (name != null && name.length > 0 && !namedArgs.contains(name)) {
+    request.addSuggestion(new CompletionSuggestion(
+        CompletionSuggestionKind.NAMED_ARGUMENT, DART_RELEVANCE_PARAMETER,
+        '$name: ', name.length + 2, 0, false, false));
+  }
+}
+
+/**
+ * Determine the number of arguments.
+ */
+int _argCount(DartCompletionRequest request) {
+  AstNode node = request.target.containingNode;
+  if (node is ArgumentList) {
+    return node.arguments.length;
+  }
+  return 0;
+}
+
+/**
+ * Determine if the completion target is at the end of the list of arguments.
+ */
+bool _isAppendingToArgList(DartCompletionRequest request) {
+  AstNode node = request.target.containingNode;
+  if (node is ArgumentList) {
+    var entity = request.target.entity;
+    if (entity == node.rightParenthesis) {
+      return true;
+    }
+    if (node.arguments.length > 0 && node.arguments.last == entity) {
+      return entity is SimpleIdentifier;
+    }
+  }
+  return false;
+}
+
+/**
+ * Determine if the completion target is an emtpy argument list.
+ */
+bool _isEmptyArgList(DartCompletionRequest request) {
+  AstNode node = request.target.containingNode;
+  return node is ArgumentList &&
+      node.leftParenthesis.next == node.rightParenthesis;
+}
+
+/**
+ * Return a collection of currently specified named arguments
+ */
+Iterable<String> _namedArgs(DartCompletionRequest request) {
+  AstNode node = request.target.containingNode;
+  List<String> namedArgs = new List<String>();
+  if (node is ArgumentList) {
+    for (Expression arg in node.arguments) {
+      if (arg is NamedExpression) {
+        namedArgs.add(arg.name.label.name);
+      }
+    }
+  }
+  return namedArgs;
+}
 
 /**
  * A contributor for calculating `completion.getSuggestions` request results
  * when the cursor position is inside the arguments to a method call.
  */
 class ArgListContributor extends DartCompletionContributor {
-  _ArgListSuggestionBuilder builder;
+  _ArgSuggestionBuilder builder;
 
   @override
   bool computeFast(DartCompletionRequest request) {
@@ -40,14 +104,13 @@ class ArgListContributor extends DartCompletionContributor {
  * A visitor for determining whether an argument list suggestion is needed
  * and instantiating the builder to create the suggestion.
  */
-class _ArgListAstVisitor
-    extends GeneralizingAstVisitor<_ArgListSuggestionBuilder> {
+class _ArgListAstVisitor extends GeneralizingAstVisitor<_ArgSuggestionBuilder> {
   final DartCompletionRequest request;
 
   _ArgListAstVisitor(this.request);
 
   @override
-  _ArgListSuggestionBuilder visitArgumentList(ArgumentList node) {
+  _ArgSuggestionBuilder visitArgumentList(ArgumentList node) {
     Token leftParen = node.leftParenthesis;
     if (leftParen != null && request.offset > leftParen.offset) {
       AstNode parent = node.parent;
@@ -62,53 +125,122 @@ class _ArgListAstVisitor
                * indicating that suggestions were added
                * and no further action is necessary
                */
-              if (new _LocalDeclarationFinder(request, request.offset, name)
+              if (new _LocalArgSuggestionBuilder(request, request.offset, name)
                   .visit(node)) {
                 return null;
               }
             } else {
               // determine target
             }
+            return new _ArgSuggestionBuilder(request, name);
           }
         }
       }
-      return new _ArgListSuggestionBuilder(request);
     }
     return null;
   }
 
   @override
-  _ArgListSuggestionBuilder visitNode(AstNode node) {
+  _ArgSuggestionBuilder visitNode(AstNode node) {
     return null;
   }
 }
 
 /**
- * A `_ArgListSuggestionBuilder` determines which method or function is being
+ * A [_ArgSuggestionBuilder] determines which method or function is being
  * invoked, then builds the argument list suggestion.
  * This operation is instantiated during `computeFast`
  * and calculates the suggestions during `computeFull`.
  */
-class _ArgListSuggestionBuilder {
+class _ArgSuggestionBuilder {
   final DartCompletionRequest request;
+  final String methodName;
 
-  _ArgListSuggestionBuilder(this.request);
+  _ArgSuggestionBuilder(this.request, this.methodName);
 
   Future<bool> compute(ArgumentList node) {
+    AstNode parent = node.parent;
+    if (parent is MethodInvocation) {
+      SimpleIdentifier methodName = parent.methodName;
+      if (methodName != null) {
+        Element methodElem = methodName.bestElement;
+        if (methodElem is ExecutableElement) {
+          _addSuggestions(methodElem.parameters);
+        }
+      }
+    }
     return new Future.value(false);
+  }
+
+  void _addArgListSuggestion(Iterable<ParameterElement> requiredParam) {
+    StringBuffer completion = new StringBuffer('(');
+    List<String> paramNames = new List<String>();
+    List<String> paramTypes = new List<String>();
+    for (ParameterElement param in requiredParam) {
+      String name = param.name;
+      if (name != null && name.length > 0) {
+        if (completion.length > 1) {
+          completion.write(', ');
+        }
+        completion.write(name);
+        paramNames.add(name);
+        paramTypes.add(_getParamType(param));
+      }
+    }
+    completion.write(')');
+    CompletionSuggestion suggestion = new CompletionSuggestion(
+        CompletionSuggestionKind.ARGUMENT_LIST, DART_RELEVANCE_HIGH,
+        completion.toString(), completion.length, 0, false, false);
+    suggestion.parameterNames = paramNames;
+    suggestion.parameterTypes = paramTypes;
+    request.addSuggestion(suggestion);
+  }
+
+  void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters) {
+    Iterable<String> namedArgs = _namedArgs(request);
+    for (ParameterElement param in parameters) {
+      if (param.parameterKind == ParameterKind.NAMED) {
+        _addNamedParameterSuggestion(request, namedArgs, param.name);
+      }
+    }
+  }
+
+  void _addSuggestions(Iterable<ParameterElement> parameters) {
+    if (parameters == null || parameters.length == 0) {
+      return;
+    }
+    Iterable<ParameterElement> requiredParam = parameters.where(
+        (ParameterElement p) => p.parameterKind == ParameterKind.REQUIRED);
+    if (requiredParam.length > 0 && _isEmptyArgList(request)) {
+      _addArgListSuggestion(requiredParam);
+      return;
+    }
+    if (_isAppendingToArgList(request) &&
+        _argCount(request) > requiredParam.length) {
+      _addDefaultParamSuggestions(parameters);
+    }
+  }
+
+  String _getParamType(ParameterElement param) {
+    DartType type = param.type;
+    if (type != null) {
+      return type.displayName;
+    }
+    return 'dynamic';
   }
 }
 
 /**
- * `_LocalDeclarationFinder` visits an [AstNode] and its parent recursively
+ * [_LocalArgSuggestionBuilder] visits an [AstNode] and its parent recursively
  * looking for a matching declaration. If found, it adds the appropriate
  * suggestions and sets finished to `true`.
  */
-class _LocalDeclarationFinder extends LocalDeclarationVisitor {
+class _LocalArgSuggestionBuilder extends LocalDeclarationVisitor {
   final DartCompletionRequest request;
   final String name;
 
-  _LocalDeclarationFinder(this.request, int offset, this.name) : super(offset);
+  _LocalArgSuggestionBuilder(this.request, int offset, this.name)
+      : super(offset);
 
   @override
   void declaredClass(ClassDeclaration declaration) {}
@@ -123,7 +255,7 @@ class _LocalDeclarationFinder extends LocalDeclarationVisitor {
   void declaredFunction(FunctionDeclaration declaration) {
     SimpleIdentifier selector = declaration.name;
     if (selector != null && name == selector.name) {
-      _addArgListSuggestion(declaration.functionExpression.parameters);
+      _addSuggestions(declaration.functionExpression.parameters);
       finished();
     }
   }
@@ -141,7 +273,7 @@ class _LocalDeclarationFinder extends LocalDeclarationVisitor {
   void declaredMethod(MethodDeclaration declaration) {
     SimpleIdentifier selector = declaration.name;
     if (selector != null && name == selector.name) {
-      _addArgListSuggestion(declaration.parameters);
+      _addSuggestions(declaration.parameters);
       finished();
     }
   }
@@ -153,14 +285,11 @@ class _LocalDeclarationFinder extends LocalDeclarationVisitor {
   void declaredTopLevelVar(
       VariableDeclarationList varList, VariableDeclaration varDecl) {}
 
-  void _addArgListSuggestion(FormalParameterList parameters) {
-    if (parameters == null || parameters.parameters.length == 0) {
-      return;
-    }
+  void _addArgListSuggestion(Iterable<FormalParameter> requiredParam) {
     StringBuffer completion = new StringBuffer('(');
     List<String> paramNames = new List<String>();
     List<String> paramTypes = new List<String>();
-    for (FormalParameter param in parameters.parameters) {
+    for (FormalParameter param in requiredParam) {
       SimpleIdentifier paramId = param.identifier;
       if (paramId != null) {
         String name = paramId.name;
@@ -181,6 +310,34 @@ class _LocalDeclarationFinder extends LocalDeclarationVisitor {
     suggestion.parameterNames = paramNames;
     suggestion.parameterTypes = paramTypes;
     request.addSuggestion(suggestion);
+  }
+
+  void _addDefaultParamSuggestions(FormalParameterList parameters) {
+    Iterable<String> namedArgs = _namedArgs(request);
+    for (FormalParameter param in parameters.parameters) {
+      if (param.kind == ParameterKind.NAMED) {
+        SimpleIdentifier paramId = param.identifier;
+        if (paramId != null) {
+          _addNamedParameterSuggestion(request, namedArgs, paramId.name);
+        }
+      }
+    }
+  }
+
+  void _addSuggestions(FormalParameterList parameters) {
+    if (parameters == null || parameters.parameters.length == 0) {
+      return;
+    }
+    Iterable<FormalParameter> requiredParam = parameters.parameters
+        .where((FormalParameter p) => p.kind == ParameterKind.REQUIRED);
+    if (requiredParam.length > 0 && _isEmptyArgList(request)) {
+      _addArgListSuggestion(requiredParam);
+      return;
+    }
+    if (_isAppendingToArgList(request) &&
+        _argCount(request) > requiredParam.length) {
+      _addDefaultParamSuggestions(parameters);
+    }
   }
 
   String _getParamType(FormalParameter param) {

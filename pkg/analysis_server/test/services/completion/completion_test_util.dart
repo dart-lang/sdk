@@ -131,46 +131,6 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     return cs;
   }
 
-  void assertSuggestArgumentList(
-      List<String> paramNames, List<String> paramTypes) {
-    CompletionSuggestionKind csKind = CompletionSuggestionKind.ARGUMENT_LIST;
-    CompletionSuggestion cs = getSuggest(csKind: csKind);
-    if (cs == null) {
-      failedCompletion('expected completion $csKind', request.suggestions);
-    }
-    assertSuggestArgumentList_params(
-        paramNames, paramTypes, cs.parameterNames, cs.parameterTypes);
-    expect(cs.relevance, DART_RELEVANCE_HIGH);
-  }
-
-  void assertSuggestArgumentList_params(List<String> expectedNames,
-      List<String> expectedTypes, List<String> actualNames,
-      List<String> actualTypes) {
-    if (actualNames != null &&
-        actualNames.length == expectedNames.length &&
-        actualTypes != null &&
-        actualTypes.length == expectedTypes.length) {
-      int index = 0;
-      while (index < expectedNames.length) {
-        if (actualNames[index] != expectedNames[index] ||
-            actualTypes[index] != expectedTypes[index]) {
-          break;
-        }
-        ++index;
-      }
-      if (index == expectedNames.length) {
-        return;
-      }
-    }
-    StringBuffer msg = new StringBuffer();
-    msg.writeln('Argument list not the same');
-    msg.writeln('  Expected names: $expectedNames');
-    msg.writeln('           found: $actualNames');
-    msg.writeln('  Expected types: $expectedTypes');
-    msg.writeln('           found: $actualTypes');
-    fail(msg.toString());
-  }
-
   CompletionSuggestion assertSuggestClass(String name,
       {int relevance: DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
