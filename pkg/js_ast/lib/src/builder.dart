@@ -611,11 +611,14 @@ class MiniJsParser {
         position++;
         if (position == src.length) break;
         int code = src.codeUnitAt(position);
-        // Special code to disallow ! and / in non-first position in token, so
-        // that !! parses as two tokens and != parses as one, while =/ parses
-        // as a an equals token followed by a regexp literal start.
-        newCat = (code == charCodes.$BANG || code == charCodes.$SLASH)
-            ?  NONE
+        // Special code to disallow !, ~ and / in non-first position in token,
+        // so that !! and ~~ parse as two tokens and != parses as one, while =/
+        // parses as a an equals token followed by a regexp literal start.
+        newCat =
+            (code == charCodes.$BANG ||
+             code == charCodes.$SLASH ||
+             code == charCodes.$TILDE)
+            ? NONE
             : category(code);
       } while (!singleCharCategory(cat) &&
                (cat == newCat ||

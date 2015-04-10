@@ -1713,37 +1713,44 @@ abstract class HForeign extends HInstruction {
 class HForeignCode extends HForeign {
   final js.Template codeTemplate;
   final bool isStatement;
-  final bool _canThrow;
   final native.NativeBehavior nativeBehavior;
+  native.NativeThrowBehavior throwBehavior;
 
   HForeignCode(this.codeTemplate,
-           TypeMask type,
-           List<HInstruction> inputs,
-           {this.isStatement: false,
-            SideEffects effects,
-            native.NativeBehavior nativeBehavior,
-            canThrow: false})
+      TypeMask type,
+      List<HInstruction> inputs,
+      {this.isStatement: false,
+       SideEffects effects,
+       native.NativeBehavior nativeBehavior,
+       native.NativeThrowBehavior throwBehavior})
       : this.nativeBehavior = nativeBehavior,
-        this._canThrow = canThrow,
+        this.throwBehavior = throwBehavior,
         super(type, inputs) {
-    if(codeTemplate == null) throw this;
+    assert(codeTemplate != null);
     if (effects == null && nativeBehavior != null) {
       effects = nativeBehavior.sideEffects;
     }
+    if (this.throwBehavior == null) {
+      this.throwBehavior = (nativeBehavior == null)
+          ? native.NativeThrowBehavior.MAY
+          : nativeBehavior.throwBehavior;
+    }
+    assert(this.throwBehavior != null);
+
     if (effects != null) sideEffects.add(effects);
   }
 
-  HForeignCode.statement(codeTemplate, List<HInstruction> inputs,
-                     SideEffects effects,
-                     native.NativeBehavior nativeBehavior,
-                     TypeMask type)
+  HForeignCode.statement(js.Template codeTemplate, List<HInstruction> inputs,
+      SideEffects effects,
+      native.NativeBehavior nativeBehavior,
+      TypeMask type)
       : this(codeTemplate, type, inputs, isStatement: true,
              effects: effects, nativeBehavior: nativeBehavior);
 
   accept(HVisitor visitor) => visitor.visitForeignCode(this);
 
   bool isJsStatement() => isStatement;
-  bool canThrow() => _canThrow || super.canThrow();
+  bool canThrow() => throwBehavior.canThrow;
 }
 
 class HForeignNew extends HForeign {

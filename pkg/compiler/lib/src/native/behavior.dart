@@ -29,6 +29,8 @@ class NativeThrowBehavior {
   final int _bits;
   const NativeThrowBehavior._(this._bits);
 
+  bool get canThrow => this != NEVER;
+
   String toString() {
     if (this == NEVER) return 'never';
     if (this == MAY) return 'may';
@@ -87,17 +89,31 @@ class NativeBehavior {
   bool isAllocation = false;
   bool useGvn = false;
 
+  // TODO(sra): Make NativeBehavior immutable so PURE and PURE_ALLOCATION can be
+  // final constant-like objects.
+  static NativeBehavior get PURE => NativeBehavior._makePure();
+  static NativeBehavior get PURE_ALLOCATION =>
+      NativeBehavior._makePure(isAllocation: true);
+
   String toString() {
     return 'NativeBehavior('
-        'returns: ${typesReturned}, '
-        'creates: ${typesInstantiated}, '
-        'sideEffects: ${sideEffects}, '
-        'throws: ${throwBehavior}'
+        'returns: ${typesReturned}'
+        ', creates: ${typesInstantiated}'
+        ', sideEffects: ${sideEffects}'
+        ', throws: ${throwBehavior}'
         '${isAllocation ? ", isAllocation" : ""}'
         '${useGvn ? ", useGvn" : ""}'
         ')';
   }
 
+  static NativeBehavior _makePure({bool isAllocation: false}) {
+    NativeBehavior behavior = new NativeBehavior();
+    behavior.sideEffects.clearAllDependencies();
+    behavior.sideEffects.clearAllSideEffects();
+    behavior.throwBehavior = NativeThrowBehavior.NEVER;
+    behavior.isAllocation = isAllocation;
+    return behavior;
+  }
 
   /// Processes the type specification string of a call to JS and stores the
   /// result in the [typesReturned] and [typesInstantiated]. It furthermore
@@ -470,6 +486,10 @@ class NativeBehavior {
       new SideEffectsVisitor(behavior.sideEffects)
           .visit(behavior.codeTemplate.ast);
     }
+    if (!throwBehaviorFromSpecString) {
+      behavior.throwBehavior =
+          new ThrowBehaviorVisitor().analyze(behavior.codeTemplate.ast);
+    }
 
     return behavior;
   }
@@ -527,6 +547,13 @@ class NativeBehavior {
                       typesInstantiated: behavior.typesInstantiated,
                       objectType: compiler.objectClass.computeType(compiler),
                       nullType: compiler.nullClass.computeType(compiler));
+
+    // Embedded globals are usually pre-computed data structures or JavaScript
+    // functions that never change.
+    // TODO(sra): Allow the use site to override these defaults.
+    behavior.sideEffects.clearAllDependencies();
+    behavior.sideEffects.clearAllSideEffects();
+    behavior.throwBehavior = NativeThrowBehavior.NEVER;
 
     return behavior;
   }
