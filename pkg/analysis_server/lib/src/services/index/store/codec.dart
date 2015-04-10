@@ -81,21 +81,17 @@ class ElementCodec {
     for (Source unitSource in unitSources) {
       List<Source> libSources = context.getLibrariesContaining(unitSource);
       for (Source libSource in libSources) {
-        LibraryElement libraryElement = context.getLibraryElement(libSource);
-        if (libraryElement == null) {
+        CompilationUnitElement unitElement =
+            context.getCompilationUnitElement(unitSource, libSource);
+        if (unitElement == null) {
           return null;
         }
         if (kindId == ElementKind.LIBRARY.ordinal) {
-          return libraryElement;
+          return unitElement.library;
         } else if (kindId == ElementKind.COMPILATION_UNIT.ordinal) {
-          for (CompilationUnitElement unit in libraryElement.units) {
-            if (unit.source.fullName == filePath) {
-              return unit;
-            }
-          }
-          return null;
+          return unitElement;
         } else {
-          Element element = libraryElement.getElementAt(offset);
+          Element element = unitElement.getElementAt(offset);
           if (element == null) {
             return null;
           }
