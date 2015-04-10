@@ -381,8 +381,9 @@ class TopLevelFunctionElementY extends ElementY
     with AnalyzableElementY,
          AstElementY,
          TopLevelElementMixin,
-         FunctionElementMixin
-    implements dart2js.FunctionElement {
+         FunctionElementMixin,
+         MemberElementMixin
+    implements dart2js.MethodElement {
   analyzer.FunctionElement get element => super.element;
 
   @override
@@ -391,6 +392,9 @@ class TopLevelFunctionElementY extends ElementY
   TopLevelFunctionElementY(ElementConverter converter,
                            analyzer.FunctionElement element)
       : super(converter, element);
+
+  @override
+  get nestedClosures => unsupported('nestedClosures');
 }
 
 class LocalFunctionElementY extends ElementY

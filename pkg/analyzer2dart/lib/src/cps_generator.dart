@@ -201,7 +201,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     analyzer.Element staticElement = semantics.element;
     dart2js.Element element = converter.convertElement(staticElement);
     List<ir.Primitive> arguments = visitArguments(node.argumentList);
-    return irBuilder.buildStaticInvocation(
+    return irBuilder.buildStaticFunctionInvocation(
         element,
         createSelectorFromMethodInvocation(
             node.argumentList, node.methodName.name),
@@ -217,13 +217,16 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
                                      AccessSemantics semantics) {
     analyzer.Element staticElement = semantics.element;
     dart2js.Element element = converter.convertElement(staticElement);
-    ir.Primitive receiver = irBuilder.buildLocalGet(element);
     List<ir.Definition> arguments = visitArguments(node.argumentList);
-    return irBuilder.buildCallInvocation(
-      receiver,
-      createSelectorFromMethodInvocation(
-          node.argumentList, node.methodName.name),
-      arguments);
+    Selector selector = createSelectorFromMethodInvocation(
+        node.argumentList, node.methodName.name);
+    if (semantics.kind == AccessKind.LOCAL_FUNCTION) {
+      return irBuilder.buildLocalFunctionInvocation(
+          element, selector, arguments);
+    } else {
+      return irBuilder.buildLocalVariableInvocation(
+        element, selector, arguments);
+    }
   }
 
   @override
@@ -347,7 +350,12 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   }
 
   ir.Primitive handleLocalAccess(AstNode node, AccessSemantics semantics) {
-    return irBuilder.buildLocalGet(getLocal(node, semantics));
+    dart2js.Element local = getLocal(node, semantics);
+    if (semantics.kind == AccessKind.LOCAL_FUNCTION) {
+      return irBuilder.buildLocalFunctionGet(local);
+    } else {
+      return irBuilder.buildLocalVariableGet(local);
+    }
   }
 
   ir.Primitive handleLocalAssignment(AssignmentExpression node,
@@ -355,7 +363,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     if (node.operator.lexeme != '=') {
       return giveUp(node, 'Assignment operator: ${node.operator.lexeme}');
     }
-    return irBuilder.buildLocalSet(
+    return irBuilder.buildLocalVariableSet(
         getLocal(node, semantics),
         build(node.rightHandSide));
   }
@@ -390,7 +398,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     // [TreeShaker] and shared with the [CpsGeneratingVisitor].
     assert(invariant(node, target.isTopLevel || target.isStatic,
                      '$target expected to be top-level or static.'));
-    return irBuilder.buildStaticSet(target, build(node.rightHandSide));
+    return irBuilder.buildStaticFieldSet(target, build(node.rightHandSide));
   }
 
   @override
@@ -410,7 +418,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     // [TreeShaker] and shared with the [CpsGeneratingVisitor].
     assert(invariant(node, target.isTopLevel || target.isStatic,
                      '$target expected to be top-level or static.'));
-    return irBuilder.buildStaticGet(target);
+    return irBuilder.buildStaticFieldGet(target);
   }
 
   ir.Primitive handleBinaryExpression(BinaryExpression node,

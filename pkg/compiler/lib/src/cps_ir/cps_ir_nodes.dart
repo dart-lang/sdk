@@ -266,20 +266,24 @@ class InvokeMethod extends Expression implements Invoke {
   CallingConvention callingConvention;
   final Reference<Continuation> continuation;
   final List<Reference<Primitive>> arguments;
+  final SourceInformation sourceInformation;
 
   InvokeMethod(Primitive receiver,
                Selector selector,
                Continuation continuation,
-               List<Primitive> arguments)
+               List<Primitive> arguments,
+               {SourceInformation sourceInformation})
       : this.internal(new Reference<Primitive>(receiver),
                       selector,
                       new Reference<Continuation>(continuation),
-                      _referenceList(arguments));
+                      _referenceList(arguments),
+                      sourceInformation);
 
   InvokeMethod.internal(this.receiver,
                         this.selector,
                         this.continuation,
                         this.arguments,
+                        this.sourceInformation,
                         [this.callingConvention = CallingConvention.DART]) {
     assert(isValid);
   }

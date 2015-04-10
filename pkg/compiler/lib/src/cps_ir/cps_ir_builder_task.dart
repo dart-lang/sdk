@@ -260,7 +260,8 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       if (parameterElement.isInitializingFormal) {
         InitializingFormalElement initializingFormal = parameterElement;
         withBuilder(irBuilder.makeInitializerBuilder(), () {
-          ir.Primitive value = irBuilder.buildLocalGet(parameterElement);
+          ir.Primitive value =
+              irBuilder.buildLocalVariableGet(parameterElement);
           result.add(irBuilder.makeFieldInitializer(
               initializingFormal.fieldElement,
               irBuilder.makeBody(value)));
@@ -702,7 +703,15 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
     if (element.isConst) {
       return translateConstant(node);
     }
-    return irBuilder.buildLocalGet(element);
+    return irBuilder.buildLocalVariableGet(element);
+  }
+
+  @override
+  ir.Primitive visitLocalFunctionGet(
+      ast.Send node,
+      LocalFunctionElement function,
+      _) {
+    return irBuilder.buildLocalFunctionGet(function);
   }
 
   @override
@@ -713,7 +722,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
     if (field.isConst) {
       return translateConstant(node);
     }
-    return irBuilder.buildStaticGet(field,
+    return irBuilder.buildStaticFieldGet(field,
         sourceInformation: sourceInformationBuilder.buildGet(node));
   }
 
@@ -734,8 +743,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       ast.Send node,
       FunctionElement getter,
       _) {
-    return irBuilder.buildStaticInvocation(getter,
-        new Selector.getter(getter.name, getter.library), const []);
+    return irBuilder.buildStaticGetterGet(getter);
   }
 
   @override
@@ -743,7 +751,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       ast.Send node,
       FieldElement field,
       _) {
-    return irBuilder.buildSuperGet(field);
+    return irBuilder.buildSuperFieldGet(field);
   }
 
   @override
@@ -751,7 +759,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       ast.Send node,
       FunctionElement getter,
       _) {
-    return irBuilder.buildSuperGet(getter);
+    return irBuilder.buildSuperGetterGet(getter);
   }
 
   @override
@@ -759,7 +767,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       ast.Send node,
       MethodElement method,
       _) {
-    return irBuilder.buildSuperGet(method);
+    return irBuilder.buildSuperMethodGet(method);
   }
 
   @override
@@ -870,7 +878,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
     Selector selector = new Selector.binaryOperator(operator.selectorName);
     List<ir.Primitive> arguments = <ir.Primitive>[visit(argument)];
     arguments = normalizeDynamicArguments(selector, arguments);
-    return irBuilder.buildSuperInvocation(function, selector, arguments);
+    return irBuilder.buildSuperMethodInvocation(function, selector, arguments);
   }
 
   @override
@@ -892,7 +900,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
     Selector selector = new Selector.index();
     List<ir.Primitive> arguments = <ir.Primitive>[visit(index)];
     arguments = normalizeDynamicArguments(selector, arguments);
-    return irBuilder.buildSuperInvocation(function, selector, arguments);
+    return irBuilder.buildSuperMethodInvocation(function, selector, arguments);
   }
 
   @override
@@ -964,7 +972,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
         SelectorKind.OPERATOR,
         new PublicName(operator.selectorName),
         CallStructure.NO_ARGS);
-    return irBuilder.buildSuperInvocation(function, selector, const []);
+    return irBuilder.buildSuperMethodInvocation(function, selector, const []);
   }
 
   // TODO(johnniwinther): Handle this in the [IrBuilder] to ensure the correct
@@ -1029,7 +1037,18 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       ast.NodeList arguments,
       Selector selector,
       _) {
-    return irBuilder.buildLocalInvocation(element, selector,
+    return irBuilder.buildLocalVariableInvocation(element, selector,
+        translateDynamicArguments(arguments, selector));
+  }
+
+  @override
+  ir.Primitive visitLocalFunctionInvoke(
+      ast.Send node,
+      LocalFunctionElement function,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    return irBuilder.buildLocalFunctionInvocation(function, selector,
         translateDynamicArguments(arguments, selector));
   }
 
@@ -1040,9 +1059,8 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       ast.NodeList arguments,
       Selector selector,
       _) {
-    return translateCallInvoke(
-        irBuilder.buildStaticGet(field),
-        arguments, selector);
+    return irBuilder.buildStaticFieldInvocation(field, selector,
+        translateDynamicArguments(arguments, selector));
   }
 
   @override
@@ -1056,7 +1074,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
     if (function.isForeign(compiler.backend)) {
       return giveup(node, 'handleStaticFunctionInvoke: foreign: $function');
     }
-    return irBuilder.buildStaticInvocation(function, selector,
+    return irBuilder.buildStaticFunctionInvocation(function, selector,
         translateStaticArguments(arguments, function, selector.callStructure),
         sourceInformation: sourceInformationBuilder.buildCall(node));
   }
@@ -1068,9 +1086,8 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       ast.NodeList arguments,
       Selector selector,
       _) {
-    return translateCallInvoke(
-        irBuilder.buildStaticGet(getter),
-        arguments, selector);
+    return irBuilder.buildStaticGetterInvocation(getter, selector,
+        translateDynamicArguments(arguments, selector));
   }
 
   @override
@@ -1080,9 +1097,8 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       ast.NodeList arguments,
       Selector selector,
       _) {
-    return translateCallInvoke(
-        irBuilder.buildSuperGet(field),
-        arguments, selector);
+    return irBuilder.buildSuperFieldInvocation(field, selector,
+        translateDynamicArguments(arguments, selector));
   }
 
   @override
@@ -1092,9 +1108,8 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       ast.NodeList arguments,
       Selector selector,
       _) {
-    return translateCallInvoke(
-        irBuilder.buildSuperGet(getter),
-        arguments, selector);
+    return irBuilder.buildSuperGetterInvocation(getter, selector,
+        translateDynamicArguments(arguments, selector));
   }
 
   @override
@@ -1104,7 +1119,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       ast.NodeList arguments,
       Selector selector,
       _) {
-    return irBuilder.buildSuperInvocation(method, selector,
+    return irBuilder.buildSuperMethodInvocation(method, selector,
         translateDynamicArguments(arguments, selector));
   }
 
@@ -1203,7 +1218,8 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
           Selector selector = new Selector.index();
           List<ir.Primitive> arguments = <ir.Primitive>[indexValue];
           arguments = normalizeDynamicArguments(selector, arguments);
-          return irBuilder.buildSuperInvocation(getter, selector, arguments);
+          return irBuilder.buildSuperMethodInvocation(
+              getter, selector, arguments);
         },
         operator: operator,
         rhs: rhs,
@@ -1304,11 +1320,11 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       ast.Node rhs,
       _) {
     return translateCompound(
-        getValue: () => irBuilder.buildLocalGet(element),
+        getValue: () => irBuilder.buildLocalVariableGet(element),
         operator: operator,
         rhs: rhs,
         setValue: (ir.Primitive result) {
-          irBuilder.buildLocalSet(element, result);
+          irBuilder.buildLocalVariableSet(element, result);
         });
   }
 
@@ -1320,10 +1336,10 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       arg,
       {bool isPrefix}) {
     return translatePrefixPostfix(
-        getValue: () => irBuilder.buildLocalGet(element),
+        getValue: () => irBuilder.buildLocalVariableGet(element),
         operator: operator,
         setValue: (ir.Primitive result) {
-          irBuilder.buildLocalSet(element, result);
+          irBuilder.buildLocalVariableSet(element, result);
         },
         isPrefix: isPrefix);
   }
@@ -1334,7 +1350,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       LocalElement element,
       ast.Node rhs,
       _) {
-    return irBuilder.buildLocalSet(element, visit(rhs));
+    return irBuilder.buildLocalVariableSet(element, visit(rhs));
   }
 
   @override
@@ -1345,11 +1361,11 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       ast.Node rhs,
       _) {
     return translateCompound(
-        getValue: () => irBuilder.buildStaticGet(field),
+        getValue: () => irBuilder.buildStaticFieldGet(field),
         operator: operator,
         rhs: rhs,
         setValue: (ir.Primitive result) {
-          irBuilder.buildStaticSet(field, result);
+          irBuilder.buildStaticFieldSet(field, result);
         });
   }
 
@@ -1361,10 +1377,10 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       arg,
       {bool isPrefix}) {
     return translatePrefixPostfix(
-        getValue: () => irBuilder.buildStaticGet(field),
+        getValue: () => irBuilder.buildStaticFieldGet(field),
         operator: operator,
         setValue: (ir.Primitive result) {
-          irBuilder.buildStaticSet(field, result);
+          irBuilder.buildStaticFieldSet(field, result);
         },
         isPrefix: isPrefix);
   }
@@ -1375,7 +1391,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       FieldElement field,
       ast.Node rhs,
       _) {
-    return irBuilder.buildStaticSet(field, visit(rhs));
+    return irBuilder.buildStaticFieldSet(field, visit(rhs));
   }
 
   @override
@@ -1384,7 +1400,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       FieldElement field,
       ast.Node rhs,
       _) {
-    return irBuilder.buildSuperSet(field, visit(rhs));
+    return irBuilder.buildSuperFieldSet(field, visit(rhs));
   }
 
   @override
@@ -1393,7 +1409,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       FunctionElement setter,
       ast.Node rhs,
       _) {
-    return irBuilder.buildSuperSet(setter, visit(rhs));
+    return irBuilder.buildSuperSetterSet(setter, visit(rhs));
   }
 
   @override
@@ -1405,11 +1421,11 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       ast.Node rhs,
       _) {
     return translateCompound(
-        getValue: () => irBuilder.buildStaticGet(getter),
+        getValue: () => irBuilder.buildStaticGetterGet(getter),
         operator: operator,
         rhs: rhs,
         setValue: (ir.Primitive result) {
-          irBuilder.buildStaticSet(setter, result);
+          irBuilder.buildStaticSetterSet(setter, result);
         });
   }
 
@@ -1422,10 +1438,10 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       arg,
       {bool isPrefix}) {
     return translatePrefixPostfix(
-        getValue: () => irBuilder.buildSuperGet(readField),
+        getValue: () => irBuilder.buildSuperFieldGet(readField),
         operator: operator,
         setValue: (ir.Primitive result) {
-          irBuilder.buildSuperSet(writtenField, result);
+          irBuilder.buildSuperFieldSet(writtenField, result);
         },
         isPrefix: isPrefix);
   }
@@ -1439,10 +1455,10 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       arg,
       {bool isPrefix}) {
     return translatePrefixPostfix(
-        getValue: () => irBuilder.buildSuperGet(field),
+        getValue: () => irBuilder.buildSuperFieldGet(field),
         operator: operator,
         setValue: (ir.Primitive result) {
-          irBuilder.buildSuperSet(setter, result);
+          irBuilder.buildSuperSetterSet(setter, result);
         },
         isPrefix: isPrefix);
   }
@@ -1456,10 +1472,10 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       arg,
       {bool isPrefix}) {
     return translatePrefixPostfix(
-        getValue: () => irBuilder.buildSuperGet(getter),
+        getValue: () => irBuilder.buildSuperGetterGet(getter),
         operator: operator,
         setValue: (ir.Primitive result) {
-          irBuilder.buildSuperSet(field, result);
+          irBuilder.buildSuperFieldSet(field, result);
         },
         isPrefix: isPrefix);
   }
@@ -1473,10 +1489,10 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       arg,
       {bool isPrefix}) {
     return translatePrefixPostfix(
-        getValue: () => irBuilder.buildSuperGet(getter),
+        getValue: () => irBuilder.buildSuperGetterGet(getter),
         operator: operator,
         setValue: (ir.Primitive result) {
-          irBuilder.buildSuperSet(setter, result);
+          irBuilder.buildSuperSetterSet(setter, result);
         },
         isPrefix: isPrefix);
   }
@@ -1490,10 +1506,10 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       arg,
       {bool isPrefix}) {
     return translatePrefixPostfix(
-        getValue: () => irBuilder.buildSuperGet(method),
+        getValue: () => irBuilder.buildSuperMethodGet(method),
         operator: operator,
         setValue: (ir.Primitive result) {
-          irBuilder.buildSuperSet(setter, result);
+          irBuilder.buildSuperSetterSet(setter, result);
         },
         isPrefix: isPrefix);
   }
@@ -1507,10 +1523,10 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       arg,
       {bool isPrefix}) {
     return translatePrefixPostfix(
-        getValue: () => irBuilder.buildStaticGet(getter),
+        getValue: () => irBuilder.buildStaticGetterGet(getter),
         operator: operator,
         setValue: (ir.Primitive result) {
-          irBuilder.buildStaticSet(setter, result);
+          irBuilder.buildStaticSetterSet(setter, result);
         },
         isPrefix: isPrefix);
   }
@@ -1524,11 +1540,11 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       ast.Node rhs,
       _) {
     return translateCompound(
-        getValue: () => irBuilder.buildStaticGet(method),
+        getValue: () => irBuilder.buildStaticFunctionGet(method),
         operator: operator,
         rhs: rhs,
         setValue: (ir.Primitive result) {
-          irBuilder.buildStaticSet(setter, result);
+          irBuilder.buildStaticSetterSet(setter, result);
         });
   }
 
@@ -1541,10 +1557,10 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       arg,
       {bool isPrefix}) {
     return translatePrefixPostfix(
-        getValue: () => irBuilder.buildStaticGet(getter),
+        getValue: () => irBuilder.buildStaticFunctionGet(getter),
         operator: operator,
         setValue: (ir.Primitive result) {
-          irBuilder.buildStaticSet(setter, result);
+          irBuilder.buildStaticSetterSet(setter, result);
         },
         isPrefix: isPrefix);
   }
@@ -1591,7 +1607,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
           Selector selector = new Selector.index();
           List<ir.Primitive> arguments = <ir.Primitive>[indexValue];
           arguments = normalizeDynamicArguments(selector, arguments);
-          return irBuilder.buildSuperInvocation(
+          return irBuilder.buildSuperMethodInvocation(
               indexFunction, selector, arguments);
         },
         operator: operator,
@@ -1599,7 +1615,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
           Selector selector = new Selector.indexSet();
           List<ir.Primitive> arguments = <ir.Primitive>[indexValue, result];
           arguments = normalizeDynamicArguments(selector, arguments);
-          irBuilder.buildSuperInvocation(
+          irBuilder.buildSuperMethodInvocation(
               indexSetFunction, selector, arguments);
         },
         isPrefix: isPrefix);
@@ -1611,7 +1627,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       FunctionElement setter,
       ast.Node rhs,
       _) {
-    return irBuilder.buildStaticSet(setter, visit(rhs));
+    return irBuilder.buildStaticSetterSet(setter, visit(rhs));
   }
 
   @override
@@ -1622,11 +1638,11 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       ast.Node rhs,
       _) {
     return translateCompound(
-        getValue: () => irBuilder.buildSuperGet(field),
+        getValue: () => irBuilder.buildSuperFieldGet(field),
         operator: operator,
         rhs: rhs,
         setValue: (ir.Primitive result) {
-          irBuilder.buildSuperSet(field, result);
+          irBuilder.buildSuperFieldSet(field, result);
         });
   }
 
@@ -1638,10 +1654,10 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       op.IncDecOperator operator,
       _) {
     return translatePrefixPostfix(
-        getValue: () => irBuilder.buildSuperGet(readField),
+        getValue: () => irBuilder.buildSuperFieldGet(readField),
         operator: operator,
         setValue: (ir.Primitive result) {
-          irBuilder.buildSuperSet(writtenField, result);
+          irBuilder.buildSuperFieldSet(writtenField, result);
         },
         isPrefix: false);
   }
@@ -1654,10 +1670,10 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       op.IncDecOperator operator,
       _) {
     return translatePrefixPostfix(
-        getValue: () => irBuilder.buildSuperGet(readField),
+        getValue: () => irBuilder.buildSuperFieldGet(readField),
         operator: operator,
         setValue: (ir.Primitive result) {
-          irBuilder.buildSuperSet(writtenField, result);
+          irBuilder.buildSuperFieldSet(writtenField, result);
         },
         isPrefix: true);
   }
@@ -1671,11 +1687,11 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       ast.Node rhs,
       _) {
     return translateCompound(
-        getValue: () => irBuilder.buildSuperGet(field),
+        getValue: () => irBuilder.buildSuperFieldGet(field),
         operator: operator,
         rhs: rhs,
         setValue: (ir.Primitive result) {
-          irBuilder.buildSuperSet(setter, result);
+          irBuilder.buildSuperSetterSet(setter, result);
         });
   }
 
@@ -1688,11 +1704,11 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       ast.Node rhs,
       _) {
     return translateCompound(
-        getValue: () => irBuilder.buildSuperGet(getter),
+        getValue: () => irBuilder.buildSuperGetterGet(getter),
         operator: operator,
         rhs: rhs,
         setValue: (ir.Primitive result) {
-          irBuilder.buildSuperSet(field, result);
+          irBuilder.buildSuperFieldSet(field, result);
         });
   }
 
@@ -1705,11 +1721,11 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       ast.Node rhs,
       _) {
     return translateCompound(
-        getValue: () => irBuilder.buildSuperGet(getter),
+        getValue: () => irBuilder.buildSuperGetterGet(getter),
         operator: operator,
         rhs: rhs,
         setValue: (ir.Primitive result) {
-          irBuilder.buildSuperSet(setter, result);
+          irBuilder.buildSuperSetterSet(setter, result);
         });
   }
 
@@ -1722,11 +1738,11 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
       ast.Node rhs,
       _) {
     return translateCompound(
-        getValue: () => irBuilder.buildSuperGet(method),
+        getValue: () => irBuilder.buildSuperMethodGet(method),
         operator: operator,
         rhs: rhs,
         setValue: (ir.Primitive result) {
-          irBuilder.buildSuperSet(setter, result);
+          irBuilder.buildSuperSetterSet(setter, result);
         });
   }
 
@@ -2394,7 +2410,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       if (parameter.isInitializingFormal) {
         InitializingFormalElement fieldParameter = parameter;
         fieldValues[fieldParameter.fieldElement] =
-            irBuilder.buildLocalGet(parameter);
+            irBuilder.buildLocalVariableGet(parameter);
       }
     });
     // Evaluate constructor initializers, e.g. `Foo() : x = 50`.
