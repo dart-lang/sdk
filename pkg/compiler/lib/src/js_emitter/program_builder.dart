@@ -547,7 +547,9 @@ class ProgramBuilder {
 
     js.Expression functionType;
     if (canTearOff || canBeReflected) {
-      functionType = _generateFunctionType(memberType);
+      OutputUnit outputUnit =
+          _compiler.deferredLoadTask.outputUnitForElement(element);
+      functionType = _generateFunctionType(memberType, outputUnit);
     }
 
     int requiredParameterCount;
@@ -569,12 +571,13 @@ class ProgramBuilder {
         functionType: functionType);
   }
 
-  js.Expression _generateFunctionType(DartType type) {
+  js.Expression _generateFunctionType(DartType type, OutputUnit outputUnit) {
     if (type.containsTypeVariables) {
       js.Expression thisAccess = js.js(r'this.$receiver');
       return backend.rti.getSignatureEncoding(type, thisAccess);
     } else {
-      return js.number(backend.emitter.metadataCollector.reifyType(type));
+      return js.number(backend.emitter.metadataCollector.
+          reifyTypeForOutputUnit(type, outputUnit));
     }
   }
 
@@ -718,7 +721,9 @@ class ProgramBuilder {
     js.Expression functionType;
     DartType type = element.type;
     if (needsTearOff || canBeReflected) {
-      functionType = _generateFunctionType(type);
+      OutputUnit outputUnit =
+          _compiler.deferredLoadTask.outputUnitForElement(element);
+      functionType = _generateFunctionType(type, outputUnit);
     }
 
     int requiredParameterCount;

@@ -680,7 +680,9 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
       properties.add(new jsAst.Property(js.string(name), value));
     }
 
-    addProperty(namer.functionTypeTag, js.string(''));
+    // Type representations for functions have a property which is a tag marking
+    // them as function types. The value is not used, so '1' is just a dummy.
+    addProperty(namer.functionTypeTag, js.number(1));
     if (type.returnType.isVoid) {
       addProperty(namer.functionTypeVoidReturnTag, js('true'));
     } else if (!type.returnType.treatAsDynamic) {

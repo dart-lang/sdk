@@ -399,6 +399,7 @@ class Namer {
 
   JavaScriptBackend get backend => compiler.backend;
 
+  String get deferredTypesName => 'deferredTypes';
   String get isolateName => 'Isolate';
   String get isolatePropertiesName => r'$isolateProperties';
   String get noSuchMethodName => publicInstanceMethodNameByArity(

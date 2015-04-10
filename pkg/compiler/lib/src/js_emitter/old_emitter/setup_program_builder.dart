@@ -141,7 +141,7 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
      'deferredActionString': js.string(namer.deferredAction)};
 
    String skeleton = '''
-function $setupProgramName(programData) {
+function $setupProgramName(programData, typesOffset) {
   "use strict";
   if (#needsClassSupport) {
 
@@ -694,6 +694,8 @@ function $setupProgramName(programData) {
       var isIntercepted =
              requiredParameterCount + optionalParameterCount != funcs[0].length;
       var functionTypeIndex = ${readFunctionType("array", "2")};
+      if (typeof functionTypeIndex == "number")
+        ${readFunctionType("array", "2")} = functionTypeIndex + typesOffset;
       var unmangledNameIndex = $unmangledNameIndex;
 
       if (getterStubName) {

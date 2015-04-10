@@ -616,26 +616,36 @@ class OldEmitter implements Emitter {
     }
   }
 
-  void emitMetadata(Program program, CodeOutput output) {
+  void emitMetadata(Program program, CodeOutput output, OutputUnit outputUnit) {
 
-   addMetadataGlobal(List<String> list, String global) {
-     String globalAccess = generateEmbeddedGlobalAccessString(global);
-     output.add('$globalAccess$_=$_[');
-     for (String data in list) {
-       if (data is String) {
-         if (data != 'null') {
-           output.add(data);
-         }
-       } else {
-         throw 'Unexpected value in ${global}: ${Error.safeToString(data)}';
-       }
-       output.add(',$n');
-     }
-     output.add('];$n');
-   }
+    jsAst.Expression constructList(List<String> list) {
+      String listAsString = list == null ? '[]' : '[${list.join(",")}]';
+      return js.uncachedExpressionTemplate(listAsString).instantiate([]);
+    }
 
-   addMetadataGlobal(program.metadata, embeddedNames.METADATA);
-   addMetadataGlobal(program.metadataTypes, embeddedNames.TYPES);
+    List<String> types = program.metadataTypes[outputUnit];
+
+    if (outputUnit == compiler.deferredLoadTask.mainOutputUnit) {
+      jsAst.Expression metadataAccess =
+          generateEmbeddedGlobalAccess(embeddedNames.METADATA);
+      jsAst.Expression typesAccess =
+          generateEmbeddedGlobalAccess(embeddedNames.TYPES);
+
+      output.addBuffer(
+          jsAst.prettyPrint(new jsAst.Block([
+              js.statement('# = #;', [metadataAccess,
+                                      constructList(program.metadata)]),
+              js.statement('# = #;', [typesAccess, constructList(types)])]),
+              compiler, monitor: compiler.dumpInfoTask));
+      output.add(n);
+    } else if (types != null) {
+      output.addBuffer(
+          jsAst.prettyPrint(
+              js.statement('var ${namer.deferredTypesName} = #;',
+                           constructList(types)),
+              compiler, monitor: compiler.dumpInfoTask));
+      output.add(n);
+    }
   }
 
   void emitCompileTimeConstants(CodeOutput output,
@@ -1290,7 +1300,7 @@ class OldEmitter implements Emitter {
       mainOutput.add(N);
     }
 
-    mainOutput.add('$setupProgramName(dart)$N');
+    mainOutput.add('$setupProgramName(dart, 0)$N');
 
     interceptorEmitter.emitGetInterceptorMethods(mainOutput);
     interceptorEmitter.emitOneShotInterceptors(mainOutput);
@@ -1323,7 +1333,7 @@ class OldEmitter implements Emitter {
 
     mainOutput.add('\n');
 
-    emitMetadata(program, mainOutput);
+    emitMetadata(program, mainOutput, mainOutputUnit);
 
     isolateProperties = isolatePropertiesName;
     // The following code should not use the short-hand for the
@@ -1728,6 +1738,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
                     '$globalsHolder.$setupProgramName$N')
           ..add('var ${namer.isolateName}$_=$_'
                     '${globalsHolder}.${namer.isolateName}$N');
+      String typesAccess =
+          generateEmbeddedGlobalAccessString(embeddedNames.TYPES);
       if (libraryDescriptorBuffer != null) {
         // TODO(ahe): This defines a lot of properties on the
         // Isolate.prototype object.  We know this will turn it into a
@@ -1753,7 +1765,13 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
                   allowVariableMinification: false));
           output.add(N);
         }
-        output.add('$setupProgramName(dart)$N');
+        output.add('$setupProgramName(dart, ${typesAccess}.length)$N');
+      }
+
+      if (task.metadataCollector.types[outputUnit] != null) {
+        emitMetadata(program, output, outputUnit);
+        output.add('${typesAccess}.'
+                   'push.apply(${typesAccess},$_${namer.deferredTypesName})$N');
       }
 
       // Set the currentIsolate variable to the current isolate (which is

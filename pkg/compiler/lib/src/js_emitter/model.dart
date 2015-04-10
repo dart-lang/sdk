@@ -55,17 +55,19 @@ class Program {
   /// data.
   List<String> get metadata => _metadataCollector.globalMetadata;
 
-  /// A list of pretty-printed JavaScript expressions.
+  /// A map with lists of pretty-printed JavaScript expressions.
   ///
-  /// This list must be emitted in the `TYPES` embedded global.
-  /// The list references constants and must hence be emitted after constants
-  /// have been initialized.
+  /// There is one list for each output unit. The list belonging to the main
+  /// unit must be emitted in the `TYPES` embedded global. The list references
+  /// constants and must hence be emitted after constants have been initialized.
   ///
   /// Note: the metadata is derived from the task's `metadataCollector`. The
   /// list must not be emitted before all operations on it are done. For
   /// example, the old emitter generates metadata when emitting reflection
   /// data.
-  List<String> get metadataTypes => _metadataCollector.types;
+  Map<OutputUnit, List<String>> get metadataTypes
+      => _metadataCollector.types;
+
 
   bool get isSplit => fragments.length > 1;
   Iterable<Fragment> get deferredFragments => fragments.skip(1);
