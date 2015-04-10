@@ -284,13 +284,17 @@ class Parser::TryStack : public ZoneAllocated {
         inlined_finally_nodes_(),
         outer_try_(outer_try),
         try_index_(try_index),
-        inside_catch_(false) { }
+        inside_catch_(false),
+        inside_finally_(false) { }
 
   TryStack* outer_try() const { return outer_try_; }
   Block* try_block() const { return try_block_; }
   intptr_t try_index() const { return try_index_; }
   bool inside_catch() const { return inside_catch_; }
   void enter_catch() { inside_catch_ = true; }
+  bool inside_finally() const { return inside_finally_; }
+  void enter_finally() { inside_finally_ = true; }
+  void exit_finally() { inside_finally_ = false; }
 
   void AddNodeForFinallyInlining(AstNode* node);
   AstNode* GetNodeToInlineFinally(int index) {
@@ -305,7 +309,9 @@ class Parser::TryStack : public ZoneAllocated {
   GrowableArray<AstNode*> inlined_finally_nodes_;
   TryStack* outer_try_;
   const intptr_t try_index_;
-  bool inside_catch_;
+  bool inside_catch_;  // True when parsing a catch clause of this try.
+  bool inside_finally_;  // True when parsing a finally clause of an inner try
+                         // of this try.
 
   DISALLOW_COPY_AND_ASSIGN(TryStack);
 };
@@ -6153,6 +6159,9 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   // We need to inline this code in all recorded exit points.
   intptr_t node_index = 0;
   SequenceNode* finally_clause = NULL;
+  if (try_stack_ != NULL) {
+    try_stack_->enter_finally();
+  }
   do {
     OpenBlock();
     ArgumentListNode* no_args =
@@ -6185,6 +6194,10 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
       node_index++;
     }
   } while (finally_clause == NULL);
+
+  if (try_stack_ != NULL) {
+    try_stack_->exit_finally();
+  }
 
   const GrowableObjectArray& handler_types =
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
@@ -8309,9 +8322,9 @@ void Parser::CheckAsyncOpInTryBlock(
       // pushed try block.
       *saved_try_ctx = LookupSavedTryContextVar(scope->parent());
       *async_saved_try_ctx = LookupAsyncSavedTryContextVar(scope, try_index);
-      if (try_stack_->outer_try() != NULL) {
-        // TODO(regis): Collecting the outer try scope is not necessary if we
-        // are in a finally block. Add support for try_stack_->inside_finally().
+      if ((try_stack_->outer_try() != NULL) && !try_stack_->inside_finally()) {
+        // Collecting the outer try scope is not necessary if we
+        // are in a finally block.
         scope = try_stack_->outer_try()->try_block()->scope;
         try_index = try_stack_->outer_try()->try_index();
         if (scope->function_level() == current_function_level) {
@@ -8577,6 +8590,9 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   // Inline the finally block to the exit points in the try block.
   intptr_t node_index = 0;
   SequenceNode* finally_clause = NULL;
+  if (try_stack_ != NULL) {
+    try_stack_->enter_finally();
+  }
   do {
     OpenBlock();
     ArgumentListNode* no_args =
@@ -8599,6 +8615,10 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
       node_index++;
     }
   } while (finally_clause == NULL);
+
+  if (try_stack_ != NULL) {
+    try_stack_->exit_finally();
+  }
 
   // Create the try-statement and add to the current sequence, which is
   // the block around the loop statement.
@@ -8965,6 +8985,9 @@ SequenceNode* Parser::ParseFinallyBlock(
   OpenBlock();
   ExpectToken(Token::kLBRACE);
 
+  if (try_stack_ != NULL) {
+    try_stack_->enter_finally();
+  }
   // In case of async closures we need to restore the saved try index of an
   // outer try block (if it exists).  The current try block has already been
   // removed from the stack of try blocks.
@@ -8999,6 +9022,9 @@ SequenceNode* Parser::ParseFinallyBlock(
   ParseStatementSequence();
   ExpectToken(Token::kRBRACE);
   SequenceNode* finally_block = CloseBlock();
+  if (try_stack_ != NULL) {
+    try_stack_->exit_finally();
+  }
   return finally_block;
 }
 
