@@ -46,8 +46,8 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
   Source source;
   CompletionPerformance perf;
   DartCompletionManager manager;
-  MockCompletionComputer computer1;
-  MockCompletionComputer computer2;
+  MockCompletionContributor contributor1;
+  MockCompletionContributor contributor2;
   CompletionSuggestion suggestion1;
   CompletionSuggestion suggestion2;
   bool _continuePerformingAnalysis = true;
@@ -78,25 +78,25 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
   }
 
   test_compute_fastAndFull() {
-    computer1 = new MockCompletionComputer(suggestion1, null);
-    computer2 = new MockCompletionComputer(null, suggestion2);
-    manager.computers = [computer1, computer2];
+    contributor1 = new MockCompletionContributor(suggestion1, null);
+    contributor2 = new MockCompletionContributor(null, suggestion2);
+    manager.contributors = [contributor1, contributor2];
     int count = 0;
     bool done = false;
     CompletionRequest completionRequest = new CompletionRequest(0, perf);
     manager.results(completionRequest).listen((CompletionResult r) {
       switch (++count) {
         case 1:
-          computer1.assertCalls(context, source, 0, searchEngine);
-          computer2.assertCalls(context, source, 0, searchEngine);
+          contributor1.assertCalls(context, source, 0, searchEngine);
+          contributor2.assertCalls(context, source, 0, searchEngine);
           expect(r.last, isFalse);
           expect(r.suggestions, hasLength(1));
           expect(r.suggestions, contains(suggestion1));
           resolveLibrary();
           break;
         case 2:
-          computer1.assertFull(0);
-          computer2.assertFull(1);
+          contributor1.assertFull(0);
+          contributor2.assertFull(1);
           expect(r.last, isTrue);
           expect(r.suggestions, hasLength(2));
           expect(r.suggestions, contains(suggestion1));
@@ -115,17 +115,17 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
   }
 
   test_compute_fastOnly() {
-    computer1 = new MockCompletionComputer(suggestion1, null);
-    computer2 = new MockCompletionComputer(suggestion2, null);
-    manager.computers = [computer1, computer2];
+    contributor1 = new MockCompletionContributor(suggestion1, null);
+    contributor2 = new MockCompletionContributor(suggestion2, null);
+    manager.contributors = [contributor1, contributor2];
     int count = 0;
     bool done = false;
     CompletionRequest completionRequest = new CompletionRequest(0, perf);
     manager.results(completionRequest).listen((CompletionResult r) {
       switch (++count) {
         case 1:
-          computer1.assertCalls(context, source, 0, searchEngine);
-          computer2.assertCalls(context, source, 0, searchEngine);
+          contributor1.assertCalls(context, source, 0, searchEngine);
+          contributor2.assertCalls(context, source, 0, searchEngine);
           expect(r.last, isTrue);
           expect(r.suggestions, hasLength(2));
           expect(r.suggestions, contains(suggestion1));
@@ -152,14 +152,14 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
   }
 }
 
-class MockCompletionComputer extends DartCompletionComputer {
+class MockCompletionContributor extends DartCompletionContributor {
   final CompletionSuggestion fastSuggestion;
   final CompletionSuggestion fullSuggestion;
   int fastCount = 0;
   int fullCount = 0;
   DartCompletionRequest request;
 
-  MockCompletionComputer(this.fastSuggestion, this.fullSuggestion);
+  MockCompletionContributor(this.fastSuggestion, this.fullSuggestion);
 
   assertCalls(AnalysisContext context, Source source, int offset,
       SearchEngine searchEngine) {

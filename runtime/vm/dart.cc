@@ -75,7 +75,8 @@ class ReadOnlyHandles {
 };
 
 
-const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
+const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
+                           Dart_IsolateCreateCallback create,
                            Dart_IsolateInterruptCallback interrupt,
                            Dart_IsolateUnhandledExceptionCallback unhandled,
                            Dart_IsolateShutdownCallback shutdown,
@@ -138,6 +139,10 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
       return "SSE2 is required.";
     }
 #endif
+    if (vm_isolate_snapshot != NULL) {
+      // Initializing the VM isolate from a snapshot is not implemented yet.
+      USE(vm_isolate_snapshot);
+    }
     Object::FinalizeVMIsolate(vm_isolate_);
   }
   // There is a planned and known asymmetry here: We enter one scope for the VM
@@ -146,7 +151,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   Dart_EnterScope();
   Api::InitHandles();
 
-  Isolate::SetCurrent(NULL);  // Unregister the VM isolate from this thread.
+  Thread::ExitIsolate();  // Unregister the VM isolate from this thread.
   Isolate::SetCreateCallback(create);
   Isolate::SetInterruptCallback(interrupt);
   Isolate::SetUnhandledExceptionCallback(unhandled);
@@ -175,7 +180,7 @@ const char* Dart::Cleanup() {
   thread_pool_ = NULL;
 
   // Set the VM isolate as current isolate.
-  Isolate::SetCurrent(vm_isolate_);
+  Thread::EnterIsolate(vm_isolate_);
 
   // There is a planned and known asymmetry here: We exit one scope for the VM
   // isolate to account for the scope that was entered in Dart_InitOnce.

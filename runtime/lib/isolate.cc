@@ -168,7 +168,6 @@ static bool CreateIsolate(Isolate* parent_isolate,
   Dart_IsolateCreateCallback callback = Isolate::CreateCallback();
   if (callback == NULL) {
     *error = strdup("Null callback specified for isolate creation\n");
-    Isolate::SetCurrent(parent_isolate);
     return false;
   }
 
@@ -180,7 +179,6 @@ static bool CreateIsolate(Isolate* parent_isolate,
                  init_data,
                  error));
   if (child_isolate == NULL) {
-    Isolate::SetCurrent(parent_isolate);
     return false;
   }
   if (!state->is_spawn_uri()) {
@@ -189,22 +187,22 @@ static bool CreateIsolate(Isolate* parent_isolate,
     child_isolate->set_origin_id(parent_isolate->origin_id());
   }
   state->set_isolate(reinterpret_cast<Isolate*>(child_isolate));
-
-  Isolate::SetCurrent(parent_isolate);
   return true;
 }
 
 
 static void Spawn(Isolate* parent_isolate, IsolateSpawnState* state) {
+  Thread::ExitIsolate();
   // Create a new isolate.
   char* error = NULL;
   if (!CreateIsolate(parent_isolate, state, &error)) {
+    Thread::EnterIsolate(parent_isolate);
     delete state;
     const String& msg = String::Handle(String::New(error));
     free(error);
     ThrowIsolateSpawnException(msg);
   }
-
+  Thread::EnterIsolate(parent_isolate);
   // Start the new isolate if it is already marked as runnable.
   Isolate* spawned_isolate = state->isolate();
   MutexLocker ml(spawned_isolate->mutex());
@@ -229,6 +227,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 4) {
       ctx = Closure::context(closure);
       ASSERT(ctx.num_variables() == 0);
 #endif
+      // Get the parent function so that we get the right function name.
+      func = func.parent_function();
       Spawn(isolate, new IsolateSpawnState(port.Id(),
                                            func,
                                            message,

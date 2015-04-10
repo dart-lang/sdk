@@ -27,7 +27,8 @@ import 'package:path/path.dart';
  */
 void addLibraryImports(SourceChange change, LibraryElement targetLibrary,
     Set<LibraryElement> libraries) {
-  CompilationUnit libUnit = targetLibrary.definingCompilationUnit.node;
+  CompilationUnitElement libUnitElement = targetLibrary.definingCompilationUnit;
+  CompilationUnit libUnit = getParsedUnit(libUnitElement);
   // prepare new import location
   int offset = 0;
   String prefix;
@@ -110,6 +111,16 @@ String findAbsoluteUri(AnalysisContext context, String path) {
     return null;
   }
   return uri.toString();
+}
+
+/**
+ * Returns the EOL to use for the given [code].
+ */
+String getCodeEndOfLine(String code) {
+  if (code.contains('\r\n')) {
+    return '\r\n';
+  }
+  return '\n';
 }
 
 /**
@@ -248,6 +259,9 @@ AstNode getEnclosingExecutableNode(AstNode node) {
 int getExpressionParentPrecedence(AstNode node) {
   AstNode parent = node.parent;
   if (parent is ParenthesizedExpression) {
+    return 0;
+  }
+  if (parent is IndexExpression && parent.index == node) {
     return 0;
   }
   return getExpressionPrecedence(parent);
@@ -416,6 +430,41 @@ List<AstNode> getParents(AstNode node) {
     current = current.parent;
   }
   return parents;
+}
+
+/**
+ * Returns a parsed [AstNode] for the given [classElement].
+ *
+ * The resulting AST structure may or may not be resolved.
+ */
+AstNode getParsedClassElementNode(ClassElement classElement) {
+  CompilationUnitElement unitElement =
+      classElement.getAncestor((e) => e is CompilationUnitElement);
+  CompilationUnit unit = getParsedUnit(unitElement);
+  int offset = classElement.nameOffset;
+  AstNode classNameNode = new NodeLocator.con1(offset).searchWithin(unit);
+  if (classElement.isEnum) {
+    return classNameNode.getAncestor((node) => node is EnumDeclaration);
+  } else {
+    return classNameNode.getAncestor(
+        (node) => node is ClassDeclaration || node is ClassTypeAlias);
+  }
+}
+
+/**
+ * Returns a parsed [CompilationUnit] for the given [unitElement].
+ *
+ * The resulting AST structure may or may not be resolved.
+ * If it is not resolved, then at least the given [unitElement] will be set.
+ */
+CompilationUnit getParsedUnit(CompilationUnitElement unitElement) {
+  AnalysisContext context = unitElement.context;
+  Source source = unitElement.source;
+  CompilationUnit unit = context.parseCompilationUnit(source);
+  if (unit.element == null) {
+    unit.element = unitElement;
+  }
+  return unit;
 }
 
 /**

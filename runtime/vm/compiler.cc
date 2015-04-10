@@ -178,10 +178,10 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
 
 
 RawError* Compiler::Compile(const Library& library, const Script& script) {
-  Isolate* volatile isolate = Isolate::Current();
-  StackZone zone(isolate);
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
+    Isolate* const isolate = Isolate::Current();
+    StackZone zone(isolate);
     if (FLAG_trace_compiler) {
       const String& script_url = String::Handle(script.url());
       // TODO(iposva): Extract script kind.
@@ -192,6 +192,8 @@ RawError* Compiler::Compile(const Library& library, const Script& script) {
     Parser::ParseCompilationUnit(library, script);
     return Error::null();
   } else {
+    Isolate* const isolate = Isolate::Current();
+    StackZone zone(isolate);
     Error& error = Error::Handle();
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
@@ -279,7 +281,7 @@ RawError* Compiler::CompileClass(const Class& cls) {
     }
   }
 
-  Isolate* volatile isolate = Isolate::Current();
+  Isolate* const isolate = Isolate::Current();
   // We remember all the classes that are being compiled in these lists. This
   // also allows us to reset the marked_for_parsing state in case we see an
   // error.
@@ -291,9 +293,9 @@ RawError* Compiler::CompileClass(const Class& cls) {
       GrowableObjectArray::Handle(isolate, GrowableObjectArray::New(4));
 
   // Parse the class and all the interfaces it implements and super classes.
-  StackZone zone(isolate);
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
+    StackZone zone(isolate);
     if (FLAG_trace_compiler) {
       ISL_Print("Compiling Class %s '%s'\n", "", cls.ToCString());
     }
@@ -352,7 +354,8 @@ RawError* Compiler::CompileClass(const Class& cls) {
         parse_class.reset_is_marked_for_parsing();
       }
     }
-
+    Isolate* const isolate = Isolate::Current();
+    StackZone zone(isolate);
     Error& error = Error::Handle(isolate);
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
@@ -374,9 +377,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
   }
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::codegen_timer);
   bool is_compiled = false;
-  Thread* volatile thread = Thread::Current();
-  Zone* volatile zone = thread->zone();
-  Isolate* volatile isolate = thread->isolate();
+  Thread* const thread = Thread::Current();
+  Zone* const zone = thread->zone();
+  Isolate* const isolate = thread->isolate();
   HANDLESCOPE(isolate);
 
   // We may reattempt compilation if the function needs to be assembled using
@@ -842,7 +845,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
   if (deopt_table_length > 0) {
     ISL_Print("DeoptInfo: {\n");
     Smi& offset = Smi::Handle();
-    DeoptInfo& info = DeoptInfo::Handle();
+    TypedData& info = TypedData::Handle();
     Smi& reason_and_flags = Smi::Handle();
     for (intptr_t i = 0; i < deopt_table_length; ++i) {
       DeoptTable::GetEntry(deopt_table, i, &offset, &info, &reason_and_flags);
@@ -852,7 +855,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
       ISL_Print("%4" Pd ": 0x%" Px "  %s  (%s)\n",
                 i,
                 start + offset.Value(),
-                info.ToCString(),
+                DeoptInfo::ToCString(deopt_table, info),
                 DeoptReasonToCString(
                     static_cast<ICData::DeoptReasonId>(reason)));
     }
@@ -964,12 +967,12 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
                                        bool optimized,
                                        intptr_t osr_id) {
-  Thread* volatile thread = Thread::Current();
-  Isolate* volatile isolate = thread->isolate();
-  StackZone stack_zone(isolate);
-  Zone* volatile zone = stack_zone.GetZone();
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
+    Thread* const thread = Thread::Current();
+    Isolate* const isolate = thread->isolate();
+    StackZone stack_zone(isolate);
+    Zone* const zone = stack_zone.GetZone();
     TIMERSCOPE(isolate, time_compilation);
     Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
     per_compile_timer.Start();
@@ -1032,6 +1035,9 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     }
     return Error::null();
   } else {
+    Thread* const thread = Thread::Current();
+    Isolate* const isolate = thread->isolate();
+    StackZone stack_zone(isolate);
     Error& error = Error::Handle();
     // We got an error during compilation.
     error = isolate->object_store()->sticky_error();
@@ -1052,6 +1058,35 @@ RawError* Compiler::CompileFunction(Thread* thread,
 }
 
 
+void Compiler::EnsureUnoptimizedCode(Thread* thread,
+                                     const Function& function) {
+  if (function.unoptimized_code() != Object::null()) {
+    return;
+  }
+  Code& original_code = Code::ZoneHandle(thread->zone());
+  if (function.HasCode()) {
+    original_code = function.CurrentCode();
+  }
+  CompilationPipeline* pipeline =
+      CompilationPipeline::New(thread->zone(), function);
+  const Error& error = Error::Handle(
+      CompileFunctionHelper(pipeline, function, false, Isolate::kNoDeoptId));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+  }
+  // Since CompileFunctionHelper replaces the current code, re-attach the
+  // the original code if the function was already compiled.
+  if (!original_code.IsNull() &&
+      (original_code.raw() != function.CurrentCode())) {
+    function.AttachCode(original_code);
+  }
+  ASSERT(function.unoptimized_code() != Object::null());
+  if (FLAG_trace_compiler) {
+    ISL_Print("Ensure unoptimized code for %s\n", function.ToCString());
+  }
+}
+
+
 RawError* Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id) {
@@ -1065,7 +1100,6 @@ RawError* Compiler::CompileOptimizedFunction(Thread* thread,
 // This is only used from unit tests.
 RawError* Compiler::CompileParsedFunction(
     ParsedFunction* parsed_function) {
-  Isolate* volatile isolate = Isolate::Current();
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     // Non-optimized code generator.
@@ -1079,6 +1113,7 @@ RawError* Compiler::CompileParsedFunction(
     }
     return Error::null();
   } else {
+    Isolate* const isolate = Isolate::Current();
     Error& error = Error::Handle();
     // We got an error during compilation.
     error = isolate->object_store()->sticky_error();
@@ -1142,10 +1177,10 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
   // The VM sets the field's value to transiton_sentinel prior to
   // evaluating the initializer value.
   ASSERT(field.value() == Object::transition_sentinel().raw());
-  Isolate* volatile isolate = Isolate::Current();
-  StackZone zone(isolate);
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
+    Isolate* const isolate = Isolate::Current();
+    StackZone zone(isolate);
     ParsedFunction* parsed_function =
         Parser::ParseStaticFieldInitializer(field);
 
@@ -1163,6 +1198,8 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
         DartEntry::InvokeFunction(initializer, Object::empty_array()));
     return result.raw();
   } else {
+    Isolate* const isolate = Isolate::Current();
+    StackZone zone(isolate);
     const Error& error =
         Error::Handle(isolate, isolate->object_store()->sticky_error());
     isolate->object_store()->clear_sticky_error();
@@ -1175,10 +1212,9 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
 
 
 RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
-  Thread* volatile thread = Thread::Current();
-  Isolate* volatile isolate = thread->isolate();
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
+    Thread* const thread = Thread::Current();
     if (FLAG_trace_compiler) {
       ISL_Print("compiling expression: ");
       AstPrinter::PrintNode(fragment);
@@ -1228,6 +1264,8 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
         DartEntry::InvokeFunction(func, Object::empty_array()));
     return result.raw();
   } else {
+    Thread* const thread = Thread::Current();
+    Isolate* const isolate = thread->isolate();
     const Object& result =
       PassiveObject::Handle(isolate->object_store()->sticky_error());
     isolate->object_store()->clear_sticky_error();

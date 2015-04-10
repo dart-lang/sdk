@@ -9,12 +9,4 @@ class Constants {
   static const int SERVICE_EXIT_MESSAGE_ID = 0;
   static const int ISOLATE_STARTUP_MESSAGE_ID = 1;
   static const int ISOLATE_SHUTDOWN_MESSAGE_ID = 2;
-
-  // Event family ids.
-  static const int EVENT_FAMILY_DEBUG = 0;
-  static const int EVENT_FAMILY_GC = 1;
-
-  // Event family masks.
-  static const int EVENT_FAMILY_DEBUG_MASK = (1 << EVENT_FAMILY_DEBUG);
-  static const int EVENT_FAMILY_DEBUG_GC = (1 << EVENT_FAMILY_GC);
 }

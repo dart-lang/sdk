@@ -4,7 +4,6 @@
 
 library isolate_summary_element;
 
-import 'dart:async';
 import 'observatory_element.dart';
 import 'package:observatory/app.dart';
 import 'package:observatory/service.dart';

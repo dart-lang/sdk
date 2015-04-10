@@ -6,16 +6,16 @@ library test.services.completion;
 
 import 'package:unittest/unittest.dart';
 
-import 'arglist_computer_test.dart' as arglist_test;
-import 'combinator_computer_test.dart' as combinator_test;
+import 'arglist_contributor_test.dart' as arglist_test;
+import 'combinator_contributor_test.dart' as combinator_test;
 import 'common_usage_computer_test.dart' as common_usage_computer_test;
 import 'completion_computer_test.dart' as completion_computer_test;
 import 'completion_manager_test.dart' as completion_manager_test;
 import 'completion_target_test.dart' as completion_target_test;
-import 'imported_computer_test.dart' as imported_test;
-import 'invocation_computer_test.dart' as invocation_test;
-import 'keyword_computer_test.dart' as keyword_test;
-import 'local_computer_test.dart' as local_test;
+import 'imported_reference_contributor_test.dart' as imported_test;
+import 'prefixed_element_contributor_test.dart' as invocation_test;
+import 'keyword_contributor_test.dart' as keyword_test;
+import 'local_reference_contributor_test.dart' as local_test;
 import 'optype_test.dart' as optype_test;
 
 /// Utility for manually running all tests.

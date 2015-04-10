@@ -270,14 +270,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _isInStaticMethod = false;
     _boolType = _typeProvider.boolType;
     _intType = _typeProvider.intType;
-    _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = <InterfaceType>[
-      _typeProvider.nullType,
-      _typeProvider.numType,
-      _intType,
-      _typeProvider.doubleType,
-      _boolType,
-      _typeProvider.stringType
-    ];
+    _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = _typeProvider.nonSubtypableTypes;
   }
 
   @override
@@ -309,7 +302,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     sc.TokenType operatorType = node.operator.type;
     Expression lhs = node.leftHandSide;
     Expression rhs = node.rightHandSide;
-    if (operatorType == sc.TokenType.EQ) {
+    if (operatorType == sc.TokenType.EQ ||
+        operatorType == sc.TokenType.QUESTION_QUESTION_EQ) {
       _checkForInvalidAssignment(lhs, rhs);
     } else {
       _checkForInvalidCompoundAssignment(node, lhs, rhs);
@@ -863,7 +857,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     Expression target = node.realTarget;
     SimpleIdentifier methodName = node.methodName;
     if (target != null) {
-      ClassElement typeReference = ElementResolver.getTypeReference(target);
+      bool isConditional = node.operator.type == sc.TokenType.QUESTION_PERIOD;
+      ClassElement typeReference =
+          ElementResolver.getTypeReference(target, isConditional);
       _checkForStaticAccessToInstanceMember(typeReference, methodName);
       _checkForInstanceAccessToStaticMember(typeReference, methodName);
     } else {
@@ -900,7 +896,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (node.parent is! Annotation) {
       ClassElement typeReference =
-          ElementResolver.getTypeReference(node.prefix);
+          ElementResolver.getTypeReference(node.prefix, false);
       SimpleIdentifier name = node.identifier;
       _checkForStaticAccessToInstanceMember(typeReference, name);
       _checkForInstanceAccessToStaticMember(typeReference, name);
@@ -923,8 +919,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitPropertyAccess(PropertyAccess node) {
+    bool isConditional = node.operator.type == sc.TokenType.QUESTION_PERIOD;
     ClassElement typeReference =
-        ElementResolver.getTypeReference(node.realTarget);
+        ElementResolver.getTypeReference(node.realTarget, isConditional);
     SimpleIdentifier propertyName = node.propertyName;
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
     _checkForInstanceAccessToStaticMember(typeReference, propertyName);
@@ -2001,6 +1998,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (element is MethodElement) {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.ASSIGNMENT_TO_METHOD, expression);
+      return true;
+    }
+    if (element is ClassElement ||
+        element is FunctionTypeAliasElement ||
+        element is TypeParameterElement) {
+      _errorReporter.reportErrorForNode(
+          StaticWarningCode.ASSIGNMENT_TO_TYPE, expression);
       return true;
     }
     return false;

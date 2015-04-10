@@ -191,7 +191,7 @@ EffectSet CheckClassIdInstr::Dependencies() const {
 }
 
 
-bool CheckClassInstr::IsNullCheck() const {
+bool CheckClassInstr::DeoptIfNull() const {
   if (unary_checks().NumberOfChecks() != 1) {
     return false;
   }
@@ -201,6 +201,19 @@ bool CheckClassInstr::IsNullCheck() const {
   ASSERT(cid != kSmiCid);
   return in_type->is_nullable() && (in_type->ToNullableCid() == cid);
 }
+
+
+// Null object is a singleton of null-class (except for some sentinel,
+// transitional temporaries). Instead of checking against the null class only
+// we can check against null instance instead.
+bool CheckClassInstr::DeoptIfNotNull() const {
+  if (unary_checks().NumberOfChecks() != 1) {
+    return false;
+  }
+  const intptr_t cid = unary_checks().GetCidAt(0);
+  return cid == kNullCid;
+}
+
 
 
 bool CheckClassInstr::IsDenseSwitch() const {

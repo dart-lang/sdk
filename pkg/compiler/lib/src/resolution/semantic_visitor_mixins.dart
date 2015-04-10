@@ -9,10 +9,10 @@ part of dart2js.semantics_visitor;
 ///
 /// Use this mixin to provide a trivial implementation for all `errorX` methods.
 abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message);
+  R bulkHandleNode(Node node, String message, A arg);
 
-  R bulkHandleError(Send node) {
-    return bulkHandleNode(node, "Error expression `$node` unhandled.");
+  R bulkHandleError(Node node, A arg) {
+    return bulkHandleNode(node, "Error expression `$node` unhandled.", arg);
   }
 
   @override
@@ -20,81 +20,92 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       NodeList arguments,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
+  }
+
+  @override
+  R errorAbstractClassConstructorInvoke(
+      NewExpression node,
+      ConstructorElement element,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleError(node, arg);
   }
 
   @override
   R errorClassTypeLiteralCompound(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
   R errorClassTypeLiteralPostfix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
   R errorClassTypeLiteralPrefix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
   R errorClassTypeLiteralSet(
       SendSet node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
   R errorDynamicTypeLiteralCompound(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
   R errorDynamicTypeLiteralPostfix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
   R errorDynamicTypeLiteralPrefix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
   R errorDynamicTypeLiteralSet(
       SendSet node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -105,7 +116,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -114,7 +125,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       LocalVariableElement variable,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -124,7 +135,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -133,7 +144,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       ParameterElement parameter,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -143,7 +154,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -152,7 +163,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement field,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -162,7 +173,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -171,7 +182,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement field,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -181,7 +192,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -190,7 +201,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement field,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -200,7 +211,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -209,7 +220,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       LocalFunctionElement function,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -218,7 +229,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       LocalFunctionElement function,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -227,7 +238,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       LocalFunctionElement function,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -236,7 +247,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       MethodElement function,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -245,7 +256,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement getter,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -253,7 +264,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement setter,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -263,7 +274,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -272,7 +283,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement getter,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -281,7 +292,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       MethodElement method,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -289,7 +300,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement setter,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -299,7 +310,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -308,7 +319,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       MethodElement function,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -317,7 +328,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement getter,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -325,7 +336,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement setter,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -335,7 +346,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -345,7 +356,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -354,7 +365,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       TypeVariableElement element,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -363,7 +374,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       TypeVariableElement element,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -372,44 +383,44 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       TypeVariableElement element,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
   R errorTypedefTypeLiteralCompound(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
   R errorTypedefTypeLiteralPostfix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
   R errorTypedefTypeLiteralPrefix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
   R errorTypedefTypeLiteralSet(
       SendSet node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -419,7 +430,29 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
+  }
+
+  @override
+  R errorUnresolvedClassConstructorInvoke(
+      NewExpression node,
+      Element element,
+      MalformedType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleError(node, arg);
+  }
+
+  @override
+  R errorUnresolvedConstructorInvoke(
+      NewExpression node,
+      Element constructor,
+      DartType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -427,7 +460,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       Element element,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -437,7 +470,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -446,7 +479,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Element element,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -455,7 +488,18 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Element element,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
+  }
+
+  @override
+  R errorUnresolvedRedirectingFactoryConstructorInvoke(
+       NewExpression node,
+       ConstructorElement constructor,
+       InterfaceType type,
+       NodeList arguments,
+       Selector selector,
+       A arg) {
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -464,7 +508,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Element element,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -475,7 +519,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -484,7 +528,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Element function,
       Node index,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -494,7 +538,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node index,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -504,7 +548,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node index,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -514,7 +558,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node index,
       Node rhs,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -524,7 +568,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       BinaryOperator operator,
       Node argument,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -533,7 +577,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       UnaryOperator operator,
       Element element,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -543,7 +587,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Operator operator,
       Node right,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 
   @override
@@ -552,7 +596,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Operator operator,
       Node expression,
       A arg) {
-    return bulkHandleError(node);
+    return bulkHandleError(node, arg);
   }
 }
 
@@ -562,10 +606,10 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 /// Use this mixin to provide a trivial implementation for all `visitXPrefix`
 /// methods.
 abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message);
+  R bulkHandleNode(Node node, String message, A arg);
 
-  R bulkHandlePrefix(Send node) {
-    return bulkHandleNode(node, "Prefix expression `$node` unhandled.");
+  R bulkHandlePrefix(Send node, A arg) {
+    return bulkHandleNode(node, "Prefix expression `$node` unhandled.", arg);
   }
 
   @override
@@ -576,7 +620,7 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Selector getterSelector,
       Selector setterSelector,
       A arg) {
-    return bulkHandlePrefix(node);
+    return bulkHandlePrefix(node, arg);
   }
 
   @override
@@ -586,7 +630,7 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node index,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePrefix(node);
+    return bulkHandlePrefix(node, arg);
   }
 
   @override
@@ -595,7 +639,7 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       LocalVariableElement variable,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePrefix(node);
+    return bulkHandlePrefix(node, arg);
   }
 
   @override
@@ -604,7 +648,7 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       ParameterElement parameter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePrefix(node);
+    return bulkHandlePrefix(node, arg);
   }
 
   @override
@@ -613,7 +657,7 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement field,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePrefix(node);
+    return bulkHandlePrefix(node, arg);
   }
 
   @override
@@ -623,7 +667,7 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePrefix(node);
+    return bulkHandlePrefix(node, arg);
   }
 
   @override
@@ -633,7 +677,7 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePrefix(node);
+    return bulkHandlePrefix(node, arg);
   }
 
   @override
@@ -643,7 +687,7 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement writtenField,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePrefix(node);
+    return bulkHandlePrefix(node, arg);
   }
 
   @override
@@ -652,7 +696,7 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement field,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePrefix(node);
+    return bulkHandlePrefix(node, arg);
   }
 
   @override
@@ -662,7 +706,7 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePrefix(node);
+    return bulkHandlePrefix(node, arg);
   }
 
   @override
@@ -672,7 +716,7 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement field,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePrefix(node);
+    return bulkHandlePrefix(node, arg);
   }
 
   @override
@@ -682,7 +726,7 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePrefix(node);
+    return bulkHandlePrefix(node, arg);
   }
 
   @override
@@ -693,7 +737,7 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node index,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePrefix(node);
+    return bulkHandlePrefix(node, arg);
   }
 
   @override
@@ -703,7 +747,7 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePrefix(node);
+    return bulkHandlePrefix(node, arg);
   }
 
   @override
@@ -713,7 +757,7 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Selector getterSelector,
       Selector setterSelector,
       A arg) {
-    return bulkHandlePrefix(node);
+    return bulkHandlePrefix(node, arg);
   }
 
   @override
@@ -722,7 +766,7 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement field,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePrefix(node);
+    return bulkHandlePrefix(node, arg);
   }
 
   @override
@@ -732,7 +776,7 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePrefix(node);
+    return bulkHandlePrefix(node, arg);
   }
 
   @override
@@ -742,7 +786,7 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePrefix(node);
+    return bulkHandlePrefix(node, arg);
   }
 }
 
@@ -752,10 +796,10 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 /// Use this mixin to provide a trivial implementation for all `visitXPostfix`
 /// methods.
 abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message);
+  R bulkHandleNode(Node node, String message, A arg);
 
-  R bulkHandlePostfix(Send node) {
-    return bulkHandleNode(node, "Postfix expression `$node` unhandled.");
+  R bulkHandlePostfix(Send node, A arg) {
+    return bulkHandleNode(node, "Postfix expression `$node` unhandled.", arg);
   }
 
   @override
@@ -766,7 +810,7 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Selector getterSelector,
       Selector setterSelector,
       A arg) {
-    return bulkHandlePostfix(node);
+    return bulkHandlePostfix(node, arg);
   }
 
   @override
@@ -776,7 +820,7 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node index,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePostfix(node);
+    return bulkHandlePostfix(node, arg);
   }
 
   @override
@@ -785,7 +829,7 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       LocalVariableElement variable,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePostfix(node);
+    return bulkHandlePostfix(node, arg);
   }
 
   @override
@@ -794,7 +838,7 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       ParameterElement parameter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePostfix(node);
+    return bulkHandlePostfix(node, arg);
   }
 
   @override
@@ -803,7 +847,7 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement field,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePostfix(node);
+    return bulkHandlePostfix(node, arg);
   }
 
   @override
@@ -813,7 +857,7 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePostfix(node);
+    return bulkHandlePostfix(node, arg);
   }
 
   @override
@@ -823,7 +867,7 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePostfix(node);
+    return bulkHandlePostfix(node, arg);
   }
 
   @override
@@ -833,7 +877,7 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement writtenField,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePostfix(node);
+    return bulkHandlePostfix(node, arg);
   }
 
   @override
@@ -842,7 +886,7 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement field,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePostfix(node);
+    return bulkHandlePostfix(node, arg);
   }
 
   @override
@@ -852,7 +896,7 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePostfix(node);
+    return bulkHandlePostfix(node, arg);
   }
 
   @override
@@ -862,7 +906,7 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement field,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePostfix(node);
+    return bulkHandlePostfix(node, arg);
   }
 
   @override
@@ -872,7 +916,7 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePostfix(node);
+    return bulkHandlePostfix(node, arg);
   }
 
   @override
@@ -883,7 +927,7 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node index,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePostfix(node);
+    return bulkHandlePostfix(node, arg);
   }
 
   @override
@@ -893,7 +937,7 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePostfix(node);
+    return bulkHandlePostfix(node, arg);
   }
 
   @override
@@ -903,7 +947,7 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Selector getterSelector,
       Selector setterSelector,
       A arg) {
-    return bulkHandlePostfix(node);
+    return bulkHandlePostfix(node, arg);
   }
 
   @override
@@ -912,7 +956,7 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement field,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePostfix(node);
+    return bulkHandlePostfix(node, arg);
   }
 
   @override
@@ -922,7 +966,7 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePostfix(node);
+    return bulkHandlePostfix(node, arg);
   }
 
   @override
@@ -932,7 +976,7 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandlePostfix(node);
+    return bulkHandlePostfix(node, arg);
   }
 }
 
@@ -942,10 +986,10 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 /// Use this mixin to provide a trivial implementation for all `xCompound`
 /// methods.
 abstract class CompoundBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message);
+  R bulkHandleNode(Node node, String message, A arg);
 
-  R bulkHandleCompound(Send node) {
-    return bulkHandleNode(node, "Compound assignment `$node` unhandled.");
+  R bulkHandleCompound(Send node, A arg) {
+    return bulkHandleNode(node, "Compound assignment `$node` unhandled.", arg);
   }
 
   @override
@@ -957,7 +1001,7 @@ abstract class CompoundBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Selector getterSelector,
       Selector setterSelector,
       A arg) {
-    return bulkHandleCompound(node);
+    return bulkHandleCompound(node, arg);
   }
 
   @override
@@ -967,7 +1011,7 @@ abstract class CompoundBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleCompound(node);
+    return bulkHandleCompound(node, arg);
   }
 
   @override
@@ -977,7 +1021,7 @@ abstract class CompoundBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleCompound(node);
+    return bulkHandleCompound(node, arg);
   }
 
   @override
@@ -987,7 +1031,7 @@ abstract class CompoundBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleCompound(node);
+    return bulkHandleCompound(node, arg);
   }
 
   @override
@@ -998,7 +1042,7 @@ abstract class CompoundBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleCompound(node);
+    return bulkHandleCompound(node, arg);
   }
 
   @override
@@ -1009,7 +1053,7 @@ abstract class CompoundBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleCompound(node);
+    return bulkHandleCompound(node, arg);
   }
 
   @override
@@ -1019,7 +1063,7 @@ abstract class CompoundBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleCompound(node);
+    return bulkHandleCompound(node, arg);
   }
 
   @override
@@ -1030,7 +1074,7 @@ abstract class CompoundBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleCompound(node);
+    return bulkHandleCompound(node, arg);
   }
 
   @override
@@ -1041,7 +1085,7 @@ abstract class CompoundBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleCompound(node);
+    return bulkHandleCompound(node, arg);
   }
 
   @override
@@ -1052,7 +1096,7 @@ abstract class CompoundBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleCompound(node);
+    return bulkHandleCompound(node, arg);
   }
 
   @override
@@ -1063,7 +1107,7 @@ abstract class CompoundBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleCompound(node);
+    return bulkHandleCompound(node, arg);
   }
 
   @override
@@ -1074,7 +1118,7 @@ abstract class CompoundBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Selector getterSelector,
       Selector setterSelector,
       A arg) {
-    return bulkHandleCompound(node);
+    return bulkHandleCompound(node, arg);
   }
 
   @override
@@ -1084,7 +1128,7 @@ abstract class CompoundBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleCompound(node);
+    return bulkHandleCompound(node, arg);
   }
 
   @override
@@ -1095,7 +1139,7 @@ abstract class CompoundBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleCompound(node);
+    return bulkHandleCompound(node, arg);
   }
 
   @override
@@ -1106,7 +1150,7 @@ abstract class CompoundBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleCompound(node);
+    return bulkHandleCompound(node, arg);
   }
 }
 
@@ -1116,20 +1160,20 @@ abstract class CompoundBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 /// Use this mixin to provide a trivial implementation for all `visitXInvoke`
 /// methods.
 abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message);
+  R bulkHandleNode(Node node, String message, A arg);
 
-  R bulkHandleInvoke(Send node) {
-    return bulkHandleNode(node, "Invocation `$node` unhandled.");
+  R bulkHandleInvoke(Send node, A arg) {
+    return bulkHandleNode(node, "Invocation `$node` unhandled.", arg);
   }
 
   @override
   R visitClassTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 
   @override
@@ -1139,17 +1183,17 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 
   @override
   R visitDynamicTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 
   @override
@@ -1159,7 +1203,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 
   @override
@@ -1169,7 +1213,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 
   @override
@@ -1179,7 +1223,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 
   @override
@@ -1189,7 +1233,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 
   @override
@@ -1199,7 +1243,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 
   @override
@@ -1209,7 +1253,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 
   @override
@@ -1219,7 +1263,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 
   @override
@@ -1229,7 +1273,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 
   @override
@@ -1239,7 +1283,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 
   @override
@@ -1249,7 +1293,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 
   @override
@@ -1258,7 +1302,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 
   @override
@@ -1267,7 +1311,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 
   @override
@@ -1277,7 +1321,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 
   @override
@@ -1287,7 +1331,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 
   @override
@@ -1297,7 +1341,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 
   @override
@@ -1307,17 +1351,17 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 
   @override
   R visitTypedefTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 
   @override
@@ -1327,7 +1371,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleInvoke(node);
+    return bulkHandleInvoke(node, arg);
   }
 }
 
@@ -1337,18 +1381,18 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 /// Use this mixin to provide a trivial implementation for all `visitXGet`
 /// methods.
 abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message);
+  R bulkHandleNode(Node node, String message, A arg);
 
-  R bulkHandleGet(Node node) {
-    return bulkHandleNode(node, "Read `$node` unhandled.");
+  R bulkHandleGet(Node node, A arg) {
+    return bulkHandleNode(node, "Read `$node` unhandled.", arg);
   }
 
   @override
   R visitClassTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg) {
-    return bulkHandleGet(node);
+    return bulkHandleGet(node, arg);
   }
 
   @override
@@ -1357,15 +1401,15 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node receiver,
       Selector selector,
       A arg) {
-    return bulkHandleGet(node);
+    return bulkHandleGet(node, arg);
   }
 
   @override
   R visitDynamicTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg) {
-    return bulkHandleGet(node);
+    return bulkHandleGet(node, arg);
   }
 
   @override
@@ -1373,7 +1417,7 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       LocalFunctionElement function,
       A arg) {
-    return bulkHandleGet(node);
+    return bulkHandleGet(node, arg);
   }
 
   @override
@@ -1381,7 +1425,7 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       LocalVariableElement variable,
       A arg) {
-    return bulkHandleGet(node);
+    return bulkHandleGet(node, arg);
   }
 
   @override
@@ -1389,7 +1433,7 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       ParameterElement parameter,
       A arg) {
-    return bulkHandleGet(node);
+    return bulkHandleGet(node, arg);
   }
 
   @override
@@ -1397,7 +1441,7 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FieldElement field,
       A arg) {
-    return bulkHandleGet(node);
+    return bulkHandleGet(node, arg);
   }
 
   @override
@@ -1405,7 +1449,7 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       MethodElement function,
       A arg) {
-    return bulkHandleGet(node);
+    return bulkHandleGet(node, arg);
   }
 
   @override
@@ -1413,7 +1457,7 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement getter,
       A arg) {
-    return bulkHandleGet(node);
+    return bulkHandleGet(node, arg);
   }
 
   @override
@@ -1421,7 +1465,7 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FieldElement field,
       A arg) {
-    return bulkHandleGet(node);
+    return bulkHandleGet(node, arg);
   }
 
   @override
@@ -1429,7 +1473,7 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement getter,
       A arg) {
-    return bulkHandleGet(node);
+    return bulkHandleGet(node, arg);
   }
 
   @override
@@ -1437,12 +1481,12 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       MethodElement method,
       A arg) {
-    return bulkHandleGet(node);
+    return bulkHandleGet(node, arg);
   }
 
   @override
   R visitThisGet(Identifier node, A arg) {
-    return bulkHandleGet(node);
+    return bulkHandleGet(node, arg);
   }
 
   @override
@@ -1450,7 +1494,7 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       Selector selector,
       A arg) {
-    return bulkHandleGet(node);
+    return bulkHandleGet(node, arg);
   }
 
   @override
@@ -1458,7 +1502,7 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FieldElement field,
       A arg) {
-    return bulkHandleGet(node);
+    return bulkHandleGet(node, arg);
   }
 
   @override
@@ -1466,7 +1510,7 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       MethodElement function,
       A arg) {
-    return bulkHandleGet(node);
+    return bulkHandleGet(node, arg);
   }
 
   @override
@@ -1474,7 +1518,7 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement getter,
       A arg) {
-    return bulkHandleGet(node);
+    return bulkHandleGet(node, arg);
   }
 
   @override
@@ -1482,23 +1526,23 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       TypeVariableElement element,
       A arg) {
-    return bulkHandleGet(node);
+    return bulkHandleGet(node, arg);
   }
 
   @override
   R visitTypedefTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg) {
-    return bulkHandleGet(node);
+    return bulkHandleGet(node, arg);
   }
 
   @override
   R visitConstantGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg) {
-    return bulkHandleGet(node);
+    return bulkHandleGet(node, arg);
   }
 }
 
@@ -1508,10 +1552,10 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 /// Use this mixin to provide a trivial implementation for all `visitXSet`
 /// methods.
 abstract class SetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message);
+  R bulkHandleNode(Node node, String message, A arg);
 
-  R bulkHandleSet(Send node) {
-    return bulkHandleNode(node, "Assignment `$node` unhandled.");
+  R bulkHandleSet(Send node, A arg) {
+    return bulkHandleNode(node, "Assignment `$node` unhandled.", arg);
   }
 
   @override
@@ -1521,7 +1565,7 @@ abstract class SetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Selector selector,
       Node rhs,
       A arg) {
-    return bulkHandleSet(node);
+    return bulkHandleSet(node, arg);
   }
 
   @override
@@ -1530,7 +1574,7 @@ abstract class SetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       LocalVariableElement variable,
       Node rhs,
       A arg) {
-    return bulkHandleSet(node);
+    return bulkHandleSet(node, arg);
   }
 
   @override
@@ -1539,7 +1583,7 @@ abstract class SetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       ParameterElement parameter,
       Node rhs,
       A arg) {
-    return bulkHandleSet(node);
+    return bulkHandleSet(node, arg);
   }
 
   @override
@@ -1548,7 +1592,7 @@ abstract class SetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement field,
       Node rhs,
       A arg) {
-    return bulkHandleSet(node);
+    return bulkHandleSet(node, arg);
   }
 
   @override
@@ -1557,7 +1601,7 @@ abstract class SetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       Node rhs,
       A arg) {
-    return bulkHandleSet(node);
+    return bulkHandleSet(node, arg);
   }
 
   @override
@@ -1566,7 +1610,7 @@ abstract class SetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement field,
       Node rhs,
       A arg) {
-    return bulkHandleSet(node);
+    return bulkHandleSet(node, arg);
   }
 
   @override
@@ -1575,7 +1619,7 @@ abstract class SetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       Node rhs,
       A arg) {
-    return bulkHandleSet(node);
+    return bulkHandleSet(node, arg);
   }
 
   @override
@@ -1584,7 +1628,7 @@ abstract class SetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Selector selector,
       Node rhs,
       A arg) {
-    return bulkHandleSet(node);
+    return bulkHandleSet(node, arg);
   }
 
   @override
@@ -1593,7 +1637,7 @@ abstract class SetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement field,
       Node rhs,
       A arg) {
-    return bulkHandleSet(node);
+    return bulkHandleSet(node, arg);
   }
 
   @override
@@ -1602,7 +1646,7 @@ abstract class SetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       Node rhs,
       A arg) {
-    return bulkHandleSet(node);
+    return bulkHandleSet(node, arg);
   }
 }
 
@@ -1612,10 +1656,10 @@ abstract class SetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 /// Use this mixin to provide a trivial implementation for all `visitXIndexSet`
 /// methods.
 abstract class IndexSetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message);
+  R bulkHandleNode(Node node, String message, A arg);
 
-  R bulkHandleIndexSet(Send node) {
-    return bulkHandleNode(node, "Index set expression `$node` unhandled.");
+  R bulkHandleIndexSet(Send node, A arg) {
+    return bulkHandleNode(node, "Index set expression `$node` unhandled.", arg);
   }
 
   @override
@@ -1626,7 +1670,7 @@ abstract class IndexSetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleIndexSet(node);
+    return bulkHandleIndexSet(node, arg);
   }
 
   @override
@@ -1636,7 +1680,7 @@ abstract class IndexSetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node index,
       Node rhs,
       A arg) {
-    return bulkHandleIndexSet(node);
+    return bulkHandleIndexSet(node, arg);
   }
 
   @override
@@ -1648,7 +1692,7 @@ abstract class IndexSetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleIndexSet(node);
+    return bulkHandleIndexSet(node, arg);
   }
 
   @override
@@ -1658,7 +1702,7 @@ abstract class IndexSetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node index,
       Node rhs,
       A arg) {
-    return bulkHandleIndexSet(node);
+    return bulkHandleIndexSet(node, arg);
   }
 }
 
@@ -1668,10 +1712,10 @@ abstract class IndexSetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 /// Use this mixin to provide a trivial implementation for all binary visitor
 /// methods.
 abstract class BinaryBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message);
+  R bulkHandleNode(Node node, String message, A arg);
 
-  R bulkHandleBinary(Send node) {
-    return bulkHandleNode(node, "Binary expression `$node` unhandled.");
+  R bulkHandleBinary(Send node, A arg) {
+    return bulkHandleNode(node, "Binary expression `$node` unhandled.", arg);
   }
 
   @override
@@ -1681,7 +1725,7 @@ abstract class BinaryBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       BinaryOperator operator,
       Node right,
       A arg) {
-    return bulkHandleBinary(node);
+    return bulkHandleBinary(node, arg);
   }
 
   @override
@@ -1690,7 +1734,7 @@ abstract class BinaryBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node left,
       Node right,
       A arg) {
-    return bulkHandleBinary(node);
+    return bulkHandleBinary(node, arg);
   }
 
   @override
@@ -1699,7 +1743,7 @@ abstract class BinaryBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node left,
       Node right,
       A arg) {
-    return bulkHandleBinary(node);
+    return bulkHandleBinary(node, arg);
   }
 
   @override
@@ -1708,7 +1752,7 @@ abstract class BinaryBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node receiver,
       Node index,
       A arg) {
-    return bulkHandleBinary(node);
+    return bulkHandleBinary(node, arg);
   }
 
   @override
@@ -1718,7 +1762,7 @@ abstract class BinaryBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       BinaryOperator operator,
       Node argument,
       A arg) {
-    return bulkHandleBinary(node);
+    return bulkHandleBinary(node, arg);
   }
 
   @override
@@ -1727,7 +1771,7 @@ abstract class BinaryBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement function,
       Node argument,
       A arg) {
-    return bulkHandleBinary(node);
+    return bulkHandleBinary(node, arg);
   }
 
   @override
@@ -1736,7 +1780,7 @@ abstract class BinaryBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement function,
       Node argument,
       A arg) {
-    return bulkHandleBinary(node);
+    return bulkHandleBinary(node, arg);
   }
 
   @override
@@ -1745,7 +1789,7 @@ abstract class BinaryBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement function,
       Node index,
       A arg) {
-    return bulkHandleBinary(node);
+    return bulkHandleBinary(node, arg);
   }
 }
 
@@ -1755,10 +1799,10 @@ abstract class BinaryBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 /// Use this mixin to provide a trivial implementation for all unary visitor
 /// methods.
 abstract class UnaryBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message);
+  R bulkHandleNode(Node node, String message, A arg);
 
-  R bulkHandleUnary(Send node) {
-    return bulkHandleNode(node, "Unary expression `$node` unhandled.");
+  R bulkHandleUnary(Send node, A arg) {
+    return bulkHandleNode(node, "Unary expression `$node` unhandled.", arg);
   }
 
   @override
@@ -1766,13 +1810,13 @@ abstract class UnaryBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       Node expression,
       A arg) {
-    return bulkHandleUnary(node);
+    return bulkHandleUnary(node, arg);
   }
 
   @override
   R visitSuperUnary(Send node, UnaryOperator operator,
                     FunctionElement function, A arg) {
-    return bulkHandleUnary(node);
+    return bulkHandleUnary(node, arg);
   }
 
   @override
@@ -1781,7 +1825,7 @@ abstract class UnaryBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       UnaryOperator operator,
       Node expression,
       A arg) {
-    return bulkHandleUnary(node);
+    return bulkHandleUnary(node, arg);
   }
 }
 
@@ -1791,7 +1835,7 @@ abstract class UnaryBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 /// Use this mixin to provide a trivial implementation for all purely structural
 /// visitor methods.
 abstract class BaseBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message);
+  R bulkHandleNode(Node node, String message, A arg);
 
   @override
   R visitAs(
@@ -1799,7 +1843,7 @@ abstract class BaseBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node expression,
       DartType type,
       A arg) {
-    return bulkHandleNode(node, 'As cast `$node` unhandled.');
+    return bulkHandleNode(node, 'As cast `$node` unhandled.', arg);
   }
 
   @override
@@ -1807,7 +1851,7 @@ abstract class BaseBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       Node expression,
       A arg) {
-    return bulkHandleNode(node, 'Assert `$node` unhandled.');
+    return bulkHandleNode(node, 'Assert `$node` unhandled.', arg);
   }
 
   @override
@@ -1816,7 +1860,7 @@ abstract class BaseBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node expression,
       DartType type,
       A arg) {
-    return bulkHandleNode(node, 'Is test `$node` unhandled.');
+    return bulkHandleNode(node, 'Is test `$node` unhandled.', arg);
   }
 
   @override
@@ -1825,7 +1869,7 @@ abstract class BaseBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node expression,
       DartType type,
       A arg) {
-    return bulkHandleNode(node, 'Is not test `$node` unhandled.');
+    return bulkHandleNode(node, 'Is not test `$node` unhandled.', arg);
   }
 
   @override
@@ -1834,7 +1878,7 @@ abstract class BaseBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node left,
       Node right,
       A arg) {
-    return bulkHandleNode(node, 'Lazy and `$node` unhandled.');
+    return bulkHandleNode(node, 'Lazy and `$node` unhandled.', arg);
   }
 
   @override
@@ -1843,7 +1887,7 @@ abstract class BaseBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node left,
       Node right,
       A arg) {
-    return bulkHandleNode(node, 'Lazy or `$node` unhandled.');
+    return bulkHandleNode(node, 'Lazy or `$node` unhandled.', arg);
   }
 }
 
@@ -1853,10 +1897,10 @@ abstract class BaseBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 /// Use this mixin to provide a trivial implementation for `super` calls
 /// visitor methods.
 abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message);
+  R bulkHandleNode(Node node, String message, A arg);
 
-  R bulkHandleSuper(Send node) {
-    return bulkHandleNode(node, "Super call `$node` unhandled.");
+  R bulkHandleSuper(Send node, A arg) {
+    return bulkHandleNode(node, "Super call `$node` unhandled.", arg);
   }
 
   @override
@@ -1866,7 +1910,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       BinaryOperator operator,
       Node argument,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -1878,7 +1922,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -1887,7 +1931,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement function,
       Node argument,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -1897,7 +1941,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -1907,7 +1951,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement writtenField,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -1917,7 +1961,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement writtenField,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -1925,7 +1969,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FieldElement field,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -1935,7 +1979,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -1944,7 +1988,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement field,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -1953,7 +1997,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement field,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -1962,7 +2006,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement field,
       Node rhs,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -1973,7 +2017,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -1983,7 +2027,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -1993,7 +2037,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -2004,7 +2048,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -2014,7 +2058,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement field,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -2024,7 +2068,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FieldElement field,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -2032,7 +2076,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement getter,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -2042,7 +2086,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -2053,7 +2097,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -2063,7 +2107,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -2073,7 +2117,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -2083,7 +2127,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node index,
       Node rhs,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -2091,7 +2135,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       MethodElement method,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -2101,7 +2145,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       NodeList arguments,
       Selector selector,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -2112,7 +2156,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       AssignmentOperator operator,
       Node rhs,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -2122,7 +2166,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -2132,7 +2176,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -2141,7 +2185,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement function,
       Node argument,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -2150,7 +2194,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       FunctionElement setter,
       Node rhs,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
   }
 
   @override
@@ -2159,7 +2203,66 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       UnaryOperator operator,
       FunctionElement function,
       A arg) {
-    return bulkHandleSuper(node);
+    return bulkHandleSuper(node, arg);
+  }
+}
+
+abstract class NewBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
+  R bulkHandleNode(Node node, String message, A arg);
+
+  R bulkHandleNew(NewExpression node, A arg) {
+    return bulkHandleNode(
+        node, "Constructor invocation `$node` unhandled.", arg);
+  }
+
+  @override
+  R visitConstConstructorInvoke(
+      NewExpression node,
+      ConstructedConstantExpression constant,
+      A arg) {
+    return bulkHandleNew(node, arg);
+  }
+
+  R visitGenerativeConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleNew(node, arg);
+  }
+
+  R visitRedirectingGenerativeConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleNew(node, arg);
+  }
+
+  R visitFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleNew(node, arg);
+  }
+
+  R visitRedirectingFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      ConstructorElement effectiveTarget,
+      InterfaceType effectiveTargetType,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleNew(node, arg);
   }
 }
 
@@ -2179,15 +2282,15 @@ class BulkVisitor<R, A> extends SemanticSendVisitor<R, A>
          BaseBulkMixin<R, A>,
          BinaryBulkMixin<R, A>,
          PrefixBulkMixin<R, A>,
-         PostfixBulkMixin<R, A> {
-
+         PostfixBulkMixin<R, A>,
+         NewBulkMixin<R, A> {
   @override
   R apply(Node node, A arg) {
     throw new UnimplementedError("BulkVisitor.apply unimplemented");
   }
 
   @override
-  R bulkHandleNode(Node node, String message) {
+  R bulkHandleNode(Node node, String message, A arg) {
     throw new UnimplementedError("BulkVisitor.bulkHandleNode unimplemented");
   }
 }
@@ -2211,7 +2314,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorClassTypeLiteralSet(
       SendSet node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       Node rhs,
       A arg) {
     apply(rhs, arg);
@@ -2221,7 +2324,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorDynamicTypeLiteralSet(
       SendSet node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       Node rhs,
       A arg) {
     apply(rhs, arg);
@@ -2502,7 +2605,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorTypedefTypeLiteralSet(
       SendSet node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       Node rhs,
       A arg) {
     apply(rhs, arg);
@@ -2553,7 +2656,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorClassTypeLiteralCompound(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       A arg) {
@@ -2564,7 +2667,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitClassTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg) {
     return null;
   }
@@ -2572,7 +2675,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitClassTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg) {
@@ -2583,7 +2686,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorClassTypeLiteralPostfix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
     return null;
@@ -2592,7 +2695,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorClassTypeLiteralPrefix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
     return null;
@@ -2705,7 +2808,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorDynamicTypeLiteralCompound(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       A arg) {
@@ -2716,7 +2819,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitDynamicTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg) {
     return null;
   }
@@ -2724,7 +2827,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitDynamicTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg) {
@@ -2735,7 +2838,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorDynamicTypeLiteralPostfix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
     return null;
@@ -2744,7 +2847,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorDynamicTypeLiteralPrefix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
     return null;
@@ -3789,7 +3892,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorTypedefTypeLiteralCompound(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       AssignmentOperator operator,
       Node rhs,
       A arg) {
@@ -3800,7 +3903,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitTypedefTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg) {
     return null;
   }
@@ -3808,7 +3911,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitTypedefTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg) {
@@ -3819,7 +3922,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorTypedefTypeLiteralPostfix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
     return null;
@@ -3828,7 +3931,7 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R errorTypedefTypeLiteralPrefix(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       IncDecOperator operator,
       A arg) {
     return null;
@@ -3976,7 +4079,8 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node index,
       IncDecOperator operator,
       A arg) {
-    // TODO: implement errorUnresolvedSuperIndexPostfix
+    apply(index, arg);
+    return null;
   }
 
   @override
@@ -3986,7 +4090,8 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node index,
       IncDecOperator operator,
       A arg) {
-    // TODO: implement errorUnresolvedSuperIndexPrefix
+    apply(index, arg);
+    return null;
   }
 
   @override
@@ -3996,7 +4101,9 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node index,
       IncDecOperator operator,
       A arg) {
-    // TODO: implement visitIndexPostfix
+    apply(receiver, arg);
+    apply(index, arg);
+    return null;
   }
 
   @override
@@ -4006,7 +4113,9 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node index,
       IncDecOperator operator,
       A arg) {
-    // TODO: implement visitIndexPrefix
+    apply(receiver, arg);
+    apply(index, arg);
+    return null;
   }
 
   @override
@@ -4017,7 +4126,8 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node index,
       IncDecOperator operator,
       A arg) {
-    // TODO: implement visitSuperIndexPostfix
+    apply(index, arg);
+    return null;
   }
 
   @override
@@ -4028,7 +4138,112 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node index,
       IncDecOperator operator,
       A arg) {
-    // TODO: implement visitSuperIndexPrefix
+    apply(index, arg);
+    return null;
+  }
+
+  @override
+  R visitConstConstructorInvoke(
+      NewExpression node,
+      ConstructedConstantExpression constant,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R errorUnresolvedClassConstructorInvoke(
+      NewExpression node,
+      Element constructor,
+      MalformedType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R errorUnresolvedConstructorInvoke(
+      NewExpression node,
+      Element constructor,
+      DartType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+  R visitFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R visitGenerativeConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R visitRedirectingFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      ConstructorElement effectiveTarget,
+      InterfaceType effectiveTargetType,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R visitRedirectingGenerativeConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R errorAbstractClassConstructorInvoke(
+      NewExpression node,
+      ConstructorElement element,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R errorUnresolvedRedirectingFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
   }
 }
 
@@ -4054,12 +4269,6 @@ class TraversalVisitor<R, A> extends SemanticVisitor<R, A>
   R visitNode(Node node) {
     node.visitChildren(this);
     return null;
-  }
-
-  @override
-  R visitNewExpression(NewExpression node) {
-    // Bypass the [Send] holding the class/constructor name.
-    return apply(node.send.argumentsNode, null);
   }
 
   void visitParameters(NodeList parameters) {
@@ -4707,7 +4916,7 @@ abstract class BaseImplementationOfLocalsMixin<R, A>
 abstract class BaseImplementationOfConstantsMixin<R, A>
     implements SemanticSendVisitor<R, A> {
   R handleConstantGet(
-      Send node,
+      Node node,
       ConstantExpression constant,
       A arg);
 
@@ -4721,7 +4930,7 @@ abstract class BaseImplementationOfConstantsMixin<R, A>
   @override
   R visitClassTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg) {
     return handleConstantGet(node, constant, arg);
   }
@@ -4729,11 +4938,19 @@ abstract class BaseImplementationOfConstantsMixin<R, A>
   @override
   R visitClassTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg) {
     return handleConstantInvoke(node, constant, arguments, selector, arg);
+  }
+
+  @override
+  R visitConstConstructorInvoke(
+      NewExpression node,
+      ConstructedConstantExpression constant,
+      A arg) {
+    return handleConstantGet(node, constant, arg);
   }
 
   @override
@@ -4757,7 +4974,7 @@ abstract class BaseImplementationOfConstantsMixin<R, A>
   @override
   R visitDynamicTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg) {
     return handleConstantGet(node, constant, arg);
   }
@@ -4765,7 +4982,7 @@ abstract class BaseImplementationOfConstantsMixin<R, A>
   @override
   R visitDynamicTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg) {
@@ -4775,7 +4992,7 @@ abstract class BaseImplementationOfConstantsMixin<R, A>
   @override
   R visitTypedefTypeLiteralGet(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       A arg) {
     return handleConstantGet(node, constant, arg);
   }
@@ -4783,7 +5000,7 @@ abstract class BaseImplementationOfConstantsMixin<R, A>
   @override
   R visitTypedefTypeLiteralInvoke(
       Send node,
-      TypeConstantExpression constant,
+      ConstantExpression constant,
       NodeList arguments,
       Selector selector,
       A arg) {
@@ -4998,8 +5215,8 @@ abstract class BaseImplementationOfDynamicsMixin<R, A>
   }
 }
 
-/// Mixin that groups all `visitSuperXPrefix`, `visitSuperXPostfix` methods for
-/// by delegating calls to `handleSuperXPostfixPrefix` methods.
+/// Mixin that groups all `visitSuperXPrefix`, `visitSuperXPostfix` methods by
+/// delegating calls to `handleSuperXPostfixPrefix` methods.
 ///
 /// This mixin is useful for the cases where super prefix/postfix expression are
 /// handled uniformly.
@@ -5208,5 +5425,68 @@ abstract class BaseImplementationOfSuperIncDecsMixin<R, A>
     return handleSuperIndexPostfixPrefix(
         node, indexFunction, indexSetFunction,
         index, operator, arg, isPrefix: true);
+  }
+}
+
+/// Mixin that groups the non-constant `visitXConstructorInvoke` methods by
+/// delegating calls to the `handleConstructorInvoke` method.
+///
+/// This mixin is useful for the cases where all constructor invocations are
+/// handled uniformly.
+abstract class BaseImplementationOfNewMixin<R, A>
+    implements SemanticSendVisitor<R, A> {
+
+  R handleConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      DartType type,
+      NodeList arguments,
+      Selector selector,
+      A arg);
+
+  R visitGenerativeConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return handleConstructorInvoke(
+        node, constructor, type, arguments, selector, arg);
+  }
+
+  R visitRedirectingGenerativeConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return handleConstructorInvoke(
+        node, constructor, type, arguments, selector, arg);
+  }
+
+  R visitFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return handleConstructorInvoke(
+        node, constructor, type, arguments, selector, arg);
+  }
+
+  R visitRedirectingFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      ConstructorElement effectiveTarget,
+      InterfaceType effectiveTargetType,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return handleConstructorInvoke(
+        node, constructor, type, arguments, selector, arg);
   }
 }

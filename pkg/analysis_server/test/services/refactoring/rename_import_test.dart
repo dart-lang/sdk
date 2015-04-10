@@ -66,6 +66,50 @@ main() {
 ''');
   }
 
+  test_createChange_add_interpolationExpression_hasCurlyBrackets() {
+    indexTestUnit(r'''
+import 'dart:async';
+main() {
+  Future f;
+  print('Future type: ${Future}');
+}
+''');
+    // configure refactoring
+    _createRefactoring("import 'dart:async");
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring(r'''
+import 'dart:async' as newName;
+main() {
+  newName.Future f;
+  print('Future type: ${newName.Future}');
+}
+''');
+  }
+
+  test_createChange_add_interpolationExpression_noCurlyBrackets() {
+    indexTestUnit(r'''
+import 'dart:async';
+main() {
+  Future f;
+  print('Future type: $Future');
+}
+''');
+    // configure refactoring
+    _createRefactoring("import 'dart:async");
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring(r'''
+import 'dart:async' as newName;
+main() {
+  newName.Future f;
+  print('Future type: ${newName.Future}');
+}
+''');
+  }
+
   test_createChange_change_className() {
     indexTestUnit('''
 import 'dart:math' as test;

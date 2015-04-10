@@ -14,7 +14,7 @@ import "runtime_configuration.dart" show RuntimeConfiguration;
 const List<String> defaultTestSelectors =
     const ['samples', 'standalone', 'corelib', 'co19', 'language',
            'isolate', 'vm', 'html', 'benchmark_smoke',
-           'utils', 'lib', 'pkg', 'analyze_library', 'vmservice',
+           'utils', 'lib', 'pkg', 'analyze_library', 'service',
            'pkg_tested'];
 
 /**
@@ -109,7 +109,7 @@ class TestOptionsParser {
               'arch',
               'The architecture to run tests for',
               ['-a', '--arch'],
-              ['all', 'ia32', 'x64', 'arm', 'arm64', 'mips',
+              ['all', 'ia32', 'x64', 'arm', 'armv5te', 'arm64', 'mips',
                'simarm', 'simarm64', 'simmips'],
               'ia32'),
           new _TestOptionSpecification(

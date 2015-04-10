@@ -131,12 +131,12 @@ class DartBackend extends Backend {
 
   void codegen(CodegenWorkItem work) { }
 
-  static bool checkTreeIntegrity(tree_ir.ExecutableDefinition node) {
+  static bool checkTreeIntegrity(tree_ir.RootNode node) {
     new CheckTreeIntegrity().check(node);
     return true; // So this can be used from assert().
   }
 
-  static bool checkCpsIntegrity(cps_ir.ExecutableDefinition node) {
+  static bool checkCpsIntegrity(cps_ir.RootNode node) {
     new CheckCpsIntegrity().check(node);
     return true; // So this can be used from assert().
   }
@@ -145,16 +145,16 @@ class DartBackend extends Backend {
   static ElementAst createElementAst(
        ElementAstCreationContext context,
        Element element,
-       cps_ir.ExecutableDefinition cpsDefinition) {
+       cps_ir.RootNode cpsRoot) {
     context.traceCompilation(element.name);
-    context.traceGraph('CPS builder', cpsDefinition);
-    assert(checkCpsIntegrity(cpsDefinition));
+    context.traceGraph('CPS builder', cpsRoot);
+    assert(checkCpsIntegrity(cpsRoot));
 
     // Transformations on the CPS IR.
     void applyCpsPass(cps_opt.Pass pass) {
-      pass.rewrite(cpsDefinition);
-      context.traceGraph(pass.passName, cpsDefinition);
-      assert(checkCpsIntegrity(cpsDefinition));
+      pass.rewrite(cpsRoot);
+      context.traceGraph(pass.passName, cpsRoot);
+      assert(checkCpsIntegrity(cpsRoot));
     }
 
     // TODO(karlklose): enable type propagation for dart2dart when constant
@@ -168,37 +168,32 @@ class DartBackend extends Backend {
     applyCpsPass(new RedundantPhiEliminator());
     applyCpsPass(new ShrinkingReducer());
 
-    // Do not rewrite the IR after variable allocation.  Allocation
-    // makes decisions based on an approximation of IR variable live
-    // ranges that can be invalidated by transforming the IR.
-    new cps_ir.RegisterAllocator(context.internalError).visit(cpsDefinition);
-
     tree_builder.Builder builder =
         new tree_builder.Builder(context.internalError);
-    tree_ir.ExecutableDefinition treeDefinition = builder.build(cpsDefinition);
-    assert(treeDefinition != null);
-    context.traceGraph('Tree builder', treeDefinition);
-    assert(checkTreeIntegrity(treeDefinition));
+    tree_ir.RootNode treeRoot = builder.build(cpsRoot);
+    assert(treeRoot != null);
+    context.traceGraph('Tree builder', treeRoot);
+    assert(checkTreeIntegrity(treeRoot));
 
     // Transformations on the Tree IR.
     void applyTreePass(tree_opt.Pass pass) {
-      pass.rewrite(treeDefinition);
-      context.traceGraph(pass.passName, treeDefinition);
-      assert(checkTreeIntegrity(treeDefinition));
+      pass.rewrite(treeRoot);
+      context.traceGraph(pass.passName, treeRoot);
+      assert(checkTreeIntegrity(treeRoot));
     }
 
     applyTreePass(new StatementRewriter());
-    applyTreePass(new CopyPropagator());
+    applyTreePass(new VariableMerger());
     applyTreePass(new LoopRewriter());
     applyTreePass(new LogicalRewriter());
 
     // Backend-specific transformations.
-    new backend_ast_emitter.UnshadowParameters().unshadow(treeDefinition);
-    context.traceGraph('Unshadow parameters', treeDefinition);
+    new backend_ast_emitter.UnshadowParameters().unshadow(treeRoot);
+    context.traceGraph('Unshadow parameters', treeRoot);
 
     TreeElementMapping treeElements = new TreeElementMapping(element);
-    backend_ast.ExecutableDefinition backendAst =
-        backend_ast_emitter.emit(treeDefinition);
+    backend_ast.RootNode backendAst =
+        backend_ast_emitter.emit(treeRoot);
     Node frontend_ast = backend2frontend.emit(treeElements, backendAst);
     return new ElementAst(frontend_ast, treeElements);
 
@@ -225,9 +220,8 @@ class DartBackend extends Backend {
         return new ElementAst(element.resolvedAst.node,
                               element.resolvedAst.elements);
       } else {
-        cps_ir.ExecutableDefinition definition =
-            compiler.irBuilder.getIr(element);
-        return createElementAst(context, element, definition);
+        cps_ir.RootNode irNode = compiler.irBuilder.getIr(element);
+        return createElementAst(context, element, irNode);
       }
     }
 

@@ -622,8 +622,9 @@ class AstFactory {
       parameters, body);
 
   static MethodInvocation methodInvocation(Expression target, String methodName,
-      [List<Expression> arguments]) => new MethodInvocation(target,
-      target == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD),
+      [List<Expression> arguments,
+      TokenType operator = TokenType.PERIOD]) => new MethodInvocation(target,
+      target == null ? null : TokenFactory.tokenFromType(operator),
       identifier3(methodName), argumentList(arguments));
 
   static MethodInvocation methodInvocation2(String methodName,
@@ -696,9 +697,9 @@ class AstFactory {
       Expression target, SimpleIdentifier propertyName) => new PropertyAccess(
       target, TokenFactory.tokenFromType(TokenType.PERIOD), propertyName);
 
-  static PropertyAccess propertyAccess2(
-      Expression target, String propertyName) => new PropertyAccess(target,
-      TokenFactory.tokenFromType(TokenType.PERIOD), identifier3(propertyName));
+  static PropertyAccess propertyAccess2(Expression target, String propertyName,
+      [TokenType operator = TokenType.PERIOD]) => new PropertyAccess(
+      target, TokenFactory.tokenFromType(operator), identifier3(propertyName));
 
   static RedirectingConstructorInvocation redirectingConstructorInvocation(
           [List<Expression> arguments]) =>

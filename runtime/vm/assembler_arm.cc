@@ -410,13 +410,8 @@ void Assembler::muls(Register rd, Register rn, Register rm, Condition cond) {
 void Assembler::mla(Register rd, Register rn,
                     Register rm, Register ra, Condition cond) {
   // rd <- ra + rn * rm.
-  if (TargetCPUFeatures::arm_version() == ARMv7) {
-    // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
-    EmitMulOp(cond, B21, ra, rd, rn, rm);
-  } else {
-    mul(IP, rn, rm, cond);
-    add(rd, ra, Operand(IP), cond);
-  }
+  // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
+  EmitMulOp(cond, B21, ra, rd, rn, rm);
 }
 
 
@@ -435,7 +430,6 @@ void Assembler::mls(Register rd, Register rn,
 
 void Assembler::smull(Register rd_lo, Register rd_hi,
                       Register rn, Register rm, Condition cond) {
-  ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
   // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
   EmitMulOp(cond, B23 | B22, rd_lo, rd_hi, rn, rm);
 }
@@ -443,33 +437,33 @@ void Assembler::smull(Register rd_lo, Register rd_hi,
 
 void Assembler::umull(Register rd_lo, Register rd_hi,
                       Register rn, Register rm, Condition cond) {
-  ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
   // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
   EmitMulOp(cond, B23, rd_lo, rd_hi, rn, rm);
 }
 
 
-void Assembler::smlal(Register rd_lo, Register rd_hi,
-                      Register rn, Register rm, Condition cond) {
-  ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
-  // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
-  EmitMulOp(cond, B23 | B22 | B21, rd_lo, rd_hi, rn, rm);
-}
-
-
 void Assembler::umlal(Register rd_lo, Register rd_hi,
                       Register rn, Register rm, Condition cond) {
-  ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
   // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
   EmitMulOp(cond, B23 | B21, rd_lo, rd_hi, rn, rm);
 }
 
 
 void Assembler::umaal(Register rd_lo, Register rd_hi,
-                      Register rn, Register rm, Condition cond) {
-  ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
-  // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
-  EmitMulOp(cond, B22, rd_lo, rd_hi, rn, rm);
+                      Register rn, Register rm) {
+  ASSERT(rd_lo != IP);
+  ASSERT(rd_hi != IP);
+  ASSERT(rn != IP);
+  ASSERT(rm != IP);
+  if (TargetCPUFeatures::arm_version() != ARMv5TE) {
+    // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+    EmitMulOp(AL, B22, rd_lo, rd_hi, rn, rm);
+  } else {
+    mov(IP, Operand(0));
+    umlal(rd_lo, IP, rn, rm);
+    adds(rd_lo, rd_lo, Operand(rd_hi));
+    adc(rd_hi, IP, Operand(0));
+  }
 }
 
 
@@ -540,15 +534,27 @@ void Assembler::ldrsh(Register rd, Address ad, Condition cond) {
 }
 
 
-void Assembler::ldrd(Register rd, Address ad, Condition cond) {
+void Assembler::ldrd(Register rd, Register rn, int32_t offset, Condition cond) {
   ASSERT((rd % 2) == 0);
-  EmitMemOpAddressMode3(cond, B7 | B6 | B4, rd, ad);
+  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+    const Register rd2 = static_cast<Register>(static_cast<int32_t>(rd) + 1);
+    ldr(rd, Address(rn, offset), cond);
+    ldr(rd2, Address(rn, offset + kWordSize), cond);
+  } else {
+    EmitMemOpAddressMode3(cond, B7 | B6 | B4, rd, Address(rn, offset));
+  }
 }
 
 
-void Assembler::strd(Register rd, Address ad, Condition cond) {
+void Assembler::strd(Register rd, Register rn, int32_t offset, Condition cond) {
   ASSERT((rd % 2) == 0);
-  EmitMemOpAddressMode3(cond, B7 | B6 | B5 | B4, rd, ad);
+  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+    const Register rd2 = static_cast<Register>(static_cast<int32_t>(rd) + 1);
+    str(rd, Address(rn, offset), cond);
+    str(rd2, Address(rn, offset + kWordSize), cond);
+  } else {
+    EmitMemOpAddressMode3(cond, B7 | B6 | B5 | B4, rd, Address(rn, offset));
+  }
 }
 
 
@@ -556,11 +562,6 @@ void Assembler::ldm(BlockAddressMode am, Register base, RegList regs,
                     Condition cond) {
   ASSERT(regs != 0);
   EmitMultiMemOp(cond, am, true, base, regs);
-  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
-    // On ARMv5, touching a "banked" register after an ldm gives undefined
-    // behavior, so we just add a nop here to make that case easy to avoid.
-    nop();
-  }
 }
 
 
@@ -568,11 +569,6 @@ void Assembler::stm(BlockAddressMode am, Register base, RegList regs,
                     Condition cond) {
   ASSERT(regs != 0);
   EmitMultiMemOp(cond, am, false, base, regs);
-  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
-    // On ARMv5, touching a "banked" register after an stm gives undefined
-    // behavior, so we just add a nop here to make that case easy to avoid.
-    nop();
-  }
 }
 
 
@@ -1676,10 +1672,10 @@ void Assembler::WriteShadowedFieldPair(Register base,
     ASSERT(base != value_odd);
     Operand shadow(GetVerifiedMemoryShadow());
     add(base, base, shadow, cond);
-    strd(value_even, Address(base, offset), cond);
+    strd(value_even, base, offset, cond);
     sub(base, base, shadow, cond);
   }
-  strd(value_even, Address(base, offset), cond);
+  strd(value_even, base, offset, cond);
 }
 
 
@@ -2794,7 +2790,7 @@ void Assembler::LoadFromOffset(OperandSize size,
       ldr(reg, Address(base, offset), cond);
       break;
     case kWordPair:
-      ldrd(reg, Address(base, offset), cond);
+      ldrd(reg, base, offset, cond);
       break;
     default:
       UNREACHABLE();
@@ -2826,7 +2822,7 @@ void Assembler::StoreToOffset(OperandSize size,
       str(reg, Address(base, offset), cond);
       break;
     case kWordPair:
-      strd(reg, Address(base, offset), cond);
+      strd(reg, base, offset, cond);
       break;
     default:
       UNREACHABLE();
@@ -3132,60 +3128,6 @@ void Assembler::IntegerDivide(Register result, Register left, Register right,
 }
 
 
-// If we aren't on ARMv7, there is no smull, and we have to check for overflow
-// manually.
-void Assembler::CheckMultSignedOverflow(Register left,
-                                        Register right,
-                                        Register tmp,
-                                        DRegister dtmp0, DRegister dtmp1,
-                                        Label* overflow) {
-  Label done, left_neg, left_pos_right_neg, left_neg_right_pos;
-
-  CompareImmediate(left, 0);
-  b(&left_neg, LT);
-  b(&done, EQ);
-  CompareImmediate(right, 0);
-  b(&left_pos_right_neg, LT);
-  b(&done, EQ);
-
-  // Both positive.
-  LoadImmediate(tmp, INT_MAX);
-  IntegerDivide(tmp, tmp, left, dtmp0, dtmp1);
-  cmp(tmp, Operand(right));
-  b(overflow, LT);
-  b(&done);
-
-  // left positive, right non-positive.
-  Bind(&left_pos_right_neg);
-  LoadImmediate(tmp, INT_MIN);
-  IntegerDivide(tmp, tmp, left, dtmp0, dtmp1);
-  cmp(tmp, Operand(right));
-  b(overflow, GT);
-  b(&done);
-
-  Bind(&left_neg);
-  CompareImmediate(right, 0);
-  b(&left_neg_right_pos, GT);
-  b(&done, EQ);
-
-  // both negative.
-  LoadImmediate(tmp, INT_MAX);
-  IntegerDivide(tmp, tmp, left, dtmp0, dtmp1);
-  cmp(tmp, Operand(right));
-  b(overflow, GT);
-  b(&done);
-
-  // left non-positive, right positive.
-  Bind(&left_neg_right_pos);
-  LoadImmediate(tmp, INT_MIN);
-  IntegerDivide(tmp, tmp, right, dtmp0, dtmp1);
-  cmp(tmp, Operand(left));
-  b(overflow, GT);
-
-  Bind(&done);
-}
-
-
 static int NumRegsBelowFP(RegList regs) {
   int count = 0;
   for (int i = 0; i < FP; i++) {
@@ -3323,7 +3265,10 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
 // optimized function and there may be extra space for spill slots to
 // allocate. We must also set up the pool pointer for the function.
 void Assembler::EnterOsrFrame(intptr_t extra_size) {
-  const intptr_t offset = CodeSize();
+  // mov(IP, Operand(PC)) loads PC + Instr::kPCReadOffset (8). This may be
+  // different from EntryPointToPcMarkerOffset().
+  const intptr_t offset =
+      CodeSize() + Instr::kPCReadOffset - EntryPointToPcMarkerOffset();
 
   Comment("EnterOsrFrame");
   mov(IP, Operand(PC));

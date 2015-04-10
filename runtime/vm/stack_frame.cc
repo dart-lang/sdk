@@ -430,7 +430,7 @@ InlinedFunctionsIterator::InlinedFunctionsIterator(const Code& code, uword pc)
   : index_(0),
     num_materializations_(0),
     code_(Code::Handle(code.raw())),
-    deopt_info_(DeoptInfo::Handle()),
+    deopt_info_(TypedData::Handle()),
     function_(Function::Handle()),
     pc_(pc),
     deopt_instructions_(),
@@ -450,8 +450,8 @@ InlinedFunctionsIterator::InlinedFunctionsIterator(const Code& code, uword pc)
     // Unpack deopt info into instructions (translate away suffixes).
     const Array& deopt_table = Array::Handle(code_.deopt_info_array());
     ASSERT(!deopt_table.IsNull());
-    deopt_info_.ToInstructions(deopt_table, &deopt_instructions_);
-    num_materializations_ = deopt_info_.NumMaterializations();
+    DeoptInfo::Unpack(deopt_table, deopt_info_, &deopt_instructions_);
+    num_materializations_ = DeoptInfo::NumMaterializations(deopt_instructions_);
     object_table_ = code_.object_table();
     Advance();
   }

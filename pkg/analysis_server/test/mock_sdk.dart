@@ -16,6 +16,7 @@ class MockSdk implements DartSdk {
 library dart.core;
 
 import 'dart:async';
+import 'dart:_internal';
 
 class Object {
   bool operator ==(other) => identical(this, other);
@@ -51,6 +52,7 @@ abstract class num implements Comparable<num> {
   num operator +(num other);
   num operator -(num other);
   num operator *(num other);
+  num operator %(num other);
   num operator /(num other);
   int toInt();
   num abs();
@@ -98,6 +100,15 @@ abstract class Map<K, V> extends Object {
 external bool identical(Object a, Object b);
 
 void print(Object object) {}
+
+class Uri {
+  static List<int> parseIPv6Address(String host, [int start = 0, int end]) {
+    int parseHex(int start, int end) {
+      return 0;
+    }
+    return null;
+  }
+}
 ''');
 
   static const _MockSdkLibrary LIB_ASYNC = const _MockSdkLibrary('dart:async',
@@ -143,6 +154,7 @@ const double LN10 =  2.302585092994046;
 num min(num a, num b) => 0;
 num max(num a, num b) => 0;
 external double cos(num x);
+external num pow(num x, num exponent);
 external double sin(num x);
 external double sqrt(num x);
 class Random {
@@ -158,6 +170,12 @@ library dart.html;
 class HtmlElement {}
 ''');
 
+  static const _MockSdkLibrary LIB_INTERNAL = const _MockSdkLibrary(
+      'dart:_internal', '/lib/internal/internal.dart', '''
+library dart._internal;
+external void printToConsole(String line);
+''');
+
   static const List<SdkLibrary> LIBRARIES = const [
     LIB_CORE,
     LIB_ASYNC,
@@ -165,6 +183,7 @@ class HtmlElement {}
     LIB_CONVERT,
     LIB_MATH,
     LIB_HTML,
+    LIB_INTERNAL,
   ];
 
   final resource.MemoryResourceProvider provider =
@@ -263,7 +282,8 @@ class HtmlElement {}
       "dart:async": "/lib/async/async.dart",
       "dart:collection": "/lib/collection/collection.dart",
       "dart:convert": "/lib/convert/convert.dart",
-      "dart:math": "/lib/math/math.dart"
+      "dart:math": "/lib/math/math.dart",
+      "dart:_internal": "/lib/internal/internal.dart",
     };
 
     String path = uriToPath[dartUri];
@@ -299,7 +319,7 @@ class _MockSdkLibrary implements SdkLibrary {
   bool get isImplementation => throw unimplemented;
 
   @override
-  bool get isInternal => throw unimplemented;
+  bool get isInternal => shortName.startsWith('dart:_');
 
   @override
   bool get isShared => throw unimplemented;

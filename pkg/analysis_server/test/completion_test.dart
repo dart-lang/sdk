@@ -644,10 +644,10 @@ class Foo {this.!1}''', <String>["1-Object"], failingTests: '1');
         }''', <String>["1+HttpResponse"]);
 
     buildTests('testCommentSnippets083', '''
-main() {(.!1)}''', <String>["1-toString"], failingTests: '1');
+main() {(.!1)}''', <String>["1-toString"]);
 
     buildTests('testCommentSnippets083a', '''
-main() { .!1 }''', <String>["1-toString"], failingTests: '1');
+main() { .!1 }''', <String>["1-toString"]);
 
     buildTests('testCommentSnippets083b', '''
 main() { null.!1 }''', <String>["1+toString"], failingTests: '1');
@@ -1835,7 +1835,7 @@ class Fclass extends Bclass !Awith !B Eclass {}''', <String>[
       "B-Ctype",
       "C+Bclass",
       "C-Eclass"
-    ], failingTests: '12345679ABC');
+    ], failingTests: '23467ABC');
 
     // keywords
     buildTests('test009', '''
@@ -1852,7 +1852,7 @@ typ!7edef !5n!6''', <String>[
       "5+TestFn2",
       "6+num",
       "7+typedef"
-    ], failingTests: '12347');
+    ], failingTests: '1234');
 
     buildTests('test010', '''
 class test !8<!1t !2 !3extends String,!4 List,!5 !6>!7 {}
@@ -1927,7 +1927,7 @@ class Q {
       "8+==",
       "9+==",
       "0+k"
-    ], failingTests: '5689');
+    ], failingTests: '689');
 
     // keywords
     buildTests('test014', '''
@@ -1969,7 +1969,7 @@ class Q {
       "J+if",
       "K+else",
       "L+return"
-    ], failingTests: '123456789ABCDEFGHJKL');
+    ], failingTests: '59BCHK');
 
     // operators in function
     buildTests('test015', '''f(a,b,c) => a + b * c !1;''', <String>["1+=="],
@@ -1995,11 +1995,11 @@ class Q {
       "6+hide",
       "7+show",
       "8-null"
-    ], failingTests: '1234567');
+    ], failingTests: '1567');
 
     // keywords
     buildTests('test018', '''!1part !2of foo;''', <String>["1+part", "2+of"],
-        failingTests: '12');
+        failingTests: '2');
 
     buildTests('test019', '''
 var truefalse = 0;
@@ -2011,11 +2011,9 @@ main() {
     buildTests('test020', '''var x = null.!1''', <String>["1+toString"],
         failingTests: '1');
 
-    buildTests('test021', '''var x = .!1''', <String>["1-toString"],
-        failingTests: '1');
+    buildTests('test021', '''var x = .!1''', <String>["1-toString"]);
 
-    buildTests('test022', '''var x = .!1;''', <String>["1-toString"],
-        failingTests: '1');
+    buildTests('test022', '''var x = .!1;''', <String>["1-toString"]);
 
     buildTests('test023', '''
 class Map{getKeys(){}}
@@ -2100,8 +2098,7 @@ class T {
 
     buildTests('test031',
         '''class Caster {} m() {try {} on Cas!1ter catch (CastBlock) {!2}}''',
-        <String>["1+Caster", "1-CastBlock", "2+Caster", "2+CastBlock"],
-        failingTests: '1');
+        <String>["1+Caster", "1-CastBlock", "2+Caster", "2+CastBlock"]);
 
     buildTests('test032', '''
 const ONE = 1;

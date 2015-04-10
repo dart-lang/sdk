@@ -6,6 +6,7 @@ part of debugger;
 
 // TODO(turnidge): Move more of ObservatoryDebugger to this class.
 abstract class Debugger {
+  VM get vm;
   Isolate get isolate;
   ServiceMap get stack;
   int get currentFrame;

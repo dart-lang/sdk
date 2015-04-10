@@ -536,11 +536,12 @@ void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
   object##_handle_(NULL),
 
 Isolate::Isolate()
-  :   mutator_thread_(new Thread(this)),
+  :   mutator_thread_(NULL),
       vm_tag_(0),
       store_buffer_(),
       message_notify_callback_(NULL),
       name_(NULL),
+      debugger_name_(NULL),
       start_time_(OS::GetCurrentTimeMicros()),
       main_port_(0),
       origin_id_(0),
@@ -603,12 +604,13 @@ Isolate::Isolate()
 }
 
 Isolate::Isolate(Isolate* original)
-  :   mutator_thread_(new Thread(this)),
+  :   mutator_thread_(NULL),
       vm_tag_(0),
       store_buffer_(true),
       class_table_(original->class_table()),
       message_notify_callback_(NULL),
       name_(NULL),
+      debugger_name_(NULL),
       start_time_(OS::GetCurrentTimeMicros()),
       main_port_(0),
       pause_capability_(0),
@@ -666,6 +668,7 @@ Isolate::Isolate(Isolate* original)
 
 Isolate::~Isolate() {
   free(name_);
+  free(debugger_name_);
   delete heap_;
   delete object_store_;
   delete api_state_;
@@ -682,7 +685,6 @@ Isolate::~Isolate() {
   delete spawn_state_;
   delete log_;
   log_ = NULL;
-  delete mutator_thread_;
 }
 
 
@@ -691,31 +693,6 @@ bool Isolate::IsIsolateOf(Thread* thread) {
   return this == thread->isolate();
 }
 #endif  // DEBUG
-
-
-void Isolate::SetCurrent(Isolate* current) {
-  Isolate* old_current = Current();
-  if (old_current != NULL) {
-    old_current->set_vm_tag(VMTag::kIdleTagId);
-    old_current->set_thread_state(NULL);
-    Profiler::EndExecution(old_current);
-  }
-  if (current != NULL) {
-    Thread::SetCurrent(current->mutator_thread());
-    ASSERT(current->thread_state() == NULL);
-    InterruptableThreadState* thread_state =
-        ThreadInterrupter::GetCurrentThreadState();
-#if defined(DEBUG)
-    CheckForDuplicateThreadState(thread_state);
-#endif
-    ASSERT(thread_state != NULL);
-    Profiler::BeginExecution(current);
-    current->set_thread_state(thread_state);
-    current->set_vm_tag(VMTag::kVMTagId);
-  } else {
-    Thread::SetCurrent(NULL);
-  }
-}
 
 
 void Isolate::InitOnce() {
@@ -737,7 +714,7 @@ Isolate* Isolate::Init(const char* name_prefix, bool is_vm_isolate) {
 
   // TODO(5411455): For now just set the recently created isolate as
   // the current isolate.
-  SetCurrent(result);
+  Thread::EnterIsolate(result);
 
   // Setup the isolate specific resuable handles.
 #define REUSABLE_HANDLE_ALLOCATION(object)                                     \
@@ -771,7 +748,6 @@ Isolate* Isolate::Init(const char* name_prefix, bool is_vm_isolate) {
   result->set_terminate_capability(result->random()->NextUInt64());
 
   result->BuildName(name_prefix);
-
   result->debugger_ = new Debugger();
   result->debugger_->Initialize(result);
   if (FLAG_trace_isolates) {
@@ -815,11 +791,18 @@ uword Isolate::GetCurrentStackPointer() {
 }
 
 
+void Isolate::set_debugger_name(const char* name) {
+  free(debugger_name_);
+  debugger_name_ = strdup(name);
+}
+
+
 void Isolate::BuildName(const char* name_prefix) {
   ASSERT(name_ == NULL);
   if (name_prefix == NULL) {
     name_prefix = "isolate";
   }
+  set_debugger_name(name_prefix);
   if (ServiceIsolate::NameEquals(name_prefix)) {
     name_ = strdup(name_prefix);
     return;
@@ -931,6 +914,7 @@ void Isolate::DoneLoading() {
 
 bool Isolate::MakeRunnable() {
   ASSERT(Isolate::Current() == NULL);
+
   MutexLocker ml(mutex_);
   // Check if we are in a valid state to make the isolate runnable.
   if (is_runnable_ == true) {
@@ -1191,15 +1175,18 @@ static bool RunIsolate(uword parameter) {
     ASSERT(result.IsFunction());
     Function& func = Function::Handle(isolate);
     func ^= result.raw();
-    func = func.ImplicitClosureFunction();
 
     // TODO(turnidge): Currently we need a way to force a one-time
     // breakpoint for all spawned isolates to support isolate
     // debugging.  Remove this once the vmservice becomes the standard
-    // way to debug.
+    // way to debug. Set the breakpoint on the static function instead
+    // of its implicit closure function because that latter is merely
+    // a dispatcher that is marked as undebuggable.
     if (FLAG_break_at_isolate_spawn) {
       isolate->debugger()->OneTimeBreakAtEntry(func);
     }
+
+    func = func.ImplicitClosureFunction();
 
     const Array& capabilities = Array::Handle(Array::New(2));
     Capability& capability = Capability::Handle();
@@ -1428,7 +1415,7 @@ void Isolate::Shutdown() {
 
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
-  SetCurrent(NULL);
+  Thread::ExitIsolate();
   Profiler::ShutdownProfilingForIsolate(this);
 }
 
@@ -1532,23 +1519,16 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddProperty("type", (ref ? "@Isolate" : "Isolate"));
   jsobj.AddPropertyF("id", "isolates/%" Pd "",
                      static_cast<intptr_t>(main_port()));
-  jsobj.AddPropertyF("mainPort", "%" Pd "",
-                     static_cast<intptr_t>(main_port()));
 
-  // Assign an isolate name based on the entry function.
-  IsolateSpawnState* state = spawn_state();
-  if (state == NULL) {
-    jsobj.AddPropertyF("name", "root");
-  } else if (state->class_name() != NULL) {
-    jsobj.AddPropertyF("name", "%s.%s",
-                       state->class_name(),
-                       state->function_name());
-  } else {
-    jsobj.AddPropertyF("name", "%s", state->function_name());
-  }
+  jsobj.AddProperty("name", debugger_name());
+  jsobj.AddPropertyF("number", "%" Pd "",
+                     static_cast<intptr_t>(main_port()));
   if (ref) {
     return;
   }
+  int64_t start_time_millis = start_time() / kMicrosecondsPerMillisecond;
+  jsobj.AddProperty64("startTime", start_time_millis);
+  IsolateSpawnState* state = spawn_state();
   if (state != NULL) {
     const Object& entry = Object::Handle(this, state->ResolveFunction());
     if (!entry.IsNull() && entry.IsFunction()) {
@@ -1603,12 +1583,6 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     jsobj.AddProperty("error", error, false);
   }
 
-  {
-    JSONObject typeargsRef(&jsobj, "canonicalTypeArguments");
-    typeargsRef.AddProperty("type", "@TypeArgumentsList");
-    typeargsRef.AddProperty("id", "typearguments");
-    typeargsRef.AddProperty("name", "canonical type arguments");
-  }
   bool is_io_enabled = false;
   {
     const GrowableObjectArray& libs =

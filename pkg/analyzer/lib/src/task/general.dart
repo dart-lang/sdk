@@ -8,6 +8,7 @@ import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 
 /**
  * A task that gets the contents of the source associated with an analysis
@@ -33,10 +34,14 @@ class GetContentTask extends SourceBasedAnalysisTask {
   @override
   internalPerform() {
     Source source = getRequiredSource();
-
-    TimestampedData<String> data = context.getContents(source);
-    outputs[CONTENT] = data.data;
-    outputs[MODIFICATION_TIME] = data.modificationTime;
+    try {
+      TimestampedData<String> data = context.getContents(source);
+      outputs[CONTENT] = data.data;
+      outputs[MODIFICATION_TIME] = data.modificationTime;
+    } catch (exception, stackTrace) {
+      throw new AnalysisException('Could not get contents of $source',
+          new CaughtException(exception, stackTrace));
+    }
   }
 
   /**

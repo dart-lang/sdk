@@ -6,6 +6,7 @@ event_test: Skip  # Issue 1996
 interactive_test: Skip # Must be run manually.
 dromaeo_smoke_test: Skip # Issue 14521, 8257
 cross_frame_test: Skip # Test reloads itself. Issue 18558
+svgelement_test/constructors: Skip # Temporary suppression, WIP alanknight
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Issue 18931 (Disabled for Chrome 35 roll)
@@ -37,6 +38,7 @@ storage_quota_test: Fail # Support for promises.
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 fontface_test: Fail # Fontface not supported on these.
+custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 element_animate_test: Fail # Element.animate not supported on these browsers.
 
 [ $compiler == none && $runtime == dartium && $system == macos]
@@ -52,6 +54,7 @@ keyboard_event_test: Fail # Issue 13902
 isolates_test: Fail # Issue 13921
 indexeddb_3_test: Skip # Issue 19578.  Timeouts and RuntimeError
 fileapi_test/getFile: Pass, Fail # Issue 20488
+node_validator_test/dom_clobbering: Skip # Dartium is immune to DOM clobbering, so the HTML passes through the sanitizer.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) && $mode == debug ]
 websocket_test/websocket: Skip # Issue 17666
@@ -189,7 +192,6 @@ css_test/functional: Fail # Issues 21710
 [ $runtime == ie11 ]
 custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
 canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
-node_validator_test: Pass, RuntimeError # Issues 20657, 20659.
 worker_test/functional: Pass, Fail # Issues 20659.
 transferables_test: Pass, Fail # Issues 20659.
 
@@ -377,9 +379,6 @@ postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (tim
 
 [ $compiler == dart2js && ($runtime == drt || $runtime ==chrome) ]
 wheelevent_test: Fail # Issue 12958
-
-[ $compiler == dart2js && $runtime == ff && $system == windows ]
-node_validator_test: Fail # Issue 22564
 
 [ $compiler == dart2js &&  $runtime == chrome]
 svgelement_test/supported_altGlyph: RuntimeError # Issue 22154

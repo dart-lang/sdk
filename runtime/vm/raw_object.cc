@@ -169,20 +169,6 @@ intptr_t RawObject::SizeFromClass() const {
       instance_size = ExceptionHandlers::InstanceSize(num_handlers);
       break;
     }
-    case kDeoptInfoCid: {
-      const RawDeoptInfo* raw_deopt_info =
-          reinterpret_cast<const RawDeoptInfo*>(this);
-      intptr_t num_entries = Smi::Value(raw_deopt_info->ptr()->length_);
-      instance_size = DeoptInfo::InstanceSize(num_entries);
-      break;
-    }
-    case kJSRegExpCid: {
-      const RawJSRegExp* raw_jsregexp =
-          reinterpret_cast<const RawJSRegExp*>(this);
-      intptr_t data_length = Smi::Value(raw_jsregexp->ptr()->data_length_);
-      instance_size = JSRegExp::InstanceSize(data_length);
-      break;
-    }
     case kFreeListElement: {
       uword addr = RawObject::ToAddr(const_cast<RawObject*>(this));
       FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
@@ -586,15 +572,6 @@ intptr_t RawExceptionHandlers::VisitExceptionHandlersPointers(
 }
 
 
-intptr_t RawDeoptInfo::VisitDeoptInfoPointers(
-    RawDeoptInfo* raw_obj, ObjectPointerVisitor* visitor) {
-  RawDeoptInfo* obj = raw_obj->ptr();
-  intptr_t length = Smi::Value(obj->length_);
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&obj->length_));
-  return DeoptInfo::InstanceSize(length);
-}
-
-
 intptr_t RawContext::VisitContextPointers(RawContext* raw_obj,
                                           ObjectPointerVisitor* visitor) {
   intptr_t num_variables = raw_obj->ptr()->num_variables_;
@@ -904,9 +881,8 @@ intptr_t RawJSRegExp::VisitJSRegExpPointers(RawJSRegExp* raw_obj,
                                             ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
-  intptr_t length = Smi::Value(raw_obj->ptr()->data_length_);
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return JSRegExp::InstanceSize(length);
+  return JSRegExp::InstanceSize();
 }
 
 

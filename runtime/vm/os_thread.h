@@ -23,8 +23,6 @@
 
 namespace dart {
 
-class Isolate;
-
 // Low-level operations on OS platform threads.
 class OSThread : AllStatic {
  public:
@@ -63,13 +61,15 @@ class Mutex {
   void Unlock();
 
 #if defined(DEBUG)
-  Isolate* Owner() const { return owner_; }
+  bool IsOwnedByCurrentThread() const {
+    return owner_ == OSThread::GetCurrentThreadId();
+  }
 #endif  // defined(DEBUG)
 
  private:
   MutexData data_;
 #if defined(DEBUG)
-  Isolate* owner_;
+  ThreadId owner_;
 #endif  // defined(DEBUG)
 
   DISALLOW_COPY_AND_ASSIGN(Mutex);

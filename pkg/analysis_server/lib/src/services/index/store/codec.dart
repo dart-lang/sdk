@@ -7,7 +7,6 @@ library services.src.index.store.codec;
 import 'dart:collection';
 
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/store/collection.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -67,76 +66,98 @@ class ContextCodec {
  * A helper that encodes/decodes [Element]s to/from integers.
  */
 class ElementCodec {
+  static const int _CONSTRUCTOR_KIND_BASE = -100;
+
   final StringCodec _stringCodec;
-
-  /**
-   * A table mapping element encodings to a single integer.
-   */
-  final IntArrayToIntMap _pathToIndex = new IntArrayToIntMap();
-
-  /**
-   * A list that works as a mapping of integers to element encodings.
-   */
-  final List<List<int>> _indexToPath = <List<int>>[];
 
   ElementCodec(this._stringCodec);
 
   /**
-   * Returns an [Element] that corresponds to the given location.
-   *
-   * @param context the [AnalysisContext] to find [Element] in
-   * @param index an integer corresponding to the [Element]
-   * @return the [Element] or `null`
+   * Returns an [Element] that corresponds to the given identifiers.
    */
-  Element decode(AnalysisContext context, int index) {
-    List<int> path = _indexToPath[index];
-    List<String> components = _getLocationComponents(path);
-    ElementLocation location = new ElementLocationImpl.con3(components);
-    return context.getElement(location);
+  Element decode(AnalysisContext context, int fileId, int offset, int kindId) {
+    String filePath = _stringCodec.decode(fileId);
+    List<Source> unitSources = context.getSourcesWithFullName(filePath);
+    for (Source unitSource in unitSources) {
+      List<Source> libSources = context.getLibrariesContaining(unitSource);
+      for (Source libSource in libSources) {
+        LibraryElement libraryElement = context.getLibraryElement(libSource);
+        if (libraryElement == null) {
+          return null;
+        }
+        if (kindId == ElementKind.LIBRARY.ordinal) {
+          return libraryElement;
+        } else if (kindId == ElementKind.COMPILATION_UNIT.ordinal) {
+          for (CompilationUnitElement unit in libraryElement.units) {
+            if (unit.source.fullName == filePath) {
+              return unit;
+            }
+          }
+          return null;
+        } else {
+          Element element = libraryElement.getElementAt(offset);
+          if (element == null) {
+            return null;
+          }
+          if (element is ClassElement && kindId <= _CONSTRUCTOR_KIND_BASE) {
+            int constructorIndex = -1 * (kindId - _CONSTRUCTOR_KIND_BASE);
+            return element.constructors[constructorIndex];
+          }
+          if (element is PropertyInducingElement) {
+            if (kindId == ElementKind.GETTER.ordinal) {
+              return element.getter;
+            }
+            if (kindId == ElementKind.SETTER.ordinal) {
+              return element.setter;
+            }
+          }
+          return element;
+        }
+      }
+    }
+    return null;
   }
 
   /**
-   * Returns a unique integer that corresponds to the given [Element].
-   *
-   * If [forKey] is `true` then [element] is a part of a key, so it should use
-   * file paths instead of [Element] location URIs.
+   * Returns the first component of the [element] id.
+   * In the most cases it is an encoding of the [element]'s file path.
+   * If the given [element] is not defined in a file, returns `-1`.
    */
-  int encode(Element element, bool forKey) {
+  int encode1(Element element) {
+    Source source = element.source;
+    if (source == null) {
+      return -1;
+    }
+    String filePath = source.fullName;
+    return _stringCodec.encode(filePath);
+  }
+
+  /**
+   * Returns the second component of the [element] id.
+   * In the most cases it is the [element]'s name offset.
+   */
+  int encode2(Element element) {
     if (element is NameElement) {
       String name = element.name;
-      int nameId = _stringCodec.encode(name);
-      return _encodePath(<int>[nameId]);
+      return _stringCodec.encode(name);
     }
-    // check the location has a cached id
-    ElementLocationImpl location = element.location;
-    if (!identical(location.indexOwner, this)) {
-      location.indexKeyId = null;
-      location.indexLocationId = null;
+    if (element is ConstructorElement) {
+      return element.enclosingElement.nameOffset;
     }
-    if (forKey) {
-      int id = location.indexKeyId;
-      if (id != null) {
-        return id;
-      }
-    } else {
-      int id = location.indexLocationId;
-      if (id != null) {
-        return id;
-      }
+    return element.nameOffset;
+  }
+
+  /**
+   * Returns the third component of the [element] id.
+   * In the most cases it is the [element]'s kind.
+   */
+  int encode3(Element element) {
+    if (element is ConstructorElement) {
+      ClassElement classElement = element.enclosingElement;
+      int constructorIndex = classElement.constructors.indexOf(element);
+      return _CONSTRUCTOR_KIND_BASE - constructorIndex;
     }
-    // prepare an id
-    List<int> path = _getLocationPath(element, location, forKey);
-    int index = _encodePath(path);
-    // put the id into the location
-    if (forKey) {
-      location.indexOwner = this;
-      location.indexKeyId = index;
-    } else {
-      location.indexOwner = this;
-      location.indexLocationId = index;
-    }
-    // done
-    return index;
+    return element.kind.ordinal;
   }
 
   /**
@@ -153,114 +174,6 @@ class ElementCodec {
     } else {
       return elementNameId;
     }
-  }
-
-  /**
-   * Returns a list with the location components of the element with the
-   * given encoded ID.
-   */
-  List<String> inspect_decodePath(int id) {
-    List<int> path = _indexToPath[id];
-    return _getLocationComponents(path);
-  }
-
-  /**
-   * Returns a map of element IDs to their locations for elements with
-   * the [requiredName].
-   */
-  Map<int, List<String>> inspect_getElements(String requiredName) {
-    Map<int, List<String>> result = <int, List<String>>{};
-    for (int i = 0; i < _indexToPath.length; i++) {
-      List<int> path = _indexToPath[i];
-      int nameIndex = path[path.length - 1];
-      if (nameIndex >= 0) {
-        String name = _stringCodec.decode(nameIndex);
-        if (name == requiredName) {
-          result[i] = path.map(_stringCodec.decode).toList();
-        }
-      }
-    }
-    return result;
-  }
-
-  int _encodePath(List<int> path) {
-    int index = _pathToIndex[path];
-    if (index == null) {
-      index = _indexToPath.length;
-      _pathToIndex[path] = index;
-      _indexToPath.add(path);
-    }
-    return index;
-  }
-
-  List<String> _getLocationComponents(List<int> path) {
-    int length = path.length;
-    List<String> components = new List<String>();
-    for (int i = 0; i < length; i++) {
-      int componentId = path[i];
-      String component = _stringCodec.decode(componentId);
-      if (i < length - 1 && path[i + 1] < 0) {
-        component += '@${(-path[i + 1])}';
-        i++;
-      }
-      components.add(component);
-    }
-    return components;
-  }
-
-  /**
-   * If [usePath] is `true` then [Source] path should be used instead of URI.
-   */
-  List<int> _getLocationPath(
-      Element element, ElementLocation location, bool usePath) {
-    // prepare the location components
-    List<String> components = location.components;
-    if (usePath) {
-      LibraryElement library = element.library;
-      if (library != null) {
-        components = components.toList();
-        components[0] = library.source.fullName;
-        for (Element e = element; e != null; e = e.enclosingElement) {
-          if (e is CompilationUnitElement) {
-            components[1] = e.source.fullName;
-            break;
-          }
-        }
-      }
-    }
-    // encode the location
-    int length = components.length;
-    if (_hasLocalOffset(components)) {
-      List<int> path = new List<int>();
-      for (String component in components) {
-        int atOffset = component.indexOf('@');
-        if (atOffset == -1) {
-          path.add(_stringCodec.encode(component));
-        } else {
-          String preAtString = component.substring(0, atOffset);
-          String atString = component.substring(atOffset + 1);
-          path.add(_stringCodec.encode(preAtString));
-          path.add(-1 * int.parse(atString));
-        }
-      }
-      return path;
-    } else {
-      List<int> path = new List<int>.filled(length, 0);
-      for (int i = 0; i < length; i++) {
-        String component = components[i];
-        path[i] = _stringCodec.encode(component);
-      }
-      return path;
-    }
-  }
-
-  static bool _hasLocalOffset(List<String> components) {
-    for (String component in components) {
-      if (component.indexOf('@') != -1) {
-        return true;
-      }
-    }
-    return false;
   }
 }
 

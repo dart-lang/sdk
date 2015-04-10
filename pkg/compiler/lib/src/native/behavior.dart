@@ -6,13 +6,36 @@ part of native;
 
 /// This class is a temporary work-around until we get a more powerful DartType.
 class SpecialType {
-final String name;
-const SpecialType._(this.name);
+  final String name;
+  const SpecialType._(this.name);
 
-/// The type Object, but no subtypes:
-static const JsObject = const SpecialType._('=Object');
+  /// The type Object, but no subtypes:
+  static const JsObject = const SpecialType._('=Object');
 
-int get hashCode => name.hashCode;
+  int get hashCode => name.hashCode;
+}
+
+/// Description of the exception behaviour of native code.
+///
+/// TODO(sra): Replace with something that better supports specialization on
+/// first argument properties.
+class NativeThrowBehavior {
+  static const NativeThrowBehavior NEVER = const NativeThrowBehavior._(0);
+  static const NativeThrowBehavior MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS =
+      const NativeThrowBehavior._(1);
+  static const NativeThrowBehavior MAY = const NativeThrowBehavior._(2);
+  static const NativeThrowBehavior MUST = const NativeThrowBehavior._(3);
+
+  final int _bits;
+  const NativeThrowBehavior._(this._bits);
+
+  String toString() {
+    if (this == NEVER) return 'never';
+    if (this == MAY) return 'may';
+    if (this == MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS) return 'null(1)';
+    if (this == MUST) return 'must';
+    return 'NativeThrowBehavior($_bits)';
+  }
 }
 
 /**
@@ -59,6 +82,23 @@ class NativeBehavior {
 
   final SideEffects sideEffects = new SideEffects.empty();
 
+  NativeThrowBehavior throwBehavior = NativeThrowBehavior.MAY;
+
+  bool isAllocation = false;
+  bool useGvn = false;
+
+  String toString() {
+    return 'NativeBehavior('
+        'returns: ${typesReturned}, '
+        'creates: ${typesInstantiated}, '
+        'sideEffects: ${sideEffects}, '
+        'throws: ${throwBehavior}'
+        '${isAllocation ? ", isAllocation" : ""}'
+        '${useGvn ? ", useGvn" : ""}'
+        ')';
+  }
+
+
   /// Processes the type specification string of a call to JS and stores the
   /// result in the [typesReturned] and [typesInstantiated]. It furthermore
   /// computes the side effects, and, if given, invokes [setSideEffects] with
@@ -66,19 +106,27 @@ class NativeBehavior {
   /// the [setSideEffects] method is not invoked.
   ///
   /// Two forms of the string is supported:
+  ///
   /// 1) A single type string of the form 'void', '', 'var' or 'T1|...|Tn'
   ///    which defines the types returned and for the later form also created by
   ///    the call to JS.
-  /// 2) A sequence of the form
-  ///    '<type-tag>:<type-string>;<effect-tag>:<effect-string>'
-  ///    where <type-tag> is either 'returns' or 'creates' and where
-  ///    <type-string> is a type string like in 1). The type string marked by
-  ///    'returns' defines the types returned and 'creates' defines the types
-  ///    created by the call to JS.
   ///
-  ///    The <effect-tag> is either 'effects' or 'depends' and
-  ///    <effect-string> is either 'all', 'none' or a comma-separated list of
-  ///    'no-index', 'no-instance', 'no-static'.
+  /// 2) A sequence of <tag>:<value> pairs of the following kinds
+  ///
+  ///        <type-tag>:<type-string>
+  ///        <effect-tag>:<effect-string>
+  ///        throws:<throws-string>
+  ///        gvn:<gvn-string>
+  ///        new:<new-string>
+  ///
+  ///    A <type-tag> is either 'returns' or 'creates' and <type-string> is a
+  ///    type string like in 1). The type string marked by 'returns' defines the
+  ///    types returned and 'creates' defines the types created by the call to
+  ///    JS.
+  ///
+  ///    An <effect-tag> is either 'effects' or 'depends' and <effect-string> is
+  ///    either 'all', 'none' or a comma-separated list of 'no-index',
+  ///    'no-instance', 'no-static'.
   ///
   ///    The flag 'all' indicates that the call affects/depends on every
   ///    side-effect. The flag 'none' indicates that the call does not affect
@@ -91,6 +139,20 @@ class NativeBehavior {
   ///    indicated with 'no-static'. The flags 'effects' and 'depends' must be
   ///    used in unison (either both are present or none is).
   ///
+  ///    The <throws-string> values are 'never', 'may', 'must', and 'null(1)'.
+  ///    The default if unspecified is 'may'. 'null(1)' means that the template
+  ///    expression throws if and only if the first template parameter is `null`
+  ///    or `undefined`.
+  ///    TODO(sra): Can we simplify to must/may/never and add null(1) by
+  ///    inspection as an orthogonal attribute?
+  ///
+  ///    <gvn-string> values are 'true' and 'false'. The default if unspecified
+  ///    is 'false'.
+  ///
+  ///    <new-string> values are 'true' and 'false'. The default if unspecified
+  ///    is 'false'. A 'true' value means that each evaluation returns a fresh
+  ///    (new) object that cannot be unaliased with existing objects.
+  ///
   ///    Each tag kind (including the 'type-tag's) can only occur once in the
   ///    sequence.
   ///
@@ -99,20 +161,37 @@ class NativeBehavior {
   /// the types defined by the specification string, and [objectType] and
   /// [nullType] define the types for `Object` and `Null`, respectively. The
   /// latter is used for the type strings of the form '' and 'var'.
-  // TODO(johnniwinther): Use ';' as a separator instead of a terminator.
+  /// [validTags] can be used to restrict which tags are accepted.
   static void processSpecString(
       DiagnosticListener listener,
       Spannable spannable,
       String specString,
-      {void setSideEffects(SideEffects newEffects),
+      {Iterable<String> validTags,
+       void setSideEffects(SideEffects newEffects),
+       void setThrows(NativeThrowBehavior throwKind),
+       void setIsAllocation(bool isAllocation),
+       void setUseGvn(bool useGvn),
        dynamic resolveType(String typeString),
-       List typesReturned, List typesInstantiated,
+       List typesReturned,
+       List typesInstantiated,
        objectType, nullType}) {
+
+
+    bool seenError = false;
+
+    void reportError(String message) {
+      seenError = true;
+      listener.reportError(spannable, MessageKind.GENERIC, {'text': message});
+    }
+
+    const List<String> knownTags = const [
+          'creates', 'returns', 'depends', 'effects',
+          'throws', 'gvn', 'new'];
 
     /// Resolve a type string of one of the three forms:
     /// *  'void' - in which case [onVoid] is called,
     /// *  '' or 'var' - in which case [onVar] is called,
-    /// *  'T1|...|Tn' - in which case [onType] is called for each Ti.
+    /// *  'T1|...|Tn' - in which case [onType] is called for each resolved Ti.
     void resolveTypesString(String typesString,
                             {onVoid(), onVar(), onType(type)}) {
       // Various things that are not in fact types.
@@ -129,131 +208,186 @@ class NativeBehavior {
         return;
       }
       for (final typeString in typesString.split('|')) {
-        onType(resolveType(typeString));
+        onType(resolveType(typeString.trim()));
       }
     }
 
-
-    if (specString.contains(':')) {
-      /// Find and remove a substring of the form 'tag:<string>;' from
-      /// [specString].
-      String getTagString(String tag) {
-        String marker = '$tag:';
-        int startPos = specString.indexOf(marker);
-        if (startPos == -1) return null;
-        int endPos = specString.indexOf(';', startPos);
-        if (endPos == -1) return null;
-        String typeString =
-            specString.substring(startPos + marker.length, endPos);
-        specString = '${specString.substring(0, startPos)}'
-                     '${specString.substring(endPos + 1)}'.trim();
-        return typeString;
-      }
-
-      String returns = getTagString('returns');
-      if (returns != null) {
-        resolveTypesString(returns, onVar: () {
-          typesReturned.add(objectType);
-          typesReturned.add(nullType);
-        }, onType: (type) {
-          typesReturned.add(type);
-        });
-      }
-
-      String creates = getTagString('creates');
-      if (creates != null) {
-        resolveTypesString(creates, onVoid: () {
-          listener.internalError(spannable,
-              "Invalid type string 'creates:$creates'");
-        }, onVar: () {
-          listener.internalError(spannable,
-              "Invalid type string 'creates:$creates'");
-        }, onType: (type) {
-          typesInstantiated.add(type);
-        });
-      }
-
-      String effects = getTagString('effects');
-      String depends = getTagString('depends');
-      if (effects != null && depends == null ||
-          effects == null && depends != null) {
-        listener.internalError(spannable,
-            "Invalid JS spec string. "
-            "'effects' and 'depends' must occur together.");
-      }
-
-      if (effects != null) {
-        SideEffects sideEffects = new SideEffects();
-        if (effects == "none") {
-          sideEffects.clearAllSideEffects();
-        } else if (effects == "all") {
-          // Don't do anything.
-        } else {
-          List<String> splitEffects = effects.split(",");
-          if (splitEffects.isEmpty) {
-            listener.internalError(spannable, "Missing side-effect flag.");
-          }
-          for (String effect in splitEffects) {
-            switch (effect) {
-              case "no-index":
-                sideEffects.clearChangesIndex();
-                break;
-              case "no-instance":
-                sideEffects.clearChangesInstanceProperty();
-                break;
-              case "no-static":
-                sideEffects.clearChangesStaticProperty();
-                break;
-              default:
-                listener.internalError(spannable,
-                    "Unrecognized side-effect flag: $effect.");
-            }
-          }
-        }
-
-        if (depends == "none") {
-          sideEffects.clearAllDependencies();
-        } else if (depends == "all") {
-          // Don't do anything.
-        } else {
-          List<String> splitDependencies = depends.split(",");
-          if (splitDependencies.isEmpty) {
-            listener.internalError(spannable,
-                                   "Missing side-effect dependency flag.");
-          }
-          for (String dependency in splitDependencies) {
-            switch (dependency) {
-              case "no-index":
-                sideEffects.clearDependsOnIndexStore();
-                break;
-              case "no-instance":
-                sideEffects.clearDependsOnInstancePropertyStore();
-                break;
-              case "no-static":
-                sideEffects.clearDependsOnStaticPropertyStore();
-                break;
-              default:
-                listener.internalError(spannable,
-                    "Unrecognized side-effect flag: $dependency.");
-            }
-          }
-        }
-
-        setSideEffects(sideEffects);
-      }
-
-      if (!specString.isEmpty) {
-        listener.internalError(spannable, "Invalid JS spec string.");
-      }
-    } else {
-      resolveTypesString(specString, onVar: () {
+    if (!specString.contains(';') && !specString.contains(':')) {
+      // Form (1), types or pseudo-types like 'void' and 'var'.
+      resolveTypesString(specString.trim(), onVar: () {
         typesReturned.add(objectType);
         typesReturned.add(nullType);
       }, onType: (type) {
         typesInstantiated.add(type);
         typesReturned.add(type);
       });
+      return;
     }
+
+    List<String> specs = specString.split(';')
+        .map((s) => s.trim())
+        .toList();
+    if (specs.last == "") specs.removeLast();  // Allow separator to terminate.
+
+    assert(validTags == null ||
+           (validTags.toSet()..removeAll(validTags)).isEmpty);
+    if (validTags == null) validTags = knownTags;
+
+    Map<String, String> values = <String, String>{};
+
+    for (String spec in specs) {
+      List<String> tagAndValue = spec.split(':');
+      if (tagAndValue.length != 2) {
+        reportError("Invalid <tag>:<value> pair '$spec'.");
+        continue;
+      }
+      String tag = tagAndValue[0].trim();
+      String value = tagAndValue[1].trim();
+
+      if (validTags.contains(tag)) {
+        if (values[tag] == null) {
+          values[tag] = value;
+        } else {
+          reportError("Duplicate tag '$tag'.");
+        }
+      } else {
+        if (knownTags.contains(tag)) {
+          reportError("Tag '$tag' is not valid here.");
+        } else {
+          reportError("Unknown tag '$tag'.");
+        }
+      }
+    }
+
+    // Enum-like tags are looked up in a map. True signature is:
+    //
+    //  T tagValueLookup<T>(String tag, Map<String, T> map);
+    //
+    dynamic tagValueLookup(String tag, Map<String, dynamic> map) {
+      String tagString = values[tag];
+      if (tagString == null) return null;
+      var value = map[tagString];
+      if (value == null) {
+        reportError("Unknown '$tag' specification: '$tagString'.");
+      }
+      return value;
+    }
+
+    String returns = values['returns'];
+    if (returns != null) {
+      resolveTypesString(returns, onVar: () {
+        typesReturned.add(objectType);
+        typesReturned.add(nullType);
+      }, onType: (type) {
+        typesReturned.add(type);
+      });
+    }
+
+    String creates = values['creates'];
+    if (creates != null) {
+      resolveTypesString(creates, onVoid: () {
+        reportError("Invalid type string 'creates:$creates'");
+      }, onVar: () {
+        reportError("Invalid type string 'creates:$creates'");
+      }, onType: (type) {
+        typesInstantiated.add(type);
+      });
+    }
+
+    const throwsOption = const <String, NativeThrowBehavior>{
+      'never': NativeThrowBehavior.NEVER,
+      'null(1)': NativeThrowBehavior.MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS,
+      'may': NativeThrowBehavior.MAY,
+      'must': NativeThrowBehavior.MUST };
+
+    const boolOptions = const<String, bool>{'true': true, 'false': false};
+
+    SideEffects sideEffects = processEffects(reportError,
+        values['effects'], values['depends']);
+    NativeThrowBehavior throwsKind = tagValueLookup('throws', throwsOption);
+    bool isAllocation = tagValueLookup('new', boolOptions);
+    bool useGvn = tagValueLookup('gvn', boolOptions);
+
+    if (isAllocation == true && useGvn == true) {
+      reportError("'new' and 'gvn' are incompatible");
+    }
+
+    if (seenError) return;  // Avoid callbacks.
+
+    // TODO(sra): Simplify [throwBehavior] using [sideEffects].
+
+    if (sideEffects != null) setSideEffects(sideEffects);
+    if (throwsKind != null) setThrows(throwsKind);
+    if (isAllocation != null) setIsAllocation(isAllocation);
+    if (useGvn != null) setUseGvn(useGvn);
+  }
+
+  static SideEffects processEffects(
+      void reportError(String message),
+      String effects,
+      String depends) {
+
+    if (effects == null && depends == null) return null;
+
+    if (effects == null || depends == null) {
+      reportError("'effects' and 'depends' must occur together.");
+      return null;
+    }
+
+    SideEffects sideEffects = new SideEffects();
+    if (effects == "none") {
+      sideEffects.clearAllSideEffects();
+    } else if (effects == "all") {
+      // Don't do anything.
+    } else {
+      List<String> splitEffects = effects.split(",");
+      if (splitEffects.isEmpty) {
+        reportError("Missing side-effect flag.");
+      }
+      for (String effect in splitEffects) {
+        switch (effect) {
+          case "no-index":
+            sideEffects.clearChangesIndex();
+            break;
+          case "no-instance":
+            sideEffects.clearChangesInstanceProperty();
+            break;
+          case "no-static":
+            sideEffects.clearChangesStaticProperty();
+            break;
+          default:
+            reportError("Unrecognized side-effect flag: '$effect'.");
+        }
+      }
+    }
+
+    if (depends == "none") {
+      sideEffects.clearAllDependencies();
+    } else if (depends == "all") {
+      // Don't do anything.
+    } else {
+      List<String> splitDependencies = depends.split(",");
+      if (splitDependencies.isEmpty) {
+        reportError("Missing side-effect dependency flag.");
+      }
+      for (String dependency in splitDependencies) {
+        switch (dependency) {
+          case "no-index":
+            sideEffects.clearDependsOnIndexStore();
+            break;
+          case "no-instance":
+            sideEffects.clearDependsOnInstancePropertyStore();
+            break;
+          case "no-static":
+            sideEffects.clearDependsOnStaticPropertyStore();
+            break;
+          default:
+            reportError("Unrecognized side-effect flag: '$dependency'.");
+        }
+      }
+    }
+
+    return sideEffects;
   }
 
   static NativeBehavior ofJsCall(Send jsCall, Compiler compiler, resolver) {
@@ -263,35 +397,40 @@ class NativeBehavior {
     //  'Type1|Type2'.  A union type.
     //  '=Object'.      A JavaScript Object, no subtype.
 
-    var argNodes = jsCall.arguments;
-    if (argNodes.isEmpty) {
-      compiler.internalError(jsCall, "JS expression has no type.");
-    }
-
-    var code = argNodes.tail.head;
-    if (code is !StringNode || code.isInterpolation) {
-      compiler.internalError(code, 'JS code must be a string literal.');
-    }
-
-    LiteralString specLiteral = argNodes.head.asLiteralString();
-    if (specLiteral == null) {
-      // TODO(sra): We could accept a type identifier? e.g. JS(bool, '1<2').  It
-      // is not very satisfactory because it does not work for void, dynamic.
-      compiler.internalError(argNodes.head, "Unexpected JS first argument.");
-    }
-
     NativeBehavior behavior = new NativeBehavior();
-    behavior.codeTemplate =
-        js.js.parseForeignJS(code.dartString.slowToString());
 
-    String specString = specLiteral.dartString.slowToString();
+    var argNodes = jsCall.arguments;
+    if (argNodes.isEmpty || argNodes.tail.isEmpty) {
+      compiler.reportError(jsCall, MessageKind.GENERIC,
+          {'text': "JS expression takes two or more arguments."});
+      return behavior;
+    }
+
+    var specArgument = argNodes.head;
+    if (specArgument is !StringNode || specArgument.isInterpolation) {
+      compiler.reportError(specArgument, MessageKind.GENERIC,
+          {'text': "JS first argument must be a string literal."});
+      return behavior;
+    }
+
+    var codeArgument = argNodes.tail.head;
+    if (codeArgument is !StringNode || codeArgument.isInterpolation) {
+      compiler.reportError(codeArgument, MessageKind.GENERIC,
+          {'text': "JS second argument must be a string literal."});
+      return behavior;
+    }
+
+    behavior.codeTemplate =
+        js.js.parseForeignJS(codeArgument.dartString.slowToString());
+
+    String specString = specArgument.dartString.slowToString();
 
     dynamic resolveType(String typeString) {
       return _parseType(
           typeString,
           compiler,
-          (name) => resolver.resolveTypeFromString(specLiteral, name),
-          jsCall);
+          (name) => resolver.resolveTypeFromString(specArgument, name),
+          specArgument);
     }
 
     bool sideEffectsAreEncodedInSpecString = false;
@@ -301,14 +440,31 @@ class NativeBehavior {
       behavior.sideEffects.setTo(newEffects);
     }
 
-    processSpecString(compiler, jsCall,
-                      specString,
-                      setSideEffects: setSideEffects,
-                      resolveType: resolveType,
-                      typesReturned: behavior.typesReturned,
-                      typesInstantiated: behavior.typesInstantiated,
-                      objectType: compiler.objectClass.computeType(compiler),
-                      nullType: compiler.nullClass.computeType(compiler));
+    bool throwBehaviorFromSpecString = false;
+    void setThrows(NativeThrowBehavior throwBehavior) {
+      throwBehaviorFromSpecString = true;
+      behavior.throwBehavior = throwBehavior;
+    }
+
+    void setIsAllocation(bool isAllocation) {
+      behavior.isAllocation = isAllocation;
+    }
+
+    void setUseGvn(bool useGvn) {
+      behavior.useGvn = useGvn;
+    }
+
+    processSpecString(compiler, specArgument,
+        specString,
+        setSideEffects: setSideEffects,
+        setThrows: setThrows,
+        setIsAllocation: setIsAllocation,
+        setUseGvn: setUseGvn,
+        resolveType: resolveType,
+        typesReturned: behavior.typesReturned,
+        typesInstantiated: behavior.typesInstantiated,
+        objectType: compiler.objectClass.computeType(compiler),
+        nullType: compiler.nullClass.computeType(compiler));
 
     if (!sideEffectsAreEncodedInSpecString) {
       new SideEffectsVisitor(behavior.sideEffects)
@@ -336,7 +492,7 @@ class NativeBehavior {
     // We don't check the given name. That needs to be done at a later point.
     // This is, because we want to allow non-literals as names.
     if (argNodes.tail.isEmpty) {
-      compiler.internalError(jsGlobalCall, 'Embedded Global is missing name');
+      compiler.internalError(jsGlobalCall, 'Embedded Global is missing name.');
     }
 
     if (!argNodes.tail.tail.isEmpty) {
@@ -363,15 +519,9 @@ class NativeBehavior {
           jsGlobalCall);
     }
 
-    void setSideEffects(SideEffects newEffects) {
-      compiler.internalError(jsGlobalCall,
-          'Embedded global calls may not have any side-effect overwrites: '
-          '$specString');
-    }
-
     processSpecString(compiler, jsGlobalCall,
                       specString,
-                      setSideEffects: setSideEffects,
+                      validTags: const ['returns', 'creates'],
                       resolveType: resolveType,
                       typesReturned: behavior.typesReturned,
                       typesInstantiated: behavior.typesInstantiated,
@@ -526,19 +676,22 @@ class NativeBehavior {
 
     int index = typeString.indexOf('<');
     if (index < 1) {
-      compiler.internalError(
+      compiler.reportError(
           _errorNode(locationNodeOrElement, compiler),
-          "Type '$typeString' not found.");
+          MessageKind.GENERIC,
+          {'text': "Type '$typeString' not found."});
+      return const DynamicType();
     }
     type = lookup(typeString.substring(0, index));
     if (type != null)  {
       // TODO(sra): Parse type parameters.
       return type;
     }
-    compiler.internalError(
+    compiler.reportError(
         _errorNode(locationNodeOrElement, compiler),
-        "Type '$typeString' not found.");
-    return null;
+        MessageKind.GENERIC,
+        {'text': "Type '$typeString' not found."});
+    return const DynamicType();
   }
 
   static _errorNode(locationNodeOrElement, compiler) {

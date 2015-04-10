@@ -142,7 +142,6 @@ RawClass* Object::var_descriptors_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::exception_handlers_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
-RawClass* Object::deopt_info_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_scope_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::icdata_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -559,9 +558,6 @@ void Object::InitOnce(Isolate* isolate) {
   cls = Class::New<ExceptionHandlers>();
   exception_handlers_class_ = cls.raw();
 
-  cls = Class::New<DeoptInfo>();
-  deopt_info_class_ = cls.raw();
-
   cls = Class::New<Context>();
   context_class_ = cls.raw();
 
@@ -816,7 +812,6 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(stackmap, Stackmap);
   SET_CLASS_NAME(var_descriptors, LocalVarDescriptors);
   SET_CLASS_NAME(exception_handlers, ExceptionHandlers);
-  SET_CLASS_NAME(deopt_info, DeoptInfo);
   SET_CLASS_NAME(context, Context);
   SET_CLASS_NAME(context_scope, ContextScope);
   SET_CLASS_NAME(icdata, ICData);
@@ -2817,7 +2812,9 @@ static RawFunction* EvaluateHelper(const Class& cls,
   const String& func_src =
       String::Handle(BuildClosureSource(param_names, expr));
   Script& script = Script::Handle();
-  script = Script::New(Symbols::Empty(), func_src, RawScript::kSourceTag);
+  script = Script::New(Symbols::EvalSourceUri(),
+                       func_src,
+                       RawScript::kSourceTag);
   // In order to tokenize the source, we need to get the key to mangle
   // private names from the library from which the class originates.
   const Library& lib = Library::Handle(cls.library());
@@ -3207,8 +3204,6 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::LocalVarDescriptors().raw();
     case kExceptionHandlersCid:
       return Symbols::ExceptionHandlers().raw();
-    case kDeoptInfoCid:
-      return Symbols::DeoptInfo().raw();
     case kContextCid:
       return Symbols::Context().raw();
     case kContextScopeCid:
@@ -4120,16 +4115,10 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
     JSONArray interfaces_array(&jsobj, "interfaces");
     const Array& interface_array = Array::Handle(interfaces());
     Type& interface_type = Type::Handle();
-    Class& interface_cls = Class::Handle();
     if (!interface_array.IsNull()) {
       for (intptr_t i = 0; i < interface_array.Length(); ++i) {
-        // TODO(turnidge): Use the Type directly once regis has added
-        // types to the vmservice.
         interface_type ^= interface_array.At(i);
-        if (interface_type.HasResolvedTypeClass()) {
-          interface_cls = interface_type.type_class();
-          interfaces_array.AddValue(interface_cls);
-        }
+        interfaces_array.AddValue(interface_type);
       }
     }
   }
@@ -4430,8 +4419,6 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(Name());
   AddNameProperties(&jsobj, user_name, vm_name);
-  jsobj.AddProperty("length", Length());
-  jsobj.AddProperty("numInstantiations", NumInstantiations());
   if (ref) {
     return;
   }
@@ -4444,7 +4431,7 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
     }
   }
   if (!IsInstantiated()) {
-    JSONArray jsarr(&jsobj, "instantiations");
+    JSONArray jsarr(&jsobj, "_instantiations");
     Array& prior_instantiations = Array::Handle(instantiations());
     ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
     TypeArguments& type_args = TypeArguments::Handle();
@@ -5107,7 +5094,7 @@ void Function::SwitchToUnoptimizedCode() const {
   Isolate* isolate = Isolate::Current();
   const Code& current_code = Code::Handle(isolate, CurrentCode());
 
-  if (FLAG_trace_disabling_optimized_code) {
+  if (FLAG_trace_deoptimization) {
     OS::Print("Disabling optimized code: '%s' entry: %#" Px "\n",
       ToFullyQualifiedCString(),
       current_code.EntryPoint());
@@ -5308,43 +5295,43 @@ RawType* Function::RedirectionType() const {
 const char* Function::KindToCString(RawFunction::Kind kind) {
   switch (kind) {
     case RawFunction::kRegularFunction:
-      return "kRegularFunction";
+      return "RegularFunction";
       break;
     case RawFunction::kClosureFunction:
-      return "kClosureFunction";
+      return "ClosureFunction";
       break;
     case RawFunction::kSignatureFunction:
-      return "kSignatureFunction";
+      return "SignatureFunction";
       break;
     case RawFunction::kGetterFunction:
-      return "kGetterFunction";
+      return "GetterFunction";
       break;
     case RawFunction::kSetterFunction:
-      return "kSetterFunction";
+      return "SetterFunction";
       break;
     case RawFunction::kConstructor:
-      return "kConstructor";
+      return "Constructor";
       break;
     case RawFunction::kImplicitGetter:
-      return "kImplicitGetter";
+      return "ImplicitGetter";
       break;
     case RawFunction::kImplicitSetter:
-      return "kImplicitSetter";
+      return "ImplicitSetter";
       break;
     case RawFunction::kImplicitStaticFinalGetter:
-      return "kImplicitStaticFinalGetter";
+      return "ImplicitStaticFinalGetter";
       break;
     case RawFunction::kMethodExtractor:
-      return "kMethodExtractor";
+      return "MethodExtractor";
       break;
     case RawFunction::kNoSuchMethodDispatcher:
-      return "kNoSuchMethodDispatcher";
+      return "NoSuchMethodDispatcher";
       break;
     case RawFunction::kInvokeFieldDispatcher:
-      return "kInvokeFieldDispatcher";
+      return "InvokeFieldDispatcher";
       break;
     case RawFunction::kIrregexpFunction:
-      return "kIrregexpFunction";
+      return "IrregexpFunction";
       break;
     default:
       UNREACHABLE();
@@ -6824,16 +6811,16 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(name());
   AddNameProperties(&jsobj, user_name, vm_name);
-  if (cls.IsTopLevel()) {
-    const Library& library = Library::Handle(cls.library());
-    jsobj.AddProperty("owningLibrary", library);
-  } else {
-    jsobj.AddProperty("owningClass", cls);
-  }
   const Function& parent = Function::Handle(parent_function());
   if (!parent.IsNull()) {
-    jsobj.AddProperty("parent", parent);
+    jsobj.AddProperty("owner", parent);
+  } else if (cls.IsTopLevel()) {
+    const Library& library = Library::Handle(cls.library());
+    jsobj.AddProperty("owner", library);
+  } else {
+    jsobj.AddProperty("owner", cls);
   }
+
   const char* kind_string = Function::KindToCString(kind());
   jsobj.AddProperty("kind", kind_string);
   if (ref) {
@@ -6841,13 +6828,19 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   jsobj.AddProperty("static", is_static());
   jsobj.AddProperty("const", is_const());
-  jsobj.AddProperty("optimizable", is_optimizable());
-  jsobj.AddProperty("inlinable", CanBeInlined());
-  jsobj.AddProperty("unoptimizedCode", Object::Handle(unoptimized_code()));
-  jsobj.AddProperty("usageCounter", usage_counter());
-  jsobj.AddProperty("optimizedCallSiteCount", optimized_call_site_count());
-  jsobj.AddProperty("code", Object::Handle(CurrentCode()));
-  jsobj.AddProperty("deoptimizations",
+  Code& code = Code::Handle(CurrentCode());
+  if (!code.IsNull()) {
+    jsobj.AddProperty("code", code);
+  }
+  jsobj.AddProperty("_optimizable", is_optimizable());
+  jsobj.AddProperty("_inlinable", CanBeInlined());
+  code = unoptimized_code();
+  if (!code.IsNull()) {
+    jsobj.AddProperty("_unoptimizedCode", code);
+  }
+  jsobj.AddProperty("_usageCounter", usage_counter());
+  jsobj.AddProperty("_optimizedCallSiteCount", optimized_call_site_count());
+  jsobj.AddProperty("_deoptimizations",
                     static_cast<intptr_t>(deoptimization_counter()));
 
   const Script& script = Script::Handle(this->script());
@@ -7196,23 +7189,23 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  jsobj.AddProperty("guardNullable", is_nullable());
+  jsobj.AddProperty("_guardNullable", is_nullable());
   if (guarded_cid() == kIllegalCid) {
-    jsobj.AddProperty("guardClass", "unknown");
+    jsobj.AddProperty("_guardClass", "unknown");
   } else if (guarded_cid() == kDynamicCid) {
-    jsobj.AddProperty("guardClass", "dynamic");
+    jsobj.AddProperty("_guardClass", "dynamic");
   } else {
     ClassTable* table = Isolate::Current()->class_table();
     ASSERT(table->IsValidIndex(guarded_cid()));
     cls ^= table->At(guarded_cid());
-    jsobj.AddProperty("guardClass", cls);
+    jsobj.AddProperty("_guardClass", cls);
   }
   if (guarded_list_length() == kUnknownFixedLength) {
-    jsobj.AddProperty("guardLength", "unknown");
+    jsobj.AddProperty("_guardLength", "unknown");
   } else if (guarded_list_length() == kNoFixedLength) {
-    jsobj.AddProperty("guardLength", "variable");
+    jsobj.AddProperty("_guardLength", "variable");
   } else {
-    jsobj.AddProperty("guardLength", guarded_list_length());
+    jsobj.AddProperty("_guardLength", guarded_list_length());
   }
   const Class& origin_cls = Class::Handle(origin());
   const Script& script = Script::Handle(origin_cls.script());
@@ -8427,6 +8420,12 @@ RawString* Script::GetSnippet(intptr_t from_line,
   }
 
   while (scan_position != length) {
+    if (snippet_start == -1) {
+      if ((line == from_line) && (column == from_column)) {
+        snippet_start = scan_position;
+      }
+    }
+
     char c = src.CharAt(scan_position);
     if (c == '\n') {
       line++;
@@ -8442,11 +8441,7 @@ RawString* Script::GetSnippet(intptr_t from_line,
     scan_position++;
     column++;
 
-    if (snippet_start == -1) {
-      if ((line == from_line) && (column == from_column)) {
-        snippet_start = scan_position;
-      }
-    } else if ((line == to_line) && (column == to_column)) {
+    if ((line == to_line) && (column == to_column)) {
       snippet_end = scan_position;
       break;
     }
@@ -8522,7 +8517,7 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  jsobj.AddProperty("owningLibrary", lib);
+  jsobj.AddProperty("library", lib);
   const String& source = String::Handle(Source());
   jsobj.AddPropertyStr("source", source);
 
@@ -8750,7 +8745,7 @@ static RawString* MakeFieldMetaName(const Field& field) {
 static RawString* MakeFunctionMetaName(const Function& func) {
   const String& cname =
       String::Handle(MakeClassMetaName(Class::Handle(func.origin())));
-  String& fname = String::Handle(func.name());
+  String& fname = String::Handle(func.QualifiedPrettyName());
   fname = String::Concat(Symbols::At(), fname);
   return String::Concat(cname, fname);
 }
@@ -11140,159 +11135,109 @@ void ExceptionHandlers::PrintJSONImpl(JSONStream* stream,
 }
 
 
-intptr_t DeoptInfo::Length() const {
-  return Smi::Value(raw_ptr()->length_);
-}
-
-
-intptr_t DeoptInfo::FromIndex(intptr_t index) const {
+intptr_t DeoptInfo::FrameSize(const TypedData& packed) {
   NoSafepointScope no_safepoint;
-  return *(EntryAddr(index, kFromIndex));
+  typedef ReadStream::Raw<sizeof(intptr_t), intptr_t> Reader;
+  ReadStream read_stream(reinterpret_cast<uint8_t*>(packed.DataAddr(0)),
+                         packed.LengthInBytes());
+  return Reader::Read(&read_stream);
 }
 
 
-intptr_t DeoptInfo::Instruction(intptr_t index) const {
+intptr_t DeoptInfo::NumMaterializations(
+    const GrowableArray<DeoptInstr*>& unpacked) {
+  intptr_t num = 0;
+  while (unpacked[num]->kind() == DeoptInstr::kMaterializeObject) {
+    num++;
+  }
+  return num;
+}
+
+
+void DeoptInfo::UnpackInto(const Array& table,
+                           const TypedData& packed,
+                           GrowableArray<DeoptInstr*>* unpacked,
+                           intptr_t length) {
   NoSafepointScope no_safepoint;
-  return *(EntryAddr(index, kInstruction));
-}
+  typedef ReadStream::Raw<sizeof(intptr_t), intptr_t> Reader;
+  ReadStream read_stream(reinterpret_cast<uint8_t*>(packed.DataAddr(0)),
+                         packed.LengthInBytes());
+  const intptr_t frame_size = Reader::Read(&read_stream);  // Skip frame size.
+  USE(frame_size);
 
+  const intptr_t suffix_length = Reader::Read(&read_stream);
+  if (suffix_length != 0) {
+    ASSERT(suffix_length > 1);
+    const intptr_t info_number = Reader::Read(&read_stream);
 
-intptr_t DeoptInfo::FrameSize() const {
-  return TranslationLength() - NumMaterializations();
-}
-
-
-intptr_t DeoptInfo::TranslationLength() const {
-  intptr_t length = Length();
-  if (Instruction(length - 1) != DeoptInstr::kSuffix) return length;
-
-  // If the last command is a suffix, add in the length of the suffix and
-  // do not count the suffix command as a translation command.
-  intptr_t ignored = 0;
-  intptr_t suffix_length =
-      DeoptInstr::DecodeSuffix(FromIndex(length - 1), &ignored);
-  return length + suffix_length - 1;
-}
-
-
-intptr_t DeoptInfo::NumMaterializations() const {
-  intptr_t pos = 0;
-  while (Instruction(pos) == DeoptInstr::kMaterializeObject) {
-    pos++;
+    TypedData& suffix = TypedData::Handle();
+    Smi& offset = Smi::Handle();
+    Smi& reason_and_flags = Smi::Handle();
+    DeoptTable::GetEntry(
+      table, info_number, &offset, &suffix, &reason_and_flags);
+    UnpackInto(table, suffix, unpacked, suffix_length);
   }
-  return pos;
-}
 
-
-void DeoptInfo::ToInstructions(const Array& table,
-                               GrowableArray<DeoptInstr*>* instructions) const {
-  ASSERT(instructions->is_empty());
-  Smi& offset = Smi::Handle();
-  DeoptInfo& info = DeoptInfo::Handle(raw());
-  Smi& reason_and_flags = Smi::Handle();
-  intptr_t index = 0;
-  intptr_t length = TranslationLength();
-  while (index < length) {
-    intptr_t instruction = info.Instruction(index);
-    intptr_t from_index = info.FromIndex(index);
-    if (instruction == DeoptInstr::kSuffix) {
-      // Suffix instructions cause us to 'jump' to another translation,
-      // changing info, length and index.
-      intptr_t info_number = 0;
-      intptr_t suffix_length =
-          DeoptInstr::DecodeSuffix(from_index, &info_number);
-      DeoptTable::GetEntry(
-          table, info_number, &offset, &info, &reason_and_flags);
-      length = info.TranslationLength();
-      index = length - suffix_length;
-    } else {
-      instructions->Add(DeoptInstr::Create(instruction, from_index));
-      ++index;
-    }
+  while ((read_stream.PendingBytes() > 0) &&
+         (unpacked->length() < length)) {
+    const intptr_t instruction = Reader::Read(&read_stream);
+    const intptr_t from_index = Reader::Read(&read_stream);
+    unpacked->Add(DeoptInstr::Create(instruction, from_index));
   }
 }
 
 
-const char* DeoptInfo::ToCString() const {
-  if (Length() == 0) {
-    return "No DeoptInfo";
-  }
-  // Convert to DeoptInstr.
-  GrowableArray<DeoptInstr*> deopt_instrs(Length());
-  for (intptr_t i = 0; i < Length(); i++) {
-    deopt_instrs.Add(DeoptInstr::Create(Instruction(i), FromIndex(i)));
-  }
+void DeoptInfo::Unpack(const Array& table,
+                       const TypedData& packed,
+                       GrowableArray<DeoptInstr*>* unpacked) {
+  ASSERT(unpacked->is_empty());
+
+  // Pass kMaxInt32 as the length to unpack all instructions from the
+  // packed stream.
+  UnpackInto(table, packed, unpacked, kMaxInt32);
+
+  unpacked->Reverse();
+}
+
+
+const char* DeoptInfo::ToCString(const Array& deopt_table,
+                                 const TypedData& packed) {
+  GrowableArray<DeoptInstr*> deopt_instrs;
+  Unpack(deopt_table, packed, &deopt_instrs);
+
   // Compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
-  for (intptr_t i = 0; i < Length(); i++) {
+  for (intptr_t i = 0; i < deopt_instrs.length(); i++) {
     len += OS::SNPrint(NULL, 0, "[%s]", deopt_instrs[i]->ToCString());
   }
+
   // Allocate the buffer.
   char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len);
+
   // Layout the fields in the buffer.
   intptr_t index = 0;
-  for (intptr_t i = 0; i < Length(); i++) {
+  for (intptr_t i = 0; i < deopt_instrs.length(); i++) {
     index += OS::SNPrint((buffer + index),
                          (len - index),
                          "[%s]",
                          deopt_instrs[i]->ToCString());
   }
+
   return buffer;
 }
 
 
 // Returns a bool so it can be asserted.
 bool DeoptInfo::VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
-                                    const Array& deopt_table) const {
-  intptr_t length = TranslationLength();
-  GrowableArray<DeoptInstr*> unpacked(length);
-  ToInstructions(deopt_table, &unpacked);
+                                    const Array& deopt_table,
+                                    const TypedData& packed) {
+  GrowableArray<DeoptInstr*> unpacked;
+  Unpack(deopt_table, packed, &unpacked);
   ASSERT(unpacked.length() == original.length());
   for (intptr_t i = 0; i < unpacked.length(); ++i) {
     ASSERT(unpacked[i]->Equals(*original[i]));
   }
   return true;
-}
-
-
-void DeoptInfo::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
-}
-
-
-RawDeoptInfo* DeoptInfo::New(intptr_t num_commands) {
-  ASSERT(Object::deopt_info_class() != Class::null());
-  if ((num_commands < 0) || (num_commands > kMaxElements)) {
-    FATAL1("Fatal error in DeoptInfo::New(): invalid num_commands %" Pd "\n",
-           num_commands);
-  }
-  DeoptInfo& result = DeoptInfo::Handle();
-  {
-    uword size = DeoptInfo::InstanceSize(num_commands);
-    RawObject* raw = Object::Allocate(DeoptInfo::kClassId,
-                                      size,
-                                      Heap::kOld);
-    NoSafepointScope no_safepoint;
-    result ^= raw;
-    result.SetLength(num_commands);
-  }
-  return result.raw();
-}
-
-
-void DeoptInfo::SetLength(intptr_t value) const {
-  // This is only safe because we create a new Smi, which does not cause
-  // heap allocation.
-  StoreSmi(&raw_ptr()->length_, Smi::New(value));
-}
-
-
-void DeoptInfo::SetAt(intptr_t index,
-                      intptr_t instr_kind,
-                      intptr_t from_index) const {
-  NoSafepointScope no_safepoint;
-  *(EntryAddr(index, kInstruction)) = instr_kind;
-  *(EntryAddr(index, kFromIndex)) = from_index;
 }
 
 
@@ -12108,7 +12053,7 @@ bool Code::HasBreakpoint() const {
 }
 
 
-RawDeoptInfo* Code::GetDeoptInfoAtPc(uword pc,
+RawTypedData* Code::GetDeoptInfoAtPc(uword pc,
                                      ICData::DeoptReasonId* deopt_reason,
                                      uint32_t* deopt_flags) const {
   ASSERT(is_optimized());
@@ -12120,7 +12065,7 @@ RawDeoptInfo* Code::GetDeoptInfoAtPc(uword pc,
   intptr_t length = DeoptTable::GetLength(table);
   Smi& offset = Smi::Handle();
   Smi& reason_and_flags = Smi::Handle();
-  DeoptInfo& info = DeoptInfo::Handle();
+  TypedData& info = TypedData::Handle();
   for (intptr_t i = 0; i < length; ++i) {
     DeoptTable::GetEntry(table, i, &offset, &info, &reason_and_flags);
     if (pc == (code_entry + offset.Value())) {
@@ -12131,7 +12076,7 @@ RawDeoptInfo* Code::GetDeoptInfoAtPc(uword pc,
     }
   }
   *deopt_reason = ICData::kDeoptUnknown;
-  return DeoptInfo::null();
+  return TypedData::null();
 }
 
 
@@ -12542,20 +12487,20 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   AddTypeProperties(&jsobj, "Code", JSONType(), ref);
   jsobj.AddPropertyF("id", "code/%" Px64"-%" Px "", compile_timestamp(),
                      EntryPoint());
-  jsobj.AddPropertyF("start", "%" Px "", EntryPoint());
-  jsobj.AddPropertyF("end", "%" Px "", EntryPoint() + Size());
-  jsobj.AddProperty("optimized", is_optimized());
-  jsobj.AddProperty("alive", is_alive());
-  const Object& obj = Object::Handle(owner());
+  const String& user_name = String::Handle(PrettyName());
+  const String& vm_name = String::Handle(Name());
+  AddNameProperties(&jsobj, user_name, vm_name);
   const bool is_stub = IsStubCode() || IsAllocationStubCode();
   if (is_stub) {
     jsobj.AddProperty("kind", "Stub");
   } else {
     jsobj.AddProperty("kind", "Dart");
   }
-  const String& user_name = String::Handle(PrettyName());
-  const String& vm_name = String::Handle(Name());
-  AddNameProperties(&jsobj, user_name, vm_name);
+  jsobj.AddProperty("_optimized", is_optimized());
+  if (ref) {
+    return;
+  }
+  const Object& obj = Object::Handle(owner());
   if (obj.IsFunction()) {
     jsobj.AddProperty("function", obj);
   } else {
@@ -12566,13 +12511,13 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     func.AddProperty("name", user_name.ToCString());
     AddNameProperties(&func, user_name, vm_name);
   }
-  if (ref) {
-    return;
-  }
+  jsobj.AddPropertyF("_startAddress", "%" Px "", EntryPoint());
+  jsobj.AddPropertyF("_endAddress", "%" Px "", EntryPoint() + Size());
+  jsobj.AddProperty("_alive", is_alive());
   const Array& array = Array::Handle(ObjectPool());
-  jsobj.AddProperty("objectPool", array);
+  jsobj.AddProperty("_objectPool", array);
   {
-    JSONArray jsarr(&jsobj, "disassembly");
+    JSONArray jsarr(&jsobj, "_disassembly");
     if (is_alive()) {
       // Only disassemble alive code objects.
       DisassembleToJSONStream formatter(jsarr);
@@ -12581,12 +12526,12 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   if (!descriptors.IsNull()) {
-    JSONObject desc(&jsobj, "descriptors");
+    JSONObject desc(&jsobj, "_descriptors");
     descriptors.PrintToJSONObject(&desc, false);
   }
   const Array& inlined_function_table = Array::Handle(inlined_id_to_function());
   if (!inlined_function_table.IsNull()) {
-    JSONArray inlined_functions(&jsobj, "inlinedFunctions");
+    JSONArray inlined_functions(&jsobj, "_inlinedFunctions");
     Function& function = Function::Handle();
     for (intptr_t i = 0; i < inlined_function_table.Length(); i++) {
       function ^= inlined_function_table.At(i);
@@ -12599,7 +12544,7 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     Smi& start = Smi::Handle();
     Smi& end = Smi::Handle();
     Smi& temp_smi = Smi::Handle();
-    JSONArray inline_intervals(&jsobj, "inlinedIntervals");
+    JSONArray inline_intervals(&jsobj, "_inlinedIntervals");
     for (intptr_t i = 0; i < intervals.Length() - Code::kInlIntNumEntries;
          i += Code::kInlIntNumEntries) {
       start ^= intervals.At(i + Code::kInlIntStart);
@@ -15946,18 +15891,11 @@ RawInteger* Integer::NewCanonical(const String& str) {
 }
 
 
-// dart2js represents integers as double precision floats, which can represent
-// anything in the range -2^53 ... 2^53.
-static bool IsJavascriptInt(int64_t value) {
-  return ((-0x20000000000000LL <= value) && (value <= 0x20000000000000LL));
-}
-
-
 RawInteger* Integer::New(int64_t value, Heap::Space space, const bool silent) {
   const bool is_smi = Smi::IsValid(value);
   if (!silent &&
       FLAG_throw_on_javascript_int_overflow &&
-      !IsJavascriptInt(value)) {
+      !Utils::IsJavascriptInt64(value)) {
     const Integer& i = is_smi ?
         Integer::Handle(Smi::New(static_cast<intptr_t>(value))) :
         Integer::Handle(Mint::New(value, space));
@@ -16055,7 +15993,7 @@ bool Integer::CheckJavascriptIntegerOverflow() const {
       value = AsInt64Value();
     }
   }
-  return !IsJavascriptInt(value);
+  return !Utils::IsJavascriptInt64(value);
 }
 
 
@@ -20083,6 +20021,7 @@ void Capability::PrintJSONImpl(JSONStream* stream, bool ref) const {
 RawReceivePort* ReceivePort::New(Dart_Port id,
                                  bool is_control_port,
                                  Heap::Space space) {
+  ASSERT(id != ILLEGAL_PORT);
   Isolate* isolate = Isolate::Current();
   const SendPort& send_port =
       SendPort::Handle(isolate, SendPort::New(id, isolate->origin_id()));
@@ -20123,6 +20062,7 @@ RawSendPort* SendPort::New(Dart_Port id, Heap::Space space) {
 RawSendPort* SendPort::New(Dart_Port id,
                            Dart_Port origin_id,
                            Heap::Space space) {
+  ASSERT(id != ILLEGAL_PORT);
   SendPort& result = SendPort::Handle();
   {
     RawObject* raw = Object::Allocate(SendPort::kClassId,
@@ -20406,21 +20346,16 @@ void JSRegExp::set_num_bracket_expressions(intptr_t value) const {
 }
 
 
-RawJSRegExp* JSRegExp::New(intptr_t len, Heap::Space space) {
-  if (len < 0 || len > kMaxElements) {
-    // This should be caught before we reach here.
-    FATAL1("Fatal error in JSRegexp::New: invalid len %" Pd "\n", len);
-  }
+RawJSRegExp* JSRegExp::New(Heap::Space space) {
   JSRegExp& result = JSRegExp::Handle();
   {
     RawObject* raw = Object::Allocate(JSRegExp::kClassId,
-                                      JSRegExp::InstanceSize(len),
+                                      JSRegExp::InstanceSize(),
                                       space);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.set_type(kUnitialized);
     result.set_flags(0);
-    result.SetLength(len);
   }
   return result.raw();
 }

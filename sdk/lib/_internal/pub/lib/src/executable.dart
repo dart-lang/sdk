@@ -18,6 +18,23 @@ import 'io.dart';
 import 'log.dart' as log;
 import 'utils.dart';
 
+/// All signals that can be caught by a Dart process.
+///
+/// This intentionally omits SIGINT. SIGINT usually comes from a user pressing
+/// Control+C on the terminal, and the terminal automatically passes the signal
+/// to all processes in the process tree. If we forwarded it manually, the
+/// subprocess would see two instances, which could cause problems. Instead, we
+/// just ignore it and let the terminal pass it to the subprocess.
+final _catchableSignals = Platform.isWindows
+    ? [ProcessSignal.SIGHUP]
+    : [
+        ProcessSignal.SIGHUP,
+        ProcessSignal.SIGTERM,
+        ProcessSignal.SIGUSR1,
+        ProcessSignal.SIGUSR2,
+        ProcessSignal.SIGWINCH,
+      ];
+
 /// Runs [executable] from [package] reachable from [entrypoint].
 ///
 /// The executable string is a relative Dart file path using native path
@@ -132,6 +149,9 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
   vmArgs.addAll(args);
 
   var process = await Process.start(Platform.executable, vmArgs);
+
+  _forwardSignals(process);
+
   // Note: we're not using process.std___.pipe(std___) here because
   // that prevents pub from also writing to the output streams.
   process.stderr.listen(stderr.add);
@@ -176,6 +196,8 @@ Future<int> runSnapshot(String path, Iterable<String> args, {recompile(),
   runProcess(input) async {
     var process = await Process.start(Platform.executable, vmArgs);
 
+    _forwardSignals(process);
+
     // Note: we're not using process.std___.pipe(std___) here because
     // that prevents pub from also writing to the output streams.
     process.stderr.listen(stderr.add);
@@ -192,6 +214,20 @@ Future<int> runSnapshot(String path, Iterable<String> args, {recompile(),
   // can recompile, do so.
   await recompile();
   return runProcess(stdin2);
+}
+
+/// Forwards all catchable signals to [process].
+void _forwardSignals(Process process) {
+  // See [_catchableSignals].
+  ProcessSignal.SIGINT.watch().listen(
+      (_) => log.fine("Ignoring SIGINT in pub."));
+
+  for (var signal in _catchableSignals) {
+    signal.watch().listen((_) {
+      log.fine("Forwarding $signal to running process.");
+      process.kill(signal);
+    });
+  }
 }
 
 /// Runs the executable snapshot at [snapshotPath].

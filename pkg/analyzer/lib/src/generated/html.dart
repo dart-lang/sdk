@@ -11,7 +11,7 @@ import 'dart:collection';
 
 import 'ast.dart';
 import 'element.dart';
-import 'engine.dart' show AnalysisEngine;
+import 'engine.dart' show AnalysisOptions, AnalysisEngine;
 import 'error.dart' show AnalysisErrorListener;
 import 'java_core.dart';
 import 'java_engine.dart';
@@ -388,13 +388,16 @@ class HtmlParser extends XmlParser {
    */
   final AnalysisErrorListener _errorListener;
 
+  final AnalysisOptions _options;
+
   /**
    * Construct a parser for the specified source.
    *
-   * @param source the source being parsed
-   * @param errorListener the error listener to which errors will be reported
+   * [source] is the source being parsed.  [_errorListener] is the error
+   * listener to which errors will be reported.  [_options] is the analysis
+   * options which should be used for parsing.
    */
-  HtmlParser(Source source, this._errorListener) : super(source);
+  HtmlParser(Source source, this._errorListener, this._options) : super(source);
 
   @override
   XmlAttributeNode createAttributeNode(Token name, Token equals, Token value) =>
@@ -413,6 +416,7 @@ class HtmlParser extends XmlParser {
       LineInfo_Location location = _lineInfo.getLocation(contentOffset);
       sc.Scanner scanner = new sc.Scanner(source,
           new sc.SubSequenceReader(contents, contentOffset), _errorListener);
+      scanner.enableNullAwareOperators = _options.enableNullAwareOperators;
       scanner.setSourceStart(location.lineNumber, location.columnNumber);
       sc.Token firstToken = scanner.tokenize();
       Parser parser = new Parser(source, _errorListener);

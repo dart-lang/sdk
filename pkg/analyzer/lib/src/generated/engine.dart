@@ -13,6 +13,7 @@ import 'dart:collection';
 
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/generated/incremental_resolution_validator.dart';
+import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/task_dart.dart';
 
@@ -35,7 +36,6 @@ import 'sdk.dart' show DartSdk;
 import 'source.dart';
 import 'utilities_collection.dart';
 import 'utilities_general.dart';
-import 'package:analyzer/src/plugin/engine_plugin.dart';
 
 /**
  * Used by [AnalysisOptions] to allow function bodies to be analyzed in some
@@ -1018,6 +1018,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   TypeResolverVisitorFactory typeResolverVisitorFactory;
 
   /**
+   * A factory to override how [LibraryResolver] is created.
+   */
+  LibraryResolverFactory libraryResolverFactory;
+
+  /**
    * Initialize a newly created analysis context.
    */
   AnalysisContextImpl() {
@@ -1043,6 +1048,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         this._options.dart2jsHint != options.dart2jsHint ||
         (this._options.hint && !options.hint) ||
         this._options.preserveComments != options.preserveComments ||
+        this._options.enableNullAwareOperators !=
+            options.enableNullAwareOperators ||
         this._options.enableStrictCallChecks != options.enableStrictCallChecks;
     int cacheSize = options.cacheSize;
     if (this._options.cacheSize != cacheSize) {
@@ -1068,6 +1075,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.generateImplicitErrors = options.generateImplicitErrors;
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
+    this._options.enableNullAwareOperators = options.enableNullAwareOperators;
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
     this._options.hint = options.hint;
     this._options.incremental = options.incremental;
@@ -1104,6 +1112,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _priorityOrder = new List<Source>(count);
       for (int i = 0; i < count; i++) {
         _priorityOrder[i] = sources[i];
+      }
+      // Ensure entries for every priority source.
+      for (var source in _priorityOrder) {
+        SourceEntry entry = _getReadableSourceEntry(source);
+        if (entry == null) {
+          _createSourceEntry(source, false);
+        }
       }
     }
   }
@@ -4663,7 +4678,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       Stopwatch perfCounter = new Stopwatch()..start();
       PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
           typeProvider, unitSource, dartEntry, oldUnit,
-          analysisOptions.incrementalApi);
+          analysisOptions.incrementalApi, analysisOptions);
       bool success = resolver.resolve(newCode);
       AnalysisEngine.instance.instrumentationService.logPerformance(
           AnalysisPerformanceKind.INCREMENTAL, perfCounter,
@@ -5724,17 +5739,6 @@ class AnalysisEngine {
    */
   final PartitionManager partitionManager = new PartitionManager();
 
-  /**
-   * A flag indicating whether union types should be used.
-   */
-  bool enableUnionTypes = false;
-
-  /**
-   * A flag indicating whether union types should have strict semantics. This
-   * option has no effect when `enabledUnionTypes` is `false`.
-   */
-  bool strictUnionTypes = false;
-
   AnalysisEngine._();
 
   /**
@@ -5994,6 +5998,11 @@ abstract class AnalysisOptions {
   bool get enableEnum;
 
   /**
+   * Return `true` to enable null-aware operators (DEP 9).
+   */
+  bool get enableNullAwareOperators;
+
+  /**
    * Return `true` to strictly follow the specification when generating
    * warnings on "call" methods (fixes dartbug.com/21938).
    */
@@ -6087,6 +6096,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool dart2jsHint = true;
 
   /**
+   * A flag indicating whether null-aware operators should be parsed (DEP 9).
+   */
+  bool enableNullAwareOperators = false;
+
+  /**
    * A flag indicating whether analysis is to strictly follow the specification
    * when generating warnings on "call" methods (fixes dartbug.com/21938).
    */
@@ -6151,6 +6165,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
+    enableNullAwareOperators = options.enableNullAwareOperators;
     enableStrictCallChecks = options.enableStrictCallChecks;
     generateImplicitErrors = options.generateImplicitErrors;
     generateSdkErrors = options.generateSdkErrors;
@@ -8954,8 +8969,8 @@ class IncrementalAnalysisTask extends AnalysisTask {
     // Produce an updated token stream
     CharacterReader reader = new CharSequenceReader(cache.newContents);
     BooleanErrorListener errorListener = new BooleanErrorListener();
-    IncrementalScanner scanner =
-        new IncrementalScanner(cache.source, reader, errorListener);
+    IncrementalScanner scanner = new IncrementalScanner(
+        cache.source, reader, errorListener, context.analysisOptions);
     scanner.rescan(cache.resolvedUnit.beginToken, cache.offset, cache.oldLength,
         cache.newLength);
     if (errorListener.errorReported) {
@@ -9019,6 +9034,11 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * A factory to override how [TypeResolverVisitor] is created.
    */
   TypeResolverVisitorFactory get typeResolverVisitorFactory;
+
+  /**
+   * A factory to override how [LibraryResolver] is created.
+   */
+  LibraryResolverFactory get libraryResolverFactory;
 
   /**
    * Add the given [source] with the given [information] to this context.
@@ -9402,10 +9422,14 @@ class ParseDartTask extends AnalysisTask {
     UriValidationCode code = directive.validate();
     if (code == null) {
       String encodedUriContent = Uri.encodeFull(uriContent);
-      Source source =
-          context.sourceFactory.resolveUri(librarySource, encodedUriContent);
-      directive.source = source;
-      return source;
+      try {
+        Source source =
+            context.sourceFactory.resolveUri(librarySource, encodedUriContent);
+        directive.source = source;
+        return source;
+      } on JavaIOException {
+        code = UriValidationCode.INVALID_URI;
+      }
     }
     if (code == UriValidationCode.URI_WITH_DART_EXT_SCHEME) {
       return null;
@@ -9544,7 +9568,8 @@ class ParseHtmlTask extends AnalysisTask {
       ht.Token token = scanner.tokenize();
       _lineInfo = new LineInfo(scanner.lineStarts);
       RecordingErrorListener errorListener = new RecordingErrorListener();
-      _unit = new ht.HtmlParser(source, errorListener).parse(token, _lineInfo);
+      _unit = new ht.HtmlParser(source, errorListener, context.analysisOptions)
+          .parse(token, _lineInfo);
       _unit.accept(new RecursiveXmlVisitor_ParseHtmlTask_internalPerform(
           this, errorListener));
       _errors = errorListener.getErrorsForSource(source);
@@ -10439,7 +10464,10 @@ class ResolveDartLibraryTask extends AnalysisTask {
 
   @override
   void internalPerform() {
-    _resolver = new LibraryResolver(context);
+    LibraryResolverFactory resolverFactory = context.libraryResolverFactory;
+    _resolver = resolverFactory == null
+        ? new LibraryResolver(context)
+        : resolverFactory(context);
     _resolver.resolveLibrary(librarySource, true);
   }
 }
@@ -10777,6 +10805,8 @@ class ScanDartTask extends AnalysisTask {
         Scanner scanner = new Scanner(
             source, new CharSequenceReader(_content), errorListener);
         scanner.preserveComments = context.analysisOptions.preserveComments;
+        scanner.enableNullAwareOperators =
+            context.analysisOptions.enableNullAwareOperators;
         _tokenStream = scanner.tokenize();
         _lineInfo = new LineInfo(scanner.lineStarts);
         _errors = errorListener.getErrorsForSource(source);

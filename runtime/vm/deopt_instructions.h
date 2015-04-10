@@ -85,6 +85,7 @@ class DeoptContext {
     dest_frame_ = dest_frame;
   }
 
+  Thread* thread() const { return thread_; }
   Zone* zone() const { return thread_->zone(); }
 
   intptr_t source_frame_size() const { return source_frame_size_; }
@@ -97,7 +98,7 @@ class DeoptContext {
     return (deopt_flags_ & flag) != 0;
   }
 
-  RawDeoptInfo* deopt_info() const { return deopt_info_; }
+  RawTypedData* deopt_info() const { return deopt_info_; }
 
   // Fills the destination frame but defers materialization of
   // objects.
@@ -153,6 +154,27 @@ class DeoptContext {
         deferred_slots_);
   }
 
+  void DeferRetAddrMaterialization(intptr_t index,
+                                   intptr_t deopt_id,
+                                   intptr_t* slot) {
+    deferred_slots_ = new DeferredRetAddr(
+        index,
+        deopt_id,
+        reinterpret_cast<RawObject**>(slot),
+        deferred_slots_);
+  }
+
+  void DeferPcMarkerMaterialization(intptr_t index, intptr_t* slot) {
+    deferred_slots_ = new DeferredPcMarker(
+        index,
+        reinterpret_cast<RawObject**>(slot),
+        deferred_slots_);
+  }
+
+  void DeferPpMaterialization(intptr_t index, RawObject** slot) {
+    deferred_slots_ = new DeferredPp(index, slot, deferred_slots_);
+  }
+
   DeferredObject* GetDeferredObject(intptr_t idx) const {
     return deferred_objects_[idx];
   }
@@ -184,7 +206,7 @@ class DeoptContext {
 
   RawCode* code_;
   RawArray* object_table_;
-  RawDeoptInfo* deopt_info_;
+  RawTypedData* deopt_info_;
   bool dest_frame_is_allocated_;
   intptr_t* dest_frame_;
   intptr_t dest_frame_size_;
@@ -235,7 +257,6 @@ class DeoptInstr : public ZoneAllocated {
     kCallerFp,
     kCallerPp,
     kCallerPc,
-    kSuffix,
     kMaterializedObjectRef,
     kMaterializeObject
   };
@@ -262,10 +283,6 @@ class DeoptInstr : public ZoneAllocated {
   bool Equals(const DeoptInstr& other) const {
     return (kind() == other.kind()) && (source_index() == other.source_index());
   }
-
-  // Decode the payload of a suffix command.  Return the suffix length and
-  // set the output parameter info_number to the index of the shared suffix.
-  static intptr_t DecodeSuffix(intptr_t source_index, intptr_t* info_number);
 
   // Get the code and return address which is encoded in this
   // kRetAfterAddress deopt instruction.
@@ -409,14 +426,14 @@ class DeoptInfoBuilder : public ValueObject {
   const GrowableObjectArray& object_table() { return object_table_; }
 
   // Return address before instruction.
-  void AddReturnAddress(const Code& code,
+  void AddReturnAddress(const Function& function,
                         intptr_t deopt_id,
                         intptr_t dest_index);
 
   // Copy from optimized frame to unoptimized.
   void AddCopy(Value* value, const Location& source_loc, intptr_t dest_index);
-  void AddPcMarker(const Code& code, intptr_t dest_index);
-  void AddPp(const Code& code, intptr_t dest_index);
+  void AddPcMarker(const Function& function, intptr_t dest_index);
+  void AddPp(const Function& function, intptr_t dest_index);
   void AddCallerFp(intptr_t dest_index);
   void AddCallerPp(intptr_t dest_index);
   void AddCallerPc(intptr_t dest_index);
@@ -435,7 +452,7 @@ class DeoptInfoBuilder : public ValueObject {
   // Returns the index of the next stack slot. Used for verification.
   intptr_t EmitMaterializationArguments(intptr_t dest_index);
 
-  RawDeoptInfo* CreateDeoptInfo(const Array& deopt_table);
+  RawTypedData* CreateDeoptInfo(const Array& deopt_table);
 
   // Mark the actual start of the frame description after all materialization
   // instructions were emitted. Used for verification purposes.
@@ -486,6 +503,8 @@ class DeoptInfoBuilder : public ValueObject {
 // stored in an Array in the heap.  It consists of triples of (PC offset,
 // info, reason).  Elements of each entry are stored consecutively in the
 // array.
+// TODO(vegorov): consider compressing the whole table into a single TypedData
+// object.
 class DeoptTable : public AllStatic {
  public:
   // Return the array size in elements for a given number of table entries.
@@ -495,7 +514,7 @@ class DeoptTable : public AllStatic {
   static void SetEntry(const Array& table,
                        intptr_t index,
                        const Smi& offset,
-                       const DeoptInfo& info,
+                       const TypedData& info,
                        const Smi& reason_and_flags);
 
   // Return the length of the table in entries.
@@ -506,7 +525,7 @@ class DeoptTable : public AllStatic {
   static void GetEntry(const Array& table,
                        intptr_t index,
                        Smi* offset,
-                       DeoptInfo* info,
+                       TypedData* info,
                        Smi* reason_and_flags);
 
   static RawSmi* EncodeReasonAndFlags(ICData::DeoptReasonId reason,

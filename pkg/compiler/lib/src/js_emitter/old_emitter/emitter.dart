@@ -337,8 +337,7 @@ class OldEmitter implements Emitter {
   }
 
   String getReflectionNameInternal(elementOrSelector, String mangledName) {
-    String name =
-        namer.privateName(elementOrSelector.library, elementOrSelector.name);
+    String name = namer.privateName(elementOrSelector.memberName);
     if (elementOrSelector.isGetter) return name;
     if (elementOrSelector.isSetter) {
       if (!mangledName.startsWith(namer.setterPrefix)) return '$name=';
@@ -361,15 +360,13 @@ class OldEmitter implements Emitter {
     if (elementOrSelector is Selector
         || elementOrSelector.isFunction
         || elementOrSelector.isConstructor) {
-      int requiredParameterCount;
-      int optionalParameterCount;
+      int positionalParameterCount;
       String namedArguments = '';
       bool isConstructor = false;
       if (elementOrSelector is Selector) {
-        Selector selector = elementOrSelector;
-        requiredParameterCount = selector.argumentCount;
-        optionalParameterCount = 0;
-        namedArguments = namedParametersAsReflectionNames(selector);
+        CallStructure callStructure = elementOrSelector.callStructure;
+        positionalParameterCount = callStructure.positionalArgumentCount;
+        namedArguments = namedParametersAsReflectionNames(callStructure);
       } else {
         FunctionElement function = elementOrSelector;
         if (function.isConstructor) {
@@ -377,34 +374,25 @@ class OldEmitter implements Emitter {
           name = Elements.reconstructConstructorName(function);
         }
         FunctionSignature signature = function.functionSignature;
-        requiredParameterCount = signature.requiredParameterCount;
-        optionalParameterCount = signature.optionalParameterCount;
+        positionalParameterCount = signature.requiredParameterCount;
         if (signature.optionalParametersAreNamed) {
           var names = [];
           for (Element e in signature.optionalParameters) {
             names.add(e.name);
           }
-          Selector selector = new Selector.call(
-              function.name,
-              function.library,
-              requiredParameterCount,
-              names);
-          namedArguments = namedParametersAsReflectionNames(selector);
+          CallStructure callStructure =
+              new CallStructure(positionalParameterCount, names);
+          namedArguments = namedParametersAsReflectionNames(callStructure);
         } else {
-          // Named parameters are handled differently by mirrors.  For unnamed
+          // Named parameters are handled differently by mirrors. For unnamed
           // parameters, they are actually required if invoked
           // reflectively. Also, if you have a method c(x) and c([x]) they both
           // get the same mangled name, so they must have the same reflection
           // name.
-          requiredParameterCount += optionalParameterCount;
-          optionalParameterCount = 0;
+          positionalParameterCount += signature.optionalParameterCount;
         }
       }
-      String suffix =
-          // TODO(ahe): We probably don't need optionalParameterCount in the
-          // reflection name.
-          '$name:$requiredParameterCount:$optionalParameterCount'
-          '$namedArguments';
+      String suffix = '$name:$positionalParameterCount$namedArguments';
       return (isConstructor) ? 'new $suffix' : suffix;
     }
     Element element = elementOrSelector;
@@ -421,9 +409,9 @@ class OldEmitter implements Emitter {
         'Do not know how to reflect on this $element.');
   }
 
-  String namedParametersAsReflectionNames(Selector selector) {
-    if (selector.getOrderedNamedArguments().isEmpty) return '';
-    String names = selector.getOrderedNamedArguments().join(':');
+  String namedParametersAsReflectionNames(CallStructure structure) {
+    if (structure.isUnnamed) return '';
+    String names = structure.getOrderedNamedArguments().join(':');
     return ':$names';
   }
 
@@ -528,19 +516,68 @@ class OldEmitter implements Emitter {
         handler.getLazilyInitializedFieldsForEmission();
     if (!lazyFields.isEmpty) {
       needsLazyInitializer = true;
-      for (VariableElement element in Elements.sortedByPosition(lazyFields)) {
-        jsAst.Expression init =
-            buildLazilyInitializedStaticField(element, isolateProperties);
-        if (init == null) continue;
-        output.addBuffer(
-            jsAst.prettyPrint(init, compiler, monitor: compiler.dumpInfoTask));
-        output.add("$N");
-      }
+      List<jsAst.Expression> laziesInfo = buildLaziesInfo(lazyFields);
+      jsAst.Statement code = js.statement('''
+      (function(lazies) {
+        if (#notInMinifiedMode) {
+          var descriptorLength = 4;
+        } else {
+          var descriptorLength = 3;
+        }
+
+        for (var i = 0; i < lazies.length; i += descriptorLength) {
+          var fieldName = lazies [i];
+          var getterName = lazies[i + 1];
+          var lazyValue = lazies[i + 2];
+          if (#notInMinifiedMode) {
+            var staticName = lazies[i + 3];
+          }
+
+          // We build the lazy-check here:
+          //   lazyInitializer(fieldName, getterName, lazyValue, staticName);
+          // 'staticName' is used for error reporting in non-minified mode.
+          // 'lazyValue' must be a closure that constructs the initial value.
+          if (#notInMinifiedMode) {
+            #lazy(fieldName, getterName, lazyValue, staticName);
+          } else {
+            #lazy(fieldName, getterName, lazyValue);
+          }
+        }
+      })(#laziesInfo)
+      ''', {'notInMinifiedMode': !compiler.enableMinification,
+            'laziesInfo': new jsAst.ArrayInitializer(laziesInfo),
+            'lazy': js(lazyInitializerName)});
+
+      output.addBuffer(
+          jsAst.prettyPrint(code, compiler, monitor: compiler.dumpInfoTask));
+      output.add("$N");
     }
   }
 
+  List<jsAst.Expression> buildLaziesInfo(List<VariableElement> lazies) {
+    List<jsAst.Expression> laziesInfo = <jsAst.Expression>[];
+    for (VariableElement element in Elements.sortedByPosition(lazies)) {
+      jsAst.Expression code = backend.generatedCode[element];
+      // The code is null if we ended up not needing the lazily
+      // initialized field after all because of constant folding
+      // before code generation.
+      if (code == null) continue;
+      if (compiler.enableMinification) {
+        laziesInfo.addAll([js.string(namer.globalPropertyName(element)),
+                           js.string(namer.lazyInitializerName(element)),
+                           code]);
+      } else {
+        laziesInfo.addAll([js.string(namer.globalPropertyName(element)),
+                           js.string(namer.lazyInitializerName(element)),
+                           code,
+                           js.string(element.name)]);
+      }
+    }
+    return laziesInfo;
+  }
+
   jsAst.Expression buildLazilyInitializedStaticField(
-      VariableElement element, String isolateProperties) {
+      VariableElement element, {String isolateProperties}) {
     jsAst.Expression code = backend.generatedCode[element];
     // The code is null if we ended up not needing the lazily
     // initialized field after all because of constant folding
@@ -548,16 +585,35 @@ class OldEmitter implements Emitter {
     if (code == null) return null;
     // The code only computes the initial value. We build the lazy-check
     // here:
-    //   lazyInitializer(prototype, 'name', fieldName, getterName, initial);
+    //   lazyInitializer(fieldName, getterName, initial, name, prototype);
     // The name is used for error reporting. The 'initial' must be a
     // closure that constructs the initial value.
-    return js('#(#,#,#,#,#)',
-        [js(lazyInitializerName),
-            js(isolateProperties),
-            js.string(element.name),
-            js.string(namer.globalPropertyName(element)),
-            js.string(namer.lazyInitializerName(element)),
-            code]);
+    if (isolateProperties != null) {
+      // This is currently only used in incremental compilation to patch
+      // in new lazy values.
+      return js('#(#,#,#,#,#)',
+          [js(lazyInitializerName),
+           js.string(namer.globalPropertyName(element)),
+           js.string(namer.lazyInitializerName(element)),
+           code,
+           js.string(element.name),
+           isolateProperties]);
+    }
+
+    if (compiler.enableMinification) {
+      return js('#(#,#,#)',
+          [js(lazyInitializerName),
+           js.string(namer.globalPropertyName(element)),
+           js.string(namer.lazyInitializerName(element)),
+           code]);
+    } else {
+      return js('#(#,#,#,#)',
+          [js(lazyInitializerName),
+           js.string(namer.globalPropertyName(element)),
+           js.string(namer.lazyInitializerName(element)),
+           code,
+           js.string(element.name)]);
+    }
   }
 
   void emitMetadata(Program program, CodeOutput output) {
@@ -674,7 +730,6 @@ class OldEmitter implements Emitter {
   }
 
   void emitInitFunction(CodeOutput output) {
-    String isolate = namer.currentIsolate;
     jsAst.Expression allClassesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
     jsAst.Expression getTypeFromNameAccess =
@@ -700,37 +755,46 @@ class OldEmitter implements Emitter {
         #finishedClasses = Object.create(null);
 
         if (#needsLazyInitializer) {
-          $lazyInitializerName = function (prototype, staticName, fieldName,
-                                           getterName, lazyValue) {
+          // [staticName] is only provided in non-minified mode. If missing, we 
+          // fall back to [fieldName]. Likewise, [prototype] is optional and 
+          // defaults to the isolateProperties object.
+          $lazyInitializerName = function (fieldName, getterName, lazyValue,
+                                           staticName, prototype) {
             if (!#lazies) #lazies = Object.create(null);
             #lazies[fieldName] = getterName;
 
+            // 'prototype' will be undefined except if we are doing an update
+            // during incremental compilation. In this case we put the lazy
+            // field directly on the isolate instead of the isolateProperties.
+            prototype = prototype || $isolateProperties;
             var sentinelUndefined = {};
             var sentinelInProgress = {};
             prototype[fieldName] = sentinelUndefined;
 
             prototype[getterName] = function () {
-              var result = $isolate[fieldName];
+              var result = this[fieldName];
               try {
                 if (result === sentinelUndefined) {
-                  $isolate[fieldName] = sentinelInProgress;
+                  this[fieldName] = sentinelInProgress;
 
                   try {
-                    result = $isolate[fieldName] = lazyValue();
+                    result = this[fieldName] = lazyValue();
                   } finally {
                     // Use try-finally, not try-catch/throw as it destroys the
                     // stack trace.
                     if (result === sentinelUndefined)
-                      $isolate[fieldName] = null;
+                      this[fieldName] = null;
                   }
                 } else {
                   if (result === sentinelInProgress)
-                    #cyclicThrow(staticName);
+                    // In minified mode, static name is not provided, so fall
+                    // back to the minified fieldName.
+                    #cyclicThrow(staticName || fieldName);
                 }
 
                 return result;
               } finally {
-                $isolate[getterName] = function() { return this[fieldName]; };
+                this[getterName] = function() { return this[fieldName]; };
               }
             }
           }
@@ -807,20 +871,6 @@ class OldEmitter implements Emitter {
     if (compiler.enableMinification) {
       output.add('\n');
     }
-  }
-
-  String get markerFun => 'markerFun';
-
-  void emitMarkerFun(CodeOutput output) {
-    jsAst.Statement markerFunStmt = js.statement('''
-      // This function is used to mark the end of the inheritance chain so that
-      // finishAddStubsHelper knows where to stop searching for deferred work.
-      // We have to put it at the top level so that we only get one instance of
-      // it even if we call parseReflectionData multiple times, e.g., due to 
-      // deferred loading.
-      function #() {}''', markerFun);
-    output.addBuffer(jsAst.prettyPrint(markerFunStmt, compiler));
-    output.add(N);
   }
 
   void emitConvertToFastObjectFunction(CodeOutput output) {
@@ -1266,6 +1316,9 @@ class OldEmitter implements Emitter {
     // constants to be set up.
     emitStaticNonFinalFieldInitializations(mainOutput, mainOutputUnit);
     interceptorEmitter.emitTypeToInterceptorMap(program, mainOutput);
+    if (compiler.enableMinification) {
+      mainOutput.add(';');
+    }
     emitLazilyInitializedStaticFields(mainOutput);
 
     mainOutput.add('\n');
@@ -1283,7 +1336,6 @@ class OldEmitter implements Emitter {
 
     emitConvertToFastObjectFunction(mainOutput);
     emitConvertToSlowObjectFunction(mainOutput);
-    emitMarkerFun(mainOutput);
 
     for (String globalObject in Namer.reservedGlobalObjectNames) {
       mainOutput.add('$globalObject = convertToFastObject($globalObject)$N');

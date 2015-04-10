@@ -2382,6 +2382,8 @@ void EffectGraphVisitor::BuildLetTempExpressions(LetNode* node) {
     node->InitializerAt(i)->Visit(&for_value);
     Append(for_value);
     Value* temp_val = for_value.value();
+    ASSERT(!node->TempAt(i)->HasIndex() ||
+           (node->TempAt(i)->index() == GetCurrentTempLocalIndex()));
     node->TempAt(i)->set_index(GetCurrentTempLocalIndex());
     Do(new(Z) PushTempInstr(temp_val));
     owner()->AllocateTemp();
@@ -3436,10 +3438,11 @@ void ValueGraphVisitor::VisitLoadLocalNode(LoadLocalNode* node) {
 void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
   // If the right hand side is an expression that does not contain
   // a safe point for the debugger to stop, add an explicit stub
-  // call. Exception: don't do this when assigning to internal variables,
-  // or for generated code that has no source position.
+  // call. Exception: don't do this when assigning to or from internal
+  // variables, or for generated code that has no source position.
   if ((node->value()->IsLiteralNode() ||
-      node->value()->IsLoadLocalNode() ||
+      (node->value()->IsLoadLocalNode() &&
+          !node->value()->AsLoadLocalNode()->local().IsInternal()) ||
       node->value()->IsClosureNode()) &&
       !node->local().IsInternal() &&
       (node->token_pos() != Scanner::kNoSourcePos)) {

@@ -1290,6 +1290,28 @@ main(String str) {
 ''');
   }
 
+  void test_convertToIsNotEmpty_wrong_noBang() {
+    verifyNoTestUnitErrors = false;
+    resolveTestUnit('''
+main(String str) {
+  ~str.isEmpty;
+}
+''');
+    assertNoAssistAt('isEmpty;', AssistKind.CONVERT_INTO_IS_NOT_EMPTY);
+  }
+
+  void test_convertToIsNotEmpty_wrong_noIsNotEmpty() {
+    resolveTestUnit('''
+class A {
+  bool get isEmpty => false;
+}
+main(A a) {
+  !a.isEmpty;
+}
+''');
+    assertNoAssistAt('isEmpty;', AssistKind.CONVERT_INTO_IS_NOT_EMPTY);
+  }
+
   void test_convertToIsNotEmpty_wrong_notInPrefixExpression() {
     resolveTestUnit('''
 main(String str) {
@@ -1308,16 +1330,120 @@ main(int p) {
     assertNoAssistAt('isEven;', AssistKind.CONVERT_INTO_IS_NOT_EMPTY);
   }
 
-  void test_convertToIsNotEmpty_wrote_noIsNotEmpty() {
+  void test_encapsulateField_BAD_alreadyPrivate() {
     resolveTestUnit('''
 class A {
-  bool get isEmpty => false;
+  int _test = 42;
 }
 main(A a) {
-  !a.isEmpty;
+  print(a._test);
 }
 ''');
-    assertNoAssistAt('isEmpty;', AssistKind.CONVERT_INTO_IS_NOT_EMPTY);
+    assertNoAssistAt('_test =', AssistKind.ENCAPSULATE_FIELD);
+  }
+
+  void test_encapsulateField_BAD_final() {
+    resolveTestUnit('''
+class A {
+  final int test = 42;
+}
+''');
+    assertNoAssistAt('test =', AssistKind.ENCAPSULATE_FIELD);
+  }
+
+  void test_encapsulateField_BAD_multipleFields() {
+    resolveTestUnit('''
+class A {
+  int aaa, bbb, ccc;
+}
+main(A a) {
+  print(a.bbb);
+}
+''');
+    assertNoAssistAt('bbb, ', AssistKind.ENCAPSULATE_FIELD);
+  }
+
+  void test_encapsulateField_BAD_notOnName() {
+    resolveTestUnit('''
+class A {
+  int test = 1 + 2 + 3;
+}
+''');
+    assertNoAssistAt('+ 2', AssistKind.ENCAPSULATE_FIELD);
+  }
+
+  void test_encapsulateField_BAD_parseError() {
+    verifyNoTestUnitErrors = false;
+    resolveTestUnit('''
+class A {
+  int; // marker
+}
+main(A a) {
+  print(a.test);
+}
+''');
+    assertNoAssistAt('; // marker', AssistKind.ENCAPSULATE_FIELD);
+  }
+
+  void test_encapsulateField_BAD_static() {
+    resolveTestUnit('''
+class A {
+  static int test = 42;
+}
+''');
+    assertNoAssistAt('test =', AssistKind.ENCAPSULATE_FIELD);
+  }
+
+  void test_encapsulateField_OK_hasType() {
+    resolveTestUnit('''
+class A {
+  int test = 42;
+  A(this.test);
+}
+main(A a) {
+  print(a.test);
+}
+''');
+    assertHasAssistAt('test = 42', AssistKind.ENCAPSULATE_FIELD, '''
+class A {
+  int _test = 42;
+
+  int get test => _test;
+
+  void set test(int test) {
+    _test = test;
+  }
+  A(this._test);
+}
+main(A a) {
+  print(a.test);
+}
+''');
+  }
+
+  void test_encapsulateField_OK_noType() {
+    resolveTestUnit('''
+class A {
+  var test = 42;
+}
+main(A a) {
+  print(a.test);
+}
+''');
+    assertHasAssistAt('test = 42', AssistKind.ENCAPSULATE_FIELD, '''
+class A {
+  var _test = 42;
+
+  get test => _test;
+
+  void set test(test) {
+    _test = test;
+  }
+}
+main(A a) {
+  print(a.test);
+}
+''');
   }
 
   void test_exchangeBinaryExpressionArguments_OK_compare() {
@@ -2324,6 +2450,19 @@ class A {
 ''');
   }
 
+  void test_removeTypeAnnotation_classField_OK_final() {
+    resolveTestUnit('''
+class A {
+  final int v = 1;
+}
+''');
+    assertHasAssistAt('v = ', AssistKind.REMOVE_TYPE_ANNOTATION, '''
+class A {
+  final v = 1;
+}
+''');
+  }
+
   void test_removeTypeAnnotation_localVariable_OK() {
     resolveTestUnit('''
 main() {
@@ -2337,12 +2476,47 @@ main() {
 ''');
   }
 
+  void test_removeTypeAnnotation_localVariable_OK_const() {
+    resolveTestUnit('''
+main() {
+  const int v = 1;
+}
+''');
+    assertHasAssistAt('int ', AssistKind.REMOVE_TYPE_ANNOTATION, '''
+main() {
+  const v = 1;
+}
+''');
+  }
+
+  void test_removeTypeAnnotation_localVariable_OK_final() {
+    resolveTestUnit('''
+main() {
+  final int v = 1;
+}
+''');
+    assertHasAssistAt('int ', AssistKind.REMOVE_TYPE_ANNOTATION, '''
+main() {
+  final v = 1;
+}
+''');
+  }
+
   void test_removeTypeAnnotation_topLevelVariable_OK() {
     resolveTestUnit('''
 int V = 1;
 ''');
     assertHasAssistAt('int ', AssistKind.REMOVE_TYPE_ANNOTATION, '''
 var V = 1;
+''');
+  }
+
+  void test_removeTypeAnnotation_topLevelVariable_OK_final() {
+    resolveTestUnit('''
+final int V = 1;
+''');
+    assertHasAssistAt('int ', AssistKind.REMOVE_TYPE_ANNOTATION, '''
+final V = 1;
 ''');
   }
 

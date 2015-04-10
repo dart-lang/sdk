@@ -4,8 +4,7 @@
 
 library test.integration.completion.get.suggestions;
 
-import 'dart:async';
-
+import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
@@ -17,35 +16,102 @@ main() {
 
 @reflectiveTest
 class Test extends AbstractAnalysisServerIntegrationTest {
-  fail_test_getSuggestions_string_var() {
-    // See dartbug.com/20188
-    String pathname = sourcePath('test.dart');
-    String text = r'''
-var test = '';
-main() {
-  test.
-}
-''';
-    writeFile(pathname, text);
-    standardAnalysisSetup();
+  String path;
+  String content;
+  int completionOffset;
 
-    return analysisFinished.then((_) {
-      return sendCompletionGetSuggestions(
-          pathname, text.indexOf('test.') + 'test.'.length).then((result) {
-        // Since the feature doesn't work yet, just pause for a second to
-        // collect the output of the analysis server, and then stop the test.
-        // TODO(paulberry): finish writing the integration test once the feature
-        // it more complete.
-        return new Future.delayed(new Duration(seconds: 1), () {
-          fail('test not completed yet');
-        });
-      });
-    });
+  void setTestSource(String relPath, String content) {
+    path = sourcePath(relPath);
+    expect(completionOffset, isNull, reason: 'Call addTestUnit exactly once');
+    completionOffset = content.indexOf('^');
+    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
+    int nextOffset = content.indexOf('^', completionOffset + 1);
+    expect(nextOffset, equals(-1), reason: 'too many ^');
+    this.content = content.substring(0, completionOffset) +
+        content.substring(completionOffset + 1);
   }
 
-  test_placeholder() {
-    // The unit test framework freaks out if there are no tests, so this is a
-    // placeholder until we have a passing test.
-    // TODO(paulberry): remove this.
+  test_getSuggestions() async {
+    setTestSource('test.dart', r'''
+String test = '';
+main() {
+  test.^
+}
+''');
+    writeFile(path, content);
+    await standardAnalysisSetup();
+    await analysisFinished;
+    CompletionGetSuggestionsResult result =
+        await sendCompletionGetSuggestions(path, completionOffset);
+    String completionId = result.id;
+    CompletionResultsParams param = await onCompletionResults.firstWhere(
+        (CompletionResultsParams param) =>
+            param.id == completionId && param.isLast);
+    expect(param.replacementOffset, completionOffset);
+    expect(param.replacementLength, 0);
+    param.results.firstWhere(
+        (CompletionSuggestion suggestion) => suggestion.completion == 'length');
+  }
+
+  test_getSuggestions_onlyOverlay() async {
+    setTestSource('test.dart', r'''
+String test = '';
+main() {
+  test.^
+}
+''');
+    // Create an overlay but do not write the file to "disk"
+    //   writeFile(pathname, text);
+    await standardAnalysisSetup();
+    await sendAnalysisUpdateContent({path: new AddContentOverlay(content)});
+    await analysisFinished;
+    CompletionGetSuggestionsResult result =
+        await sendCompletionGetSuggestions(path, completionOffset);
+    String completionId = result.id;
+    CompletionResultsParams param = await onCompletionResults.firstWhere(
+        (CompletionResultsParams param) =>
+            param.id == completionId && param.isLast);
+    expect(param.replacementOffset, completionOffset);
+    expect(param.replacementLength, 0);
+    param.results.firstWhere(
+        (CompletionSuggestion suggestion) => suggestion.completion == 'length');
+  }
+
+  test_getSuggestions_onlyOverlay_noWait() async {
+    setTestSource('test.dart', r'''
+String test = '';
+main() {
+  test.^
+}
+''');
+    // Create an overlay but do not write the file to "disk"
+    //   writeFile(pathname, text);
+    // Don't wait for any results except the completion notifications
+    standardAnalysisSetup(subscribeStatus: false);
+    sendAnalysisUpdateContent({path: new AddContentOverlay(content)});
+    sendCompletionGetSuggestions(path, completionOffset);
+    CompletionResultsParams param = await onCompletionResults
+        .firstWhere((CompletionResultsParams param) => param.isLast);
+    expect(param.replacementOffset, completionOffset);
+    expect(param.replacementLength, 0);
+    param.results.firstWhere(
+        (CompletionSuggestion suggestion) => suggestion.completion == 'length');
+  }
+
+  test_getSuggestions_sourceMissing_noWait() {
+    path = sourcePath('does_not_exist.dart');
+    // Do not write the file to "disk"
+    //   writeFile(pathname, text);
+    // Don't wait for any results except the completion notifications
+    standardAnalysisSetup(subscribeStatus: false);
+    // Missing file and no overlay
+    //sendAnalysisUpdateContent({path: new AddContentOverlay(content)});
+    var errorToken = 'exception from server';
+    return sendCompletionGetSuggestions(path, 0).catchError((e) {
+      // Exception expected
+      return errorToken;
+    }).then((result) {
+      expect(result, same(errorToken));
+    });
   }
 }

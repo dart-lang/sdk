@@ -733,6 +733,16 @@ class Response {
 
   /**
    * Initialize a newly created instance to represent an error condition caused
+   * by an analysis.reanalyze [request] that specifies an analysis root that is
+   * not in the current list of analysis roots.
+   */
+  Response.invalidAnalysisRoot(Request request, String rootPath) : this(
+          request.id,
+          error: new RequestError(RequestErrorCode.INVALID_ANALYSIS_ROOT,
+              "Invalid analysis root: $rootPath"));
+
+  /**
+   * Initialize a newly created instance to represent an error condition caused
    * by a [request] that specifies an execution context whose context root does
    * not exist.
    */
@@ -825,6 +835,14 @@ class Response {
   Response.unknownRequest(Request request) : this(request.id,
           error: new RequestError(
               RequestErrorCode.UNKNOWN_REQUEST, 'Unknown request'));
+
+  /**
+   * Initialize a newly created instance to represent an error condition caused
+   * by a [request] referencing a source that does not exist.
+   */
+  Response.unknownSource(Request request) : this(request.id,
+          error: new RequestError(
+              RequestErrorCode.UNKNOWN_SOURCE, 'Unknown source'));
 
   Response.unsupportedFeature(String requestId, String message) : this(
           requestId,

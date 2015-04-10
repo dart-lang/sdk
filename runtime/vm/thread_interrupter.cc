@@ -314,6 +314,7 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
       ASSERT(current_wait_time_ != Monitor::kNoTimeout);
     }
   }
+  RemoveSignalHandler();
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter thread exiting.\n");
   }

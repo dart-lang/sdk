@@ -365,6 +365,8 @@ class AnalysisContextForTests extends AnalysisContextImpl {
         currentOptions.dart2jsHint != options.dart2jsHint ||
         (currentOptions.hint && !options.hint) ||
         currentOptions.preserveComments != options.preserveComments ||
+        currentOptions.enableNullAwareOperators !=
+            options.enableNullAwareOperators ||
         currentOptions.enableStrictCallChecks != options.enableStrictCallChecks;
     if (needsRecompute) {
       fail(
@@ -1857,7 +1859,7 @@ class ElementResolverTest extends EngineTestCase {
     library.libraryElement = _definingLibrary;
     _visitor = new ResolverVisitor.con1(library, source, _typeProvider);
     try {
-      return _visitor.elementResolver_J2DAccessor as ElementResolver;
+      return _visitor.elementResolver;
     } catch (exception) {
       throw new IllegalArgumentException(
           "Could not create resolver", exception);
@@ -1916,16 +1918,16 @@ class ElementResolverTest extends EngineTestCase {
    */
   void _resolveInClass(AstNode node, ClassElement enclosingClass) {
     try {
-      Scope outerScope = _visitor.nameScope_J2DAccessor as Scope;
+      Scope outerScope = _visitor.nameScope;
       try {
         _visitor.enclosingClass = enclosingClass;
         EnclosedScope innerScope = new ClassScope(
             new TypeParameterScope(outerScope, enclosingClass), enclosingClass);
-        _visitor.nameScope_J2DAccessor = innerScope;
+        _visitor.nameScope = innerScope;
         node.accept(_resolver);
       } finally {
         _visitor.enclosingClass = null;
-        _visitor.nameScope_J2DAccessor = outerScope;
+        _visitor.nameScope = outerScope;
       }
     } catch (exception) {
       throw new IllegalArgumentException("Could not resolve node", exception);
@@ -1958,7 +1960,7 @@ class ElementResolverTest extends EngineTestCase {
    */
   void _resolveNode(AstNode node, [List<Element> definedElements]) {
     try {
-      Scope outerScope = _visitor.nameScope_J2DAccessor as Scope;
+      Scope outerScope = _visitor.nameScope;
       try {
         EnclosedScope innerScope = new EnclosedScope(outerScope);
         if (definedElements != null) {
@@ -1966,10 +1968,10 @@ class ElementResolverTest extends EngineTestCase {
             innerScope.define(element);
           }
         }
-        _visitor.nameScope_J2DAccessor = innerScope;
+        _visitor.nameScope = innerScope;
         node.accept(_resolver);
       } finally {
-        _visitor.nameScope_J2DAccessor = outerScope;
+        _visitor.nameScope = outerScope;
       }
     } catch (exception) {
       throw new IllegalArgumentException("Could not resolve node", exception);
@@ -1987,7 +1989,7 @@ class ElementResolverTest extends EngineTestCase {
   void _resolveStatement(
       Statement statement, LabelElementImpl labelElement, AstNode labelTarget) {
     try {
-      LabelScope outerScope = _visitor.labelScope_J2DAccessor as LabelScope;
+      LabelScope outerScope = _visitor.labelScope;
       try {
         LabelScope innerScope;
         if (labelElement == null) {
@@ -1996,10 +1998,10 @@ class ElementResolverTest extends EngineTestCase {
           innerScope = new LabelScope(
               outerScope, labelElement.name, labelTarget, labelElement);
         }
-        _visitor.labelScope_J2DAccessor = innerScope;
+        _visitor.labelScope = innerScope;
         statement.accept(_resolver);
       } finally {
-        _visitor.labelScope_J2DAccessor = outerScope;
+        _visitor.labelScope = outerScope;
       }
     } catch (exception) {
       throw new IllegalArgumentException("Could not resolve node", exception);
@@ -2202,29 +2204,6 @@ m() {
   n(i);
 }
 n(int i) {}''');
-    resolve(source);
-    assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
-    verify([source]);
-  }
-
-  void test_argumentTypeNotAssignable_unionTypeMethodMerge() {
-    enableUnionTypes(false);
-    Source source = addSource(r'''
-class A {
-  int m(int x) => 0;
-}
-class B {
-  String m(String x) => '0';
-}
-f(A a, B b) {
-  var ab;
-  if (0 < 1) {
-    ab = a;
-  } else {
-    ab = b;
-  }
-  ab.m(0.5);
-}''');
     resolve(source);
     assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
@@ -2652,27 +2631,6 @@ class A {
   @deprecated
   m() {}
   n() {m();}
-}''');
-    resolve(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  void test_deprecatedAnnotationUse_deprecatedMethodCalledOnUnionType() {
-    enableUnionTypes(false);
-    Source source = addSource(r'''
-class A {
-  @deprecated f() => 0;
-}
-class B extends A {}
-main(A a, B b) {
-  var x;
-  if (0 < 1) {
-    x = a;
-  } else {
-    x = b;
-  }
-  x.f(); // Here [x] has type [{A,B}] but we still want the deprecation warning.
 }''');
     resolve(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
@@ -3137,28 +3095,6 @@ class B {
     assertErrors(source, [HintCode.UNDEFINED_METHOD]);
   }
 
-  void test_undefinedMethod_unionType_noSuchMethod() {
-    enableUnionTypes(false);
-    Source source = addSource(r'''
-class A {
-  int m(int x) => 0;
-}
-class B {
-  String m() => '0';
-}
-f(A a, B b) {
-  var ab;
-  if (0 < 1) {
-    ab = a;
-  } else {
-    ab = b;
-  }
-  ab.n();
-}''');
-    resolve(source);
-    assertErrors(source, [HintCode.UNDEFINED_METHOD]);
-  }
-
   void test_undefinedOperator_binaryExpression() {
     Source source = addSource(r'''
 class A {}
@@ -3325,50 +3261,6 @@ m(i) {
     verify([source]);
   }
 
-  void test_unusedElement_class_inClassMember() {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class _A {
-  static staticMethod() {
-    new _A();
-  }
-  instanceMethod() {
-    new _A();
-  }
-}
-''');
-    resolve(source);
-    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
-    verify([source]);
-  }
-
-  void test_unusedElement_class_inConstructorName() {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class _A {
-  _A() {}
-  _A.named() {}
-}
-''');
-    resolve(source);
-    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
-    verify([source]);
-  }
-
-  void test_unusedElement_class_isExpression() {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class _A {}
-main(p) {
-  if (p is _A) {
-  }
-}
-''');
-    resolve(source);
-    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
-    verify([source]);
-  }
-
   void test_unusedElement_class_isUsed_extends() {
     enableUnusedElement = true;
     Source source = addSource(r'''
@@ -3431,7 +3323,51 @@ main() {
     verify([source]);
   }
 
-  void test_unusedElement_class_noReference() {
+  void test_unusedElement_class_notUsed_inClassMember() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class _A {
+  static staticMethod() {
+    new _A();
+  }
+  instanceMethod() {
+    new _A();
+  }
+}
+''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_class_notUsed_inConstructorName() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class _A {
+  _A() {}
+  _A.named() {}
+}
+''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_class_notUsed_isExpression() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class _A {}
+main(p) {
+  if (p is _A) {
+  }
+}
+''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_class_notUsed_noReference() {
     enableUnusedElement = true;
     Source source = addSource(r'''
 class _A {}
@@ -3442,7 +3378,7 @@ main() {
     verify([source]);
   }
 
-  void test_unusedElement_class_variableDeclaration() {
+  void test_unusedElement_class_notUsed_variableDeclaration() {
     enableUnusedElement = true;
     Source source = addSource(r'''
 class _A {}
@@ -3452,6 +3388,29 @@ main() {
 }
 print(x) {}
 ''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_enum_isUsed_fieldReference() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+enum _MyEnum {A, B, C}
+main() {
+  print(_MyEnum.B);
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_enum_notUsed_noReference() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+enum _MyEnum {A, B, C}
+main() {
+}''');
     resolve(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
@@ -3563,6 +3522,40 @@ main() {
 _f(int p) {
   _f(p - 1);
 }
+main() {
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_functionTypeAlias_isUsed_reference() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+typedef _F(a, b);
+main(_F f) {
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_functionTypeAlias_isUsed_variableDeclaration() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+typedef _F(a, b);
+class A {
+  _F f;
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_functionTypeAlias_notUsed_noReference() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+typedef _F(a, b);
 main() {
 }''');
     resolve(source);
@@ -4213,6 +4206,21 @@ main() {
   }
 }
 print(x) {}''');
+    resolve(source);
+    assertErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedLocalVariable_inFor_underscore_ignored() {
+    enableUnusedLocalVariable = true;
+    Source source = addSource(r'''
+main() {
+  for (var _ in [1,2,3]) {
+    for (var __ in [4,5,6]) {
+      // do something
+    }
+  }
+}''');
     resolve(source);
     assertErrors(source);
     verify([source]);
@@ -6532,21 +6540,6 @@ f(var message, var dynamic_) {
     verify([source]);
   }
 
-  void test_issue20904BuggyTypePromotionAtIfJoin_2() {
-    // https://code.google.com/p/dart/issues/detail?id=20904
-    enableUnionTypes(false);
-    Source source = addSource(r'''
-f(var message) {
-  if (message is Function) {
-    message = '';
-  }
-  int s = message;
-}''');
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   void test_issue20904BuggyTypePromotionAtIfJoin_3() {
     // https://code.google.com/p/dart/issues/detail?id=20904
     Source source = addSource(r'''
@@ -7731,16 +7724,6 @@ class ResolverTestCase extends EngineTestCase {
     return library;
   }
 
-  /**
-   * Enable optionally strict union types for the current test.
-   *
-   * @param strictUnionTypes `true` if union types should be strict.
-   */
-  void enableUnionTypes(bool strictUnionTypes) {
-    AnalysisEngine.instance.enableUnionTypes = true;
-    AnalysisEngine.instance.strictUnionTypes = strictUnionTypes;
-  }
-
   Expression findTopLevelConstantExpression(
           CompilationUnit compilationUnit, String name) =>
       findTopLevelDeclaration(compilationUnit, name).initializer;
@@ -7766,10 +7749,6 @@ class ResolverTestCase extends EngineTestCase {
    */
   void reset() {
     analysisContext2 = AnalysisContextFactory.contextWithCore();
-    // These defaults are duplicated for the editor in
-    // editor/tools/plugins/com.google.dart.tools.core/.options .
-    AnalysisEngine.instance.enableUnionTypes = false;
-    AnalysisEngine.instance.strictUnionTypes = false;
   }
 
   /**
@@ -9875,6 +9854,24 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
+  void test_visitAssignmentExpression_compoundIfNull_differentTypes() {
+    // double d; d ??= 0
+    Expression node = AstFactory.assignmentExpression(
+        _resolvedVariable(_typeProvider.doubleType, 'd'),
+        TokenType.QUESTION_QUESTION_EQ, _resolvedInteger(0));
+    expect(_analyze(node), same(_typeProvider.numType));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitAssignmentExpression_compoundIfNull_sameTypes() {
+    // int i; i ??= 0
+    Expression node = AstFactory.assignmentExpression(
+        _resolvedVariable(_typeProvider.intType, 'i'),
+        TokenType.QUESTION_QUESTION_EQ, _resolvedInteger(0));
+    expect(_analyze(node), same(_typeProvider.intType));
+    _listener.assertNoErrors();
+  }
+
   void test_visitAssignmentExpression_simple() {
     // i = 0
     InterfaceType intType = _typeProvider.intType;
@@ -9913,6 +9910,14 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     Expression node = AstFactory.binaryExpression(
         _resolvedInteger(2), TokenType.EQ_EQ, _resolvedInteger(3));
     expect(_analyze(node), same(_typeProvider.boolType));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitBinaryExpression_ifNull() {
+    // 1 ?? 1.5
+    Expression node = AstFactory.binaryExpression(
+        _resolvedInteger(1), TokenType.QUESTION_QUESTION, _resolvedDouble(1.5));
+    expect(_analyze(node), same(_typeProvider.numType));
     _listener.assertNoErrors();
   }
 
@@ -10915,7 +10920,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _visitor = new ResolverVisitor.con1(library, source, _typeProvider);
     _visitor.overrideManager.enterScope();
     try {
-      return _visitor.typeAnalyzer_J2DAccessor as StaticTypeAnalyzer;
+      return _visitor.typeAnalyzer;
     } catch (exception) {
       throw new IllegalArgumentException(
           "Could not create analyzer", exception);
@@ -12592,21 +12597,6 @@ A f(var p) {
     expect(variableName.propagatedType, same(typeA));
   }
 
-  void test_issue20904BuggyTypePromotionAtIfJoin_2() {
-    // https://code.google.com/p/dart/issues/detail?id=20904
-    enableUnionTypes(false);
-    String code = r'''
-f(var message) {
-  if (message is Function) {
-    message = '';
-  }
-  message; // marker
-}''';
-    DartType t = _findMarkedIdentifier(code, "; // marker").propagatedType;
-    expect(typeProvider.stringType == t, isFalse);
-    expect(typeProvider.functionType == t, isFalse);
-  }
-
   void test_issue20904BuggyTypePromotionAtIfJoin_5() {
     // https://code.google.com/p/dart/issues/detail?id=20904
     //
@@ -12749,6 +12739,62 @@ f() {
     expect(typeArguments[1], same(typeProvider.dynamicType));
   }
 
+  void test_mergePropagatedTypes_afterIfThen_different() {
+    String code = r'''
+main() {
+  var v = 0;
+  if (v != null) {
+    v = '';
+  }
+  return v;
+}''';
+    {
+      SimpleIdentifier identifier = _findMarkedIdentifier(code, "v;");
+      expect(identifier.propagatedType, null);
+    }
+    {
+      SimpleIdentifier identifier = _findMarkedIdentifier(code, "v = '';");
+      expect(identifier.propagatedType, typeProvider.stringType);
+    }
+  }
+
+  void test_mergePropagatedTypes_afterIfThen_same() {
+    _assertTypeOfMarkedExpression(r'''
+main() {
+  var v = 1;
+  if (v != null) {
+    v = 2;
+  }
+  return v; // marker
+}''', null, typeProvider.intType);
+  }
+
+  void test_mergePropagatedTypes_afterIfThenElse_different() {
+    _assertTypeOfMarkedExpression(r'''
+main() {
+  var v = 1;
+  if (v != null) {
+    v = 2;
+  } else {
+    v = '3';
+  }
+  return v; // marker
+}''', null, null);
+  }
+
+  void test_mergePropagatedTypes_afterIfThenElse_same() {
+    _assertTypeOfMarkedExpression(r'''
+main() {
+  var v = 1;
+  if (v != null) {
+    v = 2;
+  } else {
+    v = 3;
+  }
+  return v; // marker
+}''', null, typeProvider.intType);
+  }
+
   void test_mergePropagatedTypesAtJoinPoint_4() {
     // https://code.google.com/p/dart/issues/detail?id=19929
     _assertTypeOfMarkedExpression(r'''
@@ -12762,34 +12808,6 @@ f5(x) {
   // Propagated type is [int] here: correct.
   return y; // marker
 }''', null, typeProvider.intType);
-  }
-
-  void test_mergePropagatedTypesAtJoinPoint_6() {
-    // https://code.google.com/p/dart/issues/detail?id=19929
-    //
-    // Labeled [break]s are unsafe for the purposes of
-    // [isAbruptTerminationStatement].
-    //
-    // This is tricky: the [break] jumps back above the [if], making
-    // it into a loop of sorts. The [if] type-propagation code assumes
-    // that [break] does not introduce a loop.
-    enableUnionTypes(false);
-    String code = r'''
-f() {
-  var x = 0;
-  var c = false;
-  L: 
-  if (c) {
-  } else {
-    x = '';
-    c = true;
-    break L;
-  }
-  x; // marker
-}''';
-    DartType t = _findMarkedIdentifier(code, "; // marker").propagatedType;
-    expect(typeProvider.intType.isSubtypeOf(t), isTrue);
-    expect(typeProvider.stringType.isSubtypeOf(t), isTrue);
   }
 
   void test_mutatedOutsideScope() {
@@ -13007,9 +13025,7 @@ main() {
     if (expectedStaticType != null) {
       expect(identifier.staticType, expectedStaticType);
     }
-    if (expectedPropagatedType != null) {
-      expect(identifier.propagatedType, expectedPropagatedType);
-    }
+    expect(identifier.propagatedType, expectedPropagatedType);
   }
 
   /**

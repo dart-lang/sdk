@@ -59,6 +59,11 @@ bool FlowGraphCompiler::SupportsSinCos() {
 }
 
 
+bool FlowGraphCompiler::SupportsHardwareDivision() {
+  return true;
+}
+
+
 void FlowGraphCompiler::EnterIntrinsicMode() {
   ASSERT(!intrinsic_mode());
   intrinsic_mode_ = true;
@@ -73,12 +78,12 @@ void FlowGraphCompiler::ExitIntrinsicMode() {
 }
 
 
-RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
+RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                  DeoptInfoBuilder* builder,
                                                  const Array& deopt_table) {
   if (deopt_env_ == NULL) {
     ++builder->current_info_number_;
-    return DeoptInfo::null();
+    return TypedData::null();
   }
 
   intptr_t stack_height = compiler->StackSize();
@@ -95,10 +100,12 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   builder->MarkFrameStart();
 
   // Current PP, FP, and PC.
-  builder->AddPp(current->code(), slot_ix++);
-  builder->AddPcMarker(Code::Handle(), slot_ix++);
+  builder->AddPp(Function::Handle(current->code().function()), slot_ix++);
+  builder->AddPcMarker(Function::Handle(), slot_ix++);
   builder->AddCallerFp(slot_ix++);
-  builder->AddReturnAddress(current->code(), deopt_id(), slot_ix++);
+  builder->AddReturnAddress(Function::Handle(current->code().function()),
+                            deopt_id(),
+                            slot_ix++);
 
   // Emit all values that are needed for materialization as a part of the
   // expression stack for the bottom-most frame. This guarantees that GC
@@ -116,13 +123,14 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   current = current->outer();
   while (current != NULL) {
     // PP, FP, and PC.
-    builder->AddPp(current->code(), slot_ix++);
-    builder->AddPcMarker(previous->code(), slot_ix++);
+    builder->AddPp(Function::Handle(current->code().function()), slot_ix++);
+    builder->AddPcMarker(Function::Handle(previous->code().function()),
+                         slot_ix++);
     builder->AddCallerFp(slot_ix++);
 
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
-    builder->AddReturnAddress(current->code(),
+    builder->AddReturnAddress(Function::Handle(current->code().function()),
                               Isolate::ToDeoptAfter(current->deopt_id()),
                               slot_ix++);
 
@@ -153,7 +161,8 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   // For the outermost environment, set caller PC, caller PP, and caller FP.
   builder->AddCallerPp(slot_ix++);
   // PC marker.
-  builder->AddPcMarker(previous->code(), slot_ix++);
+  builder->AddPcMarker(Function::Handle(previous->code().function()),
+                       slot_ix++);
   builder->AddCallerFp(slot_ix++);
   builder->AddCallerPc(slot_ix++);
 
@@ -1223,10 +1232,6 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
                    RawPcDescriptors::kUnoptStaticCall,
                    locs);
   __ Drop(argument_count, RCX);
-#if defined(DEBUG)
-  __ movq(RBX, Immediate(kInvalidObjectPointer));
-  __ movq(R10, Immediate(kInvalidObjectPointer));
-#endif
 }
 
 
@@ -1297,9 +1302,6 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                    RawPcDescriptors::kIcCall,
                    locs);
   __ Drop(argument_count, RCX);
-#if defined(DEBUG)
-  __ movq(R10, Immediate(kInvalidObjectPointer));
-#endif
 }
 
 
@@ -1441,13 +1443,6 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                            Isolate::kNoDeoptId,
                            token_pos);
     }
-#if defined(DEBUG)
-    // Do this *after* adding the pc descriptor!
-    if (!is_optimizing()) {
-      __ movq(R10, Immediate(kInvalidObjectPointer));
-      __ movq(RBX, Immediate(kInvalidObjectPointer));
-    }
-#endif
     // Stub returns result in flags (result of a cmpq, we need ZF computed).
     __ popq(right);
     __ popq(left);

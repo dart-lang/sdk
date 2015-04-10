@@ -7,6 +7,7 @@ library debugger_page_element;
 import 'dart:async';
 import 'dart:html';
 import 'observatory_element.dart';
+import 'package:observatory/app.dart';
 import 'package:observatory/cli.dart';
 import 'package:observatory/debugger.dart';
 import 'package:observatory/service.dart';
@@ -30,9 +31,9 @@ class HelpCommand extends DebuggerCommand {
 
   String _nameAndAlias(Command cmd) {
     if (cmd.alias == null) {
-      return cmd.name;
+      return cmd.fullName;
     } else {
-      return '${cmd.name}, ${cmd.alias}';
+      return '${cmd.fullName}, ${cmd.alias}';
     }
   }
 
@@ -51,7 +52,7 @@ class HelpCommand extends DebuggerCommand {
           "\nFor more information on a specific command type 'help <command>'\n"
           "\n"
           "Command prefixes are accepted (e.g. 'h' for 'help')\n"
-          "Hit [TAB] to complete a command (try 'i[TAB][TAB]')\n"
+          "Hit [TAB] to complete a command (try 'is[TAB][TAB]')\n"
           "Hit [ENTER] to repeat the last command\n"
           "Use up/down arrow for command history\n");
       return new Future.value(null);
@@ -409,7 +410,7 @@ class BreakCommand extends DebuggerCommand {
 
   Future<List<String>> complete(List<String> args) {
     if (args.length != 1) {
-      return new Future.value([]);
+      return new Future.value([args.join('')]);
     }
     // TODO - fix SourceLocation complete
     return new Future.value(SourceLocation.complete(debugger, args[0]));
@@ -493,7 +494,7 @@ class ClearCommand extends DebuggerCommand {
 
   Future<List<String>> complete(List<String> args) {
     if (args.length != 1) {
-      return new Future.value([]);
+      return new Future.value([args.join('')]);
     }
     return new Future.value(SourceLocation.complete(debugger, args[0]));
   }
@@ -603,32 +604,12 @@ class InfoBreakpointsCommand extends DebuggerCommand {
       'Syntax: info breakpoints\n';
 }
 
-class InfoIsolatesCommand extends DebuggerCommand {
-  InfoIsolatesCommand(Debugger debugger) : super(debugger, 'isolates', []);
-
-  Future run(List<String> args) {
-    for (var isolate in debugger.isolate.vm.isolates) {
-      String current = (isolate == debugger.isolate ? ' *' : '');
-      debugger.console.print(
-          "Isolate ${isolate.id} '${isolate.name}'${current}");
-    }
-    return new Future.value(null);
-  }
-
-  String helpShort = 'List all isolates';
-
-  String helpLong =
-      'List all isolates.\n'
-      '\n'
-      'Syntax: info isolates\n';
-}
-
 class InfoFrameCommand extends DebuggerCommand {
   InfoFrameCommand(Debugger debugger) : super(debugger, 'frame', []);
 
   Future run(List<String> args) {
     if (args.length > 0) {
-      debugger.console.print('info frame expects 1 argument');
+      debugger.console.print('info frame expects no arguments');
       return new Future.value(null);
     }
     debugger.console.print('frame = ${debugger.currentFrame}');
@@ -643,12 +624,131 @@ class InfoFrameCommand extends DebuggerCommand {
       'Syntax: info frame\n';
 }
 
+class IsolateCommand extends DebuggerCommand {
+  IsolateCommand(Debugger debugger) : super(debugger, 'isolate', [
+    new IsolateListCommand(debugger),
+    new IsolateNameCommand(debugger),
+  ]) {
+    alias = 'i';
+  }
+
+  Future run(List<String> args) {
+    if (args.length != 1) {
+      debugger.console.print('isolate expects one argument');
+      return new Future.value(null);
+    }
+    var arg = args[0].trim();
+    var num = int.parse(arg, onError:(_) => null);
+
+    var candidate;
+    for (var isolate in debugger.vm.isolates) {
+      if (num != null && num == isolate.number) {
+        candidate = isolate;
+        break;
+      } else if (arg == isolate.name) {
+        if (candidate != null) {
+          debugger.console.print(
+              "Isolate identifier '${arg}' is ambiguous: "
+              'use the isolate number instead');
+          return new Future.value(null);
+        }
+        candidate = isolate;
+      }
+    }
+    if (candidate == null) {
+      debugger.console.print("Invalid isolate identifier '${arg}'");
+    } else {
+      if (candidate == debugger.isolate) {
+        debugger.console.print(
+            "Current isolate is already ${candidate.number} '${candidate.name}'");
+      } else {
+        debugger.console.print(
+            "Switching to isolate ${candidate.number} '${candidate.name}'");
+        debugger.isolate = candidate;
+      }
+    }
+    return new Future.value(null);
+  }
+
+  Future<List<String>> complete(List<String> args) {
+    if (args.length != 1) {
+      return new Future.value([args.join('')]);
+    }
+    var isolates = debugger.vm.isolates.toList();
+    isolates.sort((a, b) => a.startTime.compareTo(b.startTime));
+    var result = [];
+    for (var isolate in isolates) {
+      var str = isolate.number.toString();
+      if (str.startsWith(args[0])) {
+        result.add('$str ');
+      }
+    }
+    for (var isolate in isolates) {
+      if (isolate.name.startsWith(args[0])) {
+        result.add('${isolate.name} ');
+      }
+    }
+    return new Future.value(result);
+  }
+  String helpShort = 'Switch the current isolate';
+
+  String helpLong =
+      'Switch the current isolate.\n'
+      '\n'
+      'Syntax: isolate <number>\n'
+      '        isolate <name>\n';
+}
+
+class IsolateListCommand extends DebuggerCommand {
+  IsolateListCommand(Debugger debugger) : super(debugger, 'list', []);
+
+  Future run(List<String> args) {
+    if (debugger.vm == null) {
+      debugger.console.print(
+          "Internal error: vm has not been set");
+      return new Future.value(null);
+    }
+    var isolates = debugger.vm.isolates.toList();
+    isolates.sort((a, b) => a.startTime.compareTo(b.startTime));
+    for (var isolate in isolates) {
+      String current = (isolate == debugger.isolate ? ' *' : '');
+      debugger.console.print(
+          "Isolate ${isolate.number} '${isolate.name}'${current}");
+    }
+    return new Future.value(null);
+  }
+
+  String helpShort = 'List all isolates';
+
+  String helpLong =
+      'List all isolates.\n'
+      '\n'
+      'Syntax: isolate list\n';
+}
+
+class IsolateNameCommand extends DebuggerCommand {
+  IsolateNameCommand(Debugger debugger) : super(debugger, 'name', []);
+
+  Future run(List<String> args) {
+    if (args.length != 1) {
+      debugger.console.print('isolate name expects one argument');
+      return new Future.value(null);
+    }
+    return debugger.isolate.setName(args[0]);
+  }
+
+  String helpShort = 'Rename an isolate';
+
+  String helpLong =
+      'Rename an isolate.\n'
+      '\n'
+      'Syntax: isolate name <name>\n';
+}
+
 class InfoCommand extends DebuggerCommand {
   InfoCommand(Debugger debugger) : super(debugger, 'info', [
       new InfoBreakpointsCommand(debugger),
-      new InfoIsolatesCommand(debugger),
-      new InfoFrameCommand(debugger),
-  ]);
+      new InfoFrameCommand(debugger)]);
 
   Future run(List<String> args) {
     debugger.console.print("'info' expects a subcommand (see 'help info')");
@@ -689,8 +789,6 @@ class RefreshStackCommand extends DebuggerCommand {
   RefreshStackCommand(Debugger debugger) : super(debugger, 'stack', []);
 
   Future run(List<String> args) {
-    Set<Script> scripts = debugger.stackElement.activeScripts();
-    List pending = [];
     return debugger.refreshStack();
   }
 
@@ -724,6 +822,7 @@ class RefreshCommand extends DebuggerCommand {
 // Tracks the state for an isolate debugging session.
 class ObservatoryDebugger extends Debugger {
   RootCommand cmd;
+  DebuggerPageElement page;
   DebuggerConsoleElement console;
   DebuggerStackElement stackElement;
   ServiceMap stack;
@@ -758,14 +857,17 @@ class ObservatoryDebugger extends Debugger {
         new ClearCommand(this),
         new DeleteCommand(this),
         new InfoCommand(this),
+        new IsolateCommand(this),
         new RefreshCommand(this),
     ]);
   }
 
-  void set isolate(Isolate iso) {
+  VM get vm => page.app.vm;
+
+  void updateIsolate(Isolate iso) {
     _isolate = iso;
     if (_isolate != null) {
-      _isolate.reload().then((_) {
+      _isolate.reload().then((response) {
         // TODO(turnidge): Currently the debugger relies on all libs
         // being loaded.  Fix this.
         var pending = [];
@@ -775,26 +877,46 @@ class ObservatoryDebugger extends Debugger {
           }
         }
         Future.wait(pending).then((_) {
-          _isolate.vm.events.stream.listen(_onEvent);
+          if (_subscription == null) {
+            _subscription = vm.events.stream.listen(_onEvent);
+          }
           _refreshStack(isolate.pauseEvent).then((_) {
             reportStatus();
           });
         });
       });
+    } else {
+      reportStatus();
     }
+  }
+
+  void set isolate(Isolate iso) {
+    // Setting the page's isolate will trigger updateIsolate to be called.
+    //
+    // TODO(turnidge): Rework ownership of the ObservatoryDebugger in another
+    // change.
+    page.isolate = iso;
   }
   Isolate get isolate => _isolate;
   Isolate _isolate;
+  var _subscription;
 
   void init() {
     console.newline();
     console.printBold("Type 'h' for help");
+    // Wait a bit and if polymer still hasn't set up the isolate,
+    // report this to the user.
+    new Timer(const Duration(seconds:1), () {
+      if (isolate == null) {
+        reportStatus();
+      }
+    });
   }
 
   Future refreshStack() {
     return _refreshStack(isolate.pauseEvent).then((_) {
-        reportStatus();
-      });
+      reportStatus();
+    });
   }
 
   bool isolatePaused() {
@@ -830,7 +952,9 @@ class ObservatoryDebugger extends Debugger {
   }
 
   void reportStatus() {
-    if (_isolate.idle) {
+    if (_isolate == null) {
+      console.print('No current isolate');
+    } else if (_isolate.idle) {
       console.print('Isolate is idle');
     } else if (_isolate.running) {
       console.print("Isolate is running (type 'pause' to interrupt)");
@@ -902,13 +1026,30 @@ class ObservatoryDebugger extends Debugger {
   }
 
   void _onEvent(ServiceEvent event) {
-    if (event.owner != isolate) {
-      return;
-    }
     switch(event.eventType) {
+      case ServiceEvent.kIsolateStart:
+        {
+          var iso = event.owner;
+          console.print(
+              "Isolate ${iso.number} '${iso.name}' has been created");
+        }
+        break;
+
       case ServiceEvent.kIsolateExit:
-        console.print('Isolate shutdown');
-        isolate = null;
+        {
+          var iso = event.owner;
+          if (iso == isolate) {
+            console.print("The current isolate has exited");
+          } else {
+            console.print(
+                "Isolate ${iso.number} '${iso.name}' has exited");
+          }
+        }
+        break;
+
+      case ServiceEvent.kIsolateUpdate:
+        var iso = event.owner;
+        console.print("Isolate ${iso.number} renamed to '${iso.name}'");
         break;
 
       case ServiceEvent.kPauseStart:
@@ -916,25 +1057,30 @@ class ObservatoryDebugger extends Debugger {
       case ServiceEvent.kPauseBreakpoint:
       case ServiceEvent.kPauseInterrupted:
       case ServiceEvent.kPauseException:
-        _refreshStack(event).then((_) {
-          _reportPause(event);
-        });
+        if (event.owner == isolate) {
+          _refreshStack(event).then((_) {
+            _reportPause(event);
+          });
+        }
         break;
 
       case ServiceEvent.kResume:
-        console.print('Continuing...');
+        if (event.owner == isolate) {
+          console.print('Continuing...');
+        }
         break;
 
       case ServiceEvent.kBreakpointAdded:
       case ServiceEvent.kBreakpointResolved:
       case ServiceEvent.kBreakpointRemoved:
-        _reportBreakpointEvent(event);
+        if (event.owner == isolate) {
+          _reportBreakpointEvent(event);
+        }
         break;
 
       case ServiceEvent.kIsolateStart:
       case ServiceEvent.kGraph:
       case ServiceEvent.kGC:
-        // Ignore these events for now.
         break;
 
       default:
@@ -1008,16 +1154,19 @@ class ObservatoryDebugger extends Debugger {
 
 @CustomTag('debugger-page')
 class DebuggerPageElement extends ObservatoryElement {
+  @published ObservatoryApplication app;
   @published Isolate isolate;
 
   isolateChanged(oldValue) {
     if (isolate != null) {
-      debugger.isolate = isolate;
+      debugger.updateIsolate(isolate);
     }
   }
   ObservatoryDebugger debugger = new ObservatoryDebugger();
 
-  DebuggerPageElement.created() : super.created();
+  DebuggerPageElement.created() : super.created() {
+    debugger.page = this;
+  }
 
   @override
   void attached() {
@@ -1027,7 +1176,6 @@ class DebuggerPageElement extends ObservatoryElement {
     var stackDiv = $['stackDiv'];
     var splitterDiv = $['splitterDiv'];
     var cmdDiv = $['commandDiv'];
-    var consoleDiv = $['consoleDiv'];
 
     int navbarHeight = navbarDiv.clientHeight;
     int splitterHeight = splitterDiv.clientHeight;

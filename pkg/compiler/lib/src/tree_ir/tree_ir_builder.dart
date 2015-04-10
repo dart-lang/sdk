@@ -46,11 +46,9 @@ import 'tree_ir_nodes.dart';
 class Builder implements cps_ir.Visitor<Node> {
   final dart2js.InternalErrorFunction internalError;
 
-  /// Maps variable/parameter elements to the Tree variables that represent it.
-  final Map<Local, List<Variable>> local2variables = <Local, List<Variable>>{};
-
-  /// Like [local2variables], except for mutable variables.
-  final Map<cps_ir.MutableVariable, Variable> local2mutable =
+  final Map<cps_ir.Primitive, Variable> primitive2variable =
+      <cps_ir.Primitive, Variable>{};
+  final Map<cps_ir.MutableVariable, Variable> mutable2variable =
       <cps_ir.MutableVariable, Variable>{};
 
   // Continuations with more than one use are replaced with Tree labels.  This
@@ -85,9 +83,9 @@ class Builder implements cps_ir.Visitor<Node> {
 
   Variable addMutableVariable(cps_ir.MutableVariable irVariable) {
     assert(irVariable.host == currentElement);
-    assert(!local2mutable.containsKey(irVariable));
+    assert(!mutable2variable.containsKey(irVariable));
     Variable variable = new Variable(currentElement, irVariable.hint);
-    local2mutable[irVariable] = variable;
+    mutable2variable[irVariable] = variable;
     return variable;
   }
 
@@ -95,7 +93,7 @@ class Builder implements cps_ir.Visitor<Node> {
     if (mutableVariable.host != currentElement) {
       return parent.getMutableVariable(mutableVariable)..isCaptured = true;
     }
-    return local2mutable[mutableVariable];
+    return mutable2variable[mutableVariable];
   }
 
   VariableUse getMutableVariableUse(
@@ -107,15 +105,8 @@ class Builder implements cps_ir.Visitor<Node> {
   /// Obtains the variable representing the given primitive. Returns null for
   /// primitives that have no reference and do not need a variable.
   Variable getVariable(cps_ir.Primitive primitive) {
-    if (primitive.registerIndex == null) {
-      return null; // variable is unused
-    }
-    List<Variable> variables = local2variables.putIfAbsent(primitive.hint,
-        () => <Variable>[]);
-    while (variables.length <= primitive.registerIndex) {
-      variables.add(new Variable(currentElement, primitive.hint));
-    }
-    return variables[primitive.registerIndex];
+    return primitive2variable.putIfAbsent(primitive,
+        () => new Variable(currentElement, primitive.hint));
   }
 
   /// Obtains a reference to the tree Variable corresponding to the IR primitive
@@ -126,18 +117,11 @@ class Builder implements cps_ir.Visitor<Node> {
     if (thisParameter != null && reference.definition == thisParameter) {
       return new This();
     }
-    Variable variable = getVariable(reference.definition);
-    if (variable == null) {
-      // Note: this may fail because you forgot to implement a visit-function
-      // in the RegisterAllocator.
-      internalError(
-          CURRENT_ELEMENT_SPANNABLE,
-          "Reference to ${reference.definition} has no register");
-    }
-    return new VariableUse(variable);
+    return new VariableUse(getVariable(reference.definition));
   }
 
-  ExecutableDefinition build(cps_ir.ExecutableDefinition node) {
+  RootNode build(cps_ir.RootNode node) {
+    // TODO(asgerf): Don't have build AND buildXXX as public API.
     if (node is cps_ir.FieldDefinition) {
       return buildField(node);
     } else if (node is cps_ir.ConstructorDefinition) {
@@ -154,7 +138,7 @@ class Builder implements cps_ir.Visitor<Node> {
 
   FieldDefinition buildField(cps_ir.FieldDefinition node) {
     Statement body;
-    if (node.hasInitializer) {
+    if (!node.isEmpty) {
       currentElement = node.element;
       returnContinuation = node.body.returnContinuation;
 
@@ -184,7 +168,7 @@ class Builder implements cps_ir.Visitor<Node> {
     List<Variable> parameters =
         node.parameters.map(addFunctionParameter).toList();
     Statement body;
-    if (!node.isAbstract) {
+    if (!node.isEmpty) {
       returnContinuation = node.body.returnContinuation;
       phiTempVar = new Variable(node.element, null);
       body = visit(node.body);
@@ -201,7 +185,7 @@ class Builder implements cps_ir.Visitor<Node> {
         node.parameters.map(addFunctionParameter).toList();
     List<Initializer> initializers;
     Statement body;
-    if (!node.isAbstract) {
+    if (!node.isEmpty) {
       initializers = node.initializers.map(visit).toList();
       returnContinuation = node.body.returnContinuation;
 
@@ -230,12 +214,12 @@ class Builder implements cps_ir.Visitor<Node> {
       cps_ir.Parameter parameter,
       Expression argument,
       Statement buildRest()) {
-    Variable variable = getVariable(parameter);
     Statement assignment;
-    if (variable == null) {
-      assignment = new ExpressionStatement(argument, null);
-    } else {
+    if (parameter.hasAtLeastOneUse) {
+      Variable variable = getVariable(parameter);
       assignment = new Assign(variable, argument, null);
+    } else {
+      assignment = new ExpressionStatement(argument, null);
     }
     assignment.next = buildRest();
     return assignment;
@@ -366,7 +350,7 @@ class Builder implements cps_ir.Visitor<Node> {
 
   Initializer visitSuperInitializer(cps_ir.SuperInitializer node) {
     List<Statement> arguments =
-        node.arguments.map((cps_ir.RunnableBody argument) {
+        node.arguments.map((cps_ir.Body argument) {
       returnContinuation = argument.returnContinuation;
       return visit(argument.body);
     }).toList();
@@ -391,7 +375,7 @@ class Builder implements cps_ir.Visitor<Node> {
     }
   }
 
-  Statement visitRunnableBody(cps_ir.RunnableBody node) {
+  Statement visitBody(cps_ir.Body node) {
     return visit(node.body);
   }
 
@@ -519,8 +503,11 @@ class Builder implements cps_ir.Visitor<Node> {
 
   Statement visitInvokeConstructor(cps_ir.InvokeConstructor node) {
     List<Expression> arguments = translateArguments(node.arguments);
-    Expression invoke =
-        new InvokeConstructor(node.type, node.target, node.selector, arguments);
+    Expression invoke = new InvokeConstructor(
+        node.type,
+        node.target,
+        node.selector,
+        arguments);
     return continueWithExpression(node.continuation, invoke);
   }
 
@@ -651,4 +638,12 @@ class Builder implements cps_ir.Visitor<Node> {
   Expression visitReadTypeVariable(cps_ir.ReadTypeVariable node) {
     return new ReadTypeVariable(node.variable, getVariableUse(node.target));
   }
+
+  @override
+  Node visitTypeExpression(cps_ir.TypeExpression node) {
+    return new TypeExpression(
+        node.dartType,
+        node.arguments.map(getVariableUse).toList());
+  }
 }
+

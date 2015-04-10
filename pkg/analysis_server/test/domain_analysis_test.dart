@@ -321,9 +321,8 @@ f(A a) {
 library lib_a;
 class A {}
 ''');
-    packageMapProvider.packageMap['pkgA'] = [
-      resourceProvider.getResource('/packages/pkgA')
-    ];
+    packageMapProvider.packageMap['pkgA'] =
+        [resourceProvider.getResource('/packages/pkgA')];
     addTestFile('''
 import 'package:pkgA/libA.dart';
 main(A a) {
@@ -645,6 +644,30 @@ main() {
     await server.onAnalysisComplete;
     // there are results
     expect(filesHighlights[pkgFileA], isNotEmpty);
+  }
+
+  test_afterAnalysis_packageFile_notUsed() async {
+    String pkgFile = '/packages/pkgA/lib/libA.dart';
+    resourceProvider.newFile(pkgFile, '''
+library lib_a;
+class A {}
+''');
+    packageMapProvider.packageMap = {
+      'pkgA': [(resourceProvider.newFolder('/packages/pkgA/lib'))]
+    };
+    //
+    addTestFile('// no "pkgA" reference');
+    createProject();
+    // wait for analysis, no results initially
+    await waitForTasksFinished();
+    expect(filesHighlights[pkgFile], isNull);
+    // make it a priority file, so make analyzable
+    server.setPriorityFiles('0', [pkgFile]);
+    // subscribe
+    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, pkgFile);
+    await server.onAnalysisComplete;
+    // there are results
+    expect(filesHighlights[pkgFile], isNotEmpty);
   }
 
   test_afterAnalysis_sdkFile() async {

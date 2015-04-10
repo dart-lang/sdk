@@ -385,12 +385,9 @@ class StringToken extends Token {
   static String decodeUtf8(List<int> data, int start, int end, bool asciiOnly) {
     var s;
     if (asciiOnly) {
-      // getRange returns an iterator, it does not copy the data.
-      s = new String.fromCharCodes(data.getRange(start, end));
+      s = new String.fromCharCodes(data, start, end);
     } else {
-      // TODO(lry): this is measurably slow. Also sublist is copied eagerly.
-      var bytes = data.sublist(start, end);
-      s = UTF8.decode(bytes);
+      s = UTF8.decoder.convert(data, start, end);
     }
     return canonicalizedString(s, true);
   }

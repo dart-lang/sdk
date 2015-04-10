@@ -54,6 +54,11 @@ bool FlowGraphCompiler::SupportsSinCos() {
 }
 
 
+bool FlowGraphCompiler::SupportsHardwareDivision() {
+  return true;
+}
+
+
 void FlowGraphCompiler::EnterIntrinsicMode() {
   ASSERT(!intrinsic_mode());
   intrinsic_mode_ = true;
@@ -68,12 +73,12 @@ void FlowGraphCompiler::ExitIntrinsicMode() {
 }
 
 
-RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
+RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                  DeoptInfoBuilder* builder,
                                                  const Array& deopt_table) {
   if (deopt_env_ == NULL) {
     ++builder->current_info_number_;
-    return DeoptInfo::null();
+    return TypedData::null();
   }
 
   intptr_t stack_height = compiler->StackSize();
@@ -90,12 +95,14 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   builder->MarkFrameStart();
 
   // Current PP, FP, and PC.
-  builder->AddPp(current->code(), slot_ix++);
+  builder->AddPp(Function::Handle(current->code().function()), slot_ix++);
   builder->AddCallerFp(slot_ix++);
-  builder->AddReturnAddress(current->code(), deopt_id(), slot_ix++);
+  builder->AddReturnAddress(Function::Handle(current->code().function()),
+                            deopt_id(),
+                            slot_ix++);
 
   // Callee's PC marker is not used anymore. Pass Code::null() to set to 0.
-  builder->AddPcMarker(Code::Handle(), slot_ix++);
+  builder->AddPcMarker(Function::Handle(), slot_ix++);
 
   // Emit all values that are needed for materialization as a part of the
   // expression stack for the bottom-most frame. This guarantees that GC
@@ -113,17 +120,18 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   current = current->outer();
   while (current != NULL) {
     // PP, FP, and PC.
-    builder->AddPp(current->code(), slot_ix++);
+    builder->AddPp(Function::Handle(current->code().function()), slot_ix++);
     builder->AddCallerFp(slot_ix++);
 
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
-    builder->AddReturnAddress(current->code(),
+    builder->AddReturnAddress(Function::Handle(current->code().function()),
                               Isolate::ToDeoptAfter(current->deopt_id()),
                               slot_ix++);
 
     // PC marker.
-    builder->AddPcMarker(previous->code(), slot_ix++);
+    builder->AddPcMarker(Function::Handle(previous->code().function()),
+                         slot_ix++);
 
     // The values of outgoing arguments can be changed from the inlined call so
     // we must read them from the previous environment.
@@ -155,7 +163,8 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   builder->AddCallerPc(slot_ix++);
 
   // PC marker.
-  builder->AddPcMarker(previous->code(), slot_ix++);
+  builder->AddPcMarker(Function::Handle(previous->code().function()),
+                       slot_ix++);
 
   // For the outermost environment, set the incoming arguments.
   for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
@@ -194,7 +203,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
                                            Label* is_true,
                                            Label* is_false) {
-  __ TraceSimMsg("BoolToJump");
+  __ Comment("BoolToJump");
   Label fall_through;
   __ BranchEqual(bool_register, Object::null_object(), &fall_through);
   __ BranchEqual(bool_register, Bool::True(), is_true);
@@ -212,7 +221,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
     Register temp_reg,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
-  __ TraceSimMsg("CallSubtypeTestStub");
+  __ Comment("CallSubtypeTestStub");
   ASSERT(instance_reg == A0);
   ASSERT(temp_reg == kNoRegister);  // Unused on MIPS.
   const SubtypeTestCache& type_test_cache =
@@ -321,7 +330,7 @@ void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
                                       const GrowableArray<intptr_t>& class_ids,
                                       Label* is_equal_lbl,
                                       Label* is_not_equal_lbl) {
-  __ TraceSimMsg("CheckClassIds");
+  __ Comment("CheckClassIds");
   for (intptr_t i = 0; i < class_ids.length(); i++) {
     __ BranchEqual(class_id_reg, Immediate(class_ids[i]), is_equal_lbl);
   }
@@ -339,7 +348,6 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
-  __ TraceSimMsg("InstantiatedTypeNoArgumentsTest");
   __ Comment("InstantiatedTypeNoArgumentsTest");
   ASSERT(type.IsInstantiated());
   const Class& type_class = Class::Handle(type.type_class());
@@ -404,7 +412,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
     const Class& type_class,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
-  __ TraceSimMsg("Subtype1TestCacheLookup");
   __ Comment("Subtype1TestCacheLookup");
   const Register kInstanceReg = A0;
   __ LoadClass(T0, kInstanceReg);
@@ -432,7 +439,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
-  __ TraceSimMsg("UninstantiatedTypeTest");
   __ Comment("UninstantiatedTypeTest");
   ASSERT(!type.IsInstantiated());
   // Skip check if destination is a dynamic type.
@@ -512,7 +518,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
-  __ TraceSimMsg("InlineInstanceof");
   __ Comment("InlineInstanceof");
   if (type.IsVoidType()) {
     // A non-null value is returned from a void function, which will result in a
@@ -656,7 +661,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name,
                                                  LocationSummary* locs) {
-  __ TraceSimMsg("AssertAssignable");
+  __ Comment("AssertAssignable");
   ASSERT(token_pos >= 0);
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
@@ -749,7 +754,6 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
 // Input parameters:
 //   S4: arguments descriptor array.
 void FlowGraphCompiler::CopyParameters() {
-  __ TraceSimMsg("CopyParameters");
   __ Comment("Copy parameters");
   const Function& function = parsed_function().function();
   LocalScope* scope = parsed_function().node_sequence()->scope();
@@ -1078,7 +1082,6 @@ void FlowGraphCompiler::CompileGraph() {
         function.IsClosureFunction() && !flow_graph().IsCompiledForOsr();
 #endif
     if (check_arguments) {
-      __ TraceSimMsg("Check argument count");
       __ Comment("Check argument count");
       // Check that exactly num_fixed arguments are passed in.
       Label correct_num_arguments, wrong_num_arguments;
@@ -1115,7 +1118,6 @@ void FlowGraphCompiler::CompileGraph() {
   // null.
   if (!is_optimizing()) {
     ASSERT(num_locals > 0);  // There is always at least context_var.
-    __ TraceSimMsg("Initialize spill slots");
     __ Comment("Initialize spill slots");
     const intptr_t slot_base = parsed_function().first_stack_local_index();
     const intptr_t context_index =
@@ -1245,7 +1247,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
   // top-level function (parsed_function().function()) which could be
   // reoptimized and which counter needs to be incremented.
   // Pass the function explicitly, it is used in IC stub.
-  __ TraceSimMsg("OptimizedInstanceCall");
+  __ Comment("OptimizedInstanceCall");
   __ LoadObject(T0, parsed_function().function());
   __ LoadObject(S5, ic_data);
   GenerateDartCall(deopt_id,
@@ -1264,18 +1266,15 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                          intptr_t token_pos,
                                          LocationSummary* locs) {
   ASSERT(Array::Handle(ic_data.arguments_descriptor()).Length() > 0);
-  __ TraceSimMsg("InstanceCall");
+  __ Comment("InstanceCall");
   __ LoadObject(S5, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
                    target_label,
                    RawPcDescriptors::kIcCall,
                    locs);
-  __ TraceSimMsg("InstanceCall return");
+  __ Comment("InstanceCall return");
   __ Drop(argument_count);
-#if defined(DEBUG)
-  __ LoadImmediate(S4, kInvalidObjectPointer);
-#endif
 }
 
 
@@ -1292,7 +1291,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
-  __ TraceSimMsg("MegamorphicInstanceCall");
+  __ Comment("MegamorphicInstanceCall");
   __ lw(T0, Address(SP, (argument_count - 1) * kWordSize));
   __ LoadTaggedClassIdMayBeSmi(T0, T0);
 
@@ -1359,10 +1358,6 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
                    &target_label,
                    RawPcDescriptors::kUnoptStaticCall,
                    locs);
-#if defined(DEBUG)
-  __ LoadImmediate(S4, kInvalidObjectPointer);
-  __ LoadImmediate(S5, kInvalidObjectPointer);
-#endif
   __ Drop(argument_count);
 }
 
@@ -1375,7 +1370,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     intptr_t token_pos,
     LocationSummary* locs) {
   StubCode* stub_code = isolate()->stub_code();
-  __ TraceSimMsg("StaticCall");
+  __ Comment("StaticCall");
   __ LoadObject(S4, arguments_descriptor);
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
@@ -1394,7 +1389,7 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     const Object& obj,
     bool needs_number_check,
     intptr_t token_pos) {
-  __ TraceSimMsg("EqualityRegConstCompare");
+  __ Comment("EqualityRegConstCompare");
   ASSERT(!needs_number_check ||
          (!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint()));
   if (needs_number_check) {
@@ -1416,7 +1411,7 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
                            Isolate::kNoDeoptId,
                            token_pos);
     }
-    __ TraceSimMsg("EqualityRegConstCompare return");
+    __ Comment("EqualityRegConstCompare return");
     // Stub returns result in CMPRES1 (if it is 0, then reg and obj are equal).
     __ lw(reg, Address(SP, 1 * kWordSize));  // Restore 'reg'.
     __ addiu(SP, SP, Immediate(2 * kWordSize));  // Discard constant.
@@ -1433,7 +1428,6 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                                                        Register right,
                                                        bool needs_number_check,
                                                        intptr_t token_pos) {
-  __ TraceSimMsg("EqualityRegRegCompare");
   __ Comment("EqualityRegRegCompare");
   if (needs_number_check) {
     StubCode* stub_code = isolate()->stub_code();
@@ -1452,14 +1446,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                            Isolate::kNoDeoptId,
                            token_pos);
     }
-#if defined(DEBUG)
-    if (!is_optimizing()) {
-      // Do this *after* adding the pc descriptor!
-      __ LoadImmediate(S4, kInvalidObjectPointer);
-      __ LoadImmediate(S5, kInvalidObjectPointer);
-    }
-#endif
-    __ TraceSimMsg("EqualityRegRegCompare return");
+    __ Comment("EqualityRegRegCompare return");
     // Stub returns result in CMPRES1 (if it is 0, then left and right are
     // equal).
     __ lw(right, Address(SP, 0 * kWordSize));
@@ -1480,7 +1467,7 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   ClobberDeadTempRegisters(locs);
 #endif
 
-  __ TraceSimMsg("SaveLiveRegisters");
+  __ Comment("SaveLiveRegisters");
   // TODO(vegorov): consider saving only caller save (volatile) registers.
   const intptr_t fpu_regs_count = locs->live_registers()->FpuRegisterCount();
   if (fpu_regs_count > 0) {
@@ -1522,7 +1509,7 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
   // General purpose registers have the highest register number at the
   // lowest address.
-  __ TraceSimMsg("RestoreLiveRegisters");
+  __ Comment("RestoreLiveRegisters");
   const intptr_t cpu_registers = locs->live_registers()->cpu_registers();
   ASSERT((cpu_registers & ~kAllCpuRegistersList) == 0);
   const int register_count = Utils::CountOneBits(cpu_registers);
@@ -1592,7 +1579,6 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                                  argument_names));
   StubCode* stub_code = isolate()->stub_code();
 
-  __ TraceSimMsg("EmitTestAndCall");
   __ Comment("EmitTestAndCall");
   __ LoadObject(S4, arguments_descriptor);
   for (intptr_t i = 0; i < len; i++) {
@@ -1630,7 +1616,7 @@ void ParallelMoveResolver::EmitMove(int index) {
   MoveOperands* move = moves_[index];
   const Location source = move->src();
   const Location destination = move->dest();
-  __ TraceSimMsg("ParallelMoveResolver::EmitMove");
+  __ Comment("ParallelMoveResolver::EmitMove");
 
   if (source.IsRegister()) {
     if (destination.IsRegister()) {
@@ -1785,14 +1771,14 @@ void ParallelMoveResolver::EmitSwap(int index) {
 
 void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
                                               const Address& src) {
-  __ TraceSimMsg("ParallelMoveResolver::MoveMemoryToMemory");
+  __ Comment("ParallelMoveResolver::MoveMemoryToMemory");
   __ lw(TMP, src);
   __ sw(TMP, dst);
 }
 
 
 void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
-  __ TraceSimMsg("ParallelMoveResolver::StoreObject");
+  __ Comment("ParallelMoveResolver::StoreObject");
   __ LoadObject(TMP, obj);
   __ sw(TMP, dst);
 }
@@ -1836,26 +1822,26 @@ void ParallelMoveResolver::Exchange(Register base_reg1,
 
 
 void ParallelMoveResolver::SpillScratch(Register reg) {
-  __ TraceSimMsg("ParallelMoveResolver::SpillScratch");
+  __ Comment("ParallelMoveResolver::SpillScratch");
   __ Push(reg);
 }
 
 
 void ParallelMoveResolver::RestoreScratch(Register reg) {
-  __ TraceSimMsg("ParallelMoveResolver::RestoreScratch");
+  __ Comment("ParallelMoveResolver::RestoreScratch");
   __ Pop(reg);
 }
 
 
 void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
-  __ TraceSimMsg("ParallelMoveResolver::SpillFpuScratch");
+  __ Comment("ParallelMoveResolver::SpillFpuScratch");
   __ AddImmediate(SP, -kDoubleSize);
   __ StoreDToOffset(reg, SP, 0);
 }
 
 
 void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
-  __ TraceSimMsg("ParallelMoveResolver::RestoreFpuScratch");
+  __ Comment("ParallelMoveResolver::RestoreFpuScratch");
   __ LoadDFromOffset(reg, SP, 0);
   __ AddImmediate(SP, kDoubleSize);
 }

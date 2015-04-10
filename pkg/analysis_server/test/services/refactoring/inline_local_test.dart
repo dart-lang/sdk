@@ -257,6 +257,29 @@ main() {
 ''');
   }
 
+  test_OK_intoStringInterpolation_string_multiLineIntoMulti_leadingSpaces() {
+    indexTestUnit(r"""
+main() {
+  String a = '''\ \
+a
+a''';
+  String b = '''
+$a
+bbb''';
+}
+""");
+    _createRefactoring('a =');
+    // validate change
+    return assertSuccessfulRefactoring(r"""
+main() {
+  String b = '''
+a
+a
+bbb''';
+}
+""");
+  }
+
   test_OK_intoStringInterpolation_string_multiLineIntoMulti_unixEOL() {
     indexTestUnit(r"""
 main() {
@@ -507,6 +530,42 @@ main() {
 class A {}
 main() {
   var list = [new A()];
+}
+''');
+  }
+
+  test_OK_parenthesis_intoIndexExpression_index() {
+    indexTestUnit('''
+main() {
+  var items = [];
+  var test = 1 + 2;
+  items[test] * 5;
+}
+''');
+    _createRefactoring('test =');
+    // validate change
+    return assertSuccessfulRefactoring('''
+main() {
+  var items = [];
+  items[1 + 2] * 5;
+}
+''');
+  }
+
+  test_OK_parenthesis_intoParenthesizedExpression() {
+    indexTestUnit('''
+f(m, x, y) {
+  int test = x as int;
+  m[test] = y;
+  return m[test];
+}
+''');
+    _createRefactoring('test =');
+    // validate change
+    return assertSuccessfulRefactoring('''
+f(m, x, y) {
+  m[x as int] = y;
+  return m[x as int];
 }
 ''');
   }

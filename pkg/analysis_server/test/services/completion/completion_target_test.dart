@@ -138,6 +138,30 @@ class CompletionTargetTest extends AbstractContextTest {
     assertTarget('}', '{}');
   }
 
+  test_FormalParameter_partialType() {
+    // SimpleIdentifier  PrefixedIdentifier  TypeName
+    addTestSource('foo(b.^ f) { }');
+    assertTarget('f', 'b.f');
+  }
+
+  test_FormalParameter_partialType2() {
+    // SimpleIdentifier  PrefixedIdentifier  TypeName
+    addTestSource('foo(b.z^ f) { }');
+    assertTarget('z', 'b.z');
+  }
+
+  test_FormalParameter_partialType3() {
+    // SimpleIdentifier  PrefixedIdentifier  TypeName
+    addTestSource('foo(b.^) { }');
+    assertTarget('', 'b.');
+  }
+
+  test_FormalParameterList() {
+    // Token  FormalParameterList  FunctionExpression
+    addTestSource('foo(^) { }');
+    assertTarget(')', '()');
+  }
+
   test_FunctionDeclaration_inLineComment() {
     // Comment  CompilationUnit
     addTestSource('''

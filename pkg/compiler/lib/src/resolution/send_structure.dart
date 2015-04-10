@@ -7,8 +7,10 @@ library dart2js.send_structure;
 import 'access_semantics.dart';
 import 'operators.dart';
 import 'semantic_visitor.dart';
-import '../tree/tree.dart';
 import '../dart_types.dart';
+import '../constants/expressions.dart';
+import '../elements/elements.dart';
+import '../tree/tree.dart';
 import '../universe/universe.dart';
 import '../util/util.dart';
 
@@ -31,6 +33,8 @@ class AssertStructure<R, A> implements SendStructure<R, A> {
         node.arguments.single,
         arg);
   }
+
+  String toString() => 'assert';
 }
 
 /// The structure for a [Send] of the form an `assert` with less or more than
@@ -44,6 +48,8 @@ class InvalidAssertStructure<R, A> implements SendStructure<R, A> {
         node.argumentsNode,
         arg);
   }
+
+  String toString() => 'invalid assert';
 }
 
 /// The structure for a [Send] of the form `a && b`.
@@ -57,6 +63,8 @@ class LogicalAndStructure<R, A> implements SendStructure<R, A> {
         node.arguments.single,
         arg);
   }
+
+  String toString() => '&&';
 }
 
 /// The structure for a [Send] of the form `a || b`.
@@ -70,6 +78,8 @@ class LogicalOrStructure<R, A> implements SendStructure<R, A> {
         node.arguments.single,
         arg);
   }
+
+  String toString() => '||';
 }
 
 /// The structure for a [Send] of the form `a is T`.
@@ -86,6 +96,8 @@ class IsStructure<R, A> implements SendStructure<R, A> {
         type,
         arg);
   }
+
+  String toString() => 'is $type';
 }
 
 /// The structure for a [Send] of the form `a is! T`.
@@ -102,6 +114,8 @@ class IsNotStructure<R, A> implements SendStructure<R, A> {
         type,
         arg);
   }
+
+  String toString() => 'is! $type';
 }
 
 /// The structure for a [Send] of the form `a as T`.
@@ -118,6 +132,8 @@ class AsStructure<R, A> implements SendStructure<R, A> {
         type,
         arg);
   }
+
+  String toString() => 'as $type';
 }
 
 /// The structure for a [Send] that is an invocation.
@@ -317,6 +333,8 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
     }
     throw new SpannableAssertionFailure(node, "Invalid invoke: ${semantics}");
   }
+
+  String toString() => 'invoke($selector,$semantics)';
 }
 
 /// The structure for a [Send] that is a read access.
@@ -459,6 +477,8 @@ class GetStructure<R, A> implements SendStructure<R, A> {
     }
     throw new SpannableAssertionFailure(node, "Invalid getter: ${semantics}");
   }
+
+  String toString() => 'get($selector,$semantics)';
 }
 
 /// The structure for a [Send] that is an assignment.
@@ -621,6 +641,8 @@ class SetStructure<R, A> implements SendStructure<R, A> {
     }
     throw new SpannableAssertionFailure(node, "Invalid setter: ${semantics}");
   }
+
+  String toString() => 'set($selector,$semantics)';
 }
 
 /// The structure for a [Send] that is a negation, i.e. of the form `!e`.
@@ -646,6 +668,8 @@ class NotStructure<R, A> implements SendStructure<R, A> {
     }
     throw new SpannableAssertionFailure(node, "Invalid setter: ${semantics}");
   }
+
+  String toString() => 'not($selector,$semantics)';
 }
 
 /// The structure for a [Send] that is an invocation of a user definable unary
@@ -689,6 +713,8 @@ class UnaryStructure<R, A> implements SendStructure<R, A> {
     }
     throw new SpannableAssertionFailure(node, "Invalid setter: ${semantics}");
   }
+
+  String toString() => 'unary($operator,$semantics)';
 }
 
 /// The structure for a [Send] that is an invocation of a undefined unary
@@ -704,6 +730,8 @@ class InvalidUnaryStructure<R, A> implements SendStructure<R, A> {
         node.receiver,
         arg);
   }
+
+  String toString() => 'invalid unary';
 }
 
 /// The structure for a [Send] that is an index expression, i.e. of the form
@@ -778,6 +806,8 @@ class EqualsStructure<R, A> implements SendStructure<R, A> {
     }
     throw new SpannableAssertionFailure(node, "Invalid equals: ${semantics}");
   }
+
+  String toString() => '==($semantics)';
 }
 
 /// The structure for a [Send] that is a not-equals test, i.e. of the form
@@ -813,6 +843,8 @@ class NotEqualsStructure<R, A> implements SendStructure<R, A> {
     throw new SpannableAssertionFailure(
         node, "Invalid not equals: ${semantics}");
   }
+
+  String toString() => '!=($semantics)';
 }
 
 /// The structure for a [Send] that is an invocation of a user-definable binary
@@ -860,6 +892,8 @@ class BinaryStructure<R, A> implements SendStructure<R, A> {
     throw new SpannableAssertionFailure(
         node, "Invalid binary: ${semantics}");
   }
+
+  String toString() => 'binary($operator,$semantics)';
 }
 
 /// The structure for a [Send] that is an invocation of a undefined binary
@@ -876,6 +910,8 @@ class InvalidBinaryStructure<R, A> implements SendStructure<R, A> {
         node.arguments.single,
         arg);
   }
+
+  String toString() => 'invalid binary';
 }
 
 /// The structure for a [Send] that is of the form `a[b] = c`.
@@ -919,6 +955,8 @@ class IndexSetStructure<R, A> implements SendStructure<R, A> {
     throw new SpannableAssertionFailure(
         node, "Invalid index set: ${semantics}");
   }
+
+  String toString() => '[]=($semantics)';
 }
 
 /// The structure for a [Send] that is an prefix operation on an index
@@ -1275,6 +1313,8 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
     throw new SpannableAssertionFailure(node,
         "Invalid compound assigment: ${semantics}");
   }
+
+  String toString() => 'compound($operator,$semantics)';
 }
 
 /// The structure for a [Send] that is a compound assignment on the index
@@ -1338,6 +1378,8 @@ class CompoundIndexSetStructure<R, A> implements SendStructure<R, A> {
     throw new SpannableAssertionFailure(
         node, "Invalid compound index set: ${semantics}");
   }
+
+  String toString() => 'compound []=($operator,$semantics)';
 }
 
 /// The structure for a [Send] that is a prefix operations. For instance
@@ -1550,6 +1592,8 @@ class PrefixStructure<R, A> implements SendStructure<R, A> {
     throw new SpannableAssertionFailure(node,
         "Invalid compound assigment: ${semantics}");
   }
+
+  String toString() => 'prefix($operator,$semantics)';
 }
 
 /// The structure for a [Send] that is a postfix operations. For instance
@@ -1761,6 +1805,72 @@ class PostfixStructure<R, A> implements SendStructure<R, A> {
     }
     throw new SpannableAssertionFailure(node,
         "Invalid compound assigment: ${semantics}");
+  }
+
+  String toString() => 'postfix($operator,$semantics)';
+}
+
+/// The structure for a [NewExpression] of a new invocation.
+abstract class NewStructure<R, A> {
+  /// Calls the matching visit method on [visitor] with [node] and [arg].
+  R dispatch(SemanticSendVisitor<R, A> visitor, NewExpression node, A arg);
+}
+
+/// The structure for a [NewExpression] of a new invocation. For instance
+/// `new C()`.
+class NewInvokeStructure<R, A> extends NewStructure<R, A> {
+  final ConstructorAccessSemantics semantics;
+  final Selector selector;
+
+  NewInvokeStructure(this.semantics, this.selector);
+
+  R dispatch(SemanticSendVisitor<R, A> visitor, NewExpression node, A arg) {
+    switch (semantics.kind) {
+      case ConstructorAccessKind.GENERATIVE:
+        return visitor.visitGenerativeConstructorInvoke(
+            node, semantics.element, semantics.type,
+            node.send.argumentsNode, selector, arg);
+      case ConstructorAccessKind.REDIRECTING_GENERATIVE:
+        return visitor.visitRedirectingGenerativeConstructorInvoke(
+            node, semantics.element, semantics.type,
+            node.send.argumentsNode, selector, arg);
+      case ConstructorAccessKind.FACTORY:
+        return visitor.visitFactoryConstructorInvoke(
+            node, semantics.element, semantics.type,
+            node.send.argumentsNode, selector, arg);
+      case ConstructorAccessKind.REDIRECTING_FACTORY:
+        return visitor.visitRedirectingFactoryConstructorInvoke(
+            node, semantics.element, semantics.type,
+            semantics.effectiveTargetSemantics.element,
+            semantics.effectiveTargetSemantics.type,
+            node.send.argumentsNode, selector, arg);
+      case ConstructorAccessKind.ABSTRACT:
+        return visitor.errorAbstractClassConstructorInvoke(
+            node, semantics.element, semantics.type,
+            node.send.argumentsNode, selector, arg);
+      case ConstructorAccessKind.ERRONEOUS:
+        return visitor.errorUnresolvedConstructorInvoke(
+            node, semantics.element, semantics.type,
+            node.send.argumentsNode, selector, arg);
+      case ConstructorAccessKind.ERRONEOUS_REDIRECTING_FACTORY:
+        return visitor.errorUnresolvedRedirectingFactoryConstructorInvoke(
+            node, semantics.element, semantics.type,
+            node.send.argumentsNode, selector, arg);
+    }
+    throw new SpannableAssertionFailure(node,
+        "Unhandled constructor invocation kind: ${semantics.kind}");
+  }
+}
+
+/// The structure for a [NewExpression] of a constant invocation. For instance
+/// `const C()`.
+class ConstInvokeStructure<R, A> extends NewStructure<R, A> {
+  final ConstructedConstantExpression constant;
+
+  ConstInvokeStructure(this.constant);
+
+  R dispatch(SemanticSendVisitor<R, A> visitor, NewExpression node, A arg) {
+    return visitor.visitConstConstructorInvoke(node, constant, arg);
   }
 }
 

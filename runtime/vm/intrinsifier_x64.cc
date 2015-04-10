@@ -725,6 +725,84 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Bigint_lsh(Assembler* assembler) {
+  // static void _lsh(Uint32List x_digits, int x_used, int n,
+  //                  Uint32List r_digits)
+
+  __ movq(RDI, Address(RSP, 4 * kWordSize));  // x_digits
+  __ movq(R8, Address(RSP, 3 * kWordSize));  // x_used is Smi
+  __ subq(R8, Immediate(2));  // x_used > 0, Smi. R8 = x_used - 1, round up.
+  __ sarq(R8, Immediate(2));  // R8 + 1 = number of digit pairs to read.
+  __ movq(RCX, Address(RSP, 2 * kWordSize));  // n is Smi
+  __ SmiUntag(RCX);
+  __ movq(RBX, Address(RSP, 1 * kWordSize));  // r_digits
+  __ movq(RSI, RCX);
+  __ sarq(RSI, Immediate(6));  // RSI = n ~/ (2*_DIGIT_BITS).
+  __ leaq(RBX, FieldAddress(RBX, RSI, TIMES_8, TypedData::data_offset()));
+  __ xorq(RAX, RAX);  // RAX = 0.
+  __ movq(RDX, FieldAddress(RDI, R8, TIMES_8, TypedData::data_offset()));
+  __ shldq(RAX, RDX, RCX);
+  __ movq(Address(RBX, R8, TIMES_8, 2 * Bigint::kBytesPerDigit), RAX);
+  Label last;
+  __ cmpq(R8, Immediate(0));
+  __ j(EQUAL, &last, Assembler::kNearJump);
+  Label loop;
+  __ Bind(&loop);
+  __ movq(RAX, RDX);
+  __ movq(RDX,
+          FieldAddress(RDI, R8, TIMES_8,
+                       TypedData::data_offset() - 2 * Bigint::kBytesPerDigit));
+  __ shldq(RAX, RDX, RCX);
+  __ movq(Address(RBX, R8, TIMES_8, 0), RAX);
+  __ decq(R8);
+  __ j(NOT_ZERO, &loop, Assembler::kNearJump);
+  __ Bind(&last);
+  __ xorq(RAX, RAX);  // RAX = 0.
+  __ shldq(RDX, RAX, RCX);
+  __ movq(Address(RBX, 0), RDX);
+  // Returning Object::null() is not required, since this method is private.
+  __ ret();
+}
+
+
+void Intrinsifier::Bigint_rsh(Assembler* assembler) {
+  // static void _rsh(Uint32List x_digits, int x_used, int n,
+  //                  Uint32List r_digits)
+
+  __ movq(RDI, Address(RSP, 4 * kWordSize));  // x_digits
+  __ movq(R8, Address(RSP, 3 * kWordSize));  // x_used is Smi
+  __ subq(R8, Immediate(2));  // x_used > 0, Smi. R8 = x_used - 1, round up.
+  __ sarq(R8, Immediate(2));
+  __ movq(RCX, Address(RSP, 2 * kWordSize));  // n is Smi
+  __ SmiUntag(RCX);
+  __ movq(RBX, Address(RSP, 1 * kWordSize));  // r_digits
+  __ movq(RSI, RCX);
+  __ sarq(RSI, Immediate(6));  // RSI = n ~/ (2*_DIGIT_BITS).
+  __ leaq(RDI, FieldAddress(RDI, RSI, TIMES_8, TypedData::data_offset()));
+  __ movq(RDX, Address(RDI, 0));
+  __ subq(R8, RSI);  // R8 + 1 = number of digit pairs to read.
+  Label last;
+  __ cmpq(R8, Immediate(0));
+  __ j(EQUAL, &last, Assembler::kNearJump);
+  __ xorq(R9, R9);  // R9 = 0.
+  Label loop;
+  __ Bind(&loop);
+  __ movq(RAX, RDX);
+  __ movq(RDX, Address(RDI, R9, TIMES_8, 2 * Bigint::kBytesPerDigit));
+  __ shrdq(RAX, RDX, RCX);
+  __ movq(FieldAddress(RBX, R9, TIMES_8, TypedData::data_offset()), RAX);
+  __ incq(R9);
+  __ cmpq(R9, R8);
+  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+  __ Bind(&last);
+  __ xorq(RAX, RAX);  // RAX = 0.
+  __ shrdq(RDX, RAX, RCX);
+  __ movq(FieldAddress(RBX, R8, TIMES_8, TypedData::data_offset()), RDX);
+  // Returning Object::null() is not required, since this method is private.
+  __ ret();
+}
+
+
 void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   // static void _absAdd(Uint32List digits, int used,
   //                     Uint32List a_digits, int a_used,
@@ -1836,9 +1914,6 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
 
 
 void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
-  if (FLAG_use_jscre) {
-    return;
-  }
   static const intptr_t kRegExpParamOffset = 3 * kWordSize;
   static const intptr_t kStringParamOffset = 2 * kWordSize;
   // start_index smi is located at offset 1.

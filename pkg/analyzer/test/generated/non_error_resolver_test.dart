@@ -6,6 +6,7 @@ library engine.non_error_resolver_test;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
@@ -928,6 +929,15 @@ class A {
   static x() {}
   static set x(int p) {}
 }''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_const_dynamic() {
+    Source source = addSource('''
+const Type d = dynamic;
+''');
     resolve(source);
     assertNoErrors(source);
     verify([source]);
@@ -2293,6 +2303,36 @@ f({String x: '0'}) {
     Source source = addSource(r'''
 f([String x = '0']) {
 }''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_invalidAssignment_ifNullAssignment_compatibleType() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    Source source = addSource('''
+void f(int i) {
+  num n;
+  n ??= i;
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_invalidAssignment_ifNullAssignment_sameType() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    Source source = addSource('''
+void f(int i) {
+  int j;
+  j ??= i;
+}
+''');
     resolve(source);
     assertNoErrors(source);
     verify([source]);
@@ -4893,6 +4933,21 @@ class Bar extends Foo {
     verify([source]);
   }
 
+  void test_undefinedGetter_typeLiteral_conditionalAccess() {
+    // When applied to a type literal, the conditional access operator '?.' can
+    // be used to access instance getters of Type.
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    Source source = addSource('''
+class A {}
+f() => A?.hashCode;
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_undefinedGetter_typeSubstitution() {
     Source source = addSource(r'''
 class A<E> {
@@ -4966,6 +5021,21 @@ main() {
     resolve(source);
     assertNoErrors(source);
     // A call to verify(source) fails as '(() => null)()' isn't resolved.
+  }
+
+  void test_undefinedMethod_typeLiteral_conditionalAccess() {
+    // When applied to a type literal, the conditional access operator '?.' can
+    // be used to access instance methods of Type.
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    Source source = addSource('''
+class A {}
+f() => A?.toString();
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
   }
 
   void test_undefinedOperator_index() {

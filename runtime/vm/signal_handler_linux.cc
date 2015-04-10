@@ -129,9 +129,19 @@ void SignalHandler::Install(SignalAction action) {
   act.sa_sigaction = action;
   sigemptyset(&act.sa_mask);
   act.sa_flags = SA_RESTART | SA_SIGINFO;
-  // TODO(johnmccutchan): Do we care about restoring the signal handler?
-  struct sigaction old_act;
-  int r = sigaction(SIGPROF, &act, &old_act);
+  int r = sigaction(SIGPROF, &act, NULL);
+  ASSERT(r == 0);
+}
+
+
+void SignalHandler::Remove() {
+  // Ignore future SIGPROF signals because by default SIGPROF will terminate
+  // the process and we may have some signals in flight.
+  struct sigaction act;
+  act.sa_handler = SIG_IGN;
+  sigemptyset(&act.sa_mask);
+  act.sa_flags = 0;
+  int r = sigaction(SIGPROF, &act, NULL);
   ASSERT(r == 0);
 }
 

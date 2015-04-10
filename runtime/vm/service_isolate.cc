@@ -149,6 +149,7 @@ const char* ServiceIsolate::kName = "vm-service";
 Isolate* ServiceIsolate::isolate_ = NULL;
 Dart_Port ServiceIsolate::port_ = ILLEGAL_PORT;
 Dart_Port ServiceIsolate::load_port_ = ILLEGAL_PORT;
+Dart_Port ServiceIsolate::origin_ = ILLEGAL_PORT;
 Dart_IsolateCreateCallback ServiceIsolate::create_callback_ = NULL;
 uint8_t* ServiceIsolate::exit_message_ = NULL;
 intptr_t ServiceIsolate::exit_message_length_ = 0;
@@ -180,9 +181,9 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
 
   virtual void VisitIsolate(Isolate* isolate) {
     ASSERT(ServiceIsolate::IsServiceIsolate(Isolate::Current()));
-    if (ServiceIsolate::IsServiceIsolate(isolate) ||
+    if (ServiceIsolate::IsServiceIsolateDescendant(isolate) ||
         (isolate == Dart::vm_isolate())) {
-      // We do not register the service or vm isolate.
+      // We do not register the service (and descendants) or the vm-isolate.
       return;
     }
     // Setup arguments for call.
@@ -250,16 +251,6 @@ class ServiceIsolateNatives : public AllStatic {
     Service::HandleRootMessage(message);
   }
 
-  static void SetEventMask(Dart_NativeArguments args) {
-    NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Isolate* isolate = arguments->isolate();
-    StackZone stack_zone(isolate);
-    Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
-    HANDLESCOPE(isolate);
-    GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(0));
-    Service::SetEventMask(mask.AsTruncatedUint32Value());
-  }
-
   static void OnStart(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
     Isolate* isolate = arguments->isolate();
@@ -320,8 +311,6 @@ static ServiceNativeEntry _ServiceNativeEntries[] = {
     ServiceIsolateNatives::SendIsolateServiceMessage},
   {"VMService_SendRootServiceMessage", 1,
     ServiceIsolateNatives::SendRootServiceMessage},
-  {"VMService_SetEventMask", 1,
-    ServiceIsolateNatives::SetEventMask},
   {"VMService_OnStart", 0,
     ServiceIsolateNatives::OnStart },
   {"VMService_OnExit", 0,
@@ -377,6 +366,12 @@ bool ServiceIsolate::IsServiceIsolate(Isolate* isolate) {
 }
 
 
+bool ServiceIsolate::IsServiceIsolateDescendant(Isolate* isolate) {
+  MonitorLocker ml(monitor_);
+  return isolate->origin_id() == origin_;
+}
+
+
 Dart_Port ServiceIsolate::Port() {
   MonitorLocker ml(monitor_);
   return port_;
@@ -405,7 +400,7 @@ bool ServiceIsolate::SendIsolateStartupMessage() {
     return false;
   }
   Isolate* isolate = Isolate::Current();
-  if (IsServiceIsolate(isolate)) {
+  if (IsServiceIsolateDescendant(isolate)) {
     return false;
   }
   ASSERT(isolate != NULL);
@@ -436,7 +431,7 @@ bool ServiceIsolate::SendIsolateShutdownMessage() {
     return false;
   }
   Isolate* isolate = Isolate::Current();
-  if (IsServiceIsolate(isolate)) {
+  if (IsServiceIsolateDescendant(isolate)) {
     return false;
   }
   ASSERT(isolate != NULL);
@@ -490,6 +485,9 @@ void ServiceIsolate::SetServiceIsolate(Isolate* isolate) {
   isolate_ = isolate;
   if (isolate_ != NULL) {
     isolate_->is_service_isolate_ = true;
+    origin_ = isolate_->origin_id();
+  } else {
+    origin_ = ILLEGAL_PORT;
   }
 }
 
@@ -611,7 +609,7 @@ class RunServiceTask : public ThreadPool::Task {
       return;
     }
 
-    Isolate::SetCurrent(NULL);
+    Thread::ExitIsolate();
 
     ServiceIsolate::ConstructExitMessageAndCache(isolate);
 

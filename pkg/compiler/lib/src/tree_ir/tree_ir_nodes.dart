@@ -6,12 +6,11 @@ library tree_ir_nodes;
 
 import '../constants/expressions.dart';
 import '../constants/values.dart' as values;
-import '../dart_types.dart' show DartType, GenericType, TypeVariableType;
+import '../dart_types.dart' show DartType, GenericType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
 import '../universe/universe.dart';
 import '../universe/universe.dart' show Selector;
-import 'optimization/optimization.dart';
 
 // The Tree language is the target of translation out of the CPS-based IR.
 //
@@ -222,11 +221,14 @@ class InvokeConstructor extends Expression implements Invoke {
   final values.ConstantValue constant;
 
   InvokeConstructor(this.type, this.target, this.selector, this.arguments,
-      [this.constant]);
+                    [this.constant]);
 
   ClassElement get targetClass => target.enclosingElement;
 
-  accept(ExpressionVisitor visitor) => visitor.visitInvokeConstructor(this);
+  accept(ExpressionVisitor visitor) {
+    return visitor.visitInvokeConstructor(this);
+  }
+
   accept1(ExpressionVisitor1 visitor, arg) {
     return visitor.visitInvokeConstructor(this, arg);
   }
@@ -597,9 +599,6 @@ class ExpressionStatement extends Statement {
   }
 }
 
-// TODO(kmillikin): Do we want this 'TryStatement'?  Other than
-// LabeledStatement and EmptyStatement, the statement class names are not
-// suffixed with 'Statement'.
 class Try extends Statement {
   Statement tryBody;
   List<Variable> catchParameters;
@@ -620,42 +619,49 @@ class Try extends Statement {
   }
 }
 
-abstract class ExecutableDefinition {
+abstract class RootNode extends Node {
   ExecutableElement get element;
-  Statement body;
+  List<Variable> get parameters;
 
-  applyPass(Pass pass);
+  /// True if there is no body for this root node.
+  ///
+  /// In some parts of the compiler, empty root nodes are used as placeholders
+  /// for abstract methods, external constructors, fields without initializers,
+  /// etc.
+  bool get isEmpty;
+
+  void forEachBody(void action(Statement node));
+  void replaceEachBody(Statement transform(Statement node));
+
+  accept(RootVisitor v);
+  accept1(RootVisitor1 v, arg);
 }
 
-class FieldDefinition extends Node implements ExecutableDefinition {
+class FieldDefinition extends RootNode implements DartSpecificNode {
   final FieldElement element;
   // The `body` of a field is its initializer.
   Statement body;
+  List<Variable> get parameters => const <Variable>[];
 
   FieldDefinition(this.element, this.body);
-  applyPass(Pass pass) => pass.rewriteFieldDefinition(this);
 
-  /// `true` if this field has no initializer.
-  ///
-  /// If `true` [body] is `null`.
-  ///
-  /// This is different from a initializer that is `null`. Consider this class:
-  ///
-  ///     class Class {
-  ///       final field;
-  ///       Class.a(this.field);
-  ///       Class.b() : this.field = null;
-  ///       Class.c();
-  ///     }
-  ///
-  /// If `field` had an initializer, possibly `null`, constructors `Class.a` and
-  /// `Class.b` would be invalid, and since `field` has no initializer
-  /// constructor `Class.c` is invalid. We therefore need to distinguish the two
-  /// cases.
-  bool get hasInitializer => body != null;
+  bool get isEmpty => body == null;
+
+  accept(RootVisitor v) => v.visitFieldDefinition(this);
+  accept1(RootVisitor1 v, arg) => v.visitFieldDefinition(this, arg);
+
+  void forEachBody(void action(Statement node)) {
+    if (isEmpty) return;
+    action(body);
+  }
+
+  void replaceEachBody(Statement transform(Statement node)) {
+    if (isEmpty) return;
+    body = transform(body);
+  }
 }
 
-class FunctionDefinition extends Node implements ExecutableDefinition {
+class FunctionDefinition extends RootNode {
   final FunctionElement element;
   final List<Variable> parameters;
   Statement body;
@@ -670,14 +676,29 @@ class FunctionDefinition extends Node implements ExecutableDefinition {
     }
   }
 
-  /// Returns `true` if this function is abstract.
-  ///
-  /// If `true` [body] is `null` and [localConstants] is empty.
-  bool get isAbstract => body == null;
-  applyPass(Pass pass) => pass.rewriteFunctionDefinition(this);
+  bool get isEmpty => body == null;
+
+  accept(RootVisitor v) => v.visitFunctionDefinition(this);
+  accept1(RootVisitor1 v, arg) => v.visitFunctionDefinition(this, arg);
+
+  void forEachBody(void action(Statement node)) {
+    if (isEmpty) return;
+    action(body);
+  }
+
+  void replaceEachBody(Statement transform(Statement node)) {
+    if (isEmpty) return;
+    body = transform(body);
+  }
 }
 
-abstract class Initializer implements Expression, DartSpecificNode {}
+abstract class Initializer implements DartSpecificNode {
+  accept(InitializerVisitor v);
+  accept1(InitializerVisitor1 v, arg);
+
+  void forEachBody(void action(Statement node));
+  void replaceEachBody(Statement transform(Statement node));
+}
 
 class FieldInitializer extends Initializer {
   final FieldElement element;
@@ -686,9 +707,17 @@ class FieldInitializer extends Initializer {
 
   FieldInitializer(this.element, this.body);
 
-  accept(ExpressionVisitor visitor) => visitor.visitFieldInitializer(this);
-  accept1(ExpressionVisitor1 visitor, arg) {
+  accept(InitializerVisitor visitor) => visitor.visitFieldInitializer(this);
+  accept1(InitializerVisitor1 visitor, arg) {
     return visitor.visitFieldInitializer(this, arg);
+  }
+
+  void forEachBody(void action(Statement node)) {
+    action(body);
+  }
+
+  void replaceEachBody(Statement transform(Statement node)) {
+    body = transform(body);
   }
 }
 
@@ -699,25 +728,62 @@ class SuperInitializer extends Initializer {
   bool processed = false;
 
   SuperInitializer(this.target, this.selector, this.arguments);
-  accept(ExpressionVisitor visitor) => visitor.visitSuperInitializer(this);
-  accept1(ExpressionVisitor1 visitor, arg) {
+  accept(InitializerVisitor visitor) => visitor.visitSuperInitializer(this);
+  accept1(InitializerVisitor1 visitor, arg) {
     return visitor.visitSuperInitializer(this, arg);
+  }
+
+  void forEachBody(void action(Statement node)) {
+    arguments.forEach(action);
+  }
+
+  void replaceEachBody(Statement transform(Statement node)) {
+    for (int i = 0; i < arguments.length; i++) {
+      arguments[i] = transform(arguments[i]);
+    }
   }
 }
 
-class ConstructorDefinition extends FunctionDefinition {
+class ConstructorDefinition extends RootNode
+                            implements DartSpecificNode {
+  final ConstructorElement element;
+  final List<Variable> parameters;
+  Statement body;
+  final List<ConstDeclaration> localConstants;
+  final List<ConstantExpression> defaultParameterValues;
   final List<Initializer> initializers;
 
-  ConstructorDefinition(ConstructorElement element,
-                        List<Variable> parameters,
-                        Statement body,
+  ConstructorDefinition(this.element,
+                        this.parameters,
+                        this.body,
                         this.initializers,
-                        List<ConstDeclaration> localConstants,
-                        List<ConstantExpression> defaultParameterValues)
-      : super(element, parameters, body, localConstants,
-              defaultParameterValues);
+                        this.localConstants,
+                        this.defaultParameterValues) {
+    for (Variable param in parameters) {
+      param.writeCount++; // Being a parameter counts as a write.
+    }
+  }
 
-  applyPass(Pass pass) => pass.rewriteConstructorDefinition(this);
+  bool get isEmpty => body == null;
+
+  accept(RootVisitor v) => v.visitConstructorDefinition(this);
+  accept1(RootVisitor1 v, arg) => v.visitConstructorDefinition(this, arg);
+
+  void forEachBody(void action(Statement node)) {
+    if (isEmpty) return;
+    for (Initializer init in initializers) {
+      init.forEachBody(action);
+    }
+    action(body);
+  }
+
+  void replaceEachBody(Statement transform(Statement node)) {
+    if (isEmpty) return;
+    for (Initializer init in initializers) {
+      init.replaceEachBody(transform);
+    }
+    body = transform(body);
+  }
 }
 
 abstract class JsSpecificNode implements Node {}
@@ -732,8 +798,9 @@ class CreateBox extends Expression implements JsSpecificNode {
 class CreateInstance extends Expression implements JsSpecificNode {
   ClassElement classElement;
   List<Expression> arguments;
+  List<Expression> typeInformation;
 
-  CreateInstance(this.classElement, this.arguments);
+  CreateInstance(this.classElement, this.arguments, this.typeInformation);
 
   accept(ExpressionVisitor visitor) => visitor.visitCreateInstance(this);
   accept1(ExpressionVisitor1 visitor, arg) {
@@ -792,8 +859,26 @@ class ReadTypeVariable extends Expression implements JsSpecificNode {
   }
 }
 
+/// Denotes the internal representation of [dartType], where all type variables
+/// are replaced by the values in [arguments].
+/// (See documentation on the TypeExpression CPS node for more details.)
+class TypeExpression extends Expression {
+  final DartType dartType;
+  final List<Expression> arguments;
+
+  TypeExpression(this.dartType, this.arguments);
+
+  accept(ExpressionVisitor visitor) {
+    return visitor.visitTypeExpression(this);
+  }
+
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitTypeExpression(this, arg);
+  }
+}
+
 abstract class ExpressionVisitor<E> {
-  E visitExpression(Expression e) => e.accept(this);
+  E visitExpression(Expression node) => node.accept(this);
   E visitVariableUse(VariableUse node);
   E visitInvokeStatic(InvokeStatic node);
   E visitInvokeMethod(InvokeMethod node);
@@ -810,17 +895,16 @@ abstract class ExpressionVisitor<E> {
   E visitLiteralMap(LiteralMap node);
   E visitTypeOperator(TypeOperator node);
   E visitFunctionExpression(FunctionExpression node);
-  E visitFieldInitializer(FieldInitializer node);
-  E visitSuperInitializer(SuperInitializer node);
   E visitGetField(GetField node);
   E visitCreateBox(CreateBox node);
   E visitCreateInstance(CreateInstance node);
   E visitReifyRuntimeType(ReifyRuntimeType node);
   E visitReadTypeVariable(ReadTypeVariable node);
+  E visitTypeExpression(TypeExpression node);
 }
 
 abstract class ExpressionVisitor1<E, A> {
-  E visitExpression(Expression e, A arg) => e.accept1(this, arg);
+  E visitExpression(Expression node, A arg) => node.accept1(this, arg);
   E visitVariableUse(VariableUse node, A arg);
   E visitInvokeStatic(InvokeStatic node, A arg);
   E visitInvokeMethod(InvokeMethod node, A arg);
@@ -837,17 +921,16 @@ abstract class ExpressionVisitor1<E, A> {
   E visitLiteralMap(LiteralMap node, A arg);
   E visitTypeOperator(TypeOperator node, A arg);
   E visitFunctionExpression(FunctionExpression node, A arg);
-  E visitFieldInitializer(FieldInitializer node, A arg);
-  E visitSuperInitializer(SuperInitializer node, A arg);
   E visitGetField(GetField node, A arg);
   E visitCreateBox(CreateBox node, A arg);
   E visitCreateInstance(CreateInstance node, A arg);
-  E visitReifyRuntimeType(ReifyRuntimeType reifyRuntimeType, A arg);
-  E visitReadTypeVariable(ReadTypeVariable readTypeVariable, A arg);
+  E visitReifyRuntimeType(ReifyRuntimeType node, A arg);
+  E visitReadTypeVariable(ReadTypeVariable node, A arg);
+  E visitTypeExpression(TypeExpression node, A arg);
 }
 
 abstract class StatementVisitor<S> {
-  S visitStatement(Statement s) => s.accept(this);
+  S visitStatement(Statement node) => node.accept(this);
   S visitLabeledStatement(LabeledStatement node);
   S visitAssign(Assign node);
   S visitReturn(Return node);
@@ -863,7 +946,7 @@ abstract class StatementVisitor<S> {
 }
 
 abstract class StatementVisitor1<S, A> {
-  S visitStatement(Statement s, A arg) => s.accept1(this, arg);
+  S visitStatement(Statement node, A arg) => node.accept1(this, arg);
   S visitLabeledStatement(LabeledStatement node, A arg);
   S visitAssign(Assign node, A arg);
   S visitReturn(Return node, A arg);
@@ -878,59 +961,37 @@ abstract class StatementVisitor1<S, A> {
   S visitSetField(SetField node, A arg);
 }
 
-abstract class Visitor<S, E> implements ExpressionVisitor<E>,
-                                        StatementVisitor<S> {
-   E visitExpression(Expression e) => e.accept(this);
-   S visitStatement(Statement s) => s.accept(this);
+abstract class RootVisitor<T> {
+  T visitRootNode(RootNode node) => node.accept(this);
+  T visitFunctionDefinition(FunctionDefinition node);
+  T visitConstructorDefinition(ConstructorDefinition node);
+  T visitFieldDefinition(FieldDefinition node);
 }
 
-abstract class Visitor1<S, E, A> implements ExpressionVisitor1<E, A>,
-                                            StatementVisitor1<S, A> {
-   E visitExpression(Expression e, A arg) => e.accept1(this, arg);
-   S visitStatement(Statement s, A arg) => s.accept1(this, arg);
+abstract class RootVisitor1<T, A> {
+  T visitRootNode(RootNode node, A arg) => node.accept1(this, arg);
+  T visitFunctionDefinition(FunctionDefinition node, A arg);
+  T visitConstructorDefinition(ConstructorDefinition node, A arg);
+  T visitFieldDefinition(FieldDefinition node, A arg);
 }
 
-class RecursiveVisitor extends Visitor {
-  // TODO(asgerf): Clean up the tree visitor.
-  
-  visitExecutableDefinition(ExecutableDefinition node) {
-    if (node is ConstructorDefinition) return visitConstructorDefinition(node);
-    if (node is FunctionDefinition) return visitFunctionDefinition(node);
-    if (node is FieldDefinition) return visitFieldDefinition(node);
-    throw 'Unexpected ExecutableDefinition: $node';
-  }
+abstract class InitializerVisitor<T> {
+  T visitInitializer(Initializer node) => node.accept(this);
+  T visitFieldInitializer(FieldInitializer node);
+  T visitSuperInitializer(SuperInitializer node);
+}
 
-  visitFunctionDefinition(FunctionDefinition node) {
-    node.parameters.forEach(visitVariable);
-    if (node.body != null) visitStatement(node.body);
-  }
+abstract class InitializerVisitor1<T, A> {
+  T visitInitializer(Initializer node, A arg) => node.accept1(this, arg);
+  T visitFieldInitializer(FieldInitializer node, A arg);
+  T visitSuperInitializer(SuperInitializer node, A arg);
+}
 
-  visitConstructorDefinition(ConstructorDefinition node) {
-    if (node.initializers != null) node.initializers.forEach(visitInitializer);
-    visitFunctionDefinition(node);
-  }
+abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
+  visitExpression(Expression e) => e.accept(this);
+  visitStatement(Statement s) => s.accept(this);
 
-  visitFieldDefinition(FieldDefinition node) {
-    if (node.body != null) {
-      visitStatement(node.body);
-    }
-  }
-
-  visitInitializer(Initializer node) {
-    if (node is FieldInitializer) {
-      return visitFieldInitializer(node);
-    } else {
-      return visitSuperInitializer(node);
-    }
-  }
-
-  visitFieldInitializer(FieldInitializer node) {
-    visitStatement(node.body);
-  }
-
-  visitSuperInitializer(SuperInitializer node) {
-    node.arguments.forEach(visitStatement);
-  }
+  visitInnerFunction(FunctionDefinition node);
 
   visitVariable(Variable node) {}
 
@@ -997,7 +1058,7 @@ class RecursiveVisitor extends Visitor {
   }
 
   visitFunctionExpression(FunctionExpression node) {
-    visitFunctionDefinition(node.definition);
+    visitInnerFunction(node.definition);
   }
 
   visitLabeledStatement(LabeledStatement node) {
@@ -1036,7 +1097,7 @@ class RecursiveVisitor extends Visitor {
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
-    visitFunctionDefinition(node.definition);
+    visitInnerFunction(node.definition);
     visitStatement(node.next);
   }
 
@@ -1065,6 +1126,7 @@ class RecursiveVisitor extends Visitor {
 
   visitCreateInstance(CreateInstance node) {
     node.arguments.forEach(visitExpression);
+    node.typeInformation.forEach(visitExpression);
   }
 
   visitReifyRuntimeType(ReifyRuntimeType node) {
@@ -1073,5 +1135,195 @@ class RecursiveVisitor extends Visitor {
 
   visitReadTypeVariable(ReadTypeVariable node) {
     visitExpression(node.target);
+  }
+
+  visitTypeExpression(TypeExpression node) {
+    node.arguments.forEach(visitExpression);
+  }
+}
+
+abstract class Transformer implements ExpressionVisitor<Expression>,
+                                      StatementVisitor<Statement> {
+   Expression visitExpression(Expression e) => e.accept(this);
+   Statement visitStatement(Statement s) => s.accept(this);
+}
+
+class RecursiveTransformer extends Transformer {
+  void visitInnerFunction(FunctionDefinition node) {
+    node.body = visitStatement(node.body);
+  }
+
+  void _replaceExpressions(List<Expression> list) {
+    for (int i = 0; i < list.length; i++) {
+      list[i] = visitExpression(list[i]);
+    }
+  }
+
+  visitVariableUse(VariableUse node) => node;
+
+  visitInvokeStatic(InvokeStatic node) {
+    _replaceExpressions(node.arguments);
+    return node;
+  }
+
+  visitInvokeMethod(InvokeMethod node) {
+    node.receiver = visitExpression(node.receiver);
+    _replaceExpressions(node.arguments);
+    return node;
+  }
+
+  visitInvokeMethodDirectly(InvokeMethodDirectly node) {
+    node.receiver = visitExpression(node.receiver);
+    _replaceExpressions(node.arguments);
+    return node;
+  }
+
+  visitInvokeConstructor(InvokeConstructor node) {
+    _replaceExpressions(node.arguments);
+    return node;
+  }
+
+  visitConcatenateStrings(ConcatenateStrings node) {
+    _replaceExpressions(node.arguments);
+    return node;
+  }
+
+  visitConstant(Constant node) => node;
+
+  visitThis(This node) => node;
+
+  visitReifyTypeVar(ReifyTypeVar node) => node;
+
+  visitConditional(Conditional node) {
+    node.condition = visitExpression(node.condition);
+    node.thenExpression = visitExpression(node.thenExpression);
+    node.elseExpression = visitExpression(node.elseExpression);
+    return node;
+  }
+
+  visitLogicalOperator(LogicalOperator node) {
+    node.left = visitExpression(node.left);
+    node.right = visitExpression(node.right);
+    return node;
+  }
+
+  visitNot(Not node) {
+    node.operand = visitExpression(node.operand);
+    return node;
+  }
+
+  visitLiteralList(LiteralList node) {
+    _replaceExpressions(node.values);
+    return node;
+  }
+
+  visitLiteralMap(LiteralMap node) {
+    node.entries.forEach((LiteralMapEntry entry) {
+      entry.key = visitExpression(entry.key);
+      entry.value = visitExpression(entry.value);
+    });
+    return node;
+  }
+
+  visitTypeOperator(TypeOperator node) {
+    node.receiver = visitExpression(node.receiver);
+    return node;
+  }
+
+  visitFunctionExpression(FunctionExpression node) {
+    visitInnerFunction(node.definition);
+    return node;
+  }
+
+  visitLabeledStatement(LabeledStatement node) {
+    node.body = visitStatement(node.body);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  visitAssign(Assign node) {
+    node.value = visitExpression(node.value);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  visitReturn(Return node) {
+    node.value = visitExpression(node.value);
+    return node;
+  }
+
+  visitBreak(Break node) => node;
+
+  visitContinue(Continue node) => node;
+
+  visitIf(If node) {
+    node.condition = visitExpression(node.condition);
+    node.thenStatement = visitStatement(node.thenStatement);
+    node.elseStatement = visitStatement(node.elseStatement);
+    return node;
+  }
+
+  visitWhileTrue(WhileTrue node) {
+    node.body = visitStatement(node.body);
+    return node;
+  }
+
+  visitWhileCondition(WhileCondition node) {
+    node.condition = visitExpression(node.condition);
+    node.body = visitStatement(node.body);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    visitInnerFunction(node.definition);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  visitExpressionStatement(ExpressionStatement node) {
+    node.expression = visitExpression(node.expression);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  visitTry(Try node) {
+    node.tryBody = visitStatement(node.tryBody);
+    node.catchBody = visitStatement(node.catchBody);
+    return node;
+  }
+
+  visitGetField(GetField node) {
+    node.object = visitExpression(node.object);
+    return node;
+  }
+
+  visitSetField(SetField node) {
+    node.object = visitExpression(node.object);
+    node.value = visitExpression(node.value);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  visitCreateBox(CreateBox node) => node;
+
+  visitCreateInstance(CreateInstance node) {
+    _replaceExpressions(node.arguments);
+    return node;
+  }
+
+  visitReifyRuntimeType(ReifyRuntimeType node) {
+    node.value = visitExpression(node.value);
+    return node;
+  }
+
+  visitReadTypeVariable(ReadTypeVariable node) {
+    node.target = visitExpression(node.target);
+    return node;
+  }
+
+  visitTypeExpression(TypeExpression node) {
+    _replaceExpressions(node.arguments);
+    return node;
   }
 }

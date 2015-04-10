@@ -89,12 +89,13 @@ class BottomTypeImpl extends TypeImpl {
   int internalHashCode(List<DartType> visitedTypes) => hashCode;
 
   @override
-  bool internalIsMoreSpecificThan(DartType type, bool withDynamic,
-      Set<TypeImpl_TypePair> visitedTypePairs) => true;
+  bool isMoreSpecificThan(DartType type, [Set<Element> thisExpansions,
+      Set<Element> typeExpansions, bool withDynamic = false,
+      Set<Element> visitedElements]) => true;
 
   @override
-  bool internalIsSubtypeOf(
-      DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => true;
+  bool isSubtypeOf(DartType type,
+      [Set<Element> thisExpansions, Set<Element> typeExpansions]) => true;
 
   @override
   bool isSupertypeOf(DartType type) => false;
@@ -225,7 +226,7 @@ abstract class ClassElement implements Element {
    * so parsing and resolving will be performed.
    */
   @override
-  AstNode get node;
+  NamedCompilationUnitMember get node;
 
   /**
    * Return the superclass of this class, or `null` if the class represents the
@@ -701,7 +702,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @override
-  AstNode get node {
+  NamedCompilationUnitMember get node {
     if (isEnum) {
       return getNodeMatching((node) => node is EnumDeclaration);
     } else {
@@ -1493,7 +1494,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 /**
  * A [FieldElement] for a 'const' field that has an initializer.
  */
-class ConstFieldElementImpl extends FieldElementImpl {
+class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   /**
    * The result of evaluating this variable's initializer.
    */
@@ -1523,16 +1524,23 @@ class ConstFieldElementImpl extends FieldElementImpl {
  * A [LocalVariableElement] for a local 'const' variable that has an
  * initializer.
  */
-class ConstLocalVariableElementImpl extends LocalVariableElementImpl {
+class ConstLocalVariableElementImpl extends LocalVariableElementImpl
+    with ConstVariableElement {
   /**
    * The result of evaluating this variable's initializer.
    */
   EvaluationResultImpl _result;
 
   /**
+   * Initialize a newly created local variable element to have the given [name]
+   * and [offset].
+   */
+  ConstLocalVariableElementImpl(String name, int offset) : super(name, offset);
+
+  /**
    * Initialize a newly created local variable element to have the given [name].
    */
-  ConstLocalVariableElementImpl(Identifier name) : super.forNode(name);
+  ConstLocalVariableElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -1627,6 +1635,12 @@ class ConstructorElementImpl extends ExecutableElementImpl
    * of this constructor's name, or `null` if not named.
    */
   int nameEnd;
+
+  /**
+   * True if this constructor has been found by constant evaluation to be free
+   * of redirect cycles, and is thus safe to evaluate.
+   */
+  bool isCycleFree = false;
 
   /**
    * Initialize a newly created constructor element to have the given [name] and
@@ -1826,7 +1840,8 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
  * A [TopLevelVariableElement] for a top-level 'const' variable that has an
  * initializer.
  */
-class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl {
+class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
+    with ConstVariableElement {
   /**
    * The result of evaluating this variable's initializer.
    */
@@ -1845,6 +1860,30 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl {
   void set evaluationResult(EvaluationResultImpl result) {
     this._result = result;
   }
+}
+
+/**
+ * Mixin used by elements that represent constant variables and have
+ * initializers.
+ *
+ * Note that in correct Dart code, all constant variables must have
+ * initializers.  However, analyzer also needs to handle incorrect Dart code,
+ * in which case there might be some constant variables that lack initializers.
+ * This interface is only used for constant variables that have initializers.
+ *
+ * This class is not intended to be part of the public API for analyzer.
+ */
+abstract class ConstVariableElement implements PotentiallyConstVariableElement {
+  /**
+   * If this element represents a constant variable, and it has an initializer,
+   * a copy of the initializer for the constant.  Otherwise `null`.
+   *
+   * Note that in correct Dart code, all constant variables must have
+   * initializers.  However, analyzer also needs to handle incorrect Dart code,
+   * in which case there might be some constant variables that lack
+   * initializers.
+   */
+  Expression constantInitializer;
 }
 
 /**
@@ -2071,8 +2110,9 @@ class DynamicTypeImpl extends TypeImpl {
   int internalHashCode(List<DartType> visitedTypes) => hashCode;
 
   @override
-  bool internalIsMoreSpecificThan(DartType type, bool withDynamic,
-      Set<TypeImpl_TypePair> visitedTypePairs) {
+  bool isMoreSpecificThan(DartType type, [Set<Element> thisExpansions,
+      Set<Element> typeExpansions, bool withDynamic = false,
+      Set<Element> visitedElements]) {
     // T is S
     if (identical(this, type)) {
       return true;
@@ -2082,8 +2122,8 @@ class DynamicTypeImpl extends TypeImpl {
   }
 
   @override
-  bool internalIsSubtypeOf(
-      DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => true;
+  bool isSubtypeOf(DartType type,
+      [Set<Element> thisExpansions, Set<Element> typeExpansions]) => true;
 
   @override
   bool isSupertypeOf(DartType type) => true;
@@ -3732,7 +3772,7 @@ abstract class FieldElement
  * A concrete implementation of a [FieldElement].
  */
 class FieldElementImpl extends PropertyInducingElementImpl
-    implements FieldElement {
+    with PotentiallyConstVariableElement implements FieldElement {
   /**
    * An empty list of field elements.
    */
@@ -4769,8 +4809,20 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
-  bool internalIsMoreSpecificThan(DartType type, bool withDynamic,
-      Set<TypeImpl_TypePair> visitedTypePairs) {
+  bool isAssignableTo(DartType type,
+      [Set<Element> thisExpansions, Set<Element> typeExpansions]) {
+    // A function type T may be assigned to a function type S, written T <=> S,
+    // iff T <: S.
+    return isSubtypeOf(type, thisExpansions, typeExpansions);
+  }
+
+  @override
+  bool isMoreSpecificThan(DartType type, [Set<Element> thisExpansions,
+      Set<Element> typeExpansions, bool withDynamic = false,
+      Set<Element> visitedElements]) {
+    // Note: visitedElements is only used for breaking recursion in the type
+    // hierarchy; we don't use it when recursing into the function type.
+
     // trivial base cases
     if (type == null) {
       return false;
@@ -4779,9 +4831,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         type.isDartCoreFunction ||
         type.isObject) {
       return true;
-    } else if (type is UnionType) {
-      return (type as UnionTypeImpl).internalUnionTypeIsLessSpecificThan(
-          this, withDynamic, visitedTypePairs);
     } else if (type is! FunctionType) {
       return false;
     } else if (this == type) {
@@ -4789,106 +4838,129 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     FunctionType t = this;
     FunctionType s = type as FunctionType;
-    List<DartType> tTypes = t.normalParameterTypes;
-    List<DartType> tOpTypes = t.optionalParameterTypes;
-    List<DartType> sTypes = s.normalParameterTypes;
-    List<DartType> sOpTypes = s.optionalParameterTypes;
-    // If one function has positional and the other has named parameters,
-    // return false.
-    if ((sOpTypes.length > 0 && t.namedParameterTypes.length > 0) ||
-        (tOpTypes.length > 0 && s.namedParameterTypes.length > 0)) {
-      return false;
+    if (thisExpansions == null) {
+      thisExpansions = new HashSet<Element>();
+    } else if (thisExpansions.contains(this.element)) {
+      // [this] contains a reference to itself, which is illegal (and is
+      // checked elsewhere).  To avoid cascading errors, consider T to be a
+      // subtype of S.
+      return true;
     }
-    // named parameters case
-    if (t.namedParameterTypes.length > 0) {
-      // check that the number of required parameters are equal, and check that
-      // every t_i is more specific than every s_i
-      if (t.normalParameterTypes.length != s.normalParameterTypes.length) {
+    if (typeExpansions == null) {
+      typeExpansions = new HashSet<Element>();
+    } else if (typeExpansions.contains(type.element)) {
+      // [type] contains a reference to itself, which is illegal (and is
+      // checked elsewhere).  To avoid cascading errors, consider T to be a
+      // subtype of S.
+      return true;
+    }
+    thisExpansions.add(this.element);
+    typeExpansions.add(type.element);
+    try {
+      List<DartType> tTypes = t.normalParameterTypes;
+      List<DartType> tOpTypes = t.optionalParameterTypes;
+      List<DartType> sTypes = s.normalParameterTypes;
+      List<DartType> sOpTypes = s.optionalParameterTypes;
+      // If one function has positional and the other has named parameters,
+      // return false.
+      if ((sOpTypes.length > 0 && t.namedParameterTypes.length > 0) ||
+          (tOpTypes.length > 0 && s.namedParameterTypes.length > 0)) {
         return false;
-      } else if (t.normalParameterTypes.length > 0) {
-        for (int i = 0; i < tTypes.length; i++) {
-          if (!(tTypes[i] as TypeImpl).isMoreSpecificThan2(
-              sTypes[i], withDynamic, visitedTypePairs)) {
+      }
+      // named parameters case
+      if (t.namedParameterTypes.length > 0) {
+        // check that the number of required parameters are equal, and check that
+        // every t_i is more specific than every s_i
+        if (t.normalParameterTypes.length != s.normalParameterTypes.length) {
+          return false;
+        } else if (t.normalParameterTypes.length > 0) {
+          for (int i = 0; i < tTypes.length; i++) {
+            if (!(tTypes[i] as TypeImpl).isMoreSpecificThan(
+                sTypes[i], thisExpansions, typeExpansions, withDynamic)) {
+              return false;
+            }
+          }
+        }
+        Map<String, DartType> namedTypesT = t.namedParameterTypes;
+        Map<String, DartType> namedTypesS = s.namedParameterTypes;
+        // if k >= m is false, return false: the passed function type has more
+        // named parameter types than this
+        if (namedTypesT.length < namedTypesS.length) {
+          return false;
+        }
+        // Loop through each element in S verifying that T has a matching
+        // parameter name and that the corresponding type is more specific then
+        // the type in S.
+        for (String keyS in namedTypesS.keys) {
+          DartType typeT = namedTypesT[keyS];
+          if (typeT == null) {
+            return false;
+          }
+          if (!(typeT as TypeImpl).isMoreSpecificThan(
+              namedTypesS[keyS], thisExpansions, typeExpansions, withDynamic)) {
             return false;
           }
         }
-      }
-      Map<String, DartType> namedTypesT = t.namedParameterTypes;
-      Map<String, DartType> namedTypesS = s.namedParameterTypes;
-      // if k >= m is false, return false: the passed function type has more
-      // named parameter types than this
-      if (namedTypesT.length < namedTypesS.length) {
+      } else if (s.namedParameterTypes.length > 0) {
         return false;
-      }
-      // Loop through each element in S verifying that T has a matching
-      // parameter name and that the corresponding type is more specific then
-      // the type in S.
-      for (String keyS in namedTypesS.keys) {
-        DartType typeT = namedTypesT[keyS];
-        if (typeT == null) {
-          return false;
-        }
-        if (!(typeT as TypeImpl).isMoreSpecificThan2(
-            namedTypesS[keyS], withDynamic, visitedTypePairs)) {
-          return false;
-        }
-      }
-    } else if (s.namedParameterTypes.length > 0) {
-      return false;
-    } else {
-      // positional parameter case
-      int tArgLength = tTypes.length + tOpTypes.length;
-      int sArgLength = sTypes.length + sOpTypes.length;
-      // Check that the total number of parameters in t is greater than or equal
-      // to the number of parameters in s and that the number of required
-      // parameters in s is greater than or equal to the number of required
-      // parameters in t.
-      if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
-        return false;
-      }
-      if (tOpTypes.length == 0 && sOpTypes.length == 0) {
-        // No positional arguments, don't copy contents to new array
-        for (int i = 0; i < sTypes.length; i++) {
-          if (!(tTypes[i] as TypeImpl).isMoreSpecificThan2(
-              sTypes[i], withDynamic, visitedTypePairs)) {
-            return false;
-          }
-        }
       } else {
-        // Else, we do have positional parameters, copy required and positional
-        // parameter types into arrays to do the compare (for loop below).
-        List<DartType> tAllTypes = new List<DartType>(sArgLength);
-        for (int i = 0; i < tTypes.length; i++) {
-          tAllTypes[i] = tTypes[i];
+        // positional parameter case
+        int tArgLength = tTypes.length + tOpTypes.length;
+        int sArgLength = sTypes.length + sOpTypes.length;
+        // Check that the total number of parameters in t is greater than or equal
+        // to the number of parameters in s and that the number of required
+        // parameters in s is greater than or equal to the number of required
+        // parameters in t.
+        if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
+          return false;
         }
-        for (int i = tTypes.length, j = 0; i < sArgLength; i++, j++) {
-          tAllTypes[i] = tOpTypes[j];
-        }
-        List<DartType> sAllTypes = new List<DartType>(sArgLength);
-        for (int i = 0; i < sTypes.length; i++) {
-          sAllTypes[i] = sTypes[i];
-        }
-        for (int i = sTypes.length, j = 0; i < sArgLength; i++, j++) {
-          sAllTypes[i] = sOpTypes[j];
-        }
-        for (int i = 0; i < sAllTypes.length; i++) {
-          if (!(tAllTypes[i] as TypeImpl).isMoreSpecificThan2(
-              sAllTypes[i], withDynamic, visitedTypePairs)) {
-            return false;
+        if (tOpTypes.length == 0 && sOpTypes.length == 0) {
+          // No positional arguments, don't copy contents to new array
+          for (int i = 0; i < sTypes.length; i++) {
+            if (!(tTypes[i] as TypeImpl).isMoreSpecificThan(
+                sTypes[i], thisExpansions, typeExpansions, withDynamic)) {
+              return false;
+            }
+          }
+        } else {
+          // Else, we do have positional parameters, copy required and positional
+          // parameter types into arrays to do the compare (for loop below).
+          List<DartType> tAllTypes = new List<DartType>(sArgLength);
+          for (int i = 0; i < tTypes.length; i++) {
+            tAllTypes[i] = tTypes[i];
+          }
+          for (int i = tTypes.length, j = 0; i < sArgLength; i++, j++) {
+            tAllTypes[i] = tOpTypes[j];
+          }
+          List<DartType> sAllTypes = new List<DartType>(sArgLength);
+          for (int i = 0; i < sTypes.length; i++) {
+            sAllTypes[i] = sTypes[i];
+          }
+          for (int i = sTypes.length, j = 0; i < sArgLength; i++, j++) {
+            sAllTypes[i] = sOpTypes[j];
+          }
+          for (int i = 0; i < sAllTypes.length; i++) {
+            if (!(tAllTypes[i] as TypeImpl).isMoreSpecificThan(
+                sAllTypes[i], thisExpansions, typeExpansions, withDynamic)) {
+              return false;
+            }
           }
         }
       }
+      DartType tRetType = t.returnType;
+      DartType sRetType = s.returnType;
+      return sRetType.isVoid ||
+          (tRetType as TypeImpl).isMoreSpecificThan(
+              sRetType, thisExpansions, typeExpansions, withDynamic);
+    } finally {
+      thisExpansions.remove(this.element);
+      typeExpansions.remove(type.element);
     }
-    DartType tRetType = t.returnType;
-    DartType sRetType = s.returnType;
-    return sRetType.isVoid ||
-        (tRetType as TypeImpl).isMoreSpecificThan2(
-            sRetType, withDynamic, visitedTypePairs);
   }
 
   @override
-  bool internalIsSubtypeOf(
-      DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
+  bool isSubtypeOf(DartType type,
+      [Set<Element> thisExpansions, Set<Element> typeExpansions]) {
     // trivial base cases
     if (type == null) {
       return false;
@@ -4897,9 +4969,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         type.isDartCoreFunction ||
         type.isObject) {
       return true;
-    } else if (type is UnionType) {
-      return (type as UnionTypeImpl).internalUnionTypeIsSuperTypeOf(
-          this, visitedTypePairs);
     } else if (type is! FunctionType) {
       return false;
     } else if (this == type) {
@@ -4907,112 +4976,126 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     FunctionType t = this;
     FunctionType s = type as FunctionType;
-    List<DartType> tTypes = t.normalParameterTypes;
-    List<DartType> tOpTypes = t.optionalParameterTypes;
-    List<DartType> sTypes = s.normalParameterTypes;
-    List<DartType> sOpTypes = s.optionalParameterTypes;
-    // If one function has positional and the other has named parameters,
-    // return false.
-    if ((sOpTypes.length > 0 && t.namedParameterTypes.length > 0) ||
-        (tOpTypes.length > 0 && s.namedParameterTypes.length > 0)) {
-      return false;
+    if (thisExpansions == null) {
+      thisExpansions = new HashSet<Element>();
+    } else if (thisExpansions.contains(this.element)) {
+      // [this] contains a reference to itself, which is illegal (and is
+      // checked elsewhere).  To avoid cascading errors, consider T to be a
+      // subtype of S.
+      return true;
     }
-    // named parameters case
-    if (t.namedParameterTypes.length > 0) {
-      // check that the number of required parameters are equal,
-      // and check that every t_i is assignable to every s_i
-      if (t.normalParameterTypes.length != s.normalParameterTypes.length) {
+    if (typeExpansions == null) {
+      typeExpansions = new HashSet<Element>();
+    } else if (typeExpansions.contains(type.element)) {
+      // [type] contains a reference to itself, which is illegal (and is
+      // checked elsewhere).  To avoid cascading errors, consider T to be a
+      // subtype of S.
+      return true;
+    }
+    thisExpansions.add(this.element);
+    typeExpansions.add(type.element);
+    try {
+      List<DartType> tTypes = t.normalParameterTypes;
+      List<DartType> tOpTypes = t.optionalParameterTypes;
+      List<DartType> sTypes = s.normalParameterTypes;
+      List<DartType> sOpTypes = s.optionalParameterTypes;
+      // If one function has positional and the other has named parameters,
+      // return false.
+      if ((sOpTypes.length > 0 && t.namedParameterTypes.length > 0) ||
+          (tOpTypes.length > 0 && s.namedParameterTypes.length > 0)) {
         return false;
-      } else if (t.normalParameterTypes.length > 0) {
-        for (int i = 0; i < tTypes.length; i++) {
-          if (!(tTypes[i] as TypeImpl).isAssignableTo2(
-              sTypes[i], visitedTypePairs)) {
+      }
+      // named parameters case
+      if (t.namedParameterTypes.length > 0) {
+        // check that the number of required parameters are equal,
+        // and check that every t_i is assignable to every s_i
+        if (t.normalParameterTypes.length != s.normalParameterTypes.length) {
+          return false;
+        } else if (t.normalParameterTypes.length > 0) {
+          for (int i = 0; i < tTypes.length; i++) {
+            if (!(tTypes[i] as TypeImpl).isAssignableTo(
+                sTypes[i], thisExpansions, typeExpansions)) {
+              return false;
+            }
+          }
+        }
+        Map<String, DartType> namedTypesT = t.namedParameterTypes;
+        Map<String, DartType> namedTypesS = s.namedParameterTypes;
+        // if k >= m is false, return false: the passed function type has more
+        // named parameter types than this
+        if (namedTypesT.length < namedTypesS.length) {
+          return false;
+        }
+        // Loop through each element in S verifying that T has a matching
+        // parameter name and that the corresponding type is assignable to the
+        // type in S.
+        for (String keyS in namedTypesS.keys) {
+          DartType typeT = namedTypesT[keyS];
+          if (typeT == null) {
+            return false;
+          }
+          if (!(typeT as TypeImpl).isAssignableTo(
+              namedTypesS[keyS], thisExpansions, typeExpansions)) {
             return false;
           }
         }
-      }
-      Map<String, DartType> namedTypesT = t.namedParameterTypes;
-      Map<String, DartType> namedTypesS = s.namedParameterTypes;
-      // if k >= m is false, return false: the passed function type has more
-      // named parameter types than this
-      if (namedTypesT.length < namedTypesS.length) {
+      } else if (s.namedParameterTypes.length > 0) {
         return false;
-      }
-      // Loop through each element in S verifying that T has a matching
-      // parameter name and that the corresponding type is assignable to the
-      // type in S.
-      for (String keyS in namedTypesS.keys) {
-        DartType typeT = namedTypesT[keyS];
-        if (typeT == null) {
-          return false;
-        }
-        if (!(typeT as TypeImpl).isAssignableTo2(
-            namedTypesS[keyS], visitedTypePairs)) {
-          return false;
-        }
-      }
-    } else if (s.namedParameterTypes.length > 0) {
-      return false;
-    } else {
-      // positional parameter case
-      int tArgLength = tTypes.length + tOpTypes.length;
-      int sArgLength = sTypes.length + sOpTypes.length;
-      // Check that the total number of parameters in t is greater than or equal
-      // to the number of parameters in s and that the number of required
-      // parameters in s is greater than or equal to the number of required
-      // parameters in t.
-      if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
-        return false;
-      }
-      if (tOpTypes.length == 0 && sOpTypes.length == 0) {
-        // No positional arguments, don't copy contents to new array
-        for (int i = 0; i < sTypes.length; i++) {
-          if (!(tTypes[i] as TypeImpl).isAssignableTo2(
-              sTypes[i], visitedTypePairs)) {
-            return false;
-          }
-        }
       } else {
-        // Else, we do have positional parameters, copy required and positional
-        // parameter types into arrays to do the compare (for loop below).
-        List<DartType> tAllTypes = new List<DartType>(sArgLength);
-        for (int i = 0; i < tTypes.length; i++) {
-          tAllTypes[i] = tTypes[i];
+        // positional parameter case
+        int tArgLength = tTypes.length + tOpTypes.length;
+        int sArgLength = sTypes.length + sOpTypes.length;
+        // Check that the total number of parameters in t is greater than or
+        // equal to the number of parameters in s and that the number of
+        // required parameters in s is greater than or equal to the number of
+        // required parameters in t.
+        if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
+          return false;
         }
-        for (int i = tTypes.length, j = 0; i < sArgLength; i++, j++) {
-          tAllTypes[i] = tOpTypes[j];
-        }
-        List<DartType> sAllTypes = new List<DartType>(sArgLength);
-        for (int i = 0; i < sTypes.length; i++) {
-          sAllTypes[i] = sTypes[i];
-        }
-        for (int i = sTypes.length, j = 0; i < sArgLength; i++, j++) {
-          sAllTypes[i] = sOpTypes[j];
-        }
-        for (int i = 0; i < sAllTypes.length; i++) {
-          if (!(tAllTypes[i] as TypeImpl).isAssignableTo2(
-              sAllTypes[i], visitedTypePairs)) {
-            return false;
+        if (tOpTypes.length == 0 && sOpTypes.length == 0) {
+          // No positional arguments, don't copy contents to new array
+          for (int i = 0; i < sTypes.length; i++) {
+            if (!(tTypes[i] as TypeImpl).isAssignableTo(
+                sTypes[i], thisExpansions, typeExpansions)) {
+              return false;
+            }
+          }
+        } else {
+          // Else, we do have positional parameters, copy required and
+          // positional parameter types into arrays to do the compare (for loop
+          // below).
+          List<DartType> tAllTypes = new List<DartType>(sArgLength);
+          for (int i = 0; i < tTypes.length; i++) {
+            tAllTypes[i] = tTypes[i];
+          }
+          for (int i = tTypes.length, j = 0; i < sArgLength; i++, j++) {
+            tAllTypes[i] = tOpTypes[j];
+          }
+          List<DartType> sAllTypes = new List<DartType>(sArgLength);
+          for (int i = 0; i < sTypes.length; i++) {
+            sAllTypes[i] = sTypes[i];
+          }
+          for (int i = sTypes.length, j = 0; i < sArgLength; i++, j++) {
+            sAllTypes[i] = sOpTypes[j];
+          }
+          for (int i = 0; i < sAllTypes.length; i++) {
+            if (!(tAllTypes[i] as TypeImpl).isAssignableTo(
+                sAllTypes[i], thisExpansions, typeExpansions)) {
+              return false;
+            }
           }
         }
       }
+      DartType tRetType = t.returnType;
+      DartType sRetType = s.returnType;
+      return sRetType.isVoid ||
+          (tRetType as TypeImpl).isAssignableTo(
+              sRetType, thisExpansions, typeExpansions);
+    } finally {
+      thisExpansions.remove(this.element);
+      typeExpansions.remove(type.element);
     }
-    DartType tRetType = t.returnType;
-    DartType sRetType = s.returnType;
-    return sRetType.isVoid ||
-        (tRetType as TypeImpl).isAssignableTo2(sRetType, visitedTypePairs);
   }
-
-  /**
-   * Return `true` if this type is assignable to the given [type]. A function
-   * type <i>T</i> may be assigned to a function type <i>S</i>, written <i>T</i>
-   * &hArr; <i>S</i>, iff <i>T</i> <: <i>S</i> (Function Types section of spec).
-   * Note that this is more restrictive than the "may be assigned to" rule for
-   * interface types.
-   */
-  @override
-  bool isAssignableTo(DartType type) =>
-      isSubtypeOf2(type, new HashSet<TypeImpl_TypePair>());
 
   @override
   FunctionTypeImpl substitute2(
@@ -6086,111 +6169,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   int internalHashCode(List<DartType> visitedTypes) => hashCode;
 
   @override
-  bool internalIsMoreSpecificThan(DartType type, bool withDynamic,
-      Set<TypeImpl_TypePair> visitedTypePairs) {
-    //
-    // S is dynamic.
-    // The test to determine whether S is dynamic is done here because dynamic
-    // is not an instance of InterfaceType.
-    //
-    if (type.isDynamic) {
-      return true;
-    } else if (type is UnionType) {
-      return (type as UnionTypeImpl).internalUnionTypeIsLessSpecificThan(
-          this, withDynamic, visitedTypePairs);
-    } else if (type is! InterfaceType) {
-      return false;
-    }
-    return _isMoreSpecificThan(type as InterfaceType,
-        new HashSet<ClassElement>(), withDynamic, visitedTypePairs);
-  }
-
-  @override
-  bool internalIsSubtypeOf(
-      DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
-    //
-    // T is a subtype of S, written T <: S, iff [bottom/dynamic]T << S
-    //
-    if (type.isDynamic) {
-      return true;
-    } else if (type is TypeParameterType) {
-      return false;
-    } else if (type is UnionType) {
-      return (type as UnionTypeImpl).internalUnionTypeIsSuperTypeOf(
-          this, visitedTypePairs);
-    } else if (type is FunctionType) {
-      // This implementation assumes transitivity
-      // for function type subtyping on the RHS, but a literal reading
-      // of the spec does not specify this. More precisely:
-      // if T <: F1 and F1 <: F2 and F1 and F2 are function types,
-      // then we assume T <: F2.
-      //
-      // From the Function Types section of the spec:
-      //
-      //   If a type I includes an instance method named call(), and the type of
-      //   call() is the function type F, then I is considered to be a
-      //   subtype of F.
-      //
-      // However, the section on Interface Types says
-      //
-      //   T is a subtype of S, written T <: S, iff [bottom/dynamic]T << S.
-      //
-      // after giving rules for << (pronounced "more specific than").
-      // However, the "only if" direction of the "iff" in the definition of <:
-      // seems to be contradicted by the special case <: rule quoted from the
-      // Function Types section: I see no rule for << which tells us that
-      // I << F if I has call() at type F.
-      //
-      // After defining <: , the spec then
-      // emphasizes that unlike the relation <<, the relation <: is not
-      // transitive in general:
-      //
-      //   Note that <: is not a partial order on types, it is only binary
-      //   relation on types.
-      //   This is because <: is not transitive.
-      //   If it was, the subtype rule would have a cycle.
-      //
-      //   For example: List <: List<String> and List<int> <: List,
-      //   but List<int> is not a subtype of List<String>.
-      //   Although <: is not a partial order on types, it does contain a
-      //   partial order, namely <<.
-      //   This means that, barring raw types, intuition about classical subtype
-      //   rules does apply.
-      //
-      // There is no other occurrence of the word "raw" in relation to types in
-      // the spec that I can find, but presumably it's a reference to
-      //
-      //   http://docs.oracle.com/javase/tutorial/java/generics/rawTypes.html
-      //
-      // so e.g. non-generic types are never raw. As pointed out by paulberry,
-      // it's not clear whether a type like T<int, dynamic> should be considered
-      // raw or not. On the one hand, it doesn't correspond to a
-      // "raw"-in-the-Java-sense occurrence of T, which would instead
-      // be T<dynamic, dynamic>; on the other hand, it's treated differently
-      // by <: and << when occurring on the left hand side.
-      ClassElement element = this.element;
-      InheritanceManager manager = new InheritanceManager(element.library);
-      FunctionType callType = manager.lookupMemberType(this, "call");
-      if (callType != null) {
-        // A more literal reading of the spec would give something like
-        //
-        //  return callType.equals(type)
-        //
-        // here, but that causes 101 errors in the external tests
-        // (tools/test.py --mode release --compiler dartanalyzer --runtime none)
-        return callType.isSubtypeOf(type);
-      }
-      return false;
-    } else if (type is! InterfaceType) {
-      return false;
-    } else if (this == type) {
-      return true;
-    }
-    return _isSubtypeOf(
-        type as InterfaceType, new HashSet<ClassElement>(), visitedTypePairs);
-  }
-
-  @override
   bool isDirectSupertypeOf(InterfaceType type) {
     InterfaceType i = this;
     InterfaceType j = type;
@@ -6236,6 +6214,109 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     // TODO(brianwilkerson) Determine whether this needs to be implemented or
     // whether it is covered by the case above.
     return false;
+  }
+
+  @override
+  bool isMoreSpecificThan(DartType type, [Set<Element> thisExpansions,
+      Set<Element> typeExpansions, bool withDynamic = false,
+      Set<Element> visitedElements]) {
+    //
+    // S is dynamic.
+    // The test to determine whether S is dynamic is done here because dynamic
+    // is not an instance of InterfaceType.
+    //
+    if (type.isDynamic) {
+      return true;
+    }
+    //
+    // A type T is more specific than a type S, written T << S,
+    // if one of the following conditions is met:
+    //
+    // Reflexivity: T is S.
+    //
+    if (this == type) {
+      return true;
+    }
+    if (type is InterfaceType) {
+      //
+      // T is bottom. (This case is handled by the class BottomTypeImpl.)
+      //
+      // Direct supertype: S is a direct supertype of T.
+      //
+      if (type.isDirectSupertypeOf(this)) {
+        return true;
+      }
+      //
+      // Covariance: T is of the form I<T1, ..., Tn> and S is of the form
+      // I<S1, ..., Sn> and Ti << Si, 1 <= i <= n.
+      //
+      ClassElement tElement = this.element;
+      ClassElement sElement = type.element;
+      if (tElement == sElement) {
+        List<DartType> tArguments = typeArguments;
+        List<DartType> sArguments = type.typeArguments;
+        if (tArguments.length != sArguments.length) {
+          return false;
+        }
+        for (int i = 0; i < tArguments.length; i++) {
+          if (!(tArguments[i] as TypeImpl).isMoreSpecificThan(
+              sArguments[i], thisExpansions, typeExpansions, withDynamic)) {
+            return false;
+          }
+        }
+        return true;
+      }
+    }
+    //
+    // Transitivity: T << U and U << S.
+    //
+    // First check for infinite loops
+    if (element == null) {
+      return false;
+    }
+    if (visitedElements == null) {
+      visitedElements = new HashSet<ClassElement>();
+    } else if (visitedElements.contains(element)) {
+      return false;
+    }
+    visitedElements.add(element);
+    try {
+      // Iterate over all of the types U that are more specific than T because
+      // they are direct supertypes of T and return true if any of them are more
+      // specific than S.
+      InterfaceTypeImpl supertype = superclass;
+      if (supertype != null &&
+          supertype.isMoreSpecificThan(type, thisExpansions, typeExpansions,
+              withDynamic, visitedElements)) {
+        return true;
+      }
+      for (InterfaceTypeImpl interfaceType in interfaces) {
+        if (interfaceType.isMoreSpecificThan(type, thisExpansions,
+            typeExpansions, withDynamic, visitedElements)) {
+          return true;
+        }
+      }
+      for (InterfaceTypeImpl mixinType in mixins) {
+        if (mixinType.isMoreSpecificThan(type, thisExpansions, typeExpansions,
+            withDynamic, visitedElements)) {
+          return true;
+        }
+      }
+      // If a type I includes an instance method named `call`, and the type of
+      // `call` is the function type F, then I is considered to be more specific
+      // than F.
+      MethodElement callMethod = getMethod('call');
+      if (callMethod != null && !callMethod.isStatic) {
+        FunctionTypeImpl callType = callMethod.type;
+        if (callType.isMoreSpecificThan(type, thisExpansions, typeExpansions,
+            withDynamic, visitedElements)) {
+          return true;
+        }
+      }
+      return false;
+    } finally {
+      visitedElements.remove(element);
+    }
   }
 
   @override
@@ -6402,145 +6483,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   InterfaceTypeImpl substitute4(List<DartType> argumentTypes) =>
       substitute2(argumentTypes, typeArguments);
-
-  /**
-   * Return `true` if the given element has an instance method named 'call'.
-   */
-  bool _hasCallMethod(ClassElement elementT) {
-    MethodElement method = elementT.lookUpMethod(
-        FunctionElement.CALL_METHOD_NAME, elementT.library);
-    return method != null && !method.isStatic;
-  }
-
-  bool _isMoreSpecificThan(InterfaceType s,
-      HashSet<ClassElement> visitedClasses, bool withDynamic,
-      Set<TypeImpl_TypePair> visitedTypePairs) {
-    //
-    // A type T is more specific than a type S, written T << S,
-    // if one of the following conditions is met:
-    //
-    // Reflexivity: T is S.
-    //
-    if (this == s) {
-      return true;
-    }
-    //
-    // T is bottom. (This case is handled by the class BottomTypeImpl.)
-    //
-    // Direct supertype: S is a direct supertype of T.
-    //
-    if (s.isDirectSupertypeOf(this)) {
-      return true;
-    }
-    //
-    // Covariance: T is of the form I<T1, ..., Tn> and S is of the form
-    // I<S1, ..., Sn> and Ti << Si, 1 <= i <= n.
-    //
-    ClassElement tElement = this.element;
-    ClassElement sElement = s.element;
-    if (tElement == sElement) {
-      List<DartType> tArguments = typeArguments;
-      List<DartType> sArguments = s.typeArguments;
-      if (tArguments.length != sArguments.length) {
-        return false;
-      }
-      for (int i = 0; i < tArguments.length; i++) {
-        if (!(tArguments[i] as TypeImpl).isMoreSpecificThan2(
-            sArguments[i], withDynamic, visitedTypePairs)) {
-          return false;
-        }
-      }
-      return true;
-    }
-    //
-    // Transitivity: T << U and U << S.
-    //
-    // First check for infinite loops
-    ClassElement element = this.element;
-    if (element == null || visitedClasses.contains(element)) {
-      return false;
-    }
-    visitedClasses.add(element);
-    // Iterate over all of the types U that are more specific than T because
-    // they are direct supertypes of T and return true if any of them are more
-    // specific than S.
-    InterfaceType supertype = superclass;
-    if (supertype != null &&
-        (supertype as InterfaceTypeImpl)._isMoreSpecificThan(
-            s, visitedClasses, withDynamic, visitedTypePairs)) {
-      return true;
-    }
-    for (InterfaceType interfaceType in interfaces) {
-      if ((interfaceType as InterfaceTypeImpl)._isMoreSpecificThan(
-          s, visitedClasses, withDynamic, visitedTypePairs)) {
-        return true;
-      }
-    }
-    for (InterfaceType mixinType in mixins) {
-      if ((mixinType as InterfaceTypeImpl)._isMoreSpecificThan(
-          s, visitedClasses, withDynamic, visitedTypePairs)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool _isSubtypeOf(InterfaceType type, HashSet<ClassElement> visitedClasses,
-      Set<TypeImpl_TypePair> visitedTypePairs) {
-    InterfaceType typeT = this;
-    InterfaceType typeS = type;
-    ClassElement elementT = element;
-    if (elementT == null || visitedClasses.contains(elementT)) {
-      return false;
-    }
-    visitedClasses.add(elementT);
-    if (typeT == typeS) {
-      return true;
-    } else if (elementT == typeS.element) {
-      // For each of the type arguments return true if all type args from T is
-      // a subtype of all types from S.
-      List<DartType> typeTArgs = typeT.typeArguments;
-      List<DartType> typeSArgs = typeS.typeArguments;
-      if (typeTArgs.length != typeSArgs.length) {
-        // This case covers the case where two objects are being compared that
-        // have a different number of parameterized types.
-        return false;
-      }
-      for (int i = 0; i < typeTArgs.length; i++) {
-        // Recursively call isSubtypeOf the type arguments and return false if
-        // the T argument is not a subtype of the S argument.
-        if (!(typeTArgs[i] as TypeImpl).isSubtypeOf2(
-            typeSArgs[i], visitedTypePairs)) {
-          return false;
-        }
-      }
-      return true;
-    } else if (typeS.isDartCoreFunction && _hasCallMethod(elementT)) {
-      return true;
-    }
-    InterfaceType supertype = superclass;
-    // The type is Object, return false.
-    if (supertype != null &&
-        (supertype as InterfaceTypeImpl)._isSubtypeOf(
-            typeS, visitedClasses, visitedTypePairs)) {
-      return true;
-    }
-    List<InterfaceType> interfaceTypes = interfaces;
-    for (InterfaceType interfaceType in interfaceTypes) {
-      if ((interfaceType as InterfaceTypeImpl)._isSubtypeOf(
-          typeS, visitedClasses, visitedTypePairs)) {
-        return true;
-      }
-    }
-    List<InterfaceType> mixinTypes = mixins;
-    for (InterfaceType mixinType in mixinTypes) {
-      if ((mixinType as InterfaceTypeImpl)._isSubtypeOf(
-          typeS, visitedClasses, visitedTypePairs)) {
-        return true;
-      }
-    }
-    return false;
-  }
 
   /**
    * Return the length of the longest inheritance path from the given [type] to
@@ -6780,7 +6722,7 @@ abstract class LibraryElement implements Element {
   bool get isDartCore;
 
   /**
-   * Return `true` if this library is the dart:core library.
+   * Return `true` if this library is part of the SDK.
    */
   bool get isInSdk;
 
@@ -6822,6 +6764,11 @@ abstract class LibraryElement implements Element {
    * Return a list containing all directly and indirectly imported libraries.
    */
   List<LibraryElement> get visibleLibraries;
+
+  /**
+   * Return the element at the given [offset], maybe `null` if no such element.
+   */
+  Element getElementAt(int offset);
 
   /**
    * Return a list containing all of the imports that share the given [prefix],
@@ -6891,6 +6838,11 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * defined for this library, or `null` if the element has not yet been created.
    */
   FunctionElement _loadLibraryFunction;
+
+  /**
+   * A map from offsets to elements of this library at these offsets.
+   */
+  final Map<int, Element> _offsetToElementMap = new HashMap<int, Element>();
 
   /**
    * The export [Namespace] of this library, `null` if it has not been
@@ -7167,6 +7119,13 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
 
+  /**
+   * This method is invoked after this library was incrementally resolved.
+   */
+  void afterIncrementalResolution() {
+    _offsetToElementMap.clear();
+  }
+
   @override
   ElementImpl getChild(String identifier) {
     if ((_definingCompilationUnit as CompilationUnitElementImpl).identifier ==
@@ -7189,6 +7148,14 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       }
     }
     return null;
+  }
+
+  @override
+  Element getElementAt(int offset) {
+    if (_offsetToElementMap.isEmpty) {
+      accept(new _BuildOffsetToElementMap(_offsetToElementMap));
+    }
+    return _offsetToElementMap[offset];
   }
 
   @override
@@ -7335,7 +7302,7 @@ abstract class LocalVariableElement implements LocalElement, VariableElement {}
  * A concrete implementation of a [LocalVariableElement].
  */
 class LocalVariableElementImpl extends VariableElementImpl
-    implements LocalVariableElement {
+    with PotentiallyConstVariableElement implements LocalVariableElement {
   /**
    * An empty list of field elements.
    */
@@ -7677,8 +7644,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 
   @override
   void appendTo(StringBuffer buffer) {
-    buffer.write(enclosingElement.displayName);
-    buffer.write(".");
     buffer.write(displayName);
     super.appendTo(buffer);
   }
@@ -8527,6 +8492,27 @@ class ParameterMember extends VariableMember implements ParameterElement {
 }
 
 /**
+ * Interface used by elements that might represent constant variables.
+ *
+ * This class may be used as a mixin in the case where [constInitializer] is
+ * known to return null.
+ *
+ * This class is not intended to be part of the public API for analyzer.
+ */
+abstract class PotentiallyConstVariableElement {
+  /**
+   * If this element represents a constant variable, and it has an initializer,
+   * a copy of the initializer for the constant.  Otherwise `null`.
+   *
+   * Note that in correct Dart code, all constant variables must have
+   * initializers.  However, analyzer also needs to handle incorrect Dart code,
+   * in which case there might be some constant variables that lack
+   * initializers.
+   */
+  Expression get constantInitializer => null;
+}
+
+/**
  * A prefix used to import one or more libraries into another library.
  */
 abstract class PrefixElement implements Element {
@@ -9307,7 +9293,7 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {}
  * A concrete implementation of a [TopLevelVariableElement].
  */
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
-    implements TopLevelVariableElement {
+    with PotentiallyConstVariableElement implements TopLevelVariableElement {
   /**
    * An empty list of top-level variable elements.
    */
@@ -9410,118 +9396,68 @@ abstract class TypeImpl implements DartType {
 
   int internalHashCode(List<DartType> visitedTypes);
 
-  bool internalIsMoreSpecificThan(
-      DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs);
-
-  bool internalIsSubtypeOf(
-      DartType type, Set<TypeImpl_TypePair> visitedTypePairs);
-
-  @override
-  bool isAssignableTo(DartType type) =>
-      isAssignableTo2(type, new HashSet<TypeImpl_TypePair>());
-
   /**
-   * Return `true` if this type is assignable to the given [type]. A type
-   * <i>T</i> may be assigned to a type <i>S</i>, written <i>T</i> &hArr;
-   * <i>S</i>, iff either <i>T</i> <: <i>S</i> or <i>S</i> <: <i>T</i>
-   * (Interface Types section of spec).
+   * Return `true` if this type is assignable to the given [type] (written in
+   * the spec as "T <=> S", where T=[this] and S=[type]).
    *
-   * The given set of [visitedTypePairs] of types (T1, T2), where each pair
-   * indicates that we invoked this method because we are in the process of
-   * answering the question of whether T1 is a subtype of T2, is used to prevent
-   * infinite loops.
+   * The sets [thisExpansions] and [typeExpansions], if given, are the sets of
+   * function type aliases that have been expanded so far in the process of
+   * reaching [this] and [type], respectively.  These are used to avoid
+   * infinite regress when analyzing invalid code; since the language spec
+   * forbids a typedef from referring to itself directly or indirectly, we can
+   * use these as sets of function type aliases that don't need to be expanded.
    */
-  bool isAssignableTo2(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
-    // Strictness matters for union types on the LHS, but not for union types
-    // on the RHS.
-    if (this is UnionType) {
-      if (AnalysisEngine.instance.strictUnionTypes) {
-        // *Every* element on the LHS must be assignable to the RHS.
-        // We recursively fall into the next case when the RHS is also a union:
-        // the order here is important!
-        for (DartType left in (this as UnionType).elements) {
-          // Would have to cast to [TypeImpl] to call the [visitedTypePairs]
-          // version here.
-          if (!left.isAssignableTo(type)) {
-            return false;
-          }
-        }
-        return true;
-      } else {
-        // *Some* element on the LHS must be assignable to the RHS.
-        for (DartType left in (this as UnionType).elements) {
-          // Would have to cast to [TypeImpl] to call the [visitedTypePairs]
-          // version here.
-          if (left.isAssignableTo(type)) {
-            return true;
-          }
-        }
-        return false;
-      }
-    } else if (type is UnionType) {
-      // The LHS, which is not a union, must be assignable to *some* element
-      // on the RHS.
-      for (DartType right in type.elements) {
-        if (this.isAssignableTo2(right, visitedTypePairs)) {
-          return true;
-        }
-      }
-      return false;
-    } else {
-      // For non union types we use the language spec definition of [<=>].
-      return isSubtypeOf2(type, visitedTypePairs) ||
-          (type as TypeImpl).isSubtypeOf2(this, visitedTypePairs);
-    }
+  @override
+  bool isAssignableTo(TypeImpl type,
+      [Set<Element> thisExpansions, Set<Element> typeExpansions]) {
+    // An interface type T may be assigned to a type S, written T <=> S, iff
+    // either T <: S or S <: T.
+    return isSubtypeOf(type, thisExpansions, typeExpansions) ||
+        type.isSubtypeOf(this, typeExpansions, thisExpansions);
   }
 
+  /**
+   * Return `true` if this type is more specific than the given [type] (written
+   * in the spec as "T << S", where T=[this] and S=[type]).
+   *
+   * The sets [thisExpansions] and [typeExpansions], if given, are the sets of
+   * function type aliases that have been expanded so far in the process of
+   * reaching [this] and [type], respectively.  These are used to avoid
+   * infinite regress when analyzing invalid code; since the language spec
+   * forbids a typedef from referring to itself directly or indirectly, we can
+   * use these as sets of function type aliases that don't need to be expanded.
+   *
+   * If [withDynamic] is `true`, then "dynamic" should be considered as a
+   * subtype of any type (as though "dynamic" had been replaced with bottom).
+   *
+   * The set [visitedElements], if given, is the set of classes and type
+   * parameters that have been visited so far while examining the class
+   * hierarchy of [this].  This is used to avoid infinite regress when
+   * analyzing invalid code; since the language spec forbids loops in the class
+   * hierarchy, we can use this as a set of classes that don't need to be
+   * examined when walking the class hierarchy.
+   */
   @override
-  bool isMoreSpecificThan(DartType type) =>
-      isMoreSpecificThan2(type, false, new HashSet<TypeImpl_TypePair>());
+  bool isMoreSpecificThan(DartType type, [Set<Element> thisExpansions,
+      Set<Element> typeExpansions, bool withDynamic = false,
+      Set<Element> visitedElements]);
 
   /**
-   * Return `true` if this type is more specific than the given [type]. If
-   * [withDynamic] is `true`, then "dynamic" should be considered as a subtype
-   * of any type.
+   * Return `true` if this type is a subtype of the given [type] (written in
+   * the spec as "T <: S", where T=[this] and S=[type]).
    *
-   * The given set of [visitedTypePairs] of types (T1, T2), where each pair
-   * indicates that we invoked this method because we are in the process of
-   * answering the question of whether T1 is a subtype of T2, is used to prevent
-   * infinite loops.
+   * The sets [thisExpansions] and [typeExpansions], if given, are the sets of
+   * function type aliases that have been expanded so far in the process of
+   * reaching [this] and [type], respectively.  These are used to avoid
+   * infinite regress when analyzing invalid code; since the language spec
+   * forbids a typedef from referring to itself directly or indirectly, we can
+   * use these as sets of function type aliases that don't need to be expanded.
    */
-  bool isMoreSpecificThan2(DartType type, bool withDynamic,
-      Set<TypeImpl_TypePair> visitedTypePairs) {
-    // If the visitedTypePairs already has the pair (this, type), return false
-    TypeImpl_TypePair typePair = new TypeImpl_TypePair(this, type);
-    if (!visitedTypePairs.add(typePair)) {
-      return false;
-    }
-    bool result =
-        internalIsMoreSpecificThan(type, withDynamic, visitedTypePairs);
-    visitedTypePairs.remove(typePair);
-    return result;
-  }
-
   @override
-  bool isSubtypeOf(DartType type) =>
-      isSubtypeOf2(type, new HashSet<TypeImpl_TypePair>());
-
-  /**
-   * Return `true` if this type is a subtype of the given [type].
-   *
-   * The given set of [visitedTypePairs] of types (T1, T2), where each pair
-   * indicates that we invoked this method because we are in the process of
-   * answering the question of whether T1 is a subtype of T2, is used to prevent
-   * infinite loops.
-   */
-  bool isSubtypeOf2(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
-    // If the visitedTypePairs already has the pair (this, type), return false
-    TypeImpl_TypePair typePair = new TypeImpl_TypePair(this, type);
-    if (!visitedTypePairs.add(typePair)) {
-      return false;
-    }
-    bool result = internalIsSubtypeOf(type, visitedTypePairs);
-    visitedTypePairs.remove(typePair);
-    return result;
+  bool isSubtypeOf(DartType type,
+      [Set<Element> thisExpansions, Set<Element> typeExpansions]) {
+    // For non-function types, T <: S iff [_|_/dynamic]T << S.
+    return isMoreSpecificThan(type, thisExpansions, typeExpansions, true);
   }
 
   @override
@@ -9577,66 +9513,6 @@ abstract class TypeImpl implements DartType {
       newTypes[i] = types[i].substitute2(argumentTypes, parameterTypes);
     }
     return newTypes;
-  }
-}
-
-/**
- * A pair of types, used to prevent infinite recursion when performing certain
- * computations.
- */
-class TypeImpl_TypePair {
-  /**
-   * The first type in the pair.
-   */
-  final DartType _firstType;
-
-  /**
-   * The second type in the pair.
-   */
-  final DartType _secondType;
-
-  /**
-   * The hash code of the pair. This is cached on first access in order to
-   * improve performance.
-   */
-  int _cachedHashCode;
-
-  /**
-   * Initialize a newly created pair of types to have the given [_firstType] and
-   * [_secondType].
-   */
-  TypeImpl_TypePair(this._firstType, this._secondType);
-
-  @override
-  int get hashCode {
-    if (_cachedHashCode == null) {
-      int firstHashCode = 0;
-      if (_firstType != null) {
-        Element firstElement = _firstType.element;
-        firstHashCode = firstElement == null ? 0 : firstElement.hashCode;
-      }
-      int secondHashCode = 0;
-      if (_secondType != null) {
-        Element secondElement = _secondType.element;
-        secondHashCode = secondElement == null ? 0 : secondElement.hashCode;
-      }
-      _cachedHashCode = firstHashCode + secondHashCode;
-    }
-    return _cachedHashCode;
-  }
-
-  @override
-  bool operator ==(Object object) {
-    if (identical(object, this)) {
-      return true;
-    }
-    if (object is TypeImpl_TypePair) {
-      TypeImpl_TypePair typePair = object;
-      return _firstType == typePair._firstType &&
-          _secondType != null &&
-          _secondType == typePair._secondType;
-    }
-    return false;
   }
 }
 
@@ -9748,8 +9624,9 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   int internalHashCode(List<DartType> visitedTypes) => hashCode;
 
   @override
-  bool internalIsMoreSpecificThan(
-      DartType s, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+  bool isMoreSpecificThan(DartType s, [Set<Element> thisExpansions,
+      Set<Element> typeExpansions, bool withDynamic = false,
+      Set<Element> visitedElements]) {
     //
     // A type T is more specific than a type S, written T << S,
     // if one of the following conditions is met:
@@ -9764,33 +9641,10 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     if (s.isDynamic) {
       return true;
     }
-    return _isMoreSpecificThan(
-        s, new HashSet<DartType>(), withDynamic, visitedTypePairs);
-  }
-
-  @override
-  bool internalIsSubtypeOf(
-          DartType type, Set<TypeImpl_TypePair> visitedTypePairs) =>
-      isMoreSpecificThan2(type, true, new HashSet<TypeImpl_TypePair>());
-
-  @override
-  DartType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes) {
-    int length = parameterTypes.length;
-    for (int i = 0; i < length; i++) {
-      if (parameterTypes[i] == this) {
-        return argumentTypes[i];
-      }
-    }
-    return this;
-  }
-
-  bool _isMoreSpecificThan(DartType s, Set<DartType> visitedTypes,
-      bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
     //
     // T is a type parameter and S is the upper bound of T.
     //
-    DartType bound = element.bound;
+    TypeImpl bound = element.bound;
     if (s == bound) {
       return true;
     }
@@ -9807,20 +9661,39 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     //
     // Transitivity: T << U and U << S.
     //
-    if (bound is TypeParameterTypeImpl) {
-      TypeParameterTypeImpl boundTypeParameter = bound;
-      // First check for infinite loops
-      if (visitedTypes.contains(bound)) {
-        return false;
-      }
-      visitedTypes.add(bound);
-      // Then check upper bound.
-      return boundTypeParameter._isMoreSpecificThan(
-          s, visitedTypes, withDynamic, visitedTypePairs);
+    // First check for infinite loops
+    if (element == null) {
+      return false;
     }
-    // Check interface type.
-    return (bound as TypeImpl).isMoreSpecificThan2(
-        s, withDynamic, visitedTypePairs);
+    if (visitedElements == null) {
+      visitedElements = new HashSet<Element>();
+    } else if (visitedElements.contains(element)) {
+      return false;
+    }
+    visitedElements.add(element);
+    try {
+      return bound.isMoreSpecificThan(
+          s, thisExpansions, typeExpansions, withDynamic, visitedElements);
+    } finally {
+      visitedElements.remove(element);
+    }
+  }
+
+  @override
+  bool isSubtypeOf(DartType type,
+          [Set<Element> thisExpansions, Set<Element> typeExpansions]) =>
+      isMoreSpecificThan(type, thisExpansions, typeExpansions, true);
+
+  @override
+  DartType substitute2(
+      List<DartType> argumentTypes, List<DartType> parameterTypes) {
+    int length = parameterTypes.length;
+    for (int i = 0; i < length; i++) {
+      if (parameterTypes[i] == this) {
+        return argumentTypes[i];
+      }
+    }
+    return this;
   }
 
   /**
@@ -9893,8 +9766,9 @@ class UndefinedTypeImpl extends TypeImpl {
   int internalHashCode(List<DartType> visitedTypes) => hashCode;
 
   @override
-  bool internalIsMoreSpecificThan(DartType type, bool withDynamic,
-      Set<TypeImpl_TypePair> visitedTypePairs) {
+  bool isMoreSpecificThan(DartType type, [Set<Element> thisExpansions,
+      Set<Element> typeExpansions, bool withDynamic = false,
+      Set<Element> visitedElements]) {
     // T is S
     if (identical(this, type)) {
       return true;
@@ -9904,8 +9778,8 @@ class UndefinedTypeImpl extends TypeImpl {
   }
 
   @override
-  bool internalIsSubtypeOf(
-      DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => true;
+  bool isSubtypeOf(DartType type,
+      [Set<Element> thisExpansions, Set<Element> typeExpansions]) => true;
 
   @override
   bool isSupertypeOf(DartType type) => true;
@@ -9920,221 +9794,6 @@ class UndefinedTypeImpl extends TypeImpl {
       }
     }
     return this;
-  }
-}
-
-/**
- * A union of other types. Union types are "flattened" in the sense that a union
- * type never contains another union type.
- */
-abstract class UnionType implements DartType {
-  /**
-   * Return an immutable view of the types in this union type.
-   */
-  Set<DartType> get elements;
-}
-
-/**
- * In addition to the methods of the `UnionType` interface we add a factory
- * method `union` for building unions.
- */
-class UnionTypeImpl extends TypeImpl implements UnionType {
-  /**
-   * The types in this union.
-   */
-  final Set<DartType> _types;
-
-  /**
-   * This constructor should only be called by the `union` factory: it does not
-   * check that its argument [types] contains no union types.
-   */
-  UnionTypeImpl(this._types) : super(null, null);
-
-  @override
-  String get displayName {
-    StringBuffer buffer = new StringBuffer();
-    String prefix = "{";
-    for (DartType t in _types) {
-      buffer.write(prefix);
-      buffer.write(t.displayName);
-      prefix = ",";
-    }
-    buffer.write("}");
-    return buffer.toString();
-  }
-
-  @override
-  Set<DartType> get elements => _types;
-
-  @override
-  int get hashCode => _types.hashCode;
-
-  @override
-  bool operator ==(Object other) {
-    if (other == null || other is! UnionType) {
-      return false;
-    } else if (identical(this, other)) {
-      return true;
-    } else {
-      return javaSetEquals(_types, (other as UnionType).elements);
-    }
-  }
-
-  @override
-  void appendTo(StringBuffer buffer, Set<DartType> visitedTypes) {
-    if (!visitedTypes.add(this)) {
-      buffer.write(name == null ? '...' : name);
-      return;
-    }
-    String prefix = "{";
-    for (DartType type in _types) {
-      buffer.write(prefix);
-      (type as TypeImpl).appendTo(buffer, visitedTypes);
-      prefix = ",";
-    }
-    buffer.write("}");
-  }
-
-  @override
-  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) =>
-      this == object;
-
-  @override
-  int internalHashCode(List<DartType> visitedTypes) => hashCode;
-
-  @override
-  bool internalIsMoreSpecificThan(DartType type, bool withDynamic,
-      Set<TypeImpl_TypePair> visitedTypePairs) {
-    // What version of subtyping do we want? See discussion below in
-    // [internalIsSubtypeOf].
-    if (AnalysisEngine.instance.strictUnionTypes) {
-      // The less unsound version: all.
-      for (DartType t in _types) {
-        if (!(t as TypeImpl).internalIsMoreSpecificThan(
-            type, withDynamic, visitedTypePairs)) {
-          return false;
-        }
-      }
-      return true;
-    } else {
-      // The more unsound version: any.
-      for (DartType t in _types) {
-        if ((t as TypeImpl).internalIsMoreSpecificThan(
-            type, withDynamic, visitedTypePairs)) {
-          return true;
-        }
-      }
-      return false;
-    }
-  }
-
-  @override
-  bool internalIsSubtypeOf(
-      DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
-    if (AnalysisEngine.instance.strictUnionTypes) {
-      // The less unsound version: all.
-      //
-      // For this version to make sense we also need to redefine assignment
-      // compatibility [<=>].
-      // See discussion above.
-      for (DartType t in _types) {
-        if (!(t as TypeImpl).internalIsSubtypeOf(type, visitedTypePairs)) {
-          return false;
-        }
-      }
-      return true;
-    } else {
-      // The more unsound version: any.
-      for (DartType t in _types) {
-        if ((t as TypeImpl).internalIsSubtypeOf(type, visitedTypePairs)) {
-          return true;
-        }
-      }
-      return false;
-    }
-  }
-
-  /**
-   * The more-specific-than test for union types on the RHS is uniform in
-   * non-union LHSs. So, other `TypeImpl`s can call this method to implement
-   * [internalIsMoreSpecificThan] for union types.
-   */
-  bool internalUnionTypeIsLessSpecificThan(DartType type, bool withDynamic,
-      Set<TypeImpl_TypePair> visitedTypePairs) {
-    // This implementation does not make sense when [type] is a union type,
-    // at least for the "less unsound" version of [internalIsMoreSpecificThan]
-    // above.
-    if (type is UnionType) {
-      throw new IllegalArgumentException("Only non-union types are supported.");
-    }
-    for (DartType t in _types) {
-      if ((type as TypeImpl).internalIsMoreSpecificThan(
-          t, withDynamic, visitedTypePairs)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * The supertype test for union types is uniform in non-union subtypes. So,
-   * other `TypeImpl`s can call this method to implement `internalIsSubtypeOf`
-   * for union types.
-   */
-  bool internalUnionTypeIsSuperTypeOf(
-      DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
-    // This implementation does not make sense when [type] is a union type,
-    // at least for the "less unsound" version of [internalIsSubtypeOf] above.
-    if (type is UnionType) {
-      throw new IllegalArgumentException("Only non-union types are supported.");
-    }
-    for (DartType t in _types) {
-      if ((type as TypeImpl).internalIsSubtypeOf(t, visitedTypePairs)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  DartType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes) {
-    List<DartType> out = new List<DartType>();
-    for (DartType t in _types) {
-      out.add(t.substitute2(argumentTypes, parameterTypes));
-    }
-    return union(out);
-  }
-
-  /**
-   * Return the union of the given [types]. Any unions in the [types] will be
-   * flattened in the returned union. If there is only one type after flattening
-   * then it will be returned directly, instead of a singleton union. Nulls are
-   * discarded, unless all types are null, in which case an exception is raised.
-   */
-  static DartType union(List<DartType> types) {
-    Set<DartType> set = new HashSet<DartType>();
-    for (DartType t in types) {
-      if (t is UnionType) {
-        set.addAll(t.elements);
-      } else {
-        if (t != null) {
-          set.add(t);
-        }
-      }
-    }
-    if (set.length == 0) {
-      // TODO(collinsn): better to return [null] here? The use case is e.g.
-      //
-      //   union(null, null) ==> null;
-      //
-      // instead of raising an exception.
-      throw new IllegalArgumentException("No known use case for empty unions.");
-    } else if (set.length == 1) {
-      return set.first;
-    } else {
-      return new UnionTypeImpl(set);
-    }
   }
 }
 
@@ -10212,6 +9871,22 @@ abstract class VariableElement implements Element {
    * even though they are implicitly final.
    */
   bool get isFinal;
+
+  /**
+   * Return `true` if this variable is potentially mutated somewhere in a
+   * closure. This information is only available for local variables (including
+   * parameters) and only after the compilation unit containing the variable has
+   * been resolved.
+   */
+  bool get isPotentiallyMutatedInClosure;
+
+  /**
+   * Return `true` if this variable is potentially mutated somewhere in its
+   * scope. This information is only available for local variables (including
+   * parameters) and only after the compilation unit containing the variable has
+   * been resolved.
+   */
+  bool get isPotentiallyMutatedInScope;
 
   /**
    * Return the resolved [VariableDeclaration] node that declares this
@@ -10314,20 +9989,10 @@ abstract class VariableElementImpl extends ElementImpl
   @override
   bool get isFinal => hasModifier(Modifier.FINAL);
 
-  /**
-   * Return `true` if this variable is potentially mutated somewhere in a
-   * closure. This information is only available for local variables (including
-   * parameters) and only after the compilation unit containing the variable has
-   * been resolved.
-   */
+  @override
   bool get isPotentiallyMutatedInClosure => false;
 
-  /**
-   * Return `true` if this variable is potentially mutated somewhere in its
-   * scope. This information is only available for local variables (including
-   * parameters) and only after the compilation unit containing the variable has
-   * been resolved.
-   */
+  @override
   bool get isPotentiallyMutatedInScope => false;
 
   @override
@@ -10378,6 +10043,14 @@ abstract class VariableMember extends Member implements VariableElement {
 
   @override
   bool get isFinal => baseElement.isFinal;
+
+  @override
+  bool get isPotentiallyMutatedInClosure =>
+      baseElement.isPotentiallyMutatedInClosure;
+
+  @override
+  bool get isPotentiallyMutatedInScope =>
+      baseElement.isPotentiallyMutatedInScope;
 
   @override
   VariableDeclaration get node => baseElement.node;
@@ -10439,16 +10112,13 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   int internalHashCode(List<DartType> visitedTypes) => hashCode;
 
   @override
-  bool internalIsMoreSpecificThan(DartType type, bool withDynamic,
-      Set<TypeImpl_TypePair> visitedTypePairs) => isSubtypeOf(type);
+  bool isMoreSpecificThan(DartType type, [Set<Element> thisExpansions,
+      Set<Element> typeExpansions, bool withDynamic = false,
+      Set<Element> visitedElements]) => isSubtypeOf(type);
 
   @override
-  bool internalIsSubtypeOf(
-      DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
-    if (type is UnionType) {
-      return (type as UnionTypeImpl).internalUnionTypeIsSuperTypeOf(
-          this, visitedTypePairs);
-    }
+  bool isSubtypeOf(DartType type,
+      [Set<Element> thisExpansions, Set<Element> typeExpansions]) {
     // The only subtype relations that pertain to void are therefore:
     // void <: void (by reflexivity)
     // bottom <: void (as bottom is a subtype of all types).
@@ -10459,4 +10129,22 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   @override
   VoidTypeImpl substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes) => this;
+}
+
+/**
+ * A visitor that visit all the elements recursively and fill the given [map].
+ */
+class _BuildOffsetToElementMap extends GeneralizingElementVisitor {
+  final Map<int, Element> map;
+
+  _BuildOffsetToElementMap(this.map);
+
+  @override
+  void visitElement(Element element) {
+    int offset = element.nameOffset;
+    if (offset != -1) {
+      map[offset] = element;
+    }
+    super.visitElement(element);
+  }
 }

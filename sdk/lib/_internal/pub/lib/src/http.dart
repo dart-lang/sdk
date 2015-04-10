@@ -11,6 +11,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:http_throttle/http_throttle.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 import 'io.dart';
 import 'log.dart' as log;
@@ -107,6 +108,9 @@ class _PubHttpClient extends http.BaseClient {
         throw new PubHttpException(response);
       });
     }).catchError((error, stackTrace) {
+      // Work around issue 23008.
+      if (stackTrace == null) stackTrace = new Chain.current();
+
       if (error is SocketException &&
           error.osError != null) {
         if (error.osError.errorCode == 8 ||

@@ -4234,7 +4234,7 @@ class CssRule extends NativeFieldWrapperClass2 {
 
 
 @DomName('CSSStyleDeclaration')
- class CssStyleDeclaration  extends NativeFieldWrapperClass2 with
+class CssStyleDeclaration  extends NativeFieldWrapperClass2 with
     CssStyleDeclarationBase  {
   factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
 
@@ -4284,13 +4284,24 @@ class CssRule extends NativeFieldWrapperClass2 {
 
   @DomName('CSSStyleDeclaration.setProperty')
   void setProperty(String propertyName, String value, [String priority]) {
-    if (_supportsProperty(_camelCase(propertyName))) {
-      return _setPropertyHelper(propertyName, value, priority);
-    } else {
-      return _setPropertyHelper(Device.cssPrefix + propertyName, value,
-          priority);
-    }
+    return _setPropertyHelper(_browserPropertyName(propertyName),
+      value, priority);
   }
+
+  String _browserPropertyName(String propertyName) {
+    String name = _readCache(propertyName);
+    if (name is String) return name;
+    if (_supportsProperty(_camelCase(propertyName))) {
+      name = propertyName;
+    } else {
+      name = Device.cssPrefix + propertyName;
+    }
+    _writeCache(propertyName, name);
+    return name;
+  }
+
+  static String _readCache(String key) => null;
+  static void _writeCache(String key, value) {}
 
   static String _camelCase(String hyphenated) {
     // The "ms" prefix is always lowercased.
@@ -4382,6 +4393,9 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
     _elementCssStyleDeclarationSetIterable.forEach((e) =>
         e.setProperty(propertyName, value, priority));
   }
+
+
+
   // Important note: CssStyleDeclarationSet does NOT implement every method
   // available in CssStyleDeclaration. Some of the methods don't make so much
   // sense in terms of having a resonable value to return when you're
@@ -12634,6 +12648,15 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    * used when an explicit accessor is not available.
    */
   ElementEvents get on => new ElementEvents(this);
+  
+  /**
+   * Verify if any of the attributes that we use in the sanitizer look unexpected,
+   * possibly indicating DOM clobbering attacks.
+   *
+   * Those attributes are: attributes, lastChild, children, previousNode and tagName.
+   */
+  // Dartium isn't affected by these attacks, because it goes directly to the C++ API.
+  bool get _hasCorruptedAttributes => false;
 
   @DomName('Element.offsetHeight')
   @DocsEditable()
@@ -37276,6 +37299,12 @@ abstract class CssClassSet implements Set<String> {
    *
    * If [shouldAdd] is true, then we always add that [value] to the element. If
    * [shouldAdd] is false then we always remove [value] from the element.
+   *
+   * If this corresponds to one element, returns `true` if [value] is present
+   * after the operation, and returns `false` if [value] is absent after the
+   * operation.
+   *
+   * If this corresponds to many elements, `null` is always returned.
    */
   bool toggle(String value, [bool shouldAdd]);
 
@@ -37302,7 +37331,7 @@ abstract class CssClassSet implements Set<String> {
    * If this corresponds to one element. Returns true if [value] was added to
    * the set, otherwise false.
    *
-   * If this corresponds to many elements, null is always returned.
+   * If this corresponds to many elements, `null` is always returned.
    */
   bool add(String value);
 
@@ -37343,6 +37372,10 @@ abstract class CssClassSet implements Set<String> {
    */
   void toggleAll(Iterable<String> iterable, [bool shouldAdd]);
 }
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /**
  * A set (union) of the CSS classes that are present in a set of elements.
@@ -40394,6 +40427,13 @@ class _SvgNodeValidator implements NodeValidator {
     if (element is svg.ScriptElement) {
       return false;
     }
+    // Firefox 37 has issues with creating foreign elements inside a
+    // foreignobject tag as SvgElement. We don't want foreignobject contents
+    // anyway, so just remove the whole tree outright. And we can't rely
+    // on IE recognizing the SvgForeignObject type, so go by tagName. Bug 23144
+    if (element is svg.SvgElement && element.tagName == 'foreignObject') {
+      return false;
+    }
     if (element is svg.SvgElement) {
       return true;
     }
@@ -40544,7 +40584,7 @@ class _SameOriginUriPolicy implements UriPolicy {
         _hiddenAnchor.protocol == _loc.protocol) ||
         (_hiddenAnchor.hostname == '' &&
         _hiddenAnchor.port == '' &&
-        _hiddenAnchor.protocol == ':');
+        (_hiddenAnchor.protocol == ':' || _hiddenAnchor.protocol == ''));
   }
 }
 
@@ -40578,29 +40618,46 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   _ValidatingTreeSanitizer(this.validator) {}
 
   void sanitizeTree(Node node) {
-    void walk(Node node) {
-      sanitizeNode(node);
+    void walk(Node node, Node parent) {
+      sanitizeNode(node, parent);
 
       var child = node.lastChild;
       while (child != null) {
         // Child may be removed during the walk.
         var nextChild = child.previousNode;
-        walk(child);
+        walk(child, node);
         child = nextChild;
       }
     }
-    walk(node);
+    walk(node, null);
   }
 
-  void sanitizeNode(Node node) {
+  /// Aggressively try to remove node.
+  void _removeNode(Node node, Node parent) {
+    // If we have the parent, it's presumably already passed more sanitization or
+    // is the fragment, so ask it to remove the child. And if that fails try to
+    // set the outer html.
+    if (parent == null) {
+      node.remove();
+    } else {
+      parent._removeChild(node);
+    }
+  }
+  
+  void sanitizeNode(Node node, Node parent) {
     switch (node.nodeType) {
       case Node.ELEMENT_NODE:
         Element element = node;
+        if (element._hasCorruptedAttributes) {
+          window.console.warn('Removing element due to corrupted attributes on <${element}>');
+          _removeNode(node, parent);
+          break;
+        }
         var attrs = element.attributes;
         if (!validator.allowsElement(element)) {
           window.console.warn(
               'Removing disallowed element <${element.tagName}>');
-          element.remove();
+          _removeNode(node, parent);
           break;
         }
 
@@ -40609,7 +40666,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
           if (!validator.allowsAttribute(element, 'is', isAttr)) {
             window.console.warn('Removing disallowed type extension '
                 '<${element.tagName} is="$isAttr">');
-            element.remove();
+            _removeNode(node, parent);
             break;
           }
         }
@@ -40638,7 +40695,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       case Node.CDATA_SECTION_NODE:
         break;
       default:
-        node.remove();
+        _removeNode(node, parent);
     }
   }
 }

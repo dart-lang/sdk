@@ -325,10 +325,6 @@ class Assembler : public ValueObject {
 
   // Debugging and bringup support.
   void Stop(const char* message);
-
-  // TODO(zra): TraceSimMsg enables printing of helpful messages when
-  // --trace_sim is given. Eventually these calls will be changed to Comment.
-  void TraceSimMsg(const char* message);
   void Unimplemented(const char* message);
   void Untested(const char* message);
   void Unreachable(const char* message);

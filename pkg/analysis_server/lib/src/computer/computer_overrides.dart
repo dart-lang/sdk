@@ -45,6 +45,30 @@ class DartUnitOverridesComputer {
     return _overrides;
   }
 
+  void _addInterfaceOverrides(List<engine.Element> elements, String name,
+      engine.InterfaceType type, bool checkType,
+      Set<engine.InterfaceType> visited) {
+    if (type == null) {
+      return;
+    }
+    if (!visited.add(type)) {
+      return;
+    }
+    // check type
+    if (checkType) {
+      engine.Element element = _lookupMember(type.element, name);
+      if (element != null) {
+        elements.add(element);
+      }
+    }
+    // check interfaces
+    for (engine.InterfaceType interfaceType in type.interfaces) {
+      _addInterfaceOverrides(elements, name, interfaceType, true, visited);
+    }
+    // check super
+    _addInterfaceOverrides(elements, name, type.superclass, checkType, visited);
+  }
+
   void _addOverride(int offset, int length, String name) {
     // super
     engine.Element superEngineElement;
@@ -56,21 +80,15 @@ class DartUnitOverridesComputer {
     }
     // interfaces
     List<engine.Element> interfaceEngineElements = <engine.Element>[];
-    for (engine.InterfaceType interfaceType in _currentClass.interfaces) {
-      engine.ClassElement interfaceElement = interfaceType.element;
-      engine.Element interfaceMember = _lookupMember(interfaceElement, name);
-      if (interfaceMember != null) {
-        interfaceEngineElements.add(interfaceMember);
-      }
-    }
+    _addInterfaceOverrides(interfaceEngineElements, name, _currentClass.type,
+        false, new Set<engine.InterfaceType>());
     // is there any override?
     if (superEngineElement != null || interfaceEngineElements.isNotEmpty) {
       OverriddenMember superMember = superEngineElement != null
           ? newOverriddenMember_fromEngine(superEngineElement)
           : null;
       List<OverriddenMember> interfaceMembers = interfaceEngineElements
-          .map(
-              (engine.Element member) => newOverriddenMember_fromEngine(member))
+          .map((member) => newOverriddenMember_fromEngine(member))
           .toList();
       _overrides.add(new Override(offset, length,
           superclassMember: superMember,

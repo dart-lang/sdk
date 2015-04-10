@@ -97,7 +97,8 @@ static int Main(int argc, const char** argv) {
   bool set_vm_flags_success = Flags::ProcessCommandLineFlags(dart_argc,
                                                              dart_argv);
   ASSERT(set_vm_flags_success);
-  const char* err_msg = Dart::InitOnce(NULL, NULL, NULL, NULL,
+  const char* err_msg = Dart::InitOnce(NULL,
+                                       NULL, NULL, NULL, NULL,
                                        dart::bin::DartUtils::OpenFile,
                                        dart::bin::DartUtils::ReadFile,
                                        dart::bin::DartUtils::WriteFile,

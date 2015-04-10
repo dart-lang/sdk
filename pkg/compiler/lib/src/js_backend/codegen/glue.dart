@@ -11,7 +11,7 @@ import '../../js/js.dart' as js;
 import '../../constants/values.dart';
 import '../../elements/elements.dart';
 import '../../constants/expressions.dart';
-import '../../dart_types.dart' show TypeVariableType;
+import '../../dart_types.dart' show DartType, TypeVariableType;
 
 /// Encapsulates the dependencies of the function-compiler to the compiler,
 /// backend and emitter.
@@ -153,5 +153,19 @@ class Glue {
     return subclasses.any((ClassElement subclass) {
       return !_backend.rti.isTrivialSubstitution(subclass, cls);
     });
+  }
+
+  FunctionElement getAddRuntimeTypeInformation() {
+    return _backend.getSetRuntimeTypeInfo();
+  }
+
+  js.Expression generateTypeRepresentation(DartType dartType,
+                                           List<js.Expression> arguments) {
+    int variableIndex = 0;
+    js.Expression representation = _backend.rti.getTypeRepresentation(
+        dartType,
+        (_) => arguments[variableIndex++]);
+    assert(variableIndex == arguments.length);
+    return representation;
   }
 }

@@ -92,6 +92,8 @@ class ThreadInterrupter : public AllStatic {
 
   static void InstallSignalHandler();
 
+  static void RemoveSignalHandler();
+
   friend class ThreadInterrupterVisitIsolates;
 };
 

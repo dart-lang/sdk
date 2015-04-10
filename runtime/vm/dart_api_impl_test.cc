@@ -20,6 +20,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, verify_acquired_data);
 
 TEST_CASE(ErrorHandleBasics) {
@@ -1739,6 +1740,74 @@ TEST_CASE(ExternalByteDataAccess) {
     EXPECT_EQ(0x24, data[i]);
     EXPECT_EQ(0x28, data[i+1]);
   }
+}
+
+
+static const intptr_t kOptExtLength = 16;
+static int8_t opt_data[kOptExtLength] = { 0x01, 0x02, 0x03, 0x04,
+                                          0x05, 0x06, 0x07, 0x08,
+                                          0x09, 0x0a, 0x0b, 0x0c,
+                                          0x0d, 0x0e, 0x0f, 0x10, };
+
+static void OptExternalByteDataNativeFunction(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle external_byte_data = Dart_NewExternalTypedData(
+      Dart_TypedData_kByteData, opt_data, 16);
+  EXPECT_VALID(external_byte_data);
+  EXPECT_EQ(Dart_TypedData_kByteData,
+            Dart_GetTypeOfTypedData(external_byte_data));
+  Dart_SetReturnValue(args, external_byte_data);
+  Dart_ExitScope();
+}
+
+
+static Dart_NativeFunction OptExternalByteDataNativeResolver(
+    Dart_Handle name, int arg_count, bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
+  return &OptExternalByteDataNativeFunction;
+}
+
+
+TEST_CASE(OptimizedExternalByteDataAccess) {
+  const char* kScriptChars =
+      "import 'dart:typed_data';\n"
+      "class Expect {\n"
+      "  static equals(a, b) {\n"
+      "    if (a != b) {\n"
+      "      throw 'not equal. expected: $a, got: $b';\n"
+      "    }\n"
+      "  }\n"
+      "}\n"
+      "ByteData createExternalByteData() native 'CreateExternalByteData';"
+      "access(ByteData a) {"
+      "  Expect.equals(0x04030201, a.getUint32(0, Endianness.LITTLE_ENDIAN));"
+      "  Expect.equals(0x08070605, a.getUint32(4, Endianness.LITTLE_ENDIAN));"
+      "  Expect.equals(0x0c0b0a09, a.getUint32(8, Endianness.LITTLE_ENDIAN));"
+      "  Expect.equals(0x100f0e0d, a.getUint32(12, Endianness.LITTLE_ENDIAN));"
+      "}"
+      "ByteData main() {"
+      "  var length = 16;"
+      "  var a = createExternalByteData();"
+      "  Expect.equals(length, a.lengthInBytes);"
+      "  for (int i = 0; i < 20; i++) {"
+      "    access(a);"
+      "  }"
+      "  return a;"
+      "}\n";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  Dart_Handle result = Dart_SetNativeResolver(
+      lib, &OptExternalByteDataNativeResolver, NULL);
+  EXPECT_VALID(result);
+
+  // Invoke 'main' function.
+  int old_oct = FLAG_optimization_counter_threshold;
+  FLAG_optimization_counter_threshold = 5;
+  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  FLAG_optimization_counter_threshold = old_oct;
 }
 
 
@@ -3619,7 +3688,7 @@ UNIT_TEST_CASE(CurrentIsolateData) {
   intptr_t mydata = 12345;
   char* err;
   Dart_Isolate isolate =
-      Dart_CreateIsolate(NULL, NULL, bin::snapshot_buffer,
+      Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer,
                          reinterpret_cast<void*>(mydata),
                          &err);
   EXPECT(isolate != NULL);
@@ -7141,6 +7210,20 @@ void NewNativePort_send321(Dart_Port dest_port_id,
 }
 
 
+TEST_CASE(IllegalNewSendPort) {
+  Dart_Handle error = Dart_NewSendPort(ILLEGAL_PORT);
+  EXPECT(Dart_IsError(error));
+  EXPECT(Dart_IsApiError(error));
+}
+
+
+TEST_CASE(IllegalPost) {
+  Dart_Handle message = Dart_True();
+  bool success = Dart_Post(ILLEGAL_PORT, message);
+  EXPECT(!success);
+}
+
+
 UNIT_TEST_CASE(NewNativePort) {
   // Create a port with a bogus handler.
   Dart_Port error_port = Dart_NewNativePort("Foo", NULL, true);
@@ -7378,7 +7461,7 @@ void BusyLoop_start(uword unused) {
     MonitorLocker ml(sync);
     char* error = NULL;
     shared_isolate = Dart_CreateIsolate(NULL, NULL,
-                                        bin::snapshot_buffer,
+                                        bin::isolate_snapshot_buffer,
                                         NULL, &error);
     EXPECT(shared_isolate != NULL);
     Dart_EnterScope();
@@ -7506,7 +7589,7 @@ UNIT_TEST_CASE(IsolateShutdown) {
   // Create an isolate.
   char* err;
   Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL,
-                                            bin::snapshot_buffer,
+                                            bin::isolate_snapshot_buffer,
                                             my_data, &err);
   if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);
@@ -7556,7 +7639,7 @@ UNIT_TEST_CASE(IsolateShutdownRunDartCode) {
   // Create an isolate.
   char* err;
   Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL,
-                                            bin::snapshot_buffer,
+                                            bin::isolate_snapshot_buffer,
                                             NULL, &err);
   if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);

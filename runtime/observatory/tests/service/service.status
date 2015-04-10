@@ -1,0 +1,27 @@
+# Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $system == linux ]
+call_site_data_test: Pass, Fail # Issue 23160
+
+# Unexpected number format
+[ $system == windows ]
+code_test: Skip
+
+# Tests that depend on token positions (which differ in release mode).
+[ $mode == release ]
+debugging_test: Skip
+
+# Disable on simulators.
+[ $arch == simarm || $arch == simmips || $arch == simarm64]
+*: Skip # Slow
+
+# The transformations of dart2dart are not guaranteed to preserve the
+# state/properties of the VM that the Observatory tests are inspecting.
+[ $compiler == dart2dart ]
+*: Skip
+
+# All tests use dart:io
+[ $browser || $compiler == dart2js ]
+*: SkipByDesign

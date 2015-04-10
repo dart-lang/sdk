@@ -4,6 +4,7 @@
 
 library engine.incremental_scanner_test;
 
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/incremental_scanner.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -220,13 +221,6 @@ class IncrementalScannerTest extends EngineTestCase {
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
-  void test_insert_periodAndIdentifier() {
-    // "a + b;"
-    // "a + b.x;"
-    _scan("a + b", "", ".x", ";");
-    _assertTokens(2, 5, ["a", "+", "b", ".", "x", ";"]);
-  }
-
   void test_insert_period_afterIdentifier() {
     // "a + b;"
     // "a + b.;"
@@ -263,6 +257,13 @@ class IncrementalScannerTest extends EngineTestCase {
     _scan("a", "", ".", "b;");
     _assertTokens(-1, 3, ["a", ".", "b", ";"]);
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  }
+
+  void test_insert_periodAndIdentifier() {
+    // "a + b;"
+    // "a + b.x;"
+    _scan("a + b", "", ".x", ";");
+    _assertTokens(2, 5, ["a", "+", "b", ".", "x", ";"]);
   }
 
   void test_insert_splitIdentifier() {
@@ -498,8 +499,9 @@ a''', "", " ", " + b;");
     // Incrementally scan the modified contents.
     //
     GatheringErrorListener incrementalListener = new GatheringErrorListener();
-    _incrementalScanner = new IncrementalScanner(
-        source, new CharSequenceReader(modifiedContents), incrementalListener);
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    _incrementalScanner = new IncrementalScanner(source,
+        new CharSequenceReader(modifiedContents), incrementalListener, options);
     _incrementalTokens = _incrementalScanner.rescan(
         _originalTokens, replaceStart, removed.length, added.length);
     //

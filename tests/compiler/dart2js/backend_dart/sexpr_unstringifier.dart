@@ -16,12 +16,12 @@ import 'package:compiler/src/dart_types.dart' as dart_types
     show DartType;
 import 'package:compiler/src/elements/elements.dart'
    show Entity, Element, Elements, Local, TypeVariableElement, ErroneousElement,
-         TypeDeclarationElement, ExecutableElement;
+         TypeDeclarationElement, ExecutableElement, PublicName;
 import 'package:compiler/src/elements/modelx.dart'
     show ErroneousElementX, TypeVariableElementX;
 import 'package:compiler/src/tree/tree.dart' show LiteralDartString;
 import 'package:compiler/src/universe/universe.dart'
-    show Selector, SelectorKind;
+    show Selector, SelectorKind, CallStructure;
 import 'package:compiler/src/cps_ir/cps_ir_nodes.dart';
 
 /// Used whenever a node constructed by [SExpressionUnstringifier] needs a
@@ -190,7 +190,8 @@ class SExpressionUnstringifier {
     } else {
       kind = SelectorKind.CALL;
     }
-    return new Selector(kind, name, null, argumentCount);
+    return new Selector(kind, new PublicName(name), 
+        new CallStructure.unnamed(argumentCount));
   }
 
   /// Returns the tokens in s. Note that string literals are not necessarily
@@ -317,7 +318,7 @@ class SExpressionUnstringifier {
 
     tokens.consumeEnd();
     return new FunctionDefinition(element, thisParameter, parameters,
-        new RunnableBody(body, cont), null, null);
+        new Body(body, cont), null, null);
   }
 
   /// (IsTrue arg)
@@ -411,7 +412,7 @@ class SExpressionUnstringifier {
     List<Primitive> args = parsePrimitiveList();
 
     tokens.consumeEnd();
-    return new InvokeContinuation(cont, args, recursive: isRecursive);
+    return new InvokeContinuation(cont, args, isRecursive: isRecursive);
   }
 
   /// (InvokeMethod receiver method (args) cont)

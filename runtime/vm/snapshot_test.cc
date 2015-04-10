@@ -1029,7 +1029,8 @@ UNIT_TEST_CASE(FullSnapshot) {
       "}\n";
   Dart_Handle result;
 
-  uint8_t* buffer;
+  uint8_t* vm_isolate_snapshot_buffer;
+  uint8_t* isolate_snapshot_buffer;
 
   // Start an Isolate, load a script and create a full snapshot.
   Timer timer1(true, "Snapshot_test");
@@ -1048,7 +1049,9 @@ UNIT_TEST_CASE(FullSnapshot) {
     OS::PrintErr("Without Snapshot: %" Pd64 "us\n", timer1.TotalElapsedTime());
 
     // Write snapshot with object content.
-    FullSnapshotWriter writer(&buffer, &malloc_allocator);
+    FullSnapshotWriter writer(&vm_isolate_snapshot_buffer,
+                              &isolate_snapshot_buffer,
+                              &malloc_allocator);
     writer.WriteFullSnapshot();
   }
 
@@ -1056,7 +1059,7 @@ UNIT_TEST_CASE(FullSnapshot) {
   // from the script.
   Timer timer2(true, "Snapshot_test");
   timer2.Start();
-  TestCase::CreateTestIsolateFromSnapshot(buffer);
+  TestCase::CreateTestIsolateFromSnapshot(isolate_snapshot_buffer);
   {
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
     timer2.Stop();
@@ -1070,7 +1073,7 @@ UNIT_TEST_CASE(FullSnapshot) {
     Dart_ExitScope();
   }
   Dart_ShutdownIsolate();
-  free(buffer);
+  free(isolate_snapshot_buffer);
 }
 
 
@@ -1083,7 +1086,8 @@ UNIT_TEST_CASE(FullSnapshot1) {
   };
   const char* kScriptChars = kFullSnapshotScriptChars;
 
-  uint8_t* buffer;
+  uint8_t* vm_isolate_snapshot_buffer;
+  uint8_t* isolate_snapshot_buffer;
 
   // Start an Isolate, load a script and create a full snapshot.
   Timer timer1(true, "Snapshot_test");
@@ -1102,7 +1106,9 @@ UNIT_TEST_CASE(FullSnapshot1) {
     OS::PrintErr("Without Snapshot: %" Pd64 "us\n", timer1.TotalElapsedTime());
 
     // Write snapshot with object content.
-    FullSnapshotWriter writer(&buffer, &malloc_allocator);
+    FullSnapshotWriter writer(&vm_isolate_snapshot_buffer,
+                              &isolate_snapshot_buffer,
+                              &malloc_allocator);
     writer.WriteFullSnapshot();
 
     // Invoke a function which returns an object.
@@ -1115,7 +1121,7 @@ UNIT_TEST_CASE(FullSnapshot1) {
   // from the script.
   Timer timer2(true, "Snapshot_test");
   timer2.Start();
-  TestCase::CreateTestIsolateFromSnapshot(buffer);
+  TestCase::CreateTestIsolateFromSnapshot(isolate_snapshot_buffer);
   {
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
     timer2.Stop();
@@ -1133,7 +1139,7 @@ UNIT_TEST_CASE(FullSnapshot1) {
     Dart_ExitScope();
   }
   Dart_ShutdownIsolate();
-  free(buffer);
+  free(isolate_snapshot_buffer);
 }
 
 
@@ -1183,6 +1189,10 @@ UNIT_TEST_CASE(ScriptSnapshot) {
 
   uint8_t* buffer;
   intptr_t size;
+  uint8_t* vm_isolate_snapshot = NULL;
+  intptr_t vm_isolate_snapshot_size;
+  uint8_t* isolate_snapshot = NULL;
+  intptr_t isolate_snapshot_size;
   uint8_t* full_snapshot = NULL;
   uint8_t* script_snapshot = NULL;
   intptr_t expected_num_libs;
@@ -1194,10 +1204,13 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
 
     // Write out the script snapshot.
-    result = Dart_CreateSnapshot(&buffer, &size);
+    result = Dart_CreateSnapshot(&vm_isolate_snapshot,
+                                 &vm_isolate_snapshot_size,
+                                 &isolate_snapshot,
+                                 &isolate_snapshot_size);
     EXPECT_VALID(result);
-    full_snapshot = reinterpret_cast<uint8_t*>(malloc(size));
-    memmove(full_snapshot, buffer, size);
+    full_snapshot = reinterpret_cast<uint8_t*>(malloc(isolate_snapshot_size));
+    memmove(full_snapshot, isolate_snapshot, isolate_snapshot_size);
     Dart_ExitScope();
   }
 
@@ -1275,6 +1288,10 @@ UNIT_TEST_CASE(ScriptSnapshot1) {
   Dart_Handle result;
   uint8_t* buffer;
   intptr_t size;
+  uint8_t* vm_isolate_snapshot = NULL;
+  intptr_t vm_isolate_snapshot_size;
+  uint8_t* isolate_snapshot = NULL;
+  intptr_t isolate_snapshot_size;
   uint8_t* full_snapshot = NULL;
   uint8_t* script_snapshot = NULL;
 
@@ -1284,10 +1301,13 @@ UNIT_TEST_CASE(ScriptSnapshot1) {
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
 
     // Write out the script snapshot.
-    result = Dart_CreateSnapshot(&buffer, &size);
+    result = Dart_CreateSnapshot(&vm_isolate_snapshot,
+                                 &vm_isolate_snapshot_size,
+                                 &isolate_snapshot,
+                                 &isolate_snapshot_size);
     EXPECT_VALID(result);
-    full_snapshot = reinterpret_cast<uint8_t*>(malloc(size));
-    memmove(full_snapshot, buffer, size);
+    full_snapshot = reinterpret_cast<uint8_t*>(malloc(isolate_snapshot_size));
+    memmove(full_snapshot, isolate_snapshot, isolate_snapshot_size);
     Dart_ExitScope();
   }
 
@@ -1352,6 +1372,10 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
 
   uint8_t* buffer;
   intptr_t size;
+  uint8_t* vm_isolate_snapshot = NULL;
+  intptr_t vm_isolate_snapshot_size;
+  uint8_t* isolate_snapshot = NULL;
+  intptr_t isolate_snapshot_size;
   uint8_t* full_snapshot = NULL;
   uint8_t* script_snapshot = NULL;
 
@@ -1365,10 +1389,13 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
 
     // Write out the script snapshot.
-    result = Dart_CreateSnapshot(&buffer, &size);
+    result = Dart_CreateSnapshot(&vm_isolate_snapshot,
+                                 &vm_isolate_snapshot_size,
+                                 &isolate_snapshot,
+                                 &isolate_snapshot_size);
     EXPECT_VALID(result);
-    full_snapshot = reinterpret_cast<uint8_t*>(malloc(size));
-    memmove(full_snapshot, buffer, size);
+    full_snapshot = reinterpret_cast<uint8_t*>(malloc(isolate_snapshot_size));
+    memmove(full_snapshot, isolate_snapshot, isolate_snapshot_size);
     Dart_ExitScope();
   }
 

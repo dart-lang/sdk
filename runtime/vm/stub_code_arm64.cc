@@ -539,7 +539,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they
   // require allocation.
-  __ EnterStubFrame();
+  // Enter stub frame with loading PP. The caller's PP is not materialized yet.
+  __ EnterStubFrame(true);
   if (preserve_result) {
     __ Push(ZR);  // Workaround for dropped stack slot during GC.
     __ Push(R1);  // Preserve result, it will be GC-d here.

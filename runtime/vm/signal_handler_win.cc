@@ -43,6 +43,11 @@ void SignalHandler::Install(SignalAction action) {
 }
 
 
+void SignalHandler::Remove() {
+  UNIMPLEMENTED();
+}
+
+
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_WINDOWS)

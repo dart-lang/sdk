@@ -19,17 +19,19 @@ void addInfoBox(content, infoBox) {
   infoBox.style.border = 'solid black 2px';
   infoBox.style.zIndex = '10';
   infoBox.style.backgroundColor = 'white';
-
+  infoBox.style.cursor = 'auto';
   infoBox.style.display = 'none';  // Initially hidden.
 
   var show = false;
   content.onClick.listen((event) {
     show = !show;
     infoBox.style.display = show ? 'block' : 'none';
+    content.style.backgroundColor = show ? 'white' : '';
   });
 
   // Causes infoBox to be positioned relative to the bottom-left of content.
   content.style.display = 'inline-block';
+  content.style.cursor = 'pointer';
   content.append(infoBox);
 }
 
@@ -54,9 +56,10 @@ class CurrentExecutionAnnotation extends Annotation {
 class CallSiteAnnotation extends Annotation {
   CallSite callSite;
 
-  Element row() {
+  Element row([content]) {
     var e = new DivElement();
     e.style.display = "table-row";
+    if (content is String) e.text = content;
     return e;
   }
 
@@ -81,18 +84,22 @@ class CallSiteAnnotation extends Annotation {
     e.style.color = "#333";
     e.style.font = "400 14px 'Montserrat', sans-serif";
 
-    var r = row();
-    r.append(cell("Container"));
-    r.append(cell("Count"));
-    r.append(cell("Target"));
-    e.append(r);
-
-    for (var entry in callSite.entries) {
+    if (callSite.entries.isEmpty) {
+      e.append(row('Did not execute'));
+    } else {
       var r = row();
-      r.append(cell(serviceRef(entry.receiverContainer)));
-      r.append(cell(entry.count.toString()));
-      r.append(cell(serviceRef(entry.target)));
+      r.append(cell("Container"));
+      r.append(cell("Count"));
+      r.append(cell("Target"));
       e.append(r);
+
+      for (var entry in callSite.entries) {
+        var r = row();
+        r.append(cell(serviceRef(entry.receiverContainer)));
+        r.append(cell(entry.count.toString()));
+        r.append(cell(serviceRef(entry.target)));
+        e.append(r);
+      }
     }
 
     return e;

@@ -544,13 +544,16 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   String toString() => ListBase.listToString(this);
 
-  List<E> toList({ bool growable: true }) {
-    if (growable) {
-      return new JSArray<E>.markGrowable(JS('', '#.slice()', this));
-    } else {
-      return new JSArray<E>.markFixed(JS('', '#.slice()', this));
-    }
-  }
+  List<E> toList({ bool growable: true }) =>
+      growable
+        ? _toListGrowable()
+        : _toListFixed();
+
+  List<E> _toListGrowable() =>
+      new JSArray<E>.markGrowable(JS('', '#.slice()', this));
+
+  List<E> _toListFixed() =>
+      new JSArray<E>.markFixed(JS('', '#.slice()', this));
 
   Set<E> toSet() => new Set<E>.from(this);
 

@@ -17,6 +17,17 @@ closure_in_initializer_test: Fail # Issue 6422
 # Regular bugs which should be fixed.
 duplicate_export_negative_test: Fail # Issue 6134
 
+[ $compiler == none ]
+# Null-aware operators aren't implemented in the VM yet.
+if_null_evaluation_order_test: Fail
+if_null_precedence_test: Fail
+if_null_behavior_test: Fail
+if_null_assignment_behavior_test: Fail
+if_null_assignment_static_test: Fail
+conditional_property_assignment_test: Fail
+conditional_property_access_test: Fail
+conditional_method_invocation_test: Fail
+
 [ $compiler == dart2dart ]
 deferred_load_library_wrong_args_test/none: Fail # Issue 17523
 deferred_load_inval_code_test: Fail # Issue 17523
@@ -27,6 +38,8 @@ deferred_shadow_load_library_test: Fail # Issue 17523
 deferred_closurize_load_library_test: Fail  # Issue 17523
 deferred_inlined_test: Fail  # Issue 17523
 deferred_optimized_test: Fail  # Issue 17523
+multiline_strings_test: Fail # Issue (pending)
+regress_22443_test: Fail # Issue 17523
 enum_mirror_test: Skip # Issue 11511.
 
 override_inheritance_mixed_test/08: Fail # Issue 18124
@@ -43,8 +56,6 @@ async_star_test/01: CompileTimeError, RuntimeError # drt only runtime-errs.
 async_star_test/02: RuntimeError
 async_star_test/05: Timeout, RuntimeError
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium|| $runtime == ContentShellOnAndroid) ]
-
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
@@ -54,6 +65,7 @@ type_variable_bounds4_test/01: Fail # Issue 14006
 
 [ $compiler == none ]
 dynamic_prefix_core_test/01: RuntimeError # Issue 12478
+multiline_strings_test: Fail # Issue 23020
 
 [ $compiler == none && ($runtime == vm || $runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 dynamic_prefix_core_test/none: Fail # Issue 12478
@@ -104,6 +116,6 @@ large_class_declaration_test: SkipSlow # Times out. Issue 20352
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 gc_test: SkipSlow # Times out flakily. Issue 20956
 
-[ $compiler == none && $runtime == vm && ( $arch == simarm || $arch == arm || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
+[ $compiler == none && $runtime == vm && ( $arch == simarm || $arch == arm || $arch == armv5te || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
 

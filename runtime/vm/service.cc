@@ -44,7 +44,6 @@ DECLARE_FLAG(bool, enable_asserts);
 // TODO(johnmccutchan): Unify embedder service handler lists and their APIs.
 EmbedderServiceHandler* Service::isolate_service_handler_head_ = NULL;
 EmbedderServiceHandler* Service::root_service_handler_head_ = NULL;
-uint32_t Service::event_mask_ = 0;
 struct ServiceMethodDescriptor;
 ServiceMethodDescriptor* FindMethod(const char* method_name);
 
@@ -501,34 +500,14 @@ void Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
 }
 
 
-bool Service::EventMaskHas(uint32_t mask) {
-  return (event_mask_ & mask) != 0;
-}
-
-
 bool Service::NeedsEvents() {
   return ServiceIsolate::IsRunning();
 }
 
 
-bool Service::NeedsDebuggerEvents() {
-  return NeedsEvents() && EventMaskHas(kEventFamilyDebugMask);
-}
-
-
-bool Service::NeedsGCEvents() {
-  return NeedsEvents() && EventMaskHas(kEventFamilyGCMask);
-}
-
-
-void Service::SetEventMask(uint32_t mask) {
-  event_mask_ = mask;
-}
-
-
-void Service::SendEvent(intptr_t eventFamilyId,
-                        intptr_t eventType,
+void Service::SendEvent(intptr_t eventType,
                         const Object& eventMessage) {
+  ASSERT(!ServiceIsolate::IsServiceIsolateDescendant(Isolate::Current()));
   if (!ServiceIsolate::IsRunning()) {
     return;
   }
@@ -536,18 +515,10 @@ void Service::SendEvent(intptr_t eventFamilyId,
   ASSERT(isolate != NULL);
   HANDLESCOPE(isolate);
 
-  // Construct a list of the form [eventFamilyId, eventMessage].
-  //
-  // TODO(turnidge): Revisit passing the eventFamilyId here at all.
-  const Array& list = Array::Handle(Array::New(2));
-  ASSERT(!list.IsNull());
-  list.SetAt(0, Integer::Handle(Integer::New(eventFamilyId)));
-  list.SetAt(1, eventMessage);
-
   // Push the event to port_.
   uint8_t* data = NULL;
   MessageWriter writer(&data, &allocator, false);
-  writer.WriteMessage(list);
+  writer.WriteMessage(eventMessage);
   intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
     OS::Print("vm-service: Pushing event of type %" Pd ", len %" Pd "\n",
@@ -559,8 +530,7 @@ void Service::SendEvent(intptr_t eventFamilyId,
 }
 
 
-void Service::SendEvent(intptr_t eventFamilyId,
-                        const String& meta,
+void Service::SendEvent(const String& meta,
                         const uint8_t* data,
                         intptr_t size) {
   // Bitstream: [meta data size (big-endian 64 bit)] [meta data (UTF-8)] [data]
@@ -586,16 +556,19 @@ void Service::SendEvent(intptr_t eventFamilyId,
   }
   ASSERT(offset == total_bytes);
   // TODO(turnidge): Pass the real eventType here.
-  SendEvent(eventFamilyId, 0, message);
+  SendEvent(0, message);
 }
 
 
 void Service::HandleGCEvent(GCEvent* event) {
+  if (ServiceIsolate::IsServiceIsolateDescendant(Isolate::Current())) {
+    return;
+  }
   JSONStream js;
   event->PrintJSON(&js);
   const String& message = String::Handle(String::New(js.ToCString()));
   // TODO(turnidge): Pass the real eventType here.
-  SendEvent(kEventFamilyGC, 0, message);
+  SendEvent(0, message);
 }
 
 
@@ -603,7 +576,7 @@ void Service::HandleEvent(ServiceEvent* event) {
   JSONStream js;
   event->PrintJSON(&js);
   const String& message = String::Handle(String::New(js.ToCString()));
-  SendEvent(kEventFamilyDebug, event->type(), message);
+  SendEvent(event->type(), message);
 }
 
 
@@ -798,8 +771,7 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
   }
   const String& message = String::Handle(String::New(js.ToCString()));
   uint8_t data[] = {0, 128, 255};
-  // TODO(koda): Add 'testing' event family.
-  SendEvent(kEventFamilyDebug, message, data, sizeof(data));
+  SendEvent(message, data, sizeof(data));
 }
 
 
@@ -2232,12 +2204,11 @@ void Service::SendGraphEvent(Isolate* isolate) {
   {
     JSONObject jsobj(&js);
     jsobj.AddProperty("type", "ServiceEvent");
-    jsobj.AddPropertyF("id", "_graphEvent");
     jsobj.AddProperty("eventType", "_Graph");
     jsobj.AddProperty("isolate", isolate);
   }
   const String& message = String::Handle(String::New(js.ToCString()));
-  SendEvent(kEventFamilyDebug, message, buffer, stream.bytes_written());
+  SendEvent(message, buffer, stream.bytes_written());
 }
 
 
@@ -2415,7 +2386,7 @@ class ServiceIsolateVisitor : public IsolateVisitor {
 
   void VisitIsolate(Isolate* isolate) {
     if ((isolate != Dart::vm_isolate()) &&
-        !ServiceIsolate::IsServiceIsolate(isolate)) {
+        !ServiceIsolate::IsServiceIsolateDescendant(isolate)) {
       jsarr_->AddValue(isolate);
     }
   }
@@ -2434,24 +2405,19 @@ static const MethodParameter* get_vm_params[] = {
 static bool GetVM(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "VM");
-  jsobj.AddProperty("id", "vm");
   jsobj.AddProperty("architectureBits", static_cast<intptr_t>(kBitsPerWord));
   jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
-  jsobj.AddPropertyF("date", "%" Pd64 "", OS::GetCurrentTimeMillis());
   jsobj.AddProperty("version", Version::String());
   // Send pid as a string because it allows us to avoid any issues with
   // pids > 53-bits (when consumed by JavaScript).
   // TODO(johnmccutchan): Codify how integers are sent across the service.
   jsobj.AddPropertyF("pid", "%" Pd "", OS::ProcessId());
-  jsobj.AddProperty("assertsEnabled", isolate->AssertsEnabled());
-  jsobj.AddProperty("typeChecksEnabled", isolate->TypeChecksEnabled());
-  int64_t start_time_micros = Dart::vm_isolate()->start_time();
-  int64_t uptime_micros = (OS::GetCurrentTimeMicros() - start_time_micros);
-  double seconds = (static_cast<double>(uptime_micros) /
-                    static_cast<double>(kMicrosecondsPerSecond));
-  jsobj.AddProperty("uptime", seconds);
-
+  jsobj.AddProperty("_assertsEnabled", isolate->AssertsEnabled());
+  jsobj.AddProperty("_typeChecksEnabled", isolate->TypeChecksEnabled());
+  int64_t start_time_millis = (Dart::vm_isolate()->start_time() /
+                               kMicrosecondsPerMillisecond);
+  jsobj.AddProperty64("startTime", start_time_millis);
   // Construct the isolate list.
   {
     JSONArray jsarr(&jsobj, "isolates");
@@ -2506,6 +2472,25 @@ static bool SetFlag(Isolate* isolate, JSONStream* js) {
 }
 
 
+static const MethodParameter* set_name_params[] = {
+  ISOLATE_PARAMETER,
+  new MethodParameter("name", true),
+  NULL,
+};
+
+
+static bool SetName(Isolate* isolate, JSONStream* js) {
+  isolate->set_debugger_name(js->LookupParam("name"));
+  {
+    ServiceEvent event(isolate, ServiceEvent::kIsolateUpdate);
+    Service::HandleEvent(&event);
+  }
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "Success");
+  return true;
+}
+
+
 static ServiceMethodDescriptor service_methods_[] = {
   { "_echo", _Echo,
     NULL },
@@ -2527,7 +2512,7 @@ static ServiceMethodDescriptor service_methods_[] = {
     eval_frame_params },
   { "getAllocationProfile", GetAllocationProfile,
     get_allocation_profile_params },
-  { "getCallSiteData", GetCallSiteData,
+  { "_getCallSiteData", GetCallSiteData,
     get_call_site_data_params },
   { "getClassList", GetClassList,
     get_class_list_params },
@@ -2577,8 +2562,10 @@ static ServiceMethodDescriptor service_methods_[] = {
     resume_params },
   { "requestHeapSnapshot", RequestHeapSnapshot,
     request_heap_snapshot_params },
-  { "setFlag", SetFlag ,
+  { "setFlag", SetFlag,
     set_flags_params },
+  { "setName", SetName,
+    set_name_params },
 };
 
 

@@ -89,6 +89,8 @@ class SyntheticLocal extends Local {
   final ExecutableElement executableContext;
 
   SyntheticLocal(this.name, this.executableContext);
+
+  toString() => 'SyntheticLocal($name)';
 }
 
 class SsaBuilderTask extends CompilerTask {
@@ -389,8 +391,11 @@ class LocalsHandler {
       HParameterValue value =
           new HParameterValue(parameter, builder.getTypeOfThis());
       builder.graph.explicitReceiverParameter = value;
-      builder.graph.entry.addAfter(
-          directLocals[closureData.thisLocal], value);
+      builder.graph.entry.addAfter(directLocals[closureData.thisLocal], value);
+      if (builder.lastAddedParameter == null) {
+        // If this is the first parameter inserted, make sure it stays first.
+        builder.lastAddedParameter = value;
+      }
       if (isInterceptorClass) {
         // Only use the extra parameter in intercepted classes.
         directLocals[closureData.thisLocal] = value;
@@ -980,7 +985,7 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
 /**
  * This class builds SSA nodes for functions represented in AST.
  */
-class SsaBuilder extends ResolvedVisitor {
+class SsaBuilder extends NewResolvedVisitor {
   final Compiler compiler;
   final JavaScriptBackend backend;
   final ConstantSystem constantSystem;
@@ -1244,7 +1249,8 @@ class SsaBuilder extends ResolvedVisitor {
        * For each parameter name in the signature, if the argument name matches
        * we use the next provided argument, otherwise we get the default.
        */
-      List<String> selectorArgumentNames = selector.getOrderedNamedArguments();
+      List<String> selectorArgumentNames =
+          selector.callStructure.getOrderedNamedArguments();
       int namedArgumentIndex = 0;
       int firstProvidedNamedArgument = index;
       signature.orderedOptionalParameters.forEach((element) {
@@ -1893,13 +1899,12 @@ class SsaBuilder extends ResolvedVisitor {
       }
 
       Element target = constructor.definingConstructor.implementation;
-      bool match = Selector.addForwardingElementArgumentsToList(
+      bool match = CallStructure.addForwardingElementArgumentsToList(
           constructor,
           arguments,
           target,
           compileArgument,
-          handleConstantForOptionalParameter,
-          compiler.world);
+          handleConstantForOptionalParameter);
       if (!match) {
         if (compiler.elementHasCompileTimeError(constructor)) {
           return;
@@ -1933,12 +1938,13 @@ class SsaBuilder extends ResolvedVisitor {
           assert(ast.Initializers.isSuperConstructorCall(call) ||
                  ast.Initializers.isConstructorRedirect(call));
           FunctionElement target = elements[call].implementation;
-          Selector selector = elements.getSelector(call);
+          CallStructure callStructure =
+              elements.getSelector(call).callStructure;
           Link<ast.Node> arguments = call.arguments;
           List<HInstruction> compiledArguments;
           inlinedFrom(constructor, () {
             compiledArguments =
-                makeStaticArgumentList(selector, arguments, target);
+                makeStaticArgumentList(callStructure, arguments, target);
           });
           inlineSuperOrRedirect(target,
                                 compiledArguments,
@@ -1972,12 +1978,12 @@ class SsaBuilder extends ResolvedVisitor {
           compiler.internalError(superClass,
               "No default constructor available.");
         }
-        Selector selector = new Selector.callDefaultConstructor();
         List<HInstruction> arguments =
-            selector.makeArgumentsList(const Link<ast.Node>(),
-                                       target.implementation,
-                                       null,
-                                       handleConstantForOptionalParameter);
+            CallStructure.NO_ARGS.makeArgumentsList(
+                const Link<ast.Node>(),
+                target.implementation,
+                null,
+                handleConstantForOptionalParameter);
         inlineSuperOrRedirect(target,
                               arguments,
                               constructors,
@@ -3133,7 +3139,7 @@ class SsaBuilder extends ResolvedVisitor {
     pushWithPosition(not, node);
   }
 
-  void visitUnary(ast.Send node, ast.Operator op) {
+  void visitUnarySend(ast.Send node, ast.Operator op) {
     assert(node.argumentsNode is ast.Prefix);
     visit(node.receiver);
     assert(!identical(op.token.kind, PLUS_TOKEN));
@@ -3153,11 +3159,11 @@ class SsaBuilder extends ResolvedVisitor {
     pushInvokeDynamic(node, elements.getSelector(node), [operand]);
   }
 
-  void visitBinary(HInstruction left,
-                   ast.Operator op,
-                   HInstruction right,
-                   Selector selector,
-                   ast.Send send) {
+  void visitBinarySend(HInstruction left,
+                       ast.Operator op,
+                       HInstruction right,
+                       Selector selector,
+                       ast.Send send) {
     switch (op.source) {
       case "===":
         pushWithPosition(
@@ -3425,7 +3431,7 @@ class SsaBuilder extends ResolvedVisitor {
     } else if ("!" == op.source) {
       visitLogicalNot(node);
     } else if (node.argumentsNode is ast.Prefix) {
-      visitUnary(node, op);
+      visitUnarySend(node, op);
     } else if ("is" == op.source) {
       visitIsSend(node);
     } else if ("as" == op.source) {
@@ -3448,7 +3454,7 @@ class SsaBuilder extends ResolvedVisitor {
       visit(node.argumentsNode);
       var right = pop();
       var left = pop();
-      visitBinary(left, op, right, elements.getSelector(node), node);
+      visitBinarySend(left, op, right, elements.getSelector(node), node);
     }
   }
 
@@ -3522,13 +3528,13 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   void addDynamicSendArgumentsToList(ast.Send node, List<HInstruction> list) {
-    Selector selector = elements.getSelector(node);
-    if (selector.namedArgumentCount == 0) {
+    CallStructure callStructure = elements.getSelector(node).callStructure;
+    if (callStructure.namedArgumentCount == 0) {
       addGenericSendArgumentsToList(node.arguments, list);
     } else {
       // Visit positional arguments and add them to the list.
       Link<ast.Node> arguments = node.arguments;
-      int positionalArgumentCount = selector.positionalArgumentCount;
+      int positionalArgumentCount = callStructure.positionalArgumentCount;
       for (int i = 0;
            i < positionalArgumentCount;
            arguments = arguments.tail, i++) {
@@ -3539,7 +3545,7 @@ class SsaBuilder extends ResolvedVisitor {
       // Visit named arguments and add them into a temporary map.
       Map<String, HInstruction> instructions =
           new Map<String, HInstruction>();
-      List<String> namedArguments = selector.namedArguments;
+      List<String> namedArguments = callStructure.namedArguments;
       int nameIndex = 0;
       for (; !arguments.isEmpty; arguments = arguments.tail) {
         visit(arguments.head);
@@ -3549,7 +3555,7 @@ class SsaBuilder extends ResolvedVisitor {
       // Iterate through the named arguments to add them to the list
       // of instructions, in an order that can be shared with
       // selectors with the same named arguments.
-      List<String> orderedNames = selector.getOrderedNamedArguments();
+      List<String> orderedNames = callStructure.getOrderedNamedArguments();
       for (String name in orderedNames) {
         list.add(instructions[name]);
       }
@@ -3562,7 +3568,7 @@ class SsaBuilder extends ResolvedVisitor {
    * Precondition: `this.applies(element, world)`.
    * Invariant: [element] must be an implementation element.
    */
-  List<HInstruction> makeStaticArgumentList(Selector selector,
+  List<HInstruction> makeStaticArgumentList(CallStructure callStructure,
                                             Link<ast.Node> arguments,
                                             FunctionElement element) {
     assert(invariant(element, element.isImplementation));
@@ -3572,10 +3578,11 @@ class SsaBuilder extends ResolvedVisitor {
       return pop();
     }
 
-    return selector.makeArgumentsList(arguments,
-                                      element,
-                                      compileArgument,
-                                      handleConstantForOptionalParameter);
+    return callStructure.makeArgumentsList(
+        arguments,
+        element,
+        compileArgument,
+        handleConstantForOptionalParameter);
   }
 
   void addGenericSendArgumentsToList(Link<ast.Node> link, List<HInstruction> list) {
@@ -4103,7 +4110,7 @@ class SsaBuilder extends ResolvedVisitor {
         // calling [makeStaticArgumentList].
         FunctionElement function = element.implementation;
         assert(selector.applies(function, compiler.world));
-        inputs = makeStaticArgumentList(selector,
+        inputs = makeStaticArgumentList(selector.callStructure,
                                         node.arguments,
                                         function);
         push(buildInvokeSuper(selector, element, inputs));
@@ -4347,7 +4354,7 @@ class SsaBuilder extends ResolvedVisitor {
     }
 
     Element constructor = elements[send];
-    Selector selector = elements.getSelector(send);
+    CallStructure callStructure = elements.getSelector(send).callStructure;
     ConstructorElement constructorDeclaration = constructor;
     ConstructorElement constructorImplementation = constructor.implementation;
     constructor = constructorImplementation.effectiveTarget;
@@ -4361,8 +4368,8 @@ class SsaBuilder extends ResolvedVisitor {
       constructor = compiler.symbolValidatedConstructor;
       assert(invariant(send, constructor != null,
                        message: 'Constructor Symbol.validated is missing'));
-      selector = compiler.symbolValidatedConstructorSelector;
-      assert(invariant(send, selector != null,
+      callStructure = compiler.symbolValidatedConstructorSelector.callStructure;
+      assert(invariant(send, callStructure != null,
                        message: 'Constructor Symbol.validated is missing'));
     }
 
@@ -4387,11 +4394,11 @@ class SsaBuilder extends ResolvedVisitor {
     }
     // TODO(5347): Try to avoid the need for calling [implementation] before
     // calling [makeStaticArgumentList].
-    if (!selector.applies(constructor.implementation, compiler.world)) {
+    if (!callStructure.signatureApplies(constructor.implementation)) {
       generateWrongArgumentCountError(send, constructor, send.arguments);
       return;
     }
-    inputs.addAll(makeStaticArgumentList(selector,
+    inputs.addAll(makeStaticArgumentList(callStructure,
                                          send.arguments,
                                          constructor.implementation));
 
@@ -4537,7 +4544,7 @@ class SsaBuilder extends ResolvedVisitor {
     return false;
   }
 
-  visitAssert(node) {
+  visitAssertSend(node) {
     if (!compiler.enableUserAssertions) {
       stack.add(graph.addConstantNull(compiler));
       return;
@@ -4550,7 +4557,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   visitStaticSend(ast.Send node) {
-    Selector selector = elements.getSelector(node);
+    CallStructure callStructure = elements.getSelector(node).callStructure;
     Element element = elements[node];
     if (elements.isAssert(node)) {
       element = backend.assertMethod;
@@ -4577,13 +4584,13 @@ class SsaBuilder extends ResolvedVisitor {
     if (element.isFunction) {
       // TODO(5347): Try to avoid the need for calling [implementation] before
       // calling [makeStaticArgumentList].
-      if (!selector.applies(element.implementation, compiler.world)) {
+      if (!callStructure.signatureApplies(element.implementation)) {
         generateWrongArgumentCountError(node, element, node.arguments);
         return;
       }
 
       List<HInstruction> inputs =
-          makeStaticArgumentList(selector,
+          makeStaticArgumentList(callStructure,
                                  node.arguments,
                                  element.implementation);
 
@@ -4598,7 +4605,7 @@ class SsaBuilder extends ResolvedVisitor {
       generateGetter(node, element);
       List<HInstruction> inputs = <HInstruction>[pop()];
       addDynamicSendArgumentsToList(node, inputs);
-      Selector closureSelector = new Selector.callClosureFrom(selector);
+      Selector closureSelector = callStructure.callSelector;
       pushWithPosition(
           new HInvokeClosure(closureSelector, inputs, backend.dynamicType),
           node);
@@ -4637,7 +4644,7 @@ class SsaBuilder extends ResolvedVisitor {
                        backend.getCreateRuntimeType(),
                        [pop()]);
     } else {
-      internalError('unexpected type kind ${type.kind}', node: node);
+      internalError(node, 'unexpected type kind ${type.kind}');
     }
     if (node.isCall) {
       // This send is of the form 'e(...)', where e is resolved to a type
@@ -4659,7 +4666,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   // TODO(antonm): migrate rest of SsaFromAstMixin to internalError.
-  internalError(String reason, {ast.Node node}) {
+  internalError(Spannable node, String reason) {
     compiler.internalError(node, reason);
   }
 
@@ -4924,8 +4931,8 @@ class SsaBuilder extends ResolvedVisitor {
       assert(arguments.tail.isEmpty);
       rhs = pop();
     }
-    visitBinary(receiver, node.assignmentOperator, rhs,
-                elements.getOperatorSelectorInComplexSendSet(node), node);
+    visitBinarySend(receiver, node.assignmentOperator, rhs,
+                    elements.getOperatorSelectorInComplexSendSet(node), node);
   }
 
   visitSendSet(ast.SendSet node) {

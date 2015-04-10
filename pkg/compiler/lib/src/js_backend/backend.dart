@@ -1115,6 +1115,11 @@ class JavaScriptBackend extends Backend {
     rti.computeClassesNeedingRti();
   }
 
+  onTypeInferenceComplete() {
+    super.onTypeInferenceComplete();
+    noSuchMethodRegistry.onTypeInferenceComplete();
+  }
+
   void registerGetRuntimeTypeArgument(Registry registry) {
     enqueueInResolution(getGetRuntimeTypeArgument(), registry);
     enqueueInResolution(getGetTypeArgumentByIndex(), registry);
@@ -1216,7 +1221,7 @@ class JavaScriptBackend extends Backend {
     enqueueClass(compiler.enqueuer.resolution, compiler.stringClass, registry);
   }
 
-  void registerNoSuchMethod(Element noSuchMethod) {
+  void registerNoSuchMethod(FunctionElement noSuchMethod) {
     noSuchMethodRegistry.registerNoSuchMethod(noSuchMethod);
   }
 
@@ -1399,6 +1404,7 @@ class JavaScriptBackend extends Backend {
 
   int assembleProgram() {
     int programSize = emitter.assembleProgram();
+    noSuchMethodRegistry.emitDiagnostic();
     int totalMethodCount = generatedCode.length;
     if (totalMethodCount != preMirrorsMethodCount) {
       int mirrorCount = totalMethodCount - preMirrorsMethodCount;

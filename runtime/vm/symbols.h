@@ -16,7 +16,6 @@ class ObjectPointerVisitor;
 
 // One-character symbols are added implicitly.
 #define PREDEFINED_SYMBOLS_LIST(V)                                             \
-  V(Empty, "")                                                                 \
   V(EqualOperator, "==")                                                       \
   V(GreaterEqualOperator, ">=")                                                \
   V(LessEqualOperator, "<=")                                                   \
@@ -31,9 +30,7 @@ class ObjectPointerVisitor;
   V(AssignIndexToken, "[]=")                                                   \
   V(TopLevel, "::")                                                            \
   V(DefaultLabel, ":L")                                                        \
-  V(This, "this")                                                              \
   V(Other, "other")                                                            \
-  V(Super, "super")                                                            \
   V(Call, "call")                                                              \
   V(Current, "current")                                                        \
   V(MoveNext, "moveNext")                                                      \
@@ -57,6 +54,7 @@ class ObjectPointerVisitor;
   V(_EnumNames, "_enum_names")                                                 \
   V(ExprTemp, ":expr_temp")                                                    \
   V(AnonymousClosure, "<anonymous closure>")                                   \
+  V(ImplicitClosure, "<implicit closure>")                                     \
   V(ClosureParameter, ":closure")                                              \
   V(PhaseParameter, ":phase")                                                  \
   V(TypeArgumentsParameter, ":type_arguments")                                 \
@@ -92,7 +90,6 @@ class ObjectPointerVisitor;
   V(SavedStackTraceVar, ":saved_stack_trace_var")                              \
   V(ListLiteralElement, "list literal element")                                \
   V(ForInIter, ":for-in-iter")                                                 \
-  V(Library, "library")                                                        \
   V(LoadLibrary, "loadLibrary")                                                \
   V(_LibraryPrefix, "_LibraryPrefix")                                          \
   V(On, "on")                                                                  \
@@ -129,7 +126,6 @@ class ObjectPointerVisitor;
   V(Class, "Class")                                                            \
   V(Null, "Null")                                                              \
   V(Dynamic, "dynamic")                                                        \
-  V(Void, "void")                                                              \
   V(UnresolvedClass, "UnresolvedClass")                                        \
   V(Type, "_Type")                                                             \
   V(TypeRef, "_TypeRef")                                                       \
@@ -176,8 +172,6 @@ class ObjectPointerVisitor;
   V(_Bigint, "_Bigint")                                                        \
   V(_Double, "_Double")                                                        \
   V(Bool, "bool")                                                              \
-  V(True, "true")                                                              \
-  V(False, "false")                                                            \
   V(_List, "_List")                                                            \
   V(_ListFactory, "_List.")                                                    \
   V(_GrowableList, "_GrowableList")                                            \
@@ -334,6 +328,7 @@ class ObjectPointerVisitor;
   V(DartVMService, "dart:vmservice")                                           \
   V(DartProfiler, "dart:profiler")                                             \
   V(DartIOLibName, "dart.io")                                                  \
+  V(EvalSourceUri, "evaluate:source")                                          \
   V(_Random, "_Random")                                                        \
   V(_state, "_state")                                                          \
   V(_A, "_A")                                                                  \
@@ -510,6 +505,14 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
   static const String& Tilde() {
     return *(symbol_handles_[kNullCharId + '~']);
   }
+
+  static const String& Empty() { return *(symbol_handles_[kKwTableStart]); }
+  static const String& False() { return *(symbol_handles_[kFALSEId]); }
+  static const String& Library() { return *(symbol_handles_[kLIBRARYId]); }
+  static const String& Super() { return *(symbol_handles_[kSUPERId]); }
+  static const String& This() { return *(symbol_handles_[kTHISId]); }
+  static const String& True() { return *(symbol_handles_[kTRUEId]); }
+  static const String& Void() { return *(symbol_handles_[kVOIDId]); }
 
   // Access methods for symbol handles stored in the vm isolate.
 #define DEFINE_SYMBOL_HANDLE_ACCESSOR(symbol, literal)                         \

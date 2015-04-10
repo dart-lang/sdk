@@ -170,6 +170,12 @@ class KeywordStateTest {
 
 @reflectiveTest
 class ScannerTest {
+  /**
+   * If non-null, this value is used to override the default value of
+   * [Scanner.enableNullAwareOperators] before scanning.
+   */
+  bool _enableNullAwareOperators;
+
   void fail_incomplete_string_interpolation() {
     // https://code.google.com/p/dart/issues/detail?id=18073
     _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9,
@@ -720,6 +726,21 @@ class ScannerTest {
     _assertToken(TokenType.QUESTION, "?");
   }
 
+  void test_question_dot() {
+    _enableNullAwareOperators = true;
+    _assertToken(TokenType.QUESTION_PERIOD, "?.");
+  }
+
+  void test_question_question() {
+    _enableNullAwareOperators = true;
+    _assertToken(TokenType.QUESTION_QUESTION, "??");
+  }
+
+  void test_question_question_eq() {
+    _enableNullAwareOperators = true;
+    _assertToken(TokenType.QUESTION_QUESTION_EQ, "??=");
+  }
+
   void test_scriptTag_withArgs() {
     _assertToken(TokenType.SCRIPT_TAG, "#!/bin/dart -debug");
   }
@@ -1208,6 +1229,9 @@ class ScannerTest {
   Token _scanWithListener(String source, GatheringErrorListener listener) {
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
+    if (_enableNullAwareOperators != null) {
+      scanner.enableNullAwareOperators = _enableNullAwareOperators;
+    }
     Token result = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     return result;

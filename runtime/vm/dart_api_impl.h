@@ -291,7 +291,10 @@ class IsolateSaver {
       : saved_isolate_(current_isolate) {
   }
   ~IsolateSaver() {
-    Isolate::SetCurrent(saved_isolate_);
+    // TODO(koda): Audit users; they should know whether they're in an isolate.
+    if (saved_isolate_ != NULL) {
+      Thread::EnterIsolate(saved_isolate_);
+    }
   }
  private:
   Isolate* saved_isolate_;

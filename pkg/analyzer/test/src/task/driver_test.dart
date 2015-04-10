@@ -260,6 +260,35 @@ class AnalysisDriverTest extends EngineTestCase {
     expect(driver.performAnalysisTask(), false);
   }
 
+  test_performAnalysisTask_infiniteLoop() {
+    AnalysisTarget target = new TestSource();
+    ResultDescriptor resultA = new ResultDescriptor('resultA', -1);
+    ResultDescriptor resultB = new ResultDescriptor('resultB', -2);
+    // configure tasks
+    TestAnalysisTask task1;
+    TestAnalysisTask task2;
+    TaskDescriptor descriptor1 = new TaskDescriptor(
+        'task1', (context, target) => task1, (target) => {
+      'inputB': new SimpleTaskInput<int>(target, resultB)
+    }, [resultA]);
+    TaskDescriptor descriptor2 = new TaskDescriptor('task2',
+        (context, target) => task2, (target) => {
+      'inputA': new SimpleTaskInput<int>(target, resultA)
+    }, [resultB]);
+    task1 = new TestAnalysisTask(context, target, descriptor: descriptor1);
+    task2 = new TestAnalysisTask(context, target, descriptor: descriptor2);
+    manager.addTaskDescriptor(descriptor1);
+    manager.addTaskDescriptor(descriptor2);
+    context.explicitTargets.add(target);
+    manager.addGeneralResult(resultB);
+    // prepare work order
+    expect(driver.performAnalysisTask(), true);
+    expect(driver.performAnalysisTask(), true);
+    CaughtException exception = context.getCacheEntry(target).exception;
+    expect(exception, isNotNull);
+    expect(exception.exception, new isInstanceOf<InfiniteTaskLoopException>());
+  }
+
   test_performWorkItem_exceptionInTask() {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('result', null);
@@ -543,6 +572,10 @@ class _TestContext implements ExtendedAnalysisContext {
   @override
   List<Source> get refactoringUnsafeSources =>
       baseContext.refactoringUnsafeSources;
+
+  @override
+  LibraryResolverFactory get libraryResolverFactory =>
+      baseContext.libraryResolverFactory;
 
   @override
   ResolverVisitorFactory get resolverVisitorFactory =>

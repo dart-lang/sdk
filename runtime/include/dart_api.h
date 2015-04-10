@@ -825,6 +825,8 @@ typedef bool (*Dart_EntropySource)(uint8_t* buffer, intptr_t length);
 /**
  * Initializes the VM.
  *
+ * \param vm_isolate_snapshot A buffer containing a snapshot of the VM isolate
+ *   or NULL if no snapshot is provided.
  * \param create A function to be called during isolate creation.
  *   See Dart_IsolateCreateCallback.
  * \param interrupt A function to be called when an isolate is interrupted.
@@ -837,6 +839,7 @@ typedef bool (*Dart_EntropySource)(uint8_t* buffer, intptr_t length);
  * \return True if initialization is successful.
  */
 DART_EXPORT bool Dart_Initialize(
+    const uint8_t* vm_isolate_snapshot,
     Dart_IsolateCreateCallback create,
     Dart_IsolateInterruptCallback interrupt,
     Dart_IsolateUnhandledExceptionCallback unhandled_exception,
@@ -889,8 +892,8 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  *   Provided only for advisory purposes to improve debugging messages.
  * \param main The name of the main entry point this isolate will run.
  *   Provided only for advisory purposes to improve debugging messages.
- * \param snapshot A buffer containing a VM snapshot or NULL if no
- *   snapshot is provided.
+ * \param snapshot A buffer containing a snapshot of the isolate or
+ *   NULL if no snapshot is provided.
  * \param callback_data Embedder data.  This data will be passed to
  *   the Dart_IsolateCreateCallback when new isolates are spawned from
  *   this parent isolate.
@@ -949,12 +952,10 @@ DART_EXPORT Dart_Handle Dart_DebugName();
  * Enters an isolate. After calling this function,
  * the current isolate will be set to the provided isolate.
  *
- * Requires there to be no current isolate.
+ * Requires there to be no current isolate. Multiple threads may not be in
+ * the same isolate at once.
  */
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate);
-/* TODO(turnidge): Describe what happens if two threads attempt to
- * enter the same isolate simultaneously. Check for this in the code.
- * Describe whether isolates are allowed to migrate. */
 
 /**
  * Notifies the VM that the current isolate is about to make a blocking call.
@@ -992,9 +993,10 @@ DART_EXPORT Dart_Handle Dart_IsolateSetStrictCompilation(bool value);
 /**
  * Creates a full snapshot of the current isolate heap.
  *
- * A full snapshot is a compact representation of the dart heap state and
- * can be used for fast initialization of an isolate. A Snapshot of the heap
- * can only be created before any dart code has executed.
+ * A full snapshot is a compact representation of the dart vm isolate heap
+ * and dart isolate heap states. These snapshots are used to initialize
+ * the vm isolate on startup and fast initialization of an isolate.
+ * A Snapshot of the heap is created before any dart code has executed.
  *
  * Requires there to be a current isolate.
  *
@@ -1005,8 +1007,11 @@ DART_EXPORT Dart_Handle Dart_IsolateSetStrictCompilation(bool value);
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
-                                            intptr_t* size);
+DART_EXPORT Dart_Handle Dart_CreateSnapshot(
+    uint8_t** vm_isolate_snapshot_buffer,
+    intptr_t* vm_isolate_snapshot_size,
+    uint8_t** isolate_snapshot_buffer,
+    intptr_t* isolate_snapshot_size);
 
 /**
  * Creates a snapshot of the application script loaded in the isolate.
@@ -1169,6 +1174,11 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle object);
 
 /**
  * Returns a new SendPort with the provided port id.
+ *
+ * \param port_id The destination port.
+ *
+ * \return A new SendPort if no errors occurs. Otherwise returns
+ *   an error handle.
  */
 DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id);
 

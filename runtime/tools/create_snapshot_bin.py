@@ -24,9 +24,14 @@ def BuildOptions():
   result.add_option("--executable",
       action="store", type="string",
       help="path to snapshot generator executable")
+  result.add_option("--vm_output_bin",
+      action="store", type="string",
+      help="output file name into which vm isolate snapshot in binary form " +
+           "is generated")
   result.add_option("--output_bin",
       action="store", type="string",
-      help="output file name into which snapshot in binary form is generated")
+      help="output file name into which isolate snapshot in binary form " +
+           "is generated")
   result.add_option("--script",
       action="store", type="string",
       help="Dart script for which snapshot is to be generated")
@@ -53,6 +58,9 @@ def BuildOptions():
 def ProcessOptions(options):
   if not options.executable:
     sys.stderr.write('--executable not specified\n')
+    return False
+  if not options.vm_output_bin:
+    sys.stderr.write('--vm_output_bin not specified\n')
     return False
   if not options.output_bin:
     sys.stderr.write('--output_bin not specified\n')
@@ -83,8 +91,10 @@ def Main():
   if options.package_root:
     script_args.append(''.join([ "--package_root=", options.package_root]))
 
-  # First setup the snapshot output filename.
-  script_args.append(''.join([ "--snapshot=", options.output_bin ]))
+  # First setup the vm isolate and regular isolate snapshot output filename.
+  script_args.append(''.join([ "--vm_isolate_snapshot=",
+                               options.vm_output_bin ]))
+  script_args.append(''.join([ "--isolate_snapshot=", options.output_bin ]))
 
   # Next setup all url mapping options specified.
   for url_arg in options.url_mapping:

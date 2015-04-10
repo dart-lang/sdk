@@ -1389,6 +1389,42 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
     __ Bind(&donetest15b);
   }
 
+  {
+    Label donetest15c;
+    const int64_t left = 0xff00000000000000;
+    const int64_t right = 0xffffffffffffffff;
+    const int64_t shifted = 0xf000000000000003;
+    __ movq(RDX, Immediate(left));
+    __ movq(RAX, Immediate(right));
+    __ movq(RCX, Immediate(2));
+    __ shlq(RDX, RCX);  // RDX = 0xff00000000000000 << 2 == 0xfc00000000000000
+    __ shldq(RDX, RAX, RCX);
+    // RDX = high64(0xfc00000000000000:0xffffffffffffffff << 2)
+    //     == 0xf000000000000003
+    __ cmpq(RDX, Immediate(shifted));
+    __ j(EQUAL, &donetest15c);
+    __ int3();
+    __ Bind(&donetest15c);
+  }
+
+  {
+    Label donetest15d;
+    const int64_t left = 0xff00000000000000;
+    const int64_t right = 0xffffffffffffffff;
+    const int64_t shifted = 0xcff0000000000000;
+    __ movq(RDX, Immediate(left));
+    __ movq(RAX, Immediate(right));
+    __ movq(RCX, Immediate(2));
+    __ shrq(RDX, RCX);  // RDX = 0xff00000000000000 >> 2 == 0x3fc0000000000000
+    __ shrdq(RDX, RAX, RCX);
+    // RDX = low64(0xffffffffffffffff:0x3fc0000000000000 >> 2)
+    //     == 0xcff0000000000000
+    __ cmpq(RDX, Immediate(shifted));
+    __ j(EQUAL, &donetest15d);
+    __ int3();
+    __ Bind(&donetest15d);
+  }
+
   __ movl(RAX, Immediate(0));
   __ ret();
 }

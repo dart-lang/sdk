@@ -20,9 +20,12 @@ HOST_CPUS = utils.GuessCpus()
 
 def BuildOptions():
   result = optparse.OptionParser()
+  result.add_option("--vm_input_bin",
+      action="store", type="string",
+      help="input file name of the vm isolate snapshot in binary form")
   result.add_option("--input_bin",
       action="store", type="string",
-      help="input file name of the snapshot in binary form")
+      help="input file name of the isolate snapshot in binary form")
   result.add_option("--input_cc",
       action="store", type="string",
       help="input file name which contains the C buffer template")
@@ -36,6 +39,9 @@ def BuildOptions():
 
 
 def ProcessOptions(options):
+  if not options.vm_input_bin:
+    sys.stderr.write('--vm_input_bin not specified\n')
+    return False
   if not options.input_bin:
     sys.stderr.write('--input_bin not specified\n')
     return False
@@ -63,9 +69,11 @@ def makeString(input_file):
   return result
 
 
-def makeFile(output_file, input_cc_file, input_file):
+def makeFile(output_file, input_cc_file,
+             vm_isolate_input_file, isolate_input_file):
   snapshot_cc_text = open(input_cc_file).read()
-  snapshot_cc_text = snapshot_cc_text % makeString(input_file)
+  snapshot_cc_text = snapshot_cc_text % (makeString(vm_isolate_input_file),
+                                         makeString(isolate_input_file))
   open(output_file, 'w').write(snapshot_cc_text)
   return True
 
@@ -83,7 +91,8 @@ def Main():
     parser.print_help()
     return 1
 
-  if not makeFile(options.output, options.input_cc, options.input_bin):
+  if not makeFile(options.output, options.input_cc,
+                  options.vm_input_bin, options.input_bin):
     print "Unable to generate snapshot in C buffer form"
     return -1
 

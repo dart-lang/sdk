@@ -25,7 +25,6 @@ namespace bin {
 
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \
-    free(snapshot_buffer);                                                     \
     Log::PrintErr("Error: %s", Dart_GetError(result));                         \
     Dart_ExitScope();                                                          \
     Dart_ShutdownIsolate();                                                    \
@@ -35,9 +34,9 @@ namespace bin {
 
 // Global state that indicates whether a snapshot is to be created and
 // if so which file to write the snapshot into.
-static const char* snapshot_filename = NULL;
+static const char* vm_isolate_snapshot_filename = NULL;
+static const char* isolate_snapshot_filename = NULL;
 static const char* package_root = NULL;
-static uint8_t* snapshot_buffer = NULL;
 
 
 // Global state which contains a pointer to the script name for which
@@ -67,10 +66,20 @@ static const char* ProcessOption(const char* option, const char* name) {
 }
 
 
-static bool ProcessSnapshotOption(const char* option) {
-  const char* name = ProcessOption(option, "--snapshot=");
+static bool ProcessVmIsolateSnapshotOption(const char* option) {
+  const char* name = ProcessOption(option, "--vm_isolate_snapshot=");
   if (name != NULL) {
-    snapshot_filename = name;
+    vm_isolate_snapshot_filename = name;
+    return true;
+  }
+  return false;
+}
+
+
+static bool ProcessIsolateSnapshotOption(const char* option) {
+  const char* name = ProcessOption(option, "--isolate_snapshot=");
+  if (name != NULL) {
+    isolate_snapshot_filename = name;
     return true;
   }
   return false;
@@ -114,7 +123,8 @@ static int ParseArguments(int argc,
 
   // Parse out the vm options.
   while ((i < argc) && IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
-    if (ProcessSnapshotOption(argv[i]) ||
+    if (ProcessVmIsolateSnapshotOption(argv[i]) ||
+        ProcessIsolateSnapshotOption(argv[i]) ||
         ProcessURLmappingOption(argv[i]) ||
         ProcessPackageRootOption(argv[i])) {
       i += 1;
@@ -132,8 +142,13 @@ static int ParseArguments(int argc,
     *script_name = NULL;
   }
 
-  if (snapshot_filename == NULL) {
-    Log::PrintErr("No snapshot output file specified.\n\n");
+  if (vm_isolate_snapshot_filename == NULL) {
+    Log::PrintErr("No vm isolate snapshot output file specified.\n\n");
+    return -1;
+  }
+
+  if (isolate_snapshot_filename == NULL) {
+    Log::PrintErr("No isolate snapshot output file specified.\n\n");
     return -1;
   }
 
@@ -141,11 +156,13 @@ static int ParseArguments(int argc,
 }
 
 
-static void WriteSnapshotFile(const uint8_t* buffer, const intptr_t size) {
-  File* file = File::Open(snapshot_filename, File::kWriteTruncate);
+static void WriteSnapshotFile(const char* filename,
+                              const uint8_t* buffer,
+                              const intptr_t size) {
+  File* file = File::Open(filename, File::kWriteTruncate);
   ASSERT(file != NULL);
   if (!file->WriteFully(buffer, size)) {
-    Log::PrintErr("Error: Failed to write full snapshot.\n\n");
+    Log::PrintErr("Error: Failed to write snapshot file.\n\n");
   }
   delete file;
 }
@@ -438,15 +455,26 @@ static void VerifyLoaded(Dart_Handle library) {
 
 static void CreateAndWriteSnapshot() {
   Dart_Handle result;
-  uint8_t* buffer = NULL;
-  intptr_t size = 0;
+  uint8_t* vm_isolate_buffer = NULL;
+  intptr_t vm_isolate_size = 0;
+  uint8_t* isolate_buffer = NULL;
+  intptr_t isolate_size = 0;
 
   // First create a snapshot.
-  result = Dart_CreateSnapshot(&buffer, &size);
+  result = Dart_CreateSnapshot(&vm_isolate_buffer,
+                               &vm_isolate_size,
+                               &isolate_buffer,
+                               &isolate_size);
   CHECK_RESULT(result);
 
-  // Now write the snapshot out to specified file and exit.
-  WriteSnapshotFile(buffer, size);
+  // Now write the vm isolate and isolate snapshots out to the
+  // specified file and exit.
+  WriteSnapshotFile(vm_isolate_snapshot_filename,
+                    vm_isolate_buffer,
+                    vm_isolate_size);
+  WriteSnapshotFile(isolate_snapshot_filename,
+                    isolate_buffer,
+                    isolate_size);
   Dart_ExitScope();
 
   // Shutdown the isolate.
@@ -510,7 +538,8 @@ int main(int argc, char** argv) {
   // Initialize the Dart VM.
   // Note: We don't expect isolates to be created from dart code during
   // snapshot generation.
-  if (!Dart_Initialize(NULL, NULL, NULL, NULL,
+  if (!Dart_Initialize(NULL,
+                       NULL, NULL, NULL, NULL,
                        DartUtils::OpenFile,
                        DartUtils::ReadFile,
                        DartUtils::WriteFile,
@@ -532,7 +561,8 @@ int main(int argc, char** argv) {
   Dart_Handle library;
   Dart_EnterScope();
 
-  ASSERT(snapshot_filename != NULL);
+  ASSERT(vm_isolate_snapshot_filename != NULL);
+  ASSERT(isolate_snapshot_filename != NULL);
   // Load up the script before a snapshot is created.
   if (app_script_name != NULL) {
     // This is the case of a custom embedder (e.g: dartium) trying to
@@ -557,6 +587,7 @@ int main(int argc, char** argv) {
         DartUtils::PrepareForScriptLoading(package_root, false, builtin_lib);
     CHECK_RESULT(result);
     Dart_ExitScope();
+    Dart_ExitIsolate();
 
     UriResolverIsolateScope::isolate = isolate;
 

@@ -805,6 +805,16 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Bigint_lsh(Assembler* assembler) {
+  // TODO(regis): Implement.
+}
+
+
+void Intrinsifier::Bigint_rsh(Assembler* assembler) {
+  // TODO(regis): Implement.
+}
+
+
 void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   // static void _absAdd(Uint32List digits, int used,
   //                     Uint32List a_digits, int a_used,
@@ -1931,9 +1941,6 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
 
 
 void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
-  if (FLAG_use_jscre) {
-    return;
-  }
   static const intptr_t kRegExpParamOffset = 3 * kWordSize;
   static const intptr_t kStringParamOffset = 2 * kWordSize;
   // start_index smi is located at offset 1.

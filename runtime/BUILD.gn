@@ -60,7 +60,6 @@ static_library("libdart") {
   deps = [
     "vm:libdart_lib",
     "vm:libdart_vm",
-    "third_party/jscre:libjscre",
     "third_party/double-conversion/src:libdouble_conversion",
     ":generate_version_cc_file",
   ]
@@ -116,7 +115,6 @@ executable("libdart_dependency_helper") {
     "vm:libdart_lib",
     "vm:libdart_vm",
     "vm:libdart_platform",
-    "third_party/jscre:libjscre",
     "third_party/double-conversion/src:libdouble_conversion",
   ]
   sources = [

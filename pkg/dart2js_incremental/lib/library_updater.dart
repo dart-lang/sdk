@@ -978,7 +978,7 @@ if (this.pendingStubs) {
     if (backend.constants.lazyStatics.contains(element)) {
       jsAst.Expression init =
           emitter.oldEmitter.buildLazilyInitializedStaticField(
-              element, namer.currentIsolate);
+              element, isolateProperties: namer.currentIsolate);
       if (init == null) {
         throw new StateError("Initializer optimized away for $element");
       }

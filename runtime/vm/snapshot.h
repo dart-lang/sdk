@@ -677,15 +677,25 @@ class SnapshotWriter : public BaseWriter {
 class FullSnapshotWriter : public SnapshotWriter {
  public:
   static const intptr_t kInitialSize = 64 * KB;
-  FullSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
-      : SnapshotWriter(Snapshot::kFull, buffer, alloc, kInitialSize, true) {
-    ASSERT(buffer != NULL);
+  FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
+                     uint8_t** isolate_snapshot_buffer,
+                     ReAlloc alloc)
+      : SnapshotWriter(Snapshot::kFull,
+                       isolate_snapshot_buffer,
+                       alloc,
+                       kInitialSize,
+                       true) {
+    ASSERT(vm_isolate_snapshot_buffer != NULL);
+    ASSERT(isolate_snapshot_buffer != NULL);
     ASSERT(alloc != NULL);
   }
   ~FullSnapshotWriter() { }
 
   // Writes a full snapshot of the Isolate.
   void WriteFullSnapshot();
+
+  intptr_t VmIsolateSnapshotSize() const { return 0; }
+  intptr_t IsolateSnapshotSize() const { return BytesWritten(); }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(FullSnapshotWriter);

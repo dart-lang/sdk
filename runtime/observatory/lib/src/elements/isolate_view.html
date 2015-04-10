@@ -80,6 +80,14 @@
         <div class="flex-item-50-percent">
           <div class="memberList">
             <div class="memberItem">
+              <div class="memberName">started at</div>
+              <div class="memberValue">{{ isolate.startTime.toString() }}</div>
+            </div>
+            <div class="memberItem">
+              <div class="memberName">uptime</div>
+              <div class="memberValue">{{ isolate.upTime.toString() }}</div>
+            </div>
+            <div class="memberItem">
               <div class="memberName">root library</div>
               <div class="memberValue">
                 <library-ref ref="{{ isolate.rootLib }}"></library-ref>
@@ -95,7 +103,7 @@
             </div>
             <div class="memberItem">
               <div class="memberName">isolate id</div>
-              <div class="memberValue">{{ isolate.mainPort }}</div>
+              <div class="memberValue">{{ isolate.number }}</div>
             </div>
           </div>
         </div>

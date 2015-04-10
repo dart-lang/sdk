@@ -510,6 +510,10 @@ void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
 void ClassFinalizer::FinalizeTypeParameters(
     const Class& cls,
     GrowableObjectArray* pending_types) {
+  if (FLAG_trace_type_finalization) {
+    OS::Print("Finalizing type parameters of '%s'\n",
+              String::Handle(cls.Name()).ToCString());
+  }
   if (cls.IsMixinApplication()) {
     // Setup the type parameters of the mixin application and finalize the
     // mixin type.
@@ -817,6 +821,15 @@ void ClassFinalizer::CheckTypeArgumentBounds(const Class& cls,
       if (error.IsNull() &&
           !(type_arg.Equals(type_param) &&
             instantiated_bound.Equals(declared_bound))) {
+        // If type_arg is a type parameter, its declared bound may not be
+        // resolved yet.
+        if (type_arg.IsTypeParameter()) {
+          const Class& type_arg_cls = Class::Handle(
+              TypeParameter::Cast(type_arg).parameterized_class());
+          const AbstractType& bound = AbstractType::Handle(
+              TypeParameter::Cast(type_arg).bound());
+          ResolveType(type_arg_cls, bound);
+        }
         if (!type_param.CheckBound(type_arg, instantiated_bound, &error) &&
             error.IsNull()) {
           // The bound cannot be checked at compile time; postpone to run time.

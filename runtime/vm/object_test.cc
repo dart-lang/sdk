@@ -2645,6 +2645,7 @@ TEST_CASE(CodeImmutability) {
   if (!FLAG_write_protect_code) {
     // Since this test is expected to crash, crash if write protection of code
     // is switched off.
+    // TODO(regis, fschneider): Should this be FATAL() instead?
     OS::DebugBreak();
   }
 }
@@ -4209,8 +4210,8 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("classes", js.ToCString(), buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Function\",\"id\":\"\",\"name\":\"toString\","
-        "\"owningClass\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"bool\"},"
-        "\"kind\":\"kRegularFunction\"}",
+        "\"owner\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"bool\"},"
+        "\"kind\":\"RegularFunction\"}",
         buffer);
   }
   // Library reference

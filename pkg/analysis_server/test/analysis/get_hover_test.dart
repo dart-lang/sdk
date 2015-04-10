@@ -129,7 +129,7 @@ class A {
       expect(hover.containingLibraryPath, testFile);
       expect(hover.containingClassDescription, 'A');
       expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
-      expect(hover.elementDescription, 'A.mmm(int a, String b) → List<String>');
+      expect(hover.elementDescription, 'mmm(int a, String b) → List<String>');
       expect(hover.elementKind, 'method');
       // types
       expect(hover.staticType, '(int, String) → List<String>');
@@ -157,7 +157,7 @@ main(A a) {
       // element
       expect(hover.containingLibraryName, 'my.library');
       expect(hover.containingLibraryPath, testFile);
-      expect(hover.elementDescription, 'A.mmm(int a, String b) → List<String>');
+      expect(hover.elementDescription, 'mmm(int a, String b) → List<String>');
       expect(hover.elementKind, 'method');
       // types
       expect(hover.staticType, isNull);
@@ -203,14 +203,40 @@ main() {
 ''');
     return prepareHover('vvv);').then((HoverInformation hover) {
       // element
-      expect(hover.containingLibraryName, 'my.library');
-      expect(hover.containingLibraryPath, testFile);
+      expect(hover.containingLibraryName, isNull);
+      expect(hover.containingLibraryPath, isNull);
+      expect(hover.containingClassDescription, isNull);
       expect(hover.dartdoc, isNull);
       expect(hover.elementDescription, 'dynamic vvv');
       expect(hover.elementKind, 'local variable');
       // types
       expect(hover.staticType, 'dynamic');
       expect(hover.propagatedType, 'int');
+    });
+  }
+
+  test_expression_variable_inMethod() {
+    addTestFile('''
+library my.library;
+class A {
+  m() {
+    num vvv = 42;
+  }
+}
+''');
+    return prepareHover('vvv = 42').then((HoverInformation hover) {
+      // element
+      expect(hover.containingLibraryName, isNull);
+      expect(hover.containingLibraryPath, isNull);
+      expect(hover.containingClassDescription, isNull);
+      expect(hover.dartdoc, isNull);
+      expect(hover.elementDescription, 'num vvv');
+      expect(hover.elementKind, 'local variable');
+      // types
+      expect(hover.staticType, 'num');
+      expect(hover.propagatedType, 'int');
+      // no parameter
+      expect(hover.parameter, isNull);
     });
   }
 

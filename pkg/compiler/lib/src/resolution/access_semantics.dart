@@ -12,6 +12,7 @@ library dart2js.access_semantics;
 
 import '../constants/expressions.dart';
 import '../elements/elements.dart';
+import '../dart_types.dart';
 
 /// Enum representing the different kinds of destinations which a property
 /// access or method or function invocation might refer to.
@@ -307,3 +308,124 @@ class CompoundAccessSemantics extends AccessSemantics {
 
   Element get element => setter;
 }
+
+/// Enum representing the different kinds of destinations which a constructor
+/// invocation might refer to.
+enum ConstructorAccessKind {
+  /// An invocation of a generative constructor.
+  ///
+  /// For instance
+  ///     class C {
+  ///       C();
+  ///     }
+  ///     m() => new C();
+  ///
+  GENERATIVE,
+
+  /// An invocation of a redirecting generative constructor.
+  ///
+  /// For instance
+  ///     class C {
+  ///       C() : this._();
+  ///       C._();
+  ///     }
+  ///     m() => new C();
+  ///
+  REDIRECTING_GENERATIVE,
+
+  /// An invocation of a factory constructor.
+  ///
+  /// For instance
+  ///     class C {
+  ///       factory C() => new C._();
+  ///       C._();
+  ///     }
+  ///     m() => new C();
+  ///
+  FACTORY,
+
+  /// An invocation of a redirecting factory constructor.
+  ///
+  /// For instance
+  ///     class C {
+  ///       factory C() = C._;
+  ///       C._();
+  ///     }
+  ///     m() => new C();
+  ///
+  REDIRECTING_FACTORY,
+
+  /// An invocation of a (redirecting) generative constructor of an abstract
+  /// class.
+  ///
+  /// For instance
+  ///     abstract class C {
+  ///       C();
+  ///     }
+  ///     m() => new C();
+  ///
+  ABSTRACT,
+
+  /// An invocation of an unresolved constructor or an unresolved type.
+  ///
+  /// For instance
+  ///     class C {
+  ///       C();
+  ///     }
+  ///     m1() => new C.unresolved();
+  ///     m2() => new Unresolved();
+  ///
+  // TODO(johnniwinther): Differentiate between error types.
+  ERRONEOUS,
+
+  /// An invocation of an ill-defined redirecting factory constructor.
+  ///
+  /// For instance
+  ///     class C {
+  ///       factory C() = Unresolved;
+  ///     }
+  ///     m() => new C();
+  ///
+  ERRONEOUS_REDIRECTING_FACTORY,
+}
+
+/// Data structure used to classify the semantics of a constructor invocation.
+class ConstructorAccessSemantics {
+  /// The kind of constructor invocation.
+  final ConstructorAccessKind kind;
+
+  /// The invoked constructor.
+  final Element element;
+
+  /// The type on which the constructor is invoked.
+  final DartType type;
+
+  ConstructorAccessSemantics(this.kind, this.element, this.type);
+
+  /// The effect target of the access. Used to defined redirecting factory
+  /// constructor invocations.
+  ConstructorAccessSemantics get effectiveTargetSemantics => this;
+
+  /// `true` if this invocation is erroneous.
+  bool get isErroneous {
+    return kind == ConstructorAccessKind.ABSTRACT ||
+           kind == ConstructorAccessKind.ERRONEOUS ||
+           kind == ConstructorAccessKind.ERRONEOUS_REDIRECTING_FACTORY;
+  }
+}
+
+/// Data structure used to classify the semantics of a redirecting factory
+/// constructor invocation.
+class RedirectingFactoryConstructorAccessSemantics
+    extends ConstructorAccessSemantics {
+  final ConstructorAccessSemantics effectiveTargetSemantics;
+
+  RedirectingFactoryConstructorAccessSemantics(
+      ConstructorAccessKind kind,
+      Element element,
+      DartType type,
+      this.effectiveTargetSemantics)
+      : super(kind, element, type);
+}
+
+

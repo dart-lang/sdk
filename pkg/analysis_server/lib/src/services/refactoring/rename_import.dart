@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -76,10 +77,38 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
     List<SourceReference> references = getSourceReferences(matches);
     for (SourceReference reference in references) {
       if (newName.isEmpty) {
-        reference.addEdit(change, newName);
+        reference.addEdit(change, '');
       } else {
-        reference.addEdit(change, "${newName}.");
+        SimpleIdentifier interpolationIdentifier =
+            _getInterpolationIdentifier(reference);
+        if (interpolationIdentifier != null) {
+          doSourceChange_addElementEdit(change, reference.element,
+              new SourceEdit(interpolationIdentifier.offset,
+                  interpolationIdentifier.length,
+                  '{$newName.${interpolationIdentifier.name}}'));
+        } else {
+          reference.addEdit(change, '$newName.');
+        }
       }
     }
+  }
+
+  /**
+   * If the given [reference] is before an interpolated [SimpleIdentifier] in
+   * an [InterpolationExpression] without surrounding curly brackets, return it.
+   * Otherwise return `null`.
+   */
+  SimpleIdentifier _getInterpolationIdentifier(SourceReference reference) {
+    Source source = reference.element.source;
+    CompilationUnit unit = context.parseCompilationUnit(source);
+    NodeLocator nodeLocator = new NodeLocator.con1(reference.range.offset);
+    AstNode node = nodeLocator.searchWithin(unit);
+    if (node is SimpleIdentifier) {
+      AstNode parent = node.parent;
+      if (parent is InterpolationExpression && parent.rightBracket == null) {
+        return node;
+      }
+    }
+    return null;
   }
 }

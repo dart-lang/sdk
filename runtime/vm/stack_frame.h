@@ -319,7 +319,7 @@ class InlinedFunctionsIterator : public ValueObject {
   intptr_t index_;
   intptr_t num_materializations_;
   Code& code_;
-  DeoptInfo& deopt_info_;
+  TypedData& deopt_info_;
   Function& function_;
   uword pc_;
   GrowableArray<DeoptInstr*> deopt_instructions_;

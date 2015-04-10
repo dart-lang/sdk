@@ -4,6 +4,7 @@
 
 library attribute_changed_callback_test;
 
+import 'dart:async';
 import 'dart:html';
 import 'dart:js' as js;
 import 'package:unittest/html_individual_config.dart';
@@ -31,8 +32,14 @@ class B extends HtmlElement {
 
   static var invocations = [];
 
+  Completer completer;
+  
   void attributeChanged(name, oldValue, newValue) {
     invocations.add('$name: $oldValue => $newValue');
+    if (completer != null) {
+      completer.complete('value changed to $newValue');
+      completer = null;
+    }
   }
 }
 
@@ -84,20 +91,31 @@ main() {
       b.attributes.remove('data-v');
       expect(B.invocations, ['data-v: x => null']);
     });
-  });
 
-  group('unsupported_on_polyfill', () {
     test('add, change ID', () {
       B.invocations = [];
 
       var b = new B();
+      var completer = new Completer();
+      b.completer = completer;
       b.id = 'x';
-      expect(B.invocations, ['created', 'id: null => x']);
-
-      B.invocations = [];
-      b.attributes.remove('id');
-      expect(B.invocations, ['id: x => null']);
+      return completer.future
+        .then((_) => expect(B.invocations, ['created', 'id: null => x']))
+        .then((_) {
+          B.invocations = [];
+          var secondCompleter = new Completer();
+          b.completer = secondCompleter;
+          b.attributes.remove('id');
+          return secondCompleter.future;
+        })
+       .then((_) => expect(B.invocations, ['id: x => null'])); 
     });
+  });
+
+  group('unsupported_on_polyfill', () {
+
+    // If these tests start passing, don't remove the status suppression. Move
+    // the tests to the fullYy_supported group.
 
     test('add, change classes', () {
       var b = new B();

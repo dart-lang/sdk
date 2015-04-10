@@ -20,8 +20,7 @@ import '../tree_ir/tree_ir_builder.dart' as tree_builder;
 import '../tree_ir/tree_ir_nodes.dart' as tree_ir;
 import '../util/util.dart';
 import '../mirror_renamer/mirror_renamer.dart';
-import '../tree_ir/optimization/optimization.dart'
-    show LogicalRewriter, LoopRewriter, CopyPropagator, StatementRewriter;
+import '../tree_ir/optimization/optimization.dart';
 import '../tree_ir/optimization/optimization.dart' as tree_opt;
 import '../tree_ir/tree_ir_integrity.dart';
 import '../cps_ir/cps_ir_integrity.dart';

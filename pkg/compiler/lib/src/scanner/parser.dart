@@ -1073,6 +1073,8 @@ class Parser {
         parseModifier(token);
       } else {
         listener.unexpected(token);
+        // Skip the remaining modifiers.
+        break;
       }
       count++;
     }

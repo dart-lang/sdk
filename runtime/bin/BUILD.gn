@@ -114,7 +114,6 @@ static_library("libdart_withcore") {
     "../vm:libdart_lib_withcore",
     "../vm:libdart_vm",
     "../vm:libdart_platform",
-    "../third_party/jscre:libjscre",
     "../third_party/double-conversion/src:libdouble_conversion",
     "..:generate_version_cc_file",
   ]

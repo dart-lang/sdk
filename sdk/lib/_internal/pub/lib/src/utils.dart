@@ -23,6 +23,15 @@ import 'log.dart' as log;
 
 export '../../asset/dart/utils.dart';
 
+/// A regular expression matching a Dart identifier.
+///
+/// This also matches a package name, since they must be Dart identifiers.
+final identifierRegExp = new RegExp(r"[a-zA-Z_][a-zA-Z0-9_]+");
+
+/// Like [identifierRegExp], but anchored so that it only matches strings that
+/// are *just* Dart identifiers.
+final onlyIdentifierRegExp = new RegExp("^${identifierRegExp.pattern}\$");
+
 /// A pair of values.
 class Pair<E, F> {
   E first;

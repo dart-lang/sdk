@@ -169,9 +169,6 @@ class ElementY extends dart2js.Element {
   }
 
   @override
-  void setFixedBackendName(String name) => unsupported('setFixedBackendName');
-
-  @override
   void setNative(String name) => unsupported('setNative');
 
   String toString() => '$kind($name)';
@@ -723,7 +720,8 @@ class TopLevelVariableElementY extends ElementY
     with AnalyzableElementY,
          AstElementY,
          TopLevelElementMixin,
-         VariableElementMixin
+         VariableElementMixin,
+         MemberElementMixin
     implements dart2js.FieldElement {
 
   analyzer.TopLevelVariableElement get element => super.element;
@@ -813,7 +811,8 @@ class ConstructorElementY extends ElementY
     with AnalyzableElementY,
          AstElementY,
          FunctionElementMixin,
-         ClassMemberMixin
+         ClassMemberMixin,
+         MemberElementMixin
     implements dart2js.ConstructorElement {
 
   analyzer.ConstructorElement get element => super.element;
@@ -829,6 +828,10 @@ class ConstructorElementY extends ElementY
   // TODO(johnniwinther): Support redirecting factory constructors.
   @override
   bool get isRedirectingFactory => false;
+
+  // TODO(johnniwinther): Support redirecting generative constructors.
+  @override
+  bool get isRedirectingGenerative => false;
 
   @override
   bool get isStatic => false;
@@ -860,7 +863,8 @@ class InstanceMethodElementY extends ElementY
     with AnalyzableElementY,
          AstElementY,
          FunctionElementMixin,
-         ClassMemberMixin
+         ClassMemberMixin,
+         MemberElementMixin
     implements dart2js.MethodElement {
 
   analyzer.MethodElement get element => super.element;
@@ -886,4 +890,8 @@ class InstanceMethodElementY extends ElementY
 
   @override
   get nestedClosures => unsupported('nestedClosures');
+}
+
+abstract class MemberElementMixin implements dart2js.MemberElement {
+  dart2js.Name get memberName => new dart2js.Name(name, library);
 }

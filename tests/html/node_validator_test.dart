@@ -4,11 +4,10 @@
 
 library validator_test;
 
-import 'dart:async';
 import 'dart:html';
 import 'dart:svg' as svg;
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:unittest/html_individual_config.dart';
 import 'utils.dart';
 
 
@@ -19,6 +18,11 @@ void validateHtml(String html, String reference, NodeValidator validator) {
   var b = document.body.createFragment(reference,
       treeSanitizer: nullSanitizer);
 
+  // Prevent a false pass when both the html and the reference both get entirely
+  // deleted, which is technically a match, but unlikely to be what we meant.
+  if (reference != '') {
+    expect(b.childNodes.length > 0, isTrue);
+  }
   validateNodeTree(a, b);
 }
 
@@ -47,9 +51,9 @@ void testHtml(String name, NodeValidator validator, String html,
 }
 
 main() {
-  useHtmlConfiguration();
+  useHtmlIndividualConfiguration();
 
-  group('DOM sanitization', () {
+  group('DOM_sanitization', () {
     var validator = new NodeValidatorBuilder.common();
 
     testHtml('allows simple constructs',
@@ -131,7 +135,7 @@ main() {
     });
   });
 
-  group('URI sanitization', () {
+  group('URI_sanitization', () {
     var recorder = new RecordingUriValidator();
     var validator = new NodeValidatorBuilder()..allowHtml5(uriPolicy: recorder);
 
@@ -186,228 +190,237 @@ main() {
         ['s']);
   });
 
-  group('NodeValidationPolicy', () {
+  group('allowNavigation', () {
+    var validator = new NodeValidatorBuilder()..allowNavigation();
 
-    group('allowNavigation', () {
-      var validator = new NodeValidatorBuilder()..allowNavigation();
+    testHtml('allows anchor tags',
+        validator,
+        '<a href="#foo">foo</a>');
 
-      testHtml('allows anchor tags',
+    testHtml('allows form elements',
+        validator,
+        '<form method="post" action="/foo"></form>');
+
+    testHtml('disallows script navigation',
+        validator,
+        '<a href="javascript:foo = 1">foo</a>',
+        '<a>foo</a>');
+
+    testHtml('disallows cross-site navigation',
+        validator,
+        '<a href="http://example.com">example.com</a>',
+        '<a>example.com</a>');
+
+    testHtml('blocks other elements',
+        validator,
+        '<a href="#foo"><b>foo</b></a>',
+        '<a href="#foo"></a>');
+
+    testHtml('blocks tag extension',
+        validator,
+        '<a is="x-foo"></a>',
+        '');
+  });
+
+  group('allowImages', () {
+    var validator = new NodeValidatorBuilder()..allowImages();
+
+    testHtml('allows images',
+        validator,
+        '<img src="/foo.jpg" alt="something" width="100" height="100"/>');
+
+    testHtml('blocks onerror',
+        validator,
+        '<img src="/foo.jpg" onerror="something"/>',
+        '<img src="/foo.jpg"/>');
+
+    testHtml('enforces same-origin',
+        validator,
+        '<img src="http://example.com/foo.jpg"/>',
+        '<img/>');
+  });
+
+  group('allowCustomElement', () {
+    var validator = new NodeValidatorBuilder()
+      ..allowCustomElement(
+          'x-foo',
+          attributes: ['bar'],
+          uriAttributes: ['baz'])
+      ..allowHtml5();
+
+    testHtml('allows custom elements',
+        validator,
+        '<x-foo bar="something" baz="/foo.jpg"></x-foo>');
+
+
+    testHtml('validates custom tag URIs',
+        validator,
+        '<x-foo baz="http://example.com/foo.jpg"></x-foo>',
+        '<x-foo></x-foo>');
+
+    testHtml('blocks type extensions',
+        validator,
+        '<div is="x-foo"></div>',
+        '');
+
+    testHtml('blocks tags on non-matching elements',
+        validator,
+        '<div bar="foo"></div>',
+        '<div></div>');
+  });
+
+  group('allowTagExtension', () {
+     var validator = new NodeValidatorBuilder()
+      ..allowTagExtension(
+          'x-foo',
+          'div',
+          attributes: ['bar'],
+          uriAttributes: ['baz'])
+      ..allowHtml5();
+
+    testHtml('allows tag extensions',
+        validator,
+        '<div is="x-foo" bar="something" baz="/foo.jpg"></div>');
+
+    testHtml('blocks custom elements',
           validator,
-          '<a href="#foo">foo</a>');
-
-      testHtml('allows form elements',
-          validator,
-          '<form method="post" action="/foo"></form>');
-
-      testHtml('disallows script navigation',
-          validator,
-          '<a href="javascript:foo = 1">foo</a>',
-          '<a>foo</a>');
-
-      testHtml('disallows cross-site navigation',
-          validator,
-          '<a href="http://example.com">example.com</a>',
-          '<a>example.com</a>');
-
-      testHtml('blocks other elements',
-          validator,
-          '<a href="#foo"><b>foo</b></a>',
-          '<a href="#foo"></a>');
-
-      testHtml('blocks tag extension',
-          validator,
-          '<a is="x-foo"></a>',
-          '');
-    });
-
-    group('allowImages', () {
-      var validator = new NodeValidatorBuilder()..allowImages();
-
-      testHtml('allows images',
-          validator,
-          '<img src="/foo.jpg" alt="something" width="100" height="100"/>');
-
-      testHtml('blocks onerror',
-          validator,
-          '<img src="/foo.jpg" onerror="something"/>',
-          '<img src="/foo.jpg"/>');
-
-      testHtml('enforces same-origin',
-          validator,
-          '<img src="http://example.com/foo.jpg"/>',
-          '<img/>');
-    });
-
-    group('allowCustomElement', () {
-      var validator = new NodeValidatorBuilder()
-        ..allowCustomElement(
-            'x-foo',
-            attributes: ['bar'],
-            uriAttributes: ['baz'])
-        ..allowHtml5();
-
-      testHtml('allows custom elements',
-          validator,
-          '<x-foo bar="something" baz="/foo.jpg"></x-foo>');
-
-
-      testHtml('validates custom tag URIs',
-          validator,
-          '<x-foo baz="http://example.com/foo.jpg"></x-foo>',
-          '<x-foo></x-foo>');
-
-      testHtml('blocks type extensions',
-          validator,
-          '<div is="x-foo"></div>',
-          '');
-
-      testHtml('blocks tags on non-matching elements',
-          validator,
-          '<div bar="foo"></div>',
-          '<div></div>');
-    });
-
-    group('allowTagExtension', () {
-       var validator = new NodeValidatorBuilder()
-        ..allowTagExtension(
-            'x-foo',
-            'div',
-            attributes: ['bar'],
-            uriAttributes: ['baz'])
-        ..allowHtml5();
-
-      testHtml('allows tag extensions',
-          validator,
-          '<div is="x-foo" bar="something" baz="/foo.jpg"></div>');
-
-      testHtml('blocks custom elements',
-            validator,
-            '<x-foo></x-foo>',
-            '');
-
-      testHtml('validates tag extension URIs',
-          validator,
-          '<div is="x-foo" baz="http://example.com/foo.jpg"></div>',
-          '<div is="x-foo"></div>');
-
-      testHtml('blocks tags on non-matching elements',
-          validator,
-          '<div bar="foo"></div>',
-          '<div></div>');
-
-      testHtml('blocks non-matching tags',
-          validator,
-          '<span is="x-foo">something</span>',
+          '<x-foo></x-foo>',
           '');
 
-      validator = new NodeValidatorBuilder()
-        ..allowTagExtension(
-            'x-foo',
-            'div',
-            attributes: ['bar'],
-            uriAttributes: ['baz'])
-        ..allowTagExtension(
-            'x-else',
-            'div');
-
-      testHtml('blocks tags on non-matching custom elements',
-          validator,
-          '<div bar="foo" is="x-else"></div>',
-          '<div is="x-else"></div>');
-    });
-
-    group('allowTemplating', () {
-      var validator = new NodeValidatorBuilder()
-        ..allowTemplating()
-        ..allowHtml5();
-
-      testHtml('allows templates',
-          validator,
-          '<template bind="{{a}}"></template>');
-
-      testHtml('allows template attributes',
-          validator,
-          '<template bind="{{a}}" ref="foo" repeat="{{}}" if="{{}}" syntax="foo"></template>');
-
-      testHtml('allows template attribute',
-          validator,
-          '<div template repeat="{{}}"></div>');
-
-      testHtml('blocks illegal template attribute',
-          validator,
-          '<div template="foo" repeat="{{}}"></div>',
-          '<div></div>');
-    });
-
-    group('allowSvg', () {
-      var validator = new NodeValidatorBuilder()..allowSvg();
-
-      testHtml('allows basic SVG',
+    testHtml('validates tag extension URIs',
         validator,
-        '<svg xmlns="http://www.w3.org/2000/svg'
-            'xmlns:xlink="http://www.w3.org/1999/xlink">'
-          '<image xlink:href="foo" data-foo="bar"/>'
-        '</svg>');
+        '<div is="x-foo" baz="http://example.com/foo.jpg"></div>',
+        '<div is="x-foo"></div>');
 
-      testHtml('blocks script elements',
+    testHtml('blocks tags on non-matching elements',
         validator,
-        '<svg xmlns="http://www.w3.org/2000/svg>'
-          '<script></script>'
-        '</svg>',
-        '<svg xmlns="http://www.w3.org/2000/svg></svg>');
+        '<div bar="foo"></div>',
+        '<div></div>');
 
-      testHtml('blocks script handlers',
+    testHtml('blocks non-matching tags',
         validator,
-        '<svg xmlns="http://www.w3.org/2000/svg'
-            'xmlns:xlink="http://www.w3.org/1999/xlink">'
-          '<image xlink:href="foo" onerror="something"/>'
-        '</svg>',
-        '<svg xmlns="http://www.w3.org/2000/svg'
-            'xmlns:xlink="http://www.w3.org/1999/xlink">'
-          '<image xlink:href="foo"/>'
-        '</svg>');
+        '<span is="x-foo">something</span>',
+        '');
 
-      testHtml('blocks foreignObject content',
+    validator = new NodeValidatorBuilder()
+      ..allowTagExtension(
+          'x-foo',
+          'div',
+          attributes: ['bar'],
+          uriAttributes: ['baz'])
+      ..allowTagExtension(
+          'x-else',
+          'div');
+
+    testHtml('blocks tags on non-matching custom elements',
         validator,
-        '<svg xmlns="http://www.w3.org/2000/svg>'
-          '<foreignobject width="100" height="150">'
-            '<body xmlns="http://www.w3.org/1999/xhtml">'
-              '<div>Some content</div>'
-            '</body>'
-          '</foreignobject>'
-        '</svg>',
-        '<svg xmlns="http://www.w3.org/2000/svg>'
-          '<foreignobject width="100" height="150"></foreignobject>'
-        '</svg>');
-    });
+        '<div bar="foo" is="x-else"></div>',
+        '<div is="x-else"></div>');
+  });
 
-    group('allowInlineStyles', () {
-      var validator = new NodeValidatorBuilder()
-          ..allowTextElements()
-          ..allowInlineStyles();
+  group('allowTemplating', () {
+    var validator = new NodeValidatorBuilder()
+      ..allowTemplating()
+      ..allowHtml5();
 
-      testHtml('allows inline styles',
-          validator,
-          '<span style="background-color:red">text</span>');
+    testHtml('allows templates',
+        validator,
+        '<template bind="{{a}}"></template>');
 
-      testHtml('blocks other attributes',
-          validator,
-          '<span class="red-span"></span>',
-          '<span></span>');
+    testHtml('allows template attributes',
+        validator,
+        '<template bind="{{a}}" ref="foo" repeat="{{}}" if="{{}}" syntax="foo"></template>');
 
-      validator = new NodeValidatorBuilder()
-          ..allowTextElements()
-          ..allowInlineStyles(tagName: 'span');
+    testHtml('allows template attribute',
+        validator,
+        '<div template repeat="{{}}"></div>');
 
-      testHtml('scoped allows inline styles on spans',
-          validator,
-          '<span style="background-color:red">text</span>');
+    testHtml('blocks illegal template attribute',
+        validator,
+        '<div template="foo" repeat="{{}}"></div>',
+        '<div></div>');
+  });
 
-      testHtml('scoped blocks inline styles on LIs',
-          validator,
-          '<li style="background-color:red">text</li>',
-          '<li>text</li>');
-    });
+  group('allowSvg', () {
+    var validator = new NodeValidatorBuilder()
+      ..allowSvg()
+      ..allowTextElements();
+
+    testHtml('allows basic SVG',
+      validator,
+      '<svg xmlns="http://www.w3.org/2000/svg'
+          'xmlns:xlink="http://www.w3.org/1999/xlink">'
+        '<image xlink:href="foo" data-foo="bar"/>'
+      '</svg>');
+
+    testHtml('blocks script elements',
+      validator,
+      '<svg xmlns="http://www.w3.org/2000/svg>'
+        '<script></script>'
+      '</svg>',
+      '');
+
+    testHtml('blocks script elements but allows other',
+      validator,
+      '<svg xmlns="http://www.w3.org/2000/svg>'
+        '<script></script><ellipse cx="200" cy="80" rx="100" ry="50"></ellipse>'
+      '</svg>',
+      '<svg xmlns="http://www.w3.org/2000/svg>'
+        '<ellipse cx="200" cy="80" rx="100" ry="50"></ellipse>'
+      '</svg>');
+
+    testHtml('blocks script handlers',
+      validator,
+      '<svg xmlns="http://www.w3.org/2000/svg'
+          'xmlns:xlink="http://www.w3.org/1999/xlink">'
+        '<image xlink:href="foo" onerror="something"/>'
+      '</svg>',
+      '<svg xmlns="http://www.w3.org/2000/svg'
+          'xmlns:xlink="http://www.w3.org/1999/xlink">'
+        '<image xlink:href="foo"/>'
+      '</svg>');
+
+    testHtml('blocks foreignObject content',
+      validator,
+      '<svg xmlns="http://www.w3.org/2000/svg">'
+        '<foreignobject width="100" height="150">'
+          '<body xmlns="http://www.w3.org/1999/xhtml">'
+            '<div>Some content</div>'
+          '</body>'
+        '</foreignobject>'
+        '<b>42</b>'
+      '</svg>',
+      '<svg xmlns="http://www.w3.org/2000/svg">'
+        '<b>42</b>'
+      '</svg>');
+  });
+
+  group('allowInlineStyles', () {
+    var validator = new NodeValidatorBuilder()
+        ..allowTextElements()
+        ..allowInlineStyles();
+
+    testHtml('allows inline styles',
+        validator,
+        '<span style="background-color:red">text</span>');
+
+    testHtml('blocks other attributes',
+        validator,
+        '<span class="red-span"></span>',
+        '<span></span>');
+
+    validator = new NodeValidatorBuilder()
+        ..allowTextElements()
+        ..allowInlineStyles(tagName: 'span');
+
+    testHtml('scoped allows inline styles on spans',
+        validator,
+        '<span style="background-color:red">text</span>');
+
+    testHtml('scoped blocks inline styles on LIs',
+        validator,
+        '<li style="background-color:red">text</li>',
+        '<li>text</li>');
   });
 
   group('throws', () {
@@ -455,5 +468,48 @@ main() {
       expect(element is svg.SvgSvgElement, isTrue);
       expect(element.children[0] is svg.ImageElement, isTrue);
     });
+  });
+
+  group('dom_clobbering', () {
+    var validator = new NodeValidatorBuilder.common();
+
+    testHtml('DOM clobbering of attributes with single node',
+    validator,
+    "<form onmouseover='alert(1)'><input name='attributes'>",
+    "");
+
+    testHtml('DOM clobbering of attributes with multiple nodes',
+    validator,
+    "<form onmouseover='alert(1)'><input name='attributes'>"
+    "<input name='attributes'>",
+    "");
+
+    testHtml('DOM clobbering of lastChild',
+    validator,
+    "<form><input name='lastChild'><input onmouseover='alert(1)'>",
+    "");
+
+    testHtml('DOM clobbering of both children and lastChild',
+    validator,
+    "<form><input name='lastChild'><input name='children'>"
+    "<input id='children'><input onmouseover='alert(1)'>",
+    "");
+
+    testHtml('DOM clobbering of both children and lastChild, different order',
+    validator,
+    "<form><input name='children'><input name='children'>"
+    "<input id='children' name='lastChild'>"
+    "<input id='bad' onmouseover='alert(1)'>",
+    "");
+
+    testHtml('tagName makes containing form invalid',
+    validator,
+    "<form onmouseover='alert(2)'><input name='tagName'>",
+    "");
+
+    testHtml('tagName without mouseover',
+    validator,
+    "<form><input name='tagName'>",
+    "");
   });
 }

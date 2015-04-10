@@ -7,6 +7,7 @@ library vmservice;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 part 'client.dart';
 part 'constants.dart';
@@ -22,11 +23,9 @@ typedef ShutdownCallback();
 
 class VMService extends MessageRouter {
   static VMService _instance;
+
   /// Collection of currently connected clients.
   final Set<Client> clients = new Set<Client>();
-
-  // A map encoding which clients are interested in which kinds of events.
-  final Map<int, Set<Client>> eventMap = new Map<int, Set<Client>>();
 
   /// Collection of currently running isolates.
   RunningIsolates runningIsolates = new RunningIsolates();
@@ -44,57 +43,25 @@ class VMService extends MessageRouter {
     clients.remove(client);
   }
 
-  int eventTypeCode(String eventType) {
-    switch(eventType) {
-      case 'debug':
-        return Constants.EVENT_FAMILY_DEBUG;
-      case 'gc':
-        return Constants.EVENT_FAMILY_GC;
-      default:
-        return -1;
-    }
-  }
-
-  void _updateEventMask() {
-    int mask = 0;
-    for (var key in eventMap.keys) {
-      var subscribers = eventMap[key];
-      if (subscribers.isNotEmpty) {
-        mask |= (1 << key);
+  void _eventMessageHandler(dynamic eventMessage) {
+    for (var client in clients) {
+      if (client.sendEvents) {
+        client.post(null, eventMessage);
       }
     }
-    _setEventMask(mask);
-  }
-
-  void subscribe(String eventType, Client client) {
-    int eventCode = eventTypeCode(eventType);
-    assert(eventCode >= 0);
-    var subscribers = eventMap.putIfAbsent(eventCode, () => new Set<Client>());
-    subscribers.add(client);
-    _updateEventMask();
   }
 
   void _controlMessageHandler(int code,
-                              int port_id,
+                              int portId,
                               SendPort sp,
                               String name) {
     switch (code) {
       case Constants.ISOLATE_STARTUP_MESSAGE_ID:
-        runningIsolates.isolateStartup(port_id, sp, name);
+        runningIsolates.isolateStartup(portId, sp, name);
       break;
       case Constants.ISOLATE_SHUTDOWN_MESSAGE_ID:
-        runningIsolates.isolateShutdown(port_id, sp);
+        runningIsolates.isolateShutdown(portId, sp);
       break;
-    }
-  }
-
-  void _eventMessageHandler(int eventType, dynamic eventMessage) {
-    var subscribers = eventMap[eventType];
-    if (subscribers == null) {
-      return;
-    }
-    for (var subscriber in subscribers) {
-      subscriber.post(null, eventMessage);
     }
   }
 
@@ -104,25 +71,43 @@ class VMService extends MessageRouter {
     }
     isolateLifecyclePort.close();
     scriptLoadPort.close();
-    var clientList = clients.toList();
-    for (var client in clientList) {
+    for (var client in clients) {
       client.close();
     }
     _onExit();
   }
 
   void messageHandler(message) {
-    assert(message is List);
-    if (message is List && (message.length == 4)) {
-      _controlMessageHandler(message[0], message[1], message[2], message[3]);
-    } else if (message is List && (message.length == 2)) {
-      _eventMessageHandler(message[0], message[1]);
-    } else if (message is List && (message.length == 1)) {
-      assert(message[0] == Constants.SERVICE_EXIT_MESSAGE_ID);
-      _exit();
-    } else {
-      Logger.root.severe('Unexpected message: $message');
+    if (message is String) {
+      // This is an event intended for all clients.
+      _eventMessageHandler(message);
+      return;
     }
+    if (message is Uint8List) {
+      // This is "raw" data intended for a specific client.
+      //
+      // TODO(turnidge): Do not broadcast this data to all clients.
+      _eventMessageHandler(message);
+      return;
+    }
+    if (message is List) {
+      // This is an internal vm service event.
+      if (message.length == 1) {
+        // This is a control message directing the vm service to exit.
+        assert(message[0] == Constants.SERVICE_EXIT_MESSAGE_ID);
+        _exit();
+        return;
+      }
+      if (message.length == 4) {
+        // This is a message informing us of the birth or death of an
+        // isolate.
+        _controlMessageHandler(message[0], message[1], message[2], message[3]);
+        return;
+      }
+    }
+
+    Logger.root.severe(
+        'Internal vm-service error: ignoring illegal message: $message');
   }
 
   void _notSupported(_) {
@@ -179,9 +164,6 @@ void _registerIsolate(int port_id, SendPort sp, String name) {
   var service = new VMService();
   service.runningIsolates.isolateStartup(port_id, sp, name);
 }
-
-void _setEventMask(int mask)
-    native "VMService_SetEventMask";
 
 void _onStart() native "VMService_OnStart";
 

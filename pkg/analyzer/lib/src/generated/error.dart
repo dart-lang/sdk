@@ -704,8 +704,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * value.
    */
   static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL =
-      const CompileTimeErrorCode(
-          'CONST_EVAL_TYPE_BOOL', "An expression of type 'bool' was expected");
+      const CompileTimeErrorCode('CONST_EVAL_TYPE_BOOL',
+          "In constant expressions, operand(s) of this operator must be of type 'bool'");
 
   /**
    * 12.11.2 Const: An expression of one of the forms e1 == e2 or e1 != e2 where
@@ -714,7 +714,7 @@ class CompileTimeErrorCode extends ErrorCode {
    */
   static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL_NUM_STRING =
       const CompileTimeErrorCode('CONST_EVAL_TYPE_BOOL_NUM_STRING',
-          "An expression of type 'bool', 'num', 'String' or 'null' was expected");
+          "In constant expressions, operands of this operator must be of type 'bool', 'num', 'String' or 'null'");
 
   /**
    * 12.11.2 Const: An expression of one of the forms ~e, e1 ^ e2, e1 & e2,
@@ -722,8 +722,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * that evaluate to an integer value or to null.
    */
   static const CompileTimeErrorCode CONST_EVAL_TYPE_INT =
-      const CompileTimeErrorCode(
-          'CONST_EVAL_TYPE_INT', "An expression of type 'int' was expected");
+      const CompileTimeErrorCode('CONST_EVAL_TYPE_INT',
+          "In constant expressions, operand(s) of this operator must be of type 'int'");
 
   /**
    * 12.11.2 Const: An expression of one of the forms e, e1 + e2, e1 - e2, e1 *
@@ -732,8 +732,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * value or to null.
    */
   static const CompileTimeErrorCode CONST_EVAL_TYPE_NUM =
-      const CompileTimeErrorCode(
-          'CONST_EVAL_TYPE_NUM', "An expression of type 'num' was expected");
+      const CompileTimeErrorCode('CONST_EVAL_TYPE_NUM',
+          "In constant expressions, operand(s) of this operator must be of type 'num'");
 
   /**
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant
@@ -2474,8 +2474,16 @@ class ErrorReporter {
    */
   void reportErrorForElement(
       ErrorCode errorCode, Element element, List<Object> arguments) {
-    reportErrorForOffset(
-        errorCode, element.nameOffset, element.displayName.length, arguments);
+    String displayName = element.displayName;
+    int length = 0;
+    if (displayName != null) {
+      length = displayName.length;
+    } else if (element is ImportElement) {
+      length = 6; // 'import'.length
+    } else if (element is ExportElement) {
+      length = 6; // 'export'.length
+    }
+    reportErrorForOffset(errorCode, element.nameOffset, length, arguments);
   }
 
   /**
@@ -3732,6 +3740,16 @@ class StaticWarningCode extends ErrorCode {
    */
   static const StaticWarningCode ASSIGNMENT_TO_METHOD = const StaticWarningCode(
       'ASSIGNMENT_TO_METHOD', "Methods cannot be assigned a value");
+
+  /**
+   * 12.18 Assignment: It is as static warning if an assignment of the form
+   * <i>v = e</i> occurs inside a top level or static function (be it function,
+   * method, getter, or setter) or variable initializer and there is neither a
+   * local variable declaration with name <i>v</i> nor setter declaration with
+   * name <i>v=</i> in the lexical scope enclosing the assignment.
+   */
+  static const StaticWarningCode ASSIGNMENT_TO_TYPE = const StaticWarningCode(
+      'ASSIGNMENT_TO_TYPE', "Types cannot be assigned a value");
 
   /**
    * 13.9 Switch: It is a static warning if the last statement of the statement

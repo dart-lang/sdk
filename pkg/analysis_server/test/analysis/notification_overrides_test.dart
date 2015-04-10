@@ -138,6 +138,40 @@ class B implements A {
     });
   }
 
+  test_definedInInterface_ofInterface() {
+    addTestFile('''
+class A {
+  m() {} // in A
+}
+class B implements A {}
+class C implements B {
+  m() {} // in C
+}
+''');
+    return prepareOverrides().then((_) {
+      assertHasOverride('m() {} // in C');
+      assertNoSuperMember();
+      assertHasInterfaceMember('m() {} // in A');
+    });
+  }
+
+  test_definedInInterface_ofSuper() {
+    addTestFile('''
+class A {
+  m() {} // in A
+}
+class B implements A {}
+class C extends B {
+  m() {} // in C
+}
+''');
+    return prepareOverrides().then((_) {
+      assertHasOverride('m() {} // in C');
+      assertNoSuperMember();
+      assertHasInterfaceMember('m() {} // in A');
+    });
+  }
+
   test_interface_method_direct_multiple() {
     addTestFile('''
 class IA {
@@ -320,6 +354,20 @@ class C extends B {
       assertHasOverride('m() {} // in C');
       assertHasSuperElement('m() {} // in A');
       assertNoInterfaceMembers();
+    });
+  }
+
+  test_super_method_superTypeCycle() {
+    addTestFile('''
+class A extends B {
+  m() {} // in A
+}
+class B extends A {
+  m() {} // in B
+}
+''');
+    return prepareOverrides().then((_) {
+      // must finish
     });
   }
 

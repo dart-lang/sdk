@@ -10,7 +10,6 @@
 #include <process.h>  // NOLINT
 
 #include "platform/assert.h"
-#include "vm/isolate.h"
 
 namespace dart {
 
@@ -173,7 +172,7 @@ Mutex::Mutex() {
   }
   // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
-  owner_ = NULL;
+  owner_ = OSThread::kInvalidThreadId;
 #endif  // defined(DEBUG)
 }
 
@@ -182,7 +181,7 @@ Mutex::~Mutex() {
   CloseHandle(data_.semaphore_);
   // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
-  ASSERT(owner_ == NULL);
+  ASSERT(owner_ == OSThread::kInvalidThreadId);
 #endif  // defined(DEBUG)
 }
 
@@ -194,7 +193,7 @@ void Mutex::Lock() {
   }
   // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
-  owner_ = Isolate::Current();
+  owner_ = OSThread::GetCurrentThreadId();
 #endif  // defined(DEBUG)
 }
 
@@ -205,7 +204,7 @@ bool Mutex::TryLock() {
   if (result == WAIT_OBJECT_0) {
     // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
-    owner_ = Isolate::Current();
+    owner_ = OSThread::GetCurrentThreadId();
 #endif  // defined(DEBUG)
     return true;
   }
@@ -220,8 +219,8 @@ bool Mutex::TryLock() {
 void Mutex::Unlock() {
   // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
-  ASSERT(owner_ == Isolate::Current());
-  owner_ = NULL;
+  ASSERT(IsOwnedByCurrentThread());
+  owner_ = OSThread::kInvalidThreadId;
 #endif  // defined(DEBUG)
   BOOL result = ReleaseSemaphore(data_.semaphore_, 1, NULL);
   if (result == 0) {

@@ -23,7 +23,8 @@ class CodegenBailout {
   }
 }
 
-class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
+class CodeGenerator extends tree_ir.StatementVisitor
+                    with tree_ir.ExpressionVisitor<js.Expression> {
   final CodegenRegistry registry;
 
   final Glue glue;
@@ -206,9 +207,10 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   @override
   js.Expression visitInvokeConstructor(tree_ir.InvokeConstructor node) {
     checkStaticTargetIsValid(node, node.target);
-
     if (node.constant != null) return giveup(node);
-    registry.registerInstantiatedClass(node.target.enclosingClass);
+
+    ClassElement instantiatedClass = node.target.enclosingClass;
+    registry.registerInstantiatedClass(instantiatedClass);
     Selector selector = node.selector;
     FunctionElement target = node.target;
     List<js.Expression> arguments = visitArguments(node.arguments);
@@ -500,9 +502,24 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   js.Expression visitCreateInstance(tree_ir.CreateInstance node) {
-    registry.registerInstantiatedClass(node.classElement);
-    return new js.New(glue.constructorAccess(node.classElement),
-                      node.arguments.map(visitExpression).toList());
+    ClassElement cls = node.classElement;
+    registry.registerInstantiatedClass(cls);
+    js.Expression instance = new js.New(
+        glue.constructorAccess(cls),
+        node.arguments.map(visitExpression).toList());
+
+    List<tree_ir.Expression> typeInformation = node.typeInformation;
+    assert(typeInformation.isEmpty ||
+        typeInformation.length == cls.typeVariables.length);
+    if (typeInformation.isNotEmpty) {
+      FunctionElement helper = glue.getAddRuntimeTypeInformation();
+      js.Expression typeArguments = new js.ArrayInitializer(
+          typeInformation.map(visitExpression).toList());
+      return buildStaticHelperInvocation(helper,
+          <js.Expression>[instance, typeArguments]);
+    } else {
+      return instance;
+    }
   }
 
   @override
@@ -555,6 +572,12 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
     }
   }
 
+  @override
+  js.Expression visitTypeExpression(tree_ir.TypeExpression node) {
+    List<js.Expression> arguments =
+        node.arguments.map(visitExpression).toList(growable: false);
+    return glue.generateTypeRepresentation(node.dartType, arguments);
+  }
 
   // Dart-specific IR nodes
 
@@ -570,16 +593,6 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   visitFunctionDeclaration(tree_ir.FunctionDeclaration node) {
-    return errorUnsupportedNode(node);
-  }
-
-  @override
-  visitFieldInitializer(tree_ir.FieldInitializer node) {
-    return errorUnsupportedNode(node);
-  }
-
-  @override
-  visitSuperInitializer(tree_ir.SuperInitializer node) {
     return errorUnsupportedNode(node);
   }
 

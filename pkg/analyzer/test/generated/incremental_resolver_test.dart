@@ -305,6 +305,66 @@ class B<T> = Object with M<T>;
 ''');
   }
 
+  void test_false_constructor_keywordConst_add() {
+    _assertDoesNotMatch(r'''
+class A {
+  A();
+}
+''', r'''
+class A {
+  const A();
+}
+''');
+  }
+
+  void test_false_constructor_keywordConst_remove() {
+    _assertDoesNotMatch(r'''
+class A {
+  const A();
+}
+''', r'''
+class A {
+  A();
+}
+''');
+  }
+
+  void test_false_constructor_keywordFactory_add() {
+    _assertDoesNotMatch(r'''
+class A {
+  A();
+  A.foo() {
+    return new A();
+  }
+}
+''', r'''
+class A {
+  A();
+  factory A.foo() {
+    return new A();
+  }
+}
+''');
+  }
+
+  void test_false_constructor_keywordFactory_remove() {
+    _assertDoesNotMatch(r'''
+class A {
+  A();
+  factory A.foo() {
+    return new A();
+  }
+}
+''', r'''
+class A {
+  A();
+  A.foo() {
+    return new A();
+  }
+}
+''');
+  }
+
   void test_false_constructor_parameters_list_add() {
     _assertDoesNotMatch(r'''
 class A {
@@ -2810,6 +2870,23 @@ class A {
     _resetWithIncremental(true);
   }
 
+  void test_computeConstants() {
+    _resolveUnit(r'''
+int f() => 0;
+main() {
+  const x = f();
+  print(x + 1);
+}
+''');
+    _updateAndValidate(r'''
+int f() => 0;
+main() {
+  const x = f();
+  print(x + 2);
+}
+''');
+  }
+
   void test_dartDoc_beforeField() {
     _resolveUnit(r'''
 class A {
@@ -3119,6 +3196,29 @@ main() {
   print(0);
 }
 ''');
+  }
+
+  void test_false_constConstructor_initializer() {
+    _resolveUnit(r'''
+class C {
+  final int x;
+  const C(this.x);
+  const C.foo() : x = 0;
+}
+main() {
+  const {const C(0): 0, const C.foo(): 1};
+}
+''');
+    _updateAndValidate(r'''
+class C {
+  final int x;
+  const C(this.x);
+  const C.foo() : x = 1;
+}
+main() {
+  const {const C(0): 0, const C.foo(): 1};
+}
+''', expectedSuccess: false);
   }
 
   void test_false_topLevelFunction_name() {

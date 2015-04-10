@@ -1102,13 +1102,13 @@ void Simulator::WriteD(uword addr, double value, Instr* instr) {
 
 // Synchronization primitives support.
 void Simulator::SetExclusiveAccess(uword addr) {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  DEBUG_ASSERT(exclusive_access_lock_->Owner() == isolate);
+  Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
+  DEBUG_ASSERT(exclusive_access_lock_->IsOwnedByCurrentThread());
   int i = 0;
-  // Find an entry for this isolate in the exclusive access state.
+  // Find an entry for this thread in the exclusive access state.
   while ((i < kNumAddressTags) &&
-         (exclusive_access_state_[i].isolate != isolate)) {
+         (exclusive_access_state_[i].thread != thread)) {
     i++;
   }
   // Round-robin replacement of previously used entries.
@@ -1117,7 +1117,7 @@ void Simulator::SetExclusiveAccess(uword addr) {
     if (++next_address_tag_ == kNumAddressTags) {
       next_address_tag_ = 0;
     }
-    exclusive_access_state_[i].isolate = isolate;
+    exclusive_access_state_[i].thread = thread;
   }
   // Remember the address being reserved.
   exclusive_access_state_[i].addr = addr;
@@ -1125,20 +1125,20 @@ void Simulator::SetExclusiveAccess(uword addr) {
 
 
 bool Simulator::HasExclusiveAccessAndOpen(uword addr) {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
+  Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
   ASSERT(addr != 0);
-  DEBUG_ASSERT(exclusive_access_lock_->Owner() == isolate);
+  DEBUG_ASSERT(exclusive_access_lock_->IsOwnedByCurrentThread());
   bool result = false;
   for (int i = 0; i < kNumAddressTags; i++) {
-    if (exclusive_access_state_[i].isolate == isolate) {
-      // Check whether the current isolate's address reservation matches.
+    if (exclusive_access_state_[i].thread == thread) {
+      // Check whether the current thread's address reservation matches.
       if (exclusive_access_state_[i].addr == addr) {
         result = true;
       }
       exclusive_access_state_[i].addr = 0;
     } else if (exclusive_access_state_[i].addr == addr) {
-      // Other isolates with matching address lose their reservations.
+      // Other threads with matching address lose their reservations.
       exclusive_access_state_[i].addr = 0;
     }
   }
@@ -1148,7 +1148,7 @@ bool Simulator::HasExclusiveAccessAndOpen(uword addr) {
 
 void Simulator::ClearExclusive() {
   MutexLocker ml(exclusive_access_lock_);
-  // Remove the reservation for this isolate.
+  // Remove the reservation for this thread.
   SetExclusiveAccess(NULL);
 }
 
@@ -1176,7 +1176,7 @@ uword Simulator::CompareExchange(uword* address,
                                  uword new_value) {
   MutexLocker ml(exclusive_access_lock_);
   // We do not get a reservation as it would be guaranteed to be found when
-  // writing below. No other isolate is able to make a reservation while we
+  // writing below. No other thread is able to make a reservation while we
   // hold the lock.
   uword value = *address;
   if (value == compare_value) {
@@ -1982,7 +1982,7 @@ void Simulator::DecodeCop1(Instr* instr) {
 
 void Simulator::InstructionDecode(Instr* instr) {
   if (IsTracingExecution()) {
-    OS::Print("%" Pu64, icount_);
+    OS::Print("%" Pu64 " ", icount_);
     const uword start = reinterpret_cast<uword>(instr);
     const uword end = start + Instr::kInstrSize;
     Disassembler::Disassemble(start, end);

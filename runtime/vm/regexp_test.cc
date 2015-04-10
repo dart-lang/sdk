@@ -25,9 +25,6 @@ static RawArray* Match(const String& pat, const String& str) {
 }
 
 TEST_CASE(RegExp_OneByteString) {
-  if (FLAG_use_jscre)
-    return;
-
   uint8_t chars[] = { 'a', 'b', 'c', 'b', 'a' };
   intptr_t len = ARRAY_SIZE(chars);
   const String& str = String::Handle(
@@ -49,9 +46,6 @@ TEST_CASE(RegExp_OneByteString) {
 }
 
 TEST_CASE(RegExp_TwoByteString) {
-  if (FLAG_use_jscre)
-    return;
-
   uint16_t chars[] = { 'a', 'b', 'c', 'b', 'a' };
   intptr_t len = ARRAY_SIZE(chars);
   const String& str = String::Handle(
@@ -73,9 +67,6 @@ TEST_CASE(RegExp_TwoByteString) {
 }
 
 TEST_CASE(RegExp_ExternalOneByteString) {
-  if (FLAG_use_jscre)
-    return;
-
   uint8_t chars[] = { 'a', 'b', 'c', 'b', 'a' };
   intptr_t len = ARRAY_SIZE(chars);
   const String& str = String::Handle(
@@ -97,9 +88,6 @@ TEST_CASE(RegExp_ExternalOneByteString) {
 }
 
 TEST_CASE(RegExp_ExternalTwoByteString) {
-  if (FLAG_use_jscre)
-    return;
-
   uint16_t chars[] = { 'a', 'b', 'c', 'b', 'a' };
   intptr_t len = ARRAY_SIZE(chars);
   const String& str = String::Handle(

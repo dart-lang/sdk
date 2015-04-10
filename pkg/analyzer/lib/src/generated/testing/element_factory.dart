@@ -70,10 +70,6 @@ class ElementFactory {
           [List<String> parameterNames]) =>
       classElement(typeName, objectType, parameterNames);
 
-  static ClassElementImpl classTypeAlias2(String typeName,
-          [List<String> parameterNames]) =>
-      classTypeAlias(typeName, objectType, parameterNames);
-
   static classTypeAlias(String typeName, InterfaceType superclassType,
       [List<String> parameterNames]) {
     ClassElementImpl element =
@@ -82,12 +78,19 @@ class ElementFactory {
     return element;
   }
 
+  static ClassElementImpl classTypeAlias2(String typeName,
+          [List<String> parameterNames]) =>
+      classTypeAlias(typeName, objectType, parameterNames);
+
   static CompilationUnitElementImpl compilationUnit(String fileName) {
     Source source = new NonExistingSource(fileName, UriKind.FILE_URI);
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl(fileName);
     unit.source = source;
     return unit;
   }
+
+  static ConstLocalVariableElementImpl constLocalVariableElement(String name) =>
+      new ConstLocalVariableElementImpl(name, 0);
 
   static ConstructorElementImpl constructorElement(
       ClassElement definingClass, String name, bool isConst,

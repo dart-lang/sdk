@@ -37,7 +37,7 @@ class DeclarationTypePlaceholder {
   DeclarationTypePlaceholder(this.typeNode, this.requiresVar);
 }
 
-class SendVisitor extends ResolvedVisitor {
+class SendVisitor extends OldResolvedVisitor {
   final PlaceholderCollector collector;
 
   SendVisitor(this.collector, TreeElements elements)
@@ -100,7 +100,7 @@ class SendVisitor extends ResolvedVisitor {
     }
   }
 
-  visitAssert(node) {
+  visitAssertSend(node) {
     visitStaticSend(node);
   }
 
@@ -134,7 +134,7 @@ class SendVisitor extends ResolvedVisitor {
     }
   }
 
-  internalError(String reason, {Node node}) {
+  internalError(Spannable node, String reason) {
     collector.internalError(reason, node: node);
   }
 

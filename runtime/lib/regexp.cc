@@ -10,12 +10,9 @@
 #include "vm/regexp_parser.h"
 #include "vm/thread.h"
 
-#include "lib/regexp_jsc.h"
-
 namespace dart {
 
 DECLARE_FLAG(bool, trace_irregexp);
-DEFINE_FLAG(bool, use_jscre, false, "Use the JSCRE regular expression engine");
 
 
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 4) {
@@ -28,9 +25,6 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 4) {
   bool ignore_case = handle_case_sensitive.raw() != Bool::True().raw();
   bool multi_line = handle_multi_line.raw() == Bool::True().raw();
 
-  if (FLAG_use_jscre) {
-    return Jscre::Compile(pattern, multi_line, ignore_case);
-  }
   // Parse the pattern once in order to throw any format exceptions within
   // the factory constructor. It is parsed again upon compilation.
   RegExpCompileData compileData;
@@ -90,10 +84,6 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_ExecuteMatch, 3) {
   ASSERT(!regexp.IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(String, str, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_index, arguments->NativeArgAt(2));
-
-  if (FLAG_use_jscre) {
-    return Jscre::Execute(regexp, str, start_index.Value());
-  }
 
   // This function is intrinsified. See Intrinsifier::JSRegExp_ExecuteMatch.
   const intptr_t cid = str.GetClassId();

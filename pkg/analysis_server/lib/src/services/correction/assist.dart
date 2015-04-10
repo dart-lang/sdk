@@ -57,6 +57,8 @@ class AssistKind {
       const AssistKind('CONVERT_INTO_IS_NOT', 30, "Convert into is!");
   static const CONVERT_INTO_IS_NOT_EMPTY = const AssistKind(
       'CONVERT_INTO_IS_NOT_EMPTY', 30, "Convert into 'isNotEmpty'");
+  static const ENCAPSULATE_FIELD =
+      const AssistKind('ENCAPSULATE_FIELD', 30, "Encapsulate field");
   static const EXCHANGE_OPERANDS =
       const AssistKind('EXCHANGE_OPERANDS', 30, "Exchange operands");
   static const EXTRACT_CLASS =

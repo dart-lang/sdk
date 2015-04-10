@@ -37,7 +37,7 @@ main() {
 }""",
 r"""
 function() {
-  var l, i, v0, x, j, v1;
+  var l, i, v0, x, j;
   l = ["hest", ["h", "e", "s", "t"]];
   P.print(J.getInterceptor$as(l).get$length(l));
   i = 0;
@@ -48,8 +48,8 @@ function() {
         x = J.getInterceptor$as(l).$index(l, i);
         j = 0;
         while (true) {
-          v1 = J.getInterceptor$as(x).get$length(x);
-          if (P.identical(J.getInterceptor$n(j).$lt(j, v1), true)) {
+          v0 = J.getInterceptor$as(x).get$length(x);
+          if (P.identical(J.getInterceptor$n(j).$lt(j, v0), true)) {
             P.print(J.getInterceptor$as(x).$index(x, j));
             j = J.getInterceptor$ns(j).$add(j, 1);
           } else {

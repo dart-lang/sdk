@@ -200,14 +200,18 @@ abstract class TypeMask {
   bool operator==(other);
 
   /**
-   * Returns `true` if [other] is a supertype of this mask, i.e., if
-   * this mask is in [other].
+   * If this returns `true`, [other] is guaranteed to be a supertype of this
+   * mask, i.e., this mask is in [other]. However, the inverse does not hold.
+   * Enable [UnionTypeMask.PERFORM_EXTRA_CONTAINS_CHECK] to be notified of
+   * false negatives.
    */
   bool isInMask(TypeMask other, ClassWorld classWorld);
 
   /**
-   * Returns `true` if [other] is a subtype of this mask, i.e., if
-   * this mask contains [other].
+   * If this returns `true`, [other] is guaranteed to be a subtype of this mask,
+   * i.e., this mask contains [other]. However, the inverse does not hold.
+   * Enable [UnionTypeMask.PERFORM_EXTRA_CONTAINS_CHECK] to be notified of
+   * false negatives.
    */
   bool containsMask(TypeMask other, ClassWorld classWorld);
 

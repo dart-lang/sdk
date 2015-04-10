@@ -31,11 +31,7 @@ class Service : public AllStatic {
   // Handles a message which is directed to a particular isolate.
   static void HandleIsolateMessage(Isolate* isolate, const Array& message);
 
-  static bool EventMaskHas(uint32_t mask);
-  static void SetEventMask(uint32_t mask);
   static bool NeedsEvents();
-  static bool NeedsDebuggerEvents();
-  static bool NeedsGCEvents();
 
   static void HandleEvent(ServiceEvent* event);
   static void HandleGCEvent(GCEvent* event);
@@ -56,31 +52,21 @@ class Service : public AllStatic {
  private:
   static void InvokeMethod(Isolate* isolate, const Array& message);
 
-  // These must be kept in sync with service/constants.dart
-  static const int kEventFamilyDebug = 0;
-  static const int kEventFamilyGC = 1;
-  static const uint32_t kEventFamilyDebugMask = (1 << kEventFamilyDebug);
-  static const uint32_t kEventFamilyGCMask = (1 << kEventFamilyGC);
-
   static void EmbedderHandleMessage(EmbedderServiceHandler* handler,
                                     JSONStream* js);
 
   static EmbedderServiceHandler* FindIsolateEmbedderHandler(const char* name);
   static EmbedderServiceHandler* FindRootEmbedderHandler(const char* name);
 
-  static void SendEvent(intptr_t eventFamilyId,
-                        intptr_t eventType,
+  static void SendEvent(intptr_t eventType,
                         const Object& eventMessage);
   // Does not take ownership of 'data'.
-  static void SendEvent(intptr_t eventId,
-                        const String& meta,
+  static void SendEvent(const String& meta,
                         const uint8_t* data,
                         intptr_t size);
 
   static EmbedderServiceHandler* isolate_service_handler_head_;
   static EmbedderServiceHandler* root_service_handler_head_;
-
-  static uint32_t event_mask_;
 };
 
 }  // namespace dart

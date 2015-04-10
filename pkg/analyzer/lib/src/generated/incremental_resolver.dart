@@ -7,6 +7,7 @@ library engine.incremental_resolver;
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/services/lint.dart';
 
 import 'ast.dart';
@@ -184,14 +185,9 @@ class DeclarationMatcher extends RecursiveAstVisitor {
         ? _enclosingClass.unnamedConstructor
         : _enclosingClass.getNamedConstructor(constructorName.name);
     _processElement(element);
+    _assertEquals(node.constKeyword != null, element.isConst);
+    _assertEquals(node.factoryKeyword != null, element.isFactory);
     _assertCompatibleParameters(node.parameters, element.parameters);
-    // TODO(scheglov) debug null Location
-    if (element != null) {
-      if (element.context == null || element.source == null) {
-        logger.log(
-            'Bad constructor element $element for $node in ${node.parent}');
-      }
-    }
     // matches, update the existing element
     ExecutableElement newElement = node.element;
     node.element = element;
@@ -807,7 +803,7 @@ class IncrementalResolver {
   /**
    * The element for the library containing the compilation unit being resolved.
    */
-  LibraryElement _definingLibrary;
+  LibraryElementImpl _definingLibrary;
 
   /**
    * The [DartEntry] corresponding to the source being resolved.
@@ -883,12 +879,16 @@ class IncrementalResolver {
       }
       // resolve
       _resolveReferences(rootNode);
+      _computeConstants(rootNode);
+      _resolveErrors = errorListener.getErrorsForSource(_source);
       // verify
       _verify(rootNode);
       _context.invalidateLibraryHints(_librarySource);
       _generateLints(rootNode);
       // update entry errors
       _updateEntry();
+      // notify library
+      _definingLibrary.afterIncrementalResolution();
       // OK
       return true;
     } finally {
@@ -956,6 +956,27 @@ class IncrementalResolver {
       node is FunctionTypeAlias ||
       node is MethodDeclaration ||
       node is TopLevelVariableDeclaration;
+
+  /**
+   * Compute a value for all of the constants in the given [node].
+   */
+  void _computeConstants(AstNode node) {
+    // compute values
+    {
+      CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
+      ConstantValueComputer computer =
+          new ConstantValueComputer(_typeProvider, _context.declaredVariables);
+      computer.add(unit);
+      computer.computeValues();
+    }
+    // validate
+    {
+      ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
+      ConstantVerifier constantVerifier =
+          new ConstantVerifier(errorReporter, _definingLibrary, _typeProvider);
+      node.accept(constantVerifier);
+    }
+  }
 
   /**
    * Starting at [node], find the smallest AST node that can be resolved
@@ -1041,8 +1062,6 @@ class IncrementalResolver {
         visitor.initForIncrementalResolution();
         node.accept(visitor);
       }
-      // remember errors
-      _resolveErrors = errorListener.getErrorsForSource(_source);
     } finally {
       timer.stop('resolve references');
     }
@@ -1143,6 +1162,7 @@ class PoorMansIncrementalResolver {
   final Source _unitSource;
   final DartEntry _entry;
   final CompilationUnit _oldUnit;
+  final AnalysisOptions _options;
   CompilationUnitElement _unitElement;
 
   int _updateOffset;
@@ -1154,7 +1174,7 @@ class PoorMansIncrementalResolver {
   List<AnalysisError> _newParseErrors = <AnalysisError>[];
 
   PoorMansIncrementalResolver(this._typeProvider, this._unitSource, this._entry,
-      this._oldUnit, bool resolveApiChanges) {
+      this._oldUnit, bool resolveApiChanges, this._options) {
     _resolveApiChanges = resolveApiChanges;
   }
 
@@ -1223,9 +1243,9 @@ class PoorMansIncrementalResolver {
         }
         // Find nodes covering the "old" and "new" token ranges.
         AstNode oldNode =
-            _findNodeCovering(_oldUnit, beginOffsetOld, endOffsetOld);
+            _findNodeCovering(_oldUnit, beginOffsetOld, endOffsetOld - 1);
         AstNode newNode =
-            _findNodeCovering(newUnit, beginOffsetNew, endOffsetNew);
+            _findNodeCovering(newUnit, beginOffsetNew, endOffsetNew - 1);
         logger.log(() => 'oldNode: $oldNode');
         logger.log(() => 'newNode: $newNode');
         // Try to find the smallest common node, a FunctionBody currently.
@@ -1237,6 +1257,12 @@ class PoorMansIncrementalResolver {
           for (int i = 0; i < length; i++) {
             AstNode oldParent = oldParents[i];
             AstNode newParent = newParents[i];
+            if (oldParent is ConstructorInitializer ||
+                newParent is ConstructorInitializer) {
+              logger.log('Failure: changes in constant constructor initializers'
+                  ' may cause external changes in constant objects.');
+              return false;
+            }
             if (oldParent is FunctionDeclaration &&
                     newParent is FunctionDeclaration ||
                 oldParent is MethodDeclaration &&
@@ -1367,6 +1393,7 @@ class PoorMansIncrementalResolver {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     CharSequenceReader reader = new CharSequenceReader(code);
     Scanner scanner = new Scanner(_unitSource, reader, errorListener);
+    scanner.enableNullAwareOperators = _options.enableNullAwareOperators;
     Token token = scanner.tokenize();
     _newScanErrors = errorListener.errors;
     return token;

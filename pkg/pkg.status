@@ -163,9 +163,9 @@ third_party/html5lib/test/parser_test: SkipByDesign # Uses dart:io.
 third_party/html5lib/test/selectors/*: SkipByDesign # Uses dart:io.
 third_party/html5lib/test/tokenizer_test: SkipByDesign # Uses dart:io.
 
-[ $arch == simarm64 ]
+[ $arch == simarm64 || $arch == armv5te ]
 # Timeout. These are not unit tests. They do not run efficiently on our
-# simulator.
+# simulator or low-end devices.
 *: Skip
 
 [ $runtime == vm ]

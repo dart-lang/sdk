@@ -21,7 +21,7 @@
 namespace dart {
 namespace bin {
 
-extern bool trace_debug_protocol;
+bool trace_debug_protocol = false;
 
 intptr_t DebuggerConnectionHandler::listener_fd_ = -1;
 Monitor* DebuggerConnectionHandler::handler_lock_ = new Monitor();

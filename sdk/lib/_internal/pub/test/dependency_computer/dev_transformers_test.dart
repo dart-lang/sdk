@@ -47,6 +47,28 @@ void main() {
     expectDependencies({"myapp": []});
   });
 
+  integration("does return a dependency's transformer that the root package "
+      "uses", () {
+    d.dir(appPath, [
+      d.pubspec({
+        "name": "myapp",
+        "dependencies": {"foo": {"path": "../foo"}},
+        "transformers": [{"foo": {"\$include": "test/myapp_test.dart"}}]
+      }),
+      d.dir("test", [d.file("myapp_test.dart", "")])
+    ]).create();
+
+    d.dir("foo", [
+      d.pubspec({
+        "name": "foo",
+        "version": "1.0.0"
+      }),
+      d.dir("lib", [d.file("foo.dart", transformer())])
+    ]).create();
+
+    expectDependencies({"foo": []});
+  });
+
   integration("doesn't return a dependency's transformer that can run on bin",
       () {
     d.dir(appPath, [

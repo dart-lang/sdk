@@ -431,16 +431,16 @@ abstract class Process {
 
 /**
  * [ProcessResult] represents the result of running a non-interactive
- * process started with [:Process.run:].
+ * process started with [Process.run] or [Process.runSync].
  */
-abstract class ProcessResult {
+class ProcessResult {
   /**
    * Exit code for the process.
    *
    * See [Process.exitCode] for more information in the exit code
    * value.
    */
-  int get exitCode;
+  final int exitCode;
 
   /**
    * Standard output from the process. The value used for the
@@ -448,7 +448,7 @@ abstract class ProcessResult {
    * `null` was used this value is of type `List<int> otherwise it is
    * of type `String`.
    */
-  get stdout;
+  final stdout;
 
   /**
    * Standard error from the process. The value used for the
@@ -456,12 +456,14 @@ abstract class ProcessResult {
    * `null` was used this value is of type `List<int>
    * otherwise it is of type `String`.
    */
-  get stderr;
+  final stderr;
 
   /**
-   * Process id from the process.
+   * Process id of the process.
    */
-  int get pid;
+  final int pid;
+
+  ProcessResult(this.pid, this.exitCode, this.stdout, this.stderr);
 }
 
 

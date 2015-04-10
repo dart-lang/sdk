@@ -18,12 +18,24 @@ namespace dart {
 namespace bin {
 
 // The string on the next line will be filled in with the contents of the
-// generated snapshot binary file.
-// This string forms the content of a snapshot which is loaded in by dart.
-static const uint8_t snapshot_buffer_[] = {
+// generated snapshot binary file for the vm isolate.
+// This string forms the content of a vm isolate snapshot which is loaded
+// into the vm isolate.
+static const uint8_t vm_isolate_snapshot_buffer_[] = {
+  0,
   %s
 };
-const uint8_t* snapshot_buffer = snapshot_buffer_;
+const uint8_t* vm_isolate_snapshot_buffer = vm_isolate_snapshot_buffer_;
+
+
+// The string on the next line will be filled in with the contents of the
+// generated snapshot binary file for a regular dart isolate.
+// This string forms the content of a regular dart isolate snapshot which is
+// loaded into an isolate when it is created.
+static const uint8_t isolate_snapshot_buffer_[] = {
+  %s
+};
+const uint8_t* isolate_snapshot_buffer = isolate_snapshot_buffer_;
 
 }  // namespace bin
 }  // namespace dart

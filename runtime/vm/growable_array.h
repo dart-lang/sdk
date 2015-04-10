@@ -90,6 +90,15 @@ class BaseGrowableArray : public B {
     data_[idx] = value;
   }
 
+  void Reverse() {
+    for (intptr_t i = 0; i < length_ / 2; i++) {
+      const intptr_t j = length_ - 1 - i;
+      T temp = data_[i];
+      data_[i] = data_[j];
+      data_[j] = temp;
+    }
+  }
+
   // The content is uninitialized after calling it.
   void SetLength(intptr_t new_length);
 

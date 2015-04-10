@@ -85,6 +85,7 @@ class AssistProcessor {
     _addProposal_convertToIsNot_onIs();
     _addProposal_convertToIsNot_onNot();
     _addProposal_convertToIsNotEmpty();
+    _addProposal_encapsulateField();
     _addProposal_exchangeOperands();
     _addProposal_importAddShow();
     _addProposal_introduceLocalTestedType();
@@ -660,6 +661,7 @@ class AssistProcessor {
         isEmptyAccess.parent as PrefixExpression;
     // should be !
     if (prefixExpression.operator.type != TokenType.BANG) {
+      _coverageMarker();
       return;
     }
     // do replace
@@ -667,6 +669,79 @@ class AssistProcessor {
     _addReplaceEdit(rangeNode(isEmptyIdentifier), 'isNotEmpty');
     // add proposal
     _addAssist(AssistKind.CONVERT_INTO_IS_NOT_EMPTY, []);
+  }
+
+  void _addProposal_encapsulateField() {
+    // find FieldDeclaration
+    FieldDeclaration fieldDeclaraton =
+        node.getAncestor((x) => x is FieldDeclaration);
+    if (fieldDeclaraton == null) {
+      _coverageMarker();
+      return;
+    }
+    // not interesting for static
+    if (fieldDeclaraton.isStatic) {
+      _coverageMarker();
+      return;
+    }
+    // has a parse error
+    VariableDeclarationList variableList = fieldDeclaraton.fields;
+    if (variableList.keyword == null && variableList.type == null) {
+      _coverageMarker();
+      return;
+    }
+    // not interesting for final
+    if (variableList.isFinal) {
+      _coverageMarker();
+      return;
+    }
+    // should have exactly one field
+    List<VariableDeclaration> fields = variableList.variables;
+    if (fields.length != 1) {
+      _coverageMarker();
+      return;
+    }
+    VariableDeclaration field = fields.first;
+    SimpleIdentifier nameNode = field.name;
+    FieldElement fieldElement = nameNode.staticElement;
+    // should have a public name
+    String name = nameNode.name;
+    if (Identifier.isPrivateName(name)) {
+      _coverageMarker();
+      return;
+    }
+    // should be on the name
+    if (nameNode != node) {
+      _coverageMarker();
+      return;
+    }
+    // rename field
+    _addReplaceEdit(rangeNode(nameNode), '_$name');
+    // update references in constructors
+    ClassDeclaration classDeclaration = fieldDeclaraton.parent;
+    for (ClassMember member in classDeclaration.members) {
+      if (member is ConstructorDeclaration) {
+        for (FormalParameter parameter in member.parameters.parameters) {
+          ParameterElement parameterElement = parameter.element;
+          if (parameterElement is FieldFormalParameterElement &&
+              parameterElement.field == fieldElement) {
+            _addReplaceEdit(rangeNode(parameter.identifier), '_$name');
+          }
+        }
+      }
+    }
+    // add accessors
+    String eol2 = eol + eol;
+    String typeNameCode =
+        variableList.type != null ? _getNodeText(variableList.type) + ' ' : '';
+    String getterCode = '$eol2  ${typeNameCode}get $name => _$name;';
+    String setterCode = '$eol2'
+        '  void set $name(${typeNameCode}$name) {$eol'
+        '    _$name = $name;$eol'
+        '  }';
+    _addInsertEdit(fieldDeclaraton.end, getterCode + setterCode);
+    // add proposal
+    _addAssist(AssistKind.ENCAPSULATE_FIELD, []);
   }
 
   void _addProposal_exchangeOperands() {
@@ -1126,50 +1201,48 @@ class AssistProcessor {
   }
 
   void _addProposal_removeTypeAnnotation() {
-    AstNode typeStart = null;
-    AstNode typeEnd = null;
+    VariableDeclarationList variableList;
     // try top-level variable
     {
       TopLevelVariableDeclaration declaration =
           node.getAncestor((node) => node is TopLevelVariableDeclaration);
       if (declaration != null) {
-        TypeName typeNode = declaration.variables.type;
-        if (typeNode != null) {
-          VariableDeclaration field = declaration.variables.variables[0];
-          typeStart = declaration;
-          typeEnd = field;
-        }
+        variableList = declaration.variables;
       }
     }
     // try class field
-    {
+    if (variableList == null) {
       FieldDeclaration fieldDeclaration =
           node.getAncestor((node) => node is FieldDeclaration);
       if (fieldDeclaration != null) {
-        TypeName typeNode = fieldDeclaration.fields.type;
-        if (typeNode != null) {
-          VariableDeclaration field = fieldDeclaration.fields.variables[0];
-          typeStart = fieldDeclaration;
-          typeEnd = field;
-        }
+        variableList = fieldDeclaration.fields;
       }
     }
     // try local variable
-    {
+    if (variableList == null) {
       VariableDeclarationStatement statement =
           node.getAncestor((node) => node is VariableDeclarationStatement);
       if (statement != null) {
-        TypeName typeNode = statement.variables.type;
-        if (typeNode != null) {
-          VariableDeclaration variable = statement.variables.variables[0];
-          typeStart = typeNode;
-          typeEnd = variable;
-        }
+        variableList = statement.variables;
       }
     }
+    if (variableList == null) {
+      _coverageMarker();
+      return;
+    }
+    // we need a type
+    TypeName typeNode = variableList.type;
+    if (typeNode == null) {
+      _coverageMarker();
+      return;
+    }
     // add edit
-    if (typeStart != null && typeEnd != null) {
-      SourceRange typeRange = rangeStartStart(typeStart, typeEnd);
+    Token keyword = variableList.keyword;
+    VariableDeclaration firstVariable = variableList.variables[0];
+    SourceRange typeRange = rangeStartStart(typeNode, firstVariable);
+    if (keyword != null && keyword.lexeme != 'var') {
+      _addReplaceEdit(typeRange, '');
+    } else {
       _addReplaceEdit(typeRange, 'var ');
     }
     // add proposal

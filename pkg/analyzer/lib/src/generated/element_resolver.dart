@@ -146,7 +146,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   Object visitAssignmentExpression(AssignmentExpression node) {
     sc.Token operator = node.operator;
     sc.TokenType operatorType = operator.type;
-    if (operatorType != sc.TokenType.EQ) {
+    if (operatorType != sc.TokenType.EQ &&
+        operatorType != sc.TokenType.QUESTION_QUESTION_EQ) {
       operatorType = _operatorFromCompoundAssignment(operatorType);
       Expression leftHandSide = node.leftHandSide;
       if (leftHandSide != null) {
@@ -592,10 +593,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       propagatedType = _getPropagatedType(target);
       //
       // If this method invocation is of the form 'C.m' where 'C' is a class,
-      // then we don't call resolveInvokedElement(..) which walks up the class
-      // hierarchy, instead we just look for the member in the type only.
+      // then we don't call resolveInvokedElement(...) which walks up the class
+      // hierarchy, instead we just look for the member in the type only.  This
+      // does not apply to conditional method invocation (i.e. 'C?.m(...)').
       //
-      ClassElementImpl typeReference = getTypeReference(target);
+      bool isConditional = node.operator.type == sc.TokenType.QUESTION_PERIOD;
+      ClassElementImpl typeReference = getTypeReference(target, isConditional);
       if (typeReference != null) {
         staticElement =
             propagatedElement = _resolveElement(typeReference, methodName);
@@ -636,15 +639,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (_enableHints && errorCode == null && staticElement == null) {
       // The method lookup may have failed because there were multiple
       // incompatible choices. In this case we don't want to generate a hint.
-      if (propagatedElement == null && propagatedType is UnionType) {
-        // TODO(collinsn): an improvement here is to make the propagated type
-        // of the method call the union of the propagated types of all possible
-        // calls.
-        if (_lookupMethods(target, propagatedType, methodName.name).length >
-            1) {
-          return null;
-        }
-      }
       errorCode = _checkForInvocationError(target, false, propagatedElement);
       if (identical(errorCode, StaticTypeWarningCode.UNDEFINED_METHOD)) {
         ClassElement classElementContext = null;
@@ -854,7 +848,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     // Otherwise, the prefix is really an expression that happens to be a simple
     // identifier and this is really equivalent to a property access node.
     //
-    _resolvePropertyAccess(prefix, identifier);
+    _resolvePropertyAccess(prefix, identifier, false);
     return null;
   }
 
@@ -910,7 +904,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       return null;
     }
     SimpleIdentifier propertyName = node.propertyName;
-    _resolvePropertyAccess(target, propertyName);
+    _resolvePropertyAccess(target, propertyName,
+        node.operator.type == sc.TokenType.QUESTION_PERIOD);
     return null;
   }
 
@@ -1719,13 +1714,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
       return _lookUpMethodInInterfaces(
           interfaceType, false, methodName, new HashSet<ClassElement>());
-    } else if (type is UnionType) {
-      // TODO (collinsn): I want [computeMergedExecutableElement] to be general
-      // and work with functions, methods, constructors, and property accessors.
-      // However, I won't be able to assume it returns [MethodElement] here
-      // then.
-      return _maybeMergeExecutableElements(
-          _lookupMethods(target, type, methodName)) as MethodElement;
     }
     return null;
   }
@@ -1778,35 +1766,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     }
     return _lookUpMethodInInterfaces(
         superclass, true, methodName, visitedInterfaces);
-  }
-
-  /**
-   * Look up all methods with the given [methodName] that are defined on the
-   * given union [type].
-   */
-  Set<ExecutableElement> _lookupMethods(
-      Expression target, UnionType type, String methodName) {
-    Set<ExecutableElement> methods = new HashSet<ExecutableElement>();
-    bool allElementsHaveMethod = true;
-    for (DartType t in type.elements) {
-      MethodElement m = _lookUpMethod(target, t, methodName);
-      if (m != null) {
-        methods.add(m);
-      } else {
-        allElementsHaveMethod = false;
-      }
-    }
-    // For strict union types we require that all types in the union define the
-    // method.
-    if (AnalysisEngine.instance.strictUnionTypes) {
-      if (allElementsHaveMethod) {
-        return methods;
-      } else {
-        return new Set<ExecutableElement>();
-      }
-    } else {
-      return methods;
-    }
   }
 
   /**
@@ -2385,7 +2344,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    */
   Element _resolveInvokedElementWithTarget(
       Expression target, DartType targetType, SimpleIdentifier methodName) {
-    if (targetType is InterfaceType || targetType is UnionType) {
+    if (targetType is InterfaceType) {
       Element element = _lookUpMethod(target, targetType, methodName.name);
       if (element == null) {
         //
@@ -2442,17 +2401,18 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   void _resolvePropertyAccess(
-      Expression target, SimpleIdentifier propertyName) {
+      Expression target, SimpleIdentifier propertyName, bool isConditional) {
     DartType staticType = _getStaticType(target);
     DartType propagatedType = _getPropagatedType(target);
     Element staticElement = null;
     Element propagatedElement = null;
     //
     // If this property access is of the form 'C.m' where 'C' is a class,
-    // then we don't call resolveProperty(..) which walks up the class
-    // hierarchy, instead we just look for the member in the type only.
+    // then we don't call resolveProperty(...) which walks up the class
+    // hierarchy, instead we just look for the member in the type only.  This
+    // does not apply to conditional property accesses (i.e. 'C?.m').
     //
-    ClassElementImpl typeReference = getTypeReference(target);
+    ClassElementImpl typeReference = getTypeReference(target, isConditional);
     if (typeReference != null) {
       // TODO(brianwilkerson) Why are we setting the propagated element here?
       // It looks wrong.
@@ -2481,12 +2441,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             _shouldReportMissingMember(propagatedType, propagatedElement) &&
             !_memberFoundInSubclass(
                 propagatedType.element, propertyName.name, false, true);
-    // TODO(collinsn): add support for errors on union types by extending
-    // [lookupGetter] and [lookupSetter] in analogy with the earlier
-    // [lookupMethod] extensions.
-    if (propagatedType is UnionType) {
-      shouldReportMissingMember_propagated = false;
-    }
     if (shouldReportMissingMember_static ||
         shouldReportMissingMember_propagated) {
       DartType staticOrPropagatedType =
@@ -2700,90 +2654,18 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   /**
    * Checks whether the given [expression] is a reference to a class. If it is
    * then the element representing the class is returned, otherwise `null` is
-   * returned.
+   * returned.  [isConditional] indicates whether [expression] is to the left
+   * of a '?.' opertator.
    */
-  static ClassElementImpl getTypeReference(Expression expression) {
-    if (expression is Identifier) {
+  static ClassElementImpl getTypeReference(
+      Expression expression, bool isConditional) {
+    if (!isConditional && expression is Identifier) {
       Element staticElement = expression.staticElement;
       if (staticElement is ClassElementImpl) {
         return staticElement;
       }
     }
     return null;
-  }
-
-  /**
-   * Helper function for `maybeMergeExecutableElements` that does the actual
-   * merging. The [elementArrayToMerge] is the non-empty list of elements to
-   * merge.
-   */
-  static ExecutableElement _computeMergedExecutableElement(
-      List<ExecutableElement> elementArrayToMerge) {
-    // Flatten methods structurally. Based on
-    // [InheritanceManager.computeMergedExecutableElement] and
-    // [InheritanceManager.createSyntheticExecutableElement].
-    //
-    // However, the approach we take here is much simpler, but expected to work
-    // well in the common case. It degrades gracefully in the uncommon case,
-    // by computing the type [dynamic] for the method, preventing any
-    // hints from being generated (TODO: not done yet).
-    //
-    // The approach is: we require that each [ExecutableElement] has the
-    // same shape: the same number of required, optional positional, and
-    // optional named parameters, in the same positions, and with the named
-    // parameters in the same order. We compute a type by unioning pointwise.
-    ExecutableElement e_0 = elementArrayToMerge[0];
-    List<ParameterElement> ps_0 = e_0.parameters;
-    List<ParameterElementImpl> ps_out =
-        new List<ParameterElementImpl>(ps_0.length);
-    for (int j = 0; j < ps_out.length; j++) {
-      ps_out[j] = new ParameterElementImpl(ps_0[j].name, 0);
-      ps_out[j].synthetic = true;
-      ps_out[j].type = ps_0[j].type;
-      ps_out[j].parameterKind = ps_0[j].parameterKind;
-    }
-    DartType r_out = e_0.returnType;
-    for (int i = 1; i < elementArrayToMerge.length; i++) {
-      ExecutableElement e_i = elementArrayToMerge[i];
-      r_out = UnionTypeImpl.union([r_out, e_i.returnType]);
-      List<ParameterElement> ps_i = e_i.parameters;
-      // Each function must have the same number of params.
-      if (ps_0.length != ps_i.length) {
-        return null;
-        // TODO (collinsn): return an element representing [dynamic] here
-        // instead.
-      } else {
-        // Each function must have the same kind of params, with the same names,
-        // in the same order.
-        for (int j = 0; j < ps_i.length; j++) {
-          if (ps_0[j].parameterKind != ps_i[j].parameterKind ||
-              !identical(ps_0[j].name, ps_i[j].name)) {
-            return null;
-          } else {
-            // The output parameter type is the union of the input parameter
-            // types.
-            ps_out[j].type =
-                UnionTypeImpl.union([ps_out[j].type, ps_i[j].type]);
-          }
-        }
-      }
-    }
-    // TODO (collinsn): this code should work for functions and methods,
-    // so we may want [FunctionElementImpl]
-    // instead here in some cases?
-    // And then there are constructors and property accessors.
-    // Maybe the answer is to create a new subclass of [ExecutableElementImpl]
-    // which is used for merged executable elements, in analogy with
-    // [MultiplyInheritedMethodElementImpl] and
-    // [MultiplyInheritedPropertyAcessorElementImpl].
-    ExecutableElementImpl e_out = new MethodElementImpl(e_0.name, 0);
-    e_out.synthetic = true;
-    e_out.returnType = r_out;
-    e_out.parameters = ps_out;
-    e_out.type = new FunctionTypeImpl.con1(e_out);
-    // Get NPE in [toString()] w/o this.
-    e_out.enclosingElement = e_0.enclosingElement;
-    return e_out;
   }
 
   /**
@@ -2831,25 +2713,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
     }
     return false;
-  }
-
-  /**
-   * Return a method representing the merge of the given [elements]. The type of
-   * the merged element is the component-wise union of the types of the given
-   * elements. If not all input elements have the same shape then `null` is
-   * returned.
-   */
-  static ExecutableElement _maybeMergeExecutableElements(
-      Set<ExecutableElement> elements) {
-    List<ExecutableElement> elementArrayToMerge = new List.from(elements);
-    if (elementArrayToMerge.length == 0) {
-      return null;
-    } else if (elementArrayToMerge.length == 1) {
-      // If all methods are equal, don't bother building a new one.
-      return elementArrayToMerge[0];
-    } else {
-      return _computeMergedExecutableElement(elementArrayToMerge);
-    }
   }
 }
 

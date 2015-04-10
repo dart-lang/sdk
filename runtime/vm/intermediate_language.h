@@ -7592,7 +7592,12 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  bool IsNullCheck() const;
+  bool IsNullCheck() const {
+    return  DeoptIfNull() || DeoptIfNotNull();
+  }
+
+  bool DeoptIfNull() const;
+  bool DeoptIfNotNull() const;
 
   bool IsDenseSwitch() const;
   intptr_t ComputeCidMask() const;
@@ -8015,7 +8020,9 @@ class Environment : public ZoneAllocated {
         fixed_parameter_count_(fixed_parameter_count),
         deopt_id_(deopt_id),
         parsed_function_(parsed_function),
-        outer_(outer) { }
+        outer_(outer) {
+    ASSERT(!parsed_function_.code().IsNull());
+  }
 
 
   GrowableArray<Value*> values_;

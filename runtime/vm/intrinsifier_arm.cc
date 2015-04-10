@@ -261,7 +261,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ Bind(&init_loop);                                                         \
   __ AddImmediate(R3, 2 * kWordSize);                                          \
   __ cmp(R3, Operand(R1));                                                     \
-  __ strd(R6, Address(R3, -2 * kWordSize), LS);                                \
+  __ strd(R6, R3, -2 * kWordSize, LS);                                         \
   __ b(&init_loop, CC);                                                        \
   __ str(R6, Address(R3, -2 * kWordSize), HI);                                 \
                                                                                \
@@ -348,23 +348,13 @@ void Intrinsifier::Integer_sub(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
-  if (TargetCPUFeatures::arm_version() == ARMv7) {
-    Label fall_through;
-    TestBothArgumentsSmis(assembler, &fall_through);  // checks two smis
-    __ SmiUntag(R0);  // Untags R6. We only want result shifted by one.
-    __ smull(R0, IP, R0, R1);  // IP:R0 <- R0 * R1.
-    __ cmp(IP, Operand(R0, ASR, 31));
-    __ bx(LR, EQ);
-    __ Bind(&fall_through);  // Fall through on overflow.
-  } else if (TargetCPUFeatures::can_divide()) {
-    Label fall_through;
-    TestBothArgumentsSmis(assembler, &fall_through);  // checks two smis
-    __ SmiUntag(R0);  // Untags R6. We only want result shifted by one.
-    __ CheckMultSignedOverflow(R0, R1, IP, D0, D1, &fall_through);
-    __ mul(R0, R0, R1);
-    __ Ret();
-    __ Bind(&fall_through);  // Fall through on overflow.
-  }
+  Label fall_through;
+  TestBothArgumentsSmis(assembler, &fall_through);  // checks two smis
+  __ SmiUntag(R0);  // Untags R6. We only want result shifted by one.
+  __ smull(R0, IP, R0, R1);  // IP:R0 <- R0 * R1.
+  __ cmp(IP, Operand(R0, ASR, 31));
+  __ bx(LR, EQ);
+  __ Bind(&fall_through);  // Fall through on overflow.
 }
 
 
@@ -800,18 +790,28 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Bigint_lsh(Assembler* assembler) {
+  // TODO(regis): Implement.
+}
+
+
+void Intrinsifier::Bigint_rsh(Assembler* assembler) {
+  // TODO(regis): Implement.
+}
+
+
 void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   // static void _absAdd(Uint32List digits, int used,
   //                     Uint32List a_digits, int a_used,
   //                     Uint32List r_digits)
 
   // R2 = used, R3 = digits
-  __ ldrd(R2, Address(SP, 3 * kWordSize));
+  __ ldrd(R2, SP, 3 * kWordSize);
   // R3 = &digits[0]
   __ add(R3, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
 
   // R4 = a_used, R5 = a_digits
-  __ ldrd(R4, Address(SP, 1 * kWordSize));
+  __ ldrd(R4, SP, 1 * kWordSize);
   // R5 = &a_digits[0]
   __ add(R5, R5, Operand(TypedData::data_offset() - kHeapObjectTag));
 
@@ -866,12 +866,12 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
   //                     Uint32List r_digits)
 
   // R2 = used, R3 = digits
-  __ ldrd(R2, Address(SP, 3 * kWordSize));
+  __ ldrd(R2, SP, 3 * kWordSize);
   // R3 = &digits[0]
   __ add(R3, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
 
   // R4 = a_used, R5 = a_digits
-  __ ldrd(R4, Address(SP, 1 * kWordSize));
+  __ ldrd(R4, SP, 1 * kWordSize);
   // R5 = &a_digits[0]
   __ add(R5, R5, Operand(TypedData::data_offset() - kHeapObjectTag));
 
@@ -917,9 +917,6 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
 
 
 void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
-  if (TargetCPUFeatures::arm_version() != ARMv7) {
-    return;
-  }
   // Pseudo code:
   // static int _mulAdd(Uint32List x_digits, int xi,
   //                    Uint32List m_digits, int i,
@@ -949,7 +946,7 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
 
   Label done;
   // R3 = x, no_op if x == 0
-  __ ldrd(R0, Address(SP, 5 * kWordSize));  // R0 = xi as Smi, R1 = x_digits.
+  __ ldrd(R0, SP, 5 * kWordSize);  // R0 = xi as Smi, R1 = x_digits.
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ ldr(R3, FieldAddress(R1, TypedData::data_offset()));
   __ tst(R3, Operand(R3));
@@ -961,12 +958,12 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   __ b(&done, EQ);
 
   // R4 = mip = &m_digits[i >> 1]
-  __ ldrd(R0, Address(SP, 3 * kWordSize));  // R0 = i as Smi, R1 = m_digits.
+  __ ldrd(R0, SP, 3 * kWordSize);  // R0 = i as Smi, R1 = m_digits.
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ add(R4, R1, Operand(TypedData::data_offset() - kHeapObjectTag));
 
   // R5 = ajp = &a_digits[j >> 1]
-  __ ldrd(R0, Address(SP, 1 * kWordSize));  // R0 = j as Smi, R1 = a_digits.
+  __ ldrd(R0, SP, 1 * kWordSize);  // R0 = j as Smi, R1 = a_digits.
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ add(R5, R1, Operand(TypedData::data_offset() - kHeapObjectTag));
 
@@ -1022,9 +1019,6 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
 
 
 void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
-  if (TargetCPUFeatures::arm_version() != ARMv7) {
-    return;
-  }
   // Pseudo code:
   // static int _sqrAdd(Uint32List x_digits, int i,
   //                    Uint32List a_digits, int used) {
@@ -1052,7 +1046,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   // }
 
   // R4 = xip = &x_digits[i >> 1]
-  __ ldrd(R2, Address(SP, 2 * kWordSize));  // R2 = i as Smi, R3 = x_digits
+  __ ldrd(R2, SP, 2 * kWordSize);  // R2 = i as Smi, R3 = x_digits
   __ add(R3, R3, Operand(R2, LSL, 1));
   __ add(R4, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
 
@@ -1130,7 +1124,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
 
   // *ajp = low32(t) = R6
   // *(ajp + 1) = high32(t) = R7
-  __ strd(R6, Address(R5, 0));
+  __ strd(R6, R5, 0);
 
   __ Bind(&x_zero);
   __ mov(R0, Operand(Smi::RawValue(1)));  // One digit processed.
@@ -1144,9 +1138,6 @@ void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
 
 
 void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
-  if (TargetCPUFeatures::arm_version() != ARMv7) {
-    return;
-  }
   // Pseudo code:
   // static int _mulMod(Uint32List args, Uint32List digits, int i) {
   //   uint32_t rho = args[_RHO];  // _RHO == 2.
@@ -1164,7 +1155,7 @@ void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
                           TypedData::data_offset() + 2*Bigint::kBytesPerDigit));
 
   // R2 = digits[i >> 1]
-  __ ldrd(R0, Address(SP, 0 * kWordSize));  // R0 = i as Smi, R1 = digits
+  __ ldrd(R0, SP, 0 * kWordSize);  // R0 = i as Smi, R1 = digits
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ ldr(R2, FieldAddress(R1, TypedData::data_offset()));
 
@@ -1444,44 +1435,41 @@ void Intrinsifier::MathSqrt(Assembler* assembler) {
 //    _state[kSTATE_LO] = state & _MASK_32;
 //    _state[kSTATE_HI] = state >> 32;
 void Intrinsifier::Random_nextState(Assembler* assembler) {
-  // No 32x32 -> 64 bit multiply/accumulate on ARMv5 or ARMv6.
-  if (TargetCPUFeatures::arm_version() == ARMv7) {
-    const Library& math_lib = Library::Handle(Library::MathLibrary());
-    ASSERT(!math_lib.IsNull());
-    const Class& random_class = Class::Handle(
-        math_lib.LookupClassAllowPrivate(Symbols::_Random()));
-    ASSERT(!random_class.IsNull());
-    const Field& state_field = Field::ZoneHandle(
-        random_class.LookupInstanceField(Symbols::_state()));
-    ASSERT(!state_field.IsNull());
-    const Field& random_A_field = Field::ZoneHandle(
-        random_class.LookupStaticField(Symbols::_A()));
-    ASSERT(!random_A_field.IsNull());
-    ASSERT(random_A_field.is_const());
-    const Instance& a_value = Instance::Handle(random_A_field.value());
-    const int64_t a_int_value = Integer::Cast(a_value).AsInt64Value();
-    // 'a_int_value' is a mask.
-    ASSERT(Utils::IsUint(32, a_int_value));
-    int32_t a_int32_value = static_cast<int32_t>(a_int_value);
+  const Library& math_lib = Library::Handle(Library::MathLibrary());
+  ASSERT(!math_lib.IsNull());
+  const Class& random_class = Class::Handle(
+      math_lib.LookupClassAllowPrivate(Symbols::_Random()));
+  ASSERT(!random_class.IsNull());
+  const Field& state_field = Field::ZoneHandle(
+      random_class.LookupInstanceField(Symbols::_state()));
+  ASSERT(!state_field.IsNull());
+  const Field& random_A_field = Field::ZoneHandle(
+      random_class.LookupStaticField(Symbols::_A()));
+  ASSERT(!random_A_field.IsNull());
+  ASSERT(random_A_field.is_const());
+  const Instance& a_value = Instance::Handle(random_A_field.value());
+  const int64_t a_int_value = Integer::Cast(a_value).AsInt64Value();
+  // 'a_int_value' is a mask.
+  ASSERT(Utils::IsUint(32, a_int_value));
+  int32_t a_int32_value = static_cast<int32_t>(a_int_value);
 
-    __ ldr(R0, Address(SP, 0 * kWordSize));  // Receiver.
-    __ ldr(R1, FieldAddress(R0, state_field.Offset()));  // Field '_state'.
-    // Addresses of _state[0] and _state[1].
+  __ ldr(R0, Address(SP, 0 * kWordSize));  // Receiver.
+  __ ldr(R1, FieldAddress(R0, state_field.Offset()));  // Field '_state'.
+  // Addresses of _state[0] and _state[1].
 
-    const int64_t disp_0 = Instance::DataOffsetFor(kTypedDataUint32ArrayCid);
-    const int64_t disp_1 = disp_0 +
-        Instance::ElementSizeFor(kTypedDataUint32ArrayCid);
+  const int64_t disp_0 = Instance::DataOffsetFor(kTypedDataUint32ArrayCid);
+  const int64_t disp_1 = disp_0 +
+      Instance::ElementSizeFor(kTypedDataUint32ArrayCid);
 
-    __ LoadImmediate(R0, a_int32_value);
-    __ LoadFromOffset(kWord, R2, R1, disp_0 - kHeapObjectTag);
-    __ LoadFromOffset(kWord, R3, R1, disp_1 - kHeapObjectTag);
-    __ mov(R6, Operand(0));  // Zero extend unsigned _state[kSTATE_HI].
-    // Unsigned 32-bit multiply and 64-bit accumulate into R6:R3.
-    __ umlal(R3, R6, R0, R2);  // R6:R3 <- R6:R3 + R0 * R2.
-    __ StoreToOffset(kWord, R3, R1, disp_0 - kHeapObjectTag);
-    __ StoreToOffset(kWord, R6, R1, disp_1 - kHeapObjectTag);
-    __ Ret();
-  }
+  __ LoadImmediate(R0, a_int32_value);
+  __ LoadFromOffset(kWord, R2, R1, disp_0 - kHeapObjectTag);
+  __ LoadFromOffset(kWord, R3, R1, disp_1 - kHeapObjectTag);
+  __ mov(R6, Operand(0));  // Zero extend unsigned _state[kSTATE_HI].
+  // Unsigned 32-bit multiply and 64-bit accumulate into R6:R3.
+  __ umlal(R3, R6, R0, R2);  // R6:R3 <- R6:R3 + R0 * R2.
+  __ StoreToOffset(kWord, R3, R1, disp_0 - kHeapObjectTag);
+  __ StoreToOffset(kWord, R6, R1, disp_1 - kHeapObjectTag);
+  __ Ret();
 }
 
 
@@ -1886,9 +1874,6 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
 
 
 void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
-  if (FLAG_use_jscre) {
-    return;
-  }
   static const intptr_t kRegExpParamOffset = 2 * kWordSize;
   static const intptr_t kStringParamOffset = 1 * kWordSize;
   // start_index smi is located at offset 0.

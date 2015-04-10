@@ -46,7 +46,9 @@
           <template if="{{ instance.valueAsString != null }}">
             <div class="memberItem">
               <div class="memberName">value</div>
-              <div class="memberValue">{{ instance.valueAsString }}</div>
+              <div class="memberValue">
+                <pre>{{ instance.valueAsString }}</pre>
+              </div>
             </div>
           </template>
 

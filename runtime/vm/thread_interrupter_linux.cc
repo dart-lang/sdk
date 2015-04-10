@@ -56,6 +56,12 @@ void ThreadInterrupter::InstallSignalHandler() {
   SignalHandler::Install(ThreadInterrupterLinux::ThreadInterruptSignalHandler);
 }
 
+
+void ThreadInterrupter::RemoveSignalHandler() {
+  SignalHandler::Remove();
+}
+
+
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_LINUX)

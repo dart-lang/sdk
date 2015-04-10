@@ -40,7 +40,7 @@ main() {
 
       createLockFile('myapp', pkg: ['barback']);
 
-      var pub = pubRun(args: ["script"]);
+      var pub = pubRun(args: ["bin/script"]);
 
       pub.stdout.expect("generated");
       pub.shouldExit();

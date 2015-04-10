@@ -69,6 +69,7 @@ class JsTreeBuilder extends Builder {
   Expression visitCreateInstance(cps_ir.CreateInstance node) {
     return new CreateInstance(
         node.classElement,
-        node.arguments.map(getVariableUse).toList());
+        node.arguments.map(getVariableUse).toList(growable: false),
+        node.typeInformation.map(getVariableUse).toList(growable: false));
   }
 }

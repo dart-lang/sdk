@@ -140,6 +140,58 @@ class DeferredObjectRef : public DeferredSlot {
 };
 
 
+class DeferredRetAddr : public DeferredSlot {
+ public:
+  DeferredRetAddr(intptr_t index,
+                  intptr_t deopt_id,
+                  RawObject** slot,
+                  DeferredSlot* next)
+      : DeferredSlot(slot, next), index_(index), deopt_id_(deopt_id) { }
+
+  virtual void Materialize(DeoptContext* deopt_context);
+
+  intptr_t index() const { return index_; }
+
+ private:
+  const intptr_t index_;
+  const intptr_t deopt_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeferredRetAddr);
+};
+
+
+class DeferredPcMarker : public DeferredSlot {
+ public:
+  DeferredPcMarker(intptr_t index, RawObject** slot, DeferredSlot* next)
+      : DeferredSlot(slot, next), index_(index) { }
+
+  virtual void Materialize(DeoptContext* deopt_context);
+
+  intptr_t index() const { return index_; }
+
+ private:
+  const intptr_t index_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeferredPcMarker);
+};
+
+
+class DeferredPp : public DeferredSlot {
+ public:
+  DeferredPp(intptr_t index, RawObject** slot, DeferredSlot* next)
+      : DeferredSlot(slot, next), index_(index) { }
+
+  virtual void Materialize(DeoptContext* deopt_context);
+
+  intptr_t index() const { return index_; }
+
+ private:
+  const intptr_t index_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeferredPp);
+};
+
+
 // Describes an object which allocation was removed by AllocationSinking pass.
 // Arguments for materialization are stored as a part of expression stack
 // for the bottommost deoptimized frame so that GC could discover them.

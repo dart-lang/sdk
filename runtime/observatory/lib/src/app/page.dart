@@ -58,10 +58,11 @@ class SimplePage extends Page {
   }
 
   Future<Isolate> getIsolate(Uri uri) {
-    return app.vm.getIsolate(uri.queryParameters['isolateId']).catchError((e) {
-      Logger.root.severe('$path visit error: $e');
-      return e;
-    });
+    return app.vm.getIsolate(uri.queryParameters['isolateId'])
+      .catchError((e, stack) {
+        Logger.root.severe('$path visit error: $e\n$stack');
+        return e;
+      });
   }
 
   bool canVisit(Uri uri) => uri.path == path;
@@ -110,8 +111,8 @@ class VMPage extends SimplePage {
         ServiceObjectViewElement serviceElement = element;
         serviceElement.object = vm;
       }
-    }).catchError((e) {
-      Logger.root.severe('VMPage visit error: $e');
+    }).catchError((e, stack) {
+      Logger.root.severe('VMPage visit error: $e\n$stack');
     });
   }
 }
@@ -126,8 +127,8 @@ class FlagsPage extends SimplePage {
         FlagListElement serviceElement = element;
         serviceElement.flagList = flags;
       }
-    }).catchError((e) {
-      Logger.root.severe('FlagsPage visit error: $e');
+    }).catchError((e, stack) {
+      Logger.root.severe('FlagsPage visit error: $e\n$stack');
     });
   }
 }
@@ -181,6 +182,7 @@ class DebuggerPage extends SimplePage {
       if (element != null) {
         /// Update the page.
         DebuggerPageElement page = element;
+        page.app = app;
         page.isolate = isolate;
       }
     });

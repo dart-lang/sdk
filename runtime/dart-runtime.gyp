@@ -9,7 +9,6 @@
     'observatory/observatory.gypi',
     'bin/bin.gypi',
     'third_party/double-conversion/src/double-conversion.gypi',
-    'third_party/jscre/jscre.gypi',
   ],
   'variables': {
     'gen_source_dir': '<(SHARED_INTERMEDIATE_DIR)',
@@ -17,7 +16,7 @@
     'version_cc_file': '<(gen_source_dir)/version.cc',
 
     'libdart_deps': ['libdart_lib_withcore', 'libdart_lib', 'libdart_vm',
-                     'libjscre', 'libdouble_conversion',],
+                     'libdouble_conversion',],
   },
   'targets': [
     {
@@ -26,7 +25,6 @@
       'dependencies': [
         'libdart_lib',
         'libdart_vm',
-        'libjscre',
         'libdouble_conversion',
         'generate_version_cc_file#host',
       ],

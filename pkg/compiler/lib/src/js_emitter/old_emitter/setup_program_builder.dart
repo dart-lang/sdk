@@ -123,7 +123,6 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
      'isTreeShakingDisabled': backend.isTreeShakingDisabled,
      'precompiled': precompiledAccess,
      'finishedClassesAccess': finishedClassesAccess,
-     'markerFun': emitter.markerFun,
      'needsMixinSupport': emitter.needsMixinSupport,
      'needsNativeSupport': program.needsNativeSupport,
      'isInterceptorClass': namer.operatorIs(backend.jsInterceptorClass),
@@ -405,7 +404,7 @@ function $setupProgramName(programData) {
           var prototype = constructor.prototype;
           prototype.constructor = constructor;
           prototype.#isObject = constructor;
-          prototype.#deferredAction = #markerFun;
+          prototype.#deferredAction = function() {};
           return;
         }
         finishClass(superclass);
@@ -418,21 +417,26 @@ function $setupProgramName(programData) {
         var constructor = allClasses[cls];
         var prototype = inheritFrom(constructor, superConstructor);
 
+        if (#needsMixinSupport) {
+          if (mixinPrototype) {
+            prototype.#deferredAction
+              = mixinDeferredActionHelper(mixinPrototype, prototype);
+          }
+        }
+
         if (#needsNativeSupport) {
           if (Object.prototype.hasOwnProperty.call(prototype, #specProperty)) {
             #nativeInfoHandler;
             // As native classes can come into existence without a constructor
             // call, we have to ensure that the class has been fully
             // initialized.
-            if (constructor.prototype.#deferredAction)
-              finishAddStubsHelper(constructor.prototype);
+            prototype.#deferredAction();
           }
         }
         // Interceptors (or rather their prototypes) are also used without
         // first instantiating them first.
-        if (prototype.#isInterceptorClass &&
-            constructor.prototype.#deferredAction) {
-          finishAddStubsHelper(constructor.prototype);
+        if (prototype.#isInterceptorClass) {
+          prototype.#deferredAction();
         }
       }
 
@@ -442,38 +446,69 @@ function $setupProgramName(programData) {
       for (var i = 0; i < properties.length; i++) finishClass(properties[i]);
     }
 
-
-    // For convenience, this method can be called with a prototype as argument
-    // or, if it was bound to an object, by invoking it as a method. Therefore,
-    // if prototype is undefined, this is used as prototype.
-    function finishAddStubsHelper(prototype) {
-      var prototype = prototype || this;
-      var object;
-      while (prototype.#deferredAction != #markerFun) {
-        if (prototype.hasOwnProperty(#deferredActionString)) {
-          delete prototype.#deferredAction; // Intended to make it slow, too.
-          var properties = Object.keys(prototype);
-          for (var index = 0; index < properties.length; index++) {
-            var property = properties[index];
-            var firstChar = property.charCodeAt(0);
-            var elem;
-            // We have to filter out some special properties that are used for
-            // metadata in descriptors. Currently, we filter everything that
-            // starts with + or *. This has to stay in sync with the special
-            // properties that are used by processClassData below.
-            if (property !== "${namer.classDescriptorProperty}" &&
-                property !== "$reflectableField" &&
-                firstChar !== 43 && // 43 is aka "+".
-                firstChar !== 42 && // 42 is aka "*"
-                (elem = prototype[property]) != null &&
-                elem.constructor === Array &&
-                property !== "<>") {
-              addStubs(prototype, elem, property, false, []);
-            }
-          }
-          convertToFastObject(prototype);
-        }
+    // Generic handler for deferred class setup. The handler updates the 
+    // prototype that it is installed on (it traverses the prototype chain
+    // of [this] to find itself) and then removes itself. It recurses by
+    // calling deferred handling again, which terminates on Object due to
+    // the final handler.
+    function finishAddStubsHelper() {
+      var prototype = this;
+      // Find the actual prototype that this handler is installed on.
+      while (!prototype.hasOwnProperty(#deferredActionString)) {
         prototype = prototype.__proto__;
+      }
+      delete prototype.#deferredAction; // Intended to make it slow, too.
+      var properties = Object.keys(prototype);
+      for (var index = 0; index < properties.length; index++) {
+        var property = properties[index];
+        var firstChar = property.charCodeAt(0);
+        var elem;
+        // We have to filter out some special properties that are used for
+        // metadata in descriptors. Currently, we filter everything that
+        // starts with + or *. This has to stay in sync with the special
+        // properties that are used by processClassData below.
+        if (property !== "${namer.classDescriptorProperty}" &&
+            property !== "$reflectableField" &&
+            firstChar !== 43 && // 43 is aka "+".
+            firstChar !== 42 && // 42 is aka "*"
+            (elem = prototype[property]) != null &&
+            elem.constructor === Array &&
+            property !== "<>") {
+          addStubs(prototype, elem, property, false, []);
+        }
+      }
+      convertToFastObject(prototype);
+      prototype = prototype.__proto__;
+      // Call other handlers.
+      prototype.#deferredAction();
+    }
+
+    if (#needsMixinSupport) {
+      // Returns a deferred class setup handler that first invokes the
+      // handler on [mixinPrototype] and then resumes handling on
+      // [targetPrototype]. If [targetPrototype] already has a handler
+      // installed, the handler is preserved in the generated closure and
+      // thus can be safely overwritten.
+      function mixinDeferredActionHelper(mixinPrototype, targetPrototype) {
+        var chain;
+        if (targetPrototype.hasOwnProperty(#deferredActionString)) {
+          chain = targetPrototype.#deferredAction;
+        }
+        return function foo() {
+          var prototype = this;
+          // Find the actual prototype that this handler is installed on.
+          while (!prototype.hasOwnProperty(#deferredActionString)) {
+            prototype = prototype.__proto__;
+          }
+          if (chain) {
+            prototype.#deferredAction = chain;
+          } else {
+            delete prototype.#deferredAction;
+            convertToFastObject(prototype);
+          }
+          mixinPrototype.#deferredAction();
+          prototype.#deferredAction();
+        }
       }
     }
 
@@ -683,8 +718,10 @@ function $setupProgramName(programData) {
       if (#usesMangledNames) {
         var isReflectable = array.length > unmangledNameIndex;
         if (isReflectable) {
-          for (var i = 0; i < funcs.length; i++) {
-            funcs[i].$reflectableField = 1;
+          funcs[0].$reflectableField = 1;
+          funcs[0].$reflectionInfoField = array;
+          for (var i = 1; i < funcs.length; i++) {
+            funcs[i].$reflectableField = 2;
             funcs[i].$reflectionInfoField = array;
           }
           var mangledNames = isStatic ? #mangledGlobalNames : #mangledNames;
@@ -697,8 +734,8 @@ function $setupProgramName(programData) {
           if (isSetter) {
             reflectionName += "=";
           } else if (!isGetter) {
-            reflectionName += ":" + requiredParameterCount +
-              ":" + optionalParameterCount;
+            reflectionName += ":" + 
+                (requiredParameterCount + optionalParameterCount);
           }
           mangledNames[name] = reflectionName;
           funcs[0].$reflectionNameField = reflectionName;

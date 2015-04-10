@@ -102,11 +102,32 @@ class HeapProfileElement extends ObservatoryElement {
     _subscription.cancel((){});
     super.detached();
   }
-
+  
+  // Keep at most one outstanding auto-refresh RPC.
+  bool refreshAutoPending = false;
+  bool refreshAutoQueued = false;
+  
   void _onEvent(ServiceEvent event) {
     if (autoRefresh && event.eventType == 'GC') {
-      refresh((){});
+      if (!refreshAutoPending) {
+        refreshAuto();
+      } else {
+        // Remember to refresh once more, to ensure latest profile.
+        refreshAutoQueued = true;
+      }
     }
+  }
+
+  void refreshAuto() {
+    refreshAutoPending = true;
+    refreshAutoQueued = false;
+    refresh(() {
+      refreshAutoPending = false;
+      // Keep refreshing if at least one GC event was received while waiting.
+      if (refreshAutoQueued) {
+        refreshAuto();
+      }
+    });
   }
 
   void _updatePieCharts() {

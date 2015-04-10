@@ -12,6 +12,11 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/model.dart';
 
 /**
+ * A function that converts the given [key] and [value] into a [TaskInput].
+ */
+typedef TaskInput<E> BinaryFunction<K, V, E>(K key, V value);
+
+/**
  * A function that takes an analysis [context] and an analysis [target] and
  * returns an analysis task. Such functions are passed to a [TaskDescriptor] to
  * be used to create the described task.
@@ -292,7 +297,7 @@ abstract class ListTaskInput<E> extends TaskInput<List<E>> {
    * elements of this input and whose values are the result of passing the
    * corresponding key to the [mapper] function.
    */
-  TaskInput<Map<E, dynamic /*V*/ >> toMap(
+  MapTaskInput<E, dynamic /*V*/ > toMap(
       UnaryFunction<E, dynamic /*<V>*/ > mapper);
 
   /**
@@ -300,8 +305,24 @@ abstract class ListTaskInput<E> extends TaskInput<List<E>> {
    * elements of this input and whose values are the [valueResult]'s associated
    * with those elements.
    */
-  TaskInput<Map<AnalysisTarget, dynamic /*V*/ >> toMapOf(
+  MapTaskInput<AnalysisTarget, dynamic /*V*/ > toMapOf(
       ResultDescriptor /*<V>*/ valueResult);
+}
+
+/**
+ * A description of an input with a [Map] based values.
+ *
+ * Clients are not expected to subtype this class.
+ */
+abstract class MapTaskInput<K, V> extends TaskInput<Map<K, V>> {
+  /**
+   * [V] must be a [List].
+   * Return a task input that can be used to compute a list whose elements are
+   * the result of passing keys [K] and the corresponding elements of [V] to
+   * the [mapper] function.
+   */
+  TaskInput<List /*<E>*/ > toFlattenList(
+      BinaryFunction<K, dynamic /*element of V*/, dynamic /*<E>*/ > mapper);
 }
 
 /**

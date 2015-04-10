@@ -1200,6 +1200,7 @@ DART_EXPORT const char* Dart_VersionString() {
 }
 
 DART_EXPORT bool Dart_Initialize(
+    const uint8_t* vm_isolate_snapshot,
     Dart_IsolateCreateCallback create,
     Dart_IsolateInterruptCallback interrupt,
     Dart_IsolateUnhandledExceptionCallback unhandled,
@@ -1209,7 +1210,8 @@ DART_EXPORT bool Dart_Initialize(
     Dart_FileWriteCallback file_write,
     Dart_FileCloseCallback file_close,
     Dart_EntropySource entropy_source) {
-  const char* err_msg = Dart::InitOnce(create, interrupt, unhandled, shutdown,
+  const char* err_msg = Dart::InitOnce(vm_isolate_snapshot,
+                                       create, interrupt, unhandled, shutdown,
                                        file_open, file_read, file_write,
                                        file_close, entropy_source);
   if (err_msg != NULL) {
@@ -1284,7 +1286,7 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
                                             const uint8_t* snapshot,
                                             void* callback_data,
                                             char** error) {
-  TRACE_API_CALL(CURRENT_FUNC);
+  CHECK_NO_ISOLATE(Isolate::Current());
   char* isolate_name = BuildIsolateName(script_uri, main);
   Isolate* isolate = Dart::CreateIsolate(isolate_name);
   free(isolate_name);
@@ -1356,7 +1358,10 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   CHECK_NO_ISOLATE(Isolate::Current());
   // TODO(16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
-  Isolate::SetCurrent(iso);
+  if (iso->mutator_thread() != NULL) {
+    FATAL("Multiple mutators within one isolate is not supported.");
+  }
+  Thread::EnterIsolate(iso);
 }
 
 
@@ -1384,7 +1389,7 @@ DART_EXPORT void Dart_IsolateUnblocked() {
 
 DART_EXPORT void Dart_ExitIsolate() {
   CHECK_ISOLATE(Isolate::Current());
-  Isolate::SetCurrent(NULL);
+  Thread::ExitIsolate();
 }
 
 
@@ -1408,16 +1413,25 @@ static uint8_t* ApiReallocate(uint8_t* ptr,
 }
 
 
-DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
-                                            intptr_t* size) {
+DART_EXPORT Dart_Handle Dart_CreateSnapshot(
+    uint8_t** vm_isolate_snapshot_buffer,
+    intptr_t* vm_isolate_snapshot_size,
+    uint8_t** isolate_snapshot_buffer,
+    intptr_t* isolate_snapshot_size) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   TIMERSCOPE(isolate, time_creating_snapshot);
-  if (buffer == NULL) {
-    RETURN_NULL_ERROR(buffer);
+  if (vm_isolate_snapshot_buffer == NULL) {
+    RETURN_NULL_ERROR(vm_isolate_snapshot_buffer);
   }
-  if (size == NULL) {
-    RETURN_NULL_ERROR(size);
+  if (vm_isolate_snapshot_size == NULL) {
+    RETURN_NULL_ERROR(vm_isolate_snapshot_size);
+  }
+  if (isolate_snapshot_buffer == NULL) {
+    RETURN_NULL_ERROR(isolate_snapshot_buffer);
+  }
+  if (isolate_snapshot_size == NULL) {
+    RETURN_NULL_ERROR(isolate_snapshot_size);
   }
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(isolate);
@@ -1426,9 +1440,12 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
   }
   // Since this is only a snapshot the root library should not be set.
   isolate->object_store()->set_root_library(Library::Handle(isolate));
-  FullSnapshotWriter writer(buffer, ApiReallocate);
+  FullSnapshotWriter writer(vm_isolate_snapshot_buffer,
+                            isolate_snapshot_buffer,
+                            ApiReallocate);
   writer.WriteFullSnapshot();
-  *size = writer.BytesWritten();
+  *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
+  *isolate_snapshot_size = writer.IsolateSnapshotSize();
   return Api::Success();
 }
 
@@ -1594,6 +1611,9 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  if (port_id == ILLEGAL_PORT) {
+    return false;
+  }
   const Object& object = Object::Handle(isolate, Api::UnwrapHandle(handle));
   uint8_t* data = NULL;
   MessageWriter writer(&data, &allocator, false);
@@ -1608,6 +1628,11 @@ DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
+  if (port_id == ILLEGAL_PORT) {
+    return Api::NewError("%s: illegal port_id %" Pd64 ".",
+                         CURRENT_FUNC,
+                         port_id);
+  }
   return Api::NewHandle(isolate, SendPort::New(port_id));
 }
 

@@ -55,12 +55,14 @@ import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT, JS_CONST;
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:_js_helper' show
     convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,
-    JSName, Native, Null, Returns,
+    JSName, Native, Null, Returns, Inline, ForceInline,
     findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord,
     makeLeafDispatchRecord;
 import 'dart:_interceptors' show
-    Interceptor, JSExtendableArray, findInterceptorConstructorForType,
-    findConstructorForNativeSubclassType, getNativeInterceptor,
+    Interceptor, JSExtendableArray, JSUInt31,
+    findInterceptorConstructorForType,
+    findConstructorForNativeSubclassType,
+    getNativeInterceptor,
     setDispatchProperty;
 
 export 'dart:math' show Rectangle, Point;
@@ -3315,7 +3317,7 @@ class CssRule extends Interceptor {
 
 @DomName('CSSStyleDeclaration')
 @Native("CSSStyleDeclaration,MSStyleCSSProperties,CSS2Properties")
- class CssStyleDeclaration  extends Interceptor with
+class CssStyleDeclaration  extends Interceptor with
     CssStyleDeclarationBase  {
   factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
 
@@ -3357,12 +3359,27 @@ class CssRule extends Interceptor {
 
   @DomName('CSSStyleDeclaration.setProperty')
   void setProperty(String propertyName, String value, [String priority]) {
+    return _setPropertyHelper(_browserPropertyName(propertyName),
+      value, priority);
+  }
+
+  String _browserPropertyName(String propertyName) {
+    String name = _readCache(propertyName);
+    if (name is String) return name;
     if (_supportsProperty(_camelCase(propertyName))) {
-      return _setPropertyHelper(propertyName, value, priority);
+      name = propertyName;
     } else {
-      return _setPropertyHelper(Device.cssPrefix + propertyName, value,
-          priority);
+      name = Device.cssPrefix + propertyName;
     }
+    _writeCache(propertyName, name);
+    return name;
+  }
+
+  static final _propertyCache = JS('', '{}');
+  static String _readCache(String key) =>
+    JS('String|Null', '#[#]', _propertyCache, key);
+  static void _writeCache(String key, String value) {
+    JS('void', '#[#] = #', _propertyCache, key, value);
   }
 
   static String _camelCase(String hyphenated) {
@@ -3374,18 +3391,9 @@ class CssRule extends Interceptor {
   }
 
   void _setPropertyHelper(String propertyName, String value, [String priority]) {
-    // try/catch for IE9 which throws on unsupported values.
-    try {
-      if (value == null) value = '';
-      if (priority == null) {
-        priority = '';
-      }
-      JS('void', '#.setProperty(#, #, #)', this, propertyName, value, priority);
-      // Bug #2772, IE9 requires a poke to actually apply the value.
-      if (JS('bool', '!!#.setAttribute', this)) {
-        JS('void', '#.setAttribute(#, #)', this, propertyName, value);
-      }
-    } catch (e) {}
+    if (value == null) value = '';
+    if (priority == null) priority = '';
+    JS('void', '#.setProperty(#, #, #)', this, propertyName, value, priority);
   }
 
   /**
@@ -3435,6 +3443,997 @@ class CssRule extends Interceptor {
   @DocsEditable()
   String removeProperty(String propertyName) native;
 
+
+  /** Gets the value of "background" */
+  String get background => this._background;
+
+  /** Sets the value of "background" */
+  void set background(String value) {
+    _background = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('background')
+  String _background;
+    
+  /** Gets the value of "background-attachment" */
+  String get backgroundAttachment => this._backgroundAttachment;
+
+  /** Sets the value of "background-attachment" */
+  void set backgroundAttachment(String value) {
+    _backgroundAttachment = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('backgroundAttachment')
+  String _backgroundAttachment;
+    
+  /** Gets the value of "background-color" */
+  String get backgroundColor => this._backgroundColor;
+
+  /** Sets the value of "background-color" */
+  void set backgroundColor(String value) {
+    _backgroundColor = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('backgroundColor')
+  String _backgroundColor;
+    
+  /** Gets the value of "background-image" */
+  String get backgroundImage => this._backgroundImage;
+
+  /** Sets the value of "background-image" */
+  void set backgroundImage(String value) {
+    _backgroundImage = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('backgroundImage')
+  String _backgroundImage;
+    
+  /** Gets the value of "background-position" */
+  String get backgroundPosition => this._backgroundPosition;
+
+  /** Sets the value of "background-position" */
+  void set backgroundPosition(String value) {
+    _backgroundPosition = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('backgroundPosition')
+  String _backgroundPosition;
+    
+  /** Gets the value of "background-repeat" */
+  String get backgroundRepeat => this._backgroundRepeat;
+
+  /** Sets the value of "background-repeat" */
+  void set backgroundRepeat(String value) {
+    _backgroundRepeat = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('backgroundRepeat')
+  String _backgroundRepeat;
+    
+  /** Gets the value of "border" */
+  String get border => this._border;
+
+  /** Sets the value of "border" */
+  void set border(String value) {
+    _border = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('border')
+  String _border;
+    
+  /** Gets the value of "border-bottom" */
+  String get borderBottom => this._borderBottom;
+
+  /** Sets the value of "border-bottom" */
+  void set borderBottom(String value) {
+    _borderBottom = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderBottom')
+  String _borderBottom;
+    
+  /** Gets the value of "border-bottom-color" */
+  String get borderBottomColor => this._borderBottomColor;
+
+  /** Sets the value of "border-bottom-color" */
+  void set borderBottomColor(String value) {
+    _borderBottomColor = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderBottomColor')
+  String _borderBottomColor;
+    
+  /** Gets the value of "border-bottom-style" */
+  String get borderBottomStyle => this._borderBottomStyle;
+
+  /** Sets the value of "border-bottom-style" */
+  void set borderBottomStyle(String value) {
+    _borderBottomStyle = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderBottomStyle')
+  String _borderBottomStyle;
+    
+  /** Gets the value of "border-bottom-width" */
+  String get borderBottomWidth => this._borderBottomWidth;
+
+  /** Sets the value of "border-bottom-width" */
+  void set borderBottomWidth(String value) {
+    _borderBottomWidth = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderBottomWidth')
+  String _borderBottomWidth;
+    
+  /** Gets the value of "border-collapse" */
+  String get borderCollapse => this._borderCollapse;
+
+  /** Sets the value of "border-collapse" */
+  void set borderCollapse(String value) {
+    _borderCollapse = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderCollapse')
+  String _borderCollapse;
+    
+  /** Gets the value of "border-color" */
+  String get borderColor => this._borderColor;
+
+  /** Sets the value of "border-color" */
+  void set borderColor(String value) {
+    _borderColor = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderColor')
+  String _borderColor;
+    
+  /** Gets the value of "border-left" */
+  String get borderLeft => this._borderLeft;
+
+  /** Sets the value of "border-left" */
+  void set borderLeft(String value) {
+    _borderLeft = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderLeft')
+  String _borderLeft;
+    
+  /** Gets the value of "border-left-color" */
+  String get borderLeftColor => this._borderLeftColor;
+
+  /** Sets the value of "border-left-color" */
+  void set borderLeftColor(String value) {
+    _borderLeftColor = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderLeftColor')
+  String _borderLeftColor;
+    
+  /** Gets the value of "border-left-style" */
+  String get borderLeftStyle => this._borderLeftStyle;
+
+  /** Sets the value of "border-left-style" */
+  void set borderLeftStyle(String value) {
+    _borderLeftStyle = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderLeftStyle')
+  String _borderLeftStyle;
+    
+  /** Gets the value of "border-left-width" */
+  String get borderLeftWidth => this._borderLeftWidth;
+
+  /** Sets the value of "border-left-width" */
+  void set borderLeftWidth(String value) {
+    _borderLeftWidth = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderLeftWidth')
+  String _borderLeftWidth;
+    
+  /** Gets the value of "border-right" */
+  String get borderRight => this._borderRight;
+
+  /** Sets the value of "border-right" */
+  void set borderRight(String value) {
+    _borderRight = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderRight')
+  String _borderRight;
+    
+  /** Gets the value of "border-right-color" */
+  String get borderRightColor => this._borderRightColor;
+
+  /** Sets the value of "border-right-color" */
+  void set borderRightColor(String value) {
+    _borderRightColor = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderRightColor')
+  String _borderRightColor;
+    
+  /** Gets the value of "border-right-style" */
+  String get borderRightStyle => this._borderRightStyle;
+
+  /** Sets the value of "border-right-style" */
+  void set borderRightStyle(String value) {
+    _borderRightStyle = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderRightStyle')
+  String _borderRightStyle;
+    
+  /** Gets the value of "border-right-width" */
+  String get borderRightWidth => this._borderRightWidth;
+
+  /** Sets the value of "border-right-width" */
+  void set borderRightWidth(String value) {
+    _borderRightWidth = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderRightWidth')
+  String _borderRightWidth;
+    
+  /** Gets the value of "border-spacing" */
+  String get borderSpacing => this._borderSpacing;
+
+  /** Sets the value of "border-spacing" */
+  void set borderSpacing(String value) {
+    _borderSpacing = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderSpacing')
+  String _borderSpacing;
+    
+  /** Gets the value of "border-style" */
+  String get borderStyle => this._borderStyle;
+
+  /** Sets the value of "border-style" */
+  void set borderStyle(String value) {
+    _borderStyle = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderStyle')
+  String _borderStyle;
+    
+  /** Gets the value of "border-top" */
+  String get borderTop => this._borderTop;
+
+  /** Sets the value of "border-top" */
+  void set borderTop(String value) {
+    _borderTop = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderTop')
+  String _borderTop;
+    
+  /** Gets the value of "border-top-color" */
+  String get borderTopColor => this._borderTopColor;
+
+  /** Sets the value of "border-top-color" */
+  void set borderTopColor(String value) {
+    _borderTopColor = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderTopColor')
+  String _borderTopColor;
+    
+  /** Gets the value of "border-top-style" */
+  String get borderTopStyle => this._borderTopStyle;
+
+  /** Sets the value of "border-top-style" */
+  void set borderTopStyle(String value) {
+    _borderTopStyle = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderTopStyle')
+  String _borderTopStyle;
+    
+  /** Gets the value of "border-top-width" */
+  String get borderTopWidth => this._borderTopWidth;
+
+  /** Sets the value of "border-top-width" */
+  void set borderTopWidth(String value) {
+    _borderTopWidth = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderTopWidth')
+  String _borderTopWidth;
+    
+  /** Gets the value of "border-width" */
+  String get borderWidth => this._borderWidth;
+
+  /** Sets the value of "border-width" */
+  void set borderWidth(String value) {
+    _borderWidth = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('borderWidth')
+  String _borderWidth;
+    
+  /** Gets the value of "bottom" */
+  String get bottom => this._bottom;
+
+  /** Sets the value of "bottom" */
+  void set bottom(String value) {
+    _bottom = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('bottom')
+  String _bottom;
+    
+  /** Gets the value of "caption-side" */
+  String get captionSide => this._captionSide;
+
+  /** Sets the value of "caption-side" */
+  void set captionSide(String value) {
+    _captionSide = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('captionSide')
+  String _captionSide;
+    
+  /** Gets the value of "clear" */
+  String get clear => this._clear;
+
+  /** Sets the value of "clear" */
+  void set clear(String value) {
+    _clear = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('clear')
+  String _clear;
+    
+  /** Gets the value of "clip" */
+  String get clip => this._clip;
+
+  /** Sets the value of "clip" */
+  void set clip(String value) {
+    _clip = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('clip')
+  String _clip;
+    
+  /** Gets the value of "color" */
+  String get color => this._color;
+
+  /** Sets the value of "color" */
+  void set color(String value) {
+    _color = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('color')
+  String _color;
+    
+  /** Gets the value of "content" */
+  String get content => this._content;
+
+  /** Sets the value of "content" */
+  void set content(String value) {
+    _content = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('content')
+  String _content;
+    
+  /** Gets the value of "cursor" */
+  String get cursor => this._cursor;
+
+  /** Sets the value of "cursor" */
+  void set cursor(String value) {
+    _cursor = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('cursor')
+  String _cursor;
+    
+  /** Gets the value of "direction" */
+  String get direction => this._direction;
+
+  /** Sets the value of "direction" */
+  void set direction(String value) {
+    _direction = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('direction')
+  String _direction;
+    
+  /** Gets the value of "display" */
+  String get display => this._display;
+
+  /** Sets the value of "display" */
+  void set display(String value) {
+    _display = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('display')
+  String _display;
+    
+  /** Gets the value of "empty-cells" */
+  String get emptyCells => this._emptyCells;
+
+  /** Sets the value of "empty-cells" */
+  void set emptyCells(String value) {
+    _emptyCells = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('emptyCells')
+  String _emptyCells;
+    
+  /** Gets the value of "font" */
+  String get font => this._font;
+
+  /** Sets the value of "font" */
+  void set font(String value) {
+    _font = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('font')
+  String _font;
+    
+  /** Gets the value of "font-family" */
+  String get fontFamily => this._fontFamily;
+
+  /** Sets the value of "font-family" */
+  void set fontFamily(String value) {
+    _fontFamily = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('fontFamily')
+  String _fontFamily;
+    
+  /** Gets the value of "font-size" */
+  String get fontSize => this._fontSize;
+
+  /** Sets the value of "font-size" */
+  void set fontSize(String value) {
+    _fontSize = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('fontSize')
+  String _fontSize;
+    
+  /** Gets the value of "font-style" */
+  String get fontStyle => this._fontStyle;
+
+  /** Sets the value of "font-style" */
+  void set fontStyle(String value) {
+    _fontStyle = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('fontStyle')
+  String _fontStyle;
+    
+  /** Gets the value of "font-variant" */
+  String get fontVariant => this._fontVariant;
+
+  /** Sets the value of "font-variant" */
+  void set fontVariant(String value) {
+    _fontVariant = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('fontVariant')
+  String _fontVariant;
+    
+  /** Gets the value of "font-weight" */
+  String get fontWeight => this._fontWeight;
+
+  /** Sets the value of "font-weight" */
+  void set fontWeight(String value) {
+    _fontWeight = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('fontWeight')
+  String _fontWeight;
+    
+  /** Gets the value of "height" */
+  String get height => this._height;
+
+  /** Sets the value of "height" */
+  void set height(String value) {
+    _height = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('height')
+  String _height;
+    
+  /** Gets the value of "left" */
+  String get left => this._left;
+
+  /** Sets the value of "left" */
+  void set left(String value) {
+    _left = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('left')
+  String _left;
+    
+  /** Gets the value of "letter-spacing" */
+  String get letterSpacing => this._letterSpacing;
+
+  /** Sets the value of "letter-spacing" */
+  void set letterSpacing(String value) {
+    _letterSpacing = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('letterSpacing')
+  String _letterSpacing;
+    
+  /** Gets the value of "line-height" */
+  String get lineHeight => this._lineHeight;
+
+  /** Sets the value of "line-height" */
+  void set lineHeight(String value) {
+    _lineHeight = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('lineHeight')
+  String _lineHeight;
+    
+  /** Gets the value of "list-style" */
+  String get listStyle => this._listStyle;
+
+  /** Sets the value of "list-style" */
+  void set listStyle(String value) {
+    _listStyle = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('listStyle')
+  String _listStyle;
+    
+  /** Gets the value of "list-style-image" */
+  String get listStyleImage => this._listStyleImage;
+
+  /** Sets the value of "list-style-image" */
+  void set listStyleImage(String value) {
+    _listStyleImage = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('listStyleImage')
+  String _listStyleImage;
+    
+  /** Gets the value of "list-style-position" */
+  String get listStylePosition => this._listStylePosition;
+
+  /** Sets the value of "list-style-position" */
+  void set listStylePosition(String value) {
+    _listStylePosition = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('listStylePosition')
+  String _listStylePosition;
+    
+  /** Gets the value of "list-style-type" */
+  String get listStyleType => this._listStyleType;
+
+  /** Sets the value of "list-style-type" */
+  void set listStyleType(String value) {
+    _listStyleType = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('listStyleType')
+  String _listStyleType;
+    
+  /** Gets the value of "margin" */
+  String get margin => this._margin;
+
+  /** Sets the value of "margin" */
+  void set margin(String value) {
+    _margin = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('margin')
+  String _margin;
+    
+  /** Gets the value of "margin-bottom" */
+  String get marginBottom => this._marginBottom;
+
+  /** Sets the value of "margin-bottom" */
+  void set marginBottom(String value) {
+    _marginBottom = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('marginBottom')
+  String _marginBottom;
+    
+  /** Gets the value of "margin-left" */
+  String get marginLeft => this._marginLeft;
+
+  /** Sets the value of "margin-left" */
+  void set marginLeft(String value) {
+    _marginLeft = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('marginLeft')
+  String _marginLeft;
+    
+  /** Gets the value of "margin-right" */
+  String get marginRight => this._marginRight;
+
+  /** Sets the value of "margin-right" */
+  void set marginRight(String value) {
+    _marginRight = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('marginRight')
+  String _marginRight;
+    
+  /** Gets the value of "margin-top" */
+  String get marginTop => this._marginTop;
+
+  /** Sets the value of "margin-top" */
+  void set marginTop(String value) {
+    _marginTop = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('marginTop')
+  String _marginTop;
+    
+  /** Gets the value of "max-height" */
+  String get maxHeight => this._maxHeight;
+
+  /** Sets the value of "max-height" */
+  void set maxHeight(String value) {
+    _maxHeight = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('maxHeight')
+  String _maxHeight;
+    
+  /** Gets the value of "max-width" */
+  String get maxWidth => this._maxWidth;
+
+  /** Sets the value of "max-width" */
+  void set maxWidth(String value) {
+    _maxWidth = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('maxWidth')
+  String _maxWidth;
+    
+  /** Gets the value of "min-height" */
+  String get minHeight => this._minHeight;
+
+  /** Sets the value of "min-height" */
+  void set minHeight(String value) {
+    _minHeight = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('minHeight')
+  String _minHeight;
+    
+  /** Gets the value of "min-width" */
+  String get minWidth => this._minWidth;
+
+  /** Sets the value of "min-width" */
+  void set minWidth(String value) {
+    _minWidth = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('minWidth')
+  String _minWidth;
+    
+  /** Gets the value of "outline" */
+  String get outline => this._outline;
+
+  /** Sets the value of "outline" */
+  void set outline(String value) {
+    _outline = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('outline')
+  String _outline;
+    
+  /** Gets the value of "outline-color" */
+  String get outlineColor => this._outlineColor;
+
+  /** Sets the value of "outline-color" */
+  void set outlineColor(String value) {
+    _outlineColor = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('outlineColor')
+  String _outlineColor;
+    
+  /** Gets the value of "outline-style" */
+  String get outlineStyle => this._outlineStyle;
+
+  /** Sets the value of "outline-style" */
+  void set outlineStyle(String value) {
+    _outlineStyle = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('outlineStyle')
+  String _outlineStyle;
+    
+  /** Gets the value of "outline-width" */
+  String get outlineWidth => this._outlineWidth;
+
+  /** Sets the value of "outline-width" */
+  void set outlineWidth(String value) {
+    _outlineWidth = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('outlineWidth')
+  String _outlineWidth;
+    
+  /** Gets the value of "overflow" */
+  String get overflow => this._overflow;
+
+  /** Sets the value of "overflow" */
+  void set overflow(String value) {
+    _overflow = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('overflow')
+  String _overflow;
+    
+  /** Gets the value of "padding" */
+  String get padding => this._padding;
+
+  /** Sets the value of "padding" */
+  void set padding(String value) {
+    _padding = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('padding')
+  String _padding;
+    
+  /** Gets the value of "padding-bottom" */
+  String get paddingBottom => this._paddingBottom;
+
+  /** Sets the value of "padding-bottom" */
+  void set paddingBottom(String value) {
+    _paddingBottom = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('paddingBottom')
+  String _paddingBottom;
+    
+  /** Gets the value of "padding-left" */
+  String get paddingLeft => this._paddingLeft;
+
+  /** Sets the value of "padding-left" */
+  void set paddingLeft(String value) {
+    _paddingLeft = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('paddingLeft')
+  String _paddingLeft;
+    
+  /** Gets the value of "padding-right" */
+  String get paddingRight => this._paddingRight;
+
+  /** Sets the value of "padding-right" */
+  void set paddingRight(String value) {
+    _paddingRight = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('paddingRight')
+  String _paddingRight;
+    
+  /** Gets the value of "padding-top" */
+  String get paddingTop => this._paddingTop;
+
+  /** Sets the value of "padding-top" */
+  void set paddingTop(String value) {
+    _paddingTop = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('paddingTop')
+  String _paddingTop;
+    
+  /** Gets the value of "page-break-after" */
+  String get pageBreakAfter => this._pageBreakAfter;
+
+  /** Sets the value of "page-break-after" */
+  void set pageBreakAfter(String value) {
+    _pageBreakAfter = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('pageBreakAfter')
+  String _pageBreakAfter;
+    
+  /** Gets the value of "page-break-before" */
+  String get pageBreakBefore => this._pageBreakBefore;
+
+  /** Sets the value of "page-break-before" */
+  void set pageBreakBefore(String value) {
+    _pageBreakBefore = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('pageBreakBefore')
+  String _pageBreakBefore;
+    
+  /** Gets the value of "page-break-inside" */
+  String get pageBreakInside => this._pageBreakInside;
+
+  /** Sets the value of "page-break-inside" */
+  void set pageBreakInside(String value) {
+    _pageBreakInside = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('pageBreakInside')
+  String _pageBreakInside;
+    
+  /** Gets the value of "position" */
+  String get position => this._position;
+
+  /** Sets the value of "position" */
+  void set position(String value) {
+    _position = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('position')
+  String _position;
+    
+  /** Gets the value of "quotes" */
+  String get quotes => this._quotes;
+
+  /** Sets the value of "quotes" */
+  void set quotes(String value) {
+    _quotes = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('quotes')
+  String _quotes;
+    
+  /** Gets the value of "right" */
+  String get right => this._right;
+
+  /** Sets the value of "right" */
+  void set right(String value) {
+    _right = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('right')
+  String _right;
+    
+  /** Gets the value of "table-layout" */
+  String get tableLayout => this._tableLayout;
+
+  /** Sets the value of "table-layout" */
+  void set tableLayout(String value) {
+    _tableLayout = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('tableLayout')
+  String _tableLayout;
+    
+  /** Gets the value of "text-align" */
+  String get textAlign => this._textAlign;
+
+  /** Sets the value of "text-align" */
+  void set textAlign(String value) {
+    _textAlign = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('textAlign')
+  String _textAlign;
+    
+  /** Gets the value of "text-decoration" */
+  String get textDecoration => this._textDecoration;
+
+  /** Sets the value of "text-decoration" */
+  void set textDecoration(String value) {
+    _textDecoration = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('textDecoration')
+  String _textDecoration;
+    
+  /** Gets the value of "text-indent" */
+  String get textIndent => this._textIndent;
+
+  /** Sets the value of "text-indent" */
+  void set textIndent(String value) {
+    _textIndent = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('textIndent')
+  String _textIndent;
+    
+  /** Gets the value of "text-transform" */
+  String get textTransform => this._textTransform;
+
+  /** Sets the value of "text-transform" */
+  void set textTransform(String value) {
+    _textTransform = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('textTransform')
+  String _textTransform;
+    
+  /** Gets the value of "top" */
+  String get top => this._top;
+
+  /** Sets the value of "top" */
+  void set top(String value) {
+    _top = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('top')
+  String _top;
+    
+  /** Gets the value of "unicode-bidi" */
+  String get unicodeBidi => this._unicodeBidi;
+
+  /** Sets the value of "unicode-bidi" */
+  void set unicodeBidi(String value) {
+    _unicodeBidi = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('unicodeBidi')
+  String _unicodeBidi;
+    
+  /** Gets the value of "vertical-align" */
+  String get verticalAlign => this._verticalAlign;
+
+  /** Sets the value of "vertical-align" */
+  void set verticalAlign(String value) {
+    _verticalAlign = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('verticalAlign')
+  String _verticalAlign;
+    
+  /** Gets the value of "visibility" */
+  String get visibility => this._visibility;
+
+  /** Sets the value of "visibility" */
+  void set visibility(String value) {
+    _visibility = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('visibility')
+  String _visibility;
+    
+  /** Gets the value of "white-space" */
+  String get whiteSpace => this._whiteSpace;
+
+  /** Sets the value of "white-space" */
+  void set whiteSpace(String value) {
+    _whiteSpace = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('whiteSpace')
+  String _whiteSpace;
+    
+  /** Gets the value of "width" */
+  String get width => this._width;
+
+  /** Sets the value of "width" */
+  void set width(String value) {
+    _width = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('width')
+  String _width;
+    
+  /** Gets the value of "word-spacing" */
+  String get wordSpacing => this._wordSpacing;
+
+  /** Sets the value of "word-spacing" */
+  void set wordSpacing(String value) {
+    _wordSpacing = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('wordSpacing')
+  String _wordSpacing;
+    
+  /** Gets the value of "z-index" */
+  String get zIndex => this._zIndex;
+
+  /** Sets the value of "z-index" */
+  void set zIndex(String value) {
+    _zIndex = value == null ? '' : value;
+  }
+  @Returns('String')
+  @JSName('zIndex')
+  String _zIndex;
+    
 }
 
 class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
@@ -3454,6 +4453,466 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
     _elementCssStyleDeclarationSetIterable.forEach((e) =>
         e.setProperty(propertyName, value, priority));
   }
+
+
+  void _setAll(String propertyName, String value) {
+    value = value == null ? '' : value;
+    for (Element element in _elementIterable) {
+      JS('void', '#.style[#] = #', element, propertyName, value);
+    }
+  }
+
+  /** Sets the value of "background" */
+  void set background(String value) {
+    _setAll('background', value);
+  }
+    
+  /** Sets the value of "background-attachment" */
+  void set backgroundAttachment(String value) {
+    _setAll('backgroundAttachment', value);
+  }
+    
+  /** Sets the value of "background-color" */
+  void set backgroundColor(String value) {
+    _setAll('backgroundColor', value);
+  }
+    
+  /** Sets the value of "background-image" */
+  void set backgroundImage(String value) {
+    _setAll('backgroundImage', value);
+  }
+    
+  /** Sets the value of "background-position" */
+  void set backgroundPosition(String value) {
+    _setAll('backgroundPosition', value);
+  }
+    
+  /** Sets the value of "background-repeat" */
+  void set backgroundRepeat(String value) {
+    _setAll('backgroundRepeat', value);
+  }
+    
+  /** Sets the value of "border" */
+  void set border(String value) {
+    _setAll('border', value);
+  }
+    
+  /** Sets the value of "border-bottom" */
+  void set borderBottom(String value) {
+    _setAll('borderBottom', value);
+  }
+    
+  /** Sets the value of "border-bottom-color" */
+  void set borderBottomColor(String value) {
+    _setAll('borderBottomColor', value);
+  }
+    
+  /** Sets the value of "border-bottom-style" */
+  void set borderBottomStyle(String value) {
+    _setAll('borderBottomStyle', value);
+  }
+    
+  /** Sets the value of "border-bottom-width" */
+  void set borderBottomWidth(String value) {
+    _setAll('borderBottomWidth', value);
+  }
+    
+  /** Sets the value of "border-collapse" */
+  void set borderCollapse(String value) {
+    _setAll('borderCollapse', value);
+  }
+    
+  /** Sets the value of "border-color" */
+  void set borderColor(String value) {
+    _setAll('borderColor', value);
+  }
+    
+  /** Sets the value of "border-left" */
+  void set borderLeft(String value) {
+    _setAll('borderLeft', value);
+  }
+    
+  /** Sets the value of "border-left-color" */
+  void set borderLeftColor(String value) {
+    _setAll('borderLeftColor', value);
+  }
+    
+  /** Sets the value of "border-left-style" */
+  void set borderLeftStyle(String value) {
+    _setAll('borderLeftStyle', value);
+  }
+    
+  /** Sets the value of "border-left-width" */
+  void set borderLeftWidth(String value) {
+    _setAll('borderLeftWidth', value);
+  }
+    
+  /** Sets the value of "border-right" */
+  void set borderRight(String value) {
+    _setAll('borderRight', value);
+  }
+    
+  /** Sets the value of "border-right-color" */
+  void set borderRightColor(String value) {
+    _setAll('borderRightColor', value);
+  }
+    
+  /** Sets the value of "border-right-style" */
+  void set borderRightStyle(String value) {
+    _setAll('borderRightStyle', value);
+  }
+    
+  /** Sets the value of "border-right-width" */
+  void set borderRightWidth(String value) {
+    _setAll('borderRightWidth', value);
+  }
+    
+  /** Sets the value of "border-spacing" */
+  void set borderSpacing(String value) {
+    _setAll('borderSpacing', value);
+  }
+    
+  /** Sets the value of "border-style" */
+  void set borderStyle(String value) {
+    _setAll('borderStyle', value);
+  }
+    
+  /** Sets the value of "border-top" */
+  void set borderTop(String value) {
+    _setAll('borderTop', value);
+  }
+    
+  /** Sets the value of "border-top-color" */
+  void set borderTopColor(String value) {
+    _setAll('borderTopColor', value);
+  }
+    
+  /** Sets the value of "border-top-style" */
+  void set borderTopStyle(String value) {
+    _setAll('borderTopStyle', value);
+  }
+    
+  /** Sets the value of "border-top-width" */
+  void set borderTopWidth(String value) {
+    _setAll('borderTopWidth', value);
+  }
+    
+  /** Sets the value of "border-width" */
+  void set borderWidth(String value) {
+    _setAll('borderWidth', value);
+  }
+    
+  /** Sets the value of "bottom" */
+  void set bottom(String value) {
+    _setAll('bottom', value);
+  }
+    
+  /** Sets the value of "caption-side" */
+  void set captionSide(String value) {
+    _setAll('captionSide', value);
+  }
+    
+  /** Sets the value of "clear" */
+  void set clear(String value) {
+    _setAll('clear', value);
+  }
+    
+  /** Sets the value of "clip" */
+  void set clip(String value) {
+    _setAll('clip', value);
+  }
+    
+  /** Sets the value of "color" */
+  void set color(String value) {
+    _setAll('color', value);
+  }
+    
+  /** Sets the value of "content" */
+  void set content(String value) {
+    _setAll('content', value);
+  }
+    
+  /** Sets the value of "cursor" */
+  void set cursor(String value) {
+    _setAll('cursor', value);
+  }
+    
+  /** Sets the value of "direction" */
+  void set direction(String value) {
+    _setAll('direction', value);
+  }
+    
+  /** Sets the value of "display" */
+  void set display(String value) {
+    _setAll('display', value);
+  }
+    
+  /** Sets the value of "empty-cells" */
+  void set emptyCells(String value) {
+    _setAll('emptyCells', value);
+  }
+    
+  /** Sets the value of "font" */
+  void set font(String value) {
+    _setAll('font', value);
+  }
+    
+  /** Sets the value of "font-family" */
+  void set fontFamily(String value) {
+    _setAll('fontFamily', value);
+  }
+    
+  /** Sets the value of "font-size" */
+  void set fontSize(String value) {
+    _setAll('fontSize', value);
+  }
+    
+  /** Sets the value of "font-style" */
+  void set fontStyle(String value) {
+    _setAll('fontStyle', value);
+  }
+    
+  /** Sets the value of "font-variant" */
+  void set fontVariant(String value) {
+    _setAll('fontVariant', value);
+  }
+    
+  /** Sets the value of "font-weight" */
+  void set fontWeight(String value) {
+    _setAll('fontWeight', value);
+  }
+    
+  /** Sets the value of "height" */
+  void set height(String value) {
+    _setAll('height', value);
+  }
+    
+  /** Sets the value of "left" */
+  void set left(String value) {
+    _setAll('left', value);
+  }
+    
+  /** Sets the value of "letter-spacing" */
+  void set letterSpacing(String value) {
+    _setAll('letterSpacing', value);
+  }
+    
+  /** Sets the value of "line-height" */
+  void set lineHeight(String value) {
+    _setAll('lineHeight', value);
+  }
+    
+  /** Sets the value of "list-style" */
+  void set listStyle(String value) {
+    _setAll('listStyle', value);
+  }
+    
+  /** Sets the value of "list-style-image" */
+  void set listStyleImage(String value) {
+    _setAll('listStyleImage', value);
+  }
+    
+  /** Sets the value of "list-style-position" */
+  void set listStylePosition(String value) {
+    _setAll('listStylePosition', value);
+  }
+    
+  /** Sets the value of "list-style-type" */
+  void set listStyleType(String value) {
+    _setAll('listStyleType', value);
+  }
+    
+  /** Sets the value of "margin" */
+  void set margin(String value) {
+    _setAll('margin', value);
+  }
+    
+  /** Sets the value of "margin-bottom" */
+  void set marginBottom(String value) {
+    _setAll('marginBottom', value);
+  }
+    
+  /** Sets the value of "margin-left" */
+  void set marginLeft(String value) {
+    _setAll('marginLeft', value);
+  }
+    
+  /** Sets the value of "margin-right" */
+  void set marginRight(String value) {
+    _setAll('marginRight', value);
+  }
+    
+  /** Sets the value of "margin-top" */
+  void set marginTop(String value) {
+    _setAll('marginTop', value);
+  }
+    
+  /** Sets the value of "max-height" */
+  void set maxHeight(String value) {
+    _setAll('maxHeight', value);
+  }
+    
+  /** Sets the value of "max-width" */
+  void set maxWidth(String value) {
+    _setAll('maxWidth', value);
+  }
+    
+  /** Sets the value of "min-height" */
+  void set minHeight(String value) {
+    _setAll('minHeight', value);
+  }
+    
+  /** Sets the value of "min-width" */
+  void set minWidth(String value) {
+    _setAll('minWidth', value);
+  }
+    
+  /** Sets the value of "outline" */
+  void set outline(String value) {
+    _setAll('outline', value);
+  }
+    
+  /** Sets the value of "outline-color" */
+  void set outlineColor(String value) {
+    _setAll('outlineColor', value);
+  }
+    
+  /** Sets the value of "outline-style" */
+  void set outlineStyle(String value) {
+    _setAll('outlineStyle', value);
+  }
+    
+  /** Sets the value of "outline-width" */
+  void set outlineWidth(String value) {
+    _setAll('outlineWidth', value);
+  }
+    
+  /** Sets the value of "overflow" */
+  void set overflow(String value) {
+    _setAll('overflow', value);
+  }
+    
+  /** Sets the value of "padding" */
+  void set padding(String value) {
+    _setAll('padding', value);
+  }
+    
+  /** Sets the value of "padding-bottom" */
+  void set paddingBottom(String value) {
+    _setAll('paddingBottom', value);
+  }
+    
+  /** Sets the value of "padding-left" */
+  void set paddingLeft(String value) {
+    _setAll('paddingLeft', value);
+  }
+    
+  /** Sets the value of "padding-right" */
+  void set paddingRight(String value) {
+    _setAll('paddingRight', value);
+  }
+    
+  /** Sets the value of "padding-top" */
+  void set paddingTop(String value) {
+    _setAll('paddingTop', value);
+  }
+    
+  /** Sets the value of "page-break-after" */
+  void set pageBreakAfter(String value) {
+    _setAll('pageBreakAfter', value);
+  }
+    
+  /** Sets the value of "page-break-before" */
+  void set pageBreakBefore(String value) {
+    _setAll('pageBreakBefore', value);
+  }
+    
+  /** Sets the value of "page-break-inside" */
+  void set pageBreakInside(String value) {
+    _setAll('pageBreakInside', value);
+  }
+    
+  /** Sets the value of "position" */
+  void set position(String value) {
+    _setAll('position', value);
+  }
+    
+  /** Sets the value of "quotes" */
+  void set quotes(String value) {
+    _setAll('quotes', value);
+  }
+    
+  /** Sets the value of "right" */
+  void set right(String value) {
+    _setAll('right', value);
+  }
+    
+  /** Sets the value of "table-layout" */
+  void set tableLayout(String value) {
+    _setAll('tableLayout', value);
+  }
+    
+  /** Sets the value of "text-align" */
+  void set textAlign(String value) {
+    _setAll('textAlign', value);
+  }
+    
+  /** Sets the value of "text-decoration" */
+  void set textDecoration(String value) {
+    _setAll('textDecoration', value);
+  }
+    
+  /** Sets the value of "text-indent" */
+  void set textIndent(String value) {
+    _setAll('textIndent', value);
+  }
+    
+  /** Sets the value of "text-transform" */
+  void set textTransform(String value) {
+    _setAll('textTransform', value);
+  }
+    
+  /** Sets the value of "top" */
+  void set top(String value) {
+    _setAll('top', value);
+  }
+    
+  /** Sets the value of "unicode-bidi" */
+  void set unicodeBidi(String value) {
+    _setAll('unicodeBidi', value);
+  }
+    
+  /** Sets the value of "vertical-align" */
+  void set verticalAlign(String value) {
+    _setAll('verticalAlign', value);
+  }
+    
+  /** Sets the value of "visibility" */
+  void set visibility(String value) {
+    _setAll('visibility', value);
+  }
+    
+  /** Sets the value of "white-space" */
+  void set whiteSpace(String value) {
+    _setAll('whiteSpace', value);
+  }
+    
+  /** Sets the value of "width" */
+  void set width(String value) {
+    _setAll('width', value);
+  }
+    
+  /** Sets the value of "word-spacing" */
+  void set wordSpacing(String value) {
+    _setAll('wordSpacing', value);
+  }
+    
+  /** Sets the value of "z-index" */
+  void set zIndex(String value) {
+    _setAll('zIndex', value);
+  }
+    
+
   // Important note: CssStyleDeclarationSet does NOT implement every method
   // available in CssStyleDeclaration. Some of the methods don't make so much
   // sense in terms of having a resonable value to return when you're
@@ -11796,6 +13255,33 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    * used when an explicit accessor is not available.
    */
   ElementEvents get on => new ElementEvents(this);
+  
+  /**
+   * Verify if any of the attributes that we use in the sanitizer look unexpected,
+   * possibly indicating DOM clobbering attacks.
+   *
+   * Those attributes are: attributes, lastChild, children, previousNode and tagName.
+   */
+  bool get _hasCorruptedAttributes {
+     return JS('bool', r'''
+       (function(element) {
+         if (!(element.attributes instanceof NamedNodeMap)) {
+	   return true;
+	 }
+	 var childNodes = element.childNodes;
+	 if (element.lastChild &&
+	     element.lastChild !== childNodes[childNodes.length -1]) {
+	   return true;
+	 }
+	 if (element.children) { // On Safari, children can apparently be null.
+  	   if (!((element.children instanceof HTMLCollection) ||
+               (element.children instanceof NodeList))) {
+	     return true;
+	   }
+	 }
+	 return false;
+          })(#)''', this);
+  }
 
   @DomName('Element.offsetHeight')
   @DocsEditable()
@@ -24843,7 +26329,7 @@ class RtcIceCandidate extends Interceptor {
 @DomName('RTCIceCandidateEvent')
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#rtcicecandidate-type
 @Experimental()
-@Native("RTCIceCandidateEvent")
+@Native("RTCIceCandidateEvent,RTCPeerConnectionIceEvent")
 class RtcIceCandidateEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory RtcIceCandidateEvent._() { throw new UnsupportedError("Not supported"); }
@@ -34891,6 +36377,12 @@ abstract class CssClassSet implements Set<String> {
    *
    * If [shouldAdd] is true, then we always add that [value] to the element. If
    * [shouldAdd] is false then we always remove [value] from the element.
+   *
+   * If this corresponds to one element, returns `true` if [value] is present
+   * after the operation, and returns `false` if [value] is absent after the
+   * operation.
+   *
+   * If this corresponds to many elements, `null` is always returned.
    */
   bool toggle(String value, [bool shouldAdd]);
 
@@ -34917,7 +36409,7 @@ abstract class CssClassSet implements Set<String> {
    * If this corresponds to one element. Returns true if [value] was added to
    * the set, otherwise false.
    *
-   * If this corresponds to many elements, null is always returned.
+   * If this corresponds to many elements, `null` is always returned.
    */
   bool add(String value);
 
@@ -34957,90 +36449,6 @@ abstract class CssClassSet implements Set<String> {
    * [iterable] from the element.
    */
   void toggleAll(Iterable<String> iterable, [bool shouldAdd]);
-}
-
-/**
- * A set (union) of the CSS classes that are present in a set of elements.
- * Implemented separately from _ElementCssClassSet for performance.
- */
-class _MultiElementCssClassSet extends CssClassSetImpl {
-  final Iterable<Element> _elementIterable;
-  Iterable<_ElementCssClassSet> _elementCssClassSetIterable;
-
-  _MultiElementCssClassSet(this._elementIterable) {
-    _elementCssClassSetIterable = new List.from(_elementIterable).map(
-        (e) => new _ElementCssClassSet(e));
-  }
-
-  Set<String> readClasses() {
-    var s = new LinkedHashSet<String>();
-    _elementCssClassSetIterable.forEach(
-        (_ElementCssClassSet e) => s.addAll(e.readClasses()));
-    return s;
-  }
-
-  void writeClasses(Set<String> s) {
-    var classes = s.join(' ');
-    for (Element e in _elementIterable) {
-      e.className = classes;
-    }
-  }
-
-  /**
-   * Helper method used to modify the set of css classes on this element.
-   *
-   *   f - callback with:
-   *   s - a Set of all the css class name currently on this element.
-   *
-   *   After f returns, the modified set is written to the
-   *       className property of this element.
-   */
-  modify( f(Set<String> s)) {
-    _elementCssClassSetIterable.forEach((_ElementCssClassSet e) => e.modify(f));
-  }
-
-  /**
-   * Adds the class [value] to the element if it is not on it, removes it if it
-   * is.
-   */
-  bool toggle(String value, [bool shouldAdd]) =>
-      _elementCssClassSetIterable.fold(false,
-          (bool changed, _ElementCssClassSet e) =>
-              e.toggle(value, shouldAdd) || changed);
-
-  /**
-   * Remove the class [value] from element, and return true on successful
-   * removal.
-   *
-   * This is the Dart equivalent of jQuery's
-   * [removeClass](http://api.jquery.com/removeClass/).
-   */
-  bool remove(Object value) => _elementCssClassSetIterable.fold(false,
-      (bool changed, _ElementCssClassSet e) => e.remove(value) || changed);
-}
-
-class _ElementCssClassSet extends CssClassSetImpl {
-
-  final Element _element;
-
-  _ElementCssClassSet(this._element);
-
-  Set<String> readClasses() {
-    var s = new LinkedHashSet<String>();
-    var classname = _element.className;
-
-    for (String name in classname.split(' ')) {
-      String trimmed = name.trim();
-      if (!trimmed.isEmpty) {
-        s.add(trimmed);
-      }
-    }
-    return s;
-  }
-
-  void writeClasses(Set<String> s) {
-    _element.className = s.join(' ');
-  }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35303,6 +36711,254 @@ final _WIDTH = ['right', 'left'];
 final _CONTENT = 'content';
 final _PADDING = 'padding';
 final _MARGIN = 'margin';
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * A set (union) of the CSS classes that are present in a set of elements.
+ * Implemented separately from _ElementCssClassSet for performance.
+ */
+class _MultiElementCssClassSet extends CssClassSetImpl {
+  final Iterable<Element> _elementIterable;
+
+  // TODO(sra): Perhaps we should store the DomTokenList instead.
+  final List<CssClassSetImpl> _sets;
+
+  factory _MultiElementCssClassSet(Iterable<Element> elements) {
+    return new _MultiElementCssClassSet._(elements,
+        elements.map((Element e) => e.classes).toList());
+  }
+
+  _MultiElementCssClassSet._(this._elementIterable, this._sets);
+
+  Set<String> readClasses() {
+    var s = new LinkedHashSet<String>();
+    _sets.forEach((CssClassSetImpl e) => s.addAll(e.readClasses()));
+    return s;
+  }
+
+  void writeClasses(Set<String> s) {
+    var classes = s.join(' ');
+    for (Element e in _elementIterable) {
+      e.className = classes;
+    }
+  }
+
+  /**
+   * Helper method used to modify the set of css classes on this element.
+   *
+   *   f - callback with:
+   *   s - a Set of all the css class name currently on this element.
+   *
+   *   After f returns, the modified set is written to the
+   *       className property of this element.
+   */
+  modify( f(Set<String> s)) {
+    _sets.forEach((CssClassSetImpl e) => e.modify(f));
+  }
+
+  /**
+   * Adds the class [value] to the element if it is not on it, removes it if it
+   * is.
+   *
+   * TODO(sra): It seems wrong to collect a 'changed' flag like this when the
+   * underlying toggle returns an 'is set' flag.
+   */
+  bool toggle(String value, [bool shouldAdd]) =>
+      _sets.fold(false,
+          (bool changed, CssClassSetImpl e) =>
+              e.toggle(value, shouldAdd) || changed);
+
+  /**
+   * Remove the class [value] from element, and return true on successful
+   * removal.
+   *
+   * This is the Dart equivalent of jQuery's
+   * [removeClass](http://api.jquery.com/removeClass/).
+   */
+  bool remove(Object value) => _sets.fold(false,
+      (bool changed, CssClassSetImpl e) => e.remove(value) || changed);
+}
+
+class _ElementCssClassSet extends CssClassSetImpl {
+  final Element _element;
+
+  _ElementCssClassSet(this._element);
+
+  Set<String> readClasses() {
+    var s = new LinkedHashSet<String>();
+    var classname = _element.className;
+
+    for (String name in classname.split(' ')) {
+      String trimmed = name.trim();
+      if (!trimmed.isEmpty) {
+        s.add(trimmed);
+      }
+    }
+    return s;
+  }
+
+  void writeClasses(Set<String> s) {
+    _element.className = s.join(' ');
+  }
+
+  int get length => _classListLength(_classListOf(_element));
+  bool get isEmpty => length == 0;
+  bool get isNotEmpty => length != 0;
+
+  void clear() {
+    _element.className = '';
+  }
+
+  bool contains(String value) {
+    return _contains(_element, value);
+  }
+
+  bool add(String value) {
+    return _add(_element, value);
+  }
+
+  bool remove(Object value) {
+    return value is String && _remove(_element, value);
+  }
+
+  bool toggle(String value, [bool shouldAdd]) {
+    return _toggle(_element, value, shouldAdd);
+  }
+
+  void addAll(Iterable<String> iterable) {
+    _addAll(_element, iterable);
+  }
+
+  void removeAll(Iterable<String> iterable) {
+    _removeAll(_element, iterable);
+  }
+
+  void retainAll(Iterable<String> iterable) {
+    _removeWhere(_element, iterable.toSet().contains, false);
+  }
+
+  void removeWhere(bool test(String name)) {
+    _removeWhere(_element, test, true);
+  }
+
+  void retainWhere(bool test(String name)) {
+    _removeWhere(_element, test, false);
+  }
+
+  static bool _contains(Element _element, String value) {
+    return _classListContains(_classListOf(_element), value);
+  }
+
+  static bool _add(Element _element, String value) {
+    DomTokenList list = _classListOf(_element);
+    // Compute returned result independently of action upon the set. One day we
+    // will be able to optimize it way if unused.
+    bool added = !_classListContains(list, value);
+    _classListAdd(list, value);
+    return added;
+  }
+
+  static bool _remove(Element _element, String value) {
+    DomTokenList list = _classListOf(_element);
+    bool removed = _classListContains(list, value);
+    _classListRemove(list, value);
+    return removed;
+  }
+
+  static bool _toggle(Element _element, String value, bool shouldAdd) {
+    // There is no value that can be passed as the second argument of
+    // DomTokenList.toggle that behaves the same as passing one argument.
+    // `null` is seen as false, meaning 'remove'.
+    return shouldAdd == null
+        ? _toggleDefault(_element, value)
+        : _toggleOnOff(_element, value, shouldAdd);
+  }
+
+  static bool _toggleDefault(Element _element, String value) {
+    DomTokenList list = _classListOf(_element);
+    return _classListToggle1(list, value);
+  }
+
+  static bool _toggleOnOff(Element _element, String value, bool shouldAdd) {
+    DomTokenList list = _classListOf(_element);
+    // IE's toggle does not take a second parameter. We would prefer:
+    //
+    //    return _classListToggle2(list, value, shouldAdd);
+    //
+    if (shouldAdd) {
+      _classListAdd(list, value);
+      return true;
+    } else {
+      _classListRemove(list, value);
+      return false;
+    }
+  }
+
+  static void _addAll(Element _element, Iterable<String> iterable) {
+    DomTokenList list = _classListOf(_element);
+    for (String value in iterable) {
+      _classListAdd(list, value);
+    }
+  }
+
+  static void _removeAll(Element _element, Iterable<String> iterable) {
+    DomTokenList list = _classListOf(_element);
+    for (var value in iterable) {
+      _classListRemove(list, value);
+    }
+  }
+
+  static void _removeWhere(
+      Element _element, bool test(String name), bool doRemove) {
+    DomTokenList list = _classListOf(_element);
+    int i = 0;
+    while (i < _classListLength(list)) {
+      String item = list.item(i);
+      if (doRemove == test(item)) {
+        _classListRemove(list, item);
+      } else {
+        ++i;
+      }
+    }
+  }
+
+  // A collection of static methods for DomTokenList. These methods are a
+  // work-around for the lack of annotations to express the full behaviour of
+  // the DomTokenList methods.
+
+  static DomTokenList _classListOf(Element e) =>
+      JS('returns:DomTokenList;creates:DomTokenList;effects:none;depends:all;',
+         '#.classList', e);
+
+  static int _classListLength(DomTokenList list) =>
+      JS('returns:JSUInt31;effects:none;depends:all;', '#.length', list);
+
+  static bool _classListContains(DomTokenList list, String value) =>
+      JS('returns:bool;effects:none;depends:all;',
+          '#.contains(#)', list, value);
+
+  static void _classListAdd(DomTokenList list, String value) {
+    // list.add(value);
+    JS('', '#.add(#)', list, value);
+  }
+
+  static void _classListRemove(DomTokenList list, String value) {
+    // list.remove(value);
+    JS('', '#.remove(#)', list, value);
+  }
+
+  static bool _classListToggle1(DomTokenList list, String value) {
+    return JS('bool', '#.toggle(#)', list, value);
+  }
+
+  static bool _classListToggle2(
+      DomTokenList list, String value, bool shouldAdd) {
+    return JS('bool', '#.toggle(#, #)', list, value, shouldAdd);
+  }
+}
 
 /**
  * Class representing a
@@ -38009,6 +39665,13 @@ class _SvgNodeValidator implements NodeValidator {
     if (element is svg.ScriptElement) {
       return false;
     }
+    // Firefox 37 has issues with creating foreign elements inside a
+    // foreignobject tag as SvgElement. We don't want foreignobject contents
+    // anyway, so just remove the whole tree outright. And we can't rely
+    // on IE recognizing the SvgForeignObject type, so go by tagName. Bug 23144
+    if (element is svg.SvgElement && element.tagName == 'foreignObject') {
+      return false;
+    }
     if (element is svg.SvgElement) {
       return true;
     }
@@ -39103,7 +40766,7 @@ class _SameOriginUriPolicy implements UriPolicy {
         _hiddenAnchor.protocol == _loc.protocol) ||
         (_hiddenAnchor.hostname == '' &&
         _hiddenAnchor.port == '' &&
-        _hiddenAnchor.protocol == ':');
+        (_hiddenAnchor.protocol == ':' || _hiddenAnchor.protocol == ''));
   }
 }
 
@@ -39137,29 +40800,46 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   _ValidatingTreeSanitizer(this.validator) {}
 
   void sanitizeTree(Node node) {
-    void walk(Node node) {
-      sanitizeNode(node);
+    void walk(Node node, Node parent) {
+      sanitizeNode(node, parent);
 
       var child = node.lastChild;
       while (child != null) {
         // Child may be removed during the walk.
         var nextChild = child.previousNode;
-        walk(child);
+        walk(child, node);
         child = nextChild;
       }
     }
-    walk(node);
+    walk(node, null);
   }
 
-  void sanitizeNode(Node node) {
+  /// Aggressively try to remove node.
+  void _removeNode(Node node, Node parent) {
+    // If we have the parent, it's presumably already passed more sanitization or
+    // is the fragment, so ask it to remove the child. And if that fails try to
+    // set the outer html.
+    if (parent == null) {
+      node.remove();
+    } else {
+      parent._removeChild(node);
+    }
+  }
+  
+  void sanitizeNode(Node node, Node parent) {
     switch (node.nodeType) {
       case Node.ELEMENT_NODE:
         Element element = node;
+        if (element._hasCorruptedAttributes) {
+          window.console.warn('Removing element due to corrupted attributes on <${element}>');
+          _removeNode(node, parent);
+          break;
+        }
         var attrs = element.attributes;
         if (!validator.allowsElement(element)) {
           window.console.warn(
               'Removing disallowed element <${element.tagName}>');
-          element.remove();
+          _removeNode(node, parent);
           break;
         }
 
@@ -39168,7 +40848,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
           if (!validator.allowsAttribute(element, 'is', isAttr)) {
             window.console.warn('Removing disallowed type extension '
                 '<${element.tagName} is="$isAttr">');
-            element.remove();
+            _removeNode(node, parent);
             break;
           }
         }
@@ -39197,7 +40877,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       case Node.CDATA_SECTION_NODE:
         break;
       default:
-        node.remove();
+        _removeNode(node, parent);
     }
   }
 }

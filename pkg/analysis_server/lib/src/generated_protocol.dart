@@ -5644,6 +5644,7 @@ class AnalysisErrorType implements Enum {
  *   "enableAsync": optional bool
  *   "enableDeferredLoading": optional bool
  *   "enableEnums": optional bool
+ *   "enableNullAwareOperators": optional bool
  *   "generateDart2jsHints": optional bool
  *   "generateHints": optional bool
  *   "generateLints": optional bool
@@ -5651,14 +5652,14 @@ class AnalysisErrorType implements Enum {
  */
 class AnalysisOptions implements HasToJson {
   /**
-   * Deprecated/
+   * Deprecated
    *
    * True if the client wants to enable support for the proposed async feature.
    */
   bool enableAsync;
 
   /**
-   * Deprecated/
+   * Deprecated
    *
    * True if the client wants to enable support for the proposed deferred
    * loading feature.
@@ -5666,11 +5667,17 @@ class AnalysisOptions implements HasToJson {
   bool enableDeferredLoading;
 
   /**
-   * Deprecated/
+   * Deprecated
    *
    * True if the client wants to enable support for the proposed enum feature.
    */
   bool enableEnums;
+
+  /**
+   * True if the client wants to enable support for the proposed "null aware
+   * operators" feature.
+   */
+  bool enableNullAwareOperators;
 
   /**
    * True if hints that are specific to dart2js should be generated. This
@@ -5690,7 +5697,7 @@ class AnalysisOptions implements HasToJson {
    */
   bool generateLints;
 
-  AnalysisOptions({this.enableAsync, this.enableDeferredLoading, this.enableEnums, this.generateDart2jsHints, this.generateHints, this.generateLints});
+  AnalysisOptions({this.enableAsync, this.enableDeferredLoading, this.enableEnums, this.enableNullAwareOperators, this.generateDart2jsHints, this.generateHints, this.generateLints});
 
   factory AnalysisOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -5709,6 +5716,10 @@ class AnalysisOptions implements HasToJson {
       if (json.containsKey("enableEnums")) {
         enableEnums = jsonDecoder._decodeBool(jsonPath + ".enableEnums", json["enableEnums"]);
       }
+      bool enableNullAwareOperators;
+      if (json.containsKey("enableNullAwareOperators")) {
+        enableNullAwareOperators = jsonDecoder._decodeBool(jsonPath + ".enableNullAwareOperators", json["enableNullAwareOperators"]);
+      }
       bool generateDart2jsHints;
       if (json.containsKey("generateDart2jsHints")) {
         generateDart2jsHints = jsonDecoder._decodeBool(jsonPath + ".generateDart2jsHints", json["generateDart2jsHints"]);
@@ -5721,7 +5732,7 @@ class AnalysisOptions implements HasToJson {
       if (json.containsKey("generateLints")) {
         generateLints = jsonDecoder._decodeBool(jsonPath + ".generateLints", json["generateLints"]);
       }
-      return new AnalysisOptions(enableAsync: enableAsync, enableDeferredLoading: enableDeferredLoading, enableEnums: enableEnums, generateDart2jsHints: generateDart2jsHints, generateHints: generateHints, generateLints: generateLints);
+      return new AnalysisOptions(enableAsync: enableAsync, enableDeferredLoading: enableDeferredLoading, enableEnums: enableEnums, enableNullAwareOperators: enableNullAwareOperators, generateDart2jsHints: generateDart2jsHints, generateHints: generateHints, generateLints: generateLints);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AnalysisOptions");
     }
@@ -5737,6 +5748,9 @@ class AnalysisOptions implements HasToJson {
     }
     if (enableEnums != null) {
       result["enableEnums"] = enableEnums;
+    }
+    if (enableNullAwareOperators != null) {
+      result["enableNullAwareOperators"] = enableNullAwareOperators;
     }
     if (generateDart2jsHints != null) {
       result["generateDart2jsHints"] = generateDart2jsHints;
@@ -5759,6 +5773,7 @@ class AnalysisOptions implements HasToJson {
       return enableAsync == other.enableAsync &&
           enableDeferredLoading == other.enableDeferredLoading &&
           enableEnums == other.enableEnums &&
+          enableNullAwareOperators == other.enableNullAwareOperators &&
           generateDart2jsHints == other.generateDart2jsHints &&
           generateHints == other.generateHints &&
           generateLints == other.generateLints;
@@ -5772,6 +5787,7 @@ class AnalysisOptions implements HasToJson {
     hash = _JenkinsSmiHash.combine(hash, enableAsync.hashCode);
     hash = _JenkinsSmiHash.combine(hash, enableDeferredLoading.hashCode);
     hash = _JenkinsSmiHash.combine(hash, enableEnums.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, enableNullAwareOperators.hashCode);
     hash = _JenkinsSmiHash.combine(hash, generateDart2jsHints.hashCode);
     hash = _JenkinsSmiHash.combine(hash, generateHints.hashCode);
     hash = _JenkinsSmiHash.combine(hash, generateLints.hashCode);
@@ -9338,6 +9354,7 @@ class RequestError implements HasToJson {
  *   CONTENT_MODIFIED
  *   FORMAT_INVALID_FILE
  *   GET_ERRORS_INVALID_FILE
+ *   INVALID_ANALYSIS_ROOT
  *   INVALID_EXECUTION_CONTEXT
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
@@ -9350,6 +9367,7 @@ class RequestError implements HasToJson {
  *   SORT_MEMBERS_PARSE_ERRORS
  *   UNANALYZED_PRIORITY_FILES
  *   UNKNOWN_REQUEST
+ *   UNKNOWN_SOURCE
  *   UNSUPPORTED_FEATURE
  * }
  */
@@ -9372,6 +9390,12 @@ class RequestErrorCode implements Enum {
    * a file currently subject to analysis.
    */
   static const GET_ERRORS_INVALID_FILE = const RequestErrorCode._("GET_ERRORS_INVALID_FILE");
+
+  /**
+   * A path passed as an argument to a request (such as analysis.reanalyze) is
+   * required to be an analysis root, but isn't.
+   */
+  static const INVALID_ANALYSIS_ROOT = const RequestErrorCode._("INVALID_ANALYSIS_ROOT");
 
   /**
    * The context root used to create an execution context does not exist.
@@ -9450,6 +9474,12 @@ class RequestErrorCode implements Enum {
   static const UNKNOWN_REQUEST = const RequestErrorCode._("UNKNOWN_REQUEST");
 
   /**
+   * The analysis server was requested to perform an action on a source that
+   * does not exist.
+   */
+  static const UNKNOWN_SOURCE = const RequestErrorCode._("UNKNOWN_SOURCE");
+
+  /**
    * The analysis server was requested to perform an action which is not
    * supported.
    *
@@ -9461,7 +9491,7 @@ class RequestErrorCode implements Enum {
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FORMAT_INVALID_FILE, GET_ERRORS_INVALID_FILE, INVALID_EXECUTION_CONTEXT, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, NO_INDEX_GENERATED, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNSUPPORTED_FEATURE];
+  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FORMAT_INVALID_FILE, GET_ERRORS_INVALID_FILE, INVALID_ANALYSIS_ROOT, INVALID_EXECUTION_CONTEXT, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, NO_INDEX_GENERATED, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNKNOWN_SOURCE, UNSUPPORTED_FEATURE];
 
   final String name;
 
@@ -9475,6 +9505,8 @@ class RequestErrorCode implements Enum {
         return FORMAT_INVALID_FILE;
       case "GET_ERRORS_INVALID_FILE":
         return GET_ERRORS_INVALID_FILE;
+      case "INVALID_ANALYSIS_ROOT":
+        return INVALID_ANALYSIS_ROOT;
       case "INVALID_EXECUTION_CONTEXT":
         return INVALID_EXECUTION_CONTEXT;
       case "INVALID_OVERLAY_CHANGE":
@@ -9499,6 +9531,8 @@ class RequestErrorCode implements Enum {
         return UNANALYZED_PRIORITY_FILES;
       case "UNKNOWN_REQUEST":
         return UNKNOWN_REQUEST;
+      case "UNKNOWN_SOURCE":
+        return UNKNOWN_SOURCE;
       case "UNSUPPORTED_FEATURE":
         return UNSUPPORTED_FEATURE;
     }

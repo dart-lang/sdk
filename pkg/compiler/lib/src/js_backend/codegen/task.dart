@@ -108,7 +108,11 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
     cps.FunctionDefinition cpsNode = irBuilderTask.buildNode(element);
     if (cpsNode == null) {
-      giveUp('unable to build cps definition of $element');
+      if (irBuilderTask.bailoutMessage == null) {
+        giveUp('unable to build cps definition of $element');
+      } else {
+        giveUp(irBuilderTask.bailoutMessage);
+      }
     }
     if (element.isInstanceMember && !element.isGenerativeConstructorBody) {
       Selector selector = new Selector.fromElement(cpsNode.element);
@@ -156,7 +160,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
     }
   }
 
-  static bool checkCpsIntegrity(cps.ExecutableDefinition node) {
+  static bool checkCpsIntegrity(cps.RootNode node) {
     new CheckCpsIntegrity().check(node);
     return true; // So this can be used from assert().
   }
@@ -179,10 +183,6 @@ class CpsFunctionCompiler implements FunctionCompiler {
     applyCpsPass(new RedundantPhiEliminator());
     applyCpsPass(new ShrinkingReducer());
 
-    // Do not rewrite the IR after variable allocation.  Allocation
-    // makes decisions based on an approximation of IR variable live
-    // ranges that can be invalidated by transforming the IR.
-    new cps.RegisterAllocator(compiler.internalError).visit(cpsNode);
     return cpsNode;
   }
 
@@ -196,7 +196,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
     return treeNode;
   }
 
-  static bool checkTreeIntegrity(tree_ir.ExecutableDefinition node) {
+  static bool checkTreeIntegrity(tree_ir.RootNode node) {
     new CheckTreeIntegrity().check(node);
     return true; // So this can be used from assert().
   }
@@ -209,7 +209,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
     }
 
     applyTreePass(new StatementRewriter());
-    applyTreePass(new CopyPropagator());
+    applyTreePass(new VariableMerger());
     applyTreePass(new LoopRewriter());
     applyTreePass(new LogicalRewriter());
 

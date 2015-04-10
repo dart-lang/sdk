@@ -309,7 +309,10 @@ abstract class SendResolverMixin {
     Element getter = isCompound ? elements[node.selector] : null;
     if (elements.isTypeLiteral(node)) {
       DartType dartType = elements.getTypeLiteralType(node);
-      TypeConstantExpression constant = elements.getConstant(
+      // TODO(johnniwinther): Handle deferred constants. There are runtime
+      // but not compile-time constants and should have their own
+      // [DeferredConstantExpression] class.
+      ConstantExpression constant = elements.getConstant(
           isInvoke ? node.selector : node);
       switch (dartType.kind) {
         case TypeKind.INTERFACE:
@@ -396,6 +399,69 @@ abstract class SendResolverMixin {
         return handleStaticallyResolvedAccess(node, element, getter);
       }
     }
+  }
+
+  ConstructorAccessSemantics computeConstructorAccessSemantics(
+        ConstructorElement constructor,
+        DartType type) {
+    if (constructor.isErroneous) {
+      return new ConstructorAccessSemantics(
+          ConstructorAccessKind.ERRONEOUS, constructor, type);
+    } else if (constructor.isRedirectingFactory) {
+      ConstructorElement effectiveTarget = constructor.effectiveTarget;
+      if (effectiveTarget == constructor ||
+          effectiveTarget.isErroneous) {
+        return new ConstructorAccessSemantics(
+            ConstructorAccessKind.ERRONEOUS_REDIRECTING_FACTORY,
+            constructor,
+            type);
+      }
+      ConstructorAccessSemantics effectiveTargetSemantics =
+          computeConstructorAccessSemantics(
+              effectiveTarget,
+              constructor.computeEffectiveTargetType(type));
+      if (effectiveTargetSemantics.isErroneous) {
+        return new RedirectingFactoryConstructorAccessSemantics(
+            ConstructorAccessKind.ERRONEOUS_REDIRECTING_FACTORY,
+            constructor,
+            type,
+            effectiveTargetSemantics);
+      }
+      return new RedirectingFactoryConstructorAccessSemantics(
+          ConstructorAccessKind.REDIRECTING_FACTORY,
+          constructor,
+          type,
+          effectiveTargetSemantics);
+    } else if (constructor.isFactoryConstructor) {
+      return new ConstructorAccessSemantics(
+          ConstructorAccessKind.FACTORY, constructor, type);
+    } else if (constructor.isRedirectingGenerative) {
+      if (constructor.enclosingClass.isAbstract) {
+          return new ConstructorAccessSemantics(
+              ConstructorAccessKind.ABSTRACT, constructor, type);
+      }
+      return new ConstructorAccessSemantics(
+          ConstructorAccessKind.REDIRECTING_GENERATIVE, constructor, type);
+    } else if (constructor.enclosingClass.isAbstract) {
+      return new ConstructorAccessSemantics(
+          ConstructorAccessKind.ABSTRACT, constructor, type);
+    } else {
+      return new ConstructorAccessSemantics(
+          ConstructorAccessKind.GENERATIVE, constructor, type);
+    }
+  }
+
+  NewStructure computeNewStructure(NewExpression node) {
+    if (node.isConst) {
+      return new ConstInvokeStructure(elements.getConstant(node));
+    }
+    Element element = elements[node.send];
+    Selector selector = elements.getSelector(node.send);
+    DartType type = elements.getType(node);
+
+    ConstructorAccessSemantics constructorAccessSemantics =
+        computeConstructorAccessSemantics(element, type);
+    return new NewInvokeStructure(constructorAccessSemantics, selector);
   }
 }
 

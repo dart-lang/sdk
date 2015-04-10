@@ -497,7 +497,7 @@ class ArgumentList extends AstNode {
    * then return the parameter element representing the parameter to which the
    * value of the given expression will be bound. Otherwise, return `null`.
    */
-  @deprecated // Use "expression.propagatedParameterElement"
+  @deprecated // Use "expression.staticParameterElement"
   ParameterElement getStaticParameterElementFor(Expression expression) {
     return _getStaticParameterElementFor(expression);
   }
@@ -865,7 +865,7 @@ class AssignmentExpression extends Expression {
    * representing the parameter to which the value of the right operand will be
    * bound. Otherwise, return `null`.
    */
-  @deprecated // Use "expression.propagatedParameterElement"
+  @deprecated // Use "expression.staticParameterElement"
   ParameterElement get staticParameterElementForRightHandSide {
     return _staticParameterElementForRightHandSide;
   }
@@ -1432,7 +1432,7 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   MethodInvocation visitMethodInvocation(MethodInvocation node) =>
-      new MethodInvocation(cloneNode(node.target), cloneToken(node.period),
+      new MethodInvocation(cloneNode(node.target), cloneToken(node.operator),
           cloneNode(node.methodName), cloneNode(node.argumentList));
 
   @override
@@ -2323,7 +2323,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitMethodInvocation(MethodInvocation node) {
     MethodInvocation other = _other as MethodInvocation;
     return isEqualNodes(node.target, other.target) &&
-        isEqualTokens(node.period, other.period) &&
+        isEqualTokens(node.operator, other.operator) &&
         isEqualNodes(node.methodName, other.methodName) &&
         isEqualNodes(node.argumentList, other.argumentList);
   }
@@ -3344,7 +3344,7 @@ class BinaryExpression extends Expression {
    * representing the parameter to which the value of the right operand will be
    * bound. Otherwise, return `null`.
    */
-  @deprecated // Use "expression.propagatedParameterElement"
+  @deprecated // Use "expression.staticParameterElement"
   ParameterElement get staticParameterElementForRightOperand {
     return _staticParameterElementForRightOperand;
   }
@@ -3995,7 +3995,7 @@ class ChildEntities extends Object with IterableMixin implements Iterable {
  * >     [ImplementsClause]?
  * >     '{' [ClassMember]* '}'
  */
-class ClassDeclaration extends CompilationUnitMember {
+class ClassDeclaration extends NamedCompilationUnitMember {
   /**
    * The 'abstract' keyword, or `null` if the keyword was absent.
    */
@@ -4005,11 +4005,6 @@ class ClassDeclaration extends CompilationUnitMember {
    * The token representing the 'class' keyword.
    */
   Token classKeyword;
-
-  /**
-   * The name of the class being declared.
-   */
-  SimpleIdentifier _name;
 
   /**
    * The type parameters for the class, or `null` if the class does not have any
@@ -4071,8 +4066,7 @@ class ClassDeclaration extends CompilationUnitMember {
       TypeParameterList typeParameters, ExtendsClause extendsClause,
       WithClause withClause, ImplementsClause implementsClause,
       this.leftBracket, List<ClassMember> members, this.rightBracket)
-      : super(comment, metadata) {
-    _name = _becomeParentOf(name);
+      : super(comment, metadata, name) {
     _typeParameters = _becomeParentOf(typeParameters);
     _extendsClause = _becomeParentOf(extendsClause);
     _withClause = _becomeParentOf(withClause);
@@ -4144,18 +4138,6 @@ class ClassDeclaration extends CompilationUnitMember {
    * Return the members defined by the class.
    */
   NodeList<ClassMember> get members => _members;
-
-  /**
-   * Return the name of the class being declared.
-   */
-  SimpleIdentifier get name => _name;
-
-  /**
-   * Set the name of the class being declared to the given [identifier].
-   */
-  void set name(SimpleIdentifier identifier) {
-    _name = _becomeParentOf(identifier);
-  }
 
   /**
    * Return the native clause for this class, or `null` if the class does not
@@ -4295,11 +4277,6 @@ abstract class ClassMember extends Declaration {
  */
 class ClassTypeAlias extends TypeAlias {
   /**
-   * The name of the class being declared.
-   */
-  SimpleIdentifier _name;
-
-  /**
    * The type parameters for the class, or `null` if the class does not have any
    * type parameters.
    */
@@ -4344,8 +4321,7 @@ class ClassTypeAlias extends TypeAlias {
       SimpleIdentifier name, TypeParameterList typeParameters, this.equals,
       this.abstractKeyword, TypeName superclass, WithClause withClause,
       ImplementsClause implementsClause, Token semicolon)
-      : super(comment, metadata, keyword, semicolon) {
-    _name = _becomeParentOf(name);
+      : super(comment, metadata, keyword, name, semicolon) {
     _typeParameters = _becomeParentOf(typeParameters);
     _superclass = _becomeParentOf(superclass);
     _withClause = _becomeParentOf(withClause);
@@ -4385,18 +4361,6 @@ class ClassTypeAlias extends TypeAlias {
    * Return `true` if this class is declared to be an abstract class.
    */
   bool get isAbstract => abstractKeyword != null;
-
-  /**
-   * Return the name of the class being declared.
-   */
-  SimpleIdentifier get name => _name;
-
-  /**
-   * Set the name of the class being declared to the given [identifier].
-   */
-  void set name(SimpleIdentifier name) {
-    _name = _becomeParentOf(name);
-  }
 
   /**
    * Return the name of the superclass of the class being declared.
@@ -4843,7 +4807,8 @@ class CompilationUnit extends AstNode {
 }
 
 /**
- * A node that declares a name within the scope of a compilation unit.
+ * A node that declares one or more names within the scope of a compilation
+ * unit.
  *
  * > compilationUnitMember ::=
  * >     [ClassDeclaration]
@@ -5061,9 +5026,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
         // numeric, string, boolean, or {@code null}
         if (leftOperand is bool && rightOperand is bool) {
           return leftOperand != rightOperand;
-        } else if (leftOperand is int && rightOperand is int) {
-          return leftOperand != rightOperand;
-        } else if (leftOperand is double && rightOperand is double) {
+        } else if (leftOperand is num && rightOperand is num) {
           return leftOperand != rightOperand;
         } else if (leftOperand is String && rightOperand is String) {
           return leftOperand != rightOperand;
@@ -5087,25 +5050,19 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
         // numeric, string, boolean, or {@code null}
         if (leftOperand is bool && rightOperand is bool) {
           return leftOperand == rightOperand;
-        } else if (leftOperand is int && rightOperand is int) {
-          return leftOperand == rightOperand;
-        } else if (leftOperand is double && rightOperand is double) {
+        } else if (leftOperand is num && rightOperand is num) {
           return leftOperand == rightOperand;
         } else if (leftOperand is String && rightOperand is String) {
           return leftOperand == rightOperand;
         }
       } else if (node.operator.type == TokenType.GT) {
         // numeric or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          return leftOperand.compareTo(rightOperand) > 0;
-        } else if (leftOperand is double && rightOperand is double) {
+        if (leftOperand is num && rightOperand is num) {
           return leftOperand.compareTo(rightOperand) > 0;
         }
       } else if (node.operator.type == TokenType.GT_EQ) {
         // numeric or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          return leftOperand.compareTo(rightOperand) >= 0;
-        } else if (leftOperand is double && rightOperand is double) {
+        if (leftOperand is num && rightOperand is num) {
           return leftOperand.compareTo(rightOperand) >= 0;
         }
       } else if (node.operator.type == TokenType.GT_GT) {
@@ -5115,16 +5072,12 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
         }
       } else if (node.operator.type == TokenType.LT) {
         // numeric or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          return leftOperand.compareTo(rightOperand) < 0;
-        } else if (leftOperand is double && rightOperand is double) {
+        if (leftOperand is num && rightOperand is num) {
           return leftOperand.compareTo(rightOperand) < 0;
         }
       } else if (node.operator.type == TokenType.LT_EQ) {
         // numeric or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          return leftOperand.compareTo(rightOperand) <= 0;
-        } else if (leftOperand is double && rightOperand is double) {
+        if (leftOperand is num && rightOperand is num) {
           return leftOperand.compareTo(rightOperand) <= 0;
         }
       } else if (node.operator.type == TokenType.LT_LT) {
@@ -5134,52 +5087,32 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
         }
       } else if (node.operator.type == TokenType.MINUS) {
         // numeric or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          return leftOperand - rightOperand;
-        } else if (leftOperand is double && rightOperand is double) {
+        if (leftOperand is num && rightOperand is num) {
           return leftOperand - rightOperand;
         }
       } else if (node.operator.type == TokenType.PERCENT) {
         // numeric or {@code null}
-        if (leftOperand is int && rightOperand is int) {
+        if (leftOperand is num && rightOperand is num) {
           return leftOperand.remainder(rightOperand);
-        } else if (leftOperand is double && rightOperand is double) {
-          return leftOperand % rightOperand;
         }
       } else if (node.operator.type == TokenType.PLUS) {
         // numeric or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          return leftOperand + rightOperand;
-        } else if (leftOperand is double && rightOperand is double) {
+        if (leftOperand is num && rightOperand is num) {
           return leftOperand + rightOperand;
         }
       } else if (node.operator.type == TokenType.STAR) {
         // numeric or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          return leftOperand * rightOperand;
-        } else if (leftOperand is double && rightOperand is double) {
+        if (leftOperand is num && rightOperand is num) {
           return leftOperand * rightOperand;
         }
       } else if (node.operator.type == TokenType.SLASH) {
         // numeric or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          if (rightOperand != 0) {
-            return leftOperand ~/ rightOperand;
-          } else {
-            return leftOperand.toDouble() / rightOperand.toDouble();
-          }
-        } else if (leftOperand is double && rightOperand is double) {
+        if (leftOperand is num && rightOperand is num) {
           return leftOperand / rightOperand;
         }
       } else if (node.operator.type == TokenType.TILDE_SLASH) {
         // numeric or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          if (rightOperand != 0) {
-            return leftOperand ~/ rightOperand;
-          } else {
-            return 0;
-          }
-        } else if (leftOperand is double && rightOperand is double) {
+        if (leftOperand is num && rightOperand is num) {
           return leftOperand ~/ rightOperand;
         }
       } else {}
@@ -5201,11 +5134,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   @override
   Object visitInterpolationExpression(InterpolationExpression node) {
     Object value = node.expression.accept(this);
-    if (value == null ||
-        value is bool ||
-        value is String ||
-        value is int ||
-        value is double) {
+    if (value == null || value is bool || value is String || value is num) {
       return value;
     }
     return NOT_A_CONSTANT;
@@ -5278,9 +5207,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
       } else if (node.operator.type == TokenType.MINUS) {
         if (operand == null) {
           return null;
-        } else if (operand is int) {
-          return -operand;
-        } else if (operand is double) {
+        } else if (operand is num) {
           return -operand;
         }
       } else {}
@@ -5344,6 +5271,18 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
     }
     return NOT_A_CONSTANT;
   }
+}
+
+/**
+ * Object representing a "const" instance creation expression, and its
+ * evaluation result.  This is used as the AnalysisTarget for constant
+ * evaluation of instance creation expressions.
+ */
+class ConstantInstanceCreationHandle {
+  /**
+   * The result of evaluating the constant.
+   */
+  EvaluationResultImpl evaluationResult;
 }
 
 /**
@@ -5897,8 +5836,8 @@ class ContinueStatement extends Statement {
 }
 
 /**
- * A node that represents the declaration of a name. Each declared name is
- * visible within a name scope.
+ * A node that represents the declaration of one or more names. Each declared
+ * name is visible within a name scope.
  */
 abstract class Declaration extends AnnotatedNode {
   /**
@@ -6626,16 +6565,11 @@ class EnumConstantDeclaration extends Declaration {
  * > enumType ::=
  * >     metadata 'enum' [SimpleIdentifier] '{' [SimpleIdentifier] (',' [SimpleIdentifier])* (',')? '}'
  */
-class EnumDeclaration extends CompilationUnitMember {
+class EnumDeclaration extends NamedCompilationUnitMember {
   /**
    * The 'enum' keyword.
    */
   Token enumKeyword;
-
-  /**
-   * The name of the enumeration.
-   */
-  SimpleIdentifier _name;
 
   /**
    * The left curly bracket.
@@ -6661,8 +6595,7 @@ class EnumDeclaration extends CompilationUnitMember {
   EnumDeclaration(Comment comment, List<Annotation> metadata, this.enumKeyword,
       SimpleIdentifier name, this.leftBracket,
       List<EnumConstantDeclaration> constants, this.rightBracket)
-      : super(comment, metadata) {
-    _name = _becomeParentOf(name);
+      : super(comment, metadata, name) {
     _constants = new NodeList<EnumConstantDeclaration>(this, constants);
   }
 
@@ -6703,18 +6636,6 @@ class EnumDeclaration extends CompilationUnitMember {
   @deprecated // Use "this.enumKeyword"
   set keyword(Token token) {
     enumKeyword = token;
-  }
-
-  /**
-   * Return the name of the enumeration.
-   */
-  SimpleIdentifier get name => _name;
-
-  /**
-   * Set the name of the enumeration to the given [name].
-   */
-  void set name(SimpleIdentifier name) {
-    _name = _becomeParentOf(name);
   }
 
   @override
@@ -7932,7 +7853,7 @@ abstract class FunctionBody extends AstNode {
  * > functionSignature ::=
  * >     [Type]? ('get' | 'set')? [SimpleIdentifier] [FormalParameterList]
  */
-class FunctionDeclaration extends CompilationUnitMember {
+class FunctionDeclaration extends NamedCompilationUnitMember {
   /**
    * The token representing the 'external' keyword, or `null` if this is not an
    * external function.
@@ -7951,11 +7872,6 @@ class FunctionDeclaration extends CompilationUnitMember {
   Token propertyKeyword;
 
   /**
-   * The name of the function, or `null` if the function is not named.
-   */
-  SimpleIdentifier _name;
-
-  /**
    * The function expression being wrapped.
    */
   FunctionExpression _functionExpression;
@@ -7971,9 +7887,8 @@ class FunctionDeclaration extends CompilationUnitMember {
   FunctionDeclaration(Comment comment, List<Annotation> metadata,
       this.externalKeyword, TypeName returnType, this.propertyKeyword,
       SimpleIdentifier name, FunctionExpression functionExpression)
-      : super(comment, metadata) {
+      : super(comment, metadata, name) {
     _returnType = _becomeParentOf(returnType);
-    _name = _becomeParentOf(name);
     _functionExpression = _becomeParentOf(functionExpression);
   }
 
@@ -8030,18 +7945,6 @@ class FunctionDeclaration extends CompilationUnitMember {
    */
   bool get isSetter => propertyKeyword != null &&
       (propertyKeyword as KeywordToken).keyword == Keyword.SET;
-
-  /**
-   * Return the name of the function, or `null` if the function is not named.
-   */
-  SimpleIdentifier get name => _name;
-
-  /**
-   * Set the name of the function to the given [identifier].
-   */
-  void set name(SimpleIdentifier identifier) {
-    _name = _becomeParentOf(identifier);
-  }
 
   /**
    * Return the return type of the function, or `null` if no return type was
@@ -8336,11 +8239,6 @@ class FunctionTypeAlias extends TypeAlias {
   TypeName _returnType;
 
   /**
-   * The name of the function type being declared.
-   */
-  SimpleIdentifier _name;
-
-  /**
    * The type parameters for the function type, or `null` if the function type
    * does not have any type parameters.
    */
@@ -8362,9 +8260,8 @@ class FunctionTypeAlias extends TypeAlias {
       TypeName returnType, SimpleIdentifier name,
       TypeParameterList typeParameters, FormalParameterList parameters,
       Token semicolon)
-      : super(comment, metadata, keyword, semicolon) {
+      : super(comment, metadata, keyword, name, semicolon) {
     _returnType = _becomeParentOf(returnType);
-    _name = _becomeParentOf(name);
     _typeParameters = _becomeParentOf(typeParameters);
     _parameters = _becomeParentOf(parameters);
   }
@@ -8381,18 +8278,6 @@ class FunctionTypeAlias extends TypeAlias {
   @override
   FunctionTypeAliasElement get element =>
       _name != null ? (_name.staticElement as FunctionTypeAliasElement) : null;
-
-  /**
-   * Return the name of the function type being declared.
-   */
-  SimpleIdentifier get name => _name;
-
-  /**
-   * Set the name of the function type being declared to the given [name].
-   */
-  void set name(SimpleIdentifier name) {
-    _name = _becomeParentOf(name);
-  }
 
   /**
    * Return the parameters associated with the function type.
@@ -8606,7 +8491,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitClassDeclaration(ClassDeclaration node) =>
-      visitCompilationUnitMember(node);
+      visitNamedCompilationUnitMember(node);
 
   R visitClassMember(ClassMember node) => visitDeclaration(node);
 
@@ -8676,7 +8561,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitEnumDeclaration(EnumDeclaration node) =>
-      visitCompilationUnitMember(node);
+      visitNamedCompilationUnitMember(node);
 
   @override
   R visitExportDirective(ExportDirective node) => visitNamespaceDirective(node);
@@ -8715,7 +8600,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitFunctionDeclaration(FunctionDeclaration node) =>
-      visitCompilationUnitMember(node);
+      visitNamedCompilationUnitMember(node);
 
   @override
   R visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
@@ -8800,6 +8685,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitMethodInvocation(MethodInvocation node) => visitExpression(node);
+
+  R visitNamedCompilationUnitMember(NamedCompilationUnitMember node) =>
+      visitCompilationUnitMember(node);
 
   @override
   R visitNamedExpression(NamedExpression node) => visitExpression(node);
@@ -8919,7 +8807,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitTryStatement(TryStatement node) => visitStatement(node);
 
-  R visitTypeAlias(TypeAlias node) => visitCompilationUnitMember(node);
+  R visitTypeAlias(TypeAlias node) => visitNamedCompilationUnitMember(node);
 
   @override
   R visitTypeArgumentList(TypeArgumentList node) => visitNode(node);
@@ -10007,7 +9895,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   @override
   MethodInvocation visitMethodInvocation(MethodInvocation node) {
     MethodInvocation copy = new MethodInvocation(_cloneNode(node.target),
-        _mapToken(node.period), _cloneNode(node.methodName),
+        _mapToken(node.operator), _cloneNode(node.methodName),
         _cloneNode(node.argumentList));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
@@ -10663,9 +10551,10 @@ class InstanceCreationExpression extends Expression {
   ConstructorElement staticElement;
 
   /**
-   * The result of evaluating this expression, if it is constant.
+   * The [ConstantInstanceCreationHandle] holding the result of evaluating this
+   * expression, if it is constant.
    */
-  EvaluationResultImpl evaluationResult;
+  ConstantInstanceCreationHandle constantHandle;
 
   /**
    * Initialize a newly created instance creation expression.
@@ -10711,6 +10600,16 @@ class InstanceCreationExpression extends Expression {
 
   @override
   Token get endToken => _argumentList.endToken;
+
+  /**
+   * The result of evaluating this expression, if it is constant.
+   */
+  EvaluationResultImpl get evaluationResult {
+    if (constantHandle != null) {
+      return constantHandle.evaluationResult;
+    }
+    return null;
+  }
 
   /**
    * Return `true` if this creation expression is used to invoke a constant
@@ -10898,15 +10797,8 @@ class InterpolationString extends InterpolationElement {
    * Return the offset of the after-last contents character.
    */
   int get contentsEnd {
-    int end = contents.end;
     String lexeme = contents.lexeme;
-    if (StringUtilities.endsWith3(lexeme, 0x22, 0x22, 0x22) ||
-        StringUtilities.endsWith3(lexeme, 0x27, 0x27, 0x27)) {
-      end -= 3;
-    } else {
-      end -= 1;
-    }
-    return end;
+    return offset + new StringLexemeHelper(lexeme, true, true).end;
   }
 
   /**
@@ -10915,16 +10807,7 @@ class InterpolationString extends InterpolationElement {
   int get contentsOffset {
     int offset = contents.offset;
     String lexeme = contents.lexeme;
-    if (lexeme.codeUnitAt(0) == 0x72) {
-      offset += 1;
-    }
-    if (StringUtilities.startsWith3(lexeme, offset, 0x22, 0x22, 0x22) ||
-        StringUtilities.startsWith3(lexeme, offset, 0x27, 0x27, 0x27)) {
-      offset += 3;
-    } else {
-      offset += 1;
-    }
-    return offset;
+    return offset + new StringLexemeHelper(lexeme, true, true).start;
   }
 
   @override
@@ -11798,10 +11681,12 @@ class MethodInvocation extends Expression {
   Expression _target;
 
   /**
-   * The period that separates the target from the method name, or `null` if
-   * there is no target.
+   * The operator that separates the target from the method name, or `null`
+   * if there is no target. In an ordinary method invocation this will be a
+   * period ('.'). In a cascade section this will be the cascade operator
+   * ('..').
    */
-  Token period;
+  Token operator;
 
   /**
    * The name of the method being invoked.
@@ -11814,11 +11699,11 @@ class MethodInvocation extends Expression {
   ArgumentList _argumentList;
 
   /**
-   * Initialize a newly created method invocation. The [target] and [period] can
-   * be `null` if there is no target.
+   * Initialize a newly created method invocation. The [target] and [operator]
+   * can be `null` if there is no target.
    */
-  MethodInvocation(Expression target, this.period, SimpleIdentifier methodName,
-      ArgumentList argumentList) {
+  MethodInvocation(Expression target, this.operator,
+      SimpleIdentifier methodName, ArgumentList argumentList) {
     _target = _becomeParentOf(target);
     _methodName = _becomeParentOf(methodName);
     _argumentList = _becomeParentOf(argumentList);
@@ -11840,8 +11725,8 @@ class MethodInvocation extends Expression {
   Token get beginToken {
     if (_target != null) {
       return _target.beginToken;
-    } else if (period != null) {
-      return period;
+    } else if (operator != null) {
+      return operator;
     }
     return _methodName.beginToken;
   }
@@ -11849,7 +11734,7 @@ class MethodInvocation extends Expression {
   @override
   Iterable get childEntities => new ChildEntities()
     ..add(_target)
-    ..add(period)
+    ..add(operator)
     ..add(_methodName)
     ..add(_argumentList);
 
@@ -11862,7 +11747,7 @@ class MethodInvocation extends Expression {
    * that is a [CascadeExpression].
    */
   bool get isCascaded =>
-      period != null && period.type == TokenType.PERIOD_PERIOD;
+      operator != null && operator.type == TokenType.PERIOD_PERIOD;
 
   /**
    * Return the name of the method being invoked.
@@ -11874,6 +11759,30 @@ class MethodInvocation extends Expression {
    */
   void set methodName(SimpleIdentifier identifier) {
     _methodName = _becomeParentOf(identifier);
+  }
+
+  /**
+   * The operator that separates the target from the method name, or `null`
+   * if there is no target. In an ordinary method invocation this will be a
+   * period ('.'). In a cascade section this will be the cascade operator
+   * ('..').
+   *
+   * Deprecated: use [operator] instead.
+   */
+  @deprecated
+  Token get period => operator;
+
+  /**
+   * The operator that separates the target from the method name, or `null`
+   * if there is no target. In an ordinary method invocation this will be a
+   * period ('.'). In a cascade section this will be the cascade operator
+   * ('..').
+   *
+   * Deprecated: use [operator] instead.
+   */
+  @deprecated
+  void set period(Token value) {
+    operator = value;
   }
 
   @override
@@ -11925,6 +11834,39 @@ class MethodInvocation extends Expression {
     _safelyVisitChild(_target, visitor);
     _safelyVisitChild(_methodName, visitor);
     _safelyVisitChild(_argumentList, visitor);
+  }
+}
+
+/**
+ * A node that declares a single name within the scope of a compilation unit.
+ */
+abstract class NamedCompilationUnitMember extends CompilationUnitMember {
+  /**
+   * The name of the member being declared.
+   */
+  SimpleIdentifier _name;
+
+  /**
+   * Initialize a newly created compilation unit member with the given [name].
+   * Either or both of the [comment] and [metadata] can be `null` if the member
+   * does not have the corresponding attribute.
+   */
+  NamedCompilationUnitMember(
+      Comment comment, List<Annotation> metadata, SimpleIdentifier name)
+      : super(comment, metadata) {
+    _name = _becomeParentOf(name);
+  }
+
+  /**
+   * Return the name of the member being declared.
+   */
+  SimpleIdentifier get name => _name;
+
+  /**
+   * Set the name of the member being declared to the given [identifier].
+   */
+  void set name(SimpleIdentifier identifier) {
+    _name = _becomeParentOf(identifier);
   }
 }
 
@@ -16505,58 +16447,22 @@ class SimpleStringLiteral extends SingleStringLiteral {
   Iterable get childEntities => new ChildEntities()..add(literal);
 
   @override
-  int get contentsEnd {
-    return contentsOffset + value.length;
-  }
+  int get contentsEnd => offset + _helper.end;
 
   @override
-  int get contentsOffset {
-    int contentsOffset = 0;
-    if (isRaw) {
-      contentsOffset += 1;
-    }
-    if (isMultiline) {
-      contentsOffset += 3;
-    } else {
-      contentsOffset += 1;
-    }
-    return offset + contentsOffset;
-  }
+  int get contentsOffset => offset + _helper.start;
 
   @override
   Token get endToken => literal;
 
   @override
-  bool get isMultiline {
-    String lexeme = literal.lexeme;
-    if (lexeme.length < 3) {
-      return false;
-    }
-    // skip 'r'
-    int offset = 0;
-    if (isRaw) {
-      offset = 1;
-    }
-    // check prefix
-    return StringUtilities.startsWith3(lexeme, offset, 0x22, 0x22, 0x22) ||
-        StringUtilities.startsWith3(lexeme, offset, 0x27, 0x27, 0x27);
-  }
+  bool get isMultiline => _helper.isMultiline;
 
   @override
-  bool get isRaw => literal.lexeme.codeUnitAt(0) == 0x72;
+  bool get isRaw => _helper.isRaw;
 
   @override
-  bool get isSingleQuoted {
-    String lexeme = literal.lexeme;
-    if (lexeme.isEmpty) {
-      return false;
-    }
-    int codeZero = lexeme.codeUnitAt(0);
-    if (codeZero == 0x72) {
-      return lexeme.length > 1 && lexeme.codeUnitAt(1) == 0x27;
-    }
-    return codeZero == 0x27;
-  }
+  bool get isSingleQuoted => _helper.isSingleQuoted;
 
   @override
   bool get isSynthetic => literal.isSynthetic;
@@ -16571,6 +16477,10 @@ class SimpleStringLiteral extends SingleStringLiteral {
    */
   void set value(String string) {
     _value = StringUtilities.intern(_value);
+  }
+
+  StringLexemeHelper get _helper {
+    return new StringLexemeHelper(literal.lexeme, true, true);
   }
 
   @override
@@ -16602,6 +16512,7 @@ abstract class SingleStringLiteral extends StringLiteral {
 
   /**
    * Return the offset of the first contents character.
+   * If the string is multiline, then leading whitespaces are skipped.
    */
   int get contentsOffset;
 
@@ -16696,24 +16607,18 @@ class StringInterpolation extends SingleStringLiteral {
   Token get endToken => _elements.endToken;
 
   @override
-  bool get isMultiline {
-    InterpolationString element = _elements.first;
-    String lexeme = element.contents.lexeme;
-    if (lexeme.length < 3) {
-      return false;
-    }
-    return StringUtilities.startsWith3(lexeme, 0, 0x22, 0x22, 0x22) ||
-        StringUtilities.startsWith3(lexeme, 0, 0x27, 0x27, 0x27);
-  }
+  bool get isMultiline => _firstHelper.isMultiline;
 
   @override
   bool get isRaw => false;
 
   @override
-  bool get isSingleQuoted {
+  bool get isSingleQuoted => _firstHelper.isSingleQuoted;
+
+  StringLexemeHelper get _firstHelper {
     InterpolationString lastString = _elements.first;
     String lexeme = lastString.contents.lexeme;
-    return StringUtilities.startsWithChar(lexeme, 0x27);
+    return new StringLexemeHelper(lexeme, true, false);
   }
 
   @override
@@ -16727,6 +16632,101 @@ class StringInterpolation extends SingleStringLiteral {
   @override
   void _appendStringValue(StringBuffer buffer) {
     throw new IllegalArgumentException();
+  }
+}
+
+/**
+ * A helper for analyzing string lexemes.
+ */
+class StringLexemeHelper {
+  final String lexeme;
+  final bool isFirst;
+  final bool isLast;
+
+  bool isRaw = false;
+  bool isSingleQuoted = false;
+  bool isMultiline = false;
+  int start = 0;
+  int end;
+
+  StringLexemeHelper(this.lexeme, this.isFirst, this.isLast) {
+    if (isFirst) {
+      isRaw = StringUtilities.startsWithChar(lexeme, 0x72);
+      if (isRaw) {
+        start++;
+      }
+      if (StringUtilities.startsWith3(lexeme, start, 0x27, 0x27, 0x27)) {
+        isSingleQuoted = true;
+        isMultiline = true;
+        start += 3;
+        start = _trimInitialWhitespace(start);
+      } else if (StringUtilities.startsWith3(lexeme, start, 0x22, 0x22, 0x22)) {
+        isSingleQuoted = false;
+        isMultiline = true;
+        start += 3;
+        start = _trimInitialWhitespace(start);
+      } else if (start < lexeme.length && lexeme.codeUnitAt(start) == 0x27) {
+        isSingleQuoted = true;
+        isMultiline = false;
+        start++;
+      } else if (start < lexeme.length && lexeme.codeUnitAt(start) == 0x22) {
+        isSingleQuoted = false;
+        isMultiline = false;
+        start++;
+      }
+    }
+    end = lexeme.length;
+    if (isLast) {
+      if (start + 3 <= end &&
+          (StringUtilities.endsWith3(lexeme, 0x22, 0x22, 0x22) ||
+              StringUtilities.endsWith3(lexeme, 0x27, 0x27, 0x27))) {
+        end -= 3;
+      } else if (start + 1 <= end &&
+          (StringUtilities.endsWithChar(lexeme, 0x22) ||
+              StringUtilities.endsWithChar(lexeme, 0x27))) {
+        end -= 1;
+      }
+    }
+  }
+
+  /**
+   * Given the [lexeme] for a multi-line string whose content begins at the
+   * given [start] index, return the index of the first character that is
+   * included in the value of the string. According to the specification:
+   *
+   * If the first line of a multiline string consists solely of the whitespace
+   * characters defined by the production WHITESPACE 20.1), possibly prefixed
+   * by \, then that line is ignored, including the new line at its end.
+   */
+  int _trimInitialWhitespace(int start) {
+    int length = lexeme.length;
+    int index = start;
+    while (index < length) {
+      int currentChar = lexeme.codeUnitAt(index);
+      if (currentChar == 0x0D) {
+        if (index + 1 < length && lexeme.codeUnitAt(index + 1) == 0x0A) {
+          return index + 2;
+        }
+        return index + 1;
+      } else if (currentChar == 0x0A) {
+        return index + 1;
+      } else if (currentChar == 0x5C) {
+        if (index + 1 >= length) {
+          return start;
+        }
+        currentChar = lexeme.codeUnitAt(index + 1);
+        if (currentChar != 0x0D &&
+            currentChar != 0x0A &&
+            currentChar != 0x09 &&
+            currentChar != 0x20) {
+          return start;
+        }
+      } else if (currentChar != 0x09 && currentChar != 0x20) {
+        return start;
+      }
+      index++;
+    }
+    return start;
   }
 }
 
@@ -18105,7 +18105,10 @@ class ToSourceVisitor implements AstVisitor<Object> {
     if (node.isCascaded) {
       _writer.print("..");
     } else {
-      _visitNodeWithSuffix(node.target, ".");
+      if (node.target != null) {
+        node.target.accept(this);
+        _writer.print(node.operator.lexeme);
+      }
     }
     _visitNode(node.methodName);
     _visitNode(node.argumentList);
@@ -18194,7 +18197,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
       _writer.print("..");
     } else {
       _visitNode(node.target);
-      _writer.print('.');
+      _writer.print(node.operator.lexeme);
     }
     _visitNode(node.propertyName);
     return null;
@@ -18672,7 +18675,7 @@ class TryStatement extends Statement {
  * >     classTypeAlias
  * >   | functionTypeAlias
  */
-abstract class TypeAlias extends CompilationUnitMember {
+abstract class TypeAlias extends NamedCompilationUnitMember {
   /**
    * The token representing the 'typedef' keyword.
    */
@@ -18689,8 +18692,8 @@ abstract class TypeAlias extends CompilationUnitMember {
    * attribute.
    */
   TypeAlias(Comment comment, List<Annotation> metadata, this.typedefKeyword,
-      this.semicolon)
-      : super(comment, metadata);
+      SimpleIdentifier name, this.semicolon)
+      : super(comment, metadata, name);
 
   @override
   Token get endToken => semicolon;

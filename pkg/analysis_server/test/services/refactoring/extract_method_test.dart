@@ -384,7 +384,31 @@ main() {
     return _assertFinalConditionsError("Parameter 'dup' already exists");
   }
 
-  test_bad_parameterName_inUse() async {
+  test_bad_parameterName_inUse_function() async {
+    indexTestUnit('''
+main() {
+  int v1 = 1;
+  int v2 = 2;
+// start
+  f(v1, v2);
+// end
+}
+f(a, b) {}
+''');
+    _createRefactoringForStartEndComments();
+    // update parameters
+    await refactoring.checkInitialConditions();
+    {
+      List<RefactoringMethodParameter> parameters = _getParametersCopy();
+      expect(parameters, hasLength(2));
+      parameters[0].name = 'f';
+      refactoring.parameters = parameters;
+    }
+    return _assertFinalConditionsError(
+        "'f' is already used as a name in the selected code");
+  }
+
+  test_bad_parameterName_inUse_localVariable() async {
     indexTestUnit('''
 main() {
   int v1 = 1;
@@ -405,6 +429,32 @@ main() {
     }
     return _assertFinalConditionsError(
         "'a' is already used as a name in the selected code");
+  }
+
+  test_bad_parameterName_inUse_method() async {
+    indexTestUnit('''
+class A {
+  main() {
+    int v1 = 1;
+    int v2 = 2;
+  // start
+    m(v1, v2);
+  // end
+  }
+  m(a, b) {}
+}
+''');
+    _createRefactoringForStartEndComments();
+    // update parameters
+    await refactoring.checkInitialConditions();
+    {
+      List<RefactoringMethodParameter> parameters = _getParametersCopy();
+      expect(parameters, hasLength(2));
+      parameters[0].name = 'm';
+      refactoring.parameters = parameters;
+    }
+    return _assertFinalConditionsError(
+        "'m' is already used as a name in the selected code");
   }
 
   test_bad_selectionEndsInSomeNode() {
@@ -1134,6 +1184,29 @@ main() {
 }
 
 res() => dynaFunction();
+''');
+  }
+
+  test_singleExpression_hasAwait() {
+    indexTestUnit('''
+import 'dart:async';
+Future<int> getValue() => 42;
+main() async {
+  int v = await getValue();
+  print(v);
+}
+''');
+    _createRefactoringForString('await getValue()');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+import 'dart:async';
+Future<int> getValue() => 42;
+main() async {
+  int v = await res();
+  print(v);
+}
+
+Future<int> res() async => await getValue();
 ''');
   }
 
@@ -2091,6 +2164,133 @@ main(int p) {
     await assertRefactoringConditionsOK();
   }
 
+  test_statements_hasAwait_dynamicReturnType() {
+    indexTestUnit('''
+import 'dart:async';
+Future getValue() => 42;
+main() async {
+// start
+  var v = await getValue();
+// end
+  print(v);
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+import 'dart:async';
+Future getValue() => 42;
+main() async {
+// start
+  var v = await res();
+// end
+  print(v);
+}
+
+Future res() async {
+  var v = await getValue();
+  return v;
+}
+''');
+  }
+
+  test_statements_hasAwait_expression() {
+    indexTestUnit('''
+import 'dart:async';
+Future<int> getValue() => 42;
+main() async {
+// start
+  int v = await getValue();
+  v += 2;
+// end
+  print(v);
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+import 'dart:async';
+Future<int> getValue() => 42;
+main() async {
+// start
+  int v = await res();
+// end
+  print(v);
+}
+
+Future<int> res() async {
+  int v = await getValue();
+  v += 2;
+  return v;
+}
+''');
+  }
+
+  test_statements_hasAwait_forEach() {
+    indexTestUnit('''
+import 'dart:async';
+Stream<int> getValueStream() => null;
+main() async {
+// start
+  int sum = 0;
+  await for (int v in getValueStream()) {
+    sum += v;
+  }
+// end
+  print(sum);
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+import 'dart:async';
+Stream<int> getValueStream() => null;
+main() async {
+// start
+  int sum = await res();
+// end
+  print(sum);
+}
+
+Future<int> res() async {
+  int sum = 0;
+  await for (int v in getValueStream()) {
+    sum += v;
+  }
+  return sum;
+}
+''');
+  }
+
+  test_statements_hasAwait_voidReturnType() {
+    indexTestUnit('''
+import 'dart:async';
+Future<int> getValue() => 42;
+main() async {
+// start
+  int v = await getValue();
+  print(v);
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+import 'dart:async';
+Future<int> getValue() => 42;
+main() async {
+// start
+  await res();
+// end
+}
+
+Future res() async {
+  int v = await getValue();
+  print(v);
+}
+''');
+  }
+
   test_statements_inSwitchMember() {
     indexTestUnit('''
 class A {
@@ -2211,6 +2411,24 @@ void res(Future<int> v) {
   print(v);
 }
 ''');
+  }
+
+  test_statements_parameters_noLocalVariableConflict() async {
+    indexTestUnit('''
+int f(int x) {
+  int y = x + 1;
+// start
+  if (y % 2 == 0) {
+    int y = x + 2;
+    return y;
+  } else {
+    return y;
+  }
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    await assertRefactoringConditionsOK();
   }
 
   test_statements_return_last() {

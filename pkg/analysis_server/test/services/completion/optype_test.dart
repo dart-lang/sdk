@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.completion.computer.dart.optype;
+library test.services.completion.contributor.dart.optype;
 
 import 'package:analysis_server/src/services/completion/completion_target.dart';
 import 'package:analysis_server/src/services/completion/optype.dart';
@@ -42,23 +42,20 @@ class OpTypeTest {
     visitor = new OpType.forCompletion(completionTarget, offset);
   }
 
-  void assertOpType({bool invocation: false, bool returnValue: false,
+  void assertOpType({bool prefixed: false, bool returnValue: false,
       bool typeNames: false, bool voidReturn: false, bool statementLabel: false,
       bool caseLabel: false, bool constructors: false}) {
-    expect(visitor.includeInvocationSuggestions, equals(invocation),
-        reason: 'invocation');
-    expect(visitor.includeReturnValueSuggestions, equals(returnValue),
+    expect(visitor.includeReturnValueSuggestions, returnValue,
         reason: 'returnValue');
-    expect(visitor.includeTypeNameSuggestions, equals(typeNames),
-        reason: 'typeNames');
-    expect(visitor.includeVoidReturnSuggestions, equals(voidReturn),
+    expect(visitor.includeTypeNameSuggestions, typeNames, reason: 'typeNames');
+    expect(visitor.includeVoidReturnSuggestions, voidReturn,
         reason: 'voidReturn');
-    expect(visitor.includeStatementLabelSuggestions, equals(statementLabel),
+    expect(visitor.includeStatementLabelSuggestions, statementLabel,
         reason: 'statementLabel');
-    expect(visitor.includeCaseLabelSuggestions, equals(caseLabel),
-        reason: 'caseLabel');
-    expect(visitor.includeConstructorSuggestions, equals(constructors),
+    expect(visitor.includeCaseLabelSuggestions, caseLabel, reason: 'caseLabel');
+    expect(visitor.includeConstructorSuggestions, constructors,
         reason: 'constructors');
+    expect(visitor.isPrefixed, prefixed, reason: 'prefixed');
   }
 
   test_Annotation() {
@@ -78,6 +75,12 @@ class OpTypeTest {
     // ExpressionStatement
     addTestSource('void main() {expect(foo: ^)}');
     assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_ArgumentList_prefixedIdentifier() {
+    // SimpleIdentifier  PrefixedIdentifier  ArgumentList
+    addTestSource('void main() {expect(aa.^)}');
+    assertOpType(returnValue: true, typeNames: true, prefixed: true);
   }
 
   test_AsExpression() {
@@ -230,25 +233,38 @@ class OpTypeTest {
       // looks like a cascade to the parser
       // but the user is trying to get completions for a non-cascade
       main() {A a; a.^.z}''');
-    assertOpType(invocation: true);
+    assertOpType(
+        returnValue: true, typeNames: true, voidReturn: true, prefixed: true);
   }
 
   test_CascadeExpression_selector2() {
     // SimpleIdentifier  PropertyAccess  CascadeExpression  ExpressionStatement
     addTestSource('main() {A a; a..^z}');
-    assertOpType(invocation: true);
+    assertOpType(returnValue: true, voidReturn: true, prefixed: true);
   }
 
   test_CascadeExpression_selector2_withTrailingReturn() {
     // PropertyAccess  CascadeExpression  ExpressionStatement  Block
     addTestSource('main() {A a; a..^ return}');
-    assertOpType(invocation: true);
+    assertOpType(returnValue: true, voidReturn: true, prefixed: true);
   }
 
   test_CascadeExpression_target() {
     // SimpleIdentifier  CascadeExpression  ExpressionStatement
     addTestSource('main() {A a; a^..b}');
     assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_CatchClause_onType() {
+    // TypeName  CatchClause  TryStatement
+    addTestSource('class A {a() {try{var x;} on ^ {}}}');
+    assertOpType(typeNames: true);
+  }
+
+  test_CatchClause_onType_noBrackets() {
+    // TypeName  CatchClause  TryStatement
+    addTestSource('class A {a() {try{var x;} on ^}}');
+    assertOpType(typeNames: true);
   }
 
   test_CatchClause_typed() {
@@ -332,7 +348,7 @@ class OpTypeTest {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
     addTestSource('main() {new X.^}');
-    assertOpType(invocation: true);
+    assertOpType(constructors: true, prefixed: true);
   }
 
   test_ConstructorName_name_resolved() {
@@ -346,14 +362,14 @@ class OpTypeTest {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
     addTestSource('main() {new String.fr^omCharCodes([]);}', resolved: true);
-    assertOpType(invocation: true);
+    assertOpType(constructors: true, prefixed: true);
   }
 
   test_ConstructorName_unresolved() {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
     addTestSource('main() {new String.fr^omCharCodes([]);}');
-    assertOpType(invocation: true);
+    assertOpType(constructors: true, prefixed: true);
   }
 
   test_Continue_after_label() {
@@ -475,10 +491,28 @@ class OpTypeTest {
     assertOpType(typeNames: true);
   }
 
+  test_FormalParameter_partialType() {
+    // FormalParameterList MethodDeclaration
+    addTestSource('class A {a(b.^ f) { }}');
+    assertOpType(returnValue: true, typeNames: true, prefixed: true);
+  }
+
+  test_FormalParameter_partialType2() {
+    // FormalParameterList MethodDeclaration
+    addTestSource('class A {a(b.z^ f) { }}');
+    assertOpType(returnValue: true, typeNames: true, prefixed: true);
+  }
+
+  test_FormalParameter_partialType3() {
+    // FormalParameterList MethodDeclaration
+    addTestSource('class A {a(b.^) { }}');
+    assertOpType(returnValue: true, typeNames: true, prefixed: true);
+  }
+
   test_FormalParameterList() {
     // FormalParameterList MethodDeclaration
     addTestSource('class A {a(^) { }}');
-    assertOpType(returnValue: true, typeNames: true);
+    assertOpType(typeNames: true);
   }
 
   test_ForStatement_condition() {
@@ -696,7 +730,7 @@ class OpTypeTest {
   test_IfStatement_invocation() {
     // SimpleIdentifier  PrefixIdentifier  IfStatement
     addTestSource('main() {var a; if (a.^) something}');
-    assertOpType(invocation: true);
+    assertOpType(returnValue: true, typeNames: true, prefixed: true);
   }
 
   test_ImplementsClause() {
@@ -762,7 +796,7 @@ class OpTypeTest {
   test_InterpolationExpression_prefix_selector() {
     // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
     addTestSource('main() {String name; print("hello \${name.^}");}');
-    assertOpType(invocation: true);
+    assertOpType(returnValue: true, typeNames: true, prefixed: true);
   }
 
   test_InterpolationExpression_prefix_target() {
@@ -991,7 +1025,8 @@ class C2 {
         // no semicolon between completion point and next statement
         set _s2(I x) {x.^ m(null);}
       }''');
-    assertOpType(invocation: true);
+    assertOpType(
+        returnValue: true, typeNames: true, voidReturn: true, prefixed: true);
   }
 
   test_PostfixExpression() {
@@ -1003,13 +1038,15 @@ class C2 {
   test_PrefixedIdentifier_class_const() {
     // SimpleIdentifier PrefixedIdentifier ExpressionStatement Block
     addTestSource('main() {A.^}');
-    assertOpType(invocation: true);
+    assertOpType(
+        returnValue: true, typeNames: true, voidReturn: true, prefixed: true);
   }
 
   test_PrefixedIdentifier_class_imported() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('main() {A a; a.^}');
-    assertOpType(invocation: true);
+    assertOpType(
+        returnValue: true, typeNames: true, voidReturn: true, prefixed: true);
   }
 
   test_PrefixedIdentifier_prefix() {
@@ -1021,13 +1058,33 @@ class C2 {
   test_PropertyAccess_expression() {
     // SimpleIdentifier  MethodInvocation  PropertyAccess  ExpressionStatement
     addTestSource('class A {a() {"hello".to^String().length}}');
-    assertOpType(invocation: true);
+    assertOpType(
+        returnValue: true, typeNames: true, voidReturn: true, prefixed: true);
+  }
+
+  test_PropertyAccess_noTarget() {
+    // SimpleIdentifier  PropertyAccess  ExpressionStatement
+    addTestSource('main() {.^}');
+    assertOpType();
+  }
+
+  test_PropertyAccess_noTarget2() {
+    // SimpleIdentifier  PropertyAccess  CascadeExpressions
+    addTestSource('main() {.^.}');
+    assertOpType();
+  }
+
+  test_PropertyAccess_noTarget3() {
+    // SimpleIdentifier  PropertyAccess  CascadeExpressions
+    addTestSource('main() {..^}');
+    assertOpType();
   }
 
   test_PropertyAccess_selector() {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement  Block
     addTestSource('class A {a() {"hello".length.^}}');
-    assertOpType(invocation: true);
+    assertOpType(
+        returnValue: true, typeNames: true, voidReturn: true, prefixed: true);
   }
 
   test_ReturnStatement() {
@@ -1039,7 +1096,7 @@ class C2 {
   test_SimpleFormalParameter() {
     // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
     addTestSource('mth() { PNGS.sort((String a, Str^) => a.compareTo(b)); }');
-    assertOpType(returnValue: true, typeNames: true);
+    assertOpType(typeNames: true);
   }
 
   test_SwitchCase() {
@@ -1062,16 +1119,16 @@ class C2 {
         // no semicolon between completion point and next statement
         set s1(I x) {} set _s2(I x) {this.^ m(null);}
       }''');
-    assertOpType(invocation: true);
+    assertOpType(returnValue: true, voidReturn: true, prefixed: true);
   }
 
   test_ThisExpression_constructor() {
-    // MethodInvocation  ExpressionStatement  Block
+    // SimpleIdentifier  PropertyAccess  ExpressionStatement
     addTestSource('''
       class A implements I {
         A() {this.^}
       }''');
-    assertOpType(invocation: true);
+    assertOpType(returnValue: true, voidReturn: true, prefixed: true);
   }
 
   test_ThrowExpression() {

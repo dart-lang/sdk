@@ -1022,6 +1022,7 @@ final Matcher isAnalysisErrorType = new MatchesEnum("AnalysisErrorType", [
  *   "enableAsync": optional bool
  *   "enableDeferredLoading": optional bool
  *   "enableEnums": optional bool
+ *   "enableNullAwareOperators": optional bool
  *   "generateDart2jsHints": optional bool
  *   "generateHints": optional bool
  *   "generateLints": optional bool
@@ -1032,6 +1033,7 @@ final Matcher isAnalysisOptions = new LazyMatcher(() => new MatchesJsonObject(
     "enableAsync": isBool,
     "enableDeferredLoading": isBool,
     "enableEnums": isBool,
+    "enableNullAwareOperators": isBool,
     "generateDart2jsHints": isBool,
     "generateHints": isBool,
     "generateLints": isBool
@@ -1821,6 +1823,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   CONTENT_MODIFIED
  *   FORMAT_INVALID_FILE
  *   GET_ERRORS_INVALID_FILE
+ *   INVALID_ANALYSIS_ROOT
  *   INVALID_EXECUTION_CONTEXT
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
@@ -1833,6 +1836,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   SORT_MEMBERS_PARSE_ERRORS
  *   UNANALYZED_PRIORITY_FILES
  *   UNKNOWN_REQUEST
+ *   UNKNOWN_SOURCE
  *   UNSUPPORTED_FEATURE
  * }
  */
@@ -1840,6 +1844,7 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "CONTENT_MODIFIED",
   "FORMAT_INVALID_FILE",
   "GET_ERRORS_INVALID_FILE",
+  "INVALID_ANALYSIS_ROOT",
   "INVALID_EXECUTION_CONTEXT",
   "INVALID_OVERLAY_CHANGE",
   "INVALID_PARAMETER",
@@ -1852,6 +1857,7 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "SORT_MEMBERS_PARSE_ERRORS",
   "UNANALYZED_PRIORITY_FILES",
   "UNKNOWN_REQUEST",
+  "UNKNOWN_SOURCE",
   "UNSUPPORTED_FEATURE"
 ]);
 

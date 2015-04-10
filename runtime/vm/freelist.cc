@@ -70,7 +70,7 @@ uword FreeList::TryAllocate(intptr_t size, bool is_protected) {
 
 
 uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
-  DEBUG_ASSERT(mutex_->Owner() == Isolate::Current());
+  DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());
   // Precondition: is_protected is false or else all free list elements are
   // in non-writable pages.
 
@@ -183,7 +183,7 @@ void FreeList::Free(uword addr, intptr_t size) {
 
 
 void FreeList::FreeLocked(uword addr, intptr_t size) {
-  DEBUG_ASSERT(mutex_->Owner() == Isolate::Current());
+  DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());
   // Precondition required by AsElement and EnqueueElement: the (page
   // containing the) header of the freed block should be writable.  This is
   // the case when called for newly allocated pages because they are
@@ -249,7 +249,7 @@ FreeListElement* FreeList::DequeueElement(intptr_t index) {
 
 
 intptr_t FreeList::LengthLocked(int index) const {
-  DEBUG_ASSERT(mutex_->Owner() == Isolate::Current());
+  DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());
   ASSERT(index >= 0);
   ASSERT(index < kNumLists);
   intptr_t result = 0;
@@ -362,7 +362,7 @@ FreeListElement* FreeList::TryAllocateLarge(intptr_t minimum_size) {
 
 
 FreeListElement* FreeList::TryAllocateLargeLocked(intptr_t minimum_size) {
-  DEBUG_ASSERT(mutex_->Owner() == Isolate::Current());
+  DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());
   FreeListElement* previous = NULL;
   FreeListElement* current = free_lists_[kNumLists];
   // TODO(koda): Find largest.
@@ -384,7 +384,7 @@ FreeListElement* FreeList::TryAllocateLargeLocked(intptr_t minimum_size) {
 
 
 uword FreeList::TryAllocateSmallLocked(intptr_t size) {
-  DEBUG_ASSERT(mutex_->Owner() == Isolate::Current());
+  DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());
   if (size > last_free_small_size_) {
     return 0;
   }

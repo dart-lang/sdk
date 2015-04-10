@@ -146,11 +146,14 @@ class Uri {
   /**
    * Creates a new `Uri` object by parsing a URI string.
    *
+   * If [start] and [end] are provided, only the substring from `start`
+   * to `end` is parsed as a URI.
+   *
    * If the string is not valid as a URI or URI reference,
    * invalid characters will be percent escaped where possible.
    * The resulting `Uri` will represent a valid URI or URI reference.
    */
-  static Uri parse(String uri) {
+  static Uri parse(String uri, [int start = 0, int end]) {
     // This parsing will not validate percent-encoding, IPv6, etc. When done
     // it will call `new Uri(...)` which will perform these validations.
     // This is purely splitting up the URI string into components.
@@ -216,14 +219,15 @@ class Uri {
     String path = null;
     String query = null;
     String fragment = null;
+    if (end == null) end = uri.length;
 
-    int index = 0;
-    int pathStart = 0;
+    int index = start;
+    int pathStart = start;
     // End of input-marker.
     int char = EOI;
 
     void parseAuth() {
-      if (index == uri.length) {
+      if (index == end) {
         char = EOI;
         return;
       }
@@ -231,7 +235,7 @@ class Uri {
       int lastColon = -1;
       int lastAt = -1;
       char = uri.codeUnitAt(index);
-      while (index < uri.length) {
+      while (index < end) {
         char = uri.codeUnitAt(index);
         if (char == _SLASH || char == _QUESTION || char == _NUMBER_SIGN) {
           break;
@@ -245,7 +249,7 @@ class Uri {
           lastColon = -1;
           int endBracket = uri.indexOf(']', index + 1);
           if (endBracket == -1) {
-            index = uri.length;
+            index = end;
             char = EOI;
             break;
           } else {
@@ -277,7 +281,7 @@ class Uri {
         hostEnd = lastColon;
       }
       host = _makeHost(uri, hostStart, hostEnd, true);
-      if (index < uri.length) {
+      if (index < end) {
         char = uri.codeUnitAt(index);
       }
     }
@@ -298,22 +302,22 @@ class Uri {
     // All other breaks set their own state.
     int state = NOT_IN_PATH;
     int i = index;  // Temporary alias for index to avoid bug 19550 in dart2js.
-    while (i < uri.length) {
+    while (i < end) {
       char = uri.codeUnitAt(i);
       if (char == _QUESTION || char == _NUMBER_SIGN) {
         state = NOT_IN_PATH;
         break;
       }
       if (char == _SLASH) {
-        state = (i == 0) ? ALLOW_AUTH : IN_PATH;
+        state = (i == start) ? ALLOW_AUTH : IN_PATH;
         break;
       }
       if (char == _COLON) {
-        if (i == 0) _fail(uri, 0, "Invalid empty scheme");
-        scheme = _makeScheme(uri, i);
+        if (i == start) _fail(uri, start, "Invalid empty scheme");
+        scheme = _makeScheme(uri, start, i);
         i++;
         pathStart = i;
-        if (i == uri.length) {
+        if (i == end) {
           char = EOI;
           state = NOT_IN_PATH;
         } else {
@@ -338,7 +342,7 @@ class Uri {
       // Have seen one slash either at start or right after scheme.
       // If two slashes, it's an authority, otherwise it's just the path.
       index++;
-      if (index == uri.length) {
+      if (index == end) {
         char = EOI;
         state = NOT_IN_PATH;
       } else {
@@ -360,7 +364,7 @@ class Uri {
     if (state == IN_PATH) {
       // Characters from pathStart to index (inclusive) are known
       // to be part of the path.
-      while (++index < uri.length) {
+      while (++index < end) {
         char = uri.codeUnitAt(index);
         if (char == _QUESTION || char == _NUMBER_SIGN) {
           break;
@@ -376,15 +380,21 @@ class Uri {
     path = _makePath(uri, pathStart, index, null, ensureLeadingSlash, isFile);
 
     if (char == _QUESTION) {
-      int numberSignIndex = uri.indexOf('#', index + 1);
+      int numberSignIndex = -1;
+      for (int i = index + 1; i < end; i++) {
+        if (uri.codeUnitAt(i) == _NUMBER_SIGN) {
+          numberSignIndex = i;
+          break;
+        }
+      }
       if (numberSignIndex < 0) {
-        query = _makeQuery(uri, index + 1, uri.length, null);
+        query = _makeQuery(uri, index + 1, end, null);
       } else {
         query = _makeQuery(uri, index + 1, numberSignIndex, null);
-        fragment = _makeFragment(uri, numberSignIndex + 1, uri.length);
+        fragment = _makeFragment(uri, numberSignIndex + 1, end);
       }
     } else if (char == _NUMBER_SIGN) {
-      fragment = _makeFragment(uri, index + 1, uri.length);
+      fragment = _makeFragment(uri, index + 1, end);
     }
     return new Uri._internal(scheme,
                              userinfo,
@@ -482,7 +492,7 @@ class Uri {
                String query,
                Map<String, String> queryParameters,
                String fragment}) {
-    scheme = _makeScheme(scheme, _stringOrNullLength(scheme));
+    scheme = _makeScheme(scheme, 0, _stringOrNullLength(scheme));
     userInfo = _makeUserInfo(userInfo, 0, _stringOrNullLength(userInfo));
     host = _makeHost(host, 0, _stringOrNullLength(host), false);
     // Special case this constructor for backwards compatibility.
@@ -872,7 +882,7 @@ class Uri {
     // to check even the existing port.
     bool schemeChanged = false;
     if (scheme != null) {
-      scheme = _makeScheme(scheme, scheme.length);
+      scheme = _makeScheme(scheme, 0, scheme.length);
       schemeChanged = true;
     } else {
       scheme = this.scheme;
@@ -1100,14 +1110,14 @@ class Uri {
    *
    * Schemes are converted to lower case. They cannot contain escapes.
    */
-  static String _makeScheme(String scheme, int end) {
-    if (end == 0) return "";
-    final int firstCodeUnit = scheme.codeUnitAt(0);
+  static String _makeScheme(String scheme, int start, int end) {
+    if (start == end) return "";
+    final int firstCodeUnit = scheme.codeUnitAt(start);
     if (!_isAlphabeticCharacter(firstCodeUnit)) {
-      _fail(scheme, 0, "Scheme not starting with alphabetic character");
+      _fail(scheme, start, "Scheme not starting with alphabetic character");
     }
     bool allLowercase = firstCodeUnit >= _LOWER_CASE_A;
-    for (int i = 0; i < end; i++) {
+    for (int i = start; i < end; i++) {
       final int codeUnit = scheme.codeUnitAt(i);
       if (!_isSchemeCharacter(codeUnit)) {
         _fail(scheme, i, "Illegal scheme character");
@@ -1116,7 +1126,7 @@ class Uri {
         allLowercase = false;
       }
     }
-    scheme = scheme.substring(0, end);
+    scheme = scheme.substring(start, end);
     if (!allLowercase) scheme = scheme.toLowerCase();
     return scheme;
   }

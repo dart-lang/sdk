@@ -168,6 +168,8 @@ abstract class ElementX extends Element {
 
   LibraryElement get library => enclosingElement.library;
 
+  Name get memberName => new Name(name, library);
+
   LibraryElement get implementationLibrary {
     Element element = this;
     while (!identical(element.kind, ElementKind.LIBRARY)) {
@@ -305,6 +307,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   get executableContext => unsupported();
   get isExternal => unsupported();
 
+  bool get isRedirectingGenerative => unsupported();
   bool get isRedirectingFactory => unsupported();
 
   computeSignature(compiler) => unsupported();
@@ -340,6 +343,12 @@ class ErroneousConstructorElementX extends ErroneousElementX
       String name,
       Element enclosing)
       : super(messageKind, messageArguments, name, enclosing);
+
+  bool get isRedirectingGenerative => false;
+
+  void set isRedirectingGenerative(_) {
+    throw new UnsupportedError("isRedirectingGenerative");
+  }
 
   bool get isRedirectingFactory => false;
 
@@ -1912,6 +1921,7 @@ class LocalFunctionElementX extends BaseFunctionElementX
 
 abstract class ConstructorElementX extends FunctionElementX
     implements ConstructorElement {
+  bool isRedirectingGenerative = false;
 
   ConstructorElementX(String name,
                       ElementKind kind,

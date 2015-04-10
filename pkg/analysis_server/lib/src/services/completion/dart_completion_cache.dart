@@ -127,7 +127,7 @@ class DartCompletionCache extends CompletionCache {
     assert(unit.element.source == source);
 
     // Exclude elements from local library
-    // because they are provided by LocalComputer
+    // because they are provided by LocalReferenceContributor
     Set<LibraryElement> excludedLibs = new Set<LibraryElement>();
     excludedLibs.add(unit.element.enclosingElement);
 
@@ -237,7 +237,7 @@ class DartCompletionCache extends CompletionCache {
               });
             } else {
               // Exclude elements from prefixed imports
-              // because they are provided by InvocationComputer
+              // because they are provided by PrefixedElementContributor
               _addLibraryPrefixSuggestion(importElem);
               excludedLibs.add(importElem.importedLibrary);
             }
@@ -277,6 +277,20 @@ class DartCompletionCache extends CompletionCache {
    */
   void _addNonImportedElementSuggestions(
       List<SearchMatch> matches, Set<LibraryElement> excludedLibs) {
+
+    // Exclude internal Dart SDK libraries
+    for (var lib in context.sourceFactory.dartSdk.sdkLibraries) {
+      if (lib.isInternal) {
+        Source libUri = context.sourceFactory.forUri(lib.shortName);
+        if (libUri != null) {
+          LibraryElement libElem = context.getLibraryElement(libUri);
+          if (libElem != null) {
+            excludedLibs.add(libElem);
+          }
+        }
+      }
+    }
+
     AnalysisContext sdkContext = context.sourceFactory.dartSdk.context;
     matches.forEach((SearchMatch match) {
       if (match.kind == MatchKind.DECLARATION) {
@@ -296,8 +310,14 @@ class DartCompletionCache extends CompletionCache {
    */
   void _addSuggestion(Element element, int relevance) {
     if (element is ExecutableElement) {
+      // Do not suggest operators or local functions
       if (element.isOperator) {
         return;
+      }
+      if (element is FunctionElement) {
+        if (element.enclosingElement is! CompilationUnitElement) {
+          return;
+        }
       }
     }
 

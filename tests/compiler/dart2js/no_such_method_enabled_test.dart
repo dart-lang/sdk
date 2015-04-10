@@ -231,6 +231,57 @@ main() {
   }));
 }
 
+dummyImplTest11() {
+  String source = """
+class A {
+  noSuchMethod(Invocation x) {
+    print('foo');
+    throw 'foo';
+  }
+}
+main() {
+  print(new A().foo());
+}
+""";
+  Uri uri = new Uri(scheme: 'source');
+  var compiler = compilerFor(source, uri);
+  asyncTest(() => compiler.runCompiler(uri).then((_) {
+    Expect.isTrue(compiler.backend.enabledNoSuchMethod);
+    ClassElement clsA = findElement(compiler, 'A');
+    Expect.isTrue(
+        compiler.backend.noSuchMethodRegistry.otherImpls.contains(
+            clsA.lookupMember('noSuchMethod')));
+    Expect.isTrue(
+        compiler.backend.noSuchMethodRegistry.complexNoReturnImpls.contains(
+            clsA.lookupMember('noSuchMethod')));
+  }));
+}
+
+dummyImplTest12() {
+  String source = """
+class A {
+  noSuchMethod(Invocation x) {
+    return toString();
+  }
+}
+main() {
+  print(new A().foo());
+}
+""";
+  Uri uri = new Uri(scheme: 'source');
+  var compiler = compilerFor(source, uri);
+  asyncTest(() => compiler.runCompiler(uri).then((_) {
+    Expect.isTrue(compiler.backend.enabledNoSuchMethod);
+    ClassElement clsA = findElement(compiler, 'A');
+    Expect.isTrue(
+        compiler.backend.noSuchMethodRegistry.otherImpls.contains(
+            clsA.lookupMember('noSuchMethod')));
+    Expect.isTrue(
+        compiler.backend.noSuchMethodRegistry.complexReturningImpls.contains(
+            clsA.lookupMember('noSuchMethod')));
+  }));
+}
+
 main() {
   dummyImplTest();
   dummyImplTest2();
@@ -242,4 +293,6 @@ main() {
   dummyImplTest8();
   dummyImplTest9();
   dummyImplTest10();
+  dummyImplTest11();
+  dummyImplTest12();
 }

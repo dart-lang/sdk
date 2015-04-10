@@ -444,7 +444,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
               new DartString.literal(text))))];
     AstConstant constant = makeConstructedConstant(
         compiler, handler, context, node, type, compiler.symbolConstructor,
-        new Selector.callConstructor('', null, 1),
+        CallStructure.ONE_ARG,
         arguments, arguments);
     return new AstConstant(
         context, node, new SymbolConstantExpression(constant.value, text));
@@ -652,7 +652,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
    */
   List<AstConstant> evaluateArgumentsToConstructor(
       Node node,
-      Selector selector,
+      CallStructure callStructure,
       Link<Node> arguments,
       FunctionElement target,
       {AstConstant compileArgument(Node node)}) {
@@ -664,7 +664,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     }
     target.computeSignature(compiler);
 
-    if (!selector.applies(target, compiler.world)) {
+    if (!callStructure.signatureApplies(target)) {
       String name = Elements.constructorNameForDiagnostics(
           target.enclosingClass.name, target.name);
       compiler.reportError(
@@ -676,10 +676,11 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
           target.functionSignature.parameterCount,
           new ErroneousAstConstant(context, node));
     }
-    return selector.makeArgumentsList(arguments,
-                                      target,
-                                      compileArgument,
-                                      compileDefaultValue);
+    return callStructure.makeArgumentsList(
+        arguments,
+        target,
+        compileArgument,
+        compileDefaultValue);
   }
 
   AstConstant visitNewExpression(NewExpression node) {
@@ -706,7 +707,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     compiler.analyzeElement(constructor.declaration);
 
     InterfaceType type = elements.getType(node);
-    Selector selector = elements.getSelector(send);
+    CallStructure callStructure = elements.getSelector(send).callStructure;
 
     Map<Node, AstConstant> concreteArgumentMap =
         <Node, AstConstant>{};
@@ -721,7 +722,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
 
     List<AstConstant> normalizedArguments =
         evaluateArgumentsToConstructor(
-          node, selector, send.arguments, constructor.implementation,
+          node, callStructure, send.arguments, constructor.implementation,
           compileArgument: (node) => concreteArgumentMap[node]);
     List<AstConstant> concreteArguments =
         concreteArgumentMap.values.toList();
@@ -732,11 +733,11 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
 
       AstConstant createEvaluatedConstant(ConstantValue value) {
         return new AstConstant(
-            context, node, new ConstructedConstantExpresssion(
+            context, node, new ConstructedConstantExpression(
                 value,
                 type,
                 constructor,
-                elements.getSelector(send),
+                elements.getSelector(send).callStructure,
                 concreteArguments.map((e) => e.expression).toList()));
       }
 
@@ -811,7 +812,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     } else {
       return makeConstructedConstant(
           compiler, handler, context,
-          node, type, constructor, selector,
+          node, type, constructor, callStructure,
           concreteArguments, normalizedArguments);
     }
   }
@@ -823,12 +824,12 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       Node node,
       InterfaceType type,
       ConstructorElement constructor,
-      Selector selector,
+      CallStructure callStructure,
       List<AstConstant> concreteArguments,
       List<AstConstant> normalizedArguments) {
-    assert(invariant(node, selector.applies(constructor, compiler.world) ||
+    assert(invariant(node, callStructure.signatureApplies(constructor) ||
                      compiler.compilationFailed,
-        message: "Selector $selector does not apply to constructor "
+        message: "Call structure $callStructure does not apply to constructor "
                  "$constructor."));
 
     // The redirection chain of this element may not have been resolved through
@@ -850,13 +851,13 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
         evaluator.buildFieldConstants(classElement);
 
     return new AstConstant(
-        context, node, new ConstructedConstantExpresssion(
+        context, node, new ConstructedConstantExpression(
             new ConstructedConstantValue(
                 constructedType,
                 fieldConstants.map((e) => e.value).toList()),
             type,
             constructor,
-            selector,
+            callStructure,
             concreteArguments.map((e) => e.expression).toList()));
   }
 
@@ -994,12 +995,12 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       Function compileArgument = (element) => definitions[element];
       Function compileConstant = handler.compileConstant;
       FunctionElement target = constructor.definingConstructor.implementation;
-      Selector.addForwardingElementArgumentsToList(constructor,
-                                                   compiledArguments,
-                                                   target,
-                                                   compileArgument,
-                                                   compileConstant,
-                                                   compiler.world);
+      CallStructure.addForwardingElementArgumentsToList(
+          constructor,
+          compiledArguments,
+          target,
+          compileArgument,
+          compileConstant);
       evaluateSuperOrRedirectSend(compiledArguments, target);
       return;
     }
@@ -1019,7 +1020,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
           FunctionElement target = elements[call];
           List<AstConstant> compiledArguments =
               evaluateArgumentsToConstructor(
-                  call, elements.getSelector(call), call.arguments, target,
+                  call, elements.getSelector(call).callStructure,
+                  call.arguments, target,
                   compileArgument: evaluateConstant);
           evaluateSuperOrRedirectSend(compiledArguments, target);
           foundSuperOrRedirect = true;
@@ -1048,9 +1050,9 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
         // If we do not find a default constructor, an error was reported
         // already and compilation will fail anyway. So just ignore that case.
         if (targetConstructor != null) {
-          Selector selector = new Selector.callDefaultConstructor();
           List<AstConstant> compiledArguments = evaluateArgumentsToConstructor(
-              functionNode, selector, const Link<Node>(), targetConstructor);
+              functionNode, CallStructure.NO_ARGS,
+              const Link<Node>(), targetConstructor);
           evaluateSuperOrRedirectSend(compiledArguments, targetConstructor);
         }
       }

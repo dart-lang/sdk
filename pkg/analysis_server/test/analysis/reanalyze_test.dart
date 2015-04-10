@@ -59,7 +59,7 @@ class ReanalyzeTest extends AbstractAnalysisTest {
       // re-analyzed.
       filesErrors.remove(testFile);
       // Reanalyze.
-      server.reanalyze();
+      server.reanalyze(null);
       return waitForTasksFinished();
     }).then((_) {
       // The file should have been reanalyzed.

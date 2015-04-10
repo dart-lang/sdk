@@ -1067,7 +1067,7 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
 
   SetPrologueOffset();
 
-  TraceSimMsg("EnterCallRuntimeFrame");
+  Comment("EnterCallRuntimeFrame");
 
   // Save volatile CPU and FPU registers on the stack:
   // -------------
@@ -1108,7 +1108,7 @@ void Assembler::LeaveCallRuntimeFrame() {
       2 * kWordSize +  // FP and RA.
       kDartVolatileFpuRegCount * kWordSize;
 
-  TraceSimMsg("LeaveCallRuntimeFrame");
+  Comment("LeaveCallRuntimeFrame");
 
   // SP might have been modified to reserve space for arguments
   // and ensure proper alignment of the stack frame.
@@ -1211,21 +1211,6 @@ void Assembler::Stop(const char* message) {
   Emit(reinterpret_cast<int32_t>(message));
   Bind(&stop);
   break_(Instr::kStopMessageCode);
-}
-
-
-void Assembler::TraceSimMsg(const char* message) {
-  // Don't bother adding in the messages unless tracing is enabled, and we are
-  // running in the simulator.
-#if defined(USING_SIMULATOR)
-  if (FLAG_trace_sim_after != -1) {
-    Label msg;
-    b(&msg);
-    Emit(reinterpret_cast<int32_t>(message));
-    Bind(&msg);
-    break_(Instr::kSimulatorMessageCode);
-  }
-#endif
 }
 
 }  // namespace dart

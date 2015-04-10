@@ -11,6 +11,7 @@ import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 
@@ -136,7 +137,23 @@ class AnalysisDomainHandler implements RequestHandler {
    * Implement the 'analysis.reanalyze' request.
    */
   Response reanalyze(Request request) {
-    server.reanalyze();
+    AnalysisReanalyzeParams params =
+        new AnalysisReanalyzeParams.fromRequest(request);
+    List<String> roots = params.roots;
+    if (roots == null || roots.isNotEmpty) {
+      List<String> includedPaths = server.contextDirectoryManager.includedPaths;
+      List<Resource> rootResources = null;
+      if (roots != null) {
+        rootResources = <Resource>[];
+        for (String rootPath in roots) {
+          if (!includedPaths.contains(rootPath)) {
+            return new Response.invalidAnalysisRoot(request, rootPath);
+          }
+          rootResources.add(server.resourceProvider.getResource(rootPath));
+        }
+      }
+      server.reanalyze(rootResources);
+    }
     return new AnalysisReanalyzeResult().toResponse(request.id);
   }
 
@@ -189,6 +206,11 @@ class AnalysisDomainHandler implements RequestHandler {
     var params = new AnalysisUpdateOptionsParams.fromRequest(request);
     AnalysisOptions newOptions = params.options;
     List<OptionUpdater> updaters = new List<OptionUpdater>();
+    if (newOptions.enableNullAwareOperators != null) {
+      updaters.add((engine.AnalysisOptionsImpl options) {
+        options.enableNullAwareOperators = newOptions.enableNullAwareOperators;
+      });
+    }
     if (newOptions.generateDart2jsHints != null) {
       updaters.add((engine.AnalysisOptionsImpl options) {
         options.dart2jsHint = newOptions.generateDart2jsHints;

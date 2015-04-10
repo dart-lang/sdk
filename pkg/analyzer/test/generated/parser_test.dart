@@ -6,6 +6,7 @@ library engine.parser_test;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/incremental_scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -316,6 +317,13 @@ class ComplexParserTest extends ParserTestCase {
     }
   }
 
+  void test_conditionalExpression_precedence_ifNullExpression() {
+    _enableNullAwareOperators = true;
+    ConditionalExpression expression = parseExpression('a ?? b ? y : z');
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
+        BinaryExpression, expression.condition);
+  }
+
   void test_conditionalExpression_precedence_logicalOrExpression() {
     ConditionalExpression expression = parseExpression("a | b ? y : z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
@@ -357,6 +365,27 @@ class C {
         [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
         BinaryExpression, expression.leftOperand);
+  }
+
+  void test_ifNullExpression() {
+    _enableNullAwareOperators = true;
+    BinaryExpression expression = parseExpression('x ?? y ?? z');
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
+        BinaryExpression, expression.leftOperand);
+  }
+
+  void test_ifNullExpression_precedence_logicalOr_left() {
+    _enableNullAwareOperators = true;
+    BinaryExpression expression = parseExpression('x || y ?? z');
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
+        BinaryExpression, expression.leftOperand);
+  }
+
+  void test_ifNullExpression_precendce_logicalOr_right() {
+    _enableNullAwareOperators = true;
+    BinaryExpression expression = parseExpression('x ?? y || z');
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
+        BinaryExpression, expression.rightOperand);
   }
 
   void test_logicalAndExpression() {
@@ -1166,8 +1195,9 @@ class Foo {
   }
 
   void test_getterInFunction_block_noReturnType() {
-    ParserTestCase.parseStatement(
+    FunctionDeclarationStatement statement = ParserTestCase.parseStatement(
         "get x { return _x; }", [ParserErrorCode.GETTER_IN_FUNCTION]);
+    expect(statement.functionDeclaration.functionExpression.parameters, isNull);
   }
 
   void test_getterInFunction_block_returnType() {
@@ -1270,6 +1300,18 @@ class Foo {
   void test_invalidOperator() {
     parse3("parseClassMember", <Object>["C"], "void operator ===(x) {}",
         [ParserErrorCode.INVALID_OPERATOR]);
+  }
+
+  void test_invalidOperatorAfterSuper_assignableExpression() {
+    _enableNullAwareOperators = true;
+    parse3('parseAssignableExpression', <Object>[false], 'super?.v',
+        [ParserErrorCode.INVALID_OPERATOR_FOR_SUPER]);
+  }
+
+  void test_invalidOperatorAfterSuper_primaryExpression() {
+    _enableNullAwareOperators = true;
+    parse4('parsePrimaryExpression', 'super?.v',
+        [ParserErrorCode.INVALID_OPERATOR_FOR_SUPER]);
   }
 
   void test_invalidOperatorForSuper() {
@@ -1456,13 +1498,17 @@ class Foo {
   }
 
   void test_missingFunctionParameters_topLevel_void_block() {
-    ParserTestCase.parseCompilationUnit(
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(
         "void f { return x;}", [ParserErrorCode.MISSING_FUNCTION_PARAMETERS]);
+    FunctionDeclaration funct = unit.declarations[0];
+    expect(funct.functionExpression.parameters, hasLength(0));
   }
 
   void test_missingFunctionParameters_topLevel_void_expression() {
-    ParserTestCase.parseCompilationUnit(
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(
         "void f => x;", [ParserErrorCode.MISSING_FUNCTION_PARAMETERS]);
+    FunctionDeclaration funct = unit.declarations[0];
+    expect(funct.functionExpression.parameters, hasLength(0));
   }
 
   void test_missingIdentifier_afterOperator() {
@@ -1525,8 +1571,9 @@ class Foo {
   }
 
   void test_missingMethodParameters_void_block() {
-    parse3("parseClassMember", <Object>["C"], "void m {} }",
-        [ParserErrorCode.MISSING_METHOD_PARAMETERS]);
+    MethodDeclaration method = parse3("parseClassMember", <Object>["C"],
+        "void m {} }", [ParserErrorCode.MISSING_METHOD_PARAMETERS]);
+    expect(method.parameters, hasLength(0));
   }
 
   void test_missingMethodParameters_void_expression() {
@@ -1828,6 +1875,12 @@ class Foo {
     ]);
   }
 
+  void test_topLevel_getter() {
+    FunctionDeclaration funct = parse3("parseCompilationUnitMember",
+        <Object>[emptyCommentAndMetadata()], "get x => 7;");
+    expect(funct.functionExpression.parameters, isNull);
+  }
+
   void test_topLevelOperator_withoutType() {
     parse3("parseCompilationUnitMember", <Object>[emptyCommentAndMetadata()],
         "operator +(bool x, bool y) => x | y;",
@@ -1886,6 +1939,70 @@ class Foo {
   void test_unexpectedToken_semicolonBetweenCompilationUnitMembers() {
     ParserTestCase.parseCompilationUnit(
         "int x; ; int y;", [ParserErrorCode.UNEXPECTED_TOKEN]);
+  }
+
+  void test_unterminatedString_at_eof() {
+    // Although the "unterminated string" error message is produced by the
+    // scanner, we need to verify that the parser can handle the tokens
+    // produced by the scanner when an unterminated string is encountered.
+    ParserTestCase.parseCompilationUnit(r'''
+void main() {
+  var x = "''', [
+      ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
+  }
+
+  void test_unterminatedString_at_eol() {
+    // Although the "unterminated string" error message is produced by the
+    // scanner, we need to verify that the parser can handle the tokens
+    // produced by the scanner when an unterminated string is encountered.
+    ParserTestCase.parseCompilationUnit(r'''
+void main() {
+  var x = "
+;
+}
+''', [ScannerErrorCode.UNTERMINATED_STRING_LITERAL]);
+  }
+
+  void test_unterminatedString_multiline_at_eof_3_quotes() {
+    // Although the "unterminated string" error message is produced by the
+    // scanner, we need to verify that the parser can handle the tokens
+    // produced by the scanner when an unterminated string is encountered.
+    ParserTestCase.parseCompilationUnit(r'''
+void main() {
+  var x = """''', [
+      ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
+  }
+
+  void test_unterminatedString_multiline_at_eof_4_quotes() {
+    // Although the "unterminated string" error message is produced by the
+    // scanner, we need to verify that the parser can handle the tokens
+    // produced by the scanner when an unterminated string is encountered.
+    ParserTestCase.parseCompilationUnit(r'''
+void main() {
+  var x = """"''', [
+      ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
+  }
+
+  void test_unterminatedString_multiline_at_eof_5_quotes() {
+    // Although the "unterminated string" error message is produced by the
+    // scanner, we need to verify that the parser can handle the tokens
+    // produced by the scanner when an unterminated string is encountered.
+    ParserTestCase.parseCompilationUnit(r'''
+void main() {
+  var x = """""''', [
+      ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
   }
 
   void test_useOfUnaryPlusOperator() {
@@ -2360,8 +2477,9 @@ class C {
     // Incrementally parse the modified contents.
     //
     GatheringErrorListener incrementalListener = new GatheringErrorListener();
-    IncrementalScanner incrementalScanner = new IncrementalScanner(
-        source, new CharSequenceReader(modifiedContents), incrementalListener);
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    IncrementalScanner incrementalScanner = new IncrementalScanner(source,
+        new CharSequenceReader(modifiedContents), incrementalListener, options);
     Token incrementalTokens = incrementalScanner.rescan(
         originalTokens, replaceStart, removed.length, added.length);
     expect(incrementalTokens, isNotNull);
@@ -2397,6 +2515,12 @@ class ParserTestCase extends EngineTestCase {
    * A flag indicating whether parser is to parse function bodies.
    */
   static bool parseFunctionBodies = true;
+
+  /**
+   * If non-null, this value is used to override the default value of
+   * [Scanner.enableNullAwareOperators] before scanning.
+   */
+  bool _enableNullAwareOperators;
 
   /**
    * Return a CommentAndMetadata object with the given values that can be used for testing.
@@ -2441,6 +2565,9 @@ class ParserTestCase extends EngineTestCase {
     //
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
+    if (_enableNullAwareOperators != null) {
+      scanner.enableNullAwareOperators = _enableNullAwareOperators;
+    }
     Token tokenStream = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     //
@@ -2574,6 +2701,9 @@ class ParserTestCase extends EngineTestCase {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
+    if (_enableNullAwareOperators != null) {
+      scanner.enableNullAwareOperators = _enableNullAwareOperators;
+    }
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = createParser(listener);
@@ -3137,6 +3267,36 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
 
   void test_functionExpression_named() {
     parseExpression("m(f() => 0);", [ParserErrorCode.EXPECTED_TOKEN]);
+  }
+
+  void test_importDirectivePartial_as() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(
+        "import 'b.dart' d as b;",
+        [ParserErrorCode.UNEXPECTED_TOKEN]);
+    ImportDirective importDirective = unit.childEntities.first;
+    expect(importDirective.asKeyword, isNotNull);
+    expect(unit.directives, hasLength(1));
+    expect(unit.declarations, hasLength(0));
+  }
+
+  void test_importDirectivePartial_show() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(
+        "import 'b.dart' d show foo;",
+        [ParserErrorCode.UNEXPECTED_TOKEN]);
+    ImportDirective importDirective = unit.childEntities.first;
+    expect(importDirective.combinators, hasLength(1));
+    expect(unit.directives, hasLength(1));
+    expect(unit.declarations, hasLength(0));
+  }
+
+  void test_importDirectivePartial_hide() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(
+        "import 'b.dart' d hide foo;",
+        [ParserErrorCode.UNEXPECTED_TOKEN]);
+    ImportDirective importDirective = unit.childEntities.first;
+    expect(importDirective.combinators, hasLength(1));
+    expect(unit.directives, hasLength(1));
+    expect(unit.declarations, hasLength(0));
   }
 
   void test_incomplete_conditionalExpression() {
@@ -4469,6 +4629,15 @@ class SimpleParserTest extends ParserTestCase {
     ParserTestCase.parseCompilationUnit("class C { C() : a = \"\${(){}}\"; }");
   }
 
+  void test_import_as_show() {
+    ParserTestCase.parseCompilationUnit("import 'dart:math' as M show E;");
+  }
+
+  void test_import_show_hide() {
+    ParserTestCase.parseCompilationUnit(
+        "import 'import1_lib.dart' show hide, show hide ugly;");
+  }
+
   void test_isFunctionDeclaration_nameButNoReturn_block() {
     expect(_isFunctionDeclaration("f() {}"), isTrue);
   }
@@ -4769,7 +4938,7 @@ class SimpleParserTest extends ParserTestCase {
     PropertyAccess propertyAccess =
         parse("parseAssignableExpression", <Object>[false], "(x).y");
     expect(propertyAccess.target, isNotNull);
-    expect(propertyAccess.operator, isNotNull);
+    expect(propertyAccess.operator.type, TokenType.PERIOD);
     expect(propertyAccess.propertyName, isNotNull);
   }
 
@@ -4780,6 +4949,15 @@ class SimpleParserTest extends ParserTestCase {
     expect(expression.leftBracket, isNotNull);
     expect(expression.index, isNotNull);
     expect(expression.rightBracket, isNotNull);
+  }
+
+  void test_parseAssignableExpression_expression_question_dot() {
+    _enableNullAwareOperators = true;
+    PropertyAccess propertyAccess =
+        parse("parseAssignableExpression", <Object>[false], "(x)?.y");
+    expect(propertyAccess.target, isNotNull);
+    expect(propertyAccess.operator.type, TokenType.QUESTION_PERIOD);
+    expect(propertyAccess.propertyName, isNotNull);
   }
 
   void test_parseAssignableExpression_identifier() {
@@ -4805,6 +4983,7 @@ class SimpleParserTest extends ParserTestCase {
         parse("parseAssignableExpression", <Object>[false], "x.y");
     expect(propertyAccess.target, isNotNull);
     expect(propertyAccess.operator, isNotNull);
+    expect(propertyAccess.operator.type, TokenType.PERIOD);
     expect(propertyAccess.propertyName, isNotNull);
   }
 
@@ -4815,6 +4994,15 @@ class SimpleParserTest extends ParserTestCase {
     expect(expression.leftBracket, isNotNull);
     expect(expression.index, isNotNull);
     expect(expression.rightBracket, isNotNull);
+  }
+
+  void test_parseAssignableExpression_identifier_question_dot() {
+    _enableNullAwareOperators = true;
+    PropertyAccess propertyAccess =
+        parse("parseAssignableExpression", <Object>[false], "x?.y");
+    expect(propertyAccess.target, isNotNull);
+    expect(propertyAccess.operator.type, TokenType.QUESTION_PERIOD);
+    expect(propertyAccess.propertyName, isNotNull);
   }
 
   void test_parseAssignableExpression_super_dot() {
@@ -4839,7 +5027,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseAssignableSelector_dot() {
     PropertyAccess selector =
         parse("parseAssignableSelector", <Object>[null, true], ".x");
-    expect(selector.operator, isNotNull);
+    expect(selector.operator.type, TokenType.PERIOD);
     expect(selector.propertyName, isNotNull);
   }
 
@@ -4857,6 +5045,14 @@ class SimpleParserTest extends ParserTestCase {
       true
     ], ";");
     expect(selector, isNotNull);
+  }
+
+  void test_parseAssignableSelector_question_dot() {
+    _enableNullAwareOperators = true;
+    PropertyAccess selector =
+        parse("parseAssignableSelector", <Object>[null, true], "?.x");
+    expect(selector.operator.type, TokenType.QUESTION_PERIOD);
+    expect(selector.propertyName, isNotNull);
   }
 
   void test_parseAwaitExpression() {
@@ -4996,7 +5192,7 @@ class SimpleParserTest extends ParserTestCase {
     MethodInvocation section = parse4("parseCascadeSection", "..a(b).c(d)");
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodInvocation, MethodInvocation, section.target);
-    expect(section.period, isNotNull);
+    expect(section.operator, isNotNull);
     expect(section.methodName, isNotNull);
     expect(section.argumentList, isNotNull);
     expect(section.argumentList.arguments, hasLength(1));
@@ -5037,7 +5233,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseCascadeSection_pa() {
     MethodInvocation section = parse4("parseCascadeSection", "..a(b)");
     expect(section.target, isNull);
-    expect(section.period, isNotNull);
+    expect(section.operator, isNotNull);
     expect(section.methodName, isNotNull);
     expect(section.argumentList, isNotNull);
     expect(section.argumentList.arguments, hasLength(1));
@@ -5365,6 +5561,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.body, isNotNull);
+    expect(method.parameters, isNull);
   }
 
   void test_parseClassMember_method_external() {
@@ -7154,6 +7351,46 @@ void''');
     expect(parameterList.rightParenthesis, isNotNull);
   }
 
+  void test_parseFormalParameterList_prefixedType() {
+    FormalParameterList parameterList =
+        parse4("parseFormalParameterList", "(io.File f)");
+    expect(parameterList.leftParenthesis, isNotNull);
+    expect(parameterList.leftDelimiter, isNull);
+    expect(parameterList.parameters, hasLength(1));
+    expect(parameterList.parameters[0].toSource(), 'io.File f');
+    expect(parameterList.rightDelimiter, isNull);
+    expect(parameterList.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_prefixedType_partial() {
+    FormalParameterList parameterList = parse4("parseFormalParameterList",
+        "(io.)", [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
+    expect(parameterList.leftParenthesis, isNotNull);
+    expect(parameterList.leftDelimiter, isNull);
+    expect(parameterList.parameters, hasLength(1));
+    expect(parameterList.parameters[0].toSource(), 'io. ');
+    expect(parameterList.rightDelimiter, isNull);
+    expect(parameterList.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_prefixedType_partial2() {
+    FormalParameterList parameterList = parse4("parseFormalParameterList",
+        "(io.,a)", [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
+    expect(parameterList.leftParenthesis, isNotNull);
+    expect(parameterList.leftDelimiter, isNull);
+    expect(parameterList.parameters, hasLength(2));
+    expect(parameterList.parameters[0].toSource(), 'io. ');
+    expect(parameterList.parameters[1].toSource(), 'a');
+    expect(parameterList.rightDelimiter, isNull);
+    expect(parameterList.rightParenthesis, isNotNull);
+  }
+
   void test_parseForStatement_each_await() {
     ForEachStatement statement =
         parse4("parseForStatement", "await for (element in list) {}");
@@ -8435,6 +8672,16 @@ void''');
   void test_parsePostfixExpression_none_methodInvocation() {
     MethodInvocation expression = parse4("parsePostfixExpression", "a.m()");
     expect(expression.target, isNotNull);
+    expect(expression.operator.type, TokenType.PERIOD);
+    expect(expression.methodName, isNotNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void test_parsePostfixExpression_none_methodInvocation_question_dot() {
+    _enableNullAwareOperators = true;
+    MethodInvocation expression = parse4('parsePostfixExpression', 'a?.m()');
+    expect(expression.target, isNotNull);
+    expect(expression.operator.type, TokenType.QUESTION_PERIOD);
     expect(expression.methodName, isNotNull);
     expect(expression.argumentList, isNotNull);
   }
@@ -8822,6 +9069,23 @@ void''');
     expect((secondString as SimpleStringLiteral).value, "b");
   }
 
+  void test_parseStringLiteral_endsWithInterpolation() {
+    StringLiteral literal = parse4('parseStringLiteral', r"'x$y'");
+    expect(literal, new isInstanceOf<StringInterpolation>());
+    StringInterpolation interpolation = literal;
+    expect(interpolation.elements, hasLength(3));
+    expect(interpolation.elements[0], new isInstanceOf<InterpolationString>());
+    InterpolationString element0 = interpolation.elements[0];
+    expect(element0.value, 'x');
+    expect(
+        interpolation.elements[1], new isInstanceOf<InterpolationExpression>());
+    InterpolationExpression element1 = interpolation.elements[1];
+    expect(element1.expression, new isInstanceOf<SimpleIdentifier>());
+    expect(interpolation.elements[2], new isInstanceOf<InterpolationString>());
+    InterpolationString element2 = interpolation.elements[2];
+    expect(element2.value, '');
+  }
+
   void test_parseStringLiteral_interpolated() {
     StringInterpolation literal =
         parse4("parseStringLiteral", "'a \${b} c \$this d'");
@@ -8834,10 +9098,171 @@ void''');
     expect(elements[4] is InterpolationString, isTrue);
   }
 
+  void test_parseStringLiteral_multiline_encodedSpace() {
+    SimpleStringLiteral literal =
+        parse4("parseStringLiteral", "'''\\x20\na'''");
+    expect(literal.literal, isNotNull);
+    expect(literal.value, " \na");
+  }
+
+  void test_parseStringLiteral_multiline_endsWithInterpolation() {
+    StringLiteral literal = parse4('parseStringLiteral', r"'''x$y'''");
+    expect(literal, new isInstanceOf<StringInterpolation>());
+    StringInterpolation interpolation = literal;
+    expect(interpolation.elements, hasLength(3));
+    expect(interpolation.elements[0], new isInstanceOf<InterpolationString>());
+    InterpolationString element0 = interpolation.elements[0];
+    expect(element0.value, 'x');
+    expect(
+        interpolation.elements[1], new isInstanceOf<InterpolationExpression>());
+    InterpolationExpression element1 = interpolation.elements[1];
+    expect(element1.expression, new isInstanceOf<SimpleIdentifier>());
+    expect(interpolation.elements[2], new isInstanceOf<InterpolationString>());
+    InterpolationString element2 = interpolation.elements[2];
+    expect(element2.value, '');
+  }
+
+  void test_parseStringLiteral_multiline_escapedBackslash() {
+    SimpleStringLiteral literal = parse4("parseStringLiteral", "'''\\\\\na'''");
+    expect(literal.literal, isNotNull);
+    expect(literal.value, "\\\na");
+  }
+
+  void test_parseStringLiteral_multiline_escapedBackslash_raw() {
+    SimpleStringLiteral literal =
+        parse4("parseStringLiteral", "r'''\\\\\na'''");
+    expect(literal.literal, isNotNull);
+    expect(literal.value, "\\\\\na");
+  }
+
+  void test_parseStringLiteral_multiline_escapedEolMarker() {
+    SimpleStringLiteral literal = parse4("parseStringLiteral", "'''\\\na'''");
+    expect(literal.literal, isNotNull);
+    expect(literal.value, "a");
+  }
+
+  void test_parseStringLiteral_multiline_escapedEolMarker_raw() {
+    SimpleStringLiteral literal = parse4("parseStringLiteral", "r'''\\\na'''");
+    expect(literal.literal, isNotNull);
+    expect(literal.value, "a");
+  }
+
+  void test_parseStringLiteral_multiline_escapedSpaceAndEolMarker() {
+    SimpleStringLiteral literal =
+        parse4("parseStringLiteral", "'''\\ \\\na'''");
+    expect(literal.literal, isNotNull);
+    expect(literal.value, "a");
+  }
+
+  void test_parseStringLiteral_multiline_escapedSpaceAndEolMarker_raw() {
+    SimpleStringLiteral literal =
+        parse4("parseStringLiteral", "r'''\\ \\\na'''");
+    expect(literal.literal, isNotNull);
+    expect(literal.value, "a");
+  }
+
+  void test_parseStringLiteral_multiline_escapedTab() {
+    SimpleStringLiteral literal = parse4("parseStringLiteral", "'''\\t\na'''");
+    expect(literal.literal, isNotNull);
+    expect(literal.value, "\t\na");
+  }
+
+  void test_parseStringLiteral_multiline_escapedTab_raw() {
+    SimpleStringLiteral literal = parse4("parseStringLiteral", "r'''\\t\na'''");
+    expect(literal.literal, isNotNull);
+    expect(literal.value, "\\t\na");
+  }
+
+  void test_parseStringLiteral_multiline_quoteAfterInterpolation() {
+    StringLiteral literal = parse4('parseStringLiteral', r"""'''$x'y'''""");
+    expect(literal, new isInstanceOf<StringInterpolation>());
+    StringInterpolation interpolation = literal;
+    expect(interpolation.elements, hasLength(3));
+    expect(interpolation.elements[0], new isInstanceOf<InterpolationString>());
+    InterpolationString element0 = interpolation.elements[0];
+    expect(element0.value, '');
+    expect(
+        interpolation.elements[1], new isInstanceOf<InterpolationExpression>());
+    InterpolationExpression element1 = interpolation.elements[1];
+    expect(element1.expression, new isInstanceOf<SimpleIdentifier>());
+    expect(interpolation.elements[2], new isInstanceOf<InterpolationString>());
+    InterpolationString element2 = interpolation.elements[2];
+    expect(element2.value, "'y");
+  }
+
+  void test_parseStringLiteral_multiline_startsWithInterpolation() {
+    StringLiteral literal = parse4('parseStringLiteral', r"'''${x}y'''");
+    expect(literal, new isInstanceOf<StringInterpolation>());
+    StringInterpolation interpolation = literal;
+    expect(interpolation.elements, hasLength(3));
+    expect(interpolation.elements[0], new isInstanceOf<InterpolationString>());
+    InterpolationString element0 = interpolation.elements[0];
+    expect(element0.value, '');
+    expect(
+        interpolation.elements[1], new isInstanceOf<InterpolationExpression>());
+    InterpolationExpression element1 = interpolation.elements[1];
+    expect(element1.expression, new isInstanceOf<SimpleIdentifier>());
+    expect(interpolation.elements[2], new isInstanceOf<InterpolationString>());
+    InterpolationString element2 = interpolation.elements[2];
+    expect(element2.value, 'y');
+  }
+
+  void test_parseStringLiteral_multiline_twoSpaces() {
+    SimpleStringLiteral literal = parse4("parseStringLiteral", "'''  \na'''");
+    expect(literal.literal, isNotNull);
+    expect(literal.value, "a");
+  }
+
+  void test_parseStringLiteral_multiline_twoSpaces_raw() {
+    SimpleStringLiteral literal = parse4("parseStringLiteral", "r'''  \na'''");
+    expect(literal.literal, isNotNull);
+    expect(literal.value, "a");
+  }
+
+  void test_parseStringLiteral_multiline_untrimmed() {
+    SimpleStringLiteral literal = parse4("parseStringLiteral", "''' a\nb'''");
+    expect(literal.literal, isNotNull);
+    expect(literal.value, " a\nb");
+  }
+
+  void test_parseStringLiteral_quoteAfterInterpolation() {
+    StringLiteral literal = parse4('parseStringLiteral', r"""'$x"'""");
+    expect(literal, new isInstanceOf<StringInterpolation>());
+    StringInterpolation interpolation = literal;
+    expect(interpolation.elements, hasLength(3));
+    expect(interpolation.elements[0], new isInstanceOf<InterpolationString>());
+    InterpolationString element0 = interpolation.elements[0];
+    expect(element0.value, '');
+    expect(
+        interpolation.elements[1], new isInstanceOf<InterpolationExpression>());
+    InterpolationExpression element1 = interpolation.elements[1];
+    expect(element1.expression, new isInstanceOf<SimpleIdentifier>());
+    expect(interpolation.elements[2], new isInstanceOf<InterpolationString>());
+    InterpolationString element2 = interpolation.elements[2];
+    expect(element2.value, '"');
+  }
+
   void test_parseStringLiteral_single() {
     SimpleStringLiteral literal = parse4("parseStringLiteral", "'a'");
     expect(literal.literal, isNotNull);
     expect(literal.value, "a");
+  }
+
+  void test_parseStringLiteral_startsWithInterpolation() {
+    StringLiteral literal = parse4('parseStringLiteral', r"'${x}y'");
+    expect(literal, new isInstanceOf<StringInterpolation>());
+    StringInterpolation interpolation = literal;
+    expect(interpolation.elements, hasLength(3));
+    expect(interpolation.elements[0], new isInstanceOf<InterpolationString>());
+    InterpolationString element0 = interpolation.elements[0];
+    expect(element0.value, '');
+    expect(
+        interpolation.elements[1], new isInstanceOf<InterpolationExpression>());
+    InterpolationExpression element1 = interpolation.elements[1];
+    expect(element1.expression, new isInstanceOf<SimpleIdentifier>());
+    expect(interpolation.elements[2], new isInstanceOf<InterpolationString>());
+    InterpolationString element2 = interpolation.elements[2];
+    expect(element2.value, 'y');
   }
 
   void test_parseSuperConstructorInvocation_named() {

@@ -253,8 +253,13 @@ class CompletionTest extends AbstractAnalysisTest {
   List<CompletionSuggestion> suggestions = [];
   bool suggestionsDone = false;
 
-  String addTestFile(String content) {
+  String addTestFile(String content, {offset}) {
     completionOffset = content.indexOf('^');
+    if (offset != null) {
+      expect(completionOffset, -1, reason: 'cannot supply offset and ^');
+      completionOffset = offset;
+      return super.addTestFile(content);
+    }
     expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
     int nextOffset = content.indexOf('^', completionOffset + 1);
     expect(nextOffset, equals(-1), reason: 'too many ^');
@@ -436,6 +441,16 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
+  test_offset_past_eof() {
+    addTestFile('main() { }', offset: 300);
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(300));
+      expect(replacementLength, equals(0));
+      expect(suggestionsDone, true);
+      expect(suggestions.length, 0);
+    });
+  }
+
   test_overrides() {
     addFile('/libA.dart', 'class A {m() {}}');
     addTestFile('''
@@ -585,6 +600,11 @@ class MockContext implements AnalysisContext {
   @override
   TimestampedData<String> getContents(Source source) {
     return source.contents;
+  }
+
+  @override
+  bool exists(Source source) {
+    return source != null && source.exists();
   }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

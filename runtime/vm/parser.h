@@ -41,7 +41,7 @@ struct TopLevel;
 class ParsedFunction : public ZoneAllocated {
  public:
   ParsedFunction(Thread* thread, const Function& function)
-      : thread_(thread),
+      : isolate_(thread->isolate()),
         function_(function),
         code_(Code::Handle(zone(), function.unoptimized_code())),
         node_sequence_(NULL),
@@ -150,12 +150,11 @@ class ParsedFunction : public ZoneAllocated {
   void record_await() { have_seen_await_expr_ = true; }
   bool have_seen_await() const { return have_seen_await_expr_; }
 
-  Thread* thread() const { return thread_; }
-  Isolate* isolate() const { return thread()->isolate(); }
-  Zone* zone() const { return thread()->zone(); }
+  Isolate* isolate() const { return isolate_; }
+  Zone* zone() const { return isolate()->current_zone(); }
 
  private:
-  Thread* thread_;
+  Isolate* isolate_;
   const Function& function_;
   Code& code_;
   SequenceNode* node_sequence_;
@@ -325,9 +324,10 @@ class Parser : public ValueObject {
   bool IsYieldKeyword();
 
   void SkipIf(Token::Kind);
+  void SkipToMatching();
+  void SkipToMatchingParenthesis();
   void SkipBlock();
   intptr_t SkipMetadata();
-  void SkipToMatchingParenthesis();
   void SkipTypeArguments();
   void SkipType(bool allow_void);
   void SkipInitializers();
@@ -349,6 +349,8 @@ class Parser : public ValueObject {
   void SkipStringLiteral();
   void SkipQualIdent();
   void SkipFunctionPreamble();
+
+  AstNode* DartPrint(const char* str);
 
   void CheckConstructorCallTypeArguments(intptr_t pos,
                                          const Function& constructor,
@@ -533,6 +535,7 @@ class Parser : public ValueObject {
                             const ArgumentsDescriptor& desc,
                             Array* default_values);
 
+  void EnsureHasReturnStatement(SequenceNode* seq, intptr_t return_pos);
   void ChainNewBlock(LocalScope* outer_scope);
   void OpenBlock();
   void OpenLoopBlock();
@@ -796,11 +799,10 @@ class Parser : public ValueObject {
 
   RawInstance* TryCanonicalize(const Instance& instance, intptr_t token_pos);
 
-  Thread* thread() const { return thread_; }
-  Isolate* isolate() const { return thread()->isolate(); }
-  Zone* zone() const { return thread()->zone(); }
+  Isolate* isolate() const { return isolate_; }
+  Zone* zone() const { return isolate()->current_zone(); }
 
-  Thread* thread_;  // Cached current thread.
+  Isolate* isolate_;  // Cached current isolate.
 
   Script& script_;
   TokenStream::Iterator tokens_iterator_;

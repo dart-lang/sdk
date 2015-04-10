@@ -2221,6 +2221,7 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       options.analyzeFunctionBodies = booleanValue;
       options.cacheSize = i;
       options.dart2jsHint = booleanValue;
+      options.enableNullAwareOperators = booleanValue;
       options.enableStrictCallChecks = booleanValue;
       options.generateImplicitErrors = booleanValue;
       options.generateSdkErrors = booleanValue;
@@ -2231,6 +2232,7 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       expect(copy.analyzeFunctionBodies, options.analyzeFunctionBodies);
       expect(copy.cacheSize, options.cacheSize);
       expect(copy.dart2jsHint, options.dart2jsHint);
+      expect(copy.enableNullAwareOperators, options.enableNullAwareOperators);
       expect(copy.enableStrictCallChecks, options.enableStrictCallChecks);
       expect(copy.generateImplicitErrors, options.generateImplicitErrors);
       expect(copy.generateSdkErrors, options.generateSdkErrors);
@@ -2335,7 +2337,8 @@ class DartEntryTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     expect(entry.allErrors, hasLength(0));
     entry.setValue(SourceEntry.CONTENT_ERRORS, <AnalysisError>[
-      new AnalysisError.con1(source, ScannerErrorCode.UNABLE_GET_CONTENT)
+      new AnalysisError.con1(
+          source, ScannerErrorCode.UNABLE_GET_CONTENT, ['exception details'])
     ]);
     entry.setValue(DartEntry.SCAN_ERRORS, <AnalysisError>[
       new AnalysisError.con1(
@@ -4539,6 +4542,13 @@ class LintGeneratorTest_Linter_Null_Visitor extends Linter {
   AstVisitor getVisitor() => null;
 }
 
+class MockSourceFactory extends SourceFactory {
+  MockSourceFactory() : super([]);
+  Source resolveUri(Source containingSource, String containedUri) {
+    throw new JavaIOException();
+  }
+}
+
 @reflectiveTest
 class ParseDartTaskTest extends EngineTestCase {
   void test_accept() {
@@ -4625,6 +4635,26 @@ class A {}''';
     ParseDartTask task = _createParseTask(context, source, content);
     task.perform(
         new ParseDartTaskTestTV_perform_validateDirectives(context, source));
+  }
+
+  void test_resolveDirective_dartUri() {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    ImportDirective directive = AstFactory.importDirective3('dart:core', null);
+    AnalysisContext context = AnalysisContextFactory.contextWithCore();
+    Source source =
+        ParseDartTask.resolveDirective(context, null, directive, listener);
+    expect(source, isNotNull);
+  }
+
+  void test_resolveDirective_exception() {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    ImportDirective directive = AstFactory.importDirective3('dart:core', null);
+    AnalysisContext context = new AnalysisContextImpl();
+    context.sourceFactory = new MockSourceFactory();
+    Source source =
+        ParseDartTask.resolveDirective(context, null, directive, listener);
+    expect(source, isNull);
+    expect(listener.errors, hasLength(1));
   }
 
   /**
@@ -5461,6 +5491,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   List<Source> get refactoringUnsafeSources {
     fail("Unexpected invocation of getRefactoringUnsafeSources");
+    return null;
+  }
+  @override
+  LibraryResolverFactory get libraryResolverFactory {
+    fail("Unexpected invocation of getLibraryResolverFactory");
     return null;
   }
   @override

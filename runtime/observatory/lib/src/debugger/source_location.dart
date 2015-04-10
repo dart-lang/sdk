@@ -187,7 +187,6 @@ class SourceLocation {
   }
 
   static ServiceFunction _getConstructor(Class cls, String name) {
-    var matches = [];
     for (var function in cls.functions) {
       assert(cls.loaded);
       if (name == function.name) {

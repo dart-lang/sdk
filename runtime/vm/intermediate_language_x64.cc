@@ -5503,7 +5503,8 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (IsNullCheck()) {
     __ CompareObject(locs()->in(0).reg(),
                      Object::null_object(), PP);
-    __ j(EQUAL, deopt);
+    Condition cond = DeoptIfNull() ? EQUAL : NOT_EQUAL;
+    __ j(cond, deopt);
     return;
   }
 
@@ -6410,10 +6411,6 @@ void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   StubCode* stub_code = compiler->isolate()->stub_code();
   const ExternalLabel label(stub_code->DebugStepCheckEntryPoint());
   compiler->GenerateCall(token_pos(), &label, stub_kind_, locs());
-#if defined(DEBUG)
-  __ movq(R10, Immediate(kInvalidObjectPointer));
-  __ movq(RBX, Immediate(kInvalidObjectPointer));
-#endif
 }
 
 

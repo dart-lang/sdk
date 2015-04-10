@@ -10,7 +10,7 @@ import '../elements/elements.dart' show
     Element,
     FunctionElement,
     VariableElement;
-import '../universe/universe.dart' show Selector;
+import '../universe/universe.dart' show CallStructure;
 import 'values.dart';
 
 /// An expression that is a compile-time constant.
@@ -97,18 +97,19 @@ class MapConstantExpression extends ConstantExpression {
 }
 
 /// Invocation of a const constructor.
-class ConstructedConstantExpresssion extends ConstantExpression {
+class ConstructedConstantExpression extends ConstantExpression {
   final ConstantValue value;
   final InterfaceType type;
   final FunctionElement target;
-  final Selector selector;
+  final CallStructure callStructure;
   final List<ConstantExpression> arguments;
 
-  ConstructedConstantExpresssion(this.value,
-                      this.type,
-                      this.target,
-                      this.selector,
-                      this.arguments) {
+  ConstructedConstantExpression(
+      this.value,
+      this.type,
+      this.target,
+      this.callStructure,
+      this.arguments) {
     assert(type.element == target.enclosingClass);
   }
 
@@ -274,7 +275,7 @@ abstract class ConstantExpressionVisitor<C, R> {
   R visitPrimitive(PrimitiveConstantExpression exp, C context);
   R visitList(ListConstantExpression exp, C context);
   R visitMap(MapConstantExpression exp, C context);
-  R visitConstructed(ConstructedConstantExpresssion exp, C context);
+  R visitConstructed(ConstructedConstantExpression exp, C context);
   R visitConcatenate(ConcatenateConstantExpression exp, C context);
   R visitSymbol(SymbolConstantExpression exp, C context);
   R visitType(TypeConstantExpression exp, C context);
@@ -367,7 +368,7 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
   }
 
   @override
-  void visitConstructed(ConstructedConstantExpresssion exp, [_]) {
+  void visitConstructed(ConstructedConstantExpression exp, [_]) {
     sb.write('const ');
     sb.write(exp.target.enclosingClass.name);
     if (exp.target.name != '') {
@@ -378,7 +379,7 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     sb.write('(');
     bool needsComma = false;
 
-    int namedOffset = exp.selector.positionalArgumentCount;
+    int namedOffset = exp.callStructure.positionalArgumentCount;
     for (int index = 0; index < namedOffset; index++) {
       if (needsComma) {
         sb.write(', ');
@@ -386,11 +387,11 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
       visit(exp.arguments[index]);
       needsComma = true;
     }
-    for (int index = 0; index < exp.selector.namedArgumentCount; index++) {
+    for (int index = 0; index < exp.callStructure.namedArgumentCount; index++) {
       if (needsComma) {
         sb.write(', ');
       }
-      sb.write(exp.selector.namedArguments[index]);
+      sb.write(exp.callStructure.namedArguments[index]);
       sb.write(': ');
       visit(exp.arguments[namedOffset + index]);
       needsComma = true;

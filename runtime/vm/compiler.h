@@ -41,6 +41,9 @@ class Compiler : public AllStatic {
   // Returns Error::null() if there is no compilation error.
   static RawError* CompileFunction(Thread* thread, const Function& function);
 
+  // Generates unoptimized code if not present, current code is unchanged.
+  static void EnsureUnoptimizedCode(Thread* thread, const Function& function);
+
   // Generates optimized code for function.
   //
   // Returns Error::null() if there is no compilation error.

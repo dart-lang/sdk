@@ -10,8 +10,8 @@ import 'dart:math' as math;
 import '../entrypoint.dart';
 import '../validator.dart';
 
-/// The maximum size of the package to upload (10 MB).
-const _MAX_SIZE = 10 * 1024 * 1024;
+/// The maximum size of the package to upload (100 MB).
+const _MAX_SIZE = 100 * 1024 * 1024;
 
 /// A validator that validates that a package isn't too big.
 class SizeValidator extends Validator {
@@ -25,7 +25,7 @@ class SizeValidator extends Validator {
       if (size <= _MAX_SIZE) return;
       var sizeInMb = (size / math.pow(2, 20)).toStringAsPrecision(4);
       errors.add("Your package is $sizeInMb MB. Hosted packages must be "
-          "smaller than 10 MB.");
+          "smaller than 100 MB.");
     });
   }
 }

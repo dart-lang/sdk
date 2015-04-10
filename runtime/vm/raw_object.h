@@ -35,7 +35,6 @@ namespace dart {
   V(Stackmap)                                                                  \
   V(LocalVarDescriptors)                                                       \
   V(ExceptionHandlers)                                                         \
-  V(DeoptInfo)                                                                 \
   V(Context)                                                                   \
   V(ContextScope)                                                              \
   V(ICData)                                                                    \
@@ -184,10 +183,6 @@ enum {
   kSmiTagSize = 1,
   kSmiTagMask = 1,
   kSmiTagShift = 1,
-};
-
-enum {
-  kInvalidObjectPointer = kHeapObjectTag,
 };
 
 enum TypedDataElementType {
@@ -1244,19 +1239,6 @@ class RawExceptionHandlers : public RawObject {
 };
 
 
-// Contains an array of deoptimization commands, e.g., move a specific register
-// into a specific slot of unoptimized frame.
-class RawDeoptInfo : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(DeoptInfo);
-
-  RawSmi* length_;  // Number of deoptimization commands
-
-  // Variable length data follows here.
-  intptr_t* data() { OPEN_ARRAY_START(intptr_t, intptr_t); }
-  const intptr_t* data() const { OPEN_ARRAY_START(intptr_t, intptr_t); }
-};
-
-
 class RawContext : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Context);
 
@@ -1886,9 +1868,8 @@ class RawJSRegExp : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(JSRegExp);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->data_length_);
+    return reinterpret_cast<RawObject**>(&ptr()->num_bracket_expressions_);
   }
-  RawSmi* data_length_;
   RawSmi* num_bracket_expressions_;
   RawString* pattern_;  // Pattern to be used for matching.
   RawFunction* one_byte_function_;
@@ -1903,9 +1884,6 @@ class RawJSRegExp : public RawInstance {
   // type: Uninitialized, simple or complex.
   // flags: Represents global/local, case insensitive, multiline.
   int8_t type_flags_;
-
-  // Variable length data follows here.
-  uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
 };
 
 
@@ -2154,7 +2132,6 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
          (index == kStackmapCid) ||
          (index == kLocalVarDescriptorsCid) ||
          (index == kExceptionHandlersCid) ||
-         (index == kDeoptInfoCid) ||
          (index == kCodeCid) ||
          (index == kContextScopeCid) ||
          (index == kInstanceCid) ||

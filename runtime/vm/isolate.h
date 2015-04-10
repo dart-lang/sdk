@@ -122,7 +122,6 @@ class Isolate : public BaseIsolate {
     Thread* thread = Thread::Current();
     return thread == NULL ? NULL : thread->isolate();
   }
-  static void SetCurrent(Isolate* isolate);
 
   static void InitOnce();
   static Isolate* Init(const char* name_prefix, bool is_vm_isolate = false);
@@ -170,7 +169,7 @@ class Isolate : public BaseIsolate {
   // No other threads operating on this isolate may execute Dart code.
   // TODO(koda): Remove after caching current thread in generated code.
   Thread* mutator_thread() {
-    DEBUG_ASSERT(IsIsolateOf(mutator_thread_));
+    DEBUG_ASSERT(mutator_thread_ == NULL || IsIsolateOf(mutator_thread_));
     return mutator_thread_;
   }
 #if defined(DEBUG)
@@ -178,6 +177,9 @@ class Isolate : public BaseIsolate {
 #endif  // DEBUG
 
   const char* name() const { return name_; }
+  const char* debugger_name() const { return debugger_name_; }
+  void set_debugger_name(const char* name);
+
   // TODO(koda): Move to Thread.
   class Log* Log() const;
 
@@ -680,6 +682,10 @@ class Isolate : public BaseIsolate {
     user_tag_ = tag;
   }
 
+  void set_mutator_thread(Thread* thread) {
+    mutator_thread_ = thread;
+  }
+
   template<class T> T* AllocateReusableHandle();
 
   Thread* mutator_thread_;
@@ -689,6 +695,7 @@ class Isolate : public BaseIsolate {
   MegamorphicCacheTable megamorphic_cache_table_;
   Dart_MessageNotifyCallback message_notify_callback_;
   char* name_;
+  char* debugger_name_;
   int64_t start_time_;
   Dart_Port main_port_;
   Dart_Port origin_id_;  // Isolates created by spawnFunc have some origin id.
@@ -799,7 +806,8 @@ class Isolate : public BaseIsolate {
   static void AddIsolateTolist(Isolate* isolate);
   static void RemoveIsolateFromList(Isolate* isolate);
   static void CheckForDuplicateThreadState(InterruptableThreadState* state);
-  static Monitor* isolates_list_monitor_;
+
+  static Monitor* isolates_list_monitor_;  // Protects isolates_list_head_
   static Isolate* isolates_list_head_;
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
@@ -820,13 +828,14 @@ class StartIsolateScope {
  public:
   explicit StartIsolateScope(Isolate* new_isolate)
       : new_isolate_(new_isolate), saved_isolate_(Isolate::Current()) {
+    // TODO(koda): Audit users; passing NULL goes against naming of this class.
     if (new_isolate_ == NULL) {
       // Do nothing.
       return;
     }
     if (saved_isolate_ != new_isolate_) {
       ASSERT(Isolate::Current() == NULL);
-      Isolate::SetCurrent(new_isolate_);
+      Thread::EnterIsolate(new_isolate_);
       new_isolate_->SetStackLimitFromStackBase(
           Isolate::GetCurrentStackPointer());
     }
@@ -839,7 +848,10 @@ class StartIsolateScope {
     }
     if (saved_isolate_ != new_isolate_) {
       new_isolate_->ClearStackLimit();
-      Isolate::SetCurrent(saved_isolate_);
+      Thread::ExitIsolate();
+      if (saved_isolate_ != NULL) {
+        Thread::EnterIsolate(saved_isolate_);
+      }
     }
   }
 
@@ -860,9 +872,12 @@ class SwitchIsolateScope {
         saved_isolate_(Isolate::Current()),
         saved_stack_limit_(saved_isolate_
                            ? saved_isolate_->saved_stack_limit() : 0) {
+    // TODO(koda): Audit users; why would these two ever be equal?
     if (saved_isolate_ != new_isolate_) {
-      Isolate::SetCurrent(new_isolate_);
-      if (new_isolate_ != NULL) {
+      if (new_isolate_ == NULL) {
+        Thread::ExitIsolate();
+      } else {
+        Thread::EnterIsolate(new_isolate_);
         // Don't allow dart code to execute.
         new_isolate_->SetStackLimit(~static_cast<uword>(0));
       }
@@ -871,8 +886,11 @@ class SwitchIsolateScope {
 
   ~SwitchIsolateScope() {
     if (saved_isolate_ != new_isolate_) {
-      Isolate::SetCurrent(saved_isolate_);
+      if (new_isolate_ != NULL) {
+        Thread::ExitIsolate();
+      }
       if (saved_isolate_ != NULL) {
+        Thread::EnterIsolate(saved_isolate_);
         saved_isolate_->SetStackLimit(saved_stack_limit_);
       }
     }

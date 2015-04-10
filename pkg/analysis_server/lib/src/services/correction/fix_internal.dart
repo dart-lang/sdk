@@ -376,6 +376,9 @@ class FixProcessor {
     }
     ClassDeclaration classDeclaration =
         node.getAncestor((node) => node is ClassDeclaration);
+    if (classDeclaration == null) {
+      return;
+    }
     // prepare names of uninitialized final fields
     List<String> fieldNames = <String>[];
     for (ClassMember member in classDeclaration.members) {
@@ -450,7 +453,7 @@ class FixProcessor {
     }
     ClassElement targetElement = targetType.element as ClassElement;
     String targetFile = targetElement.source.fullName;
-    ClassDeclaration targetClass = targetElement.node;
+    ClassDeclaration targetClass = getParsedClassElementNode(targetElement);
     _ConstructorLocation targetLocation =
         _prepareNewConstructorLocation(targetClass);
     // build method source
@@ -504,7 +507,7 @@ class FixProcessor {
     }
     ClassElement targetElement = targetType.element as ClassElement;
     String targetFile = targetElement.source.fullName;
-    ClassDeclaration targetClass = targetElement.node;
+    ClassDeclaration targetClass = getParsedClassElementNode(targetElement);
     _ConstructorLocation targetLocation =
         _prepareNewConstructorLocation(targetClass);
     // build method source
@@ -675,6 +678,9 @@ class FixProcessor {
   }
 
   void _addFix_createField() {
+    if (node is! SimpleIdentifier) {
+      return;
+    }
     SimpleIdentifier nameNode = node;
     String name = nameNode.name;
     // prepare target Expression
@@ -713,7 +719,7 @@ class FixProcessor {
     }
     utils.targetClassElement = targetClassElement;
     // prepare target ClassDeclaration
-    AstNode targetTypeNode = targetClassElement.node;
+    AstNode targetTypeNode = getParsedClassElementNode(targetClassElement);
     if (targetTypeNode is! ClassDeclaration) {
       return;
     }
@@ -802,6 +808,9 @@ class FixProcessor {
   }
 
   void _addFix_createGetter() {
+    if (node is! SimpleIdentifier) {
+      return;
+    }
     SimpleIdentifier nameNode = node;
     String name = nameNode.name;
     if (!nameNode.inGetterContext()) {
@@ -843,7 +852,7 @@ class FixProcessor {
     }
     utils.targetClassElement = targetClassElement;
     // prepare target ClassDeclaration
-    AstNode targetTypeNode = targetClassElement.node;
+    AstNode targetTypeNode = getParsedClassElementNode(targetClassElement);
     if (targetTypeNode is! ClassDeclaration) {
       return;
     }
@@ -902,6 +911,9 @@ class FixProcessor {
   }
 
   void _addFix_createLocalVariable() {
+    if (node is! SimpleIdentifier) {
+      return;
+    }
     SimpleIdentifier nameNode = node;
     String name = nameNode.name;
     // if variable is assigned, convert assignment into declaration
@@ -1123,7 +1135,7 @@ class FixProcessor {
   void _addFix_importLibrary(FixKind kind, String importPath) {
     CompilationUnitElement libraryUnitElement =
         unitLibraryElement.definingCompilationUnit;
-    CompilationUnit libraryUnit = libraryUnitElement.node;
+    CompilationUnit libraryUnit = getParsedUnit(libraryUnitElement);
     // prepare new import location
     int offset = 0;
     String prefix;
@@ -1655,7 +1667,8 @@ class FixProcessor {
           staticModifier = target.bestElement.kind == ElementKind.CLASS;
         }
         // prepare insert offset
-        ClassDeclaration targetClassNode = targetClassElement.node;
+        ClassDeclaration targetClassNode =
+            getParsedClassElementNode(targetClassElement);
         prefix = '  ';
         insertOffset = targetClassNode.end - 1;
         if (targetClassNode.members.isEmpty) {
@@ -1967,7 +1980,8 @@ class FixProcessor {
     // prepare environment
     Source targetSource = targetClassElement.source;
     // prepare insert offset
-    ClassDeclaration targetClassNode = targetClassElement.node;
+    ClassDeclaration targetClassNode =
+        getParsedClassElementNode(targetClassElement);
     int insertOffset = targetClassNode.end - 1;
     // prepare prefix
     String prefix = '  ';
@@ -2385,9 +2399,8 @@ class FixProcessor {
   static void _addSuperTypeProposals(
       SourceBuilder sb, Set<DartType> alreadyAdded, DartType type) {
     if (type != null &&
-        !alreadyAdded.contains(type) &&
-        type.element is ClassElement) {
-      alreadyAdded.add(type);
+        type.element is ClassElement &&
+        alreadyAdded.add(type)) {
       ClassElement element = type.element as ClassElement;
       sb.addSuggestion(LinkedEditSuggestionKind.TYPE, element.name);
       _addSuperTypeProposals(sb, alreadyAdded, element.supertype);

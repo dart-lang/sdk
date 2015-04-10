@@ -11,7 +11,8 @@
     'builtin_in_cc_file': 'builtin_in.cc',
     'builtin_cc_file': '<(gen_source_dir)/builtin_gen.cc',
     'snapshot_in_cc_file': 'snapshot_in.cc',
-    'snapshot_bin_file': '<(gen_source_dir)/snapshot_gen.bin',
+    'vm_isolate_snapshot_bin_file': '<(gen_source_dir)/vm_isolate_snapshot_gen.bin',
+    'isolate_snapshot_bin_file': '<(gen_source_dir)/isolate_snapshot_gen.bin',
     'resources_cc_file': '<(gen_source_dir)/resources_gen.cc',
     'bootstrap_resources_cc_file':
         '<(gen_source_dir)/bootstrap_resources_gen.cc',
@@ -352,7 +353,6 @@
       'dependencies': [
         'libdart_lib_withcore',
         'libdart_vm',
-        'libjscre',
         'libdouble_conversion',
         'generate_version_cc_file#host',
       ],
@@ -431,17 +431,19 @@
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)gen_snapshot<(EXECUTABLE_SUFFIX)',
           ],
           'outputs': [
-            '<(snapshot_bin_file)',
+            '<(vm_isolate_snapshot_bin_file)',
+            '<(isolate_snapshot_bin_file)',
           ],
           'action': [
             'python',
             'tools/create_snapshot_bin.py',
             '--executable',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)gen_snapshot<(EXECUTABLE_SUFFIX)',
-            '--output_bin', '<(snapshot_bin_file)',
+            '--vm_output_bin', '<(vm_isolate_snapshot_bin_file)',
+            '--output_bin', '<(isolate_snapshot_bin_file)',
             '--target_os', '<(OS)'
           ],
-          'message': 'Generating ''<(snapshot_bin_file)'' file.'
+          'message': 'Generating ''<(vm_isolate_snapshot_bin_file)'' ''<(isolate_snapshot_bin_file)'' files.'
         },
       ],
     },
@@ -459,7 +461,8 @@
           'inputs': [
             '../tools/create_snapshot_file.py',
             '<(snapshot_in_cc_file)',
-            '<(snapshot_bin_file)'
+            '<(vm_isolate_snapshot_bin_file)',
+            '<(isolate_snapshot_bin_file)',
           ],
           'outputs': [
             '<(snapshot_cc_file)',
@@ -467,7 +470,8 @@
           'action': [
             'python',
             'tools/create_snapshot_file.py',
-            '--input_bin', '<(snapshot_bin_file)',
+            '--vm_input_bin', '<(vm_isolate_snapshot_bin_file)',
+            '--input_bin', '<(isolate_snapshot_bin_file)',
             '--input_cc', '<(snapshot_in_cc_file)',
             '--output', '<(snapshot_cc_file)',
           ],

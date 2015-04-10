@@ -61,6 +61,11 @@ bool FlowGraphCompiler::SupportsSinCos() {
 }
 
 
+bool FlowGraphCompiler::SupportsHardwareDivision() {
+  return true;
+}
+
+
 void FlowGraphCompiler::EnterIntrinsicMode() {
   ASSERT(!intrinsic_mode());
   intrinsic_mode_ = true;
@@ -73,12 +78,12 @@ void FlowGraphCompiler::ExitIntrinsicMode() {
 }
 
 
-RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
+RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                  DeoptInfoBuilder* builder,
                                                  const Array& deopt_table) {
   if (deopt_env_ == NULL) {
     ++builder->current_info_number_;
-    return DeoptInfo::null();
+    return TypedData::null();
   }
 
   intptr_t stack_height = compiler->StackSize();
@@ -95,11 +100,13 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   builder->MarkFrameStart();
 
   // Callee's PC marker is not used anymore. Pass Code::null() to set to 0.
-  builder->AddPcMarker(Code::Handle(), slot_ix++);
+  builder->AddPcMarker(Function::Handle(), slot_ix++);
 
   // Current FP and PC.
   builder->AddCallerFp(slot_ix++);
-  builder->AddReturnAddress(current->code(), deopt_id(), slot_ix++);
+  builder->AddReturnAddress(Function::Handle(current->code().function()),
+                            deopt_id(),
+                            slot_ix++);
 
   // Emit all values that are needed for materialization as a part of the
   // expression stack for the bottom-most frame. This guarantees that GC
@@ -114,7 +121,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   }
 
   // Current PC marker and caller FP.
-  builder->AddPcMarker(current->code(), slot_ix++);
+  builder->AddPcMarker(Function::Handle(current->code().function()), slot_ix++);
   builder->AddCallerFp(slot_ix++);
 
   Environment* previous = current;
@@ -122,7 +129,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   while (current != NULL) {
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
-    builder->AddReturnAddress(current->code(),
+    builder->AddReturnAddress(Function::Handle(current->code().function()),
                               Isolate::ToDeoptAfter(current->deopt_id()),
                               slot_ix++);
 
@@ -144,7 +151,8 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     }
 
     // PC marker and caller FP.
-    builder->AddPcMarker(current->code(), slot_ix++);
+    builder->AddPcMarker(Function::Handle(current->code().function()),
+                         slot_ix++);
     builder->AddCallerFp(slot_ix++);
 
     // Iterate on the outer environment.
@@ -1216,10 +1224,6 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
                    RawPcDescriptors::kUnoptStaticCall,
                    locs);
   __ Drop(argument_count);
-#if defined(DEBUG)
-  __ movl(ECX, Immediate(kInvalidObjectPointer));
-  __ movl(EDX, Immediate(kInvalidObjectPointer));
-#endif
 }
 
 
@@ -1290,9 +1294,6 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                    RawPcDescriptors::kIcCall,
                    locs);
   __ Drop(argument_count);
-#if defined(DEBUG)
-  __ movl(EDX, Immediate(kInvalidObjectPointer));
-#endif
 }
 
 
@@ -1435,13 +1436,6 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                            Isolate::kNoDeoptId,
                            token_pos);
     }
-#if defined(DEBUG)
-    if (!is_optimizing()) {
-      // Do this *after* adding the pc descriptor!
-      __ movl(EDX, Immediate(kInvalidObjectPointer));
-      __ movl(ECX, Immediate(kInvalidObjectPointer));
-    }
-#endif
     // Stub returns result in flags (result of a cmpl, we need ZF computed).
     __ popl(right);
     __ popl(left);

@@ -113,7 +113,7 @@ class AnnotationCreator
   }
 
   @override
-  Annotation visitConstructed(ConstructedConstantExpresssion exp,
+  Annotation visitConstructed(ConstructedConstantExpression exp,
                               AnnotationInfo context) {
     return createAnnotation(exp.target, context,
         exp.arguments.map((a) => a.getText()).toList());

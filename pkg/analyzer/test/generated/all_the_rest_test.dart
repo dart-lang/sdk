@@ -126,9 +126,8 @@ abstract class AbstractScannerTest {
   }
 
   void test_tokenize_directive_xml() {
-    _tokenize("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>", <Object>[
-      "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"
-    ]);
+    _tokenize("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>",
+        <Object>["<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"]);
   }
 
   void test_tokenize_directives_incomplete_with_newline() {
@@ -932,10 +931,11 @@ class ConstantFinderTest extends EngineTestCase {
     return constructorInvocations;
   }
 
-  Map<VariableElement, VariableDeclaration> _findVariableDeclarations() {
+  Map<PotentiallyConstVariableElement, VariableDeclaration> _findVariableDeclarations() {
     ConstantFinder finder = new ConstantFinder();
     _node.accept(finder);
-    Map<VariableElement, VariableDeclaration> variableMap = finder.variableMap;
+    Map<PotentiallyConstVariableElement, VariableDeclaration> variableMap =
+        finder.variableMap;
     expect(variableMap, isNotNull);
     return variableMap;
   }
@@ -2282,6 +2282,26 @@ class ConstantVisitorTest extends ResolverTestCase {
     _assertValue(1, expression.accept(
         new ConstantVisitor.con1(new TestTypeProvider(), errorReporter)));
     errorListener.assertNoErrors();
+  }
+
+  void test_visitSimpleIdentifier_className() {
+    CompilationUnit compilationUnit = resolveSource('''
+const a = C;
+class C {}
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'a', null);
+    expect(result.type, typeProvider.typeType);
+    ClassElement element = result.value;
+    expect(element.name, 'C');
+  }
+
+  void test_visitSimpleIdentifier_dynamic() {
+    CompilationUnit compilationUnit = resolveSource('''
+const a = dynamic;
+''');
+    DartObjectImpl result = _evaluateConstant(compilationUnit, 'a', null);
+    expect(result.type, typeProvider.typeType);
+    expect(result.value, typeProvider.dynamicType.element);
   }
 
   void test_visitSimpleIdentifier_inEnvironment() {
@@ -5706,10 +5726,9 @@ class ElementBuilderTest extends EngineTestCase {
     String firstTypeParameterName = "A";
     String secondTypeParameterName = "B";
     TypeAlias typeAlias = AstFactory.typeAlias(null, aliasName, AstFactory
-        .typeParameterList([
-      firstTypeParameterName,
-      secondTypeParameterName
-    ]), AstFactory.formalParameterList());
+            .typeParameterList(
+                [firstTypeParameterName, secondTypeParameterName]),
+        AstFactory.formalParameterList());
     typeAlias.accept(builder);
     List<FunctionTypeAliasElement> aliases = holder.typeAliases;
     expect(aliases, hasLength(1));
@@ -6419,6 +6438,31 @@ class ErrorReporterTest extends EngineTestCase {
     GatheringErrorListener listener = new GatheringErrorListener();
     TestSource source = new TestSource();
     expect(new ErrorReporter(listener, source), isNotNull);
+  }
+
+  void test_reportErrorForElement_named() {
+    DartType type = createType("/test1.dart", "A");
+    ClassElement element = type.element;
+    GatheringErrorListener listener = new GatheringErrorListener();
+    ErrorReporter reporter = new ErrorReporter(listener, element.source);
+    reporter.reportErrorForElement(
+        StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER,
+        element, ['A']);
+    AnalysisError error = listener.errors[0];
+    expect(error.offset, element.nameOffset);
+  }
+
+  void test_reportErrorForElement_unnamed() {
+    ImportElementImpl element =
+        ElementFactory.importFor(ElementFactory.library(null, ''), null);
+    GatheringErrorListener listener = new GatheringErrorListener();
+    ErrorReporter reporter = new ErrorReporter(
+        listener, new NonExistingSource("/test.dart", UriKind.FILE_URI));
+    reporter.reportErrorForElement(
+        StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER,
+        element, ['A']);
+    AnalysisError error = listener.errors[0];
+    expect(error.offset, element.nameOffset);
   }
 
   void test_reportTypeErrorForNode_differentNames() {
@@ -7394,9 +7438,8 @@ $scriptBody
 </html>""");
     _validate(htmlUnit, [
       _t4("html", [
-        _t4("body", [
-          _t("script", _a(["type", "'application/dart'"]), scriptBody)
-        ])
+        _t4("body",
+            [_t("script", _a(["type", "'application/dart'"]), scriptBody)])
       ])
     ]);
   }
@@ -7408,8 +7451,9 @@ $scriptBody
     ht.Token token = scanner.tokenize();
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
     GatheringErrorListener errorListener = new GatheringErrorListener();
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     ht.HtmlUnit unit =
-        new ht.HtmlParser(null, errorListener).parse(token, lineInfo);
+        new ht.HtmlParser(null, errorListener, options).parse(token, lineInfo);
     errorListener.assertNoErrors();
     return unit;
   }
@@ -7464,9 +7508,8 @@ $scriptBody
     // ht.XmlTagNode.getContent() does not include whitespace
     // between '<' and '>' at this time
     _validate(htmlUnit, [
-      _t3("html", "\n<pa=\"b\">blat \n </p>\n", [
-        _t("p", _a(["a", "\"b\""]), "blat \n ")
-      ])
+      _t3("html", "\n<pa=\"b\">blat \n </p>\n",
+          [_t("p", _a(["a", "\"b\""]), "blat \n ")])
     ]);
   }
   void test_parse_content_none() {
@@ -7806,7 +7849,7 @@ class MockDartSdk implements DartSdk {
 @reflectiveTest
 class ReferenceFinderTest extends EngineTestCase {
   DirectedGraph<AstNode> _referenceGraph;
-  Map<VariableElement, VariableDeclaration> _variableDeclarationMap;
+  Map<PotentiallyConstVariableElement, VariableDeclaration> _variableDeclarationMap;
   Map<ConstructorElement, ConstructorDeclaration> _constructorDeclarationMap;
   VariableDeclaration _head;
   AstNode _tail;
@@ -7814,7 +7857,7 @@ class ReferenceFinderTest extends EngineTestCase {
   void setUp() {
     _referenceGraph = new DirectedGraph<AstNode>();
     _variableDeclarationMap =
-        new HashMap<VariableElement, VariableDeclaration>();
+        new HashMap<PotentiallyConstVariableElement, VariableDeclaration>();
     _constructorDeclarationMap =
         new HashMap<ConstructorElement, ConstructorDeclaration>();
     _head = AstFactory.variableDeclaration("v1");
@@ -7937,8 +7980,8 @@ class ReferenceFinderTest extends EngineTestCase {
     VariableDeclaration variableDeclaration =
         AstFactory.variableDeclaration(name);
     _tail = variableDeclaration;
-    VariableElementImpl variableElement =
-        ElementFactory.localVariableElement2(name);
+    ConstLocalVariableElementImpl variableElement =
+        ElementFactory.constLocalVariableElement(name);
     variableElement.const3 = isConst;
     AstFactory.variableDeclarationList2(
         isConst ? Keyword.CONST : Keyword.VAR, [variableDeclaration]);

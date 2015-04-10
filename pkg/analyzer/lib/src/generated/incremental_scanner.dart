@@ -6,6 +6,8 @@ library engine.incremental_scanner;
 
 import "dart:math" as math;
 
+import 'package:analyzer/src/generated/engine.dart';
+
 import 'error.dart';
 import 'scanner.dart';
 import 'source.dart';
@@ -35,6 +37,8 @@ class IncrementalScanner {
    */
   final AnalysisErrorListener errorListener;
 
+  final AnalysisOptions _options;
+
   /**
    * A map from tokens that were copied to the copies of the tokens.
    */
@@ -62,8 +66,10 @@ class IncrementalScanner {
    * Initialize a newly created scanner to scan characters within the given
    * [source]. The content of the source can be read using the given [reader].
    * Any errors that are found will be reported to the given [errorListener].
+   * [_options] will determine how scanning is to be performed.
    */
-  IncrementalScanner(this.source, this.reader, this.errorListener);
+  IncrementalScanner(
+      this.source, this.reader, this.errorListener, this._options);
 
   /**
    * Return a map from tokens that were copied to the copies of the tokens.
@@ -218,6 +224,7 @@ class IncrementalScanner {
   Token _scanRange(int start, int end) {
     Scanner scanner = new Scanner(
         source, new CharacterRangeReader(reader, start, end), errorListener);
+    scanner.enableNullAwareOperators = _options.enableNullAwareOperators;
     return scanner.tokenize();
   }
 

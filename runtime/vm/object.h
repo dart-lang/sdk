@@ -1797,9 +1797,6 @@ class Function : public Object {
 
   RawCode* unoptimized_code() const { return raw_ptr()->unoptimized_code_; }
   void set_unoptimized_code(const Code& value) const;
-  static intptr_t unoptimized_code_offset() {
-    return OFFSET_OF(RawFunction, unoptimized_code_);
-  }
   bool HasCode() const;
 
   static intptr_t instructions_offset() {
@@ -3545,81 +3542,38 @@ class ExceptionHandlers : public Object {
 // field-value pairs) are added as artificial slots to the expression stack
 // of the bottom-most frame. They are removed from the stack at the very end
 // of deoptimization by the deoptimization stub.
-class DeoptInfo : public Object {
- private:
-  // Describes the layout of deopt info data. The index of a deopt-info entry
-  // is implicitly the target slot in which the value is written into.
-  enum {
-    kInstruction = 0,
-    kFromIndex,
-    kNumberOfEntries,
-  };
-
+class DeoptInfo : public AllStatic {
  public:
-  // The number of instructions.
-  intptr_t Length() const;
-
-  // The number of real (non-suffix) instructions needed to execute the
-  // deoptimization translation.
-  intptr_t TranslationLength() const;
-
   // Size of the frame part of the translation not counting kMaterializeObject
   // instructions in the prefix.
-  intptr_t FrameSize() const;
+  static intptr_t FrameSize(const TypedData& packed);
 
   // Returns the number of kMaterializeObject instructions in the prefix.
-  intptr_t NumMaterializations() const;
-
-  static RawDeoptInfo* New(intptr_t num_commands);
-
-  static const intptr_t kBytesPerElement = (kNumberOfEntries * kWordSize);
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
-
-  static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawDeoptInfo) ==
-           OFFSET_OF_RETURNED_VALUE(RawDeoptInfo, data));
-    return 0;
-  }
-
-  static intptr_t InstanceSize(intptr_t len) {
-    ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(sizeof(RawDeoptInfo) +
-                                 (len * kBytesPerElement));
-  }
-
-  // 'index' corresponds to target, to-index.
-  void SetAt(intptr_t index,
-             intptr_t instr_kind,
-             intptr_t from_index) const;
-
-  intptr_t Instruction(intptr_t index) const;
-  intptr_t FromIndex(intptr_t index) const;
-  intptr_t ToIndex(intptr_t index) const {
-    return index;
-  }
+  static intptr_t NumMaterializations(const GrowableArray<DeoptInstr*>&);
 
   // Unpack the entire translation into an array of deoptimization
   // instructions.  This copies any shared suffixes into the array.
-  void ToInstructions(const Array& table,
-                      GrowableArray<DeoptInstr*>* instructions) const;
+  static void Unpack(const Array& table,
+                     const TypedData& packed,
+                     GrowableArray<DeoptInstr*>* instructions);
 
+  // Size of the frame part of the translation not counting kMaterializeObject
+  // instructions in the prefix.
+  static const char* ToCString(const Array& table,
+                               const TypedData& packed);
 
   // Returns true iff decompression yields the same instructions as the
   // original.
-  bool VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
-                           const Array& deopt_table) const;
+  static bool VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
+                                  const Array& deopt_table,
+                                  const TypedData& packed);
+
 
  private:
-  intptr_t* EntryAddr(intptr_t index, intptr_t entry_offset) const {
-    ASSERT((index >=0) && (index < Length()));
-    intptr_t data_index = (index * kNumberOfEntries) + entry_offset;
-    return &UnsafeMutableNonPointer(raw_ptr()->data())[data_index];
-  }
-
-  void SetLength(intptr_t value) const;
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(DeoptInfo, Object);
-  friend class Class;
+  static void UnpackInto(const Array& table,
+                         const TypedData& packed,
+                         GrowableArray<DeoptInstr*>* instructions,
+                         intptr_t length);
 };
 
 
@@ -4015,7 +3969,7 @@ class Code : public Object {
     return raw_ptr()->static_calls_target_table_;
   }
 
-  RawDeoptInfo* GetDeoptInfoAtPc(uword pc,
+  RawTypedData* GetDeoptInfoAtPc(uword pc,
                                  ICData::DeoptReasonId* deopt_reason,
                                  uint32_t* deopt_flags) const;
 
@@ -7542,24 +7496,11 @@ class JSRegExp : public Instance {
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
 
-  static const intptr_t kBytesPerElement = 1;
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
-
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawJSRegExp) == OFFSET_OF_RETURNED_VALUE(RawJSRegExp, data));
-    if (FLAG_use_jscre) {
-      return 0;
-    }
     return RoundedAllocationSize(sizeof(RawJSRegExp));
   }
 
-  static intptr_t InstanceSize(intptr_t len) {
-    ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(
-        sizeof(RawJSRegExp) + (len * kBytesPerElement));
-  }
-
-  static RawJSRegExp* New(intptr_t length, Heap::Space space = Heap::kNew);
+  static RawJSRegExp* New(Heap::Space space = Heap::kNew);
 
  private:
   void set_type(RegExType type) const {
@@ -7576,12 +7517,6 @@ class JSRegExp : public Instance {
   }
   intptr_t flags() const {
     return FlagsBits::decode(raw_ptr()->type_flags_);
-  }
-
-  void SetLength(intptr_t value) const {
-    // This is only safe because we create a new Smi, which does not cause
-    // heap allocation.
-    StoreSmi(&raw_ptr()->data_length_, Smi::New(value));
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(JSRegExp, Instance);

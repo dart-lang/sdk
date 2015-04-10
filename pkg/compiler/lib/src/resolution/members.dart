@@ -1500,7 +1500,7 @@ class InitializerResolver {
     final String className = lookupTarget.name;
     verifyThatConstructorMatchesCall(constructor,
                                      calledConstructor,
-                                     selector,
+                                     selector.callStructure,
                                      isImplicitSuperCall,
                                      call,
                                      className,
@@ -1519,11 +1519,6 @@ class InitializerResolver {
     if (classElement != visitor.compiler.objectClass) {
       assert(superClass != null);
       assert(superClass.resolutionState == STATE_DONE);
-      String constructorName = '';
-      Selector callToMatch = new Selector.call(
-          constructorName,
-          classElement.library,
-          0);
 
       final bool isSuperCall = true;
       ClassElement lookupTarget = getSuperOrThisLookupTarget(constructor,
@@ -1537,7 +1532,7 @@ class InitializerResolver {
       final bool isImplicitSuperCall = true;
       verifyThatConstructorMatchesCall(constructor,
                                        calledConstructor,
-                                       callToMatch,
+                                       CallStructure.NO_ARGS,
                                        isImplicitSuperCall,
                                        functionNode,
                                        className,
@@ -1549,8 +1544,8 @@ class InitializerResolver {
 
   void verifyThatConstructorMatchesCall(
       FunctionElement caller,
-      FunctionElement lookedupConstructor,
-      Selector call,
+      ConstructorElementX lookedupConstructor,
+      CallStructure call,
       bool isImplicitSuperCall,
       Node diagnosticNode,
       String className,
@@ -1567,7 +1562,7 @@ class InitializerResolver {
           diagnosticNode, kind, {'constructorName': fullConstructorName});
     } else {
       lookedupConstructor.computeSignature(visitor.compiler);
-      if (!call.applies(lookedupConstructor, visitor.compiler.world)) {
+      if (!call.signatureApplies(lookedupConstructor)) {
         MessageKind kind = isImplicitSuperCall
                            ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
                            : MessageKind.NO_MATCHING_CONSTRUCTOR;
@@ -1584,8 +1579,8 @@ class InitializerResolver {
    * Resolve all initializers of this constructor. In the case of a redirecting
    * constructor, the resolved constructor's function element is returned.
    */
-  FunctionElement resolveInitializers(FunctionElement constructor,
-                                      FunctionExpression functionNode) {
+  ConstructorElement resolveInitializers(ConstructorElementX constructor,
+                                         FunctionExpression functionNode) {
     // Keep track of all "this.param" parameters specified for constructor so
     // that we can ensure that fields are initialized only once.
     FunctionSignature functionParameters = constructor.functionSignature;
@@ -1630,6 +1625,8 @@ class InitializerResolver {
           // Check that there are no other initializers.
           if (!initializers.tail.isEmpty) {
             error(call, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER);
+          } else {
+            constructor.isRedirectingGenerative = true;
           }
           // Check that there are no field initializing parameters.
           Compiler compiler = visitor.compiler;
@@ -3152,8 +3149,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
                              MessageKind.CANNOT_RETURN_FROM_CONSTRUCTOR);
       } else if (!node.isArrowBody && currentAsyncMarker.isYielding) {
         compiler.reportError(
-            node, 
-            MessageKind.RETURN_IN_GENERATOR, 
+            node,
+            MessageKind.RETURN_IN_GENERATOR,
             {'modifier': currentAsyncMarker});
       }
     }
@@ -4830,22 +4827,26 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     throw 'not supported';
   }
 
-  failOrReturnErroneousConstructorElement(
-      Element enclosing, Node diagnosticNode,
-      String targetName, MessageKind kind,
-      Map arguments) {
-    if (kind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
+  ErroneousConstructorElementX failOrReturnErroneousConstructorElement(
+      Spannable diagnosticNode,
+      Element enclosing,
+      String name,
+      MessageKind kind,
+      Map arguments,
+      {bool isError: false,
+       bool missingConstructor: false}) {
+    if (missingConstructor) {
       registry.registerThrowNoSuchMethod();
     } else {
       registry.registerThrowRuntimeError();
     }
-    if (inConstContext) {
+    if (isError || inConstContext) {
       compiler.reportError(diagnosticNode, kind, arguments);
     } else {
       compiler.reportWarning(diagnosticNode, kind, arguments);
     }
     return new ErroneousConstructorElementX(
-        kind, arguments, targetName, enclosing);
+        kind, arguments, name, enclosing);
   }
 
   FunctionElement resolveConstructor(ClassElement cls,
@@ -4853,16 +4854,21 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
                                      String constructorName) {
     cls.ensureResolved(compiler);
     Element result = cls.lookupConstructor(constructorName);
+    // TODO(johnniwinther): Use [Name] for lookup.
+    if (isPrivateName(constructorName) &&
+        resolver.enclosingElement.library != cls.library) {
+      result = null;
+    }
     if (result == null) {
       String fullConstructorName = Elements.constructorNameForDiagnostics(
               cls.name,
               constructorName);
       return failOrReturnErroneousConstructorElement(
-          cls,
           diagnosticNode,
-          fullConstructorName,
+          cls, constructorName,
           MessageKind.CANNOT_FIND_CONSTRUCTOR,
-          {'constructorName': fullConstructorName});
+          {'constructorName': fullConstructorName},
+          missingConstructor: true);
     } else if (inConstContext && !result.isConst) {
       error(diagnosticNode, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
     }
@@ -4895,10 +4901,12 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
         element = resolveConstructor(cls, diagnosticNode, '');
       } else {
         element = failOrReturnErroneousConstructorElement(
-            element, diagnosticNode, element.name, MessageKind.NOT_A_TYPE,
-            {'node': diagnosticNode});
+            diagnosticNode,
+            element, element.name,
+            MessageKind.NOT_A_TYPE, {'node': diagnosticNode});
       }
     } else if (element.isErroneous && element is! ErroneousElementX) {
+      // Parser error. The error has already been reported.
       element = new ErroneousConstructorElementX(
           MessageKind.NOT_A_TYPE, {'node': diagnosticNode},
           element.name, element);
@@ -4945,12 +4953,15 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       element = Elements.unwrap(element, compiler, node);
       if (element == null) {
         return failOrReturnErroneousConstructorElement(
-            resolver.enclosingElement, name,
-            name.source,
-            MessageKind.CANNOT_RESOLVE,
-            {'name': name});
+            name,
+            resolver.enclosingElement, name.source,
+            MessageKind.CANNOT_RESOLVE, {'name': name});
       } else if (!element.isClass) {
-        error(node, MessageKind.NOT_A_TYPE, {'node': name});
+        return failOrReturnErroneousConstructorElement(
+            name,
+            resolver.enclosingElement, name.source,
+            MessageKind.NOT_A_TYPE, {'node': name},
+            isError: true);
       }
     } else {
       internalError(node.receiver, 'unexpected element $element');
@@ -4966,31 +4977,31 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     // TODO(johnniwinther): Change errors to warnings, cf. 11.11.1.
     if (element == null) {
       return failOrReturnErroneousConstructorElement(
-          resolver.enclosingElement, node, name,
+          node,
+          resolver.enclosingElement, name,
           MessageKind.CANNOT_RESOLVE,
           {'name': name});
     } else if (element.isErroneous) {
       return element;
     } else if (element.isTypedef) {
-      error(node, MessageKind.CANNOT_INSTANTIATE_TYPEDEF,
-            {'typedefName': name});
-      element = new ErroneousConstructorElementX(
-          MessageKind.CANNOT_INSTANTIATE_TYPEDEF,
-          {'typedefName': name}, name, resolver.enclosingElement);
-      registry.registerThrowRuntimeError();
+      element = failOrReturnErroneousConstructorElement(
+          node,
+          resolver.enclosingElement, name,
+          MessageKind.CANNOT_INSTANTIATE_TYPEDEF, {'typedefName': name},
+          isError: true);
     } else if (element.isTypeVariable) {
-      error(node, MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
-            {'typeVariableName': name});
-      element = new ErroneousConstructorElementX(
+      element = failOrReturnErroneousConstructorElement(
+          node,
+          resolver.enclosingElement, name,
           MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
-          {'typeVariableName': name}, name, resolver.enclosingElement);
-      registry.registerThrowRuntimeError();
+          {'typeVariableName': name},
+          isError: true);
     } else if (!element.isClass && !element.isPrefix) {
-      error(node, MessageKind.NOT_A_TYPE, {'node': name});
-      element = new ErroneousConstructorElementX(
-          MessageKind.NOT_A_TYPE, {'node': name}, name,
-          resolver.enclosingElement);
-      registry.registerThrowRuntimeError();
+      element = failOrReturnErroneousConstructorElement(
+          node,
+          resolver.enclosingElement, name,
+          MessageKind.NOT_A_TYPE, {'node': name},
+          isError: true);
     }
     return element;
   }

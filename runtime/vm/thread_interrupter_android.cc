@@ -59,6 +59,11 @@ void ThreadInterrupter::InstallSignalHandler() {
       ThreadInterrupterAndroid::ThreadInterruptSignalHandler);
 }
 
+
+void ThreadInterrupter::RemoveSignalHandler() {
+  SignalHandler::Remove();
+}
+
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_ANDROID)

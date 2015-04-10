@@ -803,6 +803,9 @@ class LibraryElementHandle extends ElementHandle implements LibraryElement {
   List<LibraryElement> get visibleLibraries => actualElement.visibleLibraries;
 
   @override
+  Element getElementAt(int offset) => actualElement.getElementAt(offset);
+
+  @override
   List<ImportElement> getImportsWithPrefix(PrefixElement prefixElement) =>
       actualElement.getImportsWithPrefix(prefixElement);
 
@@ -1070,6 +1073,14 @@ abstract class VariableElementHandle extends ElementHandle
 
   @override
   bool get isFinal => actualElement.isFinal;
+
+  @override
+  bool get isPotentiallyMutatedInClosure =>
+      actualElement.isPotentiallyMutatedInClosure;
+
+  @override
+  bool get isPotentiallyMutatedInScope =>
+      actualElement.isPotentiallyMutatedInScope;
 
   @override
   VariableDeclaration get node => actualElement.node;

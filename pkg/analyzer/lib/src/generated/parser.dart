@@ -694,7 +694,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   @override
   AstNode visitConditionalExpression(ConditionalExpression node) {
     if (identical(_oldNode, node.condition)) {
-      return _parser.parseLogicalOrExpression();
+      return _parser.parseIfNullExpression();
     } else if (identical(_oldNode, node.thenExpression)) {
       return _parser.parseExpressionWithoutCascade();
     } else if (identical(_oldNode, node.elseExpression)) {
@@ -2715,10 +2715,10 @@ class Parser {
    * parsed.
    *
    *     conditionalExpression ::=
-   *         logicalOrExpression ('?' expressionWithoutCascade ':' expressionWithoutCascade)?
+   *         ifNullExpression ('?' expressionWithoutCascade ':' expressionWithoutCascade)?
    */
   Expression parseConditionalExpression() {
-    Expression condition = parseLogicalOrExpression();
+    Expression condition = parseIfNullExpression();
     if (!_matches(TokenType.QUESTION)) {
       return condition;
     }
@@ -3042,6 +3042,22 @@ class Parser {
     FunctionBody body =
         _parseFunctionBody(false, ParserErrorCode.MISSING_FUNCTION_BODY, true);
     return new FunctionExpression(parameters, body);
+  }
+
+  /**
+   * Parse an if-null expression.  Return the if-null expression that was
+   * parsed.
+   *
+   *     ifNullExpression ::= logicalOrExpression ('??' logicalOrExpression)*
+   */
+  Expression parseIfNullExpression() {
+    Expression expression = parseLogicalOrExpression();
+    while (_matches(TokenType.QUESTION_QUESTION)) {
+      Token operator = getAndAdvance();
+      expression = new BinaryExpression(
+          expression, operator, parseLogicalOrExpression());
+    }
+    return expression;
   }
 
   /**
@@ -3430,46 +3446,22 @@ class Parser {
 
   /**
    * Return the content of a string with the given literal representation. The
-   * [lexeme] is the literal representation of the string. The flag [first] is
-   * `true` if this is the first token in a string literal. The flag [last] is
+   * [lexeme] is the literal representation of the string. The flag [isFirst] is
+   * `true` if this is the first token in a string literal. The flag [isLast] is
    * `true` if this is the last token in a string literal.
    */
-  String _computeStringValue(String lexeme, bool first, bool last) {
-    bool isRaw = false;
-    int start = 0;
-    if (first) {
-      if (StringUtilities.startsWith4(lexeme, 0, 0x72, 0x22, 0x22, 0x22) ||
-          StringUtilities.startsWith4(lexeme, 0, 0x72, 0x27, 0x27, 0x27)) {
-        isRaw = true;
-        start += 4;
-      } else if (StringUtilities.startsWith2(lexeme, 0, 0x72, 0x22) ||
-          StringUtilities.startsWith2(lexeme, 0, 0x72, 0x27)) {
-        isRaw = true;
-        start += 2;
-      } else if (StringUtilities.startsWith3(lexeme, 0, 0x22, 0x22, 0x22) ||
-          StringUtilities.startsWith3(lexeme, 0, 0x27, 0x27, 0x27)) {
-        start += 3;
-      } else if (StringUtilities.startsWithChar(lexeme, 0x22) ||
-          StringUtilities.startsWithChar(lexeme, 0x27)) {
-        start += 1;
-      }
-    }
-    int end = lexeme.length;
-    if (last) {
-      if (StringUtilities.endsWith3(lexeme, 0x22, 0x22, 0x22) ||
-          StringUtilities.endsWith3(lexeme, 0x27, 0x27, 0x27)) {
-        end -= 3;
-      } else if (StringUtilities.endsWithChar(lexeme, 0x22) ||
-          StringUtilities.endsWithChar(lexeme, 0x27)) {
-        end -= 1;
-      }
-    }
-    if (end - start + 1 < 0) {
+  String _computeStringValue(String lexeme, bool isFirst, bool isLast) {
+    StringLexemeHelper helper = new StringLexemeHelper(lexeme, isFirst, isLast);
+    int start = helper.start;
+    int end = helper.end;
+    bool stringEndsAfterStart = end >= start;
+    assert(stringEndsAfterStart);
+    if (!stringEndsAfterStart) {
       AnalysisEngine.instance.logger.logError(
-          "Internal error: computeStringValue($lexeme, $first, $last)");
+          "Internal error: computeStringValue($lexeme, $isFirst, $isLast)");
       return "";
     }
-    if (isRaw) {
+    if (helper.isRaw) {
       return lexeme.substring(start, end);
     }
     StringBuffer buffer = new StringBuffer();
@@ -3599,12 +3591,16 @@ class Parser {
    *
    *     assignableExpression ::=
    *         primary (arguments* assignableSelector)+
-   *       | 'super' assignableSelector
+   *       | 'super' unconditionalAssignableSelector
    *       | identifier
    *
-   *     assignableSelector ::=
+   *     unconditionalAssignableSelector ::=
    *         '[' expression ']'
    *       | '.' identifier
+   *
+   *     assignableSelector ::=
+   *         unconditionalAssignableSelector
+   *       | '?.' identifier
    */
   void _ensureAssignable(Expression expression) {
     if (expression != null && !expression.isAssignable) {
@@ -4163,13 +4159,13 @@ class Parser {
    *
    *     assignableExpression ::=
    *         primary (arguments* assignableSelector)+
-   *       | 'super' assignableSelector
+   *       | 'super' unconditionalAssignableSelector
    *       | identifier
    */
   Expression _parseAssignableExpression(bool primaryAllowed) {
     if (_matchesKeyword(Keyword.SUPER)) {
       return _parseAssignableSelector(
-          new SuperExpression(getAndAdvance()), false);
+          new SuperExpression(getAndAdvance()), false, allowConditional: false);
     }
     //
     // A primary expression can start with an identifier. We resolve the
@@ -4219,13 +4215,19 @@ class Parser {
    * Parse an assignable selector. The [prefix] is the expression preceding the
    * selector. The [optional] is `true` if the selector is optional. Return the
    * assignable selector that was parsed, or the original prefix if there was no
-   * assignable selector.
+   * assignable selector.  If [allowConditional] is false, then the '?.'
+   * operator will still be parsed, but a parse error will be generated.
    *
-   *     assignableSelector ::=
+   *     unconditionalAssignableSelector ::=
    *         '[' expression ']'
    *       | '.' identifier
+   *
+   *     assignableSelector ::=
+   *         unconditionalAssignableSelector
+   *       | '?.' identifier
    */
-  Expression _parseAssignableSelector(Expression prefix, bool optional) {
+  Expression _parseAssignableSelector(Expression prefix, bool optional,
+      {bool allowConditional: true}) {
     if (_matches(TokenType.OPEN_SQUARE_BRACKET)) {
       Token leftBracket = getAndAdvance();
       bool wasInInitializer = _inInitializer;
@@ -4238,9 +4240,14 @@ class Parser {
       } finally {
         _inInitializer = wasInInitializer;
       }
-    } else if (_matches(TokenType.PERIOD)) {
-      Token period = getAndAdvance();
-      return new PropertyAccess(prefix, period, parseSimpleIdentifier());
+    } else if (_matches(TokenType.PERIOD) ||
+        _matches(TokenType.QUESTION_PERIOD)) {
+      if (_matches(TokenType.QUESTION_PERIOD) && !allowConditional) {
+        _reportErrorForCurrentToken(
+            ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, [_currentToken.lexeme]);
+      }
+      Token operator = getAndAdvance();
+      return new PropertyAccess(prefix, operator, parseSimpleIdentifier());
     } else {
       if (!optional) {
         // Report the missing selector.
@@ -5672,8 +5679,9 @@ class Parser {
         }
         Token functionDefinition = getAndAdvance();
         if (_matchesKeyword(Keyword.RETURN)) {
-          _reportErrorForToken(
-              ParserErrorCode.UNEXPECTED_TOKEN, getAndAdvance());
+          _reportErrorForToken(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken,
+              [_currentToken.lexeme]);
+          _advance();
         }
         Expression expression = parseExpression2();
         Token semicolon = null;
@@ -5748,6 +5756,9 @@ class Parser {
       } else {
         _reportErrorForCurrentToken(
             ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
+        parameters = new FormalParameterList(
+            _createSyntheticToken(TokenType.OPEN_PAREN), null, null, null,
+            _createSyntheticToken(TokenType.CLOSE_PAREN));
       }
     } else if (_matches(TokenType.OPEN_PAREN)) {
       _reportErrorForCurrentToken(ParserErrorCode.GETTER_WITH_PARAMETERS);
@@ -5941,7 +5952,7 @@ class Parser {
    * associated with the directive. Return the import directive that was parsed.
    *
    *     importDirective ::=
-   *         metadata 'import' stringLiteral ('as' identifier)? combinator*';'
+   *         metadata 'import' stringLiteral (deferred)? ('as' identifier)? combinator*';'
    */
   ImportDirective _parseImportDirective(CommentAndMetadata commentAndMetadata) {
     Token importKeyword = _expectKeyword(Keyword.IMPORT);
@@ -5958,6 +5969,21 @@ class Parser {
     } else if (deferredToken != null) {
       _reportErrorForCurrentToken(
           ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT);
+    } else if (!_matches(TokenType.SEMICOLON) &&
+        !_matchesString(_SHOW) &&
+        !_matchesString(_HIDE)) {
+      Token nextToken = _peek();
+      if (_tokenMatchesKeyword(nextToken, Keyword.AS) ||
+          _tokenMatchesString(nextToken, _SHOW) ||
+          _tokenMatchesString(nextToken, _HIDE)) {
+        _reportErrorForCurrentToken(
+            ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken]);
+        _advance();
+        if (_matchesKeyword(Keyword.AS)) {
+          asToken = getAndAdvance();
+          prefix = parseSimpleIdentifier();
+        }
+      }
     }
     List<Combinator> combinators = _parseCombinators();
     Token semicolon = _expectSemicolon();
@@ -6675,6 +6701,7 @@ class Parser {
     Expression operand = _parseAssignableExpression(true);
     if (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
         _matches(TokenType.PERIOD) ||
+        _matches(TokenType.QUESTION_PERIOD) ||
         _matches(TokenType.OPEN_PAREN)) {
       do {
         if (_matches(TokenType.OPEN_PAREN)) {
@@ -6691,6 +6718,7 @@ class Parser {
         }
       } while (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
           _matches(TokenType.PERIOD) ||
+          _matches(TokenType.QUESTION_PERIOD) ||
           _matches(TokenType.OPEN_PAREN));
       return operand;
     }
@@ -6707,7 +6735,7 @@ class Parser {
    *
    *     primary ::=
    *         thisExpression
-   *       | 'super' assignableSelector
+   *       | 'super' unconditionalAssignableSelector
    *       | functionExpression
    *       | literal
    *       | identifier
@@ -6729,8 +6757,10 @@ class Parser {
     if (_matchesKeyword(Keyword.THIS)) {
       return new ThisExpression(getAndAdvance());
     } else if (_matchesKeyword(Keyword.SUPER)) {
+      // TODO(paulberry): verify with Gilad that "super" must be followed by
+      // unconditionalAssignableSelector in this case.
       return _parseAssignableSelector(
-          new SuperExpression(getAndAdvance()), false);
+          new SuperExpression(getAndAdvance()), false, allowConditional: false);
     } else if (_matchesKeyword(Keyword.NULL)) {
       return new NullLiteral(getAndAdvance());
     } else if (_matchesKeyword(Keyword.FALSE)) {
@@ -7823,7 +7853,18 @@ class Parser {
     } else if (!_tokenMatches(token, TokenType.PERIOD)) {
       return token;
     }
-    return _skipSimpleIdentifier(token.next);
+    token = token.next;
+    Token nextToken = _skipSimpleIdentifier(token);
+    if (nextToken != null) {
+      return nextToken;
+    } else if (_tokenMatches(token, TokenType.CLOSE_PAREN) ||
+        _tokenMatches(token, TokenType.COMMA)) {
+      // If the `id.` is followed by something that cannot produce a valid
+      // structure then assume this is a prefixed identifier but missing the
+      // trailing identifier
+      return token;
+    }
+    return null;
   }
 
   /**
@@ -9983,7 +10024,7 @@ class ResolutionCopier implements AstVisitor<bool> {
   bool visitMethodInvocation(MethodInvocation node) {
     MethodInvocation toNode = this._toNode as MethodInvocation;
     if (_and(_isEqualNodes(node.target, toNode.target),
-        _isEqualTokens(node.period, toNode.period),
+        _isEqualTokens(node.operator, toNode.operator),
         _isEqualNodes(node.methodName, toNode.methodName),
         _isEqualNodes(node.argumentList, toNode.argumentList))) {
       toNode.propagatedType = node.propagatedType;

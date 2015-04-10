@@ -28,17 +28,16 @@ class FunctionRefElement extends ServiceRefElement {
     }
     if (function.isDart) {
       if (qualified) {
-        // Add class-name or parent-function-name followed by a dot.
-        if ((function.parent == null) && (function.owningClass != null)) {
-          var classRef = new Element.tag('class-ref');
-          classRef.ref = function.owningClass;
-          shadowRoot.children.add(classRef);
-          insertTextSpanIntoShadowRoot('.');
-        } else if (function.parent != null) {
+        if (function.dartOwner is ServiceFunction) {
           var functionRef = new Element.tag('function-ref');
-          functionRef.ref = function.parent;
+          functionRef.ref = function.dartOwner;
           functionRef.qualified = true;
           shadowRoot.children.add(functionRef);
+          insertTextSpanIntoShadowRoot('.');
+        } else if (function.dartOwner is Class) {
+          var classRef = new Element.tag('class-ref');
+          classRef.ref = function.dartOwner;
+          shadowRoot.children.add(classRef);
           insertTextSpanIntoShadowRoot('.');
         }
       }

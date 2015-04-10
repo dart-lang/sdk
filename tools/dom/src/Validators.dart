@@ -111,7 +111,7 @@ class _SameOriginUriPolicy implements UriPolicy {
         _hiddenAnchor.protocol == _loc.protocol) ||
         (_hiddenAnchor.hostname == '' &&
         _hiddenAnchor.port == '' &&
-        _hiddenAnchor.protocol == ':');
+        (_hiddenAnchor.protocol == ':' || _hiddenAnchor.protocol == ''));
   }
 }
 
@@ -145,29 +145,46 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   _ValidatingTreeSanitizer(this.validator) {}
 
   void sanitizeTree(Node node) {
-    void walk(Node node) {
-      sanitizeNode(node);
+    void walk(Node node, Node parent) {
+      sanitizeNode(node, parent);
 
       var child = node.lastChild;
       while (child != null) {
         // Child may be removed during the walk.
         var nextChild = child.previousNode;
-        walk(child);
+        walk(child, node);
         child = nextChild;
       }
     }
-    walk(node);
+    walk(node, null);
   }
 
-  void sanitizeNode(Node node) {
+  /// Aggressively try to remove node.
+  void _removeNode(Node node, Node parent) {
+    // If we have the parent, it's presumably already passed more sanitization or
+    // is the fragment, so ask it to remove the child. And if that fails try to
+    // set the outer html.
+    if (parent == null) {
+      node.remove();
+    } else {
+      parent._removeChild(node);
+    }
+  }
+  
+  void sanitizeNode(Node node, Node parent) {
     switch (node.nodeType) {
       case Node.ELEMENT_NODE:
         Element element = node;
+        if (element._hasCorruptedAttributes) {
+          window.console.warn('Removing element due to corrupted attributes on <${element}>');
+          _removeNode(node, parent);
+          break;
+        }
         var attrs = element.attributes;
         if (!validator.allowsElement(element)) {
           window.console.warn(
               'Removing disallowed element <${element.tagName}>');
-          element.remove();
+          _removeNode(node, parent);
           break;
         }
 
@@ -176,7 +193,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
           if (!validator.allowsAttribute(element, 'is', isAttr)) {
             window.console.warn('Removing disallowed type extension '
                 '<${element.tagName} is="$isAttr">');
-            element.remove();
+            _removeNode(node, parent);
             break;
           }
         }
@@ -205,7 +222,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       case Node.CDATA_SECTION_NODE:
         break;
       default:
-        node.remove();
+        _removeNode(node, parent);
     }
   }
 }

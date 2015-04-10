@@ -186,15 +186,15 @@ abstract class CommonWebSocketVM extends VM {
       Logger.root.severe('WebSocketVM got empty message');
       return;
     }
-    // Extract serial and response.
+    // Extract serial and result.
     var serial;
-    var response;
+    var result;
     serial = map['id'];
-    response = map['response'];
+    result = map['result'];
     if (serial == null) {
       // Messages without serial numbers are asynchronous events
       // from the vm.
-      postServiceEvent(response, null);
+      postServiceEvent(result, null);
       return;
     }
     // Complete request.
@@ -209,7 +209,7 @@ abstract class CommonWebSocketVM extends VM {
       Logger.root.info(
           'RESPONSE [${serial}] ${request.method}');
     }
-    request.completer.complete(response);
+    request.completer.complete(result);
   }
 
   // WebSocket message event handler.

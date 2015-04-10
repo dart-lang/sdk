@@ -7,7 +7,10 @@ library test.analysis.updateContent;
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
@@ -104,7 +107,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
     verify(server.index.indexUnit(anyObject, testUnitMatcher)).times(2);
   }
 
-  test_multiple_contexts() {
+  test_multiple_contexts() async {
     String fooPath = '/project1/foo.dart';
     resourceProvider.newFile(fooPath, '''
 library foo;
@@ -123,7 +126,8 @@ f(int i) {}
     Request request = new AnalysisSetAnalysisRootsParams(
         ['/project1', '/project2'], []).toRequest('0');
     handleSuccessfulRequest(request);
-    return waitForTasksFinished().then((_) {
+    {
+      await server.onAnalysisComplete;
       // Files foo.dart and bar.dart should both have errors, since they both
       // call f() with the wrong number of arguments.
       expect(filesErrors[fooPath], hasLength(1));
@@ -135,13 +139,42 @@ library baz;
 f() {}
 ''')
       });
-      return waitForTasksFinished();
-    }).then((_) {
+    }
+    {
+      await server.onAnalysisComplete;
       // The overlay should have been propagated to both contexts, causing both
       // foo.dart and bar.dart to be reanalyzed and found to be free of errors.
       expect(filesErrors[fooPath], isEmpty);
       expect(filesErrors[barPath], isEmpty);
-    });
+    }
+  }
+
+  test_overlayOnly() async {
+    String filePath = '/User/project1/test.dart';
+    Folder folder1 = resourceProvider.newFolder('/User/project1');
+    Folder folder2 = resourceProvider.newFolder('/User/project2');
+    Request request = new AnalysisSetAnalysisRootsParams(
+        [folder1.path, folder2.path], []).toRequest('0');
+    handleSuccessfulRequest(request);
+    // exactly 2 contexts
+    expect(server.folderMap, hasLength(2));
+    AnalysisContext context1 = server.folderMap[folder1];
+    AnalysisContext context2 = server.folderMap[folder2];
+    // no sources
+    expect(_getUserSources(context1), isEmpty);
+    expect(_getUserSources(context2), isEmpty);
+    // add an overlay - new Source in context1
+    server.updateContent('1', {filePath: new AddContentOverlay('')});
+    {
+      List<Source> sources = _getUserSources(context1);
+      expect(sources, hasLength(1));
+      expect(sources[0].fullName, filePath);
+    }
+    expect(_getUserSources(context2), isEmpty);
+    // remove the overlay - no sources
+    server.updateContent('2', {filePath: new RemoveContentOverlay()});
+    expect(_getUserSources(context1), isEmpty);
+    expect(_getUserSources(context2), isEmpty);
   }
 
   test_sendNoticesAfterNopChange() async {
@@ -179,6 +212,16 @@ f() {}
     await server.onAnalysisComplete;
     // errors should have been resent
     expect(filesErrors, isNotEmpty);
+  }
+
+  List<Source> _getUserSources(AnalysisContext context) {
+    List<Source> sources = <Source>[];
+    context.sources.forEach((source) {
+      if (source.fullName.startsWith('/User/')) {
+        sources.add(source);
+      }
+    });
+    return sources;
   }
 }
 

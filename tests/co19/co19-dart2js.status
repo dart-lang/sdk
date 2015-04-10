@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+LayoutTests/fast/innerHTML/innerHTML-svg-write_t01: Skip # Temporary suppression, WIP alanknight
+
 [ $compiler == dart2js ]
 Language/03_Overview/1_Scoping_A02_t05: CompileTimeError # Issue 21072
 Language/03_Overview/1_Scoping_A02_t06: CompileTimeError # Issue 21072
@@ -503,6 +505,7 @@ LayoutTests/fast/canvas/webgl/texImageTest_t01: RuntimeError # Please triage thi
 LayoutTests/fast/canvas/webgl/uniform-location_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/uninitialized-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/webgl-depth-texture_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/webgl-layer-update_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/css-generated-content/hit-test-generated-content_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css-generated-content/malformed-url_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css-generated-content/pseudo-animation-before-onload_t01: Pass, RuntimeError # Please triage this failure
@@ -700,7 +703,6 @@ LayoutTests/fast/dom/attribute-namespaces-get-set_t01: RuntimeError # Please tri
 LayoutTests/fast/dom/blur-contenteditable_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/characterdata-api-arguments_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/computed-style-set-property_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/custom/document-register-svg-extends_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/custom/element-names_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/dataset-xhtml_t01: RuntimeError # Please triage this failure
@@ -1990,7 +1992,6 @@ LayoutTests/fast/dom/boolean-attribute-reflection_t01: RuntimeError # Please tri
 LayoutTests/fast/dom/characterdata-api-arguments_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/click-method-on-html-element_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/computed-style-set-property_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/containerNode_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/css-delete-doc_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-innerHTML_t01: RuntimeError # Please triage this failure
@@ -2925,6 +2926,28 @@ WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please tr
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 LayoutTests/fast/dom/Window/window-scroll-arguments_t01: RuntimeError # Issue 22564
 WebPlatformTest/html/syntax/parsing/math-parse_t03: RuntimeError # Issue 22564
+LayoutTests/fast/dom/Attr/access-after-element-destruction_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLOutputElement/htmloutputelement-value_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/Range/surroundContents-check-boundary-points_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/Range/surroundContents-for-detached-node_t01: RuntimeError # Please triage this failure
+LibTest/html/Element/insertAdjacentElement_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/Element/insertAllBefore_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/Element/insertAllBefore_A02_t01: RuntimeError # Please triage this failure
+LibTest/html/Element/insertBefore_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/Element/insertBefore_A02_t01: RuntimeError # Please triage this failure
+LibTest/html/Element/nodes_A01_t02: RuntimeError # Please triage this failure
+LibTest/html/Element/replaceWith_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/IFrameElement/children_A01_t02: RuntimeError # Please triage this failure
+LibTest/html/IFrameElement/insertAdjacentElement_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/IFrameElement/insertAllBefore_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/IFrameElement/insertAllBefore_A02_t01: RuntimeError # Please triage this failure
+LibTest/html/IFrameElement/insertBefore_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/IFrameElement/insertBefore_A02_t01: RuntimeError # Please triage this failure
+LibTest/html/IFrameElement/nodes_A01_t02: RuntimeError # Please triage this failure
+LibTest/html/IFrameElement/nodes_setter_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/IFrameElement/replaceWith_A01_t01: RuntimeError # Please triage this failure
+WebPlatformTest/dom/nodes/attributes/setAttributeNS_A03_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html-templates/serializing-html-templates/outerhtml_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == ff && $system != windows ]
 LayoutTests/fast/canvas/canvas-resetTransform_t01: RuntimeError # Please triage this failure
@@ -3369,7 +3392,6 @@ LayoutTests/fast/dom/anchor-without-content_t01: RuntimeError # Please triage th
 LayoutTests/fast/dom/attribute-namespaces-get-set_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/characterdata-api-arguments_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/computed-style-set-property_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/custom/attribute-changed-callback_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/custom/constructor-calls-created-synchronously_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/custom/created-callback_t01: RuntimeError # Please triage this failure
@@ -4657,7 +4679,6 @@ LayoutTests/fast/dom/attribute-namespaces-get-set_t01: RuntimeError # Please tri
 LayoutTests/fast/dom/characterdata-api-arguments_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/comment-not-documentElement_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/computed-style-set-property_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/createDocumentType-ownerDocument_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/createElementNS-namespace-errors_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/custom/attribute-changed-callback_t01: RuntimeError # Please triage this failure
@@ -5893,7 +5914,6 @@ LayoutTests/fast/css/inherit-initial-shorthand-values_t01: RuntimeError # Please
 LayoutTests/fast/css/inherited-properties-rare-text_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/insertRule-font-face_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/insertRule-media_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/invalid-hex-color_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalid-import-rule-insertion_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalid-predefined-color_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalid-rule-value_t01: RuntimeError # Please triage this failure
@@ -5971,7 +5991,6 @@ LayoutTests/fast/css/selector-text-escape_t01: RuntimeError # Please triage this
 LayoutTests/fast/css/shadow-current-color_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/css/sheet-collection-link_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/shorthand-priority_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/shorthand-setProperty-important_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/sibling-selectors_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/space-before-charset-external_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/sticky/parsing-position-sticky_t01: RuntimeError # Please triage this failure
@@ -6258,7 +6277,7 @@ LayoutTests/fast/dom/characterdata-api-arguments_t01: RuntimeError # Please tria
 LayoutTests/fast/dom/click-method-on-html-element_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/clone-node-form-elements_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/computed-style-set-property_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/clone-node-z-index_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/containerNode_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/createDocumentType-ownerDocument_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/createElementNS-namespace-errors_t01: RuntimeError # Please triage this failure
@@ -7913,7 +7932,6 @@ LayoutTests/fast/css/inherit-initial-shorthand-values_t01: RuntimeError # Please
 LayoutTests/fast/css/inherited-properties-rare-text_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/insertRule-font-face_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/insertRule-media_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/invalid-hex-color_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalid-import-rule-insertion_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalid-predefined-color_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalid-rule-value_t01: RuntimeError # Please triage this failure
@@ -7991,7 +8009,6 @@ LayoutTests/fast/css/selector-text-escape_t01: RuntimeError # Please triage this
 LayoutTests/fast/css/shadow-current-color_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/css/sheet-collection-link_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/shorthand-priority_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/shorthand-setProperty-important_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/sibling-selectors_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/space-before-charset-external_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/sticky/parsing-position-sticky_t01: RuntimeError # Please triage this failure
@@ -8258,7 +8275,7 @@ LayoutTests/fast/dom/blur-contenteditable_t01: RuntimeError # Please triage this
 LayoutTests/fast/dom/characterdata-api-arguments_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/click-method-on-html-element_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/computed-style-set-property_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/clone-node-z-index_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/containerNode_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/createDocumentType-ownerDocument_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/createElementNS-namespace-errors_t01: RuntimeError # Please triage this failure

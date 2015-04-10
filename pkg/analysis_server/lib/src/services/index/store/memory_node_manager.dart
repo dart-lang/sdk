@@ -12,9 +12,15 @@ import 'package:analysis_server/src/services/index/store/split_store.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
 class MemoryNodeManager implements NodeManager {
-  StringCodec _stringCodec = new StringCodec();
-  ContextCodec _contextCodec = new ContextCodec();
-  ElementCodec _elementCodec;
+  @override
+  StringCodec stringCodec = new StringCodec();
+
+  @override
+  ContextCodec contextCodec = new ContextCodec();
+
+  @override
+  ElementCodec elementCodec;
+
   RelationshipCodec _relationshipCodec;
 
   int _locationCount = 0;
@@ -22,28 +28,13 @@ class MemoryNodeManager implements NodeManager {
   final Map<String, IndexNode> _nodes = new HashMap<String, IndexNode>();
 
   MemoryNodeManager() {
-    _elementCodec = new ElementCodec(_stringCodec);
-    _relationshipCodec = new RelationshipCodec(_stringCodec);
-  }
-
-  @override
-  ContextCodec get contextCodec {
-    return _contextCodec;
-  }
-
-  @override
-  ElementCodec get elementCodec {
-    return _elementCodec;
+    elementCodec = new ElementCodec(stringCodec);
+    _relationshipCodec = new RelationshipCodec(stringCodec);
   }
 
   @override
   int get locationCount {
     return _locationCount;
-  }
-
-  @override
-  StringCodec get stringCodec {
-    return _stringCodec;
   }
 
   @override

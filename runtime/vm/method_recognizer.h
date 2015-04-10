@@ -155,6 +155,8 @@ namespace dart {
 #define CORE_LIB_INTRINSIC_LIST(V)                                             \
   V(_Smi, ~, Smi_bitNegate, 134149043)                                         \
   V(_Smi, get:bitLength, Smi_bitLength, 869986288)                             \
+  V(_Bigint, _lsh, Bigint_lsh, 1318834243)                                     \
+  V(_Bigint, _rsh, Bigint_rsh, 1239668932)                                     \
   V(_Bigint, _absAdd, Bigint_absAdd, 222437051)                                \
   V(_Bigint, _absSub, Bigint_absSub, 599465997)                                \
   V(_Bigint, _mulAdd, Bigint_mulAdd, 1696801459)                               \
@@ -367,8 +369,8 @@ namespace dart {
   V(_ByteDataView, setUint32, ByteDataViewSetUint32, 284405389)                \
   V(_ByteDataView, setInt64, ByteDataViewSetInt64, 486916661)                  \
   V(_ByteDataView, setUint64, ByteDataViewSetUint64, 1432663320)               \
-  V(_ByteDataView, setFloat32, ByteDataViewSetFloat32, 733187060)              \
-  V(_ByteDataView, setFloat64, ByteDataViewSetFloat64, 1138577739)             \
+  V(_ByteDataView, setFloat32, ByteDataViewSetFloat32, 344976311)              \
+  V(_ByteDataView, setFloat64, ByteDataViewSetFloat64, 1480166018)             \
   V(_ByteDataView, getInt8, ByteDataViewGetInt8, 1383732403)                   \
   V(_ByteDataView, getUint8, ByteDataViewGetUint8, 806641537)                  \
   V(_ByteDataView, getInt16, ByteDataViewGetInt16, 76281079)                   \
@@ -377,8 +379,8 @@ namespace dart {
   V(_ByteDataView, getUint32, ByteDataViewGetUint32, 760435927)                \
   V(_ByteDataView, getInt64, ByteDataViewGetInt64, 364361487)                  \
   V(_ByteDataView, getUint64, ByteDataViewGetUint64, 565678407)                \
-  V(_ByteDataView, getFloat32, ByteDataViewGetFloat32, 924006540)              \
-  V(_ByteDataView, getFloat64, ByteDataViewGetFloat64, 1863927528)             \
+  V(_ByteDataView, getFloat32, ByteDataViewGetFloat32, 1979131043)             \
+  V(_ByteDataView, getFloat64, ByteDataViewGetFloat64, 164756117)              \
   V(::, asin, MathASin, 1651042633)                                            \
   V(::, acos, MathACos, 1139647090)                                            \
   V(::, atan, MathATan, 1668754384)                                            \
@@ -399,6 +401,8 @@ namespace dart {
 
 // A list of core function that should never be inlined.
 #define INLINE_BLACK_LIST(V)                                                   \
+  V(_Bigint, _lsh, Bigint_lsh, 1318834243)                                     \
+  V(_Bigint, _rsh, Bigint_rsh, 1239668932)                                     \
   V(_Bigint, _absAdd, Bigint_absAdd, 222437051)                                \
   V(_Bigint, _absSub, Bigint_absSub, 599465997)                                \
   V(_Bigint, _mulAdd, Bigint_mulAdd, 1696801459)                               \

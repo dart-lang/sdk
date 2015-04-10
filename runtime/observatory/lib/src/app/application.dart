@@ -67,6 +67,7 @@ class ObservatoryApplication extends Observable {
   void _onEvent(ServiceEvent event) {
     switch(event.eventType) {
       case ServiceEvent.kIsolateStart:
+      case ServiceEvent.kIsolateUpdate:
       case ServiceEvent.kGraph:
       case ServiceEvent.kBreakpointAdded:
       case ServiceEvent.kBreakpointResolved:
