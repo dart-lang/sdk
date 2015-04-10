@@ -150,10 +150,9 @@ var collection;
         return true;
       }
       union(other) {
-        return ((_) => {
-          _.addAll(other);
-          return _;
-        })(this.toSet());
+        let _ = this.toSet();
+        _.addAll(other);
+        return _;
       }
       intersection(other) {
         let result = this.toSet();
@@ -173,13 +172,18 @@ var collection;
       }
       [core.$toList](opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
-        let result = growable ? ((_) => {
+        let result = growable ? (() => {
+          let _ = new (core.List$(E))();
           _[core.$length] = this.length;
           return _;
-        }).bind(this)(new (core.List$(E))()) : new (core.List$(E))(this.length);
+        }).bind(this)() : new (core.List$(E))(this.length);
         let i = 0;
         for (let element of this)
-          result[core.$set](((x$) => i = dart.notNull(x$) + 1, x$)(i), element);
+          result[core.$set]((() => {
+            let x$ = i;
+            i = dart.notNull(x$) + 1;
+            return x$;
+          })(), element);
         return result;
       }
       [core.$map](f) {
@@ -375,10 +379,11 @@ var collection;
         return result;
       }
       [core.$toSet]() {
-        return ((_) => {
+        return (() => {
+          let _ = this[_newSet]();
           _.addAll(this);
           return _;
-        }).bind(this)(this[_newSet]());
+        }).bind(this)();
       }
     }
     return _HashSetBase;
@@ -841,11 +846,12 @@ var collection;
           dart.assert(core.identical(IterableBase[_toStringVisiting][core.$last], iterable));
           IterableBase[_toStringVisiting][core.$removeLast]();
         }
-        return ((_) => {
+        return (() => {
+          let _ = new core.StringBuffer(leftDelimiter);
           _.writeAll(parts, ", ");
           _.write(rightDelimiter);
           return _;
-        })(new core.StringBuffer(leftDelimiter)).toString();
+        })().toString();
       }
       static iterableToFullString(iterable, leftDelimiter, rightDelimiter) {
         if (leftDelimiter === void 0)
@@ -888,7 +894,7 @@ var collection;
             return;
           let next = `${it.current}`;
           parts[core.$add](next);
-          length = dart.notNull(next.length) + dart.notNull(OVERHEAD);
+          length = dart.notNull(length) + (dart.notNull(next.length) + dart.notNull(OVERHEAD));
           count = dart.notNull(count) + 1;
         }
         let penultimateString = null;
@@ -910,7 +916,7 @@ var collection;
             }
             ultimateString = `${penultimate}`;
             penultimateString = dart.as(parts[core.$removeLast](), core.String);
-            length = dart.notNull(ultimateString.length) + dart.notNull(OVERHEAD);
+            length = dart.notNull(length) + (dart.notNull(ultimateString.length) + dart.notNull(OVERHEAD));
           } else {
             ultimate = it.current;
             count = dart.notNull(count) + 1;
@@ -921,7 +927,7 @@ var collection;
               count = dart.notNull(count) + 1;
               if (dart.notNull(count) > dart.notNull(MAX_COUNT)) {
                 while (dart.notNull(length) > dart.notNull(LENGTH_LIMIT) - dart.notNull(ELLIPSIS_SIZE) - dart.notNull(OVERHEAD) && dart.notNull(count) > dart.notNull(HEAD_COUNT)) {
-                  length = dart.as(dart.dbinary(dart.dload(parts[core.$removeLast](), 'length'), '+', OVERHEAD), core.int);
+                  length = dart.notNull(length) - dart.notNull(dart.as(dart.dbinary(dart.dload(parts[core.$removeLast](), 'length'), '+', OVERHEAD), core.int));
                   count = dart.notNull(count) - 1;
                 }
                 parts[core.$add]("...");
@@ -930,19 +936,19 @@ var collection;
             }
             penultimateString = `${penultimate}`;
             ultimateString = `${ultimate}`;
-            length = dart.notNull(ultimateString.length) + dart.notNull(penultimateString.length) + 2 * dart.notNull(OVERHEAD);
+            length = dart.notNull(length) + (dart.notNull(ultimateString.length) + dart.notNull(penultimateString.length) + 2 * dart.notNull(OVERHEAD));
           }
         }
         let elision = null;
         if (dart.notNull(count) > dart.notNull(parts[core.$length]) + dart.notNull(TAIL_COUNT)) {
           elision = "...";
-          length = dart.notNull(ELLIPSIS_SIZE) + dart.notNull(OVERHEAD);
+          length = dart.notNull(length) + (dart.notNull(ELLIPSIS_SIZE) + dart.notNull(OVERHEAD));
         }
         while (dart.notNull(length) > dart.notNull(LENGTH_LIMIT) && dart.notNull(parts[core.$length]) > dart.notNull(HEAD_COUNT)) {
-          length = dart.as(dart.dbinary(dart.dload(parts[core.$removeLast](), 'length'), '+', OVERHEAD), core.int);
+          length = dart.notNull(length) - dart.notNull(dart.as(dart.dbinary(dart.dload(parts[core.$removeLast](), 'length'), '+', OVERHEAD), core.int));
           if (elision == null) {
             elision = "...";
-            length = dart.notNull(ELLIPSIS_SIZE) + dart.notNull(OVERHEAD);
+            length = dart.notNull(length) + (dart.notNull(ELLIPSIS_SIZE) + dart.notNull(OVERHEAD));
           }
         }
         if (elision != null) {
@@ -1142,7 +1148,7 @@ var collection;
         this[_insertAfter](this[_previous], entry);
       }
       addAll(entries) {
-        entries[core.$forEach](dart.as(((entry) => this[_insertAfter](this[_previous], dart.as(entry, E))).bind(this), dart.functionType(dart.void, [E])));
+        entries[core.$forEach](dart.as((entry => this[_insertAfter](this[_previous], dart.as(entry, E))).bind(this), dart.functionType(dart.void, [E])));
       }
       remove(entry) {
         if (!dart.equals(entry[_list], this))
@@ -1499,18 +1505,27 @@ var collection;
         return result;
       }
       [core.$add](element) {
-        this[core.$set](((x$) => this[core.$length] = dart.notNull(x$) + 1, x$).bind(this)(this[core.$length]), element);
+        this[core.$set]((() => {
+          let o$ = this, x$ = o$[core.$length];
+          o$[core.$length] = dart.notNull(x$) + 1;
+          return x$;
+        }).bind(this)(), element);
       }
       [core.$addAll](iterable) {
         for (let element of iterable) {
-          this[core.$set](((x$) => this[core.$length] = dart.notNull(x$) + 1, x$).bind(this)(this[core.$length]), element);
+          this[core.$set]((() => {
+            let o$ = this, x$ = o$[core.$length];
+            o$[core.$length] = dart.notNull(x$) + 1;
+            return x$;
+          }).bind(this)(), element);
         }
       }
       [core.$remove](element) {
         for (let i = 0; dart.notNull(i) < dart.notNull(this[core.$length]); i = dart.notNull(i) + 1) {
           if (dart.equals(this[core.$get](i), element)) {
             this[core.$setRange](i, dart.notNull(this[core.$length]) - 1, this, dart.notNull(i) + 1);
-            this[core.$length] = 1;
+            let o$ = this;
+            o$[core.$length] = dart.notNull(o$[core.$length]) - 1;
             return true;
           }
         }
@@ -1567,7 +1582,7 @@ var collection;
         let length = this[core.$length];
         while (dart.notNull(length) > 1) {
           let pos = random.nextInt(length);
-          length = 1;
+          length = dart.notNull(length) - 1;
           let tmp = this[core.$get](length);
           this[core.$set](length, this[core.$get](pos));
           this[core.$set](pos, tmp);
@@ -1599,7 +1614,8 @@ var collection;
         core.RangeError.checkValidRange(start, end, this[core.$length]);
         let length = dart.notNull(end) - dart.notNull(start);
         this.setRange(start, dart.notNull(this[core.$length]) - dart.notNull(length), this, end);
-        this[core.$length] = length;
+        let o$ = this;
+        o$[core.$length] = dart.notNull(o$[core.$length]) - dart.notNull(length);
       }
       [core.$fillRange](start, end, fill) {
         if (fill === void 0)
@@ -1708,7 +1724,8 @@ var collection;
         }
         if (!(typeof index == 'number'))
           throw new core.ArgumentError(index);
-        this[core.$length] = dart.notNull(this[core.$length]) + 1;
+        let o$ = this;
+        o$[core.$length] = dart.notNull(o$[core.$length]) + 1;
         this.setRange(dart.notNull(index) + 1, this[core.$length], this, index);
         this[core.$set](index, element);
       }
@@ -1724,7 +1741,8 @@ var collection;
           iterable = iterable[core.$toList]();
         }
         let insertionLength = iterable[core.$length];
-        this[core.$length] = insertionLength;
+        let o$ = this;
+        o$[core.$length] = dart.notNull(o$[core.$length]) + dart.notNull(insertionLength);
         this.setRange(dart.notNull(index) + dart.notNull(insertionLength), this[core.$length], this, index);
         this.setAll(index, iterable);
       }
@@ -1733,7 +1751,11 @@ var collection;
           this.setRange(index, dart.notNull(index) + dart.notNull(iterable[core.$length]), iterable);
         } else {
           for (let element of iterable) {
-            this[core.$set](((x$) => index = dart.notNull(x$) + 1, x$)(index), element);
+            this[core.$set]((() => {
+              let x$ = index;
+              index = dart.notNull(x$) + 1;
+              return x$;
+            })(), element);
           }
         }
       }
@@ -1991,7 +2013,7 @@ var collection;
       }
     }
     static getValues(map) {
-      return map.keys[core.$map]((key) => map.get(key));
+      return map.keys[core.$map](key => map.get(key));
     }
     static length(map) {
       return map.keys[core.$length];
@@ -2399,12 +2421,12 @@ var collection;
           if (dart.notNull(length) + dart.notNull(addCount) >= dart.notNull(this[_table][core.$length])) {
             this[_preGrow](dart.notNull(length) + dart.notNull(addCount));
             this[_table][core.$setRange](length, dart.notNull(length) + dart.notNull(addCount), dart.as(list, core.Iterable$(E)), 0);
-            this[_tail] = addCount;
+            this[_tail] = dart.notNull(this[_tail]) + dart.notNull(addCount);
           } else {
             let endSpace = dart.notNull(this[_table][core.$length]) - dart.notNull(this[_tail]);
             if (dart.notNull(addCount) < dart.notNull(endSpace)) {
               this[_table][core.$setRange](this[_tail], dart.notNull(this[_tail]) + dart.notNull(addCount), dart.as(list, core.Iterable$(E)), 0);
-              this[_tail] = addCount;
+              this[_tail] = dart.notNull(this[_tail]) + dart.notNull(addCount);
             } else {
               let preSpace = dart.notNull(addCount) - dart.notNull(endSpace);
               this[_table][core.$setRange](this[_tail], dart.notNull(this[_tail]) + dart.notNull(endSpace), dart.as(list, core.Iterable$(E)), 0);
@@ -2566,7 +2588,7 @@ var collection;
       }
       [_preGrow](newElementCount) {
         dart.assert(dart.notNull(newElementCount) >= dart.notNull(this.length));
-        newElementCount = dart.notNull(newElementCount) >> 1;
+        newElementCount = dart.notNull(newElementCount) + (dart.notNull(newElementCount) >> 1);
         let newCapacity = ListQueue[_nextPowerOf2](newElementCount);
         let newTable = new (core.List$(E))(newCapacity);
         this[_tail] = this[_writeToList](newTable);
@@ -2807,7 +2829,7 @@ var collection;
         if (isValidKey === void 0)
           isValidKey = null;
         this[_comparator] = dart.as(compare == null ? core.Comparable.compare : compare, core.Comparator);
-        this[_validKey] = dart.as(isValidKey != null ? isValidKey : (v) => dart.is(v, K), _Predicate);
+        this[_validKey] = dart.as(isValidKey != null ? isValidKey : v => dart.is(v, K), _Predicate);
         super._SplayTree();
       }
       from(other, compare, isValidKey) {
@@ -3179,7 +3201,7 @@ var collection;
         if (isValidKey === void 0)
           isValidKey = null;
         this[_comparator] = dart.as(compare == null ? core.Comparable.compare : compare, core.Comparator);
-        this[_validKey] = dart.as(isValidKey != null ? isValidKey : (v) => dart.is(v, E), _Predicate);
+        this[_validKey] = dart.as(isValidKey != null ? isValidKey : v => dart.is(v, E), _Predicate);
         super._SplayTree();
       }
       from(elements, compare, isValidKey) {
@@ -3295,10 +3317,9 @@ var collection;
         return result;
       }
       union(other) {
-        return ((_) => {
-          _.addAll(other);
-          return _;
-        })(this[_clone]());
+        let _ = this[_clone]();
+        _.addAll(other);
+        return _;
       }
       [_clone]() {
         let set = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.functionType(core.int, [E, E])), this[_validKey]);
@@ -3309,11 +3330,10 @@ var collection;
       [_copyNode](node) {
         if (node == null)
           return null;
-        return ((_) => {
-          _.left = this[_copyNode](node.left);
-          _.right = this[_copyNode](node.right);
-          return _;
-        }).bind(this)(new (_SplayTreeNode$(E))(node.key));
+        let _ = new (_SplayTreeNode$(E))(node.key);
+        _.left = this[_copyNode](node.left);
+        _.right = this[_copyNode](node.right);
+        return _;
       }
       clear() {
         this[_clear]();
@@ -3370,7 +3390,7 @@ var collection;
         return new (HashMapKeyIterable$(K))(this);
       }
       get values() {
-        return new (_internal.MappedIterable$(K, V))(this.keys, dart.as(((each) => this.get(each)).bind(this), dart.functionType(V, [K])));
+        return new (_internal.MappedIterable$(K, V))(this.keys, dart.as((each => this.get(each)).bind(this), dart.functionType(V, [K])));
       }
       containsKey(key) {
         if (_HashMap[_isStringKey](key)) {
@@ -3391,7 +3411,7 @@ var collection;
         return dart.notNull(this[_findBucketIndex](bucket, key)) >= 0;
       }
       containsValue(value) {
-        return this[_computeKeys]()[core.$any](((each) => dart.equals(this.get(each), value)).bind(this));
+        return this[_computeKeys]()[core.$any]((each => dart.equals(this.get(each), value)).bind(this));
       }
       addAll(other) {
         other.forEach(((key, value) => {
@@ -3530,7 +3550,7 @@ var collection;
             let key = names[i];
             let bucket = rest[key];
             let length = bucket.length;
-            for (let i = 0; dart.notNull(i) < dart.notNull(length); i = 2) {
+            for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 2) {
               let key = bucket[i];
               result[index] = key;
               index = dart.notNull(index) + 1;
@@ -3593,7 +3613,7 @@ var collection;
         if (bucket == null)
           return -1;
         let length = bucket.length;
-        for (let i = 0; dart.notNull(i) < dart.notNull(length); i = 2) {
+        for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 2) {
           if (dart.equals(bucket[i], key))
             return i;
         }
@@ -3620,7 +3640,7 @@ var collection;
         if (bucket == null)
           return -1;
         let length = bucket.length;
-        for (let i = 0; dart.notNull(i) < dart.notNull(length); i = 2) {
+        for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 2) {
           if (core.identical(bucket[i], key))
             return i;
         }
@@ -3637,7 +3657,7 @@ var collection;
       _CustomHashMap(equals$, hashCode$, validKey) {
         this[_equals] = equals$;
         this[_hashCode] = hashCode$;
-        this[_validKey] = dart.as(validKey != null ? validKey : (v) => dart.is(v, K), _Predicate);
+        this[_validKey] = dart.as(validKey != null ? validKey : v => dart.is(v, K), _Predicate);
         super._HashMap();
       }
       get(key) {
@@ -3665,7 +3685,7 @@ var collection;
         if (bucket == null)
           return -1;
         let length = bucket.length;
-        for (let i = 0; dart.notNull(i) < dart.notNull(length); i = 2) {
+        for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 2) {
           if (this[_equals](dart.as(bucket[i], K), dart.as(key, K)))
             return i;
         }
@@ -3771,7 +3791,7 @@ var collection;
         return new (LinkedHashMapKeyIterable$(K))(this);
       }
       get values() {
-        return new (_internal.MappedIterable$(K, V))(this.keys, dart.as(((each) => this.get(each)).bind(this), dart.functionType(V, [K])));
+        return new (_internal.MappedIterable$(K, V))(this.keys, dart.as((each => this.get(each)).bind(this), dart.functionType(V, [K])));
       }
       containsKey(key) {
         if (_LinkedHashMap[_isStringKey](key)) {
@@ -3798,7 +3818,7 @@ var collection;
         return dart.notNull(this[_findBucketIndex](bucket, key)) >= 0;
       }
       containsValue(value) {
-        return this.keys[core.$any](dart.as(((each) => dart.equals(this.get(each), value)).bind(this), dart.functionType(core.bool, [K])));
+        return this.keys[core.$any](dart.as((each => dart.equals(this.get(each), value)).bind(this), dart.functionType(core.bool, [K])));
       }
       addAll(other) {
         other.forEach(((key, value) => {
@@ -4040,7 +4060,7 @@ var collection;
       _LinkedCustomHashMap(equals$, hashCode$, validKey) {
         this[_equals] = equals$;
         this[_hashCode] = hashCode$;
-        this[_validKey] = dart.as(validKey != null ? validKey : (v) => dart.is(v, K), _Predicate);
+        this[_validKey] = dart.as(validKey != null ? validKey : v => dart.is(v, K), _Predicate);
         super._LinkedHashMap();
       }
       get(key) {
@@ -4417,7 +4437,7 @@ var collection;
       _CustomHashSet(equality, hasher, validKey) {
         this[_equality] = equality;
         this[_hasher] = hasher;
-        this[_validKey] = dart.as(validKey != null ? validKey : (x) => dart.is(x, E), _Predicate);
+        this[_validKey] = dart.as(validKey != null ? validKey : x => dart.is(x, E), _Predicate);
         super._HashSet();
       }
       [_newSet]() {
@@ -4788,7 +4808,7 @@ var collection;
       _LinkedCustomHashSet(equality, hasher, validKey) {
         this[_equality] = equality;
         this[_hasher] = hasher;
-        this[_validKey] = dart.as(validKey != null ? validKey : (x) => dart.is(x, E), _Predicate);
+        this[_validKey] = dart.as(validKey != null ? validKey : x => dart.is(x, E), _Predicate);
         super._LinkedHashSet();
       }
       [_newSet]() {

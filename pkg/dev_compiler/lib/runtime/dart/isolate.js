@@ -31,7 +31,7 @@ var isolate;
     static spawn(entryPoint, message, opts) {
       let paused = opts && 'paused' in opts ? opts.paused : false;
       try {
-        return dart.as(_isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(dart.as((msg) => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), dart.functionType(dart.dynamic, [core.List]))), async.Future$(Isolate));
+        return dart.as(_isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(dart.as(msg => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), dart.functionType(dart.dynamic, [core.List]))), async.Future$(Isolate));
       } catch (e) {
         let st = dart.stackTrace(e);
         return new async.Future$(Isolate).error(e, st);
@@ -53,7 +53,7 @@ var isolate;
         } else if (args != null) {
           throw new core.ArgumentError(`Args must be a list of Strings ${args}`);
         }
-        return dart.as(_isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(dart.as((msg) => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), dart.functionType(dart.dynamic, [core.List]))), async.Future$(Isolate));
+        return dart.as(_isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(dart.as(msg => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), dart.functionType(dart.dynamic, [core.List]))), async.Future$(Isolate));
       } catch (e) {
         let st = dart.stackTrace(e);
         return new async.Future$(Isolate).error(e, st);
@@ -70,34 +70,34 @@ var isolate;
     }
     [_pause](resumeCapability) {
       let message = new core.List(3);
-      dart.dsetindex(message, 0, "pause");
-      dart.dsetindex(message, 1, this.pauseCapability);
-      dart.dsetindex(message, 2, resumeCapability);
+      message[core.$set](0, "pause");
+      message[core.$set](1, this.pauseCapability);
+      message[core.$set](2, resumeCapability);
       this.controlPort.send(message);
     }
     resume(resumeCapability) {
       let message = new core.List(2);
-      dart.dsetindex(message, 0, "resume");
-      dart.dsetindex(message, 1, resumeCapability);
+      message[core.$set](0, "resume");
+      message[core.$set](1, resumeCapability);
       this.controlPort.send(message);
     }
     addOnExitListener(responsePort) {
       let message = new core.List(2);
-      dart.dsetindex(message, 0, "add-ondone");
-      dart.dsetindex(message, 1, responsePort);
+      message[core.$set](0, "add-ondone");
+      message[core.$set](1, responsePort);
       this.controlPort.send(message);
     }
     removeOnExitListener(responsePort) {
       let message = new core.List(2);
-      dart.dsetindex(message, 0, "remove-ondone");
-      dart.dsetindex(message, 1, responsePort);
+      message[core.$set](0, "remove-ondone");
+      message[core.$set](1, responsePort);
       this.controlPort.send(message);
     }
     setErrorsFatal(errorsAreFatal) {
       let message = new core.List(3);
-      dart.dsetindex(message, 0, "set-errors-fatal");
-      dart.dsetindex(message, 1, this.terminateCapability);
-      dart.dsetindex(message, 2, errorsAreFatal);
+      message[core.$set](0, "set-errors-fatal");
+      message[core.$set](1, this.terminateCapability);
+      message[core.$set](2, errorsAreFatal);
       this.controlPort.send(message);
     }
     kill(priority) {
@@ -109,21 +109,21 @@ var isolate;
       if (pingType === void 0)
         pingType = Isolate.IMMEDIATE;
       let message = new core.List(3);
-      dart.dsetindex(message, 0, "ping");
-      dart.dsetindex(message, 1, responsePort);
-      dart.dsetindex(message, 2, pingType);
+      message[core.$set](0, "ping");
+      message[core.$set](1, responsePort);
+      message[core.$set](2, pingType);
       this.controlPort.send(message);
     }
     addErrorListener(port) {
       let message = new core.List(2);
-      dart.dsetindex(message, 0, "getErrors");
-      dart.dsetindex(message, 1, port);
+      message[core.$set](0, "getErrors");
+      message[core.$set](1, port);
       this.controlPort.send(message);
     }
     removeErrorListener(port) {
       let message = new core.List(2);
-      dart.dsetindex(message, 0, "stopErrors");
-      dart.dsetindex(message, 1, port);
+      message[core.$set](0, "stopErrors");
+      message[core.$set](1, port);
       this.controlPort.send(message);
     }
     get errors() {

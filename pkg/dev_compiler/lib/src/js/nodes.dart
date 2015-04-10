@@ -222,6 +222,19 @@ abstract class Node {
   Statement toStatement() {
     throw new UnsupportedError('toStatement');
   }
+  Statement toReturn() {
+    throw new UnsupportedError('toReturn');
+  }
+
+  // For debugging
+  String toString() {
+    var context = new SimpleJavaScriptPrintingContext();
+    var opts = new JavaScriptPrintingOptions(allowKeywordsInProperties: true);
+    context.buffer.write('js_ast `');
+    accept(new Printer(opts, context));
+    context.buffer.write('`');
+    return context.getText();
+  }
 }
 
 class Program extends Node {
@@ -237,6 +250,7 @@ class Program extends Node {
 
 abstract class Statement extends Node {
   Statement toStatement() => this;
+  Statement toReturn() => new Block([this, new Return()]);
 }
 
 class Block extends Statement {
@@ -410,6 +424,8 @@ class Return extends Statement {
 
   Return([this.value = null]);
 
+  Statement toReturn() => this;
+
   accept(NodeVisitor visitor) => visitor.visitReturn(this);
 
   void visitChildren(NodeVisitor visitor) {
@@ -579,9 +595,26 @@ class DartYield extends Statement {
 }
 
 abstract class Expression extends Node {
+  Expression();
+
+  factory Expression.binary(List<Expression> exprs, String op) {
+    Expression comma = null;
+    for (var node in exprs) {
+      comma = (comma == null) ? node : new Binary(op, comma, node);
+    }
+    return comma;
+  }
+
   int get precedenceLevel;
 
-  Statement toStatement() => new ExpressionStatement(this);
+  Statement toStatement() => new ExpressionStatement(toVoidExpression());
+  Statement toReturn() => new Return(this);
+
+  Expression toVoidExpression() => this;
+  Expression toAssignExpression(Expression left) => new Assignment(left, this);
+  Statement toVariableDeclaration(Identifier name) =>
+      new VariableDeclarationList('let',
+          [new VariableInitialization(name, this)]).toStatement();
 }
 
 class LiteralExpression extends Expression {
@@ -734,6 +767,41 @@ class Binary extends Expression {
   }
 
   bool get isCommaOperator => op == ',';
+
+  Expression toVoidExpression() {
+    if (!isCommaOperator) return super.toVoidExpression();
+    var l = left.toVoidExpression();
+    var r = right.toVoidExpression();
+    if (l == left && r == right) return this;
+    return new Binary(',', l, r);
+  }
+
+  Statement toStatement() {
+    if (!isCommaOperator) return super.toStatement();
+    return new Block([left.toStatement(), right.toStatement()]);
+  }
+
+  Statement toReturn() {
+    if (!isCommaOperator) return super.toReturn();
+    return new Block([left.toStatement(), right.toReturn()]);
+  }
+
+  List<Expression> commaToExpressionList() {
+    if (!isCommaOperator) throw new StateError('not a comma expression');
+    var exprs = [];
+    _flattenComma(exprs, left);
+    _flattenComma(exprs, right);
+    return exprs;
+  }
+
+  static void _flattenComma(List<Expression> exprs, Expression node) {
+    if (node is Binary && node.isCommaOperator) {
+      _flattenComma(exprs, node.left);
+      _flattenComma(exprs, node.right);
+    } else {
+      exprs.add(node);
+    }
+  }
 
   int get precedenceLevel {
     // TODO(floitsch): switch to constant map.

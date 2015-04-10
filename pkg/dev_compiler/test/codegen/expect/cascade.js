@@ -13,10 +13,9 @@ var cascade;
       core.print("hi");
       a = null;
     };
-    ((_) => {
-      dart.dinvoke(_, 'x');
-      dart.dinvoke(_, 'x');
-    })(a);
+    let _ = a;
+    dart.dinvoke(_, 'x');
+    dart.dinvoke(_, 'x');
     core.print(a);
   }
   // Function test_closure_without_mutate: () → void
@@ -32,43 +31,46 @@ var cascade;
   // Function test_mutate_inside_cascade: () → void
   function test_mutate_inside_cascade() {
     let a = null;
-    a = ((_) => {
-      _.x = a = null;
-      _.x = a = null;
-      return _;
-    })(new A());
+    let _ = new A();
+    _.x = a = null;
+    _.x = a = null;
+    a = _;
     core.print(a);
   }
   // Function test_mutate_outside_cascade: () → void
   function test_mutate_outside_cascade() {
     let a = null, b = null;
     a = new A();
-    dart.dput(a, 'x', b = null);
-    dart.dput(a, 'x', b = null);
+    a.x = b = null;
+    a.x = b = null;
     a = null;
     core.print(a);
   }
   // Function test_VariableDeclaration_single: () → void
   function test_VariableDeclaration_single() {
     let a = new core.List.from([]);
-    dart.dput(a, 'length', 2);
-    a.add(42);
+    a[core.$length] = 2;
+    a[core.$add](42);
     core.print(a);
   }
   // Function test_VariableDeclaration_last: () → void
   function test_VariableDeclaration_last() {
-    let a = 42, b = new core.List.from([]);
-    dart.dput(b, 'length', 2);
-    b.add(a);
+    let a = 42, b = (() => {
+      let _ = new core.List.from([]);
+      _[core.$length] = 2;
+      _[core.$add](a);
+      return _;
+    })();
     core.print(b);
   }
   // Function test_VariableDeclaration_first: () → void
   function test_VariableDeclaration_first() {
-    let a = ((_) => {
+    let a = (() => {
+      let _ = new core.List.from([]);
       _[core.$length] = 2;
       _[core.$add](3);
       return _;
-    })(new core.List.from([])), b = 2;
+    })(), b = 2;
     core.print(a);
   }
   let Base$ = dart.generic(function(T) {

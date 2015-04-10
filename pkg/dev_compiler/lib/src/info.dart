@@ -165,6 +165,7 @@ abstract class Conversion extends Expression with StaticInfo {
 
   DartType get baseType => rules.getStaticType(expression);
   DartType get convertedType => _convertedType;
+  DartType get staticType => _convertedType;
 
   DartType _getConvertedType();
 

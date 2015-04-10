@@ -828,17 +828,21 @@ class Printer implements NodeVisitor {
       out("(");
     }
     localNamer.enterScope(fun);
-    out("(");
-    if (fun.params != null) {
+    if (fun.params.length == 1) {
+      visitNestedExpression(fun.params.single, PRIMARY,
+          newInForInit: false, newAtStatementBegin: false);
+    } else {
+      out("(");
       visitCommaSeparated(fun.params, PRIMARY,
           newInForInit: false, newAtStatementBegin: false);
+      out(")");
     }
-    out(")");
     spaceOut();
     out("=>");
     if (fun.body is Expression) {
       spaceOut();
-      fun.body.accept(this);
+      visitNestedExpression(fun.body, ASSIGNMENT,
+          newInForInit: false, newAtStatementBegin: false);
     } else {
       blockBody(fun.body, needsSeparation: false, needsNewline: false);
     }

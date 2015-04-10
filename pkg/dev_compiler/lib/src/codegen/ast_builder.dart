@@ -95,18 +95,133 @@ class AstBuilder {
     return parenthesizedExpression(exp);
   }
 
-  static Token _binaryOperation(String oper) {
-    switch (oper) {
-      case '==':
-        return new Token(TokenType.EQ_EQ, 0);
-      case '+':
-        return new Token(TokenType.PLUS, 0);
-      case '-':
-        return new Token(TokenType.MINUS, 0);
+  static TokenType getTokenType(String lexeme) {
+    switch (lexeme) {
+      case "&":
+        return TokenType.AMPERSAND;
+      case "&&":
+        return TokenType.AMPERSAND_AMPERSAND;
+      case "&=":
+        return TokenType.AMPERSAND_EQ;
+      case "@":
+        return TokenType.AT;
+      case "!":
+        return TokenType.BANG;
+      case "!=":
+        return TokenType.BANG_EQ;
+      case "|":
+        return TokenType.BAR;
+      case "||":
+        return TokenType.BAR_BAR;
+      case "|=":
+        return TokenType.BAR_EQ;
+      case ":":
+        return TokenType.COLON;
+      case ",":
+        return TokenType.COMMA;
+      case "^":
+        return TokenType.CARET;
+      case "^=":
+        return TokenType.CARET_EQ;
+      case "}":
+        return TokenType.CLOSE_CURLY_BRACKET;
+      case ")":
+        return TokenType.CLOSE_PAREN;
+      case "]":
+        return TokenType.CLOSE_SQUARE_BRACKET;
+      case "=":
+        return TokenType.EQ;
+      case "==":
+        return TokenType.EQ_EQ;
+      case "=>":
+        return TokenType.FUNCTION;
+      case ">":
+        return TokenType.GT;
+      case ">=":
+        return TokenType.GT_EQ;
+      case ">>":
+        return TokenType.GT_GT;
+      case ">>=":
+        return TokenType.GT_GT_EQ;
+      case "#":
+        return TokenType.HASH;
+      case "[]":
+        return TokenType.INDEX;
+      case "[]=":
+        return TokenType.INDEX_EQ;
+      case "is":
+        return TokenType.IS;
+      case "<":
+        return TokenType.LT;
+      case "<=":
+        return TokenType.LT_EQ;
+      case "<<":
+        return TokenType.LT_LT;
+      case "<<=":
+        return TokenType.LT_LT_EQ;
+      case "-":
+        return TokenType.MINUS;
+      case "-=":
+        return TokenType.MINUS_EQ;
+      case "--":
+        return TokenType.MINUS_MINUS;
+      case "{":
+        return TokenType.OPEN_CURLY_BRACKET;
+      case "(":
+        return TokenType.OPEN_PAREN;
+      case "[":
+        return TokenType.OPEN_SQUARE_BRACKET;
+      case "%":
+        return TokenType.PERCENT;
+      case "%=":
+        return TokenType.PERCENT_EQ;
+      case ".":
+        return TokenType.PERIOD;
+      case "..":
+        return TokenType.PERIOD_PERIOD;
+      case "+":
+        return TokenType.PLUS;
+      case "+=":
+        return TokenType.PLUS_EQ;
+      case "++":
+        return TokenType.PLUS_PLUS;
+      case "?":
+        return TokenType.QUESTION;
+      case ";":
+        return TokenType.SEMICOLON;
+      case "/":
+        return TokenType.SLASH;
+      case "/=":
+        return TokenType.SLASH_EQ;
+      case "*":
+        return TokenType.STAR;
+      case "*=":
+        return TokenType.STAR_EQ;
+      case "\${":
+        return TokenType.STRING_INTERPOLATION_EXPRESSION;
+      case "\$":
+        return TokenType.STRING_INTERPOLATION_IDENTIFIER;
+      case "~":
+        return TokenType.TILDE;
+      case "~/":
+        return TokenType.TILDE_SLASH;
+      case "~/=":
+        return TokenType.TILDE_SLASH_EQ;
+      case "`":
+        return TokenType.BACKPING;
+      case "\\":
+        return TokenType.BACKSLASH;
+      case "...":
+        return TokenType.PERIOD_PERIOD_PERIOD;
+      default:
+        return null;
     }
-    // TODO(vsm): Add cases as needed.
-    assert(false);
-    return null;
+  }
+
+  static Token _binaryOperation(String oper) {
+    var type = getTokenType(oper);
+    assert(type != null);
+    return new Token(type, 0);
   }
 
   static BinaryExpression binaryExpression(

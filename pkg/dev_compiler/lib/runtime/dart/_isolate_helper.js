@@ -358,11 +358,13 @@ var _isolate_helper;
   let _activeJsAsyncCount = Symbol('_activeJsAsyncCount');
   // Function enterJsAsync: () → dynamic
   function enterJsAsync() {
-    exports._globalState.topEventLoop[_activeJsAsyncCount] = dart.notNull(exports._globalState.topEventLoop[_activeJsAsyncCount]) + 1;
+    let o$ = exports._globalState.topEventLoop;
+    o$[_activeJsAsyncCount] = dart.notNull(o$[_activeJsAsyncCount]) + 1;
   }
   // Function leaveJsAsync: () → dynamic
   function leaveJsAsync() {
-    exports._globalState.topEventLoop[_activeJsAsyncCount] = dart.notNull(exports._globalState.topEventLoop[_activeJsAsyncCount]) - 1;
+    let o$ = exports._globalState.topEventLoop;
+    o$[_activeJsAsyncCount] = dart.notNull(o$[_activeJsAsyncCount]) - 1;
     dart.assert(dart.notNull(exports._globalState.topEventLoop[_activeJsAsyncCount]) >= 0);
   }
   // Function isWorker: () → bool
@@ -481,7 +483,11 @@ var _isolate_helper;
   let _close = Symbol('_close');
   class _IsolateContext extends core.Object {
     _IsolateContext() {
-      this.id = ((x$) => exports._globalState.nextIsolateId = dart.notNull(x$) + 1, x$)(exports._globalState.nextIsolateId);
+      this.id = (() => {
+        let o$ = exports._globalState, x$ = o$.nextIsolateId;
+        o$.nextIsolateId = dart.notNull(x$) + 1;
+        return x$;
+      })();
       this.ports = new (core.Map$(core.int, RawReceivePortImpl))();
       this.weakPorts = new (core.Set$(core.int))();
       this.isolateStatics = _foreign_helper.JS_CREATE_ISOLATE();
@@ -953,10 +959,10 @@ var _isolate_helper;
     }
     static handleSpawnWorkerRequest(msg) {
       let replyPort = dart.dindex(msg, 'replyPort');
-      IsolateNatives.spawn(dart.as(dart.dindex(msg, 'functionName'), core.String), dart.as(dart.dindex(msg, 'uri'), core.String), dart.as(dart.dindex(msg, 'args'), core.List$(core.String)), dart.dindex(msg, 'msg'), false, dart.as(dart.dindex(msg, 'isSpawnUri'), core.bool), dart.as(dart.dindex(msg, 'startPaused'), core.bool)).then(dart.as((msg) => {
+      IsolateNatives.spawn(dart.as(dart.dindex(msg, 'functionName'), core.String), dart.as(dart.dindex(msg, 'uri'), core.String), dart.as(dart.dindex(msg, 'args'), core.List$(core.String)), dart.dindex(msg, 'msg'), false, dart.as(dart.dindex(msg, 'isSpawnUri'), core.bool), dart.as(dart.dindex(msg, 'startPaused'), core.bool)).then(dart.as(msg => {
         dart.dinvoke(replyPort, 'send', msg);
       }, dart.functionType(dart.dynamic, [core.List])), {
-        onError: (errorMessage) => {
+        onError: errorMessage => {
           dart.dinvoke(replyPort, 'send', new core.List.from([_SPAWN_FAILED_SIGNAL, errorMessage]));
         }
       });
@@ -1005,11 +1011,12 @@ var _isolate_helper;
       return IsolateNatives.spawn(null, uri.toString(), args, message, isLight, isSpawnUri, startPaused);
     }
     static spawn(functionName, uri, args, message, isLight, isSpawnUri, startPaused) {
-      if (dart.notNull(uri != null) && dart.notNull(uri.endsWith(".dart")))
-        uri = ".js";
+      if (dart.notNull(uri != null) && dart.notNull(uri.endsWith(".dart"))) {
+        uri = core.String['+'](uri, ".js");
+      }
       let port = new isolate.ReceivePort();
       let completer = dart.as(new async.Completer(), async.Completer$(core.List));
-      port.first.then((msg) => {
+      port.first.then(msg => {
         if (dart.equals(dart.dindex(msg, 0), _SPAWNED_SIGNAL)) {
           completer.complete(msg);
         } else {
@@ -1019,7 +1026,7 @@ var _isolate_helper;
       });
       let signalReply = port.sendPort;
       if (dart.notNull(exports._globalState.useWorkers) && !dart.notNull(isLight)) {
-        IsolateNatives[_startWorker](functionName, uri, args, message, isSpawnUri, startPaused, signalReply, (message) => completer.completeError(message));
+        IsolateNatives[_startWorker](functionName, uri, args, message, isSpawnUri, startPaused, signalReply, message => completer.completeError(message));
       } else {
         IsolateNatives[_startNonWorker](functionName, uri, args, message, isSpawnUri, startPaused, signalReply);
       }
@@ -1091,7 +1098,9 @@ var _isolate_helper;
         };
       }(_foreign_helper.DART_CLOSURE_TO_JS(IsolateNatives[_processWorkerMessage]), worker);
       worker.onmessage = processWorkerMessageTrampoline;
-      let workerId = ((x$) => exports._globalState.nextManagerId = dart.notNull(x$) + 1, x$)(exports._globalState.nextManagerId);
+      let o$ = exports._globalState;
+      let workerId = o$.nextManagerId;
+      o$.nextManagerId = dart.notNull(workerId) + 1;
       IsolateNatives.workerIds.set(worker, workerId);
       exports._globalState.managers.set(workerId, worker);
       worker.postMessage(_serializeMessage(dart.map({command: 'start', id: workerId, replyTo: _serializeMessage(replyPort), args: args, msg: _serializeMessage(message), isSpawnUri: isSpawnUri, startPaused: startPaused, functionName: functionName})));
@@ -1192,13 +1201,21 @@ var _isolate_helper;
   class RawReceivePortImpl extends core.Object {
     RawReceivePortImpl(handler) {
       this[_handler] = handler;
-      this[_id] = ((x$) => RawReceivePortImpl[_nextFreeId] = dart.notNull(x$) + 1, x$)(RawReceivePortImpl[_nextFreeId]);
+      this[_id] = (() => {
+        let x$ = RawReceivePortImpl[_nextFreeId];
+        RawReceivePortImpl[_nextFreeId] = dart.notNull(x$) + 1;
+        return x$;
+      })();
       this[_isClosed] = false;
       exports._globalState.currentContext.register(this[_id], this);
     }
     weak(handler) {
       this[_handler] = handler;
-      this[_id] = ((x$) => RawReceivePortImpl[_nextFreeId] = dart.notNull(x$) + 1, x$)(RawReceivePortImpl[_nextFreeId]);
+      this[_id] = (() => {
+        let x$ = RawReceivePortImpl[_nextFreeId];
+        RawReceivePortImpl[_nextFreeId] = dart.notNull(x$) + 1;
+        return x$;
+      })();
       this[_isClosed] = false;
       exports._globalState.currentContext.registerWeak(this[_id], this);
     }
@@ -1352,11 +1369,11 @@ var _isolate_helper;
       let hash = this[_id];
       hash = dart.notNull(hash) >> 0 ^ (dart.notNull(hash) / 4294967296).truncate();
       hash = ~dart.notNull(hash) + (dart.notNull(hash) << 15) & 4294967295;
-      hash = dart.notNull(hash) >> 12;
+      hash = dart.notNull(hash) ^ dart.notNull(hash) >> 12;
       hash = dart.notNull(hash) * 5 & 4294967295;
-      hash = dart.notNull(hash) >> 4;
+      hash = dart.notNull(hash) ^ dart.notNull(hash) >> 4;
       hash = dart.notNull(hash) * 2057 & 4294967295;
-      hash = dart.notNull(hash) >> 16;
+      hash = dart.notNull(hash) ^ dart.notNull(hash) >> 16;
       return hash;
     }
     ['=='](other) {

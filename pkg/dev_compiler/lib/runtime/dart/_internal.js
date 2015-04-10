@@ -298,10 +298,11 @@ var _internal;
         let length = dart.notNull(end) - dart.notNull(start);
         if (dart.notNull(length) < 0)
           length = 0;
-        let result = growable ? ((_) => {
+        let result = growable ? (() => {
+          let _ = new (core.List$(E))();
           _[core.$length] = length;
           return _;
-        })(new (core.List$(E))()) : new (core.List$(E))(length);
+        })() : new (core.List$(E))(length);
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           result[core.$set](i, this[_iterable][core.$elementAt](dart.notNull(start) + dart.notNull(i)));
           if (dart.notNull(this[_iterable][core.$length]) < dart.notNull(end))
@@ -1096,7 +1097,7 @@ var _internal;
         let length = list[core.$length];
         while (dart.notNull(length) > 1) {
           let pos = random.nextInt(length);
-          length = 1;
+          length = dart.notNull(length) - 1;
           let tmp = list[core.$get](length);
           list[core.$set](length, list[core.$get](pos));
           list[core.$set](pos, tmp);
@@ -1175,16 +1176,24 @@ var _internal;
           iterable = iterable[core.$toList]({growable: false});
         }
         let insertionLength = iterable[core.$length];
-        list[core.$length] = insertionLength;
+        list[core.$length] = dart.notNull(list[core.$length]) + dart.notNull(insertionLength);
         list[core.$setRange](dart.notNull(index) + dart.notNull(insertionLength), list[core.$length], list, index);
         for (let element of iterable) {
-          list[core.$set](((x) => index = dart.notNull(x) + 1, x)(index), element);
+          list[core.$set]((() => {
+            let x = index;
+            index = dart.notNull(x) + 1;
+            return x;
+          })(), element);
         }
       }
       static setAllList(list, index, iterable) {
         core.RangeError.checkValueInInterval(index, 0, list[core.$length], "index");
         for (let element of iterable) {
-          list[core.$set](((x) => index = dart.notNull(x) + 1, x)(index), element);
+          list[core.$set]((() => {
+            let x = index;
+            index = dart.notNull(x) + 1;
+            return x;
+          })(), element);
         }
       }
       asMapList(l) {
@@ -1683,12 +1692,24 @@ var _internal;
                 continue;
               } else if (dart.notNull(comp) < 0) {
                 a[core.$set](k, a[core.$get](less));
-                a[core.$set](((x) => less = dart.notNull(x) + 1, x)(less), a[core.$get](great));
-                a[core.$set](((x) => great = dart.notNull(x) - 1, x)(great), ak);
+                a[core.$set]((() => {
+                  let x = less;
+                  less = dart.notNull(x) + 1;
+                  return x;
+                })(), a[core.$get](great));
+                a[core.$set]((() => {
+                  let x = great;
+                  great = dart.notNull(x) - 1;
+                  return x;
+                })(), ak);
                 break;
               } else {
                 a[core.$set](k, a[core.$get](great));
-                a[core.$set](((x) => great = dart.notNull(x) - 1, x)(great), ak);
+                a[core.$set]((() => {
+                  let x = great;
+                  great = dart.notNull(x) - 1;
+                  return x;
+                })(), ak);
                 break;
               }
             }
@@ -1718,11 +1739,23 @@ var _internal;
                   comp = dart.dinvokef(compare, a[core.$get](great), pivot1);
                   if (dart.notNull(comp) < 0) {
                     a[core.$set](k, a[core.$get](less));
-                    a[core.$set](((x) => less = dart.notNull(x) + 1, x)(less), a[core.$get](great));
-                    a[core.$set](((x) => great = dart.notNull(x) - 1, x)(great), ak);
+                    a[core.$set]((() => {
+                      let x = less;
+                      less = dart.notNull(x) + 1;
+                      return x;
+                    })(), a[core.$get](great));
+                    a[core.$set]((() => {
+                      let x = great;
+                      great = dart.notNull(x) - 1;
+                      return x;
+                    })(), ak);
                   } else {
                     a[core.$set](k, a[core.$get](great));
-                    a[core.$set](((x) => great = dart.notNull(x) - 1, x)(great), ak);
+                    a[core.$set]((() => {
+                      let x = great;
+                      great = dart.notNull(x) - 1;
+                      return x;
+                    })(), ak);
                   }
                   break;
                 }
@@ -1770,11 +1803,23 @@ var _internal;
                   comp = dart.dinvokef(compare, a[core.$get](great), pivot1);
                   if (dart.notNull(comp) < 0) {
                     a[core.$set](k, a[core.$get](less));
-                    a[core.$set](((x) => less = dart.notNull(x) + 1, x)(less), a[core.$get](great));
-                    a[core.$set](((x) => great = dart.notNull(x) - 1, x)(great), ak);
+                    a[core.$set]((() => {
+                      let x = less;
+                      less = dart.notNull(x) + 1;
+                      return x;
+                    })(), a[core.$get](great));
+                    a[core.$set]((() => {
+                      let x = great;
+                      great = dart.notNull(x) - 1;
+                      return x;
+                    })(), ak);
                   } else {
                     a[core.$set](k, a[core.$get](great));
-                    a[core.$set](((x) => great = dart.notNull(x) - 1, x)(great), ak);
+                    a[core.$set]((() => {
+                      let x = great;
+                      great = dart.notNull(x) - 1;
+                      return x;
+                    })(), ak);
                   }
                   break;
                 }

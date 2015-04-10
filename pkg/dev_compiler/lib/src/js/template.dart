@@ -118,6 +118,15 @@ class Template {
     }
     return instantiator(arguments);
   }
+
+  /// Like [instantiate] but works with free variables.
+  Node safeCreate(Map arguments) {
+    if (holeNames.isEmpty) return ast;
+    return instantiator(new Map.fromIterable(holeNames, value: (name) {
+      var a = arguments[name];
+      return a != null ? a : new InterpolatedExpression(name);
+    }));
+  }
 }
 
 /**

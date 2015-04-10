@@ -211,7 +211,7 @@ var _interceptors;
       let exponent = +dart.dindex(match, 3);
       if (dart.dindex(match, 2) != null) {
         result = result + dart.dindex(match, 2);
-        exponent = dart.dindex(match, 2).length;
+        exponent = dart.notNull(exponent) - dart.dindex(match, 2).length;
       }
       return core.String['+'](result, core.String['*']("0", exponent));
     }
@@ -388,8 +388,8 @@ var _interceptors;
       i = dart.as(dart.dbinary(JSInt[_shru](i, 0), '-', dart.dbinary(JSInt[_shru](i, 1), '&', 1431655765)), core.int);
       i = (dart.notNull(i) & 858993459)['+'](dart.dbinary(JSInt[_shru](i, 2), '&', 858993459));
       i = 252645135 & i['+'](JSInt[_shru](i, 4));
-      i = dart.as(JSInt[_shru](i, 8), core.int);
-      i = dart.as(JSInt[_shru](i, 16), core.int);
+      i = dart.notNull(i) + dart.notNull(dart.as(JSInt[_shru](i, 8), core.int));
+      i = dart.notNull(i) + dart.notNull(dart.as(JSInt[_shru](i, 16), core.int));
       return dart.notNull(i) & 63;
     }
     static [_shru](value, shift) {
@@ -729,7 +729,7 @@ var _interceptors;
         times = dart.as(times >>> 1, core.int);
         if (times == 0)
           break;
-        s = s;
+        s = s['+'](s);
       }
       return result;
     }
@@ -956,7 +956,7 @@ var _interceptors;
     if (exports.mapTypeToInterceptor == null)
       return null;
     let map = dart.as(exports.mapTypeToInterceptor, core.List);
-    for (let i = 0; dart.notNull(i) + 1 < dart.notNull(map[core.$length]); i = 3) {
+    for (let i = 0; dart.notNull(i) + 1 < dart.notNull(map[core.$length]); i = dart.notNull(i) + 3) {
       if (dart.equals(type, map[core.$get](i))) {
         return i;
       }

@@ -30,7 +30,10 @@ var convert;
       super.Codec();
     }
     decodeStream(byteStream) {
-      return dart.as(byteStream.transform(dart.as(this.decoder, async.StreamTransformer$(core.List$(core.int), dart.dynamic))).fold(new core.StringBuffer(), (buffer, string) => dart.dinvoke(buffer, 'write', string), buffer).then((buffer) => buffer.toString()), async.Future$(core.String));
+      return dart.as(byteStream.transform(dart.as(this.decoder, async.StreamTransformer$(core.List$(core.int), dart.dynamic))).fold(new core.StringBuffer(), (buffer, string) => ((() => {
+        dart.dinvoke(buffer, 'write', string);
+        return buffer;
+      })())).then(buffer => buffer.toString()), async.Future$(core.String));
     }
     static getByName(name) {
       if (name == null)
@@ -83,7 +86,7 @@ var convert;
         throw new core.UnsupportedError(`This converter does not support chunked conversions: ${this}`);
       }
       bind(source) {
-        return new async.Stream.eventTransformed(source, ((sink) => new _ConverterStreamEventSink(this, sink)).bind(this));
+        return new async.Stream.eventTransformed(source, (sink => new _ConverterStreamEventSink(this, sink)).bind(this));
       }
     }
     Converter[dart.implements] = () => [async.StreamTransformer];
@@ -353,16 +356,16 @@ var convert;
         this[_buffer] = grown;
       }
       this[_buffer][core.$setRange](this[_bufferIndex], dart.notNull(this[_bufferIndex]) + dart.notNull(chunk[core.$length]), chunk);
-      this[_bufferIndex] = chunk[core.$length];
+      this[_bufferIndex] = dart.notNull(this[_bufferIndex]) + dart.notNull(chunk[core.$length]);
     }
     static [_roundToPowerOf2](v) {
       dart.assert(dart.notNull(v) > 0);
       v = dart.notNull(v) - 1;
-      v = dart.notNull(v) >> 1;
-      v = dart.notNull(v) >> 2;
-      v = dart.notNull(v) >> 4;
-      v = dart.notNull(v) >> 8;
-      v = dart.notNull(v) >> 16;
+      v = dart.notNull(v) | dart.notNull(v) >> 1;
+      v = dart.notNull(v) | dart.notNull(v) >> 2;
+      v = dart.notNull(v) | dart.notNull(v) >> 4;
+      v = dart.notNull(v) | dart.notNull(v) >> 8;
+      v = dart.notNull(v) | dart.notNull(v) >> 16;
       v = dart.notNull(v) + 1;
       return v;
     }
@@ -755,7 +758,7 @@ var convert;
         return bytes[core.$get](0);
       let length = 0;
       for (let i = 0; dart.notNull(i) < dart.notNull(bytes[core.$length]); i = dart.notNull(i) + 1) {
-        length = bytes[core.$get](i)[core.$length];
+        length = dart.notNull(length) + dart.notNull(bytes[core.$get](i)[core.$length]);
       }
       let result = new typed_data.Uint8List(length);
       for (let i = 0, offset = 0; dart.notNull(i) < dart.notNull(bytes[core.$length]); i = dart.notNull(i) + 1) {
@@ -1226,7 +1229,11 @@ var convert;
         this.buffer = new typed_data.Uint8List(this.bufferSize);
         this.index = 0;
       }
-      this.buffer[core.$set](((x$) => this.index = dart.notNull(x$) + 1, x$).bind(this)(this.index), byte);
+      this.buffer[core.$set]((() => {
+        let x$ = this.index;
+        this.index = dart.notNull(x$) + 1;
+        return x$;
+      }).bind(this)(), byte);
     }
   }
   class _JsonUtf8StringifierPretty extends dart.mixin(_JsonUtf8Stringifier, _JsonPrettyPrintMixin) {
@@ -1241,7 +1248,7 @@ var convert;
         let char = indent[core.$get](0);
         while (dart.notNull(count) > 0) {
           this.writeByte(char);
-          count = 1;
+          count = dart.notNull(count) - 1;
         }
         return;
       }
@@ -1755,15 +1762,43 @@ var convert;
         let rune = _combineSurrogatePair(leadingSurrogate, nextCodeUnit);
         dart.assert(dart.notNull(rune) > dart.notNull(_THREE_BYTE_LIMIT));
         dart.assert(dart.notNull(rune) <= dart.notNull(_FOUR_BYTE_LIMIT));
-        this[_buffer][core.$set](((x$) => this[_bufferIndex] = dart.notNull(x$) + 1, x$).bind(this)(this[_bufferIndex]), 240 | dart.notNull(rune) >> 18);
-        this[_buffer][core.$set](((x$) => this[_bufferIndex] = dart.notNull(x$) + 1, x$).bind(this)(this[_bufferIndex]), 128 | dart.notNull(rune) >> 12 & 63);
-        this[_buffer][core.$set](((x$) => this[_bufferIndex] = dart.notNull(x$) + 1, x$).bind(this)(this[_bufferIndex]), 128 | dart.notNull(rune) >> 6 & 63);
-        this[_buffer][core.$set](((x$) => this[_bufferIndex] = dart.notNull(x$) + 1, x$).bind(this)(this[_bufferIndex]), 128 | dart.notNull(rune) & 63);
+        this[_buffer][core.$set]((() => {
+          let x$ = this[_bufferIndex];
+          this[_bufferIndex] = dart.notNull(x$) + 1;
+          return x$;
+        }).bind(this)(), 240 | dart.notNull(rune) >> 18);
+        this[_buffer][core.$set]((() => {
+          let x$ = this[_bufferIndex];
+          this[_bufferIndex] = dart.notNull(x$) + 1;
+          return x$;
+        }).bind(this)(), 128 | dart.notNull(rune) >> 12 & 63);
+        this[_buffer][core.$set]((() => {
+          let x$ = this[_bufferIndex];
+          this[_bufferIndex] = dart.notNull(x$) + 1;
+          return x$;
+        }).bind(this)(), 128 | dart.notNull(rune) >> 6 & 63);
+        this[_buffer][core.$set]((() => {
+          let x$ = this[_bufferIndex];
+          this[_bufferIndex] = dart.notNull(x$) + 1;
+          return x$;
+        }).bind(this)(), 128 | dart.notNull(rune) & 63);
         return true;
       } else {
-        this[_buffer][core.$set](((x$) => this[_bufferIndex] = dart.notNull(x$) + 1, x$).bind(this)(this[_bufferIndex]), 224 | dart.notNull(leadingSurrogate) >> 12);
-        this[_buffer][core.$set](((x$) => this[_bufferIndex] = dart.notNull(x$) + 1, x$).bind(this)(this[_bufferIndex]), 128 | dart.notNull(leadingSurrogate) >> 6 & 63);
-        this[_buffer][core.$set](((x$) => this[_bufferIndex] = dart.notNull(x$) + 1, x$).bind(this)(this[_bufferIndex]), 128 | dart.notNull(leadingSurrogate) & 63);
+        this[_buffer][core.$set]((() => {
+          let x$ = this[_bufferIndex];
+          this[_bufferIndex] = dart.notNull(x$) + 1;
+          return x$;
+        }).bind(this)(), 224 | dart.notNull(leadingSurrogate) >> 12);
+        this[_buffer][core.$set]((() => {
+          let x$ = this[_bufferIndex];
+          this[_bufferIndex] = dart.notNull(x$) + 1;
+          return x$;
+        }).bind(this)(), 128 | dart.notNull(leadingSurrogate) >> 6 & 63);
+        this[_buffer][core.$set]((() => {
+          let x$ = this[_bufferIndex];
+          this[_bufferIndex] = dart.notNull(x$) + 1;
+          return x$;
+        }).bind(this)(), 128 | dart.notNull(leadingSurrogate) & 63);
         return false;
       }
     }
@@ -1777,28 +1812,53 @@ var convert;
         if (dart.notNull(codeUnit) <= dart.notNull(_ONE_BYTE_LIMIT)) {
           if (dart.notNull(this[_bufferIndex]) >= dart.notNull(this[_buffer][core.$length]))
             break;
-          this[_buffer][core.$set](((x$) => this[_bufferIndex] = dart.notNull(x$) + 1, x$).bind(this)(this[_bufferIndex]), codeUnit);
+          this[_buffer][core.$set]((() => {
+            let x$ = this[_bufferIndex];
+            this[_bufferIndex] = dart.notNull(x$) + 1;
+            return x$;
+          }).bind(this)(), codeUnit);
         } else if (_isLeadSurrogate(codeUnit)) {
           if (dart.notNull(this[_bufferIndex]) + 3 >= dart.notNull(this[_buffer][core.$length]))
             break;
           let nextCodeUnit = str.codeUnitAt(dart.notNull(stringIndex) + 1);
           let wasCombined = this[_writeSurrogate](codeUnit, nextCodeUnit);
-          if (wasCombined)
+          if (wasCombined) {
             stringIndex = dart.notNull(stringIndex) + 1;
+          }
         } else {
           let rune = codeUnit;
           if (dart.notNull(rune) <= dart.notNull(_TWO_BYTE_LIMIT)) {
             if (dart.notNull(this[_bufferIndex]) + 1 >= dart.notNull(this[_buffer][core.$length]))
               break;
-            this[_buffer][core.$set](((x$) => this[_bufferIndex] = dart.notNull(x$) + 1, x$).bind(this)(this[_bufferIndex]), 192 | dart.notNull(rune) >> 6);
-            this[_buffer][core.$set](((x$) => this[_bufferIndex] = dart.notNull(x$) + 1, x$).bind(this)(this[_bufferIndex]), 128 | dart.notNull(rune) & 63);
+            this[_buffer][core.$set]((() => {
+              let x$ = this[_bufferIndex];
+              this[_bufferIndex] = dart.notNull(x$) + 1;
+              return x$;
+            }).bind(this)(), 192 | dart.notNull(rune) >> 6);
+            this[_buffer][core.$set]((() => {
+              let x$ = this[_bufferIndex];
+              this[_bufferIndex] = dart.notNull(x$) + 1;
+              return x$;
+            }).bind(this)(), 128 | dart.notNull(rune) & 63);
           } else {
             dart.assert(dart.notNull(rune) <= dart.notNull(_THREE_BYTE_LIMIT));
             if (dart.notNull(this[_bufferIndex]) + 2 >= dart.notNull(this[_buffer][core.$length]))
               break;
-            this[_buffer][core.$set](((x$) => this[_bufferIndex] = dart.notNull(x$) + 1, x$).bind(this)(this[_bufferIndex]), 224 | dart.notNull(rune) >> 12);
-            this[_buffer][core.$set](((x$) => this[_bufferIndex] = dart.notNull(x$) + 1, x$).bind(this)(this[_bufferIndex]), 128 | dart.notNull(rune) >> 6 & 63);
-            this[_buffer][core.$set](((x$) => this[_bufferIndex] = dart.notNull(x$) + 1, x$).bind(this)(this[_bufferIndex]), 128 | dart.notNull(rune) & 63);
+            this[_buffer][core.$set]((() => {
+              let x$ = this[_bufferIndex];
+              this[_bufferIndex] = dart.notNull(x$) + 1;
+              return x$;
+            }).bind(this)(), 224 | dart.notNull(rune) >> 12);
+            this[_buffer][core.$set]((() => {
+              let x$ = this[_bufferIndex];
+              this[_bufferIndex] = dart.notNull(x$) + 1;
+              return x$;
+            }).bind(this)(), 128 | dart.notNull(rune) >> 6 & 63);
+            this[_buffer][core.$set]((() => {
+              let x$ = this[_bufferIndex];
+              this[_bufferIndex] = dart.notNull(x$) + 1;
+              return x$;
+            }).bind(this)(), 128 | dart.notNull(rune) & 63);
           }
         }
       }
@@ -1833,8 +1893,9 @@ var convert;
         }
         let wasCombined = this[_writeSurrogate](this[_carry], nextCodeUnit);
         dart.assert(!dart.notNull(wasCombined) || start != end);
-        if (wasCombined)
+        if (wasCombined) {
           start = dart.notNull(start) + 1;
+        }
         this[_carry] = 0;
       }
       do {
@@ -2020,11 +2081,15 @@ var convert;
             if (dart.notNull(oneBytes) > 0) {
               this[_isFirstCharacter] = false;
               addSingleBytes(i, dart.notNull(i) + dart.notNull(oneBytes));
-              i = oneBytes;
+              i = dart.notNull(i) + dart.notNull(oneBytes);
               if (i == endIndex)
                 break;
             }
-            let unit = codeUnits[core.$get](((x$) => i = dart.notNull(x$) + 1, x$)(i));
+            let unit = codeUnits[core.$get]((() => {
+              let x$ = i;
+              i = dart.notNull(x$) + 1;
+              return x$;
+            })());
             if (dart.notNull(unit) < 0) {
               if (!dart.notNull(this[_allowMalformed])) {
                 throw new core.FormatException(`Negative UTF-8 code unit: -0x${(-dart.notNull(unit)).toRadixString(16)}`);
@@ -2159,7 +2224,7 @@ var convert;
     get values() {
       if (this[_isUpgraded])
         return this[_upgradedMap].values;
-      return new _internal.MappedIterable(this[_computeKeys](), ((each) => this.get(each)).bind(this));
+      return new _internal.MappedIterable(this[_computeKeys](), (each => this.get(each)).bind(this));
     }
     set(key, value) {
       if (this[_isUpgraded]) {

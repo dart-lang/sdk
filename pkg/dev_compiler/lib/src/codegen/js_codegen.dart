@@ -31,6 +31,7 @@ import 'package:dev_compiler/src/utils.dart';
 
 import 'code_generator.dart';
 import 'js_names.dart';
+import 'js_metalet.dart';
 
 bool _isAnnotationType(Annotation m, String name) => m.name.name == name;
 
@@ -1091,7 +1092,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       return new JSTemporary('${name.substring(1)}');
     }
 
-    if (_isTemporary(e)) return new JSTemporary(e.name);
+    if (_isTemporary(e)) {
+      if (name[0] == '#') {
+        return new JS.InterpolatedExpression(name.substring(1));
+      } else {
+        return new JSTemporary(e.name);
+      }
+    }
 
     return new JS.Identifier(name);
   }
@@ -1202,13 +1209,25 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   }
 
   @override
-  JS.Node visitAssignmentExpression(AssignmentExpression node) {
-    var lhs = node.leftHandSide;
-    var rhs = node.rightHandSide;
-    return _emitSet(lhs, rhs, node.parent);
+  JS.Expression visitAssignmentExpression(AssignmentExpression node) {
+    var left = node.leftHandSide;
+    var right = node.rightHandSide;
+    if (node.operator.type == TokenType.EQ) return _emitSet(left, right);
+    return _emitOpAssign(left, right, node.operator.lexeme[0], context: node);
   }
 
-  JS.Node _emitSet(Expression lhs, Expression rhs, [AstNode parent]) {
+  JSMetaLet _emitOpAssign(Expression left, Expression right, String op,
+      {Expression context}) {
+    // Desugar `x += y` as `x = x + y`, ensuring that if `x` has subexpressions
+    // (for example, x is IndexExpression) we evaluate those once.
+    var vars = {};
+    var lhs = _bindLeftHandSide(vars, left, context: context);
+    var inc = AstBuilder.binaryExpression(lhs, op, right);
+    inc.staticType = rules.getStaticType(left);
+    return new JSMetaLet(vars, [_emitSet(lhs, inc)]);
+  }
+
+  JS.Expression _emitSet(Expression lhs, Expression rhs) {
     if (lhs is IndexExpression) {
       String code;
       var target = _getTarget(lhs);
@@ -1232,30 +1251,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       var result = _emitDSetIfDynamic(lhs.prefix, lhs.identifier, rhs);
       if (result != null) return result;
     }
-
-    if (parent is ExpressionStatement &&
-        rhs is CascadeExpression &&
-        _isStateless(lhs, rhs)) {
-      // Special case: cascade assignment to a variable in a statement.
-      // We can reuse the variable to desugar it:
-      //    result = []..length = length;
-      // becomes:
-      //    result = [];
-      //    result.length = length;
-      var savedCascadeTemp = _cascadeTarget;
-      _cascadeTarget = lhs;
-
-      var body = [];
-      body.add(js.statement('# = #;', [_visit(lhs), _visit(rhs.target)]));
-      for (var section in rhs.cascadeSections) {
-        body.add(new JS.ExpressionStatement(_visit(section)));
-      }
-
-      _cascadeTarget = savedCascadeTemp;
-      return _statement(body);
-    }
-
-    return js.call('# = #', [_visit(lhs), _visit(rhs)]);
+    return _visit(rhs).toAssignExpression(_visit(lhs));
   }
 
   @override
@@ -1385,14 +1381,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   JS.Statement visitExpressionStatement(ExpressionStatement node) =>
-      _expressionStatement(_visit(node.expression));
-
-  // Some expressions may choose to generate themselves as JS statements
-  // if their parent is in a statement context.
-  // TODO(jmesserly): refactor so we handle the special cases here, and
-  // can use better return types on the expression visit methods.
-  JS.Statement _expressionStatement(expr) =>
-      expr is JS.Statement ? expr : new JS.ExpressionStatement(expr);
+      _visit(node.expression).toStatement();
 
   @override
   JS.EmptyStatement visitEmptyStatement(EmptyStatement node) =>
@@ -1404,8 +1393,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       js.statement('dart.assert(#);', _visit(node.condition));
 
   @override
-  JS.Return visitReturnStatement(ReturnStatement node) =>
-      new JS.Return(_visit(node.expression));
+  JS.Statement visitReturnStatement(ReturnStatement node) {
+    var e = node.expression;
+    if (e == null) return new JS.Return();
+    return _visit(e).toReturn();
+  }
 
   @override
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
@@ -1435,37 +1427,24 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   }
 
   @override
-  visitVariableDeclarationList(VariableDeclarationList node) {
-    var last = node.variables.last;
-    var lastInitializer = last.initializer;
-
-    List<JS.VariableInitialization> variables;
-    if (lastInitializer is CascadeExpression &&
-        node.parent is VariableDeclarationStatement) {
-      // Special case: cascade as variable initializer
-      //
-      // We can reuse the variable to desugar it:
-      //    var result = []..length = length;
-      // becomes:
-      //    var result = [];
-      //    result.length = length;
-      var savedCascadeTemp = _cascadeTarget;
-      _cascadeTarget = last.name;
-
-      variables = _visitList(node.variables.take(node.variables.length - 1));
-      variables.add(new JS.VariableInitialization(
-          new JS.Identifier(last.name.name), _visit(lastInitializer.target)));
-
-      var result =
-          <JS.Expression>[new JS.VariableDeclarationList('let', variables)];
-      result.addAll(_visitList(lastInitializer.cascadeSections));
-      _cascadeTarget = savedCascadeTemp;
-      return _statement(result.map((e) => new JS.ExpressionStatement(e)));
-    } else {
-      variables = _visitList(node.variables);
+  JS.Statement visitVariableDeclarationStatement(
+      VariableDeclarationStatement node) {
+    // Special case a single variable with an initializer.
+    // This helps emit cleaner code for things like:
+    //     var result = []..add(1)..add(2);
+    if (node.variables.variables.length == 1) {
+      var v = node.variables.variables.single;
+      if (v.initializer != null) {
+        var name = new JS.Identifier(v.name.name);
+        return _visit(v.initializer).toVariableDeclaration(name);
+      }
     }
+    return _visit(node.variables).toStatement();
+  }
 
-    return new JS.VariableDeclarationList('let', variables);
+  @override
+  visitVariableDeclarationList(VariableDeclarationList node) {
+    return new JS.VariableDeclarationList('let', _visitList(node.variables));
   }
 
   @override
@@ -1519,11 +1498,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   }
 
   @override
-  JS.Statement visitVariableDeclarationStatement(
-          VariableDeclarationStatement node) =>
-      _expressionStatement(_visit(node.variables));
-
-  @override
   visitConstructorName(ConstructorName node) {
     var typeName = _visit(node.type);
     if (node.name != null) {
@@ -1571,6 +1545,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       return true;
     }
     if (expr is ParenthesizedExpression) {
+      return _isNonNullableExpression(expr.expression);
+    }
+    if (expr is Conversion) {
       return _isNonNullableExpression(expr.expression);
     }
     DartType type = null;
@@ -1715,31 +1692,110 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   bool _isTemporary(Element node) => node.nameOffset == -1;
 
-  JS.Expression _emitPostfixIncrement(Expression expr, Token op) {
+  /// Desugars postfix increment.
+  ///
+  /// In the general case [expr] can be one of [IndexExpression],
+  /// [PrefixExpression] or [PropertyAccess] and we need to
+  /// ensure sub-expressions are evaluated once.
+  ///
+  /// We also need to ensure we can return the original value of the expression,
+  /// and that it is only evaluated once.
+  ///
+  /// We desugar this using let*.
+  ///
+  /// For example, `expr1[expr2]++` can be transformed to this:
+  ///
+  ///     // psuedocode mix of Scheme and JS:
+  ///     (let* (x1=expr1, x2=expr2, t=expr1[expr2]) { x1[x2] = t + 1; t })
+  ///
+  /// The [JSMetaLet] nodes automatically simplify themselves if they can.
+  /// For example, if the result value is not used, then `t` goes away.
+  JSMetaLet _emitPostfixIncrement(Expression expr, Token op) {
     var type = rules.getStaticType(expr);
     assert(type != null);
-    var tmp = _createTemporary('x', type);
 
-    // Increment and write
+    // Handle the left hand side, to ensure each of its subexpressions are
+    // evaluated only once.
+    var vars = {};
+    var left = _bindLeftHandSide(vars, expr, context: expr);
+
+    // Desugar `x++` as `(x1 = x0 + 1, x0)` where `x0` is the original value
+    // and `x1` is the new value for `x`.
+    var x = _bindValue(vars, 'x', left, context: expr);
+
     var one = AstBuilder.integerLiteral(1);
     one.staticType = rules.provider.intType;
-    var increment = AstBuilder.binaryExpression(tmp, op.lexeme[0], one);
+    var increment = AstBuilder.binaryExpression(x, op.lexeme[0], one);
     increment.staticType = type;
-    var write = _emitSet(expr, increment);
 
-    return js.call(
-        "((#) => (#, #))(#)", [_visit(tmp), write, _visit(tmp), _visit(expr)]);
+    var body = [_emitSet(left, increment), _visit(x)];
+    return new JSMetaLet(vars, body, statelessResult: true);
+  }
+
+  /// Returns a new expression, which can be be used safely *once* on the
+  /// left hand side, and *once* on the right side of an assignment.
+  /// For example: `expr1[expr2] += y` can be compiled as
+  /// `expr1[expr2] = expr1[expr2] + y`.
+  ///
+  /// The temporary scope will ensure `expr1` and `expr2` are only evaluated
+  /// once: `((x1, x2) => x1[x2] = x1[x2] + y)(expr1, expr2)`.
+  ///
+  /// If the expression does not end up using `x1` or `x2` more than once, or
+  /// if those expressions can be treated as stateless (e.g. they are
+  /// non-mutated variables), then the resulting code will be simplified
+  /// automatically.
+  ///
+  /// [scope] can be mutated to contain any new temporaries that were created,
+  /// unless [expr] is a SimpleIdentifier, in which case a temporary is not
+  /// needed.
+  Expression _bindLeftHandSide(
+      Map<String, JS.Expression> scope, Expression expr, {Expression context}) {
+    if (expr is IndexExpression) {
+      IndexExpression index = expr;
+      return new IndexExpression.forTarget(
+          _bindValue(scope, 'o', index.target, context: context),
+          index.leftBracket,
+          _bindValue(scope, 'i', index.index, context: context),
+          index.rightBracket)..staticType = expr.staticType;
+    } else if (expr is PropertyAccess) {
+      PropertyAccess prop = expr;
+      return new PropertyAccess(
+          _bindValue(scope, 'o', prop.target, context: context), prop.operator,
+          prop.propertyName)..staticType = expr.staticType;
+    } else if (expr is PrefixedIdentifier) {
+      PrefixedIdentifier ident = expr;
+      return new PrefixedIdentifier(
+          _bindValue(scope, 'o', ident.prefix, context: context), ident.period,
+          ident.identifier)..staticType = expr.staticType;
+    }
+    return expr as SimpleIdentifier;
+  }
+
+  /// Creates a temporary to contain the value of [expr]. The temporary can be
+  /// used multiple times in the resulting expression. For example:
+  /// `expr ** 2` could be compiled as `expr * expr`. The temporary scope will
+  /// ensure `expr` is only evaluated once: `(x => x * x)(expr)`.
+  ///
+  /// If the expression does not end up using `x` more than once, or if those
+  /// expressions can be treated as stateless (e.g. they are non-mutated
+  /// variables), then the resulting code will be simplified automatically.
+  ///
+  /// [scope] will be mutated to contain the new temporary's initialization.
+  Expression _bindValue(
+      Map<String, JS.Expression> scope, String name, Expression expr,
+      {Expression context}) {
+    // No need to do anything for stateless expressions.
+    if (_isStateless(expr, context)) return expr;
+
+    var t = _createTemporary('#$name', expr.staticType);
+    scope[name] = _visit(expr);
+    return t;
   }
 
   @override
   JS.Expression visitPostfixExpression(PostfixExpression node) {
     var op = node.operator;
     var expr = node.operand;
-
-    if (node.parent is Statement) {
-      // Prefix code is simpler.  If the expr result isn't used, fall to that.
-      return _emitPrefixExpression(op, expr);
-    }
 
     var dispatchType = rules.getStaticType(expr);
     if (unaryOperationIsPrimitive(dispatchType)) {
@@ -1750,13 +1806,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     assert(op.lexeme == '++' || op.lexeme == '--');
     return _emitPostfixIncrement(expr, op);
-  }
-
-  JS.Expression _emitPrefixIncrement(Token op, Expression expr) {
-    var one = AstBuilder.integerLiteral(1);
-    one.staticType = rules.provider.intType;
-    var increment = AstBuilder.binaryExpression(expr, op.lexeme[0], one);
-    return _emitSet(expr, increment);
   }
 
   @override
@@ -1772,15 +1821,22 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       } else if (op.lexeme == '++' || op.lexeme == '--') {
         // We need a null check, so the increment must be expanded out.
         var mathop = op.lexeme[0];
-        return js.call('# = # $mathop 1', [_visit(expr), notNull(expr)]);
+        var vars = {};
+        var x = _bindLeftHandSide(vars, expr, context: expr);
+        var body = js.call('# = # $mathop 1', [_visit(x), notNull(x)]);
+        return new JSMetaLet(vars, [body]);
       } else {
         return js.call('$op#', notNull(expr));
       }
-    } else {
+    }
+
+    if (op.lexeme == '++' || op.lexeme == '--') {
       // Increment or decrement requires expansion.
-      if (op.lexeme == '++' || op.lexeme == '--') {
-        return _emitPrefixIncrement(op, expr);
-      }
+      // Desugar `++x` as `x = x + 1`, ensuring that if `x` has subexpressions
+      // (for example, x is IndexExpression) we evaluate those once.
+      var one = AstBuilder.integerLiteral(1)
+        ..staticType = rules.provider.intType;
+      return _emitOpAssign(expr, one, op.lexeme[0], context: expr);
     }
 
     // Call the operator
@@ -1804,78 +1860,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   JS.Node visitCascadeExpression(CascadeExpression node) {
     var savedCascadeTemp = _cascadeTarget;
 
-    var parent = node.parent;
-    JS.Node result;
-    if (_isStateless(node.target, node)) {
-      // Special case: target is stateless, so we can just reuse it.
-      _cascadeTarget = node.target;
-
-      if (parent is ExpressionStatement) {
-        var sections = _visitList(node.cascadeSections);
-        result = _statement(sections.map((e) => new JS.ExpressionStatement(e)));
-      } else {
-        // Use comma expression. For example:
-        //    (sb.write(1), sb.write(2), sb)
-        var sections = _visitListToBinary(node.cascadeSections, ',');
-        result = new JS.Binary(',', sections, _visit(_cascadeTarget));
-      }
-    } else {
-      // In the general case we need to capture the target expression into
-      // a temporary. This uses a lambda to get a temporary scope, and it also
-      // remains valid in an expression context.
-      _cascadeTarget = _createTemporary('_', node.target.staticType);
-
-      var body = _visitList(node.cascadeSections);
-      if (node.parent is! ExpressionStatement) {
-        body.add(js.statement('return #;', _visit(_cascadeTarget)));
-      }
-
-      result = js.call('((#) => { # })(#)', [
-        _visit(_cascadeTarget),
-        body,
-        _visit(node.target)
-      ]);
-    }
-
+    var vars = {};
+    _cascadeTarget = _bindValue(vars, '_', node.target, context: node);
+    var sections = _visitList(node.cascadeSections);
+    sections.add(_visit(_cascadeTarget));
+    var result = new JSMetaLet(vars, sections, statelessResult: true);
     _cascadeTarget = savedCascadeTemp;
     return result;
-  }
-
-  /// True is the expression can be evaluated multiple times without causing
-  /// code execution. This is true for final fields. This can be true for local
-  /// variables, if:
-  ///
-  /// * they are not assigned within the [context] scope.
-  /// * they are not assigned in a function closure anywhere.
-  ///
-  /// This method is used to avoid creating temporaries in cases where we know
-  /// we can safely re-evaluate [node] multiple times in [context]. This lets
-  /// us generate prettier code.
-  ///
-  /// This method is conservative: it should never return `true` unless it is
-  /// certain the [node] is stateless, because generated code may rely on the
-  /// correctness of a `true` value. However it may return `false` for things
-  /// that are in fact, stateless.
-  bool _isStateless(Expression node, [AstNode context]) {
-    if (node is SimpleIdentifier) {
-      var e = node.staticElement;
-      if (e is PropertyAccessorElement) e = e.variable;
-      if (e is VariableElement && !e.isSynthetic) {
-        if (e.isFinal) return true;
-
-        // TODO(jmesserly): remove this when isPotentiallyMutated* is available
-        // without the implementation class. Technically we shouldn't hit the
-        // ParameterMember case based on current usage of _isStateless, but this
-        // makes it clear we shouldn't rely on *Impl class.
-        if (e is Member) e = e.baseElement;
-
-        if (e is LocalVariableElementImpl || e is ParameterElementImpl) {
-          // make sure the local isn't mutated in the context.
-          return !_isPotentiallyMutated(e, context);
-        }
-      }
-    }
-    return false;
   }
 
   @override
@@ -1982,8 +1973,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   JS.For visitForStatement(ForStatement node) {
     var init = _visit(node.initialization);
     if (init == null) init = _visit(node.variables);
-    return new JS.For(init, _visit(node.condition),
-        _visitListToBinary(node.updaters, ','), _visit(node.body));
+    var update = _visitListToBinary(node.updaters, ',');
+    if (update != null) update = update.toVoidExpression();
+    return new JS.For(init, _visit(node.condition), update, _visit(node.body));
   }
 
   @override
@@ -2265,17 +2257,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// Visits a list of expressions, creating a comma expression if needed in JS.
   JS.Expression _visitListToBinary(List<Expression> nodes, String operator) {
     if (nodes == null || nodes.isEmpty) return null;
-
-    JS.Expression result = null;
-    for (var node in nodes) {
-      var jsExpr = _visit(node);
-      if (result == null) {
-        result = jsExpr;
-      } else {
-        result = new JS.Binary(operator, result, jsExpr);
-      }
-    }
-    return result;
+    return new JS.Expression.binary(_visitList(nodes), operator);
   }
 
   /// This handles member renaming for private names and operators.
@@ -2371,57 +2353,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
           e is ClassMemberElement && !e.isStatic && e is! ConstructorElement;
 }
 
-/// Returns true if the local variable is potentially mutated within [context].
-/// This accounts for closures that may have been created outside of [context].
-// TODO(jmesserly): change type annotation to not be *Impl once
-// isPotentiallyMutated is available on VariableElement.
-bool _isPotentiallyMutated(VariableElementImpl e, [AstNode context]) {
-  if (e.isPotentiallyMutatedInClosure) {
-    // TODO(jmesserly): this returns true incorrectly in some cases, because
-    // VariableResolverVisitor only checks that enclosingElement is not the
-    // function element, but enclosingElement can be something else in some
-    // cases (the block scope?). So it's more conservative than it could be.
-    return true;
-  }
-  if (e.isPotentiallyMutatedInScope) {
-    // Need to visit the context looking for assignment to this local.
-    if (context != null) {
-      var visitor = new _AssignmentFinder(e);
-      context.accept(visitor);
-      return visitor._potentiallyMutated;
-    }
-    return true;
-  }
-  return false;
-}
-
-/// Adapted from VariableResolverVisitor. Finds an assignment to a given
-/// local variable.
-class _AssignmentFinder extends RecursiveAstVisitor {
-  final VariableElementImpl _variable;
-  bool _potentiallyMutated = false;
-
-  _AssignmentFinder(this._variable);
-
-  @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
-    // Ignore if qualified.
-    AstNode parent = node.parent;
-    if (parent is PrefixedIdentifier &&
-        identical(parent.identifier, node)) return;
-    if (parent is PropertyAccess &&
-        identical(parent.propertyName, node)) return;
-    if (parent is MethodInvocation &&
-        identical(parent.methodName, node)) return;
-    if (parent is ConstructorName) return;
-    if (parent is Label) return;
-
-    if (node.inSetterContext() && node.staticElement == _variable) {
-      _potentiallyMutated = true;
-    }
-  }
-}
-
 class JSGenerator extends CodeGenerator {
   final JSCodeOptions options;
 
@@ -2459,7 +2390,6 @@ void _writeNode(JS.JavaScriptPrintingContext context, JS.Node node) {
   node.accept(new JS.Printer(opts, context, localNamer: new JSNamer(node)));
 }
 
-/// This is a debugging helper to print a JS node.
 String jsNodeToString(JS.Node node) {
   var context = new JS.SimpleJavaScriptPrintingContext();
   _writeNode(context, node);
@@ -2551,5 +2481,98 @@ class SourceMapPrintingContext extends JS.JavaScriptPrintingContext {
   String _getIdentifier(AstNode node) {
     if (node is SimpleIdentifier) return node.name;
     return null;
+  }
+}
+
+/// True is the expression can be evaluated multiple times without causing
+/// code execution. This is true for final fields. This can be true for local
+/// variables, if:
+/// * they are not assigned within the [context].
+/// * they are not assigned in a function closure anywhere.
+/// True is the expression can be evaluated multiple times without causing
+/// code execution. This is true for final fields. This can be true for local
+/// variables, if:
+///
+/// * they are not assigned within the [context] scope.
+/// * they are not assigned in a function closure anywhere.
+///
+/// This method is used to avoid creating temporaries in cases where we know
+/// we can safely re-evaluate [node] multiple times in [context]. This lets
+/// us generate prettier code.
+///
+/// This method is conservative: it should never return `true` unless it is
+/// certain the [node] is stateless, because generated code may rely on the
+/// correctness of a `true` value. However it may return `false` for things
+/// that are in fact, stateless.
+bool _isStateless(Expression node, [AstNode context]) {
+  if (node is SimpleIdentifier) {
+    var e = node.staticElement;
+    if (e is PropertyAccessorElement) e = e.variable;
+    if (e is VariableElement && !e.isSynthetic) {
+      if (e.isFinal) return true;
+
+      // TODO(jmesserly): remove this when isPotentiallyMutated* is available
+      // without the implementation class. Technically we shouldn't hit the
+      // ParameterMember case based on current usage of _isStateless, but this
+      // makes it clear we shouldn't rely on *Impl class.
+      if (e is Member) e = e.baseElement;
+
+      if (e is LocalVariableElementImpl || e is ParameterElementImpl) {
+        // make sure the local isn't mutated in the context.
+        return !_isPotentiallyMutated(e, context);
+      }
+    }
+  }
+  return false;
+}
+
+/// Returns true if the local variable is potentially mutated within [context].
+/// This accounts for closures that may have been created outside of [context].
+bool _isPotentiallyMutated(VariableElementImpl e, [AstNode context]) {
+  if (e.isPotentiallyMutatedInClosure) {
+    // TODO(jmesserly): this returns true incorrectly in some cases, because
+    // VariableResolverVisitor only checks that enclosingElement is not the
+    // function element, but enclosingElement can be something else in some
+    // cases (the block scope?). So it's more conservative than it could be.
+    return true;
+  }
+  if (e.isPotentiallyMutatedInScope) {
+    // Need to visit the context looking for assignment to this local.
+    if (context != null) {
+      var visitor = new _AssignmentFinder(e);
+      context.accept(visitor);
+      return visitor._potentiallyMutated;
+    }
+    return true;
+  }
+  return false;
+}
+
+/// Adapted from VariableResolverVisitor. Finds an assignment to a given
+/// local variable.
+// TODO(jmesserly): change type annotation to not be *Impl once
+// isPotentiallyMutated is available on VariableElement.
+class _AssignmentFinder extends RecursiveAstVisitor {
+  final VariableElementImpl _variable;
+  bool _potentiallyMutated = false;
+
+  _AssignmentFinder(this._variable);
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    // Ignore if qualified.
+    AstNode parent = node.parent;
+    if (parent is PrefixedIdentifier &&
+        identical(parent.identifier, node)) return;
+    if (parent is PropertyAccess &&
+        identical(parent.propertyName, node)) return;
+    if (parent is MethodInvocation &&
+        identical(parent.methodName, node)) return;
+    if (parent is ConstructorName) return;
+    if (parent is Label) return;
+
+    if (node.inSetterContext() && node.staticElement == _variable) {
+      _potentiallyMutated = true;
+    }
   }
 }
