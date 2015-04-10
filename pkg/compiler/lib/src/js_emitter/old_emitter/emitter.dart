@@ -644,7 +644,9 @@ class OldEmitter implements Emitter {
               js.statement('var ${namer.deferredTypesName} = #;',
                            constructList(types)),
               compiler, monitor: compiler.dumpInfoTask));
-      output.add(n);
+      if (compiler.enableMinification) {
+        output.add('\n');
+      }
     }
   }
 
