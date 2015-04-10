@@ -288,8 +288,9 @@ useProgramBuilder(program_builder.ProgramBuilder builder) {
 }
 
 useSemanticVisitor() {
-  new semantic_visitor.BulkVisitor().apply(null, null);
+  new semantic_visitor.BulkSendVisitor().apply(null, null);
   new semantic_visitor.TraversalVisitor(null).apply(null, null);
+  new semantic_visitor.BulkDeclarationVisitor().apply(null, null);
 }
 
 class DummyTreeVisitor extends tree_ir.RootVisitor

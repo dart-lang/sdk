@@ -20,11 +20,10 @@ import 'send_structure.dart';
 part 'semantic_visitor_mixins.dart';
 part 'send_resolver.dart';
 
-abstract class SemanticVisitor<R, A> extends Visitor<R>
-    with SendResolverMixin {
-  TreeElements elements;
-
-  SemanticVisitor(this.elements);
+/// Mixin that couples a [SendResolverMixin] to a [SemanticSendVisitor] in a
+/// [Visitor].
+abstract class SemanticSendResolvedMixin<R, A>
+    implements Visitor<R>, SendResolverMixin {
 
   SemanticSendVisitor<R, A> get sendVisitor;
 
@@ -70,6 +69,75 @@ abstract class SemanticVisitor<R, A> extends Visitor<R>
       return structure.dispatch(sendVisitor, node, arg);
     }
   }
+}
+
+/// Mixin that couples a [DeclarationResolverMixin] to a
+/// [SemanticDeclarationVisitor] in a [Visitor].
+abstract class SemanticDeclarationResolvedMixin<R, A>
+    implements Visitor<R>, DeclarationResolverMixin {
+
+  SemanticDeclarationVisitor<R, A> get declVisitor;
+
+  @override
+  R visitFunctionExpression(FunctionExpression node) {
+    // TODO(johnniwinther): Support argument.
+    A arg = null;
+
+    DeclStructure structure = computeFunctionStructure(node);
+    if (structure == null) {
+      return internalError(node, 'No structure for $node');
+    } else {
+      return structure.dispatch(declVisitor, node, arg);
+    }
+  }
+
+  visitInitializers(NodeList initializers, A arg) {
+    if (initializers != null) {
+      for (Node node in initializers) {
+        InitializerStructure structure = computeInitializerStructure(node);
+        if (structure == null) {
+          return internalError(node, 'No structure for $node');
+        } else {
+          return structure.dispatch(declVisitor, node, arg);
+        }
+      }
+    }
+  }
+
+  visitParameters(NodeList parameters, A arg) {
+    List<ParameterStructure> structures =
+        computeParameterStructures(parameters);
+    for (ParameterStructure structure in structures) {
+      structure.dispatch(declVisitor, arg);
+    }
+  }
+
+  @override
+  R visitVariableDefinitions(VariableDefinitions definitions) {
+    // TODO(johnniwinther): Support argument.
+    A arg = null;
+
+    computeVariableStructures(
+        definitions,
+        (Node node, VariableStructure structure) {
+      if (structure == null) {
+        return internalError(node, 'No structure for $node');
+      } else {
+        return structure.dispatch(declVisitor, node, arg);
+      }
+    });
+    return null;
+  }
+}
+
+abstract class SemanticVisitor<R, A> extends Visitor<R>
+    with SemanticSendResolvedMixin<R, A>,
+         SendResolverMixin,
+         SemanticDeclarationResolvedMixin<R, A>,
+         DeclarationResolverMixin {
+  TreeElements elements;
+
+  SemanticVisitor(this.elements);
 }
 
 // TODO(johnniwinther): Add visits for [visitLocalConstantGet],
@@ -2941,6 +3009,555 @@ abstract class SemanticSendVisitor<R, A> {
       NewExpression node,
       ConstructorElement constructor,
       InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg);
+}
+
+abstract class SemanticDeclarationVisitor<R, A> {
+  R apply(Node node, A arg);
+
+  /// Apply this visitor to the [parameters].
+  applyParameters(NodeList parameters, A arg);
+
+  /// Apply this visitor to the constructor [initializers].
+  applyInitializers(NodeList initializers, A arg);
+
+  /// A declaration of a top level [getter].
+  ///
+  /// For instance
+  ///     get m => 42;
+  ///
+  R visitTopLevelGetterDeclaration(
+      FunctionExpression node,
+      MethodElement getter,
+      Node body,
+      A arg);
+
+  /// A declaration of a top level [setter].
+  ///
+  /// For instance
+  ///     set m(a) {}
+  ///
+  R visitTopLevelSetterDeclaration(
+      FunctionExpression node,
+      MethodElement setter,
+      NodeList parameters,
+      Node body,
+      A arg);
+
+  /// A declaration of a top level [function].
+  ///
+  /// For instance
+  ///     m(a) {}
+  ///
+  R visitTopLevelFunctionDeclaration(
+      FunctionExpression node,
+      MethodElement function,
+      NodeList parameters,
+      Node body,
+      A arg);
+
+  /// A declaration of a static [getter].
+  ///
+  /// For instance
+  ///     class C {
+  ///       static get m => 42;
+  ///     }
+  ///
+  R visitStaticGetterDeclaration(
+      FunctionExpression node,
+      MethodElement getter,
+      Node body,
+      A arg);
+
+  /// A declaration of a static [setter].
+  ///
+  /// For instance
+  ///     class C {
+  ///       static set m(a) {}
+  ///     }
+  ///
+  R visitStaticSetterDeclaration(
+      FunctionExpression node,
+      MethodElement setter,
+      NodeList parameters,
+      Node body,
+      A arg);
+
+  /// A declaration of a static [function].
+  ///
+  /// For instance
+  ///     class C {
+  ///       static m(a) {}
+  ///     }
+  ///
+  R visitStaticFunctionDeclaration(
+      FunctionExpression node,
+      MethodElement function,
+      NodeList parameters,
+      Node body,
+      A arg);
+
+  /// A declaration of an abstract instance [getter].
+  ///
+  /// For instance
+  ///     abstract class C {
+  ///       get m;
+  ///     }
+  ///
+  R visitAbstractGetterDeclaration(
+      FunctionExpression node,
+      MethodElement getter,
+      A arg);
+
+  /// A declaration of an abstract instance [setter].
+  ///
+  /// For instance
+  ///     abstract class C {
+  ///       set m(a);
+  ///     }
+  ///
+  R visitAbstractSetterDeclaration(
+      FunctionExpression node,
+      MethodElement setter,
+      NodeList parameters,
+      A arg);
+
+  /// A declaration of an abstract instance [method].
+  ///
+  /// For instance
+  ///     abstract class C {
+  ///       m(a);
+  ///     }
+  ///
+  R visitAbstractMethodDeclaration(
+      FunctionExpression node,
+      MethodElement method,
+      NodeList parameters,
+      A arg);
+
+  /// A declaration of an instance [getter].
+  ///
+  /// For instance
+  ///     class C {
+  ///       get m => 42;
+  ///     }
+  ///
+  R visitInstanceGetterDeclaration(
+      FunctionExpression node,
+      MethodElement getter,
+      Node body,
+      A arg);
+
+  /// A declaration of an instance [setter].
+  ///
+  /// For instance
+  ///     class C {
+  ///       set m(a) {}
+  ///     }
+  ///
+  R visitInstanceSetterDeclaration(
+      FunctionExpression node,
+      MethodElement setter,
+      NodeList parameters,
+      Node body,
+      A arg);
+
+  /// A declaration of an instance [method].
+  ///
+  /// For instance
+  ///     class C {
+  ///       m(a) {}
+  ///     }
+  ///
+  R visitInstanceMethodDeclaration(
+      FunctionExpression node,
+      MethodElement method,
+      NodeList parameters,
+      Node body,
+      A arg);
+
+  /// A declaration of a local [function].
+  ///
+  /// For instance `local` in
+  ///     m() {
+  ///       local(a) {}
+  ///     }
+  ///
+  R visitLocalFunctionDeclaration(
+      FunctionExpression node,
+      LocalFunctionElement function,
+      NodeList parameters,
+      Node body,
+      A arg);
+
+  /// A declaration of a [closure].
+  ///
+  /// For instance `(a) {}` in
+  ///     m() {
+  ///       var closure = (a) {};
+  ///     }
+  ///
+  R visitClosureDeclaration(
+      FunctionExpression node,
+      LocalFunctionElement closure,
+      NodeList parameters,
+      Node body,
+      A arg);
+
+  /// A declaration of the [index]th [parameter] in a constructor, setter,
+  /// method or function.
+  ///
+  /// For instance `a` in
+  ///     m(a) {}
+  ///
+  R visitParameterDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      ParameterElement parameter,
+      int index,
+      A arg);
+
+  /// A declaration of the [index]th optional [parameter] in a constructor,
+  /// method or function with the explicit [defaultValue]. If no default value
+  /// is declared, [defaultValue] is `null`.
+  ///
+  /// For instance `a` in
+  ///     m([a = 42]) {}
+  ///
+  R visitOptionalParameterDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      ParameterElement parameter,
+      ConstantExpression defaultValue,
+      int index,
+      A arg);
+
+  /// A declaration of a named [parameter] in a constructor, method or function
+  /// with the explicit [defaultValue]. If no default value is declared,
+  /// [defaultValue] is `null`.
+  ///
+  /// For instance `a` in
+  ///     m({a: 42}) {}
+  ///
+  R visitNamedParameterDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      ParameterElement parameter,
+      ConstantExpression defaultValue,
+      A arg);
+
+  /// A declaration of the [index]th [parameter] as an initializing formal in a
+  /// constructor.
+  ///
+  /// For instance `a` in
+  ///     class C {
+  ///       var a;
+  ///       C(this.a);
+  ///     }
+  ///
+  R visitInitializingFormalDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      InitializingFormalElement parameter,
+      int index,
+      A arg);
+
+  /// A declaration of the [index]th optional [parameter] as an initializing
+  /// formal in a constructor with the explicit [defaultValue]. If no default
+  /// value is declared, [defaultValue] is `null`.
+  ///
+  /// For instance `a` in
+  ///     class C {
+  ///       var a;
+  ///       C([this.a = 42]);
+  ///     }
+  ///
+  R visitOptionalInitializingFormalDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      InitializingFormalElement parameter,
+      ConstantExpression defaultValue,
+      int index,
+      A arg);
+
+  /// A declaration of a named [parameter] as an initializing formal in a
+  /// constructor with the explicit [defaultValue]. If no default value is
+  /// declared, [defaultValue] is `null`.
+  ///
+  /// For instance `a` in
+  ///     class C {
+  ///       var a;
+  ///       C({this.a: 42});
+  ///     }
+  ///
+  R visitNamedInitializingFormalDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      InitializingFormalElement parameter,
+      ConstantExpression defaultValue,
+      A arg);
+
+  /// A declaration of a local [variable] with the explicit [initializer]. If
+  /// no initializer is declared, [initializer] is `null`.
+  ///
+  /// For instance `a` in
+  ///     m() {
+  ///       var a = 42;
+  ///     }
+  ///
+  R visitLocalVariableDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      LocalVariableElement variable,
+      Node initializer,
+      A arg);
+
+  /// A declaration of a local constant [variable] initialized to [constant].
+  ///
+  /// For instance `a` in
+  ///     m() {
+  ///       const a = 42;
+  ///     }
+  ///
+  R visitLocalConstantDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      LocalVariableElement variable,
+      ConstantExpression constant,
+      A arg);
+
+  /// A declaration of a top level [field] with the explicit [initializer].
+  /// If no initializer is declared, [initializer] is `null`.
+  ///
+  /// For instance `a` in
+  ///     var a = 42;
+  ///
+  R visitTopLevelFieldDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      FieldElement field,
+      Node initializer,
+      A arg);
+
+  /// A declaration of a top level constant [field] initialized to [constant].
+  ///
+  /// For instance `a` in
+  ///     const a = 42;
+  ///
+  R visitTopLevelConstantDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      FieldElement field,
+      ConstantExpression constant,
+      A arg);
+
+  /// A declaration of a static [field] with the explicit [initializer].
+  /// If no initializer is declared, [initializer] is `null`.
+  ///
+  /// For instance `a` in
+  ///     class C {
+  ///       static var a = 42;
+  ///     }
+  ///
+  R visitStaticFieldDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      FieldElement field,
+      Node initializer,
+      A arg);
+
+  /// A declaration of a static constant [field] initialized to [constant].
+  ///
+  /// For instance `a` in
+  ///     class C {
+  ///       static const a = 42;
+  ///     }
+  ///
+  R visitStaticConstantDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      FieldElement field,
+      ConstantExpression constant,
+      A arg);
+
+  /// A declaration of an instance [field] with the explicit [initializer].
+  /// If no initializer is declared, [initializer] is `null`.
+  ///
+  /// For instance `a` in
+  ///     class C {
+  ///       var a = 42;
+  ///     }
+  ///
+  R visitInstanceFieldDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      FieldElement field,
+      Node initializer,
+      A arg);
+
+  /// A declaration of a generative [constructor] with the explicit constructor
+  /// [initializers].
+  ///
+  /// For instance `C` in
+  ///     class C {
+  ///       var a;
+  ///       C(a) : this.a = a, super();
+  ///     }
+  ///
+  R visitGenerativeConstructorDeclaration(
+      FunctionExpression node,
+      ConstructorElement constructor,
+      NodeList parameters,
+      NodeList initializers,
+      Node body,
+      A arg);
+
+  /// A declaration of a redirecting generative [constructor] with
+  /// [initializers] containing the redirecting constructor invocation.
+  ///
+  /// For instance `C` in
+  ///     class C {
+  ///       C() : this._();
+  ///       C._();
+  ///     }
+  ///
+  R visitRedirectingGenerativeConstructorDeclaration(
+      FunctionExpression node,
+      ConstructorElement constructor,
+      NodeList parameters,
+      NodeList initializers,
+      A arg);
+
+  /// A declaration of a factory [constructor].
+  ///
+  /// For instance `C` in
+  ///     class C {
+  ///       factory C(a) => null;
+  ///     }
+  ///
+  R visitFactoryConstructorDeclaration(
+      FunctionExpression node,
+      ConstructorElement constructor,
+      NodeList parameters,
+      Node body,
+      A arg);
+
+  /// A declaration of a redirecting factory [constructor]. The immediate
+  /// redirection target and its type is provided in [redirectionTarget] and
+  /// [redirectionType], respectively.
+  ///
+  /// For instance
+  ///    class C<T> {
+  ///      factory C() = C<int>.a;
+  ///      factory C.a() = C<C<T>>.b;
+  ///      C.b();
+  ///    }
+  /// where `C` has the redirection target `C.a` of type `C<int>` and `C.a` has
+  /// the redirection target `C.b` of type `C<C<T>>`.
+  ///
+  R visitRedirectingFactoryConstructorDeclaration(
+      FunctionExpression node,
+      ConstructorElement constructor,
+      NodeList parameters,
+      InterfaceType redirectionType,
+      ConstructorElement redirectionTarget,
+      A arg);
+
+  /// An initializer of [field] with [initializer] as found in constructor
+  /// initializers.
+  ///
+  /// For instance `this.a = 42` in
+  ///     class C {
+  ///       var a;
+  ///       C() : this.a = 42;
+  ///     }
+  ///
+  R visitFieldInitializer(
+      SendSet node,
+      FieldElement field,
+      Node initializer,
+      A arg);
+
+  /// An initializer of an unresolved field with [initializer] as found in
+  /// generative constructor initializers.
+  ///
+  /// For instance `this.a = 42` in
+  ///     class C {
+  ///       C() : this.a = 42;
+  ///     }
+  ///
+  R errorUnresolvedFieldInitializer(
+      SendSet node,
+      Element element,
+      Node initializer,
+      A arg);
+
+  /// An super constructor invocation of [superConstructor] with [arguments] as
+  /// found in generative constructor initializers.
+  ///
+  /// For instance `super(42)` in
+  ///     class B {
+  ///       B(a);
+  ///     }
+  ///     class C extends B {
+  ///       C() : super(42);
+  ///     }
+  ///
+  R visitSuperConstructorInvoke(
+      Send node,
+      ConstructorElement superConstructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg);
+
+  /// An super constructor invocation of an unresolved with [arguments] as
+  /// found in generative constructor initializers.
+  ///
+  /// For instance `super(42)` in
+  ///     class B {
+  ///       B(a);
+  ///     }
+  ///     class C extends B {
+  ///       C() : super.unresolved(42);
+  ///     }
+  ///
+  R errorUnresolvedSuperConstructorInvoke(
+      Send node,
+      Element element,
+      NodeList arguments,
+      Selector selector,
+      A arg);
+
+  /// An this constructor invocation of [thisConstructor] with [arguments] as
+  /// found in a redirecting generative constructors initializer.
+  ///
+  /// For instance `this._(42)` in
+  ///     class C {
+  ///       C() : this._(42);
+  ///       C._(a);
+  ///     }
+  ///
+  R visitThisConstructorInvoke(
+      Send node,
+      ConstructorElement thisConstructor,
+      NodeList arguments,
+      Selector selector,
+      A arg);
+
+  /// An this constructor invocation of an unresolved constructor with
+  /// [arguments] as found in a redirecting generative constructors initializer.
+  ///
+  /// For instance `this._(42)` in
+  ///     class C {
+  ///       C() : this._(42);
+  ///     }
+  ///
+  R errorUnresolvedThisConstructorInvoke(
+      Send node,
+      Element element,
       NodeList arguments,
       Selector selector,
       A arg);

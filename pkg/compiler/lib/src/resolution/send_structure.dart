@@ -1874,3 +1874,206 @@ class ConstInvokeStructure<R, A> extends NewStructure<R, A> {
   }
 }
 
+/// The structure of a parameter declaration.
+abstract class ParameterStructure<R, A> {
+  final VariableDefinitions definitions;
+  final Node node;
+  final ParameterElement parameter;
+
+  ParameterStructure(this.definitions, this.node, this.parameter);
+
+  /// Calls the matching visit method on [visitor] with [definitions] and [arg].
+  R dispatch(SemanticDeclarationVisitor<R, A> visitor, A arg);
+}
+
+/// The structure of a required parameter declaration.
+class RequiredParameterStructure<R, A> extends ParameterStructure<R, A> {
+  final int index;
+
+  RequiredParameterStructure(
+      VariableDefinitions definitions,
+      Node node,
+      ParameterElement parameter,
+      this.index)
+      : super(definitions, node, parameter);
+
+  @override
+  R dispatch(SemanticDeclarationVisitor<R, A> visitor,
+             A arg) {
+    if (parameter.isInitializingFormal) {
+      return visitor.visitInitializingFormalDeclaration(
+          definitions, node, parameter, index, arg);
+    } else {
+      return visitor.visitParameterDeclaration(
+          definitions, node, parameter, index, arg);
+    }
+  }
+}
+
+/// The structure of a optional positional parameter declaration.
+class OptionalParameterStructure<R, A> extends ParameterStructure<R, A> {
+  final ConstantExpression defaultValue;
+  final int index;
+
+  OptionalParameterStructure(
+       VariableDefinitions definitions,
+       Node node,
+       ParameterElement parameter,
+       this.defaultValue,
+       this.index)
+       : super(definitions, node, parameter);
+
+   @override
+   R dispatch(SemanticDeclarationVisitor<R, A> visitor,
+             A arg) {
+    if (parameter.isInitializingFormal) {
+      return visitor.visitOptionalInitializingFormalDeclaration(
+          definitions, node, parameter, defaultValue, index, arg);
+    } else {
+      return visitor.visitOptionalParameterDeclaration(
+          definitions, node, parameter, defaultValue, index, arg);
+    }
+  }
+}
+
+/// The structure of a optional named parameter declaration.
+class NamedParameterStructure<R, A> extends ParameterStructure<R, A> {
+  final ConstantExpression defaultValue;
+
+  NamedParameterStructure(
+      VariableDefinitions definitions,
+      Node node,
+      ParameterElement parameter,
+      this.defaultValue)
+      : super(definitions, node, parameter);
+
+  @override
+  R dispatch(SemanticDeclarationVisitor<R, A> visitor,
+             A arg) {
+    if (parameter.isInitializingFormal) {
+      return visitor.visitNamedInitializingFormalDeclaration(
+          definitions, node, parameter, defaultValue, arg);
+    } else {
+      return visitor.visitNamedParameterDeclaration(
+          definitions, node, parameter, defaultValue, arg);
+    }
+  }
+}
+
+
+enum VariableKind {
+  TOP_LEVEL_FIELD,
+  STATIC_FIELD,
+  INSTANCE_FIELD,
+  LOCAL_VARIABLE,
+}
+
+abstract class VariableStructure<R, A> {
+  final VariableKind kind;
+  final Node node;
+  final VariableElement variable;
+
+  VariableStructure(this.kind, this.node, this.variable);
+
+  R dispatch(SemanticDeclarationVisitor<R, A> visitor,
+             VariableDefinitions definitions,
+             A arg);
+}
+
+class NonConstantVariableStructure<R, A>
+    extends VariableStructure<R, A> {
+  NonConstantVariableStructure(
+      VariableKind kind, Node node, VariableElement variable)
+      : super(kind, node, variable);
+
+  R dispatch(SemanticDeclarationVisitor<R, A> visitor,
+             VariableDefinitions definitions,
+             A arg) {
+    switch (kind) {
+      case VariableKind.TOP_LEVEL_FIELD:
+        return visitor.visitTopLevelFieldDeclaration(
+            definitions, node, variable, variable.initializer, arg);
+      case VariableKind.STATIC_FIELD:
+        return visitor.visitStaticFieldDeclaration(
+            definitions, node, variable, variable.initializer, arg);
+      case VariableKind.INSTANCE_FIELD:
+        return visitor.visitInstanceFieldDeclaration(
+            definitions, node, variable, variable.initializer, arg);
+      case VariableKind.LOCAL_VARIABLE:
+        return visitor.visitLocalVariableDeclaration(
+            definitions, node, variable, variable.initializer, arg);
+    }
+  }
+}
+
+class ConstantVariableStructure<R, A>
+    extends VariableStructure<R, A> {
+  final ConstantExpression constant;
+
+  ConstantVariableStructure(
+      VariableKind kind, Node node, VariableElement variable, this.constant)
+      : super(kind, node, variable);
+
+  R dispatch(SemanticDeclarationVisitor<R, A> visitor,
+             VariableDefinitions definitions,
+             A arg) {
+    switch (kind) {
+      case VariableKind.TOP_LEVEL_FIELD:
+        return visitor.visitTopLevelConstantDeclaration(
+            definitions, node, variable, constant, arg);
+      case VariableKind.STATIC_FIELD:
+        return visitor.visitStaticConstantDeclaration(
+            definitions, node, variable, constant, arg);
+      case VariableKind.LOCAL_VARIABLE:
+        return visitor.visitLocalConstantDeclaration(
+            definitions, node, variable, constant, arg);
+      default:
+    }
+    throw new SpannableAssertionFailure(
+        node, "Invalid constant variable: $variable");
+  }
+}
+
+abstract class InitializerStructure<R, A> {
+  R dispatch(SemanticDeclarationVisitor<R, A> visitor, Send node, A arg);
+
+  bool get isSuperConstructorInvoke => false;
+}
+
+class FieldInitializerStructure<R, A> extends InitializerStructure<R, A> {
+  final FieldElement field;
+
+  FieldInitializerStructure(this.field);
+
+  R dispatch(SemanticDeclarationVisitor<R, A> visitor, Send node, A arg) {
+    return visitor.visitFieldInitializer(
+        node, field, node.arguments.single, arg);
+  }
+}
+
+class SuperConstructorInvokeStructure<R, A> extends InitializerStructure<R, A> {
+  final ConstructorElement constructor;
+  final InterfaceType type;
+  final Selector selector;
+
+  SuperConstructorInvokeStructure(this.constructor, this.type, this.selector);
+
+  R dispatch(SemanticDeclarationVisitor<R, A> visitor, Send node, A arg) {
+    return visitor.visitSuperConstructorInvoke(
+        node, constructor, type, node.argumentsNode, selector, arg);
+  }
+
+  bool get isSuperConstructorInvoke => true;
+}
+
+class ThisConstructorInvokeStructure<R, A> extends InitializerStructure<R, A> {
+  final ConstructorElement constructor;
+  final Selector selector;
+
+  ThisConstructorInvokeStructure(this.constructor, this.selector);
+
+  R dispatch(SemanticDeclarationVisitor<R, A> visitor, Send node, A arg) {
+    return visitor.visitThisConstructorInvoke(
+        node, constructor, node.argumentsNode, selector, arg);
+  }
+}

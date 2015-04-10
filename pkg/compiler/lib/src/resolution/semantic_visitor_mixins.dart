@@ -2271,7 +2271,7 @@ abstract class NewBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 /// This class is useful in itself, but shows how to use the `BulkX` mixins and
 /// tests that the union of the `BulkX` mixins implement all `visit` and `error`
 /// methods of [SemanticSendVisitor].
-class BulkVisitor<R, A> extends SemanticSendVisitor<R, A>
+class BulkSendVisitor<R, A> extends SemanticSendVisitor<R, A>
     with GetBulkMixin<R, A>,
          SetBulkMixin<R, A>,
          ErrorBulkMixin<R, A>,
@@ -2286,17 +2286,492 @@ class BulkVisitor<R, A> extends SemanticSendVisitor<R, A>
          NewBulkMixin<R, A> {
   @override
   R apply(Node node, A arg) {
-    throw new UnimplementedError("BulkVisitor.apply unimplemented");
+    throw new UnimplementedError("BulkSendVisitor.apply unimplemented");
   }
 
   @override
   R bulkHandleNode(Node node, String message, A arg) {
-    throw new UnimplementedError("BulkVisitor.bulkHandleNode unimplemented");
+    throw new UnimplementedError(
+        "BulkSendVisitor.bulkHandleNode unimplemented");
   }
 }
 
+/// Mixin that implements all `visitXParameterDecl` and
+/// `visitXInitializingFormalDecl` methods of [SemanticDeclarationVisitor]
+/// by delegating to a bulk handler.
+///
+/// Use this mixin to provide a trivial implementation for these methods.
+abstract class ParameterBulkMixin<R, A>
+    implements SemanticDeclarationVisitor<R, A> {
+  R bulkHandleNode(Node node, String message, A arg);
+
+  R bulkHandleParameterDeclaration(VariableDefinitions node, A arg) {
+    return bulkHandleNode(
+        node, "Parameter declaration `$node` unhandled.", arg);
+  }
+
+  @override
+  R visitInitializingFormalDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      InitializingFormalElement parameter,
+      int index,
+      A arg) {
+    return bulkHandleParameterDeclaration(node, arg);
+  }
+
+  @override
+  R visitNamedInitializingFormalDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      InitializingFormalElement parameter,
+      ConstantExpression defaultValue,
+      A arg) {
+    return bulkHandleParameterDeclaration(node, arg);
+  }
+
+  @override
+  R visitNamedParameterDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      ParameterElement parameter,
+      ConstantExpression defaultValue,
+      A arg) {
+    return bulkHandleParameterDeclaration(node, arg);
+  }
+
+  @override
+  R visitOptionalInitializingFormalDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      InitializingFormalElement parameter,
+      ConstantExpression defaultValue,
+      int index,
+      A arg) {
+    return bulkHandleParameterDeclaration(node, arg);
+  }
+
+  @override
+  R visitOptionalParameterDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      ParameterElement parameter,
+      ConstantExpression defaultValue,
+      int index,
+      A arg) {
+    return bulkHandleParameterDeclaration(node, arg);
+  }
+
+  @override
+  R visitParameterDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      ParameterElement parameter,
+      int index,
+      A arg) {
+    return bulkHandleParameterDeclaration(node, arg);
+  }
+}
+
+/// Mixin that implements all `visitXConstructorDecl` methods of
+/// [SemanticDeclarationVisitor] by delegating to a bulk handler.
+///
+/// Use this mixin to provide a trivial implementation for these methods.
+abstract class ConstructorBulkMixin<R, A>
+    implements SemanticDeclarationVisitor<R, A> {
+  R bulkHandleNode(Node node, String message, A arg);
+
+  R bulkHandleConstructorDeclaration(FunctionExpression node, A arg) {
+    return bulkHandleNode(
+        node, "Constructor declaration `$node` unhandled.", arg);
+  }
+
+  @override
+  R visitFactoryConstructorDeclaration(
+      FunctionExpression node,
+      ConstructorElement constructor,
+      NodeList parameters,
+      Node body,
+      A arg) {
+    return bulkHandleConstructorDeclaration(node, arg);
+  }
+
+  @override
+  R visitGenerativeConstructorDeclaration(
+      FunctionExpression node,
+      ConstructorElement constructor,
+      NodeList parameters,
+      NodeList initializers,
+      Node body,
+      A arg) {
+    return bulkHandleConstructorDeclaration(node, arg);
+  }
+
+  @override
+  R visitRedirectingFactoryConstructorDeclaration(
+      FunctionExpression node,
+      ConstructorElement constructor,
+      NodeList parameters,
+      InterfaceType redirectionType,
+      ConstructorElement redirectionTarget,
+      A arg) {
+    return bulkHandleConstructorDeclaration(node, arg);
+  }
+
+  @override
+  R visitRedirectingGenerativeConstructorDeclaration(
+      FunctionExpression node,
+      ConstructorElement constructor,
+      NodeList parameters,
+      NodeList initializers,
+      A arg) {
+    return bulkHandleConstructorDeclaration(node, arg);
+  }
+}
+
+/// Mixin that implements all constructor initializer visitor methods of
+/// [SemanticDeclarationVisitor] by delegating to a bulk handler.
+///
+/// Use this mixin to provide a trivial implementation for these methods.
+abstract class InitializerBulkMixin<R, A>
+    implements SemanticDeclarationVisitor<R, A> {
+  R bulkHandleNode(Node node, String message, A arg);
+
+  R bulkHandleInitializer(Send node, A arg) {
+    return bulkHandleNode(
+        node, "Initializer `$node` unhandled.", arg);
+  }
+
+  @override
+  R errorUnresolvedFieldInitializer(
+      SendSet node,
+      Element element,
+      Node initializer,
+      A arg) {
+    return bulkHandleInitializer(node, arg);
+  }
+
+  @override
+  R errorUnresolvedSuperConstructorInvoke(
+      Send node,
+      Element element,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleInitializer(node, arg);
+  }
+
+  @override
+  R errorUnresolvedThisConstructorInvoke(
+      Send node,
+      Element element,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleInitializer(node, arg);
+  }
+
+  @override
+  R visitFieldInitializer(
+      SendSet node,
+      FieldElement field,
+      Node initializer,
+      A arg) {
+    return bulkHandleInitializer(node, arg);
+  }
+
+  @override
+  R visitSuperConstructorInvoke(
+      Send node,
+      ConstructorElement superConstructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleInitializer(node, arg);
+  }
+
+  @override
+  R visitThisConstructorInvoke(
+      Send node,
+      ConstructorElement thisConstructor,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleInitializer(node, arg);
+  }
+}
+
+/// Mixin that implements all function declaration visitor methods of
+/// [SemanticDeclarationVisitor] by delegating to a bulk handler.
+///
+/// Use this mixin to provide a trivial implementation for these methods.
+abstract class FunctionBulkMixin<R, A>
+    implements SemanticDeclarationVisitor<R, A> {
+  R bulkHandleNode(Node node, String message, A arg);
+
+  R bulkHandleFunctionDeclaration(FunctionExpression node, A arg) {
+    return bulkHandleNode(
+        node, "Function declaration `$node` unhandled.", arg);
+  }
+
+  @override
+  R visitAbstractGetterDeclaration(
+      FunctionExpression node,
+      MethodElement getter,
+      A arg) {
+    return bulkHandleFunctionDeclaration(node, arg);
+  }
+
+  @override
+  R visitAbstractMethodDeclaration(
+      FunctionExpression node,
+      MethodElement method,
+      NodeList parameters,
+      A arg) {
+    return bulkHandleFunctionDeclaration(node, arg);
+  }
+
+  @override
+  R visitAbstractSetterDeclaration(
+      FunctionExpression node,
+      MethodElement setter,
+      NodeList parameters,
+      A arg) {
+    return bulkHandleFunctionDeclaration(node, arg);
+  }
+
+  @override
+  R visitClosureDeclaration(
+      FunctionExpression node,
+      LocalFunctionElement closure,
+      NodeList parameters,
+      Node body,
+      A arg) {
+    return bulkHandleFunctionDeclaration(node, arg);
+  }
+
+  @override
+  R visitInstanceGetterDeclaration(
+      FunctionExpression node,
+      MethodElement getter,
+      Node body,
+      A arg) {
+    return bulkHandleFunctionDeclaration(node, arg);
+  }
+
+  @override
+  R visitInstanceMethodDeclaration(
+      FunctionExpression node,
+      MethodElement method,
+      NodeList parameters,
+      Node body,
+      A arg) {
+    return bulkHandleFunctionDeclaration(node, arg);
+  }
+
+  @override
+  R visitInstanceSetterDeclaration(
+      FunctionExpression node,
+      MethodElement setter,
+      NodeList parameters,
+      Node body,
+      A arg) {
+    return bulkHandleFunctionDeclaration(node, arg);
+  }
+
+  @override
+  R visitLocalFunctionDeclaration(
+      FunctionExpression node,
+      LocalFunctionElement function,
+      NodeList parameters,
+      Node body,
+      A arg) {
+    return bulkHandleFunctionDeclaration(node, arg);
+  }
+
+  @override
+  R visitStaticFunctionDeclaration(
+      FunctionExpression node,
+      MethodElement function,
+      NodeList parameters,
+      Node body,
+      A arg) {
+    return bulkHandleFunctionDeclaration(node, arg);
+  }
+
+  @override
+  R visitStaticGetterDeclaration(
+      FunctionExpression node,
+      MethodElement getter,
+      Node body,
+      A arg) {
+    return bulkHandleFunctionDeclaration(node, arg);
+  }
+
+  @override
+  R visitStaticSetterDeclaration(
+      FunctionExpression node,
+      MethodElement setter,
+      NodeList parameters,
+      Node body,
+      A arg) {
+    return bulkHandleFunctionDeclaration(node, arg);
+  }
+
+  @override
+  R visitTopLevelFunctionDeclaration(
+      FunctionExpression node,
+      MethodElement function,
+      NodeList parameters,
+      Node body,
+      A arg) {
+    return bulkHandleFunctionDeclaration(node, arg);
+  }
+
+  @override
+  R visitTopLevelGetterDeclaration(
+      FunctionExpression node,
+      MethodElement getter,
+      Node body,
+      A arg) {
+    return bulkHandleFunctionDeclaration(node, arg);
+  }
+
+  @override
+  R visitTopLevelSetterDeclaration(
+      FunctionExpression node,
+      MethodElement setter,
+      NodeList parameters,
+      Node body,
+      A arg) {
+    return bulkHandleFunctionDeclaration(node, arg);
+  }
+}
+
+/// Mixin that implements all variable/field declaration visitor methods of
+/// [SemanticDeclarationVisitor] by delegating to a bulk handler.
+///
+/// Use this mixin to provide a trivial implementation for these methods.
+abstract class VariableBulkMixin<R, A>
+    implements SemanticDeclarationVisitor<R, A> {
+  R bulkHandleNode(Node node, String message, A arg);
+
+  R bulkHandleVariableDeclaration(VariableDefinitions node, A arg) {
+    return bulkHandleNode(
+        node, "Variable declaration `$node` unhandled.", arg);
+  }
+
+  @override
+  R visitInstanceFieldDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      FieldElement field,
+      Node initializer,
+      A arg) {
+    return bulkHandleVariableDeclaration(node, arg);
+  }
+
+  @override
+  R visitLocalConstantDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      LocalVariableElement variable,
+      ConstantExpression constant,
+      A arg) {
+    return bulkHandleVariableDeclaration(node, arg);
+  }
+
+  @override
+  R visitLocalVariableDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      LocalVariableElement variable,
+      Node initializer,
+      A arg) {
+    return bulkHandleVariableDeclaration(node, arg);
+  }
+
+  @override
+  R visitStaticConstantDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      FieldElement field,
+      ConstantExpression constant,
+      A arg) {
+    return bulkHandleVariableDeclaration(node, arg);
+  }
+
+  @override
+  R visitStaticFieldDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      FieldElement field,
+      Node initializer,
+      A arg) {
+    return bulkHandleVariableDeclaration(node, arg);
+  }
+
+  @override
+  R visitTopLevelConstantDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      FieldElement field,
+      ConstantExpression constant,
+      A arg) {
+    return bulkHandleVariableDeclaration(node, arg);
+  }
+
+  @override
+  R visitTopLevelFieldDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      FieldElement field,
+      Node initializer,
+      A arg) {
+    return bulkHandleVariableDeclaration(node, arg);
+  }
+}
+
+/// Visitor that implements [SemanticDeclarationVisitor] by the use of `BulkX`
+/// mixins.
+///
+/// This class is useful in itself, but shows how to use the `BulkX` mixins and
+/// tests that the union of the `BulkX` mixins implement all `visit` and `error`
+/// methods of [SemanticDeclarationVisitor].
+class BulkDeclarationVisitor<R, A> extends SemanticDeclarationVisitor<R, A>
+    with ConstructorBulkMixin<R, A>,
+         FunctionBulkMixin<R, A>,
+         VariableBulkMixin<R, A>,
+         ParameterBulkMixin<R, A>,
+         InitializerBulkMixin<R, A> {
+  @override
+  R apply(Node node, A arg) {
+    throw new UnimplementedError("BulkDeclVisitor.apply unimplemented");
+  }
+
+  @override
+  R bulkHandleNode(Node node, String message, A arg) {
+    throw new UnimplementedError(
+        "BulkDeclVisitor.bulkHandleNode unimplemented");
+  }
+
+  @override
+  applyInitializers(NodeList initializers, A arg) {
+    throw new UnimplementedError(
+        "BulkDeclVisitor.applyInitializers unimplemented");
+  }
+
+  @override
+  applyParameters(NodeList parameters, A arg) {
+    throw new UnimplementedError(
+        "BulkDeclVisitor.applyParameters unimplemented");
+  }
+}
+
+
 /// [SemanticSendVisitor] that visits subnodes.
-class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
+class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R apply(Node node, A arg) {
     throw new UnimplementedError("TraversalMixin.apply unimplemented");
@@ -4142,6 +4617,545 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
     return null;
   }
 
+  R visitConstConstructorInvoke(
+      NewExpression node,
+      ConstructedConstantExpression constant,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R errorUnresolvedClassConstructorInvoke(
+      NewExpression node,
+      Element constructor,
+      MalformedType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R errorUnresolvedConstructorInvoke(
+      NewExpression node,
+      Element constructor,
+      DartType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R visitFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R visitGenerativeConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R visitRedirectingFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      ConstructorElement effectiveTarget,
+      InterfaceType effectiveTargetType,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R visitRedirectingGenerativeConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R errorAbstractClassConstructorInvoke(
+      NewExpression node,
+      ConstructorElement element,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R errorUnresolvedRedirectingFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+}
+
+/// [SemanticDeclarationVisitor] that visits subnodes.
+class TraversalDeclarationMixin<R, A>
+    implements SemanticDeclarationVisitor<R, A> {
+  @override
+  R apply(Node node, A arg) {
+    throw new UnimplementedError("TraversalMixin.apply unimplemented");
+  }
+
+  @override
+  applyInitializers(NodeList initializers, A arg) {
+    throw new UnimplementedError(
+        "TraversalMixin.applyInitializers unimplemented");
+  }
+
+  @override
+  applyParameters(NodeList parameters, A arg) {
+    throw new UnimplementedError(
+        "TraversalMixin.applyParameters unimplemented");
+  }
+
+  @override
+  R visitAbstractMethodDeclaration(
+      FunctionExpression node,
+      MethodElement method,
+      NodeList parameters,
+      A arg) {
+    applyParameters(parameters, arg);
+    return null;
+  }
+
+  @override
+  R visitClosureDeclaration(
+      FunctionExpression node,
+      LocalFunctionElement function,
+      NodeList parameters,
+      Node body,
+      A arg) {
+    applyParameters(parameters, arg);
+    apply(body, arg);
+    return null;
+  }
+
+  @override
+  R visitFactoryConstructorDeclaration(
+      FunctionExpression node,
+      ConstructorElement constructor,
+      NodeList parameters,
+      Node body,
+      A arg) {
+    applyParameters(parameters, arg);
+    apply(body, arg);
+    return null;
+  }
+
+  @override
+  R visitFieldInitializer(
+      SendSet node,
+      FieldElement field,
+      Node initializer,
+      A arg) {
+    apply(initializer, arg);
+    return null;
+  }
+
+  @override
+  R visitGenerativeConstructorDeclaration(
+      FunctionExpression node,
+      ConstructorElement constructor,
+      NodeList parameters,
+      NodeList initializers,
+      Node body,
+      A arg) {
+    applyParameters(parameters, arg);
+    applyInitializers(initializers, arg);
+    apply(body, arg);
+    return null;
+  }
+
+  @override
+  R visitInstanceMethodDeclaration(
+      FunctionExpression node,
+      MethodElement method,
+      NodeList parameters,
+      Node body,
+      A arg) {
+    applyParameters(parameters, arg);
+    apply(body, arg);
+    return null;
+  }
+
+  @override
+  R visitLocalFunctionDeclaration(
+      FunctionExpression node,
+      LocalFunctionElement function,
+      NodeList parameters,
+      Node body,
+      A arg) {
+    applyParameters(parameters, arg);
+    apply(body, arg);
+    return null;
+  }
+
+  @override
+  R visitRedirectingFactoryConstructorDeclaration(
+      FunctionExpression node,
+      ConstructorElement constructor,
+      NodeList parameters,
+      InterfaceType redirectionType,
+      ConstructorElement redirectionTarget,
+      A arg) {
+    applyParameters(parameters, arg);
+    return null;
+  }
+
+  @override
+  R visitRedirectingGenerativeConstructorDeclaration(
+      FunctionExpression node,
+      ConstructorElement constructor,
+      NodeList parameters,
+      NodeList initializers,
+      A arg) {
+    applyParameters(parameters, arg);
+    applyInitializers(initializers, arg);
+    return null;
+  }
+
+  @override
+  R visitStaticFunctionDeclaration(
+      FunctionExpression node,
+      MethodElement function,
+      NodeList parameters,
+      Node body,
+      A arg) {
+    applyParameters(parameters, arg);
+    apply(body, arg);
+    return null;
+  }
+
+  @override
+  R visitSuperConstructorInvoke(
+      Send node,
+      ConstructorElement superConstructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R visitThisConstructorInvoke(
+      Send node,
+      ConstructorElement thisConstructor,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R visitTopLevelFunctionDeclaration(
+      FunctionExpression node,
+      MethodElement function,
+      NodeList parameters,
+      Node body,
+      A arg) {
+    applyParameters(parameters, arg);
+    apply(body, arg);
+    return null;
+  }
+
+  @override
+  R errorUnresolvedFieldInitializer(
+      SendSet node,
+      Element element,
+      Node initializer,
+      A arg) {
+    apply(initializer, arg);
+    return null;
+  }
+
+  @override
+  R errorUnresolvedSuperConstructorInvoke(
+      Send node,
+      Element element,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R errorUnresolvedThisConstructorInvoke(
+      Send node,
+      Element element,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R visitLocalVariableDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      LocalVariableElement variable,
+      Node initializer,
+      A arg) {
+    if (initializer != null) {
+      apply(initializer, arg);
+    }
+    return null;
+  }
+
+  @override
+  R visitOptionalParameterDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      ParameterElement parameter,
+      ConstantExpression defaultValue,
+      int index,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R visitParameterDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      ParameterElement parameter,
+      int index,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R visitInitializingFormalDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      InitializingFormalElement initializingFormal,
+      int index,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R visitLocalConstantDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      LocalVariableElement variable,
+      ConstantExpression constant,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R visitNamedInitializingFormalDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      InitializingFormalElement initializingFormal,
+      ConstantExpression defaultValue,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R visitNamedParameterDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      ParameterElement parameter,
+      ConstantExpression defaultValue,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R visitOptionalInitializingFormalDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      InitializingFormalElement initializingFormal,
+      ConstantExpression defaultValue,
+      int index,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R visitInstanceFieldDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      FieldElement field,
+      Node initializer,
+      A arg) {
+    if (initializer != null) {
+      apply(initializer, arg);
+    }
+    return null;
+  }
+
+  @override
+  R visitStaticConstantDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      FieldElement field,
+      ConstantExpression constant,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R visitStaticFieldDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      FieldElement field,
+      Node initializer,
+      A arg) {
+    if (initializer != null) {
+      apply(initializer, arg);
+    }
+    return null;
+  }
+
+  @override
+  R visitTopLevelConstantDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      FieldElement field,
+      ConstantExpression constant,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R visitTopLevelFieldDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      FieldElement field,
+      Node initializer,
+      A arg) {
+    if (initializer != null) {
+      apply(initializer, arg);
+    }
+    return null;
+  }
+
+  @override
+  R visitAbstractGetterDeclaration(
+      FunctionExpression node,
+      MethodElement getter,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R visitAbstractSetterDeclaration(
+      FunctionExpression node,
+      MethodElement setter,
+      NodeList parameters,
+      A arg) {
+    applyParameters(parameters, arg);
+    return null;
+  }
+
+  @override
+  R visitInstanceGetterDeclaration(
+      FunctionExpression node,
+      MethodElement getter,
+      Node body,
+      A arg) {
+    apply(body, arg);
+    return null;
+  }
+
+  @override
+  R visitInstanceSetterDeclaration(
+      FunctionExpression node,
+      MethodElement setter,
+      NodeList parameters,
+      Node body,
+      A arg) {
+    applyParameters(parameters, arg);
+    apply(body, arg);
+    return null;
+  }
+
+  @override
+  R visitStaticGetterDeclaration(
+      FunctionExpression node,
+      MethodElement getter,
+      Node body,
+      A arg) {
+    apply(body, arg);
+    return null;
+  }
+
+  @override
+  R visitStaticSetterDeclaration(
+      FunctionExpression node,
+      MethodElement setter,
+      NodeList parameters,
+      Node body,
+      A arg) {
+    applyParameters(parameters, arg);
+    apply(body, arg);
+    return null;
+  }
+
+  @override
+  R visitTopLevelGetterDeclaration(
+      FunctionExpression node,
+      MethodElement getter,
+      Node body,
+      A arg) {
+    apply(body, arg);
+    return null;
+  }
+
+  @override
+  R visitTopLevelSetterDeclaration(
+      FunctionExpression node,
+      MethodElement setter,
+      NodeList parameters,
+      Node body,
+      A arg) {
+    applyParameters(parameters, arg);
+    apply(body, arg);
+    return null;
+  }
+
   @override
   R visitConstConstructorInvoke(
       NewExpression node,
@@ -4250,14 +5264,27 @@ class TraversalMixin<R, A> implements SemanticSendVisitor<R, A> {
 /// AST visitor that visits all normal [Send] and [SendSet] nodes using the
 /// [SemanticVisitor].
 class TraversalVisitor<R, A> extends SemanticVisitor<R, A>
-    with TraversalMixin<R, A> {
+    with TraversalSendMixin<R, A>,
+         TraversalDeclarationMixin<R, A> {
   TraversalVisitor(TreeElements elements) : super(elements);
 
   SemanticSendVisitor<R, A> get sendVisitor => this;
 
+  SemanticDeclarationVisitor<R, A> get declVisitor => this;
+
   R apply(Node node, A arg) {
     node.accept(this);
     return null;
+  }
+
+  @override
+  applyInitializers(NodeList initializers, A arg) {
+    visitInitializers(initializers, arg);
+  }
+
+  @override
+  applyParameters(NodeList parameters, A arg) {
+    visitParameters(parameters, arg);
   }
 
   @override
@@ -4268,28 +5295,6 @@ class TraversalVisitor<R, A> extends SemanticVisitor<R, A>
   @override
   R visitNode(Node node) {
     node.visitChildren(this);
-    return null;
-  }
-
-  void visitParameters(NodeList parameters) {
-
-  }
-
-  void visitInitializers(NodeList initializers) {
-    // TODO(johnniwinther): Visit subnodes of initializers.
-  }
-
-  @override
-  R visitFunctionExpression(FunctionExpression node) {
-    if (node.parameters != null) {
-      visitParameters(node.parameters);
-    }
-    if (node.initializers != null) {
-      visitInitializers(node.initializers);
-    }
-    if (node.body != null) {
-      apply(node.body, null);
-    }
     return null;
   }
 }

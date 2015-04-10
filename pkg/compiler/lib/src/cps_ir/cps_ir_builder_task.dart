@@ -129,8 +129,11 @@ class IrBuilderTask extends CompilerTask {
  * to the [builder] and return the last added statement for trees that represent
  * an expression.
  */
-abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
+// TODO(johnniwinther): Implement [SemanticDeclVisitor].
+abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     with IrBuilderMixin<ast.Node>,
+         SemanticSendResolvedMixin<ir.Primitive, dynamic>,
+         SendResolverMixin,
          BaseImplementationOfStaticsMixin<ir.Primitive, dynamic>,
          BaseImplementationOfLocalsMixin<ir.Primitive, dynamic>,
          BaseImplementationOfDynamicsMixin<ir.Primitive, dynamic>,
@@ -139,6 +142,7 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
          BaseImplementationOfNewMixin<ir.Primitive, dynamic>,
          ErrorBulkMixin<ir.Primitive, dynamic>
     implements SemanticSendVisitor<ir.Primitive, dynamic> {
+  final TreeElements elements;
   final Compiler compiler;
   final SourceInformationBuilder sourceInformationBuilder;
 
@@ -169,10 +173,9 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
   // arguments, and what the arguments are.
 
   /// Construct a top-level visitor.
-  IrBuilderVisitor(TreeElements elements,
+  IrBuilderVisitor(this.elements,
                    this.compiler,
-                   this.sourceInformationBuilder)
-      : super(elements);
+                   this.sourceInformationBuilder);
 
   @override
   bulkHandleNode(ast.Node node, String message, _) => giveup(node, message);
