@@ -307,6 +307,22 @@ class CompoundAccessSemantics extends AccessSemantics {
       : super._(AccessKind.COMPOUND);
 
   Element get element => setter;
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('CompoundAccessSemantics[');
+    sb.write('kind=$compoundAccessKind');
+    if (getter != null) {
+      sb.write(',getter=');
+      sb.write('${getter}');
+    }
+    if (setter != null) {
+      sb.write(',setter=');
+      sb.write('${setter}');
+    }
+    sb.write(']');
+    return sb.toString();
+  }
 }
 
 /// Enum representing the different kinds of destinations which a constructor

@@ -385,6 +385,8 @@ abstract class SendResolverMixin {
     } else {
       if (Elements.isErroneous(element)) {
         return new StaticAccess.unresolved(element);
+      } else if (isCompound && Elements.isErroneous(getter)) {
+        return new StaticAccess.unresolved(getter);
       } else if (element == null || element.isInstanceMember) {
         if (node.receiver == null || node.receiver.isThis()) {
           return new AccessSemantics.thisProperty();

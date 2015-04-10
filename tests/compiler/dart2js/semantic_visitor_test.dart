@@ -2075,6 +2075,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_SUPER_FIELD_SETTER_POSTFIX,
             getter: 'field(A#a)', setter: 'setter(B#a)',
             operator: '++')),
+
+    const Test(
+        '''
+        set topLevel(var value) { }
+        m() => topLevel++;
+        ''',
+        const Visit(VisitKind.ERROR_UNRESOLVED_POSTFIX,
+            operator: '++')),
   ],
   'Constructor invocations': const [
     const Test(
@@ -4117,7 +4125,8 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       ErroneousElement element,
       IncDecOperator operator,
       arg) {
-    // TODO: implement errorUnresolvedPostfix
+    visits.add(new Visit(
+        VisitKind.ERROR_UNRESOLVED_POSTFIX, operator: operator));
   }
 
   @override
@@ -4594,5 +4603,7 @@ enum VisitKind {
   ERROR_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
   ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
 
-  // TODO(johnniwinther): Add tests for error cases.
+  ERROR_UNRESOLVED_POSTFIX,
+
+  // TODO(johnniwinther): Add tests for more error cases.
 }
