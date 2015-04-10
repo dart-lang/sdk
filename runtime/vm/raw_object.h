@@ -721,7 +721,8 @@ class RawFunction : public RawObject {
   friend class MarkingVisitor;
   friend class Class;
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
-  static bool SkipCode(RawFunction* raw_fun);
+  static bool ShouldVisitCode(RawCode* raw_code);
+  static bool CheckUsageCounter(RawFunction* raw_fun);
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;
@@ -1012,6 +1013,7 @@ class RawInstructions : public RawObject {
   static bool ContainsPC(RawObject* raw_obj, uword pc);
 
   friend class RawCode;
+  friend class RawFunction;
   friend class Code;
   friend class StackFrame;
   friend class MarkingVisitor;

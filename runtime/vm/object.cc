@@ -59,8 +59,6 @@ DEFINE_FLAG(bool, overlap_type_arguments, true,
 DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
-DEFINE_FLAG(bool, trace_disabling_optimized_code, false,
-    "Trace disabling optimized code.");
 DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
     "Throw an exception when the result of an integer calculation will not "
     "fit into a javascript integer.");
@@ -5094,14 +5092,14 @@ void Function::SwitchToUnoptimizedCode() const {
   Isolate* isolate = Isolate::Current();
   const Code& current_code = Code::Handle(isolate, CurrentCode());
 
-  if (FLAG_trace_deoptimization) {
+  if (FLAG_trace_deoptimization_verbose) {
     OS::Print("Disabling optimized code: '%s' entry: %#" Px "\n",
       ToFullyQualifiedCString(),
       current_code.EntryPoint());
   }
   // Patch entry of the optimized code.
   CodePatcher::PatchEntry(current_code);
-  // Use previously compiled unoptimized code.
+  Compiler::EnsureUnoptimizedCode(Thread::Current(), *this);
   AttachCode(Code::Handle(isolate, unoptimized_code()));
   CodePatcher::RestoreEntry(Code::Handle(isolate, unoptimized_code()));
   isolate->TrackDeoptimizedCode(current_code);
@@ -5109,7 +5107,7 @@ void Function::SwitchToUnoptimizedCode() const {
 
 
 void Function::set_unoptimized_code(const Code& value) const {
-  ASSERT(!value.is_optimized());
+  ASSERT(value.IsNull() || !value.is_optimized());
   StorePointer(&raw_ptr()->unoptimized_code_, value.raw());
 }
 
@@ -5551,13 +5549,9 @@ bool Function::IsOptimizable() const {
   if (is_optimizable() && (script() != Script::null()) &&
       ((end_token_pos() - token_pos()) < FLAG_huge_method_cutoff_in_tokens)) {
     // Additional check needed for implicit getters.
-    if (HasCode() &&
-       (Code::Handle(unoptimized_code()).Size() >=
-        FLAG_huge_method_cutoff_in_code_size)) {
-      return false;
-    } else {
-      return true;
-    }
+    return (unoptimized_code() == Object::null()) ||
+           (Code::Handle(unoptimized_code()).Size() <
+            FLAG_huge_method_cutoff_in_code_size);
   }
   return false;
 }

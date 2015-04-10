@@ -976,6 +976,12 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     TIMERSCOPE(isolate, time_compilation);
     Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
     per_compile_timer.Start();
+
+    // Restore unoptimized code if needed.
+    if (optimized) {
+      Compiler::EnsureUnoptimizedCode(Thread::Current(), function);
+    }
+
     ParsedFunction* parsed_function = new(zone) ParsedFunction(
         thread, Function::ZoneHandle(zone, function.raw()));
     if (FLAG_trace_compiler) {

@@ -1242,8 +1242,13 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     if (!CanOptimizeFunction(function, isolate) || function.is_intrinsic()) {
       return;
     }
+
+    // The unoptimized code is on the stack and should never be detached from
+    // the function at this point.
+    ASSERT(function.unoptimized_code() != Object::null());
     intptr_t osr_id =
         Code::Handle(function.unoptimized_code()).GetDeoptIdForOsr(frame->pc());
+    ASSERT(osr_id != Isolate::kNoDeoptId);
     if (FLAG_trace_osr) {
       OS::Print("Attempting OSR for %s at id=%" Pd ", count=%" Pd "\n",
                 function.ToFullyQualifiedCString(),
@@ -1573,7 +1578,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
     // The code will be the same as before.
     ASSERT(code.raw() == optimized_code.raw());
 
-    // Some sanity checking of the optimized/unoptimized code.
+    // Some sanity checking of the optimized code.
     ASSERT(!optimized_code.IsNull() && optimized_code.is_optimized());
   }
 #endif

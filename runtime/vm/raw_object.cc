@@ -399,7 +399,7 @@ intptr_t RawRedirectionData::VisitRedirectionDataPointers(
 }
 
 
-bool RawFunction::SkipCode(RawFunction* raw_fun) {
+bool RawFunction::CheckUsageCounter(RawFunction* raw_fun) {
   // NOTE: This code runs while GC is in progress and runs within
   // a NoHandleScope block. Hence it is not okay to use regular Zone or
   // Scope handles. We use direct stack handles, and so the raw pointers in
@@ -409,34 +409,54 @@ bool RawFunction::SkipCode(RawFunction* raw_fun) {
   Function fn;
   fn = raw_fun;
 
-  Code code;
-  code = fn.CurrentCode();
+  // The function may not have code.
+  if (!fn.HasCode()) return false;
+  // These may not increment the usage counter.
+  if (fn.is_intrinsic()) return false;
 
-  if (fn.HasCode() &&  // The function may not have code.
-      !fn.is_intrinsic() &&  // These may not increment the usage counter.
-      !code.is_optimized() &&
-      (fn.CurrentCode() == fn.unoptimized_code()) &&
-      !code.HasBreakpoint() &&
-      (fn.usage_counter() >= 0)) {
+  if (fn.usage_counter() >= 0) {
     fn.set_usage_counter(fn.usage_counter() / 2);
-    if (FLAG_always_drop_code || (fn.usage_counter() == 0)) {
-      return true;
-    }
   }
+  return FLAG_always_drop_code || (fn.usage_counter() == 0);
+}
+
+
+bool RawFunction::ShouldVisitCode(RawCode* raw_code) {
+  // NOTE: This code runs while GC is in progress and runs within
+  // a NoHandleScope block. Hence it is not okay to use regular Zone or
+  // Scope handles. We use direct stack handles, and so the raw pointers in
+  // these handles are not traversed. The use of handles is mainly to
+  // be able to reuse the handle based code and avoid having to add
+  // helper functions to the raw object interface.
+  Code code;
+  code = raw_code;
+  if (code.IsNull()) return true;
+  if (code.is_optimized()) return true;
+  if (code.HasBreakpoint()) return true;
   return false;
 }
 
 
 intptr_t RawFunction::VisitFunctionPointers(RawFunction* raw_obj,
                                             ObjectPointerVisitor* visitor) {
-  if (visitor->visit_function_code() ||
-      !RawFunction::SkipCode(raw_obj)) {
+  if (visitor->visit_function_code() || !CheckUsageCounter(raw_obj)) {
     visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+    return Function::InstanceSize();
+  }
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to_no_code());
+
+  if (ShouldVisitCode(raw_obj->ptr()->instructions_->ptr()->code_)) {
+    visitor->VisitPointer(
+        reinterpret_cast<RawObject**>(&raw_obj->ptr()->instructions_));
   } else {
-    GrowableArray<RawFunction*>* sfga = visitor->skipped_code_functions();
-    ASSERT(sfga != NULL);
-    sfga->Add(raw_obj);
-    visitor->VisitPointers(raw_obj->from(), raw_obj->to_no_code());
+    visitor->skipped_code_functions()->Add(raw_obj);
+  }
+
+  if (ShouldVisitCode(raw_obj->ptr()->unoptimized_code_)) {
+    visitor->VisitPointer(
+        reinterpret_cast<RawObject**>(&raw_obj->ptr()->unoptimized_code_));
+  } else {
+    visitor->skipped_code_functions()->Add(raw_obj);
   }
   return Function::InstanceSize();
 }
