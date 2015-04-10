@@ -3302,9 +3302,33 @@ class SsaBuilder extends NewResolvedVisitor {
         stack.add(graph.addConstantNull(compiler));
       }
     } else {
-      LocalElement local = element;
-      stack.add(localsHandler.readLocal(local));
+      if (send.asSendSet() == null) {
+        internalError(send, "Unhandled local: $element");
+      }
+      // TODO(johnniwinther): Remove this when [generateGetter] is no longer
+      // called from [visitSendSet] (for compound assignments).
+      handleLocalGet(element);
     }
+  }
+
+  /// Read a local variable, function or parameter.
+  void handleLocalGet(LocalElement local) {
+    stack.add(localsHandler.readLocal(local));
+  }
+
+  @override
+  void visitLocalVariableGet(ast.Send node, LocalVariableElement variable, _) {
+    handleLocalGet(variable);
+  }
+
+  @override
+  void visitParameterGet(ast.Send node, ParameterElement parameter, _) {
+    handleLocalGet(parameter);
+  }
+
+  @override
+  void visitLocalFunctionGet(ast.Send node, LocalFunctionElement function, _) {
+    handleLocalGet(function);
   }
 
   void generateInstanceSetterWithCompiledReceiver(ast.Send send,

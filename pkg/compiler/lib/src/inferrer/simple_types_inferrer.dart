@@ -1149,13 +1149,33 @@ class SimpleTypeInferrerVisitor<T>
     } else if (Elements.isErroneous(element)) {
       return types.dynamicType;
     } else if (element.isLocal) {
-      LocalElement local = element;
-      assert(locals.use(local) != null);
-      return locals.use(local);
+      internalError(node, "Unhandled local: $element");
+      return null;
     } else {
       assert(element is PrefixElement);
       return null;
     }
+  }
+
+  /// Read a local variable, function or parameter.
+  T handleLocalGet(ast.Send node, LocalElement local) {
+    assert(locals.use(local) != null);
+    return locals.use(local);
+  }
+
+  @override
+  T visitLocalVariableGet(ast.Send node, LocalVariableElement variable, _) {
+    return handleLocalGet(node, variable);
+  }
+
+  @override
+  T visitParameterGet(ast.Send node, ParameterElement parameter, _) {
+    return handleLocalGet(node, parameter);
+  }
+
+  @override
+  T visitLocalFunctionGet(ast.Send node, LocalFunctionElement function, _) {
+    return handleLocalGet(node, function);
   }
 
   T visitClosureSend(ast.Send node) {

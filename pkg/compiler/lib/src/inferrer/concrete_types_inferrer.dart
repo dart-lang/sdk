@@ -2376,12 +2376,20 @@ class TypeInferrerVisitor extends SimpleTypeInferrerVisitor<ConcreteType> {
     if (inferrer.testMode) {
       var element = elements[node];
       if (element is Local) {
-        ConcreteType type = locals.use(element);
-        if (type != null) {
-          inferrer.augmentInferredType(node, type);
-        }
+        internalError(node, "Unhandled local: $element");
       }
     }
     return super.visitGetterSend(node);
+  }
+
+  @override
+  ConcreteType handleLocalGet(Send node, LocalElement local) {
+    if (inferrer.testMode) {
+      ConcreteType type = locals.use(local);
+      if (type != null) {
+        inferrer.augmentInferredType(node, type);
+      }
+    }
+    return super.handleLocalGet(node, local);
   }
 }
