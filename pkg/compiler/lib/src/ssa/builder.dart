@@ -89,6 +89,8 @@ class SyntheticLocal extends Local {
   final ExecutableElement executableContext;
 
   SyntheticLocal(this.name, this.executableContext);
+
+  toString() => 'SyntheticLocal($name)';
 }
 
 class SsaBuilderTask extends CompilerTask {
@@ -389,8 +391,11 @@ class LocalsHandler {
       HParameterValue value =
           new HParameterValue(parameter, builder.getTypeOfThis());
       builder.graph.explicitReceiverParameter = value;
-      builder.graph.entry.addAfter(
-          directLocals[closureData.thisLocal], value);
+      builder.graph.entry.addAfter(directLocals[closureData.thisLocal], value);
+      if (builder.lastAddedParameter == null) {
+        // If this is the first parameter inserted, make sure it stays first.
+        builder.lastAddedParameter = value;
+      }
       if (isInterceptorClass) {
         // Only use the extra parameter in intercepted classes.
         directLocals[closureData.thisLocal] = value;
