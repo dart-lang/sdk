@@ -90,6 +90,7 @@ void useConstant(constants.ConstantValue constant,
 void useNode(tree.Node node) {
   node
     ..asAsyncModifier()
+    ..asAsyncForIn()
     ..asAwait()
     ..asBreakStatement()
     ..asCascade()
@@ -126,6 +127,7 @@ void useNode(tree.Node node) {
     ..asStringNode()
     ..asSwitchCase()
     ..asSwitchStatement()
+    ..asSyncForIn()
     ..asTryStatement()
     ..asTypeAnnotation()
     ..asTypeVariable()

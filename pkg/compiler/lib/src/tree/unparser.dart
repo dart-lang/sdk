@@ -623,11 +623,23 @@ class Unparser extends Indentation implements Visitor {
     visitGotoStatement(node);
   }
 
-  visitForIn(ForIn node) {
-    if (node.awaitToken != null) {
-      write(node.awaitToken.value);
-      write(' ');
-    }
+  visitAsyncForIn(AsyncForIn node) {
+    write(node.awaitToken.value);
+    write(' ');
+    write(node.forToken.value);
+    space();
+    write('(');
+    visit(node.declaredIdentifier);
+    write(' ');
+    addToken(node.inToken);
+    visit(node.expression);
+    write(')');
+    space();
+    visit(node.body);
+  }
+
+
+  visitSyncForIn(SyncForIn node) {
     write(node.forToken.value);
     space();
     write('(');

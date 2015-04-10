@@ -2914,7 +2914,8 @@ class LoopTypeVisitor extends ast.Visitor {
   int visitWhile(ast.While node) => HLoopBlockInformation.WHILE_LOOP;
   int visitFor(ast.For node) => HLoopBlockInformation.FOR_LOOP;
   int visitDoWhile(ast.DoWhile node) => HLoopBlockInformation.DO_WHILE_LOOP;
-  int visitForIn(ast.ForIn node) => HLoopBlockInformation.FOR_IN_LOOP;
+  int visitAsyncForIn(ast.AsyncForIn node) => HLoopBlockInformation.FOR_IN_LOOP;
+  int visitSyncForIn(ast.SyncForIn node) => HLoopBlockInformation.FOR_IN_LOOP;
   int visitSwitchStatement(ast.SwitchStatement node) =>
       HLoopBlockInformation.SWITCH_CONTINUE_LOOP;
 }

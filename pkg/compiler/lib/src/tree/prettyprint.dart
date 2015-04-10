@@ -190,8 +190,12 @@ class PrettyPrinter extends Indentation implements Visitor {
     visitNodeWithChildren(node, "For");
   }
 
-  visitForIn(ForIn node) {
-    openNode(node, "ForIn", {'await': node.awaitToken});
+  visitAsyncForIn(AsyncForIn node) {
+    openNode(node, "AsyncForIn");
+  }
+
+  visitSyncForIn(SyncForIn node) {
+    openNode(node, "ForIn");
     node.visitChildren(this);
     closeNode();
   }

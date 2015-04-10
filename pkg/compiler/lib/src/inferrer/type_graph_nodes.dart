@@ -674,7 +674,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 
   bool get isSynthesized {
-    // Some calls do not have a corresponding node, for example
+    // Some calls do not have a corresponding selector, for example
     // fowarding factory constructors, or synthesized super
     // constructor calls. We synthesize these calls but do
     // not create a selector for them.

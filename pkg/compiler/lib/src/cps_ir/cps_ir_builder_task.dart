@@ -418,7 +418,12 @@ abstract class IrBuilderVisitor extends SemanticVisitor<ir.Primitive, dynamic>
         closureScope: getClosureScopeForNode(node));
   }
 
-  visitForIn(ast.ForIn node) {
+  visitAsyncForIn(ast.AsyncForIn node) {
+    // await for is not yet implemented.
+    return giveup(node, 'await for');
+  }
+
+  visitSyncForIn(ast.SyncForIn node) {
     // [node.declaredIdentifier] can be either an [ast.VariableDefinitions]
     // (defining a new local variable) or a send designating some existing
     // variable.

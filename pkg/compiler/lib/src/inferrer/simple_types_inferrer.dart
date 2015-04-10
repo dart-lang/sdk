@@ -1189,7 +1189,7 @@ class SimpleTypeInferrerVisitor<T>
     // Erroneous elements may be unresolved, for example missing getters.
     if (Elements.isUnresolved(element)) return types.dynamicType;
     // TODO(herhut): should we follow redirecting constructors here? We would
-    // need to pay attention of the constructor is pointing to an erroneous
+    // need to pay attention if the constructor is pointing to an erroneous
     // element.
     return inferrer.registerCalledElement(
         node, selector, outermostElement, element, arguments,
@@ -1329,18 +1329,12 @@ class SimpleTypeInferrerVisitor<T>
     return null;
   }
 
-  T visitForIn(ast.ForIn node) {
-    T expressionType = visit(node.expression);
-    Selector iteratorSelector = elements.getIteratorSelector(node);
-    Selector currentSelector = elements.getCurrentSelector(node);
-    Selector moveNextSelector = elements.getMoveNextSelector(node);
-
-    T iteratorType =
-        handleDynamicSend(node, iteratorSelector, expressionType, null);
-    handleDynamicSend(node, moveNextSelector,
-                      iteratorType, new ArgumentsTypes<T>([], null));
-    T currentType =
-        handleDynamicSend(node, currentSelector, iteratorType, null);
+  T handleForInLoop(ast.ForIn node, T iteratorType, Selector currentSelector,
+                    Selector moveNextSelector) {
+    handleDynamicSend(node, moveNextSelector, iteratorType,
+                      new ArgumentsTypes<T>.empty());
+    T currentType = handleDynamicSend(node, currentSelector, iteratorType,
+                                      new ArgumentsTypes<T>.empty());
 
     if (node.expression.isThis()) {
       // Any reasonable implementation of an iterator would expose
@@ -1365,5 +1359,36 @@ class SimpleTypeInferrerVisitor<T>
     return handleLoop(node, () {
       visit(node.body);
     });
+  }
+
+  T visitAsyncForIn(ast.AsyncForIn node) {
+    T expressionType = visit(node.expression);
+
+    Selector currentSelector = elements.getCurrentSelector(node);
+    Selector moveNextSelector = elements.getMoveNextSelector(node);
+
+    js.JavaScriptBackend backend = compiler.backend;
+    Element ctor = backend.getStreamIteratorConstructor();
+
+    /// Synthesize a call to the [StreamIterator] constructor.
+    T iteratorType = handleStaticSend(node, null, ctor,
+                                      new ArgumentsTypes<T>([expressionType],
+                                                            null));
+
+    return handleForInLoop(node, iteratorType, currentSelector,
+                           moveNextSelector);
+  }
+
+  T visitSyncForIn(ast.SyncForIn node) {
+    T expressionType = visit(node.expression);
+    Selector iteratorSelector = elements.getIteratorSelector(node);
+    Selector currentSelector = elements.getCurrentSelector(node);
+    Selector moveNextSelector = elements.getMoveNextSelector(node);
+
+    T iteratorType = handleDynamicSend(node, iteratorSelector, expressionType,
+                                       new ArgumentsTypes<T>.empty());
+
+    return handleForInLoop(node, iteratorType, currentSelector,
+                           moveNextSelector);
   }
 }
