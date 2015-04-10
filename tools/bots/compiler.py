@@ -80,8 +80,6 @@ def GetBuildInfo(builder_name, is_buildbot):
     test_set = web_pattern.group(4)
     if web_pattern.group(6) == 'csp':
       csp = True
-      # Always run csp mode minified
-      minified = True
     shard_index = web_pattern.group(8)
     total_shards = web_pattern.group(9)
   elif dart2js_full_pattern:
