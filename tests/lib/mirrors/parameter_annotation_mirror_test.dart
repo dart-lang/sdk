@@ -13,6 +13,11 @@ class ParameterAnnotation {
 }
 
 class Foo {
+  Foo(@ParameterAnnotation("vogel") p) {}
+  Foo.named(@ParameterAnnotation("hamster") p) {}
+  Foo.named2(@ParameterAnnotation("hamster") p,
+             @ParameterAnnotation("wurm") p2) {}
+
   f1(@ParameterAnnotation("hest") p) {}
   f2(@ParameterAnnotation("hest") @ParameterAnnotation("fisk") p) {}
   f3(a, @ParameterAnnotation("fugl") p) {}
@@ -22,6 +27,8 @@ class Foo {
      [@ParameterAnnotation("hval") p]) {}
   f6({@ParameterAnnotation("fisk") z,
       @ParameterAnnotation("hval") p}) {}
+
+  set s1(@ParameterAnnotation("cheval") p) {}
 }
 
 expectAnnotations(Type type, Symbol method, int parameterIndex,
@@ -39,6 +46,11 @@ expectAnnotations(Type type, Symbol method, int parameterIndex,
 }
 
 main() {
+  expectAnnotations(Foo, #Foo, 0, ["vogel"]);
+  expectAnnotations(Foo, #Foo.named, 0, ["hamster"]);
+  expectAnnotations(Foo, #Foo.named2, 0, ["hamster"]);
+  expectAnnotations(Foo, #Foo.named2, 1, ["wurm"]);
+
   expectAnnotations(Foo, #f1, 0, ["hest"]);
   expectAnnotations(Foo, #f2, 0, ["hest", "fisk"]);
   expectAnnotations(Foo, #f3, 0, []);
@@ -49,4 +61,6 @@ main() {
   expectAnnotations(Foo, #f5, 1, ["hval"]);
   expectAnnotations(Foo, #f6, 0, ["fisk"]);
   expectAnnotations(Foo, #f6, 1, ["hval"]);
+
+  expectAnnotations(Foo, const Symbol('s1='), 0, ["cheval"]);
 }
