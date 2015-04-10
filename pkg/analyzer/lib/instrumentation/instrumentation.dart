@@ -4,6 +4,8 @@
 
 library instrumentation;
 
+import 'dart:convert';
+
 /**
  * A container with analysis performance constants.
  */
@@ -62,6 +64,8 @@ class InstrumentationService {
   static const String TAG_PERFORMANCE = 'Perf';
   static const String TAG_REQUEST = 'Req';
   static const String TAG_RESPONSE = 'Res';
+  static const String TAG_SUBPROCESS_START = 'SPStart';
+  static const String TAG_SUBPROCESS_RESULT = 'SPResult';
   static const String TAG_VERSION = 'Ver';
   static const String TAG_WATCH_EVENT = 'Watch';
 
@@ -70,6 +74,11 @@ class InstrumentationService {
    * if instrumentation data should not be logged.
    */
   InstrumentationServer _instrumentationServer;
+
+  /**
+   * Counter used to generate unique ID's for [logSubprocessStart].
+   */
+  int _subprocessCounter = 0;
 
   /**
    * Initialize a newly created instrumentation service to comunicate with the
@@ -188,6 +197,43 @@ class InstrumentationService {
    */
   void logResponse(String response) {
     _log(TAG_RESPONSE, response);
+  }
+
+  /**
+   * Log the result of executing a subprocess.  [subprocessId] should be the
+   * unique IDreturned by [logSubprocessStart].
+   */
+  void logSubprocessResult(
+      int subprocessId, int exitCode, String stdout, String stderr) {
+    if (_instrumentationServer != null) {
+      _instrumentationServer.log(_join([
+        TAG_SUBPROCESS_RESULT,
+        subprocessId.toString(),
+        exitCode.toString(),
+        JSON.encode(stdout),
+        JSON.encode(stderr)
+      ]));
+    }
+  }
+
+  /**
+   * Log that the given subprocess is about to be executed.  Returns a unique
+   * identifier that can be used to identify the subprocess for later log
+   * entries.
+   */
+  int logSubprocessStart(
+      String executablePath, List<String> arguments, String workingDirectory) {
+    int subprocessId = _subprocessCounter++;
+    if (_instrumentationServer != null) {
+      _instrumentationServer.log(_join([
+        TAG_SUBPROCESS_START,
+        subprocessId.toString(),
+        executablePath,
+        workingDirectory,
+        JSON.encode(arguments)
+      ]));
+    }
+    return subprocessId;
   }
 
   /**
