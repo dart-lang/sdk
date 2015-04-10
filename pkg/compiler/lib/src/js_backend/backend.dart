@@ -2680,11 +2680,6 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     registerBackendStaticInvocation(backend.assertMethod, registry);
   }
 
-  void onAsyncForIn(AsyncForIn node, Registry registry) {
-    registerBackendStaticInvocation(backend.getStreamIteratorConstructor(),
-                                    registry);
-  }
-
   void onStringInterpolation(Registry registry) {
     assert(registry.isForResolution);
     registerBackendStaticInvocation(

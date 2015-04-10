@@ -269,8 +269,6 @@ class ArgumentsTypes<T> extends IterableMixin<T> {
     assert(this.named.values.every((T type) => type != null));
   }
 
-  ArgumentsTypes.empty() : positional = const [], named = const {};
-
   int get length => positional.length + named.length;
 
   Iterator<T> get iterator => new ArgumentsTypesIterator(this);
@@ -715,9 +713,7 @@ abstract class InferrerVisitor
 
   T visitDynamicSend(Send node);
 
-  T visitAsyncForIn(AsyncForIn node);
-
-  T visitSyncForIn(SyncForIn node);
+  T visitForIn(ForIn node);
 
   T visitReturn(Return node);
 

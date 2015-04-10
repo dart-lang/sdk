@@ -1719,13 +1719,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     return const StatementType();
   }
 
-  visitAsyncForIn(AsyncForIn node) {
-    analyze(node.expression);
-    analyze(node.body);
-    return const StatementType();
-  }
-
-  visitSyncForIn(SyncForIn node) {
+  visitForIn(ForIn node) {
     analyze(node.expression);
     analyze(node.body);
     return const StatementType();

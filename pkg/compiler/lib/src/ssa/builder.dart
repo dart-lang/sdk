@@ -5424,7 +5424,8 @@ class SsaBuilder extends NewResolvedVisitor {
     return new JumpHandler(this, element);
   }
 
-  visitAsyncForIn(ast.AsyncForIn node) {
+  buildAsyncForIn(ast.ForIn node) {
+    assert(node.isAsync);
     // The async-for is implemented with a StreamIterator.
     HInstruction streamIterator;
 
@@ -5490,7 +5491,11 @@ class SsaBuilder extends NewResolvedVisitor {
     });
   }
 
-  visitSyncForIn(ast.SyncForIn node) {
+  visitForIn(ast.ForIn node) {
+    if (node.isAsync) {
+      return buildAsyncForIn(node);
+    }
+
     // Generate a structure equivalent to:
     //   Iterator<E> $iter = <iterable>.iterator;
     //   while ($iter.moveNext()) {
