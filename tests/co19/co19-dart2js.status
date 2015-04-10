@@ -95,11 +95,11 @@ LibTest/core/int/operator_right_shift_A01_t01: RuntimeError, OK # Expects negati
 LibTest/core/int/toDouble_A01_t01: RuntimeError, OK # co19 issue 200
 LibTest/html/HttpRequest/responseType_A01_t03: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/html/IFrameElement/enteredView_A01_t01: CompileTimeError # co19-roll r706: Please triage this failure
-LibTest/isolate/Isolate/spawnUri_A01_t01: Fail # co19-roll r672: Please triage this failure
-LibTest/isolate/Isolate/spawnUri_A01_t02: Fail # co19-roll r672: Please triage this failure
-LibTest/isolate/Isolate/spawnUri_A01_t03: Fail # co19-roll r672: Please triage this failure
-LibTest/isolate/Isolate/spawnUri_A01_t04: Fail # co19-roll r672: Please triage this failure
-LibTest/isolate/Isolate/spawnUri_A01_t05: Fail # co19-roll r672: Please triage this failure
+LibTest/isolate/Isolate/spawnUri_A01_t01: Fail # Dart issue 15974
+LibTest/isolate/Isolate/spawnUri_A01_t02: Fail # Dart issue 15974
+LibTest/isolate/Isolate/spawnUri_A01_t03: Fail # Dart issue 15974
+LibTest/isolate/Isolate/spawnUri_A01_t04: Fail # Dart issue 15974
+LibTest/isolate/Isolate/spawnUri_A01_t05: Fail # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError, Pass # Dart issue 15617
 LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError, Pass # Dart issue 15617
 LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
