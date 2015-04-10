@@ -44,6 +44,9 @@ enum_mirror_test: Skip # Issue 11511.
 override_inheritance_mixed_test/08: Fail # Issue 18124
 override_inheritance_mixed_test/09: Fail # Issue 18124
 
+[ $compiler == dart2dart && $builder_tag != new_backend ]
+multiline_strings_test: Fail # Issue (pending)
+
 [ $compiler == none || $compiler == dart2dart ]
 # Non-contractive types are not supported in the vm.
 cyclic_type_test/02: Fail, OK
