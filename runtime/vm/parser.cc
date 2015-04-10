@@ -8255,6 +8255,28 @@ AstNode* Parser::ParseDoWhileStatement(String* label_name) {
 }
 
 
+static LocalVariable* LookupSavedTryContextVar(LocalScope* scope) {
+  LocalVariable* var =
+      scope->LocalLookupVariable(Symbols::SavedTryContextVar());
+  ASSERT((var != NULL) && !var->is_captured());
+  return var;
+}
+
+
+static LocalVariable* LookupAsyncSavedTryContextVar(LocalScope* scope,
+                                                    uint16_t try_index) {
+  const String& async_saved_try_ctx_name =
+      String::ZoneHandle(Symbols::New(String::Handle(
+          String::NewFormatted(
+              "%s%d",
+              Symbols::AsyncSavedTryCtxVarPrefix().ToCString(),
+              try_index))));
+  LocalVariable* var = scope->LocalLookupVariable(async_saved_try_ctx_name);
+  ASSERT((var != NULL) && var->is_captured());\
+  return var;
+}
+
+
 // If the await or yield being parsed is in a try block, the continuation code
 // needs to restore the corresponding stack-based variable :saved_try_ctx_var,
 // and the stack-based variable :saved_try_ctx_var of the outer try block.
@@ -8269,32 +8291,33 @@ AstNode* Parser::ParseDoWhileStatement(String* label_name) {
 //     Set the context variable for the outer try block. Note that the try
 //     declaring the finally is popped before parsing the finally clause, so the
 //     outer try block is at the top of the try block list.
-//
-// TODO(regis): Could we return the variables instead of their containing
-// scopes? Check if they are already setup at this point.
-void Parser::CheckAsyncOpInTryBlock(LocalScope** try_scope,
-                                    int16_t* try_index,
-                                    LocalScope** outer_try_scope,
-                                    int16_t* outer_try_index) const {
-  *try_scope = NULL;
-  *try_index = CatchClauseNode::kInvalidTryIndex;
-  *outer_try_scope = NULL;
-  *outer_try_index = CatchClauseNode::kInvalidTryIndex;
+void Parser::CheckAsyncOpInTryBlock(
+    LocalVariable** saved_try_ctx,
+    LocalVariable** async_saved_try_ctx,
+    LocalVariable** outer_saved_try_ctx,
+    LocalVariable** outer_async_saved_try_ctx) const {
+  *saved_try_ctx = NULL;
+  *async_saved_try_ctx = NULL;
+  *outer_saved_try_ctx = NULL;
+  *outer_async_saved_try_ctx = NULL;
   if (try_stack_ != NULL) {
     LocalScope* scope = try_stack_->try_block()->scope;
+    uint16_t try_index = try_stack_->try_index();
     const int current_function_level = current_block_->scope->function_level();
     if (scope->function_level() == current_function_level) {
       // The block declaring :saved_try_ctx_var variable is the parent of the
       // pushed try block.
-      *try_scope = scope->parent();
-      *try_index = try_stack_->try_index();
+      *saved_try_ctx = LookupSavedTryContextVar(scope->parent());
+      *async_saved_try_ctx = LookupAsyncSavedTryContextVar(scope, try_index);
       if (try_stack_->outer_try() != NULL) {
         // TODO(regis): Collecting the outer try scope is not necessary if we
         // are in a finally block. Add support for try_stack_->inside_finally().
         scope = try_stack_->outer_try()->try_block()->scope;
+        try_index = try_stack_->outer_try()->try_index();
         if (scope->function_level() == current_function_level) {
-          *outer_try_scope = scope->parent();
-          *outer_try_index = try_stack_->outer_try()->try_index();
+          *outer_saved_try_ctx = LookupSavedTryContextVar(scope->parent());
+          *outer_async_saved_try_ctx =
+              LookupAsyncSavedTryContextVar(scope, try_index);
         }
       }
     }
@@ -8302,7 +8325,7 @@ void Parser::CheckAsyncOpInTryBlock(LocalScope** try_scope,
   // An async or async* has an implicitly created try-catch around the
   // function body, so the await or yield inside the async closure should always
   // be created with a try scope.
-  ASSERT((*try_scope != NULL) ||
+  ASSERT((*saved_try_ctx != NULL) ||
          innermost_function().IsAsyncFunction() ||
          innermost_function().IsAsyncGenerator() ||
          innermost_function().IsSyncGenClosure() ||
@@ -8426,13 +8449,14 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
 
   // Build while loop condition.
   // while (await :for-in-iter.moveNext())
-  LocalScope* try_scope;
-  int16_t try_index;
-  LocalScope* outer_try_scope;
-  int16_t outer_try_index;
-  CheckAsyncOpInTryBlock(&try_scope, &try_index,
-                         &outer_try_scope, &outer_try_index);
-
+  LocalVariable* saved_try_ctx;
+  LocalVariable* async_saved_try_ctx;
+  LocalVariable* outer_saved_try_ctx;
+  LocalVariable* outer_async_saved_try_ctx;
+  CheckAsyncOpInTryBlock(&saved_try_ctx,
+                         &async_saved_try_ctx,
+                         &outer_saved_try_ctx,
+                         &outer_async_saved_try_ctx);
   ArgumentListNode* no_args = new(Z) ArgumentListNode(stream_pos);
   AstNode* iterator_moveNext = new(Z) InstanceCallNode(
       stream_pos,
@@ -8442,10 +8466,10 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   AstNode* await_moveNext =
       new(Z) AwaitNode(stream_pos,
                        iterator_moveNext,
-                       try_scope,
-                       try_index,
-                       outer_try_scope,
-                       outer_try_index);
+                       saved_try_ctx,
+                       async_saved_try_ctx,
+                       outer_saved_try_ctx,
+                       outer_async_saved_try_ctx);
   OpenBlock();
   AwaitTransformer at(current_block_->statements, async_temp_scope_);
   await_moveNext = at.Transform(await_moveNext);
@@ -8523,9 +8547,12 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   try_stack_->enter_catch();
   SequenceNode* catch_block = new(Z) SequenceNode(await_for_pos, NULL);
 
-  if (outer_try_scope != NULL) {
-    catch_block->Add(AwaitTransformer::RestoreSavedTryContext(
-        Z, outer_try_scope, outer_try_index));
+  if (outer_saved_try_ctx != NULL) {
+    catch_block->Add(new (Z) StoreLocalNode(
+        Scanner::kNoSourcePos,
+        outer_saved_try_ctx,
+        new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+                              outer_async_saved_try_ctx)));
   }
 
   // We don't need to copy the current exception and stack trace variables
@@ -8539,7 +8566,10 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
       new(Z) LoadLocalNode(await_for_pos, stack_trace_var)));
 
   TryStack* try_statement = PopTry();
-  ASSERT(try_index == try_statement->try_index());
+  const intptr_t try_index = try_statement->try_index();
+  TryStack* outer_try = try_stack_;
+  const intptr_t outer_try_index = (outer_try != NULL) ?
+      outer_try->try_index() : CatchClauseNode::kInvalidTryIndex;
 
   // The finally block contains a call to cancel the stream.
   // :for-in-iter.cancel()
@@ -8942,9 +8972,17 @@ SequenceNode* Parser::ParseFinallyBlock(
     if (try_stack_ != NULL) {
       LocalScope* scope = try_stack_->try_block()->scope;
       if (scope->function_level() == current_block_->scope->function_level()) {
+        LocalVariable* saved_try_ctx =
+            LookupSavedTryContextVar(scope->parent());
+        LocalVariable* async_saved_try_ctx =
+            LookupAsyncSavedTryContextVar(scope->parent(),
+                                          try_stack_->try_index());
         current_block_->statements->Add(
-            AwaitTransformer::RestoreSavedTryContext(
-                Z, scope->parent(), try_stack_->try_index()));
+            new (Z) StoreLocalNode(
+                Scanner::kNoSourcePos,
+                saved_try_ctx,
+                new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+                                      async_saved_try_ctx)));
       }
     }
     // We need to save the exception variables as in catch clauses, whether
@@ -9202,11 +9240,18 @@ SequenceNode* Parser::ParseCatchClauses(
     const TryStack* try_block = try_stack_->outer_try();
     if (try_block != NULL) {
       LocalScope* scope = try_block->try_block()->scope;
-      if (scope->function_level() ==
-          current_block_->scope->function_level()) {
-        async_code->Add(
-            AwaitTransformer::RestoreSavedTryContext(
-                Z, scope->parent(), try_block->try_index()));
+      if (scope->function_level() == current_block_->scope->function_level()) {
+        LocalVariable* saved_try_ctx =
+            LookupSavedTryContextVar(scope->parent());
+        LocalVariable* async_saved_try_ctx =
+            LookupAsyncSavedTryContextVar(scope->parent(),
+                                          try_block->try_index());
+        current_block_->statements->Add(
+            new (Z) StoreLocalNode(
+                Scanner::kNoSourcePos,
+                saved_try_ctx,
+                new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+                                      async_saved_try_ctx)));
       }
     }
     SaveExceptionAndStacktrace(async_code,
@@ -9572,25 +9617,29 @@ AstNode* Parser::ParseYieldStatement() {
     // If this expression is part of a try block, also append the code for
     // restoring the saved try context that lives on the stack and possibly the
     // saved try context of the outer try block.
-    LocalScope* try_scope;
-    int16_t try_index;
-    LocalScope* outer_try_scope;
-    int16_t outer_try_index;
-    CheckAsyncOpInTryBlock(&try_scope, &try_index,
-                           &outer_try_scope, &outer_try_index);
-    if (try_scope != NULL) {
-      yield->AddNode(
-          AwaitTransformer::RestoreSavedTryContext(Z,
-                                                   try_scope,
-                                                   try_index));
-      if (outer_try_scope != NULL) {
-        yield->AddNode(
-            AwaitTransformer::RestoreSavedTryContext(Z,
-                                                     outer_try_scope,
-                                                     outer_try_index));
+    LocalVariable* saved_try_ctx;
+    LocalVariable* async_saved_try_ctx;
+    LocalVariable* outer_saved_try_ctx;
+    LocalVariable* outer_async_saved_try_ctx;
+    CheckAsyncOpInTryBlock(&saved_try_ctx,
+                           &async_saved_try_ctx,
+                           &outer_saved_try_ctx,
+                           &outer_async_saved_try_ctx);
+    if (saved_try_ctx != NULL) {
+      yield->AddNode(new (Z) StoreLocalNode(
+          Scanner::kNoSourcePos,
+          saved_try_ctx,
+          new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+                                async_saved_try_ctx)));
+      if (outer_saved_try_ctx != NULL) {
+        yield->AddNode(new (Z) StoreLocalNode(
+            Scanner::kNoSourcePos,
+            outer_saved_try_ctx,
+            new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+                                  outer_async_saved_try_ctx)));
       }
     } else {
-      ASSERT(outer_try_scope == NULL);
+      ASSERT(outer_saved_try_ctx == NULL);
     }
   } else {
     // yield statement in async* function.
@@ -9607,7 +9656,6 @@ AstNode* Parser::ParseYieldStatement() {
             new(Z) LoadLocalNode(Scanner::kNoSourcePos, controller_var),
             is_yield_each ? Symbols::AddStream() : Symbols::add(),
             add_args);
-
 
     // if (:controller.add[Stream](expr)) {
     //   return;
@@ -9635,25 +9683,29 @@ AstNode* Parser::ParseYieldStatement() {
     // If this expression is part of a try block, also append the code for
     // restoring the saved try context that lives on the stack and possibly the
     // saved try context of the outer try block.
-    LocalScope* try_scope;
-    int16_t try_index;
-    LocalScope* outer_try_scope;
-    int16_t outer_try_index;
-    CheckAsyncOpInTryBlock(&try_scope, &try_index,
-                           &outer_try_scope, &outer_try_index);
-    if (try_scope != NULL) {
-      yield->AddNode(
-          AwaitTransformer::RestoreSavedTryContext(Z,
-                                                   try_scope,
-                                                   try_index));
-      if (outer_try_scope != NULL) {
-        yield->AddNode(
-            AwaitTransformer::RestoreSavedTryContext(Z,
-                                                     outer_try_scope,
-                                                     outer_try_index));
+    LocalVariable* saved_try_ctx;
+    LocalVariable* async_saved_try_ctx;
+    LocalVariable* outer_saved_try_ctx;
+    LocalVariable* outer_async_saved_try_ctx;
+    CheckAsyncOpInTryBlock(&saved_try_ctx,
+                           &async_saved_try_ctx,
+                           &outer_saved_try_ctx,
+                           &outer_async_saved_try_ctx);
+    if (saved_try_ctx != NULL) {
+      yield->AddNode(new (Z) StoreLocalNode(
+          Scanner::kNoSourcePos,
+          saved_try_ctx,
+          new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+                                async_saved_try_ctx)));
+      if (outer_saved_try_ctx != NULL) {
+        yield->AddNode(new (Z) StoreLocalNode(
+            Scanner::kNoSourcePos,
+            outer_saved_try_ctx,
+            new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+                                  outer_async_saved_try_ctx)));
       }
     } else {
-      ASSERT(outer_try_scope == NULL);
+      ASSERT(outer_saved_try_ctx == NULL);
     }
   }
   return yield;
@@ -10587,19 +10639,20 @@ AstNode* Parser::ParseUnaryExpr() {
     ConsumeToken();
     parsed_function()->record_await();
 
-    LocalScope* try_scope;
-    int16_t try_index;
-    LocalScope* outer_try_scope;
-    int16_t outer_try_index;
-    CheckAsyncOpInTryBlock(&try_scope, &try_index,
-                           &outer_try_scope, &outer_try_index);
-
+    LocalVariable* saved_try_ctx;
+    LocalVariable* async_saved_try_ctx;
+    LocalVariable* outer_saved_try_ctx;
+    LocalVariable* outer_async_saved_try_ctx;
+    CheckAsyncOpInTryBlock(&saved_try_ctx,
+                           &async_saved_try_ctx,
+                           &outer_saved_try_ctx,
+                           &outer_async_saved_try_ctx);
     expr = new (Z) AwaitNode(op_pos,
                              ParseUnaryExpr(),
-                             try_scope,
-                             try_index,
-                             outer_try_scope,
-                             outer_try_index);
+                             saved_try_ctx,
+                             async_saved_try_ctx,
+                             outer_saved_try_ctx,
+                             outer_async_saved_try_ctx);
   } else if (IsPrefixOperator(CurrentToken())) {
     Token::Kind unary_op = CurrentToken();
     if (unary_op == Token::kSUB) {

@@ -107,30 +107,6 @@ void AwaitTransformer::VisitTypeNode(TypeNode* node) {
 }
 
 
-// Restore the currently relevant :saved_try_context_var on the stack
-// from the captured :async_saved_try_ctx_var_<try_index>.
-AstNode* AwaitTransformer::RestoreSavedTryContext(Zone* zone,
-                                                  LocalScope* scope,
-                                                  int16_t try_index) {
-  LocalVariable* saved_try_ctx =
-      scope->LocalLookupVariable(Symbols::SavedTryContextVar());
-  ASSERT((saved_try_ctx != NULL) && !saved_try_ctx->is_captured());
-  const String& async_saved_try_ctx_name = String::ZoneHandle(zone,
-      Symbols::New(String::Handle(zone,
-          String::NewFormatted("%s%d",
-                               Symbols::AsyncSavedTryCtxVarPrefix().ToCString(),
-                               try_index))));
-  LocalVariable* async_saved_try_ctx =
-      scope->LocalLookupVariable(async_saved_try_ctx_name);
-  ASSERT(async_saved_try_ctx != NULL);
-  ASSERT(async_saved_try_ctx->is_captured());
-  return new (zone) StoreLocalNode(
-      Scanner::kNoSourcePos,
-      saved_try_ctx,
-      new (zone) LoadLocalNode(Scanner::kNoSourcePos, async_saved_try_ctx));
-}
-
-
 void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   // Await transformation:
   //
@@ -236,17 +212,21 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   // If this expression is part of a try block, also append the code for
   // restoring the saved try context that lives on the stack and possibly the
   // saved try context of the outer try block.
-  if (node->try_scope() != NULL) {
-    preamble_->Add(RestoreSavedTryContext(Z,
-                                          node->try_scope(),
-                                          node->try_index()));
-    if (node->outer_try_scope() != NULL) {
-      preamble_->Add(RestoreSavedTryContext(Z,
-                                            node->outer_try_scope(),
-                                            node->outer_try_index()));
+  if (node->saved_try_ctx() != NULL) {
+    preamble_->Add(new (Z) StoreLocalNode(
+        Scanner::kNoSourcePos,
+        node->saved_try_ctx(),
+        new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+                              node->async_saved_try_ctx())));
+    if (node->outer_saved_try_ctx() != NULL) {
+      preamble_->Add(new (Z) StoreLocalNode(
+          Scanner::kNoSourcePos,
+          node->outer_saved_try_ctx(),
+          new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+                                node->outer_async_saved_try_ctx())));
     }
   } else {
-    ASSERT(node->outer_try_scope() == NULL);
+    ASSERT(node->outer_saved_try_ctx() == NULL);
   }
 
   LoadLocalNode* load_error_param = new (Z) LoadLocalNode(

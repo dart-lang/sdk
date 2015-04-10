@@ -161,35 +161,37 @@ class AwaitNode : public AstNode {
  public:
   AwaitNode(intptr_t token_pos,
             AstNode* expr,
-            LocalScope* try_scope,
-            int16_t try_index,
-            LocalScope* outer_try_scope,
-            intptr_t outer_try_index)
+            LocalVariable* saved_try_ctx,
+            LocalVariable* async_saved_try_ctx,
+            LocalVariable* outer_saved_try_ctx,
+            LocalVariable* outer_async_saved_try_ctx)
     : AstNode(token_pos),
       expr_(expr),
-      try_scope_(try_scope),
-      try_index_(try_index),
-      outer_try_scope_(outer_try_scope),
-      outer_try_index_(outer_try_index) { }
+      saved_try_ctx_(saved_try_ctx),
+      async_saved_try_ctx_(async_saved_try_ctx),
+      outer_saved_try_ctx_(outer_saved_try_ctx),
+      outer_async_saved_try_ctx_(outer_async_saved_try_ctx) { }
 
   void VisitChildren(AstNodeVisitor* visitor) const {
     expr_->Visit(visitor);
   }
 
   AstNode* expr() const { return expr_; }
-  LocalScope* try_scope() const { return try_scope_; }
-  int16_t try_index() const { return try_index_; }
-  LocalScope* outer_try_scope() const { return outer_try_scope_; }
-  int16_t outer_try_index() const { return outer_try_index_; }
+  LocalVariable* saved_try_ctx() const { return saved_try_ctx_; }
+  LocalVariable* async_saved_try_ctx() const { return async_saved_try_ctx_; }
+  LocalVariable* outer_saved_try_ctx() const { return outer_saved_try_ctx_; }
+  LocalVariable* outer_async_saved_try_ctx() const {
+    return outer_async_saved_try_ctx_;
+  }
 
   DECLARE_COMMON_NODE_FUNCTIONS(AwaitNode);
 
  private:
   AstNode* expr_;
-  LocalScope* try_scope_;
-  int16_t try_index_;
-  LocalScope* outer_try_scope_;
-  int16_t outer_try_index_;
+  LocalVariable* saved_try_ctx_;
+  LocalVariable* async_saved_try_ctx_;
+  LocalVariable* outer_saved_try_ctx_;
+  LocalVariable* outer_async_saved_try_ctx_;
 
   DISALLOW_COPY_AND_ASSIGN(AwaitNode);
 };
