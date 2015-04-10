@@ -223,6 +223,8 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
       return NativeThrowBehavior.NEVER;
     NativeThrowBehavior result = visit(node.argument);
     switch (node.op) {
+      case '+':
+      case '-':
       case '!':
       case '~':
       case 'void':

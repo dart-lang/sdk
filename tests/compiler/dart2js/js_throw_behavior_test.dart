@@ -28,6 +28,10 @@ void main() {
   test('!!#', NEVER);
   test('~#', NEVER);
   test('~~#', NEVER);
+  test('-#', NEVER);
+  test('+#', NEVER);
+  test('-(-#)', NEVER);
+  test('+#', NEVER);
 
   test('# * #', NEVER);
   test('# / #', NEVER);
