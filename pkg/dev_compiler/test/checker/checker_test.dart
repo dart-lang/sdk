@@ -167,7 +167,7 @@ void main() {
             T /*severe:InvalidVariableDeclaration*/z;
           }
 
-          void baz(T x, [T /*severe:InvalidVariableDeclaration*/y, T z = /*severe:StaticTypeError*/null]) {
+          void baz(T x, [T /*severe:InvalidVariableDeclaration*/y, T z = /*warning:DownCastImplicit*/null]) {
           }
         }
 

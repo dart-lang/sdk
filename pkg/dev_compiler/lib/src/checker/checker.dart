@@ -365,6 +365,8 @@ class CodeChecker extends RecursiveAstVisitor {
         _constantContext = o || n.isConst;
       } else if (n is VariableDeclaration) {
         _constantContext = o || n.isConst;
+      } else if (n is DefaultFormalParameter) {
+        _constantContext = true;
       } else if (n is FormalParameter) {
         _constantContext = o || n.isConst;
       } else if (n is InstanceCreationExpression) {
@@ -598,23 +600,17 @@ class CodeChecker extends RecursiveAstVisitor {
       var parameterType = _rules.elementType(parameter.element);
       assert(parameterType != null);
       var defaultValue = node.defaultValue;
-      var defaultType;
       if (defaultValue == null) {
-        // TODO(vsm): Should this be null?
-        defaultType = _rules.provider.bottomType;
+        if (_rules.maybeNonNullableType(parameterType)) {
+          var staticInfo = new InvalidVariableDeclaration(
+              _rules, node.identifier, parameterType);
+          _recordMessage(staticInfo);
+        }
       } else {
-        defaultType = _rules.getStaticType(defaultValue);
+        var staticInfo = checkAssignment(defaultValue, parameterType);
+        if (staticInfo is! StaticError) node.defaultValue = staticInfo;
       }
 
-      // If defaultType is bottom, this enforces that parameterType is not
-      // non-nullable.
-      if (!_rules.isSubTypeOf(defaultType, parameterType)) {
-        var staticInfo = (defaultValue == null)
-            ? new InvalidVariableDeclaration(
-                _rules, node.identifier, parameterType)
-            : new StaticTypeError(_rules, defaultValue, parameterType);
-        _recordMessage(staticInfo);
-      }
       node.visitChildren(this);
     });
   }

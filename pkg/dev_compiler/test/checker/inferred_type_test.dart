@@ -1342,6 +1342,10 @@ void main() {
 
   test('downwards inference on list literals', () {
     String mk(String info) => '''
+      void foo([List<String> list1 = /*$info*/const [],
+                List<String> list2 = /*severe:StaticTypeError*/const [42]]) {
+      }
+
       void main() {
         {
           List<int> l0 = /*$info*/[];
@@ -1423,6 +1427,9 @@ void main() {
 
   test('downwards inference on map literals', () {
     String mk(String info) => '''
+      void foo([Map<int, String> m1 = /*$info*/const {1: "hello"},
+                Map<int, String> m1 = /*severe:StaticTypeError*/const {"hello": "world"}]) {
+      }
       void main() {
         {
           Map<int, String> l0 = /*$info*/{};
