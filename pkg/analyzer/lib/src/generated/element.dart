@@ -2062,6 +2062,10 @@ class DefaultParameterElementImpl extends ParameterElementImpl {
   void set evaluationResult(EvaluationResultImpl result) {
     this._result = result;
   }
+
+  @override
+  DefaultFormalParameter get node =>
+      getNodeMatching((node) => node is DefaultFormalParameter);
 }
 
 /**
@@ -3940,6 +3944,9 @@ class FieldMember extends VariableMember implements FieldElement {
 
   @override
   bool get isStatic => baseElement.isStatic;
+
+  @override
+  VariableDeclaration get node => baseElement.node;
 
   @override
   DartType get propagatedType => substituteFor(baseElement.propagatedType);
@@ -7296,7 +7303,17 @@ abstract class LocalElement implements Element {
 /**
  * A local variable.
  */
-abstract class LocalVariableElement implements LocalElement, VariableElement {}
+abstract class LocalVariableElement implements LocalElement, VariableElement {
+  /**
+   * Return the resolved [VariableDeclaration] node that declares this
+   * [LocalVariableElement].
+   *
+   * This method is expensive, because resolved AST might be evicted from cache,
+   * so parsing and resolving will be performed.
+   */
+  @override
+  VariableDeclaration get node;
+}
 
 /**
  * A concrete implementation of a [LocalVariableElement].
@@ -7349,6 +7366,10 @@ class LocalVariableElementImpl extends VariableElementImpl
 
   @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
+
+  @override
+  VariableDeclaration get node =>
+      getNodeMatching((node) => node is VariableDeclaration);
 
   @override
   SourceRange get visibleRange {
@@ -8155,6 +8176,9 @@ abstract class ParameterElement implements LocalElement, VariableElement {
    */
   bool get isInitializingFormal;
 
+  @override
+  FormalParameter get node;
+
   /**
    * Return the kind of this parameter.
    */
@@ -8240,6 +8264,10 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   ElementKind get kind => ElementKind.PARAMETER;
+
+  @override
+  FormalParameter get node =>
+      getNodeMatching((node) => node is FormalParameter);
 
   @override
   List<ParameterElement> get parameters => _parameters;
@@ -8386,6 +8414,9 @@ class ParameterMember extends VariableMember implements ParameterElement {
 
   @override
   bool get isInitializingFormal => baseElement.isInitializingFormal;
+
+  @override
+  FormalParameter get node => baseElement.node;
 
   @override
   ParameterKind get parameterKind => baseElement.parameterKind;
@@ -9287,7 +9318,10 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
 /**
  * A top-level variable.
  */
-abstract class TopLevelVariableElement implements PropertyInducingElement {}
+abstract class TopLevelVariableElement implements PropertyInducingElement {
+  @override
+  VariableDeclaration get node;
+}
 
 /**
  * A concrete implementation of a [TopLevelVariableElement].
@@ -9317,6 +9351,10 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
 
   @override
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
+
+  @override
+  VariableDeclaration get node =>
+      getNodeMatching((node) => node is VariableDeclaration);
 
   @override
   accept(ElementVisitor visitor) => visitor.visitTopLevelVariableElement(this);
@@ -9889,16 +9927,6 @@ abstract class VariableElement implements Element {
   bool get isPotentiallyMutatedInScope;
 
   /**
-   * Return the resolved [VariableDeclaration] node that declares this
-   * [VariableElement].
-   *
-   * This method is expensive, because resolved AST might be evicted from cache,
-   * so parsing and resolving will be performed.
-   */
-  @override
-  VariableDeclaration get node;
-
-  /**
    * Return the declared type of this variable, or `null` if the variable did
    * not have a declared type (such as if it was declared using the keyword
    * 'var').
@@ -9996,10 +10024,6 @@ abstract class VariableElementImpl extends ElementImpl
   bool get isPotentiallyMutatedInScope => false;
 
   @override
-  VariableDeclaration get node =>
-      getNodeMatching((node) => node is VariableDeclaration);
-
-  @override
   void appendTo(StringBuffer buffer) {
     buffer.write(type);
     buffer.write(" ");
@@ -10051,9 +10075,6 @@ abstract class VariableMember extends Member implements VariableElement {
   @override
   bool get isPotentiallyMutatedInScope =>
       baseElement.isPotentiallyMutatedInScope;
-
-  @override
-  VariableDeclaration get node => baseElement.node;
 
   @override
   DartType get type => substituteFor(baseElement.type);
