@@ -324,7 +324,7 @@ class LinkedHashMapCell {
   LinkedHashMapCell(this.hashMapCellKey, this.hashMapCellValue);
 }
 
-class LinkedHashMapKeyIterable<E> extends IterableBase<E>
+class LinkedHashMapKeyIterable<E> extends Iterable<E>
                                   implements EfficientLength {
   final _map;
   LinkedHashMapKeyIterable(this._map);

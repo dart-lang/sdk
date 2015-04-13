@@ -92,7 +92,7 @@ class ConstantProtoMap<K, V> extends ConstantStringMap<K, V> {
       '__proto__' == key ? _protoValue : jsPropertyAccess(_jsObject, key);
 }
 
-class _ConstantMapKeyIterable<K> extends IterableBase<K> {
+class _ConstantMapKeyIterable<K> extends Iterable<K> {
   ConstantStringMap<K, dynamic> _map;
   _ConstantMapKeyIterable(this._map);
 

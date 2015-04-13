@@ -427,7 +427,7 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
   String toString() => Maps.mapToString(this);
 }
 
-class HashMapKeyIterable<E> extends IterableBase<E>
+class HashMapKeyIterable<E> extends Iterable<E>
                             implements EfficientLength {
   final _map;
   HashMapKeyIterable(this._map);

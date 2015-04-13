@@ -3972,7 +3972,7 @@ class SyncStarIterator implements Iterator {
 /// An Iterable corresponding to a sync* method.
 ///
 /// Each invocation of a sync* method will return a new instance of this class.
-class SyncStarIterable extends IterableBase {
+class SyncStarIterable extends Iterable {
   // This is a function that will return a helper function that does the
   // iteration of the sync*.
   //

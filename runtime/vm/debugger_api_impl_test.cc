@@ -2147,7 +2147,7 @@ TEST_CASE(Debug_GetSupertype) {
   Dart_Handle object_name = Dart_NewStringFromCString("Object");
   Dart_Handle int_name = Dart_NewStringFromCString("int");
   Dart_Handle set_name = Dart_NewStringFromCString("Set");
-  Dart_Handle iterable_name = Dart_NewStringFromCString("IterableBase");
+  Dart_Handle iterable_name = Dart_NewStringFromCString("Iterable");
   Dart_Handle list_name = Dart_NewStringFromCString("List");
 
   Dart_Handle object_type = Dart_GetType(core_lib, object_name, 0, NULL);

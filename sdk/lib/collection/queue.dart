@@ -256,7 +256,7 @@ class _DoubleLinkedQueueSentinel<E> extends _DoubleLinkedQueueEntry<E> {
  *
  * Allows constant time add, remove-at-ends and peek operations.
  */
-class DoubleLinkedQueue<E> extends IterableBase<E> implements Queue<E> {
+class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   _DoubleLinkedQueueSentinel<E> _sentinel;
   int _elementCount = 0;
 
@@ -440,7 +440,7 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
  *
  * The structure is efficient for any queue or stack usage.
  */
-class ListQueue<E> extends IterableBase<E> implements Queue<E> {
+class ListQueue<E> extends Iterable<E> implements Queue<E> {
   static const int _INITIAL_CAPACITY = 8;
   List<E> _table;
   int _head;

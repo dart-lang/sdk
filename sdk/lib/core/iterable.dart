@@ -145,7 +145,7 @@ abstract class Iterable<E> {
    * on any element where the result isn't needed.
    * For example, [elementAt] may call `f` only once.
    */
-  Iterable map(f(E element));
+  Iterable map(f(E element)) => new MappedIterable<E, dynamic>(this, f);
 
   /**
    * Returns a new lazy [Iterable] with all elements that satisfy the
@@ -160,7 +160,7 @@ abstract class Iterable<E> {
    * multiple times over the returned [Iterable] will invoke the supplied
    * function [test] multiple times on the same element.
    */
-  Iterable<E> where(bool test(E element));
+  Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);
 
   /**
    * Expands each element of this [Iterable]into zero or more elements.
@@ -171,7 +171,8 @@ abstract class Iterable<E> {
    * The returned [Iterable] is lazy, and calls [f] for each element
    * of this every time it's iterated.
    */
-  Iterable expand(Iterable f(E element));
+  Iterable expand(Iterable f(E element)) =>
+      new ExpandIterable<E, dynamic>(this, f);
 
   /**
    * Returns true if the collection contains an element equal to [element].
@@ -189,13 +190,21 @@ abstract class Iterable<E> {
    * Likewise the `Iterable` returned by a [Map.keys] call
    * should use the same equality that the `Map` uses for keys.
    */
-  bool contains(Object element);
+  bool contains(Object element) {
+    for (E e in this) {
+      if (e == element) return true;
+    }
+    return false;
+  }
+
 
   /**
    * Applies the function [f] to each element of this collection in iteration
    * order.
    */
-  void forEach(void f(E element));
+  void forEach(void f(E element)) {
+    for (E element in this) f(element);
+  }
 
   /**
    * Reduces a collection to a single value by iteratively combining elements
@@ -219,7 +228,17 @@ abstract class Iterable<E> {
    *     iterable.reduce((value, element) => value + element);
    *
    */
-  E reduce(E combine(E value, E element));
+  E reduce(E combine(E value, E element)) {
+    Iterator<E> iterator = this.iterator;
+    if (!iterator.moveNext()) {
+      throw IterableElementError.noElement();
+    }
+    E value = iterator.current;
+    while (iterator.moveNext()) {
+      value = combine(value, iterator.current);
+    }
+    return value;
+  }
 
   /**
    * Reduces a collection to a single value by iteratively combining each
@@ -241,7 +260,11 @@ abstract class Iterable<E> {
    *
    */
   dynamic fold(var initialValue,
-               dynamic combine(var previousValue, E element));
+               dynamic combine(var previousValue, E element)) {
+    var value = initialValue;
+    for (E element in this) value = combine(value, element);
+    return value;
+  }
 
   /**
    * Checks whether every element of this iterable satisfies [test].
@@ -249,7 +272,12 @@ abstract class Iterable<E> {
    * Checks every element in iteration order, and returns `false` if
    * any of them make [test] return `false`, otherwise returns `true`.
    */
-  bool every(bool test(E element));
+  bool every(bool f(E element)) {
+    for (E element in this) {
+      if (!f(element)) return false;
+    }
+    return true;
+  }
 
   /**
    * Converts each element to a [String] and concatenates the strings.
@@ -260,10 +288,23 @@ abstract class Iterable<E> {
    * [separator] string interleaved between the elements.
    */
   String join([String separator = ""]) {
+    Iterator<E> iterator = this.iterator;
+    if (!iterator.moveNext()) return "";
     StringBuffer buffer = new StringBuffer();
-    buffer.writeAll(this, separator);
+    if (separator == null || separator == "") {
+      do {
+        buffer.write("${iterator.current}");
+      } while (iterator.moveNext());
+    } else {
+      buffer.write("${iterator.current}");
+      while (iterator.moveNext()) {
+        buffer.write(separator);
+        buffer.write("${iterator.current}");
+      }
+    }
     return buffer.toString();
   }
+
 
   /**
    * Checks whether any element of this iterable satisfies [test].
@@ -271,7 +312,12 @@ abstract class Iterable<E> {
    * Checks every element in iteration order, and returns `true` if
    * any of them make [test] return `true`, otherwise returns false.
    */
-  bool any(bool test(E element));
+  bool any(bool f(E element)) {
+    for (E element in this) {
+      if (f(element)) return true;
+    }
+    return false;
+  }
 
   /**
    * Creates a [List] containing the elements of this [Iterable].
@@ -279,7 +325,8 @@ abstract class Iterable<E> {
    * The elements are in iteration order.
    * The list is fixed-length if [growable] is false.
    */
-  List<E> toList({ bool growable: true });
+  List<E> toList({ bool growable: true }) =>
+      new List<E>.from(this, growable: growable);
 
   /**
    * Creates a [Set] containing the same elements as this iterable.
@@ -290,7 +337,7 @@ abstract class Iterable<E> {
    * The order of the elements in the set is not guaranteed to be the same
    * as for the iterable.
    */
-  Set<E> toSet();
+  Set<E> toSet() => new Set<E>.from(this);
 
   /**
    * Returns the number of elements in [this].
@@ -299,23 +346,31 @@ abstract class Iterable<E> {
    * therefore be slow.
    * Some iterables have a more efficient way to find the number of elements.
    */
-  int get length;
+  int get length {
+    assert(this is! EfficientLength);
+    int count = 0;
+    Iterator it = iterator;
+    while (it.moveNext()) {
+      count++;
+    }
+    return count;
+  }
 
   /**
    * Returns `true` if there are no elements in this collection.
    *
    * May be computed by checking if `iterator.moveNext()` returns `false`.
    */
-  bool get isEmpty;
+  bool get isEmpty => !iterator.moveNext();
 
   /**
    * Returns true if there is at least one element in this collection.
    *
    * May be computed by checking if `iterator.moveNext()` returns `true`.
    */
-  bool get isNotEmpty;
+  bool get isNotEmpty => !isEmpty;
 
-  /**
+   /**
    * Returns a lazy iterable of the [count] first elements of this iterable.
    *
    * The returned `Iterable` may contain fewer than `count` elements, if `this`
@@ -326,7 +381,9 @@ abstract class Iterable<E> {
    *
    * The `count` must not be negative.
    */
-  Iterable<E> take(int count);
+  Iterable<E> take(int n) {
+    return new TakeIterable<E>(this, n);
+  }
 
   /**
    * Returns a lazy iterable of the leading elements satisfying [test].
@@ -338,7 +395,9 @@ abstract class Iterable<E> {
    * element is found where `test(element)` is false. At that point,
    * the returned iterable stops (its `moveNext()` returns false).
    */
-  Iterable<E> takeWhile(bool test(E value));
+  Iterable<E> takeWhile(bool test(E value)) {
+    return new TakeWhileIterable<E>(this, test);
+  }
 
   /**
    * Returns an Iterable that provides all but the first [count] elements.
@@ -352,7 +411,9 @@ abstract class Iterable<E> {
    *
    * The `count` must not be negative.
    */
-  Iterable<E> skip(int count);
+  Iterable<E> skip(int n) {
+    return new SkipIterable<E>(this, n);
+  }
 
   /**
    * Returns an Iterable that skips leading elements while [test] is satisfied.
@@ -366,7 +427,9 @@ abstract class Iterable<E> {
    * otherwise it iterates the remaining elements in their original order,
    * starting with the first element for which `test(element)` returns false,
    */
-  Iterable<E> skipWhile(bool test(E value));
+  Iterable<E> skipWhile(bool test(E value)) {
+    return new SkipWhileIterable<E>(this, test);
+  }
 
   /**
    * Returns the first element.
@@ -375,7 +438,13 @@ abstract class Iterable<E> {
    * Otherwise returs the first element in the iteration order,
    * equivalent to `(iterator..moveNext())..current`.
    */
-  E get first;
+  E get first {
+    Iterator it = iterator;
+    if (!it.moveNext()) {
+      throw IterableElementError.noElement();
+    }
+    return it.current;
+  }
 
   /**
    * Returns the last element.
@@ -387,14 +456,30 @@ abstract class Iterable<E> {
    * (for example a list can directly access the last element,
    * without iterating through the previous ones).
    */
-  E get last;
+  E get last {
+    Iterator it = iterator;
+    if (!it.moveNext()) {
+      throw IterableElementError.noElement();
+    }
+    E result;
+    do {
+      result = it.current;
+    } while(it.moveNext());
+    return result;
+  }
 
   /**
    * Checks that this iterable has only one element, and returns that element.
    *
    * Throws a [StateError] if `this` is empty or has more than one element.
    */
-  E get single;
+  E get single {
+    Iterator it = iterator;
+    if (!it.moveNext()) throw IterableElementError.noElement();
+    E result = it.current;
+    if (it.moveNext()) throw IterableElementError.tooMany();
+    return result;
+  }
 
   /**
    * Returns the first element that satisfies the given predicate [test].
@@ -405,7 +490,13 @@ abstract class Iterable<E> {
    * function is returned.
    * If [orElse] is omitted, it defaults to throwing a [StateError].
    */
-  E firstWhere(bool test(E element), { E orElse() });
+  E firstWhere(bool test(E element), { E orElse() }) {
+    for (E element in this) {
+      if (test(element)) return element;
+    }
+    if (orElse != null) return orElse();
+    throw IterableElementError.noElement();
+  }
 
   /**
    * Returns the last element that satisfies the given predicate [test].
@@ -421,7 +512,19 @@ abstract class Iterable<E> {
    * function is returned.
    * If [orElse] is omitted, it defaults to throwing a [StateError].
    */
-  E lastWhere(bool test(E element), {E orElse()});
+  E lastWhere(bool test(E element), {E orElse()}) {
+    E result = null;
+    bool foundMatching = false;
+    for (E element in this) {
+      if (test(element)) {
+        result = element;
+        foundMatching = true;
+      }
+    }
+    if (foundMatching) return result;
+    if (orElse != null) return orElse();
+    throw IterableElementError.noElement();
+  }
 
   /**
    * Returns the single element that satisfies [test].
@@ -431,7 +534,21 @@ abstract class Iterable<E> {
    * Otherwise, if there are no matching elements, or if there is more than
    * one matching element, a [StateError] is thrown.
    */
-  E singleWhere(bool test(E element));
+  E singleWhere(bool test(E element)) {
+    E result = null;
+    bool foundMatching = false;
+    for (E element in this) {
+      if (test(element)) {
+        if (foundMatching) {
+          throw IterableElementError.tooMany();
+        }
+        result = element;
+        foundMatching = true;
+      }
+    }
+    if (foundMatching) return result;
+    throw IterableElementError.noElement();
+  }
 
   /**
    * Returns the [index]th element.
@@ -444,12 +561,39 @@ abstract class Iterable<E> {
    * first `index` elements and returning the next.
    * Some iterable may have more efficient ways to find the element.
    */
-  E elementAt(int index);
+  E elementAt(int index) {
+    if (index is! int) throw new ArgumentError.notNull("index");
+    RangeError.checkNotNegative(index, "index");
+    int elementIndex = 0;
+    for (E element in this) {
+      if (index == elementIndex) return element;
+      elementIndex++;
+    }
+    throw new RangeError.index(index, this, "index", null, elementIndex);
+  }
+
+  /**
+   * Returns a string representation of (some of) the elements of `this`.
+   *
+   * Elements are represented by their own `toString` results.
+   *
+   * The default representation always contains the first three elements.
+   * If there are less than a hundred elements in the iterable, it also
+   * contains the last two elements.
+   *
+   * If the resulting string isn't above 80 characters, more elements are
+   * included from the start of the iterable.
+   *
+   * The conversion may omit calling `toString` on some elements if they
+   * are known to not occur in the output, and it may stop iterating after
+   * a hundred elements.
+   */
+  String toString() => IterableBase.iterableToShortString(this, '(', ')');
 }
 
 typedef E _Generator<E>(int index);
 
-class _GeneratorIterable<E> extends IterableBase<E>
+class _GeneratorIterable<E> extends Iterable<E>
                             implements EfficientLength {
   final int _start;
   final int _end;
