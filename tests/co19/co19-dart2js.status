@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-LayoutTests/fast/innerHTML/innerHTML-svg-write_t01: Skip # Temporary suppression, WIP alanknight
-
 [ $compiler == dart2js ]
 Language/03_Overview/1_Scoping_A02_t05: CompileTimeError # Issue 21072
 Language/03_Overview/1_Scoping_A02_t06: CompileTimeError # Issue 21072
@@ -252,6 +250,7 @@ WebPlatformTest/Utils/test/testFail_t01: RuntimeError # co19-roll r722: Please t
 WebPlatformTest/dom/nodes/DOMImplementation-createHTMLDocument_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Document-createElement_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Element-childElementCount-nochild_t01: CompileTimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/innerHTML/innerHTML-svg-write_t01: Fail # Test uses foreignObject tag, which sanitizer removes. co19 issue #746
 
 [ $compiler == dart2js && $checked ]
 Language/13_Statements/09_Switch_A05_t01: Fail # Missing type check in switch expression
