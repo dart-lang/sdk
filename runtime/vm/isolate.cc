@@ -202,18 +202,22 @@ bool IsolateMessageHandler::HandleLibMessage(const Array& message) {
       break;
     }
     case kPingMsg: {
-      // [ OOB, kPingMsg, responsePort, priority ]
-      if (message.Length() != 4) return true;
+      // [ OOB, kPingMsg, responsePort, priority, response ]
+      if (message.Length() != 5) return true;
       const Object& obj2 = Object::Handle(I, message.At(2));
       if (!obj2.IsSendPort()) return true;
       const SendPort& send_port = SendPort::Cast(obj2);
       const Object& obj3 = Object::Handle(I, message.At(3));
       if (!obj3.IsSmi()) return true;
       const intptr_t priority = Smi::Cast(obj3).Value();
+      const Object& obj4 = Object::Handle(I, message.At(4));
+      if (!obj4.IsInstance() && !obj4.IsNull()) return true;
+      const Instance& response =
+          obj4.IsNull() ? Instance::null_instance() : Instance::Cast(obj4);
       if (priority == kImmediateAction) {
         uint8_t* data = NULL;
         intptr_t len = 0;
-        SerializeObject(Object::null_instance(), &data, &len, false);
+        SerializeObject(response, &data, &len, false);
         PortMap::PostMessage(new Message(send_port.Id(),
                                          data, len,
                                          Message::kNormalPriority));
@@ -268,21 +272,31 @@ bool IsolateMessageHandler::HandleLibMessage(const Array& message) {
     case kAddErrorMsg:
     case kDelErrorMsg: {
       // [ OOB, msg, listener port ]
-      if (message.Length() != 3) return true;
+      if (message.Length() < 3) return true;
       const Object& obj = Object::Handle(I, message.At(2));
       if (!obj.IsSendPort()) return true;
       const SendPort& listener = SendPort::Cast(obj);
       switch (msg_type) {
-        case kAddExitMsg:
-          I->AddExitListener(listener);
+        case kAddExitMsg: {
+          if (message.Length() != 4) return true;
+          // [ OOB, msg, listener port, response object ]
+          const Object& response = Object::Handle(I, message.At(3));
+          if (!response.IsInstance() && !response.IsNull()) return true;
+          I->AddExitListener(listener,
+                             response.IsNull() ? Instance::null_instance()
+                                               : Instance::Cast(response));
           break;
+        }
         case kDelExitMsg:
+          if (message.Length() != 3) return true;
           I->RemoveExitListener(listener);
           break;
         case kAddErrorMsg:
+          if (message.Length() != 3) return true;
           I->AddErrorListener(listener);
           break;
         case kDelErrorMsg:
+          if (message.Length() != 3) return true;
           I->RemoveErrorListener(listener);
           break;
         default:
@@ -1002,21 +1016,23 @@ bool Isolate::RemoveResumeCapability(const Capability& capability) {
 
 // TODO(iposva): Remove duplicated code and start using some hash based
 // structure instead of these linear lookups.
-void Isolate::AddExitListener(const SendPort& listener) {
+void Isolate::AddExitListener(const SendPort& listener,
+                              const Instance& response) {
   // Ensure a limit for the number of listeners remembered.
-  static const intptr_t kMaxListeners = kSmiMax / (6 * kWordSize);
+  static const intptr_t kMaxListeners = kSmiMax / (12 * kWordSize);
 
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
        this, object_store()->exit_listeners());
   SendPort& current = SendPort::Handle(this);
   intptr_t insertion_index = -1;
-  for (intptr_t i = 0; i < listeners.Length(); i++) {
+  for (intptr_t i = 0; i < listeners.Length(); i += 2) {
     current ^= listeners.At(i);
     if (current.IsNull()) {
       if (insertion_index < 0) {
         insertion_index = i;
       }
     } else if (current.Id() == listener.Id()) {
+      listeners.SetAt(i + 1, response);
       return;
     }
   }
@@ -1028,8 +1044,10 @@ void Isolate::AddExitListener(const SendPort& listener) {
       return;
     }
     listeners.Add(listener);
+    listeners.Add(response);
   } else {
     listeners.SetAt(insertion_index, listener);
+    listeners.SetAt(insertion_index + 1, response);
   }
 }
 
@@ -1038,12 +1056,13 @@ void Isolate::RemoveExitListener(const SendPort& listener) {
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
       this, object_store()->exit_listeners());
   SendPort& current = SendPort::Handle(this);
-  for (intptr_t i = 0; i < listeners.Length(); i++) {
+  for (intptr_t i = 0; i < listeners.Length(); i += 2) {
     current ^= listeners.At(i);
     if (!current.IsNull() && (current.Id() == listener.Id())) {
       // Remove the matching listener from the list.
       current = SendPort::null();
       listeners.SetAt(i, current);
+      listeners.SetAt(i + 1, Object::null_instance());
       return;
     }
   }
@@ -1056,13 +1075,15 @@ void Isolate::NotifyExitListeners() {
   if (listeners.IsNull()) return;
 
   SendPort& listener = SendPort::Handle(this);
-  for (intptr_t i = 0; i < listeners.Length(); i++) {
+  Instance& response = Instance::Handle(this);
+  for (intptr_t i = 0; i < listeners.Length(); i += 2) {
     listener ^= listeners.At(i);
     if (!listener.IsNull()) {
       Dart_Port port_id = listener.Id();
       uint8_t* data = NULL;
       intptr_t len = 0;
-      SerializeObject(Object::null_instance(), &data, &len, false);
+      response ^= listeners.At(i + 1);
+      SerializeObject(response, &data, &len, false);
       Message* msg = new Message(port_id, data, len, Message::kNormalPriority);
       PortMap::PostMessage(msg);
     }

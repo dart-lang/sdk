@@ -371,11 +371,13 @@ patch class Isolate {
     _sendOOB(controlPort, msg);
   }
 
-  /* patch */ void addOnExitListener(SendPort responsePort) {
-    var msg = new List(3)
+  /* patch */ void addOnExitListener(SendPort responsePort,
+                                     {Object response}) {
+    var msg = new List(4)
         ..[0] = 0  // Make room for OOB message type.
         ..[1] = _ADD_EXIT
-        ..[2] = responsePort;
+        ..[2] = responsePort
+        ..[3] = response;
     _sendOOB(controlPort, msg);
   }
 
@@ -396,7 +398,7 @@ patch class Isolate {
     _sendOOB(controlPort, msg);
   }
 
-  /* patch */ void kill([int priority = BEFORE_NEXT_EVENT]) {
+  /* patch */ void kill({int priority: BEFORE_NEXT_EVENT}) {
     var msg = new List(4)
         ..[0] = 0  // Make room for OOB message type.
         ..[1] = _KILL
@@ -405,12 +407,14 @@ patch class Isolate {
     _sendOOB(controlPort, msg);
   }
 
-  /* patch */ void ping(SendPort responsePort, [int pingType = IMMEDIATE]) {
-    var msg = new List(4)
+  /* patch */ void ping(SendPort responsePort, {Object response,
+                                                int priority: IMMEDIATE}) {
+    var msg = new List(5)
         ..[0] = 0  // Make room for OOM message type.
         ..[1] = _PING
         ..[2] = responsePort
-        ..[3] = pingType;
+        ..[3] = priority
+        ..[4] = response;
     _sendOOB(controlPort, msg);
   }
 

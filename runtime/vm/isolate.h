@@ -421,7 +421,7 @@ class Isolate : public BaseIsolate {
   bool AddResumeCapability(const Capability& capability);
   bool RemoveResumeCapability(const Capability& capability);
 
-  void AddExitListener(const SendPort& listener);
+  void AddExitListener(const SendPort& listener, const Instance& response);
   void RemoveExitListener(const SendPort& listener);
   void NotifyExitListeners();
 

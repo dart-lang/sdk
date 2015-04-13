@@ -23,6 +23,7 @@ void isomain(SendPort replyPort) {
 void main() {
   testExit();
   testCancelExit();
+  testOverrideResponse();
 }
 
 void testExit() {
@@ -31,14 +32,15 @@ void testExit() {
   var completer = new Completer();  // Completed by first reply from isolate.
   RawReceivePort reply = new RawReceivePort(completer.complete);
   RawReceivePort onExitPort;
-  onExitPort = new RawReceivePort((_) {
+  onExitPort = new RawReceivePort((v) {
+    if (v != "RESPONSE") throw "WRONG RESPONSE: $v";
     reply.close();
     onExitPort.close();
     if (!mayComplete) throw "COMPLETED EARLY";
     asyncEnd();
   });
   Isolate.spawn(isomain, reply.sendPort).then((Isolate isolate) {
-    isolate.addOnExitListener(onExitPort.sendPort);
+    isolate.addOnExitListener(onExitPort.sendPort, response: "RESPONSE");
     return completer.future;
   }).then((echoPort) {
     int counter = 4;
@@ -90,5 +92,35 @@ void testCancelExit() {
       };
       echoPort.send(counter);
     });
+  });
+}
+
+void testOverrideResponse() {
+  bool mayComplete = false;
+  asyncStart();
+  var completer = new Completer();  // Completed by first reply from isolate.
+  RawReceivePort reply = new RawReceivePort(completer.complete);
+  RawReceivePort onExitPort;
+  onExitPort = new RawReceivePort((v) {
+    if (v != "RESPONSE2") throw "WRONG RESPONSE: $v";
+    reply.close();
+    onExitPort.close();
+    if (!mayComplete) throw "COMPLETED EARLY";
+    asyncEnd();
+  });
+  Isolate.spawn(isomain, reply.sendPort).then((Isolate isolate) {
+    isolate.addOnExitListener(onExitPort.sendPort, response: "RESPONSE");
+    isolate.addOnExitListener(onExitPort.sendPort, response: "RESPONSE2");
+    return completer.future;
+  }).then((echoPort) {
+    int counter = 4;
+    reply.handler = (v) {
+      if (v != counter) throw "WRONG REPLY";
+      if (v == 0) throw "REPLY INSTEAD OF SHUTDOWN";
+      counter--;
+      mayComplete = (counter == 0);
+      echoPort.send(counter);
+    };
+    echoPort.send(counter);
   });
 }

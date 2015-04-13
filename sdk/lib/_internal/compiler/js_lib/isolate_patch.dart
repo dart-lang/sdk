@@ -76,12 +76,13 @@ class Isolate {
   }
 
   @patch
-  void addOnExitListener(SendPort responsePort) {
+  void addOnExitListener(SendPort responsePort, {Object response}) {
     // TODO(lrn): Can we have an internal method that checks if the receiving
     // isolate of a SendPort is still alive?
-    var message = new List(2)
+    var message = new List(3)
         ..[0] = "add-ondone"
-        ..[1] = responsePort;
+        ..[1] = responsePort
+        ..[2] = response;
     controlPort.send(message);
   }
 
@@ -103,16 +104,18 @@ class Isolate {
   }
 
   @patch
-  void kill([int priority = BEFORE_NEXT_EVENT]) {
+  void kill({int priority: BEFORE_NEXT_EVENT}) {
     controlPort.send(["kill", terminateCapability, priority]);
   }
 
   @patch
-  void ping(SendPort responsePort, [int pingType = IMMEDIATE]) {
-    var message = new List(3)
+  void ping(SendPort responsePort, {Object response,
+                                    int priority: IMMEDIATE}) {
+    var message = new List(4)
         ..[0] = "ping"
         ..[1] = responsePort
-        ..[2] = pingType;
+        ..[2] = priority
+        ..[3] = response;
     controlPort.send(message);
   }
 

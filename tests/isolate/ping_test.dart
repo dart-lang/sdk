@@ -26,37 +26,34 @@ void main(){
       reply.handler = (v) {
         result.add(v);
         if (v == 0) {
-          Expect.listEquals(["alive", "control", "event"],
+          Expect.listEquals(["alive", "control"],
                             result.where((x) => x is String).toList(),
                             "control events");
-          Expect.listEquals([4, 3, 2, 1, 0],
+          Expect.listEquals([3, 2, 1, 0],
                             result.where((x) => x is int).toList(),
                             "data events");
-          Expect.isTrue(result.indexOf("alive") < result.indexOf(3),
-                        "alive index < 3");
-          Expect.isTrue(result.indexOf("control") < result.indexOf(2),
-                        "control index < 2");
-          int eventIndex = result.indexOf("event");
-          Expect.isTrue(eventIndex > result.indexOf(2), "event index > 2");
-          Expect.isTrue(eventIndex < result.indexOf(1), "event index < 1");
+          Expect.isTrue(result.indexOf("alive") < result.indexOf(2),
+                        "alive index < 2");
+          Expect.isTrue(result.indexOf("control") < result.indexOf(1),
+                        "control index < 1");
           reply.close();
           asyncEnd();
         }
       };
-      SendPort createPingPort(message) {
-        var pingPort = new RawReceivePort();
-        pingPort.handler = (_) {
-          result.add(message);
-          pingPort.close();
-        };
-        return pingPort.sendPort;
+      var pingPort = new RawReceivePort();
+      int pingCount = 0;
+      pingPort.handler = (response) {
+        result.add(response);
+        pingCount++;
+        if (pingCount == 2) pingPort.close();
+      };
+      ping(message, priority) {
+        isolate.ping(pingPort.sendPort, response: message, priority: priority);
       }
-      echoPort.send(4);
-      isolate.ping(createPingPort("alive"), Isolate.IMMEDIATE);
       echoPort.send(3);
-      isolate.ping(createPingPort("control"), Isolate.BEFORE_NEXT_EVENT);
+      ping("alive", Isolate.IMMEDIATE);
       echoPort.send(2);
-      isolate.ping(createPingPort("event"), Isolate.AS_EVENT);
+      ping("control", Isolate.BEFORE_NEXT_EVENT);
       echoPort.send(1);
       echoPort.send(0);
     });
