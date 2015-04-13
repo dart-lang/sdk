@@ -20,6 +20,24 @@ import 'package:analyzer/src/generated/html.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
+ * Runs the given function [f] with the working cache size in [context].
+ * Returns the result of [f] invocation.
+ */
+runWithWorkingCacheSize(AnalysisContext context, f()) {
+  int currentCacheSize = context.analysisOptions.cacheSize;
+  if (currentCacheSize < PerformAnalysisOperation.WORKING_CACHE_SIZE) {
+    setCacheSize(context, PerformAnalysisOperation.WORKING_CACHE_SIZE);
+    try {
+      return f();
+    } finally {
+      setCacheSize(context, currentCacheSize);
+    }
+  } else {
+    return f();
+  }
+}
+
+/**
  * Schedules indexing of the given [file] using the resolved [dartUnit].
  */
 void scheduleIndexOperation(AnalysisServer server, String file,
@@ -152,6 +170,16 @@ void sendAnalysisNotificationOverrides(
 }
 
 /**
+ * Sets the cache size in the given [context] to the given value.
+ */
+void setCacheSize(AnalysisContext context, int cacheSize) {
+  AnalysisOptionsImpl options =
+      new AnalysisOptionsImpl.con1(context.analysisOptions);
+  options.cacheSize = cacheSize;
+  context.analysisOptions = options;
+}
+
+/**
  * Runs the given notification producing function [f], catching exceptions.
  */
 void _sendNotification(AnalysisServer server, f()) {
@@ -207,13 +235,13 @@ class PerformAnalysisOperation extends ServerOperation {
     //   sendStatusNotification(context.toString(), taskDescription);
     // });
     if (!isContinue) {
-      _setCacheSize(WORKING_CACHE_SIZE);
+      setCacheSize(context, WORKING_CACHE_SIZE);
     }
     // prepare results
     AnalysisResult result = context.performAnalysisTask();
     List<ChangeNotice> notices = result.changeNotices;
     if (notices == null) {
-      _setCacheSize(IDLE_CACHE_SIZE);
+      setCacheSize(context, IDLE_CACHE_SIZE);
       server.sendContextAnalysisDoneNotifications(
           context, AnalysisDoneReason.COMPLETE);
       return;
@@ -243,13 +271,6 @@ class PerformAnalysisOperation extends ServerOperation {
       // done
       server.fileAnalyzed(notice);
     }
-  }
-
-  void _setCacheSize(int cacheSize) {
-    AnalysisOptionsImpl options =
-        new AnalysisOptionsImpl.con1(context.analysisOptions);
-    options.cacheSize = cacheSize;
-    context.analysisOptions = options;
   }
 
   void _updateIndex(AnalysisServer server, List<ChangeNotice> notices) {
