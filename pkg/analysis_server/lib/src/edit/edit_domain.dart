@@ -6,6 +6,7 @@ library edit.domain;
 
 import 'dart:async';
 
+import 'package:analysis_server/edit/assist/assist_core.dart';
 import 'package:analysis_server/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
@@ -114,18 +115,18 @@ class EditDomainHandler implements RequestHandler {
   }
 
   Response getAssists(Request request) {
-    var params = new EditGetAssistsParams.fromRequest(request);
+    EditGetAssistsParams params = new EditGetAssistsParams.fromRequest(request);
+    ContextSourcePair pair = server.getContextSourcePair(params.file);
+    engine.AnalysisContext context = pair.context;
+    Source source = pair.source;
     List<SourceChange> changes = <SourceChange>[];
-    List<CompilationUnit> units =
-        server.getResolvedCompilationUnits(params.file);
-    if (units.isNotEmpty) {
-      CompilationUnit unit = units[0];
-      List<Assist> assists = computeAssists(unit, params.offset, params.length);
+    if (context != null && source != null) {
+      List<Assist> assists = computeAssists(plugin, context,
+          source, params.offset, params.length);
       assists.forEach((Assist assist) {
         changes.add(assist.change);
       });
     }
-    // respond
     return new EditGetAssistsResult(changes).toResponse(request.id);
   }
 

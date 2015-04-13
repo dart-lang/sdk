@@ -4,7 +4,9 @@
 
 library analysis_server.src.plugin.server_plugin;
 
+import 'package:analysis_server/edit/assist/assist_core.dart';
 import 'package:analysis_server/edit/fix/fix_core.dart';
+import 'package:analysis_server/plugin/assist.dart';
 import 'package:analysis_server/plugin/fix.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
@@ -14,6 +16,7 @@ import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
+import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/plugin/plugin.dart';
 
@@ -30,6 +33,12 @@ typedef RequestHandler RequestHandlerFactory(AnalysisServer server);
 class ServerPlugin implements Plugin {
   /**
    * The simple identifier of the extension point that allows plugins to
+   * register new assist contributors with the server.
+   */
+  static const String ASSIST_CONTRIBUTOR_EXTENSION_POINT = 'assistContributor';
+
+  /**
+   * The simple identifier of the extension point that allows plugins to
    * register new domains with the server.
    */
   static const String DOMAIN_EXTENSION_POINT = 'domain';
@@ -44,6 +53,12 @@ class ServerPlugin implements Plugin {
    * The unique identifier of this plugin.
    */
   static const String UNIQUE_IDENTIFIER = 'analysis_server.core';
+
+  /**
+   * The extension point that allows plugins to register new assist contributors
+   * with the server.
+   */
+  ExtensionPoint assistContributorExtensionPoint;
 
   /**
    * The extension point that allows plugins to register new domains with the
@@ -64,6 +79,13 @@ class ServerPlugin implements Plugin {
 
   @override
   String get uniqueIdentifier => UNIQUE_IDENTIFIER;
+
+  /**
+   * Return a list containing all of the fix contributors that were contributed.
+   */
+  List<AssistContributor> assistContributors() {
+    return assistContributorExtensionPoint.extensions;
+  }
 
   /**
    * Use the given [server] to create all of the domains ([RequestHandler]'s)
@@ -87,6 +109,9 @@ class ServerPlugin implements Plugin {
 
   @override
   void registerExtensionPoints(RegisterExtensionPoint registerExtensionPoint) {
+    assistContributorExtensionPoint = registerExtensionPoint(
+        ASSIST_CONTRIBUTOR_EXTENSION_POINT,
+        _validateAssistContributorExtension);
     domainExtensionPoint = registerExtensionPoint(
         DOMAIN_EXTENSION_POINT, _validateDomainExtension);
     fixContributorExtensionPoint = registerExtensionPoint(
@@ -95,6 +120,11 @@ class ServerPlugin implements Plugin {
 
   @override
   void registerExtensions(RegisterExtension registerExtension) {
+    //
+    // Register assist contributors.
+    //
+    registerExtension(
+        ASSIST_CONTRIBUTOR_EXTENSION_POINT_ID, new DefaultAssistContributor());
     //
     // Register domains.
     //
@@ -120,6 +150,18 @@ class ServerPlugin implements Plugin {
 
   /**
    * Validate the given extension by throwing an [ExtensionError] if it is not a
+   * valid fix contributor.
+   */
+  void _validateAssistContributorExtension(Object extension) {
+    if (extension is! AssistContributor) {
+      String id = assistContributorExtensionPoint.uniqueIdentifier;
+      throw new ExtensionError(
+          'Extensions to $id must be an AssistContributor');
+    }
+  }
+
+  /**
+   * Validate the given extension by throwing an [ExtensionError] if it is not a
    * valid domain.
    */
   void _validateDomainExtension(Object extension) {
@@ -136,7 +178,7 @@ class ServerPlugin implements Plugin {
    */
   void _validateFixContributorExtension(Object extension) {
     if (extension is! FixContributor) {
-      String id = domainExtensionPoint.uniqueIdentifier;
+      String id = fixContributorExtensionPoint.uniqueIdentifier;
       throw new ExtensionError('Extensions to $id must be a FixContributor');
     }
   }

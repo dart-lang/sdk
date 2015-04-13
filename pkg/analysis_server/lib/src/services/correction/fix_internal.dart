@@ -40,8 +40,7 @@ import 'package:path/path.dart';
 typedef bool ElementPredicate(Element argument);
 
 /**
- * A sketch of an implementation of the current FixProcessor (in fix_internal)
- * as a fix contributor.
+ * A [FixContributor] that provides the default set of fixes.
  */
 class DefaultFixContributor extends DartFixContributor {
   @override
