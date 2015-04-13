@@ -333,12 +333,29 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return _finishClassDef(type, classDecl);
   }
 
+  JS.Statement _emitJsType(ClassDeclaration node, Annotation jsName) {
+    var dartName = node.name.name;
+    var jsTypeName = _getLiteralStringNamedArg(jsName, 'name');
+
+    if (jsTypeName != null && jsTypeName != dartName) {
+      // We export the JS type as if it was a Dart type. For example this allows
+      // `dom.InputElement` to actually be HTMLInputElement.
+      // TODO(jmesserly): if we had the JsName on the Element, we could just
+      // generate it correctly when we refer to it.
+      if (isPublic(dartName)) _addExport(dartName);
+      return js.statement('let # = #;', [dartName, jsTypeName]);
+    }
+    return null;
+  }
+
   @override
   JS.Statement visitClassDeclaration(ClassDeclaration node) {
     // If we've already emitted this class, skip it.
     var type = node.element.type;
     if (_pendingClasses.remove(node.element) == null) return null;
-    if (_getJsNameAnnotation(node) != null) return null;
+
+    var jsName = _getJsNameAnnotation(node);
+    if (jsName != null) return _emitJsType(node, jsName);
 
     currentClass = node;
 
@@ -2575,4 +2592,18 @@ class _AssignmentFinder extends RecursiveAstVisitor {
       _potentiallyMutated = true;
     }
   }
+}
+
+String _getLiteralStringNamedArg(Annotation annotation, String argName) {
+  if (annotation.arguments != null) {
+    var args = annotation.arguments.arguments;
+    if (args.isNotEmpty && args[0] is NamedExpression) {
+      NamedExpression named = args[0];
+      if (named.name.label.name == argName &&
+          named.expression is StringLiteral) {
+        return (named.expression as StringLiteral).stringValue;
+      }
+    }
+  }
+  return null;
 }

@@ -234,6 +234,8 @@ var dart, _js_helper;
     // I.e., given T1, ..., Tn where at least one Ti != dynamic we disallow:
     // - S !<: S<T1, ..., Tn>
     // - S<dynamic, ..., dynamic> !<: S<T1, ..., Tn>
+    t1 = canonicalType(t1);
+    assert(t2 == canonicalType(t2));
     if (t1 == t2) return true;
 
     if (t1 == core.Object) return false;

@@ -14,6 +14,8 @@ var dom;
   let overload = new Overload();
   let EventListener = dart.typedef('EventListener', () => dart.functionType(dart.void, [Event]));
   class Event extends core.Object {}
+  let InputElement = HTMLInputElement;
+  let CanvasElement = HTMLCanvasElement;
   class RenderingContext extends core.Object {}
   class CanvasDrawingStyles extends core.Object {
     CanvasDrawingStyles() {
@@ -34,6 +36,8 @@ var dom;
   exports.overload = overload;
   exports.EventListener = EventListener;
   exports.Event = Event;
+  exports.InputElement = InputElement;
+  exports.CanvasElement = CanvasElement;
   exports.RenderingContext = RenderingContext;
   exports.CanvasDrawingStyles = CanvasDrawingStyles;
   exports.CanvasPathMethods = CanvasPathMethods;
