@@ -328,6 +328,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
     new OptionHandler('--analyze-all', setAnalyzeAll),
     new OptionHandler('--analyze-only', setAnalyzeOnly),
+    new OptionHandler('--no-source-maps', passThrough),
     new OptionHandler('--analyze-signatures-only', setAnalyzeOnly),
     new OptionHandler('--disable-native-live-type-analysis', passThrough),
     new OptionHandler('--categories=.*', setCategories),
@@ -581,6 +582,9 @@ Supported options:
   --csp
     Disables dynamic generation of code in the generated output. This is
     necessary to satisfy CSP restrictions (see http://www.w3.org/TR/CSP/).
+
+  --no-source-maps
+    Do not generate a source map file.
 
 The following options are only used for compiler development and may
 be removed in a future version:

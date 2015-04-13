@@ -196,7 +196,9 @@ class CodeEmitterTask extends CompilerTask {
       for (Element element in backend.generatedCode.keys) {
         if (backend.isAccessibleByReflection(element)) {
           bool shouldRetainMetadata = backend.retainMetadataOf(element);
-          if (shouldRetainMetadata && element.isFunction) {
+          if (shouldRetainMetadata &&
+              (element.isFunction || element.isConstructor ||
+               element.isSetter)) {
             FunctionElement function = element;
             function.functionSignature.forEachParameter(
                 backend.retainMetadataOf);
