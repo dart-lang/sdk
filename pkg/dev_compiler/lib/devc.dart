@@ -261,7 +261,6 @@ class CompilerServer {
     }
     var port = options.port;
     var host = options.host;
-    _log.fine('Serving $entryPath at http://$host:$port/');
     var compiler = new Compiler(options);
     return new CompilerServer._(compiler, outDir, host, port, entryPath);
   }
@@ -279,6 +278,7 @@ class CompilerServer {
         .addHandler(shelf_static.createStaticHandler(outDir,
             defaultDocument: _entryPath));
     await shelf.serve(handler, host, port);
+    _log.fine('Serving $_entryPath at http://$host:$port/');
     compiler.run();
   }
 
