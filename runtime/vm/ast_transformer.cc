@@ -493,12 +493,12 @@ void AwaitTransformer::VisitStaticGetterNode(StaticGetterNode* node) {
   if (new_receiver != NULL) {
     new_receiver = Transform(new_receiver);
   }
-  LocalVariable* result = AddToPreambleNewTempVar(
+  StaticGetterNode* new_getter =
       new(Z) StaticGetterNode(node->token_pos(),
                               new_receiver,
-                              node->is_super_getter(),
                               node->cls(),
-                              node->field_name()));
+                              node->field_name());
+  LocalVariable* result = AddToPreambleNewTempVar(new_getter);
   result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 

@@ -1524,30 +1524,24 @@ class StaticGetterNode : public AstNode {
  public:
   StaticGetterNode(intptr_t token_pos,
                    AstNode* receiver,
-                   bool is_super_getter,
                    const Class& cls,
                    const String& field_name)
       : AstNode(token_pos),
         receiver_(receiver),
         cls_(cls),
         field_name_(field_name),
-        is_super_getter_(is_super_getter),
         is_deferred_reference_(false) {
     ASSERT(cls_.IsZoneHandle());
     ASSERT(field_name_.IsZoneHandle());
     ASSERT(field_name_.IsSymbol());
   }
 
-  // The receiver is required
-  // 1) for a super getter (an instance method that is resolved at compile
-  //    time rather than at runtime).
-  // 2) when transforming this StaticGetterNode issued in a non-static
-  //    context to an InstanceSetterNode. This may occurs when we find a
-  //    static getter, but no field and no static setter are declared.
+  // The receiver is required for a super getter (an instance method that
+  // is resolved at compile time rather than at runtime).
   AstNode* receiver() const { return receiver_; }
   const Class& cls() const { return cls_; }
   const String& field_name() const { return field_name_; }
-  bool is_super_getter() const { return is_super_getter_; }
+  bool is_super_getter() const { return receiver_ != NULL; }
   void set_is_deferred(bool value) { is_deferred_reference_ = value; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const { }
@@ -1563,7 +1557,6 @@ class StaticGetterNode : public AstNode {
   AstNode* receiver_;
   const Class& cls_;
   const String& field_name_;
-  const bool is_super_getter_;
   bool is_deferred_reference_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StaticGetterNode);

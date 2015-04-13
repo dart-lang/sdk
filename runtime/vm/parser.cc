@@ -2047,7 +2047,6 @@ AstNode* Parser::ParseSuperCall(const String& function_name) {
         Class::ZoneHandle(Z, current_class().SuperClass());
     AstNode* closure = new StaticGetterNode(supercall_pos,
                                             LoadReceiver(supercall_pos),
-                                            /* is_super_getter */ true,
                                             super_class,
                                             function_name);
     // 'this' is not passed as parameter to the closure.
@@ -2220,8 +2219,8 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name,
       // Emit a StaticGetterNode anyway, so that noSuchMethod gets called.
     }
   }
-  return new StaticGetterNode(
-      field_pos, implicit_argument, true, super_class, field_name);
+  return new(Z) StaticGetterNode(
+      field_pos, implicit_argument, super_class, field_name);
 }
 
 
@@ -10807,7 +10806,6 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
         closure = new(Z) StaticGetterNode(
             call_pos,
             NULL,
-            false,
             Class::ZoneHandle(Z, cls.raw()),
             func_name);
         return BuildClosureCall(call_pos, closure, arguments);
@@ -10887,7 +10885,6 @@ AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
     ASSERT(getter.kind() == RawFunction::kImplicitStaticFinalGetter);
     return new(Z) StaticGetterNode(ident_pos,
                                    NULL,  // Receiver.
-                                   false,  // is_super_getter.
                                    field_owner,
                                    field_name);
   }
@@ -10925,14 +10922,13 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
         // a throw NoSuchMethodError().
         access = new(Z) StaticGetterNode(ident_pos,
                                          NULL,
-                                         false,
                                          Class::ZoneHandle(Z, cls.raw()),
                                          field_name);
       }
     } else {
       ASSERT(func.kind() != RawFunction::kImplicitStaticFinalGetter);
       access = new(Z) StaticGetterNode(
-          ident_pos, NULL, false, Class::ZoneHandle(Z, cls.raw()), field_name);
+          ident_pos, NULL, Class::ZoneHandle(Z, cls.raw()), field_name);
     }
   } else {
     access = GenerateStaticFieldLookup(field, ident_pos);
@@ -10960,7 +10956,6 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
       StaticGetterNode* getter = new(Z) StaticGetterNode(
           primary->token_pos(),
           NULL,  // No receiver.
-          false,  // Not a super getter.
           Class::ZoneHandle(Z, current_class().raw()),
           name);
       getter->set_is_deferred(primary->is_deferred_reference());
@@ -11480,7 +11475,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field,
     } else {
       // The implicit static getter will throw the exception if necessary.
       return new(Z) StaticGetterNode(
-          field_ref_pos, NULL, false, field_owner, field_name);
+          field_ref_pos, NULL, field_owner, field_name);
     }
   } else if (value.raw() == Object::sentinel().raw()) {
     // This field has not been referenced yet and thus the value has
@@ -11529,7 +11524,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field,
       return NULL;   // Constant
     } else {
       return new(Z) StaticGetterNode(
-          field_ref_pos, NULL, false, field_owner, field_name);
+          field_ref_pos, NULL, field_owner, field_name);
     }
   }
   if (getter.IsNull() ||
@@ -11538,7 +11533,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field,
   }
   ASSERT(getter.kind() == RawFunction::kImplicitGetter);
   return new(Z) StaticGetterNode(
-      field_ref_pos, NULL, false, field_owner, field_name);
+      field_ref_pos, NULL, field_owner, field_name);
 }
 
 
@@ -11676,19 +11671,8 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
       return true;
     } else if (func.IsStaticFunction()) {
       if (node != NULL) {
-        ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
-        // The static getter may later be changed into a dynamically
-        // resolved instance setter if no static setter can
-        // be found.
-        AstNode* receiver = NULL;
-        const bool kTestOnly = true;
-        if (!current_function().is_static() &&
-            (LookupReceiver(current_block_->scope, kTestOnly) != NULL)) {
-          receiver = LoadReceiver(ident_pos);
-        }
         *node = new(Z) StaticGetterNode(ident_pos,
-                                        receiver,
-                                        false,
+                                        NULL,
                                         Class::ZoneHandle(Z, cls.raw()),
                                         ident);
       }
@@ -11697,12 +11681,12 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   }
   func = cls.LookupSetterFunction(ident);
   if (!func.IsNull()) {
+    // We create a getter node even though a getter doesn't exist as
+    // it could be followed by an assignment which will convert it to
+    // a setter node. If there is no assignment we will get an error
+    // when we try to invoke the getter.
     if (func.IsDynamicFunction() || func.is_abstract()) {
       if (node != NULL) {
-        // We create a getter node even though a getter doesn't exist as
-        // it could be followed by an assignment which will convert it to
-        // a setter node. If there is no assignment we will get an error
-        // when we try to invoke the getter.
         CheckInstanceFieldAccess(ident_pos, ident);
         ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
         *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
@@ -11710,16 +11694,10 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
       return true;
     } else if (func.IsStaticFunction()) {
       if (node != NULL) {
-        // We create a getter node even though a getter doesn't exist as
-        // it could be followed by an assignment which will convert it to
-        // a setter node. If there is no assignment we will get an error
-        // when we try to invoke the getter.
-        *node = new(Z) StaticGetterNode(
-            ident_pos,
-            NULL,
-            false,
-            Class::ZoneHandle(Z, cls.raw()),
-            ident);
+        *node = new(Z) StaticGetterNode(ident_pos,
+                                        NULL,
+                                        Class::ZoneHandle(Z, cls.raw()),
+                                        ident);
       }
       return true;
     }
@@ -11764,7 +11742,6 @@ AstNode* Parser::ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
     if (func.IsGetterFunction() || func.IsSetterFunction()) {
       return new(Z) StaticGetterNode(ident_pos,
                                      /* receiver */ NULL,
-                                     /* is_super_getter */ false,
                                      Class::ZoneHandle(Z, func.Owner()),
                                      ident);
 
@@ -11848,7 +11825,6 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
       StaticGetterNode* getter = new(Z) StaticGetterNode(
           ident_pos,
           /* receiver */ NULL,
-          /* is_super_getter */ false,
           Class::ZoneHandle(Z, func.Owner()),
           ident);
       getter->set_is_deferred(is_deferred);

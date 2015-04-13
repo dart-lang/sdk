@@ -559,9 +559,7 @@ AstNode* LoadIndexedNode::MakeAssignmentNode(AstNode* rhs) {
 
 
 AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
-  const String& setter_name = String::Handle(Field::SetterName(field_name()));
-
-  if (is_super_getter_) {
+  if (is_super_getter()) {
     ASSERT(receiver() != NULL);
     // If the static setter is not found in the superclass, noSuchMethod will be
     // called at runtime.
@@ -571,9 +569,10 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
                                 field_name(),
                                 rhs);
   }
+
   const Function& setter =
-      Function::ZoneHandle(cls().LookupStaticFunction(setter_name));
-  if (!setter.IsNull()) {
+      Function::Handle(cls().LookupSetterFunction(field_name()));
+  if (!setter.IsNull() && setter.IsStaticFunction()) {
     return new StaticSetterNode(token_pos(), NULL, cls(), field_name(), rhs);
   }
   // Could not find a static setter. Look for a field.
@@ -604,14 +603,8 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     }
     return new StoreStaticFieldNode(token_pos(), field, rhs);
   }
-  // Didn't find a static setter or a static field.
-  // If this static getter is in an instance function where
-  // a receiver is available, we turn this static getter
-  // into an instance setter (and will get an error at runtime if an
-  // instance setter cannot be found either).
-  if (receiver() != NULL) {
-    return new InstanceSetterNode(token_pos(), receiver(), field_name(), rhs);
-  }
+  // Didn't find a static setter or a static field. Make a call to
+  // the non-existent setter to trigger a NoSuchMethodError at runtime.
   return new StaticSetterNode(token_pos(), NULL, cls(), field_name(), rhs);
 }
 
