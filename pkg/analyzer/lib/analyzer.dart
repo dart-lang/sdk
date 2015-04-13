@@ -28,8 +28,11 @@ export 'src/generated/utilities_dart.dart';
 ///
 /// Throws an [AnalyzerErrorGroup] if any errors occurred, unless
 /// [suppressErrors] is `true`, in which case any errors are discarded.
+///
+/// If [parseFunctionBodies] is [false] then only function signatures will be
+/// parsed.
 CompilationUnit parseCompilationUnit(String contents,
-    {String name, bool suppressErrors: false}) {
+    {String name, bool suppressErrors: false, bool parseFunctionBodies: true}) {
   if (name == null) name = '<unknown source>';
   var source = new StringSource(contents, name);
   var errorCollector = new _ErrorCollector();
@@ -37,6 +40,7 @@ CompilationUnit parseCompilationUnit(String contents,
   var scanner = new Scanner(source, reader, errorCollector);
   var token = scanner.tokenize();
   var parser = new Parser(source, errorCollector);
+  parser.parseFunctionBodies = parseFunctionBodies;
   var unit = parser.parseCompilationUnit(token);
   unit.lineInfo = new LineInfo(scanner.lineStarts);
 

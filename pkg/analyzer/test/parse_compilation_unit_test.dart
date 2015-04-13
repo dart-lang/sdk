@@ -33,4 +33,10 @@ void main() {
               .contains("Error in <unknown source>: Expected to find ';'");
     })));
   });
+
+  test("allows you to specify whether or not to parse function bodies", () {
+    var unit = parseCompilationUnit("void main() => print('Hello, world!');",
+        parseFunctionBodies: false);
+    expect(unit.toString(), equals("void main() ;"));
+  });
 }
