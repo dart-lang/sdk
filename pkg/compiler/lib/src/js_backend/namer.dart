@@ -245,6 +245,9 @@ class Namer {
     // next-generation plugin, this results in starting a new Java process.
     "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass",
     "JavaArray", "JavaMember",
+
+    // ES6 collections.
+    "Map",
   ];
 
   static const List<String> reservedGlobalObjectNames = const <String>[

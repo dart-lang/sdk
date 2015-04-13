@@ -7,6 +7,8 @@
 
 part of _js_helper;
 
+const _USE_ES6_MAPS = const bool.fromEnvironment("dart2js.use.es6.maps");
+
 class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
   int _length = 0;
 
@@ -32,8 +34,21 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
   // iterated over.
   int _modifications = 0;
 
+  static bool get _supportsEs6Maps {
+    return JS('returns:bool;depends:none;effects:none;',
+    'typeof Map != "undefined"');
+  }
+
   JsLinkedHashMap();
 
+  /// If ES6 Maps are available returns a linked hash-map backed by an ES6 Map.
+  factory JsLinkedHashMap.es6() {
+    if (_USE_ES6_MAPS && JsLinkedHashMap._supportsEs6Maps) {
+      return new Es6LinkedHashMap<K, V>();
+    } else {
+      return new JsLinkedHashMap<K, V>();
+    }
+  }
 
   int get length => _length;
   bool get isEmpty => _length == 0;
@@ -51,13 +66,11 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
     if (_isStringKey(key)) {
       var strings = _strings;
       if (strings == null) return false;
-      LinkedHashMapCell cell = _getTableEntry(strings, key);
-      return cell != null;
+      return _containsTableEntry(strings, key);
     } else if (_isNumericKey(key)) {
       var nums = _nums;
       if (nums == null) return false;
-      LinkedHashMapCell cell = _getTableEntry(nums, key);
-      return cell != null;
+      return _containsTableEntry(nums, key);
     } else {
       return internalContainsKey(key);
     }
@@ -124,7 +137,7 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
     var rest = _rest;
     if (rest == null) _rest = rest = _newHashTable();
     var hash = internalComputeHashCode(key);
-    var bucket = JS('var', '#[#]', rest, hash);
+    var bucket = _getTableEntry(rest, hash);
     if (bucket == null) {
       LinkedHashMapCell cell = _newLinkedCell(key, value);
       _setTableEntry(rest, hash, JS('var', '[#]', cell));
@@ -253,7 +266,7 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
   }
 
   static bool _isStringKey(var key) {
-    return key is String && key != '__proto__';
+    return key is String;
   }
 
   static bool _isNumericKey(var key) {
@@ -270,22 +283,9 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
     return JS('int', '# & 0x3ffffff', key.hashCode);
   }
 
-  static _getTableEntry(var table, var key) {
-    return JS('var', '#[#]', table, key);
-  }
-
-  static void _setTableEntry(var table, var key, var value) {
-    assert(value != null);
-    JS('void', '#[#] = #', table, key, value);
-  }
-
-  static void _deleteTableEntry(var table, var key) {
-    JS('void', 'delete #[#]', table, key);
-  }
-
   List _getBucket(var table, var key) {
     var hash = internalComputeHashCode(key);
-    return JS('var', '#[#]', table, hash);
+    return _getTableEntry(table, hash);
   }
 
   int internalFindBucketIndex(var bucket, var key) {
@@ -298,7 +298,27 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
     return -1;
   }
 
-  static _newHashTable() {
+  String toString() => Maps.mapToString(this);
+
+  _getTableEntry(var table, var key) {
+    return JS('var', '#[#]', table, key);
+  }
+
+  void _setTableEntry(var table, var key, var value) {
+    assert(value != null);
+    JS('void', '#[#] = #', table, key, value);
+  }
+
+  void _deleteTableEntry(var table, var key) {
+    JS('void', 'delete #[#]', table, key);
+  }
+
+  bool _containsTableEntry(var table, var key) {
+    LinkedHashMapCell cell = _getTableEntry(table, key);
+    return cell != null;
+  }
+
+  _newHashTable() {
     // Create a new JavaScript object to be used as a hash table. Use
     // Object.create to avoid the properties on Object.prototype
     // showing up as entries.
@@ -310,8 +330,34 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
     _deleteTableEntry(table, temporaryKey);
     return table;
   }
+}
 
-  String toString() => Maps.mapToString(this);
+class Es6LinkedHashMap<K, V> extends JsLinkedHashMap<K, V> {
+
+  @override
+  _getTableEntry(var table, var key) {
+    return JS('var', '#.get(#)', table, key);
+  }
+
+  @override
+  void _setTableEntry(var table, var key, var value) {
+    JS('void', '#.set(#, #)', table, key, value);
+  }
+
+  @override
+  void _deleteTableEntry(var table, var key) {
+    JS('void', '#.delete(#)', table, key);
+  }
+
+  @override
+  bool _containsTableEntry(var table, var key) {
+    return JS('bool', '#.has(#)', table, key);
+  }
+
+  @override
+  _newHashTable() {
+    return JS('var', 'new Map()');
+  }
 }
 
 class LinkedHashMapCell {
