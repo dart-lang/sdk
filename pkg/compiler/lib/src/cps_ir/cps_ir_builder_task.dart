@@ -636,12 +636,17 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
   // ## Sends ##
   @override
-  ir.Primitive visitAssert(
-      ast.Send node,
-      ast.Node condition,
-      _) {
+  ir.Primitive visitAssert(ast.Send node, ast.Node condition, _) {
     assert(irBuilder.isOpen);
-    return giveup(node, 'Assert');
+    if (compiler.enableUserAssertions) {
+      return giveup(node, 'assert in checked mode not implemented');
+    } else {
+      // The call to assert and its argument expression must be ignored
+      // in production mode.
+      // Assertions can only occur in expression statements, so no value needs
+      // to be returned.
+      return null;
+    }
   }
 
   ir.Primitive visitNamedArgument(ast.NamedArgument node) {

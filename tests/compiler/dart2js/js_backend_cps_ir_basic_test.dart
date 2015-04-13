@@ -170,6 +170,19 @@ main() { foo = 42; }
 function() {
   V.foo(42);
   return null;
+}"""),
+  // Assert
+  const TestEntry("""
+foo() { print('X'); }
+main() {
+  assert(true);
+  assert(false);
+  assert(foo());
+  print('Done');
+}""", r"""
+function() {
+  P.print("Done");
+  return null;
 }""")
 ];
 
