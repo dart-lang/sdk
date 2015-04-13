@@ -1,6 +1,7 @@
 var _interceptors;
 (function(exports) {
   'use strict';
+  let JSArray = Array;
   let JSMutableArray$ = dart.generic(function(E) {
     class JSMutableArray extends JSArray$(E) {}
     JSMutableArray[dart.implements] = () => [JSMutableIndexable];
@@ -1053,6 +1054,7 @@ var _interceptors;
     }
   }
   // Exports:
+  exports.JSArray = JSArray;
   exports.JSMutableArray$ = JSMutableArray$;
   exports.JSMutableArray = JSMutableArray;
   exports.JSFixedArray$ = JSFixedArray$;
