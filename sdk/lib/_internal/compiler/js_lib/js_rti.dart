@@ -400,9 +400,6 @@ bool checkSubtypeOfRuntimeType(o, t) {
   } else if (hasField(t, '${JS_FUNCTION_TYPE_TAG()}')) {
     // Functions are treated specially and have their type information stored
     // directly in the instance.
-    var signatureName =
-        '${JS_OPERATOR_IS_PREFIX()}_${getField(t, JS_FUNCTION_TYPE_TAG())}';
-    if (hasField(o, signatureName)) return true;
     var targetSignatureFunction = getField(o, '${JS_SIGNATURE_NAME()}');
     if (targetSignatureFunction == null) return false;
     type = invokeOn(targetSignatureFunction, o, null);
