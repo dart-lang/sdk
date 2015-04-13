@@ -185,6 +185,9 @@ xsltprocessor_test/supported: Fail
 worker_test/functional: Fail # IE uses incorrect security context for Blob URIs.
 transferables_test: Fail # Issue 9846
 
+[ $compiler == dart2js && $minified ]
+canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue 12605
+
 [ $compiler == dart2js && $runtime == chrome ]
 css_test/supportsPointConversions: Fail # Issues 21710
 css_test/functional: Fail # Issues 21710

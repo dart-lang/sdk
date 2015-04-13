@@ -726,7 +726,7 @@ class Primitives {
       // the name out of that. If the decompiled name is a string containing an
       // identifier, we use that instead of the very generic 'Object'.
       var decompiled =
-          JS('var', r'#.match(/^\s*function\s*(\S*)\s*\(/)[1]',
+          JS('var', r'#.match(/^\s*function\s*([\w$]*)\s*\(/)[1]',
               JS('var', r'String(#.constructor)', object));
       if (decompiled is String)
         if (JS('bool', r'/^\w+$/.test(#)', decompiled))
