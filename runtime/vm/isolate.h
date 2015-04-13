@@ -768,6 +768,9 @@ class Isolate : public BaseIsolate {
 
   Counters counters_;
 
+  // TODO(23153): Move this out of Isolate/Thread.
+  CHA* cha_;
+
   // Isolate list next pointer.
   Isolate* next_;
 

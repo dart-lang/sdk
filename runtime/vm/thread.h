@@ -46,19 +46,18 @@ class Thread {
   // The isolate that this thread is operating on, or NULL if none.
   Isolate* isolate() const { return isolate_; }
 
-  // The (topmost) CHA for the compilation in this thread.
-  CHA* cha() const { return cha_; }
-  void set_cha(CHA* value) { cha_ = value; }
+  // The (topmost) CHA for the compilation in the isolate of this thread.
+  // TODO(23153): Move this out of Isolate/Thread.
+  CHA* cha() const;
+  void set_cha(CHA* value);
 
  private:
   static ThreadLocalKey thread_key_;
 
   Isolate* isolate_;
-  CHA* cha_;
 
   Thread()
-      : isolate_(NULL),
-        cha_(NULL) {}
+      : isolate_(NULL) {}
 
   static void SetCurrent(Thread* current);
 
