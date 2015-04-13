@@ -272,6 +272,10 @@ def GetBuildRoot(host_os, mode=None, arch=None, target_os=None):
     build_root = os.path.join(build_root, GetBuildConf(mode, arch, target_os))
   return build_root
 
+def GetBuildSdkBin(host_os, mode=None, arch=None, target_os=None):
+  build_root = GetBuildRoot(host_os, mode, arch, target_os)
+  return os.path.join(build_root, 'dart-sdk', 'bin')
+
 def GetBaseDir():
   return BASE_DIR
 
