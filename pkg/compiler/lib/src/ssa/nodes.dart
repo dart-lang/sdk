@@ -1750,7 +1750,11 @@ class HForeignCode extends HForeign {
   accept(HVisitor visitor) => visitor.visitForeignCode(this);
 
   bool isJsStatement() => isStatement;
-  bool canThrow() => throwBehavior.canThrow;
+  bool canThrow() => canBeNull()
+      ? throwBehavior.canThrow
+      : throwBehavior.onNonNull.canThrow;
+
+  bool onlyThrowsNSM() => throwBehavior.isOnlyNullNSMGuard;
 }
 
 class HForeignNew extends HForeign {

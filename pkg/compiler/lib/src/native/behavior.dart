@@ -31,6 +31,23 @@ class NativeThrowBehavior {
 
   bool get canThrow => this != NEVER;
 
+  /// Does this behavior always throw a noSuchMethod check on a null first
+  /// argument before any side effect or other exception?
+  // TODO(sra): Extend NativeThrowBehavior with the concept of NSM guard
+  // followed by other potential behavior.
+  bool get isNullNSMGuard => this == MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS;
+
+  /// Does this behavior always act as a null noSuchMethod check, and has no
+  /// other throwing behavior?
+  bool get isOnlyNullNSMGuard =>
+      this == MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS;
+
+  /// Returns the behavior if we assume the first argument is not null.
+  NativeThrowBehavior get onNonNull {
+    if (this == MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS) return NEVER;
+    return this;
+  }
+
   String toString() {
     if (this == NEVER) return 'never';
     if (this == MAY) return 'may';

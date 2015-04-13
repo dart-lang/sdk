@@ -1004,6 +1004,13 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   /// Returns true of [foreign] will throw an noSuchMethod error if
   /// receiver is `null` before having any other side-effects.
   bool templateThrowsNSMonNull(HForeignCode foreign, HInstruction receiver) {
+    if (foreign.inputs.length < 1) return false;
+    if (foreign.inputs.first != receiver) return false;
+    if (foreign.throwBehavior.isNullNSMGuard) return true;
+
+    // TODO(sra): Fix NativeThrowBehavior to distinguish MAY from
+    // throws-nsm-on-null-followed-by-MAY and remove all the code below.
+
     // We look for a template of the form
     //
     // #.something -or- #.something()
@@ -1022,7 +1029,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       js.PropertyAccess access = node;
       if (access.receiver is js.InterpolatedExpression) {
         js.InterpolatedExpression hole = access.receiver;
-        return hole.isPositional && foreign.inputs.first == receiver;
+        return hole.isPositional && hole.nameOrPosition == 0;
       }
     }
     return false;
