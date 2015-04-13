@@ -471,7 +471,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void FinalizeExceptionHandlers(const Code& code);
   void FinalizePcDescriptors(const Code& code);
-  void FinalizeDeoptInfo(const Code& code);
+  RawArray* CreateDeoptInfo(Assembler* assembler);
   void FinalizeStackmaps(const Code& code);
   void FinalizeVarDescriptors(const Code& code);
   void FinalizeStaticCallTargetsTable(const Code& code);

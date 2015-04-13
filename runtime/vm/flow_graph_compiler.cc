@@ -846,18 +846,17 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
 }
 
 
-void FlowGraphCompiler::FinalizeDeoptInfo(const Code& code) {
+RawArray* FlowGraphCompiler::CreateDeoptInfo(Assembler* assembler) {
   // For functions with optional arguments, all incoming arguments are copied
   // to spill slots. The deoptimization environment does not track them.
   const Function& function = parsed_function().function();
   const intptr_t incoming_arg_count =
       function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
-  DeoptInfoBuilder builder(zone(), incoming_arg_count);
+  DeoptInfoBuilder builder(zone(), incoming_arg_count, assembler);
 
   intptr_t deopt_info_table_size = DeoptTable::SizeFor(deopt_infos_.length());
   if (deopt_info_table_size == 0) {
-    code.set_deopt_info_array(Object::empty_array());
-    code.set_object_table(Object::empty_array());
+    return Object::empty_array().raw();
   } else {
     const Array& array =
         Array::Handle(Array::New(deopt_info_table_size, Heap::kOld));
@@ -872,11 +871,7 @@ void FlowGraphCompiler::FinalizeDeoptInfo(const Code& code) {
           deopt_infos_[i]->flags());
       DeoptTable::SetEntry(array, i, offset, info, reason_and_flags);
     }
-    code.set_deopt_info_array(array);
-    const Array& object_array =
-        Array::Handle(Array::MakeArray(builder.object_table()));
-    ASSERT(code.object_table() == Array::null());
-    code.set_object_table(object_array);
+    return array.raw();
   }
 }
 

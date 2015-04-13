@@ -12020,12 +12020,6 @@ void Code::set_deopt_info_array(const Array& array) const {
 }
 
 
-void Code::set_object_table(const Array& array) const {
-  ASSERT(array.IsOld());
-  StorePointer(&raw_ptr()->object_table_, array.raw());
-}
-
-
 void Code::set_static_calls_target_table(const Array& value) const {
   StorePointer(&raw_ptr()->static_calls_target_table_, value.raw());
 #if defined(DEBUG)
@@ -12275,7 +12269,7 @@ RawCode* Code::FinalizeCode(const char* name,
     code.set_is_alive(true);
 
     // Set object pool in Instructions object.
-    const GrowableObjectArray& object_pool = assembler->object_pool();
+    const GrowableObjectArray& object_pool = assembler->object_pool_data();
     if (object_pool.IsNull()) {
       instrs.set_object_pool(Object::empty_array().raw());
     } else {

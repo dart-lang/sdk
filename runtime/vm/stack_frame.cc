@@ -452,7 +452,7 @@ InlinedFunctionsIterator::InlinedFunctionsIterator(const Code& code, uword pc)
     ASSERT(!deopt_table.IsNull());
     DeoptInfo::Unpack(deopt_table, deopt_info_, &deopt_instructions_);
     num_materializations_ = DeoptInfo::NumMaterializations(deopt_instructions_);
-    object_table_ = code_.object_table();
+    object_table_ = code_.ObjectPool();
     Advance();
   }
 }

@@ -956,7 +956,6 @@ class RawCode : public RawObject {
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
   RawArray* deopt_info_array_;
-  RawArray* object_table_;
   RawArray* static_calls_target_table_;  // (code-offset, function, code).
   RawArray* stackmaps_;
   RawLocalVarDescriptors* var_descriptors_;

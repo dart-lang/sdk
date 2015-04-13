@@ -54,8 +54,8 @@ class DeoptContext {
   void SetCallerFp(intptr_t callers_fp);
 
   RawObject* ObjectAt(intptr_t index) const {
-    const Array& object_table = Array::Handle(object_table_);
-    return object_table.At(index);
+    const Array& object_pool = Array::Handle(object_pool_);
+    return object_pool.At(index);
   }
 
   intptr_t RegisterValue(Register reg) const {
@@ -205,7 +205,7 @@ class DeoptContext {
   }
 
   RawCode* code_;
-  RawArray* object_table_;
+  RawArray* object_pool_;
   RawTypedData* deopt_info_;
   bool dest_frame_is_allocated_;
   intptr_t* dest_frame_;
@@ -287,7 +287,7 @@ class DeoptInstr : public ZoneAllocated {
   // Get the code and return address which is encoded in this
   // kRetAfterAddress deopt instruction.
   static uword GetRetAddress(DeoptInstr* instr,
-                             const Array& object_table,
+                             const Array& object_pool,
                              Code* code);
 
   // Return number of initialized fields in the object that will be
@@ -419,11 +419,7 @@ typedef RegisterSource<FpuRegister> FpuRegisterSource;
 // the heap and reset the builder's internal state for the next DeoptInfo.
 class DeoptInfoBuilder : public ValueObject {
  public:
-  DeoptInfoBuilder(Zone* zone, const intptr_t num_args);
-
-  // 'object_table' holds all objects referred to by DeoptInstr in
-  // all DeoptInfo instances for a single Code object.
-  const GrowableObjectArray& object_table() { return object_table_; }
+  DeoptInfoBuilder(Zone* zone, const intptr_t num_args, Assembler* assembler);
 
   // Return address before instruction.
   void AddReturnAddress(const Function& function,
@@ -485,8 +481,8 @@ class DeoptInfoBuilder : public ValueObject {
   Zone* zone_;
 
   GrowableArray<DeoptInstr*> instructions_;
-  const GrowableObjectArray& object_table_;
   const intptr_t num_args_;
+  Assembler* assembler_;
 
   // Used to compress entries by sharing suffixes.
   TrieNode* trie_root_;

@@ -719,6 +719,10 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::codefinalizer_timer,
                          isolate);
+        // CreateDeoptInfo uses the object pool and needs to be done before
+        // FinalizeCode.
+        const Array& deopt_info_array = Array::Handle(
+            graph_compiler.CreateDeoptInfo(&assembler));
         const Code& code = Code::Handle(
             Code::FinalizeCode(function, &assembler, optimized));
         code.set_is_optimized(optimized);
@@ -726,7 +730,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         code.set_inlined_id_to_function(
             Array::Handle(graph_compiler.InliningIdToFunction()));
         graph_compiler.FinalizePcDescriptors(code);
-        graph_compiler.FinalizeDeoptInfo(code);
+        code.set_deopt_info_array(deopt_info_array);
         graph_compiler.FinalizeStackmaps(code);
         graph_compiler.FinalizeVarDescriptors(code);
         graph_compiler.FinalizeExceptionHandlers(code);
@@ -862,18 +866,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
     ISL_Print("}\n");
   }
 
-  const Array& object_table = Array::Handle(code.object_table());
-  if (object_table.Length() > 0) {
-    ISL_Print("Object Table: {\n");
-    for (intptr_t i = 0; i < object_table.Length(); i++) {
-      ISL_Print("  %" Pd ": %s\n", i,
-          Object::Handle(object_table.At(i)).ToCString());
-    }
-    ISL_Print("}\n");
-  }
-
-  const Array& object_pool = Array::Handle(
-      Instructions::Handle(code.instructions()).object_pool());
+  const Array& object_pool = Array::Handle(code.ObjectPool());
   if (object_pool.Length() > 0) {
     ISL_Print("Object Pool: {\n");
     for (intptr_t i = 0; i < object_pool.Length(); i++) {

@@ -3945,11 +3945,6 @@ class Code : public Object {
   }
   void set_deopt_info_array(const Array& array) const;
 
-  RawArray* object_table() const {
-    return raw_ptr()->object_table_;
-  }
-  void set_object_table(const Array& array) const;
-
   RawArray* stackmaps() const {
     return raw_ptr()->stackmaps_;
   }

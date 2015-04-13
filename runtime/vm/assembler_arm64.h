@@ -475,7 +475,12 @@ class Assembler : public ValueObject {
     ASSERT(buffer_.pointer_offsets().length() == 0);  // No pointers in code.
     return buffer_.pointer_offsets();
   }
-  const GrowableObjectArray& object_pool() const { return object_pool_.data(); }
+
+  const GrowableObjectArray& object_pool_data() const {
+    return object_pool_.data();
+  }
+
+  ObjectPool& object_pool() { return object_pool_; }
 
   bool use_far_branches() const {
     return FLAG_use_far_branches || use_far_branches_;
