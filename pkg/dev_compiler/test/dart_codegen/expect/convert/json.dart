@@ -41,7 +41,7 @@ if (toEncodable == null) toEncodable = _toEncodable;
 }
  JsonEncoder get encoder {
 if (_toEncodable == null) return const JsonEncoder();
- return new JsonEncoder(DEVC$RT.cast(_toEncodable, __t8, __t6, "CompositeCast", """line 147, column 28 of dart:convert/json.dart: """, _toEncodable is __t6, false));
+ return new JsonEncoder(DEVC$RT.cast(_toEncodable, _ToEncodable, __t6, "CompositeCast", """line 147, column 28 of dart:convert/json.dart: """, _toEncodable is __t6, false));
 }
  JsonDecoder get decoder {
 if (_reviver == null) return const JsonDecoder();

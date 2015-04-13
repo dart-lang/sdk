@@ -27,6 +27,17 @@ class Tuple2<T0, T1> {
 
 typedef T Function1<S, T>(S _);
 
+class NewTypeIdDesc {
+  /// If null, then this is not a library level identifier (i.e. it's
+  /// a type parameter, or a special type like void, dynamic, etc)
+  LibraryElement importedFrom;
+  /// True => use/def in same library
+  bool fromCurrent;
+  /// True => not a source variable
+  bool synthetic;
+  NewTypeIdDesc({this.fromCurrent, this.importedFrom, this.synthetic});
+}
+
 class _LocatedWrapper {
   final String loc;
   final Wrapper wrapper;
@@ -84,28 +95,42 @@ class _Inference extends DownwardsInference {
 
 // This class implements a pass which modifies (in place) the ast replacing
 // abstract coercion nodes with their dart implementations.
-class UnitCoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
+class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
     with ConversionVisitor<Object> {
-  CoercionManager _cm;
+  final CoercionManager _cm;
   final TypeManager _tm;
   final VariableManager _vm;
+  final LibraryUnit _library;
   SourceFile _file;
   bool _skipCoercions = false;
   final TypeRules _rules;
-  _Inference _inferrer;
+  final _Inference _inferrer;
 
-  UnitCoercionReifier(this._tm, this._vm, this._rules) {
-    _cm = new CoercionManager(_vm, _tm, _rules);
-    _inferrer = new _Inference(_rules, _tm);
+  CoercionReifier._(
+      this._cm, this._tm, this._vm, this._library, this._rules, this._inferrer);
+
+  factory CoercionReifier(LibraryUnit library, TypeRules rules) {
+    var vm = new VariableManager();
+    var tm = new TypeManager(library.library.element.enclosingElement, vm);
+    var cm = new CoercionManager(vm, tm, rules);
+    var inferrer = new _Inference(rules, tm);
+    return new CoercionReifier._(cm, tm, vm, library, rules, inferrer);
   }
 
   // This should be the entry point for this class.  Entering via the
   // visit functions directly may not do the right thing with respect
   // to discharging the collected definitions.
-  void reify(CompilationUnit unit) {
+  // Returns the set of new type identifiers added by the reifier
+  Map<Identifier, NewTypeIdDesc> reify() {
+    _library.partsThenLibrary.forEach(generateUnit);
+    return _tm.addedTypes;
+  }
+
+  void generateUnit(CompilationUnit unit) {
     _file = new SourceFile(unit.element.source.contents.data,
         url: unit.element.source.uri);
     visitCompilationUnit(unit);
+    _file = null;
   }
 
   ///////////////// Private //////////////////////////////////
@@ -526,15 +551,15 @@ class CoercionManager {
 // Note that in order to hoist the typedefs out of parameterized classes
 // we must close over any type variables.
 class TypeManager {
-  VariableManager _vm;
-  Set<TypeName> _newTypes = new Set<TypeName>();
+  final VariableManager _vm;
+  final LibraryElement _currentLibrary;
+  final Map<Identifier, NewTypeIdDesc> addedTypes = {};
 
   /// A map containing new function typedefs to be introduced at the top level
   /// This uses LinkedHashMap to emit code in a consistent order.
-  final Map<FunctionType, FunctionTypeAlias> _typedefs =
-      new Map<FunctionType, FunctionTypeAlias>();
+  final Map<FunctionType, FunctionTypeAlias> _typedefs = {};
 
-  TypeManager(this._vm);
+  TypeManager(this._currentLibrary, this._vm);
 
   void enterCompilationUnit() {}
   void exitCompilationUnit(CompilationUnit unit) {
@@ -554,8 +579,6 @@ class TypeManager {
       typeExpression(typeNameFromDartType(t));
 
   Expression typeExpression(TypeName t) => _typeExpression(t);
-
-  Set<TypeName> get addedTypes => _newTypes;
 
   ///////////////// Private //////////////////////////////////
   List<TypeParameterType> _freeTypeVariables(DartType type) {
@@ -580,15 +603,9 @@ class TypeManager {
         return;
       }
       if (type is ParameterizedType) {
-        // TODO(leafp): The inner conditional (testing FunctionType, etc)
-        // can be eliminated after the roll to the next analyzer which fixes
-        // a bug in how they resolve type names.
         if (type.name != null && type.name != "") {
-          if (type is! FunctionType ||
-              (type.element != null && type.element is FunctionTypeAlias)) {
-            _ftList(type.typeArguments);
-            return;
-          }
+          _ftList(type.typeArguments);
+          return;
         }
         if (type is FunctionType) {
           _ftMap(type.namedParameterTypes);
@@ -649,6 +666,34 @@ class TypeManager {
     return AstBuilder.simpleFormal(v, t);
   }
 
+  Identifier freshTypeDefVariable() {
+    var t = _vm.freshTypeIdentifier("t");
+    var desc = new NewTypeIdDesc(
+        fromCurrent: true, importedFrom: _currentLibrary, synthetic: true);
+    addedTypes[t] = desc;
+    return t;
+  }
+
+  Identifier typeParameterFromString(String name) =>
+      AstBuilder.identifierFromString(name);
+
+  Identifier freshReferenceToNamedType(DartType type) {
+    var name = type.name;
+    assert(name != null);
+    var id = AstBuilder.identifierFromString(name);
+    var element = type.element;
+    id.staticElement = element;
+    var library = null;
+    // This can happen for types like (e.g.) void
+    if (element != null) library = element.library;
+    var desc = new NewTypeIdDesc(
+        fromCurrent: _currentLibrary == library,
+        importedFrom: library,
+        synthetic: false);
+    addedTypes[id] = desc;
+    return id;
+  }
+
   // I think we can avoid alpha-varying type parameters, since
   // the binding forms are so limited, so we just re-use the
   // the original names for the formals and the actuals.
@@ -667,10 +712,10 @@ class TypeManager {
     }
 
     List<TypeParameterType> ftvs = _freeTypeVariables(type);
-    Identifier t = _vm.freshTypeIdentifier("t");
+    Identifier t = freshTypeDefVariable();
 
     Iterable<Identifier> tNames =
-        ftvs.map((x) => AstBuilder.identifierFromString(x.name));
+        ftvs.map((x) => typeParameterFromString(x.name));
     List<TypeParameter> tps = tNames.map(AstBuilder.typeParameter).toList();
     List<FormalParameter> fps = _formalParameterListForFunctionType(type);
     TypeName ret = _typeNameFromDartType(type.returnType);
@@ -685,22 +730,16 @@ class TypeManager {
   }
 
   TypeName _typeNameFromDartType(DartType dType) {
-    // TODO(leafp) This doesn't re-use the name when the function type
-    // is derived from a typedef, since I've moved it above the check
-    // for a name.  I think there's a bug in the resolver here: I
-    // sometimes see function types named not with a typedef name,
-    // but rather with the name of the function that they classify.
-    if (dType is FunctionType) return _typeNameFromFunctionType(dType);
     String name = dType.name;
     if (name == null || name == "" || dType.isBottom) {
+      if (dType is FunctionType) return _typeNameFromFunctionType(dType);
       _log.severe("No name for type, casting through dynamic");
       var d = AstBuilder.identifierFromString("dynamic");
       var t = _mkNewTypeName(d, null);
       t.type = dType;
       return t;
     }
-    SimpleIdentifier id = AstBuilder.identifierFromString(name);
-    id.staticElement = dType.element;
+    SimpleIdentifier id = freshReferenceToNamedType(dType);
     List<TypeName> args = null;
     if (dType is ParameterizedType) {
       List<DartType> targs = dType.typeArguments;
@@ -713,7 +752,6 @@ class TypeManager {
 
   TypeName _mkNewTypeName(Identifier id, List<TypeName> args) {
     var t = AstBuilder.typeName(id, args);
-    _newTypes.add(t);
     return t;
   }
 

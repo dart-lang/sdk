@@ -58,14 +58,16 @@ future._completeError(error, stackTrace);
  bool get hasErrorTest => (state == STATE_CATCHERROR_TEST);
  bool get handlesComplete => (state == STATE_WHENCOMPLETE);
  _FutureOnValue get _onValue {
-assert (handlesValue); return DEVC$RT.cast(callback, Function, __t10, "ImplicitCast", """line 112, column 12 of dart:async/future_impl.dart: """, callback is __t10, true);
+assert (handlesValue); return DEVC$RT.cast(callback, Function, DEVC$RT.type((_FutureOnValue<dynamic> _) {
+}
+), "ImplicitCast", """line 112, column 12 of dart:async/future_impl.dart: """, callback is _FutureOnValue<dynamic>, true);
 }
  Function get _onError => errorCallback;
  _FutureErrorTest get _errorTest {
-assert (hasErrorTest); return DEVC$RT.cast(callback, Function, __t12, "CompositeCast", """line 117, column 12 of dart:async/future_impl.dart: """, callback is __t12, false);
+assert (hasErrorTest); return DEVC$RT.cast(callback, Function, _FutureErrorTest, "CompositeCast", """line 117, column 12 of dart:async/future_impl.dart: """, callback is _FutureErrorTest, false);
 }
  _FutureAction get _whenCompleteAction {
-assert (handlesComplete); return DEVC$RT.cast(callback, Function, __t14, "ImplicitCast", """line 121, column 12 of dart:async/future_impl.dart: """, callback is __t14, true);
+assert (handlesComplete); return DEVC$RT.cast(callback, Function, _FutureAction, "ImplicitCast", """line 121, column 12 of dart:async/future_impl.dart: """, callback is _FutureAction, true);
 }
 }
  class _Future<T> implements Future<T> {static const int _INCOMPLETE = 0;
@@ -101,9 +103,9 @@ Function onError}
 ) {
 _Future result = new _Future();
  if (!identical(result._zone, _ROOT_ZONE)) {
-f = ((__x17) => DEVC$RT.cast(__x17, __t10, DEVC$RT.type((__t15<T> _) {
+f = ((__x12) => DEVC$RT.cast(__x12, ZoneUnaryCallback, DEVC$RT.type((__t10<T> _) {
 }
-), "CompositeCast", """line 208, column 11 of dart:async/future_impl.dart: """, __x17 is __t15<T>, false))(result._zone.registerUnaryCallback(f));
+), "CompositeCast", """line 208, column 11 of dart:async/future_impl.dart: """, __x12 is __t10<T>, false))(result._zone.registerUnaryCallback(f));
  if (onError != null) {
 onError = _registerErrorHandler(onError, result._zone);
 }
@@ -117,7 +119,7 @@ bool test(error)}
 _Future result = new _Future();
  if (!identical(result._zone, _ROOT_ZONE)) {
 onError = _registerErrorHandler(onError, result._zone);
- if (test != null) test = ((__x18) => DEVC$RT.cast(__x18, __t10, __t12, "CompositeCast", """line 221, column 32 of dart:async/future_impl.dart: """, __x18 is __t12, false))(result._zone.registerUnaryCallback(test));
+ if (test != null) test = ((__x15) => DEVC$RT.cast(__x15, ZoneUnaryCallback, __t13, "CompositeCast", """line 221, column 32 of dart:async/future_impl.dart: """, __x15 is __t13, false))(result._zone.registerUnaryCallback(test));
 }
  _addListener(new _FutureListener.catchError(result, onError, test));
  return result;
@@ -319,7 +321,7 @@ AsyncError asyncError = source._error;
  if (listener.hasErrorTest) {
   _FutureErrorTest test = listener._errorTest;
    try {
-    matchesTest = ((__x19) => DEVC$RT.cast(__x19, dynamic, bool, "DynamicCast", """line 499, column 29 of dart:async/future_impl.dart: """, __x19 is bool, true))(zone.runUnary(test, asyncError.error));
+    matchesTest = ((__x16) => DEVC$RT.cast(__x16, dynamic, bool, "DynamicCast", """line 499, column 29 of dart:async/future_impl.dart: """, __x16 is bool, true))(zone.runUnary(test, asyncError.error));
     }
    catch (e, s) {
     listenerValueOrError = identical(asyncError.error, e) ? asyncError : new AsyncError(e, s);
@@ -333,7 +335,7 @@ AsyncError asyncError = source._error;
       listenerValueOrError = zone.runBinary(errorCallback, asyncError.error, asyncError.stackTrace);
       }
      else {
-      listenerValueOrError = zone.runUnary(DEVC$RT.cast(errorCallback, Function, __t10, "ImplicitCast", """line 515, column 54 of dart:async/future_impl.dart: """, errorCallback is __t10, true), asyncError.error);
+      listenerValueOrError = zone.runUnary(DEVC$RT.cast(errorCallback, Function, __t17, "ImplicitCast", """line 515, column 54 of dart:async/future_impl.dart: """, errorCallback is __t17, true), asyncError.error);
       }
     }
    catch (e, s) {
@@ -466,7 +468,6 @@ timer.cancel();
  return result;
 }
 }
- typedef dynamic __t10(dynamic __u11);
- typedef bool __t12(dynamic __u13);
- typedef dynamic __t14();
- typedef dynamic __t15<T>(T __u16);
+ typedef dynamic __t10<T>(T __u11);
+ typedef bool __t13(dynamic __u14);
+ typedef dynamic __t17(dynamic __u18);

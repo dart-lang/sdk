@@ -21,7 +21,7 @@ import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/utils.dart' as utils;
 import 'ast_builder.dart';
 import 'code_generator.dart' as codegenerator;
-import 'reify_coercions.dart' as reifier;
+import 'reify_coercions.dart' show CoercionReifier, NewTypeIdDesc;
 
 final _log = new logger.Logger('dev_compiler.dart_codegen');
 
@@ -124,56 +124,12 @@ class FileWriter extends java_core.PrintStringWriter {
   }
 }
 
-bool _identifierNeedsQualification(
-    Identifier id, LibraryElement current, Set<Identifier> restrict) {
-  var element = id.bestElement;
-  return restrict.contains(id) &&
-      element != null &&
-      element.library != null &&
-      (element is ClassElement || element is FunctionTypeAliasElement) &&
-      !element.library.isDartCore &&
-      element.library != current;
-}
-
-// For every type name to which we add a reference, record the library from
-// which it comes so that we may add it to the list of imports.
-class UnitImportResolver extends analyzer.GeneralizingAstVisitor
-    with ConversionVisitor {
-  final CompilationUnit unit;
-  final Set<LibraryElement> imports;
-  final _currentLibrary;
-  final _newIdentifiers;
-
-  UnitImportResolver(
-      this.unit, this._currentLibrary, this.imports, this._newIdentifiers);
-
-  void compute() {
-    visitCompilationUnit(unit);
-    return;
-  }
-
-  @override
-  void visitCompilationUnit(CompilationUnit node) {
-    node.declarations.forEach((node) => node.accept(this));
-    return;
-  }
-
-  @override
-  void visitIdentifier(Identifier id) {
-    if (id is PrefixedIdentifier) {
-      id.prefix.accept(this);
-      return;
-    }
-    if (_identifierNeedsQualification(id, _currentLibrary, _newIdentifiers)) {
-      if (utils.isDartPrivateLibrary(id.bestElement.library)) {
-        _log.severe(
-            "Dropping import of private library ${id.bestElement.library}\n");
-        return;
-      }
-      imports.add(id.bestElement.library);
-    }
-    return;
-  }
+bool _identifierNeedsQualification(Identifier id, NewTypeIdDesc desc) {
+  var library = desc.importedFrom;
+  if (library == null) return false;
+  if (library.isDartCore) return false;
+  if (desc.fromCurrent) return false;
+  return true;
 }
 
 // This class just holds some additional syntactic helpers and
@@ -276,19 +232,13 @@ class UnitGenerator extends UnitGeneratorCommon with ConversionVisitor<Object> {
   final String outDir;
   Set<LibraryElement> _extraImports;
   final _runtime = new DevCompilerRuntime();
-  LibraryElement _currentLibrary;
   bool _qualifyNames = true;
-  Set<Identifier> _newIdentifiers;
+  Map<Identifier, NewTypeIdDesc> _newIdentifiers;
 
   UnitGenerator(this.unit, java_core.PrintWriter out, String this.outDir,
       this._extraImports, this._newIdentifiers)
       : _out = out,
-        super(out) {
-    _currentLibrary = unit.element.enclosingElement;
-    final UnitImportResolver r = new UnitImportResolver(
-        unit, _currentLibrary, _extraImports, _newIdentifiers);
-    r.compute();
-  }
+        super(out);
 
   void output(String s) => _out.print(s);
   void outputln(String s) => _out.println(s);
@@ -390,13 +340,14 @@ class UnitGenerator extends UnitGeneratorCommon with ConversionVisitor<Object> {
 
   @override
   Object visitSimpleIdentifier(SimpleIdentifier id) {
-    var element = id.bestElement;
     if (!(_qualifyNames &&
-        _identifierNeedsQualification(id, _currentLibrary, _newIdentifiers))) {
+        _newIdentifiers.containsKey(id) &&
+        _identifierNeedsQualification(id, _newIdentifiers[id]))) {
       return super.visitSimpleIdentifier(id);
     }
-    if (!utils.isDartPrivateLibrary(element.library)) {
-      var lib = utils.canonicalLibraryName(element.library);
+    var library = _newIdentifiers[id].importedFrom;
+    if (!utils.isDartPrivateLibrary(library)) {
+      var lib = utils.canonicalLibraryName(library);
       var libname = canonizeLibraryName(lib);
       output(libname);
       output('.');
@@ -412,39 +363,44 @@ class UnitGenerator extends UnitGeneratorCommon with ConversionVisitor<Object> {
 
 class DartGenerator extends codegenerator.CodeGenerator {
   final CompilerOptions options;
-  reifier.VariableManager _vm;
-  Set<LibraryElement> _extraImports;
   TypeRules _rules;
 
   DartGenerator(String outDir, Uri root, TypeRules rules, this.options)
       : _rules = rules,
         super(outDir, root, rules);
 
-  void generateUnit(CompilationUnit unit, LibraryInfo info, String libraryDir) {
-    var uri = unit.element.source.uri;
-    _log.fine("Generating unit " + uri.toString());
-    FileWriter out = new FileWriter(
-        options, path.join(libraryDir, '${uri.pathSegments.last}'));
-    var tm = new reifier.TypeManager(_vm);
-    var r = new reifier.UnitCoercionReifier(tm, _vm, _rules);
-    r.reify(unit);
-    var ids = new Set<Identifier>.from(tm.addedTypes.map((tn) => tn.name));
-    var unitGen = new UnitGenerator(unit, out, outDir, _extraImports, ids);
-    unitGen.generate();
-    out.finalize();
+  Set<LibraryElement> computeExtraImports(Map<Identifier, NewTypeIdDesc> ids) {
+    var imports = new Set<LibraryElement>();
+    void process(Identifier id, NewTypeIdDesc desc) {
+      if (_identifierNeedsQualification(id, desc)) {
+        var library = desc.importedFrom;
+        if (utils.isDartPrivateLibrary(library)) {
+          _log.severe("Dropping import of private library ${library}\n");
+          return;
+        }
+        imports.add(library);
+      }
+    }
+    ids.forEach(process);
+    return imports;
   }
 
   String generateLibrary(LibraryUnit library, LibraryInfo info) {
-    _vm = new reifier.VariableManager();
-    _extraImports = new Set<LibraryElement>();
+    var r = new CoercionReifier(library, rules);
+    var ids = r.reify();
+    var extraImports = computeExtraImports(ids);
 
     for (var unit in library.partsThenLibrary) {
-      var outputDir = makeOutputDirectory(info, unit);
-      generateUnit(unit, info, outputDir);
+      var libraryDir = makeOutputDirectory(info, unit);
+      var uri = unit.element.source.uri;
+      _log.fine("Generating unit $uri");
+      FileWriter out = new FileWriter(
+          options, path.join(libraryDir, '${uri.pathSegments.last}'));
+      var unitGen = new UnitGenerator(unit, out, outDir, extraImports, ids);
+      unitGen.generate();
+      out.finalize();
     }
 
-    _extraImports = null;
-    _vm = null;
     return null;
   }
 }
