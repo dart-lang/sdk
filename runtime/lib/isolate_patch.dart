@@ -97,6 +97,12 @@ void _runPendingImmediateCallback() {
   }
 }
 
+ImmediateCallback _removePendingImmediateCallback() {
+  var callback = _pendingImmediateCallback;
+  _pendingImmediateCallback = null;
+  return callback;
+}
+
 /// The embedder can execute this function to get hold of
 /// [_isolateScheduleImmediate] above.
 Function _getIsolateScheduleImmediateClosure() {
