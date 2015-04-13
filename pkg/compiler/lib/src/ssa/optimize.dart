@@ -1907,6 +1907,9 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   }
 
   void visitInstruction(HInstruction instruction) {
+    if (instruction.isAllocation) {
+      memorySet.registerAllocation(instruction);
+    }
     memorySet.killAffectedBy(instruction);
   }
 

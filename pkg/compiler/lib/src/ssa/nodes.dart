@@ -842,6 +842,11 @@ abstract class HInstruction implements Spannable {
         && !canThrow();
   }
 
+  /// An instruction is an 'allocation' is it is the sole alias for an object.
+  /// This applies to to instructions that allocate new objects and can be
+  /// extended to methods that return other allocations without escaping them.
+  bool get isAllocation => false;
+
   /// Overridden by [HCheck] to return the actual non-[HCheck]
   /// instruction it checks against.
   HInstruction nonCheck() => this;
@@ -1755,6 +1760,10 @@ class HForeignCode extends HForeign {
       : throwBehavior.onNonNull.canThrow;
 
   bool onlyThrowsNSM() => throwBehavior.isOnlyNullNSMGuard;
+
+  bool get isAllocation => nativeBehavior != null &&
+      nativeBehavior.isAllocation &&
+      !canBeNull();
 }
 
 class HForeignNew extends HForeign {
@@ -1771,6 +1780,8 @@ class HForeignNew extends HForeign {
       : super(type, inputs);
 
   accept(HVisitor visitor) => visitor.visitForeignNew(this);
+
+  bool get isAllocation => true;
 }
 
 abstract class HInvokeBinary extends HInstruction {
@@ -2415,6 +2426,8 @@ class HLiteralList extends HInstruction {
   HLiteralList(List<HInstruction> inputs, TypeMask type) : super(inputs, type);
   toString() => 'literal list';
   accept(HVisitor visitor) => visitor.visitLiteralList(this);
+
+  bool get isAllocation => true;
 }
 
 /**
