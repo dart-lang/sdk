@@ -26,6 +26,7 @@ LayoutTests/fast/borders/border-radius-child_t01: Skip # co19 issue 732.
 LayoutTests/fast/css-generated-content/hit-test-generated-content_t01: Skip # co19 issue 732.
 LayoutTests/fast/css/collapsed-whitespace-reattach-in-style-recalc_t01: Skip # co19 issue 732.
 LayoutTests/fast/events/document-elementFromPoint_t01: Skip # co19 issue 732.
+LayoutTests/fast/innerHTML/innerHTML-svg-write_t01: Fail # Test uses foreignObject tag, which sanitizer removes. co19 issue #746
 LayoutTests/fast/sub-pixel/float-containing-block-with-margin_t01: Skip # co19 issue 732.
 LayoutTests/fast/sub-pixel/table-rows-have-stable-height_t01: Skip # co19 issue 732.
 LayoutTests/fast/table/col-width-span-expand_t01: Skip # co19 issue 732.

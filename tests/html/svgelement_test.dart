@@ -34,7 +34,7 @@ main() {
       expect(isExpectedClass(new svg.SvgElement.tag(tagName)), expectation);
       if (allowsInnerHtml) {
         expect(isExpectedClass(new svg.SvgElement.svg('<$tagName></$tagName>')),
-            allowsInnerHtml);
+            expectation && allowsInnerHtml);
       }
     });
   }

@@ -248,7 +248,6 @@ WebPlatformTest/Utils/test/testFail_t01: RuntimeError # co19-roll r722: Please t
 WebPlatformTest/dom/nodes/DOMImplementation-createHTMLDocument_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Document-createElement_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Element-childElementCount-nochild_t01: CompileTimeError # co19-roll r722: Please triage this failure.
-LayoutTests/fast/innerHTML/innerHTML-svg-write_t01: Fail # Test uses foreignObject tag, which sanitizer removes. co19 issue #746
 
 [ $compiler == dart2js && $checked ]
 Language/13_Statements/09_Switch_A05_t01: Fail # Missing type check in switch expression
@@ -393,6 +392,7 @@ LayoutTests/fast/forms/submit-form-with-dirname-attribute-with-ancestor-dir-attr
 LayoutTests/fast/forms/submit-form-with-dirname-attribute-with-nonhtml-ancestor_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/submit-nil-value-field-assert_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/textarea-submit-crash_t01: Skip # Test reloads itself. Issue 18558.
+LayoutTests/fast/innerHTML/innerHTML-svg-write_t01: Fail # Test uses foreignObject tag, which sanitizer removes. co19 issue #746
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure.
