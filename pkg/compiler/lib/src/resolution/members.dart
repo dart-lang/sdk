@@ -2112,6 +2112,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
    * This field is updated when nested closures are visited.
    */
   Element enclosingElement;
+
+  /// Whether we are in a context where `this` is accessible (this will be false
+  /// in static contexts, factory methods, and field initializers).
   bool inInstanceContext;
   bool inCheckContext;
   bool inCatchBlock;
@@ -2262,11 +2265,17 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     inStaticContext(() => visit(node));
   }
 
-  ErroneousElement warnAndCreateErroneousElement(Node node,
-                                                 String name,
-                                                 MessageKind kind,
-                                                 [Map arguments = const {}]) {
-    compiler.reportWarning(node, kind, arguments);
+  ErroneousElement reportAndCreateErroneousElement(
+      Node node,
+      String name,
+      MessageKind kind,
+      Map arguments,
+      {bool isError: false}) {
+    if (isError) {
+      compiler.reportError(node, kind, arguments);
+    } else {
+      compiler.reportWarning(node, kind, arguments);
+    }
     // TODO(ahe): Use [allowedCategory] to synthesize a more precise subclass
     // of [ErroneousElementX]. For example, [ErroneousFieldElementX],
     // [ErroneousConstructorElementX], etc.
@@ -2300,18 +2309,28 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       element = reportLookupErrorIfAny(element, node, node.source);
       if (element == null) {
         if (!inInstanceContext) {
-          element = warnAndCreateErroneousElement(
-              node, node.source, MessageKind.CANNOT_RESOLVE,
-              {'name': node});
+          // We report an error within initializers because `this` is implicitly
+          // accessed when unqualified identifiers are not resolved.  For
+          // details, see section 16.14.3 of the spec (2nd edition):
+          //   An unqualified invocation `i` of the form `id(a1, ...)`
+          //   ...
+          //   If `i` does not occur inside a top level or static function, `i`
+          //   is equivalent to `this.id(a1 , ...)`.
+          bool inInitializer = enclosingElement.isGenerativeConstructor ||
+              (enclosingElement.isInstanceMember && enclosingElement.isField);
+          MessageKind kind = inInitializer
+              ? MessageKind.CANNOT_RESOLVE_IN_INITIALIZER
+              : MessageKind.CANNOT_RESOLVE;
+          element = reportAndCreateErroneousElement(node, node.source, kind,
+              {'name': node.source}, isError: inInitializer);
           registry.registerThrowNoSuchMethod();
         }
       } else if (element.isErroneous) {
         // Use the erroneous element.
       } else {
         if ((element.kind.category & allowedCategory) == 0) {
-          element = warnAndCreateErroneousElement(
-              node, name,
-              MessageKind.GENERIC,
+          element = reportAndCreateErroneousElement(
+              node, name, MessageKind.GENERIC,
               // TODO(ahe): Improve error message. Need UX input.
               {'text': "is not an expression $element"});
         }
@@ -2601,7 +2620,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // [target] may be null which means invoking noSuchMethod on
       // super.
       if (target == null) {
-        target = warnAndCreateErroneousElement(
+        target = reportAndCreateErroneousElement(
             node, name, MessageKind.NO_SUCH_SUPER_MEMBER,
             {'className': currentClass, 'memberName': name});
         // We still need to register the invocation, because we might
@@ -2640,13 +2659,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         MessageKind kind = (target == null)
             ? MessageKind.MEMBER_NOT_FOUND
             : MessageKind.MEMBER_NOT_STATIC;
-        return new ElementResult(warnAndCreateErroneousElement(
+        return new ElementResult(reportAndCreateErroneousElement(
             node, name, kind,
             {'className': receiverClass.name, 'memberName': name}));
       } else if (isPrivateName(name) &&
                  target.library != enclosingElement.library) {
         registry.registerThrowNoSuchMethod();
-        return new ElementResult(warnAndCreateErroneousElement(
+        return new ElementResult(reportAndCreateErroneousElement(
             node, name, MessageKind.PRIVATE_ACCESS,
             {'libraryName': target.library.getLibraryOrScriptName(),
              'name': name}));
@@ -2656,15 +2675,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       target = prefix.lookupLocalMember(name);
       if (Elements.isUnresolved(target)) {
         registry.registerThrowNoSuchMethod();
-        return new ElementResult(warnAndCreateErroneousElement(
+        return new ElementResult(reportAndCreateErroneousElement(
             node, name, MessageKind.NO_SUCH_LIBRARY_MEMBER,
             {'libraryName': prefix.name, 'memberName': name}));
       } else if (target.isAmbiguous) {
         registry.registerThrowNoSuchMethod();
         AmbiguousElement ambiguous = target;
-        target = warnAndCreateErroneousElement(node, name,
-                                               ambiguous.messageKind,
-                                               ambiguous.messageArguments);
+        target = reportAndCreateErroneousElement(
+            node, name, ambiguous.messageKind, ambiguous.messageArguments);
         ambiguous.diagnose(enclosingElement, compiler);
         return new ElementResult(target);
       } else if (target.kind == ElementKind.CLASS) {
@@ -2805,9 +2823,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         target = field.getter;
         if (target == null && !inInstanceContext) {
           registry.registerThrowNoSuchMethod();
-          target =
-              warnAndCreateErroneousElement(node.selector, field.name,
-                                            MessageKind.CANNOT_RESOLVE_GETTER);
+          target = reportAndCreateErroneousElement(node.selector, field.name,
+              MessageKind.CANNOT_RESOLVE_GETTER, const {});
         }
       } else if (target.isTypeVariable) {
         ClassElement cls = target.enclosingClass;
@@ -2981,18 +2998,18 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         setter = field.setter;
         getter = field.getter;
         if (setter == null && !inInstanceContext) {
-          setter = warnAndCreateErroneousElement(
-              node.selector, field.name, MessageKind.CANNOT_RESOLVE_SETTER);
+          setter = reportAndCreateErroneousElement(node.selector, field.name,
+              MessageKind.CANNOT_RESOLVE_SETTER, const {});
           registry.registerThrowNoSuchMethod();
         }
         if (isComplex && getter == null && !inInstanceContext) {
-          getter = warnAndCreateErroneousElement(
-              node.selector, field.name, MessageKind.CANNOT_RESOLVE_GETTER);
+          getter = reportAndCreateErroneousElement(node.selector, field.name,
+              MessageKind.CANNOT_RESOLVE_GETTER, const {});
           registry.registerThrowNoSuchMethod();
         }
       } else if (target.impliesType) {
-        setter = warnAndCreateErroneousElement(
-            node.selector, target.name, MessageKind.ASSIGNING_TYPE);
+        setter = reportAndCreateErroneousElement(node.selector, target.name,
+            MessageKind.ASSIGNING_TYPE, const {});
         registry.registerThrowNoSuchMethod();
       } else if (target.isFinal ||
                  target.isConst ||
@@ -3000,11 +3017,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
                   Elements.isStaticOrTopLevelFunction(target) &&
                   !target.isSetter)) {
         if (target.isFunction) {
-          setter = warnAndCreateErroneousElement(
-              node.selector, target.name, MessageKind.ASSIGNING_METHOD);
+          setter = reportAndCreateErroneousElement(node.selector, target.name,
+              MessageKind.ASSIGNING_METHOD, const {});
         } else {
-          setter = warnAndCreateErroneousElement(
-              node.selector, target.name, MessageKind.CANNOT_RESOLVE_SETTER);
+          setter = reportAndCreateErroneousElement(node.selector, target.name,
+              MessageKind.CANNOT_RESOLVE_SETTER, const {});
         }
         registry.registerThrowNoSuchMethod();
       }
@@ -3035,7 +3052,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (node.isSuperCall) {
         getter = currentClass.lookupSuperSelector(getterSelector);
         if (getter == null) {
-          target = warnAndCreateErroneousElement(
+          target = reportAndCreateErroneousElement(
               node, selector.name, MessageKind.NO_SUCH_SUPER_MEMBER,
               {'className': currentClass, 'memberName': selector.name});
           registry.registerSuperNoSuchMethod();

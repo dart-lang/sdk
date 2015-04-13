@@ -155,6 +155,18 @@ class MessageKind {
   static const MessageKind CANNOT_RESOLVE = const MessageKind(
       "Cannot resolve '#{name}'.");
 
+  static const MessageKind CANNOT_RESOLVE_IN_INITIALIZER = const MessageKind(
+      "Cannot resolve '#{name}'. It would be implicitly looked up on this "
+      "instance, but instances are not available in initializers.",
+      howToFix: "Try correcting the unresolved reference or move the "
+          "initialization to a constructor body.",
+      examples: const ["""
+class A {
+  var test = unresolvedName;
+}
+main() => new A();
+"""]);
+
   static const MessageKind CANNOT_RESOLVE_CONSTRUCTOR = const MessageKind(
       "Cannot resolve constructor '#{constructorName}'.");
 
