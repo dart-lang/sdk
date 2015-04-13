@@ -122,16 +122,6 @@ abstract class BaseResolvedVisitor<R> extends Visitor<R>
   }
 }
 
-// TODO(johnniwinther): Remove this. Currently need by the old dart2dart
-// backend.
-abstract class OldResolvedVisitor<R> extends BaseResolvedVisitor<R> {
-  OldResolvedVisitor(TreeElements elements) : super(elements);
-
-  R visitSend(Send node) {
-    return _oldDispatch(node, this);
-  }
-}
-
 abstract class NewResolvedVisitor<R> extends BaseResolvedVisitor<R>
     with SendResolverMixin,
          GetBulkMixin<R, dynamic>,
