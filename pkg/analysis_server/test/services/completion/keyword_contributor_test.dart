@@ -74,7 +74,7 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Keyword.VOID
   ];
 
-  static const List<Keyword> IN_BLOCK_IN_CLASS = const [
+  static const List<Keyword> STMT_START_IN_CLASS = const [
     Keyword.ASSERT,
     Keyword.CASE,
     Keyword.CONTINUE,
@@ -95,7 +95,7 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Keyword.WHILE
   ];
 
-  static const List<Keyword> IN_BLOCK_NOT_IN_CLASS = const [
+  static const List<Keyword> STMT_START_OUTSIDE_CLASS = const [
     Keyword.ASSERT,
     Keyword.CASE,
     Keyword.CONTINUE,
@@ -353,7 +353,7 @@ class A {
 }
 ''');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(IN_BLOCK_NOT_IN_CLASS);
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS);
   }
 
   test_function_body_inClass_field() {
@@ -363,7 +363,7 @@ class A {
 }
 ''');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(IN_BLOCK_NOT_IN_CLASS);
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS);
   }
 
   test_function_body_inClass_methodBody() {
@@ -375,7 +375,7 @@ class A {
 }
 ''');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(IN_BLOCK_IN_CLASS);
+    assertSuggestKeywords(STMT_START_IN_CLASS);
   }
 
   test_function_body_inClass_methodBody_inFunction() {
@@ -389,19 +389,67 @@ class A {
 }
 ''');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(IN_BLOCK_IN_CLASS);
+    assertSuggestKeywords(STMT_START_IN_CLASS);
   }
 
   test_function_body_inUnit() {
     addTestSource('main() {^}');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(IN_BLOCK_NOT_IN_CLASS);
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS);
   }
 
   test_function_body_inUnit_afterBlock() {
     addTestSource('main() {{}^}');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(IN_BLOCK_NOT_IN_CLASS);
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS);
+  }
+
+  test_if_in_class() {
+    addTestSource('class A {foo() {if (true) ^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(STMT_START_IN_CLASS, DART_RELEVANCE_KEYWORD);
+  }
+
+  test_if_in_class2() {
+    addTestSource('class A {foo() {if (true) ^;}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(STMT_START_IN_CLASS, DART_RELEVANCE_KEYWORD);
+  }
+
+  test_if_in_class3() {
+    addTestSource('class A {foo() {if (true) r^;}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(STMT_START_IN_CLASS, DART_RELEVANCE_KEYWORD);
+  }
+
+  test_if_in_class4() {
+    addTestSource('class A {foo() {if (true) ^ go();}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(STMT_START_IN_CLASS, DART_RELEVANCE_KEYWORD);
+  }
+
+  test_if_outside_class() {
+    addTestSource('foo() {if (true) ^}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS, DART_RELEVANCE_KEYWORD);
+  }
+
+  test_if_outside_class2() {
+    addTestSource('foo() {if (true) ^;}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS, DART_RELEVANCE_KEYWORD);
+  }
+
+  test_if_outside_class3() {
+    addTestSource('foo() {if (true) r^;}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS, DART_RELEVANCE_KEYWORD);
+  }
+
+  test_if_outside_class4() {
+    addTestSource('foo() {if (true) ^ go();}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS, DART_RELEVANCE_KEYWORD);
   }
 
   test_import() {
@@ -464,12 +512,6 @@ class A {
     assertSuggestKeywords([Keyword.AS, Keyword.DEFERRED], DART_RELEVANCE_HIGH);
   }
 
-  test_import_deferred_not() {
-    addTestSource('import "foo" as foo ^;');
-    expect(computeFast(), isTrue);
-    assertSuggestKeywords([], DART_RELEVANCE_HIGH);
-  }
-
   test_import_deferred_as() {
     addTestSource('import "foo" ^;');
     expect(computeFast(), isTrue);
@@ -494,6 +536,12 @@ class A {
     assertSuggestKeywords([Keyword.AS, Keyword.DEFERRED], DART_RELEVANCE_HIGH);
   }
 
+  test_import_deferred_not() {
+    addTestSource('import "foo" as foo ^;');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([], DART_RELEVANCE_HIGH);
+  }
+
   test_library() {
     addTestSource('library foo;^');
     expect(computeFast(), isTrue);
@@ -510,7 +558,7 @@ class A {
   test_method_body() {
     addTestSource('class A { foo() {^}}');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(IN_BLOCK_IN_CLASS);
+    assertSuggestKeywords(STMT_START_IN_CLASS);
   }
 
   test_named_constructor_invocation() {

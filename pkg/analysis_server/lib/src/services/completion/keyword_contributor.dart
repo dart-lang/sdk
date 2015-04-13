@@ -41,27 +41,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitBlock(Block node) {
-    if (_isInClassMemberBody(node)) {
-      _addSuggestions([Keyword.SUPER, Keyword.THIS,]);
-    }
-    _addSuggestions([
-      Keyword.ASSERT,
-      Keyword.CASE,
-      Keyword.CONTINUE,
-      Keyword.DO,
-      Keyword.FINAL,
-      Keyword.FOR,
-      Keyword.IF,
-      Keyword.NEW,
-      Keyword.RETHROW,
-      Keyword.RETURN,
-      Keyword.SWITCH,
-      Keyword.THROW,
-      Keyword.TRY,
-      Keyword.VAR,
-      Keyword.VOID,
-      Keyword.WHILE
-    ]);
+    _addStatementKeywords(node);
   }
 
   @override
@@ -138,6 +118,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitIfStatement(IfStatement node) {
+    if (entity == node.thenStatement) {
+      _addStatementKeywords(node);
+    }
+  }
+
+  @override
   visitImportDirective(ImportDirective node) {
     if (entity == node.asKeyword) {
       if (node.deferredKeyword == null) {
@@ -146,15 +133,6 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     }
     if (entity == node.semicolon || node.combinators.contains(entity)) {
       _addImportDirectiveKeywords(node);
-    }
-  }
-
-  void _addImportDirectiveKeywords(ImportDirective node) {
-    if (node.asKeyword == null) {
-      _addSuggestion(Keyword.AS, DART_RELEVANCE_HIGH);
-      if (node.deferredKeyword == null) {
-        _addSuggestion(Keyword.DEFERRED, DART_RELEVANCE_HIGH);
-      }
     }
   }
 
@@ -169,6 +147,39 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     if (node.implementsClause == null) {
       _addSuggestion(Keyword.IMPLEMENTS, DART_RELEVANCE_HIGH);
     }
+  }
+
+  void _addImportDirectiveKeywords(ImportDirective node) {
+    if (node.asKeyword == null) {
+      _addSuggestion(Keyword.AS, DART_RELEVANCE_HIGH);
+      if (node.deferredKeyword == null) {
+        _addSuggestion(Keyword.DEFERRED, DART_RELEVANCE_HIGH);
+      }
+    }
+  }
+
+  void _addStatementKeywords(AstNode node) {
+    if (_isInClassMemberBody(node)) {
+      _addSuggestions([Keyword.SUPER, Keyword.THIS,]);
+    }
+    _addSuggestions([
+      Keyword.ASSERT,
+      Keyword.CASE,
+      Keyword.CONTINUE,
+      Keyword.DO,
+      Keyword.FINAL,
+      Keyword.FOR,
+      Keyword.IF,
+      Keyword.NEW,
+      Keyword.RETHROW,
+      Keyword.RETURN,
+      Keyword.SWITCH,
+      Keyword.THROW,
+      Keyword.TRY,
+      Keyword.VAR,
+      Keyword.VOID,
+      Keyword.WHILE
+    ]);
   }
 
   void _addSuggestion(Keyword keyword,
