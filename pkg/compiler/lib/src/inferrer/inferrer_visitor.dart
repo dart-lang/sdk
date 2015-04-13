@@ -703,7 +703,7 @@ abstract class InferrerVisitor
     locals = new LocalsHandler<T>(inferrer, types, compiler, node, fieldScope);
   }
 
-  T handleSendSet(SendSet node);
+  T visitSendSet(SendSet node);
 
   T visitSuperSend(Send node);
 
@@ -736,7 +736,7 @@ abstract class InferrerVisitor
     return node.visitChildren(this);
   }
 
-  T handleNewExpression(NewExpression node) {
+  T visitNewExpression(NewExpression node) {
     return node.send.accept(this);
   }
 

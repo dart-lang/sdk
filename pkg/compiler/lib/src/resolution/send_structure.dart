@@ -14,18 +14,11 @@ import '../tree/tree.dart';
 import '../universe/universe.dart';
 import '../util/util.dart';
 
-/// Interface for the structure of the semantics of a [Send] or [NewExpression]
-/// node.
-abstract class SemanticSendStructure<R, A> {
-  /// Calls the matching visit method on [visitor] with [node] and [arg].
-  R dispatch(SemanticSendVisitor<R, A> visitor, Node node, A arg);
-}
-
 /// Interface for the structure of the semantics of a [Send] node.
 ///
 /// Subclasses handle each of the [Send] variations; `assert(e)`, `a && b`,
 /// `a.b`, `a.b(c)`, etc.
-abstract class SendStructure<R, A> extends SemanticSendStructure<R, A> {
+abstract class SendStructure<R, A> {
   /// Calls the matching visit method on [visitor] with [send] and [arg].
   R dispatch(SemanticSendVisitor<R, A> visitor, Send send, A arg);
 }
@@ -1818,7 +1811,7 @@ class PostfixStructure<R, A> implements SendStructure<R, A> {
 }
 
 /// The structure for a [NewExpression] of a new invocation.
-abstract class NewStructure<R, A> implements SemanticSendStructure<R, A> {
+abstract class NewStructure<R, A> {
   /// Calls the matching visit method on [visitor] with [node] and [arg].
   R dispatch(SemanticSendVisitor<R, A> visitor, NewExpression node, A arg);
 }

@@ -152,12 +152,6 @@ class SendVisitor extends OldResolvedVisitor {
       }
     }
   }
-
-  @override
-  handleNewExpression(NewExpression node) => visitNode(node);
-
-  @override
-  handleSendSet(SendSet node) => visitNode(node);
 }
 
 class PlaceholderCollector extends Visitor {

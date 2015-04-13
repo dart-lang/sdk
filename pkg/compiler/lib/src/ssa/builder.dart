@@ -4778,8 +4778,7 @@ class SsaBuilder extends NewResolvedVisitor {
                               existingArguments: existingArguments);
   }
 
-  @override
-  handleNewExpression(ast.NewExpression node) {
+  visitNewExpression(ast.NewExpression node) {
     Element element = elements[node.send];
     final bool isSymbolConstructor = element == compiler.symbolConstructor;
     if (!Elements.isErroneous(element)) {
@@ -4966,8 +4965,7 @@ class SsaBuilder extends NewResolvedVisitor {
                     elements.getOperatorSelectorInComplexSendSet(node), node);
   }
 
-  @override
-  handleSendSet(ast.SendSet node) {
+  visitSendSet(ast.SendSet node) {
     generateIsDeferredLoadedCheckIfNeeded(node);
     Element element = elements[node];
     if (!Elements.isUnresolved(element) && element.impliesType) {

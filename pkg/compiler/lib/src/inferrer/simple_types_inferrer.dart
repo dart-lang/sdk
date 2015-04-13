@@ -773,8 +773,7 @@ class SimpleTypeInferrerVisitor<T>
         || (element != null && element.isInstanceMember);
   }
 
-  @override
-  T handleSendSet(ast.SendSet node) {
+  T visitSendSet(ast.SendSet node) {
     Element element = elements[node];
     if (!Elements.isUnresolved(element) && element.impliesType) {
       node.visitChildren(this);

@@ -17,8 +17,6 @@ enum ResolvedKind {
   CLOSURE,
   DYNAMIC,
   ERROR,
-  SEND_SET,
-  NEW,
 }
 
 /// Abstract interface for a [ResolvedVisitor].
@@ -30,8 +28,6 @@ abstract class ResolvedKindVisitor<R> {
   R visitClosureSend(Send node);
   R visitDynamicSend(Send node);
   R visitStaticSend(Send node);
-  R handleSendSet(SendSet node);
-  R handleNewExpression(NewExpression node);
 
   /// Visitor callback for a type literal.
   R visitTypeLiteralSend(Send node);
@@ -60,8 +56,6 @@ class ResolvedKindComputer implements ResolvedKindVisitor {
   ResolvedKind visitTypeLiteralSend(Send node) => ResolvedKind.TYPE_LITERAL;
   ResolvedKind visitTypePrefixSend(Send node) => ResolvedKind.TYPE_PREFIX;
   ResolvedKind visitAssertSend(Send node) => ResolvedKind.ASSERT;
-  ResolvedKind handleSendSet(SendSet node) => ResolvedKind.SEND_SET;
-  ResolvedKind handleNewExpression(NewExpression node) => ResolvedKind.NEW;
   internalError(Spannable node, String reason) => ResolvedKind.ERROR;
 }
 
@@ -136,14 +130,6 @@ abstract class OldResolvedVisitor<R> extends BaseResolvedVisitor<R> {
   R visitSend(Send node) {
     return _oldDispatch(node, this);
   }
-
-  R visitSendSet(SendSet node) {
-    return handleSendSet(node);
-  }
-
-  R visitNewExpression(NewExpression node) {
-    return handleNewExpression(node);
-  }
 }
 
 abstract class NewResolvedVisitor<R> extends BaseResolvedVisitor<R>
@@ -199,52 +185,16 @@ abstract class NewResolvedVisitor<R> extends BaseResolvedVisitor<R>
     }
   }
 
-  bool checkResolvedKind(Node node,
-                         ResolvedKind oldKind,
-                         ResolvedKind newKind) {
-    return invariant(node, oldKind == newKind, message: '$oldKind != $newKind');
-  }
-
-  ResolvedKind computeResolvedKindFromStructure(
-      Node node, SemanticSendStructure structure) {
-    return structure.dispatch(
-        _resolvedKindDispatcher, node, const ResolvedKindComputer());
-  }
-
-  @override
   R visitSend(Send node) {
-    assert(checkResolvedKind(
-        node,
-        _oldDispatch(node, const ResolvedKindComputer()),
-        _newDispatch(node, const ResolvedKindComputer(),
-            _resolvedKindDispatcher)));
+    ResolvedKind oldKind;
+    ResolvedKind newKind;
+    assert(invariant(node, () {
+      oldKind = _oldDispatch(node, const ResolvedKindComputer());
+      newKind = _newDispatch(
+          node, const ResolvedKindComputer(), _resolvedKindDispatcher);
+      return oldKind == newKind;
+    }, message: () => '$oldKind != $newKind'));
     return _newDispatch(node, this, this);
-  }
-
-  @override
-  R visitSendSet(Send node) {
-    SendStructure structure = computeSendStructure(node);
-    if (structure == null) {
-      return internalError(node, 'No structure for $node');
-    } else {
-      assert(checkResolvedKind(node,
-          ResolvedKind.SEND_SET,
-          computeResolvedKindFromStructure(node, structure)));
-      return structure.dispatch(this, node, structure);
-    }
-  }
-
-  @override
-  R visitNewExpression(NewExpression node) {
-    NewStructure structure = computeNewStructure(node);
-    if (structure == null) {
-      return internalError(node, 'No structure for $node');
-    } else {
-      assert(checkResolvedKind(node,
-          ResolvedKind.NEW,
-          computeResolvedKindFromStructure(node, structure)));
-      return structure.dispatch(this, node, structure);
-    }
   }
 
   @override
@@ -256,8 +206,8 @@ abstract class NewResolvedVisitor<R> extends BaseResolvedVisitor<R>
   R bulkHandleNode(
       Node node,
       String message,
-      SemanticSendStructure structure) {
-    return structure.dispatch(_semanticDispatcher, node, this);
+      SendStructure sendStructure) {
+    return sendStructure.dispatch(_semanticDispatcher, node, this);
   }
 }
 
@@ -289,16 +239,13 @@ class ResolvedSemanticDispatcher<R> extends Object
       Node node,
       String message,
       ResolvedKindVisitor<R> visitor) {
+    // Set, Compound, IndexSet, and NewExpression are not handled by
+    // [ResolvedVisitor].
     return bulkHandleError(node, visitor);
   }
 
   R bulkHandleError(Node node, ResolvedKindVisitor<R> visitor) {
-    if (node.asSendSet() != null) {
-      return visitor.handleSendSet(node);
-    } else if (node.asNewExpression() != null) {
-      return visitor.handleNewExpression(node);
-    }
-    return visitor.internalError(node, "No resolved kind for $node.");
+    return visitor.internalError(node, "No resolved kind for node.");
   }
 
   @override
@@ -314,40 +261,17 @@ class ResolvedSemanticDispatcher<R> extends Object
 
   @override
   R bulkHandlePrefix(Node node, ResolvedKindVisitor<R> visitor) {
-    return visitor.handleSendSet(node);
+    return visitor.visitOperatorSend(node);
   }
 
   @override
   R bulkHandlePostfix(Node node, ResolvedKindVisitor<R> visitor) {
-    return visitor.handleSendSet(node);
+    return visitor.visitOperatorSend(node);
   }
 
   @override
   R bulkHandleSuper(Node node, ResolvedKindVisitor<R> visitor) {
-    if (node.asSendSet() != null) {
-      return visitor.handleSendSet(node);
-    }
     return visitor.visitSuperSend(node);
-  }
-
-  @override
-  R bulkHandleSet(SendSet node, ResolvedKindVisitor<R> visitor) {
-    return visitor.handleSendSet(node);
-  }
-
-  @override
-  R bulkHandleCompound(SendSet node, ResolvedKindVisitor<R> visitor) {
-    return visitor.handleSendSet(node);
-  }
-
-  @override
-  R bulkHandleIndexSet(SendSet node, ResolvedKindVisitor<R> visitor) {
-    return visitor.handleSendSet(node);
-  }
-
-  @override
-  R bulkHandleNew(NewExpression node, ResolvedKindVisitor<R> visitor) {
-    return visitor.handleNewExpression(node);
   }
 
   @override
