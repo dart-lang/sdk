@@ -372,6 +372,7 @@ class Isolate {
    * created by calling `toString` on the error.
    * The second element is a `String` representation of an accompanying
    * stack trace, or `null` if no stack trace was provided.
+   * To convert this back to a [StackTrace] object, use [StackTrace.fromString].
    *
    * Listening using the same port more than once does nothing. It will only
    * get each error once.
@@ -607,12 +608,6 @@ class RemoteError implements Error {
   final StackTrace stackTrace;
   RemoteError(String description, String stackDescription)
       : _description = description,
-        stackTrace = new _RemoteStackTrace(stackDescription);
+        stackTrace = new StackTrace.fromString(stackDescription);
   String toString() => _description;
-}
-
-class _RemoteStackTrace implements StackTrace {
-  String _trace;
-  _RemoteStackTrace(this._trace);
-  String toString() => _trace;
 }
