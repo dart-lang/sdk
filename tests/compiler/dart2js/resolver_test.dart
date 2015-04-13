@@ -88,6 +88,7 @@ main() {
     testOverrideHashCodeCheck,
     testSupertypeOrder,
     testConstConstructorAndNonFinalFields,
+    testCantAssignMethods,
   ], (f) => f()));
 }
 
@@ -1141,4 +1142,99 @@ testConstConstructorAndNonFinalFields() {
          MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD,
          MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD]);
   }));
+}
+
+testCantAssignMethods() {
+  checkWarningOn(String script, List<String> errorLocations) {
+    asyncTest(() => compileScript(script).then((compiler) {
+      Expect.equals(0, compiler.errors.length);
+      Expect.equals(errorLocations.length, compiler.warnings.length);
+      for (var i = 0; i < errorLocations.length; i++) {
+        Expect.equals(MessageKind.ASSIGNING_METHOD,
+            compiler.warnings[i].message.kind);
+        Expect.equals(script.indexOf(errorLocations[i]),
+            compiler.warnings[i].node.getBeginToken().charOffset);
+      }
+    }));
+  }
+
+  // Can't override local functions
+  checkWarningOn('''
+      main() {
+        mname() { mname = 2; };
+        mname();
+      }
+      ''', ['mname = 2']);
+
+  checkWarningOn('''
+      main() {
+        mname() { };
+        mname = 3;
+      }
+      ''', ['mname = 3']);
+
+  // Can't override top-level functions
+  checkWarningOn('''
+      m() {}
+      main() { m = 4; }
+      ''', ['m = 4']);
+
+  // Can't override instance methods
+  checkWarningOn('''
+      main() { new B().bar(); }
+      class B {
+        mname() {}
+        bar() {
+          mname = () => null;
+        }
+      }
+      ''', ['mname = () => null']);
+
+  // Can't override super methods
+  checkWarningOn('''
+      main() { new B().bar(); }
+      class A {
+        mname() {}
+      }
+      class B extends A {
+        bar() {
+          super.mname = () => 6;
+        }
+      }
+      ''', ['mname = () => 6']);
+
+  // But fields are OK:
+  checkWarningOn('''
+      main() { new B().bar(); }
+      class A {
+        int fname;
+      }
+      class B extends A {
+        bar() {
+          super.fname = 3;
+        }
+      }
+      ''', []);
+
+  // And we shouldn't confuse index operators either:
+  checkWarningOn('''
+      main() { new B().bar(); }
+      class B {
+        operator[]=(x, y) {}
+        bar() {
+          this[1] = 3; // This is OK
+        }
+      }
+      ''', []);
+  checkWarningOn('''
+      main() { new B().bar(); }
+      class A {
+        operator[]=(x, y) {}
+      }
+      class B extends A {
+        bar() {
+          super[1] = 3; // This is OK
+        }
+      }
+      ''', []);
 }

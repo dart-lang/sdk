@@ -3011,19 +3011,17 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         setter = reportAndCreateErroneousElement(node.selector, target.name,
             MessageKind.ASSIGNING_TYPE, const {});
         registry.registerThrowNoSuchMethod();
-      } else if (target.isFinal ||
-                 target.isConst ||
-                 (target.isFunction &&
-                  Elements.isStaticOrTopLevelFunction(target) &&
-                  !target.isSetter)) {
-        if (target.isFunction) {
-          setter = reportAndCreateErroneousElement(node.selector, target.name,
-              MessageKind.ASSIGNING_METHOD, const {});
-        } else {
-          setter = reportAndCreateErroneousElement(node.selector, target.name,
-              MessageKind.CANNOT_RESOLVE_SETTER, const {});
-        }
+      } else if (target.isFinal || target.isConst) {
+        setter = reportAndCreateErroneousElement(
+              node.selector, target.name, MessageKind.CANNOT_RESOLVE_SETTER,
+              const {});
         registry.registerThrowNoSuchMethod();
+      } else if (target.isFunction && target.name != '[]=') {
+        assert(!target.isSetter);
+        setter = reportAndCreateErroneousElement(
+            node.selector, target.name, MessageKind.ASSIGNING_METHOD, const {});
+        registry.registerThrowNoSuchMethod();
+        if (node.isSuperCall) registry.registerSuperNoSuchMethod();
       }
       if (isPotentiallyMutableTarget(target)) {
         registry.registerPotentialMutation(target, node);

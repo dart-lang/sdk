@@ -42,6 +42,7 @@ Language/12_Expressions/12_Instance_Creation/1_New_A02_t07: fail # Issue 21092 a
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t15: CompileTimeError # Issue 21092
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t01: fail # Issue 21134 and co19 issue 714
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t03: fail # Issue 21134 and co19 issue 714
+Language/12_Expressions/18_Assignment_A05_t05: fail # Issue 23193
 Language/12_Expressions/22_Equality_A01_t01: fail # Issue 21137
 Language/12_Expressions/22_Equality_A05_t01: fail # Issue 21137
 Language/12_Expressions/30_Identifier_Reference_A02_t01: fail # Issue 21154
