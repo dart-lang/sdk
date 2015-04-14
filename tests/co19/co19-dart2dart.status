@@ -56,8 +56,6 @@ Language/12_Expressions/12_Instance_Creation/1_New_A06_t06: fail # co19-roll r54
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t15: CompileTimeError # Issue 21092
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t01: MissingCompileTimeError # Issue 21134
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t03: MissingCompileTimeError # Issue 21134
-Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t17: MissingCompileTimeError # Issue 21210
-Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t18: MissingCompileTimeError # Issue 21210
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: RuntimeError # co19-roll r623: Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A07_t02: Pass, RuntimeError # co19-roll r607: Please triage this failure
 Language/12_Expressions/22_Equality_A01_t01: fail # co19-roll r546: Please triage this failure
