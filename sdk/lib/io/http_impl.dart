@@ -1883,7 +1883,7 @@ class _HttpClient implements HttpClient {
           // On error, continue with next proxy.
           .catchError(connect);
     }
-    return new Future(() => connect(new HttpException("No proxies given")));
+    return connect(new HttpException("No proxies given"));
   }
 
   _SiteCredentials _findCredentials(Uri url, [_AuthenticationScheme scheme]) {
