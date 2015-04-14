@@ -1,7 +1,7 @@
 name: dev_compiler
 description: Dart dev checker / compiler
 dependencies:
-  analyzer: ^0.24.3
+  analyzer: ^0.24.4
   args: ^0.12.1
   cli_util: ^0.0.1
   crypto: ^0.9.0

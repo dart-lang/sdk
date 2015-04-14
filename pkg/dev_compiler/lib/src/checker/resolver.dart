@@ -451,22 +451,6 @@ class RestrictedResolverVisitor extends ResolverVisitor {
         super.con1(library, source, typeProvider,
             typeAnalyzerFactory: RestrictedStaticTypeAnalyzer.constructor);
 
-  @override
-  visitCatchClause(CatchClause node) {
-    var stack = node.stackTraceParameter;
-    if (stack != null) {
-      // TODO(jmesserly): analyzer does not correctly associate StackTrace type.
-      // It happens too late in TypeResolverVisitor visitCatchClause.
-      var element = stack.staticElement;
-      if (element is VariableElementImpl && element.type == null) {
-        // From the language spec:
-        // The static type of p1 is T and the static type of p2 is StackTrace.
-        element.type = _typeProvider.stackTraceType;
-      }
-    }
-    return super.visitCatchClause(node);
-  }
-
   reanalyzeInitializer(VariableDeclaration variable) {
     try {
       _revisiting = true;
@@ -708,8 +692,13 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
 
   @override // to propagate types to identifiers
   visitMethodInvocation(MethodInvocation node) {
-    // TODO(sigmund): follow up with analyzer team - why is this needed?
+    // TODO(jmesserly): we rely on having a staticType propagated to the
+    // methodName identifier. This shouldn't be necessary for method calls, so
+    // analyzer doesn't do it by default. Conceptually what we're doing here
+    // is asking for a tear off. We need this until we can fix #132, and rely
+    // on `node.staticElement == null` instead of `rules.isDynamicCall(node)`.
     visitSimpleIdentifier(node.methodName);
+
     super.visitMethodInvocation(node);
 
     // Search for Object methods.
