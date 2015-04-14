@@ -35,24 +35,20 @@ CompilationUnit parseCompilationUnit(String contents,
     {String name, bool suppressErrors: false, bool parseFunctionBodies: true}) {
   if (name == null) name = '<unknown source>';
   var source = new StringSource(contents, name);
-  var errorCollector = new _ErrorCollector();
-  var reader = new CharSequenceReader(contents);
-  var scanner = new Scanner(source, reader, errorCollector);
-  var token = scanner.tokenize();
-  var parser = new Parser(source, errorCollector);
-  parser.parseFunctionBodies = parseFunctionBodies;
-  var unit = parser.parseCompilationUnit(token);
-  unit.lineInfo = new LineInfo(scanner.lineStarts);
-
-  if (errorCollector.hasErrors && !suppressErrors) throw errorCollector.group;
-
-  return unit;
+  return _parseSource(contents, source,
+      suppressErrors: suppressErrors, parseFunctionBodies: parseFunctionBodies);
 }
 
 /// Parses a Dart file into an AST.
-CompilationUnit parseDartFile(String path) {
+///
+/// Throws an [AnalyzerErrorGroup] if any errors occurred, unless
+/// [suppressErrors] is `true`, in which case any errors are discarded.
+///
+/// If [parseFunctionBodies] is [false] then only function signatures will be
+/// parsed.
+CompilationUnit parseDartFile(String path,
+    {bool suppressErrors: false, bool parseFunctionBodies: true}) {
   String contents = new File(path).readAsStringSync();
-  var errorCollector = new _ErrorCollector();
   var sourceFactory = new SourceFactory([new FileUriResolver()]);
 
   var absolutePath = pathos.absolute(path);
@@ -64,14 +60,22 @@ CompilationUnit parseDartFile(String path) {
     throw new ArgumentError("Source $source doesn't exist");
   }
 
+  return _parseSource(contents, source,
+      suppressErrors: suppressErrors, parseFunctionBodies: parseFunctionBodies);
+}
+
+CompilationUnit _parseSource(String contents, Source source,
+    {bool suppressErrors: false, bool parseFunctionBodies: true}) {
   var reader = new CharSequenceReader(contents);
+  var errorCollector = new _ErrorCollector();
   var scanner = new Scanner(source, reader, errorCollector);
   var token = scanner.tokenize();
-  var parser = new Parser(source, errorCollector);
-  var unit = parser.parseCompilationUnit(token);
-  unit.lineInfo = new LineInfo(scanner.lineStarts);
+  var parser = new Parser(source, errorCollector)
+    ..parseFunctionBodies = parseFunctionBodies;
+  var unit = parser.parseCompilationUnit(token)
+    ..lineInfo = new LineInfo(scanner.lineStarts);
 
-  if (errorCollector.hasErrors) throw errorCollector.group;
+  if (errorCollector.hasErrors && !suppressErrors) throw errorCollector.group;
 
   return unit;
 }
