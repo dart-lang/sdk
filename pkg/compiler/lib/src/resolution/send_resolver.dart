@@ -455,14 +455,26 @@ abstract class SendResolverMixin {
 
   NewStructure computeNewStructure(NewExpression node) {
     if (node.isConst) {
-      return new ConstInvokeStructure(elements.getConstant(node));
+      ConstantExpression constant = elements.getConstant(node);
+      if (constant is ConstructedConstantExpression) {
+        return new ConstInvokeStructure(constant);
+      }
     }
+
     Element element = elements[node.send];
     Selector selector = elements.getSelector(node.send);
     DartType type = elements.getType(node);
 
-    ConstructorAccessSemantics constructorAccessSemantics =
-        computeConstructorAccessSemantics(element, type);
+    ConstructorAccessSemantics constructorAccessSemantics;
+    if (node.isConst) {
+      // This is a non-constant constant constructor invocation, like
+      // `const Const(method())`.
+      constructorAccessSemantics = new ConstructorAccessSemantics(
+          ConstructorAccessKind.ERRONEOUS, element, type);
+    } else {
+      constructorAccessSemantics =
+          computeConstructorAccessSemantics(element, type);
+    }
     return new NewInvokeStructure(constructorAccessSemantics, selector);
   }
 }
