@@ -4566,14 +4566,14 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
     }
     // ignore places where the element is not actually used
     if (node.parent is TypeName) {
-      AstNode parent2 = node.parent.parent;
-      if (parent2 is IsExpression) {
-        return;
-      }
-      // We need to instantiate/extend/implement a class to actually use it.
-      // OTOH, function type aliases are used to define closure structures.
-      if (parent2 is VariableDeclarationList && element is ClassElement) {
-        return;
+      if (element is ClassElement) {
+        AstNode parent2 = node.parent.parent;
+        if (parent2 is IsExpression) {
+          return;
+        }
+        if (parent2 is VariableDeclarationList) {
+          return;
+        }
       }
     }
     // OK
