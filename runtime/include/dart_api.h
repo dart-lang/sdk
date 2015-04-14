@@ -1399,6 +1399,16 @@ DART_EXPORT Dart_Handle Dart_NewInteger(int64_t value);
 /**
  * Returns an Integer with the provided value.
  *
+ * \param value The unsigned value of the integer.
+ *
+ * \return The Integer object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_NewIntegerFromUint64(uint64_t value);
+
+/**
+ * Returns an Integer with the provided value.
+ *
  * \param value The value of the integer represented as a C string
  *   containing a hexadecimal number.
  *

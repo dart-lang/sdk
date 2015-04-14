@@ -796,6 +796,7 @@ TEST_CASE(IntegerValues) {
   const int64_t kIntegerVal1 = 100;
   const int64_t kIntegerVal2 = 0xffffffff;
   const char* kIntegerVal3 = "0x123456789123456789123456789";
+  const uint64_t kIntegerVal4 = 0xffffffffffffffff;
 
   Dart_Handle val1 = Dart_NewInteger(kIntegerVal1);
   EXPECT(Dart_IsInteger(val1));
@@ -829,6 +830,19 @@ TEST_CASE(IntegerValues) {
   result = Dart_IntegerToHexCString(val3, &chars);
   EXPECT_VALID(result);
   EXPECT(!strcmp(kIntegerVal3, chars));
+
+  Dart_Handle val4 = Dart_NewIntegerFromUint64(kIntegerVal4);
+  EXPECT_VALID(val4);
+  uint64_t out4 = 0;
+  result = Dart_IntegerToUint64(val4, &out4);
+  EXPECT_VALID(result);
+  EXPECT_EQ(kIntegerVal4, out4);
+
+  Dart_Handle val5 = Dart_NewInteger(-1);
+  EXPECT_VALID(val5);
+  uint64_t out5 = 0;
+  result = Dart_IntegerToUint64(val5, &out5);
+  EXPECT(Dart_IsError(result));
 }
 
 
@@ -847,7 +861,7 @@ TEST_CASE(IntegerFitsIntoInt64) {
   EXPECT_VALID(result);
   EXPECT(!fits);
 
-  Dart_Handle min = Dart_NewInteger(kMaxInt64);
+  Dart_Handle min = Dart_NewInteger(kMinInt64);
   EXPECT(Dart_IsInteger(min));
   fits = false;
   result = Dart_IntegerFitsIntoInt64(min, &fits);
@@ -864,7 +878,7 @@ TEST_CASE(IntegerFitsIntoInt64) {
 
 
 TEST_CASE(IntegerFitsIntoUint64) {
-  Dart_Handle max = Dart_NewIntegerFromHexCString("0xFFFFFFFFFFFFFFFF");
+  Dart_Handle max = Dart_NewIntegerFromUint64(kMaxUint64);
   EXPECT(Dart_IsInteger(max));
   bool fits = false;
   Dart_Handle result = Dart_IntegerFitsIntoUint64(max, &fits);
