@@ -1260,7 +1260,6 @@ class RecursiveVisitor implements Visitor {
   }
 
   processTypeExpression(TypeExpression node) {}
-  @override
   visitTypeExpression(TypeExpression node) {
     processTypeExpression(node);
     node.arguments.forEach(processReference);

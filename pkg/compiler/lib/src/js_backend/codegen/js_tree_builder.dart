@@ -56,10 +56,11 @@ class JsTreeBuilder extends Builder {
   }
 
   Statement visitSetField(cps_ir.SetField node) {
-    return new SetField(getVariableUse(node.object),
-                        node.field,
-                        getVariableUse(node.value),
-                        visit(node.body));
+    SetField setField =
+        new SetField(getVariableUse(node.object),
+                     node.field,
+                     getVariableUse(node.value));
+    return new ExpressionStatement(setField, visit(node.body));
   }
 
   Expression visitCreateBox(cps_ir.CreateBox node) {

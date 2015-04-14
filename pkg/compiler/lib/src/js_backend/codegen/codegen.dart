@@ -396,6 +396,13 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
+  js.Expression visitAssign(tree_ir.Assign node) {
+    return new js.Assignment(
+        buildVariableAccess(node.variable),
+        visitExpression(node.value));
+  }
+
+  @override
   void visitContinue(tree_ir.Continue node) {
     tree_ir.Statement fallthrough = this.fallthrough;
     if (node.target.binding == fallthrough) {
@@ -442,17 +449,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
     }
     fallthrough = savedFallthrough;
     return result;
-  }
-
-  @override
-  void visitAssign(tree_ir.Assign node) {
-    tree_ir.Expression value = node.value;
-    js.Expression definition = visitExpression(value);
-
-    accumulator.add(new js.ExpressionStatement(new js.Assignment(
-        buildVariableAccess(node.variable),
-        definition)));
-    visitStatement(node.next);
   }
 
   @override
@@ -561,14 +557,12 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
-  void visitSetField(tree_ir.SetField node) {
+  js.Assignment visitSetField(tree_ir.SetField node) {
     js.PropertyAccess field =
         new js.PropertyAccess.field(
             visitExpression(node.object),
             glue.instanceFieldPropertyName(node.field));
-    js.Assignment asn = new js.Assignment(field, visitExpression(node.value));
-    accumulator.add(new js.ExpressionStatement(asn));
-    visitStatement(node.next);
+    return new js.Assignment(field, visitExpression(node.value));
   }
 
   js.Expression buildStaticHelperInvocation(FunctionElement helper,
@@ -624,6 +618,11 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   visitFunctionDeclaration(tree_ir.FunctionDeclaration node) {
+    return errorUnsupportedNode(node);
+  }
+
+  @override
+  visitVariableDeclaration(tree_ir.VariableDeclaration node) {
     return errorUnsupportedNode(node);
   }
 

@@ -285,8 +285,7 @@ main(a) {
 }
 ''', '''
 main(a) {
-  a = a ? "" : a;
-  print(a);
+  print(a = a ? "" : a);
   return a;
 }
 '''),

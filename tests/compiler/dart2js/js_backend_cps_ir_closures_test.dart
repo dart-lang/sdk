@@ -24,8 +24,7 @@ function(x) {
   var _box_0 = {}, a;
   _box_0._captured_x_0 = x;
   a = new V.main_a(_box_0);
-  x = _box_0._captured_x_0;
-  _box_0._captured_x_0 = J.getInterceptor$ns(x).$add(x, "1");
+  _box_0._captured_x_0 = J.getInterceptor$ns(x = _box_0._captured_x_0).$add(x, "1");
   P.print(a.call$0());
   return null;
 }"""),
@@ -57,8 +56,7 @@ function() {
   var _box_0 = {}, a, x;
   _box_0._captured_x_0 = 122;
   a = new V.main_closure(_box_0);
-  x = _box_0._captured_x_0;
-  _box_0._captured_x_0 = J.getInterceptor$ns(x).$add(x, 1);
+  _box_0._captured_x_0 = J.getInterceptor$ns(x = _box_0._captured_x_0).$add(x, 1);
   P.print(a.call$0());
   return null;
 }"""),
@@ -79,8 +77,7 @@ function() {
   var _box_0 = {}, a, x;
   _box_0._captured_x_0 = 122;
   a = new V.main_closure(_box_0);
-  x = _box_0._captured_x_0;
-  _box_0._captured_x_0 = J.getInterceptor$ns(x).$add(x, 1);
+  _box_0._captured_x_0 = J.getInterceptor$ns(x = _box_0._captured_x_0).$add(x, 1);
   P.print(a.call$0().call$0());
   return null;
 }"""),

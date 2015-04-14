@@ -4,7 +4,7 @@
 
 library tree_ir.optimization.variable_merger;
 
-import 'optimization.dart' show Pass, PassMixin;
+import 'optimization.dart' show Pass;
 import '../tree_ir_nodes.dart';
 import '../../elements/elements.dart' show Local, ParameterElement;
 
@@ -165,10 +165,14 @@ class BlockGraphBuilder extends RecursiveVisitor {
     read(node.variable);
   }
 
+  visitVariableDeclaration(VariableDeclaration node) {
+    assert(node.variable.isCaptured);
+    visitStatement(node.next);
+  }
+
   visitAssign(Assign node) {
     visitExpression(node.value);
     write(node.variable);
-    visitStatement(node.next);
   }
 
   visitIf(If node) {
@@ -227,16 +231,17 @@ class BlockGraphBuilder extends RecursiveVisitor {
 
   visitConditional(Conditional node) {
     visitExpression(node.condition);
-    // TODO(asgerf): When assignment expressions are added, this is no longer
-    // sound; then we need to handle as a branch.
+    Block afterCondition = _currentBlock;
+    branchFrom(afterCondition);
     visitExpression(node.thenExpression);
+    branchFrom(afterCondition);
     visitExpression(node.elseExpression);
   }
 
   visitLogicalOperator(LogicalOperator node) {
     visitExpression(node.left);
-    // TODO(asgerf): When assignment expressions are added, this is no longer
-    // sound; then we need to handle as a branch.
+    Block afterCondition = _currentBlock;
+    branchFrom(afterCondition);
     visitExpression(node.right);
   }
 
@@ -493,22 +498,41 @@ class SubstituteVariables extends RecursiveTransformer {
     return node;
   }
 
-  Statement visitAssign(Assign node) {
+  Expression visitAssign(Assign node) {
     node.variable = replaceWrite(node.variable);
-
-    visitExpression(node.value);
-    node.next = visitStatement(node.next);
+    node.value = visitExpression(node.value);
 
     // Remove assignments of form "x := x"
     if (node.value is VariableUse) {
       VariableUse value = node.value;
       if (value.variable == node.variable) {
-        value.variable.readCount--;
-        node.variable.writeCount--;
-        return node.next;
+        --node.variable.writeCount;
+        return value;
       }
     }
 
     return node;
   }
+
+  Statement visitExpressionStatement(ExpressionStatement node) {
+    node.expression = visitExpression(node.expression);
+    node.next = visitStatement(node.next);
+    if (node.expression is VariableUse) {
+      VariableUse use = node.expression;
+      --use.variable.readCount;
+      return node.next;
+    }
+    return node;
+  }
+
+  Statement visitVariableDeclaration(VariableDeclaration node) {
+    // VariableDeclaration is only used for captured variables, which are never
+    // merged, so this is not strictly necessary. But it's nicer if this class
+    // works for arbitrary substitution maps.
+    node.variable = replaceWrite(node.variable);
+    node.value = visitExpression(node.value);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
 }

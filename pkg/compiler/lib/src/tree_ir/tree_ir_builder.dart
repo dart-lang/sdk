@@ -69,6 +69,9 @@ class Builder implements cps_ir.Visitor<Node> {
   cps_ir.Parameter thisParameter;
   cps_ir.Continuation returnContinuation;
 
+  /// Number of loops enclosing the currently visited node.
+  int enclosingLoops = 0;
+
   Builder parent;
 
   Builder(this.internalError, [this.parent]);
@@ -214,15 +217,13 @@ class Builder implements cps_ir.Visitor<Node> {
       cps_ir.Parameter parameter,
       Expression argument,
       Statement buildRest()) {
-    Statement assignment;
+    Expression expr;
     if (parameter.hasAtLeastOneUse) {
-      Variable variable = getVariable(parameter);
-      assignment = new Assign(variable, argument, null);
+      expr = new Assign(getVariable(parameter), argument);
     } else {
-      assignment = new ExpressionStatement(argument, null);
+      expr = argument;
     }
-    assignment.next = buildRest();
-    return assignment;
+    return new ExpressionStatement(expr, buildRest());
   }
 
   /// Simultaneously assigns each argument to the corresponding parameter,
@@ -264,9 +265,9 @@ class Builder implements cps_ir.Visitor<Node> {
     Statement first, current;
     void addAssignment(Variable dst, Expression src) {
       if (first == null) {
-        first = current = new Assign(dst, src, null);
+        first = current = Assign.makeStatement(dst, src);
       } else {
-        current = current.next = new Assign(dst, src, null);
+        current = current.next = Assign.makeStatement(dst, src);
       }
     }
 
@@ -371,7 +372,7 @@ class Builder implements cps_ir.Visitor<Node> {
       definition.next = visit(node.body);
       return definition;
     } else {
-      return new Assign(variable, definition, visit(node.body));
+      return Assign.makeStatement(variable, definition, visit(node.body));
     }
   }
 
@@ -474,8 +475,10 @@ class Builder implements cps_ir.Visitor<Node> {
     Statement body = visit(node.body);
     // If the variable was captured by an inner function in the body, this
     // must be declared here so we assign to a fresh copy of the variable.
-    bool needsDeclaration = variable.isCaptured;
-    return new Assign(variable, value, body, isDeclaration: needsDeclaration);
+    if (variable.isCaptured && enclosingLoops > 0) {
+      return new VariableDeclaration(variable, value, body);
+    }
+    return Assign.makeStatement(variable, value, body);
   }
 
   Expression visitGetMutableVariable(cps_ir.GetMutableVariable node) {
@@ -485,7 +488,7 @@ class Builder implements cps_ir.Visitor<Node> {
   Statement visitSetMutableVariable(cps_ir.SetMutableVariable node) {
     Variable variable = getMutableVariable(node.variable.definition);
     Expression value = getVariableUse(node.value);
-    return new Assign(variable, value, visit(node.body));
+    return Assign.makeStatement(variable, value, visit(node.body));
   }
 
   Statement visitDeclareFunction(cps_ir.DeclareFunction node) {
@@ -539,7 +542,7 @@ class Builder implements cps_ir.Visitor<Node> {
             if (cont.isRecursive) {
               return node.isRecursive
                   ? new Continue(labels[cont])
-                  : new WhileTrue(labels[cont], visit(cont.body));
+                  : new WhileTrue(labels[cont], makeLoopBody(cont.body));
             } else {
               if (cont.hasExactlyOneUse) {
                 if (safeForInlining.contains(cont)) {
@@ -551,6 +554,13 @@ class Builder implements cps_ir.Visitor<Node> {
             }
           });
     }
+  }
+
+  Statement makeLoopBody(cps_ir.Expression body) {
+    ++enclosingLoops;
+    Statement result = visit(body);
+    --enclosingLoops;
+    return result;
   }
 
   Statement visitBranch(cps_ir.Branch node) {

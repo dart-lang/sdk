@@ -343,6 +343,5 @@ class LogicalRewriter extends RecursiveTransformer
       return new LogicalOperator.or(e1, e2);
     }
   }
-
 }
 
