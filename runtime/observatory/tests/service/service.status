@@ -6,6 +6,10 @@
 [ $system == windows ]
 code_test: Skip
 
+# Issue 23201
+[ $system == windows ]
+debugging_test: Skip
+
 # Tests that depend on token positions (which differ in release mode).
 [ $mode == release ]
 debugging_test: Skip
