@@ -7687,11 +7687,6 @@ class LibraryResolver {
   TypeProvider _typeProvider;
 
   /**
-   * The object used to access the types from the core library.
-   */
-  TypeProvider get typeProvider => _typeProvider;
-
-  /**
    * A table mapping library sources to the information being maintained for those libraries.
    */
   HashMap<Source, Library> _libraryMap = new HashMap<Source, Library>();
@@ -7727,6 +7722,11 @@ class LibraryResolver {
    * @return an array containing the libraries that were resolved
    */
   Set<Library> get resolvedLibraries => _librariesInCycles;
+
+  /**
+   * The object used to access the types from the core library.
+   */
+  TypeProvider get typeProvider => _typeProvider;
 
   /**
    * Create an object to represent the information about the library defined by the compilation unit
@@ -7914,6 +7914,18 @@ class LibraryResolver {
     //}
     _performConstantEvaluation();
     return targetLibrary.libraryElement;
+  }
+
+  /**
+   * Resolve the identifiers and perform type analysis in the libraries in the current cycle.
+   *
+   * @throws AnalysisException if any of the identifiers could not be resolved or if any of the
+   *           libraries could not have their types analyzed
+   */
+  void resolveReferencesAndTypes() {
+    for (Library library in _librariesInCycles) {
+      _resolveReferencesAndTypesInLibrary(library);
+    }
   }
 
   /**
@@ -8468,18 +8480,6 @@ class LibraryResolver {
         }
       }
     });
-  }
-
-  /**
-   * Resolve the identifiers and perform type analysis in the libraries in the current cycle.
-   *
-   * @throws AnalysisException if any of the identifiers could not be resolved or if any of the
-   *           libraries could not have their types analyzed
-   */
-  void resolveReferencesAndTypes() {
-    for (Library library in _librariesInCycles) {
-      _resolveReferencesAndTypesInLibrary(library);
-    }
   }
 
   /**
@@ -13276,15 +13276,15 @@ abstract class TypeProvider {
   InterfaceType get listType;
 
   /**
+   * Return the type representing the built-in type 'Map'.
+   */
+  InterfaceType get mapType;
+
+  /**
    * Return a list containing all of the types that cannot be either extended or
    * implemented.
    */
   List<InterfaceType> get nonSubtypableTypes;
-
-  /**
-   * Return the type representing the built-in type 'Map'.
-   */
-  InterfaceType get mapType;
 
   /**
    * Return a [DartObjectImpl] representing the `null` object.
@@ -13778,6 +13778,12 @@ class TypeResolverVisitor extends ScopedVisitor {
     SimpleIdentifier stackTrace = node.stackTraceParameter;
     if (stackTrace != null) {
       _recordType(stackTrace, typeProvider.stackTraceType);
+      Element element = stackTrace.staticElement;
+      if (element is VariableElementImpl) {
+        element.type = typeProvider.stackTraceType;
+      } else {
+        // TODO(brianwilkerson) Report the internal error
+      }
     }
     return null;
   }
