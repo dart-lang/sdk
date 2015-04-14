@@ -255,7 +255,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
       registry.registerDynamicSetter(selector);
     } else {
       assert(invariant(CURRENT_ELEMENT_SPANNABLE,
-          selector.isCall || selector.isOperator || selector.isIndex,
+          selector.isCall || selector.isOperator ||
+          selector.isIndex || selector.isIndexSet,
           message: 'unexpected kind ${selector.kind}'));
       // TODO(sigurdm): We should find a better place to register the call.
       Selector call = new Selector.callClosureFrom(selector);

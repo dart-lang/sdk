@@ -43,6 +43,35 @@ main() { print(foo || foo); }""",
   P.print(P.identical(V.foo(), true) || P.identical(V.foo(), true));
   return null;
 }"""),
+
+// Needs interceptor calling convention
+//const TestEntry("""
+//class Foo {
+//  operator[]=(index, value) {
+//    print(value);
+//  }
+//}
+//main() {
+//  var foo = new Foo();
+//  foo[5] = 6;
+//}""", r"""
+//function() {
+//  V.Foo$().$indexSet(5, 6);
+//}
+//"""),
+
+const TestEntry("""
+main() {
+  var list = [1, 2, 3];
+  list[1] = 6;
+  print(list);
+}""", r"""
+function() {
+  var list = [1, 2, 3];
+  J.getInterceptor$a(list).$indexSet(list, 1, 6);
+  P.print(list);
+  return null;
+}"""),
 ];
 
 void main() {
