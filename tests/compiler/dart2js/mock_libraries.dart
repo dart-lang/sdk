@@ -47,6 +47,8 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
       class LinkedHashMap {
         factory LinkedHashMap._empty() => null;
         factory LinkedHashMap._literal(elements) => null;
+        static _makeEmpty() => null;
+        static _makeLiteral(elements) => null;
       }''',
   'List': r'''
       class List<E> {

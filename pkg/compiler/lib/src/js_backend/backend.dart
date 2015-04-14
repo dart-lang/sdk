@@ -311,6 +311,8 @@ class JavaScriptBackend extends Backend {
   ClassElement typeVariableClass;
   ConstructorElement mapLiteralConstructor;
   ConstructorElement mapLiteralConstructorEmpty;
+  Element mapLiteralUntypedMaker;
+  Element mapLiteralUntypedEmptyMaker;
 
   ClassElement noSideEffectsClass;
   ClassElement noThrowsClass;
@@ -1016,10 +1018,27 @@ class JavaScriptBackend extends Backend {
           }
           return ctor;
         }
+        Element getMember(String name) {
+          // The constructor is on the patch class, but dart2js unit tests don't
+          // have a patch class.
+          ClassElement implementation = cls.patch != null ? cls.patch : cls;
+          Element element = implementation.lookupLocalMember(name);
+          if (element == null || !element.isFunction || !element.isStatic) {
+            compiler.internalError(mapLiteralClass,
+                "Map literal class $mapLiteralClass missing "
+                "'$name' static member function");
+          }
+          return element;
+        }
         mapLiteralConstructor = getFactory('_literal', 1);
         mapLiteralConstructorEmpty = getFactory('_empty', 0);
         enqueueInResolution(mapLiteralConstructor, registry);
         enqueueInResolution(mapLiteralConstructorEmpty, registry);
+
+        mapLiteralUntypedMaker = getMember('_makeLiteral');
+        mapLiteralUntypedEmptyMaker = getMember('_makeEmpty');
+        enqueueInResolution(mapLiteralUntypedMaker, registry);
+        enqueueInResolution(mapLiteralUntypedEmptyMaker, registry);
       }
     }
     if (cls == closureClass) {

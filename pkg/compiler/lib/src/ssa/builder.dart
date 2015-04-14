@@ -5631,7 +5631,7 @@ class SsaBuilder extends NewResolvedVisitor {
       listInputs.add(pop());
     }
 
-    ConstructorElement constructor;
+    Element constructor;
     List<HInstruction> inputs = <HInstruction>[];
 
     if (listInputs.isEmpty) {
@@ -5656,11 +5656,29 @@ class SsaBuilder extends NewResolvedVisitor {
     ClassElement cls = constructor.enclosingClass;
 
     if (backend.classNeedsRti(cls)) {
+      List<HInstruction> typeInputs = <HInstruction>[];
       List<DartType> typeVariable = cls.typeVariables;
       expectedType.typeArguments.forEach((DartType argument) {
-        inputs.add(analyzeTypeArgument(argument));
+        typeInputs.add(analyzeTypeArgument(argument));
       });
+
+      // We lift this common call pattern into a helper function to save space
+      // in the output.
+      if (typeInputs.every((HInstruction input) => input.isNull())) {
+        if (listInputs.isEmpty) {
+          constructor = backend.mapLiteralUntypedEmptyMaker;
+        } else {
+          constructor = backend.mapLiteralUntypedMaker;
+        }
+      } else {
+        inputs.addAll(typeInputs);
+      }
     }
+
+    // If rti is needed and the map literal has no type parameters,
+    // 'constructor' is a static function that forwards the call to the factory
+    // constructor without type parameters.
+    assert(constructor is ConstructorElement || constructor is FunctionElement);
 
     // The instruction type will always be a subtype of the mapLiteralClass, but
     // type inference might discover a more specific type, or find nothing (in

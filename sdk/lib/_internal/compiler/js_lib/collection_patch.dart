@@ -529,6 +529,17 @@ class LinkedHashMap<K, V> {
   factory LinkedHashMap._empty() {
     return new JsLinkedHashMap<K, V>();
   }
+
+  // Private factory static function called by generated code for map literals.
+  // This version is for map literals without type parameters.
+  @NoInline()
+  static _makeEmpty() => new JsLinkedHashMap();
+
+  // Private factory static function called by generated code for map literals.
+  // This version is for map literals without type parameters.
+  @NoInline()
+  static _makeLiteral(keyValuePairs) =>
+      fillLiteralMap(keyValuePairs, new JsLinkedHashMap());
 }
 
 class _LinkedIdentityHashMap<K, V> extends JsLinkedHashMap<K, V> {
