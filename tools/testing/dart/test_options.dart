@@ -147,6 +147,13 @@ class TestOptionsParser {
               false,
               type: 'bool'),
           new _TestOptionSpecification(
+              'cps_ir',
+              'Run the compiler with the cps based backend',
+              ['--cps-ir'],
+              [],
+              false,
+              type: 'bool'),
+          new _TestOptionSpecification(
               'timeout',
               'Timeout in seconds',
               ['-t', '--timeout'],
