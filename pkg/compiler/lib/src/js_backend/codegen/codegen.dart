@@ -239,8 +239,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
     checkStaticTargetIsValid(node, node.target);
     if (node.constant != null) return giveup(node);
 
-    ClassElement instantiatedClass = node.target.enclosingClass;
-    registry.registerInstantiatedClass(instantiatedClass);
+    registry.registerInstantiatedType(node.type);
     Selector selector = node.selector;
     FunctionElement target = node.target;
     List<js.Expression> arguments = visitArguments(node.arguments);
@@ -530,6 +529,10 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   js.Expression visitCreateInstance(tree_ir.CreateInstance node) {
     ClassElement cls = node.classElement;
+    // TODO(asgerf): To allow inlining of InvokeConstructor, CreateInstance must
+    //               carry a DartType so we can register the instantiated type
+    //               with its type arguments. Otherwise dataflow analysis is
+    //               needed to reconstruct the instantiated type.
     registry.registerInstantiatedClass(cls);
     js.Expression instance = new js.New(
         glue.constructorAccess(cls),
