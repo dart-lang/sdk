@@ -107,8 +107,8 @@ main() {
   print(new Set.from([1, 2, 3]));
 }""", r"""
 function() {
-  P.print(P.Set_Set(null));
-  P.print(P.Set_Set$from([1, 2, 3], null));
+  P.print(P.LinkedHashSet_LinkedHashSet(null));
+  P.print(P.LinkedHashSet_LinkedHashSet$from([1, 2, 3], null));
   return null;
 }"""),
   // Call synthetic constructor.

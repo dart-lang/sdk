@@ -95,6 +95,9 @@ class IrBuilderTask extends CompilerTask {
   }
 
   bool canBuild(Element element) {
+    // If using JavaScript backend, don't try to bail out early.
+    if (compiler.backend is JavaScriptBackend) return true;
+
     if (element is TypedefElement) return false;
     if (element is FunctionElement) {
       // TODO(sigurdm): Support native functions for dart2js.
@@ -1754,21 +1757,6 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         });
   }
 
-  @override
-  ir.Primitive handleConstructorInvoke(
-      ast.NewExpression node,
-      ConstructorElement constructor,
-      DartType type,
-      ast.NodeList arguments,
-      Selector selector, _) {
-    List<ir.Primitive> arguments =
-        node.send.arguments.mapToList(visit, growable:false);
-    arguments = normalizeStaticArguments(
-        selector.callStructure, constructor, arguments);
-    return irBuilder.buildConstructorInvocation(
-        constructor, selector, type, arguments);
-  }
-
   ir.Primitive visitStringJuxtaposition(ast.StringJuxtaposition node) {
     assert(irBuilder.isOpen);
     ir.Primitive first = visit(node.first);
@@ -2120,6 +2108,22 @@ class DartIrBuilderVisitor extends IrBuilderVisitor {
     ir.Primitive prim = new ir.ReifyTypeVar(variable.element);
     irBuilder.add(new ir.LetPrim(prim));
     return prim;
+  }
+
+  @override
+  ir.Primitive handleConstructorInvoke(
+      ast.NewExpression node,
+      ConstructorElement constructor,
+      DartType type,
+      ast.NodeList arguments,
+      Selector selector, _) {
+    List<ir.Primitive> arguments =
+        node.send.arguments.mapToList(visit, growable:false);
+    return irBuilder.buildConstructorInvocation(
+        constructor,
+        selector,
+        type,
+        arguments);
   }
 }
 
@@ -2706,6 +2710,24 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     ir.Primitive type = new ir.ReifyRuntimeType(typeArgument);
     irBuilder.add(new ir.LetPrim(type));
     return type;
+  }
+
+  @override
+  ir.Primitive handleConstructorInvoke(
+      ast.NewExpression node,
+      ConstructorElement constructor,
+      DartType type,
+      ast.NodeList arguments,
+      Selector selector, _) {
+    List<ir.Primitive> arguments =
+        node.send.arguments.mapToList(visit, growable:false);
+    arguments = normalizeStaticArguments(
+        selector.callStructure, constructor, arguments);
+    return irBuilder.buildConstructorInvocation(
+        constructor.effectiveTarget,
+        selector,
+        constructor.computeEffectiveTargetType(type),
+        arguments);
   }
 }
 

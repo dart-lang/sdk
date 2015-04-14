@@ -205,6 +205,69 @@ main() {
 function($T) {
   return H.setRuntimeTypeInfo(new V.C(V.D$($T)), [$T]);
 }"""),
+
+
+  const TestEntry.forMethod('generative_constructor(A#)', r"""
+class A {
+  var x;
+  A() : this.b(1);
+  A.b(this.x);
+}
+main() {
+  print(new A().x);
+}""", r"""
+function() {
+  return new V.A(1);
+}"""),
+
+
+const TestEntry.forMethod('function(Foo#make)', r"""
+class Foo {
+  factory Foo.make(x) {
+    print('Foo');
+    return new Foo.create(x);
+  }
+  var x;
+  Foo.create(this.x);
+}
+main() {
+  print(new Foo.make(5));
+}""", r"""
+function(x) {
+  P.print("Foo");
+  return V.Foo$create(x);
+}"""),
+const TestEntry(r"""
+class Foo {
+  factory Foo.make(x) = Foo.create;
+  var x;
+  Foo.create(this.x);
+}
+main() {
+  print(new Foo.make(5));
+}""", r"""
+function() {
+  P.print(V.Foo$create(5));
+  return null;
+}"""),
+const TestEntry(r"""
+class A {
+  factory A(x) = B<int>;
+  get typevar;
+}
+class B<T> implements A {
+  var x;
+  B(this.x);
+
+  get typevar => T;
+}
+main() {
+  new A(5).typevar;
+}""", r"""
+function() {
+  V.B$(5, P.$int).get$typevar();
+  return null;
+}"""),
 ];
 
 void main() {
