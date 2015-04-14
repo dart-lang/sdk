@@ -1782,7 +1782,7 @@ void Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
   const intptr_t kStartIndexOffset = 2 * kWordSize;
   const intptr_t kEndIndexOffset = 1 * kWordSize;
   Label fall_through, ok;
-  __ movq(RSI, Address(RSP, + kEndIndexOffset));
+  __ movq(RSI, Address(RSP, + kStartIndexOffset));
   __ movq(RDI, Address(RSP, + kEndIndexOffset));
   __ orq(RSI, RDI);
   __ testq(RSI, Immediate(kSmiTagMask));
