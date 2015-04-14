@@ -109,7 +109,7 @@ var _foreign_helper;
   }
   // Function JS_EFFECT: (Function) → void
   function JS_EFFECT(code) {
-    dart.dinvokef(code, null);
+    dart.dcall(code, null);
   }
   class JS_CONST extends core.Object {
     JS_CONST(code) {

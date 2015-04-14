@@ -225,7 +225,7 @@ var collection;
       [core.$fold](initialValue, combine) {
         let value = initialValue;
         for (let element of this)
-          value = dart.dinvokef(combine, value, element);
+          value = dart.dcall(combine, value, element);
         return value;
       }
       [core.$every](f) {
@@ -471,7 +471,7 @@ var collection;
       [core.$fold](initialValue, combine) {
         let value = initialValue;
         for (let element of this)
-          value = dart.dinvokef(combine, value, element);
+          value = dart.dcall(combine, value, element);
         return value;
       }
       [core.$every](f) {
@@ -672,7 +672,7 @@ var collection;
       [core.$fold](initialValue, combine) {
         let value = initialValue;
         for (let element of this)
-          value = dart.dinvokef(combine, value, element);
+          value = dart.dcall(combine, value, element);
         return value;
       }
       [core.$every](f) {
@@ -927,7 +927,7 @@ var collection;
               count = dart.notNull(count) + 1;
               if (dart.notNull(count) > dart.notNull(MAX_COUNT)) {
                 while (dart.notNull(length) > dart.notNull(LENGTH_LIMIT) - dart.notNull(ELLIPSIS_SIZE) - dart.notNull(OVERHEAD) && dart.notNull(count) > dart.notNull(HEAD_COUNT)) {
-                  length = dart.notNull(length) - dart.notNull(dart.as(dart.dbinary(dart.dload(parts[core.$removeLast](), 'length'), '+', OVERHEAD), core.int));
+                  length = dart.notNull(length) - dart.notNull(dart.as(dart.dsend(dart.dload(parts[core.$removeLast](), 'length'), '+', OVERHEAD), core.int));
                   count = dart.notNull(count) - 1;
                 }
                 parts[core.$add]("...");
@@ -945,7 +945,7 @@ var collection;
           length = dart.notNull(length) + (dart.notNull(ELLIPSIS_SIZE) + dart.notNull(OVERHEAD));
         }
         while (dart.notNull(length) > dart.notNull(LENGTH_LIMIT) && dart.notNull(parts[core.$length]) > dart.notNull(HEAD_COUNT)) {
-          length = dart.notNull(length) - dart.notNull(dart.as(dart.dbinary(dart.dload(parts[core.$removeLast](), 'length'), '+', OVERHEAD), core.int));
+          length = dart.notNull(length) - dart.notNull(dart.as(dart.dsend(dart.dload(parts[core.$removeLast](), 'length'), '+', OVERHEAD), core.int));
           if (elision == null) {
             elision = "...";
             length = dart.notNull(length) + (dart.notNull(ELLIPSIS_SIZE) + dart.notNull(OVERHEAD));
@@ -1464,7 +1464,7 @@ var collection;
         let value = initialValue;
         let length = this[core.$length];
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          value = dart.dinvokef(combine, value, this[core.$get](i));
+          value = dart.dcall(combine, value, this[core.$get](i));
           if (length != this[core.$length]) {
             throw new core.ConcurrentModificationError(this);
           }
@@ -1542,7 +1542,7 @@ var collection;
         let length = source[core.$length];
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let element = source[core.$get](i);
-          if (dart.dinvokef(test, element) == retainMatching) {
+          if (dart.dcall(test, element) == retainMatching) {
             retained[core.$add](element);
           }
           if (length != source[core.$length]) {
@@ -2009,7 +2009,7 @@ var collection;
     }
     static forEach(map, f) {
       for (let k of map.keys) {
-        dart.dinvokef(f, k, map.get(k));
+        dart.dcall(f, k, map.get(k));
       }
     }
     static getValues(map) {
@@ -2058,7 +2058,7 @@ var collection;
       if (value == null)
         value = Maps[_id];
       for (let element of iterable) {
-        map.set(dart.dinvokef(key, element), dart.dinvokef(value, element));
+        map.set(dart.dcall(key, element), dart.dcall(value, element));
       }
     }
     static [_fillMapWithIterables](map, keys, values) {
@@ -2872,7 +2872,7 @@ var collection;
       get(key) {
         if (key == null)
           throw new core.ArgumentError(key);
-        if (!dart.notNull(dart.dinvokef(this[_validKey], key)))
+        if (!dart.notNull(dart.dcall(this[_validKey], key)))
           return null;
         if (this[_root] != null) {
           let comp = this[_splay](dart.as(key, K));
@@ -2884,7 +2884,7 @@ var collection;
         return null;
       }
       remove(key) {
-        if (!dart.notNull(dart.dinvokef(this[_validKey], key)))
+        if (!dart.notNull(dart.dcall(this[_validKey], key)))
           return null;
         let mapRoot = dart.as(this[_remove](dart.as(key, K)), _SplayTreeMapNode);
         if (mapRoot != null)
@@ -2948,7 +2948,7 @@ var collection;
         this[_clear]();
       }
       containsKey(key) {
-        return dart.notNull(dart.dinvokef(this[_validKey], key)) && this[_splay](dart.as(key, K)) == 0;
+        return dart.notNull(dart.dcall(this[_validKey], key)) && this[_splay](dart.as(key, K)) == 0;
       }
       containsValue(value) {
         let found = false;
@@ -3216,7 +3216,7 @@ var collection;
         return result;
       }
       [_compare](e1, e2) {
-        return dart.dinvokef(this[_comparator], e1, e2);
+        return dart.dcall(this[_comparator], e1, e2);
       }
       get [core.$iterator]() {
         return new (_SplayTreeKeyIterator$(E))(this);
@@ -3248,7 +3248,7 @@ var collection;
         return this[_root].key;
       }
       [core.$contains](object) {
-        return dart.notNull(dart.dinvokef(this[_validKey], object)) && this[_splay](dart.as(object, E)) == 0;
+        return dart.notNull(dart.dcall(this[_validKey], object)) && this[_splay](dart.as(object, E)) == 0;
       }
       add(element) {
         let compare = this[_splay](element);
@@ -3258,7 +3258,7 @@ var collection;
         return true;
       }
       remove(object) {
-        if (!dart.notNull(dart.dinvokef(this[_validKey], object)))
+        if (!dart.notNull(dart.dcall(this[_validKey], object)))
           return false;
         return this[_remove](dart.as(object, E)) != null;
       }
@@ -3272,7 +3272,7 @@ var collection;
       }
       removeAll(elements) {
         for (let element of elements) {
-          if (dart.dinvokef(this[_validKey], element))
+          if (dart.dcall(this[_validKey], element))
             this[_remove](dart.as(element, E));
         }
       }
@@ -3283,7 +3283,7 @@ var collection;
           if (modificationCount != this[_modificationCount]) {
             throw new core.ConcurrentModificationError(this);
           }
-          if (dart.notNull(dart.dinvokef(this[_validKey], object)) && this[_splay](dart.as(object, E)) == 0)
+          if (dart.notNull(dart.dcall(this[_validKey], object)) && this[_splay](dart.as(object, E)) == 0)
             retainSet.add(this[_root].key);
         }
         if (retainSet[_count] != this[_count]) {
@@ -3293,7 +3293,7 @@ var collection;
         }
       }
       lookup(object) {
-        if (!dart.notNull(dart.dinvokef(this[_validKey], object)))
+        if (!dart.notNull(dart.dcall(this[_validKey], object)))
           return null;
         let comp = this[_splay](dart.as(object, E));
         if (comp != 0)
@@ -3661,7 +3661,7 @@ var collection;
         super._HashMap();
       }
       get(key) {
-        if (!dart.notNull(dart.dinvokef(this[_validKey], key)))
+        if (!dart.notNull(dart.dcall(this[_validKey], key)))
           return null;
         return super[_get](key);
       }
@@ -3669,12 +3669,12 @@ var collection;
         super[_set](key, value);
       }
       containsKey(key) {
-        if (!dart.notNull(dart.dinvokef(this[_validKey], key)))
+        if (!dart.notNull(dart.dcall(this[_validKey], key)))
           return false;
         return super[_containsKey](key);
       }
       remove(key) {
-        if (!dart.notNull(dart.dinvokef(this[_validKey], key)))
+        if (!dart.notNull(dart.dcall(this[_validKey], key)))
           return null;
         return super[_remove](key);
       }
@@ -3711,13 +3711,13 @@ var collection;
         return dart.equals(dart.dload(this[_map], '_length'), 0);
       }
       get [core.$iterator]() {
-        return new (HashMapKeyIterator$(E))(this[_map], dart.as(dart.dinvoke(this[_map], '_computeKeys'), core.List));
+        return new (HashMapKeyIterator$(E))(this[_map], dart.as(dart.dsend(this[_map], '_computeKeys'), core.List));
       }
       [core.$contains](element) {
-        return dart.as(dart.dinvoke(this[_map], 'containsKey', element), core.bool);
+        return dart.as(dart.dsend(this[_map], 'containsKey', element), core.bool);
       }
       [core.$forEach](f) {
-        let keys = dart.as(dart.dinvoke(this[_map], '_computeKeys'), core.List);
+        let keys = dart.as(dart.dsend(this[_map], '_computeKeys'), core.List);
         for (let i = 0, length = keys.length; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           f(dart.as(keys[i], E));
           if (keys !== dart.dload(this[_map], '_keys')) {
@@ -4064,7 +4064,7 @@ var collection;
         super._LinkedHashMap();
       }
       get(key) {
-        if (!dart.notNull(dart.dinvokef(this[_validKey], key)))
+        if (!dart.notNull(dart.dcall(this[_validKey], key)))
           return null;
         return super[_get](key);
       }
@@ -4072,12 +4072,12 @@ var collection;
         super[_set](key, value);
       }
       containsKey(key) {
-        if (!dart.notNull(dart.dinvokef(this[_validKey], key)))
+        if (!dart.notNull(dart.dcall(this[_validKey], key)))
           return false;
         return super[_containsKey](key);
       }
       remove(key) {
-        if (!dart.notNull(dart.dinvokef(this[_validKey], key)))
+        if (!dart.notNull(dart.dcall(this[_validKey], key)))
           return null;
         return super[_remove](key);
       }
@@ -4123,7 +4123,7 @@ var collection;
         return new (LinkedHashMapKeyIterator$(E))(this[_map], dart.as(dart.dload(this[_map], '_modifications'), core.int));
       }
       [core.$contains](element) {
-        return dart.as(dart.dinvoke(this[_map], 'containsKey', element), core.bool);
+        return dart.as(dart.dsend(this[_map], 'containsKey', element), core.bool);
       }
       [core.$forEach](f) {
         let cell = dart.as(dart.dload(this[_map], '_first'), LinkedHashMapCell);
@@ -4460,17 +4460,17 @@ var collection;
         return super[_add](object);
       }
       [core.$contains](object) {
-        if (!dart.notNull(dart.dinvokef(this[_validKey], object)))
+        if (!dart.notNull(dart.dcall(this[_validKey], object)))
           return false;
         return super[_contains](object);
       }
       lookup(object) {
-        if (!dart.notNull(dart.dinvokef(this[_validKey], object)))
+        if (!dart.notNull(dart.dcall(this[_validKey], object)))
           return null;
         return super[_lookup](object);
       }
       remove(object) {
-        if (!dart.notNull(dart.dinvokef(this[_validKey], object)))
+        if (!dart.notNull(dart.dcall(this[_validKey], object)))
           return false;
         return super[_remove](object);
       }
@@ -4832,30 +4832,30 @@ var collection;
         return super[_add](element);
       }
       [core.$contains](object) {
-        if (!dart.notNull(dart.dinvokef(this[_validKey], object)))
+        if (!dart.notNull(dart.dcall(this[_validKey], object)))
           return false;
         return super[_contains](object);
       }
       lookup(object) {
-        if (!dart.notNull(dart.dinvokef(this[_validKey], object)))
+        if (!dart.notNull(dart.dcall(this[_validKey], object)))
           return null;
         return super[_lookup](object);
       }
       remove(object) {
-        if (!dart.notNull(dart.dinvokef(this[_validKey], object)))
+        if (!dart.notNull(dart.dcall(this[_validKey], object)))
           return false;
         return super[_remove](object);
       }
       containsAll(elements) {
         for (let element of elements) {
-          if (!dart.notNull(dart.dinvokef(this[_validKey], element)) || !dart.notNull(this[core.$contains](element)))
+          if (!dart.notNull(dart.dcall(this[_validKey], element)) || !dart.notNull(this[core.$contains](element)))
             return false;
         }
         return true;
       }
       removeAll(elements) {
         for (let element of elements) {
-          if (dart.dinvokef(this[_validKey], element)) {
+          if (dart.dcall(this[_validKey], element)) {
             super[_remove](element);
           }
         }

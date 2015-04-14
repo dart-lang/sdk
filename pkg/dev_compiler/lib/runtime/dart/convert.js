@@ -31,7 +31,7 @@ var convert;
     }
     decodeStream(byteStream) {
       return dart.as(byteStream.transform(dart.as(this.decoder, async.StreamTransformer$(core.List$(core.int), dart.dynamic))).fold(new core.StringBuffer(), (buffer, string) => ((() => {
-        dart.dinvoke(buffer, 'write', string);
+        dart.dsend(buffer, 'write', string);
         return buffer;
       })())).then(buffer => buffer.toString()), async.Future$(core.String));
     }
@@ -870,7 +870,7 @@ var convert;
   }
   // Function _defaultToEncodable: (dynamic) → Object
   function _defaultToEncodable(object) {
-    return dart.dinvoke(object, 'toJson');
+    return dart.dsend(object, 'toJson');
   }
   let _seen = Symbol('_seen');
   let _checkCycle = Symbol('_checkCycle');
@@ -963,7 +963,7 @@ var convert;
         return;
       this[_checkCycle](object);
       try {
-        let customJson = dart.dinvokef(this[_toEncodable$], object);
+        let customJson = dart.dcall(this[_toEncodable$], object);
         if (!dart.notNull(this.writeJsonValue(customJson))) {
           throw new JsonUnsupportedObjectError(object);
         }
@@ -975,7 +975,7 @@ var convert;
     }
     writeJsonValue(object) {
       if (dart.is(object, core.num)) {
-        if (dart.dunary('!', dart.dload(object, 'isFinite')))
+        if (dart.dsend(dart.dload(object, 'isFinite'), '!'))
           return false;
         this.writeNumber(dart.as(object, core.num));
         return true;
@@ -1112,7 +1112,7 @@ var convert;
       } else {
         stringifier = new _JsonStringStringifierPretty(output, toEncodable, indent);
       }
-      dart.dinvoke(stringifier, 'writeObject', object);
+      dart.dsend(stringifier, 'writeObject', object);
     }
     writeNumber(number) {
       this[_sink].write(number.toString());
@@ -1157,7 +1157,7 @@ var convert;
     }
     flush() {
       if (dart.notNull(this.index) > 0) {
-        dart.dinvokef(this.addChunk, this.buffer, 0, this.index);
+        dart.dcall(this.addChunk, this.buffer, 0, this.index);
       }
       this.buffer = null;
       this.index = 0;
@@ -1225,7 +1225,7 @@ var convert;
     writeByte(byte) {
       dart.assert(dart.notNull(byte) <= 255);
       if (this.index == this.buffer[core.$length]) {
-        dart.dinvokef(this.addChunk, this.buffer, 0, this.index);
+        dart.dcall(this.addChunk, this.buffer, 0, this.index);
         this.buffer = new typed_data.Uint8List(this.bufferSize);
         this.index = 0;
       }
@@ -2023,7 +2023,7 @@ var convert;
         let mask = _ONE_BYTE_LIMIT;
         for (let i = from; dart.notNull(i) < dart.notNull(to); i = dart.notNull(i) + 1) {
           let unit = dart.dindex(units, i);
-          if (!dart.equals(dart.dbinary(unit, '&', mask), unit))
+          if (!dart.equals(dart.dsend(unit, '&', mask), unit))
             return dart.notNull(i) - dart.notNull(from);
         }
         return dart.notNull(to) - dart.notNull(from);
@@ -2145,7 +2145,7 @@ var convert;
       if (Object.getPrototypeOf(e) === Array.prototype) {
         for (let i = 0; dart.notNull(i) < e.length; i = dart.notNull(i) + 1) {
           let item = e[i];
-          e[i] = dart.dinvokef(reviver, i, walk(item));
+          e[i] = dart.dcall(reviver, i, walk(item));
         }
         return e;
       }
@@ -2154,13 +2154,13 @@ var convert;
       let keys = map[_computeKeys]();
       for (let i = 0; dart.notNull(i) < dart.notNull(keys[core.$length]); i = dart.notNull(i) + 1) {
         let key = keys[core.$get](i);
-        let revived = dart.dinvokef(reviver, key, walk(e[key]));
+        let revived = dart.dcall(reviver, key, walk(e[key]));
         processed[key] = revived;
       }
       map[_original] = processed;
       return map;
     }
-    return dart.dinvokef(reviver, null, walk(json));
+    return dart.dcall(reviver, null, walk(json));
   }
   // Function _convertJsonToDartLazy: (dynamic) → dynamic
   function _convertJsonToDartLazy(object) {
@@ -2280,7 +2280,7 @@ var convert;
         this[_upgradedMap].clear();
       } else {
         if (this[_data] != null) {
-          dart.dinvoke(this[_data], 'clear');
+          dart.dsend(this[_data], 'clear');
         }
         this[_original] = this[_processed] = null;
         this[_data] = dart.map();
@@ -2297,7 +2297,7 @@ var convert;
           value = _convertJsonToDartLazy(_JsonMap[_getProperty](this[_original], key));
           _JsonMap[_setProperty](this[_processed], key, value);
         }
-        dart.dinvokef(f, key, value);
+        dart.dcall(f, key, value);
         if (!dart.notNull(core.identical(keys, this[_data]))) {
           throw new core.ConcurrentModificationError(this);
         }

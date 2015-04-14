@@ -749,7 +749,7 @@ var core;
       dart.assert(this[_hasValue]);
       let target = Error.safeToString(this.indexable);
       let explanation = `index should be less than ${this.length}`;
-      if (dart.dbinary(this.invalidValue, '<', 0)) {
+      if (dart.dsend(this.invalidValue, '<', 0)) {
         explanation = "index must not be negative";
       }
       return `RangeError: ${this.message} (${target}[${this.invalidValue}]): ${explanation}`;
@@ -960,7 +960,7 @@ var core;
       let lineStart = 0;
       let lastWasCR = null;
       for (let i = 0; dart.notNull(i) < dart.notNull(offset); i = dart.notNull(i) + 1) {
-        let char = dart.as(dart.dinvoke(this.source, 'codeUnitAt', i), int);
+        let char = dart.as(dart.dsend(this.source, 'codeUnitAt', i), int);
         if (char == 10) {
           if (lineStart != i || !dart.notNull(lastWasCR)) {
             lineNum = dart.notNull(lineNum) + 1;
@@ -980,7 +980,7 @@ var core;
       }
       let lineEnd = dart.as(dart.dload(this.source, 'length'), int);
       for (let i = offset; i['<'](dart.dload(this.source, 'length')); i = dart.notNull(i) + 1) {
-        let char = dart.as(dart.dinvoke(this.source, 'codeUnitAt', i), int);
+        let char = dart.as(dart.dsend(this.source, 'codeUnitAt', i), int);
         if (char == 10 || char == 13) {
           lineEnd = i;
           break;
@@ -1005,7 +1005,7 @@ var core;
           prefix = postfix = "...";
         }
       }
-      let slice = dart.as(dart.dinvoke(this.source, 'substring', start, end), String);
+      let slice = dart.as(dart.dsend(this.source, 'substring', start, end), String);
       let markOffset = dart.notNull(offset) - dart.notNull(start) + dart.notNull(prefix.length);
       return `${report}${prefix}${slice}${postfix}\n${String['*'](" ", markOffset)}^\n`;
     }
@@ -1308,7 +1308,7 @@ var core;
     if (_internal.printToZone == null) {
       _internal.printToConsole(line);
     } else {
-      dart.dinvokef(_internal.printToZone, line);
+      dart.dcall(_internal.printToZone, line);
     }
   }
   class Match extends Object {}
@@ -1402,7 +1402,7 @@ var core;
       Stopwatch[_frequency] = _js_helper.Primitives.timerFrequency;
     }
     static [_now]() {
-      return dart.as(dart.dinvoke(_js_helper.Primitives, 'timerTicks'), int);
+      return dart.as(dart.dsend(_js_helper.Primitives, 'timerTicks'), int);
     }
   }
   Stopwatch._frequency = null;
@@ -1790,7 +1790,7 @@ var core;
     static parse(uri) {
       // Function isRegName: (int) → bool
       function isRegName(ch) {
-        return dart.notNull(ch) < 128 && dart.notNull(!dart.equals(dart.dbinary(Uri[_regNameTable][exports.$get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
+        return dart.notNull(ch) < 128 && dart.notNull(!dart.equals(dart.dsend(Uri[_regNameTable][exports.$get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
       }
       let EOI = -1;
       let scheme = "";
@@ -2060,7 +2060,7 @@ var core;
     }
     static [_checkNonWindowsPathReservedCharacters](segments, argumentError) {
       segments[exports.$forEach](dart.as(segment => {
-        if (dart.dinvoke(segment, 'contains', "/")) {
+        if (dart.dsend(segment, 'contains', "/")) {
           if (argumentError) {
             throw new ArgumentError(`Illegal path character ${segment}`);
           } else {
@@ -2073,7 +2073,7 @@ var core;
       if (firstSegment === void 0)
         firstSegment = 0;
       segments[exports.$skip](firstSegment)[exports.$forEach](dart.as(segment => {
-        if (dart.dinvoke(segment, 'contains', new RegExp('["*/:<>?\\\\|]'))) {
+        if (dart.dsend(segment, 'contains', new RegExp('["*/:<>?\\\\|]'))) {
           if (argumentError) {
             throw new ArgumentError("Illegal character in path");
           } else {
@@ -2242,7 +2242,7 @@ var core;
       return Uri[_normalizeRegName](host, start, end);
     }
     static [_isRegNameChar](char) {
-      return dart.notNull(char) < 127 && dart.notNull(!dart.equals(dart.dbinary(Uri[_regNameTable][exports.$get](dart.notNull(char) >> 4), '&', 1 << (dart.notNull(char) & 15)), 0));
+      return dart.notNull(char) < 127 && dart.notNull(!dart.equals(dart.dsend(Uri[_regNameTable][exports.$get](dart.notNull(char) >> 4), '&', 1 << (dart.notNull(char) & 15)), 0));
     }
     static [_normalizeRegName](host, start, end) {
       let buffer = null;
@@ -2359,7 +2359,7 @@ var core;
       if (dart.dload(result, 'isEmpty')) {
         if (isFile)
           return "/";
-      } else if ((dart.notNull(isFile) || dart.notNull(ensureLeadingSlash)) && dart.notNull(!dart.equals(dart.dinvoke(result, 'codeUnitAt', 0), Uri[_SLASH]))) {
+      } else if ((dart.notNull(isFile) || dart.notNull(ensureLeadingSlash)) && dart.notNull(!dart.equals(dart.dsend(result, 'codeUnitAt', 0), Uri[_SLASH]))) {
         return `/${result}`;
       }
       return dart.as(result, String);
@@ -2380,7 +2380,7 @@ var core;
         }
         first = false;
         result.write(Uri.encodeQueryComponent(dart.as(key, String)));
-        if (dart.notNull(value != null) && dart.notNull(dart.dunary('!', dart.dload(value, 'isEmpty')))) {
+        if (dart.notNull(value != null) && dart.notNull(dart.dsend(dart.dload(value, 'isEmpty'), '!'))) {
           result.write("=");
           result.write(Uri.encodeQueryComponent(dart.as(value, String)));
         }
@@ -2431,24 +2431,24 @@ var core;
       return null;
     }
     static [_isUnreservedChar](ch) {
-      return dart.notNull(ch) < 127 && dart.notNull(!dart.equals(dart.dbinary(Uri[_unreservedTable][exports.$get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
+      return dart.notNull(ch) < 127 && dart.notNull(!dart.equals(dart.dsend(Uri[_unreservedTable][exports.$get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
     }
     static [_escapeChar](char) {
-      dart.assert(dart.dbinary(char, '<=', 1114111));
+      dart.assert(dart.dsend(char, '<=', 1114111));
       let hexDigits = "0123456789ABCDEF";
       let codeUnits = null;
-      if (dart.dbinary(char, '<', 128)) {
+      if (dart.dsend(char, '<', 128)) {
         codeUnits = new List(3);
         codeUnits[exports.$set](0, Uri[_PERCENT]);
-        codeUnits[exports.$set](1, hexDigits.codeUnitAt(dart.as(dart.dbinary(char, '>>', 4), int)));
-        codeUnits[exports.$set](2, hexDigits.codeUnitAt(dart.as(dart.dbinary(char, '&', 15), int)));
+        codeUnits[exports.$set](1, hexDigits.codeUnitAt(dart.as(dart.dsend(char, '>>', 4), int)));
+        codeUnits[exports.$set](2, hexDigits.codeUnitAt(dart.as(dart.dsend(char, '&', 15), int)));
       } else {
         let flag = 192;
         let encodedBytes = 2;
-        if (dart.dbinary(char, '>', 2047)) {
+        if (dart.dsend(char, '>', 2047)) {
           flag = 224;
           encodedBytes = 3;
-          if (dart.dbinary(char, '>', 65535)) {
+          if (dart.dsend(char, '>', 65535)) {
             encodedBytes = 4;
             flag = 240;
           }
@@ -2456,7 +2456,7 @@ var core;
         codeUnits = new List(3 * dart.notNull(encodedBytes));
         let index = 0;
         while ((encodedBytes = dart.notNull(encodedBytes) - 1) >= 0) {
-          let byte = dart.as(dart.dbinary(dart.dbinary(dart.dbinary(char, '>>', 6 * dart.notNull(encodedBytes)), '&', 63), '|', flag), int);
+          let byte = dart.as(dart.dsend(dart.dsend(dart.dsend(char, '>>', 6 * dart.notNull(encodedBytes)), '&', 63), '|', flag), int);
           codeUnits[exports.$set](index, Uri[_PERCENT]);
           codeUnits[exports.$set](dart.notNull(index) + 1, hexDigits.codeUnitAt(dart.notNull(byte) >> 4));
           codeUnits[exports.$set](dart.notNull(index) + 2, hexDigits.codeUnitAt(dart.notNull(byte) & 15));
@@ -2521,10 +2521,10 @@ var core;
       return buffer.toString();
     }
     static [_isSchemeCharacter](ch) {
-      return dart.notNull(ch) < 128 && dart.notNull(!dart.equals(dart.dbinary(Uri[_schemeTable][exports.$get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
+      return dart.notNull(ch) < 128 && dart.notNull(!dart.equals(dart.dsend(Uri[_schemeTable][exports.$get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
     }
     static [_isGeneralDelimiter](ch) {
-      return dart.notNull(ch) <= dart.notNull(Uri[_RIGHT_BRACKET]) && dart.notNull(!dart.equals(dart.dbinary(Uri[_genDelimitersTable][exports.$get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
+      return dart.notNull(ch) <= dart.notNull(Uri[_RIGHT_BRACKET]) && dart.notNull(!dart.equals(dart.dsend(Uri[_genDelimitersTable][exports.$get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
     }
     get isAbsolute() {
       return dart.notNull(this.scheme != "") && dart.notNull(this.fragment == "");
@@ -2751,7 +2751,7 @@ var core;
     get hashCode() {
       // Function combine: (dynamic, dynamic) → int
       function combine(part, current) {
-        return dart.as(dart.dbinary(dart.dbinary(dart.dbinary(current, '*', 31), '+', part.hashCode), '&', 1073741823), int);
+        return dart.as(dart.dsend(dart.dsend(dart.dsend(current, '*', 31), '+', part.hashCode), '&', 1073741823), int);
       }
       return combine(this.scheme, combine(this.userInfo, combine(this.host, combine(this.port, combine(this.path, combine(this.query, combine(this.fragment, 1)))))));
     }
@@ -2784,14 +2784,14 @@ var core;
     static splitQueryString(query, opts) {
       let encoding = opts && 'encoding' in opts ? opts.encoding : convert.UTF8;
       return dart.as(query.split("&")[exports.$fold](dart.map(), dart.as((map, element) => {
-        let index = dart.as(dart.dinvoke(element, 'indexOf', "="), int);
+        let index = dart.as(dart.dsend(element, 'indexOf', "="), int);
         if (index == -1) {
           if (!dart.equals(element, "")) {
             dart.dsetindex(map, Uri.decodeQueryComponent(dart.as(element, String), {encoding: encoding}), "");
           }
         } else if (index != 0) {
-          let key = dart.dinvoke(element, 'substring', 0, index);
-          let value = dart.dinvoke(element, 'substring', dart.notNull(index) + 1);
+          let key = dart.dsend(element, 'substring', 0, index);
+          let value = dart.dsend(element, 'substring', dart.notNull(index) + 1);
           dart.dsetindex(map, Uri.decodeQueryComponent(dart.as(key, String), {encoding: encoding}), Uri.decodeQueryComponent(dart.as(value, String), {encoding: encoding}));
         }
         return map;
@@ -2917,8 +2917,8 @@ var core;
       // Function byteToHex: (dynamic, dynamic) → dynamic
       function byteToHex(byte, buffer) {
         let hex = '0123456789ABCDEF';
-        dart.dinvoke(buffer, 'writeCharCode', hex.codeUnitAt(dart.as(dart.dbinary(byte, '>>', 4), int)));
-        dart.dinvoke(buffer, 'writeCharCode', hex.codeUnitAt(dart.as(dart.dbinary(byte, '&', 15), int)));
+        dart.dsend(buffer, 'writeCharCode', hex.codeUnitAt(dart.as(dart.dsend(byte, '>>', 4), int)));
+        dart.dsend(buffer, 'writeCharCode', hex.codeUnitAt(dart.as(dart.dsend(byte, '&', 15), int)));
       }
       let result = new StringBuffer();
       let bytes = encoding.encode(text);

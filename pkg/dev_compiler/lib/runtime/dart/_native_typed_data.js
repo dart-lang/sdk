@@ -1155,7 +1155,7 @@ var _native_typed_data;
       my = (dart.notNull(view[core.$get](1)) & 2147483648) >> 30;
       mz = (dart.notNull(view[core.$get](2)) & 2147483648) >> 29;
       mw = (dart.notNull(view[core.$get](3)) & 2147483648) >> 28;
-      return dart.as(dart.dbinary(dart.dbinary(dart.dbinary(mx, '|', my), '|', mz), '|', mw), core.int);
+      return dart.as(dart.dsend(dart.dsend(dart.dsend(mx, '|', my), '|', mz), '|', mw), core.int);
     }
     shuffle(m) {
       if (dart.notNull(m) < 0 || dart.notNull(m) > 255) {

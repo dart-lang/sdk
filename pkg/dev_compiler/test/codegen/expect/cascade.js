@@ -14,8 +14,8 @@ var cascade;
       a = null;
     };
     let _ = a;
-    dart.dinvoke(_, 'x');
-    dart.dinvoke(_, 'x');
+    dart.dsend(_, 'x');
+    dart.dsend(_, 'x');
     core.print(a);
   }
   // Function test_closure_without_mutate: () → void
@@ -24,8 +24,8 @@ var cascade;
     a.x = () => {
       core.print(a);
     };
-    dart.dinvoke(a, 'x');
-    dart.dinvoke(a, 'x');
+    dart.dsend(a, 'x');
+    dart.dsend(a, 'x');
     core.print(a);
   }
   // Function test_mutate_inside_cascade: () → void
@@ -77,8 +77,8 @@ var cascade;
   function test_increment() {
     let a = new A();
     let y = ((() => {
-      a.x = dart.dbinary(a.x, '+', 1);
-      a.x = dart.dbinary(a.x, '-', 1);
+      a.x = dart.dsend(a.x, '+', 1);
+      a.x = dart.dsend(a.x, '-', 1);
       return a;
     })());
   }

@@ -54,7 +54,7 @@ var methods;
   // Function test: () → dynamic
   function test() {
     let f = new Foo();
-    dart.dinvoke(f, 'bar', "Bar's call method!");
+    dart.dsend(f, 'bar', "Bar's call method!");
   }
   // Exports:
   exports.A = A;

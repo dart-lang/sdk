@@ -68,17 +68,17 @@ var dart, _js_helper;
     return f.apply(obj, args);
   }
 
-  function dinvokef(f/*, ...args*/) {
+  function dcall(f/*, ...args*/) {
     let args = Array.prototype.slice.call(arguments, 1);
     return checkAndCall(f, void 0, args, 'call');
   }
-  dart.dinvokef = dinvokef;
+  dart.dcall = dcall;
 
-  function dinvoke(obj, method/*, ...args*/) {
+  function dsend(obj, method/*, ...args*/) {
     let args = Array.prototype.slice.call(arguments, 2);
     return checkAndCall(obj[method], obj, args, method);
   }
-  dart.dinvoke = dinvoke;
+  dart.dinvoke = dsend;
 
   function dindex(obj, index) {
     return checkAndCall(obj.get, obj, [index], '[]');
@@ -89,11 +89,6 @@ var dart, _js_helper;
     return checkAndCall(obj.set, obj, [index, value], '[]=');
   }
   dart.dsetindex = dindex;
-
-  function dbinary(left, op, right) {
-    return checkAndCall(left[op], left, [right], op);
-  }
-  dart.dbinary = dbinary;
 
   function cast(obj, type) {
     // TODO(vsm): handle non-nullable types

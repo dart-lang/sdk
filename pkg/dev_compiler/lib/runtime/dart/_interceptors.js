@@ -143,7 +143,7 @@ var _interceptors;
         throw new core.ArgumentError(lowerLimit);
       if (!dart.is(upperLimit, core.num))
         throw new core.ArgumentError(upperLimit);
-      if (dart.dbinary(dart.dinvoke(lowerLimit, 'compareTo', upperLimit), '>', 0)) {
+      if (dart.dsend(dart.dsend(lowerLimit, 'compareTo', upperLimit), '>', 0)) {
         throw new core.ArgumentError(lowerLimit);
       }
       if (dart.notNull(this.compareTo(dart.as(lowerLimit, core.num))) < 0)
@@ -386,8 +386,8 @@ var _interceptors;
       return JSInt[_bitCount](JSInt[_spread](nonneg));
     }
     static [_bitCount](i) {
-      i = dart.as(dart.dbinary(JSInt[_shru](i, 0), '-', dart.dbinary(JSInt[_shru](i, 1), '&', 1431655765)), core.int);
-      i = (dart.notNull(i) & 858993459)['+'](dart.dbinary(JSInt[_shru](i, 2), '&', 858993459));
+      i = dart.as(dart.dsend(JSInt[_shru](i, 0), '-', dart.dsend(JSInt[_shru](i, 1), '&', 1431655765)), core.int);
+      i = (dart.notNull(i) & 858993459)['+'](dart.dsend(JSInt[_shru](i, 2), '&', 858993459));
       i = 252645135 & i['+'](JSInt[_shru](i, 4));
       i = dart.notNull(i) + dart.notNull(dart.as(JSInt[_shru](i, 8), core.int));
       i = dart.notNull(i) + dart.notNull(dart.as(JSInt[_shru](i, 16), core.int));

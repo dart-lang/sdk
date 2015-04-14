@@ -4,9 +4,9 @@ var async;
   // Function _invokeErrorHandler: (Function, Object, StackTrace) → dynamic
   function _invokeErrorHandler(errorHandler, error, stackTrace) {
     if (dart.is(errorHandler, ZoneBinaryCallback)) {
-      return dart.dinvokef(errorHandler, error, stackTrace);
+      return dart.dcall(errorHandler, error, stackTrace);
     } else {
-      return dart.dinvokef(errorHandler, error);
+      return dart.dcall(errorHandler, error);
     }
   }
   // Function _registerErrorHandler: (Function, Zone) → Function
@@ -171,7 +171,7 @@ var async;
 
             if (dart.is(newValue, Future)) {
               subscription.pause();
-              dart.dinvoke(dart.dinvoke(newValue, 'then', add, {onError: addError}), 'whenComplete', subscription.resume);
+              dart.dsend(dart.dsend(newValue, 'then', add, {onError: addError}), 'whenComplete', subscription.resume);
             } else {
               controller.add(newValue);
             }
@@ -301,7 +301,7 @@ var async;
         let value = initialValue;
         let subscription = null;
         subscription = this.listen(element => {
-          _runUserCode(() => dart.dinvokef(combine, value, element), newValue => {
+          _runUserCode(() => dart.dcall(combine, value, element), newValue => {
             value = newValue;
           }, dart.as(_cancelAndErrorClosure(subscription, result), dart.functionType(dart.dynamic, [dart.dynamic, core.StackTrace])));
         }, {
@@ -721,7 +721,7 @@ var async;
           timer.cancel();
           dart.assert(dart.notNull(dart.is(controller, _StreamController)) || dart.notNull(dart.is(controller, _BroadcastStreamController)));
           let eventSink = controller;
-          dart.dinvoke(eventSink, '_addError', error, stackTrace);
+          dart.dsend(eventSink, '_addError', error, stackTrace);
           timer = zone.createTimer(timeLimit, dart.as(timeout, dart.functionType(dart.void, [])));
         }
         // Function onDone: () → void
@@ -1149,7 +1149,7 @@ var async;
         dart.assert(!dart.notNull(this[_inCallback]));
         let wasInputPaused = this[_isInputPaused];
         this[_state] = dart.notNull(this[_state]) | dart.notNull(_BufferingStreamSubscription[_STATE_IN_CALLBACK]);
-        dart.dinvokef(callback);
+        dart.dcall(callback);
         this[_state] = dart.notNull(this[_state]) & ~dart.notNull(_BufferingStreamSubscription[_STATE_IN_CALLBACK]);
         this[_checkState](wasInputPaused);
       }
@@ -1759,7 +1759,7 @@ var async;
               for (let value of values) {
                 if (value != null) {
                   new Future.sync(() => {
-                    dart.dinvokef(cleanUp, value);
+                    dart.dcall(cleanUp, value);
                   });
                 }
               }
@@ -1788,7 +1788,7 @@ var async;
             } else {
               if (dart.notNull(cleanUp != null) && dart.notNull(value != null)) {
                 new Future.sync(() => {
-                  dart.dinvokef(cleanUp, value);
+                  dart.dcall(cleanUp, value);
                 });
               }
               if (remaining == 0 && !dart.notNull(eagerError)) {
@@ -1808,7 +1808,7 @@ var async;
         return Future.doWhile(() => {
           if (!dart.notNull(iterator.moveNext()))
             return false;
-          return new Future.sync(() => dart.dinvokef(f, iterator.current)).then(_ => true);
+          return new Future.sync(() => dart.dcall(f, iterator.current)).then(_ => true);
         });
       }
       static doWhile(f) {
@@ -1821,7 +1821,7 @@ var async;
             doneSignal[_complete](null);
           }
         }, {runGuarded: true});
-        dart.dinvokef(nextIteration, true);
+        dart.dcall(nextIteration, true);
         return doneSignal;
       }
     }
@@ -2368,7 +2368,7 @@ var async;
                 let result = listener.result;
                 result[_isChained] = true;
                 isPropagationAborted = true;
-                dart.dinvoke(completeResult, 'then', ignored => {
+                dart.dsend(completeResult, 'then', ignored => {
                   _Future[_propagateToListeners](source, new _FutureListener.chain(result));
                 }, {
                   onError: (error, stackTrace) => {
@@ -2376,7 +2376,7 @@ var async;
                       stackTrace = null;
                     if (!dart.is(completeResult, _Future)) {
                       completeResult = new _Future();
-                      dart.dinvoke(completeResult, '_setError', error, stackTrace);
+                      dart.dsend(completeResult, '_setError', error, stackTrace);
                     }
                     _Future[_propagateToListeners](dart.as(completeResult, _Future), new _FutureListener.chain(result));
                   }
@@ -2557,7 +2557,7 @@ var async;
   let _createTimer = Symbol('_createTimer');
   class _AsyncRun extends core.Object {
     static [_scheduleImmediate](callback) {
-      dart.dinvokef(_AsyncRun.scheduleImmediateClosure, callback);
+      dart.dcall(_AsyncRun.scheduleImmediateClosure, callback);
     }
     static [_initializeScheduleImmediate]() {
       _js_helper.requiresPreamble();
@@ -2573,7 +2573,7 @@ var async;
           _isolate_helper.leaveJsAsync();
           let f = storedCallback;
           storedCallback = null;
-          dart.dinvokef(f);
+          dart.dcall(f);
         }
         ;
         let observer = new self.MutationObserver(_js_helper.convertDartClosureToJS(internalCallback, 1));
@@ -3690,16 +3690,16 @@ var async;
   // Function _runUserCode: (() → dynamic, (dynamic) → dynamic, (dynamic, StackTrace) → dynamic) → dynamic
   function _runUserCode(userCode, onSuccess, onError) {
     try {
-      dart.dinvokef(onSuccess, userCode());
+      dart.dcall(onSuccess, userCode());
     } catch (e) {
       let s = dart.stackTrace(e);
       let replacement = Zone.current.errorCallback(e, s);
       if (replacement == null) {
-        dart.dinvokef(onError, e, s);
+        dart.dcall(onError, e, s);
       } else {
         let error = _nonNullError(replacement.error);
         let stackTrace = replacement.stackTrace;
-        dart.dinvokef(onError, error, stackTrace);
+        dart.dcall(onError, error, stackTrace);
       }
     }
 
@@ -3874,7 +3874,7 @@ var async;
       [_handleData](inputEvent, sink) {
         let outputEvent = null;
         try {
-          outputEvent = dart.as(dart.dinvokef(this[_transform], inputEvent), T);
+          outputEvent = dart.as(dart.dcall(this[_transform], inputEvent), T);
         } catch (e) {
           let s = dart.stackTrace(e);
           _addErrorWithReplacement(sink, e, s);
@@ -3921,7 +3921,7 @@ var async;
         let matches = true;
         if (this[_test] != null) {
           try {
-            matches = dart.dinvokef(this[_test], error);
+            matches = dart.dcall(this[_test], error);
           } catch (e) {
             let s = dart.stackTrace(e);
             _addErrorWithReplacement(sink, e, s);
@@ -4517,69 +4517,69 @@ var async;
     handleUncaughtError(zone, error, stackTrace) {
       let implementation = this[_delegationTarget][_handleUncaughtError];
       let implZone = implementation.zone;
-      return dart.dinvokef(implementation.function, implZone, _parentDelegate(implZone), zone, error, stackTrace);
+      return dart.dcall(implementation.function, implZone, _parentDelegate(implZone), zone, error, stackTrace);
     }
     run(zone, f) {
       let implementation = this[_delegationTarget][_run];
       let implZone = implementation.zone;
-      return dart.dinvokef(implementation.function, implZone, _parentDelegate(implZone), zone, f);
+      return dart.dcall(implementation.function, implZone, _parentDelegate(implZone), zone, f);
     }
     runUnary(zone, f, arg) {
       let implementation = this[_delegationTarget][_runUnary];
       let implZone = implementation.zone;
-      return dart.dinvokef(implementation.function, implZone, _parentDelegate(implZone), zone, f, arg);
+      return dart.dcall(implementation.function, implZone, _parentDelegate(implZone), zone, f, arg);
     }
     runBinary(zone, f, arg1, arg2) {
       let implementation = this[_delegationTarget][_runBinary];
       let implZone = implementation.zone;
-      return dart.dinvokef(implementation.function, implZone, _parentDelegate(implZone), zone, f, arg1, arg2);
+      return dart.dcall(implementation.function, implZone, _parentDelegate(implZone), zone, f, arg1, arg2);
     }
     registerCallback(zone, f) {
       let implementation = this[_delegationTarget][_registerCallback];
       let implZone = implementation.zone;
-      return dart.as(dart.dinvokef(implementation.function, implZone, _parentDelegate(implZone), zone, f), ZoneCallback);
+      return dart.as(dart.dcall(implementation.function, implZone, _parentDelegate(implZone), zone, f), ZoneCallback);
     }
     registerUnaryCallback(zone, f) {
       let implementation = this[_delegationTarget][_registerUnaryCallback];
       let implZone = implementation.zone;
-      return dart.as(dart.dinvokef(implementation.function, implZone, _parentDelegate(implZone), zone, f), ZoneUnaryCallback);
+      return dart.as(dart.dcall(implementation.function, implZone, _parentDelegate(implZone), zone, f), ZoneUnaryCallback);
     }
     registerBinaryCallback(zone, f) {
       let implementation = this[_delegationTarget][_registerBinaryCallback];
       let implZone = implementation.zone;
-      return dart.as(dart.dinvokef(implementation.function, implZone, _parentDelegate(implZone), zone, f), ZoneBinaryCallback);
+      return dart.as(dart.dcall(implementation.function, implZone, _parentDelegate(implZone), zone, f), ZoneBinaryCallback);
     }
     errorCallback(zone, error, stackTrace) {
       let implementation = this[_delegationTarget][_errorCallback];
       let implZone = implementation.zone;
       if (core.identical(implZone, _ROOT_ZONE))
         return null;
-      return dart.as(dart.dinvokef(implementation.function, implZone, _parentDelegate(implZone), zone, error, stackTrace), AsyncError);
+      return dart.as(dart.dcall(implementation.function, implZone, _parentDelegate(implZone), zone, error, stackTrace), AsyncError);
     }
     scheduleMicrotask(zone, f) {
       let implementation = this[_delegationTarget][_scheduleMicrotask];
       let implZone = implementation.zone;
-      dart.dinvokef(implementation.function, implZone, _parentDelegate(implZone), zone, f);
+      dart.dcall(implementation.function, implZone, _parentDelegate(implZone), zone, f);
     }
     createTimer(zone, duration, f) {
       let implementation = this[_delegationTarget][_createTimer];
       let implZone = implementation.zone;
-      return dart.as(dart.dinvokef(implementation.function, implZone, _parentDelegate(implZone), zone, duration, f), Timer);
+      return dart.as(dart.dcall(implementation.function, implZone, _parentDelegate(implZone), zone, duration, f), Timer);
     }
     createPeriodicTimer(zone, period, f) {
       let implementation = this[_delegationTarget][_createPeriodicTimer];
       let implZone = implementation.zone;
-      return dart.as(dart.dinvokef(implementation.function, implZone, _parentDelegate(implZone), zone, period, f), Timer);
+      return dart.as(dart.dcall(implementation.function, implZone, _parentDelegate(implZone), zone, period, f), Timer);
     }
     print(zone, line) {
       let implementation = this[_delegationTarget][_print];
       let implZone = implementation.zone;
-      dart.dinvokef(implementation.function, implZone, _parentDelegate(implZone), zone, line);
+      dart.dcall(implementation.function, implZone, _parentDelegate(implZone), zone, line);
     }
     fork(zone, specification, zoneValues) {
       let implementation = this[_delegationTarget][_fork];
       let implZone = implementation.zone;
-      return dart.as(dart.dinvokef(implementation.function, implZone, _parentDelegate(implZone), zone, specification, zoneValues), Zone);
+      return dart.as(dart.dcall(implementation.function, implZone, _parentDelegate(implZone), zone, specification, zoneValues), Zone);
     }
   }
   _ZoneDelegate[dart.implements] = () => [ZoneDelegate];
@@ -4707,7 +4707,7 @@ var async;
       let implementation = this[_handleUncaughtError];
       dart.assert(implementation != null);
       let parentDelegate = _parentDelegate(implementation.zone);
-      return dart.dinvokef(implementation.function, implementation.zone, parentDelegate, this, error, stackTrace);
+      return dart.dcall(implementation.function, implementation.zone, parentDelegate, this, error, stackTrace);
     }
     fork(opts) {
       let specification = opts && 'specification' in opts ? opts.specification : null;
@@ -4715,43 +4715,43 @@ var async;
       let implementation = this[_fork];
       dart.assert(implementation != null);
       let parentDelegate = _parentDelegate(implementation.zone);
-      return dart.as(dart.dinvokef(implementation.function, implementation.zone, parentDelegate, this, specification, zoneValues), Zone);
+      return dart.as(dart.dcall(implementation.function, implementation.zone, parentDelegate, this, specification, zoneValues), Zone);
     }
     run(f) {
       let implementation = this[_run];
       dart.assert(implementation != null);
       let parentDelegate = _parentDelegate(implementation.zone);
-      return dart.dinvokef(implementation.function, implementation.zone, parentDelegate, this, f);
+      return dart.dcall(implementation.function, implementation.zone, parentDelegate, this, f);
     }
     runUnary(f, arg) {
       let implementation = this[_runUnary];
       dart.assert(implementation != null);
       let parentDelegate = _parentDelegate(implementation.zone);
-      return dart.dinvokef(implementation.function, implementation.zone, parentDelegate, this, f, arg);
+      return dart.dcall(implementation.function, implementation.zone, parentDelegate, this, f, arg);
     }
     runBinary(f, arg1, arg2) {
       let implementation = this[_runBinary];
       dart.assert(implementation != null);
       let parentDelegate = _parentDelegate(implementation.zone);
-      return dart.dinvokef(implementation.function, implementation.zone, parentDelegate, this, f, arg1, arg2);
+      return dart.dcall(implementation.function, implementation.zone, parentDelegate, this, f, arg1, arg2);
     }
     registerCallback(f) {
       let implementation = this[_registerCallback];
       dart.assert(implementation != null);
       let parentDelegate = _parentDelegate(implementation.zone);
-      return dart.as(dart.dinvokef(implementation.function, implementation.zone, parentDelegate, this, f), ZoneCallback);
+      return dart.as(dart.dcall(implementation.function, implementation.zone, parentDelegate, this, f), ZoneCallback);
     }
     registerUnaryCallback(f) {
       let implementation = this[_registerUnaryCallback];
       dart.assert(implementation != null);
       let parentDelegate = _parentDelegate(implementation.zone);
-      return dart.as(dart.dinvokef(implementation.function, implementation.zone, parentDelegate, this, f), ZoneUnaryCallback);
+      return dart.as(dart.dcall(implementation.function, implementation.zone, parentDelegate, this, f), ZoneUnaryCallback);
     }
     registerBinaryCallback(f) {
       let implementation = this[_registerBinaryCallback];
       dart.assert(implementation != null);
       let parentDelegate = _parentDelegate(implementation.zone);
-      return dart.as(dart.dinvokef(implementation.function, implementation.zone, parentDelegate, this, f), ZoneBinaryCallback);
+      return dart.as(dart.dcall(implementation.function, implementation.zone, parentDelegate, this, f), ZoneBinaryCallback);
     }
     errorCallback(error, stackTrace) {
       let implementation = this[_errorCallback];
@@ -4760,31 +4760,31 @@ var async;
       if (core.identical(implementationZone, _ROOT_ZONE))
         return null;
       let parentDelegate = _parentDelegate(dart.as(implementationZone, _Zone));
-      return dart.as(dart.dinvokef(implementation.function, implementationZone, parentDelegate, this, error, stackTrace), AsyncError);
+      return dart.as(dart.dcall(implementation.function, implementationZone, parentDelegate, this, error, stackTrace), AsyncError);
     }
     scheduleMicrotask(f) {
       let implementation = this[_scheduleMicrotask];
       dart.assert(implementation != null);
       let parentDelegate = _parentDelegate(implementation.zone);
-      return dart.dinvokef(implementation.function, implementation.zone, parentDelegate, this, f);
+      return dart.dcall(implementation.function, implementation.zone, parentDelegate, this, f);
     }
     createTimer(duration, f) {
       let implementation = this[_createTimer];
       dart.assert(implementation != null);
       let parentDelegate = _parentDelegate(implementation.zone);
-      return dart.as(dart.dinvokef(implementation.function, implementation.zone, parentDelegate, this, duration, f), Timer);
+      return dart.as(dart.dcall(implementation.function, implementation.zone, parentDelegate, this, duration, f), Timer);
     }
     createPeriodicTimer(duration, f) {
       let implementation = this[_createPeriodicTimer];
       dart.assert(implementation != null);
       let parentDelegate = _parentDelegate(implementation.zone);
-      return dart.as(dart.dinvokef(implementation.function, implementation.zone, parentDelegate, this, duration, f), Timer);
+      return dart.as(dart.dcall(implementation.function, implementation.zone, parentDelegate, this, duration, f), Timer);
     }
     print(line) {
       let implementation = this[_print];
       dart.assert(implementation != null);
       let parentDelegate = _parentDelegate(implementation.zone);
-      return dart.dinvokef(implementation.function, implementation.zone, parentDelegate, this, line);
+      return dart.dcall(implementation.function, implementation.zone, parentDelegate, this, line);
     }
   }
   // Function _rootHandleUncaughtError: (Zone, ZoneDelegate, Zone, dynamic, StackTrace) → void
@@ -4807,10 +4807,10 @@ var async;
   // Function _rootRunUnary: (Zone, ZoneDelegate, Zone, (dynamic) → dynamic, dynamic) → dynamic
   function _rootRunUnary(self, parent, zone, f, arg) {
     if (dart.equals(Zone[_current], zone))
-      return dart.dinvokef(f, arg);
+      return dart.dcall(f, arg);
     let old = Zone[_enter](zone);
     try {
-      return dart.dinvokef(f, arg);
+      return dart.dcall(f, arg);
     } finally {
       Zone[_leave](old);
     }
@@ -4818,10 +4818,10 @@ var async;
   // Function _rootRunBinary: (Zone, ZoneDelegate, Zone, (dynamic, dynamic) → dynamic, dynamic, dynamic) → dynamic
   function _rootRunBinary(self, parent, zone, f, arg1, arg2) {
     if (dart.equals(Zone[_current], zone))
-      return dart.dinvokef(f, arg1, arg2);
+      return dart.dcall(f, arg1, arg2);
     let old = Zone[_enter](zone);
     try {
-      return dart.dinvokef(f, arg1, arg2);
+      return dart.dcall(f, arg1, arg2);
     } finally {
       Zone[_leave](old);
     }
@@ -5008,7 +5008,7 @@ var async;
     runUnaryGuarded(f, arg) {
       try {
         if (core.identical(_ROOT_ZONE, Zone[_current])) {
-          return dart.dinvokef(f, arg);
+          return dart.dcall(f, arg);
         }
         return _rootRunUnary(null, null, this, f, arg);
       } catch (e) {
@@ -5020,7 +5020,7 @@ var async;
     runBinaryGuarded(f, arg1, arg2) {
       try {
         if (core.identical(_ROOT_ZONE, Zone[_current])) {
-          return dart.dinvokef(f, arg1, arg2);
+          return dart.dcall(f, arg1, arg2);
         }
         return _rootRunBinary(null, null, this, f, arg1, arg2);
       } catch (e) {
@@ -5071,12 +5071,12 @@ var async;
     }
     runUnary(f, arg) {
       if (core.identical(Zone[_current], _ROOT_ZONE))
-        return dart.dinvokef(f, arg);
+        return dart.dcall(f, arg);
       return _rootRunUnary(null, null, this, f, arg);
     }
     runBinary(f, arg1, arg2) {
       if (core.identical(Zone[_current], _ROOT_ZONE))
-        return dart.dinvokef(f, arg1, arg2);
+        return dart.dcall(f, arg1, arg2);
       return _rootRunBinary(null, null, this, f, arg1, arg2);
     }
     registerCallback(f) {

@@ -226,7 +226,7 @@ var _js_helper;
   exports.prototypeForTagFunction = null;
   // Function toStringForNativeObject: (dynamic) → String
   function toStringForNativeObject(obj) {
-    let name = exports.getTagFunction == null ? '<Unknown>' : dart.dinvokef(exports.getTagFunction, obj);
+    let name = exports.getTagFunction == null ? '<Unknown>' : dart.dcall(exports.getTagFunction, obj);
     return `Instance of ${name}`;
   }
   // Function hashCodeForNativeObject: (dynamic) → int
@@ -267,7 +267,7 @@ var _js_helper;
   // Function lookupAndCacheInterceptor: (dynamic) → dynamic
   function lookupAndCacheInterceptor(obj) {
     dart.assert(!dart.notNull(isDartObject(obj)));
-    let tag = dart.as(dart.dinvokef(exports.getTagFunction, obj), core.String);
+    let tag = dart.as(dart.dcall(exports.getTagFunction, obj), core.String);
     let record = propertyGet(exports.dispatchRecordsForInstanceTags, tag);
     if (record != null)
       return patchInstance(obj, record);
@@ -276,7 +276,7 @@ var _js_helper;
       return interceptor;
     let interceptorClass = lookupInterceptor(tag);
     if (interceptorClass == null) {
-      tag = dart.as(dart.dinvokef(exports.alternateTagFunction, obj, tag), core.String);
+      tag = dart.as(dart.dcall(exports.alternateTagFunction, obj, tag), core.String);
       if (tag != null) {
         record = propertyGet(exports.dispatchRecordsForInstanceTags, tag);
         if (record != null)
@@ -379,7 +379,7 @@ var _js_helper;
       };
       for (let i = 0; i['<'](dart.dload(tags, 'length')); i = dart.notNull(i) + 1) {
         let tag = dart.dindex(tags, i);
-        let proto = dart.dinvokef(exports.prototypeForTagFunction, tag);
+        let proto = dart.dcall(exports.prototypeForTagFunction, tag);
         if (proto != null) {
           let interceptorClass = map[tag];
           let record = makeDefaultDispatchRecord(tag, interceptorClass, proto);
@@ -465,7 +465,7 @@ var _js_helper;
   function regExpCaptureCount(regexp) {
     let nativeAnchoredRegExp = regexp[_nativeAnchoredVersion];
     let match = nativeAnchoredRegExp.exec('');
-    return dart.as(dart.dbinary(dart.dload(match, 'length'), '-', 2), core.int);
+    return dart.as(dart.dsend(dart.dload(match, 'length'), '-', 2), core.int);
   }
   let _nativeGlobalRegExp = Symbol('_nativeGlobalRegExp');
   let _nativeAnchoredRegExp = Symbol('_nativeAnchoredRegExp');
@@ -721,12 +721,12 @@ var _js_helper;
   // Function stringContainsUnchecked: (dynamic, dynamic, dynamic) → dynamic
   function stringContainsUnchecked(receiver, other, startIndex) {
     if (typeof other == 'string') {
-      return !dart.equals(dart.dinvoke(receiver, 'indexOf', other, startIndex), -1);
+      return !dart.equals(dart.dsend(receiver, 'indexOf', other, startIndex), -1);
     } else if (dart.is(other, JSSyntaxRegExp)) {
-      return dart.dinvoke(other, 'hasMatch', dart.dinvoke(receiver, 'substring', startIndex));
+      return dart.dsend(other, 'hasMatch', dart.dsend(receiver, 'substring', startIndex));
     } else {
-      let substr = dart.dinvoke(receiver, 'substring', startIndex);
-      return dart.dload(dart.dinvoke(other, 'allMatches', substr), 'isNotEmpty');
+      let substr = dart.dsend(receiver, 'substring', startIndex);
+      return dart.dload(dart.dsend(other, 'allMatches', substr), 'isNotEmpty');
     }
   }
   // Function stringReplaceJS: (dynamic, dynamic, dynamic) → dynamic
@@ -736,12 +736,12 @@ var _js_helper;
   }
   // Function stringReplaceFirstRE: (dynamic, dynamic, dynamic, dynamic) → dynamic
   function stringReplaceFirstRE(receiver, regexp, to, startIndex) {
-    let match = dart.dinvoke(regexp, '_execGlobal', receiver, startIndex);
+    let match = dart.dsend(regexp, '_execGlobal', receiver, startIndex);
     if (match == null)
       return receiver;
     let start = dart.dload(match, 'start');
     let end = dart.dload(match, 'end');
-    return `${dart.dinvoke(receiver, 'substring', 0, start)}${to}${dart.dinvoke(receiver, 'substring', end)}`;
+    return `${dart.dsend(receiver, 'substring', 0, start)}${to}${dart.dsend(receiver, 'substring', end)}`;
   }
   let ESCAPE_REGEXP = '[[\\]{}()*+?.\\\\^$|]';
   // Function stringReplaceAllUnchecked: (dynamic, dynamic, dynamic) → dynamic
@@ -797,12 +797,12 @@ var _js_helper;
     }
     let buffer = new core.StringBuffer();
     let startIndex = 0;
-    for (let match of dart.as(dart.dinvoke(pattern, 'allMatches', receiver), core.Iterable$(core.Match))) {
-      buffer.write(dart.dinvokef(onNonMatch, dart.dinvoke(receiver, 'substring', startIndex, match.start)));
-      buffer.write(dart.dinvokef(onMatch, match));
+    for (let match of dart.as(dart.dsend(pattern, 'allMatches', receiver), core.Iterable$(core.Match))) {
+      buffer.write(dart.dcall(onNonMatch, dart.dsend(receiver, 'substring', startIndex, match.start)));
+      buffer.write(dart.dcall(onMatch, match));
       startIndex = match.end;
     }
-    buffer.write(dart.dinvokef(onNonMatch, dart.dinvoke(receiver, 'substring', startIndex)));
+    buffer.write(dart.dcall(onNonMatch, dart.dsend(receiver, 'substring', startIndex)));
     return buffer.toString();
   }
   // Function stringReplaceAllEmptyFuncUnchecked: (dynamic, dynamic, dynamic) → dynamic
@@ -810,23 +810,23 @@ var _js_helper;
     let buffer = new core.StringBuffer();
     let length = dart.as(dart.dload(receiver, 'length'), core.int);
     let i = 0;
-    buffer.write(dart.dinvokef(onNonMatch, ""));
+    buffer.write(dart.dcall(onNonMatch, ""));
     while (dart.notNull(i) < dart.notNull(length)) {
-      buffer.write(dart.dinvokef(onMatch, new StringMatch(i, dart.as(receiver, core.String), "")));
-      let code = dart.as(dart.dinvoke(receiver, 'codeUnitAt', i), core.int);
+      buffer.write(dart.dcall(onMatch, new StringMatch(i, dart.as(receiver, core.String), "")));
+      let code = dart.as(dart.dsend(receiver, 'codeUnitAt', i), core.int);
       if ((dart.notNull(code) & ~1023) == 55296 && dart.notNull(length) > dart.notNull(i) + 1) {
-        code = dart.as(dart.dinvoke(receiver, 'codeUnitAt', dart.notNull(i) + 1), core.int);
+        code = dart.as(dart.dsend(receiver, 'codeUnitAt', dart.notNull(i) + 1), core.int);
         if ((dart.notNull(code) & ~1023) == 56320) {
-          buffer.write(dart.dinvokef(onNonMatch, dart.dinvoke(receiver, 'substring', i, dart.notNull(i) + 2)));
+          buffer.write(dart.dcall(onNonMatch, dart.dsend(receiver, 'substring', i, dart.notNull(i) + 2)));
           i = dart.notNull(i) + 2;
           continue;
         }
       }
-      buffer.write(dart.dinvokef(onNonMatch, dart.dindex(receiver, i)));
+      buffer.write(dart.dcall(onNonMatch, dart.dindex(receiver, i)));
       i = dart.notNull(i) + 1;
     }
-    buffer.write(dart.dinvokef(onMatch, new StringMatch(i, dart.as(receiver, core.String), "")));
-    buffer.write(dart.dinvokef(onNonMatch, ""));
+    buffer.write(dart.dcall(onMatch, new StringMatch(i, dart.as(receiver, core.String), "")));
+    buffer.write(dart.dcall(onNonMatch, ""));
     return buffer.toString();
   }
   // Function stringReplaceAllStringFuncUnchecked: (dynamic, dynamic, dynamic, dynamic) → dynamic
@@ -839,15 +839,15 @@ var _js_helper;
     let buffer = new core.StringBuffer();
     let startIndex = 0;
     while (dart.notNull(startIndex) < dart.notNull(length)) {
-      let position = dart.as(dart.dinvoke(receiver, 'indexOf', pattern, startIndex), core.int);
+      let position = dart.as(dart.dsend(receiver, 'indexOf', pattern, startIndex), core.int);
       if (position == -1) {
         break;
       }
-      buffer.write(dart.dinvokef(onNonMatch, dart.dinvoke(receiver, 'substring', startIndex, position)));
-      buffer.write(dart.dinvokef(onMatch, new StringMatch(position, dart.as(receiver, core.String), dart.as(pattern, core.String))));
+      buffer.write(dart.dcall(onNonMatch, dart.dsend(receiver, 'substring', startIndex, position)));
+      buffer.write(dart.dcall(onMatch, new StringMatch(position, dart.as(receiver, core.String), dart.as(pattern, core.String))));
       startIndex = dart.notNull(position) + dart.notNull(patternLength);
     }
-    buffer.write(dart.dinvokef(onNonMatch, dart.dinvoke(receiver, 'substring', startIndex)));
+    buffer.write(dart.dcall(onNonMatch, dart.dsend(receiver, 'substring', startIndex)));
     return buffer.toString();
   }
   // Function stringReplaceFirstUnchecked: (dynamic, dynamic, dynamic, [int]) → dynamic
@@ -855,10 +855,10 @@ var _js_helper;
     if (startIndex === void 0)
       startIndex = 0;
     if (typeof from == 'string') {
-      let index = dart.dinvoke(receiver, 'indexOf', from, startIndex);
-      if (dart.dbinary(index, '<', 0))
+      let index = dart.dsend(receiver, 'indexOf', from, startIndex);
+      if (dart.dsend(index, '<', 0))
         return receiver;
-      return `${dart.dinvoke(receiver, 'substring', 0, index)}${to}` + `${dart.dinvoke(receiver, 'substring', dart.dbinary(index, '+', dart.dload(from, 'length')))}`;
+      return `${dart.dsend(receiver, 'substring', 0, index)}${to}` + `${dart.dsend(receiver, 'substring', dart.dsend(index, '+', dart.dload(from, 'length')))}`;
     } else if (dart.is(from, JSSyntaxRegExp)) {
       return startIndex == 0 ? stringReplaceJS(receiver, regExpGetNative(dart.as(from, JSSyntaxRegExp)), to) : stringReplaceFirstRE(receiver, from, to, startIndex);
     } else {
@@ -1224,7 +1224,7 @@ var _js_helper;
     if (hasNoField(s, `${_foreign_helper.JS_FUNCTION_TYPE_TAG()}`))
       return false;
     if (hasField(s, `${_foreign_helper.JS_FUNCTION_TYPE_VOID_RETURN_TAG()}`)) {
-      if (dart.dbinary(hasNoField(t, `${_foreign_helper.JS_FUNCTION_TYPE_VOID_RETURN_TAG()}`), '&&', hasField(t, `${_foreign_helper.JS_FUNCTION_TYPE_RETURN_TYPE_TAG()}`))) {
+      if (dart.dsend(hasNoField(t, `${_foreign_helper.JS_FUNCTION_TYPE_VOID_RETURN_TAG()}`), '&&', hasField(t, `${_foreign_helper.JS_FUNCTION_TYPE_RETURN_TYPE_TAG()}`))) {
         return false;
       }
     } else if (hasNoField(t, `${_foreign_helper.JS_FUNCTION_TYPE_VOID_RETURN_TAG()}`)) {
@@ -1316,7 +1316,7 @@ var _js_helper;
   }
   // Function hasNoField: (dynamic, dynamic) → dynamic
   function hasNoField(object, name) {
-    return dart.dunary('!', hasField(object, name));
+    return dart.dsend(hasField(object, name), '!');
   }
   // Function isJsFunction: (dynamic) → bool
   function isJsFunction(o) {
@@ -1507,9 +1507,9 @@ var _js_helper;
     static invokeFromMirror(invocation, victim) {
       let cached = invocation[_getCachedInvocation](victim);
       if (dart.dload(cached, 'isNoSuchMethod')) {
-        return dart.dinvoke(cached, 'invokeOn', victim, invocation);
+        return dart.dsend(cached, 'invokeOn', victim, invocation);
       } else {
-        return dart.dinvoke(cached, 'invokeOn', victim, invocation[_arguments]);
+        return dart.dsend(cached, 'invokeOn', victim, invocation[_arguments]);
       }
     }
     static getCachedInvocation(invocation, victim) {
@@ -1603,7 +1603,7 @@ var _js_helper;
     }
     invokeOn(victim, invocation) {
       let receiver = this.interceptor == null ? victim : this.interceptor;
-      return dart.dinvoke(receiver, 'noSuchMethod', invocation);
+      return dart.dsend(receiver, 'noSuchMethod', invocation);
     }
   }
   class ReflectionInfo extends core.Object {
@@ -1880,11 +1880,11 @@ var _js_helper;
       for (let i of dart.as(codePoints, core.Iterable)) {
         if (!(typeof i == 'number'))
           throw new core.ArgumentError(i);
-        if (dart.dbinary(i, '<=', 65535)) {
+        if (dart.dsend(i, '<=', 65535)) {
           a[core.$add](dart.as(i, core.int));
-        } else if (dart.dbinary(i, '<=', 1114111)) {
-          a[core.$add](55296['+'](dart.dbinary(dart.dbinary(dart.dbinary(i, '-', 65536), '>>', 10), '&', 1023)));
-          a[core.$add](56320['+'](dart.dbinary(i, '&', 1023)));
+        } else if (dart.dsend(i, '<=', 1114111)) {
+          a[core.$add](55296['+'](dart.dsend(dart.dsend(dart.dsend(i, '-', 65536), '>>', 10), '&', 1023)));
+          a[core.$add](56320['+'](dart.dsend(i, '&', 1023)));
         } else {
           throw new core.ArgumentError(i);
         }
@@ -1895,22 +1895,22 @@ var _js_helper;
       for (let i of dart.as(charCodes, core.Iterable)) {
         if (!(typeof i == 'number'))
           throw new core.ArgumentError(i);
-        if (dart.dbinary(i, '<', 0))
+        if (dart.dsend(i, '<', 0))
           throw new core.ArgumentError(i);
-        if (dart.dbinary(i, '>', 65535))
+        if (dart.dsend(i, '>', 65535))
           return Primitives.stringFromCodePoints(charCodes);
       }
       return Primitives[_fromCharCodeApply](dart.as(charCodes, core.List$(core.int)));
     }
     static stringFromCharCode(charCode) {
       if (0['<='](charCode)) {
-        if (dart.dbinary(charCode, '<=', 65535)) {
+        if (dart.dsend(charCode, '<=', 65535)) {
           return String.fromCharCode(charCode);
         }
-        if (dart.dbinary(charCode, '<=', 1114111)) {
-          let bits = dart.dbinary(charCode, '-', 65536);
-          let low = 56320['|'](dart.dbinary(bits, '&', 1023));
-          let high = 55296['|'](dart.dbinary(bits, '>>', 10));
+        if (dart.dsend(charCode, '<=', 1114111)) {
+          let bits = dart.dsend(charCode, '-', 65536);
+          let low = 56320['|'](dart.dsend(bits, '&', 1023));
+          let high = 55296['|'](dart.dsend(bits, '>>', 10));
           return String.fromCharCode(high, low);
         }
       }
@@ -1948,17 +1948,17 @@ var _js_helper;
       checkInt(seconds);
       checkInt(milliseconds);
       checkBool(isUtc);
-      let jsMonth = dart.dbinary(month, '-', 1);
+      let jsMonth = dart.dsend(month, '-', 1);
       let value = null;
       if (isUtc) {
         value = Date.UTC(years, jsMonth, day, hours, minutes, seconds, milliseconds);
       } else {
         value = new Date(years, jsMonth, day, hours, minutes, seconds, milliseconds).valueOf();
       }
-      if (core.bool['||'](dart.dbinary(dart.dload(value, 'isNaN'), '||', dart.dbinary(value, '<', -dart.notNull(MAX_MILLISECONDS_SINCE_EPOCH))), dart.dbinary(value, '>', MAX_MILLISECONDS_SINCE_EPOCH))) {
+      if (core.bool['||'](dart.dsend(dart.dload(value, 'isNaN'), '||', dart.dsend(value, '<', -dart.notNull(MAX_MILLISECONDS_SINCE_EPOCH))), dart.dsend(value, '>', MAX_MILLISECONDS_SINCE_EPOCH))) {
         return null;
       }
-      if (dart.dbinary(dart.dbinary(years, '<=', 0), '||', dart.dbinary(years, '<', 100)))
+      if (dart.dsend(dart.dsend(years, '<=', 0), '||', dart.dsend(years, '<', 100)))
         return Primitives.patchUpY2K(value, years, isUtc);
       return value;
     }
@@ -2040,7 +2040,7 @@ var _js_helper;
         });
       }
       let selectorName = `${_foreign_helper.JS_GET_NAME("CALL_PREFIX")}$${argumentCount}${names}`;
-      return dart.dinvoke(func, 'noSuchMethod', createUnmangledInvocationMirror(dart.throw_("Unimplemented SymbolLiteral: #call"), selectorName, JSInvocationMirror.METHOD, arguments$, namedArgumentList));
+      return dart.dsend(func, 'noSuchMethod', createUnmangledInvocationMirror(dart.throw_("Unimplemented SymbolLiteral: #call"), selectorName, JSInvocationMirror.METHOD, arguments$, namedArgumentList));
     }
     static applyFunction(func, positionalArguments, namedArguments) {
       return namedArguments == null ? Primitives.applyFunctionWithPositionalArguments(func, positionalArguments) : Primitives.applyFunctionWithNamedArguments(func, positionalArguments, namedArguments);
@@ -2482,12 +2482,12 @@ var _js_helper;
       let nullLiteralProperty = TypeErrorDecoder.nullLiteralPropertyPattern;
       let undefProperty = TypeErrorDecoder.undefinedPropertyPattern;
       let undefLiteralProperty = TypeErrorDecoder.undefinedLiteralPropertyPattern;
-      if ((match = dart.dinvoke(nsme, 'matchTypeError', message)) != null) {
+      if ((match = dart.dsend(nsme, 'matchTypeError', message)) != null) {
         return saveStackTrace(new JsNoSuchMethodError(dart.as(message, core.String), match));
-      } else if ((match = dart.dinvoke(notClosure, 'matchTypeError', message)) != null) {
+      } else if ((match = dart.dsend(notClosure, 'matchTypeError', message)) != null) {
         match.method = "call";
         return saveStackTrace(new JsNoSuchMethodError(dart.as(message, core.String), match));
-      } else if (dart.notNull((match = dart.dinvoke(nullCall, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dinvoke(nullLiteralCall, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dinvoke(undefCall, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dinvoke(undefLiteralCall, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dinvoke(nullProperty, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dinvoke(nullLiteralCall, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dinvoke(undefProperty, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dinvoke(undefLiteralProperty, 'matchTypeError', message)) != null)) {
+      } else if (dart.notNull((match = dart.dsend(nullCall, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dsend(nullLiteralCall, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dsend(undefCall, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dsend(undefLiteralCall, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dsend(nullProperty, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dsend(nullLiteralCall, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dsend(undefProperty, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dsend(undefLiteralProperty, 'matchTypeError', message)) != null)) {
         return saveStackTrace(new NullError(dart.as(message, core.String), match));
       }
       return saveStackTrace(new UnknownJsTypeError(dart.as(typeof message == 'string' ? message : '', core.String)));
@@ -2557,15 +2557,15 @@ var _js_helper;
   // Function invokeClosure: (Function, dynamic, int, dynamic, dynamic, dynamic, dynamic) → dynamic
   function invokeClosure(closure, isolate, numberOfArguments, arg1, arg2, arg3, arg4) {
     if (numberOfArguments == 0) {
-      return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, () => dart.dinvokef(closure));
+      return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, () => dart.dcall(closure));
     } else if (numberOfArguments == 1) {
-      return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, () => dart.dinvokef(closure, arg1));
+      return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, () => dart.dcall(closure, arg1));
     } else if (numberOfArguments == 2) {
-      return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, () => dart.dinvokef(closure, arg1, arg2));
+      return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, () => dart.dcall(closure, arg1, arg2));
     } else if (numberOfArguments == 3) {
-      return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, () => dart.dinvokef(closure, arg1, arg2, arg3));
+      return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, () => dart.dcall(closure, arg1, arg2, arg3));
     } else if (numberOfArguments == 4) {
-      return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, () => dart.dinvokef(closure, arg1, arg2, arg3, arg4));
+      return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, () => dart.dcall(closure, arg1, arg2, arg3, arg4));
     } else {
       throw new core.Exception('Unsupported number of arguments for wrapped closure');
     }
@@ -3030,13 +3030,13 @@ var _js_helper;
   }
   // Function propertyTypeError: (dynamic, dynamic) → void
   function propertyTypeError(value, property) {
-    let name = dart.as(dart.dinvoke(property, 'substring', 3, dart.dload(property, 'length')), core.String);
+    let name = dart.as(dart.dsend(property, 'substring', 3, dart.dload(property, 'length')), core.String);
     throw new TypeErrorImplementation(value, name);
   }
   // Function propertyTypeCastError: (dynamic, dynamic) → void
   function propertyTypeCastError(value, property) {
     let actualType = Primitives.objectTypeName(value);
-    let expectedType = dart.as(dart.dinvoke(property, 'substring', 3, dart.dload(property, 'length')), core.String);
+    let expectedType = dart.as(dart.dsend(property, 'substring', 3, dart.dload(property, 'length')), core.String);
     throw new CastErrorImplementation(actualType, expectedType);
   }
   // Function propertyTypeCheck: (dynamic, dynamic) → dynamic
@@ -3256,7 +3256,7 @@ var _js_helper;
   function assertHelper(condition) {
     if (!(typeof condition == 'boolean')) {
       if (dart.is(condition, core.Function))
-        condition = dart.dinvokef(condition);
+        condition = dart.dcall(condition);
       if (!(typeof condition == 'boolean')) {
         throw new TypeErrorImplementation(condition, 'bool');
       }
@@ -3372,7 +3372,7 @@ var _js_helper;
         let keys = _js_names.extractKeys(this.namedParameters);
         for (let i = 0; dart.notNull(i) < dart.notNull(keys[core.$length]); i = dart.notNull(i) + 1) {
           let name = keys[core.$get](i);
-          let rti = dart.dinvoke(this.namedParameters[name], 'toRti');
+          let rti = dart.dsend(this.namedParameters[name], 'toRti');
           namedRti[name] = rti;
         }
         result[_foreign_helper.JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG()] = namedRti;
@@ -3383,7 +3383,7 @@ var _js_helper;
       list = list;
       let result = [];
       for (let i = 0; i['<'](dart.dload(list, 'length')); i = dart.notNull(i) + 1) {
-        result.push(dart.dinvoke(dart.dindex(list, i), 'toRti'));
+        result.push(dart.dsend(dart.dindex(list, i), 'toRti'));
       }
       return result;
     }
@@ -3427,7 +3427,7 @@ var _js_helper;
           if (needsComma) {
             result = core.String['+'](result, ', ');
           }
-          let rti = dart.dinvoke(this.namedParameters[name], 'toRti');
+          let rti = dart.dsend(this.namedParameters[name], 'toRti');
           result = core.String['+'](result, `${rti} ${name}`);
           needsComma = true;
         }
@@ -3498,9 +3498,9 @@ var _js_helper;
     getDynamicRuntimeType();
     getVoidRuntimeType();
     convertRtiToRuntimeType(dyn);
-    dart.dinvoke(dyn, '_isTest', dyn2);
-    dart.dinvoke(dyn, '_asCheck', dyn2);
-    dart.dinvoke(dyn, '_assertCheck', dyn2);
+    dart.dsend(dyn, '_isTest', dyn2);
+    dart.dsend(dyn, '_asCheck', dyn2);
+    dart.dsend(dyn, '_assertCheck', dyn2);
   }
   // Function convertRtiToRuntimeType: (dynamic) → RuntimeType
   function convertRtiToRuntimeType(rti) {

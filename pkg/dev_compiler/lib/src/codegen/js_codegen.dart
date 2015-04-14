@@ -1302,13 +1302,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (rules.isDynamicCall(node.methodName)) {
       var args = _visit(node.argumentList);
       if (target != null) {
-        return js.call('dart.dinvoke(#, #, #)', [
+        return js.call('dart.dsend(#, #, #)', [
           _visit(target),
           js.string(node.methodName.name, "'"),
           args
         ]);
       } else {
-        return js.call('dart.dinvokef(#, #)', [_visit(node.methodName), args]);
+        return js.call('dart.dcall(#, #)', [_visit(node.methodName), args]);
       }
     }
 
@@ -1352,7 +1352,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       FunctionExpressionInvocation node) {
     var code;
     if (rules.isDynamicCall(node.function)) {
-      code = 'dart.dinvokef(#, #)';
+      code = 'dart.dcall(#, #)';
     } else {
       code = '#(#)';
     }
@@ -1649,7 +1649,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       if (rules.isDynamicTarget(left)) {
         // dynamic dispatch
         return js.call(
-            'dart.dbinary(#, #, #)', [_visit(left), opString, _visit(right)]);
+            'dart.dsend(#, #, #)', [_visit(left), opString, _visit(right)]);
       } else if (_isJSBuiltinType(leftType)) {
         // TODO(jmesserly): we'd get better readability from the static-dispatch
         // pattern below. Consider:
@@ -1860,7 +1860,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var opString = _emitMemberName(op.lexeme, unary: true);
     if (rules.isDynamicTarget(expr)) {
       // dynamic dispatch
-      return js.call('dart.dunary(#, #)', [opString, _visit(expr)]);
+      return js.call('dart.dsend(#, #)', [_visit(expr), opString]);
     } else if (_isJSBuiltinType(dispatchType)) {
       return js.call(
           '#.#(#)', [_emitTypeName(dispatchType), opString, _visit(expr)]);

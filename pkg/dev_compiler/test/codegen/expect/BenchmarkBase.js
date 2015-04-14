@@ -41,7 +41,7 @@ var BenchmarkBase;
       watch.start();
       let elapsed = 0;
       while (dart.notNull(elapsed) < dart.notNull(timeMinimum)) {
-        dart.dinvokef(f);
+        dart.dcall(f);
         elapsed = watch.elapsedMilliseconds;
         iter = dart.notNull(iter) + 1;
       }

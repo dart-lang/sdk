@@ -391,11 +391,11 @@ var _isolate_helper;
     exports._globalState.currentContext = rootContext;
     if (dart.is(entry, _MainFunctionArgs)) {
       rootContext.eval(() => {
-        dart.dinvokef(entry, args);
+        dart.dcall(entry, args);
       });
     } else if (dart.is(entry, _MainFunctionArgsMessage)) {
       rootContext.eval(() => {
-        dart.dinvokef(entry, args, null);
+        dart.dcall(entry, args, null);
       });
     } else {
       rootContext.eval(dart.as(entry, core.Function));
@@ -530,14 +530,14 @@ var _isolate_helper;
       if (this.doneHandlers == null) {
         this.doneHandlers = new core.List.from([]);
       }
-      if (dart.dinvoke(this.doneHandlers, 'contains', responsePort))
+      if (dart.dsend(this.doneHandlers, 'contains', responsePort))
         return;
-      dart.dinvoke(this.doneHandlers, 'add', responsePort);
+      dart.dsend(this.doneHandlers, 'add', responsePort);
     }
     removeDoneListener(responsePort) {
       if (this.doneHandlers == null)
         return;
-      dart.dinvoke(this.doneHandlers, 'remove', responsePort);
+      dart.dsend(this.doneHandlers, 'remove', responsePort);
     }
     setErrorsFatal(authentification, errorsAreFatal) {
       if (!dart.equals(this.terminateCapability, authentification))
@@ -561,7 +561,7 @@ var _isolate_helper;
       if (this[_scheduledControlEvents] == null) {
         this[_scheduledControlEvents] = new collection.Queue();
       }
-      dart.dinvoke(this[_scheduledControlEvents], 'addLast', respond);
+      dart.dsend(this[_scheduledControlEvents], 'addLast', respond);
     }
     handleKill(authentification, priority) {
       if (!dart.equals(this.terminateCapability, authentification))
@@ -578,7 +578,7 @@ var _isolate_helper;
       if (this[_scheduledControlEvents] == null) {
         this[_scheduledControlEvents] = new collection.Queue();
       }
-      dart.dinvoke(this[_scheduledControlEvents], 'addLast', this.kill);
+      dart.dsend(this[_scheduledControlEvents], 'addLast', this.kill);
     }
     addErrorListener(port) {
       this.errorPorts.add(port);
@@ -613,7 +613,7 @@ var _isolate_helper;
       let result = null;
       this[_isExecutingEvent] = true;
       try {
-        result = dart.dinvokef(code);
+        result = dart.dcall(code);
       } catch (e) {
         let s = dart.stackTrace(e);
         this.handleUncaughtError(e, s);
@@ -631,7 +631,7 @@ var _isolate_helper;
           old[_setGlobals]();
         if (this[_scheduledControlEvents] != null) {
           while (dart.dload(this[_scheduledControlEvents], 'isNotEmpty')) {
-            dart.dinvokef(dart.dinvoke(this[_scheduledControlEvents], 'removeFirst'));
+            dart.dcall(dart.dsend(this[_scheduledControlEvents], 'removeFirst'));
           }
         }
       }
@@ -716,7 +716,7 @@ var _isolate_helper;
     }
     kill() {
       if (this[_scheduledControlEvents] != null) {
-        dart.dinvoke(this[_scheduledControlEvents], 'clear');
+        dart.dsend(this[_scheduledControlEvents], 'clear');
       }
       for (let port of this.ports.values) {
         port[_close]();
@@ -925,7 +925,7 @@ var _isolate_helper;
         {
           let port = dart.as(dart.dindex(msg, 'port'), isolate.SendPort);
           if (port != null) {
-            dart.dinvoke(dart.dindex(msg, 'port'), 'send', dart.dindex(msg, 'msg'));
+            dart.dsend(dart.dindex(msg, 'port'), 'send', dart.dindex(msg, 'msg'));
           }
           exports._globalState.topEventLoop.run();
           break;
@@ -960,10 +960,10 @@ var _isolate_helper;
     static handleSpawnWorkerRequest(msg) {
       let replyPort = dart.dindex(msg, 'replyPort');
       IsolateNatives.spawn(dart.as(dart.dindex(msg, 'functionName'), core.String), dart.as(dart.dindex(msg, 'uri'), core.String), dart.as(dart.dindex(msg, 'args'), core.List$(core.String)), dart.dindex(msg, 'msg'), false, dart.as(dart.dindex(msg, 'isSpawnUri'), core.bool), dart.as(dart.dindex(msg, 'startPaused'), core.bool)).then(dart.as(msg => {
-        dart.dinvoke(replyPort, 'send', msg);
+        dart.dsend(replyPort, 'send', msg);
       }, dart.functionType(dart.dynamic, [core.List])), {
         onError: errorMessage => {
-          dart.dinvoke(replyPort, 'send', new core.List.from([_SPAWN_FAILED_SIGNAL, errorMessage]));
+          dart.dsend(replyPort, 'send', new core.List.from([_SPAWN_FAILED_SIGNAL, errorMessage]));
         }
       });
     }
@@ -1065,13 +1065,13 @@ var _isolate_helper;
       function runStartFunction() {
         context.initialized = true;
         if (!dart.notNull(isSpawnUri)) {
-          dart.dinvokef(topLevel, message);
+          dart.dcall(topLevel, message);
         } else if (dart.is(topLevel, _MainFunctionArgsMessage)) {
-          dart.dinvokef(topLevel, args, message);
+          dart.dcall(topLevel, args, message);
         } else if (dart.is(topLevel, _MainFunctionArgs)) {
-          dart.dinvokef(topLevel, args);
+          dart.dcall(topLevel, args);
         } else {
-          dart.dinvokef(topLevel);
+          dart.dcall(topLevel);
         }
       }
       if (startPaused) {
@@ -1241,7 +1241,7 @@ var _isolate_helper;
     [_add](dataEvent) {
       if (this[_isClosed])
         return;
-      dart.dinvokef(this[_handler], dataEvent);
+      dart.dcall(this[_handler], dataEvent);
     }
     get sendPort() {
       return new _NativeJsSendPort(this, exports._globalState.currentContext.id);
