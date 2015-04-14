@@ -1892,45 +1892,7 @@ DEFINE_NATIVE_ENTRY(MethodMirror_return_type, 2) {
 DEFINE_NATIVE_ENTRY(MethodMirror_source, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
   const Function& func = Function::Handle(ref.GetFunctionReferent());
-  if (func.IsImplicitConstructor() || func.IsSignatureFunction()) {
-    // We may need to handle more cases when the restrictions on mixins are
-    // relaxed. In particular we might start associating some source with the
-    // forwarding constructors when it becomes possible to specify a particular
-    // constructor from the mixin to use.
-    return Instance::null();
-  }
-  const Script& script = Script::Handle(func.script());
-  const TokenStream& stream = TokenStream::Handle(script.tokens());
-  if (!script.HasSource()) {
-    // When source is not available, avoid printing the whole token stream and
-    // doing expensive position calculations.
-    return stream.GenerateSource(func.token_pos(), func.end_token_pos() + 1);
-  }
-
-  const TokenStream::Iterator tkit(stream, func.end_token_pos());
-  intptr_t from_line;
-  intptr_t from_col;
-  intptr_t to_line;
-  intptr_t to_col;
-  script.GetTokenLocation(func.token_pos(), &from_line, &from_col);
-  script.GetTokenLocation(func.end_token_pos(), &to_line, &to_col);
-  intptr_t last_tok_len = String::Handle(tkit.CurrentLiteral()).Length();
-  // Handle special cases for end tokens of closures (where we exclude the last
-  // token):
-  // (1) "foo(() => null, bar);": End token is `,', but we don't print it.
-  // (2) "foo(() => null);": End token is ')`, but we don't print it.
-  // (3) "var foo = () => null;": End token is `;', but in this case the token
-  // semicolon belongs to the assignment so we skip it.
-  if ((tkit.CurrentTokenKind() == Token::kCOMMA) ||                   // Case 1.
-      (tkit.CurrentTokenKind() == Token::kRPAREN) ||                  // Case 2.
-      (tkit.CurrentTokenKind() == Token::kSEMICOLON &&
-       String::Handle(func.name()).Equals("<anonymous closure>"))) {  // Case 3.
-    last_tok_len = 0;
-  }
-  const Instance& result = Instance::Handle(
-      script.GetSnippet(from_line, from_col, to_line, to_col + last_tok_len));
-  ASSERT(!result.IsNull());
-  return result.raw();
+  return func.GetSource();
 }
 
 

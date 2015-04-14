@@ -54,7 +54,7 @@ TEST_CASE(CompileFunction) {
       Function::Handle(cls.LookupStaticFunction(function_foo_name));
   EXPECT(!function_foo.IsNull());
   String& function_source = String::Handle(function_foo.GetSource());
-  EXPECT_STREQ("static foo() { return 42; }\n  ", function_source.ToCString());
+  EXPECT_STREQ("static foo() { return 42; }", function_source.ToCString());
   EXPECT(CompilerTest::TestCompileFunction(function_foo));
   EXPECT(function_foo.HasCode());
 
@@ -66,7 +66,7 @@ TEST_CASE(CompileFunction) {
   EXPECT(CompilerTest::TestCompileFunction(function_moo));
   EXPECT(function_moo.HasCode());
   function_source = function_moo.GetSource();
-  EXPECT_STREQ("static moo() {\n    // A.foo();\n  }\n",
+  EXPECT_STREQ("static moo() {\n    // A.foo();\n  }",
                function_source.ToCString());
 }
 
