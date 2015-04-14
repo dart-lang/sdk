@@ -157,7 +157,7 @@ class CompletionDomainHandler implements RequestHandler {
       String computeTag = 'computeCache';
       performance.logStartTime(computeTag);
       CompletionManager manager = completionManagerFor(context, source);
-      manager.computeCache().then((bool success) {
+      manager.computeCache().catchError((_) => false).then((bool success) {
         performance.logElapseTime(computeTag);
         performance.complete('priorityChanged caching: $success');
       });
