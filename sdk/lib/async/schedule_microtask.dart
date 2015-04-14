@@ -8,8 +8,9 @@ typedef void _AsyncCallback();
 
 class _AsyncCallbackEntry {
   final _AsyncCallback callback;
+  final Zone zone;
   _AsyncCallbackEntry next;
-  _AsyncCallbackEntry(this.callback);
+  _AsyncCallbackEntry(this.callback, this.zone);
 }
 
 /** Head of single linked list of pending callbacks. */
@@ -32,24 +33,30 @@ _AsyncCallbackEntry _lastPriorityCallback;
  */
 bool _isInCallbackLoop = false;
 
-void _asyncRunCallbackLoop() {
+void _microtaskLoop() {
   while (_nextCallback != null) {
     _lastPriorityCallback = null;
     _AsyncCallbackEntry entry = _nextCallback;
     _nextCallback = entry.next;
     if (_nextCallback == null) _lastCallback = null;
+    Zone._current = entry.zone;
     entry.callback();
   }
 }
 
-void _asyncRunCallback() {
+void _microtaskLoopEntry() {
   _isInCallbackLoop = true;
   try {
-    _asyncRunCallbackLoop();
+    // Moved to separate function because try-finally prevents
+    // good optimization.
+    _microtaskLoop();
   } finally {
+    Zone._current = _ROOT_ZONE;
     _lastPriorityCallback = null;
     _isInCallbackLoop = false;
-    if (_nextCallback != null) _AsyncRun._scheduleImmediate(_asyncRunCallback);
+    if (_nextCallback != null) {
+      _AsyncRun._scheduleImmediate(_microtaskLoopEntry);
+    }
   }
 }
 
@@ -59,16 +66,13 @@ void _asyncRunCallback() {
  * The microtask is called after all other currently scheduled
  * microtasks, but as part of the current system event.
  */
-void _scheduleAsyncCallback(callback) {
-  // Optimizing a group of Timer.run callbacks to be executed in the
-  // same Timer callback.
+void _scheduleAsyncCallback(_AsyncCallbackEntry newEntry) {
   if (_nextCallback == null) {
-    _nextCallback = _lastCallback = new _AsyncCallbackEntry(callback);
+    _nextCallback = _lastCallback = newEntry;
     if (!_isInCallbackLoop) {
-      _AsyncRun._scheduleImmediate(_asyncRunCallback);
+      _AsyncRun._scheduleImmediate(_microtaskLoopEntry);
     }
   } else {
-    _AsyncCallbackEntry newEntry = new _AsyncCallbackEntry(callback);
     _lastCallback.next = newEntry;
     _lastCallback = newEntry;
   }
@@ -79,11 +83,14 @@ void _scheduleAsyncCallback(callback) {
  *
  * This callback takes priority over existing scheduled callbacks.
  * It is only used internally to give higher priority to error reporting.
+ *
+ * Is always run in the root zone.
  */
 void _schedulePriorityAsyncCallback(callback) {
-  _AsyncCallbackEntry entry = new _AsyncCallbackEntry(callback);
+  _AsyncCallbackEntry entry =
+      new _AsyncCallbackEntry(callback, _ROOT_ZONE);
   if (_nextCallback == null) {
-    _scheduleAsyncCallback(callback);
+    _scheduleAsyncCallback(entry);
     _lastPriorityCallback = _lastCallback;
   } else if (_lastPriorityCallback == null) {
     entry.next = _nextCallback;
@@ -124,10 +131,18 @@ void _schedulePriorityAsyncCallback(callback) {
  * better asynchronous code with fewer surprises.
  */
 void scheduleMicrotask(void callback()) {
-  if (identical(_ROOT_ZONE, Zone.current)) {
+  _Zone currentZone = Zone.current;
+  if (identical(_ROOT_ZONE, currentZone)) {
     // No need to bind the callback. We know that the root's scheduleMicrotask
     // will be invoked in the root zone.
     _rootScheduleMicrotask(null, null, _ROOT_ZONE, callback);
+    return;
+  }
+  _ZoneFunction implementation = currentZone._scheduleMicrotask;
+  if (identical(_ROOT_ZONE, implementation.zone) &&
+      _ROOT_ZONE.inSameErrorZone(currentZone)) {
+    _rootScheduleMicrotask(null, null, currentZone,
+                           currentZone.registerCallback(callback));
     return;
   }
   Zone.current.scheduleMicrotask(

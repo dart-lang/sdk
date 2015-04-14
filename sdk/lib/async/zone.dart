@@ -943,8 +943,10 @@ void _rootScheduleMicrotask(Zone self, ZoneDelegate parent, Zone zone, f()) {
   if (!identical(_ROOT_ZONE, zone)) {
     bool hasErrorHandler = !_ROOT_ZONE.inSameErrorZone(zone);
     f = zone.bindCallback(f, runGuarded: hasErrorHandler);
+    // Use root zone as event zone if the function is already bound.
+    zone = _ROOT_ZONE;
   }
-  _scheduleAsyncCallback(f);
+  _scheduleAsyncCallback(new _AsyncCallbackEntry(f, zone));
 }
 
 Timer _rootCreateTimer(Zone self, ZoneDelegate parent, Zone zone,
