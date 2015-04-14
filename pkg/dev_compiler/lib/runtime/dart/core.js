@@ -204,7 +204,7 @@ var core;
         throw new ArgumentError(isUtc);
     }
     ['=='](other) {
-      if (!dart.notNull(dart.is(other, DateTime)))
+      if (!dart.is(other, DateTime))
         return false;
       return dart.equals(this.millisecondsSinceEpoch, dart.dload(other, 'millisecondsSinceEpoch')) && dart.equals(this.isUtc, dart.dload(other, 'isUtc'));
     }
@@ -485,7 +485,7 @@ var core;
     ['=='](other) {
       if (!dart.is(other, Duration))
         return false;
-      return dart.equals(this[_duration], dart.dload(other, '_duration'));
+      return dart.equals(this[_duration], dart.dload(other, _duration));
     }
     get hashCode() {
       return this[_duration].hashCode;
@@ -528,7 +528,7 @@ var core;
     abs() {
       return new Duration[_microseconds](this[_duration].abs());
     }
-    ['-']() {
+    ['unary-']() {
       return new Duration[_microseconds](-dart.notNull(this[_duration]));
     }
   }
@@ -556,7 +556,7 @@ var core;
     Error() {
     }
     static safeToString(object) {
-      if (dart.notNull(dart.is(object, num)) || dart.notNull(typeof object == 'boolean') || dart.notNull(null == object)) {
+      if (dart.is(object, num) || typeof object == 'boolean' || dart.notNull(null == object)) {
         return object.toString();
       }
       if (typeof object == 'string') {
@@ -776,6 +776,8 @@ var core;
   let _arguments = dart.JsSymbol('_arguments');
   let _namedArguments = dart.JsSymbol('_namedArguments');
   let _existingArgumentNames = dart.JsSymbol('_existingArgumentNames');
+  let $length = dart.JsSymbol('$length');
+  let $get = dart.JsSymbol('$get');
   class NoSuchMethodError extends Error {
     NoSuchMethodError(receiver, memberName, positionalArguments, namedArguments, existingArgumentNames) {
       if (existingArgumentNames === void 0)
@@ -1132,7 +1134,6 @@ var core;
   let _generator = dart.JsSymbol('_generator');
   let _id = dart.JsSymbol('_id');
   let $iterator = dart.JsSymbol('$iterator');
-  let $length = dart.JsSymbol('$length');
   let $skip = dart.JsSymbol('$skip');
   let $take = dart.JsSymbol('$take');
   let _GeneratorIterable$ = dart.generic(function(E) {
@@ -1221,6 +1222,7 @@ var core;
     return Iterator;
   });
   let Iterator = Iterator$();
+  let $set = dart.JsSymbol('$set');
   let List$ = dart.generic(function(E) {
     class List extends Object {
       List(length) {
@@ -1407,6 +1409,8 @@ var core;
   }
   Stopwatch._frequency = null;
   let _stringFromIterable = dart.JsSymbol('_stringFromIterable');
+  let $sublist = dart.JsSymbol('$sublist');
+  let $add = dart.JsSymbol('$add');
   class String extends Object {
     fromCharCodes(charCodes, start, end) {
       if (start === void 0)
@@ -1560,7 +1564,7 @@ var core;
       if (this[_position] == this[_nextPosition])
         return null;
       if (dart.notNull(this[_position]) + 1 == this[_nextPosition])
-        return this.string.get(this[_position]);
+        return String.get(this.string, this[_position]);
       return this.string.substring(this[_position], this[_nextPosition]);
     }
     moveNext() {
@@ -1747,6 +1751,12 @@ var core;
   let _SPACE = dart.JsSymbol('_SPACE');
   let _PLUS = dart.JsSymbol('_PLUS');
   let _hexCharPairToByte = dart.JsSymbol('_hexCharPairToByte');
+  let $forEach = dart.JsSymbol('$forEach');
+  let $map = dart.JsSymbol('$map');
+  let $toList = dart.JsSymbol('$toList');
+  let $isEmpty = dart.JsSymbol('$isEmpty');
+  let $removeLast = dart.JsSymbol('$removeLast');
+  let $fold = dart.JsSymbol('$fold');
   class Uri extends Object {
     get authority() {
       if (!dart.notNull(this.hasAuthority))
@@ -2114,7 +2124,7 @@ var core;
         path = path.replaceAll("/", "\\");
       }
       let sep = "\\";
-      if (dart.notNull(path.length) > 1 && dart.notNull(path.get(1) == ":")) {
+      if (dart.notNull(path.length) > 1 && dart.notNull(String.get(path, 1) == ":")) {
         Uri[_checkWindowsDriveLetter](path.codeUnitAt(0), true);
         if (path.length == 2 || path.codeUnitAt(2) != Uri[_BACKSLASH]) {
           throw new ArgumentError("Windows paths with drive letter must be absolute");
@@ -2123,8 +2133,8 @@ var core;
         Uri[_checkWindowsPathReservedCharacters](pathSegments, true, 1);
         return new Uri({scheme: "file", pathSegments: pathSegments});
       }
-      if (dart.notNull(path.length) > 0 && dart.notNull(path.get(0) == sep)) {
-        if (dart.notNull(path.length) > 1 && dart.notNull(path.get(1) == sep)) {
+      if (dart.notNull(path.length) > 0 && dart.notNull(String.get(path, 0) == sep)) {
+        if (dart.notNull(path.length) > 1 && dart.notNull(String.get(path, 1) == sep)) {
           let pathStart = path.indexOf("\\", 2);
           let hostPart = pathStart == -1 ? path.substring(2) : path.substring(2, pathStart);
           let pathPart = pathStart == -1 ? "" : path.substring(dart.notNull(pathStart) + 1);
@@ -3081,6 +3091,8 @@ var core;
   exports.IndexError = IndexError;
   exports.FallThroughError = FallThroughError;
   exports.AbstractClassInstantiationError = AbstractClassInstantiationError;
+  exports.$length = $length;
+  exports.$get = $get;
   exports.NoSuchMethodError = NoSuchMethodError;
   exports.UnsupportedError = UnsupportedError;
   exports.UnimplementedError = UnimplementedError;
@@ -3102,13 +3114,13 @@ var core;
   exports.Iterable$ = Iterable$;
   exports.Iterable = Iterable;
   exports.$iterator = $iterator;
-  exports.$length = $length;
   exports.$skip = $skip;
   exports.$take = $take;
   exports.BidirectionalIterator$ = BidirectionalIterator$;
   exports.BidirectionalIterator = BidirectionalIterator;
   exports.Iterator$ = Iterator$;
   exports.Iterator = Iterator;
+  exports.$set = $set;
   exports.List$ = List$;
   exports.List = List;
   exports.Map$ = Map$;
@@ -3123,6 +3135,8 @@ var core;
   exports.Sink = Sink;
   exports.StackTrace = StackTrace;
   exports.Stopwatch = Stopwatch;
+  exports.$sublist = $sublist;
+  exports.$add = $add;
   exports.String = String;
   exports.$last = $last;
   exports.RuneIterator = RuneIterator;
@@ -3130,5 +3144,11 @@ var core;
   exports.StringSink = StringSink;
   exports.Symbol = Symbol;
   exports.Type = Type;
+  exports.$forEach = $forEach;
+  exports.$map = $map;
+  exports.$toList = $toList;
+  exports.$isEmpty = $isEmpty;
+  exports.$removeLast = $removeLast;
+  exports.$fold = $fold;
   exports.Uri = Uri;
 })(core || (core = {}));

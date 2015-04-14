@@ -19,8 +19,8 @@ var _isolate_helper;
   let _workerId = Symbol('_workerId');
   let _isolateId = Symbol('_isolateId');
   let _receivePortId = Symbol('_receivePortId');
-  let _receivePort = Symbol('_receivePort');
   let _id = Symbol('_id');
+  let _receivePort = Symbol('_receivePort');
   let _getJSFunctionName = Symbol('_getJSFunctionName');
   class _Serializer extends core.Object {
     _Serializer(opts) {
@@ -70,7 +70,7 @@ var _isolate_helper;
       return new core.List.from(["ref", serializationId]);
     }
     isPrimitive(x) {
-      return dart.notNull(x == null) || dart.notNull(typeof x == 'string') || dart.notNull(dart.is(x, core.num)) || dart.notNull(typeof x == 'boolean');
+      return dart.notNull(x == null) || typeof x == 'string' || dart.is(x, core.num) || typeof x == 'boolean';
     }
     serializePrimitive(primitive) {
       return primitive;
@@ -229,7 +229,7 @@ var _isolate_helper;
       }
     }
     isPrimitive(x) {
-      return dart.notNull(x == null) || dart.notNull(typeof x == 'string') || dart.notNull(dart.is(x, core.num)) || dart.notNull(typeof x == 'boolean');
+      return dart.notNull(x == null) || typeof x == 'string' || dart.is(x, core.num) || typeof x == 'boolean';
     }
     deserializePrimitive(x) {
       return x;
@@ -1133,7 +1133,7 @@ var _isolate_helper;
       this[_isolateId] = isolateId$;
     }
     [_checkReplyTo](replyTo) {
-      if (dart.notNull(replyTo != null) && dart.notNull(!dart.is(replyTo, _NativeJsSendPort)) && dart.notNull(!dart.is(replyTo, _WorkerSendPort))) {
+      if (dart.notNull(replyTo != null) && !dart.is(replyTo, _NativeJsSendPort) && !dart.is(replyTo, _WorkerSendPort)) {
         throw new core.Exception("SendPort.send: Illegal replyTo port type");
       }
     }
@@ -1164,7 +1164,7 @@ var _isolate_helper;
       }).bind(this), `receive ${message}`);
     }
     ['=='](other) {
-      return dart.notNull(dart.is(other, _NativeJsSendPort)) && dart.notNull(dart.equals(this[_receivePort], dart.dload(other, '_receivePort')));
+      return dart.is(other, _NativeJsSendPort) && dart.notNull(dart.equals(this[_receivePort], dart.dload(other, _receivePort)));
     }
     get hashCode() {
       return this[_receivePort][_id];
@@ -1189,7 +1189,7 @@ var _isolate_helper;
       }
     }
     ['=='](other) {
-      return dart.notNull(dart.is(other, _WorkerSendPort)) && dart.equals(this[_workerId], dart.dload(other, '_workerId')) && dart.equals(this[_isolateId], dart.dload(other, '_isolateId')) && dart.equals(this[_receivePortId], dart.dload(other, '_receivePortId'));
+      return dart.is(other, _WorkerSendPort) && dart.equals(this[_workerId], dart.dload(other, _workerId)) && dart.equals(this[_isolateId], dart.dload(other, _isolateId)) && dart.equals(this[_receivePortId], dart.dload(other, _receivePortId));
     }
     get hashCode() {
       return dart.notNull(this[_workerId]) << 16 ^ dart.notNull(this[_isolateId]) << 8 ^ dart.notNull(this[_receivePortId]);

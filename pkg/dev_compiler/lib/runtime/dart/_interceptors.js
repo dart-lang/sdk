@@ -226,7 +226,7 @@ var _interceptors;
     get hashCode() {
       return this & 0x1FFFFFFF;
     }
-    ['-']() {
+    ['unary-']() {
       return -this;
     }
     ['+'](other) {
@@ -510,7 +510,7 @@ var _interceptors;
       _js_helper.checkNull(pattern);
       if (typeof pattern == 'string') {
         return dart.as(this.split(pattern), core.List$(core.String));
-      } else if (dart.notNull(dart.is(pattern, _js_helper.JSSyntaxRegExp)) && _js_helper.regExpCaptureCount(pattern) == 0) {
+      } else if (dart.is(pattern, _js_helper.JSSyntaxRegExp) && _js_helper.regExpCaptureCount(pattern) == 0) {
         let re = _js_helper.regExpGetNative(pattern);
         return dart.as(this.split(re), core.List$(core.String));
       } else {

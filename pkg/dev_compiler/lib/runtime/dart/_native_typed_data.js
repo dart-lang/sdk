@@ -192,7 +192,7 @@ var _native_typed_data;
       return (dart.notNull(this[_storage][core.$length]) / 4).truncate();
     }
     [core.$get](index) {
-      this[_checkIndex](index, this.length);
+      this[_checkIndex](index, this[core.$length]);
       let _x = this[_storage][core.$get](dart.notNull(index) * 4 + 0);
       let _y = this[_storage][core.$get](dart.notNull(index) * 4 + 1);
       let _z = this[_storage][core.$get](dart.notNull(index) * 4 + 2);
@@ -200,7 +200,7 @@ var _native_typed_data;
       return new NativeFloat32x4[_truncated](_x, _y, _z, _w);
     }
     [core.$set](index, value) {
-      this[_checkIndex](index, this.length);
+      this[_checkIndex](index, this[core.$length]);
       this[_storage][core.$set](dart.notNull(index) * 4 + 0, value.x);
       this[_storage][core.$set](dart.notNull(index) * 4 + 1, value.y);
       this[_storage][core.$set](dart.notNull(index) * 4 + 2, value.z);
@@ -209,7 +209,7 @@ var _native_typed_data;
     [core.$sublist](start, end) {
       if (end === void 0)
         end = null;
-      end = this[_checkSublistArguments](start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this[core.$length]);
       return new NativeFloat32x4List[_externalStorage](dart.as(this[_storage][core.$sublist](dart.notNull(start) * 4, dart.notNull(end) * 4), NativeFloat32List));
     }
   }
@@ -284,7 +284,7 @@ var _native_typed_data;
       return (dart.notNull(this[_storage][core.$length]) / 4).truncate();
     }
     [core.$get](index) {
-      this[_checkIndex](index, this.length);
+      this[_checkIndex](index, this[core.$length]);
       let _x = this[_storage][core.$get](dart.notNull(index) * 4 + 0);
       let _y = this[_storage][core.$get](dart.notNull(index) * 4 + 1);
       let _z = this[_storage][core.$get](dart.notNull(index) * 4 + 2);
@@ -292,7 +292,7 @@ var _native_typed_data;
       return new NativeInt32x4[_truncated](_x, _y, _z, _w);
     }
     [core.$set](index, value) {
-      this[_checkIndex](index, this.length);
+      this[_checkIndex](index, this[core.$length]);
       this[_storage][core.$set](dart.notNull(index) * 4 + 0, value.x);
       this[_storage][core.$set](dart.notNull(index) * 4 + 1, value.y);
       this[_storage][core.$set](dart.notNull(index) * 4 + 2, value.z);
@@ -301,7 +301,7 @@ var _native_typed_data;
     [core.$sublist](start, end) {
       if (end === void 0)
         end = null;
-      end = this[_checkSublistArguments](start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this[core.$length]);
       return new NativeInt32x4List[_externalStorage](dart.as(this[_storage][core.$sublist](dart.notNull(start) * 4, dart.notNull(end) * 4), typed_data.Int32List));
     }
   }
@@ -374,20 +374,20 @@ var _native_typed_data;
       return (dart.notNull(this[_storage][core.$length]) / 2).truncate();
     }
     [core.$get](index) {
-      this[_checkIndex](index, this.length);
+      this[_checkIndex](index, this[core.$length]);
       let _x = this[_storage][core.$get](dart.notNull(index) * 2 + 0);
       let _y = this[_storage][core.$get](dart.notNull(index) * 2 + 1);
       return new typed_data.Float64x2(_x, _y);
     }
     [core.$set](index, value) {
-      this[_checkIndex](index, this.length);
+      this[_checkIndex](index, this[core.$length]);
       this[_storage][core.$set](dart.notNull(index) * 2 + 0, value.x);
       this[_storage][core.$set](dart.notNull(index) * 2 + 1, value.y);
     }
     [core.$sublist](start, end) {
       if (end === void 0)
         end = null;
-      end = this[_checkSublistArguments](start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this[core.$length]);
       return new NativeFloat64x2List[_externalStorage](dart.as(this[_storage][core.$sublist](dart.notNull(start) * 2, dart.notNull(end) * 2), NativeFloat64List));
     }
   }
@@ -445,7 +445,7 @@ var _native_typed_data;
     if (!(typeof offsetInBytes == 'number')) {
       throw new core.ArgumentError(`Invalid view offsetInBytes ${offsetInBytes}`);
     }
-    if (dart.notNull(length != null) && dart.notNull(!(typeof length == 'number'))) {
+    if (dart.notNull(length != null) && !(typeof length == 'number')) {
       throw new core.ArgumentError(`Invalid view length ${length}`);
     }
   }
@@ -607,11 +607,11 @@ var _native_typed_data;
   NativeTypedArray[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior];
   class NativeTypedArrayOfDouble extends dart.mixin(NativeTypedArray, collection.ListMixin$(core.double), _internal.FixedLengthListMixin$(core.double)) {
     [core.$get](index) {
-      this[_checkIndex](index, this.length);
+      this[_checkIndex](index, this[core.$length]);
       return this[index];
     }
     [core.$set](index, value) {
-      this[_checkIndex](index, this.length);
+      this[_checkIndex](index, this[core.$length]);
       this[index] = value;
     }
     [core.$setRange](start, end, iterable, skipCount) {
@@ -626,7 +626,7 @@ var _native_typed_data;
   }
   class NativeTypedArrayOfInt extends dart.mixin(NativeTypedArray, collection.ListMixin$(core.int), _internal.FixedLengthListMixin$(core.int)) {
     [core.$set](index, value) {
-      this[_checkIndex](index, this.length);
+      this[_checkIndex](index, this[core.$length]);
       this[index] = value;
     }
     [core.$setRange](start, end, iterable, skipCount) {
@@ -657,7 +657,7 @@ var _native_typed_data;
     [core.$sublist](start, end) {
       if (end === void 0)
         end = null;
-      end = this[_checkSublistArguments](start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this[core.$length]);
       let source = this.subarray(start, end);
       return NativeFloat32List[_create1](source);
     }
@@ -691,7 +691,7 @@ var _native_typed_data;
     [core.$sublist](start, end) {
       if (end === void 0)
         end = null;
-      end = this[_checkSublistArguments](start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this[core.$length]);
       let source = this.subarray(start, end);
       return NativeFloat64List[_create1](source);
     }
@@ -723,13 +723,13 @@ var _native_typed_data;
       return typed_data.Int16List;
     }
     [core.$get](index) {
-      this[_checkIndex](index, this.length);
+      this[_checkIndex](index, this[core.$length]);
       return this[index];
     }
     [core.$sublist](start, end) {
       if (end === void 0)
         end = null;
-      end = this[_checkSublistArguments](start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this[core.$length]);
       let source = this.subarray(start, end);
       return NativeInt16List[_create1](source);
     }
@@ -761,13 +761,13 @@ var _native_typed_data;
       return typed_data.Int32List;
     }
     [core.$get](index) {
-      this[_checkIndex](index, this.length);
+      this[_checkIndex](index, this[core.$length]);
       return this[index];
     }
     [core.$sublist](start, end) {
       if (end === void 0)
         end = null;
-      end = this[_checkSublistArguments](start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this[core.$length]);
       let source = this.subarray(start, end);
       return NativeInt32List[_create1](source);
     }
@@ -799,13 +799,13 @@ var _native_typed_data;
       return typed_data.Int8List;
     }
     [core.$get](index) {
-      this[_checkIndex](index, this.length);
+      this[_checkIndex](index, this[core.$length]);
       return this[index];
     }
     [core.$sublist](start, end) {
       if (end === void 0)
         end = null;
-      end = this[_checkSublistArguments](start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this[core.$length]);
       let source = this.subarray(start, end);
       return NativeInt8List[_create1](source);
     }
@@ -837,13 +837,13 @@ var _native_typed_data;
       return typed_data.Uint16List;
     }
     [core.$get](index) {
-      this[_checkIndex](index, this.length);
+      this[_checkIndex](index, this[core.$length]);
       return dart.as(this[index], core.int);
     }
     [core.$sublist](start, end) {
       if (end === void 0)
         end = null;
-      end = this[_checkSublistArguments](start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this[core.$length]);
       let source = this.subarray(start, end);
       return NativeUint16List[_create1](source);
     }
@@ -875,13 +875,13 @@ var _native_typed_data;
       return typed_data.Uint32List;
     }
     [core.$get](index) {
-      this[_checkIndex](index, this.length);
+      this[_checkIndex](index, this[core.$length]);
       return dart.as(this[index], core.int);
     }
     [core.$sublist](start, end) {
       if (end === void 0)
         end = null;
-      end = this[_checkSublistArguments](start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this[core.$length]);
       let source = this.subarray(start, end);
       return NativeUint32List[_create1](source);
     }
@@ -916,13 +916,13 @@ var _native_typed_data;
       return dart.as(this.length, core.int);
     }
     [core.$get](index) {
-      this[_checkIndex](index, this.length);
+      this[_checkIndex](index, this[core.$length]);
       return dart.as(this[index], core.int);
     }
     [core.$sublist](start, end) {
       if (end === void 0)
         end = null;
-      end = this[_checkSublistArguments](start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this[core.$length]);
       let source = this.subarray(start, end);
       return NativeUint8ClampedList[_create1](source);
     }
@@ -957,13 +957,13 @@ var _native_typed_data;
       return dart.as(this.length, core.int);
     }
     [core.$get](index) {
-      this[_checkIndex](index, this.length);
+      this[_checkIndex](index, this[core.$length]);
       return dart.as(this[index], core.int);
     }
     [core.$sublist](start, end) {
       if (end === void 0)
         end = null;
-      end = this[_checkSublistArguments](start, end, this.length);
+      end = this[_checkSublistArguments](start, end, this[core.$length]);
       let source = this.subarray(start, end);
       return NativeUint8List[_create1](source);
     }
@@ -1041,7 +1041,7 @@ var _native_typed_data;
       let _w = dart.notNull(this.w) + dart.notNull(other.w);
       return new NativeFloat32x4[_doubles](_x, _y, _z, _w);
     }
-    ['-']() {
+    ['unary-']() {
       return new NativeFloat32x4[_truncated](-dart.notNull(this.x), -dart.notNull(this.y), -dart.notNull(this.z), -dart.notNull(this.w));
     }
     ['-'](other) {
@@ -1262,13 +1262,13 @@ var _native_typed_data;
       this.y = dart.as(NativeInt32x4[_truncate](y), core.int);
       this.z = dart.as(NativeInt32x4[_truncate](z), core.int);
       this.w = dart.as(NativeInt32x4[_truncate](w), core.int);
-      if (x != this.x && dart.notNull(!(typeof x == 'number')))
+      if (x != this.x && !(typeof x == 'number'))
         throw new core.ArgumentError(x);
-      if (y != this.y && dart.notNull(!(typeof y == 'number')))
+      if (y != this.y && !(typeof y == 'number'))
         throw new core.ArgumentError(y);
-      if (z != this.z && dart.notNull(!(typeof z == 'number')))
+      if (z != this.z && !(typeof z == 'number'))
         throw new core.ArgumentError(z);
-      if (w != this.w && dart.notNull(!(typeof w == 'number')))
+      if (w != this.w && !(typeof w == 'number'))
         throw new core.ArgumentError(w);
     }
     bool(x, y, z, w) {
@@ -1310,7 +1310,7 @@ var _native_typed_data;
     ['-'](other) {
       return new NativeInt32x4[_truncated](this.x - other.x | 0, this.y - other.y | 0, this.z - other.z | 0, this.w - other.w | 0);
     }
-    ['-']() {
+    ['unary-']() {
       return new NativeInt32x4[_truncated](-this.x | 0, -this.y | 0, -this.z | 0, -this.w | 0);
     }
     get signMask() {
@@ -1464,7 +1464,7 @@ var _native_typed_data;
     ['+'](other) {
       return new NativeFloat64x2[_doubles](dart.notNull(this.x) + dart.notNull(other.x), dart.notNull(this.y) + dart.notNull(other.y));
     }
-    ['-']() {
+    ['unary-']() {
       return new NativeFloat64x2[_doubles](-dart.notNull(this.x), -dart.notNull(this.y));
     }
     ['-'](other) {

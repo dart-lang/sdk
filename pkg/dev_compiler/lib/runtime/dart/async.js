@@ -156,7 +156,7 @@ var async;
         // Function onListen: () → void
         function onListen() {
           let add = controller.add;
-          dart.assert(dart.notNull(dart.is(controller, _StreamController)) || dart.notNull(dart.is(controller, _BroadcastStreamController)));
+          dart.assert(dart.is(controller, _StreamController) || dart.is(controller, _BroadcastStreamController));
           let eventSink = controller;
           let addError = eventSink[_addError];
           subscription = this.listen(event => {
@@ -207,7 +207,7 @@ var async;
         let subscription = null;
         // Function onListen: () → void
         function onListen() {
-          dart.assert(dart.notNull(dart.is(controller, _StreamController)) || dart.notNull(dart.is(controller, _BroadcastStreamController)));
+          dart.assert(dart.is(controller, _StreamController) || dart.is(controller, _BroadcastStreamController));
           let eventSink = controller;
           subscription = this.listen(event => {
             let newStream = null;
@@ -683,7 +683,7 @@ var async;
         return future;
       }
       elementAt(index) {
-        if (dart.notNull(!(typeof index == 'number')) || dart.notNull(index) < 0)
+        if (!(typeof index == 'number') || dart.notNull(index) < 0)
           throw new core.ArgumentError(index);
         let future = new (_Future$(T))();
         let subscription = null;
@@ -719,9 +719,9 @@ var async;
         // Function onError: (dynamic, StackTrace) → void
         function onError(error, stackTrace) {
           timer.cancel();
-          dart.assert(dart.notNull(dart.is(controller, _StreamController)) || dart.notNull(dart.is(controller, _BroadcastStreamController)));
+          dart.assert(dart.is(controller, _StreamController) || dart.is(controller, _BroadcastStreamController));
           let eventSink = controller;
-          dart.dsend(eventSink, '_addError', error, stackTrace);
+          dart.dsend(eventSink, _addError, error, stackTrace);
           timer = zone.createTimer(timeLimit, dart.as(timeout, dart.functionType(dart.void, [])));
         }
         // Function onDone: () → void
@@ -2376,7 +2376,7 @@ var async;
                       stackTrace = null;
                     if (!dart.is(completeResult, _Future)) {
                       completeResult = new _Future();
-                      dart.dsend(completeResult, '_setError', error, stackTrace);
+                      dart.dsend(completeResult, _setError, error, stackTrace);
                     }
                     _Future[_propagateToListeners](dart.as(completeResult, _Future), new _FutureListener.chain(result));
                   }
@@ -2397,7 +2397,7 @@ var async;
               Zone[_leave](oldZone);
             if (isPropagationAborted)
               return;
-            if (dart.notNull(listenerHasValue) && !dart.notNull(core.identical(sourceValue, listenerValueOrError)) && dart.notNull(dart.is(listenerValueOrError, Future))) {
+            if (dart.notNull(listenerHasValue) && !dart.notNull(core.identical(sourceValue, listenerValueOrError)) && dart.is(listenerValueOrError, Future)) {
               let chainSource = dart.as(listenerValueOrError, Future);
               let result = listener.result;
               if (dart.is(chainSource, _Future)) {
@@ -4004,7 +4004,7 @@ var async;
       _SkipStream(source, count) {
         this[_remaining] = count;
         super._ForwardingStream(source);
-        if (dart.notNull(!(typeof count == 'number')) || dart.notNull(count) < 0)
+        if (!(typeof count == 'number') || dart.notNull(count) < 0)
           throw new core.ArgumentError(count);
       }
       [_handleData](inputEvent, sink) {

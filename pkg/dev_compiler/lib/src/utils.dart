@@ -19,10 +19,11 @@ import 'package:analyzer/src/generated/ast.dart'
         AstNode,
         Expression,
         SimpleIdentifier;
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show ParseDartTask, AnalysisContext;
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart' show Source;
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/analyzer.dart' show parseDirectives;
 import 'package:crypto/crypto.dart' show CryptoUtils, MD5;
 import 'package:source_span/source_span.dart';
@@ -344,3 +345,6 @@ String resourceOutputPath(Uri resourceUri, Uri entryUri) {
   if (pubspec['name'] != 'dev_compiler') return null;
   return path.join('dev_compiler', 'runtime', filename);
 }
+
+InterfaceType fillDynamicTypeArgs(InterfaceType t, TypeProvider types) =>
+    t.substitute4(new List.filled(t.typeArguments.length, types.dynamicType));

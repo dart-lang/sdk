@@ -78,7 +78,7 @@ var dart, _js_helper;
     let args = Array.prototype.slice.call(arguments, 2);
     return checkAndCall(obj[method], obj, args, method);
   }
-  dart.dinvoke = dsend;
+  dart.dsend = dsend;
 
   function dindex(obj, index) {
     return checkAndCall(obj.get, obj, [index], '[]');
@@ -88,7 +88,7 @@ var dart, _js_helper;
   function dsetindex(obj, index, value) {
     return checkAndCall(obj.set, obj, [index, value], '[]=');
   }
-  dart.dsetindex = dindex;
+  dart.dsetindex = dsetindex;
 
   function cast(obj, type) {
     // TODO(vsm): handle non-nullable types

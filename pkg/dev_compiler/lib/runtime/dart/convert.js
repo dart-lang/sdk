@@ -527,7 +527,7 @@ var convert;
     [_convert](text, start, end) {
       let result = null;
       for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
-        let ch = text.get(i);
+        let ch = core.String.get(text, i);
         let replace = null;
         switch (ch) {
           case '&':

@@ -736,7 +736,7 @@ var _js_helper;
   }
   // Function stringReplaceFirstRE: (dynamic, dynamic, dynamic, dynamic) → dynamic
   function stringReplaceFirstRE(receiver, regexp, to, startIndex) {
-    let match = dart.dsend(regexp, '_execGlobal', receiver, startIndex);
+    let match = dart.dsend(regexp, _execGlobal, receiver, startIndex);
     if (match == null)
       return receiver;
     let start = dart.dload(match, 'start');
@@ -891,7 +891,7 @@ var _js_helper;
       return this[_typeName].hashCode;
     }
     ['=='](other) {
-      return dart.notNull(dart.is(other, TypeImpl)) && dart.notNull(dart.equals(this[_typeName], dart.dload(other, '_typeName')));
+      return dart.is(other, TypeImpl) && dart.notNull(dart.equals(this[_typeName], dart.dload(other, _typeName)));
     }
   }
   TypeImpl[dart.implements] = () => [core.Type];
@@ -2011,13 +2011,13 @@ var _js_helper;
       return value;
     }
     static getProperty(object, key) {
-      if (dart.notNull(object == null) || dart.notNull(typeof object == 'boolean') || dart.notNull(dart.is(object, core.num)) || dart.notNull(typeof object == 'string')) {
+      if (dart.notNull(object == null) || typeof object == 'boolean' || dart.is(object, core.num) || typeof object == 'string') {
         throw new core.ArgumentError(object);
       }
       return object[key];
     }
     static setProperty(object, key, value) {
-      if (dart.notNull(object == null) || dart.notNull(typeof object == 'boolean') || dart.notNull(dart.is(object, core.num)) || dart.notNull(typeof object == 'string')) {
+      if (dart.notNull(object == null) || typeof object == 'boolean' || dart.is(object, core.num) || typeof object == 'string') {
         throw new core.ArgumentError(object);
       }
       object[key] = value;
@@ -2493,13 +2493,13 @@ var _js_helper;
       return saveStackTrace(new UnknownJsTypeError(dart.as(typeof message == 'string' ? message : '', core.String)));
     }
     if (ex instanceof RangeError) {
-      if (dart.notNull(typeof message == 'string') && dart.notNull(contains(dart.as(message, core.String), 'call stack'))) {
+      if (typeof message == 'string' && dart.notNull(contains(dart.as(message, core.String), 'call stack'))) {
         return new core.StackOverflowError();
       }
       return saveStackTrace(new core.ArgumentError());
     }
     if (typeof InternalError == "function" && ex instanceof InternalError) {
-      if (dart.notNull(typeof message == 'string') && dart.notNull(dart.equals(message, 'too much recursion'))) {
+      if (typeof message == 'string' && dart.notNull(dart.equals(message, 'too much recursion'))) {
         return new core.StackOverflowError();
       }
     }
@@ -2873,7 +2873,7 @@ var _js_helper;
         return true;
       if (!dart.is(other, BoundClosure))
         return false;
-      return this[_self] === dart.dload(other, '_self') && this[_target] === dart.dload(other, '_target') && this[_receiver] === dart.dload(other, '_receiver');
+      return this[_self] === dart.dload(other, _self) && this[_target] === dart.dload(other, _target) && this[_receiver] === dart.dload(other, _receiver);
     }
     get hashCode() {
       let receiverHashCode = null;
@@ -2968,7 +2968,7 @@ var _js_helper;
   }
   // Function stringTypeCast: (dynamic) → dynamic
   function stringTypeCast(value) {
-    if (dart.notNull(typeof value == 'string') || dart.notNull(value == null))
+    if (typeof value == 'string' || dart.notNull(value == null))
       return value;
     throw new CastErrorImplementation(Primitives.objectTypeName(value), 'String');
   }
@@ -2982,7 +2982,7 @@ var _js_helper;
   }
   // Function doubleTypeCast: (dynamic) → dynamic
   function doubleTypeCast(value) {
-    if (dart.notNull(typeof value == 'number') || dart.notNull(value == null))
+    if (typeof value == 'number' || dart.notNull(value == null))
       return value;
     throw new CastErrorImplementation(Primitives.objectTypeName(value), 'double');
   }
@@ -2996,7 +2996,7 @@ var _js_helper;
   }
   // Function numTypeCast: (dynamic) → dynamic
   function numTypeCast(value) {
-    if (dart.notNull(dart.is(value, core.num)) || dart.notNull(value == null))
+    if (dart.is(value, core.num) || dart.notNull(value == null))
       return value;
     throw new CastErrorImplementation(Primitives.objectTypeName(value), 'num');
   }
@@ -3010,7 +3010,7 @@ var _js_helper;
   }
   // Function boolTypeCast: (dynamic) → dynamic
   function boolTypeCast(value) {
-    if (dart.notNull(typeof value == 'boolean') || dart.notNull(value == null))
+    if (typeof value == 'boolean' || dart.notNull(value == null))
       return value;
     throw new CastErrorImplementation(Primitives.objectTypeName(value), 'bool');
   }
@@ -3024,7 +3024,7 @@ var _js_helper;
   }
   // Function intTypeCast: (dynamic) → dynamic
   function intTypeCast(value) {
-    if (dart.notNull(typeof value == 'number') || dart.notNull(value == null))
+    if (typeof value == 'number' || dart.notNull(value == null))
       return value;
     throw new CastErrorImplementation(Primitives.objectTypeName(value), 'int');
   }
@@ -3141,7 +3141,7 @@ var _js_helper;
   }
   // Function stringSuperNativeTypeCast: (dynamic, dynamic) → dynamic
   function stringSuperNativeTypeCast(value, property) {
-    if (dart.notNull(typeof value == 'string') || dart.notNull(value == null))
+    if (typeof value == 'string' || dart.notNull(value == null))
       return value;
     if (_interceptors.getInterceptor(value)[property])
       return value;
@@ -3157,7 +3157,7 @@ var _js_helper;
   }
   // Function listTypeCast: (dynamic) → dynamic
   function listTypeCast(value) {
-    if (dart.notNull(dart.is(value, core.List)) || dart.notNull(value == null))
+    if (dart.is(value, core.List) || dart.notNull(value == null))
       return value;
     throw new CastErrorImplementation(Primitives.objectTypeName(value), 'List');
   }
@@ -3189,7 +3189,7 @@ var _js_helper;
   }
   // Function listSuperNativeTypeCast: (dynamic, dynamic) → dynamic
   function listSuperNativeTypeCast(value, property) {
-    if (dart.notNull(dart.is(value, core.List)) || dart.notNull(value == null))
+    if (dart.is(value, core.List) || dart.notNull(value == null))
       return value;
     if (_interceptors.getInterceptor(value)[property])
       return value;
@@ -3498,9 +3498,9 @@ var _js_helper;
     getDynamicRuntimeType();
     getVoidRuntimeType();
     convertRtiToRuntimeType(dyn);
-    dart.dsend(dyn, '_isTest', dyn2);
-    dart.dsend(dyn, '_asCheck', dyn2);
-    dart.dsend(dyn, '_assertCheck', dyn2);
+    dart.dsend(dyn, _isTest, dyn2);
+    dart.dsend(dyn, _asCheck, dyn2);
+    dart.dsend(dyn, _assertCheck, dyn2);
   }
   // Function convertRtiToRuntimeType: (dynamic) → RuntimeType
   function convertRtiToRuntimeType(rti) {
