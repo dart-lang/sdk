@@ -1728,10 +1728,6 @@ void Simulator::DecodeType01(Instr* instr) {
           case 3: {
             // Registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
             // Format(instr, "mls'cond's 'rn, 'rm, 'rs, 'rd");
-            if (TargetCPUFeatures::arm_version() != ARMv7) {
-              UnimplementedInstruction(instr);
-              break;
-            }
             rd_val = get_register(rd);
             // fall through
           }
@@ -1740,6 +1736,10 @@ void Simulator::DecodeType01(Instr* instr) {
             // Format(instr, "mul'cond's 'rn, 'rm, 'rs");
             int32_t alu_out = rm_val * rs_val;
             if (instr->Bits(21, 3) == 3) {  // mls
+              if (TargetCPUFeatures::arm_version() != ARMv7) {
+                UnimplementedInstruction(instr);
+                break;
+              }
               alu_out = -alu_out;
             }
             alu_out += rd_val;

@@ -984,7 +984,9 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // R2: Header word.
   if (TargetCPUFeatures::arm_version() == ARMv5TE) {
     // TODO(21263): Implement 'swp' and use it below.
+#if !defined(USING_SIMULATOR)
     ASSERT(OS::NumberOfAvailableProcessors() <= 1);
+#endif
     __ orr(R2, R2, Operand(1 << RawObject::kRememberedBit));
     __ str(R2, FieldAddress(R0, Object::tags_offset()));
   } else {

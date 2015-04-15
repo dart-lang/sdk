@@ -233,6 +233,10 @@ regexp/global_test: Skip # Timeout. Issue 21709 and 21708
 [ $mode == debug ]
 regexp/pcre_test: Pass, Slow # Timeout. Issue 22008
 
+[ $runtime == vm && $arch == simarmv5te ]
+int_parse_radix_test/*: Pass, Slow
+big_integer_parsed_mul_div_vm_test: Pass, Slow
+
 [ $compiler == dart2js && $cps_ir ]
 apply2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 apply3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator

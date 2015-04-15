@@ -226,6 +226,7 @@ ARCH_FAMILY = {
   'arm64': 'arm',
   'mips': 'mips',
   'simarm': 'ia32',
+  'simarmv5te': 'ia32',
   'simmips': 'ia32',
   'simarm64': 'ia32',
 }

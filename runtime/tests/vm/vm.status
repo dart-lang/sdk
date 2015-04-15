@@ -40,7 +40,7 @@ cc/ThreadInterrupterHigh: Skip
 cc/ThreadInterrupterMedium: Skip
 cc/ThreadInterrupterLow: Skip
 
-[ $arch == simarm || $arch == simmips ]
+[ $arch == simarm || $arch == simarmv5te || $arch == simarm64 || $arch == simmips ]
 cc/ThreadInterrupterHigh: Skip
 cc/ThreadInterrupterMedium: Skip
 cc/ThreadInterrupterLow: Skip

@@ -35,11 +35,6 @@ third_party/html5lib/test/tokenizer_test: SkipSlow  # Times out
 [ $runtime == vm && $system == windows]
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
 
-[ $runtime == vm && ( $arch == simarm || $arch == simmips ) ]
-docgen/test/*: SkipSlow
-third_party/html5lib/test/tokenizer_test: Pass, Slow
-analysis_server/*: SkipSlow # Timeout in some tests.
-
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533
 collection/test/equality_test/02: Fail # Issue 1533
@@ -163,7 +158,7 @@ third_party/html5lib/test/parser_test: SkipByDesign # Uses dart:io.
 third_party/html5lib/test/selectors/*: SkipByDesign # Uses dart:io.
 third_party/html5lib/test/tokenizer_test: SkipByDesign # Uses dart:io.
 
-[ $arch == simarm64 || $arch == armv5te ]
+[ $runtime == vm && ($arch == simarm64 || $arch == simarm || $arch == simarmv5te || $arch == simmips || $arch == armv5te) ]
 # Timeout. These are not unit tests. They do not run efficiently on our
 # simulator or low-end devices.
 *: Skip

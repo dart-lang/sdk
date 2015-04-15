@@ -46,6 +46,12 @@
         'ldflags': [ '-m32', ],
       },
 
+      'Dart_Linux_simarmv5te_Base': {
+        'abstract': 1,
+        'cflags': [ '-O3', '-m32', '-msse2' ],
+        'ldflags': [ '-m32', ],
+      },
+
       'Dart_Linux_simarm64_Base': {
         'abstract': 1,
         'cflags': [ '-O3', '-m64', '-msse2' ],

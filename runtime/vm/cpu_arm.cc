@@ -20,13 +20,25 @@
 
 namespace dart {
 
+// TODO(zra): Add a target for ARMv6.
+#if defined(TARGET_ARCH_ARM_5TE)
+DEFINE_FLAG(bool, use_vfp, false, "Use vfp instructions if supported");
+DEFINE_FLAG(bool, use_neon, false, "Use neon instructions if supported");
+DEFINE_FLAG(bool, use_integer_division, false,
+            "Use integer division instruction if supported");
+#else
 DEFINE_FLAG(bool, use_vfp, true, "Use vfp instructions if supported");
 DEFINE_FLAG(bool, use_neon, true, "Use neon instructions if supported");
+DEFINE_FLAG(bool, use_integer_division, true,
+            "Use integer division instruction if supported");
+#endif
+
 #if !defined(HOST_ARCH_ARM)
-DEFINE_FLAG(bool, sim_use_armv7, true, "Use all ARMv7 instructions");
-DEFINE_FLAG(bool, sim_use_armv5te, false, "Restrict to ARMv5TE instructions");
-DEFINE_FLAG(bool, sim_use_armv6, false, "Restrict to ARMv6 instructions");
+#if defined(TARGET_ARCH_ARM_5TE)
 DEFINE_FLAG(bool, sim_use_hardfp, false, "Use the softfp ABI.");
+#else
+DEFINE_FLAG(bool, sim_use_hardfp, true, "Use the softfp ABI.");
+#endif
 #endif
 
 void CPU::FlushICache(uword start, uword size) {
@@ -121,10 +133,11 @@ void HostCPUFeatures::InitOnce() {
   bool is_krait = CpuInfo::FieldContains(kCpuInfoHardware, "QCT APQ8064");
   if (is_krait) {
     // Special case for Qualcomm Krait CPUs in Nexus 4 and 7.
-    integer_division_supported_ = true;
+    integer_division_supported_ = FLAG_use_integer_division;
   } else {
     integer_division_supported_ =
-        CpuInfo::FieldContains(kCpuInfoFeatures, "idiva") || is_arm64;
+        (CpuInfo::FieldContains(kCpuInfoFeatures, "idiva") || is_arm64) &&
+        FLAG_use_integer_division;
   }
   neon_supported_ =
       (CpuInfo::FieldContains(kCpuInfoFeatures, "neon") || is_arm64) &&
@@ -160,19 +173,17 @@ void HostCPUFeatures::Cleanup() {
 void HostCPUFeatures::InitOnce() {
   CpuInfo::InitOnce();
   hardware_ = CpuInfo::GetCpuModel();
+
+#if defined(TARGET_ARCH_ARM_5TE)
+  arm_version_ = ARMv5TE;
+#else
+  arm_version_ = ARMv7;
+#endif
+
+  integer_division_supported_ = FLAG_use_integer_division;
   vfp_supported_ = FLAG_use_vfp;
   neon_supported_ = FLAG_use_vfp && FLAG_use_neon;
   hardfp_supported_ = FLAG_sim_use_hardfp;
-  if (FLAG_sim_use_armv5te) {
-    arm_version_ = ARMv5TE;
-    integer_division_supported_ = false;
-  } else if (FLAG_sim_use_armv6) {
-    arm_version_ = ARMv6;
-    integer_division_supported_ = true;
-  } else if (FLAG_sim_use_armv7) {
-    arm_version_ = ARMv7;
-    integer_division_supported_ = true;
-  }
 #if defined(DEBUG)
   initialized_ = true;
 #endif
