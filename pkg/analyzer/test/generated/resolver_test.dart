@@ -1386,6 +1386,20 @@ class ElementResolverTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
+  void test_visitEnumDeclaration() {
+    ClassElementImpl enumElement =
+        ElementFactory.enumElement(_typeProvider, ('E'));
+    EnumDeclaration enumNode = AstFactory.enumDeclaration2('E', []);
+    Annotation annotationNode =
+        AstFactory.annotation(AstFactory.identifier3('a'));
+    annotationNode.element = ElementFactory.classElement2('A');
+    enumNode.metadata.add(annotationNode);
+    enumNode.name.staticElement = enumElement;
+    _resolveNode(enumNode);
+    List<ElementAnnotation> metadata = enumElement.metadata;
+    expect(metadata, hasLength(1));
+  }
+
   void test_visitExportDirective_noCombinators() {
     ExportDirective directive = AstFactory.exportDirective2(null);
     directive.element = ElementFactory
