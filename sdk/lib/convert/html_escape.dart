@@ -4,7 +4,26 @@
 
 part of dart.convert;
 
-// TODO(floitsch) - Document - Issue 13097
+/**
+ * A `String` converter that converts characters to HTML entities.
+ *
+ * This is intended to sanitice text before inserting the text into an HTML
+ * document. Characters that are meaningful in HTML are converted to
+ * HTML entities (like `&amp;` for `&`).
+ *
+ * The general converter escapes all characters that are meaningful in HTML
+ * attributes or normal element context. Elements with special content types
+ * (like CSS or JavaScript) may need a more specialized escaping that
+ * understands that content type.
+ *
+ * If the context where the text will be inserted is known in more detail,
+ * it's possible to omit escaping some characters (like quotes when not
+ * inside an attribute value).
+ *
+ * The escaped text should only be used inside quoted HTML attributes values
+ * or as text content of a normal element. Using the escaped text inside a
+ * tag, but not inside a quoted attribute value, is still dangerous.
+ */
 const HtmlEscape HTML_ESCAPE = const HtmlEscape();
 
 /**
@@ -28,6 +47,13 @@ class HtmlEscapeMode {
   final bool escapeQuot;
   /** Whether to escape "'" (apostrophe). */
   final bool escapeApos;
+  /**
+   * Whether to escape "/" (forward slash, solidus).
+   *
+   * Escaping a slash is recommended to avoid cross-site scripting attacks by
+   * [the Open Web Application Security Project](https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet#RULE_.231_-_HTML_Escape_Before_Inserting_Untrusted_Data_into_HTML_Element_Content)
+   */
+  final bool escapeSlash;
 
   /**
    * Default escaping mode which escape all characters.
@@ -40,7 +66,7 @@ class HtmlEscapeMode {
    * which require escapes matching their particular content syntax.
    */
   static const HtmlEscapeMode UNKNOWN =
-      const HtmlEscapeMode._('unknown', true, true, true);
+      const HtmlEscapeMode._('unknown', true, true, true, true);
 
   /**
    * Escaping mode for text going into double-quoted HTML attribute values.
@@ -51,7 +77,7 @@ class HtmlEscapeMode {
    * Escapes only double quotes (`"`) but not single quotes (`'`).
    */
   static const HtmlEscapeMode ATTRIBUTE =
-      const HtmlEscapeMode._('attribute', false, true, false);
+      const HtmlEscapeMode._('attribute', false, true, false, false);
 
   /**
    * Escaping mode for text going into single-quoted HTML attribute values.
@@ -62,7 +88,7 @@ class HtmlEscapeMode {
    * Escapes only single quotes (`'`) but not double quotes (`"`).
    */
   static const HtmlEscapeMode SQ_ATTRIBUTE =
-      const HtmlEscapeMode._('attribute', false, false, true);
+      const HtmlEscapeMode._('attribute', false, false, true, false);
 
   /**
    * Escaping mode for text going into HTML element content.
@@ -74,22 +100,26 @@ class HtmlEscapeMode {
    * Escapes `<` and `>` characters.
    */
   static const HtmlEscapeMode ELEMENT =
-      const HtmlEscapeMode._('element', true, false, false);
+      const HtmlEscapeMode._('element', true, false, false, false);
 
-  const HtmlEscapeMode._(
-      this._name, this.escapeLtGt, this.escapeQuot, this.escapeApos);
+  const HtmlEscapeMode._(this._name,
+                         this.escapeLtGt,
+                         this.escapeQuot,
+                         this.escapeApos,
+                         this.escapeSlash);
 
   /**
    * Create a custom escaping mode.
    *
    * All modes escape `&`.
    * The mode can further be set to escape `<` and `>` ([escapeLtGt]),
-   * `"` ([escapeQuot]) and/or `'` ([escapeApos]).
+   * `"` ([escapeQuot]), `'` ([escapeApos]), and/or `/` ([escapeSlash]).
    */
   const HtmlEscapeMode({String name: "custom",
                         this.escapeLtGt: false,
                         this.escapeQuot: false,
-                        this.escapeApos: false}) : _name = name;
+                        this.escapeApos: false,
+                        this.escapeSlash: false}) : _name = name;
 
   String toString() => _name;
 }
@@ -108,6 +138,8 @@ class HtmlEscapeMode {
  * * `'` (apostrophe) when inside a single-quoted attribute value.
  *       Apostrophe is escaped as `&#39;` instead of `&apos;` since
  *       not all browsers understand `&apos;`.
+ * * `/` (slash) is recommended to be escaped because it may be used
+ *       to terminate an element in some HTML dialects.
  *
  * Escaping `>` (greater than) isn't necessary, but the result is often
  * found to be easier to read if greater-than is also escaped whenever
@@ -150,6 +182,7 @@ class HtmlEscape extends Converter<String, String> {
         case "'": if (mode.escapeApos) replacement = '&#39;'; break;
         case '<': if (mode.escapeLtGt) replacement = '&lt;'; break;
         case '>': if (mode.escapeLtGt) replacement = '&gt;'; break;
+        case '/': if (mode.escapeSlash) replacement = '&#46;'; break;
       }
       if (replacement != null) {
         if (result == null) result = new StringBuffer();

@@ -10,8 +10,8 @@ const _NOOP = 'Nothing_to_escape';
 
 const _TEST_INPUT = """<A </test> of \xA0 "double" & 'single' values>""";
 
-const _OUTPUT_UNKNOWN = '&lt;A &lt;/test&gt; of \xA0 &quot;double&quot; &amp; '
-  '&#39;single&#39; values&gt;';
+const _OUTPUT_UNKNOWN = '&lt;A &lt;&#46;test&gt; of \xA0 &quot;double&quot; '
+  '&amp; &#39;single&#39; values&gt;';
 
 const _OUTPUT_ATTRIBUTE =
     "<A </test> of \xA0 &quot;double&quot; &amp; 'single' values>";
@@ -48,8 +48,7 @@ void _testConvert(HtmlEscape escape, String input, String expected) {
 void _testTransform(HtmlEscape escape, String input, String expected) {
   var controller = new StreamController(sync: true);
 
-  var stream = controller.stream
-      .transform(escape);
+  var stream = controller.stream.transform(escape);
 
   var done = false;
   int count = 0;
