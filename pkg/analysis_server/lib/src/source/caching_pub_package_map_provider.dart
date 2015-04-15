@@ -24,6 +24,9 @@ typedef int WriteFile(File file, String content);
  * [PubPackageMapProvider] extension which caches pub list results.
  * These results are cached in memory and in a single place on disk that is
  * shared cross session and between different simultaneous sessions.
+ *
+ * TODO(paulberry): before this class is used again, it should be ported over
+ * to extend OptimizingPubPackageMapProvider instead of PubPackageMapProvider.
  */
 class CachingPubPackageMapProvider extends PubPackageMapProvider {
   static const cacheKey = 'pub_list_cache';

@@ -8,9 +8,9 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/source/optimizing_pub_package_map_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -82,7 +82,7 @@ abstract class ContextManager {
    * Provider which is used to determine the mapping from package name to
    * package folder.
    */
-  final PackageMapProvider _packageMapProvider;
+  final OptimizingPubPackageMapProvider _packageMapProvider;
 
   /**
    * The instrumentation service used to report instrumentation data.
@@ -137,6 +137,20 @@ abstract class ContextManager {
   }
 
   /**
+   * Return a list containing all of the contexts contained in the given
+   * [analysisRoot].
+   */
+  List<AnalysisContext> contextsInAnalysisRoot(Folder analysisRoot) {
+    List<AnalysisContext> contexts = <AnalysisContext>[];
+    _contexts.forEach((Folder contextFolder, _ContextInfo info) {
+      if (analysisRoot.isOrContains(contextFolder.path)) {
+        contexts.add(info.context);
+      }
+    });
+    return contexts;
+  }
+
+  /**
    * We have finished computing the package map.
    */
   void endComputePackageMap() {
@@ -160,20 +174,6 @@ abstract class ContextManager {
     }
     // no
     return false;
-  }
-
-  /**
-   * Return a list containing all of the contexts contained in the given
-   * [analysisRoot].
-   */
-  List<AnalysisContext> contextsInAnalysisRoot(Folder analysisRoot) {
-    List<AnalysisContext> contexts = <AnalysisContext>[];
-    _contexts.forEach((Folder contextFolder, _ContextInfo info) {
-      if (analysisRoot.isOrContains(contextFolder.path)) {
-        contexts.add(info.context);
-      }
-    });
-    return contexts;
   }
 
   /**
@@ -388,16 +388,17 @@ abstract class ContextManager {
    */
   UriResolver _computePackageUriResolver(Folder folder, _ContextInfo info) {
     if (info.packageRoot != null) {
-      info.packageMapDependencies = new Set<String>();
+      info.packageMapInfo = null;
       return new PackageUriResolver([new JavaFile(info.packageRoot)]);
     } else {
       beginComputePackageMap();
-      PackageMapInfo packageMapInfo;
+      OptimizingPubPackageMapInfo packageMapInfo;
       ServerPerformanceStatistics.pub.makeCurrentWhile(() {
-        packageMapInfo = _packageMapProvider.computePackageMap(folder);
+        packageMapInfo =
+            _packageMapProvider.computePackageMap(folder, info.packageMapInfo);
       });
       endComputePackageMap();
-      info.packageMapDependencies = packageMapInfo.dependencies;
+      info.packageMapInfo = packageMapInfo;
       if (packageMapInfo.packageMap == null) {
         return null;
       }
@@ -594,7 +595,8 @@ abstract class ContextManager {
         break;
     }
 
-    if (info.packageMapDependencies.contains(path)) {
+    if (info.packageMapInfo != null &&
+        info.packageMapInfo.isChangedDependency(path, resourceProvider)) {
       _recomputePackageUriResolver(info);
     }
   }
@@ -744,10 +746,11 @@ class _ContextInfo {
   Map<String, Source> sources = new HashMap<String, Source>();
 
   /**
-   * Dependencies of the context's package map.
-   * If any of these files changes, the package map needs to be recomputed.
+   * Info returned by the last call to
+   * [OptimizingPubPackageMapProvider.computePackageMap], or `null` if the
+   * package map hasn't been computed for this context yet.
    */
-  Set<String> packageMapDependencies;
+  OptimizingPubPackageMapInfo packageMapInfo;
 
   _ContextInfo(this.folder, File pubspecFile, this.children, this.packageRoot) {
     pubspecPath = pubspecFile.path;
