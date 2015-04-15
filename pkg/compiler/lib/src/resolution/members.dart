@@ -3012,14 +3012,28 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             MessageKind.ASSIGNING_TYPE, const {});
         registry.registerThrowNoSuchMethod();
       } else if (target.isFinal || target.isConst) {
-        setter = reportAndCreateErroneousElement(
+        if (Elements.isStaticOrTopLevelField(target) || target.isLocal) {
+          setter = reportAndCreateErroneousElement(
               node.selector, target.name, MessageKind.CANNOT_RESOLVE_SETTER,
               const {});
+        } else {
+          // For instance fields we don't report a warning here because the type
+          // checker will detect this as well and report a better error message
+          // with the context of the containing class.
+        }
         registry.registerThrowNoSuchMethod();
+        if (node.isSuperCall) registry.registerSuperNoSuchMethod();
       } else if (target.isFunction && target.name != '[]=') {
         assert(!target.isSetter);
-        setter = reportAndCreateErroneousElement(
-            node.selector, target.name, MessageKind.ASSIGNING_METHOD, const {});
+        if (Elements.isStaticOrTopLevelFunction(target) || target.isLocal) {
+          setter = reportAndCreateErroneousElement(
+              node.selector, target.name, MessageKind.ASSIGNING_METHOD,
+              const {});
+        } else {
+          // For instance methods we don't report a warning here because the
+          // type checker will detect this as well and report a better error
+          // message with the context of the containing class.
+        }
         registry.registerThrowNoSuchMethod();
         if (node.isSuperCall) registry.registerSuperNoSuchMethod();
       }

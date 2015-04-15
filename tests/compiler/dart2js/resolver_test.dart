@@ -89,6 +89,7 @@ main() {
     testSupertypeOrder,
     testConstConstructorAndNonFinalFields,
     testCantAssignMethods,
+    testCantAssignFinalAndConsts,
   ], (f) => f()));
 }
 
@@ -1145,39 +1146,26 @@ testConstConstructorAndNonFinalFields() {
 }
 
 testCantAssignMethods() {
-  checkWarningOn(String script, List<String> errorLocations) {
-    asyncTest(() => compileScript(script).then((compiler) {
-      Expect.equals(0, compiler.errors.length);
-      Expect.equals(errorLocations.length, compiler.warnings.length);
-      for (var i = 0; i < errorLocations.length; i++) {
-        Expect.equals(MessageKind.ASSIGNING_METHOD,
-            compiler.warnings[i].message.kind);
-        Expect.equals(script.indexOf(errorLocations[i]),
-            compiler.warnings[i].node.getBeginToken().charOffset);
-      }
-    }));
-  }
-
   // Can't override local functions
   checkWarningOn('''
       main() {
         mname() { mname = 2; };
         mname();
       }
-      ''', ['mname = 2']);
+      ''', [MessageKind.ASSIGNING_METHOD]);
 
   checkWarningOn('''
       main() {
         mname() { };
         mname = 3;
       }
-      ''', ['mname = 3']);
+      ''', [MessageKind.ASSIGNING_METHOD]);
 
   // Can't override top-level functions
   checkWarningOn('''
       m() {}
       main() { m = 4; }
-      ''', ['m = 4']);
+      ''', [MessageKind.ASSIGNING_METHOD]);
 
   // Can't override instance methods
   checkWarningOn('''
@@ -1188,7 +1176,7 @@ testCantAssignMethods() {
           mname = () => null;
         }
       }
-      ''', ['mname = () => null']);
+      ''', [MessageKind.SETTER_NOT_FOUND]);
 
   // Can't override super methods
   checkWarningOn('''
@@ -1201,22 +1189,9 @@ testCantAssignMethods() {
           super.mname = () => 6;
         }
       }
-      ''', ['mname = () => 6']);
+      ''', [MessageKind.SETTER_NOT_FOUND]);
 
-  // But fields are OK:
-  checkWarningOn('''
-      main() { new B().bar(); }
-      class A {
-        int fname;
-      }
-      class B extends A {
-        bar() {
-          super.fname = 3;
-        }
-      }
-      ''', []);
-
-  // And we shouldn't confuse index operators either:
+  // But index operators should be OK
   checkWarningOn('''
       main() { new B().bar(); }
       class B {
@@ -1237,4 +1212,73 @@ testCantAssignMethods() {
         }
       }
       ''', []);
+}
+
+testCantAssignFinalAndConsts() {
+  // Can't write final or const locals.
+  checkWarningOn('''
+      main() {
+        final x = 1;
+        x = 2;
+      }
+      ''', [MessageKind.CANNOT_RESOLVE_SETTER]);
+  checkWarningOn('''
+      main() {
+        const x = 1;
+        x = 2;
+      }
+      ''', [MessageKind.CANNOT_RESOLVE_SETTER]);
+  checkWarningOn('''
+      final x = 1;
+      main() { x = 3; }
+      ''', [MessageKind.CANNOT_RESOLVE_SETTER]);
+
+  checkWarningOn('''
+      const x = 1;
+      main() { x = 3; }
+      ''', [MessageKind.CANNOT_RESOLVE_SETTER]);
+
+  // Detect assignments to final fields:
+  checkWarningOn('''
+      main() => new B().m();
+      class B {
+        final x = 1;
+        m() { x = 2; }
+      }
+      ''', [MessageKind.SETTER_NOT_FOUND]);
+
+  // ... and in super class:
+  checkWarningOn('''
+      main() => new B().m();
+      class A {
+        final x = 1;
+      }
+      class B extends A {
+        m() { super.x = 2; }
+      }
+      ''', [MessageKind.SETTER_NOT_FOUND]);
+
+  // But non-final fields are OK:
+  checkWarningOn('''
+      main() => new B().m();
+      class A {
+        int x = 1;
+      }
+      class B extends A {
+        m() { super.x = 2; }
+      }
+      ''', []);
+}
+
+
+/// Helper to test that [script] produces all the given [warnings].
+checkWarningOn(String script, List<MessageKind> warnings) {
+  Expect.isTrue(warnings.length >= 0 && warnings.length <= 2);
+  asyncTest(() => compileScript(script).then((compiler) {
+    Expect.equals(0, compiler.errors.length);
+    Expect.equals(warnings.length, compiler.warnings.length);
+    for (int i = 0; i < warnings.length; i++) {
+      Expect.equals(warnings[i], compiler.warnings[i].message.kind);
+    }
+  }));
 }
