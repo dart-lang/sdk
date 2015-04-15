@@ -4540,11 +4540,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
     }
   }
 
-  @override
-  visitTypeName(TypeName node) {
-    _useIdentifierElement(node.name);
-  }
-
   /**
    * Marks an [Element] of [node] as used in the library.
    */

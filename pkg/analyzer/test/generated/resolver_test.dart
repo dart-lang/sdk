@@ -3337,6 +3337,19 @@ main() {
     verify([source]);
   }
 
+  void test_unusedElement_class_isUsed_typeArgument() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class _A {}
+main() {
+  var v = new List<_A>();
+  print(v);
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_unusedElement_class_notUsed_inClassMember() {
     enableUnusedElement = true;
     Source source = addSource(r'''
@@ -3562,6 +3575,19 @@ main(f) {
     Source source = addSource(r'''
 typedef _F(a, b);
 main(_F f) {
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_functionTypeAlias_isUsed_typeArgument() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+typedef _F(a, b);
+main() {
+  var v = new List<_F>();
+  print(v);
 }''');
     resolve(source);
     assertNoErrors(source);
