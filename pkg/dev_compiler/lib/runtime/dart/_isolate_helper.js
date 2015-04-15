@@ -350,21 +350,21 @@ var _isolate_helper;
     }
   }
   // Function _callInIsolate: (_IsolateContext, Function) → dynamic
-  function _callInIsolate(isolate, function$0) {
-    let result = isolate.eval(function$0);
+  function _callInIsolate(isolate, func) {
+    let result = isolate.eval(func);
     exports._globalState.topEventLoop.run();
     return result;
   }
   let _activeJsAsyncCount = Symbol('_activeJsAsyncCount');
   // Function enterJsAsync: () → dynamic
   function enterJsAsync() {
-    let o$ = exports._globalState.topEventLoop;
-    o$[_activeJsAsyncCount] = dart.notNull(o$[_activeJsAsyncCount]) + 1;
+    let o = exports._globalState.topEventLoop;
+    o[_activeJsAsyncCount] = dart.notNull(o[_activeJsAsyncCount]) + 1;
   }
   // Function leaveJsAsync: () → dynamic
   function leaveJsAsync() {
-    let o$ = exports._globalState.topEventLoop;
-    o$[_activeJsAsyncCount] = dart.notNull(o$[_activeJsAsyncCount]) - 1;
+    let o = exports._globalState.topEventLoop;
+    o[_activeJsAsyncCount] = dart.notNull(o[_activeJsAsyncCount]) - 1;
     dart.assert(dart.notNull(exports._globalState.topEventLoop[_activeJsAsyncCount]) >= 0);
   }
   // Function isWorker: () → bool
@@ -449,12 +449,12 @@ var _isolate_helper;
       this.fromCommandLine = !dart.notNull(isWindowDefined) && !dart.notNull(this.isWorker);
     }
     [_nativeInitWorkerMessageHandler]() {
-      let function$0 = function(f, a) {
+      let func = function(f, a) {
         return function(e) {
           f(a, e);
         };
       }(_foreign_helper.DART_CLOSURE_TO_JS(IsolateNatives[_processWorkerMessage]), this.mainManager);
-      self.onmessage = function$0;
+      self.onmessage = func;
       self.dartPrint = self.dartPrint || function(serialize) {
         return function(object) {
           if (self.console && self.console.log) {
@@ -484,9 +484,9 @@ var _isolate_helper;
   class _IsolateContext extends core.Object {
     _IsolateContext() {
       this.id = (() => {
-        let o$ = exports._globalState, x$ = o$.nextIsolateId;
-        o$.nextIsolateId = dart.notNull(x$) + 1;
-        return x$;
+        let o = exports._globalState, x = o.nextIsolateId;
+        o.nextIsolateId = dart.notNull(x) + 1;
+        return x;
       })();
       this.ports = new (core.Map$(core.int, RawReceivePortImpl))();
       this.weakPorts = new (core.Set$(core.int))();
@@ -1098,9 +1098,9 @@ var _isolate_helper;
         };
       }(_foreign_helper.DART_CLOSURE_TO_JS(IsolateNatives[_processWorkerMessage]), worker);
       worker.onmessage = processWorkerMessageTrampoline;
-      let o$ = exports._globalState;
-      let workerId = o$.nextManagerId;
-      o$.nextManagerId = dart.notNull(workerId) + 1;
+      let o = exports._globalState;
+      let workerId = o.nextManagerId;
+      o.nextManagerId = dart.notNull(workerId) + 1;
       IsolateNatives.workerIds.set(worker, workerId);
       exports._globalState.managers.set(workerId, worker);
       worker.postMessage(_serializeMessage(dart.map({command: 'start', id: workerId, replyTo: _serializeMessage(replyPort), args: args, msg: _serializeMessage(message), isSpawnUri: isSpawnUri, startPaused: startPaused, functionName: functionName})));
@@ -1129,8 +1129,8 @@ var _isolate_helper;
   });
   let _checkReplyTo = Symbol('_checkReplyTo');
   class _BaseSendPort extends core.Object {
-    _BaseSendPort(isolateId$) {
-      this[_isolateId] = isolateId$;
+    _BaseSendPort(isolateId) {
+      this[_isolateId] = isolateId;
     }
     [_checkReplyTo](replyTo) {
       if (dart.notNull(replyTo != null) && !dart.is(replyTo, _NativeJsSendPort) && !dart.is(replyTo, _WorkerSendPort)) {
@@ -1142,8 +1142,8 @@ var _isolate_helper;
   let _isClosed = Symbol('_isClosed');
   let _add = Symbol('_add');
   class _NativeJsSendPort extends _BaseSendPort {
-    _NativeJsSendPort(receivePort$, isolateId) {
-      this[_receivePort] = receivePort$;
+    _NativeJsSendPort(receivePort, isolateId) {
+      this[_receivePort] = receivePort;
       super._BaseSendPort(isolateId);
     }
     send(message) {
@@ -1172,9 +1172,9 @@ var _isolate_helper;
   }
   _NativeJsSendPort[dart.implements] = () => [isolate.SendPort];
   class _WorkerSendPort extends _BaseSendPort {
-    _WorkerSendPort(workerId$, isolateId, receivePortId$) {
-      this[_workerId] = workerId$;
-      this[_receivePortId] = receivePortId$;
+    _WorkerSendPort(workerId, isolateId, receivePortId) {
+      this[_workerId] = workerId;
+      this[_receivePortId] = receivePortId;
       super._BaseSendPort(isolateId);
     }
     send(message) {
@@ -1202,9 +1202,9 @@ var _isolate_helper;
     RawReceivePortImpl(handler) {
       this[_handler] = handler;
       this[_id] = (() => {
-        let x$ = RawReceivePortImpl[_nextFreeId];
-        RawReceivePortImpl[_nextFreeId] = dart.notNull(x$) + 1;
-        return x$;
+        let x = RawReceivePortImpl[_nextFreeId];
+        RawReceivePortImpl[_nextFreeId] = dart.notNull(x) + 1;
+        return x;
       })();
       this[_isClosed] = false;
       exports._globalState.currentContext.register(this[_id], this);
@@ -1212,9 +1212,9 @@ var _isolate_helper;
     weak(handler) {
       this[_handler] = handler;
       this[_id] = (() => {
-        let x$ = RawReceivePortImpl[_nextFreeId];
-        RawReceivePortImpl[_nextFreeId] = dart.notNull(x$) + 1;
-        return x$;
+        let x = RawReceivePortImpl[_nextFreeId];
+        RawReceivePortImpl[_nextFreeId] = dart.notNull(x) + 1;
+        return x;
       })();
       this[_isClosed] = false;
       exports._globalState.currentContext.registerWeak(this[_id], this);

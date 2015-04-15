@@ -64,10 +64,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final _exports = new Set<String>();
   final _lazyFields = <VariableDeclaration>[];
   final _properties = <FunctionDeclaration>[];
-  final _privateNames = new HashSet<String>();
-  final _pendingPrivateNames = <String>[];
+  final _privateNames = new HashMap<String, JSTemporary>();
+  final _pendingPrivateNames = <JSTemporary>[];
   final _extensionMethodNames = new HashSet<String>();
   final _pendingExtensionMethodNames = <String>[];
+  final _temps = new HashMap<Element, JSTemporary>();
 
   /// The name for the library's exports inside itself.
   /// This much be a constant because we interpolate it into template strings,
@@ -144,8 +145,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     ]);
   }
 
-  JS.Statement _initPrivateSymbol(String name) => js.statement(
-      'let # = $_SYMBOL(#);', [new JSTemporary(name), js.string(name, "'")]);
+  JS.Statement _initPrivateSymbol(JSTemporary tmp) =>
+      js.statement('let # = $_SYMBOL(#);', [tmp, js.string(tmp.name, "'")]);
 
   JS.Statement _initExtensionMethodSymbol(String name) => js.statement(
       'let # = $_SYMBOL(#);', [new JS.Identifier(name), js.string(name, "'")]);
@@ -1025,19 +1026,22 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       /// Rename private names so they don't shadow the private field symbol.
       /// The renamer would handle this, but it would prefer to rename the
       /// temporary used for the private symbol. Instead rename the parameter.
-      return new JSTemporary('${name.substring(1)}');
+      return _getTemp(e, '${name.substring(1)}');
     }
 
     if (_isTemporary(e)) {
       if (name[0] == '#') {
         return new JS.InterpolatedExpression(name.substring(1));
       } else {
-        return new JSTemporary(name);
+        return _getTemp(e, name);
       }
     }
 
     return new JS.Identifier(name);
   }
+
+  JSTemporary _getTemp(Object key, String name) =>
+      _temps.putIfAbsent(key, () => new JSTemporary(name));
 
   JS.ArrayInitializer _emitTypeNames(List<DartType> types) {
     return new JS.ArrayInitializer(types.map(_emitTypeName).toList());
@@ -2206,8 +2210,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   JS.Expression _emitMemberName(String name,
       {DartType type, bool unary: false, bool isStatic: false}) {
     if (name.startsWith('_')) {
-      if (_privateNames.add(name)) _pendingPrivateNames.add(name);
-      return new JSTemporary(name);
+      return _privateNames.putIfAbsent(name, () {
+        var t = new JSTemporary(name);
+        _pendingPrivateNames.add(t);
+        return t;
+      });
     }
     // Check for extension method:
     var extLibrary = _findExtensionLibrary(name, type);

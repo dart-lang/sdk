@@ -129,8 +129,8 @@ var _native_typed_data;
     NativeFloat32x4List(length) {
       this[_storage] = new NativeFloat32List(dart.notNull(length) * 4);
     }
-    [_externalStorage](storage$) {
-      this[_storage] = storage$;
+    [_externalStorage](storage) {
+      this[_storage] = storage;
     }
     [_slowFromList](list) {
       this[_storage] = new NativeFloat32List(dart.notNull(list[core.$length]) * 4);
@@ -313,8 +313,8 @@ var _native_typed_data;
     NativeFloat64x2List(length) {
       this[_storage] = new NativeFloat64List(dart.notNull(length) * 2);
     }
-    [_externalStorage](storage$) {
-      this[_storage] = storage$;
+    [_externalStorage](storage) {
+      this[_storage] = storage;
     }
     [_slowFromList](list) {
       this[_storage] = new NativeFloat64List(dart.notNull(list[core.$length]) * 2);

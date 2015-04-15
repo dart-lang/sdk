@@ -506,7 +506,7 @@ class Printer implements NodeVisitor {
     blockBody(node.body, needsSeparation: false, needsNewline: true);
   }
 
-  void functionOut(Fun fun, Node name, Node scope) {
+  void functionOut(Fun fun, Node name) {
     out("function");
     if (name != null) {
       out(" ");
@@ -514,7 +514,7 @@ class Printer implements NodeVisitor {
       visitNestedExpression(name, PRIMARY,
                             newInForInit: false, newAtStatementBegin: false);
     }
-    localNamer.enterScope(scope);
+    localNamer.enterScope(fun);
     out("(");
     if (fun.params != null) {
       visitCommaSeparated(fun.params, PRIMARY,
@@ -540,7 +540,7 @@ class Printer implements NodeVisitor {
 
   visitFunctionDeclaration(FunctionDeclaration declaration) {
     indent();
-    functionOut(declaration.function, declaration.name, declaration);
+    functionOut(declaration.function, declaration.name);
     lineOut();
   }
 
@@ -816,11 +816,11 @@ class Printer implements NodeVisitor {
   }
 
   visitNamedFunction(NamedFunction namedFunction) {
-    functionOut(namedFunction.function, namedFunction.name, namedFunction);
+    functionOut(namedFunction.function, namedFunction.name);
   }
 
   visitFun(Fun fun) {
-    functionOut(fun, null, fun);
+    functionOut(fun, null);
   }
 
   visitArrowFun(ArrowFun fun) {
@@ -1000,9 +1000,9 @@ class Printer implements NodeVisitor {
     }
     propertyNameOut(node.name, inMethod: true);
 
-    localNamer.enterScope(node);
-    out("(");
     var fun = node.function;
+    localNamer.enterScope(fun);
+    out("(");
     if (fun.params != null) {
       visitCommaSeparated(fun.params, PRIMARY,
           newInForInit: false, newAtStatementBegin: false);
@@ -1164,7 +1164,6 @@ class VarCollector extends BaseVisitor {
   }
 
   void visitMethod(Method declaration) {
-    // Method names are qualified by the instance, so we don't collect them.
     collectVarsInFunction(declaration.function);
   }
 
@@ -1253,14 +1252,14 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
 
 abstract class LocalNamer {
   String getName(Identifier node);
-  void enterScope(Node node);
+  void enterScope(FunctionExpression node);
   void leaveScope();
 }
 
 
 class IdentityNamer implements LocalNamer {
   String getName(Identifier node) => node.name;
-  void enterScope(Node node) {}
+  void enterScope(FunctionExpression node) {}
   void leaveScope() {}
 }
 
@@ -1272,7 +1271,7 @@ class MinifyRenamer implements LocalNamer {
   int parameterNumber = 0;
   int variableNumber = 0;
 
-  void enterScope(Node node) {
+  void enterScope(FunctionExpression node) {
     var vars = new VarCollector();
     node.accept(vars);
     maps.add(new Map<String, String>());
