@@ -37,7 +37,7 @@ class JsTreeBuilder extends Builder {
         identicalFunction,
         identicalSelector,
         <Expression>[getVariableUse(node.left),
-                     getVariableUse(node.right)]);
+                     getVariableUse(node.right)])..isEffectivelyConstant = true;
   }
 
   Expression visitInterceptor(cps_ir.Interceptor node) {
@@ -48,7 +48,7 @@ class JsTreeBuilder extends Builder {
     return new InvokeStatic(
         getInterceptor,
         selector,
-        <Expression>[getVariableUse(node.input)]);
+        <Expression>[getVariableUse(node.input)])..isEffectivelyConstant = true;
   }
 
   Expression visitGetField(cps_ir.GetField node) {

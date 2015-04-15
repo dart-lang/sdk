@@ -216,7 +216,7 @@ class StatementRewriter extends Transformer implements Pass {
     if (constant != null) {
       --node.variable.readCount;
       --seenUses[node.variable]; // Do not count the use we just destroyed.
-      return constant;
+      return visitExpression(constant);
     }
 
     // Try to propagate another expression into this variable use.
@@ -270,6 +270,7 @@ class StatementRewriter extends Transformer implements Pass {
     return exp is Constant ||
            exp is This ||
            exp is ReifyTypeVar ||
+           exp is InvokeStatic && exp.isEffectivelyConstant ||
            exp is VariableUse && constantEnvironment.containsKey(exp.variable);
   }
 
@@ -288,7 +289,7 @@ class StatementRewriter extends Transformer implements Pass {
       // Moreover, they should not prevent other expressions from propagating.
       if (assign.variable.readCount <= 1) {
         // A single-use constant should always be propagted to its use site.
-        constantEnvironment[assign.variable] = visitExpression(assign.value);
+        constantEnvironment[assign.variable] = assign.value;
         --assign.variable.writeCount;
         return visitStatement(stmt.next);
       } else {

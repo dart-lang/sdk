@@ -173,6 +173,14 @@ class InvokeStatic extends Expression implements Invoke {
   final Selector selector;
   final SourceInformation sourceInformation;
 
+  /// True if the [target] is known not to diverge or read or write any
+  /// mutable state.
+  ///
+  /// This is set for calls to `getInterceptor` and `identical` to indicate
+  /// that they can be safely be moved across an impure expression
+  /// (assuming the [arguments] are not affected by the impure expression).
+  bool isEffectivelyConstant = false;
+
   InvokeStatic(this.target, this.selector, this.arguments,
                {this.sourceInformation});
 
