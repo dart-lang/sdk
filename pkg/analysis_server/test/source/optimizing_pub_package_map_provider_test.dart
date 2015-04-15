@@ -97,12 +97,12 @@ class OptimizingPubPackageMapProviderTest {
   io.ProcessResult pubListResult;
 
   void setPubListError() {
-    pubListResult = new io.ProcessResult(0, 1, '', 'ERROR');
+    pubListResult = new _MockProcessResult(0, 1, '', 'ERROR');
   }
 
   void setPubListResult({Map<String, String> packages: const {},
       List<String> input_files: const []}) {
-    pubListResult = new io.ProcessResult(0, 0,
+    pubListResult = new _MockProcessResult(0, 0,
         JSON.encode({'packages': packages, 'input_files': input_files}), '');
   }
 
@@ -131,8 +131,6 @@ class OptimizingPubPackageMapProviderTest {
 
   test_computePackageMap_noPreviousInfo_pubListError() {
     String pubspecLock = posix.join(projectFolder.path, 'pubspec.lock');
-    String pkgName = 'foo';
-    String pkgPath = '/pkg/foo';
     setPubListError();
     OptimizingPubPackageMapInfo info =
         provider.computePackageMap(projectFolder);
@@ -228,4 +226,20 @@ class OptimizingPubPackageMapProviderTest {
     expect(folder, projectFolder);
     return pubListResult;
   }
+}
+
+class _MockProcessResult implements io.ProcessResult {
+  @override
+  final int pid;
+
+  @override
+  final int exitCode;
+
+  @override
+  final stdout;
+
+  @override
+  final stderr;
+
+  _MockProcessResult(this.pid, this.exitCode, this.stdout, this.stderr);
 }
