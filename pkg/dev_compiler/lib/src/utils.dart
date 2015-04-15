@@ -205,11 +205,11 @@ _MemberTypeGetter _memberTypeGetter(ExecutableElement member) {
   return f;
 }
 
-bool isDynamicTarget(Expression target) {
-  return target != null &&
-      !(target is SimpleIdentifier && target.staticElement is PrefixElement) &&
-      target.staticType.isDynamic;
-}
+bool isDynamicTarget(Expression node) =>
+    node != null && !isLibraryPrefix(node) && node.staticType.isDynamic;
+
+bool isLibraryPrefix(Expression node) =>
+    node is SimpleIdentifier && node.staticElement is PrefixElement;
 
 /// Returns an ANSII color escape sequence corresponding to [levelName]. Colors
 /// are defined for: severe, error, warning, or info. Returns null if the level

@@ -1211,7 +1211,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // TODO(jmesserly): if we try to call a getter returning a function with
     // a call method, we don't generate the `.call` correctly.
     String code;
-    if (target == null) {
+    if (target == null || isLibraryPrefix(target)) {
       if (rules.isDynamicCall(node.methodName)) {
         code = 'dart.$DCALL(#, #)';
       } else {
@@ -1773,7 +1773,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   visitPrefixedIdentifier(PrefixedIdentifier node) {
-    if (node.prefix.staticElement is PrefixElement) {
+    if (isLibraryPrefix(node.prefix)) {
       return _visit(node.identifier);
     } else {
       return _emitGet(node.prefix, node.identifier.name);
