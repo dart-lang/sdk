@@ -623,7 +623,7 @@ abstract class IrBuilder {
     assert(!element.isInstanceMember);
     assert(isOpen);
     return _continueWithExpression(
-        (k) => new ir.InvokeStatic(element, selector, k, arguments,
+        (k) => new ir.InvokeStatic(element, selector, arguments, k,
                                    sourceInformation));
   }
 
@@ -634,7 +634,7 @@ abstract class IrBuilder {
     assert(isOpen);
     return _continueWithExpression(
         (k) => new ir.InvokeMethodDirectly(
-            buildThis(), target, selector, k, arguments));
+            buildThis(), target, selector, arguments, k));
   }
 
   ir.Primitive _buildInvokeDynamic(ir.Primitive receiver,
@@ -643,7 +643,7 @@ abstract class IrBuilder {
                                    {SourceInformation sourceInformation}) {
     assert(isOpen);
     return _continueWithExpression(
-        (k) => new ir.InvokeMethod(receiver, selector, k, arguments,
+        (k) => new ir.InvokeMethod(receiver, selector, arguments, k,
             sourceInformation: sourceInformation));
   }
 
@@ -1173,7 +1173,7 @@ abstract class IrBuilder {
   ir.Primitive buildStringConcatenation(List<ir.Primitive> arguments) {
     assert(isOpen);
     return _continueWithExpression(
-        (k) => new ir.ConcatenateStrings(k, arguments));
+        (k) => new ir.ConcatenateStrings(arguments, k));
   }
 
   /// Create an invocation of the `call` method of [functionExpression], where
@@ -1461,8 +1461,8 @@ abstract class IrBuilder {
     add(new ir.LetCont(iteratorInvoked,
         new ir.InvokeMethod(expressionReceiver,
             new Selector.getter("iterator", null),
-            iteratorInvoked,
-            emptyArguments)));
+            emptyArguments,
+            iteratorInvoked)));
 
     // Fill with:
     // let cont loop(x, ...) =
@@ -1477,8 +1477,8 @@ abstract class IrBuilder {
     add(new ir.LetCont(moveNextInvoked,
         new ir.InvokeMethod(iterator,
             new Selector.call("moveNext", null, 0),
-            moveNextInvoked,
-            emptyArguments)));
+            emptyArguments,
+            moveNextInvoked)));
 
     // As a delimited term, build:
     // <<BODY>> =
@@ -1497,7 +1497,7 @@ abstract class IrBuilder {
     ir.Continuation currentInvoked = new ir.Continuation([currentValue]);
     bodyBuilder.add(new ir.LetCont(currentInvoked,
         new ir.InvokeMethod(iterator, new Selector.getter("current", null),
-            currentInvoked, emptyArguments)));
+            emptyArguments, currentInvoked)));
     // TODO(sra): Does this cover all cases? The general setter case include
     // super.
     // TODO(johnniwinther): Extract this as a provided strategy.
@@ -2292,8 +2292,8 @@ class DartIrBuilder extends IrBuilder {
     Selector selector =
         new Selector(SelectorKind.CALL, element.memberName, callStructure);
     return _continueWithExpression(
-        (k) => new ir.InvokeConstructor(type, element, selector, k,
-            arguments));
+        (k) => new ir.InvokeConstructor(type, element, selector,
+            arguments, k));
   }
 }
 
@@ -2547,7 +2547,7 @@ class JsIrBuilder extends IrBuilder {
         new Selector.call(target.name, target.library, arguments.length);
     return _continueWithExpression(
         (k) => new ir.InvokeMethodDirectly(
-            receiver, target, selector, k, arguments));
+            receiver, target, selector, arguments, k));
   }
 
   /// Loads parameters to a constructor body into the environment.
@@ -2588,8 +2588,8 @@ class JsIrBuilder extends IrBuilder {
           ..addAll(typeArguments);
     }
     return _continueWithExpression(
-        (k) => new ir.InvokeConstructor(type, element, selector, k,
-            arguments));
+        (k) => new ir.InvokeConstructor(type, element, selector,
+            arguments, k));
   }
 
   ir.Primitive buildTypeExpression(DartType type) {

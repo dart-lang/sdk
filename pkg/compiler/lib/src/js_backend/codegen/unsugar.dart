@@ -69,7 +69,7 @@ class UnsugarVisitor extends RecursiveVisitor {
     // TODO(johnniwinther): Come up with an implementation of SourceInformation
     // for calls such as this one that don't appear in the original source.
     InvokeStatic invoke =
-        new InvokeStatic(function, selector, continuation, arguments, null);
+        new InvokeStatic(function, selector, arguments, continuation, null);
     _parentVisitor.processInvokeStatic(invoke);
 
     LetCont letCont = new LetCont(continuation, invoke);

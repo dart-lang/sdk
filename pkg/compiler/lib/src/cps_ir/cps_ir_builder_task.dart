@@ -627,7 +627,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     var oldCascadeReceiver = _currentCascadeReceiver;
     // Throw away the result of visiting the expression.
     // Instead we return the result of visiting the CascadeReceiver.
-    this.visit(node.expression);
+    visit(node.expression);
     ir.Primitive receiver = _currentCascadeReceiver;
     _currentCascadeReceiver = oldCascadeReceiver;
     return receiver;

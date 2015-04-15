@@ -8,7 +8,6 @@ library dart2js.ir_nodes;
 
 import '../constants/expressions.dart';
 import '../constants/values.dart' as values show ConstantValue;
-import '../cps_ir/optimizers.dart';
 import '../dart_types.dart' show DartType, GenericType, TypeVariableType;
 import '../dart2jslib.dart' as dart2js show
     CURRENT_ELEMENT_SPANNABLE,
@@ -227,17 +226,17 @@ class InvokeStatic extends Expression implements Invoke {
    */
   final Selector selector;
 
-  final Reference<Continuation> continuation;
   final List<Reference<Primitive>> arguments;
+  final Reference<Continuation> continuation;
   final SourceInformation sourceInformation;
 
   InvokeStatic(this.target,
                this.selector,
-               Continuation cont,
                List<Primitive> args,
+               Continuation cont,
                this.sourceInformation)
-      : continuation = new Reference<Continuation>(cont),
-        arguments = _referenceList(args) {
+      : arguments = _referenceList(args),
+        continuation = new Reference<Continuation>(cont) {
     assert(target is ErroneousElement || selector.name == target.name);
   }
 
@@ -266,25 +265,25 @@ class InvokeMethod extends Expression implements Invoke {
   Reference<Primitive> receiver;
   Selector selector;
   CallingConvention callingConvention;
-  final Reference<Continuation> continuation;
   final List<Reference<Primitive>> arguments;
+  final Reference<Continuation> continuation;
   final SourceInformation sourceInformation;
 
   InvokeMethod(Primitive receiver,
                Selector selector,
-               Continuation continuation,
                List<Primitive> arguments,
+               Continuation continuation,
                {SourceInformation sourceInformation})
       : this.internal(new Reference<Primitive>(receiver),
                       selector,
-                      new Reference<Continuation>(continuation),
                       _referenceList(arguments),
+                      new Reference<Continuation>(continuation),
                       sourceInformation);
 
   InvokeMethod.internal(this.receiver,
                         this.selector,
-                        this.continuation,
                         this.arguments,
+                        this.continuation,
                         this.sourceInformation,
                         [this.callingConvention = CallingConvention.DART]) {
     assert(isValid);
@@ -337,17 +336,17 @@ class InvokeMethodDirectly extends Expression implements Invoke {
   Reference<Primitive> receiver;
   final Element target;
   final Selector selector;
-  final Reference<Continuation> continuation;
   final List<Reference<Primitive>> arguments;
+  final Reference<Continuation> continuation;
 
   InvokeMethodDirectly(Primitive receiver,
                        this.target,
                        this.selector,
-                       Continuation cont,
-                       List<Primitive> args)
+                       List<Primitive> args,
+                       Continuation cont)
       : this.receiver = new Reference<Primitive>(receiver),
-        continuation = new Reference<Continuation>(cont),
-        arguments = _referenceList(args) {
+          arguments = _referenceList(args),
+          continuation = new Reference<Continuation>(cont) {
     assert(selector != null);
     assert(selector.kind == SelectorKind.CALL ||
            selector.kind == SelectorKind.OPERATOR ||
@@ -365,8 +364,8 @@ class InvokeMethodDirectly extends Expression implements Invoke {
 class InvokeConstructor extends Expression implements Invoke {
   final DartType type;
   final FunctionElement target;
-  final Reference<Continuation> continuation;
   final List<Reference<Primitive>> arguments;
+  final Reference<Continuation> continuation;
   final Selector selector;
 
   /// The class being instantiated. This is the same as `target.enclosingClass`
@@ -379,10 +378,10 @@ class InvokeConstructor extends Expression implements Invoke {
   InvokeConstructor(this.type,
                     this.target,
                     this.selector,
-                    Continuation cont,
-                    List<Primitive> args)
-      : continuation = new Reference<Continuation>(cont),
-        arguments = _referenceList(args) {
+                    List<Primitive> args,
+                    Continuation cont)
+      : arguments = _referenceList(args),
+        continuation = new Reference<Continuation>(cont) {
     assert(dart2js.invariant(target,
         target.isErroneous ||
         type.isDynamic ||
@@ -421,12 +420,12 @@ class TypeOperator extends Expression {
 
 /// Invoke [toString] on each argument and concatenate the results.
 class ConcatenateStrings extends Expression {
-  final Reference<Continuation> continuation;
   final List<Reference<Primitive>> arguments;
+  final Reference<Continuation> continuation;
 
-  ConcatenateStrings(Continuation cont, List<Primitive> args)
-      : continuation = new Reference<Continuation>(cont),
-        arguments = _referenceList(args);
+  ConcatenateStrings(List<Primitive> args, Continuation cont)
+      : arguments = _referenceList(args),
+        continuation = new Reference<Continuation>(cont);
 
   accept(Visitor visitor) => visitor.visitConcatenateStrings(this);
 }
