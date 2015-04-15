@@ -758,8 +758,9 @@ class PremarkingVisitor : public ObjectVisitor {
   explicit PremarkingVisitor(Isolate* isolate) : ObjectVisitor(isolate) {}
 
   void VisitObject(RawObject* obj) {
-    // RawInstruction objects are premarked on allocation.
-    if (!obj->IsMarked()) {
+    ASSERT(!obj->IsMarked());
+    // Free list elements should never be marked.
+    if (!obj->IsFreeListElement()) {
       obj->SetMarkBitUnsynchronized();
     }
   }

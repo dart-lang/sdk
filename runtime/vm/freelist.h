@@ -20,6 +20,7 @@ namespace dart {
 // the element at the address following the next_ field. All words written by
 // the freelist are guaranteed to look like smis, as required by
 // TryAllocateSmiInitializedLocked.
+// A FreeListElement never has its header mark bit set.
 class FreeListElement {
  public:
   FreeListElement* next() const {
