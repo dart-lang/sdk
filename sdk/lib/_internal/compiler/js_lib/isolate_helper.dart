@@ -14,7 +14,7 @@ import 'dart:_js_embedded_names' show
     INSTANCE_FROM_CLASS_ID;
 
 import 'dart:async';
-import 'dart:collection' show Queue, HashMap;
+import 'dart:collection' show Queue;
 import 'dart:isolate';
 import 'dart:_native_typed_data' show NativeByteBuffer, NativeTypedData;
 
@@ -357,15 +357,26 @@ class _IsolateContext implements IsolateContext {
 
   void addDoneListener(SendPort responsePort, Object response) {
     if (doneHandlers == null) {
-      // TODO(lrn): Use map optimized for few keys.
-      doneHandlers = new HashMap();
+      doneHandlers = [];
     }
-    doneHandlers[responsePort] = response;
+    for (int i = 0; i < doneHandlers.length; i += 2) {
+      if (responsePort == doneHandlers[i]) {
+        doneHandlers[i + 1] = response;
+        return;
+      }
+    }
+    doneHandlers.add(responsePort);
+    doneHandlers.add(response);
   }
 
   void removeDoneListener(SendPort responsePort) {
     if (doneHandlers == null) return;
-    doneHandlers.remove(responsePort);
+    for (int i = 0; i < doneHandlers.length; i += 2) {
+      if (responsePort == doneHandlers[i]) {
+        doneHandlers.removeRange(i, i + 2);
+        return;
+      }
+    }
   }
 
   void setErrorsFatal(Capability authentification, bool errorsAreFatal) {
@@ -564,7 +575,11 @@ class _IsolateContext implements IsolateContext {
     _globalState.isolates.remove(id); // indicate this isolate is not active
     errorPorts.clear();
     if (doneHandlers != null) {
-      doneHandlers.forEach((port, response) { port.send(response); });
+      for (int i = 0; i < doneHandlers.length; i += 2) {
+        SendPort responsePort = doneHandlers[i];
+        Object response = doneHandlers[i + 1];
+        responsePort.send(response);
+      }
       doneHandlers = null;
     }
   }
