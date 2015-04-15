@@ -28,10 +28,7 @@ class SideEffects {
     setDependsOnSomething();
   }
 
-  SideEffects.empty() {
-    clearAllDependencies();
-    clearAllSideEffects();
-  }
+  SideEffects.empty();
 
   bool operator==(other) => _flags == other._flags;
 

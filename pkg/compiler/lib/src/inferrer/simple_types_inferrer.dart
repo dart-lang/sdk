@@ -1108,12 +1108,13 @@ class SimpleTypeInferrerVisitor<T>
     Selector selector = elements.getSelector(node);
     String name = selector.name;
     handleStaticSend(node, selector, elements[node], arguments);
-    if (name == 'JS' || name == 'JS_EMBEDDED_GLOBAL' || name == 'JS_BUILTIN') {
+    if (name == 'JS' || name == 'JS_EMBEDDED_GLOBAL') {
       native.NativeBehavior nativeBehavior =
           compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
       sideEffects.add(nativeBehavior.sideEffects);
       return inferrer.typeOfNativeBehavior(nativeBehavior);
-    } else if (name == 'JS_NULL_CLASS_NAME'
+    } else if (name == 'JS_GET_NAME'
+               || name == 'JS_NULL_CLASS_NAME'
                || name == 'JS_OBJECT_CLASS_NAME'
                || name == 'JS_OPERATOR_IS_PREFIX'
                || name == 'JS_OPERATOR_AS_PREFIX'

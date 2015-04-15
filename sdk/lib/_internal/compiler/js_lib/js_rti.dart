@@ -134,7 +134,7 @@ void copyTypeArguments(Object source, Object target) {
  * of [object].
  */
 String getClassName(var object) {
-  return getDartTypeName(getRawRuntimeType(object));
+  return JS('String', r'#.constructor.builtin$cls', getInterceptor(object));
 }
 
 /**
@@ -144,10 +144,16 @@ String getClassName(var object) {
  */
 String getRuntimeTypeAsString(var runtimeType, {String onTypeVariable(int i)}) {
   assert(isJsArray(runtimeType));
-  String className = getDartTypeName(getIndex(runtimeType, 0));
+  String className = getConstructorName(getIndex(runtimeType, 0));
   return '$className'
          '${joinArguments(runtimeType, 1, onTypeVariable: onTypeVariable)}';
 }
+
+/**
+ * Retrieves the class name from type information stored on the constructor
+ * [type].
+ */
+String getConstructorName(var type) => JS('String', r'#.builtin$cls', type);
 
 /**
  * Returns a human-readable representation of the type representation [type].
@@ -160,7 +166,7 @@ String runtimeTypeToString(var type, {String onTypeVariable(int i)}) {
     return getRuntimeTypeAsString(type, onTypeVariable: onTypeVariable);
   } else if (isJsFunction(type)) {
     // A reference to the constructor.
-    return getDartTypeName(type);
+    return getConstructorName(type);
   } else if (type is int) {
     if (onTypeVariable == null) {
       return type.toString();
@@ -273,10 +279,6 @@ bool checkSubtype(Object object, String isField, List checks, String asField) {
 String computeTypeName(String isField, List arguments) {
   // Shorten the field name to the class name and append the textual
   // representation of the type arguments.
-  // TODO(floitsch): change this to:
-  // String className = JS_BUILTIN('depends:none;effects:none;returns:String',
-  //                               JsBuiltin.classNameFroIsCheckProperty,
-  //                               isField);
   int prefixLength = JS_OPERATOR_IS_PREFIX().length;
   return Primitives.formatType(isField.substring(prefixLength, isField.length),
                                arguments);
@@ -369,8 +371,8 @@ computeSignature(var signature, var context, var contextName) {
  */
 bool isSupertypeOfNull(var type) {
   // `null` means `dynamic`.
-  return type == null || getDartTypeName(type) == JS_OBJECT_CLASS_NAME()
-                      || getDartTypeName(type) == JS_NULL_CLASS_NAME();
+  return type == null || getConstructorName(type) == JS_OBJECT_CLASS_NAME()
+                      || getConstructorName(type) == JS_NULL_CLASS_NAME();
 }
 
 /**
@@ -387,7 +389,7 @@ bool checkSubtypeOfRuntimeType(o, t) {
   // overwrite o with the interceptor below.
   var rti = getRuntimeTypeInfo(o);
   o = getInterceptor(o);
-  var type = getRawRuntimeType(o);
+  var type = JS('', '#.constructor', o);
   if (rti != null) {
     // If the type has type variables (that is, `rti != null`), make a copy of
     // the type arguments and insert [o] in the first position to create a
@@ -395,7 +397,7 @@ bool checkSubtypeOfRuntimeType(o, t) {
     rti = JS('JSExtendableArray', '#.slice()', rti);  // Make a copy.
     JS('', '#.splice(0, 0, #)', rti, type);  // Insert type at position 0.
     type = rti;
-  } else if (isDartFunctionType(t)) {
+  } else if (hasField(t, '${JS_FUNCTION_TYPE_TAG()}')) {
     // Functions are treated specially and have their type information stored
     // directly in the instance.
     var targetSignatureFunction = getField(o, '${JS_SIGNATURE_NAME()}');
@@ -444,12 +446,12 @@ bool isSubtype(var s, var t) {
   if (isIdentical(s, t)) return true;
   // If either type is dynamic, [s] is a subtype of [t].
   if (s == null || t == null) return true;
-  if (isDartFunctionType(t)) {
+  if (hasField(t, '${JS_FUNCTION_TYPE_TAG()}')) {
     return isFunctionSubtype(s, t);
   }
   // Check function types against the Function class.
-  if (isDartFunctionType(s)) {
-    return isDartFunctionTypeLiteral(t);
+  if (hasField(s, '${JS_FUNCTION_TYPE_TAG()}')) {
+    return getConstructorName(t) == JS_FUNCTION_CLASS_NAME();
   }
 
   // Get the object describing the class and check for the subtyping flag
@@ -461,12 +463,6 @@ bool isSubtype(var s, var t) {
   // Get the necessary substitution of the type arguments, if there is one.
   var substitution;
   if (isNotIdentical(typeOfT, typeOfS)) {
-    // TODO(floitsch): change this to:
-    // if (!JS_BUILTIN('depends:none;effects:none;returns:bool',
-    //                JsBuiltin.implementsType,
-    //                typeOfSPrototype, name)) {
-    //  return false;
-    // }
     var test = '${JS_OPERATOR_IS_PREFIX()}${name}';
     var typeOfSPrototype = JS('', '#.prototype', typeOfS);
     if (hasNoField(typeOfSPrototype, test)) return false;
@@ -540,8 +536,8 @@ bool areAssignableMaps(var s, var t) {
 }
 
 bool isFunctionSubtype(var s, var t) {
-  assert(isDartFunctionType(t));
-  if (!isDartFunctionType(s)) return false;
+  assert(hasField(t, '${JS_FUNCTION_TYPE_TAG()}'));
+  if (hasNoField(s, '${JS_FUNCTION_TYPE_TAG()}')) return false;
   if (hasField(s, '${JS_FUNCTION_TYPE_VOID_RETURN_TAG()}')) {
     if (hasNoField(t, '${JS_FUNCTION_TYPE_VOID_RETURN_TAG()}') &&
         hasField(t, '${JS_FUNCTION_TYPE_RETURN_TYPE_TAG()}')) {

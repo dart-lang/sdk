@@ -3773,7 +3773,7 @@ class SsaBuilder extends NewResolvedVisitor {
     default:
       for (int i = 1; i < arguments.length; i++) {
         compiler.reportError(
-           arguments[i], MessageKind.GENERIC,
+            arguments[i], MessageKind.GENERIC,
             {'text': 'Error: Extra argument to JS_GET_NAME.'});
       }
       return;
@@ -3792,47 +3792,6 @@ class SsaBuilder extends NewResolvedVisitor {
         addConstantString(
             backend.namer.getNameForJsGetName(
                 argument, JsGetName.values[index])));
-  }
-
-  void handleForeignJsBuiltin(ast.Send node) {
-    List<ast.Node> arguments = node.arguments.toList();
-    ast.Node argument;
-    if (arguments.length < 2) {
-      compiler.reportError(
-          node, MessageKind.GENERIC,
-          {'text': 'Error: Expected at least two arguments to JS_BUILTIN.'});
-    }
-
-    Element builtinElement = elements[arguments[1]];
-    if (builtinElement == null ||
-        (builtinElement is! FieldElement) ||
-        builtinElement.enclosingClass != backend.jsBuiltinEnum) {
-      compiler.reportError(
-          argument, MessageKind.GENERIC,
-          {'text': 'Error: Expected a JsBuiltin enum value.'});
-    }
-    EnumClassElement enumClass = builtinElement.enclosingClass;
-    int index = enumClass.enumValues.indexOf(builtinElement);
-
-    js.Template template =
-        backend.emitter.builtinTemplateFor(JsBuiltin.values[index]);
-
-    List<HInstruction> compiledArguments = <HInstruction>[];
-    for (int i = 2; i < arguments.length; i++) {
-      visit(arguments[i]);
-      compiledArguments.add(pop());
-    }
-
-    native.NativeBehavior nativeBehavior =
-        compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
-
-    TypeMask ssaType =
-        TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
-
-    push(new HForeignCode(template,
-                          ssaType,
-                          compiledArguments,
-                          nativeBehavior: nativeBehavior));
   }
 
   void handleForeignJsEmbeddedGlobal(ast.Send node) {
@@ -3858,7 +3817,7 @@ class SsaBuilder extends NewResolvedVisitor {
       }
       return;
     }
-    visit(globalNameNode);
+    visit(arguments[1]);
     HInstruction globalNameHNode = pop();
     if (!globalNameHNode.isConstantString()) {
       compiler.reportError(
@@ -3982,6 +3941,17 @@ class SsaBuilder extends NewResolvedVisitor {
         effects: sideEffects));
   }
 
+  void handleForeignDartObjectJsConstructorFunction(ast.Send node) {
+    if (!node.arguments.isEmpty) {
+      compiler.internalError(node.argumentsNode, 'Too many arguments.');
+    }
+    push(new HForeignCode(
+        js.js.expressionTemplateYielding(
+            backend.emitter.typeAccess(compiler.objectClass)),
+        backend.dynamicType,
+        <HInstruction>[]));
+  }
+
   void handleForeignJsCurrentIsolate(ast.Send node) {
     if (!node.arguments.isEmpty) {
       compiler.internalError(node.argumentsNode, 'Too many arguments.');
@@ -4017,6 +3987,10 @@ class SsaBuilder extends NewResolvedVisitor {
       // TODO(floitsch): this should be a JS_NAME.
       String name = backend.namer.runtimeTypeName(compiler.nullClass);
       stack.add(addConstantString(name));
+    } else if (name == 'JS_FUNCTION_CLASS_NAME') {
+      // TODO(floitsch): this should be a JS_NAME.
+      String name = backend.namer.runtimeTypeName(compiler.functionClass);
+      stack.add(addConstantString(name));
     } else if (name == 'JS_OPERATOR_AS_PREFIX') {
       // TODO(floitsch): this should be a JS_NAME.
       stack.add(addConstantString(backend.namer.operatorAsPrefix));
@@ -4026,6 +4000,9 @@ class SsaBuilder extends NewResolvedVisitor {
     } else if (name == 'JS_TYPEDEF_TAG') {
       // TODO(floitsch): this should be a JS_NAME.
       stack.add(addConstantString(backend.namer.typedefTag));
+    } else if (name == 'JS_FUNCTION_TYPE_TAG') {
+      // TODO(floitsch): this should be a JS_NAME.
+      stack.add(addConstantString(backend.namer.functionTypeTag));
     } else if (name == 'JS_FUNCTION_TYPE_VOID_RETURN_TAG') {
       // TODO(floitsch): this should be a JS_NAME.
       stack.add(addConstantString(backend.namer.functionTypeVoidReturnTag));
@@ -4047,6 +4024,8 @@ class SsaBuilder extends NewResolvedVisitor {
       // TODO(floitsch): this should be a JS_NAME.
       stack.add(addConstantString(
           backend.namer.functionTypeNamedParametersTag));
+    } else if (name == 'JS_DART_OBJECT_CONSTRUCTOR') {
+      handleForeignDartObjectJsConstructorFunction(node);
     } else if (name == 'JS_IS_INDEXABLE_FIELD_NAME') {
       // TODO(floitsch): this should be a JS_NAME.
       Element element = backend.findHelper('JavaScriptIndexingBehavior');
@@ -4057,8 +4036,6 @@ class SsaBuilder extends NewResolvedVisitor {
       handleForeignJsGetName(node);
     } else if (name == 'JS_EMBEDDED_GLOBAL') {
       handleForeignJsEmbeddedGlobal(node);
-    } else if (name == 'JS_BUILTIN') {
-      handleForeignJsBuiltin(node);
     } else if (name == 'JS_GET_FLAG') {
       handleForeingJsGetFlag(node);
     } else if (name == 'JS_EFFECT') {

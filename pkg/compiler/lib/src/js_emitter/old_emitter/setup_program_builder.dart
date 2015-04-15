@@ -21,10 +21,8 @@ const RANGE2_ADJUST = - (FIRST_FIELD_CODE + RANGE1_SIZE - RANGE2_FIRST);
 const RANGE3_ADJUST =
     - (FIRST_FIELD_CODE + RANGE1_SIZE + RANGE2_SIZE - RANGE3_FIRST);
 
-const String setupProgramName ='setupProgram';
-// TODO(floitsch): make sure this property can't clash with anything. It's
-//   unlikely since it lives on types, but still.
-const String typeNameProperty = r'builtin$cls';
+String get setupProgramName => 'setupProgram';
+
 
 jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
                                 JavaScriptBackend backend,
@@ -239,7 +237,7 @@ function $setupProgramName(programData, typesOffset) {
         body += "this." + #deferredActionString + "();";
       }
       str += ") {\\n" + body + "}\\n";
-      str += name + ".$typeNameProperty=\\"" + name + "\\";\\n";
+      str += name + ".builtin\$cls=\\"" + name + "\\";\\n";
       str += "\$desc=\$collectedClasses." + name + "[1];\\n";
       str += name + ".prototype = \$desc;\\n";
       if (typeof defineClass.name != "string") {

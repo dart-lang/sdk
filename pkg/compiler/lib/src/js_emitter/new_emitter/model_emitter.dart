@@ -50,8 +50,6 @@ class ModelEmitter {
 
   static const String deferredExtension = "part.js";
 
-  static const String typeNameProperty = r"builtin$cls";
-
   ModelEmitter(Compiler compiler, Namer namer, this.nativeEmitter)
       : this.compiler = compiler,
         this.namer = namer {
@@ -1092,7 +1090,7 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
                               typesOffset);
     }
 
-    constructor.$typeNameProperty = name;  // Needed for RTI.
+    constructor.builtin\$cls = name;  // Needed for RTI.
     constructor.prototype = prototype;
     prototype[#operatorIsPrefix + name] = constructor;
     prototype.constructor = constructor;
