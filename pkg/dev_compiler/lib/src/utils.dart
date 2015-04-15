@@ -19,6 +19,7 @@ import 'package:analyzer/src/generated/ast.dart'
         AstNode,
         Expression,
         SimpleIdentifier;
+import 'package:analyzer/src/generated/constant.dart' show DartObjectImpl;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show ParseDartTask, AnalysisContext;
@@ -344,6 +345,45 @@ String resourceOutputPath(Uri resourceUri, Uri entryUri) {
   // Ensure this is loaded from the dev_compiler package.
   if (pubspec['name'] != 'dev_compiler') return null;
   return path.join('dev_compiler', 'runtime', filename);
+}
+
+/// Given an annotated [node] and a [test] function, returns the first matching
+/// constant valued annotation.
+///
+/// For example if we had the ClassDeclaration node for `FontElement`:
+///
+///    @JsName('HTMLFontElement')
+///    @deprecated
+///    class FontElement { ... }
+///
+/// We could match `@deprecated` with a test function like:
+///
+///    (v) => v.type.name == 'Deprecated' && v.type.element.library.isDartCore
+///
+DartObjectImpl getAnnotationValue(
+    AnnotatedNode node, bool test(DartObjectImpl value)) {
+  for (var metadata in node.metadata) {
+    ElementAnnotationImpl element = metadata.elementAnnotation;
+    if (element == null) continue;
+
+    var evalResult = element.evaluationResult;
+    if (evalResult == null) continue;
+
+    var value = evalResult.value;
+    if (value != null && test(value)) return value;
+  }
+  return null;
+}
+
+/// Given a constant [value], a [fieldName], and an [expectedType], returns the
+/// value of that field.
+///
+/// If the field is missing or is not [expectedType], returns null.
+Object getConstantField(
+    DartObjectImpl value, String fieldName, DartType expectedType) {
+  if (value == null) return null;
+  var f = value.fields[fieldName];
+  return (f == null || f.type != expectedType) ? null : f.value;
 }
 
 InterfaceType fillDynamicTypeArgs(InterfaceType t, TypeProvider types) =>

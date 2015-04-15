@@ -34,20 +34,6 @@ import 'code_generator.dart';
 import 'js_names.dart';
 import 'js_metalet.dart';
 
-bool _isAnnotationType(Annotation m, String name) => m.name.name == name;
-
-Annotation _getAnnotation(AnnotatedNode node, String name) => node.metadata
-    .firstWhere((annotation) => _isAnnotationType(annotation, name),
-        orElse: () => null);
-
-Annotation _getJsNameAnnotation(AnnotatedNode node) =>
-    _getAnnotation(node, "JsName");
-
-// TODO(jacobr): we would like to do something like the following
-// but we don't have summary support yet.
-// bool _supportJsExtensionMethod(AnnotatedNode node) =>
-//    _getAnnotation(node, "SupportJsExtensionMethod") != null;
-
 // Various dynamic helpers we call.
 // If renaming these, make sure to check other places like the
 // dart_runtime.js file and comments.
@@ -106,19 +92,17 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   TypeProvider get types => rules.provider;
 
   JS.Program emitLibrary(LibraryUnit library) {
-    var jsDefaultValue = '{}';
+    String jsDefaultValue = null;
     var unit = library.library;
     if (unit.directives.isNotEmpty) {
-      var annotation = _getJsNameAnnotation(unit.directives.first);
-      if (annotation != null) {
-        var arguments = annotation.arguments.arguments;
-        if (!arguments.isEmpty) {
-          var namedExpression = arguments.first as NamedExpression;
-          var literal = namedExpression.expression as SimpleStringLiteral;
-          jsDefaultValue = literal.stringValue;
-        }
+      var libraryDir = unit.directives.first;
+      if (libraryDir is LibraryDirective) {
+        var jsName = getAnnotationValue(libraryDir, _isJsNameAnnotation);
+        jsDefaultValue = getConstantField(jsName, 'name', types.stringType);
       }
     }
+    if (jsDefaultValue == null) jsDefaultValue = '{}';
+
     var body = <JS.Statement>[];
 
     // Collect classes we need to emit, used for:
@@ -317,17 +301,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return _finishClassDef(type, classDecl);
   }
 
-  JS.Statement _emitJsType(ClassDeclaration node, Annotation jsName) {
-    var dartName = node.name.name;
-    var jsTypeName = _getLiteralStringNamedArg(jsName, 'name');
+  JS.Statement _emitJsType(String dartClassName, DartObjectImpl jsName) {
+    var jsTypeName = getConstantField(jsName, 'name', types.stringType);
 
-    if (jsTypeName != null && jsTypeName != dartName) {
+    if (jsTypeName != null && jsTypeName != dartClassName) {
       // We export the JS type as if it was a Dart type. For example this allows
       // `dom.InputElement` to actually be HTMLInputElement.
       // TODO(jmesserly): if we had the JsName on the Element, we could just
       // generate it correctly when we refer to it.
-      if (isPublic(dartName)) _addExport(dartName);
-      return js.statement('let # = #;', [dartName, jsTypeName]);
+      if (isPublic(dartClassName)) _addExport(dartClassName);
+      return js.statement('let # = #;', [dartClassName, jsTypeName]);
     }
     return null;
   }
@@ -338,8 +321,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var type = node.element.type;
     if (_pendingClasses.remove(node.element) == null) return null;
 
-    var jsName = _getJsNameAnnotation(node);
-    if (jsName != null) return _emitJsType(node, jsName);
+    var jsName = getAnnotationValue(node, _isJsNameAnnotation);
+    if (jsName != null) return _emitJsType(node.name.name, jsName);
 
     currentClass = node;
 
@@ -2485,14 +2468,7 @@ bool _isStateless(Expression node, [AstNode context]) {
     if (e is PropertyAccessorElement) e = e.variable;
     if (e is VariableElement && !e.isSynthetic) {
       if (e.isFinal) return true;
-
-      // TODO(jmesserly): remove this when isPotentiallyMutated* is available
-      // without the implementation class. Technically we shouldn't hit the
-      // ParameterMember case based on current usage of _isStateless, but this
-      // makes it clear we shouldn't rely on *Impl class.
-      if (e is Member) e = e.baseElement;
-
-      if (e is LocalVariableElementImpl || e is ParameterElementImpl) {
+      if (e is LocalVariableElement || e is ParameterElement) {
         // make sure the local isn't mutated in the context.
         return !_isPotentiallyMutated(e, context);
       }
@@ -2503,14 +2479,8 @@ bool _isStateless(Expression node, [AstNode context]) {
 
 /// Returns true if the local variable is potentially mutated within [context].
 /// This accounts for closures that may have been created outside of [context].
-bool _isPotentiallyMutated(VariableElementImpl e, [AstNode context]) {
-  if (e.isPotentiallyMutatedInClosure) {
-    // TODO(jmesserly): this returns true incorrectly in some cases, because
-    // VariableResolverVisitor only checks that enclosingElement is not the
-    // function element, but enclosingElement can be something else in some
-    // cases (the block scope?). So it's more conservative than it could be.
-    return true;
-  }
+bool _isPotentiallyMutated(VariableElement e, [AstNode context]) {
+  if (e.isPotentiallyMutatedInClosure) return true;
   if (e.isPotentiallyMutatedInScope) {
     // Need to visit the context looking for assignment to this local.
     if (context != null) {
@@ -2528,7 +2498,7 @@ bool _isPotentiallyMutated(VariableElementImpl e, [AstNode context]) {
 // TODO(jmesserly): change type annotation to not be *Impl once
 // isPotentiallyMutated is available on VariableElement.
 class _AssignmentFinder extends RecursiveAstVisitor {
-  final VariableElementImpl _variable;
+  final VariableElement _variable;
   bool _potentiallyMutated = false;
 
   _AssignmentFinder(this._variable);
@@ -2552,16 +2522,10 @@ class _AssignmentFinder extends RecursiveAstVisitor {
   }
 }
 
-String _getLiteralStringNamedArg(Annotation annotation, String argName) {
-  if (annotation.arguments != null) {
-    var args = annotation.arguments.arguments;
-    if (args.isNotEmpty && args[0] is NamedExpression) {
-      NamedExpression named = args[0];
-      if (named.name.label.name == argName &&
-          named.expression is StringLiteral) {
-        return (named.expression as StringLiteral).stringValue;
-      }
-    }
-  }
-  return null;
-}
+// TODO(jmesserly): validate the library. See issue #135.
+bool _isJsNameAnnotation(DartObjectImpl value) => value.type.name == 'JsName';
+
+// TODO(jacobr): we would like to do something like the following
+// but we don't have summary support yet.
+// bool _supportJsExtensionMethod(AnnotatedNode node) =>
+//    _getAnnotation(node, "SupportJsExtensionMethod") != null;
