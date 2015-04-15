@@ -479,8 +479,6 @@ abstract class IrBuilder {
   // TODO(johnniwinther): Make these field final and remove the default values
   // when [IrBuilder] is a property of [IrBuilderVisitor] instead of a mixin.
 
-  final List<ir.Parameter> _parameters = <ir.Parameter>[];
-
   IrBuilderDelimitedState state;
 
   /// A map from variable indexes to their values.
@@ -562,20 +560,18 @@ abstract class IrBuilder {
     _enterScope(closureScope);
   }
 
-  List<ir.Primitive> buildFunctionHeader(Iterable<Local> parameters,
-                                        {ClosureScope closureScope,
-                                         ClosureEnvironment env}) {
+  void buildFunctionHeader(Iterable<Local> parameters,
+                           {ClosureScope closureScope,
+                            ClosureEnvironment env}) {
     _createThisParameter();
     _enterClosureEnvironment(env);
     _enterScope(closureScope);
     parameters.forEach(_createFunctionParameter);
-    return _parameters;
   }
 
   /// Creates a parameter for [local] and adds it to the current environment.
   ir.Parameter createLocalParameter(Local local) {
     ir.Parameter parameter = new ir.Parameter(local);
-    _parameters.add(parameter);
     environment.extend(local, parameter);
     return parameter;
   }
@@ -2190,7 +2186,6 @@ class DartIrBuilder extends IrBuilder {
 
   void _createFunctionParameter(Local parameterElement) {
     ir.Parameter parameter = new ir.Parameter(parameterElement);
-    _parameters.add(parameter);
     if (isInMutableVariable(parameterElement)) {
       state.functionParameters.add(getMutableVariable(parameterElement));
     } else {
@@ -2399,7 +2394,6 @@ class JsIrBuilder extends IrBuilder {
 
   void _createFunctionParameter(Local parameterElement) {
     ir.Parameter parameter = new ir.Parameter(parameterElement);
-    _parameters.add(parameter);
     state.functionParameters.add(parameter);
     ClosureLocation location = jsState.boxedVariables[parameterElement];
     if (location != null) {
