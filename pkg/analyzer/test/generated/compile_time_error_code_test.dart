@@ -576,6 +576,23 @@ f() sync* {
     verify([source]);
   }
 
+  void test_bug_23176() {
+    Source source = addSource('''
+class A {
+  const A([x]);
+}
+class B {
+  dynamic @A(const A()) x;
+}
+''');
+    resolve(source);
+    assertErrors(source, [
+      ParserErrorCode.EXPECTED_CLASS_MEMBER,
+      ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
+    ]);
+    verify([source]);
+  }
+
   void test_builtInIdentifierAsMixinName_classTypeAlias() {
     Source source = addSource(r'''
 class A {}

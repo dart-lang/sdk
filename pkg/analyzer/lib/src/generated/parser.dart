@@ -2419,8 +2419,8 @@ class Parser {
         //
         _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
         List<VariableDeclaration> variables = new List<VariableDeclaration>();
-        variables.add(new VariableDeclaration(
-            null, null, _createSyntheticIdentifier(), null, null));
+        variables.add(
+            new VariableDeclaration(_createSyntheticIdentifier(), null, null));
         return new FieldDeclaration(commentAndMetadata.comment,
             commentAndMetadata.metadata, null,
             new VariableDeclarationList(null, null, keyword, null, variables),
@@ -4915,8 +4915,8 @@ class Parser {
         //
         _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
         List<VariableDeclaration> variables = new List<VariableDeclaration>();
-        variables.add(new VariableDeclaration(
-            null, null, _createSyntheticIdentifier(), null, null));
+        variables.add(
+            new VariableDeclaration(_createSyntheticIdentifier(), null, null));
         return new TopLevelVariableDeclaration(commentAndMetadata.comment,
             commentAndMetadata.metadata,
             new VariableDeclarationList(null, null, keyword, null, variables),
@@ -4967,8 +4967,8 @@ class Parser {
         semicolon = _createSyntheticToken(TokenType.SEMICOLON);
       }
       List<VariableDeclaration> variables = new List<VariableDeclaration>();
-      variables.add(new VariableDeclaration(
-          null, null, _createSyntheticIdentifier(), null, null));
+      variables.add(
+          new VariableDeclaration(_createSyntheticIdentifier(), null, null));
       return new TopLevelVariableDeclaration(commentAndMetadata.comment,
           commentAndMetadata.metadata,
           new VariableDeclarationList(null, null, null, returnType, variables),
@@ -5527,8 +5527,7 @@ class Parser {
                 _tokenMatches(_peek(), TokenType.COLON))) {
           List<VariableDeclaration> variables = new List<VariableDeclaration>();
           SimpleIdentifier variableName = parseSimpleIdentifier();
-          variables.add(
-              new VariableDeclaration(null, null, variableName, null, null));
+          variables.add(new VariableDeclaration(variableName, null, null));
           variableList = new VariableDeclarationList(commentAndMetadata.comment,
               commentAndMetadata.metadata, null, null, variables);
         } else if (_isInitializedVariableDeclaration()) {
@@ -7471,7 +7470,15 @@ class Parser {
    *         identifier ('=' expression)?
    */
   VariableDeclaration _parseVariableDeclaration() {
-    CommentAndMetadata commentAndMetadata = _parseCommentAndMetadata();
+    // TODO(paulberry): prior to the fix for bug 23204, we permitted
+    // annotations before variable declarations (e.g. "String @deprecated s;").
+    // Although such constructions are prohibited by the spec, we may want to
+    // consider handling them anyway to allow for better parser recovery in the
+    // event that the user erroneously tries to use them.  However, as a
+    // counterargument, this would likely degrade parser recovery in the event
+    // of a construct like "class C { int @deprecated foo() {} }" (i.e. the
+    // user is in the middle of inserting "int bar;" prior to
+    // "@deprecated foo() {}").
     SimpleIdentifier name = parseSimpleIdentifier();
     Token equals = null;
     Expression initializer = null;
@@ -7479,8 +7486,7 @@ class Parser {
       equals = getAndAdvance();
       initializer = parseExpression2();
     }
-    return new VariableDeclaration(commentAndMetadata.comment,
-        commentAndMetadata.metadata, name, equals, initializer);
+    return new VariableDeclaration(name, equals, initializer);
   }
 
   /**

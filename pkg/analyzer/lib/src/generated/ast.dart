@@ -1612,8 +1612,7 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   VariableDeclaration visitVariableDeclaration(VariableDeclaration node) =>
-      new VariableDeclaration(null, cloneNodeList(node.metadata),
-          cloneNode(node.name), cloneToken(node.equals),
+      new VariableDeclaration(cloneNode(node.name), cloneToken(node.equals),
           cloneNode(node.initializer));
 
   @override
@@ -10177,8 +10176,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   VariableDeclaration visitVariableDeclaration(VariableDeclaration node) =>
-      new VariableDeclaration(null, _cloneNodeList(node.metadata),
-          _cloneNode(node.name), _mapToken(node.equals),
+      new VariableDeclaration(_cloneNode(node.name), _mapToken(node.equals),
           _cloneNode(node.initializer));
 
   @override
@@ -19568,6 +19566,11 @@ class UriValidationCode {
  *
  * > variableDeclaration ::=
  * >     [SimpleIdentifier] ('=' [Expression])?
+ *
+ * TODO(paulberry): the grammar does not allow metadata to be associated with
+ * a VariableDeclaration, and currently we don't record comments for it either.
+ * Consider changing the class hierarchy so that [VariableDeclaration] does not
+ * extend [Declaration].
  */
 class VariableDeclaration extends Declaration {
   /**
@@ -19588,14 +19591,12 @@ class VariableDeclaration extends Declaration {
   Expression _initializer;
 
   /**
-   * Initialize a newly created variable declaration. Either or both of the
-   * [comment] and [metadata] can be `null` if the declaration does not have the
-   * corresponding attribute. The [equals] and [initializer] can be `null` if
-   * there is no initializer.
+   * Initialize a newly created variable declaration. The [equals] and
+   * [initializer] can be `null` if there is no initializer.
    */
-  VariableDeclaration(Comment comment, List<Annotation> metadata,
+  VariableDeclaration(
       SimpleIdentifier name, this.equals, Expression initializer)
-      : super(comment, metadata) {
+      : super(null, null) {
     _name = _becomeParentOf(name);
     _initializer = _becomeParentOf(initializer);
   }

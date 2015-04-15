@@ -521,6 +521,18 @@ const_dynamic_type_literal_test: CompileTimeError # Issue 22989
 regress_21912_test/02: StaticWarning # Issue 21912
 regress_22976_test/02: StaticWarning # Issue 22976
 
+variable_declaration_metadata_test/02: MissingCompileTimeError # Issue 23204
+variable_declaration_metadata_test/03: MissingCompileTimeError # Issue 23204
+variable_declaration_metadata_test/04: MissingCompileTimeError # Issue 23204
+variable_declaration_metadata_test/06: MissingCompileTimeError # Issue 23204
+variable_declaration_metadata_test/08: MissingCompileTimeError # Issue 23204
+variable_declaration_metadata_test/09: MissingCompileTimeError # Issue 23204
+variable_declaration_metadata_test/10: MissingCompileTimeError # Issue 23204
+variable_declaration_metadata_test/12: MissingCompileTimeError # Issue 23204
+variable_declaration_metadata_test/13: MissingCompileTimeError # Issue 23204
+variable_declaration_metadata_test/14: MissingCompileTimeError # Issue 23204
+variable_declaration_metadata_test/16: MissingCompileTimeError # Issue 23204
+
 # Null-aware operators aren't implemented in the Java-based analyzer.
 if_null_evaluation_order_test: CompileTimeError
 if_null_precedence_test: CompileTimeError

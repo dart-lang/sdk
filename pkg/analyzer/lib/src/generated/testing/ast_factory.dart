@@ -905,12 +905,11 @@ class AstFactory {
   }
 
   static VariableDeclaration variableDeclaration(String name) =>
-      new VariableDeclaration(null, null, identifier3(name), null, null);
+      new VariableDeclaration(identifier3(name), null, null);
 
   static VariableDeclaration variableDeclaration2(
-      String name, Expression initializer) => new VariableDeclaration(null,
-      null, identifier3(name), TokenFactory.tokenFromType(TokenType.EQ),
-      initializer);
+      String name, Expression initializer) => new VariableDeclaration(
+      identifier3(name), TokenFactory.tokenFromType(TokenType.EQ), initializer);
 
   static VariableDeclarationList variableDeclarationList(Keyword keyword,
           TypeName type, List<VariableDeclaration> variables) =>
