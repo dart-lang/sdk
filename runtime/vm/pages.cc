@@ -125,6 +125,7 @@ void HeapPage::WriteProtect(bool read_only) {
       prot = VirtualMemory::kReadOnly;
     }
   } else {
+    // TODO(23217): Should this really make all pages non-executable?
     prot = VirtualMemory::kReadWrite;
   }
   bool status = memory_->Protect(prot);
@@ -508,6 +509,15 @@ void PageSpace::MakeIterable() const {
 }
 
 
+void PageSpace::AbandonBumpAllocation() {
+  if (bump_top_ < bump_end_) {
+    freelist_[HeapPage::kData].Free(bump_top_, bump_end_ - bump_top_);
+    bump_top_ = 0;
+    bump_end_ = 0;
+  }
+}
+
+
 bool PageSpace::Contains(uword addr) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     if (it.page()->Contains(addr)) {
@@ -605,6 +615,10 @@ RawObject* PageSpace::FindObject(FindObjectVisitor* visitor,
 
 
 void PageSpace::WriteProtect(bool read_only) {
+  if (read_only) {
+    // Avoid MakeIterable trying to write to the heap.
+    AbandonBumpAllocation();
+  }
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     it.page()->WriteProtect(read_only);
   }
@@ -780,9 +794,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   int64_t mid1 = OS::GetCurrentTimeMicros();
 
   // Abandon the remainder of the bump allocation block.
-  MakeIterable();
-  bump_top_ = 0;
-  bump_end_ = 0;
+  AbandonBumpAllocation();
   // Reset the freelists and setup sweeping.
   freelist_[HeapPage::kData].Reset();
   freelist_[HeapPage::kExecutable].Reset();
