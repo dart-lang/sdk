@@ -82,6 +82,7 @@ class Compiler extends leg.Compiler {
                 forceIncrementalSupport ||
                 hasOption(options, '--incremental-support'),
             suppressWarnings: hasOption(options, '--suppress-warnings'),
+            fatalWarnings: hasOption(options, '--fatal-warnings'),
             enableExperimentalMirrors:
                 hasOption(options, '--enable-experimental-mirrors'),
             generateCodeWithCompileTimeErrors:
@@ -354,7 +355,8 @@ class Compiler extends leg.Compiler {
                         api.Diagnostic kind) {
     leg.SourceSpan span = spanFromSpannable(node);
     if (identical(kind, api.Diagnostic.ERROR)
-        || identical(kind, api.Diagnostic.CRASH)) {
+        || identical(kind, api.Diagnostic.CRASH)
+        || (fatalWarnings && identical(kind, api.Diagnostic.WARNING))) {
       compilationFailed = true;
     }
     // [:span.uri:] might be [:null:] in case of a [Script] with no [uri]. For

@@ -296,6 +296,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
       diagnosticHandler.showWarnings = false;
       passThrough('--suppress-warnings');
     }),
+    new OptionHandler('--fatal-warnings', passThrough),
     new OptionHandler('--suppress-hints',
                       (_) => diagnosticHandler.showHints = false),
     new OptionHandler(
@@ -561,6 +562,9 @@ Supported options:
 
   --suppress-warnings
     Do not display any warnings.
+
+  --fatal-warnings
+    Treat warnings as compilation errors.
 
   --suppress-hints
     Do not display any hints.
