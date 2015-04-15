@@ -372,4 +372,8 @@ class ResolutionRegistry extends Registry {
   void registerAsyncMarker(FunctionElement element) {
     backend.registerAsyncMarker(element, world, this);
   }
+
+  void registerAsyncForIn(AsyncForIn node) {
+    backend.resolutionCallbacks.onAsyncForIn(node, this);
+  }
 }

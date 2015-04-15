@@ -1213,6 +1213,11 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   List<ClassElement> get types;
 
   /**
+   * Return the element at the given [offset], maybe `null` if no such element.
+   */
+  Element getElementAt(int offset);
+
+  /**
    * Return the enum defined in this compilation unit that has the given [name],
    * or `null` if this compilation unit does not define an enum with the given
    * name.
@@ -1278,6 +1283,11 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
    */
   List<TopLevelVariableElement> _variables =
       TopLevelVariableElementImpl.EMPTY_ARRAY;
+
+  /**
+   * A map from offsets to elements of this unit at these offsets.
+   */
+  final Map<int, Element> _offsetToElementMap = new HashMap<int, Element>();
 
   /**
    * Initialize a newly created compilation unit element to have the given
@@ -1400,6 +1410,13 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   accept(ElementVisitor visitor) => visitor.visitCompilationUnitElement(this);
 
+  /**
+   * This method is invoked after this unit was incrementally resolved.
+   */
+  void afterIncrementalResolution() {
+    _offsetToElementMap.clear();
+  }
+
   @override
   void appendTo(StringBuffer buffer) {
     if (source == null) {
@@ -1448,6 +1465,14 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       }
     }
     return null;
+  }
+
+  @override
+  Element getElementAt(int offset) {
+    if (_offsetToElementMap.isEmpty) {
+      accept(new _BuildOffsetToElementMap(_offsetToElementMap));
+    }
+    return _offsetToElementMap[offset];
   }
 
   @override
@@ -6766,11 +6791,6 @@ abstract class LibraryElement implements Element {
   List<LibraryElement> get visibleLibraries;
 
   /**
-   * Return the element at the given [offset], maybe `null` if no such element.
-   */
-  Element getElementAt(int offset);
-
-  /**
    * Return a list containing all of the imports that share the given [prefix],
    * or an empty array if there are no such imports.
    */
@@ -6838,11 +6858,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * defined for this library, or `null` if the element has not yet been created.
    */
   FunctionElement _loadLibraryFunction;
-
-  /**
-   * A map from offsets to elements of this library at these offsets.
-   */
-  final Map<int, Element> _offsetToElementMap = new HashMap<int, Element>();
 
   /**
    * The export [Namespace] of this library, `null` if it has not been
@@ -7119,13 +7134,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
 
-  /**
-   * This method is invoked after this library was incrementally resolved.
-   */
-  void afterIncrementalResolution() {
-    _offsetToElementMap.clear();
-  }
-
   @override
   ElementImpl getChild(String identifier) {
     if ((_definingCompilationUnit as CompilationUnitElementImpl).identifier ==
@@ -7148,14 +7156,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       }
     }
     return null;
-  }
-
-  @override
-  Element getElementAt(int offset) {
-    if (_offsetToElementMap.isEmpty) {
-      accept(new _BuildOffsetToElementMap(_offsetToElementMap));
-    }
-    return _offsetToElementMap[offset];
   }
 
   @override

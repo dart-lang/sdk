@@ -530,6 +530,9 @@ class ResolutionCallbacks {
   /// Register that [node] is a call to `assert`.
   void onAssert(Send node, Registry registry) {}
 
+  /// Register that an 'await for' has been seen.
+  void onAsyncForIn(AsyncForIn node, Registry registry) {}
+
   /// Called during resolution to notify to the backend that the
   /// program uses string interpolation.
   void onStringInterpolation(Registry registry) {}

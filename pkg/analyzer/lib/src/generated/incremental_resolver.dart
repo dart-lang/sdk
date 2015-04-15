@@ -788,7 +788,7 @@ class IncrementalResolver {
   /**
    * The element of the compilation unit being resolved.
    */
-  final CompilationUnitElement _definingUnit;
+  final CompilationUnitElementImpl _definingUnit;
 
   /**
    * The context the compilation unit being resolved in.
@@ -887,8 +887,8 @@ class IncrementalResolver {
       _generateLints(rootNode);
       // update entry errors
       _updateEntry();
-      // notify library
-      _definingLibrary.afterIncrementalResolution();
+      // notify unit
+      _definingUnit.afterIncrementalResolution();
       // OK
       return true;
     } finally {

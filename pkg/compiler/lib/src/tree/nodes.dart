@@ -9,6 +9,7 @@ abstract class Visitor<R> {
 
   R visitNode(Node node);
 
+  R visitAsyncForIn(AsyncForIn node) => visitLoop(node);
   R visitAsyncModifier(AsyncModifier node) => visitNode(node);
   R visitAwait(Await node) => visitExpression(node);
   R visitBlock(Block node) => visitStatement(node);
@@ -28,7 +29,6 @@ abstract class Visitor<R> {
   R visitExpression(Expression node) => visitNode(node);
   R visitExpressionStatement(ExpressionStatement node) => visitStatement(node);
   R visitFor(For node) => visitLoop(node);
-  R visitForIn(ForIn node) => visitLoop(node);
   R visitFunctionDeclaration(FunctionDeclaration node) => visitStatement(node);
   R visitFunctionExpression(FunctionExpression node) => visitExpression(node);
   R visitGotoStatement(GotoStatement node) => visitStatement(node);
@@ -50,6 +50,7 @@ abstract class Visitor<R> {
   R visitLiteralNull(LiteralNull node) => visitLiteral(node);
   R visitLiteralString(LiteralString node) => visitStringNode(node);
   R visitStringJuxtaposition(StringJuxtaposition node) => visitStringNode(node);
+  R visitSyncForIn(SyncForIn node) => visitLoop(node);
   R visitLoop(Loop node) => visitStatement(node);
   R visitMetadata(Metadata node) => visitNode(node);
   R visitMixinApplication(MixinApplication node) => visitNode(node);
@@ -165,6 +166,8 @@ abstract class Node extends NullTreeElementMixin implements Spannable {
   Expression asExpression() => null;
   ExpressionStatement asExpressionStatement() => null;
   For asFor() => null;
+  SyncForIn asSyncForIn() => null;
+  AsyncForIn asAsyncForIn() => null;
   ForIn asForIn() => null;
   FunctionDeclaration asFunctionDeclaration() => null;
   FunctionExpression asFunctionExpression() => null;
@@ -1775,25 +1778,31 @@ class ContinueStatement extends GotoStatement {
   accept(Visitor visitor) => visitor.visitContinueStatement(this);
 }
 
-class ForIn extends Loop with StoredTreeElementMixin {
+abstract class ForIn extends Loop {
   final Node declaredIdentifier;
   final Expression expression;
 
-  final Token awaitToken;
   final Token forToken;
   final Token inToken;
 
   ForIn(this.declaredIdentifier, this.expression,
-        Statement body, this.awaitToken, this.forToken, this.inToken)
+        Statement body, this.forToken, this.inToken)
       : super(body);
-
-  bool get isAsync => awaitToken != null;
 
   Expression get condition => null;
 
   ForIn asForIn() => this;
 
-  accept(Visitor visitor) => visitor.visitForIn(this);
+  Token getEndToken() => body.getEndToken();
+}
+
+class SyncForIn extends ForIn with StoredTreeElementMixin {
+  SyncForIn(declaredIdentifier, expression, Statement body, forToken, inToken)
+      : super(declaredIdentifier, expression, body, forToken, inToken);
+
+  SyncForIn asSyncForIn() => this;
+
+  accept(Visitor visitor) => visitor.visitSyncForIn(this);
 
   visitChildren(Visitor visitor) {
     declaredIdentifier.accept(visitor);
@@ -1801,9 +1810,27 @@ class ForIn extends Loop with StoredTreeElementMixin {
     body.accept(visitor);
   }
 
-  Token getBeginToken() => awaitToken != null ? awaitToken : forToken;
+  Token getBeginToken() => forToken;
+}
 
-  Token getEndToken() => body.getEndToken();
+class AsyncForIn extends ForIn with StoredTreeElementMixin {
+  final Token awaitToken;
+
+  AsyncForIn(declaredIdentifier, expression,
+        Statement body, this.awaitToken, forToken, inToken)
+      : super(declaredIdentifier, expression, body, forToken, inToken);
+
+  AsyncForIn asAsyncForIn() => this;
+
+  accept(Visitor visitor) => visitor.visitAsyncForIn(this);
+
+  visitChildren(Visitor visitor) {
+    declaredIdentifier.accept(visitor);
+    expression.accept(visitor);
+    body.accept(visitor);
+  }
+
+  Token getBeginToken() => awaitToken;
 }
 
 class Label extends Node {

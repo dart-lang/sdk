@@ -585,15 +585,17 @@ class AnalysisServer {
       return units;
     }
     // add a unit for each unit/library combination
-    Source unitSource = contextSource.source;
-    List<Source> librarySources = context.getLibrariesContaining(unitSource);
-    for (Source librarySource in librarySources) {
-      CompilationUnit unit =
-          context.resolveCompilationUnit2(unitSource, librarySource);
-      if (unit != null) {
-        units.add(unit);
+    runWithWorkingCacheSize(context, () {
+      Source unitSource = contextSource.source;
+      List<Source> librarySources = context.getLibrariesContaining(unitSource);
+      for (Source librarySource in librarySources) {
+        CompilationUnit unit =
+            context.resolveCompilationUnit2(unitSource, librarySource);
+        if (unit != null) {
+          units.add(unit);
+        }
       }
-    }
+    });
     // done
     return units;
   }
@@ -1183,7 +1185,9 @@ class AnalysisServer {
       return null;
     }
     // if library has been already resolved, resolve unit
-    return context.resolveCompilationUnit2(source, librarySource);
+    return runWithWorkingCacheSize(context, () {
+      return context.resolveCompilationUnit2(source, librarySource);
+    });
   }
 
   /**

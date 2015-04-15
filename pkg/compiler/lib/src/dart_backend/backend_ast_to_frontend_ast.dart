@@ -775,11 +775,10 @@ class TreePrinter {
       } else {
         left = makeVariableDeclarations(stmt.leftHandValue);
       }
-      return new tree.ForIn(
+      return new tree.SyncForIn(
           left,
           makeExpression(stmt.expression),
           makeStatement(stmt.body, shortIf: shortIf),
-          awaitToken,
           forToken,
           inToken);
     } else if (stmt is FunctionDeclaration) {

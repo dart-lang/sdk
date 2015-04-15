@@ -3529,6 +3529,20 @@ main() {
     verify([source]);
   }
 
+  void test_unusedElement_functionTypeAlias_isUsed_isExpression() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+typedef _F(a, b);
+main(f) {
+  if (f is _F) {
+    print('F');
+  }
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_unusedElement_functionTypeAlias_isUsed_reference() {
     enableUnusedElement = true;
     Source source = addSource(r'''

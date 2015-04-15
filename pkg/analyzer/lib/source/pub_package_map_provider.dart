@@ -156,8 +156,15 @@ class PubPackageMapProvider implements PackageMapProvider {
    * Run pub list to determine the packages and input files.
    */
   io.ProcessResult _runPubListDefault(Folder folder) {
-    return io.Process.runSync(sdk.pubExecutable.getAbsolutePath(), [
-      PUB_LIST_COMMAND
-    ], workingDirectory: folder.path);
+    String executablePath = sdk.pubExecutable.getAbsolutePath();
+    List<String> arguments = [PUB_LIST_COMMAND];
+    String workingDirectory = folder.path;
+    int subprocessId = AnalysisEngine.instance.instrumentationService
+        .logSubprocessStart(executablePath, arguments, workingDirectory);
+    io.ProcessResult result = io.Process.runSync(executablePath, arguments,
+        workingDirectory: workingDirectory);
+    AnalysisEngine.instance.instrumentationService.logSubprocessResult(
+        subprocessId, result.exitCode, result.stdout, result.stderr);
+    return result;
   }
 }

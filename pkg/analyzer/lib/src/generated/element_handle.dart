@@ -219,6 +219,11 @@ class CompilationUnitElementHandle extends ElementHandle
   int get uriOffset => actualElement.uriOffset;
 
   @override
+  Element getElementAt(int offset) {
+    return actualElement.getElementAt(offset);
+  }
+
+  @override
   ClassElement getEnum(String enumName) => actualElement.getEnum(enumName);
 
   @override
@@ -801,9 +806,6 @@ class LibraryElementHandle extends ElementHandle implements LibraryElement {
 
   @override
   List<LibraryElement> get visibleLibraries => actualElement.visibleLibraries;
-
-  @override
-  Element getElementAt(int offset) => actualElement.getElementAt(offset);
 
   @override
   List<ImportElement> getImportsWithPrefix(PrefixElement prefixElement) =>
