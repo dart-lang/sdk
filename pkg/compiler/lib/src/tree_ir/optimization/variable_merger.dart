@@ -421,6 +421,7 @@ Map<Variable, Variable> _computeRegisterAllocation(List<Block> blocks,
   // cannot be merged with each other. Ensure that they are not substituted.
   // Other variables can still be substituted by a parameter.
   for (Variable parameter in parameters) {
+    if (parameter.isCaptured) continue;
     subst[parameter] = parameter;
     registers[group(parameter)] = <Variable>[parameter];
   }

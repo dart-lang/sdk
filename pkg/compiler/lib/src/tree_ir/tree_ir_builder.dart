@@ -156,7 +156,8 @@ class Builder implements cps_ir.Visitor<Node> {
     if (variable is cps_ir.Parameter) {
       return getVariable(variable);
     } else {
-      return addMutableVariable(variable as cps_ir.MutableVariable);
+      return addMutableVariable(variable as cps_ir.MutableVariable)
+              ..isCaptured = true;
     }
   }
 
