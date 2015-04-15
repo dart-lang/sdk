@@ -490,10 +490,6 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   visitTryStatement(ast.TryStatement node) {
-    // Try/catch is not yet implemented in the JS backend.
-    if (tryStatements == null) {
-      return giveup(node, 'try/catch in the JS backend');
-    }
     // Multiple catch blocks are not yet implemented.
     if (node.catchBlocks.isEmpty ||
         node.catchBlocks.nodes.tail == null) {
@@ -2560,6 +2556,17 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     return parameters;
   }
 
+  DartCapturedVariables _analyzeCapturedVariables(ast.Node node) {
+    DartCapturedVariables variables = new DartCapturedVariables(elements);
+    try {
+      variables.analyze(node);
+    } catch (e) {
+      bailoutMessage = variables.bailoutMessage;
+      rethrow;
+    }
+    return variables;
+  }
+
   /// Builds the IR for the body of a constructor.
   ///
   /// This function is invoked from one or more "factory" constructors built by
@@ -2572,6 +2579,15 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         node,
         elements);
 
+    // We compute variables boxed in mutable variables on entry to each try
+    // block, not including variables captured by a closure (which are boxed
+    // in the heap).  This duplicates some of the work of closure conversion
+    // without directly using the results.  This duplication is wasteful and
+    // error-prone.
+    // TODO(kmillikin): We should combine closure conversion and try/catch
+    // variable analysis in some way.
+    DartCapturedVariables variables = _analyzeCapturedVariables(node);
+    tryStatements = variables.tryStatements;
     JsIrBuilder builder = getBuilderFor(body);
 
     return withBuilder(builder, () {
@@ -2594,6 +2610,8 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         element,
         node,
         elements);
+    DartCapturedVariables variables = _analyzeCapturedVariables(node);
+    tryStatements = variables.tryStatements;
     IrBuilder builder = getBuilderFor(element);
     return withBuilder(builder, () => _makeFunctionBody(element, node));
   }

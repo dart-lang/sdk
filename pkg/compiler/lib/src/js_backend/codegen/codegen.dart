@@ -425,13 +425,13 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   void visitIf(tree_ir.If node) {
     accumulator.add(new js.If(visitExpression(node.condition),
-                              buildBody(node.thenStatement),
-                              buildBody(node.elseStatement)));
+                              buildBodyStatement(node.thenStatement),
+                              buildBodyStatement(node.elseStatement)));
   }
 
   @override
   void visitLabeledStatement(tree_ir.LabeledStatement node) {
-    accumulator.add(buildLabeled(() => buildBody(node.body),
+    accumulator.add(buildLabeled(() => buildBodyStatement(node.body),
                                  node.label,
                                  node.next));
     visitStatement(node.next);
@@ -476,11 +476,20 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   /// Builds a nested statement.
-  js.Statement buildBody(tree_ir.Statement statement) {
+  js.Statement buildBodyStatement(tree_ir.Statement statement) {
     List<js.Statement> savedAccumulator = accumulator;
-    accumulator = new List<js.Statement>();
+    accumulator = <js.Statement>[];
     visitStatement(statement);
     js.Statement result = _bodyAsStatement();
+    accumulator = savedAccumulator;
+    return result;
+  }
+
+  js.Block buildBodyBlock(tree_ir.Statement statement) {
+    List<js.Statement> savedAccumulator = accumulator;
+    accumulator = <js.Statement>[];
+    visitStatement(statement);
+    js.Statement result = new js.Block(accumulator);
     accumulator = savedAccumulator;
     return result;
   }
@@ -489,7 +498,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
                           tree_ir.Statement body,
                           tree_ir.Label label,
                           tree_ir.Statement fallthroughStatement) {
-    return buildLabeled(() => new js.While(condition, buildBody(body)),
+    return buildLabeled(() => new js.While(condition, buildBodyStatement(body)),
                         label,
                         fallthroughStatement);
   }
@@ -517,8 +526,13 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   void visitTry(tree_ir.Try node) {
-    // TODO(kmillikin): implement TryStatement.
-    return giveup(node);
+    js.Block tryBlock = buildBodyBlock(node.tryBody);
+    tree_ir.Variable exceptionVariable = node.catchParameters.first;
+    js.VariableDeclaration exceptionParameter =
+        new js.VariableDeclaration(getVariableName(exceptionVariable));
+    js.Block catchBlock = buildBodyBlock(node.catchBody);
+    js.Catch catchPart = new js.Catch(exceptionParameter, catchBlock);
+    accumulator.add(new js.Try(tryBlock, catchPart, null));
   }
 
   @override

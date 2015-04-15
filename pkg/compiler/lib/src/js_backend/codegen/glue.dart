@@ -121,6 +121,14 @@ class Glue {
         _backend.namer.globalObjectFor(_backend.interceptorsLibrary));
   }
 
+  FunctionElement getExceptionUnwrapper() {
+    return _backend.getExceptionUnwrapper();
+  }
+
+  FunctionElement getTraceFromException() {
+    return _backend.getTraceFromException();
+  }
+
   FunctionElement getCreateRuntimeType() {
     return _backend.getCreateRuntimeType();
   }

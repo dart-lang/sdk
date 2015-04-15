@@ -37,11 +37,12 @@ abstract class Definition<T extends Definition<T>> extends Node {
 
   bool get hasAtMostOneUse  => firstRef == null || firstRef.next == null;
   bool get hasExactlyOneUse => firstRef != null && firstRef.next == null;
+  bool get hasNoUses => firstRef == null;
   bool get hasAtLeastOneUse => firstRef != null;
   bool get hasMultipleUses  => !hasAtMostOneUse;
 
   void substituteFor(Definition<T> other) {
-    if (other.firstRef == null) return;
+    if (other.hasNoUses) return;
     Reference<T> previous, current = other.firstRef;
     do {
       current.definition = this;
@@ -51,6 +52,7 @@ abstract class Definition<T extends Definition<T>> extends Node {
     previous.next = firstRef;
     if (firstRef != null) firstRef.previous = previous;
     firstRef = other.firstRef;
+    other.firstRef = null;
   }
 }
 
