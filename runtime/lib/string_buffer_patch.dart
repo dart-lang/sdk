@@ -91,27 +91,6 @@ patch class StringBuffer {
     }
   }
 
-  /* patch */ void writeAll(Iterable objects, [String separator = ""]) {
-    Iterator iterator = objects.iterator;
-    if (!iterator.moveNext()) return;
-    if (separator.isEmpty) {
-      do {
-        write(iterator.current);
-      } while (iterator.moveNext());
-    } else {
-      write(iterator.current);
-      while (iterator.moveNext()) {
-        write(separator);
-        write(iterator.current);
-      }
-    }
-  }
-
-  /* patch */ void writeln([Object obj = ""]) {
-    write(obj);
-    write("\n");
-  }
-
   /** Makes the buffer empty. */
   /* patch */ void clear() {
     _parts = null;
