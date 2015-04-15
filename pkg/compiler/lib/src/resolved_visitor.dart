@@ -38,9 +38,11 @@ abstract class ResolvedKindVisitor<R> {
 
   /// Visitor callback for the class prefix of a static access, like `Foo` in
   /// `Foo.staticField`.
-  // TODO(johnniwinther): Remove this when not needed by the dart backend.
+  // TODO(johnniwinther): Remove this when not needed by the inferrer.
+  @deprecated
   R visitTypePrefixSend(Send node);
 
+  @deprecated
   R visitAssertSend(Send node);
 
   internalError(Spannable node, String reason);
@@ -179,6 +181,16 @@ abstract class NewResolvedVisitor<R> extends BaseResolvedVisitor<R>
         return kindVisitor.visitStaticSend(node);
       }
     }
+  }
+
+  @deprecated
+  R visitTypePrefixSend(Send node) {
+    return internalError(node, "visitTypePrefixSend is deprecated");
+  }
+
+  @deprecated
+  R visitAssertSend(Send node) {
+    return internalError(node, "visitAssertSend is deprecated");
   }
 
   bool checkResolvedKind(Node node,

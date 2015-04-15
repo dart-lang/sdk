@@ -723,14 +723,16 @@ abstract class InferrerVisitor
 
   T visitFunctionExpression(FunctionExpression node);
 
-  T visitAssertSend(Send node) {
+  @override
+  T visitAssert(Send node, Node expression, _) {
     if (!compiler.enableUserAssertions) {
       return types.nullType;
     }
-    // TODO(johnniwinther): Don't handle assert like a regular static call since
-    // it break the selector name check.
-    return visitStaticSend(node);
+    return handleAssert(node, expression);
   }
+
+  /// Handle an enabled assertion of [expression].
+  T handleAssert(Send node, Node expression);
 
   T visitNode(Node node) {
     return node.visitChildren(this);

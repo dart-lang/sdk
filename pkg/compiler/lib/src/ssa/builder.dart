@@ -4574,16 +4574,16 @@ class SsaBuilder extends NewResolvedVisitor {
     return false;
   }
 
-  visitAssertSend(node) {
+  @override
+  visitAssert(ast.Send node, ast.Node expression, _) {
     if (!compiler.enableUserAssertions) {
       stack.add(graph.addConstantNull(compiler));
       return;
     }
-    // TODO(johnniwinther): Don't handle assert like a regular static call.
-    // It breaks the selector name check since the assert helper method cannot
-    // be called `assert` and therefore does not match the selector like a
-    // regular method.
-    visitStaticSend(node);
+    assert(invariant(node, node.arguments.tail.isEmpty,
+        message: "Invalid assertion: $node"));
+    buildStaticFunctionInvoke(
+        node, backend.assertMethod, CallStructure.ONE_ARG);
   }
 
   visitStaticSend(ast.Send node) {
@@ -4618,19 +4618,7 @@ class SsaBuilder extends NewResolvedVisitor {
         generateWrongArgumentCountError(node, element, node.arguments);
         return;
       }
-
-      List<HInstruction> inputs =
-          makeStaticArgumentList(callStructure,
-                                 node.arguments,
-                                 element.implementation);
-
-      if (element == compiler.identicalFunction) {
-        pushWithPosition(
-            new HIdentity(inputs[0], inputs[1], null, backend.boolType), node);
-        return;
-      }
-
-      pushInvokeStatic(node, element, inputs);
+      buildStaticFunctionInvoke(node, element, callStructure);
     } else {
       generateGetter(node, element);
       List<HInstruction> inputs = <HInstruction>[pop()];
@@ -4642,14 +4630,28 @@ class SsaBuilder extends NewResolvedVisitor {
     }
   }
 
+  void buildStaticFunctionInvoke(
+      ast.Send node,
+      FunctionElement element,
+      CallStructure callStructure) {
+    List<HInstruction> inputs = makeStaticArgumentList(
+        callStructure,
+        node.arguments,
+        element.implementation);
+
+    if (element == compiler.identicalFunction) {
+      pushWithPosition(
+          new HIdentity(inputs[0], inputs[1], null, backend.boolType), node);
+      return;
+    } else {
+      pushInvokeStatic(node, element, inputs);
+    }
+  }
+
   HConstant addConstantString(String string) {
     ast.DartString dartString = new ast.DartString.literal(string);
     ConstantValue constant = constantSystem.createString(dartString);
     return graph.addConstant(constant, compiler);
-  }
-
-  visitTypePrefixSend(ast.Send node) {
-    compiler.internalError(node, "visitTypePrefixSend should not be called.");
   }
 
   visitTypeLiteralSend(ast.Send node) {

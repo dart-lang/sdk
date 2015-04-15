@@ -1021,12 +1021,19 @@ class SimpleTypeInferrerVisitor<T>
     return inferrer.registerAwait(node, futureType);
   }
 
+  @override
+  T handleAssert(ast.Send node, ast.Node expression) {
+    js.JavaScriptBackend backend = compiler.backend;
+    Element element = backend.assertMethod;
+    ArgumentsTypes<T> arguments =
+        new ArgumentsTypes<T>(<T>[expression.accept(this)], null);
+    return handleStaticSend(
+        node, new Selector.fromElement(element), element, arguments);
+  }
+
   T visitStaticSend(ast.Send node) {
     Element element = elements[node];
-    if (elements.isAssert(node)) {
-      js.JavaScriptBackend backend = compiler.backend;
-      element = backend.assertMethod;
-    }
+    assert(!elements.isAssert(node));
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     if (visitingInitializers) {
       if (ast.Initializers.isConstructorRedirect(node)) {
