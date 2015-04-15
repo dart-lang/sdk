@@ -981,6 +981,25 @@ class Uri {
     return _queryParameters;
   }
 
+  /**
+   * Returns an URI where the path has been normalized.
+   *
+   * A normalized path does not contain `.` segments or non-leading `..`
+   * segments.
+   * Only a relative path may contain leading `..` segments,
+   * a path that starts with `/` will also drop any leading `..` segments.
+   *
+   * This uses the same normalization strategy as [resolveUri], as specified by
+   * RFC 3986.
+   *
+   * Does not change any part of the URI except the path.
+   */
+  Uri normalizePath() {
+    String path = _removeDotSegments(_path);
+    if (identical(path, _path)) return this;
+    return this.replace(path: path);
+  }
+
   static int _makePort(int port, String scheme) {
     // Perform scheme specific normalization.
     if (port != null && port == _defaultPort(scheme)) return null;
@@ -988,7 +1007,7 @@ class Uri {
   }
 
   /**
-   * Check and normalize a most name.
+   * Check and normalize a host name.
    *
    * If the host name starts and ends with '[' and ']', it is considered an
    * IPv6 address. If [strictIPv6] is false, the address is also considered
