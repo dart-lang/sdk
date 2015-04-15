@@ -4531,7 +4531,8 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
     } else {
       _useIdentifierElement(node);
       if (element == null ||
-          element is! LocalElement && !identical(element, _enclosingExec)) {
+          element.enclosingElement is ClassElement &&
+              !identical(element, _enclosingExec)) {
         usedElements.members.add(node.name);
         if (isIdentifierRead) {
           usedElements.readMembers.add(node.name);
