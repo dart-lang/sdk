@@ -1,2 +1,3 @@
 language: dart
 script: ./tool/travis.sh
+sudo: false
