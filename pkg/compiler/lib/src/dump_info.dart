@@ -410,7 +410,6 @@ class DumpInfoTask extends CompilerTask {
   // A mapping from Javascript AST Nodes to the size of their
   // pretty-printed contents.
   final Map<jsAst.Node, int> _nodeToSize = <jsAst.Node, int>{};
-  final Map<jsAst.Node, int> _nodeBeforeSize = <jsAst.Node, int>{};
   final Map<Element, int> _fieldNameToSize = <Element, int>{};
 
   final Map<Element, Set<Selector>> selectorsFromElement = {};
@@ -461,29 +460,6 @@ class DumpInfoTask extends CompilerTask {
     }
   }
 
-  /**
-   * A callback that can be called before a jsAst [node] is
-   * pretty-printed. The size of the code buffer ([aftersize])
-   * is also passed.
-   */
-  void enteringAst(jsAst.Node node, int beforeSize) {
-    if (isTracking(node)) {
-      _nodeBeforeSize[node] = beforeSize;
-    }
-  }
-
-  /**
-   * A callback that can be called after a jsAst [node] is
-   * pretty-printed. The size of the code buffer ([aftersize])
-   * is also passed.
-   */
-  void exitingAst(jsAst.Node node, int afterSize) {
-    if (isTracking(node)) {
-      int diff = afterSize - _nodeBeforeSize[node];
-      recordAstSize(node, diff);
-    }
-  }
-
   // Returns true if we care about tracking the size of
   // this node.
   bool isTracking(jsAst.Node code) {
@@ -507,10 +483,10 @@ class DumpInfoTask extends CompilerTask {
 
   // Records the size of a dart AST node after it has been
   // pretty-printed into the output buffer.
-  void recordAstSize(jsAst.Node code, int size) {
-    if (compiler.dumpInfo) {
+  void recordAstSize(jsAst.Node node, int size) {
+    if (isTracking(node)) {
       //TODO: should I be incrementing here instead?
-      _nodeToSize[code] = size;
+      _nodeToSize[node] = size;
     }
   }
 

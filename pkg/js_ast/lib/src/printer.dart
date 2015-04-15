@@ -26,11 +26,24 @@ abstract class JavaScriptPrintingContext {
   /// Adds [string] to the output.
   void emit(String string);
 
-  /// Callback immediately before printing [node].  Whitespace may be printed
-  /// after this callback before the first non-whitespace character for [node].
-  void enterNode(Node node) {}
-  /// Callback after printing the last character representing [node].
-  void exitNode(Node node) {}
+  /// Callback for the start of printing of [node]. [startPosition] is the
+  /// position of the first non-whitespace character of [node].
+  ///
+  /// [enterNode] is called in pre-traversal order.
+  void enterNode(Node node, int startPosition) {}
+
+  /// Callback for the end of printing of [node]. [startPosition] is the
+  /// position of the first non-whitespace character of [node] (also provided
+  /// in the [enterNode] callback), [endPosition] is the position immediately
+  /// following the last character of [node]. [closingPosition] is the
+  /// position of the ending delimiter of [node]. This is only provided for
+  /// [Fun] nodes and is `null` otherwise.
+  ///
+  /// [enterNode] is called in post-traversal order.
+  void exitNode(Node node,
+                int startPosition,
+                int endPosition,
+                int closingPosition) {}
 }
 
 /// A simple implementation of [JavaScriptPrintingContext] suitable for tests.
@@ -52,6 +65,7 @@ class Printer implements NodeVisitor {
   final DanglingElseVisitor danglingElseVisitor;
   final LocalNamer localNamer;
 
+  int _charCount = 0;
   bool inForInit = false;
   bool atStatementBegin = false;
   bool pendingSemicolon = false;
@@ -98,31 +112,33 @@ class Printer implements NodeVisitor {
     _indentLevel--;
   }
 
-
   /// Always emit a newline, even under `enableMinification`.
   void forceLine() {
-    out("\n");
+    out("\n", isWhitespace: true);
   }
+
   /// Emits a newline for readability.
   void lineOut() {
     if (!shouldCompressOutput) forceLine();
   }
+
   void spaceOut() {
-    if (!shouldCompressOutput) out(" ");
+    if (!shouldCompressOutput) out(" ", isWhitespace: true);
   }
 
   String lastAddedString = null;
+
   int get lastCharCode {
     if (lastAddedString == null) return 0;
     assert(lastAddedString.length != "");
     return lastAddedString.codeUnitAt(lastAddedString.length - 1);
   }
 
-  void out(String str) {
+  void out(String str, {bool isWhitespace: false}) {
     if (str != "") {
       if (pendingSemicolon) {
         if (!shouldCompressOutput) {
-          context.emit(";");
+          _emit(";");
         } else if (str != "}") {
           // We want to output newline instead of semicolon because it makes
           // the raw stack traces much easier to read and it also makes line-
@@ -137,19 +153,22 @@ class Printer implements NodeVisitor {
           // than newlines because the former doesn't need escaping.
           if (options.preferSemicolonToNewlineInMinifiedOutput ||
               expressionContinuationRegExp.hasMatch(str)) {
-            context.emit(";");
+            _emit(";");
           } else {
-            context.emit("\n");
+            _emit("\n");
           }
         }
       }
       if (pendingSpace &&
           (!shouldCompressOutput || identifierCharacterRegExp.hasMatch(str))) {
-        context.emit(" ");
+        _emit(" ");
       }
       pendingSpace = false;
       pendingSemicolon = false;
-      context.emit(str);
+      if (!isWhitespace) {
+        enterNode();
+      }
+      _emit(str);
       lastAddedString = str;
     }
   }
@@ -168,22 +187,50 @@ class Printer implements NodeVisitor {
     }
   }
 
-  void outIndent(String str) { indent(); out(str); }
-  void outIndentLn(String str) { indent(); outLn(str); }
+  void outIndent(String str) {
+    indent();
+    out(str);
+  }
+
+  void outIndentLn(String str) {
+    indent();
+    outLn(str);
+  }
+
   void indent() {
     if (!shouldCompressOutput) {
-      out(indentation);
+      out(indentation, isWhitespace: true);
     }
   }
 
-  visit(Node node) {
-    context.enterNode(node);
-    node.accept(this);
-    context.exitNode(node);
+  EnterExitNode currentNode;
+
+  void _emit(String text) {
+    context.emit(text);
+    _charCount += text.length;
   }
 
-  visitCommaSeparated(List<Node> nodes, int hasRequiredType,
-                      {bool newInForInit, bool newAtStatementBegin}) {
+  void startNode(Node node) {
+    currentNode = new EnterExitNode(currentNode, node);
+  }
+
+  void enterNode() {
+    currentNode.addToNode(context, _charCount);
+  }
+
+  void endNode(Node node) {
+    assert(currentNode.node == node);
+    currentNode = currentNode.exitNode(context, _charCount);
+  }
+
+  void visit(Node node) {
+    startNode(node);
+    node.accept(this);
+    endNode(node);
+  }
+
+  void visitCommaSeparated(List<Node> nodes, int hasRequiredType,
+                           {bool newInForInit, bool newAtStatementBegin}) {
     for (int i = 0; i < nodes.length; i++) {
       if (i != 0) {
         atStatementBegin = false;
@@ -196,12 +243,15 @@ class Printer implements NodeVisitor {
     }
   }
 
-  visitAll(List<Node> nodes) {
+  void visitAll(List<Node> nodes) {
     nodes.forEach(visit);
   }
 
-  visitProgram(Program program) {
-    visitAll(program.body);
+  @override
+  void visitProgram(Program program) {
+    if (program.body.isNotEmpty) {
+      visitAll(program.body);
+    }
   }
 
   Statement unwrapBlockIfSingleStatement(Statement body) {
@@ -223,7 +273,7 @@ class Printer implements NodeVisitor {
     if (shouldCompressOutput && needsSeparation) {
       // If [shouldCompressOutput] is false, then the 'lineOut' will insert
       // the separation.
-      out(" ");
+      out(" ", isWhitespace: true);
     } else {
       lineOut();
     }
@@ -235,18 +285,18 @@ class Printer implements NodeVisitor {
 
   void blockOutWithoutBraces(Node node) {
     if (node is Block) {
-      context.enterNode(node);
+      startNode(node);
       Block block = node;
       block.statements.forEach(blockOutWithoutBraces);
-      context.exitNode(node);
+      endNode(node);
     } else {
       visit(node);
     }
   }
 
-  void blockOut(Block node, {bool shouldIndent, bool needsNewline}) {
+  int blockOut(Block node, {bool shouldIndent, bool needsNewline}) {
     if (shouldIndent) indent();
-    context.enterNode(node);
+    startNode(node);
     out("{");
     lineOut();
     indentMore();
@@ -254,22 +304,27 @@ class Printer implements NodeVisitor {
     indentLess();
     indent();
     out("}");
-    context.exitNode(node);
+    int closingPosition = _charCount - 1;
+    endNode(node);
     if (needsNewline) lineOut();
+    return closingPosition;
   }
 
-  visitBlock(Block block) {
+  @override
+  void visitBlock(Block block) {
     blockOut(block, shouldIndent: true, needsNewline: true);
   }
 
-  visitExpressionStatement(ExpressionStatement expressionStatement) {
+  @override
+  void visitExpressionStatement(ExpressionStatement node) {
     indent();
-    visitNestedExpression(expressionStatement.expression, EXPRESSION,
+    visitNestedExpression(node.expression, EXPRESSION,
                           newInForInit: false, newAtStatementBegin: true);
     outSemicolonLn();
   }
 
-  visitEmptyStatement(EmptyStatement nop) {
+  @override
+  void visitEmptyStatement(EmptyStatement node) {
     outIndentLn(";");
   }
 
@@ -313,11 +368,13 @@ class Printer implements NodeVisitor {
     }
   }
 
-  visitIf(If node) {
+  @override
+  void visitIf(If node) {
     ifOut(node, true);
   }
 
-  visitFor(For loop) {
+  @override
+  void visitFor(For loop) {
     outIndent("for");
     spaceOut();
     out("(");
@@ -342,7 +399,8 @@ class Printer implements NodeVisitor {
               needsSeparation: false, needsNewline: true);
   }
 
-  visitForIn(ForIn loop) {
+  @override
+  void visitForIn(ForIn loop) {
     outIndent("for");
     spaceOut();
     out("(");
@@ -357,7 +415,8 @@ class Printer implements NodeVisitor {
               needsSeparation: false, needsNewline: true);
   }
 
-  visitWhile(While loop) {
+  @override
+  void visitWhile(While loop) {
     outIndent("while");
     spaceOut();
     out("(");
@@ -368,7 +427,8 @@ class Printer implements NodeVisitor {
               needsSeparation: false, needsNewline: true);
   }
 
-  visitDo(Do loop) {
+  @override
+  void visitDo(Do loop) {
     outIndent("do");
     if (blockBody(unwrapBlockIfSingleStatement(loop.body),
                   needsSeparation: true, needsNewline: false)) {
@@ -385,7 +445,8 @@ class Printer implements NodeVisitor {
     outSemicolonLn();
   }
 
-  visitContinue(Continue node) {
+  @override
+  void visitContinue(Continue node) {
     if (node.targetLabel == null) {
       outIndent("continue");
     } else {
@@ -394,7 +455,8 @@ class Printer implements NodeVisitor {
     outSemicolonLn();
   }
 
-  visitBreak(Break node) {
+  @override
+  void visitBreak(Break node) {
     if (node.targetLabel == null) {
       outIndent("break");
     } else {
@@ -403,7 +465,8 @@ class Printer implements NodeVisitor {
     outSemicolonLn();
   }
 
-  visitReturn(Return node) {
+  @override
+  void visitReturn(Return node) {
     if (node.value == null) {
       outIndent("return");
     } else {
@@ -415,7 +478,8 @@ class Printer implements NodeVisitor {
     outSemicolonLn();
   }
 
-  visitDartYield(DartYield node) {
+  @override
+  void visitDartYield(DartYield node) {
     if (node.hasStar) {
       outIndent("yield*");
     } else {
@@ -427,8 +491,8 @@ class Printer implements NodeVisitor {
     outSemicolonLn();
   }
 
-
-  visitThrow(Throw node) {
+  @override
+  void visitThrow(Throw node) {
     outIndent("throw");
     pendingSpace = true;
     visitNestedExpression(node.expression, EXPRESSION,
@@ -436,7 +500,8 @@ class Printer implements NodeVisitor {
     outSemicolonLn();
   }
 
-  visitTry(Try node) {
+  @override
+  void visitTry(Try node) {
     outIndent("try");
     blockBody(node.body, needsSeparation: true, needsNewline: false);
     if (node.catchPart != null) {
@@ -451,7 +516,8 @@ class Printer implements NodeVisitor {
     }
   }
 
-  visitCatch(Catch node) {
+  @override
+  void visitCatch(Catch node) {
     spaceOut();
     out("catch");
     spaceOut();
@@ -462,7 +528,8 @@ class Printer implements NodeVisitor {
     blockBody(node.body, needsSeparation: false, needsNewline: false);
   }
 
-  visitSwitch(Switch node) {
+  @override
+  void visitSwitch(Switch node) {
     outIndent("switch");
     spaceOut();
     out("(");
@@ -477,7 +544,8 @@ class Printer implements NodeVisitor {
     outIndentLn("}");
   }
 
-  visitCase(Case node) {
+  @override
+  void visitCase(Case node) {
     outIndent("case");
     pendingSpace = true;
     visitNestedExpression(node.expression, EXPRESSION,
@@ -490,7 +558,8 @@ class Printer implements NodeVisitor {
     }
   }
 
-  visitDefault(Default node) {
+  @override
+  void visitDefault(Default node) {
     outIndentLn("default:");
     if (!node.body.statements.isEmpty) {
       indentMore();
@@ -499,7 +568,8 @@ class Printer implements NodeVisitor {
     }
   }
 
-  visitLabeledStatement(LabeledStatement node) {
+  @override
+  void visitLabeledStatement(LabeledStatement node) {
     Statement body = unwrapBlockIfSingleStatement(node.body);
     // `label: break label;`
     // Does not work on IE. The statement is a nop, so replace it by an empty
@@ -514,7 +584,7 @@ class Printer implements NodeVisitor {
     blockBody(body, needsSeparation: false, needsNewline: true);
   }
 
-  void functionOut(Fun fun, Node name, VarCollector vars) {
+  int functionOut(Fun fun, Node name, VarCollector vars) {
     out("function");
     if (name != null) {
       out(" ");
@@ -533,19 +603,27 @@ class Printer implements NodeVisitor {
       case const AsyncModifier.sync():
         break;
       case const AsyncModifier.async():
-        out(' async');
+        out(' ', isWhitespace: true);
+        out('async');
         break;
       case const AsyncModifier.syncStar():
-        out(' sync*');
+        out(' ', isWhitespace: true);
+        out('sync*');
         break;
       case const AsyncModifier.asyncStar():
-        out(' async*');
+        out(' ', isWhitespace: true);
+        out('async*');
         break;
     }
-    blockBody(fun.body, needsSeparation: false, needsNewline: false);
+    spaceOut();
+    int closingPosition =
+        blockOut(fun.body, shouldIndent: false, needsNewline: false);
     localNamer.leaveScope();
+    return closingPosition;
+
   }
 
+  @override
   visitFunctionDeclaration(FunctionDeclaration declaration) {
     VarCollector vars = new VarCollector();
     vars.visitFunctionDeclaration(declaration);
@@ -580,12 +658,14 @@ class Printer implements NodeVisitor {
     }
   }
 
+  @override
   visitVariableDeclarationList(VariableDeclarationList list) {
     out("var ");
     visitCommaSeparated(list.declarations, ASSIGNMENT,
                         newInForInit: inForInit, newAtStatementBegin: false);
   }
 
+  @override
   visitAssignment(Assignment assignment) {
     visitNestedExpression(assignment.leftHandSide, LEFT_HAND_SIDE,
                           newInForInit: inForInit,
@@ -602,10 +682,12 @@ class Printer implements NodeVisitor {
     }
   }
 
+  @override
   visitVariableInitialization(VariableInitialization initialization) {
     visitAssignment(initialization);
   }
 
+  @override
   visitConditional(Conditional cond) {
     visitNestedExpression(cond.condition, LOGICAL_OR,
                           newInForInit: inForInit,
@@ -623,6 +705,7 @@ class Printer implements NodeVisitor {
                           newInForInit: inForInit, newAtStatementBegin: false);
   }
 
+  @override
   visitNew(New node) {
     out("new ");
     visitNestedExpression(node.target, CALL,
@@ -633,6 +716,7 @@ class Printer implements NodeVisitor {
     out(")");
   }
 
+  @override
   visitCall(Call call) {
     visitNestedExpression(call.target, LEFT_HAND_SIDE,
                           newInForInit: inForInit,
@@ -643,7 +727,8 @@ class Printer implements NodeVisitor {
     out(")");
   }
 
-  visitBinary(Binary binary) {
+  @override
+  void visitBinary(Binary binary) {
     Expression left = binary.left;
     Expression right = binary.right;
     String op = binary.op;
@@ -732,9 +817,9 @@ class Printer implements NodeVisitor {
     if (op == "in" || op == "instanceof") {
       // There are cases where the space is not required but without further
       // analysis we cannot know.
-      out(" ");
+      out(" ", isWhitespace: true);
       out(op);
-      out(" ");
+      out(" ", isWhitespace: true);
     } else {
       if (leftSpace) spaceOut();
       out(op);
@@ -745,7 +830,8 @@ class Printer implements NodeVisitor {
                           newAtStatementBegin: false);
   }
 
-  visitPrefix(Prefix unary) {
+  @override
+  void visitPrefix(Prefix unary) {
     String op = unary.op;
     switch (op) {
       case "delete":
@@ -754,16 +840,16 @@ class Printer implements NodeVisitor {
         // There are cases where the space is not required but without further
         // analysis we cannot know.
         out(op);
-        out(" ");
+        out(" ", isWhitespace: true);
         break;
       case "+":
       case "++":
-        if (lastCharCode == charCodes.$PLUS) out(" ");
+        if (lastCharCode == charCodes.$PLUS) out(" ", isWhitespace: true);
         out(op);
         break;
       case "-":
       case "--":
-        if (lastCharCode == charCodes.$MINUS) out(" ");
+        if (lastCharCode == charCodes.$MINUS) out(" ", isWhitespace: true);
         out(op);
         break;
       default:
@@ -773,26 +859,31 @@ class Printer implements NodeVisitor {
                           newInForInit: inForInit, newAtStatementBegin: false);
   }
 
-  visitPostfix(Postfix postfix) {
+  @override
+  void visitPostfix(Postfix postfix) {
     visitNestedExpression(postfix.argument, LEFT_HAND_SIDE,
                           newInForInit: inForInit,
                           newAtStatementBegin: atStatementBegin);
     out(postfix.op);
   }
 
-  visitVariableUse(VariableUse ref) {
+  @override
+  void visitVariableUse(VariableUse ref) {
     out(localNamer.getName(ref.name));
   }
 
-  visitThis(This node) {
+  @override
+  void visitThis(This node) {
     out("this");
   }
 
-  visitVariableDeclaration(VariableDeclaration decl) {
+  @override
+  void visitVariableDeclaration(VariableDeclaration decl) {
     out(localNamer.getName(decl.name));
   }
 
-  visitParameter(Parameter param) {
+  @override
+  void visitParameter(Parameter param) {
     out(localNamer.getName(param.name));
   }
 
@@ -821,7 +912,8 @@ class Printer implements NodeVisitor {
     return true;
   }
 
-  visitAccess(PropertyAccess access) {
+  @override
+  void visitAccess(PropertyAccess access) {
     visitNestedExpression(access.receiver, CALL,
                           newInForInit: inForInit,
                           newAtStatementBegin: atStatementBegin);
@@ -830,7 +922,7 @@ class Printer implements NodeVisitor {
       LiteralString selectorString = selector;
       String fieldWithQuotes = selectorString.value;
       if (isValidJavaScriptId(fieldWithQuotes)) {
-        if (access.receiver is LiteralNumber) out(" ");
+        if (access.receiver is LiteralNumber) out(" ", isWhitespace: true);
         out(".");
         out(fieldWithQuotes.substring(1, fieldWithQuotes.length - 1));
         return;
@@ -842,39 +934,49 @@ class Printer implements NodeVisitor {
     out("]");
   }
 
-  visitNamedFunction(NamedFunction namedFunction) {
+  @override
+  void visitNamedFunction(NamedFunction namedFunction) {
     VarCollector vars = new VarCollector();
     vars.visitNamedFunction(namedFunction);
-    functionOut(namedFunction.function, namedFunction.name, vars);
+    startNode(namedFunction.function);
+    currentNode.closingPosition =
+        functionOut(namedFunction.function, namedFunction.name, vars);
+    endNode(namedFunction.function);
   }
 
-  visitFun(Fun fun) {
+  @override
+  void visitFun(Fun fun) {
     VarCollector vars = new VarCollector();
     vars.visitFun(fun);
-    functionOut(fun, null, vars);
+    currentNode.closingPosition = functionOut(fun, null, vars);
   }
 
-  visitLiteralBool(LiteralBool node) {
+  @override
+  void visitLiteralBool(LiteralBool node) {
     out(node.value ? "true" : "false");
   }
 
-  visitLiteralString(LiteralString node) {
+  @override
+  void visitLiteralString(LiteralString node) {
     out(node.value);
   }
 
-  visitLiteralNumber(LiteralNumber node) {
+  @override
+  void visitLiteralNumber(LiteralNumber node) {
     int charCode = node.value.codeUnitAt(0);
     if (charCode == charCodes.$MINUS && lastCharCode == charCodes.$MINUS) {
-      out(" ");
+      out(" ", isWhitespace: true);
     }
     out(node.value);
   }
 
-  visitLiteralNull(LiteralNull node) {
+  @override
+  void visitLiteralNull(LiteralNull node) {
     out("null");
   }
 
-  visitArrayInitializer(ArrayInitializer node) {
+  @override
+  void visitArrayInitializer(ArrayInitializer node) {
     out("[");
     List<Expression> elements = node.elements;
     for (int i = 0; i < elements.length; i++) {
@@ -897,11 +999,13 @@ class Printer implements NodeVisitor {
     out("]");
   }
 
-  visitArrayHole(ArrayHole node) {
+  @override
+  void visitArrayHole(ArrayHole node) {
     throw "Unreachable";
   }
 
-  visitObjectInitializer(ObjectInitializer node) {
+  @override
+  void visitObjectInitializer(ObjectInitializer node) {
     // Print all the properties on one line until we see a function-valued
     // property.  Ideally, we would use a proper pretty-printer to make the
     // decision based on layout.
@@ -928,7 +1032,8 @@ class Printer implements NodeVisitor {
     out("}");
   }
 
-  visitProperty(Property node) {
+  @override
+  void visitProperty(Property node) {
     if (node.name is LiteralString) {
       LiteralString nameString = node.name;
       String name = nameString.value;
@@ -948,11 +1053,13 @@ class Printer implements NodeVisitor {
                           newInForInit: false, newAtStatementBegin: false);
   }
 
-  visitRegExpLiteral(RegExpLiteral node) {
+  @override
+  void visitRegExpLiteral(RegExpLiteral node) {
     out(node.pattern);
   }
 
-  visitLiteralExpression(LiteralExpression node) {
+  @override
+  void visitLiteralExpression(LiteralExpression node) {
     String template = node.template;
     List<Expression> inputs = node.inputs;
 
@@ -970,34 +1077,42 @@ class Printer implements NodeVisitor {
     }
   }
 
-  visitLiteralStatement(LiteralStatement node) {
+  @override
+  void visitLiteralStatement(LiteralStatement node) {
     outLn(node.code);
   }
 
-  visitInterpolatedNode(InterpolatedNode node) {
+  void visitInterpolatedNode(InterpolatedNode node) {
     out('#${node.nameOrPosition}');
   }
 
-  visitInterpolatedExpression(InterpolatedExpression node) =>
+  @override
+  void visitInterpolatedExpression(InterpolatedExpression node) =>
       visitInterpolatedNode(node);
 
-  visitInterpolatedLiteral(InterpolatedLiteral node) =>
+  @override
+  void visitInterpolatedLiteral(InterpolatedLiteral node) =>
       visitInterpolatedNode(node);
 
-  visitInterpolatedParameter(InterpolatedParameter node) =>
+  @override
+  void visitInterpolatedParameter(InterpolatedParameter node) =>
       visitInterpolatedNode(node);
 
-  visitInterpolatedSelector(InterpolatedSelector node) =>
+  @override
+  void visitInterpolatedSelector(InterpolatedSelector node) =>
       visitInterpolatedNode(node);
 
-  visitInterpolatedStatement(InterpolatedStatement node) {
+  @override
+  void visitInterpolatedStatement(InterpolatedStatement node) {
     outLn('#${node.nameOrPosition}');
   }
 
-  visitInterpolatedDeclaration(InterpolatedDeclaration node) {
+  @override
+  void visitInterpolatedDeclaration(InterpolatedDeclaration node) {
     visitInterpolatedNode(node);
   }
 
+  @override
   void visitComment(Comment node) {
     if (shouldCompressOutput) return;
     String comment = node.comment.trim();
@@ -1011,6 +1126,7 @@ class Printer implements NodeVisitor {
     }
   }
 
+  @override
   void visitAwait(Await node) {
     out("await ");
     visit(node.expression);
@@ -1025,8 +1141,8 @@ class OrderedSet<T> {
   OrderedSet() : set = new Set<T>(), list = <T>[];
 
   void add(T x) {
-    if (!set.contains(x)) {
-      set.add(x);
+    if (set.add(x)) {
+      // [Set.add] returns `true` if 'x' was added.
       list.add(x);
     }
   }
@@ -1272,5 +1388,35 @@ class MinifyRenamer implements LocalNamer {
     assert(new RegExp(r'[a-zA-Z][a-zA-Z0-9]*').hasMatch(newName));
     maps.last[oldName] = newName;
     return newName;
+  }
+}
+
+/// Information pertaining the enter and exit callbacks for [node].
+class EnterExitNode {
+  final EnterExitNode parent;
+  final Node node;
+
+  int startPosition;
+  int closingPosition;
+
+  EnterExitNode(this.parent, this.node);
+
+  void addToNode(JavaScriptPrintingContext context, int position) {
+    if (startPosition == null) {
+      // [position] is the start position of [node].
+      if (parent != null) {
+        // This might be the start position of the parent as well.
+        parent.addToNode(context, position);
+      }
+      startPosition = position;
+      context.enterNode(node, position);
+    }
+  }
+
+  EnterExitNode exitNode(JavaScriptPrintingContext context, int position) {
+    // Enter must happen before exit.
+    addToNode(context, position);
+    context.exitNode(node, startPosition, position, closingPosition);
+    return parent;
   }
 }

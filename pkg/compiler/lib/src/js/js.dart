@@ -33,6 +33,7 @@ class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
   final leg.Compiler compiler;
   final DumpInfoTask monitor;
   final CodeBuffer outBuffer = new CodeBuffer();
+  Node rootNode;
 
   Dart2JSJavaScriptPrintingContext(leg.Compiler this.compiler,
       DumpInfoTask this.monitor);
@@ -45,19 +46,35 @@ class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
     outBuffer.add(string);
   }
 
-  void enterNode(Node node) {
+  void enterNode(Node node, int startPosition) {
     SourceInformation sourceInformation = node.sourceInformation;
     if (sourceInformation != null) {
-      sourceInformation.beginMapping(outBuffer);
+      if (rootNode == null) {
+        rootNode = node;
+      }
+      if (sourceInformation.startPosition != null) {
+        outBuffer.addSourceLocation(
+            startPosition, sourceInformation.startPosition);
+      }
     }
-    if (monitor != null) monitor.enteringAst(node, outBuffer.length);
   }
 
-  void exitNode(Node node) {
-    if (monitor != null) monitor.exitingAst(node, outBuffer.length);
+  void exitNode(Node node,
+                int startPosition,
+                int endPosition,
+                int closingPosition) {
     SourceInformation sourceInformation = node.sourceInformation;
     if (sourceInformation != null) {
-      sourceInformation.endMapping(outBuffer);
+      if (sourceInformation.endPosition != null) {
+        outBuffer.addSourceLocation(endPosition, sourceInformation.endPosition);
+      }
+      if (rootNode == node) {
+        outBuffer.addSourceLocation(endPosition, null);
+        rootNode = null;
+      }
+    }
+    if (monitor != null) {
+      monitor.recordAstSize(node, endPosition - startPosition);
     }
   }
 }

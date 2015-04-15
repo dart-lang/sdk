@@ -9,15 +9,18 @@ import '../elements/elements.dart' show AstElement;
 import '../scanner/scannerlib.dart' show Token;
 import '../tree/tree.dart' show Node;
 import '../js/js.dart' show JavaScriptNodeSourceInformation;
-import 'code_output.dart';
 import 'source_file.dart';
 
 /// Interface for passing source information, for instance for use in source
 /// maps, through the backend.
 abstract class SourceInformation extends JavaScriptNodeSourceInformation {
   SourceSpan get sourceSpan;
-  void beginMapping(CodeOutput output);
-  void endMapping(CodeOutput output);
+
+  /// The source location associated with the start of the JS node.
+  SourceLocation get startPosition;
+
+  /// The source location associated with the end of the JS node.
+  SourceLocation get endPosition;
 }
 
 /// Source information that contains start source position and optionally an
@@ -33,18 +36,6 @@ class StartEndSourceInformation implements SourceInformation {
     int begin = startPosition.offset;
     int end = endPosition == null ? begin : endPosition.offset;
     return new SourceSpan(uri, begin, end);
-  }
-
-  void beginMapping(CodeBuffer output) {
-    output.beginMappedRange();
-    output.setSourceLocation(startPosition);
-  }
-
-  void endMapping(CodeBuffer output) {
-    if (endPosition != null) {
-      output.setSourceLocation(endPosition);
-    }
-    output.endMappedRange();
   }
 
   int get hashCode {
@@ -111,15 +102,8 @@ class PositionSourceInformation implements SourceInformation {
 
   PositionSourceInformation(this.sourcePosition);
 
-  @override
-  void beginMapping(CodeOutput output) {
-    output.setSourceLocation(sourcePosition);
-  }
-
-  @override
-  void endMapping(CodeOutput output) {
-    // Do nothing.
-  }
+  SourceLocation get startPosition => sourcePosition;
+  SourceLocation get endPosition => null;
 
   SourceSpan get sourceSpan {
     Uri uri = sourcePosition.sourceUri;
