@@ -41,12 +41,13 @@ class BuildInfo(object):
   - dart2js_full: Boolean indicating whether this builder will run dart2js
     on several different runtimes.
   - builder_tag: A tag indicating a special builder setup.
+  - cps_ir: Run the compiler with the cps based backend
   """
   def __init__(self, compiler, runtime, mode, system, checked=False,
                host_checked=False, minified=False, shard_index=None,
                total_shards=None, is_buildbot=False, test_set=None,
                csp=None, arch=None, dart2js_full=False, builder_tag=None,
-               batch=False):
+               batch=False, cps_ir=False):
     self.compiler = compiler
     self.runtime = runtime
     self.mode = mode
@@ -62,6 +63,7 @@ class BuildInfo(object):
     self.dart2js_full = dart2js_full
     self.builder_tag = builder_tag
     self.batch = batch
+    self.cps_ir = cps_ir
     if (arch == None):
       self.arch = 'ia32'
     else:
