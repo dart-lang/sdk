@@ -2495,8 +2495,6 @@ bool _isPotentiallyMutated(VariableElement e, [AstNode context]) {
 
 /// Adapted from VariableResolverVisitor. Finds an assignment to a given
 /// local variable.
-// TODO(jmesserly): change type annotation to not be *Impl once
-// isPotentiallyMutated is available on VariableElement.
 class _AssignmentFinder extends RecursiveAstVisitor {
   final VariableElement _variable;
   bool _potentiallyMutated = false;
