@@ -1442,13 +1442,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// "extension methods". This allows types to be extended without adding
   /// extensions directly on the prototype.
   bool _isJSBuiltinType(DartType t) =>
-      rules.isNumType(t) || rules.isStringType(t) || rules.isBoolType(t);
+      typeIsPrimitiveInJS(t) || rules.isStringType(t);
 
-  bool typeIsPrimitiveInJS(DartType t) => !rules.isDynamic(t) &&
-      (rules.isIntType(t) ||
-          rules.isDoubleType(t) ||
-          rules.isBoolType(t) ||
-          rules.isNumType(t));
+  bool typeIsPrimitiveInJS(DartType t) => rules.isIntType(t) ||
+      rules.isDoubleType(t) ||
+      rules.isBoolType(t) ||
+      rules.isNumType(t);
 
   bool typeIsNonNullablePrimitiveInJS(DartType t) =>
       typeIsPrimitiveInJS(t) && rules.isNonNullableType(t);
@@ -1481,7 +1480,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     } else if (expr is PostfixExpression) {
       type = getStaticType(expr.operand);
     }
-    if (type != null && typeIsPrimitiveInJS(type)) {
+    if (type != null && _isJSBuiltinType(type)) {
       return true;
     }
     if (expr is MethodInvocation) {
@@ -1526,6 +1525,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var leftType = getStaticType(left);
     var rightType = getStaticType(right);
 
+    // TODO(jmesserly): this may not work correctly with options.ignoreTypes,
+    // because that results in unreliable type annotations. See issue #134,
+    // probably the checker/resolver is the right place to implement that, by
+    // replacing staticTypes with `dynamic` as needed, so codegen "just works".
     var code;
     if (op.type.isEqualityOperator) {
       // If we statically know LHS or RHS is null we can generate a clean check.
@@ -1539,7 +1542,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       return js.call(code, [_visit(left), _visit(right)]);
     }
 
-    if (binaryOperationIsPrimitive(leftType, rightType)) {
+    if (binaryOperationIsPrimitive(leftType, rightType) ||
+        rules.isStringType(leftType) && op.type == TokenType.PLUS) {
+
       // special cases where we inline the operation
       // these values are assumed to be non-null (determined by the checker)
       // TODO(jmesserly): it would be nice to just inline the method from core,

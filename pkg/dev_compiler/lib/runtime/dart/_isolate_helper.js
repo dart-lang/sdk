@@ -445,7 +445,7 @@ var _isolate_helper;
       let isWindowDefined = exports.globalWindow != null;
       let isWorkerDefined = exports.globalWorker != null;
       this.isWorker = !dart.notNull(isWindowDefined) && dart.notNull(exports.globalPostMessageDefined);
-      this.supportsWorkers = dart.notNull(this.isWorker) || dart.notNull(isWorkerDefined) && dart.notNull(IsolateNatives.thisScript != null);
+      this.supportsWorkers = dart.notNull(this.isWorker) || dart.notNull(isWorkerDefined) && IsolateNatives.thisScript != null;
       this.fromCommandLine = !dart.notNull(isWindowDefined) && !dart.notNull(this.isWorker);
     }
     [_nativeInitWorkerMessageHandler]() {
@@ -1011,8 +1011,8 @@ var _isolate_helper;
       return IsolateNatives.spawn(null, uri.toString(), args, message, isLight, isSpawnUri, startPaused);
     }
     static spawn(functionName, uri, args, message, isLight, isSpawnUri, startPaused) {
-      if (dart.notNull(uri != null) && dart.notNull(uri.endsWith(".dart"))) {
-        uri = core.String['+'](uri, ".js");
+      if (uri != null && dart.notNull(uri.endsWith(".dart"))) {
+        uri = dart.notNull(uri) + ".js";
       }
       let port = new isolate.ReceivePort();
       let completer = dart.as(new async.Completer(), async.Completer$(core.List));

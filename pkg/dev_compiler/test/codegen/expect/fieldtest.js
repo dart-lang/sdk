@@ -43,7 +43,7 @@ var fieldtest;
   });
   dart.copyProperties(exports, {
     get q() {
-      return core.String['+'](core.String['+']('life, ', 'the universe '), 'and everything');
+      return 'life, ' + 'the universe ' + 'and everything';
     },
     get z() {
       return 42;

@@ -1846,7 +1846,7 @@ var _internal;
       this[_name] = Symbol.validatePublicSymbol(name);
     }
     ['=='](other) {
-      return dart.is(other, Symbol) && dart.notNull(dart.equals(this[_name], dart.dload(other, _name)));
+      return dart.is(other, Symbol) && dart.equals(this[_name], dart.dload(other, _name));
     }
     get hashCode() {
       let arbitraryPrime = 664597;

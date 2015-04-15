@@ -1400,7 +1400,7 @@ var convert;
     }
     addSlice(chunk, start, end, isLast) {
       if (this[_carry] != null) {
-        chunk = core.String['+'](this[_carry], chunk.substring(start, end));
+        chunk = dart.notNull(this[_carry]) + dart.notNull(chunk.substring(start, end));
         start = 0;
         end = chunk.length;
         this[_carry] = null;

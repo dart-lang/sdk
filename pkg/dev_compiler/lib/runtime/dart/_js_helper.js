@@ -93,7 +93,7 @@ var _js_helper;
       }
       forEach(f) {
         let keys = this[_keys];
-        for (let i = 0; i['<'](dart.dload(keys, 'length')); i = dart.notNull(i) + 1) {
+        for (let i = 0; core.int['<'](i, dart.dload(keys, 'length')); i = dart.notNull(i) + 1) {
           let key = dart.dindex(keys, i);
           f(dart.as(key, K), dart.as(this[_fetch](key), V));
         }
@@ -377,7 +377,7 @@ var _js_helper;
       let context = window;
       let fun = function() {
       };
-      for (let i = 0; i['<'](dart.dload(tags, 'length')); i = dart.notNull(i) + 1) {
+      for (let i = 0; core.int['<'](i, dart.dload(tags, 'length')); i = dart.notNull(i) + 1) {
         let tag = dart.dindex(tags, i);
         let proto = dart.dcall(exports.prototypeForTagFunction, tag);
         if (proto != null) {
@@ -390,15 +390,15 @@ var _js_helper;
         }
       }
     }
-    for (let i = 0; i['<'](dart.dload(tags, 'length')); i = dart.notNull(i) + 1) {
+    for (let i = 0; core.int['<'](i, dart.dload(tags, 'length')); i = dart.notNull(i) + 1) {
       let tag = tags[i];
       if (/^[A-Za-z_]/.test(tag)) {
         let interceptorClass = propertyGet(map, tag);
-        propertySet(map, core.String['+'](INSTANCE_CACHED_MARK, tag), interceptorClass);
-        propertySet(map, core.String['+'](UNCACHED_MARK, tag), interceptorClass);
-        propertySet(map, core.String['+'](LEAF_MARK, tag), interceptorClass);
-        propertySet(map, core.String['+'](INTERIOR_MARK, tag), interceptorClass);
-        propertySet(map, core.String['+'](DISCRIMINATED_MARK, tag), interceptorClass);
+        propertySet(map, dart.notNull(INSTANCE_CACHED_MARK) + dart.notNull(tag), interceptorClass);
+        propertySet(map, dart.notNull(UNCACHED_MARK) + dart.notNull(tag), interceptorClass);
+        propertySet(map, dart.notNull(LEAF_MARK) + dart.notNull(tag), interceptorClass);
+        propertySet(map, dart.notNull(INTERIOR_MARK) + dart.notNull(tag), interceptorClass);
+        propertySet(map, dart.notNull(DISCRIMINATED_MARK) + dart.notNull(tag), interceptorClass);
       }
     }
   }
@@ -891,7 +891,7 @@ var _js_helper;
       return this[_typeName].hashCode;
     }
     ['=='](other) {
-      return dart.is(other, TypeImpl) && dart.notNull(dart.equals(this[_typeName], dart.dload(other, _typeName)));
+      return dart.is(other, TypeImpl) && dart.equals(this[_typeName], dart.dload(other, _typeName));
     }
   }
   TypeImpl[dart.implements] = () => [core.Type];
@@ -1092,7 +1092,7 @@ var _js_helper;
   }
   // Function isSupertypeOfNull: (dynamic) → bool
   function isSupertypeOfNull(type) {
-    return dart.notNull(type == null) || dart.notNull(getConstructorName(type) == _foreign_helper.JS_OBJECT_CLASS_NAME()) || dart.notNull(getConstructorName(type) == _foreign_helper.JS_NULL_CLASS_NAME());
+    return dart.notNull(type == null) || getConstructorName(type) == _foreign_helper.JS_OBJECT_CLASS_NAME() || getConstructorName(type) == _foreign_helper.JS_NULL_CLASS_NAME();
   }
   // Function checkSubtypeOfRuntimeType: (dynamic, dynamic) → bool
   function checkSubtypeOfRuntimeType(o, t) {
@@ -1724,8 +1724,8 @@ var _js_helper;
   let _mangledNameMatchesType = Symbol('_mangledNameMatchesType');
   class Primitives extends core.Object {
     static initializeStatics(id) {
-      Primitives.mirrorFunctionCacheName = core.String['+'](Primitives.mirrorFunctionCacheName, `_${id}`);
-      Primitives.mirrorInvokeCacheName = core.String['+'](Primitives.mirrorInvokeCacheName, `_${id}`);
+      Primitives.mirrorFunctionCacheName = dart.notNull(Primitives.mirrorFunctionCacheName) + `_${id}`;
+      Primitives.mirrorInvokeCacheName = dart.notNull(Primitives.mirrorInvokeCacheName) + `_${id}`;
     }
     static objectHashCode(object) {
       let hash = dart.as(object.$identityHash, core.int);
@@ -1799,7 +1799,7 @@ var _js_helper;
       let result = parseFloat(source);
       if (result.isNaN) {
         let trimmed = source.trim();
-        if (dart.notNull(trimmed == 'NaN') || dart.notNull(trimmed == '+NaN') || dart.notNull(trimmed == '-NaN')) {
+        if (trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN') {
           return result;
         }
         return handleError(source);
@@ -1883,8 +1883,8 @@ var _js_helper;
         if (dart.dsend(i, '<=', 65535)) {
           a[core.$add](dart.as(i, core.int));
         } else if (dart.dsend(i, '<=', 1114111)) {
-          a[core.$add](55296['+'](dart.dsend(dart.dsend(dart.dsend(i, '-', 65536), '>>', 10), '&', 1023)));
-          a[core.$add](56320['+'](dart.dsend(i, '&', 1023)));
+          a[core.$add](core.int['+'](55296, dart.dsend(dart.dsend(dart.dsend(i, '-', 65536), '>>', 10), '&', 1023)));
+          a[core.$add](core.int['+'](56320, dart.dsend(i, '&', 1023)));
         } else {
           throw new core.ArgumentError(i);
         }
@@ -1903,14 +1903,14 @@ var _js_helper;
       return Primitives[_fromCharCodeApply](dart.as(charCodes, core.List$(core.int)));
     }
     static stringFromCharCode(charCode) {
-      if (0['<='](charCode)) {
+      if (core.int['<='](0, charCode)) {
         if (dart.dsend(charCode, '<=', 65535)) {
           return String.fromCharCode(charCode);
         }
         if (dart.dsend(charCode, '<=', 1114111)) {
           let bits = dart.dsend(charCode, '-', 65536);
-          let low = 56320['|'](dart.dsend(bits, '&', 1023));
-          let high = 55296['|'](dart.dsend(bits, '>>', 10));
+          let low = core.int['|'](56320, dart.dsend(bits, '&', 1023));
+          let high = core.int['|'](55296, dart.dsend(bits, '>>', 10));
           return String.fromCharCode(high, low);
         }
       }
@@ -3382,7 +3382,7 @@ var _js_helper;
     static listToRti(list) {
       list = list;
       let result = [];
-      for (let i = 0; i['<'](dart.dload(list, 'length')); i = dart.notNull(i) + 1) {
+      for (let i = 0; core.int['<'](i, dart.dload(list, 'length')); i = dart.notNull(i) + 1) {
         result.push(dart.dsend(dart.dindex(list, i), 'toRti'));
       }
       return result;
@@ -3394,46 +3394,46 @@ var _js_helper;
         for (let i = 0; dart.notNull(i) < dart.notNull(this.parameterTypes[core.$length]); i = dart.notNull(i) + 1) {
           let type = this.parameterTypes[core.$get](i);
           if (needsComma) {
-            result = core.String['+'](result, ', ');
+            result = dart.notNull(result) + ', ';
           }
-          result = core.String['+'](result, `${type}`);
+          result = dart.notNull(result) + `${type}`;
           needsComma = true;
         }
       }
       if (dart.notNull(this.optionalParameterTypes != null) && !dart.notNull(this.optionalParameterTypes[core.$isEmpty])) {
         if (needsComma) {
-          result = core.String['+'](result, ', ');
+          result = dart.notNull(result) + ', ';
         }
         needsComma = false;
-        result = core.String['+'](result, '[');
+        result = dart.notNull(result) + '[';
         for (let i = 0; dart.notNull(i) < dart.notNull(this.optionalParameterTypes[core.$length]); i = dart.notNull(i) + 1) {
           let type = this.optionalParameterTypes[core.$get](i);
           if (needsComma) {
-            result = core.String['+'](result, ', ');
+            result = dart.notNull(result) + ', ';
           }
-          result = core.String['+'](result, `${type}`);
+          result = dart.notNull(result) + `${type}`;
           needsComma = true;
         }
-        result = core.String['+'](result, ']');
+        result = dart.notNull(result) + ']';
       } else if (this.namedParameters != null) {
         if (needsComma) {
-          result = core.String['+'](result, ', ');
+          result = dart.notNull(result) + ', ';
         }
         needsComma = false;
-        result = core.String['+'](result, '{');
+        result = dart.notNull(result) + '{';
         let keys = _js_names.extractKeys(this.namedParameters);
         for (let i = 0; dart.notNull(i) < dart.notNull(keys[core.$length]); i = dart.notNull(i) + 1) {
           let name = keys[core.$get](i);
           if (needsComma) {
-            result = core.String['+'](result, ', ');
+            result = dart.notNull(result) + ', ';
           }
           let rti = dart.dsend(this.namedParameters[name], 'toRti');
-          result = core.String['+'](result, `${rti} ${name}`);
+          result = dart.notNull(result) + `${rti} ${name}`;
           needsComma = true;
         }
-        result = core.String['+'](result, '}');
+        result = dart.notNull(result) + '}';
       }
-      result = core.String['+'](result, `) -> ${this.returnType}`);
+      result = dart.notNull(result) + `) -> ${this.returnType}`;
       return result;
     }
   }
@@ -3625,39 +3625,39 @@ var _js_helper;
       let sep = '';
       if (this[_hasArguments]) {
         for (let argument of this[_arguments]) {
-          s = core.String['+'](s, sep);
-          s = core.String['+'](s, this[_convert](argument));
+          s = dart.notNull(s) + dart.notNull(sep);
+          s = dart.notNull(s) + dart.notNull(this[_convert](argument));
           sep = ', ';
         }
       }
       if (this[_hasOptionalArguments]) {
-        s = core.String['+'](s, `${sep}[`);
+        s = dart.notNull(s) + `${sep}[`;
         sep = '';
         for (let argument of this[_optionalArguments]) {
-          s = core.String['+'](s, sep);
-          s = core.String['+'](s, this[_convert](argument));
+          s = dart.notNull(s) + dart.notNull(sep);
+          s = dart.notNull(s) + dart.notNull(this[_convert](argument));
           sep = ', ';
         }
-        s = core.String['+'](s, ']');
+        s = dart.notNull(s) + ']';
       }
       if (this[_hasNamedArguments]) {
-        s = core.String['+'](s, `${sep}{`);
+        s = dart.notNull(s) + `${sep}{`;
         sep = '';
         for (let name of _js_names.extractKeys(this[_namedArguments])) {
-          s = core.String['+'](s, sep);
-          s = core.String['+'](s, `${name}: `);
-          s = core.String['+'](s, this[_convert](this[_namedArguments][name]));
+          s = dart.notNull(s) + dart.notNull(sep);
+          s = dart.notNull(s) + `${name}: `;
+          s = dart.notNull(s) + dart.notNull(this[_convert](this[_namedArguments][name]));
           sep = ', ';
         }
-        s = core.String['+'](s, '}');
+        s = dart.notNull(s) + '}';
       }
-      s = core.String['+'](s, ') -> ');
+      s = dart.notNull(s) + ') -> ';
       if (this[_isVoid]) {
-        s = core.String['+'](s, 'void');
+        s = dart.notNull(s) + 'void';
       } else if (this[_hasReturnType]) {
-        s = core.String['+'](s, this[_convert](this[_returnType]));
+        s = dart.notNull(s) + dart.notNull(this[_convert](this[_returnType]));
       } else {
-        s = core.String['+'](s, 'dynamic');
+        s = dart.notNull(s) + 'dynamic';
       }
       return this[_cachedToString] = `${s}`;
     }

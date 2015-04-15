@@ -242,7 +242,7 @@ var collection;
         if (!dart.notNull(iterator.moveNext()))
           return "";
         let buffer = new core.StringBuffer();
-        if (dart.notNull(separator == null) || dart.notNull(separator == "")) {
+        if (separator == null || separator == "") {
           do {
             buffer.write(`${iterator.current}`);
           } while (iterator.moveNext());
@@ -488,7 +488,7 @@ var collection;
         if (!dart.notNull(iterator.moveNext()))
           return "";
         let buffer = new core.StringBuffer();
-        if (dart.notNull(separator == null) || dart.notNull(separator == "")) {
+        if (separator == null || separator == "") {
           do {
             buffer.write(`${iterator.current}`);
           } while (iterator.moveNext());
@@ -689,7 +689,7 @@ var collection;
         if (!dart.notNull(iterator.moveNext()))
           return "";
         let buffer = new core.StringBuffer();
-        if (dart.notNull(separator == null) || dart.notNull(separator == "")) {
+        if (separator == null || separator == "") {
           do {
             buffer.write(`${iterator.current}`);
           } while (iterator.moveNext());
@@ -833,7 +833,7 @@ var collection;
         if (rightDelimiter === void 0)
           rightDelimiter = ')';
         if (IterableBase[_isToStringVisiting](iterable)) {
-          if (dart.notNull(leftDelimiter == "(") && dart.notNull(rightDelimiter == ")")) {
+          if (leftDelimiter == "(" && rightDelimiter == ")") {
             return "(...)";
           }
           return `${leftDelimiter}...${rightDelimiter}`;

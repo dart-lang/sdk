@@ -43,7 +43,7 @@ var async;
     toString() {
       let result = `Uncaught Error: ${this.error}`;
       if (this.stackTrace != null) {
-        result = core.String['+'](result, `\nStack Trace:\n${this.stackTrace}`);
+        result = dart.notNull(result) + `\nStack Trace:\n${this.stackTrace}`;
       }
       return result;
     }

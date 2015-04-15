@@ -54,6 +54,8 @@ var dart, _js_helper;
         throwNoSuchMethod(obj, method, args);
       }
     }
+    // TODO(jmesserly): enable this when we can fix => and methods.
+    /*
     let formals = formalParameterList(f);
     // TODO(vsm): Type check args!  We need to encode sufficient type info on f.
     if (formals.length < args.length) {
@@ -65,6 +67,7 @@ var dart, _js_helper;
         }
       }
     }
+    */
     return f.apply(obj, args);
   }
 

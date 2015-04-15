@@ -938,23 +938,23 @@ var core;
     }
     toString() {
       let report = "FormatException";
-      if (dart.notNull(this.message != null) && dart.notNull("" != this.message)) {
+      if (this.message != null && "" != this.message) {
         report = `${report}: ${this.message}`;
       }
       let offset = this.offset;
       if (!(typeof this.source == 'string')) {
         if (offset != -1) {
-          report = String['+'](report, ` (at offset ${offset})`);
+          report = dart.notNull(report) + ` (at offset ${offset})`;
         }
         return report;
       }
-      if (offset != -1 && (dart.notNull(offset) < 0 || offset['>'](dart.dload(this.source, 'length')))) {
+      if (offset != -1 && (dart.notNull(offset) < 0 || int['>'](offset, dart.dload(this.source, 'length')))) {
         offset = -1;
       }
       if (offset == -1) {
         let source = dart.as(this.source, String);
         if (dart.notNull(source.length) > 78) {
-          source = String['+'](source.substring(0, 75), "...");
+          source = dart.notNull(source.substring(0, 75)) + "...";
         }
         return `${report}\n${source}`;
       }
@@ -976,12 +976,12 @@ var core;
         }
       }
       if (dart.notNull(lineNum) > 1) {
-        report = String['+'](report, ` (at line ${lineNum}, character ${dart.notNull(offset) - dart.notNull(lineStart) + 1})\n`);
+        report = dart.notNull(report) + ` (at line ${lineNum}, character ${dart.notNull(offset) - dart.notNull(lineStart) + 1})\n`;
       } else {
-        report = String['+'](report, ` (at character ${dart.notNull(offset) + 1})\n`);
+        report = dart.notNull(report) + ` (at character ${dart.notNull(offset) + 1})\n`;
       }
       let lineEnd = dart.as(dart.dload(this.source, 'length'), int);
-      for (let i = offset; i['<'](dart.dload(this.source, 'length')); i = dart.notNull(i) + 1) {
+      for (let i = offset; int['<'](i, dart.dload(this.source, 'length')); i = dart.notNull(i) + 1) {
         let char = dart.as(dart.dsend(this.source, 'codeUnitAt', i), int);
         if (char == 10 || char == 13) {
           lineEnd = i;
@@ -1994,7 +1994,7 @@ var core;
       fragment = Uri[_makeFragment](fragment, 0, Uri[_stringOrNullLength](fragment));
       port = Uri[_makePort](port, scheme);
       let isFile = scheme == "file";
-      if (dart.notNull(host == null) && (dart.notNull(userInfo.isNotEmpty) || port != null || dart.notNull(isFile))) {
+      if (host == null && (dart.notNull(userInfo.isNotEmpty) || port != null || dart.notNull(isFile))) {
         host = "";
       }
       let ensureLeadingSlash = host != null;
@@ -2015,7 +2015,7 @@ var core;
       let userInfo = "";
       let host = null;
       let port = null;
-      if (dart.notNull(authority != null) && dart.notNull(authority.isNotEmpty)) {
+      if (authority != null && dart.notNull(authority.isNotEmpty)) {
         let hostStart = 0;
         let hasUserInfo = false;
         for (let i = 0; dart.notNull(i) < dart.notNull(authority.length); i = dart.notNull(i) + 1) {
@@ -2097,9 +2097,9 @@ var core;
         return;
       }
       if (argumentError) {
-        throw new ArgumentError(String['+']("Illegal drive letter ", new String.fromCharCode(charCode)));
+        throw new ArgumentError("Illegal drive letter " + dart.notNull(new String.fromCharCode(charCode)));
       } else {
-        throw new UnsupportedError(String['+']("Illegal drive letter ", new String.fromCharCode(charCode)));
+        throw new UnsupportedError("Illegal drive letter " + dart.notNull(new String.fromCharCode(charCode)));
       }
     }
     static [_makeFileUri](path) {
@@ -2124,7 +2124,7 @@ var core;
         path = path.replaceAll("/", "\\");
       }
       let sep = "\\";
-      if (dart.notNull(path.length) > 1 && dart.notNull(String.get(path, 1) == ":")) {
+      if (dart.notNull(path.length) > 1 && String.get(path, 1) == ":") {
         Uri[_checkWindowsDriveLetter](path.codeUnitAt(0), true);
         if (path.length == 2 || path.codeUnitAt(2) != Uri[_BACKSLASH]) {
           throw new ArgumentError("Windows paths with drive letter must be absolute");
@@ -2133,8 +2133,8 @@ var core;
         Uri[_checkWindowsPathReservedCharacters](pathSegments, true, 1);
         return new Uri({scheme: "file", pathSegments: pathSegments});
       }
-      if (dart.notNull(path.length) > 0 && dart.notNull(String.get(path, 0) == sep)) {
-        if (dart.notNull(path.length) > 1 && dart.notNull(String.get(path, 1) == sep)) {
+      if (dart.notNull(path.length) > 0 && String.get(path, 0) == sep) {
+        if (dart.notNull(path.length) > 1 && String.get(path, 1) == sep) {
           let pathStart = path.indexOf("\\", 2);
           let hostPart = pathStart == -1 ? path.substring(2) : path.substring(2, pathStart);
           let pathPart = pathStart == -1 ? "" : path.substring(dart.notNull(pathStart) + 1);
@@ -2191,7 +2191,7 @@ var core;
         host = "";
       }
       let ensureLeadingSlash = host != null;
-      if (dart.notNull(path != null) || dart.notNull(pathSegments != null)) {
+      if (path != null || dart.notNull(pathSegments != null)) {
         path = Uri[_makePath](path, 0, Uri[_stringOrNullLength](path), pathSegments, ensureLeadingSlash, isFile);
       } else {
         path = this.path;
@@ -2199,7 +2199,7 @@ var core;
           path = `/${path}`;
         }
       }
-      if (dart.notNull(query != null) || dart.notNull(queryParameters != null)) {
+      if (query != null || dart.notNull(queryParameters != null)) {
         query = Uri[_makeQuery](query, 0, Uri[_stringOrNullLength](query), queryParameters);
       } else if (this.hasQuery) {
         query = this.query;
@@ -2263,7 +2263,7 @@ var core;
         let char = host.codeUnitAt(index);
         if (char == Uri[_PERCENT]) {
           let replacement = Uri[_normalizeEscape](host, index, true);
-          if (dart.notNull(replacement == null) && dart.notNull(isNormalized)) {
+          if (replacement == null && dart.notNull(isNormalized)) {
             index = dart.notNull(index) + 3;
             continue;
           }
@@ -2355,9 +2355,9 @@ var core;
       return Uri[_normalize](userInfo, start, end, dart.as(Uri[_userinfoTable], List$(int)));
     }
     static [_makePath](path, start, end, pathSegments, ensureLeadingSlash, isFile) {
-      if (dart.notNull(path == null) && dart.notNull(pathSegments == null))
+      if (path == null && dart.notNull(pathSegments == null))
         return isFile ? "/" : "";
-      if (dart.notNull(path != null) && dart.notNull(pathSegments != null)) {
+      if (path != null && dart.notNull(pathSegments != null)) {
         throw new ArgumentError('Both path and pathSegments specified');
       }
       let result = null;
@@ -2375,9 +2375,9 @@ var core;
       return dart.as(result, String);
     }
     static [_makeQuery](query, start, end, queryParameters) {
-      if (dart.notNull(query == null) && dart.notNull(queryParameters == null))
+      if (query == null && dart.notNull(queryParameters == null))
         return null;
-      if (dart.notNull(query != null) && dart.notNull(queryParameters != null)) {
+      if (query != null && dart.notNull(queryParameters != null)) {
         throw new ArgumentError('Both query and queryParameters specified');
       }
       if (query != null)
@@ -2537,7 +2537,7 @@ var core;
       return dart.notNull(ch) <= dart.notNull(Uri[_RIGHT_BRACKET]) && dart.notNull(!dart.equals(dart.dsend(Uri[_genDelimitersTable][exports.$get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
     }
     get isAbsolute() {
-      return dart.notNull(this.scheme != "") && dart.notNull(this.fragment == "");
+      return this.scheme != "" && this.fragment == "";
     }
     [_merge](base, reference) {
       if (base.isEmpty)
@@ -2561,7 +2561,7 @@ var core;
         baseEnd = newEnd;
         backCount = dart.notNull(backCount) - 1;
       }
-      return String['+'](base.substring(0, dart.notNull(baseEnd) + 1), reference.substring(dart.notNull(refStart) - 3 * dart.notNull(backCount)));
+      return dart.notNull(base.substring(0, dart.notNull(baseEnd) + 1)) + dart.notNull(reference.substring(dart.notNull(refStart) - 3 * dart.notNull(backCount)));
     }
     [_hasDotSegments](path) {
       if (dart.notNull(path.length) > 0 && path.codeUnitAt(0) == Uri[_DOT])
@@ -2577,7 +2577,7 @@ var core;
       for (let segment of path.split("/")) {
         appendSlash = false;
         if (segment == "..") {
-          if (!dart.notNull(output[exports.$isEmpty]) && (output[exports.$length] != 1 || dart.notNull(output[exports.$get](0) != "")))
+          if (!dart.notNull(output[exports.$isEmpty]) && (output[exports.$length] != 1 || output[exports.$get](0) != ""))
             output[exports.$removeLast]();
           appendSlash = true;
         } else if ("." == segment) {
@@ -2658,10 +2658,10 @@ var core;
       return this[_fragment] != null;
     }
     get origin() {
-      if (dart.notNull(this.scheme == "") || dart.notNull(this[_host] == null) || dart.notNull(this[_host] == "")) {
+      if (this.scheme == "" || this[_host] == null || this[_host] == "") {
         throw new StateError(`Cannot use origin without a scheme: ${this}`);
       }
-      if (dart.notNull(this.scheme != "http") && dart.notNull(this.scheme != "https")) {
+      if (this.scheme != "http" && this.scheme != "https") {
         throw new StateError(`Origin is only applicable schemes http and https: ${this}`);
       }
       if (this[_port] == null)
@@ -2670,7 +2670,7 @@ var core;
     }
     toFilePath(opts) {
       let windows = opts && 'windows' in opts ? opts.windows : null;
-      if (dart.notNull(this.scheme != "") && dart.notNull(this.scheme != "file")) {
+      if (this.scheme != "" && this.scheme != "file") {
         throw new UnsupportedError(`Cannot extract a file path from a ${this.scheme} URI`);
       }
       if (this.query != "") {
@@ -2718,7 +2718,7 @@ var core;
       return result.toString();
     }
     get [_isPathAbsolute]() {
-      if (dart.notNull(this.path == null) || dart.notNull(this.path.isEmpty))
+      if (this.path == null || dart.notNull(this.path.isEmpty))
         return false;
       return this.path.startsWith('/');
     }
@@ -2737,7 +2737,7 @@ var core;
     toString() {
       let sb = new StringBuffer();
       Uri[_addIfNonEmpty](sb, this.scheme, this.scheme, ':');
-      if (dart.notNull(this.hasAuthority) || dart.notNull(this.path.startsWith("//")) || dart.notNull(this.scheme == "file")) {
+      if (dart.notNull(this.hasAuthority) || dart.notNull(this.path.startsWith("//")) || this.scheme == "file") {
         sb.write("//");
         this[_writeAuthority](sb);
       }
@@ -2756,7 +2756,7 @@ var core;
       if (!dart.is(other, Uri))
         return false;
       let uri = dart.as(other, Uri);
-      return dart.notNull(this.scheme == uri.scheme) && this.hasAuthority == uri.hasAuthority && dart.notNull(this.userInfo == uri.userInfo) && dart.notNull(this.host == uri.host) && this.port == uri.port && dart.notNull(this.path == uri.path) && this.hasQuery == uri.hasQuery && dart.notNull(this.query == uri.query) && this.hasFragment == uri.hasFragment && dart.notNull(this.fragment == uri.fragment);
+      return this.scheme == uri.scheme && this.hasAuthority == uri.hasAuthority && this.userInfo == uri.userInfo && this.host == uri.host && this.port == uri.port && this.path == uri.path && this.hasQuery == uri.hasQuery && this.query == uri.query && this.hasFragment == uri.hasFragment && this.fragment == uri.fragment;
     }
     get hashCode() {
       // Function combine: (dynamic, dynamic) → int
