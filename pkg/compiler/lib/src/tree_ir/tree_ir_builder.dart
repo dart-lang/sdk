@@ -69,9 +69,6 @@ class Builder implements cps_ir.Visitor<Node> {
   cps_ir.Parameter thisParameter;
   cps_ir.Continuation returnContinuation;
 
-  /// Number of loops enclosing the currently visited node.
-  int enclosingLoops = 0;
-
   Builder parent;
 
   Builder(this.internalError, [this.parent]);
@@ -476,7 +473,7 @@ class Builder implements cps_ir.Visitor<Node> {
     Statement body = visit(node.body);
     // If the variable was captured by an inner function in the body, this
     // must be declared here so we assign to a fresh copy of the variable.
-    if (variable.isCaptured && enclosingLoops > 0) {
+    if (variable.isCaptured) {
       return new VariableDeclaration(variable, value, body);
     }
     return Assign.makeStatement(variable, value, body);
@@ -543,7 +540,7 @@ class Builder implements cps_ir.Visitor<Node> {
             if (cont.isRecursive) {
               return node.isRecursive
                   ? new Continue(labels[cont])
-                  : new WhileTrue(labels[cont], makeLoopBody(cont.body));
+                  : new WhileTrue(labels[cont], visit(cont.body));
             } else {
               if (cont.hasExactlyOneUse) {
                 if (safeForInlining.contains(cont)) {
@@ -555,13 +552,6 @@ class Builder implements cps_ir.Visitor<Node> {
             }
           });
     }
-  }
-
-  Statement makeLoopBody(cps_ir.Expression body) {
-    ++enclosingLoops;
-    Statement result = visit(body);
-    --enclosingLoops;
-    return result;
   }
 
   Statement visitBranch(cps_ir.Branch node) {
