@@ -1771,8 +1771,9 @@ void Assembler::sarl(const Address& address, Register shifter) {
 }
 
 
-void Assembler::shldl(Register dst, Register src) {
+void Assembler::shldl(Register dst, Register src, Register shifter) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  ASSERT(shifter == ECX);
   EmitUint8(0x0F);
   EmitUint8(0xA5);
   EmitRegisterOperand(src, dst);
@@ -1789,16 +1790,18 @@ void Assembler::shldl(Register dst, Register src, const Immediate& imm) {
 }
 
 
-void Assembler::shldl(const Address& operand, Register src) {
+void Assembler::shldl(const Address& operand, Register src, Register shifter) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  ASSERT(shifter == ECX);
   EmitUint8(0x0F);
   EmitUint8(0xA5);
   EmitOperand(src, Operand(operand));
 }
 
 
-void Assembler::shrdl(Register dst, Register src) {
+void Assembler::shrdl(Register dst, Register src, Register shifter) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  ASSERT(shifter == ECX);
   EmitUint8(0x0F);
   EmitUint8(0xAD);
   EmitRegisterOperand(src, dst);
@@ -1815,8 +1818,9 @@ void Assembler::shrdl(Register dst, Register src, const Immediate& imm) {
 }
 
 
-void Assembler::shrdl(const Address& dst, Register src) {
+void Assembler::shrdl(const Address& dst, Register src, Register shifter) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  ASSERT(shifter == ECX);
   EmitUint8(0x0F);
   EmitUint8(0xAD);
   EmitOperand(src, Operand(dst));

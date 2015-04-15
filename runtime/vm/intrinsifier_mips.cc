@@ -19,6 +19,14 @@ namespace dart {
 
 DECLARE_FLAG(bool, enable_type_checks);
 
+// When entering intrinsics code:
+// S5: IC Data
+// S4: Arguments descriptor
+// RA: Return address
+// The S5, S4 registers can be destroyed only if there is no slow-path, i.e.
+// if the intrinsified method always executes a return.
+// The FP register should not be modified, because it is used by the profiler.
+
 #define __ assembler->
 
 

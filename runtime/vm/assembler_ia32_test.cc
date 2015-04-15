@@ -579,7 +579,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
   __ movl(EAX, Immediate(0));
   __ movl(ECX, Immediate(3));
   __ sarl(Address(ESP, 0), ECX);
-  __ shrdl(Address(ESP, 0), EAX);
+  __ shrdl(Address(ESP, 0), EAX, ECX);
   __ cmpl(Address(ESP, 0), Immediate(0x1e000000));
   __ j(EQUAL, &donetest14);
   __ int3();
@@ -592,7 +592,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
   __ movl(EAX, Immediate(-1));
   __ movl(ECX, Immediate(2));
   __ shll(Address(ESP, 0), ECX);
-  __ shldl(Address(ESP, 0), EAX);
+  __ shldl(Address(ESP, 0), EAX, ECX);
   __ cmpl(Address(ESP, 0), Immediate(0xF0000003));
   __ j(EQUAL, &donetest15);
   __ int3();
