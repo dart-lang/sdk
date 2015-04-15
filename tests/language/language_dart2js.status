@@ -294,3 +294,2032 @@ regress_21795_test: RuntimeError # Issue 12605
 *deferred*: Pass,RuntimeError # Issue 17458
 cha_deopt*: Pass,RuntimeError # Issue 17458
 regress_22443_test: Pass,RuntimeError # Issue 17458
+
+[ $compiler == dart2js && $cps_ir ]
+aborting_switch_case_test: Crash # (switch (42){case 42:foo();foo();break;}): Unhandled node
+abstract_exact_selector_test/01: Crash # (throw new ExpectException(message)): Unhandled node
+abstract_exact_selector_test/none: Crash # (throw new ExpectException(message)): Unhandled node
+abstract_getter_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+abstract_method_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+abstract_object_method_test: Crash # (throw new ExpectException(message)): Unhandled node
+abstract_runtime_error_test/01: Crash # (throw new ExpectException(message)): Unhandled node
+abstract_runtime_error_test/02: Crash # (throw new ExpectException(message)): Unhandled node
+abstract_runtime_error_test/03: Crash # (throw new ExpectException(message)): Unhandled node
+abstract_runtime_error_test/none: Crash # (throw new ExpectException(message)): Unhandled node
+abstract_syntax_test/00: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+abstract_syntax_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+abstract_syntax_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+ackermann_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+adjacent_const_string_literals_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+adjacent_string_literals_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+allocate_large_object_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+allocate_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+allocation_sinking_inlining_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+and_operation_on_non_integer_operand_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+application_negative_test: Crash # (Expect): Error expression `Expect` unhandled.
+argument_definition_test/01: Crash # (test(1,b:2,c:3)): Error expression `test(1,b:2,c:3)` unhandled.
+argument_definition_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+arithmetic2_test: Crash # (throw new ExpectException(message)): Unhandled node
+arithmetic_canonicalization_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+arithmetic_smi_overflow_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+arithmetic_test: Crash # (throw new ExpectException(message)): Unhandled node
+assertion_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+assign_op_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+assign_to_type_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+assign_to_type_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+assign_to_type_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+assign_to_type_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+assign_top_method_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+async_and_or_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async_await_catch_regression_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async_await_syntax_test/a01a: Crash # (a01a()async=>null;): cannot handle async/sync*/async* functions
+async_await_syntax_test/a02a: Crash # (a02a()async{}): cannot handle async/sync*/async* functions
+async_await_syntax_test/a03a: Crash # (a03a()async*{}): cannot handle async/sync*/async* functions
+async_await_syntax_test/a03b: Crash # (a03b()async*{}): cannot handle async/sync*/async* functions
+async_await_syntax_test/a04a: Crash # (a04a()sync*{}): cannot handle async/sync*/async* functions
+async_await_syntax_test/a04b: Crash # (a04b()): Error expression `a04b()` unhandled.
+async_await_syntax_test/a04c: Crash # (a04c()sync*{}): cannot handle async/sync*/async* functions
+async_await_syntax_test/a05a: Crash # (a05a()async{await 0;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/a05b: Crash # (a05b()async{await (a){};await (0);}): cannot handle async/sync*/async* functions
+async_await_syntax_test/a06a: Crash # (a06a()async{await for(var o in st){}}): cannot handle async/sync*/async* functions
+async_await_syntax_test/a07a: Crash # (a07a()sync*{yield 0;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/a07b: Crash # (a07b()): Error expression `a07b()` unhandled.
+async_await_syntax_test/a08a: Crash # (a08a()sync*{yield* [] ;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/a08b: Crash # (a08b()): Error expression `a08b()` unhandled.
+async_await_syntax_test/a09a: Crash # (a09a()async*{yield 0;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/a10a: Crash # (a10a()async*{yield* [] ;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/a11a: Crash # (sync): Error expression `sync` unhandled.
+async_await_syntax_test/a11b: Crash # (get sync sync*{}): cannot handle async/sync*/async* functions
+async_await_syntax_test/a11c: Crash # (get async async{}): cannot handle async/sync*/async* functions
+async_await_syntax_test/a11d: Crash # (get async async*{}): cannot handle async/sync*/async* functions
+async_await_syntax_test/a12g: Crash # (get a12g async=>null;): cannot handle async/sync*/async* functions
+async_await_syntax_test/b01a: Crash # (b01a()async=>null;): cannot handle async/sync*/async* functions
+async_await_syntax_test/b02a: Crash # (b02a()async{}): cannot handle async/sync*/async* functions
+async_await_syntax_test/b03a: Crash # (b03a()async*{}): cannot handle async/sync*/async* functions
+async_await_syntax_test/b04a: Crash # (b04a()sync*{}): cannot handle async/sync*/async* functions
+async_await_syntax_test/b05a: Crash # (b05a()async{await 0;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/b06a: Crash # (b06a()async{await for(var o in st){}}): cannot handle async/sync*/async* functions
+async_await_syntax_test/b07a: Crash # (b07a()sync*{yield 0;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/b08a: Crash # (b08a()sync*{yield* [] ;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/b09a: Crash # (b09a()async*{yield 0;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/b10a: Crash # (b10a()async*{yield* [] ;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/b11b: Crash # (get sync sync*{}): cannot handle async/sync*/async* functions
+async_await_syntax_test/b11c: Crash # (get async async{}): cannot handle async/sync*/async* functions
+async_await_syntax_test/b11d: Crash # (get async async*{}): cannot handle async/sync*/async* functions
+async_await_syntax_test/b12g: Crash # (get b12g async=>null;): cannot handle async/sync*/async* functions
+async_await_syntax_test/c01a: Crash # (c01a()async=>null;): cannot handle async/sync*/async* functions
+async_await_syntax_test/c02a: Crash # (c02a()async{}): cannot handle async/sync*/async* functions
+async_await_syntax_test/c03a: Crash # (c03a()async*{}): cannot handle async/sync*/async* functions
+async_await_syntax_test/c04a: Crash # (c04a()sync*{}): cannot handle async/sync*/async* functions
+async_await_syntax_test/c05a: Crash # (c05a()async{await 0;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/c06a: Crash # (c06a()async{await for(var o in st){}}): cannot handle async/sync*/async* functions
+async_await_syntax_test/c07a: Crash # (c07a()sync*{yield 0;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/c08a: Crash # (c08a()sync*{yield* [] ;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/c09a: Crash # (c09a()async*{yield 0;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/c10a: Crash # (c10a()async*{yield* [] ;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/d01a: Crash # (()async=>null): cannot handle async/sync*/async* functions
+async_await_syntax_test/d02a: Crash # (()async{}): cannot handle async/sync*/async* functions
+async_await_syntax_test/d03a: Crash # (()async*{}): cannot handle async/sync*/async* functions
+async_await_syntax_test/d04a: Crash # (()sync*{}): cannot handle async/sync*/async* functions
+async_await_syntax_test/d05a: Crash # (()async{await 0;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/d06a: Crash # (()async{await for(var o in st){}}): cannot handle async/sync*/async* functions
+async_await_syntax_test/d07a: Crash # (()sync*{yield 0;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/d08a: Crash # (()sync*{yield* [] ;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/d08b: Crash # (()sync*{yield* 0+1;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/d09a: Crash # (()async*{yield 0;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/d10a: Crash # (()async*{yield* [] ;}): cannot handle async/sync*/async* functions
+async_await_test/02: Crash # (f()async{return id(42);}): cannot handle async/sync*/async* functions
+async_await_test/03: Crash # (f()async{return id(42);}): cannot handle async/sync*/async* functions
+async_await_test/none: Crash # (f()async{return id(42);}): cannot handle async/sync*/async* functions
+async_break_in_finally_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async_continue_label_test/await_in_body: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async_continue_label_test/await_in_condition: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async_continue_label_test/await_in_init: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async_continue_label_test/await_in_update: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async_continue_label_test/none: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async_control_structures_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+async_finally_rethrow_test: Crash #  cannot handle async/sync*/async* functions
+async_or_generator_return_type_stacktrace_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+async_or_generator_return_type_stacktrace_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+async_or_generator_return_type_stacktrace_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+async_or_generator_return_type_stacktrace_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+async_regression_23058_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async_rethrow_test: Crash #  cannot handle async/sync*/async* functions
+async_return_types_test/nestedFuture: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async_return_types_test/none: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async_return_types_test/tooManyTypeParameters: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async_return_types_test/wrongReturnType: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async_return_types_test/wrongTypeParameter: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async_star_cancel_and_throw_in_finally_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async_star_regression_23116_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async_star_test/01: Crash # (f()async*{}): cannot handle async/sync*/async* functions
+async_star_test/02: Crash # (f()async*{}): cannot handle async/sync*/async* functions
+async_star_test/03: Crash # (f()async*{}): cannot handle async/sync*/async* functions
+async_star_test/04: Crash # (f()async*{}): cannot handle async/sync*/async* functions
+async_star_test/05: Crash # (f()async*{}): cannot handle async/sync*/async* functions
+async_star_test/none: Crash # (f()async*{}): cannot handle async/sync*/async* functions
+async_switch_test/none: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async_switch_test/withDefault: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async_test/constructor2: Crash # (bar(int p1,p2)async{var z=8;return p2+z+foo;}): cannot handle async/sync*/async* functions
+async_test/constructor3: Crash # (bar(int p1,p2)async{var z=8;return p2+z+foo;}): cannot handle async/sync*/async* functions
+async_test/constructor4: Crash # (bar(int p1,p2)async{var z=8;return p2+z+foo;}): cannot handle async/sync*/async* functions
+async_test/none: Crash # (bar(int p1,p2)async{var z=8;return p2+z+foo;}): cannot handle async/sync*/async* functions
+async_test/setter1: Crash # (bar(int p1,p2)async{var z=8;return p2+z+foo;}): cannot handle async/sync*/async* functions
+async_test/type-mismatch1: Crash # (bar(int p1,p2)async{var z=8;return p2+z+foo;}): cannot handle async/sync*/async* functions
+async_test/type-mismatch2: Crash # (bar(int p1,p2)async{var z=8;return p2+z+foo;}): cannot handle async/sync*/async* functions
+async_test/type-mismatch3: Crash # (bar(int p1,p2)async{var z=8;return p2+z+foo;}): cannot handle async/sync*/async* functions
+async_test/type-mismatch4: Crash # (bar(int p1,p2)async{var z=8;return p2+z+foo;}): cannot handle async/sync*/async* functions
+async_this_bound_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async_throw_in_catch_test/forceAwait: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async_throw_in_catch_test/none: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+asyncstar_concat_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+asyncstar_throw_in_catch_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+asyncstar_yield_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+asyncstar_yieldstar_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+await_backwards_compatibility_test/await1: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+await_backwards_compatibility_test/await2: Crash # (test1()): Error expression `test1()` unhandled.
+await_backwards_compatibility_test/await3: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+await_backwards_compatibility_test/await4: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+await_backwards_compatibility_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+await_exceptions_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+await_for_cancel_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+await_for_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+await_for_use_local_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+await_future_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+await_nonfuture_test: Crash # (foo()async{Expect.equals(X,10);return await 5;}): cannot handle async/sync*/async* functions
+await_not_started_immediately_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+await_postfix_expr_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+await_regression_test: Crash #  cannot handle async/sync*/async* functions
+await_test: Crash #  cannot handle async/sync*/async* functions
+bad_constructor_test/06: Crash # (new A()): Error expression `new A()` unhandled.
+bad_named_constructor_negative_test: Crash #  Error expression `BadNamedConstructorNegativeTest.testMain()` unhandled.
+bad_named_parameters2_test/01: Crash # (try {caught=false;np.foo(b:25);}on NoSuchMethodError catch (e){caught=true;}): "on T" catch block
+bad_named_parameters2_test/none: Crash # (try {caught=false;}on NoSuchMethodError catch (e){caught=true;}): "on T" catch block
+bad_named_parameters_test/01: Crash #  "on T" catch block
+bad_named_parameters_test/02: Crash # (try {caught=false;}on NoSuchMethodError catch (e){caught=true;}): "on T" catch block
+bad_named_parameters_test/03: Crash # (try {caught=false;}on NoSuchMethodError catch (e){caught=true;}): "on T" catch block
+bad_named_parameters_test/04: Crash # (try {caught=false;}on NoSuchMethodError catch (e){caught=true;}): "on T" catch block
+bad_named_parameters_test/05: Crash # (try {caught=false;}on NoSuchMethodError catch (e){caught=true;}): "on T" catch block
+bad_named_parameters_test/none: Crash # (try {caught=false;}on NoSuchMethodError catch (e){caught=true;}): "on T" catch block
+bailout2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+bailout3_test: Crash # (throw 0): Unhandled node
+bailout4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+bailout5_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+bailout6_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+bailout7_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+bailout_container_type_test: Crash # (throw 'Test failed'): Unhandled node
+bailout_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+bind_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+bit_operations_test/01: Crash # (throw new ExpectException(message)): Unhandled node
+bit_operations_test/02: Crash # (throw new ExpectException(message)): Unhandled node
+bit_operations_test/03: Crash # (throw new ExpectException(message)): Unhandled node
+bit_operations_test/04: Crash # (throw new ExpectException(message)): Unhandled node
+bit_operations_test/none: Crash # (throw new ExpectException(message)): Unhandled node
+bit_shift_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+bool_check_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+bool_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+bound_closure_equality_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+bound_closure_primitives_test: Crash # (throw new ExpectException(message)): Unhandled node
+branch_canonicalization_test: Crash # (throw new ExpectException(message)): Unhandled node
+branches_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+break_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+built_in_identifier_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+call_argument_inference_test: Crash # (throw new ExpectException(message)): Unhandled node
+call_closurization_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+call_constructor_on_unresolvable_class_test/01: Crash # (new A()): Error expression `new A()` unhandled.
+call_constructor_on_unresolvable_class_test/02: Crash # (new A.foo()): Error expression `new A.foo()` unhandled.
+call_constructor_on_unresolvable_class_test/03: Crash # (new lib.A()): Error expression `new lib.A()` unhandled.
+call_constructor_on_unresolvable_class_test/04: Crash # (new A()): Error expression `new A()` unhandled.
+call_constructor_on_unresolvable_class_test/05: Crash # (new A.foo()): Error expression `new A.foo()` unhandled.
+call_constructor_on_unresolvable_class_test/06: Crash # (new lib.A()): Error expression `new lib.A()` unhandled.
+call_constructor_on_unresolvable_class_test/07: Crash # (new A()): Error expression `new A()` unhandled.
+call_nonexistent_constructor_test/01: Crash #  "on T" catch block
+call_nonexistent_constructor_test/02: Crash # (try {}on NoSuchMethodError catch (e){i=-1;}on String catch (e){i=1;}): "on T" catch block
+call_nonexistent_constructor_test/none: Crash # (try {}on NoSuchMethodError catch (e){i=-1;}on String catch (e){i=1;}): "on T" catch block
+call_nonexistent_static_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+call_nonexistent_static_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+call_nonexistent_static_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+call_nonexistent_static_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+call_nonexistent_static_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+call_nonexistent_static_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+call_nonexistent_static_test/07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+call_nonexistent_static_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+call_nonexistent_static_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+call_nonexistent_static_test/10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+call_nonexistent_static_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+call_operator_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+call_property_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+call_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+call_this_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+call_through_getter_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+call_through_null_getter_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+call_type_literal_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+call_with_no_such_method_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+canonical_const2_test: Crash # (throw new ExpectException(message)): Unhandled node
+canonical_const3_test: Crash # (throw new ExpectException(message)): Unhandled node
+canonical_const_test: Crash # Please triage this failure.
+cascade2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cascade_2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cascade_in_expression_function_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cascade_in_initializer_list_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cascade_precedence_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cascade_test/none: Crash # cannot compile methods that need interceptor calling convention.
+cast2_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cast2_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cast_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cast_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cast_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cast_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cast_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cast_test/07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cast_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cast_test/10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cast_test/12: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cast_test/13: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cast_test/14: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cast_test/15: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cast_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+catch_liveness_test: Crash # Please triage this failure.
+cha_deopt1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cha_deopt2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cha_deopt3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+char_escape_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+checked_null_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+checked_setter2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+checked_setter3_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+checked_setter3_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+checked_setter3_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+checked_setter_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_codegen_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_cycle_test/00: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_cycle_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_cycle_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_cycle_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_cycle_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/11: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/12: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/13: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/14: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/15: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/16: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/17: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/18: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/19: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/20: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/21: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/22: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/23: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/24: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/25: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_literal_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+class_override_test/00: Crash # (try {instance.foo();}on NoSuchMethodError catch (error){}finally {}): "on T" catch block
+class_override_test/none: Crash # (try {instance.foo();}finally {}): not exactly one catch block
+class_syntax2_test: Crash # (throw new ExpectException(message)): Unhandled node
+class_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure5_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure6_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure7_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure8_test: Crash # cannot compile methods that need interceptor calling convention.
+closure_break1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure_break2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure_break_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure_in_constructor_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure_in_field_initializer_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure_in_initializer2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure_in_initializer_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure_internals_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure_parameter_types_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure_self_reference_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure_shared_state_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure_side_effect_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure_type_test/01: Crash #  "on T" catch block
+closure_type_test/none: Crash #  "on T" catch block
+closure_type_variable_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure_type_variables_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure_variable_shadow_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure_with_super_field_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closure_with_super_send_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closures_initializer2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closures_initializer_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+closures_with_complex_params_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+code_after_try_is_executed_test/01: Crash # (try {throw 'foo';}on String catch (ex){exception=ex;}): "on T" catch block
+code_after_try_is_executed_test/none: Crash # (try {throw 'foo';}on String catch (ex){exception=ex;}): "on T" catch block
+code_motion_crash_test: Crash # (throw 'Test failed'): Unhandled node
+comparison_test: Crash # (throw new ExpectException(message)): Unhandled node
+compile_time_constant10_test/01: Crash # (throw new ExpectException(message)): Unhandled node
+compile_time_constant10_test/02: Crash # (throw new ExpectException(message)): Unhandled node
+compile_time_constant10_test/none: Crash # (throw new ExpectException(message)): Unhandled node
+compile_time_constant11_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+compile_time_constant2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+compile_time_constant3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+compile_time_constant5_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+compile_time_constant6_test: Crash # (throw new ExpectException(message)): Unhandled node
+compile_time_constant7_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+compile_time_constant8_test: Crash # (throw new ExpectException(message)): Unhandled node
+compile_time_constant9_test: Crash # (throw new ExpectException(message)): Unhandled node
+compile_time_constant_a_test: Crash # Please triage this failure.
+compile_time_constant_b_test: Crash # Please triage this failure.
+compile_time_constant_c_test/01: Crash # Please triage this failure.
+compile_time_constant_c_test/02: Crash # Please triage this failure.
+compile_time_constant_c_test/03: Crash # Please triage this failure.
+compile_time_constant_c_test/none: Crash # Please triage this failure.
+compile_time_constant_d_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+compile_time_constant_e_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+compile_time_constant_f_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+compile_time_constant_g_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+compile_time_constant_h_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+compile_time_constant_i_test: Crash # (throw new ExpectException(message)): Unhandled node
+compile_time_constant_j_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+compile_time_constant_k_test/01: Crash # Please triage this failure.
+compile_time_constant_k_test/02: Crash # Please triage this failure.
+compile_time_constant_k_test/03: Crash # Please triage this failure.
+compile_time_constant_k_test/none: Crash # Please triage this failure.
+compile_time_constant_l_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+compile_time_constant_m_test: Crash # (throw new ExpectException(message)): Unhandled node
+compile_time_constant_n_test: Crash # (throw new ExpectException(message)): Unhandled node
+compile_time_constant_o_test/01: Crash # Please triage this failure.
+compile_time_constant_o_test/02: Crash # Please triage this failure.
+compile_time_constant_o_test/none: Crash # Please triage this failure.
+compile_time_constant_p_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+compile_time_constant_p_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+compile_time_constant_r_test/01: Crash # Please triage this failure.
+compile_time_constant_r_test/02: Crash # Please triage this failure.
+compile_time_constant_r_test/none: Crash # Please triage this failure.
+compile_time_constant_test/01: Crash # unable to build cps definition of generative_constructor(Bad#)
+compound_assignment_operator_test: Crash # (throw new ExpectException(message)): Unhandled node
+cond_expr_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+condition_bailout_test: Crash # (throw new ExpectException(message)): Unhandled node
+const_conditional_test/01: Crash # (throw new ExpectException(message)): Unhandled node
+const_conditional_test/02: Crash # (throw new ExpectException(message)): Unhandled node
+const_conditional_test/03: Crash # (throw new ExpectException(message)): Unhandled node
+const_conditional_test/04: Crash # (throw new ExpectException(message)): Unhandled node
+const_conditional_test/05: Crash # (throw new ExpectException(message)): Unhandled node
+const_conditional_test/06: Crash # (throw new ExpectException(message)): Unhandled node
+const_conditional_test/07: Crash # (throw new ExpectException(message)): Unhandled node
+const_conditional_test/08: Crash # (throw new ExpectException(message)): Unhandled node
+const_conditional_test/09: Crash # (throw new ExpectException(message)): Unhandled node
+const_conditional_test/10: Crash # (throw new ExpectException(message)): Unhandled node
+const_conditional_test/none: Crash # (throw new ExpectException(message)): Unhandled node
+const_constructor_nonconst_field_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_constructor_nonconst_field_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_constructor_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_counter_negative_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_dynamic_type_literal_test/01: Crash # (throw new ExpectException(message)): Unhandled node
+const_escape_frog_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_evaluation_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_evaluation_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_factory_redirection_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_global_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_init_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_list_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_local_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_locals_test: Crash # (throw new ExpectException(message)): Unhandled node
+const_map2_test/none: Crash # Please triage this failure.
+const_map3_test/none: Crash # Please triage this failure.
+const_map4_test: Crash # Please triage this failure.
+const_map_test: Crash # Please triage this failure.
+const_named_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_nested_test: Crash # Please triage this failure.
+const_objects_are_immutable_test/01: Crash # Please triage this failure.
+const_objects_are_immutable_test/none: Crash # Please triage this failure.
+const_string_test: Crash # (throw new ExpectException(message)): Unhandled node
+const_switch2_test/none: Crash # (switch (a){case 1:print("OK");}): Unhandled node
+const_switch_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_switch_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_switch_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_switch_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_syntax_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_syntax_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_syntax_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_syntax_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_syntax_test/07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_syntax_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_syntax_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_syntax_test/10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_syntax_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+const_types_test/01: RuntimeError # Please triage this failure.
+const_types_test/02: RuntimeError # Please triage this failure.
+const_types_test/03: RuntimeError # Please triage this failure.
+const_types_test/04: RuntimeError # Please triage this failure.
+const_types_test/05: RuntimeError # Please triage this failure.
+const_types_test/06: RuntimeError # Please triage this failure.
+const_types_test/13: RuntimeError # Please triage this failure.
+const_types_test/23: Crash # (new Superclass()): Error expression `new Superclass()` unhandled.
+const_types_test/24: Crash # (new Superclass()): Error expression `new Superclass()` unhandled.
+const_types_test/25: Crash # (new Superclass()): Error expression `new Superclass()` unhandled.
+const_types_test/26: Crash # (new Superclass()): Error expression `new Superclass()` unhandled.
+const_types_test/27: Crash # (new Superclass()): Error expression `new Superclass()` unhandled.
+const_types_test/28: Crash # (new Superclass()): Error expression `new Superclass()` unhandled.
+const_types_test/29: Crash # (new Superclass()): Error expression `new Superclass()` unhandled.
+const_types_test/30: Crash # (new Superclass()): Error expression `new Superclass()` unhandled.
+const_types_test/31: RuntimeError # Please triage this failure.
+const_types_test/32: RuntimeError # Please triage this failure.
+const_types_test/33: RuntimeError # Please triage this failure.
+const_types_test/34: RuntimeError # Please triage this failure.
+const_types_test/35: RuntimeError # Please triage this failure.
+const_types_test/36: RuntimeError # Please triage this failure.
+const_types_test/37: RuntimeError # Please triage this failure.
+const_types_test/38: RuntimeError # Please triage this failure.
+const_types_test/39: RuntimeError # Please triage this failure.
+const_types_test/40: RuntimeError # Please triage this failure.
+const_types_test/41: Crash # (new Superclass()): Error expression `new Superclass()` unhandled.
+const_types_test/none: RuntimeError # Please triage this failure.
+constant_fold_equals_test: Crash # (throw new ExpectException(message)): Unhandled node
+constant_propagation_phis_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constant_string_interpolation_test: Crash # (throw new ExpectException(message)): Unhandled node
+constructor10_test/01: Crash # Please triage this failure.
+constructor10_test/02: Crash # Please triage this failure.
+constructor11_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor12_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor3_negative_test: Crash # Please triage this failure.
+constructor3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor5_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor6_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor7_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor8_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor_body_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor_call_wrong_argument_count_negative_test: Crash # Please triage this failure.
+constructor_default_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor_initializer_test/01: Crash # (new A(3)): Error expression `new A(3)` unhandled.
+constructor_initializer_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor_name_clash_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor_name_test/01: Crash # (new Foo.Foo()): Error expression `new Foo.Foo()` unhandled.
+constructor_name_test/02: Crash # (new Foo()): Error expression `new Foo()` unhandled.
+constructor_name_test/03: Crash # (new Foo()): Error expression `new Foo()` unhandled.
+constructor_named_arguments_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor_named_arguments_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor_redirect_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor_redirect_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor_return_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor_return_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor_return_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor_return_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor_return_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor_return_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+constructor_with_mixin_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+context2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+context_args_with_defaults_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+context_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+continue_test: Crash # (switch (0){case 0:i=22;continue;default:i=25;break;}): Unhandled node
+core_type_check_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+crash_12118_test: Crash # (throw 'Test failed'): Unhandled node
+crash_6725_test/01: Crash # (throw 'f.key != 42 (${f.key})'): Unhandled node
+create_unresolved_type_test/01: Crash # (new F<int>()): Error expression `new F<int>()` unhandled.
+critical_edge2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+critical_edge_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+ct_const3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+ct_const4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+ct_const_test: Crash #  "on T" catch block
+custom_await_stack_trace_test: Crash #  cannot handle async/sync*/async* functions
+cyclic_import_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cyclic_type2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cyclic_type_test/00: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cyclic_type_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cyclic_type_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cyclic_type_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+cyclic_type_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+dangling_else_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+default_class_implicit_constructor_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+default_factory_library_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+default_factory_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+default_factory_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+default_implementation_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+default_init_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+deferred_closurize_load_library_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constant_list_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_constants_test/constructor1: Crash # (const lib.Const()): Error expression `const lib.Const()` unhandled.
+deferred_constraints_constants_test/constructor2: Crash #  Error expression `const lib.Const.namedConstructor()` unhandled.
+deferred_constraints_constants_test/default_argument1: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_constants_test/default_argument2: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_constants_test/metadata1: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_constants_test/metadata2: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_constants_test/metadata3: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_constants_test/none: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_constants_test/reference1: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_constants_test/reference2: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_constants_test/reference_after_load: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_type_annotation_test/as_operation: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_type_annotation_test/catch_check: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_type_annotation_test/is_check: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_type_annotation_test/new: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_type_annotation_test/new_before_load: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_type_annotation_test/new_generic1: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_type_annotation_test/new_generic2: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_type_annotation_test/new_generic3: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_type_annotation_test/none: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_type_annotation_test/static_method: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_type_annotation_test/type_annotation1: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_type_annotation_test/type_annotation_generic1: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_type_annotation_test/type_annotation_generic2: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_type_annotation_test/type_annotation_generic3: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_type_annotation_test/type_annotation_generic4: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_type_annotation_test/type_annotation_null: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_constraints_type_annotation_test/type_annotation_top_level: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_function_type_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+deferred_global_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_in_isolate_test: Crash # (rethrow;): Unhandled node
+deferred_inheritance_constraints_test/mixin: Crash # (new C()): Error expression `new C()` unhandled.
+deferred_inlined_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+deferred_load_constants_test/01: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_load_constants_test/02: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_load_constants_test/03: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_load_constants_test/04: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_load_constants_test/05: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_load_constants_test/none: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_load_inval_code_test: RuntimeError # Please triage this failure.
+deferred_load_library_wrong_args_test/none: RuntimeError # Please triage this failure.
+deferred_mixin_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_no_such_method_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_not_loaded_check_test: Crash # (throw new ExpectException(message)): Unhandled node
+deferred_only_constant_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+deferred_optimized_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+deferred_shadow_load_library_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+deferred_shared_and_unshared_classes_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deferred_static_seperate_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+deopt_inlined_function_lazy_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+deopt_inlined_function_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+deopt_lazy_finalization_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+deopt_no_feedback_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+deopt_smi_op_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+deoptimized_function_on_stack_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+div_by_zero_test: Crash # (throw new ExpectException(message)): Unhandled node
+div_with_power_of_two2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+div_with_power_of_two_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+do_while2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+do_while3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+do_while4_test: Crash # (throw new ExpectException(message)): Unhandled node
+do_while_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+double_int_addition_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+double_int_to_string_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+double_modulo_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+double_nan_comparison_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+double_to_string_as_exponential2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+double_to_string_as_exponential3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+double_to_string_as_exponential_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+double_to_string_as_fixed2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+double_to_string_as_fixed_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+double_to_string_as_precision2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+double_to_string_as_precision3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+double_to_string_as_precision_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+double_to_string_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+duplicate_implements_test/03: Crash # (new Z()): Error expression `new Z()` unhandled.
+duplicate_implements_test/04: Crash # (new Z()): Error expression `new Z()` unhandled.
+duplicate_interface_negative_test: Crash # (Expect): Error expression `Expect` unhandled.
+duplicate_interface_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+dynamic_call_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+dynamic_field_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+dynamic_field_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+dynamic_prefix_core_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+dynamic_prefix_core_test/none: Crash # (throw new ExpectException(message)): Unhandled node
+dynamic_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+dynamic_type_literal_test: Crash # (throw new ExpectException(message)): Unhandled node
+emit_const_fields_test: Crash # Please triage this failure.
+empty_block_case_test: Crash #  "on T" catch block
+enum_const_test/01: Crash # (throw new ExpectException(message)): Unhandled node
+enum_const_test/02: Crash # (throw new ExpectException(message)): Unhandled node
+enum_duplicate_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+enum_duplicate_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+enum_duplicate_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+enum_index_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+enum_mirror_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+enum_private_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+enum_private_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+enum_private_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+enum_syntax_test/10: Crash # (C.bla): Error expression `C.bla` unhandled.
+enum_test: Crash #  Unhandled node
+equality_test: Crash # (throw new ExpectException(message)): Unhandled node
+error_stacktrace_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+evaluation_redirecting_constructor_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+example_constructor_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+exception_identity_test: Crash # (throw exception): Unhandled node
+exception_test: Crash # (try {throw "Hello";}on String catch (s){print(s);i+= 10;}): "on T" catch block
+execute_finally10_test: Crash # (throw 'Expected exception'): Unhandled node
+execute_finally11_test: Crash # (throw 'Expected exception'): Unhandled node
+execute_finally12_test: Crash # (throw new ExpectException(message)): Unhandled node
+execute_finally1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+execute_finally2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+execute_finally3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+execute_finally4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+execute_finally5_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+execute_finally6_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+execute_finally7_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+execute_finally8_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+execute_finally9_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+exhaustive_for_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+expect_test: Crash # (try {Expect.fail("fail now");}on Exception catch (msg){print(msg);return;}): "on T" catch block
+extend_type_parameter2_negative_test: Crash # (new A()): Error expression `new A()` unhandled.
+extends_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+external_test/16: Crash # (new Foo()): Error expression `new Foo()` unhandled.
+f_bounded_equality_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+f_bounded_quantification4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+f_bounded_quantification5_test: Crash #  "on T" catch block
+f_bounded_quantification_test/01: Crash #  "on T" catch block
+f_bounded_quantification_test/02: Crash # (try {}on TypeError catch (error){got_type_error=true;}): "on T" catch block
+f_bounded_quantification_test/none: Crash # (try {}on TypeError catch (error){got_type_error=true;}): "on T" catch block
+factory3_test: Crash # (throw "0 is not a T"): Unhandled node
+factory_arrow_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+factory_implementation_test/00: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+factory_implementation_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+factory_redirection2_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+factory_redirection2_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+factory_redirection3_cyclic_test/01: Crash # (new A.foo()): Error expression `new A.foo()` unhandled.
+factory_redirection_test/01: Crash # (new A<List>.test01()): Error expression `new A<List>.test01()` unhandled.
+factory_redirection_test/02: Crash # (new A<List>.test02()): Error expression `new A<List>.test02()` unhandled.
+factory_redirection_test/03: Crash # (new A<List>.test03()): Error expression `new A<List>.test03()` unhandled.
+factory_redirection_test/04: Crash # (new C.test04()): Error expression `new C.test04()` unhandled.
+factory_redirection_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+factory_redirection_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+factory_redirection_test/07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+factory_redirection_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+factory_redirection_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+factory_redirection_test/10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+factory_redirection_test/11: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+factory_redirection_test/12: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+factory_redirection_test/13: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+factory_redirection_test/14: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+factory_redirection_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+factory_return_type_checked_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+factory_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+factory_type_parameter2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+factory_type_parameter_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+fannkuch_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+fast_method_extraction_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+fauxverride_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+fibo_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+field3_negative_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+field3a_negative_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+field_increment_bailout_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+field_inference_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+field_initialization_order_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+field_optimization2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+field_optimization3_test: Crash # (throw new ExpectException(message)): Unhandled node
+field_optimization_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+field_override2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+field_override3_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+field_override4_test/00: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+field_override4_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+field_override4_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+field_override4_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+field_override_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+field_override_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+field_override_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+field_parameter_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+field_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+final_field_initialization_order_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+final_for_in_variable_test/01: Crash # (i=4): Error expression `i=4` unhandled.
+final_is_not_const_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+final_is_not_const_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+final_param_test/01: Crash # (x=2): Error expression `x=2` unhandled.
+final_syntax_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+final_syntax_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+final_syntax_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+final_syntax_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+final_syntax_test/10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+final_syntax_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+final_used_in_try_test: Crash # (rethrow;): Unhandled node
+final_variable_assignment_test/01: Crash # (x=0): Error expression `x=0` unhandled.
+final_variable_assignment_test/02: Crash # (x+= 1): Error expression `x+= 1` unhandled.
+final_variable_assignment_test/03: Crash # ( ++x): Error expression ` ++x` unhandled.
+final_variable_assignment_test/04: Crash # (x++ ): Error expression `x++ ` unhandled.
+finally_test: Crash # (try {i=12;}finally {Expect.equals(12,i);executedFinally=true;}): not exactly one catch block
+first_class_types_constants_test: Crash # (throw new ExpectException(message)): Unhandled node
+first_class_types_libraries_test: Crash # (throw new ExpectException(message)): Unhandled node
+first_class_types_literals_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+first_class_types_literals_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+first_class_types_literals_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+first_class_types_literals_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+first_class_types_literals_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+first_class_types_literals_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+first_class_types_literals_test/07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+first_class_types_literals_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+first_class_types_literals_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+first_class_types_literals_test/10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+first_class_types_literals_test/11: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+first_class_types_literals_test/12: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+first_class_types_literals_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+first_class_types_test: Crash # (throw new ExpectException(message)): Unhandled node
+fixed_length_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+fixed_type_variable2_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+fixed_type_variable2_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+fixed_type_variable2_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+fixed_type_variable2_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+fixed_type_variable2_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+fixed_type_variable2_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+fixed_type_variable_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+fixed_type_variable_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+fixed_type_variable_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+fixed_type_variable_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+fixed_type_variable_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+fixed_type_variable_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+flatten_test/01: Crash # (test()async{int x=await new Derived<int>();}): cannot handle async/sync*/async* functions
+flatten_test/02: Crash # (test()async{Future<int> f()async=>new Derived<int>();}): cannot handle async/sync*/async* functions
+flatten_test/03: Crash #  cannot handle async/sync*/async* functions
+flatten_test/04: Crash #  cannot handle async/sync*/async* functions
+flatten_test/05: Crash #  cannot handle async/sync*/async* functions
+flatten_test/06: Crash #  cannot handle async/sync*/async* functions
+flatten_test/07: Crash #  cannot handle async/sync*/async* functions
+flatten_test/08: Crash #  cannot handle async/sync*/async* functions
+flatten_test/09: Crash #  cannot handle async/sync*/async* functions
+flatten_test/10: Crash #  cannot handle async/sync*/async* functions
+flatten_test/11: Crash #  cannot handle async/sync*/async* functions
+flatten_test/12: Crash #  cannot handle async/sync*/async* functions
+flatten_test/none: Crash # (test()async{}): cannot handle async/sync*/async* functions
+for2_test: Crash # Please triage this failure.
+for_in2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+for_in_side_effects_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+for_in_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+for_inlining_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+for_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+for_variable_capture_test: Crash # (i=0): For-loop variable captured in loop header
+for_without_condition_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+forwarding_factory_constructor_default_values_test: Crash # (throw "FAILED"): Unhandled node
+full_stacktrace1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+full_stacktrace2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+full_stacktrace3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_argument_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_field_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_getter_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_literals2_test: Crash # (throw new ExpectException(message)): Unhandled node
+function_literals_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_malformed_result_type_test: Crash # (try {f();}on TypeError catch (error){got_type_error=true;}): "on T" catch block
+function_propagation_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype0_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_bound_closure0_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_bound_closure1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_bound_closure2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_bound_closure3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_bound_closure4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_bound_closure5_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_bound_closure5a_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_bound_closure6_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_bound_closure7_test: Crash # (throw new ExpectException(message)): Unhandled node
+function_subtype_call0_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_call1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_call2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_cast0_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_cast1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_cast2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_cast3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_checked0_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_closure0_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_closure1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_factory0_test: Crash # (throw new ExpectException(message)): Unhandled node
+function_subtype_factory1_test: Crash # (throw new ExpectException(message)): Unhandled node
+function_subtype_inline0_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_inline1_test: Crash # (throw new ExpectException(message)): Unhandled node
+function_subtype_inline2_test: Crash #  "on T" catch block
+function_subtype_local0_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_local1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_local2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_local3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_local4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_local5_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_named1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_named2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_not0_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_not1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_not2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_not3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_optional1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_optional2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_setter0_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_simple0_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_simple1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_simple2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_top_level0_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_top_level1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_typearg0_test: Crash # (throw new ExpectException(message)): Unhandled node
+function_subtype_typearg1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_typearg2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_typearg3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_subtype_typearg4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_syntax_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_syntax_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_syntax_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_syntax_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_syntax_test/05: Crash # (testNestedFunctions()): Error expression `testNestedFunctions()` unhandled.
+function_syntax_test/06: Crash # (testNestedFunctions()): Error expression `testNestedFunctions()` unhandled.
+function_syntax_test/07: Crash # (testNestedFunctions()): Error expression `testNestedFunctions()` unhandled.
+function_syntax_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_syntax_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_syntax_test/10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_syntax_test/11: Crash # (testNestedFunctions()): Error expression `testNestedFunctions()` unhandled.
+function_syntax_test/12: Crash # (testNestedFunctions()): Error expression `testNestedFunctions()` unhandled.
+function_syntax_test/13: Crash # (testNestedFunctions()): Error expression `testNestedFunctions()` unhandled.
+function_syntax_test/14: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_syntax_test/15: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_syntax_test/16: Crash # (testNestedFunctions()): Error expression `testNestedFunctions()` unhandled.
+function_syntax_test/17: Crash # (testNestedFunctions()): Error expression `testNestedFunctions()` unhandled.
+function_syntax_test/18: Crash # (testNestedFunctions()): Error expression `testNestedFunctions()` unhandled.
+function_syntax_test/19: Crash # (testNestedFunctions()): Error expression `testNestedFunctions()` unhandled.
+function_syntax_test/20: Crash # (testNestedFunctions()): Error expression `testNestedFunctions()` unhandled.
+function_syntax_test/21: Crash # (testNestedFunctions()): Error expression `testNestedFunctions()` unhandled.
+function_syntax_test/22: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_syntax_test/23: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/24: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/25: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/26: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/27: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/28: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/29: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/30: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/31: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/32: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/33: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/34: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/35: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/36: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/37: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/44: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/45: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/46: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/47: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/48: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/49: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/50: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/51: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/52: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/53: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/54: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/55: Crash # (testFunctionExpressions()): Error expression `testFunctionExpressions()` unhandled.
+function_syntax_test/64: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_syntax_test/65: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_syntax_test/66: Crash # (testPrecedence()): Error expression `testPrecedence()` unhandled.
+function_syntax_test/67: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_syntax_test/68: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_syntax_test/69: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_syntax_test/70: Crash #  Error expression `testFunctionIdentifierExpression()` unhandled.
+function_syntax_test/71: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_syntax_test/72: Crash # (testFunctionIdentifierStatement()): Error expression `testFunctionIdentifierStatement()` unhandled.
+function_syntax_test/73: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_syntax_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_type2_test: Crash # (try {new B<String>();}on TypeError catch (e){caughtException=true;}): "on T" catch block
+function_type3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_type_alias2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_type_alias3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_type_alias4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_type_alias6_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_type_alias8_test: Crash # unsupported element kind: fromThing:field
+function_type_alias_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_type_call_getter_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_type_parameter2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_type_parameter_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+function_type_test: Crash # (try {FListInt fli=f();}on TypeError catch (error){got_type_error=true;}): "on T" catch block
+function_type_this_parameter_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+generic2_test: Crash # (throw new ExpectException(message)): Unhandled node
+generic_closure_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+generic_constructor_mixin2_test: Crash #  "on T" catch block
+generic_constructor_mixin3_test: Crash #  "on T" catch block
+generic_constructor_mixin_test: Crash #  "on T" catch block
+generic_creation_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+generic_deep_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+generic_field_mixin2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+generic_field_mixin6_test/01: Crash #  "on T" catch block
+generic_field_mixin_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+generic_inheritance_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+generic_instanceof2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+generic_instanceof3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+generic_instanceof4_test: Crash # (throw new ExpectException(message)): Unhandled node
+generic_instanceof5_test: Crash # (throw new ExpectException(message)): Unhandled node
+generic_instanceof_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+generic_is_check_test: Crash # (throw new ExpectException(message)): Unhandled node
+generic_list_checked_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+generic_native_test: Crash # (throw new ExpectException(message)): Unhandled node
+generic_object_type_test: Crash # (throw new ExpectException(message)): Unhandled node
+generic_parameterized_extends_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+generic_syntax_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+generic_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+generics_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+getter_closure_execution_order_test: Crash # (throw "${failures.length~/2} tests failed."): Unhandled node
+getter_no_setter2_test/00: Crash # (throw new ExpectException(message)): Unhandled node
+getter_no_setter2_test/01: Crash # (nextVar++ ): Error expression `nextVar++ ` unhandled.
+getter_no_setter2_test/03: Crash # (throw new ExpectException(message)): Unhandled node
+getter_no_setter_test/00: Crash # (throw new ExpectException(message)): Unhandled node
+getter_no_setter_test/01: Crash # (nextVar=0): Error expression `nextVar=0` unhandled.
+getter_no_setter_test/02: Crash # (throw new ExpectException(message)): Unhandled node
+getter_no_setter_test/none: Crash # (throw new ExpectException(message)): Unhandled node
+getter_override2_test/00: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+getter_override2_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+getter_override2_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+getter_override2_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+getter_override_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+getter_override_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+getter_setter_in_lib_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+getter_setter_interceptor_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+getter_setter_order_test: Crash # (throw new ExpectException(message)): Unhandled node
+getters_setters2_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+getters_setters2_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+getters_setters2_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+getters_setters2_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+getters_setters_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+getters_setters_type2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+getters_setters_type3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+getters_setters_type_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+getters_setters_type_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+guess_cid_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+gvn_field_access_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+gvn_interceptor_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+gvn_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+hash_code_mangling_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+hash_map_null_key_foreach_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+hello_script_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+identical_closure2_test: Crash # (throw new ExpectException(message)): Unhandled node
+identical_closure_test: Crash # (throw new ExpectException(message)): Unhandled node
+identical_const_test/01: Crash # Please triage this failure.
+identical_const_test/02: Crash # Please triage this failure.
+identical_const_test/03: Crash # Please triage this failure.
+identical_const_test/04: Crash # Please triage this failure.
+identical_const_test/05: Crash # Please triage this failure.
+identical_const_test/06: Crash # Please triage this failure.
+identical_const_test/07: Crash # Please triage this failure.
+identical_const_test/08: Crash # Please triage this failure.
+identical_const_test/none: Crash # Please triage this failure.
+identical_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+if_and_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+if_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+illegal_invocation_test/01: Crash # (foo()): Error expression `foo()` unhandled.
+implicit_closure2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+implicit_closure_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+implicit_scope_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+implicit_super_constructor_call_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+implicit_this_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+implicit_this_test/02: Crash # (new Abstract()): Error expression `new Abstract()` unhandled.
+implicit_this_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+implicit_this_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+implied_interface_test: Crash #  "on T" catch block
+import_combinators_negative_test: Crash # (ugly): Error expression `ugly` unhandled.
+import_combinators_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+import_core_prefix_test: Crash # (throw new ExpectException(message)): Unhandled node
+import_self_test/01: Crash # (throw new ExpectException(message)): Unhandled node
+import_self_test/none: Crash # (throw new ExpectException(message)): Unhandled node
+import_show_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+incr_op_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+index_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inference_captured_variable2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inference_captured_variable_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inference_list_or_null_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inference_mixin_field_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inference_super_constructor_call_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inferrer_closure_test: Crash # (throw 'Test failed'): Unhandled node
+inferrer_constructor2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inferrer_constructor3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inferrer_constructor4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inferrer_constructor5_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inferrer_constructor_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inferrer_named_parameter_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inferrer_synthesized_constructor_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inferrer_synthesized_super_constructor2_test: Crash # (throw 'Test failed'): Unhandled node
+inferrer_synthesized_super_constructor_test: Crash # Please triage this failure.
+inferrer_this_access_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+infinite_switch_label_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+infinity_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inline_argument_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inline_closure_with_constant_arguments_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inline_effect_context_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inline_getter_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inline_in_for_initializer_and_bailout_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inline_super_field_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inline_super_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inline_test_context_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inline_value_context_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inlined_conditional_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+inlined_throw_test: Crash # (throw new ExpectException(message)): Unhandled node
+inst_field_initializer1_negative_test: Crash # unable to build cps definition of generative_constructor(A#)
+inst_field_initializer_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+instance_compound_assignment_operator_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+instance_field_initializer_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+instance_incr_deopt_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+instance_inline_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+instanceof2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+instanceof3_test: Crash #  "on T" catch block
+instanceof4_test/01: Crash # (throw new ExpectException(message)): Unhandled node
+instanceof4_test/none: Crash # (throw new ExpectException(message)): Unhandled node
+instanceof_optimized_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+instanceof_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+int2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+int_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+integer_division_by_zero_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+interceptor2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+interceptor3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+interceptor4_test: Crash # (throw new ExpectException(message)): Unhandled node
+interceptor5_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+interceptor6_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+interceptor7_test: Crash # (throw new ExpectException(message)): Unhandled node
+interceptor8_test: Crash # unsupported element kind: a:field
+interceptor9_test: Crash # (throw e): Unhandled node
+interceptor_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+interface_constants_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+interface_static_method_negative_test: Crash # (new A()): Error expression `new A()` unhandled.
+interface_static_non_final_fields_negative_test: Crash #  Error expression `InterfaceStaticNonFinalFieldsNegativeTest` unhandled.
+internal_library_test/01: Crash # (JS('int','0')): handleStaticFunctionInvoke: foreign: function(JS)
+internal_library_test/02: Crash # (JS('int','0')): Error expression `JS('int','0')` unhandled.
+intrinsified_methods_test: Crash # (throw new ExpectException(message)): Unhandled node
+invocation_mirror2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+invocation_mirror_invoke_on2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+invocation_mirror_invoke_on_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+invocation_mirror_test: Crash # cannot compile methods that need interceptor calling convention.
+is_function_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+is_interfaces2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+is_interfaces_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+is_malformed_type_test/94: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+is_malformed_type_test/95: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+is_malformed_type_test/96: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+is_malformed_type_test/97: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+is_malformed_type_test/98: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+is_malformed_type_test/99: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+is_nan_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+is_not_class1_negative_test: Crash #  Error expression `IsNotClass1NegativeTest.testMain()` unhandled.
+is_not_class2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+is_not_class4_negative_test: Crash #  Error expression `IsNotClass4NegativeTest.testMain()` unhandled.
+is_object_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+is_operator_clash_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+is_operator_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+isnot_malformed_type_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+issue10204_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+issue10321_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+issue10561_test: Crash # (throw new ExpectException(message)): Unhandled node
+issue10581_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+issue10721_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+issue10747_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+issue10783_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+issue11724_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+issue11793_test: Crash # unsupported element kind: otherArray:field
+issue12023_test: Crash #  Unhandled node
+issue12284_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+issue12288_test: Crash # (throw "Expected 2, but child.path0.length was ${result}"): Unhandled node
+issue12336_test: Crash # (throw new ExpectException(message)): Unhandled node
+issue13179_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+issue13474_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+issue1363_test: Crash # (try {contents=libCup.getContents();}on TypeError catch (e){hasThrown=true;}): "on T" catch block
+issue13673_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+issue14014_3_test: Crash # (throw 'Test failed'): Unhandled node
+issue14242_test: Crash # (throw 'Test failed'): Unhandled node
+issue15606_test/01: Crash # (Unresolved): Error expression `Unresolved` unhandled.
+issue15702_test: Crash # (throw 'Test failed'): Unhandled node
+issue20476_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+issue21159_test: Crash # (try {foo();}on StackOverflowError catch (e){exceptionCaught=true;}): "on T" catch block
+issue22800_test: Crash # (throw 0): Unhandled node
+issue4515170_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+issue7513_test: Crash # (throw new ExpectException(message)): Unhandled node
+issue7525_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+issue9687_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+issue9939_test: Crash # (throw e): Unhandled node
+issue9949_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+issue_1751477_test: RuntimeError # Please triage this failure.
+js_properties_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+label8_negative_test: Crash # (Label8NegativeTest.errorMethod()): Error expression `Label8NegativeTest.errorMethod()` unhandled.
+label_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+large_class_declaration_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+large_implicit_getter_test: Crash # unsupported element kind: panels:field
+lazy_map_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+lazy_static2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+lazy_static3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+lazy_static4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+lazy_static5_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+lazy_static6_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+lazy_static_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+left_shift_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+library1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+library5_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+library_ambiguous_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+library_juxtaposition_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+library_prefixes_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+library_private_in_constructor_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+library_same_name_used_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+licm2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+licm3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+licm_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+list_double_index_in_loop2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+list_double_index_in_loop_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+list_in_closure_test: Crash # (throw new ExpectException(message)): Unhandled node
+list_is_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+list_length_tracer_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+list_literal2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+list_literal3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+list_literal4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+list_literal_negative_test: Crash #  Error expression `ListLiteralNegativeTest.testMain()` unhandled.
+list_literal_syntax_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+list_literal_syntax_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+list_literal_syntax_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+list_literal_syntax_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+list_literal_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+list_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+list_tracer_call_last_test: Crash # (throw 'Test failed'): Unhandled node
+list_tracer_closure_test: Crash # (throw 'Test failed'): Unhandled node
+list_tracer_in_list_test: Crash # (throw 'Test failed'): Unhandled node
+list_tracer_in_map_test: Crash # (throw 'Test failed'): Unhandled node
+list_tracer_return_from_tearoff_closure_test: Crash # (throw 'Test failed'): Unhandled node
+liveness_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+load_indexed_constant_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+local_export_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+local_function2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+local_function3_test: Crash # (try {f.xyz(0);}on NoSuchMethodError catch (e){exception_caught=true;}): "on T" catch block
+local_function_non_equal_test: Crash # (throw new ExpectException(message)): Unhandled node
+local_function_test: Crash # (try {f(1,2);}on NoSuchMethodError catch (e){exception_caught=true;}): "on T" catch block
+logical_expression2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+logical_expression3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+logical_expression4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+logical_expression5_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+logical_expression_test: Crash # (throw new ExpectException(message)): Unhandled node
+loop_exchange2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+loop_exchange3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+loop_exchange4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+loop_exchange_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+loop_hoist_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+malbounded_type_cast2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+malbounded_type_cast_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+malbounded_type_literal_test: Crash # (throw new ExpectException(message)): Unhandled node
+malbounded_type_test2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+malbounded_type_test_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+malbounded_type_test_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+malbounded_type_test_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+malbounded_type_test_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+malformed2_test/00: Crash # (throw 'Test failed.'): Unhandled node
+malformed2_test/01: Crash # (throw 'Test failed.'): Unhandled node
+malformed2_test/none: Crash # (throw 'Test failed.'): Unhandled node
+malformed_inheritance_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+malformed_inheritance_test/03: Crash # Please triage this failure.
+malformed_inheritance_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+malformed_inheritance_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+malformed_inheritance_test/09: Crash # Please triage this failure.
+malformed_inheritance_test/10: Crash # Please triage this failure.
+malformed_test/06: Crash #  "on T" catch block
+malformed_test/none: Crash #  "on T" catch block
+malformed_type_test: Crash # unsupported element kind: x:field
+many_calls_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+many_generic_instanceof_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+many_named_arguments_test: Crash # (throw new ExpectException(message)): Unhandled node
+many_overridden_no_such_method_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+map_literal10_test: Crash # Please triage this failure.
+map_literal2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+map_literal3_test: Crash # Please triage this failure.
+map_literal4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+map_literal5_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+map_literal6_test: Crash # Please triage this failure.
+map_literal7_test: Crash # (throw new ExpectException(message)): Unhandled node
+map_literal8_test: Crash # (throw new ExpectException(message)): Unhandled node
+map_literal9_test: Crash # Please triage this failure.
+map_literal_negative_test: Crash # (MapLiteralNegativeTest.testMain()): Error expression `MapLiteralNegativeTest.testMain()` unhandled.
+map_literal_syntax_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+map_literal_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+map_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mega_load_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+megamorphic_no_such_method_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_binding_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_invocation_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_name_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_override2_test/00: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_override2_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_override2_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_override2_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_override2_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_override3_test/00: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_override3_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_override3_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_override3_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_override4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_override5_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_override6_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_override7_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_override7_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_override8_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_override8_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_override8_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+method_override_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+methods_as_constants2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+methods_as_constants_test: Crash # Please triage this failure.
+minify_closure_variable_collision_test: Crash # (throw 'Test failed'): Unhandled node
+mint_arithmetic_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mint_compares_test: Crash # (throw new ExpectException(message)): Unhandled node
+mixin_black_listed_test/01: Crash # (throw new ExpectException(message)): Unhandled node
+mixin_black_listed_test/02: Crash # (throw new ExpectException(message)): Unhandled node
+mixin_black_listed_test/05: Crash # (throw new ExpectException(message)): Unhandled node
+mixin_black_listed_test/06: Crash # (throw new ExpectException(message)): Unhandled node
+mixin_black_listed_test/07: Crash # (throw new ExpectException(message)): Unhandled node
+mixin_black_listed_test/08: Crash # (new F2()): Error expression `new F2()` unhandled.
+mixin_black_listed_test/none: Crash # (throw new ExpectException(message)): Unhandled node
+mixin_bound_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_cyclic_test/01: Crash # Please triage this failure.
+mixin_extends_field_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_extends_is_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_extends_method_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_field_initializer_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_field_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_forwarding_constructor1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_forwarding_constructor2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_forwarding_constructor3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_generic_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_getter_regression_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_illegal_constructor_test/13: MissingRuntimeError # Please triage this failure.
+mixin_illegal_constructor_test/14: Crash # (new C0.named()): Error expression `new C0.named()` unhandled.
+mixin_illegal_constructor_test/15: MissingRuntimeError # Please triage this failure.
+mixin_illegal_constructor_test/16: Crash # (new D0.named()): Error expression `new D0.named()` unhandled.
+mixin_illegal_cycles_test/02: Crash # Please triage this failure.
+mixin_illegal_cycles_test/03: Crash # Please triage this failure.
+mixin_illegal_cycles_test/04: Crash # Please triage this failure.
+mixin_illegal_cycles_test/06: Crash # Please triage this failure.
+mixin_illegal_static_access_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_illegal_super_use_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_illegal_super_use_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_illegal_super_use_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_illegal_super_use_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_illegal_super_use_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_illegal_super_use_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_illegal_super_use_test/07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_illegal_super_use_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_illegal_super_use_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_illegal_super_use_test/10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_illegal_super_use_test/11: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_illegal_super_use_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_illegal_syntax_test/13: Crash # (new T0()): Error expression `new T0()` unhandled.
+mixin_implements_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_invalid_inheritance1_test/01: Crash # Please triage this failure.
+mixin_invalid_inheritance1_test/02: Crash # Please triage this failure.
+mixin_invalid_inheritance1_test/03: Crash # Please triage this failure.
+mixin_invalid_inheritance2_test/01: Crash # (new C<C>()): Error expression `new C<C>()` unhandled.
+mixin_invalid_inheritance2_test/02: Crash # (new C<C>()): Error expression `new C<C>()` unhandled.
+mixin_invalid_inheritance2_test/03: Crash # (new C<C>()): Error expression `new C<C>()` unhandled.
+mixin_is_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_issue10216_2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_issue10216_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_lib_extends_field_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_lib_extends_method_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_method_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_mixin2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_mixin3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_mixin4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_mixin5_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_mixin6_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_mixin7_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_mixin_bound2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_mixin_bound_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_mixin_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_naming_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_only_for_rti_test: Crash # (throw new ExpectException(message)): Unhandled node
+mixin_override_regression_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_prefix_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_regress_11398_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_regress_13688_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_super_constructor2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_super_constructor_default_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_super_constructor_multiple_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_super_constructor_named_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_super_constructor_named_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_super_constructor_positionals_test/01: Crash # Please triage this failure.
+mixin_super_constructor_positionals_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_super_constructor_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_this_use_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_type_parameter1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_type_parameter2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_type_parameter3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_type_parameter4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_type_parameters_mixin_extends_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_type_parameters_mixin_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_type_parameters_simple_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_type_parameters_super_extends_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_type_parameters_super_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_typedef_constructor_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mixin_with_two_implicit_constructors_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+modulo_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mul_recipr_test: Crash # (throw new ExpectException(message)): Unhandled node
+multi_assign_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+multi_pass2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+multi_pass_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+multiline_strings_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+multiple_field_assignment_constructor_test: Crash # unsupported element kind: a:field
+named_argument_in_const_creation_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_argument_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_constructor_test/01: Crash # (new Class.named<int>()): Error expression `new Class.named<int>()` unhandled.
+named_constructor_test/03: Crash # (new prefix<int>.Class()): Error expression `new prefix<int>.Class()` unhandled.
+named_constructor_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameter_clash_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameter_regression_test: Crash # (throw 'broken'): Unhandled node
+named_parameters2_test: Crash # (try {test(10,25,b:26);}on NoSuchMethodError catch (e){foundError=true;}): "on T" catch block
+named_parameters3_test: Crash # (try {test(10,x:99);}on NoSuchMethodError catch (e){foundError=true;}): "on T" catch block
+named_parameters4_test: Crash # (try {test(10,x:99);}on NoSuchMethodError catch (e){foundError=true;}): "on T" catch block
+named_parameters_aggregated_test/02: Crash #  Error expression `NamedParametersAggregatedTests.f_missing_comma(10,25)` unhandled.
+named_parameters_aggregated_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameters_named_count_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameters_passing_false_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameters_passing_falsy_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameters_passing_null_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameters_passing_zero_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameters_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameters_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameters_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameters_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameters_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameters_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameters_test/07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameters_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameters_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameters_test/10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameters_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameters_with_conversions_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameters_with_dollars_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+named_parameters_with_object_property_names_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+namer2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+namer_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+naming2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+naming3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+naming_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+native_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+nested_comments_test: Crash # (throw new ExpectException(message)): Unhandled node
+nested_if_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+nested_switch_label_test: Crash #  Unhandled node
+new_expression1_negative_test: Crash # (NewExpression1NegativeTest): Error expression `NewExpression1NegativeTest` unhandled.
+new_expression2_negative_test: Crash # (NewExpression2NegativeTest): Error expression `NewExpression2NegativeTest` unhandled.
+new_expression3_negative_test: Crash # (NewExpression3NegativeTest): Error expression `NewExpression3NegativeTest` unhandled.
+new_prefix_test/01: Crash # (new prefix()): Error expression `new prefix()` unhandled.
+new_statement_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+no_such_constructor2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+no_such_constructor_test/01: MissingRuntimeError # Please triage this failure.
+no_such_method2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+no_such_method3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+no_such_method_dispatcher_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+no_such_method_empty_selector_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+no_such_method_subtype_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+no_such_method_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+non_const_constructor_without_body_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+non_const_super_negative_test: Crash # Please triage this failure.
+non_dominating_loop_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+not_enough_positional_arguments_test/00: MissingRuntimeError # Please triage this failure.
+not_enough_positional_arguments_test/03: Crash # Please triage this failure.
+not_enough_positional_arguments_test/06: MissingRuntimeError # Please triage this failure.
+not_enough_positional_arguments_test/07: Crash # Please triage this failure.
+null2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+null_access_error_test: Crash #  "on T" catch block
+null_inline_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+null_is2_test: Crash # (throw new ExpectException(message)): Unhandled node
+null_is_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+null_method_test: Crash # (throw new ExpectException(message)): Unhandled node
+null_no_such_method_test: Crash # unsupported element kind: array:field
+null_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+null_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+null_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+null_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+null_to_string2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+null_to_string_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+number_constant_folding1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+number_identifier_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+number_identifier_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+number_identifier_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+number_identifier_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+number_identity2_test: Crash # (throw new ExpectException(message)): Unhandled node
+number_identity_test: Crash # (throw new ExpectException(message)): Unhandled node
+number_syntax_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+numbers_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+on_catch_malformed_type_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+operator2_negative_test: Crash # (new Helper(10)): Error expression `new Helper(10)` unhandled.
+operator2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+operator3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+operator4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+operator5_test: Crash # (try {Expect.equals(42,a>=a);}on TypeError catch (e){}): "on T" catch block
+operator6_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+operator_equals_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+operator_index_evaluation_order_test: Crash # (throw new ExpectException(message)): Unhandled node
+operator_negate_and_method_negate_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+operator_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+optimize_redundant_array_load_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+optimized_constant_array_string_access_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+optimized_hoisting_checked_mode_assert_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+optimized_isempty_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+optimized_lists_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+optimized_setter_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+optimized_string_charat_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+optimized_string_charcodeat_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+optional_named_parameters_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+optional_named_parameters_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+optional_named_parameters_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+optional_named_parameters_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+optional_named_parameters_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+optional_named_parameters_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+optional_named_parameters_test/07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+optional_named_parameters_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+optional_named_parameters_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+optional_named_parameters_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+ordered_maps_test: Crash # Please triage this failure.
+osr_test: Crash # (throw "No progress made"): Unhandled node
+overridden_no_such_method_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+override_inheritance_no_such_method_test/03: Crash # cannot compile methods that need interceptor calling convention.
+override_inheritance_no_such_method_test/04: Crash # cannot compile methods that need interceptor calling convention.
+override_inheritance_no_such_method_test/08: Crash # cannot compile methods that need interceptor calling convention.
+override_inheritance_no_such_method_test/11: Crash # cannot compile methods that need interceptor calling convention.
+override_inheritance_no_such_method_test/13: Crash # cannot compile methods that need interceptor calling convention.
+override_method_with_field_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+override_method_with_field_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+param2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+param_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+parameter_initializer2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+parameter_initializer4_negative_test: Crash # Please triage this failure.
+parameter_initializer6_negative_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+parameter_initializer_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+parameter_name_conflict_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+parameter_types_specialization_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+parse_closures_in_initializers_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+parse_types_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+partial_min_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+patch_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+phi_merge_test: Crash # (switch (value){case 42:break;case 43:break;}): Unhandled node
+positive_bit_operations_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+prefix101_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+prefix10_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+prefix11_negative_test: Crash # (new lib12.Library11(1)): Error expression `new lib12.Library11(1)` unhandled.
+prefix11_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+prefix12_negative_test: Crash # (lib12.top_level11): Error expression `lib12.top_level11` unhandled.
+prefix12_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+prefix14_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+prefix15_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+prefix16_test: Crash # (try {myFunc i=0;}on TypeError catch (error){got_type_error=true;}): "on T" catch block
+prefix1_negative_test: Crash # (library1): Error expression `library1` unhandled.
+prefix21_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+prefix24_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+prefix2_negative_test: Crash # (lib2.Library2): Error expression `lib2.Library2` unhandled.
+prefix3_negative_test: Crash # (lib2.foo=1): Error expression `lib2.foo=1` unhandled.
+prefix4_negative_test: Crash # (new lib11.Library11(1)): Error expression `new lib11.Library11(1)` unhandled.
+prefix5_negative_test: Crash # (lib11): Error expression `lib11` unhandled.
+prefix_new_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+prefix_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+private3_test: Crash # Please triage this failure.
+private4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+private_access_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+private_access_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+private_access_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+private_access_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+private_access_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+private_access_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+private_clash_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+private_mixin2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+private_mixin_exception_throw_test: Crash # (throw "IT"): Unhandled node
+private_selector_test: Crash # (throw new ExpectException(message)): Unhandled node
+private_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+propagate_past_constant_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+propagated_argument_type_check_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+property_field_override_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+pure_function2_test: Crash # (throw new ExpectException(message)): Unhandled node
+pure_function_test: Crash # (throw new ExpectException(message)): Unhandled node
+range_analysis2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+range_analysis3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+range_analysis_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+raw_string_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+recursive_calls_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+recursive_loop_phis_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+redirecting_factory_default_values_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+redirecting_factory_default_values_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+redirecting_factory_default_values_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+redirecting_factory_incompatible_signature_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+redirecting_factory_long_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+reexport_core_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+ref_before_declaration_test/00: Crash # (throw "ball"): Unhandled node
+ref_before_declaration_test/01: Crash # (throw "ball"): Unhandled node
+ref_before_declaration_test/02: Crash # (throw "ball"): Unhandled node
+ref_before_declaration_test/03: Crash # (throw "ball"): Unhandled node
+ref_before_declaration_test/04: Crash # (throw "ball"): Unhandled node
+ref_before_declaration_test/05: Crash # (throw "ball"): Unhandled node
+ref_before_declaration_test/06: Crash # (throw "ball"): Unhandled node
+ref_before_declaration_test/07: Crash # (throw "ball"): Unhandled node
+ref_before_declaration_test/none: Crash # (throw "ball"): Unhandled node
+refine_receiver_null_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+reg_exp2_test: Crash # (throw new ExpectException(message)): Unhandled node
+reg_exp3_test: Crash # (try {RegExp exp=new RegExp("[");i=100;}on FormatException catch (e){i=0;}): "on T" catch block
+reg_exp_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+regress_10996_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+regress_11010_test: Crash # (throw 'unexpected result'): Unhandled node
+regress_11800_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+regress_12561_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+regress_13462_1_test: Crash # (throw 'Wrong name: ${name} != foo'): Unhandled node
+regress_13494_test: Crash # (A.unknown=p(2)): Error expression `A.unknown=p(2)` unhandled.
+regress_14105_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+regress_17382_test: Crash # (tl(m(0))): Error expression `tl(m(0))` unhandled.
+regress_18435_test: Crash # Please triage this failure.
+regress_18535_test: Crash # cannot compile methods that need interceptor calling convention.
+regress_19413_test/01: Crash # (foo.f()): Error expression `foo.f()` unhandled.
+regress_20840_test: Crash # (throw "FAIL"): Unhandled node
+regress_21016_test: Crash # unsupported element kind: list:field
+regress_21793_test/01: Crash # (new A()(499)): Error expression `new A()(499)` unhandled.
+regress_21795_test: Crash # (throw "Expected foo in stacktrace!"): Unhandled node
+regress_21998_1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+regress_21998_2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+regress_21998_3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+regress_21998_4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+regress_22438_test: Crash #  cannot handle async/sync*/async* functions
+regress_22443_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+regress_22445_test: Crash #  cannot handle async/sync*/async* functions
+regress_22579_test: Crash #  cannot handle async/sync*/async* functions
+regress_22700_test: Crash # Please triage this failure.
+regress_22719_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+regress_22728_test: Crash #  cannot handle async/sync*/async* functions
+regress_22777_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+regress_22822_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+regress_22858_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+regress_22936_test/01: Crash # (try {x=foo();}on NoSuchMethodError {}): "on T" catch block
+regress_22936_test/none: Crash # (try {foo();}on NoSuchMethodError {}): "on T" catch block
+regress_23046_test: Crash # Please triage this failure.
+regress_r24720_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+reify_typevar_static_test/00: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+reify_typevar_static_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+reify_typevar_static_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+reify_typevar_static_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+reify_typevar_static_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+reify_typevar_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+resolution_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+resolve_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+rethrow_test: Crash #  "on T" catch block
+return_in_loop_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+return_this_type_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+return_type_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+rewrite_assign_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+rewrite_compound_assign_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+rewrite_conditional_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+rewrite_for_update_order_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+rewrite_if_empty_then_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+rewrite_if_return_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+rewrite_if_swap_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+rewrite_implicit_this_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+rewrite_logical_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+rewrite_nested_if1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+rewrite_nested_if2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+rewrite_nested_if3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+rewrite_swap_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+rewrite_variable_initializer_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+rewrite_while_many_exits_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+rewrite_while_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+round_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+runtime_type_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+savannah_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+scope_variable_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+scope_variable_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+scoped_variables_try_catch_test: Crash # Please triage this failure.
+second_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+setter0_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+setter1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+setter2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+setter_no_getter_call_test/01: Crash # (topLevel(3)): Error expression `topLevel(3)` unhandled.
+setter_no_getter_call_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+setter_no_getter_test/01: Crash # (topLevel++ ): Error expression `topLevel++ ` unhandled.
+setter_override2_test/00: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+setter_override2_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+setter_override2_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+setter_override2_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+setter_override2_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+setter_override_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+setter_override_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+setter_override_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+side_effect_throw_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+skip_expression_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+smaller_4_Interface_Types_A11_t01_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+smaller_4_Interface_Types_A11_t02_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+smi_type_test: Crash # (throw new ExpectException(message)): Unhandled node
+stack_overflow_stacktrace_test: Crash #  "on T" catch block
+stack_overflow_test: Crash #  "on T" catch block
+stack_trace_test: Crash # (throw new ExpectException(message)): Unhandled node
+stacktrace_rethrow_error_test/none: Crash # (throw "Expected: ${expected} actual: ${actual}"): Unhandled node
+stacktrace_rethrow_error_test/withtraceparameter: Crash # (throw "Expected: ${expected} actual: ${actual}"): Unhandled node
+stacktrace_rethrow_nonerror_test: Crash # (throw "Expected: ${expected} actual: ${actual}"): Unhandled node
+stacktrace_test: Crash #  "on T" catch block
+state_mangling2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+state_mangling3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+state_mangling4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+state_mangling_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+statement_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+static_call_wrong_argument_count_negative_test: Fail # Please triage this failure.
+static_closure_identical_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+static_const_field_test: Crash # Please triage this failure.
+static_field3_test/01: Crash # (Foo.x): Error expression `Foo.x` unhandled.
+static_field3_test/02: Crash # (Foo.m): Error expression `Foo.m` unhandled.
+static_field3_test/03: Crash # (Foo.m=1): Error expression `Foo.m=1` unhandled.
+static_field3_test/04: Crash # (Foo.x=1): Error expression `Foo.x=1` unhandled.
+static_field_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+static_field_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+static_field_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+static_field_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+static_field_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+static_final_field2_test/01: Crash # (A.x=2): Error expression `A.x=2` unhandled.
+static_implicit_closure_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+static_initializer_type_error_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+static_inline_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+static_postfix_operator_test: Crash # (throw new ExpectException(message)): Unhandled node
+strict_equal_test: Crash # (throw new ExpectException(message)): Unhandled node
+string_charcode_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+string_escapes_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+string_interpolate2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+string_interpolate_null_test: Crash # (try {s="Hello Mr. ${a.name}";}on NoSuchMethodError catch (e){return;}): "on T" catch block
+string_interpolate_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+string_interpolation1_negative_test: Crash #  Error expression `StringInterpolation1NegativeTest.testMain()` unhandled.
+string_interpolation2_negative_test: Crash #  Error expression `StringInterpolation2NegativeTest.testMain()` unhandled.
+string_interpolation4_negative_test: Crash #  Error expression `StringInterpolation4NegativeTest.testMain()` unhandled.
+string_interpolation5_negative_test: Crash #  Error expression `StringInterpolation5NegativeTest.testMain()` unhandled.
+string_interpolation6_negative_test: Crash #  Error expression `StringInterpolation6NegativeTest.testMain()` unhandled.
+string_interpolation7_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+string_interpolation8_test: Crash # (throw new ExpectException(message)): Unhandled node
+string_interpolation_newline_test: Crash # (throw 'expecteda: ${expected} != ${a}'): Unhandled node
+string_interpolation_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+string_interpolation_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+string_intrinsics_test: Crash # (throw new ExpectException(message)): Unhandled node
+string_join_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+string_optimizations_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+string_supertype_checked_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+string_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+substring_test/01: Crash #  "on T" catch block
+substring_test/none: Crash # (try {}on TypeError catch (e){}on ArgumentError catch (e){}): "on T" catch block
+super_abstract_method_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_all_named_constructor_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_assign_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_bound_closure_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_bound_closure_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_call3_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_call3_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_call3_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_call4_test: Crash # (throw new ExpectException(message)): Unhandled node
+super_call_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_closure_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_field_2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_field_access_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_field_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_first_constructor_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_getter_setter_test: Crash # cannot compile methods that need interceptor calling convention.
+super_implicit_closure_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_inferrer_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_operator_index2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_operator_index3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_operator_index4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_operator_index5_test: Crash # cannot compile methods that need interceptor calling convention.
+super_operator_index6_test: Crash # cannot compile methods that need interceptor calling convention.
+super_operator_index7_test: Crash # cannot compile methods that need interceptor calling convention.
+super_operator_index8_test: Crash # cannot compile methods that need interceptor calling convention.
+super_operator_index_test/01: Crash # cannot compile methods that need interceptor calling convention.
+super_operator_index_test/02: Crash # cannot compile methods that need interceptor calling convention.
+super_operator_index_test/03: Crash # (super[4]=42): Error expression `super[4]=42` unhandled.
+super_operator_index_test/04: Crash # (super[4]+=5): Error expression `super[4]+=5` unhandled.
+super_operator_index_test/05: Crash # (super[4]=42): Error expression `super[4]=42` unhandled.
+super_operator_index_test/06: Crash # (super[4]+=5): Error expression `super[4]+=5` unhandled.
+super_operator_index_test/07: Crash # (super[2]): Error expression `super[2]` unhandled.
+super_operator_index_test/none: Crash # cannot compile methods that need interceptor calling convention.
+super_operator_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_setter_interceptor_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_setter_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+super_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+switch6_test: Crash # (switch (a){case 0:{x=0;break;}case 1:x=1;break;}): Unhandled node
+switch8_test: Crash # (switch (new List(1)[0]){case const A():throw 'Test failed';}): Unhandled node
+switch_bad_case_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+switch_bad_case_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+switch_bad_case_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+switch_case_static_const_test: Crash # (switch (p){case S:break;case A.S:break;case 'abc':break;}): Unhandled node
+switch_case_test/none: Crash # (switch (new B()){}): Unhandled node
+switch_fallthru_test: Crash # (try {test(1);}on FallThroughError catch (e){fallthroughCaught=true;}): "on T" catch block
+switch_label2_test: Crash #  Unhandled node
+switch_label_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+switch_scope_test: Crash #  Unhandled node
+switch_test: Crash # (switch (input){case true:result=12;break;case false:result=22;}): Unhandled node
+switch_try_catch_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator1_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator1_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator2_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator2_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator2_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator2_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator2_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator2_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator2_test/07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator2_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator2_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator2_test/10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator2_test/11: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator2_test/20: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator2_test/30: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator2_test/40: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator2_test/41: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator2_test/50: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator2_test/51: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator2_test/52: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator2_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator3_test/test1: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+sync_generator3_test/test2: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+syncstar_yield_test/copyParameters: Crash # (throw new ExpectException(message)): Unhandled node
+syncstar_yield_test/none: Crash # (throw new ExpectException(message)): Unhandled node
+syncstar_yieldstar_test: Crash #  cannot handle async/sync*/async* functions
+temp_mangling_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+ternary_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+test_negative_test: Crash # (TestNegativeTest): Error expression `TestNegativeTest` unhandled.
+third_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+throw1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+throw2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+throw3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+throw4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+throw5_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+throw6_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+throw8_test: Crash # (throw new ExpectException(message)): Unhandled node
+throw_expr_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+throw_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+throwing_lazy_variable_test: Crash # (throw 'Test failed'): Unhandled node
+top_level_func_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+top_level_getter_arrow_syntax_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+top_level_in_initializer_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+top_level_method_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+top_level_multiple_files_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+top_level_non_prefixed_library_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+top_level_prefixed_declaration_test: Crash # (throw new ExpectException(message)): Unhandled node
+top_level_var_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+tree_shake_typed_selector_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+truncdiv_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+truncdiv_uint32_test: Crash # (throw 'Test failed'): Unhandled node
+try_catch2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+try_catch3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+try_catch4_test: Crash # (throw new ExpectException(message)): Unhandled node
+try_catch5_test: Crash # (throw new ExpectException(message)): Unhandled node
+try_catch_on_syntax_test/02: Crash # (test1()): Error expression `test1()` unhandled.
+try_catch_on_syntax_test/03: Crash # (test1()): Error expression `test1()` unhandled.
+try_catch_on_syntax_test/04: Crash # (test1()): Error expression `test1()` unhandled.
+try_catch_on_syntax_test/05: Crash # (test1()): Error expression `test1()` unhandled.
+try_catch_on_syntax_test/06: Crash # (test1()): Error expression `test1()` unhandled.
+try_catch_on_syntax_test/07: Crash # (throw "catch this!"): Unhandled node
+try_catch_on_syntax_test/10: Crash # (throw "catch this!"): Unhandled node
+try_catch_on_syntax_test/11: Crash # (throw "catch this!"): Unhandled node
+try_catch_on_syntax_test/none: Crash # (throw "catch this!"): Unhandled node
+try_catch_optimized1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+try_catch_optimized2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+try_catch_optimized3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+try_catch_optimized4_test: Crash # (try {String res=m.maythrow(i);failed=true;}on MyError catch (e){}): "on T" catch block
+try_catch_osr_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+try_catch_syntax_test/02: Crash # (testMissingTry()): Error expression `testMissingTry()` unhandled.
+try_catch_syntax_test/03: Crash # (testMissingTry()): Error expression `testMissingTry()` unhandled.
+try_catch_syntax_test/04: Crash # (testMissingTry()): Error expression `testMissingTry()` unhandled.
+try_catch_syntax_test/06: Crash # (testIllegalFinally()): Error expression `testIllegalFinally()` unhandled.
+try_catch_syntax_test/08: Crash # (try {}on MammaMia catch (e){}): "on T" catch block
+try_catch_test/01: Crash #  "on T" catch block
+try_catch_test/none: Crash # (throw "up"): Unhandled node
+type_argument_in_super_type_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_argument_substitution_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_check_const_function_typedef2_test/00: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_check_const_function_typedef2_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_check_const_function_typedef_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_check_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_checks_in_factory_method_test: Crash #  "on T" catch block
+type_conversion_ssa_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_error_test: Crash #  "on T" catch block
+type_guard_conversion_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_intersection_test: Crash # (throw new ExpectException(message)): Unhandled node
+type_literal_prefix_call_test/00: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_parameter_literal_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_parameter_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_parameter_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_parameter_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_parameter_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_parameter_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_parameter_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_parameter_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_assign_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_assign_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_assign_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_assign_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_assign_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_closure_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_closure_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_closure_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_closure_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_closure_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_closure_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_closure_test/07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_closure_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_closure_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_closure_test/10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_closure_test/11: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_closure_test/12: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_closure_test/13: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_closure_test/14: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_closure_test/15: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_closure_test/16: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_closure_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_functions_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_functions_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_functions_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_functions_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_functions_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_functions_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_functions_test/07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_functions_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_functions_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_functions_test/10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_functions_test/11: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_functions_test/12: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_functions_test/13: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_functions_test/14: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_functions_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/11: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/12: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/13: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/14: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/15: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/16: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/17: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/18: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/19: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/20: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/21: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/22: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/23: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/24: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/25: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/26: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/27: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/28: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/29: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/30: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/31: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/32: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/33: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/34: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/35: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/36: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/37: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/38: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/39: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/40: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/41: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_local_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_logical_and_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_logical_and_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_logical_and_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_logical_and_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_more_specific_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_more_specific_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_more_specific_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_more_specific_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_more_specific_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_more_specific_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_more_specific_test/07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_more_specific_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_more_specific_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_more_specific_test/10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_more_specific_test/11: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_more_specific_test/12: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_more_specific_test/13: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_more_specific_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/11: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/12: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/13: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/14: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/15: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/16: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/17: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/18: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/19: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/20: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/21: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/22: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_multiple_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/11: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/12: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/13: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/14: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/15: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/16: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/17: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/18: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/19: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/20: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/21: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/22: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/23: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/24: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/25: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/26: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/27: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/28: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/29: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/30: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/31: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/32: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/33: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/34: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/35: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/36: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/37: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/38: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/39: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/40: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/41: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/42: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/43: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/44: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/45: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/46: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/47: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/48: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/49: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/50: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/51: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/52: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/54: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/55: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/56: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_promotion_parameter_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_propagation2_test: Crash # cannot compile methods that need interceptor calling convention.
+type_propagation3_test: Crash # (throw 'Test failed'): Unhandled node
+type_propagation_assert_assignable_test: Crash # (throw new ExpectException(message)): Unhandled node
+type_propagation_in_for_update_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_propagation_phi_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_propagation_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_bounds2_test/00: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_bounds2_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_bounds2_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_bounds2_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_bounds2_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_bounds2_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_bounds2_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_bounds2_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_bounds3_test/00: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_bounds4_test/01: Crash #  "on T" catch block
+type_variable_bounds4_test/none: Crash #  "on T" catch block
+type_variable_closure2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_closure_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_conflict2_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_conflict2_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_conflict2_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_conflict2_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_conflict2_test/07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_conflict2_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_field_initializer_closure_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_field_initializer_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_function_type_test: Crash # (throw new ExpectException(message)): Unhandled node
+type_variable_identifier_expression_test: Crash # (try {var buf=new B<A>().doFunc();print(buf);}on NoSuchMethodError catch (e){}): "on T" catch block
+type_variable_initializer_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_nested_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_variable_scope2_test: Crash #  "on T" catch block
+type_variable_typedef_test: Crash # (throw new ExpectException(message)): Unhandled node
+typed_equality_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+typed_message_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+typed_selector_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+typedef_is_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+typevariable_substitution2_test/01: Crash # Please triage this failure.
+typevariable_substitution2_test/02: Crash #  "on T" catch block
+typevariable_substitution2_test/none: Crash # Please triage this failure.
+unary2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+unary_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+unhandled_exception_negative_test: Crash # (throw new MyException("Unhandled Exception")): Unhandled node
+unicode_bom_middle_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+unicode_hash_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+unnamed_closure_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+unqual_name_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+unresolved_default_constructor_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+unresolved_in_factory_negative_test: Crash # (foo()): Error expression `foo()` unhandled.
+unresolved_top_level_method_negative_test: Crash # unsupported element kind: a:field
+unresolved_top_level_var_negative_test: Crash # unsupported element kind: a:field
+value_range2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+value_range3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+value_range_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+var_init_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+void_type_test: Crash # (try {var x=func();}on TypeError catch (error){got_type_error=true;}): "on T" catch block
+while_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
