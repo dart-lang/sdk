@@ -423,6 +423,9 @@ Object invokeParserMethodImpl(
   parser.currentToken = tokenStream;
   MethodTrampoline method =
       methodTable_Parser['${methodName}_${objects.length}'];
+  if (method == null) {
+    throw new IllegalArgumentException('There is no method named $methodName');
+  }
   return method.invoke(parser, objects);
 }
 
@@ -6234,7 +6237,7 @@ class Parser {
         _reportErrorForNode(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, body);
       }
     } else if (staticKeyword != null) {
-      if (body is EmptyFunctionBody) {
+      if (body is EmptyFunctionBody && _parseFunctionBodies) {
         _reportErrorForNode(ParserErrorCode.ABSTRACT_STATIC_METHOD, body);
       }
     }

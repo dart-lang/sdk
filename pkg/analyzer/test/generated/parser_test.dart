@@ -2507,6 +2507,15 @@ class NonErrorParserTest extends ParserTestCase {
   void test_constFactory_external() {
     parse("parseClassMember", <Object>["C"], "external const factory C();");
   }
+
+  void test_staticMethod_notParsingFunctionBodies() {
+    ParserTestCase.parseFunctionBodies = false;
+    try {
+      parse4("parseCompilationUnit", "class C { static void m() {} }");
+    } finally {
+      ParserTestCase.parseFunctionBodies = true;
+    }
+  }
 }
 
 class ParserTestCase extends EngineTestCase {
