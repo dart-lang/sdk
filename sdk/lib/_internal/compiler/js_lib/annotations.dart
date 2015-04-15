@@ -5,7 +5,9 @@
 part of _js_helper;
 
 /// Tells the optimizing compiler that the annotated method has no
-/// side-effects.
+/// side-effects. Allocations don't count as side-effects, since they can be
+/// dropped without changing the semantics of the program.
+///
 /// Requires @NoInline() to function correctly.
 class NoSideEffects {
   const NoSideEffects();
