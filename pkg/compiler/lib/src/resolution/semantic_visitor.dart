@@ -192,7 +192,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       ParameterElement parameter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Read of the local [variable].
@@ -248,7 +248,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       LocalVariableElement variable,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Closurization of the local [function].
@@ -290,7 +290,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       LocalFunctionElement function,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Getter call on [receiver] of the property defined by [selector].
@@ -412,7 +412,7 @@ abstract class SemanticSendVisitor<R, A> {
   R visitThisInvoke(
       Send node,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
 
@@ -477,7 +477,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       FieldElement field,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Closurization of the super [method].
@@ -509,7 +509,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       MethodElement method,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Assignment of [rhs] to the super [method].
@@ -604,7 +604,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement getter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Invocation of the super [setter] with [arguments].
@@ -621,7 +621,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement setter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Invocation of a [expression] with [arguments].
@@ -689,7 +689,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       FieldElement field,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Closurization of the static [function].
@@ -717,7 +717,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       MethodElement function,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Assignment of [rhs] to the static [function].
@@ -800,7 +800,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement getter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Invocation of the static [setter] with [arguments].
@@ -815,7 +815,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement setter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Read of the top level [field].
@@ -863,7 +863,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       FieldElement field,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Closurization of the top level [function].
@@ -887,7 +887,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       MethodElement function,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Assignment of [rhs] to the top level [function].
@@ -958,7 +958,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement getter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Invocation of the top level [setter] with [arguments].
@@ -971,7 +971,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement setter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Read of the type literal for class [element].
@@ -995,7 +995,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Assignment of [rhs] to the type literal for class [element].
@@ -1031,7 +1031,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Assignment of [rhs] to the type literal for typedef [element].
@@ -1070,7 +1070,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       TypeVariableElement element,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Assignment of [rhs] to the type literal for type variable [element].
@@ -1105,7 +1105,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Assignment of [rhs] to the type literal for `dynamic`.
@@ -2649,7 +2649,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStreucture,
       A arg);
 
   /// Read of the unresolved [element].
@@ -2876,7 +2876,7 @@ abstract class SemanticSendVisitor<R, A> {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Invocation of a redirecting generative [constructor] on [type] with
@@ -2896,7 +2896,7 @@ abstract class SemanticSendVisitor<R, A> {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Invocation of a factory [constructor] on [type] with [arguments].
@@ -2915,7 +2915,7 @@ abstract class SemanticSendVisitor<R, A> {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Invocation of a factory [constructor] on [type] with [arguments] where
@@ -2940,7 +2940,7 @@ abstract class SemanticSendVisitor<R, A> {
       ConstructorElement effectiveTarget,
       InterfaceType effectiveTargetType,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Invocation of an unresolved [constructor] on [type] with [arguments].
@@ -2990,7 +2990,7 @@ abstract class SemanticSendVisitor<R, A> {
       ConstructorElement element,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Invocation of a factory [constructor] on [type] with [arguments] where

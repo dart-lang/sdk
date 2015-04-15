@@ -29,7 +29,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       ConstructorElement element,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleError(node, arg);
   }
@@ -272,7 +272,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement setter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleError(node, arg);
   }
@@ -308,7 +308,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement setter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleError(node, arg);
   }
@@ -344,7 +344,7 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement setter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleError(node, arg);
   }
@@ -1171,7 +1171,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1191,7 +1191,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1211,7 +1211,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       LocalFunctionElement function,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1221,7 +1221,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       LocalVariableElement variable,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1231,7 +1231,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       ParameterElement parameter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1241,7 +1241,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FieldElement field,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1251,7 +1251,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       MethodElement function,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1261,7 +1261,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement getter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1271,7 +1271,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FieldElement field,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1281,7 +1281,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement getter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1291,7 +1291,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       MethodElement method,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1300,7 +1300,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   R visitThisInvoke(
       Send node,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1319,7 +1319,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FieldElement field,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1329,7 +1329,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       MethodElement function,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1339,7 +1339,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement getter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1349,7 +1349,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       TypeVariableElement element,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1359,7 +1359,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1369,7 +1369,7 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1977,7 +1977,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FieldElement field,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleSuper(node, arg);
   }
@@ -2084,7 +2084,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement getter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleSuper(node, arg);
   }
@@ -2143,7 +2143,7 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       MethodElement method,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleSuper(node, arg);
   }
@@ -2228,7 +2228,7 @@ abstract class NewBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleNew(node, arg);
   }
@@ -2238,7 +2238,7 @@ abstract class NewBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleNew(node, arg);
   }
@@ -2248,7 +2248,7 @@ abstract class NewBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleNew(node, arg);
   }
@@ -2260,7 +2260,7 @@ abstract class NewBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       ConstructorElement effectiveTarget,
       InterfaceType effectiveTargetType,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleNew(node, arg);
   }
@@ -2983,7 +2983,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement setter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -3022,7 +3022,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement setter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -3061,7 +3061,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement setter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -3152,7 +3152,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -3203,7 +3203,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -3304,7 +3304,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -3408,7 +3408,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       LocalFunctionElement function,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -3438,7 +3438,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       LocalVariableElement variable,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -3538,7 +3538,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       ParameterElement parameter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -3596,7 +3596,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FieldElement field,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -3643,7 +3643,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       MethodElement function,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -3662,7 +3662,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement getter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -3820,7 +3820,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FieldElement field,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -3931,7 +3931,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement getter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -4004,7 +4004,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       MethodElement method,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -4080,7 +4080,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   R visitThisInvoke(
       Send node,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -4170,7 +4170,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FieldElement field,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -4217,7 +4217,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       MethodElement function,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -4236,7 +4236,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement getter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -4340,7 +4340,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       TypeVariableElement element,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -4388,7 +4388,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -4654,7 +4654,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -4666,7 +4666,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -4680,7 +4680,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       ConstructorElement effectiveTarget,
       InterfaceType effectiveTargetType,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -4692,7 +4692,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -4704,7 +4704,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       ConstructorElement element,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -5155,110 +5155,6 @@ class TraversalDeclarationMixin<R, A>
     apply(body, arg);
     return null;
   }
-
-  @override
-  R visitConstConstructorInvoke(
-      NewExpression node,
-      ConstructedConstantExpression constant,
-      A arg) {
-    return null;
-  }
-
-  @override
-  R errorUnresolvedClassConstructorInvoke(
-      NewExpression node,
-      Element constructor,
-      MalformedType type,
-      NodeList arguments,
-      Selector selector,
-      A arg) {
-    apply(arguments, arg);
-    return null;
-  }
-
-  @override
-  R errorUnresolvedConstructorInvoke(
-      NewExpression node,
-      Element constructor,
-      DartType type,
-      NodeList arguments,
-      Selector selector,
-      A arg) {
-    apply(arguments, arg);
-    return null;
-  }
-  R visitFactoryConstructorInvoke(
-      NewExpression node,
-      ConstructorElement constructor,
-      InterfaceType type,
-      NodeList arguments,
-      Selector selector,
-      A arg) {
-    apply(arguments, arg);
-    return null;
-  }
-
-  @override
-  R visitGenerativeConstructorInvoke(
-      NewExpression node,
-      ConstructorElement constructor,
-      InterfaceType type,
-      NodeList arguments,
-      Selector selector,
-      A arg) {
-    apply(arguments, arg);
-    return null;
-  }
-
-  @override
-  R visitRedirectingFactoryConstructorInvoke(
-      NewExpression node,
-      ConstructorElement constructor,
-      InterfaceType type,
-      ConstructorElement effectiveTarget,
-      InterfaceType effectiveTargetType,
-      NodeList arguments,
-      Selector selector,
-      A arg) {
-    apply(arguments, arg);
-    return null;
-  }
-
-  @override
-  R visitRedirectingGenerativeConstructorInvoke(
-      NewExpression node,
-      ConstructorElement constructor,
-      InterfaceType type,
-      NodeList arguments,
-      Selector selector,
-      A arg) {
-    apply(arguments, arg);
-    return null;
-  }
-
-  @override
-  R errorAbstractClassConstructorInvoke(
-      NewExpression node,
-      ConstructorElement element,
-      InterfaceType type,
-      NodeList arguments,
-      Selector selector,
-      A arg) {
-    apply(arguments, arg);
-    return null;
-  }
-
-  @override
-  R errorUnresolvedRedirectingFactoryConstructorInvoke(
-      NewExpression node,
-      ConstructorElement constructor,
-      InterfaceType type,
-      NodeList arguments,
-      Selector selector,
-      A arg) {
-    apply(arguments, arg);
-    return null;
-  }
 }
 
 /// AST visitor that visits all normal [Send] and [SendSet] nodes using the
@@ -5322,7 +5218,7 @@ abstract class BaseImplementationOfStaticsMixin<R, A>
       Send node,
       FieldElement field,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   R handleStaticFieldPostfixPrefix(
@@ -5347,7 +5243,7 @@ abstract class BaseImplementationOfStaticsMixin<R, A>
       Send node,
       MethodElement function,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   R handleStaticGetterGet(
@@ -5359,7 +5255,7 @@ abstract class BaseImplementationOfStaticsMixin<R, A>
       Send node,
       FunctionElement getter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   R handleStaticGetterSetterCompound(
@@ -5423,9 +5319,9 @@ abstract class BaseImplementationOfStaticsMixin<R, A>
       Send node,
       FieldElement field,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
-    return handleStaticFieldInvoke(node, field, arguments, selector, arg);
+    return handleStaticFieldInvoke(node, field, arguments, callStructure, arg);
   }
 
   @override
@@ -5470,9 +5366,10 @@ abstract class BaseImplementationOfStaticsMixin<R, A>
       Send node,
       MethodElement function,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
-    return handleStaticFunctionInvoke(node, function, arguments, selector, arg);
+    return handleStaticFunctionInvoke(
+        node, function, arguments, callStructure, arg);
   }
 
   @override
@@ -5488,9 +5385,10 @@ abstract class BaseImplementationOfStaticsMixin<R, A>
       Send node,
       FunctionElement getter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
-    return handleStaticGetterInvoke(node, getter, arguments, selector, arg);
+    return handleStaticGetterInvoke(
+        node, getter, arguments, callStructure, arg);
   }
 
   @override
@@ -5593,9 +5491,9 @@ abstract class BaseImplementationOfStaticsMixin<R, A>
       Send node,
       FieldElement field,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
-    return handleStaticFieldInvoke(node, field, arguments, selector, arg);
+    return handleStaticFieldInvoke(node, field, arguments, callStructure, arg);
   }
 
   @override
@@ -5640,9 +5538,10 @@ abstract class BaseImplementationOfStaticsMixin<R, A>
       Send node,
       MethodElement function,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
-    return handleStaticFunctionInvoke(node, function, arguments, selector, arg);
+    return handleStaticFunctionInvoke(
+        node, function, arguments, callStructure, arg);
   }
 
   @override
@@ -5658,9 +5557,10 @@ abstract class BaseImplementationOfStaticsMixin<R, A>
       Send node,
       FunctionElement getter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
-    return handleStaticGetterInvoke(node, getter, arguments, selector, arg);
+    return handleStaticGetterInvoke(
+        node, getter, arguments, callStructure, arg);
   }
 
   @override
@@ -5764,7 +5664,7 @@ abstract class BaseImplementationOfLocalsMixin<R, A>
       Send node,
       LocalElement element,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   R handleLocalPostfixPrefix(
@@ -5793,9 +5693,9 @@ abstract class BaseImplementationOfLocalsMixin<R, A>
       Send node,
       LocalFunctionElement function,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
-    return handleLocalInvoke(node, function, arguments, selector, arg);
+    return handleLocalInvoke(node, function, arguments, callStructure, arg);
   }
 
   @override
@@ -5821,9 +5721,9 @@ abstract class BaseImplementationOfLocalsMixin<R, A>
       Send node,
       LocalVariableElement variable,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
-    return handleLocalInvoke(node, variable, arguments, selector, arg);
+    return handleLocalInvoke(node, variable, arguments, callStructure, arg);
   }
 
   @override
@@ -5878,9 +5778,9 @@ abstract class BaseImplementationOfLocalsMixin<R, A>
       Send node,
       ParameterElement parameter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
-    return handleLocalInvoke(node, parameter, arguments, selector, arg);
+    return handleLocalInvoke(node, parameter, arguments, callStructure, arg);
   }
 
   @override
@@ -5929,7 +5829,7 @@ abstract class BaseImplementationOfConstantsMixin<R, A>
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   @override
@@ -5945,9 +5845,9 @@ abstract class BaseImplementationOfConstantsMixin<R, A>
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
-    return handleConstantInvoke(node, constant, arguments, selector, arg);
+    return handleConstantInvoke(node, constant, arguments, callStructure, arg);
   }
 
   @override
@@ -5971,9 +5871,9 @@ abstract class BaseImplementationOfConstantsMixin<R, A>
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
-    return handleConstantInvoke(node, constant, arguments, selector, arg);
+    return handleConstantInvoke(node, constant, arguments, callStructure, arg);
   }
 
   @override
@@ -5989,9 +5889,9 @@ abstract class BaseImplementationOfConstantsMixin<R, A>
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
-    return handleConstantInvoke(node, constant, arguments, selector, arg);
+    return handleConstantInvoke(node, constant, arguments, callStructure, arg);
   }
 
   @override
@@ -6007,9 +5907,9 @@ abstract class BaseImplementationOfConstantsMixin<R, A>
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
-    return handleConstantInvoke(node, constant, arguments, selector, arg);
+    return handleConstantInvoke(node, constant, arguments, callStructure, arg);
   }
 }
 
@@ -6446,7 +6346,7 @@ abstract class BaseImplementationOfNewMixin<R, A>
       ConstructorElement constructor,
       DartType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   R visitGenerativeConstructorInvoke(
@@ -6454,10 +6354,10 @@ abstract class BaseImplementationOfNewMixin<R, A>
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return handleConstructorInvoke(
-        node, constructor, type, arguments, selector, arg);
+        node, constructor, type, arguments, callStructure, arg);
   }
 
   R visitRedirectingGenerativeConstructorInvoke(
@@ -6465,10 +6365,10 @@ abstract class BaseImplementationOfNewMixin<R, A>
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return handleConstructorInvoke(
-        node, constructor, type, arguments, selector, arg);
+        node, constructor, type, arguments, callStructure, arg);
   }
 
   R visitFactoryConstructorInvoke(
@@ -6476,10 +6376,10 @@ abstract class BaseImplementationOfNewMixin<R, A>
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return handleConstructorInvoke(
-        node, constructor, type, arguments, selector, arg);
+        node, constructor, type, arguments, callStructure, arg);
   }
 
   R visitRedirectingFactoryConstructorInvoke(
@@ -6489,9 +6389,9 @@ abstract class BaseImplementationOfNewMixin<R, A>
       ConstructorElement effectiveTarget,
       InterfaceType effectiveTargetType,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return handleConstructorInvoke(
-        node, constructor, type, arguments, selector, arg);
+        node, constructor, type, arguments, callStructure, arg);
   }
 }

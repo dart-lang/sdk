@@ -12,6 +12,7 @@ import '../elements/elements.dart';
 import '../io/source_information.dart';
 import '../tree/tree.dart' as ast;
 import '../closure.dart' hide ClosureScope;
+import '../universe/universe.dart' show SelectorKind;
 import 'cps_ir_nodes.dart' as ir;
 import 'cps_ir_builder_task.dart' show DartCapturedVariables,
     GlobalProgramInformation;
@@ -647,11 +648,11 @@ abstract class IrBuilder {
   }
 
   ir.Primitive _buildInvokeCall(ir.Primitive target,
-                                Selector selector,
+                                CallStructure callStructure,
                                 List<ir.Definition> arguments,
                                 {SourceInformation sourceInformation}) {
-    Selector callSelector = new Selector.callClosureFrom(selector);
-    return _buildInvokeDynamic(target, callSelector, arguments,
+    Selector selector = callStructure.callSelector;
+    return _buildInvokeDynamic(target, selector, arguments,
         sourceInformation: sourceInformation);
   }
 
@@ -868,24 +869,29 @@ abstract class IrBuilder {
   }
 
   /// Create a invocation of the [method] on the super class where the call
-  /// structure is defined [selector] and the argument values are defined by
-  /// [arguments].
+  /// structure is defined [callStructure] and the argument values are defined
+  /// by [arguments].
   ir.Primitive buildSuperMethodInvocation(MethodElement method,
-                                          Selector selector,
+                                          CallStructure callStructure,
                                           List<ir.Primitive> arguments) {
+    // TODO(johnniwinther): This shouldn't be necessary.
+    SelectorKind kind = Elements.isOperatorName(method.name)
+        ? SelectorKind.OPERATOR : SelectorKind.CALL;
+    Selector selector =
+        new Selector(kind, method.memberName, callStructure);
     return _buildInvokeSuper(method, selector, arguments);
   }
 
   /// Create a call invocation on the value of [field] on the super class where
-  /// the call structure is defined [selector] and the argument values are
+  /// the call structure is defined [callStructure] and the argument values are
   /// defined by [arguments].
   ir.Primitive buildSuperFieldInvocation(FieldElement field,
-                                         Selector selector,
+                                         CallStructure callStructure,
                                          List<ir.Primitive> arguments) {
     // TODO(johnniwinther): Maybe this should have its own ir node.
     return buildCallInvocation(
         buildSuperFieldGet(field),
-        selector,
+        callStructure,
         arguments);
   }
 
@@ -893,12 +899,12 @@ abstract class IrBuilder {
   /// super class where the call structure is defined [selector] and the
   /// argument values are defined by [arguments].
   ir.Primitive buildSuperGetterInvocation(MethodElement getter,
-                                          Selector selector,
+                                          CallStructure callStructure,
                                           List<ir.Primitive> arguments) {
     // TODO(johnniwinther): Maybe this should have its own ir node.
     return buildCallInvocation(
         buildSuperGetterGet(getter),
-        selector,
+        callStructure,
         arguments);
   }
 
@@ -950,6 +956,14 @@ abstract class IrBuilder {
         new Selector.setter(setter.name, setter.library),
         <ir.Primitive>[value]);
     return value;
+  }
+
+  /// Create an invocation of the index [method] on the super class with
+  /// the provided [index].
+  ir.Primitive buildSuperIndex(MethodElement method,
+                               ir.Primitive index) {
+    return _buildInvokeSuper(
+        method, new Selector.index(), <ir.Primitive>[index]);
   }
 
   /// Create an invocation of the index set [method] on the super class with
@@ -1018,64 +1032,69 @@ abstract class IrBuilder {
   ir.Primitive buildLocalVariableSet(LocalElement local, ir.Primitive value);
 
   /// Create an invocation of the the [local] variable or parameter where
-  /// argument structure is defined by [selector] and the argument values are
-  /// defined by [arguments].
+  /// argument structure is defined by [callStructure] and the argument values
+  /// are defined by [arguments].
   ir.Primitive buildLocalVariableInvocation(LocalVariableElement local,
-                                            Selector selector,
+                                            CallStructure callStructure,
                                             List<ir.Primitive> arguments) {
     return buildCallInvocation(
-        buildLocalVariableGet(local), selector, arguments);
+        buildLocalVariableGet(local), callStructure, arguments);
   }
 
   /// Create an invocation of the local [function] where argument structure is
-  /// defined by [selector] and the argument values are defined by [arguments].
+  /// defined by [callStructure] and the argument values are defined by
+  /// [arguments].
   ir.Primitive buildLocalFunctionInvocation(
       LocalFunctionElement function,
-      Selector selector,
+      CallStructure callStructure,
       List<ir.Primitive> arguments) {
     // TODO(johnniwinther): Maybe this should have its own ir node.
     return buildCallInvocation(
-        buildLocalFunctionGet(function), selector, arguments);
+        buildLocalFunctionGet(function), callStructure, arguments);
   }
 
   /// Create a static invocation of [function] where argument structure is
-  /// defined by [selector] and the argument values are defined by [arguments].
+  /// defined by [callStructure] and the argument values are defined by
+  /// [arguments].
   ir.Primitive buildStaticFunctionInvocation(
       MethodElement function,
-      Selector selector,
+      CallStructure callStructure,
       List<ir.Primitive> arguments,
       {SourceInformation sourceInformation}) {
-    return _buildInvokeStatic(function, selector, arguments, sourceInformation);
+    Selector selector =
+        new Selector(SelectorKind.CALL, function.memberName, callStructure);
+    return _buildInvokeStatic(
+        function, selector, arguments, sourceInformation);
   }
 
   /// Create a call invocation of the value of the static [field] where argument
-  /// structure is defined by [selector] and the argument values are defined by
-  /// [arguments].
+  /// structure is defined by [callStructure] and the argument values are
+  /// defined by [arguments].
   ir.Primitive buildStaticFieldInvocation(
       FieldElement field,
-      Selector selector,
+      CallStructure callStructure,
       List<ir.Primitive> arguments,
       {SourceInformation sourceInformation}) {
     // TODO(johnniwinther): Maybe this should have its own node.
     return buildCallInvocation(
         buildStaticFieldGet(field),
-        selector,
+        callStructure,
         arguments,
         sourceInformation: sourceInformation);
   }
 
   /// Create a call invocation of the result of calling the static [getter]
-  /// where argument structure is defined by [selector] and the argument values
-  /// are defined by [arguments].
+  /// where argument structure is defined by [callStructure] and the argument
+  /// values are defined by [arguments].
   ir.Primitive buildStaticGetterInvocation(
       MethodElement getter,
-      Selector selector,
+      CallStructure callStructure,
       List<ir.Primitive> arguments,
       {SourceInformation sourceInformation}) {
     // TODO(johnniwinther): Maybe this should have its own node.
     return buildCallInvocation(
         buildStaticGetterGet(getter),
-        selector,
+        callStructure,
         arguments,
         sourceInformation: sourceInformation);
   }
@@ -1139,14 +1158,14 @@ abstract class IrBuilder {
       Selector selector,
       List<ir.Primitive> arguments) {
     // TODO(johnniwinther): This should have its own ir node.
-    return _buildInvokeStatic( element, selector, arguments, null);
+    return _buildInvokeStatic(element, selector, arguments, null);
   }
 
   /// Create a constructor invocation of [element] on [type] where the
-  /// constructor name and argument structure are defined by [selector] and the
-  /// argument values are defined by [arguments].
+  /// constructor name and argument structure are defined by [callStructure] and
+  /// the argument values are defined by [arguments].
   ir.Primitive buildConstructorInvocation(FunctionElement element,
-                                          Selector selector,
+                                          CallStructure callStructure,
                                           DartType type,
                                           List<ir.Primitive> arguments);
 
@@ -1158,13 +1177,13 @@ abstract class IrBuilder {
   }
 
   /// Create an invocation of the `call` method of [functionExpression], where
-  /// the named arguments are given by [selector].
+  /// the structure of arguments are given by [callStructure].
   ir.Primitive buildCallInvocation(
       ir.Primitive functionExpression,
-      Selector selector,
+      CallStructure callStructure,
       List<ir.Definition> arguments,
       {SourceInformation sourceInformation}) {
-    return _buildInvokeCall(functionExpression, selector, arguments,
+    return _buildInvokeCall(functionExpression, callStructure, arguments,
         sourceInformation: sourceInformation);
   }
 
@@ -2265,11 +2284,13 @@ class DartIrBuilder extends IrBuilder {
   }
 
   @override
-  ir.Primitive buildConstructorInvocation(FunctionElement element,
-                                          Selector selector,
+  ir.Primitive buildConstructorInvocation(ConstructorElement element,
+                                          CallStructure callStructure,
                                           DartType type,
                                           List<ir.Primitive> arguments) {
     assert(isOpen);
+    Selector selector =
+        new Selector(SelectorKind.CALL, element.memberName, callStructure);
     return _continueWithExpression(
         (k) => new ir.InvokeConstructor(type, element, selector, k,
             arguments));
@@ -2548,11 +2569,12 @@ class JsIrBuilder extends IrBuilder {
 
   @override
   ir.Primitive buildConstructorInvocation(ConstructorElement element,
-                                          Selector selector,
+                                          CallStructure callStructure,
                                           DartType type,
                                           List<ir.Primitive> arguments) {
     assert(isOpen);
-
+    Selector selector =
+        new Selector(SelectorKind.CALL, element.memberName, callStructure);
     ClassElement cls = element.enclosingClass;
     if (program.requiresRuntimeTypesFor(cls)) {
       InterfaceType interface = type;

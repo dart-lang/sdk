@@ -371,7 +371,7 @@ class ResolvedSemanticDispatcher<R> extends Object
       Send node,
       FunctionElement setter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       ResolvedKindVisitor<R> visitor) {
     return visitor.visitStaticSend(node);
   }
@@ -389,7 +389,7 @@ class ResolvedSemanticDispatcher<R> extends Object
       Send node,
       FunctionElement setter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       ResolvedKindVisitor<R> visitor) {
     return visitor.visitSuperSend(node);
   }
@@ -407,7 +407,7 @@ class ResolvedSemanticDispatcher<R> extends Object
       Send node,
       FunctionElement setter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       ResolvedKindVisitor<R> visitor) {
     return visitor.visitStaticSend(node);
   }
@@ -624,7 +624,7 @@ class ResolvedSemanticDispatcher<R> extends Object
       Send node,
       ParameterElement parameter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       ResolvedKindVisitor<R> visitor) {
     return visitor.visitClosureSend(node);
   }
@@ -634,7 +634,7 @@ class ResolvedSemanticDispatcher<R> extends Object
       Send node,
       LocalVariableElement variable,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       ResolvedKindVisitor<R> visitor) {
     return visitor.visitClosureSend(node);
   }
@@ -644,7 +644,7 @@ class ResolvedSemanticDispatcher<R> extends Object
       Send node,
       LocalFunctionElement function,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       ResolvedKindVisitor<R> visitor) {
     return visitor.visitClosureSend(node);
   }
@@ -653,7 +653,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   R visitThisInvoke(
       Send node,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       ResolvedKindVisitor<R> visitor) {
     return visitor.visitClosureSend(node);
   }
@@ -695,7 +695,7 @@ class ResolvedSemanticDispatcher<R> extends Object
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       ResolvedKindVisitor<R> visitor) {
     return visitor.visitTypeLiteralSend(node);
   }
@@ -705,7 +705,7 @@ class ResolvedSemanticDispatcher<R> extends Object
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       ResolvedKindVisitor<R> visitor) {
     return visitor.visitTypeLiteralSend(node);
   }
@@ -715,7 +715,7 @@ class ResolvedSemanticDispatcher<R> extends Object
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       ResolvedKindVisitor<R> visitor) {
     return visitor.visitTypeLiteralSend(node);
   }
@@ -725,7 +725,7 @@ class ResolvedSemanticDispatcher<R> extends Object
       Send node,
       TypeVariableElement element,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       ResolvedKindVisitor<R> visitor) {
     return visitor.visitTypeLiteralSend(node);
   }

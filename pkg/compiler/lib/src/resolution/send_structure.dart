@@ -149,7 +149,12 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
   final AccessSemantics semantics;
 
   /// The [Selector] for the invocation.
+  // TODO(johnniwinther): Store this only for dynamic invocations.
   final Selector selector;
+
+  /// The [CallStructure] of the invocation.
+  // TODO(johnniwinther): Store this directly for static invocations.
+  CallStructure get callStructure => selector.callStructure;
 
   InvokeStructure(this.semantics, this.selector);
 
@@ -169,7 +174,7 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
             node.argumentsNode,
             // TODO(johnniwinther): Store the call selector instead of the
             // selector using the name of the function.
-            new Selector.callClosureFrom(selector),
+            callStructure,
             arg);
       case AccessKind.LOCAL_VARIABLE:
         return visitor.visitLocalVariableInvoke(
@@ -178,7 +183,7 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
             node.argumentsNode,
             // TODO(johnniwinther): Store the call selector instead of the
             // selector using the name of the variable.
-            new Selector.callClosureFrom(selector),
+            callStructure,
             arg);
       case AccessKind.PARAMETER:
         return visitor.visitParameterInvoke(
@@ -187,91 +192,91 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
             node.argumentsNode,
             // TODO(johnniwinther): Store the call selector instead of the
             // selector using the name of the parameter.
-            new Selector.callClosureFrom(selector),
+            callStructure,
             arg);
       case AccessKind.STATIC_FIELD:
         return visitor.visitStaticFieldInvoke(
             node,
             semantics.element,
             node.argumentsNode,
-            selector,
+            callStructure,
             arg);
       case AccessKind.STATIC_METHOD:
         return visitor.visitStaticFunctionInvoke(
             node,
             semantics.element,
             node.argumentsNode,
-            selector,
+            callStructure,
             arg);
       case AccessKind.STATIC_GETTER:
         return visitor.visitStaticGetterInvoke(
             node,
             semantics.element,
             node.argumentsNode,
-            selector,
+            callStructure,
             arg);
       case AccessKind.STATIC_SETTER:
         return visitor.errorStaticSetterInvoke(
             node,
             semantics.element,
             node.argumentsNode,
-            selector,
+            callStructure,
             arg);
       case AccessKind.TOPLEVEL_FIELD:
         return visitor.visitTopLevelFieldInvoke(
             node,
             semantics.element,
             node.argumentsNode,
-            selector,
+            callStructure,
             arg);
       case AccessKind.TOPLEVEL_METHOD:
         return visitor.visitTopLevelFunctionInvoke(
             node,
             semantics.element,
             node.argumentsNode,
-            selector,
+            callStructure,
             arg);
       case AccessKind.TOPLEVEL_GETTER:
         return visitor.visitTopLevelGetterInvoke(
             node,
             semantics.element,
             node.argumentsNode,
-            selector,
+            callStructure,
             arg);
       case AccessKind.TOPLEVEL_SETTER:
         return visitor.errorTopLevelSetterInvoke(
             node,
             semantics.element,
             node.argumentsNode,
-            selector,
+            callStructure,
             arg);
       case AccessKind.CLASS_TYPE_LITERAL:
         return visitor.visitClassTypeLiteralInvoke(
             node,
             semantics.constant,
             node.argumentsNode,
-            selector,
+            callStructure,
             arg);
       case AccessKind.TYPEDEF_TYPE_LITERAL:
         return visitor.visitTypedefTypeLiteralInvoke(
             node,
             semantics.constant,
             node.argumentsNode,
-            selector,
+            callStructure,
             arg);
       case AccessKind.DYNAMIC_TYPE_LITERAL:
         return visitor.visitDynamicTypeLiteralInvoke(
             node,
             semantics.constant,
             node.argumentsNode,
-            selector,
+            callStructure,
             arg);
       case AccessKind.TYPE_PARAMETER_TYPE_LITERAL:
         return visitor.visitTypeVariableTypeLiteralInvoke(
             node,
             semantics.element,
             node.argumentsNode,
-            selector,
+            callStructure,
             arg);
       case AccessKind.EXPRESSION:
         return visitor.visitExpressionInvoke(
@@ -284,7 +289,7 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
         return visitor.visitThisInvoke(
             node,
             node.argumentsNode,
-            selector,
+            callStructure,
             arg);
       case AccessKind.THIS_PROPERTY:
         return visitor.visitThisPropertyInvoke(
@@ -297,35 +302,35 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
             node,
             semantics.element,
             node.argumentsNode,
-            selector,
+            callStructure,
             arg);
       case AccessKind.SUPER_METHOD:
         return visitor.visitSuperMethodInvoke(
             node,
             semantics.element,
             node.argumentsNode,
-            selector,
+            callStructure,
             arg);
       case AccessKind.SUPER_GETTER:
         return visitor.visitSuperGetterInvoke(
             node,
             semantics.element,
             node.argumentsNode,
-            selector,
+            callStructure,
             arg);
       case AccessKind.SUPER_SETTER:
         return visitor.errorSuperSetterInvoke(
             node,
             semantics.element,
             node.argumentsNode,
-            selector,
+            callStructure,
             arg);
       case AccessKind.CONSTANT:
         return visitor.visitConstantInvoke(
             node,
             semantics.constant,
             node.argumentsNode,
-            selector,
+            callStructure,
             arg);
       case AccessKind.UNRESOLVED:
         return visitor.errorUnresolvedInvoke(
@@ -1831,30 +1836,32 @@ class NewInvokeStructure<R, A> extends NewStructure<R, A> {
 
   NewInvokeStructure(this.semantics, this.selector);
 
+  CallStructure get callStructure => selector.callStructure;
+
   R dispatch(SemanticSendVisitor<R, A> visitor, NewExpression node, A arg) {
     switch (semantics.kind) {
       case ConstructorAccessKind.GENERATIVE:
         return visitor.visitGenerativeConstructorInvoke(
             node, semantics.element, semantics.type,
-            node.send.argumentsNode, selector, arg);
+            node.send.argumentsNode, callStructure, arg);
       case ConstructorAccessKind.REDIRECTING_GENERATIVE:
         return visitor.visitRedirectingGenerativeConstructorInvoke(
             node, semantics.element, semantics.type,
-            node.send.argumentsNode, selector, arg);
+            node.send.argumentsNode, callStructure, arg);
       case ConstructorAccessKind.FACTORY:
         return visitor.visitFactoryConstructorInvoke(
             node, semantics.element, semantics.type,
-            node.send.argumentsNode, selector, arg);
+            node.send.argumentsNode, callStructure, arg);
       case ConstructorAccessKind.REDIRECTING_FACTORY:
         return visitor.visitRedirectingFactoryConstructorInvoke(
             node, semantics.element, semantics.type,
             semantics.effectiveTargetSemantics.element,
             semantics.effectiveTargetSemantics.type,
-            node.send.argumentsNode, selector, arg);
+            node.send.argumentsNode, callStructure, arg);
       case ConstructorAccessKind.ABSTRACT:
         return visitor.errorAbstractClassConstructorInvoke(
             node, semantics.element, semantics.type,
-            node.send.argumentsNode, selector, arg);
+            node.send.argumentsNode, callStructure, arg);
       case ConstructorAccessKind.ERRONEOUS:
         return visitor.errorUnresolvedConstructorInvoke(
             node, semantics.element, semantics.type,

@@ -175,7 +175,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_PARAMETER_INVOKE,
                     element: 'parameter(m#o)',
                     arguments: '(null,42)',
-                    selector: 'Selector(call, call, arity=2)')),
+                    selector: 'CallStructure(arity=2)')),
   ],
   'Local variables': const [
     // Local variables
@@ -190,7 +190,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_LOCAL_VARIABLE_INVOKE,
                     element: 'variable(m#o)',
                     arguments: '(null,42)',
-                    selector: 'Selector(call, call, arity=2)')),
+                    selector: 'CallStructure(arity=2)')),
   ],
   'Local functions': const [
     // Local functions
@@ -201,7 +201,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_LOCAL_FUNCTION_INVOKE,
                     element: 'function(m#o)',
                     arguments: '(null,42)',
-                    selector: 'Selector(call, call, arity=2)')),
+                    selector: 'CallStructure(arity=2)')),
   ],
   'Static fields': const [
     // Static fields
@@ -2103,7 +2103,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
             element: 'generative_constructor(Class#)',
             arguments: '()',
             type: 'Class',
-            selector: 'Selector(call, , arity=0)')),
+            selector: 'CallStructure(arity=0)')),
     const Test(
         '''
         class Class {
@@ -2115,7 +2115,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
             element: 'generative_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class',
-            selector: 'Selector(call, , arity=2)')),
+            selector: 'CallStructure(arity=2)')),
     const Test(
         '''
         class Class {
@@ -2127,7 +2127,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
             element: 'generative_constructor(Class#named)',
             arguments: '(true,42)',
             type: 'Class',
-            selector: 'Selector(call, named, arity=2)')),
+            selector: 'CallStructure(arity=2)')),
     const Test(
         '''
         class Class {
@@ -2140,7 +2140,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
             element: 'generative_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class',
-            selector: 'Selector(call, , arity=2)')),
+            selector: 'CallStructure(arity=2)')),
     const Test(
         '''
         class Class {
@@ -2153,7 +2153,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
             element: 'function(Class#)',
             arguments: '(true,42)',
             type: 'Class',
-            selector: 'Selector(call, , arity=2)')),
+            selector: 'CallStructure(arity=2)')),
     const Test(
         '''
         class Class<T> {
@@ -2169,7 +2169,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
             type: 'Class<double>',
             target: 'generative_constructor(Class#b)',
             targetType: 'Class<Class<int>>',
-            selector: 'Selector(call, , arity=2)')),
+            selector: 'CallStructure(arity=2)')),
     const Test(
         '''
         class Class {
@@ -2199,7 +2199,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
             element: 'generative_constructor(AbstractClass#)',
             type: 'AbstractClass',
             arguments: '()',
-            selector: 'Selector(call, , arity=0)')),
+            selector: 'CallStructure(arity=0)')),
     const Test(
         '''
         class Class {
@@ -3261,7 +3261,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_INVOKE,
         constant: constant.getText(), arguments: arguments));
@@ -3369,7 +3369,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_INVOKE,
         constant: constant.getText(), arguments: arguments));
@@ -3457,10 +3457,10 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       LocalFunctionElement function,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_LOCAL_FUNCTION_INVOKE,
-        element: function, arguments: arguments, selector: selector));
+        element: function, arguments: arguments, selector: callStructure));
     apply(arguments, arg);
   }
 
@@ -3478,10 +3478,10 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       LocalVariableElement variable,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_LOCAL_VARIABLE_INVOKE,
-        element: variable, arguments: arguments, selector: selector));
+        element: variable, arguments: arguments, selector: callStructure));
     apply(arguments, arg);
   }
 
@@ -3509,10 +3509,10 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       ParameterElement parameter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_PARAMETER_INVOKE,
-        element: parameter, arguments: arguments, selector: selector));
+        element: parameter, arguments: arguments, selector: callStructure));
     apply(arguments, arg);
   }
 
@@ -3540,7 +3540,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       FieldElement field,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_STATIC_FIELD_INVOKE,
         element: field, arguments: arguments));
@@ -3572,7 +3572,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       MethodElement function,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_STATIC_FUNCTION_INVOKE,
         element: function, arguments: arguments));
@@ -3593,7 +3593,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       FunctionElement getter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_STATIC_GETTER_INVOKE,
         element: getter, arguments: arguments));
@@ -3654,7 +3654,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   visitThisInvoke(
       Send node,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_THIS_INVOKE, arguments: arguments));
     apply(arguments, arg);
@@ -3704,7 +3704,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       FieldElement field,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_INVOKE,
         element: field, arguments: arguments));
@@ -3736,7 +3736,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       MethodElement function,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_INVOKE,
         element: function, arguments: arguments));
@@ -3757,7 +3757,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       FunctionElement getter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_INVOKE,
         element: getter, arguments: arguments));
@@ -3789,7 +3789,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       TypeVariableElement element,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_INVOKE,
         element: element, arguments: arguments));
@@ -3821,7 +3821,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_INVOKE,
         constant: constant.getText(), arguments: arguments));
@@ -3872,7 +3872,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       FieldElement field,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_FIELD_INVOKE,
         element: field, arguments: arguments));
@@ -3903,7 +3903,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       MethodElement method,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_METHOD_INVOKE,
         element: method, arguments: arguments));
@@ -3923,7 +3923,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       FunctionElement getter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_GETTER_INVOKE,
         element: getter, arguments: arguments));
@@ -4085,7 +4085,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       FunctionElement setter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     // TODO: implement errorStaticSetterInvoke
   }
@@ -4121,7 +4121,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       FunctionElement setter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     // TODO: implement errorSuperSetterInvoke
   }
@@ -4157,7 +4157,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       FunctionElement setter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     // TODO: implement errorTopLevelSetterInvoke
   }
@@ -4922,7 +4922,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     // TODO: implement visitConstantInvoke
   }
@@ -5170,14 +5170,14 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(
         VisitKind.VISIT_FACTORY_CONSTRUCTOR_INVOKE,
         element: constructor,
         type: type,
         arguments: arguments,
-        selector: selector));
+        selector: callStructure));
     apply(arguments, arg);
   }
 
@@ -5187,14 +5187,14 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(
         VisitKind.VISIT_GENERATIVE_CONSTRUCTOR_INVOKE,
         element: constructor,
         type: type,
         arguments: arguments,
-        selector: selector));
+        selector: callStructure));
     apply(arguments, arg);
   }
 
@@ -5206,7 +5206,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       ConstructorElement effectiveTarget,
       InterfaceType effectiveTargetType,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(
         VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
@@ -5215,7 +5215,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
         target: effectiveTarget,
         targetType: effectiveTargetType,
         arguments: arguments,
-        selector: selector));
+        selector: callStructure));
     apply(arguments, arg);
   }
 
@@ -5225,14 +5225,14 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(
         VisitKind.VISIT_REDIRECTING_GENERATIVE_CONSTRUCTOR_INVOKE,
         element: constructor,
         type: type,
         arguments: arguments,
-        selector: selector));
+        selector: callStructure));
     apply(arguments, arg);
   }
 
@@ -5242,14 +5242,14 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(
         VisitKind.ERROR_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
         element: constructor,
         type: type,
         arguments: arguments,
-        selector: selector));
+        selector: callStructure));
     apply(arguments, arg);
   }
 
@@ -5793,14 +5793,14 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(
         VisitKind.VISIT_FACTORY_CONSTRUCTOR_INVOKE,
         element: constructor,
         type: type,
         arguments: arguments,
-        selector: selector));
+        selector: callStructure));
     apply(arguments, arg);
   }
 
@@ -5810,14 +5810,14 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(
         VisitKind.VISIT_GENERATIVE_CONSTRUCTOR_INVOKE,
         element: constructor,
         type: type,
         arguments: arguments,
-        selector: selector));
+        selector: callStructure));
     apply(arguments, arg);
   }
 
@@ -5829,7 +5829,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       ConstructorElement effectiveTarget,
       InterfaceType effectiveTargetType,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(
         VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
@@ -5838,7 +5838,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
         target: effectiveTarget,
         targetType: effectiveTargetType,
         arguments: arguments,
-        selector: selector));
+        selector: callStructure));
     apply(arguments, arg);
   }
 
@@ -5848,14 +5848,14 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(
         VisitKind.VISIT_REDIRECTING_GENERATIVE_CONSTRUCTOR_INVOKE,
         element: constructor,
         type: type,
         arguments: arguments,
-        selector: selector));
+        selector: callStructure));
     apply(arguments, arg);
   }
 
@@ -5865,14 +5865,14 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(
         VisitKind.ERROR_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
         element: constructor,
         type: type,
         arguments: arguments,
-        selector: selector));
+        selector: callStructure));
     apply(arguments, arg);
   }
 

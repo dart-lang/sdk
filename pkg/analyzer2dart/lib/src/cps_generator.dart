@@ -203,8 +203,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     List<ir.Primitive> arguments = visitArguments(node.argumentList);
     return irBuilder.buildStaticFunctionInvocation(
         element,
-        createSelectorFromMethodInvocation(
-            node.argumentList, node.methodName.name),
+        createCallStructureFromMethodInvocation(node.argumentList),
         arguments);
   }
 
@@ -218,14 +217,14 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     analyzer.Element staticElement = semantics.element;
     dart2js.Element element = converter.convertElement(staticElement);
     List<ir.Definition> arguments = visitArguments(node.argumentList);
-    Selector selector = createSelectorFromMethodInvocation(
-        node.argumentList, node.methodName.name);
+    CallStructure callStructure = createCallStructureFromMethodInvocation(
+        node.argumentList);
     if (semantics.kind == AccessKind.LOCAL_FUNCTION) {
       return irBuilder.buildLocalFunctionInvocation(
-          element, selector, arguments);
+          element, callStructure, arguments);
     } else {
       return irBuilder.buildLocalVariableInvocation(
-        element, selector, arguments);
+        element, callStructure, arguments);
     }
   }
 
@@ -248,7 +247,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     List<ir.Definition> arguments = visitArguments(node.argumentList);
     return irBuilder.buildCallInvocation(
         target,
-        createSelectorFromMethodInvocation(node.argumentList, 'call'),
+        createCallStructureFromMethodInvocation(node.argumentList),
         arguments);
   }
 
@@ -260,13 +259,9 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
       dart2js.Element element = converter.convertElement(staticElement);
       dart2js.DartType type = converter.convertType(node.staticType);
       List<ir.Primitive> arguments = visitArguments(node.argumentList);
-      String name = '';
-      if (node.constructorName.name != null) {
-        name = node.constructorName.name.name;
-      }
       return irBuilder.buildConstructorInvocation(
           element,
-          createSelectorFromMethodInvocation(node.argumentList, name),
+          createCallStructureFromMethodInvocation(node.argumentList),
           type,
           arguments);
     }
