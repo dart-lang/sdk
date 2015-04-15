@@ -2054,17 +2054,24 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
   final ConstructorElement definingConstructor;
   final bool isDefaultConstructor;
 
-  SynthesizedConstructorElementX(String name,
-                                 this.definingConstructor,
-                                 Element enclosing,
-                                 this.isDefaultConstructor)
-      : super(name,
+  SynthesizedConstructorElementX.notForDefault(String name,
+                                               this.definingConstructor,
+                                               Element enclosing)
+      : isDefaultConstructor = false,
+        super(name,
               ElementKind.GENERATIVE_CONSTRUCTOR,
               Modifiers.EMPTY,
-              enclosing);
+              enclosing) ;
 
-  SynthesizedConstructorElementX.forDefault(superMember, Element enclosing)
-      : this('', superMember, enclosing, true);
+  SynthesizedConstructorElementX.forDefault(this.definingConstructor,
+                                            Element enclosing)
+      : isDefaultConstructor = true,
+        super('',
+              ElementKind.GENERATIVE_CONSTRUCTOR,
+              Modifiers.EMPTY,
+              enclosing) {
+    typeCache = new FunctionType.synthesized(enclosingClass.thisType);
+  }
 
   FunctionExpression parseNode(DiagnosticListener listener) => null;
 
@@ -2076,11 +2083,21 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
 
   bool get isSynthesized => true;
 
+  DartType get type {
+    if (isDefaultConstructor) {
+      return super.type;
+    } else {
+      // TODO(johnniwinther): Ensure that the function type substitutes type
+      // variables correctly.
+      return definingConstructor.type;
+    }
+  }
+
   FunctionSignature computeSignature(compiler) {
     if (functionSignatureCache != null) return functionSignatureCache;
     if (isDefaultConstructor) {
       return functionSignatureCache = new FunctionSignatureX(
-          type: new FunctionType(this, enclosingClass.thisType));
+          type: type);
     }
     if (definingConstructor.isErroneous) {
       return functionSignatureCache =

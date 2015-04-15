@@ -193,6 +193,7 @@ class CustomElementsAnalysisJoin {
       if (member.isGenerativeConstructor) {
         // Ignore constructors that cannot be called with zero arguments.
         FunctionElement constructor = member;
+        constructor.computeSignature(compiler);
         FunctionSignature parameters = constructor.functionSignature;
         if (parameters.requiredParameterCount == 0) {
           result.add(member);

@@ -38,6 +38,8 @@ import 'elements/elements.dart' show
     TypedefElement,
     VoidElement;
 
+import 'dart_types.dart';
+
 import 'util/util.dart' show
     Link, makeUnique;
 import 'util/uri_extras.dart' as uri_extras;
@@ -301,6 +303,35 @@ class DeferredLoadTask extends CompilerTask {
         addConstants(constant.value);
       }
     }
+
+    collectTypeDependencies(DartType type) {
+      if (type is FunctionType) {
+        for (DartType argumentType in type.parameterTypes) {
+          collectTypeDependencies(argumentType);
+        }
+        for (DartType argumentType in type.optionalParameterTypes) {
+          collectTypeDependencies(argumentType);
+        }
+        for (DartType argumentType in type.namedParameterTypes) {
+          collectTypeDependencies(argumentType);
+        }
+        collectTypeDependencies(type.returnType);
+      } else if (type is TypedefType) {
+        elements.add(type.element);
+        collectTypeDependencies(type.unalias(compiler));
+      } else if (type is InterfaceType) {
+        elements.add(type.element);
+      }
+    }
+
+    if (element is FunctionElement &&
+        compiler.resolverWorld.closurizedMembers.contains(element)) {
+      collectTypeDependencies(element.type);
+    }
+
+    // TODO(sigurdm): Also collect types that are used in is checks and for
+    // checked mode.
+
     if (element.isClass) {
       // If we see a class, add everything its live instance members refer
       // to.  Static members are not relevant, unless we are processing
