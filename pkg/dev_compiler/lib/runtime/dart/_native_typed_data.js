@@ -129,8 +129,8 @@ var _native_typed_data;
     NativeFloat32x4List(length) {
       this[_storage] = new NativeFloat32List(dart.notNull(length) * 4);
     }
-    [_externalStorage](storage$) {
-      this[_storage] = storage$;
+    [_externalStorage](storage) {
+      this[_storage] = storage;
     }
     [_slowFromList](list) {
       this[_storage] = new NativeFloat32List(dart.notNull(list[core.$length]) * 4);
@@ -313,8 +313,8 @@ var _native_typed_data;
     NativeFloat64x2List(length) {
       this[_storage] = new NativeFloat64List(dart.notNull(length) * 2);
     }
-    [_externalStorage](storage$) {
-      this[_storage] = storage$;
+    [_externalStorage](storage) {
+      this[_storage] = storage;
     }
     [_slowFromList](list) {
       this[_storage] = new NativeFloat64List(dart.notNull(list[core.$length]) * 2);
@@ -1216,10 +1216,10 @@ var _native_typed_data;
       return new NativeFloat32x4[_truncated](_x, _y, _z, _w);
     }
     sqrt() {
-      let _x = Math.sqrt(this.x);
-      let _y = Math.sqrt(this.y);
-      let _z = Math.sqrt(this.z);
-      let _w = Math.sqrt(this.w);
+      let _x = math.sqrt(this.x);
+      let _y = math.sqrt(this.y);
+      let _z = math.sqrt(this.z);
+      let _w = math.sqrt(this.w);
       return new NativeFloat32x4[_doubles](_x, _y, _z, _w);
     }
     reciprocal() {
@@ -1230,10 +1230,10 @@ var _native_typed_data;
       return new NativeFloat32x4[_doubles](_x, _y, _z, _w);
     }
     reciprocalSqrt() {
-      let _x = Math.sqrt(1.0 / dart.notNull(this.x));
-      let _y = Math.sqrt(1.0 / dart.notNull(this.y));
-      let _z = Math.sqrt(1.0 / dart.notNull(this.z));
-      let _w = Math.sqrt(1.0 / dart.notNull(this.w));
+      let _x = math.sqrt(1.0 / dart.notNull(this.x));
+      let _y = math.sqrt(1.0 / dart.notNull(this.y));
+      let _z = math.sqrt(1.0 / dart.notNull(this.z));
+      let _w = math.sqrt(1.0 / dart.notNull(this.w));
       return new NativeFloat32x4[_doubles](_x, _y, _z, _w);
     }
   }
@@ -1520,7 +1520,7 @@ var _native_typed_data;
       return new NativeFloat64x2[_doubles](dart.notNull(this.x) > dart.notNull(other.x) ? this.x : other.x, dart.notNull(this.y) > dart.notNull(other.y) ? this.y : other.y);
     }
     sqrt() {
-      return new NativeFloat64x2[_doubles](Math.sqrt(this.x), Math.sqrt(this.y));
+      return new NativeFloat64x2[_doubles](math.sqrt(this.x), math.sqrt(this.y));
     }
   }
   NativeFloat64x2[dart.implements] = () => [typed_data.Float64x2];

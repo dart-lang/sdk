@@ -23,11 +23,11 @@ var _js_helper;
       this.name = name;
     }
   }
-  let _$ = Symbol('_');
+  let _ = Symbol('_');
   let _throwUnmodifiable = Symbol('_throwUnmodifiable');
   let ConstantMap$ = dart.generic(function(K, V) {
     class ConstantMap extends core.Object {
-      [_$]() {
+      [_]() {
       }
       get isEmpty() {
         return this.length == 0;
@@ -58,7 +58,7 @@ var _js_helper;
       }
     }
     ConstantMap[dart.implements] = () => [core.Map$(K, V)];
-    dart.defineNamedConstructor(ConstantMap, _$);
+    dart.defineNamedConstructor(ConstantMap, _);
     return ConstantMap;
   });
   let ConstantMap = ConstantMap$();
@@ -67,11 +67,11 @@ var _js_helper;
   let _fetch = Symbol('_fetch');
   let ConstantStringMap$ = dart.generic(function(K, V) {
     class ConstantStringMap extends ConstantMap$(K, V) {
-      [_$](length, jsObject$, keys$) {
+      [_](length, jsObject, keys) {
         this.length = length;
-        this[_jsObject] = jsObject$;
-        this[_keys] = keys$;
-        super[_$]();
+        this[_jsObject] = jsObject;
+        this[_keys] = keys;
+        super[_]();
       }
       containsValue(needle) {
         return this.values[core.$any](value => dart.equals(value, needle));
@@ -106,16 +106,16 @@ var _js_helper;
       }
     }
     ConstantStringMap[dart.implements] = () => [_internal.EfficientLength];
-    dart.defineNamedConstructor(ConstantStringMap, _$);
+    dart.defineNamedConstructor(ConstantStringMap, _);
     return ConstantStringMap;
   });
   let ConstantStringMap = ConstantStringMap$();
   let _protoValue = Symbol('_protoValue');
   let ConstantProtoMap$ = dart.generic(function(K, V) {
     class ConstantProtoMap extends ConstantStringMap$(K, V) {
-      [_$](length, jsObject, keys, protoValue) {
+      [_](length, jsObject, keys, protoValue) {
         this[_protoValue] = protoValue;
-        super[_$](dart.as(length, core.int), jsObject, dart.as(keys, core.List$(K)));
+        super[_](dart.as(length, core.int), jsObject, dart.as(keys, core.List$(K)));
       }
       containsKey(key) {
         if (!(typeof key == 'string'))
@@ -128,15 +128,15 @@ var _js_helper;
         return dart.equals('__proto__', key) ? this[_protoValue] : jsPropertyAccess(this[_jsObject], dart.as(key, core.String));
       }
     }
-    dart.defineNamedConstructor(ConstantProtoMap, _$);
+    dart.defineNamedConstructor(ConstantProtoMap, _);
     return ConstantProtoMap;
   });
   let ConstantProtoMap = ConstantProtoMap$();
   let _map = Symbol('_map');
   let _ConstantMapKeyIterable$ = dart.generic(function(K) {
     class _ConstantMapKeyIterable extends collection.IterableBase$(K) {
-      _ConstantMapKeyIterable(map$) {
-        this[_map] = map$;
+      _ConstantMapKeyIterable(map) {
+        this[_map] = map;
         super.IterableBase();
       }
       get [core.$iterator]() {
@@ -155,7 +155,7 @@ var _js_helper;
     class GeneralConstantMap extends ConstantMap$(K, V) {
       GeneralConstantMap(jsData) {
         this[_jsData] = jsData;
-        super[_$]();
+        super[_]();
       }
       [_getMap]() {
         if (!this.$map) {
@@ -581,9 +581,9 @@ var _js_helper;
   JSSyntaxRegExp[dart.implements] = () => [core.RegExp];
   let _match = Symbol('_match');
   class _MatchImplementation extends core.Object {
-    _MatchImplementation(pattern, match$) {
+    _MatchImplementation(pattern, match) {
       this.pattern = pattern;
-      this[_match] = match$;
+      this[_match] = match;
       dart.assert(typeof this[_match].input == 'string');
       dart.assert(typeof this[_match].index == 'number');
     }
@@ -618,10 +618,10 @@ var _js_helper;
   let _string = Symbol('_string');
   let _start = Symbol('_start');
   class _AllMatchesIterable extends collection.IterableBase$(core.Match) {
-    _AllMatchesIterable(re$, string$, start$) {
-      this[_re] = re$;
-      this[_string] = string$;
-      this[_start] = start$;
+    _AllMatchesIterable(re, string, start) {
+      this[_re] = re;
+      this[_string] = string;
+      this[_start] = start;
       super.IterableBase();
     }
     get [core.$iterator]() {
@@ -632,10 +632,10 @@ var _js_helper;
   let _nextIndex = Symbol('_nextIndex');
   let _current = Symbol('_current');
   class _AllMatchesIterator extends core.Object {
-    _AllMatchesIterator(regExp$, string$, nextIndex$) {
-      this[_regExp] = regExp$;
-      this[_string] = string$;
-      this[_nextIndex] = nextIndex$;
+    _AllMatchesIterator(regExp, string, nextIndex) {
+      this[_regExp] = regExp;
+      this[_string] = string;
+      this[_nextIndex] = nextIndex;
       this[_current] = null;
     }
     get current() {
@@ -877,8 +877,8 @@ var _js_helper;
   let _typeName = Symbol('_typeName');
   let _unmangledName = Symbol('_unmangledName');
   class TypeImpl extends core.Object {
-    TypeImpl(typeName$) {
-      this[_typeName] = typeName$;
+    TypeImpl(typeName) {
+      this[_typeName] = typeName;
       this[_unmangledName] = null;
     }
     toString() {
@@ -1402,10 +1402,10 @@ var _js_helper;
   let _namedIndices = Symbol('_namedIndices');
   let _getCachedInvocation = Symbol('_getCachedInvocation');
   class JSInvocationMirror extends core.Object {
-    JSInvocationMirror(memberName$, internalName$, kind$, arguments$, namedArgumentNames) {
-      this[_memberName] = memberName$;
-      this[_internalName] = internalName$;
-      this[_kind] = kind$;
+    JSInvocationMirror(memberName, internalName, kind, arguments$, namedArgumentNames) {
+      this[_memberName] = memberName;
+      this[_internalName] = internalName;
+      this[_kind] = kind;
       this[_arguments] = arguments$;
       this[_namedArgumentNames] = namedArgumentNames;
       this[_namedIndices] = null;
@@ -1539,9 +1539,9 @@ var _js_helper;
         if (!dart.is(arguments$, _interceptors.JSArray))
           arguments$ = new core.List.from(arguments$);
       } else {
-        let _$ = new core.List.from([victim]);
-        _$[core.$addAll](arguments$);
-        arguments$ = _$;
+        let _ = new core.List.from([victim]);
+        _[core.$addAll](arguments$);
+        arguments$ = _;
         if (this.cachedInterceptor != null)
           receiver = this.cachedInterceptor;
       }
@@ -1571,9 +1571,9 @@ var _js_helper;
           providedArgumentCount = arguments$[core.$length];
         }
       } else {
-        let _$ = new core.List.from([victim]);
-        _$[core.$addAll](arguments$);
-        arguments$ = _$;
+        let _ = new core.List.from([victim]);
+        _[core.$addAll](arguments$);
+        arguments$ = _;
         if (this.cachedInterceptor != null)
           receiver = this.cachedInterceptor;
         providedArgumentCount = dart.notNull(arguments$[core.$length]) - 1;
@@ -1681,14 +1681,14 @@ var _js_helper;
         }
         let index = 0;
         (() => {
-          let _$ = positions.keys[core.$toList]();
-          _$[core.$sort]();
-          return _$;
+          let _ = positions.keys[core.$toList]();
+          _[core.$sort]();
+          return _;
         })()[core.$forEach]((name => {
           this.cachedSortedIndices[core.$set]((() => {
-            let x$ = index;
-            index = dart.notNull(x$) + 1;
-            return x$;
+            let x = index;
+            index = dart.notNull(x) + 1;
+            return x;
           })(), positions.get(name));
         }).bind(this));
       }
@@ -2229,13 +2229,13 @@ var _js_helper;
   let _receiver = Symbol('_receiver');
   let _pattern = Symbol('_pattern');
   class TypeErrorDecoder extends core.Object {
-    TypeErrorDecoder(arguments$, argumentsExpr$, expr$, method$, receiver$, pattern$) {
+    TypeErrorDecoder(arguments$, argumentsExpr, expr, method, receiver, pattern) {
       this[_arguments] = arguments$;
-      this[_argumentsExpr] = argumentsExpr$;
-      this[_expr] = expr$;
-      this[_method] = method$;
-      this[_receiver] = receiver$;
-      this[_pattern] = pattern$;
+      this[_argumentsExpr] = argumentsExpr;
+      this[_expr] = expr;
+      this[_method] = method;
+      this[_receiver] = receiver;
+      this[_pattern] = pattern;
     }
     matchTypeError(message) {
       let match = new RegExp(this[_pattern]).exec(message);
@@ -2392,8 +2392,8 @@ var _js_helper;
   });
   let _message = Symbol('_message');
   class NullError extends core.Error {
-    NullError(message$, match) {
-      this[_message] = message$;
+    NullError(message, match) {
+      this[_message] = message;
       this[_method] = dart.as(match == null ? null : match.method, core.String);
       super.Error();
     }
@@ -2405,8 +2405,8 @@ var _js_helper;
   }
   NullError[dart.implements] = () => [core.NoSuchMethodError];
   class JsNoSuchMethodError extends core.Error {
-    JsNoSuchMethodError(message$, match) {
-      this[_message] = message$;
+    JsNoSuchMethodError(message, match) {
+      this[_message] = message;
       this[_method] = dart.as(match == null ? null : match.method, core.String);
       this[_receiver] = dart.as(match == null ? null : match.receiver, core.String);
       super.Error();
@@ -2422,8 +2422,8 @@ var _js_helper;
   }
   JsNoSuchMethodError[dart.implements] = () => [core.NoSuchMethodError];
   class UnknownJsTypeError extends core.Error {
-    UnknownJsTypeError(message$) {
-      this[_message] = message$;
+    UnknownJsTypeError(message) {
+      this[_message] = message;
       super.Error();
     }
     toString() {
@@ -2512,8 +2512,8 @@ var _js_helper;
   let _exception = Symbol('_exception');
   let _trace = Symbol('_trace');
   class _StackTrace extends core.Object {
-    _StackTrace(exception$) {
-      this[_exception] = exception$;
+    _StackTrace(exception) {
+      this[_exception] = exception;
       this[_trace] = null;
     }
     toString() {
@@ -2541,14 +2541,14 @@ var _js_helper;
     let length = getLength(keyValuePairs);
     while (dart.notNull(index) < dart.notNull(length)) {
       let key = getIndex(keyValuePairs, (() => {
-        let x$ = index;
-        index = dart.notNull(x$) + 1;
-        return x$;
+        let x = index;
+        index = dart.notNull(x) + 1;
+        return x;
       })());
       let value = getIndex(keyValuePairs, (() => {
-        let x$ = index;
-        index = dart.notNull(x$) + 1;
-        return x$;
+        let x = index;
+        index = dart.notNull(x) + 1;
+        return x;
       })());
       result.set(key, value);
     }
@@ -2606,9 +2606,9 @@ var _js_helper;
       } : Closure.isCsp ? function(a, b, c, d) {
         this.$initialize(a, b, c, d);
       } : new Function("a", "b", "c", "d", "this.$initialize(a,b,c,d);" + (() => {
-        let x$ = Closure.functionCounter;
-        Closure.functionCounter = dart.notNull(x$) + 1;
-        return x$;
+        let x = Closure.functionCounter;
+        Closure.functionCounter = dart.notNull(x) + 1;
+        return x;
       })());
       prototype.constructor = constructor;
       constructor.prototype = prototype;
@@ -2731,17 +2731,17 @@ var _js_helper;
       }
       if (arity == 0) {
         return new Function('return function(){' + `return this.${BoundClosure.selfFieldName()}.${stubName}();` + `${(() => {
-          let x$ = Closure.functionCounter;
-          Closure.functionCounter = dart.notNull(x$) + 1;
-          return x$;
+          let x = Closure.functionCounter;
+          Closure.functionCounter = dart.notNull(x) + 1;
+          return x;
         })()}` + '}')();
       }
       dart.assert(1 <= dart.notNull(arity) && dart.notNull(arity) < 27);
       let arguments$ = "abcdefghijklmnopqrstuvwxyz".split("").splice(0, arity).join(",");
       return new Function(`return function(${arguments$}){` + `return this.${BoundClosure.selfFieldName()}.${stubName}(${arguments$});` + `${(() => {
-        let x$ = Closure.functionCounter;
-        Closure.functionCounter = dart.notNull(x$) + 1;
-        return x$;
+        let x = Closure.functionCounter;
+        Closure.functionCounter = dart.notNull(x) + 1;
+        return x;
       })()}` + '}')();
     }
     static cspForwardInterceptedCall(arity, isSuperCall, name, func) {
@@ -2827,17 +2827,17 @@ var _js_helper;
       }
       if (arity == 1) {
         return new Function('return function(){' + `return this.${selfField}.${stubName}(this.${receiverField});` + `${(() => {
-          let x$ = Closure.functionCounter;
-          Closure.functionCounter = dart.notNull(x$) + 1;
-          return x$;
+          let x = Closure.functionCounter;
+          Closure.functionCounter = dart.notNull(x) + 1;
+          return x;
         })()}` + '}')();
       }
       dart.assert(1 < dart.notNull(arity) && dart.notNull(arity) < 28);
       let arguments$ = "abcdefghijklmnopqrstuvwxyz".split("").splice(0, dart.notNull(arity) - 1).join(",");
       return new Function(`return function(${arguments$}){` + `return this.${selfField}.${stubName}(this.${receiverField}, ${arguments$});` + `${(() => {
-        let x$ = Closure.functionCounter;
-        Closure.functionCounter = dart.notNull(x$) + 1;
-        return x$;
+        let x = Closure.functionCounter;
+        Closure.functionCounter = dart.notNull(x) + 1;
+        return x;
       })()}` + '}')();
     }
     toString() {
@@ -2861,11 +2861,11 @@ var _js_helper;
   let _target = Symbol('_target');
   let _name = Symbol('_name');
   class BoundClosure extends TearOffClosure {
-    BoundClosure(self$, target$, receiver$, name$) {
-      this[_self] = self$;
-      this[_target] = target$;
-      this[_receiver] = receiver$;
-      this[_name] = name$;
+    BoundClosure(self, target, receiver, name) {
+      this[_self] = self;
+      this[_target] = target;
+      this[_receiver] = receiver;
+      this[_name] = name;
       super.TearOffClosure();
     }
     ['=='](other) {
@@ -3663,8 +3663,8 @@ var _js_helper;
     }
   }
   class UnimplementedNoSuchMethodError extends core.Error {
-    UnimplementedNoSuchMethodError(message$) {
-      this[_message] = message$;
+    UnimplementedNoSuchMethodError(message) {
+      this[_message] = message;
       super.Error();
     }
     toString() {
@@ -3798,8 +3798,8 @@ var _js_helper;
     }));
   }
   class MainError extends core.Error {
-    MainError(message$) {
-      this[_message] = message$;
+    MainError(message) {
+      this[_message] = message;
       super.Error();
     }
     toString() {

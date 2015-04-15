@@ -30,21 +30,21 @@ var opassign;
     let i = exports.index;
     f.set(i, dart.dsend(f.get(i), '+', 1));
     forcePostfix((() => {
-      let i = exports.index, x$ = f.get(i);
-      f.set(i, dart.dsend(x$, '+', 1));
-      return x$;
+      let i = exports.index, x = f.get(i);
+      f.set(i, dart.dsend(x, '+', 1));
+      return x;
     })());
     core.print('should only call "foo" 2 times:');
     let o = exports.foo;
     dart.dput(o, 'x', dart.dsend(dart.dload(o, 'x'), '+', 1));
     forcePostfix((() => {
-      let o = exports.foo, x$ = dart.dload(o, 'x');
-      dart.dput(o, 'x', dart.dsend(x$, '+', 1));
-      return x$;
+      let o = exports.foo, x = dart.dload(o, 'x');
+      dart.dput(o, 'x', dart.dsend(x, '+', 1));
+      return x;
     })());
     core.print('op assign test, should only call "index" twice:');
-    let i = exports.index;
-    f.set(i, dart.dsend(f.get(i), '+', f.get(exports.index)));
+    let i$ = exports.index;
+    f.set(i$, dart.dsend(f.get(i$), '+', f.get(exports.index)));
   }
   // Function forcePostfix: (dynamic) → dynamic
   function forcePostfix(x) {

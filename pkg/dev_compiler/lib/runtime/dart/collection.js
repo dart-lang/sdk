@@ -180,9 +180,9 @@ var collection;
         let i = 0;
         for (let element of this)
           result[core.$set]((() => {
-            let x$ = i;
-            i = dart.notNull(x$) + 1;
-            return x$;
+            let x = i;
+            i = dart.notNull(x) + 1;
+            return x;
           })(), element);
         return result;
       }
@@ -975,8 +975,8 @@ var collection;
   let _NO_NEXT = Symbol('_NO_NEXT');
   let HasNextIterator$ = dart.generic(function(E) {
     class HasNextIterator extends core.Object {
-      HasNextIterator(iterator$) {
-        this[_iterator] = iterator$;
+      HasNextIterator(iterator) {
+        this[_iterator] = iterator;
         this[_state] = HasNextIterator[_NOT_MOVED_YET];
       }
       get hasNext() {
@@ -1506,17 +1506,17 @@ var collection;
       }
       [core.$add](element) {
         this[core.$set]((() => {
-          let o$ = this, x$ = o$[core.$length];
-          o$[core.$length] = dart.notNull(x$) + 1;
-          return x$;
+          let o = this, x = o[core.$length];
+          o[core.$length] = dart.notNull(x) + 1;
+          return x;
         }).bind(this)(), element);
       }
       [core.$addAll](iterable) {
         for (let element of iterable) {
           this[core.$set]((() => {
-            let o$ = this, x$ = o$[core.$length];
-            o$[core.$length] = dart.notNull(x$) + 1;
-            return x$;
+            let o = this, x = o[core.$length];
+            o[core.$length] = dart.notNull(x) + 1;
+            return x;
           }).bind(this)(), element);
         }
       }
@@ -1524,8 +1524,8 @@ var collection;
         for (let i = 0; dart.notNull(i) < dart.notNull(this[core.$length]); i = dart.notNull(i) + 1) {
           if (dart.equals(this[core.$get](i), element)) {
             this[core.$setRange](i, dart.notNull(this[core.$length]) - 1, this, dart.notNull(i) + 1);
-            let o$ = this;
-            o$[core.$length] = dart.notNull(o$[core.$length]) - 1;
+            let o = this;
+            o[core.$length] = dart.notNull(o[core.$length]) - 1;
             return true;
           }
         }
@@ -1614,8 +1614,8 @@ var collection;
         core.RangeError.checkValidRange(start, end, this[core.$length]);
         let length = dart.notNull(end) - dart.notNull(start);
         this[core.$setRange](start, dart.notNull(this[core.$length]) - dart.notNull(length), this, end);
-        let o$ = this;
-        o$[core.$length] = dart.notNull(o$[core.$length]) - dart.notNull(length);
+        let o = this;
+        o[core.$length] = dart.notNull(o[core.$length]) - dart.notNull(length);
       }
       [core.$fillRange](start, end, fill) {
         if (fill === void 0)
@@ -1724,8 +1724,8 @@ var collection;
         }
         if (!(typeof index == 'number'))
           throw new core.ArgumentError(index);
-        let o$ = this;
-        o$[core.$length] = dart.notNull(o$[core.$length]) + 1;
+        let o = this;
+        o[core.$length] = dart.notNull(o[core.$length]) + 1;
         this[core.$setRange](dart.notNull(index) + 1, this[core.$length], this, index);
         this[core.$set](index, element);
       }
@@ -1741,8 +1741,8 @@ var collection;
           iterable = iterable[core.$toList]();
         }
         let insertionLength = iterable[core.$length];
-        let o$ = this;
-        o$[core.$length] = dart.notNull(o$[core.$length]) + dart.notNull(insertionLength);
+        let o = this;
+        o[core.$length] = dart.notNull(o[core.$length]) + dart.notNull(insertionLength);
         this[core.$setRange](dart.notNull(index) + dart.notNull(insertionLength), this[core.$length], this, index);
         this[core.$setAll](index, iterable);
       }
@@ -1752,9 +1752,9 @@ var collection;
         } else {
           for (let element of iterable) {
             this[core.$set]((() => {
-              let x$ = index;
-              index = dart.notNull(x$) + 1;
-              return x$;
+              let x = index;
+              index = dart.notNull(x) + 1;
+              return x;
             })(), element);
           }
         }
@@ -1862,8 +1862,8 @@ var collection;
   let _map = Symbol('_map');
   let _MapBaseValueIterable$ = dart.generic(function(V) {
     class _MapBaseValueIterable extends IterableBase$(V) {
-      _MapBaseValueIterable(map$) {
-        this[_map] = map$;
+      _MapBaseValueIterable(map) {
+        this[_map] = map;
         super.IterableBase();
       }
       get [core.$length]() {
@@ -2820,7 +2820,7 @@ var collection;
   let _TypeTest = _TypeTest$();
   let _comparator = Symbol('_comparator');
   let _validKey = Symbol('_validKey');
-  let _internal$ = Symbol('_internal');
+  let _internal = Symbol('_internal');
   let SplayTreeMap$ = dart.generic(function(K, V) {
     class SplayTreeMap extends _SplayTree$(K) {
       SplayTreeMap(compare, isValidKey) {
@@ -2864,7 +2864,7 @@ var collection;
       [_compare](key1, key2) {
         return this[_comparator](key1, key2);
       }
-      [_internal$]() {
+      [_internal]() {
         this[_comparator] = null;
         this[_validKey] = null;
         super._SplayTree();
@@ -3025,7 +3025,7 @@ var collection;
     dart.defineNamedConstructor(SplayTreeMap, 'from');
     dart.defineNamedConstructor(SplayTreeMap, 'fromIterable');
     dart.defineNamedConstructor(SplayTreeMap, 'fromIterables');
-    dart.defineNamedConstructor(SplayTreeMap, _internal$);
+    dart.defineNamedConstructor(SplayTreeMap, _internal);
     return SplayTreeMap;
   });
   let SplayTreeMap = SplayTreeMap$();
@@ -3107,8 +3107,8 @@ var collection;
   let _copyNode = Symbol('_copyNode');
   let _SplayTreeKeyIterable$ = dart.generic(function(K) {
     class _SplayTreeKeyIterable extends IterableBase$(K) {
-      _SplayTreeKeyIterable(tree$) {
-        this[_tree] = tree$;
+      _SplayTreeKeyIterable(tree) {
+        this[_tree] = tree;
         super.IterableBase();
       }
       get [core.$length]() {
@@ -3134,8 +3134,8 @@ var collection;
   let _SplayTreeKeyIterable = _SplayTreeKeyIterable$();
   let _SplayTreeValueIterable$ = dart.generic(function(K, V) {
     class _SplayTreeValueIterable extends IterableBase$(V) {
-      _SplayTreeValueIterable(map$) {
-        this[_map] = map$;
+      _SplayTreeValueIterable(map) {
+        this[_map] = map;
         super.IterableBase();
       }
       get [core.$length]() {
@@ -3654,9 +3654,9 @@ var collection;
   let _hashCode = Symbol('_hashCode');
   let _CustomHashMap$ = dart.generic(function(K, V) {
     class _CustomHashMap extends _HashMap$(K, V) {
-      _CustomHashMap(equals$, hashCode$, validKey) {
-        this[_equals] = equals$;
-        this[_hashCode] = hashCode$;
+      _CustomHashMap(equals, hashCode, validKey) {
+        this[_equals] = equals;
+        this[_hashCode] = hashCode;
         this[_validKey] = dart.as(validKey != null ? validKey : v => dart.is(v, K), _Predicate);
         super._HashMap();
       }
@@ -3700,8 +3700,8 @@ var collection;
   let _CustomHashMap = _CustomHashMap$();
   let HashMapKeyIterable$ = dart.generic(function(E) {
     class HashMapKeyIterable extends IterableBase$(E) {
-      HashMapKeyIterable(map$) {
-        this[_map] = map$;
+      HashMapKeyIterable(map) {
+        this[_map] = map;
         super.IterableBase();
       }
       get [core.$length]() {
@@ -3733,9 +3733,9 @@ var collection;
   let _offset = Symbol('_offset');
   let HashMapKeyIterator$ = dart.generic(function(E) {
     class HashMapKeyIterator extends core.Object {
-      HashMapKeyIterator(map$, keys$) {
-        this[_map] = map$;
-        this[_keys] = keys$;
+      HashMapKeyIterator(map, keys) {
+        this[_map] = map;
+        this[_keys] = keys;
         this[_offset] = 0;
         this[_current] = null;
       }
@@ -4057,9 +4057,9 @@ var collection;
   let _LinkedIdentityHashMap = _LinkedIdentityHashMap$();
   let _LinkedCustomHashMap$ = dart.generic(function(K, V) {
     class _LinkedCustomHashMap extends _LinkedHashMap$(K, V) {
-      _LinkedCustomHashMap(equals$, hashCode$, validKey) {
-        this[_equals] = equals$;
-        this[_hashCode] = hashCode$;
+      _LinkedCustomHashMap(equals, hashCode, validKey) {
+        this[_equals] = equals;
+        this[_hashCode] = hashCode;
         this[_validKey] = dart.as(validKey != null ? validKey : v => dart.is(v, K), _Predicate);
         super._LinkedHashMap();
       }
@@ -4100,17 +4100,17 @@ var collection;
   });
   let _LinkedCustomHashMap = _LinkedCustomHashMap$();
   class LinkedHashMapCell extends core.Object {
-    LinkedHashMapCell(key$, value$) {
-      this[_key] = key$;
-      this[_value] = value$;
+    LinkedHashMapCell(key, value) {
+      this[_key] = key;
+      this[_value] = value;
       this[_next] = null;
       this[_previous] = null;
     }
   }
   let LinkedHashMapKeyIterable$ = dart.generic(function(E) {
     class LinkedHashMapKeyIterable extends IterableBase$(E) {
-      LinkedHashMapKeyIterable(map$) {
-        this[_map] = map$;
+      LinkedHashMapKeyIterable(map) {
+        this[_map] = map;
         super.IterableBase();
       }
       get [core.$length]() {
@@ -4144,9 +4144,9 @@ var collection;
   let _cell = Symbol('_cell');
   let LinkedHashMapKeyIterator$ = dart.generic(function(E) {
     class LinkedHashMapKeyIterator extends core.Object {
-      LinkedHashMapKeyIterator(map$, modifications$) {
-        this[_map] = map$;
-        this[_modifications] = modifications$;
+      LinkedHashMapKeyIterator(map, modifications) {
+        this[_map] = map;
+        this[_modifications] = modifications;
         this[_cell] = null;
         this[_current] = null;
         this[_cell] = dart.as(dart.dload(this[_map], _first), LinkedHashMapCell);
@@ -4480,9 +4480,9 @@ var collection;
   let _CustomHashSet = _CustomHashSet$();
   let HashSetIterator$ = dart.generic(function(E) {
     class HashSetIterator extends core.Object {
-      HashSetIterator(set$, elements$) {
-        this[_set] = set$;
-        this[_elements] = elements$;
+      HashSetIterator(set, elements) {
+        this[_set] = set;
+        this[_elements] = elements;
         this[_offset] = 0;
         this[_current] = null;
       }
@@ -4865,17 +4865,17 @@ var collection;
   });
   let _LinkedCustomHashSet = _LinkedCustomHashSet$();
   class LinkedHashSetCell extends core.Object {
-    LinkedHashSetCell(element$) {
-      this[_element] = element$;
+    LinkedHashSetCell(element) {
+      this[_element] = element;
       this[_next] = null;
       this[_previous] = null;
     }
   }
   let LinkedHashSetIterator$ = dart.generic(function(E) {
     class LinkedHashSetIterator extends core.Object {
-      LinkedHashSetIterator(set$, modifications$) {
-        this[_set] = set$;
-        this[_modifications] = modifications$;
+      LinkedHashSetIterator(set, modifications) {
+        this[_set] = set;
+        this[_modifications] = modifications;
         this[_cell] = null;
         this[_current] = null;
         this[_cell] = dart.as(dart.dload(this[_set], _first), LinkedHashSetCell);

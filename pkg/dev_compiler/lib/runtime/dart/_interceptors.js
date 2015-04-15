@@ -854,8 +854,8 @@ var _interceptors;
   JSString[dart.implements] = () => [core.String, JSIndexable];
   let _string = Symbol('_string');
   class _CodeUnits extends _internal.UnmodifiableListBase$(core.int) {
-    _CodeUnits(string$) {
-      this[_string] = string$;
+    _CodeUnits(string) {
+      this[_string] = string;
       super.UnmodifiableListBase();
     }
     get [core.$length]() {

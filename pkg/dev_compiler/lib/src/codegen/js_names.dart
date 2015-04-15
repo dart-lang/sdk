@@ -4,54 +4,138 @@
 
 library dev_compiler.src.codegen.js_names;
 
+import 'dart:collection';
 import 'package:dev_compiler/src/js/js_ast.dart';
 
-/// Marker subclass for temporary variables.
-/// We treat these as being in a different scope from other identifiers, and
-/// rename them so they don't collide. See [JSNamer].
+/// Unique instance for temporary variables. Will be renamed consistently
+/// across the entire file. Different instances will be named differently
+/// even if they have the same name, this makes it safe to use in code
+/// generation without needing global knowledge. See [JSNamer].
+///
 // TODO(jmesserly): move into js_ast? add a boolean to Identifier?
 class JSTemporary extends Identifier {
   JSTemporary(String name) : super(name);
 }
 
 /// This class has two purposes:
+///
 /// * rename JS identifiers to avoid keywords.
-/// * rename temporary variables to avoid colliding with user-specified names.
+/// * rename temporary variables to avoid colliding with user-specified names,
+///   or other temporaries
 ///
-/// We use a very simple algorithm:
-/// * collect all names
-/// * visit the tree, choosing unique names for things we need to rename
-///
-/// We assume the scoping is already correct (if the isTemporary bit is
-/// considered as part of the name), so we can do both of these renames
-/// globally, with no regard to where the name was declared or which precise
-/// identifier it was bound to.
-// TODO(jmesserly): some future transforms, like ES6->5, might want a name bound
-// tree, but we can defer that until needed.
+/// Each instance of [JSTemporary] is treated as a unique variable, with its
+/// `name` field simply the suggestion of what name to use. By contrast
+/// [Identifiers] are never renamed unless they are an invalid identifier, like
+/// `function` or `instanceof`, and their `name` field controls whether they
+/// refer to the same variable.
 class JSNamer extends LocalNamer {
-  final usedNames = new Set<String>();
-  final renames = new Map<String, String>();
+  final Map<Object, String> renames;
 
-  JSNamer(Node node) {
-    node.accept(new _NameCollector(usedNames));
-  }
+  JSNamer(Node node) : renames = new _RenameVisitor.build(node).renames;
 
   String getName(Identifier node) {
-    var name = node.name;
-    if (node is JSTemporary) {
-      return _rename(name, valid: true);
-    } else if (node.allowRename && invalidJSVariableName(name)) {
-      return _rename(name, valid: false);
-    }
-    return name;
+    var rename = renames[renameKey(node)];
+    if (rename != null) return rename;
+
+    assert(!needsRename(node));
+    return node.name;
   }
 
-  String _rename(String name, {bool valid}) {
-    var candidate = renames[name];
-    if (candidate != null) return candidate;
+  void enterScope(FunctionExpression node) {}
+  void leaveScope() {}
+}
+
+class _FunctionScope {
+  final _FunctionScope parent;
+  final names = new HashSet<String>();
+  _FunctionScope(this.parent);
+}
+
+/// Collects all names used in the visited tree.
+class _RenameVisitor extends BaseVisitor {
+  final pendingRenames = new Map<Object, Set<_FunctionScope>>();
+  final renames = new HashMap<Object, String>();
+
+  _FunctionScope scope = new _FunctionScope(null);
+
+  _RenameVisitor.build(Node root) {
+    root.accept(this);
+    _finishNames();
+  }
+
+  visitIdentifier(Identifier node) {
+    if (needsRename(node)) {
+      // We can't assign the name yet, but we can add it to the list of things
+      // that need a name.
+      var id = renameKey(node);
+      pendingRenames.putIfAbsent(id, () => new HashSet()).add(scope);
+    } else {
+      scope.names.add(node.name);
+    }
+  }
+
+  visitFunctionExpression(FunctionExpression node) {
+    scope = new _FunctionScope(scope);
+    super.visitFunctionExpression(node);
+    scope = scope.parent;
+  }
+
+  void _finishNames() {
+    pendingRenames.forEach((id, scopes) {
+      var name = _findName(id, _allNamesInScope(scopes));
+      renames[id] = name;
+      for (var s in scopes) s.names.add(name);
+    });
+  }
+
+  // Given a set of scopes, populates [allNames] to include all names in those
+  // scopes as well as intermediate scopes. Returns the common parent of
+  // all scopes. For example:
+  //
+  // function outer(t) {
+  //   function middle(x) {
+  //     function inner() { return t; }
+  //     foo(x);
+  //   }
+  // }
+  //
+  // Here `t` is used in `inner` and `outer` but we need to include `middle`
+  // as well, so we know the rename of `t` to `x` is not valid.
+  static Set<String> _allNamesInScope(Set<_FunctionScope> scopes) {
+    // As we iterate, we'll add more scopes. We don't need to consider these
+    // as intermediate scopes can't introduce new intermediates.
+    var candidates = [];
+    var allScopes = scopes.toSet();
+    for (var scope in scopes) {
+      for (var p = scope.parent; p != null; p = p.parent) {
+        if (allScopes.contains(p)) {
+          allScopes.addAll(candidates);
+          break;
+        }
+        candidates.add(p);
+      }
+      // Discard these, we already added them or we didn't find a parent scope.
+      candidates.clear();
+    }
+
+    // Now collect all names found.
+    return allScopes.expand((s) => s.names).toSet();
+  }
+
+  static String _findName(Object id, Set<String> usedNames) {
+    String name;
+    bool valid;
+    if (id is JSTemporary) {
+      name = id.name;
+      valid = !invalidJSVariableName(name);
+    } else {
+      name = id;
+      valid = false;
+    }
 
     // Try to use the temp's name, otherwise rename.
-    if (valid && usedNames.add(name)) {
+    String candidate;
+    if (valid && !usedNames.contains(name)) {
       candidate = name;
     } else {
       // This assumes that collisions are rare, hence linear search.
@@ -59,25 +143,19 @@ class JSNamer extends LocalNamer {
       // TODO(jmesserly): what's the most readable scheme here? Maybe 1-letter
       // names in some cases?
       candidate = name == 'function' ? 'func' : '${name}\$';
-      for (int i = 0; !usedNames.add(candidate); i++) {
+      for (int i = 0; usedNames.contains(candidate); i++) {
         candidate = '${name}\$$i';
       }
     }
-    return renames[name] = candidate;
-  }
-
-  void enterScope(Node node) {}
-  void leaveScope() {}
-}
-
-/// Collects all names used in the visited tree.
-class _NameCollector extends BaseVisitor {
-  final Set<String> names;
-  _NameCollector(this.names);
-  visitIdentifier(Identifier node) {
-    if (node is! JSTemporary) names.add(node.name);
+    return candidate;
   }
 }
+
+bool needsRename(Identifier node) =>
+    node is JSTemporary || node.allowRename && invalidJSVariableName(node.name);
+
+Object /*String|JSTemporary*/ renameKey(Identifier node) =>
+    node is JSTemporary ? node : node.name;
 
 /// Returns true for invalid JS variable names, such as keywords.
 /// Also handles invalid variable names in strict mode, like "arguments".
