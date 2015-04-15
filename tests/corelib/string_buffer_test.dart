@@ -96,6 +96,49 @@ void testWriteAll() {
 
   bf.writeAll(["", "", ""]);
   Expect.equals("foobarabc", bf.toString());
+
+  bf.writeAll(["", "", ""], "");
+  Expect.equals("foobarabc", bf.toString());
+
+  StringBuffer bf2 = new StringBuffer("");
+  bf2.writeAll([], "s");
+  Expect.equals("", bf2.toString());
+
+  StringBuffer bf3 = new StringBuffer("");
+  bf3.writeAll(["a"], "s");
+  Expect.equals("a", bf3.toString());
+
+  StringBuffer bf4 = new StringBuffer("");
+  bf4.writeAll(["a", "b"], "s");
+  Expect.equals("asb", bf4.toString());
+}
+
+void testWriteAll2() {
+  // Passing `null` for separator is an error that is checked when the iterable
+  // is not empty.  This is not specified in the documentation but we want
+  // implementations to be consistent.
+  StringBuffer bf1 = new StringBuffer("");
+  bf1.writeAll([], null);
+  Expect.equals("", bf1.toString());
+
+  StringBuffer bf2 = new StringBuffer("");
+  Expect.throws(() { bf2.writeAll([1], null); });
+}
+
+void testWriteln() {
+  StringBuffer bf1 = new StringBuffer("");
+  bf1.writeln("Hello");
+  Expect.equals("Hello\n", bf1.toString());
+
+  StringBuffer bf2 = new StringBuffer("");
+  bf2.writeln();
+  Expect.equals("\n", bf2.toString());
+
+  StringBuffer bf3 = new StringBuffer("");
+  bf3.writeln("\n");
+  bf3.writeln(null);
+  bf3.writeln(1);
+  Expect.equals("\n\nnull\n1\n", bf3.toString());
 }
 
 void testClear() {
@@ -186,6 +229,8 @@ void main() {
   testWrite();
   testWriteCharCode();
   testWriteAll();
+  testWriteAll2();
+  testWriteln();
   testClear();
   testChaining();
 }
