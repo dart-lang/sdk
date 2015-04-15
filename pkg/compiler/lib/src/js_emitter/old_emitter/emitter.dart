@@ -269,6 +269,39 @@ class OldEmitter implements Emitter {
     return globalPropertyAccess(element);
   }
 
+  @override
+  jsAst.Template templateForBuiltin(JsBuiltin builtin) {
+    switch (builtin) {
+      case JsBuiltin.dartObjectConstructor:
+        return jsAst.js.expressionTemplateYielding(
+            typeAccess(compiler.objectClass));
+
+      case JsBuiltin.isFunctionType:
+        return backend.rti.representationGenerator.templateForIsFunctionType;
+
+      case JsBuiltin.isFunctionTypeLiteral:
+        String functionClassName =
+            backend.namer.runtimeTypeName(compiler.functionClass);
+        return jsAst.js.expressionTemplateFor(
+          '#.$typeNameProperty === "$functionClassName"');
+
+      case JsBuiltin.typeName:
+        return jsAst.js.expressionTemplateFor("#.$typeNameProperty");
+
+      case JsBuiltin.rawRuntimeType:
+        return jsAst.js.expressionTemplateFor("#.constructor");
+
+      case JsBuiltin.createFunctionType:
+        return backend.rti.representationGenerator
+            .templateForCreateFunctionType;
+
+      default:
+        compiler.internalError(NO_LOCATION_SPANNABLE,
+            "Unhandled Builtin: $builtin");
+        return null;
+    }
+  }
+
   List<jsAst.Statement> buildTrivialNsmHandlers(){
     return nsmEmitter.buildTrivialNsmHandlers();
   }
@@ -1015,7 +1048,7 @@ class OldEmitter implements Emitter {
 
     cspPrecompiledFunctionFor(outputUnit).add(js.statement(r'''
         {
-          #constructorName.builtin$cls = #constructorNameString;
+          #constructorName.#typeNameProperty = #constructorNameString;
           if (!"name" in #constructorName)
               #constructorName.name = #constructorNameString;
           $desc = $collectedClasses.#constructorName[1];
@@ -1026,6 +1059,7 @@ class OldEmitter implements Emitter {
           }
         }''',
         {"constructorName": constructorName,
+         "typeNameProperty": typeNameProperty,
          "constructorNameString": js.string(constructorName),
          "hasIsolateSupport": hasIsolateSupport,
          "fieldNamesArray": fieldNamesArray}));

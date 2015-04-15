@@ -28,7 +28,6 @@ import 'dart:_foreign_helper' show
     JS_EMBEDDED_GLOBAL,
     JS_GET_NAME,
     JS_TYPEDEF_TAG,
-    JS_FUNCTION_TYPE_TAG,
     JS_FUNCTION_TYPE_RETURN_TYPE_TAG,
     JS_FUNCTION_TYPE_VOID_RETURN_TAG,
     JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG,
@@ -57,6 +56,7 @@ import 'dart:_js_helper' show
     getMetadata,
     getType,
     getRuntimeType,
+    isDartFunctionType,
     runtimeTypeToString,
     setRuntimeTypeInfo,
     throwInvalidReflectionError,
@@ -2855,12 +2855,10 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
         getMangledTypeName(createRuntimeType(representation)));
   }
   String typedefPropertyName = JS_TYPEDEF_TAG();
-  String functionTagPropertyName = JS_FUNCTION_TYPE_TAG();
   if (type != null && JS('', '#[#]', type, typedefPropertyName) != null) {
     return typeMirrorFromRuntimeTypeRepresentation(
         owner, JS('', '#[#]', type, typedefPropertyName));
-  } else if (type != null &&
-             JS('', '#[#]', type, functionTagPropertyName) != null) {
+  } else if (type != null && isDartFunctionType(type)) {
     return new JsFunctionTypeMirror(type, owner);
   }
   return reflectClass(Function);

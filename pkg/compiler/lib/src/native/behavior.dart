@@ -511,30 +511,40 @@ class NativeBehavior {
     return behavior;
   }
 
-  static NativeBehavior ofJsEmbeddedGlobalCall(Send jsGlobalCall,
-                                               Compiler compiler,
-                                               resolver) {
+  static void _fillNativeBehaviorOfBuiltinOrEmbeddedGlobal(
+      NativeBehavior behavior,
+      Send jsBuiltinOrEmbeddedGlobalCall,
+      Compiler compiler,
+      ResolverVisitor resolver,
+      {bool isBuiltin,
+       List<String> validTags}) {
     // The first argument of a JS-embedded global call is a string encoding
     // the type of the code.
     //
     //  'Type1|Type2'.  A union type.
     //  '=Object'.      A JavaScript Object, no subtype.
 
-    Link<Node> argNodes = jsGlobalCall.arguments;
+    String builtinOrGlobal = isBuiltin ? "builtin" : "embedded global";
+
+    Link<Node> argNodes = jsBuiltinOrEmbeddedGlobalCall.arguments;
     if (argNodes.isEmpty) {
-      compiler.internalError(jsGlobalCall,
-          "JS embedded global expression has no type.");
+      compiler.internalError(jsBuiltinOrEmbeddedGlobalCall,
+          "JS $builtinOrGlobal expression has no type.");
     }
 
     // We don't check the given name. That needs to be done at a later point.
-    // This is, because we want to allow non-literals as names.
+    // This is, because we want to allow non-literals (like references to
+    // enums) as names.
     if (argNodes.tail.isEmpty) {
-      compiler.internalError(jsGlobalCall, 'Embedded Global is missing name.');
+      compiler.internalError(jsBuiltinOrEmbeddedGlobalCall,
+          'JS $builtinOrGlobal is missing name.');
     }
 
-    if (!argNodes.tail.tail.isEmpty) {
-      compiler.internalError(argNodes.tail.tail.head,
-          'Embedded Global has more than 2 arguments');
+    if (!isBuiltin) {
+      if (!argNodes.tail.tail.isEmpty) {
+        compiler.internalError(argNodes.tail.tail.head,
+            'JS embedded global has more than 2 arguments');
+      }
     }
 
     LiteralString specLiteral = argNodes.head.asLiteralString();
@@ -544,8 +554,6 @@ class NativeBehavior {
       compiler.internalError(argNodes.head, "Unexpected first argument.");
     }
 
-    NativeBehavior behavior = new NativeBehavior();
-
     String specString = specLiteral.dartString.slowToString();
 
     dynamic resolveType(String typeString) {
@@ -553,24 +561,50 @@ class NativeBehavior {
           typeString,
           compiler,
           (name) => resolver.resolveTypeFromString(specLiteral, name),
-          jsGlobalCall);
+          jsBuiltinOrEmbeddedGlobalCall);
     }
 
-    processSpecString(compiler, jsGlobalCall,
+    void setSideEffects(SideEffects newEffects) {
+      behavior.sideEffects.setTo(newEffects);
+    }
+
+    processSpecString(compiler, jsBuiltinOrEmbeddedGlobalCall,
                       specString,
-                      validTags: const ['returns', 'creates'],
+                      validTags: validTags,
                       resolveType: resolveType,
+                      setSideEffects: setSideEffects,
                       typesReturned: behavior.typesReturned,
                       typesInstantiated: behavior.typesInstantiated,
                       objectType: compiler.objectClass.computeType(compiler),
                       nullType: compiler.nullClass.computeType(compiler));
+  }
 
+  static NativeBehavior ofJsBuiltinCall(Send jsBuiltinCall,
+                                        Compiler compiler,
+                                        ResolverVisitor resolver) {
+    NativeBehavior behavior = new NativeBehavior();
+    behavior.sideEffects.setTo(new SideEffects());
+
+    _fillNativeBehaviorOfBuiltinOrEmbeddedGlobal(
+        behavior, jsBuiltinCall, compiler, resolver, isBuiltin: true);
+
+    return behavior;
+  }
+
+  static NativeBehavior ofJsEmbeddedGlobalCall(Send jsEmbeddedGlobalCall,
+                                               Compiler compiler,
+                                               ResolverVisitor resolver) {
+    NativeBehavior behavior = new NativeBehavior();
+    // TODO(sra): Allow the use site to override these defaults.
     // Embedded globals are usually pre-computed data structures or JavaScript
     // functions that never change.
-    // TODO(sra): Allow the use site to override these defaults.
-    behavior.sideEffects.clearAllDependencies();
-    behavior.sideEffects.clearAllSideEffects();
+    behavior.sideEffects.setTo(new SideEffects.empty());
     behavior.throwBehavior = NativeThrowBehavior.NEVER;
+
+    _fillNativeBehaviorOfBuiltinOrEmbeddedGlobal(
+        behavior, jsEmbeddedGlobalCall, compiler, resolver,
+        isBuiltin: false,
+        validTags: const ['returns', 'creates']);
 
     return behavior;
   }

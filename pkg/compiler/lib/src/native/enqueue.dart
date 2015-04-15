@@ -54,6 +54,18 @@ class NativeEnqueuer {
   // TODO(sra): The entry from codegen will not have a resolver.
   void registerJsEmbeddedGlobalCall(Send node, ResolverVisitor resolver) {}
 
+  /**
+   * Handles JS-compiler builtin calls, which can be an instantiation point for
+   * types.
+   *
+   * For example, the following code instantiates and returns a String class
+   *
+   *     JS_BUILTIN('String', 'int2string', 0)
+   *
+   */
+  // TODO(sra): The entry from codegen will not have a resolver.
+  void registerJsBuiltinCall(Send node, ResolverVisitor resolver) {}
+
   /// Emits a summary information using the [log] function.
   void logSummary(log(message)) {}
 
@@ -487,6 +499,14 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   void registerJsEmbeddedGlobalCall(Send node, ResolverVisitor resolver) {
     NativeBehavior behavior =
         NativeBehavior.ofJsEmbeddedGlobalCall(node, compiler, resolver);
+    processNativeBehavior(behavior, node);
+    nativeBehaviors[node] = behavior;
+    flushQueue();
+  }
+
+  void registerJsBuiltinCall(Send node, ResolverVisitor resolver) {
+    NativeBehavior behavior =
+        NativeBehavior.ofJsBuiltinCall(node, compiler, resolver);
     processNativeBehavior(behavior, node);
     nativeBehaviors[node] = behavior;
     flushQueue();
