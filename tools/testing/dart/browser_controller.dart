@@ -744,7 +744,9 @@ class Firefox extends Browser {
         _cleanup = () { userDir.deleteSync(recursive: true); };
         var args = ["-profile", "${userDir.path}",
                     "-no-remote", "-new-instance", url];
-        return startBrowser(_binary, args);
+        var environment = new Map<String,String>.from(Platform.environment);
+        environment["MOZ_CRASHREPORTER_DISABLE"] = "1";
+        return startBrowser(_binary, args, environment: environment);
 
       });
     }).catchError((e) {
