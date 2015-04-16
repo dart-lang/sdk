@@ -37,12 +37,24 @@ class ServerGetVersionParams {
  * }
  */
 class ServerGetVersionResult implements HasToJson {
+  String _version;
+
   /**
    * The version number of the analysis server.
    */
-  String version;
+  String get version => _version;
 
-  ServerGetVersionResult(this.version);
+  /**
+   * The version number of the analysis server.
+   */
+  void set version(String value) {
+    assert(value != null);
+    this._version = value;
+  }
+
+  ServerGetVersionResult(String version) {
+    this.version = version;
+  }
 
   factory ServerGetVersionResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -145,12 +157,24 @@ class ServerShutdownResult {
  * }
  */
 class ServerSetSubscriptionsParams implements HasToJson {
+  List<ServerService> _subscriptions;
+
   /**
    * A list of the services being subscribed to.
    */
-  List<ServerService> subscriptions;
+  List<ServerService> get subscriptions => _subscriptions;
 
-  ServerSetSubscriptionsParams(this.subscriptions);
+  /**
+   * A list of the services being subscribed to.
+   */
+  void set subscriptions(List<ServerService> value) {
+    assert(value != null);
+    this._subscriptions = value;
+  }
+
+  ServerSetSubscriptionsParams(List<ServerService> subscriptions) {
+    this.subscriptions = subscriptions;
+  }
 
   factory ServerSetSubscriptionsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -232,12 +256,24 @@ class ServerSetSubscriptionsResult {
  * }
  */
 class ServerConnectedParams implements HasToJson {
+  String _version;
+
   /**
    * The version number of the analysis server.
    */
-  String version;
+  String get version => _version;
 
-  ServerConnectedParams(this.version);
+  /**
+   * The version number of the analysis server.
+   */
+  void set version(String value) {
+    assert(value != null);
+    this._version = value;
+  }
+
+  ServerConnectedParams(String version) {
+    this.version = version;
+  }
 
   factory ServerConnectedParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -300,24 +336,60 @@ class ServerConnectedParams implements HasToJson {
  * }
  */
 class ServerErrorParams implements HasToJson {
+  bool _isFatal;
+
+  String _message;
+
+  String _stackTrace;
+
   /**
    * True if the error is a fatal error, meaning that the server will shutdown
    * automatically after sending this notification.
    */
-  bool isFatal;
+  bool get isFatal => _isFatal;
+
+  /**
+   * True if the error is a fatal error, meaning that the server will shutdown
+   * automatically after sending this notification.
+   */
+  void set isFatal(bool value) {
+    assert(value != null);
+    this._isFatal = value;
+  }
 
   /**
    * The error message indicating what kind of error was encountered.
    */
-  String message;
+  String get message => _message;
+
+  /**
+   * The error message indicating what kind of error was encountered.
+   */
+  void set message(String value) {
+    assert(value != null);
+    this._message = value;
+  }
 
   /**
    * The stack trace associated with the generation of the error, used for
    * debugging the server.
    */
-  String stackTrace;
+  String get stackTrace => _stackTrace;
 
-  ServerErrorParams(this.isFatal, this.message, this.stackTrace);
+  /**
+   * The stack trace associated with the generation of the error, used for
+   * debugging the server.
+   */
+  void set stackTrace(String value) {
+    assert(value != null);
+    this._stackTrace = value;
+  }
+
+  ServerErrorParams(bool isFatal, String message, String stackTrace) {
+    this.isFatal = isFatal;
+    this.message = message;
+    this.stackTrace = stackTrace;
+  }
 
   factory ServerErrorParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -397,19 +469,42 @@ class ServerErrorParams implements HasToJson {
  * }
  */
 class ServerStatusParams implements HasToJson {
+  AnalysisStatus _analysis;
+
+  PubStatus _pub;
+
   /**
    * The current status of analysis, including whether analysis is being
    * performed and if so what is being analyzed.
    */
-  AnalysisStatus analysis;
+  AnalysisStatus get analysis => _analysis;
+
+  /**
+   * The current status of analysis, including whether analysis is being
+   * performed and if so what is being analyzed.
+   */
+  void set analysis(AnalysisStatus value) {
+    this._analysis = value;
+  }
 
   /**
    * The current status of pub execution, indicating whether we are currently
    * running pub.
    */
-  PubStatus pub;
+  PubStatus get pub => _pub;
 
-  ServerStatusParams({this.analysis, this.pub});
+  /**
+   * The current status of pub execution, indicating whether we are currently
+   * running pub.
+   */
+  void set pub(PubStatus value) {
+    this._pub = value;
+  }
+
+  ServerStatusParams({AnalysisStatus analysis, PubStatus pub}) {
+    this.analysis = analysis;
+    this.pub = pub;
+  }
 
   factory ServerStatusParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -479,12 +574,24 @@ class ServerStatusParams implements HasToJson {
  * }
  */
 class AnalysisGetErrorsParams implements HasToJson {
+  String _file;
+
   /**
    * The file for which errors are being requested.
    */
-  String file;
+  String get file => _file;
 
-  AnalysisGetErrorsParams(this.file);
+  /**
+   * The file for which errors are being requested.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  AnalysisGetErrorsParams(String file) {
+    this.file = file;
+  }
 
   factory AnalysisGetErrorsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -545,12 +652,24 @@ class AnalysisGetErrorsParams implements HasToJson {
  * }
  */
 class AnalysisGetErrorsResult implements HasToJson {
+  List<AnalysisError> _errors;
+
   /**
    * The errors associated with the file.
    */
-  List<AnalysisError> errors;
+  List<AnalysisError> get errors => _errors;
 
-  AnalysisGetErrorsResult(this.errors);
+  /**
+   * The errors associated with the file.
+   */
+  void set errors(List<AnalysisError> value) {
+    assert(value != null);
+    this._errors = value;
+  }
+
+  AnalysisGetErrorsResult(List<AnalysisError> errors) {
+    this.errors = errors;
+  }
 
   factory AnalysisGetErrorsResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -612,17 +731,40 @@ class AnalysisGetErrorsResult implements HasToJson {
  * }
  */
 class AnalysisGetHoverParams implements HasToJson {
+  String _file;
+
+  int _offset;
+
   /**
    * The file in which hover information is being requested.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file in which hover information is being requested.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The offset for which hover information is being requested.
    */
-  int offset;
+  int get offset => _offset;
 
-  AnalysisGetHoverParams(this.file, this.offset);
+  /**
+   * The offset for which hover information is being requested.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  AnalysisGetHoverParams(String file, int offset) {
+    this.file = file;
+    this.offset = offset;
+  }
 
   factory AnalysisGetHoverParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -692,6 +834,8 @@ class AnalysisGetHoverParams implements HasToJson {
  * }
  */
 class AnalysisGetHoverResult implements HasToJson {
+  List<HoverInformation> _hovers;
+
   /**
    * The hover information associated with the location. The list will be empty
    * if no information could be determined for the location. The list can
@@ -699,9 +843,23 @@ class AnalysisGetHoverResult implements HasToJson {
    * in conflicting ways (such as a part that is included in multiple
    * libraries).
    */
-  List<HoverInformation> hovers;
+  List<HoverInformation> get hovers => _hovers;
 
-  AnalysisGetHoverResult(this.hovers);
+  /**
+   * The hover information associated with the location. The list will be empty
+   * if no information could be determined for the location. The list can
+   * contain multiple items if the file is being analyzed in multiple contexts
+   * in conflicting ways (such as a part that is included in multiple
+   * libraries).
+   */
+  void set hovers(List<HoverInformation> value) {
+    assert(value != null);
+    this._hovers = value;
+  }
+
+  AnalysisGetHoverResult(List<HoverInformation> hovers) {
+    this.hovers = hovers;
+  }
 
   factory AnalysisGetHoverResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -784,19 +942,44 @@ class AnalysisGetLibraryDependenciesParams {
  * }
  */
 class AnalysisGetLibraryDependenciesResult implements HasToJson {
+  List<String> _libraries;
+
+  Map<String, Map<String, List<String>>> _packageMap;
+
   /**
    * A list of the paths of library elements referenced by files in existing
    * analysis roots.
    */
-  List<String> libraries;
+  List<String> get libraries => _libraries;
+
+  /**
+   * A list of the paths of library elements referenced by files in existing
+   * analysis roots.
+   */
+  void set libraries(List<String> value) {
+    assert(value != null);
+    this._libraries = value;
+  }
 
   /**
    * A mapping from context source roots to package maps which map package
    * names to source directories for use in client-side package URI resolution.
    */
-  Map<String, Map<String, List<String>>> packageMap;
+  Map<String, Map<String, List<String>>> get packageMap => _packageMap;
 
-  AnalysisGetLibraryDependenciesResult(this.libraries, this.packageMap);
+  /**
+   * A mapping from context source roots to package maps which map package
+   * names to source directories for use in client-side package URI resolution.
+   */
+  void set packageMap(Map<String, Map<String, List<String>>> value) {
+    assert(value != null);
+    this._packageMap = value;
+  }
+
+  AnalysisGetLibraryDependenciesResult(List<String> libraries, Map<String, Map<String, List<String>>> packageMap) {
+    this.libraries = libraries;
+    this.packageMap = packageMap;
+  }
 
   factory AnalysisGetLibraryDependenciesResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -868,24 +1051,60 @@ class AnalysisGetLibraryDependenciesResult implements HasToJson {
  * }
  */
 class AnalysisGetNavigationParams implements HasToJson {
+  String _file;
+
+  int _offset;
+
+  int _length;
+
   /**
    * The file in which navigation information is being requested.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file in which navigation information is being requested.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The offset of the region for which navigation information is being
    * requested.
    */
-  int offset;
+  int get offset => _offset;
+
+  /**
+   * The offset of the region for which navigation information is being
+   * requested.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
 
   /**
    * The length of the region for which navigation information is being
    * requested.
    */
-  int length;
+  int get length => _length;
 
-  AnalysisGetNavigationParams(this.file, this.offset, this.length);
+  /**
+   * The length of the region for which navigation information is being
+   * requested.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
+
+  AnalysisGetNavigationParams(String file, int offset, int length) {
+    this.file = file;
+    this.offset = offset;
+    this.length = length;
+  }
 
   factory AnalysisGetNavigationParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -966,24 +1185,60 @@ class AnalysisGetNavigationParams implements HasToJson {
  * }
  */
 class AnalysisGetNavigationResult implements HasToJson {
+  List<String> _files;
+
+  List<NavigationTarget> _targets;
+
+  List<NavigationRegion> _regions;
+
   /**
    * A list of the paths of files that are referenced by the navigation
    * targets.
    */
-  List<String> files;
+  List<String> get files => _files;
+
+  /**
+   * A list of the paths of files that are referenced by the navigation
+   * targets.
+   */
+  void set files(List<String> value) {
+    assert(value != null);
+    this._files = value;
+  }
 
   /**
    * A list of the navigation targets that are referenced by the navigation
    * regions.
    */
-  List<NavigationTarget> targets;
+  List<NavigationTarget> get targets => _targets;
+
+  /**
+   * A list of the navigation targets that are referenced by the navigation
+   * regions.
+   */
+  void set targets(List<NavigationTarget> value) {
+    assert(value != null);
+    this._targets = value;
+  }
 
   /**
    * A list of the navigation regions within the requested region of the file.
    */
-  List<NavigationRegion> regions;
+  List<NavigationRegion> get regions => _regions;
 
-  AnalysisGetNavigationResult(this.files, this.targets, this.regions);
+  /**
+   * A list of the navigation regions within the requested region of the file.
+   */
+  void set regions(List<NavigationRegion> value) {
+    assert(value != null);
+    this._regions = value;
+  }
+
+  AnalysisGetNavigationResult(List<String> files, List<NavigationTarget> targets, List<NavigationRegion> regions) {
+    this.files = files;
+    this.targets = targets;
+    this.regions = regions;
+  }
 
   factory AnalysisGetNavigationResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -1062,12 +1317,23 @@ class AnalysisGetNavigationResult implements HasToJson {
  * }
  */
 class AnalysisReanalyzeParams implements HasToJson {
+  List<String> _roots;
+
   /**
    * A list of the analysis roots that are to be re-analyzed.
    */
-  List<String> roots;
+  List<String> get roots => _roots;
 
-  AnalysisReanalyzeParams({this.roots});
+  /**
+   * A list of the analysis roots that are to be re-analyzed.
+   */
+  void set roots(List<String> value) {
+    this._roots = value;
+  }
+
+  AnalysisReanalyzeParams({List<String> roots}) {
+    this.roots = roots;
+  }
 
   factory AnalysisReanalyzeParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -1151,16 +1417,39 @@ class AnalysisReanalyzeResult {
  * }
  */
 class AnalysisSetAnalysisRootsParams implements HasToJson {
+  List<String> _included;
+
+  List<String> _excluded;
+
+  Map<String, String> _packageRoots;
+
   /**
    * A list of the files and directories that should be analyzed.
    */
-  List<String> included;
+  List<String> get included => _included;
+
+  /**
+   * A list of the files and directories that should be analyzed.
+   */
+  void set included(List<String> value) {
+    assert(value != null);
+    this._included = value;
+  }
 
   /**
    * A list of the files and directories within the included directories that
    * should not be analyzed.
    */
-  List<String> excluded;
+  List<String> get excluded => _excluded;
+
+  /**
+   * A list of the files and directories within the included directories that
+   * should not be analyzed.
+   */
+  void set excluded(List<String> value) {
+    assert(value != null);
+    this._excluded = value;
+  }
 
   /**
    * A mapping from source directories to target directories that should
@@ -1176,9 +1465,31 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
    * this field is absent, or the empty map is specified, that indicates that
    * the normal pubspec.yaml mechanism should always be used.
    */
-  Map<String, String> packageRoots;
+  Map<String, String> get packageRoots => _packageRoots;
 
-  AnalysisSetAnalysisRootsParams(this.included, this.excluded, {this.packageRoots});
+  /**
+   * A mapping from source directories to target directories that should
+   * override the normal package: URI resolution mechanism. The analyzer will
+   * behave as though each source directory in the map contains a special
+   * pubspec.yaml file which resolves any package: URI to the corresponding
+   * path within the target directory. The effect is the same as specifying the
+   * target directory as a "--package_root" parameter to the Dart VM when
+   * executing any Dart file inside the source directory.
+   *
+   * Files in any directories that are not overridden by this mapping have
+   * their package: URI's resolved using the normal pubspec.yaml mechanism. If
+   * this field is absent, or the empty map is specified, that indicates that
+   * the normal pubspec.yaml mechanism should always be used.
+   */
+  void set packageRoots(Map<String, String> value) {
+    this._packageRoots = value;
+  }
+
+  AnalysisSetAnalysisRootsParams(List<String> included, List<String> excluded, {Map<String, String> packageRoots}) {
+    this.included = included;
+    this.excluded = excluded;
+    this.packageRoots = packageRoots;
+  }
 
   factory AnalysisSetAnalysisRootsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -1278,12 +1589,24 @@ class AnalysisSetAnalysisRootsResult {
  * }
  */
 class AnalysisSetPriorityFilesParams implements HasToJson {
+  List<String> _files;
+
   /**
    * The files that are to be a priority for analysis.
    */
-  List<String> files;
+  List<String> get files => _files;
 
-  AnalysisSetPriorityFilesParams(this.files);
+  /**
+   * The files that are to be a priority for analysis.
+   */
+  void set files(List<String> value) {
+    assert(value != null);
+    this._files = value;
+  }
+
+  AnalysisSetPriorityFilesParams(List<String> files) {
+    this.files = files;
+  }
 
   factory AnalysisSetPriorityFilesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -1365,13 +1688,26 @@ class AnalysisSetPriorityFilesResult {
  * }
  */
 class AnalysisSetSubscriptionsParams implements HasToJson {
+  Map<AnalysisService, List<String>> _subscriptions;
+
   /**
    * A table mapping services to a list of the files being subscribed to the
    * service.
    */
-  Map<AnalysisService, List<String>> subscriptions;
+  Map<AnalysisService, List<String>> get subscriptions => _subscriptions;
 
-  AnalysisSetSubscriptionsParams(this.subscriptions);
+  /**
+   * A table mapping services to a list of the files being subscribed to the
+   * service.
+   */
+  void set subscriptions(Map<AnalysisService, List<String>> value) {
+    assert(value != null);
+    this._subscriptions = value;
+  }
+
+  AnalysisSetSubscriptionsParams(Map<AnalysisService, List<String>> subscriptions) {
+    this.subscriptions = subscriptions;
+  }
 
   factory AnalysisSetSubscriptionsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -1453,13 +1789,26 @@ class AnalysisSetSubscriptionsResult {
  * }
  */
 class AnalysisUpdateContentParams implements HasToJson {
+  Map<String, dynamic> _files;
+
   /**
    * A table mapping the files whose content has changed to a description of
    * the content change.
    */
-  Map<String, dynamic> files;
+  Map<String, dynamic> get files => _files;
 
-  AnalysisUpdateContentParams(this.files);
+  /**
+   * A table mapping the files whose content has changed to a description of
+   * the content change.
+   */
+  void set files(Map<String, dynamic> value) {
+    assert(value != null);
+    this._files = value;
+  }
+
+  AnalysisUpdateContentParams(Map<String, dynamic> files) {
+    this.files = files;
+  }
 
   factory AnalysisUpdateContentParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -1572,12 +1921,24 @@ class AnalysisUpdateContentResult implements HasToJson {
  * }
  */
 class AnalysisUpdateOptionsParams implements HasToJson {
+  AnalysisOptions _options;
+
   /**
    * The options that are to be used to control analysis.
    */
-  AnalysisOptions options;
+  AnalysisOptions get options => _options;
 
-  AnalysisUpdateOptionsParams(this.options);
+  /**
+   * The options that are to be used to control analysis.
+   */
+  void set options(AnalysisOptions value) {
+    assert(value != null);
+    this._options = value;
+  }
+
+  AnalysisUpdateOptionsParams(AnalysisOptions options) {
+    this.options = options;
+  }
 
   factory AnalysisUpdateOptionsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -1660,17 +2021,40 @@ class AnalysisUpdateOptionsResult {
  * }
  */
 class AnalysisErrorsParams implements HasToJson {
+  String _file;
+
+  List<AnalysisError> _errors;
+
   /**
    * The file containing the errors.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file containing the errors.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The errors contained in the file.
    */
-  List<AnalysisError> errors;
+  List<AnalysisError> get errors => _errors;
 
-  AnalysisErrorsParams(this.file, this.errors);
+  /**
+   * The errors contained in the file.
+   */
+  void set errors(List<AnalysisError> value) {
+    assert(value != null);
+    this._errors = value;
+  }
+
+  AnalysisErrorsParams(String file, List<AnalysisError> errors) {
+    this.file = file;
+    this.errors = errors;
+  }
 
   factory AnalysisErrorsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -1740,12 +2124,24 @@ class AnalysisErrorsParams implements HasToJson {
  * }
  */
 class AnalysisFlushResultsParams implements HasToJson {
+  List<String> _files;
+
   /**
    * The files that are no longer being analyzed.
    */
-  List<String> files;
+  List<String> get files => _files;
 
-  AnalysisFlushResultsParams(this.files);
+  /**
+   * The files that are no longer being analyzed.
+   */
+  void set files(List<String> value) {
+    assert(value != null);
+    this._files = value;
+  }
+
+  AnalysisFlushResultsParams(List<String> files) {
+    this.files = files;
+  }
 
   factory AnalysisFlushResultsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -1807,17 +2203,40 @@ class AnalysisFlushResultsParams implements HasToJson {
  * }
  */
 class AnalysisFoldingParams implements HasToJson {
+  String _file;
+
+  List<FoldingRegion> _regions;
+
   /**
    * The file containing the folding regions.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file containing the folding regions.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The folding regions contained in the file.
    */
-  List<FoldingRegion> regions;
+  List<FoldingRegion> get regions => _regions;
 
-  AnalysisFoldingParams(this.file, this.regions);
+  /**
+   * The folding regions contained in the file.
+   */
+  void set regions(List<FoldingRegion> value) {
+    assert(value != null);
+    this._regions = value;
+  }
+
+  AnalysisFoldingParams(String file, List<FoldingRegion> regions) {
+    this.file = file;
+    this.regions = regions;
+  }
 
   factory AnalysisFoldingParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -1888,10 +2307,22 @@ class AnalysisFoldingParams implements HasToJson {
  * }
  */
 class AnalysisHighlightsParams implements HasToJson {
+  String _file;
+
+  List<HighlightRegion> _regions;
+
   /**
    * The file containing the highlight regions.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file containing the highlight regions.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The highlight regions contained in the file. Each highlight region
@@ -1900,9 +2331,24 @@ class AnalysisHighlightsParams implements HasToJson {
    * highlight regions if there is more than one meaning associated with a
    * particular region.
    */
-  List<HighlightRegion> regions;
+  List<HighlightRegion> get regions => _regions;
 
-  AnalysisHighlightsParams(this.file, this.regions);
+  /**
+   * The highlight regions contained in the file. Each highlight region
+   * represents a particular syntactic or semantic meaning associated with some
+   * range. Note that the highlight regions that are returned can overlap other
+   * highlight regions if there is more than one meaning associated with a
+   * particular region.
+   */
+  void set regions(List<HighlightRegion> value) {
+    assert(value != null);
+    this._regions = value;
+  }
+
+  AnalysisHighlightsParams(String file, List<HighlightRegion> regions) {
+    this.file = file;
+    this.regions = regions;
+  }
 
   factory AnalysisHighlightsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -1975,29 +2421,76 @@ class AnalysisHighlightsParams implements HasToJson {
  * }
  */
 class AnalysisInvalidateParams implements HasToJson {
+  String _file;
+
+  int _offset;
+
+  int _length;
+
+  int _delta;
+
   /**
    * The file whose information has been invalidated.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file whose information has been invalidated.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The offset of the invalidated region.
    */
-  int offset;
+  int get offset => _offset;
+
+  /**
+   * The offset of the invalidated region.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
 
   /**
    * The length of the invalidated region.
    */
-  int length;
+  int get length => _length;
+
+  /**
+   * The length of the invalidated region.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
 
   /**
    * The delta to be applied to the offsets in information that follows the
    * invalidated region in order to update it so that it doesn't need to be
    * re-requested.
    */
-  int delta;
+  int get delta => _delta;
 
-  AnalysisInvalidateParams(this.file, this.offset, this.length, this.delta);
+  /**
+   * The delta to be applied to the offsets in information that follows the
+   * invalidated region in order to update it so that it doesn't need to be
+   * re-requested.
+   */
+  void set delta(int value) {
+    assert(value != null);
+    this._delta = value;
+  }
+
+  AnalysisInvalidateParams(String file, int offset, int length, int delta) {
+    this.file = file;
+    this.offset = offset;
+    this.length = length;
+    this.delta = delta;
+  }
 
   factory AnalysisInvalidateParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -2088,10 +2581,26 @@ class AnalysisInvalidateParams implements HasToJson {
  * }
  */
 class AnalysisNavigationParams implements HasToJson {
+  String _file;
+
+  List<NavigationRegion> _regions;
+
+  List<NavigationTarget> _targets;
+
+  List<String> _files;
+
   /**
    * The file containing the navigation regions.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file containing the navigation regions.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The navigation regions contained in the file. The regions are sorted by
@@ -2102,21 +2611,58 @@ class AnalysisNavigationParams implements HasToJson {
    * versions of a package. Note that the navigation regions that are returned
    * do not overlap other navigation regions.
    */
-  List<NavigationRegion> regions;
+  List<NavigationRegion> get regions => _regions;
+
+  /**
+   * The navigation regions contained in the file. The regions are sorted by
+   * their offsets. Each navigation region represents a list of targets
+   * associated with some range. The lists will usually contain a single
+   * target, but can contain more in the case of a part that is included in
+   * multiple libraries or in Dart code that is compiled against multiple
+   * versions of a package. Note that the navigation regions that are returned
+   * do not overlap other navigation regions.
+   */
+  void set regions(List<NavigationRegion> value) {
+    assert(value != null);
+    this._regions = value;
+  }
 
   /**
    * The navigation targets referenced in the file. They are referenced by
    * NavigationRegions by their index in this array.
    */
-  List<NavigationTarget> targets;
+  List<NavigationTarget> get targets => _targets;
+
+  /**
+   * The navigation targets referenced in the file. They are referenced by
+   * NavigationRegions by their index in this array.
+   */
+  void set targets(List<NavigationTarget> value) {
+    assert(value != null);
+    this._targets = value;
+  }
 
   /**
    * The files containing navigation targets referenced in the file. They are
    * referenced by NavigationTargets by their index in this array.
    */
-  List<String> files;
+  List<String> get files => _files;
 
-  AnalysisNavigationParams(this.file, this.regions, this.targets, this.files);
+  /**
+   * The files containing navigation targets referenced in the file. They are
+   * referenced by NavigationTargets by their index in this array.
+   */
+  void set files(List<String> value) {
+    assert(value != null);
+    this._files = value;
+  }
+
+  AnalysisNavigationParams(String file, List<NavigationRegion> regions, List<NavigationTarget> targets, List<String> files) {
+    this.file = file;
+    this.regions = regions;
+    this.targets = targets;
+    this.files = files;
+  }
 
   factory AnalysisNavigationParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -2205,17 +2751,40 @@ class AnalysisNavigationParams implements HasToJson {
  * }
  */
 class AnalysisOccurrencesParams implements HasToJson {
+  String _file;
+
+  List<Occurrences> _occurrences;
+
   /**
    * The file in which the references occur.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file in which the references occur.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The occurrences of references to elements within the file.
    */
-  List<Occurrences> occurrences;
+  List<Occurrences> get occurrences => _occurrences;
 
-  AnalysisOccurrencesParams(this.file, this.occurrences);
+  /**
+   * The occurrences of references to elements within the file.
+   */
+  void set occurrences(List<Occurrences> value) {
+    assert(value != null);
+    this._occurrences = value;
+  }
+
+  AnalysisOccurrencesParams(String file, List<Occurrences> occurrences) {
+    this.file = file;
+    this.occurrences = occurrences;
+  }
 
   factory AnalysisOccurrencesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -2286,17 +2855,40 @@ class AnalysisOccurrencesParams implements HasToJson {
  * }
  */
 class AnalysisOutlineParams implements HasToJson {
+  String _file;
+
+  Outline _outline;
+
   /**
    * The file with which the outline is associated.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file with which the outline is associated.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The outline associated with the file.
    */
-  Outline outline;
+  Outline get outline => _outline;
 
-  AnalysisOutlineParams(this.file, this.outline);
+  /**
+   * The outline associated with the file.
+   */
+  void set outline(Outline value) {
+    assert(value != null);
+    this._outline = value;
+  }
+
+  AnalysisOutlineParams(String file, Outline outline) {
+    this.file = file;
+    this.outline = outline;
+  }
 
   factory AnalysisOutlineParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -2367,17 +2959,40 @@ class AnalysisOutlineParams implements HasToJson {
  * }
  */
 class AnalysisOverridesParams implements HasToJson {
+  String _file;
+
+  List<Override> _overrides;
+
   /**
    * The file with which the overrides are associated.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file with which the overrides are associated.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The overrides associated with the file.
    */
-  List<Override> overrides;
+  List<Override> get overrides => _overrides;
 
-  AnalysisOverridesParams(this.file, this.overrides);
+  /**
+   * The overrides associated with the file.
+   */
+  void set overrides(List<Override> value) {
+    assert(value != null);
+    this._overrides = value;
+  }
+
+  AnalysisOverridesParams(String file, List<Override> overrides) {
+    this.file = file;
+    this.overrides = overrides;
+  }
 
   factory AnalysisOverridesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -2448,17 +3063,40 @@ class AnalysisOverridesParams implements HasToJson {
  * }
  */
 class CompletionGetSuggestionsParams implements HasToJson {
+  String _file;
+
+  int _offset;
+
   /**
    * The file containing the point at which suggestions are to be made.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file containing the point at which suggestions are to be made.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The offset within the file at which suggestions are to be made.
    */
-  int offset;
+  int get offset => _offset;
 
-  CompletionGetSuggestionsParams(this.file, this.offset);
+  /**
+   * The offset within the file at which suggestions are to be made.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  CompletionGetSuggestionsParams(String file, int offset) {
+    this.file = file;
+    this.offset = offset;
+  }
 
   factory CompletionGetSuggestionsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -2528,12 +3166,24 @@ class CompletionGetSuggestionsParams implements HasToJson {
  * }
  */
 class CompletionGetSuggestionsResult implements HasToJson {
+  String _id;
+
   /**
    * The identifier used to associate results with this completion request.
    */
-  String id;
+  String get id => _id;
 
-  CompletionGetSuggestionsResult(this.id);
+  /**
+   * The identifier used to associate results with this completion request.
+   */
+  void set id(String value) {
+    assert(value != null);
+    this._id = value;
+  }
+
+  CompletionGetSuggestionsResult(String id) {
+    this.id = id;
+  }
 
   factory CompletionGetSuggestionsResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -2598,10 +3248,28 @@ class CompletionGetSuggestionsResult implements HasToJson {
  * }
  */
 class CompletionResultsParams implements HasToJson {
+  String _id;
+
+  int _replacementOffset;
+
+  int _replacementLength;
+
+  List<CompletionSuggestion> _results;
+
+  bool _isLast;
+
   /**
    * The id associated with the completion.
    */
-  String id;
+  String get id => _id;
+
+  /**
+   * The id associated with the completion.
+   */
+  void set id(String value) {
+    assert(value != null);
+    this._id = value;
+  }
 
   /**
    * The offset of the start of the text to be replaced. This will be different
@@ -2609,14 +3277,35 @@ class CompletionResultsParams implements HasToJson {
    * portion of an identifier before the original offset. In particular, the
    * replacementOffset will be the offset of the beginning of said identifier.
    */
-  int replacementOffset;
+  int get replacementOffset => _replacementOffset;
+
+  /**
+   * The offset of the start of the text to be replaced. This will be different
+   * than the offset used to request the completion suggestions if there was a
+   * portion of an identifier before the original offset. In particular, the
+   * replacementOffset will be the offset of the beginning of said identifier.
+   */
+  void set replacementOffset(int value) {
+    assert(value != null);
+    this._replacementOffset = value;
+  }
 
   /**
    * The length of the text to be replaced if the remainder of the identifier
    * containing the cursor is to be replaced when the suggestion is applied
    * (that is, the number of characters in the existing identifier).
    */
-  int replacementLength;
+  int get replacementLength => _replacementLength;
+
+  /**
+   * The length of the text to be replaced if the remainder of the identifier
+   * containing the cursor is to be replaced when the suggestion is applied
+   * (that is, the number of characters in the existing identifier).
+   */
+  void set replacementLength(int value) {
+    assert(value != null);
+    this._replacementLength = value;
+  }
 
   /**
    * The completion suggestions being reported. The notification contains all
@@ -2625,15 +3314,42 @@ class CompletionResultsParams implements HasToJson {
    * client to respond to further keystrokes from the user without having to
    * make additional requests.
    */
-  List<CompletionSuggestion> results;
+  List<CompletionSuggestion> get results => _results;
+
+  /**
+   * The completion suggestions being reported. The notification contains all
+   * possible completions at the requested cursor position, even those that do
+   * not match the characters the user has already typed. This allows the
+   * client to respond to further keystrokes from the user without having to
+   * make additional requests.
+   */
+  void set results(List<CompletionSuggestion> value) {
+    assert(value != null);
+    this._results = value;
+  }
 
   /**
    * True if this is that last set of results that will be returned for the
    * indicated completion.
    */
-  bool isLast;
+  bool get isLast => _isLast;
 
-  CompletionResultsParams(this.id, this.replacementOffset, this.replacementLength, this.results, this.isLast);
+  /**
+   * True if this is that last set of results that will be returned for the
+   * indicated completion.
+   */
+  void set isLast(bool value) {
+    assert(value != null);
+    this._isLast = value;
+  }
+
+  CompletionResultsParams(String id, int replacementOffset, int replacementLength, List<CompletionSuggestion> results, bool isLast) {
+    this.id = id;
+    this.replacementOffset = replacementOffset;
+    this.replacementLength = replacementLength;
+    this.results = results;
+    this.isLast = isLast;
+  }
 
   factory CompletionResultsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -2732,24 +3448,60 @@ class CompletionResultsParams implements HasToJson {
  * }
  */
 class SearchFindElementReferencesParams implements HasToJson {
+  String _file;
+
+  int _offset;
+
+  bool _includePotential;
+
   /**
    * The file containing the declaration of or reference to the element used to
    * define the search.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file containing the declaration of or reference to the element used to
+   * define the search.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The offset within the file of the declaration of or reference to the
    * element.
    */
-  int offset;
+  int get offset => _offset;
+
+  /**
+   * The offset within the file of the declaration of or reference to the
+   * element.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
 
   /**
    * True if potential matches are to be included in the results.
    */
-  bool includePotential;
+  bool get includePotential => _includePotential;
 
-  SearchFindElementReferencesParams(this.file, this.offset, this.includePotential);
+  /**
+   * True if potential matches are to be included in the results.
+   */
+  void set includePotential(bool value) {
+    assert(value != null);
+    this._includePotential = value;
+  }
+
+  SearchFindElementReferencesParams(String file, int offset, bool includePotential) {
+    this.file = file;
+    this.offset = offset;
+    this.includePotential = includePotential;
+  }
 
   factory SearchFindElementReferencesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -2829,13 +3581,27 @@ class SearchFindElementReferencesParams implements HasToJson {
  * }
  */
 class SearchFindElementReferencesResult implements HasToJson {
+  String _id;
+
+  Element _element;
+
   /**
    * The identifier used to associate results with this search request.
    *
    * If no element was found at the given location, this field will be absent,
    * and no results will be reported via the search.results notification.
    */
-  String id;
+  String get id => _id;
+
+  /**
+   * The identifier used to associate results with this search request.
+   *
+   * If no element was found at the given location, this field will be absent,
+   * and no results will be reported via the search.results notification.
+   */
+  void set id(String value) {
+    this._id = value;
+  }
 
   /**
    * The element referenced or defined at the given offset and whose references
@@ -2843,9 +3609,22 @@ class SearchFindElementReferencesResult implements HasToJson {
    *
    * If no element was found at the given location, this field will be absent.
    */
-  Element element;
+  Element get element => _element;
 
-  SearchFindElementReferencesResult({this.id, this.element});
+  /**
+   * The element referenced or defined at the given offset and whose references
+   * will be returned in the search results.
+   *
+   * If no element was found at the given location, this field will be absent.
+   */
+  void set element(Element value) {
+    this._element = value;
+  }
+
+  SearchFindElementReferencesResult({String id, Element element}) {
+    this.id = id;
+    this.element = element;
+  }
 
   factory SearchFindElementReferencesResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -2915,12 +3694,24 @@ class SearchFindElementReferencesResult implements HasToJson {
  * }
  */
 class SearchFindMemberDeclarationsParams implements HasToJson {
+  String _name;
+
   /**
    * The name of the declarations to be found.
    */
-  String name;
+  String get name => _name;
 
-  SearchFindMemberDeclarationsParams(this.name);
+  /**
+   * The name of the declarations to be found.
+   */
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
+  }
+
+  SearchFindMemberDeclarationsParams(String name) {
+    this.name = name;
+  }
 
   factory SearchFindMemberDeclarationsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -2981,12 +3772,24 @@ class SearchFindMemberDeclarationsParams implements HasToJson {
  * }
  */
 class SearchFindMemberDeclarationsResult implements HasToJson {
+  String _id;
+
   /**
    * The identifier used to associate results with this search request.
    */
-  String id;
+  String get id => _id;
 
-  SearchFindMemberDeclarationsResult(this.id);
+  /**
+   * The identifier used to associate results with this search request.
+   */
+  void set id(String value) {
+    assert(value != null);
+    this._id = value;
+  }
+
+  SearchFindMemberDeclarationsResult(String id) {
+    this.id = id;
+  }
 
   factory SearchFindMemberDeclarationsResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -3047,12 +3850,24 @@ class SearchFindMemberDeclarationsResult implements HasToJson {
  * }
  */
 class SearchFindMemberReferencesParams implements HasToJson {
+  String _name;
+
   /**
    * The name of the references to be found.
    */
-  String name;
+  String get name => _name;
 
-  SearchFindMemberReferencesParams(this.name);
+  /**
+   * The name of the references to be found.
+   */
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
+  }
+
+  SearchFindMemberReferencesParams(String name) {
+    this.name = name;
+  }
 
   factory SearchFindMemberReferencesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -3113,12 +3928,24 @@ class SearchFindMemberReferencesParams implements HasToJson {
  * }
  */
 class SearchFindMemberReferencesResult implements HasToJson {
+  String _id;
+
   /**
    * The identifier used to associate results with this search request.
    */
-  String id;
+  String get id => _id;
 
-  SearchFindMemberReferencesResult(this.id);
+  /**
+   * The identifier used to associate results with this search request.
+   */
+  void set id(String value) {
+    assert(value != null);
+    this._id = value;
+  }
+
+  SearchFindMemberReferencesResult(String id) {
+    this.id = id;
+  }
 
   factory SearchFindMemberReferencesResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -3179,13 +4006,26 @@ class SearchFindMemberReferencesResult implements HasToJson {
  * }
  */
 class SearchFindTopLevelDeclarationsParams implements HasToJson {
+  String _pattern;
+
   /**
    * The regular expression used to match the names of the declarations to be
    * found.
    */
-  String pattern;
+  String get pattern => _pattern;
 
-  SearchFindTopLevelDeclarationsParams(this.pattern);
+  /**
+   * The regular expression used to match the names of the declarations to be
+   * found.
+   */
+  void set pattern(String value) {
+    assert(value != null);
+    this._pattern = value;
+  }
+
+  SearchFindTopLevelDeclarationsParams(String pattern) {
+    this.pattern = pattern;
+  }
 
   factory SearchFindTopLevelDeclarationsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -3246,12 +4086,24 @@ class SearchFindTopLevelDeclarationsParams implements HasToJson {
  * }
  */
 class SearchFindTopLevelDeclarationsResult implements HasToJson {
+  String _id;
+
   /**
    * The identifier used to associate results with this search request.
    */
-  String id;
+  String get id => _id;
 
-  SearchFindTopLevelDeclarationsResult(this.id);
+  /**
+   * The identifier used to associate results with this search request.
+   */
+  void set id(String value) {
+    assert(value != null);
+    this._id = value;
+  }
+
+  SearchFindTopLevelDeclarationsResult(String id) {
+    this.id = id;
+  }
 
   factory SearchFindTopLevelDeclarationsResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -3313,18 +4165,42 @@ class SearchFindTopLevelDeclarationsResult implements HasToJson {
  * }
  */
 class SearchGetTypeHierarchyParams implements HasToJson {
+  String _file;
+
+  int _offset;
+
   /**
    * The file containing the declaration or reference to the type for which a
    * hierarchy is being requested.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file containing the declaration or reference to the type for which a
+   * hierarchy is being requested.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The offset of the name of the type within the file.
    */
-  int offset;
+  int get offset => _offset;
 
-  SearchGetTypeHierarchyParams(this.file, this.offset);
+  /**
+   * The offset of the name of the type within the file.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  SearchGetTypeHierarchyParams(String file, int offset) {
+    this.file = file;
+    this.offset = offset;
+  }
 
   factory SearchGetTypeHierarchyParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -3394,6 +4270,8 @@ class SearchGetTypeHierarchyParams implements HasToJson {
  * }
  */
 class SearchGetTypeHierarchyResult implements HasToJson {
+  List<TypeHierarchyItem> _hierarchyItems;
+
   /**
    * A list of the types in the requested hierarchy. The first element of the
    * list is the item representing the type for which the hierarchy was
@@ -3405,9 +4283,26 @@ class SearchGetTypeHierarchyResult implements HasToJson {
    * not represent a type, or if the file has not been sufficiently analyzed to
    * allow a type hierarchy to be produced.
    */
-  List<TypeHierarchyItem> hierarchyItems;
+  List<TypeHierarchyItem> get hierarchyItems => _hierarchyItems;
 
-  SearchGetTypeHierarchyResult({this.hierarchyItems});
+  /**
+   * A list of the types in the requested hierarchy. The first element of the
+   * list is the item representing the type for which the hierarchy was
+   * requested. The index of other elements of the list is unspecified, but
+   * correspond to the integers used to reference supertype and subtype items
+   * within the items.
+   *
+   * This field will be absent if the code at the given file and offset does
+   * not represent a type, or if the file has not been sufficiently analyzed to
+   * allow a type hierarchy to be produced.
+   */
+  void set hierarchyItems(List<TypeHierarchyItem> value) {
+    this._hierarchyItems = value;
+  }
+
+  SearchGetTypeHierarchyResult({List<TypeHierarchyItem> hierarchyItems}) {
+    this.hierarchyItems = hierarchyItems;
+  }
 
   factory SearchGetTypeHierarchyResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -3470,23 +4365,58 @@ class SearchGetTypeHierarchyResult implements HasToJson {
  * }
  */
 class SearchResultsParams implements HasToJson {
+  String _id;
+
+  List<SearchResult> _results;
+
+  bool _isLast;
+
   /**
    * The id associated with the search.
    */
-  String id;
+  String get id => _id;
+
+  /**
+   * The id associated with the search.
+   */
+  void set id(String value) {
+    assert(value != null);
+    this._id = value;
+  }
 
   /**
    * The search results being reported.
    */
-  List<SearchResult> results;
+  List<SearchResult> get results => _results;
+
+  /**
+   * The search results being reported.
+   */
+  void set results(List<SearchResult> value) {
+    assert(value != null);
+    this._results = value;
+  }
 
   /**
    * True if this is that last set of results that will be returned for the
    * indicated search.
    */
-  bool isLast;
+  bool get isLast => _isLast;
 
-  SearchResultsParams(this.id, this.results, this.isLast);
+  /**
+   * True if this is that last set of results that will be returned for the
+   * indicated search.
+   */
+  void set isLast(bool value) {
+    assert(value != null);
+    this._isLast = value;
+  }
+
+  SearchResultsParams(String id, List<SearchResult> results, bool isLast) {
+    this.id = id;
+    this.results = results;
+    this.isLast = isLast;
+  }
 
   factory SearchResultsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -3567,22 +4497,56 @@ class SearchResultsParams implements HasToJson {
  * }
  */
 class EditFormatParams implements HasToJson {
+  String _file;
+
+  int _selectionOffset;
+
+  int _selectionLength;
+
   /**
    * The file containing the code to be formatted.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file containing the code to be formatted.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The offset of the current selection in the file.
    */
-  int selectionOffset;
+  int get selectionOffset => _selectionOffset;
+
+  /**
+   * The offset of the current selection in the file.
+   */
+  void set selectionOffset(int value) {
+    assert(value != null);
+    this._selectionOffset = value;
+  }
 
   /**
    * The length of the current selection in the file.
    */
-  int selectionLength;
+  int get selectionLength => _selectionLength;
 
-  EditFormatParams(this.file, this.selectionOffset, this.selectionLength);
+  /**
+   * The length of the current selection in the file.
+   */
+  void set selectionLength(int value) {
+    assert(value != null);
+    this._selectionLength = value;
+  }
+
+  EditFormatParams(String file, int selectionOffset, int selectionLength) {
+    this.file = file;
+    this.selectionOffset = selectionOffset;
+    this.selectionLength = selectionLength;
+  }
 
   factory EditFormatParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -3663,23 +4627,58 @@ class EditFormatParams implements HasToJson {
  * }
  */
 class EditFormatResult implements HasToJson {
+  List<SourceEdit> _edits;
+
+  int _selectionOffset;
+
+  int _selectionLength;
+
   /**
    * The edit(s) to be applied in order to format the code. The list will be
    * empty if the code was already formatted (there are no changes).
    */
-  List<SourceEdit> edits;
+  List<SourceEdit> get edits => _edits;
+
+  /**
+   * The edit(s) to be applied in order to format the code. The list will be
+   * empty if the code was already formatted (there are no changes).
+   */
+  void set edits(List<SourceEdit> value) {
+    assert(value != null);
+    this._edits = value;
+  }
 
   /**
    * The offset of the selection after formatting the code.
    */
-  int selectionOffset;
+  int get selectionOffset => _selectionOffset;
+
+  /**
+   * The offset of the selection after formatting the code.
+   */
+  void set selectionOffset(int value) {
+    assert(value != null);
+    this._selectionOffset = value;
+  }
 
   /**
    * The length of the selection after formatting the code.
    */
-  int selectionLength;
+  int get selectionLength => _selectionLength;
 
-  EditFormatResult(this.edits, this.selectionOffset, this.selectionLength);
+  /**
+   * The length of the selection after formatting the code.
+   */
+  void set selectionLength(int value) {
+    assert(value != null);
+    this._selectionLength = value;
+  }
+
+  EditFormatResult(List<SourceEdit> edits, int selectionOffset, int selectionLength) {
+    this.edits = edits;
+    this.selectionOffset = selectionOffset;
+    this.selectionLength = selectionLength;
+  }
 
   factory EditFormatResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -3760,22 +4759,56 @@ class EditFormatResult implements HasToJson {
  * }
  */
 class EditGetAssistsParams implements HasToJson {
+  String _file;
+
+  int _offset;
+
+  int _length;
+
   /**
    * The file containing the code for which assists are being requested.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file containing the code for which assists are being requested.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The offset of the code for which assists are being requested.
    */
-  int offset;
+  int get offset => _offset;
+
+  /**
+   * The offset of the code for which assists are being requested.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
 
   /**
    * The length of the code for which assists are being requested.
    */
-  int length;
+  int get length => _length;
 
-  EditGetAssistsParams(this.file, this.offset, this.length);
+  /**
+   * The length of the code for which assists are being requested.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
+
+  EditGetAssistsParams(String file, int offset, int length) {
+    this.file = file;
+    this.offset = offset;
+    this.length = length;
+  }
 
   factory EditGetAssistsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -3854,12 +4887,24 @@ class EditGetAssistsParams implements HasToJson {
  * }
  */
 class EditGetAssistsResult implements HasToJson {
+  List<SourceChange> _assists;
+
   /**
    * The assists that are available at the given location.
    */
-  List<SourceChange> assists;
+  List<SourceChange> get assists => _assists;
 
-  EditGetAssistsResult(this.assists);
+  /**
+   * The assists that are available at the given location.
+   */
+  void set assists(List<SourceChange> value) {
+    assert(value != null);
+    this._assists = value;
+  }
+
+  EditGetAssistsResult(List<SourceChange> assists) {
+    this.assists = assists;
+  }
 
   factory EditGetAssistsResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -3922,22 +4967,56 @@ class EditGetAssistsResult implements HasToJson {
  * }
  */
 class EditGetAvailableRefactoringsParams implements HasToJson {
+  String _file;
+
+  int _offset;
+
+  int _length;
+
   /**
    * The file containing the code on which the refactoring would be based.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file containing the code on which the refactoring would be based.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The offset of the code on which the refactoring would be based.
    */
-  int offset;
+  int get offset => _offset;
+
+  /**
+   * The offset of the code on which the refactoring would be based.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
 
   /**
    * The length of the code on which the refactoring would be based.
    */
-  int length;
+  int get length => _length;
 
-  EditGetAvailableRefactoringsParams(this.file, this.offset, this.length);
+  /**
+   * The length of the code on which the refactoring would be based.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
+
+  EditGetAvailableRefactoringsParams(String file, int offset, int length) {
+    this.file = file;
+    this.offset = offset;
+    this.length = length;
+  }
 
   factory EditGetAvailableRefactoringsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -4016,12 +5095,24 @@ class EditGetAvailableRefactoringsParams implements HasToJson {
  * }
  */
 class EditGetAvailableRefactoringsResult implements HasToJson {
+  List<RefactoringKind> _kinds;
+
   /**
    * The kinds of refactorings that are valid for the given selection.
    */
-  List<RefactoringKind> kinds;
+  List<RefactoringKind> get kinds => _kinds;
 
-  EditGetAvailableRefactoringsResult(this.kinds);
+  /**
+   * The kinds of refactorings that are valid for the given selection.
+   */
+  void set kinds(List<RefactoringKind> value) {
+    assert(value != null);
+    this._kinds = value;
+  }
+
+  EditGetAvailableRefactoringsResult(List<RefactoringKind> kinds) {
+    this.kinds = kinds;
+  }
 
   factory EditGetAvailableRefactoringsResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -4083,17 +5174,40 @@ class EditGetAvailableRefactoringsResult implements HasToJson {
  * }
  */
 class EditGetFixesParams implements HasToJson {
+  String _file;
+
+  int _offset;
+
   /**
    * The file containing the errors for which fixes are being requested.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file containing the errors for which fixes are being requested.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The offset used to select the errors for which fixes will be returned.
    */
-  int offset;
+  int get offset => _offset;
 
-  EditGetFixesParams(this.file, this.offset);
+  /**
+   * The offset used to select the errors for which fixes will be returned.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  EditGetFixesParams(String file, int offset) {
+    this.file = file;
+    this.offset = offset;
+  }
 
   factory EditGetFixesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -4163,12 +5277,24 @@ class EditGetFixesParams implements HasToJson {
  * }
  */
 class EditGetFixesResult implements HasToJson {
+  List<AnalysisErrorFixes> _fixes;
+
   /**
    * The fixes that are available for the errors at the given offset.
    */
-  List<AnalysisErrorFixes> fixes;
+  List<AnalysisErrorFixes> get fixes => _fixes;
 
-  EditGetFixesResult(this.fixes);
+  /**
+   * The fixes that are available for the errors at the given offset.
+   */
+  void set fixes(List<AnalysisErrorFixes> value) {
+    assert(value != null);
+    this._fixes = value;
+  }
+
+  EditGetFixesResult(List<AnalysisErrorFixes> fixes) {
+    this.fixes = fixes;
+  }
 
   factory EditGetFixesResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -4234,31 +5360,84 @@ class EditGetFixesResult implements HasToJson {
  * }
  */
 class EditGetRefactoringParams implements HasToJson {
+  RefactoringKind _kind;
+
+  String _file;
+
+  int _offset;
+
+  int _length;
+
+  bool _validateOnly;
+
+  RefactoringOptions _options;
+
   /**
    * The kind of refactoring to be performed.
    */
-  RefactoringKind kind;
+  RefactoringKind get kind => _kind;
+
+  /**
+   * The kind of refactoring to be performed.
+   */
+  void set kind(RefactoringKind value) {
+    assert(value != null);
+    this._kind = value;
+  }
 
   /**
    * The file containing the code involved in the refactoring.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file containing the code involved in the refactoring.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The offset of the region involved in the refactoring.
    */
-  int offset;
+  int get offset => _offset;
+
+  /**
+   * The offset of the region involved in the refactoring.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
 
   /**
    * The length of the region involved in the refactoring.
    */
-  int length;
+  int get length => _length;
+
+  /**
+   * The length of the region involved in the refactoring.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
 
   /**
    * True if the client is only requesting that the values of the options be
    * validated and no change be generated.
    */
-  bool validateOnly;
+  bool get validateOnly => _validateOnly;
+
+  /**
+   * True if the client is only requesting that the values of the options be
+   * validated and no change be generated.
+   */
+  void set validateOnly(bool value) {
+    assert(value != null);
+    this._validateOnly = value;
+  }
 
   /**
    * Data used to provide values provided by the user. The structure of the
@@ -4267,9 +5446,27 @@ class EditGetRefactoringParams implements HasToJson {
    * as “Options”. This field can be omitted if the refactoring does not
    * require any options or if the values of those options are not known.
    */
-  RefactoringOptions options;
+  RefactoringOptions get options => _options;
 
-  EditGetRefactoringParams(this.kind, this.file, this.offset, this.length, this.validateOnly, {this.options});
+  /**
+   * Data used to provide values provided by the user. The structure of the
+   * data is dependent on the kind of refactoring being performed. The data
+   * that is expected is documented in the section titled Refactorings, labeled
+   * as “Options”. This field can be omitted if the refactoring does not
+   * require any options or if the values of those options are not known.
+   */
+  void set options(RefactoringOptions value) {
+    this._options = value;
+  }
+
+  EditGetRefactoringParams(RefactoringKind kind, String file, int offset, int length, bool validateOnly, {RefactoringOptions options}) {
+    this.kind = kind;
+    this.file = file;
+    this.offset = offset;
+    this.length = length;
+    this.validateOnly = validateOnly;
+    this.options = options;
+  }
 
   factory EditGetRefactoringParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -4382,26 +5579,68 @@ class EditGetRefactoringParams implements HasToJson {
  * }
  */
 class EditGetRefactoringResult implements HasToJson {
+  List<RefactoringProblem> _initialProblems;
+
+  List<RefactoringProblem> _optionsProblems;
+
+  List<RefactoringProblem> _finalProblems;
+
+  RefactoringFeedback _feedback;
+
+  SourceChange _change;
+
+  List<String> _potentialEdits;
+
   /**
    * The initial status of the refactoring, i.e. problems related to the
    * context in which the refactoring is requested. The array will be empty if
    * there are no known problems.
    */
-  List<RefactoringProblem> initialProblems;
+  List<RefactoringProblem> get initialProblems => _initialProblems;
+
+  /**
+   * The initial status of the refactoring, i.e. problems related to the
+   * context in which the refactoring is requested. The array will be empty if
+   * there are no known problems.
+   */
+  void set initialProblems(List<RefactoringProblem> value) {
+    assert(value != null);
+    this._initialProblems = value;
+  }
 
   /**
    * The options validation status, i.e. problems in the given options, such as
    * light-weight validation of a new name, flags compatibility, etc. The array
    * will be empty if there are no known problems.
    */
-  List<RefactoringProblem> optionsProblems;
+  List<RefactoringProblem> get optionsProblems => _optionsProblems;
+
+  /**
+   * The options validation status, i.e. problems in the given options, such as
+   * light-weight validation of a new name, flags compatibility, etc. The array
+   * will be empty if there are no known problems.
+   */
+  void set optionsProblems(List<RefactoringProblem> value) {
+    assert(value != null);
+    this._optionsProblems = value;
+  }
 
   /**
    * The final status of the refactoring, i.e. problems identified in the
    * result of a full, potentially expensive validation and / or change
    * creation. The array will be empty if there are no known problems.
    */
-  List<RefactoringProblem> finalProblems;
+  List<RefactoringProblem> get finalProblems => _finalProblems;
+
+  /**
+   * The final status of the refactoring, i.e. problems identified in the
+   * result of a full, potentially expensive validation and / or change
+   * creation. The array will be empty if there are no known problems.
+   */
+  void set finalProblems(List<RefactoringProblem> value) {
+    assert(value != null);
+    this._finalProblems = value;
+  }
 
   /**
    * Data used to provide feedback to the user. The structure of the data is
@@ -4409,7 +5648,17 @@ class EditGetRefactoringResult implements HasToJson {
    * returned is documented in the section titled Refactorings, labeled as
    * “Feedback”.
    */
-  RefactoringFeedback feedback;
+  RefactoringFeedback get feedback => _feedback;
+
+  /**
+   * Data used to provide feedback to the user. The structure of the data is
+   * dependent on the kind of refactoring being created. The data that is
+   * returned is documented in the section titled Refactorings, labeled as
+   * “Feedback”.
+   */
+  void set feedback(RefactoringFeedback value) {
+    this._feedback = value;
+  }
 
   /**
    * The changes that are to be applied to affect the refactoring. This field
@@ -4417,7 +5666,17 @@ class EditGetRefactoringResult implements HasToJson {
    * being computed, such as having no options specified for a refactoring that
    * requires them, or if only validation was requested.
    */
-  SourceChange change;
+  SourceChange get change => _change;
+
+  /**
+   * The changes that are to be applied to affect the refactoring. This field
+   * will be omitted if there are problems that prevent a set of changes from
+   * being computed, such as having no options specified for a refactoring that
+   * requires them, or if only validation was requested.
+   */
+  void set change(SourceChange value) {
+    this._change = value;
+  }
 
   /**
    * The ids of source edits that are not known to be valid. An edit is not
@@ -4427,9 +5686,28 @@ class EditGetRefactoringResult implements HasToJson {
    * to a member from an unknown type. This field will be omitted if the change
    * field is omitted or if there are no potential edits for the refactoring.
    */
-  List<String> potentialEdits;
+  List<String> get potentialEdits => _potentialEdits;
 
-  EditGetRefactoringResult(this.initialProblems, this.optionsProblems, this.finalProblems, {this.feedback, this.change, this.potentialEdits});
+  /**
+   * The ids of source edits that are not known to be valid. An edit is not
+   * known to be valid if there was insufficient type information for the
+   * server to be able to determine whether or not the code needs to be
+   * modified, such as when a member is being renamed and there is a reference
+   * to a member from an unknown type. This field will be omitted if the change
+   * field is omitted or if there are no potential edits for the refactoring.
+   */
+  void set potentialEdits(List<String> value) {
+    this._potentialEdits = value;
+  }
+
+  EditGetRefactoringResult(List<RefactoringProblem> initialProblems, List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems, {RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits}) {
+    this.initialProblems = initialProblems;
+    this.optionsProblems = optionsProblems;
+    this.finalProblems = finalProblems;
+    this.feedback = feedback;
+    this.change = change;
+    this.potentialEdits = potentialEdits;
+  }
 
   factory EditGetRefactoringResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -4535,12 +5813,24 @@ class EditGetRefactoringResult implements HasToJson {
  * }
  */
 class EditSortMembersParams implements HasToJson {
+  String _file;
+
   /**
    * The Dart file to sort.
    */
-  String file;
+  String get file => _file;
 
-  EditSortMembersParams(this.file);
+  /**
+   * The Dart file to sort.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  EditSortMembersParams(String file) {
+    this.file = file;
+  }
 
   factory EditSortMembersParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -4601,13 +5891,26 @@ class EditSortMembersParams implements HasToJson {
  * }
  */
 class EditSortMembersResult implements HasToJson {
+  SourceFileEdit _edit;
+
   /**
    * The file edit that is to be applied to the given file to effect the
    * sorting.
    */
-  SourceFileEdit edit;
+  SourceFileEdit get edit => _edit;
 
-  EditSortMembersResult(this.edit);
+  /**
+   * The file edit that is to be applied to the given file to effect the
+   * sorting.
+   */
+  void set edit(SourceFileEdit value) {
+    assert(value != null);
+    this._edit = value;
+  }
+
+  EditSortMembersResult(SourceFileEdit edit) {
+    this.edit = edit;
+  }
 
   factory EditSortMembersResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -4668,13 +5971,26 @@ class EditSortMembersResult implements HasToJson {
  * }
  */
 class ExecutionCreateContextParams implements HasToJson {
+  String _contextRoot;
+
   /**
    * The path of the Dart or HTML file that will be launched, or the path of
    * the directory containing the file.
    */
-  String contextRoot;
+  String get contextRoot => _contextRoot;
 
-  ExecutionCreateContextParams(this.contextRoot);
+  /**
+   * The path of the Dart or HTML file that will be launched, or the path of
+   * the directory containing the file.
+   */
+  void set contextRoot(String value) {
+    assert(value != null);
+    this._contextRoot = value;
+  }
+
+  ExecutionCreateContextParams(String contextRoot) {
+    this.contextRoot = contextRoot;
+  }
 
   factory ExecutionCreateContextParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -4735,12 +6051,24 @@ class ExecutionCreateContextParams implements HasToJson {
  * }
  */
 class ExecutionCreateContextResult implements HasToJson {
+  String _id;
+
   /**
    * The identifier used to refer to the execution context that was created.
    */
-  String id;
+  String get id => _id;
 
-  ExecutionCreateContextResult(this.id);
+  /**
+   * The identifier used to refer to the execution context that was created.
+   */
+  void set id(String value) {
+    assert(value != null);
+    this._id = value;
+  }
+
+  ExecutionCreateContextResult(String id) {
+    this.id = id;
+  }
 
   factory ExecutionCreateContextResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -4801,12 +6129,24 @@ class ExecutionCreateContextResult implements HasToJson {
  * }
  */
 class ExecutionDeleteContextParams implements HasToJson {
+  String _id;
+
   /**
    * The identifier of the execution context that is to be deleted.
    */
-  String id;
+  String get id => _id;
 
-  ExecutionDeleteContextParams(this.id);
+  /**
+   * The identifier of the execution context that is to be deleted.
+   */
+  void set id(String value) {
+    assert(value != null);
+    this._id = value;
+  }
+
+  ExecutionDeleteContextParams(String id) {
+    this.id = id;
+  }
 
   factory ExecutionDeleteContextParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -4890,22 +6230,54 @@ class ExecutionDeleteContextResult {
  * }
  */
 class ExecutionMapUriParams implements HasToJson {
+  String _id;
+
+  String _file;
+
+  String _uri;
+
   /**
    * The identifier of the execution context in which the URI is to be mapped.
    */
-  String id;
+  String get id => _id;
+
+  /**
+   * The identifier of the execution context in which the URI is to be mapped.
+   */
+  void set id(String value) {
+    assert(value != null);
+    this._id = value;
+  }
 
   /**
    * The path of the file to be mapped into a URI.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The path of the file to be mapped into a URI.
+   */
+  void set file(String value) {
+    this._file = value;
+  }
 
   /**
    * The URI to be mapped into a file path.
    */
-  String uri;
+  String get uri => _uri;
 
-  ExecutionMapUriParams(this.id, {this.file, this.uri});
+  /**
+   * The URI to be mapped into a file path.
+   */
+  void set uri(String value) {
+    this._uri = value;
+  }
+
+  ExecutionMapUriParams(String id, {String file, String uri}) {
+    this.id = id;
+    this.file = file;
+    this.uri = uri;
+  }
 
   factory ExecutionMapUriParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -4985,19 +6357,42 @@ class ExecutionMapUriParams implements HasToJson {
  * }
  */
 class ExecutionMapUriResult implements HasToJson {
+  String _file;
+
+  String _uri;
+
   /**
    * The file to which the URI was mapped. This field is omitted if the uri
    * field was not given in the request.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file to which the URI was mapped. This field is omitted if the uri
+   * field was not given in the request.
+   */
+  void set file(String value) {
+    this._file = value;
+  }
 
   /**
    * The URI to which the file path was mapped. This field is omitted if the
    * file field was not given in the request.
    */
-  String uri;
+  String get uri => _uri;
 
-  ExecutionMapUriResult({this.file, this.uri});
+  /**
+   * The URI to which the file path was mapped. This field is omitted if the
+   * file field was not given in the request.
+   */
+  void set uri(String value) {
+    this._uri = value;
+  }
+
+  ExecutionMapUriResult({String file, String uri}) {
+    this.file = file;
+    this.uri = uri;
+  }
 
   factory ExecutionMapUriResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -5067,12 +6462,24 @@ class ExecutionMapUriResult implements HasToJson {
  * }
  */
 class ExecutionSetSubscriptionsParams implements HasToJson {
+  List<ExecutionService> _subscriptions;
+
   /**
    * A list of the services being subscribed to.
    */
-  List<ExecutionService> subscriptions;
+  List<ExecutionService> get subscriptions => _subscriptions;
 
-  ExecutionSetSubscriptionsParams(this.subscriptions);
+  /**
+   * A list of the services being subscribed to.
+   */
+  void set subscriptions(List<ExecutionService> value) {
+    assert(value != null);
+    this._subscriptions = value;
+  }
+
+  ExecutionSetSubscriptionsParams(List<ExecutionService> subscriptions) {
+    this.subscriptions = subscriptions;
+  }
 
   factory ExecutionSetSubscriptionsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -5156,25 +6563,60 @@ class ExecutionSetSubscriptionsResult {
  * }
  */
 class ExecutionLaunchDataParams implements HasToJson {
+  String _file;
+
+  ExecutableKind _kind;
+
+  List<String> _referencedFiles;
+
   /**
    * The file for which launch data is being provided. This will either be a
    * Dart library or an HTML file.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file for which launch data is being provided. This will either be a
+   * Dart library or an HTML file.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The kind of the executable file. This field is omitted if the file is not
    * a Dart file.
    */
-  ExecutableKind kind;
+  ExecutableKind get kind => _kind;
+
+  /**
+   * The kind of the executable file. This field is omitted if the file is not
+   * a Dart file.
+   */
+  void set kind(ExecutableKind value) {
+    this._kind = value;
+  }
 
   /**
    * A list of the Dart files that are referenced by the file. This field is
    * omitted if the file is not an HTML file.
    */
-  List<String> referencedFiles;
+  List<String> get referencedFiles => _referencedFiles;
 
-  ExecutionLaunchDataParams(this.file, {this.kind, this.referencedFiles});
+  /**
+   * A list of the Dart files that are referenced by the file. This field is
+   * omitted if the file is not an HTML file.
+   */
+  void set referencedFiles(List<String> value) {
+    this._referencedFiles = value;
+  }
+
+  ExecutionLaunchDataParams(String file, {ExecutableKind kind, List<String> referencedFiles}) {
+    this.file = file;
+    this.kind = kind;
+    this.referencedFiles = referencedFiles;
+  }
 
   factory ExecutionLaunchDataParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -5254,12 +6696,24 @@ class ExecutionLaunchDataParams implements HasToJson {
  * }
  */
 class AddContentOverlay implements HasToJson {
+  String _content;
+
   /**
    * The new content of the file.
    */
-  String content;
+  String get content => _content;
 
-  AddContentOverlay(this.content);
+  /**
+   * The new content of the file.
+   */
+  void set content(String value) {
+    assert(value != null);
+    this._content = value;
+  }
+
+  AddContentOverlay(String content) {
+    this.content = content;
+  }
 
   factory AddContentOverlay.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -5320,35 +6774,93 @@ class AddContentOverlay implements HasToJson {
  * }
  */
 class AnalysisError implements HasToJson {
+  AnalysisErrorSeverity _severity;
+
+  AnalysisErrorType _type;
+
+  Location _location;
+
+  String _message;
+
+  String _correction;
+
   /**
    * The severity of the error.
    */
-  AnalysisErrorSeverity severity;
+  AnalysisErrorSeverity get severity => _severity;
+
+  /**
+   * The severity of the error.
+   */
+  void set severity(AnalysisErrorSeverity value) {
+    assert(value != null);
+    this._severity = value;
+  }
 
   /**
    * The type of the error.
    */
-  AnalysisErrorType type;
+  AnalysisErrorType get type => _type;
+
+  /**
+   * The type of the error.
+   */
+  void set type(AnalysisErrorType value) {
+    assert(value != null);
+    this._type = value;
+  }
 
   /**
    * The location associated with the error.
    */
-  Location location;
+  Location get location => _location;
+
+  /**
+   * The location associated with the error.
+   */
+  void set location(Location value) {
+    assert(value != null);
+    this._location = value;
+  }
 
   /**
    * The message to be displayed for this error. The message should indicate
    * what is wrong with the code and why it is wrong.
    */
-  String message;
+  String get message => _message;
+
+  /**
+   * The message to be displayed for this error. The message should indicate
+   * what is wrong with the code and why it is wrong.
+   */
+  void set message(String value) {
+    assert(value != null);
+    this._message = value;
+  }
 
   /**
    * The correction message to be displayed for this error. The correction
    * message should indicate how the user can fix the error. The field is
    * omitted if there is no correction message associated with the error code.
    */
-  String correction;
+  String get correction => _correction;
 
-  AnalysisError(this.severity, this.type, this.location, this.message, {this.correction});
+  /**
+   * The correction message to be displayed for this error. The correction
+   * message should indicate how the user can fix the error. The field is
+   * omitted if there is no correction message associated with the error code.
+   */
+  void set correction(String value) {
+    this._correction = value;
+  }
+
+  AnalysisError(AnalysisErrorSeverity severity, AnalysisErrorType type, Location location, String message, {String correction}) {
+    this.severity = severity;
+    this.type = type;
+    this.location = location;
+    this.message = message;
+    this.correction = correction;
+  }
 
   factory AnalysisError.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -5437,19 +6949,42 @@ class AnalysisError implements HasToJson {
  * }
  */
 class AnalysisErrorFixes implements HasToJson {
+  AnalysisError _error;
+
+  List<SourceChange> _fixes;
+
   /**
    * The error with which the fixes are associated.
    */
-  AnalysisError error;
+  AnalysisError get error => _error;
+
+  /**
+   * The error with which the fixes are associated.
+   */
+  void set error(AnalysisError value) {
+    assert(value != null);
+    this._error = value;
+  }
 
   /**
    * The fixes associated with the error.
    */
-  List<SourceChange> fixes;
+  List<SourceChange> get fixes => _fixes;
 
-  AnalysisErrorFixes(this.error, {this.fixes}) {
+  /**
+   * The fixes associated with the error.
+   */
+  void set fixes(List<SourceChange> value) {
+    assert(value != null);
+    this._fixes = value;
+  }
+
+  AnalysisErrorFixes(AnalysisError error, {List<SourceChange> fixes}) {
+    this.error = error;
     if (fixes == null) {
-      fixes = <SourceChange>[];
+      this.fixes = <SourceChange>[];
+    } else {
+      this.fixes = fixes;
     }
   }
 
@@ -5651,12 +7186,35 @@ class AnalysisErrorType implements Enum {
  * }
  */
 class AnalysisOptions implements HasToJson {
+  bool _enableAsync;
+
+  bool _enableDeferredLoading;
+
+  bool _enableEnums;
+
+  bool _enableNullAwareOperators;
+
+  bool _generateDart2jsHints;
+
+  bool _generateHints;
+
+  bool _generateLints;
+
   /**
    * Deprecated
    *
    * True if the client wants to enable support for the proposed async feature.
    */
-  bool enableAsync;
+  bool get enableAsync => _enableAsync;
+
+  /**
+   * Deprecated
+   *
+   * True if the client wants to enable support for the proposed async feature.
+   */
+  void set enableAsync(bool value) {
+    this._enableAsync = value;
+  }
 
   /**
    * Deprecated
@@ -5664,40 +7222,99 @@ class AnalysisOptions implements HasToJson {
    * True if the client wants to enable support for the proposed deferred
    * loading feature.
    */
-  bool enableDeferredLoading;
+  bool get enableDeferredLoading => _enableDeferredLoading;
+
+  /**
+   * Deprecated
+   *
+   * True if the client wants to enable support for the proposed deferred
+   * loading feature.
+   */
+  void set enableDeferredLoading(bool value) {
+    this._enableDeferredLoading = value;
+  }
 
   /**
    * Deprecated
    *
    * True if the client wants to enable support for the proposed enum feature.
    */
-  bool enableEnums;
+  bool get enableEnums => _enableEnums;
+
+  /**
+   * Deprecated
+   *
+   * True if the client wants to enable support for the proposed enum feature.
+   */
+  void set enableEnums(bool value) {
+    this._enableEnums = value;
+  }
 
   /**
    * True if the client wants to enable support for the proposed "null aware
    * operators" feature.
    */
-  bool enableNullAwareOperators;
+  bool get enableNullAwareOperators => _enableNullAwareOperators;
+
+  /**
+   * True if the client wants to enable support for the proposed "null aware
+   * operators" feature.
+   */
+  void set enableNullAwareOperators(bool value) {
+    this._enableNullAwareOperators = value;
+  }
 
   /**
    * True if hints that are specific to dart2js should be generated. This
    * option is ignored if generateHints is false.
    */
-  bool generateDart2jsHints;
+  bool get generateDart2jsHints => _generateDart2jsHints;
+
+  /**
+   * True if hints that are specific to dart2js should be generated. This
+   * option is ignored if generateHints is false.
+   */
+  void set generateDart2jsHints(bool value) {
+    this._generateDart2jsHints = value;
+  }
 
   /**
    * True if hints should be generated as part of generating errors and
    * warnings.
    */
-  bool generateHints;
+  bool get generateHints => _generateHints;
+
+  /**
+   * True if hints should be generated as part of generating errors and
+   * warnings.
+   */
+  void set generateHints(bool value) {
+    this._generateHints = value;
+  }
 
   /**
    * True if lints should be generated as part of generating errors and
    * warnings.
    */
-  bool generateLints;
+  bool get generateLints => _generateLints;
 
-  AnalysisOptions({this.enableAsync, this.enableDeferredLoading, this.enableEnums, this.enableNullAwareOperators, this.generateDart2jsHints, this.generateHints, this.generateLints});
+  /**
+   * True if lints should be generated as part of generating errors and
+   * warnings.
+   */
+  void set generateLints(bool value) {
+    this._generateLints = value;
+  }
+
+  AnalysisOptions({bool enableAsync, bool enableDeferredLoading, bool enableEnums, bool enableNullAwareOperators, bool generateDart2jsHints, bool generateHints, bool generateLints}) {
+    this.enableAsync = enableAsync;
+    this.enableDeferredLoading = enableDeferredLoading;
+    this.enableEnums = enableEnums;
+    this.enableNullAwareOperators = enableNullAwareOperators;
+    this.generateDart2jsHints = generateDart2jsHints;
+    this.generateHints = generateHints;
+    this.generateLints = generateLints;
+  }
 
   factory AnalysisOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -5878,18 +7495,41 @@ class AnalysisService implements Enum {
  * }
  */
 class AnalysisStatus implements HasToJson {
+  bool _isAnalyzing;
+
+  String _analysisTarget;
+
   /**
    * True if analysis is currently being performed.
    */
-  bool isAnalyzing;
+  bool get isAnalyzing => _isAnalyzing;
+
+  /**
+   * True if analysis is currently being performed.
+   */
+  void set isAnalyzing(bool value) {
+    assert(value != null);
+    this._isAnalyzing = value;
+  }
 
   /**
    * The name of the current target of analysis. This field is omitted if
    * analyzing is false.
    */
-  String analysisTarget;
+  String get analysisTarget => _analysisTarget;
 
-  AnalysisStatus(this.isAnalyzing, {this.analysisTarget});
+  /**
+   * The name of the current target of analysis. This field is omitted if
+   * analyzing is false.
+   */
+  void set analysisTarget(String value) {
+    this._analysisTarget = value;
+  }
+
+  AnalysisStatus(bool isAnalyzing, {String analysisTarget}) {
+    this.isAnalyzing = isAnalyzing;
+    this.analysisTarget = analysisTarget;
+  }
 
   factory AnalysisStatus.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -5951,12 +7591,24 @@ class AnalysisStatus implements HasToJson {
  * }
  */
 class ChangeContentOverlay implements HasToJson {
+  List<SourceEdit> _edits;
+
   /**
    * The edits to be applied to the file.
    */
-  List<SourceEdit> edits;
+  List<SourceEdit> get edits => _edits;
 
-  ChangeContentOverlay(this.edits);
+  /**
+   * The edits to be applied to the file.
+   */
+  void set edits(List<SourceEdit> value) {
+    assert(value != null);
+    this._edits = value;
+  }
+
+  ChangeContentOverlay(List<SourceEdit> edits) {
+    this.edits = edits;
+  }
 
   factory ChangeContentOverlay.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -6030,16 +7682,69 @@ class ChangeContentOverlay implements HasToJson {
  * }
  */
 class CompletionSuggestion implements HasToJson {
+  CompletionSuggestionKind _kind;
+
+  int _relevance;
+
+  String _completion;
+
+  int _selectionOffset;
+
+  int _selectionLength;
+
+  bool _isDeprecated;
+
+  bool _isPotential;
+
+  String _docSummary;
+
+  String _docComplete;
+
+  String _declaringType;
+
+  Element _element;
+
+  String _returnType;
+
+  List<String> _parameterNames;
+
+  List<String> _parameterTypes;
+
+  int _requiredParameterCount;
+
+  bool _hasNamedParameters;
+
+  String _parameterName;
+
+  String _parameterType;
+
   /**
    * The kind of element being suggested.
    */
-  CompletionSuggestionKind kind;
+  CompletionSuggestionKind get kind => _kind;
+
+  /**
+   * The kind of element being suggested.
+   */
+  void set kind(CompletionSuggestionKind value) {
+    assert(value != null);
+    this._kind = value;
+  }
 
   /**
    * The relevance of this completion suggestion where a higher number
    * indicates a higher relevance.
    */
-  int relevance;
+  int get relevance => _relevance;
+
+  /**
+   * The relevance of this completion suggestion where a higher number
+   * indicates a higher relevance.
+   */
+  void set relevance(int value) {
+    assert(value != null);
+    this._relevance = value;
+  }
 
   /**
    * The identifier to be inserted if the suggestion is selected. If the
@@ -6047,100 +7752,255 @@ class CompletionSuggestion implements HasToJson {
    * additionally insert a template for the parameters. The information
    * required in order to do so is contained in other fields.
    */
-  String completion;
+  String get completion => _completion;
+
+  /**
+   * The identifier to be inserted if the suggestion is selected. If the
+   * suggestion is for a method or function, the client might want to
+   * additionally insert a template for the parameters. The information
+   * required in order to do so is contained in other fields.
+   */
+  void set completion(String value) {
+    assert(value != null);
+    this._completion = value;
+  }
 
   /**
    * The offset, relative to the beginning of the completion, of where the
    * selection should be placed after insertion.
    */
-  int selectionOffset;
+  int get selectionOffset => _selectionOffset;
+
+  /**
+   * The offset, relative to the beginning of the completion, of where the
+   * selection should be placed after insertion.
+   */
+  void set selectionOffset(int value) {
+    assert(value != null);
+    this._selectionOffset = value;
+  }
 
   /**
    * The number of characters that should be selected after insertion.
    */
-  int selectionLength;
+  int get selectionLength => _selectionLength;
+
+  /**
+   * The number of characters that should be selected after insertion.
+   */
+  void set selectionLength(int value) {
+    assert(value != null);
+    this._selectionLength = value;
+  }
 
   /**
    * True if the suggested element is deprecated.
    */
-  bool isDeprecated;
+  bool get isDeprecated => _isDeprecated;
+
+  /**
+   * True if the suggested element is deprecated.
+   */
+  void set isDeprecated(bool value) {
+    assert(value != null);
+    this._isDeprecated = value;
+  }
 
   /**
    * True if the element is not known to be valid for the target. This happens
    * if the type of the target is dynamic.
    */
-  bool isPotential;
+  bool get isPotential => _isPotential;
+
+  /**
+   * True if the element is not known to be valid for the target. This happens
+   * if the type of the target is dynamic.
+   */
+  void set isPotential(bool value) {
+    assert(value != null);
+    this._isPotential = value;
+  }
 
   /**
    * An abbreviated version of the Dartdoc associated with the element being
    * suggested, This field is omitted if there is no Dartdoc associated with
    * the element.
    */
-  String docSummary;
+  String get docSummary => _docSummary;
+
+  /**
+   * An abbreviated version of the Dartdoc associated with the element being
+   * suggested, This field is omitted if there is no Dartdoc associated with
+   * the element.
+   */
+  void set docSummary(String value) {
+    this._docSummary = value;
+  }
 
   /**
    * The Dartdoc associated with the element being suggested, This field is
    * omitted if there is no Dartdoc associated with the element.
    */
-  String docComplete;
+  String get docComplete => _docComplete;
+
+  /**
+   * The Dartdoc associated with the element being suggested, This field is
+   * omitted if there is no Dartdoc associated with the element.
+   */
+  void set docComplete(String value) {
+    this._docComplete = value;
+  }
 
   /**
    * The class that declares the element being suggested. This field is omitted
    * if the suggested element is not a member of a class.
    */
-  String declaringType;
+  String get declaringType => _declaringType;
+
+  /**
+   * The class that declares the element being suggested. This field is omitted
+   * if the suggested element is not a member of a class.
+   */
+  void set declaringType(String value) {
+    this._declaringType = value;
+  }
 
   /**
    * Information about the element reference being suggested.
    */
-  Element element;
+  Element get element => _element;
+
+  /**
+   * Information about the element reference being suggested.
+   */
+  void set element(Element value) {
+    this._element = value;
+  }
 
   /**
    * The return type of the getter, function or method or the type of the field
    * being suggested. This field is omitted if the suggested element is not a
    * getter, function or method.
    */
-  String returnType;
+  String get returnType => _returnType;
+
+  /**
+   * The return type of the getter, function or method or the type of the field
+   * being suggested. This field is omitted if the suggested element is not a
+   * getter, function or method.
+   */
+  void set returnType(String value) {
+    this._returnType = value;
+  }
 
   /**
    * The names of the parameters of the function or method being suggested.
    * This field is omitted if the suggested element is not a setter, function
    * or method.
    */
-  List<String> parameterNames;
+  List<String> get parameterNames => _parameterNames;
+
+  /**
+   * The names of the parameters of the function or method being suggested.
+   * This field is omitted if the suggested element is not a setter, function
+   * or method.
+   */
+  void set parameterNames(List<String> value) {
+    this._parameterNames = value;
+  }
 
   /**
    * The types of the parameters of the function or method being suggested.
    * This field is omitted if the parameterNames field is omitted.
    */
-  List<String> parameterTypes;
+  List<String> get parameterTypes => _parameterTypes;
+
+  /**
+   * The types of the parameters of the function or method being suggested.
+   * This field is omitted if the parameterNames field is omitted.
+   */
+  void set parameterTypes(List<String> value) {
+    this._parameterTypes = value;
+  }
 
   /**
    * The number of required parameters for the function or method being
    * suggested. This field is omitted if the parameterNames field is omitted.
    */
-  int requiredParameterCount;
+  int get requiredParameterCount => _requiredParameterCount;
+
+  /**
+   * The number of required parameters for the function or method being
+   * suggested. This field is omitted if the parameterNames field is omitted.
+   */
+  void set requiredParameterCount(int value) {
+    this._requiredParameterCount = value;
+  }
 
   /**
    * True if the function or method being suggested has at least one named
    * parameter. This field is omitted if the parameterNames field is omitted.
    */
-  bool hasNamedParameters;
+  bool get hasNamedParameters => _hasNamedParameters;
+
+  /**
+   * True if the function or method being suggested has at least one named
+   * parameter. This field is omitted if the parameterNames field is omitted.
+   */
+  void set hasNamedParameters(bool value) {
+    this._hasNamedParameters = value;
+  }
 
   /**
    * The name of the optional parameter being suggested. This field is omitted
    * if the suggestion is not the addition of an optional argument within an
    * argument list.
    */
-  String parameterName;
+  String get parameterName => _parameterName;
+
+  /**
+   * The name of the optional parameter being suggested. This field is omitted
+   * if the suggestion is not the addition of an optional argument within an
+   * argument list.
+   */
+  void set parameterName(String value) {
+    this._parameterName = value;
+  }
 
   /**
    * The type of the options parameter being suggested. This field is omitted
    * if the parameterName field is omitted.
    */
-  String parameterType;
+  String get parameterType => _parameterType;
 
-  CompletionSuggestion(this.kind, this.relevance, this.completion, this.selectionOffset, this.selectionLength, this.isDeprecated, this.isPotential, {this.docSummary, this.docComplete, this.declaringType, this.element, this.returnType, this.parameterNames, this.parameterTypes, this.requiredParameterCount, this.hasNamedParameters, this.parameterName, this.parameterType});
+  /**
+   * The type of the options parameter being suggested. This field is omitted
+   * if the parameterName field is omitted.
+   */
+  void set parameterType(String value) {
+    this._parameterType = value;
+  }
+
+  CompletionSuggestion(CompletionSuggestionKind kind, int relevance, String completion, int selectionOffset, int selectionLength, bool isDeprecated, bool isPotential, {String docSummary, String docComplete, String declaringType, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, int requiredParameterCount, bool hasNamedParameters, String parameterName, String parameterType}) {
+    this.kind = kind;
+    this.relevance = relevance;
+    this.completion = completion;
+    this.selectionOffset = selectionOffset;
+    this.selectionLength = selectionLength;
+    this.isDeprecated = isDeprecated;
+    this.isPotential = isPotential;
+    this.docSummary = docSummary;
+    this.docComplete = docComplete;
+    this.declaringType = declaringType;
+    this.element = element;
+    this.returnType = returnType;
+    this.parameterNames = parameterNames;
+    this.parameterTypes = parameterTypes;
+    this.requiredParameterCount = requiredParameterCount;
+    this.hasNamedParameters = hasNamedParameters;
+    this.parameterName = parameterName;
+    this.parameterType = parameterType;
+  }
 
   factory CompletionSuggestion.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -6470,21 +8330,59 @@ class Element implements HasToJson {
     return flags;
   }
 
+  ElementKind _kind;
+
+  String _name;
+
+  Location _location;
+
+  int _flags;
+
+  String _parameters;
+
+  String _returnType;
+
+  String _typeParameters;
+
   /**
    * The kind of the element.
    */
-  ElementKind kind;
+  ElementKind get kind => _kind;
+
+  /**
+   * The kind of the element.
+   */
+  void set kind(ElementKind value) {
+    assert(value != null);
+    this._kind = value;
+  }
 
   /**
    * The name of the element. This is typically used as the label in the
    * outline.
    */
-  String name;
+  String get name => _name;
+
+  /**
+   * The name of the element. This is typically used as the label in the
+   * outline.
+   */
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
+  }
 
   /**
    * The location of the name in the declaration of the element.
    */
-  Location location;
+  Location get location => _location;
+
+  /**
+   * The location of the name in the declaration of the element.
+   */
+  void set location(Location value) {
+    this._location = value;
+  }
 
   /**
    * A bit-map containing the following flags:
@@ -6497,7 +8395,23 @@ class Element implements HasToJson {
    * - 0x10 - set if the element is private
    * - 0x20 - set if the element is deprecated
    */
-  int flags;
+  int get flags => _flags;
+
+  /**
+   * A bit-map containing the following flags:
+   *
+   * - 0x01 - set if the element is explicitly or implicitly abstract
+   * - 0x02 - set if the element was declared to be ‘const’
+   * - 0x04 - set if the element was declared to be ‘final’
+   * - 0x08 - set if the element is a static member of a class or is a
+   *   top-level function or field
+   * - 0x10 - set if the element is private
+   * - 0x20 - set if the element is deprecated
+   */
+  void set flags(int value) {
+    assert(value != null);
+    this._flags = value;
+  }
 
   /**
    * The parameter list for the element. If the element is not a method or
@@ -6505,22 +8419,57 @@ class Element implements HasToJson {
    * parameters (e.g. getter), this field will not be defined. If the element
    * has zero parameters, this field will have a value of "()".
    */
-  String parameters;
+  String get parameters => _parameters;
+
+  /**
+   * The parameter list for the element. If the element is not a method or
+   * function this field will not be defined. If the element doesn't have
+   * parameters (e.g. getter), this field will not be defined. If the element
+   * has zero parameters, this field will have a value of "()".
+   */
+  void set parameters(String value) {
+    this._parameters = value;
+  }
 
   /**
    * The return type of the element. If the element is not a method or function
    * this field will not be defined. If the element does not have a declared
    * return type, this field will contain an empty string.
    */
-  String returnType;
+  String get returnType => _returnType;
+
+  /**
+   * The return type of the element. If the element is not a method or function
+   * this field will not be defined. If the element does not have a declared
+   * return type, this field will contain an empty string.
+   */
+  void set returnType(String value) {
+    this._returnType = value;
+  }
 
   /**
    * The type parameter list for the element. If the element doesn't have type
    * parameters, this field will not be defined.
    */
-  String typeParameters;
+  String get typeParameters => _typeParameters;
 
-  Element(this.kind, this.name, this.flags, {this.location, this.parameters, this.returnType, this.typeParameters});
+  /**
+   * The type parameter list for the element. If the element doesn't have type
+   * parameters, this field will not be defined.
+   */
+  void set typeParameters(String value) {
+    this._typeParameters = value;
+  }
+
+  Element(ElementKind kind, String name, int flags, {Location location, String parameters, String returnType, String typeParameters}) {
+    this.kind = kind;
+    this.name = name;
+    this.location = location;
+    this.flags = flags;
+    this.parameters = parameters;
+    this.returnType = returnType;
+    this.typeParameters = typeParameters;
+  }
 
   factory Element.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -6783,17 +8732,40 @@ class ElementKind implements Enum {
  * }
  */
 class ExecutableFile implements HasToJson {
+  String _file;
+
+  ExecutableKind _kind;
+
   /**
    * The path of the executable file.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The path of the executable file.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The kind of the executable file.
    */
-  ExecutableKind kind;
+  ExecutableKind get kind => _kind;
 
-  ExecutableFile(this.file, this.kind);
+  /**
+   * The kind of the executable file.
+   */
+  void set kind(ExecutableKind value) {
+    assert(value != null);
+    this._kind = value;
+  }
+
+  ExecutableFile(String file, ExecutableKind kind) {
+    this.file = file;
+    this.kind = kind;
+  }
 
   factory ExecutableFile.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -7023,22 +8995,56 @@ class FoldingKind implements Enum {
  * }
  */
 class FoldingRegion implements HasToJson {
+  FoldingKind _kind;
+
+  int _offset;
+
+  int _length;
+
   /**
    * The kind of the region.
    */
-  FoldingKind kind;
+  FoldingKind get kind => _kind;
+
+  /**
+   * The kind of the region.
+   */
+  void set kind(FoldingKind value) {
+    assert(value != null);
+    this._kind = value;
+  }
 
   /**
    * The offset of the region to be folded.
    */
-  int offset;
+  int get offset => _offset;
+
+  /**
+   * The offset of the region to be folded.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
 
   /**
    * The length of the region to be folded.
    */
-  int length;
+  int get length => _length;
 
-  FoldingRegion(this.kind, this.offset, this.length);
+  /**
+   * The length of the region to be folded.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
+
+  FoldingRegion(FoldingKind kind, int offset, int length) {
+    this.kind = kind;
+    this.offset = offset;
+    this.length = length;
+  }
 
   factory FoldingRegion.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -7110,22 +9116,56 @@ class FoldingRegion implements HasToJson {
  * }
  */
 class HighlightRegion implements HasToJson {
+  HighlightRegionType _type;
+
+  int _offset;
+
+  int _length;
+
   /**
    * The type of highlight associated with the region.
    */
-  HighlightRegionType type;
+  HighlightRegionType get type => _type;
+
+  /**
+   * The type of highlight associated with the region.
+   */
+  void set type(HighlightRegionType value) {
+    assert(value != null);
+    this._type = value;
+  }
 
   /**
    * The offset of the region to be highlighted.
    */
-  int offset;
+  int get offset => _offset;
+
+  /**
+   * The offset of the region to be highlighted.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
 
   /**
    * The length of the region to be highlighted.
    */
-  int length;
+  int get length => _length;
 
-  HighlightRegion(this.type, this.offset, this.length);
+  /**
+   * The length of the region to be highlighted.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
+
+  HighlightRegion(HighlightRegionType type, int offset, int length) {
+    this.type = type;
+    this.offset = offset;
+    this.length = length;
+  }
 
   factory HighlightRegion.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -7434,38 +9474,105 @@ class HighlightRegionType implements Enum {
  * }
  */
 class HoverInformation implements HasToJson {
+  int _offset;
+
+  int _length;
+
+  String _containingLibraryPath;
+
+  String _containingLibraryName;
+
+  String _containingClassDescription;
+
+  String _dartdoc;
+
+  String _elementDescription;
+
+  String _elementKind;
+
+  String _parameter;
+
+  String _propagatedType;
+
+  String _staticType;
+
   /**
    * The offset of the range of characters that encompases the cursor position
    * and has the same hover information as the cursor position.
    */
-  int offset;
+  int get offset => _offset;
+
+  /**
+   * The offset of the range of characters that encompases the cursor position
+   * and has the same hover information as the cursor position.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
 
   /**
    * The length of the range of characters that encompases the cursor position
    * and has the same hover information as the cursor position.
    */
-  int length;
+  int get length => _length;
+
+  /**
+   * The length of the range of characters that encompases the cursor position
+   * and has the same hover information as the cursor position.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
 
   /**
    * The path to the defining compilation unit of the library in which the
    * referenced element is declared. This data is omitted if there is no
    * referenced element, or if the element is declared inside an HTML file.
    */
-  String containingLibraryPath;
+  String get containingLibraryPath => _containingLibraryPath;
+
+  /**
+   * The path to the defining compilation unit of the library in which the
+   * referenced element is declared. This data is omitted if there is no
+   * referenced element, or if the element is declared inside an HTML file.
+   */
+  void set containingLibraryPath(String value) {
+    this._containingLibraryPath = value;
+  }
 
   /**
    * The name of the library in which the referenced element is declared. This
    * data is omitted if there is no referenced element, or if the element is
    * declared inside an HTML file.
    */
-  String containingLibraryName;
+  String get containingLibraryName => _containingLibraryName;
+
+  /**
+   * The name of the library in which the referenced element is declared. This
+   * data is omitted if there is no referenced element, or if the element is
+   * declared inside an HTML file.
+   */
+  void set containingLibraryName(String value) {
+    this._containingLibraryName = value;
+  }
 
   /**
    * A human-readable description of the class declaring the element being
    * referenced. This data is omitted if there is no referenced element, or if
    * the element is not a class member.
    */
-  String containingClassDescription;
+  String get containingClassDescription => _containingClassDescription;
+
+  /**
+   * A human-readable description of the class declaring the element being
+   * referenced. This data is omitted if there is no referenced element, or if
+   * the element is not a class member.
+   */
+  void set containingClassDescription(String value) {
+    this._containingClassDescription = value;
+  }
 
   /**
    * The dartdoc associated with the referenced element. Other than the removal
@@ -7473,42 +9580,107 @@ class HoverInformation implements HasToJson {
    * block comment, the dartdoc is unprocessed markdown. This data is omitted
    * if there is no referenced element, or if the element has no dartdoc.
    */
-  String dartdoc;
+  String get dartdoc => _dartdoc;
+
+  /**
+   * The dartdoc associated with the referenced element. Other than the removal
+   * of the comment delimiters, including leading asterisks in the case of a
+   * block comment, the dartdoc is unprocessed markdown. This data is omitted
+   * if there is no referenced element, or if the element has no dartdoc.
+   */
+  void set dartdoc(String value) {
+    this._dartdoc = value;
+  }
 
   /**
    * A human-readable description of the element being referenced. This data is
    * omitted if there is no referenced element.
    */
-  String elementDescription;
+  String get elementDescription => _elementDescription;
+
+  /**
+   * A human-readable description of the element being referenced. This data is
+   * omitted if there is no referenced element.
+   */
+  void set elementDescription(String value) {
+    this._elementDescription = value;
+  }
 
   /**
    * A human-readable description of the kind of element being referenced (such
    * as “class” or “function type alias”). This data is omitted if there is no
    * referenced element.
    */
-  String elementKind;
+  String get elementKind => _elementKind;
+
+  /**
+   * A human-readable description of the kind of element being referenced (such
+   * as “class” or “function type alias”). This data is omitted if there is no
+   * referenced element.
+   */
+  void set elementKind(String value) {
+    this._elementKind = value;
+  }
 
   /**
    * A human-readable description of the parameter corresponding to the
    * expression being hovered over. This data is omitted if the location is not
    * in an argument to a function.
    */
-  String parameter;
+  String get parameter => _parameter;
+
+  /**
+   * A human-readable description of the parameter corresponding to the
+   * expression being hovered over. This data is omitted if the location is not
+   * in an argument to a function.
+   */
+  void set parameter(String value) {
+    this._parameter = value;
+  }
 
   /**
    * The name of the propagated type of the expression. This data is omitted if
    * the location does not correspond to an expression or if there is no
    * propagated type information.
    */
-  String propagatedType;
+  String get propagatedType => _propagatedType;
+
+  /**
+   * The name of the propagated type of the expression. This data is omitted if
+   * the location does not correspond to an expression or if there is no
+   * propagated type information.
+   */
+  void set propagatedType(String value) {
+    this._propagatedType = value;
+  }
 
   /**
    * The name of the static type of the expression. This data is omitted if the
    * location does not correspond to an expression.
    */
-  String staticType;
+  String get staticType => _staticType;
 
-  HoverInformation(this.offset, this.length, {this.containingLibraryPath, this.containingLibraryName, this.containingClassDescription, this.dartdoc, this.elementDescription, this.elementKind, this.parameter, this.propagatedType, this.staticType});
+  /**
+   * The name of the static type of the expression. This data is omitted if the
+   * location does not correspond to an expression.
+   */
+  void set staticType(String value) {
+    this._staticType = value;
+  }
+
+  HoverInformation(int offset, int length, {String containingLibraryPath, String containingLibraryName, String containingClassDescription, String dartdoc, String elementDescription, String elementKind, String parameter, String propagatedType, String staticType}) {
+    this.offset = offset;
+    this.length = length;
+    this.containingLibraryPath = containingLibraryPath;
+    this.containingLibraryName = containingLibraryName;
+    this.containingClassDescription = containingClassDescription;
+    this.dartdoc = dartdoc;
+    this.elementDescription = elementDescription;
+    this.elementKind = elementKind;
+    this.parameter = parameter;
+    this.propagatedType = propagatedType;
+    this.staticType = staticType;
+  }
 
   factory HoverInformation.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -7652,23 +9824,58 @@ class HoverInformation implements HasToJson {
  * }
  */
 class LinkedEditGroup implements HasToJson {
+  List<Position> _positions;
+
+  int _length;
+
+  List<LinkedEditSuggestion> _suggestions;
+
   /**
    * The positions of the regions that should be edited simultaneously.
    */
-  List<Position> positions;
+  List<Position> get positions => _positions;
+
+  /**
+   * The positions of the regions that should be edited simultaneously.
+   */
+  void set positions(List<Position> value) {
+    assert(value != null);
+    this._positions = value;
+  }
 
   /**
    * The length of the regions that should be edited simultaneously.
    */
-  int length;
+  int get length => _length;
+
+  /**
+   * The length of the regions that should be edited simultaneously.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
 
   /**
    * Pre-computed suggestions for what every region might want to be changed
    * to.
    */
-  List<LinkedEditSuggestion> suggestions;
+  List<LinkedEditSuggestion> get suggestions => _suggestions;
 
-  LinkedEditGroup(this.positions, this.length, this.suggestions);
+  /**
+   * Pre-computed suggestions for what every region might want to be changed
+   * to.
+   */
+  void set suggestions(List<LinkedEditSuggestion> value) {
+    assert(value != null);
+    this._suggestions = value;
+  }
+
+  LinkedEditGroup(List<Position> positions, int length, List<LinkedEditSuggestion> suggestions) {
+    this.positions = positions;
+    this.length = length;
+    this.suggestions = suggestions;
+  }
 
   factory LinkedEditGroup.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -7759,17 +9966,40 @@ class LinkedEditGroup implements HasToJson {
  * }
  */
 class LinkedEditSuggestion implements HasToJson {
+  String _value;
+
+  LinkedEditSuggestionKind _kind;
+
   /**
    * The value that could be used to replace all of the linked edit regions.
    */
-  String value;
+  String get value => _value;
+
+  /**
+   * The value that could be used to replace all of the linked edit regions.
+   */
+  void set value(String value) {
+    assert(value != null);
+    this._value = value;
+  }
 
   /**
    * The kind of value being proposed.
    */
-  LinkedEditSuggestionKind kind;
+  LinkedEditSuggestionKind get kind => _kind;
 
-  LinkedEditSuggestion(this.value, this.kind);
+  /**
+   * The kind of value being proposed.
+   */
+  void set kind(LinkedEditSuggestionKind value) {
+    assert(value != null);
+    this._kind = value;
+  }
+
+  LinkedEditSuggestion(String value, LinkedEditSuggestionKind kind) {
+    this.value = value;
+    this.kind = kind;
+  }
 
   factory LinkedEditSuggestion.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -7893,34 +10123,92 @@ class LinkedEditSuggestionKind implements Enum {
  * }
  */
 class Location implements HasToJson {
+  String _file;
+
+  int _offset;
+
+  int _length;
+
+  int _startLine;
+
+  int _startColumn;
+
   /**
    * The file containing the range.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file containing the range.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The offset of the range.
    */
-  int offset;
+  int get offset => _offset;
+
+  /**
+   * The offset of the range.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
 
   /**
    * The length of the range.
    */
-  int length;
+  int get length => _length;
+
+  /**
+   * The length of the range.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
 
   /**
    * The one-based index of the line containing the first character of the
    * range.
    */
-  int startLine;
+  int get startLine => _startLine;
+
+  /**
+   * The one-based index of the line containing the first character of the
+   * range.
+   */
+  void set startLine(int value) {
+    assert(value != null);
+    this._startLine = value;
+  }
 
   /**
    * The one-based index of the column containing the first character of the
    * range.
    */
-  int startColumn;
+  int get startColumn => _startColumn;
 
-  Location(this.file, this.offset, this.length, this.startLine, this.startColumn);
+  /**
+   * The one-based index of the column containing the first character of the
+   * range.
+   */
+  void set startColumn(int value) {
+    assert(value != null);
+    this._startColumn = value;
+  }
+
+  Location(String file, int offset, int length, int startLine, int startColumn) {
+    this.file = file;
+    this.offset = offset;
+    this.length = length;
+    this.startLine = startLine;
+    this.startColumn = startColumn;
+  }
 
   factory Location.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -8010,24 +10298,60 @@ class Location implements HasToJson {
  * }
  */
 class NavigationRegion implements HasToJson {
+  int _offset;
+
+  int _length;
+
+  List<int> _targets;
+
   /**
    * The offset of the region from which the user can navigate.
    */
-  int offset;
+  int get offset => _offset;
+
+  /**
+   * The offset of the region from which the user can navigate.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
 
   /**
    * The length of the region from which the user can navigate.
    */
-  int length;
+  int get length => _length;
+
+  /**
+   * The length of the region from which the user can navigate.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
 
   /**
    * The indexes of the targets (in the enclosing navigation response) to which
    * the given region is bound. By opening the target, clients can implement
    * one form of navigation.
    */
-  List<int> targets;
+  List<int> get targets => _targets;
 
-  NavigationRegion(this.offset, this.length, this.targets);
+  /**
+   * The indexes of the targets (in the enclosing navigation response) to which
+   * the given region is bound. By opening the target, clients can implement
+   * one form of navigation.
+   */
+  void set targets(List<int> value) {
+    assert(value != null);
+    this._targets = value;
+  }
+
+  NavigationRegion(int offset, int length, List<int> targets) {
+    this.offset = offset;
+    this.length = length;
+    this.targets = targets;
+  }
 
   factory NavigationRegion.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -8102,40 +10426,110 @@ class NavigationRegion implements HasToJson {
  * }
  */
 class NavigationTarget implements HasToJson {
+  ElementKind _kind;
+
+  int _fileIndex;
+
+  int _offset;
+
+  int _length;
+
+  int _startLine;
+
+  int _startColumn;
+
   /**
    * The kind of the element.
    */
-  ElementKind kind;
+  ElementKind get kind => _kind;
+
+  /**
+   * The kind of the element.
+   */
+  void set kind(ElementKind value) {
+    assert(value != null);
+    this._kind = value;
+  }
 
   /**
    * The index of the file (in the enclosing navigation response) to navigate
    * to.
    */
-  int fileIndex;
+  int get fileIndex => _fileIndex;
+
+  /**
+   * The index of the file (in the enclosing navigation response) to navigate
+   * to.
+   */
+  void set fileIndex(int value) {
+    assert(value != null);
+    this._fileIndex = value;
+  }
 
   /**
    * The offset of the region from which the user can navigate.
    */
-  int offset;
+  int get offset => _offset;
+
+  /**
+   * The offset of the region from which the user can navigate.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
 
   /**
    * The length of the region from which the user can navigate.
    */
-  int length;
+  int get length => _length;
+
+  /**
+   * The length of the region from which the user can navigate.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
 
   /**
    * The one-based index of the line containing the first character of the
    * region.
    */
-  int startLine;
+  int get startLine => _startLine;
+
+  /**
+   * The one-based index of the line containing the first character of the
+   * region.
+   */
+  void set startLine(int value) {
+    assert(value != null);
+    this._startLine = value;
+  }
 
   /**
    * The one-based index of the column containing the first character of the
    * region.
    */
-  int startColumn;
+  int get startColumn => _startColumn;
 
-  NavigationTarget(this.kind, this.fileIndex, this.offset, this.length, this.startLine, this.startColumn);
+  /**
+   * The one-based index of the column containing the first character of the
+   * region.
+   */
+  void set startColumn(int value) {
+    assert(value != null);
+    this._startColumn = value;
+  }
+
+  NavigationTarget(ElementKind kind, int fileIndex, int offset, int length, int startLine, int startColumn) {
+    this.kind = kind;
+    this.fileIndex = fileIndex;
+    this.offset = offset;
+    this.length = length;
+    this.startLine = startLine;
+    this.startColumn = startColumn;
+  }
 
   factory NavigationTarget.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -8234,22 +10628,56 @@ class NavigationTarget implements HasToJson {
  * }
  */
 class Occurrences implements HasToJson {
+  Element _element;
+
+  List<int> _offsets;
+
+  int _length;
+
   /**
    * The element that was referenced.
    */
-  Element element;
+  Element get element => _element;
+
+  /**
+   * The element that was referenced.
+   */
+  void set element(Element value) {
+    assert(value != null);
+    this._element = value;
+  }
 
   /**
    * The offsets of the name of the referenced element within the file.
    */
-  List<int> offsets;
+  List<int> get offsets => _offsets;
+
+  /**
+   * The offsets of the name of the referenced element within the file.
+   */
+  void set offsets(List<int> value) {
+    assert(value != null);
+    this._offsets = value;
+  }
 
   /**
    * The length of the name of the referenced element.
    */
-  int length;
+  int get length => _length;
 
-  Occurrences(this.element, this.offsets, this.length);
+  /**
+   * The length of the name of the referenced element.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
+
+  Occurrences(Element element, List<int> offsets, int length) {
+    this.element = element;
+    this.offsets = offsets;
+    this.length = length;
+  }
 
   factory Occurrences.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -8322,10 +10750,26 @@ class Occurrences implements HasToJson {
  * }
  */
 class Outline implements HasToJson {
+  Element _element;
+
+  int _offset;
+
+  int _length;
+
+  List<Outline> _children;
+
   /**
    * A description of the element represented by this node.
    */
-  Element element;
+  Element get element => _element;
+
+  /**
+   * A description of the element represented by this node.
+   */
+  void set element(Element value) {
+    assert(value != null);
+    this._element = value;
+  }
 
   /**
    * The offset of the first character of the element. This is different than
@@ -8333,20 +10777,52 @@ class Outline implements HasToJson {
    * It can be used, for example, to map locations in the file back to an
    * outline.
    */
-  int offset;
+  int get offset => _offset;
+
+  /**
+   * The offset of the first character of the element. This is different than
+   * the offset in the Element, which if the offset of the name of the element.
+   * It can be used, for example, to map locations in the file back to an
+   * outline.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
 
   /**
    * The length of the element.
    */
-  int length;
+  int get length => _length;
+
+  /**
+   * The length of the element.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
 
   /**
    * The children of the node. The field will be omitted if the node has no
    * children.
    */
-  List<Outline> children;
+  List<Outline> get children => _children;
 
-  Outline(this.element, this.offset, this.length, {this.children});
+  /**
+   * The children of the node. The field will be omitted if the node has no
+   * children.
+   */
+  void set children(List<Outline> value) {
+    this._children = value;
+  }
+
+  Outline(Element element, int offset, int length, {List<Outline> children}) {
+    this.element = element;
+    this.offset = offset;
+    this.length = length;
+    this.children = children;
+  }
 
   factory Outline.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -8428,31 +10904,78 @@ class Outline implements HasToJson {
  * }
  */
 class Override implements HasToJson {
+  int _offset;
+
+  int _length;
+
+  OverriddenMember _superclassMember;
+
+  List<OverriddenMember> _interfaceMembers;
+
   /**
    * The offset of the name of the overriding member.
    */
-  int offset;
+  int get offset => _offset;
+
+  /**
+   * The offset of the name of the overriding member.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
 
   /**
    * The length of the name of the overriding member.
    */
-  int length;
+  int get length => _length;
+
+  /**
+   * The length of the name of the overriding member.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
 
   /**
    * The member inherited from a superclass that is overridden by the
    * overriding member. The field is omitted if there is no superclass member,
    * in which case there must be at least one interface member.
    */
-  OverriddenMember superclassMember;
+  OverriddenMember get superclassMember => _superclassMember;
+
+  /**
+   * The member inherited from a superclass that is overridden by the
+   * overriding member. The field is omitted if there is no superclass member,
+   * in which case there must be at least one interface member.
+   */
+  void set superclassMember(OverriddenMember value) {
+    this._superclassMember = value;
+  }
 
   /**
    * The members inherited from interfaces that are overridden by the
    * overriding member. The field is omitted if there are no interface members,
    * in which case there must be a superclass member.
    */
-  List<OverriddenMember> interfaceMembers;
+  List<OverriddenMember> get interfaceMembers => _interfaceMembers;
 
-  Override(this.offset, this.length, {this.superclassMember, this.interfaceMembers});
+  /**
+   * The members inherited from interfaces that are overridden by the
+   * overriding member. The field is omitted if there are no interface members,
+   * in which case there must be a superclass member.
+   */
+  void set interfaceMembers(List<OverriddenMember> value) {
+    this._interfaceMembers = value;
+  }
+
+  Override(int offset, int length, {OverriddenMember superclassMember, List<OverriddenMember> interfaceMembers}) {
+    this.offset = offset;
+    this.length = length;
+    this.superclassMember = superclassMember;
+    this.interfaceMembers = interfaceMembers;
+  }
 
   factory Override.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -8532,17 +11055,40 @@ class Override implements HasToJson {
  * }
  */
 class OverriddenMember implements HasToJson {
+  Element _element;
+
+  String _className;
+
   /**
    * The element that is being overridden.
    */
-  Element element;
+  Element get element => _element;
+
+  /**
+   * The element that is being overridden.
+   */
+  void set element(Element value) {
+    assert(value != null);
+    this._element = value;
+  }
 
   /**
    * The name of the class in which the member is defined.
    */
-  String className;
+  String get className => _className;
 
-  OverriddenMember(this.element, this.className);
+  /**
+   * The name of the class in which the member is defined.
+   */
+  void set className(String value) {
+    assert(value != null);
+    this._className = value;
+  }
+
+  OverriddenMember(Element element, String className) {
+    this.element = element;
+    this.className = className;
+  }
 
   factory OverriddenMember.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -8604,17 +11150,40 @@ class OverriddenMember implements HasToJson {
  * }
  */
 class Position implements HasToJson {
+  String _file;
+
+  int _offset;
+
   /**
    * The file containing the position.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file containing the position.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The offset of the position.
    */
-  int offset;
+  int get offset => _offset;
 
-  Position(this.file, this.offset);
+  /**
+   * The offset of the position.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  Position(String file, int offset) {
+    this.file = file;
+    this.offset = offset;
+  }
 
   factory Position.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -8675,13 +11244,26 @@ class Position implements HasToJson {
  * }
  */
 class PubStatus implements HasToJson {
+  bool _isListingPackageDirs;
+
   /**
    * True if the server is currently running pub to produce a list of package
    * directories.
    */
-  bool isListingPackageDirs;
+  bool get isListingPackageDirs => _isListingPackageDirs;
 
-  PubStatus(this.isListingPackageDirs);
+  /**
+   * True if the server is currently running pub to produce a list of package
+   * directories.
+   */
+  void set isListingPackageDirs(bool value) {
+    assert(value != null);
+    this._isListingPackageDirs = value;
+  }
+
+  PubStatus(bool isListingPackageDirs) {
+    this.isListingPackageDirs = isListingPackageDirs;
+  }
 
   factory PubStatus.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -8821,36 +11403,94 @@ class RefactoringKind implements Enum {
  * }
  */
 class RefactoringMethodParameter implements HasToJson {
+  String _id;
+
+  RefactoringMethodParameterKind _kind;
+
+  String _type;
+
+  String _name;
+
+  String _parameters;
+
   /**
    * The unique identifier of the parameter. Clients may omit this field for
    * the parameters they want to add.
    */
-  String id;
+  String get id => _id;
+
+  /**
+   * The unique identifier of the parameter. Clients may omit this field for
+   * the parameters they want to add.
+   */
+  void set id(String value) {
+    this._id = value;
+  }
 
   /**
    * The kind of the parameter.
    */
-  RefactoringMethodParameterKind kind;
+  RefactoringMethodParameterKind get kind => _kind;
+
+  /**
+   * The kind of the parameter.
+   */
+  void set kind(RefactoringMethodParameterKind value) {
+    assert(value != null);
+    this._kind = value;
+  }
 
   /**
    * The type that should be given to the parameter, or the return type of the
    * parameter's function type.
    */
-  String type;
+  String get type => _type;
+
+  /**
+   * The type that should be given to the parameter, or the return type of the
+   * parameter's function type.
+   */
+  void set type(String value) {
+    assert(value != null);
+    this._type = value;
+  }
 
   /**
    * The name that should be given to the parameter.
    */
-  String name;
+  String get name => _name;
+
+  /**
+   * The name that should be given to the parameter.
+   */
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
+  }
 
   /**
    * The parameter list of the parameter's function type. If the parameter is
    * not of a function type, this field will not be defined. If the function
    * type has zero parameters, this field will have a value of "()".
    */
-  String parameters;
+  String get parameters => _parameters;
 
-  RefactoringMethodParameter(this.kind, this.type, this.name, {this.id, this.parameters});
+  /**
+   * The parameter list of the parameter's function type. If the parameter is
+   * not of a function type, this field will not be defined. If the function
+   * type has zero parameters, this field will have a value of "()".
+   */
+  void set parameters(String value) {
+    this._parameters = value;
+  }
+
+  RefactoringMethodParameter(RefactoringMethodParameterKind kind, String type, String name, {String id, String parameters}) {
+    this.id = id;
+    this.kind = kind;
+    this.type = type;
+    this.name = name;
+    this.parameters = parameters;
+  }
 
   factory RefactoringMethodParameter.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -9066,24 +11706,59 @@ class RefactoringMethodParameterKind implements Enum {
  * }
  */
 class RefactoringProblem implements HasToJson {
+  RefactoringProblemSeverity _severity;
+
+  String _message;
+
+  Location _location;
+
   /**
    * The severity of the problem being represented.
    */
-  RefactoringProblemSeverity severity;
+  RefactoringProblemSeverity get severity => _severity;
+
+  /**
+   * The severity of the problem being represented.
+   */
+  void set severity(RefactoringProblemSeverity value) {
+    assert(value != null);
+    this._severity = value;
+  }
 
   /**
    * A human-readable description of the problem being represented.
    */
-  String message;
+  String get message => _message;
+
+  /**
+   * A human-readable description of the problem being represented.
+   */
+  void set message(String value) {
+    assert(value != null);
+    this._message = value;
+  }
 
   /**
    * The location of the problem being represented. This field is omitted
    * unless there is a specific location associated with the problem (such as a
    * location where an element being renamed will be shadowed).
    */
-  Location location;
+  Location get location => _location;
 
-  RefactoringProblem(this.severity, this.message, {this.location});
+  /**
+   * The location of the problem being represented. This field is omitted
+   * unless there is a specific location associated with the problem (such as a
+   * location where an element being renamed will be shadowed).
+   */
+  void set location(Location value) {
+    this._location = value;
+  }
+
+  RefactoringProblem(RefactoringProblemSeverity severity, String message, {Location location}) {
+    this.severity = severity;
+    this.message = message;
+    this.location = location;
+  }
 
   factory RefactoringProblem.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -9269,23 +11944,57 @@ class RemoveContentOverlay implements HasToJson {
  * }
  */
 class RequestError implements HasToJson {
+  RequestErrorCode _code;
+
+  String _message;
+
+  String _stackTrace;
+
   /**
    * A code that uniquely identifies the error that occurred.
    */
-  RequestErrorCode code;
+  RequestErrorCode get code => _code;
+
+  /**
+   * A code that uniquely identifies the error that occurred.
+   */
+  void set code(RequestErrorCode value) {
+    assert(value != null);
+    this._code = value;
+  }
 
   /**
    * A short description of the error.
    */
-  String message;
+  String get message => _message;
+
+  /**
+   * A short description of the error.
+   */
+  void set message(String value) {
+    assert(value != null);
+    this._message = value;
+  }
 
   /**
    * The stack trace associated with processing the request, used for debugging
    * the server.
    */
-  String stackTrace;
+  String get stackTrace => _stackTrace;
 
-  RequestError(this.code, this.message, {this.stackTrace});
+  /**
+   * The stack trace associated with processing the request, used for debugging
+   * the server.
+   */
+  void set stackTrace(String value) {
+    this._stackTrace = value;
+  }
+
+  RequestError(RequestErrorCode code, String message, {String stackTrace}) {
+    this.code = code;
+    this.message = message;
+    this.stackTrace = stackTrace;
+  }
 
   factory RequestError.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -9567,16 +12276,41 @@ class RequestErrorCode implements Enum {
  * }
  */
 class SearchResult implements HasToJson {
+  Location _location;
+
+  SearchResultKind _kind;
+
+  bool _isPotential;
+
+  List<Element> _path;
+
   /**
    * The location of the code that matched the search criteria.
    */
-  Location location;
+  Location get location => _location;
+
+  /**
+   * The location of the code that matched the search criteria.
+   */
+  void set location(Location value) {
+    assert(value != null);
+    this._location = value;
+  }
 
   /**
    * The kind of element that was found or the kind of reference that was
    * found.
    */
-  SearchResultKind kind;
+  SearchResultKind get kind => _kind;
+
+  /**
+   * The kind of element that was found or the kind of reference that was
+   * found.
+   */
+  void set kind(SearchResultKind value) {
+    assert(value != null);
+    this._kind = value;
+  }
 
   /**
    * True if the result is a potential match but cannot be confirmed to be a
@@ -9584,15 +12318,40 @@ class SearchResult implements HasToJson {
    * were requested, and a reference to a method m from an unknown class were
    * found, it would be marked as being a potential match.
    */
-  bool isPotential;
+  bool get isPotential => _isPotential;
+
+  /**
+   * True if the result is a potential match but cannot be confirmed to be a
+   * match. For example, if all references to a method m defined in some class
+   * were requested, and a reference to a method m from an unknown class were
+   * found, it would be marked as being a potential match.
+   */
+  void set isPotential(bool value) {
+    assert(value != null);
+    this._isPotential = value;
+  }
 
   /**
    * The elements that contain the result, starting with the most immediately
    * enclosing ancestor and ending with the library.
    */
-  List<Element> path;
+  List<Element> get path => _path;
 
-  SearchResult(this.location, this.kind, this.isPotential, this.path);
+  /**
+   * The elements that contain the result, starting with the most immediately
+   * enclosing ancestor and ending with the library.
+   */
+  void set path(List<Element> value) {
+    assert(value != null);
+    this._path = value;
+  }
+
+  SearchResult(Location location, SearchResultKind kind, bool isPotential, List<Element> path) {
+    this.location = location;
+    this.kind = kind;
+    this.isPotential = isPotential;
+    this.path = path;
+  }
 
   factory SearchResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -9814,34 +12573,80 @@ class ServerService implements Enum {
  * }
  */
 class SourceChange implements HasToJson {
+  String _message;
+
+  List<SourceFileEdit> _edits;
+
+  List<LinkedEditGroup> _linkedEditGroups;
+
+  Position _selection;
+
   /**
    * A human-readable description of the change to be applied.
    */
-  String message;
+  String get message => _message;
+
+  /**
+   * A human-readable description of the change to be applied.
+   */
+  void set message(String value) {
+    assert(value != null);
+    this._message = value;
+  }
 
   /**
    * A list of the edits used to effect the change, grouped by file.
    */
-  List<SourceFileEdit> edits;
+  List<SourceFileEdit> get edits => _edits;
+
+  /**
+   * A list of the edits used to effect the change, grouped by file.
+   */
+  void set edits(List<SourceFileEdit> value) {
+    assert(value != null);
+    this._edits = value;
+  }
 
   /**
    * A list of the linked editing groups used to customize the changes that
    * were made.
    */
-  List<LinkedEditGroup> linkedEditGroups;
+  List<LinkedEditGroup> get linkedEditGroups => _linkedEditGroups;
+
+  /**
+   * A list of the linked editing groups used to customize the changes that
+   * were made.
+   */
+  void set linkedEditGroups(List<LinkedEditGroup> value) {
+    assert(value != null);
+    this._linkedEditGroups = value;
+  }
 
   /**
    * The position that should be selected after the edits have been applied.
    */
-  Position selection;
+  Position get selection => _selection;
 
-  SourceChange(this.message, {this.edits, this.linkedEditGroups, this.selection}) {
+  /**
+   * The position that should be selected after the edits have been applied.
+   */
+  void set selection(Position value) {
+    this._selection = value;
+  }
+
+  SourceChange(String message, {List<SourceFileEdit> edits, List<LinkedEditGroup> linkedEditGroups, Position selection}) {
+    this.message = message;
     if (edits == null) {
-      edits = <SourceFileEdit>[];
+      this.edits = <SourceFileEdit>[];
+    } else {
+      this.edits = edits;
     }
     if (linkedEditGroups == null) {
-      linkedEditGroups = <LinkedEditGroup>[];
+      this.linkedEditGroups = <LinkedEditGroup>[];
+    } else {
+      this.linkedEditGroups = linkedEditGroups;
     }
+    this.selection = selection;
   }
 
   factory SourceChange.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
@@ -9957,20 +12762,52 @@ class SourceEdit implements HasToJson {
   static String applySequence(String code, Iterable<SourceEdit> edits) =>
       _applySequence(code, edits);
 
+  int _offset;
+
+  int _length;
+
+  String _replacement;
+
+  String _id;
+
   /**
    * The offset of the region to be modified.
    */
-  int offset;
+  int get offset => _offset;
+
+  /**
+   * The offset of the region to be modified.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
 
   /**
    * The length of the region to be modified.
    */
-  int length;
+  int get length => _length;
+
+  /**
+   * The length of the region to be modified.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
 
   /**
    * The code that is to replace the specified region in the original code.
    */
-  String replacement;
+  String get replacement => _replacement;
+
+  /**
+   * The code that is to replace the specified region in the original code.
+   */
+  void set replacement(String value) {
+    assert(value != null);
+    this._replacement = value;
+  }
 
   /**
    * An identifier that uniquely identifies this source edit from other edits
@@ -9982,9 +12819,28 @@ class SourceEdit implements HasToJson {
    * id so that they can be referenced. Edits in the same response that do not
    * need to be referenced will not have an id.
    */
-  String id;
+  String get id => _id;
 
-  SourceEdit(this.offset, this.length, this.replacement, {this.id});
+  /**
+   * An identifier that uniquely identifies this source edit from other edits
+   * in the same response. This field is omitted unless a containing structure
+   * needs to be able to identify the edit for some reason.
+   *
+   * For example, some refactoring operations can produce edits that might not
+   * be appropriate (referred to as potential edits). Such edits will have an
+   * id so that they can be referenced. Edits in the same response that do not
+   * need to be referenced will not have an id.
+   */
+  void set id(String value) {
+    this._id = value;
+  }
+
+  SourceEdit(int offset, int length, String replacement, {String id}) {
+    this.offset = offset;
+    this.length = length;
+    this.replacement = replacement;
+    this.id = id;
+  }
 
   factory SourceEdit.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -10075,10 +12931,24 @@ class SourceEdit implements HasToJson {
  * }
  */
 class SourceFileEdit implements HasToJson {
+  String _file;
+
+  int _fileStamp;
+
+  List<SourceEdit> _edits;
+
   /**
    * The file containing the code to be modified.
    */
-  String file;
+  String get file => _file;
+
+  /**
+   * The file containing the code to be modified.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
 
   /**
    * The modification stamp of the file at the moment when the change was
@@ -10087,16 +12957,40 @@ class SourceFileEdit implements HasToJson {
    * sure that the file was not changed since then, so it is safe to apply the
    * change.
    */
-  int fileStamp;
+  int get fileStamp => _fileStamp;
+
+  /**
+   * The modification stamp of the file at the moment when the change was
+   * created, in milliseconds since the "Unix epoch". Will be -1 if the file
+   * did not exist and should be created. The client may use this field to make
+   * sure that the file was not changed since then, so it is safe to apply the
+   * change.
+   */
+  void set fileStamp(int value) {
+    assert(value != null);
+    this._fileStamp = value;
+  }
 
   /**
    * A list of the edits used to effect the change.
    */
-  List<SourceEdit> edits;
+  List<SourceEdit> get edits => _edits;
 
-  SourceFileEdit(this.file, this.fileStamp, {this.edits}) {
+  /**
+   * A list of the edits used to effect the change.
+   */
+  void set edits(List<SourceEdit> value) {
+    assert(value != null);
+    this._edits = value;
+  }
+
+  SourceFileEdit(String file, int fileStamp, {List<SourceEdit> edits}) {
+    this.file = file;
+    this.fileStamp = fileStamp;
     if (edits == null) {
-      edits = <SourceEdit>[];
+      this.edits = <SourceEdit>[];
+    } else {
+      this.edits = edits;
     }
   }
 
@@ -10185,10 +13079,32 @@ class SourceFileEdit implements HasToJson {
  * }
  */
 class TypeHierarchyItem implements HasToJson {
+  Element _classElement;
+
+  String _displayName;
+
+  Element _memberElement;
+
+  int _superclass;
+
+  List<int> _interfaces;
+
+  List<int> _mixins;
+
+  List<int> _subclasses;
+
   /**
    * The class element represented by this item.
    */
-  Element classElement;
+  Element get classElement => _classElement;
+
+  /**
+   * The class element represented by this item.
+   */
+  void set classElement(Element value) {
+    assert(value != null);
+    this._classElement = value;
+  }
 
   /**
    * The name to be displayed for the class. This field will be omitted if the
@@ -10196,7 +13112,17 @@ class TypeHierarchyItem implements HasToJson {
    * different if there is additional type information to be displayed, such as
    * type arguments.
    */
-  String displayName;
+  String get displayName => _displayName;
+
+  /**
+   * The name to be displayed for the class. This field will be omitted if the
+   * display name is the same as the name of the element. The display name is
+   * different if there is additional type information to be displayed, such as
+   * type arguments.
+   */
+  void set displayName(String value) {
+    this._displayName = value;
+  }
 
   /**
    * The member in the class corresponding to the member on which the hierarchy
@@ -10204,42 +13130,98 @@ class TypeHierarchyItem implements HasToJson {
    * requested for a member or if the class does not have a corresponding
    * member.
    */
-  Element memberElement;
+  Element get memberElement => _memberElement;
+
+  /**
+   * The member in the class corresponding to the member on which the hierarchy
+   * was requested. This field will be omitted if the hierarchy was not
+   * requested for a member or if the class does not have a corresponding
+   * member.
+   */
+  void set memberElement(Element value) {
+    this._memberElement = value;
+  }
 
   /**
    * The index of the item representing the superclass of this class. This
    * field will be omitted if this item represents the class Object.
    */
-  int superclass;
+  int get superclass => _superclass;
+
+  /**
+   * The index of the item representing the superclass of this class. This
+   * field will be omitted if this item represents the class Object.
+   */
+  void set superclass(int value) {
+    this._superclass = value;
+  }
 
   /**
    * The indexes of the items representing the interfaces implemented by this
    * class. The list will be empty if there are no implemented interfaces.
    */
-  List<int> interfaces;
+  List<int> get interfaces => _interfaces;
+
+  /**
+   * The indexes of the items representing the interfaces implemented by this
+   * class. The list will be empty if there are no implemented interfaces.
+   */
+  void set interfaces(List<int> value) {
+    assert(value != null);
+    this._interfaces = value;
+  }
 
   /**
    * The indexes of the items representing the mixins referenced by this class.
    * The list will be empty if there are no classes mixed in to this class.
    */
-  List<int> mixins;
+  List<int> get mixins => _mixins;
+
+  /**
+   * The indexes of the items representing the mixins referenced by this class.
+   * The list will be empty if there are no classes mixed in to this class.
+   */
+  void set mixins(List<int> value) {
+    assert(value != null);
+    this._mixins = value;
+  }
 
   /**
    * The indexes of the items representing the subtypes of this class. The list
    * will be empty if there are no subtypes or if this item represents a
    * supertype of the pivot type.
    */
-  List<int> subclasses;
+  List<int> get subclasses => _subclasses;
 
-  TypeHierarchyItem(this.classElement, {this.displayName, this.memberElement, this.superclass, this.interfaces, this.mixins, this.subclasses}) {
+  /**
+   * The indexes of the items representing the subtypes of this class. The list
+   * will be empty if there are no subtypes or if this item represents a
+   * supertype of the pivot type.
+   */
+  void set subclasses(List<int> value) {
+    assert(value != null);
+    this._subclasses = value;
+  }
+
+  TypeHierarchyItem(Element classElement, {String displayName, Element memberElement, int superclass, List<int> interfaces, List<int> mixins, List<int> subclasses}) {
+    this.classElement = classElement;
+    this.displayName = displayName;
+    this.memberElement = memberElement;
+    this.superclass = superclass;
     if (interfaces == null) {
-      interfaces = <int>[];
+      this.interfaces = <int>[];
+    } else {
+      this.interfaces = interfaces;
     }
     if (mixins == null) {
-      mixins = <int>[];
+      this.mixins = <int>[];
+    } else {
+      this.mixins = mixins;
     }
     if (subclasses == null) {
-      subclasses = <int>[];
+      this.subclasses = <int>[];
+    } else {
+      this.subclasses = subclasses;
     }
   }
 
@@ -10417,16 +13399,39 @@ class ConvertMethodToGetterOptions {
  * }
  */
 class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJson {
+  List<String> _names;
+
+  List<int> _offsets;
+
+  List<int> _lengths;
+
   /**
    * The proposed names for the local variable.
    */
-  List<String> names;
+  List<String> get names => _names;
+
+  /**
+   * The proposed names for the local variable.
+   */
+  void set names(List<String> value) {
+    assert(value != null);
+    this._names = value;
+  }
 
   /**
    * The offsets of the expressions that would be replaced by a reference to
    * the variable.
    */
-  List<int> offsets;
+  List<int> get offsets => _offsets;
+
+  /**
+   * The offsets of the expressions that would be replaced by a reference to
+   * the variable.
+   */
+  void set offsets(List<int> value) {
+    assert(value != null);
+    this._offsets = value;
+  }
 
   /**
    * The lengths of the expressions that would be replaced by a reference to
@@ -10434,9 +13439,24 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
    * given expression, if the offset of that expression is offsets[i], then the
    * length of that expression is lengths[i].
    */
-  List<int> lengths;
+  List<int> get lengths => _lengths;
 
-  ExtractLocalVariableFeedback(this.names, this.offsets, this.lengths);
+  /**
+   * The lengths of the expressions that would be replaced by a reference to
+   * the variable. The lengths correspond to the offsets. In other words, for a
+   * given expression, if the offset of that expression is offsets[i], then the
+   * length of that expression is lengths[i].
+   */
+  void set lengths(List<int> value) {
+    assert(value != null);
+    this._lengths = value;
+  }
+
+  ExtractLocalVariableFeedback(List<String> names, List<int> offsets, List<int> lengths) {
+    this.names = names;
+    this.offsets = offsets;
+    this.lengths = lengths;
+  }
 
   factory ExtractLocalVariableFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -10507,10 +13527,22 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
  * }
  */
 class ExtractLocalVariableOptions extends RefactoringOptions implements HasToJson {
+  String _name;
+
+  bool _extractAll;
+
   /**
    * The name that the local variable should be given.
    */
-  String name;
+  String get name => _name;
+
+  /**
+   * The name that the local variable should be given.
+   */
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
+  }
 
   /**
    * True if all occurrences of the expression within the scope in which the
@@ -10518,9 +13550,23 @@ class ExtractLocalVariableOptions extends RefactoringOptions implements HasToJso
    * variable. The expression used to initiate the refactoring will always be
    * replaced.
    */
-  bool extractAll;
+  bool get extractAll => _extractAll;
 
-  ExtractLocalVariableOptions(this.name, this.extractAll);
+  /**
+   * True if all occurrences of the expression within the scope in which the
+   * variable will be defined should be replaced by a reference to the local
+   * variable. The expression used to initiate the refactoring will always be
+   * replaced.
+   */
+  void set extractAll(bool value) {
+    assert(value != null);
+    this._extractAll = value;
+  }
+
+  ExtractLocalVariableOptions(String name, bool extractAll) {
+    this.name = name;
+    this.extractAll = extractAll;
+  }
 
   factory ExtractLocalVariableOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -10593,43 +13639,118 @@ class ExtractLocalVariableOptions extends RefactoringOptions implements HasToJso
  * }
  */
 class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
+  int _offset;
+
+  int _length;
+
+  String _returnType;
+
+  List<String> _names;
+
+  bool _canCreateGetter;
+
+  List<RefactoringMethodParameter> _parameters;
+
+  List<int> _offsets;
+
+  List<int> _lengths;
+
   /**
    * The offset to the beginning of the expression or statements that will be
    * extracted.
    */
-  int offset;
+  int get offset => _offset;
+
+  /**
+   * The offset to the beginning of the expression or statements that will be
+   * extracted.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
 
   /**
    * The length of the expression or statements that will be extracted.
    */
-  int length;
+  int get length => _length;
+
+  /**
+   * The length of the expression or statements that will be extracted.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
 
   /**
    * The proposed return type for the method. If the returned element does not
    * have a declared return type, this field will contain an empty string.
    */
-  String returnType;
+  String get returnType => _returnType;
+
+  /**
+   * The proposed return type for the method. If the returned element does not
+   * have a declared return type, this field will contain an empty string.
+   */
+  void set returnType(String value) {
+    assert(value != null);
+    this._returnType = value;
+  }
 
   /**
    * The proposed names for the method.
    */
-  List<String> names;
+  List<String> get names => _names;
+
+  /**
+   * The proposed names for the method.
+   */
+  void set names(List<String> value) {
+    assert(value != null);
+    this._names = value;
+  }
 
   /**
    * True if a getter could be created rather than a method.
    */
-  bool canCreateGetter;
+  bool get canCreateGetter => _canCreateGetter;
+
+  /**
+   * True if a getter could be created rather than a method.
+   */
+  void set canCreateGetter(bool value) {
+    assert(value != null);
+    this._canCreateGetter = value;
+  }
 
   /**
    * The proposed parameters for the method.
    */
-  List<RefactoringMethodParameter> parameters;
+  List<RefactoringMethodParameter> get parameters => _parameters;
+
+  /**
+   * The proposed parameters for the method.
+   */
+  void set parameters(List<RefactoringMethodParameter> value) {
+    assert(value != null);
+    this._parameters = value;
+  }
 
   /**
    * The offsets of the expressions or statements that would be replaced by an
    * invocation of the method.
    */
-  List<int> offsets;
+  List<int> get offsets => _offsets;
+
+  /**
+   * The offsets of the expressions or statements that would be replaced by an
+   * invocation of the method.
+   */
+  void set offsets(List<int> value) {
+    assert(value != null);
+    this._offsets = value;
+  }
 
   /**
    * The lengths of the expressions or statements that would be replaced by an
@@ -10638,9 +13759,30 @@ class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
    * that expression is offsets[i], then the length of that expression is
    * lengths[i].
    */
-  List<int> lengths;
+  List<int> get lengths => _lengths;
 
-  ExtractMethodFeedback(this.offset, this.length, this.returnType, this.names, this.canCreateGetter, this.parameters, this.offsets, this.lengths);
+  /**
+   * The lengths of the expressions or statements that would be replaced by an
+   * invocation of the method. The lengths correspond to the offsets. In other
+   * words, for a given expression (or block of statements), if the offset of
+   * that expression is offsets[i], then the length of that expression is
+   * lengths[i].
+   */
+  void set lengths(List<int> value) {
+    assert(value != null);
+    this._lengths = value;
+  }
+
+  ExtractMethodFeedback(int offset, int length, String returnType, List<String> names, bool canCreateGetter, List<RefactoringMethodParameter> parameters, List<int> offsets, List<int> lengths) {
+    this.offset = offset;
+    this.length = length;
+    this.returnType = returnType;
+    this.names = names;
+    this.canCreateGetter = canCreateGetter;
+    this.parameters = parameters;
+    this.offsets = offsets;
+    this.lengths = lengths;
+  }
 
   factory ExtractMethodFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -10759,21 +13901,56 @@ class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
  * }
  */
 class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
+  String _returnType;
+
+  bool _createGetter;
+
+  String _name;
+
+  List<RefactoringMethodParameter> _parameters;
+
+  bool _extractAll;
+
   /**
    * The return type that should be defined for the method.
    */
-  String returnType;
+  String get returnType => _returnType;
+
+  /**
+   * The return type that should be defined for the method.
+   */
+  void set returnType(String value) {
+    assert(value != null);
+    this._returnType = value;
+  }
 
   /**
    * True if a getter should be created rather than a method. It is an error if
    * this field is true and the list of parameters is non-empty.
    */
-  bool createGetter;
+  bool get createGetter => _createGetter;
+
+  /**
+   * True if a getter should be created rather than a method. It is an error if
+   * this field is true and the list of parameters is non-empty.
+   */
+  void set createGetter(bool value) {
+    assert(value != null);
+    this._createGetter = value;
+  }
 
   /**
    * The name that the method should be given.
    */
-  String name;
+  String get name => _name;
+
+  /**
+   * The name that the method should be given.
+   */
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
+  }
 
   /**
    * The parameters that should be defined for the method.
@@ -10787,16 +13964,49 @@ class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
    * - To add new parameters, omit their identifier.
    * - To remove some parameters, omit them in this list.
    */
-  List<RefactoringMethodParameter> parameters;
+  List<RefactoringMethodParameter> get parameters => _parameters;
+
+  /**
+   * The parameters that should be defined for the method.
+   *
+   * It is an error if a REQUIRED or NAMED parameter follows a POSITIONAL
+   * parameter. It is an error if a REQUIRED or POSITIONAL parameter follows a
+   * NAMED parameter.
+   *
+   * - To change the order and/or update proposed parameters, add parameters
+   *   with the same identifiers as proposed.
+   * - To add new parameters, omit their identifier.
+   * - To remove some parameters, omit them in this list.
+   */
+  void set parameters(List<RefactoringMethodParameter> value) {
+    assert(value != null);
+    this._parameters = value;
+  }
 
   /**
    * True if all occurrences of the expression or statements should be replaced
    * by an invocation of the method. The expression or statements used to
    * initiate the refactoring will always be replaced.
    */
-  bool extractAll;
+  bool get extractAll => _extractAll;
 
-  ExtractMethodOptions(this.returnType, this.createGetter, this.name, this.parameters, this.extractAll);
+  /**
+   * True if all occurrences of the expression or statements should be replaced
+   * by an invocation of the method. The expression or statements used to
+   * initiate the refactoring will always be replaced.
+   */
+  void set extractAll(bool value) {
+    assert(value != null);
+    this._extractAll = value;
+  }
+
+  ExtractMethodOptions(String returnType, bool createGetter, String name, List<RefactoringMethodParameter> parameters, bool extractAll) {
+    this.returnType = returnType;
+    this.createGetter = createGetter;
+    this.name = name;
+    this.parameters = parameters;
+    this.extractAll = extractAll;
+  }
 
   factory ExtractMethodOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -10890,17 +14100,40 @@ class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
  * }
  */
 class InlineLocalVariableFeedback extends RefactoringFeedback implements HasToJson {
+  String _name;
+
+  int _occurrences;
+
   /**
    * The name of the variable being inlined.
    */
-  String name;
+  String get name => _name;
+
+  /**
+   * The name of the variable being inlined.
+   */
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
+  }
 
   /**
    * The number of times the variable occurs.
    */
-  int occurrences;
+  int get occurrences => _occurrences;
 
-  InlineLocalVariableFeedback(this.name, this.occurrences);
+  /**
+   * The number of times the variable occurs.
+   */
+  void set occurrences(int value) {
+    assert(value != null);
+    this._occurrences = value;
+  }
+
+  InlineLocalVariableFeedback(String name, int occurrences) {
+    this.name = name;
+    this.occurrences = occurrences;
+  }
 
   factory InlineLocalVariableFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -10980,24 +14213,59 @@ class InlineLocalVariableOptions {
  * }
  */
 class InlineMethodFeedback extends RefactoringFeedback implements HasToJson {
+  String _className;
+
+  String _methodName;
+
+  bool _isDeclaration;
+
   /**
    * The name of the class enclosing the method being inlined. If not a class
    * member is being inlined, this field will be absent.
    */
-  String className;
+  String get className => _className;
+
+  /**
+   * The name of the class enclosing the method being inlined. If not a class
+   * member is being inlined, this field will be absent.
+   */
+  void set className(String value) {
+    this._className = value;
+  }
 
   /**
    * The name of the method (or function) being inlined.
    */
-  String methodName;
+  String get methodName => _methodName;
+
+  /**
+   * The name of the method (or function) being inlined.
+   */
+  void set methodName(String value) {
+    assert(value != null);
+    this._methodName = value;
+  }
 
   /**
    * True if the declaration of the method is selected. So all references
    * should be inlined.
    */
-  bool isDeclaration;
+  bool get isDeclaration => _isDeclaration;
 
-  InlineMethodFeedback(this.methodName, this.isDeclaration, {this.className});
+  /**
+   * True if the declaration of the method is selected. So all references
+   * should be inlined.
+   */
+  void set isDeclaration(bool value) {
+    assert(value != null);
+    this._isDeclaration = value;
+  }
+
+  InlineMethodFeedback(String methodName, bool isDeclaration, {String className}) {
+    this.className = className;
+    this.methodName = methodName;
+    this.isDeclaration = isDeclaration;
+  }
 
   factory InlineMethodFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -11068,19 +14336,44 @@ class InlineMethodFeedback extends RefactoringFeedback implements HasToJson {
  * }
  */
 class InlineMethodOptions extends RefactoringOptions implements HasToJson {
+  bool _deleteSource;
+
+  bool _inlineAll;
+
   /**
    * True if the method being inlined should be removed. It is an error if this
    * field is true and inlineAll is false.
    */
-  bool deleteSource;
+  bool get deleteSource => _deleteSource;
+
+  /**
+   * True if the method being inlined should be removed. It is an error if this
+   * field is true and inlineAll is false.
+   */
+  void set deleteSource(bool value) {
+    assert(value != null);
+    this._deleteSource = value;
+  }
 
   /**
    * True if all invocations of the method should be inlined, or false if only
    * the invocation site used to create this refactoring should be inlined.
    */
-  bool inlineAll;
+  bool get inlineAll => _inlineAll;
 
-  InlineMethodOptions(this.deleteSource, this.inlineAll);
+  /**
+   * True if all invocations of the method should be inlined, or false if only
+   * the invocation site used to create this refactoring should be inlined.
+   */
+  void set inlineAll(bool value) {
+    assert(value != null);
+    this._inlineAll = value;
+  }
+
+  InlineMethodOptions(bool deleteSource, bool inlineAll) {
+    this.deleteSource = deleteSource;
+    this.inlineAll = inlineAll;
+  }
 
   factory InlineMethodOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -11163,12 +14456,24 @@ class MoveFileFeedback {
  * }
  */
 class MoveFileOptions extends RefactoringOptions implements HasToJson {
+  String _newFile;
+
   /**
    * The new file path to which the given file is being moved.
    */
-  String newFile;
+  String get newFile => _newFile;
 
-  MoveFileOptions(this.newFile);
+  /**
+   * The new file path to which the given file is being moved.
+   */
+  void set newFile(String value) {
+    assert(value != null);
+    this._newFile = value;
+  }
+
+  MoveFileOptions(String newFile) {
+    this.newFile = newFile;
+  }
 
   factory MoveFileOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -11228,28 +14533,74 @@ class MoveFileOptions extends RefactoringOptions implements HasToJson {
  * }
  */
 class RenameFeedback extends RefactoringFeedback implements HasToJson {
+  int _offset;
+
+  int _length;
+
+  String _elementKindName;
+
+  String _oldName;
+
   /**
    * The offset to the beginning of the name selected to be renamed.
    */
-  int offset;
+  int get offset => _offset;
+
+  /**
+   * The offset to the beginning of the name selected to be renamed.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
 
   /**
    * The length of the name selected to be renamed.
    */
-  int length;
+  int get length => _length;
+
+  /**
+   * The length of the name selected to be renamed.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
 
   /**
    * The human-readable description of the kind of element being renamed (such
    * as “class” or “function type alias”).
    */
-  String elementKindName;
+  String get elementKindName => _elementKindName;
+
+  /**
+   * The human-readable description of the kind of element being renamed (such
+   * as “class” or “function type alias”).
+   */
+  void set elementKindName(String value) {
+    assert(value != null);
+    this._elementKindName = value;
+  }
 
   /**
    * The old name of the element before the refactoring.
    */
-  String oldName;
+  String get oldName => _oldName;
 
-  RenameFeedback(this.offset, this.length, this.elementKindName, this.oldName);
+  /**
+   * The old name of the element before the refactoring.
+   */
+  void set oldName(String value) {
+    assert(value != null);
+    this._oldName = value;
+  }
+
+  RenameFeedback(int offset, int length, String elementKindName, String oldName) {
+    this.offset = offset;
+    this.length = length;
+    this.elementKindName = elementKindName;
+    this.oldName = oldName;
+  }
 
   factory RenameFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -11328,12 +14679,24 @@ class RenameFeedback extends RefactoringFeedback implements HasToJson {
  * }
  */
 class RenameOptions extends RefactoringOptions implements HasToJson {
+  String _newName;
+
   /**
    * The name that the element should have after the refactoring.
    */
-  String newName;
+  String get newName => _newName;
 
-  RenameOptions(this.newName);
+  /**
+   * The name that the element should have after the refactoring.
+   */
+  void set newName(String value) {
+    assert(value != null);
+    this._newName = value;
+  }
+
+  RenameOptions(String newName) {
+    this.newName = newName;
+  }
 
   factory RenameOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {

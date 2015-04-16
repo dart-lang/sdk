@@ -489,7 +489,7 @@ class _RefactoringManager {
         refactoring = new ExtractMethodRefactoring(
             searchEngine, units[0], offset, length);
         feedback = new ExtractMethodFeedback(
-            offset, length, null, [], false, [], [], []);
+            offset, length, '', [], false, [], [], []);
       }
     }
     if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {

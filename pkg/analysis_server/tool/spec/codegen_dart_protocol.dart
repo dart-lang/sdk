@@ -16,6 +16,13 @@ import 'implied_types.dart';
 import 'to_html.dart';
 
 /**
+ * Translate spec_input.html into protocol_matchers.dart.
+ */
+main() {
+  target.generate();
+}
+
+/**
  * Special flags that need to be inserted into the declaration of the Element
  * class.
  */
@@ -33,13 +40,6 @@ final GeneratedFile target = new GeneratedFile(
   CodegenProtocolVisitor visitor = new CodegenProtocolVisitor(readApi());
   return visitor.collectCode(visitor.visitApi);
 });
-
-/**
- * Translate spec_input.html into protocol_matchers.dart.
- */
-main() {
-  target.generate();
-}
 
 /**
  * Callback type used to represent arbitrary code generation.
@@ -383,10 +383,29 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         if (field.value != null) {
           continue;
         }
+        writeln('${dartType(field.type)} _${field.name};');
+        writeln();
+      }
+      for (TypeObjectField field in type.fields) {
+        if (field.value != null) {
+          continue;
+        }
         docComment(toHtmlVisitor.collectHtml(() {
           toHtmlVisitor.translateHtml(field.html);
         }));
-        writeln('${dartType(field.type)} ${field.name};');
+        writeln('${dartType(field.type)} get ${field.name} => _${field.name};');
+        writeln();
+        docComment(toHtmlVisitor.collectHtml(() {
+          toHtmlVisitor.translateHtml(field.html);
+        }));
+        writeln('void set ${field.name}(${dartType(field.type)} value) {');
+        indent(() {
+          if (!field.optional) {
+            writeln('assert(value != null);');
+          }
+          writeln('this._${field.name} = value;');
+        });
+        writeln('}');
         writeln();
       }
       emitObjectConstructor(type, className);
@@ -437,7 +456,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       if (field.value != null) {
         continue;
       }
-      String arg = 'this.${field.name}';
+      String arg = '${dartType(field.type)} ${field.name}';
+      String setValueFromArg = 'this.${field.name} = ${field.name};';
       if (isOptionalConstructorArg(className, field)) {
         optionalArgs.add(arg);
         if (!field.optional) {
@@ -448,7 +468,12 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
             extraInitCode.add(() {
               writeln('if (${field.name} == null) {');
               indent(() {
-                writeln('${field.name} = <${dartType(fieldType.itemType)}>[];');
+                writeln(
+                    'this.${field.name} = <${dartType(fieldType.itemType)}>[];');
+              });
+              writeln('} else {');
+              indent(() {
+                writeln(setValueFromArg);
               });
               writeln('}');
             });
@@ -456,9 +481,16 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
             throw new Exception(
                 "Don't know how to create default field value.");
           }
+        } else {
+          extraInitCode.add(() {
+            writeln(setValueFromArg);
+          });
         }
       } else {
         args.add(arg);
+        extraInitCode.add(() {
+          writeln(setValueFromArg);
+        });
       }
     }
     if (optionalArgs.isNotEmpty) {

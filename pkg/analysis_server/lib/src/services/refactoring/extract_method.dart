@@ -70,7 +70,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   CorrectionUtils utils;
   Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
 
-  String returnType;
+  String returnType = '';
   String variableType;
   String name;
   bool extractAll = true;

@@ -991,7 +991,7 @@ main() {
 
 @reflectiveTest
 class MoveFileTest extends _AbstractGetRefactoring_Test {
-  MoveFileOptions options = new MoveFileOptions(null);
+  MoveFileOptions options;
 
   test_OK() {
     resourceProvider.newFile('/project/bin/lib.dart', '');
@@ -999,7 +999,7 @@ class MoveFileTest extends _AbstractGetRefactoring_Test {
 import 'dart:math';
 import 'lib.dart';
 ''');
-    options.newFile = '/project/test.dart';
+    _setOptions('/project/test.dart');
     return assertSuccessfulRefactoring(() {
       return _sendMoveRequest();
     }, '''
@@ -1013,6 +1013,10 @@ import 'bin/lib.dart';
             RefactoringKind.MOVE_FILE, testFile, 0, 0, false, options: options)
         .toRequest('0');
     return serverChannel.sendRequest(request);
+  }
+
+  void _setOptions(String newFile) {
+    options = new MoveFileOptions(newFile);
   }
 }
 
