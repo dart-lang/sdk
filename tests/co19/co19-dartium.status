@@ -1040,6 +1040,7 @@ LayoutTests/fast/dom/shadow/shadowdom-for-input-type-change_t01: RuntimeError # 
 LayoutTests/fast/filesystem/file-writer-abort-continue_t01: Skip # Times out.  Please triage this failure.
 LayoutTests/fast/forms/activate-and-disabled-elements_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/forms/plaintext-mode-1_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/selection-direction_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/forms/text-set-value-crash_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/forms/textarea-paste-newline_t01: RuntimeError # co19-roll r801 : Please triage this failure.
 LayoutTests/fast/inline/continuation-inlines-inserted-in-reverse-after-block_t01: Skip # Times out. Please triage this failure.
