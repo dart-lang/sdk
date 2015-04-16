@@ -832,7 +832,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   PremarkingVisitor premarker(isolate);
   isolate->heap()->WriteProtect(false);
   ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
-  isolate->heap()->IterateOldObjects(&premarker);
+  isolate->heap()->old_space()->VisitObjects(&premarker);
   isolate->heap()->WriteProtect(true);
 }
 

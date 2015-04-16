@@ -148,7 +148,7 @@ class Unmarker : public ObjectVisitor {
 
   static void UnmarkAll(Isolate* isolate) {
     Unmarker unmarker(isolate);
-    isolate->heap()->IterateObjects(&unmarker);
+    isolate->heap()->VisitObjects(&unmarker);
   }
 
  private:
@@ -367,7 +367,7 @@ intptr_t ObjectGraph::InboundReferences(Object* obj, const Array& references) {
   Object& scratch = Object::Handle();
   NoSafepointScope no_safepoint_scope_;
   InboundReferencesVisitor visitor(isolate(), obj->raw(), references, &scratch);
-  isolate()->heap()->IterateObjects(&visitor);
+  isolate()->heap()->VisitObjects(&visitor);
   return visitor.length();
 }
 

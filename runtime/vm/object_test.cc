@@ -4142,7 +4142,7 @@ TEST_CASE(PrintJSON) {
   }
   GrowableArray<Object*> objects;
   ObjectAccumulator acc(&objects);
-  heap->IterateObjects(&acc);
+  heap->VisitObjects(&acc);
   for (intptr_t i = 0; i < objects.length(); ++i) {
     JSONStream js;
     objects[i]->PrintJSON(&js, false);

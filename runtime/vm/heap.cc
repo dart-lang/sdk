@@ -211,35 +211,15 @@ bool Heap::CodeContains(uword addr) const {
 }
 
 
-void Heap::IterateObjects(ObjectVisitor* visitor) const {
+void Heap::VisitObjects(ObjectVisitor* visitor) const {
   new_space_->VisitObjects(visitor);
   old_space_->VisitObjects(visitor);
 }
 
 
-void Heap::IteratePointers(ObjectPointerVisitor* visitor) const {
+void Heap::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   new_space_->VisitObjectPointers(visitor);
   old_space_->VisitObjectPointers(visitor);
-}
-
-
-void Heap::IterateNewPointers(ObjectPointerVisitor* visitor) const {
-  new_space_->VisitObjectPointers(visitor);
-}
-
-
-void Heap::IterateOldPointers(ObjectPointerVisitor* visitor) const {
-  old_space_->VisitObjectPointers(visitor);
-}
-
-
-void Heap::IterateNewObjects(ObjectVisitor* visitor) const {
-  new_space_->VisitObjects(visitor);
-}
-
-
-void Heap::IterateOldObjects(ObjectVisitor* visitor) const {
-  old_space_->VisitObjects(visitor);
 }
 
 
@@ -482,13 +462,13 @@ ObjectSet* Heap::CreateAllocatedObjectSet(
   {
     VerifyObjectVisitor object_visitor(
         isolate(), allocated_set, mark_expectation);
-    this->IterateObjects(&object_visitor);
+    this->VisitObjects(&object_visitor);
   }
   {
     // VM isolate heap is premarked.
     VerifyObjectVisitor vm_object_visitor(
         isolate(), allocated_set, kRequireMarked);
-    vm_isolate->heap()->IterateObjects(&vm_object_visitor);
+    vm_isolate->heap()->VisitObjects(&vm_object_visitor);
   }
   return allocated_set;
 }
@@ -497,7 +477,7 @@ ObjectSet* Heap::CreateAllocatedObjectSet(
 bool Heap::Verify(MarkExpectation mark_expectation) const {
   ObjectSet* allocated_set = CreateAllocatedObjectSet(mark_expectation);
   VerifyPointersVisitor visitor(isolate(), allocated_set);
-  IteratePointers(&visitor);
+  VisitObjectPointers(&visitor);
   delete allocated_set;
   // Only returning a value so that Heap::Validate can be called from an ASSERT.
   return true;

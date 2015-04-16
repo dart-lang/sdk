@@ -105,18 +105,10 @@ class Heap {
   bool StubCodeContains(uword addr) const;
 
   // Visit all pointers.
-  void IteratePointers(ObjectPointerVisitor* visitor) const;
-
-  // Visit all pointers in the space.
-  void IterateNewPointers(ObjectPointerVisitor* visitor) const;
-  void IterateOldPointers(ObjectPointerVisitor* visitor) const;
+  void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
   // Visit all objects.
-  void IterateObjects(ObjectVisitor* visitor) const;
-
-  // Visit all object in the space.
-  void IterateNewObjects(ObjectVisitor* visitor) const;
-  void IterateOldObjects(ObjectVisitor* visitor) const;
+  void VisitObjects(ObjectVisitor* visitor) const;
 
   // Find an object by visiting all pointers in the specified heap space,
   // the 'visitor' is used to determine if an object is found or not.

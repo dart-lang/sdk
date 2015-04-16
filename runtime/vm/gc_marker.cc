@@ -356,7 +356,7 @@ void GCMarker::IterateRoots(Isolate* isolate,
   isolate->VisitObjectPointers(visitor,
                                visit_prologue_weak_persistent_handles,
                                StackFrameIterator::kDontValidateFrames);
-  heap_->IterateNewPointers(visitor);
+  heap_->new_space()->VisitObjectPointers(visitor);
 }
 
 
