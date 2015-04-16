@@ -330,7 +330,7 @@ class FixProcessor {
     AstNode node = this.node;
     if (_isAwaitNode()) {
       FunctionBody body = node.getAncestor((n) => n is FunctionBody);
-      if (body.keyword == null) {
+      if (body != null && body.keyword == null) {
         _addReplaceEdit(rf.rangeStartLength(body, 0), 'async ');
         _addFix(DartFixKind.ADD_ASYNC, []);
         return true;

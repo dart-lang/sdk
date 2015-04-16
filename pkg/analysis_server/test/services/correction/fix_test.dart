@@ -5,15 +5,14 @@
 library test.services.correction.fix;
 
 import 'package:analysis_server/edit/fix/fix_core.dart';
-import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart' hide AnalysisError;
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/plugin/plugin_impl.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
@@ -37,7 +36,6 @@ class FixProcessorTest extends AbstractSingleUnitTest {
         error.errorCode != HintCode.UNUSED_LOCAL_VARIABLE;
   };
 
-  ServerPlugin plugin;
   Fix fix;
   SourceChange change;
   String resultCode;
@@ -74,7 +72,7 @@ bool test() {
 
   void assertNoFix(FixKind kind) {
     AnalysisError error = _findErrorToFix();
-    List<Fix> fixes = computeFixes(plugin, context, error);
+    List<Fix> fixes = _computeFixes(error);
     for (Fix fix in fixes) {
       if (fix.kind == kind) {
         throw fail('Unexpected fix $kind in\n${fixes.join('\n')}');
@@ -105,9 +103,6 @@ bool test() {
   void setUp() {
     super.setUp();
     verifyNoTestUnitErrors = false;
-    ExtensionManager manager = new ExtensionManager();
-    plugin = new ServerPlugin();
-    manager.processPlugins([plugin]);
   }
 
   void test_addFieldFormalParameters_hasRequiredParameter() {
@@ -167,6 +162,13 @@ class Test {
 ''');
   }
 
+  void test_addSync_BAD_nullFunctionBody() {
+    resolveTestUnit('''
+var F = await;
+''');
+    assertNoFix(DartFixKind.ADD_ASYNC);
+  }
+
   void test_addSync_blockFunctionBody() {
     resolveTestUnit('''
 foo() {}
@@ -180,14 +182,14 @@ main() {
     {
       AnalysisError error = errors[0];
       expect(error.message, "Expected to find ';'");
-      List<Fix> fixes = computeFixes(plugin, context, error);
+      List<Fix> fixes = _computeFixes(error);
       expect(fixes, isEmpty);
     }
     // Undefined name 'await'
     {
       AnalysisError error = errors[1];
       expect(error.message, "Undefined name 'await'");
-      List<Fix> fixes = computeFixes(plugin, context, error);
+      List<Fix> fixes = _computeFixes(error);
       // has exactly one fix
       expect(fixes, hasLength(1));
       Fix fix = fixes[0];
@@ -2426,7 +2428,7 @@ main(p) {
 }''');
     List<AnalysisError> errors = context.computeErrors(testSource);
     for (var error in errors) {
-      computeFixes(plugin, context, error);
+      _computeFixes(error);
     }
   }
 
@@ -3484,7 +3486,7 @@ main() {
    * Computes fixes and verifies that there is a fix of the given kind.
    */
   Fix _assertHasFix(FixKind kind, AnalysisError error) {
-    List<Fix> fixes = computeFixes(plugin, context, error);
+    List<Fix> fixes = _computeFixes(error);
     for (Fix fix in fixes) {
       if (fix.kind == kind) {
         return fix;
@@ -3500,6 +3502,14 @@ main() {
     if (expectedSuggestions != null) {
       expect(group.suggestions, unorderedEquals(expectedSuggestions));
     }
+  }
+
+  /**
+   * Computes fixes for the given [error] in [testUnit].
+   */
+  List<Fix> _computeFixes(AnalysisError error) {
+    FixProcessor processor = new FixProcessor(testUnit, error);
+    return processor.compute();
   }
 
   /**
