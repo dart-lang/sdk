@@ -359,7 +359,10 @@ def RunCompilerTests(build_info):
   if build_info.checked: test_flags += ['--checked']
   if build_info.minified: test_flags += ['--minified']
   if build_info.host_checked: test_flags += ['--host-checked']
-  if build_info.batch: test_flags += ['--dart2js-batch']
+  # cps backend does not work with batch mode due to the environment variable
+  # setting.
+  if build_info.batch and not build_info.cps_ir:
+    test_flags += ['--dart2js-batch']
   if build_info.builder_tag: test_flags += ['--builder-tag=' +
                                              build_info.builder_tag]
   if build_info.cps_ir: test_flags += ['--cps-ir']
