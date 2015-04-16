@@ -181,7 +181,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
                    this.sourceInformationBuilder);
 
   @override
-  bulkHandleNode(ast.Node node, String message, _) => giveup(node, message);
+  bulkHandleNode(ast.Node node, String message, _) {
+    giveup(node, message.replaceFirst('#', '$node'));
+  }
 
   String bailoutMessage = null;
 

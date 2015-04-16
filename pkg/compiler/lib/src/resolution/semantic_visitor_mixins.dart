@@ -4,15 +4,24 @@
 
 part of dart2js.semantics_visitor;
 
+/// Interface for bulk handling of a [Node] in a semantic visitor.
+abstract class BulkHandle<R, A> {
+  /// Handle [node] either regardless of semantics or to report that [node] is
+  /// unhandled. [message] contains a message template for the latter case:
+  /// Replace '#' in [message] by `node.toString()` to create a message for the
+  /// error.
+  R bulkHandleNode(Node node, String message, A arg);
+}
+
 /// Mixin that implements all `errorX` methods of [SemanticSendVisitor] by
 /// delegating to a bulk handler.
 ///
 /// Use this mixin to provide a trivial implementation for all `errorX` methods.
-abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message, A arg);
+abstract class ErrorBulkMixin<R, A>
+    implements SemanticSendVisitor<R, A>, BulkHandle<R, A> {
 
   R bulkHandleError(Node node, A arg) {
-    return bulkHandleNode(node, "Error expression `$node` unhandled.", arg);
+    return bulkHandleNode(node, "Error expression `#` unhandled.", arg);
   }
 
   @override
@@ -605,11 +614,11 @@ abstract class ErrorBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 ///
 /// Use this mixin to provide a trivial implementation for all `visitXPrefix`
 /// methods.
-abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message, A arg);
+abstract class PrefixBulkMixin<R, A>
+    implements SemanticSendVisitor<R, A>, BulkHandle<R, A> {
 
   R bulkHandlePrefix(Send node, A arg) {
-    return bulkHandleNode(node, "Prefix expression `$node` unhandled.", arg);
+    return bulkHandleNode(node, "Prefix expression `#` unhandled.", arg);
   }
 
   @override
@@ -795,11 +804,11 @@ abstract class PrefixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 ///
 /// Use this mixin to provide a trivial implementation for all `visitXPostfix`
 /// methods.
-abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message, A arg);
+abstract class PostfixBulkMixin<R, A>
+    implements SemanticSendVisitor<R, A>, BulkHandle<R, A> {
 
   R bulkHandlePostfix(Send node, A arg) {
-    return bulkHandleNode(node, "Postfix expression `$node` unhandled.", arg);
+    return bulkHandleNode(node, "Postfix expression `#` unhandled.", arg);
   }
 
   @override
@@ -985,11 +994,11 @@ abstract class PostfixBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 ///
 /// Use this mixin to provide a trivial implementation for all `xCompound`
 /// methods.
-abstract class CompoundBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message, A arg);
+abstract class CompoundBulkMixin<R, A>
+    implements SemanticSendVisitor<R, A>, BulkHandle<R, A> {
 
   R bulkHandleCompound(Send node, A arg) {
-    return bulkHandleNode(node, "Compound assignment `$node` unhandled.", arg);
+    return bulkHandleNode(node, "Compound assignment `#` unhandled.", arg);
   }
 
   @override
@@ -1159,11 +1168,11 @@ abstract class CompoundBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 ///
 /// Use this mixin to provide a trivial implementation for all `visitXInvoke`
 /// methods.
-abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message, A arg);
+abstract class InvokeBulkMixin<R, A>
+    implements SemanticSendVisitor<R, A>, BulkHandle<R, A> {
 
   R bulkHandleInvoke(Send node, A arg) {
-    return bulkHandleNode(node, "Invocation `$node` unhandled.", arg);
+    return bulkHandleNode(node, "Invocation `#` unhandled.", arg);
   }
 
   @override
@@ -1380,11 +1389,11 @@ abstract class InvokeBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 ///
 /// Use this mixin to provide a trivial implementation for all `visitXGet`
 /// methods.
-abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message, A arg);
+abstract class GetBulkMixin<R, A>
+    implements SemanticSendVisitor<R, A>, BulkHandle<R, A> {
 
   R bulkHandleGet(Node node, A arg) {
-    return bulkHandleNode(node, "Read `$node` unhandled.", arg);
+    return bulkHandleNode(node, "Read `#` unhandled.", arg);
   }
 
   @override
@@ -1551,11 +1560,11 @@ abstract class GetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 ///
 /// Use this mixin to provide a trivial implementation for all `visitXSet`
 /// methods.
-abstract class SetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message, A arg);
+abstract class SetBulkMixin<R, A>
+    implements SemanticSendVisitor<R, A>, BulkHandle<R, A> {
 
   R bulkHandleSet(Send node, A arg) {
-    return bulkHandleNode(node, "Assignment `$node` unhandled.", arg);
+    return bulkHandleNode(node, "Assignment `#` unhandled.", arg);
   }
 
   @override
@@ -1655,11 +1664,11 @@ abstract class SetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 ///
 /// Use this mixin to provide a trivial implementation for all `visitXIndexSet`
 /// methods.
-abstract class IndexSetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message, A arg);
+abstract class IndexSetBulkMixin<R, A>
+    implements SemanticSendVisitor<R, A>, BulkHandle<R, A> {
 
   R bulkHandleIndexSet(Send node, A arg) {
-    return bulkHandleNode(node, "Index set expression `$node` unhandled.", arg);
+    return bulkHandleNode(node, "Index set expression `#` unhandled.", arg);
   }
 
   @override
@@ -1711,11 +1720,11 @@ abstract class IndexSetBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 ///
 /// Use this mixin to provide a trivial implementation for all binary visitor
 /// methods.
-abstract class BinaryBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message, A arg);
+abstract class BinaryBulkMixin<R, A>
+    implements SemanticSendVisitor<R, A>, BulkHandle<R, A> {
 
   R bulkHandleBinary(Send node, A arg) {
-    return bulkHandleNode(node, "Binary expression `$node` unhandled.", arg);
+    return bulkHandleNode(node, "Binary expression `#` unhandled.", arg);
   }
 
   @override
@@ -1798,11 +1807,11 @@ abstract class BinaryBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 ///
 /// Use this mixin to provide a trivial implementation for all unary visitor
 /// methods.
-abstract class UnaryBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message, A arg);
+abstract class UnaryBulkMixin<R, A>
+    implements SemanticSendVisitor<R, A>, BulkHandle<R, A> {
 
   R bulkHandleUnary(Send node, A arg) {
-    return bulkHandleNode(node, "Unary expression `$node` unhandled.", arg);
+    return bulkHandleNode(node, "Unary expression `#` unhandled.", arg);
   }
 
   @override
@@ -1834,8 +1843,8 @@ abstract class UnaryBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 ///
 /// Use this mixin to provide a trivial implementation for all purely structural
 /// visitor methods.
-abstract class BaseBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message, A arg);
+abstract class BaseBulkMixin<R, A>
+    implements SemanticSendVisitor<R, A>, BulkHandle<R, A> {
 
   @override
   R visitAs(
@@ -1843,7 +1852,7 @@ abstract class BaseBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node expression,
       DartType type,
       A arg) {
-    return bulkHandleNode(node, 'As cast `$node` unhandled.', arg);
+    return bulkHandleNode(node, 'As cast `#` unhandled.', arg);
   }
 
   @override
@@ -1851,7 +1860,7 @@ abstract class BaseBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       Node expression,
       A arg) {
-    return bulkHandleNode(node, 'Assert `$node` unhandled.', arg);
+    return bulkHandleNode(node, 'Assert `#` unhandled.', arg);
   }
 
   @override
@@ -1860,7 +1869,7 @@ abstract class BaseBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node expression,
       DartType type,
       A arg) {
-    return bulkHandleNode(node, 'Is test `$node` unhandled.', arg);
+    return bulkHandleNode(node, 'Is test `#` unhandled.', arg);
   }
 
   @override
@@ -1869,7 +1878,7 @@ abstract class BaseBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node expression,
       DartType type,
       A arg) {
-    return bulkHandleNode(node, 'Is not test `$node` unhandled.', arg);
+    return bulkHandleNode(node, 'Is not test `#` unhandled.', arg);
   }
 
   @override
@@ -1878,7 +1887,7 @@ abstract class BaseBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node left,
       Node right,
       A arg) {
-    return bulkHandleNode(node, 'Lazy and `$node` unhandled.', arg);
+    return bulkHandleNode(node, 'Lazy and `#` unhandled.', arg);
   }
 
   @override
@@ -1887,7 +1896,7 @@ abstract class BaseBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
       Node left,
       Node right,
       A arg) {
-    return bulkHandleNode(node, 'Lazy or `$node` unhandled.', arg);
+    return bulkHandleNode(node, 'Lazy or `#` unhandled.', arg);
   }
 }
 
@@ -1896,11 +1905,11 @@ abstract class BaseBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
 ///
 /// Use this mixin to provide a trivial implementation for `super` calls
 /// visitor methods.
-abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message, A arg);
+abstract class SuperBulkMixin<R, A>
+    implements SemanticSendVisitor<R, A>, BulkHandle<R, A> {
 
   R bulkHandleSuper(Send node, A arg) {
-    return bulkHandleNode(node, "Super call `$node` unhandled.", arg);
+    return bulkHandleNode(node, "Super call `#` unhandled.", arg);
   }
 
   @override
@@ -2207,12 +2216,12 @@ abstract class SuperBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 }
 
-abstract class NewBulkMixin<R, A> implements SemanticSendVisitor<R, A> {
-  R bulkHandleNode(Node node, String message, A arg);
+abstract class NewBulkMixin<R, A>
+    implements SemanticSendVisitor<R, A>, BulkHandle<R, A> {
 
   R bulkHandleNew(NewExpression node, A arg) {
     return bulkHandleNode(
-        node, "Constructor invocation `$node` unhandled.", arg);
+        node, "Constructor invocation `#` unhandled.", arg);
   }
 
   @override
@@ -2302,12 +2311,11 @@ class BulkSendVisitor<R, A> extends SemanticSendVisitor<R, A>
 ///
 /// Use this mixin to provide a trivial implementation for these methods.
 abstract class ParameterBulkMixin<R, A>
-    implements SemanticDeclarationVisitor<R, A> {
-  R bulkHandleNode(Node node, String message, A arg);
+    implements SemanticDeclarationVisitor<R, A>, BulkHandle<R, A> {
 
   R bulkHandleParameterDeclaration(VariableDefinitions node, A arg) {
     return bulkHandleNode(
-        node, "Parameter declaration `$node` unhandled.", arg);
+        node, "Parameter declaration `#` unhandled.", arg);
   }
 
   @override
@@ -2378,12 +2386,11 @@ abstract class ParameterBulkMixin<R, A>
 ///
 /// Use this mixin to provide a trivial implementation for these methods.
 abstract class ConstructorBulkMixin<R, A>
-    implements SemanticDeclarationVisitor<R, A> {
-  R bulkHandleNode(Node node, String message, A arg);
+    implements SemanticDeclarationVisitor<R, A>, BulkHandle<R, A> {
 
   R bulkHandleConstructorDeclaration(FunctionExpression node, A arg) {
     return bulkHandleNode(
-        node, "Constructor declaration `$node` unhandled.", arg);
+        node, "Constructor declaration `#` unhandled.", arg);
   }
 
   @override
@@ -2434,12 +2441,11 @@ abstract class ConstructorBulkMixin<R, A>
 ///
 /// Use this mixin to provide a trivial implementation for these methods.
 abstract class InitializerBulkMixin<R, A>
-    implements SemanticDeclarationVisitor<R, A> {
-  R bulkHandleNode(Node node, String message, A arg);
+    implements SemanticDeclarationVisitor<R, A>, BulkHandle<R, A> {
 
   R bulkHandleInitializer(Send node, A arg) {
     return bulkHandleNode(
-        node, "Initializer `$node` unhandled.", arg);
+        node, "Initializer `#` unhandled.", arg);
   }
 
   @override
@@ -2507,12 +2513,11 @@ abstract class InitializerBulkMixin<R, A>
 ///
 /// Use this mixin to provide a trivial implementation for these methods.
 abstract class FunctionBulkMixin<R, A>
-    implements SemanticDeclarationVisitor<R, A> {
-  R bulkHandleNode(Node node, String message, A arg);
+    implements SemanticDeclarationVisitor<R, A>, BulkHandle<R, A> {
 
   R bulkHandleFunctionDeclaration(FunctionExpression node, A arg) {
     return bulkHandleNode(
-        node, "Function declaration `$node` unhandled.", arg);
+        node, "Function declaration `#` unhandled.", arg);
   }
 
   @override
@@ -2654,12 +2659,11 @@ abstract class FunctionBulkMixin<R, A>
 ///
 /// Use this mixin to provide a trivial implementation for these methods.
 abstract class VariableBulkMixin<R, A>
-    implements SemanticDeclarationVisitor<R, A> {
-  R bulkHandleNode(Node node, String message, A arg);
+    implements SemanticDeclarationVisitor<R, A>, BulkHandle<R, A> {
 
   R bulkHandleVariableDeclaration(VariableDefinitions node, A arg) {
     return bulkHandleNode(
-        node, "Variable declaration `$node` unhandled.", arg);
+        node, "Variable declaration `#` unhandled.", arg);
   }
 
   @override
