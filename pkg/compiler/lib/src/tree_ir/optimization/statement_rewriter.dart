@@ -137,9 +137,10 @@ class StatementRewriter extends Transformer implements Pass {
   /// for a break to L' if L maps to L'.
   Map<Label, Jump> labelRedirects = <Label, Jump>{};
 
-  /// Number of uses seen so far. Used to detect the first use of a variable
-  /// (since we do backwards traversal, the first use is the last one seen).
-  Map<Variable, int> seenUses = <Variable, int>{};
+  /// Number of uses of the given variable that are still unseen.
+  /// Used to detect the first use of a variable (since we do backwards
+  /// traversal, the first use is the last one seen).
+  Map<Variable, int> unseenUses = <Variable, int>{};
 
   /// Rewriter for methods.
   StatementRewriter({this.isDartMode})
@@ -150,7 +151,7 @@ class StatementRewriter extends Transformer implements Pass {
   /// Rewriter for nested functions.
   StatementRewriter.nested(StatementRewriter parent)
       : constantEnvironment = parent.constantEnvironment,
-        seenUses = parent.seenUses,
+        unseenUses = parent.unseenUses,
         isDartMode = parent.isDartMode;
 
   /// A set of labels that can be safely inlined at their use.
@@ -203,19 +204,20 @@ class StatementRewriter extends Transformer implements Pass {
 
   @override
   Expression visitVariableUse(VariableUse node) {
-    // Count of number of uses seen so far.
-    seenUses[node.variable] = 1 + seenUses.putIfAbsent(node.variable, () => 0);
+    // Count of number of unseen uses remaining.
+    unseenUses.putIfAbsent(node.variable, () => node.variable.readCount);
+    --unseenUses[node.variable];
 
     // We traverse the tree right-to-left, so when we have seen all uses,
     // it means we are looking at the first use.
-    assert(seenUses[node.variable] <= node.variable.readCount);
-    bool isFirstUse = seenUses[node.variable] == node.variable.readCount;
+    assert(unseenUses[node.variable] < node.variable.readCount);
+    assert(unseenUses[node.variable] >= 0);
+    bool isFirstUse = unseenUses[node.variable] == 0;
 
     // Propagate constant to use site.
     Expression constant = constantEnvironment[node.variable];
     if (constant != null) {
       --node.variable.readCount;
-      --seenUses[node.variable]; // Do not count the use we just destroyed.
       return visitExpression(constant);
     }
 
@@ -238,7 +240,6 @@ class StatementRewriter extends Transformer implements Pass {
       if (getLeftHand(binding) == node.variable && isFirstUse) {
         environment.removeLast();
         --node.variable.readCount;
-        --seenUses[node.variable]; // Do not count the use we just destroyed.
         return visitExpression(binding);
       }
 
@@ -252,7 +253,6 @@ class StatementRewriter extends Transformer implements Pass {
       if (getRightHand(binding) == node.variable) {
         environment.removeLast();
         --node.variable.readCount;
-        --seenUses[node.variable];
         return visitExpression(binding);
       }
     }
