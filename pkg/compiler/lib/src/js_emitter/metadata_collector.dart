@@ -91,16 +91,19 @@ class MetadataCollector {
             _emitter.constantReference(constant.value), _compiler).getText());
   }
 
-  int reifyType(DartType type) {
+  int reifyType(DartType type, {bool ignoreTypeVariables: false}) {
     return reifyTypeForOutputUnit(type,
-                                  _compiler.deferredLoadTask.mainOutputUnit);
+                                  _compiler.deferredLoadTask.mainOutputUnit,
+                                  ignoreTypeVariables: ignoreTypeVariables);
   }
 
-  int reifyTypeForOutputUnit(DartType type, OutputUnit outputUnit) {
+  int reifyTypeForOutputUnit(DartType type, OutputUnit outputUnit,
+                             {bool ignoreTypeVariables: false}) {
     jsAst.Expression representation =
         _backend.rti.getTypeRepresentation(
             type,
             (variable) {
+              if (ignoreTypeVariables) return new jsAst.LiteralNull();
               return js.number(
                   _typeVariableHandler.reifyTypeVariable(
                       variable.element));

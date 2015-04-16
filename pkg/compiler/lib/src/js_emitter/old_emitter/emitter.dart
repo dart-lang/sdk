@@ -1043,7 +1043,10 @@ class OldEmitter implements Emitter {
       LibraryElement library = typedef.library;
       // TODO(karlklose): add a TypedefBuilder and move this code there.
       DartType type = typedef.alias;
-      int typeIndex = task.metadataCollector.reifyType(type);
+      // TODO(zarah): reify type variables once reflection on type arguments of
+      // typedefs is supported.
+      int typeIndex =
+          task.metadataCollector.reifyType(type, ignoreTypeVariables: true);
       ClassBuilder builder = new ClassBuilder(typedef, namer);
       builder.addProperty(embeddedNames.TYPEDEF_TYPE_PROPERTY_NAME,
                           js.number(typeIndex));
