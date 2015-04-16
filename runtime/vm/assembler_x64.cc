@@ -2555,7 +2555,8 @@ void Assembler::j(Condition condition, Label* label, bool near) {
 
 void Assembler::j(Condition condition, const ExternalLabel* label) {
   Label no_jump;
-  j(static_cast<Condition>(condition ^ 1), &no_jump);  // Negate condition.
+  // Negate condition.
+  j(static_cast<Condition>(condition ^ 1), &no_jump, Assembler::kNearJump);
   jmp(label);
   Bind(&no_jump);
 }
@@ -2564,7 +2565,8 @@ void Assembler::j(Condition condition, const ExternalLabel* label) {
 void Assembler::J(Condition condition, const ExternalLabel* label,
                   Register pp) {
   Label no_jump;
-  j(static_cast<Condition>(condition ^ 1), &no_jump);  // Negate condition.
+  // Negate condition.
+  j(static_cast<Condition>(condition ^ 1), &no_jump, Assembler::kNearJump);
   Jmp(label, pp);
   Bind(&no_jump);
 }
