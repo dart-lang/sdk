@@ -253,33 +253,22 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
     return multiplier;
   }
 
-  Map<String, String> envWithCpsFlag(Map<String, String> env) {
-    if (env != environmentOverridesCacheObject || cpsFlagCache == null) {
-      cpsFlagCache = { 'DART_VM_OPTIONS' : '-DUSE_CPS_IR=true' };
-      if (env != null) {
-        cpsFlagCache.addAll(env);
-      }
-      environmentOverridesCacheObject = env;
-    }
-    return cpsFlagCache;
-  }
-
   CommandArtifact computeCompilationArtifact(
       String buildDir,
       String tempDir,
       CommandBuilder commandBuilder,
       List arguments,
       Map<String, String> environmentOverrides) {
-    var env = useCps ? envWithCpsFlag(environmentOverrides) :
-                       environmentOverrides;
+    List compilerArguments = new List.from(arguments)
+      ..addAll(extraDart2jsOptions);
     return new CommandArtifact(
         <Command>[
             this.computeCompilationCommand(
                 '$tempDir/out.js',
                 buildDir,
                 CommandBuilder.instance,
-                []..addAll(arguments)..addAll(extraDart2jsOptions),
-                env)],
+                compilerArguments,
+                environmentOverrides)],
         '$tempDir/out.js',
         'application/javascript');
   }
