@@ -125,9 +125,7 @@ main() {
     }, (e) => e is ConcurrentModificationError);
   }
 
-  // Add elements, but not infinitely often.
-  void add4(collection) { if (collection.length < 10) collection.add(4); }
-  void addList4(collection) { if (collection.length < 10) collection.add([4]); }
+  void add4(collection) { collection.add(4); }
   void put4(map) { map[4] = 4; }
 
   testModification([1, 2, 3], add4, id);
@@ -138,7 +136,7 @@ main() {
 
   testModification([0, 1, 2, 3], add4, (x) => x.where((x) => x > 0));
   testModification([0, 1, 2], add4, (x) => x.map((x) => x + 1));
-  testModification([[1, 2], [3]], addList4, (x) => x.expand((x) => x));
+  testModification([[1, 2], [3]], add4, (x) => x.expand((x) => x));
   testModification([3, 2, 1], add4, (x) => x.reversed);
   testModification({1: 1, 2: 2, 3: 3}, put4, (x) => x.keys);
   testModification({1: 1, 2: 2, 3: 3}, put4, (x) => x.values);

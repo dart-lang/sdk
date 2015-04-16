@@ -2,10 +2,6 @@
 
 ### Core library changes
 
-* List iterators may not throw ConcurrentModificationError as eagerly in
-  release mode. In checked mode, the modification check is still as eager
-  as possible.
-  [r45198](https://code.google.com/p/dart/source/detail?r=45198),
 * Update experimental Isolate API:
   - Make priorty parameters of `Isolate.ping` and `Isolate.kill` methods
     a named parameter.

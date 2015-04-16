@@ -605,31 +605,34 @@ class JSExtendableArray<E> extends JSMutableArray<E> {}
 
 
 /// An [Iterator] that iterates a JSArray.
+///
 class ArrayIterator<E> implements Iterator<E> {
   final JSArray<E> _iterable;
-  final int _originalLength;
+  final int _length;
   int _index;
   E _current;
 
   ArrayIterator(JSArray<E> iterable)
-      : _iterable = iterable, _originalLength = iterable.length, _index = 0;
+      : _iterable = iterable, _length = iterable.length, _index = 0;
 
   E get current => _current;
 
   bool moveNext() {
-    // Check for concurrent modifiction at each step in checked mode.
-    assert((_originalLength == _iterable.length) ||
-           (throw new ConcurrentModificationError(_iterable)));
-    if (_index < _iterable.length) {
-      _current = _iterable.elementAt(_index);
-      _index++;
-      return true;
-    }
-    // Check for concurrent modification only at the end in production mode.
-    if (_originalLength != _iterable.length) {
+    int length = _iterable.length;
+
+    // We have to do the length check even on fixed length Arrays.  If we can
+    // inline moveNext() we might be able to GVN the length and eliminate this
+    // check on known fixed length JSArray.
+    if (_length != length) {
       throw new ConcurrentModificationError(_iterable);
     }
-    _current = null;
-    return false;
+
+    if (_index >= length) {
+      _current = null;
+      return false;
+    }
+    _current = _iterable[_index];
+    _index++;
+    return true;
   }
 }

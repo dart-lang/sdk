@@ -320,30 +320,27 @@ class SubListIterable<E> extends ListIterable<E> {
  */
 class ListIterator<E> implements Iterator<E> {
   final Iterable<E> _iterable;
-  final int _originalLength;
+  final int _length;
   int _index;
   E _current;
 
   ListIterator(Iterable<E> iterable)
-      : _iterable = iterable, _originalLength = iterable.length, _index = 0;
+      : _iterable = iterable, _length = iterable.length, _index = 0;
 
   E get current => _current;
 
   bool moveNext() {
-    // Check for concurrent modifiction at each step in checked mode.
-    assert((_originalLength == _iterable.length) ||
-           (throw new ConcurrentModificationError(_iterable)));
-    if (_index < _iterable.length) {
-      _current = _iterable.elementAt(_index);
-      _index++;
-      return true;
-    }
-    // Check for concurrent modification only at the end in production mode.
-    if (_originalLength != _iterable.length) {
+    int length = _iterable.length;
+    if (_length != length) {
       throw new ConcurrentModificationError(_iterable);
     }
-    _current = null;
-    return false;
+    if (_index >= length) {
+      _current = null;
+      return false;
+    }
+    _current = _iterable.elementAt(_index);
+    _index++;
+    return true;
   }
 }
 
