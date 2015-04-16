@@ -17,6 +17,7 @@
     'lib/service_common.dart',
     'lib/service_io.dart',
     'lib/service_html.dart',
+    'lib/src/app/analytics.dart',
     'lib/src/app/application.dart',
     'lib/src/app/chart.dart',
     'lib/src/app/location_manager.dart',

@@ -27,9 +27,9 @@ abstract class Page extends Observable {
   }
 
   /// Called when the page should update its state based on [uri].
-  /// NOTE: Only called when the page is installed.
   void visit(Uri uri, Map argsMap) {
     args = toObservable(argsMap);
+    Analytics.reportPageView(uri);
     _visit(uri);
   }
 
