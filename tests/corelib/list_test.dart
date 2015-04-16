@@ -376,23 +376,34 @@ void testGrowableListOperations(List list) {
   list.replaceRange(6, 8, []);
   Expect.listEquals([1, 2, 6, 6, 5, 0, 2, 3, 2, 1], list);
 
-  // Operations that change the length cause ConcurrentModificationError.
+  // Operations that change the length may cause ConcurrentModificationError.
+  // Reducing the length may cause a RangeError before the
+  // ConcurrentModificationError in production mode.
+  bool checkedMode = false;
+  assert((checkedMode = true));
+
   void testConcurrentModification(action()) {
     testIterator(int when) {
       list.length = 4;
       list.setAll(0, [0, 1, 2, 3]);
       Expect.throws(() {
         for (var element in list) {
-          if (element == when) action();
+          if (element == when) {
+            when = -1;  // Prevent triggering more than once.
+            action();
+          }
         }
-      }, (e) => e is ConcurrentModificationError);
+      }, (e) => !checkedMode || e is ConcurrentModificationError);
     }
     testForEach(int when) {
       list.length = 4;
       list.setAll(0, [0, 1, 2, 3]);
       Expect.throws(() {
         list.forEach((var element) {
-          if (element == when) action();
+          if (element == when) {
+            when = -1;
+            action();
+          }
         });
       }, (e) => e is ConcurrentModificationError);
     }

@@ -162,7 +162,7 @@ void testConcurrentModifications() {
   void testIterate(Map map, Iterable iterable, Function f) {
     Iterator iterator = iterable.iterator;
     f(map);
-    iterator.moveNext();
+    while (iterator.moveNext());
   }
 
   void testKeys(Map map, Function f) => testIterate(map, map.keys, f);
