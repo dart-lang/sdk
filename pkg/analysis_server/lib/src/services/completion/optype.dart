@@ -442,6 +442,16 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    if (entity == node.identifier) {
+      optype.isPrefixed = true;
+    } else {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   void visitNormalFormalParameter(NormalFormalParameter node) {
     optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;

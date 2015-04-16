@@ -1131,6 +1131,42 @@ class C2 {
     assertOpType(returnValue: true, voidReturn: true, prefixed: true);
   }
 
+  test_ThisExpression_constructor_param() {
+    // SimpleIdentifier  FieldFormalParameter  FormalParameterList
+    addTestSource('''
+      class A implements I {
+        A(this.^) {}
+      }''');
+    assertOpType(prefixed: true);
+  }
+
+  test_ThisExpression_constructor_param2() {
+    // SimpleIdentifier  FieldFormalParameter  FormalParameterList
+    addTestSource('''
+      class A implements I {
+        A(this.f^) {}
+      }''');
+    assertOpType(prefixed: true);
+  }
+
+  test_ThisExpression_constructor_param3() {
+    // SimpleIdentifier  FieldFormalParameter  FormalParameterList
+    addTestSource('''
+      class A implements I {
+        A(this.^f) {}
+      }''');
+    assertOpType(prefixed: true);
+  }
+
+  test_ThisExpression_constructor_param4() {
+    // FieldFormalParameter  FormalParameterList  ConstructorDeclaration
+    addTestSource('''
+      class A implements I {
+        A(Str^ this.foo) {}
+      }''');
+    assertOpType(typeNames: true);
+  }
+
   test_ThrowExpression() {
     // SimpleIdentifier  ThrowExpression  ExpressionStatement
     addTestSource('main() {throw ^;}');

@@ -47,7 +47,6 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
     if (!(contributor as ImportedReferenceContributor).shouldWaitForLowPrioritySuggestions) {
       return null;
     }
-    expect(request.unit.element, isNotNull);
     List<CompletionSuggestion> oldSuggestions = request.suggestions;
     /*
      * Simulate a source change to flush the cached compilation unit
@@ -91,6 +90,7 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
       fail(sb.toString());
     }
 
+    computeFastResult = null;
     if (computeFast()) {
       expect(request.unit.element, isNull);
       assertResultsFromCache(oldSuggestions);
