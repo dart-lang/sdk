@@ -882,32 +882,6 @@ abstract class IrBuilder {
     return _buildInvokeSuper(method, selector, arguments);
   }
 
-  /// Create a call invocation on the value of [field] on the super class where
-  /// the call structure is defined [callStructure] and the argument values are
-  /// defined by [arguments].
-  ir.Primitive buildSuperFieldInvocation(FieldElement field,
-                                         CallStructure callStructure,
-                                         List<ir.Primitive> arguments) {
-    // TODO(johnniwinther): Maybe this should have its own ir node.
-    return buildCallInvocation(
-        buildSuperFieldGet(field),
-        callStructure,
-        arguments);
-  }
-
-  /// Create a call invocation on the value returned from the [getter] on the
-  /// super class where the call structure is defined [selector] and the
-  /// argument values are defined by [arguments].
-  ir.Primitive buildSuperGetterInvocation(MethodElement getter,
-                                          CallStructure callStructure,
-                                          List<ir.Primitive> arguments) {
-    // TODO(johnniwinther): Maybe this should have its own ir node.
-    return buildCallInvocation(
-        buildSuperGetterGet(getter),
-        callStructure,
-        arguments);
-  }
-
   /// Create a read access of the [field] on the super class.
   ir.Primitive buildSuperFieldGet(FieldElement field) {
     // TODO(johnniwinther): This should have its own ir node.
@@ -1065,38 +1039,6 @@ abstract class IrBuilder {
         new Selector(SelectorKind.CALL, function.memberName, callStructure);
     return _buildInvokeStatic(
         function, selector, arguments, sourceInformation);
-  }
-
-  /// Create a call invocation of the value of the static [field] where argument
-  /// structure is defined by [callStructure] and the argument values are
-  /// defined by [arguments].
-  ir.Primitive buildStaticFieldInvocation(
-      FieldElement field,
-      CallStructure callStructure,
-      List<ir.Primitive> arguments,
-      {SourceInformation sourceInformation}) {
-    // TODO(johnniwinther): Maybe this should have its own node.
-    return buildCallInvocation(
-        buildStaticFieldGet(field),
-        callStructure,
-        arguments,
-        sourceInformation: sourceInformation);
-  }
-
-  /// Create a call invocation of the result of calling the static [getter]
-  /// where argument structure is defined by [callStructure] and the argument
-  /// values are defined by [arguments].
-  ir.Primitive buildStaticGetterInvocation(
-      MethodElement getter,
-      CallStructure callStructure,
-      List<ir.Primitive> arguments,
-      {SourceInformation sourceInformation}) {
-    // TODO(johnniwinther): Maybe this should have its own node.
-    return buildCallInvocation(
-        buildStaticGetterGet(getter),
-        callStructure,
-        arguments,
-        sourceInformation: sourceInformation);
   }
 
   /// Create a read access of the static [field].

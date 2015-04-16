@@ -1057,7 +1057,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.NodeList arguments,
       CallStructure callStructure,
       _) {
-    return irBuilder.buildStaticFieldInvocation(field, callStructure,
+    ir.Primitive target = irBuilder.buildStaticFieldGet(field);
+    return irBuilder.buildCallInvocation(target,
+        callStructure,
         translateDynamicArguments(arguments, callStructure));
   }
 
@@ -1084,7 +1086,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.NodeList arguments,
       CallStructure callStructure,
       _) {
-    return irBuilder.buildStaticGetterInvocation(getter, callStructure,
+    ir.Primitive target = irBuilder.buildStaticGetterGet(getter);
+    return irBuilder.buildCallInvocation(target,
+        callStructure,
         translateDynamicArguments(arguments, callStructure));
   }
 
@@ -1095,7 +1099,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.NodeList arguments,
       CallStructure callStructure,
       _) {
-    return irBuilder.buildSuperFieldInvocation(field, callStructure,
+    ir.Primitive target = irBuilder.buildSuperFieldGet(field);
+    return irBuilder.buildCallInvocation(target,
+        callStructure,
         translateDynamicArguments(arguments, callStructure));
   }
 
@@ -1106,7 +1112,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.NodeList arguments,
       CallStructure callStructure,
       _) {
-    return irBuilder.buildSuperGetterInvocation(getter, callStructure,
+    ir.Primitive target = irBuilder.buildSuperGetterGet(getter);
+    return irBuilder.buildCallInvocation(target,
+        callStructure,
         translateDynamicArguments(arguments, callStructure));
   }
 
