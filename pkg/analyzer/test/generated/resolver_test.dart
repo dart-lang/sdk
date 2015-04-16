@@ -273,8 +273,7 @@ class AnalysisContextFactory {
     ];
     htmlUnit.functions = <FunctionElement>[
       ElementFactory.functionElement3("query", elementElement,
-          <ClassElement>[provider.stringType.element],
-          ClassElementImpl.EMPTY_ARRAY)
+          <ClassElement>[provider.stringType.element], ClassElement.EMPTY_LIST)
     ];
     TopLevelVariableElementImpl document = ElementFactory
         .topLevelVariableElement3(
@@ -294,7 +293,7 @@ class AnalysisContextFactory {
     mathUnit.source = mathSource;
     FunctionElement cosElement = ElementFactory.functionElement3("cos",
         provider.doubleType.element, <ClassElement>[provider.numType.element],
-        ClassElementImpl.EMPTY_ARRAY);
+        ClassElement.EMPTY_LIST);
     TopLevelVariableElement ln10Element = ElementFactory
         .topLevelVariableElement3("LN10", true, false, provider.doubleType);
     TopLevelVariableElement piElement = ElementFactory.topLevelVariableElement3(
@@ -311,10 +310,10 @@ class AnalysisContextFactory {
     randomElement.constructors = <ConstructorElement>[randomConstructor];
     FunctionElement sinElement = ElementFactory.functionElement3("sin",
         provider.doubleType.element, <ClassElement>[provider.numType.element],
-        ClassElementImpl.EMPTY_ARRAY);
+        ClassElement.EMPTY_LIST);
     FunctionElement sqrtElement = ElementFactory.functionElement3("sqrt",
         provider.doubleType.element, <ClassElement>[provider.numType.element],
-        ClassElementImpl.EMPTY_ARRAY);
+        ClassElement.EMPTY_LIST);
     mathUnit.accessors = <PropertyAccessorElement>[
       ln10Element.getter,
       piElement.getter
@@ -7751,7 +7750,7 @@ class ResolverTestCase extends EngineTestCase {
       AnalysisContext context, String libraryName, [List<String> typeNames]) {
     List<CompilationUnitElement> sourcedCompilationUnits;
     if (typeNames == null) {
-      sourcedCompilationUnits = CompilationUnitElementImpl.EMPTY_ARRAY;
+      sourcedCompilationUnits = CompilationUnitElement.EMPTY_LIST;
     } else {
       int count = typeNames.length;
       sourcedCompilationUnits = new List<CompilationUnitElement>(count);

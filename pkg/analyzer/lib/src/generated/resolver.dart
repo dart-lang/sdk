@@ -3301,7 +3301,7 @@ class ElementHolder {
 
   List<PropertyAccessorElement> get accessors {
     if (_accessors == null) {
-      return PropertyAccessorElementImpl.EMPTY_ARRAY;
+      return PropertyAccessorElement.EMPTY_LIST;
     }
     List<PropertyAccessorElement> result = _accessors;
     _accessors = null;
@@ -3310,7 +3310,7 @@ class ElementHolder {
 
   List<ConstructorElement> get constructors {
     if (_constructors == null) {
-      return ConstructorElementImpl.EMPTY_ARRAY;
+      return ConstructorElement.EMPTY_LIST;
     }
     List<ConstructorElement> result = _constructors;
     _constructors = null;
@@ -3319,7 +3319,7 @@ class ElementHolder {
 
   List<ClassElement> get enums {
     if (_enums == null) {
-      return ClassElementImpl.EMPTY_ARRAY;
+      return ClassElement.EMPTY_LIST;
     }
     List<ClassElement> result = _enums;
     _enums = null;
@@ -3328,7 +3328,7 @@ class ElementHolder {
 
   List<FieldElement> get fields {
     if (_fields == null) {
-      return FieldElementImpl.EMPTY_ARRAY;
+      return FieldElement.EMPTY_LIST;
     }
     List<FieldElement> result = _fields;
     _fields = null;
@@ -3337,7 +3337,7 @@ class ElementHolder {
 
   List<FieldElement> get fieldsWithoutFlushing {
     if (_fields == null) {
-      return FieldElementImpl.EMPTY_ARRAY;
+      return FieldElement.EMPTY_LIST;
     }
     List<FieldElement> result = _fields;
     return result;
@@ -3345,7 +3345,7 @@ class ElementHolder {
 
   List<FunctionElement> get functions {
     if (_functions == null) {
-      return FunctionElementImpl.EMPTY_ARRAY;
+      return FunctionElement.EMPTY_LIST;
     }
     List<FunctionElement> result = _functions;
     _functions = null;
@@ -3354,7 +3354,7 @@ class ElementHolder {
 
   List<LabelElement> get labels {
     if (_labels == null) {
-      return LabelElementImpl.EMPTY_ARRAY;
+      return LabelElement.EMPTY_LIST;
     }
     List<LabelElement> result = _labels;
     _labels = null;
@@ -3363,7 +3363,7 @@ class ElementHolder {
 
   List<LocalVariableElement> get localVariables {
     if (_localVariables == null) {
-      return LocalVariableElementImpl.EMPTY_ARRAY;
+      return LocalVariableElement.EMPTY_LIST;
     }
     List<LocalVariableElement> result = _localVariables;
     _localVariables = null;
@@ -3372,7 +3372,7 @@ class ElementHolder {
 
   List<MethodElement> get methods {
     if (_methods == null) {
-      return MethodElementImpl.EMPTY_ARRAY;
+      return MethodElement.EMPTY_LIST;
     }
     List<MethodElement> result = _methods;
     _methods = null;
@@ -3381,7 +3381,7 @@ class ElementHolder {
 
   List<ParameterElement> get parameters {
     if (_parameters == null) {
-      return ParameterElementImpl.EMPTY_ARRAY;
+      return ParameterElement.EMPTY_LIST;
     }
     List<ParameterElement> result = _parameters;
     _parameters = null;
@@ -3390,7 +3390,7 @@ class ElementHolder {
 
   List<TopLevelVariableElement> get topLevelVariables {
     if (_topLevelVariables == null) {
-      return TopLevelVariableElementImpl.EMPTY_ARRAY;
+      return TopLevelVariableElement.EMPTY_LIST;
     }
     List<TopLevelVariableElement> result = _topLevelVariables;
     _topLevelVariables = null;
@@ -3399,7 +3399,7 @@ class ElementHolder {
 
   List<FunctionTypeAliasElement> get typeAliases {
     if (_typeAliases == null) {
-      return FunctionTypeAliasElementImpl.EMPTY_ARRAY;
+      return FunctionTypeAliasElement.EMPTY_LIST;
     }
     List<FunctionTypeAliasElement> result = _typeAliases;
     _typeAliases = null;
@@ -3408,7 +3408,7 @@ class ElementHolder {
 
   List<TypeParameterElement> get typeParameters {
     if (_typeParameters == null) {
-      return TypeParameterElementImpl.EMPTY_ARRAY;
+      return TypeParameterElement.EMPTY_LIST;
     }
     List<TypeParameterElement> result = _typeParameters;
     _typeParameters = null;
@@ -3417,7 +3417,7 @@ class ElementHolder {
 
   List<ClassElement> get types {
     if (_types == null) {
-      return ClassElementImpl.EMPTY_ARRAY;
+      return ClassElement.EMPTY_LIST;
     }
     List<ClassElement> result = _types;
     _types = null;
@@ -14525,7 +14525,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     } else if (type is FunctionType) {
       return type.typeArguments;
     }
-    return TypeImpl.EMPTY_ARRAY;
+    return DartType.EMPTY_LIST;
   }
 
   /**
@@ -14817,7 +14817,7 @@ class TypeResolverVisitor extends ScopedVisitor {
         aliasElement.typeParameters = alias.typeParameters;
         type.typeArguments = alias.type.typeArguments;
       } else {
-        type.typeArguments = TypeImpl.EMPTY_ARRAY;
+        type.typeArguments = DartType.EMPTY_LIST;
       }
     }
     element.type = type;

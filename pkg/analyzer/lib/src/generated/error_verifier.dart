@@ -1579,7 +1579,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       SimpleIdentifier fieldName = field.name;
       if (getter != null) {
         if (_checkForAllInvalidOverrideErrorCodesForExecutable(getter,
-            ParameterElementImpl.EMPTY_ARRAY, AstNode.EMPTY_LIST, fieldName)) {
+            ParameterElement.EMPTY_LIST, AstNode.EMPTY_LIST, fieldName)) {
           hasProblems = true;
         }
       }
