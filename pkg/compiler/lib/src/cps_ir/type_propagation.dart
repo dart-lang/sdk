@@ -16,7 +16,6 @@ abstract class TypeSystem<T> {
 
   T getReturnType(FunctionElement element);
   T getParameterType(ParameterElement element);
-  bool areAssignable(T a, T b);
   T join(T a, T b);
   T typeOf(ConstantValue constant);
 }
@@ -33,7 +32,6 @@ class UnitTypeSystem implements TypeSystem<String> {
   get stringType => UNIT;
   get typeType => UNIT;
 
-  bool areAssignable(a, b) => true;
   getParameterType(_) => UNIT;
   getReturnType(_) => UNIT;
   join(a, b) => UNIT;
@@ -64,12 +62,6 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
 
   TypeMask getReturnType(FunctionElement function) {
     return inferrer.getGuaranteedReturnTypeOfElement(function);
-  }
-
-  @override
-  // TODO(karlklose): Do not base this on containsMask.
-  bool areAssignable(TypeMask a, TypeMask b) {
-    return a.containsMask(b, classWorld) || b.containsMask(a, classWorld);
   }
 
   @override
@@ -314,25 +306,17 @@ class _TypePropagationVisitor<T> implements Visitor {
   final dart2js.InternalErrorFunction internalError;
   final types.DartTypes _dartTypes;
 
-  _AbstractValue<T> unknownDynamic;
+  _AbstractValue<T> nothing = new _AbstractValue.nothing();
 
-  _AbstractValue<T> unknown([T t]) {
-    if (t == null) {
-      return unknownDynamic;
-    } else {
-      return new _AbstractValue<T>.unknown(t);
-    }
-  }
-
-  _AbstractValue<T> nonConst([T type]) {
+  _AbstractValue<T> nonConstant([T type]) {
     if (type == null) {
       type = typeSystem.dynamicType;
     }
-    return new _AbstractValue<T>.nonConst(type);
+    return new _AbstractValue<T>.nonConstant(type);
   }
 
   _AbstractValue<T> constantValue(ConstantValue constant, T type) {
-    return new _AbstractValue<T>(constant, type);
+    return new _AbstractValue<T>.constantValue(constant, type);
   }
 
   // Stores the current lattice value for nodes. Note that it contains not only
@@ -345,9 +329,7 @@ class _TypePropagationVisitor<T> implements Visitor {
                           this.values,
                           this.internalError,
                           this._dartTypes)
-    : this.unknownDynamic =
-          new _AbstractValue<T>.unknown(typeSystem.dynamicType),
-      this.typeSystem = typeSystem;
+      : this.typeSystem = typeSystem;
 
   void analyze(RootNode root) {
     reachableNodes.clear();
@@ -388,12 +370,12 @@ class _TypePropagationVisitor<T> implements Visitor {
     }
   }
 
-  /// Returns the lattice value corresponding to [node], defaulting to unknown.
+  /// Returns the lattice value corresponding to [node], defaulting to nothing.
   ///
   /// Never returns null.
   _AbstractValue<T> getValue(Node node) {
     _AbstractValue<T> value = values[node];
-    return (value == null) ? unknown() : value;
+    return (value == null) ? nothing : value;
   }
 
   /// Joins the passed lattice [updateValue] to the current value of [node],
@@ -406,7 +388,7 @@ class _TypePropagationVisitor<T> implements Visitor {
       return;
     }
 
-    // Values may only move in the direction UNKNOWN -> CONSTANT -> NONCONST.
+    // Values may only move in the direction NOTHING -> CONSTANT -> NONCONST.
     assert(newValue.kind >= oldValue.kind);
 
     values[node] = newValue;
@@ -424,7 +406,7 @@ class _TypePropagationVisitor<T> implements Visitor {
 
   void visitFunctionDefinition(FunctionDefinition node) {
     if (node.thisParameter != null) {
-      setValue(node.thisParameter, nonConst());
+      setValue(node.thisParameter, nonConstant());
     }
     node.parameters.forEach(visit);
     setReachable(node.body);
@@ -471,7 +453,9 @@ class _TypePropagationVisitor<T> implements Visitor {
     // trace here.  The way we do that depends on how we handle 'on T' catch
     // clauses.
     setReachable(node.handler);
-    node.handler.parameters.forEach((Parameter p) => setValue(p, nonConst()));
+    for (Parameter param in node.handler.parameters) {
+      setValue(param, nonConstant());
+    }
   }
 
   void visitLetMutable(LetMutable node) {
@@ -489,7 +473,7 @@ class _TypePropagationVisitor<T> implements Visitor {
     T returnType = target is FieldElement
         ? typeSystem.dynamicType
         : typeSystem.getReturnType(node.target);
-    setValue(returnValue, nonConst(returnType));
+    setValue(returnValue, nonConstant(returnType));
   }
 
   void visitInvokeContinuation(InvokeContinuation node) {
@@ -518,20 +502,14 @@ class _TypePropagationVisitor<T> implements Visitor {
     }
 
     _AbstractValue<T> lhs = getValue(node.receiver.definition);
-    if (lhs.isUnknown) {
-      // This may seem like a missed opportunity for evaluating short-circuiting
-      // boolean operations; we are currently skipping these intentionally since
-      // expressions such as `(new Foo() || true)` may introduce type errors
-      // and thus evaluation to `true` would not be correct.
-      // TODO(jgruber): Handle such cases while ensuring that new Foo() and
-      // a type-check (in checked mode) are still executed.
+    if (lhs.isNothing) {
       return;  // And come back later.
     } else if (lhs.isNonConst) {
-      setValues(nonConst());
+      setValues(nonConstant());
       return;
     } else if (!node.selector.isOperator) {
       // TODO(jgruber): Handle known methods on constants such as String.length.
-      setValues(nonConst());
+      setValues(nonConstant());
       return;
     }
 
@@ -553,7 +531,7 @@ class _TypePropagationVisitor<T> implements Visitor {
 
       _AbstractValue<T> rhs = getValue(node.arguments[0].definition);
       if (!rhs.isConstant) {
-        setValues(rhs);
+        setValues(nonConstant());
         return;
       }
 
@@ -566,10 +544,10 @@ class _TypePropagationVisitor<T> implements Visitor {
     // Update value of the continuation parameter. Again, this is effectively
     // a phi.
     if (result == null) {
-      setValues(nonConst());
+      setValues(nonConstant());
     } else {
       T type = typeSystem.typeOf(result);
-      setValues(new _AbstractValue<T>(result, type));
+      setValues(constantValue(result, type));
     }
    }
 
@@ -580,7 +558,7 @@ class _TypePropagationVisitor<T> implements Visitor {
     assert(cont.parameters.length == 1);
     Parameter returnValue = cont.parameters[0];
     // TODO(karlklose): lookup the function and get ites return type.
-    setValue(returnValue, nonConst());
+    setValue(returnValue, nonConstant());
   }
 
   void visitInvokeConstructor(InvokeConstructor node) {
@@ -589,7 +567,7 @@ class _TypePropagationVisitor<T> implements Visitor {
 
     assert(cont.parameters.length == 1);
     Parameter returnValue = cont.parameters[0];
-    setValue(returnValue, nonConst());
+    setValue(returnValue, nonConstant());
   }
 
   void visitConcatenateStrings(ConcatenateStrings node) {
@@ -623,9 +601,9 @@ class _TypePropagationVisitor<T> implements Visitor {
       });
       LiteralDartString dartString = new LiteralDartString(allStrings.join());
       ConstantValue constant = new StringConstantValue(dartString);
-      setValues(new _AbstractValue<T>(constant, type));
+      setValues(constantValue(constant, type));
     } else {
-      setValues(nonConst(type));
+      setValues(nonConstant(type));
     }
   }
 
@@ -633,21 +611,19 @@ class _TypePropagationVisitor<T> implements Visitor {
     IsTrue isTrue = node.condition;
     _AbstractValue<T> conditionCell = getValue(isTrue.value.definition);
 
-    if (conditionCell.isUnknown) {
+    if (conditionCell.isNothing) {
       return;  // And come back later.
     } else if (conditionCell.isNonConst) {
       setReachable(node.trueContinuation.definition);
       setReachable(node.falseContinuation.definition);
-    } else if (conditionCell.isConstant &&
-        !(conditionCell.constant.isBool)) {
+    } else if (conditionCell.isConstant && !conditionCell.constant.isBool) {
       // Treat non-bool constants in condition as non-const since they result
       // in type errors in checked mode.
       // TODO(jgruber): Default to false in unchecked mode.
       setReachable(node.trueContinuation.definition);
       setReachable(node.falseContinuation.definition);
-      setValue(isTrue.value.definition, nonConst(typeSystem.boolType));
-    } else if (conditionCell.isConstant &&
-        conditionCell.constant.isBool) {
+      setValue(isTrue.value.definition, nonConstant(typeSystem.boolType));
+    } else if (conditionCell.isConstant && conditionCell.constant.isBool) {
       BoolConstantValue boolConstant = conditionCell.constant;
       setReachable((boolConstant.isTrue) ?
           node.trueContinuation.definition : node.falseContinuation.definition);
@@ -666,14 +642,14 @@ class _TypePropagationVisitor<T> implements Visitor {
 
     if (node.isTypeCast) {
       // TODO(jgruber): Add support for `as` casts.
-      setValues(nonConst());
+      setValues(nonConstant());
     }
 
     _AbstractValue<T> cell = getValue(node.receiver.definition);
-    if (cell.isUnknown) {
+    if (cell.isNothing) {
       return;  // And come back later.
     } else if (cell.isNonConst) {
-      setValues(nonConst(cell.type));
+      setValues(nonConstant(cell.type));
     } else if (node.type.kind == types.TypeKind.INTERFACE) {
       // Receiver is a constant, perform is-checks at compile-time.
 
@@ -715,13 +691,13 @@ class _TypePropagationVisitor<T> implements Visitor {
   void visitLiteralList(LiteralList node) {
     // Constant lists are translated into (Constant ListConstant(...)) IR nodes,
     // and thus LiteralList nodes are NonConst.
-    setValue(node, nonConst(typeSystem.listType));
+    setValue(node, nonConstant(typeSystem.listType));
   }
 
   void visitLiteralMap(LiteralMap node) {
     // Constant maps are translated into (Constant MapConstant(...)) IR nodes,
     // and thus LiteralMap nodes are NonConst.
-    setValue(node, nonConst(typeSystem.mapType));
+    setValue(node, nonConstant(typeSystem.mapType));
   }
 
   void visitConstant(Constant node) {
@@ -730,7 +706,7 @@ class _TypePropagationVisitor<T> implements Visitor {
   }
 
   void visitReifyTypeVar(ReifyTypeVar node) {
-    setValue(node, nonConst(typeSystem.typeType));
+    setValue(node, nonConstant(typeSystem.typeType));
   }
 
   void visitCreateFunction(CreateFunction node) {
@@ -755,7 +731,7 @@ class _TypePropagationVisitor<T> implements Visitor {
       T type = (source is ParameterElement)
           ? typeSystem.getParameterType(source)
           : typeSystem.dynamicType;
-      setValue(node, nonConst(type));
+      setValue(node, nonConstant(type));
     } else if (node.parent is LetMutable || node.parent is DeclareFunction) {
       // Mutable values bound by LetMutable or DeclareFunction could have
       // known values.
@@ -767,11 +743,12 @@ class _TypePropagationVisitor<T> implements Visitor {
   void visitParameter(Parameter node) {
     Entity source = node.hint;
     // TODO(karlklose): remove reference to the element model.
-    T type = (source is ParameterElement) ? typeSystem.getParameterType(source)
+    T type = (source is ParameterElement)
+        ? typeSystem.getParameterType(source)
         : typeSystem.dynamicType;
     if (node.parent is RootNode) {
       // Functions may escape and thus their parameters must be non-constant.
-      setValue(node, nonConst(type));
+      setValue(node, nonConstant(type));
     } else if (node.parent is Continuation) {
       // Continuations on the other hand are local, and parameters can have
       // some other abstract value than non-constant.
@@ -802,25 +779,20 @@ class _TypePropagationVisitor<T> implements Visitor {
     _AbstractValue<T> rightConst = getValue(node.right.definition);
     ConstantValue leftValue = leftConst.constant;
     ConstantValue rightValue = rightConst.constant;
-    if (leftConst.isUnknown || rightConst.isUnknown) {
+    if (leftConst.isNothing || rightConst.isNothing) {
       // Come back later.
       return;
     } else if (!leftConst.isConstant || !rightConst.isConstant) {
       T leftType = leftConst.type;
       T rightType = rightConst.type;
-      if (!typeSystem.areAssignable(leftType, rightType)) {
-        setValue(node,
-            constantValue(new FalseConstantValue(), typeSystem.boolType));
-      } else {
-        setValue(node, nonConst(typeSystem.boolType));
-      }
+      setValue(node, nonConstant(typeSystem.boolType));
     } else if (leftValue.isPrimitive && rightValue.isPrimitive) {
       assert(leftConst.isConstant && rightConst.isConstant);
       PrimitiveConstantValue left = leftValue;
       PrimitiveConstantValue right = rightValue;
       ConstantValue result =
           new BoolConstantValue(left.primitiveValue == right.primitiveValue);
-      setValue(node, new _AbstractValue<T>(result, typeSystem.boolType));
+      setValue(node, constantValue(result, typeSystem.boolType));
     }
   }
 
@@ -829,7 +801,7 @@ class _TypePropagationVisitor<T> implements Visitor {
   }
 
   void visitGetField(GetField node) {
-    setValue(node, nonConst());
+    setValue(node, nonConstant());
   }
 
   void visitSetField(SetField node) {
@@ -837,28 +809,28 @@ class _TypePropagationVisitor<T> implements Visitor {
   }
 
   void visitCreateBox(CreateBox node) {
-    setValue(node, nonConst());
+    setValue(node, nonConstant());
   }
 
   void visitCreateInstance(CreateInstance node) {
-    setValue(node, nonConst());
+    setValue(node, nonConstant());
   }
 
   void visitReifyRuntimeType(ReifyRuntimeType node) {
-    setValue(node, nonConst(typeSystem.typeType));
+    setValue(node, nonConstant(typeSystem.typeType));
   }
 
   void visitReadTypeVariable(ReadTypeVariable node) {
     // TODO(karlklose): come up with a type marker for JS entities or switch to
     // real constants of type [Type].
-    setValue(node, nonConst());
+    setValue(node, nonConstant());
   }
 
   @override
   visitTypeExpression(TypeExpression node) {
     // TODO(karlklose): come up with a type marker for JS entities or switch to
     // real constants of type [Type].
-    setValue(node, nonConst());
+    setValue(node, nonConstant());
   }
 }
 
@@ -867,11 +839,12 @@ class _TypePropagationVisitor<T> implements Visitor {
 ///
 /// The different kinds of abstract values represents the knowledge about the
 /// constness of the value:
-///   UNKNOWN: may be some as yet undetermined constant.
-///   CONSTANT: is a constant as stored in the local field.
-///   NONCONST: not a constant.
+///   NOTHING:  cannot have any value
+///   CONSTANT: is a constant. The value is stored in the [constant] field,
+///             and the type of the constant is in the [type] field.
+///   NONCONST: not a constant, but [type] may hold some information.
 class _AbstractValue<T> {
-  static const int UNKNOWN  = 0;
+  static const int NOTHING  = 0;
   static const int CONSTANT = 1;
   static const int NONCONST = 2;
 
@@ -881,35 +854,35 @@ class _AbstractValue<T> {
 
   _AbstractValue._internal(this.kind, this.constant, this.type) {
     assert(kind != CONSTANT || constant != null);
-    assert(type != null);
   }
 
-  _AbstractValue(ConstantValue constant, T type)
+  _AbstractValue.nothing()
+      : this._internal(NOTHING, null, null);
+
+  _AbstractValue.constantValue(ConstantValue constant, T type)
       : this._internal(CONSTANT, constant, type);
 
-  _AbstractValue.unknown(T type)
-      : this._internal(UNKNOWN, null, type);
-
-  _AbstractValue.nonConst(T type)
+  _AbstractValue.nonConstant(T type)
       : this._internal(NONCONST, null, type);
 
-  bool get isUnknown  => (kind == UNKNOWN);
+  bool get isNothing  => (kind == NOTHING);
   bool get isConstant => (kind == CONSTANT);
   bool get isNonConst => (kind == NONCONST);
 
   int get hashCode {
-    return kind | (constant.hashCode * 5) | type.hashCode * 7;
+    int hash = kind * 31 + constant.hashCode * 59 + type.hashCode * 67;
+    return hash & 0x3fffffff;
   }
 
   bool operator ==(_AbstractValue that) {
-      return that.kind == this.kind &&
-          that.constant == this.constant &&
-          that.type == this.type;
+    return that.kind == this.kind &&
+           that.constant == this.constant &&
+           that.type == this.type;
   }
 
   String toString() {
     switch (kind) {
-      case UNKNOWN: return "Unknown";
+      case NOTHING: return "Nothing";
       case CONSTANT: return "Constant: $constant: $type";
       case NONCONST: return "Non-constant: $type";
       default: assert(false);
@@ -921,15 +894,15 @@ class _AbstractValue<T> {
   _AbstractValue join(_AbstractValue that, TypeSystem typeSystem) {
     assert(that != null);
 
-    if (this.isUnknown) {
+    if (isNothing) {
       return that;
-    } else if (that.isUnknown) {
+    } else if (that.isNothing) {
       return this;
-    } else if (this.isConstant && that.isConstant &&
-               this.constant == that.constant) {
+    } else if (isConstant && that.isConstant && constant == that.constant) {
       return this;
     } else {
-      return new _AbstractValue.nonConst(typeSystem.join(this.type, that.type));
+      return new _AbstractValue.nonConstant(
+          typeSystem.join(this.type, that.type));
     }
   }
 }
