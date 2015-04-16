@@ -182,7 +182,7 @@ class HtmlEscape extends Converter<String, String> {
         case "'": if (mode.escapeApos) replacement = '&#39;'; break;
         case '<': if (mode.escapeLtGt) replacement = '&lt;'; break;
         case '>': if (mode.escapeLtGt) replacement = '&gt;'; break;
-        case '/': if (mode.escapeSlash) replacement = '&#46;'; break;
+        case '/': if (mode.escapeSlash) replacement = '&#47;'; break;
       }
       if (replacement != null) {
         if (result == null) result = new StringBuffer();
