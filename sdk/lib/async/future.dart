@@ -625,7 +625,7 @@ abstract class Completer<T> {
    * behavior, but using a synchronous completer incorrectly can cause
    * otherwise correct programs to break.
    *
-   * An asynchronous completer is only intended for optimizing event
+   * A synchronous completer is only intended for optimizing event
    * propagation when one asynchronous event immediately triggers another.
    * It should not be used unless the calls to [complete] and [completeError]
    * are guaranteed to occur in places where it won't break `Future` invariants.
