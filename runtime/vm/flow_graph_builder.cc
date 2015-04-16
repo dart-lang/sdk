@@ -4328,6 +4328,11 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
 }
 
 
+void EffectGraphVisitor::VisitStopNode(StopNode* node) {
+  AddInstruction(new(Z) StopInstr(node->message()));
+}
+
+
 FlowGraph* FlowGraphBuilder::BuildGraph() {
   if (FLAG_print_ast) {
     // Print the function ast before IL generation.

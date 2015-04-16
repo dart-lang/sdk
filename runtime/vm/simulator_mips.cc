@@ -1217,12 +1217,6 @@ void Simulator::DoBreak(Instr *instr) {
     dbg.Stop(instr, message);
     // Adjust for extra pc increment.
     set_pc(get_pc() - Instr::kInstrSize);
-  } else if (instr->BreakCodeField() == Instr::kSimulatorMessageCode) {
-    const char* message = *reinterpret_cast<const char**>(
-        reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
-    if (IsTracingExecution()) {
-      OS::Print("Message: %s\n", message);
-    }
   } else if (instr->BreakCodeField() == Instr::kSimulatorRedirectCode) {
     SimulatorSetjmpBuffer buffer(this);
 

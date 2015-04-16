@@ -6637,6 +6637,17 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* StopInstr::MakeLocationSummary(Zone* zone,
+                                                bool opt) const {
+  return new(zone) LocationSummary(zone, 0, 0, LocationSummary::kNoCall);
+}
+
+
+void StopInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ Stop(message());
+}
+
+
 void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->CanFallThroughTo(normal_entry())) {
     __ b(compiler->GetJumpLabel(normal_entry()));

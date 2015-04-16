@@ -26,6 +26,7 @@ namespace dart {
   V(InlinedFinally)                                                            \
   V(For)                                                                       \
   V(Jump)                                                                      \
+  V(Stop)                                                                      \
   V(LoadInstanceField)                                                         \
   V(NativeBody)                                                                \
   V(Primary)                                                                   \

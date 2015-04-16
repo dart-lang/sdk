@@ -1698,7 +1698,7 @@ void Simulator::DecodeExceptionGen(Instr* instr) {
              (instr->Bits(21, 3) == 2)) {
     // Format(instr, "hlt 'imm16");
     uint16_t imm = static_cast<uint16_t>(instr->Imm16Field());
-    if (imm == Instr::kSimulatorMessageCode) {
+    if (imm == Instr::kStopMessageCode) {
       SimulatorDebugger dbg(this);
       const char* message = *reinterpret_cast<const char**>(
           reinterpret_cast<intptr_t>(instr) - 2 * Instr::kInstrSize);

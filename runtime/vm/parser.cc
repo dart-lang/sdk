@@ -38,6 +38,7 @@
 namespace dart {
 
 DEFINE_FLAG(bool, enable_asserts, false, "Enable assert statements.");
+DEFINE_FLAG(bool, enable_debug_break, false, "Allow use of break \"message\".");
 DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
@@ -9564,6 +9565,10 @@ AstNode* Parser::ParseJump(String* label_name) {
     if (target == NULL) {
       ReportError(jump_pos, "label '%s' not found", target_name.ToCString());
     }
+  } else if (FLAG_enable_debug_break && (CurrentToken() == Token::kSTRING)) {
+    const char* message = strdup(CurrentLiteral()->ToCString());
+    ConsumeToken();
+    return new(Z) StopNode(jump_pos, message);
   } else {
     target = current_block_->scope->LookupInnermostLabel(jump_kind);
     if (target == NULL) {
@@ -9825,7 +9830,9 @@ AstNode* Parser::ParseStatement() {
     ExpectToken(Token::kRBRACE);
   } else if (token == Token::kBREAK) {
     statement = ParseJump(label_name);
-    AddNodeForFinallyInlining(statement);
+    if ((statement != NULL) && !statement->IsStopNode()) {
+      AddNodeForFinallyInlining(statement);
+    }
     ExpectSemicolon();
   } else if (token == Token::kCONTINUE) {
     statement = ParseJump(label_name);

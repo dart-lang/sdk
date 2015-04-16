@@ -34,6 +34,7 @@ namespace dart {
   V(DoWhile)                                                                   \
   V(For)                                                                       \
   V(Jump)                                                                      \
+  V(Stop)                                                                      \
   V(ArgumentList)                                                              \
   V(Array)                                                                     \
   V(Closure)                                                                   \
@@ -1140,6 +1141,27 @@ class JumpNode : public AstNode {
   GrowableArray<InlinedFinallyNode*> inlined_finally_list_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(JumpNode);
+};
+
+
+class StopNode : public AstNode {
+ public:
+  StopNode(intptr_t token_pos, const char* message)
+      : AstNode(token_pos),
+        message_(message) {
+    ASSERT(message != NULL);
+  }
+
+  const char* message() const { return message_; }
+
+  virtual void VisitChildren(AstNodeVisitor* visitor) const { }
+
+  DECLARE_COMMON_NODE_FUNCTIONS(StopNode);
+
+ private:
+  const char* message_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(StopNode);
 };
 
 
