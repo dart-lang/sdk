@@ -5,7 +5,6 @@
 library dev_compiler.src.codegen.js_codegen;
 
 import 'dart:collection' show HashSet, HashMap;
-import 'dart:io' show Directory, File;
 
 import 'package:analyzer/analyzer.dart' hide ConstantEvaluator;
 import 'package:analyzer/src/generated/ast.dart' hide ConstantEvaluator;
@@ -14,9 +13,6 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/scanner.dart'
     show StringToken, Token, TokenType;
-import 'package:source_maps/source_maps.dart' as srcmaps show Printer;
-import 'package:source_maps/source_maps.dart' show SourceMapSpan;
-import 'package:source_span/source_span.dart' show SourceLocation;
 import 'package:path/path.dart' as path;
 
 import 'package:dev_compiler/src/codegen/ast_builder.dart' show AstBuilder;
@@ -31,8 +27,10 @@ import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/utils.dart';
 
 import 'code_generator.dart';
-import 'js_names.dart';
+import 'js_names.dart' show JSTemporary, invalidJSStaticMethodName;
 import 'js_metalet.dart';
+import 'js_printer.dart' show writeJsLibrary;
+import 'side_effect_analysis.dart';
 
 // Various dynamic helpers we call.
 // If renaming these, make sure to check other places like the
@@ -1650,7 +1648,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       Map<String, JS.Expression> scope, String name, Expression expr,
       {Expression context}) {
     // No need to do anything for stateless expressions.
-    if (_isStateless(expr, context)) return expr;
+    if (isStateless(expr, context)) return expr;
 
     var t = _createTemporary('#$name', expr.staticType);
     scope[name] = _visit(expr);
@@ -2325,41 +2323,11 @@ class JSGenerator extends CodeGenerator {
   TypeProvider get types => rules.provider;
 
   String generateLibrary(LibraryUnit unit, LibraryInfo info) {
-    var jsTree =
-        new JSCodegenVisitor(info, rules, _extensionMethods).emitLibrary(unit);
-
-    var outputPath = path.join(outDir, jsOutputPath(info, root));
-    new Directory(path.dirname(outputPath)).createSync(recursive: true);
-
-    if (options.emitSourceMaps) {
-      var outFilename = path.basename(outputPath);
-      var printer = new srcmaps.Printer(outFilename);
-      _writeNode(
-          new SourceMapPrintingContext(printer, path.dirname(outputPath)),
-          jsTree);
-      printer.add('//# sourceMappingURL=$outFilename.map');
-      // Write output file and source map
-      var text = printer.text;
-      new File(outputPath).writeAsStringSync(text);
-      new File('$outputPath.map').writeAsStringSync(printer.map);
-      return computeHash(text);
-    } else {
-      var text = jsNodeToString(jsTree);
-      new File(outputPath).writeAsStringSync(text);
-      return computeHash(text);
-    }
+    var codegen = new JSCodegenVisitor(info, rules, _extensionMethods);
+    var module = codegen.emitLibrary(unit);
+    var dir = path.join(outDir, jsOutputPath(info, root));
+    return writeJsLibrary(module, dir, emitSourceMaps: options.emitSourceMaps);
   }
-}
-
-void _writeNode(JS.JavaScriptPrintingContext context, JS.Node node) {
-  var opts = new JS.JavaScriptPrintingOptions(allowKeywordsInProperties: true);
-  node.accept(new JS.Printer(opts, context, localNamer: new JSNamer(node)));
-}
-
-String jsNodeToString(JS.Node node) {
-  var context = new JS.SimpleJavaScriptPrintingContext();
-  _writeNode(context, node);
-  return context.getText();
 }
 
 /// Choose a canonical name from the library element.
@@ -2389,143 +2357,6 @@ String jsOutputPath(LibraryInfo info, Uri root) {
     // matching the package name.
   }
   return filepath;
-}
-
-class SourceMapPrintingContext extends JS.JavaScriptPrintingContext {
-  final srcmaps.Printer printer;
-  final String outputDir;
-
-  CompilationUnit unit;
-  Uri uri;
-
-  SourceMapPrintingContext(this.printer, this.outputDir);
-
-  void emit(String string) {
-    printer.add(string);
-  }
-
-  void enterNode(JS.Node jsNode) {
-    AstNode node = jsNode.sourceInformation;
-    if (node is CompilationUnit) {
-      unit = node;
-      uri = _makeRelativeUri(unit.element.source.uri);
-      return;
-    }
-    if (unit == null || node == null || node.offset == -1) return;
-
-    var loc = _location(node.offset);
-    var name = _getIdentifier(node);
-    if (name != null) {
-      // TODO(jmesserly): mark only uses the beginning of the span, but
-      // we're required to pass this as a valid span.
-      var end = _location(node.end);
-      printer.mark(new SourceMapSpan(loc, end, name, isIdentifier: true));
-    } else {
-      printer.mark(loc);
-    }
-  }
-
-  SourceLocation _location(int offset) => locationForOffset(unit, uri, offset);
-
-  Uri _makeRelativeUri(Uri src) {
-    return new Uri(path: path.relative(src.path, from: outputDir));
-  }
-
-  void exitNode(JS.Node jsNode) {
-    AstNode node = jsNode.sourceInformation;
-    if (node is CompilationUnit) {
-      unit = null;
-      uri = null;
-      return;
-    }
-    if (unit == null || node == null || node.offset == -1) return;
-
-    // TODO(jmesserly): in many cases marking the end will be unncessary.
-    printer.mark(_location(node.end));
-  }
-
-  String _getIdentifier(AstNode node) {
-    if (node is SimpleIdentifier) return node.name;
-    return null;
-  }
-}
-
-/// True is the expression can be evaluated multiple times without causing
-/// code execution. This is true for final fields. This can be true for local
-/// variables, if:
-/// * they are not assigned within the [context].
-/// * they are not assigned in a function closure anywhere.
-/// True is the expression can be evaluated multiple times without causing
-/// code execution. This is true for final fields. This can be true for local
-/// variables, if:
-///
-/// * they are not assigned within the [context] scope.
-/// * they are not assigned in a function closure anywhere.
-///
-/// This method is used to avoid creating temporaries in cases where we know
-/// we can safely re-evaluate [node] multiple times in [context]. This lets
-/// us generate prettier code.
-///
-/// This method is conservative: it should never return `true` unless it is
-/// certain the [node] is stateless, because generated code may rely on the
-/// correctness of a `true` value. However it may return `false` for things
-/// that are in fact, stateless.
-bool _isStateless(Expression node, [AstNode context]) {
-  if (node is SimpleIdentifier) {
-    var e = node.staticElement;
-    if (e is PropertyAccessorElement) e = e.variable;
-    if (e is VariableElement && !e.isSynthetic) {
-      if (e.isFinal) return true;
-      if (e is LocalVariableElement || e is ParameterElement) {
-        // make sure the local isn't mutated in the context.
-        return !_isPotentiallyMutated(e, context);
-      }
-    }
-  }
-  return false;
-}
-
-/// Returns true if the local variable is potentially mutated within [context].
-/// This accounts for closures that may have been created outside of [context].
-bool _isPotentiallyMutated(VariableElement e, [AstNode context]) {
-  if (e.isPotentiallyMutatedInClosure) return true;
-  if (e.isPotentiallyMutatedInScope) {
-    // Need to visit the context looking for assignment to this local.
-    if (context != null) {
-      var visitor = new _AssignmentFinder(e);
-      context.accept(visitor);
-      return visitor._potentiallyMutated;
-    }
-    return true;
-  }
-  return false;
-}
-
-/// Adapted from VariableResolverVisitor. Finds an assignment to a given
-/// local variable.
-class _AssignmentFinder extends RecursiveAstVisitor {
-  final VariableElement _variable;
-  bool _potentiallyMutated = false;
-
-  _AssignmentFinder(this._variable);
-
-  @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
-    // Ignore if qualified.
-    AstNode parent = node.parent;
-    if (parent is PrefixedIdentifier &&
-        identical(parent.identifier, node)) return;
-    if (parent is PropertyAccess &&
-        identical(parent.propertyName, node)) return;
-    if (parent is MethodInvocation &&
-        identical(parent.methodName, node)) return;
-    if (parent is ConstructorName) return;
-    if (parent is Label) return;
-
-    if (node.inSetterContext() && node.staticElement == _variable) {
-      _potentiallyMutated = true;
-    }
-  }
 }
 
 // TODO(jmesserly): validate the library. See issue #135.
