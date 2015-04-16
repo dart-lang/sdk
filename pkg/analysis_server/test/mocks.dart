@@ -14,6 +14,7 @@ import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
+import 'package:analysis_server/src/source/optimizing_pub_package_map_provider.dart';
 import 'package:analyzer/file_system/file_system.dart' as resource;
 import 'package:analyzer/file_system/memory_file_system.dart' as resource;
 import 'package:analyzer/source/package_map_provider.dart';
@@ -152,7 +153,7 @@ class MockMethodElement extends StringTypedMock implements MethodElement {
 /**
  * A mock [PackageMapProvider].
  */
-class MockPackageMapProvider implements PackageMapProvider {
+class MockPackageMapProvider implements OptimizingPubPackageMapProvider {
   /**
    * Package map that will be returned by the next call to [computePackageMap].
    */
@@ -169,12 +170,42 @@ class MockPackageMapProvider implements PackageMapProvider {
    */
   Set<String> dependencies = new Set<String>();
 
+  /**
+   * Modification times that will be returned by the next call to
+   * [computePackageMap].  This will be filtered to include only those paths
+   * mentioned in the `dependencies` field of [computePackageMap]'s
+   * `previousInfo` argument.
+   */
+  Map<String, int> modificationTimes = <String, int>{};
+
+  /**
+   * Number of times [computePackageMap] has been called.
+   */
+  int computeCount = 0;
+
   @override
-  PackageMapInfo computePackageMap(resource.Folder folder) {
-    if (packageMaps != null) {
-      return new PackageMapInfo(packageMaps[folder.path], dependencies);
+  OptimizingPubPackageMapInfo computePackageMap(resource.Folder folder,
+      [OptimizingPubPackageMapInfo previousInfo]) {
+    ++computeCount;
+    Map<String, int> filteredModificationTimes = <String, int>{};
+    if (previousInfo != null) {
+      for (String dependency in previousInfo.dependencies) {
+        if (modificationTimes.containsKey(dependency)) {
+          filteredModificationTimes[dependency] = modificationTimes[dependency];
+        }
+      }
     }
-    return new PackageMapInfo(packageMap, dependencies);
+    if (packageMaps != null) {
+      return new OptimizingPubPackageMapInfo(
+          packageMaps[folder.path], dependencies, filteredModificationTimes);
+    }
+    return new OptimizingPubPackageMapInfo(
+        packageMap, dependencies, filteredModificationTimes);
+  }
+
+  noSuchMethod(Invocation invocation) {
+    // No other methods should be called.
+    return super.noSuchMethod(invocation);
   }
 }
 

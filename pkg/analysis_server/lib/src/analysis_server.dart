@@ -18,10 +18,10 @@ import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/source/optimizing_pub_package_map_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/plugin.dart';
-import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -249,7 +249,7 @@ class AnalysisServer {
    * running a full analysis server.
    */
   AnalysisServer(this.channel, this.resourceProvider,
-      PackageMapProvider packageMapProvider, Index _index,
+      OptimizingPubPackageMapProvider packageMapProvider, Index _index,
       AnalysisServerOptions analysisServerOptions, this.defaultSdk,
       this.instrumentationService, {this.rethrowExceptions: true})
       : index = _index,
@@ -1161,7 +1161,8 @@ class AnalysisServer {
     Set<AnalysisContext> contexts = new HashSet<AnalysisContext>();
     resources.forEach((Resource resource) {
       if (resource is Folder) {
-        contexts.addAll(contextDirectoryManager.contextsInAnalysisRoot(resource));
+        contexts
+            .addAll(contextDirectoryManager.contextsInAnalysisRoot(resource));
       }
     });
     return contexts;
@@ -1299,7 +1300,8 @@ class ServerContextManager extends ContextManager {
   StreamController<ContextsChangedEvent> _onContextsChangedController;
 
   ServerContextManager(this.analysisServer, ResourceProvider resourceProvider,
-      PackageMapProvider packageMapProvider, InstrumentationService service)
+      OptimizingPubPackageMapProvider packageMapProvider,
+      InstrumentationService service)
       : super(resourceProvider, packageMapProvider, service) {
     _onContextsChangedController =
         new StreamController<ContextsChangedEvent>.broadcast();

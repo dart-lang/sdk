@@ -17,9 +17,9 @@ import 'package:analysis_server/src/services/completion/dart_completion_manager.
 import 'package:analysis_server/src/services/index/index.dart' show Index;
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/source/optimizing_pub_package_map_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -598,13 +598,13 @@ class MockContext implements AnalysisContext {
   Stream<SourcesChangedEvent> get onSourcesChanged => mockStream;
 
   @override
-  TimestampedData<String> getContents(Source source) {
-    return source.contents;
+  bool exists(Source source) {
+    return source != null && source.exists();
   }
 
   @override
-  bool exists(Source source) {
-    return source != null && source.exists();
+  TimestampedData<String> getContents(Source source) {
+    return source.contents;
   }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -647,7 +647,7 @@ class Test_AnalysisServer extends AnalysisServer {
   final MockContext mockContext = new MockContext();
 
   Test_AnalysisServer(ServerCommunicationChannel channel,
-      ResourceProvider resourceProvider, PackageMapProvider packageMapProvider,
+      ResourceProvider resourceProvider, OptimizingPubPackageMapProvider packageMapProvider,
       Index index, AnalysisServerOptions analysisServerOptions,
       DartSdk defaultSdk, InstrumentationService instrumentationService)
       : super(channel, resourceProvider, packageMapProvider, index,
