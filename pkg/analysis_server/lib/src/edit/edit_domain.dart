@@ -110,8 +110,20 @@ class EditDomainHandler implements RequestHandler {
       edits.add(edit);
     }
 
-    return new EditFormatResult(edits, formattedResult.selectionStart,
-        formattedResult.selectionLength).toResponse(request.id);
+    int newStart = formattedResult.selectionStart;
+    int newLength = formattedResult.selectionLength;
+
+    // Sending null start/length values would violate protocol, so convert back
+    // to 0.
+    if (newStart == null) {
+      newStart = 0;
+    }
+    if (newLength == null) {
+      newLength = 0;
+    }
+
+    return new EditFormatResult(edits, newStart,
+        newLength).toResponse(request.id);
   }
 
   Response getAssists(Request request) {

@@ -46,6 +46,26 @@ main() {
     });
   }
 
+  Future test_formatNoSelection() async {
+    addTestFile('''
+main() { int x = 3; }
+''');
+    await waitForTasksFinished();
+    EditFormatResult formatResult = _formatAt(0, 0);
+
+    expect(formatResult.edits, isNotNull);
+    expect(formatResult.edits, hasLength(1));
+
+    SourceEdit edit = formatResult.edits[0];
+    expect(edit.replacement, equals('''
+main() {
+  int x = 3;
+}
+'''));
+    expect(formatResult.selectionOffset, equals(0));
+    expect(formatResult.selectionLength, equals(0));
+  }
+
   Future test_formatSimple() {
     addTestFile('''
 main() { int x = 3; }
