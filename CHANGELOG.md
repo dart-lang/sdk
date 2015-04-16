@@ -1,3 +1,26 @@
+## 1.11.0
+
+### Core library changes
+
+* Update experimental Isolate API:
+  - Make priorty parameters of `Isolate.ping` and `Isolate.kill` methods
+    a named parameter.
+  - Remove the `Isolate.AS_EVENT` priority.
+  - Add extra `response` parameter to `Isolate.ping` and
+    `Isolate.addOnExitListener`.
+  [r45092](https://code.google.com/p/dart/source/detail?r=45092),
+
+## 1.10.0
+
+### Core library changes
+
+* Fix behavior of `HtmlEscape` in `dart:convert`. No longer escape
+  no-break space (U+00A0) anywhere or forward slash ('/', U+002F) in element
+  context. Slash is still escaped in the "unknown" context.
+  [r45003](https://code.google.com/p/dart/source/detail?r=45003),
+  [r45153](https://code.google.com/p/dart/source/detail?r=45153),
+  [r45189](https://code.google.com/p/dart/source/detail?r=45189)
+
 ## 1.9.3 (2015-04-14)
 
 This is a bug fix release which merges a number of commits from `bleeding_edge`.
