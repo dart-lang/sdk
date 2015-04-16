@@ -1102,14 +1102,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     var typeArgs = null;
     if (type is ParameterizedType) {
-      // TODO(jmesserly): this is a workaround for an analyzer bug, see:
-      // https://github.com/dart-lang/dev_compiler/commit/a212d59ad046085a626dd8d16881cdb8e8b9c3fa
-      if (type is! FunctionType || element is FunctionTypeAlias) {
-        var args = type.typeArguments;
-        if (args.any((a) => a != types.dynamicType)) {
-          name = '$name\$';
-          typeArgs = args.map(_emitTypeName);
-        }
+      var args = type.typeArguments;
+      if (args.any((a) => a != types.dynamicType)) {
+        name = '$name\$';
+        typeArgs = args.map(_emitTypeName);
       }
     }
 
@@ -1277,7 +1273,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var named = <JS.Property>[];
     for (var arg in node.arguments) {
       if (arg is NamedExpression) {
-        named.add(visitNamedExpression(arg));
+        named.add(_visit(arg));
       } else {
         args.add(_visit(arg));
       }

@@ -2828,7 +2828,7 @@ var collection;
           compare = null;
         if (isValidKey === void 0)
           isValidKey = null;
-        this[_comparator] = dart.as(compare == null ? core.Comparable.compare : compare, core.Comparator);
+        this[_comparator] = dart.as(compare == null ? core.Comparable.compare : compare, core.Comparator$(K));
         this[_validKey] = dart.as(isValidKey != null ? isValidKey : v => dart.is(v, K), _Predicate);
         super._SplayTree();
       }

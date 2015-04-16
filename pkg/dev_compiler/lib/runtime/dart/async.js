@@ -920,7 +920,7 @@ var async;
       onData(handleData) {
         if (handleData == null)
           handleData = dart.as(_nullDataHandler, dart.functionType(dart.void, [T]));
-        this[_onData] = dart.as(this[_zone].registerUnaryCallback(handleData), _DataHandler);
+        this[_onData] = dart.as(this[_zone].registerUnaryCallback(handleData), _DataHandler$(T));
       }
       onError(handleError) {
         if (handleError == null)
@@ -4303,7 +4303,7 @@ var async;
           if (handleDone == null)
             handleDone = _StreamHandlerTransformer[_defaultHandleDone];
           return new (_HandlerEventSink$(S, T))(handleData, handleError, handleDone, outputSink);
-        }, _SinkMapper));
+        }, _SinkMapper$(S, T)));
       }
       bind(stream) {
         return super.bind(stream);

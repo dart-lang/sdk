@@ -1141,7 +1141,7 @@ var core;
       _GeneratorIterable(end, generator) {
         this[_end] = end;
         this[_start] = 0;
-        this[_generator] = dart.as(generator != null ? generator : _GeneratorIterable[_id], _Generator);
+        this[_generator] = dart.as(generator != null ? generator : _GeneratorIterable[_id], _Generator$(E));
         super.IterableBase();
       }
       slice(start, end, generator) {
