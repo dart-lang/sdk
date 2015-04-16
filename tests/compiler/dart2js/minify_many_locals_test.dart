@@ -9,9 +9,9 @@ import 'compiler_helper.dart';
 
 // TODO(johnniwinther): This value is some what arbitrary. With the old
 // [ResolvedVisitor] we could handle 2000, with the new [ResolvedVisitor] build
-// upon the [SemanticVisitor] we can handle <1300. Update (increase) the value
+// upon the [SemanticVisitor] we can handle <=1000. Update (increase) the value
 // when the [SssBuilder] is no longer build upon the [ResolvedVisitor] .
-const int NUMBER_OF_PARAMETERS = 1250;
+const int NUMBER_OF_PARAMETERS = 1000;
 
 main() {
   var buffer = new StringBuffer();
