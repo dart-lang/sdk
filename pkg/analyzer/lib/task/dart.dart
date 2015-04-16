@@ -9,6 +9,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/task/model.dart';
 
 /**
@@ -120,3 +121,44 @@ final ResultDescriptor<Token> TOKEN_STREAM =
  */
 final ListResultDescriptor<Source> UNITS =
     new ListResultDescriptor<Source>('UNITS', Source.EMPTY_ARRAY);
+
+/**
+ * A specific compilation unit in a specific library.
+ *
+ * This kind of target is associated with information about a compilation unit
+ * that differs based on the library that the unit is a part of. For example,
+ * the result of resolving a compilation unit depends on the imports, which can
+ * change if a single part is included in more than one library.
+ */
+class LibrarySpecificUnit implements AnalysisTarget {
+  /**
+   * The defining compilation unit of the library in which the [unit]
+   * is analyzed.
+   */
+  final Source library;
+
+  /**
+   * The compilation unit which belongs to the [library].
+   */
+  final Source unit;
+
+  /**
+   * Initialize a newly created target for the [unit] in the [library].
+   */
+  LibrarySpecificUnit(this.library, this.unit);
+
+  @override
+  int get hashCode {
+    return JenkinsSmiHash.combine(library.hashCode, unit.hashCode);
+  }
+
+  @override
+  Source get source => unit;
+
+  @override
+  bool operator ==(other) {
+    return other is LibrarySpecificUnit &&
+        other.library == library &&
+        other.unit == unit;
+  }
+}

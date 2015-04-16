@@ -163,7 +163,7 @@ class C = B with M;
 @reflectiveTest
 class BuildCompilationUnitElementTaskTest extends _AbstractDartTaskTest {
   test_buildInputs() {
-    LibraryUnitTarget target = new LibraryUnitTarget(emptySource, emptySource);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(emptySource, emptySource);
     Map<String, TaskInput> inputs =
         BuildCompilationUnitElementTask.buildInputs(target);
     expect(inputs, isNotNull);
@@ -215,7 +215,7 @@ class B = Object with A;
 
   void _performBuildTask(String content) {
     Source source = _newSource('/test.dart', content);
-    AnalysisTarget target = new LibraryUnitTarget(source, source);
+    AnalysisTarget target = new LibrarySpecificUnit(source, source);
     _computeResult(target, RESOLVED_UNIT1);
     expect(task, new isInstanceOf<BuildCompilationUnitElementTask>());
   }
@@ -278,7 +278,7 @@ library libC;
     _assertErrorsWithCodes([]);
     // validate directives
     CompilationUnit libraryUnitA = context
-        .getCacheEntry(new LibraryUnitTarget(sourceA, sourceA))
+        .getCacheEntry(new LibrarySpecificUnit(sourceA, sourceA))
         .getValue(RESOLVED_UNIT1);
     {
       ImportDirective importNode = libraryUnitA.directives[1];
@@ -325,7 +325,7 @@ library libB;
     expect(task, new isInstanceOf<BuildDirectiveElementsTask>());
     // prepare outputs
     CompilationUnit libraryUnitA = context
-        .getCacheEntry(new LibraryUnitTarget(sourceA, sourceA))
+        .getCacheEntry(new LibrarySpecificUnit(sourceA, sourceA))
         .getValue(RESOLVED_UNIT1);
     // no errors
     _assertErrorsWithCodes([]);
@@ -418,7 +418,7 @@ library libC;
     expect(task, new isInstanceOf<BuildDirectiveElementsTask>());
     // prepare outputs
     CompilationUnit libraryUnitA = context
-        .getCacheEntry(new LibraryUnitTarget(sourceA, sourceA))
+        .getCacheEntry(new LibrarySpecificUnit(sourceA, sourceA))
         .getValue(RESOLVED_UNIT1);
     // validate directives
     {
@@ -464,7 +464,7 @@ enum MyEnum {
   A, B
 }
 ''');
-    _computeResult(new LibraryUnitTarget(source, source), RESOLVED_UNIT2);
+    _computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT2);
     expect(task, new isInstanceOf<BuildEnumMemberElementsTask>());
     CompilationUnit unit = outputs[RESOLVED_UNIT2];
     // validate Element
@@ -626,7 +626,7 @@ class BuildFunctionTypeAliasesTaskTest extends _AbstractDartTaskTest {
 typedef int F(G g);
 typedef String G(int p);
 ''');
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, RESOLVED_UNIT3);
     expect(task, new isInstanceOf<BuildFunctionTypeAliasesTask>());
     // validate
@@ -652,7 +652,7 @@ typedef String G(int p);
     Source source = _newSource('/test.dart', '''
 typedef int F(NoSuchType p);
 ''');
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, BUILD_FUNCTION_TYPE_ALIASES_ERRORS);
     expect(task, new isInstanceOf<BuildFunctionTypeAliasesTask>());
     // validate
@@ -941,7 +941,7 @@ void set test(_) {}
     _computeResult(libSource, LIBRARY_ELEMENT1);
     expect(task, new isInstanceOf<BuildLibraryElementTask>());
     libraryUnit = context
-        .getCacheEntry(new LibraryUnitTarget(libSource, libSource))
+        .getCacheEntry(new LibrarySpecificUnit(libSource, libSource))
         .getValue(RESOLVED_UNIT1);
     libraryUnitElement = libraryUnit.element;
     librarySource = libraryUnitElement.source;
@@ -1176,7 +1176,7 @@ main() {
   }
 
   void _computeUsedElements(Source source) {
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, USED_IMPORTED_ELEMENTS);
     expect(task, new isInstanceOf<GatherUsedImportedElementsTask>());
     usedElements = outputs[USED_IMPORTED_ELEMENTS];
@@ -1220,7 +1220,7 @@ main(A a, p) {
   }
 
   void _computeUsedElements(Source source) {
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, USED_LOCAL_ELEMENTS);
     expect(task, new isInstanceOf<GatherUsedLocalElementsTask>());
     usedElements = outputs[USED_LOCAL_ELEMENTS];
@@ -1235,7 +1235,7 @@ class GenerateHintsTaskTest extends _AbstractDartTaskTest {
 int main() {
 }
 ''');
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, HINTS);
     expect(task, new isInstanceOf<GenerateHintsTask>());
     // validate
@@ -1251,7 +1251,7 @@ main(p) {
   }
 }
 ''');
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, HINTS);
     expect(task, new isInstanceOf<GenerateHintsTask>());
     // validate
@@ -1267,7 +1267,7 @@ main() {
   }
 }
 ''');
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, HINTS);
     expect(task, new isInstanceOf<GenerateHintsTask>());
     // validate
@@ -1287,7 +1287,7 @@ main() {
   new A();
 }
 ''');
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, HINTS);
     expect(task, new isInstanceOf<GenerateHintsTask>());
     // validate
@@ -1310,7 +1310,7 @@ import 'b.dart';
 main() {
   new A();
 }''');
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, HINTS);
     expect(task, new isInstanceOf<GenerateHintsTask>());
     // validate
@@ -1328,7 +1328,7 @@ import 'a.dart';
 main() {
   new A();
 }''');
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, HINTS);
     expect(task, new isInstanceOf<GenerateHintsTask>());
     // validate
@@ -1344,7 +1344,7 @@ class B {
   m() {}
 }
 ''');
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, HINTS);
     expect(task, new isInstanceOf<GenerateHintsTask>());
     // validate
@@ -1359,7 +1359,7 @@ main() {
   // TODO(developer) foo bar
 }
 ''');
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, HINTS);
     expect(task, new isInstanceOf<GenerateHintsTask>());
     // validate
@@ -1375,7 +1375,7 @@ main() {
   new _A();
 }
 ''');
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, HINTS);
     expect(task, new isInstanceOf<GenerateHintsTask>());
     // validate
@@ -1389,7 +1389,7 @@ main() {
   var v = 42;
 }
 ''');
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, HINTS);
     expect(task, new isInstanceOf<GenerateHintsTask>());
     // validate
@@ -1415,7 +1415,7 @@ f(A a) {
   a._mb();
 }
 ''');
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, HINTS);
     expect(task, new isInstanceOf<GenerateHintsTask>());
     // validate
@@ -1601,7 +1601,7 @@ main(A a) {
   a.m();
 }
 ''');
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     // prepare unit and "a.m()" invocation
     CompilationUnit unit;
     MethodInvocation invocation;
@@ -1634,7 +1634,7 @@ main(A a) {
   a.unknownMethod();
 }
 ''');
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, RESOLVED_UNIT);
     expect(task, new isInstanceOf<ResolveReferencesTask>());
     // validate
@@ -1652,7 +1652,7 @@ class A {}
 class B extends A {}
 int f(String p) => p.length;
 ''');
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, RESOLVED_UNIT4);
     expect(task, new isInstanceOf<ResolveUnitTypeNamesTask>());
     // validate
@@ -1677,7 +1677,7 @@ int f(String p) => p.length;
     Source source = _newSource('/test.dart', '''
 NoSuchClass f() => null;
 ''');
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, RESOLVE_TYPE_NAMES_ERRORS);
     expect(task, new isInstanceOf<ResolveUnitTypeNamesTask>());
     // validate
@@ -1714,7 +1714,7 @@ main() {
   }
 }
 ''');
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, RESOLVED_UNIT5);
     expect(task, new isInstanceOf<ResolveVariableReferencesTask>());
     // validate
@@ -1737,7 +1737,7 @@ main(p1, p2, p3, p4) {
   }
 }
 ''');
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, RESOLVED_UNIT5);
     expect(task, new isInstanceOf<ResolveVariableReferencesTask>());
     // validate
@@ -1815,7 +1815,7 @@ main() {
   }
 }
 ''');
-    LibraryUnitTarget target = new LibraryUnitTarget(source, source);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, VERIFY_ERRORS);
     expect(task, new isInstanceOf<VerifyUnitTask>());
     // validate
