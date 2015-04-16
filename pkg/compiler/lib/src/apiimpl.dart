@@ -66,6 +66,7 @@ class Compiler extends leg.Compiler {
             disableTypeInferenceFlag:
                 hasOption(options, '--disable-type-inference'),
             preserveComments: hasOption(options, '--preserve-comments'),
+            useCpsIr: hasOption(options, '--use-cps-ir'),
             verbose: hasOption(options, '--verbose'),
             sourceMapUri: extractUriOption(options, '--source-map='),
             outputUri: extractUriOption(options, '--out='),

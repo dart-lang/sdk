@@ -24,7 +24,7 @@ tree.Node emit(dart2js.TreeElementMapping treeElements,
 /// it emits. This helps indicate which functions were translated by the new
 /// backend.
 bool INSERT_NEW_BACKEND_COMMENT =
-    const bool.fromEnvironment('USE_NEW_BACKEND', defaultValue: false);
+    const bool.fromEnvironment("INSERT_NEW_BACKEND_COMMENT");
 
 /// Converts backend ASTs to frontend ASTs.
 class TreePrinter {

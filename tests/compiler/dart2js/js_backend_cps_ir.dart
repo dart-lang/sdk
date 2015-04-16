@@ -58,13 +58,10 @@ String getCodeForMethod(Compiler compiler,
 }
 
 runTests(List<TestEntry> tests) {
-  Expect.isTrue(const bool.fromEnvironment("USE_CPS_IR"),
-      'Run with USE_CPS_IR=true');
-
   for (TestEntry test in tests) {
     Map files = {TEST_MAIN_FILE: test.source};
     asyncTest(() {
-      Compiler compiler = compilerFor(files);
+      Compiler compiler = compilerFor(files, options: <String>['--use-cps-ir']);
       Uri uri = Uri.parse('memory:$TEST_MAIN_FILE');
       return compiler.run(uri).then((bool success) {
         Expect.isTrue(success);

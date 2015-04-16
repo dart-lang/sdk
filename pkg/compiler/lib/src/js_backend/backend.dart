@@ -6,8 +6,6 @@ part of js_backend;
 
 const VERBOSE_OPTIMIZER_HINTS = false;
 
-const bool USE_CPS_IR = const bool.fromEnvironment("USE_CPS_IR");
-
 class JavaScriptItemCompilationContext extends ItemCompilationContext {
   final Set<HInstruction> boundsChecked = new Set<HInstruction>();
   final Set<HInstruction> allocatedFixedLists = new Set<HInstruction>();
@@ -614,7 +612,7 @@ class JavaScriptBackend extends Backend {
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     resolutionCallbacks = new JavaScriptResolutionCallbacks(this);
     patchResolverTask = new PatchResolverTask(compiler);
-    functionCompiler = USE_CPS_IR
+    functionCompiler = compiler.useCpsIr
          ? new CpsFunctionCompiler(
              compiler, this, generateSourceMap: generateSourceMap)
          : new SsaFunctionCompiler(this, generateSourceMap);

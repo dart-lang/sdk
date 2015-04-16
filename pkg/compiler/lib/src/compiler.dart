@@ -718,6 +718,10 @@ abstract class Compiler implements DiagnosticListener {
    */
   final bool preserveComments;
 
+  /// Use the new CPS based backend end.  This flag works for both the Dart and
+  /// JavaScript backend.
+  final bool useCpsIr;
+
   /**
    * Is the compiler in verbose mode.
    */
@@ -1000,6 +1004,7 @@ abstract class Compiler implements DiagnosticListener {
             this.analyzeMain: false,
             bool analyzeSignaturesOnly: false,
             this.preserveComments: false,
+            this.useCpsIr: false,
             this.verbose: false,
             this.sourceMapUri: null,
             this.outputUri: null,
@@ -1470,7 +1475,7 @@ abstract class Compiler implements DiagnosticListener {
 
   bool irEnabled() {
     // TODO(sigurdm,kmillikin): Support checked-mode checks.
-    return const bool.fromEnvironment('USE_NEW_BACKEND') &&
+    return useCpsIr &&
         backend is DartBackend &&
         !enableTypeAssertions &&
         !enableConcreteTypeInference;
