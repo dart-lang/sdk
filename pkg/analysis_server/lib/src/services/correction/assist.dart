@@ -23,7 +23,7 @@ List<Assist> computeAssists(ServerPlugin plugin, AnalysisContext context,
   for (AssistContributor contributor in contributors) {
     try {
       List<Assist> contributedAssists =
-          contributor.compute(context, source, offset, length);
+          contributor.computeAssists(context, source, offset, length);
       if (contributedAssists != null) {
         assists.addAll(contributedAssists);
       }

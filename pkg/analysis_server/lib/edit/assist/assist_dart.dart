@@ -15,7 +15,7 @@ import 'package:analyzer/src/generated/source.dart';
  */
 abstract class DartAssistContributor extends AssistContributor {
   @override
-  List<Assist> compute(
+  List<Assist> computeAssists(
       AnalysisContext context, Source source, int offset, int length) {
     if (!AnalysisEngine.isDartFileName(source.fullName)) {
       return Assist.EMPTY_LIST;

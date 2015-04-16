@@ -56,7 +56,7 @@ abstract class AssistContributor {
    * [context] can be used to get additional information that is useful for
    * computing assists.
    */
-  List<Assist> compute(
+  List<Assist> computeAssists(
       AnalysisContext context, Source source, int offset, int length);
 }
 
