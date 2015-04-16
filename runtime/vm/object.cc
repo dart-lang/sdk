@@ -6864,7 +6864,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("code", code);
   }
   jsobj.AddProperty("_optimizable", is_optimizable());
-  jsobj.AddProperty("_inlinable", CanBeInlined());
+  jsobj.AddProperty("_inlinable", is_inlinable());
   code = unoptimized_code();
   if (!code.IsNull()) {
     jsobj.AddProperty("_unoptimizedCode", code);

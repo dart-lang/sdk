@@ -39,18 +39,12 @@
       color: #a8a8a8;
       }
       .hitsNotExecuted {
-      background-color: #e66;
+      background-color: #EEA7A7;
       }
       .hitsExecuted {
-      background-color: #6d6;
+      background-color: #9BDD9B;
       }
-    </style>
-  </template>
-</polymer-element>
 
-<polymer-element name="breakpoint-toggle" extends="observatory-element">
-  <template>
-    <style>
       .emptyBreakpoint, .possibleBreakpoint, .busyBreakpoint, .unresolvedBreakpoint, .resolvedBreakpoint  {
         display: table-cell;
         vertical-align: top;
@@ -80,39 +74,6 @@
         background-color: #e66;
       }
     </style>
-
-    <template if="{{ line == null }}">
-      <div class="emptyBreakpoint">&nbsp;</div>
-    </template>
-
-    <template if="{{ line != null }}">
-      <template if="{{ line.possibleBpt && busy}}">
-        <div class="busyBreakpoint">B</div>
-      </template>
-
-      <template if="{{ line.breakpoints == null && !line.possibleBpt }}">
-        <div class="emptyBreakpoint">&nbsp;</div>
-      </template>
-
-      <template if="{{ line.breakpoints == null && line.possibleBpt && !busy}}">
-        <div class="possibleBreakpoint">
-          <a on-click="{{ toggleBreakpoint }}">B</a>
-        </div>
-      </template>
-
-      <template if="{{ line.breakpoints != null && !line.breakpointResolved && !busy}}">
-        <div class="unresolvedBreakpoint">
-          <a on-click="{{ toggleBreakpoint }}">B</a>
-        </div>
-      </template>
-
-      <template if="{{ line.breakpoints != null && line.breakpointResolved && !busy}}">
-        <div class="resolvedBreakpoint">
-          <a on-click="{{ toggleBreakpoint }}">B</a>
-        </div>
-      </template>
-    </template> <!-- line != null -->
-
   </template>
 </polymer-element>
 

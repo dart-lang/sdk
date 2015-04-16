@@ -13,53 +13,59 @@ import 'package:polymer/polymer.dart';
 
 const nbsp = "\u00A0";
 
-void addInfoBox(content, infoBox) {
-  infoBox.style.position = 'absolute';
-  infoBox.style.padding = '1em';
-  infoBox.style.border = 'solid black 2px';
-  infoBox.style.zIndex = '10';
-  infoBox.style.backgroundColor = 'white';
-  infoBox.style.cursor = 'auto';
-  infoBox.style.display = 'none';  // Initially hidden.
-
+void addInfoBox(Element content, Function infoBoxGenerator) {
+  var infoBox;
   var show = false;
+  var originalBackground = content.style.backgroundColor;
+  buildInfoBox() {
+    infoBox = infoBoxGenerator();
+    infoBox.style.position = 'absolute';
+    infoBox.style.padding = '1em';
+    infoBox.style.border = 'solid black 2px';
+    infoBox.style.zIndex = '10';
+    infoBox.style.backgroundColor = 'white';
+    infoBox.style.cursor = 'auto';
+    content.append(infoBox);
+  }
   content.onClick.listen((event) {
     show = !show;
+    if (infoBox == null) buildInfoBox();  // Created lazily on the first click.
     infoBox.style.display = show ? 'block' : 'none';
-    content.style.backgroundColor = show ? 'white' : '';
+    content.style.backgroundColor = show ? 'white' : originalBackground;
   });
 
   // Causes infoBox to be positioned relative to the bottom-left of content.
   content.style.display = 'inline-block';
   content.style.cursor = 'pointer';
-  content.append(infoBox);
 }
 
-abstract class Annotation {
+abstract class Annotation implements Comparable<Annotation> {
   int line;
   int columnStart;
   int columnStop;
 
   void applyStyleTo(element);
-}
 
-class CurrentExecutionAnnotation extends Annotation {
-  void applyStyleTo(element) {
-    if (element == null) {
-      return;  // TODO(rmacnak): Handling overlapping annotations.
+  int compareTo(Annotation other) {
+    if (line == other.line) {
+      return columnStart.compareTo(other.columnStart);
     }
-    element.classes.add("currentCol");
-    element.title = "Current execution";
+    return line.compareTo(other.line);
   }
-}
 
-class CallSiteAnnotation extends Annotation {
-  CallSite callSite;
+  Element table() {
+    var e = new DivElement();
+    e.style.display = "table";
+    e.style.color = "#333";
+    e.style.font = "400 14px 'Montserrat', sans-serif";
+    return e;
+  }
 
   Element row([content]) {
     var e = new DivElement();
     e.style.display = "table-row";
     if (content is String) e.text = content;
+    if (content is Element) e.children.add(content);
     return e;
   }
 
@@ -77,32 +83,28 @@ class CallSiteAnnotation extends Annotation {
     e.ref = object;
     return e;
   }
+}
 
-  Element entriesTable() {
-    var e = new DivElement();
-    e.style.display = "table";
-    e.style.color = "#333";
-    e.style.font = "400 14px 'Montserrat', sans-serif";
-
-    if (callSite.entries.isEmpty) {
-      e.append(row('Did not execute'));
-    } else {
-      var r = row();
-      r.append(cell("Container"));
-      r.append(cell("Count"));
-      r.append(cell("Target"));
-      e.append(r);
-
-      for (var entry in callSite.entries) {
-        var r = row();
-        r.append(cell(serviceRef(entry.receiverContainer)));
-        r.append(cell(entry.count.toString()));
-        r.append(cell(serviceRef(entry.target)));
-        e.append(r);
-      }
+class CurrentExecutionAnnotation extends Annotation {
+  void applyStyleTo(element) {
+    if (element == null) {
+      return;  // TODO(rmacnak): Handling overlapping annotations.
     }
+    element.classes.add("currentCol");
+    element.title = "Current execution";
+  }
+}
 
-    return e;
+class CallSiteAnnotation extends Annotation {
+  CallSite callSite;
+
+  CallSiteAnnotation(this.callSite) {
+    line = callSite.line;
+    columnStart = callSite.column - 1;  // Call site is 1-origin.
+    var tokenLength = callSite.name.length;  // Approximate.
+    if (callSite.name.startsWith("get:") ||
+        callSite.name.startsWith("set:")) tokenLength -= 4;
+    columnStop = columnStart + tokenLength;
   }
 
   void applyStyleTo(element) {
@@ -112,7 +114,95 @@ class CallSiteAnnotation extends Annotation {
     element.style.fontWeight = "bold";
     element.title = "Call site: ${callSite.name}";
 
-    addInfoBox(element, entriesTable());
+    addInfoBox(element, () {
+      var details = table();
+      if (callSite.entries.isEmpty) {
+        details.append(row('Did not execute'));
+      } else {
+        var r = row();
+        r.append(cell("Container"));
+        r.append(cell("Count"));
+        r.append(cell("Target"));
+        details.append(r);
+
+        for (var entry in callSite.entries) {
+          var r = row();
+          r.append(cell(serviceRef(entry.receiverContainer)));
+          r.append(cell(entry.count.toString()));
+          r.append(cell(serviceRef(entry.target)));
+          details.append(r);
+        }
+      }
+      return details;
+    });
+  }
+}
+
+
+class FunctionDeclarationAnnotation extends Annotation {
+  ServiceFunction function;
+
+  FunctionDeclarationAnnotation(this.function) {
+    assert(function.loaded);
+    var script = function.script;
+    line = script.tokenToLine(function.tokenPos);
+    columnStart = script.tokenToCol(function.tokenPos);
+    if ((line == null) || (columnStart == null)) {
+      line = 0;
+      columnStart = 0;
+      columnStop = 0;
+    } else {
+      columnStart--; // 1-origin -> 0-origin.
+
+      // The method's token position is at the beginning of the method
+      // declaration, which may be a return type annotation, metadata, static
+      // modifier, etc. Try to scan forward to position this annotation on the
+      // function's name instead.
+      var lineSource = script.getLine(line).text;
+      var betterStart = lineSource.indexOf(function.name, columnStart);
+      if (betterStart != -1) {
+        columnStart = betterStart;
+      }
+      columnStop = columnStart + function.name.length;
+    }
+  }
+
+  void applyStyleTo(element) {
+    if (element == null) {
+      return;  // TODO(rmacnak): Handling overlapping annotations.
+    }
+    element.style.fontWeight = "bold";
+    element.title = "Function declaration: ${function.name}";
+
+    if (function.isOptimizable == false ||
+        function.isInlinable == false ||
+        function.deoptimizations >0) {
+      element.style.backgroundColor = "red";
+    }
+
+    addInfoBox(element, () {
+      var details = table();
+      var r = row();
+      r.append(cell("Function"));
+      r.append(cell(serviceRef(function)));
+      details.append(r);
+
+      r = row();
+      r.append(cell("Usage Count"));
+      r.append(cell("${function.usageCounter}"));
+      details.append(r);
+
+      if (function.isOptimizable == false) {
+        details.append(row(cell("Unoptimizable!")));
+      }
+      if (function.isInlinable == false) {
+        details.append(row(cell("Not inlinable!")));
+      }
+      if (function.deoptimizations > 0) {
+        details.append(row("Deoptimized ${function.deoptimizations} times!"));
+      }
+      return details;
+    });
   }
 }
 
@@ -226,6 +316,21 @@ class ScriptInsetElement extends ObservatoryElement {
     container.children.add(table);
   }
 
+  void loadFunctionsOf(Library lib) {
+    lib.load().then((lib) {
+      for (var func in lib.functions) {
+        func.load();
+      }
+      for (var cls in lib.classes) {
+        cls.load().then((cls) {
+          for (var func in cls.functions) {
+            func.load();
+          }
+        });
+      }
+    });
+  }
+
   void computeAnnotations() {
     startLine = (startPos != null
                  ? script.tokenToLine(startPos)
@@ -249,22 +354,26 @@ class ScriptInsetElement extends ObservatoryElement {
       annotations.add(a);
     }
 
-    for (var callSite in script.callSites) {
-      var a = new CallSiteAnnotation();
-      a.line = callSite.line;
-      a.columnStart = callSite.column - 1;  // Call site is 1-origin.
-      var tokenLength = callSite.name.length;  // Approximate.
-      a.columnStop = a.columnStart + tokenLength;
-      a.callSite = callSite;
-      annotations.add(a);
+    loadFunctionsOf(script.library);
+
+    for (var func in script.library.functions) {
+      if (func.script == script) {
+        annotations.add(new FunctionDeclarationAnnotation(func));
+      }
+    }
+    for (var cls in script.library.classes) {
+      for (var func in cls.functions) {
+        if (func.script == script) {
+          annotations.add(new FunctionDeclarationAnnotation(func));
+        }
+      }
     }
 
-    annotations.sort((a, b) {
-      if (a.line == b.line) {
-        return a.columnStart.compareTo(b.columnStart);
-      }
-      return a.line.compareTo(b.line);
-    });
+    for (var callSite in script.callSites) {
+      annotations.add(new CallSiteAnnotation(callSite));
+    }
+
+    annotations.sort();
   }
 
   Element linesTable() {
@@ -322,8 +431,59 @@ class ScriptInsetElement extends ObservatoryElement {
   }
 
   Element lineBreakpointElement(ScriptLine line) {
-    BreakpointToggleElement e = new Element.tag("breakpoint-toggle");
-    e.line = line;
+    var e = new DivElement();
+    var busy = false;
+    if (line == null || !line.possibleBpt) {
+      e.classes.add("emptyBreakpoint");
+      e.text = nbsp;
+      return e;
+    }
+    e.text = 'B';
+    update() {
+      if (busy) {
+        e.classes.clear();
+        e.classes.add("busyBreakpoint");
+      } else {
+        if (line.breakpoints != null) {
+          if (line.breakpointResolved) {
+            e.classes.clear();
+            e.classes.add("resolvedBreakpoint");
+          } else {
+            e.classes.clear();
+            e.classes.add("unresolvedBreakpoint");
+          }
+        } else {
+          e.classes.clear();
+          e.classes.add("possibleBreakpoint");
+        }
+      }
+    }
+    line.changes.listen((_) => update());
+    e.onClick.listen((event) {
+      if (busy) {
+        return;
+      }
+      busy = true;
+      if (line.breakpoints == null) {
+        // No breakpoint.  Add it.
+        line.script.isolate.addBreakpoint(line.script, line.line).then((_) {
+          busy = false;
+          update();
+        });
+      } else {
+        // Existing breakpoint.  Remove it.
+        List pending = [];
+        for (var bpt in line.breakpoints) {
+          pending.add(line.script.isolate.removeBreakpoint(bpt));
+        }
+        Future.wait(pending).then((_) {
+          busy = false;
+          update();
+        });
+      }
+      update();
+    });
+    update();
     return e;
   }
 
@@ -383,34 +543,4 @@ class ScriptInsetElement extends ObservatoryElement {
   }
 
   ScriptInsetElement.created() : super.created();
-}
-
-@CustomTag('breakpoint-toggle')
-class BreakpointToggleElement extends ObservatoryElement {
-  @published ScriptLine line;
-  @observable bool busy = false;
-
-  void toggleBreakpoint(var a, var b, var c) {
-    if (busy) {
-      return;
-    }
-    busy = true;
-    if (line.breakpoints == null) {
-      // No breakpoint.  Add it.
-      line.script.isolate.addBreakpoint(line.script, line.line).then((_) {
-          busy = false;
-      });
-    } else {
-      // Existing breakpoint.  Remove it.
-      List pending = [];
-      for (var bpt in line.breakpoints) {
-        pending.add(line.script.isolate.removeBreakpoint(bpt));
-      }
-      Future.wait(pending).then((_) {
-        busy = false;
-      });
-    }
-  }
-
-  BreakpointToggleElement.created() : super.created();
 }
