@@ -323,7 +323,7 @@ namespace dart {
   V(_GrowableList, add, GrowableListAdd, 422087403)                            \
   V(_GrowableList, removeLast, GrowableListRemoveLast, 1285719639)             \
   V(_StringBase, get:length, StringBaseLength, 784429419)                      \
-  V(ListIterator, moveNext, ListIteratorMoveNext, 1001265875)                  \
+  V(ListIterator, moveNext, ListIteratorMoveNext, 945791066)                   \
   V(_FixedSizeArrayIterator, moveNext, FixedListIteratorMoveNext, 890839431)   \
   V(_GrowableList, get:iterator, GrowableArrayIterator, 1663047580)            \
   V(_GrowableList, forEach, GrowableArrayForEach, 605873384)                   \
