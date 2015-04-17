@@ -19,7 +19,7 @@ var tests = [
     expect(result['unmodifiedFlags'].length, isPositive);
     bool found = false;
     for (var flag in result['unmodifiedFlags']) {
-      if (flag['name'] == 'code_comments') {
+      if (flag['name'] == 'trace_isolates') {
         found = true;
         expect(flag['flagType'], equals('bool'));
         expect(flag['valueAsString'], equals('false'));
@@ -29,7 +29,7 @@ var tests = [
 
     // Modify a flag.
     var params = {
-      'name' : 'code_comments',
+      'name' : 'trace_isolates',
       'value' : 'true',
     };
     result = await vm.invokeRpcNoUpgrade('setFlag', params);
@@ -42,7 +42,7 @@ var tests = [
     expect(result['modifiedFlags'].length, isPositive);
     found = false;
     for (var flag in result['modifiedFlags']) {
-      if (flag['name'] == 'code_comments') {
+      if (flag['name'] == 'trace_isolates') {
         found = true;
         expect(flag['valueAsString'], equals('true'));  // changed.
       } 
@@ -66,7 +66,7 @@ var tests = [
   (VM vm) async {
     // Modify a flag.
     var params = {
-      'name' : 'code_comments',
+      'name' : 'trace_isolates',
       'value' : '123',
     };
     var result = await vm.invokeRpcNoUpgrade('setFlag', params);
