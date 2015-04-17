@@ -704,7 +704,7 @@ class Uri {
    * If the path passed is not a legal file path [ArgumentError] is thrown.
    */
   factory Uri.file(String path, {bool windows}) {
-    windows = windows == null ? Uri._isWindows : windows;
+    windows = (windows == null) ? Uri._isWindows : windows;
     return windows ? _makeWindowsFileUrl(path) : _makeFileUri(path);
   }
 

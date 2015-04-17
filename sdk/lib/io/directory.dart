@@ -44,7 +44,7 @@ part of dart.io;
  *           print(directory.path);
  *       });
  *     }
- * 
+ *
  * ## List a directory
  *
  * Use the [list] or [listSync] methods to get the files and directories
@@ -100,7 +100,7 @@ part of dart.io;
  * ## Other resources
  *
  * * [Dart by Example](https://www.dartlang.org/dart-by-example/#files-directories-and-symlinks)
- * provides additional task-oriented code samples that show how to use 
+ * provides additional task-oriented code samples that show how to use
  * various API from the Directory class and the related [File] class.
  *
  * * [I/O for Command-Line Apps](https://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-dartio---file-and-socket-io-for-command-line-apps)
@@ -111,7 +111,7 @@ part of dart.io;
  * a tutorial about writing command-line apps, includes information
  * about files and directories.
  */
-abstract class Directory extends FileSystemEntity {
+abstract class Directory implements FileSystemEntity {
   /**
    * Gets the path of this directory.
    */
@@ -140,6 +140,15 @@ abstract class Directory extends FileSystemEntity {
    * directory.
    */
   static Directory get current => _Directory.current;
+
+  /**
+   * Returns a [Uri] representing the directory's location.
+   *
+   * The returned URI's scheme is always "file" if the entity's [path] is
+   * absolute, otherwise the scheme will be empty.
+   * The returned URI's path always ends in a slash ('/').
+   */
+  Uri get uri;
 
   /**
    * Sets the current working directory of the Dart process including
