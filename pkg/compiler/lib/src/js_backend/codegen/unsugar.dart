@@ -111,6 +111,7 @@ class UnsugarVisitor extends RecursiveVisitor {
     Parameter value = new Parameter(null);
     insertStaticCall(_glue.getWrapExceptionHelper(), [node.value.definition],
         value, node);
+    node.value.unlink();
     node.value = new Reference<Primitive>(value);
   }
 
