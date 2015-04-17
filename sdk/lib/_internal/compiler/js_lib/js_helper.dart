@@ -3546,7 +3546,7 @@ Future<Null> _loadHunk(String hunkName) {
 
     int index = uri.lastIndexOf('/');
     uri = '${uri.substring(0, index + 1)}$hunkName';
-    var xhr = JS('dynamic', 'new XMLHttpRequest()');
+    var xhr = JS('var', 'new XMLHttpRequest()');
     JS('void', '#.open("GET", #)', xhr, uri);
     JS('void', '#.addEventListener("load", #, false)',
        xhr, convertDartClosureToJS((event) {

@@ -595,6 +595,7 @@ Isolate::Isolate()
       default_tag_(UserTag::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
       metrics_list_head_(NULL),
+      cha_(NULL),
       next_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
@@ -658,6 +659,7 @@ Isolate::Isolate(Isolate* original)
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
       metrics_list_head_(NULL),
+      cha_(NULL),
       next_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)

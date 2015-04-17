@@ -87,4 +87,15 @@ void Thread::ExitIsolate() {
 }
 
 
+CHA* Thread::cha() const {
+  ASSERT(isolate_ != NULL);
+  return isolate_->cha_;
+}
+
+
+void Thread::set_cha(CHA* value) {
+  ASSERT(isolate_ != NULL);
+  isolate_->cha_ = value;
+}
+
 }  // namespace dart
