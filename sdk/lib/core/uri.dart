@@ -30,6 +30,9 @@ class Uri {
    * Returns the scheme component.
    *
    * Returns the empty string if there is no scheme component.
+   *
+   * A URI scheme is case insensitive.
+   * The returned scheme is canonicalized to lowercase letters.
    */
   // We represent the missing scheme as an empty string.
   // A valid scheme cannot be empty.
@@ -74,6 +77,10 @@ class Uri {
    *
    * If the host is an IP version 6 address, the surrounding `[` and `]` is
    * removed.
+   *
+   * The host string is case-insensitive.
+   * The returned host name is canonicalized to lower-case
+   * with upper-case percent-escapes.
    */
   String get host {
     if (_host == null) return "";
