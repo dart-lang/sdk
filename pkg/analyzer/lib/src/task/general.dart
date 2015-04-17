@@ -5,10 +5,10 @@
 library analyzer.src.task.general;
 
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 
 /**
  * A task that gets the contents of the source associated with an analysis
@@ -18,7 +18,7 @@ class GetContentTask extends SourceBasedAnalysisTask {
   /**
    * The task descriptor describing this kind of task.
    */
-  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor('GET_CONTENT',
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor('GetContentTask',
       createTask, buildInputs, <ResultDescriptor>[CONTENT, MODIFICATION_TIME]);
 
   /**

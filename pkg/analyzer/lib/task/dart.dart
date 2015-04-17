@@ -161,4 +161,7 @@ class LibrarySpecificUnit implements AnalysisTarget {
         other.library == library &&
         other.unit == unit;
   }
+
+  @override
+  String toString() => '$unit in $library';
 }

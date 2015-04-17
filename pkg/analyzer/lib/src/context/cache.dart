@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, CacheState, InternalAnalysisContext, RetentionPriority;
 import 'package:analyzer/src/generated/html.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/task/model.dart';
 
@@ -789,7 +790,10 @@ class SdkCachePartition extends CachePartition {
       : super(context, maxCacheSize, DefaultRetentionPolicy.POLICY);
 
   @override
-  bool contains(AnalysisTarget target) => target.source.isInSystemLibrary;
+  bool contains(AnalysisTarget target) {
+    Source source = target.source;
+    return source != null && source.isInSystemLibrary;
+  }
 }
 
 /**

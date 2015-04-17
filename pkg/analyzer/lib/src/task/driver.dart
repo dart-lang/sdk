@@ -239,6 +239,20 @@ abstract class ExtendedAnalysisContext implements InternalAnalysisContext {
 }
 
 /**
+ * An exception indicating that an attempt was made to perform a task on a
+ * target while gathering the inputs to perform the same task for the same
+ * target.
+ */
+class InfiniteTaskLoopException extends AnalysisException {
+  /**
+   * Initialize a newly created exception to represent an attempt to perform
+   * the task for the target represented by the given [item].
+   */
+  InfiniteTaskLoopException(WorkItem item) : super(
+          'Infinite loop while performing task ${item.descriptor.name} for ${item.target}');
+}
+
+/**
  * A description of a single anaysis task that can be performed to advance
  * analysis.
  */
@@ -367,6 +381,9 @@ class WorkItem {
     }
     return null;
   }
+
+  @override
+  String toString() => 'Run $descriptor on $target';
 }
 
 /**
@@ -442,17 +459,4 @@ class WorkOrder implements Iterator<WorkItem> {
     }
     return false;
   }
-}
-
-/**
- * An exception indicating that an attempt was made to perform a task on a
- * target while gathering the inputs to perform the same task for the same
- * target.
- */
-class InfiniteTaskLoopException extends AnalysisException {
-  /**
-   * Initialize a newly created exception to represent an attempt to perform
-   * the task for the target represented by the given [item].
-   */
-  InfiniteTaskLoopException(WorkItem item) : super('Infinite loop while performing task ${item.descriptor.name} for ${item.target}');
 }
