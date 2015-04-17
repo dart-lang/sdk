@@ -1951,6 +1951,27 @@ TEST_CASE(Array) {
 }
 
 
+TEST_CASE(ArrayLength) {
+  const intptr_t kLength = Array::kMaxElements + 1;
+  ASSERT(kLength >= 0);
+  char buffer[1024];
+  OS::SNPrint(buffer, sizeof(buffer),
+      "main() {\n"
+      "  new List(%" Pd ");\n"
+      "}\n",
+      kLength);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  OS::SNPrint(buffer, sizeof(buffer),
+      "Unhandled exception:\n"
+      "Invalid argument(s): Length (%" Pd ") must be an integer "
+      "in the range [0..%" Pd "].",
+      kLength, Array::kMaxElements);
+  EXPECT_ERROR(result, buffer);
+}
+
+
 TEST_CASE(StringCodePointIterator) {
   const String& str0 = String::Handle(String::New(""));
   String::CodePointIterator it0(str0);

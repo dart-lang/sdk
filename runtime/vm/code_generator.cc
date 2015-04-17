@@ -113,7 +113,7 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
     Exceptions::ThrowArgumentError(error);
   }
   const intptr_t len = Smi::Cast(length).Value();
-  if (len < 0) {
+  if ((len < 0) || (len > Array::kMaxElements)) {
     const String& error = String::Handle(String::NewFormatted(
         "Length (%" Pd ") must be an integer in the range [0..%" Pd "].",
         len, Array::kMaxElements));
