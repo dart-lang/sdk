@@ -3016,26 +3016,35 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           setter = reportAndCreateErroneousElement(
               node.selector, target.name, MessageKind.CANNOT_RESOLVE_SETTER,
               const {});
+        } else if (node.isSuperCall) {
+          setter = reportAndCreateErroneousElement(
+              node.selector, target.name, MessageKind.SETTER_NOT_FOUND_IN_SUPER,
+              {'name': target.name, 'className': currentClass.name});
+          registry.registerSuperNoSuchMethod();
         } else {
           // For instance fields we don't report a warning here because the type
           // checker will detect this as well and report a better error message
           // with the context of the containing class.
         }
         registry.registerThrowNoSuchMethod();
-        if (node.isSuperCall) registry.registerSuperNoSuchMethod();
       } else if (target.isFunction && target.name != '[]=') {
         assert(!target.isSetter);
         if (Elements.isStaticOrTopLevelFunction(target) || target.isLocal) {
           setter = reportAndCreateErroneousElement(
               node.selector, target.name, MessageKind.ASSIGNING_METHOD,
               const {});
+        } else if (node.isSuperCall) {
+          setter = reportAndCreateErroneousElement(
+              node.selector, target.name, MessageKind.ASSIGNING_METHOD_IN_SUPER,
+              {'name': target.name,
+               'superclassName': target.enclosingElement.name});
+          registry.registerSuperNoSuchMethod();
         } else {
           // For instance methods we don't report a warning here because the
           // type checker will detect this as well and report a better error
           // message with the context of the containing class.
         }
         registry.registerThrowNoSuchMethod();
-        if (node.isSuperCall) registry.registerSuperNoSuchMethod();
       }
       if (isPotentiallyMutableTarget(target)) {
         registry.registerPotentialMutation(target, node);

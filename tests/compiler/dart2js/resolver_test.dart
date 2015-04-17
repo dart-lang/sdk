@@ -1177,6 +1177,15 @@ testCantAssignMethods() {
         }
       }
       ''', [MessageKind.SETTER_NOT_FOUND]);
+  checkWarningOn('''
+      main() { new B().bar(); }
+      class B {
+        mname() {}
+        bar() {
+          this.mname = () => null;
+        }
+      }
+      ''', [MessageKind.SETTER_NOT_FOUND]);
 
   // Can't override super methods
   checkWarningOn('''
@@ -1189,7 +1198,7 @@ testCantAssignMethods() {
           super.mname = () => 6;
         }
       }
-      ''', [MessageKind.SETTER_NOT_FOUND]);
+      ''', [MessageKind.ASSIGNING_METHOD_IN_SUPER]);
 
   // But index operators should be OK
   checkWarningOn('''
@@ -1247,6 +1256,15 @@ testCantAssignFinalAndConsts() {
       }
       ''', [MessageKind.SETTER_NOT_FOUND]);
 
+  // ... even if 'this' is explicit:
+  checkWarningOn('''
+      main() => new B().m();
+      class B {
+        final x = 1;
+        m() { this.x = 2; }
+      }
+      ''', [MessageKind.SETTER_NOT_FOUND]);
+
   // ... and in super class:
   checkWarningOn('''
       main() => new B().m();
@@ -1256,7 +1274,7 @@ testCantAssignFinalAndConsts() {
       class B extends A {
         m() { super.x = 2; }
       }
-      ''', [MessageKind.SETTER_NOT_FOUND]);
+      ''', [MessageKind.SETTER_NOT_FOUND_IN_SUPER]);
 
   // But non-final fields are OK:
   checkWarningOn('''

@@ -130,6 +130,9 @@ class MessageKind {
   static const MessageKind SETTER_NOT_FOUND = const MessageKind(
       "No setter named '#{memberName}' in class '#{className}'.");
 
+  static const MessageKind SETTER_NOT_FOUND_IN_SUPER = const MessageKind(
+      "No setter named '#{name}' in superclass of '#{className}'.");
+
   static const MessageKind GETTER_NOT_FOUND = const MessageKind(
       "No getter named '#{memberName}' in class '#{className}'.");
 
@@ -1125,6 +1128,10 @@ main() => new C();"""]);
 
   static const MessageKind ASSIGNING_METHOD = const MessageKind(
       "Cannot assign a value to a method.");
+
+  static const MessageKind ASSIGNING_METHOD_IN_SUPER = const MessageKind(
+      "Cannot assign a value to method '#{name}' "
+      "in superclass '#{superclassName}'.");
 
   static const MessageKind ASSIGNING_TYPE = const MessageKind(
       "Cannot assign a value to a type.");
