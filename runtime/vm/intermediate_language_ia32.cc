@@ -2585,7 +2585,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       : instruction_(instruction) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    if (FLAG_use_osr) {
+    if (FLAG_use_osr && osr_entry_label()->IsLinked()) {
       uword flags_address = Isolate::Current()->stack_overflow_flags_address();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
