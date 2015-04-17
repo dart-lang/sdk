@@ -11626,6 +11626,16 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
     return true;
   }
 
+  // If we are compiling top-level code, we don't need to look for
+  // the identifier in the current (top-level) class. The class scope
+  // of the top-level class is part of the library scope.
+  if (current_class().IsTopLevel()) {
+    if (node != NULL) {
+      *node = NULL;
+    }
+    return false;
+  }
+
   // Try to find the identifier in the class scope of the current class.
   // If the current class is the result of a mixin application, we must
   // use the class scope of the class from which the function originates.
@@ -11714,7 +11724,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   if (node != NULL) {
     *node = NULL;
   }
-  return false;  // Not an unqualified identifier.
+  return false;
 }
 
 
