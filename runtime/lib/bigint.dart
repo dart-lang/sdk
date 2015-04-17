@@ -1042,10 +1042,13 @@ class _Bigint extends _IntegerImplementation implements int {
     if (_compareDigits(r_digits, r_used, t_digits, t_used) >= 0) {
       assert(i == r_used);
       r_digits[r_used++] = 1;  // Quotient = 1.
-      r_digits[r_used] = 0;  // Leading zero.
       // Subtract divisor from remainder.
       _absSub(r_digits, r_used, t_digits, t_used, r_digits);
+    } else {
+      // Account for possible carry in _mulAdd step.
+      r_digits[r_used++] = 0;
     }
+    r_digits[r_used] = 0;  // Leading zero for 64-bit processing.
     // Negate y so we can later use _mulAdd instead of non-existent _mulSub.
     var ny_digits = new Uint32List(y_used + 2);
     ny_digits[y_used] = 1;
@@ -1137,10 +1140,13 @@ class _Bigint extends _IntegerImplementation implements int {
     if (_compareDigits(r_digits, r_used, t_digits, t_used) >= 0) {
       assert(i == r_used);
       r_digits[r_used++] = 1;  // Quotient = 1.
-      r_digits[r_used] = 0;  // Leading zero.
       // Subtract divisor from remainder.
       _absSub(r_digits, r_used, t_digits, t_used, r_digits);
+    } else {
+      // Account for possible carry in _mulAdd step.
+      r_digits[r_used++] = 0;
     }
+    r_digits[r_used] = 0;  // Leading zero for 64-bit processing.
     // Negated y_digits passed in ny_digits allow the use of _mulAdd instead of
     // unimplemented _mulSub.
     // ny_digits is read-only and has y_used digits (possibly including several
