@@ -8843,6 +8843,119 @@ TEST_CASE(ExternalStringDeoptimize) {
 }
 
 
+TEST_CASE(ExternalStringPolymorphicDeoptimize) {
+  const char* kScriptChars =
+      "const strA = 'AAAA';\n"
+      "class A {\n"
+      "  static change_str(String s) native 'A_change_str';\n"
+      "}\n"
+      "compare(a, b, [i = 0]) {\n"
+      "  return a.codeUnitAt(i) == b.codeUnitAt(i);\n"
+      "}\n"
+      "compareA(b, [i = 0]) {\n"
+      "  return compare(strA, b, i);\n"
+      "}\n"
+      "main() {\n"
+      "  var externalA = 'AA' + 'AA';\n"
+      "  A.change_str(externalA);\n"
+      "  compare('AA' + 'AA', strA);\n"
+      "  compare(externalA, strA);\n"
+      "  for (var i = 0; i < 10000; i++) compareA(strA);\n"
+      "  A.change_str(strA);\n"
+      "  return compareA('AA' + 'AA');\n"
+      "}\n";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars,
+                               &ExternalStringDeoptimize_native_lookup);
+  Dart_Handle result = Dart_Invoke(lib,
+                                   NewString("main"),
+                                   0,
+                                   NULL);
+  EXPECT_VALID(result);
+  bool value = false;
+  result = Dart_BooleanValue(result, &value);
+  EXPECT_VALID(result);
+  EXPECT(value);
+}
+
+
+TEST_CASE(ExternalStringGuardFieldDeoptimize) {
+  const char* kScriptChars =
+      "const strA = 'AAAA';\n"
+      "class A {\n"
+      "  static change_str(String s) native 'A_change_str';\n"
+      "}\n"
+      "class G { var f = 'A'; }\n"
+      "final guard = new G();\n"
+      "var shouldExternalize = false;\n"
+      "ext() { if (shouldExternalize) A.change_str(strA); }\n"
+      "compare(a, b, [i = 0]) {\n"
+      "  guard.f = a;\n"
+      "  ext();"
+      "  return a.codeUnitAt(i) == b.codeUnitAt(i);\n"
+      "}\n"
+      "compareA(b, [i = 0]) {\n"
+      "  return compare(strA, b, i);\n"
+      "}\n"
+      "main() {\n"
+      "  var externalA = 'AA' + 'AA';\n"
+      "  A.change_str(externalA);\n"
+      "  compare('AA' + 'AA', strA);\n"
+      "  for (var i = 0; i < 10000; i++) compareA(strA);\n"
+      "  shouldExternalize = true;\n"
+      "  return compareA('AA' + 'AA');\n"
+      "}\n";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars,
+                               &ExternalStringDeoptimize_native_lookup);
+  Dart_Handle result = Dart_Invoke(lib,
+                                   NewString("main"),
+                                   0,
+                                   NULL);
+  EXPECT_VALID(result);
+  bool value = false;
+  result = Dart_BooleanValue(result, &value);
+  EXPECT_VALID(result);
+  EXPECT(value);
+}
+
+
+TEST_CASE(ExternalStringStaticFieldDeoptimize) {
+  const char* kScriptChars =
+      "const strA = 'AAAA';\n"
+      "class A {\n"
+      "  static change_str(String s) native 'A_change_str';\n"
+      "}\n"
+      "class G { static final f = strA; }\n"
+      "compare(a, b, [i = 0]) {\n"
+      "  return a.codeUnitAt(i) == b.codeUnitAt(i);\n"
+      "}\n"
+      "compareA(b, [i = 0]) {\n"
+      "  return compare(G.f, b, i);\n"
+      "}\n"
+      "main() {\n"
+      "  var externalA = 'AA' + 'AA';\n"
+      "  A.change_str(externalA);\n"
+      "  compare('AA' + 'AA', strA);\n"
+      "  for (var i = 0; i < 10000; i++) compareA(strA);\n"
+      "  A.change_str(G.f);"
+      "  return compareA('AA' + 'AA');\n"
+      "}\n";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars,
+                               &ExternalStringDeoptimize_native_lookup);
+  Dart_Handle result = Dart_Invoke(lib,
+                                   NewString("main"),
+                                   0,
+                                   NULL);
+  EXPECT_VALID(result);
+  bool value = false;
+  result = Dart_BooleanValue(result, &value);
+  EXPECT_VALID(result);
+  EXPECT(value);
+}
+
+
 TEST_CASE(ExternalStringTrimDoubleParse) {
   const char* kScriptChars =
       "String str = 'A';\n"

@@ -788,10 +788,14 @@ void ConstantPropagator::VisitLoadClassId(LoadClassIdInstr* instr) {
     SetValue(instr, Smi::ZoneHandle(Z, Smi::New(cid)));
     return;
   }
+
   const Object& object = instr->object()->definition()->constant_value();
   if (IsConstant(object)) {
-    SetValue(instr, Smi::ZoneHandle(Z, Smi::New(object.GetClassId())));
-    return;
+    cid = object.GetClassId();
+    if (CheckClassInstr::IsImmutableClassId(cid)) {
+      SetValue(instr, Smi::ZoneHandle(Z, Smi::New(cid)));
+      return;
+    }
   }
   SetValue(instr, non_constant_);
 }
