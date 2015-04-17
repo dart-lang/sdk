@@ -705,7 +705,21 @@ class Uri {
    */
   factory Uri.file(String path, {bool windows}) {
     windows = (windows == null) ? Uri._isWindows : windows;
-    return windows ? _makeWindowsFileUrl(path) : _makeFileUri(path);
+    return windows ? _makeWindowsFileUrl(path, false)
+                   : _makeFileUri(path, false);
+  }
+
+  /**
+   * Like [Uri.file] except that a non-empty URI path ends in a slash.
+   *
+   * If [path] is not empty, and it doesn't end in a directory separator,
+   * then a slash is added to the returned URI's path.
+   * In all other cases, the result is the same as returned by `Uri.file`.
+   */
+  factory Uri.directory(String path, {bool windows}) {
+    windows = (windows == null) ? Uri._isWindows : windows;
+    return windows ? _makeWindowsFileUrl(path, true)
+                   : _makeFileUri(path, true);
   }
 
   /**
@@ -762,18 +776,24 @@ class Uri {
     }
   }
 
-  static _makeFileUri(String path) {
+  static _makeFileUri(String path, bool slashTerminated) {
     const String sep = "/";
+    var segments = path.split(sep);
+    if (slashTerminated &&
+        segments.isNotEmpty &&
+        segments.last.isNotEmpty) {
+      segments.add("");  // Extra separator at end.
+    }
     if (path.startsWith(sep)) {
       // Absolute file:// URI.
-      return new Uri(scheme: "file", pathSegments: path.split(sep));
+      return new Uri(scheme: "file", pathSegments: segments);
     } else {
       // Relative URI.
-      return new Uri(pathSegments: path.split(sep));
+      return new Uri(pathSegments: segments);
     }
   }
 
-  static _makeWindowsFileUrl(String path) {
+  static _makeWindowsFileUrl(String path, bool slashTerminated) {
     if (path.startsWith(r"\\?\")) {
       if (path.startsWith(r"UNC\", 4)) {
         path = path.replaceRange(0, 7, r'\');
@@ -798,6 +818,10 @@ class Uri {
       }
       // Absolute file://C:/ URI.
       var pathSegments = path.split(sep);
+      if (slashTerminated &&
+          pathSegments.last.isNotEmpty) {
+        pathSegments.add("");  // Extra separator at end.
+      }
       _checkWindowsPathReservedCharacters(pathSegments, true, 1);
       return new Uri(scheme: "file", pathSegments: pathSegments);
     }
@@ -812,11 +836,19 @@ class Uri {
             (pathStart < 0) ? "" : path.substring(pathStart + 1);
         var pathSegments = pathPart.split(sep);
         _checkWindowsPathReservedCharacters(pathSegments, true);
+        if (slashTerminated &&
+            pathSegments.last.isNotEmpty) {
+          pathSegments.add("");  // Extra separator at end.
+        }
         return new Uri(
             scheme: "file", host: hostPart, pathSegments: pathSegments);
       } else {
         // Absolute file:// URI.
         var pathSegments = path.split(sep);
+        if (slashTerminated &&
+            pathSegments.last.isNotEmpty) {
+          pathSegments.add("");  // Extra separator at end.
+        }
         _checkWindowsPathReservedCharacters(pathSegments, true);
         return new Uri(scheme: "file", pathSegments: pathSegments);
       }
@@ -824,6 +856,11 @@ class Uri {
       // Relative URI.
       var pathSegments = path.split(sep);
       _checkWindowsPathReservedCharacters(pathSegments, true);
+      if (slashTerminated &&
+          pathSegments.isNotEmpty &&
+          pathSegments.last.isNotEmpty) {
+        pathSegments.add("");  // Extra separator at end.
+      }
       return new Uri(pathSegments: pathSegments);
     }
   }

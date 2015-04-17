@@ -44,11 +44,7 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   Uri get uri {
-    String path = this.path;
-    if (!path.endsWith("/")) {
-      path = path + "/";
-    }
-    return new Uri.file(path);
+    return new Uri.directory(path);
   }
 
   Future<bool> exists() {

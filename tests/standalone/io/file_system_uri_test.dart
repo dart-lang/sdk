@@ -34,7 +34,7 @@ void main() {
   testFile("/foo/bar");
   testFile("/foo/bar/");
 
-  testDirectory("", "/");
+  testDirectory("");
   testDirectory("/");
   testDirectory("foo/bar", "foo/bar/");
   testDirectory("/foo/bar", "/foo/bar/");
