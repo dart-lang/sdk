@@ -12,7 +12,7 @@ class ClassEmitter extends CodeEmitterHelper {
   /**
    * Documentation wanted -- johnniwinther
    */
-  void emitClass(Class cls, ClassBuilder enclosingBuilder, Fragment fragment) {
+  void emitClass(Class cls, ClassBuilder enclosingBuilder) {
     ClassElement classElement = cls.element;
 
     assert(invariant(classElement, classElement.isDeclaration));
@@ -52,8 +52,7 @@ class ClassEmitter extends CodeEmitterHelper {
       builder.addProperty(name, function);
     }
 
-    emitClassBuilderWithReflectionData(cls, builder, enclosingBuilder,
-        fragment);
+    emitClassBuilderWithReflectionData(cls, builder, enclosingBuilder);
   }
   /**
   * Emits the precompiled constructor when in CSP mode.
@@ -75,7 +74,7 @@ class ClassEmitter extends CodeEmitterHelper {
     String constructorName = namer.className(classElement);
     OutputUnit outputUnit =
         compiler.deferredLoadTask.outputUnitForElement(classElement);
-    emitter.assemblePrecompiledConstructor(
+    emitter.emitPrecompiledConstructor(
         outputUnit, constructorName, constructorAst, fieldNames);
   }
 
@@ -273,8 +272,7 @@ class ClassEmitter extends CodeEmitterHelper {
 
   void emitClassBuilderWithReflectionData(Class cls,
                                           ClassBuilder classBuilder,
-                                          ClassBuilder enclosingBuilder,
-                                          Fragment fragment) {
+                                          ClassBuilder enclosingBuilder) {
     ClassElement classElement = cls.element;
     String className = cls.name;
 
@@ -309,9 +307,8 @@ class ClassEmitter extends CodeEmitterHelper {
       statics.add(property);
     }
 
-    // TODO(herhut): Do not grab statics out of the properties.
     ClassBuilder classProperties =
-        emitter.elementDescriptors[fragment].remove(classElement);
+        emitter.elementDescriptors.remove(classElement);
     if (classProperties != null) {
       statics.addAll(classProperties.properties);
     }
@@ -337,7 +334,8 @@ class ClassEmitter extends CodeEmitterHelper {
         for (DartType interface in classElement.interfaces) {
           types.add(task.metadataCollector.reifyType(interface));
         }
-        enclosingBuilder.addProperty("+$reflectionName", js.numArray(types));
+        enclosingBuilder.addProperty("+$reflectionName",
+            new jsAst.ArrayInitializer(types.map(js.number).toList()));
       }
     }
   }

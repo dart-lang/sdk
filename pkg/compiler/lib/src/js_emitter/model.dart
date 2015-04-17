@@ -71,7 +71,6 @@ class Program {
 
   bool get isSplit => fragments.length > 1;
   Iterable<Fragment> get deferredFragments => fragments.skip(1);
-  Fragment get mainFragment => fragments.first;
 }
 
 /**
