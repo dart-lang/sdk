@@ -355,6 +355,7 @@ static RawInstance* CreateClassMirror(const Class& cls,
 
 
 static RawInstance* CreateLibraryMirror(const Library& lib) {
+  ASSERT(!lib.IsNull());
   const Array& args = Array::Handle(Array::New(3));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(lib)));
   String& str = String::Handle();

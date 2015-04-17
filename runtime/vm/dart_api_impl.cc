@@ -1501,6 +1501,10 @@ DART_EXPORT bool Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
   }
   // TODO(16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
+  if (iso->object_store()->root_library() == Library::null()) {
+    // The embedder should have called Dart_LoadScript by now.
+    return false;
+  }
   return iso->MakeRunnable();
 }
 

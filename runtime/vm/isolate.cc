@@ -938,6 +938,7 @@ bool Isolate::MakeRunnable() {
   }
   // Set the isolate as runnable and if we are being spawned schedule
   // isolate on thread pool for execution.
+  ASSERT(object_store()->root_library() != Library::null());
   is_runnable_ = true;
   if (!ServiceIsolate::IsServiceIsolate(this)) {
     message_handler()->set_pause_on_start(FLAG_pause_isolates_on_start);
