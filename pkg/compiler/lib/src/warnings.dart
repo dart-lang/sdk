@@ -121,6 +121,28 @@ class MessageKind {
   static const MessageKind MEMBER_NOT_FOUND = const MessageKind(
       "No member named '#{memberName}' in class '#{className}'.");
 
+  static const MessageKind AWAIT_MEMBER_NOT_FOUND = const MessageKind(
+      "No member named 'await' in class '#{className}'.",
+      howToFix: "Did you mean to add the 'async' marker "
+                "to '#{functionName}'?",
+      examples: const ["""
+class A {
+  m() => await -3;
+}
+main() => new A().m();
+"""]);
+
+  static const MessageKind AWAIT_MEMBER_NOT_FOUND_IN_CLOSURE =
+      const MessageKind("No member named 'await' in class '#{className}'.",
+      howToFix: "Did you mean to add the 'async' marker "
+                "to the enclosing function?",
+      examples: const ["""
+class A {
+  m() => () => await -3;
+}
+main() => new A().m();
+"""]);
+
   static const MessageKind METHOD_NOT_FOUND = const MessageKind(
       "No method named '#{memberName}' in class '#{className}'.");
 
@@ -157,6 +179,23 @@ class MessageKind {
 
   static const MessageKind CANNOT_RESOLVE = const MessageKind(
       "Cannot resolve '#{name}'.");
+
+  static const MessageKind CANNOT_RESOLVE_AWAIT = const MessageKind(
+      "Cannot resolve '#{name}'.",
+      howToFix: "Did you mean to add the 'async' marker "
+                "to '#{functionName}'?",
+      examples: const [
+          "main() => await -3;",
+          "foo() => await -3; main() => foo();"
+      ]);
+
+  static const MessageKind CANNOT_RESOLVE_AWAIT_IN_CLOSURE = const MessageKind(
+      "Cannot resolve '#{name}'.",
+      howToFix: "Did you mean to add the 'async' marker "
+                "to the enclosing function?",
+      examples: const [
+          "main() { (() => await -3)(); }",
+      ]);
 
   static const MessageKind CANNOT_RESOLVE_IN_INITIALIZER = const MessageKind(
       "Cannot resolve '#{name}'. It would be implicitly looked up on this "

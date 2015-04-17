@@ -2318,11 +2318,23 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           //   is equivalent to `this.id(a1 , ...)`.
           bool inInitializer = enclosingElement.isGenerativeConstructor ||
               (enclosingElement.isInstanceMember && enclosingElement.isField);
-          MessageKind kind = inInitializer
-              ? MessageKind.CANNOT_RESOLVE_IN_INITIALIZER
-              : MessageKind.CANNOT_RESOLVE;
-          element = reportAndCreateErroneousElement(node, node.source, kind,
-              {'name': node.source}, isError: inInitializer);
+          MessageKind kind;
+          Map arguments = {'name': name};
+          if (inInitializer) {
+            kind = MessageKind.CANNOT_RESOLVE_IN_INITIALIZER;
+          } else if (name == 'await') {
+            var functionName = enclosingElement.name;
+            if (functionName == '') {
+              kind = MessageKind.CANNOT_RESOLVE_AWAIT_IN_CLOSURE;
+            } else {
+              kind = MessageKind.CANNOT_RESOLVE_AWAIT;
+              arguments['functionName'] = functionName;
+            }
+          } else {
+            kind = MessageKind.CANNOT_RESOLVE;
+          }
+          element = reportAndCreateErroneousElement(node, name, kind,
+              arguments, isError: inInitializer);
           registry.registerThrowNoSuchMethod();
         }
       } else if (element.isErroneous) {

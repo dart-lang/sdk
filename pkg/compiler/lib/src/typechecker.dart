@@ -817,6 +817,17 @@ class TypeCheckerVisitor extends Visitor<DartType> {
               // getter.
               reportTypeWarning(node, MessageKind.GETTER_NOT_FOUND,
                   {'className': receiverType.name, 'memberName': name});
+            } else if (name == 'await') {
+              Map arguments = {'className': receiverType.name};
+              String functionName = executableContext.name;
+              MessageKind kind;
+              if (functionName == '') {
+                kind = MessageKind.AWAIT_MEMBER_NOT_FOUND_IN_CLOSURE;
+              } else {
+                kind = MessageKind.AWAIT_MEMBER_NOT_FOUND;
+                arguments['functionName'] = functionName;
+              }
+              reportTypeWarning(node, kind, arguments);
             } else {
               reportTypeWarning(node, MessageKind.MEMBER_NOT_FOUND,
                   {'className': receiverType.name, 'memberName': name});

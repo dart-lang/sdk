@@ -90,6 +90,7 @@ main() {
     testConstConstructorAndNonFinalFields,
     testCantAssignMethods,
     testCantAssignFinalAndConsts,
+    testAwaitHint,
   ], (f) => f()));
 }
 
@@ -1288,7 +1289,6 @@ testCantAssignFinalAndConsts() {
       ''', []);
 }
 
-
 /// Helper to test that [script] produces all the given [warnings].
 checkWarningOn(String script, List<MessageKind> warnings) {
   Expect.isTrue(warnings.length >= 0 && warnings.length <= 2);
@@ -1299,4 +1299,42 @@ checkWarningOn(String script, List<MessageKind> warnings) {
       Expect.equals(warnings[i], compiler.warnings[i].message.kind);
     }
   }));
+}
+
+testAwaitHint() {
+  check(String script, {String className, String functionName}) {
+    var prefix = className == null
+        ? "Cannot resolve 'await'"
+        : "No member named 'await' in class '$className'";
+    var where = functionName == null
+        ? 'the enclosing function' : "'$functionName'";
+    asyncTest(() => compileScript(script).then((compiler) {
+      Expect.equals(0, compiler.errors.length);
+      Expect.equals(1, compiler.warnings.length);
+      Expect.equals("$prefix.\n"
+          "Did you mean to add the 'async' marker to $where?",
+          '${compiler.warnings[0].message}');
+    }));
+  }
+  check('main() { await -3; }', functionName: 'main');
+  check('main() { () => await -3; }');
+  check('foo() => await -3; main() => foo();', functionName: 'foo');
+  check('''
+    class A {
+      m() => await - 3;
+    }
+    main() => new A().m();
+  ''', className: 'A', functionName: 'm');
+  check('''
+    class A {
+      static m() => await - 3;
+    }
+    main() => A.m();
+  ''', functionName: 'm');
+  check('''
+    class A {
+      m() => () => await - 3;
+    }
+    main() => new A().m();
+  ''', className: 'A');
 }
