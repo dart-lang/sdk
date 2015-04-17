@@ -1603,10 +1603,14 @@ static bool GetInstances(Isolate* isolate, JSONStream* js) {
   }
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "InstanceSet");
-  jsobj.AddProperty("id", "instance_set");
   jsobj.AddProperty("totalCount", count);
-  jsobj.AddProperty("sampleCount", storage.Length());
-  jsobj.AddProperty("sample", storage);
+  {
+    JSONArray samples(&jsobj, "samples");
+    for (int i = 0; i < storage.Length(); i++) {
+      const Object& sample = Object::Handle(storage.At(i));
+      samples.AddValue(Instance::Cast(sample));
+    }
+  }
   return true;
 }
 
@@ -1811,7 +1815,6 @@ static bool RemoveBreakpoint(Isolate* isolate, JSONStream* js) {
   // TODO(turnidge): Consider whether the 'Success' type is proper.
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Success");
-  jsobj.AddProperty("id", "");
   return true;
 }
 
@@ -2009,7 +2012,6 @@ static bool Resume(Isolate* isolate, JSONStream* js) {
     isolate->message_handler()->set_pause_on_start(false);
     JSONObject jsobj(js);
     jsobj.AddProperty("type", "Success");
-    jsobj.AddProperty("id", "");
     {
       ServiceEvent event(isolate, ServiceEvent::kResume);
       Service::HandleEvent(&event);
@@ -2020,7 +2022,6 @@ static bool Resume(Isolate* isolate, JSONStream* js) {
     isolate->message_handler()->set_pause_on_exit(false);
     JSONObject jsobj(js);
     jsobj.AddProperty("type", "Success");
-    jsobj.AddProperty("id", "");
     // We don't send a resume event because we will be exiting.
     return true;
   }
@@ -2040,7 +2041,6 @@ static bool Resume(Isolate* isolate, JSONStream* js) {
     isolate->Resume();
     JSONObject jsobj(js);
     jsobj.AddProperty("type", "Success");
-    jsobj.AddProperty("id", "");
     return true;
   }
 
@@ -2060,7 +2060,6 @@ static bool Pause(Isolate* isolate, JSONStream* js) {
   isolate->ScheduleInterrupts(Isolate::kApiInterrupt);
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Success");
-  jsobj.AddProperty("id", "");
   return true;
 }
 
@@ -2260,7 +2259,11 @@ static bool GetObjectByAddress(Isolate* isolate, JSONStream* js) {
     ContainsAddressVisitor visitor(isolate, addr);
     object = isolate->heap()->FindObject(&visitor);
   }
-  object.PrintJSON(js, ref);
+  if (object.IsNull()) {
+    PrintSentinel(js, "objects/free", "<free>");
+  } else {
+    object.PrintJSON(js, ref);
+  }
   return true;
 }
 
@@ -2461,11 +2464,9 @@ static bool SetFlag(Isolate* isolate, JSONStream* js) {
   const char* error = NULL;
   if (Flags::SetFlag(flag_name, flag_value, &error)) {
     jsobj.AddProperty("type", "Success");
-    jsobj.AddProperty("id", "");
     return true;
   } else {
-    jsobj.AddProperty("type", "Failure");
-    jsobj.AddProperty("id", "");
+    jsobj.AddProperty("type", "Error");
     jsobj.AddProperty("message", error);
     return true;
   }
@@ -2510,7 +2511,7 @@ static ServiceMethodDescriptor service_methods_[] = {
     eval_params },
   { "evalFrame", EvalFrame,
     eval_frame_params },
-  { "getAllocationProfile", GetAllocationProfile,
+  { "_getAllocationProfile", GetAllocationProfile,
     get_allocation_profile_params },
   { "_getCallSiteData", GetCallSiteData,
     get_call_site_data_params },
@@ -2524,9 +2525,9 @@ static ServiceMethodDescriptor service_methods_[] = {
     get_flag_list_params },
   { "getHeapMap", GetHeapMap,
     get_heap_map_params },
-  { "getInboundReferences", GetInboundReferences,
+  { "_getInboundReferences", GetInboundReferences,
     get_inbound_references_params },
-  { "getInstances", GetInstances,
+  { "_getInstances", GetInstances,
     get_instances_params },
   { "getIsolate", GetIsolate,
     get_isolate_params },
@@ -2538,9 +2539,9 @@ static ServiceMethodDescriptor service_methods_[] = {
     get_object_params },
   { "getObjectByAddress", GetObjectByAddress,
     get_object_by_address_params },
-  { "getRetainedSize", GetRetainedSize,
+  { "_getRetainedSize", GetRetainedSize,
     get_retained_size_params },
-  { "getRetainingPath", GetRetainingPath,
+  { "_getRetainingPath", GetRetainingPath,
     get_retaining_path_params },
   { "getStack", GetStack,
     get_stack_params },

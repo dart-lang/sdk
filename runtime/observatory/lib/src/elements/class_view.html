@@ -133,7 +133,7 @@
           </div>
         </curly-block><br><br>
       </template>
-      
+
       <template if="{{ !cls.hasNoAllocations }}">
         instances
           <div class="memberItem">
@@ -153,12 +153,14 @@
                 </eval-link>
               </template>
               <template if="{{ instances != null }}">
-                sample
-                <any-service-ref ref="{{ instances['sample'] }}"></any-service-ref>
-                <template if="{{ instances['totalCount'] > instances['sampleCount'] }}">
+                <template repeat="{{ sample in instances['samples'] }}">
+                  <any-service-ref ref="{{ sample }}">
+                  </any-service-ref><br>
+                </template>
+                <template if="{{ instances['totalCount'] > instances['samples'].length }}">
                   <eval-link callback="{{ reachable }}"
                            label="[more]"
-                           expr="{{ instances['sampleCount'] * 2 }}">
+                           expr="{{ instances['samples'].length * 2 }}">
                   </eval-link>
                 </template>
                 of total {{ instances['totalCount'] }}

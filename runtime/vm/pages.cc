@@ -668,14 +668,13 @@ class HeapMapAsJSONVisitor : public ObjectVisitor {
 void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) {
   JSONObject heap_map(stream);
   heap_map.AddProperty("type", "HeapMap");
-  heap_map.AddProperty("id", "heapmap");
-  heap_map.AddProperty("free_class_id",
+  heap_map.AddProperty("freeClassId",
                        static_cast<intptr_t>(kFreeListElement));
-  heap_map.AddProperty("unit_size_bytes",
+  heap_map.AddProperty("unitSizeBytes",
                        static_cast<intptr_t>(kObjectAlignment));
-  heap_map.AddProperty("page_size_bytes", kPageSizeInWords * kWordSize);
+  heap_map.AddProperty("pageSizeBytes", kPageSizeInWords * kWordSize);
   {
-    JSONObject class_list(&heap_map, "class_list");
+    JSONObject class_list(&heap_map, "classList");
     isolate->class_table()->PrintToJSONObject(&class_list);
   }
   {
@@ -688,7 +687,7 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) {
     JSONArray all_pages(&heap_map, "pages");
     for (HeapPage* page = pages_; page != NULL; page = page->next()) {
       JSONObject page_container(&all_pages);
-      page_container.AddPropertyF("object_start",
+      page_container.AddPropertyF("objectStart",
                                   "0x%" Px "", page->object_start());
       JSONArray page_map(&page_container, "objects");
       HeapMapAsJSONVisitor printer(&page_map);
@@ -696,7 +695,7 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) {
     }
     for (HeapPage* page = exec_pages_; page != NULL; page = page->next()) {
       JSONObject page_container(&all_pages);
-      page_container.AddPropertyF("object_start",
+      page_container.AddPropertyF("objectStart",
                                   "0x%" Px "", page->object_start());
       JSONArray page_map(&page_container, "objects");
       HeapMapAsJSONVisitor printer(&page_map);

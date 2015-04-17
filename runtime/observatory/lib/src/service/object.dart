@@ -1182,7 +1182,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     Map params = {
       'targetId': target.id,
     };
-    return invokeRpc('getRetainedSize', params);
+    return invokeRpc('_getRetainedSize', params);
   }
 
   Future<ServiceObject> getRetainingPath(ServiceObject target, var limit) {
@@ -1190,7 +1190,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
       'targetId': target.id,
       'limit': limit.toString(),
     };
-    return invokeRpc('getRetainingPath', params);
+    return invokeRpc('_getRetainingPath', params);
   }
 
   Future<ServiceObject> getInboundReferences(ServiceObject target, var limit) {
@@ -1198,7 +1198,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
       'targetId': target.id,
       'limit': limit.toString(),
     };
-    return invokeRpc('getInboundReferences', params);
+    return invokeRpc('_getInboundReferences', params);
   }
 
   Future<ServiceObject> getTypeArgumentsList(bool onlyWithInstantiations) {
@@ -1213,7 +1213,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
       'classId': cls.id,
       'limit': limit.toString(),
     };
-    return invokeRpc('getInstances', params);
+    return invokeRpc('_getInstances', params);
   }
 
   Future<ServiceObject> getObjectByAddress(String address, [bool ref=true]) {
@@ -1294,6 +1294,11 @@ class ServiceMap extends ServiceObject implements ObservableMap {
     name = _map['name'];
     vmName = (_map.containsKey('vmName') ? _map['vmName'] : name);
   }
+
+  // TODO(turnidge): These are temporary until we have a proper root
+  // object for all dart heap objects.
+  int get size => _map['size'];
+  int get clazz => _map['class'];
 
   // Forward Map interface calls.
   void addAll(Map other) => _map.addAll(other);

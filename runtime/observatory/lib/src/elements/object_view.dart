@@ -13,4 +13,8 @@ class ObjectViewElement extends ObservatoryElement {
   @published ServiceObject object;
 
   ObjectViewElement.created() : super.created();
+
+  void refresh(Function onDone) {
+    object.reload().whenComplete(onDone);
+  }
 }

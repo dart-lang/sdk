@@ -151,29 +151,33 @@ interface Service {
   // accumulators should be reset.
   //
   // <code>gc</code> is optional and indicates whether a full
-  getAllocationProfile(isolateId string,
-                       reset bool,
-                       gc GCOption) AllocationProfile
+  _getAllocationProfile(isolateId string,
+                        reset bool,
+                        gc GCOption) AllocationProfile
 
   // Returns the heap map for an isolate.
   getHeapMap(isolateId string) HeapMap
 
   // Returns how many bytes are retained by some target Class or Instance.
-  getRetainedSize(isolateId string, targetId string) InstanceRef
+  _getRetainedSize(isolateId string, targetId string) InstanceRef
 
   // Returns a path demonstrating why an object is retained in memory.
   //
   // TODO(turnidge): Make limit an int instead of a string.
-  getRetainingPath(isolateId string,
-                   targetId string,
-                   limit int) RetainingPath
+  _getRetainingPath(isolateId string,
+                    targetId string,
+                    limit int) RetainingPath
 
   // Returns a collection of inbound references to some object.
   //
   // TODO(turnidge): Make limit an int instead of a string.
-  getInboundReferences(isolateId string,
-                       targetId string,
-                       limit int) InboundReferences
+  _getInboundReferences(isolateId string,
+                        targetId string,
+                        limit int) InboundReferences
+
+  _getInstances(isolateId string,
+                classId string,
+                limit int) InstanceSet
 
   getClassList(isolateId string) ClassList
 
@@ -1049,6 +1053,11 @@ struct InboundReferences extends Response {
 struct InboundReference {
   source InstanceRef
   slot   int
+}
+
+
+struct InstanceSet {
+  placeholder int
 }
 
 

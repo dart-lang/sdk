@@ -1601,6 +1601,12 @@ void Object::PrintJSONImpl(JSONStream* stream, bool ref) const {
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  if (ref) {
+    return;
+  }
+  Class& cls = Class::Handle(this->clazz());
+  jsobj.AddProperty("class", cls);
+  jsobj.AddProperty("size", raw()->Size());
 }
 
 
@@ -3524,7 +3530,7 @@ RawType* Class::CanonicalTypeFromIndex(intptr_t idx) const {
     }
   }
   Object& types = Object::Handle(canonical_types());
-  if (types.IsNull()) {
+  if (types.IsNull() || !types.IsArray()) {
     return Type::null();
   }
   if ((idx < 0) || (idx >= Array::Cast(types).Length())) {
@@ -13943,6 +13949,8 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
 
   if (raw()->IsHeapObject()) {
     jsobj->AddProperty("size", raw()->Size());
+  } else {
+    jsobj->AddProperty("size", (intptr_t)0);
   }
 
   // Walk the superclass chain, adding all instance fields.
@@ -15119,7 +15127,10 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  jsobj.AddProperty("typeArguments", TypeArguments::Handle(arguments()));
+  const TypeArguments& typeArgs = TypeArguments::Handle(arguments());
+  if (!typeArgs.IsNull()) {
+    jsobj.AddProperty("typeArguments", typeArgs);
+  }
 }
 
 

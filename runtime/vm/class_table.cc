@@ -304,7 +304,6 @@ void ClassHeapStats::UpdatePromotedAfterNewGC() {
 void ClassHeapStats::PrintToJSONObject(const Class& cls,
                                        JSONObject* obj) const {
   obj->AddProperty("type", "ClassHeapStats");
-  obj->AddPropertyF("id", "allocationprofile/%" Pd "", cls.id());
   obj->AddProperty("class", cls);
   {
     JSONArray new_stats(obj, "new");
@@ -423,7 +422,6 @@ void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
   ASSERT(heap != NULL);
   JSONObject obj(stream);
   obj.AddProperty("type", "AllocationProfile");
-  obj.AddProperty("id", "allocationprofile");
   obj.AddPropertyF(
       "dateLastAccumulatorReset",
       "%" Pd64 "",

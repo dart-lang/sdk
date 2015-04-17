@@ -106,8 +106,8 @@ void runIsolateTests(List<String> mainArgs,
     var process = new _TestLauncher();
     process.launch(pause_on_exit).then((port) {
       String addr = 'ws://localhost:$port/ws';
-      var testIndex = 0;
-      var totalTests = tests.length - 1;
+      var testIndex = 1;
+      var totalTests = tests.length;
       var name = Platform.script.pathSegments.last;
       runZoned(() {
         new WebSocketVM(new WebSocketVMTarget(addr)).load()
@@ -167,8 +167,8 @@ Future runVMTests(List<String> mainArgs,
     var process = new _TestLauncher();
     process.launch(pause_on_exit).then((port) async {
       String addr = 'ws://localhost:$port/ws';
-      var testIndex = 0;
-      var totalTests = tests.length - 1;
+      var testIndex = 1;
+      var totalTests = tests.length;
       var name = Platform.script.pathSegments.last;
       runZoned(() {
         new WebSocketVM(new WebSocketVMTarget(addr)).load()
