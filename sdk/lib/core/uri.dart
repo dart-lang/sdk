@@ -751,7 +751,7 @@ class Uri {
   static _checkWindowsPathReservedCharacters(List<String> segments,
                                              bool argumentError,
                                              [int firstSegment = 0]) {
-    segments.skip(firstSegment).forEach((segment) {
+    for (var segment in segments.skip(firstSegment)) {
       if (segment.contains(new RegExp(r'["*/:<>?\\|]'))) {
         if (argumentError) {
           throw new ArgumentError("Illegal character in path");
@@ -759,7 +759,7 @@ class Uri {
           throw new UnsupportedError("Illegal character in path");
         }
       }
-    });
+    }
   }
 
   static _checkWindowsDriveLetter(int charCode, bool argumentError) {
