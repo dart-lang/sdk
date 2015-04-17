@@ -888,6 +888,12 @@ void FlowGraphCompiler::FinalizeStackmaps(const Code& code) {
 
 
 void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
+  if (code.is_optimized()) {
+    // Optimized code does not need variable descriptors. They are
+    // only stored in the unoptimized version.
+    code.set_var_descriptors(Object::empty_var_descriptors());
+    return;
+  }
   LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle();
   if (parsed_function().node_sequence() == NULL) {
     ASSERT(flow_graph().IsIrregexpFunction());

@@ -460,7 +460,11 @@ intptr_t ActivationFrame::ColumnNumber() {
 
 void ActivationFrame::GetVarDescriptors() {
   if (var_descriptors_.IsNull()) {
-    var_descriptors_ = code().var_descriptors();
+    if (code().is_optimized()) {
+      Compiler::EnsureUnoptimizedCode(Thread::Current(), function());
+    }
+    var_descriptors_ =
+        Code::Handle(function().unoptimized_code()).var_descriptors();
     ASSERT(!var_descriptors_.IsNull());
   }
 }
@@ -473,7 +477,8 @@ bool ActivationFrame::IsDebuggable() const {
 
 // Calculate the context level at the current token index of the frame.
 intptr_t ActivationFrame::ContextLevel() {
-  if (context_level_ < 0 && !ctx_.IsNull()) {
+  const Context& ctx = GetSavedCurrentContext();
+  if (context_level_ < 0 && !ctx.IsNull()) {
     ASSERT(!code_.is_optimized());
     context_level_ = 0;
     // TODO(hausner): What to do if there is no descriptor entry
@@ -513,7 +518,8 @@ intptr_t ActivationFrame::ContextLevel() {
 
 
 // Get the saved current context of this activation.
-RawContext* ActivationFrame::GetSavedCurrentContext() {
+const Context& ActivationFrame::GetSavedCurrentContext() {
+  if (!ctx_.IsNull()) return ctx_;
   GetVarDescriptors();
   intptr_t var_desc_len = var_descriptors_.Length();
   for (intptr_t i = 0; i < var_desc_len; i++) {
@@ -525,12 +531,12 @@ RawContext* ActivationFrame::GetSavedCurrentContext() {
         OS::PrintErr("\tFound saved current ctx at index %d\n",
             var_info.index());
       }
-      ASSERT(Object::Handle(GetLocalVar(var_info.index())).IsContext());
-      return Context::RawCast(GetLocalVar(var_info.index()));
+      ctx_ ^= GetLocalVar(var_info.index());
+      return ctx_;
     }
   }
   UNREACHABLE();
-  return Context::null();
+  return Context::ZoneHandle(Context::null());
 }
 
 
@@ -654,7 +660,7 @@ intptr_t ActivationFrame::NumLocalVariables() {
   return desc_indices_.length();
 }
 
-// TODO(hausner): Handle captured variables.
+
 RawObject* ActivationFrame::GetLocalVar(intptr_t slot_index) {
   if (deopt_frame_.IsNull()) {
     uword var_address = fp() + slot_index * kWordSize;
@@ -695,7 +701,8 @@ void ActivationFrame::PrintContextMismatchError(
 
   OS::PrintErr("-------------------------\n"
                "Context contents:\n");
-  ctx_.Dump(8);
+  const Context& ctx = GetSavedCurrentContext();
+  ctx.Dump(8);
 
   OS::PrintErr("-------------------------\n"
                "Debugger stack trace...\n\n");
@@ -744,7 +751,8 @@ void ActivationFrame::VariableAt(intptr_t i,
     *value = GetLocalInstanceVar(var_info.index());
   } else {
     ASSERT(kind == RawLocalVarDescriptors::kContextVar);
-    ASSERT(!ctx_.IsNull());
+    const Context& ctx = GetSavedCurrentContext();
+    ASSERT(!ctx.IsNull());
 
     // The context level at the PC/token index of this activation frame.
     intptr_t frame_ctx_level = ContextLevel();
@@ -755,15 +763,15 @@ void ActivationFrame::VariableAt(intptr_t i,
     intptr_t ctx_slot = var_info.index();
     if (level_diff == 0) {
       if ((ctx_slot < 0) ||
-          (ctx_slot >= ctx_.num_variables())) {
+          (ctx_slot >= ctx.num_variables())) {
         PrintContextMismatchError(*name, ctx_slot,
                                   frame_ctx_level, var_ctx_level);
       }
-      ASSERT((ctx_slot >= 0) && (ctx_slot < ctx_.num_variables()));
-      *value = ctx_.At(ctx_slot);
+      ASSERT((ctx_slot >= 0) && (ctx_slot < ctx.num_variables()));
+      *value = ctx.At(ctx_slot);
     } else {
       ASSERT(level_diff > 0);
-      Context& var_ctx = Context::Handle(ctx_.raw());
+      Context& var_ctx = Context::Handle(ctx.raw());
       while (level_diff > 0 && !var_ctx.IsNull()) {
         level_diff--;
         var_ctx = var_ctx.parent();
@@ -1185,13 +1193,8 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
   ActivationFrame* activation =
       new ActivationFrame(pc, frame->fp(), frame->sp(), code,
                           deopt_frame, deopt_frame_offset);
-
-  // Recover the context for this frame.
-  const Context& ctx =
-      Context::Handle(isolate, activation->GetSavedCurrentContext());
-  ASSERT(!ctx.IsNull());
-  activation->SetContext(ctx);
   if (FLAG_trace_debugger_stacktrace) {
+    const Context& ctx = activation->GetSavedCurrentContext();
     OS::PrintErr("\tUsing saved context: %s\n", ctx.ToCString());
   }
   if (FLAG_trace_debugger_stacktrace) {

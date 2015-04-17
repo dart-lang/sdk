@@ -12,7 +12,6 @@
 
 namespace dart {
 
-class ActiveVariables;
 class CodeBreakpoint;
 class Isolate;
 class JSONArray;
@@ -174,7 +173,6 @@ class ActivationFrame : public ZoneAllocated {
   intptr_t TokenPos();
   intptr_t LineNumber();
   intptr_t ColumnNumber();
-  void SetContext(const Context& ctx) { ctx_ = ctx.raw(); }
 
   // Returns true if this frame is for a function that is visible
   // to the user and can be debugged.
@@ -198,7 +196,7 @@ class ActivationFrame : public ZoneAllocated {
   RawArray* GetLocalVariables();
   RawObject* GetReceiver();
 
-  RawContext* GetSavedCurrentContext();
+  const Context& GetSavedCurrentContext();
 
   RawObject* Evaluate(const String& expr);
 
