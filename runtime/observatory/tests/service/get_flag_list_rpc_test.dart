@@ -27,18 +27,6 @@ var tests = [
     }
     expect(found, isTrue);
 
-    // Find a modified flag.
-    expect(result['modifiedFlags'].length, isPositive);
-    found = false;
-    for (var flag in result['modifiedFlags']) {
-      if (flag['name'] == 'enable_type_checks') {
-        found = true;
-        expect(flag['flagType'], equals('bool'));
-        expect(flag['valueAsString'], equals('true'));
-      } 
-    }
-    expect(found, isTrue);
-
     // Modify a flag.
     var params = {
       'name' : 'code_comments',

@@ -23,7 +23,7 @@ var tests = [
     expect(result['isolates'].length, isPositive);
     expect(result['isolates'][0]['type'], equals('@Isolate'));
     expect(result['_assertsEnabled'], new isInstanceOf<bool>());
-    expect(result['_typeChecksEnabled'], true);
+    expect(result['_typeChecksEnabled'], new isInstanceOf<bool>());
   },
 ];
 
