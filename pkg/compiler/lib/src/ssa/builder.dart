@@ -3149,7 +3149,8 @@ class SsaBuilder extends NewResolvedVisitor {
 
     // See if we can constant-fold right away. This avoids rewrites later on.
     if (operand is HConstant) {
-      UnaryOperation operation = constantSystem.lookupUnary(op.source);
+      UnaryOperation operation = constantSystem.lookupUnary(
+          UnaryOperator.parse(op.source));
       HConstant constant = operand;
       ConstantValue folded = operation.fold(constant.constant);
       if (folded != null) {

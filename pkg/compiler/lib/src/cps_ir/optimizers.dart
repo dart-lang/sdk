@@ -11,6 +11,7 @@ import '../constants/expressions.dart' show
 import '../constants/values.dart';
 import '../dart_types.dart' as types;
 import '../dart2jslib.dart' as dart2js;
+import '../resolution/operators.dart';
 import '../tree/tree.dart' show LiteralDartString;
 import 'cps_ir_nodes.dart';
 import '../types/types.dart' show TypeMask, TypesTask;

@@ -1259,6 +1259,12 @@ class ConstantEmitter
   }
 
   @override
+  Expression visitIdentical(IdenticalConstantExpression exp,
+                            BuilderContext<Statement> context) {
+    return handlePrimitiveConstant(exp.value);
+  }
+
+  @override
   Expression visitConditional(ConditionalConstantExpression exp,
                               BuilderContext<Statement> context) {
     if (exp.condition.value.isTrue) {

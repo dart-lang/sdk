@@ -6,6 +6,7 @@ library dart2js.constant_system;
 
 import '../dart_types.dart';
 import '../dart2jslib.dart' show Compiler;
+import '../resolution/operators.dart';
 import '../tree/tree.dart' show DartString;
 import 'values.dart';
 
@@ -80,35 +81,35 @@ abstract class ConstantSystem {
   /** Returns true if the [constant] is null at runtime. */
   bool isNull(ConstantValue constant);
 
-  UnaryOperation lookupUnary(String operator) {
-    switch (operator) {
-      case '~': return bitNot;
-      case '-': return negate;
-      case '!': return not;
+  UnaryOperation lookupUnary(UnaryOperator operator) {
+    switch (operator.kind) {
+      case UnaryOperatorKind.COMPLEMENT: return bitNot;
+      case UnaryOperatorKind.NEGATE: return negate;
+      case UnaryOperatorKind.NOT: return not;
       default:  return null;
     }
   }
 
-  BinaryOperation lookupBinary(String operator) {
-    switch (operator) {
-      case "+":   return add;
-      case "-":   return subtract;
-      case "*":   return multiply;
-      case "/":   return divide;
-      case "%":   return modulo;
-      case "~/":  return truncatingDivide;
-      case "|":   return bitOr;
-      case "&":   return bitAnd;
-      case "^":   return bitXor;
-      case "||":  return booleanOr;
-      case "&&":  return booleanAnd;
-      case "<<":  return shiftLeft;
-      case ">>":  return shiftRight;
-      case "<":   return less;
-      case "<=":  return lessEqual;
-      case ">":   return greater;
-      case ">=":  return greaterEqual;
-      case "==":  return equal;
+  BinaryOperation lookupBinary(BinaryOperator operator) {
+    switch (operator.kind) {
+      case BinaryOperatorKind.ADD:   return add;
+      case BinaryOperatorKind.SUB:   return subtract;
+      case BinaryOperatorKind.MUL:   return multiply;
+      case BinaryOperatorKind.DIV:   return divide;
+      case BinaryOperatorKind.MOD:   return modulo;
+      case BinaryOperatorKind.IDIV:  return truncatingDivide;
+      case BinaryOperatorKind.OR:   return bitOr;
+      case BinaryOperatorKind.AND:   return bitAnd;
+      case BinaryOperatorKind.XOR:   return bitXor;
+      case BinaryOperatorKind.LOGICAL_OR:  return booleanOr;
+      case BinaryOperatorKind.LOGICAL_AND:  return booleanAnd;
+      case BinaryOperatorKind.SHL:  return shiftLeft;
+      case BinaryOperatorKind.SHR:  return shiftRight;
+      case BinaryOperatorKind.LT:   return less;
+      case BinaryOperatorKind.LTEQ:  return lessEqual;
+      case BinaryOperatorKind.GT:   return greater;
+      case BinaryOperatorKind.GTEQ:  return greaterEqual;
+      case BinaryOperatorKind.EQ:  return equal;
       default:    return null;
     }
   }

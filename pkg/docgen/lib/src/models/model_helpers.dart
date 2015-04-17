@@ -101,6 +101,12 @@ class AnnotationCreator
   }
 
   @override
+  Annotation visitIdentical(IdenticalConstantExpression exp,
+                            AnnotationInfo context) {
+    return null;
+  }
+
+  @override
   Annotation visitConcatenate(ConcatenateConstantExpression exp,
                               AnnotationInfo context) {
     return null;

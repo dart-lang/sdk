@@ -522,7 +522,8 @@ class _TypePropagationVisitor<T> implements Visitor {
       if (opname == "unary-") {
         opname = "-";
       }
-      UnaryOperation operation = constantSystem.lookupUnary(opname);
+      UnaryOperation operation = constantSystem.lookupUnary(
+          UnaryOperator.parse(opname));
       if (operation != null) {
         result = operation.fold(lhs.constant);
       }
@@ -535,7 +536,8 @@ class _TypePropagationVisitor<T> implements Visitor {
         return;
       }
 
-      BinaryOperation operation = constantSystem.lookupBinary(opname);
+      BinaryOperation operation = constantSystem.lookupBinary(
+          BinaryOperator.parse(opname));
       if (operation != null) {
         result = operation.fold(lhs.constant, rhs.constant);
       }

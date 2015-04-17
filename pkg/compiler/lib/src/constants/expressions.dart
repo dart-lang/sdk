@@ -10,6 +10,7 @@ import '../elements/elements.dart' show
     Element,
     FunctionElement,
     VariableElement;
+import '../resolution/operators.dart';
 import '../universe/universe.dart' show CallStructure;
 import 'values.dart';
 
@@ -182,67 +183,81 @@ class FunctionConstantExpression extends ConstantExpression {
   }
 }
 
-/// A constant binary expression like `a * b` or `identical(a, b)`.
+/// A constant binary expression like `a * b`.
 class BinaryConstantExpression extends ConstantExpression {
   final ConstantValue value;
   final ConstantExpression left;
-  final String operator;
+  final BinaryOperator operator;
   final ConstantExpression right;
 
   BinaryConstantExpression(this.value, this.left, this.operator, this.right) {
-    assert(PRECEDENCE_MAP[operator] != null);
+    assert(PRECEDENCE_MAP[operator.kind] != null);
   }
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitBinary(this, context);
   }
 
-  int get precedence => PRECEDENCE_MAP[operator];
+  int get precedence => PRECEDENCE_MAP[operator.kind];
 
-  static const Map<String, int> PRECEDENCE_MAP = const {
-    'identical': 15,
-    '==': 6,
-    '!=': 6,
-    '&&': 5,
-    '||': 4,
-    '^': 9,
-    '&': 10,
-    '|': 8,
-    '>>': 11,
-    '<<': 11,
-    '+': 12,
-    '-': 12,
-    '*': 13,
-    '/': 13,
-    '~/': 13,
-    '>': 7,
-    '<': 7,
-    '>=': 7,
-    '<=': 7,
-    '%': 13,
+  static const Map<BinaryOperatorKind, int> PRECEDENCE_MAP = const {
+    BinaryOperatorKind.EQ: 6,
+    BinaryOperatorKind.NOT_EQ: 6,
+    BinaryOperatorKind.LOGICAL_AND: 5,
+    BinaryOperatorKind.LOGICAL_OR: 4,
+    BinaryOperatorKind.XOR: 9,
+    BinaryOperatorKind.AND: 10,
+    BinaryOperatorKind.OR: 8,
+    BinaryOperatorKind.SHR: 11,
+    BinaryOperatorKind.SHL: 11,
+    BinaryOperatorKind.ADD: 12,
+    BinaryOperatorKind.SUB: 12,
+    BinaryOperatorKind.MUL: 13,
+    BinaryOperatorKind.DIV: 13,
+    BinaryOperatorKind.IDIV: 13,
+    BinaryOperatorKind.GT: 7,
+    BinaryOperatorKind.LT: 7,
+    BinaryOperatorKind.GTEQ: 7,
+    BinaryOperatorKind.LTEQ: 7,
+    BinaryOperatorKind.MOD: 13,
   };
+}
+
+/// A constant identical invocation like `identical(a, b)`.
+class IdenticalConstantExpression extends ConstantExpression {
+  final ConstantValue value;
+  final ConstantExpression left;
+  final ConstantExpression right;
+
+  IdenticalConstantExpression(this.value, this.left, this.right);
+
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitIdentical(this, context);
+  }
+
+  int get precedence => 15;
 }
 
 /// A unary constant expression like `-a`.
 class UnaryConstantExpression extends ConstantExpression {
   final ConstantValue value;
-  final String operator;
+  final UnaryOperator operator;
   final ConstantExpression expression;
 
   UnaryConstantExpression(this.value, this.operator, this.expression) {
-    assert(PRECEDENCE_MAP[operator] != null);
+    assert(PRECEDENCE_MAP[operator.kind] != null);
   }
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitUnary(this, context);
   }
 
-  int get precedence => PRECEDENCE_MAP[operator];
+  int get precedence => PRECEDENCE_MAP[operator.kind];
 
-  static const Map<String, int> PRECEDENCE_MAP = const {
-    '!': 14,
-    '~': 14,
-    '-': 14,
+  static const Map<UnaryOperatorKind, int> PRECEDENCE_MAP = const {
+    UnaryOperatorKind.NOT: 14,
+    UnaryOperatorKind.COMPLEMENT: 14,
+    UnaryOperatorKind.NEGATE: 14,
   };
 }
 
@@ -282,6 +297,7 @@ abstract class ConstantExpressionVisitor<C, R> {
   R visitVariable(VariableConstantExpression exp, C context);
   R visitFunction(FunctionConstantExpression exp, C context);
   R visitBinary(BinaryConstantExpression exp, C context);
+  R visitIdentical(IdenticalConstantExpression exp, C context);
   R visitUnary(UnaryConstantExpression exp, C context);
   R visitConditional(ConditionalConstantExpression exp, C context);
 }
@@ -435,19 +451,20 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
 
   @override
   void visitBinary(BinaryConstantExpression exp, [_]) {
-    if (exp.operator == 'identical') {
-      sb.write('identical(');
-      visit(exp.left);
-      sb.write(', ');
-      visit(exp.right);
-      sb.write(')');
-    } else {
-      write(exp, exp.left);
-      sb.write(' ');
-      sb.write(exp.operator);
-      sb.write(' ');
-      write(exp, exp.right);
-    }
+    write(exp, exp.left);
+    sb.write(' ');
+    sb.write(exp.operator.name);
+    sb.write(' ');
+    write(exp, exp.right);
+  }
+
+  @override
+  void visitIdentical(IdenticalConstantExpression exp, [_]) {
+    sb.write('identical(');
+    visit(exp.left);
+    sb.write(', ');
+    visit(exp.right);
+    sb.write(')');
   }
 
   @override

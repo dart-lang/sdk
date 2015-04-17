@@ -13,6 +13,7 @@ import 'dart2jslib.dart' show Compiler, CompilerTask, MessageKind, invariant;
 import 'elements/elements.dart';
 import 'elements/modelx.dart' show FunctionElementX;
 import 'resolution/resolution.dart';
+import 'resolution/operators.dart';
 import 'tree/tree.dart';
 import 'util/util.dart' show Link;
 import 'universe/universe.dart' show CallStructure;
@@ -555,8 +556,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
             constantSystem.identity.fold(left.value, right.value);
         if (result != null) {
           return new AstConstant(
-              context, send, new BinaryConstantExpression(result,
-                  left.expression, 'identical', right.expression));
+              context, send, new IdenticalConstantExpression(result,
+                  left.expression, right.expression));
         }
       }
       return signalNotCompileTimeConstant(send);
@@ -566,10 +567,11 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       if (receiverConstant == null) {
         return null;
       }
-      Operator op = send.selector;
-      UnaryOperation operation = constantSystem.lookupUnary(op.source);
+      Operator node = send.selector;
+      UnaryOperator operator = UnaryOperator.parse(node.source);
+      UnaryOperation operation = constantSystem.lookupUnary(operator);
       if (operation == null) {
-        compiler.internalError(op, "Unexpected operator.");
+        compiler.internalError(send.selector, "Unexpected operator.");
       }
       ConstantValue folded = operation.fold(receiverConstant.value);
       if (folded == null) {
@@ -577,7 +579,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       }
       return new AstConstant(
           context, send, new UnaryConstantExpression(folded,
-              op.source, receiverConstant.expression));
+              operator, receiverConstant.expression));
     } else if (send.isOperator && !send.isPostfix) {
       assert(send.argumentCount() == 1);
       AstConstant left = evaluate(send.receiver);
@@ -587,15 +589,16 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       }
       ConstantValue leftValue = left.value;
       ConstantValue rightValue = right.value;
-      Operator op = send.selector.asOperator();
+      Operator node = send.selector.asOperator();
+      BinaryOperator operator = BinaryOperator.parse(node.source);
       ConstantValue folded = null;
-      switch (op.source) {
-        case "==":
+      switch (operator.kind) {
+        case BinaryOperatorKind.EQ:
           if (leftValue.isPrimitive && rightValue.isPrimitive) {
             folded = constantSystem.equal.fold(leftValue, rightValue);
           }
           break;
-        case "!=":
+        case BinaryOperatorKind.NOT_EQ:
           if (leftValue.isPrimitive && rightValue.isPrimitive) {
             BoolConstantValue areEquals =
                 constantSystem.equal.fold(leftValue, rightValue);
@@ -607,7 +610,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
           }
           break;
         default:
-          BinaryOperation operation = constantSystem.lookupBinary(op.source);
+          BinaryOperation operation = constantSystem.lookupBinary(operator);
           if (operation != null) {
             folded = operation.fold(leftValue, rightValue);
           }
@@ -617,7 +620,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       }
       return new AstConstant(
           context, send, new BinaryConstantExpression(folded,
-              left.expression, op.source, right.expression));
+              left.expression, operator, right.expression));
     }
     return signalNotCompileTimeConstant(send);
   }
