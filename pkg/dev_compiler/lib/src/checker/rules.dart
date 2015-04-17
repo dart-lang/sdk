@@ -42,6 +42,32 @@ abstract class TypeRules {
 
   DartType getStaticType(Expression expr) => expr.staticType;
 
+  /// Given a type t, if t is an interface type with a call method
+  /// defined, return the function type for the call method, otherwise
+  /// return null.
+  FunctionType getCallMethodType(DartType t) {
+    if (t is InterfaceType) {
+      ClassElement element = t.element;
+      InheritanceManager manager = new InheritanceManager(element.library);
+      FunctionType callType = manager.lookupMemberType(t, "call");
+      return callType;
+    }
+    return null;
+  }
+
+  /// Given an expression, return its type assuming it is
+  /// in the caller position of a call (that is, accounting
+  /// for the possibility of a call method).  Returns null
+  /// if expression is not statically callable.
+  FunctionType getTypeAsCaller(Expression applicand) {
+    var t = getStaticType(applicand);
+    if (t is InterfaceType) {
+      return getCallMethodType(t);
+    }
+    if (t is FunctionType) return t;
+    return null;
+  }
+
   DartType elementType(Element e);
 
   bool isDynamic(DartType t);
@@ -183,16 +209,6 @@ class RestrictedRules extends TypeRules {
     }
 
     throw new StateError("Unexpected type");
-  }
-
-  FunctionType getCallMethodType(DartType t) {
-    if (t is InterfaceType) {
-      ClassElement element = t.element;
-      InheritanceManager manager = new InheritanceManager(element.library);
-      FunctionType callType = manager.lookupMemberType(t, "call");
-      return callType;
-    }
-    return null;
   }
 
   /// Check that f1 is a subtype of f2. [ignoreReturn] is used in the DDC
@@ -536,12 +552,12 @@ class RestrictedRules extends TypeRules {
   /// invocation.
   bool isDynamicCall(Expression call) {
     if (options.ignoreTypes) return true;
-    var t = getStaticType(call);
-    // TODO(jmesserly): fix handling of types with `call` methods. These are not
-    // FunctionType, but they also aren't dynamic calls.
-    if (t.isDynamic || t.isDartCoreFunction || t is! FunctionType) {
-      return true;
-    }
+    var t = getTypeAsCaller(call);
+    // TODO(leafp): This will currently return true if t is Function
+    // This is probably the most correct thing to do for now, since
+    // this code is also used by the back end.  Maybe revisit at some
+    // point?
+    if (t == null) return true;
     // Dynamic as the parameter type is treated as bottom.  A function with
     // a dynamic parameter type requires a dynamic call in general.
     // However, as an optimization, if we have an original definition, we know

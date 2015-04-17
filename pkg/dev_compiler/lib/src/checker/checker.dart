@@ -505,11 +505,11 @@ class CodeChecker extends RecursiveAstVisitor {
   void checkFunctionApplication(
       Expression node, Expression f, ArgumentList list) {
     if (_rules.isDynamicCall(f)) {
-      // TODO(vsm): For a function object, we should still be able to derive a
-      // function type from it.
+      // If f is Function and this is a method invocation, we should have
+      // gotten an analyzer error, so no need to issue another error.
       _recordDynamicInvoke(node);
     } else {
-      checkArgumentList(list, _rules.getStaticType(f));
+      checkArgumentList(list, _rules.getTypeAsCaller(f));
     }
   }
 

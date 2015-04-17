@@ -14,6 +14,55 @@ import '../test_util.dart';
 void main() {
   configureTest();
 
+  test('dynamic invocation', () {
+    testChecker({
+      '/main.dart': '''
+
+      class A {
+        dynamic call(dynamic x) => x;
+      }
+      class B extends A {
+        int call(int x) => x;
+        double col(double x) => x;
+      }
+      void main() {
+        {
+          B f = new B();
+          int x;
+          double y;
+          // The analyzer has what I believe is a bug (dartbug.com/23252) which
+          // causes the return type of calls to f to be treated as dynamic.
+          x = /*info:DynamicCast should be pass*/f(3);
+          x = /*severe:StaticTypeError*/f.col(3.0);
+          y = /*info:DynamicCast should be severe:StaticTypeError*/f(3);
+          y = f.col(3.0);
+          f(/*severe:StaticTypeError*/3.0);
+          f.col(/*severe:StaticTypeError*/3);
+        }
+        {
+          Function f = new B();
+          int x;
+          double y;
+          x = /*info:DynamicCast, info:DynamicInvoke*/f(3);
+          x = /*info:DynamicCast, info:DynamicInvoke*/f.col(3.0);
+          y = /*info:DynamicCast, info:DynamicInvoke*/f(3);
+          y = /*info:DynamicCast, info:DynamicInvoke*/f.col(3.0);
+          (/*info:DynamicInvoke*/f(3.0));
+          (/*info:DynamicInvoke*/f.col(3));
+        }
+        {
+          A f = new B();
+          int x;
+          double y;
+          x = /*info:DynamicCast, info:DynamicInvoke*/f(3);
+          y = /*info:DynamicCast, info:DynamicInvoke*/f(3);
+          (/*info:DynamicInvoke*/f(3.0));
+        }
+      }
+    '''
+    });
+  });
+
   test('conversion and dynamic invoke', () {
     testChecker({
       '/helper.dart': '''
@@ -91,6 +140,7 @@ void main() {
 
         baz().toString();
         baz().hashCode;
+      }
     '''
     });
   });
