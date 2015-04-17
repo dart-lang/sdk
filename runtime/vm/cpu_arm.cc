@@ -18,6 +18,42 @@
 #include <unistd.h>  /* NOLINT */
 #endif
 
+// ARM version differences.
+// We support three major 32-bit ARM ISA versions: ARMv5TE, ARMv6 and variants,
+// and ARMv7 and variants. For each of these we detect the presence of vfp,
+// neon, and integer division instructions. Considering ARMv5TE as the baseline,
+// later versions add the following features/instructions that we use:
+//
+// ARMv6:
+// - PC read offset in store instructions is 8 rather than 12, matching the
+//   offset in read instructions,
+// - strex, ldrex, and clrex load/store/clear exclusive instructions,
+// - umaal multiplication instruction,
+// ARMv7:
+// - movw, movt 16-bit immediate load instructions,
+// - mls multiplication instruction,
+// - vmovs, vmovd floating point immediate load instructions.
+//
+// If an aarch64 CPU is detected, we generate ARMv7 code.
+//
+// If an instruction is missing on ARMv5TE or ARMv6, we emulate it, if possible.
+// Where we are missing vfp, we do not unbox doubles, or generate intrinsics for
+// floating point operations. Where we are missing neon, we do not unbox SIMD
+// values, or inline operations on SIMD values. Where we are missing integer
+// division, we do not inline division operations, and we do not generate
+// intrinsics that do division. See the feature tests in flow_graph_optimizer.cc
+// for details.
+//
+// Alignment:
+//
+// Before ARMv6, that is only for ARMv5TE, unaligned accesses will cause a
+// crash. This includes the ldrd and strd instructions, which must use addresses
+// that are 8-byte aligned. Since we don't always guarantee that for our uses
+// of ldrd and strd, these instructions are emulated with two load or store
+// instructions on ARMv5TE. On ARMv6 and on, we assume that the kernel is
+// set up to fixup unaligned accesses. This can be verified by checking
+// /proc/cpu/alignment on modern Linux systems.
+
 namespace dart {
 
 // TODO(zra): Add a target for ARMv6.
