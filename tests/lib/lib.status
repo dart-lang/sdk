@@ -252,6 +252,7 @@ async/timer_isActive_test: Fail, Pass # Issue 22352
 mirrors/immutable_collections_test: SkipSlow # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
 mirrors/mirrors_reader_test: SkipSlow # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
 mirrors/library_uri_io_test: SkipByDesign # Uses dart:io.
+mirrors/spawn_function_root_library_test: SkipByDesign # Uses spawnFunction.
 mirrors/local_isolate_test: RuntimeError # Issue 12188
 
 [ $compiler == none && $runtime == drt && $system == windows ]
