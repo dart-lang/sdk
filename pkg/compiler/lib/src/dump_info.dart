@@ -305,9 +305,9 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
 
     var enclosingElement = element.enclosingElement;
     if (enclosingElement.isField ||
-               enclosingElement.isFunction ||
-               element.isClosure ||
-               enclosingElement.isConstructor) {
+        enclosingElement.isFunction ||
+        element.isClosure ||
+        enclosingElement.isConstructor) {
       kind = "closure";
       name = "<unnamed>";
     } else if (modifiers['static']) {
@@ -323,22 +323,24 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
       kind = "constructor";
     }
 
-    if (emittedCode != null) {
+    if (element.hasFunctionSignature) {
       FunctionSignature signature = element.functionSignature;
-      returnType = signature.type.returnType.toString();
       signature.forEachParameter((parameter) {
         parameters.add({
           'name': parameter.name,
-          'type': compiler.typesTask
-            .getGuaranteedTypeOfElement(parameter).toString(),
-          'declaredType': parameter.node.type.toString()
+          'type': '${compiler.typesTask.getGuaranteedTypeOfElement(parameter)}',
+          'declaredType': '${parameter.node.type}'
         });
       });
-      inferredReturnType = compiler.typesTask
-        .getGuaranteedReturnTypeOfElement(element).toString();
-      sideEffects = compiler.world.getSideEffectsOfElement(element).toString();
-      code = emittedCode.toString();
     }
+
+    if (element.isInstanceMember && !element.isAbstract &&
+        compiler.world.allFunctions.contains(element)) {
+      returnType = '${element.type.returnType}';
+    }
+    inferredReturnType =
+        '${compiler.typesTask.getGuaranteedReturnTypeOfElement(element)}';
+    sideEffects = compiler.world.getSideEffectsOfElement(element).toString();
 
     if (element is MemberElement) {
       MemberElement member = element as MemberElement;
@@ -376,7 +378,7 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
       'parameters': parameters,
       'sideEffects': sideEffects,
       'inlinedCount': inlinedCount,
-      'code': code,
+      'code': emittedCode == null ? null : '$emittedCode',
       'type': element.type.toString(),
       'outputUnit': mapper._outputUnit.add(outputUnit)
     };
@@ -551,7 +553,7 @@ class DumpInfoTask extends CompilerTask {
 
 
   void dumpInfoJson(StringSink buffer) {
-    JsonEncoder encoder = const JsonEncoder();
+    JsonEncoder encoder = const JsonEncoder.withIndent('  ');
     DateTime startToJsonTime = new DateTime.now();
 
     Map<String, List<Map<String, String>>> holding =
