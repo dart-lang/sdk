@@ -151,7 +151,7 @@ part of dart.async;
    var nextIteration;
    nextIteration = Zone.current.bindUnaryCallback((bool keepGoing) {
     if (keepGoing) {
-      new Future.sync(f).then(DEVC$RT.cast(nextIteration, dynamic, __t8, "DynamicCast", """line 361, column 33 of dart:async/future.dart: """, nextIteration is __t8, true), onError: doneSignal._completeError);
+      new Future.sync(f).then(DEVC$RT.cast(nextIteration, dynamic, __CastType8, "DynamicCast", """line 361, column 33 of dart:async/future.dart: """, nextIteration is __CastType8, true), onError: doneSignal._completeError);
       }
      else {
       doneSignal._complete(null);
@@ -199,4 +199,4 @@ error = _nonNullError(replacement.error);
  result._completeError(error, DEVC$RT.cast(stackTrace, dynamic, StackTrace, "DynamicCast", """line 724, column 32 of dart:async/future.dart: """, stackTrace is StackTrace, true));
 }
  Object _nonNullError(Object error) => (error != null) ? error : new NullThrownError();
- typedef dynamic __t8(dynamic __u9);
+ typedef dynamic __CastType8(dynamic __u9);

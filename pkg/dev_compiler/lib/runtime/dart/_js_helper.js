@@ -102,7 +102,7 @@ var _js_helper;
         return new (_ConstantMapKeyIterable$(K))(this);
       }
       get values() {
-        return new (_internal.MappedIterable$(K, V))(this[_keys], dart.as((key => this[_fetch](key)).bind(this), dart.functionType(V, [K])));
+        return new (_internal.MappedIterable$(K, V))(this[_keys], (key => dart.as(this[_fetch](key), V)).bind(this));
       }
     }
     ConstantStringMap[dart.implements] = () => [_internal.EfficientLength];
@@ -606,7 +606,7 @@ var _js_helper;
       return dart.notNull(this[_match][core.$length]) - 1;
     }
     groups(groups) {
-      let out = dart.as(new core.List.from([]), core.List$(core.String));
+      let out = new core.List$(core.String).from([]);
       for (let i of groups) {
         out[core.$add](this.group(i));
       }
@@ -1740,7 +1740,7 @@ var _js_helper;
     }
     static parseInt(source, radix, handleError) {
       if (handleError == null)
-        handleError = dart.as(Primitives[_throwFormatException], dart.functionType(core.int, [core.String]));
+        handleError = dart.as(Primitives[_throwFormatException], __CastType0);
       checkString(source);
       let match = /^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i.exec(source);
       let digitsIndex = 1;
@@ -1792,7 +1792,7 @@ var _js_helper;
     static parseDouble(source, handleError) {
       checkString(source);
       if (handleError == null)
-        handleError = dart.as(Primitives[_throwFormatException], dart.functionType(core.double, [core.String]));
+        handleError = dart.as(Primitives[_throwFormatException], __CastType2);
       if (!/^\s*[+-]?(?:Infinity|NaN|(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(source)) {
         return handleError(source);
       }
@@ -2279,7 +2279,7 @@ var _js_helper;
       message = message.replace(new RegExp(ESCAPE_REGEXP, 'g'), '\\$&');
       let match = dart.as(message.match(/\\\$[a-zA-Z]+\\\$/g), core.List$(core.String));
       if (match == null)
-        match = dart.as(new core.List.from([]), core.List$(core.String));
+        match = new core.List$(core.String).from([]);
       let arguments$ = match.indexOf('\\$arguments\\$');
       let argumentsExpr = match.indexOf('\\$argumentsExpr\\$');
       let expr = match.indexOf('\\$expr\\$');
@@ -3709,12 +3709,12 @@ var _js_helper;
     let hashesMap = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.DEFERRED_LIBRARY_HASHES);
     let hashes = dart.as(hashesMap[loadId], core.List$(core.String));
     if (uris == null)
-      return dart.as(new async.Future.value(null), async.Future$(core.Null));
-    let indices = dart.as(new core.List.generate(uris[core.$length], dart.as(i => i, dart.functionType(dart.dynamic, [core.int]))), core.List$(core.int));
+      return new async.Future$(core.Null).value(null);
+    let indices = new core.List$(core.int).generate(uris[core.$length], i => dart.as(i, core.int));
     let isHunkLoaded = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.IS_HUNK_LOADED);
     let isHunkInitialized = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.IS_HUNK_INITIALIZED);
     let indicesToLoad = indices[core.$where](i => !isHunkLoaded(hashes[core.$get](i)))[core.$toList]();
-    return dart.as(async.Future.wait(dart.as(indicesToLoad[core.$map](i => _loadHunk(uris[core.$get](i))), core.Iterable$(async.Future))).then(dart.as(_ => {
+    return dart.as(async.Future.wait(dart.as(indicesToLoad[core.$map](i => _loadHunk(uris[core.$get](i))), core.Iterable$(async.Future))).then(_ => {
       let indicesToInitialize = indices[core.$where](i => !isHunkInitialized(hashes[core.$get](i)))[core.$toList]();
       for (let i of indicesToInitialize) {
         let initializer = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.INITIALIZE_LOADED_HUNK);
@@ -3724,13 +3724,13 @@ var _js_helper;
       if (dart.notNull(updated) && dart.notNull(exports.deferredLoadHook != null)) {
         exports.deferredLoadHook();
       }
-    }, dart.functionType(dart.dynamic, [core.List]))), async.Future$(core.Null));
+    }), async.Future$(core.Null));
   }
   // Function _loadHunk: (String) → Future<Null>
   function _loadHunk(hunkName) {
     let future = exports._loadingLibraries.get(hunkName);
     if (future != null) {
-      return dart.as(future.then(dart.as(_ => null, dart.functionType(dart.dynamic, [core.Null]))), async.Future$(core.Null));
+      return dart.as(future.then(_ => null), async.Future$(core.Null));
     }
     let uri = _isolate_helper.IsolateNatives.thisScript;
     let index = uri.lastIndexOf('/');
@@ -3819,6 +3819,8 @@ var _js_helper;
   function mainHasTooManyParameters() {
     throw new MainError("'main' expects too many parameters.");
   }
+  let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.int, [core.String]));
+  let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(core.double, [core.String]));
   // Exports:
   exports.NoSideEffects = NoSideEffects;
   exports.NoThrows = NoThrows;

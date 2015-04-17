@@ -499,7 +499,7 @@ var _internal;
         super.IterableBase();
       }
       get [core.$iterator]() {
-        return new (ExpandIterator$(S, T))(this[_iterable][core.$iterator], dart.as(this[_f], dart.functionType(core.Iterable$(T), [S])));
+        return new (ExpandIterator$(S, T))(this[_iterable][core.$iterator], dart.as(this[_f], __CastType0));
       }
     }
     return ExpandIterable;
@@ -512,7 +512,7 @@ var _internal;
       ExpandIterator(iterator, f) {
         this[_iterator] = iterator;
         this[_f] = f;
-        this[_currentExpansion] = dart.as(new EmptyIterator(), core.Iterator$(T));
+        this[_currentExpansion] = new (EmptyIterator$(T))();
         this[_current] = null;
       }
       [_nextExpansion]() {}
@@ -614,7 +614,7 @@ var _internal;
         super.IterableBase();
       }
       get [core.$iterator]() {
-        return new (TakeWhileIterator$(E))(this[_iterable][core.$iterator], dart.as(this[_f], dart.functionType(core.bool, [E])));
+        return new (TakeWhileIterator$(E))(this[_iterable][core.$iterator], dart.as(this[_f], __CastType2));
       }
     }
     return TakeWhileIterable;
@@ -725,7 +725,7 @@ var _internal;
         super.IterableBase();
       }
       get [core.$iterator]() {
-        return new (SkipWhileIterator$(E))(this[_iterable][core.$iterator], dart.as(this[_f], dart.functionType(core.bool, [E])));
+        return new (SkipWhileIterator$(E))(this[_iterable][core.$iterator], dart.as(this[_f], __CastType4));
       }
     }
     return SkipWhileIterable;
@@ -763,7 +763,7 @@ var _internal;
         super.IterableBase();
       }
       get [core.$iterator]() {
-        return dart.as(new EmptyIterator(), core.Iterator$(E));
+        return new (EmptyIterator$(E))();
       }
       [core.$forEach](action) {}
       get [core.$isEmpty]() {
@@ -1060,7 +1060,7 @@ var _internal;
         return buffer.toString();
       }
       where(iterable, f) {
-        return new (WhereIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(f, dart.functionType(core.bool, [T])));
+        return new (WhereIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(f, __CastType6));
       }
       static map(iterable, f) {
         return new MappedIterable(iterable, f);
@@ -1251,6 +1251,26 @@ var _internal;
       return new core.StateError("Too few elements");
     }
   }
+  let __CastType0$ = dart.generic(function(S, T) {
+    let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.Iterable$(T), [S]));
+    return __CastType0;
+  });
+  let __CastType0 = __CastType0$();
+  let __CastType2$ = dart.generic(function(E) {
+    let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(core.bool, [E]));
+    return __CastType2;
+  });
+  let __CastType2 = __CastType2$();
+  let __CastType4$ = dart.generic(function(E) {
+    let __CastType4 = dart.typedef('__CastType4', () => dart.functionType(core.bool, [E]));
+    return __CastType4;
+  });
+  let __CastType4 = __CastType4$();
+  let __CastType6$ = dart.generic(function(T) {
+    let __CastType6 = dart.typedef('__CastType6', () => dart.functionType(core.bool, [T]));
+    return __CastType6;
+  });
+  let __CastType6 = __CastType6$();
   let FixedLengthListMixin$ = dart.generic(function(E) {
     class FixedLengthListMixin extends core.Object {
       set length(newLength) {

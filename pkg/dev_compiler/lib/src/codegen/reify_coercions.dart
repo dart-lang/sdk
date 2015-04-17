@@ -12,6 +12,7 @@ import 'package:source_span/source_span.dart' show SourceFile;
 
 import 'package:dev_compiler/src/checker/rules.dart';
 import 'package:dev_compiler/src/info.dart';
+import 'package:dev_compiler/src/options.dart' show CompilerOptions;
 import 'package:dev_compiler/src/utils.dart' as utils;
 
 import 'ast_builder.dart';
@@ -42,6 +43,14 @@ class _LocatedWrapper {
   final String loc;
   final Wrapper wrapper;
   _LocatedWrapper(this.wrapper, this.loc);
+}
+
+abstract class InstrumentedRuntime {
+  Expression wrap(Expression coercion, Expression e, Expression fromType,
+      Expression toType, Expression dartIs, String kind, String location);
+  Expression cast(Expression e, Expression fromType, Expression toType,
+      Expression dartIs, String kind, String location, bool ground);
+  Expression type(Expression witnessFunction);
 }
 
 class _Inference extends DownwardsInference {
@@ -82,8 +91,10 @@ class _Inference extends DownwardsInference {
     var id = cName.type.name;
     var typeName = AstBuilder.typeName(id, tNames);
     cName.type = typeName;
-    var rawType = (e.staticType.element as ClassElement).type;
-    e.staticType = rawType.substitute4(targs);
+    var newType =
+        (e.staticType.element as ClassElement).type.substitute4(targs);
+    e.staticType = newType;
+    typeName.type = newType;
   }
 
   @override
@@ -105,16 +116,22 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
   bool _skipCoercions = false;
   final TypeRules _rules;
   final _Inference _inferrer;
+  final InstrumentedRuntime _runtime;
+  final CompilerOptions _options;
 
-  CoercionReifier._(
-      this._cm, this._tm, this._vm, this._library, this._rules, this._inferrer);
+  CoercionReifier._(this._cm, this._tm, this._vm, this._library, this._rules,
+      this._inferrer, this._runtime, this._options);
 
-  factory CoercionReifier(LibraryUnit library, TypeRules rules) {
+  factory CoercionReifier(
+      LibraryUnit library, TypeRules rules, CompilerOptions options,
+      [InstrumentedRuntime runtime]) {
     var vm = new VariableManager();
-    var tm = new TypeManager(library.library.element.enclosingElement, vm);
-    var cm = new CoercionManager(vm, tm, rules);
+    var tm =
+        new TypeManager(library.library.element.enclosingElement, vm, runtime);
+    var cm = new CoercionManager(vm, tm, rules, runtime);
     var inferrer = new _Inference(rules, tm);
-    return new CoercionReifier._(cm, tm, vm, library, rules, inferrer);
+    return new CoercionReifier._(
+        cm, tm, vm, library, rules, inferrer, runtime, options);
   }
 
   // This should be the entry point for this class.  Entering via the
@@ -140,7 +157,7 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
       final begin = e is AnnotatedNode
           ? (e as AnnotatedNode).firstTokenAfterCommentAndMetadata.offset
           : e.offset;
-      if (begin != 0) {
+      if (begin != 0 && e.end > begin) {
         var span = _file.span(begin, e.end);
         var s = span.message("Cast");
         return s.substring(0, s.indexOf("Cast"));
@@ -163,6 +180,7 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
 
   @override
   Object visitAsExpression(AsExpression e) {
+    if (_runtime == null) return super.visitAsExpression(e);
     var cast = Coercion.cast(_rules.getStaticType(e.expression), e.type.type);
     var loc = _locationInfo(e);
     Expression castNode =
@@ -188,7 +206,7 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
 
   @override
   Object visitDownCast(DownCast node) {
-    if (_skipCoercions) {
+    if (_skipCoercions && !_options.allowConstCasts) {
       _log.severe("Skipping runtime downcast in constant context");
       return null;
     }
@@ -205,7 +223,7 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
   // TODO(leafp): Bind the coercions at the top level
   @override
   Object visitClosureWrapBase(ClosureWrapBase node) {
-    if (_skipCoercions) {
+    if (_skipCoercions && !_options.allowConstCasts) {
       _log.severe("Skipping coercion wrap in constant context");
       return null;
     }
@@ -241,7 +259,7 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
   }
 
   Object visitCompilationUnit(CompilationUnit unit) {
-    _cm.enterCompilationUnit();
+    _cm.enterCompilationUnit(unit);
     Object ret = super.visitCompilationUnit(unit);
     _cm.exitCompilationUnit(unit);
     return ret;
@@ -264,14 +282,14 @@ class VariableManager {
   // TODO(leafp): Hack, not for real.
   int _id = 0;
 
-  Identifier freshIdentifier(String hint) {
+  SimpleIdentifier freshIdentifier(String hint) {
     String n = _id.toString();
     _id++;
     String s = "__$hint$n";
     return AstBuilder.identifierFromString(s);
   }
 
-  Identifier freshTypeIdentifier(String hint) {
+  SimpleIdentifier freshTypeIdentifier(String hint) {
     return freshIdentifier(hint);
   }
 }
@@ -292,6 +310,7 @@ class CoercionManager {
   TypeManager _tm;
   bool _hoistWrappers = false;
   TypeRules _rules;
+  InstrumentedRuntime _runtime;
 
   // A map containing all of the wrappers collected but not yet discharged
   final Map<Identifier, _LocatedWrapper> _topWrappers =
@@ -300,14 +319,14 @@ class CoercionManager {
       <Identifier, _LocatedWrapper>{};
   Map<Identifier, _LocatedWrapper> _wrappers;
 
-  CoercionManager(this._vm, this._tm, this._rules) {
+  CoercionManager(this._vm, this._tm, this._rules, [this._runtime]) {
     _wrappers = _topWrappers;
   }
 
   // Call on entry to and exit from a compilation unit in order to properly
   // discharge the accumulated wrappers.
-  void enterCompilationUnit() {
-    _tm.enterCompilationUnit();
+  void enterCompilationUnit(CompilationUnit unit) {
+    _tm.enterCompilationUnit(unit);
     _wrappers = _topWrappers;
   }
   void exitCompilationUnit(CompilationUnit unit) {
@@ -358,6 +377,11 @@ class CoercionManager {
 
   Expression _wrapExpression(Expression e, Wrapper w, String k, String loc) {
     var q = _addWrapper(w, loc);
+    if (_runtime == null) {
+      var app = AstBuilder.application(q, <Expression>[e]);
+      app.staticType = w.toType;
+      return app;
+    }
     var ttName = _tm.typeNameFromDartType(w.toType);
     var tt = _tm.typeExpression(ttName);
     var ft = _tm.typeExpressionFromDartType(w.fromType);
@@ -368,15 +392,18 @@ class CoercionManager {
     var tup = _bindExpression("x", e);
     var id = tup.e0;
     var binder = tup.e1;
-    var kind = AstBuilder.stringLiteral(k);
-    var key = AstBuilder.multiLineStringLiteral(loc);
     var dartIs = AstBuilder.isExpression(AstBuilder.parenthesize(id), ttName);
-    var arguments = <Expression>[q, id, ft, tt, kind, key, dartIs];
-    return binder(new RuntimeOperation("wrap", arguments));
+    var oper = _runtime.wrap(q, id, ft, tt, dartIs, k, loc);
+    return binder(oper);
   }
 
   Expression _castExpression(Expression e, Cast c, String k, String loc) {
     var ttName = _tm.typeNameFromDartType(c.toType);
+    if (_runtime == null) {
+      var cast = AstBuilder.asExpression(e, ttName);
+      cast.staticType = c.toType;
+      return cast;
+    }
     var tt = _tm.typeExpression(ttName);
     var ft = _tm.typeExpressionFromDartType(c.fromType);
     if (c.fromType.element == null) {
@@ -390,12 +417,10 @@ class CoercionManager {
     var tup = _bindExpression("x", e);
     var id = tup.e0;
     var binder = tup.e1;
-    var kind = AstBuilder.stringLiteral(k);
-    var key = AstBuilder.multiLineStringLiteral(loc);
     var dartIs = AstBuilder.isExpression(AstBuilder.parenthesize(id), ttName);
-    var ground = AstBuilder.booleanLiteral(_rules.isGroundType(c.toType));
-    var arguments = <Expression>[id, ft, tt, kind, key, dartIs, ground];
-    return binder(new RuntimeOperation("cast", arguments));
+    var ground = _rules.isGroundType(c.toType);
+    var oper = _runtime.cast(id, ft, tt, dartIs, k, loc, ground);
+    return binder(oper);
   }
 
   Expression _coerceExpression(
@@ -554,14 +579,19 @@ class TypeManager {
   final VariableManager _vm;
   final LibraryElement _currentLibrary;
   final Map<Identifier, NewTypeIdDesc> addedTypes = {};
+  final InstrumentedRuntime _runtime;
+  CompilationUnitElement _currentUnit;
 
   /// A map containing new function typedefs to be introduced at the top level
   /// This uses LinkedHashMap to emit code in a consistent order.
   final Map<FunctionType, FunctionTypeAlias> _typedefs = {};
 
-  TypeManager(this._currentLibrary, this._vm);
+  TypeManager(this._currentLibrary, this._vm, [this._runtime]);
 
-  void enterCompilationUnit() {}
+  void enterCompilationUnit(CompilationUnit unit) {
+    _currentUnit = unit.element;
+  }
+
   void exitCompilationUnit(CompilationUnit unit) {
     unit.declarations.addAll(_typedefs.values);
     _typedefs.clear();
@@ -631,18 +661,32 @@ class TypeManager {
     var optionalParameters = type.optionalParameterTypes;
     var params = new List<FormalParameter>();
     for (int i = 0; i < normalParameters.length; i++) {
-      FormalParameter fp = _anonymousFormal(normalParameters[i]);
-      params.add(AstBuilder.requiredFormal(fp));
+      FormalParameter fp =
+          AstBuilder.requiredFormal(_anonymousFormal(normalParameters[i]));
+      _resolveFormal(fp, normalParameters[i]);
+      params.add(fp);
     }
     for (int i = 0; i < optionalParameters.length; i++) {
-      FormalParameter fp = _anonymousFormal(optionalParameters[i]);
-      params.add(AstBuilder.optionalFormal(fp));
+      FormalParameter fp =
+          AstBuilder.optionalFormal(_anonymousFormal(optionalParameters[i]));
+      _resolveFormal(fp, optionalParameters[i]);
+      params.add(fp);
     }
     for (String k in namedParameters.keys) {
-      FormalParameter fp = _anonymousFormal(namedParameters[k]);
-      params.add(AstBuilder.namedFormal(fp));
+      FormalParameter fp =
+          AstBuilder.namedFormal(_anonymousFormal(namedParameters[k]));
+      _resolveFormal(fp, namedParameters[k]);
+      params.add(fp);
     }
     return params;
+  }
+
+  void _resolveFormal(FormalParameter fp, DartType type) {
+    ParameterElementImpl fe = new ParameterElementImpl.forNode(fp.identifier);
+    fe.parameterKind = fp.kind;
+    fe.type = type;
+    fp.identifier.staticElement = fe;
+    fp.identifier.staticType = type;
   }
 
   FormalParameter _functionTypedFormal(Identifier v, FunctionType type) {
@@ -666,18 +710,18 @@ class TypeManager {
     return AstBuilder.simpleFormal(v, t);
   }
 
-  Identifier freshTypeDefVariable() {
-    var t = _vm.freshTypeIdentifier("t");
+  SimpleIdentifier freshTypeDefVariable(String hint) {
+    var t = _vm.freshTypeIdentifier(hint);
     var desc = new NewTypeIdDesc(
         fromCurrent: true, importedFrom: _currentLibrary, synthetic: true);
     addedTypes[t] = desc;
     return t;
   }
 
-  Identifier typeParameterFromString(String name) =>
+  SimpleIdentifier typeParameterFromString(String name) =>
       AstBuilder.identifierFromString(name);
 
-  Identifier freshReferenceToNamedType(DartType type) {
+  SimpleIdentifier freshReferenceToNamedType(DartType type) {
     var name = type.name;
     assert(name != null);
     var id = AstBuilder.identifierFromString(name);
@@ -694,6 +738,68 @@ class TypeManager {
     return id;
   }
 
+  FunctionTypeAlias _newResolvedTypedef(
+      FunctionType type, List<TypeParameterType> ftvs) {
+
+    // The name of the typedef (unresolved at this point)
+    // TODO(leafp): better naming.
+    SimpleIdentifier t = freshTypeDefVariable("CastType");
+    // The element for the new typedef
+    var element = new FunctionTypeAliasElementImpl(t.name, 0);
+
+    // Fresh type parameter identifiers for the free type variables
+    List<Identifier> tNames =
+        ftvs.map((x) => typeParameterFromString(x.name)).toList();
+    // The type parameters themselves
+    List<TypeParameter> tps = tNames.map(AstBuilder.typeParameter).toList();
+    // Allocate the elements for the type parameters, fill in their
+    // type (which makes no sense) and link up the various elements
+    // For each type parameter identifier, make an element and a type
+    // with that element, link the two together, set the identifier element
+    // to that element, and the identifier type to that type.
+    List<TypeParameterElement> tElements = tNames.map((x) {
+      var element = new TypeParameterElementImpl(x.name, 0);
+      var type = new TypeParameterTypeImpl(element);
+      element.type = type;
+      x.staticElement = element;
+      x.staticType = type;
+      return element;
+    }).toList();
+    // Get the types out from the elements
+    List<TypeParameterType> tTypes = tElements.map((x) => x.type).toList();
+    // Take the return type from the original type, and replace the free
+    // type variables with the fresh type variables
+    element.returnType = type.returnType.substitute2(tTypes, ftvs);
+    // Set the type parameter elements
+    element.typeParameters = tElements;
+    // Set the parent element to the current compilation unit
+    element.enclosingElement = _currentUnit;
+
+    // This is the type corresponding to the typedef.  Note that
+    // almost all methods on this type delegate to the element, so it
+    // cannot be safely be used for anything until the element is fully resolved
+    FunctionTypeImpl substType = new FunctionTypeImpl.con2(element);
+    element.type = substType;
+    // Link the type and the element into the identifier for the typedef
+    t.staticType = substType;
+    t.staticElement = element;
+
+    // Make the formal parameters for the typedef, using the original type
+    // with the fresh type variables substituted in.
+    List<FormalParameter> fps =
+        _formalParameterListForFunctionType(type.substitute2(tTypes, ftvs));
+    // Get the static elements out of the parameters, and use them to
+    // initialize the parameters in the element model
+    element.parameters = fps.map((x) => x.identifier.staticElement).toList();
+    // Build the return type syntax
+    TypeName ret = _typeNameFromDartType(substType.returnType);
+    // This should now be fully resolved (or at least enough so for things
+    // to work so far).
+    FunctionTypeAlias alias = AstBuilder.functionTypeAlias(ret, t, tps, fps);
+
+    return alias;
+  }
+
   // I think we can avoid alpha-varying type parameters, since
   // the binding forms are so limited, so we just re-use the
   // the original names for the formals and the actuals.
@@ -705,26 +811,19 @@ class TypeManager {
       if (tpl != null) {
         var ltp = tpl.typeParameters;
         ts = new List<TypeName>.from(
-            ltp.map((t) => _mkNewTypeName(t.name, null)));
+            ltp.map((t) => _mkNewTypeName(null, t.name, null)));
       }
       var name = alias.name;
-      return _mkNewTypeName(name, ts);
+      return _mkNewTypeName(type, name, ts);
     }
 
     List<TypeParameterType> ftvs = _freeTypeVariables(type);
-    Identifier t = freshTypeDefVariable();
-
-    Iterable<Identifier> tNames =
-        ftvs.map((x) => typeParameterFromString(x.name));
-    List<TypeParameter> tps = tNames.map(AstBuilder.typeParameter).toList();
-    List<FormalParameter> fps = _formalParameterListForFunctionType(type);
-    TypeName ret = _typeNameFromDartType(type.returnType);
-    FunctionTypeAlias alias = AstBuilder.functionTypeAlias(ret, t, tps, fps);
-
+    FunctionTypeAlias alias = _newResolvedTypedef(type, ftvs);
     _typedefs[type] = alias;
 
     List<TypeName> args = ftvs.map(_typeNameFromDartType).toList();
-    TypeName namedType = _mkNewTypeName(t, args);
+    TypeName namedType =
+        _mkNewTypeName(alias.name.staticType, alias.name, args);
 
     return namedType;
   }
@@ -735,8 +834,7 @@ class TypeManager {
       if (dType is FunctionType) return _typeNameFromFunctionType(dType);
       _log.severe("No name for type, casting through dynamic");
       var d = AstBuilder.identifierFromString("dynamic");
-      var t = _mkNewTypeName(d, null);
-      t.type = dType;
+      var t = _mkNewTypeName(dType, d, null);
       return t;
     }
     SimpleIdentifier id = freshReferenceToNamedType(dType);
@@ -745,22 +843,23 @@ class TypeManager {
       List<DartType> targs = dType.typeArguments;
       args = targs.map(_typeNameFromDartType).toList();
     }
-    var t = _mkNewTypeName(id, args);
-    t.type = dType;
+    var t = _mkNewTypeName(dType, id, args);
     return t;
   }
 
-  TypeName _mkNewTypeName(Identifier id, List<TypeName> args) {
+  TypeName _mkNewTypeName(DartType type, Identifier id, List<TypeName> args) {
     var t = AstBuilder.typeName(id, args);
+    t.type = type;
     return t;
   }
 
   Expression _typeExpression(TypeName t) {
+    assert(_runtime != null);
     if (t.typeArguments != null && t.typeArguments.length > 0) {
       var w = AstBuilder.identifierFromString("_");
       var fp = AstBuilder.simpleFormal(w, t);
       var f = AstBuilder.blockFunction(<FormalParameter>[fp], <Statement>[]);
-      return new RuntimeOperation("type", <Expression>[f]);
+      return _runtime.type(f);
     }
     return t.name;
   }

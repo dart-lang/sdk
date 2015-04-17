@@ -41,9 +41,9 @@ assert (_isCanceled); _PendingEvents events = _pending;
  return events;
 }
  void onData(void handleData(T event)) {
-if (handleData == null) handleData = DEVC$RT.cast(_nullDataHandler, __t51, DEVC$RT.type((__t49<T> _) {
+if (handleData == null) handleData = DEVC$RT.cast(_nullDataHandler, __CastType51, DEVC$RT.type((__CastType49<T> _) {
 }
-), "CompositeCast", """line 153, column 42 of dart:async/stream_impl.dart: """, _nullDataHandler is __t49<T>, false);
+), "CompositeCast", """line 153, column 42 of dart:async/stream_impl.dart: """, _nullDataHandler is __CastType49<T>, false);
  _onData = ((__x53) => DEVC$RT.cast(__x53, ZoneUnaryCallback, DEVC$RT.type((_DataHandler<T> _) {
 }
 ), "CompositeCast", """line 154, column 15 of dart:async/stream_impl.dart: """, __x53 is _DataHandler<T>, false))(_zone.registerUnaryCallback(handleData));
@@ -177,10 +177,10 @@ assert (!_isCanceled); assert (!_isPaused); assert (!_inCallback); bool wasInput
  void sendError() {
 if (_isCanceled && !_waitsForCancel) return; _state |= _STATE_IN_CALLBACK;
  if (_onError is ZoneBinaryCallback) {
-  _zone.runBinaryGuarded(DEVC$RT.cast(_onError, Function, __t54, "ImplicitCast", """line 358, column 32 of dart:async/stream_impl.dart: """, _onError is __t54, true), error, stackTrace);
+  _zone.runBinaryGuarded(DEVC$RT.cast(_onError, Function, __CastType54, "ImplicitCast", """line 358, column 32 of dart:async/stream_impl.dart: """, _onError is __CastType54, true), error, stackTrace);
   }
  else {
-  _zone.runUnaryGuarded(DEVC$RT.cast(_onError, Function, __t57, "ImplicitCast", """line 360, column 31 of dart:async/stream_impl.dart: """, _onError is __t57, true), error);
+  _zone.runUnaryGuarded(DEVC$RT.cast(_onError, Function, __CastType57, "ImplicitCast", """line 360, column 31 of dart:async/stream_impl.dart: """, _onError is __CastType57, true), error);
   }
  _state &= ~_STATE_IN_CALLBACK;
 }
@@ -640,7 +640,7 @@ _Future<bool> hasNext = DEVC$RT.cast(_futureOrPrefetch, dynamic, DEVC$RT.type((_
  _state = _STATE_EXTRA_DONE;
 }
 }
- typedef void __t49<T>(T __u50);
- typedef void __t51(dynamic __u52);
- typedef dynamic __t54(dynamic __u55, dynamic __u56);
- typedef dynamic __t57(dynamic __u58);
+ typedef void __CastType49<T>(T __u50);
+ typedef void __CastType51(dynamic __u52);
+ typedef dynamic __CastType54(dynamic __u55, dynamic __u56);
+ typedef dynamic __CastType57(dynamic __u58);

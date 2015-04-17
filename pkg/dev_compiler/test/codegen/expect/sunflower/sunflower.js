@@ -29,7 +29,7 @@ var sunflower;
   });
   // Function main: () → void
   function main() {
-    exports.slider.addEventListener('change', dart.as(e => draw(), dom.EventListener));
+    exports.slider.addEventListener('change', e => draw());
     draw();
   }
   // Function draw: () → void

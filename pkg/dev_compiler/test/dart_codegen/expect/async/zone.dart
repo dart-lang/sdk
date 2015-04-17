@@ -30,7 +30,7 @@ dynamic handleUncaughtError(Zone self, ZoneDelegate parent, Zone zone, error, St
  factory ZoneSpecification.from(ZoneSpecification other, {
 dynamic handleUncaughtError(Zone self, ZoneDelegate parent, Zone zone, error, StackTrace stackTrace) : null, dynamic run(Zone self, ZoneDelegate parent, Zone zone, f()) : null, dynamic runUnary(Zone self, ZoneDelegate parent, Zone zone, f(arg), arg) : null, dynamic runBinary(Zone self, ZoneDelegate parent, Zone zone, f(arg1, arg2), arg1, arg2) : null, ZoneCallback registerCallback(Zone self, ZoneDelegate parent, Zone zone, f()) : null, ZoneUnaryCallback registerUnaryCallback(Zone self, ZoneDelegate parent, Zone zone, f(arg)) : null, ZoneBinaryCallback registerBinaryCallback(Zone self, ZoneDelegate parent, Zone zone, f(arg1, arg2)) : null, AsyncError errorCallback(Zone self, ZoneDelegate parent, Zone zone, Object error, StackTrace stackTrace), void scheduleMicrotask(Zone self, ZoneDelegate parent, Zone zone, f()) : null, Timer createTimer(Zone self, ZoneDelegate parent, Zone zone, Duration duration, void f()) : null, Timer createPeriodicTimer(Zone self, ZoneDelegate parent, Zone zone, Duration period, void f(Timer timer)) : null, void print(Zone self, ZoneDelegate parent, Zone zone, String line) : null, Zone fork(Zone self, ZoneDelegate parent, Zone zone, ZoneSpecification specification, Map zoneValues) : null}
 ) {
-return new ZoneSpecification(handleUncaughtError: ((__x88) => DEVC$RT.cast(__x88, dynamic, __t82, "CompositeCast", """line 138, column 28 of dart:async/zone.dart: """, __x88 is __t82, false))(handleUncaughtError != null ? handleUncaughtError : other.handleUncaughtError), run: ((__x94) => DEVC$RT.cast(__x94, dynamic, __t89, "CompositeCast", """line 141, column 12 of dart:async/zone.dart: """, __x94 is __t89, false))(run != null ? run : other.run), runUnary: ((__x102) => DEVC$RT.cast(__x102, dynamic, __t95, "CompositeCast", """line 142, column 17 of dart:async/zone.dart: """, __x102 is __t95, false))(runUnary != null ? runUnary : other.runUnary), runBinary: ((__x112) => DEVC$RT.cast(__x112, dynamic, __t103, "CompositeCast", """line 143, column 18 of dart:async/zone.dart: """, __x112 is __t103, false))(runBinary != null ? runBinary : other.runBinary), registerCallback: ((__x118) => DEVC$RT.cast(__x118, dynamic, __t113, "CompositeCast", """line 144, column 25 of dart:async/zone.dart: """, __x118 is __t113, false))(registerCallback != null ? registerCallback : other.registerCallback), registerUnaryCallback: ((__x125) => DEVC$RT.cast(__x125, dynamic, __t119, "CompositeCast", """line 147, column 30 of dart:async/zone.dart: """, __x125 is __t119, false))(registerUnaryCallback != null ? registerUnaryCallback : other.registerUnaryCallback), registerBinaryCallback: ((__x133) => DEVC$RT.cast(__x133, dynamic, __t126, "CompositeCast", """line 150, column 31 of dart:async/zone.dart: """, __x133 is __t126, false))(registerBinaryCallback != null ? registerBinaryCallback : other.registerBinaryCallback), errorCallback: ((__x140) => DEVC$RT.cast(__x140, dynamic, __t134, "CompositeCast", """line 153, column 22 of dart:async/zone.dart: """, __x140 is __t134, false))(errorCallback != null ? errorCallback : other.errorCallback), scheduleMicrotask: ((__x146) => DEVC$RT.cast(__x146, dynamic, __t141, "CompositeCast", """line 156, column 26 of dart:async/zone.dart: """, __x146 is __t141, false))(scheduleMicrotask != null ? scheduleMicrotask : other.scheduleMicrotask), createTimer: ((__x153) => DEVC$RT.cast(__x153, dynamic, __t147, "CompositeCast", """line 159, column 21 of dart:async/zone.dart: """, __x153 is __t147, false))(createTimer != null ? createTimer : other.createTimer), createPeriodicTimer: ((__x161) => DEVC$RT.cast(__x161, dynamic, __t154, "CompositeCast", """line 160, column 28 of dart:async/zone.dart: """, __x161 is __t154, false))(createPeriodicTimer != null ? createPeriodicTimer : other.createPeriodicTimer), print: ((__x167) => DEVC$RT.cast(__x167, dynamic, __t162, "CompositeCast", """line 163, column 15 of dart:async/zone.dart: """, __x167 is __t162, false))(print != null ? print : other.print), fork: ((__x174) => DEVC$RT.cast(__x174, dynamic, __t168, "CompositeCast", """line 164, column 13 of dart:async/zone.dart: """, __x174 is __t168, false))(fork != null ? fork : other.fork));
+return new ZoneSpecification(handleUncaughtError: ((__x88) => DEVC$RT.cast(__x88, dynamic, __CastType82, "CompositeCast", """line 138, column 28 of dart:async/zone.dart: """, __x88 is __CastType82, false))(handleUncaughtError != null ? handleUncaughtError : other.handleUncaughtError), run: ((__x94) => DEVC$RT.cast(__x94, dynamic, __CastType89, "CompositeCast", """line 141, column 12 of dart:async/zone.dart: """, __x94 is __CastType89, false))(run != null ? run : other.run), runUnary: ((__x102) => DEVC$RT.cast(__x102, dynamic, __CastType95, "CompositeCast", """line 142, column 17 of dart:async/zone.dart: """, __x102 is __CastType95, false))(runUnary != null ? runUnary : other.runUnary), runBinary: ((__x112) => DEVC$RT.cast(__x112, dynamic, __CastType103, "CompositeCast", """line 143, column 18 of dart:async/zone.dart: """, __x112 is __CastType103, false))(runBinary != null ? runBinary : other.runBinary), registerCallback: ((__x118) => DEVC$RT.cast(__x118, dynamic, __CastType113, "CompositeCast", """line 144, column 25 of dart:async/zone.dart: """, __x118 is __CastType113, false))(registerCallback != null ? registerCallback : other.registerCallback), registerUnaryCallback: ((__x125) => DEVC$RT.cast(__x125, dynamic, __CastType119, "CompositeCast", """line 147, column 30 of dart:async/zone.dart: """, __x125 is __CastType119, false))(registerUnaryCallback != null ? registerUnaryCallback : other.registerUnaryCallback), registerBinaryCallback: ((__x133) => DEVC$RT.cast(__x133, dynamic, __CastType126, "CompositeCast", """line 150, column 31 of dart:async/zone.dart: """, __x133 is __CastType126, false))(registerBinaryCallback != null ? registerBinaryCallback : other.registerBinaryCallback), errorCallback: ((__x140) => DEVC$RT.cast(__x140, dynamic, __CastType134, "CompositeCast", """line 153, column 22 of dart:async/zone.dart: """, __x140 is __CastType134, false))(errorCallback != null ? errorCallback : other.errorCallback), scheduleMicrotask: ((__x146) => DEVC$RT.cast(__x146, dynamic, __CastType141, "CompositeCast", """line 156, column 26 of dart:async/zone.dart: """, __x146 is __CastType141, false))(scheduleMicrotask != null ? scheduleMicrotask : other.scheduleMicrotask), createTimer: ((__x153) => DEVC$RT.cast(__x153, dynamic, __CastType147, "CompositeCast", """line 159, column 21 of dart:async/zone.dart: """, __x153 is __CastType147, false))(createTimer != null ? createTimer : other.createTimer), createPeriodicTimer: ((__x161) => DEVC$RT.cast(__x161, dynamic, __CastType154, "CompositeCast", """line 160, column 28 of dart:async/zone.dart: """, __x161 is __CastType154, false))(createPeriodicTimer != null ? createPeriodicTimer : other.createPeriodicTimer), print: ((__x167) => DEVC$RT.cast(__x167, dynamic, __CastType162, "CompositeCast", """line 163, column 15 of dart:async/zone.dart: """, __x167 is __CastType162, false))(print != null ? print : other.print), fork: ((__x174) => DEVC$RT.cast(__x174, dynamic, __CastType168, "CompositeCast", """line 164, column 13 of dart:async/zone.dart: """, __x174 is __CastType168, false))(fork != null ? fork : other.fork));
 }
  HandleUncaughtErrorHandler get handleUncaughtError;
  RunHandler get run;
@@ -452,7 +452,7 @@ callback = zone.bindCallback(callback);
 }
  Timer _rootCreatePeriodicTimer(Zone self, ZoneDelegate parent, Zone zone, Duration duration, void callback(Timer timer)) {
 if (!identical(_ROOT_ZONE, zone)) {
-callback = ((__x191) => DEVC$RT.cast(__x191, ZoneUnaryCallback, __t189, "CompositeCast", """line 962, column 16 of dart:async/zone.dart: """, __x191 is __t189, false))(zone.bindUnaryCallback(callback));
+callback = ((__x191) => DEVC$RT.cast(__x191, ZoneUnaryCallback, __CastType189, "CompositeCast", """line 962, column 16 of dart:async/zone.dart: """, __x191 is __CastType189, false))(zone.bindUnaryCallback(callback));
 }
  return Timer._createPeriodicTimer(duration, callback);
 }
@@ -633,7 +633,7 @@ try {
 if (onError is ZoneBinaryCallback) {
 return self.parent.runBinary(onError, error, stackTrace);
 }
- return self.parent.runUnary(DEVC$RT.cast(onError, Function, __t192, "ImplicitCast", """line 1228, column 37 of dart:async/zone.dart: """, onError is __t192, true), error);
+ return self.parent.runUnary(DEVC$RT.cast(onError, Function, __CastType192, "ImplicitCast", """line 1228, column 37 of dart:async/zone.dart: """, onError is __CastType192, true), error);
 }
  catch (e, s) {
 if (identical(e, error)) {
@@ -660,18 +660,18 @@ return zone.runGuarded(body);
 return zone.run(body);
 }
 }
- typedef dynamic __t82(Zone __u83, ZoneDelegate __u84, Zone __u85, dynamic __u86, StackTrace __u87);
- typedef dynamic __t89(Zone __u90, ZoneDelegate __u91, Zone __u92, dynamic __u93());
- typedef dynamic __t95(Zone __u96, ZoneDelegate __u97, Zone __u98, dynamic __u99(dynamic __u100), dynamic __u101);
- typedef dynamic __t103(Zone __u104, ZoneDelegate __u105, Zone __u106, dynamic __u107(dynamic __u108, dynamic __u109), dynamic __u110, dynamic __u111);
- typedef ZoneCallback __t113(Zone __u114, ZoneDelegate __u115, Zone __u116, dynamic __u117());
- typedef ZoneUnaryCallback __t119(Zone __u120, ZoneDelegate __u121, Zone __u122, dynamic __u123(dynamic __u124));
- typedef ZoneBinaryCallback __t126(Zone __u127, ZoneDelegate __u128, Zone __u129, dynamic __u130(dynamic __u131, dynamic __u132));
- typedef AsyncError __t134(Zone __u135, ZoneDelegate __u136, Zone __u137, Object __u138, StackTrace __u139);
- typedef void __t141(Zone __u142, ZoneDelegate __u143, Zone __u144, dynamic __u145());
- typedef Timer __t147(Zone __u148, ZoneDelegate __u149, Zone __u150, Duration __u151, void __u152());
- typedef Timer __t154(Zone __u155, ZoneDelegate __u156, Zone __u157, Duration __u158, void __u159(Timer __u160));
- typedef void __t162(Zone __u163, ZoneDelegate __u164, Zone __u165, String __u166);
- typedef Zone __t168(Zone __u169, ZoneDelegate __u170, Zone __u171, ZoneSpecification __u172, Map<dynamic, dynamic> __u173);
- typedef void __t189(Timer __u190);
- typedef dynamic __t192(dynamic __u193);
+ typedef dynamic __CastType82(Zone __u83, ZoneDelegate __u84, Zone __u85, dynamic __u86, StackTrace __u87);
+ typedef dynamic __CastType89(Zone __u90, ZoneDelegate __u91, Zone __u92, dynamic __u93());
+ typedef dynamic __CastType95(Zone __u96, ZoneDelegate __u97, Zone __u98, dynamic __u99(dynamic __u100), dynamic __u101);
+ typedef dynamic __CastType103(Zone __u104, ZoneDelegate __u105, Zone __u106, dynamic __u107(dynamic __u108, dynamic __u109), dynamic __u110, dynamic __u111);
+ typedef ZoneCallback __CastType113(Zone __u114, ZoneDelegate __u115, Zone __u116, dynamic __u117());
+ typedef ZoneUnaryCallback __CastType119(Zone __u120, ZoneDelegate __u121, Zone __u122, dynamic __u123(dynamic __u124));
+ typedef ZoneBinaryCallback __CastType126(Zone __u127, ZoneDelegate __u128, Zone __u129, dynamic __u130(dynamic __u131, dynamic __u132));
+ typedef AsyncError __CastType134(Zone __u135, ZoneDelegate __u136, Zone __u137, Object __u138, StackTrace __u139);
+ typedef void __CastType141(Zone __u142, ZoneDelegate __u143, Zone __u144, dynamic __u145());
+ typedef Timer __CastType147(Zone __u148, ZoneDelegate __u149, Zone __u150, Duration __u151, void __u152());
+ typedef Timer __CastType154(Zone __u155, ZoneDelegate __u156, Zone __u157, Duration __u158, void __u159(Timer __u160));
+ typedef void __CastType162(Zone __u163, ZoneDelegate __u164, Zone __u165, String __u166);
+ typedef Zone __CastType168(Zone __u169, ZoneDelegate __u170, Zone __u171, ZoneSpecification __u172, Map<dynamic, dynamic> __u173);
+ typedef void __CastType189(Timer __u190);
+ typedef dynamic __CastType192(dynamic __u193);

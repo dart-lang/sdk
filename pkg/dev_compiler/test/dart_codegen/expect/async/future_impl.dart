@@ -103,9 +103,9 @@ Function onError}
 ) {
 _Future result = new _Future();
  if (!identical(result._zone, _ROOT_ZONE)) {
-f = ((__x12) => DEVC$RT.cast(__x12, ZoneUnaryCallback, DEVC$RT.type((__t10<T> _) {
+f = ((__x12) => DEVC$RT.cast(__x12, ZoneUnaryCallback, DEVC$RT.type((__CastType10<T> _) {
 }
-), "CompositeCast", """line 208, column 11 of dart:async/future_impl.dart: """, __x12 is __t10<T>, false))(result._zone.registerUnaryCallback(f));
+), "CompositeCast", """line 208, column 11 of dart:async/future_impl.dart: """, __x12 is __CastType10<T>, false))(result._zone.registerUnaryCallback(f));
  if (onError != null) {
 onError = _registerErrorHandler(onError, result._zone);
 }
@@ -119,7 +119,7 @@ bool test(error)}
 _Future result = new _Future();
  if (!identical(result._zone, _ROOT_ZONE)) {
 onError = _registerErrorHandler(onError, result._zone);
- if (test != null) test = ((__x15) => DEVC$RT.cast(__x15, ZoneUnaryCallback, __t13, "CompositeCast", """line 221, column 32 of dart:async/future_impl.dart: """, __x15 is __t13, false))(result._zone.registerUnaryCallback(test));
+ if (test != null) test = ((__x15) => DEVC$RT.cast(__x15, ZoneUnaryCallback, __CastType13, "CompositeCast", """line 221, column 32 of dart:async/future_impl.dart: """, __x15 is __CastType13, false))(result._zone.registerUnaryCallback(test));
 }
  _addListener(new _FutureListener.catchError(result, onError, test));
  return result;
@@ -335,7 +335,7 @@ AsyncError asyncError = source._error;
       listenerValueOrError = zone.runBinary(errorCallback, asyncError.error, asyncError.stackTrace);
       }
      else {
-      listenerValueOrError = zone.runUnary(DEVC$RT.cast(errorCallback, Function, __t17, "ImplicitCast", """line 515, column 54 of dart:async/future_impl.dart: """, errorCallback is __t17, true), asyncError.error);
+      listenerValueOrError = zone.runUnary(DEVC$RT.cast(errorCallback, Function, __CastType17, "ImplicitCast", """line 515, column 54 of dart:async/future_impl.dart: """, errorCallback is __CastType17, true), asyncError.error);
       }
     }
    catch (e, s) {
@@ -468,6 +468,6 @@ timer.cancel();
  return result;
 }
 }
- typedef dynamic __t10<T>(T __u11);
- typedef bool __t13(dynamic __u14);
- typedef dynamic __t17(dynamic __u18);
+ typedef dynamic __CastType10<T>(T __u11);
+ typedef bool __CastType13(dynamic __u14);
+ typedef dynamic __CastType17(dynamic __u18);

@@ -21,11 +21,12 @@ import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/utils.dart' as utils;
 import 'ast_builder.dart';
 import 'code_generator.dart' as codegenerator;
-import 'reify_coercions.dart' show CoercionReifier, NewTypeIdDesc;
+import 'reify_coercions.dart'
+    show CoercionReifier, NewTypeIdDesc, InstrumentedRuntime;
 
 final _log = new logger.Logger('dev_compiler.dart_codegen');
 
-class DevCompilerRuntime {
+class DevCompilerRuntime extends InstrumentedRuntime {
   Identifier _runtimeId = AstBuilder.identifierFromString("DEVC\$RT");
 
   Identifier _castId;
@@ -59,6 +60,28 @@ class DevCompilerRuntime {
     var id = runtimeId(oper);
     var args = oper.arguments;
     return AstBuilder.application(id, args);
+  }
+
+  @override
+  Expression wrap(Expression coercion, Expression e, Expression fromType,
+      Expression toType, Expression dartIs, String kind, String location) {
+    var k = AstBuilder.stringLiteral(kind);
+    var key = AstBuilder.multiLineStringLiteral(location);
+    var arguments = <Expression>[coercion, e, fromType, toType, k, key, dartIs];
+    return new RuntimeOperation("wrap", arguments);
+  }
+
+  Expression cast(Expression e, Expression fromType, Expression toType,
+      Expression dartIs, String kind, String location, bool ground) {
+    var k = AstBuilder.stringLiteral(kind);
+    var key = AstBuilder.multiLineStringLiteral(location);
+    var g = AstBuilder.booleanLiteral(ground);
+    var arguments = <Expression>[e, fromType, toType, k, key, dartIs, g];
+    return new RuntimeOperation("cast", arguments);
+  }
+
+  Expression type(Expression witnessFunction) {
+    return new RuntimeOperation("type", <Expression>[witnessFunction]);
   }
 }
 
@@ -231,12 +254,12 @@ class UnitGenerator extends UnitGeneratorCommon with ConversionVisitor<Object> {
   final java_core.PrintWriter _out;
   final String outDir;
   Set<LibraryElement> _extraImports;
-  final _runtime = new DevCompilerRuntime();
+  final _runtime;
   bool _qualifyNames = true;
   Map<Identifier, NewTypeIdDesc> _newIdentifiers;
 
   UnitGenerator(this.unit, java_core.PrintWriter out, String this.outDir,
-      this._extraImports, this._newIdentifiers)
+      this._extraImports, this._newIdentifiers, this._runtime)
       : _out = out,
         super(out);
 
@@ -364,6 +387,7 @@ class UnitGenerator extends UnitGeneratorCommon with ConversionVisitor<Object> {
 class DartGenerator extends codegenerator.CodeGenerator {
   final CompilerOptions options;
   TypeRules _rules;
+  final DevCompilerRuntime _runtime = new DevCompilerRuntime();
 
   DartGenerator(String outDir, Uri root, TypeRules rules, this.options)
       : _rules = rules,
@@ -386,7 +410,7 @@ class DartGenerator extends codegenerator.CodeGenerator {
   }
 
   String generateLibrary(LibraryUnit library, LibraryInfo info) {
-    var r = new CoercionReifier(library, rules);
+    var r = new CoercionReifier(library, rules, options, _runtime);
     var ids = r.reify();
     var extraImports = computeExtraImports(ids);
 
@@ -396,7 +420,8 @@ class DartGenerator extends codegenerator.CodeGenerator {
       _log.fine("Generating unit $uri");
       FileWriter out = new FileWriter(
           options, path.join(libraryDir, '${uri.pathSegments.last}'));
-      var unitGen = new UnitGenerator(unit, out, outDir, extraImports, ids);
+      var unitGen =
+          new UnitGenerator(unit, out, outDir, extraImports, ids, _runtime);
       unitGen.generate();
       out.finalize();
     }

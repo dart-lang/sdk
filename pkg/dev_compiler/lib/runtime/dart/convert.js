@@ -662,7 +662,7 @@ var convert;
         toEncodable = this[_toEncodable$];
       if (toEncodable == null)
         return this.encoder.convert(value);
-      return new JsonEncoder(dart.as(toEncodable, dart.functionType(core.Object, [core.Object]))).convert(value);
+      return new JsonEncoder(dart.as(toEncodable, __CastType0)).convert(value);
     }
     get encoder() {
       if (this[_toEncodable$] == null)
@@ -693,7 +693,7 @@ var convert;
       super.Converter();
     }
     convert(object) {
-      return _JsonStringStringifier.stringify(object, dart.as(this[_toEncodable$], dart.functionType(dart.dynamic, [dart.dynamic])), this.indent);
+      return _JsonStringStringifier.stringify(object, dart.as(this[_toEncodable$], __CastType2), this.indent);
     }
     startChunkedConversion(sink) {
       if (!dart.is(sink, StringConversionSink)) {
@@ -708,7 +708,7 @@ var convert;
     }
     fuse(other) {
       if (dart.is(other, Utf8Encoder)) {
-        return new JsonUtf8Encoder(this.indent, dart.as(this[_toEncodable$], dart.functionType(dart.dynamic, [core.Object])));
+        return new JsonUtf8Encoder(this.indent, dart.as(this[_toEncodable$], __CastType4));
       }
       return super.fuse(other);
     }
@@ -744,7 +744,7 @@ var convert;
       return UTF8.encode(string);
     }
     convert(object) {
-      let bytes = dart.as(new core.List.from([]), core.List$(core.List$(core.int)));
+      let bytes = new core.List$(core.List$(core.int)).from([]);
       // Function addChunk: (Uint8List, int, int) → void
       function addChunk(chunk, start, end) {
         if (dart.notNull(start) > 0 || dart.notNull(end) < dart.notNull(chunk[core.$length])) {
@@ -1021,13 +1021,13 @@ var convert;
     writeMap(map) {
       this.writeString('{');
       let separator = '"';
-      map.forEach(dart.as(((key, value) => {
+      map.forEach(((key, value) => {
         this.writeString(separator);
         separator = ',"';
         this.writeStringContent(key);
         this.writeString('":');
         this.writeObject(value);
-      }).bind(this), dart.functionType(dart.void, [core.String, core.Object])));
+      }).bind(this));
       this.writeString('}');
     }
   }
@@ -1266,6 +1266,9 @@ var convert;
       }
     }
   }
+  let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.Object, [core.Object]));
+  let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(dart.dynamic, [dart.dynamic]));
+  let __CastType4 = dart.typedef('__CastType4', () => dart.functionType(dart.dynamic, [core.Object]));
   let LATIN1 = new Latin1Codec();
   let _LATIN1_MASK = 255;
   class Latin1Codec extends Encoding {
@@ -1360,7 +1363,7 @@ var convert;
         if (dart.notNull(char) > dart.notNull(_LATIN1_MASK) || dart.notNull(char) < 0) {
           if (dart.notNull(i) > dart.notNull(start))
             this[_addSliceToSink](source, start, i, false);
-          this[_addSliceToSink](dart.as(/* Unimplemented const */new core.List.from([65533]), core.List$(core.int)), 0, 1, false);
+          this[_addSliceToSink](/* Unimplemented const */new core.List$(core.int).from([65533]), 0, 1, false);
           start = dart.notNull(i) + 1;
         }
       }

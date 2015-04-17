@@ -237,11 +237,11 @@ subscription._addError(error, stackTrace);
 }
  void _sendDone() {
 if (!_isEmpty) {
-_forEachListener(((__x7) => DEVC$RT.cast(__x7, DEVC$RT.type((__t5<T> _) {
+_forEachListener(((__x7) => DEVC$RT.cast(__x7, DEVC$RT.type((__CastType5<T> _) {
 }
-), DEVC$RT.type((__t3<T> _) {
+), DEVC$RT.type((__CastType3<T> _) {
 }
-), "InferableClosure", """line 372, column 24 of dart:async/broadcast_stream_controller.dart: """, __x7 is __t3<T>, false))((_BroadcastSubscription<T> subscription) {
+), "InferableClosure", """line 372, column 24 of dart:async/broadcast_stream_controller.dart: """, __x7 is __CastType3<T>, false))((_BroadcastSubscription<T> subscription) {
 subscription._close();
 }
 ));
@@ -350,5 +350,5 @@ return new _Future.immediate(null);
  bool get isPaused => _pauseCount > 0;
  Future asFuture([Object value]) => new _Future();
 }
- typedef void __t3<T>(_BufferingStreamSubscription<T> __u4);
- typedef dynamic __t5<T>(_BroadcastSubscription<T> __u6);
+ typedef void __CastType3<T>(_BufferingStreamSubscription<T> __u4);
+ typedef dynamic __CastType5<T>(_BroadcastSubscription<T> __u6);

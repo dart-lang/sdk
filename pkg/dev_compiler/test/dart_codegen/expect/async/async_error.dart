@@ -12,7 +12,7 @@ part of dart.async;
     return zone.registerBinaryCallback(errorHandler);
     }
    else {
-    return zone.registerUnaryCallback(DEVC$RT.cast(errorHandler, Function, __t0, "ImplicitCast", """line 20, column 39 of dart:async/async_error.dart: """, errorHandler is __t0, true));
+    return zone.registerUnaryCallback(DEVC$RT.cast(errorHandler, Function, __CastType0, "ImplicitCast", """line 20, column 39 of dart:async/async_error.dart: """, errorHandler is __CastType0, true));
     }
   }
  class _UncaughtAsyncError extends AsyncError {_UncaughtAsyncError(error, StackTrace stackTrace) : super(error, _getBestStackTrace(error, stackTrace));
@@ -31,4 +31,4 @@ part of dart.async;
    return result;
   }
 }
- typedef dynamic __t0(dynamic __u1);
+ typedef dynamic __CastType0(dynamic __u1);

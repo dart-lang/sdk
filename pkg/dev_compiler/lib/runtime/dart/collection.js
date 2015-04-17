@@ -49,13 +49,13 @@ var collection;
             if (equals == null) {
               return new (_HashMap$(K, V))();
             }
-            hashCode = dart.as(_defaultHashCode, dart.functionType(core.int, [K]));
+            hashCode = dart.as(_defaultHashCode, __CastType0);
           } else {
             if (dart.notNull(core.identical(core.identityHashCode, hashCode)) && dart.notNull(core.identical(core.identical, equals))) {
               return new (_IdentityHashMap$(K, V))();
             }
             if (equals == null) {
-              equals = dart.as(_defaultEquals, dart.functionType(core.bool, [K, K]));
+              equals = dart.as(_defaultEquals, __CastType2);
             }
           }
         } else {
@@ -99,6 +99,16 @@ var collection;
     return HashMap;
   });
   let HashMap = HashMap$();
+  let __CastType0$ = dart.generic(function(K) {
+    let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.int, [K]));
+    return __CastType0;
+  });
+  let __CastType0 = __CastType0$();
+  let __CastType2$ = dart.generic(function(K) {
+    let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(core.bool, [K, K]));
+    return __CastType2;
+  });
+  let __CastType2 = __CastType2$();
   let _newSet = Symbol('_newSet');
   let SetMixin$ = dart.generic(function(E) {
     class SetMixin extends core.Object {
@@ -400,13 +410,13 @@ var collection;
             if (equals == null) {
               return new (_HashSet$(E))();
             }
-            hashCode = dart.as(_defaultHashCode, dart.functionType(core.int, [E]));
+            hashCode = dart.as(_defaultHashCode, __CastType5);
           } else {
             if (dart.notNull(core.identical(core.identityHashCode, hashCode)) && dart.notNull(core.identical(core.identical, equals))) {
               return new (_IdentityHashSet$(E))();
             }
             if (equals == null) {
-              equals = dart.as(_defaultEquals, dart.functionType(core.bool, [E, E]));
+              equals = dart.as(_defaultEquals, __CastType7);
             }
           }
         } else {
@@ -435,6 +445,16 @@ var collection;
     return HashSet;
   });
   let HashSet = HashSet$();
+  let __CastType5$ = dart.generic(function(E) {
+    let __CastType5 = dart.typedef('__CastType5', () => dart.functionType(core.int, [E]));
+    return __CastType5;
+  });
+  let __CastType5 = __CastType5$();
+  let __CastType7$ = dart.generic(function(E) {
+    let __CastType7 = dart.typedef('__CastType7', () => dart.functionType(core.bool, [E, E]));
+    return __CastType7;
+  });
+  let __CastType7 = __CastType7$();
   let IterableMixin$ = dart.generic(function(E) {
     class IterableMixin extends core.Object {
       [core.$map](f) {
@@ -1019,13 +1039,13 @@ var collection;
             if (equals == null) {
               return new (_LinkedHashMap$(K, V))();
             }
-            hashCode = dart.as(_defaultHashCode, dart.functionType(core.int, [K]));
+            hashCode = dart.as(_defaultHashCode, __CastType10);
           } else {
             if (dart.notNull(core.identical(core.identityHashCode, hashCode)) && dart.notNull(core.identical(core.identical, equals))) {
               return new (_LinkedIdentityHashMap$(K, V))();
             }
             if (equals == null) {
-              equals = dart.as(_defaultEquals, dart.functionType(core.bool, [K, K]));
+              equals = dart.as(_defaultEquals, __CastType12);
             }
           }
         } else {
@@ -1077,6 +1097,16 @@ var collection;
     return LinkedHashMap;
   });
   let LinkedHashMap = LinkedHashMap$();
+  let __CastType10$ = dart.generic(function(K) {
+    let __CastType10 = dart.typedef('__CastType10', () => dart.functionType(core.int, [K]));
+    return __CastType10;
+  });
+  let __CastType10 = __CastType10$();
+  let __CastType12$ = dart.generic(function(K) {
+    let __CastType12 = dart.typedef('__CastType12', () => dart.functionType(core.bool, [K, K]));
+    return __CastType12;
+  });
+  let __CastType12 = __CastType12$();
   let LinkedHashSet$ = dart.generic(function(E) {
     class LinkedHashSet extends core.Object {
       LinkedHashSet(opts) {
@@ -1088,13 +1118,13 @@ var collection;
             if (equals == null) {
               return new (_LinkedHashSet$(E))();
             }
-            hashCode = dart.as(_defaultHashCode, dart.functionType(core.int, [E]));
+            hashCode = dart.as(_defaultHashCode, __CastType15);
           } else {
             if (dart.notNull(core.identical(core.identityHashCode, hashCode)) && dart.notNull(core.identical(core.identical, equals))) {
               return new (_LinkedIdentityHashSet$(E))();
             }
             if (equals == null) {
-              equals = dart.as(_defaultEquals, dart.functionType(core.bool, [E, E]));
+              equals = dart.as(_defaultEquals, __CastType17);
             }
           }
         } else {
@@ -1124,6 +1154,16 @@ var collection;
     return LinkedHashSet;
   });
   let LinkedHashSet = LinkedHashSet$();
+  let __CastType15$ = dart.generic(function(E) {
+    let __CastType15 = dart.typedef('__CastType15', () => dart.functionType(core.int, [E]));
+    return __CastType15;
+  });
+  let __CastType15 = __CastType15$();
+  let __CastType17$ = dart.generic(function(E) {
+    let __CastType17 = dart.typedef('__CastType17', () => dart.functionType(core.bool, [E, E]));
+    return __CastType17;
+  });
+  let __CastType17 = __CastType17$();
   let _modificationCount = Symbol('_modificationCount');
   let _length = Symbol('_length');
   let _next = Symbol('_next');
@@ -1148,7 +1188,7 @@ var collection;
         this[_insertAfter](this[_previous], entry);
       }
       addAll(entries) {
-        entries[core.$forEach](dart.as((entry => this[_insertAfter](this[_previous], dart.as(entry, E))).bind(this), dart.functionType(dart.void, [E])));
+        entries[core.$forEach]((entry => this[_insertAfter](this[_previous], dart.as(entry, E))).bind(this));
       }
       remove(entry) {
         if (!dart.equals(entry[_list], this))
@@ -2171,7 +2211,7 @@ var collection;
         this[_sentinel] = new (_DoubleLinkedQueueEntrySentinel$(E))();
       }
       from(elements) {
-        let list = dart.as(new DoubleLinkedQueue(), Queue$(E));
+        let list = new (DoubleLinkedQueue$(E))();
         for (let e of dart.as(elements, core.Iterable$(E))) {
           list.addLast(e);
         }
@@ -2343,7 +2383,7 @@ var collection;
       from(elements) {
         if (dart.is(elements, core.List)) {
           let length = elements[core.$length];
-          let queue = dart.as(new ListQueue(dart.notNull(length) + 1), ListQueue$(E));
+          let queue = new (ListQueue$(E))(dart.notNull(length) + 1);
           dart.assert(dart.notNull(queue[_table][core.$length]) > dart.notNull(length));
           let sourceList = elements;
           queue[_table][core.$setRange](0, length, dart.as(sourceList, core.Iterable$(E)), 0);
@@ -2900,7 +2940,7 @@ var collection;
           mapRoot.value = value;
           return;
         }
-        this[_addNewRoot](dart.as(new _SplayTreeMapNode(key, value), _SplayTreeNode$(K)), comp);
+        this[_addNewRoot](new (_SplayTreeMapNode$(K, dart.dynamic))(key, value), comp);
       }
       putIfAbsent(key, ifAbsent) {
         if (key == null)
@@ -2920,7 +2960,7 @@ var collection;
           comp = this[_splay](key);
           dart.assert(comp != 0);
         }
-        this[_addNewRoot](dart.as(new _SplayTreeMapNode(key, value), _SplayTreeNode$(K)), comp);
+        this[_addNewRoot](new (_SplayTreeMapNode$(K, dart.dynamic))(key, value), comp);
         return value;
       }
       addAll(other) {
@@ -3122,7 +3162,7 @@ var collection;
       }
       [core.$toSet]() {
         let setOrMap = this[_tree];
-        let set = new (SplayTreeSet$(K))(dart.as(setOrMap[_comparator], dart.functionType(core.int, [K, K])), dart.as(setOrMap[_validKey], dart.functionType(core.bool, [dart.dynamic])));
+        let set = new (SplayTreeSet$(K))(dart.as(setOrMap[_comparator], __CastType20), dart.as(setOrMap[_validKey], __CastType23));
         set[_count] = this[_tree][_count];
         set[_root] = set[_copyNode](this[_tree][_root]);
         return set;
@@ -3254,7 +3294,7 @@ var collection;
         let compare = this[_splay](element);
         if (compare == 0)
           return false;
-        this[_addNewRoot](dart.as(new _SplayTreeNode(element), _SplayTreeNode$(E)), compare);
+        this[_addNewRoot](new (_SplayTreeNode$(E))(element), compare);
         return true;
       }
       remove(object) {
@@ -3266,7 +3306,7 @@ var collection;
         for (let element of elements) {
           let compare = this[_splay](element);
           if (compare != 0) {
-            this[_addNewRoot](dart.as(new _SplayTreeNode(element), _SplayTreeNode$(E)), compare);
+            this[_addNewRoot](new (_SplayTreeNode$(E))(element), compare);
           }
         }
       }
@@ -3277,7 +3317,7 @@ var collection;
         }
       }
       retainAll(elements) {
-        let retainSet = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.functionType(core.int, [E, E])), this[_validKey]);
+        let retainSet = new (SplayTreeSet$(E))(dart.as(this[_comparator], __CastType25), this[_validKey]);
         let modificationCount = this[_modificationCount];
         for (let object of elements) {
           if (modificationCount != this[_modificationCount]) {
@@ -3349,6 +3389,17 @@ var collection;
     return SplayTreeSet;
   });
   let SplayTreeSet = SplayTreeSet$();
+  let __CastType20$ = dart.generic(function(K) {
+    let __CastType20 = dart.typedef('__CastType20', () => dart.functionType(core.int, [K, K]));
+    return __CastType20;
+  });
+  let __CastType20 = __CastType20$();
+  let __CastType23 = dart.typedef('__CastType23', () => dart.functionType(core.bool, [dart.dynamic]));
+  let __CastType25$ = dart.generic(function(E) {
+    let __CastType25 = dart.typedef('__CastType25', () => dart.functionType(core.int, [E, E]));
+    return __CastType25;
+  });
+  let __CastType25 = __CastType25$();
   let _strings = Symbol('_strings');
   let _nums = Symbol('_nums');
   let _rest = Symbol('_rest');
@@ -3390,7 +3441,7 @@ var collection;
         return new (HashMapKeyIterable$(K))(this);
       }
       get values() {
-        return new (_internal.MappedIterable$(K, V))(this.keys, dart.as((each => this.get(each)).bind(this), dart.functionType(V, [K])));
+        return new (_internal.MappedIterable$(K, V))(this.keys, (each => this.get(each)).bind(this));
       }
       containsKey(key) {
         if (_HashMap[_isStringKey](key)) {
@@ -3791,7 +3842,7 @@ var collection;
         return new (LinkedHashMapKeyIterable$(K))(this);
       }
       get values() {
-        return new (_internal.MappedIterable$(K, V))(this.keys, dart.as((each => this.get(each)).bind(this), dart.functionType(V, [K])));
+        return new (_internal.MappedIterable$(K, V))(this.keys, (each => this.get(each)).bind(this));
       }
       containsKey(key) {
         if (_LinkedHashMap[_isStringKey](key)) {
@@ -3818,7 +3869,7 @@ var collection;
         return dart.notNull(this[_findBucketIndex](bucket, key)) >= 0;
       }
       containsValue(value) {
-        return this.keys[core.$any](dart.as((each => dart.equals(this.get(each), value)).bind(this), dart.functionType(core.bool, [K])));
+        return this.keys[core.$any]((each => dart.equals(this.get(each), value)).bind(this));
       }
       addAll(other) {
         other.forEach(((key, value) => {
@@ -4528,7 +4579,7 @@ var collection;
         throw `LinkedHashSet: unsupported ${operation}`;
       }
       get [core.$iterator]() {
-        return dart.as(new LinkedHashSetIterator(this, this[_modifications]), core.Iterator$(E));
+        return new (LinkedHashSetIterator$(E))(this, this[_modifications]);
       }
       get [core.$length]() {
         return this[_length];

@@ -68,6 +68,7 @@ main(arguments) {
     var runtimeDir = path.join(
         path.dirname(path.dirname(Platform.script.path)), 'lib', 'runtime');
     var options = new CompilerOptions(
+        allowConstCasts: !dartGen,
         outputDir: subDir == null ? actualDir : path.join(actualDir, subDir),
         useColors: false,
         outputDart: dartGen,

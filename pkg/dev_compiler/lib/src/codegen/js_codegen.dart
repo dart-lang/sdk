@@ -16,6 +16,8 @@ import 'package:analyzer/src/generated/scanner.dart'
 import 'package:path/path.dart' as path;
 
 import 'package:dev_compiler/src/codegen/ast_builder.dart' show AstBuilder;
+import 'package:dev_compiler/src/codegen/reify_coercions.dart'
+    show CoercionReifier;
 
 // TODO(jmesserly): import from its own package
 import 'package:dev_compiler/src/js/js_ast.dart' as JS;
@@ -51,6 +53,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// The global extension method table.
   final HashMap<String, List<InterfaceType>> _extensionMethods;
 
+  final CompilerOptions options;
   /// The variable for the target of the current `..` cascade expression.
   SimpleIdentifier _cascadeTarget;
   /// The variable for the current catch clause
@@ -85,13 +88,18 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// Memoized results of [_inLibraryCycle].
   final _libraryCycleMemo = new HashMap<LibraryElement, bool>();
 
-  JSCodegenVisitor(this.libraryInfo, this.rules, this._extensionMethods);
+  JSCodegenVisitor(
+      this.libraryInfo, this.rules, this.options, this._extensionMethods);
 
   LibraryElement get currentLibrary => libraryInfo.library;
   TypeProvider get types => rules.provider;
 
   JS.Program emitLibrary(LibraryUnit library) {
     String jsDefaultValue = null;
+
+    // Modify the AST to make coercions explicit.
+    new CoercionReifier(library, rules, options).reify();
+
     var unit = library.library;
     if (unit.directives.isNotEmpty) {
       var libraryDir = unit.directives.first;
@@ -199,8 +207,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// Conversions that we don't handle end up here.
   @override
   visitConversion(Conversion node) {
-    var from = node.baseType;
-    var to = node.convertedType;
+    throw 'Unlowered conversion ${node.runtimeType}: $node';
+  }
+
+  @override
+  visitAsExpression(AsExpression node) {
+    var from = getStaticType(node.expression);
+    var to = node.type.type;
 
     // All Dart number types map to a JS double.
     if (rules.isNumType(from) &&
@@ -221,20 +234,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     return _emitCast(node.expression, to);
   }
-
-  // TODO(vsm): This should go away in the future.  I'm passing in the type
-  // as a String for now to avoid breaking any existing code.  In most cases,
-  // we currently throw for function types.
-  @override
-  visitClosureWrapBase(ClosureWrapBase node) {
-    var expression = _visit(node.expression);
-    var typeString = js.escapedString(node.convertedType.toString());
-    return js.call('dart.closureWrap(#, #)', [expression, typeString]);
-  }
-
-  @override
-  visitAsExpression(AsExpression node) =>
-      _emitCast(node.expression, node.type.type);
 
   _emitCast(Expression node, DartType type) =>
       js.call('dart.as(#)', [[_visit(node), _emitTypeName(type)]]);
@@ -2294,7 +2293,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 }
 
 class JSGenerator extends CodeGenerator {
-  final JSCodeOptions options;
+  final CompilerOptions options;
 
   /// For fast lookup of extension methods, we first check the name, then do a
   /// (possibly expensive) subtype test to see if it matches one of the types
@@ -2323,7 +2322,7 @@ class JSGenerator extends CodeGenerator {
   TypeProvider get types => rules.provider;
 
   String generateLibrary(LibraryUnit unit, LibraryInfo info) {
-    var codegen = new JSCodegenVisitor(info, rules, _extensionMethods);
+    var codegen = new JSCodegenVisitor(info, rules, options, _extensionMethods);
     var module = codegen.emitLibrary(unit);
     var dir = path.join(outDir, jsOutputPath(info, root));
     return writeJsLibrary(module, dir, emitSourceMaps: options.emitSourceMaps);

@@ -79,10 +79,10 @@ var core;
       return _js_helper.Primitives.applyFunction(f, positionalArguments, namedArguments == null ? null : Function[_toMangledNames](namedArguments));
     }
     static [_toMangledNames](namedArguments) {
-      let result = dart.as(dart.map(), Map$(String, dart.dynamic));
-      namedArguments.forEach(dart.as((symbol, value) => {
+      let result = dart.map();
+      namedArguments.forEach((symbol, value) => {
         result.set(_symbolToString(dart.as(symbol, Symbol)), value);
-      }, dart.functionType(dart.void, [Symbol, dart.dynamic])));
+      });
       return result;
     }
   }
@@ -2069,7 +2069,7 @@ var core;
       return false;
     }
     static [_checkNonWindowsPathReservedCharacters](segments, argumentError) {
-      segments[exports.$forEach](dart.as(segment => {
+      segments[exports.$forEach](segment => {
         if (dart.dsend(segment, 'contains', "/")) {
           if (argumentError) {
             throw new ArgumentError(`Illegal path character ${segment}`);
@@ -2077,12 +2077,12 @@ var core;
             throw new UnsupportedError(`Illegal path character ${segment}`);
           }
         }
-      }, dart.functionType(dart.void, [String])));
+      });
     }
     static [_checkWindowsPathReservedCharacters](segments, argumentError, firstSegment) {
       if (firstSegment === void 0)
         firstSegment = 0;
-      segments[exports.$skip](firstSegment)[exports.$forEach](dart.as(segment => {
+      segments[exports.$skip](firstSegment)[exports.$forEach](segment => {
         if (dart.dsend(segment, 'contains', new RegExp('["*/:<>?\\\\|]'))) {
           if (argumentError) {
             throw new ArgumentError("Illegal character in path");
@@ -2090,7 +2090,7 @@ var core;
             throw new UnsupportedError("Illegal character in path");
           }
         }
-      }, dart.functionType(dart.void, [String])));
+      });
     }
     static [_checkWindowsDriveLetter](charCode, argumentError) {
       if (dart.notNull(Uri[_UPPER_CASE_A]) <= dart.notNull(charCode) && dart.notNull(charCode) <= dart.notNull(Uri[_UPPER_CASE_Z]) || dart.notNull(Uri[_LOWER_CASE_A]) <= dart.notNull(charCode) && dart.notNull(charCode) <= dart.notNull(Uri[_LOWER_CASE_Z])) {
@@ -2220,7 +2220,7 @@ var core;
     }
     get queryParameters() {
       if (this[_queryParameters] == null) {
-        this[_queryParameters] = dart.as(new collection.UnmodifiableMapView(Uri.splitQueryString(this.query)), Map$(String, String));
+        this[_queryParameters] = new (collection.UnmodifiableMapView$(String, String))(Uri.splitQueryString(this.query));
       }
       return this[_queryParameters];
     }
@@ -2364,7 +2364,7 @@ var core;
       if (path != null) {
         result = Uri[_normalize](path, start, end, dart.as(Uri[_pathCharOrSlashTable], List$(int)));
       } else {
-        result = pathSegments[exports.$map](dart.as(s => Uri[_uriEncode](dart.as(Uri[_pathCharTable], List$(int)), dart.as(s, String)), dart.functionType(dart.dynamic, [String])))[exports.$join]("/");
+        result = pathSegments[exports.$map](s => Uri[_uriEncode](dart.as(Uri[_pathCharTable], List$(int)), dart.as(s, String)))[exports.$join]("/");
       }
       if (dart.dload(result, 'isEmpty')) {
         if (isFile)
@@ -2384,7 +2384,7 @@ var core;
         return Uri[_normalize](query, start, end, dart.as(Uri[_queryCharTable], List$(int)));
       let result = new StringBuffer();
       let first = true;
-      queryParameters.forEach(dart.as((key, value) => {
+      queryParameters.forEach((key, value) => {
         if (!dart.notNull(first)) {
           result.write("&");
         }
@@ -2394,7 +2394,7 @@ var core;
           result.write("=");
           result.write(Uri.encodeQueryComponent(dart.as(value, String)));
         }
-      }, dart.functionType(dart.void, [String, String])));
+      });
       return result.toString();
     }
     static [_makeFragment](fragment, start, end) {
@@ -2572,7 +2572,7 @@ var core;
     [_removeDotSegments](path) {
       if (!dart.notNull(this[_hasDotSegments](path)))
         return path;
-      let output = dart.as(new List.from([]), List$(String));
+      let output = new List$(String).from([]);
       let appendSlash = false;
       for (let segment of path.split("/")) {
         appendSlash = false;
@@ -2793,7 +2793,7 @@ var core;
     }
     static splitQueryString(query, opts) {
       let encoding = opts && 'encoding' in opts ? opts.encoding : convert.UTF8;
-      return dart.as(query.split("&")[exports.$fold](dart.map(), dart.as((map, element) => {
+      return dart.as(query.split("&")[exports.$fold](dart.map(), (map, element) => {
         let index = dart.as(dart.dsend(element, 'indexOf', "="), int);
         if (index == -1) {
           if (!dart.equals(element, "")) {
@@ -2805,7 +2805,7 @@ var core;
           dart.dsetindex(map, Uri.decodeQueryComponent(dart.as(key, String), {encoding: encoding}), Uri.decodeQueryComponent(dart.as(value, String), {encoding: encoding}));
         }
         return map;
-      }, dart.functionType(dart.dynamic, [dart.dynamic, String]))), Map$(String, String));
+      }), Map$(String, String));
     }
     static parseIPv4Address(host) {
       // Function error: (String) → void
@@ -2816,13 +2816,13 @@ var core;
       if (bytes[exports.$length] != 4) {
         error('IPv4 address should contain exactly 4 parts');
       }
-      return dart.as(bytes[exports.$map](dart.as(byteString => {
+      return dart.as(bytes[exports.$map](byteString => {
         let byte = int.parse(dart.as(byteString, String));
         if (dart.notNull(byte) < 0 || dart.notNull(byte) > 255) {
           error('each part must be in the range of `0..255`');
         }
         return byte;
-      }, dart.functionType(dart.dynamic, [String])))[exports.$toList](), List$(int));
+      })[exports.$toList](), List$(int));
     }
     static parseIPv6Address(host, start, end) {
       if (start === void 0)
@@ -2850,7 +2850,7 @@ var core;
       }
       if (dart.notNull(host.length) < 2)
         error('address is too short');
-      let parts = dart.as(new List.from([]), List$(int));
+      let parts = new List$(int).from([]);
       let wildcardSeen = false;
       let partStart = start;
       for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
@@ -2978,7 +2978,7 @@ var core;
           bytes = text.codeUnits;
         }
       } else {
-        bytes = dart.as(new List(), List$(int));
+        bytes = new (List$(int))();
         for (let i = 0; dart.notNull(i) < dart.notNull(text.length); i = dart.notNull(i) + 1) {
           let codeUnit = text.codeUnitAt(i);
           if (dart.notNull(codeUnit) > 127) {

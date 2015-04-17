@@ -354,9 +354,9 @@ return true;
  class ExpandIterable<S, T> extends IterableBase<T> {final Iterable<S> _iterable;
  final _ExpandFunction _f;
  ExpandIterable(this._iterable, Iterable<T> this._f(S element));
- Iterator<T> get iterator => new ExpandIterator<S, T>(_iterable.iterator, DEVC$RT.cast(_f, null, DEVC$RT.type((__t0<S, T> _) {
+ Iterator<T> get iterator => new ExpandIterator<S, T>(_iterable.iterator, DEVC$RT.cast(_f, null, DEVC$RT.type((__CastType0<S, T> _) {
 }
-), "CompositeCast", """line 454, column 76 of dart:_internal/iterable.dart: """, _f is __t0<S, T>, false));
+), "CompositeCast", """line 454, column 76 of dart:_internal/iterable.dart: """, _f is __CastType0<S, T>, false));
 }
  class ExpandIterator<S, T> implements Iterator<T> {final Iterator<S> _iterator;
  final _ExpandFunction _f;
@@ -430,9 +430,9 @@ if (_remaining < 0) return null;
  final _ElementPredicate _f;
  TakeWhileIterable(this._iterable, bool this._f(E element));
  Iterator<E> get iterator {
-return new TakeWhileIterator<E>(_iterable.iterator, DEVC$RT.cast(_f, null, DEVC$RT.type((__t3<E> _) {
+return new TakeWhileIterator<E>(_iterable.iterator, DEVC$RT.cast(_f, null, DEVC$RT.type((__CastType3<E> _) {
 }
-), "CompositeCast", """line 555, column 57 of dart:_internal/iterable.dart: """, _f is __t3<E>, false));
+), "CompositeCast", """line 555, column 57 of dart:_internal/iterable.dart: """, _f is __CastType3<E>, false));
 }
 }
  class TakeWhileIterator<E> extends Iterator<E> {final Iterator<E> _iterator;
@@ -499,9 +499,9 @@ for (int i = 0; i < _skipCount; i++) _iterator.moveNext();
  final _ElementPredicate _f;
  SkipWhileIterable(this._iterable, bool this._f(E element));
  Iterator<E> get iterator {
-return new SkipWhileIterator<E>(_iterable.iterator, DEVC$RT.cast(_f, null, DEVC$RT.type((__t5<E> _) {
+return new SkipWhileIterator<E>(_iterable.iterator, DEVC$RT.cast(_f, null, DEVC$RT.type((__CastType5<E> _) {
 }
-), "CompositeCast", """line 648, column 57 of dart:_internal/iterable.dart: """, _f is __t5<E>, false));
+), "CompositeCast", """line 648, column 57 of dart:_internal/iterable.dart: """, _f is __CastType5<E>, false));
 }
 }
  class SkipWhileIterator<E> extends Iterator<E> {final Iterator<E> _iterator;
@@ -752,9 +752,9 @@ return new WhereIterable<T>(DEVC$RT.cast(iterable, DEVC$RT.type((Iterable<dynami
 }
 ), DEVC$RT.type((Iterable<T> _) {
 }
-), "CompositeCast", """line 961, column 33 of dart:_internal/iterable.dart: """, iterable is Iterable<T>, false), DEVC$RT.cast(f, null, DEVC$RT.type((__t7<T> _) {
+), "CompositeCast", """line 961, column 33 of dart:_internal/iterable.dart: """, iterable is Iterable<T>, false), DEVC$RT.cast(f, null, DEVC$RT.type((__CastType7<T> _) {
 }
-), "CompositeCast", """line 961, column 43 of dart:_internal/iterable.dart: """, f is __t7<T>, false));
+), "CompositeCast", """line 961, column 43 of dart:_internal/iterable.dart: """, f is __CastType7<T>, false));
 }
  static Iterable map(Iterable iterable, f(var element)) {
 return new MappedIterable(iterable, f);
@@ -777,9 +777,9 @@ return new TakeWhileIterable<T>(DEVC$RT.cast(iterable, DEVC$RT.type((Iterable<dy
 }
 ), DEVC$RT.type((Iterable<T> _) {
 }
-), "CompositeCast", """line 983, column 37 of dart:_internal/iterable.dart: """, iterable is Iterable<T>, false), DEVC$RT.cast(test, null, DEVC$RT.type((__t7<T> _) {
+), "CompositeCast", """line 983, column 37 of dart:_internal/iterable.dart: """, iterable is Iterable<T>, false), DEVC$RT.cast(test, null, DEVC$RT.type((__CastType7<T> _) {
 }
-), "CompositeCast", """line 983, column 47 of dart:_internal/iterable.dart: """, test is __t7<T>, false));
+), "CompositeCast", """line 983, column 47 of dart:_internal/iterable.dart: """, test is __CastType7<T>, false));
 }
  Iterable<T> skipList(List list, int n) {
 return new SubListIterable<T>(DEVC$RT.cast(list, DEVC$RT.type((List<dynamic> _) {
@@ -793,9 +793,9 @@ return new SkipWhileIterable<T>(DEVC$RT.cast(iterable, DEVC$RT.type((Iterable<dy
 }
 ), DEVC$RT.type((Iterable<T> _) {
 }
-), "CompositeCast", """line 993, column 37 of dart:_internal/iterable.dart: """, iterable is Iterable<T>, false), DEVC$RT.cast(test, null, DEVC$RT.type((__t7<T> _) {
+), "CompositeCast", """line 993, column 37 of dart:_internal/iterable.dart: """, iterable is Iterable<T>, false), DEVC$RT.cast(test, null, DEVC$RT.type((__CastType7<T> _) {
 }
-), "CompositeCast", """line 993, column 47 of dart:_internal/iterable.dart: """, test is __t7<T>, false));
+), "CompositeCast", """line 993, column 47 of dart:_internal/iterable.dart: """, test is __CastType7<T>, false));
 }
  Iterable<T> reversedList(List list) {
 return new ReversedListIterable<T>(DEVC$RT.cast(list, DEVC$RT.type((List<dynamic> _) {
@@ -955,8 +955,8 @@ result.add(element);
  static StateError tooMany() => new StateError("Too many elements");
  static StateError tooFew() => new StateError("Too few elements");
 }
- typedef Iterable<T> __t0<S, T>(S __u1);
- typedef bool __t3<E>(E __u4);
- typedef bool __t5<E>(E __u6);
- typedef bool __t7<T>(T __u8);
- typedef bool __t9(dynamic __u10);
+ typedef Iterable<T> __CastType0<S, T>(S __u1);
+ typedef bool __CastType3<E>(E __u4);
+ typedef bool __CastType5<E>(E __u6);
+ typedef bool __CastType7<T>(T __u8);
+ typedef bool __CastType9(dynamic __u10);

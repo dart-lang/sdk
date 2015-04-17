@@ -111,7 +111,7 @@ var _isolate_helper;
     }
     serializeMap(x) {
       let serializeTearOff = this.serialize;
-      return new core.List.from(['map', x.keys[core.$map](dart.as(serializeTearOff, dart.functionType(dart.dynamic, [dart.dynamic])))[core.$toList](), x.values[core.$map](dart.as(serializeTearOff, dart.functionType(dart.dynamic, [dart.dynamic])))[core.$toList]()]);
+      return new core.List.from(['map', x.keys[core.$map](dart.as(serializeTearOff, __CastType0))[core.$toList](), x.values[core.$map](dart.as(serializeTearOff, dart.functionType(dart.dynamic, [dart.dynamic])))[core.$toList]()]);
     }
     serializeJSObject(x) {
       if (!!x.constructor && x.constructor !== Object) {
@@ -349,6 +349,7 @@ var _isolate_helper;
       return initializeObject(classId, emptyInstance, fields);
     }
   }
+  let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   // Function _callInIsolate: (_IsolateContext, Function) → dynamic
   function _callInIsolate(isolate, func) {
     let result = isolate.eval(func);
@@ -494,9 +495,9 @@ var _isolate_helper;
       this.controlPort = new RawReceivePortImpl[_controlPort]();
       this.pauseCapability = new isolate.Capability();
       this.terminateCapability = new isolate.Capability();
-      this.delayedEvents = dart.as(new core.List.from([]), core.List$(_IsolateEvent));
-      this.pauseTokens = dart.as(new core.Set(), core.Set$(isolate.Capability));
-      this.errorPorts = dart.as(new core.Set(), core.Set$(isolate.SendPort));
+      this.delayedEvents = new core.List$(_IsolateEvent).from([]);
+      this.pauseTokens = new (core.Set$(isolate.Capability))();
+      this.errorPorts = new (core.Set$(isolate.SendPort))();
       this.initialized = false;
       this.isPaused = false;
       this.doneHandlers = null;
@@ -959,9 +960,9 @@ var _isolate_helper;
     }
     static handleSpawnWorkerRequest(msg) {
       let replyPort = dart.dindex(msg, 'replyPort');
-      IsolateNatives.spawn(dart.as(dart.dindex(msg, 'functionName'), core.String), dart.as(dart.dindex(msg, 'uri'), core.String), dart.as(dart.dindex(msg, 'args'), core.List$(core.String)), dart.dindex(msg, 'msg'), false, dart.as(dart.dindex(msg, 'isSpawnUri'), core.bool), dart.as(dart.dindex(msg, 'startPaused'), core.bool)).then(dart.as(msg => {
+      IsolateNatives.spawn(dart.as(dart.dindex(msg, 'functionName'), core.String), dart.as(dart.dindex(msg, 'uri'), core.String), dart.as(dart.dindex(msg, 'args'), core.List$(core.String)), dart.dindex(msg, 'msg'), false, dart.as(dart.dindex(msg, 'isSpawnUri'), core.bool), dart.as(dart.dindex(msg, 'startPaused'), core.bool)).then(msg => {
         dart.dsend(replyPort, 'send', msg);
-      }, dart.functionType(dart.dynamic, [core.List])), {
+      }, {
         onError: errorMessage => {
           dart.dsend(replyPort, 'send', new core.List.from([_SPAWN_FAILED_SIGNAL, errorMessage]));
         }
@@ -1015,7 +1016,7 @@ var _isolate_helper;
         uri = dart.notNull(uri) + ".js";
       }
       let port = new isolate.ReceivePort();
-      let completer = dart.as(new async.Completer(), async.Completer$(core.List));
+      let completer = new (async.Completer$(core.List))();
       port.first.then(msg => {
         if (dart.equals(dart.dindex(msg, 0), _SPAWNED_SIGNAL)) {
           completer.complete(msg);
