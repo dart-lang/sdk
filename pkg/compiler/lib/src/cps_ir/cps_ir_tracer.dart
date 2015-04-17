@@ -204,6 +204,17 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     printStmt(dummy, "ConcatenateStrings ($args) $kont");
   }
 
+  visitThrow(cps_ir.Throw node) {
+    String dummy = names.name(node);
+    String value = formatReference(node.value);
+    printStmt(dummy, "Throw $value");
+  }
+
+  visitRethrow(cps_ir.Rethrow node) {
+    String dummy = names.name(node);
+    printStmt(dummy, "Rethrow");
+  }
+
   visitLiteralList(cps_ir.LiteralList node) {
     String dummy = names.name(node);
     String values = node.values.map(formatReference).join(', ');
@@ -340,21 +351,23 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return 'GetMutableVariable $variable';
   }
 
-  @override
   visitReadTypeVariable(cps_ir.ReadTypeVariable node) {
     return "ReadTypeVariable ${node.variable.element} "
         "${formatReference(node.target)}";
   }
 
-  @override
   visitReifyRuntimeType(cps_ir.ReifyRuntimeType node) {
     return "ReifyRuntimeType ${formatReference(node.value)}";
   }
 
-  @override
   visitTypeExpression(cps_ir.TypeExpression node) {
     return "TypeExpression ${node.dartType} "
         "${node.arguments.map(formatReference).join(', ')}";
+  }
+
+  visitNonTailThrow(cps_ir.NonTailThrow node) {
+    String value = formatReference(node.value);
+    return "NonTailThrow($value)";
   }
 }
 
@@ -507,6 +520,12 @@ class BlockCollector implements cps_ir.Visitor {
     addEdgeToContinuation(exp.continuation);
   }
 
+  visitThrow(cps_ir.Throw exp) {
+  }
+
+  visitRethrow(cps_ir.Rethrow exp) {
+  }
+
   visitSetMutableVariable(cps_ir.SetMutableVariable exp) {
     visit(exp.body);
   }
@@ -590,18 +609,19 @@ class BlockCollector implements cps_ir.Visitor {
     unexpectedNode(node);
   }
 
-  @override
   visitReadTypeVariable(cps_ir.ReadTypeVariable node) {
     unexpectedNode(node);
   }
 
-  @override
   visitReifyRuntimeType(cps_ir.ReifyRuntimeType node) {
     unexpectedNode(node);
   }
 
-  @override
   visitTypeExpression(cps_ir.TypeExpression node) {
+    unexpectedNode(node);
+  }
+
+  visitNonTailThrow(cps_ir.NonTailThrow node) {
     unexpectedNode(node);
   }
 }

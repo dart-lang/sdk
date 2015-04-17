@@ -453,6 +453,19 @@ class Builder implements cps_ir.Visitor<Node> {
     return continueWithExpression(node.continuation, concat);
   }
 
+  Statement visitThrow(cps_ir.Throw node) {
+    Expression value = getVariableUse(node.value);
+    return new Throw(value);
+  }
+
+  Statement visitRethrow(cps_ir.Rethrow node) {
+    return new Rethrow();
+  }
+
+  Expression visitNonTailThrow(cps_ir.NonTailThrow node) {
+    unexpectedNode(node);
+  }
+
   Statement continueWithExpression(cps_ir.Reference continuation,
                                    Expression expression) {
     cps_ir.Continuation cont = continuation.definition;

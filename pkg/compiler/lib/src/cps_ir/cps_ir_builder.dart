@@ -1764,13 +1764,15 @@ abstract class IrBuilder {
       LocalVariableElement exceptionVariable =
           catchClauseInfo.exceptionVariable;
       ir.Parameter exceptionParameter = new ir.Parameter(exceptionVariable);
-      catchBuilder.environment.extend(exceptionVariable, exceptionParameter);
+      catchBuilder.declareLocalVariable(exceptionVariable,
+                                        initialValue: exceptionParameter);
       ir.Parameter traceParameter;
       LocalVariableElement stackTraceVariable =
           catchClauseInfo.stackTraceVariable;
       if (stackTraceVariable != null) {
         traceParameter = new ir.Parameter(stackTraceVariable);
-        catchBuilder.environment.extend(stackTraceVariable, traceParameter);
+        catchBuilder.declareLocalVariable(stackTraceVariable,
+                                          initialValue: traceParameter);
       } else {
         // Use a dummy continuation parameter for the stack trace parameter.
         // This will ensure that all handlers have two parameters and so they
@@ -1879,6 +1881,23 @@ abstract class IrBuilder {
       }
     }
     return false;
+  }
+
+  void buildThrow(ir.Primitive value) {
+    assert(isOpen);
+    add(new ir.Throw(value));
+    _current = null;
+  }
+
+  ir.Primitive buildNonTailThrow(ir.Primitive value) {
+    assert(isOpen);
+    return addPrimitive(new ir.NonTailThrow(value));
+  }
+
+  void buildRethrow() {
+    assert(isOpen);
+    add(new ir.Rethrow());
+    _current = null;
   }
 
   /// Create a negation of [condition].

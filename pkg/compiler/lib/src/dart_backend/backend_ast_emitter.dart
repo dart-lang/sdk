@@ -344,18 +344,14 @@ class ASTEmitter
         bodyParts.add(new VariableDeclarations(context.variables));
       }
       bodyParts.addAll(context.statements);
-
       body = new Block(bodyParts);
-
     }
-    FunctionType functionType = context.currentElement.type;
-
     return new ConstructorDefinition(
         parameters,
         body,
         initializers,
-        context.currentElement.name, definition.element.isConst)
-        ..element = context.currentElement;
+        context.currentElement.name,
+        definition.element.isConst)..element = context.currentElement;
   }
 
   @override
@@ -564,7 +560,6 @@ class ASTEmitter
     bool isFirstOccurrence = (context.variableNames[assign.variable] == null);
     bool isDeclaredHere = assign.variable.host == context.currentElement;
     bool isFirstStatement = context.firstStatement == statement;
-    String name = context.getVariableName(assign.variable);
 
     // Try to pull into initializer.
     if (isFirstStatement && isFirstOccurrence && isDeclaredHere) {
@@ -582,8 +577,7 @@ class ASTEmitter
   }
 
   @override
-  void visitReturn(tree.Return stmt,
-                   BuilderContext<Statement> context) {
+  void visitReturn(tree.Return stmt, BuilderContext<Statement> context) {
     if (context.currentElement.isGenerativeConstructor &&
         !context.inInitializer) {
       assert(() {
@@ -598,8 +592,18 @@ class ASTEmitter
   }
 
   @override
-  void visitBreak(tree.Break stmt,
-                  BuilderContext<Statement> context) {
+  void visitThrow(tree.Throw stmt, BuilderContext<Statement> context) {
+    Expression value = visitExpression(stmt.value, context);
+    context.addStatement(new ExpressionStatement(new Throw(value)));
+  }
+
+  @override
+  void visitRethrow(tree.Rethrow stmt, BuilderContext<Statement> context) {
+    context.addStatement(new Rethrow());
+  }
+
+  @override
+  void visitBreak(tree.Break stmt, BuilderContext<Statement> context) {
     tree.Statement fall = context.fallthrough;
     if (stmt.target.binding.next == fall) {
       // Fall through to break target

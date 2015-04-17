@@ -238,7 +238,16 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     String name = access(node.continuation);
     if (node.isRecursive) name = 'rec $name';
     String args = node.arguments.map(access).join(' ');
-    return '$indentation($InvokeContinuation $name ($args))';
+    return '$indentation(InvokeContinuation $name ($args))';
+  }
+
+  String visitThrow(Throw node) {
+    String value = access(node.value);
+    return '$indentation(Throw $value)';
+  }
+
+  String visitRethrow(Rethrow node) {
+    return '$indentation(Rethrow)';
   }
 
   String visitBranch(Branch node) {
@@ -355,10 +364,14 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     return '(ReadTypeVariable ${access(node.target)}.${node.variable})';
   }
 
-  @override
   String visitTypeExpression(TypeExpression node) {
     String args = node.arguments.map(access).join(', ');
     return '(TypeExpression ${node.dartType.toString()} $args)';
+  }
+
+  String visitNonTailThrow(NonTailThrow node) {
+    String value = access(node.value);
+    return '(NonTailThrow $value)';
   }
 }
 
@@ -374,7 +387,7 @@ class ConstantStringifier extends ConstantValueVisitor<String, Null> {
   }
 
   String visitFunction(FunctionConstantValue constant, _) {
-    return _failWith(constant);
+    return '(Function "${constant.unparse()}")';
   }
 
   String visitNull(NullConstantValue constant, _) {
@@ -470,7 +483,7 @@ class _Namer {
   }
 
   String getName(Node node) {
-    assert(_names.containsKey(node));
+    if (!_names.containsKey(node)) return 'MISSING_NAME';
     return _names[node];
   }
 }

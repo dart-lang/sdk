@@ -433,7 +433,6 @@ async/stream_controller_test: Crash # (throw _buildException('asyncEnd() was cal
 async/stream_event_transformed_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 async/stream_first_where_test: Crash # cannot compile methods that need interceptor calling convention.
 async/stream_from_iterable_test: Crash # cannot compile methods that need interceptor calling convention.
-async/stream_iterator_double_cancel_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 async/stream_iterator_test: Crash # cannot compile methods that need interceptor calling convention.
 async/stream_join_test: Crash # cannot compile methods that need interceptor calling convention.
 async/stream_last_where_test: Crash # cannot compile methods that need interceptor calling convention.
@@ -543,9 +542,6 @@ mirrors/abstract_class_test/00: Crash # (throw new ExpectException(message)): Un
 mirrors/abstract_class_test/none: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/abstract_test: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/accessor_cache_overflow_test: Crash # cannot compile methods that need interceptor calling convention.
-mirrors/array_tracing2_test: Crash # (throw 'Test failed'): Unhandled node
-mirrors/array_tracing3_test: Crash # (throw 'Test failed'): Unhandled node
-mirrors/array_tracing_test: Crash # (throw 'Test failed'): Unhandled node
 mirrors/basic_types_in_dart_core_test: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/circular_factory_redirection_test/01: Crash # (new A.circular()): Error expression `new A.circular()` unhandled.
 mirrors/circular_factory_redirection_test/02: Crash # (new A.circular2()): Error expression `new A.circular2()` unhandled.
@@ -568,7 +564,6 @@ mirrors/deferred_mirrors_update_test: RuntimeError # Please triage this failure.
 mirrors/delegate_call_through_getter_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/delegate_function_invocation_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/delegate_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-mirrors/disable_tree_shaking_test: Crash # (throw 'Expected 42, but got ${result}'): Unhandled node
 mirrors/enum_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/equality_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/fake_function_with_call_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -607,7 +602,6 @@ mirrors/get_field_static_test/00: Crash # Instance of 'TypeOperator': unimplemen
 mirrors/get_field_static_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/get_field_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/get_symbol_name_no_such_method_test: Crash # (throw 'Expected: "${expected}", but got "${actual}"'): Unhandled node
-mirrors/get_symbol_name_test: Crash # (throw 'Expected: "${expected}", but got "${actual}"'): Unhandled node
 mirrors/globalized_closures2_test/00: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/globalized_closures2_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/globalized_closures_test/00: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -670,7 +664,6 @@ mirrors/library_imports_metadata_test: Crash # (throw new ExpectException(messag
 mirrors/library_imports_prefixed_show_hide_test: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/library_imports_prefixed_test: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/library_imports_shown_test: Crash # (throw new ExpectException(message)): Unhandled node
-mirrors/library_metadata_test: Crash # (throw 'Null metadata on ${mirror}'): Unhandled node
 mirrors/library_uri_package_test: Crash # cannot compile methods that need interceptor calling convention.
 mirrors/list_constructor_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/list_constructor_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -716,7 +709,6 @@ mirrors/metadata_nested_constructor_call_test/07: Crash # (throw new ExpectExcep
 mirrors/metadata_nested_constructor_call_test/08: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/metadata_nested_constructor_call_test/09: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/metadata_nested_constructor_call_test/none: Crash # (throw new ExpectException(message)): Unhandled node
-mirrors/metadata_test: Crash # (throw 'Bad constant: ${symbol}'): Unhandled node
 mirrors/method_mirror_location_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/method_mirror_name_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/method_mirror_properties_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -837,7 +829,6 @@ typed_data/float32x4_two_arg_shuffle_test: Crash # Instance of 'TypeOperator': u
 typed_data/float32x4_unbox_phi_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 typed_data/float32x4_unbox_regress_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 typed_data/float64x2_functional_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-typed_data/float64x2_typed_list_test: Crash # (throw 123): Unhandled node
 typed_data/int32x4_arithmetic_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 typed_data/int32x4_bigint_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 typed_data/int32x4_list_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -851,11 +842,9 @@ typed_data/setRange_3_test: Crash # Instance of 'TypeOperator': unimplemented in
 typed_data/setRange_4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 typed_data/setRange_5_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 typed_data/simd_store_to_load_forward_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-typed_data/typed_data_from_list_test: Crash # (throw 'Test failed'): Unhandled node
 typed_data/typed_data_hierarchy_int64_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 typed_data/typed_data_hierarchy_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 typed_data/typed_data_list_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 typed_data/typed_data_load2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-typed_data/typed_data_load_test: Crash # (throw 'Test failed'): Unhandled node
 typed_data/typed_data_sublist_type_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 typed_data/typed_list_iterable_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator

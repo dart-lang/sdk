@@ -106,6 +106,14 @@ class UnsugarVisitor extends RecursiveVisitor {
     node.handler.parameters.removeLast();
   }
 
+  processThrow(Throw node) {
+    // The subexpression of throw is wrapped in the JavaScript output.
+    Parameter value = new Parameter(null);
+    insertStaticCall(_glue.getWrapExceptionHelper(), [node.value.definition],
+        value, node);
+    node.value = new Reference<Primitive>(value);
+  }
+
   processInvokeMethod(InvokeMethod node) {
     Selector selector = node.selector;
     // TODO(karlklose):  should we rewrite all selectors?

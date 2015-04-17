@@ -435,6 +435,15 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
+  Statement visitThrow(Throw node) {
+    node.value = visitExpression(node.value);
+    return node;
+  }
+
+  Statement visitRethrow(Rethrow node) {
+    return node;
+  }
+
   Statement visitBreak(Break node) {
     // Redirect through chain of breaks.
     // Note that useCount was accounted for at visitLabeledStatement.

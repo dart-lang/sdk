@@ -121,6 +121,10 @@ class Glue {
         _backend.namer.globalObjectFor(_backend.interceptorsLibrary));
   }
 
+  FunctionElement getWrapExceptionHelper() {
+    return _backend.getWrapExceptionHelper();
+  }
+
   FunctionElement getExceptionUnwrapper() {
     return _backend.getExceptionUnwrapper();
   }

@@ -601,6 +601,10 @@ class ParentVisitor extends RecursiveVisitor {
     node.body.parent = node;
   }
 
+  processThrow(Throw node) {
+    node.value.parent = node;
+  }
+
   // Definitions.
 
   processLiteralList(LiteralList node) {

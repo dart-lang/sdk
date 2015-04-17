@@ -430,6 +430,41 @@ class ConcatenateStrings extends Expression {
   accept(Visitor visitor) => visitor.visitConcatenateStrings(this);
 }
 
+/// Throw a value.
+///
+/// Throw is an expression, i.e., it always occurs in tail position with
+/// respect to a body or expression.
+class Throw extends Expression {
+  Reference<Primitive> value;
+
+  Throw(Primitive value) : value = new Reference<Primitive>(value);
+
+  accept(Visitor visitor) => visitor.visitThrow(this);
+}
+
+/// Rethrow
+///
+/// Rethrow can only occur inside a continuation bound by [LetHandler].  It
+/// implicitly throws the exception parameter of the enclosing handler with
+/// the same stack trace as the enclosing handler.
+class Rethrow extends Expression {
+  accept(Visitor visitor) => visitor.visitRethrow(this);
+}
+
+/// A throw occurring in non-tail position.
+///
+/// The CPS translation of an expression produces a primitive as the value
+/// of the expression.  For convenience in the implementation of the
+/// translation, a [NonTailThrow] is used as that value.  A cleanup pass
+/// removes these and replaces them with [Throw] expressions.
+class NonTailThrow extends Primitive {
+  final Reference<Primitive> value;
+
+  NonTailThrow(Primitive value) : value = new Reference<Primitive>(value);
+
+  accept(Visitor visitor) => visitor.visitNonTailThrow(this);
+}
+
 /// Gets the value from a [MutableVariable].
 ///
 /// [MutableVariable]s can be seen as ref cells that are not first-class
@@ -950,6 +985,8 @@ abstract class Visitor<T> {
   T visitInvokeMethodDirectly(InvokeMethodDirectly node);
   T visitInvokeConstructor(InvokeConstructor node);
   T visitConcatenateStrings(ConcatenateStrings node);
+  T visitThrow(Throw node);
+  T visitRethrow(Rethrow node);
   T visitBranch(Branch node);
   T visitTypeOperator(TypeOperator node);
   T visitSetMutableVariable(SetMutableVariable node);
@@ -965,6 +1002,7 @@ abstract class Visitor<T> {
   T visitParameter(Parameter node);
   T visitContinuation(Continuation node);
   T visitMutableVariable(MutableVariable node);
+  T visitNonTailThrow(NonTailThrow node);
 
   // JavaScript specific nodes.
 
@@ -1119,6 +1157,17 @@ class RecursiveVisitor implements Visitor {
     node.arguments.forEach(processReference);
   }
 
+  processThrow(Throw node) {}
+  visitThrow(Throw node) {
+    processThrow(node);
+    processReference(node.value);
+  }
+
+  processRethrow(Rethrow node) {}
+  visitRethrow(Rethrow node) {
+    processRethrow(node);
+  }
+
   processBranch(Branch node) {}
   visitBranch(Branch node) {
     processBranch(node);
@@ -1168,10 +1217,14 @@ class RecursiveVisitor implements Visitor {
   }
 
   processConstant(Constant node) {}
-  visitConstant(Constant node) => processConstant(node);
+  visitConstant(Constant node)  {
+    processConstant(node);
+  }
 
   processReifyTypeVar(ReifyTypeVar node) {}
-  visitReifyTypeVar(ReifyTypeVar node) => processReifyTypeVar(node);
+  visitReifyTypeVar(ReifyTypeVar node) {
+    processReifyTypeVar(node);
+  }
 
   processCreateFunction(CreateFunction node) {}
   visitCreateFunction(CreateFunction node) {
@@ -1191,7 +1244,9 @@ class RecursiveVisitor implements Visitor {
   }
 
   processParameter(Parameter node) {}
-  visitParameter(Parameter node) => processParameter(node);
+  visitParameter(Parameter node) {
+    processParameter(node);
+  }
 
   processContinuation(Continuation node) {}
   visitContinuation(Continuation node) {
@@ -1264,5 +1319,11 @@ class RecursiveVisitor implements Visitor {
   visitTypeExpression(TypeExpression node) {
     processTypeExpression(node);
     node.arguments.forEach(processReference);
+  }
+
+  processNonTailThrow(NonTailThrow node) {}
+  visitNonTailThrow(NonTailThrow node) {
+    processNonTailThrow(node);
+    processReference(node.value);
   }
 }

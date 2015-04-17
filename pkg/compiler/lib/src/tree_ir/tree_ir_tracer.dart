@@ -80,6 +80,14 @@ class BlockCollector extends StatementVisitor {
     _addStatement(node);
   }
 
+  visitThrow(Throw node) {
+    _addStatement(node);
+  }
+
+  visitRethrow(Rethrow node) {
+    _addStatement(node);
+  }
+
   visitBreak(Break node) {
     _addStatement(node);
     blocks.last.addEdgeTo(breakTargets[node.target]);
@@ -262,6 +270,14 @@ class TreeTracer extends TracerUtil with StatementVisitor {
 
   visitReturn(Return node) {
     printStatement(null, "return ${expr(node.value)}");
+  }
+
+  visitThrow(Throw node) {
+    printStatement(null, "throw ${expr(node.value)}");
+  }
+
+  visitRethrow(Rethrow node) {
+    printStatement(null, "rethrow");
   }
 
   visitBreak(Break node) {

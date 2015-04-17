@@ -231,7 +231,6 @@ io/http_bind_test: Crash #  cannot handle async/sync*/async* functions
 io/http_client_connect_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 io/http_client_exception_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/http_client_request_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_client_stays_alive_test: Crash #  Unhandled node
 io/http_close_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/http_compression_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/http_connection_header_test: Crash # (throw new ExpectException(message)): Unhandled node
@@ -257,8 +256,6 @@ io/http_redirect_test: Crash # (throw new ExpectException(message)): Unhandled n
 io/http_request_pipeling_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/http_requested_uri_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 io/http_response_deadline_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_reuse_server_port_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/http_server_close_response_after_error_test: Crash # (throw "Bad exit code"): Unhandled node
 io/http_server_early_client_close_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/http_server_response_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/http_server_test: Crash # (throw new ExpectException(message)): Unhandled node
@@ -298,7 +295,6 @@ io/process_run_output_test: Crash # (throw new ExpectException(message)): Unhand
 io/process_run_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/process_segfault_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/process_set_exit_code_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/process_shell_test: Crash # (throw "error expected"): Unhandled node
 io/process_start_exception_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/process_stderr_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/process_stdin_transform_unsubscribe_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -321,7 +317,6 @@ io/read_into_const_list_test: Crash # Instance of 'TypeOperator': unimplemented 
 io/regress_10026_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 io/regress_21160_test: Crash #  Unhandled node
 io/regress_21987_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/regress_7191_test: Crash # (throw "Bad exit code"): Unhandled node
 io/regress_7679_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/regress_8828_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/regress_9194_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -342,7 +337,6 @@ io/secure_socket_bad_data_test: Crash # (throw _buildException('asyncEnd() was c
 io/secure_socket_renegotiate_test: Crash # (throw new ExpectException(message)): Unhandled node
 io/secure_socket_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/secure_unauthorized_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/server_socket_reference_issue21383_and_issue21384_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 io/signals_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 io/skipping_dart2js_compilations_test: Crash # unsupported element kind: currentWorkingDirectory:field
 io/sleep_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -360,7 +354,6 @@ io/socket_source_address_test: Crash #  cannot handle async/sync*/async* functio
 io/socket_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 io/socket_upgrade_to_secure_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 io/status_file_parser_test: Crash # (throw new Exception('Cannot find test status file ${path}')): Unhandled node
-io/stdin_sync_test: Crash # (throw "Bad output: '${data}'"): Unhandled node
 io/stdio_nonblocking_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/stdout_close_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/stdout_stderr_non_blocking_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -384,8 +377,6 @@ io/zlib_test: Crash # (throw _buildException('asyncEnd() was called before async
 medium_integer_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 oom_error_stacktrace_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 out_of_memory_test: Crash #  "on T" catch block
-package/package1_test: Crash # (throw new Error("Not identical")): Unhandled node
-package/package_test: Crash # (throw new Error("libraries were not reached successfully")): Unhandled node
 priority_queue_stress_test: Crash # cannot compile methods that need interceptor calling convention.
 status_expression_test: Crash # (throw new ExpectException(message)): Unhandled node
 typed_array_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator

@@ -248,7 +248,6 @@ bool_from_environment_default_value_test: Crash # (throw new ExpectException(mes
 bool_from_environment_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 bool_hashcode_test: Crash # (throw new ExpectException(message)): Unhandled node
 collection_from_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-collection_length_test: Crash # (throw "Bad length: ${length} / size: ${size}"): Unhandled node
 collection_removes_test: Crash # (throw new ExpectException(message)): Unhandled node
 collection_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 collection_to_string_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -343,7 +342,6 @@ hash_set_test/none: Crash # (throw new ExpectException(message)): Unhandled node
 hash_set_type_check_test: Crash # (throw new ExpectException(message)): Unhandled node
 hashcode_boxed_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 hashcode_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-hidden_library2_test/01: Crash # (throw 'fisk'): Unhandled node
 indexed_list_access_test: Crash # (throw new ExpectException(message)): Unhandled node
 int_ceil_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 int_ceil_to_double_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -584,9 +582,6 @@ symbol_reserved_word_test/06: Crash # Instance of 'TypeOperator': unimplemented 
 symbol_reserved_word_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 symbol_reserved_word_test/12: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 symbol_test/none: Crash #  "on T" catch block
-throw_half_surrogate_pair_test/01: Crash # (throw "String should be a surrogate pair"): Unhandled node
-throw_half_surrogate_pair_test/02: Crash # (throw "String should be a surrogate pair"): Unhandled node
-throw_half_surrogate_pair_test/none: Crash # (throw "String should be a surrogate pair"): Unhandled node
 toInt_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 unicode2_test: Crash # (throw new ExpectException(message)): Unhandled node
 unicode_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator

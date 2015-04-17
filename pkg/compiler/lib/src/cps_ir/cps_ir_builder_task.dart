@@ -366,7 +366,20 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   //   where (C', _) = Build(e, C)
   ir.Primitive visitExpressionStatement(ast.ExpressionStatement node) {
     assert(irBuilder.isOpen);
-    visit(node.expression);
+    if (node.expression is ast.Throw) {
+      // Throw expressions that occur as statements are translated differently
+      // from ones that occur as subexpressions.  This is achieved by peeking
+      // at statement-level expressions here.
+      irBuilder.buildThrow(visit(node.expression));
+    } else {
+      visit(node.expression);
+    }
+    return null;
+  }
+
+  ir.Primitive visitRethrow(ast.Rethrow node) {
+    assert(irBuilder.isOpen);
+    irBuilder.buildRethrow();
     return null;
   }
 
@@ -494,7 +507,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   visitTryStatement(ast.TryStatement node) {
     // Multiple catch blocks are not yet implemented.
     if (node.catchBlocks.isEmpty ||
-        node.catchBlocks.nodes.tail == null) {
+        !node.catchBlocks.nodes.tail.isEmpty) {
       return giveup(node, 'not exactly one catch block');
     }
     // 'on T' catch blocks are not yet implemented.
@@ -1761,10 +1774,17 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return irBuilder.buildConstantLiteral(getConstantForNode(node));
   }
 
+  ir.Primitive visitThrow(ast.Throw node) {
+    assert(irBuilder.isOpen);
+    // This function is not called for throw expressions occurring as
+    // statements.
+    return irBuilder.buildNonTailThrow(visit(node.expression));
+  }
+
   ir.RootNode nullIfGiveup(ir.RootNode action()) {
     try {
       return action();
-    } catch(e, tr) {
+    } catch(e) {
       if (e == ABORT_IRNODE_BUILDER) {
         return null;
       }
@@ -2004,13 +2024,16 @@ class DartIrBuilderVisitor extends IrBuilderVisitor {
 
   ir.RootNode buildExecutable(ExecutableElement element) {
     return nullIfGiveup(() {
+      ir.RootNode root;
       if (element is FieldElement) {
-        return buildField(element);
+        root = buildField(element);
       } else if (element is FunctionElement || element is ConstructorElement) {
-        return buildFunction(element);
+        root = buildFunction(element);
       } else {
         compiler.internalError(element, "Unexpected element type $element");
       }
+      new CleanupPass().visit(root);
+      return root;
     });
   }
 
@@ -2224,21 +2247,27 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
 
   ir.RootNode buildExecutable(ExecutableElement element) {
     return nullIfGiveup(() {
+      ir.RootNode root;
       switch (element.kind) {
         case ElementKind.GENERATIVE_CONSTRUCTOR:
-          return buildConstructor(element);
+          root = buildConstructor(element);
+          break;
 
         case ElementKind.GENERATIVE_CONSTRUCTOR_BODY:
-          return buildConstructorBody(element);
+          root = buildConstructorBody(element);
+          break;
 
         case ElementKind.FUNCTION:
         case ElementKind.GETTER:
         case ElementKind.SETTER:
-          return buildFunction(element);
+          root = buildFunction(element);
+          break;
 
         default:
           compiler.internalError(element, "Unexpected element type $element");
       }
+      new CleanupPass().visit(root);
+      return root;
     });
   }
 
@@ -2772,3 +2801,71 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
     return new PositionSourceInformationBuilder(element);
   }
 }
+
+/// Perform simple post-processing on the initial CPS-translated root term.
+///
+/// This pass performs backend-independent post-processing on the translated
+/// term.  It is implemented separately from the optimization passes because
+/// it is required for correctness of the implementation.
+///
+/// It performs the following translations:
+///   - Replace [ir.LetPrim] binding a [ir.NonTailThrow] with a [ir.Throw]
+///     expression.
+class CleanupPass extends ir.RecursiveVisitor {
+  RemovalVisitor _remover = new RemovalVisitor();
+
+  ir.Expression replacementFor(ir.Expression expression) {
+    if (expression != null && expression is ir.LetPrim) {
+      ir.Primitive primitive = expression.primitive;
+      if (primitive is ir.NonTailThrow) {
+        _remover.visit(expression);
+        return new ir.Throw(primitive.value.definition);
+      }
+    }
+    return expression;
+  }
+
+  processLetPrim(ir.LetPrim node) {
+    node.body = replacementFor(node.body);
+  }
+
+  processLetCont(ir.LetCont node) {
+    node.body = replacementFor(node.body);
+  }
+
+  processLetHandler(ir.LetHandler node) {
+    node.body = replacementFor(node.body);
+  }
+
+  processLetMutable(ir.LetMutable node) {
+    node.body = replacementFor(node.body);
+  }
+
+  processSetMutableVariable(ir.SetMutableVariable node) {
+    node.body = replacementFor(node.body);
+  }
+
+  processDeclareFunction(ir.DeclareFunction node) {
+    node.body = replacementFor(node.body);
+  }
+
+  processSetField(ir.SetField node) {
+    node.body = replacementFor(node.body);
+  }
+
+  processContinuation(ir.Continuation node) {
+    node.body = replacementFor(node.body);
+  }
+
+  processBody(ir.Body node) {
+    node.body = replacementFor(node.body);
+  }
+}
+
+/// Visit a just-deleted subterm and unlink all [Reference]s in it.
+class RemovalVisitor extends ir.RecursiveVisitor {
+  processReference(ir.Reference reference) {
+    reference.unlink();
+  }
+}
+

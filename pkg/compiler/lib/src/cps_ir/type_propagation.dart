@@ -607,6 +607,16 @@ class _TypePropagationVisitor<T> implements Visitor {
     }
   }
 
+  void visitThrow(Throw node) {
+  }
+
+  void visitRethrow(Rethrow node) {
+  }
+
+  void visitNonTailThrow(NonTailThrow node) {
+    internalError(null, 'found non-tail throw after they were eliminated');
+  }
+
   void visitBranch(Branch node) {
     IsTrue isTrue = node.condition;
     _AbstractValue<T> conditionCell = getValue(isTrue.value.definition);

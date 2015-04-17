@@ -525,6 +525,16 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
+  void visitThrow(tree_ir.Throw node) {
+    accumulator.add(new js.Throw(visitExpression(node.value)));
+  }
+
+  @override
+  void visitRethrow(tree_ir.Rethrow node) {
+    glue.reportInternalError('rethrow seen in JavaScript output');
+  }
+
+  @override
   void visitTry(tree_ir.Try node) {
     js.Block tryBlock = buildBodyBlock(node.tryBody);
     tree_ir.Variable exceptionVariable = node.catchParameters.first;
