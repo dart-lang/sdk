@@ -4,6 +4,7 @@
 
 library dart2js.ir_builder;
 
+import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart' show PrimitiveConstantValue;
 import '../dart_types.dart';

@@ -12,6 +12,8 @@ import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
     show JsGetName;
 
 import '../closure.dart';
+import '../compile_time_constants.dart';
+import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../dart2jslib.dart';
@@ -40,14 +42,15 @@ import '../elements/visitor.dart' show
     ElementVisitor;
 
 import '../js_backend/codegen/task.dart';
-import 'patch_resolver.dart';
 import '../resolution/resolution.dart' show ResolutionRegistry;
+
+import 'constant_system_javascript.dart';
+import 'patch_resolver.dart';
 
 part 'backend.dart';
 part 'checked_mode_helpers.dart';
 part 'constant_emitter.dart';
 part 'constant_handler_javascript.dart';
-part 'constant_system_javascript.dart';
 part 'custom_elements_analysis.dart';
 part 'minify_namer.dart';
 part 'namer.dart';

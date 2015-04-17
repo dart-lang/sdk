@@ -92,7 +92,7 @@ class TypePropagator<T> extends Pass {
 
   // The constant system is used for evaluation of expressions with constant
   // arguments.
-  final dart2js.ConstantSystem _constantSystem;
+  final ConstantSystem _constantSystem;
   final TypeSystem _typeSystem;
   final dart2js.InternalErrorFunction _internalError;
   final Map<Node, _AbstractValue> _types;
@@ -301,7 +301,7 @@ class _TypePropagationVisitor<T> implements Visitor {
   // since their lattice value has changed.
   final Set<Definition> defWorkset = new Set<Definition>();
 
-  final dart2js.ConstantSystem constantSystem;
+  final ConstantSystem constantSystem;
   final TypeSystem<T> typeSystem;
   final dart2js.InternalErrorFunction internalError;
   final types.DartTypes _dartTypes;
@@ -522,7 +522,7 @@ class _TypePropagationVisitor<T> implements Visitor {
       if (opname == "unary-") {
         opname = "-";
       }
-      dart2js.UnaryOperation operation = constantSystem.lookupUnary(opname);
+      UnaryOperation operation = constantSystem.lookupUnary(opname);
       if (operation != null) {
         result = operation.fold(lhs.constant);
       }
@@ -535,7 +535,7 @@ class _TypePropagationVisitor<T> implements Visitor {
         return;
       }
 
-      dart2js.BinaryOperation operation = constantSystem.lookupBinary(opname);
+      BinaryOperation operation = constantSystem.lookupBinary(opname);
       if (operation != null) {
         result = operation.fold(lhs.constant, rhs.constant);
       }

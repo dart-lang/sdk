@@ -2,7 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js;
+library dart2js.compile_time_constant_evaluator;
+
+import 'constant_system_dart.dart';
+import 'constants/constant_system.dart';
+import 'constants/expressions.dart';
+import 'constants/values.dart';
+import 'dart_types.dart';
+import 'dart2jslib.dart' show Compiler, CompilerTask, MessageKind, invariant;
+import 'elements/elements.dart';
+import 'elements/modelx.dart' show FunctionElementX;
+import 'resolution/resolution.dart';
+import 'tree/tree.dart';
+import 'util/util.dart' show Link;
+import 'universe/universe.dart' show CallStructure;
 
 /// A [ConstantEnvironment] provides access for constants compiled for variable
 /// initializers.

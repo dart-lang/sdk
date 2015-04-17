@@ -26,7 +26,7 @@ import 'package:compiler/src/scanner/scannerlib.dart' show
 import 'package:compiler/src/elements/visitor.dart' show
     ElementVisitor;
 
-import 'package:compiler/src/dart2jslib.dart' show
+import 'package:compiler/src/compile_time_constants.dart' show
     DartConstantCompiler;
 
 import 'package:compiler/src/universe/universe.dart' show

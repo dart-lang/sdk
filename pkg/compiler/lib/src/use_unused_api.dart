@@ -11,6 +11,7 @@ library dart2js.use_unused_api;
 import '../compiler.dart' as api;
 
 import 'colors.dart' as colors;
+import 'constants/constant_system.dart' as constants;
 import 'constants/values.dart' as constants;
 import 'cps_ir/cps_ir_builder.dart' as ir_builder;
 import 'cps_ir/cps_ir_builder_task.dart' as ir_builder;
@@ -82,7 +83,7 @@ useApi() {
 }
 
 void useConstant(constants.ConstantValue constant,
-                 dart2jslib.ConstantSystem cs) {
+                 constants.ConstantSystem cs) {
   constant.isObject;
   cs.isBool(constant);
 }

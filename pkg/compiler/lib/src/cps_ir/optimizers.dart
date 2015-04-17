@@ -4,6 +4,7 @@
 
 library dart2js.cps_ir.optimizers;
 
+import '../constants/constant_system.dart';
 import '../constants/expressions.dart' show
     ConstantExpression,
     PrimitiveConstantExpression;

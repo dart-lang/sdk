@@ -11,11 +11,10 @@ import 'package:compiler/src/elements/elements.dart' as dart2js;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/element.dart' as analyzer;
 
-import 'package:compiler/src/dart2jslib.dart'
+import 'package:compiler/src/constant_system_dart.dart'
     show DART_CONSTANT_SYSTEM;
 import 'package:compiler/src/cps_ir/cps_ir_nodes.dart' as ir;
 import 'package:compiler/src/cps_ir/cps_ir_builder.dart';
-import 'package:compiler/src/cps_ir/cps_ir_builder_task.dart';
 import 'package:compiler/src/universe/universe.dart';
 
 import 'semantic_visitor.dart';

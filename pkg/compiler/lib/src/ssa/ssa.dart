@@ -7,6 +7,8 @@ library ssa;
 import 'dart:collection';
 
 import '../closure.dart';
+import '../constant_system_dart.dart';
+import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../deferred_load.dart' show DeferredLoadTask;

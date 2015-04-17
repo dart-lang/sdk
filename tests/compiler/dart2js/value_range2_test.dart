@@ -4,8 +4,7 @@
 
 import "package:expect/expect.dart";
 import "package:compiler/src/ssa/ssa.dart";
-import "package:compiler/src/dart2jslib.dart";
-import "package:compiler/src/js_backend/js_backend.dart";
+import "package:compiler/src/js_backend/constant_system_javascript.dart";
 
 ValueRangeInfo info = new ValueRangeInfo(const JavaScriptConstantSystem());
 

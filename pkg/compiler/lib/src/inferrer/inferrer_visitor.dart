@@ -4,6 +4,7 @@
 
 library inferrer_visitor;
 
+import '../constants/constant_system.dart';
 import '../dart2jslib.dart' hide Selector, TypedSelector;
 import '../dart_types.dart';
 import '../elements/elements.dart';

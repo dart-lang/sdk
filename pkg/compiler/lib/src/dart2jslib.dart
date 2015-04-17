@@ -12,6 +12,9 @@ import 'dart:profiler' show
 import '../compiler.dart' as api;
 import 'cache_strategy.dart';
 import 'closure.dart' as closureMapping;
+import 'compile_time_constants.dart';
+import 'constant_system_dart.dart';
+import 'constants/constant_system.dart';
 import 'constants/expressions.dart';
 import 'constants/values.dart';
 import 'core_types.dart';
@@ -74,10 +77,7 @@ export 'util/util.dart'
          CURRENT_ELEMENT_SPANNABLE,
          NO_LOCATION_SPANNABLE;
 
-part 'compile_time_constants.dart';
 part 'compiler.dart';
-part 'constant_system.dart';
-part 'constant_system_dart.dart';
 part 'diagnostic_listener.dart';
 part 'enqueue.dart';
 part 'resolved_visitor.dart';

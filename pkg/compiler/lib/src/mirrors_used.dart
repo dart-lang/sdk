@@ -4,6 +4,8 @@
 
 library dart2js.mirrors_used;
 
+import 'compile_time_constants.dart' show
+    ConstantCompiler;
 import 'constants/expressions.dart';
 import 'constants/values.dart' show
     ConstantValue,
@@ -20,7 +22,6 @@ import 'dart_types.dart' show
 import 'dart2jslib.dart' show
     Compiler,
     CompilerTask,
-    ConstantCompiler,
     MessageKind,
     TreeElements,
     invariant;

@@ -6,6 +6,7 @@ library resolution;
 
 import 'dart:collection' show Queue;
 
+import '../compile_time_constants.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../dart_backend/dart_backend.dart' show DartBackend;

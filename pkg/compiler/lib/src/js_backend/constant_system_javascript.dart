@@ -2,7 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend;
+library dart2js.constant_system.js;
+
+import '../constants/constant_system.dart';
+import '../constants/values.dart';
+import '../constant_system_dart.dart';
+import '../dart_types.dart';
+import '../dart2jslib.dart' show Compiler;
+import '../elements/elements.dart' show ClassElement;
+import '../tree/tree.dart' show DartString, LiteralDartString;
+import 'js_backend.dart';
 
 const JAVA_SCRIPT_CONSTANT_SYSTEM = const JavaScriptConstantSystem();
 
@@ -342,10 +351,6 @@ class JavaScriptMapConstant extends MapConstantValue {
       : this.keyList = keyList,
         super(type, keyList.entries, values);
   bool get isMap => true;
-
-  TypeMask computeMask(Compiler compiler) {
-    return compiler.typesTask.constMapType;
-  }
 
   List<ConstantValue> getDependencies() {
     List<ConstantValue> result = <ConstantValue>[];

@@ -12,6 +12,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
 import 'package:compiler/compiler.dart' as api;
+import 'package:compiler/src/compile_time_constants.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
 import 'package:compiler/src/dart2jslib.dart';
 import 'package:compiler/src/apiimpl.dart' as apiimpl;
