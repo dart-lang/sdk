@@ -14,40 +14,7 @@ var tests = [
   (VM vm) async {
     var result = await vm.invokeRpcNoUpgrade('getFlagList', {});
     expect(result['type'], equals('FlagList'));
-
-    // Find an unmodified flag.
-    expect(result['unmodifiedFlags'].length, isPositive);
-    bool found = false;
-    for (var flag in result['unmodifiedFlags']) {
-      if (flag['name'] == 'trace_isolates') {
-        found = true;
-        expect(flag['flagType'], equals('bool'));
-        expect(flag['valueAsString'], equals('false'));
-      } 
-    }
-    expect(found, isTrue);
-
-    // Modify a flag.
-    var params = {
-      'name' : 'trace_isolates',
-      'value' : 'true',
-    };
-    result = await vm.invokeRpcNoUpgrade('setFlag', params);
-    expect(result['type'], equals('Success'));
-    
-    result = await vm.invokeRpcNoUpgrade('getFlagList', {});
-    expect(result['type'], equals('FlagList'));
-
-    // Make sure flag has been modified.
-    expect(result['modifiedFlags'].length, isPositive);
-    found = false;
-    for (var flag in result['modifiedFlags']) {
-      if (flag['name'] == 'trace_isolates') {
-        found = true;
-        expect(flag['valueAsString'], equals('true'));  // changed.
-      } 
-    }
-    expect(found, isTrue);
+    // TODO(turnidge): Make this test a bit beefier.
   },
 
   // Modify a flag which does not exist.
