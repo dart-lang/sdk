@@ -370,13 +370,13 @@ async/first_regression_test: Crash # cannot compile methods that need intercepto
 async/future_constructor_test: Crash # (throw new ExpectException(message)): Unhandled node
 async/future_delayed_error_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 async/future_microtask_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+async/futures_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 async/future_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 async/future_timeout_test: Crash # cannot compile methods that need interceptor calling convention.
 async/future_value_chain2_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 async/future_value_chain3_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 async/future_value_chain4_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 async/future_value_chain_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-async/futures_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 async/intercept_print1_test: Crash # (throw new ExpectException(message)): Unhandled node
 async/intercept_schedule_microtask1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 async/intercept_schedule_microtask2_test: Crash # (throw new ExpectException(message)): Unhandled node
@@ -449,10 +449,10 @@ async/stream_state_test: Crash # cannot compile methods that need interceptor ca
 async/stream_subscription_as_future_test: Crash # cannot compile methods that need interceptor calling convention.
 async/stream_subscription_cancel_test: Crash # cannot compile methods that need interceptor calling convention.
 async/stream_timeout_test: Crash # Please triage this failure.
-async/stream_transform_test: Crash # cannot compile methods that need interceptor calling convention.
 async/stream_transformation_broadcast_test: Crash # cannot compile methods that need interceptor calling convention.
 async/stream_transformer_from_handlers_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 async/stream_transformer_test: Crash # (throw new ExpectException(message)): Unhandled node
+async/stream_transform_test: Crash # cannot compile methods that need interceptor calling convention.
 async/stream_zones_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 async/timer_cancel1_test: Crash # cannot compile methods that need interceptor calling convention.
 async/timer_cancel2_test: Crash # cannot compile methods that need interceptor calling convention.
@@ -587,9 +587,6 @@ mirrors/generic_list_test: Crash # (throw new ExpectException(message)): Unhandl
 mirrors/generic_local_function_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/generic_mixin_applications_test: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/generic_mixin_test: Crash # (throw new ExpectException(message)): Unhandled node
-mirrors/generic_superclass_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-mirrors/generic_superclass_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-mirrors/generic_type_mirror_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/generics_double_substitution_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/generics_double_substitution_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/generics_dynamic_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -597,6 +594,9 @@ mirrors/generics_special_types_test: Crash # (throw new ExpectException(message)
 mirrors/generics_substitution_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/generics_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/generics_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mirrors/generic_superclass_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mirrors/generic_superclass_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mirrors/generic_type_mirror_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/get_field_cache_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/get_field_static_test/00: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/get_field_static_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -611,8 +611,8 @@ mirrors/hot_get_field_test: Crash # Instance of 'TypeOperator': unimplemented in
 mirrors/hot_set_field_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/immutable_collections_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/inference_and_no_such_method_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-mirrors/inherit_field_test: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/inherited_metadata_test: Crash # (throw new ExpectException(message)): Unhandled node
+mirrors/inherit_field_test: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/initializing_formals_test/01: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/initializing_formals_test/03: Crash # cannot compile methods that need interceptor calling convention.
 mirrors/initializing_formals_test/none: Crash # (throw new ExpectException(message)): Unhandled node
@@ -758,10 +758,6 @@ mirrors/redirecting_factory_test/none: Crash # Instance of 'TypeOperator': unimp
 mirrors/reflect_class_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/reflect_class_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/reflect_class_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-mirrors/reflect_model_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-mirrors/reflect_runtime_type_test: Crash # (throw 'Expected "a", but got "${MirrorSystem.getName(field.simpleName)}"'): Unhandled node
-mirrors/reflect_two_classes_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-mirrors/reflect_uninstantiated_class_test: Crash # (throw 'Expected "a", but got "${MirrorSystem.getName(field.simpleName)}"'): Unhandled node
 mirrors/reflected_type_classes_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/reflected_type_classes_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/reflected_type_classes_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -775,6 +771,10 @@ mirrors/reflected_type_test/none: Crash # Instance of 'TypeOperator': unimplemen
 mirrors/reflected_type_typedefs_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/reflected_type_typevars_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/reflectively_instantiate_uninstantiated_class_test: Crash #  "on T" catch block
+mirrors/reflect_model_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mirrors/reflect_runtime_type_test: Crash # (throw 'Expected "a", but got "${MirrorSystem.getName(field.simpleName)}"'): Unhandled node
+mirrors/reflect_two_classes_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mirrors/reflect_uninstantiated_class_test: Crash # (throw 'Expected "a", but got "${MirrorSystem.getName(field.simpleName)}"'): Unhandled node
 mirrors/regress_14304_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/regress_19731_test: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/relation_assignable_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -786,6 +786,7 @@ mirrors/return_type_test: Crash # (throw new ExpectException(message)): Unhandle
 mirrors/runtime_type_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/set_field_with_final_inheritance_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/set_field_with_final_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mirrors/spawn_function_root_library_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/static_members_easier_test: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/static_members_test: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/static_test: Crash # (throw new ExpectException(message)): Unhandled node
@@ -794,13 +795,9 @@ mirrors/superclass_test: Crash # (throw new ExpectException(message)): Unhandled
 mirrors/symbol_validation_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/symbol_validation_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/synthetic_accessor_properties_test: Crash # (throw new ExpectException(message)): Unhandled node
-mirrors/to_string_test: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/top_level_accessors_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mirrors/to_string_test: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/type_argument_is_type_variable_test: Crash # (throw new ExpectException(message)): Unhandled node
-mirrors/type_mirror_for_type_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-mirrors/type_variable_is_static_test: Crash # (throw new ExpectException(message)): Unhandled node
-mirrors/type_variable_owner_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-mirrors/type_variable_owner_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/typearguments_mirror_test: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/typedef_deferred_library_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 mirrors/typedef_in_signature_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -809,6 +806,10 @@ mirrors/typedef_metadata_test: Crash # (throw 'Null metadata on ${mirror}'): Unh
 mirrors/typedef_reflected_type_test/01: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/typedef_reflected_type_test/none: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/typedef_test: Crash # (throw new ExpectException(message)): Unhandled node
+mirrors/type_mirror_for_type_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mirrors/type_variable_is_static_test: Crash # (throw new ExpectException(message)): Unhandled node
+mirrors/type_variable_owner_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+mirrors/type_variable_owner_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/unmangled_type_test: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/unnamed_library_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/variable_is_const_test/01: Crash # (throw new ExpectException(message)): Unhandled node

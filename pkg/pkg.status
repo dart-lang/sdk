@@ -189,6 +189,50 @@ third_party/angular_tests/browser_test/change_detection/dirty_checking_change_de
 analyzer/test/*: PubGetError
 
 [ $compiler == dart2js && $cps_ir ]
+analysis_server/tool/spec/check_all_test: Crash # unsupported element kind: context:field
+analyzer2dart/test/driver_test: Crash # cannot compile methods that need interceptor calling convention.
+analyzer2dart/test/end2end_test: Crash # Please triage this failure.
+analyzer2dart/test/identifier_semantics_test: Crash # cannot compile methods that need interceptor calling convention.
+analyzer2dart/test/sexpr_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+analyzer2dart/test/tree_shaker_test: Crash # cannot compile methods that need interceptor calling convention.
+analyzer/test/cancelable_future_test: Crash #  Unhandled node
+analyzer/test/enum_test: Crash #  Unhandled node
+analyzer/test/error_test: Crash # cannot compile methods that need interceptor calling convention.
+analyzer/test/file_system/memory_file_system_test: Crash #  Unhandled node
+analyzer/test/file_system/physical_resource_provider_test: Crash #  Unhandled node
+analyzer/test/file_system/resource_uri_resolver_test: Crash #  Unhandled node
+analyzer/test/generated/all_the_rest_test: Crash #  Unhandled node
+analyzer/test/generated/ast_test: Crash #  Unhandled node
+analyzer/test/generated/compile_time_error_code_test: Crash #  Unhandled node
+analyzer/test/generated/element_test: Crash #  Unhandled node
+analyzer/test/generated/incremental_resolver_test: Crash #  Unhandled node
+analyzer/test/generated/incremental_scanner_test: Crash #  Unhandled node
+analyzer/test/generated/java_core_test: Crash #  try/finally
+analyzer/test/generated/java_io_test: Crash #  try/finally
+analyzer/test/generated/non_error_resolver_test: Crash #  Unhandled node
+analyzer/test/generated/parser_test: Crash #  Unhandled node
+analyzer/test/generated/resolver_test: Crash #  Unhandled node
+analyzer/test/generated/scanner_test: Crash #  Unhandled node
+analyzer/test/generated/static_type_warning_code_test: Crash #  Unhandled node
+analyzer/test/generated/static_warning_code_test: Crash #  Unhandled node
+analyzer/test/generated/utilities_test: Crash #  Unhandled node
+analyzer/test/instrumentation/instrumentation_test: Crash #  try/finally
+analyzer/test/options_test: Crash #  Unhandled node
+analyzer/test/parse_compilation_unit_test: Crash # cannot compile methods that need interceptor calling convention.
+analyzer/test/plugin/plugin_impl_test: Crash #  try/finally
+analyzer/test/source/package_map_provider_test: Crash #  try/finally
+analyzer/test/source/package_map_resolver_test: Crash #  Unhandled node
+analyzer/test/src/context/cache_test: Crash #  Unhandled node
+analyzer/test/src/task/dart_test: Crash #  Unhandled node
+analyzer/test/src/task/driver_test: Crash #  Unhandled node
+analyzer/test/src/task/general_test: Crash #  Unhandled node
+analyzer/test/src/task/inputs_test: Crash #  Unhandled node
+analyzer/test/src/task/manager_test: Crash #  Unhandled node
+analyzer/test/src/task/model_test: Crash #  Unhandled node
+analyzer/test/src/util/asserts_test: Crash #  Unhandled node
+analyzer/test/src/util/lru_map_test: Crash #  Unhandled node
+fixnum/test/int_32_test: Crash #  try/finally
+fixnum/test/int_64_test: Crash #  try/finally
 _internal/lib/pub/test/ascii_tree_test: Crash # cannot compile methods that need interceptor calling convention.
 _internal/lib/pub/test/barback/all_includes_all_default_directories_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/barback/directory_args_test: Crash # unsupported element kind: _defaultEnvironment:field
@@ -295,19 +339,19 @@ _internal/lib/pub/test/get/git/check_out_with_trailing_slash_test: Crash #  try/
 _internal/lib/pub/test/get/git/dependency_name_match_pubspec_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/git/different_repo_name_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/git/doesnt_fetch_if_nothing_changes_test: Crash # unsupported element kind: _defaultEnvironment:field
-_internal/lib/pub/test/get/git/lock_version_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/git/locked_revision_without_repo_test: Crash # unsupported element kind: _defaultEnvironment:field
+_internal/lib/pub/test/get/git/lock_version_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/git/require_pubspec_name_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/git/require_pubspec_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/git/stay_locked_if_compatible_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/git/unlock_if_incompatible_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/hosted/avoid_network_requests_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/hosted/cached_pubspec_test: Crash # unsupported element kind: _defaultEnvironment:field
-_internal/lib/pub/test/get/hosted/do_not_upgrade_on_removed_constraints_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/hosted/does_no_network_requests_when_possible_test: Crash # unsupported element kind: _defaultEnvironment:field
+_internal/lib/pub/test/get/hosted/do_not_upgrade_on_removed_constraints_test: Crash # unsupported element kind: _defaultEnvironment:field
+_internal/lib/pub/test/get/hosted/gets_a_package_with_busted_dev_dependencies_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/hosted/get_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/hosted/get_transitive_test: Crash # unsupported element kind: _defaultEnvironment:field
-_internal/lib/pub/test/get/hosted/gets_a_package_with_busted_dev_dependencies_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/hosted/resolve_constraints_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/hosted/stay_locked_if_compatible_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/hosted/stay_locked_if_new_is_satisfied_test: Crash # unsupported element kind: _defaultEnvironment:field
@@ -318,8 +362,8 @@ _internal/lib/pub/test/get/hosted/unlock_if_version_doesnt_exist_test: Crash # u
 _internal/lib/pub/test/get/path/absolute_path_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/path/absolute_symlink_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/path/empty_pubspec_test: Crash # unsupported element kind: _defaultEnvironment:field
-_internal/lib/pub/test/get/path/no_pubspec_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/path/nonexistent_dir_test: Crash # unsupported element kind: _defaultEnvironment:field
+_internal/lib/pub/test/get/path/no_pubspec_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/path/path_is_file_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/path/relative_path_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/get/path/relative_symlink_test: Crash # unsupported element kind: _defaultEnvironment:field
@@ -422,9 +466,9 @@ _internal/lib/pub/test/lish/package_creation_provides_a_malformed_error_test: Cr
 _internal/lib/pub/test/lish/package_creation_provides_a_malformed_success_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/lish/package_creation_provides_an_error_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/lish/package_creation_provides_invalid_json_test: Crash # unsupported element kind: _defaultEnvironment:field
+_internal/lib/pub/test/lish/package_validation_has_an_error_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/lish/package_validation_has_a_warning_and_continues_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/lish/package_validation_has_a_warning_and_is_canceled_test: Crash # unsupported element kind: _defaultEnvironment:field
-_internal/lib/pub/test/lish/package_validation_has_an_error_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/lish/preview_errors_if_private_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/lish/preview_package_validation_has_a_warning_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/lish/preview_package_validation_has_no_warnings_test: Crash # unsupported element kind: _defaultEnvironment:field
@@ -448,18 +492,18 @@ _internal/lib/pub/test/list_package_dirs/pubspec_error_test: Crash # unsupported
 _internal/lib/pub/test/lock_file_test: Crash #  try/finally
 _internal/lib/pub/test/no_package_symlinks_test: Crash #  try/finally
 _internal/lib/pub/test/oauth2/with_a_malformed_credentials_authenticates_again_test: Crash # unsupported element kind: _defaultEnvironment:field
-_internal/lib/pub/test/oauth2/with_a_pre_existing_credentials_does_not_authenticate_test: Crash # unsupported element kind: _defaultEnvironment:field
-_internal/lib/pub/test/oauth2/with_a_server_rejected_refresh_token_authenticates_again_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/oauth2/with_an_expired_credentials_refreshes_and_saves_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/oauth2/with_an_expired_credentials_without_a_refresh_token_authenticates_again_test: Crash # unsupported element kind: _defaultEnvironment:field
+_internal/lib/pub/test/oauth2/with_a_pre_existing_credentials_does_not_authenticate_test: Crash # unsupported element kind: _defaultEnvironment:field
+_internal/lib/pub/test/oauth2/with_a_server_rejected_refresh_token_authenticates_again_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/oauth2/with_no_credentials_authenticates_and_saves_credentials_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/oauth2/with_server_rejected_credentials_authenticates_again_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/package_list_files_test: Crash #  try/finally
 _internal/lib/pub/test/preprocess_test: Crash #  try/finally
 _internal/lib/pub/test/pub_get_and_upgrade_test: Crash #  try/finally
+_internal/lib/pub/test/pubspec_test: Crash #  try/finally
 _internal/lib/pub/test/pub_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/pub_uploader_test: Crash # unsupported element kind: _defaultEnvironment:field
-_internal/lib/pub/test/pubspec_test: Crash #  try/finally
 _internal/lib/pub/test/real_version_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/run/allows_dart_extension_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/run/app_can_read_from_stdin_test: Crash # unsupported element kind: _defaultEnvironment:field
@@ -562,8 +606,8 @@ _internal/lib/pub/test/snapshot/updates_snapshot_for_git_dependency_test: Crash 
 _internal/lib/pub/test/snapshot/upgrades_snapshot_for_dependency_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/snapshot/upgrades_snapshot_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/transcript_test: Crash # cannot compile methods that need interceptor calling convention.
-_internal/lib/pub/test/transformer/a_transformer_rejects_its_config_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/asset_not_found_exceptions_are_detectable_test: Crash #  Unhandled node
+_internal/lib/pub/test/transformer/a_transformer_rejects_its_config_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/cache_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/transformer/can_log_messages_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/can_use_consume_primary_test: Crash #  Unhandled node
@@ -590,24 +634,24 @@ _internal/lib/pub/test/transformer/exclusion/works_on_lazy_transformer_test: Cra
 _internal/lib/pub/test/transformer/exclusion/works_on_transformer_group_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/fails_to_load_a_file_that_defines_no_transforms_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/fails_to_load_a_non_existent_transform_test: Crash #  Unhandled node
+_internal/lib/pub/test/transformer/fails_to_load_an_unconfigurable_transformer_when_config_is_passed_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/fails_to_load_a_pubspec_with_reserved_transformer_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/fails_to_load_a_transform_from_a_non_dependency_test: Crash #  Unhandled node
-_internal/lib/pub/test/transformer/fails_to_load_a_transform_with_a_syntax_error_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/fails_to_load_a_transform_with_an_import_error_test: Crash #  Unhandled node
-_internal/lib/pub/test/transformer/fails_to_load_an_unconfigurable_transformer_when_config_is_passed_test: Crash #  Unhandled node
+_internal/lib/pub/test/transformer/fails_to_load_a_transform_with_a_syntax_error_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/loads_a_declaring_aggregate_transformer_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/loads_a_diamond_transformer_dependency_graph_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/loads_a_lazy_aggregate_transformer_test: Crash #  Unhandled node
-_internal/lib/pub/test/transformer/loads_a_transformer_defined_in_an_exported_library_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/loads_an_aggregate_transformer_test: Crash #  Unhandled node
+_internal/lib/pub/test/transformer/loads_a_transformer_defined_in_an_exported_library_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/loads_different_configurations_from_the_same_isolate_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/multiple_transformers_reject_their_config_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/prefers_transformer_to_library_name_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/prints_a_transform_error_in_apply_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/prints_a_transform_interface_error_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/runs_a_local_transform_on_the_application_package_test: Crash #  Unhandled node
-_internal/lib/pub/test/transformer/runs_a_third_party_transform_on_the_application_package_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/runs_a_third_party_transformer_on_a_local_transformer_test: Crash #  Unhandled node
+_internal/lib/pub/test/transformer/runs_a_third_party_transform_on_the_application_package_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/runs_a_transformer_group_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/runs_a_transformer_on_a_dependency_test: Crash #  Unhandled node
 _internal/lib/pub/test/transformer/runs_one_third_party_transformer_on_another_test: Crash #  Unhandled node
@@ -641,50 +685,7 @@ _internal/lib/pub/test/validator/sdk_constraint_test: Crash # (throw new StateEr
 _internal/lib/pub/test/validator/size_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/validator/utf8_readme_test: Crash # unsupported element kind: _defaultEnvironment:field
 _internal/lib/pub/test/version_solver_test: Crash #  try/finally
-analysis_server/tool/spec/check_all_test: Crash # unsupported element kind: context:field
-analyzer/test/cancelable_future_test: Crash #  Unhandled node
-analyzer/test/enum_test: Crash #  Unhandled node
-analyzer/test/error_test: Crash # cannot compile methods that need interceptor calling convention.
-analyzer/test/file_system/memory_file_system_test: Crash #  Unhandled node
-analyzer/test/file_system/physical_resource_provider_test: Crash #  Unhandled node
-analyzer/test/file_system/resource_uri_resolver_test: Crash #  Unhandled node
-analyzer/test/generated/all_the_rest_test: Crash #  Unhandled node
-analyzer/test/generated/ast_test: Crash #  Unhandled node
-analyzer/test/generated/compile_time_error_code_test: Crash #  Unhandled node
-analyzer/test/generated/element_test: Crash #  Unhandled node
-analyzer/test/generated/incremental_resolver_test: Crash #  Unhandled node
-analyzer/test/generated/incremental_scanner_test: Crash #  Unhandled node
-analyzer/test/generated/java_core_test: Crash #  try/finally
-analyzer/test/generated/java_io_test: Crash #  try/finally
-analyzer/test/generated/non_error_resolver_test: Crash #  Unhandled node
-analyzer/test/generated/parser_test: Crash #  Unhandled node
-analyzer/test/generated/resolver_test: Crash #  Unhandled node
-analyzer/test/generated/scanner_test: Crash #  Unhandled node
-analyzer/test/generated/static_type_warning_code_test: Crash #  Unhandled node
-analyzer/test/generated/static_warning_code_test: Crash #  Unhandled node
-analyzer/test/generated/utilities_test: Crash #  Unhandled node
-analyzer/test/instrumentation/instrumentation_test: Crash #  try/finally
-analyzer/test/options_test: Crash #  Unhandled node
-analyzer/test/parse_compilation_unit_test: Crash # cannot compile methods that need interceptor calling convention.
-analyzer/test/plugin/plugin_impl_test: Crash #  try/finally
-analyzer/test/source/package_map_provider_test: Crash #  try/finally
-analyzer/test/source/package_map_resolver_test: Crash #  Unhandled node
-analyzer/test/src/context/cache_test: Crash #  Unhandled node
-analyzer/test/src/task/dart_test: Crash #  Unhandled node
-analyzer/test/src/task/driver_test: Crash #  Unhandled node
-analyzer/test/src/task/general_test: Crash #  Unhandled node
-analyzer/test/src/task/inputs_test: Crash #  Unhandled node
-analyzer/test/src/task/manager_test: Crash #  Unhandled node
-analyzer/test/src/task/model_test: Crash #  Unhandled node
-analyzer/test/src/util/asserts_test: Crash #  Unhandled node
-analyzer/test/src/util/lru_map_test: Crash #  Unhandled node
-analyzer2dart/test/driver_test: Crash # cannot compile methods that need interceptor calling convention.
-analyzer2dart/test/end2end_test: Crash # Please triage this failure.
-analyzer2dart/test/identifier_semantics_test: Crash # cannot compile methods that need interceptor calling convention.
-analyzer2dart/test/sexpr_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-analyzer2dart/test/tree_shaker_test: Crash # cannot compile methods that need interceptor calling convention.
-fixnum/test/int_32_test: Crash #  try/finally
-fixnum/test/int_64_test: Crash #  try/finally
+js_ast/test/printer_callback_test: Crash # Please triage this failure.
 microlytics/test/dart_microlytics_test: Crash # (throw new ExpectException(message)): Unhandled node
 mock/test/mock_regexp_negative_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mock/test/mock_stepwise_negative_test: Crash # cannot compile methods that need interceptor calling convention.
