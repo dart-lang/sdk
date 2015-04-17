@@ -667,17 +667,19 @@ function $setupProgramName(programData, typesOffset) {
       var funcs = [prototype[name] = prototype[alias] = f];
       f.\$stubName = name;
       functions.push(name);
-      for (; index < array.length; index += 2) {
-        f = array[index + 1];
+      for (index++; index < array.length; index++) {
+        f = array[index];
         if (typeof f != "function") break;
-        f.\$stubName = ${readString("array", "index + 2")};
+        if (!isStatic) {
+          f.\$stubName = ${readString("array", "++index")};
+        }
         funcs.push(f);
         if (f.\$stubName) {
           prototype[f.\$stubName] = f;
           functions.push(f.\$stubName);
         }
       }
-      index++;
+
       for (var i = 0; i < funcs.length; index++, i++) {
         funcs[i].\$callName = ${readString("array", "index")};
       }
