@@ -606,7 +606,7 @@ class JavaScriptBackend extends Backend {
         specializedGetInterceptors = new Map<String, Set<ClassElement>>(),
         super(compiler) {
     emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
-    typeVariableHandler = new TypeVariableHandler(this);
+    typeVariableHandler = new TypeVariableHandler(compiler);
     customElementsAnalysis = new CustomElementsAnalysis(this);
     noSuchMethodRegistry = new NoSuchMethodRegistry(this);
     constantCompilerTask = new JavaScriptConstantTask(compiler);
@@ -964,7 +964,8 @@ class JavaScriptBackend extends Backend {
                                  Enqueuer enqueuer,
                                  Registry registry) {
     if (!cls.typeVariables.isEmpty) {
-      typeVariableHandler.registerClassWithTypeVariables(cls);
+      typeVariableHandler.registerClassWithTypeVariables(cls, enqueuer,
+                                                         registry);
     }
 
     // Register any helper that will be needed by the backend.
@@ -1853,7 +1854,6 @@ class JavaScriptBackend extends Backend {
     if (element == disableTreeShakingMarker) {
       compiler.disableTypeInferenceForMirrors = true;
       isTreeShakingDisabled = true;
-      typeVariableHandler.onTreeShakingDisabled(enqueuer);
     } else if (element == preserveNamesMarker) {
       mustPreserveNames = true;
     } else if (element == preserveMetadataMarker) {

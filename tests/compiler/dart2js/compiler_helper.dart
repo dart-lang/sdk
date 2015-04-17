@@ -69,6 +69,7 @@ Future<String> compile(String code,
                                     compiler.globalDependencies);
     compiler.processQueue(compiler.enqueuer.resolution, element);
     compiler.world.populate();
+    compiler.backend.onResolutionComplete();
     var context = new js.JavaScriptItemCompilationContext();
     leg.ResolutionWorkItem resolutionWork =
         new leg.ResolutionWorkItem(element, context);

@@ -8,60 +8,66 @@ part of js_backend;
  * Handles construction of TypeVariable constants needed at runtime.
  */
 class TypeVariableHandler {
-  JavaScriptBackend backend;
-  FunctionElement typeVariableConstructor;
-  CompileTimeConstantEvaluator evaluator;
+  final Compiler _compiler;
+  FunctionElement _typeVariableConstructor;
+  CompileTimeConstantEvaluator _evaluator;
 
   /**
-   * Contains all instantiated classes that have type variables and are needed
-   * for reflection.
+   * Set to 'true' on first encounter of a class with type variables.
    */
-  List<ClassElement> typeVariableClasses = new List<ClassElement>();
+  bool _seenClassesWithTypeVariables = false;
 
   /**
    *  Maps a class element to a list with indices that point to type variables
    *  constants for each of the class' type variables.
    */
-  Map<ClassElement, List<int>> typeVariables =
+  Map<ClassElement, List<int>> _typeVariables =
       new Map<ClassElement, List<int>>();
 
   /**
    *  Maps a TypeVariableType to the index pointing to the constant representing
    *  the corresponding type variable at runtime.
    */
-  Map<TypeVariableElement, int> typeVariableConstants =
+  Map<TypeVariableElement, int> _typeVariableConstants =
       new Map<TypeVariableElement, int>();
 
-  TypeVariableHandler(this.backend);
+  TypeVariableHandler(this._compiler);
 
-  ClassElement get typeVariableClass => backend.typeVariableClass;
-  CodeEmitterTask get task => backend.emitter;
-  MetadataCollector get metadataCollector => task.metadataCollector;
-  Compiler get compiler => backend.compiler;
+  ClassElement get _typeVariableClass => _backend.typeVariableClass;
+  CodeEmitterTask get _task => _backend.emitter;
+  MetadataCollector get _metadataCollector => _task.metadataCollector;
+  JavaScriptBackend get _backend => _compiler.backend;
 
-  void registerClassWithTypeVariables(ClassElement cls) {
-    if (typeVariableClasses != null) {
-      typeVariableClasses.add(cls);
+  void registerClassWithTypeVariables(ClassElement cls, Enqueuer enqueuer,
+                                      Registry registry) {
+    if (enqueuer.isResolutionQueue) {
+      // On first encounter, we have to ensure that the support classes get
+      // resolved.
+      if (!_seenClassesWithTypeVariables) {
+        _backend.enqueueClass(
+            enqueuer, _typeVariableClass, registry);
+        _typeVariableClass.ensureResolved(_compiler);
+        Link constructors = _typeVariableClass.constructors;
+        if (constructors.isEmpty && constructors.tail.isEmpty) {
+          _compiler.internalError(_typeVariableClass,
+              "Class '$_typeVariableClass' should only have one constructor");
+        }
+        _typeVariableConstructor = _typeVariableClass.constructors.head;
+        _backend.enqueueInResolution(_typeVariableConstructor, registry);
+        enqueuer.registerInstantiatedType(_typeVariableClass.rawType,
+                                          registry);
+        enqueuer.registerStaticUse(_backend.getCreateRuntimeType());
+        _seenClassesWithTypeVariables = true;
+      }
+    } else {
+      if (_backend.isAccessibleByReflection(cls)) {
+        _processTypeVariablesOf(cls);
+      }
     }
   }
 
-  void processTypeVariablesOf(ClassElement cls) {
-    //TODO(zarah): Running through all the members is suboptimal. Change this
-    // as part of marking elements for reflection.
-    bool hasMemberNeededForReflection(ClassElement cls) {
-      bool result = false;
-      cls.implementation.forEachMember((ClassElement cls, Element member) {
-        result = result || backend.referencedFromMirrorSystem(member);
-      });
-      return result;
-    }
-
-    if (!backend.referencedFromMirrorSystem(cls) &&
-        !hasMemberNeededForReflection(cls)) {
-      return;
-    }
-
-    InterfaceType typeVariableType = typeVariableClass.thisType;
+  void _processTypeVariablesOf(ClassElement cls) {
+    InterfaceType typeVariableType = _typeVariableClass.thisType;
     List<int> constants = <int>[];
 
     for (TypeVariableType currentTypeVariable in cls.typeVariables) {
@@ -74,12 +80,12 @@ class TypeVariableHandler {
       }
 
       ConstantExpression name = new PrimitiveConstantExpression(
-          backend.constantSystem.createString(
+          _backend.constantSystem.createString(
               new DartString.literal(currentTypeVariable.name)));
       ConstantExpression bound = new PrimitiveConstantExpression(
-          backend.constantSystem.createInt(
-              metadataCollector.reifyType(typeVariableElement.bound)));
-      ConstantExpression type = backend.constants.createTypeConstant(cls);
+          _backend.constantSystem.createInt(
+              _metadataCollector.reifyType(typeVariableElement.bound)));
+      ConstantExpression type = _backend.constants.createTypeConstant(cls);
       List<AstConstant> arguments =
           [wrapConstant(type), wrapConstant(name), wrapConstant(bound)];
 
@@ -87,45 +93,22 @@ class TypeVariableHandler {
       // constructed constants.
       AstConstant constant =
           CompileTimeConstantEvaluator.makeConstructedConstant(
-              compiler,
-              backend.constants,
+              _compiler,
+              _backend.constants,
               typeVariableElement,
               typeVariableElement.node,
               typeVariableType,
-              typeVariableConstructor,
+              _typeVariableConstructor,
               const CallStructure.unnamed(3),
               arguments,
               arguments);
       ConstantValue value = constant.value;
-      backend.registerCompileTimeConstant(value, compiler.globalDependencies);
-      backend.constants.addCompileTimeConstantForEmission(value);
+      _backend.registerCompileTimeConstant(value, _compiler.globalDependencies);
+      _backend.constants.addCompileTimeConstantForEmission(value);
       constants.add(
-          reifyTypeVariableConstant(value, currentTypeVariable.element));
+          _reifyTypeVariableConstant(value, currentTypeVariable.element));
     }
-    typeVariables[cls] = constants;
-  }
-
-  void onTreeShakingDisabled(Enqueuer enqueuer) {
-    if (enqueuer.isResolutionQueue) {
-      backend.enqueueClass(
-            enqueuer, typeVariableClass, compiler.globalDependencies);
-      typeVariableClass.ensureResolved(compiler);
-      Link constructors = typeVariableClass.constructors;
-      if (constructors.isEmpty && constructors.tail.isEmpty) {
-        compiler.internalError(typeVariableClass,
-            "Class '$typeVariableClass' should only have one constructor");
-      }
-      typeVariableConstructor = typeVariableClass.constructors.head;
-      backend.enqueueInResolution(typeVariableConstructor,
-          compiler.globalDependencies);
-      enqueuer.registerInstantiatedType(typeVariableClass.rawType,
-          compiler.globalDependencies);
-      enqueuer.registerStaticUse(backend.getCreateRuntimeType());
-    } else if (typeVariableClasses != null) {
-      List<ClassElement> worklist = typeVariableClasses;
-      typeVariableClasses = null;
-      worklist.forEach((cls) => processTypeVariablesOf(cls));
-    }
+    _typeVariables[cls] = constants;
   }
 
   /**
@@ -136,16 +119,16 @@ class TypeVariableHandler {
    * entry in the list has already been reserved and the constant is added
    * there, otherwise a new entry for [c] is created.
    */
-  int reifyTypeVariableConstant(ConstantValue c, TypeVariableElement variable) {
-    String name = jsAst.prettyPrint(task.constantReference(c),
-                                    compiler).getText();
+  int _reifyTypeVariableConstant(ConstantValue c, TypeVariableElement variable) {
+    String name = jsAst.prettyPrint(_task.constantReference(c),
+                                    _compiler).getText();
     int index;
-    if (typeVariableConstants.containsKey(variable)) {
-      index = typeVariableConstants[variable];
-      metadataCollector.globalMetadata[index] = name;
+    if (_typeVariableConstants.containsKey(variable)) {
+      index = _typeVariableConstants[variable];
+      _metadataCollector.globalMetadata[index] = name;
     } else {
-      index = metadataCollector.addGlobalMetadata(name);
-      typeVariableConstants[variable] = index;
+      index = _metadataCollector.addGlobalMetadata(name);
+      _typeVariableConstants[variable] = index;
     }
     return index;
   }
@@ -161,18 +144,18 @@ class TypeVariableHandler {
    * on the allocated entry.
    */
   int reifyTypeVariable(TypeVariableElement variable) {
-    if (typeVariableConstants.containsKey(variable)) {
-      return typeVariableConstants[variable];
+    if (_typeVariableConstants.containsKey(variable)) {
+      return _typeVariableConstants[variable];
     }
 
     // TODO(15613): Remove quotes.
-    metadataCollector.globalMetadata.add('"Placeholder for ${variable}"');
-    return typeVariableConstants[variable] =
-        metadataCollector.globalMetadata.length - 1;
+    _metadataCollector.globalMetadata.add('"Placeholder for ${variable}"');
+    return _typeVariableConstants[variable] =
+        _metadataCollector.globalMetadata.length - 1;
   }
 
   List<int> typeVariablesOf(ClassElement classElement) {
-    List<int> result = typeVariables[classElement];
+    List<int> result = _typeVariables[classElement];
     if (result == null) {
       result = const <int>[];
     }
