@@ -84,8 +84,8 @@ class OldEmitter implements Emitter {
    */
   // TODO(ahe): Generate statics with their class, and store only libraries in
   // this map.
-  final Map<Element, ClassBuilder> elementDescriptors =
-      new Map<Element, ClassBuilder>();
+  final Map<Fragment, Map<Element, ClassBuilder>> elementDescriptors =
+      new Map<Fragment, Map<Element, ClassBuilder>>();
 
   final bool generateSourceMap;
 
@@ -434,14 +434,15 @@ class OldEmitter implements Emitter {
              cspPrecompiledConstructorNamesFor(outputUnit))]);
   }
 
-  void emitClass(Class cls, ClassBuilder enclosingBuilder) {
+  void assembleClass(Class cls, ClassBuilder enclosingBuilder,
+                     Fragment fragment) {
     ClassElement classElement = cls.element;
     compiler.withCurrentElement(classElement, () {
       if (compiler.hasIncrementalSupport) {
         ClassBuilder cachedBuilder =
             cachedClassBuilders.putIfAbsent(classElement, () {
               ClassBuilder builder = new ClassBuilder(classElement, namer);
-              classEmitter.emitClass(cls, builder);
+              classEmitter.emitClass(cls, builder, fragment);
               return builder;
             });
         invariant(classElement, cachedBuilder.fields.isEmpty);
@@ -450,12 +451,13 @@ class OldEmitter implements Emitter {
         invariant(classElement, cachedBuilder.fieldMetadata == null);
         enclosingBuilder.properties.addAll(cachedBuilder.properties);
       } else {
-        classEmitter.emitClass(cls, enclosingBuilder);
+        classEmitter.emitClass(cls, enclosingBuilder, fragment);
       }
     });
   }
 
-  void emitStaticFunctions(Iterable<Method> staticFunctions) {
+  void assembleStaticFunctions(Iterable<Method> staticFunctions,
+                               Fragment fragment) {
     if (staticFunctions == null) return;
 
     for (Method method in staticFunctions) {
@@ -465,7 +467,8 @@ class OldEmitter implements Emitter {
       if (element == null) continue;
       ClassBuilder builder = new ClassBuilder(element, namer);
       containerBuilder.addMemberMethod(method, builder);
-      getElementDescriptor(element).properties.addAll(builder.properties);
+      getElementDescriptor(element, fragment).properties
+          .addAll(builder.properties);
     }
   }
 
@@ -953,7 +956,8 @@ class OldEmitter implements Emitter {
     output.add(N);
   }
 
-  void writeLibraryDescriptor(CodeOutput output, LibraryElement library) {
+  void writeLibraryDescriptor(CodeOutput output, LibraryElement library,
+                              Fragment fragment) {
     var uri = "";
     if (!compiler.enableMinification || backend.mustPreserveUris) {
       uri = library.canonicalUri;
@@ -961,7 +965,7 @@ class OldEmitter implements Emitter {
         uri = relativize(compiler.outputUri, library.canonicalUri, false);
       }
     }
-    ClassBuilder descriptor = elementDescriptors[library];
+    ClassBuilder descriptor = elementDescriptors[fragment][library];
     if (descriptor == null) {
       // Nothing of the library was emitted.
       // TODO(floitsch): this should not happen. We currently have an example
@@ -1000,10 +1004,10 @@ class OldEmitter implements Emitter {
         ..add('],$n');
   }
 
-  void emitPrecompiledConstructor(OutputUnit outputUnit,
-                                  String constructorName,
-                                  jsAst.Expression constructorAst,
-                                  List<String> fields) {
+  void assemblePrecompiledConstructor(OutputUnit outputUnit,
+                                      String constructorName,
+                                      jsAst.Expression constructorAst,
+                                      List<String> fields) {
     cspPrecompiledFunctionFor(outputUnit).add(
         new jsAst.FunctionDeclaration(
             new jsAst.VariableDeclaration(constructorName), constructorAst));
@@ -1033,8 +1037,9 @@ class OldEmitter implements Emitter {
     cspPrecompiledConstructorNamesFor(outputUnit).add(js('#', constructorName));
   }
 
-  void emitTypedefs() {
-    OutputUnit mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
+  void assembleTypedefs(Program program) {
+    Fragment mainFragment = program.mainFragment;
+    OutputUnit mainOutputUnit = mainFragment.outputUnit;
 
     // Emit all required typedef declarations into the main output unit.
     // TODO(karlklose): unify required classes and typedefs to declarations
@@ -1061,17 +1066,17 @@ class OldEmitter implements Emitter {
       jsAst.Node declaration = builder.toObjectInitializer();
       String mangledName = namer.globalPropertyName(typedef);
       String reflectionName = getReflectionName(typedef, mangledName);
-      getElementDescriptor(library)
+      getElementDescriptor(library, mainFragment)
           ..addProperty(mangledName, declaration)
           ..addProperty("+$reflectionName", js.string(''));
       // Also emit a trivial constructor for CSP mode.
       String constructorName = mangledName;
       jsAst.Expression constructorAst = js('function() {}');
       List<String> fieldNames = [];
-      emitPrecompiledConstructor(mainOutputUnit,
-                                 constructorName,
-                                 constructorAst,
-                                 fieldNames);
+      assemblePrecompiledConstructor(mainOutputUnit,
+                                     constructorName,
+                                     constructorAst,
+                                     fieldNames);
     }
   }
 
@@ -1136,17 +1141,27 @@ class OldEmitter implements Emitter {
     }
   }
 
-  void emitLibrary(Library library) {
+  void assembleLibrary(Library library, Fragment fragment) {
     LibraryElement libraryElement = library.element;
 
-    emitStaticFunctions(library.statics);
+    assembleStaticFunctions(library.statics, fragment);
 
-    ClassBuilder libraryBuilder = getElementDescriptor(libraryElement);
+    ClassBuilder libraryBuilder =
+        getElementDescriptor(libraryElement, fragment);
     for (Class cls in library.classes) {
-      emitClass(cls, libraryBuilder);
+      assembleClass(cls, libraryBuilder, fragment);
     }
 
     classEmitter.emitFields(library, libraryBuilder, emitStatics: true);
+  }
+
+  void assembleProgram(Program program) {
+    for (Fragment fragment in program.fragments) {
+      for (Library library in fragment.libraries) {
+        assembleLibrary(library, fragment);
+      }
+    }
+    assembleTypedefs(program);
   }
 
   void emitMainOutputUnit(Program program,
@@ -1248,24 +1263,23 @@ class OldEmitter implements Emitter {
     mainOutput.add('$isolateProperties$_=$_$isolatePropertiesName$N');
 
     emitFunctionThatReturnsNull(mainOutput);
-    mainFragment.libraries.forEach(emitLibrary);
 
     Iterable<LibraryElement> libraries =
         task.outputLibraryLists[mainOutputUnit];
     if (libraries == null) libraries = [];
-    emitTypedefs();
     emitMangledNames(mainOutput);
 
-    checkEverythingEmitted(elementDescriptors.keys);
+    Map<Element, ClassBuilder> descriptors = elementDescriptors[mainFragment];
+    checkEverythingEmitted(descriptors.keys);
 
     CodeBuffer libraryBuffer = new CodeBuffer();
     for (LibraryElement library in Elements.sortedByPosition(libraries)) {
-      writeLibraryDescriptor(libraryBuffer, library);
-      elementDescriptors.remove(library);
+      writeLibraryDescriptor(libraryBuffer, library, mainFragment);
+      descriptors.remove(library);
     }
 
-    if (elementDescriptors.isNotEmpty) {
-      List<Element> remainingLibraries = elementDescriptors.keys
+    if (descriptors.isNotEmpty) {
+      List<Element> remainingLibraries = descriptors.keys
           .where((Element e) => e is LibraryElement)
           .toList();
 
@@ -1275,8 +1289,8 @@ class OldEmitter implements Emitter {
       for (LibraryElement element in remainingLibraries) {
         assert(element is LibraryElement || compiler.hasIncrementalSupport);
         if (element is LibraryElement) {
-          writeLibraryDescriptor(libraryBuffer, element);
-          elementDescriptors.remove(element);
+          writeLibraryDescriptor(libraryBuffer, element, mainFragment);
+          descriptors.remove(element);
         }
       }
     }
@@ -1542,10 +1556,9 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     for (Fragment fragment in program.deferredFragments) {
       OutputUnit outputUnit = fragment.outputUnit;
 
+      Map<Element, ClassBuilder> descriptors = elementDescriptors[fragment];
 
-      fragment.libraries.forEach(emitLibrary);
-
-      if (elementDescriptors.isNotEmpty) {
+      if (descriptors.isNotEmpty) {
         Iterable<LibraryElement> libraries =
             task.outputLibraryLists[outputUnit];
         if (libraries == null) libraries = [];
@@ -1554,8 +1567,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
         CodeBuffer buffer = new CodeBuffer();
         outputBuffers[outputUnit] = buffer;
         for (LibraryElement library in Elements.sortedByPosition(libraries)) {
-          writeLibraryDescriptor(buffer, library);
-          elementDescriptors.remove(library);
+          writeLibraryDescriptor(buffer, library, fragment);
+          descriptors.remove(library);
         }
       }
     }
@@ -1566,6 +1579,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
   int emitProgram(ProgramBuilder programBuilder) {
     Program program = programBuilder.buildProgram(
         storeFunctionTypesInMetadata: true);
+
+    assembleProgram(program);
 
     // Shorten the code by using [namer.currentIsolate] as temporary.
     isolateProperties = namer.currentIsolate;
@@ -1598,7 +1613,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     return '';
   }
 
-  ClassBuilder getElementDescriptor(Element element) {
+  ClassBuilder getElementDescriptor(Element element, Fragment fragment) {
     Element owner = element.library;
     if (!element.isLibrary && !element.isTopLevel && !element.isNative) {
       // For static (not top level) elements, record their code in a buffer
@@ -1616,9 +1631,9 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     if (owner == null) {
       compiler.internalError(element, 'Owner is null.');
     }
-    return elementDescriptors.putIfAbsent(
-        owner,
-        () => new ClassBuilder(owner, namer));
+    return elementDescriptors
+        .putIfAbsent(fragment, () => new Map<Element, ClassBuilder>())
+        .putIfAbsent(owner, () => new ClassBuilder(owner, namer));
   }
 
   /// Emits support-code for deferred loading into [output].
