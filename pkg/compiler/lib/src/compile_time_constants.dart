@@ -592,28 +592,31 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       Operator node = send.selector.asOperator();
       BinaryOperator operator = BinaryOperator.parse(node.source);
       ConstantValue folded = null;
-      switch (operator.kind) {
-        case BinaryOperatorKind.EQ:
-          if (leftValue.isPrimitive && rightValue.isPrimitive) {
-            folded = constantSystem.equal.fold(leftValue, rightValue);
-          }
-          break;
-        case BinaryOperatorKind.NOT_EQ:
-          if (leftValue.isPrimitive && rightValue.isPrimitive) {
-            BoolConstantValue areEquals =
-                constantSystem.equal.fold(leftValue, rightValue);
-            if (areEquals == null) {
-              folded = null;
-            } else {
-              folded = areEquals.negate();
+      // operator is null when `node=="is"`
+      if (operator != null) {
+        switch (operator.kind) {
+          case BinaryOperatorKind.EQ:
+            if (leftValue.isPrimitive && rightValue.isPrimitive) {
+              folded = constantSystem.equal.fold(leftValue, rightValue);
             }
-          }
-          break;
-        default:
-          BinaryOperation operation = constantSystem.lookupBinary(operator);
-          if (operation != null) {
-            folded = operation.fold(leftValue, rightValue);
-          }
+            break;
+          case BinaryOperatorKind.NOT_EQ:
+            if (leftValue.isPrimitive && rightValue.isPrimitive) {
+              BoolConstantValue areEquals =
+                  constantSystem.equal.fold(leftValue, rightValue);
+              if (areEquals == null) {
+                folded = null;
+              } else {
+                folded = areEquals.negate();
+              }
+            }
+            break;
+          default:
+            BinaryOperation operation = constantSystem.lookupBinary(operator);
+            if (operation != null) {
+              folded = operation.fold(leftValue, rightValue);
+            }
+        }
       }
       if (folded == null) {
         return signalNotCompileTimeConstant(send);
