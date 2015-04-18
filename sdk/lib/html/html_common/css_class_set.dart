@@ -6,13 +6,6 @@ part of html_common;
 
 abstract class CssClassSetImpl implements CssClassSet {
 
-  final RegExp _validTokenRE = new RegExp(r'^\S+$');
-
-  String _validateToken(String value) {
-    if (_validTokenRE.hasMatch(value)) return value;
-    throw new ArgumentError.value(value, 'value', 'Not a valid class token');
-  }
-
   String toString() {
     return readClasses().join(' ');
   }
@@ -25,7 +18,6 @@ abstract class CssClassSetImpl implements CssClassSet {
    * [shouldAdd] is false then we always remove [value] from the element.
    */
   bool toggle(String value, [bool shouldAdd]) {
-    _validateToken(value);
     Set<String> s = readClasses();
     bool result = false;
     if (shouldAdd == null) shouldAdd = !s.contains(value);
@@ -89,11 +81,7 @@ abstract class CssClassSetImpl implements CssClassSet {
    * This is the Dart equivalent of jQuery's
    * [hasClass](http://api.jquery.com/hasClass/).
    */
-  bool contains(Object value) {
-    if (value is! String) return false;
-    _validateToken(value);
-    return readClasses().contains(value);
-  }
+  bool contains(Object value) => readClasses().contains(value);
 
   /** Lookup from the Set interface. Not interesting for a String set. */
   String lookup(Object value) => contains(value) ? value : null;
@@ -105,7 +93,6 @@ abstract class CssClassSetImpl implements CssClassSet {
    * [addClass](http://api.jquery.com/addClass/).
    */
   bool add(String value) {
-    _validateToken(value);
     // TODO - figure out if we need to do any validation here
     // or if the browser natively does enough.
     return modify((s) => s.add(value));
@@ -119,7 +106,6 @@ abstract class CssClassSetImpl implements CssClassSet {
    * [removeClass](http://api.jquery.com/removeClass/).
    */
   bool remove(Object value) {
-    _validateToken(value);
     if (value is! String) return false;
     Set<String> s = readClasses();
     bool result = s.remove(value);
@@ -135,7 +121,7 @@ abstract class CssClassSetImpl implements CssClassSet {
    */
   void addAll(Iterable<String> iterable) {
     // TODO - see comment above about validation.
-    modify((s) => s.addAll(iterable.map(_validateToken)));
+    modify((s) => s.addAll(iterable));
   }
 
   /**
@@ -145,7 +131,7 @@ abstract class CssClassSetImpl implements CssClassSet {
    * [removeClass](http://api.jquery.com/removeClass/).
    */
   void removeAll(Iterable<Object> iterable) {
-    modify((s) => s.removeAll(iterable.map(_validateToken)));
+    modify((s) => s.removeAll(iterable));
   }
 
   /**

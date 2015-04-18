@@ -424,32 +424,6 @@ main() {
       classes.toggle('foo');
       expect(el.classes.length, 0);
     });
-
-    test('classes-add-bad', () {
-      var el = new svg.CircleElement();
-      expect(() => el.classes.add(''), throws);
-      expect(() => el.classes.add('foo bar'), throws);
-    });
-    test('classes-remove-bad', () {
-      expect(() => el.classes.remove(''), throws);
-      expect(() => el.classes.remove('foo bar'), throws);
-    });
-    test('classes-toggle-token', () {
-      var el = new svg.CircleElement();
-      expect(() => el.classes.toggle(''), throws);
-      expect(() => el.classes.toggle('', true), throws);
-      expect(() => el.classes.toggle('', false), throws);
-      expect(() => el.classes.toggle('foo bar'), throws);
-      expect(() => el.classes.toggle('foo bar', true), throws);
-      expect(() => el.classes.toggle('foo bar', false), throws);
-    });
-    test('classes-contains-bad', () {
-      var el = new svg.CircleElement();
-      // Non-strings => false, strings must be valid tokens.
-      expect(el.classes.contains(1), isFalse);
-      expect(() => el.classes.contains(''), throws);
-      expect(() => el.classes.contains('foo bar'), throws);
-    });
   });
 
   group('getBoundingClientRect', () {
