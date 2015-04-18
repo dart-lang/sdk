@@ -129,6 +129,15 @@ main() {
     expect(makeClassSet().contains('qux'), isFalse);
   });
 
+  test('contains-bad', () {
+    // Non-strings return `false`.
+    // Strings need to be valid tokens.
+    final classes = makeClassSet();
+    expect(classes.contains(1), isFalse);
+    expect(() => classes.contains(''), throws);
+    expect(() => classes.contains('foo bar'), throws);
+  });
+
   test('add', () {
     final classes = makeClassSet();
     var added = classes.add('qux');
@@ -143,12 +152,24 @@ main() {
         reason: "The class set shouldn't have duplicate elements.");
   });
 
+  test('add-bad', () {
+    final classes = makeClassSet();
+    expect(() => classes.add(''), throws);
+    expect(() => classes.add('foo bar'), throws);
+  });
+
   test('remove', () {
     final classes = makeClassSet();
     classes.remove('bar');
     expect(classes, orderedEquals(['foo', 'baz']));
     classes.remove('qux');
     expect(classes, orderedEquals(['foo', 'baz']));
+  });
+
+  test('remove-bad', () {
+    final classes = makeClassSet();
+    expect(() => classes.remove(''), throws);
+    expect(() => classes.remove('foo bar'), throws);
   });
 
   test('toggle', () {
@@ -166,6 +187,16 @@ main() {
     expect(classes, orderedEquals(['foo', 'baz']));
     classes.toggle('qux', true);
     expect(classes, orderedEquals(['foo', 'baz', 'qux']));
+  });
+
+  test('toggle-bad', () {
+    final classes = makeClassSet();
+    expect(() => classes.toggle(''), throws);
+    expect(() => classes.toggle('', true), throws);
+    expect(() => classes.toggle('', false), throws);
+    expect(() => classes.toggle('foo bar'), throws);
+    expect(() => classes.toggle('foo bar', true), throws);
+    expect(() => classes.toggle('foo bar', false), throws);
   });
 
   test('addAll', () {
