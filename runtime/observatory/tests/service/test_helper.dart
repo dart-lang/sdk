@@ -23,6 +23,7 @@ const String _TESTEE_MODE_FLAG = "--testee-mode";
 class _TestLauncher {
   Process process;
   final List<String> args;
+  bool killedByTester = false;
 
   _TestLauncher() : args = ['--enable-vm-service:0',
                             Platform.script.toFilePath(),
@@ -68,6 +69,9 @@ class _TestLauncher {
         print(line);
       });
       process.exitCode.then((exitCode) {
+        if ((exitCode != 0) && !killedByTester) {
+          throw "Testee exited with $exitCode";
+        }
         print("** Process exited");
       });
       return completer.future;
@@ -76,6 +80,7 @@ class _TestLauncher {
 
   void requestExit() {
     print('** Killing script');
+    killedByTester = true;
     process.kill();
   }
 }
