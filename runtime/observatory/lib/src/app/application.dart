@@ -46,6 +46,7 @@ class ObservatoryApplication extends Observable {
     assert(app == null);
     app = this;
     _registerPages();
+    Analytics.initialize();
     locationManager._init(this);
   }
 

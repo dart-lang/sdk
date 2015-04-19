@@ -23,8 +23,9 @@ DECLARE_FLAG(bool, enable_type_checks);
 // RBX: IC Data
 // R10: Arguments descriptor
 // TOS: Return address
-// The RBX, R10 registers can be destroyed only if there is no slow-path (i.e.,
-// the methods returns true).
+// The RBX, R10 registers can be destroyed only if there is no slow-path, i.e.
+// if the intrinsified method always executes a return.
+// The RBP register should not be modified, because it is used by the profiler.
 
 #define __ assembler->
 
@@ -757,8 +758,7 @@ void Intrinsifier::Bigint_lsh(Assembler* assembler) {
   __ decq(R8);
   __ j(NOT_ZERO, &loop, Assembler::kNearJump);
   __ Bind(&last);
-  __ xorq(RAX, RAX);  // RAX = 0.
-  __ shldq(RDX, RAX, RCX);
+  __ shldq(RDX, R8, RCX);  // R8 == 0.
   __ movq(Address(RBX, 0), RDX);
   // Returning Object::null() is not required, since this method is private.
   __ ret();
@@ -770,34 +770,33 @@ void Intrinsifier::Bigint_rsh(Assembler* assembler) {
   //                  Uint32List r_digits)
 
   __ movq(RDI, Address(RSP, 4 * kWordSize));  // x_digits
-  __ movq(R8, Address(RSP, 3 * kWordSize));  // x_used is Smi
-  __ subq(R8, Immediate(2));  // x_used > 0, Smi. R8 = x_used - 1, round up.
-  __ sarq(R8, Immediate(2));
   __ movq(RCX, Address(RSP, 2 * kWordSize));  // n is Smi
   __ SmiUntag(RCX);
   __ movq(RBX, Address(RSP, 1 * kWordSize));  // r_digits
-  __ movq(RSI, RCX);
-  __ sarq(RSI, Immediate(6));  // RSI = n ~/ (2*_DIGIT_BITS).
+  __ movq(RDX, RCX);
+  __ sarq(RDX, Immediate(6));  // RDX = n ~/ (2*_DIGIT_BITS).
+  __ movq(RSI, Address(RSP, 3 * kWordSize));  // x_used is Smi
+  __ subq(RSI, Immediate(2));  // x_used > 0, Smi. RSI = x_used - 1, round up.
+  __ sarq(RSI, Immediate(2));
   __ leaq(RDI, FieldAddress(RDI, RSI, TIMES_8, TypedData::data_offset()));
-  __ movq(RDX, Address(RDI, 0));
-  __ subq(R8, RSI);  // R8 + 1 = number of digit pairs to read.
+  __ subq(RSI, RDX);  // RSI + 1 = number of digit pairs to read.
+  __ leaq(RBX, FieldAddress(RBX, RSI, TIMES_8, TypedData::data_offset()));
+  __ negq(RSI);
+  __ movq(RDX, Address(RDI, RSI, TIMES_8, 0));
   Label last;
-  __ cmpq(R8, Immediate(0));
+  __ cmpq(RSI, Immediate(0));
   __ j(EQUAL, &last, Assembler::kNearJump);
-  __ xorq(R9, R9);  // R9 = 0.
   Label loop;
   __ Bind(&loop);
   __ movq(RAX, RDX);
-  __ movq(RDX, Address(RDI, R9, TIMES_8, 2 * Bigint::kBytesPerDigit));
+  __ movq(RDX, Address(RDI, RSI, TIMES_8, 2 * Bigint::kBytesPerDigit));
   __ shrdq(RAX, RDX, RCX);
-  __ movq(FieldAddress(RBX, R9, TIMES_8, TypedData::data_offset()), RAX);
-  __ incq(R9);
-  __ cmpq(R9, R8);
-  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+  __ movq(Address(RBX, RSI, TIMES_8, 0), RAX);
+  __ incq(RSI);
+  __ j(NOT_ZERO, &loop, Assembler::kNearJump);
   __ Bind(&last);
-  __ xorq(RAX, RAX);  // RAX = 0.
-  __ shrdq(RDX, RAX, RCX);
-  __ movq(FieldAddress(RBX, R8, TIMES_8, TypedData::data_offset()), RDX);
+  __ shrdq(RDX, RSI, RCX);  // RSI == 0.
+  __ movq(Address(RBX, 0), RDX);
   // Returning Object::null() is not required, since this method is private.
   __ ret();
 }
@@ -1782,7 +1781,7 @@ void Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
   const intptr_t kStartIndexOffset = 2 * kWordSize;
   const intptr_t kEndIndexOffset = 1 * kWordSize;
   Label fall_through, ok;
-  __ movq(RSI, Address(RSP, + kEndIndexOffset));
+  __ movq(RSI, Address(RSP, + kStartIndexOffset));
   __ movq(RDI, Address(RSP, + kEndIndexOffset));
   __ orq(RSI, RDI);
   __ testq(RSI, Immediate(kSmiTagMask));

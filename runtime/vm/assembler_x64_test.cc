@@ -1360,10 +1360,10 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
     const int32_t right = 0xffffffff;
     const int32_t shifted = 0xf0000003;
     __ movl(RDX, Immediate(left));
-    __ movl(RAX, Immediate(right));
+    __ movl(R8, Immediate(right));
     __ movl(RCX, Immediate(2));
     __ shll(RDX, RCX);  // RDX = 0xff000000 << 2 == 0xfc000000
-    __ shldl(RDX, RAX, Immediate(2));
+    __ shldl(RDX, R8, Immediate(2));
     // RDX = high32(0xfc000000:0xffffffff << 2) == 0xf0000003
     __ cmpl(RDX, Immediate(shifted));
     __ j(EQUAL, &donetest15a);
@@ -1377,10 +1377,10 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
     const int64_t right = 0xffffffffffffffff;
     const int64_t shifted = 0xf000000000000003;
     __ movq(RDX, Immediate(left));
-    __ movq(RAX, Immediate(right));
+    __ movq(R8, Immediate(right));
     __ movq(RCX, Immediate(2));
     __ shlq(RDX, RCX);  // RDX = 0xff00000000000000 << 2 == 0xfc00000000000000
-    __ shldq(RDX, RAX, Immediate(2));
+    __ shldq(RDX, R8, Immediate(2));
     // RDX = high64(0xfc00000000000000:0xffffffffffffffff << 2)
     //     == 0xf000000000000003
     __ cmpq(RDX, Immediate(shifted));
@@ -1395,10 +1395,10 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
     const int64_t right = 0xffffffffffffffff;
     const int64_t shifted = 0xf000000000000003;
     __ movq(RDX, Immediate(left));
-    __ movq(RAX, Immediate(right));
+    __ movq(R8, Immediate(right));
     __ movq(RCX, Immediate(2));
     __ shlq(RDX, RCX);  // RDX = 0xff00000000000000 << 2 == 0xfc00000000000000
-    __ shldq(RDX, RAX, RCX);
+    __ shldq(RDX, R8, RCX);
     // RDX = high64(0xfc00000000000000:0xffffffffffffffff << 2)
     //     == 0xf000000000000003
     __ cmpq(RDX, Immediate(shifted));
@@ -1413,10 +1413,10 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
     const int64_t right = 0xffffffffffffffff;
     const int64_t shifted = 0xcff0000000000000;
     __ movq(RDX, Immediate(left));
-    __ movq(RAX, Immediate(right));
+    __ movq(R8, Immediate(right));
     __ movq(RCX, Immediate(2));
     __ shrq(RDX, RCX);  // RDX = 0xff00000000000000 >> 2 == 0x3fc0000000000000
-    __ shrdq(RDX, RAX, RCX);
+    __ shrdq(RDX, R8, RCX);
     // RDX = low64(0xffffffffffffffff:0x3fc0000000000000 >> 2)
     //     == 0xcff0000000000000
     __ cmpq(RDX, Immediate(shifted));

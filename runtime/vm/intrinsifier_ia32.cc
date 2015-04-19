@@ -26,6 +26,13 @@ namespace dart {
 
 DECLARE_FLAG(bool, enable_type_checks);
 
+// When entering intrinsics code:
+// ECX: IC Data
+// EDX: Arguments descriptor
+// TOS: Return address
+// The ECX, EDX registers can be destroyed only if there is no slow-path, i.e.
+// if the intrinsified method always executes a return.
+// The EBP register should not be modified, because it is used by the profiler.
 
 #define __ assembler->
 
@@ -572,7 +579,7 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
   __ movl(EAX, EBX);
   __ shll(EBX, ECX);
   __ xorl(EDI, EDI);
-  __ shldl(EDI, EAX);
+  __ shldl(EDI, EAX, ECX);
   // Result in EDI (high) and EBX (low).
   const Class& mint_class = Class::Handle(
       Isolate::Current()->object_store()->mint_class());
@@ -806,12 +813,80 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
 
 
 void Intrinsifier::Bigint_lsh(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // static void _lsh(Uint32List x_digits, int x_used, int n,
+  //                  Uint32List r_digits)
+
+  __ movl(EDI, Address(ESP, 4 * kWordSize));  // x_digits
+  __ movl(ECX, Address(ESP, 2 * kWordSize));  // n is Smi
+  __ SmiUntag(ECX);
+  __ movl(EBX, Address(ESP, 1 * kWordSize));  // r_digits
+  __ movl(ESI, ECX);
+  __ sarl(ESI, Immediate(5));  // ESI = n ~/ _DIGIT_BITS.
+  __ leal(EBX, FieldAddress(EBX, ESI, TIMES_4, TypedData::data_offset()));
+  __ movl(ESI, Address(ESP, 3 * kWordSize));  // x_used > 0, Smi.
+  __ SmiUntag(ESI);
+  __ decl(ESI);
+  __ xorl(EAX, EAX);  // EAX = 0.
+  __ movl(EDX, FieldAddress(EDI, ESI, TIMES_4, TypedData::data_offset()));
+  __ shldl(EAX, EDX, ECX);
+  __ movl(Address(EBX, ESI, TIMES_4, Bigint::kBytesPerDigit), EAX);
+  Label last;
+  __ cmpl(ESI, Immediate(0));
+  __ j(EQUAL, &last, Assembler::kNearJump);
+  Label loop;
+  __ Bind(&loop);
+  __ movl(EAX, EDX);
+  __ movl(EDX,
+          FieldAddress(EDI, ESI, TIMES_4,
+                       TypedData::data_offset() - Bigint::kBytesPerDigit));
+  __ shldl(EAX, EDX, ECX);
+  __ movl(Address(EBX, ESI, TIMES_4, 0), EAX);
+  __ decl(ESI);
+  __ j(NOT_ZERO, &loop, Assembler::kNearJump);
+  __ Bind(&last);
+  __ shldl(EDX, ESI, ECX);  // ESI == 0.
+  __ movl(Address(EBX, 0), EDX);
+  // Returning Object::null() is not required, since this method is private.
+  __ ret();
 }
 
 
 void Intrinsifier::Bigint_rsh(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // static void _rsh(Uint32List x_digits, int x_used, int n,
+  //                  Uint32List r_digits)
+
+  __ movl(EDI, Address(ESP, 4 * kWordSize));  // x_digits
+  __ movl(ECX, Address(ESP, 2 * kWordSize));  // n is Smi
+  __ SmiUntag(ECX);
+  __ movl(EBX, Address(ESP, 1 * kWordSize));  // r_digits
+  __ movl(EDX, ECX);
+  __ sarl(EDX, Immediate(5));  // EDX = n ~/ _DIGIT_BITS.
+  __ movl(ESI, Address(ESP, 3 * kWordSize));  // x_used > 0, Smi.
+  __ SmiUntag(ESI);
+  __ decl(ESI);
+  // EDI = &x_digits[x_used - 1].
+  __ leal(EDI, FieldAddress(EDI, ESI, TIMES_4, TypedData::data_offset()));
+  __ subl(ESI, EDX);
+  // EBX = &r_digits[x_used - 1 - (n ~/ 32)].
+  __ leal(EBX, FieldAddress(EBX, ESI, TIMES_4, TypedData::data_offset()));
+  __ negl(ESI);
+  __ movl(EDX, Address(EDI, ESI, TIMES_4, 0));
+  Label last;
+  __ cmpl(ESI, Immediate(0));
+  __ j(EQUAL, &last, Assembler::kNearJump);
+  Label loop;
+  __ Bind(&loop);
+  __ movl(EAX, EDX);
+  __ movl(EDX, Address(EDI, ESI, TIMES_4, Bigint::kBytesPerDigit));
+  __ shrdl(EAX, EDX, ECX);
+  __ movl(Address(EBX, ESI, TIMES_4, 0), EAX);
+  __ incl(ESI);
+  __ j(NOT_ZERO, &loop, Assembler::kNearJump);
+  __ Bind(&last);
+  __ shrdl(EDX, ESI, ECX);  // ESI == 0.
+  __ movl(Address(EBX, 0), EDX);
+  // Returning Object::null() is not required, since this method is private.
+  __ ret();
 }
 
 

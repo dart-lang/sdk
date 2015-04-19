@@ -2248,11 +2248,11 @@ void Assembler::sarl(Register operand, Register shifter) {
 void Assembler::shldl(Register dst, Register src, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   ASSERT(imm.is_int8());
-  Operand operand(src);
-  EmitOperandREX(dst, operand, REX_NONE);
+  Operand operand(dst);
+  EmitOperandREX(src, operand, REX_NONE);
   EmitUint8(0x0F);
   EmitUint8(0xA4);
-  EmitOperand(src & 7, Operand(dst));
+  EmitOperand(src & 7, operand);
   EmitUint8(imm.value() & 0xFF);
 }
 
@@ -2290,11 +2290,11 @@ void Assembler::sarq(Register operand, Register shifter) {
 void Assembler::shldq(Register dst, Register src, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   ASSERT(imm.is_int8());
-  Operand operand(src);
-  EmitOperandREX(dst, operand, REX_W);
+  Operand operand(dst);
+  EmitOperandREX(src, operand, REX_W);
   EmitUint8(0x0F);
   EmitUint8(0xA4);
-  EmitOperand(src & 7, Operand(dst));
+  EmitOperand(src & 7, operand);
   EmitUint8(imm.value() & 0xFF);
 }
 
@@ -2302,22 +2302,22 @@ void Assembler::shldq(Register dst, Register src, const Immediate& imm) {
 void Assembler::shldq(Register dst, Register src, Register shifter) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   ASSERT(shifter == RCX);
-  Operand operand(src);
-  EmitOperandREX(dst, operand, REX_W);
+  Operand operand(dst);
+  EmitOperandREX(src, operand, REX_W);
   EmitUint8(0x0F);
   EmitUint8(0xA5);
-  EmitOperand(src & 7, Operand(dst));
+  EmitOperand(src & 7, operand);
 }
 
 
 void Assembler::shrdq(Register dst, Register src, Register shifter) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   ASSERT(shifter == RCX);
-  Operand operand(src);
-  EmitOperandREX(dst, operand, REX_W);
+  Operand operand(dst);
+  EmitOperandREX(src, operand, REX_W);
   EmitUint8(0x0F);
   EmitUint8(0xAD);
-  EmitOperand(src & 7, Operand(dst));
+  EmitOperand(src & 7, operand);
 }
 
 
