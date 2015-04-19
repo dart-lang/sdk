@@ -4,7 +4,7 @@ author: Dart Team <misc@dartlang.org>
 description: A server that performs analysis of Dart code over character streams using JSON-RPC encoded information.
 homepage: http://www.dartlang.org
 environment:
-  sdk: '>=1.0.0 <2.0.0'
+  sdk: '>=1.9.0 <2.0.0'
 dependencies:
   analyzer: '>=0.24.1-alpha.0 <0.25.0'
   args: '>=0.12.1 <0.13.0'
