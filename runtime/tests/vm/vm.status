@@ -83,6 +83,7 @@ dart/data_uri_failures_test/base64: RuntimeError, OK
 
 [ $arch == mips ]
 cc/StaticNonNullSumCallCodegen: Crash, Pass # Issue 17440
+cc/ArrayLengthMaxElements: Crash  # Issue 23275
 
 [ $arch == mips && $mode == debug ]
 cc/FindCodeObject: Skip # Takes more than 8 minutes. Issue 17440
