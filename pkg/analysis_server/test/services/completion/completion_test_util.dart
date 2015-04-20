@@ -2025,6 +2025,16 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_FieldFormalParameter_in_non_constructor() {
+    // SimpleIdentifer  FieldFormalParameter  FormalParameterList
+    addTestSource('class A {B(this.^foo) {}}');
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 3);
+      assertNoSuggestions();
+    });
+  }
+
   test_ForEachStatement_body_typed() {
     // Block  ForEachStatement
     addTestSource('main(args) {for (int foo in bar) {^}}');

@@ -91,38 +91,40 @@ class _FieldFormalSuggestionBuilder implements SuggestionBuilder {
   @override
   bool computeFast(AstNode node) {
     if (node is FieldFormalParameter) {
-
-      // Compute fields already referenced
       ConstructorDeclaration constructorDecl =
           node.getAncestor((p) => p is ConstructorDeclaration);
-      List<String> referencedFields = new List<String>();
-      for (FormalParameter param in constructorDecl.parameters.parameters) {
-        if (param is FieldFormalParameter) {
-          SimpleIdentifier fieldId = param.identifier;
-          if (fieldId != null && fieldId != request.target.entity) {
-            String fieldName = fieldId.name;
-            if (fieldName != null && fieldName.length > 0) {
-              referencedFields.add(fieldName);
+      if (constructorDecl != null) {
+
+        // Compute fields already referenced
+        List<String> referencedFields = new List<String>();
+        for (FormalParameter param in constructorDecl.parameters.parameters) {
+          if (param is FieldFormalParameter) {
+            SimpleIdentifier fieldId = param.identifier;
+            if (fieldId != null && fieldId != request.target.entity) {
+              String fieldName = fieldId.name;
+              if (fieldName != null && fieldName.length > 0) {
+                referencedFields.add(fieldName);
+              }
             }
           }
         }
-      }
 
-      // Add suggestions for fields that are not already referenced
-      ClassDeclaration classDecl =
-          constructorDecl.getAncestor((p) => p is ClassDeclaration);
-      for (ClassMember member in classDecl.members) {
-        if (member is FieldDeclaration) {
-          for (VariableDeclaration varDecl in member.fields.variables) {
-            SimpleIdentifier fieldId = varDecl.name;
-            if (fieldId != null) {
-              String fieldName = fieldId.name;
-              if (fieldName != null && fieldName.length > 0) {
-                if (!referencedFields.contains(fieldName)) {
-                  CompletionSuggestion suggestion =
-                      createFieldSuggestion(member, varDecl);
-                  if (suggestion != null) {
-                    request.addSuggestion(suggestion);
+        // Add suggestions for fields that are not already referenced
+        ClassDeclaration classDecl =
+            constructorDecl.getAncestor((p) => p is ClassDeclaration);
+        for (ClassMember member in classDecl.members) {
+          if (member is FieldDeclaration) {
+            for (VariableDeclaration varDecl in member.fields.variables) {
+              SimpleIdentifier fieldId = varDecl.name;
+              if (fieldId != null) {
+                String fieldName = fieldId.name;
+                if (fieldName != null && fieldName.length > 0) {
+                  if (!referencedFields.contains(fieldName)) {
+                    CompletionSuggestion suggestion =
+                        createFieldSuggestion(member, varDecl);
+                    if (suggestion != null) {
+                      request.addSuggestion(suggestion);
+                    }
                   }
                 }
               }
