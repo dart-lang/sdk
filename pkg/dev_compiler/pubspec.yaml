@@ -1,5 +1,10 @@
 name: dev_compiler
-description: Dart dev checker / compiler
+version: 0.1.0
+description: >
+  Experimental Dart to JavaScript compiler designed to create idiomatic,
+  readable JavaScript output.
+author: Dart Dev Compiler team <dev-compiler@dartlang.org>
+homepage: https://github.com/dart-lang/dev_compiler
 dependencies:
   analyzer: ^0.24.4
   args: ^0.12.1
@@ -21,6 +26,8 @@ dependencies:
 dev_dependencies:
   pub_semver: ^1.1.0
   unittest: ^0.11.0
+environment:
+  sdk: ">=1.9.0 <2.0.0"
 executables:
   # Similar to "analyzer.dart" and its command line "dartanalyzer", we use
   # "dartdevc" and "devc.dart"
