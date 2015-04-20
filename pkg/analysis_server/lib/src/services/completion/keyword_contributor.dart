@@ -118,6 +118,15 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitFormalParameterList(FormalParameterList node) {
+    AstNode constructorDecl =
+        node.getAncestor((p) => p is ConstructorDeclaration);
+    if (constructorDecl != null) {
+      _addSuggestions([Keyword.THIS]);
+    }
+  }
+
+  @override
   visitIfStatement(IfStatement node) {
     if (entity == node.thenStatement) {
       _addStatementKeywords(node);

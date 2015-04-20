@@ -337,6 +337,18 @@ class KeywordContributorTest extends AbstractCompletionTest {
     assertSuggestKeywords([]);
   }
 
+  test_constructor_param() {
+    addTestSource('class A { A(^) {});}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.THIS]);
+  }
+
+  test_constructor_param2() {
+    addTestSource('class A { A(t^) {});}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.THIS]);
+  }
+
   test_empty() {
     addTestSource('^');
     expect(computeFast(), isTrue);
@@ -559,6 +571,18 @@ class A {
     addTestSource('class A { foo() {^}}');
     expect(computeFast(), isTrue);
     assertSuggestKeywords(STMT_START_IN_CLASS);
+  }
+
+  test_method_param() {
+    addTestSource('class A { foo(^) {});}');
+    expect(computeFast(), isTrue);
+    assertNoSuggestions();
+  }
+
+  test_method_param2() {
+    addTestSource('class A { foo(t^) {});}');
+    expect(computeFast(), isTrue);
+    assertNoSuggestions();
   }
 
   test_named_constructor_invocation() {
