@@ -149,7 +149,7 @@ void FlowGraphTypePropagator::PropagateRecursive(BlockEntryInstr* block) {
     }
   }
 
-  HandleBranchOnNull(block);
+  HandleBranchOnStrictCompare(block);
 
   for (intptr_t i = 0; i < block->dominated_blocks().length(); ++i) {
     PropagateRecursive(block->dominated_blocks()[i]);
@@ -159,7 +159,8 @@ void FlowGraphTypePropagator::PropagateRecursive(BlockEntryInstr* block) {
 }
 
 
-void FlowGraphTypePropagator::HandleBranchOnNull(BlockEntryInstr* block) {
+void FlowGraphTypePropagator::HandleBranchOnStrictCompare(
+    BlockEntryInstr* block) {
   BranchInstr* branch = block->last_instruction()->AsBranch();
   if (branch == NULL) {
     return;
@@ -318,7 +319,9 @@ void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
 void FlowGraphTypePropagator::VisitGuardFieldClass(
     GuardFieldClassInstr* guard) {
   const intptr_t cid = guard->field().guarded_cid();
-  if ((cid == kIllegalCid) || (cid == kDynamicCid)) {
+  if ((cid == kIllegalCid) ||
+      (cid == kDynamicCid) ||
+      !CheckClassInstr::IsImmutableClassId(cid)) {
     return;
   }
 
@@ -794,13 +797,17 @@ CompileType ConstantInstr::ComputeType() const {
     return CompileType::Null();
   }
 
+  intptr_t cid = value().GetClassId();
+  if (!CheckClassInstr::IsImmutableClassId(cid)) {
+    cid = kDynamicCid;
+  }
+
   if (value().IsInstance()) {
-    return CompileType::Create(
-        value().GetClassId(),
+    return CompileType::Create(cid,
         AbstractType::ZoneHandle(Instance::Cast(value()).GetType()));
   } else {
     // Type info for non-instance objects.
-    return CompileType::FromCid(value().GetClassId());
+    return CompileType::FromCid(cid);
   }
 }
 
@@ -973,6 +980,9 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
       is_nullable = CompileType::kNonNullable;
       cid = obj.GetClassId();
     }
+  }
+  if (!CheckClassInstr::IsImmutableClassId(cid)) {
+    cid = kDynamicCid;
   }
   return CompileType(is_nullable, cid, abstract_type);
 }

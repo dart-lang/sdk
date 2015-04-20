@@ -20,7 +20,7 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   void Propagate();
 
   void PropagateRecursive(BlockEntryInstr* block);
-  void HandleBranchOnNull(BlockEntryInstr* block);
+  void HandleBranchOnStrictCompare(BlockEntryInstr* block);
 
   void RollbackTo(intptr_t rollback_point);
 

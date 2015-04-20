@@ -318,7 +318,16 @@ void ConstantPropagator::VisitPhi(PhiInstr* instr) {
 
 
 void ConstantPropagator::VisitRedefinition(RedefinitionInstr* instr) {
-  SetValue(instr, instr->value()->definition()->constant_value());
+  // Ensure that we never remove redefinition of a constant unless we are also
+  // are guaranteed to fold away code paths that correspond to non-matching
+  // class ids. Otherwise LICM might potentially hoist incorrect code.
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsConstant(value) &&
+      CheckClassInstr::IsImmutableClassId(value.GetClassId())) {
+    SetValue(instr, value);
+  } else {
+    SetValue(instr, non_constant_);
+  }
 }
 
 
@@ -788,10 +797,14 @@ void ConstantPropagator::VisitLoadClassId(LoadClassIdInstr* instr) {
     SetValue(instr, Smi::ZoneHandle(Z, Smi::New(cid)));
     return;
   }
+
   const Object& object = instr->object()->definition()->constant_value();
   if (IsConstant(object)) {
-    SetValue(instr, Smi::ZoneHandle(Z, Smi::New(object.GetClassId())));
-    return;
+    cid = object.GetClassId();
+    if (CheckClassInstr::IsImmutableClassId(cid)) {
+      SetValue(instr, Smi::ZoneHandle(Z, Smi::New(cid)));
+      return;
+    }
   }
   SetValue(instr, non_constant_);
 }
