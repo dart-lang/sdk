@@ -1624,16 +1624,42 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     Element element = node.element;
     List<DartType> instantiatedTypes = node.instantiatedTypes;
 
-    registry.registerStaticInvocation(element);
-
     if (instantiatedTypes != null && !instantiatedTypes.isEmpty) {
       instantiatedTypes.forEach((type) {
         registry.registerInstantiatedType(type);
       });
     }
 
-    push(backend.emitter.staticFunctionAccess(node.element));
-    push(new js.Call(pop(), visitArguments(node.inputs, start: 0)), node);
+    List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
+
+    if (element == backend.getCheckConcurrentModificationError()) {
+      // Manually inline the [checkConcurrentModificationError] function.  This
+      // function is only called from a for-loop update.  Ideally we would just
+      // generate the conditionalcontrol flow in the builder but it adds basic
+      // blocks in the loop update that interfere with other optimizations and
+      // confuses loop recognition.
+
+      assert(arguments.length == 2);
+      Element throwFunction = backend.getThrowConcurrentModificationError();
+      registry.registerStaticInvocation(throwFunction);
+
+      // Calling using `(0, #)(#)` instead of `#(#)` separates the property load
+      // of the static function access from the call.  For some reason this
+      // helps V8 see that the call never happens so V8 makes the call a
+      // deoptimization. This removes the call from the optimized loop, making
+      // more optimizations available to the loop.  This form is 50% faster on
+      // some small loop, almost as fast as loops with no concurrent
+      // modification check.
+      push(js.js('# || (0, #)(#)',[
+          arguments[0],
+          backend.emitter.staticFunctionAccess(throwFunction),
+          arguments[1]]));
+    } else {
+      registry.registerStaticInvocation(element);
+      push(backend.emitter.staticFunctionAccess(element));
+      push(new js.Call(pop(), arguments), node);
+    }
+
   }
 
   visitInvokeSuper(HInvokeSuper node) {

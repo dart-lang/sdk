@@ -302,6 +302,7 @@ class JavaScriptBackend extends Backend {
   Element jsStringToString;
   Element jsStringOperatorAdd;
   Element objectEquals;
+  Element cachedCheckConcurrentModificationError;
 
   ClassElement typeLiteralClass;
   ClassElement mapLiteralClass;
@@ -1662,6 +1663,18 @@ class JavaScriptBackend extends Backend {
     return findHelper('throwAbstractClassInstantiationError');
   }
 
+  Element getCheckConcurrentModificationError() {
+    if (cachedCheckConcurrentModificationError == null) {
+      cachedCheckConcurrentModificationError =
+          findHelper('checkConcurrentModificationError');
+    }
+    return cachedCheckConcurrentModificationError;
+  }
+
+  Element getThrowConcurrentModificationError() {
+    return findHelper('throwConcurrentModificationError');
+  }
+
   Element getStringInterpolationHelper() {
     return findHelper('S');
   }
@@ -2750,6 +2763,13 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     registerBackendStaticInvocation(backend.getTraceFromException(), registry);
   }
 
+  void onSyncForIn(Registry registry) {
+    assert(registry.isForResolution);
+    // The SSA builder recognizes certain for-in loops and can generate calls to
+    // throwConcurrentModificationError.
+    registerBackendStaticInvocation(
+        backend.getCheckConcurrentModificationError(), registry);
+  }
 
   void onTypeVariableExpression(Registry registry) {
     assert(registry.isForResolution);

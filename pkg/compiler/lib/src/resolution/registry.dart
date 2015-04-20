@@ -331,6 +331,10 @@ class ResolutionRegistry extends Registry {
     backend.resolutionCallbacks.onStackTraceInCatch(this);
   }
 
+  void registerSyncForIn(Node node) {
+    backend.resolutionCallbacks.onSyncForIn(this);
+  }
+
   ClassElement defaultSuperclass(ClassElement element) {
     return backend.defaultSuperclass(element);
   }
