@@ -6,6 +6,8 @@ library test.src.task.dart_test;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/plugin/plugin.dart';
+import 'package:analyzer/plugin/task.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -15,9 +17,10 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/plugin/engine_plugin.dart';
+import 'package:analyzer/src/plugin/plugin_impl.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/driver.dart';
-import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
@@ -1834,6 +1837,8 @@ class _AbstractDartTaskTest extends EngineTestCase {
   _MockContext context = new _MockContext();
   Map<AnalysisTarget, CacheEntry> entryMap = <AnalysisTarget, CacheEntry>{};
 
+  ExtensionManager extensionManager = new ExtensionManager();
+
   TaskManager taskManager = new TaskManager();
   AnalysisDriver analysisDriver;
 
@@ -1852,29 +1857,12 @@ class _AbstractDartTaskTest extends EngineTestCase {
       new DartUriResolver(sdk),
       new ResourceUriResolver(resourceProvider)
     ]);
-    // prepare TaskManager
-    taskManager.addTaskDescriptor(GetContentTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(ScanDartTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(ParseDartTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(BuildClassConstructorsTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(BuildCompilationUnitElementTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(BuildLibraryConstructorsTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(BuildLibraryElementTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(BuildPublicNamespaceTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(BuildDirectiveElementsTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(BuildSourceClosuresTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(BuildExportNamespaceTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(BuildEnumMemberElementsTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(BuildFunctionTypeAliasesTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(BuildTypeProviderTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(GatherUsedImportedElementsTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(GatherUsedLocalElementsTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(GenerateHintsTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(ResolveUnitTypeNamesTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(ResolveLibraryTypeNamesTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(ResolveReferencesTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(ResolveVariableReferencesTask.DESCRIPTOR);
-    taskManager.addTaskDescriptor(VerifyUnitTask.DESCRIPTOR);
+    // configure TaskManager
+    {
+      EnginePlugin plugin = new EnginePlugin();
+      extensionManager.processPlugins([plugin]);
+      taskManager.addTaskDescriptors(plugin.taskDescriptors);
+    }
     // prepare AnalysisDriver
     analysisDriver = new AnalysisDriver(taskManager, context);
   }
