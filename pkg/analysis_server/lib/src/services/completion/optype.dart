@@ -605,7 +605,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     if ((node.keyword == null || node.keyword.lexeme != 'var') &&
-        (node.type == null)) {
+        (node.type == null || identical(entity, node.type))) {
       optype.includeTypeNameSuggestions = true;
     }
   }

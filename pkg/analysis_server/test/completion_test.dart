@@ -1408,8 +1408,7 @@ f() { var vvv = 42; return !1 }''', <String>["1+vvv"]);
 
     buildTests('testCompletion_staticField1', '''
 class num{}class Sunflower {static final n!2um MAX_D = 300;nu!3m xc, yc;Sun!4flower() {x!Xc = y!Yc = MA!1 }}''',
-        <String>["1+MAX_D", "X+xc", "Y+yc", "2+num", "3+num", "4+Sunflower"],
-        failingTests: '2');
+        <String>["1+MAX_D", "X+xc", "Y+yc", "2+num", "3+num", "4+Sunflower"]);
 
     buildTests('testCompletion_super_superType', '''
 class A {

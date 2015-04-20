@@ -1273,6 +1273,319 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_Block_final() {
+    // Block  BlockFunctionBody  MethodDeclaration
+    addSource('/testAB.dart', '''
+      export "dart:math" hide max;
+      class A {int x;}
+      @deprecated D1() {int x;}
+      class _B {boo() { partBoo() {}} }''');
+    addSource('/testCD.dart', '''
+      String T1;
+      var _T2;
+      class C { }
+      class D { }''');
+    addSource('/testEEF.dart', '''
+      class EE { }
+      class F { }''');
+    addSource('/testG.dart', 'class G { }');
+    addSource('/testH.dart', '''
+      class H { }
+      int T3;
+      var _T4;'''); // not imported
+    addTestSource('''
+      import "/testAB.dart";
+      import "/testCD.dart" hide D;
+      import "/testEEF.dart" show EE;
+      import "/testG.dart" as g;
+      int T5;
+      var _T6;
+      String get T7 => 'hello';
+      set T8(int value) { partT8() {} }
+      Z D2() {int x;}
+      class X {
+        int get clog => 8;
+        set blog(value) { }
+        a() {
+          var f;
+          localF(int arg1) { }
+          {var x;}
+          final ^
+        }
+        void b() { }}
+      class Z { }''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+
+      assertSuggestLocalClass('X');
+      assertSuggestLocalClass('Z');
+      assertNotSuggested('a');
+      assertNotSuggested('b');
+      assertNotSuggested('localF');
+      assertNotSuggested('f');
+      // Don't suggest locals out of scope
+      assertNotSuggested('r');
+      assertNotSuggested('x');
+      assertNotSuggested('partT8');
+
+      assertSuggestImportedClass('A');
+      assertNotSuggested('_B');
+      assertSuggestImportedClass('C');
+      assertNotSuggested('partBoo');
+      // hidden element suggested as low relevance
+      // but imported results are partially filtered
+      //assertSuggestImportedClass('D', COMPLETION_RELEVANCE_LOW);
+      //assertSuggestImportedFunction(
+      //    'D1', null, true, COMPLETION_RELEVANCE_LOW);
+      assertNotSuggested('D2');
+      assertSuggestImportedClass('EE');
+      // hidden element suggested as low relevance
+      //assertSuggestImportedClass('F', COMPLETION_RELEVANCE_LOW);
+      assertSuggestLibraryPrefix('g');
+      assertNotSuggested('G');
+      //assertSuggestImportedClass('H', COMPLETION_RELEVANCE_LOW);
+      assertSuggestImportedClass('Object');
+      assertNotSuggested('min');
+      //assertSuggestImportedFunction(
+      //    'max',
+      //    'num',
+      //    false,
+      //    COMPLETION_RELEVANCE_LOW);
+      assertNotSuggested('T1');
+      assertNotSuggested('_T2');
+      //assertSuggestImportedTopLevelVar('T3', 'int', COMPLETION_RELEVANCE_LOW);
+      assertNotSuggested('_T4');
+      assertNotSuggested('T5');
+      assertNotSuggested('_T6');
+      assertNotSuggested('==');
+      assertNotSuggested('T7');
+      assertNotSuggested('T8');
+      assertNotSuggested('clog');
+      assertNotSuggested('blog');
+      // TODO (danrubel) suggest HtmlElement as low relevance
+      assertNotSuggested('HtmlElement');
+      assertSuggestImportedClass('Uri');
+      assertNotSuggested('parseIPv6Address');
+      assertNotSuggested('parseHex');
+    });
+  }
+
+  test_Block_final2() {
+    addTestSource('main() {final S^ v;}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestImportedClass('String');
+    });
+  }
+
+  test_Block_final3() {
+    addTestSource('main() {final ^ v;}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestImportedClass('String');
+    });
+  }
+
+  test_Block_final_final() {
+    // Block  BlockFunctionBody  MethodDeclaration
+    addSource('/testAB.dart', '''
+      export "dart:math" hide max;
+      class A {int x;}
+      @deprecated D1() {int x;}
+      class _B {boo() { partBoo() {}} }''');
+    addSource('/testCD.dart', '''
+      String T1;
+      var _T2;
+      class C { }
+      class D { }''');
+    addSource('/testEEF.dart', '''
+      class EE { }
+      class F { }''');
+    addSource('/testG.dart', 'class G { }');
+    addSource('/testH.dart', '''
+      class H { }
+      int T3;
+      var _T4;'''); // not imported
+    addTestSource('''
+      import "/testAB.dart";
+      import "/testCD.dart" hide D;
+      import "/testEEF.dart" show EE;
+      import "/testG.dart" as g;
+      int T5;
+      var _T6;
+      String get T7 => 'hello';
+      set T8(int value) { partT8() {} }
+      Z D2() {int x;}
+      class X {
+        int get clog => 8;
+        set blog(value) { }
+        a() {
+          final ^
+          final var f;
+          localF(int arg1) { }
+          {var x;}
+        }
+        void b() { }}
+      class Z { }''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+
+      assertSuggestLocalClass('X');
+      assertSuggestLocalClass('Z');
+      assertNotSuggested('a');
+      assertNotSuggested('b');
+      assertNotSuggested('localF');
+      assertNotSuggested('f');
+      // Don't suggest locals out of scope
+      assertNotSuggested('r');
+      assertNotSuggested('x');
+      assertNotSuggested('partT8');
+
+      assertSuggestImportedClass('A');
+      assertNotSuggested('_B');
+      assertSuggestImportedClass('C');
+      assertNotSuggested('partBoo');
+      // hidden element suggested as low relevance
+      // but imported results are partially filtered
+      //assertSuggestImportedClass('D', COMPLETION_RELEVANCE_LOW);
+      //assertSuggestImportedFunction(
+      //    'D1', null, true, COMPLETION_RELEVANCE_LOW);
+      assertNotSuggested('D2');
+      assertSuggestImportedClass('EE');
+      // hidden element suggested as low relevance
+      //assertSuggestImportedClass('F', COMPLETION_RELEVANCE_LOW);
+      assertSuggestLibraryPrefix('g');
+      assertNotSuggested('G');
+      //assertSuggestImportedClass('H', COMPLETION_RELEVANCE_LOW);
+      assertSuggestImportedClass('Object');
+      assertNotSuggested('min');
+      //assertSuggestImportedFunction(
+      //    'max',
+      //    'num',
+      //    false,
+      //    COMPLETION_RELEVANCE_LOW);
+      assertNotSuggested('T1');
+      assertNotSuggested('_T2');
+      //assertSuggestImportedTopLevelVar('T3', 'int', COMPLETION_RELEVANCE_LOW);
+      assertNotSuggested('_T4');
+      assertNotSuggested('T5');
+      assertNotSuggested('_T6');
+      assertNotSuggested('==');
+      assertNotSuggested('T7');
+      assertNotSuggested('T8');
+      assertNotSuggested('clog');
+      assertNotSuggested('blog');
+      // TODO (danrubel) suggest HtmlElement as low relevance
+      assertNotSuggested('HtmlElement');
+      assertSuggestImportedClass('Uri');
+      assertNotSuggested('parseIPv6Address');
+      assertNotSuggested('parseHex');
+    });
+  }
+
+  test_Block_final_var() {
+    // Block  BlockFunctionBody  MethodDeclaration
+    addSource('/testAB.dart', '''
+      export "dart:math" hide max;
+      class A {int x;}
+      @deprecated D1() {int x;}
+      class _B {boo() { partBoo() {}} }''');
+    addSource('/testCD.dart', '''
+      String T1;
+      var _T2;
+      class C { }
+      class D { }''');
+    addSource('/testEEF.dart', '''
+      class EE { }
+      class F { }''');
+    addSource('/testG.dart', 'class G { }');
+    addSource('/testH.dart', '''
+      class H { }
+      int T3;
+      var _T4;'''); // not imported
+    addTestSource('''
+      import "/testAB.dart";
+      import "/testCD.dart" hide D;
+      import "/testEEF.dart" show EE;
+      import "/testG.dart" as g;
+      int T5;
+      var _T6;
+      String get T7 => 'hello';
+      set T8(int value) { partT8() {} }
+      Z D2() {int x;}
+      class X {
+        int get clog => 8;
+        set blog(value) { }
+        a() {
+          final ^
+          var f;
+          localF(int arg1) { }
+          {var x;}
+        }
+        void b() { }}
+      class Z { }''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+
+      assertSuggestLocalClass('X');
+      assertSuggestLocalClass('Z');
+      assertNotSuggested('a');
+      assertNotSuggested('b');
+      assertNotSuggested('localF');
+      assertNotSuggested('f');
+      // Don't suggest locals out of scope
+      assertNotSuggested('r');
+      assertNotSuggested('x');
+      assertNotSuggested('partT8');
+
+      assertSuggestImportedClass('A');
+      assertNotSuggested('_B');
+      assertSuggestImportedClass('C');
+      assertNotSuggested('partBoo');
+      // hidden element suggested as low relevance
+      // but imported results are partially filtered
+      //assertSuggestImportedClass('D', COMPLETION_RELEVANCE_LOW);
+      //assertSuggestImportedFunction(
+      //    'D1', null, true, COMPLETION_RELEVANCE_LOW);
+      assertNotSuggested('D2');
+      assertSuggestImportedClass('EE');
+      // hidden element suggested as low relevance
+      //assertSuggestImportedClass('F', COMPLETION_RELEVANCE_LOW);
+      assertSuggestLibraryPrefix('g');
+      assertNotSuggested('G');
+      //assertSuggestImportedClass('H', COMPLETION_RELEVANCE_LOW);
+      assertSuggestImportedClass('Object');
+      assertNotSuggested('min');
+      //assertSuggestImportedFunction(
+      //    'max',
+      //    'num',
+      //    false,
+      //    COMPLETION_RELEVANCE_LOW);
+      assertNotSuggested('T1');
+      assertNotSuggested('_T2');
+      //assertSuggestImportedTopLevelVar('T3', 'int', COMPLETION_RELEVANCE_LOW);
+      assertNotSuggested('_T4');
+      assertNotSuggested('T5');
+      assertNotSuggested('_T6');
+      assertNotSuggested('==');
+      assertNotSuggested('T7');
+      assertNotSuggested('T8');
+      assertNotSuggested('clog');
+      assertNotSuggested('blog');
+      // TODO (danrubel) suggest HtmlElement as low relevance
+      assertNotSuggested('HtmlElement');
+      assertSuggestImportedClass('Uri');
+      assertNotSuggested('parseIPv6Address');
+      assertNotSuggested('parseHex');
+    });
+  }
+
   test_Block_identifier_partial() {
     addSource('/testAB.dart', '''
       export "dart:math" hide max;
@@ -1654,6 +1967,69 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
         expect(suggestionO.element.isDeprecated, isFalse);
         expect(suggestionO.element.isPrivate, isFalse);
       }
+      assertNotSuggested('T');
+      assertSuggestLibraryPrefix('x');
+    });
+  }
+
+  test_ClassDeclaration_body_final() {
+    // ClassDeclaration  CompilationUnit
+    addSource('/testB.dart', '''
+      class B { }''');
+    addTestSource('''
+      import "testB.dart" as x;
+      class A {final ^}
+      class _B {}
+      A T;''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertSuggestLocalClass('A');
+      assertSuggestLocalClass('_B');
+      assertSuggestImportedClass('Object');
+      assertNotSuggested('T');
+      assertSuggestLibraryPrefix('x');
+    });
+  }
+
+  test_ClassDeclaration_body_final_final() {
+    // ClassDeclaration  CompilationUnit
+    addSource('/testB.dart', '''
+      class B { }''');
+    addTestSource('''
+      import "testB.dart" as x;
+      class A {final ^ final foo;}
+      class _B {}
+      A T;''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertSuggestLocalClass('A');
+      assertSuggestLocalClass('_B');
+      assertSuggestImportedClass('Object');
+      assertNotSuggested('T');
+      assertSuggestLibraryPrefix('x');
+    });
+  }
+
+  test_ClassDeclaration_body_final_var() {
+    // ClassDeclaration  CompilationUnit
+    addSource('/testB.dart', '''
+      class B { }''');
+    addTestSource('''
+      import "testB.dart" as x;
+      class A {final ^ var foo;}
+      class _B {}
+      A T;''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertSuggestLocalClass('A');
+      assertSuggestLocalClass('_B');
+      assertSuggestImportedClass('Object');
       assertNotSuggested('T');
       assertSuggestLibraryPrefix('x');
     });

@@ -207,6 +207,31 @@ class OpTypeTest {
     assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
+  test_Block_final() {
+    addTestSource('main() {final ^}');
+    assertOpType(typeNames: true);
+  }
+
+  test_Block_final2() {
+    addTestSource('main() {final S^ v;}');
+    assertOpType(typeNames: true);
+  }
+
+  test_Block_final3() {
+    addTestSource('main() {final ^ v;}');
+    assertOpType(typeNames: true);
+  }
+
+  test_Block_final_final() {
+    addTestSource('main() {final ^ final S x;}');
+    assertOpType(typeNames: true);
+  }
+
+  test_Block_final_final2() {
+    addTestSource('main() {final S^ final S x;}');
+    assertOpType(typeNames: true);
+  }
+
   test_Block_identifier_partial() {
     addTestSource('class X {a() {var f; {var x;} D^ var r;} void b() { }}');
     assertOpType(returnValue: true, typeNames: true, voidReturn: true);
