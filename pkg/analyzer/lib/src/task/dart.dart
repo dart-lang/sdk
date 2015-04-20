@@ -18,7 +18,6 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
@@ -1536,7 +1535,7 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
     //
     TypeProvider typeProvider =
         new TypeProviderImpl.forNamespaces(coreNamespace, asyncNamespace);
-    (context as ExtendedAnalysisContext).typeProvider = typeProvider;
+    (context as InternalAnalysisContext).typeProvider = typeProvider;
     outputs[TYPE_PROVIDER] = typeProvider;
   }
 

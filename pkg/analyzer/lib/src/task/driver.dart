@@ -28,7 +28,7 @@ class AnalysisDriver {
   /**
    * The context in which analysis is to be performed.
    */
-  final ExtendedAnalysisContext context;
+  final InternalAnalysisContext context;
 
   /**
    * The work order that was previously computed but that has not yet been
@@ -123,8 +123,14 @@ class AnalysisDriver {
         state == CacheState.IN_PROCESS) {
       return null;
     }
-    return new WorkOrder(taskManager,
-        new WorkItem(context, target, taskManager.findTask(target, result)));
+    try {
+      return new WorkOrder(taskManager,
+          new WorkItem(context, target, taskManager.findTask(target, result)));
+    } catch (exception, stackTrace) {
+      throw new AnalysisException(
+          'Could not create work order (target = $target; result = $result)',
+          new CaughtException(exception, stackTrace));
+    }
   }
 
   /**
@@ -260,7 +266,7 @@ class WorkItem {
   /**
    * The context in which the task will be performed.
    */
-  final ExtendedAnalysisContext context;
+  final InternalAnalysisContext context;
 
   /**
    * The target for which a task is to be performed.

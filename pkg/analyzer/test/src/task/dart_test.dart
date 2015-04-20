@@ -163,7 +163,8 @@ class C = B with M;
 @reflectiveTest
 class BuildCompilationUnitElementTaskTest extends _AbstractDartTaskTest {
   test_buildInputs() {
-    LibrarySpecificUnit target = new LibrarySpecificUnit(emptySource, emptySource);
+    LibrarySpecificUnit target =
+        new LibrarySpecificUnit(emptySource, emptySource);
     Map<String, TaskInput> inputs =
         BuildCompilationUnitElementTask.buildInputs(target);
     expect(inputs, isNotNull);
@@ -1910,7 +1911,7 @@ class _AbstractDartTaskTest extends EngineTestCase {
   }
 }
 
-class _MockContext extends TypedMock implements ExtendedAnalysisContext {
+class _MockContext extends TypedMock implements InternalAnalysisContext {
   AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
   SourceFactory sourceFactory;
   TypeProvider typeProvider;

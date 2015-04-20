@@ -12,10 +12,14 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/src/cancelable_future.dart';
+import 'package:analyzer/src/context/cache.dart' as cache;
+import 'package:analyzer/src/context/context.dart' as cache;
 import 'package:analyzer/src/generated/incremental_resolution_validator.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/src/task/task_dart.dart';
+import 'package:analyzer/task/model.dart';
 
 import '../../instrumentation/instrumentation.dart';
 import 'ast.dart';
@@ -1132,6 +1136,18 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   DeclaredVariables get declaredVariables => _declaredVariables;
 
   @override
+  List<AnalysisTarget> get explicitTargets {
+    List<AnalysisTarget> targets = <AnalysisTarget>[];
+    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+    while (iterator.moveNext()) {
+      if (iterator.value.explicitlyAdded) {
+        targets.add(iterator.key);
+      }
+    }
+    return targets;
+  }
+
+  @override
   List<Source> get htmlSources => _getSources(SourceKind.HTML);
 
   @override
@@ -1327,6 +1343,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> get prioritySources => _priorityOrder;
+
+  @override
+  List<AnalysisTarget> get priorityTargets => prioritySources;
 
   @override
   List<Source> get refactoringUnsafeSources {
@@ -1822,6 +1841,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } on _ElementByIdFinderException {
       return finder.result;
     }
+    return null;
+  }
+
+  @override
+  cache.CacheEntry getCacheEntry(AnalysisTarget target) {
     return null;
   }
 
@@ -5739,6 +5763,23 @@ class AnalysisEngine {
    */
   final PartitionManager partitionManager = new PartitionManager();
 
+  /**
+   * The partition manager being used to manage the shared partitions.
+   */
+  final cache.PartitionManager partitionManager_new =
+      new cache.PartitionManager();
+
+  /**
+   * A flag indicating whether the (new) task model should be used to perform
+   * analysis.
+   */
+  bool useTaskModel = false;
+
+  /**
+   * The task manager used to manage the tasks used to analyze code.
+   */
+  TaskManager _taskManager;
+
   AnalysisEngine._();
 
   /**
@@ -5771,6 +5812,17 @@ class AnalysisEngine {
    */
   void set logger(Logger logger) {
     this._logger = logger == null ? Logger.NULL : logger;
+  }
+
+  /**
+   * Return the task manager used to manage the tasks used to analyze code.
+   */
+  TaskManager get taskManager {
+    if (_taskManager == null) {
+      _taskManager = new TaskManager();
+      _taskManager.addTaskDescriptors(enginePlugin.taskDescriptors());
+    }
+    return _taskManager;
   }
 
   /**
@@ -7172,7 +7224,7 @@ class CycleBuilder_LibraryPair {
 /**
  * A pair containing a source and the cache entry associated with that source.
  * They are used to reduce the number of times an entry must be looked up in the
- * [cache].
+ * cache.
  */
 class CycleBuilder_SourceEntryPair {
   /**
@@ -9010,10 +9062,25 @@ abstract class InternalAnalysisContext implements AnalysisContext {
   set contentCache(ContentCache value);
 
   /**
+   * Return a list of the explicit targets being analyzed by this context.
+   */
+  List<AnalysisTarget> get explicitTargets;
+
+  /**
+   * A factory to override how [LibraryResolver] is created.
+   */
+  LibraryResolverFactory get libraryResolverFactory;
+
+  /**
    * Return a list containing all of the sources that have been marked as
    * priority sources. Clients must not modify the returned list.
    */
   List<Source> get prioritySources;
+
+  /**
+   * Return a list of the priority targets being analyzed by this context.
+   */
+  List<AnalysisTarget> get priorityTargets;
 
   /**
    * A factory to override how [ResolverVisitor] is created.
@@ -9034,11 +9101,6 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * A factory to override how [TypeResolverVisitor] is created.
    */
   TypeResolverVisitorFactory get typeResolverVisitorFactory;
-
-  /**
-   * A factory to override how [LibraryResolver] is created.
-   */
-  LibraryResolverFactory get libraryResolverFactory;
 
   /**
    * Add the given [source] with the given [information] to this context.
@@ -9084,6 +9146,11 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * will be eventually returned to the client from [performAnalysisTask].
    */
   List<CompilationUnit> ensureResolvedDartUnits(Source source);
+
+  /**
+   * Return the cache entry associated with the given [target].
+   */
+  cache.CacheEntry getCacheEntry(AnalysisTarget target);
 
   /**
    * Return context that owns the given [source].

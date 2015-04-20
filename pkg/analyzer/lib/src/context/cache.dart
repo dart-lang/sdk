@@ -349,6 +349,20 @@ class CacheEntry {
   }
 
   /**
+   * Return `true` if the state of the result represented by the given
+   * [descriptor] is [CacheState.INVALID].
+   */
+  bool isInvalid(ResultDescriptor descriptor) =>
+      getState(descriptor) == CacheState.INVALID;
+
+  /**
+   * Return `true` if the state of the result represented by the given
+   * [descriptor] is [CacheState.VALID].
+   */
+  bool isValid(ResultDescriptor descriptor) =>
+      getState(descriptor) == CacheState.VALID;
+
+  /**
    * Set the [CacheState.ERROR] state for given [descriptors], their values to
    * the corresponding default values, and remember the [exception] that caused
    * this state.
@@ -763,7 +777,7 @@ class ResultData {
 
   /**
    * The value being cached, or the default value for the result if there is no
-   * value (for example, when the [state] is [CacheState.INVALID].
+   * value (for example, when the [state] is [CacheState.INVALID]).
    */
   Object value;
 
