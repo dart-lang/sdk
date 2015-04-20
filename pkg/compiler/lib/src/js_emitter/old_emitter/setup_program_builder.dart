@@ -233,10 +233,15 @@ function $setupProgramName(programData, typesOffset) {
         str += parameter;
         body += ("this." + field + " = " + parameter + ";\\n");
       }
+      // TODO(zarah): Check whether there is any gain in always having this
+      // property and if so, add it unconditionally.
+      body += "if (typeInfo) this.\$builtinTypeInfo = typeInfo;\\n";
       if (supportsDirectProtoAccess) {
         body += "this." + #deferredActionString + "();";
       }
-      str += ") {\\n" + body + "}\\n";
+
+      if (fields.length > 0) str += ",";
+      str += "typeInfo) {\\n" + body + "}\\n";
       str += name + ".builtin\$cls=\\"" + name + "\\";\\n";
       str += "\$desc=\$collectedClasses." + name + "[1];\\n";
       str += name + ".prototype = \$desc;\\n";
