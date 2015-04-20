@@ -1270,6 +1270,8 @@ class OldEmitter implements Emitter {
     emitMangledNames(mainOutput);
 
     Map<Element, ClassBuilder> descriptors = elementDescriptors[mainFragment];
+    if (descriptors == null) descriptors = const {};
+
     checkEverythingEmitted(descriptors.keys);
 
     CodeBuffer libraryBuffer = new CodeBuffer();
