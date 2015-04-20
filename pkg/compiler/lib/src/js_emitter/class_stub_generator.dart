@@ -20,14 +20,10 @@ class ClassStubGenerator {
     //        [ constructorName, fields,
     //            fields.map(
     //                (name) => js('this.# = #', [name, name]))]));
-    return js('''function(#, typeInfo) {
-                   #;
-                   if (typeInfo) this.\$builtinTypeInfo = typeInfo;
-                   this.#();
-                 }''',
-              [fields,
-               fields.map((name) => js('this.# = #', [name, name])),
-               namer.deferredAction]);
+    return js('function(#) { #; this.#();}',
+        [fields,
+         fields.map((name) => js('this.# = #', [name, name])),
+         namer.deferredAction]);
   }
 
   jsAst.Expression generateGetter(Element member, String fieldName) {
