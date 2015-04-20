@@ -43,7 +43,7 @@ dt.typeDefinition {
 </style></head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version 1.6.0</h1>
+    <h1 style="color:#999999">Version 1.6.1</h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -2445,6 +2445,12 @@ dt.typeDefinition {
               The type of the options parameter being suggested. This
               field is omitted if the parameterName field is omitted.
             </p>
+          </dd><dt class="field"><b><i>importUri ( <span style="color:#999999">optional</span> String )</i></b></dt><dd>
+            
+            <p>
+              The import to be added if the suggestion is out of scope
+              and needs an import to be added to be in scope.
+            </p>
           </dd></dl></dd><dt class="typeDefinition"><a name="type_CompletionSuggestionKind">CompletionSuggestionKind: String</a></dt><dd>
         <p>
           An enumeration of the kinds of elements that can be included
@@ -2481,7 +2487,14 @@ dt.typeDefinition {
               A keyword is being suggested.
               For suggestions of this kind, the completion is the keyword.
             </p>
-          </dd><dt class="value">NAMED_ARGUMENT</dt><dt class="value">OPTIONAL_ARGUMENT</dt><dt class="value">PARAMETER</dt></dl></dd><dt class="typeDefinition"><a name="type_Element">Element: object</a></dt><dd>
+          </dd><dt class="value">NAMED_ARGUMENT</dt><dd>
+            
+            <p>
+              A named argument for the current callsite is being suggested.
+              For suggestions of this kind, the completion is
+              the named argument identifier including a trailing ':' and space.
+            </p>
+          </dd><dt class="value">OPTIONAL_ARGUMENT</dt><dt class="value">PARAMETER</dt></dl></dd><dt class="typeDefinition"><a name="type_Element">Element: object</a></dt><dd>
         <p>
           Information about an element (something that can be declared
           in code).

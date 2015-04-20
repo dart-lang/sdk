@@ -5,7 +5,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.6.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.6.1</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -2200,6 +2200,13 @@
               field is omitted if the parameterName field is omitted.
             </p>
           </field>
+          <field name="importUri" optional="true">
+            <ref>String</ref>
+            <p>
+              The import to be added if the suggestion is out of scope
+              and needs an import to be added to be in scope.
+            </p>
+          </field>
         </object>
       </type>
       <type name="CompletionSuggestionKind">
@@ -2243,7 +2250,14 @@
               For suggestions of this kind, the completion is the keyword.
             </p>
           </value>
-          <value><code>NAMED_ARGUMENT</code></value>
+          <value>
+            <code>NAMED_ARGUMENT</code>
+            <p>
+              A named argument for the current callsite is being suggested.
+              For suggestions of this kind, the completion is
+              the named argument identifier including a trailing ':' and space.
+            </p>
+          </value>
           <value><code>OPTIONAL_ARGUMENT</code></value>
           <value><code>PARAMETER</code></value>
         </enum>

@@ -7679,6 +7679,7 @@ class ChangeContentOverlay implements HasToJson {
  *   "hasNamedParameters": optional bool
  *   "parameterName": optional String
  *   "parameterType": optional String
+ *   "importUri": optional String
  * }
  */
 class CompletionSuggestion implements HasToJson {
@@ -7717,6 +7718,8 @@ class CompletionSuggestion implements HasToJson {
   String _parameterName;
 
   String _parameterType;
+
+  String _importUri;
 
   /**
    * The kind of element being suggested.
@@ -7981,7 +7984,21 @@ class CompletionSuggestion implements HasToJson {
     this._parameterType = value;
   }
 
-  CompletionSuggestion(CompletionSuggestionKind kind, int relevance, String completion, int selectionOffset, int selectionLength, bool isDeprecated, bool isPotential, {String docSummary, String docComplete, String declaringType, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, int requiredParameterCount, bool hasNamedParameters, String parameterName, String parameterType}) {
+  /**
+   * The import to be added if the suggestion is out of scope and needs an
+   * import to be added to be in scope.
+   */
+  String get importUri => _importUri;
+
+  /**
+   * The import to be added if the suggestion is out of scope and needs an
+   * import to be added to be in scope.
+   */
+  void set importUri(String value) {
+    this._importUri = value;
+  }
+
+  CompletionSuggestion(CompletionSuggestionKind kind, int relevance, String completion, int selectionOffset, int selectionLength, bool isDeprecated, bool isPotential, {String docSummary, String docComplete, String declaringType, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, int requiredParameterCount, bool hasNamedParameters, String parameterName, String parameterType, String importUri}) {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
@@ -8000,6 +8017,7 @@ class CompletionSuggestion implements HasToJson {
     this.hasNamedParameters = hasNamedParameters;
     this.parameterName = parameterName;
     this.parameterType = parameterType;
+    this.importUri = importUri;
   }
 
   factory CompletionSuggestion.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
@@ -8093,7 +8111,11 @@ class CompletionSuggestion implements HasToJson {
       if (json.containsKey("parameterType")) {
         parameterType = jsonDecoder._decodeString(jsonPath + ".parameterType", json["parameterType"]);
       }
-      return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary: docSummary, docComplete: docComplete, declaringType: declaringType, element: element, returnType: returnType, parameterNames: parameterNames, parameterTypes: parameterTypes, requiredParameterCount: requiredParameterCount, hasNamedParameters: hasNamedParameters, parameterName: parameterName, parameterType: parameterType);
+      String importUri;
+      if (json.containsKey("importUri")) {
+        importUri = jsonDecoder._decodeString(jsonPath + ".importUri", json["importUri"]);
+      }
+      return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary: docSummary, docComplete: docComplete, declaringType: declaringType, element: element, returnType: returnType, parameterNames: parameterNames, parameterTypes: parameterTypes, requiredParameterCount: requiredParameterCount, hasNamedParameters: hasNamedParameters, parameterName: parameterName, parameterType: parameterType, importUri: importUri);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "CompletionSuggestion");
     }
@@ -8141,6 +8163,9 @@ class CompletionSuggestion implements HasToJson {
     if (parameterType != null) {
       result["parameterType"] = parameterType;
     }
+    if (importUri != null) {
+      result["importUri"] = importUri;
+    }
     return result;
   }
 
@@ -8167,7 +8192,8 @@ class CompletionSuggestion implements HasToJson {
           requiredParameterCount == other.requiredParameterCount &&
           hasNamedParameters == other.hasNamedParameters &&
           parameterName == other.parameterName &&
-          parameterType == other.parameterType;
+          parameterType == other.parameterType &&
+          importUri == other.importUri;
     }
     return false;
   }
@@ -8193,6 +8219,7 @@ class CompletionSuggestion implements HasToJson {
     hash = _JenkinsSmiHash.combine(hash, hasNamedParameters.hashCode);
     hash = _JenkinsSmiHash.combine(hash, parameterName.hashCode);
     hash = _JenkinsSmiHash.combine(hash, parameterType.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, importUri.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }
@@ -8244,6 +8271,11 @@ class CompletionSuggestionKind implements Enum {
    */
   static const KEYWORD = const CompletionSuggestionKind._("KEYWORD");
 
+  /**
+   * A named argument for the current callsite is being suggested. For
+   * suggestions of this kind, the completion is the named argument identifier
+   * including a trailing ':' and space.
+   */
   static const NAMED_ARGUMENT = const CompletionSuggestionKind._("NAMED_ARGUMENT");
 
   static const OPTIONAL_ARGUMENT = const CompletionSuggestionKind._("OPTIONAL_ARGUMENT");

@@ -1120,6 +1120,7 @@ final Matcher isCompletionId = isString;
  *   "hasNamedParameters": optional bool
  *   "parameterName": optional String
  *   "parameterType": optional String
+ *   "importUri": optional String
  * }
  */
 final Matcher isCompletionSuggestion = new LazyMatcher(() => new MatchesJsonObject(
@@ -1142,7 +1143,8 @@ final Matcher isCompletionSuggestion = new LazyMatcher(() => new MatchesJsonObje
     "requiredParameterCount": isInt,
     "hasNamedParameters": isBool,
     "parameterName": isString,
-    "parameterType": isString
+    "parameterType": isString,
+    "importUri": isString
   }));
 
 /**
