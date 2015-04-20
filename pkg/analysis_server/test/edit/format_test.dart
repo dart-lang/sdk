@@ -13,6 +13,7 @@ import 'package:analyzer/src/plugin/plugin_impl.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
+import '../mocks.dart';
 import '../reflective_tests.dart';
 
 main() {
@@ -84,6 +85,17 @@ main() {
 '''));
       expect(formatResult.selectionOffset, equals(0));
       expect(formatResult.selectionLength, equals(3));
+    });
+  }
+
+  Future test_withErrors() {
+    addTestFile('''
+main() { int x = 
+''');
+    return waitForTasksFinished().then((_) {
+      Request request = new EditFormatParams(testFile, 0, 3).toRequest('0');
+      Response response = handler.handleRequest(request);
+      expect(response, isResponseFailure('0'));
     });
   }
 

@@ -98,7 +98,12 @@ class EditDomainHandler implements RequestHandler {
         selectionStart: start,
         selectionLength: length);
     DartFormatter formatter = new DartFormatter();
-    SourceCode formattedResult = formatter.formatSource(code);
+    SourceCode formattedResult;
+    try {
+      formattedResult = formatter.formatSource(code);
+    } on FormatterException {
+      return new Response.formatWithErrors(request);
+    }
     String formattedSource = formattedResult.text;
 
     List<SourceEdit> edits = <SourceEdit>[];
@@ -122,8 +127,8 @@ class EditDomainHandler implements RequestHandler {
       newLength = 0;
     }
 
-    return new EditFormatResult(edits, newStart,
-        newLength).toResponse(request.id);
+    return new EditFormatResult(edits, newStart, newLength)
+        .toResponse(request.id);
   }
 
   Response getAssists(Request request) {
@@ -133,8 +138,8 @@ class EditDomainHandler implements RequestHandler {
     Source source = pair.source;
     List<SourceChange> changes = <SourceChange>[];
     if (context != null && source != null) {
-      List<Assist> assists = computeAssists(plugin, context,
-          source, params.offset, params.length);
+      List<Assist> assists =
+          computeAssists(plugin, context, source, params.offset, params.length);
       assists.forEach((Assist assist) {
         changes.add(assist.change);
       });

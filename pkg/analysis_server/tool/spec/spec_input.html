@@ -1326,11 +1326,12 @@
           selection offset and selection length.
         </p>
         <p>
-          If a request is made for a file which does not exist, or
-          which is not currently subject to analysis (e.g. because it
-          is not associated with any analysis root specified to
-          analysis.setAnalysisRoots), an error of type
-          <tt>FORMAT_INVALID_FILE</tt> will be generated.
+          If a request is made for a file which does not exist, or which is not
+          currently subject to analysis (e.g. because it is not associated with
+          any analysis root specified to analysis.setAnalysisRoots), an error of
+          type <tt>FORMAT_INVALID_FILE</tt> will be generated. If the source
+          contains syntax errors, an error of type <tt>FORMAT_WITH_ERRORS</tt>
+          will be generated.
         </p>
         <params>
           <field name="file">
@@ -3136,6 +3137,13 @@
             <p>
               An "edit.format" request specified a FilePath
               which does not match a Dart file in an analysis root.
+            </p>
+          </value>
+          <value>
+            <code>FORMAT_WITH_ERRORS</code>
+            <p>
+              An "edit.format" request specified a file that contains syntax
+              errors.
             </p>
           </value>
           <value>

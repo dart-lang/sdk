@@ -1545,11 +1545,12 @@ dt.typeDefinition {
           selection offset and selection length.
         </p>
         <p>
-          If a request is made for a file which does not exist, or
-          which is not currently subject to analysis (e.g. because it
-          is not associated with any analysis root specified to
-          analysis.setAnalysisRoots), an error of type
-          <tt>FORMAT_INVALID_FILE</tt> will be generated.
+          If a request is made for a file which does not exist, or which is not
+          currently subject to analysis (e.g. because it is not associated with
+          any analysis root specified to analysis.setAnalysisRoots), an error of
+          type <tt>FORMAT_INVALID_FILE</tt> will be generated. If the source
+          contains syntax errors, an error of type <tt>FORMAT_WITH_ERRORS</tt>
+          will be generated.
         </p>
         
         
@@ -3140,6 +3141,12 @@ dt.typeDefinition {
             <p>
               An "edit.format" request specified a FilePath
               which does not match a Dart file in an analysis root.
+            </p>
+          </dd><dt class="value">FORMAT_WITH_ERRORS</dt><dd>
+            
+            <p>
+              An "edit.format" request specified a file that contains syntax
+              errors.
             </p>
           </dd><dt class="value">GET_ERRORS_INVALID_FILE</dt><dd>
             

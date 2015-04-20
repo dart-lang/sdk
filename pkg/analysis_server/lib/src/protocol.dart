@@ -690,12 +690,20 @@ class Response {
       : _result = result;
 
   /**
-   * Initialize a newly created instance to represent the
-   * FORMAT_INVALID_FILE error condition.
+   * Initialize a newly created instance to represent the FORMAT_INVALID_FILE
+   * error condition.
    */
   Response.formatInvalidFile(Request request) : this(request.id,
           error: new RequestError(RequestErrorCode.FORMAT_INVALID_FILE,
               'Error during `edit.format`: invalid file.'));
+
+  /**
+   * Initialize a newly created instance to represent the FORMAT_WITH_ERROR
+   * error condition.
+   */
+  Response.formatWithErrors(Request request) : this(request.id,
+          error: new RequestError(RequestErrorCode.FORMAT_WITH_ERRORS,
+              'Error during `edit.format`: source contains syntax errors.'));
 
   /**
    * Initialize a newly created instance based upon the given JSON data
