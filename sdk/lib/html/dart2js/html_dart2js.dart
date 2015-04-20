@@ -9300,8 +9300,8 @@ class Document extends Node
 
   @DomName('Document.getElementsByName')
   @DocsEditable()
-  @Returns('NodeList')
-  @Creates('NodeList')
+  @Creates('NodeList|HtmlCollection')
+  @Returns('NodeList|HtmlCollection')
   List<Node> getElementsByName(String elementName) native;
 
   @DomName('Document.getElementsByTagName')

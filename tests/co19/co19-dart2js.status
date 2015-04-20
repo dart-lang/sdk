@@ -6474,11 +6474,8 @@ LayoutTests/fast/events/form-onchange_t01: RuntimeError # Please triage this fai
 LayoutTests/fast/events/init-message-event_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/initkeyboardevent-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/input-focus-no-duplicate-events_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/events/invalid-001_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/events/invalid-002_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/invalid-003_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/invalid-004_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/events/invalid-005_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/label-focus_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/mutation-during-append-child_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/mutation-during-insert-before_t01: RuntimeError # Please triage this failure
@@ -8470,11 +8467,8 @@ LayoutTests/fast/events/form-onchange_t01: RuntimeError # Please triage this fai
 LayoutTests/fast/events/init-message-event_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/initkeyboardevent-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/input-focus-no-duplicate-events_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/events/invalid-001_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/events/invalid-002_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/invalid-003_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/invalid-004_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/events/invalid-005_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/label-focus_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/mutation-during-append-child_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/mutation-during-insert-before_t01: RuntimeError # Please triage this failure
