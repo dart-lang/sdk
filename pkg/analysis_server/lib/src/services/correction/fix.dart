@@ -18,7 +18,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 List<Fix> computeFixes(
     ServerPlugin plugin, AnalysisContext context, AnalysisError error) {
   List<Fix> fixes = <Fix>[];
-  List<FixContributor> contributors = plugin.fixContributors();
+  List<FixContributor> contributors = plugin.fixContributors;
   for (FixContributor contributor in contributors) {
     try {
       List<Fix> contributedFixes = contributor.computeFixes(context, error);

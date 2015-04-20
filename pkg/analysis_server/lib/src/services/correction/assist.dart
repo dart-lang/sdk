@@ -19,7 +19,7 @@ import 'package:analyzer/src/generated/source.dart';
 List<Assist> computeAssists(ServerPlugin plugin, AnalysisContext context,
     Source source, int offset, int length) {
   List<Assist> assists = <Assist>[];
-  List<AssistContributor> contributors = plugin.assistContributors();
+  List<AssistContributor> contributors = plugin.assistContributors;
   for (AssistContributor contributor in contributors) {
     try {
       List<Assist> contributedAssists =
