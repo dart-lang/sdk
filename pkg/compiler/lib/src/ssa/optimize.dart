@@ -55,7 +55,6 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaTypePropagator(compiler),
           new SsaCodeMotion(),
           new SsaLoadElimination(compiler),
-          new SsaRedundantPhiEliminator(),
           new SsaDeadPhiEliminator(),
           new SsaTypePropagator(compiler),
           new SsaValueRangeAnalyzer(compiler, constantSystem, this, work),
@@ -198,14 +197,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
     assert(inputs.length == 1);
     HInstruction input = inputs[0];
     if (input.isBoolean(compiler)) return input;
-
-    // If the code is unreachable, remove the HBoolify.  This can happen when
-    // there is a throw expression in a short-circuit conditional.  Removing the
-    // unreachable HBoolify makes it easier to reconstruct the short-circuit
-    // operation.
-    if (input.instructionType.isEmpty && !input.instructionType.isNullable)
-      return input;
-
     // All values that cannot be 'true' are boolified to false.
     TypeMask mask = input.instructionType;
     if (!mask.contains(backend.jsBoolClass, compiler.world)) {
@@ -522,46 +513,35 @@ class SsaInstructionSimplifier extends HBaseVisitor
     TypeMask leftType = left.instructionType;
     TypeMask rightType = right.instructionType;
 
-    HInstruction makeTrue() => graph.addConstantBool(true, compiler);
-    HInstruction makeFalse() => graph.addConstantBool(false, compiler);
-
     // Intersection of int and double return conflicting, so
     // we don't optimize on numbers to preserve the runtime semantics.
     if (!(left.isNumberOrNull(compiler) && right.isNumberOrNull(compiler))) {
       TypeMask intersection = leftType.intersection(rightType, compiler.world);
       if (intersection.isEmpty && !intersection.isNullable) {
-        return makeFalse();
+        return graph.addConstantBool(false, compiler);
       }
     }
 
     if (left.isNull() && right.isNull()) {
-      return makeTrue();
-    }
-
-    HInstruction compareConstant(HConstant constant, HInstruction input) {
-      if (constant.constant.isTrue) {
-        return input;
-      } else {
-        return new HNot(input, backend.boolType);
-      }
+      return graph.addConstantBool(true, compiler);
     }
 
     if (left.isConstantBoolean() && right.isBoolean(compiler)) {
-      return compareConstant(left, right);
+      HConstant constant = left;
+      if (constant.constant.isTrue) {
+        return right;
+      } else {
+        return new HNot(right, backend.boolType);
+      }
     }
 
     if (right.isConstantBoolean() && left.isBoolean(compiler)) {
-      return compareConstant(right, left);
-    }
-
-
-    if (identical(left.nonCheck(), right.nonCheck())) {
-      // Avoid constant-folding `identical(x, x)` when `x` might be double.  The
-      // dart2js runtime has not always been consistent with the Dart
-      // specification (section 16.0.1), which makes distinctions on NaNs and
-      // -0.0 that are hard to implement efficiently.
-      if (left.isIntegerOrNull(compiler)) return makeTrue();
-      if (!left.canBePrimitiveNumber(compiler)) return makeTrue();
+      HConstant constant = right;
+      if (constant.constant.isTrue) {
+        return left;
+      } else {
+        return new HNot(left, backend.boolType);
+      }
     }
 
     return null;
@@ -840,19 +820,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
       }
     }
     return new HFieldSet(field, receiver, value);
-  }
-
-  HInstruction visitInvokeStatic(HInvokeStatic node) {
-    if (node.element == backend.getCheckConcurrentModificationError()) {
-      if (node.inputs.length == 2) {
-        HInstruction firstArgument = node.inputs[0];
-        if (firstArgument is HConstant) {
-          HConstant constant = firstArgument;
-          if (constant.constant.isTrue) return constant;
-        }
-      }
-    }
-    return node;
   }
 
   HInstruction visitStringConcat(HStringConcat node) {

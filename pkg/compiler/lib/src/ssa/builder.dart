@@ -5526,37 +5526,15 @@ class SsaBuilder extends NewResolvedVisitor {
   }
 
   visitSyncForIn(ast.SyncForIn node) {
-    // The 'get iterator' selector for this node has the inferred receiver type.
-    // If the receiver supports JavaScript indexing we generate an indexing loop
-    // instead of allocating an iterator object.
-
-    // This scheme recognizes for-in on direct lists.  It does not recognize all
-    // uses of ArrayIterator.  They still occur when the receiver is an Iterable
-    // with a `get iterator` method that delegate to another Iterable and the
-    // method is inlined.  We would require full scalar replacement in that
-    // case.
-
-    Selector selector = elements.getIteratorSelector(node);
-    TypeMask mask = selector.mask;
-
-    ClassWorld classWorld = compiler.world;
-    if (mask != null && mask.satisfies(backend.jsIndexableClass, classWorld)) {
-      return buildSyncForInIndexable(node, mask);
-    }
-    buildSyncForInIterator(node);
-  }
-
-  buildSyncForInIterator(ast.SyncForIn node) {
     // Generate a structure equivalent to:
     //   Iterator<E> $iter = <iterable>.iterator;
     //   while ($iter.moveNext()) {
-    //     <declaredIdentifier> = $iter.current;
+    //     E <declaredIdentifier> = $iter.current;
     //     <body>
     //   }
 
     // The iterator is shared between initializer, condition and body.
     HInstruction iterator;
-
     void buildInitializer() {
       Selector selector = elements.getIteratorSelector(node);
       visit(node.expression);
@@ -5564,145 +5542,38 @@ class SsaBuilder extends NewResolvedVisitor {
       pushInvokeDynamic(node, selector, [receiver]);
       iterator = pop();
     }
-
     HInstruction buildCondition() {
       Selector selector = elements.getMoveNextSelector(node);
       pushInvokeDynamic(node, selector, [iterator]);
       return popBoolified();
     }
-
     void buildBody() {
       Selector call = elements.getCurrentSelector(node);
       pushInvokeDynamic(node, call, [iterator]);
-      buildAssignLoopVariable(node, pop());
+
+      ast.Node identifier = node.declaredIdentifier;
+      Element variable = elements.getForInVariable(node);
+      Selector selector = elements.getSelector(identifier);
+
+      HInstruction value = pop();
+      if (identifier.asSend() != null
+          && Elements.isInstanceSend(identifier, elements)) {
+        HInstruction receiver = generateInstanceSendReceiver(identifier);
+        assert(receiver != null);
+        generateInstanceSetterWithCompiledReceiver(
+            null,
+            receiver,
+            value,
+            selector: selector,
+            location: identifier);
+      } else {
+        generateNonInstanceSetter(null, variable, value, location: identifier);
+      }
+      pop(); // Pop the value pushed by the setter call.
+
       visit(node.body);
     }
-
     handleLoop(node, buildInitializer, buildCondition, () {}, buildBody);
-  }
-
-  buildAssignLoopVariable(ast.ForIn node, HInstruction value) {
-    ast.Node identifier = node.declaredIdentifier;
-    Element variable = elements.getForInVariable(node);
-    Selector selector = elements.getSelector(identifier);
-
-    if (identifier.asSend() != null &&
-        Elements.isInstanceSend(identifier, elements)) {
-      HInstruction receiver = generateInstanceSendReceiver(identifier);
-      assert(receiver != null);
-      generateInstanceSetterWithCompiledReceiver(
-          null,
-          receiver,
-          value,
-          selector: selector,
-          location: identifier);
-    } else {
-      generateNonInstanceSetter(null, variable, value, location: identifier);
-    }
-    pop();  // Discard the value pushed by the setter call.
-  }
-
-  buildSyncForInIndexable(ast.ForIn node, TypeMask arrayType) {
-    // Generate a structure equivalent to:
-    //
-    //     int end = a.length;
-    //     for (int i = 0;
-    //          i < a.length;
-    //          checkConcurrentModificationError(a.length == end, a), ++i) {
-    //       <declaredIdentifier> = a[i];
-    //       <body>
-    //     }
-    Element loopVariable = elements.getForInVariable(node);
-    SyntheticLocal indexVariable = new SyntheticLocal('_i', loopVariable);
-    TypeMask boolType = backend.boolType;
-
-    // These variables are shared by initializer, condition, body and update.
-    HInstruction array;  // Set in buildInitializer.
-    bool isFixed;  // Set in buildInitializer.
-    HInstruction originalLength = null;  // Set for growable lists.
-
-    HInstruction buildGetLength() {
-      Element lengthElement = backend.jsIndexableLength;
-      HFieldGet result = new HFieldGet(
-          lengthElement, array, backend.positiveIntType,
-          isAssignable: !isFixed);
-      add(result);
-      return result;
-    }
-
-    void buildConcurrentModificationErrorCheck() {
-      if (originalLength == null) return;
-      // The static call checkConcurrentModificationError() is expanded in
-      // codegen to:
-      //
-      //     array.length == _end || throwConcurrentModificationError(array)
-      //
-      HInstruction length = buildGetLength();
-      push(new HIdentity(length, originalLength, null, boolType));
-      pushInvokeStatic(node,
-          backend.getCheckConcurrentModificationError(),
-          [pop(), array]);
-      pop();
-    }
-
-    void buildInitializer() {
-      visit(node.expression);
-      array = pop();
-      isFixed = isFixedLength(array.instructionType, compiler);
-      localsHandler.updateLocal(indexVariable,
-          graph.addConstantInt(0, compiler));
-      originalLength = buildGetLength();
-    }
-
-    HInstruction buildCondition() {
-      HInstruction index = localsHandler.readLocal(indexVariable);
-      HInstruction length = buildGetLength();
-      HInstruction compare = new HLess(index, length, null, boolType);
-      add(compare);
-      return compare;
-    }
-
-    void buildBody() {
-      // If we had mechanically inlined ArrayIterator.moveNext(), it would have
-      // inserted the ConcurrentModificationError check as part of the
-      // condition.  It is not necessary on the first iteration since there is
-      // no code between calls to `get iterator` and `moveNext`, so the test is
-      // moved to the loop update.
-
-      // Find a type for the element. Use the element type of the indexer of the
-      // array, as this is stronger than the iterator's `get current` type, for
-      // example, `get current` includes null.
-      // TODO(sra): The element type of a container type mask might be better.
-      Selector selector = new Selector.index();
-      Selector refined = new TypedSelector(arrayType, selector, compiler.world);
-      TypeMask type =
-          TypeMaskFactory.inferredTypeForSelector(refined, compiler);
-
-      HInstruction index = localsHandler.readLocal(indexVariable);
-      HInstruction value = new HIndex(array, index, null, type);
-      add(value);
-
-      buildAssignLoopVariable(node, value);
-      visit(node.body);
-    }
-
-    void buildUpdate() {
-      // See buildBody as to why we check here.
-      buildConcurrentModificationErrorCheck();
-
-      // TODO(sra): It would be slightly shorter to generate `a[i++]` in the
-      // body (and that more closely follows what an inlined iterator would do)
-      // but the code is horrible as `i+1` is carried around the loop in an
-      // additional variable.
-      HInstruction index = localsHandler.readLocal(indexVariable);
-      HInstruction one = graph.addConstantInt(1, compiler);
-      HInstruction addInstruction =
-          new HAdd(index, one, null, backend.positiveIntType);
-      add(addInstruction);
-      localsHandler.updateLocal(indexVariable, addInstruction);
-    }
-
-    handleLoop(node, buildInitializer, buildCondition, buildUpdate, buildBody);
   }
 
   visitLabel(ast.Label node) {

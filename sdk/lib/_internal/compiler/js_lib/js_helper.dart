@@ -1435,30 +1435,6 @@ throwAbstractClassInstantiationError(className) {
   throw new AbstractClassInstantiationError(className);
 }
 
-// This is used in open coded for-in loops on arrays.
-//
-//     checkConcurrentModificationError(a.length == startLength, a)
-//
-// is replaced in codegen by:
-//
-//     a.length == startLength || throwConcurrentModificationError(a)
-//
-// TODO(sra): We would like to annotate this as @NoSideEffects() so that loops
-// with no other effects can recognize that the array length does not
-// change. However, in the usual case where the loop does have other effects,
-// that causes the length in the loop condition to be phi(startLength,a.length),
-// which causes confusion in range analysis and the insertion of a bounds check.
-@NoInline()
-checkConcurrentModificationError(sameLength, collection) {
-  if (true != sameLength) {
-    throwConcurrentModificationError(collection);
-  }
-}
-
-@NoInline()
-throwConcurrentModificationError(collection) {
-  throw new ConcurrentModificationError(collection);
-}
 
 /**
  * Helper class for building patterns recognizing native type errors.
