@@ -37,6 +37,11 @@ class EnginePlugin implements Plugin {
    */
   EnginePlugin();
 
+  /**
+   * Return a list containing all of the task descriptors that were contributed.
+   */
+  List<TaskDescriptor> get taskDescriptors => taskExtensionPoint.extensions;
+
   @override
   String get uniqueIdentifier => UNIQUE_IDENTIFIER;
 
@@ -80,13 +85,6 @@ class EnginePlugin implements Plugin {
     //
     // Register HTML tasks.
     //
-  }
-
-  /**
-   * Return a list containing all of the task descriptors that were contributed.
-   */
-  List<TaskDescriptor> taskDescriptors() {
-    return taskExtensionPoint.extensions;
   }
 
   /**

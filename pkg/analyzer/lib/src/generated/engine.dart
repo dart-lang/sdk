@@ -5820,7 +5820,7 @@ class AnalysisEngine {
   TaskManager get taskManager {
     if (_taskManager == null) {
       _taskManager = new TaskManager();
-      _taskManager.addTaskDescriptors(enginePlugin.taskDescriptors());
+      _taskManager.addTaskDescriptors(enginePlugin.taskDescriptors);
     }
     return _taskManager;
   }
