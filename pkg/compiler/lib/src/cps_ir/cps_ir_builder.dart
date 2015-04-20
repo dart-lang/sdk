@@ -376,7 +376,7 @@ abstract class IrBuilderMixin<N> {
 }
 
 /// Shared state between delimited IrBuilders within the same function.
-class IrBuilderSharedState {
+class IrBuilderDelimitedState {
   final ConstantSystem constantSystem;
 
   /// A stack of collectors for breaks.
@@ -395,7 +395,7 @@ class IrBuilderSharedState {
 
   final List<ir.Definition> functionParameters = <ir.Definition>[];
 
-  IrBuilderSharedState(this.constantSystem, this.currentElement);
+  IrBuilderDelimitedState(this.constantSystem, this.currentElement);
 
   ir.Parameter get thisParameter => _thisParameter;
   void set thisParameter(ir.Parameter value) {
@@ -417,6 +417,20 @@ class ThisParameterLocal implements Local {
 /// variables in different ways.
 abstract class IrBuilder {
   IrBuilder _makeInstance();
+
+  /// True if [local] should currently be accessed from a [ir.MutableVariable].
+  bool isInMutableVariable(Local local);
+
+  /// Creates a [ir.MutableVariable] for the given local.
+  void makeMutableVariable(Local local);
+
+  /// Remove an [ir.MutableVariable] for a local.
+  ///
+  /// Subsequent access to the local will be direct rather than through the
+  /// mutable variable.  This is used for variables that do not spend their
+  /// entire lifetime as mutable variables (e.g., variables that are boxed
+  /// in mutable variables for a try block).
+  void removeMutableVariable(Local local);
 
   void declareLocalVariable(LocalVariableElement element,
                             {ir.Primitive initialValue});
@@ -468,43 +482,13 @@ abstract class IrBuilder {
 
   final List<ir.Parameter> _parameters = <ir.Parameter>[];
 
-  IrBuilderSharedState state;
+  IrBuilderDelimitedState state;
 
   /// A map from variable indexes to their values.
   ///
   /// [BoxLocal]s map to their box. [LocalElement]s that are boxed are not
   /// in the map; look up their [BoxLocal] instead.
   Environment environment;
-
-  /// A map from mutable local variables to their [ir.MutableVariable]s.
-  ///
-  /// Mutable variables are treated as boxed.  Writes to them are observable
-  /// side effects.
-  Map<Local, ir.MutableVariable> mutableVariables;
-
-  /// True if [local] should currently be accessed from a [ir.MutableVariable].
-  bool isInMutableVariable(Local local) {
-    return mutableVariables.containsKey(local);
-  }
-
-  /// Creates a [ir.MutableVariable] for the given local.
-  void makeMutableVariable(Local local) {
-    mutableVariables[local] =
-        new ir.MutableVariable(local.executableContext, local);
-  }
-
-  /// Remove an [ir.MutableVariable] for a local.
-  ///
-  /// Subsequent access to the local will be direct rather than through the
-  /// mutable variable.
-  void removeMutableVariable(Local local) {
-    mutableVariables.remove(local);
-  }
-
-  /// Gets the [MutableVariable] containing the value of [local].
-  ir.MutableVariable getMutableVariable(Local local) {
-    return mutableVariables[local];
-  }
 
   // The IR builder maintains a context, which is an expression with a hole in
   // it.  The hole represents the focus where new expressions can be added.
@@ -535,9 +519,8 @@ abstract class IrBuilder {
 
   /// Initialize a new top-level IR builder.
   void _init(ConstantSystem constantSystem, ExecutableElement currentElement) {
-    state = new IrBuilderSharedState(constantSystem, currentElement);
+    state = new IrBuilderDelimitedState(constantSystem, currentElement);
     environment = new Environment.empty();
-    mutableVariables = <Local, ir.MutableVariable>{};
   }
 
   /// Construct a delimited visitor for visiting a subtree.
@@ -552,28 +535,25 @@ abstract class IrBuilder {
   IrBuilder makeDelimitedBuilder([Environment env = null]) {
     return _makeInstance()
         ..state = state
-        ..environment = env != null ? env : new Environment.from(environment)
-        ..mutableVariables = mutableVariables;
+        ..environment = env != null ? env : new Environment.from(environment);
   }
 
   /// Construct a builder for making constructor field initializers.
   IrBuilder makeInitializerBuilder() {
     return _makeInstance()
-        ..state = new IrBuilderSharedState(state.constantSystem,
-                                           state.currentElement)
-        ..environment = new Environment.from(environment)
-        ..mutableVariables = mutableVariables;
+        ..state = new IrBuilderDelimitedState(state.constantSystem,
+                                              state.currentElement)
+        ..environment = new Environment.from(environment);
   }
 
   /// Construct a builder for an inner function.
   IrBuilder makeInnerFunctionBuilder(ExecutableElement currentElement) {
-    IrBuilderSharedState innerState =
-        new IrBuilderSharedState(state.constantSystem, currentElement)
+    IrBuilderDelimitedState innerState =
+        new IrBuilderDelimitedState(state.constantSystem, currentElement)
           ..enclosingMethodThisParameter = state.enclosingMethodThisParameter;
     return _makeInstance()
         ..state = innerState
-        ..environment = new Environment.empty()
-        ..mutableVariables = <Local, ir.MutableVariable>{};
+        ..environment = new Environment.empty();
   }
 
   bool get isOpen => _root == null || _current != null;
@@ -1735,10 +1715,12 @@ abstract class IrBuilder {
     JumpCollector join = new ForwardJumpCollector(environment);
     IrBuilder tryCatchBuilder = makeDelimitedBuilder();
 
-    // Variables treated as mutable in a try are not mutable outside of it.
-    // Work with a copy of the outer builder's mutable variables.
-    tryCatchBuilder.mutableVariables =
-        new Map<Local, ir.MutableVariable>.from(mutableVariables);
+    // Variables that are boxed due to being captured in a closure are boxed
+    // for their entire lifetime, and so they do not need to be boxed on
+    // entry to any try block.  They are not filtered out before this because
+    // we can not identify all of them in the same pass where we identify the
+    // variables assigned in the try (they may be captured by a closure after
+    // the try statement).
     for (LocalVariableElement variable in tryStatementInfo.boxedOnEntry) {
       assert(!tryCatchBuilder.isInMutableVariable(variable));
       ir.Primitive value = tryCatchBuilder.buildLocalVariableGet(variable);
@@ -1769,8 +1751,10 @@ abstract class IrBuilder {
     for (LocalVariableElement variable in tryStatementInfo.boxedOnEntry) {
       assert(catchBuilder.isInMutableVariable(variable));
       ir.Primitive value = catchBuilder.buildLocalVariableGet(variable);
-      // After this point, the variables that were boxed on entry to the try
-      // are no longer treated as mutable.
+      // Note that we remove the variable from the set of mutable variables
+      // here (and not above for the try body).  This is because the set of
+      // mutable variables is global for the whole function and not local to
+      // a delimited builder.
       catchBuilder.removeMutableVariable(variable);
       catchBuilder.environment.update(variable, value);
     }
@@ -2057,8 +2041,23 @@ abstract class IrBuilder {
 
 /// Shared state between DartIrBuilders within the same method.
 class DartIrBuilderSharedState {
+  /// Maps local variables to their corresponding [MutableVariable] object.
+  final Map<Local, ir.MutableVariable> local2mutable =
+      <Local, ir.MutableVariable>{};
+
+  /// Creates a [MutableVariable] for the given local.
+  void makeMutableVariable(Local local) {
+    ir.MutableVariable variable =
+        new ir.MutableVariable(local.executableContext, local);
+    local2mutable[local] = variable;
+  }
+
   /// [MutableVariable]s that should temporarily be treated as registers.
   final Set<Local> registerizedMutableVariables = new Set<Local>();
+
+  DartIrBuilderSharedState(Set<Local> capturedVariables) {
+    capturedVariables.forEach(makeMutableVariable);
+  }
 }
 
 /// Dart-specific subclass of [IrBuilder].
@@ -2069,22 +2068,34 @@ class DartIrBuilderSharedState {
 /// Captured variables are translated to ref cells (see [MutableVariable])
 /// using [GetMutableVariable] and [SetMutableVariable].
 class DartIrBuilder extends IrBuilder {
-  final DartIrBuilderSharedState dartState = new DartIrBuilderSharedState();
+  final DartIrBuilderSharedState dartState;
 
   IrBuilder _makeInstance() => new DartIrBuilder._blank(dartState);
   DartIrBuilder._blank(this.dartState);
 
   DartIrBuilder(ConstantSystem constantSystem,
                 ExecutableElement currentElement,
-                Set<Local> capturedVariables) {
+                Set<Local> capturedVariables)
+      : dartState = new DartIrBuilderSharedState(capturedVariables) {
     _init(constantSystem, currentElement);
-    capturedVariables.forEach(makeMutableVariable);
   }
 
-  @override
   bool isInMutableVariable(Local local) {
-    return mutableVariables.containsKey(local) &&
+    return dartState.local2mutable.containsKey(local) &&
            !dartState.registerizedMutableVariables.contains(local);
+  }
+
+  void makeMutableVariable(Local local) {
+    dartState.makeMutableVariable(local);
+  }
+
+  void removeMutableVariable(Local local) {
+    dartState.local2mutable.remove(local);
+  }
+
+  /// Gets the [MutableVariable] containing the value of [local].
+  ir.MutableVariable getMutableVariable(Local local) {
+    return dartState.local2mutable[local];
   }
 
   void _enterScope(ClosureScope scope) {
@@ -2281,6 +2292,12 @@ class JsIrBuilder extends IrBuilder {
     _init(constantSystem, currentElement);
   }
 
+  Map<ast.TryStatement, TryStatementInfo> get tryStatements => null;
+  Set<Local> get mutableCapturedVariables => null;
+  bool isInMutableVariable(Local local) => false;
+  void makeMutableVariable(Local local) {}
+  void removeMutableVariable(Local local) {}
+
   void enterInitializers() {
     assert(jsState.inInitializers == false);
     jsState.inInitializers = true;
@@ -2374,9 +2391,6 @@ class JsIrBuilder extends IrBuilder {
       add(new ir.SetField(environment.lookup(location.box),
                           location.field,
                           initialValue));
-    } else if (isInMutableVariable(variableElement)) {
-      add(new ir.LetMutable(getMutableVariable(variableElement),
-                            initialValue));
     } else {
       initialValue.useElementAsHint(variableElement);
       environment.extend(variableElement, initialValue);
