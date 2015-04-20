@@ -38,6 +38,9 @@ const HtmlEscape HTML_ESCAPE = const HtmlEscape();
  *
  * All modes require escaping of `&` (ampersand) characters, and may
  * enable escaping of more characters.
+ *
+ * Custom escape modes can be created using the [HtmlEscapeMode.HtmlEscapeMode]
+ * constructor.
  */
 class HtmlEscapeMode {
   final String _name;
@@ -74,10 +77,12 @@ class HtmlEscapeMode {
    * The result should not be used as the content of an unquoted
    * or single-quoted attribute value.
    *
-   * Escapes only double quotes (`"`) but not single quotes (`'`).
+   * Escapes double quotes (`"`) but not single quotes (`'`),
+   * and escapes `<` and `>` characters because they are not allowed
+   * in strict XHTML attributes
    */
   static const HtmlEscapeMode ATTRIBUTE =
-      const HtmlEscapeMode._('attribute', false, true, false, false);
+      const HtmlEscapeMode._('attribute', true, true, false, false);
 
   /**
    * Escaping mode for text going into single-quoted HTML attribute values.
@@ -85,10 +90,12 @@ class HtmlEscapeMode {
    * The result should not be used as the content of an unquoted
    * or double-quoted attribute value.
    *
-   * Escapes only single quotes (`'`) but not double quotes (`"`).
+   * Escapes single quotes (`'`) but not double quotes (`"`),
+   * and escapes `<` and `>` characters because they are not allowed
+   * in strict XHTML attributes
    */
   static const HtmlEscapeMode SQ_ATTRIBUTE =
-      const HtmlEscapeMode._('attribute', false, false, true, false);
+      const HtmlEscapeMode._('attribute', true, false, true, false);
 
   /**
    * Escaping mode for text going into HTML element content.
