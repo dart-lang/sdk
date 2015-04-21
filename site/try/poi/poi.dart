@@ -34,7 +34,7 @@ import 'package:compiler/src/dart2jslib.dart' show
     WorkItem;
 
 import 'package:compiler/src/elements/visitor.dart' show
-    ElementVisitor;
+    BaseElementVisitor;
 
 import 'package:compiler/src/elements/elements.dart' show
     AbstractFieldElement,
@@ -492,24 +492,24 @@ Future<Element> runPoiInternal(
 
 Element findPosition(int position, Element element) {
   FindPositionVisitor visitor = new FindPositionVisitor(position, element);
-  element.accept(visitor);
+  element.accept(visitor, null);
   return visitor.element;
 }
 
 String scopeInformation(Element element, int position) {
   ScopeInformationVisitor visitor =
       new ScopeInformationVisitor(cachedCompiler, element, position);
-  element.accept(visitor);
+  element.accept(visitor, null);
   return '${visitor.buffer}';
 }
 
-class FindPositionVisitor extends ElementVisitor {
+class FindPositionVisitor extends BaseElementVisitor {
   final int position;
   Element element;
 
   FindPositionVisitor(this.position, this.element);
 
-  visitElement(modelx.ElementX e) {
+  visitElement(modelx.ElementX e, _) {
     DeclarationSite site = e.declarationSite;
     if (site is PartialElement) {
       if (site.beginToken.charOffset <= position &&
@@ -519,18 +519,18 @@ class FindPositionVisitor extends ElementVisitor {
     }
   }
 
-  visitClassElement(ClassElement e) {
+  visitClassElement(ClassElement e, _) {
     if (e is PartialClassElement) {
       if (e.beginToken.charOffset <= position &&
           position < e.endToken.next.charOffset) {
         element = e;
-        visitScopeContainerElement(e);
+        visitScopeContainerElement(e, _);
       }
     }
   }
 
-  visitScopeContainerElement(ScopeContainerElement e) {
-    e.forEachLocalMember((Element element) => element.accept(this));
+  visitScopeContainerElement(ScopeContainerElement e, _) {
+    e.forEachLocalMember((Element element) => element.accept(this, _));
   }
 }
 

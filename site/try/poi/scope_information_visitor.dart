@@ -11,7 +11,7 @@ import 'package:compiler/src/elements/modelx.dart' show
     FieldElementX;
 
 import 'package:compiler/src/elements/visitor.dart' show
-    ElementVisitor;
+    BaseElementVisitor;
 
 import 'package:compiler/src/dart2jslib.dart' show
     Compiler;
@@ -34,7 +34,7 @@ import 'package:compiler/src/dart_types.dart' show
  * calling the [serialize] method on each element. Some elements need special
  * treatment, as their enclosing scope must also be serialized.
  */
-class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
+class ScopeInformationVisitor extends BaseElementVisitor/* <void> */ {
   // TODO(ahe): Include function parameters and local variables.
 
   final Compiler compiler;
@@ -54,11 +54,11 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
 
   StringBuffer get indented => buffer..write(indentation);
 
-  void visitElement(Element e) {
+  void visitElement(Element e, _) {
     serialize(e, omitEnclosing: false);
   }
 
-  void visitLibraryElement(LibraryElement e) {
+  void visitLibraryElement(LibraryElement e, _) {
     bool isFirst = true;
     forEach(Element member) {
       if (!isFirst) {
@@ -103,7 +103,7 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
         });
   }
 
-  void visitClassElement(ClassElement e) {
+  void visitClassElement(ClassElement e, _) {
     currentClass = e;
     serializeClassSide(e, isStatic: true);
   }
@@ -168,7 +168,7 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
     });
   }
 
-  void visitScopeContainerElement(ScopeContainerElement e) {
+  void visitScopeContainerElement(ScopeContainerElement e, _) {
     bool isFirst = true;
     serialize(e, omitEnclosing: false, serializeMembers: () {
       localMembersSorted(e).forEach((Element member) {
@@ -183,11 +183,11 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
     });
   }
 
-  void visitCompilationUnitElement(CompilationUnitElement e) {
-    e.enclosingElement.accept(this);
+  void visitCompilationUnitElement(CompilationUnitElement e, _) {
+    e.enclosingElement.accept(this, _);
   }
 
-  void visitAbstractFieldElement(AbstractFieldElement e) {
+  void visitAbstractFieldElement(AbstractFieldElement e, _) {
     throw new UnsupportedError('AbstractFieldElement cannot be serialized.');
   }
 
@@ -273,7 +273,7 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
       if (serializeEnclosing != null) {
         serializeEnclosing();
       } else {
-        element.enclosingElement.accept(this);
+        element.enclosingElement.accept(this, null);
       }
     }
     indentationLevel--;
