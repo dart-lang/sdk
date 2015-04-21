@@ -52,6 +52,19 @@ var fieldtest;
       exports.y = dart.as(value, core.int);
     }
   });
+  class BaseWithGetter extends core.Object {
+    get foo() {
+      return 1;
+    }
+  }
+  class Derived extends BaseWithGetter {
+    Derived() {
+      this.foo = 2;
+      this.bar = 3;
+      super.BaseWithGetter();
+    }
+  }
+  dart.virtualField(Derived, 'foo');
   // Function main: () → void
   function main() {
     let a = new A();
@@ -67,5 +80,7 @@ var fieldtest;
   exports.bar = bar;
   exports.baz = baz;
   exports.compute = compute;
+  exports.BaseWithGetter = BaseWithGetter;
+  exports.Derived = Derived;
   exports.main = main;
 })(fieldtest || (fieldtest = {}));

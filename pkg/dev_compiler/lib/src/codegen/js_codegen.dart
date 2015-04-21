@@ -29,6 +29,7 @@ import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/utils.dart';
 
 import 'code_generator.dart';
+import 'js_field_storage.dart';
 import 'js_names.dart' show JSTemporary, invalidJSStaticMethodName;
 import 'js_metalet.dart';
 import 'js_printer.dart' show writeJsLibrary;
@@ -47,15 +48,20 @@ const DCALL = 'dcall';
 const DSEND = 'dsend';
 
 class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
-  final LibraryInfo libraryInfo;
+  final CompilerOptions options;
   final TypeRules rules;
+  final LibraryInfo libraryInfo;
 
   /// The global extension method table.
   final HashMap<String, List<InterfaceType>> _extensionMethods;
 
-  final CompilerOptions options;
+  /// Information that is precomputed for this library, indicates which fields
+  /// need storage slots.
+  final HashSet<FieldElement> _fieldsNeedingStorage;
+
   /// The variable for the target of the current `..` cascade expression.
   SimpleIdentifier _cascadeTarget;
+
   /// The variable for the current catch clause
   SimpleIdentifier _catchParameter;
 
@@ -66,9 +72,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final _lazyFields = <VariableDeclaration>[];
   final _properties = <FunctionDeclaration>[];
   final _privateNames = new HashMap<String, JSTemporary>();
-  final _pendingPrivateNames = <JSTemporary>[];
   final _extensionMethodNames = new HashSet<String>();
-  final _pendingExtensionMethodNames = <String>[];
+  final _pendingSymbols = <JS.Identifier>[];
   final _temps = new HashMap<Element, JSTemporary>();
 
   /// The name for the library's exports inside itself.
@@ -88,8 +93,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// Memoized results of [_inLibraryCycle].
   final _libraryCycleMemo = new HashMap<LibraryElement, bool>();
 
-  JSCodegenVisitor(
-      this.libraryInfo, this.rules, this.options, this._extensionMethods);
+  JSCodegenVisitor(this.options, this.rules, this.libraryInfo,
+      this._extensionMethods, this._fieldsNeedingStorage);
 
   LibraryElement get currentLibrary => libraryInfo.library;
   TypeProvider get types => rules.provider;
@@ -151,11 +156,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     ]);
   }
 
-  JS.Statement _initPrivateSymbol(JSTemporary tmp) =>
-      js.statement('let # = $_SYMBOL(#);', [tmp, js.string(tmp.name, "'")]);
-
-  JS.Statement _initExtensionMethodSymbol(String name) => js.statement(
-      'let # = $_SYMBOL(#);', [new JS.Identifier(name), js.string(name, "'")]);
+  JS.Statement _initSymbol(JS.Identifier id) =>
+      js.statement('let # = $_SYMBOL(#);', [id, js.string(id.name, "'")]);
 
   // TODO(jmesserly): this is a temporary workaround for `Symbol` in core,
   // until we have better name tracking.
@@ -179,16 +181,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       if (child is! FunctionDeclaration) _flushLibraryProperties(body);
 
       var code = _visit(child);
-
       if (code != null) {
-        if (_pendingPrivateNames.isNotEmpty) {
-          body.addAll(_pendingPrivateNames.map(_initPrivateSymbol));
-          _pendingPrivateNames.clear();
-        }
-        if (_pendingExtensionMethodNames.isNotEmpty) {
-          body.addAll(
-              _pendingExtensionMethodNames.map(_initExtensionMethodSymbol));
-          _pendingExtensionMethodNames.clear();
+        if (_pendingSymbols.isNotEmpty) {
+          body.addAll(_pendingSymbols.map(_initSymbol));
+          _pendingSymbols.clear();
         }
         body.add(code);
       }
@@ -198,7 +194,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     _flushLazyFields(body);
     _flushLibraryProperties(body);
 
-    assert(_pendingPrivateNames.isEmpty);
+    assert(_pendingSymbols.isEmpty);
     return _statement(body);
   }
 
@@ -316,8 +312,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   @override
   JS.Statement visitClassDeclaration(ClassDeclaration node) {
     // If we've already emitted this class, skip it.
-    var type = node.element.type;
-    if (_pendingClasses.remove(node.element) == null) return null;
+    var classElem = node.element;
+    var type = classElem.type;
+    if (_pendingClasses.remove(classElem) == null) return null;
 
     var jsName = getAnnotationValue(node, _isJsNameAnnotation);
     if (jsName != null) return _emitJsType(node.name.name, jsName);
@@ -339,7 +336,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         _classHeritage(node), _emitClassMethods(node, ctors, fields));
 
     var body =
-        _finishClassMembers(node.element, classExpr, ctors, staticFields);
+        _finishClassMembers(classElem, classExpr, ctors, fields, staticFields);
     currentClass = null;
 
     return _finishClassDef(type, body);
@@ -550,12 +547,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var isObject = type.isObject;
     var name = node.name.name;
 
-    var jsMethods = <JS.Method>[];
     // Iff no constructor is specified for a class C, it implicitly has a
     // default constructor `C() : super() {}`, unless C is class Object.
+    var jsMethods = <JS.Method>[];
     if (ctors.isEmpty && !isObject) {
       jsMethods.add(_emitImplicitConstructor(node, name, fields));
     }
+
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
         jsMethods.add(_emitConstructor(member, name, fields, isObject));
@@ -584,12 +582,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   /// Emit class members that need to come after the class declaration, such
   /// as static fields. See [_emitClassMethods] for things that are emitted
-  /// insite the ES6 `class { ... }` node.
+  /// inside the ES6 `class { ... }` node.
   JS.Statement _finishClassMembers(ClassElement classElem,
       JS.ClassExpression cls, List<ConstructorDeclaration> ctors,
-      List<FieldDeclaration> staticFields) {
+      List<FieldDeclaration> fields, List<FieldDeclaration> staticFields) {
     var name = classElem.name;
-
     var body = <JS.Statement>[];
     body.add(new JS.ClassDeclaration(cls));
 
@@ -612,6 +609,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       }
     }
 
+    // Instance fields, if they override getter/setter pairs
+    for (FieldDeclaration member in fields) {
+      for (VariableDeclaration fieldDecl in member.fields.variables) {
+        var field = fieldDecl.element;
+        if (_fieldsNeedingStorage.contains(field)) {
+          body.add(_overrideField(field));
+        }
+      }
+    }
+
     // Static fields
     var lazyStatics = <VariableDeclaration>[];
     for (FieldDeclaration member in staticFields) {
@@ -630,6 +637,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (lazy != null) body.add(lazy);
 
     return _statement(body);
+  }
+
+  JS.Statement _overrideField(FieldElement e) {
+    var cls = e.enclosingElement;
+    return js.statement('dart.virtualField(#, #)', [
+      cls.name,
+      _emitMemberName(e.name, type: cls.type)
+    ]);
   }
 
   /// Generates the implicit default constructor for class C of the form
@@ -778,20 +793,20 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   ///   2. field initializing parameters,
   ///   3. constructor field initializers,
   ///   4. initialize fields not covered in 1-3
-  JS.Statement _initializeFields(List<FieldDeclaration> fields,
+  JS.Statement _initializeFields(List<FieldDeclaration> fieldDecls,
       [FormalParameterList parameters,
       NodeList<ConstructorInitializer> initializers]) {
-    var body = <JS.Statement>[];
 
     // Run field initializers if they can have side-effects.
+    var fields = new Map<FieldElement, JS.Expression>();
     var unsetFields = new Map<FieldElement, VariableDeclaration>();
-    for (var declaration in fields) {
-      for (var field in declaration.fields.variables) {
-        if (_isFieldInitConstant(field)) {
-          unsetFields[field.element] = field;
+    for (var declaration in fieldDecls) {
+      for (var fieldNode in declaration.fields.variables) {
+        var element = fieldNode.element;
+        if (_isFieldInitConstant(fieldNode)) {
+          unsetFields[element] = fieldNode;
         } else {
-          body.add(js.statement(
-              '# = #;', [_visit(field.name), _visitInitializer(field)]));
+          fields[element] = _visitInitializer(fieldNode);
         }
       }
     }
@@ -799,16 +814,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // Initialize fields from `this.fieldName` parameters.
     if (parameters != null) {
       for (var p in parameters.parameters) {
-        if (p is DefaultFormalParameter) p = p.parameter;
-        if (p is FieldFormalParameter) {
-          var field = (p.element as FieldFormalParameterElement).field;
-          // Use the getter to initialize the field. This is a bit strange, but
-          // final fields don't have a setter element that we could use instead.
-
-          var memberName =
-              _emitMemberName(field.name, type: field.enclosingElement.type);
-          body.add(js.statement('this.# = #;', [memberName, _visit(p)]));
-          unsetFields.remove(field);
+        var element = p.element;
+        if (element is FieldFormalParameterElement) {
+          fields[element.field] = _visit(p);
         }
       }
     }
@@ -817,30 +825,33 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (initializers != null) {
       for (var init in initializers) {
         if (init is ConstructorFieldInitializer) {
-          body.add(js.statement(
-              '# = #;', [_visit(init.fieldName), _visit(init.expression)]));
-          unsetFields.remove(init.fieldName.staticElement);
+          fields[init.fieldName.staticElement] = _visit(init.expression);
         }
       }
     }
 
+    for (var f in fields.keys) unsetFields.remove(f);
+
     // Initialize all remaining fields
-    unsetFields.forEach((field, fieldNode) {
+    unsetFields.forEach((element, fieldNode) {
       JS.Expression value;
       if (fieldNode.initializer != null) {
         value = _visit(fieldNode.initializer);
       } else {
-        var type = rules.elementType(field);
+        var type = rules.elementType(element);
         value = new JS.LiteralNull();
         if (rules.maybeNonNullableType(type)) {
           value = js.call('dart.as(#, #)', [value, _emitTypeName(type)]);
         }
       }
-      var memberName =
-          _emitMemberName(field.name, type: field.enclosingElement.type);
-      body.add(js.statement('this.# = #;', [memberName, value]));
+      fields[element] = value;
     });
 
+    var body = <JS.Statement>[];
+    fields.forEach((FieldElement e, JS.Expression initialValue) {
+      var access = _emitMemberName(e.name, type: e.enclosingElement.type);
+      body.add(js.statement('this.# = #;', [access, initialValue]));
+    });
     return _statement(body);
   }
 
@@ -2205,10 +2216,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (name.startsWith('_')) {
       return _privateNames.putIfAbsent(name, () {
         var t = new JSTemporary(name);
-        _pendingPrivateNames.add(t);
+        _pendingSymbols.add(t);
         return t;
       });
     }
+
     // Check for extension method:
     var extLibrary = _findExtensionLibrary(name, type);
 
@@ -2230,10 +2242,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
 
     if (extLibrary != null) {
-      return js.call('#.#', [
-        _libraryName(extLibrary),
-        _propertyName(_addExtensionMethodName(name, extLibrary))
-      ]);
+      return _extensionMethodName(name, extLibrary);
     }
 
     return _propertyName(name);
@@ -2257,18 +2266,18 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return extLibrary;
   }
 
-  String _addExtensionMethodName(String name, LibraryElement extLibrary) {
-    var extensionMethodName = '\$$name';
-    if (extLibrary == currentLibrary) {
+  JS.Expression _extensionMethodName(String name, LibraryElement library) {
+    var extName = '\$$name';
+    if (library == currentLibrary) {
       // TODO(jacobr): need to do a better job ensuring that extension method
       // name symbols do not conflict with other symbols before we can let
       // user defined libraries define extension methods.
-      if (_extensionMethodNames.add(extensionMethodName)) {
-        _pendingExtensionMethodNames.add(extensionMethodName);
-        _addExport(extensionMethodName);
+      if (_extensionMethodNames.add(extName)) {
+        _pendingSymbols.add(new JS.Identifier(extName));
+        _addExport(extName);
       }
     }
-    return extensionMethodName;
+    return js.call('#.#', [_libraryName(library), _propertyName(extName)]);
   }
 
   bool _externalOrNative(node) =>
@@ -2322,7 +2331,9 @@ class JSGenerator extends CodeGenerator {
   TypeProvider get types => rules.provider;
 
   String generateLibrary(LibraryUnit unit, LibraryInfo info) {
-    var codegen = new JSCodegenVisitor(info, rules, options, _extensionMethods);
+    var fields = findFieldsNeedingStorage(unit);
+    var codegen =
+        new JSCodegenVisitor(options, rules, info, _extensionMethods, fields);
     var module = codegen.emitLibrary(unit);
     var dir = path.join(outDir, jsOutputPath(info, root));
     return writeJsLibrary(module, dir, emitSourceMaps: options.emitSourceMaps);

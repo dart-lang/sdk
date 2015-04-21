@@ -35,6 +35,16 @@ void set z(value) {
   y = value;
 }
 
+// Supported: use field to implement a getter
+abstract class BaseWithGetter {
+  int get foo => 1;
+  int get bar;
+}
+class Derived extends BaseWithGetter {
+  int foo = 2;
+  int bar = 3;
+}
+
 void main() {
   var a = new A();
   foo(a);

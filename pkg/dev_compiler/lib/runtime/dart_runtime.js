@@ -597,6 +597,27 @@ var dart, _js_helper;
   }
   dart.copyProperties = copyProperties;
 
+  /**
+   * This is called whenever a derived class needs to introduce a new field,
+   * shadowing a field or getter/setter pair on its parent.
+   *
+   * This is important because otherwise, trying to read or write the field
+   * would end up calling the getter or setter, and one of those might not even
+   * exist, resulting in a runtime error. Even if they did exist, that's the
+   * wrong behavior if a new field was declared.
+   */
+  function virtualField(subclass, fieldName) {
+    // If the field is already overridden, do nothing.
+    let prop = getOwnPropertyDescriptor(subclass.prototype, fieldName);
+    if (prop) return;
+
+    let symbol = Symbol(subclass.name + '.' + fieldName);
+    defineProperty(subclass.prototype, fieldName, {
+      get: function() { return this[symbol]; },
+      set: function(x) { this[symbol] = x; }
+    });
+  }
+  dart.virtualField = virtualField;
 
   /** The Symbol for storing type arguments on a specialized generic type. */
   dart.mixins = Symbol('mixins');

@@ -334,8 +334,8 @@ var convert;
       return this[_sink].close();
     }
   }
-  let _buffer = Symbol('_buffer');
   let _INITIAL_BUFFER_SIZE = Symbol('_INITIAL_BUFFER_SIZE');
+  let _buffer = Symbol('_buffer');
   let _callback = Symbol('_callback');
   let _bufferIndex = Symbol('_bufferIndex');
   let _roundToPowerOf2 = Symbol('_roundToPowerOf2');

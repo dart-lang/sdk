@@ -1197,8 +1197,8 @@ var _isolate_helper;
     }
   }
   _WorkerSendPort[dart.implements] = () => [isolate.SendPort];
-  let _handler = Symbol('_handler');
   let _nextFreeId = Symbol('_nextFreeId');
+  let _handler = Symbol('_handler');
   class RawReceivePortImpl extends core.Object {
     RawReceivePortImpl(handler) {
       this[_handler] = handler;
