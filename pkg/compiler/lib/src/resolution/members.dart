@@ -4172,7 +4172,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
 
 // TODO(johnniwinther): Replace with a traversal on the AST when the type
 // annotations in typedef alias are stored in a [TreeElements] mapping.
-class TypedefCyclicVisitor extends DartTypeVisitor {
+class TypedefCyclicVisitor extends BaseDartTypeVisitor {
   final Compiler compiler;
   final TypedefElementX element;
   bool hasCyclicReference = false;

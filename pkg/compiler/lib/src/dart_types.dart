@@ -887,32 +887,62 @@ class InterfaceMember implements MemberSignature {
 abstract class DartTypeVisitor<R, A> {
   const DartTypeVisitor();
 
+  R visit(DartType type, A argument) => type.accept(this, argument);
+
+  R visitVoidType(VoidType type, A argument) => null;
+
+  R visitTypeVariableType(TypeVariableType type, A argument) => null;
+
+  R visitFunctionType(FunctionType type, A argument) => null;
+
+  R visitMalformedType(MalformedType type, A argument) => null;
+
+  R visitStatementType(StatementType type, A argument) => null;
+
+  R visitInterfaceType(InterfaceType type, A argument) => null;
+
+  R visitTypedefType(TypedefType type, A argument) => null;
+
+  R visitDynamicType(DynamicType type, A argument) => null;
+}
+
+abstract class BaseDartTypeVisitor<R, A> extends DartTypeVisitor<R, A> {
+  const BaseDartTypeVisitor();
+
   R visitType(DartType type, A argument);
 
+  @override
   R visitVoidType(VoidType type, A argument) =>
       visitType(type, argument);
 
+  @override
   R visitTypeVariableType(TypeVariableType type, A argument) =>
       visitType(type, argument);
 
+  @override
   R visitFunctionType(FunctionType type, A argument) =>
       visitType(type, argument);
 
+  @override
   R visitMalformedType(MalformedType type, A argument) =>
       visitType(type, argument);
 
+  @override
   R visitStatementType(StatementType type, A argument) =>
       visitType(type, argument);
 
   R visitGenericType(GenericType type, A argument) =>
       visitType(type, argument);
 
+  @override
   R visitInterfaceType(InterfaceType type, A argument) =>
       visitGenericType(type, argument);
 
+  @override
   R visitTypedefType(TypedefType type, A argument) =>
       visitGenericType(type, argument);
 
+  @override
   R visitDynamicType(DynamicType type, A argument) =>
       visitType(type, argument);
 }
@@ -920,7 +950,8 @@ abstract class DartTypeVisitor<R, A> {
 /**
  * Abstract visitor for determining relations between types.
  */
-abstract class AbstractTypeRelation extends DartTypeVisitor<bool, DartType> {
+abstract class AbstractTypeRelation
+    extends BaseDartTypeVisitor<bool, DartType> {
   final Compiler compiler;
   CoreTypes get coreTypes => compiler.coreTypes;
 
@@ -1661,7 +1692,7 @@ class PotentialSubtypeVisitor extends SubtypeVisitor {
 /// visited type by structurally matching it with the argument type. If the
 /// constraints are too complex or the two types are too different, `false`
 /// is returned. Otherwise, the [constraintMap] holds the valid constraints.
-class MoreSpecificSubtypeVisitor extends DartTypeVisitor<bool, DartType> {
+class MoreSpecificSubtypeVisitor extends BaseDartTypeVisitor<bool, DartType> {
   final Compiler compiler;
   Map<TypeVariableType, DartType> constraintMap;
 
@@ -1749,7 +1780,7 @@ class MoreSpecificSubtypeVisitor extends DartTypeVisitor<bool, DartType> {
 /// Visitor used to print type annotation like they used in the source code.
 /// The visitor is especially for printing a function type like
 /// `(Foo,[Bar])->Baz` as `Baz m(Foo a1, [Bar a2])`.
-class TypeDeclarationFormatter extends DartTypeVisitor<dynamic, String> {
+class TypeDeclarationFormatter extends BaseDartTypeVisitor<dynamic, String> {
   Set<String> usedNames;
   StringBuffer sb;
 
@@ -1777,7 +1808,7 @@ class TypeDeclarationFormatter extends DartTypeVisitor<dynamic, String> {
     return proposal;
   }
 
-  void visit(DartType type) {
+  void visit(DartType type, [_]) {
     type.accept(this, null);
   }
 

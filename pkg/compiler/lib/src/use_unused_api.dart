@@ -42,8 +42,8 @@ import 'scanner/scannerlib.dart' show
     PartialClassElement,
     PartialFunctionElement;
 
-class ElementVisitor extends elements_visitor.ElementVisitor {
-  visitElement(e) {}
+class ElementVisitor extends elements_visitor.BaseElementVisitor {
+  visitElement(e, a) {}
 }
 
 void main(List<String> arguments) {
@@ -155,28 +155,28 @@ void useImmutableEmptySet(util.ImmutableEmptySet set) {
 
 void useElementVisitor(ElementVisitor visitor) {
   visitor
-    ..visit(null)
-    ..visitAbstractFieldElement(null)
-    ..visitAmbiguousElement(null)
-    ..visitBoxFieldElement(null)
-    ..visitClassElement(null)
-    ..visitClosureClassElement(null)
-    ..visitClosureFieldElement(null)
-    ..visitCompilationUnitElement(null)
-    ..visitConstructorBodyElement(null)
-    ..visitElement(null)
-    ..visitErroneousElement(null)
-    ..visitFieldParameterElement(null)
-    ..visitFunctionElement(null)
-    ..visitLibraryElement(null)
-    ..visitMixinApplicationElement(null)
-    ..visitPrefixElement(null)
-    ..visitScopeContainerElement(null)
-    ..visitTypeDeclarationElement(null)
-    ..visitTypeVariableElement(null)
-    ..visitTypedefElement(null)
-    ..visitVariableElement(null)
-    ..visitWarnOnUseElement(null);
+    ..visit(null, null)
+    ..visitAbstractFieldElement(null, null)
+    ..visitAmbiguousElement(null, null)
+    ..visitBoxFieldElement(null, null)
+    ..visitClassElement(null, null)
+    ..visitClosureClassElement(null, null)
+    ..visitClosureFieldElement(null, null)
+    ..visitCompilationUnitElement(null, null)
+    ..visitConstructorBodyElement(null, null)
+    ..visitElement(null, null)
+    ..visitErroneousElement(null, null)
+    ..visitFieldParameterElement(null, null)
+    ..visitFunctionElement(null, null)
+    ..visitLibraryElement(null, null)
+    ..visitMixinApplicationElement(null, null)
+    ..visitPrefixElement(null, null)
+    ..visitScopeContainerElement(null, null)
+    ..visitTypeDeclarationElement(null, null)
+    ..visitTypeVariableElement(null, null)
+    ..visitTypedefElement(null, null)
+    ..visitVariableElement(null, null)
+    ..visitWarnOnUseElement(null, null);
 }
 
 useJsNode(js.Node node) {

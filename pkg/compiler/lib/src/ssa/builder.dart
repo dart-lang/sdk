@@ -7021,9 +7021,7 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
 
   TypeBuilder(this.classWorld);
 
-  void visitType(DartType type, _) {
-    throw 'Internal error $type';
-  }
+  void visit(DartType type, SsaBuilder builder) => type.accept(this, builder);
 
   void visitVoidType(VoidType type, SsaBuilder builder) {
     ClassElement cls = builder.backend.findHelper('VoidRuntimeType');
@@ -7081,10 +7079,6 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
 
   void visitStatementType(StatementType type, SsaBuilder builder) {
     throw 'not implemented visitStatementType($type)';
-  }
-
-  void visitGenericType(GenericType type, SsaBuilder builder) {
-    throw 'not implemented visitGenericType($type)';
   }
 
   void visitInterfaceType(InterfaceType type, SsaBuilder builder) {

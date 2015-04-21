@@ -422,7 +422,7 @@ abstract class Element implements Entity {
   /// Returns the [Element] that holds the [TreeElements] for this element.
   AnalyzableElement get analyzableElement;
 
-  accept(ElementVisitor visitor);
+  accept(ElementVisitor visitor, arg);
 }
 
 class Elements {

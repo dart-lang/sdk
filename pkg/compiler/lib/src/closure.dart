@@ -143,7 +143,9 @@ class ClosureFieldElement extends ElementX
 
   String toString() => "ClosureFieldElement($name)";
 
-  accept(ElementVisitor visitor) => visitor.visitClosureFieldElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitClosureFieldElement(this, arg);
+  }
 
   Element get analyzableElement => closureClass.methodElement.analyzableElement;
 
@@ -214,7 +216,9 @@ class ClosureClassElement extends ClassElementX {
 
   get enclosingElement => methodElement;
 
-  accept(ElementVisitor visitor) => visitor.visitClosureClassElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitClosureClassElement(this, arg);
+  }
 }
 
 /// A local variable that contains the box object holding the [BoxFieldElement]
@@ -242,7 +246,9 @@ class BoxFieldElement extends ElementX
 
   final VariableElement variableElement;
 
-  accept(ElementVisitor visitor) => visitor.visitBoxFieldElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitBoxFieldElement(this, arg);
+  }
 
   @override
   bool get hasNode => false;

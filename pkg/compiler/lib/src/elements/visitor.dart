@@ -10,35 +10,156 @@ import '../closure.dart'
          ClosureClassElement,
          ClosureFieldElement;
 
-abstract class ElementVisitor<R> {
-  R visit(Element e) => e.accept(this);
+abstract class ElementVisitor<R, A> {
+  const ElementVisitor();
 
-  R visitElement(Element e);
-  R visitErroneousElement(ErroneousElement e) => visitFunctionElement(e);
-  R visitWarnOnUseElement(WarnOnUseElement e) => visitElement(e);
-  R visitAmbiguousElement(AmbiguousElement e) => visitElement(e);
-  R visitScopeContainerElement(ScopeContainerElement e) => visitElement(e);
-  R visitCompilationUnitElement(CompilationUnitElement e) => visitElement(e);
-  R visitLibraryElement(LibraryElement e) => visitScopeContainerElement(e);
-  R visitPrefixElement(PrefixElement e) => visitElement(e);
-  R visitTypedefElement(TypedefElement e) => visitElement(e);
-  R visitVariableElement(VariableElement e) => visitElement(e);
-  R visitParameterElement(ParameterElement e) => visitVariableElement(e);
-  R visitFormalElement(FormalElement e) => visitElement(e);
-  R visitFieldElement(FieldElement e) => visitVariableElement(e);
-  R visitFieldParameterElement(InitializingFormalElement e) =>
-      visitParameterElement(e);
-  R visitAbstractFieldElement(AbstractFieldElement e) => visitElement(e);
-  R visitFunctionElement(FunctionElement e) => visitElement(e);
-  R visitConstructorBodyElement(ConstructorBodyElement e) => visitElement(e);
-  R visitClassElement(ClassElement e) => visitScopeContainerElement(e);
-  R visitTypeDeclarationElement(TypeDeclarationElement e) => visitElement(e);
-  R visitMixinApplicationElement(MixinApplicationElement e) {
-    return visitClassElement(e);
+  R visit(Element e, A arg) => e.accept(this, arg);
+
+  R visitErroneousElement(ErroneousElement e, A arg) => null;
+  R visitWarnOnUseElement(WarnOnUseElement e, A arg) => null;
+  R visitAmbiguousElement(AmbiguousElement e, A arg) => null;
+  R visitCompilationUnitElement(CompilationUnitElement e, A arg) => null;
+  R visitLibraryElement(LibraryElement e, A arg) => null;
+  R visitPrefixElement(PrefixElement e, A arg) => null;
+  R visitTypedefElement(TypedefElement e, A arg) => null;
+  R visitVariableElement(VariableElement e, A arg) => null;
+  R visitParameterElement(ParameterElement e, A arg) => null;
+  R visitFormalElement(FormalElement e, A arg) => null;
+  R visitFieldElement(FieldElement e, A arg) => null;
+  R visitFieldParameterElement(InitializingFormalElement e, A arg) => null;
+  R visitAbstractFieldElement(AbstractFieldElement e, A arg) => null;
+  R visitFunctionElement(FunctionElement e, A arg) => null;
+  R visitConstructorBodyElement(ConstructorBodyElement e, A arg) => null;
+  R visitClassElement(ClassElement e, A arg) => null;
+  R visitMixinApplicationElement(MixinApplicationElement e, A arg) => null;
+  R visitEnumClassElement(EnumClassElement e, A arg) => null;
+  R visitTypeVariableElement(TypeVariableElement e, A arg) => null;
+  R visitBoxFieldElement(BoxFieldElement e, A arg) => null;
+  R visitClosureClassElement(ClosureClassElement e, A arg) => null;
+  R visitClosureFieldElement(ClosureFieldElement e, A arg) => null;
+}
+
+
+abstract class BaseElementVisitor<R, A> extends ElementVisitor<R, A> {
+  const BaseElementVisitor();
+
+  R visitElement(Element e, A arg);
+
+  @override
+  R visitErroneousElement(ErroneousElement e, A arg) {
+    return visitFunctionElement(e, arg);
   }
-  R visitEnumClassElement(EnumClassElement e) => visitClassElement(e);
-  R visitTypeVariableElement(TypeVariableElement e) => visitElement(e);
-  R visitBoxFieldElement(BoxFieldElement e) => visitElement(e);
-  R visitClosureClassElement(ClosureClassElement e) => visitClassElement(e);
-  R visitClosureFieldElement(ClosureFieldElement e) => visitVariableElement(e);
+
+  @override
+  R visitWarnOnUseElement(WarnOnUseElement e, A arg) {
+    return visitElement(e, arg);
+  }
+
+  @override
+  R visitAmbiguousElement(AmbiguousElement e, A arg) {
+    return visitElement(e, arg);
+  }
+
+  R visitScopeContainerElement(ScopeContainerElement e, A arg) {
+    return visitElement(e, arg);
+  }
+
+  @override
+  R visitCompilationUnitElement(CompilationUnitElement e, A arg) {
+    return visitElement(e, arg);
+  }
+
+  @override
+  R visitLibraryElement(LibraryElement e, A arg) {
+    return visitScopeContainerElement(e, arg);
+  }
+
+  @override
+  R visitPrefixElement(PrefixElement e, A arg) {
+    return visitElement(e, arg);
+  }
+
+  @override
+  R visitTypedefElement(TypedefElement e, A arg) {
+    return visitElement(e, arg);
+  }
+
+  @override
+  R visitVariableElement(VariableElement e, A arg) {
+    return visitElement(e, arg);
+  }
+
+  @override
+  R visitParameterElement(ParameterElement e, A arg) {
+    return visitVariableElement(e, arg);
+  }
+
+  @override
+  R visitFormalElement(FormalElement e, A arg) {
+    return visitElement(e, arg);
+  }
+
+  @override
+  R visitFieldElement(FieldElement e, A arg) {
+    return visitVariableElement(e, arg);
+  }
+
+  @override
+  R visitFieldParameterElement(InitializingFormalElement e, A arg) {
+    return visitParameterElement(e, arg);
+  }
+
+  @override
+  R visitAbstractFieldElement(AbstractFieldElement e, A arg) {
+    return visitElement(e, arg);
+  }
+
+  @override
+  R visitFunctionElement(FunctionElement e, A arg) {
+    return visitElement(e, arg);
+  }
+
+  @override
+  R visitConstructorBodyElement(ConstructorBodyElement e, A arg) {
+    return visitElement(e, arg);
+  }
+
+  @override
+  R visitClassElement(ClassElement e, A arg) {
+    return visitScopeContainerElement(e, arg);
+  }
+
+  R visitTypeDeclarationElement(TypeDeclarationElement e, A arg) {
+    return visitElement(e, arg);
+  }
+
+  @override
+  R visitMixinApplicationElement(MixinApplicationElement e, A arg) {
+    return visitClassElement(e, arg);
+  }
+
+  @override
+  R visitEnumClassElement(EnumClassElement e, A arg) {
+    return visitClassElement(e, arg);
+  }
+
+  @override
+  R visitTypeVariableElement(TypeVariableElement e, A arg) {
+    return visitElement(e, arg);
+  }
+
+  @override
+  R visitBoxFieldElement(BoxFieldElement e, A arg) {
+    return visitElement(e, arg);
+  }
+
+  @override
+  R visitClosureClassElement(ClosureClassElement e, A arg) {
+    return visitClassElement(e, arg);
+  }
+
+  @override
+  R visitClosureFieldElement(ClosureFieldElement e, A arg) {
+    return visitVariableElement(e, arg);
+  }
 }

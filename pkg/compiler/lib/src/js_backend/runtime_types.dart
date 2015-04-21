@@ -607,7 +607,7 @@ class RuntimeTypes {
   }
 }
 
-class TypeRepresentationGenerator extends DartTypeVisitor {
+class TypeRepresentationGenerator implements DartTypeVisitor {
   final Compiler compiler;
   OnVariableCallback onVariable;
   ShouldEncodeTypedefCallback shouldEncodeTypedef;
@@ -638,9 +638,8 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
     return backend.emitter.typeAccess(element);
   }
 
-  visit(DartType type) {
-    return type.accept(this, null);
-  }
+  @override
+  visit(DartType type, [_]) => type.accept(this, null);
 
   visitTypeVariableType(TypeVariableType type, _) {
     return onVariable(type);
@@ -740,7 +739,7 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
     }
   }
 
-  visitType(DartType type, _) {
+  visitStatementType(StatementType type, _) {
     compiler.internalError(NO_LOCATION_SPANNABLE,
         'Unexpected type: $type (${type.kind}).');
   }
@@ -781,23 +780,15 @@ class ArgumentCollector extends DartTypeVisitor {
   ArgumentCollector(this.backend);
 
   collect(DartType type, {bool isTypeArgument: false}) {
-    type.accept(this, isTypeArgument);
+    visit(type, isTypeArgument);
   }
 
   /// Collect all types in the list as if they were arguments of an
   /// InterfaceType.
   collectAll(List<DartType> types) {
     for (DartType type in types) {
-      type.accept(this, true);
+      visit(type, true);
     }
-  }
-
-  visitType(DartType type, _) {
-    // Do nothing.
-  }
-
-  visitDynamicType(DynamicType type, _) {
-    // Do not collect [:dynamic:].
   }
 
   visitTypedefType(TypedefType type, bool isTypeArgument) {
@@ -821,23 +812,15 @@ class FunctionArgumentCollector extends DartTypeVisitor {
   FunctionArgumentCollector(this.backend);
 
   collect(DartType type) {
-    type.accept(this, false);
+    visit(type, false);
   }
 
   /// Collect all types in the list as if they were arguments of an
   /// InterfaceType.
   collectAll(Link<DartType> types) {
-    for (Link<DartType> link = types; !link.isEmpty; link = link.tail) {
-      link.head.accept(this, true);
+    for (DartType type in types) {
+      visit(type, true);
     }
-  }
-
-  visitType(DartType type, _) {
-    // Do nothing.
-  }
-
-  visitDynamicType(DynamicType type, _) {
-    // Do not collect [:dynamic:].
   }
 
   visitTypedefType(TypedefType type, bool inFunctionType) {

@@ -1714,7 +1714,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   }
 }
 
-class FunctionTypeNamer extends DartTypeVisitor {
+class FunctionTypeNamer extends BaseDartTypeVisitor {
   final Compiler compiler;
   StringBuffer sb;
 
@@ -1728,7 +1728,7 @@ class FunctionTypeNamer extends DartTypeVisitor {
     return sb.toString();
   }
 
-  visit(DartType type) {
+  visit(DartType type, [_]) {
     type.accept(this, null);
   }
 

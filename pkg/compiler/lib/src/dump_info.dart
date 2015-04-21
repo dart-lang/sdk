@@ -80,7 +80,8 @@ class GroupedIdMapper {
   }
 }
 
-class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
+class ElementToJsonVisitor
+    extends BaseElementVisitor<Map<String, dynamic>, dynamic> {
   final GroupedIdMapper mapper = new GroupedIdMapper();
   final Compiler compiler;
 
@@ -96,9 +97,11 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
     dart2jsVersion = compiler.hasBuildId ? compiler.buildId : null;
 
     for (var library in compiler.libraryLoader.libraries.toList()) {
-      library.accept(this);
+      visit(library);
     }
   }
+
+  Map<String, dynamic> visit(Element e, [_]) => e.accept(this, null);
 
   // If keeping the element is in question (like if a function has a size
   // of zero), only keep it if it holds dependencies to elsewhere.
@@ -113,7 +116,7 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
 
   // Memoization of the JSON creating process.
   Map<String, dynamic> process(Element element) {
-    return jsonCache.putIfAbsent(element, () => element.accept(this));
+    return jsonCache.putIfAbsent(element, () => visit(element));
   }
 
   // Returns the id of an [element] if it has already been processed.
@@ -127,15 +130,16 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
     }
   }
 
-  Map<String, dynamic> visitElement(Element element) {
+  Map<String, dynamic> visitElement(Element element, _) {
     return null;
   }
 
-  Map<String, dynamic> visitConstructorBodyElement(ConstructorBodyElement e) {
-    return visitFunctionElement(e.constructor);
+  Map<String, dynamic> visitConstructorBodyElement(
+      ConstructorBodyElement e, _) {
+    return visitFunctionElement(e.constructor, _);
   }
 
-  Map<String, dynamic> visitLibraryElement(LibraryElement element) {
+  Map<String, dynamic> visitLibraryElement(LibraryElement element, _) {
     var id = mapper._library.add(element);
     List<String> children = <String>[];
 
@@ -165,7 +169,7 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
     };
   }
 
-  Map<String, dynamic> visitTypedefElement(TypedefElement element) {
+  Map<String, dynamic> visitTypedefElement(TypedefElement element, _) {
     String id = mapper._typedef.add(element);
     return element.alias == null
       ? null
@@ -177,7 +181,7 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
       };
   }
 
-  Map<String, dynamic> visitFieldElement(FieldElement element) {
+  Map<String, dynamic> visitFieldElement(FieldElement element, _) {
     String id = mapper._field.add(element);
     List<String> children = [];
     StringBuffer emittedCode = compiler.dumpInfoTask.codeOf(element);
@@ -223,7 +227,7 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
     };
   }
 
-  Map<String, dynamic> visitClassElement(ClassElement element) {
+  Map<String, dynamic> visitClassElement(ClassElement element, _) {
     String id = mapper._class.add(element);
     List<String> children = [];
 
@@ -282,7 +286,7 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
     };
   }
 
-  Map<String, dynamic> visitFunctionElement(FunctionElement element) {
+  Map<String, dynamic> visitFunctionElement(FunctionElement element, _) {
     String id = mapper._function.add(element);
     String name = element.name;
     String kind = "function";

@@ -40,7 +40,7 @@ import '../util/characters.dart';
 import '../util/util.dart';
 
 import '../elements/visitor.dart' show
-    ElementVisitor;
+    BaseElementVisitor;
 
 import '../js_backend/codegen/task.dart';
 import '../resolution/resolution.dart' show ResolutionRegistry;
