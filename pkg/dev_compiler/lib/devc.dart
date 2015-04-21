@@ -91,7 +91,7 @@ class Compiler {
     return new Compiler._(options, resolver, reporter, rules, checker, graph,
         entryNode, generators,
         // TODO(sigmund): refactor to support hashing of the dart output?
-        options.serverMode && generators.length == 1 && !options.outputDart);
+        options.enableHashing && generators.length == 1 && !options.outputDart);
   }
 
   Compiler._(this._options, this._resolver, this._reporter, this._rules,

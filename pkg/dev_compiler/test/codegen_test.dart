@@ -80,7 +80,8 @@ main(arguments) {
         entryPointFile: entryPoint,
         dartSdkPath: sdkPath,
         runtimeDir: runtimeDir,
-        serverMode: serverMode);
+        serverMode: serverMode,
+        enableHashing: serverMode);
     return new Compiler(options).run();
   }
   var realSdk = getSdkDir(arguments).path;

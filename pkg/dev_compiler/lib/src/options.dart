@@ -151,6 +151,9 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   /// Whether to run as a development server.
   final bool serverMode;
 
+  /// Whether to enable hash-based caching of files.
+  final bool enableHashing;
+
   /// Port used for the HTTP server when [serverMode] is on.
   final int port;
 
@@ -232,14 +235,18 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
       this.nonnullableTypes: TypeOptions.NONNULLABLE_TYPES, this.help: false,
       this.useMockSdk: false, this.dartSdkPath, this.logLevel: Level.SEVERE,
       this.emitSourceMaps: true, this.entryPointFile: null,
-      this.serverMode: false, this.host: 'localhost', this.port: 8080,
-      this.runtimeDir});
+      this.serverMode: false, this.enableHashing: false, this.host: 'localhost',
+      this.port: 8080, this.runtimeDir});
 }
 
 /// Parses options from the command-line
 CompilerOptions parseOptions(List<String> argv) {
   ArgResults args = argParser.parse(argv);
   var serverMode = args['server'];
+  var enableHashing = args['hashing'];
+  if (enableHashing == null) {
+    enableHashing = serverMode;
+  }
   var logLevel = serverMode ? Level.ALL : Level.SEVERE;
   var levelName = args['log'];
   if (levelName != null) {
@@ -294,6 +301,7 @@ CompilerOptions parseOptions(List<String> argv) {
       emitSourceMaps: args['source-maps'],
       entryPointFile: args.rest.length == 0 ? null : args.rest.first,
       serverMode: serverMode,
+      enableHashing: enableHashing,
       host: args['host'],
       port: int.parse(args['port']),
       runtimeDir: runtimeDir);
@@ -360,6 +368,8 @@ final ArgParser argParser = new ArgParser()
   // general options
   ..addFlag('help', abbr: 'h', help: 'Display this message')
   ..addFlag('server', help: 'Run as a development server.', defaultsTo: false)
+  ..addFlag('hashing',
+      help: 'Enable hash-based file caching.', defaultsTo: null)
   ..addOption('host',
       help: 'Host name or address to serve files from, e.g. --host=0.0.0.0\n'
       'to listen on all interfaces (used only when --serve is on)',
