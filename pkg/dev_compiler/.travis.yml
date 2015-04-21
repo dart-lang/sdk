@@ -5,12 +5,6 @@ dart:
   - stable
 before_install:
   - pub global activate dart_coveralls
-  - export CHROME_BIN=chromium-browser
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
-before_script:
-  - npm install
 script:
   - ./tool/presubmit.sh
-  - ./node_modules/karma/bin/karma start --single-run
   - ./tool/coverage.sh
