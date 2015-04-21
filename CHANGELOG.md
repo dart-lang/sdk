@@ -21,6 +21,13 @@
   [r45153](https://code.google.com/p/dart/source/detail?r=45153),
   [r45189](https://code.google.com/p/dart/source/detail?r=45189)
 
+* dart:html: CssClassSet method arguments must now be 'tokens', i.e. non-empty
+  strings with no white-space characters. The implementation was incorrect for
+  class names containing spaces. The fix is to forbid spaces and provide a
+  faster implementation.
+  [r44898](https://code.google.com/p/dart/source/detail?r=44898),
+  [r45307](https://code.google.com/p/dart/source/detail?r=45307)
+
 ## 1.9.3 (2015-04-14)
 
 This is a bug fix release which merges a number of commits from `bleeding_edge`.
