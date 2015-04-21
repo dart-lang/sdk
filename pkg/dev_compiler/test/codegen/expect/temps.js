@@ -11,11 +11,27 @@ var temps;
       this[_function] = func;
     }
   }
+  let _opt = Symbol('_opt');
+  class OptionalArg extends core.Object {
+    OptionalArg(opt) {
+      if (opt === void 0)
+        opt = 123;
+      this[_opt] = opt;
+    }
+    named(opts) {
+      let opt = opts && '_opt' in opts ? opts._opt : 456;
+      this[_opt] = opt;
+    }
+  }
+  dart.defineNamedConstructor(OptionalArg, 'named');
   // Function main: () → dynamic
   function main() {
     core.print(new FormalCollision(1, 2, x => x));
+    core.print(new OptionalArg()[_opt]);
+    core.print(new OptionalArg.named()[_opt]);
   }
   // Exports:
   exports.FormalCollision = FormalCollision;
+  exports.OptionalArg = OptionalArg;
   exports.main = main;
 })(temps || (temps = {}));

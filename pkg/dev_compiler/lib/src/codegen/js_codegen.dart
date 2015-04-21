@@ -885,23 +885,25 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     var body = [];
     for (var param in parameters.parameters) {
-      // TODO(justinfagnani): rename identifier if necessary
-      var name = param.identifier.name;
+      var jsParam = _visit(param.identifier);
 
       if (param.kind == ParameterKind.NAMED) {
+        // Parameters will be passed using their real names, not the (possibly
+        // renamed) local variable.
+        var paramName = js.string(param.identifier.name, "'");
         body.add(js.statement('let # = # && # in # ? #.# : #;', [
-          name,
+          jsParam,
           _namedArgTemp,
-          js.string(name, "'"),
+          paramName,
           _namedArgTemp,
           _namedArgTemp,
-          name,
+          paramName,
           _defaultParamValue(param),
         ]));
       } else if (param.kind == ParameterKind.POSITIONAL) {
         body.add(js.statement('if (# === void 0) # = #;', [
-          name,
-          name,
+          jsParam,
+          jsParam,
           _defaultParamValue(param)
         ]));
       }

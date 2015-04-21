@@ -10,6 +10,14 @@ class FormalCollision {
   FormalCollision(this._x, this.__x, this._function);
 }
 
+class OptionalArg {
+  int _opt;
+  OptionalArg([this._opt = 123]);
+  OptionalArg.named({this._opt: 456});
+}
+
 main() {
   print(new FormalCollision(1, 2, (x) => x));
+  print(new OptionalArg()._opt);
+  print(new OptionalArg.named()._opt);
 }
