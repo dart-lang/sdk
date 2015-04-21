@@ -151,7 +151,6 @@ var convert;
     _UnicodeSubsetEncoderSink(subsetMask, sink) {
       this[_subsetMask] = subsetMask;
       this[_sink] = sink;
-      super.StringConversionSinkBase();
     }
     close() {
       this[_sink].close();
@@ -268,7 +267,6 @@ var convert;
   class _ErrorHandlingAsciiDecoderSink extends ByteConversionSinkBase {
     _ErrorHandlingAsciiDecoderSink(utf8Sink) {
       this[_utf8Sink] = utf8Sink;
-      super.ByteConversionSinkBase();
     }
     close() {
       this[_utf8Sink].close();
@@ -296,7 +294,6 @@ var convert;
   class _SimpleAsciiDecoderSink extends ByteConversionSinkBase {
     _SimpleAsciiDecoderSink(sink) {
       this[_sink] = sink;
-      super.ByteConversionSinkBase();
     }
     close() {
       this[_sink].close();
@@ -325,7 +322,6 @@ var convert;
   class _ByteAdapterSink extends ByteConversionSinkBase {
     _ByteAdapterSink(sink) {
       this[_sink] = sink;
-      super.ByteConversionSinkBase();
     }
     add(chunk) {
       return this[_sink].add(chunk);
@@ -344,7 +340,6 @@ var convert;
       this[_buffer] = new typed_data.Uint8List(_ByteCallbackSink[_INITIAL_BUFFER_SIZE]);
       this[_callback] = callback;
       this[_bufferIndex] = 0;
-      super.ByteConversionSinkBase();
     }
     add(chunk) {
       let freeCount = dart.notNull(this[_buffer][core.$length]) - dart.notNull(this[_bufferIndex]);
@@ -593,7 +588,6 @@ var convert;
     _HtmlEscapeSink(escape, sink) {
       this[_escape] = escape;
       this[_sink] = sink;
-      super.StringConversionSinkBase();
     }
     addSlice(chunk, start, end, isLast) {
       let val = this[_escape][_convert](chunk, start, end);
@@ -1323,7 +1317,6 @@ var convert;
   class _Latin1DecoderSink extends ByteConversionSinkBase {
     _Latin1DecoderSink(sink) {
       this[_sink] = sink;
-      super.ByteConversionSinkBase();
     }
     close() {
       this[_sink].close();
@@ -1399,7 +1392,6 @@ var convert;
     _LineSplitterSink(sink) {
       this[_sink] = sink;
       this[_carry] = null;
-      super.StringConversionSinkBase();
     }
     addSlice(chunk, start, end, isLast) {
       if (this[_carry] != null) {
@@ -1564,7 +1556,6 @@ var convert;
   class _StringSinkConversionSink extends StringConversionSinkBase {
     _StringSinkConversionSink(stringSink) {
       this[_stringSink] = stringSink;
-      super.StringConversionSinkBase();
     }
     close() {}
     addSlice(str, start, end, isLast) {
@@ -1606,7 +1597,6 @@ var convert;
   class _StringAdapterSink extends StringConversionSinkBase {
     _StringAdapterSink(sink) {
       this[_sink] = sink;
-      super.StringConversionSinkBase();
     }
     add(str) {
       return this[_sink].add(str);

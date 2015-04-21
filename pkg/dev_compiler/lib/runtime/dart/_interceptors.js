@@ -856,7 +856,6 @@ var _interceptors;
   class _CodeUnits extends _internal.UnmodifiableListBase$(core.int) {
     _CodeUnits(string) {
       this[_string] = string;
-      super.UnmodifiableListBase();
     }
     get [core.$length]() {
       return this[_string].length;

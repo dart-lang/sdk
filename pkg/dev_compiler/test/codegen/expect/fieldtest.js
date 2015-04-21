@@ -61,7 +61,6 @@ var fieldtest;
     Derived() {
       this.foo = 2;
       this.bar = 3;
-      super.BaseWithGetter();
     }
   }
   dart.virtualField(Derived, 'foo');

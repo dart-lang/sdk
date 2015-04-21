@@ -409,7 +409,6 @@ var _internal;
         this[_iterator] = iterator;
         this[_f] = f;
         this[_current] = null;
-        super.Iterator();
       }
       moveNext() {
         if (this[_iterator].moveNext()) {
@@ -469,7 +468,6 @@ var _internal;
       WhereIterator(iterator, f) {
         this[_iterator] = iterator;
         this[_f] = f;
-        super.Iterator();
       }
       moveNext() {
         while (this[_iterator].moveNext()) {
@@ -586,7 +584,6 @@ var _internal;
       TakeIterator(iterator, remaining) {
         this[_iterator] = iterator;
         this[_remaining] = remaining;
-        super.Iterator();
         dart.assert(typeof this[_remaining] == 'number' && dart.notNull(this[_remaining]) >= 0);
       }
       moveNext() {
@@ -627,7 +624,6 @@ var _internal;
         this[_iterator] = iterator;
         this[_f] = f;
         this[_isFinished] = false;
-        super.Iterator();
       }
       moveNext() {
         if (this[_isFinished])
@@ -701,7 +697,6 @@ var _internal;
       SkipIterator(iterator, skipCount) {
         this[_iterator] = iterator;
         this[_skipCount] = skipCount;
-        super.Iterator();
         dart.assert(typeof this[_skipCount] == 'number' && dart.notNull(this[_skipCount]) >= 0);
       }
       moveNext() {
@@ -738,7 +733,6 @@ var _internal;
         this[_iterator] = iterator;
         this[_f] = f;
         this[_hasSkipped] = false;
-        super.Iterator();
       }
       moveNext() {
         if (!dart.notNull(this[_hasSkipped])) {

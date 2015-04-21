@@ -651,6 +651,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// `C() : super() {}`.
   JS.Method _emitImplicitConstructor(
       ClassDeclaration node, String name, List<FieldDeclaration> fields) {
+    assert(_hasUnnamedConstructor(node.element) == fields.isNotEmpty);
+
     // If we don't have a method body, skip this.
     if (fields.isEmpty) return null;
 
@@ -775,8 +777,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var superCtorName = node != null ? node.constructorName : null;
 
     var element = clazz.element;
-    if (superCtorName == null &&
-        (element.type.isObject || element.supertype.isObject)) {
+    if (superCtorName == null && !_shouldCallUnnamedSuperCtor(element)) {
       return null;
     }
 
@@ -785,6 +786,22 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     var args = node != null ? _visit(node.argumentList) : [];
     return js.statement('super.#(#);', [name, args])..sourceInformation = node;
+  }
+
+  bool _shouldCallUnnamedSuperCtor(ClassElement e) {
+    var supertype = e.supertype;
+    if (supertype == null) return false;
+    if (_hasUnnamedConstructor(supertype.element)) return true;
+    for (var mixin in e.mixins) {
+      if (_hasUnnamedConstructor(mixin.element)) return true;
+    }
+    return false;
+  }
+
+  bool _hasUnnamedConstructor(ClassElement e) {
+    if (e.type.isObject) return false;
+    if (!e.unnamedConstructor.isSynthetic) return true;
+    return e.fields.any((f) => !f.isStatic && !f.isSynthetic);
   }
 
   /// Initialize fields. They follow the sequence:

@@ -796,7 +796,6 @@ var async;
     class _ControllerStream extends _StreamImpl$(T) {
       _ControllerStream(controller) {
         this[_controller] = controller;
-        super._StreamImpl();
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
         return this[_controller][_subscribe](onData, onError, onDone, cancelOnError);
@@ -3185,7 +3184,6 @@ var async;
       _GeneratedStreamImpl(pending) {
         this[_pending] = pending;
         this[_isUsed] = false;
-        super._StreamImpl();
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
         if (this[_isUsed])

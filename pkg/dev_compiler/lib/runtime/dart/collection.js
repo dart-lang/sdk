@@ -6,7 +6,6 @@ var collection;
     class UnmodifiableListView extends _internal.UnmodifiableListBase$(E) {
       UnmodifiableListView(source) {
         this[_source] = source;
-        super.UnmodifiableListBase();
       }
       get [core.$length]() {
         return this[_source][core.$length];
@@ -4236,7 +4235,6 @@ var collection;
         this[_nums] = null;
         this[_rest] = null;
         this[_elements] = null;
-        super._HashSetBase();
       }
       [_newSet]() {
         return new (_HashSet$(E))();
@@ -4570,7 +4568,6 @@ var collection;
         this[_first] = null;
         this[_last] = null;
         this[_modifications] = 0;
-        super._HashSetBase();
       }
       [_newSet]() {
         return new (_LinkedHashSet$(E))();

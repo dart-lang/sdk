@@ -2866,7 +2866,6 @@ var _js_helper;
       this[_target] = target;
       this[_receiver] = receiver;
       this[_name] = name;
-      super.TearOffClosure();
     }
     ['=='](other) {
       if (core.identical(this, other))
