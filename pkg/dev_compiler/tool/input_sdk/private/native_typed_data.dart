@@ -857,7 +857,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
 
 abstract class NativeTypedArray extends NativeTypedData
     implements JavaScriptIndexingBehavior {
-  int get length => JS('JSUInt32', '#.length', this);
+  // TODO(jmesserly): moved `length` to subclass to (somewhat) mitigate
+  // <https://github.com/dart-lang/dev_compiler/issues/138>
 
   void _setRangeFast(int start, int end,
       NativeTypedArray source, int skipCount) {
@@ -887,6 +888,8 @@ abstract class NativeTypedArrayOfDouble
     extends NativeTypedArray
         with ListMixin<double>, FixedLengthListMixin<double> {
 
+  int get length => JS('JSUInt32', '#.length', this);
+
   num operator[](int index) {
     _checkIndex(index, length);
     return JS('num', '#[#]', this, index);
@@ -911,6 +914,8 @@ abstract class NativeTypedArrayOfInt
     extends NativeTypedArray
         with ListMixin<int>, FixedLengthListMixin<int>
     implements List<int> {
+
+  int get length => JS('JSUInt32', '#.length', this);
 
   // operator[]() is not here since different versions have different return
   // types

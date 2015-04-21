@@ -65,7 +65,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// The variable for the current catch clause
   SimpleIdentifier _catchParameter;
 
-  ClassDeclaration currentClass;
   ConstantEvaluator _constEvaluator;
 
   final _exports = new Set<String>();
@@ -319,8 +318,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var jsName = getAnnotationValue(node, _isJsNameAnnotation);
     if (jsName != null) return _emitJsType(node.name.name, jsName);
 
-    currentClass = node;
-
     var ctors = <ConstructorDeclaration>[];
     var fields = <FieldDeclaration>[];
     var staticFields = <FieldDeclaration>[];
@@ -337,7 +334,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     var body =
         _finishClassMembers(classElem, classExpr, ctors, fields, staticFields);
-    currentClass = null;
 
     return _finishClassDef(type, body);
   }
@@ -1016,49 +1012,55 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// going through the qualified library name if necessary.
   @override
   JS.Expression visitSimpleIdentifier(SimpleIdentifier node) {
-    var e = node.staticElement;
-    if (e == null) {
+    var accessor = node.staticElement;
+    if (accessor == null) {
       return js.commentExpression(
           'Unimplemented unknown name', new JS.Identifier(node.name));
     }
 
-    var variable = e is PropertyAccessorElement ? e.variable : e;
-    var name = variable.name;
+    // Get the original declaring element. If we had a property accessor, this
+    // indirects back to a (possibly synthetic) field.
+    var element = accessor;
+    if (element is PropertyAccessorElement) element = accessor.variable;
+    var name = element.name;
 
     // library member
-    if (e.enclosingElement is CompilationUnitElement &&
-        (e.library != libraryInfo.library ||
-            variable is TopLevelVariableElement && !variable.isConst)) {
-      return js.call('#.#', [_libraryName(e.library), name]);
+    if (element.enclosingElement is CompilationUnitElement &&
+        (element.library != libraryInfo.library ||
+            element is TopLevelVariableElement && !element.isConst)) {
+      return js.call('#.#', [_libraryName(element.library), name]);
     }
 
-    // instance member
-    if (currentClass != null && _needsImplicitThis(e)) {
-      return js.call(
-          'this.#', _emitMemberName(name, type: currentClass.element.type));
-    }
+    // Unqualified class member. This could mean implicit-this, or implicit
+    // call to a static from the same class.
+    if (element is ClassMemberElement && element is! ConstructorElement) {
+      bool isStatic = element.isStatic;
+      var type = element.enclosingElement.type;
 
-    // static member
-    if (e is ExecutableElement &&
-        e.isStatic &&
-        variable.enclosingElement is ClassElement) {
-      var className = (variable.enclosingElement as ClassElement).name;
-      return js.call('#.#', [className, _emitMemberName(name, isStatic: true)]);
+      // For instance methods, we add implicit-this.
+      // For static methods, we add the raw type name, without generics or
+      // library prefix. We don't need those because static calls can't use
+      // the generic type.
+      var target = isStatic ? new JS.Identifier(type.name) : new JS.This();
+      var member = _emitMemberName(name, isStatic: isStatic, type: type);
+      return new JS.PropertyAccess(target, member);
     }
 
     // initializing formal parameter, e.g. `Point(this.x)`
-    if (e is ParameterElement && e.isInitializingFormal && e.isPrivate) {
+    if (element is ParameterElement &&
+        element.isInitializingFormal &&
+        element.isPrivate) {
       /// Rename private names so they don't shadow the private field symbol.
       /// The renamer would handle this, but it would prefer to rename the
       /// temporary used for the private symbol. Instead rename the parameter.
-      return _getTemp(e, '${name.substring(1)}');
+      return _getTemp(element, '${name.substring(1)}');
     }
 
-    if (_isTemporary(e)) {
+    if (_isTemporary(element)) {
       if (name[0] == '#') {
         return new JS.InterpolatedExpression(name.substring(1));
       } else {
-        return _getTemp(e, name);
+        return _getTemp(element, name);
       }
     }
 
@@ -2312,10 +2314,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   }
 
   DartType getStaticType(Expression e) => rules.getStaticType(e);
-
-  static bool _needsImplicitThis(Element e) =>
-      e is PropertyAccessorElement && !e.variable.isStatic ||
-          e is ClassMemberElement && !e.isStatic && e is! ConstructorElement;
 }
 
 class JSGenerator extends CodeGenerator {

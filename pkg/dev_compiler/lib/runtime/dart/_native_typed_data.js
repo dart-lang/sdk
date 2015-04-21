@@ -582,9 +582,6 @@ var _native_typed_data;
   dart.defineNamedConstructor(NativeByteData, 'view');
   let _setRangeFast = Symbol('_setRangeFast');
   class NativeTypedArray extends NativeTypedData {
-    get length() {
-      return dart.as(this.length, core.int);
-    }
     [_setRangeFast](start, end, source, skipCount) {
       let targetLength = this.length;
       this[_checkIndex](start, dart.notNull(targetLength) + 1);
@@ -606,6 +603,9 @@ var _native_typed_data;
   }
   NativeTypedArray[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior];
   class NativeTypedArrayOfDouble extends dart.mixin(NativeTypedArray, collection.ListMixin$(core.double), _internal.FixedLengthListMixin$(core.double)) {
+    get [core.$length]() {
+      return dart.as(this.length, core.int);
+    }
     [core.$get](index) {
       this[_checkIndex](index, this[core.$length]);
       return this[index];
@@ -625,6 +625,9 @@ var _native_typed_data;
     }
   }
   class NativeTypedArrayOfInt extends dart.mixin(NativeTypedArray, collection.ListMixin$(core.int), _internal.FixedLengthListMixin$(core.int)) {
+    get [core.$length]() {
+      return dart.as(this.length, core.int);
+    }
     [core.$set](index, value) {
       this[_checkIndex](index, this[core.$length]);
       this[index] = value;
