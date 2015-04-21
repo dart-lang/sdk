@@ -100,7 +100,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     _element.className = '';
   }
 
-  bool contains(String value) {
+  bool contains(Object value) {
     return _contains(_element, value);
   }
 
@@ -136,8 +136,8 @@ class _ElementCssClassSet extends CssClassSetImpl {
     _removeWhere(_element, test, false);
   }
 
-  static bool _contains(Element _element, String value) {
-    return _classListContains(_classListOf(_element), value);
+  static bool _contains(Element _element, Object value) {
+    return value is String && _classListContains(_classListOf(_element), value);
   }
 
   static bool _add(Element _element, String value) {

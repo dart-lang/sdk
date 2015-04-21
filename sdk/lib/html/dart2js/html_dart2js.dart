@@ -36383,6 +36383,10 @@ abstract class CssClassSet implements Set<String> {
    * operation.
    *
    * If this corresponds to many elements, `null` is always returned.
+   *
+   * [value] must be a valid 'token' representing a single class, i.e. a
+   * non-empty string containing no whitespace.  To toggle multiple classes, use
+   * [toggleAll].
    */
   bool toggle(String value, [bool shouldAdd]);
 
@@ -36397,19 +36401,26 @@ abstract class CssClassSet implements Set<String> {
    *
    * This is the Dart equivalent of jQuery's
    * [hasClass](http://api.jquery.com/hasClass/).
+   *
+   * [value] must be a valid 'token' representing a single class, i.e. a
+   * non-empty string containing no whitespace.
    */
   bool contains(String value);
 
   /**
    * Add the class [value] to element.
    *
-   * This is the Dart equivalent of jQuery's
+   * [add] and [addAll] are the Dart equivalent of jQuery's
    * [addClass](http://api.jquery.com/addClass/).
    *
-   * If this corresponds to one element. Returns true if [value] was added to
-   * the set, otherwise false.
+   * If this CssClassSet corresponds to one element. Returns true if [value] was
+   * added to the set, otherwise false.
    *
    * If this corresponds to many elements, `null` is always returned.
+   *
+   * [value] must be a valid 'token' representing a single class, i.e. a
+   * non-empty string containing no whitespace.  To add multiple classes use
+   * [addAll].
    */
   bool add(String value);
 
@@ -36417,24 +36428,34 @@ abstract class CssClassSet implements Set<String> {
    * Remove the class [value] from element, and return true on successful
    * removal.
    *
-   * This is the Dart equivalent of jQuery's
+   * [remove] and [removeAll] are the Dart equivalent of jQuery's
    * [removeClass](http://api.jquery.com/removeClass/).
+   *
+   * [value] must be a valid 'token' representing a single class, i.e. a
+   * non-empty string containing no whitespace.  To remove multiple classes, use
+   * [removeAll].
    */
   bool remove(Object value);
 
   /**
    * Add all classes specified in [iterable] to element.
    *
-   * This is the Dart equivalent of jQuery's
+   * [add] and [addAll] are the Dart equivalent of jQuery's
    * [addClass](http://api.jquery.com/addClass/).
+   *
+   * Each element of [iterable] must be a valid 'token' representing a single
+   * class, i.e. a non-empty string containing no whitespace.
    */
   void addAll(Iterable<String> iterable);
 
   /**
    * Remove all classes specified in [iterable] from element.
    *
-   * This is the Dart equivalent of jQuery's
+   * [remove] and [removeAll] are the Dart equivalent of jQuery's
    * [removeClass](http://api.jquery.com/removeClass/).
+   *
+   * Each element of [iterable] must be a valid 'token' representing a single
+   * class, i.e. a non-empty string containing no whitespace.
    */
   void removeAll(Iterable<String> iterable);
 
@@ -36447,6 +36468,9 @@ abstract class CssClassSet implements Set<String> {
    * If [shouldAdd] is true, then we always add all the classes in [iterable]
    * element. If [shouldAdd] is false then we always remove all the classes in
    * [iterable] from the element.
+   *
+   * Each element of [iterable] must be a valid 'token' representing a single
+   * class, i.e. a non-empty string containing no whitespace.
    */
   void toggleAll(Iterable<String> iterable, [bool shouldAdd]);
 }
@@ -36812,7 +36836,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     _element.className = '';
   }
 
-  bool contains(String value) {
+  bool contains(Object value) {
     return _contains(_element, value);
   }
 
@@ -36848,8 +36872,8 @@ class _ElementCssClassSet extends CssClassSetImpl {
     _removeWhere(_element, test, false);
   }
 
-  static bool _contains(Element _element, String value) {
-    return _classListContains(_classListOf(_element), value);
+  static bool _contains(Element _element, Object value) {
+    return value is String && _classListContains(_classListOf(_element), value);
   }
 
   static bool _add(Element _element, String value) {
