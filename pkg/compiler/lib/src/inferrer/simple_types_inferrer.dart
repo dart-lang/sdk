@@ -1031,6 +1031,18 @@ class SimpleTypeInferrerVisitor<T>
         node, new Selector.fromElement(element), element, arguments);
   }
 
+  @override
+  T visitTypeLiteralSend(ast.Send node) {
+    if (node.isCall) {
+      // This is reached when users forget to put a `new` in front of a type
+      // literal. The emitter will generate an actual call (even though it is
+      // likely invalid), and for that it needs to have the arguments processed
+      // as well.
+      analyzeArguments(node.arguments);
+    }
+    return super.visitTypeLiteralSend(node);
+  }
+
   T visitStaticSend(ast.Send node) {
     Element element = elements[node];
     assert(!elements.isAssert(node));
