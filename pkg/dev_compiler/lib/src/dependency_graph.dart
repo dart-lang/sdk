@@ -462,12 +462,35 @@ class DependencyGraphError extends MessageWithSpan {
 
 /// Runtime files added to all applications when running the compiler in the
 /// command line.
-const defaultRuntimeFiles = const [
-  'harmony_feature_check.js',
-  'dart_runtime.js',
-  'dart/core.js',
-  'dart/collection.js',
-  'dart/math.js'
+final defaultRuntimeFiles = () {
+  var files = ['harmony_feature_check.js', 'dart_runtime.js',];
+  files.addAll(corelibOrder.map((l) => l.replaceAll('.', '/') + '.js'));
+  return files;
+}();
+
+/// Curated order to minimize lazy classes needed by dart:core and its
+/// transitive SDK imports.
+const corelibOrder = const [
+  'dart.core',
+  'dart.collection',
+  'dart._internal',
+  'dart.math',
+  'dart._foreign_helper',
+  'dart._js_helper',
+  // TODO(jmesserly): add others
+  /*
+  'dart.async',
+  'dart.convert',
+  'dart.isolate',
+  'dart.typed_data',
+  'dart._foreign_helper',
+  'dart._interceptors',
+  'dart._isolate_helper',
+  'dart._js_embedded_names',
+  'dart._js_names',
+  'dart._js_primitives',
+  'dart._native_typed_data',
+  */
 ];
 
 /// Runtime files added to applications when running in server mode.

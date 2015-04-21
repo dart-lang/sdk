@@ -136,7 +136,7 @@ var collection;
         this.removeAll(toRemove);
       }
       removeWhere(test) {
-        let toRemove = new core.List.from([]);
+        let toRemove = [];
         for (let element of this) {
           if (test(element))
             toRemove[core.$add](element);
@@ -144,7 +144,7 @@ var collection;
         this.removeAll(toRemove);
       }
       retainWhere(test) {
-        let toRemove = new core.List.from([]);
+        let toRemove = [];
         for (let element of this) {
           if (!dart.notNull(test(element)))
             toRemove[core.$add](element);
@@ -857,7 +857,7 @@ var collection;
           }
           return `${leftDelimiter}...${rightDelimiter}`;
         }
-        let parts = new core.List.from([]);
+        let parts = [];
         IterableBase[_toStringVisiting][core.$add](iterable);
         try {
           IterableBase[_iterablePartsToStrings](iterable, parts);
@@ -980,7 +980,7 @@ var collection;
     IterableBase[dart.implements] = () => [core.Iterable$(E)];
     dart.defineLazyProperties(IterableBase, {
       get _toStringVisiting() {
-        return new core.List.from([]);
+        return [];
       }
     });
     return IterableBase;
@@ -1577,7 +1577,7 @@ var collection;
         ListMixin[_filter](this, test, true);
       }
       static [_filter](source, test, retainMatching) {
-        let retained = new core.List.from([]);
+        let retained = [];
         let length = source[core.$length];
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let element = source[core.$get](i);
@@ -3077,7 +3077,7 @@ var collection;
   let _SplayTreeIterator$ = dart.generic(function(T) {
     class _SplayTreeIterator extends core.Object {
       _SplayTreeIterator(tree) {
-        this[_workList] = new core.List$(_SplayTreeNode).from([]);
+        this[_workList] = dart.setType([], core.List$(_SplayTreeNode));
         this[_tree] = tree;
         this[_modificationCount] = tree[_modificationCount];
         this[_splayCount] = tree[_splayCount];
@@ -3085,7 +3085,7 @@ var collection;
         this[_findLeftMostDescendent](tree[_root]);
       }
       startAt(tree, startKey) {
-        this[_workList] = new core.List$(_SplayTreeNode).from([]);
+        this[_workList] = dart.setType([], core.List$(_SplayTreeNode));
         this[_tree] = tree;
         this[_modificationCount] = tree[_modificationCount];
         this[_splayCount] = null;

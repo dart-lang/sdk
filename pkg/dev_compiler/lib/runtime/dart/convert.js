@@ -280,7 +280,7 @@ var convert;
         if ((dart.notNull(source[core.$get](i)) & ~dart.notNull(_ASCII_MASK)) != 0) {
           if (dart.notNull(i) > dart.notNull(start))
             this[_utf8Sink].addSlice(source, start, i, false);
-          this[_utf8Sink].add(/* Unimplemented const */new core.List$(core.int).from([239, 191, 189]));
+          this[_utf8Sink].add(/* Unimplemented const */dart.setType([239, 191, 189], core.List$(core.int)));
           start = dart.notNull(i) + 1;
         }
       }
@@ -378,7 +378,7 @@ var convert;
   let _SimpleCallbackSink$ = dart.generic(function(T) {
     class _SimpleCallbackSink extends ChunkedConversionSink$(T) {
       _SimpleCallbackSink(callback) {
-        this[_accumulated] = new core.List$(T).from([]);
+        this[_accumulated] = dart.setType([], core.List$(T));
         this[_callback] = callback;
         super.ChunkedConversionSink();
       }
@@ -738,7 +738,7 @@ var convert;
       return UTF8.encode(string);
     }
     convert(object) {
-      let bytes = new core.List$(core.List$(core.int)).from([]);
+      let bytes = dart.setType([], core.List$(core.List$(core.int)));
       // Function addChunk: (Uint8List, int, int) → void
       function addChunk(chunk, start, end) {
         if (dart.notNull(start) > 0 || dart.notNull(end) < dart.notNull(chunk[core.$length])) {
@@ -1356,7 +1356,7 @@ var convert;
         if (dart.notNull(char) > dart.notNull(_LATIN1_MASK) || dart.notNull(char) < 0) {
           if (dart.notNull(i) > dart.notNull(start))
             this[_addSliceToSink](source, start, i, false);
-          this[_addSliceToSink](/* Unimplemented const */new core.List$(core.int).from([65533]), 0, 1, false);
+          this[_addSliceToSink](/* Unimplemented const */dart.setType([65533], core.List$(core.int)), 0, 1, false);
           start = dart.notNull(i) + 1;
         }
       }
@@ -2123,7 +2123,7 @@ var convert;
       }
     }
   }
-  _Utf8Decoder._LIMITS = /* Unimplemented const */new core.List$(core.int).from([_ONE_BYTE_LIMIT, _TWO_BYTE_LIMIT, _THREE_BYTE_LIMIT, _FOUR_BYTE_LIMIT]);
+  _Utf8Decoder._LIMITS = /* Unimplemented const */dart.setType([_ONE_BYTE_LIMIT, _TWO_BYTE_LIMIT, _THREE_BYTE_LIMIT, _FOUR_BYTE_LIMIT], core.List$(core.int));
   let _processed = Symbol('_processed');
   let _computeKeys = Symbol('_computeKeys');
   let _original = Symbol('_original');

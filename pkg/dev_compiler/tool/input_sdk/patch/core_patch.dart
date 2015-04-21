@@ -117,9 +117,7 @@ class int {
   static int parse(String source,
                          { int radix,
                            int onError(String source) }) {
-    // TODO(jmesserly): fix this
-    return JS('int', 'Number(#)', source);
-    //return Primitives.parseInt(source, radix, onError);
+    return Primitives.parseInt(source, radix, onError);
   }
 
   @patch
@@ -264,16 +262,12 @@ class List<E> {
 
   @patch
   factory List.from(Iterable elements, { bool growable: true }) {
-    // TODO(jmesserly): fix this. This is just to unblock initial SDK check in.
-    return null;
-    /*
     List<E> list = new List<E>();
     for (E e in elements) {
       list.add(e);
     }
     if (growable) return list;
     return makeListFixedLength(list);
-    */
   }
 }
 

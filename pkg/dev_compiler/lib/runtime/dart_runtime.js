@@ -84,6 +84,11 @@ var dart, _js_helper;
   dart.dsend = dsend;
 
   function dindex(obj, index) {
+    // TODO(jmesserly): remove this special case once Array extensions are
+    // hooked up.
+    if (obj instanceof Array && getRuntimeType(index) == core.int) {
+      return obj[index];
+    }
     return checkAndCall(obj.get, obj, [index], '[]');
   }
   dart.dindex = dindex;
@@ -101,6 +106,10 @@ var dart, _js_helper;
     throw new _js_helper.CastErrorImplementation(actual, type);
   }
   dart.as = cast;
+
+
+  // TODO(vsm): How should we encode the runtime type?
+  let runtimeType = Symbol('runtimeType');
 
   /**
    * Returns the runtime type of obj. This is the same as `obj.runtimeType`
@@ -126,7 +135,7 @@ var dart, _js_helper;
     if (obj === null) return core.Null;
     // TODO(vsm): Should we treat Dart and JS objects differently here?
     // E.g., we can check if obj instanceof core.Object to differentiate.
-    var result = obj[dart.runtimeType];
+    var result = obj[runtimeType];
     if (result) return result;
     result = obj.constructor;
     if (result == Function) {
@@ -766,14 +775,17 @@ var dart, _js_helper;
   }
   dart.generic = generic;
 
+  /** Sets the runtime type of `obj` to be `type` */
+  function setType(obj, type) {
+    obj[runtimeType] = type;
+  }
+  dart.setType = setType;
+
   // TODO(jmesserly): right now this is a sentinel. It should be a type object
   // of some sort, assuming we keep around `dynamic` at runtime.
   dart.dynamic = { toString() { return 'dynamic'; } };
   dart.void = { toString() { return 'void'; } };
   dart.bottom = { toString() { return 'bottom'; } };
-
-  // TODO(vsm): How should we encode the runtime type?
-  dart.runtimeType = Symbol('runtimeType');
 
   dart.JsSymbol = Symbol;
 

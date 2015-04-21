@@ -110,16 +110,12 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    * otherwise, it returns a fixed-length list.
    */
   factory List.from(Iterable elements, { bool growable: true }) {
-    // TODO(jmesserly): fix this. This is just to unblock initial SDK check in.
-    return null;
-    /*
     List<E> list = new List<E>();
     for (E e in elements) {
       list.add(e);
     }
     if (growable) return list;
     return makeListFixedLength(list);
-    */
   }
 
   /**

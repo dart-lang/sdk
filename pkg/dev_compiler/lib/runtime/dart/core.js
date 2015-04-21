@@ -1082,7 +1082,7 @@ var core;
     static parse(source, opts) {
       let radix = opts && 'radix' in opts ? opts.radix : null;
       let onError = opts && 'onError' in opts ? opts.onError : null;
-      return Number(source);
+      return _js_helper.Primitives.parseInt(source, radix, onError);
     }
   }
   dart.defineNamedConstructor(int, 'fromEnvironment');
@@ -1223,6 +1223,7 @@ var core;
   });
   let Iterator = Iterator$();
   let $set = dart.JsSymbol('$set');
+  let $add = dart.JsSymbol('$add');
   let List$ = dart.generic(function(E) {
     class List extends Object {
       List(length) {
@@ -1244,13 +1245,19 @@ var core;
       }
       from(elements, opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
-        return null;
+        let list = new (List$(E))();
+        for (let e of dart.as(elements, Iterable$(E))) {
+          list[exports.$add](e);
+        }
+        if (growable)
+          return list;
+        return dart.as(_internal.makeListFixedLength(list), List$(E));
       }
       generate(length, generator, opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
         let result = null;
         if (growable) {
-          result = new List$(E).from([]);
+          result = dart.setType([], List$(E));
           result[exports.$length] = length;
         } else {
           result = new (List$(E))(length);
@@ -1410,7 +1417,6 @@ var core;
   Stopwatch._frequency = null;
   let _stringFromIterable = dart.JsSymbol('_stringFromIterable');
   let $sublist = dart.JsSymbol('$sublist');
-  let $add = dart.JsSymbol('$add');
   class String extends Object {
     fromCharCodes(charCodes, start, end) {
       if (start === void 0)
@@ -1454,7 +1460,7 @@ var core;
           throw new RangeError.range(start, 0, i);
         }
       }
-      let list = new List.from([]);
+      let list = [];
       if (end == null) {
         while (it.moveNext())
           list[exports.$add](it.current);
@@ -2214,7 +2220,7 @@ var core;
     get pathSegments() {
       if (this[_pathSegments] == null) {
         let pathToSplit = !dart.notNull(this.path.isEmpty) && this.path.codeUnitAt(0) == Uri[_SLASH] ? this.path.substring(1) : this.path;
-        this[_pathSegments] = new collection.UnmodifiableListView(pathToSplit == "" ? /* Unimplemented const */new List$(String).from([]) : pathToSplit.split("/")[exports.$map](Uri.decodeComponent)[exports.$toList]({growable: false}));
+        this[_pathSegments] = new collection.UnmodifiableListView(pathToSplit == "" ? /* Unimplemented const */dart.setType([], List$(String)) : pathToSplit.split("/")[exports.$map](Uri.decodeComponent)[exports.$toList]({growable: false}));
       }
       return this[_pathSegments];
     }
@@ -2572,7 +2578,7 @@ var core;
     [_removeDotSegments](path) {
       if (!dart.notNull(this[_hasDotSegments](path)))
         return path;
-      let output = new List$(String).from([]);
+      let output = dart.setType([], List$(String));
       let appendSlash = false;
       for (let segment of path.split("/")) {
         appendSlash = false;
@@ -2850,7 +2856,7 @@ var core;
       }
       if (dart.notNull(host.length) < 2)
         error('address is too short');
-      let parts = new List$(int).from([]);
+      let parts = dart.setType([], List$(int));
       let wildcardSeen = false;
       let partStart = start;
       for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
@@ -3032,18 +3038,18 @@ var core;
   Uri._LOWER_CASE_F = 102;
   Uri._LOWER_CASE_Z = 122;
   Uri._BAR = 124;
-  Uri._unreservedTable = /* Unimplemented const */new List.from([0, 0, 24576, 1023, 65534, 34815, 65534, 18431]);
-  Uri._unreserved2396Table = /* Unimplemented const */new List.from([0, 0, 26498, 1023, 65534, 34815, 65534, 18431]);
-  Uri._encodeFullTable = /* Unimplemented const */new List.from([0, 0, 65498, 45055, 65535, 34815, 65534, 18431]);
-  Uri._schemeTable = /* Unimplemented const */new List.from([0, 0, 26624, 1023, 65534, 2047, 65534, 2047]);
-  Uri._schemeLowerTable = /* Unimplemented const */new List.from([0, 0, 26624, 1023, 0, 0, 65534, 2047]);
-  Uri._subDelimitersTable = /* Unimplemented const */new List.from([0, 0, 32722, 11263, 65534, 34815, 65534, 18431]);
-  Uri._genDelimitersTable = /* Unimplemented const */new List.from([0, 0, 32776, 33792, 1, 10240, 0, 0]);
-  Uri._userinfoTable = /* Unimplemented const */new List.from([0, 0, 32722, 12287, 65534, 34815, 65534, 18431]);
-  Uri._regNameTable = /* Unimplemented const */new List.from([0, 0, 32754, 11263, 65534, 34815, 65534, 18431]);
-  Uri._pathCharTable = /* Unimplemented const */new List.from([0, 0, 32722, 12287, 65535, 34815, 65534, 18431]);
-  Uri._pathCharOrSlashTable = /* Unimplemented const */new List.from([0, 0, 65490, 12287, 65535, 34815, 65534, 18431]);
-  Uri._queryCharTable = /* Unimplemented const */new List.from([0, 0, 65490, 45055, 65535, 34815, 65534, 18431]);
+  Uri._unreservedTable = /* Unimplemented const */[0, 0, 24576, 1023, 65534, 34815, 65534, 18431];
+  Uri._unreserved2396Table = /* Unimplemented const */[0, 0, 26498, 1023, 65534, 34815, 65534, 18431];
+  Uri._encodeFullTable = /* Unimplemented const */[0, 0, 65498, 45055, 65535, 34815, 65534, 18431];
+  Uri._schemeTable = /* Unimplemented const */[0, 0, 26624, 1023, 65534, 2047, 65534, 2047];
+  Uri._schemeLowerTable = /* Unimplemented const */[0, 0, 26624, 1023, 0, 0, 65534, 2047];
+  Uri._subDelimitersTable = /* Unimplemented const */[0, 0, 32722, 11263, 65534, 34815, 65534, 18431];
+  Uri._genDelimitersTable = /* Unimplemented const */[0, 0, 32776, 33792, 1, 10240, 0, 0];
+  Uri._userinfoTable = /* Unimplemented const */[0, 0, 32722, 12287, 65534, 34815, 65534, 18431];
+  Uri._regNameTable = /* Unimplemented const */[0, 0, 32754, 11263, 65534, 34815, 65534, 18431];
+  Uri._pathCharTable = /* Unimplemented const */[0, 0, 32722, 12287, 65535, 34815, 65534, 18431];
+  Uri._pathCharOrSlashTable = /* Unimplemented const */[0, 0, 65490, 12287, 65535, 34815, 65534, 18431];
+  Uri._queryCharTable = /* Unimplemented const */[0, 0, 65490, 45055, 65535, 34815, 65534, 18431];
   // Function _symbolToString: (Symbol) → String
   function _symbolToString(symbol) {
     return _internal.Symbol.getName(dart.as(symbol, _internal.Symbol));
@@ -3121,6 +3127,7 @@ var core;
   exports.Iterator$ = Iterator$;
   exports.Iterator = Iterator;
   exports.$set = $set;
+  exports.$add = $add;
   exports.List$ = List$;
   exports.List = List;
   exports.Map$ = Map$;
@@ -3136,7 +3143,6 @@ var core;
   exports.StackTrace = StackTrace;
   exports.Stopwatch = Stopwatch;
   exports.$sublist = $sublist;
-  exports.$add = $add;
   exports.String = String;
   exports.$last = $last;
   exports.RuneIterator = RuneIterator;

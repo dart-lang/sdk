@@ -838,7 +838,7 @@ var _internal;
       }
       [core.$toList](opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
-        return growable ? new core.List$(E).from([]) : new (core.List$(E))(0);
+        return growable ? dart.setType([], core.List$(E)) : new (core.List$(E))(0);
       }
       [core.$toSet]() {
         return new (core.Set$(E))();
@@ -915,7 +915,7 @@ var _internal;
         return initialValue;
       }
       static removeWhereList(list, test) {
-        let retained = new core.List.from([]);
+        let retained = [];
         let length = list[core.$length];
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let element = list[core.$get](i);
@@ -1899,7 +1899,7 @@ var _internal;
       return new core.RegExp(`^(?:${Symbol.operatorRE}$|${Symbol.identifierRE}(?:=?$|[.](?!$)))+?$`);
     }
   });
-  let POWERS_OF_TEN = /* Unimplemented const */new core.List.from([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22]);
+  let POWERS_OF_TEN = /* Unimplemented const */[1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22];
   // Exports:
   exports.EfficientLength = EfficientLength;
   exports.ListIterable$ = ListIterable$;

@@ -48,7 +48,7 @@ var cascade;
   }
   // Function test_VariableDeclaration_single: () → void
   function test_VariableDeclaration_single() {
-    let a = new core.List.from([]);
+    let a = [];
     a[core.$length] = 2;
     a[core.$add](42);
     core.print(a);
@@ -56,7 +56,7 @@ var cascade;
   // Function test_VariableDeclaration_last: () → void
   function test_VariableDeclaration_last() {
     let a = 42, b = (() => {
-      let _ = new core.List.from([]);
+      let _ = [];
       _[core.$length] = 2;
       _[core.$add](a);
       return _;
@@ -66,7 +66,7 @@ var cascade;
   // Function test_VariableDeclaration_first: () → void
   function test_VariableDeclaration_first() {
     let a = (() => {
-      let _ = new core.List.from([]);
+      let _ = [];
       _[core.$length] = 2;
       _[core.$add](3);
       return _;
@@ -85,7 +85,7 @@ var cascade;
   let Base$ = dart.generic(function(T) {
     class Base extends core.Object {
       Base() {
-        this.x = new core.List$(T).from([]);
+        this.x = dart.setType([], core.List$(T));
       }
     }
     return Base;

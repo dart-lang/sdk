@@ -416,7 +416,7 @@ var _js_helper;
     if (typeof dartNativeDispatchHooksTransformer != "undefined") {
       let transformers = dartNativeDispatchHooksTransformer;
       if (typeof transformers == "function") {
-        transformers = new core.List.from([transformers]);
+        transformers = [transformers];
       }
       if (transformers.constructor == Array) {
         for (let i = 0; dart.notNull(i) < transformers.length; i = dart.notNull(i) + 1) {
@@ -606,7 +606,7 @@ var _js_helper;
       return dart.notNull(this[_match][core.$length]) - 1;
     }
     groups(groups) {
-      let out = new core.List$(core.String).from([]);
+      let out = dart.setType([], core.List$(core.String));
       for (let i of groups) {
         out[core.$add](this.group(i));
       }
@@ -1439,11 +1439,11 @@ var _js_helper;
     }
     get positionalArguments() {
       if (this.isGetter)
-        return /* Unimplemented const */new core.List.from([]);
+        return /* Unimplemented const */[];
       let argumentCount = dart.notNull(this[_arguments][core.$length]) - dart.notNull(this[_namedArgumentNames][core.$length]);
       if (argumentCount == 0)
-        return /* Unimplemented const */new core.List.from([]);
-      let list = new core.List.from([]);
+        return /* Unimplemented const */[];
+      let list = [];
       for (let index = 0; dart.notNull(index) < dart.notNull(argumentCount); index = dart.notNull(index) + 1) {
         list[core.$add](this[_arguments][core.$get](index));
       }
@@ -1539,7 +1539,7 @@ var _js_helper;
         if (!dart.is(arguments$, _interceptors.JSArray))
           arguments$ = new core.List.from(arguments$);
       } else {
-        let _ = new core.List.from([victim]);
+        let _ = [victim];
         _[core.$addAll](arguments$);
         arguments$ = _;
         if (this.cachedInterceptor != null)
@@ -1571,7 +1571,7 @@ var _js_helper;
           providedArgumentCount = arguments$[core.$length];
         }
       } else {
-        let _ = new core.List.from([victim]);
+        let _ = [victim];
         _[core.$addAll](arguments$);
         arguments$ = _;
         if (this.cachedInterceptor != null)
@@ -1876,7 +1876,7 @@ var _js_helper;
       return result;
     }
     static stringFromCodePoints(codePoints) {
-      let a = new core.List$(core.int).from([]);
+      let a = dart.setType([], core.List$(core.int));
       for (let i of dart.as(codePoints, core.Iterable)) {
         if (!(typeof i == 'number'))
           throw new core.ArgumentError(i);
@@ -2024,8 +2024,8 @@ var _js_helper;
     }
     static functionNoSuchMethod(func, positionalArguments, namedArguments) {
       let argumentCount = 0;
-      let arguments$ = new core.List.from([]);
-      let namedArgumentList = new core.List.from([]);
+      let arguments$ = [];
+      let namedArgumentList = [];
       if (positionalArguments != null) {
         argumentCount = dart.notNull(argumentCount) + dart.notNull(positionalArguments[core.$length]);
         arguments$[core.$addAll](positionalArguments);
@@ -2056,7 +2056,7 @@ var _js_helper;
         }
         argumentCount = arguments$.length;
       } else {
-        arguments$ = new core.List.from([]);
+        arguments$ = [];
       }
       let selectorName = `${_foreign_helper.JS_GET_NAME("CALL_PREFIX")}$${argumentCount}`;
       let jsFunction = func[selectorName];
@@ -2081,7 +2081,7 @@ var _js_helper;
       if (positionalArguments != null) {
         positionalArguments = new core.List.from(positionalArguments);
       } else {
-        positionalArguments = new core.List.from([]);
+        positionalArguments = [];
       }
       if (info.requiredParameterCount != positionalArguments[core.$length]) {
         return Primitives.functionNoSuchMethod(func, positionalArguments, namedArguments);
@@ -2279,7 +2279,7 @@ var _js_helper;
       message = message.replace(new RegExp(ESCAPE_REGEXP, 'g'), '\\$&');
       let match = dart.as(message.match(/\\\$[a-zA-Z]+\\\$/g), core.List$(core.String));
       if (match == null)
-        match = new core.List$(core.String).from([]);
+        match = dart.setType([], core.List$(core.String));
       let arguments$ = match.indexOf('\\$arguments\\$');
       let argumentsExpr = match.indexOf('\\$argumentsExpr\\$');
       let expr = match.indexOf('\\$expr\\$');
@@ -3510,7 +3510,7 @@ var _js_helper;
     } else if (rti.constructor == Array) {
       let list = dart.as(rti, core.List);
       let name = list[core.$get](0).name;
-      let arguments$ = new core.List.from([]);
+      let arguments$ = [];
       for (let i = 1; dart.notNull(i) < dart.notNull(list[core.$length]); i = dart.notNull(i) + 1) {
         arguments$[core.$add](convertRtiToRuntimeType(list[core.$get](i)));
       }

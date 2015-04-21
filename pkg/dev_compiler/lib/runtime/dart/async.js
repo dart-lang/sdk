@@ -444,7 +444,7 @@ var async;
         return future;
       }
       toList() {
-        let result = new core.List$(T).from([]);
+        let result = dart.setType([], core.List$(T));
         let future = new (_Future$(core.List$(T)))();
         this.listen(data => {
           result[core.$add](data);
@@ -1803,7 +1803,7 @@ var async;
           }, {onError: handleError});
         }
         if (remaining == 0) {
-          return new Future$(core.List).value(/* Unimplemented const */new core.List.from([]));
+          return new Future$(core.List).value(/* Unimplemented const */[]);
         }
         values = new core.List(remaining);
         return result;

@@ -67,7 +67,7 @@ var _isolate_helper;
       throw new core.UnsupportedError(`${message} ${x}`);
     }
     makeRef(serializationId) {
-      return new core.List.from(["ref", serializationId]);
+      return ["ref", serializationId];
     }
     isPrimitive(x) {
       return dart.notNull(x == null) || typeof x == 'string' || dart.is(x, core.num) || typeof x == 'boolean';
@@ -76,27 +76,27 @@ var _isolate_helper;
       return primitive;
     }
     serializeByteBuffer(buffer) {
-      return new core.List.from(["buffer", buffer]);
+      return ["buffer", buffer];
     }
     serializeTypedData(data) {
-      return new core.List.from(["typed", data]);
+      return ["typed", data];
     }
     serializeJSIndexable(indexable) {
       dart.assert(!(typeof indexable == 'string'));
       let serialized = dart.as(this.serializeArray(dart.as(indexable, _interceptors.JSArray)), core.List);
       if (dart.is(indexable, _interceptors.JSFixedArray))
-        return new core.List.from(["fixed", serialized]);
+        return ["fixed", serialized];
       if (dart.is(indexable, _interceptors.JSExtendableArray))
-        return new core.List.from(["extendable", serialized]);
+        return ["extendable", serialized];
       if (dart.is(indexable, _interceptors.JSMutableArray))
-        return new core.List.from(["mutable", serialized]);
+        return ["mutable", serialized];
       if (dart.is(indexable, _interceptors.JSArray))
-        return new core.List.from(["const", serialized]);
+        return ["const", serialized];
       this.unsupported(indexable, "Can't serialize indexable: ");
       return null;
     }
     serializeArray(x) {
-      let serialized = new core.List.from([]);
+      let serialized = [];
       serialized[core.$length] = x[core.$length];
       for (let i = 0; dart.notNull(i) < dart.notNull(x[core.$length]); i = dart.notNull(i) + 1) {
         serialized[core.$set](i, this.serialize(x[core.$get](i)));
@@ -111,49 +111,49 @@ var _isolate_helper;
     }
     serializeMap(x) {
       let serializeTearOff = this.serialize;
-      return new core.List.from(['map', x.keys[core.$map](dart.as(serializeTearOff, __CastType0))[core.$toList](), x.values[core.$map](dart.as(serializeTearOff, dart.functionType(dart.dynamic, [dart.dynamic])))[core.$toList]()]);
+      return ['map', x.keys[core.$map](dart.as(serializeTearOff, __CastType0))[core.$toList](), x.values[core.$map](dart.as(serializeTearOff, dart.functionType(dart.dynamic, [dart.dynamic])))[core.$toList]()];
     }
     serializeJSObject(x) {
       if (!!x.constructor && x.constructor !== Object) {
         this.unsupported(x, "Only plain JS Objects are supported:");
       }
       let keys = dart.as(Object.keys(x), core.List);
-      let values = new core.List.from([]);
+      let values = [];
       values[core.$length] = keys[core.$length];
       for (let i = 0; dart.notNull(i) < dart.notNull(keys[core.$length]); i = dart.notNull(i) + 1) {
         values[core.$set](i, this.serialize(x[keys[core.$get](i)]));
       }
-      return new core.List.from(['js-object', keys, values]);
+      return ['js-object', keys, values];
     }
     serializeWorkerSendPort(x) {
       if (this[_serializeSendPorts]) {
-        return new core.List.from(['sendport', x[_workerId], x[_isolateId], x[_receivePortId]]);
+        return ['sendport', x[_workerId], x[_isolateId], x[_receivePortId]];
       }
-      return new core.List.from(['raw sendport', x]);
+      return ['raw sendport', x];
     }
     serializeJsSendPort(x) {
       if (this[_serializeSendPorts]) {
         let workerId = exports._globalState.currentManagerId;
-        return new core.List.from(['sendport', workerId, x[_isolateId], x[_receivePort][_id]]);
+        return ['sendport', workerId, x[_isolateId], x[_receivePort][_id]];
       }
-      return new core.List.from(['raw sendport', x]);
+      return ['raw sendport', x];
     }
     serializeCapability(x) {
-      return new core.List.from(['capability', x[_id]]);
+      return ['capability', x[_id]];
     }
     serializeClosure(x) {
       let name = IsolateNatives[_getJSFunctionName](x);
       if (name == null) {
         this.unsupported(x, "Closures can't be transmitted:");
       }
-      return new core.List.from(['function', name]);
+      return ['function', name];
     }
     serializeDartObject(x) {
       let classExtractor = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.CLASS_ID_EXTRACTOR);
       let fieldsExtractor = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.CLASS_FIELDS_EXTRACTOR);
       let classId = classExtractor(x);
       let fields = dart.as(fieldsExtractor(x), core.List);
-      return new core.List.from(['dart', classId, this.serializeArrayInPlace(dart.as(fields, _interceptors.JSArray))]);
+      return ['dart', classId, this.serializeArrayInPlace(dart.as(fields, _interceptors.JSArray))];
     }
   }
   let _adjustSendPorts = Symbol('_adjustSendPorts');
@@ -380,7 +380,7 @@ var _isolate_helper;
   function startRootIsolate(entry, args) {
     args = args;
     if (args == null)
-      args = new core.List.from([]);
+      args = [];
     if (!dart.is(args, core.List)) {
       throw new core.ArgumentError(`Arguments to main must be a List: ${args}`);
     }
@@ -495,7 +495,7 @@ var _isolate_helper;
       this.controlPort = new RawReceivePortImpl[_controlPort]();
       this.pauseCapability = new isolate.Capability();
       this.terminateCapability = new isolate.Capability();
-      this.delayedEvents = new core.List$(_IsolateEvent).from([]);
+      this.delayedEvents = dart.setType([], core.List$(_IsolateEvent));
       this.pauseTokens = new (core.Set$(isolate.Capability))();
       this.errorPorts = new (core.Set$(isolate.SendPort))();
       this.initialized = false;
@@ -529,7 +529,7 @@ var _isolate_helper;
     }
     addDoneListener(responsePort) {
       if (this.doneHandlers == null) {
-        this.doneHandlers = new core.List.from([]);
+        this.doneHandlers = [];
       }
       if (dart.dsend(this.doneHandlers, 'contains', responsePort))
         return;
@@ -964,7 +964,7 @@ var _isolate_helper;
         dart.dsend(replyPort, 'send', msg);
       }, {
         onError: errorMessage => {
-          dart.dsend(replyPort, 'send', new core.List.from([_SPAWN_FAILED_SIGNAL, errorMessage]));
+          dart.dsend(replyPort, 'send', [_SPAWN_FAILED_SIGNAL, errorMessage]);
         }
       });
     }
@@ -1061,7 +1061,7 @@ var _isolate_helper;
     static [_startIsolate](topLevel, args, message, isSpawnUri, startPaused, replyTo) {
       let context = dart.as(_foreign_helper.JS_CURRENT_ISOLATE_CONTEXT(), _IsolateContext);
       _js_helper.Primitives.initializeStatics(context.id);
-      replyTo.send(new core.List.from([_SPAWNED_SIGNAL, context.controlPort.sendPort, context.pauseCapability, context.terminateCapability]));
+      replyTo.send([_SPAWNED_SIGNAL, context.controlPort.sendPort, context.pauseCapability, context.terminateCapability]);
       // Function runStartFunction: () → void
       function runStartFunction() {
         context.initialized = true;

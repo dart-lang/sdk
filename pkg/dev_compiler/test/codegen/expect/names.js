@@ -26,7 +26,7 @@ var names;
     core.print(exports.exports);
     core.print(new Foo()[_foo$]());
     core.print(_foo());
-    core.print(new Frame.caller(new core.List.from([1, 2, 3])));
+    core.print(new Frame.caller([1, 2, 3]));
     let eval$ = Frame.callee;
     core.print(eval$);
   }

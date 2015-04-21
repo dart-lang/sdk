@@ -85,7 +85,7 @@ suite('instanceOf', () => {
   let cast = dart.as;
   let instanceOf = dart.is;
   let getRuntimeType = dart.getRuntimeType;
-  let runtimeType = dart.runtimeType;
+  let setType = dart.setType;
   let functionType = dart.functionType;
   let typedef = dart.typedef;
 
@@ -118,35 +118,35 @@ suite('instanceOf', () => {
   // TODO(vsm): Revisit when we encode types on functions properly.
   // A bar1(C c, String s) => null;
   function bar1(c, s) { return null; }
-  bar1[runtimeType] = functionType(A, [C, String]);
+  setType(bar1, functionType(A, [C, String]));
 
   // bar2(B b, String s) => null;
   function bar2(b, s) { return null; }
-  bar2[runtimeType] = functionType(dynamic, [B, String]);
+  setType(bar2, functionType(dynamic, [B, String]));
 
   // B bar3(B b, Object o) => null;
   function bar3(b, o) { return null; }
-  bar3[runtimeType] = functionType(B, [B, Object]);
+  setType(bar3, functionType(B, [B, Object]));
 
   // B bar4(B b, o) => null;
   function bar4(b, o) { return null; }
-  bar4[runtimeType] = functionType(B, [B, dynamic]);
+  setType(bar4, functionType(B, [B, dynamic]));
 
   // C bar5(A a, Object o) => null;
   function bar5(a, o) { return null; }
-  bar5[runtimeType] = functionType(C, [A, Object]);
+  setType(bar5, functionType(C, [A, Object]));
 
   // B bar6(B b, String s, String o) => null;
   function bar6(b, s, o) { return null; }
-  bar6[runtimeType] = functionType(B, [B, String, String]);
+  setType(bar6, functionType(B, [B, String, String]));
 
   // B bar7(B b, String s, [Object o]) => null;
   function bar7(b, s, o) { return null; }
-  bar7[runtimeType] = functionType(B, [B, String], [Object]);
+  setType(bar7, functionType(B, [B, String], [Object]));
 
   // B bar8(B b, String s, {Object p}) => null;
   function bar8(b, s, o) { return null; }
-  bar8[runtimeType] = functionType(B, [B, String], {p: Object});
+  setType(bar8, functionType(B, [B, String], {p: Object}));
 
   function checkType(x, type, expectedTrue) {
     if (expectedTrue === undefined) expectedTrue = true;
@@ -338,12 +338,12 @@ suite('instanceOf', () => {
     checkType(bar6, functionType(B, [B, String]), false);
     checkType(bar7, Foo);
     checkType(bar7, functionType(B, [B, String]));
-    checkType(bar7, bar6[runtimeType]);
+    checkType(bar7, getRuntimeType(bar6));
     checkType(bar8, Foo);
     checkType(bar8, functionType(B, [B, String]));
-    checkType(bar8, bar6[runtimeType], false);
-    checkType(bar7, bar8[runtimeType], false);
-    checkType(bar8, bar7[runtimeType], false);
+    checkType(bar8, getRuntimeType(bar6), false);
+    checkType(bar7, getRuntimeType(bar8), false);
+    checkType(bar8, getRuntimeType(bar7), false);
 
     // Parameterized typedefs
     expect(isGroundType(FuncG), true);

@@ -24,6 +24,7 @@ import 'package:dev_compiler/src/js/js_ast.dart' as JS;
 import 'package:dev_compiler/src/js/js_ast.dart' show js;
 
 import 'package:dev_compiler/src/checker/rules.dart';
+import 'package:dev_compiler/src/dependency_graph.dart';
 import 'package:dev_compiler/src/info.dart';
 import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/utils.dart';
@@ -435,14 +436,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return _lazyClassMemo[type.element] = result;
   }
 
-  /// Curated order to minimize lazy classes needed by dart:core and its
-  /// transitive SDK imports.
-  static const CORELIB_ORDER = const [
-    'dart.core',
-    'dart.collection',
-    'dart._internal'
-  ];
-
   /// Returns true if the class might not be loaded.
   ///
   /// If the class is from our library, this can happen because it's lazy.
@@ -466,11 +459,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       if (!currentLibrary.isInSdk) return false;
 
       // Compute the order of both SDK libraries. If unknown, assume it's after.
-      var classOrder = CORELIB_ORDER.indexOf(library.name);
-      if (classOrder == -1) classOrder = CORELIB_ORDER.length;
+      var classOrder = corelibOrder.indexOf(library.name);
+      if (classOrder == -1) classOrder = corelibOrder.length;
 
-      var currentOrder = CORELIB_ORDER.indexOf(currentLibrary.name);
-      if (currentOrder == -1) currentOrder = CORELIB_ORDER.length;
+      var currentOrder = corelibOrder.indexOf(currentLibrary.name);
+      if (currentOrder == -1) currentOrder = corelibOrder.length;
 
       // If the dart:* library we are currently compiling is loaded after the
       // class's library, then we know the class is available.
@@ -2061,11 +2054,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   visitListLiteral(ListLiteral node) {
-    // TODO(jmesserly): make this faster. We're wasting an array.
-    var list = js.call('new #.from(#)', [
-      _emitTypeName(node.staticType),
-      new JS.ArrayInitializer(_visitList(node.elements))
-    ]);
+    JS.Expression list = new JS.ArrayInitializer(_visitList(node.elements));
+
+    ParameterizedType type = node.staticType;
+    if (type.typeArguments.any((a) => a != types.dynamicType)) {
+      list = js.call('dart.setType(#, #)', [list, _emitTypeName(type)]);
+    }
     if (node.constKeyword != null) {
       list = js.commentExpression('Unimplemented const', list);
     }
@@ -2074,14 +2068,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   visitMapLiteral(MapLiteral node) {
+    // TODO(jmesserly): we can likely make these faster.
     var entries = node.entries;
     var mapArguments = null;
-    if (entries.isEmpty) return js.call('dart.map()');
-
-    // Use JS object literal notation if possible, otherwise use an array.
-    // We could do this any time all keys are non-nullable String type.
-    // For now, support StringLiteral as the common non-nullable String case.
-    if (entries.every((e) => e.key is StringLiteral)) {
+    if (entries.isEmpty) {
+      mapArguments = [];
+    } else if (entries.every((e) => e.key is StringLiteral)) {
+      // Use JS object literal notation if possible, otherwise use an array.
+      // We could do this any time all keys are non-nullable String type.
+      // For now, support StringLiteral as the common non-nullable String case.
       var props = [];
       for (var e in entries) {
         props.add(new JS.Property(_visit(e.key), _visit(e.value)));
@@ -2095,7 +2090,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       }
       mapArguments = new JS.ArrayInitializer(values);
     }
-    return js.call('dart.map(#)', [mapArguments]);
+    // TODO(jmesserly): add generic types args.
+    var map = js.call('dart.map(#)', [mapArguments]);
+    if (node.constKeyword != null) {
+      map = js.commentExpression('Unimplemented const', map);
+    }
+    return map;
   }
 
   @override

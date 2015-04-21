@@ -518,7 +518,7 @@ var _interceptors;
       }
     }
     [_defaultSplit](pattern) {
-      let result = new core.List$(core.String).from([]);
+      let result = dart.setType([], core.List$(core.String));
       let start = 0;
       let length = 1;
       for (let match of pattern.allMatches(this)) {

@@ -103,7 +103,7 @@ var isolate;
     kill(priority) {
       if (priority === void 0)
         priority = Isolate.BEFORE_NEXT_EVENT;
-      this.controlPort.send(new core.List.from(["kill", this.terminateCapability, priority]));
+      this.controlPort.send(["kill", this.terminateCapability, priority]);
     }
     ping(responsePort, pingType) {
       if (pingType === void 0)
