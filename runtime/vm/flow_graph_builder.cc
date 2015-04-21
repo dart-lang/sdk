@@ -3166,10 +3166,7 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
   // resolved at compile time (in the caller instance getter's super class).
   // Unlike a static getter, a super getter has a receiver parameter.
   const bool is_super_setter = (node->receiver() != NULL);
-  Function& setter_function =
-      Function::ZoneHandle(Z, is_super_setter
-          ? Resolver::ResolveDynamicAnyArgs(node->cls(), setter_name)
-          : node->cls().LookupStaticFunction(setter_name));
+  const Function& setter_function = node->function();
   StaticCallInstr* call;
   if (setter_function.IsNull()) {
     if (is_super_setter) {

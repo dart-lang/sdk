@@ -381,8 +381,8 @@ class Parser : public ValueObject {
   void CheckRecursiveInvocation();
 
   const Instance& EvaluateConstExpr(intptr_t expr_pos, AstNode* expr);
-  AstNode* RunStaticFieldInitializer(const Field& field,
-                                     intptr_t field_ref_pos);
+  StaticGetterNode* RunStaticFieldInitializer(const Field& field,
+                                              intptr_t field_ref_pos);
   RawObject* EvaluateConstConstructorCall(const Class& type_class,
                                           const TypeArguments& type_arguments,
                                           const Function& constructor,
@@ -711,10 +711,9 @@ class Parser : public ValueObject {
   AstNode* ParseClosureCall(AstNode* closure);
   AstNode* GenerateStaticFieldLookup(const Field& field,
                                      intptr_t ident_pos);
-  AstNode* ParseStaticFieldAccess(const Class& cls,
-                                  const String& field_name,
-                                  intptr_t ident_pos,
-                                  bool consume_cascades);
+  AstNode* GenerateStaticFieldAccess(const Class& cls,
+                                     const String& field_name,
+                                     intptr_t ident_pos);
 
   LocalVariable* LookupLocalScope(const String& ident);
   void CheckInstanceFieldAccess(intptr_t field_pos, const String& field_name);

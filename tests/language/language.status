@@ -40,6 +40,7 @@ deferred_inlined_test: Fail  # Issue 17523
 deferred_optimized_test: Fail  # Issue 17523
 regress_22443_test: Fail # Issue 17523
 enum_mirror_test: Skip # Issue 11511.
+getter_setter_in_lib_test: Fail # Issue 23288
 
 override_inheritance_mixed_test/08: Fail # Issue 18124
 override_inheritance_mixed_test/09: Fail # Issue 18124

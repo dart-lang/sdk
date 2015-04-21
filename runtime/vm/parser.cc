@@ -3912,8 +3912,8 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     if (field->has_static && has_initializer) {
       class_field.set_value(init_value);
       if (!has_simple_literal) {
-        String& getter_name = String::Handle(Z,
-                                             Field::GetterSymbol(*field->name));
+        String& getter_name =
+            String::Handle(Z, Field::GetterSymbol(*field->name));
         getter = Function::New(getter_name,
                                RawFunction::kImplicitStaticFinalGetter,
                                field->has_static,
@@ -3934,8 +3934,8 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
 
     // For instance fields, we create implicit getter and setter methods.
     if (!field->has_static) {
-      String& getter_name = String::Handle(Z,
-                                           Field::GetterSymbol(*field->name));
+      String& getter_name =
+          String::Handle(Z, Field::GetterSymbol(*field->name));
       getter = Function::New(getter_name, RawFunction::kImplicitGetter,
                              field->has_static,
                              field->has_final,
@@ -3953,8 +3953,8 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
       members->AddFunction(getter);
       if (!field->has_final) {
         // Build a setter accessor for non-const fields.
-        String& setter_name = String::Handle(Z,
-                                             Field::SetterSymbol(*field->name));
+        String& setter_name =
+            String::Handle(Z, Field::SetterSymbol(*field->name));
         setter = Function::New(setter_name, RawFunction::kImplicitSetter,
                                field->has_static,
                                field->has_final,
@@ -10529,7 +10529,8 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
 static AstNode* LiteralIfStaticConst(Zone* zone, AstNode* expr) {
   if (expr->IsLoadStaticFieldNode()) {
     const Field& field = expr->AsLoadStaticFieldNode()->field();
-    if (field.is_const()) {
+    if (field.is_const() &&
+        !expr->AsLoadStaticFieldNode()->is_deferred_reference()) {
       ASSERT(field.value() != Object::sentinel().raw());
       ASSERT(field.value() != Object::transition_sentinel().raw());
       return new(zone) LiteralNode(expr->token_pos(),
@@ -10898,24 +10899,17 @@ AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
 }
 
 
-AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
-                                        const String& field_name,
-                                        intptr_t ident_pos,
-                                        bool consume_cascades) {
-  TRACE_PARSER("ParseStaticFieldAccess");
+// Reference to 'field_name' with explicit class as primary.
+AstNode* Parser::GenerateStaticFieldAccess(const Class& cls,
+                                           const String& field_name,
+                                           intptr_t ident_pos) {
   AstNode* access = NULL;
   const Field& field = Field::ZoneHandle(Z, cls.LookupStaticField(field_name));
   Function& func = Function::ZoneHandle(Z);
   if (field.IsNull()) {
     // No field, check if we have an explicit getter function.
-    const String& getter_name =
-        String::ZoneHandle(Z, Field::GetterName(field_name));
-    const int kNumArguments = 0;  // no arguments.
-    func = Resolver::ResolveStatic(cls,
-                                   getter_name,
-                                   kNumArguments,
-                                   Object::empty_array());
-    if (func.IsNull()) {
+    func = cls.LookupGetterFunction(field_name);
+    if (func.IsNull() || func.IsDynamicFunction()) {
       // We might be referring to an implicit closure, check to see if
       // there is a function of the same name.
       func = cls.LookupStaticFunction(field_name);
@@ -11056,12 +11050,14 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       } else {
         // Field access.
         Class& cls = Class::Handle(Z);
+        bool is_deferred = false;
         if (left->IsPrimaryNode()) {
           PrimaryNode* primary_node = left->AsPrimaryNode();
           if (primary_node->primary().IsClass()) {
             // If the primary node referred to a class we are loading a
             // qualified static field.
             cls ^= primary_node->primary().raw();
+            is_deferred = primary_node->is_deferred_reference();
           }
         }
         if (cls.IsNull()) {
@@ -11069,8 +11065,13 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           selector = CallGetter(ident_pos, left, *ident);
         } else {
           // Static field access.
-          selector =
-              ParseStaticFieldAccess(cls, *ident, ident_pos, !is_cascade);
+          selector = GenerateStaticFieldAccess(cls, *ident, ident_pos);
+          ASSERT(selector != NULL);
+          if (selector->IsLoadStaticFieldNode()) {
+            selector->AsLoadStaticFieldNode()->set_is_deferred(is_deferred);
+          } else if (selector->IsStaticGetterNode()) {
+            selector->AsStaticGetterNode()->set_is_deferred(is_deferred);
+          }
         }
       }
     } else if (CurrentToken() == Token::kLBRACK) {
@@ -11466,8 +11467,8 @@ RawInstance* Parser::TryCanonicalize(const Instance& instance,
 // If the field is already initialized, return no ast (NULL).
 // Otherwise, if the field is constant, initialize the field and return no ast.
 // If the field is not initialized and not const, return the ast for the getter.
-AstNode* Parser::RunStaticFieldInitializer(const Field& field,
-                                           intptr_t field_ref_pos) {
+StaticGetterNode* Parser::RunStaticFieldInitializer(const Field& field,
+                                                    intptr_t field_ref_pos) {
   ASSERT(field.is_static());
   const Class& field_owner = Class::ZoneHandle(Z, field.owner());
   const String& field_name = String::ZoneHandle(Z, field.name());
@@ -11752,16 +11753,22 @@ AstNode* Parser::ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
   } else if (obj.IsField()) {
     const Field& field = Field::Cast(obj);
     ASSERT(field.is_static());
-    return GenerateStaticFieldLookup(field, ident_pos);
+    AstNode* get_field = GenerateStaticFieldLookup(field, ident_pos);
+    if (get_field->IsStaticGetterNode()) {
+      get_field->AsStaticGetterNode()->set_owner(library_);
+    }
+    return get_field;
   } else if (obj.IsFunction()) {
     const Function& func = Function::Cast(obj);
     ASSERT(func.is_static());
     if (func.IsGetterFunction() || func.IsSetterFunction()) {
-      return new(Z) StaticGetterNode(ident_pos,
-                                     /* receiver */ NULL,
-                                     Class::ZoneHandle(Z, func.Owner()),
-                                     ident);
-
+      StaticGetterNode* getter =
+          new(Z) StaticGetterNode(ident_pos,
+                                  /* receiver */ NULL,
+                                  Class::ZoneHandle(Z, func.Owner()),
+                                  ident);
+      getter->set_owner(library_);
+      return getter;
     } else {
       return new(Z) PrimaryNode(ident_pos, Function::ZoneHandle(Z, func.raw()));
     }
@@ -11796,7 +11803,7 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
     // Private names are not exported by libraries. The name mangling
     // of private names with a library-specific suffix usually ensures
     // that _x in library A is not found when looked up from library B.
-    // In the pathological case where a library includes itself with
+    // In the pathological case where a library imports itself with
     // a prefix, the name mangling would not help in hiding the private
     // name, so we need to explicitly reject private names here.
     return NULL;
@@ -11833,6 +11840,7 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
       get_field->AsLoadStaticFieldNode()->set_is_deferred(is_deferred);
     } else if (get_field->IsStaticGetterNode()) {
       get_field->AsStaticGetterNode()->set_is_deferred(is_deferred);
+      get_field->AsStaticGetterNode()->set_owner(prefix);
     }
     return get_field;
   } else if (obj.IsFunction()) {
@@ -11840,11 +11848,12 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
     ASSERT(func.is_static());
     if (func.IsGetterFunction() || func.IsSetterFunction()) {
       StaticGetterNode* getter = new(Z) StaticGetterNode(
-          ident_pos,
-          /* receiver */ NULL,
-          Class::ZoneHandle(Z, func.Owner()),
-          ident);
+         ident_pos,
+         /* receiver */ NULL,
+         Class::ZoneHandle(Z, func.Owner()),
+         ident);
       getter->set_is_deferred(is_deferred);
+      getter->set_owner(prefix);
       return getter;
     } else {
       PrimaryNode* primary = new(Z) PrimaryNode(

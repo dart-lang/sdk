@@ -9343,6 +9343,7 @@ RawObject* Library::LookupImportedObject(const String& name) const {
   String& import_lib_url = String::Handle();
   String& first_import_lib_url = String::Handle();
   Object& found_obj = Object::Handle();
+  String& found_obj_name = String::Handle();
   for (intptr_t i = 0; i < num_imports(); i++) {
     import ^= ImportAt(i);
     obj = import.Lookup(name);
@@ -9358,13 +9359,28 @@ RawObject* Library::LookupImportedObject(const String& name) const {
           // from the Dart library.
           first_import_lib_url = import_lib.url();
           found_obj = obj.raw();
+          found_obj_name = obj.DictionaryName();
         } else if (import_lib_url.StartsWith(Symbols::DartScheme())) {
           // The newly found object is exported from a Dart system
           // library. It is hidden by the previously found object.
           // We continue to search.
         } else {
           // We found two different objects with the same name.
-          return Object::null();
+          // Note that we need to compare the names again because
+          // looking up an unmangled name can return a getter or a
+          // setter. A getter name is the same as the unmangled name,
+          // but a setter name is different from an unmangled name or a
+          // getter name.
+          if (Field::IsGetterName(found_obj_name)) {
+            found_obj_name = Field::NameFromGetter(found_obj_name);
+          }
+          String& second_obj_name = String::Handle(obj.DictionaryName());
+          if (Field::IsGetterName(second_obj_name)) {
+            second_obj_name = Field::NameFromGetter(second_obj_name);
+          }
+          if (found_obj_name.Equals(second_obj_name)) {
+            return Object::null();
+          }
         }
       }
     }
@@ -10337,7 +10353,7 @@ RawObject* Namespace::Lookup(const String& name) const {
   if (Field::IsGetterName(name)) {
     filter_name = &String::Handle(Field::NameFromGetter(name));
   } else if (Field::IsSetterName(name)) {
-    filter_name = &String::Handle(Field::NameFromGetter(name));
+    filter_name = &String::Handle(Field::NameFromSetter(name));
   } else {
     if (obj.IsNull() || obj.IsLibraryPrefix()) {
       obj = lib.LookupEntry(String::Handle(Field::GetterName(name)), &ignore);

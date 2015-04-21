@@ -499,6 +499,7 @@ void AwaitTransformer::VisitStaticGetterNode(StaticGetterNode* node) {
                               new_receiver,
                               node->cls(),
                               node->field_name());
+  new_getter->set_owner(node->owner());
   LocalVariable* result = AddToPreambleNewTempVar(new_getter);
   result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
@@ -510,12 +511,20 @@ void AwaitTransformer::VisitStaticSetterNode(StaticSetterNode* node) {
     new_receiver = Transform(new_receiver);
   }
   AstNode* new_value = Transform(node->value());
-  LocalVariable* result = AddToPreambleNewTempVar(
-      new(Z) StaticSetterNode(node->token_pos(),
-                              new_receiver,
-                              node->cls(),
-                              node->field_name(),
-                              new_value));
+  StaticSetterNode* new_setter =
+      node->function().IsNull()
+      ? new(Z) StaticSetterNode(node->token_pos(),
+                                new_receiver,
+                                node->cls(),
+                                node->field_name(),
+                                new_value)
+      : new(Z) StaticSetterNode(node->token_pos(),
+                                new_receiver,
+                                node->field_name(),
+                                node->function(),
+                                new_value);
+
+  LocalVariable* result = AddToPreambleNewTempVar(new_setter);
   result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
