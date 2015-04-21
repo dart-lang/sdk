@@ -12,5 +12,5 @@ before_script:
   - npm install
 script:
   - ./tool/presubmit.sh
-  - ./node_modules/karma/bin/karma start --single-run --browsers chrome_travis
+  - ./node_modules/karma/bin/karma start --single-run
   - ./tool/coverage.sh
