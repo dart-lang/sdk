@@ -10,6 +10,10 @@ evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
 [ $system == windows ]
 code_test: Skip
 
+# Null code assertion http://dartbug.com/23290
+[ $system == windows ]
+coverage_test: Skip
+
 # Issue 23201
 [ $system == windows ]
 debugging_test: Skip
