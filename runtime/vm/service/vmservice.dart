@@ -66,13 +66,14 @@ class VMService extends MessageRouter {
   }
 
   void _exit() {
-    if (onShutdown != null) {
-      onShutdown();
-    }
     isolateLifecyclePort.close();
     scriptLoadPort.close();
     for (var client in clients) {
       client.close();
+    }
+    // Call embedder shutdown hook after the internal shutdown.
+    if (onShutdown != null) {
+      onShutdown();
     }
     _onExit();
   }

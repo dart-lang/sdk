@@ -1066,7 +1066,7 @@ void Debugger::Shutdown() {
     delete bpt;
   }
   // Signal isolate shutdown event.
-  if (!ServiceIsolate::IsServiceIsolate(isolate_)) {
+  if (!ServiceIsolate::IsServiceIsolateDescendant(isolate_)) {
     SignalIsolateEvent(DebuggerEvent::kIsolateShutdown);
   }
 }
@@ -2263,7 +2263,7 @@ void Debugger::Initialize(Isolate* isolate) {
 
 void Debugger::NotifyIsolateCreated() {
   // Signal isolate creation event.
-  if (!ServiceIsolate::IsServiceIsolate(isolate_)) {
+  if (!ServiceIsolate::IsServiceIsolateDescendant(isolate_)) {
     SignalIsolateEvent(DebuggerEvent::kIsolateCreated);
   }
 }
