@@ -2632,7 +2632,7 @@ var _js_helper;
           };
         }(functionType);
       } else if (!dart.notNull(isStatic) && typeof functionType == "function") {
-        let getReceiver = isIntercepted ? _foreign_helper.RAW_DART_FUNCTION_REF(BoundClosure.receiverOf) : _foreign_helper.RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
+        let getReceiver = isIntercepted ? _foreign_helper.RAW_DART_FUNCTION_REF(dart.bind(BoundClosure, 'receiverOf')) : _foreign_helper.RAW_DART_FUNCTION_REF(dart.bind(BoundClosure, 'selfOf'));
         signatureFunction = function(f, r) {
           return function() {
             return f.apply({$receiver: r(this)}, arguments$);
@@ -2654,7 +2654,7 @@ var _js_helper;
       return constructor;
     }
     static cspForwardCall(arity, isSuperCall, stubName, func) {
-      let getSelf = _foreign_helper.RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
+      let getSelf = _foreign_helper.RAW_DART_FUNCTION_REF(dart.bind(BoundClosure, 'selfOf'));
       if (isSuperCall)
         arity = -1;
       switch (arity) {
@@ -2745,8 +2745,8 @@ var _js_helper;
       })()}` + '}')();
     }
     static cspForwardInterceptedCall(arity, isSuperCall, name, func) {
-      let getSelf = _foreign_helper.RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
-      let getReceiver = _foreign_helper.RAW_DART_FUNCTION_REF(BoundClosure.receiverOf);
+      let getSelf = _foreign_helper.RAW_DART_FUNCTION_REF(dart.bind(BoundClosure, 'selfOf'));
+      let getReceiver = _foreign_helper.RAW_DART_FUNCTION_REF(dart.bind(BoundClosure, 'receiverOf'));
       if (isSuperCall)
         arity = -1;
       switch (arity) {

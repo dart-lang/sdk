@@ -1031,14 +1031,22 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (element is ClassMemberElement && element is! ConstructorElement) {
       bool isStatic = element.isStatic;
       var type = element.enclosingElement.type;
+      var member = _emitMemberName(name, isStatic: isStatic, type: type);
 
-      // For instance methods, we add implicit-this.
       // For static methods, we add the raw type name, without generics or
       // library prefix. We don't need those because static calls can't use
       // the generic type.
-      var target = isStatic ? new JS.Identifier(type.name) : new JS.This();
-      var member = _emitMemberName(name, isStatic: isStatic, type: type);
-      return new JS.PropertyAccess(target, member);
+      if (isStatic) {
+        return js.call('#.#', [type.name, member]);
+      }
+
+      // For instance members, we add implicit-this.
+      // For method tear-offs, we ensure it's a bound method.
+      var code = 'this.#';
+      if (element is MethodElement && !inInvocationContext(node)) {
+        code += '.bind(this)';
+      }
+      return js.call(code, member);
     }
 
     // initializing formal parameter, e.g. `Point(this.x)`
@@ -1230,8 +1238,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var result = _emitForeignJS(node);
     if (result != null) return result;
 
-    // TODO(jmesserly): if we try to call a getter returning a function with
-    // a call method, we don't generate the `.call` correctly.
     String code;
     if (target == null || isLibraryPrefix(target)) {
       if (rules.isDynamicCall(node.methodName)) {
@@ -1243,11 +1249,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
           code, [_visit(node.methodName), _visit(node.argumentList)]);
     }
 
-    // TODO(jmesserly): if the methodName resolves statically but the call is
-    // dynamic (e.g. `obj.method` is resolved to a field of type `Function`), we
-    // could generate call(#.#, #). Not sure if that's worth it.
-    if (rules.isDynamicCall(node.methodName)) {
+    if (rules.isDynamicTarget(target)) {
       code = 'dart.$DSEND(#, #, #)';
+    } else if (rules.isDynamicCall(node.methodName)) {
+      // This is a dynamic call to a statically know target. For example:
+      //     class Foo { Function bar; }
+      //     new Foo().bar(); // dynamic call
+      code = 'dart.$DCALL(#.#, #)';
     } else {
       code = '#.#(#)';
     }
@@ -1798,24 +1806,41 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (isLibraryPrefix(node.prefix)) {
       return _visit(node.identifier);
     } else {
-      return _emitGet(node.prefix, node.identifier.name);
+      return _emitGet(node.prefix, node.identifier);
     }
   }
 
   @override
   visitPropertyAccess(PropertyAccess node) =>
-      _emitGet(_getTarget(node), node.propertyName.name);
+      _emitGet(_getTarget(node), node.propertyName);
 
   /// Shared code for [PrefixedIdentifier] and [PropertyAccess].
-  JS.Expression _emitGet(Expression target, String memberName) {
-    var name = _emitMemberName(memberName, type: getStaticType(target));
+  JS.Expression _emitGet(Expression target, SimpleIdentifier memberId) {
+    var name = _emitMemberName(memberId.name, type: getStaticType(target));
     if (rules.isDynamicTarget(target)) {
       return js.call('dart.$DLOAD(#, #)', [_visit(target), name]);
-    } else {
-      return js.call('#.#', [_visit(target), name]);
     }
+
+    String code;
+    var member = memberId.staticElement;
+    if (member != null && member is MethodElement) {
+      // Tear-off methods: explicitly bind it.
+      if (isStateless(target, target)) {
+        return js.call('#.#.bind(#)', [_visit(target), name, _visit(target)]);
+      }
+      code = 'dart.bind(#, #)';
+    } else {
+      code = '#.#';
+    }
+
+    return js.call(code, [_visit(target), name]);
   }
 
+  /// Emits a generic send, like an operator method.
+  ///
+  /// **Please note** this function does not support method invocation syntax
+  /// `obj.name(args)` because that could be a getter followed by a call.
+  /// See [visitMethodInvocation].
   JS.Expression _emitSend(
       Expression target, String name, List<Expression> args) {
     var type = getStaticType(target);
@@ -1833,8 +1858,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         _visitList(args)
       ]);
     }
+
     if (_isJSBuiltinType(type)) {
-      // static call pattern for bultins.
+      // static call pattern for builtins.
       return js.call('#.#(#, #)', [
         _emitTypeName(type),
         memberName,

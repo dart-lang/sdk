@@ -1082,7 +1082,7 @@ var _internal;
       }
       static sortList(list, compare) {
         if (compare == null)
-          compare = core.Comparable.compare;
+          compare = dart.bind(core.Comparable, 'compare');
         Sort.sort(list, compare);
       }
       static shuffleList(list, random) {

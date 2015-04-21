@@ -14,8 +14,8 @@ var cascade;
       a = null;
     };
     let _ = a;
-    dart.dsend(_, 'x');
-    dart.dsend(_, 'x');
+    dart.dcall(_.x);
+    dart.dcall(_.x);
     core.print(a);
   }
   // Function test_closure_without_mutate: () → void
@@ -24,8 +24,8 @@ var cascade;
     a.x = () => {
       core.print(a);
     };
-    dart.dsend(a, 'x');
-    dart.dsend(a, 'x');
+    dart.dcall(a.x);
+    dart.dcall(a.x);
     core.print(a);
   }
   // Function test_mutate_inside_cascade: () → void

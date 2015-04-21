@@ -36,7 +36,13 @@ var dart, _js_helper;
     if (!(field in obj)) {
       throw new core.NoSuchMethodError(obj, field);
     }
-    return obj[field];
+    var result = obj[field];
+    if (typeof result == "function") {
+      // We can't tell if the result needs binding. Fortunately binding the
+      // same function twice has no effect, so we can simply attempt to bind.
+      return result.bind(obj);
+    }
+    return result;
   }
   dart.dload = dload;
 
@@ -97,6 +103,17 @@ var dart, _js_helper;
     return checkAndCall(obj.set, obj, [index, value], '[]=');
   }
   dart.dsetindex = dsetindex;
+
+  /**
+   * Returns bound `method`.
+   * This helper function avoids needing a temp for `obj`.
+   */
+  function bind(obj, method) {
+    // This is a static bind (dynamic would use `dload`) so no need to check
+    // if `method` is really there on `obj`.`
+    return obj[method].bind(obj);
+  }
+  dart.bind = bind;
 
   function cast(obj, type) {
     // TODO(vsm): handle non-nullable types

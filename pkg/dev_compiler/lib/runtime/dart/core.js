@@ -1411,7 +1411,7 @@ var core;
       Stopwatch[_frequency] = _js_helper.Primitives.timerFrequency;
     }
     static [_now]() {
-      return dart.as(dart.dsend(_js_helper.Primitives, 'timerTicks'), int);
+      return dart.as(dart.dcall(_js_helper.Primitives.timerTicks), int);
     }
   }
   Stopwatch._frequency = null;
@@ -2220,7 +2220,7 @@ var core;
     get pathSegments() {
       if (this[_pathSegments] == null) {
         let pathToSplit = !dart.notNull(this.path.isEmpty) && this.path.codeUnitAt(0) == Uri[_SLASH] ? this.path.substring(1) : this.path;
-        this[_pathSegments] = new collection.UnmodifiableListView(pathToSplit == "" ? /* Unimplemented const */dart.setType([], List$(String)) : pathToSplit.split("/")[exports.$map](Uri.decodeComponent)[exports.$toList]({growable: false}));
+        this[_pathSegments] = new collection.UnmodifiableListView(pathToSplit == "" ? /* Unimplemented const */dart.setType([], List$(String)) : pathToSplit.split("/")[exports.$map](dart.bind(Uri, 'decodeComponent'))[exports.$toList]({growable: false}));
       }
       return this[_pathSegments];
     }

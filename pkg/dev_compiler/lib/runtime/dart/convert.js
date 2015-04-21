@@ -818,7 +818,7 @@ var convert;
         throw new core.StateError("Only one call to add allowed");
       }
       this[_isDone] = true;
-      _JsonUtf8Stringifier.stringify(object, this[_indent], dart.as(this[_toEncodable$], dart.functionType(dart.dynamic, [core.Object])), this[_bufferSize], this[_addChunk]);
+      _JsonUtf8Stringifier.stringify(object, this[_indent], dart.as(this[_toEncodable$], dart.functionType(dart.dynamic, [core.Object])), this[_bufferSize], this[_addChunk].bind(this));
       this[_sink].close();
     }
     close() {
@@ -1375,7 +1375,7 @@ var convert;
     }
     convert(data) {
       let lines = new (core.List$(core.String))();
-      _LineSplitterSink[_addSlice](data, 0, data.length, true, lines[core.$add]);
+      _LineSplitterSink[_addSlice](data, 0, data.length, true, lines[core.$add].bind(lines));
       return lines;
     }
     startChunkedConversion(sink) {
@@ -1400,7 +1400,7 @@ var convert;
         end = chunk.length;
         this[_carry] = null;
       }
-      this[_carry] = _LineSplitterSink[_addSlice](chunk, start, end, isLast, this[_sink].add);
+      this[_carry] = _LineSplitterSink[_addSlice](chunk, start, end, isLast, this[_sink].add.bind(this[_sink]));
       if (isLast)
         this[_sink].close();
     }
@@ -1576,7 +1576,7 @@ var convert;
       return new _Utf8StringSinkAdapter(this, this[_stringSink], allowMalformed);
     }
     asStringSink() {
-      return new ClosableStringSink.fromStringSink(this[_stringSink], this.close);
+      return new ClosableStringSink.fromStringSink(this[_stringSink], dart.bind(this, 'close'));
     }
   }
   class _StringCallbackSink extends _StringSinkConversionSink {

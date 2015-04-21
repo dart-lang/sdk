@@ -18,7 +18,8 @@ import 'package:analyzer/src/generated/ast.dart'
         AnnotatedNode,
         AstNode,
         Expression,
-        SimpleIdentifier;
+        SimpleIdentifier,
+        MethodInvocation;
 import 'package:analyzer/src/generated/constant.dart' show DartObjectImpl;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
@@ -388,3 +389,11 @@ Object getConstantField(
 
 InterfaceType fillDynamicTypeArgs(InterfaceType t, TypeProvider types) =>
     t.substitute4(new List.filled(t.typeArguments.length, types.dynamicType));
+
+/// Similar to [SimpleIdentifier] inGetterContext, inSetterContext, and
+/// inDeclarationContext, this method returns true if [node] is used in an
+/// invocation context such as a MethodInvocation.
+bool inInvocationContext(SimpleIdentifier node) {
+  var parent = node.parent;
+  return parent is MethodInvocation && parent.methodName == node;
+}

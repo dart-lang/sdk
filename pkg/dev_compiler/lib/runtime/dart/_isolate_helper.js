@@ -110,7 +110,7 @@ var _isolate_helper;
       return x;
     }
     serializeMap(x) {
-      let serializeTearOff = this.serialize;
+      let serializeTearOff = this.serialize.bind(this);
       return ['map', x.keys[core.$map](dart.as(serializeTearOff, __CastType0))[core.$toList](), x.values[core.$map](dart.as(serializeTearOff, dart.functionType(dart.dynamic, [dart.dynamic])))[core.$toList]()];
     }
     serializeJSObject(x) {
@@ -287,7 +287,7 @@ var _isolate_helper;
       let values = dart.as(dart.dindex(x, 2), core.List);
       let result = dart.map();
       this.deserializedObjects[core.$add](result);
-      keys = keys[core.$map](this.deserialize)[core.$toList]();
+      keys = keys[core.$map](this.deserialize.bind(this))[core.$toList]();
       for (let i = 0; dart.notNull(i) < dart.notNull(keys[core.$length]); i = dart.notNull(i) + 1) {
         result.set(keys[core.$get](i), this.deserialize(values[core.$get](i)));
       }
@@ -454,7 +454,7 @@ var _isolate_helper;
         return function(e) {
           f(a, e);
         };
-      }(_foreign_helper.DART_CLOSURE_TO_JS(IsolateNatives[_processWorkerMessage]), this.mainManager);
+      }(_foreign_helper.DART_CLOSURE_TO_JS(dart.bind(IsolateNatives, _processWorkerMessage)), this.mainManager);
       self.onmessage = func;
       self.dartPrint = self.dartPrint || function(serialize) {
         return function(object) {
@@ -572,14 +572,14 @@ var _isolate_helper;
         return;
       }
       if (priority == isolate.Isolate.AS_EVENT) {
-        exports._globalState.topEventLoop.enqueue(this, this.kill, "kill");
+        exports._globalState.topEventLoop.enqueue(this, this.kill.bind(this), "kill");
         return;
       }
       dart.assert(priority == isolate.Isolate.BEFORE_NEXT_EVENT);
       if (this[_scheduledControlEvents] == null) {
         this[_scheduledControlEvents] = new collection.Queue();
       }
-      dart.dsend(this[_scheduledControlEvents], 'addLast', this.kill);
+      dart.dsend(this[_scheduledControlEvents], 'addLast', this.kill.bind(this));
     }
     addErrorListener(port) {
       this.errorPorts.add(port);
@@ -1265,8 +1265,8 @@ var _isolate_helper;
       this[_rawPort] = rawPort;
       this[_controller] = null;
       super.Stream();
-      this[_controller] = new async.StreamController({onCancel: this.close, sync: true});
-      this[_rawPort].handler = this[_controller].add;
+      this[_controller] = new async.StreamController({onCancel: this.close.bind(this), sync: true});
+      this[_rawPort].handler = dart.bind(this[_controller], 'add');
     }
     listen(onData, opts) {
       let onError = opts && 'onError' in opts ? opts.onError : null;
