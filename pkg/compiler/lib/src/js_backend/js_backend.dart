@@ -20,6 +20,7 @@ import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../io/code_output.dart';
+import '../io/source_information.dart' show SourceInformationFactory;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_emitter/js_emitter.dart'

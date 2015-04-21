@@ -1001,7 +1001,7 @@ class Printer implements NodeVisitor {
 
   @override
   void visitArrayHole(ArrayHole node) {
-    throw "Unreachable";
+    context.error("Unreachable");
   }
 
   @override

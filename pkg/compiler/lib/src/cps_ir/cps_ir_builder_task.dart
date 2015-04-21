@@ -12,7 +12,6 @@ import '../dart2jslib.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show SynthesizedConstructorElementX,
     ConstructorBodyElementX, FunctionSignatureX;
-import '../io/source_file.dart';
 import '../io/source_information.dart';
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../resolution/semantic_visitor.dart';
@@ -42,11 +41,11 @@ import 'cps_ir_builder.dart';
  */
 class IrBuilderTask extends CompilerTask {
   final Map<Element, ir.RootNode> nodes = <Element, ir.RootNode>{};
-  final bool generateSourceMap;
+  final SourceInformationFactory sourceInformationFactory;
 
   String bailoutMessage = null;
 
-  IrBuilderTask(Compiler compiler, {this.generateSourceMap: true})
+  IrBuilderTask(Compiler compiler, this.sourceInformationFactory)
       : super(compiler);
 
   String get name => 'IR builder';
@@ -67,9 +66,8 @@ class IrBuilderTask extends CompilerTask {
     TreeElements elementsMapping = element.resolvedAst.elements;
     element = element.implementation;
     return compiler.withCurrentElement(element, () {
-      SourceInformationBuilder sourceInformationBuilder = generateSourceMap
-          ? new PositionSourceInformationBuilder(element)
-          : const SourceInformationBuilder();
+      SourceInformationBuilder sourceInformationBuilder =
+          sourceInformationFactory.forContext(element);
 
       IrBuilderVisitor builder =
           compiler.backend is JavaScriptBackend
@@ -2761,47 +2759,6 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   }
 }
 
-/// Interface for generating [SourceInformation] for the CPS.
-class SourceInformationBuilder {
-  const SourceInformationBuilder();
-
-  /// Create a [SourceInformationBuilder] for [element].
-  SourceInformationBuilder forContext(AstElement element) => this;
-
-  /// Generate [SourceInformation] for the read access in [node].
-  SourceInformation buildGet(ast.Node node) => null;
-
-  /// Generate [SourceInformation] for the invocation in [node].
-  SourceInformation buildCall(ast.Node node) => null;
-}
-
-/// [SourceInformationBuilder] that generates [PositionSourceInformation].
-class PositionSourceInformationBuilder implements SourceInformationBuilder {
-  final SourceFile sourceFile;
-  final String name;
-
-  PositionSourceInformationBuilder(AstElement element)
-      : sourceFile = element.compilationUnit.script.file,
-        name = element.name;
-
-  @override
-  SourceInformation buildGet(ast.Node node) {
-    return new PositionSourceInformation(
-        new TokenSourceLocation(sourceFile, node.getBeginToken(), name));
-  }
-
-  @override
-  SourceInformation buildCall(ast.Node node) {
-    return new PositionSourceInformation(
-        new TokenSourceLocation(sourceFile, node.getBeginToken(), name));
-  }
-
-  @override
-  SourceInformationBuilder forContext(AstElement element) {
-    return new PositionSourceInformationBuilder(element);
-  }
-}
-
 /// Perform simple post-processing on the initial CPS-translated root term.
 ///
 /// This pass performs backend-independent post-processing on the translated
@@ -2868,4 +2825,3 @@ class RemovalVisitor extends ir.RecursiveVisitor {
     reference.unlink();
   }
 }
-

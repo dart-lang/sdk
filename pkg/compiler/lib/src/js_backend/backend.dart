@@ -599,7 +599,9 @@ class JavaScriptBackend extends Backend {
 
   bool enabledNoSuchMethod = false;
 
-  JavaScriptBackend(Compiler compiler, bool generateSourceMap)
+  JavaScriptBackend(Compiler compiler,
+                    SourceInformationFactory sourceInformationFactory,
+                    {bool generateSourceMap: true})
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<String, Selector>(),
         interceptedElements = new Map<String, Set<Element>>(),
@@ -615,8 +617,8 @@ class JavaScriptBackend extends Backend {
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler = compiler.useCpsIr
          ? new CpsFunctionCompiler(
-             compiler, this, generateSourceMap: generateSourceMap)
-         : new SsaFunctionCompiler(this, generateSourceMap);
+             compiler, this, sourceInformationFactory)
+         : new SsaFunctionCompiler(this, sourceInformationFactory);
   }
 
   ConstantSystem get constantSystem => constants.constantSystem;

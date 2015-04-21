@@ -9,9 +9,10 @@ class SsaFunctionCompiler implements FunctionCompiler {
   SsaBuilderTask builder;
   SsaOptimizerTask optimizer;
 
-  SsaFunctionCompiler(JavaScriptBackend backend, bool generateSourceMap)
-      : generator = new SsaCodeGeneratorTask(backend),
-        builder = new SsaBuilderTask(backend, generateSourceMap),
+  SsaFunctionCompiler(JavaScriptBackend backend,
+                      SourceInformationFactory sourceInformationFactory)
+      : generator = new SsaCodeGeneratorTask(backend, sourceInformationFactory),
+        builder = new SsaBuilderTask(backend, sourceInformationFactory),
         optimizer = new SsaOptimizerTask(backend);
 
   /// Generates JavaScript code for `work.element`.
@@ -96,11 +97,11 @@ class SyntheticLocal extends Local {
 class SsaBuilderTask extends CompilerTask {
   final CodeEmitterTask emitter;
   final JavaScriptBackend backend;
-  final bool generateSourceMap;
+  final SourceInformationFactory sourceInformationFactory;
 
   String get name => 'SSA builder';
 
-  SsaBuilderTask(JavaScriptBackend backend, this.generateSourceMap)
+  SsaBuilderTask(JavaScriptBackend backend, this.sourceInformationFactory)
     : emitter = backend.emitter,
       backend = backend,
       super(backend.compiler);
@@ -112,7 +113,8 @@ class SsaBuilderTask extends CompilerTask {
         HInstruction.idCounter = 0;
         SsaBuilder builder =
             new SsaBuilder(
-                backend, work, emitter.nativeEmitter, generateSourceMap);
+                backend, work, emitter.nativeEmitter,
+                sourceInformationFactory);
         HGraph graph;
         ElementKind kind = element.kind;
         if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
@@ -198,6 +200,10 @@ class LocalsHandler {
   /// The class that defines the current type environment or null if no type
   /// variables are in scope.
   ClassElement get contextClass => executableContext.contextClass;
+
+  SourceInformationBuilder get sourceInformationBuilder {
+    return builder.sourceInformationBuilder;
+  }
 
   LocalsHandler(this.builder, this.executableContext);
 
@@ -993,7 +999,7 @@ class SsaBuilder extends NewResolvedVisitor {
   final ConstantSystem constantSystem;
   final CodegenWorkItem work;
   final RuntimeTypes rti;
-  final bool generateSourceMap;
+  SourceInformationBuilder sourceInformationBuilder;
   bool inLazyInitializerExpression = false;
 
   /* This field is used by the native handler. */
@@ -1081,7 +1087,7 @@ class SsaBuilder extends NewResolvedVisitor {
   SsaBuilder(JavaScriptBackend backend,
              CodegenWorkItem work,
              this.nativeEmitter,
-             this.generateSourceMap)
+             SourceInformationFactory sourceInformationFactory)
     : this.compiler = backend.compiler,
       this.backend = backend,
       this.constantSystem = backend.constantSystem,
@@ -1090,6 +1096,8 @@ class SsaBuilder extends NewResolvedVisitor {
       super(work.resolutionTree) {
     localsHandler = new LocalsHandler(this, work.element);
     sourceElementStack.add(work.element);
+    sourceInformationBuilder =
+        sourceInformationFactory.forContext(work.element.implementation);
   }
 
   CodegenRegistry get registry => work.registry;
@@ -1158,20 +1166,6 @@ class SsaBuilder extends NewResolvedVisitor {
 
   void addWithPosition(HInstruction instruction, ast.Node node) {
     add(attachPosition(instruction, node));
-  }
-
-  SourceFile currentSourceFile() {
-    return sourceElement.implementation.compilationUnit.script.file;
-  }
-
-  void checkValidSourceFileLocation(
-      SourceLocation location, SourceFile sourceFile, int offset) {
-    if (!location.isValid) {
-      throw MessageKind.INVALID_SOURCE_FILE_LOCATION.message(
-          {'offset': offset,
-           'fileName': sourceFile.filename,
-           'length': sourceFile.length});
-    }
   }
 
   /**
@@ -1460,8 +1454,13 @@ class SsaBuilder extends NewResolvedVisitor {
     assert(element is FunctionElement || element is VariableElement);
     return compiler.withCurrentElement(element, () {
       // The [sourceElementStack] contains declaration elements.
+      SourceInformationBuilder oldSourceInformationBuilder =
+          sourceInformationBuilder;
+      sourceInformationBuilder =
+          sourceInformationBuilder.forContext(element.implementation);
       sourceElementStack.add(element.declaration);
       var result = f();
+      sourceInformationBuilder = oldSourceInformationBuilder;
       sourceElementStack.removeLast();
       return result;
     });
@@ -2513,34 +2512,10 @@ class SsaBuilder extends NewResolvedVisitor {
   }
 
   HInstruction attachPosition(HInstruction target, ast.Node node) {
-    if (generateSourceMap && node != null) {
-      target.sourceInformation = sourceInformationForBeginToken(node);
+    if (node != null) {
+      target.sourceInformation = sourceInformationBuilder.buildGeneric(node);
     }
     return target;
-  }
-
-  SourceInformation sourceInformationForBeginToken(ast.Node node) {
-    return new StartEndSourceInformation(sourceFileLocationForBeginToken(node));
-  }
-
-  SourceInformation sourceInformationForBeginEndToken(ast.Node node) {
-    return new StartEndSourceInformation(
-        sourceFileLocationForBeginToken(node),
-        sourceFileLocationForEndToken(node));
-  }
-
-  SourceLocation sourceFileLocationForBeginToken(ast.Node node) =>
-      sourceFileLocationForToken(node, node.getBeginToken());
-
-  SourceLocation sourceFileLocationForEndToken(ast.Node node) =>
-      sourceFileLocationForToken(node, node.getEndToken());
-
-  SourceLocation sourceFileLocationForToken(ast.Node node, Token token) {
-    SourceFile sourceFile = currentSourceFile();
-    SourceLocation location =
-        new TokenSourceLocation(sourceFile, token, sourceElement.name);
-    checkValidSourceFileLocation(location, sourceFile, token.charOffset);
-    return location;
   }
 
   void visit(ast.Node node) {
@@ -2812,7 +2787,7 @@ class SsaBuilder extends NewResolvedVisitor {
               wrapExpressionGraph(updateGraph),
               conditionBlock.loopInformation.target,
               conditionBlock.loopInformation.labels,
-              sourceInformationForBeginEndToken(loop));
+              sourceInformationBuilder.buildLoop(loop));
 
       startBlock.setBlockFlow(info, current);
       loopInfo.loopBlockInformation = info;
@@ -3029,7 +3004,7 @@ class SsaBuilder extends NewResolvedVisitor {
               null,
               loopEntryBlock.loopInformation.target,
               loopEntryBlock.loopInformation.labels,
-              sourceInformationForBeginEndToken(node));
+              sourceInformationBuilder.buildLoop(node));
       loopEntryBlock.setBlockFlow(loopBlockInfo, current);
       loopInfo.loopBlockInformation = loopBlockInfo;
     } else {

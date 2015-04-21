@@ -1058,9 +1058,17 @@ abstract class Compiler implements DiagnosticListener {
     globalDependencies =
         new CodegenRegistry(this, new TreeElementMapping(null));
 
+    SourceInformationFactory sourceInformationFactory =
+        const SourceInformationFactory();
+    if (generateSourceMap) {
+      sourceInformationFactory =
+          const bool.fromEnvironment('USE_NEW_SOURCE_INFO', defaultValue: false)
+              ? const PositionSourceInformationFactory()
+              : const StartEndSourceInformationFactory();
+    }
     if (emitJavaScript) {
-      js_backend.JavaScriptBackend jsBackend =
-          new js_backend.JavaScriptBackend(this, generateSourceMap);
+      js_backend.JavaScriptBackend jsBackend = new js_backend.JavaScriptBackend(
+      this, sourceInformationFactory, generateSourceMap: generateSourceMap);
       backend = jsBackend;
     } else {
       backend = new dart_backend.DartBackend(this, strips,
@@ -1079,7 +1087,7 @@ abstract class Compiler implements DiagnosticListener {
       resolver = new ResolverTask(this, backend.constantCompilerTask),
       closureToClassMapper = new closureMapping.ClosureTask(this),
       checker = new TypeCheckerTask(this),
-      irBuilder = new IrBuilderTask(this),
+      irBuilder = new IrBuilderTask(this, sourceInformationFactory),
       typesTask = new ti.TypesTask(this),
       constants = backend.constantCompilerTask,
       deferredLoadTask = new DeferredLoadTask(this),

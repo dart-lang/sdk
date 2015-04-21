@@ -7,6 +7,7 @@ library js;
 import 'package:js_ast/js_ast.dart';
 export 'package:js_ast/js_ast.dart';
 
+import '../helpers/helpers.dart';
 import '../io/code_output.dart' show CodeBuffer;
 import '../io/source_information.dart' show SourceInformation;
 import '../js_emitter/js_emitter.dart' show USE_NEW_EMITTER;
@@ -38,14 +39,17 @@ class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
   Dart2JSJavaScriptPrintingContext(leg.Compiler this.compiler,
       DumpInfoTask this.monitor);
 
+  @override
   void error(String message) {
     compiler.internalError(NO_LOCATION_SPANNABLE, message);
   }
 
+  @override
   void emit(String string) {
     outBuffer.add(string);
   }
 
+  @override
   void enterNode(Node node, int startPosition) {
     SourceInformation sourceInformation = node.sourceInformation;
     if (sourceInformation != null) {
@@ -65,6 +69,11 @@ class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
                 int closingPosition) {
     SourceInformation sourceInformation = node.sourceInformation;
     if (sourceInformation != null) {
+      if (closingPosition != null &&
+          sourceInformation.closingPosition != null) {
+        outBuffer.addSourceLocation(
+            closingPosition, sourceInformation.closingPosition);
+      }
       if (sourceInformation.endPosition != null) {
         outBuffer.addSourceLocation(endPosition, sourceInformation.endPosition);
       }

@@ -7,10 +7,13 @@ part of ssa;
 class SsaCodeGeneratorTask extends CompilerTask {
 
   final JavaScriptBackend backend;
+  final SourceInformationFactory sourceInformationFactory;
 
-  SsaCodeGeneratorTask(JavaScriptBackend backend)
+  SsaCodeGeneratorTask(JavaScriptBackend backend,
+                       this.sourceInformationFactory)
       : this.backend = backend,
         super(backend.compiler);
+
   String get name => 'SSA code generator';
   NativeEmitter get nativeEmitter => backend.emitter.nativeEmitter;
 
@@ -31,8 +34,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
             ? const js.AsyncModifier.syncStar()
             : const js.AsyncModifier.sync());
 
-    return attachPosition(
-        new js.Fun(parameters, body, asyncModifier: asyncModifier), element);
+    return new js.Fun(parameters, body, asyncModifier: asyncModifier)
+        .withSourceInformation(sourceInformationFactory.forContext(element)
+            .buildDeclaration(element));
   }
 
   js.Expression generateCode(CodegenWorkItem work, HGraph graph) {
@@ -46,10 +50,13 @@ class SsaCodeGeneratorTask extends CompilerTask {
   js.Expression generateLazyInitializer(work, graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
+      SourceInformation sourceInformation =
+          sourceInformationFactory.forContext(work.element)
+              .buildDeclaration(work.element);
       SsaCodeGenerator codegen = new SsaCodeGenerator(backend, work);
       codegen.visitGraph(graph);
-      return new js.Fun(codegen.parameters,
-          attachPosition(codegen.body, work.element));
+      return new js.Fun(codegen.parameters, codegen.body)
+          .withSourceInformation(sourceInformation);
     });
   }
 
@@ -135,7 +142,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // if branches.
   SubGraph subGraph;
 
-  SsaCodeGenerator(this.backend, CodegenWorkItem work)
+  SsaCodeGenerator(this.backend, CodegenWorkItem work,
+                   {SourceInformation sourceInformation})
     : this.work = work,
       declaredLocals = new Set<String>(),
       collectedVariableDeclarations = new Set<String>(),
