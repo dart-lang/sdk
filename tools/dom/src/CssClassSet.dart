@@ -19,10 +19,6 @@ abstract class CssClassSet implements Set<String> {
    * operation.
    *
    * If this corresponds to many elements, `null` is always returned.
-   *
-   * [value] must be a valid 'token' representing a single class, i.e. a
-   * non-empty string containing no whitespace.  To toggle multiple classes, use
-   * [toggleAll].
    */
   bool toggle(String value, [bool shouldAdd]);
 
@@ -37,26 +33,19 @@ abstract class CssClassSet implements Set<String> {
    *
    * This is the Dart equivalent of jQuery's
    * [hasClass](http://api.jquery.com/hasClass/).
-   *
-   * [value] must be a valid 'token' representing a single class, i.e. a
-   * non-empty string containing no whitespace.
    */
   bool contains(String value);
 
   /**
    * Add the class [value] to element.
    *
-   * [add] and [addAll] are the Dart equivalent of jQuery's
+   * This is the Dart equivalent of jQuery's
    * [addClass](http://api.jquery.com/addClass/).
    *
-   * If this CssClassSet corresponds to one element. Returns true if [value] was
-   * added to the set, otherwise false.
+   * If this corresponds to one element. Returns true if [value] was added to
+   * the set, otherwise false.
    *
    * If this corresponds to many elements, `null` is always returned.
-   *
-   * [value] must be a valid 'token' representing a single class, i.e. a
-   * non-empty string containing no whitespace.  To add multiple classes use
-   * [addAll].
    */
   bool add(String value);
 
@@ -64,34 +53,24 @@ abstract class CssClassSet implements Set<String> {
    * Remove the class [value] from element, and return true on successful
    * removal.
    *
-   * [remove] and [removeAll] are the Dart equivalent of jQuery's
+   * This is the Dart equivalent of jQuery's
    * [removeClass](http://api.jquery.com/removeClass/).
-   *
-   * [value] must be a valid 'token' representing a single class, i.e. a
-   * non-empty string containing no whitespace.  To remove multiple classes, use
-   * [removeAll].
    */
   bool remove(Object value);
 
   /**
    * Add all classes specified in [iterable] to element.
    *
-   * [add] and [addAll] are the Dart equivalent of jQuery's
+   * This is the Dart equivalent of jQuery's
    * [addClass](http://api.jquery.com/addClass/).
-   *
-   * Each element of [iterable] must be a valid 'token' representing a single
-   * class, i.e. a non-empty string containing no whitespace.
    */
   void addAll(Iterable<String> iterable);
 
   /**
    * Remove all classes specified in [iterable] from element.
    *
-   * [remove] and [removeAll] are the Dart equivalent of jQuery's
+   * This is the Dart equivalent of jQuery's
    * [removeClass](http://api.jquery.com/removeClass/).
-   *
-   * Each element of [iterable] must be a valid 'token' representing a single
-   * class, i.e. a non-empty string containing no whitespace.
    */
   void removeAll(Iterable<String> iterable);
 
@@ -104,9 +83,6 @@ abstract class CssClassSet implements Set<String> {
    * If [shouldAdd] is true, then we always add all the classes in [iterable]
    * element. If [shouldAdd] is false then we always remove all the classes in
    * [iterable] from the element.
-   *
-   * Each element of [iterable] must be a valid 'token' representing a single
-   * class, i.e. a non-empty string containing no whitespace.
    */
   void toggleAll(Iterable<String> iterable, [bool shouldAdd]);
 }
