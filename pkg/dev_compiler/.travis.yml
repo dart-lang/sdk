@@ -5,6 +5,9 @@ dart:
   - stable
 before_install:
   - pub global activate dart_coveralls
+before_script:
+  - npm install
 script:
   - ./tool/presubmit.sh
   - ./tool/coverage.sh
+  - ./node_modules/karma/bin/karma start --single-run --browsers chrome_harmony,chrome_canary_harmony

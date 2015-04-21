@@ -10,6 +10,7 @@ packages
 *.sw?
 .idea/
 .pub/
+node_modules
 
 # Or our test output folder
 test/codegen/actual/
