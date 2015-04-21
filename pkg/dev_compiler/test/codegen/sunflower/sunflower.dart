@@ -12,9 +12,8 @@ const SEED_RADIUS = 2;
 const SCALE_FACTOR = 4;
 const TAU = PI * 2;
 const MAX_D = 300;
-// TODO(sigmund): remove `num` here, this is to workaround dartbug.com/22937
-const num centerX = MAX_D / 2;
-const num centerY = centerX;
+const centerX = MAX_D / 2;
+const centerY = centerX;
 
 Element querySelector(String selector) => document.querySelector(selector);
 
