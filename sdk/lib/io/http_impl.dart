@@ -1883,7 +1883,11 @@ class _HttpClient implements HttpClient {
           // On error, continue with next proxy.
           .catchError(connect);
     }
-    return connect(new HttpException("No proxies given"));
+    // Make sure we go through the event loop before taking a
+    // connection from the pool. For long-running synchronous code the
+    // server might have closed the connection, so this lowers the
+    // probability of getting a connection that was already closed.
+    return new Future(() => connect(new HttpException("No proxies given")));
   }
 
   _SiteCredentials _findCredentials(Uri url, [_AuthenticationScheme scheme]) {

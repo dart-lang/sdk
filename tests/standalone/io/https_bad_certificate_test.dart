@@ -27,7 +27,7 @@ Future<SecureServerSocket> runServer() {
   });
 }
 
-void main() {
+main() async {
   var clientScript = Platform.script
                              .resolve('https_bad_certificate_client.dart')
                              .toFilePath();
@@ -46,12 +46,10 @@ void main() {
     });
   }
 
-  runServer().then((server) {
-    Future.wait([clientProcess(server.port, 'true'),
-                 clientProcess(server.port, 'false'),
-                 clientProcess(server.port, 'fisk'),
-                 clientProcess(server.port, 'exception')]).then((_) {
-      server.close();
-    });
-  });
+  var server = await runServer();
+  await clientProcess(server.port, 'true');
+  await clientProcess(server.port, 'false');
+  await clientProcess(server.port, 'fisk');
+  await clientProcess(server.port, 'exception');
+  server.close();
 }
