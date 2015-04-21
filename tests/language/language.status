@@ -7,7 +7,6 @@
 
 [ $compiler == none ]
 built_in_identifier_prefix_test: Fail # Issue 6970
-vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 
 # These bugs refer currently ongoing language discussions.
 constructor_initializer_test/none: Fail # Issue 12633
@@ -62,6 +61,7 @@ async_star_test/05: Timeout, RuntimeError
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
+vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 
 [ $compiler == none && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
@@ -101,6 +101,7 @@ main_test/05: Fail # Issue 20028
 main_test/21: Fail # Issue 20028
 main_test/42: Fail # Issue 20028
 mirror_in_static_init_test: Fail # Issue 22071
+vm/debug_break_enabled_vm_test/*: Skip
 
 [ $compiler == none && $runtime == drt ]
 disassemble_test: Pass, Fail # Issue 18122
