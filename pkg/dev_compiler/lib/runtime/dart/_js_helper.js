@@ -2040,7 +2040,7 @@ var _js_helper;
         });
       }
       let selectorName = `${_foreign_helper.JS_GET_NAME("CALL_PREFIX")}$${argumentCount}${names}`;
-      return dart.dsend(func, 'noSuchMethod', createUnmangledInvocationMirror(dart.throw_("Unimplemented SymbolLiteral: #call"), selectorName, JSInvocationMirror.METHOD, arguments$, namedArgumentList));
+      return dart.dsend(func, 'noSuchMethod', createUnmangledInvocationMirror(/* Unimplemented const */new _internal.Symbol("call"), selectorName, JSInvocationMirror.METHOD, arguments$, namedArgumentList));
     }
     static applyFunction(func, positionalArguments, namedArguments) {
       return namedArguments == null ? Primitives.applyFunctionWithPositionalArguments(func, positionalArguments) : Primitives.applyFunctionWithNamedArguments(func, positionalArguments, namedArguments);

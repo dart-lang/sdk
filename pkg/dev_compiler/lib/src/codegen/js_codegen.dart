@@ -2053,6 +2053,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   visitNullLiteral(NullLiteral node) => new JS.LiteralNull();
 
   @override
+  visitSymbolLiteral(SymbolLiteral node) {
+    // TODO(vsm): When we canonicalize, we need to treat private symbols
+    // correctly.
+    // TODO(vsm): Make this core.Symbol instead.
+    var name = js.escapedString(node.components.join('.'));
+    var symbol = js.call('new _internal.Symbol(#)', name);
+    return js.commentExpression('Unimplemented const', symbol);
+  }
+
+  @override
   visitListLiteral(ListLiteral node) {
     JS.Expression list = new JS.ArrayInitializer(_visitList(node.elements));
 
