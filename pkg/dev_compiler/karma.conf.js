@@ -71,6 +71,11 @@ module.exports = function(config) {
 	base: 'ChromeCanary',
         flags: ['--js-flags="--harmony-arrow-functions --harmony-classes --harmony-computed-property-names"']
       },
+
+      chrome_travis: {
+	base: 'Chrome',
+        flags: ['--no-sandbox --js-flags="--harmony-arrow-functions --harmony-classes --harmony-computed-property-names"']
+      },
     },
     browsers: ['chrome_harmony'],
 
