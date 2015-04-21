@@ -2187,7 +2187,7 @@ class HPhi extends HInstruction {
     input.usedBy.add(this);
   }
 
-  toString() => 'phi';
+  toString() => 'phi $id';
   accept(HVisitor visitor) => visitor.visitPhi(this);
 }
 

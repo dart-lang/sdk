@@ -3663,6 +3663,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   visitSyncForIn(SyncForIn node) {
+    registry.registerSyncForIn(node);
     registry.setIteratorSelector(node, compiler.iteratorSelector);
     registry.registerDynamicGetter(compiler.iteratorSelector);
     registry.setCurrentSelector(node, compiler.currentSelector);

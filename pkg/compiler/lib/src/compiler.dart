@@ -564,6 +564,10 @@ class ResolutionCallbacks {
   /// Register an is check to the backend.
   void onIsCheck(DartType type, Registry registry) {}
 
+  /// Called during resolution to notify to the backend that the
+  /// program has a for-in loop.
+  void onSyncForIn(Registry registry) {}
+
   /// Register an as check to the backend.
   void onAsCheck(DartType type, Registry registry) {}
 

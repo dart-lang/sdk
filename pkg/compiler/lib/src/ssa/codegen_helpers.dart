@@ -614,7 +614,9 @@ class SsaConditionMerger extends HGraphVisitor {
   bool hasAnyStatement(HBasicBlock block, HInstruction instruction) {
     // If [instruction] is not in [block], then if the block is not
     // empty, we know there will be a statement to emit.
-    if (!identical(instruction.block, block)) return !identical(block.last, block.first);
+    if (!identical(instruction.block, block)) {
+      return !identical(block.last, block.first);
+    }
 
     // If [instruction] is not the last instruction of the block
     // before the control flow instruction, or the last instruction,

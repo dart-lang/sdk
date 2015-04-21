@@ -215,6 +215,10 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'subtypeOfRuntimeTypeCast': 'subtypeOfRuntimeTypeCast(object, type) {}',
   'throwAbstractClassInstantiationError':
       'throwAbstractClassInstantiationError(className) {}',
+  'checkConcurrentModificationError':
+      'checkConcurrentModificationError(collection) {}',
+  'throwConcurrentModificationError':
+      'throwConcurrentModificationError(collection) {}',
   'throwCyclicInit': 'throwCyclicInit(staticName) {}',
   'throwExpression': 'throwExpression(e) {}',
   'throwNoSuchMethod':
