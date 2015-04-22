@@ -4653,42 +4653,112 @@ class SsaBuilder extends NewResolvedVisitor {
     return graph.addConstant(constant, compiler);
   }
 
-  visitTypeLiteralSend(ast.Send node) {
-    DartType type = elements.getTypeLiteralType(node);
-    if (type.isInterfaceType || type.isTypedef || type.isDynamic) {
-      // TODO(karlklose): add type representation
-      if (node.isCall) {
-        // The node itself is not a constant but we register the selector (the
-        // identifier that refers to the class/typedef) as a constant.
-        stack.add(addConstant(node.selector));
-      } else {
-        stack.add(addConstant(node));
-      }
-    } else if (type.isTypeVariable) {
-      type = localsHandler.substInContext(type);
-      HInstruction value = analyzeTypeArgument(type);
-      pushInvokeStatic(node,
-                       backend.getRuntimeTypeToString(),
-                       [value],
-                       backend.stringType);
-      pushInvokeStatic(node,
-                       backend.getCreateRuntimeType(),
-                       [pop()]);
-    } else {
-      internalError(node, 'unexpected type kind ${type.kind}');
-    }
+  visitClassTypeLiteralGet(
+      ast.Send node,
+      ConstantExpression constant,
+      _) {
+    generateConstantTypeLiteral(node);
+  }
+
+  visitClassTypeLiteralInvoke(
+      ast.Send node,
+      ConstantExpression constant,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    generateConstantTypeLiteral(node);
+    generateTypeLiteralCall(node);
+  }
+
+  visitTypedefTypeLiteralGet(
+      ast.Send node,
+      ConstantExpression constant,
+      _) {
+    generateConstantTypeLiteral(node);
+  }
+
+  visitTypedefTypeLiteralInvoke(
+      ast.Send node,
+      ConstantExpression constant,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    generateConstantTypeLiteral(node);
+    generateTypeLiteralCall(node);
+  }
+
+  visitTypeVariableTypeLiteralGet(
+      ast.Send node,
+      TypeVariableElement element,
+      _) {
+    generateTypeVariableLiteral(node, element.type);
+  }
+
+  visitTypeVariableTypeLiteralInvoke(
+      ast.Send node,
+      TypeVariableElement element,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    generateTypeVariableLiteral(node, element.type);
+    generateTypeLiteralCall(node);
+  }
+
+  visitDynamicTypeLiteralGet(
+      ast.Send node,
+      ConstantExpression constant,
+      _) {
+    generateConstantTypeLiteral(node);
+  }
+
+  visitDynamicTypeLiteralInvoke(
+      ast.Send node,
+      ConstantExpression constant,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    generateConstantTypeLiteral(node);
+    generateTypeLiteralCall(node);
+  }
+
+  /// Generate the constant value for a constant type literal.
+  void generateConstantTypeLiteral(ast.Send node) {
+    // TODO(karlklose): add type representation
     if (node.isCall) {
-      // This send is of the form 'e(...)', where e is resolved to a type
-      // reference. We create a regular closure call on the result of the type
-      // reference instead of creating a NoSuchMethodError to avoid pulling it
-      // in if it is not used (e.g., in a try/catch).
-      HInstruction target = pop();
-      Selector selector = elements.getSelector(node);
-      List<HInstruction> inputs = <HInstruction>[target];
-      addDynamicSendArgumentsToList(node, inputs);
-      Selector closureSelector = new Selector.callClosureFrom(selector);
-      push(new HInvokeClosure(closureSelector, inputs, backend.dynamicType));
+      // The node itself is not a constant but we register the selector (the
+      // identifier that refers to the class/typedef) as a constant.
+      stack.add(addConstant(node.selector));
+    } else {
+      stack.add(addConstant(node));
     }
+  }
+
+  /// Generate the literal for [typeVariable] in the current context.
+  void generateTypeVariableLiteral(ast.Send node,
+                                   TypeVariableType typeVariable) {
+    DartType type = localsHandler.substInContext(typeVariable);
+    HInstruction value = analyzeTypeArgument(type);
+    pushInvokeStatic(node,
+                     backend.getRuntimeTypeToString(),
+                     [value],
+                     backend.stringType);
+    pushInvokeStatic(node,
+                     backend.getCreateRuntimeType(),
+                     [pop()]);
+  }
+
+  /// Generate a call to a type literal.
+  void generateTypeLiteralCall(ast.Send node) {
+    // This send is of the form 'e(...)', where e is resolved to a type
+    // reference. We create a regular closure call on the result of the type
+    // reference instead of creating a NoSuchMethodError to avoid pulling it
+    // in if it is not used (e.g., in a try/catch).
+    HInstruction target = pop();
+    Selector selector = elements.getSelector(node);
+    List<HInstruction> inputs = <HInstruction>[target];
+    addDynamicSendArgumentsToList(node, inputs);
+    Selector closureSelector = new Selector.callClosureFrom(selector);
+    push(new HInvokeClosure(closureSelector, inputs, backend.dynamicType));
   }
 
   visitGetterSend(ast.Send node) {

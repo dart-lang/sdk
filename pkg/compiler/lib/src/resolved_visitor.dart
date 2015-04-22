@@ -34,6 +34,7 @@ abstract class ResolvedKindVisitor<R> {
   R handleNewExpression(NewExpression node);
 
   /// Visitor callback for a type literal.
+  @deprecated
   R visitTypeLiteralSend(Send node);
 
   /// Visitor callback for the class prefix of a static access, like `Foo` in
@@ -181,6 +182,11 @@ abstract class NewResolvedVisitor<R> extends BaseResolvedVisitor<R>
         return kindVisitor.visitStaticSend(node);
       }
     }
+  }
+
+  @deprecated
+  R visitTypeLiteralSend(Send node) {
+    return internalError(node, "visitTypeLiteralSend is deprecated");
   }
 
   @deprecated

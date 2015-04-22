@@ -5,6 +5,7 @@
 library inferrer_visitor;
 
 import '../constants/constant_system.dart';
+import '../constants/expressions.dart';
 import '../dart2jslib.dart' hide Selector, TypedSelector;
 import '../dart_types.dart';
 import '../elements/elements.dart';
@@ -812,8 +813,76 @@ abstract class InferrerVisitor
     return types.dynamicType;
   }
 
-  T visitTypeLiteralSend(Send node) {
+  T handleTypeLiteralGet() {
     return types.typeType;
+  }
+
+  T handleTypeLiteralInvoke(NodeList arguments) {
+    return types.dynamicType;
+  }
+
+  T visitClassTypeLiteralGet(
+      Send node,
+      ConstantExpression constant,
+      _) {
+    return handleTypeLiteralGet();
+  }
+
+  T visitClassTypeLiteralInvoke(
+      Send node,
+      ConstantExpression constant,
+      NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleTypeLiteralInvoke(arguments);
+  }
+
+  T visitTypedefTypeLiteralGet(
+      Send node,
+      ConstantExpression constant,
+      _) {
+    return handleTypeLiteralGet();
+  }
+
+  T visitTypedefTypeLiteralInvoke(
+      Send node,
+      ConstantExpression constant,
+      NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleTypeLiteralInvoke(arguments);
+  }
+
+  T visitTypeVariableTypeLiteralGet(
+      Send node,
+      TypeVariableElement element,
+      _) {
+    return handleTypeLiteralGet();
+  }
+
+  T visitTypeVariableTypeLiteralInvoke(
+      Send node,
+      TypeVariableElement element,
+      NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleTypeLiteralInvoke(arguments);
+  }
+
+  T visitDynamicTypeLiteralGet(
+      Send node,
+      ConstantExpression constant,
+      _) {
+    return handleTypeLiteralGet();
+  }
+
+  T visitDynamicTypeLiteralInvoke(
+      Send node,
+      ConstantExpression constant,
+      NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleTypeLiteralInvoke(arguments);
   }
 
   bool isThisOrSuper(Node node) => node.isThis() || node.isSuper();
