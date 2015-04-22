@@ -27,6 +27,7 @@ import 'filenames.dart' as filenames;
 import 'inferrer/concrete_types_inferrer.dart' as concrete_types_inferrer;
 import 'inferrer/type_graph_inferrer.dart' as type_graph_inferrer;
 import 'io/code_output.dart' as io;
+import 'io/source_map_builder.dart' as io;
 import 'js/js.dart' as js;
 import 'js_backend/js_backend.dart' as js_backend;
 import 'js_emitter/js_emitter.dart' as js_emitter;
@@ -65,7 +66,7 @@ void main(List<String> arguments) {
   useColor();
   useFilenames();
   useSsa(null);
-  useCodeBuffer(null);
+  useIo(null, null);
   usedByTests();
   useElements(null, null, null, null, null);
   useIr(null, null);
@@ -212,7 +213,11 @@ useSsa(ssa.HInstruction instruction) {
   new ssa.HStatementSequenceInformation(null);
 }
 
-useCodeBuffer(io.CodeBuffer buffer) {
+useIo(io.CodeBuffer buffer, io.LineColumnMap map) {
+  map..addFirst(null, null, null)
+     ..forEachLine(null)
+     ..getFirstElementsInLine(null)
+     ..forEachColumn(null, null);
 }
 
 usedByTests() {
