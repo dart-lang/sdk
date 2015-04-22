@@ -45,7 +45,7 @@ getter_setter_in_lib_test: Fail # Issue 23288
 override_inheritance_mixed_test/08: Fail # Issue 18124
 override_inheritance_mixed_test/09: Fail # Issue 18124
 
-[ $compiler == dart2dart && $builder_tag != new_backend ]
+[ $compiler == dart2dart ]
 multiline_strings_test: Fail # Issue (pending)
 
 [ $compiler == none || $compiler == dart2dart ]

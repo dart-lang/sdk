@@ -4,15 +4,9 @@
 
 [ $compiler == dart2dart && $builder_tag == new_backend ]
 Language/12_Expressions/18_Assignment_A04_t09: RuntimeError # Issue 23015
-Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t05: RuntimeError # Issue 23015
-
-LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # issue 19953
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # issue 19953
-LibTest/core/List/List_class_A01_t02: Crash # issue 19953
 
 [ $compiler == dart2dart && $builder_tag != new_backend ]
 Language/12_Expressions/18_Assignment_A04_t09: RuntimeError # co19-roll r667: Please triage this failure
-Language/13_Statements/12_Labels_A01_t03: fail # co19-roll r546: Please triage this failure
 
 [ $compiler == dart2dart ]
 Language/03_Overview/1_Scoping_A02_t05: Fail # Inherited from dart2js
@@ -64,6 +58,7 @@ Language/12_Expressions/30_Identifier_Reference_A02_t01: fail # co19-roll r546: 
 Language/13_Statements/04_Local_Function_Declaration_A04_t01: Fail, MissingCompileTimeError # co19-roll r607: Please triage this failure
 Language/13_Statements/04_Local_Function_Declaration_A04_t03: MissingCompileTimeError # co19-roll r667: Please triage this failure
 Language/13_Statements/09_Switch_A01_t02: fail # co19-roll r546: Please triage this failure
+Language/13_Statements/12_Labels_A01_t03: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t08: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t09: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t10: fail # co19-roll r546: Please triage this failure

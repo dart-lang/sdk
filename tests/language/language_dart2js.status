@@ -206,10 +206,7 @@ override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
 [ $compiler == dart2dart && $builder_tag == new_backend ]
 regress_13494_test: Pass # Issue 22370, passes for the wrong reason
 
-[ $compiler == dart2dart && $builder_tag == new_backend && $host_checked ]
-large_implicit_getter_test: Crash # Stack overflow
-
-[ $compiler == dart2dart && ($minified == true || $builder_tag == new_backend) ]
+[ $compiler == dart2dart && $minified == true ]
 type_variable_conflict2_test/01: RuntimeError # Issue 16180
 
 [ $compiler == dart2dart ]
