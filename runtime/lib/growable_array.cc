@@ -96,7 +96,7 @@ DEFINE_NATIVE_ENTRY(Internal_makeListFixedLength, 1) {
 }
 
 DEFINE_NATIVE_ENTRY(Internal_makeFixedListUnmodifiable, 1) {
-  const Array& array = Array::CheckedHandle(arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Array, array, arguments->NativeArgAt(0));
   array.MakeImmutable();
   return array.raw();
 }
