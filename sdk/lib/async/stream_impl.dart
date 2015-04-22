@@ -998,24 +998,25 @@ class _StreamIteratorImpl<T> implements StreamIterator<T> {
       _current = null;
       _futureOrPrefetch = new _Future<bool>();
       return _futureOrPrefetch;
-    } else {
-      assert(_state >= _STATE_EXTRA_DATA);
-      switch (_state) {
-        case _STATE_EXTRA_DATA:
-          _state = _STATE_FOUND;
-          _current = _futureOrPrefetch;
-          _futureOrPrefetch = null;
-          _subscription.resume();
-          return new _Future<bool>.immediate(true);
-        case _STATE_EXTRA_ERROR:
-          AsyncError prefetch = _futureOrPrefetch;
-          _clear();
-          return new _Future<bool>.immediateError(prefetch.error,
-                                                  prefetch.stackTrace);
-        case _STATE_EXTRA_DONE:
-          _clear();
-          return new _Future<bool>.immediate(false);
-      }
+    }
+    assert(_state >= _STATE_EXTRA_DATA);
+    switch (_state) {
+      case _STATE_EXTRA_DATA:
+        _state = _STATE_FOUND;
+        _current = _futureOrPrefetch;
+        _futureOrPrefetch = null;
+        _subscription.resume();
+        return new _Future<bool>.immediate(true);
+      case _STATE_EXTRA_ERROR:
+        AsyncError prefetch = _futureOrPrefetch;
+        _clear();
+        return new _Future<bool>.immediateError(prefetch.error,
+                                                prefetch.stackTrace);
+      case _STATE_EXTRA_DONE:
+        _clear();
+        return new _Future<bool>.immediate(false);
+      default:
+        throw "Unreachable";
     }
   }
 

@@ -940,6 +940,7 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
             "Headers size exceeded the of '$_OUTGOING_BUFFER_SIZE'"
             " bytes"));
       }
+      return null;
     }
     if (headersWritten) return null;
     headersWritten = true;
@@ -1913,6 +1914,8 @@ class _HttpClient implements HttpClient {
         return it.current;
       }
     }
+
+    return null;
   }
 
   void _removeCredentials(_Credentials cr) {

@@ -4,8 +4,6 @@
 
 library dart.typed_data;
 
-import 'dart:collection';
-
 /**
  * A sequence of bytes underlying a typed data object.
  * Used to process large quantities of binary or numerical data
