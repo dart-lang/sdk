@@ -10,14 +10,14 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/plugin/plugin_impl.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
-import '../../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(AssistProcessorTest);
+  defineReflectiveTests(AssistProcessorTest);
 }
 
 @reflectiveTest

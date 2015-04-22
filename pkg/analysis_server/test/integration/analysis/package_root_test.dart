@@ -6,13 +6,13 @@ library test.integration.analysis.packageRoot;
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:path/path.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
 main() {
-  runReflectiveTests(Test);
+  defineReflectiveTests(Test);
 }
 
 @reflectiveTest

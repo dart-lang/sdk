@@ -13,19 +13,19 @@ import 'package:analyzer/src/generated/ast.dart' as engine;
 import 'package:analyzer/src/generated/element.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import 'abstract_context.dart';
 import 'mocks.dart';
-import 'reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(AnalysisErrorTest);
-  runReflectiveTests(ElementTest);
-  runReflectiveTests(ElementKindTest);
-  runReflectiveTests(EnumTest);
+  defineReflectiveTests(AnalysisErrorTest);
+  defineReflectiveTests(ElementTest);
+  defineReflectiveTests(ElementKindTest);
+  defineReflectiveTests(EnumTest);
 }
 
 class AnalysisErrorMock extends TypedMock implements engine.AnalysisError {

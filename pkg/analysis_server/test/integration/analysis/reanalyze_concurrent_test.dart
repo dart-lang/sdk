@@ -12,11 +12,12 @@ library test.integration.analysis.reanalyze_concurrent;
 
 import 'dart:async';
 
-import '../../reflective_tests.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
 import '../integration_tests.dart';
 
 main() {
-  runReflectiveTests(Test);
+  defineReflectiveTests(Test);
 }
 
 @reflectiveTest

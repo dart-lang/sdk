@@ -9,14 +9,14 @@ import 'dart:async';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
-import '../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(GetErrorsTest);
+  defineReflectiveTests(GetErrorsTest);
 }
 
 @reflectiveTest

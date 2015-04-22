@@ -7,18 +7,17 @@ library test.services.correction.change;
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
-
-import '../../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ChangeTest);
-  runReflectiveTests(EditTest);
-  runReflectiveTests(FileEditTest);
-  runReflectiveTests(LinkedEditGroupTest);
-  runReflectiveTests(LinkedEditSuggestionTest);
-  runReflectiveTests(PositionTest);
+  defineReflectiveTests(ChangeTest);
+  defineReflectiveTests(EditTest);
+  defineReflectiveTests(FileEditTest);
+  defineReflectiveTests(LinkedEditGroupTest);
+  defineReflectiveTests(LinkedEditSuggestionTest);
+  defineReflectiveTests(PositionTest);
 }
 
 @reflectiveTest

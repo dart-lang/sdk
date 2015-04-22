@@ -5,14 +5,13 @@
 library test.services.src.index.store.collection;
 
 import 'package:analysis_server/src/services/index/store/collection.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
-
-import '../../../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(_IntArrayToIntMapTest);
-  runReflectiveTests(_IntToIntSetMapTest);
+  defineReflectiveTests(_IntArrayToIntMapTest);
+  defineReflectiveTests(_IntToIntSetMapTest);
 }
 
 @reflectiveTest

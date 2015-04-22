@@ -5,13 +5,13 @@
 library test.integration.analysis.highlights;
 
 import 'package:analysis_server/src/protocol.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
 main() {
-  runReflectiveTests(AnalysisHighlightsTest);
+  defineReflectiveTests(AnalysisHighlightsTest);
 }
 
 @reflectiveTest
@@ -96,8 +96,14 @@ int topLevelVariable;
         highlights.remove(type);
       }
       check(HighlightRegionType.ANNOTATION, ['@override']);
-      check(HighlightRegionType.BUILT_IN,
-          ['as', 'get', 'import', 'set', 'static', 'typedef']);
+      check(HighlightRegionType.BUILT_IN, [
+        'as',
+        'get',
+        'import',
+        'set',
+        'static',
+        'typedef'
+      ]);
       check(HighlightRegionType.CLASS, [
         'Class',
         'Class2',
@@ -106,9 +112,8 @@ int topLevelVariable;
         'int'
       ]);
       check(HighlightRegionType.COMMENT_BLOCK, ['/* Block comment */']);
-      check(HighlightRegionType.COMMENT_DOCUMENTATION, [
-        '/**\n * Doc comment\n */'
-      ]);
+      check(HighlightRegionType.COMMENT_DOCUMENTATION,
+          ['/**\n * Doc comment\n */']);
       check(
           HighlightRegionType.COMMENT_END_OF_LINE, ['// End of line comment']);
       check(HighlightRegionType.CONSTRUCTOR, ['constructor']);
@@ -127,8 +132,10 @@ int topLevelVariable;
       check(HighlightRegionType.LITERAL_DOUBLE, ['1.0']);
       check(HighlightRegionType.LITERAL_INTEGER, ['2', '42']);
       check(HighlightRegionType.LITERAL_LIST, ['[]']);
-      check(HighlightRegionType.LITERAL_MAP,
-          ['{1.0: [].toList()}', '{2: local}']);
+      check(HighlightRegionType.LITERAL_MAP, [
+        '{1.0: [].toList()}',
+        '{2: local}'
+      ]);
       check(HighlightRegionType.LITERAL_STRING, ["'dart:async'", "'string'"]);
       check(HighlightRegionType.LOCAL_VARIABLE, ['local']);
       check(HighlightRegionType.LOCAL_VARIABLE_DECLARATION, ['local']);
@@ -138,8 +145,10 @@ int topLevelVariable;
       check(HighlightRegionType.METHOD_STATIC, ['wait']);
       check(HighlightRegionType.PARAMETER, ['parameter']);
       check(HighlightRegionType.SETTER_DECLARATION, ['setter']);
-      check(HighlightRegionType.TOP_LEVEL_VARIABLE,
-          ['override', 'topLevelVariable']);
+      check(HighlightRegionType.TOP_LEVEL_VARIABLE, [
+        'override',
+        'topLevelVariable'
+      ]);
       check(HighlightRegionType.TYPE_NAME_DYNAMIC, ['dynamic']);
       check(HighlightRegionType.TYPE_PARAMETER, ['TypeParameter']);
       expect(highlights, isEmpty);

@@ -5,14 +5,14 @@
 library test.services.dependencies.library;
 
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
-import '../../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(LibraryDependenciesTest);
+  defineReflectiveTests(LibraryDependenciesTest);
 }
 
 @reflectiveTest

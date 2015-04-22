@@ -15,15 +15,15 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
-import '../../reflective_tests.dart';
 import 'completion_test_util.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ImportedReferenceContributorTest);
+  defineReflectiveTests(ImportedReferenceContributorTest);
 }
 
 @reflectiveTest

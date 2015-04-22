@@ -8,14 +8,14 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/keyword_contributor.dart';
 import 'package:analyzer/src/generated/scanner.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import 'completion_test_util.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(KeywordContributorTest);
+  defineReflectiveTests(KeywordContributorTest);
 }
 
 @reflectiveTest

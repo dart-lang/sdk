@@ -10,15 +10,15 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/html.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
-import '../../reflective_tests.dart';
 import 'store/single_source_container.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(LocalIndexTest);
+  defineReflectiveTests(LocalIndexTest);
 }
 
 void _assertElementNames(List<Element> elements, List expected) {

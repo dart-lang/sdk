@@ -12,24 +12,24 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analyzer/src/plugin/plugin_impl.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
 import '../mocks.dart';
-import '../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ConvertGetterMethodToMethodTest);
-  runReflectiveTests(ConvertMethodToGetterTest);
-  runReflectiveTests(ExtractLocalVariableTest);
-  runReflectiveTests(ExtractMethodTest);
-  runReflectiveTests(GetAvailableRefactoringsTest);
-  runReflectiveTests(InlineLocalTest);
-  runReflectiveTests(InlineMethodTest);
-  runReflectiveTests(MoveFileTest);
-  runReflectiveTests(RenameTest);
-  runReflectiveTests(_NoSearchEngine);
+  defineReflectiveTests(ConvertGetterMethodToMethodTest);
+  defineReflectiveTests(ConvertMethodToGetterTest);
+  defineReflectiveTests(ExtractLocalVariableTest);
+  defineReflectiveTests(ExtractMethodTest);
+  defineReflectiveTests(GetAvailableRefactoringsTest);
+  defineReflectiveTests(InlineLocalTest);
+  defineReflectiveTests(InlineMethodTest);
+  defineReflectiveTests(MoveFileTest);
+  defineReflectiveTests(RenameTest);
+  defineReflectiveTests(_NoSearchEngine);
 }
 
 @reflectiveTest

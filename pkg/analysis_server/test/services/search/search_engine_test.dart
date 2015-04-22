@@ -12,15 +12,15 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
-import '../../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(SearchEngineImplTest);
+  defineReflectiveTests(SearchEngineImplTest);
 }
 
 class ExpectedMatch {
@@ -211,9 +211,8 @@ main() {
 ''');
     ConstructorElement element = findElement('named');
     Element mainElement = findElement('main');
-    var expected = [
-      _expectId(mainElement, MatchKind.REFERENCE, '.named();', length: 6)
-    ];
+    var expected =
+        [_expectId(mainElement, MatchKind.REFERENCE, '.named();', length: 6)];
     return _verifyReferences(element, expected);
   }
 
@@ -314,9 +313,8 @@ main() {
     ImportElement element = testLibraryElement.imports[0];
     Element mainElement = findElement('main');
     var kind = MatchKind.REFERENCE;
-    var expected = [
-      _expectId(mainElement, kind, 'math.PI);', length: 'math.'.length)
-    ];
+    var expected =
+        [_expectId(mainElement, kind, 'math.PI);', length: 'math.'.length)];
     return _verifyReferences(element, expected);
   }
 
@@ -420,9 +418,8 @@ main(A<int> a) {
 ''');
     MethodMember method = findNodeElementAtString('m(); // ref');
     Element mainElement = findElement('main');
-    var expected = [
-      _expectIdQ(mainElement, MatchKind.INVOCATION, 'm(); // ref')
-    ];
+    var expected =
+        [_expectIdQ(mainElement, MatchKind.INVOCATION, 'm(); // ref')];
     return _verifyReferences(method, expected);
   }
 

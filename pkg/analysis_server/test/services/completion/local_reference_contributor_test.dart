@@ -7,14 +7,14 @@ library test.services.completion.dart.local;
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/local_reference_contributor.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import 'completion_test_util.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(LocalReferenceContributorTest);
+  defineReflectiveTests(LocalReferenceContributorTest);
 }
 
 @reflectiveTest
@@ -147,21 +147,6 @@ class C extends B with M1, M2 {
   @override
   void setUpContributor() {
     contributor = new LocalReferenceContributor();
-  }
-
-  test_missing_params_function() {
-    addTestSource('int f1{} main(){f^}');
-    expect(computeFast(), isTrue);
-  }
-
-  test_missing_params_method() {
-    addTestSource('class C1{int f1{} main(){f^}}');
-    expect(computeFast(), isTrue);
-  }
-
-  test_missing_params_constructor() {
-    addTestSource('class C1{C1{} main(){C^}}');
-    expect(computeFast(), isTrue);
   }
 
   test_break_ignores_outer_functions_using_closure() {
@@ -754,6 +739,21 @@ class B extends A {
     expect(suggestion.parameterTypes[1], 'int');
     expect(suggestion.requiredParameterCount, 2);
     expect(suggestion.hasNamedParameters, false);
+  }
+
+  test_missing_params_constructor() {
+    addTestSource('class C1{C1{} main(){C^}}');
+    expect(computeFast(), isTrue);
+  }
+
+  test_missing_params_function() {
+    addTestSource('int f1{} main(){f^}');
+    expect(computeFast(), isTrue);
+  }
+
+  test_missing_params_method() {
+    addTestSource('class C1{int f1{} main(){f^}}');
+    expect(computeFast(), isTrue);
   }
 
   test_overrides() {

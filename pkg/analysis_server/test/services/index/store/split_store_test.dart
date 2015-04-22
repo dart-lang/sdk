@@ -13,21 +13,21 @@ import 'package:analysis_server/src/services/index/store/split_store.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../../mocks.dart';
-import '../../../reflective_tests.dart';
 import 'mocks.dart';
 import 'single_source_container.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(_FileNodeManagerTest);
-  runReflectiveTests(_IndexNodeTest);
-  runReflectiveTests(_LocationDataTest);
-  runReflectiveTests(_RelationKeyDataTest);
-  runReflectiveTests(_SplitIndexStoreTest);
+  defineReflectiveTests(_FileNodeManagerTest);
+  defineReflectiveTests(_IndexNodeTest);
+  defineReflectiveTests(_LocationDataTest);
+  defineReflectiveTests(_RelationKeyDataTest);
+  defineReflectiveTests(_SplitIndexStoreTest);
 }
 
 void _assertHasLocation(

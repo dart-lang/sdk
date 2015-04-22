@@ -7,18 +7,18 @@ library test.services.refactoring.inline_method;
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/inline_method.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import 'abstract_refactoring.dart';
-import 'package:analysis_server/src/services/correction/status.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(InlineMethodTest);
+  defineReflectiveTests(InlineMethodTest);
 }
 
 @reflectiveTest

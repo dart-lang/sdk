@@ -10,14 +10,14 @@ import 'package:analysis_server/src/protocol.dart' hide ElementKind;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import 'abstract_refactoring.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ConvertMethodToGetterTest);
+  defineReflectiveTests(ConvertMethodToGetterTest);
 }
 
 @reflectiveTest
@@ -146,15 +146,6 @@ main() {
         'Only methods without parameters can be converted to getters.');
   }
 
-  test_checkInitialConditions_returnTypeVoid() {
-    indexTestUnit('''
-void test() {}
-''');
-    _createRefactoring('test');
-    // check conditions
-    _assertInitialConditions_fatal('Cannot convert function returning void.');
-  }
-
   test_checkInitialConditions_localFunction() {
     indexTestUnit('''
 main() {
@@ -178,6 +169,15 @@ class A {
     // check conditions
     _assertInitialConditions_fatal(
         'Only class methods or top-level functions can be converted to getters.');
+  }
+
+  test_checkInitialConditions_returnTypeVoid() {
+    indexTestUnit('''
+void test() {}
+''');
+    _createRefactoring('test');
+    // check conditions
+    _assertInitialConditions_fatal('Cannot convert function returning void.');
   }
 
   Future _assertInitialConditions_fatal(String message) async {

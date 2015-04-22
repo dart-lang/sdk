@@ -23,18 +23,18 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
 import 'mock_sdk.dart';
 import 'mocks.dart';
-import 'reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(CompletionManagerTest);
-  runReflectiveTests(CompletionTest);
-  runReflectiveTests(_NoSearchEngine);
+  defineReflectiveTests(CompletionManagerTest);
+  defineReflectiveTests(CompletionTest);
+  defineReflectiveTests(_NoSearchEngine);
 }
 
 @reflectiveTest
@@ -647,9 +647,10 @@ class Test_AnalysisServer extends AnalysisServer {
   final MockContext mockContext = new MockContext();
 
   Test_AnalysisServer(ServerCommunicationChannel channel,
-      ResourceProvider resourceProvider, OptimizingPubPackageMapProvider packageMapProvider,
-      Index index, AnalysisServerOptions analysisServerOptions,
-      DartSdk defaultSdk, InstrumentationService instrumentationService)
+      ResourceProvider resourceProvider,
+      OptimizingPubPackageMapProvider packageMapProvider, Index index,
+      AnalysisServerOptions analysisServerOptions, DartSdk defaultSdk,
+      InstrumentationService instrumentationService)
       : super(channel, resourceProvider, packageMapProvider, index,
           analysisServerOptions, defaultSdk, instrumentationService);
 
