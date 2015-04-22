@@ -151,10 +151,10 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     stub.set_owner(cls);
     cls.set_allocation_stub(stub);
     if (FLAG_disassemble_stubs) {
-      OS::Print("Code for allocation stub '%s': {\n", name);
+      ISL_Print("Code for allocation stub '%s': {\n", name);
       DisassembleToStdout formatter;
       stub.Disassemble(&formatter);
-      OS::Print("}\n");
+      ISL_Print("}\n");
     }
     stub.set_entry_patch_pc_offset(entry_patch_offset);
     stub.set_patch_code_pc_offset(patch_code_offset);
@@ -184,10 +184,10 @@ RawCode* StubCode::Generate(const char* name,
   GenerateStub(&assembler);
   const Code& code = Code::Handle(Code::FinalizeCode(name, &assembler));
   if (FLAG_disassemble_stubs) {
-    OS::Print("Code for stub '%s': {\n", name);
+    ISL_Print("Code for stub '%s': {\n", name);
     DisassembleToStdout formatter;
     code.Disassemble(&formatter);
-    OS::Print("}\n");
+    ISL_Print("}\n");
   }
   return code.raw();
 }
