@@ -87,6 +87,8 @@ import '../deferred_load.dart' show
 
 import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
     as embeddedNames;
+import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
+    JsBuiltin;
 
 import '../native/native.dart' as native;
 part 'class_stub_generator.dart';

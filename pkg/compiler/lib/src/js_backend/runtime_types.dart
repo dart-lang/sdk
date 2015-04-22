@@ -672,6 +672,21 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
     return new jsAst.ArrayInitializer(elements);
   }
 
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is a function type.
+  jsAst.Template get templateForIsFunctionType {
+    return jsAst.js.expressionTemplateFor("'${namer.functionTypeTag}' in #");
+  }
+
+  /// Returns the JavaScript template that creates at runtime a new function
+  /// type object.
+  jsAst.Template get templateForCreateFunctionType {
+    // The value of the functionTypeTag can be anything. We use "dynaFunc" for
+    // easier debugging.
+    return jsAst.js.expressionTemplateFor(
+        '{ ${namer.functionTypeTag}: "dynafunc" }');
+  }
+
   visitFunctionType(FunctionType type, _) {
     List<jsAst.Property> properties = <jsAst.Property>[];
 

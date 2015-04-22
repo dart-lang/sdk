@@ -511,6 +511,9 @@ class JavaScriptBackend extends Backend {
   /// Holds the class for the [JsGetName] enum.
   EnumClassElement jsGetNameEnum;
 
+  /// Holds the class for the [JsBuiltins] enum.
+  EnumClassElement jsBuiltinEnum;
+
   /// True if a call to preserveMetadataMarker has been seen.  This means that
   /// metadata must be retained for dart:mirrors to work correctly.
   bool mustRetainMetadata = false;
@@ -2051,6 +2054,7 @@ class JavaScriptBackend extends Backend {
         preserveNamesMarker = find(library, 'preserveNames');
       } else if (uri == DART_EMBEDDED_NAMES) {
         jsGetNameEnum = find(library, 'JsGetName');
+        jsBuiltinEnum = find(library, 'JsBuiltin');
       } else if (uri == DART_HTML) {
         htmlLibraryIsLoaded = true;
       }

@@ -16,6 +16,7 @@ import 'dart:_js_embedded_names' show
     INTERCEPTORS_BY_TAG,
     IS_HUNK_LOADED,
     IS_HUNK_INITIALIZED,
+    JsBuiltin,
     JsGetName,
     LEAF_TAGS,
     METADATA,
@@ -42,22 +43,20 @@ import 'dart:async' show
 import 'dart:_foreign_helper' show
     DART_CLOSURE_TO_JS,
     JS,
+    JS_BUILTIN,
     JS_CALL_IN_ISOLATE,
     JS_CONST,
     JS_CURRENT_ISOLATE,
     JS_CURRENT_ISOLATE_CONTEXT,
-    JS_DART_OBJECT_CONSTRUCTOR,
     JS_EFFECT,
     JS_EMBEDDED_GLOBAL,
-    JS_FUNCTION_CLASS_NAME,
     JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG,
     JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG,
     JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG,
     JS_FUNCTION_TYPE_RETURN_TYPE_TAG,
-    JS_FUNCTION_TYPE_TAG,
     JS_FUNCTION_TYPE_VOID_RETURN_TAG,
-    JS_GET_NAME,
     JS_GET_FLAG,
+    JS_GET_NAME,
     JS_HAS_EQUALS,
     JS_IS_INDEXABLE_FIELD_NAME,
     JS_NULL_CLASS_NAME,
@@ -92,6 +91,52 @@ part 'linked_hash_map.dart';
 /// them.
 abstract class InternalMap {
 }
+
+/// Returns true if the given [type] is a function type object.
+// TODO(floitsch): move this to foreign_helper.dart or similar.
+@ForceInline()
+bool isDartFunctionType(Object type) {
+  return JS_BUILTIN('returns:bool;effects:none;depends:none',
+                    JsBuiltin.isFunctionType, type);
+}
+
+
+/// Creates a function type object.
+// TODO(floitsch): move this to foreign_helper.dart or similar.
+@ForceInline()
+createDartFunctionType() {
+  return JS_BUILTIN('returns:=Object;effects:none;depends:none',
+                    JsBuiltin.createFunctionType);
+}
+
+/// Returns true if the given [type] is _the_ `Function` type.
+// TODO(floitsch): move this to foreign_helper.dart or similar.
+@ForceInline()
+bool isDartFunctionTypeLiteral(Object type) {
+  return JS_BUILTIN('returns:bool;effects:none;depends:none',
+                    JsBuiltin.isFunctionTypeLiteral, type);
+}
+
+/// Retrieves the class name from type information stored on the constructor of
+/// [type].
+// TODO(floitsch): move this to foreign_helper.dart or similar.
+@ForceInline()
+String getDartTypeName(Object type) {
+  return JS_BUILTIN('String', JsBuiltin.typeName, type);
+}
+
+/// Returns the raw runtime type of the given object [o].
+///
+/// The argument [o] must be the interceptor for primitive types. If
+/// necessary run it through [getInterceptor] first.
+// TODO(floitsch): move this to foreign_helper.dart or similar.
+// TODO(floitsch): we should call getInterceptor ourselves, but currently
+//    getInterceptor is not GVNed.
+@ForceInline()
+Object getRawRuntimeType(Object o) {
+  return JS_BUILTIN('', JsBuiltin.rawRuntimeType, o);
+}
+
 
 /// No-op method that is called to inform the compiler that preambles might
 /// be needed when executing the resulting JS file in a command-line
@@ -3139,7 +3184,7 @@ class RuntimeFunctionType extends RuntimeType {
   }
 
   toRti() {
-    var result = JS('=Object', '{ #: "dynafunc" }', JS_FUNCTION_TYPE_TAG());
+    var result = createDartFunctionType();
     if (isVoid) {
       JS('', '#[#] = true', result, JS_FUNCTION_TYPE_VOID_RETURN_TAG());
     } else {

@@ -257,6 +257,15 @@ class JsBuilder {
   }
 
   /**
+   * Creates an Expression template for the given [source].
+   *
+   * The returned template is cached.
+   */
+  Template expressionTemplateFor(String source) {
+    return _findExpressionTemplate(source);
+  }
+
+  /**
    * Creates an Expression template without caching the result.
    */
   Template uncachedExpressionTemplate(String source) {

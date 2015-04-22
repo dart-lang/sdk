@@ -4,7 +4,7 @@
 
 library _foreign_helper;
 
-import 'dart:_js_embedded_names' show JsGetName;
+import 'dart:_js_embedded_names' show JsGetName, JsBuiltin;
 
 /**
  * Emits a JavaScript code fragment parameterized by arguments.
@@ -190,15 +190,6 @@ RAW_DART_FUNCTION_REF(Function function) {}
 void JS_SET_CURRENT_ISOLATE(isolate) {}
 
 /**
- * Returns the JavaScript constructor function for Dart's Object class.
- * This can be used for type tests, as in
- *
- *     if (JS('bool', '# instanceof #', obj, JS_DART_OBJECT_CONSTRUCTOR()))
- *       ...
- */
-JS_DART_OBJECT_CONSTRUCTOR() {}
-
-/**
  * Returns the interceptor for class [type].  The interceptor is the type's
  * constructor's `prototype` property.  [type] will typically be the class, not
  * an interface, e.g. `JS_INTERCEPTOR_CONSTANT(JSInt)`, not
@@ -222,9 +213,6 @@ String JS_OBJECT_CLASS_NAME() {}
 /// Returns the name of the class `Null` in the generated code.
 String JS_NULL_CLASS_NAME() {}
 
-/// Returns the name of the class `Function` in the generated code.
-String JS_FUNCTION_CLASS_NAME() {}
-
 /**
  * Returns the field name used for determining if an object or its
  * interceptor has JavaScript indexing behavior.
@@ -241,9 +229,6 @@ String JS_SIGNATURE_NAME() {}
 
 /// Returns the name used to tag typedefs.
 String JS_TYPEDEF_TAG() {}
-
-/// Returns the name used to tag function type representations in JavaScript.
-String JS_FUNCTION_TYPE_TAG() {}
 
 /**
  * Returns the name used to tag void return in function type representations
@@ -282,6 +267,16 @@ String JS_GET_NAME(JsGetName name) {}
 ///
 /// The [name] should be a constant defined in the `_embedded_names` library.
 JS_EMBEDDED_GLOBAL(String typeDescription, String name) {}
+
+/// Instructs the compiler to execute the [builtinName] action at the call-site.
+///
+/// The [builtin] should be a constant defined in the `_embedded_names`
+/// library.
+// Add additional optional arguments if needed. The method is treated internally
+// as a variable argument method.
+JS_BUILTIN(String typeDescription, JsBuiltin builtin,
+           [arg0, arg1, arg2, arg3, arg4, arg5, arg6,
+            arg7, arg8, arg9, arg10, arg11]) {}
 
 /// Returns the state of a flag that is determined by the state of the compiler
 /// when the program has been analyzed.

@@ -91,7 +91,10 @@ void defineProperty(var obj, String property, var value) {
 // Is [obj] an instance of a Dart-defined class?
 bool isDartObject(obj) {
   // Some of the extra parens here are necessary.
-  return JS('bool', '((#) instanceof (#))', obj, JS_DART_OBJECT_CONSTRUCTOR());
+  return JS('bool', '((#) instanceof (#))',
+      obj,
+      JS_BUILTIN('depends:none;effects:none;',
+                 JsBuiltin.dartObjectConstructor));
 }
 
 /**

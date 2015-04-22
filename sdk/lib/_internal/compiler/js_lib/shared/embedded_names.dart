@@ -87,3 +87,41 @@ enum JsGetName {
   CALL_NAME_PROPERTY,
   DEFERRED_ACTION_PROPERTY
 }
+
+enum JsBuiltin {
+   /// Returns the JavaScript constructor function for Dart's Object class.
+   /// This can be used for type tests, as in
+   ///
+   ///     var constructor = JS_BUILTIN('', JsBuiltin.dartObjectContructor);
+   ///     if (JS('bool', '# instanceof #', obj, constructor))
+   ///       ...
+  dartObjectConstructor,
+
+  /// Returns true if the given type is a function type. Returns false for
+  /// the one `Function` type singleton. (See [isFunctionTypeSingleton]).
+  ///
+  ///     JS_BUILTIN('bool', JsBuiltin.isFunctionType, o)
+  isFunctionType,
+
+  /// Returns true if the given type is the `Function` type literal.
+  ///
+  ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
+  ///                JsBuiltin.isFunctionTypeLiteral, type);
+  isFunctionTypeLiteral,
+
+  /// Returns a new function type object.
+  ///
+  ///     JS_BUILTIN('=Object', JsBuiltin.createFunctionType)
+  createFunctionType,
+
+  /// Returns the class name of the given type.
+  ///
+  ///     JS_BUILTIN('String', JsBuiltin.typeName, type)
+  typeName,
+
+  /// Returns the raw runtime type of the given object. The given argument
+  /// [o] should be the interceptor (for non-Dart objects).
+  ///
+  ///     JS_BUILTIN('', JsBuiltin.rawRuntimeType, o)
+  rawRuntimeType,
+}

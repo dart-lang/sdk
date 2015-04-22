@@ -124,6 +124,11 @@ class CodeEmitterTask extends CompilerTask {
     return emitter.typeAccess(e);
   }
 
+  /// Returns the JS template for the given [builtin].
+  jsAst.Template builtinTemplateFor(JsBuiltin builtin) {
+    return emitter.templateForBuiltin(builtin);
+  }
+
   void registerReadTypeVariable(TypeVariableElement element) {
     readTypeVariables.add(element);
   }
@@ -448,6 +453,9 @@ abstract class Emitter {
 
   /// Returns the JS code for accessing the given [constant].
   jsAst.Expression constantReference(ConstantValue constant);
+
+  /// Returns the JS template for the given [builtin].
+  jsAst.Template templateForBuiltin(JsBuiltin builtin);
 
   void invalidateCaches();
 }
