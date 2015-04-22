@@ -166,7 +166,7 @@ main() {
   const Group('Top level field', const <TestSpec>[
     const TestSpec('''
 main(args) {
-  return deprecated;
+  return const Deprecated("next release");
 }
 '''),
 
@@ -332,119 +332,119 @@ main() {
   const Group('Binary expressions', const <TestSpec>[
     const TestSpec('''
 main(a) {
-  return a + deprecated;
+  return a + const Deprecated("next release");
 }
 '''),
 
     const TestSpec('''
 main(a) {
-  return a - deprecated;
+  return a - const Deprecated("next release");
 }
 '''),
 
     const TestSpec('''
 main(a) {
-  return a * deprecated;
+  return a * const Deprecated("next release");
 }
 '''),
 
     const TestSpec('''
 main(a) {
-  return a / deprecated;
+  return a / const Deprecated("next release");
 }
 '''),
 
     const TestSpec('''
 main(a) {
-  return a ~/ deprecated;
+  return a ~/ const Deprecated("next release");
 }
 '''),
 
     const TestSpec('''
 main(a) {
-  return a % deprecated;
+  return a % const Deprecated("next release");
 }
 '''),
 
     const TestSpec('''
 main(a) {
-  return a < deprecated;
+  return a < const Deprecated("next release");
 }
 '''),
 
     const TestSpec('''
 main(a) {
-  return a <= deprecated;
+  return a <= const Deprecated("next release");
 }
 '''),
 
     const TestSpec('''
 main(a) {
-  return a > deprecated;
+  return a > const Deprecated("next release");
 }
 '''),
 
     const TestSpec('''
 main(a) {
-  return a >= deprecated;
+  return a >= const Deprecated("next release");
 }
 '''),
 
     const TestSpec('''
 main(a) {
-  return a << deprecated;
+  return a << const Deprecated("next release");
 }
 '''),
 
     const TestSpec('''
 main(a) {
-  return a >> deprecated;
+  return a >> const Deprecated("next release");
 }
 '''),
 
     const TestSpec('''
 main(a) {
-  return a & deprecated;
+  return a & const Deprecated("next release");
 }
 '''),
 
     const TestSpec('''
 main(a) {
-  return a | deprecated;
+  return a | const Deprecated("next release");
 }
 '''),
 
     const TestSpec('''
 main(a) {
-  return a ^ deprecated;
+  return a ^ const Deprecated("next release");
 }
 '''),
 
     const TestSpec('''
 main(a) {
-  return a == deprecated;
+  return a == const Deprecated("next release");
 }
 '''),
 
     const TestSpec('''
 main(a) {
-  return a != deprecated;
+  return a != const Deprecated("next release");
 }
 ''','''
 main(a) {
-  return !(a == deprecated);
+  return !(a == const Deprecated("next release"));
 }
 '''),
 
     const TestSpec('''
 main(a) {
-  return a && deprecated;
+  return a && const Deprecated("next release");
 }
 '''),
 
     const TestSpec('''
 main(a) {
-  return a || deprecated;
+  return a || const Deprecated("next release");
 }
 '''),
   ]),
