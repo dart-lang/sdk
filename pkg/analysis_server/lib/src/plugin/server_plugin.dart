@@ -4,6 +4,7 @@
 
 library analysis_server.src.plugin.server_plugin;
 
+import 'package:analysis_server/analysis/index/index_core.dart';
 import 'package:analysis_server/completion/completion_core.dart';
 import 'package:analysis_server/edit/assist/assist_core.dart';
 import 'package:analysis_server/edit/fix/fix_core.dart';
@@ -59,6 +60,12 @@ class ServerPlugin implements Plugin {
   static const String FIX_CONTRIBUTOR_EXTENSION_POINT = 'fixContributor';
 
   /**
+   * The simple identifier of the extension point that allows plugins to
+   * register new index contributors with the server.
+   */
+  static const String INDEX_CONTRIBUTOR_EXTENSION_POINT = 'indexContributor';
+
+  /**
    * The unique identifier of this plugin.
    */
   static const String UNIQUE_IDENTIFIER = 'analysis_server.core';
@@ -88,6 +95,12 @@ class ServerPlugin implements Plugin {
   ExtensionPoint fixContributorExtensionPoint;
 
   /**
+   * The extension point that allows plugins to register new index contributors
+   * with the server.
+   */
+  ExtensionPoint indexContributorExtensionPoint;
+
+  /**
    * Initialize a newly created plugin.
    */
   ServerPlugin();
@@ -111,6 +124,13 @@ class ServerPlugin implements Plugin {
    */
   List<FixContributor> get fixContributors =>
       fixContributorExtensionPoint.extensions;
+
+  /**
+   * Return a list containing all of the index contributors that were
+   * contributed.
+   */
+  List<IndexContributor> get indexContributor =>
+      indexContributorExtensionPoint.extensions;
 
   @override
   String get uniqueIdentifier => UNIQUE_IDENTIFIER;
@@ -140,6 +160,8 @@ class ServerPlugin implements Plugin {
         DOMAIN_EXTENSION_POINT, _validateDomainExtension);
     fixContributorExtensionPoint = registerExtensionPoint(
         FIX_CONTRIBUTOR_EXTENSION_POINT, _validateFixContributorExtension);
+    indexContributorExtensionPoint = registerExtensionPoint(
+        INDEX_CONTRIBUTOR_EXTENSION_POINT, _validateIndexContributorExtension);
   }
 
   @override
@@ -153,8 +175,7 @@ class ServerPlugin implements Plugin {
     // Register completion contributors.
     //
     // TODO(brianwilkerson) Register the completion contributors.
-//    registerExtension(
-//        COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID, ???);
+//    registerExtension(COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID, ???);
     //
     // Register domains.
     //
@@ -176,6 +197,11 @@ class ServerPlugin implements Plugin {
     //
     registerExtension(
         FIX_CONTRIBUTOR_EXTENSION_POINT_ID, new DefaultFixContributor());
+    //
+    // Register index contributors.
+    //
+    // TODO(brianwilkerson) Register the index contributors.
+//    registerExtension(INDEX_CONTRIBUTOR_EXTENSION_POINT, ???);
   }
 
   /**
@@ -222,6 +248,17 @@ class ServerPlugin implements Plugin {
     if (extension is! FixContributor) {
       String id = fixContributorExtensionPoint.uniqueIdentifier;
       throw new ExtensionError('Extensions to $id must be a FixContributor');
+    }
+  }
+
+  /**
+   * Validate the given extension by throwing an [ExtensionError] if it is not a
+   * valid index contributor.
+   */
+  void _validateIndexContributorExtension(Object extension) {
+    if (extension is! IndexContributor) {
+      String id = indexContributorExtensionPoint.uniqueIdentifier;
+      throw new ExtensionError('Extensions to $id must be an IndexContributor');
     }
   }
 }
