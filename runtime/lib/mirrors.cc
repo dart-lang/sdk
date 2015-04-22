@@ -242,26 +242,29 @@ static RawInstance* CreateFunctionTypeMirror(const Class& cls,
 static RawInstance* CreateMethodMirror(const Function& func,
                                        const Instance& owner_mirror,
                                        const AbstractType& instantiator) {
-  const Array& args = Array::Handle(Array::New(13));
+  const Array& args = Array::Handle(Array::New(6));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(func)));
 
   String& name = String::Handle(func.name());
   name = String::IdentifierPrettyNameRetainPrivate(name);
   args.SetAt(1, name);
-
   args.SetAt(2, owner_mirror);
   args.SetAt(3, instantiator);
   args.SetAt(4, Bool::Get(func.is_static()));
-  args.SetAt(5, Bool::Get(func.is_abstract()));
-  args.SetAt(6, Bool::Get(func.IsGetterFunction()));
-  args.SetAt(7, Bool::Get(func.IsSetterFunction()));
 
-  bool isConstructor = (func.kind() == RawFunction::kConstructor);
-  args.SetAt(8, Bool::Get(isConstructor));
-  args.SetAt(9, Bool::Get(isConstructor && func.is_const()));
-  args.SetAt(10, Bool::Get(isConstructor && func.IsGenerativeConstructor()));
-  args.SetAt(11, Bool::Get(isConstructor && func.is_redirecting()));
-  args.SetAt(12, Bool::Get(isConstructor && func.IsFactory()));
+  intptr_t kind_flags = 0;
+  kind_flags |= (func.is_abstract() << Mirrors::kAbstract);
+  kind_flags |= (func.IsGetterFunction()  << Mirrors::kGetter);
+  kind_flags |= (func.IsSetterFunction()  << Mirrors::kSetter);
+  bool is_ctor = (func.kind() == RawFunction::kConstructor);
+  kind_flags |= (is_ctor  << Mirrors::kConstructor);
+  kind_flags |= ((is_ctor && func.is_const()) << Mirrors::kConstCtor);
+  kind_flags |= ((is_ctor && func.IsGenerativeConstructor())
+                 << Mirrors::kGenerativeCtor);
+  kind_flags |= ((is_ctor && func.is_redirecting())
+                 << Mirrors::kRedirectingCtor);
+  kind_flags |= ((is_ctor && func.IsFactory()) << Mirrors::kFactoryCtor);
+  args.SetAt(5, Smi::Handle(Smi::New(kind_flags)));
 
   return CreateMirror(Symbols::_LocalMethodMirror(), args);
 }
@@ -540,7 +543,32 @@ static RawInstance* CreateIsolateMirror() {
 }
 
 
+static void VerifyMethodKindShifts() {
+#ifdef DEBUG
+  Isolate* isolate = Isolate::Current();
+  const Library& lib = Library::Handle(isolate, Library::MirrorsLibrary());
+  const Class& cls = Class::Handle(isolate,
+      lib.LookupClassAllowPrivate(Symbols::_LocalMethodMirror()));
+  const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
+  ASSERT(error.IsNull());
+
+  Field& field = Field::Handle();
+  Smi& value = Smi::Handle();
+
+  #define CHECK_KIND_SHIFT(name)                                               \
+    field = cls.LookupField(String::Handle(String::New(#name)));               \
+    ASSERT(!field.IsNull());                                                   \
+    value ^= field.value();                                                    \
+    ASSERT(value.Value() == Mirrors::name);
+  MIRRORS_KIND_SHIFT_LIST(CHECK_KIND_SHIFT)
+  #undef CHECK_KIND_SHIFT
+#endif
+}
+
+
 static RawInstance* CreateMirrorSystem() {
+  VerifyMethodKindShifts();
+
   Isolate* isolate = Isolate::Current();
   const GrowableObjectArray& libraries = GrowableObjectArray::Handle(
       isolate, isolate->object_store()->libraries());
@@ -893,12 +921,12 @@ DEFINE_NATIVE_ENTRY(FunctionTypeMirror_return_type, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(ClassMirror_library, 1) {
+DEFINE_NATIVE_ENTRY(ClassMirror_libraryUri, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
   const Class& klass = Class::Handle(ref.GetClassReferent());
   const Library& library = Library::Handle(klass.library());
   ASSERT(!library.IsNull());
-  return CreateLibraryMirror(library);
+  return library.url();
 }
 
 

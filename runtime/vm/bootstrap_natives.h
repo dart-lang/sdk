@@ -307,7 +307,7 @@ namespace dart {
   V(ClosureMirror_function, 1)                                                 \
   V(TypeMirror_subtypeTest, 2)                                                 \
   V(TypeMirror_moreSpecificTest, 2)                                            \
-  V(ClassMirror_library, 1)                                                    \
+  V(ClassMirror_libraryUri, 1)                                                 \
   V(ClassMirror_supertype, 1)                                                  \
   V(ClassMirror_supertype_instantiated, 1)                                     \
   V(ClassMirror_interfaces, 1)                                                 \
