@@ -84,7 +84,7 @@ class ElementY extends dart2js.Element {
   get enclosingElement => unsupported('enclosingElement');
 
   @override
-  accept(_) => unsupported('accept');
+  accept(_, __) => unsupported('accept');
 
   @override
   void addMetadata(_) => unsupported('addMetadata');
