@@ -12,6 +12,8 @@ import 'package:analyzer/src/generated/source.dart';
 /**
  * An [AssistContributor] that can be used to contribute assists for Dart
  * files.
+ *
+ * Clients are expected to subtype this class when implementing plugins.
  */
 abstract class DartAssistContributor extends AssistContributor {
   @override

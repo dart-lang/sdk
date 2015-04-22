@@ -7,6 +7,13 @@ library analysis_server.completion.completion_dart;
 import 'package:analysis_server/completion/completion_core.dart';
 import 'package:analyzer/src/generated/ast.dart';
 
+/**
+ * An object used to produce completions for a specific error within a Dart
+ * file. Completion contributors are long-lived objects and must not retain any
+ * state between invocations of [computeSuggestions].
+ *
+ * Clients are expected to subtype this class when implementing plugins.
+ */
 abstract class DartCompletionContributor extends CompletionContributor {
   @override
   CompletionResult computeSuggestions(CompletionRequest request) {

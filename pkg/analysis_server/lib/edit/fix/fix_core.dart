@@ -10,6 +10,8 @@ import 'package:analyzer/src/generated/error.dart';
 
 /**
  * A description of a single proposed fix for some problem.
+ *
+ * Clients are not expected to subtype this class.
  */
 class Fix {
   /**
@@ -49,6 +51,8 @@ class Fix {
  * An object used to produce fixes for a specific error. Fix contributors are
  * long-lived objects and must not retain any state between invocations of
  * [computeFixes].
+ *
+ * Clients are expected to subtype this class when implementing plugins.
  */
 abstract class FixContributor {
   /**
@@ -65,6 +69,8 @@ abstract class FixContributor {
  * fixes will be to remove the cast. If there are multiple unnecessary casts in
  * a single file, then there will be multiple fixes, one per occurance, but they
  * will all share the same kind.
+ *
+ * Clients are not expected to subtype this class.
  */
 class FixKind {
   /**
