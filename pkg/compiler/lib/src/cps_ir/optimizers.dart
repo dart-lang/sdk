@@ -5,9 +5,7 @@
 library dart2js.cps_ir.optimizers;
 
 import '../constants/constant_system.dart';
-import '../constants/expressions.dart' show
-    ConstantExpression,
-    PrimitiveConstantExpression;
+import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../dart_types.dart' as types;
 import '../dart2jslib.dart' as dart2js;

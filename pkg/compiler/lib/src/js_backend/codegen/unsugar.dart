@@ -37,7 +37,8 @@ class UnsugarVisitor extends RecursiveVisitor {
 
   Constant get trueConstant {
     return new Constant(
-        new PrimitiveConstantExpression(
+        new BoolConstantExpression(
+            true,
             new TrueConstantValue()));
   }
 
@@ -135,7 +136,7 @@ class UnsugarVisitor extends RecursiveVisitor {
 
   Primitive makeNull() {
     NullConstantValue nullConst = new NullConstantValue();
-    return new Constant(new PrimitiveConstantExpression(nullConst));
+    return new Constant(new NullConstantExpression(nullConst));
   }
 
   processInvokeMethodDirectly(InvokeMethodDirectly node) {

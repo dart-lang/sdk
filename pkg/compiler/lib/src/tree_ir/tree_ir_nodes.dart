@@ -273,8 +273,9 @@ class Constant extends Expression {
 
   Constant(this.expression);
 
-  Constant.primitive(values.PrimitiveConstantValue primitiveValue)
-      : expression = new PrimitiveConstantExpression(primitiveValue);
+  Constant.bool(values.BoolConstantValue constantValue)
+      : expression = new BoolConstantExpression(
+          constantValue.primitiveValue, constantValue);
 
   accept(ExpressionVisitor visitor) => visitor.visitConstant(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitConstant(this, arg);

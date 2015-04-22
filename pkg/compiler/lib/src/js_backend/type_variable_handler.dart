@@ -79,12 +79,14 @@ class TypeVariableHandler {
                                      constant);
       }
 
-      ConstantExpression name = new PrimitiveConstantExpression(
+      ConstantExpression name = new StringConstantExpression(
+          currentTypeVariable.name,
           _backend.constantSystem.createString(
               new DartString.literal(currentTypeVariable.name)));
-      ConstantExpression bound = new PrimitiveConstantExpression(
-          _backend.constantSystem.createInt(
-              _metadataCollector.reifyType(typeVariableElement.bound)));
+      int boundIndex = _metadataCollector.reifyType(typeVariableElement.bound);
+      ConstantExpression bound = new IntConstantExpression(
+          boundIndex,
+          _backend.constantSystem.createInt(boundIndex));
       ConstantExpression type = _backend.constants.createTypeConstant(cls);
       List<AstConstant> arguments =
           [wrapConstant(type), wrapConstant(name), wrapConstant(bound)];

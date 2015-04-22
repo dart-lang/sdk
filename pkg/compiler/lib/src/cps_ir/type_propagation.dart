@@ -164,7 +164,7 @@ class _TransformingVisitor extends RecursiveVisitor {
     // Set up the replacement structure.
     PrimitiveConstantValue primitiveConstant = value.constant;
     ConstantExpression constExp =
-        new PrimitiveConstantExpression(primitiveConstant);
+        const ConstantExpressionCreator().convert(primitiveConstant);
     Constant constant = new Constant(constExp);
     LetPrim letPrim = new LetPrim(constant);
     InvokeContinuation invoke =
@@ -916,5 +916,79 @@ class _AbstractValue<T> {
       return new _AbstractValue.nonConstant(
           typeSystem.join(this.type, that.type));
     }
+  }
+}
+
+class ConstantExpressionCreator
+    implements ConstantValueVisitor<ConstantExpression, dynamic> {
+
+  const ConstantExpressionCreator();
+
+  ConstantExpression convert(ConstantValue value) => value.accept(this, null);
+
+  @override
+  ConstantExpression visitBool(BoolConstantValue constant, _) {
+    return new BoolConstantExpression(constant.primitiveValue, constant);
+  }
+
+  @override
+  ConstantExpression visitConstructed(ConstructedConstantValue constant, arg) {
+    throw new UnsupportedError("ConstantExpressionCreator.visitConstructed");
+  }
+
+  @override
+  ConstantExpression visitDeferred(DeferredConstantValue constant, arg) {
+    throw new UnsupportedError("ConstantExpressionCreator.visitDeferred");
+  }
+
+  @override
+  ConstantExpression visitDouble(DoubleConstantValue constant, arg) {
+    return new DoubleConstantExpression(constant.primitiveValue, constant);
+  }
+
+  @override
+  ConstantExpression visitDummy(DummyConstantValue constant, arg) {
+    throw new UnsupportedError("ConstantExpressionCreator.visitDummy");
+  }
+
+  @override
+  ConstantExpression visitFunction(FunctionConstantValue constant, arg) {
+    throw new UnsupportedError("ConstantExpressionCreator.visitFunction");
+  }
+
+  @override
+  ConstantExpression visitInt(IntConstantValue constant, arg) {
+    return new IntConstantExpression(constant.primitiveValue, constant);
+  }
+
+  @override
+  ConstantExpression visitInterceptor(InterceptorConstantValue constant, arg) {
+    throw new UnsupportedError("ConstantExpressionCreator.visitInterceptor");
+  }
+
+  @override
+  ConstantExpression visitList(ListConstantValue constant, arg) {
+    throw new UnsupportedError("ConstantExpressionCreator.visitList");
+  }
+
+  @override
+  ConstantExpression visitMap(MapConstantValue constant, arg) {
+    throw new UnsupportedError("ConstantExpressionCreator.visitMap");
+  }
+
+  @override
+  ConstantExpression visitNull(NullConstantValue constant, arg) {
+    return new NullConstantExpression(constant);
+  }
+
+  @override
+  ConstantExpression visitString(StringConstantValue constant, arg) {
+    return new StringConstantExpression(
+        constant.primitiveValue.slowToString(), constant);
+  }
+
+  @override
+  ConstantExpression visitType(TypeConstantValue constant, arg) {
+    throw new UnsupportedError("ConstantExpressionCreator.visitType");
   }
 }

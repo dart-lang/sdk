@@ -7,8 +7,7 @@
 
 library sexpr_unstringifier;
 
-import 'package:compiler/src/constants/expressions.dart'
-    show PrimitiveConstantExpression;
+import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/dart2jslib.dart' as dart2js
     show MessageKind;
@@ -617,16 +616,16 @@ class SExpressionUnstringifier {
     switch (tag) {
       case NULL:
         result = new Constant(
-            new PrimitiveConstantExpression(new NullConstantValue()));
+            new NullConstantExpression(new NullConstantValue()));
         break;
       case BOOL:
         String value = tokens.read();
         if (value == "true") {
           result = new Constant(
-              new PrimitiveConstantExpression(new TrueConstantValue()));
+              new BoolConstantExpression(true, new TrueConstantValue()));
         } else if (value == "false") {
           result = new Constant(
-              new PrimitiveConstantExpression(new FalseConstantValue()));
+              new BoolConstantExpression(false, new FalseConstantValue()));
         } else {
           throw "Invalid Boolean value '$value'.";
         }
@@ -638,9 +637,10 @@ class SExpressionUnstringifier {
         } while (tokens.current != ")");
         String string = strings.join(" ");
         assert(string.startsWith('"') && string.endsWith('"'));
+        String text = string.substring(1, string.length - 1);
         StringConstantValue value = new StringConstantValue(
-            new LiteralDartString(string.substring(1, string.length - 1)));
-        result = new Constant(new PrimitiveConstantExpression(value));
+            new LiteralDartString(text));
+        result = new Constant(new StringConstantExpression(text, value));
         break;
       case INT:
         String value = tokens.read();
@@ -648,8 +648,8 @@ class SExpressionUnstringifier {
         if (intValue == null) {
           throw "Invalid int value 'value'.";
         }
-        result = new Constant(
-            new PrimitiveConstantExpression(new IntConstantValue(intValue)));
+        result = new Constant(new IntConstantExpression(
+            intValue, new IntConstantValue(intValue)));
         break;
       case DOUBLE:
         String value = tokens.read();
@@ -657,8 +657,8 @@ class SExpressionUnstringifier {
         if (doubleValue == null) {
           throw "Invalid double value '$value'.";
         }
-        result = new Constant(new PrimitiveConstantExpression(
-            new DoubleConstantValue(doubleValue)));
+        result = new Constant(new DoubleConstantExpression(
+            doubleValue, new DoubleConstantValue(doubleValue)));
         break;
       default:
         throw "Unexpected constant tag '$tag'.";

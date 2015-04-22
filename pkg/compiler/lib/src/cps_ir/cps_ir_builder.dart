@@ -685,40 +685,45 @@ abstract class IrBuilder {
     return addPrimitive(new ir.Constant(constant));
   }
 
-  // Helper for building primitive constants.
-  ir.Constant _buildPrimitiveConstant(PrimitiveConstantValue constant) {
-    return buildConstant(new PrimitiveConstantExpression(constant));
-  }
-
   /// Create an integer constant and add it to the CPS term.
   ir.Constant buildIntegerConstant(int value) {
-    return _buildPrimitiveConstant(state.constantSystem.createInt(value));
+    return buildConstant(new IntConstantExpression(
+        value,
+        state.constantSystem.createInt(value)));
   }
 
   /// Create a double constant and add it to the CPS term.
   ir.Constant buildDoubleConstant(double value) {
-    return _buildPrimitiveConstant(state.constantSystem.createDouble(value));
+    return buildConstant(new DoubleConstantExpression(
+        value,
+        state.constantSystem.createDouble(value)));
   }
 
   /// Create a Boolean constant and add it to the CPS term.
   ir.Constant buildBooleanConstant(bool value) {
-    return _buildPrimitiveConstant(state.constantSystem.createBool(value));
+    return buildConstant(new BoolConstantExpression(
+        value,
+        state.constantSystem.createBool(value)));
   }
 
   /// Create a null constant and add it to the CPS term.
   ir.Constant buildNullConstant() {
-    return _buildPrimitiveConstant(state.constantSystem.createNull());
+    return buildConstant(new NullConstantExpression(
+        state.constantSystem.createNull()));
   }
 
   /// Create a string constant and add it to the CPS term.
   ir.Constant buildStringConstant(String value) {
-    return _buildPrimitiveConstant(
-        state.constantSystem.createString(new ast.DartString.literal(value)));
+    return buildConstant(new StringConstantExpression(
+        value,
+        state.constantSystem.createString(new ast.DartString.literal(value))));
   }
 
   /// Create a string constant and add it to the CPS term.
   ir.Constant buildDartStringConstant(ast.DartString value) {
-    return _buildPrimitiveConstant(state.constantSystem.createString(value));
+    return buildConstant(new StringConstantExpression(
+        value.slowToString(),
+        state.constantSystem.createString(value)));
   }
 
   /// Creates a non-constant list literal of the provided [type] and with the
@@ -1935,7 +1940,8 @@ abstract class IrBuilder {
     ir.Continuation elseContinuation = new ir.Continuation([]);
 
     ir.Constant makeBoolConstant(bool value) {
-      return new ir.Constant(new PrimitiveConstantExpression(
+      return new ir.Constant(new BoolConstantExpression(
+          value,
           state.constantSystem.createBool(value)));
     }
 

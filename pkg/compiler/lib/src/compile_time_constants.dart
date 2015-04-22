@@ -159,7 +159,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
     ConstantExpression value;
     if (initializer == null) {
       // No initial value.
-      value = new PrimitiveConstantExpression(new NullConstantValue());
+      value = new NullConstantExpression(new NullConstantValue());
     } else {
       value = compileNodeWithDefinitions(
           initializer, definitions, isConst: isConst);
@@ -301,19 +301,22 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
 
   AstConstant visitLiteralBool(LiteralBool node) {
     return new AstConstant(
-        context, node, new PrimitiveConstantExpression(
+        context, node, new BoolConstantExpression(
+            node.value,
             constantSystem.createBool(node.value)));
   }
 
   AstConstant visitLiteralDouble(LiteralDouble node) {
     return new AstConstant(
-        context, node, new PrimitiveConstantExpression(
+        context, node, new DoubleConstantExpression(
+            node.value,
             constantSystem.createDouble(node.value)));
   }
 
   AstConstant visitLiteralInt(LiteralInt node) {
     return new AstConstant(
-        context, node, new PrimitiveConstantExpression(
+        context, node, new IntConstantExpression(
+            node.value,
             constantSystem.createInt(node.value)));
   }
 
@@ -382,13 +385,14 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
 
   AstConstant visitLiteralNull(LiteralNull node) {
     return new AstConstant(
-        context, node, new PrimitiveConstantExpression(
+        context, node, new NullConstantExpression(
             constantSystem.createNull()));
   }
 
   AstConstant visitLiteralString(LiteralString node) {
     return new AstConstant(
-        context, node, new PrimitiveConstantExpression(
+        context, node, new StringConstantExpression(
+            node.dartString.slowToString(),
             constantSystem.createString(node.dartString)));
   }
 
@@ -454,8 +458,9 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     String text = node.slowNameString;
     List<AstConstant> arguments =
         <AstConstant>[new AstConstant(context, node,
-          new PrimitiveConstantExpression(constantSystem.createString(
-              new DartString.literal(text))))];
+          new StringConstantExpression(
+              text,
+              constantSystem.createString(new LiteralDartString(text))))];
     AstConstant constant = makeConstructedConstant(
         compiler, handler, context, node, type, compiler.symbolConstructor,
         CallStructure.ONE_ARG,
@@ -896,7 +901,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       error(node, message);
 
       return new AstConstant(
-          null, node, new PrimitiveConstantExpression(new NullConstantValue()));
+          null, node, new NullConstantExpression(new NullConstantValue()));
     }
     // Else we don't need to do anything. The final handler is only
     // optimistically trying to compile constants. So it is normal that we
