@@ -727,10 +727,8 @@ $(ANNOTATIONS)$(NATIVESPEC)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * Parses the specified text as HTML and adds the resulting node after the
    * last child of this element.
    */
-  void appendHtml(String text, {NodeValidator validator,
-      NodeTreeSanitizer treeSanitizer}) {
-    this.insertAdjacentHtml('beforeend', text, validator: validator,
-        treeSanitizer: treeSanitizer);
+  void appendHtml(String text) {
+    this.insertAdjacentHtml('beforeend', text);
   }
 
   /**
@@ -1020,10 +1018,12 @@ $if DART2JS
    * * [insertAdjacentText]
    * * [insertAdjacentElement]
    */
-  void insertAdjacentHtml(String where, String html, {NodeValidator validator,
-      NodeTreeSanitizer treeSanitizer}) {
-      _insertAdjacentNode(where, new DocumentFragment.html(html,
-          validator: validator, treeSanitizer: treeSanitizer));
+  void insertAdjacentHtml(String where, String html) {
+    if (JS('bool', '!!#.insertAdjacentHTML', this)) {
+      _insertAdjacentHtml(where, html);
+    } else {
+      _insertAdjacentNode(where, new DocumentFragment.html(html));
+    }
   }
 
   @JSName('insertAdjacentHTML')
