@@ -185,7 +185,6 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
     int byteCount = bytes.length;
     RangeError.checkValidRange(start, end, byteCount);
     if (end == null) end = byteCount;
-    int length = end - start;
 
     for (int i = start; i < end; i++) {
       int byte = bytes[i];

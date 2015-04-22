@@ -54,15 +54,6 @@ class _SimpleCallbackSink<T> extends ChunkedConversionSink<T> {
   void close() { _callback(_accumulated); }
 }
 
-class _EventSinkAdapter<T> implements ChunkedConversionSink<T> {
-  final EventSink<T> _sink;
-
-  _EventSinkAdapter(this._sink);
-
-  void add(T data) => _sink.add(data);
-  void close() => _sink.close();
-}
-
 /**
  * This class converts implements the logic for a chunked conversion as a
  * stream transformer.

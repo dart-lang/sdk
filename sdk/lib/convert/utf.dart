@@ -386,8 +386,6 @@ const int _SURROGATE_VALUE_MASK = 0x3FF;
 const int _LEAD_SURROGATE_MIN = 0xD800;
 const int _TAIL_SURROGATE_MIN = 0xDC00;
 
-bool _isSurrogate(int codeUnit) =>
-    (codeUnit & _SURROGATE_MASK) == _LEAD_SURROGATE_MIN;
 bool _isLeadSurrogate(int codeUnit) =>
     (codeUnit & _SURROGATE_TAG_MASK) == _LEAD_SURROGATE_MIN;
 bool _isTailSurrogate(int codeUnit) =>
@@ -395,7 +393,6 @@ bool _isTailSurrogate(int codeUnit) =>
 int _combineSurrogatePair(int lead, int tail) =>
     0x10000 + ((lead & _SURROGATE_VALUE_MASK) << 10)
             | (tail & _SURROGATE_VALUE_MASK);
-
 
 /**
  * Decodes UTF-8.
