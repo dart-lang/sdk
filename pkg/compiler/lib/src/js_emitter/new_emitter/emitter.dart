@@ -143,16 +143,16 @@ class Emitter implements emitterTask.Emitter {
 
       case JsBuiltin.isFunctionTypeLiteral:
         String functionClassName =
-            _backend.namer.runtimeTypeName(compiler.functionClass);
+            _backend.namer.runtimeTypeName(_compiler.functionClass);
 
-        return jsAst.js.expressionTemplateFor(
+        return js.js.expressionTemplateFor(
             '#.$typeNameProperty === "$functionClassName"');
 
       case JsBuiltin.typeName:
-        return jsAst.js.expressionTemplateFor("#.$typeNameProperty");
+        return js.js.expressionTemplateFor("#.$typeNameProperty");
 
       case JsBuiltin.rawRuntimeType:
-        return jsAst.js.expressionTemplateFor("#.constructor");
+        return js.js.expressionTemplateFor("#.constructor");
 
       case JsBuiltin.createFunctionType:
         return _backend.rti.representationGenerator
