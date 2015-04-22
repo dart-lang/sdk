@@ -168,30 +168,6 @@
   </template>
 </polymer-element>
 
-<polymer-element name="nav-control" extends="observatory-element">
-  <template>
-    <style>
-      .black {
-        color: #000;
-      }
-      li {
-        float: right;
-        margin: 0;
-      }
-      button {
-        margin: 3px;
-        padding: 8px;
-      }
-    </style>
-    <!-- Disable until issues with history in Dartium are fixed
-    <li>
-      <button class="black" on-click="{{ back }}">&#9664;</button>
-      <button class="black" on-click="{{ forward }}">&#9654;</button>
-    </li>
-    -->
-  </template>
-</polymer-element>
-
 <polymer-element name="top-nav-menu">
   <template>
     <nav-menu link="/vm" anchor="Observatory" last="{{ last }}">

@@ -10,9 +10,9 @@ part of app;
 /// can handle the current location, the first page to say yes, wins.
 abstract class Page extends Observable {
   final ObservatoryApplication app;
-
+  final ObservableMap<String, String> internalArguments =
+      new ObservableMap<String, String>();
   @observable ObservatoryElement element;
-  @observable ObservableMap args;
 
   Page(this.app);
 
@@ -27,8 +27,9 @@ abstract class Page extends Observable {
   }
 
   /// Called when the page should update its state based on [uri].
-  void visit(Uri uri, Map argsMap) {
-    args = toObservable(argsMap);
+  void visit(Uri uri, Map internalArguments) {
+    this.internalArguments.clear();
+    this.internalArguments.addAll(internalArguments);
     Analytics.reportPageView(uri);
     _visit(uri);
   }
@@ -199,6 +200,27 @@ class CpuProfilerPage extends SimplePage {
         /// Update the page.
         CpuProfileElement page = element;
         page.isolate = isolate;
+      }
+    });
+  }
+}
+
+class TableCpuProfilerPage extends SimplePage {
+  TableCpuProfilerPage(app)
+      : super('profiler-table', 'cpu-profile-table', app);
+
+  void _visit(Uri uri) {
+    super._visit(uri);
+    getIsolate(uri).then((isolate) {
+      if (element != null) {
+        /// Update the page.
+        CpuProfileTableElement page = element;
+        page.isolate = isolate;
+        // TODO(johnmccutchan): Provide a more general mechanism to notify
+        // elements of URI parameter changes. Possibly via a stream off of
+        // LocationManager. With a stream individual elements (not just pages)
+        // could be notified.
+        page.checkParameters();
       }
     });
   }

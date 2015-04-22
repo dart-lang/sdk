@@ -1764,7 +1764,6 @@ class ProfileFunctionTrieBuilder : public SampleVisitor {
       function->Tick(exclusive, exclusive ? -1 : inclusive_serial);
     }
     function->AddCodeObjectIndex(code_index);
-
     current = current->GetChild(function->index());
     current->AddCodeObjectIndex(code_index);
     if (top_frame) {

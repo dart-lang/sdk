@@ -17,7 +17,6 @@ class ObservatoryElement extends PolymerElement {
 
   ObservatoryApplication get app => ObservatoryApplication.app;
   Page get page => app.currentPage;
-  ObservableMap get args => page.args;
 
   @override
   void attached() {

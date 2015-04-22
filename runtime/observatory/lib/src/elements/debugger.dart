@@ -890,7 +890,7 @@ class ObservatoryDebugger extends Debugger {
     }
   }
 
-  void set isolate(Isolate iso) {
+  set isolate(Isolate iso) {
     // Setting the page's isolate will trigger updateIsolate to be called.
     //
     // TODO(turnidge): Rework ownership of the ObservatoryDebugger in another

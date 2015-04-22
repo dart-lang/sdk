@@ -9,8 +9,9 @@ part of app;
 class ObservatoryApplication extends Observable {
   static ObservatoryApplication app;
   final _pageRegistry = new List<Page>();
+  LocationManager _locationManager;
+  LocationManager get locationManager => _locationManager;
   @observable Page currentPage;
-  @observable final LocationManager locationManager;
   VM _vm;
   VM get vm => _vm;
   set vm(VM vm) {
@@ -42,12 +43,13 @@ class ObservatoryApplication extends Observable {
   @observable ObservableList<ServiceEvent> notifications =
       new ObservableList<ServiceEvent>();
 
-  void _initOnce(bool chromium) {
+  void _initOnce() {
     assert(app == null);
     app = this;
     _registerPages();
     Analytics.initialize();
-    locationManager._init(this);
+    // Visit the current page.
+    locationManager._visit();
   }
 
   void removePauseEvents(Isolate isolate) {
@@ -105,6 +107,7 @@ class ObservatoryApplication extends Observable {
     _pageRegistry.add(new ClassTreePage(this));
     _pageRegistry.add(new DebuggerPage(this));
     _pageRegistry.add(new CpuProfilerPage(this));
+    _pageRegistry.add(new TableCpuProfilerPage(this));
     _pageRegistry.add(new AllocationProfilerPage(this));
     _pageRegistry.add(new HeapMapPage(this));
     _pageRegistry.add(new VMConnectPage(this));
@@ -117,7 +120,7 @@ class ObservatoryApplication extends Observable {
 
   void _onError(ServiceError error) {
     lastErrorOrException = error;
-    _visit('error/', null);
+    _visit(Uri.parse('error/'), null);
   }
 
   void _onException(ServiceException exception) {
@@ -127,19 +130,13 @@ class ObservatoryApplication extends Observable {
       this.vm = null;
       locationManager.go(locationManager.makeLink('/vm-connect/'));
     } else {
-      _visit('error/', null);
+      _visit(Uri.parse('error/'), null);
     }
   }
 
-  void _visit(String url, String args) {
-    var argsMap;
-    if (args == null) {
-      argsMap = {};
-    } else {
-      argsMap = Uri.splitQueryString(args);
-    }
-    if (argsMap['trace'] != null) {
-      var traceArg = argsMap['trace'];
+  void _visit(Uri uri, Map internalArguments) {
+    if (internalArguments['trace'] != null) {
+      var traceArg = internalArguments['trace'];
       if (traceArg == 'on') {
         Tracer.start();
       } else if (traceArg == 'off') {
@@ -152,12 +149,11 @@ class ObservatoryApplication extends Observable {
     if (_traceView != null) {
       _traceView.tracer = Tracer.current;
     }
-    Uri uri = Uri.parse(url);
     for (var i = 0; i < _pageRegistry.length; i++) {
       var page = _pageRegistry[i];
       if (page.canVisit(uri)) {
         _installPage(page);
-        page.visit(uri, argsMap);
+        page.visit(uri, internalArguments);
         return;
       }
     }
@@ -196,10 +192,10 @@ class ObservatoryApplication extends Observable {
   }
 
   ObservatoryApplication(this.rootElement) :
-      locationManager = new HashLocationManager(),
       targets = new TargetManager() {
+    _locationManager = new LocationManager(this);
     vm = new WebSocketVM(targets.defaultTarget);
-    _initOnce(false);
+    _initOnce();
   }
 
   void _removeDisconnectEvents() {

@@ -4,46 +4,49 @@
 
 part of app;
 
-abstract class LocationManager extends Observable {
-  final _initialPath = '/vm';
-  ObservatoryApplication _app;
+class LocationManager extends Observable {
+  final _defaultPath = '/vm';
 
-  String _lastUrl;
+  final ObservatoryApplication _app;
 
-  void _init(ObservatoryApplication app) {
-    // Called once.
-    assert(_app == null);
-    _app = app;
-    // Register for history events.
-    window.onPopState.listen(_onLocationChange);
-    _onStartup();
-  }
+  /// [internalArguments] are parameters specified after a '---' in the
+  /// application URL.
+  final Map<String, String> internalArguments = new Map<String, String>();
 
-  void _onStartup();
-  void _onLocationChange(PopStateEvent event);
+  Uri _uri;
+  /// [uri] is the application uri. Application uris consist of a path and
+  /// the queryParameters map.
+  Uri get uri => _uri;
 
-  void _pushUrl(String url) {
-    if (_lastUrl != url) {
-      Logger.root.info('Navigated to ${url}');
-      window.history.pushState(url, document.title, url);
-      _lastUrl = url;
+  LocationManager(this._app) {
+    window.onPopState.listen(_onBrowserNavigation);
+    // Determine initial application path.
+    var applicationPath = '${window.location.hash}';
+    if ((window.location.hash == '') || (window.location.hash == '#')) {
+      // Observatory has loaded but no application path has been specified,
+      // use the default.
+      applicationPath = makeLink(_defaultPath);
     }
+    // Update current application path.
+    window.history.replaceState(applicationPath,
+                                document.title,
+                                applicationPath);
+    _updateApplicationLocation(applicationPath);
   }
 
-  /// Go to a specific url.
-  void go(String url) {
-    if ((url != makeLink('/vm-connect/')) && _app.vm == null) {
-      if (!window.confirm('Connection with VM has been lost. '
-                          'Proceeding will lose current page.')) {
-        return;
-      }
-      url = makeLink('/vm-connect/');
-    }
-    _pushUrl(url);
-    _go(url);
+  /// Called whenever the browser changes the location bar (e.g. forward or
+  /// back button press).
+  void _onBrowserNavigation(PopStateEvent event) {
+    _updateApplicationLocation(window.location.hash);
+    _visit();
   }
 
-  void _go(String url) {
+  /// Given an application url, generate an href link.
+  String makeLink(String url) => '#$url';
+
+  /// Update the application location. After this function returns,
+  /// [uri] and [debugArguments] will be updated.
+  _updateApplicationLocation(String url) {
     // Chop off leading '#'.
     if (url.startsWith('#')) {
       url = url.substring(1);
@@ -53,86 +56,76 @@ abstract class LocationManager extends Observable {
     if (url.startsWith('/')) {
       url = url.substring(1);
     }
-    var args;
-    // Parse out arguments.
+    // Parse out debug arguments.
     if (url.contains('---')) {
       var chunks = url.split('---');
       url = chunks[0];
       if ((chunks.length > 1) && (chunks[1] != '')) {
-        args = chunks[1];
+        internalArguments.clear();
+        try {
+          internalArguments.addAll(Uri.splitQueryString(chunks[1]));
+        } catch (e) {
+          Logger.root.warning('Could not parse debug arguments ${e}');
+        }
       }
     }
-    _app._visit(url, args);
+    _uri = Uri.parse(url);
   }
 
-  /// Go back.
-  void back() {
-    window.history.go(-1);
+  /// Add [url] to the browser history.
+  _addToBrowserHistory(String url) {
+    window.history.pushState(url, document.title, url);
   }
 
-  /// Go forward.
-  void forward() {
-    window.history.go(1);
+  /// Notify the current page that something has changed.
+  _visit() {
+    _app._visit(_uri, internalArguments);
   }
 
-  /// Handle clicking on an application url link.
+  /// Navigate to [url].
+  void go(String url, [bool addToBrowserHistory = true]) {
+    if ((url != makeLink('/vm-connect/')) && _app.vm == null) {
+      if (!window.confirm('Connection with VM has been lost. '
+                          'Proceeding will lose current page.')) {
+        return;
+      }
+      url = makeLink('/vm-connect/');
+    }
+    if (addToBrowserHistory) {
+      _addToBrowserHistory(url);
+    }
+    _updateApplicationLocation(url);
+    _visit();
+  }
+
+  /// Starting with the current uri path and queryParameters, update
+  /// queryParameters present in [updateParameters], then generate a new uri
+  /// and navigate to that.
+  goParameter(Map updatedParameters, [bool addToBrowserHistory = true]) {
+    var parameters = new Map.from(_uri.queryParameters);
+    updatedParameters.forEach((k, v) {
+      parameters[k] = v;
+    });
+    // Ensure path starts with a slash.
+    var path = uri.path.startsWith('/') ? uri.path : '/${uri.path}';
+    var generatedUri = new Uri(path: path, queryParameters: parameters);
+    go(makeLink(generatedUri.toString()), addToBrowserHistory);
+  }
+
+  /// Utility event handler when clicking on application url link.
   void onGoto(MouseEvent event) {
-    var target = event.target;
-    var href = target.attributes['href'];
-    if (event.button > 0 || event.metaKey || event.ctrlKey ||
-        event.shiftKey || event.altKey) {
-      // Not a left-click or a left-click with a modifier key:
-      // Let browser handle.
+    if ((event.button > 0) ||
+        event.metaKey      ||
+        event.ctrlKey      ||
+        event.shiftKey     ||
+        event.altKey) {
+      // Mouse event is not a left-click OR
+      // mouse event is a left-click with a modifier key:
+      // let browser handle.
       return;
     }
-    go(href);
     event.preventDefault();
+    var target = event.target;
+    go(target.attributes['href']);
   }
-
-  /// Given an application url, generate a link.
-  String makeLink(String url);
-}
-
-/// Uses location.hash to encode application urls.
-class HashLocationManager extends LocationManager {
-  void _onStartup() {
-    String initialPath = '${window.location.hash}';
-    if ((window.location.hash == '') || (window.location.hash == '#')) {
-      initialPath = '#${_initialPath}';
-    }
-    window.history.pushState(initialPath, document.title, initialPath);
-    _go(window.location.hash);
-  }
-
-  void _onLocationChange(PopStateEvent _) {
-    _go(window.location.hash);
-  }
-
-  /// Given an application url, generate a link for an anchor tag.
-  String makeLink(String url) {
-    return '#$url';
-  }
-}
-
-/// Uses location.pathname to encode application urls. Requires server side
-/// rewriting to support copy and paste linking. pub serve makes this hard.
-/// STATUS: Work in progress.
-class LinkLocationManager extends LocationManager {
-  void _onStartup() {
-    Logger.root.warning('Using untested LinkLocationManager');
-    String initialPath = window.location.pathname;
-    if ((window.location.pathname == '/index.html') ||
-        (window.location.pathname == '/')) {
-      initialPath = '/vm';
-    }
-    window.history.replaceState(initialPath, document.title, initialPath);
-    _go(window.location.pathname);
-  }
-
-  void _onLocationChange(PopStateEvent _) {
-    _go(window.location.pathname);
-  }
-
-  /// Given an application url, generate a link for an anchor tag.
-  String makeLink(String url) => url;
 }

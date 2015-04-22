@@ -59,19 +59,6 @@ class NavRefreshElement extends ObservatoryElement {
   }
 }
 
-@CustomTag('nav-control')
-class NavControlElement extends ObservatoryElement {
-  NavControlElement.created() : super.created();
-
-  void forward(Event e, var detail, Element target) {
-    app.locationManager.forward();
-  }
-
-  void back(Event e, var detail, Element target) {
-    app.locationManager.back();
-  }
-}
-
 @CustomTag('top-nav-menu')
 class TopNavMenuElement extends ObservatoryElement {
   @published bool last = false;
@@ -106,7 +93,7 @@ class ClassNavMenuElement extends ObservatoryElement {
 @CustomTag('nav-notify')
 class NavNotifyElement extends ObservatoryElement {
   @published ObservableList<ServiceEvent> events;
-  
+
   NavNotifyElement.created() : super.created();
 }
 
@@ -114,7 +101,7 @@ class NavNotifyElement extends ObservatoryElement {
 class NavNotifyItemElement extends ObservatoryElement {
   @published ObservableList<ServiceEvent> events;
   @published ServiceEvent event;
-  
+
   Future resume(_) {
     app.removePauseEvents(event.isolate);
     return event.isolate.resume();

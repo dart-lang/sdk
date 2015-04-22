@@ -224,7 +224,7 @@ class CodeProfileTreeRow extends ProfileTreeRow<CodeCallTreeNode> {
     percentNode.text = percent;
     percentNode.style.minWidth = '5em';
     percentNode.style.textAlign = 'right';
-    percentNode.title = 'Self: $selfPercent';
+    percentNode.title = 'Executing: $selfPercent';
     methodColumn.children.add(percentNode);
 
     // Gap.
@@ -319,7 +319,7 @@ class FunctionProfileTreeRow extends ProfileTreeRow<FunctionCallTreeNode> {
     parentPercent.style.minWidth = '4em';
     parentPercent.style.alignSelf = 'center';
     parentPercent.style.textAlign = 'right';
-    parentPercent.title = 'Self: $selfPercent';
+    parentPercent.title = 'Executing: $selfPercent';
     functionRow.children.add(parentPercent);
 
     // Gap.
@@ -346,7 +346,7 @@ class FunctionProfileTreeRow extends ProfileTreeRow<FunctionCallTreeNode> {
     functionRow.children.add(infoBox);
 
     if (node.profileFunction.function.kind.hasDartCode()) {
-      infoBox.children.add(div('Hot code for current node'));
+      infoBox.children.add(div('Code for current node'));
       infoBox.children.add(br());
       var totalTicks = node.totalCodesTicks;
       var numCodes = node.codes.length;
@@ -392,7 +392,7 @@ class FunctionProfileTreeRow extends ProfileTreeRow<FunctionCallTreeNode> {
     });
 
     if (node.profileFunction.function.kind.hasDartCode()) {
-      infoBox.children.add(div('Hot code containing function'));
+      infoBox.children.add(div('Code containing function'));
       infoBox.children.add(br());
       var totalTicks = profile.sampleCount;
       var codes = node.profileFunction.profileCodes;
@@ -510,10 +510,11 @@ class CpuProfileElement extends ObservatoryElement {
     fetchTime = formatTimeMilliseconds(_sw.elapsedMilliseconds);
   }
 
-  _onLoadStarted() {
+  Future _onLoadStarted() {
     _sw.reset();
     _sw.start();
     state = 'Loading';
+    return window.animationFrame;
   }
 
   _onLoadFinished() {
@@ -537,9 +538,9 @@ class CpuProfileElement extends ObservatoryElement {
     }
     _onFetchStarted();
     return isolate.invokeRpc('getCpuProfile', { 'tags': tagSelector })
-        .then((response) {
+        .then((response) async {
       _onFetchFinished();
-      _onLoadStarted();
+      await _onLoadStarted();
       try {
         profile.load(isolate, response);
         _onLoadFinished();
@@ -608,5 +609,518 @@ class CpuProfileElement extends ObservatoryElement {
     }
     var rootRow = new CodeProfileTreeRow(codeTree, null, profile, tree.root);
     codeTree.initialize(rootRow);
+  }
+}
+
+class NameSortedTable extends SortedTable {
+  NameSortedTable(columns) : super(columns);
+  @override
+  dynamic getSortKeyFor(int row, int col) {
+    if (col == FUNCTION_COLUMN) {
+      // Use name as sort key.
+      return rows[row].values[col].name;
+    }
+    return super.getSortKeyFor(row, col);
+  }
+
+  SortedTableRow rowFromIndex(int tableIndex) {
+    final modelIndex = sortedRows[tableIndex];
+    return rows[modelIndex];
+  }
+
+  static const FUNCTION_SPACER_COLUMNS = const [];
+  static const FUNCTION_COLUMN = 2;
+  TableRowElement _makeFunctionRow() {
+    var tr = new TableRowElement();
+    var cell;
+
+    // Add percentage.
+    cell = tr.insertCell(-1);
+    cell = tr.insertCell(-1);
+
+    // Add function ref.
+    cell = tr.insertCell(-1);
+    var functionRef = new Element.tag('function-ref');
+    cell.children.add(functionRef);
+
+    return tr;
+  }
+
+  static const CALL_SPACER_COLUMNS = const [];
+  static const CALL_FUNCTION_COLUMN = 1;
+  TableRowElement _makeCallRow() {
+    var tr = new TableRowElement();
+    var cell;
+
+    // Add percentage.
+    cell = tr.insertCell(-1);
+    // Add function ref.
+    cell = tr.insertCell(-1);
+    var functionRef = new Element.tag('function-ref');
+    cell.children.add(functionRef);
+    return tr;
+  }
+
+  _updateRow(TableRowElement tr,
+             int rowIndex,
+             List spacerColumns,
+             int refColumn) {
+    var row = rows[rowIndex];
+    // Set reference
+    var ref = tr.children[refColumn].children[0];
+    ref.ref = row.values[refColumn];
+
+    for (var i = 0; i < row.values.length; i++) {
+      if (spacerColumns.contains(i) || (i == refColumn)) {
+        // Skip spacer columns.
+        continue;
+      }
+      var cell = tr.children[i];
+      cell.title = row.values[i].toString();
+      cell.text = getFormattedValue(rowIndex, i);
+    }
+  }
+
+  _updateTableView(HtmlElement table,
+                   HtmlElement makeEmptyRow(),
+                   void onRowClick(TableRowElement tr),
+                   List spacerColumns,
+                   int refColumn) {
+    assert(table != null);
+
+    // Resize DOM table.
+    if (table.children.length > sortedRows.length) {
+      // Shrink the table.
+      var deadRows = table.children.length - sortedRows.length;
+      for (var i = 0; i < deadRows; i++) {
+        table.children.removeLast();
+      }
+    } else if (table.children.length < sortedRows.length) {
+      // Grow table.
+      var newRows = sortedRows.length - table.children.length;
+      for (var i = 0; i < newRows; i++) {
+        var row = makeEmptyRow();
+        row.onClick.listen((e) {
+          e.stopPropagation();
+          e.preventDefault();
+          onRowClick(row);
+        });
+        table.children.add(row);
+      }
+    }
+
+    assert(table.children.length == sortedRows.length);
+
+    // Fill table.
+    for (var i = 0; i < sortedRows.length; i++) {
+      var rowIndex = sortedRows[i];
+      var tr = table.children[i];
+      _updateRow(tr, rowIndex, spacerColumns, refColumn);
+    }
+  }
+}
+
+@CustomTag('cpu-profile-table')
+class CpuProfileTableElement extends ObservatoryElement {
+  final Stopwatch _sw = new Stopwatch();
+  final CpuProfile profile = new CpuProfile();
+  StreamSubscription _resizeSubscription;
+  @observable NameSortedTable profileTable;
+  @observable NameSortedTable profileCallersTable;
+  @observable NameSortedTable profileCalleesTable;
+  @observable ServiceFunction focusedFunction;
+  @observable int focusedRow;
+  @observable String fetchTime = '';
+  @observable String loadTime = '';
+  @observable String state = 'Requested';
+  @observable var exception;
+  @observable var stackTrace;
+  @observable Isolate isolate;
+  @observable String sampleCount = '';
+  @observable String refreshTime = '';
+  @observable String sampleRate = '';
+  @observable String stackDepth = '';
+  @observable String timeSpan = '';
+  @observable String directionSelector = 'Up';
+
+  CpuProfileTableElement.created() : super.created() {
+    var columns = [
+        new SortedTableColumn.withFormatter('Executing (%)',
+                                            Utils.formatPercentNormalized),
+        new SortedTableColumn.withFormatter('In stack (%)',
+                                            Utils.formatPercentNormalized),
+        new SortedTableColumn('Method'),
+    ];
+    profileTable = new NameSortedTable(columns);
+    profileTable.sortColumnIndex = 0;
+
+    columns = [
+        new SortedTableColumn.withFormatter('Callees (%)',
+                                            Utils.formatPercentNormalized),
+        new SortedTableColumn('Method')
+    ];
+    profileCalleesTable = new NameSortedTable(columns);
+    profileCalleesTable.sortColumnIndex = 0;
+
+    columns = [
+        new SortedTableColumn.withFormatter('Callers (%)',
+                                            Utils.formatPercentNormalized),
+        new SortedTableColumn('Method')
+    ];
+    profileCallersTable = new NameSortedTable(columns);
+    profileCallersTable.sortColumnIndex = 0;
+  }
+
+  attached() {
+    super.attached();
+    _resizeSubscription = window.onResize.listen((_) => _updateSize());
+    _updateSize();
+  }
+
+  detached() {
+    super.detached();
+    if (_resizeSubscription != null) {
+      _resizeSubscription.cancel();
+    }
+  }
+
+  _updateSize() {
+    HtmlElement e = $['main'];
+    final totalHeight = window.innerHeight;
+    final top = e.offset.top;
+    final bottomMargin = 32;
+    final mainHeight = totalHeight - top - bottomMargin;
+    e.style.setProperty('height', '${mainHeight}px');
+  }
+
+  isolateChanged() {
+    _getCpuProfile().whenComplete(checkParameters);
+  }
+
+  checkParameters() {
+    var functionId = app.locationManager.uri.queryParameters['functionId'];
+    if (functionId == null) {
+      _focusOnFunction(null);
+      return;
+    }
+    if (isolate == null) {
+      return;
+    }
+    isolate.getObject(functionId).then((func) => _focusOnFunction(func));
+  }
+
+  void directionSelectorChanged(oldValue) {
+    _updateFunctionTreeView();
+  }
+
+  void refresh(var done) {
+    _getCpuProfile().whenComplete(done);
+  }
+
+  void clear(var done) {
+    _clearCpuProfile().whenComplete(done);
+  }
+
+  _onFetchStarted() {
+    _sw.reset();
+    _sw.start();
+    state = 'Requested';
+  }
+
+  _onFetchFinished() {
+    _sw.stop();
+    fetchTime = formatTimeMilliseconds(_sw.elapsedMilliseconds);
+  }
+
+  _onLoadStarted() {
+    _sw.reset();
+    _sw.start();
+    state = 'Loading';
+  }
+
+  _onLoadFinished() {
+    _sw.stop();
+    loadTime = formatTimeMilliseconds(_sw.elapsedMilliseconds);
+    state = 'Loaded';
+  }
+
+  Future _clearCpuProfile() {
+    profile.clear();
+    _clearView();
+    if (isolate == null) {
+      return new Future.value(null);
+    }
+    return isolate.invokeRpc('clearCpuProfile', { })
+    .then((ServiceMap response) {
+      _updateView();
+    });
+  }
+
+  Future _getCpuProfile() {
+    profile.clear();
+    _clearView();
+    if (isolate == null) {
+      return new Future.value(null);
+    }
+    _onFetchStarted();
+    return isolate.invokeRpc('getCpuProfile', { 'tags': 'None' })
+    .then((response) {
+      _onFetchFinished();
+      _onLoadStarted();
+      try {
+        profile.load(isolate, response);
+        profile.buildFunctionCallerAndCallees();
+        _onLoadFinished();
+        _updateView();
+      } catch (e, st) {
+        state = 'Exception';
+        exception = e;
+        stackTrace = st;
+      }
+    }).catchError((e, st) {
+      state = 'Exception';
+      exception = e;
+      stackTrace = st;
+    });
+  }
+
+  _clearView() {
+    profileTable.clearRows();
+    _renderTable();
+  }
+
+  _updateView() {
+    sampleCount = profile.sampleCount.toString();
+    refreshTime = new DateTime.now().toString();
+    stackDepth = profile.stackDepth.toString();
+    sampleRate = profile.sampleRate.toStringAsFixed(0);
+    timeSpan = formatTime(profile.timeSpan);
+    _buildFunctionTable();
+    _renderTable();
+    _updateFunctionTreeView();
+  }
+
+  int _findFunctionRow(ServiceFunction function) {
+    for (var i = 0; i < profileTable.sortedRows.length; i++) {
+      var rowIndex = profileTable.sortedRows[i];
+      var row = profileTable.rows[rowIndex];
+      if (row.values[NameSortedTable.FUNCTION_COLUMN] == function) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  _scrollToFunction(ServiceFunction function) {
+    TableSectionElement tableBody = $['profile-table'];
+    var row = _findFunctionRow(function);
+    if (row == -1) {
+      return;
+    }
+    tableBody.children[row].classes.remove('shake');
+    // trigger reflow.
+    tableBody.children[row].offsetHeight;
+    tableBody.children[row].scrollIntoView(ScrollAlignment.CENTER);
+    tableBody.children[row].classes.add('shake');
+  }
+
+  _clearFocusedFunction() {
+    TableSectionElement tableBody = $['profile-table'];
+    // Clear current focus.
+    if (focusedRow != null) {
+      tableBody.children[focusedRow].classes.remove('focused');
+    }
+    focusedRow = null;
+    focusedFunction = null;
+  }
+
+  _focusOnFunction(ServiceFunction function) {
+    if (focusedFunction == function) {
+      // Do nothing.
+      return;
+    }
+
+    _clearFocusedFunction();
+
+    if (function == null) {
+      _updateFunctionTreeView();
+      _clearCallTables();
+      return;
+    }
+
+    var row = _findFunctionRow(function);
+    if (row == -1) {
+      _updateFunctionTreeView();
+      _clearCallTables();
+      return;
+    }
+
+    focusedRow = row;
+    focusedFunction = function;
+
+    TableSectionElement tableBody = $['profile-table'];
+    tableBody.children[focusedRow].classes.add('focused');
+    _updateFunctionTreeView();
+    _buildCallersTable(focusedFunction);
+    _buildCalleesTable(focusedFunction);
+  }
+
+  _onRowClick(TableRowElement tr) {
+    var tableBody = $['profile-table'];
+    var row = profileTable.rowFromIndex(tableBody.children.indexOf(tr));
+    var function = row.values[NameSortedTable.FUNCTION_COLUMN];
+    app.locationManager.goParameter(
+        {
+          'functionId': function.id
+        }
+    );
+  }
+
+  _renderTable() {
+    profileTable._updateTableView($['profile-table'],
+                                  profileTable._makeFunctionRow,
+                                  _onRowClick,
+                                  NameSortedTable.FUNCTION_SPACER_COLUMNS,
+                                  NameSortedTable.FUNCTION_COLUMN);
+  }
+
+  _buildFunctionTable() {
+    for (var func in profile.functions) {
+      if ((func.exclusiveTicks == 0) && (func.inclusiveTicks == 0)) {
+        // Skip.
+        continue;
+      }
+      var row = [
+        func.normalizedExclusiveTicks,
+        func.normalizedInclusiveTicks,
+        func.function,
+      ];
+      profileTable.addRow(new SortedTableRow(row));
+    }
+    profileTable.sort();
+  }
+
+  _renderCallTable(TableSectionElement view,
+                   NameSortedTable model,
+                   void onRowClick(TableRowElement tr)) {
+    model._updateTableView(view,
+                           model._makeCallRow,
+                           onRowClick,
+                           NameSortedTable.CALL_SPACER_COLUMNS,
+                           NameSortedTable.CALL_FUNCTION_COLUMN);
+  }
+
+  _buildCallTable(Map<ProfileFunction, int> calls,
+                  NameSortedTable model) {
+    model.clearRows();
+    if (calls == null) {
+      return;
+    }
+    var sum = 0;
+    calls.values.forEach((i) => sum += i);
+    calls.forEach((func, count) {
+      var row = [
+          count / sum,
+          func.function,
+      ];
+      model.addRow(new SortedTableRow(row));
+    });
+    model.sort();
+  }
+
+  _clearCallTables() {
+    _buildCallersTable(null);
+    _buildCalleesTable(null);
+  }
+
+  _onCallersClick(TableRowElement tr) {
+    var table = $['callers-table'];
+    final row = profileCallersTable.rowFromIndex(table.children.indexOf(tr));
+    var function = row.values[NameSortedTable.CALL_FUNCTION_COLUMN];
+    _scrollToFunction(function);
+  }
+
+  _buildCallersTable(ServiceFunction function) {
+    var calls = (function != null) ? function.profile.callers : null;
+    var table = $['callers-table'];
+    _buildCallTable(calls, profileCallersTable);
+    _renderCallTable(table, profileCallersTable, _onCallersClick);
+  }
+
+  _onCalleesClick(TableRowElement tr) {
+    var table = $['callees-table'];
+    final row = profileCalleesTable.rowFromIndex(table.children.indexOf(tr));
+    var function = row.values[NameSortedTable.CALL_FUNCTION_COLUMN];
+    _scrollToFunction(function);
+  }
+
+  _buildCalleesTable(ServiceFunction function) {
+    var calls = (function != null) ? function.profile.callees : null;
+    var table = $['callees-table'];
+    _buildCallTable(calls, profileCalleesTable);
+    _renderCallTable(table, profileCalleesTable, _onCalleesClick);
+  }
+
+  _changeSort(Element target, NameSortedTable table) {
+    if (target is TableCellElement) {
+      if (table.sortColumnIndex != target.cellIndex) {
+        table.sortColumnIndex = target.cellIndex;
+        table.sortDescending = true;
+      } else {
+        table.sortDescending = !profileTable.sortDescending;
+      }
+      table.sort();
+    }
+  }
+
+  changeSortProfile(Event e, var detail, Element target) {
+    _changeSort(target, profileTable);
+    _renderTable();
+  }
+
+  changeSortCallers(Event e, var detail, Element target) {
+    _changeSort(target, profileCallersTable);
+    _renderCallTable($['callers-table'], profileCallersTable, _onCallersClick);
+  }
+
+  changeSortCallees(Event e, var detail, Element target) {
+    _changeSort(target, profileCalleesTable);
+    _renderCallTable($['callees-table'], profileCalleesTable, _onCalleesClick);
+  }
+
+  //////
+  ///
+  /// Function tree.
+  ///
+  TableTree functionTree;
+  _updateFunctionTreeView() {
+    if (functionTree != null) {
+      functionTree.clear();
+      functionTree = null;
+    }
+    _buildFunctionTree();
+  }
+
+  void _buildFunctionTree() {
+    if (functionTree == null) {
+      var tableBody = shadowRoot.querySelector('#treeBody');
+      assert(tableBody != null);
+      functionTree = new TableTree(tableBody, 2);
+    }
+    if (focusedFunction == null) {
+      return;
+    }
+    bool exclusive = directionSelector == 'Up';
+    var tree = profile.loadFunctionTree(exclusive ? 'exclusive' : 'inclusive');
+    if (tree == null) {
+      return;
+    }
+    var filter = (FunctionCallTreeNode node) {
+      return node.profileFunction.function == focusedFunction;
+    };
+    tree = tree.filtered(filter);
+    var rootRow =
+        new FunctionProfileTreeRow(functionTree, null, profile, tree.root);
+    functionTree.initialize(rootRow);
   }
 }
