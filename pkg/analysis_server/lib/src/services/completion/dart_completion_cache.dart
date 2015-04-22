@@ -184,11 +184,13 @@ class DartCompletionCache extends CompletionCache {
       if (!constructor.isPrivate) {
         CompletionSuggestion suggestion = createSuggestion(constructor,
             relevance: relevance, importForSource: importForSource);
-        String name = suggestion.completion;
-        name = name.length > 0 ? '$className.$name' : className;
-        suggestion.completion = name;
-        suggestion.selectionOffset = suggestion.completion.length;
-        importedConstructorSuggestions.add(suggestion);
+        if (suggestion != null) {
+          String name = suggestion.completion;
+          name = name.length > 0 ? '$className.$name' : className;
+          suggestion.completion = name;
+          suggestion.selectionOffset = suggestion.completion.length;
+          importedConstructorSuggestions.add(suggestion);
+        }
       }
     }
   }
@@ -326,22 +328,24 @@ class DartCompletionCache extends CompletionCache {
     CompletionSuggestion suggestion = createSuggestion(element,
         relevance: relevance, importForSource: importForSource);
 
-    if (element is ExecutableElement) {
-      DartType returnType = element.returnType;
-      if (returnType != null && returnType.isVoid) {
-        importedVoidReturnSuggestions.add(suggestion);
+    if (suggestion != null) {
+      if (element is ExecutableElement) {
+        DartType returnType = element.returnType;
+        if (returnType != null && returnType.isVoid) {
+          importedVoidReturnSuggestions.add(suggestion);
+        } else {
+          otherImportedSuggestions.add(suggestion);
+        }
+      } else if (element is FunctionTypeAliasElement) {
+        importedTypeSuggestions.add(suggestion);
+      } else if (element is ClassElement) {
+        importedTypeSuggestions.add(suggestion);
+        _addConstructorSuggestions(element, relevance, importForSource);
       } else {
         otherImportedSuggestions.add(suggestion);
       }
-    } else if (element is FunctionTypeAliasElement) {
-      importedTypeSuggestions.add(suggestion);
-    } else if (element is ClassElement) {
-      importedTypeSuggestions.add(suggestion);
-      _addConstructorSuggestions(element, relevance, importForSource);
-    } else {
-      otherImportedSuggestions.add(suggestion);
+      _importedCompletions.add(suggestion.completion);
     }
-    _importedCompletions.add(suggestion.completion);
   }
 
   /**

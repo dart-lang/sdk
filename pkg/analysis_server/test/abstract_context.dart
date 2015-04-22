@@ -6,6 +6,7 @@ library testing.abstract_context;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -41,8 +42,15 @@ class AbstractContextTest {
   static final UriResolver SDK_RESOLVER = new DartUriResolver(SDK);
 
   MemoryResourceProvider provider = new MemoryResourceProvider();
+  Map<String, List<Folder>> packageMap;
   UriResolver resourceResolver;
   AnalysisContext context;
+
+  Source addPackageSource(String packageName, String filePath, String content) {
+    packageMap[packageName] = [(provider.newFolder('/pubcache/$packageName'))];
+    File file = provider.newFile('/pubcache/$packageName/$filePath', content);
+    return file.createSource();
+  }
 
   Source addSource(String path, String content, [Uri uri]) {
     File file = provider.newFile(path, content);
@@ -76,8 +84,12 @@ class AbstractContextTest {
 
   void setUp() {
     resourceResolver = new ResourceUriResolver(provider);
+    packageMap = new Map<String, List<Folder>>();
+    PackageMapUriResolver packageResolver =
+        new PackageMapUriResolver(provider, packageMap);
     context = AnalysisEngine.instance.createAnalysisContext();
-    context.sourceFactory = new SourceFactory([SDK_RESOLVER, resourceResolver]);
+    context.sourceFactory =
+        new SourceFactory([SDK_RESOLVER, packageResolver, resourceResolver]);
   }
 
   void tearDown() {

@@ -1787,7 +1787,10 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   test_Block_unimported() {
-    addSource('/testAB.dart', 'class Foo { }');
+    addPackageSource('myBar', 'bar.dart', 'class Foo2 { Foo2() { } }');
+    addSource(
+        '/proj/testAB.dart', 'import "package:myBar/bar.dart"; class Foo { }');
+    testFile = '/proj/completionTest.dart';
     addTestSource('class C {foo(){F^}}');
     computeFast();
     return computeFull((bool result) {
@@ -1795,6 +1798,10 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       expect(request.replacementLength, 1);
       assertSuggestImportedClass('Foo',
           relevance: DART_RELEVANCE_LOW, importUri: 'testAB.dart');
+      // TODO(danrubel) implement
+      assertNotSuggested('Foo2');
+      // assertSuggestImportedClass('Foo2',
+      //    relevance: DART_RELEVANCE_LOW, importUri: 'package:myBar/bar.dart');
       assertSuggestImportedClass('Future',
           relevance: DART_RELEVANCE_LOW, importUri: 'dart:async');
     });
