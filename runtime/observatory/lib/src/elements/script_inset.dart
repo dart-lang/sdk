@@ -416,6 +416,16 @@ class ScriptInsetElement extends ObservatoryElement {
   Annotation nextAnnotationOnLine(int line) {
     if (annotationsCursor >= annotations.length) return null;
     var annotation = annotations[annotationsCursor];
+
+    // Fast-forward past any annotations before the first line that
+    // we are displaying.
+    while (annotation.line < line) {
+      annotationsCursor++;
+      if (annotationsCursor >= annotations.length) return null;
+      annotation = annotations[annotationsCursor];
+    }
+
+    // Next annotation is for a later line, don't advance past it.
     if (annotation.line != line) return null;
     annotationsCursor++;
     return annotation;
