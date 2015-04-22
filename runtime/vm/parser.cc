@@ -11678,31 +11678,15 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
 
   // Now check if a getter/setter method exists for it in which case
   // it is still a field.
+  // A setter without a corresponding getter binds to the non-existing
+  // getter. (The getter could be followed by an assignment which will
+  // convert it to a setter node. If there is no assignment the non-existing
+  // getter will throw a NoSuchMethodError.)
   func = cls.LookupGetterFunction(ident);
-  if (!func.IsNull()) {
-    if (func.IsDynamicFunction() || func.is_abstract()) {
-      if (node != NULL) {
-        CheckInstanceFieldAccess(ident_pos, ident);
-        ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
-        *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
-      }
-      return true;
-    } else if (func.IsStaticFunction()) {
-      if (node != NULL) {
-        *node = new(Z) StaticGetterNode(ident_pos,
-                                        NULL,
-                                        Class::ZoneHandle(Z, cls.raw()),
-                                        ident);
-      }
-      return true;
-    }
+  if (func.IsNull()) {
+    func = cls.LookupSetterFunction(ident);
   }
-  func = cls.LookupSetterFunction(ident);
   if (!func.IsNull()) {
-    // We create a getter node even though a getter doesn't exist as
-    // it could be followed by an assignment which will convert it to
-    // a setter node. If there is no assignment we will get an error
-    // when we try to invoke the getter.
     if (func.IsDynamicFunction() || func.is_abstract()) {
       if (node != NULL) {
         CheckInstanceFieldAccess(ident_pos, ident);
