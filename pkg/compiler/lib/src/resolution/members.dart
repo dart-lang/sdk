@@ -1960,8 +1960,7 @@ class TypeResolver {
             outer != null && outer.isFactoryConstructor;
         if (!outer.isClass &&
             !outer.isTypedef &&
-            !isInFactoryConstructor &&
-            Elements.isInStaticContext(visitor.enclosingElement)) {
+            !Elements.hasAccessToTypeVariables(visitor.enclosingElement)) {
           registry.registerThrowRuntimeError();
           type = reportFailureAndCreateType(
               MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
@@ -2841,7 +2840,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       } else if (target.isTypeVariable) {
         ClassElement cls = target.enclosingClass;
         assert(enclosingElement.enclosingClass == cls);
-        if (Elements.isInStaticContext(enclosingElement)) {
+        if (!Elements.hasAccessToTypeVariables(enclosingElement)) {
           compiler.reportError(node,
               MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
               {'typeVariableName': node.selector});

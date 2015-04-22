@@ -490,6 +490,12 @@ class Elements {
     return true;
   }
 
+  static bool hasAccessToTypeVariables(Element element) {
+    Element outer = element.outermostEnclosingMemberOrTopLevel;
+    return (outer != null && outer.isFactoryConstructor) ||
+        !isInStaticContext(element);
+  }
+
   static bool isStaticOrTopLevelField(Element element) {
     return isStaticOrTopLevel(element)
            && (identical(element.kind, ElementKind.FIELD)
