@@ -19,25 +19,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 
-class _TopElementData {
-  final String name;
-  final int elementId1;
-  final int elementId2;
-  final int elementId3;
-
-  factory _TopElementData(ElementCodec elementCodec, Element element) {
-    return new _TopElementData._(element.name, elementCodec.encode1(element),
-        elementCodec.encode2(element), elementCodec.encode3(element));
-  }
-
-  _TopElementData._(
-      this.name, this.elementId1, this.elementId2, this.elementId3);
-
-  Element getElement(AnalysisContext context, ElementCodec elementCodec) {
-    return elementCodec.decode(context, elementId1, elementId2, elementId3);
-  }
-}
-
 /**
  * A manager for files content.
  */
@@ -517,11 +498,6 @@ class RelationKeyData {
   }
 
   @override
-  String toString() {
-    return 'Key($elementId2, $elementId2, $elementId3, $relationshipId)';
-  }
-
-  @override
   bool operator ==(Object obj) {
     if (obj is! RelationKeyData) {
       return false;
@@ -532,12 +508,18 @@ class RelationKeyData {
         other.elementId3 == elementId3 &&
         other.relationshipId == relationshipId;
   }
+
+  @override
+  String toString() {
+    return 'Key($elementId2, $elementId2, $elementId3, $relationshipId)';
+  }
 }
 
 /**
- * An [IndexStore] which keeps index information in separate nodes for each unit.
+ * An [InternalIndexStore] which keeps index information in separate nodes for
+ * each unit.
  */
-class SplitIndexStore implements IndexStore {
+class SplitIndexStore implements InternalIndexStore {
   /**
    * The [ContextCodec] to encode/decode [AnalysisContext]s.
    */
@@ -1031,5 +1013,24 @@ class _DataOutputStream {
       _buf = newBuf;
     }
     _buf[_pos++] = value;
+  }
+}
+
+class _TopElementData {
+  final String name;
+  final int elementId1;
+  final int elementId2;
+  final int elementId3;
+
+  factory _TopElementData(ElementCodec elementCodec, Element element) {
+    return new _TopElementData._(element.name, elementCodec.encode1(element),
+        elementCodec.encode2(element), elementCodec.encode3(element));
+  }
+
+  _TopElementData._(
+      this.name, this.elementId1, this.elementId2, this.elementId3);
+
+  Element getElement(AnalysisContext context, ElementCodec elementCodec) {
+    return elementCodec.decode(context, elementId1, elementId2, elementId3);
   }
 }

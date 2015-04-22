@@ -53,7 +53,7 @@ bool _equalsRecordedRelation(RecordedRelation recordedRelation,
 
 @reflectiveTest
 class DartUnitContributorTest extends AbstractSingleUnitTest {
-  IndexStore store = new MockIndexStore();
+  InternalIndexStore store = new MockIndexStore();
   List<RecordedRelation> recordedRelations = <RecordedRelation>[];
   List<Element> recordedTopElements = <Element>[];
 
@@ -70,7 +70,8 @@ class DartUnitContributorTest extends AbstractSingleUnitTest {
       recordedRelations
           .add(new RecordedRelation(element, relationship, location));
     });
-    when(store.recordTopLevelDeclaration(anyObject)).thenInvoke((Element element) {
+    when(store.recordTopLevelDeclaration(anyObject))
+        .thenInvoke((Element element) {
       recordedTopElements.add(element);
     });
   }
@@ -135,8 +136,8 @@ main() {
     Element mainElement = findElement("main");
     VariableElement variableElement = findElement("v");
     // verify
-    _assertNoRecordedRelation(variableElement,
-        IndexConstants.IS_READ_BY, _expectedLocation(mainElement, 'v in []'));
+    _assertNoRecordedRelation(variableElement, IndexConstants.IS_READ_BY,
+        _expectedLocation(mainElement, 'v in []'));
   }
 
   void test_isDefinedBy_NameElement_method() {
@@ -283,8 +284,8 @@ main() {
     Element mainElement = findElement("main");
     Element element = findElement("v");
     // verify
-    _assertRecordedRelation(element,
-        IndexConstants.IS_INVOKED_BY, _expectedLocation(mainElement, 'v();'));
+    _assertRecordedRelation(element, IndexConstants.IS_INVOKED_BY,
+        _expectedLocation(mainElement, 'v();'));
   }
 
   void test_isInvokedBy_MethodElement() {
@@ -398,8 +399,8 @@ main(p()) {
     Element mainElement = findElement("main");
     Element element = findElement("p");
     // verify
-    _assertRecordedRelation(element,
-        IndexConstants.IS_INVOKED_BY, _expectedLocation(mainElement, 'p();'));
+    _assertRecordedRelation(element, IndexConstants.IS_INVOKED_BY,
+        _expectedLocation(mainElement, 'p();'));
   }
 
   void test_isMixedInBy_ClassDeclaration() {
@@ -438,8 +439,8 @@ main(var p) {
     Element mainElement = findElement("main");
     Element parameterElement = findElement("p");
     // verify
-    _assertRecordedRelation(parameterElement,
-        IndexConstants.IS_READ_BY, _expectedLocation(mainElement, 'p);'));
+    _assertRecordedRelation(parameterElement, IndexConstants.IS_READ_BY,
+        _expectedLocation(mainElement, 'p);'));
   }
 
   void test_isReadBy_VariableElement() {
@@ -453,8 +454,8 @@ main() {
     Element mainElement = findElement("main");
     Element variableElement = findElement("v");
     // verify
-    _assertRecordedRelation(variableElement,
-        IndexConstants.IS_READ_BY, _expectedLocation(mainElement, 'v);'));
+    _assertRecordedRelation(variableElement, IndexConstants.IS_READ_BY,
+        _expectedLocation(mainElement, 'v);'));
   }
 
   void test_isReadWrittenBy_ParameterElement() {
@@ -504,8 +505,8 @@ main(A p) {
     ParameterElement pElement = findElement("p");
     VariableElement vElement = findElement("v");
     // verify
-    _assertRecordedRelation(aElement,
-        IndexConstants.IS_REFERENCED_BY, _expectedLocation(pElement, 'A p) {'));
+    _assertRecordedRelation(aElement, IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(pElement, 'A p) {'));
     _assertRecordedRelation(aElement, IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(vElement, 'A v;'));
     _assertRecordedRelation(aElement, IndexConstants.IS_REFERENCED_BY,
@@ -529,8 +530,8 @@ main(B p) {
     ParameterElement pElement = findElement("p");
     VariableElement vElement = findElement("v");
     // verify
-    _assertRecordedRelation(bElement,
-        IndexConstants.IS_REFERENCED_BY, _expectedLocation(pElement, 'B p) {'));
+    _assertRecordedRelation(bElement, IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(pElement, 'B p) {'));
     _assertRecordedRelation(bElement, IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(vElement, 'B v;'));
   }
@@ -739,8 +740,8 @@ main(A p) {
     Element aElement = findElement('A');
     Element pElement = findElement('p');
     // verify
-    _assertRecordedRelation(aElement,
-        IndexConstants.IS_REFERENCED_BY, _expectedLocation(pElement, 'A p) {'));
+    _assertRecordedRelation(aElement, IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(pElement, 'A p) {'));
   }
 
   /**
@@ -938,8 +939,8 @@ main() {
     Element mainElement = findElement('main');
     Element element = findElement('L');
     // verify
-    _assertRecordedRelation(element,
-        IndexConstants.IS_REFERENCED_BY, _expectedLocation(mainElement, 'L;'));
+    _assertRecordedRelation(element, IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(mainElement, 'L;'));
   }
 
   void test_isReferencedBy_libraryName() {
@@ -1121,8 +1122,8 @@ main(var p) {
     Element mainElement = findElement("main");
     ParameterElement pElement = findElement("p");
     // verify
-    _assertRecordedRelation(pElement,
-        IndexConstants.IS_WRITTEN_BY, _expectedLocation(mainElement, 'p = 1'));
+    _assertRecordedRelation(pElement, IndexConstants.IS_WRITTEN_BY,
+        _expectedLocation(mainElement, 'p = 1'));
   }
 
   void test_isWrittenBy_VariableElement() {
@@ -1135,8 +1136,8 @@ main() {
     Element mainElement = findElement("main");
     LocalVariableElement vElement = findElement("v");
     // verify
-    _assertRecordedRelation(vElement,
-        IndexConstants.IS_WRITTEN_BY, _expectedLocation(mainElement, 'v = 1'));
+    _assertRecordedRelation(vElement, IndexConstants.IS_WRITTEN_BY,
+        _expectedLocation(mainElement, 'v = 1'));
   }
 
   void test_NameElement_field() {
@@ -1463,7 +1464,7 @@ class ExpectedLocation {
   }
 }
 
-class MockIndexStore extends TypedMock implements IndexStore {
+class MockIndexStore extends TypedMock implements InternalIndexStore {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

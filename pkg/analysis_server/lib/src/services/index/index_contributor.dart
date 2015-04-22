@@ -21,7 +21,7 @@ import 'package:analyzer/src/generated/source.dart';
  * Adds data to [store] based on the resolved Dart [unit].
  */
 void indexDartUnit(
-    IndexStore store, AnalysisContext context, CompilationUnit unit) {
+    InternalIndexStore store, AnalysisContext context, CompilationUnit unit) {
   // check unit
   if (unit == null) {
     return;
@@ -45,7 +45,7 @@ void indexDartUnit(
  * Adds data to [store] based on the resolved HTML [unit].
  */
 void indexHtmlUnit(
-    IndexStore store, AnalysisContext context, ht.HtmlUnit unit) {
+    InternalIndexStore store, AnalysisContext context, ht.HtmlUnit unit) {
   // check unit
   if (unit == null) {
     return;
@@ -65,10 +65,10 @@ void indexHtmlUnit(
 }
 
 /**
- * Visits a resolved AST and adds relationships into [IndexStore].
+ * Visits a resolved AST and adds relationships into [InternalIndexStore].
  */
 class _IndexContributor extends GeneralizingAstVisitor {
-  final IndexStore _store;
+  final InternalIndexStore _store;
 
   LibraryElement _libraryElement;
 

@@ -15,7 +15,7 @@ import 'package:analyzer/src/generated/source.dart';
  * A container with information computed by an index - relations between
  * elements.
  */
-abstract class IndexStore {
+abstract class InternalIndexStore {
   /**
    * Answers index statistics.
    */
