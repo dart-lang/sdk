@@ -872,6 +872,7 @@ void Assembler::TryAllocate(const Class& cls,
     const uword top_address = heap->TopAddress(space);
     LoadImmediate(temp_reg, top_address);
     lw(instance_reg, Address(temp_reg));
+    // TODO(koda): Protect against unsigned overflow here.
     AddImmediate(instance_reg, instance_size);
 
     // instance_reg: potential next object start.
@@ -914,8 +915,9 @@ void Assembler::TryAllocateArray(intptr_t cid,
     LoadImmediate(temp1, heap->TopAddress(space));
     lw(instance, Address(temp1, 0));  // Potential new object start.
     // Potential next object start.
-    AddImmediateDetectOverflow(end_address, instance, instance_size, CMPRES1);
-    bltz(CMPRES1, failure);  // CMPRES1 < 0 on overflow.
+    AddImmediate(end_address, instance, instance_size);
+    // Branch on unsigned overflow.
+    BranchUnsignedLess(end_address, instance, failure);
 
     // Check if the allocation fits into the remaining space.
     // instance: potential new object start.

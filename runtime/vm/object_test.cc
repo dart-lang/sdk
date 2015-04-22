@@ -2000,6 +2000,60 @@ TEST_CASE(ArrayLengthMaxElements) {
 }
 
 
+static void TestIllegalTypedDataLength(const char* class_name,
+                                       intptr_t length) {
+  char buffer[1024];
+  OS::SNPrint(buffer, sizeof(buffer),
+      "import 'dart:typed_data';\n"
+      "main() {\n"
+      "  new %s(%" Pd ");\n"
+      "}\n",
+      class_name, length);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  OS::SNPrint(buffer, sizeof(buffer), "%" Pd,  length);
+  EXPECT_ERROR(result, "Invalid argument(s)");
+  EXPECT_ERROR(result, buffer);
+}
+
+
+TEST_CASE(Int8ListLengthNegativeOne) {
+  TestIllegalTypedDataLength("Int8List", -1);
+}
+TEST_CASE(Int8ListLengthSmiMin) {
+  TestIllegalTypedDataLength("Int8List", kSmiMin);
+}
+TEST_CASE(Int8ListLengthOneTooMany) {
+  const intptr_t kOneTooMany =
+      TypedData::MaxElements(kTypedDataInt8ArrayCid) + 1;
+  ASSERT(kOneTooMany >= 0);
+  TestIllegalTypedDataLength("Int8List", kOneTooMany);
+}
+
+
+TEST_CASE(Int8ListLengthMaxElements) {
+  const intptr_t max_elements = TypedData::MaxElements(kTypedDataInt8ArrayCid);
+  char buffer[1024];
+  OS::SNPrint(buffer, sizeof(buffer),
+      "import 'dart:typed_data';\n"
+      "main() {\n"
+      "  return new Int8List(%" Pd ");\n"
+      "}\n",
+      max_elements);
+  Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  if (Dart_IsError(result)) {
+    EXPECT_ERROR(result, "Out of Memory");
+  } else {
+    intptr_t actual = 0;
+    EXPECT_VALID(Dart_ListLength(result, &actual));
+    EXPECT_EQ(max_elements, actual);
+  }
+}
+
+
 TEST_CASE(StringCodePointIterator) {
   const String& str0 = String::Handle(String::New(""));
   String::CodePointIterator it0(str0);

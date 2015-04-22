@@ -1373,7 +1373,8 @@ void Assembler::TryAllocate(const Class& cls,
     const uword top_address = heap->TopAddress(space);
     LoadImmediate(temp_reg, top_address, pp);
     ldr(instance_reg, Address(temp_reg));
-    AddImmediate(instance_reg, instance_reg, instance_size, pp);
+    // TODO(koda): Protect against unsigned overflow here.
+    AddImmediateSetFlags(instance_reg, instance_reg, instance_size, pp);
 
     // instance_reg: potential next object start.
     const uword end_address = heap->EndAddress(space);
@@ -1418,8 +1419,8 @@ void Assembler::TryAllocateArray(intptr_t cid,
     Heap::Space space = heap->SpaceForAllocation(cid);
     LoadImmediate(temp1, heap->TopAddress(space), PP);
     ldr(instance, Address(temp1, 0));  // Potential new object start.
-    AddImmediate(end_address, instance, instance_size, PP);
-    b(failure, VS);
+    AddImmediateSetFlags(end_address, instance, instance_size, PP);
+    b(failure, CS);  // Fail on unsigned overflow.
 
     // Check if the allocation fits into the remaining space.
     // instance: potential new object start.

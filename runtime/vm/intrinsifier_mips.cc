@@ -200,8 +200,9 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ lw(V0, Address(V0, 0));                                                   \
                                                                                \
   /* T2: allocation size. */                                                   \
-  __ AdduDetectOverflow(T1, V0, T2, CMPRES1);                                  \
-  __ bltz(CMPRES1, &fall_through);                                             \
+  __ addu(T1, V0, T2);                                                         \
+  /* Branch on unsigned overflow. */                                           \
+  __ BranchUnsignedLess(T1, V0, &fall_through);                                \
                                                                                \
   /* Check if the allocation fits into the remaining space. */                 \
   /* V0: potential new object start. */                                        \
@@ -1763,6 +1764,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   const Register length_reg = T2;
 
   __ mov(T6, length_reg);  // Save the length register.
+  // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);
   const intptr_t fixed_size = sizeof(RawString) + kObjectAlignment - 1;
   __ AddImmediate(length_reg, fixed_size);
@@ -1777,8 +1779,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ lw(V0, Address(T3, 0));
 
   // length_reg: allocation size.
-  __ AdduDetectOverflow(T1, V0, length_reg, CMPRES1);
-  __ bltz(CMPRES1, failure);  // Fail on overflow.
+  __ addu(T1, V0, length_reg);
+  __ BranchUnsignedLess(T1, V0, failure);  // Fail on unsigned overflow.
 
   // Check if the allocation fits into the remaining space.
   // V0: potential new object start.
