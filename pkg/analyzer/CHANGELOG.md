@@ -1,3 +1,13 @@
+## 0.24.7
+
+* Commandline interface moved to dedicated `analyzer_cli` package. Files moved:
+** `bin/analyzer.dart`
+** `lib/analyzer.dart`
+** `lib/options.dart`
+** `lib/src/analyzer_impl.dart`
+** `lib/src/error_formatter.dart`
+* Removed dependency on `args` package.
+
 ## 0.22.1
 
 * Changes in the async/await support.

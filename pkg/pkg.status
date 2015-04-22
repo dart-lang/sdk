@@ -197,7 +197,6 @@ analyzer2dart/test/sexpr_test: Crash # Instance of 'TypeOperator': unimplemented
 analyzer2dart/test/tree_shaker_test: Crash # cannot compile methods that need interceptor calling convention.
 analyzer/test/cancelable_future_test: Crash #  Unhandled node
 analyzer/test/enum_test: Crash #  Unhandled node
-analyzer/test/error_test: Crash # cannot compile methods that need interceptor calling convention.
 analyzer/test/file_system/memory_file_system_test: Crash #  Unhandled node
 analyzer/test/file_system/physical_resource_provider_test: Crash #  Unhandled node
 analyzer/test/file_system/resource_uri_resolver_test: Crash #  Unhandled node
@@ -217,7 +216,6 @@ analyzer/test/generated/static_type_warning_code_test: Crash #  Unhandled node
 analyzer/test/generated/static_warning_code_test: Crash #  Unhandled node
 analyzer/test/generated/utilities_test: Crash #  Unhandled node
 analyzer/test/instrumentation/instrumentation_test: Crash #  try/finally
-analyzer/test/options_test: Crash #  Unhandled node
 analyzer/test/parse_compilation_unit_test: Crash # cannot compile methods that need interceptor calling convention.
 analyzer/test/plugin/plugin_impl_test: Crash #  try/finally
 analyzer/test/source/package_map_provider_test: Crash #  try/finally
