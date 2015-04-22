@@ -218,11 +218,12 @@ class ScriptInsetElement extends ObservatoryElement {
   @published int currentPos;
   @published int startPos;
   @published int endPos;
+  @published bool inDebuggerContext = false;
 
-  @observable int currentLine;
-  @observable int currentCol;
-  @observable int startLine;
-  @observable int endLine;
+  int _currentLine;
+  int _currentCol;
+  int _startLine;
+  int _endLine;
 
   var annotations = [];
   var annotationsCursor;
@@ -234,7 +235,7 @@ class ScriptInsetElement extends ObservatoryElement {
   }
 
   void _scrollToCurrentPos() {
-    var line = querySelector('#${makeLineId(currentLine)}');
+    var line = querySelector('#${makeLineId(_currentLine)}');
     if (line != null) {
       line.scrollIntoView();
     }
@@ -332,45 +333,47 @@ class ScriptInsetElement extends ObservatoryElement {
   }
 
   void computeAnnotations() {
-    startLine = (startPos != null
-                 ? script.tokenToLine(startPos)
-                 : 1);
-    currentLine = (currentPos != null
-                   ? script.tokenToLine(currentPos)
+    _startLine = (startPos != null
+                  ? script.tokenToLine(startPos)
+                  : 1);
+    _currentLine = (currentPos != null
+                    ? script.tokenToLine(currentPos)
+                    : null);
+    _currentCol = (currentPos != null
+                   ? (script.tokenToCol(currentPos) - 1)  // make this 0-based.
                    : null);
-    currentCol = (currentPos != null
-                  ? (script.tokenToCol(currentPos) - 1)  // make this 0-based.
-                  : null);
-    endLine = (endPos != null
-               ? script.tokenToLine(endPos)
-               : script.lines.length);
+    _endLine = (endPos != null
+                ? script.tokenToLine(endPos)
+                : script.lines.length);
 
     annotations.clear();
-    if (currentLine != null) {
+    if (_currentLine != null) {
       var a = new CurrentExecutionAnnotation();
-      a.line = currentLine;
-      a.columnStart = currentCol;
-      a.columnStop = currentCol + 1;
+      a.line = _currentLine;
+      a.columnStart = _currentCol;
+      a.columnStop = _currentCol + 1;
       annotations.add(a);
     }
 
-    loadFunctionsOf(script.library);
+    if (!inDebuggerContext) {
+      loadFunctionsOf(script.library);
 
-    for (var func in script.library.functions) {
-      if (func.script == script) {
-        annotations.add(new FunctionDeclarationAnnotation(func));
-      }
-    }
-    for (var cls in script.library.classes) {
-      for (var func in cls.functions) {
+      for (var func in script.library.functions) {
         if (func.script == script) {
           annotations.add(new FunctionDeclarationAnnotation(func));
         }
       }
-    }
+      for (var cls in script.library.classes) {
+        for (var func in cls.functions) {
+          if (func.script == script) {
+            annotations.add(new FunctionDeclarationAnnotation(func));
+          }
+        }
+      }
 
-    for (var callSite in script.callSites) {
-      annotations.add(new CallSiteAnnotation(callSite));
+      for (var callSite in script.callSites) {
+        annotations.add(new CallSiteAnnotation(callSite));
+      }
     }
 
     annotations.sort();
@@ -383,7 +386,7 @@ class ScriptInsetElement extends ObservatoryElement {
     annotationsCursor = 0;
 
     int blankLineCount = 0;
-    for (int i = (startLine - 1); i <= (endLine - 1); i++) {
+    for (int i = (_startLine - 1); i <= (_endLine - 1); i++) {
       if (script.lines[i].isBlank) {
         // Try to introduce elipses if there are 4 or more contiguous
         // blank lines.
@@ -517,7 +520,7 @@ class ScriptInsetElement extends ObservatoryElement {
     e.classes.add("sourceItem");
 
     if (line != null) {
-      if (line.line == currentLine) {
+      if (line.line == _currentLine) {
         e.classes.add("currentLine");
       }
 
