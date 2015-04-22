@@ -95,4 +95,10 @@ DEFINE_NATIVE_ENTRY(Internal_makeListFixedLength, 1) {
   return Array::MakeArray(array);
 }
 
+DEFINE_NATIVE_ENTRY(Internal_makeFixedListUnmodifiable, 1) {
+  const Array& array = Array::CheckedHandle(arguments->NativeArgAt(0));
+  array.MakeImmutable();
+  return array.raw();
+}
+
 }  // namespace dart

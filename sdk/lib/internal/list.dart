@@ -374,3 +374,19 @@ abstract class NonGrowableListError {
  * state.
  */
 external List makeListFixedLength(List growableList);
+
+/**
+ * Converts a fixed-length list to an unmodifiable list.
+ *
+ * For internal use only.
+ * Only works for core fixed-length lists as created by `new List(length)`,
+ * or as returned by [makeListFixedLength].
+ *
+ * The operation is efficient. It doesn't copy the elements, but converts
+ * the existing list directly to a fixed length list.
+ * That means that it is a destructive conversion.
+ * The original list should not be used afterwards.
+ *
+ * The unmodifialbe list type is similar to the one used by const lists.
+ */
+external List makeFixedListUnmodifiable(List fixedLengthList);

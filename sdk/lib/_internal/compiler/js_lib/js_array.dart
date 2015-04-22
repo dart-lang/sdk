@@ -77,6 +77,15 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return JS('JSFixedArray', '#', list);
   }
 
+  static List markUnmodifiableList(List list) {
+    // Functions are stored in the hidden class and not as properties in
+    // the object. We never actually look at the value, but only want
+    // to know if the property exists.
+    JS('void', r'#.fixed$length = Array', list);
+    JS('void', r'#.immutable$list = Array', list);
+    return JS('List', '#', list);
+  }
+
   checkMutable(reason) {
     if (this is !JSMutableArray) {
       throw new UnsupportedError(reason);
@@ -95,20 +104,20 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   }
 
   E removeAt(int index) {
+    checkGrowable('removeAt');
     if (index is !int) throw new ArgumentError(index);
     if (index < 0 || index >= length) {
       throw new RangeError.value(index);
     }
-    checkGrowable('removeAt');
     return JS('var', r'#.splice(#, 1)[0]', this, index);
   }
 
   void insert(int index, E value) {
+    checkGrowable('insert');
     if (index is !int) throw new ArgumentError(index);
     if (index < 0 || index > length) {
       throw new RangeError.value(index);
     }
-    checkGrowable('insert');
     JS('void', r'#.splice(#, 0, #)', this, index, value);
   }
 
@@ -199,8 +208,9 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   }
 
   void addAll(Iterable<E> collection) {
+    checkGrowable('addAll');
     for (E e in collection) {
-      this.add(e);
+      JS('void', r'#.push(#)', this, e);
     }
   }
 
@@ -564,9 +574,9 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   int get length => JS('JSUInt32', r'#.length', this);
 
   void set length(int newLength) {
+    checkGrowable('set length');
     if (newLength is !int) throw new ArgumentError(newLength);
     if (newLength < 0) throw new RangeError.value(newLength);
-    checkGrowable('set length');
     JS('void', r'#.length = #', this, newLength);
   }
 

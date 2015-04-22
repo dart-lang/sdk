@@ -279,8 +279,13 @@ class List<E> {
     if (growable) return list;
     return makeListFixedLength(list);
   }
-}
 
+  @patch
+  factory List.unmodifiable(Iterable elements) {
+    List result = new List<E>.from(elements, growable: false);
+    return makeFixedListUnmodifiable(result);
+  }
+}
 
 @patch
 class String {

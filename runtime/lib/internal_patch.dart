@@ -5,6 +5,9 @@
 patch List makeListFixedLength(List growableList)
     native "Internal_makeListFixedLength";
 
+patch List makeFixedListUnmodifiable(List fixedLengthList)
+    native "Internal_makeFixedListUnmodifiable";
+
 class VMLibraryHooks {
   // Example: "dart:isolate _Timer._factory"
   static var timerFactory;
