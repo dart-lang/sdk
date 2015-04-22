@@ -2522,6 +2522,12 @@ class SsaBuilder extends NewResolvedVisitor {
     if (node != null) node.accept(this);
   }
 
+  /// Visit [node] and pop the resulting [HInstruction].
+  HInstruction visitAndPop(ast.Node node) {
+    node.accept(this);
+    return pop();
+  }
+
   visitBlock(ast.Block node) {
     assert(!isAborted());
     if (!isReachable) return;  // This can only happen when inlining.
@@ -3101,31 +3107,42 @@ class SsaBuilder extends NewResolvedVisitor {
     branchBuilder.handleIf(visitCondition, visitThen, visitElse);
   }
 
-  void visitLogicalAndOr(ast.Send node, ast.Operator op) {
+  @override
+  void visitLogicalAnd(ast.Send node, ast.Node left, ast.Node right, _) {
     SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, node);
     branchBuilder.handleLogicalAndOrWithLeftNode(
-        node.receiver,
-        () { visit(node.argumentsNode); },
-        isAnd: ("&&" == op.source));
+        left,
+        () { visit(right); },
+        isAnd: true);
   }
 
-  void visitLogicalNot(ast.Send node) {
+  @override
+  void visitLogicalOr(ast.Send node, ast.Node left, ast.Node right, _) {
+    SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, node);
+    branchBuilder.handleLogicalAndOrWithLeftNode(
+        left,
+        () { visit(right); },
+        isAnd: false);
+  }
+
+  @override
+  void visitNot(ast.Send node, ast.Node expression, _) {
     assert(node.argumentsNode is ast.Prefix);
-    visit(node.receiver);
+    visit(expression);
     HNot not = new HNot(popBoolified(), backend.boolType);
     pushWithPosition(not, node);
   }
 
-  void visitUnarySend(ast.Send node, ast.Operator op) {
+  @override
+  void visitUnary(ast.Send node,
+                  UnaryOperator operator,
+                  ast.Node expression,_) {
     assert(node.argumentsNode is ast.Prefix);
-    visit(node.receiver);
-    assert(!identical(op.token.kind, PLUS_TOKEN));
-    HInstruction operand = pop();
+    HInstruction operand = visitAndPop(expression);
 
     // See if we can constant-fold right away. This avoids rewrites later on.
     if (operand is HConstant) {
-      UnaryOperation operation = constantSystem.lookupUnary(
-          UnaryOperator.parse(op.source));
+      UnaryOperation operation = constantSystem.lookupUnary(operator);
       HConstant constant = operand;
       ConstantValue folded = operation.fold(constant.constant);
       if (folded != null) {
@@ -3137,27 +3154,49 @@ class SsaBuilder extends NewResolvedVisitor {
     pushInvokeDynamic(node, elements.getSelector(node), [operand]);
   }
 
+  @override
+  void visitBinary(ast.Send node,
+                   ast.Node left,
+                   BinaryOperator operator,
+                   ast.Node right, _) {
+    handleBinary(node, left, right);
+  }
+
+  @override
+  void visitIndex(ast.Send node, ast.Node receiver, ast.Node index, _) {
+    // TODO(johnniwinther): Add a new helper to join the paths used by
+    // [visitIndex], [visitDynamicSend] and [handleSendSet].
+    visitDynamicSend(node);
+  }
+
+  @override
+  void visitEquals(ast.Send node, ast.Node left, ast.Node right, _) {
+    handleBinary(node, left, right);
+  }
+
+  @override
+  void visitNotEquals(ast.Send node, ast.Node left, ast.Node right, _) {
+    handleBinary(node, left, right);
+    pushWithPosition(new HNot(popBoolified(), backend.boolType), node.selector);
+  }
+
+  void handleBinary(ast.Send node, ast.Node left, ast.Node right) {
+    visitBinarySend(
+        visitAndPop(left),
+        visitAndPop(right),
+        elements.getSelector(node),
+        node,
+        location: node.selector);
+  }
+
+  /// TODO(johnniwinther): Merge [visitBinarySend] with [handleBinary] and
+  /// remove use of [location] for source information.
   void visitBinarySend(HInstruction left,
-                       ast.Operator op,
                        HInstruction right,
                        Selector selector,
-                       ast.Send send) {
-    switch (op.source) {
-      case "===":
-        pushWithPosition(
-            new HIdentity(left, right, null, backend.boolType), op);
-        return;
-      case "!==":
-        HIdentity eq = new HIdentity(left, right, null, backend.boolType);
-        add(eq);
-        pushWithPosition(new HNot(eq, backend.boolType), op);
-        return;
-    }
-
-    pushInvokeDynamic(send, selector, [left, right], location: op);
-    if (op.source == '!=') {
-      pushWithPosition(new HNot(popBoolified(), backend.boolType), op);
-    }
+                       ast.Send send,
+                       {ast.Node location}) {
+    pushInvokeDynamic(send, selector, [left, right], location: location);
   }
 
   HInstruction generateInstanceSendReceiver(ast.Send send) {
@@ -3419,53 +3458,37 @@ class SsaBuilder extends NewResolvedVisitor {
   }
 
   visitOperatorSend(ast.Send node) {
-    ast.Operator op = node.selector;
-    if ("[]" == op.source) {
-      visitDynamicSend(node);
-    } else if ("&&" == op.source ||
-               "||" == op.source) {
-      visitLogicalAndOr(node, op);
-    } else if ("!" == op.source) {
-      visitLogicalNot(node);
-    } else if (node.argumentsNode is ast.Prefix) {
-      visitUnarySend(node, op);
-    } else if ("is" == op.source) {
-      visitIsSend(node);
-    } else if ("as" == op.source) {
-      visit(node.receiver);
-      HInstruction expression = pop();
-      DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
-      if (type.isMalformed) {
-        ErroneousElement element = type.element;
-        generateTypeError(node, element.message);
-      } else {
-        HInstruction converted = buildTypeConversion(
-            expression,
-            localsHandler.substInContext(type),
-            HTypeConversion.CAST_TYPE_CHECK);
-        if (converted != expression) add(converted);
-        stack.add(converted);
-      }
+    internalError(node, 'Unexpected operator send: ${node}');
+  }
+
+  @override
+  void visitAs(ast.Send node, ast.Node expression, DartType type, _) {
+    HInstruction expressionInstruction = visitAndPop(expression);
+    if (type.isMalformed) {
+      ErroneousElement element = type.element;
+      generateTypeError(node, element.message);
     } else {
-      visit(node.receiver);
-      visit(node.argumentsNode);
-      var right = pop();
-      var left = pop();
-      visitBinarySend(left, op, right, elements.getSelector(node), node);
+      HInstruction converted = buildTypeConversion(
+          expressionInstruction,
+          localsHandler.substInContext(type),
+          HTypeConversion.CAST_TYPE_CHECK);
+      if (converted != expressionInstruction) add(converted);
+      stack.add(converted);
     }
   }
 
-  void visitIsSend(ast.Send node) {
-    visit(node.receiver);
-    HInstruction expression = pop();
-    bool isNot = node.isIsNotCheck;
-    DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
-    HInstruction instruction = buildIsNode(node, type, expression);
-    if (isNot) {
-      add(instruction);
-      instruction = new HNot(instruction, backend.boolType);
-    }
-    push(instruction);
+  @override
+  void visitIs(ast.Send node, ast.Node expression, DartType type, _) {
+    HInstruction expressionInstruction = visitAndPop(expression);
+    push(buildIsNode(node, type, expressionInstruction));
+  }
+
+  @override
+  void visitIsNot(ast.Send node, ast.Node expression, DartType type, _) {
+    HInstruction expressionInstruction = visitAndPop(expression);
+    HInstruction instruction = buildIsNode(node, type, expressionInstruction);
+    add(instruction);
+    push(new HNot(instruction, backend.boolType));
   }
 
   HInstruction buildIsNode(ast.Node node,
@@ -4940,8 +4963,10 @@ class SsaBuilder extends NewResolvedVisitor {
       assert(arguments.tail.isEmpty);
       rhs = pop();
     }
-    visitBinarySend(receiver, node.assignmentOperator, rhs,
-                    elements.getOperatorSelectorInComplexSendSet(node), node);
+    visitBinarySend(receiver, rhs,
+                    elements.getOperatorSelectorInComplexSendSet(node),
+                    node,
+                    location: node.assignmentOperator);
   }
 
   @override
