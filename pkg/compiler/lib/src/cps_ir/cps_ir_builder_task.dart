@@ -549,32 +549,32 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   // Build(Literal(c), C) = C[let val x = Constant(c) in [], x]
   ir.Primitive visitLiteralBool(ast.LiteralBool node) {
     assert(irBuilder.isOpen);
-    return translateConstant(node);
+    return irBuilder.buildBooleanConstant(node.value);
   }
 
   ir.Primitive visitLiteralDouble(ast.LiteralDouble node) {
     assert(irBuilder.isOpen);
-    return translateConstant(node);
+    return irBuilder.buildDoubleConstant(node.value);
   }
 
   ir.Primitive visitLiteralInt(ast.LiteralInt node) {
     assert(irBuilder.isOpen);
-    return translateConstant(node);
+    return irBuilder.buildIntegerConstant(node.value);
   }
 
   ir.Primitive visitLiteralNull(ast.LiteralNull node) {
     assert(irBuilder.isOpen);
-    return translateConstant(node);
+    return irBuilder.buildNullConstant();
   }
 
   ir.Primitive visitLiteralString(ast.LiteralString node) {
     assert(irBuilder.isOpen);
-    return translateConstant(node);
+    return irBuilder.buildDartStringConstant(node.dartString);
   }
 
   ConstantExpression getConstantForNode(ast.Node node) {
     ConstantExpression constant =
-        compiler.backend.constantCompilerTask.compileNode(node, elements);
+        compiler.backend.constants.getConstantForNode(node, elements);
     assert(invariant(node, constant != null,
         message: 'No constant computed for $node'));
     return constant;
@@ -688,7 +688,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive handleConstantGet(
       ast.Node node,
       ConstantExpression constant, _) {
-    return irBuilder.buildConstantLiteral(constant);
+    return irBuilder.buildConstant(constant);
   }
 
   /// If [node] is null, returns this.
@@ -713,7 +713,17 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Send node,
       ConstantExpression constant,
       _) {
-    return irBuilder.buildConstantLiteral(constant);
+    return irBuilder.buildConstant(constant);
+  }
+
+  @override
+  ir.Primitive visitLocalVariableGet(
+      ast.Send node,
+      LocalVariableElement element,
+      _) {
+    return element.isConst
+        ? irBuilder.buildConstant(getConstantForVariable(element))
+        : irBuilder.buildLocalVariableGet(element);
   }
 
   @override
@@ -721,9 +731,6 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Send node,
       LocalElement element,
       _) {
-    if (element.isConst) {
-      return translateConstant(node);
-    }
     return irBuilder.buildLocalVariableGet(element);
   }
 
@@ -736,15 +743,11 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive handleStaticFieldGet(
-      ast.Send node,
-      FieldElement field,
-      _) {
-    if (field.isConst) {
-      return translateConstant(node);
-    }
-    return irBuilder.buildStaticFieldGet(field,
-        sourceInformation: sourceInformationBuilder.buildGet(node));
+  ir.Primitive handleStaticFieldGet(ast.Send node, FieldElement field, _) {
+    return field.isConst
+        ? irBuilder.buildConstant(getConstantForVariable(field))
+        : irBuilder.buildStaticFieldGet(field,
+              sourceInformation: sourceInformationBuilder.buildGet(node));
   }
 
   @override
@@ -756,7 +759,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     if (function.isForeign(compiler.backend)) {
       return giveup(node, 'handleStaticFunctionGet: foreign: $function');
     }
-    return translateConstant(node);
+    return giveup(node, 'handleStaticFunctionGet: $function');
   }
 
   @override
@@ -1022,10 +1025,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.NodeList arguments,
       CallStructure callStructure,
       _) {
-    return translateCallInvoke(
-        irBuilder.buildConstantLiteral(constant),
-        arguments,
-        callStructure);
+    ir.Primitive target = irBuilder.buildConstant(constant);
+    return translateCallInvoke(target, arguments, callStructure);
   }
 
   @override
@@ -1097,6 +1098,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.NodeList arguments,
       CallStructure callStructure,
       _) {
+    if (getter.isForeign(compiler.backend)) {
+      return giveup(node, 'handleStaticGetterInvoke: foreign: $getter');
+    }
     ir.Primitive target = irBuilder.buildStaticGetterGet(getter);
     return irBuilder.buildCallInvocation(target,
         callStructure,
@@ -1242,7 +1246,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     Selector operatorSelector =
         new Selector.binaryOperator(operator.selectorName);
     List<ir.Primitive> arguments =
-        <ir.Primitive>[irBuilder.buildIntegerLiteral(1)];
+        <ir.Primitive>[irBuilder.buildIntegerConstant(1)];
     arguments = normalizeDynamicArguments(
         operatorSelector.callStructure, arguments);
     ir.Primitive result =
@@ -1769,7 +1773,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
   ir.Primitive translateConstant(ast.Node node) {
     assert(irBuilder.isOpen);
-    return irBuilder.buildConstantLiteral(getConstantForNode(node));
+    return irBuilder.buildConstant(getConstantForNode(node));
   }
 
   ir.Primitive visitThrow(ast.Throw node) {
@@ -2418,7 +2422,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         } else {
           // Fields without an initializer default to null.
           // This value will be overwritten below if an initializer is found.
-          fieldValues[field] = irBuilder.buildNullLiteral();
+          fieldValues[field] = irBuilder.buildNullConstant();
         }
       }
     });
@@ -2508,7 +2512,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         if (param.initializer != null) {
           value = inlineExpression(target, param.initializer);
         } else {
-          value = irBuilder.buildNullLiteral();
+          value = irBuilder.buildNullConstant();
         }
       }
       irBuilder.declareLocalVariable(param, initialValue: value);
@@ -2656,7 +2660,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   /// Creates a primitive for the default value of [parameter].
   ir.Primitive translateDefaultValue(ParameterElement parameter) {
     if (parameter.initializer == null) {
-      return irBuilder.buildNullLiteral();
+      return irBuilder.buildNullConstant();
     } else {
       return inlineConstant(parameter.executableContext, parameter.initializer);
     }

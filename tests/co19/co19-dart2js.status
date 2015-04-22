@@ -9546,7 +9546,6 @@ Language/06_Functions/06_Functions_A04_t01: Crash # Instance of 'TypeOperator': 
 Language/06_Functions/1_Function_Declaration_A01_t01: Crash # (f()): Error expression `f()` unhandled.
 Language/06_Functions/1_Function_Declaration_A01_t03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t05: Crash #  "on T" catch block
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t01: Crash # Please triage this failure.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t04: Crash # (f()): Error expression `f()` unhandled.
@@ -9632,6 +9631,7 @@ Language/07_Classes/4_Abstract_Instance_Members_A07_t06: Crash # Instance of 'Ty
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A01_t06: Crash # (new C.c3()): Error expression `new C.c3()` unhandled.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A02_t01: Crash # (throw new ExpectException(message)): Unhandled node
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A03_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t01: Crash # handleStaticFunctionGet: function(foo)
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t02: Crash # (new C()): Error expression `new C()` unhandled.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t03: Crash # (new C()): Error expression `new C()` unhandled.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t05: Crash # (new C()): Error expression `new C()` unhandled.
@@ -9765,9 +9765,9 @@ Language/12_Expressions/04_Booleans/1_Boolean_Conversion_A01_t03: Crash # Instan
 Language/12_Expressions/04_Booleans/1_Boolean_Conversion_A02_t01: Crash #  "on T" catch block
 Language/12_Expressions/04_Booleans_A02_t01: Crash # (throw new ExpectException(message)): Unhandled node
 Language/12_Expressions/04_Booleans_A04_t02: Crash #  "on T" catch block
-Language/12_Expressions/05_Strings/1_String_Interpolation_A01_t01: RuntimeError # Please triage this failure.
 Language/12_Expressions/05_Strings/1_String_Interpolation_A01_t06: Crash # (try {"${T}";}on NoSuchMethodError catch (ok){print(ok);}): "on T" catch block
 Language/12_Expressions/05_Strings/1_String_Interpolation_A01_t07: Crash #  "on T" catch block
+Language/12_Expressions/05_Strings/1_String_Interpolation_A01_t12: Crash # handleStaticFunctionGet: function(foo)
 Language/12_Expressions/05_Strings/1_String_Interpolation_A01_t13: Crash #  "on T" catch block
 Language/12_Expressions/05_Strings/1_String_Interpolation_A01_t17: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/05_Strings/1_String_Interpolation_A02_t01: Crash # (throw new ExpectException(message)): Unhandled node
@@ -10306,6 +10306,7 @@ Language/12_Expressions/30_Identifier_Reference_A15_t06: Crash # unsupported ele
 Language/12_Expressions/30_Identifier_Reference_A15_t07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/30_Identifier_Reference_A15_t08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/30_Identifier_Reference_A16_t03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+Language/12_Expressions/30_Identifier_Reference_A16_t04: Crash # handleStaticFunctionGet: function(libraryFunc)
 Language/12_Expressions/32_Type_Test_A02_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/32_Type_Test_A02_t02: Crash # (throw new ExpectException(message)): Unhandled node
 Language/12_Expressions/32_Type_Test_A02_t03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -10984,11 +10985,9 @@ LayoutTests/fast/canvas/webgl/gl-vertexattribpointer_t01: Crash # Instance of 'T
 LayoutTests/fast/canvas/webgl/glsl-conformance_t01: Crash # (throw new ExpectException(message)): Unhandled node
 LayoutTests/fast/canvas/webgl/incorrect-context-object-behaviour_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LayoutTests/fast/canvas/webgl/index-validation-copies-indices_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-LayoutTests/fast/canvas/webgl/index-validation-crash-with-buffer-sub-data_t01: Crash # (throw "Unable to fetch WebGL rendering context for Canvas"): Unhandled node
 LayoutTests/fast/canvas/webgl/index-validation-verifies-too-many-indices_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LayoutTests/fast/canvas/webgl/index-validation-with-resized-buffer_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LayoutTests/fast/canvas/webgl/index-validation_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-LayoutTests/fast/canvas/webgl/invalid-UTF-16_t01: Crash # (throw "Unable to fetch WebGL rendering context for Canvas"): Unhandled node
 LayoutTests/fast/canvas/webgl/invalid-passed-params_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LayoutTests/fast/canvas/webgl/is-object_t01: Crash # (throw new ExpectException(message)): Unhandled node
 LayoutTests/fast/canvas/webgl/null-object-behaviour_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -12590,6 +12589,7 @@ LayoutTests/fast/replaced/table-percent-height-text-controls_t01: Crash # (throw
 LayoutTests/fast/replaced/table-percent-height_t01: Crash # (throw new ExpectException(message)): Unhandled node
 LayoutTests/fast/replaced/table-percent-width_t01: Crash # (throw new ExpectException(message)): Unhandled node
 LayoutTests/fast/replaced/table-replaced-element_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+LayoutTests/fast/ruby/modify-positioned-ruby-text-crash_t01: Crash # handleStaticFunctionGet: function(doTest)
 LayoutTests/fast/ruby/parse-rp_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LayoutTests/fast/ruby/ruby-line-height_t01: Crash # (throw new ExpectException(message)): Unhandled node
 LayoutTests/fast/scrolling/scroll-element-into-view_t01: Crash # (throw new ExpectException(message)): Unhandled node
@@ -12654,6 +12654,7 @@ LayoutTests/fast/svg/whitespace-length_t01: Crash # (throw new ExpectException(m
 LayoutTests/fast/svg/whitespace-number_t01: Crash # (throw new ExpectException(message)): Unhandled node
 LayoutTests/fast/table/absolute-table-percent-lengths_t01: Crash # (throw "You must provide a CSS selector of nodes to check."): Unhandled node
 LayoutTests/fast/table/anonymous-table-section-removed_t01: Crash # (throw "You must provide a CSS selector of nodes to check."): Unhandled node
+LayoutTests/fast/table/before-child-non-table-section-add-table-crash_t01: Crash # handleStaticFunctionGet: function(runTest)
 LayoutTests/fast/table/border-changes_t01: Crash # (throw new ExpectException(message)): Unhandled node
 LayoutTests/fast/table/caption-orthogonal-writing-mode-sizing_t01: Crash # (throw "You must provide a CSS selector of nodes to check."): Unhandled node
 LayoutTests/fast/table/col-width-span-expand_t01: Crash # (throw new ExpectException(message)): Unhandled node
@@ -12748,6 +12749,7 @@ LayoutTests/fast/text/regional-indicator-symobls_t01: Crash # Instance of 'TypeO
 LayoutTests/fast/text/remove-zero-length-run_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LayoutTests/fast/text/selection-exceptions_t01: Crash # (throw new ExpectException(message)): Unhandled node
 LayoutTests/fast/text/soft-hyphen-5_t01: Crash # (throw new ExpectException(message)): Unhandled node
+LayoutTests/fast/text/split-text-crash_t01: Crash # handleStaticFunctionGet: function(crash)
 LayoutTests/fast/text/sub-pixel/text-scaling-ltr_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LayoutTests/fast/text/sub-pixel/text-scaling-pixel_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LayoutTests/fast/text/sub-pixel/text-scaling-rtl_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -12802,6 +12804,7 @@ LayoutTests/fast/writing-mode/display-mutation_t01: Crash # Instance of 'TypeOpe
 LayoutTests/fast/writing-mode/flipped-blocks-hit-test-overflow-scroll_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LayoutTests/fast/writing-mode/flipped-blocks-hit-test-overflow_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LayoutTests/fast/writing-mode/flipped-blocks-text-map-local-to-container_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+LayoutTests/fast/writing-mode/overhanging-float-legend-crash_t01: Crash # handleStaticFunctionGet: function(crash)
 LayoutTests/fast/writing-mode/percentage-margins-absolute-replaced_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LayoutTests/fast/writing-mode/percentage-margins-absolute_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LayoutTests/fast/writing-mode/percentage-padding_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -13382,6 +13385,7 @@ LibTest/collection/Maps/putIfAbsent_A01_t04: Crash #  "on T" catch block
 LibTest/collection/Maps/putIfAbsent_A01_t06: Crash # (throw new ExpectException(message)): Unhandled node
 LibTest/collection/Maps/putIfAbsent_A01_t07: Crash #  "on T" catch block
 LibTest/collection/Maps/putIfAbsent_A01_t08: Crash # (throw new ExpectException(message)): Unhandled node
+LibTest/collection/Maps/putIfAbsent_A01_t09: Crash # handleStaticFunctionGet: function(A#f)
 LibTest/collection/Maps/putIfAbsent_A01_t10: Crash #  "on T" catch block
 LibTest/collection/Maps/putIfAbsent_A02_t01: Crash # (throw new ExpectException(message)): Unhandled node
 LibTest/collection/Queue/Queue.from_A01_t01: Crash # (throw new ExpectException(message)): Unhandled node
@@ -13534,6 +13538,7 @@ LibTest/core/List/List_A03_t01: Crash #  "on T" catch block
 LibTest/core/List/List_class_A01_t01: Crash # (throw new ExpectException(message)): Unhandled node
 LibTest/core/List/List_class_A01_t02: Crash # Please triage this failure.
 LibTest/core/List/removeAt_A02_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+LibTest/core/Map/Map_A01_t01: Crash # unimplemented translation of type expression SomeFunction
 LibTest/core/Map/Map_class_A01_t01: Crash # (throw new ExpectException(message)): Unhandled node
 LibTest/core/Map/Map_class_A01_t02: Crash # (throw new ExpectException(message)): Unhandled node
 LibTest/core/Map/Map_class_A01_t03: Crash # (throw new ExpectException(message)): Unhandled node

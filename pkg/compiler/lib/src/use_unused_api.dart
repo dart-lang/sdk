@@ -253,11 +253,7 @@ useIr(ir_builder.IrBuilderTask task,
     ..hasIr(null)
     ..getIr(null);
   builder
-    ..buildIntegerLiteral(null)
-    ..buildDoubleLiteral(null)
-    ..buildBooleanLiteral(null)
-    ..buildNullLiteral()
-    ..buildStringLiteral(null)
+    ..buildStringConstant(null)
     ..buildDynamicGet(null, null);
 }
 

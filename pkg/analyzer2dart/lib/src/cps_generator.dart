@@ -269,36 +269,36 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
 
   @override
   ir.Constant visitNullLiteral(NullLiteral node) {
-    return irBuilder.buildNullLiteral();
+    return irBuilder.buildNullConstant();
   }
 
   @override
   ir.Constant visitBooleanLiteral(BooleanLiteral node) {
-    return irBuilder.buildBooleanLiteral(node.value);
+    return irBuilder.buildBooleanConstant(node.value);
   }
 
   @override
   ir.Constant visitDoubleLiteral(DoubleLiteral node) {
-    return irBuilder.buildDoubleLiteral(node.value);
+    return irBuilder.buildDoubleConstant(node.value);
   }
 
   @override
   ir.Constant visitIntegerLiteral(IntegerLiteral node) {
-    return irBuilder.buildIntegerLiteral(node.value);
+    return irBuilder.buildIntegerConstant(node.value);
   }
 
   @override
   visitAdjacentStrings(AdjacentStrings node) {
     String value = node.stringValue;
     if (value != null) {
-      return irBuilder.buildStringLiteral(value);
+      return irBuilder.buildStringConstant(value);
     }
     giveUp(node, "Non constant adjacent strings.");
   }
 
   @override
   ir.Constant visitSimpleStringLiteral(SimpleStringLiteral node) {
-    return irBuilder.buildStringLiteral(node.value);
+    return irBuilder.buildStringConstant(node.value);
   }
 
   @override

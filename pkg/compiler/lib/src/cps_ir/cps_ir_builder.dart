@@ -679,41 +679,46 @@ abstract class IrBuilder {
   }
 
 
-  /// Create a constant literal from [constant].
-  ir.Constant buildConstantLiteral(ConstantExpression constant) {
+  /// Create a [ir.Constant] from [constant] and add it to the CPS term.
+  ir.Constant buildConstant(ConstantExpression constant) {
     assert(isOpen);
     return addPrimitive(new ir.Constant(constant));
   }
 
-  // Helper for building primitive literals.
+  // Helper for building primitive constants.
   ir.Constant _buildPrimitiveConstant(PrimitiveConstantValue constant) {
-    return buildConstantLiteral(new PrimitiveConstantExpression(constant));
+    return buildConstant(new PrimitiveConstantExpression(constant));
   }
 
-  /// Create an integer literal.
-  ir.Constant buildIntegerLiteral(int value) {
+  /// Create an integer constant and add it to the CPS term.
+  ir.Constant buildIntegerConstant(int value) {
     return _buildPrimitiveConstant(state.constantSystem.createInt(value));
   }
 
-  /// Create an double literal.
-  ir.Constant buildDoubleLiteral(double value) {
+  /// Create a double constant and add it to the CPS term.
+  ir.Constant buildDoubleConstant(double value) {
     return _buildPrimitiveConstant(state.constantSystem.createDouble(value));
   }
 
-  /// Create an bool literal.
-  ir.Constant buildBooleanLiteral(bool value) {
+  /// Create a Boolean constant and add it to the CPS term.
+  ir.Constant buildBooleanConstant(bool value) {
     return _buildPrimitiveConstant(state.constantSystem.createBool(value));
   }
 
-  /// Create an null literal.
-  ir.Constant buildNullLiteral() {
+  /// Create a null constant and add it to the CPS term.
+  ir.Constant buildNullConstant() {
     return _buildPrimitiveConstant(state.constantSystem.createNull());
   }
 
-  /// Create a string literal.
-  ir.Constant buildStringLiteral(String value) {
+  /// Create a string constant and add it to the CPS term.
+  ir.Constant buildStringConstant(String value) {
     return _buildPrimitiveConstant(
         state.constantSystem.createString(new ast.DartString.literal(value)));
+  }
+
+  /// Create a string constant and add it to the CPS term.
+  ir.Constant buildDartStringConstant(ast.DartString value) {
+    return _buildPrimitiveConstant(state.constantSystem.createString(value));
   }
 
   /// Creates a non-constant list literal of the provided [type] and with the
@@ -808,7 +813,7 @@ abstract class IrBuilder {
    */
   void _ensureReturn() {
     if (!isOpen) return;
-    ir.Constant constant = buildNullLiteral();
+    ir.Constant constant = buildNullConstant();
     add(new ir.InvokeContinuation(state.returnContinuation, [constant]));
     _current = null;
   }
@@ -1298,7 +1303,7 @@ abstract class IrBuilder {
     ir.Primitive condition = buildCondition(this);
     if (condition == null) {
       // If the condition is empty then the body is entered unconditionally.
-      condition = buildBooleanLiteral(true);
+      condition = buildBooleanConstant(true);
     }
     JumpCollector breakCollector =
         new ForwardJumpCollector(environment, target: target);
@@ -1822,7 +1827,7 @@ abstract class IrBuilder {
     // Return without a subexpression is translated as if it were return null.
     assert(isOpen);
     if (value == null) {
-      value = buildNullLiteral();
+      value = buildNullConstant();
     }
     add(new ir.InvokeContinuation(state.returnContinuation, [value]));
     _current = null;
@@ -1994,11 +1999,11 @@ abstract class IrBuilder {
 
     // If we don't evaluate the right subexpression, the value of the whole
     // expression is this constant.
-    ir.Constant leftBool = emptyBuilder.buildBooleanLiteral(isLazyOr);
+    ir.Constant leftBool = emptyBuilder.buildBooleanConstant(isLazyOr);
     // If we do evaluate the right subexpression, the value of the expression
     // is a true or false constant.
-    ir.Constant rightTrue = rightTrueBuilder.buildBooleanLiteral(true);
-    ir.Constant rightFalse = rightFalseBuilder.buildBooleanLiteral(false);
+    ir.Constant rightTrue = rightTrueBuilder.buildBooleanConstant(true);
+    ir.Constant rightFalse = rightFalseBuilder.buildBooleanConstant(false);
 
     // Treat the result values as named values in the environment, so they
     // will be treated as arguments to the join-point continuation.
@@ -2176,7 +2181,7 @@ class DartIrBuilder extends IrBuilder {
                             {ir.Primitive initialValue}) {
     assert(isOpen);
     if (initialValue == null) {
-      initialValue = buildNullLiteral();
+      initialValue = buildNullConstant();
     }
     if (isInMutableVariable(variableElement)) {
       add(new ir.LetMutable(getMutableVariable(variableElement),
@@ -2369,7 +2374,7 @@ class JsIrBuilder extends IrBuilder {
                             {ir.Primitive initialValue}) {
     assert(isOpen);
     if (initialValue == null) {
-      initialValue = buildNullLiteral();
+      initialValue = buildNullConstant();
     }
     ClosureLocation location = jsState.boxedVariables[variableElement];
     if (location != null) {
@@ -2531,7 +2536,7 @@ class JsIrBuilder extends IrBuilder {
       Iterable<ir.Primitive> typeArguments =
           interface.typeArguments.map((DartType argument) {
         return type.treatAsRaw
-            ? buildNullLiteral()
+            ? buildNullConstant()
             : buildTypeExpression(argument);
       });
       arguments = new List<ir.Primitive>.from(arguments)
@@ -2545,14 +2550,16 @@ class JsIrBuilder extends IrBuilder {
   ir.Primitive buildTypeExpression(DartType type) {
     if (type is TypeVariableType) {
       return buildTypeVariableAccess(buildThis(), type);
-    } else {
-      assert(type is InterfaceType);
+    } else if (type is InterfaceType) {
       List<ir.Primitive> arguments = <ir.Primitive>[];
       type.forEachTypeVariable((TypeVariableType variable) {
         ir.Primitive value = buildTypeVariableAccess(buildThis(), variable);
         arguments.add(value);
       });
       return addPrimitive(new ir.TypeExpression(type, arguments));
+    } else {
+      // TypedefType can reach here, and possibly other things.
+      throw 'unimplemented translation of type expression $type';
     }
   }
 

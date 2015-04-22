@@ -242,9 +242,9 @@ io/http_cookie_test: Crash # (throw new ExpectException(message)): Unhandled nod
 io/http_cross_process_test: Crash # (throw new ExpectException(message)): Unhandled node
 io/http_date_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/http_detach_socket_test: Crash # (throw new ExpectException(message)): Unhandled node
+io/http_head_test: Crash # (throw new ExpectException(message)): Unhandled node
 io/http_headers_state_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/http_headers_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/http_head_test: Crash # (throw new ExpectException(message)): Unhandled node
 io/http_ipv6_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/http_keep_alive_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/http_no_reason_phrase_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -254,17 +254,17 @@ io/http_proxy_configuration_test: Crash # Instance of 'TypeOperator': unimplemen
 io/http_proxy_test: Crash # Please triage this failure.
 io/http_read_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/http_redirect_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/http_requested_uri_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 io/http_request_pipeling_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+io/http_requested_uri_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 io/http_response_deadline_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/https_bad_certificate_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/https_client_certificate_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/https_client_exception_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 io/http_server_early_client_close_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/http_server_response_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/http_server_test: Crash # (throw new ExpectException(message)): Unhandled node
 io/http_session_test: Crash # (throw new ExpectException(message)): Unhandled node
 io/http_shutdown_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+io/https_bad_certificate_test: Crash # (throw new ExpectException(message)): Unhandled node
+io/https_client_certificate_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+io/https_client_exception_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 io/https_server_test: Crash # (throw new ExpectException(message)): Unhandled node
 io/https_unauthorized_test: Crash # (throw e): Unhandled node
 io/internet_address_invalid_arguments_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -356,6 +356,7 @@ io/socket_test: Crash # (throw _buildException('asyncEnd() was called before asy
 io/socket_upgrade_to_secure_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 io/status_file_parser_test: Crash # (throw new Exception('Cannot find test status file ${path}')): Unhandled node
 io/stdio_nonblocking_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+io/stdout_bad_argument_test: Crash # handleStaticFunctionGet: function(print)
 io/stdout_close_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/stdout_stderr_non_blocking_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 io/stdout_stderr_terminal_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -379,6 +380,7 @@ medium_integer_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGe
 oom_error_stacktrace_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 out_of_memory_test: Crash #  "on T" catch block
 priority_queue_stress_test: Crash # cannot compile methods that need interceptor calling convention.
+slowpath_safepoints_test: Crash # handleStaticFunctionGet: function(noop)
 status_expression_test: Crash # (throw new ExpectException(message)): Unhandled node
 typed_array_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 verified_mem_test: Crash # unsupported element kind: a:field

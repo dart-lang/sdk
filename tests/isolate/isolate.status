@@ -124,6 +124,8 @@ package_root_test: SkipByDesign # Uses dart:io.
 
 [ $compiler == dart2js && $cps_ir ]
 capability_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+compile_time_error_test/01: Crash # handleStaticFunctionGet: function(entry)
+compile_time_error_test/none: Crash # handleStaticFunctionGet: function(entry)
 count_test: Crash # cannot compile methods that need interceptor calling convention.
 cross_isolate_message_test: Crash # cannot compile methods that need interceptor calling convention.
 function_send_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
@@ -135,8 +137,11 @@ illegal_msg_mirror_test: Crash # cannot compile methods that need interceptor ca
 isolate_complex_messages_test: Crash # cannot compile methods that need interceptor calling convention.
 isolate_current_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 isolate_import_test/01: Crash # (Isolate): Error expression `Isolate` unhandled.
+isolate_import_test/none: Crash # handleStaticFunctionGet: function(entry)
+isolate_stress_test: Crash # handleStaticFunctionGet: function(worker)
 issue_22778_test: Crash # (throw new ExpectException(message)): Unhandled node
 kill2_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+kill_self_test: Crash # handleStaticFunctionGet: function(isomain1)
 kill_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 mandel_isolate_test: Crash # cannot compile methods that need interceptor calling convention.
 message2_test: Crash # cannot compile methods that need interceptor calling convention.
@@ -154,6 +159,8 @@ mint_maker_test: Crash # cannot compile methods that need interceptor calling co
 nested_spawn2_test: Crash # cannot compile methods that need interceptor calling convention.
 nested_spawn_test: Crash # cannot compile methods that need interceptor calling convention.
 object_leak_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+ondone_test: Crash # handleStaticFunctionGet: function(isomain)
+pause_test: Crash # handleStaticFunctionGet: function(isomain1)
 ping_pause_test: Crash # (throw new ExpectException(message)): Unhandled node
 ping_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 port_test: Crash # (throw new ExpectException(message)): Unhandled node
@@ -163,6 +170,8 @@ simple_message_test/01: Crash # (throw _buildException('asyncEnd() was called be
 simple_message_test/none: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 spawn_function_custom_class_test: Crash # cannot compile methods that need interceptor calling convention.
 spawn_function_test: Crash # cannot compile methods that need interceptor calling convention.
+spawn_uri_missing_from_isolate_test: Crash # handleStaticFunctionGet: function(isolate)
+spawn_uri_missing_test: Crash # handleStaticFunctionGet: function(doTest)
 spawn_uri_multi_test/01: Crash # cannot compile methods that need interceptor calling convention.
 spawn_uri_multi_test/none: Crash # cannot compile methods that need interceptor calling convention.
 stacktrace_message_test: Crash # cannot compile methods that need interceptor calling convention.
