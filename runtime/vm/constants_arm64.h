@@ -813,7 +813,7 @@ class Instr {
       HLT | (kSimulatorBreakCode << kImm16Shift);
 
   // Runtime call redirection instruction used by the simulator.
-  static const int32_t kRedirectInstruction =
+  static const int32_t kSimulatorRedirectInstruction =
       HLT | (kSimulatorRedirectCode << kImm16Shift);
 
   // Read one particular bit out of the instruction bits.

@@ -837,14 +837,13 @@ class Redirection {
   }
 
  private:
-  static const int32_t kRedirectInstruction = Instr::kRedirectInstruction;
   Redirection(uword external_function,
               Simulator::CallKind call_kind,
               int argument_count)
       : external_function_(external_function),
         call_kind_(call_kind),
         argument_count_(argument_count),
-        hlt_instruction_(kRedirectInstruction),
+        hlt_instruction_(Instr::kSimulatorRedirectInstruction),
         next_(list_) {
     // Atomically prepend this element to the front of the global list.
     // Note: Since elements are never removed, there is no ABA issue.
@@ -1689,22 +1688,23 @@ void Simulator::DecodeExceptionGen(Instr* instr) {
              (instr->Bits(21, 3) == 1)) {
     // Format(instr, "brk 'imm16");
     SimulatorDebugger dbg(this);
-    uint16_t imm = static_cast<uint16_t>(instr->Imm16Field());
-    char buffer[32];
-    snprintf(buffer, sizeof(buffer), "brk #0x%x", imm);
-    set_pc(get_pc() + Instr::kInstrSize);
-    dbg.Stop(instr, buffer);
-  } else if ((instr->Bits(0, 2) == 0) && (instr->Bits(2, 3) == 0) &&
-             (instr->Bits(21, 3) == 2)) {
-    // Format(instr, "hlt 'imm16");
-    uint16_t imm = static_cast<uint16_t>(instr->Imm16Field());
+    int32_t imm = instr->Imm16Field();
     if (imm == Instr::kStopMessageCode) {
-      SimulatorDebugger dbg(this);
       const char* message = *reinterpret_cast<const char**>(
           reinterpret_cast<intptr_t>(instr) - 2 * Instr::kInstrSize);
       set_pc(get_pc() + Instr::kInstrSize);
       dbg.Stop(instr, message);
-    } else if (imm == Instr::kSimulatorBreakCode) {
+    } else {
+      char buffer[32];
+      snprintf(buffer, sizeof(buffer), "brk #0x%x", imm);
+      set_pc(get_pc() + Instr::kInstrSize);
+      dbg.Stop(instr, buffer);
+    }
+  } else if ((instr->Bits(0, 2) == 0) && (instr->Bits(2, 3) == 0) &&
+             (instr->Bits(21, 3) == 2)) {
+    // Format(instr, "hlt 'imm16");
+    uint16_t imm = static_cast<uint16_t>(instr->Imm16Field());
+    if (imm == Instr::kSimulatorBreakCode) {
       SimulatorDebugger dbg(this);
       dbg.Stop(instr, "breakpoint");
     } else if (imm == Instr::kSimulatorRedirectCode) {

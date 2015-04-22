@@ -304,6 +304,14 @@ void MIPSDecoder::DecodeSpecial(Instr* instr) {
     }
     case BREAK: {
       Format(instr, "break 'code");
+      if (instr->BreakCodeField() == Instr::kStopMessageCode) {
+        const char* message = *reinterpret_cast<const char**>(
+            reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   " ; \"%s\"",
+                                   message);
+      }
       break;
     }
     case DIV: {

@@ -1470,14 +1470,6 @@ void Assembler::vcgtqs(QRegister qd, QRegister qn, QRegister qm) {
 }
 
 
-void Assembler::svc(uint32_t imm24, Condition cond) {
-  ASSERT(cond != kNoCondition);
-  ASSERT(imm24 < (1 << 24));
-  int32_t encoding = (cond << kConditionShift) | B27 | B26 | B25 | B24 | imm24;
-  Emit(encoding);
-}
-
-
 void Assembler::bkpt(uint16_t imm16) {
   // bkpt requires that the cond field is AL.
   int32_t encoding = (AL << kConditionShift) | B24 | B21 |
@@ -3485,7 +3477,7 @@ void Assembler::Stop(const char* message) {
   b(&stop);
   Emit(reinterpret_cast<int32_t>(message));
   Bind(&stop);
-  svc(kStopMessageSvcCode);
+  bkpt(Instr::kStopMessageCode);
 }
 
 

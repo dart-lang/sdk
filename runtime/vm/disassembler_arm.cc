@@ -683,6 +683,14 @@ void ARMDecoder::DecodeType01(Instr* instr) {
         case 7: {
           if ((instr->Bits(21, 2) == 0x1) && (instr->ConditionField() == AL)) {
             Format(instr, "bkpt #'imm12_4");
+            if (instr->BkptField() == Instr::kStopMessageCode) {
+              const char* message = *reinterpret_cast<const char**>(
+                  reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
+              buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                         remaining_size_in_buffer(),
+                                         " ; \"%s\"",
+                                         message);
+            }
           } else {
              // Format(instr, "smc'cond");
             Unknown(instr);  // Not used.
@@ -1100,14 +1108,6 @@ void ARMDecoder::DecodeType6(Instr* instr) {
 void ARMDecoder::DecodeType7(Instr* instr) {
   if (instr->Bit(24) == 1) {
     Format(instr, "svc'cond #'svc");
-    if (instr->SvcField() == kStopMessageSvcCode) {
-      const char* message = *reinterpret_cast<const char**>(
-          reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
-      buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                 remaining_size_in_buffer(),
-                                 " ; \"%s\"",
-                                 message);
-    }
   } else if (instr->IsVFPDataProcessingOrSingleTransfer()) {
     if (instr->Bit(4) == 0) {
       // VFP Data Processing

@@ -221,7 +221,7 @@ void Assembler::Stop(const char* message) {
   Emit(Utils::Low32Bits(reinterpret_cast<int64_t>(message)));
   Emit(Utils::High32Bits(reinterpret_cast<int64_t>(message)));
   Bind(&stop);
-  hlt(Instr::kStopMessageCode);
+  brk(Instr::kStopMessageCode);
 }
 
 

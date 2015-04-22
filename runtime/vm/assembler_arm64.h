@@ -827,10 +827,7 @@ class Assembler : public ValueObject {
     EmitUnconditionalBranchRegOp(RET, rn);
   }
 
-  // Exceptions.
-  void hlt(uint16_t imm) {
-    EmitExceptionGenOp(HLT, imm);
-  }
+  // Breakpoint.
   void brk(uint16_t imm) {
     EmitExceptionGenOp(BRK, imm);
   }
