@@ -2366,7 +2366,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       classElement.forEachInstanceField((ClassElement c, FieldElement field) {
         ir.Primitive value = fieldValues[field];
         if (value != null) {
-          instanceArguments.add(fieldValues[field]);
+          instanceArguments.add(value);
         } else {
           assert(Elements.isNativeOrExtendsNative(c));
           // Native fields are initialized elsewhere.
