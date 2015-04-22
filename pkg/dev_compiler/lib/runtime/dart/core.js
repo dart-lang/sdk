@@ -100,7 +100,7 @@ var core;
     return Comparable;
   });
   let Comparable = Comparable$();
-  let _internal = dart.JsSymbol('_internal');
+  let _internal$ = dart.JsSymbol('_internal');
   let _now = dart.JsSymbol('_now');
   let _brokenDownDateToMillisecondsSinceEpoch = dart.JsSymbol('_brokenDownDateToMillisecondsSinceEpoch');
   let _MAX_MILLISECONDS_SINCE_EPOCH = dart.JsSymbol('_MAX_MILLISECONDS_SINCE_EPOCH');
@@ -122,7 +122,7 @@ var core;
         second = 0;
       if (millisecond === void 0)
         millisecond = 0;
-      this[_internal](year, month, day, hour, minute, second, millisecond, false);
+      this[_internal$](year, month, day, hour, minute, second, millisecond, false);
     }
     utc(year, month, day, hour, minute, second, millisecond) {
       if (month === void 0)
@@ -137,7 +137,7 @@ var core;
         second = 0;
       if (millisecond === void 0)
         millisecond = 0;
-      this[_internal](year, month, day, hour, minute, second, millisecond, true);
+      this[_internal$](year, month, day, hour, minute, second, millisecond, true);
     }
     now() {
       this[_now]();
@@ -306,7 +306,7 @@ var core;
       let otherMs = other.millisecondsSinceEpoch;
       return new Duration({milliseconds: dart.notNull(ms) - dart.notNull(otherMs)});
     }
-    [_internal](year, month, day, hour, minute, second, millisecond, isUtc) {
+    [_internal$](year, month, day, hour, minute, second, millisecond, isUtc) {
       this.isUtc = typeof isUtc == 'boolean' ? isUtc : dart.throw_(new ArgumentError(isUtc));
       this.millisecondsSinceEpoch = dart.as(_js_helper.checkInt(_js_helper.Primitives.valueFromDecomposedDate(year, month, day, hour, minute, second, millisecond, isUtc)), int);
     }
@@ -356,7 +356,7 @@ var core;
   dart.defineNamedConstructor(DateTime, 'utc');
   dart.defineNamedConstructor(DateTime, 'now');
   dart.defineNamedConstructor(DateTime, 'fromMillisecondsSinceEpoch');
-  dart.defineNamedConstructor(DateTime, _internal);
+  dart.defineNamedConstructor(DateTime, _internal$);
   dart.defineNamedConstructor(DateTime, _now);
   DateTime.MONDAY = 1;
   DateTime.TUESDAY = 2;
@@ -1965,12 +1965,12 @@ var core;
       } else if (char == Uri[_NUMBER_SIGN]) {
         fragment = Uri[_makeFragment](uri, dart.notNull(index) + 1, uri.length);
       }
-      return new Uri[_internal](scheme, userinfo, host, port, path, query, fragment);
+      return new Uri[_internal$](scheme, userinfo, host, port, path, query, fragment);
     }
     static [_fail](uri, index, message) {
       throw new FormatException(message, uri, index);
     }
-    [_internal](scheme, userInfo, host, port, path, query, fragment) {
+    [_internal$](scheme, userInfo, host, port, path, query, fragment) {
       this.scheme = scheme;
       this[_userInfo] = userInfo;
       this[_host] = host;
@@ -2005,7 +2005,7 @@ var core;
       }
       let ensureLeadingSlash = host != null;
       path = Uri[_makePath](path, 0, Uri[_stringOrNullLength](path), pathSegments, ensureLeadingSlash, isFile);
-      return new Uri[_internal](scheme, userInfo, host, port, path, query, fragment);
+      return new Uri[_internal$](scheme, userInfo, host, port, path, query, fragment);
     }
     http(authority, unencodedPath, queryParameters) {
       if (queryParameters === void 0)
@@ -2215,7 +2215,7 @@ var core;
       } else if (this.hasFragment) {
         fragment = this.fragment;
       }
-      return new Uri[_internal](scheme, userInfo, host, port, path, query, fragment);
+      return new Uri[_internal$](scheme, userInfo, host, port, path, query, fragment);
     }
     get pathSegments() {
       if (this[_pathSegments] == null) {
@@ -2649,7 +2649,7 @@ var core;
         }
       }
       let fragment = reference.hasFragment ? reference.fragment : null;
-      return new Uri[_internal](targetScheme, targetUserInfo, targetHost, targetPort, targetPath, targetQuery, fragment);
+      return new Uri[_internal$](targetScheme, targetUserInfo, targetHost, targetPort, targetPath, targetQuery, fragment);
     }
     get hasAuthority() {
       return this[_host] != null;
@@ -3009,7 +3009,7 @@ var core;
       return dart.notNull(codeUnit) >= dart.notNull(Uri[_LOWER_CASE_A]) && dart.notNull(codeUnit) <= dart.notNull(Uri[_LOWER_CASE_Z]) || dart.notNull(codeUnit) >= dart.notNull(Uri[_UPPER_CASE_A]) && dart.notNull(codeUnit) <= dart.notNull(Uri[_UPPER_CASE_Z]);
     }
   }
-  dart.defineNamedConstructor(Uri, _internal);
+  dart.defineNamedConstructor(Uri, _internal$);
   dart.defineNamedConstructor(Uri, 'http');
   dart.defineNamedConstructor(Uri, 'https');
   dart.defineNamedConstructor(Uri, 'file');

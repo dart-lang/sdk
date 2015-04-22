@@ -2859,7 +2859,7 @@ var collection;
   let _TypeTest = _TypeTest$();
   let _comparator = Symbol('_comparator');
   let _validKey = Symbol('_validKey');
-  let _internal = Symbol('_internal');
+  let _internal$ = Symbol('_internal');
   let SplayTreeMap$ = dart.generic(function(K, V) {
     class SplayTreeMap extends _SplayTree$(K) {
       SplayTreeMap(compare, isValidKey) {
@@ -2903,7 +2903,7 @@ var collection;
       [_compare](key1, key2) {
         return this[_comparator](key1, key2);
       }
-      [_internal]() {
+      [_internal$]() {
         this[_comparator] = null;
         this[_validKey] = null;
         super._SplayTree();
@@ -3064,7 +3064,7 @@ var collection;
     dart.defineNamedConstructor(SplayTreeMap, 'from');
     dart.defineNamedConstructor(SplayTreeMap, 'fromIterable');
     dart.defineNamedConstructor(SplayTreeMap, 'fromIterables');
-    dart.defineNamedConstructor(SplayTreeMap, _internal);
+    dart.defineNamedConstructor(SplayTreeMap, _internal$);
     return SplayTreeMap;
   });
   let SplayTreeMap = SplayTreeMap$();

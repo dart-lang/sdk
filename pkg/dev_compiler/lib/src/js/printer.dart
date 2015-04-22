@@ -1385,3 +1385,40 @@ class MinifyRenamer implements LocalNamer {
     return newName;
   }
 }
+
+/// Like [BaseVisitor], but calls [declare] for [Identifier] declarations, and
+/// [visitIdentifier] otherwise.
+abstract class VariableDeclarationVisitor<T> extends BaseVisitor<T> {
+  declare(Identifier node);
+
+  visitFunctionExpression(FunctionExpression node) {
+    for (Identifier param in node.params) declare(param);
+    node.body.accept(this);
+  }
+
+  visitVariableInitialization(VariableInitialization node) {
+    declare(node.declaration);
+    if (node.value != null) node.value.accept(this);
+  }
+
+  visitCatch(Catch node) {
+    declare(node.declaration);
+    node.body.accept(this);
+  }
+
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    declare(node.name);
+    node.function.accept(this);
+  }
+
+  visitNamedFunction(NamedFunction node) {
+    declare(node.name);
+    node.function.accept(this);
+  }
+
+  visitClassExpression(ClassExpression node) {
+    declare(node.name);
+    if (node.heritage != null) node.heritage.accept(this);
+    for (Method element in node.methods) element.accept(this);
+  }
+}

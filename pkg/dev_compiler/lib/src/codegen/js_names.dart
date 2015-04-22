@@ -34,7 +34,7 @@ class JSNamer extends LocalNamer {
   JSNamer(Node node) : renames = new _RenameVisitor.build(node).renames;
 
   String getName(Identifier node) {
-    var rename = renames[renameKey(node)];
+    var rename = renames[identifierKey(node)];
     if (rename != null) return rename;
 
     assert(!needsRename(node));
@@ -45,81 +45,108 @@ class JSNamer extends LocalNamer {
   void leaveScope() {}
 }
 
+/// Represents a complete function scope in JS.
+///
+/// We don't currently track ES6 block scopes, because we don't represent them
+/// in js_ast yet.
 class _FunctionScope {
+  /// The parent scope.
   final _FunctionScope parent;
-  final names = new HashSet<String>();
+
+  /// All names declared in this scope.
+  final declared = new HashSet<Object>();
+
+  /// All names [declared] in this scope or its [parent]s, that is used in this
+  /// scope and/or children. This is exactly the set of variable names we must
+  /// not collide with inside this scope.
+  final used = new HashSet<String>();
+
+  /// Nested functions, these are visited after everything else so the names
+  /// they might need are in scope.
+  final functions = new List<FunctionExpression>();
+
   _FunctionScope(this.parent);
 }
 
 /// Collects all names used in the visited tree.
-class _RenameVisitor extends BaseVisitor {
+class _RenameVisitor extends VariableDeclarationVisitor {
   final pendingRenames = new Map<Object, Set<_FunctionScope>>();
   final renames = new HashMap<Object, String>();
 
-  _FunctionScope scope = new _FunctionScope(null);
+  final _FunctionScope rootScope = new _FunctionScope(null);
+  _FunctionScope scope;
 
   _RenameVisitor.build(Node root) {
+    scope = rootScope;
     root.accept(this);
+    _finishFunctions();
     _finishNames();
   }
 
+  declare(Identifier node) {
+    var id = identifierKey(node);
+    scope.declared.add(id);
+    _markUsed(node, id, scope);
+  }
+
   visitIdentifier(Identifier node) {
+    var id = identifierKey(node);
+
+    // Find where the node was declared.
+    var declScope = scope;
+    while (declScope != null && !declScope.declared.contains(id)) {
+      declScope = declScope.parent;
+    }
+    if (declScope == null) {
+      // Assume it comes from the global scope.
+      declScope = rootScope;
+      declScope.declared.add(id);
+    }
+    _markUsed(node, id, declScope);
+  }
+
+  _markUsed(Identifier node, Object id, _FunctionScope declScope) {
+    // If it needs rename, we can't add it to the used name set yet, instead we
+    // will record all scopes it is visible in.
+    Set<_FunctionScope> usedIn = null;
     if (needsRename(node)) {
-      // We can't assign the name yet, but we can add it to the list of things
-      // that need a name.
-      var id = renameKey(node);
-      pendingRenames.putIfAbsent(id, () => new HashSet()).add(scope);
-    } else {
-      scope.names.add(node.name);
+      usedIn = pendingRenames.putIfAbsent(id, () => new HashSet());
+    }
+
+    for (var s = scope, end = declScope.parent; s != end; s = s.parent) {
+      if (usedIn != null) {
+        usedIn.add(s);
+      } else {
+        s.used.add(node.name);
+      }
     }
   }
 
   visitFunctionExpression(FunctionExpression node) {
-    scope = new _FunctionScope(scope);
-    super.visitFunctionExpression(node);
-    scope = scope.parent;
+    // Visit nested functions after all identifiers are declared.
+    scope.functions.add(node);
+  }
+
+  void _finishFunctions() {
+    for (var f in scope.functions) {
+      scope = new _FunctionScope(scope);
+      super.visitFunctionExpression(f);
+      _finishFunctions();
+      scope = scope.parent;
+    }
   }
 
   void _finishNames() {
+    var allNames = new Set<String>();
     pendingRenames.forEach((id, scopes) {
-      var name = _findName(id, _allNamesInScope(scopes));
+      allNames.clear();
+      for (var s in scopes) allNames.addAll(s.used);
+
+      var name = _findName(id, allNames);
       renames[id] = name;
-      for (var s in scopes) s.names.add(name);
+
+      for (var s in scopes) s.used.add(name);
     });
-  }
-
-  // Given a set of scopes, populates [allNames] to include all names in those
-  // scopes as well as intermediate scopes. Returns the common parent of
-  // all scopes. For example:
-  //
-  // function outer(t) {
-  //   function middle(x) {
-  //     function inner() { return t; }
-  //     foo(x);
-  //   }
-  // }
-  //
-  // Here `t` is used in `inner` and `outer` but we need to include `middle`
-  // as well, so we know the rename of `t` to `x` is not valid.
-  static Set<String> _allNamesInScope(Set<_FunctionScope> scopes) {
-    // As we iterate, we'll add more scopes. We don't need to consider these
-    // as intermediate scopes can't introduce new intermediates.
-    var candidates = [];
-    var allScopes = scopes.toSet();
-    for (var scope in scopes) {
-      for (var p = scope.parent; p != null; p = p.parent) {
-        if (allScopes.contains(p)) {
-          allScopes.addAll(candidates);
-          break;
-        }
-        candidates.add(p);
-      }
-      // Discard these, we already added them or we didn't find a parent scope.
-      candidates.clear();
-    }
-
-    // Now collect all names found.
-    return allScopes.expand((s) => s.names).toSet();
   }
 
   static String _findName(Object id, Set<String> usedNames) {
@@ -154,7 +181,7 @@ class _RenameVisitor extends BaseVisitor {
 bool needsRename(Identifier node) =>
     node is JSTemporary || node.allowRename && invalidJSVariableName(node.name);
 
-Object /*String|JSTemporary*/ renameKey(Identifier node) =>
+Object /*String|JSTemporary*/ identifierKey(Identifier node) =>
     node is JSTemporary ? node : node.name;
 
 /// Returns true for invalid JS variable names, such as keywords.
