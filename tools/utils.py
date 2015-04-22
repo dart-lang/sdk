@@ -406,6 +406,40 @@ def GetSVNRevision():
 
   return None
 
+# Our schema for releases and archiving is based on an increasing
+# sequence of numbers. In the svn world this was simply the revision of a
+# commit, which would always give us a one to one mapping between the number
+# and the commit. This was true across branches as well, so a number used
+# to archive a build was always unique and unambiguous.
+# In git there is no such global number, so we loosen the requirement a bit.
+# We only use numbers on the master branch (bleeding edge). On branches
+# we use the version number instead for archiving purposes.
+# The number on master is the count of commits on the master branch.
+def GetArchiveVersion():
+  version = ReadVersionFile()
+  if not version:
+    raise 'Could not get the archive version, parsing the version file failed'
+  if version.channel == 'be':
+    return GetGitNumber()
+  return GetSemanticSDKVersion()
+
+# To eliminate clashing with older archived builds on bleding edge we add
+# a base number bigger the largest svn revision (this also gives us an easy
+# way of seeing if an archive comes from git based or svn based commits).
+GIT_NUMBER_BASE = 100000
+def GetGitNumber():
+  p = subprocess.Popen(['git', 'rev-list', 'HEAD', '--count'],
+                       stdout = subprocess.PIPE,
+                       stderr = subprocess.STDOUT, shell=IsWindows(),
+                       cwd = DART_DIR)
+  output, _ = p.communicate()
+  try:
+    number = int(output)
+    return number + GIT_NUMBER_BASE
+  except:
+    print "Warning: could not parse git count, output was %s" % output
+  return None
+
 def ParseGitInfoOutput(output):
   """Given a git log, determine the latest corresponding svn revision."""
   for line in output.split('\n'):
