@@ -379,34 +379,29 @@ class ProcessStarter {
  private:
   int CreatePipes() {
     int result;
-    result = TEMP_FAILURE_RETRY(pipe(exec_control_));
+    result = TEMP_FAILURE_RETRY(pipe2(exec_control_, O_CLOEXEC));
     if (result < 0) {
       return CleanupAndReturnError();
     }
-    FDUtils::SetCloseOnExec(exec_control_[0]);
-    FDUtils::SetCloseOnExec(exec_control_[1]);
 
     // For a detached process the pipe to connect stdout is still used for
     // signaling when to do the first fork.
-    result = TEMP_FAILURE_RETRY(pipe(read_in_));
+    result = TEMP_FAILURE_RETRY(pipe2(read_in_, O_CLOEXEC));
     if (result < 0) {
       return CleanupAndReturnError();
     }
-    FDUtils::SetCloseOnExec(read_in_[0]);
 
     // For detached processes the pipe to connect stderr and stdin are not used.
     if (mode_ != kDetached) {
-      result = TEMP_FAILURE_RETRY(pipe(read_err_));
+      result = TEMP_FAILURE_RETRY(pipe2(read_err_, O_CLOEXEC));
       if (result < 0) {
         return CleanupAndReturnError();
       }
-      FDUtils::SetCloseOnExec(read_err_[0]);
 
-      result = TEMP_FAILURE_RETRY(pipe(write_out_));
+      result = TEMP_FAILURE_RETRY(pipe2(write_out_, O_CLOEXEC));
       if (result < 0) {
         return CleanupAndReturnError();
       }
-      FDUtils::SetCloseOnExec(write_out_[1]);
     }
 
     return 0;
@@ -430,25 +425,17 @@ class ProcessStarter {
 
 
   void ExecProcess() {
-    VOID_TEMP_FAILURE_RETRY(close(write_out_[1]));
-    VOID_TEMP_FAILURE_RETRY(close(read_in_[0]));
-    VOID_TEMP_FAILURE_RETRY(close(read_err_[0]));
-    VOID_TEMP_FAILURE_RETRY(close(exec_control_[0]));
-
     if (TEMP_FAILURE_RETRY(dup2(write_out_[0], STDIN_FILENO)) == -1) {
       ReportChildError();
     }
-    VOID_TEMP_FAILURE_RETRY(close(write_out_[0]));
 
     if (TEMP_FAILURE_RETRY(dup2(read_in_[1], STDOUT_FILENO)) == -1) {
       ReportChildError();
     }
-    VOID_TEMP_FAILURE_RETRY(close(read_in_[1]));
 
     if (TEMP_FAILURE_RETRY(dup2(read_err_[1], STDERR_FILENO)) == -1) {
       ReportChildError();
     }
-    VOID_TEMP_FAILURE_RETRY(close(read_err_[1]));
 
     if (working_directory_ != NULL &&
         TEMP_FAILURE_RETRY(chdir(working_directory_)) == -1) {
@@ -527,12 +514,10 @@ class ProcessStarter {
   int RegisterProcess(pid_t pid) {
     int result;
     int event_fds[2];
-    result = TEMP_FAILURE_RETRY(pipe(event_fds));
+    result = TEMP_FAILURE_RETRY(pipe2(event_fds, O_CLOEXEC));
     if (result < 0) {
       return CleanupAndReturnError();
     }
-    FDUtils::SetCloseOnExec(event_fds[0]);
-    FDUtils::SetCloseOnExec(event_fds[1]);
 
     ProcessInfoList::AddProcess(pid, event_fds[1]);
     *exit_event_ = event_fds[0];
