@@ -1091,6 +1091,12 @@ class LiteralNumber extends Literal {
 
   accept(NodeVisitor visitor) => visitor.visitLiteralNumber(this);
   LiteralNumber _clone() => new LiteralNumber(value);
+
+  /**
+   * Use a different precedence level depending on whether the value contains a
+   * dot to ensure we generate `(1).toString()` and `1.0.toString()`.
+   */
+  int get precedenceLevel => value.contains('.') ? PRIMARY : UNARY;
 }
 
 class ArrayInitializer extends Expression {
