@@ -357,7 +357,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         // want to support construction of instances with generic types other
         // than dynamic. See issue #154 for Array and List<E> related bug.
         var copyMembers = js.statement(
-            'dart.copyProperties(dart.global.#.prototype, #.prototype);', [
+            'dart.registerExtension(dart.global.#, #);', [
           _propertyName(jsPeerName),
           classElem.name
         ]);

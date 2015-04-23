@@ -1616,7 +1616,7 @@ var core;
     return List;
   });
   let List = List$();
-  dart.copyProperties(dart.global.Array.prototype, List.prototype);
+  dart.registerExtension(dart.global.Array, List);
   let Map$ = dart.generic(function(K, V) {
     class Map extends Object {
       Map() {

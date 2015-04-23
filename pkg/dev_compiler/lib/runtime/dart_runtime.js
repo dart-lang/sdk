@@ -611,17 +611,33 @@ var dart, _js_helper;
   dart.defineLazyProperties = defineLazy;
   dart.defineLazyClassGeneric = defineLazyProperty;
 
+  function copyPropertiesHelper(to, from, names) {
+    for (let name of names) {
+      defineProperty(to, name, getOwnPropertyDescriptor(from, name));
+    }
+    return to;
+  }
+
   /**
    * Copy properties from source to destination object.
    * This operation is commonly called `mixin` in JS.
    */
   function copyProperties(to, from) {
-    for (let name of getOwnNamesAndSymbols(from)) {
-      defineProperty(to, name, getOwnPropertyDescriptor(from, name));
-    }
-    return to;
+    return copyPropertiesHelper(to, from, getOwnNamesAndSymbols(from));
   }
+
+  /**
+   * Copy symbols from the prototype of the source to destination.
+   * These are the only properties safe to copy onto an existing public
+   * JavaScript class.
+   */
+  function registerExtension(to, from) {
+    return copyPropertiesHelper(to.prototype, from.prototype,
+        getOwnPropertySymbols(from.prototype));
+  }
+
   dart.copyProperties = copyProperties;
+  dart.registerExtension = registerExtension;
 
   /**
    * This is called whenever a derived class needs to introduce a new field,
