@@ -361,7 +361,7 @@ abstract class NonGrowableListError {
  * That means that it is a destructive conversion.
  * The original list should not be used afterwards.
  *
- * The returned list may be the same list as the orginal,
+ * The returned list may be the same list as the original,
  * or it may be a different list (according to [identical]).
  * The original list may have changed type to be a fixed list,
  * or become empty or been otherwise modified.
@@ -387,6 +387,6 @@ external List makeListFixedLength(List growableList);
  * That means that it is a destructive conversion.
  * The original list should not be used afterwards.
  *
- * The unmodifialbe list type is similar to the one used by const lists.
+ * The unmodifiable list type is similar to the one used by const lists.
  */
 external List makeFixedListUnmodifiable(List fixedLengthList);

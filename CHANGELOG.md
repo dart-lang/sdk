@@ -2,6 +2,8 @@
 
 ### Core library changes
 
+ * Add `unmodifiable` constructor to `List` class - 
+   [r45334](https://code.google.com/p/dart/source/detail?r=45334),
 * Update experimental Isolate API:
   - Make priorty parameters of `Isolate.ping` and `Isolate.kill` methods
     a named parameter.
@@ -14,7 +16,7 @@
 
 ### Core library changes
 
-* Fix behavior of `HtmlEscape` in `dart:convert`. No longer escape
+* Fix behavior of `HtmlEscape` in `dart:convert`. It no longer escapes
   no-break space (U+00A0) anywhere or forward slash ('/', U+002F) in element
   context. Slash is still escaped in the "unknown" context.
   [r45003](https://code.google.com/p/dart/source/detail?r=45003),
