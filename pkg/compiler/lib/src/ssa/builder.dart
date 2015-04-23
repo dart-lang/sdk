@@ -3457,10 +3457,6 @@ class SsaBuilder extends NewResolvedVisitor {
     }
   }
 
-  visitOperatorSend(ast.Send node) {
-    internalError(node, 'Unexpected operator send: ${node}');
-  }
-
   @override
   void visitAs(ast.Send node, ast.Node expression, DartType type, _) {
     HInstruction expressionInstruction = visitAndPop(expression);

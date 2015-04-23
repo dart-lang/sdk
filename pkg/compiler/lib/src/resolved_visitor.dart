@@ -25,6 +25,8 @@ enum ResolvedKind {
 // TODO(johnniwinther): Remove this.
 abstract class ResolvedKindVisitor<R> {
   R visitSuperSend(Send node);
+
+  @deprecated
   R visitOperatorSend(Send node);
   R visitGetterSend(Send node);
   R visitClosureSend(Send node);
@@ -184,17 +186,22 @@ abstract class NewResolvedVisitor<R> extends BaseResolvedVisitor<R>
     }
   }
 
-  @deprecated
+  @override
+  R visitOperatorSend(Send node) {
+    return internalError(node, "visitOperaterSend is deprecated");
+  }
+
+  @override
   R visitTypeLiteralSend(Send node) {
     return internalError(node, "visitTypeLiteralSend is deprecated");
   }
 
-  @deprecated
+  @override
   R visitTypePrefixSend(Send node) {
     return internalError(node, "visitTypePrefixSend is deprecated");
   }
 
-  @deprecated
+  @override
   R visitAssertSend(Send node) {
     return internalError(node, "visitAssertSend is deprecated");
   }
