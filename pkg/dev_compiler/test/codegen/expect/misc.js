@@ -3,9 +3,9 @@ var misc;
   'use strict';
   // Function main: () → dynamic
   function main() {
-    core.print((1).toString());
-    core.print(1.0.toString());
-    core.print(1.1.toString());
+    core.print(dart.toString(1));
+    core.print(dart.toString(1.0));
+    core.print(dart.toString(1.1));
   }
   // Exports:
   exports.main = main;

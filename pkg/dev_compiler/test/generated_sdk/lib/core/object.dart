@@ -98,5 +98,5 @@ class Object {
   /**
    * A representation of the runtime type of the object.
    */
-  Type get runtimeType => getRuntimeType(this);
+  Type get runtimeType => JS('Type', 'dart.realRuntimeType(#)', this);
 }

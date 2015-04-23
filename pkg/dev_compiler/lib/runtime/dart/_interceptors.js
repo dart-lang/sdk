@@ -740,7 +740,7 @@ var _interceptors;
       let delta = dart.notNull(width) - dart.notNull(this.length);
       if (dart.notNull(delta) <= 0)
         return this;
-      return core.String['*'](padding, delta) + dart.notNull(this);
+      return core.String['*'](padding, delta) + this;
     }
     padRight(width, padding) {
       if (padding === void 0)

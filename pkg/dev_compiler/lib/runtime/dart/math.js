@@ -34,7 +34,7 @@ var math;
         return dart.notNull(dart.equals(this.x, dart.dload(other, 'x'))) && dart.notNull(dart.equals(this.y, dart.dload(other, 'y')));
       }
       get hashCode() {
-        return _JenkinsSmiHash.hash2(this.x.hashCode, this.y.hashCode);
+        return _JenkinsSmiHash.hash2(dart.hashCode(this.x), dart.hashCode(this.y));
       }
       ['+'](other) {
         return new (Point$(T))(dart.as(this.x['+'](other.x), T), dart.as(this.y['+'](other.y), T));
@@ -88,7 +88,7 @@ var math;
         return dart.notNull(dart.equals(this.left, dart.dload(other, 'left'))) && dart.notNull(dart.equals(this.top, dart.dload(other, 'top'))) && dart.notNull(dart.equals(this.right, dart.dload(other, 'right'))) && dart.notNull(dart.equals(this.bottom, dart.dload(other, 'bottom')));
       }
       get hashCode() {
-        return _JenkinsSmiHash.hash4(this.left.hashCode, this.top.hashCode, this.right.hashCode, this.bottom.hashCode);
+        return _JenkinsSmiHash.hash4(dart.hashCode(this.left), dart.hashCode(this.top), dart.hashCode(this.right), dart.hashCode(this.bottom));
       }
       intersection(other) {
         let x0 = max(this.left, other.left);

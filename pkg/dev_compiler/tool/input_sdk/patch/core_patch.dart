@@ -50,7 +50,7 @@ class Object {
   }
 
   @patch
-  Type get runtimeType => getRuntimeType(this);
+  Type get runtimeType => JS('Type', 'dart.realRuntimeType(#)', this);
 }
 
 // Patch for Function implementation.

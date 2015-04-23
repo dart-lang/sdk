@@ -23,7 +23,7 @@ var core;
       throw new NoSuchMethodError(this, invocation.memberName, invocation.positionalArguments, invocation.namedArguments);
     }
     get runtimeType() {
-      return _js_helper.getRuntimeType(this);
+      return dart.realRuntimeType(this);
     }
   }
   class JsName extends Object {
@@ -488,7 +488,7 @@ var core;
       return dart.equals(this[_duration], dart.dload(other, _duration));
     }
     get hashCode() {
-      return this[_duration].hashCode;
+      return dart.hashCode(this[_duration]);
     }
     compareTo(other) {
       return this[_duration].compareTo(other[_duration]);
@@ -557,7 +557,7 @@ var core;
     }
     static safeToString(object) {
       if (dart.is(object, num) || typeof object == 'boolean' || dart.notNull(null == object)) {
-        return object.toString();
+        return dart.toString(object);
       }
       if (typeof object == 'string') {
         return Error[_stringToSafeString](object);
@@ -814,7 +814,7 @@ var core;
       if (this[_existingArgumentNames] == null) {
         return `NoSuchMethodError : method not found: '${this[_memberName]}'\n` + `Receiver: ${Error.safeToString(this[_receiver])}\n` + `Arguments: [${sb}]`;
       } else {
-        let actualParameters = sb.toString();
+        let actualParameters = dart.toString(sb);
         sb = new StringBuffer();
         for (let i = 0; dart.notNull(i) < dart.notNull(this[_existingArgumentNames][$length]); i = dart.notNull(i) + 1) {
           if (dart.notNull(i) > 0) {
@@ -822,7 +822,7 @@ var core;
           }
           sb.write(this[_existingArgumentNames][$get](i));
         }
-        let formalParameters = sb.toString();
+        let formalParameters = dart.toString(sb);
         return "NoSuchMethodError: incorrect number of arguments passed to " + `method named '${this[_memberName]}'\n` + `Receiver: ${Error.safeToString(this[_receiver])}\n` + `Tried calling: ${this[_memberName]}(${actualParameters})\n` + `Found: ${this[_memberName]}(${formalParameters})`;
       }
     }
@@ -1108,7 +1108,7 @@ var core;
           separator = "";
         let buffer = new StringBuffer();
         buffer.writeAll(this, separator);
-        return buffer.toString();
+        return dart.toString(buffer);
       }
       [dart.JsSymbol.iterator]() {
         var iterator = this.iterator;
@@ -2103,7 +2103,7 @@ var core;
         return "";
       let sb = new StringBuffer();
       this[_writeAuthority](sb);
-      return sb.toString();
+      return dart.toString(sb);
     }
     get userInfo() {
       return this[_userInfo];
@@ -2665,7 +2665,7 @@ var core;
           slice = slice.toLowerCase();
         buffer.write(slice);
       }
-      return buffer.toString();
+      return dart.toString(buffer);
     }
     static [_makeScheme](scheme, end) {
       if (end == 0)
@@ -2735,7 +2735,7 @@ var core;
           result.write(Uri.encodeQueryComponent(dart.as(value, String)));
         }
       });
-      return result.toString();
+      return dart.toString(result);
     }
     static [_makeFragment](fragment, start, end) {
       if (fragment == null)
@@ -2868,7 +2868,7 @@ var core;
       if (dart.notNull(sectionStart) < dart.notNull(end)) {
         buffer.write(component.substring(sectionStart, end));
       }
-      return buffer.toString();
+      return dart.toString(buffer);
     }
     static [_isSchemeCharacter](ch) {
       return dart.notNull(ch) < 128 && dart.notNull(!dart.equals(dart.dsend(Uri[_schemeTable][$get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
@@ -3032,7 +3032,7 @@ var core;
       if (this[_isPathAbsolute])
         result.write("/");
       result.writeAll(this.pathSegments, "/");
-      return result.toString();
+      return dart.toString(result);
     }
     [_toWindowsFilePath]() {
       let hasDriveLetter = false;
@@ -3055,7 +3055,7 @@ var core;
       result.writeAll(segments, "\\");
       if (dart.notNull(hasDriveLetter) && segments[$length] == 1)
         result.write("\\");
-      return result.toString();
+      return dart.toString(result);
     }
     get [_isPathAbsolute]() {
       if (this.path == null || dart.notNull(this.path.isEmpty))
@@ -3090,7 +3090,7 @@ var core;
         sb.write("#");
         sb.write(this[_fragment]);
       }
-      return sb.toString();
+      return dart.toString(sb);
     }
     ['=='](other) {
       if (!dart.is(other, Uri))
@@ -3101,7 +3101,7 @@ var core;
     get hashCode() {
       // Function combine: (dynamic, dynamic) → int
       function combine(part, current) {
-        return dart.as(dart.dsend(dart.dsend(dart.dsend(current, '*', 31), '+', part.hashCode), '&', 1073741823), int);
+        return dart.as(dart.dsend(dart.dsend(dart.dsend(current, '*', 31), '+', dart.hashCode(part)), '&', 1073741823), int);
       }
       return combine(this.scheme, combine(this.userInfo, combine(this.host, combine(this.port, combine(this.path, combine(this.query, combine(this.fragment, 1)))))));
     }
@@ -3283,7 +3283,7 @@ var core;
           byteToHex(byte, result);
         }
       }
-      return result.toString();
+      return dart.toString(result);
     }
     static [_hexCharPairToByte](s, pos) {
       let byte = 0;

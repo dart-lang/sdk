@@ -759,7 +759,7 @@ var _js_helper;
             result.write(dart.dindex(receiver, i));
             result.write(to);
           }
-          return result.toString();
+          return dart.toString(result);
         }
       } else {
         let quoter = new RegExp(ESCAPE_REGEXP, 'g');
@@ -803,7 +803,7 @@ var _js_helper;
       startIndex = match.end;
     }
     buffer.write(dart.dcall(onNonMatch, dart.dsend(receiver, 'substring', startIndex)));
-    return buffer.toString();
+    return dart.toString(buffer);
   }
   // Function stringReplaceAllEmptyFuncUnchecked: (dynamic, dynamic, dynamic) → dynamic
   function stringReplaceAllEmptyFuncUnchecked(receiver, onMatch, onNonMatch) {
@@ -827,7 +827,7 @@ var _js_helper;
     }
     buffer.write(dart.dcall(onMatch, new StringMatch(i, dart.as(receiver, core.String), "")));
     buffer.write(dart.dcall(onNonMatch, ""));
-    return buffer.toString();
+    return dart.toString(buffer);
   }
   // Function stringReplaceAllStringFuncUnchecked: (dynamic, dynamic, dynamic, dynamic) → dynamic
   function stringReplaceAllStringFuncUnchecked(receiver, pattern, onMatch, onNonMatch) {
@@ -848,7 +848,7 @@ var _js_helper;
       startIndex = dart.notNull(position) + dart.notNull(patternLength);
     }
     buffer.write(dart.dcall(onNonMatch, dart.dsend(receiver, 'substring', startIndex)));
-    return buffer.toString();
+    return dart.toString(buffer);
   }
   // Function stringReplaceFirstUnchecked: (dynamic, dynamic, dynamic, [int]) → dynamic
   function stringReplaceFirstUnchecked(receiver, from, to, startIndex) {
@@ -888,7 +888,7 @@ var _js_helper;
       return this[_unmangledName] = unmangledName;
     }
     get hashCode() {
-      return this[_typeName].hashCode;
+      return dart.hashCode(this[_typeName]);
     }
     ['=='](other) {
       return dart.is(other, TypeImpl) && dart.equals(this[_typeName], dart.dload(other, _typeName));
@@ -964,7 +964,7 @@ var _js_helper;
       return getConstructorName(type);
     } else if (typeof type == 'number') {
       if (onTypeVariable == null) {
-        return type.toString();
+        return dart.toString(type);
       } else {
         return onTypeVariable(dart.as(type, core.int));
       }
@@ -1375,7 +1375,7 @@ var _js_helper;
     } else if (value == null) {
       return 'null';
     }
-    let res = value.toString();
+    let res = dart.toString(value);
     if (!(typeof res == 'string'))
       throw new core.ArgumentError(value);
     return res;
@@ -2224,7 +2224,7 @@ var _js_helper;
   }
   // Function toStringWrapper: () → dynamic
   function toStringWrapper() {
-    return this.dartException.toString();
+    return dart.toString(this.dartException);
   }
   // Function throwExpression: (dynamic) → dynamic
   function throwExpression(ex) {
@@ -2551,7 +2551,7 @@ var _js_helper;
   // Function objectHashCode: (dynamic) → int
   function objectHashCode(object) {
     if (dart.notNull(object == null) || typeof object != 'object') {
-      return object.hashCode;
+      return dart.hashCode(object);
     } else {
       return Primitives.objectHashCode(object);
     }
@@ -2900,7 +2900,7 @@ var _js_helper;
       if (this[_receiver] == null) {
         receiverHashCode = Primitives.objectHashCode(this[_self]);
       } else if (typeof this[_receiver] != 'object') {
-        receiverHashCode = this[_receiver].hashCode;
+        receiverHashCode = dart.hashCode(this[_receiver]);
       } else {
         receiverHashCode = Primitives.objectHashCode(this[_receiver]);
       }
@@ -3354,12 +3354,12 @@ var _js_helper;
         return null;
       if (this[_isTest](expression))
         return expression;
-      let self = new FunctionTypeInfoDecoderRing(this.toRti()).toString();
+      let self = dart.toString(new FunctionTypeInfoDecoderRing(this.toRti()));
       if (isCast) {
         let functionTypeObject = this[_extractFunctionTypeObjectFrom](expression);
         let pretty = null;
         if (functionTypeObject != null) {
-          pretty = new FunctionTypeInfoDecoderRing(functionTypeObject).toString();
+          pretty = dart.toString(new FunctionTypeInfoDecoderRing(functionTypeObject));
         } else {
           pretty = Primitives.objectTypeName(expression);
         }
@@ -3633,7 +3633,7 @@ var _js_helper;
       if (result != null)
         return result;
       if ("func" in type) {
-        return new FunctionTypeInfoDecoderRing(type).toString();
+        return dart.toString(new FunctionTypeInfoDecoderRing(type));
       } else {
         throw 'bad type';
       }
@@ -3712,11 +3712,13 @@ var _js_helper;
   function _loadLibraryWrapper(loadId) {
     return () => loadDeferredLibrary(loadId);
   }
+  let _loadingLibraries = Symbol('_loadingLibraries');
+  let _loadedLibraries = Symbol('_loadedLibraries');
   dart.defineLazyProperties(exports, {
-    get _loadingLibraries() {
+    get [_loadingLibraries]() {
       return dart.map();
     },
-    get _loadedLibraries() {
+    get [_loadedLibraries]() {
       return new (core.Set$(core.String))();
     }
   });

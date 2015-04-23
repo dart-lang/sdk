@@ -23,7 +23,7 @@ var collection;
   }
   // Function _defaultHashCode: (dynamic) → int
   function _defaultHashCode(a) {
-    return a.hashCode;
+    return dart.hashCode(a);
   }
   let _Equality$ = dart.generic(function(K) {
     let _Equality = dart.typedef('_Equality', () => dart.functionType(core.bool, [K, K]));
@@ -262,7 +262,7 @@ var collection;
             buffer.write(`${iterator.current}`);
           }
         }
-        return buffer.toString();
+        return dart.toString(buffer);
       }
       [core.$any](test) {
         for (let element of this) {
@@ -518,7 +518,7 @@ var collection;
             buffer.write(`${iterator.current}`);
           }
         }
-        return buffer.toString();
+        return dart.toString(buffer);
       }
       [core.$any](f) {
         for (let element of this) {
@@ -719,7 +719,7 @@ var collection;
             buffer.write(`${iterator.current}`);
           }
         }
-        return buffer.toString();
+        return dart.toString(buffer);
       }
       [core.$any](f) {
         for (let element of this) {
@@ -865,12 +865,12 @@ var collection;
           dart.assert(core.identical(IterableBase[_toStringVisiting][core.$last], iterable));
           IterableBase[_toStringVisiting][core.$removeLast]();
         }
-        return (() => {
+        return dart.toString((() => {
           let _ = new core.StringBuffer(leftDelimiter);
           _.writeAll(parts, ", ");
           _.write(rightDelimiter);
           return _;
-        })().toString();
+        })());
       }
       static iterableToFullString(iterable, leftDelimiter, rightDelimiter) {
         if (leftDelimiter === void 0)
@@ -889,7 +889,7 @@ var collection;
           IterableBase[_toStringVisiting][core.$removeLast]();
         }
         buffer.write(rightDelimiter);
-        return buffer.toString();
+        return dart.toString(buffer);
       }
       static [_isToStringVisiting](o) {
         for (let i = 0; dart.notNull(i) < dart.notNull(IterableBase[_toStringVisiting][core.$length]); i = dart.notNull(i) + 1) {
@@ -979,7 +979,7 @@ var collection;
     }
     IterableBase[dart.implements] = () => [core.Iterable$(E)];
     dart.defineLazyProperties(IterableBase, {
-      get _toStringVisiting() {
+      get [_toStringVisiting]() {
         return [];
       }
     });
@@ -1475,7 +1475,7 @@ var collection;
           return "";
         let buffer = new core.StringBuffer();
         buffer.writeAll(this, separator);
-        return buffer.toString();
+        return dart.toString(buffer);
       }
       [core.$where](test) {
         return new (_internal.WhereIterable$(E))(this, test);
@@ -2000,7 +2000,7 @@ var collection;
         return this[_map].remove(key);
       }
       toString() {
-        return this[_map].toString();
+        return dart.toString(this[_map]);
       }
       get values() {
         return this[_map].values;
@@ -2086,7 +2086,7 @@ var collection;
         dart.assert(core.identical(IterableBase[_toStringVisiting][core.$last], m));
         IterableBase[_toStringVisiting][core.$removeLast]();
       }
-      return result.toString();
+      return dart.toString(result);
     }
     static [_id](x) {
       return x;
@@ -3635,7 +3635,7 @@ var collection;
         return dart.is(key, core.num) && (key & 0x3ffffff) === key;
       }
       [_computeHashCode](key) {
-        return key.hashCode & 0x3ffffff;
+        return dart.hashCode(key) & 0x3ffffff;
       }
       static [_hasTableEntry](table, key) {
         let entry = table[key];
@@ -4043,7 +4043,7 @@ var collection;
         return dart.is(key, core.num) && (key & 0x3ffffff) === key;
       }
       [_computeHashCode](key) {
-        return key.hashCode & 0x3ffffff;
+        return dart.hashCode(key) & 0x3ffffff;
       }
       static [_getTableEntry](table, key) {
         return table[key];
@@ -4418,7 +4418,7 @@ var collection;
         return dart.is(element, core.num) && (element & 0x3ffffff) === element;
       }
       [_computeHashCode](element) {
-        return element.hashCode & 0x3ffffff;
+        return dart.hashCode(element) & 0x3ffffff;
       }
       static [_hasTableEntry](table, key) {
         let entry = table[key];
@@ -4789,7 +4789,7 @@ var collection;
         return dart.is(element, core.num) && (element & 0x3ffffff) === element;
       }
       [_computeHashCode](element) {
-        return element.hashCode & 0x3ffffff;
+        return dart.hashCode(element) & 0x3ffffff;
       }
       static [_getTableEntry](table, key) {
         return table[key];

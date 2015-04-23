@@ -397,3 +397,30 @@ bool inInvocationContext(SimpleIdentifier node) {
   var parent = node.parent;
   return parent is MethodInvocation && parent.methodName == node;
 }
+
+// TODO(vsm): Move this onto the appropriate class.  Ideally, we'd attach
+// it to TypeProvider.
+
+final _objectMap = new Expando('providerToObjectMap');
+Map<String, DartType> getObjectMemberMap(TypeProvider typeProvider) {
+  Map<String, DartType> map = _objectMap[typeProvider];
+  if (map == null) {
+    map = <String, DartType>{};
+    _objectMap[typeProvider] = map;
+    var objectType = typeProvider.objectType;
+    var element = objectType.element;
+    // Only record methods (including getters) with no parameters.  As parameters are contravariant wrt
+    // type, using Object's version may be too strict.
+    // Add instance methods.
+    element.methods.where((method) => !method.isStatic).forEach((method) {
+      map[method.name] = method.type;
+    });
+    // Add getters.
+    element.accessors
+        .where((member) => !member.isStatic && member.isGetter)
+        .forEach((member) {
+      map[member.name] = member.type.returnType;
+    });
+  }
+  return map;
+}

@@ -602,8 +602,8 @@ var _isolate_helper;
         return;
       }
       let message = new core.List(2);
-      message[core.$set](0, error.toString());
-      message[core.$set](1, stackTrace == null ? null : stackTrace.toString());
+      message[core.$set](0, dart.toString(error));
+      message[core.$set](1, stackTrace == null ? null : dart.toString(stackTrace));
       for (let port of this.errorPorts)
         port.send(message);
     }
@@ -1009,7 +1009,7 @@ var _isolate_helper;
       IsolateNatives.enableSpawnWorker = true;
       let isLight = false;
       let isSpawnUri = true;
-      return IsolateNatives.spawn(null, uri.toString(), args, message, isLight, isSpawnUri, startPaused);
+      return IsolateNatives.spawn(null, dart.toString(uri), args, message, isLight, isSpawnUri, startPaused);
     }
     static spawn(functionName, uri, args, message, isLight, isSpawnUri, startPaused) {
       if (uri != null && dart.notNull(uri.endsWith(".dart"))) {

@@ -16,7 +16,12 @@ abstract class TypeRules {
   final TypeProvider provider;
   LibraryInfo currentLibraryInfo = null;
 
-  TypeRules(TypeProvider this.provider);
+  /// Map of fields / properties / methods on Object.
+  final Map<String, DartType> objectMembers;
+
+  TypeRules(TypeProvider provider)
+      : provider = provider,
+        objectMembers = utils.getObjectMemberMap(provider);
 
   MissingTypeReporter reportMissingType;
 

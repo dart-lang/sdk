@@ -33,7 +33,7 @@ var convert;
       return dart.as(byteStream.transform(dart.as(this.decoder, async.StreamTransformer$(core.List$(core.int), dart.dynamic))).fold(new core.StringBuffer(), (buffer, string) => ((() => {
         dart.dsend(buffer, 'write', string);
         return buffer;
-      })())).then(buffer => buffer.toString()), async.Future$(core.String));
+      })())).then(buffer => dart.toString(buffer)), async.Future$(core.String));
     }
     static getByName(name) {
       if (name == null)
@@ -43,10 +43,10 @@ var convert;
     }
   }
   dart.defineLazyProperties(Encoding, {
-    get _nameToEncoding() {
+    get [_nameToEncoding]() {
       return dart.map({"iso_8859-1:1987": LATIN1, "iso-ir-100": LATIN1, "iso_8859-1": LATIN1, "iso-8859-1": LATIN1, latin1: LATIN1, l1: LATIN1, ibm819: LATIN1, cp819: LATIN1, csisolatin1: LATIN1, "iso-ir-6": ASCII, "ansi_x3.4-1968": ASCII, "ansi_x3.4-1986": ASCII, "iso_646.irv:1991": ASCII, "iso646-us": ASCII, "us-ascii": ASCII, us: ASCII, ibm367: ASCII, cp367: ASCII, csascii: ASCII, ascii: ASCII, csutf8: UTF8, "utf-8": UTF8});
     },
-    set _nameToEncoding(_) {}
+    set [_nameToEncoding](_) {}
   });
   class AsciiCodec extends Encoding {
     AsciiCodec(opts) {
@@ -205,7 +205,7 @@ var convert;
           value = 65533;
         buffer.writeCharCode(value);
       }
-      return buffer.toString();
+      return dart.toString(buffer);
     }
     bind(stream) {
       return dart.as(super.bind(stream), async.Stream$(core.String));
@@ -574,7 +574,7 @@ var convert;
           result.write(ch);
         }
       }
-      return result != null ? result.toString() : null;
+      return result != null ? dart.toString(result) : null;
     }
     startChunkedConversion(sink) {
       if (!dart.is(sink, StringConversionSink)) {
@@ -1097,7 +1097,7 @@ var convert;
     static stringify(object, toEncodable, indent) {
       let output = new core.StringBuffer();
       _JsonStringStringifier.printOn(object, output, toEncodable, indent);
-      return output.toString();
+      return dart.toString(output);
     }
     static printOn(object, output, toEncodable, indent) {
       let stringifier = null;
@@ -1109,7 +1109,7 @@ var convert;
       dart.dsend(stringifier, 'writeObject', object);
     }
     writeNumber(number) {
-      this[_sink].write(number.toString());
+      this[_sink].write(dart.toString(number));
     }
     writeString(string) {
       this[_sink].write(string);
@@ -1157,7 +1157,7 @@ var convert;
       this.index = 0;
     }
     writeNumber(number) {
-      this.writeAsciiString(number.toString());
+      this.writeAsciiString(dart.toString(number));
     }
     writeAsciiString(string) {
       for (let i = 0; dart.notNull(i) < dart.notNull(string.length); i = dart.notNull(i) + 1) {
@@ -1514,8 +1514,8 @@ var convert;
     write(o) {
       if (this[_buffer].isNotEmpty)
         this[_flush]();
-      let str = o.toString();
-      this[_chunkedSink].add(o.toString());
+      let str = dart.toString(o);
+      this[_chunkedSink].add(dart.toString(o));
     }
     writeln(o) {
       if (o === void 0)
@@ -1534,18 +1534,18 @@ var convert;
         return;
       if (separator.isEmpty) {
         do {
-          this[_chunkedSink].add(iterator.current.toString());
+          this[_chunkedSink].add(dart.toString(iterator.current));
         } while (iterator.moveNext());
       } else {
-        this[_chunkedSink].add(iterator.current.toString());
+        this[_chunkedSink].add(dart.toString(iterator.current));
         while (iterator.moveNext()) {
           this.write(separator);
-          this[_chunkedSink].add(iterator.current.toString());
+          this[_chunkedSink].add(dart.toString(iterator.current));
         }
       }
     }
     [_flush]() {
-      let accumulated = this[_buffer].toString();
+      let accumulated = dart.toString(this[_buffer]);
       this[_buffer].clear();
       this[_chunkedSink].add(accumulated);
     }
@@ -1586,7 +1586,7 @@ var convert;
     }
     close() {
       let buffer = dart.as(this[_stringSink], core.StringBuffer);
-      let accumulated = buffer.toString();
+      let accumulated = dart.toString(buffer);
       buffer.clear();
       this[_callback](accumulated);
     }
@@ -1648,7 +1648,7 @@ var convert;
     close() {
       this[_decoder].close();
       if (this[_buffer].isNotEmpty) {
-        let accumulated = this[_buffer].toString();
+        let accumulated = dart.toString(this[_buffer]);
         this[_buffer].clear();
         this[_chunkedSink].addSlice(accumulated, 0, accumulated.length, true);
       } else {
@@ -1661,7 +1661,7 @@ var convert;
     addSlice(chunk, startIndex, endIndex, isLast) {
       this[_decoder].convert(chunk, startIndex, endIndex);
       if (this[_buffer].isNotEmpty) {
-        let accumulated = this[_buffer].toString();
+        let accumulated = dart.toString(this[_buffer]);
         this[_chunkedSink].addSlice(accumulated, 0, accumulated.length, isLast);
         this[_buffer].clear();
         return;
@@ -1929,7 +1929,7 @@ var convert;
       let decoder = new _Utf8Decoder(buffer, this[_allowMalformed]);
       decoder.convert(codeUnits, start, end);
       decoder.close();
-      return buffer.toString();
+      return dart.toString(buffer);
     }
     startChunkedConversion(sink) {
       let stringSink = null;
@@ -2387,7 +2387,7 @@ var convert;
     close() {
       super.close();
       let buffer = dart.as(this[_stringSink], core.StringBuffer);
-      let accumulated = buffer.toString();
+      let accumulated = dart.toString(buffer);
       buffer.clear();
       let decoded = _parseJson(accumulated, this[_reviver]);
       this[_sink].add(decoded);

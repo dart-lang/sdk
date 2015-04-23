@@ -569,10 +569,13 @@ class _ResolverState {
 /// variables.
 class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
   final TypeProvider _typeProvider;
+  Map<String, DartType> _objectMembers;
 
   RestrictedStaticTypeAnalyzer(ResolverVisitor r)
       : _typeProvider = r.typeProvider,
-        super(r);
+        super(r) {
+    _objectMembers = getObjectMemberMap(_typeProvider);
+  }
 
   static constructor(ResolverVisitor r) => new RestrictedStaticTypeAnalyzer(r);
 
@@ -648,31 +651,6 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
     }
   }
 
-  Map<String, DartType> _objectMemberMap = null;
-
-  Map<String, DartType> _getObjectMemberMap() {
-    if (_objectMemberMap == null) {
-      _objectMemberMap = new Map<String, DartType>();
-      var objectType = _typeProvider.objectType;
-      var element = objectType.element;
-      // Only record methods (including getters) with no parameters.  As parameters are contravariant wrt
-      // type, using Object's version may be too strict.
-      // Add instance methods.
-      element.methods
-          .where((method) => !method.isStatic && method.parameters.isEmpty)
-          .forEach((method) {
-        _objectMemberMap[method.name] = method.type;
-      });
-      // Add getters.
-      element.accessors
-          .where((member) => !member.isStatic && member.isGetter)
-          .forEach((member) {
-        _objectMemberMap[member.name] = member.type.returnType;
-      });
-    }
-    return _objectMemberMap;
-  }
-
   List<DartType> _sealedTypes = null;
 
   bool _isSealed(DartType t) {
@@ -702,13 +680,14 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
     super.visitMethodInvocation(node);
 
     // Search for Object methods.
-    var objectMap = _getObjectMemberMap();
     var name = node.methodName.name;
     if (node.staticType.isDynamic &&
-        objectMap.containsKey(name) &&
+        _objectMembers.containsKey(name) &&
         isDynamicTarget(node.target)) {
-      var type = objectMap[name];
-      if (type is FunctionType && node.argumentList.arguments.isEmpty) {
+      var type = _objectMembers[name];
+      if (type is FunctionType &&
+          type.parameters.isEmpty &&
+          node.argumentList.arguments.isEmpty) {
         node.target.staticType = _typeProvider.objectType;
         node.methodName.staticType = type;
         // Only infer the type of the overall expression if we have an exact
@@ -742,13 +721,12 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
   void _inferObjectAccess(
       Expression node, Expression target, SimpleIdentifier id) {
     // Search for Object accesses.
-    var objectMap = _getObjectMemberMap();
     var name = id.name;
     if (node.staticType.isDynamic &&
-        objectMap.containsKey(name) &&
+        _objectMembers.containsKey(name) &&
         isDynamicTarget(target)) {
       target.staticType = _typeProvider.objectType;
-      var type = objectMap[name];
+      var type = _objectMembers[name];
       id.staticType = type;
       // Only infer the type of the overall expression if we have an exact
       // type - e.g., a sealed type.  Otherwise, it may be too strict.

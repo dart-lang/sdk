@@ -142,7 +142,7 @@ var _internal;
               throw new core.ConcurrentModificationError(this);
             }
           }
-          return buffer.toString();
+          return dart.toString(buffer);
         } else {
           let buffer = new core.StringBuffer();
           for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
@@ -151,7 +151,7 @@ var _internal;
               throw new core.ConcurrentModificationError(this);
             }
           }
-          return buffer.toString();
+          return dart.toString(buffer);
         }
       }
       [core.$where](test) {
@@ -1030,7 +1030,7 @@ var _internal;
           separator = null;
         let buffer = new core.StringBuffer();
         buffer.writeAll(iterable, separator);
-        return buffer.toString();
+        return dart.toString(buffer);
       }
       static joinList(list, separator) {
         if (separator === void 0)
@@ -1051,7 +1051,7 @@ var _internal;
             buffer.write(list[core.$get](i));
           }
         }
-        return buffer.toString();
+        return dart.toString(buffer);
       }
       where(iterable, f) {
         return new (WhereIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(f, __CastType6));
@@ -1864,7 +1864,7 @@ var _internal;
     }
     get hashCode() {
       let arbitraryPrime = 664597;
-      return 536870911 & dart.notNull(arbitraryPrime) * dart.notNull(this[_name].hashCode);
+      return 536870911 & dart.notNull(arbitraryPrime) * dart.notNull(dart.hashCode(this[_name]));
     }
     toString() {
       return `Symbol("${this[_name]}")`;

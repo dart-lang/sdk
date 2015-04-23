@@ -1248,10 +1248,10 @@ var _native_typed_data;
   dart.defineNamedConstructor(NativeFloat32x4, _doubles);
   dart.defineNamedConstructor(NativeFloat32x4, _truncated);
   dart.defineLazyProperties(NativeFloat32x4, {
-    get _list() {
+    get [_list]() {
       return new NativeFloat32List(4);
     },
-    get _uint32view() {
+    get [_uint32view]() {
       return NativeFloat32x4[_list].buffer.asUint32List();
     }
   });
@@ -1434,7 +1434,7 @@ var _native_typed_data;
   dart.defineNamedConstructor(NativeInt32x4, 'fromFloat32x4Bits');
   dart.defineNamedConstructor(NativeInt32x4, _truncated);
   dart.defineLazyProperties(NativeInt32x4, {
-    get _list() {
+    get [_list]() {
       return new NativeInt32List(4);
     }
   });
@@ -1532,14 +1532,14 @@ var _native_typed_data;
   dart.defineNamedConstructor(NativeFloat64x2, 'fromFloat32x4');
   dart.defineNamedConstructor(NativeFloat64x2, _doubles);
   dart.defineLazyProperties(NativeFloat64x2, {
-    get _list() {
+    get [_list]() {
       return new NativeFloat64List(2);
     },
-    set _list(_) {},
-    get _uint32View() {
+    set [_list](_) {},
+    get [_uint32View]() {
       return dart.as(NativeFloat64x2[_list].buffer.asUint32List(), NativeUint32List);
     },
-    set _uint32View(_) {}
+    set [_uint32View](_) {}
   });
   // Exports:
   exports.NativeByteBuffer = NativeByteBuffer;

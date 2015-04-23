@@ -155,7 +155,7 @@ var isolate;
   Isolate.BEFORE_NEXT_EVENT = 1;
   Isolate.AS_EVENT = 2;
   dart.defineLazyProperties(Isolate, {
-    get _currentIsolateCache() {
+    get [_currentIsolateCache]() {
       return _isolate_helper.IsolateNatives.currentIsolate;
     }
   });
@@ -185,7 +185,7 @@ var isolate;
       this.stackTrace = stackTrace;
     }
     toString() {
-      return 'IsolateUnhandledException: exception while handling message: ' + `${this.message} \n  ` + `${this.source.toString().replaceAll("\n", "\n  ")}\n` + 'original stack trace:\n  ' + `${this.stackTrace.toString().replaceAll("\n", "\n  ")}`;
+      return 'IsolateUnhandledException: exception while handling message: ' + `${this.message} \n  ` + `${dart.toString(this.source).replaceAll("\n", "\n  ")}\n` + 'original stack trace:\n  ' + `${dart.toString(this.stackTrace).replaceAll("\n", "\n  ")}`;
     }
   }
   _IsolateUnhandledException[dart.implements] = () => [core.Exception];

@@ -185,10 +185,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
       var code = _visit(child);
       if (code != null) {
-        if (_pendingStatements.isNotEmpty) {
-          body.addAll(_pendingStatements);
-          _pendingStatements.clear();
-        }
+        _flushPendingStatements(body);
         body.add(code);
       }
     }
@@ -1126,7 +1123,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var element = type.element;
     if (name == '' || lowerTypedef && type is FunctionType) {
       if (type is FunctionType) {
-        // TODO(vsm): Support all parameter types.
         var returnType = type.returnType;
         var parameterTypes = type.normalParameterTypes;
         var optionalTypes = type.optionalParameterTypes;
@@ -1276,6 +1272,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
           code, [_visit(node.methodName), _visit(node.argumentList)]);
     }
 
+    var type = getStaticType(target);
+    var name = node.methodName.name;
+    var memberName = _emitMemberName(name, type: type);
+
     if (rules.isDynamicTarget(target)) {
       code = 'dart.$DSEND(#, #, #)';
     } else if (rules.isDynamicCall(node.methodName)) {
@@ -1283,14 +1283,20 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       //     class Foo { Function bar; }
       //     new Foo().bar(); // dynamic call
       code = 'dart.$DCALL(#.#, #)';
+    } else if (_requiresStaticDispatch(target, name)) {
+      assert(rules.objectMembers[name] is FunctionType);
+      // Object methods require a helper for null checks.
+      return js.call('dart.#(#, #)', [
+        memberName,
+        _visit(target),
+        _visit(node.argumentList)
+      ]);
     } else {
       code = '#.#(#)';
     }
-    return js.call(code, [
-      _visit(target),
-      _emitMemberName(node.methodName.name, type: getStaticType(target)),
-      _visit(node.argumentList)
-    ]);
+
+    return js.call(
+        code, [_visit(target), memberName, _visit(node.argumentList)]);
   }
 
   /// Emits code for the `JS(...)` builtin.
@@ -1442,9 +1448,20 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return value != null ? value : new JS.LiteralNull();
   }
 
+  void _flushPendingStatements(List<JS.Statement> body) {
+    if (_pendingStatements.isNotEmpty) {
+      body.addAll(_pendingStatements);
+      _pendingStatements.clear();
+    }
+  }
+
   void _flushLazyFields(List<JS.Statement> body) {
     var code = _emitLazyFields(_exportsVar, _lazyFields);
-    if (code != null) body.add(code);
+    if (code != null) {
+      // Ensure symbols for private fields are defined.
+      _flushPendingStatements(body);
+      body.add(code);
+    }
     _lazyFields.clear();
   }
 
@@ -1455,14 +1472,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var methods = [];
     for (var node in fields) {
       var name = node.name.name;
-      methods.add(new JS.Method(_propertyName(name),
-          js.call('function() { return #; }', _visit(node.initializer)),
+      var element = node.element;
+      var access = _emitMemberName(name, type: element.type, isStatic: true);
+      methods.add(new JS.Method(
+          access, js.call('function() { return #; }', _visit(node.initializer)),
           isGetter: true));
 
       // TODO(jmesserly): use a dummy setter to indicate writable.
       if (!node.isFinal) {
-        methods.add(new JS.Method(
-            _propertyName(name), js.call('function(_) {}'), isSetter: true));
+        methods.add(
+            new JS.Method(access, js.call('function(_) {}'), isSetter: true));
       }
     }
 
@@ -1525,6 +1544,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     if (expr is Literal && expr is! NullLiteral) return true;
     if (expr is IsExpression) return true;
+    if (expr is ThisExpression) return true;
+    if (expr is SuperExpression) return true;
     if (expr is ParenthesizedExpression) {
       return _isNonNullableExpression(expr.expression);
     }
@@ -1865,6 +1886,19 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   visitPropertyAccess(PropertyAccess node) =>
       _emitGet(_getTarget(node), node.propertyName);
 
+  bool _requiresStaticDispatch(Expression target, String memberName) {
+    var type = getStaticType(target);
+    if (!rules.objectMembers.containsKey(memberName)) {
+      return false;
+    }
+    if (!type.isObject &&
+        !_isJSBuiltinType(type) &&
+        _isNonNullableExpression(target)) {
+      return false;
+    }
+    return true;
+  }
+
   /// Shared code for [PrefixedIdentifier] and [PropertyAccess].
   JS.Expression _emitGet(Expression target, SimpleIdentifier memberId) {
     var name = _emitMemberName(memberId.name, type: getStaticType(target));
@@ -1876,10 +1910,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var member = memberId.staticElement;
     if (member != null && member is MethodElement) {
       // Tear-off methods: explicitly bind it.
+      if (_requiresStaticDispatch(target, memberId.name)) {
+        return js.call('dart.#.bind(#)', [name, _visit(target)]);
+      }
       if (isStateless(target, target)) {
         return js.call('#.#.bind(#)', [_visit(target), name, _visit(target)]);
       }
       code = 'dart.bind(#, #)';
+    } else if (_requiresStaticDispatch(target, memberId.name)) {
+      return js.call('dart.#(#)', [name, _visit(target)]);
     } else {
       code = '#.#';
     }

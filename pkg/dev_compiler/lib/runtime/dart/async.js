@@ -24,7 +24,7 @@ var async;
       this.stackTrace = stackTrace;
     }
     toString() {
-      return this.error.toString();
+      return dart.toString(this.error);
     }
   }
   AsyncError[dart.implements] = () => [core.Error];
@@ -340,7 +340,7 @@ var async;
             result[_completeError](e);
           },
           onDone: () => {
-            result[_complete](buffer.toString());
+            result[_complete](dart.toString(buffer));
           },
           cancelOnError: true
         });
@@ -801,7 +801,7 @@ var async;
         return this[_controller][_subscribe](onData, onError, onDone, cancelOnError);
       }
       get hashCode() {
-        return dart.notNull(this[_controller].hashCode) ^ 892482866;
+        return dart.notNull(dart.hashCode(this[_controller])) ^ 892482866;
       }
       ['=='](other) {
         if (core.identical(this, other))
@@ -1677,6 +1677,7 @@ var async;
   }
   DeferredLoadException[dart.implements] = () => [core.Exception];
   let _completeWithValue = Symbol('_completeWithValue');
+  let _nullFuture = Symbol('_nullFuture');
   let Future$ = dart.generic(function(T) {
     class Future extends core.Object {
       Future(computation) {
@@ -1836,7 +1837,7 @@ var async;
     dart.defineNamedConstructor(Future, 'error');
     dart.defineNamedConstructor(Future, 'delayed');
     dart.defineLazyProperties(Future, {
-      get _nullFuture() {
+      get [_nullFuture]() {
         return new Future.value(null);
       }
     });
@@ -2774,7 +2775,6 @@ var async;
   let _pendingEvents = Symbol('_pendingEvents');
   let _ensurePendingEvents = Symbol('_ensurePendingEvents');
   let _badEventState = Symbol('_badEventState');
-  let _nullFuture = Symbol('_nullFuture');
   let _StreamController$ = dart.generic(function(T) {
     class _StreamController extends core.Object {
       _StreamController() {
@@ -4118,10 +4118,10 @@ var async;
       }
     }
     dart.defineLazyProperties(_DistinctStream, {
-      get _SENTINEL() {
+      get [_SENTINEL]() {
         return new core.Object();
       },
-      set _SENTINEL(_) {}
+      set [_SENTINEL](_) {}
     });
     return _DistinctStream;
   });
@@ -5145,10 +5145,10 @@ var async;
   }
   _RootZone._rootDelegate = null;
   dart.defineLazyProperties(_RootZone, {
-    get _rootMap() {
+    get [_rootMap]() {
       return new collection.HashMap();
     },
-    set _rootMap(_) {}
+    set [_rootMap](_) {}
   });
   let _ROOT_ZONE = dart.const(new _RootZone());
   // Function runZoned: (() → dynamic, {zoneValues: Map<dynamic, dynamic>, zoneSpecification: ZoneSpecification, onError: Function}) → dynamic
