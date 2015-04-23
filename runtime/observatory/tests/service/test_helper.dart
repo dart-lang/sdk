@@ -14,7 +14,7 @@ bool _isWebSocketDisconnect(e) {
   if (e is! ServiceException) {
     return false;
   }
-  return (e as ServiceException).message == 'WebSocket disconnected';
+  return (e as ServiceException).message == 'WebSocket closed';
 }
 
 // This invocation should set up the state being tested.
