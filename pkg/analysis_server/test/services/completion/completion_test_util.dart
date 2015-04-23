@@ -1799,9 +1799,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestImportedClass('Foo',
           relevance: DART_RELEVANCE_LOW, importUri: 'testAB.dart');
       // TODO(danrubel) implement
-      assertNotSuggested('Foo2');
-      // assertSuggestImportedClass('Foo2',
-      //    relevance: DART_RELEVANCE_LOW, importUri: 'package:myBar/bar.dart');
+       assertSuggestImportedClass('Foo2',
+          relevance: DART_RELEVANCE_LOW, importUri: 'package:myBar/bar.dart');
       assertSuggestImportedClass('Future',
           relevance: DART_RELEVANCE_LOW, importUri: 'dart:async');
     });

@@ -92,7 +92,7 @@ CompletionSuggestion createSuggestion(Element element,
         if (uriKind == UriKind.DART_URI) {
           suggestion.importUri = libSource.uri.toString();
         } else if (uriKind == UriKind.PACKAGE_URI) {
-          // TODO(danrubel) implement
+          suggestion.importUri = libSource.uri.toString();
         } else if (uriKind == UriKind.FILE_URI &&
             element.source.uriKind == UriKind.FILE_URI) {
           try {
