@@ -27,7 +27,6 @@ DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(bool, enable_asserts);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(bool, use_osr);
 
 // Generic summary for call instructions that have all arguments pushed

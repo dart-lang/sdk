@@ -981,7 +981,6 @@ void FlowGraphCompiler::GenerateInstanceCall(
     LocationSummary* locs,
     const ICData& ic_data) {
   ASSERT(!ic_data.IsNull());
-  ASSERT(FLAG_propagate_ic_data || (ic_data.NumberOfUsedChecks() == 0));
   uword label_address = 0;
   StubCode* stub_code = isolate()->stub_code();
   if (is_optimizing() && (ic_data.NumberOfUsedChecks() == 0)) {
@@ -1537,7 +1536,9 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
   const ICData& ic_data = ICData::ZoneHandle(zone(), ICData::New(
       parsed_function().function(), target_name,
       arguments_descriptor, deopt_id, num_args_tested));
-  (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
+  if (deopt_id_to_ic_data_ != NULL) {
+    (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
+  }
   return &ic_data;
 }
 
@@ -1559,7 +1560,9 @@ const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
       parsed_function().function(), String::Handle(zone(), target.name()),
       arguments_descriptor, deopt_id, num_args_tested));
   ic_data.AddTarget(target);
-  (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
+  if (deopt_id_to_ic_data_ != NULL) {
+    (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
+  }
   return &ic_data;
 }
 
