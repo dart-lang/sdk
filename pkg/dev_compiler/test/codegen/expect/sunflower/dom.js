@@ -11,7 +11,7 @@ var dom;
     Overload() {
     }
   }
-  let overload = new Overload();
+  let overload = dart.const(new Overload());
   let EventListener = dart.typedef('EventListener', () => dart.functionType(dart.void, [Event]));
   class Event extends core.Object {}
   let InputElement = HTMLInputElement;

@@ -11,6 +11,10 @@ var dart, _js_helper;
   let getOwnPropertyNames = Object.getOwnPropertyNames;
   let getOwnPropertySymbols = Object.getOwnPropertySymbols;
 
+  function getOwnNamesAndSymbols(obj) {
+    return getOwnPropertyNames(obj).concat(getOwnPropertySymbols(obj));
+  }
+
   // Adapted from Angular.js
   let FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
   let FN_ARG_SPLIT = /,/;
@@ -24,8 +28,7 @@ var dart, _js_helper;
     argDecl = fnText.match(FN_ARGS);
 
     let r = argDecl[1].split(FN_ARG_SPLIT);
-    for(let a in r) {
-      let arg = r[a];
+    for (let arg of r) {
       arg.replace(FN_ARG, function(all, underscore, name){
         args.push(name);
       });
@@ -324,14 +327,14 @@ var dart, _js_helper;
 
     if (type instanceof AbstractFunctionType) {
       if (!_isTop(type.returnType, false)) return false;
-      for (var i = 0; i < type.args.length; ++i) {
+      for (let i = 0; i < type.args.length; ++i) {
         if (!_isBottom(type.args[i], true)) return false;
       }
-      for (var i = 0; i < type.optionals.length; ++i) {
+      for (let i = 0; i < type.optionals.length; ++i) {
         if (!_isBottom(type.optionals[i], true)) return false;
       }
-      var names = Object.getOwnPropertyNames(type.named);
-      for (var i = 0; i < names.length; ++i) {
+      var names = getOwnPropertyNames(type.named);
+      for (let i = 0; i < names.length; ++i) {
         if (!_isBottom(type.named[names[i]], true)) return false;
       }
       return true;
@@ -382,7 +385,7 @@ var dart, _js_helper;
       if (this._stringValue) return this._stringValue;
 
       var buffer = '(';
-      for (var i = 0; i < this.args.length; ++i) {
+      for (let i = 0; i < this.args.length; ++i) {
         if (i > 0) {
           buffer += ', ';
         }
@@ -391,7 +394,7 @@ var dart, _js_helper;
       if (this.optionals.length > 0) {
         if (this.args.length > 0) buffer += ', ';
         buffer += '[';
-        for (var i = 0; i < this.optionals.length; ++i) {
+        for (let i = 0; i < this.optionals.length; ++i) {
           if (i > 0) {
             buffer += ', ';
           }
@@ -401,8 +404,8 @@ var dart, _js_helper;
       } else if (this.named.length > 0) {
         if (this.args.length > 0) buffer += ', ';
         buffer += '{';
-        let names = Object.getOwnPropertyNames(this.named).sort();
-        for (var i = 0; i < names.length; ++i) {
+        let names = getOwnPropertyNames(this.named).sort();
+        for (let i = 0; i < names.length; ++i) {
           if (i > 0) {
             buffer += ', ';
           }
@@ -523,7 +526,7 @@ var dart, _js_helper;
       return false;
     }
 
-    for (var i = 0; i < args1.length; ++i) {
+    for (let i = 0; i < args1.length; ++i) {
       if (!isSubtype_(args2[i], args1[i], true)) {
         return false;
       }
@@ -537,13 +540,13 @@ var dart, _js_helper;
     }
 
     var j = 0;
-    for (var i = args1.length; i < args2.length; ++i, ++j) {
+    for (let i = args1.length; i < args2.length; ++i, ++j) {
       if (!isSubtype_(args2[i], optionals1[j], true)) {
         return false;
       }
     }
 
-    for (var i = 0; i < optionals2.length; ++i, ++j) {
+    for (let i = 0; i < optionals2.length; ++i, ++j) {
       if (!isSubtype_(optionals2[i], optionals1[j], true)) {
         return false;
       }
@@ -552,10 +555,10 @@ var dart, _js_helper;
     let named1 = ft1.named;
     let named2 = ft2.named;
 
-    let names = Object.getOwnPropertyNames(named2);
-    for (var i = 0; i < names.length; ++i) {
+    let names = getOwnPropertyNames(named2);
+    for (let i = 0; i < names.length; ++i) {
       let name = names[i];
-      let n1 = named1[name]
+      let n1 = named1[name];
       let n2 = named2[name];
       if (n1 === void 0) {
         return false;
@@ -599,9 +602,7 @@ var dart, _js_helper;
   }
 
   function defineLazy(to, from) {
-    let names = getOwnPropertyNames(from);
-    for (let i = 0; i < names.length; i++) {
-      let name = names[i];
+    for (let name of getOwnNamesAndSymbols(from)) {
       defineLazyProperty(to, name, getOwnPropertyDescriptor(from, name));
     }
   }
@@ -615,14 +616,9 @@ var dart, _js_helper;
    * This operation is commonly called `mixin` in JS.
    */
   function copyProperties(to, from) {
-    function copyPropertiesHelper(names) {
-      for (let i = 0; i < names.length; i++) {
-        let name = names[i];
-        defineProperty(to, name, getOwnPropertyDescriptor(from, name));
-      }
+    for (let name of getOwnNamesAndSymbols(from)) {
+      defineProperty(to, name, getOwnPropertyDescriptor(from, name));
     }
-    copyPropertiesHelper(getOwnPropertyNames(from));
-    copyPropertiesHelper(getOwnPropertySymbols(from));
     return to;
   }
   dart.copyProperties = copyProperties;
@@ -716,7 +712,7 @@ var dart, _js_helper;
         map.set(key, value);
       }
     } else if (typeof values === 'object') {
-      for (let key of Object.getOwnPropertyNames(values)) {
+      for (let key of getOwnPropertyNames(values)) {
         map.set(key, values[key]);
       }
     }
@@ -795,6 +791,59 @@ var dart, _js_helper;
     return makeGenericType;
   }
   dart.generic = generic;
+
+  let _value = Symbol('_value');
+  /**
+   * Looks up a sequence of [keys] in [map], recursively, and
+   * returns the result. If the value is not found, [valueFn] will be called to
+   * add it. For example:
+   *
+   *     var map = new Map();
+   *     putIfAbsent(map, [1, 2, 'hi ', 'there '], () => 'world');
+   *
+   * ... will create a Map with a structure like:
+   *
+   *     { 1: { 2: { 'hi ': { 'there ': 'world' } } } }
+   */
+  function multiKeyPutIfAbsent(map, keys, valueFn) {
+    for (let k of keys) {
+      let value = map.get(k);
+      if (!value) {
+        // TODO(jmesserly): most of these maps are very small (e.g. 1 item),
+        // so it may be worth optimizing for that.
+        map.set(k, value = new Map());
+      }
+      map = value;
+    }
+    if (map.has(_value)) return map.get(_value);
+    let value = valueFn();
+    map.set(_value, value);
+    return value;
+  }
+
+  /** The global constant table. */
+  let constants = new Map();
+
+  /**
+   * Canonicalize a constant object.
+   *
+   * Preconditions:
+   * - `obj` is an objects or array, not a primitive.
+   * - nested values of the object are themselves already canonicalized.
+   */
+  function constant(obj) {
+    let objectKey = [getRuntimeType(obj)];
+    // There's no guarantee in JS that names/symbols are returned in the same
+    // order. We could probably get the same order if we're judicious about
+    // initializing them, but easier to not depend on that.
+    for (let name of getOwnNamesAndSymbols(obj)) {
+      // TODO(jmesserly): we can make this faster if needed.
+      objectKey.push(name);
+      objectKey.push(obj[name]);
+    }
+    return multiKeyPutIfAbsent(constants, objectKey, () => obj);
+  }
+  dart.const = constant;
 
   /** Sets the runtime type of `obj` to be `type` */
   function setType(obj, type) {

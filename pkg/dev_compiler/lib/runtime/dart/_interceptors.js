@@ -720,7 +720,7 @@ var _interceptors;
       if (times == 1 || this.length == 0)
         return this;
       if (!dart.equals(times, times >>> 0)) {
-        throw new core.OutOfMemoryError();
+        throw dart.const(new core.OutOfMemoryError());
       }
       let result = '';
       let s = this;

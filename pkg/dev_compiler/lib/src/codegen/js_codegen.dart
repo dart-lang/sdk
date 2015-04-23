@@ -73,7 +73,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final _properties = <FunctionDeclaration>[];
   final _privateNames = new HashMap<String, JSTemporary>();
   final _extensionMethodNames = new HashSet<String>();
-  final _pendingSymbols = <JS.Identifier>[];
+  final _pendingStatements = <JS.Statement>[];
   final _temps = new HashMap<Element, JSTemporary>();
 
   /// The name for the library's exports inside itself.
@@ -156,8 +156,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     ]);
   }
 
-  JS.Statement _initSymbol(JS.Identifier id) =>
-      js.statement('let # = $_SYMBOL(#);', [id, js.string(id.name, "'")]);
+  JS.Identifier _initSymbol(JS.Identifier id) {
+    var s = js.statement('let # = $_SYMBOL(#);', [id, js.string(id.name, "'")]);
+    _pendingStatements.add(s);
+    return id;
+  }
 
   // TODO(jmesserly): this is a temporary workaround for `Symbol` in core,
   // until we have better name tracking.
@@ -182,9 +185,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
       var code = _visit(child);
       if (code != null) {
-        if (_pendingSymbols.isNotEmpty) {
-          body.addAll(_pendingSymbols.map(_initSymbol));
-          _pendingSymbols.clear();
+        if (_pendingStatements.isNotEmpty) {
+          body.addAll(_pendingStatements);
+          _pendingStatements.clear();
         }
         body.add(code);
       }
@@ -194,7 +197,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     _flushLazyFields(body);
     _flushLibraryProperties(body);
 
-    assert(_pendingSymbols.isEmpty);
+    assert(_pendingStatements.isEmpty);
     return _statement(body);
   }
 
@@ -1478,8 +1481,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   visitInstanceCreationExpression(InstanceCreationExpression node) {
-    return js.call(
+    var newExpr = js.call(
         'new #(#)', [_visit(node.constructorName), _visit(node.argumentList)]);
+    if (node.isConst) return _const(node, newExpr);
+    return newExpr;
   }
 
   /// True if this type is built-in to JS, and we use the values unwrapped.
@@ -1638,6 +1643,28 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     id.staticElement = new LocalVariableElementImpl.forNode(id);
     id.staticType = type;
     return id;
+  }
+
+  JS.Expression _const(Expression node, JS.Expression expr, [String nameHint]) {
+    var value = js.call('dart.const(#)', expr);
+
+    // If we're inside a method or function, capture the value into a
+    // global temporary, so we don't do the expensive canonicalization step.
+    var ancestor = node.getAncestor((n) => n is FunctionBody ||
+        (n is FieldDeclaration && n.staticKeyword == null));
+    if (ancestor == null) return value;
+
+    if (nameHint == null) {
+      nameHint = 'const_' + getStaticType(node).name;
+    }
+
+    // TODO(jmesserly): enable this once we fix
+    // https://github.com/dart-lang/dev_compiler/issues/131
+    /*var temp = new JSTemporary(nameHint);
+    _pendingStatements.add(js.statement('let # = #;', [temp, value]));
+    return temp;*/
+    assert(nameHint != null); // so it's not marked unused
+    return value;
   }
 
   bool _isTemporary(Element node) => node.nameOffset == -1;
@@ -2099,10 +2126,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   visitSymbolLiteral(SymbolLiteral node) {
     // TODO(vsm): When we canonicalize, we need to treat private symbols
     // correctly.
-    // TODO(vsm): Make this core.Symbol instead.
-    var name = js.escapedString(node.components.join('.'));
-    var symbol = js.call('new _internal.Symbol(#)', name);
-    return js.commentExpression('Unimplemented const', symbol);
+    var name = js.string(node.components.join('.'), "'");
+    var nameHint = 'symbol_' + node.components.join('_');
+    return _const(node, js.call('new core.Symbol(#)', name), nameHint);
   }
 
   @override
@@ -2113,9 +2139,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (type.typeArguments.any((a) => a != types.dynamicType)) {
       list = js.call('dart.setType(#, #)', [list, _emitTypeName(type)]);
     }
-    if (node.constKeyword != null) {
-      list = js.commentExpression('Unimplemented const', list);
-    }
+    if (node.constKeyword != null) return _const(node, list);
     return list;
   }
 
@@ -2145,9 +2169,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
     // TODO(jmesserly): add generic types args.
     var map = js.call('dart.map(#)', [mapArguments]);
-    if (node.constKeyword != null) {
-      map = js.commentExpression('Unimplemented const', map);
-    }
+    if (node.constKeyword != null) return _const(node, map);
     return map;
   }
 
@@ -2286,11 +2308,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   JS.Expression _emitMemberName(String name,
       {DartType type, bool unary: false, bool isStatic: false}) {
     if (name.startsWith('_')) {
-      return _privateNames.putIfAbsent(name, () {
-        var t = new JSTemporary(name);
-        _pendingSymbols.add(t);
-        return t;
-      });
+      return _privateNames.putIfAbsent(
+          name, () => _initSymbol(new JSTemporary(name)));
     }
 
     // Check for extension method:
@@ -2345,7 +2364,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       // name symbols do not conflict with other symbols before we can let
       // user defined libraries define extension methods.
       if (_extensionMethodNames.add(extName)) {
-        _pendingSymbols.add(new JS.Identifier(extName));
+        _initSymbol(new JS.Identifier(extName));
         _addExport(extName);
       }
       return new JS.Identifier(extName);

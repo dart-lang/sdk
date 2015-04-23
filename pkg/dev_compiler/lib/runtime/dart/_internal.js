@@ -510,7 +510,7 @@ var _internal;
       ExpandIterator(iterator, f) {
         this[_iterator] = iterator;
         this[_f] = f;
-        this[_currentExpansion] = new (EmptyIterator$(T))();
+        this[_currentExpansion] = dart.const(new (EmptyIterator$(T))());
         this[_current] = null;
       }
       [_nextExpansion]() {}
@@ -757,7 +757,7 @@ var _internal;
         super.IterableBase();
       }
       get [core.$iterator]() {
-        return new (EmptyIterator$(E))();
+        return dart.const(new (EmptyIterator$(E))());
       }
       [core.$forEach](action) {}
       get [core.$isEmpty]() {
@@ -814,7 +814,7 @@ var _internal;
         return this;
       }
       [core.$map](f) {
-        return new EmptyIterable();
+        return dart.const(new EmptyIterable());
       }
       [core.$reduce](combine) {
         throw IterableElementError.noElement();
@@ -1899,7 +1899,7 @@ var _internal;
       return new core.RegExp(`^(?:${Symbol.operatorRE}$|${Symbol.identifierRE}(?:=?$|[.](?!$)))+?$`);
     }
   });
-  let POWERS_OF_TEN = /* Unimplemented const */[1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22];
+  let POWERS_OF_TEN = dart.const([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22]);
   // Exports:
   exports.EfficientLength = EfficientLength;
   exports.ListIterable$ = ListIterable$;

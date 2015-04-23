@@ -54,13 +54,13 @@ var core;
     _Override() {
     }
   }
-  let deprecated = new Deprecated("next release");
-  let override = new _Override();
+  let deprecated = dart.const(new Deprecated("next release"));
+  let override = dart.const(new _Override());
   class _Proxy extends Object {
     _Proxy() {
     }
   }
-  let proxy = new _Proxy();
+  let proxy = dart.const(new _Proxy());
   class bool extends Object {
     fromEnvironment(name, opts) {
       let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : false;
@@ -549,7 +549,7 @@ var core;
   Duration.SECONDS_PER_HOUR = dart.notNull(Duration.SECONDS_PER_MINUTE) * dart.notNull(Duration.MINUTES_PER_HOUR);
   Duration.SECONDS_PER_DAY = dart.notNull(Duration.SECONDS_PER_HOUR) * dart.notNull(Duration.HOURS_PER_DAY);
   Duration.MINUTES_PER_DAY = dart.notNull(Duration.MINUTES_PER_HOUR) * dart.notNull(Duration.HOURS_PER_DAY);
-  Duration.ZERO = new Duration({seconds: 0});
+  Duration.ZERO = dart.const(new Duration({seconds: 0}));
   let _stringToSafeString = dart.JsSymbol('_stringToSafeString');
   let _objectToString = dart.JsSymbol('_objectToString');
   class Error extends Object {
@@ -2554,7 +2554,7 @@ var core;
     get pathSegments() {
       if (this[_pathSegments] == null) {
         let pathToSplit = !dart.notNull(this.path.isEmpty) && this.path.codeUnitAt(0) == Uri[_SLASH] ? this.path.substring(1) : this.path;
-        this[_pathSegments] = new collection.UnmodifiableListView(pathToSplit == "" ? /* Unimplemented const */dart.setType([], List$(String)) : pathToSplit.split("/")[$map](dart.bind(Uri, 'decodeComponent'))[$toList]({growable: false}));
+        this[_pathSegments] = new collection.UnmodifiableListView(pathToSplit == "" ? dart.const(dart.setType([], List$(String))) : pathToSplit.split("/")[$map](dart.bind(Uri, 'decodeComponent'))[$toList]({growable: false}));
       }
       return this[_pathSegments];
     }
@@ -3372,18 +3372,18 @@ var core;
   Uri._LOWER_CASE_F = 102;
   Uri._LOWER_CASE_Z = 122;
   Uri._BAR = 124;
-  Uri._unreservedTable = /* Unimplemented const */[0, 0, 24576, 1023, 65534, 34815, 65534, 18431];
-  Uri._unreserved2396Table = /* Unimplemented const */[0, 0, 26498, 1023, 65534, 34815, 65534, 18431];
-  Uri._encodeFullTable = /* Unimplemented const */[0, 0, 65498, 45055, 65535, 34815, 65534, 18431];
-  Uri._schemeTable = /* Unimplemented const */[0, 0, 26624, 1023, 65534, 2047, 65534, 2047];
-  Uri._schemeLowerTable = /* Unimplemented const */[0, 0, 26624, 1023, 0, 0, 65534, 2047];
-  Uri._subDelimitersTable = /* Unimplemented const */[0, 0, 32722, 11263, 65534, 34815, 65534, 18431];
-  Uri._genDelimitersTable = /* Unimplemented const */[0, 0, 32776, 33792, 1, 10240, 0, 0];
-  Uri._userinfoTable = /* Unimplemented const */[0, 0, 32722, 12287, 65534, 34815, 65534, 18431];
-  Uri._regNameTable = /* Unimplemented const */[0, 0, 32754, 11263, 65534, 34815, 65534, 18431];
-  Uri._pathCharTable = /* Unimplemented const */[0, 0, 32722, 12287, 65535, 34815, 65534, 18431];
-  Uri._pathCharOrSlashTable = /* Unimplemented const */[0, 0, 65490, 12287, 65535, 34815, 65534, 18431];
-  Uri._queryCharTable = /* Unimplemented const */[0, 0, 65490, 45055, 65535, 34815, 65534, 18431];
+  Uri._unreservedTable = dart.const([0, 0, 24576, 1023, 65534, 34815, 65534, 18431]);
+  Uri._unreserved2396Table = dart.const([0, 0, 26498, 1023, 65534, 34815, 65534, 18431]);
+  Uri._encodeFullTable = dart.const([0, 0, 65498, 45055, 65535, 34815, 65534, 18431]);
+  Uri._schemeTable = dart.const([0, 0, 26624, 1023, 65534, 2047, 65534, 2047]);
+  Uri._schemeLowerTable = dart.const([0, 0, 26624, 1023, 0, 0, 65534, 2047]);
+  Uri._subDelimitersTable = dart.const([0, 0, 32722, 11263, 65534, 34815, 65534, 18431]);
+  Uri._genDelimitersTable = dart.const([0, 0, 32776, 33792, 1, 10240, 0, 0]);
+  Uri._userinfoTable = dart.const([0, 0, 32722, 12287, 65534, 34815, 65534, 18431]);
+  Uri._regNameTable = dart.const([0, 0, 32754, 11263, 65534, 34815, 65534, 18431]);
+  Uri._pathCharTable = dart.const([0, 0, 32722, 12287, 65535, 34815, 65534, 18431]);
+  Uri._pathCharOrSlashTable = dart.const([0, 0, 65490, 12287, 65535, 34815, 65534, 18431]);
+  Uri._queryCharTable = dart.const([0, 0, 65490, 45055, 65535, 34815, 65534, 18431]);
   // Function _symbolToString: (Symbol) → String
   function _symbolToString(symbol) {
     return _internal.Symbol.getName(dart.as(symbol, _internal.Symbol));

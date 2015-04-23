@@ -66,7 +66,7 @@ var math;
     Random(seed) {
       if (seed === void 0)
         seed = null;
-      return seed == null ? new _JSRandom() : new _Random(seed);
+      return seed == null ? dart.const(new _JSRandom()) : new _Random(seed);
     }
   }
   let _RectangleBase$ = dart.generic(function(T) {

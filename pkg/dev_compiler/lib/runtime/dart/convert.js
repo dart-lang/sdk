@@ -1,7 +1,7 @@
 var convert;
 (function(exports) {
   'use strict';
-  let ASCII = new AsciiCodec();
+  let ASCII = dart.const(new AsciiCodec());
   let _ASCII_MASK = 127;
   let _allowInvalid = Symbol('_allowInvalid');
   let _nameToEncoding = Symbol('_nameToEncoding');
@@ -62,16 +62,16 @@ var convert;
       if (allowInvalid == null)
         allowInvalid = this[_allowInvalid];
       if (allowInvalid) {
-        return new AsciiDecoder({allowInvalid: true}).convert(bytes);
+        return dart.const(new AsciiDecoder({allowInvalid: true})).convert(bytes);
       } else {
-        return new AsciiDecoder({allowInvalid: false}).convert(bytes);
+        return dart.const(new AsciiDecoder({allowInvalid: false})).convert(bytes);
       }
     }
     get encoder() {
-      return new AsciiEncoder();
+      return dart.const(new AsciiEncoder());
     }
     get decoder() {
-      return this[_allowInvalid] ? new AsciiDecoder({allowInvalid: true}) : new AsciiDecoder({allowInvalid: false});
+      return this[_allowInvalid] ? dart.const(new AsciiDecoder({allowInvalid: true})) : dart.const(new AsciiDecoder({allowInvalid: false}));
     }
   }
   let _subsetMask = Symbol('_subsetMask');
@@ -280,7 +280,7 @@ var convert;
         if ((dart.notNull(source[core.$get](i)) & ~dart.notNull(_ASCII_MASK)) != 0) {
           if (dart.notNull(i) > dart.notNull(start))
             this[_utf8Sink].addSlice(source, start, i, false);
-          this[_utf8Sink].add(/* Unimplemented const */dart.setType([239, 191, 189], core.List$(core.int)));
+          this[_utf8Sink].add(dart.const(dart.setType([239, 191, 189], core.List$(core.int))));
           start = dart.notNull(i) + 1;
         }
       }
@@ -488,7 +488,7 @@ var convert;
     return _FusedConverter;
   });
   let _FusedConverter = _FusedConverter$();
-  let HTML_ESCAPE = new HtmlEscape();
+  let HTML_ESCAPE = dart.const(new HtmlEscape());
   let _ = Symbol('_');
   let _name = Symbol('_name');
   class HtmlEscapeMode extends core.Object {
@@ -504,9 +504,9 @@ var convert;
     }
   }
   dart.defineNamedConstructor(HtmlEscapeMode, _);
-  HtmlEscapeMode.UNKNOWN = new HtmlEscapeMode[_]('unknown', true, true, true, true);
-  HtmlEscapeMode.ATTRIBUTE = new HtmlEscapeMode[_]('attribute', false, true, false, false);
-  HtmlEscapeMode.ELEMENT = new HtmlEscapeMode[_]('element', true, false, false, true);
+  HtmlEscapeMode.UNKNOWN = dart.const(new HtmlEscapeMode[_]('unknown', true, true, true, true));
+  HtmlEscapeMode.ATTRIBUTE = dart.const(new HtmlEscapeMode[_]('attribute', false, true, false, false));
+  HtmlEscapeMode.ELEMENT = dart.const(new HtmlEscapeMode[_]('element', true, false, false, true));
   let _convert = Symbol('_convert');
   class HtmlEscape extends Converter$(core.String, core.String) {
     HtmlEscape(mode) {
@@ -626,7 +626,7 @@ var convert;
       return "Cyclic error in JSON stringify";
     }
   }
-  let JSON = new JsonCodec();
+  let JSON = dart.const(new JsonCodec());
   let _Reviver = dart.typedef('_Reviver', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
   let _ToEncodable = dart.typedef('_ToEncodable', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   let _reviver = Symbol('_reviver');
@@ -660,12 +660,12 @@ var convert;
     }
     get encoder() {
       if (this[_toEncodable$] == null)
-        return new JsonEncoder();
+        return dart.const(new JsonEncoder());
       return new JsonEncoder(dart.as(this[_toEncodable$], dart.functionType(core.Object, [core.Object])));
     }
     get decoder() {
       if (this[_reviver] == null)
-        return new JsonDecoder();
+        return dart.const(new JsonDecoder());
       return new JsonDecoder(this[_reviver]);
     }
   }
@@ -1263,7 +1263,7 @@ var convert;
   let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.Object, [core.Object]));
   let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   let __CastType4 = dart.typedef('__CastType4', () => dart.functionType(dart.dynamic, [core.Object]));
-  let LATIN1 = new Latin1Codec();
+  let LATIN1 = dart.const(new Latin1Codec());
   let _LATIN1_MASK = 255;
   class Latin1Codec extends Encoding {
     Latin1Codec(opts) {
@@ -1279,16 +1279,16 @@ var convert;
       if (allowInvalid == null)
         allowInvalid = this[_allowInvalid];
       if (allowInvalid) {
-        return new Latin1Decoder({allowInvalid: true}).convert(bytes);
+        return dart.const(new Latin1Decoder({allowInvalid: true})).convert(bytes);
       } else {
-        return new Latin1Decoder({allowInvalid: false}).convert(bytes);
+        return dart.const(new Latin1Decoder({allowInvalid: false})).convert(bytes);
       }
     }
     get encoder() {
-      return new Latin1Encoder();
+      return dart.const(new Latin1Encoder());
     }
     get decoder() {
-      return this[_allowInvalid] ? new Latin1Decoder({allowInvalid: true}) : new Latin1Decoder({allowInvalid: false});
+      return this[_allowInvalid] ? dart.const(new Latin1Decoder({allowInvalid: true})) : dart.const(new Latin1Decoder({allowInvalid: false}));
     }
   }
   class Latin1Encoder extends _UnicodeSubsetEncoder {
@@ -1356,7 +1356,7 @@ var convert;
         if (dart.notNull(char) > dart.notNull(_LATIN1_MASK) || dart.notNull(char) < 0) {
           if (dart.notNull(i) > dart.notNull(start))
             this[_addSliceToSink](source, start, i, false);
-          this[_addSliceToSink](/* Unimplemented const */dart.setType([65533], core.List$(core.int)), 0, 1, false);
+          this[_addSliceToSink](dart.const(dart.setType([65533], core.List$(core.int))), 0, 1, false);
           start = dart.notNull(i) + 1;
         }
       }
@@ -1673,7 +1673,7 @@ var convert;
   dart.defineNamedConstructor(_Utf8ConversionSink, _);
   let UNICODE_REPLACEMENT_CHARACTER_RUNE = 65533;
   let UNICODE_BOM_CHARACTER_RUNE = 65279;
-  let UTF8 = new Utf8Codec();
+  let UTF8 = dart.const(new Utf8Codec());
   let _allowMalformed = Symbol('_allowMalformed');
   class Utf8Codec extends Encoding {
     Utf8Codec(opts) {
@@ -2123,7 +2123,7 @@ var convert;
       }
     }
   }
-  _Utf8Decoder._LIMITS = /* Unimplemented const */dart.setType([_ONE_BYTE_LIMIT, _TWO_BYTE_LIMIT, _THREE_BYTE_LIMIT, _FOUR_BYTE_LIMIT], core.List$(core.int));
+  _Utf8Decoder._LIMITS = dart.const(dart.setType([_ONE_BYTE_LIMIT, _TWO_BYTE_LIMIT, _THREE_BYTE_LIMIT, _FOUR_BYTE_LIMIT], core.List$(core.int)));
   let _processed = Symbol('_processed');
   let _computeKeys = Symbol('_computeKeys');
   let _original = Symbol('_original');

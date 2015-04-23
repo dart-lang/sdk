@@ -11,8 +11,8 @@ var typed_data;
     }
   }
   dart.defineNamedConstructor(Endianness, _);
-  Endianness.BIG_ENDIAN = new Endianness[_](false);
-  Endianness.LITTLE_ENDIAN = new Endianness[_](true);
+  Endianness.BIG_ENDIAN = dart.const(new Endianness[_](false));
+  Endianness.LITTLE_ENDIAN = dart.const(new Endianness[_](true));
   dart.defineLazyProperties(Endianness, {
     get HOST_ENDIAN() {
       return new ByteData.view(new Uint16List.fromList(dart.setType([1], core.List$(core.int))).buffer).getInt8(0) == 1 ? Endianness.LITTLE_ENDIAN : Endianness.BIG_ENDIAN;

@@ -1060,7 +1060,7 @@ var async;
         if (this[_canFire]) {
           this[_sendDone]();
         } else {
-          this[_addPending](new _DelayedDone());
+          this[_addPending](dart.const(new _DelayedDone()));
         }
       }
       [_onPause]() {
@@ -1536,7 +1536,7 @@ var async;
         if (!dart.notNull(this[_isEmpty])) {
           for (let link = this[_next]; !dart.notNull(core.identical(link, this)); link = link[_next]) {
             let subscription = dart.as(link, _BroadcastSubscription$(T));
-            subscription[_addPending](new _DelayedDone());
+            subscription[_addPending](dart.const(new _DelayedDone()));
           }
         } else {
           dart.assert(this[_doneFuture] != null);
@@ -1590,7 +1590,7 @@ var async;
       }
       close() {
         if (!dart.notNull(this.isClosed) && dart.notNull(this[_isFiring])) {
-          this[_addPendingEvent](new _DelayedDone());
+          this[_addPendingEvent](dart.const(new _DelayedDone()));
           this[_state] = dart.notNull(this[_state]) | dart.notNull(_BroadcastStreamController[_STATE_CLOSED]);
           return super.done;
         }
@@ -1803,7 +1803,7 @@ var async;
           }, {onError: handleError});
         }
         if (remaining == 0) {
-          return new Future$(core.List).value(/* Unimplemented const */[]);
+          return new Future$(core.List).value(dart.const([]));
         }
         values = new core.List(remaining);
         return result;
@@ -2896,7 +2896,7 @@ var async;
         if (this.hasListener) {
           this[_sendDone]();
         } else if (this[_isInitialState]) {
-          this[_ensurePendingEvents]().add(new _DelayedDone());
+          this[_ensurePendingEvents]().add(dart.const(new _DelayedDone()));
         }
       }
       [_add](value) {
@@ -3025,7 +3025,7 @@ var async;
         this[_subscription][_addPending](new _DelayedError(error, stackTrace));
       }
       [_sendDone]() {
-        this[_subscription][_addPending](new _DelayedDone());
+        this[_subscription][_addPending](dart.const(new _DelayedDone()));
       }
     }
     _AsyncStreamControllerDispatch[dart.implements] = () => [_StreamController$(T)];
@@ -4915,7 +4915,7 @@ var async;
   function _rootFork(self, parent, zone, specification, zoneValues) {
     _internal.printToZone = _printToZone;
     if (specification == null) {
-      specification = new ZoneSpecification();
+      specification = dart.const(new ZoneSpecification());
     } else if (!dart.is(specification, _ZoneSpecification)) {
       throw new core.ArgumentError("ZoneSpecifications must be instantiated" + " with the provided constructor.");
     }
@@ -4980,43 +4980,43 @@ var async;
       super._Zone();
     }
     get [_run]() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootRun);
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootRun));
     }
     get [_runUnary]() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootRunUnary);
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootRunUnary));
     }
     get [_runBinary]() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootRunBinary);
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootRunBinary));
     }
     get [_registerCallback]() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootRegisterCallback);
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootRegisterCallback));
     }
     get [_registerUnaryCallback]() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootRegisterUnaryCallback);
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootRegisterUnaryCallback));
     }
     get [_registerBinaryCallback]() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootRegisterBinaryCallback);
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootRegisterBinaryCallback));
     }
     get [_errorCallback]() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootErrorCallback);
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootErrorCallback));
     }
     get [_scheduleMicrotask]() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootScheduleMicrotask);
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootScheduleMicrotask));
     }
     get [_createTimer]() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootCreateTimer);
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootCreateTimer));
     }
     get [_createPeriodicTimer]() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootCreatePeriodicTimer);
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootCreatePeriodicTimer));
     }
     get [_print]() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootPrint);
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootPrint));
     }
     get [_fork]() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootFork);
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootFork));
     }
     get [_handleUncaughtError]() {
-      return new _ZoneFunction(_ROOT_ZONE, _rootHandleUncaughtError);
+      return dart.const(new _ZoneFunction(_ROOT_ZONE, _rootHandleUncaughtError));
     }
     get parent() {
       return null;
@@ -5150,7 +5150,7 @@ var async;
     },
     set _rootMap(_) {}
   });
-  let _ROOT_ZONE = new _RootZone();
+  let _ROOT_ZONE = dart.const(new _RootZone());
   // Function runZoned: (() → dynamic, {zoneValues: Map<dynamic, dynamic>, zoneSpecification: ZoneSpecification, onError: Function}) → dynamic
   function runZoned(body, opts) {
     let zoneValues = opts && 'zoneValues' in opts ? opts.zoneValues : null;

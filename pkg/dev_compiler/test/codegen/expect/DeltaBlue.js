@@ -20,7 +20,7 @@ var DeltaBlue;
       this.name = name;
     }
     nextWeaker() {
-      return /* Unimplemented const */dart.setType([STRONG_PREFERRED, PREFERRED, STRONG_DEFAULT, NORMAL, WEAK_DEFAULT, WEAKEST], core.List$(Strength))[core.$get](this.value);
+      return dart.const(dart.setType([STRONG_PREFERRED, PREFERRED, STRONG_DEFAULT, NORMAL, WEAK_DEFAULT, WEAKEST], core.List$(Strength)))[core.$get](this.value);
     }
     static stronger(s1, s2) {
       return dart.notNull(s1.value) < dart.notNull(s2.value);
@@ -35,13 +35,13 @@ var DeltaBlue;
       return Strength.stronger(s1, s2) ? s1 : s2;
     }
   }
-  let REQUIRED = new Strength(0, "required");
-  let STRONG_PREFERRED = new Strength(1, "strongPreferred");
-  let PREFERRED = new Strength(2, "preferred");
-  let STRONG_DEFAULT = new Strength(3, "strongDefault");
-  let NORMAL = new Strength(4, "normal");
-  let WEAK_DEFAULT = new Strength(5, "weakDefault");
-  let WEAKEST = new Strength(6, "weakest");
+  let REQUIRED = dart.const(new Strength(0, "required"));
+  let STRONG_PREFERRED = dart.const(new Strength(1, "strongPreferred"));
+  let PREFERRED = dart.const(new Strength(2, "preferred"));
+  let STRONG_DEFAULT = dart.const(new Strength(3, "strongDefault"));
+  let NORMAL = dart.const(new Strength(4, "normal"));
+  let WEAK_DEFAULT = dart.const(new Strength(5, "weakDefault"));
+  let WEAKEST = dart.const(new Strength(6, "weakest"));
   class Constraint extends core.Object {
     Constraint(strength) {
       this.strength = strength;
