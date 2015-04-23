@@ -389,6 +389,15 @@ abstract class ContextManager {
   UriResolver _computePackageUriResolver(Folder folder, _ContextInfo info) {
     if (info.packageRoot != null) {
       info.packageMapInfo = null;
+      Resource res = resourceProvider.getResource(info.packageRoot);
+      if (res is Folder) {
+        Map<String, List<Folder>> packageMap = new Map<String, List<Folder>>();
+        for (Folder folder in res.getChildren()) {
+          packageMap[folder.shortName] = <Folder>[folder];
+        }
+        return new PackageMapUriResolver(resourceProvider, packageMap);
+      }
+      //TODO(danrubel) remove this if it will never be called
       return new PackageUriResolver([new JavaFile(info.packageRoot)]);
     } else {
       beginComputePackageMap();
