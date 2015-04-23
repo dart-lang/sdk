@@ -8,9 +8,9 @@
  */
 library analyzer.plugin.task;
 
-import 'package:analyzer/plugin/plugin.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:plugin/plugin.dart';
 
 /**
  * The identifier of the extension point that allows plugins to register new

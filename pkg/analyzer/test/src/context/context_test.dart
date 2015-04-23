@@ -44,7 +44,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
-import 'package:analyzer/src/plugin/plugin_impl.dart';
+import 'package:plugin/manager.dart';
 import 'package:unittest/unittest.dart';
 import 'package:watcher/src/utils.dart';
 

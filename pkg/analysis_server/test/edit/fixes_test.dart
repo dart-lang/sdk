@@ -9,7 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analyzer/src/plugin/plugin_impl.dart';
+import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 

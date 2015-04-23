@@ -12,7 +12,6 @@ import 'file_system/test_all.dart' as file_system;
 import 'generated/test_all.dart' as generated;
 import 'instrumentation/test_all.dart' as instrumentation;
 import 'parse_compilation_unit_test.dart' as parse_compilation_unit;
-import 'plugin/test_all.dart' as plugin_test_all;
 import 'source/test_all.dart' as source;
 import 'src/test_all.dart' as src;
 import 'task/test_all.dart' as task;
@@ -27,7 +26,6 @@ main() {
     generated.main();
     instrumentation.main();
     parse_compilation_unit.main();
-    plugin_test_all.main();
     source.main();
     src.main();
     task.main();

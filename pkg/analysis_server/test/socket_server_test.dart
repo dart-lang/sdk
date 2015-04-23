@@ -13,7 +13,7 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
-import 'package:analyzer/src/plugin/plugin_impl.dart';
+import 'package:plugin/manager.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
