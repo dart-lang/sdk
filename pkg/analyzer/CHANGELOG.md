@@ -1,4 +1,4 @@
-## 0.24.7
+## 0.25.0
 
 * Commandline interface moved to dedicated `analyzer_cli` package. Files moved:
 ** `bin/analyzer.dart`
