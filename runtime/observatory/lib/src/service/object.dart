@@ -369,17 +369,11 @@ abstract class VM extends ServiceObjectOwner {
   final StreamController<ServiceEvent> events =
       new StreamController.broadcast();
 
-  void postServiceEvent(String response, ByteData data) {
-    var map;
-    try {
-      map = _parseJSON(response);
-      assert(!map.containsKey('_data'));
-      if (data != null) {
-        map['_data'] = data;
-      }
-    } catch (_) {
-      Logger.root.severe('Ignoring malformed event response: ${response}');
-      return;
+  void postServiceEvent(Map response, ByteData data) {
+    var map = toObservable(response);
+    assert(!map.containsKey('_data'));
+    if (data != null) {
+      map['_data'] = data;
     }
     if (map['type'] != 'ServiceEvent') {
       Logger.root.severe(
@@ -465,26 +459,6 @@ abstract class VM extends ServiceObjectOwner {
     return new Future.value(_isolateCache[isolateId]);
   }
 
-  dynamic _reviver(dynamic key, dynamic value) {
-    return value;
-  }
-
-  ObservableMap _parseJSON(String response) {
-    var map;
-    try {
-      var decoder = new JsonDecoder(_reviver);
-      map = decoder.convert(response);
-    } catch (e) {
-      return toObservable({
-        'type': 'ServiceException',
-        'kind': 'JSONDecodeException',
-        'response': map,
-        'message': 'Could not decode JSON: $e',
-      });
-    }
-    return toObservable(map);
-  }
-
   Future<ObservableMap> _processMap(ObservableMap map) {
     // Verify that the top level response is a service map.
     if (!_isServiceMap(map)) {
@@ -493,7 +467,7 @@ abstract class VM extends ServiceObjectOwner {
         'type': 'ServiceException',
         'kind': 'ResponseFormatException',
         'response': map,
-        'message': 'Top level service responses must be service maps: ${map}.',
+        'message': "Response is missing the 'type' field.",
       })));
     }
     // Preemptively capture ServiceError and ServiceExceptions.
@@ -507,11 +481,11 @@ abstract class VM extends ServiceObjectOwner {
   }
 
   // Implemented in subclass.
-  Future<String> invokeRpcRaw(String method, Map params);
+  Future<Map> invokeRpcRaw(String method, Map params);
 
   Future<ObservableMap> invokeRpcNoUpgrade(String method, Map params) {
-    return invokeRpcRaw(method, params).then((String response) {
-      var map = _parseJSON(response);
+    return invokeRpcRaw(method, params).then((Map response) {
+      var map = toObservable(response);
       if (Tracer.current != null) {
         Tracer.current.trace("Received response for ${method}/${params}}",
                              map:map);
@@ -1409,12 +1383,12 @@ class ServiceEvent extends ServiceObject {
   static const kBreakpointRemoved  = 'BreakpointRemoved';
   static const kGraph              = '_Graph';
   static const kGC                 = 'GC';
-  static const kVMDisconnected     = 'VMDisconnected';
+  static const kConnectionClosed   = 'ConnectionClosed';
 
   ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
 
-  ServiceEvent.vmDisconencted() : super._empty(null) {
-    eventType = kVMDisconnected;
+  ServiceEvent.connectionClosed(this.reason) : super._empty(null) {
+    eventType = kConnectionClosed;
   }
 
   @observable String eventType;
@@ -1423,6 +1397,7 @@ class ServiceEvent extends ServiceObject {
   @observable ServiceMap exception;
   @observable ByteData data;
   @observable int count;
+  @observable String reason;
 
   void _update(ObservableMap map, bool mapIsRef) {
     _loaded = true;

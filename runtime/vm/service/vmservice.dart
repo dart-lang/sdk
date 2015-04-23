@@ -46,7 +46,7 @@ class VMService extends MessageRouter {
   void _eventMessageHandler(dynamic eventMessage) {
     for (var client in clients) {
       if (client.sendEvents) {
-        client.post(null, eventMessage);
+        client.post(eventMessage);
       }
     }
   }

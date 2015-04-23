@@ -125,7 +125,9 @@ class LocationManager extends Observable {
       return;
     }
     event.preventDefault();
-    var target = event.target;
+    // 'currentTarget' is the dom element that would process the event.
+    // If we use 'target' we might get an <em> element or somesuch.
+    var target = event.currentTarget;
     go(target.attributes['href']);
   }
 }

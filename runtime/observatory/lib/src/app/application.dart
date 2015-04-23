@@ -26,8 +26,22 @@ class ObservatoryApplication extends Observable {
     }
     if (vm != null) {
       Logger.root.info('Registering new VM callbacks');
-      vm.onConnect.then(_vmConnected);
-      vm.onDisconnect.then(_vmDisconnected);
+
+      vm.onConnect.then((_) {
+        if (vm is WebSocketVM) {
+          targets.add(vm.target);
+        }
+        _removeDisconnectEvents();
+      });
+
+      vm.onDisconnect.then((String reason) {
+        if (this.vm != vm) {
+          // This disconnect event occured *after* a new VM was installed.
+          return;
+        }
+        notifications.add(new ServiceEvent.connectionClosed(reason));
+      });
+
       vm.errors.stream.listen(_onError);
       vm.events.stream.listen(_onEvent);
       vm.exceptions.stream.listen(_onException);
@@ -130,7 +144,7 @@ class ObservatoryApplication extends Observable {
       this.vm = null;
       locationManager.go(locationManager.makeLink('/vm-connect/'));
     } else {
-      _visit(Uri.parse('error/'), null);
+      _visit(Uri.parse('error/'), {});
     }
   }
 
@@ -200,23 +214,7 @@ class ObservatoryApplication extends Observable {
 
   void _removeDisconnectEvents() {
     notifications.removeWhere((oldEvent) {
-        return (oldEvent.eventType == ServiceEvent.kVMDisconnected);
+        return (oldEvent.eventType == ServiceEvent.kConnectionClosed);
       });
-  }
-
-  _vmConnected(VM vm) {
-    if (vm is WebSocketVM) {
-      targets.add(vm.target);
-    }
-    _removeDisconnectEvents();
-  }
-
-  _vmDisconnected(VM vm) {
-    if (this.vm != vm) {
-      // This disconnect event occured *after* a new VM was installed.
-      return;
-    }
-    this.vm = null;
-    notifications.add(new ServiceEvent.vmDisconencted());
   }
 }

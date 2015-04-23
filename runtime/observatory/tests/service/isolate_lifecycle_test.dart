@@ -30,29 +30,66 @@ Future before() async {
 Future during() async {
 }
 
+int numPaused(vm) {
+  int paused = 0;
+  for (var isolate in vm.isolates) {
+    if (isolate.paused) {
+      paused++;
+    }
+  }
+  return paused;
+}
+
+int numRunning(vm) {
+  int running = 0;
+  for (var isolate in vm.isolates) {
+    if (!isolate.paused) {
+      running++;
+    }
+  }
+  return running;
+}
+
 var tests = [
   (VM vm) async {
+    // Wait for the testee to start all of the isolates.
+    if (vm.isolates.length != spawnCount + 1) {
+      await processServiceEvents(vm, (event, sub, completer) {
+        if (event.eventType == ServiceEvent.kIsolateStart) {
+          if (vm.isolates.length == spawnCount + 1) {
+            sub.cancel();
+            completer.complete(null);
+          }
+        }
+      });
+    }
     expect(vm.isolates.length, spawnCount + 1);
   },
+
   (VM vm) async {
     // Load each isolate.
     for (var isolate in vm.isolates) {
       await isolate.load();
     }
   },
+
   (VM vm) async {
-    var pausedCount = 0;
-    var runningCount = 0;
-    for (var isolate in vm.isolates) {
-      if (isolate.paused) {
-        pausedCount++;
-      } else {
-        runningCount++;
-      }
+    // Wait for all spawned isolates to hit pause-at-exit.
+    if (numPaused(vm) != spawnCount) {
+      await processServiceEvents(vm, (event, sub, completer) {
+        if (event.eventType == ServiceEvent.kPauseExit) {
+          if (numPaused(vm) == spawnCount) {
+            sub.cancel();
+            completer.complete(null);
+          }
+        }
+      });
     }
-    expect(pausedCount, spawnCount);
-    expect(runningCount, 1);
+    expect(numPaused(vm), spawnCount);
+    expect(numRunning(vm), 1);
   },
+
+
   (VM vm) async {
     var resumedReceived = 0;
     var eventsDone = processServiceEvents(vm, (event, sub, completer) {
@@ -80,18 +117,10 @@ var tests = [
     }
     return eventsDone;
   },
+
   (VM vm) async {
-    var pausedCount = 0;
-    var runningCount = 0;
-    for (var isolate in vm.isolates) {
-      if (isolate.paused) {
-        pausedCount++;
-      } else {
-        runningCount++;
-      }
-    }
-    expect(pausedCount, spawnCount - resumeCount);
-    expect(runningCount, 1);
+    expect(numPaused(vm), spawnCount - resumeCount);
+    expect(numRunning(vm), 1);
   },
 ];
 

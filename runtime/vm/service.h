@@ -34,7 +34,6 @@ class Service : public AllStatic {
   static bool NeedsEvents();
 
   static void HandleEvent(ServiceEvent* event);
-  static void HandleGCEvent(GCEvent* event);
 
   static void RegisterIsolateEmbedderCallback(
       const char* name,

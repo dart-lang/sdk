@@ -56,15 +56,9 @@ static void PrintRequest(const JSONObject& obj, JSONStream* js) {
   JSONObject jsobj(&obj, "request");
   jsobj.AddProperty("method", js->method());
   {
-    JSONArray jsarr(&jsobj, "param_keys");
+    JSONObject params(&jsobj, "params");
     for (intptr_t i = 0; i < js->num_params(); i++) {
-      jsarr.AddValue(js->GetParamKey(i));
-    }
-  }
-  {
-    JSONArray jsarr(&jsobj, "param_values");
-    for (intptr_t i = 0; i < js->num_params(); i++) {
-      jsarr.AddValue(js->GetParamValue(i));
+      params.AddProperty(js->GetParamKey(i), js->GetParamValue(i));
     }
   }
 }
@@ -424,22 +418,25 @@ static bool ValidateParameters(const MethodParameter* const* parameters,
 void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
   ASSERT(isolate != NULL);
   ASSERT(!msg.IsNull());
-  ASSERT(msg.Length() == 5);
+  ASSERT(msg.Length() == 6);
 
   {
     StackZone zone(isolate);
     HANDLESCOPE(isolate);
 
     Instance& reply_port = Instance::Handle(isolate);
+    String& seq = String::Handle(isolate);
     String& method_name = String::Handle(isolate);
     Array& param_keys = Array::Handle(isolate);
     Array& param_values = Array::Handle(isolate);
     reply_port ^= msg.At(1);
-    method_name ^= msg.At(2);
-    param_keys ^= msg.At(3);
-    param_values ^= msg.At(4);
+    seq ^= msg.At(2);
+    method_name ^= msg.At(3);
+    param_keys ^= msg.At(4);
+    param_values ^= msg.At(5);
 
     ASSERT(!method_name.IsNull());
+    ASSERT(!seq.IsNull());
     ASSERT(!param_keys.IsNull());
     ASSERT(!param_values.IsNull());
     ASSERT(param_keys.Length() == param_values.Length());
@@ -450,7 +447,7 @@ void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
 
     JSONStream js;
     js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(),
-             method_name, param_keys, param_values);
+             seq, method_name, param_keys, param_values);
 
     const char* c_method_name = method_name.ToCString();
 
@@ -560,21 +557,15 @@ void Service::SendEvent(const String& meta,
 }
 
 
-void Service::HandleGCEvent(GCEvent* event) {
-  if (ServiceIsolate::IsServiceIsolateDescendant(Isolate::Current())) {
+void Service::HandleEvent(ServiceEvent* event) {
+  if (ServiceIsolate::IsServiceIsolateDescendant(event->isolate())) {
     return;
   }
   JSONStream js;
-  event->PrintJSON(&js);
-  const String& message = String::Handle(String::New(js.ToCString()));
-  // TODO(turnidge): Pass the real eventType here.
-  SendEvent(0, message);
-}
-
-
-void Service::HandleEvent(ServiceEvent* event) {
-  JSONStream js;
-  event->PrintJSON(&js);
+  {
+    JSONObject jsobj(&js);
+    jsobj.AddProperty("event", event);
+  }
   const String& message = String::Handle(String::New(js.ToCString()));
   SendEvent(event->type(), message);
 }
@@ -762,11 +753,14 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
   JSONStream js;
   {
     JSONObject jsobj(&js);
-    jsobj.AddProperty("type", "ServiceEvent");
-    jsobj.AddProperty("eventType", "_Echo");
-    jsobj.AddProperty("isolate", isolate);
-    if (text != NULL) {
-      jsobj.AddProperty("text", text);
+    {
+      JSONObject event(&jsobj, "event");
+      event.AddProperty("type", "ServiceEvent");
+      event.AddProperty("eventType", "_Echo");
+      event.AddProperty("isolate", isolate);
+      if (text != NULL) {
+        event.AddProperty("text", text);
+      }
     }
   }
   const String& message = String::Handle(String::New(js.ToCString()));
@@ -2202,9 +2196,12 @@ void Service::SendGraphEvent(Isolate* isolate) {
   JSONStream js;
   {
     JSONObject jsobj(&js);
-    jsobj.AddProperty("type", "ServiceEvent");
-    jsobj.AddProperty("eventType", "_Graph");
-    jsobj.AddProperty("isolate", isolate);
+    {
+      JSONObject event(&jsobj, "event");
+      event.AddProperty("type", "ServiceEvent");
+      event.AddProperty("eventType", "_Graph");
+      event.AddProperty("isolate", isolate);
+    }
   }
   const String& message = String::Handle(String::New(js.ToCString()));
   SendEvent(message, buffer, stream.bytes_written());

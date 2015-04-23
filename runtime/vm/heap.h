@@ -21,6 +21,7 @@ namespace dart {
 class Isolate;
 class ObjectPointerVisitor;
 class ObjectSet;
+class ServiceEvent;
 class VirtualMemory;
 
 DECLARE_FLAG(bool, verbose_gc);
@@ -312,19 +313,9 @@ class Heap {
 
   int pretenure_policy_;
 
-  friend class GCEvent;
+  friend class ServiceEvent;
   friend class GCTestHelper;
   DISALLOW_COPY_AND_ASSIGN(Heap);
-};
-
-
-class GCEvent {
- public:
-  explicit GCEvent(const Heap::GCStats& stats)
-      : stats_(stats) {}
-  void PrintJSON(JSONStream* js) const;
- private:
-  const Heap::GCStats& stats_;
 };
 
 

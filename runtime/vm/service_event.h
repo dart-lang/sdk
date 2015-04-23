@@ -29,6 +29,8 @@ class ServiceEvent {
     kBreakpointResolved,
     kBreakpointRemoved,
 
+    kGC,
+
     kIllegal,
   };
 
@@ -37,7 +39,8 @@ class ServiceEvent {
         type_(event_type),
         breakpoint_(NULL),
         top_frame_(NULL),
-        exception_(NULL) {}
+        exception_(NULL),
+        gc_stats_(NULL) {}
 
   explicit ServiceEvent(const DebuggerEvent* debugger_event);
 
@@ -75,6 +78,14 @@ class ServiceEvent {
     exception_ = exception;
   }
 
+  const Heap::GCStats* gc_stats() const {
+    return gc_stats_;
+  }
+
+  void set_gc_stats(const Heap::GCStats* gc_stats) {
+    gc_stats_ = gc_stats;
+  }
+
   void PrintJSON(JSONStream* js) const;
 
   static const char* EventTypeToCString(EventType type);
@@ -85,6 +96,7 @@ class ServiceEvent {
   SourceBreakpoint* breakpoint_;
   ActivationFrame* top_frame_;
   const Object* exception_;
+  const Heap::GCStats* gc_stats_;
 };
 
 }  // namespace dart

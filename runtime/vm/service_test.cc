@@ -60,16 +60,16 @@ static RawArray* Eval(Dart_Handle lib, const char* expr) {
       Api::UnwrapGrowableObjectArrayHandle(isolate, expr_val);
   const Array& result = Array::Handle(Array::MakeArray(value));
   GrowableObjectArray& growable = GrowableObjectArray::Handle();
-  growable ^= result.At(3);
-  // Append dummy isolate id to parameter values.
-  growable.Add(dummy_isolate_id);
-  Array& array = Array::Handle(Array::MakeArray(growable));
-  result.SetAt(3, array);
   growable ^= result.At(4);
   // Append dummy isolate id to parameter values.
   growable.Add(dummy_isolate_id);
-  array = Array::MakeArray(growable);
+  Array& array = Array::Handle(Array::MakeArray(growable));
   result.SetAt(4, array);
+  growable ^= result.At(5);
+  // Append dummy isolate id to parameter values.
+  growable.Add(dummy_isolate_id);
+  array = Array::MakeArray(growable);
+  result.SetAt(5, array);
   return result.raw();
 }
 
@@ -156,14 +156,15 @@ TEST_CASE(Service_Code) {
   Array& service_msg = Array::Handle();
 
   // Request an invalid code object.
-  service_msg = Eval(lib, "[0, port, 'getObject', ['objectId'], ['code/0']]");
+  service_msg =
+      Eval(lib, "[0, port, '0', 'getObject', ['objectId'], ['code/0']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
 
   // The following test checks that a code object can be found only
   // at compile_timestamp()-code.EntryPoint().
-  service_msg = EvalF(lib, "[0, port, 'getObject', "
+  service_msg = EvalF(lib, "[0, port, '0', 'getObject', "
                       "['objectId'], ['code/%" Px64"-%" Px "']]",
                       compile_timestamp,
                       entry);
@@ -183,7 +184,7 @@ TEST_CASE(Service_Code) {
   // Request code object at compile_timestamp-code.EntryPoint() + 16
   // Expect this to fail because the address is not the entry point.
   uintptr_t address = entry + 16;
-  service_msg = EvalF(lib, "[0, port, 'getObject', "
+  service_msg = EvalF(lib, "[0, port, '0', 'getObject', "
                       "['objectId'], ['code/%" Px64"-%" Px "']]",
                       compile_timestamp,
                       address);
@@ -194,7 +195,7 @@ TEST_CASE(Service_Code) {
   // Request code object at (compile_timestamp - 1)-code.EntryPoint()
   // Expect this to fail because the timestamp is wrong.
   address = entry;
-  service_msg = EvalF(lib, "[0, port, 'getObject', "
+  service_msg = EvalF(lib, "[0, port, '0', 'getObject', "
                       "['objectId'], ['code/%" Px64"-%" Px "']]",
                       compile_timestamp - 1,
                       address);
@@ -204,7 +205,7 @@ TEST_CASE(Service_Code) {
 
   // Request native code at address. Expect the null code object back.
   address = last;
-  service_msg = EvalF(lib, "[0, port, 'getObject', "
+  service_msg = EvalF(lib, "[0, port, '0', 'getObject', "
                       "['objectId'], ['code/native-%" Px "']]",
                       address);
   Service::HandleIsolateMessage(isolate, service_msg);
@@ -214,7 +215,7 @@ TEST_CASE(Service_Code) {
                    handler.msg());
 
   // Request malformed native code.
-  service_msg = EvalF(lib, "[0, port, 'getObject', ['objectId'], "
+  service_msg = EvalF(lib, "[0, port, '0', 'getObject', ['objectId'], "
                       "['code/native%" Px "']]",
                       address);
   Service::HandleIsolateMessage(isolate, service_msg);
@@ -258,7 +259,7 @@ TEST_CASE(Service_TokenStream) {
   Array& service_msg = Array::Handle();
 
   // Fetch object.
-  service_msg = EvalF(lib, "[0, port, 'getObject', "
+  service_msg = EvalF(lib, "[0, port, '0', 'getObject', "
                       "['objectId'], ['objects/%" Pd "']]", id);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -320,7 +321,7 @@ TEST_CASE(Service_PcDescriptors) {
   Array& service_msg = Array::Handle();
 
   // Fetch object.
-  service_msg = EvalF(lib, "[0, port, 'getObject', "
+  service_msg = EvalF(lib, "[0, port, '0', 'getObject', "
                       "['objectId'], ['objects/%" Pd "']]", id);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -381,7 +382,7 @@ TEST_CASE(Service_LocalVarDescriptors) {
   Array& service_msg = Array::Handle();
 
   // Fetch object.
-  service_msg = EvalF(lib, "[0, port, 'getObject', "
+  service_msg = EvalF(lib, "[0, port, '0', 'getObject', "
                       "['objectId'], ['objects/%" Pd "']]", id);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -422,9 +423,9 @@ TEST_CASE(Service_Address) {
     bool ref = offset % 2 == 0;
     OS::SNPrint(buf, sizeof(buf),
                 (ref
-                 ? "[0, port, 'getObjectByAddress', "
+                 ? "[0, port, '0', 'getObjectByAddress', "
                    "['address', 'ref'], ['%" Px "', 'true']]"
-                 : "[0, port, 'getObjectByAddress', "
+                 : "[0, port, '0', 'getObjectByAddress', "
                    "['address'], ['%" Px "']]"),
                 addr);
     service_msg = Eval(lib, buf);
@@ -436,7 +437,7 @@ TEST_CASE(Service_Address) {
     EXPECT_SUBSTRING("foobar", handler.msg());
   }
   // Expect null when no object is found.
-  service_msg = Eval(lib, "[0, port, 'getObjectByAddress', "
+  service_msg = Eval(lib, "[0, port, '0', 'getObjectByAddress', "
                      "['address'], ['7']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -495,14 +496,14 @@ TEST_CASE(Service_EmbedderRootHandler) {
 
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(lib, "[0, port, 'alpha', [], []]");
+  service_msg = Eval(lib, "[0, port, '0', 'alpha', [], []]");
   Service::HandleRootMessage(service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("alpha", handler.msg());
-  service_msg = Eval(lib, "[0, port, 'beta', [], []]");
+  EXPECT_STREQ("{\"result\":alpha, \"id\":\"0\"}", handler.msg());
+  service_msg = Eval(lib, "[0, port, '0', 'beta', [], []]");
   Service::HandleRootMessage(service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("beta", handler.msg());
+  EXPECT_STREQ("{\"result\":beta, \"id\":\"0\"}", handler.msg());
 }
 
 TEST_CASE(Service_EmbedderIsolateHandler) {
@@ -532,14 +533,14 @@ TEST_CASE(Service_EmbedderIsolateHandler) {
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(lib, "[0, port, 'alpha', [], []]");
+  service_msg = Eval(lib, "[0, port, '0', 'alpha', [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("alpha", handler.msg());
-  service_msg = Eval(lib, "[0, port, 'beta', [], []]");
+  EXPECT_STREQ("{\"result\":alpha, \"id\":\"0\"}", handler.msg());
+  service_msg = Eval(lib, "[0, port, '0', 'beta', [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("beta", handler.msg());
+  EXPECT_STREQ("{\"result\":beta, \"id\":\"0\"}", handler.msg());
 }
 
 
@@ -570,21 +571,21 @@ TEST_CASE(Service_Profile) {
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(lib, "[0, port, 'getCpuProfile', [], []]");
+  service_msg = Eval(lib, "[0, port, '0', 'getCpuProfile', [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // Expect error (tags required).
   EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
 
   service_msg =
-      Eval(lib, "[0, port, 'getCpuProfile', ['tags'], ['None']]");
+      Eval(lib, "[0, port, '0', 'getCpuProfile', ['tags'], ['None']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // Expect profile
   EXPECT_SUBSTRING("\"type\":\"_CpuProfile\"", handler.msg());
 
   service_msg =
-      Eval(lib, "[0, port, 'getCpuProfile', ['tags'], ['Bogus']]");
+      Eval(lib, "[0, port, '0', 'getCpuProfile', ['tags'], ['Bogus']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // Expect error.

@@ -56,10 +56,10 @@ class WebSocketVMTarget {
 class _WebSocketRequest {
   final String method;
   final Map params;
-  final Completer<String> completer;
+  final Completer<Map> completer;
 
   _WebSocketRequest(this.method, this.params)
-      : completer = new Completer<String>();
+      : completer = new Completer<Map>();
 }
 
 /// Minimal common interface for 'WebSocket' in [dart:io] and [dart:html].
@@ -81,7 +81,7 @@ abstract class CommonWebSocket {
 /// Protocol.
 abstract class CommonWebSocketVM extends VM {
   final Completer _connected = new Completer();
-  final Completer _disconnected = new Completer();
+  final Completer _disconnected = new Completer<String>();
   final WebSocketVMTarget target;
   final Map<String, _WebSocketRequest> _delayedRequests =
         new Map<String, _WebSocketRequest>();
@@ -106,26 +106,30 @@ abstract class CommonWebSocketVM extends VM {
     }
   }
   Future get onConnect => _connected.future;
-  void _notifyDisconnect() {
+  void _notifyDisconnect(String reason) {
     if (!_hasFinishedConnect) {
       return;
     }
     if (!_disconnected.isCompleted) {
       Logger.root.info('WebSocketVM connection error: ${target.networkAddress}');
-      _disconnected.complete(this);
+      _disconnected.complete(reason);
     }
   }
   Future get onDisconnect => _disconnected.future;
 
-  void disconnect() {
+  void disconnect({String reason : 'WebSocket closed'}) {
     if (_hasInitiatedConnect) {
       _webSocket.close();
     }
-    _cancelAllRequests();
-    _notifyDisconnect();
+    // We don't need to cancel requests and notify here.  These
+    // functions will be called again when the onClose callback
+    // fires. However, we may have a better 'reason' string now, so
+    // let's take care of business.
+    _cancelAllRequests(reason);
+    _notifyDisconnect(reason);
   }
 
-  Future<String> invokeRpcRaw(String method, Map params) {
+  Future<Map> invokeRpcRaw(String method, Map params) {
     if (!_hasInitiatedConnect) {
       _hasInitiatedConnect = true;
       _webSocket.connect(
@@ -144,14 +148,16 @@ abstract class CommonWebSocketVM extends VM {
   }
 
   void _onClose() {
-    _cancelAllRequests();
-    _notifyDisconnect();
+    _cancelAllRequests('WebSocket closed');
+    _notifyDisconnect('WebSocket closed');
   }
 
   // WebSocket error event handler.
   void _onError() {
-    _cancelAllRequests();
-    _notifyDisconnect();
+    // TODO(turnidge): The implementors of CommonWebSocket have more
+    // error information available.  Consider providing that here.
+    _cancelAllRequests('WebSocket closed due to error');
+    _notifyDisconnect('WebSocket closed due to error');
   }
 
   // WebSocket open event handler.
@@ -159,6 +165,23 @@ abstract class CommonWebSocketVM extends VM {
     target.lastConnectionTime = new DateTime.now().millisecondsSinceEpoch;
     _sendAllDelayedRequests();
     _notifyConnect();
+  }
+
+  Map _parseJSON(String message) {
+    var map;
+    try {
+      map = JSON.decode(message);
+    } catch (e, st) {
+      Logger.root.severe('Disconnecting: Error decoding message: $e\n$st');
+      disconnect(reason:'Error decoding JSON message: $e');
+      return null;
+    }
+    if (map == null) {
+      Logger.root.severe("Disconnecting: Unable to decode 'null' message");
+      disconnect(reason:"Unable to decode 'null' message");
+      return null;
+    }
+    return map;
   }
 
   void _onBinaryMessage(dynamic data) {
@@ -176,27 +199,30 @@ abstract class CommonWebSocketVM extends VM {
           bytes.buffer,
           bytes.offsetInBytes + offset,
           bytes.lengthInBytes - offset);
-      postServiceEvent(meta, data);
+      var map = _parseJSON(meta);
+      if (map == null) {
+        return;
+      }
+      var event = map['event'];
+      postServiceEvent(event, data);
     });
   }
 
   void _onStringMessage(String data) {
-    var map = JSON.decode(data);
+    var map = _parseJSON(data);
     if (map == null) {
-      Logger.root.severe('WebSocketVM got empty message');
       return;
     }
+    var event = map['event'];
+    if (event != null) {
+      postServiceEvent(event, null);
+      return;
+    }
+
     // Extract serial and result.
-    var serial;
-    var result;
-    serial = map['id'];
-    result = map['result'];
-    if (serial == null) {
-      // Messages without serial numbers are asynchronous events
-      // from the vm.
-      postServiceEvent(result, null);
-      return;
-    }
+    var serial = map['id'];
+    var result = map['result'];
+
     // Complete request.
     var request = _pendingRequests.remove(serial);
     if (request == null) {
@@ -221,32 +247,33 @@ abstract class CommonWebSocketVM extends VM {
     }
   }
 
-  String _generateNetworkError(String userMessage) {
-    return JSON.encode({
+  Map _generateNetworkError(String userMessage) {
+    var response = {
       'type': 'ServiceException',
-      'id': '',
-      'kind': 'NetworkException',
-      'message': userMessage
-    });
+      'kind': 'ConnectionClosed',
+      'message': userMessage,
+    };
+    return response;
   }
 
-  void _cancelRequests(Map<String, _WebSocketRequest> requests) {
-    requests.forEach((String serial, _WebSocketRequest request) {
+  void _cancelRequests(Map<String,_WebSocketRequest> requests,
+                       String reason) {
+    requests.forEach((_, _WebSocketRequest request) {
       request.completer.complete(
-          _generateNetworkError('WebSocket disconnected'));
+          _generateNetworkError(reason));
     });
     requests.clear();
   }
 
   /// Cancel all pending and delayed requests by completing them with an error.
-  void _cancelAllRequests() {
+  void _cancelAllRequests(String reason) {
     if (_pendingRequests.length > 0) {
       Logger.root.info('Cancelling all pending requests.');
-      _cancelRequests(_pendingRequests);
+      _cancelRequests(_pendingRequests, reason);
     }
     if (_delayedRequests.length > 0) {
       Logger.root.info('Cancelling all delayed requests.');
-      _cancelRequests(_delayedRequests);
+      _cancelRequests(_delayedRequests, reason);
     }
   }
 

@@ -25,16 +25,16 @@ abstract class Client {
       // Send message to service.
       service.route(message).then((response) {
         // Call post when the response arrives.
-        post(seq, response);
+        post(response);
       });
     } catch (e, st) {
       message.setErrorResponse('Internal error: $e');
-      post(seq, message.response);
+      post(message.response);
     }
   }
 
   // Sends a result to the client.  Implemented in subclasses.
-  void post(var seq, dynamic result);
+  void post(dynamic result);
 
   dynamic toJson() {
     return {

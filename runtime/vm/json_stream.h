@@ -31,9 +31,11 @@ class JSONStream : ValueObject {
 
   void Setup(Zone* zone,
              Dart_Port reply_port,
+             const String& seq,
              const String& method,
              const Array& param_keys,
              const Array& param_values);
+  void SetupError();
 
   void PostReply();
 
@@ -63,6 +65,7 @@ class JSONStream : ValueObject {
   // otherwise.
   bool ParamIs(const char* key, const char* value) const;
 
+  const char* seq() const { return seq_; }
   const char* method() const { return method_; }
   const char** param_keys() const { return param_keys_; }
   const char** param_values() const { return param_values_; }
@@ -119,6 +122,7 @@ class JSONStream : ValueObject {
   intptr_t open_objects_;
   TextBuffer buffer_;
   Dart_Port reply_port_;
+  const char* seq_;
   const char* method_;
   const char** param_keys_;
   const char** param_values_;

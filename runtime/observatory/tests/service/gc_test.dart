@@ -28,8 +28,11 @@ var tests = [
   // Expect at least this many GC events.
   int gcCountdown = 3;
   isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.eventType == ServiceEvent.kGC && --gcCountdown == 0) {
-      completer.complete();
+    if (event.eventType == ServiceEvent.kGC) {
+      print('Received GC event');
+      if (--gcCountdown == 0) {
+        completer.complete();
+      }
     }
   });
   return completer.future;

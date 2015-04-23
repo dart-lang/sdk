@@ -33,7 +33,8 @@ class Message {
     });
   }
 
-  Message.fromJsonRpc(Map map) : serial = map['id'], method = map['method'] {
+  Message.fromJsonRpc(Map map)
+      : serial = map['id'], method = map['method'] {
     params.addAll(map['params']);
   }
 
@@ -47,7 +48,8 @@ class Message {
     return uri.pathSegments[0];
   }
 
-  Message.fromUri(Uri uri) : method = _methodNameFromUri(uri) {
+  Message.fromUri(Uri uri)
+      : method = _methodNameFromUri(uri) {
     params.addAll(uri.queryParameters);
   }
 
@@ -84,12 +86,13 @@ class Message {
     };
     var keys = _makeAllString(params.keys.toList(growable:false));
     var values = _makeAllString(params.values.toList(growable:false));
-    var request = new List(5)
+    var request = new List(6)
         ..[0] = 0  // Make room for OOB message type.
         ..[1] = receivePort.sendPort
-        ..[2] = method
-        ..[3] = keys
-        ..[4] = values;
+        ..[2] = serial.toString()
+        ..[3] = method
+        ..[4] = keys
+        ..[5] = values;
     if (!sendIsolateServiceMessage(sendPort, request)) {
       _completer.complete(JSON.encode({
           'type': 'ServiceError',
@@ -110,12 +113,13 @@ class Message {
     };
     var keys = _makeAllString(params.keys.toList(growable:false));
     var values = _makeAllString(params.values.toList(growable:false));
-    var request = new List(5)
+    var request = new List(6)
         ..[0] = 0  // Make room for OOB message type.
         ..[1] = receivePort.sendPort
-        ..[2] = method
-        ..[3] = keys
-        ..[4] = values;
+        ..[2] = serial.toString()
+        ..[3] = method
+        ..[4] = keys
+        ..[5] = values;
     sendRootServiceMessage(request);
     return _completer.future;
   }
@@ -124,15 +128,19 @@ class Message {
     _completer.complete(response);
   }
 
-  void setErrorResponse(String error) {
-    _completer.complete(JSON.encode({
-        'type': 'ServiceError',
-        'id': '',
-        'kind': 'RequestError',
-        'message': error,
-        'path': path,
-        'params': params
-    }));
+  void setErrorResponse(String message) {
+    var response = {
+      'id': serial,
+      'result' : {
+        'type': 'Error',
+        'message': message,
+        'request': {
+          'method': method,
+          'params': params
+        }
+      }
+    };
+    _completer.complete(JSON.encode(response));
   }
 }
 

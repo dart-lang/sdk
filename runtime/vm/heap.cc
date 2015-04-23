@@ -16,6 +16,7 @@
 #include "vm/raw_object.h"
 #include "vm/scavenger.h"
 #include "vm/service.h"
+#include "vm/service_event.h"
 #include "vm/stack_frame.h"
 #include "vm/tags.h"
 #include "vm/verifier.h"
@@ -620,8 +621,9 @@ void Heap::RecordAfterGC() {
   ASSERT(gc_in_progress_);
   gc_in_progress_ = false;
   if (Service::NeedsEvents()) {
-    GCEvent event(stats_);
-    Service::HandleGCEvent(&event);
+    ServiceEvent event(Isolate::Current(), ServiceEvent::kGC);
+    event.set_gc_stats(&stats_);
+    Service::HandleEvent(&event);
   }
 }
 
@@ -677,21 +679,6 @@ void Heap::PrintStats() {
     stats_.data_[1],
     stats_.data_[2],
     stats_.data_[3]);
-}
-
-
-void GCEvent::PrintJSON(JSONStream* js) const {
-  Isolate* isolate = Isolate::Current();
-  {
-    JSONObject jsobj(js);
-    jsobj.AddProperty("type", "ServiceEvent");
-    jsobj.AddPropertyF("id", "gc/%" Pd, stats_.num_);
-    jsobj.AddProperty("eventType", "GC");  // TODO(koda): "GarbageCollected"
-    jsobj.AddProperty("isolate", isolate);
-    jsobj.AddProperty("reason", Heap::GCReasonToString(stats_.reason_));
-    isolate->heap()->PrintToJSONObject(Heap::kNew, &jsobj);
-    isolate->heap()->PrintToJSONObject(Heap::kOld, &jsobj);
-  }
 }
 
 
