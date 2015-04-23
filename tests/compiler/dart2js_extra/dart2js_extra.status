@@ -63,8 +63,8 @@ deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed
 [ $compiler == dart2js && $cps_ir ]
 10216a_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 10216b_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-11673_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-12320_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+11673_test: Crash # (use): handleStaticFunctionGet: function(use)
+12320_test: Crash # (run): handleStaticFunctionGet: function(run)
 16407_test: Crash # unsupported element kind: foo:field
 16967_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 17094_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -73,22 +73,22 @@ deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed
 18383_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 19191_test: Crash # cannot compile methods that need interceptor calling convention.
 21166_test: Crash # unsupported element kind: a:field
-21351_test: Crash # Please triage this failure.
 21579_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 21666_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-22487_test: Crash # Please triage this failure.
+22487_test: Crash # (divIsInt): handleStaticFunctionGet: function(divIsInt)
 22868_test: Crash #  cannot handle async/sync*/async* functions
 22895_test: Crash #  cannot handle async/sync*/async* functions
-22917_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-23056_test: Crash # Please triage this failure.
-async_stacktrace_test/asyncStar: Crash # Please triage this failure.
-async_stacktrace_test/none: Crash # Please triage this failure.
-bailout8_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+22917_test: Crash # (test): handleStaticFunctionGet: function(test)
+23056_test: Crash # cannot compile methods that need interceptor calling convention.
+23264_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+async_stacktrace_test/asyncStar: Crash # (runTests): handleStaticFunctionGet: function(runTests)
+async_stacktrace_test/none: Crash # (runTests): handleStaticFunctionGet: function(runTests)
+bailout8_test: Crash # (foo): handleStaticFunctionGet: function(foo)
 bailout_aborting_if_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 bailout_on_break_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 bailout_on_continue_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 bailout_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-bound_closure_interceptor_methods_test: Crash # Please triage this failure.
+bound_closure_interceptor_methods_test: Crash # cannot compile methods that need interceptor calling convention.
 bound_closure_interceptor_type_test: Crash # unsupported element kind: checkers:field
 break_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 checked_accessor_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -104,47 +104,45 @@ closure_capture4_test: Crash # Instance of 'TypeOperator': unimplemented in Code
 closure_capture5_test: Crash # (i=0): For-loop variable captured in loop header
 closure_capture_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 closure_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-closure_type_reflection2_test: Crash # Please triage this failure.
+closure_type_reflection2_test: Crash # cannot compile methods that need interceptor calling convention.
 closure_type_reflection_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-code_motion_exception_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-compile_time_constant4_test/01: Crash # Please triage this failure.
-compile_time_constant4_test/02: Crash # Please triage this failure.
-compile_time_constant4_test/03: Crash # Please triage this failure.
-compile_time_constant4_test/04: Crash # Please triage this failure.
-compile_time_constant4_test/05: Crash # Please triage this failure.
-compile_time_constant4_test/06: Crash # Please triage this failure.
-compile_time_constant4_test/none: Crash # Please triage this failure.
-compound_operator_index_test: Crash # Please triage this failure.
+code_motion_exception_test: Crash # (call2a): handleStaticFunctionGet: function(call2a)
+compile_time_constant4_test/01: Crash # cannot compile methods that need interceptor calling convention.
+compile_time_constant4_test/02: Crash # cannot compile methods that need interceptor calling convention.
+compile_time_constant4_test/03: Crash # cannot compile methods that need interceptor calling convention.
+compile_time_constant4_test/04: Crash # cannot compile methods that need interceptor calling convention.
+compile_time_constant4_test/05: Crash # cannot compile methods that need interceptor calling convention.
+compile_time_constant4_test/06: Crash # cannot compile methods that need interceptor calling convention.
+compile_time_constant4_test/none: Crash # cannot compile methods that need interceptor calling convention.
+compound_operator_index_test: Crash # cannot compile methods that need interceptor calling convention.
 conditional_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 conflict_index_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 constant_fold_number_dart2_j_s_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 constant_javascript_semantics2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 constant_javascript_semantics3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-constant_javascript_semantics4_test: Crash # Please triage this failure.
 constant_javascript_semantics_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 constant_javascript_semantics_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 constant_javascript_semantics_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 constant_javascript_semantics_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 constant_javascript_semantics_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-deferred/deferred_class_test: Crash # Please triage this failure.
-deferred/deferred_constant2_test: Crash # Please triage this failure.
-deferred/deferred_constant3_test: Crash # Please triage this failure.
-deferred/deferred_constant4_test: Crash # Please triage this failure.
-deferred/deferred_function_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-deferred/deferred_mirrors1_test: Crash # Please triage this failure.
-deferred/deferred_mirrors2_test: Crash # Please triage this failure.
-deferred/deferred_overlapping_test: RuntimeError # Please triage this failure.
-deferred_fail_and_retry_test: Crash # Please triage this failure.
-deferred_fail_and_retry_worker_test: Crash # Please triage this failure.
+deferred/deferred_class_test: Crash # (isError): handleStaticFunctionGet: function(isError)
+deferred/deferred_constant2_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: function(loadLibrary)
+deferred/deferred_constant3_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: function(loadLibrary)
+deferred/deferred_constant4_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: function(loadLibrary)
+deferred/deferred_function_test: Crash # (isError): handleStaticFunctionGet: function(isError)
+deferred/deferred_mirrors1_test: Crash # (lazy.loadLibrary()): handleStaticGetterInvoke: foreign: function(loadLibrary)
+deferred/deferred_mirrors2_test: Crash # cannot compile methods that need interceptor calling convention.
+deferred/deferred_overlapping_test: Crash # (lib1.loadLibrary()): handleStaticGetterInvoke: foreign: function(loadLibrary)
+deferred_fail_and_retry_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: function(loadLibrary)
+deferred_fail_and_retry_worker_test: Crash # (test): handleStaticFunctionGet: function(test)
 do_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-equals_test: Crash # Please triage this failure.
 field_in_constructor_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 field_initializer_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 fields_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 first_class_types_hashcode_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 for_in_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 for_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-generics_factories_test: Crash # Please triage this failure.
+generics_factories_test: Crash # cannot compile methods that need interceptor calling convention.
 generics_is_check1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 getter_element_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 getters_setters_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -159,12 +157,13 @@ invoke_dynamic_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGe
 is_check_instanceof_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 is_operator_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LayoutTests_fast_mediastream_getusermedia_t01_test/01: Crash # (gotStream1): Error expression `gotStream1` unhandled.
+LayoutTests_fast_mediastream_getusermedia_t01_test/none: Crash # (gotStream1): handleStaticFunctionGet: function(gotStream1)
 list_factory_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 literal_string_juxtaposition_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 logical_and_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 logical_or_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 loop_if_phi_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-many_fields_test: Crash # Please triage this failure.
+many_fields_test: Crash # cannot compile methods that need interceptor calling convention.
 math_lib_prefix_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 math_lib_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 member_namespace_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -183,42 +182,46 @@ mirrors_declarations_filtering_test: Crash # Instance of 'TypeOperator': unimple
 mirrors_used_closure_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors_used_metatargets_test: Crash # (try {reflect(z).invoke(#foo,[] );}on UnsupportedError catch (e){caught=true;}): "on T" catch block
 mirrors_used_native_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-mirrors_used_warning2_test: Crash # unsupported element kind: lines:field
-mirrors_used_warning_test/minif: Crash # unsupported element kind: lines:field
-mirrors_used_warning_test/none: Crash # unsupported element kind: lines:field
+mirrors_used_warning2_test: Crash # (runTests): handleStaticFunctionGet: function(runTests)
+mirrors_used_warning_test/minif: Crash # (runTests): handleStaticFunctionGet: function(runTests)
+mirrors_used_warning_test/none: Crash # (runTests): handleStaticFunctionGet: function(runTests)
 mirror_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirror_type_inference_field2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirror_type_inference_field_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-mirror_type_inference_function_test: Crash # Please triage this failure.
+mirror_type_inference_function_test: Crash # cannot compile methods that need interceptor calling convention.
 named_parameter_for_static_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 named_parameter_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-nan_negate_test: Crash # Please triage this failure.
+nan_negate_test: Crash # cannot compile methods that need interceptor calling convention.
 no_such_method_mirrors_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-no_such_method_test: Crash # Please triage this failure.
-not_equals_test: Crash # Please triage this failure.
+no_such_method_test: Crash # cannot compile methods that need interceptor calling convention.
 not_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 null_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 operator2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 operator3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-operator_equals_test: Crash # Please triage this failure.
+operator_equals_test: Crash # cannot compile methods that need interceptor calling convention.
 operator_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 optional_parameter_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 panda_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 phi_elimination_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 phi_gvn_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 phi_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-reflect_native_types_test: Crash # Please triage this failure.
+private_symbol_literal_test/01: Pass # Please triage this failure.
+private_symbol_literal_test/02: Pass # Please triage this failure.
+private_symbol_literal_test/03: Pass # Please triage this failure.
+private_symbol_literal_test/04: Pass # Please triage this failure.
+private_symbol_literal_test/05: Pass # Please triage this failure.
+private_symbol_literal_test/06: Pass # Please triage this failure.
+reflect_native_types_test: Crash # cannot compile methods that need interceptor calling convention.
 regress/4492_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 regress/4515_1_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 regress/4515_2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-regress/4515_3_test: Crash # Please triage this failure.
-regress/4639_test: Crash # Please triage this failure.
+regress/4515_3_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+regress/4639_test: Crash # cannot compile methods that need interceptor calling convention.
 regress/4740_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 regression_2913_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 return_setter_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 runtime_type_int_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 runtime_type_test: Crash # Please triage this failure.
-send_test: Crash # Please triage this failure.
 simple_string_constant_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 static_field2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 static_field_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -239,19 +242,14 @@ switch_test/none: Crash # (switch (val){}): Unhandled node
 this_phi_elimination_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 this_redirecting_constructor_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 this_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-throw1_test/01: Crash # Please triage this failure.
-throw2_test/01: Crash # Please triage this failure.
-throw2_test/02: Crash # Please triage this failure.
-throw2_test/03: Crash # Please triage this failure.
-throw2_test/04: Crash # Please triage this failure.
-throw2_test/none: Crash # Please triage this failure.
-timer_negative_test: Crash # Please triage this failure.
-timer_test: Crash # Please triage this failure.
+timer_negative_test: Crash # (test): handleStaticFunctionGet: function(test)
+timer_test: Crash # (test): handleStaticFunctionGet: function(test)
 to_string_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_argument_factory_crash_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_argument_factory_nocrash_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+type_constant_switch_test/01: Pass # Please triage this failure.
 type_constant_switch_test/none: Crash # (switch (v){}): Unhandled node
-type_error_message_test: Crash # Please triage this failure.
+type_error_message_test: Crash # cannot compile methods that need interceptor calling convention.
 typevariable_factory_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 typevariable_substitution_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 while_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator

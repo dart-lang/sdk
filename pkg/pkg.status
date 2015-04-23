@@ -221,6 +221,7 @@ analyzer/test/plugin/plugin_impl_test: Crash #  try/finally
 analyzer/test/source/package_map_provider_test: Crash #  try/finally
 analyzer/test/source/package_map_resolver_test: Crash #  Unhandled node
 analyzer/test/src/context/cache_test: Crash #  Unhandled node
+analyzer/test/src/context/context_test: Crash #  try/finally
 analyzer/test/src/task/dart_test: Crash #  Unhandled node
 analyzer/test/src/task/driver_test: Crash #  Unhandled node
 analyzer/test/src/task/general_test: Crash #  Unhandled node

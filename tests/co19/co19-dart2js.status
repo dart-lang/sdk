@@ -9860,7 +9860,6 @@ Language/12_Expressions/10_Expressions_A01_t01: Crash # Instance of 'TypeOperato
 Language/12_Expressions/10_This_A01_t06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/10_This_A02_t01: Crash #  "on T" catch block
 Language/12_Expressions/10_This_A03_t02: Crash # (func(1,2)): Error expression `func(1,2)` unhandled.
-Language/12_Expressions/10_This_A03_t04: Crash # Dart issue 23298
 Language/12_Expressions/12_Instance_Creation/1_New_A01_t04: Crash # (try {A();}on NoSuchMethodError catch (e){}): "on T" catch block
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator

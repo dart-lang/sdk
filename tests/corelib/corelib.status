@@ -420,6 +420,7 @@ list_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 list_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 list_to_string2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 list_to_string_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+list_unmodifiable_test: Crash # (createConstList): handleStaticFunctionGet: function(createConstList)
 main_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 map_contains_key_test: Crash # (throw new ExpectException(message)): Unhandled node
 map_contains_value_test: Crash # (throw new ExpectException(message)): Unhandled node
