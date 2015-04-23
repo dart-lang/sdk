@@ -798,12 +798,86 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
 
 
 void Intrinsifier::Bigint_lsh(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // static void _lsh(Uint32List x_digits, int x_used, int n,
+  //                  Uint32List r_digits)
+
+  // R2 = x_used, R3 = x_digits, x_used > 0, x_used is Smi.
+  __ ldrd(R2, SP, 2 * kWordSize);
+  // R4 = r_digits, R5 = n, n is Smi, n % _DIGIT_BITS != 0.
+  __ ldrd(R4, SP, 0 * kWordSize);
+  __ SmiUntag(R5);
+  // R0 = n ~/ _DIGIT_BITS
+  __ Asr(R0, R5, Operand(5));
+  // R6 = &x_digits[0]
+  __ add(R6, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
+  // R7 = &x_digits[x_used]
+  __ add(R7, R6, Operand(R2, LSL, 1));
+  // R8 = &r_digits[1]
+  __ add(R8, R4, Operand(TypedData::data_offset() - kHeapObjectTag +
+                         Bigint::kBytesPerDigit));
+  // R8 = &r_digits[x_used + n ~/ _DIGIT_BITS + 1]
+  __ add(R0, R0, Operand(R2, ASR, 1));
+  __ add(R8, R8, Operand(R0, LSL, 2));
+  // R3 = n % _DIGIT_BITS
+  __ and_(R3, R5, Operand(31));
+  // R2 = 32 - R3
+  __ rsb(R2, R3, Operand(32));
+  __ mov(R1, Operand(0));
+  Label loop;
+  __ Bind(&loop);
+  __ ldr(R0, Address(R7, -Bigint::kBytesPerDigit, Address::PreIndex));
+  __ orr(R1, R1, Operand(R0, LSR, R2));
+  __ str(R1, Address(R8, -Bigint::kBytesPerDigit, Address::PreIndex));
+  __ mov(R1, Operand(R0, LSL, R3));
+  __ teq(R7, Operand(R6));
+  __ b(&loop, NE);
+  __ str(R1, Address(R8, -Bigint::kBytesPerDigit, Address::PreIndex));
+  // Returning Object::null() is not required, since this method is private.
+  __ Ret();
 }
 
 
 void Intrinsifier::Bigint_rsh(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // static void _lsh(Uint32List x_digits, int x_used, int n,
+  //                  Uint32List r_digits)
+
+  // R2 = x_used, R3 = x_digits, x_used > 0, x_used is Smi.
+  __ ldrd(R2, SP, 2 * kWordSize);
+  // R4 = r_digits, R5 = n, n is Smi, n % _DIGIT_BITS != 0.
+  __ ldrd(R4, SP, 0 * kWordSize);
+  __ SmiUntag(R5);
+  // R0 = n ~/ _DIGIT_BITS
+  __ Asr(R0, R5, Operand(5));
+  // R8 = &r_digits[0]
+  __ add(R8, R4, Operand(TypedData::data_offset() - kHeapObjectTag));
+  // R7 = &x_digits[n ~/ _DIGIT_BITS]
+  __ add(R7, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
+  __ add(R7, R7, Operand(R0, LSL, 2));
+  // R6 = &r_digits[x_used - n ~/ _DIGIT_BITS - 1]
+  __ add(R0, R0, Operand(1));
+  __ rsb(R0, R0, Operand(R2, ASR, 1));
+  __ add(R6, R8, Operand(R0, LSL, 2));
+  // R3 = n % _DIGIT_BITS
+  __ and_(R3, R5, Operand(31));
+  // R2 = 32 - R3
+  __ rsb(R2, R3, Operand(32));
+  // R1 = x_digits[n ~/ _DIGIT_BITS] >> (n % _DIGIT_BITS)
+  __ ldr(R1, Address(R7, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ mov(R1, Operand(R1, LSR, R3));
+  Label loop_entry;
+  __ b(&loop_entry);
+  Label loop;
+  __ Bind(&loop);
+  __ ldr(R0, Address(R7, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ orr(R1, R1, Operand(R0, LSL, R2));
+  __ str(R1, Address(R8, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ mov(R1, Operand(R0, LSR, R3));
+  __ Bind(&loop_entry);
+  __ teq(R8, Operand(R6));
+  __ b(&loop, NE);
+  __ str(R1, Address(R8, Bigint::kBytesPerDigit, Address::PostIndex));
+  // Returning Object::null() is not required, since this method is private.
+  __ Ret();
 }
 
 
