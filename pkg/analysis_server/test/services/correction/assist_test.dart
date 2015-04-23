@@ -9,7 +9,7 @@ import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:plugin/manager.dart';
+import 'package:analyzer/src/plugin/plugin_impl.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 

@@ -21,7 +21,7 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:plugin/plugin.dart';
+import 'package:analyzer/plugin/plugin.dart';
 
 /**
  * A function that will create a request handler that can be used by the given
