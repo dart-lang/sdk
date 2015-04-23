@@ -9,6 +9,7 @@ var dart, _js_helper;
   let defineProperty = Object.defineProperty;
   let getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
   let getOwnPropertyNames = Object.getOwnPropertyNames;
+  let getOwnPropertySymbols = Object.getOwnPropertySymbols;
 
   // Adapted from Angular.js
   let FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
@@ -614,11 +615,14 @@ var dart, _js_helper;
    * This operation is commonly called `mixin` in JS.
    */
   function copyProperties(to, from) {
-    let names = getOwnPropertyNames(from);
-    for (let i = 0; i < names.length; i++) {
-      let name = names[i];
-      defineProperty(to, name, getOwnPropertyDescriptor(from, name));
+    function copyPropertiesHelper(names) {
+      for (let i = 0; i < names.length; i++) {
+        let name = names[i];
+        defineProperty(to, name, getOwnPropertyDescriptor(from, name));
+      }
     }
+    copyPropertiesHelper(getOwnPropertyNames(from));
+    copyPropertiesHelper(getOwnPropertySymbols(from));
     return to;
   }
   dart.copyProperties = copyProperties;
@@ -804,6 +808,7 @@ var dart, _js_helper;
   dart.void = { toString() { return 'void'; } };
   dart.bottom = { toString() { return 'bottom'; } };
 
+  dart.global = window || global;
   dart.JsSymbol = Symbol;
 
   // TODO(jmesserly): hack to bootstrap the SDK

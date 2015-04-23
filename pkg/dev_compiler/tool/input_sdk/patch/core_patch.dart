@@ -242,11 +242,19 @@ class _ListConstructorSentinel {
 @patch
 class List<E> {
   @patch
-  factory List([int length = const _ListConstructorSentinel()]) {
-    if (length == const _ListConstructorSentinel()) {
-      return new JSArray<E>.emptyGrowable();
+  factory List([int length]) {
+    if (length == null) {
+      return JS('', '[]');
     }
-    return new JSArray<E>.fixed(length);
+    // Explicit type test is necessary to guard against JavaScript conversions
+    // in unchecked mode.
+    if ((length is !int) || (length < 0)) {
+      throw new ArgumentError("Length must be a non-negative integer: $length");
+    }
+    var list = JS('', 'new Array(#)', length);
+    // TODO(jmesserly): consider a fixed array subclass instead.
+    JS('void', r'#.fixed$length = Array', list);
+    return list;
   }
 
   @patch

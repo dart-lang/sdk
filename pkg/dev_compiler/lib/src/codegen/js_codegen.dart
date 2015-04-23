@@ -274,7 +274,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       _emitTypeName(node.element.type, lowerTypedef: true)
     ]);
 
-    return _finishClassDef(type, result);
+    return _finishClassDef(type, result, null);
   }
 
   @override
@@ -292,7 +292,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var classDecl = new JS.ClassDeclaration(
         new JS.ClassExpression(new JS.Identifier(name), heritage, []));
 
-    return _finishClassDef(type, classDecl);
+    return _finishClassDef(type, classDecl, null);
   }
 
   JS.Statement _emitJsType(String dartClassName, DartObjectImpl jsName) {
@@ -317,6 +317,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (_pendingClasses.remove(classElem) == null) return null;
 
     var jsName = getAnnotationValue(node, _isJsNameAnnotation);
+
     if (jsName != null) return _emitJsType(node.name.name, jsName);
 
     var ctors = <ConstructorDeclaration>[];
@@ -336,7 +337,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var body =
         _finishClassMembers(classElem, classExpr, ctors, fields, staticFields);
 
-    return _finishClassDef(type, body);
+    var jsPeer = getAnnotationValue(node, _isJsPeerInterface);
+    String jsPeerName = null;
+    if (jsPeer != null) {
+      jsPeerName = getConstantField(jsPeer, 'name', types.stringType);
+    }
+
+    return _finishClassDef(type, body, jsPeerName);
   }
 
   @override
@@ -346,7 +353,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// Given a class element and body, complete the class declaration.
   /// This handles generic type parameters, laziness (in library-cycle cases),
   /// and ensuring dependencies are loaded first.
-  JS.Statement _finishClassDef(ParameterizedType type, JS.Statement body) {
+  JS.Statement _finishClassDef(
+      ParameterizedType type, JS.Statement body, String jsPeerName) {
     var name = type.name;
     var genericName = '$name\$';
 
@@ -405,6 +413,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       _emitClassIfNeeded(classDefs, types.functionType);
     }
     classDefs.add(body);
+    if (jsPeerName != null) {
+      classDefs.add(js.statement(
+          'dart.copyProperties(dart.global.#.prototype, #.prototype);', [
+        _propertyName(jsPeerName),
+        name
+      ]));
+    }
     return _statement(classDefs);
   }
 
@@ -2333,6 +2348,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         _pendingSymbols.add(new JS.Identifier(extName));
         _addExport(extName);
       }
+      return new JS.Identifier(extName);
     }
     return js.call('#.#', [_libraryName(library), _propertyName(extName)]);
   }
@@ -2424,6 +2440,9 @@ String jsOutputPath(LibraryInfo info, Uri root) {
 
 // TODO(jmesserly): validate the library. See issue #135.
 bool _isJsNameAnnotation(DartObjectImpl value) => value.type.name == 'JsName';
+
+bool _isJsPeerInterface(DartObjectImpl value) =>
+    value.type.name == 'JsPeerInterface';
 
 // TODO(jacobr): we would like to do something like the following
 // but we don't have summary support yet.

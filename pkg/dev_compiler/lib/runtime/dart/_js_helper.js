@@ -884,7 +884,7 @@ var _js_helper;
     toString() {
       if (this[_unmangledName] != null)
         return this[_unmangledName];
-      let unmangledName = _js_names.unmangleAllIdentifiersIfPreservedAnyways(this[_typeName]);
+      let unmangledName = unmangleAllIdentifiersIfPreservedAnyways(this[_typeName]);
       return this[_unmangledName] = unmangledName;
     }
     get hashCode() {
@@ -1333,6 +1333,14 @@ var _js_helper;
   // Function isNotIdentical: (dynamic, dynamic) → bool
   function isNotIdentical(s, t) {
     return s !== t;
+  }
+  // Function unmangleGlobalNameIfPreservedAnyways: (String) → String
+  function unmangleGlobalNameIfPreservedAnyways(str) {
+    return str;
+  }
+  // Function unmangleAllIdentifiersIfPreservedAnyways: (String) → String
+  function unmangleAllIdentifiersIfPreservedAnyways(str) {
+    return str;
   }
   class _Patch extends core.Object {
     _Patch() {
@@ -1807,18 +1815,15 @@ var _js_helper;
       return result;
     }
     static formatType(className, typeArguments) {
-      return _js_names.unmangleAllIdentifiersIfPreservedAnyways(`${className}${joinArguments(typeArguments, 0)}`);
+      return unmangleAllIdentifiersIfPreservedAnyways(`${className}${joinArguments(typeArguments, 0)}`);
     }
     static objectTypeName(object) {
-      let name = constructorNameFallback(_interceptors.getInterceptor(object));
+      let name = Primitives.constructorNameFallback(object);
       if (name == 'Object') {
         let decompiled = String(object.constructor).match(/^\s*function\s*(\S*)\s*\(/)[1];
         if (typeof decompiled == 'string')
           if (/^\w+$/.test(decompiled))
             name = dart.as(decompiled, core.String);
-      }
-      if (dart.notNull(name.length) > 1 && dart.notNull(core.identical(name.codeUnitAt(0), Primitives.DOLLAR_CHAR_VALUE))) {
-        name = name.substring(1);
       }
       return Primitives.formatType(name, dart.as(getRuntimeTypeInfo(object), core.List));
     }
@@ -2123,6 +2128,22 @@ var _js_helper;
   Primitives.DOLLAR_CHAR_VALUE = 36;
   Primitives.timerFrequency = null;
   Primitives.timerTicks = null;
+  dart.defineLazyProperties(Primitives, {
+    get constructorNameFallback() {
+      return function getTagFallback(o) {
+        var constructor = o.constructor;
+        if (typeof constructor == "function") {
+          var name = constructor.name;
+          if (typeof name == "string" && name.length > 2 && name !== "Object" && name !== "Function.prototype") {
+            return name;
+          }
+        }
+        var s = Object.prototype.toString.call(o);
+        return s.substring(8, s.length - 1);
+      };
+    },
+    set constructorNameFallback(_) {}
+  });
   class JsCache extends core.Object {
     static allocate() {
       let result = Object.create(null);
@@ -3932,6 +3953,8 @@ var _js_helper;
   exports.isJsObject = isJsObject;
   exports.isIdentical = isIdentical;
   exports.isNotIdentical = isNotIdentical;
+  exports.unmangleGlobalNameIfPreservedAnyways = unmangleGlobalNameIfPreservedAnyways;
+  exports.unmangleAllIdentifiersIfPreservedAnyways = unmangleAllIdentifiersIfPreservedAnyways;
   exports.patch = patch;
   exports.InternalMap = InternalMap;
   exports.requiresPreamble = requiresPreamble;

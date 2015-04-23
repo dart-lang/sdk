@@ -62,9 +62,7 @@ import 'dart:_internal' show MappedIterable;
 
 import 'dart:_js_names' show
     extractKeys,
-    mangledNames,
-    unmangleGlobalNameIfPreservedAnyways,
-    unmangleAllIdentifiersIfPreservedAnyways;
+    mangledNames;
 
 part 'annotations.dart';
 part 'constant_map.dart';
@@ -72,6 +70,11 @@ part 'native_helper.dart';
 part 'regexp_helper.dart';
 part 'string_helper.dart';
 part 'js_rti.dart';
+
+// TODO(jacobr): remove.
+String unmangleGlobalNameIfPreservedAnyways(String str) => str;
+// TODO(jacobr): remove.
+String unmangleAllIdentifiersIfPreservedAnyways(String str) => str;
 
 class _Patch {
   const _Patch();
@@ -681,6 +684,37 @@ class Primitives {
   /** [: r"$".codeUnitAt(0) :] */
   static const int DOLLAR_CHAR_VALUE = 36;
 
+  // TODO(jmesserly): remove this method.
+  static constructorNameFallback = JS('Function', r'''
+  function getTagFallback(o) {
+    var constructor = o.constructor;
+    if (typeof constructor == "function") {
+      var name = constructor.name;
+      // If the name is a non-empty string, we use that as the type name of this
+      // object.  There are various cases where that does not work, so we have to
+      // detect them and fall through to the toString() based implementation.
+
+      if (typeof name == "string" &&
+
+          // Sometimes the string is empty.  This test also catches minified
+          // shadow dom polyfil wrapper for Window on Firefox where the faked
+          // constructor name does not 'stick'.  The shortest real DOM object
+          // names have three characters (e.g. URL, CSS).
+          name.length > 2 &&
+
+          // On Firefox we often get "Object" as the constructor name, even for
+          // more specialized DOM objects.
+          name !== "Object" &&
+
+          // This can happen in Opera.
+          name !== "Function.prototype") {
+        return name;
+      }
+    }
+    var s = Object.prototype.toString.call(o);
+    return s.substring(8, s.length - 1);
+  }''');
+
   /// Creates a string containing the complete type for the class [className]
   /// with the given type arguments.
   ///
@@ -694,7 +728,7 @@ class Primitives {
   ///
   /// In minified mode, uses the unminified names if available.
   static String objectTypeName(Object object) {
-    String name = constructorNameFallback(getInterceptor(object));
+    String name = JS('String', '#(#)', constructorNameFallback, object);
     if (name == 'Object') {
       // Try to decompile the constructor by turning it into a string and get
       // the name out of that. If the decompiled name is a string containing an
@@ -708,9 +742,13 @@ class Primitives {
     }
     // TODO(kasperl): If the namer gave us a fresh global name, we may
     // want to remove the numeric suffix that makes it unique too.
+    // TODO(jacobr): commented this out as it seems bogus and it breaks as
+    // codeUnitAt is not yet supported.
+    /*
     if (name.length > 1 && identical(name.codeUnitAt(0), DOLLAR_CHAR_VALUE)) {
       name = name.substring(1);
     }
+    */
     return formatType(name, getRuntimeTypeInfo(object));
   }
 

@@ -1801,7 +1801,7 @@ var collection;
       get [core.$reversed]() {
         return new (_internal.ReversedListIterable$(E))(this);
       }
-      toString() {
+      [core.$toString]() {
         return IterableBase.iterableToFullString(this, '[', ']');
       }
     }

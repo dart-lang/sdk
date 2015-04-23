@@ -793,11 +793,11 @@ var core;
       let sb = new StringBuffer();
       let i = 0;
       if (this[_arguments] != null) {
-        for (; dart.notNull(i) < dart.notNull(this[_arguments][exports.$length]); i = dart.notNull(i) + 1) {
+        for (; dart.notNull(i) < dart.notNull(this[_arguments][$length]); i = dart.notNull(i) + 1) {
           if (dart.notNull(i) > 0) {
             sb.write(", ");
           }
-          sb.write(Error.safeToString(this[_arguments][exports.$get](i)));
+          sb.write(Error.safeToString(this[_arguments][$get](i)));
         }
       }
       if (this[_namedArguments] != null) {
@@ -816,11 +816,11 @@ var core;
       } else {
         let actualParameters = sb.toString();
         sb = new StringBuffer();
-        for (let i = 0; dart.notNull(i) < dart.notNull(this[_existingArgumentNames][exports.$length]); i = dart.notNull(i) + 1) {
+        for (let i = 0; dart.notNull(i) < dart.notNull(this[_existingArgumentNames][$length]); i = dart.notNull(i) + 1) {
           if (dart.notNull(i) > 0) {
             sb.write(", ");
           }
-          sb.write(this[_existingArgumentNames][exports.$get](i));
+          sb.write(this[_existingArgumentNames][$get](i));
         }
         let formalParameters = sb.toString();
         return "NoSuchMethodError: incorrect number of arguments passed to " + `method named '${this[_memberName]}'\n` + `Receiver: ${Error.safeToString(this[_receiver])}\n` + `Tried calling: ${this[_memberName]}(${actualParameters})\n` + `Found: ${this[_memberName]}(${formalParameters})`;
@@ -1103,7 +1103,7 @@ var core;
           return new (_internal.EmptyIterable$(E))();
         return new (exports._GeneratorIterable$(E))(count, generator);
       }
-      [exports.$join](separator) {
+      [$join](separator) {
         if (separator === void 0)
           separator = "";
         let buffer = new StringBuffer();
@@ -1150,13 +1150,13 @@ var core;
         this[_generator] = generator;
         super.IterableBase();
       }
-      get [exports.$iterator]() {
+      get [$iterator]() {
         return new (_GeneratorIterator$(E))(this[_start], this[_end], this[_generator]);
       }
-      get [exports.$length]() {
+      get [$length]() {
         return dart.notNull(this[_end]) - dart.notNull(this[_start]);
       }
-      [exports.$skip](count) {
+      [$skip](count) {
         RangeError.checkNotNegative(count, "count");
         if (count == 0)
           return this;
@@ -1165,7 +1165,7 @@ var core;
           return new (_internal.EmptyIterable$(E))();
         return new exports._GeneratorIterable$(E).slice(newStart, this[_end], this[_generator]);
       }
-      [exports.$take](count) {
+      [$take](count) {
         RangeError.checkNotNegative(count, "count");
         if (count == 0)
           return new (_internal.EmptyIterable$(E))();
@@ -1224,21 +1224,74 @@ var core;
   let Iterator = Iterator$();
   let $set = dart.JsSymbol('$set');
   let $add = dart.JsSymbol('$add');
+  let $checkMutable = dart.JsSymbol('$checkMutable');
+  let $checkGrowable = dart.JsSymbol('$checkGrowable');
+  let $where = dart.JsSymbol('$where');
+  let $expand = dart.JsSymbol('$expand');
+  let $forEach = dart.JsSymbol('$forEach');
+  let $map = dart.JsSymbol('$map');
+  let $takeWhile = dart.JsSymbol('$takeWhile');
+  let $skipWhile = dart.JsSymbol('$skipWhile');
+  let $reduce = dart.JsSymbol('$reduce');
+  let $fold = dart.JsSymbol('$fold');
+  let $firstWhere = dart.JsSymbol('$firstWhere');
+  let $lastWhere = dart.JsSymbol('$lastWhere');
+  let $singleWhere = dart.JsSymbol('$singleWhere');
+  let $elementAt = dart.JsSymbol('$elementAt');
+  let $first = dart.JsSymbol('$first');
+  let $last = dart.JsSymbol('$last');
+  let $single = dart.JsSymbol('$single');
+  let $any = dart.JsSymbol('$any');
+  let $every = dart.JsSymbol('$every');
+  let $sort = dart.JsSymbol('$sort');
+  let $contains = dart.JsSymbol('$contains');
+  let $isEmpty = dart.JsSymbol('$isEmpty');
+  let $isNotEmpty = dart.JsSymbol('$isNotEmpty');
+  let $toString = dart.JsSymbol('$toString');
+  let $toList = dart.JsSymbol('$toList');
+  let $toSet = dart.JsSymbol('$toSet');
+  let $hashCode = dart.JsSymbol('$hashCode');
+  let $addAll = dart.JsSymbol('$addAll');
+  let $reversed = dart.JsSymbol('$reversed');
+  let $shuffle = dart.JsSymbol('$shuffle');
+  let $indexOf = dart.JsSymbol('$indexOf');
+  let $lastIndexOf = dart.JsSymbol('$lastIndexOf');
+  let $clear = dart.JsSymbol('$clear');
+  let $insert = dart.JsSymbol('$insert');
+  let $insertAll = dart.JsSymbol('$insertAll');
+  let $setAll = dart.JsSymbol('$setAll');
+  let $remove = dart.JsSymbol('$remove');
+  let $removeAt = dart.JsSymbol('$removeAt');
+  let $removeLast = dart.JsSymbol('$removeLast');
+  let $removeWhere = dart.JsSymbol('$removeWhere');
+  let $retainWhere = dart.JsSymbol('$retainWhere');
+  let $sublist = dart.JsSymbol('$sublist');
+  let $getRange = dart.JsSymbol('$getRange');
+  let $setRange = dart.JsSymbol('$setRange');
+  let $removeRange = dart.JsSymbol('$removeRange');
+  let $fillRange = dart.JsSymbol('$fillRange');
+  let $replaceRange = dart.JsSymbol('$replaceRange');
+  let $asMap = dart.JsSymbol('$asMap');
   let List$ = dart.generic(function(E) {
     class List extends Object {
       List(length) {
         if (length === void 0)
-          length = new _ListConstructorSentinel();
-        if (dart.equals(length, new _ListConstructorSentinel())) {
-          return new _interceptors.JSArray$(E).emptyGrowable();
+          length = null;
+        if (length == null) {
+          return dart.as([], List$(E));
         }
-        return new _interceptors.JSArray$(E).fixed(length);
+        if (!(typeof length == 'number') || dart.notNull(length) < 0) {
+          throw new ArgumentError(`Length must be a non-negative integer: ${length}`);
+        }
+        let list = new Array(length);
+        list.fixed$length = Array;
+        return dart.as(list, List$(E));
       }
       filled(length, fill) {
         let result = new _interceptors.JSArray$(E).fixed(length);
         if (length != 0 && dart.notNull(fill != null)) {
-          for (let i = 0; dart.notNull(i) < dart.notNull(result[exports.$length]); i = dart.notNull(i) + 1) {
-            result[exports.$set](i, fill);
+          for (let i = 0; dart.notNull(i) < dart.notNull(result[$length]); i = dart.notNull(i) + 1) {
+            result[$set](i, fill);
           }
         }
         return dart.as(result, List$(E));
@@ -1247,7 +1300,7 @@ var core;
         let growable = opts && 'growable' in opts ? opts.growable : true;
         let list = new (List$(E))();
         for (let e of dart.as(elements, Iterable$(E))) {
-          list[exports.$add](e);
+          list[$add](e);
         }
         if (growable)
           return list;
@@ -1258,14 +1311,302 @@ var core;
         let result = null;
         if (growable) {
           result = dart.setType([], List$(E));
-          result[exports.$length] = length;
+          result[$length] = length;
         } else {
           result = new (List$(E))(length);
         }
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          result[exports.$set](i, generator(i));
+          result[$set](i, generator(i));
         }
         return result;
+      }
+      [$checkMutable](reason) {}
+      [$checkGrowable](reason) {}
+      [$where](f) {
+        return new (_internal.IterableMixinWorkaround$(E))().where(this, f);
+      }
+      [$expand](f) {
+        return _internal.IterableMixinWorkaround.expand(this, f);
+      }
+      [$forEach](f) {
+        let length = this[$length];
+        for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
+          f(dart.as(this[i], E));
+          if (length != this[$length]) {
+            throw new ConcurrentModificationError(this);
+          }
+        }
+      }
+      [$map](f) {
+        return _internal.IterableMixinWorkaround.mapList(this, f);
+      }
+      [$join](separator) {
+        if (separator === void 0)
+          separator = "";
+        let list = new List(this[$length]);
+        for (let i = 0; dart.notNull(i) < dart.notNull(this[$length]); i = dart.notNull(i) + 1) {
+          list[$set](i, `${this[$get](i)}`);
+        }
+        return list.join(separator);
+      }
+      [$take](n) {
+        return new (_internal.IterableMixinWorkaround$(E))().takeList(this, n);
+      }
+      [$takeWhile](test) {
+        return new (_internal.IterableMixinWorkaround$(E))().takeWhile(this, test);
+      }
+      [$skip](n) {
+        return new (_internal.IterableMixinWorkaround$(E))().skipList(this, n);
+      }
+      [$skipWhile](test) {
+        return new (_internal.IterableMixinWorkaround$(E))().skipWhile(this, test);
+      }
+      [$reduce](combine) {
+        return dart.as(_internal.IterableMixinWorkaround.reduce(this, combine), E);
+      }
+      [$fold](initialValue, combine) {
+        return _internal.IterableMixinWorkaround.fold(this, initialValue, combine);
+      }
+      [$firstWhere](test, opts) {
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
+        return dart.as(_internal.IterableMixinWorkaround.firstWhere(this, test, orElse), E);
+      }
+      [$lastWhere](test, opts) {
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
+        return dart.as(_internal.IterableMixinWorkaround.lastWhereList(this, test, orElse), E);
+      }
+      [$singleWhere](test) {
+        return dart.as(_internal.IterableMixinWorkaround.singleWhere(this, test), E);
+      }
+      [$elementAt](index) {
+        return this[$get](index);
+      }
+      get [$first]() {
+        if (dart.notNull(this[$length]) > 0)
+          return this[$get](0);
+        throw new StateError("No elements");
+      }
+      get [$last]() {
+        if (dart.notNull(this[$length]) > 0)
+          return this[$get](dart.notNull(this[$length]) - 1);
+        throw new StateError("No elements");
+      }
+      get [$single]() {
+        if (this[$length] == 1)
+          return this[$get](0);
+        if (this[$length] == 0)
+          throw new StateError("No elements");
+        throw new StateError("More than one element");
+      }
+      [$any](f) {
+        return _internal.IterableMixinWorkaround.any(this, f);
+      }
+      [$every](f) {
+        return _internal.IterableMixinWorkaround.every(this, f);
+      }
+      [$sort](compare) {
+        if (compare === void 0)
+          compare = null;
+        this[$checkMutable]('sort');
+        _internal.IterableMixinWorkaround.sortList(this, compare);
+      }
+      [$contains](other) {
+        for (let i = 0; dart.notNull(i) < dart.notNull(this[$length]); i = dart.notNull(i) + 1) {
+          if (dart.equals(this[$get](i), other))
+            return true;
+        }
+        return false;
+      }
+      get [$isEmpty]() {
+        return this[$length] == 0;
+      }
+      get [$isNotEmpty]() {
+        return !dart.notNull(this[$isEmpty]);
+      }
+      [$toString]() {
+        return collection.ListBase.listToString(this);
+      }
+      [$toList](opts) {
+        let growable = opts && 'growable' in opts ? opts.growable : true;
+        if (growable) {
+          return new _interceptors.JSArray$(E).markGrowable(this.slice());
+        } else {
+          return new _interceptors.JSArray$(E).markFixed(this.slice());
+        }
+      }
+      [$toSet]() {
+        return new exports.Set$(E).from(this);
+      }
+      get [$iterator]() {
+        return new (_internal.ListIterator$(E))(this);
+      }
+      get [$hashCode]() {
+        return _js_helper.Primitives.objectHashCode(this);
+      }
+      [$get](index) {
+        if (!(typeof index == 'number'))
+          throw new ArgumentError(index);
+        if (dart.notNull(index) >= dart.notNull(this[$length]) || dart.notNull(index) < 0)
+          throw new RangeError.value(index);
+        return dart.as(this[index], E);
+      }
+      [$set](index, value) {
+        this[$checkMutable]('indexed set');
+        if (!(typeof index == 'number'))
+          throw new ArgumentError(index);
+        if (dart.notNull(index) >= dart.notNull(this[$length]) || dart.notNull(index) < 0)
+          throw new RangeError.value(index);
+        this[index] = value;
+      }
+      get [$length]() {
+        return dart.as(this.length, int);
+      }
+      set [$length](newLength) {
+        if (!(typeof newLength == 'number'))
+          throw new ArgumentError(newLength);
+        if (dart.notNull(newLength) < 0)
+          throw new RangeError.value(newLength);
+        this[$checkGrowable]('set length');
+        this.length = newLength;
+      }
+      [$add](value) {
+        this[$checkGrowable]('add');
+        this.push(value);
+      }
+      [$addAll](iterable) {
+        for (let e of iterable) {
+          this[$add](e);
+        }
+      }
+      get [$reversed]() {
+        return new (_internal.IterableMixinWorkaround$(E))().reversedList(this);
+      }
+      [$sort](compare) {
+        if (compare === void 0)
+          compare = null;
+        _internal.IterableMixinWorkaround.sortList(this, compare);
+      }
+      [$shuffle](random) {
+        if (random === void 0)
+          random = null;
+        _internal.IterableMixinWorkaround.shuffleList(this, random);
+      }
+      [$indexOf](element, start) {
+        if (start === void 0)
+          start = 0;
+        return _internal.IterableMixinWorkaround.indexOfList(this, element, start);
+      }
+      [$lastIndexOf](element, start) {
+        if (start === void 0)
+          start = null;
+        return _internal.IterableMixinWorkaround.lastIndexOfList(this, element, start);
+      }
+      [$clear]() {
+        this[$length] = 0;
+      }
+      [$insert](index, element) {
+        if (!(typeof index == 'number'))
+          throw new ArgumentError(index);
+        if (dart.notNull(index) < 0 || dart.notNull(index) > dart.notNull(this[$length])) {
+          throw new RangeError.value(index);
+        }
+        this[$checkGrowable]('insert');
+        this.splice(index, 0, element);
+      }
+      [$insertAll](index, iterable) {
+        this[$checkGrowable]('insertAll');
+        _internal.IterableMixinWorkaround.insertAllList(this, index, iterable);
+      }
+      [$setAll](index, iterable) {
+        this[$checkMutable]('setAll');
+        _internal.IterableMixinWorkaround.setAllList(this, index, iterable);
+      }
+      [$remove](element) {
+        this[$checkGrowable]('remove');
+        for (let i = 0; dart.notNull(i) < dart.notNull(this[$length]); i = dart.notNull(i) + 1) {
+          if (dart.equals(this[$get](i), /* Unimplemented unknown name */value)) {
+            this.splice(i, 1);
+            return true;
+          }
+        }
+        return false;
+      }
+      [$removeAt](index) {
+        if (!(typeof index == 'number'))
+          throw new ArgumentError(index);
+        if (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(this[$length])) {
+          throw new RangeError.value(index);
+        }
+        this[$checkGrowable]('removeAt');
+        return dart.as(this.splice(index, 1)[0], E);
+      }
+      [$removeLast]() {
+        this[$checkGrowable]('removeLast');
+        if (this[$length] == 0)
+          throw new RangeError.value(-1);
+        return dart.as(this.pop(), E);
+      }
+      [$removeWhere](test) {
+        _internal.IterableMixinWorkaround.removeWhereList(this, test);
+      }
+      [$retainWhere](test) {
+        _internal.IterableMixinWorkaround.removeWhereList(this, element => !dart.notNull(test(element)));
+      }
+      [$sublist](start, end) {
+        if (end === void 0)
+          end = null;
+        dart.dcall(/* Unimplemented unknown name */checkNull, start);
+        if (!(typeof start == 'number'))
+          throw new ArgumentError(start);
+        if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(this[$length])) {
+          throw new RangeError.range(start, 0, this[$length]);
+        }
+        if (end == null) {
+          end = this[$length];
+        } else {
+          if (!(typeof end == 'number'))
+            throw new ArgumentError(end);
+          if (dart.notNull(end) < dart.notNull(start) || dart.notNull(end) > dart.notNull(this[$length])) {
+            throw new RangeError.range(end, start, this[$length]);
+          }
+        }
+        if (start == end)
+          return dart.setType([], List$(E));
+        return new _interceptors.JSArray$(E).markGrowable(this.slice(start, end));
+      }
+      [$getRange](start, end) {
+        return new (_internal.IterableMixinWorkaround$(E))().getRangeList(this, start, end);
+      }
+      [$setRange](start, end, iterable, skipCount) {
+        if (skipCount === void 0)
+          skipCount = 0;
+        this[$checkMutable]('set range');
+        _internal.IterableMixinWorkaround.setRangeList(this, start, end, iterable, skipCount);
+      }
+      [$removeRange](start, end) {
+        this[$checkGrowable]('removeRange');
+        let receiverLength = this[$length];
+        if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(receiverLength)) {
+          throw new RangeError.range(start, 0, receiverLength);
+        }
+        if (dart.notNull(end) < dart.notNull(start) || dart.notNull(end) > dart.notNull(receiverLength)) {
+          throw new RangeError.range(end, start, receiverLength);
+        }
+        _internal.Lists.copy(this, end, this, start, dart.notNull(receiverLength) - dart.notNull(end));
+        this[$length] = dart.notNull(receiverLength) - (dart.notNull(end) - dart.notNull(start));
+      }
+      [$fillRange](start, end, fillValue) {
+        if (fillValue === void 0)
+          fillValue = null;
+        this[$checkMutable]('fill range');
+        _internal.IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
+      }
+      [$replaceRange](start, end, replacement) {
+        this[$checkGrowable]('removeRange');
+        _internal.IterableMixinWorkaround.replaceRangeList(this, start, end, replacement);
+      }
+      [$asMap]() {
+        return new (_internal.IterableMixinWorkaround$(E))().asMapList(this);
       }
     }
     List[dart.implements] = () => [Iterable$(E), _internal.EfficientLength];
@@ -1275,6 +1616,7 @@ var core;
     return List;
   });
   let List = List$();
+  dart.copyProperties(dart.global.Array.prototype, List.prototype);
   let Map$ = dart.generic(function(K, V) {
     class Map extends Object {
       Map() {
@@ -1416,7 +1758,6 @@ var core;
   }
   Stopwatch._frequency = null;
   let _stringFromIterable = dart.JsSymbol('_stringFromIterable');
-  let $sublist = dart.JsSymbol('$sublist');
   class String extends Object {
     fromCharCodes(charCodes, start, end) {
       if (start === void 0)
@@ -1427,7 +1768,7 @@ var core;
         return String[_stringFromIterable](charCodes, start, end);
       }
       let list = dart.as(charCodes, List);
-      let len = list[exports.$length];
+      let len = list[$length];
       if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(len)) {
         throw new RangeError.range(start, 0, len);
       }
@@ -1437,7 +1778,7 @@ var core;
         throw new RangeError.range(end, start, len);
       }
       if (dart.notNull(start) > 0 || dart.notNull(end) < dart.notNull(len)) {
-        list = list[exports.$sublist](start, end);
+        list = list[$sublist](start, end);
       }
       return _js_helper.Primitives.stringFromCharCodes(list);
     }
@@ -1450,11 +1791,11 @@ var core;
     }
     static [_stringFromIterable](charCodes, start, end) {
       if (dart.notNull(start) < 0)
-        throw new RangeError.range(start, 0, charCodes[exports.$length]);
+        throw new RangeError.range(start, 0, charCodes[$length]);
       if (end != null && dart.notNull(end) < dart.notNull(start)) {
-        throw new RangeError.range(end, start, charCodes[exports.$length]);
+        throw new RangeError.range(end, start, charCodes[$length]);
       }
-      let it = charCodes[exports.$iterator];
+      let it = charCodes[$iterator];
       for (let i = 0; dart.notNull(i) < dart.notNull(start); i = dart.notNull(i) + 1) {
         if (!dart.notNull(it.moveNext())) {
           throw new RangeError.range(start, 0, i);
@@ -1463,13 +1804,13 @@ var core;
       let list = [];
       if (end == null) {
         while (it.moveNext())
-          list[exports.$add](it.current);
+          list[$add](it.current);
       } else {
         for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
           if (!dart.notNull(it.moveNext())) {
             throw new RangeError.range(end, start, i);
           }
-          list[exports.$add](it.current);
+          list[$add](it.current);
         }
       }
       return _js_helper.Primitives.stringFromCharCodes(list);
@@ -1479,7 +1820,6 @@ var core;
   dart.defineNamedConstructor(String, 'fromCharCodes');
   dart.defineNamedConstructor(String, 'fromCharCode');
   dart.defineNamedConstructor(String, 'fromEnvironment');
-  let $last = dart.JsSymbol('$last');
   dart.defineLazyClass(exports, {
     get Runes() {
       class Runes extends collection.IterableBase$(int) {
@@ -1487,10 +1827,10 @@ var core;
           this.string = string;
           super.IterableBase();
         }
-        get [exports.$iterator]() {
+        get [$iterator]() {
           return new RuneIterator(this.string);
         }
-        get [exports.$last]() {
+        get [$last]() {
           if (this.string.length == 0) {
             throw new StateError('No elements.');
           }
@@ -1642,7 +1982,7 @@ var core;
     writeAll(objects, separator) {
       if (separator === void 0)
         separator = "";
-      let iterator = objects[exports.$iterator];
+      let iterator = objects[$iterator];
       if (!dart.notNull(iterator.moveNext()))
         return;
       if (separator.isEmpty) {
@@ -1715,7 +2055,6 @@ var core;
   let _makeWindowsFileUrl = dart.JsSymbol('_makeWindowsFileUrl');
   let _makeFileUri = dart.JsSymbol('_makeFileUri');
   let _checkNonWindowsPathReservedCharacters = dart.JsSymbol('_checkNonWindowsPathReservedCharacters');
-  let $forEach = dart.JsSymbol('$forEach');
   let _checkWindowsPathReservedCharacters = dart.JsSymbol('_checkWindowsPathReservedCharacters');
   let _checkWindowsDriveLetter = dart.JsSymbol('_checkWindowsDriveLetter');
   let _UPPER_CASE_A = dart.JsSymbol('_UPPER_CASE_A');
@@ -1723,8 +2062,6 @@ var core;
   let _LOWER_CASE_A = dart.JsSymbol('_LOWER_CASE_A');
   let _LOWER_CASE_Z = dart.JsSymbol('_LOWER_CASE_Z');
   let _BACKSLASH = dart.JsSymbol('_BACKSLASH');
-  let $map = dart.JsSymbol('$map');
-  let $toList = dart.JsSymbol('$toList');
   let _normalizeRegName = dart.JsSymbol('_normalizeRegName');
   let _isRegNameChar = dart.JsSymbol('_isRegNameChar');
   let _PERCENT = dart.JsSymbol('_PERCENT');
@@ -1750,8 +2087,6 @@ var core;
   let _DOT = dart.JsSymbol('_DOT');
   let _hasDotSegments = dart.JsSymbol('_hasDotSegments');
   let _removeDotSegments = dart.JsSymbol('_removeDotSegments');
-  let $isEmpty = dart.JsSymbol('$isEmpty');
-  let $removeLast = dart.JsSymbol('$removeLast');
   let _toWindowsFilePath = dart.JsSymbol('_toWindowsFilePath');
   let _toFilePath = dart.JsSymbol('_toFilePath');
   let _isPathAbsolute = dart.JsSymbol('_isPathAbsolute');
@@ -1759,7 +2094,6 @@ var core;
   let _unreserved2396Table = dart.JsSymbol('_unreserved2396Table');
   let _uriDecode = dart.JsSymbol('_uriDecode');
   let _encodeFullTable = dart.JsSymbol('_encodeFullTable');
-  let $fold = dart.JsSymbol('$fold');
   let _SPACE = dart.JsSymbol('_SPACE');
   let _PLUS = dart.JsSymbol('_PLUS');
   let _hexCharPairToByte = dart.JsSymbol('_hexCharPairToByte');
@@ -1806,7 +2140,7 @@ var core;
     static parse(uri) {
       // Function isRegName: (int) → bool
       function isRegName(ch) {
-        return dart.notNull(ch) < 128 && dart.notNull(!dart.equals(dart.dsend(Uri[_regNameTable][exports.$get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
+        return dart.notNull(ch) < 128 && dart.notNull(!dart.equals(dart.dsend(Uri[_regNameTable][$get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
       }
       let EOI = -1;
       let scheme = "";
@@ -2075,7 +2409,7 @@ var core;
       return false;
     }
     static [_checkNonWindowsPathReservedCharacters](segments, argumentError) {
-      segments[exports.$forEach](segment => {
+      segments[$forEach](segment => {
         if (dart.dsend(segment, 'contains', "/")) {
           if (argumentError) {
             throw new ArgumentError(`Illegal path character ${segment}`);
@@ -2088,7 +2422,7 @@ var core;
     static [_checkWindowsPathReservedCharacters](segments, argumentError, firstSegment) {
       if (firstSegment === void 0)
         firstSegment = 0;
-      segments[exports.$skip](firstSegment)[exports.$forEach](segment => {
+      segments[$skip](firstSegment)[$forEach](segment => {
         if (dart.dsend(segment, 'contains', new RegExp('["*/:<>?\\\\|]'))) {
           if (argumentError) {
             throw new ArgumentError("Illegal character in path");
@@ -2220,7 +2554,7 @@ var core;
     get pathSegments() {
       if (this[_pathSegments] == null) {
         let pathToSplit = !dart.notNull(this.path.isEmpty) && this.path.codeUnitAt(0) == Uri[_SLASH] ? this.path.substring(1) : this.path;
-        this[_pathSegments] = new collection.UnmodifiableListView(pathToSplit == "" ? /* Unimplemented const */dart.setType([], List$(String)) : pathToSplit.split("/")[exports.$map](dart.bind(Uri, 'decodeComponent'))[exports.$toList]({growable: false}));
+        this[_pathSegments] = new collection.UnmodifiableListView(pathToSplit == "" ? /* Unimplemented const */dart.setType([], List$(String)) : pathToSplit.split("/")[$map](dart.bind(Uri, 'decodeComponent'))[$toList]({growable: false}));
       }
       return this[_pathSegments];
     }
@@ -2258,7 +2592,7 @@ var core;
       return Uri[_normalizeRegName](host, start, end);
     }
     static [_isRegNameChar](char) {
-      return dart.notNull(char) < 127 && dart.notNull(!dart.equals(dart.dsend(Uri[_regNameTable][exports.$get](dart.notNull(char) >> 4), '&', 1 << (dart.notNull(char) & 15)), 0));
+      return dart.notNull(char) < 127 && dart.notNull(!dart.equals(dart.dsend(Uri[_regNameTable][$get](dart.notNull(char) >> 4), '&', 1 << (dart.notNull(char) & 15)), 0));
     }
     static [_normalizeRegName](host, start, end) {
       let buffer = null;
@@ -2370,7 +2704,7 @@ var core;
       if (path != null) {
         result = Uri[_normalize](path, start, end, dart.as(Uri[_pathCharOrSlashTable], List$(int)));
       } else {
-        result = pathSegments[exports.$map](s => Uri[_uriEncode](dart.as(Uri[_pathCharTable], List$(int)), dart.as(s, String)))[exports.$join]("/");
+        result = pathSegments[$map](s => Uri[_uriEncode](dart.as(Uri[_pathCharTable], List$(int)), dart.as(s, String)))[$join]("/");
       }
       if (dart.dload(result, 'isEmpty')) {
         if (isFile)
@@ -2447,7 +2781,7 @@ var core;
       return null;
     }
     static [_isUnreservedChar](ch) {
-      return dart.notNull(ch) < 127 && dart.notNull(!dart.equals(dart.dsend(Uri[_unreservedTable][exports.$get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
+      return dart.notNull(ch) < 127 && dart.notNull(!dart.equals(dart.dsend(Uri[_unreservedTable][$get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
     }
     static [_escapeChar](char) {
       dart.assert(dart.dsend(char, '<=', 1114111));
@@ -2455,9 +2789,9 @@ var core;
       let codeUnits = null;
       if (dart.dsend(char, '<', 128)) {
         codeUnits = new List(3);
-        codeUnits[exports.$set](0, Uri[_PERCENT]);
-        codeUnits[exports.$set](1, hexDigits.codeUnitAt(dart.as(dart.dsend(char, '>>', 4), int)));
-        codeUnits[exports.$set](2, hexDigits.codeUnitAt(dart.as(dart.dsend(char, '&', 15), int)));
+        codeUnits[$set](0, Uri[_PERCENT]);
+        codeUnits[$set](1, hexDigits.codeUnitAt(dart.as(dart.dsend(char, '>>', 4), int)));
+        codeUnits[$set](2, hexDigits.codeUnitAt(dart.as(dart.dsend(char, '&', 15), int)));
       } else {
         let flag = 192;
         let encodedBytes = 2;
@@ -2473,9 +2807,9 @@ var core;
         let index = 0;
         while ((encodedBytes = dart.notNull(encodedBytes) - 1) >= 0) {
           let byte = dart.as(dart.dsend(dart.dsend(dart.dsend(char, '>>', 6 * dart.notNull(encodedBytes)), '&', 63), '|', flag), int);
-          codeUnits[exports.$set](index, Uri[_PERCENT]);
-          codeUnits[exports.$set](dart.notNull(index) + 1, hexDigits.codeUnitAt(dart.notNull(byte) >> 4));
-          codeUnits[exports.$set](dart.notNull(index) + 2, hexDigits.codeUnitAt(dart.notNull(byte) & 15));
+          codeUnits[$set](index, Uri[_PERCENT]);
+          codeUnits[$set](dart.notNull(index) + 1, hexDigits.codeUnitAt(dart.notNull(byte) >> 4));
+          codeUnits[$set](dart.notNull(index) + 2, hexDigits.codeUnitAt(dart.notNull(byte) & 15));
           index = dart.notNull(index) + 3;
           flag = 128;
         }
@@ -2488,7 +2822,7 @@ var core;
       let index = start;
       while (dart.notNull(index) < dart.notNull(end)) {
         let char = component.codeUnitAt(index);
-        if (dart.notNull(char) < 127 && (dart.notNull(charTable[exports.$get](dart.notNull(char) >> 4)) & 1 << (dart.notNull(char) & 15)) != 0) {
+        if (dart.notNull(char) < 127 && (dart.notNull(charTable[$get](dart.notNull(char) >> 4)) & 1 << (dart.notNull(char) & 15)) != 0) {
           index = dart.notNull(index) + 1;
         } else {
           let replacement = null;
@@ -2537,10 +2871,10 @@ var core;
       return buffer.toString();
     }
     static [_isSchemeCharacter](ch) {
-      return dart.notNull(ch) < 128 && dart.notNull(!dart.equals(dart.dsend(Uri[_schemeTable][exports.$get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
+      return dart.notNull(ch) < 128 && dart.notNull(!dart.equals(dart.dsend(Uri[_schemeTable][$get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
     }
     static [_isGeneralDelimiter](ch) {
-      return dart.notNull(ch) <= dart.notNull(Uri[_RIGHT_BRACKET]) && dart.notNull(!dart.equals(dart.dsend(Uri[_genDelimitersTable][exports.$get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
+      return dart.notNull(ch) <= dart.notNull(Uri[_RIGHT_BRACKET]) && dart.notNull(!dart.equals(dart.dsend(Uri[_genDelimitersTable][$get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
     }
     get isAbsolute() {
       return this.scheme != "" && this.fragment == "";
@@ -2583,18 +2917,18 @@ var core;
       for (let segment of path.split("/")) {
         appendSlash = false;
         if (segment == "..") {
-          if (!dart.notNull(output[exports.$isEmpty]) && (output[exports.$length] != 1 || output[exports.$get](0) != ""))
-            output[exports.$removeLast]();
+          if (!dart.notNull(output[$isEmpty]) && (output[$length] != 1 || output[$get](0) != ""))
+            output[$removeLast]();
           appendSlash = true;
         } else if ("." == segment) {
           appendSlash = true;
         } else {
-          output[exports.$add](segment);
+          output[$add](segment);
         }
       }
       if (appendSlash)
-        output[exports.$add]("");
-      return output[exports.$join]("/");
+        output[$add]("");
+      return output[$join]("/");
     }
     resolve(reference) {
       return this.resolveUri(Uri.parse(reference));
@@ -2703,8 +3037,8 @@ var core;
     [_toWindowsFilePath]() {
       let hasDriveLetter = false;
       let segments = this.pathSegments;
-      if (dart.notNull(segments[exports.$length]) > 0 && segments[exports.$get](0).length == 2 && segments[exports.$get](0).codeUnitAt(1) == Uri[_COLON]) {
-        Uri[_checkWindowsDriveLetter](segments[exports.$get](0).codeUnitAt(0), false);
+      if (dart.notNull(segments[$length]) > 0 && segments[$get](0).length == 2 && segments[$get](0).codeUnitAt(1) == Uri[_COLON]) {
+        Uri[_checkWindowsDriveLetter](segments[$get](0).codeUnitAt(0), false);
         Uri[_checkWindowsPathReservedCharacters](segments, false, 1);
         hasDriveLetter = true;
       } else {
@@ -2719,7 +3053,7 @@ var core;
         result.write("\\");
       }
       result.writeAll(segments, "\\");
-      if (dart.notNull(hasDriveLetter) && segments[exports.$length] == 1)
+      if (dart.notNull(hasDriveLetter) && segments[$length] == 1)
         result.write("\\");
       return result.toString();
     }
@@ -2799,7 +3133,7 @@ var core;
     }
     static splitQueryString(query, opts) {
       let encoding = opts && 'encoding' in opts ? opts.encoding : convert.UTF8;
-      return dart.as(query.split("&")[exports.$fold](dart.map(), (map, element) => {
+      return dart.as(query.split("&")[$fold](dart.map(), (map, element) => {
         let index = dart.as(dart.dsend(element, 'indexOf', "="), int);
         if (index == -1) {
           if (!dart.equals(element, "")) {
@@ -2819,16 +3153,16 @@ var core;
         throw new FormatException(`Illegal IPv4 address, ${msg}`);
       }
       let bytes = host.split('.');
-      if (bytes[exports.$length] != 4) {
+      if (bytes[$length] != 4) {
         error('IPv4 address should contain exactly 4 parts');
       }
-      return dart.as(bytes[exports.$map](byteString => {
+      return dart.as(bytes[$map](byteString => {
         let byte = int.parse(dart.as(byteString, String));
         if (dart.notNull(byte) < 0 || dart.notNull(byte) > 255) {
           error('each part must be in the range of `0..255`');
         }
         return byte;
-      })[exports.$toList](), List$(int));
+      })[$toList](), List$(int));
     }
     static parseIPv6Address(host, start, end) {
       if (start === void 0)
@@ -2873,28 +3207,28 @@ var core;
               error('only one wildcard `::` is allowed', i);
             }
             wildcardSeen = true;
-            parts[exports.$add](-1);
+            parts[$add](-1);
           } else {
-            parts[exports.$add](parseHex(partStart, i));
+            parts[$add](parseHex(partStart, i));
           }
           partStart = dart.notNull(i) + 1;
         }
       }
-      if (parts[exports.$length] == 0)
+      if (parts[$length] == 0)
         error('too few parts');
       let atEnd = partStart == end;
-      let isLastWildcard = parts[exports.$last] == -1;
+      let isLastWildcard = parts[$last] == -1;
       if (dart.notNull(atEnd) && !dart.notNull(isLastWildcard)) {
         error('expected a part after last `:`', end);
       }
       if (!dart.notNull(atEnd)) {
         try {
-          parts[exports.$add](parseHex(partStart, end));
+          parts[$add](parseHex(partStart, end));
         } catch (e) {
           try {
             let last = Uri.parseIPv4Address(host.substring(partStart, end));
-            parts[exports.$add](dart.notNull(last[exports.$get](0)) << 8 | dart.notNull(last[exports.$get](1)));
-            parts[exports.$add](dart.notNull(last[exports.$get](2)) << 8 | dart.notNull(last[exports.$get](3)));
+            parts[$add](dart.notNull(last[$get](0)) << 8 | dart.notNull(last[$get](1)));
+            parts[$add](dart.notNull(last[$get](2)) << 8 | dart.notNull(last[$get](3)));
           } catch (e) {
             error('invalid end of IPv6 address.', partStart);
           }
@@ -2903,25 +3237,25 @@ var core;
 
       }
       if (wildcardSeen) {
-        if (dart.notNull(parts[exports.$length]) > 7) {
+        if (dart.notNull(parts[$length]) > 7) {
           error('an address with a wildcard must have less than 7 parts');
         }
-      } else if (parts[exports.$length] != 8) {
+      } else if (parts[$length] != 8) {
         error('an address without a wildcard must contain exactly 8 parts');
       }
       let bytes = new (List$(int))(16);
-      for (let i = 0, index = 0; dart.notNull(i) < dart.notNull(parts[exports.$length]); i = dart.notNull(i) + 1) {
-        let value = parts[exports.$get](i);
+      for (let i = 0, index = 0; dart.notNull(i) < dart.notNull(parts[$length]); i = dart.notNull(i) + 1) {
+        let value = parts[$get](i);
         if (value == -1) {
-          let wildCardLength = 9 - dart.notNull(parts[exports.$length]);
+          let wildCardLength = 9 - dart.notNull(parts[$length]);
           for (let j = 0; dart.notNull(j) < dart.notNull(wildCardLength); j = dart.notNull(j) + 1) {
-            bytes[exports.$set](index, 0);
-            bytes[exports.$set](dart.notNull(index) + 1, 0);
+            bytes[$set](index, 0);
+            bytes[$set](dart.notNull(index) + 1, 0);
             index = dart.notNull(index) + 2;
           }
         } else {
-          bytes[exports.$set](index, dart.notNull(value) >> 8);
-          bytes[exports.$set](dart.notNull(index) + 1, dart.notNull(value) & 255);
+          bytes[$set](index, dart.notNull(value) >> 8);
+          bytes[$set](dart.notNull(index) + 1, dart.notNull(value) & 255);
           index = dart.notNull(index) + 2;
         }
       }
@@ -2938,9 +3272,9 @@ var core;
       }
       let result = new StringBuffer();
       let bytes = encoding.encode(text);
-      for (let i = 0; dart.notNull(i) < dart.notNull(bytes[exports.$length]); i = dart.notNull(i) + 1) {
-        let byte = bytes[exports.$get](i);
-        if (dart.notNull(byte) < 128 && (dart.notNull(canonicalTable[exports.$get](dart.notNull(byte) >> 4)) & 1 << (dart.notNull(byte) & 15)) != 0) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(bytes[$length]); i = dart.notNull(i) + 1) {
+        let byte = bytes[$get](i);
+        if (dart.notNull(byte) < 128 && (dart.notNull(canonicalTable[$get](dart.notNull(byte) >> 4)) & 1 << (dart.notNull(byte) & 15)) != 0) {
           result.writeCharCode(byte);
         } else if (dart.notNull(spaceToPlus) && byte == Uri[_SPACE]) {
           result.writeCharCode(Uri[_PLUS]);
@@ -2994,12 +3328,12 @@ var core;
             if (dart.notNull(i) + 3 > dart.notNull(text.length)) {
               throw new ArgumentError('Truncated URI');
             }
-            bytes[exports.$add](Uri[_hexCharPairToByte](text, dart.notNull(i) + 1));
+            bytes[$add](Uri[_hexCharPairToByte](text, dart.notNull(i) + 1));
             i = dart.notNull(i) + 2;
           } else if (dart.notNull(plusToSpace) && codeUnit == Uri[_PLUS]) {
-            bytes[exports.$add](Uri[_SPACE]);
+            bytes[$add](Uri[_SPACE]);
           } else {
-            bytes[exports.$add](codeUnit);
+            bytes[$add](codeUnit);
           }
         }
       }
@@ -3128,6 +3462,54 @@ var core;
   exports.Iterator = Iterator;
   exports.$set = $set;
   exports.$add = $add;
+  exports.$checkMutable = $checkMutable;
+  exports.$checkGrowable = $checkGrowable;
+  exports.$where = $where;
+  exports.$expand = $expand;
+  exports.$forEach = $forEach;
+  exports.$map = $map;
+  exports.$takeWhile = $takeWhile;
+  exports.$skipWhile = $skipWhile;
+  exports.$reduce = $reduce;
+  exports.$fold = $fold;
+  exports.$firstWhere = $firstWhere;
+  exports.$lastWhere = $lastWhere;
+  exports.$singleWhere = $singleWhere;
+  exports.$elementAt = $elementAt;
+  exports.$first = $first;
+  exports.$last = $last;
+  exports.$single = $single;
+  exports.$any = $any;
+  exports.$every = $every;
+  exports.$sort = $sort;
+  exports.$contains = $contains;
+  exports.$isEmpty = $isEmpty;
+  exports.$isNotEmpty = $isNotEmpty;
+  exports.$toString = $toString;
+  exports.$toList = $toList;
+  exports.$toSet = $toSet;
+  exports.$hashCode = $hashCode;
+  exports.$addAll = $addAll;
+  exports.$reversed = $reversed;
+  exports.$shuffle = $shuffle;
+  exports.$indexOf = $indexOf;
+  exports.$lastIndexOf = $lastIndexOf;
+  exports.$clear = $clear;
+  exports.$insert = $insert;
+  exports.$insertAll = $insertAll;
+  exports.$setAll = $setAll;
+  exports.$remove = $remove;
+  exports.$removeAt = $removeAt;
+  exports.$removeLast = $removeLast;
+  exports.$removeWhere = $removeWhere;
+  exports.$retainWhere = $retainWhere;
+  exports.$sublist = $sublist;
+  exports.$getRange = $getRange;
+  exports.$setRange = $setRange;
+  exports.$removeRange = $removeRange;
+  exports.$fillRange = $fillRange;
+  exports.$replaceRange = $replaceRange;
+  exports.$asMap = $asMap;
   exports.List$ = List$;
   exports.List = List;
   exports.Map$ = Map$;
@@ -3142,19 +3524,11 @@ var core;
   exports.Sink = Sink;
   exports.StackTrace = StackTrace;
   exports.Stopwatch = Stopwatch;
-  exports.$sublist = $sublist;
   exports.String = String;
-  exports.$last = $last;
   exports.RuneIterator = RuneIterator;
   exports.StringBuffer = StringBuffer;
   exports.StringSink = StringSink;
   exports.Symbol = Symbol;
   exports.Type = Type;
-  exports.$forEach = $forEach;
-  exports.$map = $map;
-  exports.$toList = $toList;
-  exports.$isEmpty = $isEmpty;
-  exports.$removeLast = $removeLast;
-  exports.$fold = $fold;
   exports.Uri = Uri;
 })(core || (core = {}));
