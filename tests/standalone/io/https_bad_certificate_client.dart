@@ -22,7 +22,7 @@ void expect(condition) {
 
 const HOST_NAME = "localhost";
 
-Future runHttpClient(int port, result) {
+Future runHttpClient(int port, result) async {
   bool badCertificateCallback(X509Certificate certificate,
                               String host,
                               int callbackPort) {
@@ -38,17 +38,16 @@ Future runHttpClient(int port, result) {
 
   HttpClient client = new HttpClient();
 
-  var testFutures = [];  // The three async getUrl calls run simultaneously.
-  testFutures.add(client.getUrl(Uri.parse('https://$HOST_NAME:$port/$result'))
+  await client.getUrl(Uri.parse('https://$HOST_NAME:$port/$result'))
     .then((HttpClientRequest request) {
       expect(result == 'true');  // The session cache may keep the session.
       return request.close();
     }, onError: (e) {
       expect(e is HandshakeException || e is SocketException);
-    }));
+    });
 
   client.badCertificateCallback = badCertificateCallback;
-  testFutures.add(client.getUrl(Uri.parse('https://$HOST_NAME:$port/$result'))
+  await client.getUrl(Uri.parse('https://$HOST_NAME:$port/$result'))
     .then((HttpClientRequest request) {
       expect(result == 'true');
       return request.close();
@@ -57,19 +56,21 @@ Future runHttpClient(int port, result) {
                                      e is SocketException);
       else if (result == 'exception') expect (e is ExpectException ||
                                               e is SocketException);
-      else expect (e is ArgumentError || e is SocketException);
-    }));
+      else {
+        expect (e is ArgumentError || e is SocketException);
+      }
+    });
 
   client.badCertificateCallback = null;
-  testFutures.add(client.getUrl(Uri.parse('https://$HOST_NAME:$port/$result'))
+  await client.getUrl(Uri.parse('https://$HOST_NAME:$port/$result'))
     .then((HttpClientRequest request) {
       expect(result == 'true');  // The session cache may keep the session.
       return request.close();
     }, onError: (e) {
       expect(e is HandshakeException || e is SocketException);
-    }));
+    });
 
-  return Future.wait(testFutures).then((_) => client.close());
+  client.close();
 }
 
 void main(List<String> args) {
