@@ -133,11 +133,11 @@ full_coverage_test: SkipSlow # Times out. Issue 20352
 io/http_client_stays_alive_test: Skip # Timing dependent test, MIPS machine too slow.
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $unchecked ]
-assert_test: Fail # Issue 13719: Please triage this failure.
+assert_test: Fail # Issue 14651.
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
-javascript_int_overflow_literal_test/01: Fail # Issue 13719: Please triage this failure.
-javascript_int_overflow_test: Fail # Issue 13719: Please triage this failure.
+javascript_int_overflow_literal_test/01: Fail # Issue 14651.
+javascript_int_overflow_test: Fail # Issue 14651.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 io/directory_invalid_arguments_test: StaticWarning

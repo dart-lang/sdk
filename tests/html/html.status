@@ -397,9 +397,6 @@ touchevent_test/supported: Fail
 [ (($runtime == dartium || $runtime == drt) && $system == macos) || $system == windows ]
 xhr_test/xhr: Skip # Times out.  Issue 21527
 
-[ $compiler == none && $runtime == dartium ]
-element_offset_test/offset: Pass, Fail # Issue 13719, 13296
-
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 custom/document_register_basic_test: StaticWarning
 custom/element_upgrade_test: StaticWarning
