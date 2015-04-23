@@ -7,7 +7,7 @@ environment:
   sdk: '>=1.9.0 <2.0.0'
 dependencies:
   analyzer: '>=0.24.1-alpha.0 <0.25.0'
-  args: '>=0.12.1 <0.13.0'
+  args: '>=0.12.1 <0.14.0'
   dart_style: '>=0.1.7 <0.2.0'
   logging: any
   path: any
