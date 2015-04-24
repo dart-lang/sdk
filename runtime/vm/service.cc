@@ -409,7 +409,7 @@ static bool ValidateParameters(const MethodParameter* const* parameters,
       PrintMissingParamError(js, name);
       return false;
     }
-    if (!parameter->Validate(value)) {
+    if (has_parameter && !parameter->Validate(value)) {
       PrintInvalidParamError(js, name);
       return false;
     }
