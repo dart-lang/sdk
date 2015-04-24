@@ -1093,7 +1093,7 @@ void main() {
 }''', <String>["1+a", "1-x", "1-y"], failingTests: '1');
 
     buildTests('testCompletion_import', '''
-import '!1';''', <String>["1+dart:!", "1+package:!"], failingTests: '1');
+import '!1';''', <String>["1+dart:!", "1+package:!"]);
 
     buildTests('testCompletion_import_dart', '''
 import 'dart:math
@@ -1109,7 +1109,7 @@ import 'dart:!1''', <String>[
     buildTests('testCompletion_import_hasStringLiteral_noSemicolon', '''
 import '!1'
 
-class A {}''', <String>["1+dart:!", "1+package:!"], failingTests: '1');
+class A {}''', <String>["1+dart:!", "1+package:!"]);
 
     buildTests('testCompletion_import_noSpace', '''
 import!1''', <String>["1+ 'dart:!';", "1+ 'package:!';"], failingTests: '1');
