@@ -721,6 +721,9 @@ class FixProcessor {
       if (target is Identifier) {
         Identifier targetIdentifier = target;
         Element targetElement = targetIdentifier.staticElement;
+        if (targetElement == null) {
+          return;
+        }
         staticModifier = targetElement.kind == ElementKind.CLASS;
       }
     } else {
@@ -1186,7 +1189,6 @@ class FixProcessor {
     if (name.startsWith('_')) {
       return;
     }
-
     // may be there is an existing import,
     // but it is with prefix and we don't use this prefix
     for (ImportElement imp in unitLibraryElement.imports) {
