@@ -36,8 +36,8 @@ dependency_overrides:
     path: ../../third_party/observatory_pub_packages/dart_style
   glob:
     path: ../../third_party/observatory_pub_packages/glob
-  html5lib:
-    path: ../../third_party/observatory_pub_packages/html5lib
+  html:
+    path: ../../third_party/observatory_pub_packages/html
   initialize:
     path: ../../third_party/observatory_pub_packages/initialize
   logging:

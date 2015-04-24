@@ -15,8 +15,6 @@
 docgen/test/inherited_comments_test: Fail # issue 22233
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
-third_party/angular_tests/browser_test/*: Skip # github perf_api.dart issue 5
-third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
 mutation_observer: Skip # Issue 21149
 unittest/*: Skip # Issue 21949
 
@@ -30,7 +28,6 @@ analysis_server/tool/spec/check_all_test: SkipSlow # Times out
 analyzer/test/generated/element_test: SkipSlow  # Times out
 analyzer/test/generated/parser_test: SkipSlow  # Times out
 docgen/test/*: SkipSlow
-third_party/html5lib/test/tokenizer_test: SkipSlow  # Times out
 
 [ $runtime == vm && $system == windows]
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
@@ -43,7 +40,6 @@ collection/test/equality_test/04: Fail # Issue 1533
 collection/test/equality_test/05: Fail # Issue 1533
 collection/test/equality_test/none: Pass, Fail # Issue 14348
 docgen/test/*: SkipSlow # Far too slow
-third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 analyzer/test/generated/engine_test: SkipSlow
 analyzer/test/generated/static_type_warning_code_test: Pass, Slow
@@ -65,9 +61,6 @@ analysis_server/test/integration: Skip
 
 [ $compiler == dart2js && $checked ]
 crypto/test/base64_test: Slow, Pass
-
-[ $compiler == dart2js && $runtime == drt ]
-third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
 
 [ $runtime == d8 ]
 analysis_server/test/analysis_notification_overrides_test: Pass, Slow # Issue 19756
@@ -99,9 +92,6 @@ async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
 collection/test/unmodifiable_collection_test: SkipSlow # Times out. Issue 22050
 async/test/stream_zip_test: SkipSlow # Times out. Issue 22050
 
-[ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
-third_party/angular_tests/browser_test: SkipByDesign # uses dart:html
-
 [$compiler == dart2dart]
 *: Skip
 
@@ -113,10 +103,6 @@ typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here e
 # Unexplained errors only occuring on Safari 6.1 and earlier.
 typed_data/test/typed_buffers_test: RuntimeError
 
-# Skip browser-specific tests on VM
-[ $runtime == vm ]
-third_party/angular_tests/vm_test: Fail # Uses removed APIs. See issue 18733.
-
 [ $runtime == vm && $system == windows ]
 analyzer/test/generated/all_the_rest_test: Fail # Issue 21772
 
@@ -127,11 +113,6 @@ mock/test/mock_regexp_negative_test: Skip
 mock/test/mock_stepwise_negative_test: Skip
 
 compiler/samples/compile_loop/compile_loop: CompileTimeError  # Issue 16524
-
-[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-# This test uses third_party/pkg/perf_api/lib/perf_api.dart, which
-# contains illegal constant constructors.
-third_party/angular_tests/browser_test: CompileTimeError
 
 [ $compiler == dart2js && $csp ]
 # This test cannot run under CSP because it is injecting a JavaScript polyfill
@@ -152,11 +133,6 @@ http_server/test/*: Fail, OK # Uses dart:io.
 observe/test/transformer_test: Fail, OK # Uses dart:io.
 observe/test/unique_message_test: SkipByDesign  # Uses dart:io.
 stub_core_library/test/*: Fail, OK # Uses dart:io.
-third_party/angular_tests/browser_test/core_dom/cookies: Fail # Issue 16337
-third_party/angular_tests/vm_test: SkipByDesign # Uses dart:io
-third_party/html5lib/test/parser_test: SkipByDesign # Uses dart:io.
-third_party/html5lib/test/selectors/*: SkipByDesign # Uses dart:io.
-third_party/html5lib/test/tokenizer_test: SkipByDesign # Uses dart:io.
 
 [ $runtime == vm && ($arch == simarm64 || $arch == simarm || $arch == simarmv5te || $arch == simmips || $arch == armv5te) ]
 # Timeout. These are not unit tests. They do not run efficiently on our
@@ -166,24 +142,9 @@ third_party/html5lib/test/tokenizer_test: SkipByDesign # Uses dart:io.
 [ $runtime == vm ]
 # Skip tests on the VM if the package depends on dart:html
 mutation_observer: Skip
-third_party/html5lib/test/browser/browser_test: Skip
-
-[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-third_party/angular_tests/vm_test: StaticWarning # Uses removed APIs. See issue 18733.
-
-[ $runtime == safari || $runtime == safarimobilesim || $runtime == chrome || $runtime == ff || $ie ]
-# Various issues due to limited browser testing in Angular.
-third_party/angular_tests/*: Skip
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 third_party/di_tests/di_test: Pass, Slow # Issue 22896
-
-[ $unchecked ]
-third_party/angular_tests/browser_test/angular: SkipByDesign # Requires checked mode.
-third_party/angular_tests/browser_test/core/scope: SkipByDesign # Requires checked mode.
-third_party/angular_tests/browser_test/core/zone: SkipByDesign # Requires checked mode.
-third_party/angular_tests/browser_test/directive/ng_repeat: Skip # Issue 17152
-third_party/angular_tests/browser_test/change_detection/dirty_checking_change_detector: Skip # Issue 17152
 
 [ $use_repository_packages ]
 analyzer/test/*: PubGetError
@@ -690,7 +651,6 @@ mock/test/mock_regexp_negative_test: Crash # Instance of 'TypeOperator': unimple
 mock/test/mock_stepwise_negative_test: Crash # cannot compile methods that need interceptor calling convention.
 mock/test/mock_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 stub_core_library/test/stub_test: Crash #  try/finally
-third_party/angular_tests/vm_test: Crash #  try/finally
 third_party/di_tests/di_test: Crash #  try/finally
 typed_data/test/typed_buffers_test/01: Crash # cannot compile methods that need interceptor calling convention.
 typed_data/test/typed_buffers_test/none: Crash # cannot compile methods that need interceptor calling convention.

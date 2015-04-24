@@ -9,8 +9,8 @@ library from.html;
 
 import 'dart:io';
 
-import 'package:html5lib/dom.dart' as dom;
-import 'package:html5lib/parser.dart' as parser;
+import 'package:html/dom.dart' as dom;
+import 'package:html/parser.dart' as parser;
 
 import 'api.dart';
 import 'html_tools.dart';

@@ -7,7 +7,7 @@
  */
 library html.tools;
 
-import 'package:html5lib/dom.dart' as dom;
+import 'package:html/dom.dart' as dom;
 
 /**
  * Make a deep copy of the given HTML nodes.

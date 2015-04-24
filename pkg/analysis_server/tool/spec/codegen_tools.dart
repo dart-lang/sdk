@@ -9,7 +9,7 @@ library codegen.tools;
 
 import 'dart:io';
 
-import 'package:html5lib/dom.dart' as dom;
+import 'package:html/dom.dart' as dom;
 import 'package:path/path.dart';
 
 import 'html_tools.dart';
