@@ -819,7 +819,6 @@ deferred_constraints_type_annotation_test/type_annotation_top_level: CompileTime
 deferred_constraints_type_annotation_test/type_annotation_top_level: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 deferred_function_type_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 deferred_global_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-deferred_in_isolate_test: Crash # (rethrow;): Unhandled node
 deferred_inheritance_constraints_test/mixin: Crash # (new C()): Error expression `new C()` unhandled.
 deferred_inlined_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 deferred_load_constants_test/01: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node

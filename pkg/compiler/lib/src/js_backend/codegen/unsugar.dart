@@ -21,6 +21,11 @@ class UnsugarVisitor extends RecursiveVisitor {
   Glue _glue;
   ParentVisitor _parentVisitor = new ParentVisitor();
 
+  // In a catch block, rethrow implicitly throws the block's exception
+  // parameter.  This is the exception parameter when nested in a catch
+  // block and null otherwise.
+  Parameter _exceptionParameter = null;
+
   UnsugarVisitor(this._glue);
 
   void rewrite(FunctionDefinition function) {
@@ -84,15 +89,14 @@ class UnsugarVisitor extends RecursiveVisitor {
     // BEFORE: Handlers have two parameters, exception and stack trace.
     // AFTER: Handlers have a single parameter, which is unwrapped to get
     // the exception and stack trace.
-    assert(node.handler.parameters.length == 2);
-    Parameter exceptionParameter = node.handler.parameters.first;
+    _exceptionParameter = node.handler.parameters.first;
     Parameter stackTraceParameter = node.handler.parameters.last;
     Expression body = node.handler.body;
-    if (exceptionParameter.hasAtLeastOneUse ||
+    if (_exceptionParameter.hasAtLeastOneUse ||
         stackTraceParameter.hasAtLeastOneUse) {
       Parameter exceptionValue = new Parameter(null);
-      exceptionValue.substituteFor(exceptionParameter);
-      insertStaticCall(_glue.getExceptionUnwrapper(), [exceptionParameter],
+      exceptionValue.substituteFor(_exceptionParameter);
+      insertStaticCall(_glue.getExceptionUnwrapper(), [_exceptionParameter],
           exceptionValue, body);
 
       if (stackTraceParameter.hasAtLeastOneUse) {
@@ -107,6 +111,18 @@ class UnsugarVisitor extends RecursiveVisitor {
     node.handler.parameters.removeLast();
   }
 
+  @override
+  visitLetHandler(LetHandler node) {
+    assert(node.handler.parameters.length == 2);
+    Parameter previousExceptionParameter = _exceptionParameter;
+    _exceptionParameter = node.handler.parameters.first;
+    processLetHandler(node);
+    visit(node.handler);
+    _exceptionParameter = previousExceptionParameter;
+
+    visit(node.body);
+  }
+
   processThrow(Throw node) {
     // The subexpression of throw is wrapped in the JavaScript output.
     Parameter value = new Parameter(null);
@@ -114,6 +130,17 @@ class UnsugarVisitor extends RecursiveVisitor {
         value, node);
     node.value.unlink();
     node.value = new Reference<Primitive>(value);
+  }
+
+  processRethrow(Rethrow node) {
+    // Rethrow can only appear in a catch block.  It throws that block's
+    // (wrapped) caught exception.
+    Throw replacement = new Throw(_exceptionParameter);
+    InteriorNode parent = node.parent;
+    parent.body = replacement;
+    replacement.parent = parent;
+    // The original rethrow does not have any references that we need to
+    // worry about unlinking.
   }
 
   processInvokeMethod(InvokeMethod node) {
