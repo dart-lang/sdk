@@ -11346,18 +11346,16 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
         }
       }
       // The referenced class may not have been parsed yet. It would be wrong
-      // to resolve it too early to an imported class of the same name.
+      // to resolve it too early to an imported class of the same name. Only
+      // resolve the class when a finalized type is requested.
       if (finalization > ClassFinalizer::kResolveTypeParameters) {
-        // Resolve classname in the scope of the current library.
-        resolved_type_class = ResolveClassInCurrentLibraryScope(
-            unresolved_class_name);
+        resolved_type_class = library_.LookupClass(unresolved_class_name);
       }
     } else {
-      LibraryPrefix& lib_prefix =
-          LibraryPrefix::Handle(Z, unresolved_class.library_prefix());
       // Resolve class name in the scope of the library prefix.
-      resolved_type_class =
-          ResolveClassInPrefixScope(lib_prefix, unresolved_class_name);
+      const LibraryPrefix& lib_prefix =
+          LibraryPrefix::Handle(Z, unresolved_class.library_prefix());
+      resolved_type_class = lib_prefix.LookupClass(unresolved_class_name);
     }
     // At this point, we can only have a parameterized_type.
     const Type& parameterized_type = Type::Cast(*type);
@@ -11713,16 +11711,6 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
 }
 
 
-RawClass* Parser::ResolveClassInCurrentLibraryScope(const String& name) {
-  HANDLESCOPE(I);
-  const Object& obj = Object::Handle(Z, library_.ResolveName(name));
-  if (obj.IsClass()) {
-    return Class::Cast(obj).raw();
-  }
-  return Class::null();
-}
-
-
 // Resolve an identifier by checking the global scope of the current
 // library. If not found in the current library, then look in the scopes
 // of all libraries that are imported without a library prefix.
@@ -11761,17 +11749,6 @@ AstNode* Parser::ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
   }
   // Lexically unresolved primary identifiers are referenced by their name.
   return new(Z) PrimaryNode(ident_pos, ident);
-}
-
-
-RawClass* Parser::ResolveClassInPrefixScope(const LibraryPrefix& prefix,
-                                            const String& name) {
-  HANDLESCOPE(I);
-  const Object& obj = Object::Handle(Z, prefix.LookupObject(name));
-  if (obj.IsClass()) {
-    return Class::Cast(obj).raw();
-  }
-  return Class::null();
 }
 
 
