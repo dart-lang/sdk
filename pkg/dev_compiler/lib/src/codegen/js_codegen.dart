@@ -287,10 +287,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (_pendingClasses.remove(node.element) == null) return null;
 
     var name = node.name.name;
-    var heritage =
-        js.call('dart.mixin(#)', [_visitList(node.withClause.mixinTypes)]);
-    var classDecl = new JS.ClassDeclaration(
-        new JS.ClassExpression(new JS.Identifier(name), heritage, []));
+    var classDecl = new JS.ClassDeclaration(new JS.ClassExpression(
+        new JS.Identifier(name), _classHeritage(node), []));
 
     return _finishClassDef(type, classDecl);
   }
@@ -537,20 +535,25 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     ]);
   }
 
-  JS.Expression _classHeritage(ClassDeclaration node) {
+  JS.Expression _classHeritage(node) {
     if (node.element.type.isObject) return null;
 
-    JS.Expression heritage = null;
-    if (node.extendsClause != null) {
-      heritage = _visit(node.extendsClause.superclass);
+    DartType supertype;
+    if (node is ClassDeclaration) {
+      var ext = node.extendsClause;
+      supertype = ext != null ? ext.superclass.type : types.objectType;
     } else {
-      heritage = _emitTypeName(types.objectType);
+      supertype = (node as ClassTypeAlias).superclass.type;
     }
+
+    JS.Expression heritage = _emitTypeName(supertype);
+
     if (node.withClause != null) {
       var mixins = _visitList(node.withClause.mixinTypes);
       mixins.insert(0, heritage);
       heritage = js.call('dart.mixin(#)', [mixins]);
     }
+
     return heritage;
   }
 

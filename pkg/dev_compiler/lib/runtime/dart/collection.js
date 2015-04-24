@@ -1867,7 +1867,7 @@ var collection;
   });
   let MapMixin = MapMixin$();
   let MapBase$ = dart.generic(function(K, V) {
-    class MapBase extends dart.mixin(MapMixin$(K, V)) {}
+    class MapBase extends dart.mixin(core.Object, MapMixin$(K, V)) {}
     return MapBase;
   });
   let MapBase = MapBase$();
@@ -1894,7 +1894,7 @@ var collection;
   });
   let _UnmodifiableMapMixin = _UnmodifiableMapMixin$();
   let UnmodifiableMapBase$ = dart.generic(function(K, V) {
-    class UnmodifiableMapBase extends dart.mixin(_UnmodifiableMapMixin$(K, V)) {}
+    class UnmodifiableMapBase extends dart.mixin(MapBase$(K, V), _UnmodifiableMapMixin$(K, V)) {}
     return UnmodifiableMapBase;
   });
   let UnmodifiableMapBase = UnmodifiableMapBase$();
@@ -2011,7 +2011,7 @@ var collection;
   });
   let MapView = MapView$();
   let UnmodifiableMapView$ = dart.generic(function(K, V) {
-    class UnmodifiableMapView extends dart.mixin(_UnmodifiableMapMixin$(K, V)) {}
+    class UnmodifiableMapView extends dart.mixin(MapView$(K, V), _UnmodifiableMapMixin$(K, V)) {}
     return UnmodifiableMapView;
   });
   let UnmodifiableMapView = UnmodifiableMapView$();

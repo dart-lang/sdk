@@ -3072,8 +3072,8 @@ var async;
       return null;
     }
   }
-  class _NoCallbackAsyncStreamController extends dart.mixin(_AsyncStreamControllerDispatch, _NoCallbacks) {}
-  class _NoCallbackSyncStreamController extends dart.mixin(_SyncStreamControllerDispatch, _NoCallbacks) {}
+  class _NoCallbackAsyncStreamController extends dart.mixin(_StreamController, _AsyncStreamControllerDispatch, _NoCallbacks) {}
+  class _NoCallbackSyncStreamController extends dart.mixin(_StreamController, _SyncStreamControllerDispatch, _NoCallbacks) {}
   let _NotificationHandler = dart.typedef('_NotificationHandler', () => dart.functionType(dart.dynamic, []));
   // Function _runGuarded: (() → dynamic) → Future<dynamic>
   function _runGuarded(notificationHandler) {

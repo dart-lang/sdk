@@ -1383,12 +1383,12 @@ var _internal;
   });
   let UnmodifiableListMixin = UnmodifiableListMixin$();
   let FixedLengthListBase$ = dart.generic(function(E) {
-    class FixedLengthListBase extends dart.mixin(FixedLengthListMixin$(E)) {}
+    class FixedLengthListBase extends dart.mixin(collection.ListBase$(E), FixedLengthListMixin$(E)) {}
     return FixedLengthListBase;
   });
   let FixedLengthListBase = FixedLengthListBase$();
   let UnmodifiableListBase$ = dart.generic(function(E) {
-    class UnmodifiableListBase extends dart.mixin(UnmodifiableListMixin$(E)) {}
+    class UnmodifiableListBase extends dart.mixin(collection.ListBase$(E), UnmodifiableListMixin$(E)) {}
     return UnmodifiableListBase;
   });
   let UnmodifiableListBase = UnmodifiableListBase$();
