@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:typed_data';
+import 'dart:_internal' as internal;
 
 // Hash table with open addressing that separates the index from keys/values.
 abstract class _HashBase {
@@ -29,7 +30,7 @@ abstract class _HashBase {
   // bits are wasted to avoid Mint allocation.
   // TODO(koda): Reclaim the bits by making the compiler treat hash patterns
   // as unsigned words.
-  int _hashMask = int.is64Bit() ?
+  int _hashMask = internal.is64Bit ?
       (1 << (32 - _INITIAL_INDEX_BITS)) - 1 :
       (1 << (30 - _INITIAL_INDEX_BITS)) - 1;
 

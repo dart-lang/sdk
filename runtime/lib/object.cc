@@ -319,4 +319,12 @@ DEFINE_NATIVE_ENTRY(LibraryPrefix_loadError, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0) {
+#if defined(ARCH_IS_64_BIT)
+  return Bool::True().raw();
+#else
+  return Bool::False().raw();
+#endif  // defined(ARCH_IS_64_BIT)
+}
+
 }  // namespace dart

@@ -18,3 +18,7 @@ class VMLibraryHooks {
 patch class CodeUnits {
   static final int cid = ClassID.getID(new CodeUnits(""));
 }
+
+final bool is64Bit = _inquireIs64Bit();
+
+bool _inquireIs64Bit() native "Internal_inquireIs64Bit";

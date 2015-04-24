@@ -95,6 +95,7 @@ DEFINE_NATIVE_ENTRY(Internal_makeListFixedLength, 1) {
   return Array::MakeArray(array);
 }
 
+
 DEFINE_NATIVE_ENTRY(Internal_makeFixedListUnmodifiable, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, array, arguments->NativeArgAt(0));
   array.MakeImmutable();
