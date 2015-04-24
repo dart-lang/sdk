@@ -6,8 +6,6 @@ library test.src.task.dart_test;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/plugin/plugin.dart';
-import 'package:analyzer/plugin/task.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -18,13 +16,13 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
-import 'package:analyzer/src/plugin/plugin_impl.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:plugin/manager.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 

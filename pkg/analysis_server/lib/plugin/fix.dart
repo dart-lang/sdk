@@ -10,7 +10,7 @@ library analysis_server.plugin.fix;
 
 import 'package:analysis_server/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analyzer/plugin/plugin.dart';
+import 'package:plugin/plugin.dart';
 
 /**
  * The identifier of the extension point that allows plugins to register new

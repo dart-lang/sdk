@@ -4,11 +4,11 @@
 
 library analyzer.src.plugin.engine_plugin;
 
-import 'package:analyzer/plugin/plugin.dart';
 import 'package:analyzer/plugin/task.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:plugin/plugin.dart';
 
 /**
  * A plugin that defines the extension points and extensions that are inherently
