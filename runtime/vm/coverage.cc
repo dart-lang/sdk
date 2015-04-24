@@ -9,6 +9,7 @@
 #include "vm/compiler.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
+#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 
@@ -56,38 +57,36 @@ void CodeCoverage::CompileAndAdd(const Function& function,
                                  const JSONArray& hits_or_sites,
                                  const GrowableArray<intptr_t>& pos_to_line,
                                  bool as_call_sites) {
+  // If the function should not be compiled for coverage analysis, then just
+  // skip this method.
+  // TODO(iposva): Maybe we should skip synthesized methods in general too.
+  if (function.is_abstract() || function.IsRedirectingFactory()) {
+    return;
+  }
+  if (function.IsNonImplicitClosureFunction() &&
+      (function.context_scope() == ContextScope::null())) {
+    // TODO(iposva): This can arise if we attempt to compile an inner function
+    // before we have compiled its enclosing function or if the enclosing
+    // function failed to compile.
+    return;
+  }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  if (!function.HasCode()) {
-    // If the function should not be compiled or if the compilation failed,
-    // then just skip this method.
-    // TODO(iposva): Maybe we should skip synthesized methods in general too.
-    if (function.is_abstract() || function.IsRedirectingFactory()) {
-      return;
-    }
-    if (function.IsNonImplicitClosureFunction() &&
-        (function.context_scope() == ContextScope::null())) {
-      // TODO(iposva): This can arise if we attempt to compile an inner function
-      // before we have compiled its enclosing function or if the enclosing
-      // function failed to compile.
-      return;
-    }
-    const Error& err = Error::Handle(
-        zone, Compiler::CompileFunction(thread, function));
-    if (!err.IsNull()) {
-      return;
-    }
+  // Make sure we have the unoptimized code for this function available.
+  if (Compiler::EnsureUnoptimizedCode(thread, function) != Error::null()) {
+    // Ignore the error and this function entirely.
+    return;
   }
-  ASSERT(function.HasCode());
+  const Code& code = Code::Handle(zone, function.unoptimized_code());
+  ASSERT(!code.IsNull());
 
   // Print the hit counts for all IC datas.
   ZoneGrowableArray<const ICData*>* ic_data_array =
       new(zone) ZoneGrowableArray<const ICData*>();
   function.RestoreICDataMap(ic_data_array);
-  const Code& code = Code::Handle(function.unoptimized_code());
   const PcDescriptors& descriptors = PcDescriptors::Handle(
-      code.pc_descriptors());
+      zone, code.pc_descriptors());
 
   const intptr_t begin_pos = function.token_pos();
   const intptr_t end_pos = function.end_token_pos();
@@ -107,7 +106,7 @@ void CodeCoverage::CompileAndAdd(const Function& function,
       }
       intptr_t line = pos_to_line[token_pos];
 #if defined(DEBUG)
-      const Script& script = Script::Handle(function.script());
+      const Script& script = Script::Handle(zone, function.script());
       intptr_t test_line = -1;
       script.GetTokenLocation(token_pos, &test_line, NULL);
       ASSERT(test_line == line);

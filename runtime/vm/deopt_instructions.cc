@@ -783,10 +783,16 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
   // from the simulator.
   ASSERT(Isolate::IsDeoptAfter(ret_address_instr->deopt_id()));
   ASSERT(!object_table.IsNull());
-  Function& function = Function::Handle();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Function& function = Function::Handle(zone);
   function ^= object_table.At(ret_address_instr->object_table_index());
   ASSERT(code != NULL);
-  Compiler::EnsureUnoptimizedCode(Thread::Current(), function);
+  const Error& error = Error::Handle(zone,
+      Compiler::EnsureUnoptimizedCode(thread, function));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+  }
   *code ^= function.unoptimized_code();
   ASSERT(!code->IsNull());
   uword res = code->GetPcForDeoptId(ret_address_instr->deopt_id(),

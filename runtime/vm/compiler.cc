@@ -972,7 +972,11 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
 
     // Restore unoptimized code if needed.
     if (optimized) {
-      Compiler::EnsureUnoptimizedCode(Thread::Current(), function);
+      const Error& error = Error::Handle(
+          zone, Compiler::EnsureUnoptimizedCode(Thread::Current(), function));
+      if (!error.IsNull()) {
+        return error.raw();
+      }
     }
 
     ParsedFunction* parsed_function = new(zone) ParsedFunction(
@@ -1057,10 +1061,10 @@ RawError* Compiler::CompileFunction(Thread* thread,
 }
 
 
-void Compiler::EnsureUnoptimizedCode(Thread* thread,
+RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
                                      const Function& function) {
   if (function.unoptimized_code() != Object::null()) {
-    return;
+    return Error::null();
   }
   Code& original_code = Code::ZoneHandle(thread->zone());
   if (function.HasCode()) {
@@ -1071,7 +1075,7 @@ void Compiler::EnsureUnoptimizedCode(Thread* thread,
   const Error& error = Error::Handle(
       CompileFunctionHelper(pipeline, function, false, Isolate::kNoDeoptId));
   if (!error.IsNull()) {
-    Exceptions::PropagateError(error);
+    return error.raw();
   }
   // Since CompileFunctionHelper replaces the current code, re-attach the
   // the original code if the function was already compiled.
@@ -1083,6 +1087,7 @@ void Compiler::EnsureUnoptimizedCode(Thread* thread,
   if (FLAG_trace_compiler) {
     ISL_Print("Ensure unoptimized code for %s\n", function.ToCString());
   }
+  return Error::null();
 }
 
 

@@ -461,7 +461,13 @@ intptr_t ActivationFrame::ColumnNumber() {
 void ActivationFrame::GetVarDescriptors() {
   if (var_descriptors_.IsNull()) {
     if (code().is_optimized()) {
-      Compiler::EnsureUnoptimizedCode(Thread::Current(), function());
+      Thread* thread = Thread::Current();
+      Zone* zone = thread->zone();
+      const Error& error = Error::Handle(zone,
+          Compiler::EnsureUnoptimizedCode(thread, function()));
+      if (!error.IsNull()) {
+        Exceptions::PropagateError(error);
+      }
     }
     var_descriptors_ =
         Code::Handle(function().unoptimized_code()).var_descriptors();

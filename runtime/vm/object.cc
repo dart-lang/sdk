@@ -5096,8 +5096,10 @@ void Function::ClearCode() const {
 
 void Function::SwitchToUnoptimizedCode() const {
   ASSERT(HasOptimizedCode());
-  Isolate* isolate = Isolate::Current();
-  const Code& current_code = Code::Handle(isolate, CurrentCode());
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
+  const Code& current_code = Code::Handle(zone, CurrentCode());
 
   if (FLAG_trace_deoptimization_verbose) {
     OS::Print("Disabling optimized code: '%s' entry: %#" Px "\n",
@@ -5106,9 +5108,13 @@ void Function::SwitchToUnoptimizedCode() const {
   }
   // Patch entry of the optimized code.
   CodePatcher::PatchEntry(current_code);
-  Compiler::EnsureUnoptimizedCode(Thread::Current(), *this);
-  AttachCode(Code::Handle(isolate, unoptimized_code()));
-  CodePatcher::RestoreEntry(Code::Handle(isolate, unoptimized_code()));
+  const Error& error = Error::Handle(zone,
+      Compiler::EnsureUnoptimizedCode(thread, *this));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+  }
+  AttachCode(Code::Handle(zone, unoptimized_code()));
+  CodePatcher::RestoreEntry(Code::Handle(zone, unoptimized_code()));
   isolate->TrackDeoptimizedCode(current_code);
 }
 
