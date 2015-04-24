@@ -1295,6 +1295,23 @@ main() {
 }
 f(String p) {}
 ''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['String test;']);
+    _assertLinkedGroup(change.linkedEditGroups[1], ['test;', 'test);']);
+  }
+
+  void test_createLocalVariable_read_typeInvocationTarget() {
+    resolveTestUnit('''
+main() {
+  test.add('hello');
+}
+''');
+    assertHasFix(DartFixKind.CREATE_LOCAL_VARIABLE, '''
+main() {
+  var test;
+  test.add('hello');
+}
+''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['test;', 'test.add(']);
   }
 
   void test_createLocalVariable_write_assignment() {

@@ -1890,7 +1890,7 @@ class FixProcessor {
   void _addLinkedPosition(String groupId, SourceBuilder sb, SourceRange range) {
     // prepare offset
     int offset = range.offset;
-    if (sb.offset < offset) {
+    if (sb.offset <= offset) {
       int delta = sb.length;
       offset += delta;
     }
