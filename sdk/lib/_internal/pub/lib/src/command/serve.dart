@@ -59,6 +59,9 @@ class ServeCommand extends BarbackCommand {
   final _completer = new Completer();
 
   ServeCommand() {
+    argParser.addOption("define", abbr: "D",
+        help: "Defines an environment constant for dart2js.",
+        allowMultiple: true, splitCommas: false);
     argParser.addOption('hostname', defaultsTo: 'localhost',
         help: 'The hostname to listen on.');
     argParser.addOption('port', defaultsTo: '8080',
@@ -88,9 +91,13 @@ class ServeCommand extends BarbackCommand {
     var watcherType = argResults['force-poll'] ?
         WatcherType.POLLING : WatcherType.AUTO;
 
+    var environmentConstants = new Map.fromIterable(argResults["define"],
+        key: (pair) => pair.split("=").first,
+        value: (pair) => pair.split("=").last);
+
     var environment = await AssetEnvironment.create(entrypoint, mode,
         watcherType: watcherType, hostname: hostname, basePort: port,
-        useDart2JS: useDart2JS);
+        useDart2JS: useDart2JS, environmentConstants: environmentConstants);
     var directoryLength = sourceDirectories.map((dir) => dir.length)
         .reduce(math.max);
 

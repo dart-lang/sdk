@@ -166,13 +166,15 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
 
   /// Parses and returns the "environment" configuration option.
   Map<String, String> get _configEnvironment {
-    if (!_settings.configuration.containsKey('environment')) return null;
+    if (!_settings.configuration.containsKey('environment')) {
+      return _environment.environmentConstants;
+    }
 
     var environment = _settings.configuration['environment'];
     if (environment is Map &&
         environment.keys.every((key) => key is String) &&
         environment.values.every((key) => key is String)) {
-      return environment;
+      return mergeMaps(environment, _environment.environmentConstants);
     }
 
     throw new FormatException('Invalid value for \$dart2js.environment: '

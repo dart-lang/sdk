@@ -60,15 +60,19 @@ class AssetEnvironment {
   /// entrypoints are loaded. Each entrypoint is expected to refer to a Dart
   /// library.
   ///
+  /// If [environmentConstants] is passed, the constants it defines are passed
+  /// on to the built-in dart2js transformer.
+  ///
   /// Returns a [Future] that completes to the environment once the inputs,
   /// transformers, and server are loaded and ready.
   static Future<AssetEnvironment> create(Entrypoint entrypoint,
       BarbackMode mode, {WatcherType watcherType, String hostname, int basePort,
       Iterable<String> packages, Iterable<AssetId> entrypoints,
-      bool useDart2JS: true}) {
+      Map<String, String> environmentConstants, bool useDart2JS: true}) {
     if (watcherType == null) watcherType = WatcherType.NONE;
     if (hostname == null) hostname = "localhost";
     if (basePort == null) basePort = 0;
+    if (environmentConstants == null) environmentConstants = {};
 
     return log.progress("Loading asset environment", () async {
       var graph = await entrypoint.loadPackageGraph();
@@ -77,7 +81,7 @@ class AssetEnvironment {
       barback.log.listen(_log);
 
       var environment = new AssetEnvironment._(graph, barback, mode,
-          watcherType, hostname, basePort);
+          watcherType, hostname, basePort, environmentConstants);
 
       await environment._load(entrypoints: entrypoints, useDart2JS: useDart2JS);
       return environment;
@@ -125,6 +129,9 @@ class AssetEnvironment {
   /// The mode to run the transformers in.
   final BarbackMode mode;
 
+  /// Constants to passed to the built-in dart2js transformer.
+  final Map<String, String> environmentConstants;
+
   /// The [Transformer]s that should be appended by default to the root
   /// package's transformer cascade. Will be empty if there are none.
   final _builtInTransformers = <Transformer>[];
@@ -158,7 +165,8 @@ class AssetEnvironment {
   Set<AssetId> _modifiedSources;
 
   AssetEnvironment._(this.graph, this.barback, this.mode,
-        this._watcherType, this._hostname, this._basePort);
+        this._watcherType, this._hostname, this._basePort,
+        this.environmentConstants);
 
   /// Gets the built-in [Transformer]s that should be added to [package].
   ///

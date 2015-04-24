@@ -35,6 +35,10 @@ class BuildCommand extends BarbackCommand {
   int builtFiles = 0;
 
   BuildCommand() {
+    argParser.addOption("define", abbr: "D",
+        help: "Defines an environment constant for dart2js.",
+        allowMultiple: true, splitCommas: false);
+
     argParser.addOption("format",
         help: "How output should be displayed.",
         allowed: ["text", "json"], defaultsTo: "text");
@@ -50,10 +54,16 @@ class BuildCommand extends BarbackCommand {
     var errorsJson = [];
     var logJson = [];
 
+    var environmentConstants = new Map.fromIterable(argResults["define"],
+        key: (pair) => pair.split("=").first,
+        value: (pair) => pair.split("=").last);
+
     // Since this server will only be hit by the transformer loader and isn't
     // user-facing, just use an IPv4 address to avoid a weird bug on the
     // OS X buildbots.
-    return AssetEnvironment.create(entrypoint, mode, useDart2JS: true)
+    return AssetEnvironment.create(entrypoint, mode,
+            environmentConstants: environmentConstants,
+            useDart2JS: true)
         .then((environment) {
       // Show in-progress errors, but not results. Those get handled
       // implicitly by getAllAssets().
