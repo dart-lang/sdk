@@ -395,7 +395,15 @@ abstract class ContextManager {
         for (JavaFile file in packagesDir.listFiles()) {
           // Ensure symlinks in packages directory are canonicalized
           // to prevent 'type X cannot be assigned to type X' warnings
-          Resource res = resourceProvider.getResource(file.getCanonicalPath());
+          String path;
+          try {
+            path = file.getCanonicalPath();
+          } catch (e, s) {
+            // Ignore packages that do not exist
+            _instrumentationService.logException(e, s);
+            continue;
+          }
+          Resource res = resourceProvider.getResource(path);
           if (res is Folder) {
             packageMap[file.getName()] = <Folder>[res];
           }
