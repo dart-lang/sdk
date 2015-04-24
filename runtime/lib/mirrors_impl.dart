@@ -15,11 +15,11 @@ class _InternalMirrorError {
   String toString() => _msg;
 }
 
-String _n(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
+String _n(Symbol symbol) => internal.Symbol.getName(symbol);
 
 Symbol _s(String name) {
   if (name == null) return null;
-  return new _symbol_dev.Symbol.unvalidated(name);
+  return new internal.Symbol.unvalidated(name);
 }
 
 Symbol _computeQualifiedName(DeclarationMirror owner, Symbol simpleName) {
