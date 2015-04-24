@@ -142,7 +142,7 @@ class ObservatoryApplication extends Observable {
     if (exception.kind == 'NetworkException') {
       // Got a network exception, visit the vm-connect page.
       this.vm = null;
-      locationManager.go(locationManager.makeLink('/vm-connect/'));
+      locationManager.go(locationManager.makeLink('/vm-connect'));
     } else {
       _visit(Uri.parse('error/'), {});
     }
@@ -216,5 +216,10 @@ class ObservatoryApplication extends Observable {
     notifications.removeWhere((oldEvent) {
         return (oldEvent.eventType == ServiceEvent.kConnectionClosed);
       });
+  }
+
+  loadCrashDump(Map crashDump) {
+    this.vm = new FakeVM(crashDump['result']);
+    app.locationManager.go('#/vm');
   }
 }

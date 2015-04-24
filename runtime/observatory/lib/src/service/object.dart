@@ -567,6 +567,77 @@ abstract class VM extends ServiceObjectOwner {
   }
 }
 
+class FakeVM extends VM {
+  final Map _responses = {};
+  FakeVM(Map responses) {
+    if (responses == null) {
+      return;
+    }
+    responses.forEach((uri, response) {
+      // Encode as string.
+      _responses[_canonicalizeUri(Uri.parse(uri))] = response;
+    });
+  }
+
+  String _canonicalizeUri(Uri uri) {
+    // We use the uri as the key to the response map. Uri parameters can be
+    // serialized in any order, this function canonicalizes the uri parameters
+    // so they are serialized in sorted-by-parameter-name order.
+    var method = uri.path;
+    // Create a map sorted on insertion order.
+    var parameters = new Map();
+    // Sort keys.
+    var sortedKeys = uri.queryParameters.keys.toList();
+    sortedKeys.sort();
+    // Filter keys.
+    if (method == 'getStack') {
+      // Remove the 'full' parameter.
+      sortedKeys.remove('full');
+    }
+    // Insert parameters in sorted order.
+    for (var key in sortedKeys) {
+      parameters[key] = uri.queryParameters[key];
+    }
+    // Return canonical uri.
+    return new Uri(path: method, queryParameters: parameters).toString();
+  }
+
+  /// Force the VM to disconnect.
+  void disconnect() {
+    _onDisconnect.complete(this);
+  }
+
+  // Always connected.
+  Future _onConnect;
+  Future get onConnect {
+    if (_onConnect != null) {
+      return _onConnect;
+    }
+    _onConnect = new Future.value(this);
+    return _onConnect;
+  }
+  // Only complete when requested.
+  Completer _onDisconnect = new Completer();
+  Future get onDisconnect => _onDisconnect.future;
+
+  Future<Map> invokeRpcRaw(String method, Map params) {
+    if (params.isEmpty) {
+      params = null;
+    }
+    var key = _canonicalizeUri(new Uri(path: method, queryParameters: params));
+    var response = _responses[key];
+    if (response == null) {
+      return new Future.error({
+        'type': 'ServiceException',
+        'kind': 'NotContainedInResponses',
+        'key': key
+      });
+    }
+    return new Future.value(response);
+  }
+}
+
+
 /// Snapshot in time of tag counters.
 class TagProfileSnapshot {
   final double seconds;

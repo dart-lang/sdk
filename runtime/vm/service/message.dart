@@ -53,6 +53,16 @@ class Message {
     params.addAll(uri.queryParameters);
   }
 
+  Message.forIsolate(Uri uri, RunningIsolate isolate)
+      : method = _methodNameFromUri(uri) {
+    params.addAll(uri.queryParameters);
+    params['isolateId'] = isolate.serviceId;
+  }
+
+  Uri toUri() {
+    return new Uri(path: method, queryParameters: params);
+  }
+
   dynamic toJson() {
     return {
       'path': path,

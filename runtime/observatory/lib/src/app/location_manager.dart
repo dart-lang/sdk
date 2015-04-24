@@ -84,12 +84,12 @@ class LocationManager extends Observable {
 
   /// Navigate to [url].
   void go(String url, [bool addToBrowserHistory = true]) {
-    if ((url != makeLink('/vm-connect/')) && _app.vm == null) {
+    if ((url != makeLink('/vm-connect')) && _app.vm == null) {
       if (!window.confirm('Connection with VM has been lost. '
                           'Proceeding will lose current page.')) {
         return;
       }
-      url = makeLink('/vm-connect/');
+      url = makeLink('/vm-connect');
     }
     if (addToBrowserHistory) {
       _addToBrowserHistory(url);

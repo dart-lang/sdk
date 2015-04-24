@@ -881,12 +881,13 @@ const char* ActivationFrame::ToCString() {
 }
 
 
-void ActivationFrame::PrintToJSONObject(JSONObject* jsobj) {
+void ActivationFrame::PrintToJSONObject(JSONObject* jsobj,
+                                        bool full) {
   const Script& script = Script::Handle(SourceScript());
   jsobj->AddProperty("type", "Frame");
-  jsobj->AddProperty("script", script);
+  jsobj->AddProperty("script", script, !full);
   jsobj->AddProperty("tokenPos", TokenPos());
-  jsobj->AddProperty("function", function());
+  jsobj->AddProperty("function", function(), !full);
   jsobj->AddProperty("code", code());
   {
     JSONArray jsvars(jsobj, "vars");
@@ -898,7 +899,7 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj) {
       intptr_t unused;
       VariableAt(v, &var_name, &unused, &unused, &var_value);
       jsvar.AddProperty("name", var_name.ToCString());
-      jsvar.AddProperty("value", var_value);
+      jsvar.AddProperty("value", var_value, !full);
     }
   }
 }

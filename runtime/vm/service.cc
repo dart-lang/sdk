@@ -292,7 +292,10 @@ class BoolParameter : public MethodParameter {
     return (strcmp("true", value) == 0) || (strcmp("false", value) == 0);
   }
 
-  static bool Parse(const char* value) {
+  static bool Parse(const char* value, bool default_value = false) {
+    if (value == NULL) {
+      return default_value;
+    }
     return strcmp("true", value) == 0;
   }
 };
@@ -718,20 +721,25 @@ static bool GetIsolate(Isolate* isolate, JSONStream* js) {
 
 static const MethodParameter* get_stack_params[] = {
   ISOLATE_PARAMETER,
+  new BoolParameter("full", false),
   NULL,
 };
 
 
 static bool GetStack(Isolate* isolate, JSONStream* js) {
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
+  // Do we want the complete script object and complete local variable objects?
+  // This is true for dump requests.
+  const bool full = BoolParameter::Parse(js->LookupParam("full"), false);
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Stack");
   JSONArray jsarr(&jsobj, "frames");
+
   intptr_t num_frames = stack->Length();
   for (intptr_t i = 0; i < num_frames; i++) {
     ActivationFrame* frame = stack->FrameAt(i);
     JSONObject jsobj(&jsarr);
-    frame->PrintToJSONObject(&jsobj);
+    frame->PrintToJSONObject(&jsobj, full);
     // TODO(turnidge): Implement depth differently -- differentiate
     // inlined frames.
     jsobj.AddProperty("depth", i);

@@ -113,7 +113,7 @@ class VMPage extends SimplePage {
         serviceElement.object = vm;
       }
     }).catchError((e, stack) {
-      Logger.root.severe('VMPage visit error: $e\n$stack');
+      Logger.root.severe('VMPage visit error: $e');
     });
   }
 }
@@ -274,7 +274,7 @@ class ErrorViewPage extends Page {
   }
 
   // TODO(turnidge): How to test this page?
-  bool canVisit(Uri uri) => uri.path.startsWith('error/');
+  bool canVisit(Uri uri) => uri.path == 'error';
 }
 
 class VMConnectPage extends Page {
@@ -292,8 +292,7 @@ class VMConnectPage extends Page {
     assert(canVisit(uri));
   }
 
-  // TODO(turnidge): Update this to not have the trailing slash.
-  bool canVisit(Uri uri) => uri.path.startsWith('vm-connect/');
+  bool canVisit(Uri uri) => uri.path == 'vm-connect';
 }
 
 class MetricsPage extends Page {

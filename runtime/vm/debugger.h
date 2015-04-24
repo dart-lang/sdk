@@ -200,7 +200,10 @@ class ActivationFrame : public ZoneAllocated {
 
   RawObject* Evaluate(const String& expr);
 
-  void PrintToJSONObject(JSONObject* jsobj);
+  // Print the activation frame into |jsobj|. if |full| is false, script
+  // and local variable objects are only references. if |full| is true,
+  // the complete script, function, and, local variable objects are included.
+  void PrintToJSONObject(JSONObject* jsobj, bool full = false);
 
  private:
   void PrintContextMismatchError(const String& var_name,

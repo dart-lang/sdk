@@ -883,6 +883,11 @@ class ObservatoryDebugger extends Debugger {
           _refreshStack(isolate.pauseEvent).then((_) {
             reportStatus();
           });
+        }).catchError((_) {
+          // Error loading libraries, try and display stack.
+          _refreshStack(isolate.pauseEvent).then((_) {
+            reportStatus();
+          });
         });
       });
     } else {
