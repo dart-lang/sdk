@@ -93,6 +93,18 @@ library dart.async;
 import "dart:collection";
 import "dart:_internal" show deprecated, printToZone, printToConsole,
                              IterableElementError;
+import 'dart:_js_helper' show
+    patch,
+    Primitives,
+    convertDartClosureToJS,
+    requiresPreamble;
+import 'dart:_isolate_helper' show
+    IsolateNatives,
+    TimerImpl,
+    leaveJsAsync,
+    enterJsAsync,
+    isWorker;
+import 'dart:_foreign_helper' show JS;
 
 part 'async_error.dart';
 part 'broadcast_stream_controller.dart';
@@ -107,17 +119,5 @@ part 'stream_pipe.dart';
 part 'stream_transformers.dart';
 part 'timer.dart';
 part 'zone.dart';
-import 'dart:_js_helper' show
-    patch,
-    Primitives,
-    convertDartClosureToJS,
-    requiresPreamble;
-import 'dart:_isolate_helper' show
-    IsolateNatives,
-    TimerImpl,
-    leaveJsAsync,
-    enterJsAsync,
-    isWorker;
-import 'dart:_foreign_helper' show JS;
 
 bool get _hasDocument => JS('String', 'typeof document') == 'object';

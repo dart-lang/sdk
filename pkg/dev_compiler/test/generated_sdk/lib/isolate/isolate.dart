@@ -11,8 +11,6 @@
 library dart.isolate;
 
 import "dart:async";
-
-part "capability.dart";
 import 'dart:_js_helper' show patch;
 import 'dart:_isolate_helper' show CapabilityImpl,
                                    CloseToken,
@@ -20,6 +18,8 @@ import 'dart:_isolate_helper' show CapabilityImpl,
                                    JsIsolateSink,
                                    ReceivePortImpl,
                                    RawReceivePortImpl;
+
+part "capability.dart";
 
 /**
  * Thrown when an isolate cannot be created.

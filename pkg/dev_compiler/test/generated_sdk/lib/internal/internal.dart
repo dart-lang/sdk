@@ -9,6 +9,9 @@ import 'dart:collection';
 import 'dart:core' hide Symbol;
 import 'dart:core' as core;
 import 'dart:math' show Random;
+import 'dart:_js_primitives' show printString;
+import 'dart:_js_helper' show JS, patch;
+import 'dart:_interceptors' show JSArray;
 
 part 'iterable.dart';
 part 'list.dart';
@@ -16,9 +19,6 @@ part 'lists.dart';
 part 'print.dart';
 part 'sort.dart';
 part 'symbol.dart';
-import 'dart:_js_primitives' show printString;
-import 'dart:_js_helper' show JS, patch;
-import 'dart:_interceptors' show JSArray;
 
 // Powers of 10 up to 10^22 are representable as doubles.
 // Powers of 10 above that are only approximate due to lack of precission.

@@ -56,6 +56,11 @@ library dart.convert;
 
 import 'dart:async';
 import 'dart:typed_data';
+import 'dart:_js_helper' show patch;
+import 'dart:_foreign_helper' show JS;
+import 'dart:_interceptors' show JSExtendableArray;
+import 'dart:_internal' show MappedIterable, ListIterable;
+import 'dart:collection' show Maps, LinkedHashMap;
 
 part 'ascii.dart';
 part 'byte_conversion.dart';
@@ -69,11 +74,6 @@ part 'latin1.dart';
 part 'line_splitter.dart';
 part 'string_conversion.dart';
 part 'utf.dart';
-import 'dart:_js_helper' show patch;
-import 'dart:_foreign_helper' show JS;
-import 'dart:_interceptors' show JSExtendableArray;
-import 'dart:_internal' show MappedIterable, ListIterable;
-import 'dart:collection' show Maps, LinkedHashMap;
 
 /**
  * Walks the raw JavaScript value [json], replacing JavaScript Objects with

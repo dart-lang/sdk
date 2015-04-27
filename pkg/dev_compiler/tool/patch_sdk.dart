@@ -159,21 +159,34 @@ class PatchApplier extends GeneralizingAstVisitor {
     if (_isLibrary) _mergeUnpatched(node);
   }
 
+  void _merge(AstNode node, int pos) {
+    var code = patch.contents.substring(node.offset, node.end);
+    edits.insert(pos, '\n' + code);
+  }
+
   /// Merges directives and declarations that are not `@patch` into the library.
   void _mergeUnpatched(CompilationUnit unit) {
-    // Merge directives from the patch
+
+    // Merge imports from the patch
     // TODO(jmesserly): remove duplicate imports
-    var directivePos = unit.directives.last.end;
-    for (var directive in patch.unit.directives) {
-      var code = patch.contents.substring(directive.offset, directive.end);
-      edits.insert(directivePos, '\n' + code);
+
+    // To patch a library, we must have a library directive
+    var libDir = unit.directives.first as LibraryDirective;
+    int importPos = unit.directives.lastWhere((d) => d is ImportDirective,
+        orElse: () => libDir).end;
+    for (var d in patch.unit.directives.where((d) => d is ImportDirective)) {
+      _merge(d, importPos);
+    }
+
+    int partPos = unit.directives.last.end;
+    for (var d in patch.unit.directives.where((d) => d is PartDirective)) {
+      _merge(d, partPos);
     }
 
     // Merge declarations from the patch
-    var declarationPos = edits.original.length;
-    for (var declaration in patch.mergeDeclarations) {
-      var code = patch.contents.substring(declaration.offset, declaration.end);
-      edits.insert(declarationPos, '\n' + code);
+    int declPos = edits.original.length;
+    for (var d in patch.mergeDeclarations) {
+      _merge(d, declPos);
     }
   }
 

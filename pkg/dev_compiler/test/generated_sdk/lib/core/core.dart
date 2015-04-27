@@ -156,7 +156,18 @@ import "dart:collection";
 import "dart:_internal" hide Symbol;
 import "dart:_internal" as internal show Symbol;
 import "dart:convert" show UTF8, LATIN1, Encoding;
-import "dart:math" show Random;  // Used by List.shuffle.
+import "dart:math" show Random;
+import "dart:_internal" as _symbol_dev;
+import 'dart:_interceptors';
+import 'dart:_js_helper' show patch,
+                              checkInt,
+                              getRuntimeType,
+                              jsonEncodeNative,
+                              JSSyntaxRegExp,
+                              Primitives,
+                              stringJoinUnchecked,
+                              objectHashCode;
+import 'dart:_foreign_helper' show JS;  // Used by List.shuffle.
 
 part "annotations.dart";
 part "bool.dart";
@@ -191,17 +202,6 @@ part "string_sink.dart";
 part "symbol.dart";
 part "type.dart";
 part "uri.dart";
-import "dart:_internal" as _symbol_dev;
-import 'dart:_interceptors';
-import 'dart:_js_helper' show patch,
-                              checkInt,
-                              getRuntimeType,
-                              jsonEncodeNative,
-                              JSSyntaxRegExp,
-                              Primitives,
-                              stringJoinUnchecked,
-                              objectHashCode;
-import 'dart:_foreign_helper' show JS;
 
 String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
 _symbolMapToStringMap(Map<Symbol, dynamic> map) {
