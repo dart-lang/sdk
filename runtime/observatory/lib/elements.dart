@@ -46,6 +46,7 @@ export 'package:observatory/src/elements/service_error_view.dart';
 export 'package:observatory/src/elements/service_exception_view.dart';
 export 'package:observatory/src/elements/service_view.dart';
 export 'package:observatory/src/elements/sliding_checkbox.dart';
+export 'package:observatory/src/elements/view_footer.dart';
 export 'package:observatory/src/elements/vm_connect.dart';
 export 'package:observatory/src/elements/vm_ref.dart';
 export 'package:observatory/src/elements/vm_view.dart';

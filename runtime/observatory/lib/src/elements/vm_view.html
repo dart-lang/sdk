@@ -7,6 +7,7 @@
 <link rel="import" href="nav_bar.html">
 <link rel="import" href="observatory_element.html">
 <link rel="import" href="script_ref.html">
+<link rel="import" href="view_footer.html">
 
 <polymer-element name="vm-view" extends="observatory-element">
   <template>
@@ -56,10 +57,8 @@
         </div>
       </div>
     </div>
-
     <br>
     <hr>
-
     <ul class="list-group">
       <template repeat="{{ isolate in vm.isolates }}">
       	<li class="list-group-item">
@@ -68,6 +67,7 @@
         <hr>
       </template>
     </ul>
+    <view-footer></view-footer>
   </template>
 </polymer-element>
 
