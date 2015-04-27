@@ -714,8 +714,6 @@ abstract class InferrerVisitor
 
   T visitGetterSend(Send node);
 
-  T visitClosureSend(Send node);
-
   T visitDynamicSend(Send node);
 
   T visitAsyncForIn(AsyncForIn node);

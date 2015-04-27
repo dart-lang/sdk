@@ -3623,25 +3623,53 @@ class SsaBuilder extends NewResolvedVisitor {
     }
   }
 
-  visitClosureSend(ast.Send node) {
-    Selector selector = elements.getSelector(node);
-    assert(node.receiver == null);
-    Element element = elements[node];
-    HInstruction closureTarget;
-    if (element == null) {
-      visit(node.selector);
-      closureTarget = pop();
-    } else {
-      LocalElement local = element;
-      closureTarget = localsHandler.readLocal(local);
-    }
-    var inputs = <HInstruction>[];
-    inputs.add(closureTarget);
-    addDynamicSendArgumentsToList(node, inputs);
-    Selector closureSelector = new Selector.callClosureFrom(selector);
-    pushWithPosition(
-        new HInvokeClosure(closureSelector, inputs, backend.dynamicType),
-        node);
+  @override
+  visitExpressionInvoke(
+      ast.Send node,
+      ast.Node expression,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    generateCallInvoke(node, visitAndPop(expression));
+  }
+
+  @override
+  visitThisInvoke(
+      ast.Send node,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    generateCallInvoke(node, localsHandler.readThis());
+  }
+
+  @override
+  visitParameterInvoke(
+      ast.Send node,
+      ParameterElement parameter,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    generateCallInvoke(node, localsHandler.readLocal(parameter));
+  }
+
+  @override
+  visitLocalVariableInvoke(
+      ast.Send node,
+      LocalVariableElement variable,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    generateCallInvoke(node, localsHandler.readLocal(variable));
+  }
+
+  @override
+  visitLocalFunctionInvoke(
+      ast.Send node,
+      LocalFunctionElement function,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    generateCallInvoke(node, localsHandler.readLocal(function));
   }
 
   void handleForeignJs(ast.Send node) {
@@ -4773,11 +4801,17 @@ class SsaBuilder extends NewResolvedVisitor {
     // reference instead of creating a NoSuchMethodError to avoid pulling it
     // in if it is not used (e.g., in a try/catch).
     HInstruction target = pop();
+    generateCallInvoke(node, target);
+  }
+
+  /// Generate a '.call' invocation on [target].
+  void generateCallInvoke(ast.Send node, HInstruction target) {
     Selector selector = elements.getSelector(node);
     List<HInstruction> inputs = <HInstruction>[target];
     addDynamicSendArgumentsToList(node, inputs);
     Selector closureSelector = new Selector.callClosureFrom(selector);
-    push(new HInvokeClosure(closureSelector, inputs, backend.dynamicType));
+    pushWithPosition(
+        new HInvokeClosure(closureSelector, inputs, backend.dynamicType), node);
   }
 
   visitGetterSend(ast.Send node) {

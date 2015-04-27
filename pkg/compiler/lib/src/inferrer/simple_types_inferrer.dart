@@ -1195,26 +1195,70 @@ class SimpleTypeInferrerVisitor<T>
     return handleLocalGet(node, function);
   }
 
-  T visitClosureSend(ast.Send node) {
-    assert(node.receiver == null);
-    T closure = node.selector.accept(this);
+  /// Handle .call invocation on [closure].
+  T handleCallInvoke(ast.Send node, T closure) {
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
-    Element element = elements[node];
     Selector selector = elements.getSelector(node);
-    if (element != null && element.isFunction) {
-      assert(element.isLocal);
-      if (!selector.applies(element, compiler.world)) return types.dynamicType;
-      // This only works for function statements. We need a
-      // more sophisticated type system with function types to support
-      // more.
-      return inferrer.registerCalledElement(
-          node, selector, outermostElement, element, arguments,
-          sideEffects, inLoop);
-    } else {
-      return inferrer.registerCalledClosure(
-          node, selector, closure, outermostElement, arguments,
-          sideEffects, inLoop);
-    }
+    return inferrer.registerCalledClosure(
+        node, selector, closure, outermostElement, arguments,
+        sideEffects, inLoop);
+  }
+
+  @override
+  T visitExpressionInvoke(
+      ast.Send node,
+      ast.Node expression,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    return handleCallInvoke(node, expression.accept(this));
+   }
+
+  @override
+  T visitThisInvoke(
+      ast.Send node,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleCallInvoke(node, thisType);
+  }
+
+  @override
+  T visitParameterInvoke(
+      ast.Send node,
+      ParameterElement parameter,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleCallInvoke(node, locals.use(parameter));
+  }
+
+  @override
+  T visitLocalVariableInvoke(
+      ast.Send node,
+      LocalVariableElement variable,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleCallInvoke(node, locals.use(variable));
+  }
+
+  @override
+  T visitLocalFunctionInvoke(
+      ast.Send node,
+      LocalFunctionElement function,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    ArgumentsTypes argumentTypes = analyzeArguments(node.arguments);
+    Selector selector = elements.getSelector(node);
+    if (!selector.applies(function, compiler.world)) return types.dynamicType;
+    // This only works for function statements. We need a
+    // more sophisticated type system with function types to support
+    // more.
+    return inferrer.registerCalledElement(
+        node, selector, outermostElement, function, argumentTypes,
+        sideEffects, inLoop);
   }
 
   T handleStaticSend(ast.Node node,
