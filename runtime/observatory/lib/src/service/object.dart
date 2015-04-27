@@ -2175,6 +2175,8 @@ class Script extends ServiceObject with Coverage {
   @observable String kind;
   @observable int firstTokenPos;
   @observable int lastTokenPos;
+  @observable int lineOffset;
+  @observable int columnOffset;
   @observable Library library;
   bool get canCache => true;
   bool get immutable => true;
@@ -2186,7 +2188,7 @@ class Script extends ServiceObject with Coverage {
 
   ScriptLine getLine(int line) {
     assert(line >= 1);
-    return lines[line - 1];
+    return lines[line - lineOffset - 1];
   }
 
   /// This function maps a token position to a line number.
@@ -2207,6 +2209,8 @@ class Script extends ServiceObject with Coverage {
     if (mapIsRef) {
       return;
     }
+    lineOffset = map['lineOffset'];
+    columnOffset = map['columnOffset'];
     _parseTokenPosTable(map['tokenPosTable']);
     _processSource(map['source']);
     library = map['library'];
@@ -2292,7 +2296,7 @@ class Script extends ServiceObject with Coverage {
     lines.clear();
     Logger.root.info('Adding ${sourceLines.length} source lines for ${_url}');
     for (var i = 0; i < sourceLines.length; i++) {
-      lines.add(new ScriptLine(this, i + 1, sourceLines[i]));
+      lines.add(new ScriptLine(this, i + lineOffset + 1, sourceLines[i]));
     }
     for (var bpt in isolate.breakpoints.values) {
       if (bpt.script == this) {

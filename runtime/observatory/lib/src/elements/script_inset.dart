@@ -335,7 +335,7 @@ class ScriptInsetElement extends ObservatoryElement {
   void computeAnnotations() {
     _startLine = (startPos != null
                   ? script.tokenToLine(startPos)
-                  : 1);
+                  : 1 + script.lineOffset);
     _currentLine = (currentPos != null
                     ? script.tokenToLine(currentPos)
                     : null);
@@ -344,7 +344,7 @@ class ScriptInsetElement extends ObservatoryElement {
                    : null);
     _endLine = (endPos != null
                 ? script.tokenToLine(endPos)
-                : script.lines.length);
+                : script.lines.length + script.lineOffset);
 
     annotations.clear();
     if (_currentLine != null) {
@@ -386,8 +386,9 @@ class ScriptInsetElement extends ObservatoryElement {
     annotationsCursor = 0;
 
     int blankLineCount = 0;
-    for (int i = (_startLine - 1); i <= (_endLine - 1); i++) {
-      if (script.lines[i].isBlank) {
+    for (int i = _startLine; i <= _endLine; i++) {
+      var line = script.getLine(i);
+      if (line.isBlank) {
         // Try to introduce elipses if there are 4 or more contiguous
         // blank lines.
         blankLineCount++;
@@ -398,17 +399,17 @@ class ScriptInsetElement extends ObservatoryElement {
           if (blankLineCount < 4) {
             // Too few blank lines for an elipsis.
             for (int j = firstBlank; j  <= lastBlank; j++) {
-              table.append(lineElement(script.lines[j]));
+              table.append(lineElement(script.getLine(j)));
             }
           } else {
             // Add an elipsis for the skipped region.
-            table.append(lineElement(script.lines[firstBlank]));
+            table.append(lineElement(script.getLine(firstBlank)));
             table.append(lineElement(null));
-            table.append(lineElement(script.lines[lastBlank]));
+            table.append(lineElement(script.getLine(lastBlank)));
           }
           blankLineCount = 0;
         }
-        table.append(lineElement(script.lines[i]));
+        table.append(lineElement(line));
       }
     }
 

@@ -8552,6 +8552,8 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   jsobj.AddProperty("library", lib);
   const String& source = String::Handle(Source());
+  jsobj.AddProperty("lineOffset", line_offset());
+  jsobj.AddProperty("columnOffset", col_offset());
   jsobj.AddPropertyStr("source", source);
 
   // Print the line number table
