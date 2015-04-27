@@ -25,14 +25,16 @@
 namespace dart {
 
 
-#if defined(TARGET_OS_ANDROID) || defined(HOST_ARCH_ARM64)
-  DEFINE_FLAG(bool, profile, false, "Enable Sampling Profiler");
-#else
-  DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");
-#endif
+DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
-DEFINE_FLAG(int, profile_period, 1000,
-            "Time between profiler samples in microseconds. Minimum 50.");
+#if defined(TARGET_OS_ANDROID) || defined(TARGET_ARCH_ARM64) ||                \
+    defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+  DEFINE_FLAG(int, profile_period, 10000,
+              "Time between profiler samples in microseconds. Minimum 50.");
+#else
+  DEFINE_FLAG(int, profile_period, 1000,
+              "Time between profiler samples in microseconds. Minimum 50.");
+#endif
 DEFINE_FLAG(int, profile_depth, 8,
             "Maximum number stack frames walked. Minimum 1. Maximum 255.");
 #if defined(PROFILE_NATIVE_CODE) || defined(USING_SIMULATOR)
