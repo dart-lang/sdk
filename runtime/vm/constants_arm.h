@@ -235,6 +235,7 @@ const Register CTX = R9;  // Location of current context at method entry.
 const Register PP = R10;  // Caches object pool pointer in generated code.
 const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
+const Register LRREG = LR;  // Link register.
 const Register ICREG = R5;  // IC data register.
 const Register ARGS_DESC_REG = R4;
 

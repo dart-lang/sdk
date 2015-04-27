@@ -1053,7 +1053,7 @@ void Simulator::UnimplementedInstruction(Instr* instr) {
 uword Simulator::StackTop() const {
   // To be safe in potential stack underflows we leave some buffer above and
   // set the stack top.
-  return reinterpret_cast<uword>(stack_) +
+  return StackBase() +
       (Isolate::GetSpecifiedStackSize() + Isolate::kStackSizeBuffer);
 }
 

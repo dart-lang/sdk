@@ -88,7 +88,8 @@ class Simulator {
     return fcsr_ & (1 << cc);
   }
 
-  // Accessor to the internal simulator stack top.
+  // Accessors to the internal simulator stack base and top.
+  uword StackBase() const { return reinterpret_cast<uword>(stack_); }
   uword StackTop() const;
 
   // Accessor to the instruction counter.
