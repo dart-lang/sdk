@@ -315,7 +315,7 @@ class String {
 
   static String _stringFromJSArray(List list, int start, int endOrNull) {
     int len = list.length;
-    int end = _checkBounds(len, start, endOrNull);
+    int end = RangeError.checkValidRange(start, endOrNull, len);
     if (start > 0 || end < len) {
       list = list.sublist(start, end);
     }
@@ -325,20 +325,8 @@ class String {
   static String _stringFromUint8List(
       NativeUint8List charCodes, int start, int endOrNull) {
     int len = charCodes.length;
-    int end = _checkBounds(len, start, endOrNull);
+    int end = RangeError.checkValidRange(start, endOrNull, len);
     return Primitives.stringFromNativeUint8List(charCodes, start, end);
-  }
-
-  static int _checkBounds(int len, int start, int end) {
-    if (start < 0 || start > len) {
-      throw new RangeError.range(start, 0, len);
-    }
-    if (end == null) {
-      end = len;
-    } else if (end < start || end > len) {
-      throw new RangeError.range(end, start, len);
-    }
-    return end;
   }
 
   static String _stringFromIterable(Iterable<int> charCodes,
