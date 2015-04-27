@@ -595,6 +595,7 @@ class CodeRegion : public ZoneAllocated {
     obj.AddProperty("type", "@Code");
     obj.AddProperty("kind", "Native");
     obj.AddProperty("name", name());
+    obj.AddProperty("_optimized", false);
     obj.AddPropertyF("start", "%" Px "", start());
     obj.AddPropertyF("end", "%" Px "", end());
     {
@@ -610,6 +611,7 @@ class CodeRegion : public ZoneAllocated {
     obj.AddProperty("type", "@Code");
     obj.AddProperty("kind", "Collected");
     obj.AddProperty("name", name());
+    obj.AddProperty("_optimized", false);
     obj.AddPropertyF("start", "%" Px "", start());
     obj.AddPropertyF("end", "%" Px "", end());
     {
@@ -625,6 +627,7 @@ class CodeRegion : public ZoneAllocated {
     obj.AddProperty("type", "@Code");
     obj.AddProperty("kind", "Collected");
     obj.AddProperty("name", name());
+    obj.AddProperty("_optimized", false);
     obj.AddPropertyF("start", "%" Px "", start());
     obj.AddPropertyF("end", "%" Px "", end());
     {
@@ -643,6 +646,7 @@ class CodeRegion : public ZoneAllocated {
     obj.AddProperty("name", name());
     obj.AddPropertyF("start", "%" Px "", start());
     obj.AddPropertyF("end", "%" Px "", end());
+    obj.AddProperty("_optimized", false);
     {
       // Generate a fake function entry.
       JSONObject func(&obj, "function");

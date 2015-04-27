@@ -2614,7 +2614,7 @@ class Code extends ServiceObject {
   /// a [ServiceError].
   Future<ServiceObject> reload() {
     assert(kind != null);
-    if (kind == CodeKind.Dart) {
+    if (isDartCode) {
       // We only reload Dart code.
       return super.reload();
     }
@@ -2753,6 +2753,8 @@ class Code extends ServiceObject {
 
   @reflectable bool get isDartCode => (kind == CodeKind.Dart) ||
                                       (kind == CodeKind.Stub);
+
+  String toString() => 'Code($kind, $name)';
 }
 
 
