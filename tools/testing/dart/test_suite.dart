@@ -423,7 +423,6 @@ abstract class TestSuite {
     var dartDir = TestUtils.dartDir;
     var futures = [
       listDir(dartDir.append('pkg'), isValid),
-      listDir(dartDir.append('pkg').append('third_party'), isValid),
       listDir(dartDir.append('third_party').append('pkg'), isValid),
       listDir(dartDir.append('runtime').append('observatory'), isValid),
     ];
