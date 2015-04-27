@@ -12575,7 +12575,8 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     descriptors.PrintToJSONObject(&desc, false);
   }
   const Array& inlined_function_table = Array::Handle(inlined_id_to_function());
-  if (!inlined_function_table.IsNull()) {
+  if (!inlined_function_table.IsNull() &&
+      (inlined_function_table.Length() > 0)) {
     JSONArray inlined_functions(&jsobj, "_inlinedFunctions");
     Function& function = Function::Handle();
     for (intptr_t i = 0; i < inlined_function_table.Length(); i++) {
@@ -12585,7 +12586,7 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     }
   }
   const Array& intervals = Array::Handle(inlined_intervals());
-  if (!intervals.IsNull()) {
+  if (!intervals.IsNull() && (intervals.Length() > 0)) {
     Smi& start = Smi::Handle();
     Smi& end = Smi::Handle();
     Smi& temp_smi = Smi::Handle();
@@ -12665,6 +12666,7 @@ RawStackmap* Code::GetStackmap(
 intptr_t Code::GetCallerId(intptr_t inlined_id) const {
   if (inlined_id < 0) return -1;
   const Array& intervals = Array::Handle(inlined_intervals());
+  if (intervals.IsNull() || (intervals.Length() == 0)) return -1;
   Smi& temp_smi = Smi::Handle();
   for (intptr_t i = 0; i < intervals.Length() - Code::kInlIntNumEntries;
        i += Code::kInlIntNumEntries) {
@@ -12682,7 +12684,7 @@ void Code::GetInlinedFunctionsAt(
     intptr_t offset, GrowableArray<Function*>* fs) const {
   fs->Clear();
   const Array& intervals = Array::Handle(inlined_intervals());
-  if (intervals.IsNull()) {
+  if (intervals.IsNull() || (intervals.Length() == 0)) {
     // E.g., for code stubs.
     return;
   }
@@ -12724,6 +12726,7 @@ void Code::GetInlinedFunctionsAt(
 void Code::DumpInlinedIntervals() const {
   OS::Print("Inlined intervals:\n");
   const Array& intervals = Array::Handle(inlined_intervals());
+  if (intervals.IsNull() || (intervals.Length() == 0)) return;
   Smi& start = Smi::Handle();
   Smi& inlining_id = Smi::Handle();
   Smi& caller_id = Smi::Handle();

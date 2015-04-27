@@ -470,13 +470,13 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
       GrowableArray<const Function*> inline_id_to_function;
       // For a given inlining-id(index) specifies the caller's inlining-id.
       GrowableArray<intptr_t> caller_inline_id;
-      inline_id_to_function.Add(&function);
-      // Top scope function has no caller (-1).
-      caller_inline_id.Add(-1);
       // Collect all instance fields that are loaded in the graph and
       // have non-generic type feedback attached to them that can
       // potentially affect optimizations.
       if (optimized) {
+        inline_id_to_function.Add(&function);
+        // Top scope function has no caller (-1).
+        caller_inline_id.Add(-1);
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphoptimizer_timer,
                          isolate);

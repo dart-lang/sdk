@@ -350,8 +350,8 @@ var tests = [
     expect(result['_objectPool'], isNotNull);
     expect(result['_disassembly'], isNotNull);
     expect(result['_descriptors'], isNotNull);
-    expect(result['_inlinedFunctions'], isNotNull);
-    expect(result['_inlinedIntervals'], isNotNull);
+    expect(result['_inlinedFunctions'], anyOf([isNull, new isInstanceOf<List>()]));
+    expect(result['_inlinedIntervals'], anyOf([isNull, new isInstanceOf<List>()]));
   },
 
   // invalid code.

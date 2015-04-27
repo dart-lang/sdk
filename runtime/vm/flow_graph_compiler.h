@@ -527,8 +527,7 @@ class FlowGraphCompiler : public ValueObject {
   void AddStubCallTarget(const Code& code);
 
   const Array& inlined_code_intervals() const {
-    ASSERT(inlined_code_intervals_ != NULL);
-    return *inlined_code_intervals_;
+    return inlined_code_intervals_;
   }
 
   RawArray* InliningIdToFunction() const;
@@ -708,7 +707,7 @@ class FlowGraphCompiler : public ValueObject {
 
   ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data_;
 
-  const Array* inlined_code_intervals_;
+  Array& inlined_code_intervals_;
   const GrowableArray<const Function*>& inline_id_to_function_;
   const GrowableArray<intptr_t>& caller_inline_id_;
 

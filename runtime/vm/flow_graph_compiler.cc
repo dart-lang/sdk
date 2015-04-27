@@ -128,7 +128,7 @@ FlowGraphCompiler::FlowGraphCompiler(
         patch_code_pc_offset_(Code::kInvalidPc),
         lazy_deopt_pc_offset_(Code::kInvalidPc),
         deopt_id_to_ic_data_(NULL),
-        inlined_code_intervals_(NULL),
+        inlined_code_intervals_(Array::ZoneHandle(Object::empty_array().raw())),
         inline_id_to_function_(inline_id_to_function),
         caller_inline_id_(caller_inline_id) {
   ASSERT(flow_graph->parsed_function().function().raw() ==
@@ -448,43 +448,46 @@ void FlowGraphCompiler::VisitBlocks() {
     // truncate 'inline_id_to_function_'.
   }
 
-  intervals.Add(IntervalStruct(prev_offset, prev_inlining_id));
-  inlined_code_intervals_ = &Array::ZoneHandle(Array::New(
-      intervals.length() * Code::kInlIntNumEntries, Heap::kOld));
-  Smi& start_h = Smi::Handle();
-  Smi& caller_inline_id = Smi::Handle();
-  Smi& inline_id = Smi::Handle();
-  for (intptr_t i = 0; i < intervals.length(); i++) {
-    if (FLAG_trace_inlining_intervals && is_optimizing()) {
-      const Function* function =
-          inline_id_to_function_.At(intervals[i].inlining_id);
-      intervals[i].Dump();
-      OS::Print(" %s parent %" Pd "\n",
-          function->ToQualifiedCString(),
-          caller_inline_id_[intervals[i].inlining_id]);
-    }
-    const intptr_t id = intervals[i].inlining_id;
-    start_h = Smi::New(intervals[i].start);
-    inline_id = Smi::New(id);
-    caller_inline_id = Smi::New(caller_inline_id_[intervals[i].inlining_id]);
+  if (is_optimizing()) {
+    intervals.Add(IntervalStruct(prev_offset, prev_inlining_id));
+    inlined_code_intervals_ =
+        Array::New(intervals.length() * Code::kInlIntNumEntries, Heap::kOld);
+    Smi& start_h = Smi::Handle();
+    Smi& caller_inline_id = Smi::Handle();
+    Smi& inline_id = Smi::Handle();
+    for (intptr_t i = 0; i < intervals.length(); i++) {
+      if (FLAG_trace_inlining_intervals && is_optimizing()) {
+        const Function* function =
+            inline_id_to_function_.At(intervals[i].inlining_id);
+        intervals[i].Dump();
+        OS::Print(" %s parent %" Pd "\n",
+            function->ToQualifiedCString(),
+            caller_inline_id_[intervals[i].inlining_id]);
+      }
+      const intptr_t id = intervals[i].inlining_id;
+      start_h = Smi::New(intervals[i].start);
+      inline_id = Smi::New(id);
+      caller_inline_id = Smi::New(caller_inline_id_[intervals[i].inlining_id]);
 
-    const intptr_t p = i * Code::kInlIntNumEntries;
-    inlined_code_intervals_->SetAt(p + Code::kInlIntStart, start_h);
-    inlined_code_intervals_->SetAt(p + Code::kInlIntInliningId, inline_id);
-    inlined_code_intervals_->SetAt(p + Code::kInlIntCallerId, caller_inline_id);
+      const intptr_t p = i * Code::kInlIntNumEntries;
+      inlined_code_intervals_.SetAt(p + Code::kInlIntStart, start_h);
+      inlined_code_intervals_.SetAt(p + Code::kInlIntInliningId, inline_id);
+      inlined_code_intervals_.SetAt(
+          p + Code::kInlIntCallerId, caller_inline_id);
+    }
   }
   set_current_block(NULL);
   if (FLAG_trace_inlining_intervals && is_optimizing()) {
     OS::Print("Intervals:\n");
     Smi& temp = Smi::Handle();
-    for (intptr_t i = 0; i < inlined_code_intervals_->Length();
+    for (intptr_t i = 0; i < inlined_code_intervals_.Length();
          i += Code::kInlIntNumEntries) {
-      temp ^= inlined_code_intervals_->At(i + Code::kInlIntStart);
+      temp ^= inlined_code_intervals_.At(i + Code::kInlIntStart);
       ASSERT(!temp.IsNull());
       OS::Print("% " Pd " start: %" Px " ", i, temp.Value());
-      temp ^= inlined_code_intervals_->At(i + Code::kInlIntInliningId);
+      temp ^= inlined_code_intervals_.At(i + Code::kInlIntInliningId);
       OS::Print("inl-id: %" Pd " ", temp.Value());
-      temp ^= inlined_code_intervals_->At(i + Code::kInlIntCallerId);
+      temp ^= inlined_code_intervals_.At(i + Code::kInlIntCallerId);
       OS::Print("caller-id: %" Pd " \n", temp.Value());
     }
   }
@@ -1606,6 +1609,9 @@ const Class& FlowGraphCompiler::BoxClassFor(Representation rep) {
 
 
 RawArray* FlowGraphCompiler::InliningIdToFunction() const {
+  if (inline_id_to_function_.length() == 0) {
+    return Object::empty_array().raw();
+  }
   const Array& res = Array::Handle(
       Array::New(inline_id_to_function_.length(), Heap::kOld));
   for (intptr_t i = 0; i < inline_id_to_function_.length(); i++) {
