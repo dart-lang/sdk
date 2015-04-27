@@ -389,7 +389,8 @@ class _RelationshipCodecTest {
   }
 
   void test_all() {
-    Relationship relationship = Relationship.getRelationship('my-relationship');
+    RelationshipImpl relationship =
+        RelationshipImpl.getRelationship('my-relationship');
     int id = codec.encode(relationship);
     expect(codec.decode(id), relationship);
   }

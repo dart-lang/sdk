@@ -50,8 +50,8 @@ abstract class Index {
    * [relationship] - the relationship between the given element and the
    * locations to be returned.
    */
-  Future<List<Location>> getRelationships(
-      Element element, Relationship relationship);
+  Future<List<LocationImpl>> getRelationships(
+      Element element, RelationshipImpl relationship);
 
   /**
    * Returns top-level [Element]s whose names satisfy to [nameFilter].
@@ -131,98 +131,100 @@ class IndexConstants {
    *   Defines an Element.
    * Right: an Element declaration.
    */
-  static final Relationship DEFINES = Relationship.getRelationship("defines");
+  static final RelationshipImpl DEFINES =
+      RelationshipImpl.getRelationship("defines");
 
   /**
    * Left: class.
    *   Is extended by.
    * Right: other class declaration.
    */
-  static final Relationship IS_EXTENDED_BY =
-      Relationship.getRelationship("is-extended-by");
+  static final RelationshipImpl IS_EXTENDED_BY =
+      RelationshipImpl.getRelationship("is-extended-by");
 
   /**
    * Left: class.
    *   Is implemented by.
    * Right: other class declaration.
    */
-  static final Relationship IS_IMPLEMENTED_BY =
-      Relationship.getRelationship("is-implemented-by");
+  static final RelationshipImpl IS_IMPLEMENTED_BY =
+      RelationshipImpl.getRelationship("is-implemented-by");
 
   /**
    * Left: class.
    *   Is mixed into.
    * Right: other class declaration.
    */
-  static final Relationship IS_MIXED_IN_BY =
-      Relationship.getRelationship("is-mixed-in-by");
+  static final RelationshipImpl IS_MIXED_IN_BY =
+      RelationshipImpl.getRelationship("is-mixed-in-by");
 
   /**
    * Left: local variable, parameter.
    *   Is read at.
    * Right: location.
    */
-  static final Relationship IS_READ_BY =
-      Relationship.getRelationship("is-read-by");
+  static final RelationshipImpl IS_READ_BY =
+      RelationshipImpl.getRelationship("is-read-by");
 
   /**
    * Left: local variable, parameter.
    *   Is both read and written at.
    * Right: location.
    */
-  static final Relationship IS_READ_WRITTEN_BY =
-      Relationship.getRelationship("is-read-written-by");
+  static final RelationshipImpl IS_READ_WRITTEN_BY =
+      RelationshipImpl.getRelationship("is-read-written-by");
 
   /**
    * Left: local variable, parameter.
    *   Is written at.
    * Right: location.
    */
-  static final Relationship IS_WRITTEN_BY =
-      Relationship.getRelationship("is-written-by");
+  static final RelationshipImpl IS_WRITTEN_BY =
+      RelationshipImpl.getRelationship("is-written-by");
 
   /**
    * Left: function, method, variable, getter.
    *   Is invoked at.
    * Right: location.
    */
-  static final Relationship IS_INVOKED_BY =
-      Relationship.getRelationship("is-invoked-by");
+  static final RelationshipImpl IS_INVOKED_BY =
+      RelationshipImpl.getRelationship("is-invoked-by");
 
   /**
    * Left: function, function type, class, field, method.
    *   Is referenced (and not invoked, read/written) at.
    * Right: location.
    */
-  static final Relationship IS_REFERENCED_BY =
-      Relationship.getRelationship("is-referenced-by");
+  static final RelationshipImpl IS_REFERENCED_BY =
+      RelationshipImpl.getRelationship("is-referenced-by");
 
   /**
    * Left: name element.
    *   Is defined by.
    * Right: concrete element declaration.
    */
-  static final Relationship NAME_IS_DEFINED_BY =
-      Relationship.getRelationship("name-is-defined-by");
+  static final RelationshipImpl NAME_IS_DEFINED_BY =
+      RelationshipImpl.getRelationship("name-is-defined-by");
 
   IndexConstants._();
 }
 
 /**
- * Instances of the class [Location] represent a location related to an element.
+ * Instances of the class [LocationImpl] represent a location related to an
+ * element.
  *
  * The location is expressed as an offset and length, but the offset is relative
  * to the resource containing the element rather than the start of the element
  * within that resource.
  */
-class Location {
+class LocationImpl {
   static const int _FLAG_QUALIFIED = 1 << 0;
   static const int _FLAG_RESOLVED = 1 << 1;
 
   /**
    * An empty array of locations.
    */
-  static const List<Location> EMPTY_ARRAY = const <Location>[];
+  static const List<LocationImpl> EMPTY_ARRAY = const <LocationImpl>[];
 
   /**
    * The element containing this location.
@@ -252,7 +254,7 @@ class Location {
    * [offset] - the offset within the resource containing [element].
    * [length] - the length of this location
    */
-  Location(this.element, this.offset, this.length,
+  LocationImpl(this.element, this.offset, this.length,
       {bool isQualified: false, bool isResolved: true}) {
     if (element == null) {
       throw new ArgumentError("element location cannot be null");
@@ -290,12 +292,12 @@ class Location {
 }
 
 /**
- * A [Location] with attached data.
+ * A [LocationImpl] with attached data.
  */
-class LocationWithData<D> extends Location {
+class LocationWithData<D> extends LocationImpl {
   final D data;
 
-  LocationWithData(Location location, this.data)
+  LocationWithData(LocationImpl location, this.data)
       : super(location.element, location.offset, location.length);
 }
 
@@ -317,11 +319,11 @@ class NameElement extends ElementImpl {
  * Relationship between an element and a location. Relationships are identified
  * by a globally unique identifier.
  */
-class Relationship {
+class RelationshipImpl {
   /**
    * A table mapping relationship identifiers to relationships.
    */
-  static Map<String, Relationship> _RELATIONSHIP_MAP = {};
+  static Map<String, RelationshipImpl> _RELATIONSHIP_MAP = {};
 
   /**
    * The next artificial hash code.
@@ -341,7 +343,7 @@ class Relationship {
   /**
    * Initialize a newly created relationship with the given unique identifier.
    */
-  Relationship(this.identifier);
+  RelationshipImpl(this.identifier);
 
   @override
   int get hashCode => _hashCode;
@@ -352,10 +354,10 @@ class Relationship {
   /**
    * Returns the relationship with the given unique [identifier].
    */
-  static Relationship getRelationship(String identifier) {
-    Relationship relationship = _RELATIONSHIP_MAP[identifier];
+  static RelationshipImpl getRelationship(String identifier) {
+    RelationshipImpl relationship = _RELATIONSHIP_MAP[identifier];
     if (relationship == null) {
-      relationship = new Relationship(identifier);
+      relationship = new RelationshipImpl(identifier);
       _RELATIONSHIP_MAP[identifier] = relationship;
     }
     return relationship;

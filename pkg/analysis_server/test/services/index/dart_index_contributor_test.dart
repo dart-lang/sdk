@@ -24,7 +24,7 @@ main() {
 /**
  * Returns `true` if the [actual] location the same properties as [expected].
  */
-bool _equalsLocation(Location actual, ExpectedLocation expected) {
+bool _equalsLocation(LocationImpl actual, ExpectedLocation expected) {
   return _equalsLocationProperties(actual, expected.element, expected.offset,
       expected.length, expected.isQualified, expected.isResolved);
 }
@@ -32,7 +32,7 @@ bool _equalsLocation(Location actual, ExpectedLocation expected) {
 /**
  * Returns `true` if the [actual] location the expected properties.
  */
-bool _equalsLocationProperties(Location actual, Element expectedElement,
+bool _equalsLocationProperties(LocationImpl actual, Element expectedElement,
     int expectedOffset, int expectedLength, bool isQualified, bool isResolved) {
   return (expectedElement == null || expectedElement == actual.element) &&
       expectedOffset == actual.offset &&
@@ -42,7 +42,7 @@ bool _equalsLocationProperties(Location actual, Element expectedElement,
 }
 
 bool _equalsRecordedRelation(RecordedRelation recordedRelation,
-    Element expectedElement, Relationship expectedRelationship,
+    Element expectedElement, RelationshipImpl expectedRelationship,
     ExpectedLocation expectedLocation) {
   return expectedElement == recordedRelation.element &&
       (expectedRelationship == null ||
@@ -65,8 +65,9 @@ class DartUnitContributorTest extends AbstractSingleUnitTest {
   void setUp() {
     super.setUp();
     when(store.aboutToIndexDart(context, anyObject)).thenReturn(true);
-    when(store.recordRelationship(anyObject, anyObject, anyObject)).thenInvoke(
-        (Element element, Relationship relationship, Location location) {
+    when(store.recordRelationship(anyObject, anyObject, anyObject))
+        .thenInvoke((Element element, RelationshipImpl relationship,
+            LocationImpl location) {
       recordedRelations
           .add(new RecordedRelation(element, relationship, location));
     });
@@ -1391,8 +1392,8 @@ main(A a, p) {
   /**
    * Asserts that [recordedRelations] has no item with the specified properties.
    */
-  void _assertNoRecordedRelation(
-      Element element, Relationship relationship, ExpectedLocation location) {
+  void _assertNoRecordedRelation(Element element, RelationshipImpl relationship,
+      ExpectedLocation location) {
     for (RecordedRelation recordedRelation in recordedRelations) {
       if (_equalsRecordedRelation(
           recordedRelation, element, relationship, location)) {
@@ -1405,8 +1406,9 @@ main(A a, p) {
   /**
    * Asserts that [recordedRelations] has an item with the expected properties.
    */
-  Location _assertRecordedRelation(Element expectedElement,
-      Relationship expectedRelationship, ExpectedLocation expectedLocation) {
+  LocationImpl _assertRecordedRelation(Element expectedElement,
+      RelationshipImpl expectedRelationship,
+      ExpectedLocation expectedLocation) {
     for (RecordedRelation recordedRelation in recordedRelations) {
       if (_equalsRecordedRelation(recordedRelation, expectedElement,
           expectedRelationship, expectedLocation)) {
@@ -1473,8 +1475,8 @@ class MockIndexStore extends TypedMock implements InternalIndexStore {
  */
 class RecordedRelation {
   final Element element;
-  final Relationship relationship;
-  final Location location;
+  final RelationshipImpl relationship;
+  final LocationImpl location;
 
   RecordedRelation(this.element, this.relationship, this.location);
 

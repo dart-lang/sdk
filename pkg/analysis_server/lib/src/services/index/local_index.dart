@@ -44,15 +44,15 @@ class LocalIndex extends Index {
 
   /**
    * Returns a `Future<List<Location>>` that completes with the list of
-   * [Location]s of the given [relationship] with the given [element].
+   * [LocationImpl]s of the given [relationship] with the given [element].
    *
    * For example, if the [element] represents a function and the [relationship]
    * is the `is-invoked-by` relationship, then the locations will be all of the
    * places where the function is invoked.
    */
   @override
-  Future<List<Location>> getRelationships(
-      Element element, Relationship relationship) {
+  Future<List<LocationImpl>> getRelationships(
+      Element element, RelationshipImpl relationship) {
     return _store.getRelationships(element, relationship);
   }
 
