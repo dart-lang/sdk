@@ -113,7 +113,7 @@ uintptr_t SignalHandler::GetLinkRegister(const mcontext_t& mcontext) {
 #elif defined(TARGET_ARCH_ARM)
   lr = static_cast<uintptr_t>(mcontext.arm_lr);
 #elif defined(TARGET_ARCH_ARM64)
-  lr = static_cast<uintptr_t>(mcontext.lr);
+  lr = static_cast<uintptr_t>(mcontext.regs[30]);
 #elif defined(TARGET_ARCH_MIPS)
   lr = static_cast<uintptr_t>(mcontext.gregs[31]);
 #else
