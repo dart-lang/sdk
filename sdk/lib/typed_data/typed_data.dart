@@ -18,63 +18,336 @@ abstract class ByteBuffer {
   int get lengthInBytes;
 
   /**
-   * Creates a new [Uint8List] view of this buffer.
+   * Creates a [Uint8List] _view_ of a region of this byte buffer.
+   *
+   * The view is backed by the bytes of this byte buffer.
+   * Any changes made to the `Uint8List` will also change the buffer,
+   * and vice versa.
+   *
+   * The viewed region start at [offsetInBytes] and contains [length] bytes.
+   * If [length] is omitted, the range extends to the end of the buffer.
+   *
+   * The start index and length must describe a valid range of the buffer:
+   *
+   * * `offsetInBytes` must not be negative,
+   * * `length` must not be negative, and
+   * * `offsetInBytes + length` must not be greater than [lengthInBytes].
    */
   Uint8List asUint8List([int offsetInBytes = 0, int length]);
+
   /**
-   * Creates a new [Int8List] view of this buffer.
+   * Creates a [Int8List] _view_ of a region of this byte buffer.
+   *
+   * The view is backed by the bytes of this byte buffer.
+   * Any changes made to the `Int8List` will also change the buffer,
+   * and vice versa.
+   *
+   * The viewed region start at [offsetInBytes] and contains [length] bytes.
+   * If [length] is omitted, the range extends to the end of the buffer.
+   *
+   * The start index and length must describe a valid range of the buffer:
+   *
+   * * `offsetInBytes` must not be negative,
+   * * `length` must not be negative, and
+   * * `offsetInBytes + length` must not be greater than [lengthInBytes].
    */
   Int8List asInt8List([int offsetInBytes = 0, int length]);
+
   /**
-   * Creates a new [Uint8Clamped] view of this buffer.
+   * Creates a [Uint8ClampedList] _view_ of a region of this byte buffer.
+   *
+   * The view is backed by the bytes of this byte buffer.
+   * Any changes made to the `Uint8ClampedList` will also change the buffer,
+   * and vice versa.
+   *
+   * The viewed region start at [offsetInBytes] and contains [length] bytes.
+   * If [length] is omitted, the range extends to the end of the buffer.
+   *
+   * The start index and length must describe a valid range of the buffer:
+   *
+   * * `offsetInBytes` must not be negative,
+   * * `length` must not be negative, and
+   * * `offsetInBytes + length` must not be greater than [lengthInBytes].
    */
   Uint8ClampedList asUint8ClampedList([int offsetInBytes = 0, int length]);
+
   /**
-   * Creates a new [Uint16List] view of this buffer.
+   * Creates a [Uint16List] _view_ of a region of this byte buffer.
+   *
+   * The view is backed by the bytes of this byte buffer.
+   * Any changes made to the `Uint16List` will also change the buffer,
+   * and vice versa.
+   *
+   * The viewed region start at [offsetInBytes], which must be 16-bit aligned,
+   * and contains [length] 16-bit integers.
+   * If [length] is omitted, the range extends as far towards the end of
+   * the buffer as possible -
+   * if [lengthInBytes] is not even, the last byte can't be part of the view.
+   *
+   * The start index and length must describe a valid 16-bit aligned range
+   * of the buffer:
+   *
+   * * `offsetInBytes` must not be negative,
+   * * `offsetInBytes` must be divisible by two,
+   * * `length` must not be negative, and
+   * * `offsetInBytes + length * 2` must not be greater than [lengthInBytes].
    */
   Uint16List asUint16List([int offsetInBytes = 0, int length]);
+
   /**
-   * Creates a new [Int16List] view of this buffer.
+   * Creates a [Int16List] _view_ of a region of this byte buffer.
+   *
+   * The view is backed by the bytes of this byte buffer.
+   * Any changes made to the `Int16List` will also change the buffer,
+   * and vice versa.
+   *
+   * The viewed region start at [offsetInBytes], which must be 16-bit aligned,
+   * and contains [length] 16-bit integers.
+   * If [length] is omitted, the range extends as far towards the end of
+   * the buffer as possible -
+   * if [lengthInBytes] is not even, the last byte can't be part of the view.
+   *
+   * The start index and length must describe a valid 16-bit aligned range
+   * of the buffer:
+   *
+   * * `offsetInBytes` must not be negative,
+   * * `offsetInBytes` must be divisible by two,
+   * * `length` must not be negative, and
+   * * `offsetInBytes + length * 2` must not be greater than [lengthInBytes].
    */
   Int16List asInt16List([int offsetInBytes = 0, int length]);
+
   /**
-   * Creates a new [Uint32List] view of this buffer.
+   * Creates a [Uint32List] _view_ of a region of this byte buffer.
+   *
+   * The view is backed by the bytes of this byte buffer.
+   * Any changes made to the `Uint32List` will also change the buffer,
+   * and vice versa.
+   *
+   * The viewed region start at [offsetInBytes], which must be 32-bit aligned,
+   * and contains [length] 32-bit integers.
+   * If [length] is omitted, the range extends as far towards the end of
+   * the buffer as possible -
+   * if [lengthInBytes] is not divisible by four, the last bytes can't be part
+   * of the view.
+   *
+   * The start index and length must describe a valid 32-bit aligned range
+   * of the buffer:
+   *
+   * * `offsetInBytes` must not be negative,
+   * * `offsetInBytes` must be divisible by four,
+   * * `length` must not be negative, and
+   * * `offsetInBytes + length * 4` must not be greater than [lengthInBytes].
    */
   Uint32List asUint32List([int offsetInBytes = 0, int length]);
+
   /**
-   * Creates a new [Int32List] view of this buffer.
+   * Creates a [Int32List] _view_ of a region of this byte buffer.
+   *
+   * The view is backed by the bytes of this byte buffer.
+   * Any changes made to the `Int32List` will also change the buffer,
+   * and vice versa.
+   *
+   * The viewed region start at [offsetInBytes], which must be 32-bit aligned,
+   * and contains [length] 32-bit integers.
+   * If [length] is omitted, the range extends as far towards the end of
+   * the buffer as possible -
+   * if [lengthInBytes] is not divisible by four, the last bytes can't be part
+   * of the view.
+   *
+   * The start index and length must describe a valid 32-bit aligned range
+   * of the buffer:
+   *
+   * * `offsetInBytes` must not be negative,
+   * * `offsetInBytes` must be divisible by four,
+   * * `length` must not be negative, and
+   * * `offsetInBytes + length * 4` must not be greater than [lengthInBytes].
    */
   Int32List asInt32List([int offsetInBytes = 0, int length]);
+
   /**
-   * Creates a new [Uint64List] view of this buffer.
+   * Creates a [Uint64List] _view_ of a region of this byte buffer.
+   *
+   * The view is backed by the bytes of this byte buffer.
+   * Any changes made to the `Uint64List` will also change the buffer,
+   * and vice versa.
+   *
+   * The viewed region start at [offsetInBytes], which must be 64-bit aligned,
+   * and contains [length] 64-bit integers.
+   * If [length] is omitted, the range extends as far towards the end of
+   * the buffer as possible -
+   * if [lengthInBytes] is not divisible by eight, the last bytes can't be part
+   * of the view.
+   *
+   * The start index and length must describe a valid 64-bit aligned range
+   * of the buffer:
+   *
+   * * `offsetInBytes` must not be negative,
+   * * `offsetInBytes` must be divisible by eight,
+   * * `length` must not be negative, and
+   * * `offsetInBytes + length * 8` must not be greater than [lengthInBytes].
    */
   Uint64List asUint64List([int offsetInBytes = 0, int length]);
+
   /**
-   * Creates a new [Int64List] view of this buffer.
+   * Creates a [Int64List] _view_ of a region of this byte buffer.
+   *
+   * The view is backed by the bytes of this byte buffer.
+   * Any changes made to the `Int64List` will also change the buffer,
+   * and vice versa.
+   *
+   * The viewed region start at [offsetInBytes], which must be 64-bit aligned,
+   * and contains [length] 64-bit integers.
+   * If [length] is omitted, the range extends as far towards the end of
+   * the buffer as possible -
+   * if [lengthInBytes] is not divisible by eight, the last bytes can't be part
+   * of the view.
+   *
+   * The start index and length must describe a valid 64-bit aligned range
+   * of the buffer:
+   *
+   * * `offsetInBytes` must not be negative,
+   * * `offsetInBytes` must be divisible by eight,
+   * * `length` must not be negative, and
+   * * `offsetInBytes + length * 8` must not be greater than [lengthInBytes].
    */
   Int64List asInt64List([int offsetInBytes = 0, int length]);
+
   /**
-   * Creates a new [Int32x4List] view of this buffer.
+   * Creates a [Int32x4List] _view_ of a region of this byte buffer.
+   *
+   * The view is backed by the bytes of this byte buffer.
+   * Any changes made to the `Int32x4List` will also change the buffer,
+   * and vice versa.
+   *
+   * The viewed region start at [offsetInBytes], which must be 128-bit aligned,
+   * and contains [length] 128-bit integers.
+   * If [length] is omitted, the range extends as far towards the end of
+   * the buffer as possible -
+   * if [lengthInBytes] is not divisible by 16, the last bytes can't be part
+   * of the view.
+   *
+   * The start index and length must describe a valid 128-bit aligned range
+   * of the buffer:
+   *
+   * * `offsetInBytes` must not be negative,
+   * * `offsetInBytes` must be divisible by sixteen,
+   * * `length` must not be negative, and
+   * * `offsetInBytes + length * 16` must not be greater than [lengthInBytes].
    */
   Int32x4List asInt32x4List([int offsetInBytes = 0, int length]);
+
   /**
-   * Creates a new [Float32List] view of this buffer.
+   * Creates a [Float32List] _view_ of a region of this byte buffer.
+   *
+   * The view is backed by the bytes of this byte buffer.
+   * Any changes made to the `Float32List` will also change the buffer,
+   * and vice versa.
+   *
+   * The viewed region start at [offsetInBytes], which must be 32-bit aligned,
+   * and contains [length] 32-bit integers.
+   * If [length] is omitted, the range extends as far towards the end of
+   * the buffer as possible -
+   * if [lengthInBytes] is not divisible by four, the last bytes can't be part
+   * of the view.
+   *
+   * The start index and length must describe a valid 32-bit aligned range
+   * of the buffer:
+   *
+   * * `offsetInBytes` must not be negative,
+   * * `offsetInBytes` must be divisible by four,
+   * * `length` must not be negative, and
+   * * `offsetInBytes + length * 4` must not be greater than [lengthInBytes].
    */
   Float32List asFloat32List([int offsetInBytes = 0, int length]);
+
   /**
-   * Creates a new [Float64List] view of this buffer.
+   * Creates a [Float64List] _view_ of a region of this byte buffer.
+   *
+   * The view is backed by the bytes of this byte buffer.
+   * Any changes made to the `Float64List` will also change the buffer,
+   * and vice versa.
+   *
+   * The viewed region start at [offsetInBytes], which must be 64-bit aligned,
+   * and contains [length] 64-bit integers.
+   * If [length] is omitted, the range extends as far towards the end of
+   * the buffer as possible -
+   * if [lengthInBytes] is not divisible by eight, the last bytes can't be part
+   * of the view.
+   *
+   * The start index and length must describe a valid 64-bit aligned range
+   * of the buffer:
+   *
+   * * `offsetInBytes` must not be negative,
+   * * `offsetInBytes` must be divisible by eight,
+   * * `length` must not be negative, and
+   * * `offsetInBytes + length * 8` must not be greater than [lengthInBytes].
    */
   Float64List asFloat64List([int offsetInBytes = 0, int length]);
+
   /**
-   * Creates a new [Float32x4List] view of this buffer.
+   * Creates a [Float32x4List] _view_ of a region of this byte buffer.
+   *
+   * The view is backed by the bytes of this byte buffer.
+   * Any changes made to the `Float32x4List` will also change the buffer,
+   * and vice versa.
+   *
+   * The viewed region start at [offsetInBytes], which must be 128-bit aligned,
+   * and contains [length] 128-bit integers.
+   * If [length] is omitted, the range extends as far towards the end of
+   * the buffer as possible -
+   * if [lengthInBytes] is not divisible by 16, the last bytes can't be part
+   * of the view.
+   *
+   * The start index and length must describe a valid 128-bit aligned range
+   * of the buffer:
+   *
+   * * `offsetInBytes` must not be negative,
+   * * `offsetInBytes` must be divisible by sixteen,
+   * * `length` must not be negative, and
+   * * `offsetInBytes + length * 16` must not be greater than [lengthInBytes].
    */
   Float32x4List asFloat32x4List([int offsetInBytes = 0, int length]);
+
   /**
-   * Creates a new [Float64x2List] view of this buffer.
+   * Creates a [Float64x2List] _view_ of a region of this byte buffer.
+   *
+   * The view is backed by the bytes of this byte buffer.
+   * Any changes made to the `Float64x2List` will also change the buffer,
+   * and vice versa.
+   *
+   * The viewed region start at [offsetInBytes], which must be 128-bit aligned,
+   * and contains [length] 128-bit integers.
+   * If [length] is omitted, the range extends as far towards the end of
+   * the buffer as possible -
+   * if [lengthInBytes] is not divisible by 16, the last bytes can't be part
+   * of the view.
+   *
+   * The start index and length must describe a valid 128-bit aligned range
+   * of the buffer:
+   *
+   * * `offsetInBytes` must not be negative,
+   * * `offsetInBytes` must be divisible by sixteen,
+   * * `length` must not be negative, and
+   * * `offsetInBytes + length * 16` must not be greater than [lengthInBytes].
    */
   Float64x2List asFloat64x2List([int offsetInBytes = 0, int length]);
+
   /**
-   * Creates a new [ByteData] view of this buffer.
+   * Creates a [ByteData] _view_ of a region of this byte buffer.
+   *
+   * The view is backed by the bytes of this byte buffer.
+   * Any changes made to the `ByteData` will also change the buffer,
+   * and vice versa.
+   *
+   * The viewed region start at [offsetInBytes] and contains [length] bytes.
+   * If [length] is omitted, the range extends to the end of the buffer.
+   *
+   * The start index and length must describe a valid range of the buffer:
+   *
+   * * `offsetInBytes` must not be negative,
+   * * `length` must not be negative, and
+   * * `offsetInBytes + length` must not be greater than [lengthInBytes].
    */
   ByteData asByteData([int offsetInBytes = 0, int length]);
 }
@@ -128,13 +401,14 @@ class Endianness {
  * A fixed-length, random-access sequence of bytes that also provides random
  * and unaligned access to the fixed-width integers and floating point
  * numbers represented by those bytes.
- * ByteData may be used to pack and unpack data from external sources
+ * `ByteData` may be used to pack and unpack data from external sources
  * (such as networks or files systems), and to process large quantities
  * of numerical data more efficiently than would be possible
- * with ordinary [List] implementations. ByteData can save space, by
- * eliminating the need for object headers, and time, by eliminating the
- * need for data copies. Finally, ByteData may be used to intentionally
- * reinterpret the bytes representing one arithmetic type as another.
+ * with ordinary [List] implementations.
+ * `ByteData` can save space, by eliminating the need for object headers,
+ * and time, by eliminating the need for data copies.
+ * Finally, `ByteData` may be used to intentionally reinterpret the bytes
+ * representing one arithmetic type as another.
  * For example this code fragment determine what 32-bit signed integer
  * is represented by the bytes of a 32-bit floating point number:
  *
@@ -146,17 +420,19 @@ class Endianness {
 abstract class ByteData implements TypedData {
   /**
    * Creates a [ByteData] of the specified length (in elements), all of
-   * whose elements are initially zero.
+   * whose bytes are initially zero.
    */
   external factory ByteData(int length);
 
   /**
-   * Creates an [ByteData] _view_ of the specified region in the specified
-   * byte buffer. Changes in the [ByteData] will be visible in the byte
-   * buffer and vice versa. If the [offsetInBytes] index of the region is not
-   * specified, it defaults to zero (the first byte in the byte buffer).
-   * If the length is not specified, it defaults to null, which indicates
-   * that the view extends to the end of the byte buffer.
+   * Creates an [ByteData] _view_ of the specified region in [buffer].
+   *
+   * Changes in the [ByteData] will be visible in the byte
+   * buffer and vice versa.
+   * If the [offsetInBytes] index of the region is not specified,
+   * it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to `null`,
+   * which indicates that the view extends to the end of the byte buffer.
    *
    * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
    * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
@@ -432,12 +708,14 @@ abstract class Int8List implements List<int>, TypedData {
   external factory Int8List.fromList(List<int> elements);
 
   /**
-   * Creates an [Int8List] _view_ of the specified region in the specified
-   * byte buffer. Changes in the [Int8List] will be visible in the byte
-   * buffer and vice versa. If the [offsetInBytes] index of the region is not
-   * specified, it defaults to zero (the first byte in the byte buffer).
-   * If the length is not specified, it defaults to null, which indicates
-   * that the view extends to the end of the byte buffer.
+   * Creates an [Int8List] _view_ of the specified region in [buffer].
+   *
+   * Changes in the [Int8List] will be visible in the byte
+   * buffer and vice versa.
+   * If the [offsetInBytes] index of the region is not specified,
+   * it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to `null`,
+   * which indicates that the view extends to the end of the byte buffer.
    *
    * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
    * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
@@ -471,12 +749,14 @@ abstract class Uint8List implements List<int>, TypedData {
   external factory Uint8List.fromList(List<int> elements);
 
   /**
-   * Creates a [Uint8List] _view_ of the specified region in the specified
-   * byte buffer. Changes in the [Uint8List] will be visible in the byte
-   * buffer and vice versa. If the [offsetInBytes] index of the region is not
-   * specified, it defaults to zero (the first byte in the byte buffer).
-   * If the length is not specified, it defaults to null, which indicates
-   * that the view extends to the end of the byte buffer.
+   * Creates a [Uint8List] _view_ of the specified region in [buffer].
+   *
+   * Changes in the [Uint8List] will be visible in the byte
+   * buffer and vice versa.
+   * If the [offsetInBytes] index of the region is not specified,
+   * it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to `null`,
+   * which indicates that the view extends to the end of the byte buffer.
    *
    * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
    * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
@@ -512,11 +792,14 @@ abstract class Uint8ClampedList implements List<int>, TypedData {
 
   /**
    * Creates a [Uint8ClampedList] _view_ of the specified region in the
-   * specified byte [buffer]. Changes in the [Uint8List] will be visible in the
-   * byte buffer and vice versa. If the [offsetInBytes] index of the region is
-   * not specified, it defaults to zero (the first byte in the byte buffer).
-   * If the length is not specified, it defaults to null, which indicates that
-   * the view extends to the end of the byte buffer.
+   * specified byte [buffer].
+   *
+   * Changes in the [Uint8List] will be visible in the byte buffer
+   * and vice versa.
+   * If the [offsetInBytes] index of the region is not specified,
+   * it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to `null`,
+   * which indicates that the view extends to the end of the byte buffer.
    *
    * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
    * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
@@ -550,12 +833,14 @@ abstract class Int16List implements List<int>, TypedData {
   external factory Int16List.fromList(List<int> elements);
 
   /**
-   * Creates an [Int16List] _view_ of the specified region in the specified
-   * byte buffer. Changes in the [Int16List] will be visible in the byte
-   * buffer and vice versa. If the [offsetInBytes] index of the region is not
-   * specified, it defaults to zero (the first byte in the byte buffer).
-   * If the length is not specified, it defaults to null, which indicates
-   * that the view extends to the end of the byte buffer.
+   * Creates an [Int16List] _view_ of the specified region in [buffer].
+   *
+   * Changes in the [Int16List] will be visible in the byte
+   * buffer and vice versa.
+   * If the [offsetInBytes] index of the region is not specified,
+   * it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to `null`,
+   * which indicates that the view extends to the end of the byte buffer.
    *
    * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
    * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
@@ -593,10 +878,13 @@ abstract class Uint16List implements List<int>, TypedData {
 
   /**
    * Creates a [Uint16List] _view_ of the specified region in
-   * the specified byte buffer. Changes in the [Uint16List] will be
-   * visible in the byte buffer and vice versa. If the [offsetInBytes] index
-   * of the region is not specified, it defaults to zero (the first byte in
-   * the byte buffer). If the length is not specified, it defaults to null,
+   * the specified byte buffer.
+   *
+   * Changes in the [Uint16List] will be visible in the byte buffer
+   * and vice versa.
+   * If the [offsetInBytes] index of the region is not specified,
+   * it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to `null`,
    * which indicates that the view extends to the end of the byte buffer.
    *
    * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
@@ -634,12 +922,14 @@ abstract class Int32List implements List<int>, TypedData {
   external factory Int32List.fromList(List<int> elements);
 
   /**
-   * Creates an [Int32List] _view_ of the specified region in the specified
-   * byte buffer. Changes in the [Int32List] will be visible in the byte
-   * buffer and vice versa. If the [offsetInBytes] index of the region is not
-   * specified, it defaults to zero (the first byte in the byte buffer).
-   * If the length is not specified, it defaults to null, which indicates
-   * that the view extends to the end of the byte buffer.
+   * Creates an [Int32List] _view_ of the specified region in [buffer].
+   *
+   * Changes in the [Int32List] will be visible in the byte
+   * buffer and vice versa.
+   * If the [offsetInBytes] index of the region is not specified,
+   * it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to `null`,
+   * which indicates that the view extends to the end of the byte buffer.
    *
    * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
    * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
@@ -677,10 +967,13 @@ abstract class Uint32List implements List<int>, TypedData {
 
   /**
    * Creates a [Uint32List] _view_ of the specified region in
-   * the specified byte buffer. Changes in the [Uint32] will be
-   * visible in the byte buffer and vice versa. If the [offsetInBytes] index
-   * of the region is not specified, it defaults to zero (the first byte in
-   * the byte buffer). If the length is not specified, it defaults to null,
+   * the specified byte buffer.
+   *
+   * Changes in the [Uint32List] will be visible in the byte buffer
+   * and vice versa.
+   * If the [offsetInBytes] index of the region is not specified,
+   * it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to `null`,
    * which indicates that the view extends to the end of the byte buffer.
    *
    * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
@@ -718,12 +1011,14 @@ abstract class Int64List implements List<int>, TypedData {
   external factory Int64List.fromList(List<int> elements);
 
   /**
-   * Creates an [Int64List] _view_ of the specified region in the specified
-   * byte buffer. Changes in the [Int64List] will be visible in the byte buffer
-   * and vice versa. If the [offsetInBytes] index of the region is not
-   * specified, it defaults to zero (the first byte in the byte buffer).
-   * If the length is not specified, it defaults to null, which indicates that
-   * the view extends to the end of the byte buffer.
+   * Creates an [Int64List] _view_ of the specified region in [buffer].
+   *
+   * Changes in the [Int64List] will be visible in the byte buffer
+   * and vice versa.
+   * If the [offsetInBytes] index of the region is not specified,
+   * it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to `null`,
+   * which indicates that the view extends to the end of the byte buffer.
    *
    * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
    * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
@@ -761,12 +1056,14 @@ abstract class Uint64List implements List<int>, TypedData {
 
   /**
    * Creates an [Uint64List] _view_ of the specified region in
-   * the specified byte buffer. Changes in the [Uint64List] will be
-   * visible in the byte buffer and vice versa. If the [offsetInBytes]
-   * index of the region is not specified, it defaults to zero (the first
-   * byte in the byte buffer). If the length is not specified, it defaults
-   * to null, which indicates that the view extends to the end of the byte
-   * buffer.
+   * the specified byte buffer.
+   *
+   * Changes in the [Uint64List] will be visible in the byte buffer
+   * and vice versa.
+   * If the [offsetInBytes] index of the region is not specified,
+   * it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to `null`,
+   * which indicates that the view extends to the end of the byte buffer.
    *
    * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
    * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
@@ -804,12 +1101,14 @@ abstract class Float32List implements List<double>, TypedData {
   external factory Float32List.fromList(List<double> elements);
 
   /**
-   * Creates a [Float32List] _view_ of the specified region in the specified
-   * byte buffer. Changes in the [Float32List] will be visible in the byte
-   * buffer and vice versa. If the [offsetInBytes] index of the region is not
-   * specified, it defaults to zero (the first byte in the byte buffer).
-   * If the length is not specified, it defaults to null, which indicates
-   * that the view extends to the end of the byte buffer.
+   * Creates a [Float32List] _view_ of the specified region in [buffer].
+   *
+   * Changes in the [Float32List] will be visible in the byte
+   * buffer and vice versa.
+   * If the [offsetInBytes] index of the region is not specified,
+   * it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to `null`,
+   * which indicates that the view extends to the end of the byte buffer.
    *
    * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
    * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
@@ -847,12 +1146,14 @@ abstract class Float64List implements List<double>, TypedData {
   external factory Float64List.fromList(List<double> elements);
 
   /**
-   * Creates a [Float64List] _view_ of the specified region in the specified
-   * byte buffer. Changes in the [Float64List] will be visible in the byte
-   * buffer and vice versa. If the [offsetInBytes] index of the region is not
-   * specified, it defaults to zero (the first byte in the byte buffer).
-   * If the length is not specified, it defaults to null, which indicates
-   * that the view extends to the end of the byte buffer.
+   * Creates a [Float64List] _view_ of the specified region in [buffer].
+   *
+   * Changes in the [Float64List] will be visible in the byte
+   * buffer and vice versa.
+   * If the [offsetInBytes] index of the region is not specified,
+   * it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to `null`,
+   * which indicates that the view extends to the end of the byte buffer.
    *
    * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
    * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
@@ -889,12 +1190,14 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
   external factory Float32x4List.fromList(List<Float32x4> elements);
 
   /**
-   * Creates a [Float32x4List] _view_ of the specified region in the specified
-   * byte buffer. Changes in the [Float32x4List] will be visible in the byte
-   * buffer and vice versa. If the [offsetInBytes] index of the region is not
-   * specified, it defaults to zero (the first byte in the byte buffer).
-   * If the length is not specified, it defaults to null, which indicates
-   * that the view extends to the end of the byte buffer.
+   * Creates a [Float32x4List] _view_ of the specified region in [buffer].
+   *
+   * Changes in the [Float32x4List] will be visible in the byte
+   * buffer and vice versa.
+   * If the [offsetInBytes] index of the region is not specified,
+   * it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to `null`,
+   * which indicates that the view extends to the end of the byte buffer.
    *
    * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
    * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
@@ -931,12 +1234,14 @@ abstract class Int32x4List implements List<Int32x4>, TypedData {
   external factory Int32x4List.fromList(List<Int32x4> elements);
 
   /**
-   * Creates a [Int32x4List] _view_ of the specified region in the specified
-   * byte buffer. Changes in the [Int32x4List] will be visible in the byte
-   * buffer and vice versa. If the [offsetInBytes] index of the region is not
-   * specified, it defaults to zero (the first byte in the byte buffer).
-   * If the length is not specified, it defaults to null, which indicates
-   * that the view extends to the end of the byte buffer.
+   * Creates a [Int32x4List] _view_ of the specified region in [buffer].
+   *
+   * Changes in the [Int32x4List] will be visible in the byte
+   * buffer and vice versa.
+   * If the [offsetInBytes] index of the region is not specified,
+   * it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to `null`,
+   * which indicates that the view extends to the end of the byte buffer.
    *
    * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
    * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
@@ -973,12 +1278,14 @@ abstract class Float64x2List implements List<Float64x2>, TypedData {
   external factory Float64x2List.fromList(List<Float64x2> elements);
 
   /**
-   * Creates a [Float64x2List] _view_ of the specified region in the specified
-   * byte buffer. Changes in the [Float64x2List] will be visible in the byte
-   * buffer and vice versa. If the [offsetInBytes] index of the region is not
-   * specified, it defaults to zero (the first byte in the byte buffer).
-   * If the length is not specified, it defaults to null, which indicates
-   * that the view extends to the end of the byte buffer.
+   * Creates a [Float64x2List] _view_ of the specified region in [buffer].
+   *
+   * Changes in the [Float64x2List] will be visible in the byte
+   * buffer and vice versa.
+   * If the [offsetInBytes] index of the region is not specified,
+   * it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to `null`,
+   * which indicates that the view extends to the end of the byte buffer.
    *
    * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
    * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
