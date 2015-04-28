@@ -708,8 +708,6 @@ abstract class InferrerVisitor
 
   T handleSendSet(SendSet node);
 
-  T visitSuperSend(Send node);
-
   T visitStaticSend(Send node);
 
   T visitGetterSend(Send node);

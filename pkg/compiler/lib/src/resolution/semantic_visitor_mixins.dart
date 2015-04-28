@@ -532,15 +532,6 @@ abstract class ErrorBulkMixin<R, A>
   }
 
   @override
-  R errorUnresolvedSuperIndex(
-      Send node,
-      Element function,
-      Node index,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
   R errorUnresolvedSuperIndexPostfix(
       Send node,
       Element function,
@@ -571,20 +562,10 @@ abstract class ErrorBulkMixin<R, A>
   }
 
   @override
-  R errorUnresolvedSuperBinary(
+  R errorUndefinedUnaryExpression(
       Send node,
-      Element element,
-      BinaryOperator operator,
-      Node argument,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorUnresolvedSuperUnary(
-      Send node,
-      UnaryOperator operator,
-      Element element,
+      Operator operator,
+      Node expression,
       A arg) {
     return bulkHandleError(node, arg);
   }
@@ -595,15 +576,6 @@ abstract class ErrorBulkMixin<R, A>
       Node left,
       Operator operator,
       Node right,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorUndefinedUnaryExpression(
-      Send node,
-      Operator operator,
-      Node expression,
       A arg) {
     return bulkHandleError(node, arg);
   }
@@ -1306,6 +1278,16 @@ abstract class InvokeBulkMixin<R, A>
   }
 
   @override
+  R visitSuperMethodIncompatibleInvoke(
+      Send node,
+      MethodElement method,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return bulkHandleInvoke(node, arg);
+  }
+
+  @override
   R visitThisInvoke(
       Send node,
       NodeList arguments,
@@ -1379,6 +1361,16 @@ abstract class InvokeBulkMixin<R, A>
       ConstantExpression constant,
       NodeList arguments,
       CallStructure callStructure,
+      A arg) {
+    return bulkHandleInvoke(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSuperInvoke(
+      Send node,
+      Element function,
+      NodeList arguments,
+      Selector selector,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1550,6 +1542,14 @@ abstract class GetBulkMixin<R, A>
   R visitConstantGet(
       Send node,
       ConstantExpression constant,
+      A arg) {
+    return bulkHandleGet(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSuperGet(
+      Send node,
+      Element element,
       A arg) {
     return bulkHandleGet(node, arg);
   }
@@ -1800,6 +1800,35 @@ abstract class BinaryBulkMixin<R, A>
       A arg) {
     return bulkHandleBinary(node, arg);
   }
+
+  @override
+  R visitUnresolvedSuperBinary(
+      Send node,
+      FunctionElement function,
+      BinaryOperator operator,
+      Node argument,
+      A arg) {
+    return bulkHandleBinary(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSuperInvoke(
+      Send node,
+      Element function,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleBinary(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSuperIndex(
+      Send node,
+      FunctionElement function,
+      Node index,
+      A arg) {
+    return bulkHandleBinary(node, arg);
+  }
 }
 
 /// Mixin that implements all unary visitor methods in [SemanticSendVisitor] by
@@ -1823,8 +1852,11 @@ abstract class UnaryBulkMixin<R, A>
   }
 
   @override
-  R visitSuperUnary(Send node, UnaryOperator operator,
-                    FunctionElement function, A arg) {
+  R visitSuperUnary(
+      Send node,
+      UnaryOperator operator,
+      FunctionElement function,
+      A arg) {
     return bulkHandleUnary(node, arg);
   }
 
@@ -1833,6 +1865,15 @@ abstract class UnaryBulkMixin<R, A>
       Send node,
       UnaryOperator operator,
       Node expression,
+      A arg) {
+    return bulkHandleUnary(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSuperUnary(
+      Send node,
+      UnaryOperator operator,
+      FunctionElement function,
       A arg) {
     return bulkHandleUnary(node, arg);
   }
@@ -2158,6 +2199,16 @@ abstract class SuperBulkMixin<R, A>
   }
 
   @override
+  R visitSuperMethodIncompatibleInvoke(
+      Send node,
+      MethodElement method,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return bulkHandleSuper(node, arg);
+  }
+
+  @override
   R visitSuperMethodSetterCompound(
       Send node,
       FunctionElement method,
@@ -2211,6 +2262,52 @@ abstract class SuperBulkMixin<R, A>
       Send node,
       UnaryOperator operator,
       FunctionElement function,
+      A arg) {
+    return bulkHandleSuper(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSuperBinary(
+      Send node,
+      Element element,
+      BinaryOperator operator,
+      Node argument,
+      A arg) {
+    return bulkHandleSuper(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSuperGet(
+      Send node,
+      Element element,
+      A arg) {
+    return bulkHandleSuper(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSuperInvoke(
+      Send node,
+      Element function,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleSuper(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSuperIndex(
+      Send node,
+      Element function,
+      Node index,
+      A arg) {
+    return bulkHandleSuper(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSuperUnary(
+      Send node,
+      UnaryOperator operator,
+      Element element,
       A arg) {
     return bulkHandleSuper(node, arg);
   }
@@ -3092,12 +3189,31 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorUnresolvedSuperIndex(
+  R visitUnresolvedSuperIndex(
       Send node,
       Element function,
       Node index,
       A arg) {
     apply(index, arg);
+    return null;
+  }
+
+  @override
+  R visitUnresolvedSuperGet(
+      Send node,
+      Element element,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R visitUnresolvedSuperInvoke(
+      Send node,
+      Element function,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
     return null;
   }
 
@@ -4015,6 +4131,17 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
+  R visitSuperMethodIncompatibleInvoke(
+      Send node,
+      MethodElement method,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
   R visitSuperMethodSetterCompound(
       Send node,
       FunctionElement method,
@@ -4532,7 +4659,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorUnresolvedSuperBinary(
+  R visitUnresolvedSuperBinary(
       Send node,
       Element element,
       BinaryOperator operator,
@@ -4543,7 +4670,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorUnresolvedSuperUnary(
+  R visitUnresolvedSuperUnary(
       Send node,
       UnaryOperator operator,
       Element element,

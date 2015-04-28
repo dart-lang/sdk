@@ -4165,42 +4165,216 @@ class SsaBuilder extends NewResolvedVisitor {
   }
 
   visitSuperSend(ast.Send node) {
+    internalError(node, "Unexpected super send.");
+  }
+
+  /// Generate a call to a super method or constructor.
+  void generateSuperInvoke(ast.Send node, FunctionElement function) {
+    // TODO(5347): Try to avoid the need for calling [implementation] before
+    // calling [makeStaticArgumentList].
+    Selector selector = elements.getSelector(node);
+    assert(invariant(node,
+        selector.applies(function.implementation, compiler.world),
+        message: "$selector does not apply to ${function.implementation}"));
+    List<HInstruction> inputs =
+        makeStaticArgumentList(selector.callStructure,
+                               node.arguments,
+                               function.implementation);
+    push(buildInvokeSuper(selector, function, inputs));
+  }
+
+  /// Access the value from the super [element].
+  void handleSuperGet(ast.Send node, Element element) {
+    Selector selector = elements.getSelector(node);
+    push(buildInvokeSuper(selector, element, const <HInstruction>[]));
+  }
+
+  /// Invoke .call on the value retrieved from the super [element].
+  void handleSuperCallInvoke(ast.Send node, Element element) {
+    Selector selector = elements.getSelector(node);
+    HInstruction target =
+        buildInvokeSuper(selector, element, const <HInstruction>[]);
+    add(target);
+    generateCallInvoke(node, target);
+  }
+
+  /// Invoke super [method].
+  void handleSuperMethodInvoke(
+      ast.Send node,
+      MethodElement method) {
+    generateSuperInvoke(node, method);
+  }
+
+  /// Access an unresolved super property.
+  void handleUnresolvedSuperInvoke(ast.Send node) {
+    Selector selector = elements.getSelector(node);
+    List<HInstruction> arguments = <HInstruction>[];
+    if (!node.isPropertyAccess) {
+      addGenericSendArgumentsToList(node.arguments, arguments);
+    }
+    generateSuperNoSuchMethodSend(node, selector, arguments);
+  }
+
+  /// Handle super constructor invocation.
+  @override
+  void handleSuperConstructorInvoke(ast.Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
-    if (Elements.isUnresolved(element)) {
-      List<HInstruction> arguments = <HInstruction>[];
-      if (!node.isPropertyAccess) {
-        addGenericSendArgumentsToList(node.arguments, arguments);
-      }
-      return generateSuperNoSuchMethodSend(node, selector, arguments);
-    }
-    List<HInstruction> inputs = <HInstruction>[];
-    if (node.isPropertyAccess) {
-      push(buildInvokeSuper(selector, element, inputs));
-    } else if (element.isFunction || element.isGenerativeConstructor) {
-      if (selector.applies(element, compiler.world)) {
-        // TODO(5347): Try to avoid the need for calling [implementation] before
-        // calling [makeStaticArgumentList].
-        FunctionElement function = element.implementation;
-        assert(selector.applies(function, compiler.world));
-        inputs = makeStaticArgumentList(selector.callStructure,
-                                        node.arguments,
-                                        function);
-        push(buildInvokeSuper(selector, element, inputs));
-      } else if (element.isGenerativeConstructor) {
-        generateWrongArgumentCountError(node, element, node.arguments);
-      } else {
-        addGenericSendArgumentsToList(node.arguments, inputs);
-        generateSuperNoSuchMethodSend(node, selector, inputs);
-      }
+    if (selector.applies(element, compiler.world)) {
+      generateSuperInvoke(node, element);
     } else {
-      HInstruction target = buildInvokeSuper(selector, element, inputs);
-      add(target);
-      inputs = <HInstruction>[target];
-      addDynamicSendArgumentsToList(node, inputs);
-      Selector closureSelector = new Selector.callClosureFrom(selector);
-      push(new HInvokeClosure(closureSelector, inputs, backend.dynamicType));
+      generateWrongArgumentCountError(node, element, node.arguments);
     }
+  }
+
+  @override
+  void visitUnresolvedSuperIndex(
+      ast.Send node,
+      Element element,
+      ast.Node index,
+      _) {
+    handleUnresolvedSuperInvoke(node);
+  }
+
+  @override
+  void visitUnresolvedSuperUnary(
+      ast.Send node,
+      UnaryOperator operator,
+      Element element,
+      _) {
+    handleUnresolvedSuperInvoke(node);
+  }
+
+  @override
+  void visitUnresolvedSuperBinary(
+      ast.Send node,
+      Element element,
+      BinaryOperator operator,
+      ast.Node argument,
+      _) {
+    handleUnresolvedSuperInvoke(node);
+  }
+
+  @override
+  void visitUnresolvedSuperGet(
+      ast.Send node,
+      Element element,
+      _) {
+    handleUnresolvedSuperInvoke(node);
+  }
+
+  @override
+  void visitUnresolvedSuperInvoke(
+      ast.Send node,
+      Element element,
+      ast.Node argument,
+      Selector selector,
+      _) {
+    handleUnresolvedSuperInvoke(node);
+  }
+
+  @override
+  void visitSuperFieldGet(
+      ast.Send node,
+      FieldElement field,
+      _) {
+    handleSuperGet(node, field);
+  }
+
+  @override
+  void visitSuperGetterGet(
+      ast.Send node,
+      MethodElement method,
+      _) {
+    handleSuperGet(node, method);
+  }
+
+  @override
+  void visitSuperMethodGet(
+      ast.Send node,
+      MethodElement method,
+      _) {
+    handleSuperGet(node, method);
+  }
+
+  @override
+  void visitSuperFieldInvoke(
+      ast.Send node,
+      FieldElement field,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    handleSuperCallInvoke(node, field);
+  }
+
+  @override
+  void visitSuperGetterInvoke(
+      ast.Send node,
+      MethodElement getter,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    handleSuperCallInvoke(node, getter);
+  }
+
+  @override
+  void visitSuperMethodInvoke(
+      ast.Send node,
+      MethodElement method,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    handleSuperMethodInvoke(node, method);
+  }
+
+  @override
+  void visitSuperIndex(
+      ast.Send node,
+      MethodElement method,
+      ast.Node index,
+      _) {
+    handleSuperMethodInvoke(node, method);
+  }
+
+  @override
+  void visitSuperEquals(
+      ast.Send node,
+      MethodElement method,
+      ast.Node argument,
+      _) {
+    handleSuperMethodInvoke(node, method);
+  }
+
+  @override
+  void visitSuperBinary(
+      ast.Send node,
+      MethodElement method,
+      BinaryOperator operator,
+      ast.Node argument,
+      _) {
+    handleSuperMethodInvoke(node, method);
+  }
+
+  @override
+  void visitSuperUnary(
+      ast.Send node,
+      UnaryOperator operator,
+      MethodElement method,
+      _) {
+    handleSuperMethodInvoke(node, method);
+  }
+
+  @override
+  void visitSuperMethodIncompatibleInvoke(
+      ast.Send node,
+      MethodElement method,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    Selector selector = elements.getSelector(node);
+    List<HInstruction> inputs = <HInstruction>[];
+    addGenericSendArgumentsToList(arguments.nodes, inputs);
+    generateSuperNoSuchMethodSend(node, selector, inputs);
   }
 
   bool needsSubstitutionForTypeVariableAccess(ClassElement cls) {

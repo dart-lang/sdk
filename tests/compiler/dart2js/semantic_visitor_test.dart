@@ -814,8 +814,17 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_FIELD_INVOKE,
-                    element: 'field(B#o)',
-                    arguments: '(null,42)')),
+                element: 'field(B#o)',
+                arguments: '(null,42)')),
+    const Test.clazz(
+            '''
+        class B {
+        }
+        class C extends B {
+          m() => super.o;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GET)),
   ],
   'Super properties': const [
     // Super properties
@@ -879,6 +888,28 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_SUPER_METHOD_INVOKE,
                     element: 'function(B#o)',
+                    arguments: '(null,42)')),
+    const Test.clazz(
+        '''
+        class B {
+          o(a, b) {}
+        }
+        class C extends B {
+          m() { super.o(null); }
+        }
+        ''',
+        const Visit(VisitKind.VISIT_SUPER_METHOD_INCOMPATIBLE_INVOKE,
+                    element: 'function(B#o)',
+                    arguments: '(null)')),
+    const Test.clazz(
+            '''
+            class B {
+            }
+            class C extends B {
+              m() => super.o(null, 42);
+            }
+            ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INVOKE,
                     arguments: '(null,42)')),
   ],
   'Expression invoke': const [
@@ -1119,6 +1150,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
                     element: 'function(B#+)',
                     operator: '+',
                     right: '42')),
+    const Test.clazz(
+        '''
+        class B {}
+        class C extends B {
+          m() => super + 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_BINARY,
+                    operator: '+',
+                    right: '42')),
   ],
   'Index': const [
     // Index
@@ -1151,6 +1192,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_SUPER_INDEX,
                     element: 'function(B#[])',
+                    index: '42')),
+    const Test.clazz(
+        '''
+        class B {
+        }
+        class C extends B {
+          m() => super[42];
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INDEX,
                     index: '42')),
     const Test.clazz(
         '''
@@ -1251,6 +1302,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_SUPER_UNARY,
                     element: 'function(B#unary-)', operator: '-')),
+    const Test.clazz(
+        '''
+        class B {
+        }
+        class C extends B {
+          m() => -super;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_UNARY,
+                    operator: '-')),
     const Test.clazz(
         '''
         class B {
@@ -3619,9 +3680,22 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Node argument,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_BINARY,
-            element: function, operator: operator, right: argument));
+        element: function, operator: operator, right: argument));
     apply(argument, arg);
   }
+
+  @override
+  visitUnresolvedSuperBinary(
+      Send node,
+      Element element,
+      BinaryOperator operator,
+      Node argument,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_BINARY,
+        operator: operator, right: argument));
+    apply(argument, arg);
+  }
+
 
   @override
   visitSuperIndex(
@@ -3631,6 +3705,17 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_INDEX,
             element: function, index: index));
+    apply(index, arg);
+  }
+
+  @override
+  visitUnresolvedSuperIndex(
+      Send node,
+      Element element,
+      Node index,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INDEX,
+        index: index));
     apply(index, arg);
   }
 
@@ -3868,6 +3953,14 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
+  visitUnresolvedSuperGet(
+      Send node,
+      Element element,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GET));
+  }
+
+  @override
   visitSuperFieldInvoke(
       Send node,
       FieldElement field,
@@ -3876,6 +3969,18 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_FIELD_INVOKE,
         element: field, arguments: arguments));
+    apply(arguments, arg);
+  }
+
+  @override
+  visitUnresolvedSuperInvoke(
+      Send node,
+      Element element,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INVOKE,
+        arguments: arguments));
     apply(arguments, arg);
   }
 
@@ -3906,6 +4011,18 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_METHOD_INVOKE,
+        element: method, arguments: arguments));
+    apply(arguments, arg);
+  }
+
+  @override
+  visitSuperMethodIncompatibleInvoke(
+      Send node,
+      MethodElement method,
+      NodeList arguments,
+      CallStructure callStructure,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_SUPER_METHOD_INCOMPATIBLE_INVOKE,
         element: method, arguments: arguments));
     apply(arguments, arg);
   }
@@ -3949,6 +4066,16 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_UNARY,
         element: function, operator: operator));
+  }
+
+  @override
+  visitUnresolvedSuperUnary(
+      Send node,
+      UnaryOperator operator,
+      Element element,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_UNARY,
+        operator: operator));
   }
 
   @override
@@ -5003,16 +5130,6 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorUnresolvedSuperBinary(
-      Send node,
-      ErroneousElement element,
-      BinaryOperator operator,
-      Node argument,
-      arg) {
-    // TODO: implement errorUnresolvedSuperBinary
-  }
-
-  @override
   errorUnresolvedSuperCompoundIndexSet(
       Send node,
       ErroneousElement element,
@@ -5031,24 +5148,6 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Node rhs,
       arg) {
     // TODO: implement errorUnresolvedSuperIndexSet
-  }
-
-  @override
-  errorUnresolvedSuperUnary(
-      Send node,
-      UnaryOperator operator,
-      ErroneousElement element,
-      arg) {
-    // TODO: implement errorUnresolvedSuperUnary
-  }
-
-  @override
-  errorUnresolvedSuperIndex(
-      Send node,
-      Element element,
-      Node index,
-      arg) {
-    // TODO: implement errorUnresolvedSuperIndex
   }
 
   @override
@@ -6000,6 +6099,10 @@ enum VisitKind {
 
   VISIT_SUPER_METHOD_GET,
   VISIT_SUPER_METHOD_INVOKE,
+  VISIT_SUPER_METHOD_INCOMPATIBLE_INVOKE,
+
+  VISIT_UNRESOLVED_SUPER_GET,
+  VISIT_UNRESOLVED_SUPER_INVOKE,
 
   VISIT_BINARY,
   VISIT_INDEX,
@@ -6009,7 +6112,9 @@ enum VisitKind {
   VISIT_INDEX_POSTFIX,
 
   VISIT_SUPER_BINARY,
+  VISIT_UNRESOLVED_SUPER_BINARY,
   VISIT_SUPER_INDEX,
+  VISIT_UNRESOLVED_SUPER_INDEX,
   VISIT_SUPER_EQUALS,
   VISIT_SUPER_NOT_EQUALS,
   VISIT_SUPER_INDEX_PREFIX,
@@ -6017,6 +6122,7 @@ enum VisitKind {
 
   VISIT_UNARY,
   VISIT_SUPER_UNARY,
+  VISIT_UNRESOLVED_SUPER_UNARY,
   VISIT_NOT,
 
   VISIT_EXPRESSION_INVOKE,

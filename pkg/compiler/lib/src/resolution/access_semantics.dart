@@ -116,6 +116,9 @@ enum AccessKind {
 
   /// The destination of the access is unresolved in a static context.
   UNRESOLVED,
+
+  /// The destination of the access is unresolved super access.
+  UNRESOLVED_SUPER,
 }
 
 enum CompoundAccessKind {
@@ -294,6 +297,9 @@ class StaticAccess extends AccessSemantics {
 
   StaticAccess.unresolved(this.element)
       : super._(AccessKind.UNRESOLVED);
+
+  StaticAccess.unresolvedSuper(this.element)
+      : super._(AccessKind.UNRESOLVED_SUPER);
 }
 
 class CompoundAccessSemantics extends AccessSemantics {

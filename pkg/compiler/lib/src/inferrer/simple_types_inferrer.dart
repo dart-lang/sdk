@@ -967,6 +967,10 @@ class SimpleTypeInferrerVisitor<T>
     return rhsType;
   }
 
+  T handleSuperConstructorInvoke(ast.Send node) {
+    return visitSuperSend(node);
+  }
+
   T visitSuperSend(ast.Send node) {
     Element element = elements[node];
     ArgumentsTypes arguments = node.isPropertyAccess

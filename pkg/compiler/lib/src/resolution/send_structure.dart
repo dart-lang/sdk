@@ -339,6 +339,13 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
             node.argumentsNode,
             selector,
             arg);
+      case AccessKind.UNRESOLVED_SUPER:
+        return visitor.visitUnresolvedSuperInvoke(
+            node,
+            semantics.element,
+            node.argumentsNode,
+            selector,
+            arg);
       case AccessKind.COMPOUND:
         // This is not a valid case.
         break;
@@ -346,7 +353,43 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
     throw new SpannableAssertionFailure(node, "Invalid invoke: ${semantics}");
   }
 
-  String toString() => 'invoke($selector,$semantics)';
+  String toString() => 'invoke($selector, $semantics)';
+}
+
+/// The structure for a [Send] that is an incompatible invocation, i.e. an
+/// invocation of a known target where the call structure does not match.
+class IncompatibleInvokeStructure<R, A> implements SendStructure<R, A> {
+  /// The target of the invocation.
+  final AccessSemantics semantics;
+
+  /// The [Selector] for the invocation.
+  // TODO(johnniwinther): Store this only for dynamic invocations.
+  final Selector selector;
+
+  /// The [CallStructure] of the invocation.
+  // TODO(johnniwinther): Store this directly for static invocations.
+  CallStructure get callStructure => selector.callStructure;
+
+  IncompatibleInvokeStructure(this.semantics, this.selector);
+
+  R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
+    switch (semantics.kind) {
+      case AccessKind.SUPER_METHOD:
+        return visitor.visitSuperMethodIncompatibleInvoke(
+            node,
+            semantics.element,
+            node.argumentsNode,
+            callStructure,
+            arg);
+      default:
+        // TODO(johnniwinther): Support more variants of this invoke structure.
+        break;
+    }
+    throw new SpannableAssertionFailure(
+        node, "Invalid incompatible invoke: ${semantics}");
+  }
+
+  String toString() => 'incompatible-invoke($selector, $semantics)';
 }
 
 /// The structure for a [Send] that is a read access.
@@ -483,6 +526,11 @@ class GetStructure<R, A> implements SendStructure<R, A> {
             node,
             semantics.element,
             arg);
+      case AccessKind.UNRESOLVED_SUPER:
+        return visitor.visitUnresolvedSuperGet(
+            node,
+            semantics.element,
+            arg);
       case AccessKind.COMPOUND:
         // This is not a valid case.
         break;
@@ -490,7 +538,7 @@ class GetStructure<R, A> implements SendStructure<R, A> {
     throw new SpannableAssertionFailure(node, "Invalid getter: ${semantics}");
   }
 
-  String toString() => 'get($selector,$semantics)';
+  String toString() => 'get($selector, $semantics)';
 }
 
 /// The structure for a [Send] that is an assignment.
@@ -641,12 +689,15 @@ class SetStructure<R, A> implements SendStructure<R, A> {
       case AccessKind.CONSTANT:
         // TODO(johnniwinther): Should this be a valid case?
         break;
+      case AccessKind.UNRESOLVED_SUPER:
+        // TODO(johnniwinther): Handle this separately.
       case AccessKind.UNRESOLVED:
         return visitor.errorUnresolvedSet(
             node,
             semantics.element,
             node.arguments.single,
             arg);
+        break;
       case AccessKind.COMPOUND:
         // This is not a valid case.
         break;
@@ -713,8 +764,8 @@ class UnaryStructure<R, A> implements SendStructure<R, A> {
             operator,
             semantics.element,
             arg);
-      case AccessKind.UNRESOLVED:
-        return visitor.errorUnresolvedSuperUnary(
+      case AccessKind.UNRESOLVED_SUPER:
+        return visitor.visitUnresolvedSuperUnary(
             node,
             operator,
             semantics.element,
@@ -772,8 +823,8 @@ class IndexStructure<R, A> implements SendStructure<R, A> {
             semantics.element,
             node.arguments.single,
             arg);
-      case AccessKind.UNRESOLVED:
-        return visitor.errorUnresolvedSuperIndex(
+      case AccessKind.UNRESOLVED_SUPER:
+        return visitor.visitUnresolvedSuperIndex(
             node,
             semantics.element,
             node.arguments.single,
@@ -890,8 +941,8 @@ class BinaryStructure<R, A> implements SendStructure<R, A> {
             operator,
             node.arguments.single,
             arg);
-      case AccessKind.UNRESOLVED:
-        return visitor.errorUnresolvedSuperBinary(
+      case AccessKind.UNRESOLVED_SUPER:
+        return visitor.visitUnresolvedSuperBinary(
             node,
             semantics.element,
             operator,
@@ -953,7 +1004,9 @@ class IndexSetStructure<R, A> implements SendStructure<R, A> {
             node.arguments.first,
             node.arguments.tail.head,
             arg);
+      case AccessKind.UNRESOLVED_SUPER:
       case AccessKind.UNRESOLVED:
+        // TODO(johnniwinther): Support these through [AccessKind.COMPOUND].
         return visitor.errorUnresolvedSuperIndexSet(
             node,
             semantics.element,
@@ -1002,7 +1055,9 @@ class IndexPrefixStructure<R, A> implements SendStructure<R, A> {
             node.arguments.single,
             operator,
             arg);
+      case AccessKind.UNRESOLVED_SUPER:
       case AccessKind.UNRESOLVED:
+        // TODO(johnniwinther): Support these through [AccessKind.COMPOUND].
         return visitor.errorUnresolvedSuperIndexPrefix(
             node,
             semantics.element,
@@ -1065,7 +1120,9 @@ class IndexPostfixStructure<R, A> implements SendStructure<R, A> {
             node.arguments.single,
             operator,
             arg);
+      case AccessKind.UNRESOLVED_SUPER:
       case AccessKind.UNRESOLVED:
+        // TODO(johnniwinther): Support these through [AccessKind.COMPOUND].
         return visitor.errorUnresolvedSuperIndexPostfix(
             node,
             semantics.element,
@@ -1242,7 +1299,9 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
       case AccessKind.CONSTANT:
         // TODO(johnniwinther): Should this be a valid case?
         break;
+      case AccessKind.UNRESOLVED_SUPER:
       case AccessKind.UNRESOLVED:
+        // TODO(johnniwinther): Support these through [AccessKind.COMPOUND].
         return visitor.errorUnresolvedCompound(
             node,
             semantics.element,
@@ -1358,7 +1417,9 @@ class CompoundIndexSetStructure<R, A> implements SendStructure<R, A> {
             operator,
             node.arguments.tail.head,
             arg);
+      case AccessKind.UNRESOLVED_SUPER:
       case AccessKind.UNRESOLVED:
+        // TODO(johnniwinther): Support these through [AccessKind.COMPOUND].
         return visitor.errorUnresolvedSuperCompoundIndexSet(
             node,
             semantics.element,
@@ -1527,7 +1588,9 @@ class PrefixStructure<R, A> implements SendStructure<R, A> {
       case AccessKind.CONSTANT:
         // TODO(johnniwinther): Should this be a valid case?
         break;
+      case AccessKind.UNRESOLVED_SUPER:
       case AccessKind.UNRESOLVED:
+        // TODO(johnniwinther): Support these through [AccessKind.COMPOUND].
         return visitor.errorUnresolvedPrefix(
             node,
             semantics.element,
@@ -1741,7 +1804,9 @@ class PostfixStructure<R, A> implements SendStructure<R, A> {
       case AccessKind.CONSTANT:
         // TODO(johnniwinther): Should this be a valid case?
         break;
+      case AccessKind.UNRESOLVED_SUPER:
       case AccessKind.UNRESOLVED:
+        // TODO(johnniwinther): Support these through [AccessKind.COMPOUND].
         return visitor.errorUnresolvedPostfix(
             node,
             semantics.element,

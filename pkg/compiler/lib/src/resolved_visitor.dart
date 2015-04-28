@@ -19,6 +19,7 @@ enum ResolvedKind {
   ERROR,
   SEND_SET,
   NEW,
+  SUPER_CONSTRUCTOR,
 }
 
 /// Abstract interface for a [ResolvedVisitor].
@@ -34,6 +35,8 @@ abstract class ResolvedKindVisitor<R> {
   R visitClosureSend(Send node);
   R visitDynamicSend(Send node);
   R visitStaticSend(Send node);
+
+  R handleSuperConstructorInvoke(Send node);
   R handleSendSet(SendSet node);
   R handleNewExpression(NewExpression node);
 
@@ -67,6 +70,9 @@ class ResolvedKindComputer implements ResolvedKindVisitor {
   ResolvedKind visitTypeLiteralSend(Send node) => ResolvedKind.TYPE_LITERAL;
   ResolvedKind visitTypePrefixSend(Send node) => ResolvedKind.TYPE_PREFIX;
   ResolvedKind visitAssertSend(Send node) => ResolvedKind.ASSERT;
+  ResolvedKind handleSuperConstructorInvoke(Send node) {
+    return ResolvedKind.SUPER_CONSTRUCTOR;
+  }
   ResolvedKind handleSendSet(SendSet node) => ResolvedKind.SEND_SET;
   ResolvedKind handleNewExpression(NewExpression node) => ResolvedKind.NEW;
   internalError(Spannable node, String reason) => ResolvedKind.ERROR;
@@ -91,6 +97,9 @@ abstract class BaseResolvedVisitor<R> extends Visitor<R>
     } else if (elements.isTypeLiteral(node)) {
       return visitor.visitTypeLiteralSend(node);
     } else if (node.isSuperCall) {
+      if (element != null && element.isConstructor) {
+        return visitor.handleSuperConstructorInvoke(node);
+      }
       return visitor.visitSuperSend(node);
     } else if (node.isOperator) {
       return visitor.visitOperatorSend(node);
@@ -165,7 +174,7 @@ abstract class NewResolvedVisitor<R> extends BaseResolvedVisitor<R>
     Element element = elements[node];
     if (element != null && element.isConstructor) {
       if (node.isSuperCall) {
-        return kindVisitor.visitSuperSend(node);
+        return kindVisitor.handleSuperConstructorInvoke(node);
       } else {
         return kindVisitor.visitStaticSend(node);
       }
@@ -468,9 +477,6 @@ class ResolvedSemanticDispatcher<R> extends Object
       Send node,
       Element element,
       ResolvedKindVisitor<R> visitor) {
-    if (node.isSuperCall) {
-      return visitor.visitSuperSend(node);
-    }
     return visitor.visitGetterSend(node);
   }
 
@@ -481,9 +487,6 @@ class ResolvedSemanticDispatcher<R> extends Object
       NodeList arguments,
       Selector selector,
       ResolvedKindVisitor<R> visitor) {
-    if (node.isSuperCall) {
-      return visitor.visitSuperSend(node);
-    }
     return visitor.visitStaticSend(node);
   }
 
@@ -503,25 +506,6 @@ class ResolvedSemanticDispatcher<R> extends Object
       op.IncDecOperator operator,
       ResolvedKindVisitor<R> visitor) {
     return visitor.handleSendSet(node);
-  }
-
-  @override
-  R errorUnresolvedSuperBinary(
-      Send node,
-      Element element,
-      op.BinaryOperator operator,
-      Node argument,
-      ResolvedKindVisitor<R> visitor) {
-    return visitor.visitSuperSend(node);
-  }
-
-  @override
-  R errorUnresolvedSuperUnary(
-      Send node,
-      op.UnaryOperator operator,
-      Element element,
-      ResolvedKindVisitor<R> visitor) {
-    return visitor.visitSuperSend(node);
   }
 
   @override
@@ -775,15 +759,6 @@ class ResolvedSemanticDispatcher<R> extends Object
   R visitSuperIndex(
       Send node,
       FunctionElement function,
-      Node index,
-      ResolvedKindVisitor<R> visitor) {
-    return visitor.visitSuperSend(node);
-  }
-
-  @override
-  R errorUnresolvedSuperIndex(
-      Send node,
-      Element function,
       Node index,
       ResolvedKindVisitor<R> visitor) {
     return visitor.visitSuperSend(node);

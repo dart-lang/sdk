@@ -512,6 +512,23 @@ abstract class SemanticSendVisitor<R, A> {
       CallStructure callStructure,
       A arg);
 
+  /// Invocation of the super [method] with incompatible [arguments].
+  ///
+  /// For instance
+  ///     class B {
+  ///       foo(a, b) {}
+  ///     }
+  ///     class C extends B {
+  ///        m() { super.foo(null); } // One argument missing.
+  ///     }
+  ///
+  R visitSuperMethodIncompatibleInvoke(
+      Send node,
+      MethodElement method,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg);
+
   /// Assignment of [rhs] to the super [method].
   ///
   /// For instance
@@ -1282,7 +1299,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(a) => super[a];
   ///     }
   ///
-  R errorUnresolvedSuperIndex(
+  R visitUnresolvedSuperIndex(
       Send node,
       Element element,
       Node index,
@@ -2670,6 +2687,19 @@ abstract class SemanticSendVisitor<R, A> {
       Element element,
       A arg);
 
+  /// Read of the unresolved super [element].
+  ///
+  /// For instance
+  ///     class B {}
+  ///     class C {
+  ///       m() => super.foo;
+  ///     }
+  ///
+  R visitUnresolvedSuperGet(
+      Send node,
+      Element element,
+      A arg);
+
   /// Assignment of [rhs] to the unresolved [element].
   ///
   /// For instance
@@ -2703,6 +2733,21 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   // TODO(johnniwinther): Split the cases in which a prefix is resolved.
   R errorUnresolvedInvoke(
+      Send node,
+      Element element,
+      NodeList arguments,
+      Selector selector,
+      A arg);
+
+  /// Invocation of the unresolved super [element] with [arguments].
+  ///
+  /// For instance
+  ///     class B {}
+  ///     class C extends B {
+  ///       m() => super.foo();
+  ///     }
+  ///
+  R visitUnresolvedSuperInvoke(
       Send node,
       Element element,
       NodeList arguments,
@@ -2810,7 +2855,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => -super;
   ///     }
   ///
-  R errorUnresolvedSuperUnary(
+  R visitUnresolvedSuperUnary(
       Send node,
       UnaryOperator operator,
       Element element,
@@ -2825,7 +2870,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => super + 42;
   ///     }
   ///
-  R errorUnresolvedSuperBinary(
+  R visitUnresolvedSuperBinary(
       Send node,
       Element element,
       BinaryOperator operator,

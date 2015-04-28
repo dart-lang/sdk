@@ -234,6 +234,13 @@ abstract class SendResolverMixin {
       case SendStructureKind.SET:
         return new SetStructure(semantics, selector);
       case SendStructureKind.INVOKE:
+        if (semantics.kind == AccessKind.SUPER_METHOD) {
+          // TODO(johnniwinther): Find all statically resolved case that should
+          // go here (top level, static, local, ...).
+          if (!selector.callStructure.signatureApplies(semantics.element)) {
+            return new IncompatibleInvokeStructure(semantics, selector);
+          }
+        }
         return new InvokeStructure(semantics, selector);
       case SendStructureKind.UNARY:
         return new UnaryStructure(semantics, unaryOperator, selector);
@@ -328,7 +335,7 @@ abstract class SendResolverMixin {
       }
     } else if (node.isSuperCall) {
       if (Elements.isUnresolved(element)) {
-        return new StaticAccess.unresolved(element);
+        return new StaticAccess.unresolvedSuper(element);
       } else if (isCompound && Elements.isUnresolved(getter)) {
         // TODO(johnniwinther): Ensure that [getter] is not null. This happens
         // in the case of missing super getter.

@@ -795,6 +795,14 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
+  ir.Primitive visitUnresolvedSuperGet(
+      ast.Send node,
+      Element element,
+      _) {
+    return giveup(node, 'visitUnresolvedSuperGet');
+  }
+
+  @override
   ir.Primitive visitThisGet(ast.Identifier node, _) {
     return irBuilder.buildThis();
   }
@@ -917,12 +925,31 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
+  ir.Primitive visitUnresolvedSuperBinary(
+      ast.Send node,
+      Element element,
+      op.BinaryOperator operator,
+      ast.Node argument,
+      _) {
+    return giveup(node, 'visitUnresolvedSuperBinary');
+  }
+
+  @override
   ir.Primitive visitSuperIndex(
       ast.Send node,
       FunctionElement function,
       ast.Node index,
       _) {
     return irBuilder.buildSuperIndex(function, visit(index));
+  }
+
+  @override
+  ir.Primitive visitUnresolvedSuperIndex(
+      ast.Send node,
+      Element element,
+      ast.Node index,
+      _) {
+    return giveup(node, 'visitUnresolvedSuperIndex');
   }
 
   @override
@@ -991,6 +1018,15 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       _) {
     return irBuilder.buildSuperMethodInvocation(
         function, CallStructure.NO_ARGS, const []);
+  }
+
+  @override
+  ir.Primitive visitUnresolvedSuperUnary(
+      ast.Send node,
+      op.UnaryOperator operator,
+      Element element,
+      _) {
+    return giveup(node, 'visitUnresolvedSuperUnary');
   }
 
   // TODO(johnniwinther): Handle this in the [IrBuilder] to ensure the correct
@@ -1142,6 +1178,26 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       _) {
     return irBuilder.buildSuperMethodInvocation(method, callStructure,
         translateDynamicArguments(arguments, callStructure));
+  }
+
+  @override
+  ir.Primitive visitSuperMethodIncompatibleInvoke(
+      ast.Send node,
+      MethodElement method,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return giveup(node, 'visitSuperMethodIncompatibleInvoke');
+  }
+
+  @override
+  ir.Primitive visitUnresolvedSuperInvoke(
+      ast.Send node,
+      MethodElement method,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    return giveup(node, 'visitUnresolvedSuperInvoke');
   }
 
   @override
