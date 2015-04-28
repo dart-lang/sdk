@@ -77,7 +77,11 @@ void Thread::ExitIsolate() {
   if (thread == NULL) return;
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
-  isolate->set_vm_tag(VMTag::kIdleTagId);
+  if (isolate->is_runnable()) {
+    isolate->set_vm_tag(VMTag::kIdleTagId);
+  } else {
+    isolate->set_vm_tag(VMTag::kLoadWaitTagId);
+  }
   isolate->set_thread_state(NULL);
   Profiler::EndExecution(isolate);
   isolate->set_mutator_thread(NULL);
