@@ -5,7 +5,9 @@
 // VM-specific implementation of the dart:mirrors library.
 
 import "dart:collection" show UnmodifiableListView, UnmodifiableMapView;
+import "dart:async" show Future;
 
+var dirty = false;
 final emptyList = new UnmodifiableListView([]);
 final emptyMap = new UnmodifiableMapView({});
 
@@ -218,30 +220,28 @@ class _AccessorCache {
   }
 }
 
-
 class _LocalMirrorSystem extends MirrorSystem {
-  final Map<Uri, LibraryMirror> libraries;
-  final IsolateMirror isolate;
+  final TypeMirror dynamicType = new _SpecialTypeMirror('dynamic');
+  final TypeMirror voidType = new _SpecialTypeMirror('void');
 
-  _LocalMirrorSystem(List<LibraryMirror> libraries, this.isolate)
-      : this.libraries = new Map<Uri, LibraryMirror>.fromIterable(
-            libraries, key: (e) => e.uri);
-
-  TypeMirror _dynamicType = null;
-  TypeMirror get dynamicType {
-    if (_dynamicType == null) {
-      _dynamicType = new _SpecialTypeMirror('dynamic');
+  var _libraries;
+  Map<Uri, LibraryMirror> get libraries {
+    if ((_libraries == null) || dirty) {
+      _libraries = new Map<Uri, LibraryMirror>.fromIterable(
+          _computeLibraries(), key: (e) => e.uri);
     }
-    return _dynamicType;
+    return _libraries;
   }
+  static _computeLibraries() native "MirrorSystem_libraries";
 
-  TypeMirror _voidType = null;
-  TypeMirror get voidType {
-    if (_voidType == null) {
-      _voidType = new _SpecialTypeMirror('void');
+  var _isolate;
+  IsolateMirror get isolate {
+    if (_isolate == null) {
+      _isolate = _computeIsolate();
     }
-    return _voidType;
+    return _isolate;
   }
+  static _computeIsolate() native "MirrorSystem_isolate";
 
   String toString() => "MirrorSystem for isolate '${isolate.debugName}'";
 }
@@ -1295,7 +1295,7 @@ class _LocalLibraryMirror extends _LocalObjectMirror implements LibraryMirror {
 class _LocalLibraryDependencyMirror
     extends _LocalMirror implements LibraryDependencyMirror {
   final LibraryMirror sourceLibrary;
-  final LibraryMirror targetLibrary;
+  var _targetMirrorOrPrefix;
   final List<CombinatorMirror> combinators;
   final Symbol prefix;
   final bool isImport;
@@ -1303,7 +1303,7 @@ class _LocalLibraryDependencyMirror
   final List<InstanceMirror> metadata;
 
   _LocalLibraryDependencyMirror(this.sourceLibrary,
-                                this.targetLibrary,
+                                this._targetMirrorOrPrefix,
                                 this.combinators,
                                 prefixString,
                                 this.isImport,
@@ -1313,6 +1313,29 @@ class _LocalLibraryDependencyMirror
         metadata = new UnmodifiableListView(unwrappedMetadata.map(reflect));
 
   bool get isExport => !isImport;
+
+  LibraryMirror get targetLibrary {
+    if (_targetMirrorOrPrefix is _LocalLibraryMirror) {
+      return _targetMirrorOrPrefix;
+    }
+    var mirrorOrNull = _tryUpgradePrefix(_targetMirrorOrPrefix);
+    if (mirrorOrNull != null) {
+      _targetMirrorOrPrefix = mirrorOrNull;
+    }
+    return mirrorOrNull;
+  }
+
+  Future<LibraryMirror> loadLibrary() {
+    if (_targetMirrorOrPrefix is _LocalLibraryMirror) {
+      return new Future.value(_targetMirrorOrPrefix);
+    }
+    var savedPrefix = _targetMirrorOrPrefix;
+    return savedPrefix.loadLibrary().then((_) {
+      return _tryUpgradePrefix(savedPrefix);
+    });
+  }
+
+  static _tryUpgradePrefix(libraryPrefix) native "LibraryMirror_fromPrefix";
 }
 
 class _LocalCombinatorMirror extends _LocalMirror implements CombinatorMirror {
@@ -1581,8 +1604,6 @@ class _SpecialTypeMirror extends _LocalMirror
 
   Symbol get qualifiedName => simpleName;
 
-  // TODO(11955): Remove once dynamicType and voidType are canonical objects in
-  // the object store.
   bool operator ==(other) {
     if (other is! _SpecialTypeMirror) {
       return false;
@@ -1604,17 +1625,8 @@ class _SpecialTypeMirror extends _LocalMirror
 }
 
 class _Mirrors {
-  static MirrorSystem _currentMirrorSystem = null;
-
-  // Creates a new local MirrorSystem.
-  static MirrorSystem makeLocalMirrorSystem()
-      native 'Mirrors_makeLocalMirrorSystem';
-
-  // The MirrorSystem for the current isolate.
+  static MirrorSystem _currentMirrorSystem = new _LocalMirrorSystem();
   static MirrorSystem currentMirrorSystem() {
-    if (_currentMirrorSystem == null) {
-      _currentMirrorSystem = makeLocalMirrorSystem();
-    }
     return _currentMirrorSystem;
   }
 

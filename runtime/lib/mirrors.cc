@@ -18,6 +18,11 @@
 
 namespace dart {
 
+#define PROPOGATE_IF_MALFOMRED(type)                                           \
+  if (type.IsMalformed()) {                                                    \
+    Exceptions::PropagateError(Error::Handle(type.error()));                   \
+  }                                                                            \
+
 static RawInstance* CreateMirror(const String& mirror_class_name,
                                  const Array& constructor_arguments) {
   const Library& mirrors_lib = Library::Handle(Library::MirrorsLibrary());
@@ -205,7 +210,7 @@ static RawInstance* CreateTypeVariableList(const Class& cls) {
   for (intptr_t i = 0; i < args.Length(); i++) {
     type ^= args.TypeAt(i);
     ASSERT(type.IsTypeParameter());
-    ASSERT(!type.IsMalformed());
+    PROPOGATE_IF_MALFOMRED(type);
     ASSERT(type.IsFinalized());
     name ^= type.name();
     result.SetAt(2 * i, name);
@@ -385,7 +390,7 @@ static RawInstance* CreateCombinatorMirror(const Object& identifiers,
 
 static RawInstance* CreateLibraryDependencyMirror(const Instance& importer,
                                                   const Namespace& ns,
-                                                  const String& prefix,
+                                                  const LibraryPrefix& prefix,
                                                   const bool is_import,
                                                   const bool is_deferred) {
   const Library& importee = Library::Handle(ns.library());
@@ -422,13 +427,25 @@ static RawInstance* CreateLibraryDependencyMirror(const Instance& importer,
 
   const Array& args = Array::Handle(Array::New(7));
   args.SetAt(0, importer);
-  args.SetAt(1, importee_mirror);
+  args.SetAt(1, importee.Loaded() ? importee_mirror : prefix);
   args.SetAt(2, combinators);
-  args.SetAt(3, prefix);
+  args.SetAt(3, prefix.IsNull() ? Object::null_object()
+                                : String::Handle(prefix.name()));
   args.SetAt(4, Bool::Get(is_import));
   args.SetAt(5, Bool::Get(is_deferred));
   args.SetAt(6, metadata);
   return CreateMirror(Symbols::_LocalLibraryDependencyMirror(), args);
+}
+
+
+DEFINE_NATIVE_ENTRY(LibraryMirror_fromPrefix, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(LibraryPrefix, prefix,
+                               arguments->NativeArgAt(0));
+  const Library& deferred_lib = Library::Handle(prefix.GetLibrary(0));
+  if (!deferred_lib.Loaded()) {
+    return Instance::null();
+  }
+  return CreateLibraryMirror(deferred_lib);
 }
 
 
@@ -440,7 +457,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 2) {
   Array& ports = Array::Handle();
   Namespace& ns = Namespace::Handle();
   Instance& dep = Instance::Handle();
-  String& prefix = String::Handle();
+  LibraryPrefix& prefix = LibraryPrefix::Handle();
   GrowableObjectArray& deps =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
 
@@ -472,14 +489,13 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 2) {
   while (entries.HasNext()) {
     entry = entries.GetNext();
     if (entry.IsLibraryPrefix()) {
-      const LibraryPrefix& lib_prefix = LibraryPrefix::Cast(entry);
-      prefix = lib_prefix.name();
-      ports = lib_prefix.imports();
+      prefix ^= entry.raw();
+      ports = prefix.imports();
       for (intptr_t i = 0; i < ports.Length(); i++) {
         ns ^= ports.At(i);
         if (!ns.IsNull()) {
           dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, true,
-                                              lib_prefix.is_deferred_load());
+                                              prefix.is_deferred_load());
           if (!dep.IsNull()) {
             deps.Add(dep);
           }
@@ -491,6 +507,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 2) {
   return deps.raw();
 }
 
+
 static RawInstance* CreateTypeMirror(const AbstractType& type) {
   if (type.IsTypeRef()) {
     AbstractType& ref_type = AbstractType::Handle(TypeRef::Cast(type).type());
@@ -499,19 +516,18 @@ static RawInstance* CreateTypeMirror(const AbstractType& type) {
     return CreateTypeMirror(ref_type);
   }
   ASSERT(type.IsFinalized());
-  ASSERT(!type.IsMalformed());
+  PROPOGATE_IF_MALFOMRED(type);
+
   if (type.HasResolvedTypeClass()) {
     const Class& cls = Class::Handle(type.type_class());
     // Handle void and dynamic types.
     if (cls.IsVoidClass()) {
       Array& args = Array::Handle(Array::New(1));
       args.SetAt(0, Symbols::Void());
-      // TODO(mlippautz): Create once in the VM isolate and retrieve from there.
       return CreateMirror(Symbols::_SpecialTypeMirror(), args);
     } else if (cls.IsDynamicClass()) {
       Array& args = Array::Handle(Array::New(1));
       args.SetAt(0, Symbols::Dynamic());
-      // TODO(mlippautz): Create once in the VM isolate and retrieve from there.
       return CreateMirror(Symbols::_SpecialTypeMirror(), args);
     }
     return CreateClassMirror(cls, type, Bool::False(), Object::null_instance());
@@ -563,36 +579,6 @@ static void VerifyMethodKindShifts() {
   MIRRORS_KIND_SHIFT_LIST(CHECK_KIND_SHIFT)
   #undef CHECK_KIND_SHIFT
 #endif
-}
-
-
-static RawInstance* CreateMirrorSystem() {
-  VerifyMethodKindShifts();
-
-  Isolate* isolate = Isolate::Current();
-  const GrowableObjectArray& libraries = GrowableObjectArray::Handle(
-      isolate, isolate->object_store()->libraries());
-
-  const intptr_t num_libraries = libraries.Length();
-  const GrowableObjectArray& library_mirrors = GrowableObjectArray::Handle(
-      isolate, GrowableObjectArray::New(num_libraries));
-  Library& library = Library::Handle(isolate);
-  Instance& library_mirror = Instance::Handle(isolate);
-
-  for (int i = 0; i < num_libraries; i++) {
-    library ^= libraries.At(i);
-    library_mirror = CreateLibraryMirror(library);
-    if (!library_mirror.IsNull()) {
-      library_mirrors.Add(library_mirror);
-    }
-  }
-
-  const Instance& isolate_mirror = Instance::Handle(CreateIsolateMirror());
-
-  const Array& args = Array::Handle(Array::New(2));
-  args.SetAt(0, library_mirrors);
-  args.SetAt(1, isolate_mirror);
-  return CreateMirror(Symbols::_LocalMirrorSystem(), args);
 }
 
 
@@ -776,7 +762,7 @@ static RawInstance* InvokeInstanceGetter(const Class& klass,
 static RawAbstractType* InstantiateType(const AbstractType& type,
                                         const AbstractType& instantiator) {
   ASSERT(type.IsFinalized());
-  ASSERT(!type.IsMalformed());
+  PROPOGATE_IF_MALFOMRED(type);
 
   if (type.IsInstantiated() || instantiator.IsNull()) {
     return type.Canonicalize();
@@ -784,7 +770,7 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
 
   ASSERT(!instantiator.IsNull());
   ASSERT(instantiator.IsFinalized());
-  ASSERT(!instantiator.IsMalformed());
+  PROPOGATE_IF_MALFOMRED(instantiator);
 
   const TypeArguments& type_args =
       TypeArguments::Handle(instantiator.arguments());
@@ -800,14 +786,37 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
 }
 
 
-DEFINE_NATIVE_ENTRY(Mirrors_makeLocalMirrorSystem, 0) {
-  return CreateMirrorSystem();
+DEFINE_NATIVE_ENTRY(MirrorSystem_libraries, 0) {
+  const GrowableObjectArray& libraries = GrowableObjectArray::Handle(
+      isolate, isolate->object_store()->libraries());
+
+  const intptr_t num_libraries = libraries.Length();
+  const GrowableObjectArray& library_mirrors = GrowableObjectArray::Handle(
+      isolate, GrowableObjectArray::New(num_libraries));
+  Library& library = Library::Handle(isolate);
+  Instance& library_mirror = Instance::Handle(isolate);
+
+  for (int i = 0; i < num_libraries; i++) {
+    library ^= libraries.At(i);
+    library_mirror = CreateLibraryMirror(library);
+    if (!library_mirror.IsNull() && library.Loaded()) {
+      library_mirrors.Add(library_mirror);
+    }
+  }
+  return library_mirrors.raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(MirrorSystem_isolate, 0) {
+  VerifyMethodKindShifts();
+
+  return CreateIsolateMirror();
 }
 
 
 DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
-  ASSERT(!type.IsMalformed());
+  PROPOGATE_IF_MALFOMRED(type);
   ASSERT(type.IsFinalized());
   ASSERT(type.HasResolvedTypeClass());
   const Class& cls = Class::Handle(type.type_class());
@@ -932,7 +941,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_libraryUri, 1) {
 
 DEFINE_NATIVE_ENTRY(ClassMirror_supertype, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
-  ASSERT(!type.IsMalformed());
+  PROPOGATE_IF_MALFOMRED(type);
   ASSERT(type.IsFinalized());
   if (!type.HasResolvedTypeClass()) {
     Exceptions::ThrowArgumentError(type);
@@ -947,7 +956,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_supertype, 1) {
 
 DEFINE_NATIVE_ENTRY(ClassMirror_supertype_instantiated, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
-  ASSERT(!type.IsMalformed());
+  PROPOGATE_IF_MALFOMRED(type);
   ASSERT(type.IsFinalized());
   if (!type.HasResolvedTypeClass()) {
     Exceptions::ThrowArgumentError(type);
@@ -961,7 +970,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_supertype_instantiated, 1) {
 
 DEFINE_NATIVE_ENTRY(ClassMirror_interfaces, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
-  ASSERT(!type.IsMalformed());
+  PROPOGATE_IF_MALFOMRED(type);
   ASSERT(type.IsFinalized());
   if (!type.HasResolvedTypeClass()) {
     Exceptions::ThrowArgumentError(type);
@@ -978,7 +987,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_interfaces, 1) {
 
 DEFINE_NATIVE_ENTRY(ClassMirror_interfaces_instantiated, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
-  ASSERT(!type.IsMalformed());
+  PROPOGATE_IF_MALFOMRED(type);
   ASSERT(type.IsFinalized());
   if (!type.HasResolvedTypeClass()) {
     Exceptions::ThrowArgumentError(type);
@@ -1006,7 +1015,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_interfaces_instantiated, 1) {
 
 DEFINE_NATIVE_ENTRY(ClassMirror_mixin, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
-  ASSERT(!type.IsMalformed());
+  PROPOGATE_IF_MALFOMRED(type);
   ASSERT(type.IsFinalized());
   if (!type.HasResolvedTypeClass()) {
     Exceptions::ThrowArgumentError(type);
@@ -1024,7 +1033,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_mixin_instantiated, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType,
                                instantiator,
                                arguments->NativeArgAt(1));
-  ASSERT(!type.IsMalformed());
+  PROPOGATE_IF_MALFOMRED(type);
   ASSERT(type.IsFinalized());
   if (!type.HasResolvedTypeClass()) {
     Exceptions::ThrowArgumentError(type);

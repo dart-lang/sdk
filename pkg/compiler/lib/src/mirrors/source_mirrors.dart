@@ -142,6 +142,10 @@ abstract class LibraryDependencySourceMirror
 
   /// Returns the source location for this import/export declaration.
   SourceLocation get location;
+
+  /// Returns a future that completes when the library is loaded and initates a
+  /// load if one has not already happened.
+  /*Future<LibraryMirror>*/ loadLibrary();
 }
 
 /// A mirror on a show/hide combinator declared on a library dependency.

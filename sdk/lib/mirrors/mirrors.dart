@@ -55,6 +55,8 @@
  */
 library dart.mirrors;
 
+import 'dart:async' show Future;
+
 /**
  * A [MirrorSystem] is the main interface used to reflect on a set of
  * associated libraries.
@@ -69,8 +71,10 @@ library dart.mirrors;
  */
 abstract class MirrorSystem {
   /**
-   * Returns an immutable map from URIs to mirrors for all
-   * libraries known to this mirror system.
+   * Returns an immutable map from URIs to mirrors for all libraries known
+   * to this mirror system. For a runtime mirror system, only libraries which
+   * are currently loaded are included, and repeated calls of this method may
+   * return different maps as libraries are loaded.
    */
   Map<Uri, LibraryMirror> get libraries;
 
@@ -612,7 +616,8 @@ abstract class LibraryDependencyMirror implements Mirror {
   /// [targetLibrary].
   LibraryMirror get sourceLibrary;
 
-  /// Returns the library mirror of the library that is imported or exported.
+  /// Returns the library mirror of the library that is imported or exported,
+  /// or null if the library is not loaded.
   LibraryMirror get targetLibrary;
 
   /// Returns the prefix if this is a prefixed import and `null` otherwise.
@@ -626,6 +631,11 @@ abstract class LibraryDependencyMirror implements Mirror {
   SourceLocation get location;
 
   List<InstanceMirror> get metadata;
+
+  /// Returns a future that completes with a library mirror on the library being
+  /// imported or exported when it is loaded, and initiates a load of that
+  /// library if it is not loaded.
+  Future<LibraryMirror> loadLibrary();
 }
 
 /// A mirror on a show/hide combinator declared on a library dependency.

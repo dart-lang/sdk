@@ -5454,6 +5454,14 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   // newly loaded code and trigger one of these breakpoints.
   isolate->debugger()->NotifyDoneLoading();
 
+  // Notify mirrors that MirrorSystem.libraries needs to be recomputed.
+  const Library& libmirrors =
+      Library::Handle(isolate, Library::MirrorsLibrary());
+  const Field& dirty_bit = Field::Handle(isolate,
+      libmirrors.LookupLocalField(String::Handle(String::New("dirty"))));
+  ASSERT(!dirty_bit.IsNull() && dirty_bit.is_static());
+  dirty_bit.set_value(Bool::True());
+
   if (complete_futures) {
     const Library& corelib = Library::Handle(isolate, Library::CoreLibrary());
     const String& function_name =

@@ -297,9 +297,10 @@ namespace dart {
   V(Mirrors_evalInLibraryWithPrivateKey, 2)                                    \
   V(Mirrors_makeLocalClassMirror, 1)                                           \
   V(Mirrors_makeLocalTypeMirror, 1)                                            \
-  V(Mirrors_makeLocalMirrorSystem, 0)                                          \
   V(Mirrors_mangleName, 2)                                                     \
   V(MirrorReference_equals, 2)                                                 \
+  V(MirrorSystem_libraries, 0)                                                 \
+  V(MirrorSystem_isolate, 0)                                                   \
   V(InstanceMirror_invoke, 5)                                                  \
   V(InstanceMirror_invokeGetter, 3)                                            \
   V(InstanceMirror_invokeSetter, 4)                                            \
@@ -324,6 +325,7 @@ namespace dart {
   V(ClassMirror_invokeConstructor, 5)                                          \
   V(ClassMirror_type_variables, 1)                                             \
   V(ClassMirror_type_arguments, 1)                                             \
+  V(LibraryMirror_fromPrefix, 1)                                               \
   V(LibraryMirror_invoke, 5)                                                   \
   V(LibraryMirror_invokeGetter, 3)                                             \
   V(LibraryMirror_invokeSetter, 4)                                             \

@@ -22,6 +22,7 @@ mirrors/class_mirror_location_test: RuntimeError # Issue 6490
 mirrors/closurization_equivalence_test: RuntimeError # Issue 6490
 mirrors/constructor_kinds_test: RuntimeError # Issue 13799
 mirrors/constructor_private_name_test: CompileTimeError # Issue 13597
+mirrors/deferred_type_test: RuntimeError # Issue 6335
 mirrors/enum_test: RuntimeError # Issue 6490
 mirrors/fake_function_with_call_test: RuntimeError # Issue 11612
 mirrors/fake_function_without_call_test: RuntimeError # Issue 11612
@@ -52,6 +53,7 @@ mirrors/invoke_private_wrong_library_test: CompileTimeError # Issue 12164
 mirrors/library_declarations_test/none: RuntimeError # Issue 13439, Issue 13733
 mirrors/library_exports_shown_test: RuntimeError # Issue 6490
 mirrors/library_exports_hidden_test: RuntimeError # Issue 6490
+mirrors/library_import_deferred_loading_test: RuntimeError # Issue 6490
 mirrors/library_imports_deferred_test: RuntimeError # Issue 6490
 mirrors/library_imports_metadata_test: RuntimeError # Issue 6490
 mirrors/library_imports_bad_metadata_test/none: RuntimeError # Issue 6490
@@ -60,6 +62,7 @@ mirrors/library_imports_hidden_test: RuntimeError # Issue 6490
 mirrors/library_imports_prefixed_test: RuntimeError # Issue 6490
 mirrors/library_imports_prefixed_show_hide_test: RuntimeError # Issue 6490
 mirrors/library_uri_io_test: SkipByDesign # Uses dart:io.
+mirrors/load_library_test: RuntimeError # Issue 6335
 mirrors/local_function_is_static_test: RuntimeError # Issue 6335
 mirrors/lru_test: Skip # dart2js_native/lru_test is used instead
 mirrors/metadata_allowed_values_test/01: MissingCompileTimeError # Issue 14548
@@ -239,6 +242,7 @@ mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
 
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
+mirrors/deferred_type_test: CompileTimeError, OK # Don't have a multitest marker for dynamic compile time errors.
 
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 
@@ -294,6 +298,7 @@ mirrors/mirrors_nsm_test: StaticWarning, OK # Expect to trigger noSuchMethod.
 
 mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional library name conflict.
 mirrors/removed_api_test: StaticWarning, OK # Deliberately refers to undeclared members.
+mirrors/deferred_type_test: StaticWarning, OK # Deliberately referes to a deferred type in a declaration.
 
 mirrors/deferred_mirrors_metadata_test: Fail # Issue 17522
 
