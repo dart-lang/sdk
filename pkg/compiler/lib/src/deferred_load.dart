@@ -513,7 +513,7 @@ class DeferredLoadTask extends CompilerTask {
               metadata.constant.value.getType(compiler.coreTypes).element;
           if (element == deferredLibraryClass) {
             ConstructedConstantValue constant = metadata.constant.value;
-            StringConstantValue s = constant.fields[0];
+            StringConstantValue s = constant.fields.values.single;
             result = s.primitiveValue.slowToString();
             break;
           }

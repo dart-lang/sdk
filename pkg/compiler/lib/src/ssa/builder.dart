@@ -5100,7 +5100,7 @@ class SsaBuilder extends NewResolvedVisitor {
       stack.add(addConstant(node));
       if (isSymbolConstructor) {
         ConstructedConstantValue symbol = getConstantForNode(node);
-        StringConstantValue stringConstant = symbol.fields.single;
+        StringConstantValue stringConstant = symbol.fields.values.single;
         String nameString = stringConstant.toDartString().slowToString();
         registry.registerConstSymbol(nameString);
       }

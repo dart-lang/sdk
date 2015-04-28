@@ -11,11 +11,12 @@ import '../dart2jslib.dart'
 import '../elements/elements.dart'
     show ClassElement,
          Element,
+         FieldElement,
          FunctionElement,
          PrefixElement;
 import '../tree/tree.dart' hide unparse;
 import '../types/types.dart' as ti show TypeMask;
-import '../util/util.dart' show SMI_MASK;
+import '../util/util.dart' show Hashing;
 
 abstract class ConstantValueVisitor<R, A> {
   const ConstantValueVisitor();
@@ -234,7 +235,7 @@ class IntConstantValue extends NumConstantValue {
     return primitiveValue == otherInt.primitiveValue;
   }
 
-  int get hashCode => primitiveValue & SMI_MASK;
+  int get hashCode => primitiveValue & Hashing.SMI_MASK;
 
   DartString toDartString() {
     return new DartString.literal(primitiveValue.toString());
@@ -444,20 +445,10 @@ class ListConstantValue extends ObjectConstantValue {
 
   ListConstantValue(InterfaceType type, List<ConstantValue> entries)
       : this.entries = entries,
-        hashCode = _computeHash(type, entries),
+        hashCode = Hashing.listHash(entries, Hashing.objectHash(type)),
         super(type);
 
   bool get isList => true;
-
-  static int _computeHash(DartType type, List<ConstantValue> entries) {
-    // TODO(floitsch): create a better hash.
-    int hash = 7;
-    for (ConstantValue input in entries) {
-      hash ^= input.hashCode;
-    }
-    hash ^= type.hashCode;
-    return hash;
-  }
 
   bool operator ==(var other) {
     if (other is !ListConstantValue) return false;
@@ -511,27 +502,14 @@ class MapConstantValue extends ObjectConstantValue {
                    List<ConstantValue> values)
       : this.keys = keys,
         this.values = values,
-        this.hashCode = computeHash(type, keys, values),
+        this.hashCode = Hashing.listHash(values,
+                            Hashing.listHash(keys,
+                                Hashing.objectHash(type))),
         super(type) {
     assert(keys.length == values.length);
   }
 
   bool get isMap => true;
-
-  static int computeHash(DartType type,
-                         List<ConstantValue> keys,
-                         List<ConstantValue> values) {
-    // TODO(floitsch): create a better hash.
-    int hash = 0;
-    for (ConstantValue key in keys) {
-      hash ^= key.hashCode;
-    }
-    for (ConstantValue value in values) {
-      hash ^= value.hashCode;
-    }
-    hash ^= type.hashCode;
-    return hash;
-  }
 
   bool operator ==(var other) {
     if (other is !MapConstantValue) return false;
@@ -645,27 +623,18 @@ class DummyConstantValue extends ConstantValue {
 }
 
 class ConstructedConstantValue extends ObjectConstantValue {
-  final List<ConstantValue> fields;
+  final Map<FieldElement, ConstantValue> fields;
   final int hashCode;
 
-  ConstructedConstantValue(InterfaceType type, List<ConstantValue> fields)
+  ConstructedConstantValue(InterfaceType type,
+                           Map<FieldElement, ConstantValue> fields)
     : this.fields = fields,
-      hashCode = computeHash(type, fields),
+      hashCode = Hashing.mapHash(fields, Hashing.objectHash(type)),
       super(type) {
     assert(type != null);
   }
 
   bool get isConstructedObject => true;
-
-  static int computeHash(DartType type, List<ConstantValue> fields) {
-    // TODO(floitsch): create a better hash.
-    int hash = 0;
-    for (ConstantValue field in fields) {
-      hash ^= field.hashCode;
-    }
-    hash ^= type.hashCode;
-    return hash;
-  }
 
   bool operator ==(var otherVar) {
     if (otherVar is !ConstructedConstantValue) return false;
@@ -673,27 +642,16 @@ class ConstructedConstantValue extends ObjectConstantValue {
     if (hashCode != other.hashCode) return false;
     if (type != other.type) return false;
     if (fields.length != other.fields.length) return false;
-    for (int i = 0; i < fields.length; i++) {
-      if (fields[i] != other.fields[i]) return false;
+    for (FieldElement field in fields.keys) {
+      if (fields[field] != other.fields[field]) return false;
     }
     return true;
   }
 
-  List<ConstantValue> getDependencies() => fields;
+  List<ConstantValue> getDependencies() => fields.values.toList();
 
   accept(ConstantValueVisitor visitor, arg) {
     return visitor.visitConstructed(this, arg);
-  }
-
-  Map<Element, ConstantValue> get fieldElements {
-    // TODO(ahe): Refactor constant system to store this information directly.
-    ClassElement classElement = type.element;
-    int count = 0;
-    Map<Element, ConstantValue> result = new Map<Element, ConstantValue>();
-    classElement.implementation.forEachInstanceField((holder, field) {
-      result[field] = fields[count++];
-    }, includeSuperAndInjectedMembers: true);
-    return result;
   }
 
   String unparse() {
@@ -702,7 +660,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
     _unparseTypeArguments(sb);
     sb.write('(');
     int i = 0;
-    fieldElements.forEach((Element field, ConstantValue value) {
+    fields.forEach((FieldElement field, ConstantValue value) {
       if (i > 0) sb.write(',');
       sb.write(field.name);
       sb.write('=');
@@ -719,7 +677,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
     sb.write(type);
     sb.write('(');
     int i = 0;
-    fieldElements.forEach((Element field, ConstantValue value) {
+    fields.forEach((FieldElement field, ConstantValue value) {
       if (i > 0) sb.write(',');
       sb.write(field.name);
       sb.write('=');

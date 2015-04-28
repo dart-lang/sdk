@@ -871,14 +871,16 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     ConstructorEvaluator evaluator = new ConstructorEvaluator(
         constructedType, target, handler, compiler);
     evaluator.evaluateConstructorFieldValues(normalizedArguments);
-    List<AstConstant> fieldConstants =
+    Map<FieldElement, AstConstant> fieldConstants =
         evaluator.buildFieldConstants(classElement);
-
+    Map<FieldElement, ConstantValue> fieldValues =
+        <FieldElement, ConstantValue>{};
+    fieldConstants.forEach((FieldElement field, AstConstant astConstant) {
+      fieldValues[field] = astConstant.value;
+    });
     return new AstConstant(
         context, node, new ConstructedConstantExpression(
-            new ConstructedConstantValue(
-                constructedType,
-                fieldConstants.map((e) => e.value).toList()),
+            new ConstructedConstantValue(constructedType, fieldValues),
             type,
             constructor,
             callStructure,
@@ -1098,8 +1100,10 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
 
   /// Builds a normalized list of the constant values for each field in the
   /// inheritance chain of [classElement].
-  List<AstConstant> buildFieldConstants(ClassElement classElement) {
-    List<AstConstant> fieldConstants = <AstConstant>[];
+  Map<FieldElement, AstConstant> buildFieldConstants(
+      ClassElement classElement) {
+    Map<FieldElement, AstConstant> fieldConstants =
+        <FieldElement, AstConstant>{};
     classElement.implementation.forEachInstanceField(
         (ClassElement enclosing, FieldElement field) {
           AstConstant fieldValue = fieldValues[field];
@@ -1108,7 +1112,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
             fieldValue = new AstConstant.fromDefaultValue(
                 field, handler.compileConstant(field));
           }
-          fieldConstants.add(fieldValue);
+          fieldConstants[field] = fieldValue;
         },
         includeSuperAndInjectedMembers: true);
     return fieldConstants;

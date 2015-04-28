@@ -694,14 +694,14 @@ class NativeBehavior {
       ConstructedConstantValue constructedObject = value;
       if (constructedObject.type.element != annotationClass) continue;
 
-      List<ConstantValue> fields = constructedObject.fields;
+      Iterable<ConstantValue> fields = constructedObject.fields.values;
       // TODO(sra): Better validation of the constant.
-      if (fields.length != 1 || !fields[0].isString) {
+      if (fields.length != 1 || !fields.single.isString) {
         PartialMetadataAnnotation partial = annotation;
         compiler.internalError(annotation,
             'Annotations needs one string: ${partial.parseNode(compiler)}');
       }
-      StringConstantValue specStringConstant = fields[0];
+      StringConstantValue specStringConstant = fields.single;
       String specString = specStringConstant.toDartString().slowToString();
       for (final typeString in specString.split('|')) {
         var type = _parseType(typeString, compiler, lookup, annotation);

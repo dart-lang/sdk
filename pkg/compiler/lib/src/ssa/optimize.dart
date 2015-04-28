@@ -758,7 +758,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       ConstantValue constant = receiver.constant;
       if (constant.isConstructedObject) {
         ConstructedConstantValue constructedConstant = constant;
-        Map<Element, ConstantValue> fields = constructedConstant.fieldElements;
+        Map<Element, ConstantValue> fields = constructedConstant.fields;
         ConstantValue value = fields[node.element];
         if (value != null) {
           return graph.addConstant(value, compiler);

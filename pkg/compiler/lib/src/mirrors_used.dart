@@ -329,7 +329,7 @@ class MirrorUsageAnalyzer {
   /// Convert a [constant] to an instance of [MirrorUsage] using information
   /// that was resolved during [MirrorUsageAnalyzerTask.validate].
   MirrorUsage buildUsage(ConstructedConstantValue constant) {
-    Map<Element, ConstantValue> fields = constant.fieldElements;
+    Map<Element, ConstantValue> fields = constant.fields;
     VariableElement symbolsField = compiler.mirrorsUsedClass.lookupLocalMember(
         'symbols');
     VariableElement targetsField = compiler.mirrorsUsedClass.lookupLocalMember(

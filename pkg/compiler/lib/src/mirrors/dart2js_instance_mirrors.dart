@@ -229,7 +229,7 @@ class Dart2JsTypeConstantMirror extends Dart2JsConstantMirror
 }
 
 class Dart2JsConstructedConstantMirror extends Dart2JsConstantMirror {
-  Map<String,ConstantValue> _fieldMapCache;
+  Map<String, ConstantValue> _fieldMapCache;
 
   Dart2JsConstructedConstantMirror(Dart2JsMirrorSystem mirrorSystem,
                                    ConstantExpression constant,
@@ -238,17 +238,13 @@ class Dart2JsConstructedConstantMirror extends Dart2JsConstantMirror {
 
   ConstructedConstantValue get _value => super._value;
 
-  Map<String,ConstantValue> get _fieldMap {
+  Map<String, ConstantValue> get _fieldMap {
     if (_fieldMapCache == null) {
-      _fieldMapCache = new Map<String,ConstantValue>();
+      _fieldMapCache = new Map<String, ConstantValue>();
       if (identical(_value.type.element.kind, ElementKind.CLASS)) {
-        var index = 0;
-        ClassElement element = _value.type.element;
-        element.forEachInstanceField((_, Element field) {
-          String fieldName = field.name;
-          _fieldMapCache.putIfAbsent(fieldName, () => _value.fields[index]);
-          index++;
-        }, includeSuperAndInjectedMembers: true);
+        _value.fields.forEach((FieldElement field, ConstantValue value) {
+          _fieldMapCache[field.name] = value;
+        });
       }
     }
     return _fieldMapCache;
