@@ -25,6 +25,7 @@ enum ResolvedKind {
 /// Abstract interface for a [ResolvedVisitor].
 // TODO(johnniwinther): Remove this.
 abstract class ResolvedKindVisitor<R> {
+  @deprecated
   R visitSuperSend(Send node);
 
   @deprecated
@@ -196,6 +197,13 @@ abstract class NewResolvedVisitor<R> extends BaseResolvedVisitor<R>
       }
     }
   }
+
+
+  @override
+  R visitSuperSend(Send node) {
+    internalError(node, "visitSuperSend is deprecated");
+  }
+
 
   @override
   R visitOperatorSend(Send node) {

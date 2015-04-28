@@ -4164,10 +4164,6 @@ class SsaBuilder extends NewResolvedVisitor {
     push(buildInvokeSuper(compiler.noSuchMethodSelector, element, inputs));
   }
 
-  visitSuperSend(ast.Send node) {
-    internalError(node, "Unexpected super send.");
-  }
-
   /// Generate a call to a super method or constructor.
   void generateSuperInvoke(ast.Send node, FunctionElement function) {
     // TODO(5347): Try to avoid the need for calling [implementation] before

@@ -5,24 +5,26 @@
 library simple_types_inferrer;
 
 import '../closure.dart' show ClosureClassMap, ClosureScope;
+import '../cps_ir/cps_ir_nodes.dart' as cps_ir show Node;
 import '../dart_types.dart'
     show DartType, InterfaceType, FunctionType, TypeKind;
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' as js;
 import '../native/native.dart' as native;
+import '../resolution/operators.dart' as op;
 import '../tree/tree.dart' as ast;
-import '../cps_ir/cps_ir_nodes.dart' as cps_ir show Node;
-import '../util/util.dart' show Link, Spannable, Setlet;
 import '../types/types.dart'
     show TypesInferrer, FlatTypeMask, TypeMask, ContainerTypeMask,
          ElementTypeMask, ValueTypeMask, TypeSystem, MinimalInferrerEngine;
+import '../util/util.dart' show Link, Spannable, Setlet;
 import 'inferrer_visitor.dart';
 
 // BUG(8802): There's a bug in the analyzer that makes the re-export
 // of Selector from dart2jslib.dart fail. For now, we work around that
 // by importing universe.dart explicitly and disabling the re-export.
 import '../dart2jslib.dart' hide Selector, TypedSelector;
-import '../universe/universe.dart' show Selector, SideEffects, TypedSelector;
+import '../universe/universe.dart'
+    show Selector, SideEffects, TypedSelector, CallStructure;
 
 /**
  * An implementation of [TypeSystem] for [TypeMask].
@@ -967,37 +969,219 @@ class SimpleTypeInferrerVisitor<T>
     return rhsType;
   }
 
-  T handleSuperConstructorInvoke(ast.Send node) {
-    return visitSuperSend(node);
-  }
-
-  T visitSuperSend(ast.Send node) {
-    Element element = elements[node];
+  /// Handle a super access or invocation that results in a `noSuchMethod` call.
+  T handleErroneousSuperSend(ast.Send node) {
     ArgumentsTypes arguments = node.isPropertyAccess
         ? null
         : analyzeArguments(node.arguments);
-    if (visitingInitializers) {
-      seenSuperConstructorCall = true;
-      analyzeSuperConstructorCall(element, arguments);
-    }
     Selector selector = elements.getSelector(node);
-    // TODO(ngeoffray): We could do better here if we knew what we
+    // TODO(herhut): We could do better here if we knew what we
     // are calling does not expose this.
     isThisExposed = true;
-    if (Elements.isUnresolved(element)
-        || !selector.applies(element, compiler.world)) {
-      // Ensure we create a node, to make explicit the call to the
-      // `noSuchMethod` handler.
-      return handleDynamicSend(node, selector, superType, arguments);
-    } else if (node.isPropertyAccess
-              || element.isFunction
-              || element.isGenerativeConstructor) {
-      return handleStaticSend(node, selector, element, arguments);
-    } else {
-      return inferrer.registerCalledClosure(
-          node, selector, inferrer.typeOfElement(element),
-          outermostElement, arguments, sideEffects, inLoop);
-    }
+    // Ensure we create a node, to make explicit the call to the
+    // `noSuchMethod` handler.
+    return handleDynamicSend(node, selector, superType, arguments);
+  }
+
+  /// Handle a .call invocation on the values retrieved from the super
+  /// [element]. For instance `super.foo(bar)` where `foo` is a field or getter.
+  T handleSuperClosureCall(
+      ast.Send node,
+      Element element,
+      ast.NodeList arguments) {
+    ArgumentsTypes argumentTypes = analyzeArguments(arguments.nodes);
+    Selector selector = elements.getSelector(node);
+    // TODO(herhut): We could do better here if we knew what we
+    // are calling does not expose this.
+    isThisExposed = true;
+    return inferrer.registerCalledClosure(
+        node, selector, inferrer.typeOfElement(element),
+        outermostElement, argumentTypes, sideEffects, inLoop);
+  }
+
+  /// Handle an invocation of super [method].
+  T handleSuperMethodInvoke(ast.Send node,
+                            MethodElement method,
+                            ArgumentsTypes arguments) {
+    // TODO(herhut): We could do better here if we knew what we
+    // are calling does not expose this.
+    isThisExposed = true;
+    return handleStaticSend(
+        node, elements.getSelector(node), method, arguments);
+  }
+
+  /// Handle access to a super field or getter [element].
+  T handleSuperGet(ast.Send node,
+                   Element element) {
+    // TODO(herhut): We could do better here if we knew what we
+    // are calling does not expose this.
+    isThisExposed = true;
+    return handleStaticSend(
+        node, elements.getSelector(node), element, null);
+  }
+
+  /// Handle super constructor invocation.
+  @override
+  T handleSuperConstructorInvoke(ast.Send node) {
+    Element element = elements[node];
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    assert(visitingInitializers);
+    seenSuperConstructorCall = true;
+    analyzeSuperConstructorCall(element, arguments);
+    return handleStaticSend(
+        node, elements.getSelector(node), element, arguments);
+  }
+
+  @override
+  T visitUnresolvedSuperIndex(
+      ast.Send node,
+      Element element,
+      ast.Node index,
+      _) {
+    return handleErroneousSuperSend(node);
+  }
+
+  @override
+  T visitUnresolvedSuperUnary(
+      ast.Send node,
+      op.UnaryOperator operator,
+      Element element,
+      _) {
+    return handleErroneousSuperSend(node);
+  }
+
+  @override
+  T visitUnresolvedSuperBinary(
+      ast.Send node,
+      Element element,
+      op.BinaryOperator operator,
+      ast.Node argument,
+      _) {
+    return handleErroneousSuperSend(node);
+  }
+
+  @override
+  T visitUnresolvedSuperGet(
+      ast.Send node,
+      Element element,
+      _) {
+    return handleErroneousSuperSend(node);
+  }
+
+  @override
+  T visitUnresolvedSuperInvoke(
+      ast.Send node,
+      Element element,
+      ast.Node argument,
+      Selector selector,
+      _) {
+    return handleErroneousSuperSend(node);
+  }
+
+  @override
+  T visitSuperFieldGet(
+      ast.Send node,
+      FieldElement field,
+      _) {
+    return handleSuperGet(node, field);
+  }
+
+  @override
+  T visitSuperGetterGet(
+      ast.Send node,
+      MethodElement method,
+      _) {
+    return handleSuperGet(node, method);
+  }
+
+  @override
+  T visitSuperMethodGet(
+      ast.Send node,
+      MethodElement method,
+      _) {
+    return handleSuperGet(node, method);
+  }
+
+  @override
+  T visitSuperFieldInvoke(
+      ast.Send node,
+      FieldElement field,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleSuperClosureCall(node, field, arguments);
+  }
+
+  @override
+  T visitSuperGetterInvoke(
+      ast.Send node,
+      MethodElement getter,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleSuperClosureCall(node, getter, arguments);
+  }
+
+  @override
+  T visitSuperMethodInvoke(
+      ast.Send node,
+      MethodElement method,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleSuperMethodInvoke(
+        node, method, analyzeArguments(arguments.nodes));
+  }
+
+  @override
+  T visitSuperIndex(
+      ast.Send node,
+      MethodElement method,
+      ast.Node index,
+      _) {
+    return handleSuperMethodInvoke(
+        node, method, analyzeArguments(node.arguments));
+  }
+
+  @override
+  T visitSuperEquals(
+      ast.Send node,
+      MethodElement method,
+      ast.Node argument,
+      _) {
+    return handleSuperMethodInvoke(
+        node, method, analyzeArguments(node.arguments));
+  }
+
+  @override
+  T visitSuperBinary(
+      ast.Send node,
+      MethodElement method,
+      op.BinaryOperator operator,
+      ast.Node argument,
+      _) {
+    return handleSuperMethodInvoke(
+        node, method, analyzeArguments(node.arguments));
+  }
+
+  @override
+  T visitSuperUnary(
+      ast.Send node,
+      op.UnaryOperator operator,
+      MethodElement method,
+      _) {
+    return handleSuperMethodInvoke(
+        node, method, analyzeArguments(node.arguments));
+  }
+
+  @override
+  T visitSuperMethodIncompatibleInvoke(
+      ast.Send node,
+      MethodElement method,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleErroneousSuperSend(node);
   }
 
   // Try to find the length given to a fixed array constructor call.
