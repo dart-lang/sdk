@@ -3049,8 +3049,6 @@ class SsaBuilder extends NewResolvedVisitor {
     // TODO(johnniwinther): Is [registerStaticUse] equivalent to
     // [addToWorkList]?
     registry.registerStaticUse(callElement);
-    // TODO(ahe): This should be registered in codegen, not here.
-    registry.registerInstantiatedClass(closureClassElement);
 
     List<HInstruction> capturedVariables = <HInstruction>[];
     closureClassElement.closureFields.forEach((ClosureFieldElement field) {
