@@ -16,6 +16,12 @@ class Frame {
   static callee() => null;
 }
 
+
+class Frame2 {
+  static int caller = 100;
+  static int arguments = 200;
+}
+
 main() {
   print(exports);
   print(new Foo()._foo());
@@ -23,4 +29,5 @@ main() {
   print(new Frame.caller([1,2,3]));
   var eval = Frame.callee;
   print(eval);
+  print(Frame2.caller + Frame2.arguments);
 }

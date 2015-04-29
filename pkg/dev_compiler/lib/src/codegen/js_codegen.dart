@@ -641,7 +641,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     for (FieldDeclaration member in staticFields) {
       for (VariableDeclaration field in member.fields.variables) {
         var fieldName = field.name.name;
-        if (field.isConst || _isFieldInitConstant(field)) {
+        if ((field.isConst || _isFieldInitConstant(field)) &&
+            !JS.invalidStaticFieldName(fieldName)) {
           var init = _visit(field.initializer);
           if (init == null) init = new JS.LiteralNull();
           body.add(js.statement('#.# = #;', [name, fieldName, init]));
@@ -2363,18 +2364,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   JS.Expression _emitMemberName(String name,
       {DartType type, bool unary: false, bool isStatic: false}) {
 
-    // Static methods skip most of the rename steps.
-    if (isStatic) {
-      if (JS.invalidStaticMethodName(name)) {
-        // Choose an string name. Use an invalid identifier so it won't conflict
-        // with any valid member names.
-        // TODO(jmesserly): this works around the problem, but I'm pretty sure we
-        // don't need it, as static methods seemed to work. The only concrete
-        // issue we saw was in the defineNamedConstructor helper function.
-        name = '$name*';
-      }
-      return _propertyName(name);
-    }
+    // Static members skip the rename steps.
+    if (isStatic) return _propertyName(name);
 
     if (name.startsWith('_')) {
       return _privateNames.putIfAbsent(

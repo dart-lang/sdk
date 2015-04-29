@@ -231,9 +231,9 @@ bool invalidVariableName(String keyword, {bool strictMode: true}) {
   return false;
 }
 
-/// Returns true for invalid static method names in strict mode.
+/// Returns true for invalid static field names in strict mode.
 /// In particular, "caller" "callee" and "arguments" cannot be used.
-bool invalidStaticMethodName(String name) {
+bool invalidStaticFieldName(String name) {
   switch (name) {
     case "arguments":
     case "caller":

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-var dart, _js_helper;
+var dart, _js_helper, _js_primitives;
 (function (dart) {
   'use strict';
 
@@ -760,7 +760,9 @@ var dart, _js_helper;
     let initMethod = proto[name];
     let ctor = function() { return initMethod.apply(this, arguments); }
     ctor.prototype = proto;
-    clazz[name] = ctor;
+    // Use defineProperty so we don't hit a property defined on Function,
+    // like `caller` and `arguments`.
+    defineProperty(clazz, name, { value: ctor, configurable: true });
   }
   dart.defineNamedConstructor = defineNamedConstructor;
 
@@ -936,5 +938,8 @@ var dart, _js_helper;
   // TODO(jmesserly): hack to bootstrap the SDK
   _js_helper = _js_helper || {};
   _js_helper.checkNum = notNull;
+
+  _js_primitives = _js_primitives || {};
+  _js_primitives.printString = (s) => console.log(s);
 
 })(dart || (dart = {}));
