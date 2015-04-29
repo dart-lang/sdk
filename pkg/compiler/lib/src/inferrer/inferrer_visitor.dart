@@ -708,10 +708,6 @@ abstract class InferrerVisitor
 
   T handleSendSet(SendSet node);
 
-  T visitStaticSend(Send node);
-
-  T visitGetterSend(Send node);
-
   T visitDynamicSend(Send node);
 
   T visitAsyncForIn(AsyncForIn node);
@@ -735,10 +731,6 @@ abstract class InferrerVisitor
 
   T visitNode(Node node) {
     return node.visitChildren(this);
-  }
-
-  T handleNewExpression(NewExpression node) {
-    return node.send.accept(this);
   }
 
   T visit(Node node) {

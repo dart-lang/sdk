@@ -2368,20 +2368,9 @@ class TypeInferrerVisitor extends SimpleTypeInferrerVisitor<ConcreteType> {
   }
 
   /**
-   * Same as super.visitGetterSend except it records the type of nodes in test
+   * Same as super.handleLocalGet except it records the type of nodes in test
    * mode.
    */
-  @override
-  ConcreteType visitGetterSend(Send node) {
-    if (inferrer.testMode) {
-      var element = elements[node];
-      if (element is Local) {
-        internalError(node, "Unhandled local: $element");
-      }
-    }
-    return super.visitGetterSend(node);
-  }
-
   @override
   ConcreteType handleLocalGet(Send node, LocalElement local) {
     if (inferrer.testMode) {

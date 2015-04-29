@@ -1230,8 +1230,13 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   T visitStaticSend(ast.Send node) {
-    Element element = elements[node];
     assert(!elements.isAssert(node));
+    Element element = elements[node];
+    return handleConstructorSend(node, element);
+  }
+
+  /// Handle constructor invocation of [element].
+  T handleConstructorSend(ast.Send node, ConstructorElement element) {
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     if (visitingInitializers) {
       if (ast.Initializers.isConstructorRedirect(node)) {
@@ -1254,13 +1259,15 @@ class SimpleTypeInferrerVisitor<T>
       }
     }
     if (element.isForeign(compiler.backend)) {
-      return handleForeignSend(node);
+      return handleForeignSend(node, element);
     }
     Selector selector = elements.getSelector(node);
     // In erroneous code the number of arguments in the selector might not
     // match the function element.
     // TODO(polux): return nonNullEmpty and check it doesn't break anything
-    if (!selector.applies(element, compiler.world)) return types.dynamicType;
+    if (!selector.applies(element, compiler.world)) {
+      return types.dynamicType;
+    }
 
     T returnType = handleStaticSend(node, selector, element, arguments);
     if (Elements.isGrowableListConstructorCall(element, node, compiler)) {
@@ -1291,21 +1298,137 @@ class SimpleTypeInferrerVisitor<T>
         node, () => types.allocateList(
           types.nonNullExact(constructor.enclosingClass), node,
           outermostElement, elementType, length));
-    } else if (element.isFunction || element.isConstructor) {
-      return returnType;
     } else {
-      assert(element.isField || element.isGetter);
-      return inferrer.registerCalledClosure(
-          node, selector, inferrer.typeOfElement(element),
-          outermostElement, arguments, sideEffects, inLoop);
+      return returnType;
     }
   }
 
-  T handleForeignSend(ast.Send node) {
+  T handleNewExpression(ast.NewExpression node) {
+    return visitStaticSend(node.send);
+  }
+
+  /// Handle invocation of a top level or static field or getter [element].
+  T handleStaticFieldOrGetterInvoke(ast.Send node, Element element) {
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
-    String name = selector.name;
-    handleStaticSend(node, selector, elements[node], arguments);
+    handleStaticSend(node, selector, element, arguments);
+    return inferrer.registerCalledClosure(
+              node, selector, inferrer.typeOfElement(element),
+              outermostElement, arguments, sideEffects, inLoop);
+  }
+
+  /// Handle invocation of a top level or static [function].
+  T handleStaticFunctionInvoke(ast.Send node, MethodElement function) {
+    if (function.isForeign(compiler.backend)) {
+      return handleForeignSend(node, function);
+    }
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    Selector selector = elements.getSelector(node);
+    return handleStaticSend(node, selector, function, arguments);
+  }
+
+  /// Handle an static invocation of an unresolved target or with incompatible
+  /// arguments to a resolved target.
+  T handleInvalidStaticInvoke(ast.Send node) {
+    analyzeArguments(node.arguments);
+    return types.dynamicType;
+  }
+
+  @override
+  T visitStaticFieldInvoke(
+      ast.Send node,
+      FieldElement field,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleStaticFieldOrGetterInvoke(node, field);
+  }
+
+  @override
+  T visitStaticFunctionInvoke(
+      ast.Send node,
+      MethodElement function,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleStaticFunctionInvoke(node, function);
+  }
+
+  @override
+  T visitStaticFunctionIncompatibleInvoke(
+      ast.Send node,
+      MethodElement function,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleInvalidStaticInvoke(node);
+  }
+
+  @override
+  T visitStaticGetterInvoke(
+      ast.Send node,
+      FunctionElement getter,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleStaticFieldOrGetterInvoke(node, getter);
+  }
+
+  @override
+  T visitTopLevelFieldInvoke(
+      ast.Send node,
+      FieldElement field,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleStaticFieldOrGetterInvoke(node, field);
+  }
+
+  @override
+  T visitTopLevelFunctionInvoke(
+      ast.Send node,
+      MethodElement function,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleStaticFunctionInvoke(node, function);
+  }
+
+  @override
+  T visitTopLevelFunctionIncompatibleInvoke(
+      ast.Send node,
+      MethodElement function,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleInvalidStaticInvoke(node);
+  }
+
+  @override
+  T visitTopLevelGetterInvoke(
+      ast.Send node,
+      FunctionElement getter,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleStaticFieldOrGetterInvoke(node, getter);
+  }
+
+  @override
+  T visitUnresolvedInvoke(
+      ast.Send node,
+      Element element,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    return handleInvalidStaticInvoke(node);
+  }
+
+  T handleForeignSend(ast.Send node, Element element) {
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    Selector selector = elements.getSelector(node);
+    String name = element.name;
+    handleStaticSend(node, selector, element, arguments);
     if (name == 'JS' || name == 'JS_EMBEDDED_GLOBAL' || name == 'JS_BUILTIN') {
       native.NativeBehavior nativeBehavior =
           compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
@@ -1343,23 +1466,12 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   T visitGetterSend(ast.Send node) {
-    Element element = elements[node];
-    Selector selector = elements.getSelector(node);
-    if (Elements.isStaticOrTopLevelField(element)) {
-      return handleStaticSend(node, selector, element, null);
-    } else if (Elements.isInstanceSend(node, elements)) {
-      return visitDynamicSend(node);
-    } else if (Elements.isStaticOrTopLevelFunction(element)) {
-      return handleStaticSend(node, selector, element, null);
-    } else if (Elements.isErroneous(element)) {
-      return types.dynamicType;
-    } else if (element.isLocal) {
-      internalError(node, "Unhandled local: $element");
-      return null;
-    } else {
-      assert(element is PrefixElement);
-      return null;
+    if (elements[node] is! PrefixElement) {
+      // TODO(johnniwinther): Remove this when no longer called from
+      // [handleSendSet].
+      internalError(node, "Unexpected visitGetterSend");
     }
+    return null;
   }
 
   /// Read a local variable, function or parameter.
@@ -1368,19 +1480,116 @@ class SimpleTypeInferrerVisitor<T>
     return locals.use(local);
   }
 
+  /// Read a static or top level field.
+  T handleStaticFieldGet(ast.Send node, FieldElement field) {
+    return handleStaticSend(node, elements.getSelector(node), field, null);
+  }
+
+  /// Invoke a static or top level getter.
+  T handleStaticGetterGet(ast.Send node, MethodElement getter) {
+    return handleStaticSend(node, elements.getSelector(node), getter, null);
+  }
+
+  /// Closurize a static or top level function.
+  T handleStaticFunctionGet(ast.Send node, MethodElement function) {
+    return handleStaticSend(node, elements.getSelector(node), function, null);
+  }
+
   @override
-  T visitLocalVariableGet(ast.Send node, LocalVariableElement variable, _) {
+  T visitDynamicPropertyGet(
+      ast.Send node,
+      ast.Node receiver,
+      Selector selector,
+      _) {
+    return visitDynamicSend(node);
+  }
+
+  @override
+  T visitLocalVariableGet(
+      ast.Send node,
+      LocalVariableElement variable,
+      _) {
     return handleLocalGet(node, variable);
   }
 
   @override
-  T visitParameterGet(ast.Send node, ParameterElement parameter, _) {
+  T visitParameterGet(
+      ast.Send node,
+      ParameterElement parameter,
+      _) {
     return handleLocalGet(node, parameter);
   }
 
   @override
-  T visitLocalFunctionGet(ast.Send node, LocalFunctionElement function, _) {
+  T visitLocalFunctionGet(
+      ast.Send node,
+      LocalFunctionElement function,
+      _) {
     return handleLocalGet(node, function);
+  }
+
+  @override
+  T visitStaticFieldGet(
+      ast.Send node,
+      FieldElement field,
+      _) {
+    return handleStaticFieldGet(node, field);
+  }
+
+  @override
+  T visitStaticFunctionGet(
+      ast.Send node,
+      MethodElement function,
+      _) {
+    return handleStaticFunctionGet(node, function);
+  }
+
+  @override
+  T visitStaticGetterGet(
+      ast.Send node,
+      FunctionElement getter,
+      _) {
+    return handleStaticGetterGet(node, getter);
+  }
+
+  @override
+  T visitThisPropertyGet(
+      ast.Send node,
+      Selector selector,
+      _) {
+    return visitDynamicSend(node);
+  }
+
+  @override
+  T visitTopLevelFieldGet(
+      ast.Send node,
+      FieldElement field,
+      _) {
+    return handleStaticFieldGet(node, field);
+  }
+
+  @override
+  T visitTopLevelFunctionGet(
+      ast.Send node,
+      MethodElement function,
+      _) {
+    return handleStaticFunctionGet(node, function);
+  }
+
+  @override
+  T visitTopLevelGetterGet(
+      ast.Send node,
+      FunctionElement getter,
+      _) {
+    return handleStaticGetterGet(node, getter);
+  }
+
+  @override
+  T visitUnresolvedGet(
+      ast.Send node,
+      Element element,
+      _) {
+    return types.dynamicType;
   }
 
   /// Handle .call invocation on [closure].
