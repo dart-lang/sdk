@@ -79,6 +79,7 @@ class FixProcessor {
   int errorOffset;
   int errorLength;
   int errorEnd;
+  SourceRange errorRange;
   AstNode node;
   AstNode coveredNode;
 
@@ -105,6 +106,7 @@ class FixProcessor {
     errorOffset = error.offset;
     errorLength = error.length;
     errorEnd = errorOffset + errorLength;
+    errorRange = new SourceRange(errorOffset, errorLength);
     node = new NodeLocator.con1(errorOffset).searchWithin(unit);
     coveredNode = new NodeLocator.con2(errorOffset, errorOffset + errorLength)
         .searchWithin(unit);
@@ -149,6 +151,9 @@ class FixProcessor {
       _addFix_createImportUri();
       _addFix_createPartUri();
       _addFix_replaceImportUri();
+    }
+    if (errorCode == HintCode.DEAD_CODE) {
+      _addFix_removeDeadCode();
     }
     if (errorCode == HintCode.DIVISION_OPTIMIZATION) {
       _addFix_useEffectiveIntegerDivision();
@@ -1373,6 +1378,38 @@ class FixProcessor {
     String className = enclosingClass.name.name;
     _addInsertEdit(enclosingClass.classKeyword.offset, 'abstract ');
     _addFix(DartFixKind.MAKE_CLASS_ABSTRACT, [className]);
+  }
+
+  void _addFix_removeDeadCode() {
+    AstNode coveringNode = this.coveredNode;
+    if (coveringNode is Expression) {
+      AstNode parent = coveredNode.parent;
+      if (parent is BinaryExpression) {
+        if (parent.rightOperand == coveredNode) {
+          _addRemoveEdit(rf.rangeEndEnd(parent.leftOperand, coveredNode));
+          _addFix(DartFixKind.REMOVE_DEAD_CODE, []);
+        }
+      }
+    } else if (coveringNode is Block) {
+      Block block = coveringNode;
+      List<Statement> statementsToRemove = <Statement>[];
+      for (Statement statement in block.statements) {
+        if (rf.rangeNode(statement).intersects(errorRange)) {
+          statementsToRemove.add(statement);
+        }
+      }
+      if (statementsToRemove.isNotEmpty) {
+        SourceRange rangeToRemove =
+            utils.getLinesRangeStatements(statementsToRemove);
+        _addRemoveEdit(rangeToRemove);
+        _addFix(DartFixKind.REMOVE_DEAD_CODE, []);
+      }
+    } else if (coveringNode is Statement) {
+      SourceRange rangeToRemove =
+          utils.getLinesRangeStatements(<Statement>[coveringNode]);
+      _addRemoveEdit(rangeToRemove);
+      _addFix(DartFixKind.REMOVE_DEAD_CODE, []);
+    }
   }
 
   void _addFix_removeParameters_inGetterDeclaration() {

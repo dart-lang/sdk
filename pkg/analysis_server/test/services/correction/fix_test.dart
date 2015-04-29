@@ -2449,6 +2449,56 @@ main(p) {
     }
   }
 
+  void test_removeDeadCode_condition() {
+    resolveTestUnit('''
+main(int p) {
+  if (true || p > 5) {
+    print(1);
+  }
+}
+''');
+    assertHasFix(DartFixKind.REMOVE_DEAD_CODE, '''
+main(int p) {
+  if (true) {
+    print(1);
+  }
+}
+''');
+  }
+
+  void test_removeDeadCode_statements_one() {
+    resolveTestUnit('''
+int main() {
+  print(0);
+  return 42;
+  print(1);
+}
+''');
+    assertHasFix(DartFixKind.REMOVE_DEAD_CODE, '''
+int main() {
+  print(0);
+  return 42;
+}
+''');
+  }
+
+  void test_removeDeadCode_statements_two() {
+    resolveTestUnit('''
+int main() {
+  print(0);
+  return 42;
+  print(1);
+  print(2);
+}
+''');
+    assertHasFix(DartFixKind.REMOVE_DEAD_CODE, '''
+int main() {
+  print(0);
+  return 42;
+}
+''');
+  }
+
   void test_removeParentheses_inGetterDeclaration() {
     resolveTestUnit('''
 class A {

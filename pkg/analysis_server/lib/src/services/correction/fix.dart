@@ -88,6 +88,8 @@ class DartFixKind {
       const FixKind('INSERT_SEMICOLON', 50, "Insert ';'");
   static const MAKE_CLASS_ABSTRACT =
       const FixKind('MAKE_CLASS_ABSTRACT', 50, "Make class '{0}' abstract");
+  static const REMOVE_DEAD_CODE =
+      const FixKind('REMOVE_DEAD_CODE', 50, "Remove dead code");
   static const REMOVE_PARAMETERS_IN_GETTER_DECLARATION = const FixKind(
       'REMOVE_PARAMETERS_IN_GETTER_DECLARATION', 50,
       "Remove parameters in getter declaration");
