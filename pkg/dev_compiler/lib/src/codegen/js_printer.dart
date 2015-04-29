@@ -15,7 +15,7 @@ import 'package:dev_compiler/src/js/js_ast.dart' as JS;
 import 'package:dev_compiler/src/utils.dart'
     show computeHash, locationForOffset;
 
-import 'js_names.dart' show JSNamer;
+import 'js_names.dart' show TemporaryNamer;
 
 String writeJsLibrary(JS.Program jsTree, String outputPath,
     {bool emitSourceMaps: false}) {
@@ -40,7 +40,8 @@ String writeJsLibrary(JS.Program jsTree, String outputPath,
 
 void writeNodeToContext(JS.Node node, JS.JavaScriptPrintingContext context) {
   var opts = new JS.JavaScriptPrintingOptions(allowKeywordsInProperties: true);
-  node.accept(new JS.Printer(opts, context, localNamer: new JSNamer(node)));
+  node.accept(
+      new JS.Printer(opts, context, localNamer: new TemporaryNamer(node)));
 }
 
 String jsNodeToString(JS.Node node) {

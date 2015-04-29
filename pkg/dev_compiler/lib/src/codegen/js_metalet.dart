@@ -8,7 +8,7 @@ library dev_compiler.src.codegen.js_metalet;
 import 'package:dev_compiler/src/js/js_ast.dart';
 import 'package:dev_compiler/src/js/precedence.dart';
 
-import 'js_names.dart' show JSTemporary;
+import 'js_names.dart' show TemporaryId;
 
 /// A synthetic `let*` node, similar to that found in Scheme.
 ///
@@ -17,7 +17,7 @@ import 'js_names.dart' show JSTemporary;
 ///     // psuedocode mix of Scheme and JS:
 ///     (let* (x1=expr1, x2=expr2, t=x1[x2]) { x1[x2] = t + 1; t })
 ///
-/// [JSMetaLet] will simplify itself automatically when [toExpression],
+/// [MetaLet] will simplify itself automatically when [toExpression],
 /// [toStatement], or [toReturn] is called.
 ///
 /// * variables used once will be inlined.
@@ -29,7 +29,7 @@ import 'js_names.dart' show JSTemporary;
 /// around statelessness (such as `final` variables). [variables] should not
 /// be created for these Dart expressions.
 ///
-class JSMetaLet extends Expression {
+class MetaLet extends Expression {
   /// Creates a temporary to contain the value of [expr]. The temporary can be
   /// used multiple times in the resulting expression. For example:
   /// `expr ** 2` could be compiled as `expr * expr`. The temporary scope will
@@ -52,7 +52,7 @@ class JSMetaLet extends Expression {
   /// This happens multiple times, so ensure the expression form is cached.
   Expression _expression;
 
-  JSMetaLet(this.variables, this.body, {this.statelessResult: false});
+  MetaLet(this.variables, this.body, {this.statelessResult: false});
 
   /// Returns an expression that ignores the result. This is a cross between
   /// [toExpression] and [toStatement]. Used for C-style for-loop updaters,
@@ -74,7 +74,7 @@ class JSMetaLet extends Expression {
 
       var exprs = body.toList();
       exprs.add(exprs.removeLast().toAssignExpression(left));
-      return new JSMetaLet(variables, exprs);
+      return new MetaLet(variables, exprs);
     }
     return super.toAssignExpression(left);
   }
@@ -136,7 +136,7 @@ class JSMetaLet extends Expression {
         [new VariableDeclarationList('let', vars).toStatement(), block]);
   }
 
-  Node _build(List<JSTemporary> params, List<Expression> values, Node node) {
+  Node _build(List<TemporaryId> params, List<Expression> values, Node node) {
     // Visit the tree and count how many times each temp was used.
     var counter = new _VariableUseCounter();
     node.accept(counter);
@@ -154,7 +154,7 @@ class JSMetaLet extends Expression {
       if (n == null || n < 2) {
         substitutions[name] = _substitute(init);
       } else {
-        params.add(substitutions[name] = new JSTemporary(name));
+        params.add(substitutions[name] = new TemporaryId(name));
         values.add(init);
       }
     });
@@ -178,7 +178,7 @@ class JSMetaLet extends Expression {
   ///
   ///     ((_) => _.addAll(result), _.add(2), result = _)([])
   ///
-  JSMetaLet _simplifyAssignment(Identifier left, {bool isDeclaration: false}) {
+  MetaLet _simplifyAssignment(Identifier left, {bool isDeclaration: false}) {
     // See if the result value is a let* temporary variable.
     if (body.last is! InterpolatedExpression) return null;
 
@@ -204,7 +204,7 @@ class JSMetaLet extends Expression {
     if (isDeclaration) {
       // Technically, putting one of these in a comma expression is not
       // legal. However when isDeclaration is true, toStatement will be
-      // called immediately on the JSMetaLet, which results in legal JS.
+      // called immediately on the MetaLet, which results in legal JS.
       assign = new VariableDeclarationList(
           'let', [new VariableInitialization(left, value)]);
     } else {
@@ -213,7 +213,7 @@ class JSMetaLet extends Expression {
 
     var newBody = new Expression.binary([assign]..addAll(body), ',');
     Binary comma = new Template(null, newBody).safeCreate({name: left});
-    return new JSMetaLet(vars, comma.commaToExpressionList(),
+    return new MetaLet(vars, comma.commaToExpressionList(),
         statelessResult: statelessResult);
   }
 }

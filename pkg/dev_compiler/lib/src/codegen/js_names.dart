@@ -13,8 +13,8 @@ import 'package:dev_compiler/src/js/js_ast.dart';
 /// generation without needing global knowledge. See [JSNamer].
 ///
 // TODO(jmesserly): move into js_ast? add a boolean to Identifier?
-class JSTemporary extends Identifier {
-  JSTemporary(String name) : super(name);
+class TemporaryId extends Identifier {
+  TemporaryId(String name) : super(name);
 }
 
 /// This class has two purposes:
@@ -28,10 +28,10 @@ class JSTemporary extends Identifier {
 /// [Identifiers] are never renamed unless they are an invalid identifier, like
 /// `function` or `instanceof`, and their `name` field controls whether they
 /// refer to the same variable.
-class JSNamer extends LocalNamer {
+class TemporaryNamer extends LocalNamer {
   final Map<Object, String> renames;
 
-  JSNamer(Node node) : renames = new _RenameVisitor.build(node).renames;
+  TemporaryNamer(Node node) : renames = new _RenameVisitor.build(node).renames;
 
   String getName(Identifier node) {
     var rename = renames[identifierKey(node)];
@@ -152,9 +152,9 @@ class _RenameVisitor extends VariableDeclarationVisitor {
   static String _findName(Object id, Set<String> usedNames) {
     String name;
     bool valid;
-    if (id is JSTemporary) {
+    if (id is TemporaryId) {
       name = id.name;
-      valid = !invalidJSVariableName(name);
+      valid = !invalidVariableName(name);
     } else {
       name = id;
       valid = false;
@@ -179,14 +179,14 @@ class _RenameVisitor extends VariableDeclarationVisitor {
 }
 
 bool needsRename(Identifier node) =>
-    node is JSTemporary || node.allowRename && invalidJSVariableName(node.name);
+    node is TemporaryId || node.allowRename && invalidVariableName(node.name);
 
 Object /*String|JSTemporary*/ identifierKey(Identifier node) =>
-    node is JSTemporary ? node : node.name;
+    node is TemporaryId ? node : node.name;
 
 /// Returns true for invalid JS variable names, such as keywords.
 /// Also handles invalid variable names in strict mode, like "arguments".
-bool invalidJSVariableName(String keyword, {bool strictMode: true}) {
+bool invalidVariableName(String keyword, {bool strictMode: true}) {
   switch (keyword) {
     case "break":
     case "case":
@@ -233,7 +233,7 @@ bool invalidJSVariableName(String keyword, {bool strictMode: true}) {
 
 /// Returns true for invalid static method names in strict mode.
 /// In particular, "caller" "callee" and "arguments" cannot be used.
-bool invalidJSStaticMethodName(String name) {
+bool invalidStaticMethodName(String name) {
   switch (name) {
     case "arguments":
     case "caller":

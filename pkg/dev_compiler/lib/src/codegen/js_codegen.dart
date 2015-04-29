@@ -31,8 +31,8 @@ import 'package:dev_compiler/src/utils.dart';
 
 import 'code_generator.dart';
 import 'js_field_storage.dart';
-import 'js_names.dart' show JSTemporary, invalidJSStaticMethodName;
-import 'js_metalet.dart';
+import 'js_names.dart' as JS;
+import 'js_metalet.dart' as JS;
 import 'js_printer.dart' show writeJsLibrary;
 import 'side_effect_analysis.dart';
 
@@ -71,17 +71,17 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final _exports = new Set<String>();
   final _lazyFields = <VariableDeclaration>[];
   final _properties = <FunctionDeclaration>[];
-  final _privateNames = new HashMap<String, JSTemporary>();
+  final _privateNames = new HashMap<String, JS.TemporaryId>();
   final _extensionMethodNames = new HashSet<String>();
   final _pendingStatements = <JS.Statement>[];
-  final _temps = new HashMap<Element, JSTemporary>();
+  final _temps = new HashMap<Element, JS.TemporaryId>();
 
   /// The name for the library's exports inside itself.
   /// This much be a constant because we interpolate it into template strings,
   /// and otherwise it would break caching for them.
   /// `exports` was chosen as the most similar to ES module patterns.
-  final JSTemporary _exportsVar = new JSTemporary('exports');
-  final JSTemporary _namedArgTemp = new JSTemporary('opts');
+  final _exportsVar = new JS.TemporaryId('exports');
+  final _namedArgTemp = new JS.TemporaryId('opts');
 
   /// Classes we have not emitted yet. Values can be [ClassDeclaration] or
   /// [ClassTypeAlias].
@@ -1097,8 +1097,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return new JS.Identifier(name);
   }
 
-  JSTemporary _getTemp(Object key, String name) =>
-      _temps.putIfAbsent(key, () => new JSTemporary(name));
+  JS.TemporaryId _getTemp(Object key, String name) =>
+      _temps.putIfAbsent(key, () => new JS.TemporaryId(name));
 
   JS.ArrayInitializer _emitTypeNames(List<DartType> types) {
     return new JS.ArrayInitializer(types.map(_emitTypeName).toList());
@@ -1197,7 +1197,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         context: node);
   }
 
-  JSMetaLet _emitOpAssign(
+  JS.MetaLet _emitOpAssign(
       Expression left, Expression right, String op, ExecutableElement element,
       {Expression context}) {
     // Desugar `x += y` as `x = x + y`, ensuring that if `x` has subexpressions
@@ -1207,7 +1207,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var inc = AstBuilder.binaryExpression(lhs, op, right);
     inc.staticElement = element;
     inc.staticType = getStaticType(left);
-    return new JSMetaLet(vars, [_emitSet(lhs, inc)]);
+    return new JS.MetaLet(vars, [_emitSet(lhs, inc)]);
   }
 
   JS.Expression _emitSet(Expression lhs, Expression rhs) {
@@ -1778,7 +1778,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   ///     // psuedocode mix of Scheme and JS:
   ///     (let* (x1=expr1, x2=expr2, t=expr1[expr2]) { x1[x2] = t + 1; t })
   ///
-  /// The [JSMetaLet] nodes automatically simplify themselves if they can.
+  /// The [JS.JS.MetaLet] nodes automatically simplify themselves if they can.
   /// For example, if the result value is not used, then `t` goes away.
   @override
   JS.Expression visitPostfixExpression(PostfixExpression node) {
@@ -1809,7 +1809,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       ..staticType = getStaticType(expr);
 
     var body = [_emitSet(left, increment), _visit(x)];
-    return new JSMetaLet(vars, body, statelessResult: true);
+    return new JS.MetaLet(vars, body, statelessResult: true);
   }
 
   @override
@@ -1827,7 +1827,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         var vars = {};
         var x = _bindLeftHandSide(vars, expr, context: expr);
         var body = js.call('# = # $mathop 1', [_visit(x), notNull(x)]);
-        return new JSMetaLet(vars, [body]);
+        return new JS.MetaLet(vars, [body]);
       } else {
         return js.call('$op#', notNull(expr));
       }
@@ -1856,7 +1856,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     _cascadeTarget = _bindValue(vars, '_', node.target, context: node);
     var sections = _visitList(node.cascadeSections);
     sections.add(_visit(_cascadeTarget));
-    var result = new JSMetaLet(vars, sections, statelessResult: true);
+    var result = new JS.MetaLet(vars, sections, statelessResult: true);
     _cascadeTarget = savedCascadeTemp;
     return result;
   }
@@ -2360,7 +2360,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       {DartType type, bool unary: false, bool isStatic: false}) {
     if (name.startsWith('_')) {
       return _privateNames.putIfAbsent(
-          name, () => _initSymbol(new JSTemporary(name)));
+          name, () => _initSymbol(new JS.TemporaryId(name)));
     }
 
     // Check for extension method:
@@ -2374,7 +2374,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       name = 'unary-';
     }
 
-    if (isStatic && invalidJSStaticMethodName(name)) {
+    if (isStatic && JS.invalidStaticMethodName(name)) {
       // Choose an string name. Use an invalid identifier so it won't conflict
       // with any valid member names.
       // TODO(jmesserly): this works around the problem, but I'm pretty sure we
