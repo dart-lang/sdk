@@ -4885,6 +4885,8 @@ class SsaBuilder extends NewResolvedVisitor {
       ast.Send node,
       FunctionElement function,
       CallStructure callStructure) {
+    generateIsDeferredLoadedCheckIfNeeded(node);
+
     List<HInstruction> inputs = makeStaticArgumentList(
         callStructure,
         node.arguments,
