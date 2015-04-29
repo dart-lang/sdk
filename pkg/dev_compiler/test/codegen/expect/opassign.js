@@ -7,9 +7,8 @@ var opassign;
       return 0;
     }
   });
-  let _foo = Symbol('_foo');
   dart.defineLazyProperties(exports, {
-    get [_foo]() {
+    get _foo() {
       return new Foo();
     }
   });

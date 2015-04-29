@@ -3,14 +3,14 @@ var typed_data;
   'use strict';
   class ByteBuffer extends core.Object {}
   class TypedData extends core.Object {}
-  let _ = Symbol('_');
   let _littleEndian = Symbol('_littleEndian');
+  let _ = Symbol('_');
   class Endianness extends core.Object {
-    [_](littleEndian) {
+    _(littleEndian) {
       this[_littleEndian] = littleEndian;
     }
   }
-  dart.defineNamedConstructor(Endianness, _);
+  dart.defineNamedConstructor(Endianness, '_');
   Endianness.BIG_ENDIAN = dart.const(new Endianness[_](false));
   Endianness.LITTLE_ENDIAN = dart.const(new Endianness[_](true));
   dart.defineLazyProperties(Endianness, {

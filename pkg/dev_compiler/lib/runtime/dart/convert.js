@@ -4,7 +4,6 @@ var convert;
   let ASCII = dart.const(new AsciiCodec());
   let _ASCII_MASK = 127;
   let _allowInvalid = Symbol('_allowInvalid');
-  let _nameToEncoding = Symbol('_nameToEncoding');
   let Codec$ = dart.generic(function(S, T) {
     class Codec extends core.Object {
       Codec() {
@@ -39,14 +38,14 @@ var convert;
       if (name == null)
         return null;
       name = name.toLowerCase();
-      return Encoding[_nameToEncoding].get(name);
+      return Encoding._nameToEncoding.get(name);
     }
   }
   dart.defineLazyProperties(Encoding, {
-    get [_nameToEncoding]() {
+    get _nameToEncoding() {
       return dart.map({"iso_8859-1:1987": LATIN1, "iso-ir-100": LATIN1, "iso_8859-1": LATIN1, "iso-8859-1": LATIN1, latin1: LATIN1, l1: LATIN1, ibm819: LATIN1, cp819: LATIN1, csisolatin1: LATIN1, "iso-ir-6": ASCII, "ansi_x3.4-1968": ASCII, "ansi_x3.4-1986": ASCII, "iso_646.irv:1991": ASCII, "iso646-us": ASCII, "us-ascii": ASCII, us: ASCII, ibm367: ASCII, cp367: ASCII, csascii: ASCII, ascii: ASCII, csutf8: UTF8, "utf-8": UTF8});
     },
-    set [_nameToEncoding](_) {}
+    set _nameToEncoding(_) {}
   });
   class AsciiCodec extends Encoding {
     AsciiCodec(opts) {
@@ -330,14 +329,12 @@ var convert;
       return this[_sink].close();
     }
   }
-  let _INITIAL_BUFFER_SIZE = Symbol('_INITIAL_BUFFER_SIZE');
   let _buffer = Symbol('_buffer');
   let _callback = Symbol('_callback');
   let _bufferIndex = Symbol('_bufferIndex');
-  let _roundToPowerOf2 = Symbol('_roundToPowerOf2');
   class _ByteCallbackSink extends ByteConversionSinkBase {
     _ByteCallbackSink(callback) {
-      this[_buffer] = new typed_data.Uint8List(_ByteCallbackSink[_INITIAL_BUFFER_SIZE]);
+      this[_buffer] = new typed_data.Uint8List(_ByteCallbackSink._INITIAL_BUFFER_SIZE);
       this[_callback] = callback;
       this[_bufferIndex] = 0;
     }
@@ -345,7 +342,7 @@ var convert;
       let freeCount = dart.notNull(this[_buffer][core.$length]) - dart.notNull(this[_bufferIndex]);
       if (dart.notNull(chunk[core.$length]) > dart.notNull(freeCount)) {
         let oldLength = this[_buffer][core.$length];
-        let newLength = dart.notNull(_ByteCallbackSink[_roundToPowerOf2](dart.notNull(chunk[core.$length]) + dart.notNull(oldLength))) * 2;
+        let newLength = dart.notNull(_ByteCallbackSink._roundToPowerOf2(dart.notNull(chunk[core.$length]) + dart.notNull(oldLength))) * 2;
         let grown = new typed_data.Uint8List(newLength);
         grown[core.$setRange](0, this[_buffer][core.$length], this[_buffer]);
         this[_buffer] = grown;
@@ -353,7 +350,7 @@ var convert;
       this[_buffer][core.$setRange](this[_bufferIndex], dart.notNull(this[_bufferIndex]) + dart.notNull(chunk[core.$length]), chunk);
       this[_bufferIndex] = dart.notNull(this[_bufferIndex]) + dart.notNull(chunk[core.$length]);
     }
-    static [_roundToPowerOf2](v) {
+    static _roundToPowerOf2(v) {
       dart.assert(dart.notNull(v) > 0);
       v = dart.notNull(v) - 1;
       v = dart.notNull(v) | dart.notNull(v) >> 1;
@@ -489,10 +486,10 @@ var convert;
   });
   let _FusedConverter = _FusedConverter$();
   let HTML_ESCAPE = dart.const(new HtmlEscape());
-  let _ = Symbol('_');
   let _name = Symbol('_name');
+  let _ = Symbol('_');
   class HtmlEscapeMode extends core.Object {
-    [_](name, escapeLtGt, escapeQuot, escapeApos, escapeSlash) {
+    _(name, escapeLtGt, escapeQuot, escapeApos, escapeSlash) {
       this[_name] = name;
       this.escapeLtGt = escapeLtGt;
       this.escapeQuot = escapeQuot;
@@ -503,7 +500,7 @@ var convert;
       return this[_name];
     }
   }
-  dart.defineNamedConstructor(HtmlEscapeMode, _);
+  dart.defineNamedConstructor(HtmlEscapeMode, '_');
   HtmlEscapeMode.UNKNOWN = dart.const(new HtmlEscapeMode[_]('unknown', true, true, true, true));
   HtmlEscapeMode.ATTRIBUTE = dart.const(new HtmlEscapeMode[_]('attribute', false, true, false, false));
   HtmlEscapeMode.ELEMENT = dart.const(new HtmlEscapeMode[_]('element', true, false, false, true));
@@ -670,7 +667,6 @@ var convert;
     }
   }
   dart.defineNamedConstructor(JsonCodec, 'withReviver');
-  let _utf8Encode = Symbol('_utf8Encode');
   class JsonEncoder extends Converter$(core.Object, core.String) {
     JsonEncoder(toEncodable) {
       if (toEncodable === void 0)
@@ -693,7 +689,7 @@ var convert;
       if (!dart.is(sink, StringConversionSink)) {
         sink = new StringConversionSink.from(sink);
       } else if (dart.is(sink, _Utf8EncoderSink)) {
-        return new _JsonUtf8EncoderSink(sink[_sink], this[_toEncodable$], JsonUtf8Encoder[_utf8Encode](this.indent), JsonUtf8Encoder.DEFAULT_BUFFER_SIZE);
+        return new _JsonUtf8EncoderSink(sink[_sink], this[_toEncodable$], JsonUtf8Encoder._utf8Encode(this.indent), JsonUtf8Encoder.DEFAULT_BUFFER_SIZE);
       }
       return new _JsonEncoderSink(dart.as(sink, StringConversionSink), this[_toEncodable$], this.indent);
     }
@@ -718,12 +714,12 @@ var convert;
         toEncodable = null;
       if (bufferSize === void 0)
         bufferSize = JsonUtf8Encoder.DEFAULT_BUFFER_SIZE;
-      this[_indent] = JsonUtf8Encoder[_utf8Encode](indent);
+      this[_indent] = JsonUtf8Encoder._utf8Encode(indent);
       this[_toEncodable$] = toEncodable;
       this[_bufferSize] = bufferSize;
       super.Converter();
     }
-    static [_utf8Encode](string) {
+    static _utf8Encode(string) {
       if (string == null)
         return null;
       if (string.isEmpty)
@@ -1368,14 +1364,13 @@ var convert;
       }
     }
   }
-  let _addSlice = Symbol('_addSlice');
   class LineSplitter extends Converter$(core.String, core.List$(core.String)) {
     LineSplitter() {
       super.Converter();
     }
     convert(data) {
       let lines = new (core.List$(core.String))();
-      _LineSplitterSink[_addSlice](data, 0, data.length, true, lines[core.$add].bind(lines));
+      _LineSplitterSink._addSlice(data, 0, data.length, true, lines[core.$add].bind(lines));
       return lines;
     }
     startChunkedConversion(sink) {
@@ -1386,8 +1381,6 @@ var convert;
     }
   }
   let _carry = Symbol('_carry');
-  let _LF = Symbol('_LF');
-  let _CR = Symbol('_CR');
   class _LineSplitterSink extends StringConversionSinkBase {
     _LineSplitterSink(sink) {
       this[_sink] = sink;
@@ -1400,24 +1393,24 @@ var convert;
         end = chunk.length;
         this[_carry] = null;
       }
-      this[_carry] = _LineSplitterSink[_addSlice](chunk, start, end, isLast, this[_sink].add.bind(this[_sink]));
+      this[_carry] = _LineSplitterSink._addSlice(chunk, start, end, isLast, this[_sink].add.bind(this[_sink]));
       if (isLast)
         this[_sink].close();
     }
     close() {
       this.addSlice('', 0, 0, true);
     }
-    static [_addSlice](chunk, start, end, isLast, adder) {
+    static _addSlice(chunk, start, end, isLast, adder) {
       let pos = start;
       while (dart.notNull(pos) < dart.notNull(end)) {
         let skip = 0;
         let char = chunk.codeUnitAt(pos);
-        if (char == _LineSplitterSink[_LF]) {
+        if (char == _LineSplitterSink._LF) {
           skip = 1;
-        } else if (char == _LineSplitterSink[_CR]) {
+        } else if (char == _LineSplitterSink._CR) {
           skip = 1;
           if (dart.notNull(pos) + 1 < dart.notNull(end)) {
-            if (chunk.codeUnitAt(dart.notNull(pos) + 1) == _LineSplitterSink[_LF]) {
+            if (chunk.codeUnitAt(dart.notNull(pos) + 1) == _LineSplitterSink._LF) {
               skip = 2;
             }
           } else if (!dart.notNull(isLast)) {
@@ -1495,7 +1488,6 @@ var convert;
   }
   _ClosableStringSink[dart.implements] = () => [ClosableStringSink];
   let _flush = Symbol('_flush');
-  let _MIN_STRING_SIZE = Symbol('_MIN_STRING_SIZE');
   class _StringConversionSinkAsStringSinkAdapter extends core.Object {
     _StringConversionSinkAsStringSinkAdapter(chunkedSink) {
       this[_chunkedSink] = chunkedSink;
@@ -1508,7 +1500,7 @@ var convert;
     }
     writeCharCode(charCode) {
       this[_buffer].writeCharCode(charCode);
-      if (dart.notNull(this[_buffer].length) > dart.notNull(_StringConversionSinkAsStringSinkAdapter[_MIN_STRING_SIZE]))
+      if (dart.notNull(this[_buffer].length) > dart.notNull(_StringConversionSinkAsStringSinkAdapter._MIN_STRING_SIZE))
         this[_flush]();
     }
     write(o) {
@@ -1521,7 +1513,7 @@ var convert;
       if (o === void 0)
         o = "";
       this[_buffer].writeln(o);
-      if (dart.notNull(this[_buffer].length) > dart.notNull(_StringConversionSinkAsStringSinkAdapter[_MIN_STRING_SIZE]))
+      if (dart.notNull(this[_buffer].length) > dart.notNull(_StringConversionSinkAsStringSinkAdapter._MIN_STRING_SIZE))
         this[_flush]();
     }
     writeAll(objects, separator) {
@@ -1637,9 +1629,9 @@ var convert;
   }
   class _Utf8ConversionSink extends ByteConversionSink {
     _Utf8ConversionSink(sink, allowMalformed) {
-      this[_](sink, new core.StringBuffer(), allowMalformed);
+      this._(sink, new core.StringBuffer(), allowMalformed);
     }
-    [_](chunkedSink, stringBuffer, allowMalformed) {
+    _(chunkedSink, stringBuffer, allowMalformed) {
       this[_chunkedSink] = chunkedSink;
       this[_decoder] = new _Utf8Decoder(stringBuffer, allowMalformed);
       this[_buffer] = stringBuffer;
@@ -1670,7 +1662,7 @@ var convert;
         this.close();
     }
   }
-  dart.defineNamedConstructor(_Utf8ConversionSink, _);
+  dart.defineNamedConstructor(_Utf8ConversionSink, '_');
   let UNICODE_REPLACEMENT_CHARACTER_RUNE = 65533;
   let UNICODE_BOM_CHARACTER_RUNE = 65279;
   let UTF8 = dart.const(new Utf8Codec());
@@ -1736,18 +1728,16 @@ var convert;
       return dart.as(super.bind(stream), async.Stream$(core.List$(core.int)));
     }
   }
-  let _DEFAULT_BYTE_BUFFER_SIZE = Symbol('_DEFAULT_BYTE_BUFFER_SIZE');
-  let _createBuffer = Symbol('_createBuffer');
   class _Utf8Encoder extends core.Object {
     _Utf8Encoder() {
-      this.withBufferSize(_Utf8Encoder[_DEFAULT_BYTE_BUFFER_SIZE]);
+      this.withBufferSize(_Utf8Encoder._DEFAULT_BYTE_BUFFER_SIZE);
     }
     withBufferSize(bufferSize) {
-      this[_buffer] = _Utf8Encoder[_createBuffer](bufferSize);
+      this[_buffer] = _Utf8Encoder._createBuffer(bufferSize);
       this[_carry] = 0;
       this[_bufferIndex] = 0;
     }
-    static [_createBuffer](size) {
+    static _createBuffer(size) {
       return new typed_data.Uint8List(size);
     }
     [_writeSurrogate](leadingSurrogate, nextCodeUnit) {
@@ -1976,7 +1966,6 @@ var convert;
   let _value = Symbol('_value');
   let _expectedUnits = Symbol('_expectedUnits');
   let _extraUnits = Symbol('_extraUnits');
-  let _LIMITS = Symbol('_LIMITS');
   class _Utf8Decoder extends core.Object {
     _Utf8Decoder(stringSink, allowMalformed) {
       this[_stringSink] = stringSink;
@@ -2051,7 +2040,7 @@ var convert;
                   i = dart.notNull(i) + 1;
                 }
               } while (dart.notNull(expectedUnits) > 0);
-              if (dart.notNull(value) <= dart.notNull(_Utf8Decoder[_LIMITS][core.$get](dart.notNull(extraUnits) - 1))) {
+              if (dart.notNull(value) <= dart.notNull(_Utf8Decoder._LIMITS[core.$get](dart.notNull(extraUnits) - 1))) {
                 if (!dart.notNull(this[_allowMalformed])) {
                   throw new core.FormatException(`Overlong encoding of 0x${value.toRadixString(16)}`);
                 }
@@ -2171,20 +2160,14 @@ var convert;
     }
     return object;
   }
-  let _newJavaScriptObject = Symbol('_newJavaScriptObject');
   let _data = Symbol('_data');
   let _isUpgraded = Symbol('_isUpgraded');
   let _upgradedMap = Symbol('_upgradedMap');
-  let _getProperty = Symbol('_getProperty');
-  let _isUnprocessed = Symbol('_isUnprocessed');
   let _process = Symbol('_process');
-  let _setProperty = Symbol('_setProperty');
   let _upgrade = Symbol('_upgrade');
-  let _hasProperty = Symbol('_hasProperty');
-  let _getPropertyNames = Symbol('_getPropertyNames');
   class _JsonMap extends core.Object {
     _JsonMap(original) {
-      this[_processed] = _JsonMap[_newJavaScriptObject]();
+      this[_processed] = _JsonMap._newJavaScriptObject();
       this[_original] = original;
       this[_data] = null;
     }
@@ -2194,8 +2177,8 @@ var convert;
       } else if (!(typeof key == 'string')) {
         return null;
       } else {
-        let result = _JsonMap[_getProperty](this[_processed], dart.as(key, core.String));
-        if (_JsonMap[_isUnprocessed](result))
+        let result = _JsonMap._getProperty(this[_processed], dart.as(key, core.String));
+        if (_JsonMap._isUnprocessed(result))
           result = this[_process](dart.as(key, core.String));
         return result;
       }
@@ -2224,10 +2207,10 @@ var convert;
         this[_upgradedMap].set(key, value);
       } else if (this.containsKey(key)) {
         let processed = this[_processed];
-        _JsonMap[_setProperty](processed, dart.as(key, core.String), value);
+        _JsonMap._setProperty(processed, dart.as(key, core.String), value);
         let original = this[_original];
         if (!dart.notNull(core.identical(original, processed))) {
-          _JsonMap[_setProperty](original, dart.as(key, core.String), null);
+          _JsonMap._setProperty(original, dart.as(key, core.String), null);
         }
       } else {
         this[_upgrade]().set(key, value);
@@ -2254,7 +2237,7 @@ var convert;
         return this[_upgradedMap].containsKey(key);
       if (!(typeof key == 'string'))
         return false;
-      return _JsonMap[_hasProperty](this[_original], dart.as(key, core.String));
+      return _JsonMap._hasProperty(this[_original], dart.as(key, core.String));
     }
     putIfAbsent(key, ifAbsent) {
       if (this.containsKey(key))
@@ -2285,10 +2268,10 @@ var convert;
       let keys = this[_computeKeys]();
       for (let i = 0; dart.notNull(i) < dart.notNull(keys[core.$length]); i = dart.notNull(i) + 1) {
         let key = keys[core.$get](i);
-        let value = _JsonMap[_getProperty](this[_processed], key);
-        if (_JsonMap[_isUnprocessed](value)) {
-          value = _convertJsonToDartLazy(_JsonMap[_getProperty](this[_original], key));
-          _JsonMap[_setProperty](this[_processed], key, value);
+        let value = _JsonMap._getProperty(this[_processed], key);
+        if (_JsonMap._isUnprocessed(value)) {
+          value = _convertJsonToDartLazy(_JsonMap._getProperty(this[_original], key));
+          _JsonMap._setProperty(this[_processed], key, value);
         }
         dart.dcall(f, key, value);
         if (!dart.notNull(core.identical(keys, this[_data]))) {
@@ -2310,7 +2293,7 @@ var convert;
       dart.assert(!dart.notNull(this[_isUpgraded]));
       let keys = dart.as(this[_data], core.List);
       if (keys == null) {
-        keys = this[_data] = _JsonMap[_getPropertyNames](this[_original]);
+        keys = this[_data] = _JsonMap._getPropertyNames(this[_original]);
       }
       return dart.as(keys, core.List$(core.String));
     }
@@ -2334,27 +2317,27 @@ var convert;
       return result;
     }
     [_process](key) {
-      if (!dart.notNull(_JsonMap[_hasProperty](this[_original], key)))
+      if (!dart.notNull(_JsonMap._hasProperty(this[_original], key)))
         return null;
-      let result = _convertJsonToDartLazy(_JsonMap[_getProperty](this[_original], key));
-      return _JsonMap[_setProperty](this[_processed], key, result);
+      let result = _convertJsonToDartLazy(_JsonMap._getProperty(this[_original], key));
+      return _JsonMap._setProperty(this[_processed], key, result);
     }
-    static [_hasProperty](object, key) {
+    static _hasProperty(object, key) {
       return Object.prototype.hasOwnProperty.call(object, key);
     }
-    static [_getProperty](object, key) {
+    static _getProperty(object, key) {
       return object[key];
     }
-    static [_setProperty](object, key, value) {
+    static _setProperty(object, key, value) {
       return object[key] = value;
     }
-    static [_getPropertyNames](object) {
+    static _getPropertyNames(object) {
       return dart.as(Object.keys(object), core.List);
     }
-    static [_isUnprocessed](object) {
+    static _isUnprocessed(object) {
       return typeof object == "undefined";
     }
-    static [_newJavaScriptObject]() {
+    static _newJavaScriptObject() {
       return Object.create(null);
     }
   }

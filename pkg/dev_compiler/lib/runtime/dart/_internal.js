@@ -361,7 +361,7 @@ var _internal;
         }
         return new MappedIterable$(S, T)[_](dart.as(iterable, core.Iterable$(S)), func);
       }
-      [_](iterable, f) {
+      _(iterable, f) {
         this[_iterable] = iterable;
         this[_f] = f;
         super.IterableBase();
@@ -388,14 +388,14 @@ var _internal;
         return this[_f](this[_iterable][core.$elementAt](index));
       }
     }
-    dart.defineNamedConstructor(MappedIterable, _);
+    dart.defineNamedConstructor(MappedIterable, '_');
     return MappedIterable;
   });
   let MappedIterable = MappedIterable$();
   let EfficientLengthMappedIterable$ = dart.generic(function(S, T) {
     class EfficientLengthMappedIterable extends MappedIterable$(S, T) {
       EfficientLengthMappedIterable(iterable, func) {
-        super[_](dart.as(iterable, core.Iterable$(S)), func);
+        super._(dart.as(iterable, core.Iterable$(S)), func);
       }
     }
     EfficientLengthMappedIterable[dart.implements] = () => [EfficientLength];
@@ -549,7 +549,7 @@ var _internal;
         }
         return new TakeIterable$(E)[_](iterable, takeCount);
       }
-      [_](iterable, takeCount) {
+      _(iterable, takeCount) {
         this[_iterable] = iterable;
         this[_takeCount] = takeCount;
         super.IterableBase();
@@ -558,14 +558,14 @@ var _internal;
         return new (TakeIterator$(E))(this[_iterable][core.$iterator], this[_takeCount]);
       }
     }
-    dart.defineNamedConstructor(TakeIterable, _);
+    dart.defineNamedConstructor(TakeIterable, '_');
     return TakeIterable;
   });
   let TakeIterable = TakeIterable$();
   let EfficientLengthTakeIterable$ = dart.generic(function(E) {
     class EfficientLengthTakeIterable extends TakeIterable$(E) {
       EfficientLengthTakeIterable(iterable, takeCount) {
-        super[_](iterable, takeCount);
+        super._(iterable, takeCount);
       }
       get [core.$length]() {
         let iterableLength = this[_iterable][core.$length];
@@ -652,7 +652,7 @@ var _internal;
         }
         return new SkipIterable$(E)[_](iterable, count);
       }
-      [_](iterable, skipCount) {
+      _(iterable, skipCount) {
         this[_iterable] = iterable;
         this[_skipCount] = skipCount;
         super.IterableBase();
@@ -672,14 +672,14 @@ var _internal;
         return new (SkipIterator$(E))(this[_iterable][core.$iterator], this[_skipCount]);
       }
     }
-    dart.defineNamedConstructor(SkipIterable, _);
+    dart.defineNamedConstructor(SkipIterable, '_');
     return SkipIterable;
   });
   let SkipIterable = SkipIterable$();
   let EfficientLengthSkipIterable$ = dart.generic(function(E) {
     class EfficientLengthSkipIterable extends SkipIterable$(E) {
       EfficientLengthSkipIterable(iterable, skipCount) {
-        super[_](iterable, skipCount);
+        super._(iterable, skipCount);
       }
       get [core.$length]() {
         let length = dart.notNull(this[_iterable][core.$length]) - dart.notNull(this[_skipCount]);
@@ -869,7 +869,6 @@ var _internal;
     return BidirectionalIterator;
   });
   let BidirectionalIterator = BidirectionalIterator$();
-  let _rangeCheck = dart.JsSymbol('_rangeCheck');
   let IterableMixinWorkaround$ = dart.generic(function(T) {
     class IterableMixinWorkaround extends core.Object {
       static contains(iterable, element) {
@@ -1105,15 +1104,15 @@ var _internal;
           start = dart.notNull(list[core.$length]) - 1;
         return Lists.lastIndexOf(list, element, start);
       }
-      static [_rangeCheck](list, start, end) {
+      static _rangeCheck(list, start, end) {
         core.RangeError.checkValidRange(start, end, list[core.$length]);
       }
       getRangeList(list, start, end) {
-        IterableMixinWorkaround[_rangeCheck](list, start, end);
+        IterableMixinWorkaround._rangeCheck(list, start, end);
         return new (SubListIterable$(T))(dart.as(list, core.Iterable$(T)), start, end);
       }
       static setRangeList(list, start, end, from, skipCount) {
-        IterableMixinWorkaround[_rangeCheck](list, start, end);
+        IterableMixinWorkaround._rangeCheck(list, start, end);
         let length = dart.notNull(end) - dart.notNull(start);
         if (length == 0)
           return;
@@ -1134,7 +1133,7 @@ var _internal;
         Lists.copy(otherList, otherStart, list, start, length);
       }
       static replaceRangeList(list, start, end, iterable) {
-        IterableMixinWorkaround[_rangeCheck](list, start, end);
+        IterableMixinWorkaround._rangeCheck(list, start, end);
         if (!dart.is(iterable, EfficientLength)) {
           iterable = iterable[core.$toList]();
         }
@@ -1159,7 +1158,7 @@ var _internal;
         }
       }
       static fillRangeList(list, start, end, fillValue) {
-        IterableMixinWorkaround[_rangeCheck](list, start, end);
+        IterableMixinWorkaround._rangeCheck(list, start, end);
         for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
           list[core.$set](i, fillValue);
         }
@@ -1585,28 +1584,24 @@ var _internal;
   function printToConsole(line) {
     _js_primitives.printString(`${line}`);
   }
-  let _doSort = dart.JsSymbol('_doSort');
-  let _INSERTION_SORT_THRESHOLD = dart.JsSymbol('_INSERTION_SORT_THRESHOLD');
-  let _insertionSort = dart.JsSymbol('_insertionSort');
-  let _dualPivotQuicksort = dart.JsSymbol('_dualPivotQuicksort');
   class Sort extends core.Object {
     static sort(a, compare) {
-      Sort[_doSort](a, 0, dart.notNull(a[core.$length]) - 1, compare);
+      Sort._doSort(a, 0, dart.notNull(a[core.$length]) - 1, compare);
     }
     static sortRange(a, from, to, compare) {
       if (dart.notNull(from) < 0 || dart.notNull(to) > dart.notNull(a[core.$length]) || dart.notNull(to) < dart.notNull(from)) {
         throw "OutOfRange";
       }
-      Sort[_doSort](a, from, dart.notNull(to) - 1, compare);
+      Sort._doSort(a, from, dart.notNull(to) - 1, compare);
     }
-    static [_doSort](a, left, right, compare) {
-      if (dart.notNull(right) - dart.notNull(left) <= dart.notNull(Sort[_INSERTION_SORT_THRESHOLD])) {
-        Sort[_insertionSort](a, left, right, compare);
+    static _doSort(a, left, right, compare) {
+      if (dart.notNull(right) - dart.notNull(left) <= dart.notNull(Sort._INSERTION_SORT_THRESHOLD)) {
+        Sort._insertionSort(a, left, right, compare);
       } else {
-        Sort[_dualPivotQuicksort](a, left, right, compare);
+        Sort._dualPivotQuicksort(a, left, right, compare);
       }
     }
-    static [_insertionSort](a, left, right, compare) {
+    static _insertionSort(a, left, right, compare) {
       for (let i = dart.notNull(left) + 1; dart.notNull(i) <= dart.notNull(right); i = dart.notNull(i) + 1) {
         let el = a[core.$get](i);
         let j = i;
@@ -1617,8 +1612,8 @@ var _internal;
         a[core.$set](j, el);
       }
     }
-    static [_dualPivotQuicksort](a, left, right, compare) {
-      dart.assert(dart.notNull(right) - dart.notNull(left) > dart.notNull(Sort[_INSERTION_SORT_THRESHOLD]));
+    static _dualPivotQuicksort(a, left, right, compare) {
+      dart.assert(dart.notNull(right) - dart.notNull(left) > dart.notNull(Sort._INSERTION_SORT_THRESHOLD));
       let sixth = ((dart.notNull(right) - dart.notNull(left) + 1) / 6).truncate();
       let index1 = dart.notNull(left) + dart.notNull(sixth);
       let index5 = dart.notNull(right) - dart.notNull(sixth);
@@ -1782,8 +1777,8 @@ var _internal;
       a[core.$set](dart.notNull(less) - 1, pivot1);
       a[core.$set](right, a[core.$get](dart.notNull(great) + 1));
       a[core.$set](dart.notNull(great) + 1, pivot2);
-      Sort[_doSort](a, left, dart.notNull(less) - 2, compare);
-      Sort[_doSort](a, dart.notNull(great) + 2, right, compare);
+      Sort._doSort(a, left, dart.notNull(less) - 2, compare);
+      Sort._doSort(a, dart.notNull(great) + 2, right, compare);
       if (pivots_are_equal) {
         return;
       }
@@ -1841,9 +1836,9 @@ var _internal;
             }
           }
         }
-        Sort[_doSort](a, less, great, compare);
+        Sort._doSort(a, less, great, compare);
       } else {
-        Sort[_doSort](a, less, great, compare);
+        Sort._doSort(a, less, great, compare);
       }
     }
   }

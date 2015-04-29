@@ -1277,7 +1277,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     var type = getStaticType(target);
     var name = node.methodName.name;
-    var memberName = _emitMemberName(name, type: type);
+    var element = node.methodName.staticElement;
+    bool isStatic = element is ExecutableElement && element.isStatic;
+    var memberName = _emitMemberName(name, type: type, isStatic: isStatic);
 
     if (rules.isDynamicTarget(target)) {
       code = 'dart.$DSEND(#, #, #)';
@@ -1904,13 +1906,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   /// Shared code for [PrefixedIdentifier] and [PropertyAccess].
   JS.Expression _emitGet(Expression target, SimpleIdentifier memberId) {
-    var name = _emitMemberName(memberId.name, type: getStaticType(target));
+    var member = memberId.staticElement;
+    bool isStatic = member is ExecutableElement && member.isStatic;
+    var name = _emitMemberName(memberId.name,
+        type: getStaticType(target), isStatic: isStatic);
     if (rules.isDynamicTarget(target)) {
       return js.call('dart.$DLOAD(#, #)', [_visit(target), name]);
     }
 
     String code;
-    var member = memberId.staticElement;
     if (member != null && member is MethodElement) {
       // Tear-off methods: explicitly bind it.
       if (_requiresStaticDispatch(target, memberId.name)) {
@@ -2358,6 +2362,20 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   ///
   JS.Expression _emitMemberName(String name,
       {DartType type, bool unary: false, bool isStatic: false}) {
+
+    // Static methods skip most of the rename steps.
+    if (isStatic) {
+      if (JS.invalidStaticMethodName(name)) {
+        // Choose an string name. Use an invalid identifier so it won't conflict
+        // with any valid member names.
+        // TODO(jmesserly): this works around the problem, but I'm pretty sure we
+        // don't need it, as static methods seemed to work. The only concrete
+        // issue we saw was in the defineNamedConstructor helper function.
+        name = '$name*';
+      }
+      return _propertyName(name);
+    }
+
     if (name.startsWith('_')) {
       return _privateNames.putIfAbsent(
           name, () => _initSymbol(new JS.TemporaryId(name)));
@@ -2372,15 +2390,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       name = 'set';
     } else if (name == '-' && unary) {
       name = 'unary-';
-    }
-
-    if (isStatic && JS.invalidStaticMethodName(name)) {
-      // Choose an string name. Use an invalid identifier so it won't conflict
-      // with any valid member names.
-      // TODO(jmesserly): this works around the problem, but I'm pretty sure we
-      // don't need it, as static methods seemed to work. The only concrete
-      // issue we saw was in the defineNamedConstructor helper function.
-      name = '$name*';
     }
 
     if (extLibrary != null) {

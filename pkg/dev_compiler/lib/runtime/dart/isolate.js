@@ -15,7 +15,6 @@ var isolate;
     }
   }
   IsolateSpawnException[dart.implements] = () => [core.Exception];
-  let _currentIsolateCache = Symbol('_currentIsolateCache');
   let _pause = Symbol('_pause');
   class Isolate extends core.Object {
     Isolate(controlPort, opts) {
@@ -26,7 +25,7 @@ var isolate;
       this.terminateCapability = terminateCapability;
     }
     static get current() {
-      return Isolate[_currentIsolateCache];
+      return Isolate._currentIsolateCache;
     }
     static spawn(entryPoint, message, opts) {
       let paused = opts && 'paused' in opts ? opts.paused : false;
@@ -155,7 +154,7 @@ var isolate;
   Isolate.BEFORE_NEXT_EVENT = 1;
   Isolate.AS_EVENT = 2;
   dart.defineLazyProperties(Isolate, {
-    get [_currentIsolateCache]() {
+    get _currentIsolateCache() {
       return _isolate_helper.IsolateNatives.currentIsolate;
     }
   });

@@ -23,11 +23,10 @@ var _js_helper;
       this.name = name;
     }
   }
-  let _ = Symbol('_');
   let _throwUnmodifiable = Symbol('_throwUnmodifiable');
   let ConstantMap$ = dart.generic(function(K, V) {
     class ConstantMap extends core.Object {
-      [_]() {
+      _() {
       }
       get isEmpty() {
         return this.length == 0;
@@ -58,7 +57,7 @@ var _js_helper;
       }
     }
     ConstantMap[dart.implements] = () => [core.Map$(K, V)];
-    dart.defineNamedConstructor(ConstantMap, _);
+    dart.defineNamedConstructor(ConstantMap, '_');
     return ConstantMap;
   });
   let ConstantMap = ConstantMap$();
@@ -67,11 +66,11 @@ var _js_helper;
   let _fetch = Symbol('_fetch');
   let ConstantStringMap$ = dart.generic(function(K, V) {
     class ConstantStringMap extends ConstantMap$(K, V) {
-      [_](length, jsObject, keys) {
+      _(length, jsObject, keys) {
         this.length = length;
         this[_jsObject] = jsObject;
         this[_keys] = keys;
-        super[_]();
+        super._();
       }
       containsValue(needle) {
         return this.values[core.$any](value => dart.equals(value, needle));
@@ -106,16 +105,16 @@ var _js_helper;
       }
     }
     ConstantStringMap[dart.implements] = () => [_internal.EfficientLength];
-    dart.defineNamedConstructor(ConstantStringMap, _);
+    dart.defineNamedConstructor(ConstantStringMap, '_');
     return ConstantStringMap;
   });
   let ConstantStringMap = ConstantStringMap$();
   let _protoValue = Symbol('_protoValue');
   let ConstantProtoMap$ = dart.generic(function(K, V) {
     class ConstantProtoMap extends ConstantStringMap$(K, V) {
-      [_](length, jsObject, keys, protoValue) {
+      _(length, jsObject, keys, protoValue) {
         this[_protoValue] = protoValue;
-        super[_](dart.as(length, core.int), jsObject, dart.as(keys, core.List$(K)));
+        super._(dart.as(length, core.int), jsObject, dart.as(keys, core.List$(K)));
       }
       containsKey(key) {
         if (!(typeof key == 'string'))
@@ -128,7 +127,7 @@ var _js_helper;
         return dart.equals('__proto__', key) ? this[_protoValue] : jsPropertyAccess(this[_jsObject], dart.as(key, core.String));
       }
     }
-    dart.defineNamedConstructor(ConstantProtoMap, _);
+    dart.defineNamedConstructor(ConstantProtoMap, '_');
     return ConstantProtoMap;
   });
   let ConstantProtoMap = ConstantProtoMap$();
@@ -155,7 +154,7 @@ var _js_helper;
     class GeneralConstantMap extends ConstantMap$(K, V) {
       GeneralConstantMap(jsData) {
         this[_jsData] = jsData;
-        super[_]();
+        super._();
       }
       [_getMap]() {
         if (!this.$map) {
@@ -1727,9 +1726,6 @@ var _js_helper;
     let metadata = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.METADATA);
     return metadata[index];
   }
-  let _throwFormatException = Symbol('_throwFormatException');
-  let _fromCharCodeApply = Symbol('_fromCharCodeApply');
-  let _mangledNameMatchesType = Symbol('_mangledNameMatchesType');
   class Primitives extends core.Object {
     static initializeStatics(id) {
       Primitives.mirrorFunctionCacheName = dart.notNull(Primitives.mirrorFunctionCacheName) + `_${id}`;
@@ -1743,12 +1739,12 @@ var _js_helper;
       }
       return hash;
     }
-    static [_throwFormatException](string) {
+    static _throwFormatException(string) {
       throw new core.FormatException(string);
     }
     static parseInt(source, radix, handleError) {
       if (handleError == null)
-        handleError = dart.as(Primitives[_throwFormatException], __CastType0);
+        handleError = dart.as(Primitives._throwFormatException, __CastType0);
       checkString(source);
       let match = /^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i.exec(source);
       let digitsIndex = 1;
@@ -1800,7 +1796,7 @@ var _js_helper;
     static parseDouble(source, handleError) {
       checkString(source);
       if (handleError == null)
-        handleError = dart.as(Primitives[_throwFormatException], __CastType2);
+        handleError = dart.as(Primitives._throwFormatException, __CastType2);
       if (!/^\s*[+-]?(?:Infinity|NaN|(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(source)) {
         return handleError(source);
       }
@@ -1865,7 +1861,7 @@ var _js_helper;
       }
       return null;
     }
-    static [_fromCharCodeApply](array) {
+    static _fromCharCodeApply(array) {
       let result = "";
       let kMaxApply = 500;
       let end = array[core.$length];
@@ -1894,7 +1890,7 @@ var _js_helper;
           throw new core.ArgumentError(i);
         }
       }
-      return Primitives[_fromCharCodeApply](a);
+      return Primitives._fromCharCodeApply(a);
     }
     static stringFromCharCodes(charCodes) {
       for (let i of dart.as(charCodes, core.Iterable)) {
@@ -1905,7 +1901,7 @@ var _js_helper;
         if (dart.dsend(i, '>', 65535))
           return Primitives.stringFromCodePoints(charCodes);
       }
-      return Primitives[_fromCharCodeApply](dart.as(charCodes, core.List$(core.int)));
+      return Primitives._fromCharCodeApply(dart.as(charCodes, core.List$(core.int)));
     }
     static stringFromCharCode(charCode) {
       if (core.int['<='](0, charCode)) {
@@ -2113,7 +2109,7 @@ var _js_helper;
       positionalArguments[core.$addAll](defaultArguments.values);
       return jsFunction.apply(func, positionalArguments);
     }
-    static [_mangledNameMatchesType](mangledName, type) {
+    static _mangledNameMatchesType(mangledName, type) {
       return mangledName == type[_typeName];
     }
     static identicalImplementation(a, b) {
@@ -3712,13 +3708,11 @@ var _js_helper;
   function _loadLibraryWrapper(loadId) {
     return () => loadDeferredLibrary(loadId);
   }
-  let _loadingLibraries = Symbol('_loadingLibraries');
-  let _loadedLibraries = Symbol('_loadedLibraries');
   dart.defineLazyProperties(exports, {
-    get [_loadingLibraries]() {
+    get _loadingLibraries() {
       return dart.map();
     },
-    get [_loadedLibraries]() {
+    get _loadedLibraries() {
       return new (core.Set$(core.String))();
     }
   });

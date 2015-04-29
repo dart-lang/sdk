@@ -18,9 +18,6 @@ var _interceptors;
     return JSExtendableArray;
   });
   let JSExtendableArray = JSExtendableArray$();
-  let _MIN_INT32 = Symbol('_MIN_INT32');
-  let _MAX_INT32 = Symbol('_MAX_INT32');
-  let _handleIEtoString = Symbol('_handleIEtoString');
   let _isInt32 = Symbol('_isInt32');
   let _tdivFast = Symbol('_tdivFast');
   let _tdivSlow = Symbol('_tdivSlow');
@@ -102,7 +99,7 @@ var _interceptors;
       return this['>'](0) ? 1 : this['<'](0) ? -1 : this;
     }
     toInt() {
-      if (dart.notNull(this['>='](JSNumber[_MIN_INT32])) && dart.notNull(this['<='](JSNumber[_MAX_INT32]))) {
+      if (dart.notNull(this['>='](JSNumber._MIN_INT32)) && dart.notNull(this['<='](JSNumber._MAX_INT32))) {
         return this | 0;
       }
       if (isFinite(this)) {
@@ -201,9 +198,9 @@ var _interceptors;
       if (result.codeUnitAt(dart.notNull(result.length) - 1) != rightParenCode) {
         return result;
       }
-      return JSNumber[_handleIEtoString](result);
+      return JSNumber._handleIEtoString(result);
     }
-    static [_handleIEtoString](result) {
+    static _handleIEtoString(result) {
       let match = /^([\da-z]+)(?:\.([\da-z]+))?\(e\+(\d+)\)$/.exec(result);
       if (match == null) {
         throw new core.UnsupportedError(`Unexpected toString result: ${result}`);
@@ -355,11 +352,6 @@ var _interceptors;
   JSNumber[dart.implements] = () => [core.num];
   JSNumber._MIN_INT32 = -2147483648;
   JSNumber._MAX_INT32 = 2147483647;
-  let _bitCount = Symbol('_bitCount');
-  let _spread = Symbol('_spread');
-  let _shru = Symbol('_shru');
-  let _shrs = Symbol('_shrs');
-  let _ors = Symbol('_ors');
   class JSInt extends JSNumber {
     JSInt() {
       super.JSNumber();
@@ -381,33 +373,33 @@ var _interceptors;
       let nonneg = this['<'](0) ? dart.notNull(this['unary-']()) - 1 : this;
       if (dart.notNull(nonneg) >= 4294967296) {
         nonneg = (dart.notNull(nonneg) / 4294967296).truncate();
-        return dart.notNull(JSInt[_bitCount](JSInt[_spread](nonneg))) + 32;
+        return dart.notNull(JSInt._bitCount(JSInt._spread(nonneg))) + 32;
       }
-      return JSInt[_bitCount](JSInt[_spread](nonneg));
+      return JSInt._bitCount(JSInt._spread(nonneg));
     }
-    static [_bitCount](i) {
-      i = dart.as(dart.dsend(JSInt[_shru](i, 0), '-', dart.dsend(JSInt[_shru](i, 1), '&', 1431655765)), core.int);
-      i = core.int['+'](dart.notNull(i) & 858993459, dart.dsend(JSInt[_shru](i, 2), '&', 858993459));
-      i = 252645135 & core.int['+'](i, JSInt[_shru](i, 4));
-      i = dart.notNull(i) + dart.notNull(dart.as(JSInt[_shru](i, 8), core.int));
-      i = dart.notNull(i) + dart.notNull(dart.as(JSInt[_shru](i, 16), core.int));
+    static _bitCount(i) {
+      i = dart.as(dart.dsend(JSInt._shru(i, 0), '-', dart.dsend(JSInt._shru(i, 1), '&', 1431655765)), core.int);
+      i = core.int['+'](dart.notNull(i) & 858993459, dart.dsend(JSInt._shru(i, 2), '&', 858993459));
+      i = 252645135 & core.int['+'](i, JSInt._shru(i, 4));
+      i = dart.notNull(i) + dart.notNull(dart.as(JSInt._shru(i, 8), core.int));
+      i = dart.notNull(i) + dart.notNull(dart.as(JSInt._shru(i, 16), core.int));
       return dart.notNull(i) & 63;
     }
-    static [_shru](value, shift) {
+    static _shru(value, shift) {
       return value >>> shift;
     }
-    static [_shrs](value, shift) {
+    static _shrs(value, shift) {
       return value >> shift;
     }
-    static [_ors](a, b) {
+    static _ors(a, b) {
       return a | b;
     }
-    static [_spread](i) {
-      i = dart.as(JSInt[_ors](i, dart.as(JSInt[_shrs](i, 1), core.int)), core.int);
-      i = dart.as(JSInt[_ors](i, dart.as(JSInt[_shrs](i, 2), core.int)), core.int);
-      i = dart.as(JSInt[_ors](i, dart.as(JSInt[_shrs](i, 4), core.int)), core.int);
-      i = dart.as(JSInt[_ors](i, dart.as(JSInt[_shrs](i, 8), core.int)), core.int);
-      i = dart.as(JSInt[_shru](dart.as(JSInt[_ors](i, dart.as(JSInt[_shrs](i, 16), core.int)), core.int), 0), core.int);
+    static _spread(i) {
+      i = dart.as(JSInt._ors(i, dart.as(JSInt._shrs(i, 1), core.int)), core.int);
+      i = dart.as(JSInt._ors(i, dart.as(JSInt._shrs(i, 2), core.int)), core.int);
+      i = dart.as(JSInt._ors(i, dart.as(JSInt._shrs(i, 4), core.int)), core.int);
+      i = dart.as(JSInt._ors(i, dart.as(JSInt._shrs(i, 8), core.int)), core.int);
+      i = dart.as(JSInt._shru(dart.as(JSInt._ors(i, dart.as(JSInt._shrs(i, 16), core.int)), core.int), 0), core.int);
       return i;
     }
     get runtimeType() {
@@ -431,9 +423,6 @@ var _interceptors;
   class JSUInt32 extends JSPositiveInt {}
   class JSUInt31 extends JSUInt32 {}
   let _defaultSplit = Symbol('_defaultSplit');
-  let _isWhitespace = Symbol('_isWhitespace');
-  let _skipLeadingWhitespace = Symbol('_skipLeadingWhitespace');
-  let _skipTrailingWhitespace = Symbol('_skipTrailingWhitespace');
   class JSString extends Interceptor {
     JSString() {
       super.Interceptor();
@@ -575,7 +564,7 @@ var _interceptors;
     toUpperCase() {
       return this.toUpperCase();
     }
-    static [_isWhitespace](codeUnit) {
+    static _isWhitespace(codeUnit) {
       if (dart.notNull(codeUnit) < 256) {
         switch (codeUnit) {
           case 9:
@@ -624,24 +613,24 @@ var _interceptors;
         }
       }
     }
-    static [_skipLeadingWhitespace](string, index) {
+    static _skipLeadingWhitespace(string, index) {
       let SPACE = 32;
       let CARRIAGE_RETURN = 13;
       while (dart.notNull(index) < dart.notNull(string.length)) {
         let codeUnit = string.codeUnitAt(index);
-        if (codeUnit != SPACE && codeUnit != CARRIAGE_RETURN && !dart.notNull(JSString[_isWhitespace](codeUnit))) {
+        if (codeUnit != SPACE && codeUnit != CARRIAGE_RETURN && !dart.notNull(JSString._isWhitespace(codeUnit))) {
           break;
         }
         index = dart.notNull(index) + 1;
       }
       return index;
     }
-    static [_skipTrailingWhitespace](string, index) {
+    static _skipTrailingWhitespace(string, index) {
       let SPACE = 32;
       let CARRIAGE_RETURN = 13;
       while (dart.notNull(index) > 0) {
         let codeUnit = string.codeUnitAt(dart.notNull(index) - 1);
-        if (codeUnit != SPACE && codeUnit != CARRIAGE_RETURN && !dart.notNull(JSString[_isWhitespace](codeUnit))) {
+        if (codeUnit != SPACE && codeUnit != CARRIAGE_RETURN && !dart.notNull(JSString._isWhitespace(codeUnit))) {
           break;
         }
         index = dart.notNull(index) - 1;
@@ -656,14 +645,14 @@ var _interceptors;
       let firstCode = result.codeUnitAt(0);
       let startIndex = 0;
       if (firstCode == NEL) {
-        startIndex = JSString[_skipLeadingWhitespace](result, 1);
+        startIndex = JSString._skipLeadingWhitespace(result, 1);
         if (startIndex == result.length)
           return "";
       }
       let endIndex = result.length;
       let lastCode = result.codeUnitAt(dart.notNull(endIndex) - 1);
       if (lastCode == NEL) {
-        endIndex = JSString[_skipTrailingWhitespace](result, dart.notNull(endIndex) - 1);
+        endIndex = JSString._skipTrailingWhitespace(result, dart.notNull(endIndex) - 1);
       }
       if (startIndex == 0 && endIndex == result.length)
         return result;
@@ -679,11 +668,11 @@ var _interceptors;
           return result;
         let firstCode = result.codeUnitAt(0);
         if (firstCode == NEL) {
-          startIndex = JSString[_skipLeadingWhitespace](result, 1);
+          startIndex = JSString._skipLeadingWhitespace(result, 1);
         }
       } else {
         result = this;
-        startIndex = JSString[_skipLeadingWhitespace](this, 0);
+        startIndex = JSString._skipLeadingWhitespace(this, 0);
       }
       if (startIndex == 0)
         return result;
@@ -702,11 +691,11 @@ var _interceptors;
           return result;
         let lastCode = result.codeUnitAt(dart.notNull(endIndex) - 1);
         if (lastCode == NEL) {
-          endIndex = JSString[_skipTrailingWhitespace](result, dart.notNull(endIndex) - 1);
+          endIndex = JSString._skipTrailingWhitespace(result, dart.notNull(endIndex) - 1);
         }
       } else {
         result = this;
-        endIndex = JSString[_skipTrailingWhitespace](this, this.length);
+        endIndex = JSString._skipTrailingWhitespace(this, this.length);
       }
       if (endIndex == result.length)
         return result;

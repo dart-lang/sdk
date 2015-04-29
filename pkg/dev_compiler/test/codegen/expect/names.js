@@ -27,7 +27,7 @@ var names;
     core.print(new Foo()[_foo$]());
     core.print(_foo());
     core.print(new Frame.caller([1, 2, 3]));
-    let eval$ = dart.bind(Frame, 'callee');
+    let eval$ = dart.bind(Frame, 'callee*');
     core.print(eval$);
   }
   // Exports:
