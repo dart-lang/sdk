@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
@@ -235,27 +236,31 @@ void main() {
 
 
 main() {
-  test(String code, Function f) {
-    asyncTest(() => compileAll(code, disableInlining: false).then((generated) {
-      Expect.isTrue(f(generated));
-    }));
+  test(String code, String expected) {
+    return () => compileAll(code, disableInlining: false).then((generated) {
+      Expect.isTrue(generated.contains(expected),
+          "Generated code didn't contain '$expected'.\n"
+          "Test:\n$code, Generated:\n$generated");
+    });
   }
-  test(TEST_1, (generated) => generated.contains('return 42'));
-  test(TEST_2, (generated) => generated.contains('return 42'));
-  test(TEST_3, (generated) => generated.contains('return 84'));
-  test(TEST_4, (generated) => generated.contains('return t1 + t1'));
-  test(TEST_5, (generated) => generated.contains('return 84'));
-  test(TEST_6, (generated) => generated.contains('return 84'));
-  test(TEST_7, (generated) => generated.contains('return 32'));
-  test(TEST_8, (generated) => generated.contains('return a.a'));
-  test(TEST_9, (generated) => generated.contains('return a.a'));
-  test(TEST_10, (generated) => generated.contains('return 2'));
-  test(TEST_11, (generated) => generated.contains('return a.a'));
-  test(TEST_12, (generated) => generated.contains('return 6'));
-  test(TEST_13, (generated) => generated.contains('return 6'));
-  test(TEST_14, (generated) => generated.contains('return t1[0]'));
-  test(TEST_15, (generated) => generated.contains('return 42'));
-  test(TEST_16, (generated) => generated.contains('return \$.a'));
-  test(TEST_17, (generated) => generated.contains('return t1'));
-  test(TEST_18, (generated) => generated.contains('return t1'));
+  asyncTest(() => Future.forEach([
+    test(TEST_1, 'return 42'),
+    test(TEST_2, 'return 42'),
+    test(TEST_3, 'return 84'),
+    test(TEST_4, 'return t1 + t1'),
+    test(TEST_5, 'return 84'),
+    test(TEST_6, 'return 84'),
+    test(TEST_7, 'return 32'),
+    test(TEST_8, 'return a.a'),
+    test(TEST_9, 'return a.a'),
+    test(TEST_10, 'return 2'),
+    test(TEST_11, 'return a.a'),
+    test(TEST_12, 'return 6'),
+    test(TEST_13, 'return 6'),
+    test(TEST_14, 'return t1[0]'),
+    test(TEST_15, 'return 42'),
+    test(TEST_16, 'return \$.a'),
+    test(TEST_17, 'return t1'),
+    test(TEST_18, 'return t1'),
+  ], (f) => f()));
 }

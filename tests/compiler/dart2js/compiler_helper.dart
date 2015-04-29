@@ -127,6 +127,7 @@ Future<String> compileAll(String code,
       trustTypeAnnotations: trustTypeAnnotations,
       expectedWarnings: expectedWarnings,
       outputProvider: outputCollector);
+  compiler.diagnosticHandler = createHandler(compiler, code);
   return compiler.runCompiler(uri).then((_) {
     Expect.isFalse(compiler.compilationFailed,
                    'Unexpected compilation error(s): ${compiler.errors}');

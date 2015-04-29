@@ -481,7 +481,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R errorUnresolvedGet(
+  R visitUnresolvedGet(
       Send node,
       Element element,
       ResolvedKindVisitor<R> visitor) {
@@ -489,7 +489,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R errorUnresolvedInvoke(
+  R visitUnresolvedInvoke(
       Send node,
       Element element,
       NodeList arguments,

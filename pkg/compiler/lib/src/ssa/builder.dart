@@ -1518,12 +1518,6 @@ class SsaBuilder extends NewResolvedVisitor {
     return graph.addConstant(getConstantForNode(node), compiler);
   }
 
-  bool isLazilyInitialized(VariableElement element) {
-    ConstantExpression initialValue =
-        backend.constants.getConstantForVariable(element);
-    return initialValue == null;
-  }
-
   TypeMask cachedTypeOfThis;
 
   TypeMask getTypeOfThis() {
@@ -3245,92 +3239,119 @@ class SsaBuilder extends NewResolvedVisitor {
     }
   }
 
-  void generateGetter(ast.Send send, Element element) {
-    if (element != null && element.isForeign(backend)) {
-      visitForeignGetter(send);
-    } else if (Elements.isStaticOrTopLevelField(element)) {
-      ConstantExpression constant;
-      if (element.isField && !element.isAssignable) {
+  /// Generate read access of an unresolved static or top level entity.
+  void generateStaticUnresolvedGet(ast.Send node, Element element) {
+    if (element is ErroneousElement) {
+      // An erroneous element indicates an unresolved static getter.
+      generateThrowNoSuchMethod(
+          node,
+          noSuchMethodTargetSymbolString(element, 'get'),
+          argumentNodes: const Link<ast.Node>());
+    } else {
+      // This happens when [element] has parse errors.
+      assert(invariant(node, element.isErroneous));
+      // TODO(ahe): Do something like the above, that is, emit a runtime
+      // error.
+      stack.add(graph.addConstantNull(compiler));
+    }
+  }
+
+  /// Read a static or top level [field] of constant value.
+  void generateStaticConstGet(
+      ast.Send node,
+      FieldElement field,
+      ConstantExpression constant) {
+    ConstantValue value = constant.value;
+    HConstant instruction;
+    // Constants that are referred via a deferred prefix should be referred
+    // by reference.
+    PrefixElement prefix = compiler.deferredLoadTask
+        .deferredPrefixElement(node, elements);
+    if (prefix != null) {
+      instruction = graph.addDeferredConstant(value, prefix, compiler);
+    } else {
+      instruction = graph.addConstant(value, compiler);
+    }
+    stack.add(instruction);
+    // The inferrer may have found a better type than the constant
+    // handler in the case of lists, because the constant handler
+    // does not look at elements in the list.
+    TypeMask type =
+        TypeMaskFactory.inferredTypeForElement(field, compiler);
+    if (!type.containsAll(compiler.world) &&
+        !instruction.isConstantNull()) {
+      // TODO(13429): The inferrer should know that an element
+      // cannot be null.
+      instruction.instructionType = type.nonNullable();
+    }
+  }
+
+  /// Read a static or top level [field].
+  void generateStaticFieldGet(ast.Send node, FieldElement field) {
+    generateIsDeferredLoadedCheckIfNeeded(node);
+
+    ConstantExpression constant =
+        backend.constants.getConstantForVariable(field);
+    if (constant != null) {
+      if (!field.isAssignable) {
         // A static final or const. Get its constant value and inline it if
         // the value can be compiled eagerly.
-        constant = backend.constants.getConstantForVariable(element);
-      }
-      if (constant != null) {
-        ConstantValue value = constant.value;
-        HConstant instruction;
-        // Constants that are referred via a deferred prefix should be referred
-        // by reference.
-        PrefixElement prefix = compiler.deferredLoadTask
-            .deferredPrefixElement(send, elements);
-        if (prefix != null) {
-          instruction = graph.addDeferredConstant(value, prefix, compiler);
-        } else {
-          instruction = graph.addConstant(value, compiler);
-        }
-        stack.add(instruction);
-        // The inferrer may have found a better type than the constant
-        // handler in the case of lists, because the constant handler
-        // does not look at elements in the list.
-        TypeMask type =
-            TypeMaskFactory.inferredTypeForElement(element, compiler);
-        if (!type.containsAll(compiler.world) &&
-            !instruction.isConstantNull()) {
-          // TODO(13429): The inferrer should know that an element
-          // cannot be null.
-          instruction.instructionType = type.nonNullable();
-        }
-      } else if (element.isField && isLazilyInitialized(element)) {
-        HInstruction instruction = new HLazyStatic(
-            element,
-            TypeMaskFactory.inferredTypeForElement(element, compiler));
+        generateStaticConstGet(node, field, constant);
+      } else {
+        // TODO(5346): Try to avoid the need for calling [declaration] before
+        // creating an [HStatic].
+        HInstruction instruction = new HStatic(
+            field.declaration,
+            TypeMaskFactory.inferredTypeForElement(field, compiler));
         push(instruction);
-      } else {
-        if (element.isGetter) {
-          pushInvokeStatic(send, element, <HInstruction>[]);
-        } else {
-          // TODO(5346): Try to avoid the need for calling [declaration] before
-          // creating an [HStatic].
-          HInstruction instruction = new HStatic(
-              element.declaration,
-              TypeMaskFactory.inferredTypeForElement(element, compiler));
-          push(instruction);
-        }
-      }
-    } else if (Elements.isInstanceSend(send, elements)) {
-      HInstruction receiver = generateInstanceSendReceiver(send);
-      generateInstanceGetterWithCompiledReceiver(
-          send, elements.getSelector(send), receiver);
-    } else if (Elements.isStaticOrTopLevelFunction(element)) {
-      // TODO(5346): Try to avoid the need for calling [declaration] before
-      // creating an [HStatic].
-      push(new HStatic(element.declaration, backend.nonNullType));
-      // TODO(ahe): This should be registered in codegen.
-      registry.registerGetOfStaticFunction(element.declaration);
-    } else if (Elements.isErroneous(element)) {
-      if (element is ErroneousElement) {
-        // An erroneous element indicates an unresolved static getter.
-        generateThrowNoSuchMethod(
-            send,
-            noSuchMethodTargetSymbolString(element, 'get'),
-            argumentNodes: const Link<ast.Node>());
-      } else {
-        // TODO(ahe): Do something like the above, that is, emit a runtime
-        // error.
-        stack.add(graph.addConstantNull(compiler));
       }
     } else {
-      if (send.asSendSet() == null) {
-        internalError(send, "Unhandled local: $element");
-      }
-      // TODO(johnniwinther): Remove this when [generateGetter] is no longer
-      // called from [visitSendSet] (for compound assignments).
-      handleLocalGet(element);
+      HInstruction instruction = new HLazyStatic(
+          field,
+          TypeMaskFactory.inferredTypeForElement(field, compiler));
+      push(instruction);
     }
+  }
+
+  /// Generate a getter invocation of the static or top level [getter].
+  void generateStaticGetterGet(ast.Send node, MethodElement getter) {
+    if (getter.isDeferredLoaderGetter) {
+      generateDeferredLoaderGet(node, getter);
+    } else {
+      generateIsDeferredLoadedCheckIfNeeded(node);
+      pushInvokeStatic(node, getter, <HInstruction>[]);
+    }
+  }
+
+  /// Generate a dynamic getter invocation.
+  void generateDynamicGet(ast.Send node) {
+    HInstruction receiver = generateInstanceSendReceiver(node);
+    generateInstanceGetterWithCompiledReceiver(
+        node, elements.getSelector(node), receiver);
+  }
+
+  /// Generate a closurization of the static or top level [function].
+  void generateStaticFunctionGet(ast.Send node, MethodElement function) {
+    generateIsDeferredLoadedCheckIfNeeded(node);
+    // TODO(5346): Try to avoid the need for calling [declaration] before
+    // creating an [HStatic].
+    push(new HStatic(function.declaration, backend.nonNullType));
+    // TODO(ahe): This should be registered in codegen.
+    registry.registerGetOfStaticFunction(function.declaration);
   }
 
   /// Read a local variable, function or parameter.
   void handleLocalGet(LocalElement local) {
     stack.add(localsHandler.readLocal(local));
+  }
+
+  @override
+  void visitDynamicPropertyGet(
+      ast.Send node,
+      ast.Node receiver,
+      Selector selector,
+      _) {
+    generateDynamicGet(node);
   }
 
   @override
@@ -3346,6 +3367,62 @@ class SsaBuilder extends NewResolvedVisitor {
   @override
   void visitLocalFunctionGet(ast.Send node, LocalFunctionElement function, _) {
     handleLocalGet(function);
+  }
+
+  @override
+  void visitStaticFieldGet(
+      ast.Send node,
+      FieldElement field,
+      _) {
+    generateStaticFieldGet(node, field);
+  }
+
+  @override
+  void visitStaticFunctionGet(
+      ast.Send node,
+      MethodElement function,
+      _) {
+    generateStaticFunctionGet(node, function);
+  }
+
+  @override
+  void visitStaticGetterGet(
+      ast.Send node,
+      FunctionElement getter,
+      _) {
+    generateStaticGetterGet(node, getter);
+  }
+
+  @override
+  void visitThisPropertyGet(
+      ast.Send node,
+      Selector selector,
+      _) {
+    generateDynamicGet(node);
+  }
+
+  @override
+  void visitTopLevelFieldGet(
+      ast.Send node,
+      FieldElement field,
+      _) {
+    generateStaticFieldGet(node, field);
+  }
+
+  @override
+  void visitTopLevelFunctionGet(
+      ast.Send node,
+      MethodElement function,
+      _) {
+    generateStaticFunctionGet(node, function);
+  }
+
+  @override
+  void visitTopLevelGetterGet(
+      ast.Send node,
+      FunctionElement getter,
+      _) {
+    generateStaticGetterGet(node, getter);
   }
 
   void generateInstanceSetterWithCompiledReceiver(ast.Send send,
@@ -4014,9 +4091,8 @@ class SsaBuilder extends NewResolvedVisitor {
                           <HInstruction>[]));
   }
 
-  visitForeignSend(ast.Send node) {
-    Selector selector = elements.getSelector(node);
-    String name = selector.name;
+  void handleForeignSend(ast.Send node, FunctionElement element) {
+    String name = element.name;
     if (name == 'JS') {
       handleForeignJs(node);
     } else if (name == 'JS_CURRENT_ISOLATE_CONTEXT') {
@@ -4091,15 +4167,13 @@ class SsaBuilder extends NewResolvedVisitor {
     } else if (name == 'JS_STRING_CONCAT') {
       handleJsStringConcat(node);
     } else {
-      throw "Unknown foreign: ${selector}";
+      throw "Unknown foreign: ${element}";
     }
   }
 
-  visitForeignGetter(ast.Send node) {
-    Element element = elements[node];
+  generateDeferredLoaderGet(ast.Send node, FunctionElement deferredLoader) {
     // Until now we only handle these as getters.
-    invariant(node, element.isDeferredLoaderGetter);
-    FunctionElement deferredLoader = element;
+    invariant(node, deferredLoader.isDeferredLoaderGetter);
     Element loadFunction = compiler.loadLibraryFunction;
     PrefixElement prefixElement = deferredLoader.enclosingElement;
     String loadId = compiler.deferredLoadTask
@@ -4798,70 +4872,154 @@ class SsaBuilder extends NewResolvedVisitor {
     }
     assert(invariant(node, node.arguments.tail.isEmpty,
         message: "Invalid assertion: $node"));
-    buildStaticFunctionInvoke(
+    generateStaticFunctionInvoke(
         node, backend.assertMethod, CallStructure.ONE_ARG);
   }
 
   visitStaticSend(ast.Send node) {
-    CallStructure callStructure = elements.getSelector(node).callStructure;
-    Element element = elements[node];
-    if (elements.isAssert(node)) {
-      element = backend.assertMethod;
-    }
-    if (element.isForeign(backend) && element.isFunction) {
-      visitForeignSend(node);
-      return;
-    }
-    if (element.isErroneous) {
-      if (element is ErroneousElement) {
-        // An erroneous element indicates that the funciton could not be
-        // resolved (a warning has been issued).
-        generateThrowNoSuchMethod(node,
-                                  noSuchMethodTargetSymbolString(element),
-                                  argumentNodes: node.arguments);
-      } else {
-        // TODO(ahe): Do something like [generateWrongArgumentCountError].
-        stack.add(graph.addConstantNull(compiler));
-      }
-      return;
-    }
-    invariant(element, !element.isGenerativeConstructor);
-    generateIsDeferredLoadedCheckIfNeeded(node);
-    if (element.isFunction) {
-      // TODO(5347): Try to avoid the need for calling [implementation] before
-      // calling [makeStaticArgumentList].
-      if (!callStructure.signatureApplies(element.implementation)) {
-        generateWrongArgumentCountError(node, element, node.arguments);
-        return;
-      }
-      buildStaticFunctionInvoke(node, element, callStructure);
-    } else {
-      generateGetter(node, element);
-      List<HInstruction> inputs = <HInstruction>[pop()];
-      addDynamicSendArgumentsToList(node, inputs);
-      Selector closureSelector = callStructure.callSelector;
-      pushWithPosition(
-          new HInvokeClosure(closureSelector, inputs, backend.dynamicType),
-          node);
-    }
+    internalError(node, "Unexpected visitStaticSend");
   }
 
-  void buildStaticFunctionInvoke(
+  /// Generate an invocation to the static or top level [function].
+  void generateStaticFunctionInvoke(
       ast.Send node,
-      FunctionElement element,
+      FunctionElement function,
       CallStructure callStructure) {
     List<HInstruction> inputs = makeStaticArgumentList(
         callStructure,
         node.arguments,
-        element.implementation);
+        function.implementation);
 
-    if (element == compiler.identicalFunction) {
+    if (function == compiler.identicalFunction) {
       pushWithPosition(
           new HIdentity(inputs[0], inputs[1], null, backend.boolType), node);
       return;
     } else {
-      pushInvokeStatic(node, element, inputs);
+      pushInvokeStatic(node, function, inputs);
     }
+  }
+
+  /// Generate an invocation to a static or top level function with the wrong
+  /// number of arguments.
+  void generateStaticFunctionIncompatibleInvoke(ast.Send node,
+                                                Element element) {
+    generateWrongArgumentCountError(node, element, node.arguments);
+  }
+
+  @override
+  void visitStaticFieldInvoke(
+      ast.Send node,
+      FieldElement field,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    generateStaticFieldGet(node, field);
+    generateCallInvoke(node, pop());
+  }
+
+  @override
+  void visitStaticFunctionInvoke(
+      ast.Send node,
+      MethodElement function,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    generateStaticFunctionInvoke(node, function, callStructure);
+  }
+
+  @override
+  void visitStaticFunctionIncompatibleInvoke(
+      ast.Send node,
+      MethodElement function,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    generateStaticFunctionIncompatibleInvoke(node, function);
+  }
+
+  @override
+  void visitStaticGetterInvoke(
+      ast.Send node,
+      FunctionElement getter,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    generateStaticGetterGet(node, getter);
+    generateCallInvoke(node, pop());
+  }
+
+  @override
+  void visitTopLevelFieldInvoke(
+      ast.Send node,
+      FieldElement field,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    generateStaticFieldGet(node, field);
+    generateCallInvoke(node, pop());
+  }
+
+  @override
+  void visitTopLevelFunctionInvoke(
+      ast.Send node,
+      MethodElement function,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    if (function.isForeign(backend)) {
+      handleForeignSend(node, function);
+    } else {
+      generateStaticFunctionInvoke(node, function, callStructure);
+    }
+  }
+
+  @override
+  void visitTopLevelFunctionIncompatibleInvoke(
+      ast.Send node,
+      MethodElement function,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    generateStaticFunctionIncompatibleInvoke(node, function);
+  }
+
+  @override
+  void visitTopLevelGetterInvoke(
+      ast.Send node,
+      FunctionElement getter,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    generateStaticGetterGet(node, getter);
+    generateCallInvoke(node, pop());
+  }
+
+  @override
+  void visitUnresolvedGet(
+      ast.Send node,
+      Element element,
+      _) {
+    generateStaticUnresolvedGet(node, element);
+  }
+
+  @override
+  void visitUnresolvedInvoke(
+      ast.Send node,
+      Element element,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    if (element is ErroneousElement) {
+      // An erroneous element indicates that the funciton could not be
+      // resolved (a warning has been issued).
+      generateThrowNoSuchMethod(node,
+                                noSuchMethodTargetSymbolString(element),
+                                argumentNodes: node.arguments);
+    } else {
+      // TODO(ahe): Do something like [generateWrongArgumentCountError].
+      stack.add(graph.addConstantNull(compiler));
+    }
+    return;
   }
 
   HConstant addConstantString(String string) {
@@ -4985,8 +5143,7 @@ class SsaBuilder extends NewResolvedVisitor {
   }
 
   visitGetterSend(ast.Send node) {
-    generateIsDeferredLoadedCheckIfNeeded(node);
-    generateGetter(node, elements[node]);
+    internalError(node, "Unexpected visitGetterSend");
   }
 
   // TODO(antonm): migrate rest of SsaFromAstMixin to internalError.
@@ -5390,8 +5547,18 @@ class SsaBuilder extends NewResolvedVisitor {
         receiver = generateInstanceSendReceiver(node);
         generateInstanceGetterWithCompiledReceiver(
             node, elements.getGetterSelectorInComplexSendSet(node), receiver);
+      } else if (getter.isErroneous) {
+        generateStaticUnresolvedGet(node, getter);
+      } else if (getter.isField) {
+        generateStaticFieldGet(node, getter);
+      } else if (getter.isGetter) {
+        generateStaticGetterGet(node, getter);
+      } else if (getter.isFunction) {
+        generateStaticFunctionGet(node, getter);
+      } else if (getter.isLocal) {
+        handleLocalGet(getter);
       } else {
-        generateGetter(node, getter);
+        internalError(node, "Unexpected getter: $getter");
       }
       HInstruction getterInstruction = pop();
       handleComplexOperatorSend(node, getterInstruction, node.arguments);

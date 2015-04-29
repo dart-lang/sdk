@@ -795,6 +795,14 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
+  ir.Primitive visitUnresolvedGet(
+      ast.Send node,
+      Element element,
+      _) {
+    return giveup(node, 'visitUnresolvedGet');
+  }
+
+  @override
   ir.Primitive visitUnresolvedSuperGet(
       ast.Send node,
       Element element,
@@ -1128,6 +1136,16 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
+  ir.Primitive handleStaticFunctionIncompatibleInvoke(
+      ast.Send node,
+      MethodElement function,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return giveup(node, 'handleStaticFunctionIncompatibleInvoke');
+  }
+
+  @override
   ir.Primitive handleStaticGetterInvoke(
       ast.Send node,
       FunctionElement getter,
@@ -1191,9 +1209,19 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
+  ir.Primitive visitUnresolvedInvoke(
+      ast.Send node,
+      Element element,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    return giveup(node, 'visitUnresolvedInvoke');
+  }
+
+  @override
   ir.Primitive visitUnresolvedSuperInvoke(
       ast.Send node,
-      MethodElement method,
+      Element element,
       ast.NodeList arguments,
       Selector selector,
       _) {

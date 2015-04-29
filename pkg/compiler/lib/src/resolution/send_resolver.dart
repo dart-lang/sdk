@@ -234,12 +234,17 @@ abstract class SendResolverMixin {
       case SendStructureKind.SET:
         return new SetStructure(semantics, selector);
       case SendStructureKind.INVOKE:
-        if (semantics.kind == AccessKind.SUPER_METHOD) {
-          // TODO(johnniwinther): Find all statically resolved case that should
-          // go here (top level, static, local, ...).
-          if (!selector.callStructure.signatureApplies(semantics.element)) {
-            return new IncompatibleInvokeStructure(semantics, selector);
-          }
+        switch (semantics.kind) {
+          case AccessKind.STATIC_METHOD:
+          case AccessKind.SUPER_METHOD:
+          case AccessKind.TOPLEVEL_METHOD:
+            // TODO(johnniwinther): Should local function also be handled here?
+            if (!selector.callStructure.signatureApplies(semantics.element)) {
+              return new IncompatibleInvokeStructure(semantics, selector);
+            }
+            break;
+          default:
+            break;
         }
         return new InvokeStructure(semantics, selector);
       case SendStructureKind.UNARY:

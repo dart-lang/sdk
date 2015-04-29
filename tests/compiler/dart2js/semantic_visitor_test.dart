@@ -505,6 +505,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_STATIC_FUNCTION_INVOKE,
                     element: 'function(C#o)',
                     arguments: '(null,42)')),
+    const Test(
+        '''
+        class C { static o(a, b) {} }
+        m() => C.o(null);
+        ''',
+        const Visit(VisitKind.VISIT_STATIC_FUNCTION_INCOMPATIBLE_INVOKE,
+                    element: 'function(C#o)',
+                    arguments: '(null)')),
   ],
   'Top level fields': const [
     // Top level fields
@@ -554,6 +562,12 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_INVOKE,
                     element: 'field(o)',
                     arguments: '(null,42)')),
+    const Test(
+        '''
+        m() => o;
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_GET,
+                    name: 'o')),
   ],
   'Top level properties': const [
     // Top level properties
@@ -623,6 +637,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_INVOKE,
                     element: 'function(o)',
                     arguments: '(null,42)')),
+    const Test(
+        '''
+        o(a, b) {}
+        m() => o(null);
+        ''',
+        const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_INCOMPATIBLE_INVOKE,
+                    element: 'function(o)',
+                    arguments: '(null)')),
     const Test.prefix(
         '''
         o(a, b) {}
@@ -630,6 +652,13 @@ const Map<String, List<Test>> SEND_TESTS = const {
         'm() { p.o(null, 42); }',
         const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_INVOKE,
                     element: 'function(o)',
+                    arguments: '(null,42)')),
+    const Test(
+        '''
+        m() => o(null, 42);
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
+                    name: 'o',
                     arguments: '(null,42)')),
   ],
   'Dynamic properties': const [
@@ -3641,6 +3670,18 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
+  visitStaticFunctionIncompatibleInvoke(
+      Send node,
+      MethodElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_STATIC_FUNCTION_INCOMPATIBLE_INVOKE,
+        element: function, arguments: arguments));
+    apply(arguments, arg);
+  }
+
+  @override
   visitStaticGetterGet(
       Send node,
       FunctionElement getter,
@@ -3824,6 +3865,18 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_INVOKE,
+        element: function, arguments: arguments));
+    apply(arguments, arg);
+  }
+
+  @override
+  visitTopLevelFunctionIncompatibleInvoke(
+      Send node,
+      MethodElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_INCOMPATIBLE_INVOKE,
         element: function, arguments: arguments));
     apply(arguments, arg);
   }
@@ -5065,21 +5118,22 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorUnresolvedGet(
+  visitUnresolvedGet(
       Send node,
-      ErroneousElement element,
+      Element element,
       arg) {
-    // TODO: implement errorUnresolvedGet
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_GET, name: element.name));
   }
 
   @override
-  errorUnresolvedInvoke(
+  visitUnresolvedInvoke(
       Send node,
-      ErroneousElement element,
+      Element element,
       NodeList arguments,
       Selector selector,
       arg) {
-    // TODO: implement errorUnresolvedInvoke
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
+        name: element.name, arguments: arguments));
   }
 
   @override
@@ -6036,6 +6090,7 @@ enum VisitKind {
 
   VISIT_STATIC_FUNCTION_GET,
   VISIT_STATIC_FUNCTION_INVOKE,
+  VISIT_STATIC_FUNCTION_INCOMPATIBLE_INVOKE,
   VISIT_STATIC_FUNCTION_DECL,
 
   VISIT_TOP_LEVEL_FIELD_GET,
@@ -6058,6 +6113,7 @@ enum VisitKind {
 
   VISIT_TOP_LEVEL_FUNCTION_GET,
   VISIT_TOP_LEVEL_FUNCTION_INVOKE,
+  VISIT_TOP_LEVEL_FUNCTION_INCOMPATIBLE_INVOKE,
   VISIT_TOP_LEVEL_FUNCTION_DECL,
 
   VISIT_DYNAMIC_PROPERTY_GET,
@@ -6101,6 +6157,8 @@ enum VisitKind {
   VISIT_SUPER_METHOD_INVOKE,
   VISIT_SUPER_METHOD_INCOMPATIBLE_INVOKE,
 
+  VISIT_UNRESOLVED_GET,
+  VISIT_UNRESOLVED_INVOKE,
   VISIT_UNRESOLVED_SUPER_GET,
   VISIT_UNRESOLVED_SUPER_INVOKE,
 

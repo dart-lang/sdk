@@ -465,24 +465,6 @@ abstract class ErrorBulkMixin<R, A>
   }
 
   @override
-  R errorUnresolvedGet(
-      Send node,
-      Element element,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorUnresolvedInvoke(
-      Send node,
-      Element element,
-      NodeList arguments,
-      Selector selector,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
   R errorUnresolvedPostfix(
       Send node,
       Element element,
@@ -1238,6 +1220,16 @@ abstract class InvokeBulkMixin<R, A>
   }
 
   @override
+  R visitStaticFunctionIncompatibleInvoke(
+      Send node,
+      MethodElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return bulkHandleInvoke(node, arg);
+  }
+
+  @override
   R visitStaticGetterInvoke(
       Send node,
       FunctionElement getter,
@@ -1326,6 +1318,16 @@ abstract class InvokeBulkMixin<R, A>
   }
 
   @override
+  R visitTopLevelFunctionIncompatibleInvoke(
+      Send node,
+      MethodElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return bulkHandleInvoke(node, arg);
+  }
+
+  @override
   R visitTopLevelGetterInvoke(
       Send node,
       FunctionElement getter,
@@ -1361,6 +1363,16 @@ abstract class InvokeBulkMixin<R, A>
       ConstantExpression constant,
       NodeList arguments,
       CallStructure callStructure,
+      A arg) {
+    return bulkHandleInvoke(node, arg);
+  }
+
+  @override
+  R visitUnresolvedInvoke(
+      Send node,
+      Element element,
+      NodeList arguments,
+      Selector selector,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1542,6 +1554,14 @@ abstract class GetBulkMixin<R, A>
   R visitConstantGet(
       Send node,
       ConstantExpression constant,
+      A arg) {
+    return bulkHandleGet(node, arg);
+  }
+
+  @override
+  R visitUnresolvedGet(
+      Send node,
+      Element element,
       A arg) {
     return bulkHandleGet(node, arg);
   }
@@ -3770,6 +3790,17 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
+  R visitStaticFunctionIncompatibleInvoke(
+      Send node,
+      MethodElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
   R visitStaticGetterGet(
       Send node,
       FunctionElement getter,
@@ -4355,6 +4386,17 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
+  R visitTopLevelFunctionIncompatibleInvoke(
+      Send node,
+      MethodElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
   R visitTopLevelGetterGet(
       Send node,
       FunctionElement getter,
@@ -4565,7 +4607,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorUnresolvedGet(
+  R visitUnresolvedGet(
       Send node,
       Element element,
       A arg) {
@@ -4573,7 +4615,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorUnresolvedInvoke(
+  R visitUnresolvedInvoke(
       Send node,
       Element element,
       NodeList arguments,
@@ -5377,6 +5419,13 @@ abstract class BaseImplementationOfStaticsMixin<R, A>
       CallStructure callStructure,
       A arg);
 
+  R handleStaticFunctionIncompatibleInvoke(
+      Send node,
+      MethodElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg);
+
   R handleStaticGetterGet(
       Send node,
       FunctionElement getter,
@@ -5500,6 +5549,17 @@ abstract class BaseImplementationOfStaticsMixin<R, A>
       CallStructure callStructure,
       A arg) {
     return handleStaticFunctionInvoke(
+        node, function, arguments, callStructure, arg);
+  }
+
+  @override
+  R visitStaticFunctionIncompatibleInvoke(
+      Send node,
+      MethodElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return handleStaticFunctionIncompatibleInvoke(
         node, function, arguments, callStructure, arg);
   }
 
@@ -5672,6 +5732,17 @@ abstract class BaseImplementationOfStaticsMixin<R, A>
       CallStructure callStructure,
       A arg) {
     return handleStaticFunctionInvoke(
+        node, function, arguments, callStructure, arg);
+  }
+
+  @override
+  R visitTopLevelFunctionIncompatibleInvoke(
+      Send node,
+      MethodElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return handleStaticFunctionIncompatibleInvoke(
         node, function, arguments, callStructure, arg);
   }
 

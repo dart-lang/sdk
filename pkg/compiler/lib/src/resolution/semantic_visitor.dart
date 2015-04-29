@@ -737,6 +737,21 @@ abstract class SemanticSendVisitor<R, A> {
       CallStructure callStructure,
       A arg);
 
+  /// Invocation of the static [function] with incompatible [arguments].
+  ///
+  /// For instance
+  ///     class C {
+  ///       static foo(a, b) {}
+  ///     }
+  ///     m() { C.foo(null); }
+  ///
+  R visitStaticFunctionIncompatibleInvoke(
+      Send node,
+      MethodElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg);
+
   /// Assignment of [rhs] to the static [function].
   ///
   /// For instance
@@ -901,6 +916,21 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() { foo(null, 42); }
   ///
   R visitTopLevelFunctionInvoke(
+      Send node,
+      MethodElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg);
+
+  /// Invocation of the top level [function] with incompatible [arguments].
+  ///
+  /// For instance
+  ///     class C {
+  ///       static foo(a, b) {}
+  ///     }
+  ///     m() { C.foo(null); }
+  ///
+  R visitTopLevelFunctionIncompatibleInvoke(
       Send node,
       MethodElement function,
       NodeList arguments,
@@ -2682,7 +2712,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m7() => prefix.C.unresolved;
   ///
   // TODO(johnniwinther): Split the cases in which a prefix is resolved.
-  R errorUnresolvedGet(
+  R visitUnresolvedGet(
       Send node,
       Element element,
       A arg);
@@ -2732,7 +2762,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m7() => prefix.C.unresolved(null, 42);
   ///
   // TODO(johnniwinther): Split the cases in which a prefix is resolved.
-  R errorUnresolvedInvoke(
+  R visitUnresolvedInvoke(
       Send node,
       Element element,
       NodeList arguments,

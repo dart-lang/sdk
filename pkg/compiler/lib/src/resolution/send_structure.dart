@@ -333,7 +333,7 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
             callStructure,
             arg);
       case AccessKind.UNRESOLVED:
-        return visitor.errorUnresolvedInvoke(
+        return visitor.visitUnresolvedInvoke(
             node,
             semantics.element,
             node.argumentsNode,
@@ -374,6 +374,13 @@ class IncompatibleInvokeStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
+      case AccessKind.STATIC_METHOD:
+        return visitor.visitStaticFunctionIncompatibleInvoke(
+            node,
+            semantics.element,
+            node.argumentsNode,
+            callStructure,
+            arg);
       case AccessKind.SUPER_METHOD:
         return visitor.visitSuperMethodIncompatibleInvoke(
             node,
@@ -381,7 +388,14 @@ class IncompatibleInvokeStructure<R, A> implements SendStructure<R, A> {
             node.argumentsNode,
             callStructure,
             arg);
-      default:
+      case AccessKind.TOPLEVEL_METHOD:
+        return visitor.visitTopLevelFunctionIncompatibleInvoke(
+            node,
+            semantics.element,
+            node.argumentsNode,
+            callStructure,
+            arg);
+     default:
         // TODO(johnniwinther): Support more variants of this invoke structure.
         break;
     }
@@ -522,7 +536,7 @@ class GetStructure<R, A> implements SendStructure<R, A> {
             semantics.constant,
             arg);
       case AccessKind.UNRESOLVED:
-        return visitor.errorUnresolvedGet(
+        return visitor.visitUnresolvedGet(
             node,
             semantics.element,
             arg);
