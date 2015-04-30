@@ -711,7 +711,6 @@ class SetStructure<R, A> implements SendStructure<R, A> {
             semantics.element,
             node.arguments.single,
             arg);
-        break;
       case AccessKind.COMPOUND:
         // This is not a valid case.
         break;
