@@ -3156,9 +3156,7 @@ class SsaBuilder extends NewResolvedVisitor {
 
   @override
   void visitIndex(ast.Send node, ast.Node receiver, ast.Node index, _) {
-    // TODO(johnniwinther): Add a new helper to join the paths used by
-    // [visitIndex], [visitDynamicSend] and [handleSendSet].
-    visitDynamicSend(node);
+    generateDynamicSend(node);
   }
 
   @override
@@ -3683,7 +3681,8 @@ class SsaBuilder extends NewResolvedVisitor {
     }
   }
 
-  visitDynamicSend(ast.Send node) {
+  /// Generate a dynamic method, getter or setter invocation.
+  void generateDynamicSend(ast.Send node) {
     Selector selector = elements.getSelector(node);
 
     List<HInstruction> inputs = <HInstruction>[];
@@ -3696,6 +3695,25 @@ class SsaBuilder extends NewResolvedVisitor {
       pop();
       stack.add(inputs.last);
     }
+  }
+
+  @override
+  visitDynamicPropertyInvoke(
+      ast.Send node,
+      ast.Node receiver,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    generateDynamicSend(node);
+  }
+
+  @override
+  visitThisPropertyInvoke(
+      ast.Send node,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    generateDynamicSend(node);
   }
 
   @override
@@ -5486,7 +5504,7 @@ class SsaBuilder extends NewResolvedVisitor {
       stack.add(result);
     } else if (node.isIndex) {
       if ("=" == op.source) {
-        visitDynamicSend(node);
+        generateDynamicSend(node);
       } else {
         visit(node.receiver);
         HInstruction receiver = pop();

@@ -34,6 +34,7 @@ abstract class ResolvedKindVisitor<R> {
 
   @deprecated
   R visitClosureSend(Send node);
+  @deprecated
   R visitDynamicSend(Send node);
   R visitStaticSend(Send node);
 
@@ -198,12 +199,15 @@ abstract class NewResolvedVisitor<R> extends BaseResolvedVisitor<R>
     }
   }
 
+  @override
+  R visitDynamicSend(Send node) {
+    return internalError(node, "visitDynamicSend is deprecated");
+  }
 
   @override
   R visitSuperSend(Send node) {
-    internalError(node, "visitSuperSend is deprecated");
+    return internalError(node, "visitSuperSend is deprecated");
   }
-
 
   @override
   R visitOperatorSend(Send node) {

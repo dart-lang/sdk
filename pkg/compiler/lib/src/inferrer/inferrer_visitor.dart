@@ -708,7 +708,7 @@ abstract class InferrerVisitor
 
   T handleSendSet(SendSet node);
 
-  T visitDynamicSend(Send node);
+  T handleDynamicInvoke(Send node);
 
   T visitAsyncForIn(AsyncForIn node);
 
@@ -974,7 +974,26 @@ abstract class InferrerVisitor
 
   @override
   T visitIndex(Send node, Node receiver, Node index, _) {
-    return visitDynamicSend(node);
+    return handleDynamicInvoke(node);
+  }
+
+  @override
+  T visitDynamicPropertyInvoke(
+      Send node,
+      Node receiver,
+      NodeList arguments,
+      Selector selector,
+      _) {
+    return handleDynamicInvoke(node);
+  }
+
+  @override
+  T visitThisPropertyInvoke(
+      Send node,
+      NodeList arguments,
+      Selector selector,
+      _) {
+    return handleDynamicInvoke(node);
   }
 
   @override
@@ -1063,23 +1082,23 @@ abstract class InferrerVisitor
 
   @override
   T visitUnary(Send node, UnaryOperator operator, Node expression, _) {
-    return visitDynamicSend(node);
+    return handleDynamicInvoke(node);
   }
 
   @override
   T visitNotEquals(Send node, Node left, Node right, _) {
-    visitDynamicSend(node);
+    handleDynamicInvoke(node);
     return types.boolType;
   }
 
   @override
   T visitEquals(Send node, Node left, Node right, _) {
-    return visitDynamicSend(node);
+    return handleDynamicInvoke(node);
   }
 
   @override
   T visitBinary(Send node, Node left, BinaryOperator operator, Node right, _) {
-    return visitDynamicSend(node);
+    return handleDynamicInvoke(node);
   }
 
   // Because some nodes just visit their children, we may end up

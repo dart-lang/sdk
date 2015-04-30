@@ -1501,7 +1501,7 @@ class SimpleTypeInferrerVisitor<T>
       ast.Node receiver,
       Selector selector,
       _) {
-    return visitDynamicSend(node);
+    return handleDynamicGet(node);
   }
 
   @override
@@ -1557,7 +1557,7 @@ class SimpleTypeInferrerVisitor<T>
       ast.Send node,
       Selector selector,
       _) {
-    return visitDynamicSend(node);
+    return handleDynamicGet(node);
   }
 
   @override
@@ -1705,7 +1705,15 @@ class SimpleTypeInferrerVisitor<T>
         sideEffects, inLoop);
   }
 
-  T visitDynamicSend(ast.Send node) {
+  T handleDynamicInvoke(ast.Send node) {
+    return _handleDynamicSend(node);
+  }
+
+  T handleDynamicGet(ast.Send node) {
+    return _handleDynamicSend(node);
+  }
+
+  T _handleDynamicSend(ast.Send node) {
     Element element = elements[node];
     T receiverType;
     bool isCallOnThis = false;
