@@ -172,6 +172,12 @@ class AnnotationCreator
                            AnnotationInfo context) {
     return createAnnotation(exp.element, context);
   }
+
+  @override
+  Annotation visitDeferred(DeferredConstantExpression exp,
+                           AnnotationInfo context) {
+    return exp.expression.accept(this, context);
+  }
 }
 
 /// A declaration is private if itself is private, or the owner is private.
