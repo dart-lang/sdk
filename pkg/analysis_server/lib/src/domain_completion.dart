@@ -6,6 +6,8 @@ library domain.completion;
 
 import 'dart:async';
 
+import 'package:analysis_server/completion/completion_core.dart'
+    show CompletionRequest;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
@@ -22,6 +24,11 @@ export 'package:analysis_server/src/services/completion/completion_manager.dart'
  * that handles requests in the search domain.
  */
 class CompletionDomainHandler implements RequestHandler {
+  /**
+   * The maximum number of performance measurements to keep.
+   */
+  static const int performanceListMaxLength = 50;
+
   /**
    * The analysis server that is using this handler to process requests.
    */
@@ -59,11 +66,6 @@ class CompletionDomainHandler implements RequestHandler {
    */
   final List<CompletionPerformance> performanceList =
       new List<CompletionPerformance>();
-
-  /**
-   * The maximum number of performance measurements to keep.
-   */
-  static const int performanceListMaxLength = 50;
 
   /**
    * Performance for the last priority change event.
@@ -185,7 +187,7 @@ class CompletionDomainHandler implements RequestHandler {
       manager = completionManagerFor(context, source);
     }
     CompletionRequest completionRequest =
-        new CompletionRequest(params.offset, performance);
+        new CompletionRequestImpl(server, context, source, params.offset);
     int notificationCount = 0;
     manager.results(completionRequest).listen((CompletionResult result) {
       ++notificationCount;

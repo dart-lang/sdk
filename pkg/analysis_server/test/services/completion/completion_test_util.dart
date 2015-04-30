@@ -6,6 +6,7 @@ library test.services.completion.util;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol.dart' as protocol
     show Element, ElementKind;
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
@@ -26,6 +27,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
+import '../../operation/operation_queue_test.dart';
 
 int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
   String c1 = s1.completion.toLowerCase();
@@ -63,8 +65,9 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
         content.substring(completionOffset + 1);
     testSource = addSource(testFile, content);
     cache = new DartCompletionCache(context, testSource);
-    request = new DartCompletionRequest(context, searchEngine, testSource,
-        completionOffset, cache, new CompletionPerformance());
+    AnalysisServer server = new AnalysisServerMock(searchEngine: searchEngine);
+    request = new DartCompletionRequest(
+        server, context, testSource, completionOffset, cache);
   }
 
   void assertHasNoParameterInfo(CompletionSuggestion suggestion) {
@@ -405,7 +408,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     expect(computeFastResult, isNull);
     _completionManager = new DartCompletionManager(context, searchEngine,
         testSource, cache, [contributor], new CommonUsageComputer({}));
-    var result = _completionManager.computeFast(request);
+    var result =
+        _completionManager.computeFast(request, new CompletionPerformance());
     expect(request.replacementOffset, isNotNull);
     expect(request.replacementLength, isNotNull);
     computeFastResult = result.isEmpty;
@@ -1799,7 +1803,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestImportedClass('Foo',
           relevance: DART_RELEVANCE_LOW, importUri: 'testAB.dart');
       // TODO(danrubel) implement
-       assertSuggestImportedClass('Foo2',
+      assertSuggestImportedClass('Foo2',
           relevance: DART_RELEVANCE_LOW, importUri: 'package:myBar/bar.dart');
       assertSuggestImportedClass('Future',
           relevance: DART_RELEVANCE_LOW, importUri: 'dart:async');

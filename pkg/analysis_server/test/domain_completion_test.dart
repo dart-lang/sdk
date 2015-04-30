@@ -6,6 +6,8 @@ library test.domain.completion;
 
 import 'dart:async';
 
+import 'package:analysis_server/completion/completion_core.dart'
+    show CompletionRequest;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/constants.dart';

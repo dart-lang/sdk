@@ -6,9 +6,13 @@ library services.completion.manager;
 
 import 'dart:async';
 
+import 'package:analysis_server/completion/completion_core.dart'
+    show CompletionRequest;
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -130,10 +134,6 @@ class CompletionPerformance {
     _stopwatch.start();
   }
 
-  void setContentsAndOffset(String contents, int offset) {
-    snippet = _computeSnippet(contents, offset);
-  }
-
   int get elapsedInMilliseconds =>
       operations.length > 0 ? operations.last.elapsed.inMilliseconds : 0;
 
@@ -181,6 +181,10 @@ class CompletionPerformance {
     _startTimes[tag] = _stopwatch.elapsed;
   }
 
+  void setContentsAndOffset(String contents, int offset) {
+    snippet = _computeSnippet(contents, offset);
+  }
+
   void _logDuration(String tag, Duration elapsed) {
     operations.add(new OperationPerformance(tag, elapsed));
   }
@@ -217,18 +221,26 @@ class CompletionPerformance {
 /**
  * Encapsulates information specific to a particular completion request.
  */
-class CompletionRequest {
+class CompletionRequestImpl implements CompletionRequest {
+
   /**
-   * The offset within the source at which the completion is requested.
+   * The underlying analysis server for this completion request.
    */
+  final AnalysisServer server;
+
+  @override
+  final AnalysisContext context;
+
+  @override
+  final Source source;
+
+  @override
   final int offset;
 
-  /**
-   * Performance measurements for this particular request.
-   */
-  final CompletionPerformance performance;
+  CompletionRequestImpl(this.server, this.context, this.source, this.offset);
 
-  CompletionRequest(this.offset, this.performance);
+  @override
+  ResourceProvider get resourceProvider => server.resourceProvider;
 }
 
 /**

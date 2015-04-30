@@ -8,6 +8,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -37,6 +38,12 @@ class AnalysisContextMock extends TypedMock implements InternalAnalysisContext {
 }
 
 class AnalysisServerMock extends TypedMock implements AnalysisServer {
+
+  @override
+  final SearchEngine searchEngine;
+
+  AnalysisServerMock({this.searchEngine});
+
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

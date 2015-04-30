@@ -6,6 +6,9 @@ library services.completion.dart;
 
 import 'dart:async';
 
+import 'package:analysis_server/completion/completion_core.dart'
+    show CompletionRequest;
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/combinator_contributor.dart';
@@ -121,8 +124,9 @@ class DartCompletionManager extends CompletionManager {
    * then send an initial response to the client.
    * Return a list of contributors for which [computeFull] should be called
    */
-  List<DartCompletionContributor> computeFast(DartCompletionRequest request) {
-    return request.performance.logElapseTime('computeFast', () {
+  List<DartCompletionContributor> computeFast(
+      DartCompletionRequest request, CompletionPerformance performance) {
+    return performance.logElapseTime('computeFast', () {
       CompilationUnit unit = context.parseCompilationUnit(source);
       request.unit = unit;
       request.target = new CompletionTarget.forOffset(unit, request.offset);
@@ -145,8 +149,7 @@ class DartCompletionManager extends CompletionManager {
 
       List<DartCompletionContributor> todo = new List.from(contributors);
       todo.removeWhere((DartCompletionContributor c) {
-        return request.performance.logElapseTime('computeFast ${c.runtimeType}',
-            () {
+        return performance.logElapseTime('computeFast ${c.runtimeType}', () {
           return c.computeFast(request);
         });
       });
@@ -161,19 +164,19 @@ class DartCompletionManager extends CompletionManager {
    * resolved and request that each remaining contributor finish their work.
    * Return a [Future] that completes when the last notification has been sent.
    */
-  Future computeFull(
-      DartCompletionRequest request, List<DartCompletionContributor> todo) {
-    request.performance.logStartTime('waitForAnalysis');
+  Future computeFull(DartCompletionRequest request,
+      CompletionPerformance performance, List<DartCompletionContributor> todo) {
+    performance.logStartTime('waitForAnalysis');
     return waitForAnalysis().then((CompilationUnit unit) {
       if (controller.isClosed) {
         return;
       }
-      request.performance.logElapseTime('waitForAnalysis');
+      performance.logElapseTime('waitForAnalysis');
       if (unit == null) {
         sendResults(request, true);
         return;
       }
-      request.performance.logElapseTime('computeFull', () {
+      performance.logElapseTime('computeFull', () {
         request.unit = unit;
         // TODO(paulberry): Do we need to invoke _ReplacementOffsetBuilder
         // again?
@@ -182,10 +185,10 @@ class DartCompletionManager extends CompletionManager {
         todo.forEach((DartCompletionContributor c) {
           String name = c.runtimeType.toString();
           String completeTag = 'computeFull $name complete';
-          request.performance.logStartTime(completeTag);
-          request.performance.logElapseTime('computeFull $name', () {
+          performance.logStartTime(completeTag);
+          performance.logElapseTime('computeFull $name', () {
             c.computeFull(request).then((bool changed) {
-              request.performance.logElapseTime(completeTag);
+              performance.logElapseTime(completeTag);
               bool last = --count == 0;
               if (changed || last) {
                 commonUsageComputer.computeFull(request);
@@ -200,13 +203,13 @@ class DartCompletionManager extends CompletionManager {
 
   @override
   void computeSuggestions(CompletionRequest completionRequest) {
-    DartCompletionRequest request = new DartCompletionRequest(context,
-        searchEngine, source, completionRequest.offset, cache,
-        completionRequest.performance);
-    request.performance.logElapseTime('compute', () {
-      List<DartCompletionContributor> todo = computeFast(request);
+    DartCompletionRequest request =
+        new DartCompletionRequest.from(completionRequest, cache);
+    CompletionPerformance performance = new CompletionPerformance();
+    performance.logElapseTime('compute', () {
+      List<DartCompletionContributor> todo = computeFast(request, performance);
       if (!todo.isEmpty) {
-        computeFull(request, todo);
+        computeFull(request, performance, todo);
       }
     });
   }
@@ -251,22 +254,7 @@ class DartCompletionManager extends CompletionManager {
 /**
  * The context in which the completion is requested.
  */
-class DartCompletionRequest extends CompletionRequest {
-  /**
-   * The analysis context in which the completion is requested.
-   */
-  final AnalysisContext context;
-
-  /**
-   * The search engine for use when building suggestions.
-   */
-  final SearchEngine searchEngine;
-
-  /**
-   * The source in which the completion is requested.
-   */
-  final Source source;
-
+class DartCompletionRequest extends CompletionRequestImpl {
   /**
    * Cached information from a prior code completion operation.
    */
@@ -316,9 +304,13 @@ class DartCompletionRequest extends CompletionRequest {
    */
   final Set<String> _completions = new Set<String>();
 
-  DartCompletionRequest(this.context, this.searchEngine, this.source,
-      int offset, this.cache, CompletionPerformance performance)
-      : super(offset, performance);
+  DartCompletionRequest(AnalysisServer server, AnalysisContext context,
+      Source source, int offset, this.cache)
+      : super(server, context, source, offset);
+
+  factory DartCompletionRequest.from(CompletionRequestImpl request,
+      DartCompletionCache cache) => new DartCompletionRequest(
+      request.server, request.context, request.source, request.offset, cache);
 
   /**
    * Return the original text from the [replacementOffset] to the [offset]
@@ -339,6 +331,11 @@ class DartCompletionRequest extends CompletionRequest {
     }
     return _optype;
   }
+
+  /**
+   * The search engine for use when building suggestions.
+   */
+  SearchEngine get searchEngine => server.searchEngine;
 
   /**
    * The list of suggestions to be sent to the client.

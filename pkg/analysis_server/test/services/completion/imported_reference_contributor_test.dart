@@ -7,7 +7,6 @@ library test.services.completion.toplevel;
 import 'package:analysis_server/src/protocol.dart' as protocol
     show Element, ElementKind;
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
-import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_reference_contributor.dart';
@@ -20,6 +19,8 @@ import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
 import 'completion_test_util.dart';
+import 'package:analysis_server/src/analysis_server.dart';
+import '../../operation/operation_queue_test.dart';
 
 main() {
   groupSep = ' | ';
@@ -60,8 +61,13 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
     setUpContributor();
     int replacementOffset = request.replacementOffset;
     int replacementLength = request.replacementLength;
-    request = new DartCompletionRequest(context, searchEngine, testSource,
-        completionOffset, cache, new CompletionPerformance());
+    AnalysisServer server = new AnalysisServerMock();
+    /*
+     * Pass null for searchEngine to ensure that it is not used
+     * when the cache has been populated.
+     */
+    request = new DartCompletionRequest(
+        server, context, testSource, completionOffset, cache);
     request.replacementOffset = replacementOffset;
     request.replacementLength = replacementLength;
 

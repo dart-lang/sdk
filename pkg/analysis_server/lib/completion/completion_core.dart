@@ -5,6 +5,7 @@
 library analysis_server.completion.completion_core;
 
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -32,6 +33,13 @@ abstract class CompletionContributor {
  */
 abstract class CompletionRequest {
   /**
+   * Return the results that were returned the last time the contributor was
+   * asked for results, or `null` if this is the first request for results at
+   * this location.
+   */
+  //CompletionResult get previousResults;
+
+  /**
    * Return the analysis context in which the completion is being requested.
    */
   AnalysisContext get context;
@@ -42,11 +50,9 @@ abstract class CompletionRequest {
   int get offset;
 
   /**
-   * Return the results that were returned the last time the contributor was
-   * asked for results, or `null` if this is the first request for results at
-   * this location.
+   * Return the resource provider associated with this request.
    */
-  CompletionResult get previousResults;
+  ResourceProvider get resourceProvider;
 
   /**
    * Return the source in which the completion is being requested.
