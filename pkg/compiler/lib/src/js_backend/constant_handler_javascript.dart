@@ -41,11 +41,14 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
     });
   }
 
-  ConstantExpression compileNode(Node node, TreeElements elements) {
+  ConstantExpression compileNode(Node node, TreeElements elements,
+                                 {bool enforceConst: true}) {
     return measure(() {
       ConstantExpression result =
-          dartConstantCompiler.compileNode(node, elements);
-      jsConstantCompiler.compileNode(node, elements);
+          dartConstantCompiler.compileNode(node, elements,
+                                           enforceConst: enforceConst);
+      jsConstantCompiler.compileNode(node, elements,
+          enforceConst: enforceConst);
       return result;
     });
   }
@@ -163,8 +166,9 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     return initialValue;
   }
 
-  ConstantExpression compileNode(Node node, TreeElements elements) {
-    return compileNodeWithDefinitions(node, elements);
+  ConstantExpression compileNode(Node node, TreeElements elements,
+                                 {bool enforceConst: true}) {
+    return compileNodeWithDefinitions(node, elements, isConst: enforceConst);
   }
 
   ConstantExpression compileNodeWithDefinitions(Node node,

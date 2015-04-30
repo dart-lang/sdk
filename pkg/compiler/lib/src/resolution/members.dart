@@ -2868,7 +2868,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
         // Don't try to make constants of calls to type literals.
         if (!node.isCall) {
-          analyzeConstantDeferred(node);
+          analyzeConstantDeferred(node, enforceConst: false);
         } else {
           // The node itself is not a constant but we register the selector (the
           // identifier that refers to the class/typedef) as a constant.
@@ -2878,7 +2878,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             // the type literal from the selector.
             registry.useElement(node.selector, target);
           }
-          analyzeConstantDeferred(node.selector);
+          analyzeConstantDeferred(node.selector, enforceConst: false);
         }
       }
       if (isPotentiallyMutableTarget(target)) {
@@ -3441,10 +3441,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
   }
 
-  void analyzeConstant(Node node) {
+  void analyzeConstant(Node node, {enforceConst: true}) {
     ConstantExpression constant =
         compiler.resolver.constantCompiler.compileNode(
-            node, registry.mapping);
+            node, registry.mapping, enforceConst: enforceConst);
 
     if (constant == null) {
       assert(invariant(node, compiler.compilationFailed));
@@ -3476,9 +3476,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
   }
 
-  void analyzeConstantDeferred(Node node) {
+  void analyzeConstantDeferred(Node node, {bool enforceConst: true}) {
     addDeferredAction(enclosingElement, () {
-      analyzeConstant(node);
+      analyzeConstant(node, enforceConst: enforceConst);
     });
   }
 

@@ -521,9 +521,11 @@ class DartConstantTask extends ConstantCompilerTask
     });
   }
 
-  ConstantExpression compileNode(Node node, TreeElements elements) {
+  ConstantExpression compileNode(Node node, TreeElements elements,
+                                 {bool enforceConst: true}) {
     return measure(() {
-      return constantCompiler.compileNodeWithDefinitions(node, elements);
+      return constantCompiler.compileNodeWithDefinitions(node, elements,
+          isConst: enforceConst);
     });
   }
 

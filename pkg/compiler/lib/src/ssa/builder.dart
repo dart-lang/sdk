@@ -5116,6 +5116,7 @@ class SsaBuilder extends NewResolvedVisitor {
 
   /// Generate the constant value for a constant type literal.
   void generateConstantTypeLiteral(ast.Send node) {
+    generateIsDeferredLoadedCheckIfNeeded(node);
     // TODO(karlklose): add type representation
     if (node.isCall) {
       // The node itself is not a constant but we register the selector (the

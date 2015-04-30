@@ -1279,6 +1279,12 @@ class ConstantEmitter
                         BuilderContext<Statement> context) {
     return handlePrimitiveConstant(exp.value);
   }
+
+  @override
+  Expression visitDeferred(DeferredConstantExpression exp,
+                           BuilderContext<Statement> context) {
+    return exp.expression.accept(this);
+  }
 }
 
 /// Moves function parameters into a separate variable if one of its uses is

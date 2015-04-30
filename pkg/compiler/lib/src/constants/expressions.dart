@@ -10,6 +10,7 @@ import '../elements/elements.dart' show
     ConstructorElement,
     Element,
     FunctionElement,
+    PrefixElement,
     VariableElement;
 import '../resolution/operators.dart';
 import '../universe/universe.dart' show CallStructure;
@@ -21,6 +22,7 @@ enum ConstantExpressionKind {
   CONCATENATE,
   CONDITIONAL,
   CONSTRUCTED,
+  DEFERRED,
   DOUBLE,
   ERRONEOUS,
   FUNCTION,
@@ -606,6 +608,33 @@ class ConditionalConstantExpression extends ConstantExpression {
   }
 }
 
+/// A constant expression referenced with a deferred prefix.
+/// For example `lib.C`.
+class DeferredConstantExpression extends ConstantExpression {
+  final ConstantValue value;
+  final ConstantExpression expression;
+  final PrefixElement prefix;
+
+  DeferredConstantExpression(this.value, this.expression, this.prefix);
+
+  ConstantExpressionKind get kind => ConstantExpressionKind.DEFERRED;
+
+  @override
+  int _computeHashCode() {
+    return 13 * expression.hashCode;
+  }
+
+  @override
+  bool _equals(DeferredConstantExpression other) {
+    return expression == other.expression;
+  }
+
+  @override
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitDeferred(this, context);
+  }
+}
+
 abstract class ConstantExpressionVisitor<C, R> {
   const ConstantExpressionVisitor();
 
@@ -626,6 +655,7 @@ abstract class ConstantExpressionVisitor<C, R> {
   R visitIdentical(IdenticalConstantExpression exp, C context);
   R visitUnary(UnaryConstantExpression exp, C context);
   R visitConditional(ConditionalConstantExpression exp, C context);
+  R visitDeferred(DeferredConstantExpression exp, C context);
 }
 
 /// Represents the declaration of a constant [element] with value [expression].
@@ -806,6 +836,13 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     write(exp, exp.trueExp);
     sb.write(' : ');
     write(exp, exp.falseExp);
+  }
+
+  @override
+  visitDeferred(DeferredConstantExpression exp, context) {
+    sb.write(exp.prefix.deferredImport.prefix.source);
+    sb.write('.');
+    write(exp, exp.expression);
   }
 
   String toString() => sb.toString();

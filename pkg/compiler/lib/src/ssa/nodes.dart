@@ -188,6 +188,8 @@ class HGraph {
 
   HConstant addDeferredConstant(ConstantValue constant, PrefixElement prefix,
                                 Compiler compiler) {
+    // TODO(sigurdm,johnniwinter): These deferred constants should be created
+    // by the constant evaluator.
     ConstantValue wrapper = new DeferredConstantValue(constant, prefix);
     compiler.deferredLoadTask.registerConstantDeferredUse(wrapper, prefix);
     return addConstant(wrapper, compiler);
