@@ -18,7 +18,7 @@
 ### Core library changes
 
 * `dart:convert`
-  * Fix behavior of `HtmlEscape`. It no longer escapes
+  * **POTENTIALLY BREAKING** Fix behavior of `HtmlEscape`. It no longer escapes
   no-break space (U+00A0) anywhere or forward slash (`/`, `U+002F`) in element
   context. Slash is still escaped using `HtmlEscapeMode.UNKNOWN`.
   [r45003](https://code.google.com/p/dart/source/detail?r=45003),
@@ -29,12 +29,28 @@
   * `Uri.parse` added `start` and `end` positional arguments.
 
 * `dart:html`
-  * `CssClassSet` method arguments must now be 'tokens', i.e. non-empty
+  * **POTENTIALLY BREAKING** `CssClassSet` method arguments must now be 'tokens', i.e. non-empty
   strings with no white-space characters. The implementation was incorrect for
   class names containing spaces. The fix is to forbid spaces and provide a
   faster implementation.
-  [r44898](https://code.google.com/p/dart/source/detail?r=44898),
-  [r45307](https://code.google.com/p/dart/source/detail?r=45307)
+  [Announcement](https://groups.google.com/a/dartlang.org/d/msg/announce/jmUI2XJHfC8/UZUCvJH3p2oJ)
+
+* `dart:io`
+
+  * `ProcessResult` now exposes a constructor.
+  * `import` and `Isolate.spawnUri` now supports the
+    [Data URI scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) on the VM.
+
+## Tool Changes
+
+### pub
+
+  * Running `pub run foo` within a package now runs the `foo` executable defined
+    by the `foo` package. The previous behavior ran `bin/foo`. This makes it
+    easy to run binaries in dependencies, for instance `pub run test`.
+
+  * On Mac and Linux, signals sent to `pub run` and forwarded to the child
+    command.
 
 ## 1.9.3 – 2015-04-14
 
