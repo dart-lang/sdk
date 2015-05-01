@@ -276,8 +276,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> get launchableServerLibrarySources {
-    // TODO(brianwilkerson) This needs to filter out libraries that reference
-    // dart:html, either directly or indirectly.
     List<Source> sources = new List<Source>();
     MapIterator<AnalysisTarget, cache.CacheEntry> iterator = _cache.iterator();
     while (iterator.moveNext()) {
@@ -285,11 +283,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       cache.CacheEntry entry = iterator.value;
       if (target is Source &&
           entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY &&
-          !target.isInSystemLibrary) {
-//          DartEntry dartEntry = (DartEntry) sourceEntry;
-//          if (dartEntry.getValue(DartEntry.IS_LAUNCHABLE) && !dartEntry.getValue(DartEntry.IS_CLIENT)) {
+          !target.isInSystemLibrary &&
+          isServerLibrary(target)) {
         sources.add(target);
-//          }
       }
     }
     return sources;

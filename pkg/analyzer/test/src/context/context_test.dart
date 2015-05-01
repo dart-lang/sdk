@@ -2001,12 +2001,42 @@ main() {}''');
   void test_getLaunchableServerLibrarySources() {
     _context = contextWithCore();
     _sourceFactory = _context.sourceFactory;
-    List<Source> sources = _context.launchableServerLibrarySources;
-    expect(sources, hasLength(0));
+    expect(_context.launchableServerLibrarySources, isEmpty);
     Source source = _addSource("/test.dart", "main() {}");
     _context.computeLibraryElement(source);
-    sources = _context.launchableServerLibrarySources;
-    expect(sources, hasLength(1));
+    expect(_context.launchableServerLibrarySources, unorderedEquals([source]));
+  }
+
+  void test_getLaunchableServerLibrarySources_importsHtml_explicitly() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/test.dart", r'''
+import 'dart:html';
+main() {}
+''');
+    _context.computeLibraryElement(source);
+    expect(_context.launchableServerLibrarySources, isEmpty);
+  }
+
+  void test_getLaunchableServerLibrarySources_importsHtml_implicitly() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    _addSource("/imports_html.dart", r'''
+import 'dart:html';
+''');
+    Source source = _addSource("/test.dart", r'''
+import 'imports_html.dart';
+main() {}''');
+    _context.computeLibraryElement(source);
+    expect(_context.launchableServerLibrarySources, isEmpty);
+  }
+
+  void test_getLaunchableServerLibrarySources_noMain() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/test.dart", '');
+    _context.computeLibraryElement(source);
+    expect(_context.launchableServerLibrarySources, isEmpty);
   }
 
   void test_getLibrariesDependingOn() {
