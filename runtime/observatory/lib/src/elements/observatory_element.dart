@@ -116,6 +116,9 @@ class ObservatoryElement extends PolymerElement {
   String gotoLink(String url, [ServiceObject obj]) {
     return app.locationManager.makeLink(makeLink(url, obj));
   }
+  String gotoLinkForwardingParameters(String url, [ServiceObject obj]) {
+    return app.locationManager.makeLinkForwardingParameters(makeLink(url, obj));
+  }
 
   String formatTimePrecise(double time) => Utils.formatTimePrecise(time);
   String formatTimeMilliseconds(int millis) =>

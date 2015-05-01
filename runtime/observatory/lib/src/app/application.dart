@@ -125,6 +125,7 @@ class ObservatoryApplication extends Observable {
     _pageRegistry.add(new AllocationProfilerPage(this));
     _pageRegistry.add(new HeapMapPage(this));
     _pageRegistry.add(new VMConnectPage(this));
+    _pageRegistry.add(new IsolateReconnectPage(this));
     _pageRegistry.add(new ErrorViewPage(this));
     _pageRegistry.add(new MetricsPage(this));
     // Note that ErrorPage must be the last entry in the list as it is

@@ -4,6 +4,12 @@
 
 part of app;
 
+class IsolateNotFound implements Exception {
+  String isolateId;
+  IsolateNotFound(this.isolateId);
+  String toString() => "IsolateNotFound: $isolateId";
+}
+
 /// A [Page] controls the user interface of Observatory. At any given time
 /// one page will be the current page. Pages are registered at startup.
 /// When the user navigates within the application, each page is asked if it
@@ -59,11 +65,13 @@ class SimplePage extends Page {
   }
 
   Future<Isolate> getIsolate(Uri uri) {
-    return app.vm.getIsolate(uri.queryParameters['isolateId'])
-      .catchError((e, stack) {
-        Logger.root.severe('$path visit error: $e\n$stack');
-        return e;
-      });
+    var isolateId = uri.queryParameters['isolateId'];
+    return app.vm.getIsolate(isolateId).then((isolate) {
+      if (isolate == null) {
+        throw new IsolateNotFound(isolateId);
+      }
+      return isolate;
+    });
   }
 
   bool canVisit(Uri uri) => uri.path == path;
@@ -293,6 +301,25 @@ class VMConnectPage extends Page {
   }
 
   bool canVisit(Uri uri) => uri.path == 'vm-connect';
+}
+
+class IsolateReconnectPage extends Page {
+  IsolateReconnectPage(app) : super(app);
+
+  void onInstall() {
+    if (element == null) {
+      element = new Element.tag('isolate-reconnect');
+    }
+    assert(element != null);
+  }
+
+  void _visit(Uri uri) {
+    app.vm.reload();
+    assert(element != null);
+    assert(canVisit(uri));
+  }
+
+  bool canVisit(Uri uri) => uri.path == 'isolate-reconnect';
 }
 
 class MetricsPage extends Page {

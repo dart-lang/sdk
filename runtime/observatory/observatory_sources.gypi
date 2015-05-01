@@ -83,6 +83,8 @@
     'lib/src/elements/instance_view.html',
     'lib/src/elements/io_view.dart',
     'lib/src/elements/io_view.html',
+    'lib/src/elements/isolate_reconnect.dart',
+    'lib/src/elements/isolate_reconnect.html',
     'lib/src/elements/isolate_ref.dart',
     'lib/src/elements/isolate_ref.html',
     'lib/src/elements/isolate_summary.dart',

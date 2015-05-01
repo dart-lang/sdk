@@ -969,7 +969,7 @@ class CpuProfileTableElement extends ObservatoryElement {
     var tableBody = $['profile-table'];
     var row = profileTable.rowFromIndex(tableBody.children.indexOf(tr));
     var function = row.values[NameSortedTable.FUNCTION_COLUMN];
-    app.locationManager.goParameter(
+    app.locationManager.goReplacingParameters(
         {
           'functionId': function.id
         }

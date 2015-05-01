@@ -60,7 +60,7 @@ class VMConnectElement extends ObservatoryElement {
 
   void _connect(WebSocketVMTarget target) {
     _connectToVM(app, target);
-    app.locationManager.go('#/vm');
+    app.locationManager.goForwardingParameters('/vm');
   }
 
   @override

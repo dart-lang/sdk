@@ -79,7 +79,20 @@ class LocationManager extends Observable {
 
   /// Notify the current page that something has changed.
   _visit() {
-    _app._visit(_uri, internalArguments);
+    runZoned(() => _app._visit(_uri, internalArguments),
+             onError: (e, st) {
+      if (e is IsolateNotFound) {
+        var newPath = _app.vm == null ? '/vm-connect' : '/isolate-reconnect';
+        var parameters = {};
+        parameters.addAll(_uri.queryParameters);
+        parameters['originalPath'] = _uri.path;
+        parameters['originalIsolateId'] = parameters['isolateId'];
+        var generatedUri = new Uri(path: newPath, queryParameters: parameters);
+        go(makeLink(generatedUri.toString()), true);
+        return;
+      }
+      throw e;
+    });
   }
 
   /// Navigate to [url].
@@ -89,7 +102,7 @@ class LocationManager extends Observable {
                           'Proceeding will lose current page.')) {
         return;
       }
-      url = makeLink('/vm-connect');
+      url = makeLink('/vm-connect/');
     }
     if (addToBrowserHistory) {
       _addToBrowserHistory(url);
@@ -101,7 +114,11 @@ class LocationManager extends Observable {
   /// Starting with the current uri path and queryParameters, update
   /// queryParameters present in [updateParameters], then generate a new uri
   /// and navigate to that.
-  goParameter(Map updatedParameters, [bool addToBrowserHistory = true]) {
+  goReplacingParameters(Map updatedParameters, [bool addToBrowserHistory = true]) {
+    go(makeLinkReplacingParameter(updatedParameters), addToBrowserHistory);
+  }
+
+  makeLinkReplacingParameters(Map updatedParameters) {
     var parameters = new Map.from(_uri.queryParameters);
     updatedParameters.forEach((k, v) {
       parameters[k] = v;
@@ -109,7 +126,17 @@ class LocationManager extends Observable {
     // Ensure path starts with a slash.
     var path = uri.path.startsWith('/') ? uri.path : '/${uri.path}';
     var generatedUri = new Uri(path: path, queryParameters: parameters);
-    go(makeLink(generatedUri.toString()), addToBrowserHistory);
+    return makeLink(generatedUri.toString());
+  }
+
+  goForwardingParameters(String newPath, [bool addToBrowserHistory = true]) {
+    go(makeLinkForwardingParameters(newPath), addToBrowserHistory);
+  }
+
+  makeLinkForwardingParameters(String newPath) {
+    var parameters = _uri.queryParameters;
+    var generatedUri = new Uri(path: newPath, queryParameters: parameters);
+    return makeLink(generatedUri.toString());
   }
 
   /// Utility event handler when clicking on application url link.
