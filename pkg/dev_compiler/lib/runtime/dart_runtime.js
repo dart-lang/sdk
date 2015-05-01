@@ -61,7 +61,7 @@ var dart, _js_helper, _js_primitives;
       // Grab the `call` method if it's not a function.
       if (f !== null) f = f.call;
       if (!(f instanceof Function)) {
-        throwNoSuchMethod(obj, method, args);
+        throwNoSuchMethod(obj, name, args);
       }
     }
     // TODO(jmesserly): enable this when we can fix => and methods.
@@ -207,7 +207,15 @@ var dart, _js_helper, _js_primitives;
     } else {
       subtypeMap.set(t1, map = new Map());
     }
-    map.set(t2, result = isSubtype_(t1, t2));
+    if (t2 == core.Type) {
+      // Special case Types.
+      result = t1.prototype instanceof core.Type ||
+        t1 instanceof AbstractFunctionType ||
+        isSubtype_(t1, t2);
+    } else {
+      result = isSubtype_(t1, t2)
+    }
+    map.set(t2, result);
     return result;
   }
   dart.isSubtype = isSubtype;
