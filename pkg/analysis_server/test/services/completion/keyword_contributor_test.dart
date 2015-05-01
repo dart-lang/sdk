@@ -78,7 +78,6 @@ class KeywordContributorTest extends AbstractCompletionTest {
 
   static const List<Keyword> STMT_START_IN_CLASS = const [
     Keyword.ASSERT,
-    Keyword.CASE,
     Keyword.CONTINUE,
     Keyword.DO,
     Keyword.FINAL,
@@ -97,9 +96,50 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Keyword.WHILE
   ];
 
-  static const List<Keyword> STMT_START_OUTSIDE_CLASS = const [
+  static const List<Keyword> STMT_START_IN_SWITCH_IN_CLASS = const [
     Keyword.ASSERT,
     Keyword.CASE,
+    Keyword.CONTINUE,
+    Keyword.DEFAULT,
+    Keyword.DO,
+    Keyword.FINAL,
+    Keyword.FOR,
+    Keyword.IF,
+    Keyword.NEW,
+    Keyword.RETHROW,
+    Keyword.RETURN,
+    Keyword.SUPER,
+    Keyword.SWITCH,
+    Keyword.THIS,
+    Keyword.THROW,
+    Keyword.TRY,
+    Keyword.VAR,
+    Keyword.VOID,
+    Keyword.WHILE
+  ];
+
+  static const List<Keyword> STMT_START_IN_SWITCH_OUTSIDE_CLASS = const [
+    Keyword.ASSERT,
+    Keyword.CASE,
+    Keyword.CONTINUE,
+    Keyword.DEFAULT,
+    Keyword.DO,
+    Keyword.FINAL,
+    Keyword.FOR,
+    Keyword.IF,
+    Keyword.NEW,
+    Keyword.RETHROW,
+    Keyword.RETURN,
+    Keyword.SWITCH,
+    Keyword.THROW,
+    Keyword.TRY,
+    Keyword.VAR,
+    Keyword.VOID,
+    Keyword.WHILE
+  ];
+
+  static const List<Keyword> STMT_START_OUTSIDE_CLASS = const [
+    Keyword.ASSERT,
     Keyword.CONTINUE,
     Keyword.DO,
     Keyword.FINAL,
@@ -114,6 +154,22 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Keyword.VAR,
     Keyword.VOID,
     Keyword.WHILE
+  ];
+
+  static const List<Keyword> EXPRESSION_START_INSTANCE = const [
+    Keyword.FALSE,
+    Keyword.NEW,
+    Keyword.NULL,
+    Keyword.SUPER,
+    Keyword.THIS,
+    Keyword.TRUE,
+  ];
+
+  static const List<Keyword> EXPRESSION_START_NO_INSTANCE = const [
+    Keyword.FALSE,
+    Keyword.NEW,
+    Keyword.NULL,
+    Keyword.TRUE,
   ];
 
   void assertSuggestKeywords(Iterable<Keyword> expectedKeywords,
@@ -138,9 +194,9 @@ class KeywordContributorTest extends AbstractCompletionTest {
     if (!_equalSets(expectedCompletions, actualCompletions)) {
       StringBuffer msg = new StringBuffer();
       msg.writeln('Expected:');
-      _appendCompletions(msg, expectedCompletions);
+      _appendCompletions(msg, expectedCompletions, actualCompletions);
       msg.writeln('but found:');
-      _appendCompletions(msg, actualCompletions);
+      _appendCompletions(msg, actualCompletions, expectedCompletions);
       fail(msg.toString());
     }
     for (CompletionSuggestion s in request.suggestions) {
@@ -183,6 +239,80 @@ class KeywordContributorTest extends AbstractCompletionTest {
     expect(computeFast(), isTrue);
     assertSuggestKeywords(DIRECTIVE_AND_DECLARATION_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_argument() {
+    addTestSource('main() {foo(^);}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_argument2() {
+    addTestSource('main() {foo(n^);}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_argument_literal() {
+    addTestSource('main() {foo("^");}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
+  test_argument_named() {
+    addTestSource('main() {foo(bar: ^);}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_argument_named2() {
+    addTestSource('main() {foo(bar: n^);}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_argument_named_literal() {
+    addTestSource('main() {foo(bar: "^");}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
+  test_assignment_field() {
+    addTestSource('class A {var foo = ^}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_assignment_field2() {
+    addTestSource('class A {var foo = n^}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_assignment_local() {
+    addTestSource('main() {var foo = ^}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_assignment_local2() {
+    addTestSource('main() {var foo = n^}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_assignment_local2_async() {
+    addTestSource('main() async {var foo = n^}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE,
+        pseudoKeywords: ['await']);
+  }
+
+  test_assignment_local_async() {
+    addTestSource('main() async {var foo = ^}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE,
+        pseudoKeywords: ['await']);
   }
 
   test_before_import() {
@@ -396,6 +526,18 @@ class A {
     assertSuggestKeywords(STMT_START_OUTSIDE_CLASS);
   }
 
+  test_function_body_inClass_constructorInitializer_async() {
+    addTestSource(r'''
+foo(p) {}
+class A {
+  final f;
+  A() : f = foo(() async {^});
+}
+''');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS, pseudoKeywords: ['await']);
+  }
+
   test_function_body_inClass_field() {
     addTestSource(r'''
 class A {
@@ -430,6 +572,20 @@ class A {
 ''');
     expect(computeFast(), isTrue);
     assertSuggestKeywords(STMT_START_IN_CLASS);
+  }
+
+  test_function_body_inClass_methodBody_inFunction_async() {
+    addTestSource(r'''
+class A {
+  m() {
+    f() {
+      f2() async {^};
+    };
+  }
+}
+''');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(STMT_START_IN_CLASS, pseudoKeywords: ['await']);
   }
 
   test_function_body_inUnit() {
@@ -668,19 +824,19 @@ class A {
   test_method_body2() {
     addTestSource('class A { foo() => ^}');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(STMT_START_IN_CLASS);
+    assertSuggestKeywords(EXPRESSION_START_INSTANCE);
   }
 
   test_method_body3() {
     addTestSource('class A { foo() => ^ Foo foo;}');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(STMT_START_IN_CLASS);
+    assertSuggestKeywords(EXPRESSION_START_INSTANCE);
   }
 
   test_method_body4() {
     addTestSource('class A { foo() => ^;}');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(STMT_START_IN_CLASS);
+    assertSuggestKeywords(EXPRESSION_START_INSTANCE);
   }
 
   test_method_body_async() {
@@ -692,19 +848,19 @@ class A {
   test_method_body_async2() {
     addTestSource('class A { foo() async => ^}');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(STMT_START_IN_CLASS, pseudoKeywords: ['await']);
+    assertSuggestKeywords(EXPRESSION_START_INSTANCE, pseudoKeywords: ['await']);
   }
 
   test_method_body_async3() {
     addTestSource('class A { foo() async => ^ Foo foo;}');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(STMT_START_IN_CLASS, pseudoKeywords: ['await']);
+    assertSuggestKeywords(EXPRESSION_START_INSTANCE, pseudoKeywords: ['await']);
   }
 
   test_method_body_async4() {
     addTestSource('class A { foo() async => ^;}');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(STMT_START_IN_CLASS, pseudoKeywords: ['await']);
+    assertSuggestKeywords(EXPRESSION_START_INSTANCE, pseudoKeywords: ['await']);
   }
 
   test_method_param() {
@@ -746,10 +902,70 @@ class A {
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  void _appendCompletions(StringBuffer msg, Iterable<String> completions) {
+  test_switch_expression() {
+    addTestSource('main() {switch(^) {}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_switch_expression2() {
+    addTestSource('main() {switch(n^) {}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_switch_expression3() {
+    addTestSource('main() {switch(n^)}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_switch_start() {
+    addTestSource('main() {switch(1) {^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT],
+        relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_switch_start2() {
+    addTestSource('main() {switch(1) {^ case 1:}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT],
+        relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_switch_start3() {
+    addTestSource('main() {switch(1) {^default:}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT],
+        relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_switch_start4() {
+    addTestSource('main() {switch(1) {^ default:}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT],
+        relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_switch_statement() {
+    addTestSource('main() {switch(1) {case 1:^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(STMT_START_IN_SWITCH_OUTSIDE_CLASS);
+  }
+
+  test_switch_statement2() {
+    addTestSource('class A{foo() {switch(1) {case 1:^}}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(STMT_START_IN_SWITCH_IN_CLASS);
+  }
+
+  void _appendCompletions(
+      StringBuffer msg, Iterable<String> completions, Iterable<String> other) {
     List<String> sorted = completions.toList();
     sorted.sort((c1, c2) => c1.compareTo(c2));
-    sorted.forEach((c) => msg.writeln('  $c,'));
+    sorted.forEach(
+        (c) => msg.writeln('  $c, ${other.contains(c) ? '' : '<<<<<<<<<<<'}'));
   }
 
   bool _equalSets(Iterable<String> iter1, Iterable<String> iter2) {

@@ -43,6 +43,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
         this.entity = request.target.entity;
 
   @override
+  visitArgumentList(ArgumentList node) {
+    if (entity == node.rightParenthesis ||
+        (entity is SimpleIdentifier && node.arguments.contains(entity))) {
+      _addExpressionKeywords(node);
+    }
+  }
+
+  @override
   visitBlock(Block node) {
     _addStatementKeywords(node);
   }
@@ -115,7 +123,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   @override
   visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (entity == node.expression) {
-      _addStatementKeywords(node);
+      _addExpressionKeywords(node);
     }
   }
 
@@ -171,6 +179,47 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     }
   }
 
+  @override
+  visitNamedExpression(NamedExpression node) {
+    if (entity is SimpleIdentifier && entity == node.expression) {
+      _addExpressionKeywords(node);
+    }
+  }
+
+  @override
+  visitNode(AstNode node) {
+    // ignored
+  }
+
+  @override
+  visitSwitchStatement(SwitchStatement node) {
+    if (entity == node.expression) {
+      _addExpressionKeywords(node);
+    } else if (entity == node.rightBracket) {
+      if (node.members.isEmpty) {
+        _addSuggestions([Keyword.CASE, Keyword.DEFAULT], DART_RELEVANCE_HIGH);
+      } else {
+        _addSuggestions([Keyword.CASE, Keyword.DEFAULT]);
+        _addStatementKeywords(node);
+      }
+    }
+    if (node.members.contains(entity)) {
+      if (entity == node.members.first) {
+        _addSuggestions([Keyword.CASE, Keyword.DEFAULT], DART_RELEVANCE_HIGH);
+      } else {
+        _addSuggestions([Keyword.CASE, Keyword.DEFAULT]);
+        _addStatementKeywords(node);
+      }
+    }
+  }
+
+  @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    if (entity == node.initializer) {
+      _addExpressionKeywords(node);
+    }
+  }
+
   void _addClassBodyKeywords() {
     _addSuggestions([
       Keyword.CONST,
@@ -212,6 +261,16 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     ], DART_RELEVANCE_HIGH);
   }
 
+  void _addExpressionKeywords(AstNode node) {
+    _addSuggestions([Keyword.FALSE, Keyword.NEW, Keyword.NULL, Keyword.TRUE,]);
+    if (_inClassMemberBody(node)) {
+      _addSuggestions([Keyword.SUPER, Keyword.THIS,]);
+    }
+    if (_inAsyncMethodOrFunction(node)) {
+      _addSuggestion2(AWAIT);
+    }
+  }
+
   void _addImportDirectiveKeywords(ImportDirective node) {
     if (node.asKeyword == null) {
       _addSuggestion(Keyword.AS, DART_RELEVANCE_HIGH);
@@ -230,7 +289,6 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     }
     _addSuggestions([
       Keyword.ASSERT,
-      Keyword.CASE,
       Keyword.CONTINUE,
       Keyword.DO,
       Keyword.FINAL,

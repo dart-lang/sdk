@@ -115,7 +115,7 @@ class D {f(){} g(){f!1(f!2);}}''', <String>["1+f", "2+f"]);
 class F {m() { m(); !1}}''', <String>["1+m"]);
 
     buildTests('testCommentSnippets017', '''
-class F {var x = !1false;}''', <String>["1+true"], failingTests: '1');
+class F {var x = !1false;}''', <String>["1+true"]);
 
     buildTests('testCommentSnippets018', '''
 class Map{}class Arrays{}class C{ m(!1){} n(!2 x, q)''',
@@ -1968,7 +1968,7 @@ class Q {
       "J+if",
       "K+else",
       "L+return"
-    ], failingTests: '59BCHK');
+    ], failingTests: '35BCHK');
 
     // operators in function
     buildTests('test015', '''f(a,b,c) => a + b * c !1;''', <String>["1+=="],
@@ -2005,7 +2005,7 @@ var truefalse = 0;
 var falsetrue = 1;
 main() {
   var foo = true!1
-}''', <String>["1+true", "1+truefalse", "1-falsetrue"], failingTests: '1');
+}''', <String>["1+true", "1+truefalse", "1-falsetrue"]);
 
     buildTests('test020', '''var x = null.!1''', <String>["1+toString"],
         failingTests: '1');
