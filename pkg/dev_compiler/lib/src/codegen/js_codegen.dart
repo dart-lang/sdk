@@ -1051,7 +1051,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (element.enclosingElement is CompilationUnitElement &&
         (element.library != libraryInfo.library ||
             element is TopLevelVariableElement && !element.isConst)) {
-      return js.call('#.#', [_libraryName(element.library), name]);
+      var memberName = _emitMemberName(name, isStatic: true);
+      return js.call('#.#', [_libraryName(element.library), memberName]);
     }
 
     // Unqualified class member. This could mean implicit-this, or implicit
@@ -1508,7 +1509,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   visitConstructorName(ConstructorName node) {
     var typeName = _visit(node.type);
     if (node.name != null) {
-      return js.call('#.#', [typeName, _emitMemberName(node.name.name)]);
+      return js.call(
+          '#.#', [typeName, _emitMemberName(node.name.name, isStatic: true)]);
     }
     return typeName;
   }

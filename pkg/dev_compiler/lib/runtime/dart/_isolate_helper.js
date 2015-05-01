@@ -471,7 +471,6 @@ var _isolate_helper;
       }
     }
   }
-  let _controlPort = Symbol('_controlPort');
   let _scheduledControlEvents = Symbol('_scheduledControlEvents');
   let _isExecutingEvent = Symbol('_isExecutingEvent');
   let _updateGlobalState = Symbol('_updateGlobalState');
@@ -488,7 +487,7 @@ var _isolate_helper;
       this.ports = new (core.Map$(core.int, RawReceivePortImpl))();
       this.weakPorts = new (core.Set$(core.int))();
       this.isolateStatics = _foreign_helper.JS_CREATE_ISOLATE();
-      this.controlPort = new RawReceivePortImpl[_controlPort]();
+      this.controlPort = new RawReceivePortImpl._controlPort();
       this.pauseCapability = new isolate.Capability();
       this.terminateCapability = new isolate.Capability();
       this.delayedEvents = dart.setType([], core.List$(_IsolateEvent));

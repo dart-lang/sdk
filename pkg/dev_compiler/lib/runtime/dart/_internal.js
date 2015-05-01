@@ -351,7 +351,6 @@ var _internal;
     return _Transformation;
   });
   let _Transformation = _Transformation$();
-  let _ = dart.JsSymbol('_');
   let _f = dart.JsSymbol('_f');
   let MappedIterable$ = dart.generic(function(S, T) {
     class MappedIterable extends collection.IterableBase$(T) {
@@ -359,7 +358,7 @@ var _internal;
         if (dart.is(iterable, EfficientLength)) {
           return new (EfficientLengthMappedIterable$(S, T))(iterable, func);
         }
-        return new MappedIterable$(S, T)[_](dart.as(iterable, core.Iterable$(S)), func);
+        return new MappedIterable$(S, T)._(dart.as(iterable, core.Iterable$(S)), func);
       }
       _(iterable, f) {
         this[_iterable] = iterable;
@@ -547,7 +546,7 @@ var _internal;
         if (dart.is(iterable, EfficientLength)) {
           return new (EfficientLengthTakeIterable$(E))(iterable, takeCount);
         }
-        return new TakeIterable$(E)[_](iterable, takeCount);
+        return new TakeIterable$(E)._(iterable, takeCount);
       }
       _(iterable, takeCount) {
         this[_iterable] = iterable;
@@ -650,7 +649,7 @@ var _internal;
         if (dart.is(iterable, EfficientLength)) {
           return new (EfficientLengthSkipIterable$(E))(iterable, count);
         }
-        return new SkipIterable$(E)[_](iterable, count);
+        return new SkipIterable$(E)._(iterable, count);
       }
       _(iterable, skipCount) {
         this[_iterable] = iterable;
@@ -666,7 +665,7 @@ var _internal;
           throw new core.ArgumentError.value(this[_skipCount], "count is not an integer");
         }
         core.RangeError.checkNotNegative(this[_skipCount], "count");
-        return new SkipIterable$(E)[_](this[_iterable], dart.notNull(this[_skipCount]) + dart.notNull(count));
+        return new SkipIterable$(E)._(this[_iterable], dart.notNull(this[_skipCount]) + dart.notNull(count));
       }
       get [core.$iterator]() {
         return new (SkipIterator$(E))(this[_iterable][core.$iterator], this[_skipCount]);

@@ -487,7 +487,6 @@ var convert;
   let _FusedConverter = _FusedConverter$();
   let HTML_ESCAPE = dart.const(new HtmlEscape());
   let _name = Symbol('_name');
-  let _ = Symbol('_');
   class HtmlEscapeMode extends core.Object {
     _(name, escapeLtGt, escapeQuot, escapeApos, escapeSlash) {
       this[_name] = name;
@@ -501,9 +500,9 @@ var convert;
     }
   }
   dart.defineNamedConstructor(HtmlEscapeMode, '_');
-  HtmlEscapeMode.UNKNOWN = dart.const(new HtmlEscapeMode[_]('unknown', true, true, true, true));
-  HtmlEscapeMode.ATTRIBUTE = dart.const(new HtmlEscapeMode[_]('attribute', false, true, false, false));
-  HtmlEscapeMode.ELEMENT = dart.const(new HtmlEscapeMode[_]('element', true, false, false, true));
+  HtmlEscapeMode.UNKNOWN = dart.const(new HtmlEscapeMode._('unknown', true, true, true, true));
+  HtmlEscapeMode.ATTRIBUTE = dart.const(new HtmlEscapeMode._('attribute', false, true, false, false));
+  HtmlEscapeMode.ELEMENT = dart.const(new HtmlEscapeMode._('element', true, false, false, true));
   let _convert = Symbol('_convert');
   class HtmlEscape extends Converter$(core.String, core.String) {
     HtmlEscape(mode) {

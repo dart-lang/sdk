@@ -412,7 +412,6 @@ var core;
   double.MIN_POSITIVE = 5e-324;
   double.MAX_FINITE = 1.7976931348623157e+308;
   let _duration = dart.JsSymbol('_duration');
-  let _microseconds = dart.JsSymbol('_microseconds');
   class Duration extends Object {
     Duration(opts) {
       let days = opts && 'days' in opts ? opts.days : 0;
@@ -427,18 +426,18 @@ var core;
       this[_duration] = duration;
     }
     ['+'](other) {
-      return new Duration[_microseconds](dart.notNull(this[_duration]) + dart.notNull(other[_duration]));
+      return new Duration._microseconds(dart.notNull(this[_duration]) + dart.notNull(other[_duration]));
     }
     ['-'](other) {
-      return new Duration[_microseconds](dart.notNull(this[_duration]) - dart.notNull(other[_duration]));
+      return new Duration._microseconds(dart.notNull(this[_duration]) - dart.notNull(other[_duration]));
     }
     ['*'](factor) {
-      return new Duration[_microseconds]((dart.notNull(this[_duration]) * dart.notNull(factor)).round());
+      return new Duration._microseconds((dart.notNull(this[_duration]) * dart.notNull(factor)).round());
     }
     ['~/'](quotient) {
       if (quotient == 0)
         throw new IntegerDivisionByZeroException();
-      return new Duration[_microseconds]((dart.notNull(this[_duration]) / dart.notNull(quotient)).truncate());
+      return new Duration._microseconds((dart.notNull(this[_duration]) / dart.notNull(quotient)).truncate());
     }
     ['<'](other) {
       return dart.notNull(this[_duration]) < dart.notNull(other[_duration]);
@@ -514,10 +513,10 @@ var core;
       return dart.notNull(this[_duration]) < 0;
     }
     abs() {
-      return new Duration[_microseconds](this[_duration].abs());
+      return new Duration._microseconds(this[_duration].abs());
     }
     ['unary-']() {
-      return new Duration[_microseconds](-dart.notNull(this[_duration]));
+      return new Duration._microseconds(-dart.notNull(this[_duration]));
     }
   }
   Duration[dart.implements] = () => [Comparable$(Duration)];
@@ -2006,7 +2005,6 @@ var core;
   let _path = dart.JsSymbol('_path');
   let _query = dart.JsSymbol('_query');
   let _fragment = dart.JsSymbol('_fragment');
-  let _internal$ = dart.JsSymbol('_internal');
   let _pathSegments = dart.JsSymbol('_pathSegments');
   let _queryParameters = dart.JsSymbol('_queryParameters');
   let _merge = dart.JsSymbol('_merge');
@@ -2217,7 +2215,7 @@ var core;
       } else if (char == Uri._NUMBER_SIGN) {
         fragment = Uri._makeFragment(uri, dart.notNull(index) + 1, uri.length);
       }
-      return new Uri[_internal$](scheme, userinfo, host, port, path, query, fragment);
+      return new Uri._internal(scheme, userinfo, host, port, path, query, fragment);
     }
     static _fail(uri, index, message) {
       throw new FormatException(message, uri, index);
@@ -2257,7 +2255,7 @@ var core;
       }
       let ensureLeadingSlash = host != null;
       path = Uri._makePath(path, 0, Uri._stringOrNullLength(path), pathSegments, ensureLeadingSlash, isFile);
-      return new Uri[_internal$](scheme, userInfo, host, port, path, query, fragment);
+      return new Uri._internal(scheme, userInfo, host, port, path, query, fragment);
     }
     http(authority, unencodedPath, queryParameters) {
       if (queryParameters === void 0)
@@ -2467,7 +2465,7 @@ var core;
       } else if (this.hasFragment) {
         fragment = this.fragment;
       }
-      return new Uri[_internal$](scheme, userInfo, host, port, path, query, fragment);
+      return new Uri._internal(scheme, userInfo, host, port, path, query, fragment);
     }
     get pathSegments() {
       if (this[_pathSegments] == null) {
@@ -2901,7 +2899,7 @@ var core;
         }
       }
       let fragment = reference.hasFragment ? reference.fragment : null;
-      return new Uri[_internal$](targetScheme, targetUserInfo, targetHost, targetPort, targetPath, targetQuery, fragment);
+      return new Uri._internal(targetScheme, targetUserInfo, targetHost, targetPort, targetPath, targetQuery, fragment);
     }
     get hasAuthority() {
       return this[_host] != null;
