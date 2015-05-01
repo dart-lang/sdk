@@ -1436,12 +1436,17 @@ class BuildSourceClosuresTask extends SourceBasedAnalysisTask {
   /**
    * The name of the import closure.
    */
-  static const String IMPORT_CLOSURE_INPUT = 'IMPORT_CLOSURE_INPUT';
+  static const String IMPORT_INPUT = 'IMPORT_INPUT';
 
   /**
    * The name of the export closure.
    */
-  static const String EXPORT_CLOSURE_INPUT = 'EXPORT_CLOSURE_INPUT';
+  static const String EXPORT_INPUT = 'EXPORT_INPUT';
+
+  /**
+   * The name of the import/export closure.
+   */
+  static const String IMPORT_EXPORT_INPUT = 'IMPORT_EXPORT_INPUT';
 
   /**
    * The task descriptor describing this kind of task.
@@ -1463,15 +1468,16 @@ class BuildSourceClosuresTask extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
-    List<Source> importClosure = getRequiredInput(IMPORT_CLOSURE_INPUT);
-    List<Source> exportClosure = getRequiredInput(EXPORT_CLOSURE_INPUT);
+    List<Source> importClosure = getRequiredInput(IMPORT_INPUT);
+    List<Source> exportClosure = getRequiredInput(EXPORT_INPUT);
+    List<Source> importExportClosure = getRequiredInput(IMPORT_EXPORT_INPUT);
     Source htmlSource = context.sourceFactory.forUri(DartSdk.DART_HTML);
     //
     // Record outputs.
     //
     outputs[IMPORT_SOURCE_CLOSURE] = importClosure;
     outputs[EXPORT_SOURCE_CLOSURE] = exportClosure;
-    outputs[IS_CLIENT] = importClosure.contains(htmlSource);
+    outputs[IS_CLIENT] = importExportClosure.contains(htmlSource);
   }
 
   /**
@@ -1481,8 +1487,9 @@ class BuildSourceClosuresTask extends SourceBasedAnalysisTask {
    */
   static Map<String, TaskInput> buildInputs(Source libSource) {
     return <String, TaskInput>{
-      IMPORT_CLOSURE_INPUT: new _ImportSourceClosureTaskInput(libSource),
-      EXPORT_CLOSURE_INPUT: new _ExportSourceClosureTaskInput(libSource)
+      IMPORT_INPUT: new _ImportSourceClosureTaskInput(libSource),
+      EXPORT_INPUT: new _ExportSourceClosureTaskInput(libSource),
+      IMPORT_EXPORT_INPUT: new _ImportExportSourceClosureTaskInput(libSource)
     };
   }
 
@@ -2519,7 +2526,22 @@ class _ExportSourceClosureTaskInput implements TaskInput<List<Source>> {
 /**
  * The kind of the source closure to build.
  */
-enum _SourceClosureKind { IMPORT, EXPORT }
+enum _SourceClosureKind { IMPORT, EXPORT, IMPORT_EXPORT }
+
+/**
+ * A [TaskInput] whose value is a list of library sources imported or exported,
+ * directly or indirectly by the target [Source].
+ */
+class _ImportExportSourceClosureTaskInput implements TaskInput<List<Source>> {
+  final Source target;
+
+  _ImportExportSourceClosureTaskInput(this.target);
+
+  @override
+  TaskInputBuilder<List<Source>> createBuilder() =>
+      new _SourceClosureTaskInputBuilder(
+          target, _SourceClosureKind.IMPORT_EXPORT);
+}
 
 /**
  * A [TaskInput] whose value is a list of library sources imported directly
@@ -2555,15 +2577,18 @@ class _SourceClosureTaskInputBuilder implements TaskInputBuilder<List<Source>> {
   @override
   void set currentValue(LibraryElement library) {
     if (_libraries.add(library)) {
-      if (kind == _SourceClosureKind.IMPORT) {
+      if (kind == _SourceClosureKind.IMPORT ||
+          kind == _SourceClosureKind.IMPORT_EXPORT) {
         for (ImportElement importElement in library.imports) {
           Source importedSource = importElement.importedLibrary.source;
           _newSources.add(importedSource);
         }
-      } else {
+      }
+      if (kind == _SourceClosureKind.EXPORT ||
+          kind == _SourceClosureKind.IMPORT_EXPORT) {
         for (ExportElement exportElement in library.exports) {
-          Source importedSource = exportElement.exportedLibrary.source;
-          _newSources.add(importedSource);
+          Source exportedSource = exportElement.exportedLibrary.source;
+          _newSources.add(exportedSource);
         }
       }
     }

@@ -1113,7 +1113,20 @@ library lib_b;
     expect(outputs[IS_CLIENT], isFalse);
   }
 
-  test_perform_isClient_true_direct() {
+  test_perform_isClient_true_export_indirect() {
+    _newSource('/exports_html.dart', '''
+library lib_exports_html;
+export 'dart:html';
+''');
+    Source source = _newSource('/test.dart', '''
+import 'exports_html.dart';
+''');
+    _computeResult(source, IS_CLIENT);
+    expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+    expect(outputs[IS_CLIENT], isTrue);
+  }
+
+  test_perform_isClient_true_import_direct() {
     Source sourceA = _newSource('/a.dart', '''
 library lib_a;
 import 'dart:html';
@@ -1123,7 +1136,7 @@ import 'dart:html';
     expect(outputs[IS_CLIENT], isTrue);
   }
 
-  test_perform_isClient_true_indirect() {
+  test_perform_isClient_true_import_indirect() {
     Source sourceA = _newSource('/a.dart', '''
 library lib_a;
 import 'b.dart';

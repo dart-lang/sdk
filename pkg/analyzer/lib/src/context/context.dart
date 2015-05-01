@@ -259,8 +259,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> get launchableClientLibrarySources {
-    // TODO(brianwilkerson) This needs to filter out libraries that do not
-    // reference dart:html, either directly or indirectly.
     List<Source> sources = new List<Source>();
     MapIterator<AnalysisTarget, cache.CacheEntry> iterator = _cache.iterator();
     while (iterator.moveNext()) {
@@ -268,11 +266,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       cache.CacheEntry entry = iterator.value;
       if (target is Source &&
           entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY &&
-          !target.isInSystemLibrary) {
-//          DartEntry dartEntry = (DartEntry) sourceEntry;
-//          if (dartEntry.getValue(DartEntry.IS_LAUNCHABLE) && !dartEntry.getValue(DartEntry.IS_CLIENT)) {
+          !target.isInSystemLibrary &&
+          isClientLibrary(target)) {
         sources.add(target);
-//          }
       }
     }
     return sources;
@@ -568,16 +564,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   HtmlElement computeHtmlElement(Source source) => null;
 
   @override
-  List<Source> computeImportedLibraries(Source source) => _computeResult(
-      source, IMPORTED_LIBRARIES);
+  List<Source> computeImportedLibraries(Source source) =>
+      _computeResult(source, IMPORTED_LIBRARIES);
 
   @override
   SourceKind computeKindOf(Source source) =>
       _computeResult(source, SOURCE_KIND);
 
   @override
-  LibraryElement computeLibraryElement(Source source) =>
-      _computeResult(source, LIBRARY_ELEMENT); //_computeResult(source, HtmlEntry.ELEMENT);
+  LibraryElement computeLibraryElement(Source source) => _computeResult(
+      source, LIBRARY_ELEMENT); //_computeResult(source, HtmlEntry.ELEMENT);
 
   @override
   LineInfo computeLineInfo(Source source) => _computeResult(source, LINE_INFO);

@@ -1943,17 +1943,59 @@ main() {}''');
     expect(_context.getKindOf(source), same(SourceKind.UNKNOWN));
   }
 
-  void test_getLaunchableClientLibrarySources() {
+  void test_getLaunchableClientLibrarySources_doesNotImportHtml() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/test.dart", r'''
+main() {}''');
+    _context.computeLibraryElement(source);
+    List<Source> sources = _context.launchableClientLibrarySources;
+    expect(sources, isEmpty);
+  }
+
+  void test_getLaunchableClientLibrarySources_importsHtml_explicitly() {
     _context = contextWithCore();
     _sourceFactory = _context.sourceFactory;
     List<Source> sources = _context.launchableClientLibrarySources;
-    expect(sources, hasLength(0));
+    expect(sources, isEmpty);
     Source source = _addSource("/test.dart", r'''
 import 'dart:html';
 main() {}''');
     _context.computeLibraryElement(source);
     sources = _context.launchableClientLibrarySources;
-    expect(sources, hasLength(1));
+    expect(sources, unorderedEquals([source]));
+  }
+
+  void test_getLaunchableClientLibrarySources_importsHtml_implicitly() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    List<Source> sources = _context.launchableClientLibrarySources;
+    expect(sources, isEmpty);
+    _addSource("/a.dart", r'''
+import 'dart:html';
+''');
+    Source source = _addSource("/test.dart", r'''
+import 'a.dart';
+main() {}''');
+    _context.computeLibraryElement(source);
+    sources = _context.launchableClientLibrarySources;
+    expect(sources, unorderedEquals([source]));
+  }
+
+  void test_getLaunchableClientLibrarySources_importsHtml_implicitly2() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    List<Source> sources = _context.launchableClientLibrarySources;
+    expect(sources, isEmpty);
+    _addSource("/a.dart", r'''
+export 'dart:html';
+''');
+    Source source = _addSource("/test.dart", r'''
+import 'a.dart';
+main() {}''');
+    _context.computeLibraryElement(source);
+    sources = _context.launchableClientLibrarySources;
+    expect(sources, unorderedEquals([source]));
   }
 
   void test_getLaunchableServerLibrarySources() {
