@@ -12,6 +12,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:path/path.dart';
 
 import '../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
@@ -73,7 +74,33 @@ class _ImportUriSuggestionBuilder extends SimpleAstVisitor {
   }
 
   void _addFileSuggestions(String partial) {
-    // TODO(danrubel) implement
+    Source source = request.source;
+    String sourceFullName = source.fullName;
+    String sourceShortName = source.shortName;
+    String dirPath = partial.endsWith('/') ? partial : dirname(partial);
+    String prefix = dirPath == '.' ? '' : dirPath;
+    if (isRelative(dirPath)) {
+      String sourceDir = dirname(sourceFullName);
+      if (isAbsolute(sourceDir)) {
+        dirPath = join(sourceDir, dirPath);
+      } else {
+        return;
+      }
+    }
+    Resource dir = request.resourceProvider.getResource(dirPath);
+    if (dir is Folder) {
+      for (Resource child in dir.getChildren()) {
+        String completion;
+        if (child is Folder) {
+          completion = '$prefix${child.shortName}$separator';
+        } else {
+          completion = '$prefix${child.shortName}';
+        }
+        if (completion != sourceShortName && completion != sourceFullName) {
+          _addSuggestion(completion);
+        }
+      }
+    }
   }
 
   void _addFolderSuggestions(String partial, String prefix, Folder folder) {

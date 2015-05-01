@@ -65,7 +65,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
         content.substring(completionOffset + 1);
     testSource = addSource(testFile, content);
     cache = new DartCompletionCache(context, testSource);
-    AnalysisServer server = new AnalysisServerMock(searchEngine: searchEngine);
+    AnalysisServer server = new AnalysisServerMock(searchEngine: searchEngine, resourceProvider: provider);
     request = new DartCompletionRequest(
         server, context, testSource, completionOffset, cache);
   }
