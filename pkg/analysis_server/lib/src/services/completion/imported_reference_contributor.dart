@@ -191,9 +191,8 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
       // Build a list of inherited types that are imported
       // and include any inherited imported members
       List<String> inheritedTypes = new List<String>();
-      visitInheritedTypes(classDecl, (_) {
-        // local declarations are handled by the local reference contributor
-      }, (String typeName) {
+      // local declarations are handled by the local reference contributor
+      visitInheritedTypes(classDecl, importedTypeName: (String typeName) {
         inheritedTypes.add(typeName);
       });
       HashSet<String> visited = new HashSet<String>();

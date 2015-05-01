@@ -157,12 +157,13 @@ visitInheritedTypeNames(ClassDeclaration node, void inherited(String name)) {
 /**
  * Starting with the given class node, traverse the inheritence hierarchy
  * calling the given functions with each non-null non-empty inherited class
- * declaration. For each locally defined class declaration, call [local].
+ * declaration. For each locally defined declaration, call [localDeclaration].
  * For each class identifier in the hierarchy that is not defined locally,
- * call the [imported] function.
+ * call the [importedTypeName] function.
  */
 void visitInheritedTypes(ClassDeclaration node,
-    void local(ClassDeclaration classNode), void imported(String typeName)) {
+    {void localDeclaration(ClassDeclaration classNode),
+    void importedTypeName(String typeName)}) {
   CompilationUnit unit = node.getAncestor((p) => p is CompilationUnit);
   List<ClassDeclaration> todo = new List<ClassDeclaration>();
   todo.add(node);
@@ -181,10 +182,14 @@ void visitInheritedTypes(ClassDeclaration node,
           return false;
         }, orElse: () => null);
         if (classNode is ClassDeclaration) {
-          local(classNode);
+          if (localDeclaration != null) {
+            localDeclaration(classNode);
+          }
           todo.add(classNode);
         } else {
-          imported(name);
+          if (importedTypeName != null) {
+            importedTypeName(name);
+          }
         }
       }
     });

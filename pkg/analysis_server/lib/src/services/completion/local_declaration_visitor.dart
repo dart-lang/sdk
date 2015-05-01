@@ -110,10 +110,9 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     _visitClassDeclarationMembers(node);
-    visitInheritedTypes(node, (ClassDeclaration classNode) {
+    // imported types are handled by the imported reference contributor
+    visitInheritedTypes(node, localDeclaration: (ClassDeclaration classNode) {
       _visitClassDeclarationMembers(classNode);
-    }, (String typeName) {
-      // ignored
     });
     visitNode(node);
   }
