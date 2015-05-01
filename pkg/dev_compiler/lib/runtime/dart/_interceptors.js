@@ -205,7 +205,7 @@ var _interceptors;
       if (match == null) {
         throw new core.UnsupportedError(`Unexpected toString result: ${result}`);
       }
-      let result = dart.dindex(match, 1);
+      result = dart.dindex(match, 1);
       let exponent = +dart.dindex(match, 3);
       if (dart.dindex(match, 2) != null) {
         result = result + dart.dindex(match, 2);
