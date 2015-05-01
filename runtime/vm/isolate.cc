@@ -611,6 +611,7 @@ Isolate::Isolate()
       metrics_list_head_(NULL),
       cha_(NULL),
       next_(NULL),
+      pause_loop_monitor_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       reusable_handles_() {
@@ -675,6 +676,7 @@ Isolate::Isolate(Isolate* original)
       metrics_list_head_(NULL),
       cha_(NULL),
       next_(NULL),
+      pause_loop_monitor_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       reusable_handles_() {
@@ -701,6 +703,8 @@ Isolate::~Isolate() {
   delete spawn_state_;
   delete log_;
   log_ = NULL;
+  delete pause_loop_monitor_;
+  pause_loop_monitor_ = NULL;
 }
 
 
@@ -1714,6 +1718,51 @@ void Isolate::TrackDeoptimizedCode(const Code& code) {
   // TODO(johnmccutchan): Scan this array and the isolate's profile before
   // old space GC and remove the keep_code flag.
   deoptimized_code.Add(code);
+}
+
+
+void Isolate::WakePauseEventHandler(Dart_Isolate isolate) {
+  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
+  MonitorLocker ml(iso->pause_loop_monitor_);
+  ml.Notify();
+}
+
+
+void Isolate::PauseEventHandler() {
+  // We are stealing a pause event (like a breakpoint) from the
+  // embedder.  We don't know what kind of thread we are on -- it
+  // could be from our thread pool or it could be a thread from the
+  // embedder.  Sit on the current thread handling service events
+  // until we are told to resume.
+  if (pause_loop_monitor_ == NULL) {
+    pause_loop_monitor_ = new Monitor();
+  }
+  Dart_EnterScope();
+  MonitorLocker ml(pause_loop_monitor_);
+
+  Dart_MessageNotifyCallback saved_notify_callback =
+      message_notify_callback();
+  set_message_notify_callback(Isolate::WakePauseEventHandler);
+
+  bool resume = false;
+  while (true) {
+    // Handle all available vm service messages, up to a resume
+    // request.
+    while (!resume && Dart_HasServiceMessages()) {
+      pause_loop_monitor_->Exit();
+      resume = Dart_HandleServiceMessages();
+      pause_loop_monitor_->Enter();
+    }
+    if (resume) {
+      break;
+    }
+
+    // Wait for more service messages.
+    Monitor::WaitResult res = ml.Wait();
+    ASSERT(res == Monitor::kNotified);
+  }
+  set_message_notify_callback(saved_notify_callback);
+  Dart_ExitScope();
 }
 
 

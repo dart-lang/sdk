@@ -35,6 +35,11 @@ DEFINE_FLAG(bool, show_invisible_frames, false,
 DEFINE_FLAG(bool, trace_debugger_stacktrace, false,
             "Trace debugger stacktrace collection");
 DEFINE_FLAG(bool, verbose_debug, false, "Verbose debugger messages");
+DEFINE_FLAG(bool, steal_breakpoints, false,
+            "Intercept breakpoints and other pause events before they "
+            "are sent to the embedder and use a generic VM breakpoint "
+            "handler instead.  This handler dispatches breakpoints to "
+            "the VM service.");
 
 
 Debugger::EventHandler* Debugger::event_handler_ = NULL;
@@ -239,7 +244,10 @@ void Debugger::InvokeEventHandler(DebuggerEvent* event) {
     Service::HandleEvent(&service_event);
   }
 
-  if (event_handler_ != NULL) {
+  if (FLAG_steal_breakpoints && event->IsPauseEvent()) {
+    // We allow the embedder's default breakpoint handler to be overridden.
+    isolate_->PauseEventHandler();
+  } else if (event_handler_ != NULL) {
     (*event_handler_)(event);
   }
 

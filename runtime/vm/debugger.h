@@ -461,7 +461,7 @@ class Debugger {
   };
 
   static bool HasEventHandler();
-  static void InvokeEventHandler(DebuggerEvent* event);
+  void InvokeEventHandler(DebuggerEvent* event);
 
   void FindCompiledFunctions(const Script& script,
                              intptr_t start_pos,
