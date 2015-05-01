@@ -574,10 +574,6 @@ class _TestContext implements InternalAnalysisContext {
   List<Source> get prioritySources => baseContext.prioritySources;
 
   @override
-  List<Source> get refactoringUnsafeSources =>
-      baseContext.refactoringUnsafeSources;
-
-  @override
   ResolverVisitorFactory get resolverVisitorFactory =>
       baseContext.resolverVisitorFactory;
 

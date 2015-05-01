@@ -394,13 +394,6 @@ abstract class AnalysisContext {
   Stream<SourcesChangedEvent> get onSourcesChanged;
 
   /**
-   * Return a list containing all of the sources known to this context whose
-   * state is neither valid or flushed. These sources are not safe to update
-   * during refactoring, because we might not know all the references in them.
-   */
-  List<Source> get refactoringUnsafeSources;
-
-  /**
    * Return the source factory used to create the sources that can be analyzed
    * in this context.
    */
@@ -1346,22 +1339,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<AnalysisTarget> get priorityTargets => prioritySources;
-
-  @override
-  List<Source> get refactoringUnsafeSources {
-    List<Source> sources = new List<Source>();
-    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
-    while (iterator.moveNext()) {
-      SourceEntry sourceEntry = iterator.value;
-      if (sourceEntry is DartEntry) {
-        Source source = iterator.key;
-        if (!source.isInSystemLibrary && !sourceEntry.isRefactoringSafe) {
-          sources.add(source);
-        }
-      }
-    }
-    return sources;
-  }
 
   @override
   SourceFactory get sourceFactory => _sourceFactory;
@@ -7538,22 +7515,6 @@ class DartEntry extends SourceEntry {
     }
 
     return false;
-  }
-
-  /**
-   * Return `true` if this data is safe to use in refactoring.
-   */
-  bool get isRefactoringSafe {
-    ResolutionState state = _resolutionState;
-    while (state != null) {
-      CacheState resolvedState = state.getState(RESOLVED_UNIT);
-      if (resolvedState != CacheState.VALID &&
-          resolvedState != CacheState.FLUSHED) {
-        return false;
-      }
-      state = state._nextState;
-    }
-    return true;
   }
 
   @override

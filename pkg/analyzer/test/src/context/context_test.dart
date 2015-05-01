@@ -1023,21 +1023,6 @@ part 'part.dart';''');
         (obj) => obj is ClassElement, ClassElement, namespace.get("A"));
   }
 
-  void fail_getRefactoringUnsafeSources() {
-    // not sources initially
-    List<Source> sources = _context.refactoringUnsafeSources;
-    expect(sources, hasLength(0));
-    // add new source, unresolved
-    Source source = _addSource("/test.dart", "library lib;");
-    sources = _context.refactoringUnsafeSources;
-    expect(sources, hasLength(1));
-    expect(sources[0], source);
-    // resolve source
-    _context.computeLibraryElement(source);
-    sources = _context.refactoringUnsafeSources;
-    expect(sources, hasLength(0));
-  }
-
   void fail_getResolvedCompilationUnit_library() {
     _context = contextWithCore();
     _sourceFactory = _context.sourceFactory;

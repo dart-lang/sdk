@@ -1221,21 +1221,6 @@ main() {}''');
         (obj) => obj is ClassElement, ClassElement, namespace.get("A"));
   }
 
-  void test_getRefactoringUnsafeSources() {
-    // not sources initially
-    List<Source> sources = _context.refactoringUnsafeSources;
-    expect(sources, hasLength(0));
-    // add new source, unresolved
-    Source source = _addSource("/test.dart", "library lib;");
-    sources = _context.refactoringUnsafeSources;
-    expect(sources, hasLength(1));
-    expect(sources[0], source);
-    // resolve source
-    _context.computeLibraryElement(source);
-    sources = _context.refactoringUnsafeSources;
-    expect(sources, hasLength(0));
-  }
-
   void test_getResolvedCompilationUnit_library() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
@@ -5505,11 +5490,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of visitCacheItems");
     return null;
   }
-  @override
-  List<Source> get refactoringUnsafeSources {
-    fail("Unexpected invocation of getRefactoringUnsafeSources");
-    return null;
-  }
 
   @override
   ResolverVisitorFactory get resolverVisitorFactory {
@@ -6139,17 +6119,6 @@ class TestAnalysisContext_test_getPublicNamespace extends TestAnalysisContext {
   TestAnalysisContext_test_getPublicNamespace();
   @override
   Namespace getPublicNamespace(LibraryElement library) {
-    invoked = true;
-    return null;
-  }
-}
-
-class TestAnalysisContext_test_getRefactoringUnsafeSources
-    extends TestAnalysisContext {
-  bool invoked = false;
-  TestAnalysisContext_test_getRefactoringUnsafeSources();
-  @override
-  List<Source> get refactoringUnsafeSources {
     invoked = true;
     return null;
   }

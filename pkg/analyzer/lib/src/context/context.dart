@@ -311,23 +311,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   List<AnalysisTarget> get priorityTargets => prioritySources;
 
   @override
-  List<Source> get refactoringUnsafeSources {
-    // TODO(brianwilkerson) Implement this.
-    List<Source> sources = new List<Source>();
-//    MapIterator<AnalysisTarget, cache.CacheEntry> iterator = _cache.iterator();
-//    while (iterator.moveNext()) {
-//      cache.CacheEntry entry = iterator.value;
-//      AnalysisTarget target = iterator.key;
-//      if (target is Source &&
-//          !target.isInSystemLibrary &&
-//          !entry.isRefactoringSafe) {
-//        sources.add(target);
-//      }
-//    }
-    return sources;
-  }
-
-  @override
   SourceFactory get sourceFactory => _sourceFactory;
 
   @override
