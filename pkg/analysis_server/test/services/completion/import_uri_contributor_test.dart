@@ -164,4 +164,68 @@ class ImportUriContributorTest extends AbstractCompletionTest {
       assertNoSuggestions();
     });
   }
+
+  test_part_file() {
+    testFile = '/proj/completion.dart';
+    addSource('/proj/other.dart', 'library other;');
+    addSource('/proj/foo/bar.dart', 'library bar;');
+    addSource('/blat.dart', 'library blat;');
+    addTestSource('library x; part "^" import');
+    computeFast();
+    expect(request.replacementOffset, completionOffset);
+    expect(request.replacementLength, 0);
+    assertNotSuggested('completion.dart');
+    assertSuggest('other.dart', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('foo/', csKind: CompletionSuggestionKind.IMPORT);
+    assertNotSuggested('foo/bar.dart');
+    assertNotSuggested('../blat.dart');
+  }
+
+  test_part_file2() {
+    testFile = '/proj/completion.dart';
+    addSource('/proj/other.dart', 'library other;');
+    addSource('/proj/foo/bar.dart', 'library bar;');
+    addSource('/blat.dart', 'library blat;');
+    addTestSource('library x; part "..^" import');
+    computeFast();
+    expect(request.replacementOffset, completionOffset - 2);
+    expect(request.replacementLength, 2);
+    assertNotSuggested('completion.dart');
+    assertSuggest('other.dart', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('foo/', csKind: CompletionSuggestionKind.IMPORT);
+    assertNotSuggested('foo/bar.dart');
+    assertNotSuggested('../blat.dart');
+  }
+
+  test_part_file_child() {
+    testFile = '/proj/completion.dart';
+    addSource('/proj/other.dart', 'library other;');
+    addSource('/proj/foo/bar.dart', 'library bar;');
+    addSource('/blat.dart', 'library blat;');
+    addTestSource('library x; part "foo/^" import');
+    computeFast();
+    expect(request.replacementOffset, completionOffset - 4);
+    expect(request.replacementLength, 4);
+    assertNotSuggested('completion.dart');
+    assertNotSuggested('other.dart');
+    assertNotSuggested('foo');
+    assertSuggest('foo/bar.dart', csKind: CompletionSuggestionKind.IMPORT);
+    assertNotSuggested('../blat.dart');
+  }
+
+  test_part_file_parent() {
+    testFile = '/proj/completion.dart';
+    addSource('/proj/other.dart', 'library other;');
+    addSource('/proj/foo/bar.dart', 'library bar;');
+    addSource('/blat.dart', 'library blat;');
+    addTestSource('library x; part "../^" import');
+    computeFast();
+    expect(request.replacementOffset, completionOffset - 3);
+    expect(request.replacementLength, 3);
+    assertNotSuggested('completion.dart');
+    assertNotSuggested('other.dart');
+    assertNotSuggested('foo');
+    assertNotSuggested('foo/bar.dart');
+    assertSuggest('../blat.dart', csKind: CompletionSuggestionKind.IMPORT);
+  }
 }

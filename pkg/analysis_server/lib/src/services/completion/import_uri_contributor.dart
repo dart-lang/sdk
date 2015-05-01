@@ -18,7 +18,8 @@ import '../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
 
 /**
- * A contributor for calculating uri suggestions for an import directive.
+ * A contributor for calculating uri suggestions
+ * for import and part directives.
  */
 class ImportUriContributor extends DartCompletionContributor {
   _ImportUriSuggestionBuilder builder;
@@ -57,6 +58,13 @@ class _ImportUriSuggestionBuilder extends SimpleAstVisitor {
       request.replacementLength = node.contentsEnd - node.contentsOffset;
       _addDartSuggestions();
       _addPackageSuggestions(partial);
+      _addFileSuggestions(partial);
+    } else if (parent is PartDirective && parent.uri == node) {
+      String partial = node.literal.lexeme.substring(
+          node.contentsOffset - node.offset, request.offset - node.offset);
+      _computeImportedUris();
+      request.replacementOffset = node.contentsOffset;
+      request.replacementLength = node.contentsEnd - node.contentsOffset;
       _addFileSuggestions(partial);
     }
   }
