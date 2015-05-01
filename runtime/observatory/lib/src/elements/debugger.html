@@ -109,8 +109,8 @@
     <div class="container">
       <nav-bar id="navbarDiv" showNotify="{{ false }}">
         <top-nav-menu></top-nav-menu>
-        <isolate-nav-menu isolate="{{ isolate }}">
-	</isolate-nav-menu>
+	<vm-nav-menu vm="{{ isolate.vm }}"></vm-nav-menu>
+        <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
         <nav-menu link="{{ makeLink('/debugger', isolate) }}" anchor="debugger" last="{{ true }}"></nav-menu>
       </nav-bar>
       <div id="stackDiv" class="stack">

@@ -42,6 +42,7 @@
     </style>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
+      <vm-nav-menu vm="{{ code.isolate.vm }}"></vm-nav-menu>
       <isolate-nav-menu isolate="{{ code.isolate }}"></isolate-nav-menu>
       <nav-menu link="{{ makeLink('/inspect', code) }}" anchor="{{ code.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>

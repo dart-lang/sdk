@@ -66,6 +66,14 @@ class TopNavMenuElement extends ObservatoryElement {
   TopNavMenuElement.created() : super.created();
 }
 
+@CustomTag('vm-nav-menu')
+class VMNavMenuElement extends ObservatoryElement {
+  @published bool last = false;
+  @published VM vm;
+
+  VMNavMenuElement.created() : super.created();
+}
+
 @CustomTag('isolate-nav-menu')
 class IsolateNavMenuElement extends ObservatoryElement {
   @published bool last = false;

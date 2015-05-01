@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
+      <vm-nav-menu vm="{{ instance.isolate.vm }}"></vm-nav-menu>
       <isolate-nav-menu isolate="{{ instance.isolate }}"></isolate-nav-menu>
       <!-- TODO(turnidge): Add library nav menu here. -->
       <class-nav-menu cls="{{ instance.clazz }}"></class-nav-menu>

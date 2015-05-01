@@ -53,6 +53,7 @@
   </style>
   <nav-bar>
     <top-nav-menu></top-nav-menu>
+    <vm-nav-menu vm="{{ profile.isolate.vm }}"></vm-nav-menu>
     <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
     <nav-menu link="{{ makeLink('/allocation-profiler', profile.isolate) }}" anchor="allocation profile" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ resetAccumulator }}" label="Reset Accumulator"></nav-refresh>

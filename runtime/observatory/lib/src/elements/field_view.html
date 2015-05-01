@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
+      <vm-nav-menu vm="{{ field.isolate.vm }}"></vm-nav-menu>
       <isolate-nav-menu isolate="{{ field.isolate }}"></isolate-nav-menu>
       <library-nav-menu library="{{ field.library }}"></library-nav-menu>
       <template if="{{ field.dartOwner is ServiceClass }}">

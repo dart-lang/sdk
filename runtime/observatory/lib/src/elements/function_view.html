@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
+      <vm-nav-menu vm="{{ function.isolate.vm }}"></vm-nav-menu>
       <isolate-nav-menu isolate="{{ function.isolate }}"></isolate-nav-menu>
       <library-nav-menu library="{{ function.library }}"></library-nav-menu>
       <template if="{{ function.dartOwner is ServiceClass }}">

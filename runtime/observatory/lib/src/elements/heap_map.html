@@ -22,6 +22,7 @@
   </style>
   <nav-bar pad="{{ false }}">
     <top-nav-menu></top-nav-menu>
+    <vm-nav-menu vm="{{ fragmentation.isolate.vm }}"></vm-nav-menu>
     <isolate-nav-menu isolate="{{ fragmentation.isolate }}"></isolate-nav-menu>
     <nav-menu link="{{ makeLink('/heap-map', fragmentation.isolate) }}" anchor="heap map" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
