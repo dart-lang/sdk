@@ -27,6 +27,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, always_megamorphic_calls, false,
+    "Instance call always as megamorphic.");
 DEFINE_FLAG(bool, trace_inlining_intervals, false,
     "Inlining interval diagnostics");
 DEFINE_FLAG(bool, enable_simd_inline, true,
@@ -52,8 +54,26 @@ DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(int, stacktrace_every);
 DECLARE_FLAG(charp, stacktrace_filter);
 DECLARE_FLAG(bool, use_cha);
+DECLARE_FLAG(bool, use_field_guards);
 DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
+
+static void NooptModeHandler(bool value) {
+  if (value) {
+    FLAG_always_megamorphic_calls = value;
+    FLAG_optimization_counter_threshold = -1;
+    FLAG_use_field_guards = false;
+    FLAG_use_osr = false;
+  }
+}
+
+
+// --noopt disables optimizer and tunes unoptimized code to run as fast
+// as possible.
+DEFINE_FLAG_HANDLER(NooptModeHandler,
+                    noopt,
+                    "Run fast unoptimized code only.");
+
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
 // with PushArgument.  Recursively allocates from outermost to innermost
@@ -983,6 +1003,11 @@ void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t argument_count,
     LocationSummary* locs,
     const ICData& ic_data) {
+  if (FLAG_always_megamorphic_calls) {
+    EmitMegamorphicInstanceCall(ic_data, argument_count,
+                                deopt_id, token_pos, locs);
+    return;
+  }
   ASSERT(!ic_data.IsNull());
   uword label_address = 0;
   StubCode* stub_code = isolate()->stub_code();

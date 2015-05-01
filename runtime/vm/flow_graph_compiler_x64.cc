@@ -1361,7 +1361,14 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   AddCurrentDescriptor(RawPcDescriptors::kOther,
       Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
-  AddDeoptIndexAtCall(Isolate::ToDeoptAfter(deopt_id), token_pos);
+  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id);
+  if (is_optimizing()) {
+    AddDeoptIndexAtCall(deopt_id_after, token_pos);
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
+  }
   __ Drop(argument_count, RCX);
 }
 
