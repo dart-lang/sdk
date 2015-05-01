@@ -37,9 +37,11 @@ var math;
         return _JenkinsSmiHash.hash2(dart.hashCode(this.x), dart.hashCode(this.y));
       }
       ['+'](other) {
+        dart.as(other, Point$(T));
         return new (Point$(T))(dart.as(this.x['+'](other.x), T), dart.as(this.y['+'](other.y), T));
       }
       ['-'](other) {
+        dart.as(other, Point$(T));
         return new (Point$(T))(dart.as(this.x['-'](other.x), T), dart.as(this.y['-'](other.y), T));
       }
       ['*'](factor) {
@@ -49,11 +51,13 @@ var math;
         return sqrt(dart.notNull(this.x['*'](this.x)) + dart.notNull(this.y['*'](this.y)));
       }
       distanceTo(other) {
+        dart.as(other, Point$(T));
         let dx = this.x['-'](other.x);
         let dy = this.y['-'](other.y);
         return sqrt(dart.notNull(dx) * dart.notNull(dx) + dart.notNull(dy) * dart.notNull(dy));
       }
       squaredDistanceTo(other) {
+        dart.as(other, Point$(T));
         let dx = this.x['-'](other.x);
         let dy = this.y['-'](other.y);
         return dart.as(dart.notNull(dx) * dart.notNull(dx) + dart.notNull(dy) * dart.notNull(dy), T);
@@ -91,6 +95,7 @@ var math;
         return _JenkinsSmiHash.hash4(dart.hashCode(this.left), dart.hashCode(this.top), dart.hashCode(this.right), dart.hashCode(this.bottom));
       }
       intersection(other) {
+        dart.as(other, Rectangle$(T));
         let x0 = max(this.left, other.left);
         let x1 = min(this.left['+'](this.width), other.left['+'](other.width));
         if (dart.notNull(x0) <= dart.notNull(x1)) {
@@ -106,6 +111,7 @@ var math;
         return dart.notNull(this.left['<='](dart.notNull(other.left) + dart.notNull(other.width))) && dart.notNull(other.left) <= dart.notNull(this.left['+'](this.width)) && dart.notNull(this.top['<='](dart.notNull(other.top) + dart.notNull(other.height))) && dart.notNull(other.top) <= dart.notNull(this.top['+'](this.height));
       }
       boundingBox(other) {
+        dart.as(other, Rectangle$(T));
         let right = max(this.left['+'](this.width), other.left['+'](other.width));
         let bottom = max(this.top['+'](this.height), other.top['+'](other.height));
         let left = min(this.left, other.left);
@@ -177,6 +183,7 @@ var math;
         return this[_width];
       }
       set width(width) {
+        dart.as(width, T);
         if (width['<'](0))
           width = dart.as(_clampToZero(width), T);
         this[_width] = width;
@@ -185,6 +192,7 @@ var math;
         return this[_height];
       }
       set height(height) {
+        dart.as(height, T);
         if (height['<'](0))
           height = dart.as(_clampToZero(height), T);
         this[_height] = height;

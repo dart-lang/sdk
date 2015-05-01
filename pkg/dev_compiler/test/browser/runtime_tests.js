@@ -85,7 +85,7 @@ suite('instanceOf', () => {
   let cast = dart.as;
   let instanceOf = dart.is;
   let runtimeType = dart.realRuntimeType;
-  let setType = dart.setType;
+  let setRuntimeType = dart.setRuntimeType;
   let functionType = dart.functionType;
   let typedef = dart.typedef;
 
@@ -118,35 +118,35 @@ suite('instanceOf', () => {
   // TODO(vsm): Revisit when we encode types on functions properly.
   // A bar1(C c, String s) => null;
   function bar1(c, s) { return null; }
-  setType(bar1, functionType(A, [C, String]));
+  setRuntimeType(bar1, functionType(A, [C, String]));
 
   // bar2(B b, String s) => null;
   function bar2(b, s) { return null; }
-  setType(bar2, functionType(dynamic, [B, String]));
+  setRuntimeType(bar2, functionType(dynamic, [B, String]));
 
   // B bar3(B b, Object o) => null;
   function bar3(b, o) { return null; }
-  setType(bar3, functionType(B, [B, Object]));
+  setRuntimeType(bar3, functionType(B, [B, Object]));
 
   // B bar4(B b, o) => null;
   function bar4(b, o) { return null; }
-  setType(bar4, functionType(B, [B, dynamic]));
+  setRuntimeType(bar4, functionType(B, [B, dynamic]));
 
   // C bar5(A a, Object o) => null;
   function bar5(a, o) { return null; }
-  setType(bar5, functionType(C, [A, Object]));
+  setRuntimeType(bar5, functionType(C, [A, Object]));
 
   // B bar6(B b, String s, String o) => null;
   function bar6(b, s, o) { return null; }
-  setType(bar6, functionType(B, [B, String, String]));
+  setRuntimeType(bar6, functionType(B, [B, String, String]));
 
   // B bar7(B b, String s, [Object o]) => null;
   function bar7(b, s, o) { return null; }
-  setType(bar7, functionType(B, [B, String], [Object]));
+  setRuntimeType(bar7, functionType(B, [B, String], [Object]));
 
   // B bar8(B b, String s, {Object p}) => null;
   function bar8(b, s, o) { return null; }
-  setType(bar8, functionType(B, [B, String], {p: Object}));
+  setRuntimeType(bar8, functionType(B, [B, String], {p: Object}));
 
   function checkType(x, type, expectedTrue) {
     if (expectedTrue === undefined) expectedTrue = true;

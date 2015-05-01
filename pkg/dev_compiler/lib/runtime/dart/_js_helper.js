@@ -41,18 +41,24 @@ var _js_helper;
         throw new core.UnsupportedError("Cannot modify unmodifiable Map");
       }
       set(key, val) {
+        dart.as(key, K);
+        dart.as(val, V);
         return this[_throwUnmodifiable]();
       }
       putIfAbsent(key, ifAbsent) {
+        dart.as(key, K);
+        dart.as(ifAbsent, dart.functionType(V, []));
         return dart.as(this[_throwUnmodifiable](), V);
       }
       remove(key) {
+        dart.as(key, K);
         return dart.as(this[_throwUnmodifiable](), V);
       }
       clear() {
         return this[_throwUnmodifiable]();
       }
       addAll(other) {
+        dart.as(other, core.Map$(K, V));
         return this[_throwUnmodifiable]();
       }
     }
@@ -73,6 +79,7 @@ var _js_helper;
         super._();
       }
       containsValue(needle) {
+        dart.as(needle, V);
         return this.values[core.$any](value => dart.equals(value, needle));
       }
       containsKey(key) {
@@ -91,6 +98,7 @@ var _js_helper;
         return jsPropertyAccess(this[_jsObject], dart.as(key, core.String));
       }
       forEach(f) {
+        dart.as(f, dart.functionType(dart.void, [K, V]));
         let keys = this[_keys];
         for (let i = 0; core.int['<'](i, dart.dload(keys, 'length')); i = dart.notNull(i) + 1) {
           let key = dart.dindex(keys, i);
@@ -164,6 +172,7 @@ var _js_helper;
         return this.$map;
       }
       containsValue(needle) {
+        dart.as(needle, V);
         return this[_getMap]().containsValue(needle);
       }
       containsKey(key) {
@@ -173,6 +182,7 @@ var _js_helper;
         return this[_getMap]().get(key);
       }
       forEach(f) {
+        dart.as(f, dart.functionType(dart.void, [K, V]));
         this[_getMap]().forEach(f);
       }
       get keys() {

@@ -1022,6 +1022,7 @@ var core;
         return dart.as(values == null ? null : _js_helper.Primitives.getProperty(values, this[_getKey]()), T);
       }
       set(object, value) {
+        dart.as(value, T);
         let values = _js_helper.Primitives.getProperty(object, Expando._EXPANDO_PROPERTY_NAME);
         if (values == null) {
           values = new Object();
@@ -1258,18 +1259,21 @@ var core;
       List(length) {
         if (length === void 0)
           length = null;
+        let list = null;
         if (length == null) {
-          return dart.as([], List$(E));
+          list = [];
+        } else {
+          if (!(typeof length == 'number') || dart.notNull(length) < 0) {
+            throw new ArgumentError(`Length must be a non-negative integer: ${length}`);
+          }
+          list = new Array(length);
+          list.fixed$length = Array;
         }
-        if (!(typeof length == 'number') || dart.notNull(length) < 0) {
-          throw new ArgumentError(`Length must be a non-negative integer: ${length}`);
-        }
-        let list = new Array(length);
-        list.fixed$length = Array;
+        dart.setType(list, List$(E));
         return dart.as(list, List$(E));
       }
       filled(length, fill) {
-        let result = new _interceptors.JSArray$(E).fixed(length);
+        let result = new (List$(E))(length);
         if (length != 0 && dart.notNull(fill != null)) {
           for (let i = 0; dart.notNull(i) < dart.notNull(result[$length]); i = dart.notNull(i) + 1) {
             result[$set](i, fill);
@@ -1304,12 +1308,15 @@ var core;
       [$checkMutable](reason) {}
       [$checkGrowable](reason) {}
       [$where](f) {
+        dart.as(f, dart.functionType(bool, [E]));
         return new (_internal.IterableMixinWorkaround$(E))().where(this, f);
       }
       [$expand](f) {
+        dart.as(f, dart.functionType(Iterable, [E]));
         return _internal.IterableMixinWorkaround.expand(this, f);
       }
       [$forEach](f) {
+        dart.as(f, dart.functionType(dart.void, [E]));
         let length = this[$length];
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           f(dart.as(this[i], E));
@@ -1319,6 +1326,7 @@ var core;
         }
       }
       [$map](f) {
+        dart.as(f, dart.functionType(dart.dynamic, [E]));
         return _internal.IterableMixinWorkaround.mapList(this, f);
       }
       [$join](separator) {
@@ -1334,29 +1342,38 @@ var core;
         return new (_internal.IterableMixinWorkaround$(E))().takeList(this, n);
       }
       [$takeWhile](test) {
+        dart.as(test, dart.functionType(bool, [E]));
         return new (_internal.IterableMixinWorkaround$(E))().takeWhile(this, test);
       }
       [$skip](n) {
         return new (_internal.IterableMixinWorkaround$(E))().skipList(this, n);
       }
       [$skipWhile](test) {
+        dart.as(test, dart.functionType(bool, [E]));
         return new (_internal.IterableMixinWorkaround$(E))().skipWhile(this, test);
       }
       [$reduce](combine) {
+        dart.as(combine, dart.functionType(E, [E, E]));
         return dart.as(_internal.IterableMixinWorkaround.reduce(this, combine), E);
       }
       [$fold](initialValue, combine) {
+        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
         return _internal.IterableMixinWorkaround.fold(this, initialValue, combine);
       }
       [$firstWhere](test, opts) {
+        dart.as(test, dart.functionType(bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
+        dart.as(orElse, dart.functionType(E, []));
         return dart.as(_internal.IterableMixinWorkaround.firstWhere(this, test, orElse), E);
       }
       [$lastWhere](test, opts) {
+        dart.as(test, dart.functionType(bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
+        dart.as(orElse, dart.functionType(E, []));
         return dart.as(_internal.IterableMixinWorkaround.lastWhereList(this, test, orElse), E);
       }
       [$singleWhere](test) {
+        dart.as(test, dart.functionType(bool, [E]));
         return dart.as(_internal.IterableMixinWorkaround.singleWhere(this, test), E);
       }
       [$elementAt](index) {
@@ -1380,14 +1397,17 @@ var core;
         throw new StateError("More than one element");
       }
       [$any](f) {
+        dart.as(f, dart.functionType(bool, [E]));
         return _internal.IterableMixinWorkaround.any(this, f);
       }
       [$every](f) {
+        dart.as(f, dart.functionType(bool, [E]));
         return _internal.IterableMixinWorkaround.every(this, f);
       }
       [$sort](compare) {
         if (compare === void 0)
           compare = null;
+        dart.as(compare, dart.functionType(int, [E, E]));
         this[$checkMutable]('sort');
         _internal.IterableMixinWorkaround.sortList(this, compare);
       }
@@ -1432,6 +1452,7 @@ var core;
         return dart.as(this[index], E);
       }
       [$set](index, value) {
+        dart.as(value, E);
         this[$checkMutable]('indexed set');
         if (!(typeof index == 'number'))
           throw new ArgumentError(index);
@@ -1451,10 +1472,12 @@ var core;
         this.length = newLength;
       }
       [$add](value) {
+        dart.as(value, E);
         this[$checkGrowable]('add');
         this.push(value);
       }
       [$addAll](iterable) {
+        dart.as(iterable, Iterable$(E));
         for (let e of iterable) {
           this[$add](e);
         }
@@ -1465,6 +1488,7 @@ var core;
       [$sort](compare) {
         if (compare === void 0)
           compare = null;
+        dart.as(compare, dart.functionType(int, [E, E]));
         _internal.IterableMixinWorkaround.sortList(this, compare);
       }
       [$shuffle](random) {
@@ -1473,11 +1497,13 @@ var core;
         _internal.IterableMixinWorkaround.shuffleList(this, random);
       }
       [$indexOf](element, start) {
+        dart.as(element, E);
         if (start === void 0)
           start = 0;
         return _internal.IterableMixinWorkaround.indexOfList(this, element, start);
       }
       [$lastIndexOf](element, start) {
+        dart.as(element, E);
         if (start === void 0)
           start = null;
         return _internal.IterableMixinWorkaround.lastIndexOfList(this, element, start);
@@ -1486,6 +1512,7 @@ var core;
         this[$length] = 0;
       }
       [$insert](index, element) {
+        dart.as(element, E);
         if (!(typeof index == 'number'))
           throw new ArgumentError(index);
         if (dart.notNull(index) < 0 || dart.notNull(index) > dart.notNull(this[$length])) {
@@ -1495,10 +1522,12 @@ var core;
         this.splice(index, 0, element);
       }
       [$insertAll](index, iterable) {
+        dart.as(iterable, Iterable$(E));
         this[$checkGrowable]('insertAll');
         _internal.IterableMixinWorkaround.insertAllList(this, index, iterable);
       }
       [$setAll](index, iterable) {
+        dart.as(iterable, Iterable$(E));
         this[$checkMutable]('setAll');
         _internal.IterableMixinWorkaround.setAllList(this, index, iterable);
       }
@@ -1528,9 +1557,11 @@ var core;
         return dart.as(this.pop(), E);
       }
       [$removeWhere](test) {
+        dart.as(test, dart.functionType(bool, [E]));
         _internal.IterableMixinWorkaround.removeWhereList(this, test);
       }
       [$retainWhere](test) {
+        dart.as(test, dart.functionType(bool, [E]));
         _internal.IterableMixinWorkaround.removeWhereList(this, element => !dart.notNull(test(element)));
       }
       [$sublist](start, end) {
@@ -1559,6 +1590,7 @@ var core;
         return new (_internal.IterableMixinWorkaround$(E))().getRangeList(this, start, end);
       }
       [$setRange](start, end, iterable, skipCount) {
+        dart.as(iterable, Iterable$(E));
         if (skipCount === void 0)
           skipCount = 0;
         this[$checkMutable]('set range');
@@ -1579,10 +1611,12 @@ var core;
       [$fillRange](start, end, fillValue) {
         if (fillValue === void 0)
           fillValue = null;
+        dart.as(fillValue, E);
         this[$checkMutable]('fill range');
         _internal.IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
       }
       [$replaceRange](start, end, replacement) {
+        dart.as(replacement, Iterable$(E));
         this[$checkGrowable]('removeRange');
         _internal.IterableMixinWorkaround.replaceRangeList(this, start, end, replacement);
       }
@@ -1590,6 +1624,7 @@ var core;
         return new (_internal.IterableMixinWorkaround$(E))().asMapList(this);
       }
     }
+    dart.setBaseClass(List, dart.global.Array);
     List[dart.implements] = () => [Iterable$(E), _internal.EfficientLength];
     dart.defineNamedConstructor(List, 'filled');
     dart.defineNamedConstructor(List, 'from');

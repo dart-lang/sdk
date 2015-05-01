@@ -141,16 +141,21 @@ var async;
       }
       asBroadcastStream(opts) {
         let onListen = opts && 'onListen' in opts ? opts.onListen : null;
+        dart.as(onListen, dart.functionType(dart.void, [StreamSubscription$(T)]));
         let onCancel = opts && 'onCancel' in opts ? opts.onCancel : null;
+        dart.as(onCancel, dart.functionType(dart.void, [StreamSubscription$(T)]));
         return new (_AsBroadcastStream$(T))(this, dart.as(onListen, __CastType14), dart.as(onCancel, dart.functionType(dart.void, [StreamSubscription])));
       }
       where(test) {
+        dart.as(test, dart.functionType(core.bool, [T]));
         return new (_WhereStream$(T))(this, test);
       }
       map(convert) {
+        dart.as(convert, dart.functionType(dart.dynamic, [T]));
         return new (_MapStream$(T, dart.dynamic))(this, convert);
       }
       asyncMap(convert) {
+        dart.as(convert, dart.functionType(dart.dynamic, [T]));
         let controller = null;
         let subscription = null;
         // Function onListen: () → void
@@ -160,6 +165,7 @@ var async;
           let eventSink = controller;
           let addError = eventSink[_addError];
           subscription = this.listen(event => {
+            dart.as(event, T);
             let newValue = null;
             try {
               newValue = convert(event);
@@ -203,6 +209,7 @@ var async;
         return controller.stream;
       }
       asyncExpand(convert) {
+        dart.as(convert, dart.functionType(Stream, [T]));
         let controller = null;
         let subscription = null;
         // Function onListen: () → void
@@ -210,6 +217,7 @@ var async;
           dart.assert(dart.is(controller, _StreamController) || dart.is(controller, _BroadcastStreamController));
           let eventSink = controller;
           subscription = this.listen(event => {
+            dart.as(event, T);
             let newStream = null;
             try {
               newStream = convert(event);
@@ -252,25 +260,32 @@ var async;
       }
       handleError(onError, opts) {
         let test = opts && 'test' in opts ? opts.test : null;
+        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
         return new (_HandleErrorStream$(T))(this, onError, test);
       }
       expand(convert) {
+        dart.as(convert, dart.functionType(core.Iterable, [T]));
         return new (_ExpandStream$(T, dart.dynamic))(this, convert);
       }
       pipe(streamConsumer) {
+        dart.as(streamConsumer, StreamConsumer$(T));
         return streamConsumer.addStream(this).then(_ => streamConsumer.close());
       }
       transform(streamTransformer) {
+        dart.as(streamTransformer, StreamTransformer$(T, dart.dynamic));
         return streamTransformer.bind(this);
       }
       reduce(combine) {
+        dart.as(combine, dart.functionType(T, [T, T]));
         let result = new (_Future$(T))();
         let seenFirst = false;
         let value = null;
         let subscription = null;
         subscription = this.listen(element => {
+          dart.as(element, T);
           if (seenFirst) {
             _runUserCode(() => combine(value, element), newValue => {
+              dart.as(newValue, T);
               value = newValue;
             }, dart.as(_cancelAndErrorClosure(subscription, result), __CastType16));
           } else {
@@ -297,10 +312,12 @@ var async;
         return result;
       }
       fold(initialValue, combine) {
+        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, T]));
         let result = new _Future();
         let value = initialValue;
         let subscription = null;
         subscription = this.listen(element => {
+          dart.as(element, T);
           _runUserCode(() => dart.dcall(combine, value, element), newValue => {
             value = newValue;
           }, dart.as(_cancelAndErrorClosure(subscription, result), dart.functionType(dart.dynamic, [dart.dynamic, core.StackTrace])));
@@ -323,6 +340,7 @@ var async;
         let subscription = null;
         let first = true;
         subscription = this.listen(element => {
+          dart.as(element, T);
           if (!dart.notNull(first)) {
             buffer.write(separator);
           }
@@ -349,6 +367,7 @@ var async;
         let future = new (_Future$(core.bool))();
         let subscription = null;
         subscription = this.listen(element => {
+          dart.as(element, T);
           _runUserCode(() => dart.equals(element, needle), isMatch => {
             if (isMatch) {
               _cancelAndValue(subscription, future, true);
@@ -364,9 +383,11 @@ var async;
         return future;
       }
       forEach(action) {
+        dart.as(action, dart.functionType(dart.void, [T]));
         let future = new _Future();
         let subscription = null;
         subscription = this.listen(element => {
+          dart.as(element, T);
           _runUserCode(() => action(element), _ => {
           }, dart.as(_cancelAndErrorClosure(subscription, future), dart.functionType(dart.dynamic, [dart.dynamic, core.StackTrace])));
         }, {
@@ -379,9 +400,11 @@ var async;
         return future;
       }
       every(test) {
+        dart.as(test, dart.functionType(core.bool, [T]));
         let future = new (_Future$(core.bool))();
         let subscription = null;
         subscription = this.listen(element => {
+          dart.as(element, T);
           _runUserCode(() => test(element), isMatch => {
             if (!dart.notNull(isMatch)) {
               _cancelAndValue(subscription, future, false);
@@ -397,9 +420,11 @@ var async;
         return future;
       }
       any(test) {
+        dart.as(test, dart.functionType(core.bool, [T]));
         let future = new (_Future$(core.bool))();
         let subscription = null;
         subscription = this.listen(element => {
+          dart.as(element, T);
           _runUserCode(() => test(element), isMatch => {
             if (isMatch) {
               _cancelAndValue(subscription, future, true);
@@ -446,6 +471,7 @@ var async;
         let result = dart.setType([], core.List$(T));
         let future = new (_Future$(core.List$(T)))();
         this.listen(data => {
+          dart.as(data, T);
           result[core.$add](data);
         }, {
           onError: future[_completeError].bind(future),
@@ -460,6 +486,7 @@ var async;
         let result = new (core.Set$(T))();
         let future = new (_Future$(core.Set$(T)))();
         this.listen(data => {
+          dart.as(data, T);
           result.add(data);
         }, {
           onError: future[_completeError].bind(future),
@@ -479,23 +506,27 @@ var async;
         return new (_TakeStream$(T))(this, count);
       }
       takeWhile(test) {
+        dart.as(test, dart.functionType(core.bool, [T]));
         return new (_TakeWhileStream$(T))(this, test);
       }
       skip(count) {
         return new (_SkipStream$(T))(this, count);
       }
       skipWhile(test) {
+        dart.as(test, dart.functionType(core.bool, [T]));
         return new (_SkipWhileStream$(T))(this, test);
       }
       distinct(equals) {
         if (equals === void 0)
           equals = null;
+        dart.as(equals, dart.functionType(core.bool, [T, T]));
         return new (_DistinctStream$(T))(this, equals);
       }
       get first() {
         let future = new (_Future$(T))();
         let subscription = null;
         subscription = this.listen(value => {
+          dart.as(value, T);
           _cancelAndValue(subscription, future, value);
         }, {
           onError: future[_completeError].bind(future),
@@ -518,6 +549,7 @@ var async;
         let foundResult = false;
         let subscription = null;
         subscription = this.listen(value => {
+          dart.as(value, T);
           foundResult = true;
           result = value;
         }, {
@@ -545,6 +577,7 @@ var async;
         let foundResult = false;
         let subscription = null;
         subscription = this.listen(value => {
+          dart.as(value, T);
           if (foundResult) {
             try {
               throw _internal.IterableElementError.tooMany();
@@ -577,10 +610,13 @@ var async;
         return future;
       }
       firstWhere(test, opts) {
+        dart.as(test, dart.functionType(core.bool, [T]));
         let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : null;
+        dart.as(defaultValue, dart.functionType(core.Object, []));
         let future = new _Future();
         let subscription = null;
         subscription = this.listen(value => {
+          dart.as(value, T);
           _runUserCode(() => test(value), isMatch => {
             if (isMatch) {
               _cancelAndValue(subscription, future, value);
@@ -606,12 +642,15 @@ var async;
         return future;
       }
       lastWhere(test, opts) {
+        dart.as(test, dart.functionType(core.bool, [T]));
         let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : null;
+        dart.as(defaultValue, dart.functionType(core.Object, []));
         let future = new _Future();
         let result = null;
         let foundResult = false;
         let subscription = null;
         subscription = this.listen(value => {
+          dart.as(value, T);
           _runUserCode(() => true == test(value), isMatch => {
             if (isMatch) {
               foundResult = true;
@@ -642,11 +681,13 @@ var async;
         return future;
       }
       singleWhere(test) {
+        dart.as(test, dart.functionType(core.bool, [T]));
         let future = new (_Future$(T))();
         let result = null;
         let foundResult = false;
         let subscription = null;
         subscription = this.listen(value => {
+          dart.as(value, T);
           _runUserCode(() => true == test(value), isMatch => {
             if (isMatch) {
               if (foundResult) {
@@ -689,6 +730,7 @@ var async;
         let subscription = null;
         let elementIndex = 0;
         subscription = this.listen(value => {
+          dart.as(value, T);
           if (index == elementIndex) {
             _cancelAndValue(subscription, future, value);
             return;
@@ -705,6 +747,7 @@ var async;
       }
       timeout(timeLimit, opts) {
         let onTimeout = opts && 'onTimeout' in opts ? opts.onTimeout : null;
+        dart.as(onTimeout, dart.functionType(dart.void, [EventSink]));
         let controller = null;
         let subscription = null;
         let timer = null;
@@ -712,6 +755,7 @@ var async;
         let timeout = null;
         // Function onData: (T) → void
         function onData(event) {
+          dart.as(event, T);
           timer.cancel();
           controller.add(event);
           timer = zone.createTimer(timeLimit, dart.as(timeout, __CastType19));
@@ -775,8 +819,10 @@ var async;
   let _StreamImpl$ = dart.generic(function(T) {
     class _StreamImpl extends Stream$(T) {
       listen(onData, opts) {
+        dart.as(onData, dart.functionType(dart.void, [T]));
         let onError = opts && 'onError' in opts ? opts.onError : null;
         let onDone = opts && 'onDone' in opts ? opts.onDone : null;
+        dart.as(onDone, dart.functionType(dart.void, []));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         cancelOnError = core.identical(true, cancelOnError);
         let subscription = this[_createSubscription](onData, onError, onDone, cancelOnError);
@@ -784,6 +830,8 @@ var async;
         return dart.as(subscription, StreamSubscription$(T));
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
+        dart.as(onData, dart.functionType(dart.void, [T]));
+        dart.as(onDone, dart.functionType(dart.void, []));
         return new (_BufferingStreamSubscription$(T))(onData, onError, onDone, cancelOnError);
       }
       [_onListen](subscription) {}
@@ -797,6 +845,8 @@ var async;
         this[_controller] = controller;
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
+        dart.as(onData, dart.functionType(dart.void, [T]));
+        dart.as(onDone, dart.functionType(dart.void, []));
         return this[_controller][_subscribe](onData, onError, onDone, cancelOnError);
       }
       get hashCode() {
@@ -906,6 +956,7 @@ var async;
         return events;
       }
       onData(handleData) {
+        dart.as(handleData, dart.functionType(dart.void, [T]));
         if (handleData == null)
           handleData = dart.as(_nullDataHandler, __CastType22);
         this[_onData] = dart.as(this[_zone].registerUnaryCallback(handleData), _DataHandler$(T));
@@ -916,6 +967,7 @@ var async;
         this[_onError] = _registerErrorHandler(handleError, this[_zone]);
       }
       onDone(handleDone) {
+        dart.as(handleDone, dart.functionType(dart.void, []));
         if (handleDone == null)
           handleDone = _nullDoneHandler;
         this[_onDone] = this[_zone].registerCallback(handleDone);
@@ -1022,6 +1074,7 @@ var async;
         this[_state] = dart.notNull(this[_state]) - dart.notNull(_BufferingStreamSubscription._STATE_PAUSE_COUNT);
       }
       [_add](data) {
+        dart.as(data, T);
         dart.assert(!dart.notNull(this[_isClosed]));
         if (this[_isCanceled])
           return;
@@ -1074,6 +1127,7 @@ var async;
         }
       }
       [_sendData](data) {
+        dart.as(data, T);
         dart.assert(!dart.notNull(this[_isCanceled]));
         dart.assert(!dart.notNull(this[_isPaused]));
         dart.assert(!dart.notNull(this[_inCallback]));
@@ -1304,6 +1358,7 @@ var async;
         return core.identical(this[_next], this);
       }
       [_addListener](subscription) {
+        dart.as(subscription, _BroadcastSubscription$(T));
         dart.assert(core.identical(subscription[_next], subscription));
         subscription[_previous] = this[_previous];
         subscription[_next] = this;
@@ -1312,6 +1367,7 @@ var async;
         subscription[_eventState] = dart.notNull(this[_state]) & dart.notNull(_BroadcastStreamController._STATE_EVENT_ID);
       }
       [_removeListener](subscription) {
+        dart.as(subscription, _BroadcastSubscription$(T));
         dart.assert(core.identical(subscription[_controller], this));
         dart.assert(!dart.notNull(core.identical(subscription[_next], subscription)));
         let previous = subscription[_previous];
@@ -1321,6 +1377,8 @@ var async;
         subscription[_next] = subscription[_previous] = subscription;
       }
       [_subscribe](onData, onError, onDone, cancelOnError) {
+        dart.as(onData, dart.functionType(dart.void, [T]));
+        dart.as(onDone, dart.functionType(dart.void, []));
         if (this.isClosed) {
           if (onDone == null)
             onDone = _nullDoneHandler;
@@ -1334,6 +1392,7 @@ var async;
         return dart.as(subscription, StreamSubscription$(T));
       }
       [_recordCancel](subscription) {
+        dart.as(subscription, _BroadcastSubscription$(T));
         if (core.identical(subscription[_next], subscription))
           return null;
         dart.assert(!dart.notNull(core.identical(subscription[_next], subscription)));
@@ -1348,8 +1407,12 @@ var async;
         }
         return null;
       }
-      [_recordPause](subscription) {}
-      [_recordResume](subscription) {}
+      [_recordPause](subscription) {
+        dart.as(subscription, StreamSubscription$(T));
+      }
+      [_recordResume](subscription) {
+        dart.as(subscription, StreamSubscription$(T));
+      }
       [_addEventError]() {
         if (this.isClosed) {
           return new core.StateError("Cannot add new events after calling close");
@@ -1358,6 +1421,7 @@ var async;
         return new core.StateError("Cannot add new events while doing an addStream");
       }
       add(data) {
+        dart.as(data, T);
         if (!dart.notNull(this[_mayAddEvent]))
           throw this[_addEventError]();
         this[_sendData](data);
@@ -1391,6 +1455,7 @@ var async;
         return this[_ensureDoneFuture]();
       }
       addStream(stream, opts) {
+        dart.as(stream, Stream$(T));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : true;
         if (!dart.notNull(this[_mayAddEvent]))
           throw this[_addEventError]();
@@ -1399,6 +1464,7 @@ var async;
         return this[_addStreamState].addStreamFuture;
       }
       [_add](data) {
+        dart.as(data, T);
         this[_sendData](data);
       }
       [_addError](error, stackTrace) {
@@ -1412,6 +1478,7 @@ var async;
         addState.complete();
       }
       [_forEachListener](action) {
+        dart.as(action, dart.functionType(dart.void, [_BufferingStreamSubscription$(T)]));
         if (this[_isFiring]) {
           throw new core.StateError("Cannot fire new event. Controller is already firing an event");
         }
@@ -1463,6 +1530,7 @@ var async;
         super._BroadcastStreamController(onListen, onCancel);
       }
       [_sendData](data) {
+        dart.as(data, T);
         if (this[_isEmpty])
           return;
         if (this[_hasOneListener]) {
@@ -1476,6 +1544,7 @@ var async;
           return;
         }
         this[_forEachListener](subscription => {
+          dart.as(subscription, _BufferingStreamSubscription$(T));
           subscription[_add](data);
         });
       }
@@ -1483,12 +1552,14 @@ var async;
         if (this[_isEmpty])
           return;
         this[_forEachListener](subscription => {
+          dart.as(subscription, _BufferingStreamSubscription$(T));
           subscription[_addError](error, stackTrace);
         });
       }
       [_sendDone]() {
         if (!dart.notNull(this[_isEmpty])) {
           this[_forEachListener](dart.as(subscription => {
+            dart.as(subscription, _BroadcastSubscription$(T));
             subscription[_close]();
           }, __CastType2));
         } else {
@@ -1507,6 +1578,7 @@ var async;
         super._BroadcastStreamController(onListen, onCancel);
       }
       [_sendData](data) {
+        dart.as(data, T);
         for (let link = this[_next]; !dart.notNull(core.identical(link, this)); link = link[_next]) {
           let subscription = dart.as(link, _BroadcastSubscription$(T));
           subscription[_addPending](new _DelayedData(data));
@@ -1551,6 +1623,7 @@ var async;
         this[_pending].add(event);
       }
       add(data) {
+        dart.as(data, T);
         if (!dart.notNull(this.isClosed) && dart.notNull(this[_isFiring])) {
           this[_addPendingEvent](new (_DelayedData$(T))(data));
           return;
@@ -1603,9 +1676,13 @@ var async;
       _DoneSubscription() {
         this[_pauseCount] = 0;
       }
-      onData(handleData) {}
+      onData(handleData) {
+        dart.as(handleData, dart.functionType(dart.void, [T]));
+      }
       onError(handleError) {}
-      onDone(handleDone) {}
+      onDone(handleDone) {
+        dart.as(handleDone, dart.functionType(dart.void, []));
+      }
       pause(resumeSignal) {
         if (resumeSignal === void 0)
           resumeSignal = null;
@@ -1737,6 +1814,7 @@ var async;
       static wait(futures, opts) {
         let eagerError = opts && 'eagerError' in opts ? opts.eagerError : false;
         let cleanUp = opts && 'cleanUp' in opts ? opts.cleanUp : null;
+        dart.as(cleanUp, dart.functionType(dart.void, [dart.dynamic]));
         let result = new (_Future$(core.List))();
         let values = null;
         let remaining = 0;
@@ -1795,6 +1873,7 @@ var async;
         return result;
       }
       static forEach(input, f) {
+        dart.as(f, dart.functionType(dart.dynamic, [dart.dynamic]));
         let iterator = input[core.$iterator];
         return Future.doWhile(() => {
           if (!dart.notNull(iterator.moveNext()))
@@ -1803,6 +1882,7 @@ var async;
         });
       }
       static doWhile(f) {
+        dart.as(f, dart.functionType(dart.dynamic, []));
         let doneSignal = new _Future();
         let nextIteration = null;
         nextIteration = Zone.current.bindUnaryCallback(keepGoing => {
@@ -2075,6 +2155,7 @@ var async;
         }
       }
       then(f, opts) {
+        dart.as(f, dart.functionType(dart.dynamic, [T]));
         let onError = opts && 'onError' in opts ? opts.onError : null;
         let result = new _Future();
         if (!dart.notNull(core.identical(result[_zone], _ROOT_ZONE))) {
@@ -2088,6 +2169,7 @@ var async;
       }
       catchError(onError, opts) {
         let test = opts && 'test' in opts ? opts.test : null;
+        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
         let result = new _Future();
         if (!dart.notNull(core.identical(result[_zone], _ROOT_ZONE))) {
           onError = _registerErrorHandler(onError, result[_zone]);
@@ -2098,6 +2180,7 @@ var async;
         return result;
       }
       whenComplete(action) {
+        dart.as(action, dart.functionType(dart.dynamic, []));
         let result = new (_Future$(T))();
         if (!dart.notNull(core.identical(result[_zone], _ROOT_ZONE))) {
           action = result[_zone].registerCallback(action);
@@ -2122,6 +2205,7 @@ var async;
         return dart.as(this[_resultOrListeners], AsyncError);
       }
       [_setValue](value) {
+        dart.as(value, T);
         dart.assert(!dart.notNull(this[_isComplete]));
         this[_state] = _Future._VALUE;
         this[_resultOrListeners] = value;
@@ -2410,6 +2494,7 @@ var async;
       }
       timeout(timeLimit, opts) {
         let onTimeout = opts && 'onTimeout' in opts ? opts.onTimeout : null;
+        dart.as(onTimeout, dart.functionType(dart.dynamic, []));
         if (this[_isComplete])
           return new _Future.immediate(this);
         let result = new _Future();
@@ -2432,6 +2517,7 @@ var async;
           });
         }
         this.then(v => {
+          dart.as(v, T);
           if (timer.isActive) {
             timer.cancel();
             result[_completeWithValue](v);
@@ -2624,12 +2710,16 @@ var async;
       }
       asBroadcastStream(opts) {
         let onListen = opts && 'onListen' in opts ? opts.onListen : null;
+        dart.as(onListen, dart.functionType(dart.void, [StreamSubscription]));
         let onCancel = opts && 'onCancel' in opts ? opts.onCancel : null;
+        dart.as(onCancel, dart.functionType(dart.void, [StreamSubscription]));
         return this[_stream].asBroadcastStream({onListen: onListen, onCancel: onCancel});
       }
       listen(onData, opts) {
+        dart.as(onData, dart.functionType(dart.void, [T]));
         let onError = opts && 'onError' in opts ? opts.onError : null;
         let onDone = opts && 'onDone' in opts ? opts.onDone : null;
+        dart.as(onDone, dart.functionType(dart.void, []));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         return this[_stream].listen(onData, {onError: onError, onDone: onDone, cancelOnError: cancelOnError});
       }
@@ -2676,6 +2766,7 @@ var async;
         this[_sink] = sink;
       }
       add(data) {
+        dart.as(data, T);
         this[_sink].add(data);
       }
       addError(error, stackTrace) {
@@ -2727,9 +2818,14 @@ var async;
   let StreamController = StreamController$();
   let _StreamControllerLifecycle$ = dart.generic(function(T) {
     class _StreamControllerLifecycle extends core.Object {
-      [_recordPause](subscription) {}
-      [_recordResume](subscription) {}
+      [_recordPause](subscription) {
+        dart.as(subscription, StreamSubscription$(T));
+      }
+      [_recordResume](subscription) {
+        dart.as(subscription, StreamSubscription$(T));
+      }
       [_recordCancel](subscription) {
+        dart.as(subscription, StreamSubscription$(T));
         return null;
       }
     }
@@ -2812,6 +2908,7 @@ var async;
         return new core.StateError("Cannot add event while adding a stream");
       }
       addStream(source, opts) {
+        dart.as(source, Stream$(T));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : true;
         if (!dart.notNull(this[_mayAddEvent]))
           throw this[_badEventState]();
@@ -2832,6 +2929,7 @@ var async;
         return this[_doneFuture];
       }
       add(value) {
+        dart.as(value, T);
         if (!dart.notNull(this[_mayAddEvent]))
           throw this[_badEventState]();
         this[_add](value);
@@ -2867,6 +2965,7 @@ var async;
         }
       }
       [_add](value) {
+        dart.as(value, T);
         if (this.hasListener) {
           this[_sendData](value);
         } else if (this[_isInitialState]) {
@@ -2888,6 +2987,8 @@ var async;
         addState.complete();
       }
       [_subscribe](onData, onError, onDone, cancelOnError) {
+        dart.as(onData, dart.functionType(dart.void, [T]));
+        dart.as(onDone, dart.functionType(dart.void, []));
         if (!dart.notNull(this[_isInitialState])) {
           throw new core.StateError("Stream has already been listened to.");
         }
@@ -2908,6 +3009,7 @@ var async;
         return dart.as(subscription, StreamSubscription$(T));
       }
       [_recordCancel](subscription) {
+        dart.as(subscription, StreamSubscription$(T));
         let result = null;
         if (this[_isAddingStream]) {
           let addState = dart.as(this[_varData], _StreamControllerAddStreamState);
@@ -2943,6 +3045,7 @@ var async;
         return result;
       }
       [_recordPause](subscription) {
+        dart.as(subscription, StreamSubscription$(T));
         if (this[_isAddingStream]) {
           let addState = dart.as(this[_varData], _StreamControllerAddStreamState);
           addState.pause();
@@ -2950,6 +3053,7 @@ var async;
         _runGuarded(this[_onPause]);
       }
       [_recordResume](subscription) {
+        dart.as(subscription, StreamSubscription$(T));
         if (this[_isAddingStream]) {
           let addState = dart.as(this[_varData], _StreamControllerAddStreamState);
           addState.resume();
@@ -2970,6 +3074,7 @@ var async;
   let _SyncStreamControllerDispatch$ = dart.generic(function(T) {
     class _SyncStreamControllerDispatch extends core.Object {
       [_sendData](data) {
+        dart.as(data, T);
         this[_subscription][_add](data);
       }
       [_sendError](error, stackTrace) {
@@ -2986,6 +3091,7 @@ var async;
   let _AsyncStreamControllerDispatch$ = dart.generic(function(T) {
     class _AsyncStreamControllerDispatch extends core.Object {
       [_sendData](data) {
+        dart.as(data, T);
         this[_subscription][_addPending](new _DelayedData(data));
       }
       [_sendError](error, stackTrace) {
@@ -3064,6 +3170,7 @@ var async;
         this[_target] = target;
       }
       add(data) {
+        dart.as(data, T);
         this[_target].add(data);
       }
       addError(error, stackTrace) {
@@ -3075,6 +3182,7 @@ var async;
         return this[_target].close();
       }
       addStream(source, opts) {
+        dart.as(source, Stream$(T));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : true;
         return this[_target].addStream(source, {cancelOnError: cancelOnError});
       }
@@ -3153,6 +3261,8 @@ var async;
         this[_isUsed] = false;
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
+        dart.as(onData, dart.functionType(dart.void, [T]));
+        dart.as(onDone, dart.functionType(dart.void, []));
         if (this[_isUsed])
           throw new core.StateError("Stream has already been listened to.");
         this[_isUsed] = true;
@@ -3271,6 +3381,7 @@ var async;
         super._DelayedEvent();
       }
       perform(dispatch) {
+        dart.as(dispatch, _EventDispatch$(T));
         dispatch[_sendData](this.value);
       }
     }
@@ -3379,9 +3490,12 @@ var async;
         this[_zone].scheduleMicrotask(this[_sendDone].bind(this));
         this[_state] = dart.notNull(this[_state]) | dart.notNull(_DoneStreamSubscription._SCHEDULED);
       }
-      onData(handleData) {}
+      onData(handleData) {
+        dart.as(handleData, dart.functionType(dart.void, [T]));
+      }
       onError(handleError) {}
       onDone(handleDone) {
+        dart.as(handleDone, dart.functionType(dart.void, []));
         this[_onDone] = handleDone;
       }
       pause(resumeSignal) {
@@ -3450,8 +3564,10 @@ var async;
         return true;
       }
       listen(onData, opts) {
+        dart.as(onData, dart.functionType(dart.void, [T]));
         let onError = opts && 'onError' in opts ? opts.onError : null;
         let onDone = opts && 'onDone' in opts ? opts.onDone : null;
+        dart.as(onDone, dart.functionType(dart.void, []));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         if (dart.notNull(this[_controller] == null) || dart.notNull(this[_controller].isClosed)) {
           return new (_DoneStreamSubscription$(T))(onDone);
@@ -3512,12 +3628,15 @@ var async;
         this[_stream] = stream;
       }
       onData(handleData) {
+        dart.as(handleData, dart.functionType(dart.void, [T]));
         throw new core.UnsupportedError("Cannot change handlers of asBroadcastStream source subscription.");
       }
       onError(handleError) {
+        dart.as(handleError, dart.functionType(dart.void, [core.Object]));
         throw new core.UnsupportedError("Cannot change handlers of asBroadcastStream source subscription.");
       }
       onDone(handleDone) {
+        dart.as(handleDone, dart.functionType(dart.void, []));
         throw new core.UnsupportedError("Cannot change handlers of asBroadcastStream source subscription.");
       }
       pause(resumeSignal) {
@@ -3615,6 +3734,7 @@ var async;
         return subscription.cancel();
       }
       [_onData](data) {
+        dart.as(data, T);
         if (this[_state] == _StreamIteratorImpl._STATE_MOVING) {
           this[_current] = data;
           let hasNext = dart.as(this[_futureOrPrefetch], _Future$(core.bool));
@@ -3732,23 +3852,31 @@ var async;
         return this[_source].isBroadcast;
       }
       listen(onData, opts) {
+        dart.as(onData, dart.functionType(dart.void, [T]));
         let onError = opts && 'onError' in opts ? opts.onError : null;
         let onDone = opts && 'onDone' in opts ? opts.onDone : null;
+        dart.as(onDone, dart.functionType(dart.void, []));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         cancelOnError = core.identical(true, cancelOnError);
         return this[_createSubscription](onData, onError, onDone, cancelOnError);
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
+        dart.as(onData, dart.functionType(dart.void, [T]));
+        dart.as(onDone, dart.functionType(dart.void, []));
         return new (_ForwardingStreamSubscription$(S, T))(this, onData, onError, onDone, cancelOnError);
       }
       [_handleData](data, sink) {
+        dart.as(data, S);
+        dart.as(sink, _EventSink$(T));
         let outputData = data;
         sink[_add](outputData);
       }
       [_handleError](error, stackTrace, sink) {
+        dart.as(sink, _EventSink$(T));
         sink[_addError](error, stackTrace);
       }
       [_handleDone](sink) {
+        dart.as(sink, _EventSink$(T));
         sink[_close]();
       }
     }
@@ -3764,6 +3892,7 @@ var async;
         this[_subscription] = this[_stream][_source].listen(this[_handleData].bind(this), {onError: this[_handleError].bind(this), onDone: this[_handleDone].bind(this)});
       }
       [_add](data) {
+        dart.as(data, T);
         if (this[_isClosed])
           return;
         super[_add](data);
@@ -3792,6 +3921,7 @@ var async;
         return null;
       }
       [_handleData](data) {
+        dart.as(data, S);
         this[_stream][_handleData](data, this);
       }
       [_handleError](error, stackTrace) {
@@ -3826,6 +3956,8 @@ var async;
         super._ForwardingStream(source);
       }
       [_handleData](inputEvent, sink) {
+        dart.as(inputEvent, T);
+        dart.as(sink, _EventSink$(T));
         let satisfies = null;
         try {
           satisfies = this[_test](inputEvent);
@@ -3856,6 +3988,8 @@ var async;
         super._ForwardingStream(source);
       }
       [_handleData](inputEvent, sink) {
+        dart.as(inputEvent, S);
+        dart.as(sink, _EventSink$(T));
         let outputEvent = null;
         try {
           outputEvent = dart.as(dart.dcall(this[_transform], inputEvent), T);
@@ -3879,6 +4013,8 @@ var async;
         super._ForwardingStream(source);
       }
       [_handleData](inputEvent, sink) {
+        dart.as(inputEvent, S);
+        dart.as(sink, _EventSink$(T));
         try {
           for (let value of this[_expand](inputEvent)) {
             sink[_add](value);
@@ -3902,6 +4038,7 @@ var async;
         super._ForwardingStream(source);
       }
       [_handleError](error, stackTrace, sink) {
+        dart.as(sink, _EventSink$(T));
         let matches = true;
         if (this[_test] != null) {
           try {
@@ -3944,6 +4081,8 @@ var async;
           throw new core.ArgumentError(count);
       }
       [_handleData](inputEvent, sink) {
+        dart.as(inputEvent, T);
+        dart.as(sink, _EventSink$(T));
         if (dart.notNull(this[_remaining]) > 0) {
           sink[_add](inputEvent);
           this[_remaining] = dart.notNull(this[_remaining]) - 1;
@@ -3963,6 +4102,8 @@ var async;
         super._ForwardingStream(source);
       }
       [_handleData](inputEvent, sink) {
+        dart.as(inputEvent, T);
+        dart.as(sink, _EventSink$(T));
         let satisfies = null;
         try {
           satisfies = this[_test](inputEvent);
@@ -3992,6 +4133,8 @@ var async;
           throw new core.ArgumentError(count);
       }
       [_handleData](inputEvent, sink) {
+        dart.as(inputEvent, T);
+        dart.as(sink, _EventSink$(T));
         if (dart.notNull(this[_remaining]) > 0) {
           this[_remaining] = dart.notNull(this[_remaining]) - 1;
           return;
@@ -4011,6 +4154,8 @@ var async;
         super._ForwardingStream(source);
       }
       [_handleData](inputEvent, sink) {
+        dart.as(inputEvent, T);
+        dart.as(sink, _EventSink$(T));
         if (this[_hasFailed]) {
           sink[_add](inputEvent);
           return;
@@ -4048,6 +4193,8 @@ var async;
         super._ForwardingStream(source);
       }
       [_handleData](inputEvent, sink) {
+        dart.as(inputEvent, T);
+        dart.as(sink, _EventSink$(T));
         if (core.identical(this[_previous], _DistinctStream._SENTINEL)) {
           this[_previous] = inputEvent;
           return sink[_add](inputEvent);
@@ -4087,6 +4234,7 @@ var async;
         this[_sink] = sink;
       }
       add(data) {
+        dart.as(data, T);
         this[_sink][_add](data);
       }
       addError(error, stackTrace) {
@@ -4118,6 +4266,7 @@ var async;
         return this[_subscription] != null;
       }
       [_add](data) {
+        dart.as(data, T);
         if (this[_isClosed]) {
           throw new core.StateError("Stream is already closed");
         }
@@ -4152,6 +4301,7 @@ var async;
         return null;
       }
       [_handleData](data) {
+        dart.as(data, S);
         try {
           this[_transformerSink].add(data);
         } catch (e) {
@@ -4201,6 +4351,7 @@ var async;
         this[_sinkMapper] = sinkMapper;
       }
       bind(stream) {
+        dart.as(stream, Stream$(S));
         return new (_BoundSinkStream$(S, T))(stream, this[_sinkMapper]);
       }
     }
@@ -4219,8 +4370,10 @@ var async;
         super.Stream();
       }
       listen(onData, opts) {
+        dart.as(onData, dart.functionType(dart.void, [T]));
         let onError = opts && 'onError' in opts ? opts.onError : null;
         let onDone = opts && 'onDone' in opts ? opts.onDone : null;
+        dart.as(onDone, dart.functionType(dart.void, []));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         cancelOnError = core.identical(true, cancelOnError);
         let subscription = new _SinkTransformerStreamSubscription(this[_stream], dart.as(this[_sinkMapper], _SinkMapper), onData, onError, onDone, cancelOnError);
@@ -4254,6 +4407,7 @@ var async;
         this[_sink] = sink;
       }
       add(data) {
+        dart.as(data, S);
         return this[_handleData](data, this[_sink]);
       }
       addError(error, stackTrace) {
@@ -4276,6 +4430,7 @@ var async;
         let handleError = opts && 'handleError' in opts ? opts.handleError : null;
         let handleDone = opts && 'handleDone' in opts ? opts.handleDone : null;
         super._StreamSinkTransformer(dart.as(outputSink => {
+          dart.as(outputSink, EventSink$(T));
           if (handleData == null)
             handleData = dart.as(_StreamHandlerTransformer._defaultHandleData, __CastType29);
           if (handleError == null)
@@ -4286,6 +4441,7 @@ var async;
         }, _SinkMapper$(S, T)));
       }
       bind(stream) {
+        dart.as(stream, Stream$(S));
         return super.bind(stream);
       }
       static _defaultHandleData(data, sink) {
@@ -4313,6 +4469,7 @@ var async;
         this[_transformer] = transformer;
       }
       bind(stream) {
+        dart.as(stream, Stream$(S));
         return new (_BoundSubscriptionStream$(S, T))(stream, this[_transformer]);
       }
     }
@@ -4328,8 +4485,10 @@ var async;
         super.Stream();
       }
       listen(onData, opts) {
+        dart.as(onData, dart.functionType(dart.void, [T]));
         let onError = opts && 'onError' in opts ? opts.onError : null;
         let onDone = opts && 'onDone' in opts ? opts.onDone : null;
+        dart.as(onDone, dart.functionType(dart.void, []));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         cancelOnError = core.identical(true, cancelOnError);
         let result = this[_transformer](this[_stream], cancelOnError);

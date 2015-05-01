@@ -332,32 +332,34 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var classExpr = new JS.ClassExpression(new JS.Identifier(type.name),
         _classHeritage(node), _emitClassMethods(node, ctors, fields));
 
-    var body =
-        _finishClassMembers(classElem, classExpr, ctors, fields, staticFields);
+    String jsPeerName;
+    var jsPeer = getAnnotationValue(node, _isJsPeerInterface);
+    if (jsPeer != null) {
+      jsPeerName = getConstantField(jsPeer, 'name', types.stringType);
+    }
+
+    var body = _finishClassMembers(
+        classElem, classExpr, ctors, fields, staticFields, jsPeerName);
 
     var result = _finishClassDef(type, body);
 
-    var jsPeer = getAnnotationValue(node, _isJsPeerInterface);
-    if (jsPeer != null) {
-      var jsPeerName = getConstantField(jsPeer, 'name', types.stringType);
-      if (jsPeerName != null) {
-        // This class isn't allowed to be lazy, because we need to set up
-        // the native JS type eagerly at this point.
-        // If we wanted to support laziness, we could defer the hookup until
-        // the end of the Dart library cycle load.
-        assert(!_lazyClass(type));
+    if (jsPeerName != null) {
+      // This class isn't allowed to be lazy, because we need to set up
+      // the native JS type eagerly at this point.
+      // If we wanted to support laziness, we could defer the hookup until
+      // the end of the Dart library cycle load.
+      assert(!_lazyClass(type));
 
-        // TODO(jmesserly): this copies the dynamic members.
-        // Probably fine for objects coming from JS, but not if we actually
-        // want to support construction of instances with generic types other
-        // than dynamic. See issue #154 for Array and List<E> related bug.
-        var copyMembers = js.statement(
-            'dart.registerExtension(dart.global.#, #);', [
-          _propertyName(jsPeerName),
-          classElem.name
-        ]);
-        return _statement([result, copyMembers]);
-      }
+      // TODO(jmesserly): this copies the dynamic members.
+      // Probably fine for objects coming from JS, but not if we actually
+      // want to support construction of instances with generic types other
+      // than dynamic. See issue #154 for Array and List<E> related bug.
+      var copyMembers = js.statement(
+          'dart.registerExtension(dart.global.#, #);', [
+        _propertyName(jsPeerName),
+        classElem.name
+      ]);
+      return _statement([result, copyMembers]);
     }
     return result;
   }
@@ -602,10 +604,19 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// inside the ES6 `class { ... }` node.
   JS.Statement _finishClassMembers(ClassElement classElem,
       JS.ClassExpression cls, List<ConstructorDeclaration> ctors,
-      List<FieldDeclaration> fields, List<FieldDeclaration> staticFields) {
+      List<FieldDeclaration> fields, List<FieldDeclaration> staticFields,
+      String jsPeerName) {
     var name = classElem.name;
     var body = <JS.Statement>[];
     body.add(new JS.ClassDeclaration(cls));
+
+    // TODO(jmesserly): we should really just extend native Array.
+    if (jsPeerName != null && classElem.typeParameters.isNotEmpty) {
+      body.add(js.statement('dart.setBaseClass(#, dart.global.#);', [
+        classElem.name,
+        _propertyName(jsPeerName)
+      ]));
+    }
 
     // Interfaces
     if (classElem.interfaces.isNotEmpty) {
@@ -744,7 +755,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // Generate optional/named argument value assignment. These can not have
     // side effects, and may be used by the constructor's initializers, so it's
     // nice to do them first.
-    var init = _emitArgumentInitializers(node.parameters);
+    var init = _emitArgumentInitializers(node, constructor: true);
     if (init != null) body.add(init);
 
     // Redirecting constructors: these are not allowed to have initializers,
@@ -890,26 +901,24 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   }
 
   FormalParameterList _parametersOf(node) {
-    // Note: ConstructorDeclaration is intentionally skipped here so we can
-    // emit the argument initializers in a different place.
     // TODO(jmesserly): clean this up. If we can model ES6 spread/rest args, we
     // could handle argument initializers more consistently in a separate
     // lowering pass.
+    if (node is ConstructorDeclaration) return node.parameters;
     if (node is MethodDeclaration) return node.parameters;
     if (node is FunctionDeclaration) node = node.functionExpression;
-    if (node is FunctionExpression) return node.parameters;
-    return null;
+    return (node as FunctionExpression).parameters;
   }
 
-  bool _hasArgumentInitializers(FormalParameterList parameters) {
-    if (parameters == null) return false;
-    return parameters.parameters.any((p) => p.kind != ParameterKind.REQUIRED);
-  }
+  /// Emits argument initializers, which handles optional/named args, as well
+  /// as generic type checks needed due to our covariance.
+  JS.Statement _emitArgumentInitializers(node, {bool constructor: false}) {
+    // Constructor argument initializers are emitted earlier in the code, rather
+    // than always when we visit the function body, so we control it explicitly.
+    if (node is ConstructorDeclaration != constructor) return null;
 
-  JS.Statement _emitArgumentInitializers(FormalParameterList parameters) {
-    if (parameters == null || !_hasArgumentInitializers(parameters)) {
-      return null;
-    }
+    var parameters = _parametersOf(node);
+    if (parameters == null) return null;
 
     var body = [];
     for (var param in parameters.parameters) {
@@ -935,9 +944,20 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
           _defaultParamValue(param)
         ]));
       }
+
+      // TODO(jmesserly): various problems here, see:
+      // https://github.com/dart-lang/dev_compiler/issues/161
+      var paramType = param.element.type;
+      if (!constructor && _hasTypeParameter(paramType)) {
+        body.add(js.statement(
+            'dart.as(#, #);', [jsParam, _emitTypeName(paramType)]));
+      }
     }
-    return _statement(body);
+    return body.isEmpty ? null : _statement(body);
   }
+
+  bool _hasTypeParameter(DartType t) => t is TypeParameterType ||
+      t is ParameterizedType && t.typeArguments.any(_hasTypeParameter);
 
   JS.Expression _defaultParamValue(FormalParameter param) {
     if (param is DefaultFormalParameter && param.defaultValue != null) {
@@ -1240,7 +1260,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   JS.Block visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    var initArgs = _emitArgumentInitializers(_parametersOf(node.parent));
+    var initArgs = _emitArgumentInitializers(node.parent);
     var ret = new JS.Return(_visit(node.expression));
     return new JS.Block(initArgs != null ? [initArgs, ret] : [ret]);
   }
@@ -1250,7 +1270,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   JS.Block visitBlockFunctionBody(BlockFunctionBody node) {
-    var initArgs = _emitArgumentInitializers(_parametersOf(node.parent));
+    var initArgs = _emitArgumentInitializers(node.parent);
     var block = visitBlock(node.block);
     if (initArgs != null) return new JS.Block([initArgs, block]);
     return block;
@@ -1559,6 +1579,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
     if (expr is Conversion) {
       return _isNonNullableExpression(expr.expression);
+    }
+    if (expr is SimpleIdentifier) {
+      // Type literals are not null.
+      Element e = expr.staticElement;
+      if (e is ClassElement || e is FunctionTypeAliasElement) return true;
     }
     DartType type = null;
     if (expr is BinaryExpression) {

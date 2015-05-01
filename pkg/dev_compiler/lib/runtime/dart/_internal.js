@@ -11,6 +11,7 @@ var _internal;
         return new (ListIterator$(E))(this);
       }
       [core.$forEach](action) {
+        dart.as(action, dart.functionType(dart.void, [E]));
         let length = this[core.$length];
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           action(this[core.$elementAt](i));
@@ -51,6 +52,7 @@ var _internal;
         return false;
       }
       [core.$every](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
         let length = this[core.$length];
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           if (!dart.notNull(test(this[core.$elementAt](i))))
@@ -62,6 +64,7 @@ var _internal;
         return true;
       }
       [core.$any](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
         let length = this[core.$length];
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           if (test(this[core.$elementAt](i)))
@@ -73,7 +76,9 @@ var _internal;
         return false;
       }
       [core.$firstWhere](test, opts) {
+        dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
+        dart.as(orElse, dart.functionType(E, []));
         let length = this[core.$length];
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let element = this[core.$elementAt](i);
@@ -88,7 +93,9 @@ var _internal;
         throw IterableElementError.noElement();
       }
       [core.$lastWhere](test, opts) {
+        dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
+        dart.as(orElse, dart.functionType(E, []));
         let length = this[core.$length];
         for (let i = dart.notNull(length) - 1; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
           let element = this[core.$elementAt](i);
@@ -103,6 +110,7 @@ var _internal;
         throw IterableElementError.noElement();
       }
       [core.$singleWhere](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
         let length = this[core.$length];
         let match = null;
         let matchFound = false;
@@ -155,12 +163,15 @@ var _internal;
         }
       }
       [core.$where](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
         return super[core.$where](test);
       }
       [core.$map](f) {
+        dart.as(f, dart.functionType(dart.dynamic, [E]));
         return new MappedListIterable(this, f);
       }
       [core.$reduce](combine) {
+        dart.as(combine, dart.functionType(E, [dart.dynamic, E]));
         let length = this[core.$length];
         if (length == 0)
           throw IterableElementError.noElement();
@@ -174,6 +185,7 @@ var _internal;
         return value;
       }
       [core.$fold](initialValue, combine) {
+        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
         let value = initialValue;
         let length = this[core.$length];
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
@@ -188,12 +200,14 @@ var _internal;
         return new (SubListIterable$(E))(this, count, null);
       }
       [core.$skipWhile](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
         return super[core.$skipWhile](test);
       }
       [core.$take](count) {
         return new (SubListIterable$(E))(this, 0, count);
       }
       [core.$takeWhile](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
         return super[core.$takeWhile](test);
       }
       [core.$toList](opts) {
@@ -758,7 +772,9 @@ var _internal;
       get [core.$iterator]() {
         return dart.const(new (EmptyIterator$(E))());
       }
-      [core.$forEach](action) {}
+      [core.$forEach](action) {
+        dart.as(action, dart.functionType(dart.void, [E]));
+      }
       get [core.$isEmpty]() {
         return true;
       }
@@ -781,25 +797,33 @@ var _internal;
         return false;
       }
       [core.$every](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
         return true;
       }
       [core.$any](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
         return false;
       }
       [core.$firstWhere](test, opts) {
+        dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
+        dart.as(orElse, dart.functionType(E, []));
         if (orElse != null)
           return orElse();
         throw IterableElementError.noElement();
       }
       [core.$lastWhere](test, opts) {
+        dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
+        dart.as(orElse, dart.functionType(E, []));
         if (orElse != null)
           return orElse();
         throw IterableElementError.noElement();
       }
       [core.$singleWhere](test, opts) {
+        dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
+        dart.as(orElse, dart.functionType(E, []));
         if (orElse != null)
           return orElse();
         throw IterableElementError.noElement();
@@ -810,15 +834,19 @@ var _internal;
         return "";
       }
       [core.$where](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
         return this;
       }
       [core.$map](f) {
+        dart.as(f, dart.functionType(dart.dynamic, [E]));
         return dart.const(new EmptyIterable());
       }
       [core.$reduce](combine) {
+        dart.as(combine, dart.functionType(E, [E, E]));
         throw IterableElementError.noElement();
       }
       [core.$fold](initialValue, combine) {
+        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
         return initialValue;
       }
       [core.$skip](count) {
@@ -826,6 +854,7 @@ var _internal;
         return this;
       }
       [core.$skipWhile](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
         return this;
       }
       [core.$take](count) {
@@ -833,6 +862,7 @@ var _internal;
         return this;
       }
       [core.$takeWhile](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
         return this;
       }
       [core.$toList](opts) {
@@ -878,11 +908,13 @@ var _internal;
         return false;
       }
       static forEach(iterable, f) {
+        dart.as(f, dart.functionType(dart.void, [dart.dynamic]));
         for (let e of iterable) {
           dart.dcall(f, e);
         }
       }
       static any(iterable, f) {
+        dart.as(f, dart.functionType(core.bool, [dart.dynamic]));
         for (let e of iterable) {
           if (dart.dcall(f, e))
             return true;
@@ -890,6 +922,7 @@ var _internal;
         return false;
       }
       static every(iterable, f) {
+        dart.as(f, dart.functionType(core.bool, [dart.dynamic]));
         for (let e of iterable) {
           if (!dart.notNull(dart.dcall(f, e)))
             return false;
@@ -897,6 +930,7 @@ var _internal;
         return true;
       }
       static reduce(iterable, combine) {
+        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
         let iterator = iterable[core.$iterator];
         if (!dart.notNull(iterator.moveNext()))
           throw IterableElementError.noElement();
@@ -907,12 +941,14 @@ var _internal;
         return value;
       }
       static fold(iterable, initialValue, combine) {
+        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
         for (let element of iterable) {
           initialValue = dart.dcall(combine, initialValue, element);
         }
         return initialValue;
       }
       static removeWhereList(list, test) {
+        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
         let retained = [];
         let length = list[core.$length];
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
@@ -962,6 +998,8 @@ var _internal;
         return result;
       }
       static firstWhere(iterable, test, orElse) {
+        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
+        dart.as(orElse, dart.functionType(dart.dynamic, []));
         for (let element of iterable) {
           if (dart.dcall(test, element))
             return element;
@@ -971,6 +1009,8 @@ var _internal;
         throw IterableElementError.noElement();
       }
       static lastWhere(iterable, test, orElse) {
+        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
+        dart.as(orElse, dart.functionType(dart.dynamic, []));
         let result = null;
         let foundMatching = false;
         for (let element of iterable) {
@@ -986,6 +1026,8 @@ var _internal;
         throw IterableElementError.noElement();
       }
       static lastWhereList(list, test, orElse) {
+        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
+        dart.as(orElse, dart.functionType(dart.dynamic, []));
         for (let i = dart.notNull(list[core.$length]) - 1; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
           let element = list[core.$get](i);
           if (dart.dcall(test, element))
@@ -996,6 +1038,7 @@ var _internal;
         throw IterableElementError.noElement();
       }
       static singleWhere(iterable, test) {
+        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
         let result = null;
         let foundMatching = false;
         for (let element of iterable) {
@@ -1052,33 +1095,40 @@ var _internal;
         return dart.toString(buffer);
       }
       where(iterable, f) {
+        dart.as(f, dart.functionType(core.bool, [dart.dynamic]));
         return new (WhereIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(f, __CastType6));
       }
       static map(iterable, f) {
+        dart.as(f, dart.functionType(dart.dynamic, [dart.dynamic]));
         return new MappedIterable(iterable, f);
       }
       static mapList(list, f) {
+        dart.as(f, dart.functionType(dart.dynamic, [dart.dynamic]));
         return new MappedListIterable(list, f);
       }
       static expand(iterable, f) {
+        dart.as(f, dart.functionType(core.Iterable, [dart.dynamic]));
         return new ExpandIterable(iterable, f);
       }
       takeList(list, n) {
         return new (SubListIterable$(T))(dart.as(list, core.Iterable$(T)), 0, n);
       }
       takeWhile(iterable, test) {
+        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
         return new (TakeWhileIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(test, dart.functionType(core.bool, [T])));
       }
       skipList(list, n) {
         return new (SubListIterable$(T))(dart.as(list, core.Iterable$(T)), n, null);
       }
       skipWhile(iterable, test) {
+        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
         return new (SkipWhileIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(test, dart.functionType(core.bool, [T])));
       }
       reversedList(list) {
         return new (ReversedListIterable$(T))(dart.as(list, core.Iterable$(T)));
       }
       static sortList(list, compare) {
+        dart.as(compare, dart.functionType(core.int, [dart.dynamic, dart.dynamic]));
         if (compare == null)
           compare = dart.bind(core.Comparable, 'compare');
         Sort.sort(list, compare);
@@ -1269,24 +1319,30 @@ var _internal;
         throw new core.UnsupportedError("Cannot change the length of a fixed-length list");
       }
       add(value) {
+        dart.as(value, E);
         throw new core.UnsupportedError("Cannot add to a fixed-length list");
       }
       insert(index, value) {
+        dart.as(value, E);
         throw new core.UnsupportedError("Cannot add to a fixed-length list");
       }
       insertAll(at, iterable) {
+        dart.as(iterable, core.Iterable$(E));
         throw new core.UnsupportedError("Cannot add to a fixed-length list");
       }
       addAll(iterable) {
+        dart.as(iterable, core.Iterable$(E));
         throw new core.UnsupportedError("Cannot add to a fixed-length list");
       }
       remove(element) {
         throw new core.UnsupportedError("Cannot remove from a fixed-length list");
       }
       removeWhere(test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
         throw new core.UnsupportedError("Cannot remove from a fixed-length list");
       }
       retainWhere(test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
         throw new core.UnsupportedError("Cannot remove from a fixed-length list");
       }
       clear() {
@@ -1302,6 +1358,7 @@ var _internal;
         throw new core.UnsupportedError("Cannot remove from a fixed-length list");
       }
       replaceRange(start, end, iterable) {
+        dart.as(iterable, core.Iterable$(E));
         throw new core.UnsupportedError("Cannot remove from a fixed-length list");
       }
     }
@@ -1311,38 +1368,47 @@ var _internal;
   let UnmodifiableListMixin$ = dart.generic(function(E) {
     class UnmodifiableListMixin extends core.Object {
       [core.$set](index, value) {
+        dart.as(value, E);
         throw new core.UnsupportedError("Cannot modify an unmodifiable list");
       }
       set [core.$length](newLength) {
         throw new core.UnsupportedError("Cannot change the length of an unmodifiable list");
       }
       [core.$setAll](at, iterable) {
+        dart.as(iterable, core.Iterable$(E));
         throw new core.UnsupportedError("Cannot modify an unmodifiable list");
       }
       [core.$add](value) {
+        dart.as(value, E);
         throw new core.UnsupportedError("Cannot add to an unmodifiable list");
       }
       [core.$insert](index, value) {
+        dart.as(value, E);
         throw new core.UnsupportedError("Cannot add to an unmodifiable list");
       }
       [core.$insertAll](at, iterable) {
+        dart.as(iterable, core.Iterable$(E));
         throw new core.UnsupportedError("Cannot add to an unmodifiable list");
       }
       [core.$addAll](iterable) {
+        dart.as(iterable, core.Iterable$(E));
         throw new core.UnsupportedError("Cannot add to an unmodifiable list");
       }
       [core.$remove](element) {
         throw new core.UnsupportedError("Cannot remove from an unmodifiable list");
       }
       [core.$removeWhere](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
         throw new core.UnsupportedError("Cannot remove from an unmodifiable list");
       }
       [core.$retainWhere](test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
         throw new core.UnsupportedError("Cannot remove from an unmodifiable list");
       }
       [core.$sort](compare) {
         if (compare === void 0)
           compare = null;
+        dart.as(compare, core.Comparator$(E));
         throw new core.UnsupportedError("Cannot modify an unmodifiable list");
       }
       [core.$shuffle](random) {
@@ -1360,6 +1426,7 @@ var _internal;
         throw new core.UnsupportedError("Cannot remove from an unmodifiable list");
       }
       [core.$setRange](start, end, iterable, skipCount) {
+        dart.as(iterable, core.Iterable$(E));
         if (skipCount === void 0)
           skipCount = 0;
         throw new core.UnsupportedError("Cannot modify an unmodifiable list");
@@ -1368,11 +1435,13 @@ var _internal;
         throw new core.UnsupportedError("Cannot remove from an unmodifiable list");
       }
       [core.$replaceRange](start, end, iterable) {
+        dart.as(iterable, core.Iterable$(E));
         throw new core.UnsupportedError("Cannot remove from an unmodifiable list");
       }
       [core.$fillRange](start, end, fillValue) {
         if (fillValue === void 0)
           fillValue = null;
+        dart.as(fillValue, E);
         throw new core.UnsupportedError("Cannot modify an unmodifiable list");
       }
     }
@@ -1435,6 +1504,7 @@ var _internal;
         return typeof key == 'number' && dart.notNull(key) >= 0 && dart.notNull(key) < dart.notNull(this.length);
       }
       forEach(f) {
+        dart.as(f, dart.functionType(dart.void, [core.int, E]));
         let length = this[_values][core.$length];
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           f(i, this[_values][core.$get](i));
@@ -1444,9 +1514,11 @@ var _internal;
         }
       }
       set(key, value) {
+        dart.as(value, E);
         throw new core.UnsupportedError("Cannot modify an unmodifiable map");
       }
       putIfAbsent(key, ifAbsent) {
+        dart.as(ifAbsent, dart.functionType(E, []));
         throw new core.UnsupportedError("Cannot modify an unmodifiable map");
       }
       remove(key) {
@@ -1456,6 +1528,7 @@ var _internal;
         throw new core.UnsupportedError("Cannot modify an unmodifiable map");
       }
       addAll(other) {
+        dart.as(other, core.Map$(core.int, E));
         throw new core.UnsupportedError("Cannot modify an unmodifiable map");
       }
       toString() {

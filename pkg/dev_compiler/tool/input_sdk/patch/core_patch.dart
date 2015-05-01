@@ -243,23 +243,28 @@ class _ListConstructorSentinel {
 class List<E> {
   @patch
   factory List([int length]) {
+    dynamic list;
     if (length == null) {
-      return JS('', '[]');
+      list = JS('', '[]');
+    } else {
+      // Explicit type test is necessary to guard against JavaScript conversions
+      // in unchecked mode.
+      if ((length is !int) || (length < 0)) {
+        throw new ArgumentError("Length must be a non-negative integer: $length");
+      }
+      list = JS('', 'new Array(#)', length);
+      // TODO(jmesserly): consider a fixed array subclass instead.
+      JS('void', r'#.fixed$length = Array', list);
     }
-    // Explicit type test is necessary to guard against JavaScript conversions
-    // in unchecked mode.
-    if ((length is !int) || (length < 0)) {
-      throw new ArgumentError("Length must be a non-negative integer: $length");
-    }
-    var list = JS('', 'new Array(#)', length);
-    // TODO(jmesserly): consider a fixed array subclass instead.
-    JS('void', r'#.fixed$length = Array', list);
+    // TODO(jmesserly): skip this when E is dynamic and Object.
+    JS('void', 'dart.setType(#, List\$(#))', list, E);
+    // TODO(jmesserly): compiler creates a bogus type check here.
     return list;
   }
 
   @patch
   factory List.filled(int length, E fill) {
-    List result = new JSArray<E>.fixed(length);
+    List result = new List<E>(length);
     if (length != 0 && fill != null) {
       for (int i = 0; i < result.length; i++) {
         result[i] = fill;

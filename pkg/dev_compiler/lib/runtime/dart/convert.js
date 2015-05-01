@@ -9,12 +9,15 @@ var convert;
       Codec() {
       }
       encode(input) {
+        dart.as(input, S);
         return this.encoder.convert(input);
       }
       decode(encoded) {
+        dart.as(encoded, T);
         return this.decoder.convert(encoded);
       }
       fuse(other) {
+        dart.as(other, Codec$(T, dart.dynamic));
         return new (_FusedCodec$(S, T, dart.dynamic))(this, other);
       }
       get inverted() {
@@ -79,6 +82,7 @@ var convert;
       Converter() {
       }
       fuse(other) {
+        dart.as(other, Converter$(T, dart.dynamic));
         return new (_FusedConverter$(S, T, dart.dynamic))(this, other);
       }
       startChunkedConversion(sink) {
@@ -380,6 +384,7 @@ var convert;
         super.ChunkedConversionSink();
       }
       add(chunk) {
+        dart.as(chunk, T);
         this[_accumulated][core.$add](chunk);
       }
       close() {
@@ -395,6 +400,7 @@ var convert;
         this[_sink] = sink;
       }
       add(data) {
+        dart.as(data, T);
         return this[_sink].add(data);
       }
       close() {
@@ -414,6 +420,7 @@ var convert;
         this[_chunkedSink] = converter.startChunkedConversion(sink);
       }
       add(o) {
+        dart.as(o, S);
         return this[_chunkedSink].add(o);
       }
       addError(error, stackTrace) {
@@ -476,6 +483,7 @@ var convert;
         super.Converter();
       }
       convert(input) {
+        dart.as(input, S);
         return dart.as(this[_second].convert(this[_first].convert(input)), T);
       }
       startChunkedConversion(sink) {
