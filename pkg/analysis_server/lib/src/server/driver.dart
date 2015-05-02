@@ -204,6 +204,26 @@ class Driver implements ServerStarter {
       "enable-incremental-resolution-api";
 
   /**
+   * The name of the option used to enable instrumentation.
+   */
+  static const String ENABLE_INSTRUMENTATION_OPTION = "enable-instrumentation";
+
+  /**
+   * The name of the option used to enable the use of the new task model.
+   */
+  static const String ENABLE_NEW_TASK_MODEL = "enable-new-task-model";
+
+  /**
+   * The name of the option used to set the file read mode.
+   */
+  static const String FILE_READ_MODE = "file-read-mode";
+
+  /**
+   * The name of the option used to print usage information.
+   */
+  static const String HELP_OPTION = "help";
+
+  /**
    * The name of the option used to describe the incremental resolution logger.
    */
   static const String INCREMENTAL_RESOLUTION_LOG = "incremental-resolution-log";
@@ -222,14 +242,10 @@ class Driver implements ServerStarter {
   static const String INSTRUMENTATION_LOG_FILE = "instrumentation-log-file";
 
   /**
-   * The name of the option used to enable instrumentation.
+   * The name of the option used to specify if [print] should print to the
+   * console instead of being intercepted.
    */
-  static const String ENABLE_INSTRUMENTATION_OPTION = "enable-instrumentation";
-
-  /**
-   * The name of the option used to print usage information.
-   */
-  static const String HELP_OPTION = "help";
+  static const String INTERNAL_DELAY_FREQUENCY = 'internal-delay-frequency';
 
   /**
    * The name of the option used to specify if [print] should print to the
@@ -238,10 +254,14 @@ class Driver implements ServerStarter {
   static const String INTERNAL_PRINT_TO_CONSOLE = "internal-print-to-console";
 
   /**
-   * The name of the option used to specify if [print] should print to the
-   * console instead of being intercepted.
+   * The name of the flag used to disable error notifications.
    */
-  static const String INTERNAL_DELAY_FREQUENCY = 'internal-delay-frequency';
+  static const String NO_ERROR_NOTIFICATION = "no-error-notification";
+
+  /**
+   * The name of the flag used to disable the index.
+   */
+  static const String NO_INDEX = "no-index";
 
   /**
    * The option for specifying the http diagnostic port.
@@ -256,21 +276,6 @@ class Driver implements ServerStarter {
    * operational.
    */
   static const String SDK_OPTION = "sdk";
-
-  /**
-   * The name of the flag used to disable error notifications.
-   */
-  static const String NO_ERROR_NOTIFICATION = "no-error-notification";
-
-  /**
-   * The name of the flag used to disable the index.
-   */
-  static const String NO_INDEX = "no-index";
-
-  /**
-   * The name of the option used to set the file read mode.
-   */
-  static const String FILE_READ_MODE = "file-read-mode";
 
   /**
    * The instrumentation server that is to be used by the analysis server.
@@ -307,24 +312,6 @@ class Driver implements ServerStarter {
       _printUsage(parser.parser);
       return;
     }
-
-    // TODO(brianwilkerson) Enable this after it is possible for an
-    // instrumentation server to be provided.
-//    if (results[ENABLE_INSTRUMENTATION_OPTION]) {
-//      if (instrumentationServer == null) {
-//        print('Exiting server: enabled instrumentation without providing an instrumentation server');
-//        print('');
-//        _printUsage(parser);
-//        return;
-//      }
-//    } else {
-//      if (instrumentationServer != null) {
-//        print('Exiting server: providing an instrumentation server without enabling instrumentation');
-//        print('');
-//        _printUsage(parser);
-//        return;
-//      }
-//    }
 
     // TODO (danrubel) Remove this workaround
     // once the underlying VM and dart:io issue has been fixed.
@@ -367,7 +354,9 @@ class Driver implements ServerStarter {
       // which will make a guess.
       defaultSdk = DirectoryBasedDartSdk.defaultSdk;
     }
-
+    //
+    // Initialize the instrumentation service.
+    //
     if (instrumentationServer != null) {
       String filePath = results[INSTRUMENTATION_LOG_FILE];
       if (filePath != null) {
@@ -381,6 +370,12 @@ class Driver implements ServerStarter {
         results[CLIENT_VERSION], AnalysisServer.VERSION, defaultSdk.sdkVersion);
     AnalysisEngine.instance.instrumentationService = service;
     //
+    // Enable the new task model, if appropriate.
+    //
+    if (results[ENABLE_NEW_TASK_MODEL]) {
+      AnalysisEngine.instance.useTaskModel = true;
+    }
+    //
     // Process all of the plugins so that extensions are registered.
     //
     ServerPlugin serverPlugin = new ServerPlugin();
@@ -390,7 +385,9 @@ class Driver implements ServerStarter {
     plugins.addAll(_userDefinedPlugins);
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
-
+    //
+    // Create the sockets and start listening for requests.
+    //
     socketServer = new SocketServer(
         analysisServerOptions, defaultSdk, service, serverPlugin);
     httpServer = new HttpAnalysisServer(socketServer);
@@ -458,6 +455,11 @@ class Driver implements ServerStarter {
     parser.addFlag(ENABLE_INSTRUMENTATION_OPTION,
         help: "enable sending instrumentation information to a server",
         defaultsTo: false,
+        negatable: false);
+    parser.addFlag(ENABLE_NEW_TASK_MODEL,
+        help: "enable the use of the new task model",
+        defaultsTo: false,
+        hide: true,
         negatable: false);
     parser.addFlag(HELP_OPTION,
         help: "print this help message without starting a server",

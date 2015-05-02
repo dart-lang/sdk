@@ -13,7 +13,7 @@ import 'dart:collection';
 
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart' as cache;
-import 'package:analyzer/src/context/context.dart' as cache;
+import 'package:analyzer/src/context/context.dart' as newContext;
 import 'package:analyzer/src/generated/incremental_resolution_validator.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/services/lint.dart';
@@ -5743,8 +5743,8 @@ class AnalysisEngine {
   /**
    * The partition manager being used to manage the shared partitions.
    */
-  final cache.PartitionManager partitionManager_new =
-      new cache.PartitionManager();
+  final newContext.PartitionManager partitionManager_new =
+      new newContext.PartitionManager();
 
   /**
    * A flag indicating whether the (new) task model should be used to perform
@@ -5814,6 +5814,9 @@ class AnalysisEngine {
    * Create and return a new context in which analysis can be performed.
    */
   AnalysisContext createAnalysisContext() {
+    if (useTaskModel) {
+      return new newContext.AnalysisContextImpl();
+    }
     return new AnalysisContextImpl();
   }
 
