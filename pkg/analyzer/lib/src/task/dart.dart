@@ -334,6 +334,9 @@ class BuildClassConstructorsTask extends SourceBasedAnalysisTask {
     ClassElementImpl classElement = this.target;
     List<ConstructorElement> superConstructors = inputs[SUPER_CONSTRUCTORS];
     DartType superType = classElement.supertype;
+    if (superType == null) {
+      return;
+    }
     //
     // Shortcut for ClassElement(s) without implicit constructors.
     //

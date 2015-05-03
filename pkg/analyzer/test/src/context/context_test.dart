@@ -32,7 +32,6 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/html.dart' as ht;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -44,6 +43,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
+import 'package:analyzer/task/dart.dart';
 import 'package:plugin/manager.dart';
 import 'package:unittest/unittest.dart';
 import 'package:watcher/src/utils.dart';
@@ -51,7 +51,6 @@ import 'package:watcher/src/utils.dart';
 import '../../generated/engine_test.dart';
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
-import 'package:analyzer/task/dart.dart';
 import '../mock_sdk.dart';
 
 main() {
@@ -367,7 +366,7 @@ class AnalysisContextForTests extends AnalysisContextImpl {
       CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
       unit.element = library.definingCompilationUnit;
       CacheEntry entry = getCacheEntry(librarySource);
-      entry.setValue(PARSED_UNIT, unit);
+      entry.setValue(PARSED_UNIT, unit, TargetedResult.EMPTY_LIST);
     });
   }
 
@@ -393,70 +392,6 @@ class AnalysisContextImplTest extends EngineTestCase {
    * The source factory associated with the analysis [context].
    */
   SourceFactory _sourceFactory;
-
-  void fail_applyChanges_change_flush_element() {
-    _context = contextWithCore();
-    _sourceFactory = _context.sourceFactory;
-    Source librarySource = _addSource("/lib.dart", r'''
-library lib;
-int a = 0;''');
-    expect(_context.computeLibraryElement(librarySource), isNotNull);
-    _context.setContents(librarySource, r'''
-library lib;
-int aa = 0;''');
-    expect(_context.getLibraryElement(librarySource), isNull);
-  }
-
-  Future test_applyChanges_change_multiple() {
-    _context = contextWithCore();
-    SourcesChangedListener listener = new SourcesChangedListener();
-    _context.onSourcesChanged.listen(listener.onData);
-    _sourceFactory = _context.sourceFactory;
-    String libraryContents1 = r'''
-library lib;
-part 'part.dart';
-int a = 0;''';
-    Source librarySource = _addSource("/lib.dart", libraryContents1);
-    String partContents1 = r'''
-part of lib;
-int b = a;''';
-    Source partSource = _addSource("/part.dart", partContents1);
-    _context.computeLibraryElement(librarySource);
-    String libraryContents2 = r'''
-library lib;
-part 'part.dart';
-int aa = 0;''';
-    _context.setContents(librarySource, libraryContents2);
-    String partContents2 = r'''
-part of lib;
-int b = aa;''';
-    _context.setContents(partSource, partContents2);
-    _context.computeLibraryElement(librarySource);
-    CompilationUnit libraryUnit =
-        _context.resolveCompilationUnit2(librarySource, librarySource);
-    expect(libraryUnit, isNotNull);
-    CompilationUnit partUnit =
-        _context.resolveCompilationUnit2(partSource, librarySource);
-    expect(partUnit, isNotNull);
-    TopLevelVariableDeclaration declaration =
-        libraryUnit.declarations[0] as TopLevelVariableDeclaration;
-    Element declarationElement = declaration.variables.variables[0].element;
-    TopLevelVariableDeclaration use =
-        partUnit.declarations[0] as TopLevelVariableDeclaration;
-    Element useElement = (use.variables.variables[
-        0].initializer as SimpleIdentifier).staticElement;
-    expect((useElement as PropertyAccessorElement).variable,
-        same(declarationElement));
-    return pumpEventQueue().then((_) {
-      listener.assertEvent(wereSourcesAdded: true);
-      listener.assertEvent(changedSources: [librarySource]);
-      listener.assertEvent(wereSourcesAdded: true);
-      listener.assertEvent(changedSources: [partSource]);
-      listener.assertEvent(changedSources: [librarySource]);
-      listener.assertEvent(changedSources: [partSource]);
-      listener.assertNoMoreEvents();
-    });
-  }
 
   void fail_applyChanges_empty() {
     _context.applyChanges(new ChangeSet());
@@ -552,57 +487,6 @@ import 'libB.dart';''';
     });
   }
 
-  void test_computeDocumentationComment_block() {
-    _context = contextWithCore();
-    _sourceFactory = _context.sourceFactory;
-    String comment = "/** Comment */";
-    Source source = _addSource("/test.dart", """
-$comment
-class A {}""");
-    LibraryElement libraryElement = _context.computeLibraryElement(source);
-    expect(libraryElement, isNotNull);
-    ClassElement classElement = libraryElement.definingCompilationUnit.types[0];
-    expect(libraryElement, isNotNull);
-    expect(_context.computeDocumentationComment(classElement), comment);
-  }
-
-  void test_computeDocumentationComment_none() {
-    _context = contextWithCore();
-    _sourceFactory = _context.sourceFactory;
-    Source source = _addSource("/test.dart", "class A {}");
-    LibraryElement libraryElement = _context.computeLibraryElement(source);
-    expect(libraryElement, isNotNull);
-    ClassElement classElement = libraryElement.definingCompilationUnit.types[0];
-    expect(libraryElement, isNotNull);
-    expect(_context.computeDocumentationComment(classElement), isNull);
-  }
-
-  void test_computeDocumentationComment_singleLine_multiple_EOL_n() {
-    _context = contextWithCore();
-    _sourceFactory = _context.sourceFactory;
-    String comment = "/// line 1\n/// line 2\n/// line 3\n";
-    Source source = _addSource("/test.dart", "${comment}class A {}");
-    LibraryElement libraryElement = _context.computeLibraryElement(source);
-    expect(libraryElement, isNotNull);
-    ClassElement classElement = libraryElement.definingCompilationUnit.types[0];
-    expect(libraryElement, isNotNull);
-    String actual = _context.computeDocumentationComment(classElement);
-    expect(actual, "/// line 1\n/// line 2\n/// line 3");
-  }
-
-  void test_computeDocumentationComment_singleLine_multiple_EOL_rn() {
-    _context = contextWithCore();
-    _sourceFactory = _context.sourceFactory;
-    String comment = "/// line 1\r\n/// line 2\r\n/// line 3\r\n";
-    Source source = _addSource("/test.dart", "${comment}class A {}");
-    LibraryElement libraryElement = _context.computeLibraryElement(source);
-    expect(libraryElement, isNotNull);
-    ClassElement classElement = libraryElement.definingCompilationUnit.types[0];
-    expect(libraryElement, isNotNull);
-    String actual = _context.computeDocumentationComment(classElement);
-    expect(actual, "/// line 1\n/// line 2\n/// line 3");
-  }
-
   void fail_computeErrors_dart_none() {
     Source source = _addSource("/lib.dart", "library lib;");
     List<AnalysisError> errors = _context.computeErrors(source);
@@ -657,14 +541,6 @@ class A {}""");
     expect(_context.computeKindOf(source), same(SourceKind.HTML));
   }
 
-  void test_computeLibraryElement() {
-    _context = contextWithCore();
-    _sourceFactory = _context.sourceFactory;
-    Source source = _addSource("/test.dart", "library lib;");
-    LibraryElement element = _context.computeLibraryElement(source);
-    expect(element, isNotNull);
-  }
-
   void fail_computeResolvableCompilationUnit_dart_exception() {
     TestSource source = _addSourceWithException("/test.dart");
     try {
@@ -693,85 +569,6 @@ class A {}""");
         _context.computeResolvableCompilationUnit(source);
     expect(resolvedUnit, isNotNull);
     expect(resolvedUnit, same(parsedUnit));
-  }
-
-  Future fail_computeResolvedCompilationUnitAsync() {
-    _context = contextWithCore();
-    _sourceFactory = _context.sourceFactory;
-    Source source = _addSource("/lib.dart", "library lib;");
-    // Complete all pending analysis tasks and flush the AST so that it won't
-    // be available immediately.
-    _performPendingAnalysisTasks();
-    CacheEntry entry = _context.getReadableSourceEntryOrNull(source);
-    entry.flushAstStructures();
-    bool completed = false;
-    _context
-        .computeResolvedCompilationUnitAsync(source, source)
-        .then((CompilationUnit unit) {
-      expect(unit, isNotNull);
-      completed = true;
-    });
-    return pumpEventQueue().then((_) {
-      expect(completed, isFalse);
-      _performPendingAnalysisTasks();
-    }).then((_) => pumpEventQueue()).then((_) {
-      expect(completed, isTrue);
-    });
-  }
-
-  Future test_computeResolvedCompilationUnitAsync_afterDispose() {
-    _context = contextWithCore();
-    _sourceFactory = _context.sourceFactory;
-    Source source = _addSource("/lib.dart", "library lib;");
-    // Complete all pending analysis tasks and flush the AST so that it won't
-    // be available immediately.
-    _performPendingAnalysisTasks();
-    CacheEntry entry = _context.getReadableSourceEntryOrNull(source);
-    entry.flushAstStructures();
-    // Dispose of the context.
-    _context.dispose();
-    // Any attempt to start an asynchronous computation should return a future
-    // which completes with error.
-    CancelableFuture<CompilationUnit> future =
-        _context.computeResolvedCompilationUnitAsync(source, source);
-    bool completed = false;
-    future.then((CompilationUnit unit) {
-      fail('Future should have completed with error');
-    }, onError: (error) {
-      expect(error, new isInstanceOf<AnalysisNotScheduledError>());
-      completed = true;
-    });
-    return pumpEventQueue().then((_) {
-      expect(completed, isTrue);
-    });
-  }
-
-  Future fail_computeResolvedCompilationUnitAsync_cancel() {
-    _context = contextWithCore();
-    _sourceFactory = _context.sourceFactory;
-    Source source = _addSource("/lib.dart", "library lib;");
-    // Complete all pending analysis tasks and flush the AST so that it won't
-    // be available immediately.
-    _performPendingAnalysisTasks();
-    CacheEntry entry = _context.getReadableSourceEntryOrNull(source);
-    entry.flushAstStructures();
-    CancelableFuture<CompilationUnit> future =
-        _context.computeResolvedCompilationUnitAsync(source, source);
-    bool completed = false;
-    future.then((CompilationUnit unit) {
-      fail('Future should have been canceled');
-    }, onError: (error) {
-      expect(error, new isInstanceOf<FutureCanceledError>());
-      completed = true;
-    });
-    expect(completed, isFalse);
-    expect(_context.pendingFutureSources_forTesting, isNotEmpty);
-    future.cancel();
-    expect(_context.pendingFutureSources_forTesting, isEmpty);
-    return pumpEventQueue().then((_) {
-      expect(completed, isTrue);
-      expect(_context.pendingFutureSources_forTesting, isEmpty);
-    });
   }
 
   Future fail_computeResolvedCompilationUnitAsync_dispose() {
@@ -1008,29 +805,6 @@ part 'part.dart';''');
     expect(result[0], librarySource);
   }
 
-  void test_getLibraryElement() {
-    _context = contextWithCore();
-    _sourceFactory = _context.sourceFactory;
-    Source source = _addSource("/test.dart", "library lib;");
-    LibraryElement element = _context.getLibraryElement(source);
-    expect(element, isNull);
-    _context.computeLibraryElement(source);
-    element = _context.getLibraryElement(source);
-    expect(element, isNotNull);
-  }
-
-  void test_getPublicNamespace_element() {
-    _context = contextWithCore();
-    _sourceFactory = _context.sourceFactory;
-    Source source = _addSource("/test.dart", "class A {}");
-    LibraryElement library = _context.computeLibraryElement(source);
-    expect(library, isNotNull);
-    Namespace namespace = _context.getPublicNamespace(library);
-    expect(namespace, isNotNull);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ClassElement, ClassElement, namespace.get("A"));
-  }
-
   void fail_getResolvedCompilationUnit_library() {
     _context = contextWithCore();
     _sourceFactory = _context.sourceFactory;
@@ -1039,15 +813,6 @@ part 'part.dart';''');
     expect(_context.getResolvedCompilationUnit(source, library), isNotNull);
     _context.setContents(source, "library lib;");
     expect(_context.getResolvedCompilationUnit(source, library), isNull);
-  }
-
-  void test_getResolvedCompilationUnit_source_dart() {
-    _context = contextWithCore();
-    _sourceFactory = _context.sourceFactory;
-    Source source = _addSource("/lib.dart", "library lib;");
-    expect(_context.getResolvedCompilationUnit2(source, source), isNull);
-    _context.resolveCompilationUnit2(source, source);
-    expect(_context.getResolvedCompilationUnit2(source, source), isNotNull);
   }
 
   void fail_getResolvedHtmlUnit() {
@@ -1061,47 +826,6 @@ part 'part.dart';''');
 
   void fail_mergeContext() {
     fail("Implement this");
-  }
-
-  void test_parseCompilationUnit_errors() {
-    Source source = _addSource("/lib.dart", "library {");
-    CompilationUnit compilationUnit = _context.parseCompilationUnit(source);
-    expect(compilationUnit, isNotNull);
-    var errorInfo = _context.getErrors(source);
-    expect(errorInfo, isNotNull);
-    List<AnalysisError> errors = errorInfo.errors;
-    expect(errors, isNotNull);
-    expect(errors.length > 0, isTrue);
-  }
-
-  void test_parseCompilationUnit_exception() {
-    Source source = _addSourceWithException("/test.dart");
-    try {
-      _context.parseCompilationUnit(source);
-      fail("Expected AnalysisException");
-    } on AnalysisException {
-      // Expected
-    }
-  }
-
-  void test_parseCompilationUnit_noErrors() {
-    Source source = _addSource("/lib.dart", "library lib;");
-    CompilationUnit compilationUnit = _context.parseCompilationUnit(source);
-    expect(compilationUnit, isNotNull);
-    AnalysisErrorInfo errorInfo = _context.getErrors(source);
-    expect(errorInfo, isNotNull);
-    expect(errorInfo.errors, hasLength(0));
-  }
-
-  void test_parseCompilationUnit_nonExistentSource() {
-    Source source =
-        new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
-    try {
-      _context.parseCompilationUnit(source);
-      fail("Expected AnalysisException because file does not exist");
-    } on AnalysisException {
-      // Expected result
-    }
   }
 
   void fail_parseHtmlUnit_noErrors() {
@@ -1517,26 +1241,6 @@ void g() { f(null); }''');
     assertNamedElements(visibleLibraries, ["dart.core", "libA", "libB"]);
   }
 
-  void test_resolveCompilationUnit_library() {
-    _context = contextWithCore();
-    _sourceFactory = _context.sourceFactory;
-    Source source = _addSource("/lib.dart", "library lib;");
-    LibraryElement library = _context.computeLibraryElement(source);
-    CompilationUnit compilationUnit =
-        _context.resolveCompilationUnit(source, library);
-    expect(compilationUnit, isNotNull);
-    expect(compilationUnit.element, isNotNull);
-  }
-
-  void test_resolveCompilationUnit_source() {
-    _context = contextWithCore();
-    _sourceFactory = _context.sourceFactory;
-    Source source = _addSource("/lib.dart", "library lib;");
-    CompilationUnit compilationUnit =
-        _context.resolveCompilationUnit2(source, source);
-    expect(compilationUnit, isNotNull);
-  }
-
   void fail_resolveHtmlUnit() {
     Source source = _addSource("/lib.html", "<html></html>");
     ht.HtmlUnit unit = _context.resolveHtmlUnit(source);
@@ -1738,6 +1442,70 @@ library test2;''');
     });
   }
 
+  void test_applyChanges_change_flush_element() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source librarySource = _addSource("/lib.dart", r'''
+library lib;
+int a = 0;''');
+    expect(_context.computeLibraryElement(librarySource), isNotNull);
+    _context.setContents(librarySource, r'''
+library lib;
+int aa = 0;''');
+    expect(_context.getLibraryElement(librarySource), isNull);
+  }
+
+  Future test_applyChanges_change_multiple() {
+    _context = contextWithCore();
+    SourcesChangedListener listener = new SourcesChangedListener();
+    _context.onSourcesChanged.listen(listener.onData);
+    _sourceFactory = _context.sourceFactory;
+    String libraryContents1 = r'''
+library lib;
+part 'part.dart';
+int a = 0;''';
+    Source librarySource = _addSource("/lib.dart", libraryContents1);
+    String partContents1 = r'''
+part of lib;
+int b = a;''';
+    Source partSource = _addSource("/part.dart", partContents1);
+    _context.computeLibraryElement(librarySource);
+    String libraryContents2 = r'''
+library lib;
+part 'part.dart';
+int aa = 0;''';
+    _context.setContents(librarySource, libraryContents2);
+    String partContents2 = r'''
+part of lib;
+int b = aa;''';
+    _context.setContents(partSource, partContents2);
+    _context.computeLibraryElement(librarySource);
+    CompilationUnit libraryUnit =
+        _context.resolveCompilationUnit2(librarySource, librarySource);
+    expect(libraryUnit, isNotNull);
+    CompilationUnit partUnit =
+        _context.resolveCompilationUnit2(partSource, librarySource);
+    expect(partUnit, isNotNull);
+    TopLevelVariableDeclaration declaration =
+        libraryUnit.declarations[0] as TopLevelVariableDeclaration;
+    Element declarationElement = declaration.variables.variables[0].element;
+    TopLevelVariableDeclaration use =
+        partUnit.declarations[0] as TopLevelVariableDeclaration;
+    Element useElement = (use.variables.variables[
+        0].initializer as SimpleIdentifier).staticElement;
+    expect((useElement as PropertyAccessorElement).variable,
+        same(declarationElement));
+    return pumpEventQueue().then((_) {
+      listener.assertEvent(wereSourcesAdded: true);
+      listener.assertEvent(changedSources: [librarySource]);
+      listener.assertEvent(wereSourcesAdded: true);
+      listener.assertEvent(changedSources: [partSource]);
+      listener.assertEvent(changedSources: [librarySource]);
+      listener.assertEvent(changedSources: [partSource]);
+      listener.assertNoMoreEvents();
+    });
+  }
+
   Future test_applyChanges_change_range() {
     SourcesChangedListener listener = new SourcesChangedListener();
     _context.onSourcesChanged.listen(listener.onData);
@@ -1761,8 +1529,59 @@ library test2;''');
     });
   }
 
+  void test_computeDocumentationComment_block() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    String comment = "/** Comment */";
+    Source source = _addSource("/test.dart", """
+$comment
+class A {}""");
+    LibraryElement libraryElement = _context.computeLibraryElement(source);
+    expect(libraryElement, isNotNull);
+    ClassElement classElement = libraryElement.definingCompilationUnit.types[0];
+    expect(libraryElement, isNotNull);
+    expect(_context.computeDocumentationComment(classElement), comment);
+  }
+
+  void test_computeDocumentationComment_none() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/test.dart", "class A {}");
+    LibraryElement libraryElement = _context.computeLibraryElement(source);
+    expect(libraryElement, isNotNull);
+    ClassElement classElement = libraryElement.definingCompilationUnit.types[0];
+    expect(libraryElement, isNotNull);
+    expect(_context.computeDocumentationComment(classElement), isNull);
+  }
+
   void test_computeDocumentationComment_null() {
     expect(_context.computeDocumentationComment(null), isNull);
+  }
+
+  void test_computeDocumentationComment_singleLine_multiple_EOL_n() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    String comment = "/// line 1\n/// line 2\n/// line 3\n";
+    Source source = _addSource("/test.dart", "${comment}class A {}");
+    LibraryElement libraryElement = _context.computeLibraryElement(source);
+    expect(libraryElement, isNotNull);
+    ClassElement classElement = libraryElement.definingCompilationUnit.types[0];
+    expect(libraryElement, isNotNull);
+    String actual = _context.computeDocumentationComment(classElement);
+    expect(actual, "/// line 1\n/// line 2\n/// line 3");
+  }
+
+  void test_computeDocumentationComment_singleLine_multiple_EOL_rn() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    String comment = "/// line 1\r\n/// line 2\r\n/// line 3\r\n";
+    Source source = _addSource("/test.dart", "${comment}class A {}");
+    LibraryElement libraryElement = _context.computeLibraryElement(source);
+    expect(libraryElement, isNotNull);
+    ClassElement classElement = libraryElement.definingCompilationUnit.types[0];
+    expect(libraryElement, isNotNull);
+    String actual = _context.computeDocumentationComment(classElement);
+    expect(actual, "/// line 1\n/// line 2\n/// line 3");
   }
 
   void test_computeExportedLibraries_none() {
@@ -1798,6 +1617,14 @@ library test2;''');
     expect(_context.computeKindOf(source), same(SourceKind.PART));
   }
 
+  void test_computeLibraryElement() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/test.dart", "library lib;");
+    LibraryElement element = _context.computeLibraryElement(source);
+    expect(element, isNotNull);
+  }
+
   void test_computeLineInfo_dart() {
     Source source = _addSource("/test.dart", r'''
 library lib;
@@ -1816,6 +1643,33 @@ main() {}''');
 </html>''');
     LineInfo info = _context.computeLineInfo(source);
     expect(info, isNotNull);
+  }
+
+  Future test_computeResolvedCompilationUnitAsync_afterDispose() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/lib.dart", "library lib;");
+    // Complete all pending analysis tasks and flush the AST so that it won't
+    // be available immediately.
+    _performPendingAnalysisTasks();
+    CacheEntry entry = _context.getReadableSourceEntryOrNull(source);
+    entry.flushAstStructures();
+    // Dispose of the context.
+    _context.dispose();
+    // Any attempt to start an asynchronous computation should return a future
+    // which completes with error.
+    CancelableFuture<CompilationUnit> future =
+        _context.computeResolvedCompilationUnitAsync(source, source);
+    bool completed = false;
+    future.then((CompilationUnit unit) {
+      fail('Future should have completed with error');
+    }, onError: (error) {
+      expect(error, new isInstanceOf<AnalysisNotScheduledError>());
+      completed = true;
+    });
+    return pumpEventQueue().then((_) {
+      expect(completed, isTrue);
+    });
   }
 
   void test_dispose() {
@@ -2064,6 +1918,17 @@ export 'libA.dart';''');
     expect(result, hasLength(0));
   }
 
+  void test_getLibraryElement() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/test.dart", "library lib;");
+    LibraryElement element = _context.getLibraryElement(source);
+    expect(element, isNull);
+    _context.computeLibraryElement(source);
+    element = _context.getLibraryElement(source);
+    expect(element, isNotNull);
+  }
+
   void test_getLibrarySources() {
     List<Source> sources = _context.librarySources;
     int originalLength = sources.length;
@@ -2107,11 +1972,32 @@ main() {}''');
     expect(stamp != _context.getModificationStamp(source), isTrue);
   }
 
+  void test_getPublicNamespace_element() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/test.dart", "class A {}");
+    LibraryElement library = _context.computeLibraryElement(source);
+    expect(library, isNotNull);
+    Namespace namespace = _context.getPublicNamespace(library);
+    expect(namespace, isNotNull);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is ClassElement, ClassElement, namespace.get("A"));
+  }
+
   void test_getResolvedCompilationUnit_library_null() {
     _context = contextWithCore();
     _sourceFactory = _context.sourceFactory;
     Source source = _addSource("/lib.dart", "library lib;");
     expect(_context.getResolvedCompilationUnit(source, null), isNull);
+  }
+
+  void test_getResolvedCompilationUnit_source_dart() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/lib.dart", "library lib;");
+    expect(_context.getResolvedCompilationUnit2(source, source), isNull);
+    _context.resolveCompilationUnit2(source, source);
+    expect(_context.getResolvedCompilationUnit2(source, source), isNotNull);
   }
 
   void test_getResolvedCompilationUnit_source_html() {
@@ -2157,17 +2043,6 @@ main() {}''');
 //    assertLength(0, statistics.getSources());
   }
 
-//  void test_resolveCompilationUnit_sourceChangeDuringResolution() {
-//    _context = new _AnalysisContext_sourceChangeDuringResolution();
-//    AnalysisContextFactory.initContextWithCore(_context);
-//    _sourceFactory = _context.sourceFactory;
-//    Source source = _addSource("/lib.dart", "library lib;");
-//    CompilationUnit compilationUnit =
-//        _context.resolveCompilationUnit2(source, source);
-//    expect(compilationUnit, isNotNull);
-//    expect(_context.getLineInfo(source), isNotNull);
-//  }
-
   void test_isClientLibrary_dart() {
     _context = contextWithCore();
     _sourceFactory = _context.sourceFactory;
@@ -2206,9 +2081,61 @@ main() {}''');
     expect(_context.isServerLibrary(source), isFalse);
   }
 
+  void test_parseCompilationUnit_errors() {
+    Source source = _addSource("/lib.dart", "library {");
+    CompilationUnit compilationUnit = _context.parseCompilationUnit(source);
+    expect(compilationUnit, isNotNull);
+    var errorInfo = _context.getErrors(source);
+    expect(errorInfo, isNotNull);
+    List<AnalysisError> errors = errorInfo.errors;
+    expect(errors, isNotNull);
+    expect(errors.length > 0, isTrue);
+  }
+
+  void test_parseCompilationUnit_exception() {
+    Source source = _addSourceWithException("/test.dart");
+    try {
+      _context.parseCompilationUnit(source);
+      fail("Expected AnalysisException");
+    } on AnalysisException {
+      // Expected
+    }
+  }
+
   void test_parseCompilationUnit_html() {
     Source source = _addSource("/test.html", "<html></html>");
     expect(_context.parseCompilationUnit(source), isNull);
+  }
+
+  void test_parseCompilationUnit_noErrors() {
+    Source source = _addSource("/lib.dart", "library lib;");
+    CompilationUnit compilationUnit = _context.parseCompilationUnit(source);
+    expect(compilationUnit, isNotNull);
+    AnalysisErrorInfo errorInfo = _context.getErrors(source);
+    expect(errorInfo, isNotNull);
+    expect(errorInfo.errors, hasLength(0));
+  }
+
+//  void test_resolveCompilationUnit_sourceChangeDuringResolution() {
+//    _context = new _AnalysisContext_sourceChangeDuringResolution();
+//    AnalysisContextFactory.initContextWithCore(_context);
+//    _sourceFactory = _context.sourceFactory;
+//    Source source = _addSource("/lib.dart", "library lib;");
+//    CompilationUnit compilationUnit =
+//        _context.resolveCompilationUnit2(source, source);
+//    expect(compilationUnit, isNotNull);
+//    expect(_context.getLineInfo(source), isNotNull);
+//  }
+
+  void test_parseCompilationUnit_nonExistentSource() {
+    Source source =
+        new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
+    try {
+      _context.parseCompilationUnit(source);
+      fail("Expected AnalysisException because file does not exist");
+    } on AnalysisException {
+      // Expected result
+    }
   }
 
   void test_performAnalysisTask_modifiedAfterParse() {
@@ -2227,6 +2154,26 @@ main() {}''');
 //    JUnitTestCase.assertTrue(initialTime != _context.getModificationStamp(source));
 //    _analyzeAll_assertFinished();
 //    JUnitTestCase.assertNotNullMsg("performAnalysisTask failed to compute an element model", _context.getLibraryElement(source));
+  }
+
+  void test_resolveCompilationUnit_library() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/lib.dart", "library lib;");
+    LibraryElement library = _context.computeLibraryElement(source);
+    CompilationUnit compilationUnit =
+        _context.resolveCompilationUnit(source, library);
+    expect(compilationUnit, isNotNull);
+    expect(compilationUnit.element, isNotNull);
+  }
+
+  void test_resolveCompilationUnit_source() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/lib.dart", "library lib;");
+    CompilationUnit compilationUnit =
+        _context.resolveCompilationUnit2(source, source);
+    expect(compilationUnit, isNotNull);
   }
 
   void test_setAnalysisOptions() {
@@ -2344,6 +2291,58 @@ int a = 0;''');
     delta.setAnalysisLevel(source, AnalysisLevel.NONE);
     _context.applyAnalysisDelta(delta);
     expect(_context.sourcesNeedingProcessing.contains(source), isFalse);
+  }
+
+  Future xtest_computeResolvedCompilationUnitAsync() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/lib.dart", "library lib;");
+    // Complete all pending analysis tasks and flush the AST so that it won't
+    // be available immediately.
+    _performPendingAnalysisTasks();
+    CacheEntry entry = _context.getReadableSourceEntryOrNull(source);
+    entry.flushAstStructures();
+    bool completed = false;
+    _context
+        .computeResolvedCompilationUnitAsync(source, source)
+        .then((CompilationUnit unit) {
+      expect(unit, isNotNull);
+      completed = true;
+    });
+    return pumpEventQueue().then((_) {
+      expect(completed, isFalse);
+      _performPendingAnalysisTasks();
+    }).then((_) => pumpEventQueue()).then((_) {
+      expect(completed, isTrue);
+    });
+  }
+
+  Future xtest_computeResolvedCompilationUnitAsync_cancel() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/lib.dart", "library lib;");
+    // Complete all pending analysis tasks and flush the AST so that it won't
+    // be available immediately.
+    _performPendingAnalysisTasks();
+    CacheEntry entry = _context.getReadableSourceEntryOrNull(source);
+    entry.flushAstStructures();
+    CancelableFuture<CompilationUnit> future =
+        _context.computeResolvedCompilationUnitAsync(source, source);
+    bool completed = false;
+    future.then((CompilationUnit unit) {
+      fail('Future should have been canceled');
+    }, onError: (error) {
+      expect(error, new isInstanceOf<FutureCanceledError>());
+      completed = true;
+    });
+    expect(completed, isFalse);
+    expect(_context.pendingFutureSources_forTesting, isNotEmpty);
+    future.cancel();
+    expect(_context.pendingFutureSources_forTesting, isEmpty);
+    return pumpEventQueue().then((_) {
+      expect(completed, isTrue);
+      expect(_context.pendingFutureSources_forTesting, isEmpty);
+    });
   }
 
   void xtest_performAnalysisTask_stress() {

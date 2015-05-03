@@ -210,11 +210,12 @@ class AnalysisDriver {
     task.perform();
     CacheEntry entry = context.getCacheEntry(task.target);
     if (task.caughtException == null) {
+      List<TargetedResult> dependedOn = item.inputTargetedResults.toList();
       Map<ResultDescriptor, dynamic> outputs = task.outputs;
       for (ResultDescriptor result in task.descriptor.results) {
         // TODO(brianwilkerson) We could check here that a value was produced
         // and throw an exception if not (unless we want to allow null values).
-        entry.setValue(result, outputs[result]);
+        entry.setValue(result, outputs[result], dependedOn);
       }
     } else {
       entry.setErrorState(task.caughtException, item.descriptor.results);
@@ -286,6 +287,12 @@ class WorkItem {
   TaskInputBuilder builder;
 
   /**
+   * The [TargetedResult]s outputs of this task depends on.
+   */
+  final HashSet<TargetedResult> inputTargetedResults =
+      new HashSet<TargetedResult>();
+
+  /**
    * The inputs to the task that have been computed.
    */
   Map<String, dynamic> inputs;
@@ -344,14 +351,9 @@ class WorkItem {
    */
   WorkItem gatherInputs(TaskManager taskManager) {
     while (builder != null) {
-      //
-      // TODO(brianwilkerson) Capture information about which inputs were used
-      // to compute the results. This information can later be used to compute
-      // which results depend on a given result, and hence which results need to
-      // be invalidated when one result is invalidated.
-      //
       AnalysisTarget inputTarget = builder.currentTarget;
       ResultDescriptor inputResult = builder.currentResult;
+      inputTargetedResults.add(new TargetedResult(inputTarget, inputResult));
       CacheEntry inputEntry = context.getCacheEntry(inputTarget);
       CacheState inputState = inputEntry.getState(inputResult);
       if (inputState == CacheState.ERROR) {

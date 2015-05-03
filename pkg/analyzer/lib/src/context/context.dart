@@ -105,7 +105,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * A list containing sources for which data should not be flushed.
    */
-  List<Source> _priorityOrder = Source.EMPTY_ARRAY;
+  List<Source> _priorityOrder = <Source>[];
 
   /**
    * A map from all sources for which there are futures pending to a list of
@@ -959,7 +959,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           _sourceChanged(source);
         }
         entry.modificationTime = _contentCache.getModificationStamp(source);
-        entry.setValue(CONTENT, newContents);
+        entry.setValue(CONTENT, newContents, cache.TargetedResult.EMPTY_LIST);
       } else {
         entry.modificationTime = _contentCache.getModificationStamp(source);
       }
@@ -973,7 +973,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         TimestampedData<String> fileContents = getContents(source);
         String fileContentsData = fileContents.data;
         if (fileContentsData == originalContents) {
-          entry.setValue(CONTENT, fileContentsData);
+          entry.setValue(
+              CONTENT, fileContentsData, cache.TargetedResult.EMPTY_LIST);
           entry.modificationTime = fileContents.modificationTime;
           changed = false;
         }
@@ -1065,41 +1066,43 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // Cache the element in the library's info.
       //
       cache.CacheEntry entry = getCacheEntry(librarySource);
-      entry.setValue(BUILD_DIRECTIVES_ERRORS, AnalysisError.NO_ERRORS);
-      entry.setValue(
-          BUILD_FUNCTION_TYPE_ALIASES_ERRORS, AnalysisError.NO_ERRORS);
-      entry.setValue(BUILD_LIBRARY_ERRORS, AnalysisError.NO_ERRORS);
+      setValue(ResultDescriptor result, value) {
+        entry.setValue(result, value, cache.TargetedResult.EMPTY_LIST);
+      }
+      setValue(BUILD_DIRECTIVES_ERRORS, AnalysisError.NO_ERRORS);
+      setValue(BUILD_FUNCTION_TYPE_ALIASES_ERRORS, AnalysisError.NO_ERRORS);
+      setValue(BUILD_LIBRARY_ERRORS, AnalysisError.NO_ERRORS);
       // CLASS_ELEMENTS
-      entry.setValue(COMPILATION_UNIT_ELEMENT, library.definingCompilationUnit);
+      setValue(COMPILATION_UNIT_ELEMENT, library.definingCompilationUnit);
       // CONSTRUCTORS
       // CONSTRUCTORS_ERRORS
       entry.setState(CONTENT, CacheState.FLUSHED);
-      entry.setValue(EXPORTED_LIBRARIES, Source.EMPTY_ARRAY);
+      setValue(EXPORTED_LIBRARIES, Source.EMPTY_ARRAY);
       // EXPORT_SOURCE_CLOSURE
-      entry.setValue(IMPORTED_LIBRARIES, Source.EMPTY_ARRAY);
+      setValue(IMPORTED_LIBRARIES, Source.EMPTY_ARRAY);
       // IMPORT_SOURCE_CLOSURE
-      entry.setValue(INCLUDED_PARTS, Source.EMPTY_ARRAY);
-      entry.setValue(IS_CLIENT, true);
-      entry.setValue(IS_LAUNCHABLE, false);
-      entry.setValue(LIBRARY_ELEMENT, library);
-      entry.setValue(LIBRARY_ELEMENT1, library);
-      entry.setValue(LIBRARY_ELEMENT2, library);
-      entry.setValue(LIBRARY_ELEMENT3, library);
-      entry.setValue(LIBRARY_ELEMENT4, library);
-      entry.setValue(LIBRARY_ELEMENT5, library);
-      entry.setValue(LINE_INFO, new LineInfo(<int>[0]));
-      entry.setValue(PARSE_ERRORS, AnalysisError.NO_ERRORS);
+      setValue(INCLUDED_PARTS, Source.EMPTY_ARRAY);
+      setValue(IS_CLIENT, true);
+      setValue(IS_LAUNCHABLE, false);
+      setValue(LIBRARY_ELEMENT, library);
+      setValue(LIBRARY_ELEMENT1, library);
+      setValue(LIBRARY_ELEMENT2, library);
+      setValue(LIBRARY_ELEMENT3, library);
+      setValue(LIBRARY_ELEMENT4, library);
+      setValue(LIBRARY_ELEMENT5, library);
+      setValue(LINE_INFO, new LineInfo(<int>[0]));
+      setValue(PARSE_ERRORS, AnalysisError.NO_ERRORS);
       entry.setState(PARSED_UNIT, CacheState.FLUSHED);
       entry.setState(RESOLVE_TYPE_NAMES_ERRORS, CacheState.FLUSHED);
-      entry.setValue(SCAN_ERRORS, AnalysisError.NO_ERRORS);
-      entry.setValue(SOURCE_KIND, SourceKind.LIBRARY);
+      setValue(SCAN_ERRORS, AnalysisError.NO_ERRORS);
+      setValue(SOURCE_KIND, SourceKind.LIBRARY);
       entry.setState(TOKEN_STREAM, CacheState.FLUSHED);
-      entry.setValue(UNITS, <Source>[librarySource]);
+      setValue(UNITS, <Source>[librarySource]);
 
       LibrarySpecificUnit unit =
           new LibrarySpecificUnit(librarySource, librarySource);
       entry = getCacheEntry(unit);
-      entry.setValue(HINTS, AnalysisError.NO_ERRORS);
+      setValue(HINTS, AnalysisError.NO_ERRORS);
       // dartEntry.setValue(LINTS, AnalysisError.NO_ERRORS);
       entry.setState(RESOLVE_REFERENCES_ERRORS, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
@@ -1110,11 +1113,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       entry.setState(RESOLVED_UNIT5, CacheState.FLUSHED);
       // USED_IMPORTED_ELEMENTS
       // USED_LOCAL_ELEMENTS
-      entry.setValue(VERIFY_ERRORS, AnalysisError.NO_ERRORS);
+      setValue(VERIFY_ERRORS, AnalysisError.NO_ERRORS);
     });
 
     cache.CacheEntry entry = getCacheEntry(AnalysisContextTarget.request);
-    entry.setValue(TYPE_PROVIDER, typeProvider);
+    entry.setValue(
+        TYPE_PROVIDER, typeProvider, cache.TargetedResult.EMPTY_LIST);
   }
 
   @override
@@ -1358,7 +1362,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         cache.CacheEntry entry = _cache.get(source);
         if (entry != null) {
           entry.modificationTime = _contentCache.getModificationStamp(source);
-          entry.setValue(CONTENT, contents);
+          entry.setValue(CONTENT, contents, cache.TargetedResult.EMPTY_LIST);
         }
       }
     } else if (originalContents != null) {
