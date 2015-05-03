@@ -17,7 +17,7 @@ import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
-import '../context/abstract_context_test.dart';
+import '../context/abstract_context.dart';
 
 main() {
   groupSep = ' | ';
