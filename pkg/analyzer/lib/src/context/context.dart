@@ -30,6 +30,21 @@ import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 
 /**
+ * Type of callback functions used by PendingFuture. Functions of this type
+ * should perform a computation based on the data in [entry] and return it. If
+ * the computation can't be performed yet because more analysis is needed,
+ * `null` should be returned.
+ *
+ * The function may also throw an exception, in which case the corresponding
+ * future will be completed with failure.
+ *
+ * Because this function is called while the state of analysis is being updated,
+ * it should be free of side effects so that it doesn't cause reentrant changes
+ * to the analysis state.
+ */
+typedef T PendingFutureComputer<T>(cache.CacheEntry entry);
+
+/**
  * An [AnalysisContext] in which analysis can be performed.
  */
 class AnalysisContextImpl implements InternalAnalysisContext {
@@ -97,8 +112,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * the corresponding PendingFuture objects.  These sources will be analyzed
    * in the same way as priority sources, except with higher priority.
    */
-  HashMap<Source, List<PendingFuture>> _pendingFutureSources =
-      new HashMap<Source, List<PendingFuture>>();
+  HashMap<AnalysisTarget, List<PendingFuture>> _pendingFutureTargets =
+      new HashMap<AnalysisTarget, List<PendingFuture>>();
 
   /**
    * A table mapping sources to the change notices that are waiting to be
@@ -301,8 +316,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * Make _pendingFutureSources available to unit tests.
    */
-  HashMap<Source, List<PendingFuture>> get pendingFutureSources_forTesting =>
-      _pendingFutureSources;
+  HashMap<AnalysisTarget, List<PendingFuture>> get pendingFutureSources_forTesting =>
+      _pendingFutureTargets;
 
   @override
   List<Source> get prioritySources => _priorityOrder;
@@ -416,11 +431,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   void set typeProvider(TypeProvider typeProvider) {
     _typeProvider = typeProvider;
   }
-
-  /**
-   * Return `true` if the (new) task model should be used to perform analysis.
-   */
-  bool get useTaskModel => AnalysisEngine.instance.useTaskModel;
 
   @override
   void addListener(AnalysisListener listener) {
@@ -566,21 +576,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   CancelableFuture<CompilationUnit> computeResolvedCompilationUnitAsync(
       Source unitSource, Source librarySource) {
-    // TODO(brianwilkerson) Implement this.
-    return new CancelableFuture<CompilationUnit>(() => null);
-//    return new _AnalysisFutureHelper<CompilationUnit>(this).computeAsync(
-//        unitSource, (SourceEntry sourceEntry) {
-//      if (sourceEntry is DartEntry) {
-//        if (sourceEntry.getStateInLibrary(
-//                DartEntry.RESOLVED_UNIT, librarySource) ==
-//            CacheState.ERROR) {
-//          throw sourceEntry.exception;
-//        }
-//        return sourceEntry.getValueInLibrary(
-//            DartEntry.RESOLVED_UNIT, librarySource);
-//      }
-//      throw new AnalysisNotScheduledError();
-//    });
+    if (!AnalysisEngine.isDartFileName(unitSource.shortName) ||
+        !AnalysisEngine.isDartFileName(librarySource.shortName)) {
+      return new CancelableFuture.error(new AnalysisNotScheduledError());
+    }
+    return new _AnalysisFutureHelper<CompilationUnit>(this).computeAsync(
+        new LibrarySpecificUnit(librarySource, unitSource),
+        (cache.CacheEntry entry) {
+      CacheState state = entry.getState(RESOLVED_UNIT);
+      if (state == CacheState.ERROR) {
+        throw entry.exception;
+      } else if (state == CacheState.INVALID) {
+        return null;
+      }
+      return entry.getValue(RESOLVED_UNIT);
+    });
   }
 
   /**
@@ -603,12 +613,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void dispose() {
     _disposed = true;
-    for (List<PendingFuture> pendingFutures in _pendingFutureSources.values) {
+    for (List<PendingFuture> pendingFutures in _pendingFutureTargets.values) {
       for (PendingFuture pendingFuture in pendingFutures) {
         pendingFuture.forciblyComplete();
       }
     }
-    _pendingFutureSources.clear();
+    _pendingFutureTargets.clear();
   }
 
   @override
@@ -746,7 +756,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  AnalysisErrorInfo getErrors(Source source) => _getResult(source, DART_ERRORS);
+  AnalysisErrorInfo getErrors(Source source) {
+    List<AnalysisError> errors = _getResult(source, DART_ERRORS);
+    LineInfo lineInfo = _getResult(source, LINE_INFO);
+    return new AnalysisErrorInfoImpl(errors, lineInfo);
+  }
 
   @override
   HtmlElement getHtmlElement(Source source) {
@@ -886,7 +900,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   CompilationUnit getResolvedCompilationUnit(
       Source unitSource, LibraryElement library) {
-    if (library == null) {
+    if (library == null ||
+        !AnalysisEngine.isDartFileName(unitSource.shortName)) {
       return null;
     }
     return getResolvedCompilationUnit2(unitSource, library.source);
@@ -894,8 +909,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   CompilationUnit getResolvedCompilationUnit2(
-      Source unitSource, Source librarySource) => _getResult(
-          new LibrarySpecificUnit(librarySource, unitSource), RESOLVED_UNIT);
+      Source unitSource, Source librarySource) {
+    if (!AnalysisEngine.isDartFileName(unitSource.shortName) ||
+        !AnalysisEngine.isDartFileName(librarySource.shortName)) {
+      return null;
+    }
+    return _getResult(
+        new LibrarySpecificUnit(librarySource, unitSource), RESOLVED_UNIT);
+  }
 
   @override
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
@@ -1112,8 +1133,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   CompilationUnit resolveCompilationUnit2(
-      Source unitSource, Source librarySource) => _computeResult(
-          new LibrarySpecificUnit(librarySource, unitSource), RESOLVED_UNIT);
+      Source unitSource, Source librarySource) {
+    if (!AnalysisEngine.isDartFileName(unitSource.shortName) ||
+        !AnalysisEngine.isDartFileName(librarySource.shortName)) {
+      return null;
+    }
+    return _computeResult(
+        new LibrarySpecificUnit(librarySource, unitSource), RESOLVED_UNIT);
+  }
 
   @override
   ht.HtmlUnit resolveHtmlUnit(Source htmlSource) {
@@ -1145,8 +1172,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //    MapIterator<AnalysisTarget, cache.CacheEntry> iterator = _cache.iterator();
 //    while (iterator.moveNext()) {
 //      Source source = iterator.key;
-//      cache.CacheEntry sourceEntry = iterator.value;
-//      for (DataDescriptor descriptor in sourceEntry.descriptors) {
+//      cache.CacheEntry entry = iterator.value;
+//      for (DataDescriptor descriptor in entry.descriptors) {
 //        if (descriptor == DartEntry.SOURCE_KIND) {
 //          // The source kind is always valid, so the state isn't interesting.
 //          continue;
@@ -1163,19 +1190,19 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //          continue;
 //        }
 //        callback(
-//            source, sourceEntry, descriptor, sourceEntry.getState(descriptor));
+//            source, entry, descriptor, entry.getState(descriptor));
 //      }
-//      if (sourceEntry is DartEntry) {
+//      if (entry is DartEntry) {
 //        // get library-specific values
 //        List<Source> librarySources = getLibrariesContaining(source);
 //        for (Source librarySource in librarySources) {
-//          for (DataDescriptor descriptor in sourceEntry.libraryDescriptors) {
+//          for (DataDescriptor descriptor in entry.libraryDescriptors) {
 //            if (descriptor == DartEntry.BUILT_ELEMENT ||
 //                descriptor == DartEntry.BUILT_UNIT) {
 //              // These values are not currently being computed, so their state
 //              // is not interesting.
 //              continue;
-//            } else if (!sourceEntry.explicitlyAdded &&
+//            } else if (!entry.explicitlyAdded &&
 //                !_generateImplicitErrors &&
 //                (descriptor == DartEntry.VERIFICATION_ERRORS ||
 //                    descriptor == DartEntry.HINTS ||
@@ -1192,8 +1219,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //            } else if (!lintsEnabled && descriptor == DartEntry.LINTS) {
 //              continue;
 //            }
-//            callback(librarySource, sourceEntry, descriptor,
-//                sourceEntry.getStateInLibrary(descriptor, librarySource));
+//            callback(librarySource, entry, descriptor,
+//                entry.getStateInLibrary(descriptor, librarySource));
 //          }
 //        }
 //      }
@@ -1222,6 +1249,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Remove the given [pendingFuture] from [_pendingFutureTargets], since the
+   * client has indicated its computation is not needed anymore.
+   */
+  void _cancelFuture(PendingFuture pendingFuture) {
+    List<PendingFuture> pendingFutures =
+        _pendingFutureTargets[pendingFuture.target];
+    if (pendingFutures != null) {
+      pendingFutures.remove(pendingFuture);
+      if (pendingFutures.isEmpty) {
+        _pendingFutureTargets.remove(pendingFuture.target);
+      }
+    }
+  }
+
+  /**
    * Return the priority that should be used when the source associated with
    * the given [entry] is added to the work manager.
    */
@@ -1238,10 +1280,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   Object /*V*/ _computeResult(
       AnalysisTarget target, ResultDescriptor /*<V>*/ descriptor) {
-    cache.CacheEntry entry = _cache.get(target);
-    if (entry == null) {
-      return descriptor.defaultValue;
-    }
+    cache.CacheEntry entry = getCacheEntry(target);
     if (descriptor is CompositeResultDescriptor) {
       List compositeResults = [];
       for (ResultDescriptor descriptor in descriptor.contributors) {
@@ -1253,6 +1292,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     CacheState state = entry.getState(descriptor);
     if (state == CacheState.FLUSHED || state == CacheState.INVALID) {
       _driver.computeResult(target, descriptor);
+    }
+    state = entry.getState(descriptor);
+    if (state == CacheState.ERROR) {
+      throw new AnalysisException(
+          'Cannot compute $descriptor for $target', entry.exception);
     }
     return entry.getValue(descriptor);
   }
@@ -1384,7 +1428,18 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   Object _getResult(AnalysisTarget target, ResultDescriptor descriptor) {
     cache.CacheEntry entry = _cache.get(target);
-    if (entry != null && entry.isValid(descriptor)) {
+    if (entry == null) {
+      return descriptor.defaultValue;
+    }
+    if (descriptor is CompositeResultDescriptor) {
+      List compositeResults = [];
+      for (ResultDescriptor descriptor in descriptor.contributors) {
+        List value = _getResult(target, descriptor);
+        compositeResults.addAll(value);
+      }
+      return compositeResults;
+    }
+    if (entry.isValid(descriptor)) {
       return entry.getValue(descriptor);
     }
     return descriptor.defaultValue;
@@ -1411,10 +1466,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * related to it. If so, add the source to the set of sources that need to be
    * processed. This method is intended to be used for testing purposes only.
    */
-  void _getSourcesNeedingProcessing(Source source, cache.CacheEntry sourceEntry,
+  void _getSourcesNeedingProcessing(Source source, cache.CacheEntry entry,
       bool isPriority, bool hintsEnabled, bool lintsEnabled,
       HashSet<Source> sources) {
-    CacheState state = sourceEntry.getState(CONTENT);
+    CacheState state = entry.getState(CONTENT);
     if (state == CacheState.INVALID ||
         (isPriority && state == CacheState.FLUSHED)) {
       sources.add(source);
@@ -1422,7 +1477,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else if (state == CacheState.ERROR) {
       return;
     }
-    state = sourceEntry.getState(SOURCE_KIND);
+    state = entry.getState(SOURCE_KIND);
     if (state == CacheState.INVALID ||
         (isPriority && state == CacheState.FLUSHED)) {
       sources.add(source);
@@ -1430,9 +1485,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else if (state == CacheState.ERROR) {
       return;
     }
-    SourceKind kind = sourceEntry.getValue(SOURCE_KIND);
+    SourceKind kind = entry.getValue(SOURCE_KIND);
     if (kind == SourceKind.LIBRARY || kind == SourceKind.PART) {
-      state = sourceEntry.getState(SCAN_ERRORS);
+      state = entry.getState(SCAN_ERRORS);
       if (state == CacheState.INVALID ||
           (isPriority && state == CacheState.FLUSHED)) {
         sources.add(source);
@@ -1440,7 +1495,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       } else if (state == CacheState.ERROR) {
         return;
       }
-      state = sourceEntry.getState(PARSE_ERRORS);
+      state = entry.getState(PARSE_ERRORS);
       if (state == CacheState.INVALID ||
           (isPriority && state == CacheState.FLUSHED)) {
         sources.add(source);
@@ -1449,7 +1504,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         return;
       }
 //      if (isPriority) {
-//        if (!sourceEntry.hasResolvableCompilationUnit) {
+//        if (!entry.hasResolvableCompilationUnit) {
 //          sources.add(source);
 //          return;
 //        }
@@ -1506,14 +1561,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
 //    } else if (kind == SourceKind.HTML) {
-//      CacheState parsedUnitState = sourceEntry.getState(HtmlEntry.PARSED_UNIT);
+//      CacheState parsedUnitState = entry.getState(HtmlEntry.PARSED_UNIT);
 //      if (parsedUnitState == CacheState.INVALID ||
 //          (isPriority && parsedUnitState == CacheState.FLUSHED)) {
 //        sources.add(source);
 //        return;
 //      }
 //      CacheState resolvedUnitState =
-//          sourceEntry.getState(HtmlEntry.RESOLVED_UNIT);
+//          entry.getState(HtmlEntry.RESOLVED_UNIT);
 //      if (resolvedUnitState == CacheState.INVALID ||
 //          (isPriority && resolvedUnitState == CacheState.FLUSHED)) {
 //        sources.add(source);
@@ -1957,5 +2012,133 @@ class PartitionManager {
       _sdkPartitions[sdk] = partition;
     }
     return partition;
+  }
+}
+
+/**
+ * Representation of a pending computation which is based on the results of
+ * analysis that may or may not have been completed.
+ */
+class PendingFuture<T> {
+  /**
+   * The context in which this computation runs.
+   */
+  final AnalysisContextImpl _context;
+
+  /**
+   * The target used by this computation to compute its value.
+   */
+  final AnalysisTarget target;
+
+  /**
+   * The function which implements the computation.
+   */
+  final PendingFutureComputer<T> _computeValue;
+
+  /**
+   * The completer that should be completed once the computation has succeeded.
+   */
+  CancelableCompleter<T> _completer;
+
+  PendingFuture(this._context, this.target, this._computeValue) {
+    _completer = new CancelableCompleter<T>(_onCancel);
+  }
+
+  /**
+   * Retrieve the future which will be completed when this object is
+   * successfully evaluated.
+   */
+  CancelableFuture<T> get future => _completer.future;
+
+  /**
+   * Execute [_computeValue], passing it the given [entry], and complete
+   * the pending future if it's appropriate to do so.  If the pending future is
+   * completed by this call, true is returned; otherwise false is returned.
+   *
+   * Once this function has returned true, it should not be called again.
+   *
+   * Other than completing the future, this method is free of side effects.
+   * Note that any code the client has attached to the future will be executed
+   * in a microtask, so there is no danger of side effects occurring due to
+   * client callbacks.
+   */
+  bool evaluate(cache.CacheEntry entry) {
+    assert(!_completer.isCompleted);
+    try {
+      T result = _computeValue(entry);
+      if (result == null) {
+        return false;
+      } else {
+        _completer.complete(result);
+        return true;
+      }
+    } catch (exception, stackTrace) {
+      _completer.completeError(exception, stackTrace);
+      return true;
+    }
+  }
+
+  /**
+   * No further analysis updates are expected which affect this future, so
+   * complete it with an AnalysisNotScheduledError in order to avoid
+   * deadlocking the client.
+   */
+  void forciblyComplete() {
+    try {
+      throw new AnalysisNotScheduledError();
+    } catch (exception, stackTrace) {
+      _completer.completeError(exception, stackTrace);
+    }
+  }
+
+  void _onCancel() {
+    _context._cancelFuture(this);
+  }
+}
+
+/**
+ * A helper class used to create futures for AnalysisContextImpl. Using a helper
+ * class allows us to preserve the generic parameter T.
+ */
+class _AnalysisFutureHelper<T> {
+  final AnalysisContextImpl _context;
+
+  _AnalysisFutureHelper(this._context);
+
+  /**
+   * Return a future that will be completed with the result of calling
+   * [computeValue].  If [computeValue] returns non-`null`, the future will be
+   * completed immediately with the resulting value.  If it returns `null`, then
+   * it will be re-executed in the future, after the next time the cached
+   * information for [target] has changed.  If [computeValue] throws an
+   * exception, the future will fail with that exception.
+   *
+   * If the [computeValue] still returns `null` after there is no further
+   * analysis to be done for [target], then the future will be completed with
+   * the error AnalysisNotScheduledError.
+   *
+   * Since [computeValue] will be called while the state of analysis is being
+   * updated, it should be free of side effects so that it doesn't cause
+   * reentrant changes to the analysis state.
+   */
+  CancelableFuture<T> computeAsync(
+      AnalysisTarget target, T computeValue(cache.CacheEntry entry)) {
+    if (_context.isDisposed) {
+      // No further analysis is expected, so return a future that completes
+      // immediately with AnalysisNotScheduledError.
+      return new CancelableFuture.error(new AnalysisNotScheduledError());
+    }
+    cache.CacheEntry entry = _context.getReadableSourceEntryOrNull(target);
+    if (entry == null) {
+      return new CancelableFuture.error(new AnalysisNotScheduledError());
+    }
+    PendingFuture pendingFuture =
+        new PendingFuture<T>(_context, target, computeValue);
+    if (!pendingFuture.evaluate(entry)) {
+      _context._pendingFutureTargets
+          .putIfAbsent(target, () => <PendingFuture>[])
+          .add(pendingFuture);
+    }
+    return pendingFuture.future;
   }
 }

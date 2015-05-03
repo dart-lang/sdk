@@ -487,7 +487,7 @@ class CacheEntry {
       buffer.write('; ');
       buffer.write(result.toString());
       buffer.write(' = ');
-      buffer.write(data..state);
+      buffer.write(data.state);
     }
   }
 }

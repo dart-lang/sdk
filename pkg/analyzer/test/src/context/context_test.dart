@@ -51,6 +51,8 @@ import 'package:watcher/src/utils.dart';
 import '../../generated/engine_test.dart';
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
+import 'package:analyzer/task/dart.dart';
+import '../mock_sdk.dart';
 
 main() {
   groupSep = ' | ';
@@ -67,7 +69,11 @@ contextWithCore() {
  */
 class AnalysisContextForTests extends AnalysisContextImpl {
   AnalysisContextForTests() {
-    initWithCore();
+    DartSdk sdk = new MockSdk();
+    SourceFactory sourceFactory =
+        new SourceFactory([new DartUriResolver(sdk), new FileUriResolver()]);
+    this.sourceFactory = sourceFactory;
+//    initWithCore();
   }
 
   @override
@@ -121,11 +127,7 @@ class AnalysisContextForTests extends AnalysisContextImpl {
    * @return the analysis context that was created
    */
   void initWithCore() {
-    DirectoryBasedDartSdk sdk = new FakeSdk(new JavaFile("/fake/sdk"));
-    SourceFactory sourceFactory =
-        new SourceFactory([new DartUriResolver(sdk), new FileUriResolver()]);
-    this.sourceFactory = sourceFactory;
-    AnalysisContext coreContext = sdk.context;
+    AnalysisContext coreContext = sourceFactory.dartSdk.context;
     //
     // dart:core
     //
@@ -361,6 +363,12 @@ class AnalysisContextForTests extends AnalysisContextImpl {
     elementMap[htmlSource] = htmlLibrary;
     elementMap[mathSource] = mathLibrary;
     recordLibraryElements(elementMap);
+    elementMap.forEach((Source librarySource, LibraryElement library) {
+      CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+      unit.element = library.definingCompilationUnit;
+      CacheEntry entry = getCacheEntry(librarySource);
+      entry.setValue(PARSED_UNIT, unit);
+    });
   }
 
   /**
@@ -399,7 +407,7 @@ int aa = 0;''');
     expect(_context.getLibraryElement(librarySource), isNull);
   }
 
-  Future fail_applyChanges_change_multiple() {
+  Future test_applyChanges_change_multiple() {
     _context = contextWithCore();
     SourcesChangedListener listener = new SourcesChangedListener();
     _context.onSourcesChanged.listen(listener.onData);
@@ -544,7 +552,7 @@ import 'libB.dart';''';
     });
   }
 
-  void fail_computeDocumentationComment_block() {
+  void test_computeDocumentationComment_block() {
     _context = contextWithCore();
     _sourceFactory = _context.sourceFactory;
     String comment = "/** Comment */";
@@ -558,7 +566,7 @@ class A {}""");
     expect(_context.computeDocumentationComment(classElement), comment);
   }
 
-  void fail_computeDocumentationComment_none() {
+  void test_computeDocumentationComment_none() {
     _context = contextWithCore();
     _sourceFactory = _context.sourceFactory;
     Source source = _addSource("/test.dart", "class A {}");
@@ -569,7 +577,7 @@ class A {}""");
     expect(_context.computeDocumentationComment(classElement), isNull);
   }
 
-  void fail_computeDocumentationComment_singleLine_multiple_EOL_n() {
+  void test_computeDocumentationComment_singleLine_multiple_EOL_n() {
     _context = contextWithCore();
     _sourceFactory = _context.sourceFactory;
     String comment = "/// line 1\n/// line 2\n/// line 3\n";
@@ -582,7 +590,7 @@ class A {}""");
     expect(actual, "/// line 1\n/// line 2\n/// line 3");
   }
 
-  void fail_computeDocumentationComment_singleLine_multiple_EOL_rn() {
+  void test_computeDocumentationComment_singleLine_multiple_EOL_rn() {
     _context = contextWithCore();
     _sourceFactory = _context.sourceFactory;
     String comment = "/// line 1\r\n/// line 2\r\n/// line 3\r\n";
@@ -649,7 +657,7 @@ class A {}""");
     expect(_context.computeKindOf(source), same(SourceKind.HTML));
   }
 
-  void fail_computeLibraryElement() {
+  void test_computeLibraryElement() {
     _context = contextWithCore();
     _sourceFactory = _context.sourceFactory;
     Source source = _addSource("/test.dart", "library lib;");
@@ -711,7 +719,7 @@ class A {}""");
     });
   }
 
-  Future fail_computeResolvedCompilationUnitAsync_afterDispose() {
+  Future test_computeResolvedCompilationUnitAsync_afterDispose() {
     _context = contextWithCore();
     _sourceFactory = _context.sourceFactory;
     Source source = _addSource("/lib.dart", "library lib;");
@@ -1000,7 +1008,7 @@ part 'part.dart';''');
     expect(result[0], librarySource);
   }
 
-  void fail_getLibraryElement() {
+  void test_getLibraryElement() {
     _context = contextWithCore();
     _sourceFactory = _context.sourceFactory;
     Source source = _addSource("/test.dart", "library lib;");
@@ -1011,7 +1019,7 @@ part 'part.dart';''');
     expect(element, isNotNull);
   }
 
-  void fail_getPublicNamespace_element() {
+  void test_getPublicNamespace_element() {
     _context = contextWithCore();
     _sourceFactory = _context.sourceFactory;
     Source source = _addSource("/test.dart", "class A {}");
@@ -1033,7 +1041,7 @@ part 'part.dart';''');
     expect(_context.getResolvedCompilationUnit(source, library), isNull);
   }
 
-  void fail_getResolvedCompilationUnit_source_dart() {
+  void test_getResolvedCompilationUnit_source_dart() {
     _context = contextWithCore();
     _sourceFactory = _context.sourceFactory;
     Source source = _addSource("/lib.dart", "library lib;");
@@ -1055,7 +1063,7 @@ part 'part.dart';''');
     fail("Implement this");
   }
 
-  void fail_parseCompilationUnit_errors() {
+  void test_parseCompilationUnit_errors() {
     Source source = _addSource("/lib.dart", "library {");
     CompilationUnit compilationUnit = _context.parseCompilationUnit(source);
     expect(compilationUnit, isNotNull);
@@ -1066,7 +1074,7 @@ part 'part.dart';''');
     expect(errors.length > 0, isTrue);
   }
 
-  void fail_parseCompilationUnit_exception() {
+  void test_parseCompilationUnit_exception() {
     Source source = _addSourceWithException("/test.dart");
     try {
       _context.parseCompilationUnit(source);
@@ -1076,7 +1084,7 @@ part 'part.dart';''');
     }
   }
 
-  void fail_parseCompilationUnit_noErrors() {
+  void test_parseCompilationUnit_noErrors() {
     Source source = _addSource("/lib.dart", "library lib;");
     CompilationUnit compilationUnit = _context.parseCompilationUnit(source);
     expect(compilationUnit, isNotNull);
@@ -1085,7 +1093,7 @@ part 'part.dart';''');
     expect(errorInfo.errors, hasLength(0));
   }
 
-  void fail_parseCompilationUnit_nonExistentSource() {
+  void test_parseCompilationUnit_nonExistentSource() {
     Source source =
         new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
     try {
@@ -1509,7 +1517,7 @@ void g() { f(null); }''');
     assertNamedElements(visibleLibraries, ["dart.core", "libA", "libB"]);
   }
 
-  void fail_resolveCompilationUnit_library() {
+  void test_resolveCompilationUnit_library() {
     _context = contextWithCore();
     _sourceFactory = _context.sourceFactory;
     Source source = _addSource("/lib.dart", "library lib;");
@@ -1520,7 +1528,7 @@ void g() { f(null); }''');
     expect(compilationUnit.element, isNotNull);
   }
 
-  void fail_resolveCompilationUnit_source() {
+  void test_resolveCompilationUnit_source() {
     _context = contextWithCore();
     _sourceFactory = _context.sourceFactory;
     Source source = _addSource("/lib.dart", "library lib;");
@@ -2480,30 +2488,30 @@ int a = 0;''');
   }
 }
 
-class FakeSdk extends DirectoryBasedDartSdk {
-  FakeSdk(JavaFile arg0) : super(arg0);
-
-  @override
-  LibraryMap initialLibraryMap(bool useDart2jsPaths) {
-    LibraryMap map = new LibraryMap();
-    _addLibrary(map, DartSdk.DART_ASYNC, false, "async.dart");
-    _addLibrary(map, DartSdk.DART_CORE, false, "core.dart");
-    _addLibrary(map, DartSdk.DART_HTML, false, "html_dartium.dart");
-    _addLibrary(map, "dart:math", false, "math.dart");
-    _addLibrary(map, "dart:_interceptors", true, "_interceptors.dart");
-    _addLibrary(map, "dart:_js_helper", true, "_js_helper.dart");
-    return map;
-  }
-
-  void _addLibrary(LibraryMap map, String uri, bool isInternal, String path) {
-    SdkLibraryImpl library = new SdkLibraryImpl(uri);
-    if (isInternal) {
-      library.category = "Internal";
-    }
-    library.path = path;
-    map.setLibrary(uri, library);
-  }
-}
+//class FakeSdk extends DirectoryBasedDartSdk {
+//  FakeSdk(JavaFile arg0) : super(arg0);
+//
+//  @override
+//  LibraryMap initialLibraryMap(bool useDart2jsPaths) {
+//    LibraryMap map = new LibraryMap();
+//    _addLibrary(map, DartSdk.DART_ASYNC, false, "async.dart");
+//    _addLibrary(map, DartSdk.DART_CORE, false, "core.dart");
+//    _addLibrary(map, DartSdk.DART_HTML, false, "html_dartium.dart");
+//    _addLibrary(map, "dart:math", false, "math.dart");
+//    _addLibrary(map, "dart:_interceptors", true, "_interceptors.dart");
+//    _addLibrary(map, "dart:_js_helper", true, "_js_helper.dart");
+//    return map;
+//  }
+//
+//  void _addLibrary(LibraryMap map, String uri, bool isInternal, String path) {
+//    SdkLibraryImpl library = new SdkLibraryImpl(uri);
+//    if (isInternal) {
+//      library.category = "Internal";
+//    }
+//    library.path = path;
+//    map.setLibrary(uri, library);
+//  }
+//}
 
 class _AnalysisContextImplTest_test_applyChanges_removeContainer
     implements SourceContainer {
