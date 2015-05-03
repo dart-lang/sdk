@@ -67,7 +67,7 @@ abstract class Queue<E> implements Iterable<E>, EfficientLength {
    * Returns `true` if a value was removed, or `false` if the queue
    * contained no element equal to [value].
    */
-  bool remove(Object object);
+  bool remove(Object value);
 
   /**
    * Adds all elements of [iterable] at the end of the queue. The
@@ -543,8 +543,8 @@ class ListQueue<E> extends Iterable<E> implements Queue<E> {
 
   // Collection interface.
 
-  void add(E element) {
-    _add(element);
+  void add(E value) {
+    _add(value);
   }
 
   void addAll(Iterable<E> elements) {
@@ -576,10 +576,10 @@ class ListQueue<E> extends Iterable<E> implements Queue<E> {
     }
   }
 
-  bool remove(Object object) {
+  bool remove(Object value) {
     for (int i = _head; i != _tail; i = (i + 1) & (_table.length - 1)) {
       E element = _table[i];
-      if (element == object) {
+      if (element == value) {
         _remove(i);
         _modificationCount++;
         return true;
@@ -589,7 +589,6 @@ class ListQueue<E> extends Iterable<E> implements Queue<E> {
   }
 
   void _filterWhere(bool test(E element), bool removeMatching) {
-    int index = _head;
     int modificationCount = _modificationCount;
     int i = _head;
     while (i != _tail) {
@@ -639,11 +638,11 @@ class ListQueue<E> extends Iterable<E> implements Queue<E> {
 
   // Queue interface.
 
-  void addLast(E element) { _add(element); }
+  void addLast(E value) { _add(value); }
 
-  void addFirst(E element) {
+  void addFirst(E value) {
     _head = (_head - 1) & (_table.length - 1);
-    _table[_head] = element;
+    _table[_head] = value;
     if (_head == _tail) _grow();
     _modificationCount++;
   }

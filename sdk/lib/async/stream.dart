@@ -935,8 +935,7 @@ abstract class Stream<T> {
     _Future<T> future = new _Future<T>();
     T result = null;
     bool foundResult = false;
-    StreamSubscription subscription;
-    subscription = this.listen(
+    listen(
       (T value) {
         foundResult = true;
         result = value;
@@ -1403,7 +1402,7 @@ abstract class EventSink<T> implements Sink<T> {
 
 /** [Stream] wrapper that only exposes the [Stream] interface. */
 class StreamView<T> extends Stream<T> {
-  Stream<T> _stream;
+  final Stream<T> _stream;
 
   StreamView(this._stream);
 
