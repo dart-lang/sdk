@@ -334,7 +334,6 @@ class BuildClassConstructorsTask extends SourceBasedAnalysisTask {
     ClassElementImpl classElement = this.target;
     List<ConstructorElement> superConstructors = inputs[SUPER_CONSTRUCTORS];
     DartType superType = classElement.supertype;
-    ClassElement superElement = superType.element;
     //
     // Shortcut for ClassElement(s) without implicit constructors.
     //
@@ -359,7 +358,7 @@ class BuildClassConstructorsTask extends SourceBasedAnalysisTask {
           errors.add(new AnalysisError.con2(classElement.source,
               classElement.nameOffset, classElement.name.length,
               CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
-              [superElement.name]));
+              [superType.element.name]));
         } else {
           classElement.constructors = implicitConstructors;
         }
@@ -381,7 +380,7 @@ class BuildClassConstructorsTask extends SourceBasedAnalysisTask {
         SourceRange withRange = classElement.withClauseRange;
         errors.add(new AnalysisError.con2(classElement.source, withRange.offset,
             withRange.length, CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
-            [superElement.name]));
+            [superType.element.name]));
         classElement.mixinErrorsReported = true;
       }
       outputs[CONSTRUCTORS] = classElement.constructors;
@@ -469,7 +468,7 @@ class BuildClassConstructorsTask extends SourceBasedAnalysisTask {
    * [superType], to the class or mixin application [classElement],
    * and pass information about them to [callback].
    *
-   * Return true if some constructors were considered.  (A false return value
+   * Return `true` if some constructors were considered. (A `false` return value
    * can only happen if the supeclass is a built-in type, in which case it
    * can't be used as a mixin anyway).
    */
@@ -477,6 +476,9 @@ class BuildClassConstructorsTask extends SourceBasedAnalysisTask {
       InterfaceType superType, void callback(
           ConstructorElement explicitConstructor, List<DartType> parameterTypes,
           List<DartType> argumentTypes)) {
+    if (superType == null) {
+      return false;
+    }
     ClassElement superclassElement = superType.element;
     List<ConstructorElement> constructors = superclassElement.constructors;
     int count = constructors.length;
