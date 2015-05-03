@@ -6581,8 +6581,7 @@ class Parser {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_STATEMENT);
       return new EmptyStatement(_createSyntheticToken(TokenType.SEMICOLON));
     } else {
-      return new ExpressionStatement(
-          parseExpression2(), _expect(TokenType.SEMICOLON));
+      return new ExpressionStatement(parseExpression2(), _expectSemicolon());
     }
   }
 

@@ -706,6 +706,25 @@ main() {
 ''');
   }
 
+  test_singleExpression_hasParseError_expectedSemicolon() {
+    verifyNoTestUnitErrors = false;
+    indexTestUnit('''
+main(p) {
+  foo
+  p.bar.baz;
+}
+''');
+    _createRefactoringForString('p.bar');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main(p) {
+  foo
+  var res = p.bar;
+  res.baz;
+}
+''');
+  }
+
   test_singleExpression_inExpressionBody() {
     indexTestUnit('''
 main() {
