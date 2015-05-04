@@ -13,6 +13,9 @@ import '../../io/source_information.dart' show SourceInformation;
 import '../../util/maplet.dart';
 import '../../constants/values.dart';
 import '../../dart2jslib.dart';
+import '../../dart_types.dart';
+
+part 'type_test_emitter.dart';
 
 class CodegenBailout {
   final tree_ir.Node node;
@@ -24,7 +27,8 @@ class CodegenBailout {
 }
 
 class CodeGenerator extends tree_ir.StatementVisitor
-                    with tree_ir.ExpressionVisitor<js.Expression> {
+                    with tree_ir.ExpressionVisitor<js.Expression>,
+                         TypeTestEmitter {
   final CodegenRegistry registry;
 
   final Glue glue;
@@ -381,8 +385,16 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitTypeOperator(tree_ir.TypeOperator node) {
-    return giveup(node);
-    // TODO: implement visitTypeOperator
+    if (!node.isTypeTest) {
+      giveup(node, 'type casts not implemented.');
+    }
+    DartType type = node.type;
+    if (type is InterfaceType && type.typeArguments.isEmpty) {
+      glue.registerIsCheck(type, registry);
+      js.Expression value = visitExpression(node.receiver);
+      return emitSubtypeTest(node, value, type);
+    }
+    return giveup(node, 'type check unimplemented for $type.');
   }
 
   @override

@@ -779,9 +779,7 @@ mirrors/reflected_type_typedefs_test: Crash # Instance of 'TypeOperator': unimpl
 mirrors/reflected_type_typevars_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/reflectively_instantiate_uninstantiated_class_test: Crash #  "on T" catch block
 mirrors/reflect_model_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-mirrors/reflect_runtime_type_test: Crash # (throw 'Expected "a", but got "${MirrorSystem.getName(field.simpleName)}"'): Unhandled node
 mirrors/reflect_two_classes_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-mirrors/reflect_uninstantiated_class_test: Crash # (throw 'Expected "a", but got "${MirrorSystem.getName(field.simpleName)}"'): Unhandled node
 mirrors/regress_14304_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/regress_19731_test: Crash # (throw new ExpectException(message)): Unhandled node
 mirrors/relation_assignable_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator

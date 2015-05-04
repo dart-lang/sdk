@@ -10156,12 +10156,6 @@ Language/12_Expressions/19_Conditional_A03_t01: Crash #  "on T" catch block
 Language/12_Expressions/19_Conditional_A04_t02: Crash #  "on T" catch block
 Language/12_Expressions/19_Conditional_A04_t03: Crash #  "on T" catch block
 Language/12_Expressions/19_Conditional_A05_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/19_Conditional_A06_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/19_Conditional_A06_t02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/19_Conditional_A06_t03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/19_Conditional_A06_t04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/19_Conditional_A06_t05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/19_Conditional_A06_t06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/19_Conditional_A06_t07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/19_Conditional_A06_t08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/19_Conditional_A06_t09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -10169,17 +10163,8 @@ Language/12_Expressions/20_Logical_Boolean_Expressions_A01_t01: Crash #  "on T" 
 Language/12_Expressions/20_Logical_Boolean_Expressions_A02_t01: Crash # (throw new ExpectException(message)): Unhandled node
 Language/12_Expressions/20_Logical_Boolean_Expressions_A03_t01: Crash #  "on T" catch block
 Language/12_Expressions/20_Logical_Boolean_Expressions_A04_t02: Crash #  "on T" catch block
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t11: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t12: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t13: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t14: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -10190,11 +10175,6 @@ Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t18: Crash # Instance
 Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t19: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t20: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t21: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t22: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t23: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t24: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t25: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t26: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t27: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t28: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t29: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -10312,7 +10292,6 @@ Language/12_Expressions/30_Identifier_Reference_A15_t05: Crash # unsupported ele
 Language/12_Expressions/30_Identifier_Reference_A15_t06: Crash # unsupported element kind: x:field
 Language/12_Expressions/30_Identifier_Reference_A15_t07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/30_Identifier_Reference_A15_t08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/30_Identifier_Reference_A16_t03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/30_Identifier_Reference_A16_t04: Crash # handleStaticFunctionGet: function(libraryFunc)
 Language/12_Expressions/32_Type_Test_A02_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/32_Type_Test_A02_t02: Crash # (throw new ExpectException(message)): Unhandled node
@@ -10328,14 +10307,6 @@ Language/12_Expressions/32_Type_Test_A03_t02: Crash # (throw new ExpectException
 Language/12_Expressions/32_Type_Test_A07_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/32_Type_Test_A07_t02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/32_Type_Test_A07_t03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/32_Type_Test_A07_t04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/32_Type_Test_A07_t05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/32_Type_Test_A07_t06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/32_Type_Test_A07_t07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/32_Type_Test_A07_t08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/32_Type_Test_A07_t09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/32_Type_Test_A07_t10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/12_Expressions/32_Type_Test_A07_t11: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/33_Type_Cast_A01_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/33_Type_Cast_A01_t04: Crash # (try {int as num;Expect.fail("CastError expected");}on CastError catch (e){}): "on T" catch block
 Language/12_Expressions/33_Type_Cast_A02_t01: Crash # (try {c=1 as I;Expect.fail("CastError expected");}on CastError catch (e){}): "on T" catch block
@@ -10387,12 +10358,6 @@ Language/13_Statements/05_If_A03_t03: Crash # Instance of 'TypeOperator': unimpl
 Language/13_Statements/05_If_A04_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/13_Statements/05_If_A05_t01: Crash # (throw new ExpectException(message)): Unhandled node
 Language/13_Statements/05_If_A05_t02: Crash # (throw new ExpectException(message)): Unhandled node
-Language/13_Statements/05_If_A06_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/13_Statements/05_If_A06_t02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/13_Statements/05_If_A06_t03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/13_Statements/05_If_A06_t04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/13_Statements/05_If_A06_t05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/13_Statements/05_If_A06_t06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/13_Statements/05_If_A06_t07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/13_Statements/05_If_A06_t08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/13_Statements/05_If_A06_t09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -10570,10 +10535,8 @@ Language/14_Libraries_and_Scripts/1_Imports_A03_t25: Crash # Instance of 'TypeOp
 Language/14_Libraries_and_Scripts/1_Imports_A03_t31: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/14_Libraries_and_Scripts/1_Imports_A03_t44: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/14_Libraries_and_Scripts/1_Imports_A03_t45: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/14_Libraries_and_Scripts/1_Imports_A03_t50: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/14_Libraries_and_Scripts/1_Imports_A03_t64: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/14_Libraries_and_Scripts/1_Imports_A03_t65: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/14_Libraries_and_Scripts/1_Imports_A03_t70: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/14_Libraries_and_Scripts/1_Imports_A06_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/14_Libraries_and_Scripts/1_Imports_A06_t02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/14_Libraries_and_Scripts/1_Imports_A07_t02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -10598,7 +10561,6 @@ Language/14_Libraries_and_Scripts/2_Exports_A04_t03: Crash # Instance of 'TypeOp
 Language/14_Libraries_and_Scripts/2_Exports_A05_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/14_Libraries_and_Scripts/2_Exports_A06_t02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/14_Libraries_and_Scripts/2_Exports_A08_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-Language/14_Libraries_and_Scripts/3_Parts_A02_t02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/14_Libraries_and_Scripts/3_Parts_A02_t03: Crash # Please triage this failure.
 Language/14_Libraries_and_Scripts/3_Parts_A02_t04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/14_Libraries_and_Scripts/3_Parts_A03_t01: Crash # Please triage this failure.
@@ -11982,7 +11944,6 @@ LayoutTests/fast/dom/shadow/shadowroot-host_t01: Crash # Instance of 'TypeOperat
 LayoutTests/fast/dom/shadow/shadow-root-js-api_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LayoutTests/fast/dom/shadow/shadowroot-keyframes_t01: Crash # unsupported element kind: _completer:field
 LayoutTests/fast/dom/shadow/sibling-rules-dynamic-changes_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-LayoutTests/fast/dom/shadow/style-insertion-crash_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LayoutTests/fast/dom/shadow/style-of-distributed-node_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LayoutTests/fast/dom/shadow/style-sharing-sibling-shadow_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LayoutTests/fast/dom/shadow/style-sharing-styles-in-older-shadow-roots_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -12164,7 +12125,6 @@ LayoutTests/fast/filesystem/simple-required-arguments-getfile_t01: Crash # unsup
 LayoutTests/fast/filesystem/simple-temporary_t01: Crash # unsupported element kind: _completer:field
 LayoutTests/fast/filesystem/snapshot-file-with-gc_t01: Crash # unsupported element kind: _completer:field
 LayoutTests/fast/flexbox/box-orient-button_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-LayoutTests/fast/flexbox/box-size-integer-overflow_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LayoutTests/fast/flexbox/child-flexing_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LayoutTests/fast/flexbox/crash-flexbox-no-layout-child_t01: Crash # unsupported element kind: _completer:field
 LayoutTests/fast/flexbox/flexing-overflow-scroll-item_t01: Crash # (throw "You must provide a CSS selector of nodes to check."): Unhandled node

@@ -1976,7 +1976,6 @@ abstract class IrBuilder {
     ir.Primitive check = _continueWithExpression(
         (k) => new ir.TypeOperator(receiver, type, k, isTypeTest: isTypeTest));
     return isNotCheck ? buildNegation(check) : check;
-
   }
 
   /// Create a lazy and/or expression. [leftValue] is the value of the left

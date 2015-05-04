@@ -1353,7 +1353,6 @@ issue13474_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenera
 issue1363_test: Crash # (try {contents=libCup.getContents();}on TypeError catch (e){hasThrown=true;}): "on T" catch block
 issue13673_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 issue14014_3_test: Crash # (throw 'Test failed'): Unhandled node
-issue14242_test: Crash # (throw 'Test failed'): Unhandled node
 issue15606_test/01: Crash # (Unresolved): Error expression `Unresolved` unhandled.
 issue_1751477_test: Crash # handleStaticGetterInvoke: foreign: function(loadLibrary)
 issue20476_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -1403,8 +1402,6 @@ list_literal_syntax_test/03: Crash # Instance of 'TypeOperator': unimplemented i
 list_literal_syntax_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 list_literal_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 list_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-list_tracer_call_last_test: Crash # (throw 'Test failed'): Unhandled node
-list_tracer_closure_test: Crash # (throw 'Test failed'): Unhandled node
 list_tracer_in_map_test: Crash # (throw 'Test failed'): Unhandled node
 list_tracer_return_from_tearoff_closure_test: Crash # (throw 'Test failed'): Unhandled node
 liveness_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -1464,11 +1461,6 @@ megamorphic_no_such_method_test: Crash # Instance of 'TypeOperator': unimplement
 method_binding_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 method_invocation_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 method_name_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-method_override2_test/00: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-method_override2_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-method_override2_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-method_override2_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-method_override2_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 method_override3_test/00: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 method_override3_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 method_override3_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -2067,11 +2059,6 @@ type_parameter_test/04: Crash # Instance of 'TypeOperator': unimplemented in Cod
 type_parameter_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_parameter_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_parameter_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_assign_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_assign_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_assign_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_assign_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_assign_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_promotion_closure_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_promotion_closure_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_promotion_closure_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -2104,52 +2091,6 @@ type_promotion_functions_test/12: Crash # Instance of 'TypeOperator': unimplemen
 type_promotion_functions_test/13: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_promotion_functions_test/14: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_promotion_functions_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/11: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/12: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/13: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/14: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/15: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/16: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/17: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/18: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/19: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/20: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/21: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/22: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/23: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/24: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/25: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/26: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/27: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/28: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/29: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/30: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/31: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/32: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/33: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/34: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/35: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/36: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/37: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/38: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/39: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/40: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/41: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_local_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_logical_and_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_logical_and_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_logical_and_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_logical_and_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_promotion_more_specific_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_promotion_more_specific_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_promotion_more_specific_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -2164,85 +2105,6 @@ type_promotion_more_specific_test/11: Crash # Instance of 'TypeOperator': unimpl
 type_promotion_more_specific_test/12: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_promotion_more_specific_test/13: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_promotion_more_specific_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/11: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/12: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/13: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/14: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/15: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/16: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/17: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/18: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/19: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/20: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/21: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/22: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_multiple_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/04: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/05: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/08: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/09: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/10: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/11: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/12: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/13: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/14: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/15: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/16: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/17: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/18: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/19: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/20: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/21: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/22: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/23: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/24: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/25: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/26: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/27: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/28: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/29: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/30: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/31: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/32: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/33: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/34: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/35: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/36: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/37: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/38: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/39: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/40: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/41: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/42: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/43: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/44: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/45: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/46: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/47: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/48: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/49: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/50: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/51: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/52: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/54: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/55: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/56: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_promotion_parameter_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_propagation2_test: Crash # cannot compile methods that need interceptor calling convention.
 type_propagation3_test: Crash # (throw 'Test failed'): Unhandled node
 type_propagation_assert_assignable_test: Crash # (throw new ExpectException(message)): Unhandled node
