@@ -395,6 +395,7 @@ class BacktrackingSolver {
       // Don't get stuck in cycles.
       if (visited.contains(package)) return;
       visited.add(package);
+      dependers[package].forEach(walk);
     }
 
     walk(dependency);
