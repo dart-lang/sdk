@@ -303,11 +303,32 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
    */
   final List<Annotation> annotations = <Annotation>[];
 
+  /**
+   * True if instance variables marked as "final" should be treated as "const".
+   */
+  bool treatFinalInstanceVarAsConst = false;
+
   @override
   Object visitAnnotation(Annotation node) {
     super.visitAnnotation(node);
     annotations.add(node);
     return null;
+  }
+
+  @override
+  Object visitClassDeclaration(ClassDeclaration node) {
+    bool prevTreatFinalInstanceVarAsConst = treatFinalInstanceVarAsConst;
+    if (node.element.constructors.any((ConstructorElement e) => e.isConst)) {
+      // Instance vars marked "final" need to be included in the dependency
+      // graph, since constant constructors implicitly use the values in their
+      // initializers.
+      treatFinalInstanceVarAsConst = true;
+    }
+    try {
+      return super.visitClassDeclaration(node);
+    } finally {
+      treatFinalInstanceVarAsConst = prevTreatFinalInstanceVarAsConst;
+    }
   }
 
   @override
@@ -335,7 +356,13 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     Expression initializer = node.initializer;
-    if (initializer != null && node.isConst) {
+    VariableElement element = node.element;
+    if (initializer != null &&
+        (node.isConst ||
+            treatFinalInstanceVarAsConst &&
+                element is FieldElement &&
+                node.isFinal &&
+                !element.isStatic)) {
       if (node.element != null) {
         variableMap[node.element as PotentiallyConstVariableElement] = node;
       }
@@ -454,6 +481,13 @@ class ConstantValueComputer {
   void beforeComputeValue(AstNode constNode) {}
 
   /**
+   * This method is called just before getting the constant value of a field
+   * with an initializer.  Unit tests will override this method to introduce
+   * additional error checking.
+   */
+  void beforeGetFieldEvaluationResult(FieldElementImpl field) {}
+
+  /**
    * This method is called just before getting the constant initializers
    * associated with the [constructor]. Unit tests will override this method to
    * introduce additional error checking.
@@ -520,6 +554,16 @@ class ConstantValueComputer {
           }
         }
       }
+      for (FieldElement field in element.enclosingElement.fields) {
+        // Note: non-static const isn't allowed but we handle it anyway so that
+        // we won't be confused by incorrect code.
+        if ((field.isFinal || field.isConst) && !field.isStatic) {
+          VariableDeclaration fieldDeclaration = _variableDeclarationMap[field];
+          if (fieldDeclaration != null) {
+            referenceGraph.addEdge(declaration, fieldDeclaration);
+          }
+        }
+      }
       for (FormalParameter parameter in declaration.parameters.parameters) {
         referenceGraph.addNode(parameter);
         referenceGraph.addEdge(declaration, parameter);
@@ -580,6 +624,10 @@ class ConstantValueComputer {
   ConstructorDeclaration findConstructorDeclaration(
           ConstructorElement constructor) =>
       constructorDeclarationMap[_getConstructorBase(constructor)];
+
+  VariableDeclaration findVariableDeclaration(
+          PotentiallyConstVariableElement variable) =>
+      _variableDeclarationMap[variable];
 
   /**
    * Check that the arguments to a call to fromEnvironment() are correct. The
@@ -898,6 +946,25 @@ class ConstantValueComputer {
     }
     HashMap<String, DartObjectImpl> fieldMap =
         new HashMap<String, DartObjectImpl>();
+    // Start with final fields that are initialized at their declaration site.
+    for (FieldElement field in constructor.enclosingElement.fields) {
+      if ((field.isFinal || field.isConst) &&
+          !field.isStatic &&
+          field is ConstFieldElementImpl) {
+        beforeGetFieldEvaluationResult(field);
+        EvaluationResultImpl evaluationResult = field.evaluationResult;
+        DartType fieldType =
+            FieldMember.from(field, constructor.returnType).type;
+        DartObjectImpl fieldValue = evaluationResult.value;
+        if (fieldValue != null && !_runtimeTypeMatch(fieldValue, fieldType)) {
+          errorReporter.reportErrorForNode(
+              CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+              node, [fieldValue.type, field.name, fieldType]);
+        }
+        fieldMap[field.name] = evaluationResult.value;
+      }
+    }
+    // Now evaluate the constructor declaration.
     HashMap<String, DartObjectImpl> parameterMap =
         new HashMap<String, DartObjectImpl>();
     List<ParameterElement> parameters = constructor.parameters;

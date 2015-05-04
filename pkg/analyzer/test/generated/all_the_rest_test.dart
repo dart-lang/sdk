@@ -851,6 +851,13 @@ class ConstantEvaluatorTest extends ResolverTestCase {
 class ConstantFinderTest extends EngineTestCase {
   AstNode _node;
 
+  TypeProvider _typeProvider;
+
+  void setUp() {
+    super.setUp();
+    _typeProvider = new TestTypeProvider();
+  }
+
   /**
    * Test an annotation that consists solely of an identifier (and hence
    * represents a reference to a compile-time constant variable).
@@ -895,6 +902,22 @@ class ConstantFinderTest extends EngineTestCase {
     expect(_findVariableDeclarations()[element], same(_node));
   }
 
+  void test_visitVariableDeclaration_final_inClass() {
+    _setupFieldDeclaration('C', 'f', Keyword.FINAL);
+    expect(_findVariableDeclarations(), isEmpty);
+  }
+
+  void test_visitVariableDeclaration_final_inClassWithConstConstructor() {
+    VariableDeclaration field = _setupFieldDeclaration('C', 'f', Keyword.FINAL,
+        hasConstConstructor: true);
+    expect(_findVariableDeclarations()[field.element], same(field));
+  }
+
+  void test_visitVariableDeclaration_final_outsideClass() {
+    _setupVariableDeclaration('v', false, true, isFinal: true);
+    expect(_findVariableDeclarations(), isEmpty);
+  }
+
   void test_visitVariableDeclaration_noInitializer() {
     _setupVariableDeclaration("v", true, false);
     expect(_findVariableDeclarations().isEmpty, isTrue);
@@ -903,6 +926,36 @@ class ConstantFinderTest extends EngineTestCase {
   void test_visitVariableDeclaration_nonConst() {
     _setupVariableDeclaration("v", false, true);
     expect(_findVariableDeclarations().isEmpty, isTrue);
+  }
+
+  void test_visitVariableDeclaration_static_const_inClass() {
+    VariableDeclaration field =
+        _setupFieldDeclaration('C', 'f', Keyword.CONST, isStatic: true);
+    expect(_findVariableDeclarations()[field.element], same(field));
+  }
+
+  void test_visitVariableDeclaration_static_const_inClassWithConstConstructor() {
+    VariableDeclaration field = _setupFieldDeclaration('C', 'f', Keyword.CONST,
+        isStatic: true, hasConstConstructor: true);
+    expect(_findVariableDeclarations()[field.element], same(field));
+  }
+
+  void test_visitVariableDeclaration_static_final_inClassWithConstConstructor() {
+    _setupFieldDeclaration('C', 'f', Keyword.FINAL,
+        isStatic: true, hasConstConstructor: true);
+    expect(_findVariableDeclarations(), isEmpty);
+  }
+
+  void test_visitVariableDeclaration_uninitialized_final_inClassWithConstConstructor() {
+    _setupFieldDeclaration('C', 'f', Keyword.FINAL,
+        isInitialized: false, hasConstConstructor: true);
+    expect(_findVariableDeclarations(), isEmpty);
+  }
+
+  void test_visitVariableDeclaration_uninitialized_static_const_inClass() {
+    _setupFieldDeclaration('C', 'f', Keyword.CONST,
+        isStatic: true, isInitialized: false);
+    expect(_findVariableDeclarations(), isEmpty);
   }
 
   List<Annotation> _findAnnotations() {
@@ -954,6 +1007,41 @@ class ConstantFinderTest extends EngineTestCase {
     return element;
   }
 
+  VariableDeclaration _setupFieldDeclaration(
+      String className, String fieldName, Keyword keyword,
+      {bool isInitialized: true, bool isStatic: false,
+      bool hasConstConstructor: false}) {
+    VariableDeclaration variableDeclaration = isInitialized
+        ? AstFactory.variableDeclaration2(fieldName, AstFactory.integer(0))
+        : AstFactory.variableDeclaration(fieldName);
+    VariableElement fieldElement = ElementFactory.fieldElement(fieldName,
+        isStatic, keyword == Keyword.FINAL, keyword == Keyword.CONST,
+        _typeProvider.intType);
+    variableDeclaration.name.staticElement = fieldElement;
+    FieldDeclaration fieldDeclaration = AstFactory.fieldDeclaration2(
+        isStatic, keyword, <VariableDeclaration>[variableDeclaration]);
+    ClassDeclaration classDeclaration =
+        AstFactory.classDeclaration(null, className, null, null, null, null);
+    classDeclaration.members.add(fieldDeclaration);
+    _node = classDeclaration;
+    ClassElementImpl classElement = ElementFactory.classElement2(className);
+    classElement.fields = <FieldElement>[fieldElement];
+    classDeclaration.name.staticElement = classElement;
+    if (hasConstConstructor) {
+      ConstructorDeclaration constructorDeclaration = AstFactory
+          .constructorDeclaration2(Keyword.CONST, null,
+              AstFactory.identifier3(className), null,
+              AstFactory.formalParameterList(), null,
+              AstFactory.blockFunctionBody2());
+      classDeclaration.members.add(constructorDeclaration);
+      ConstructorElement constructorElement =
+          ElementFactory.constructorElement(classElement, '', true);
+      constructorDeclaration.element = constructorElement;
+      classElement.constructors = <ConstructorElement>[constructorElement];
+    }
+    return variableDeclaration;
+  }
+
   void _setupInstanceCreationExpression(String name, bool isConst) {
     _node = AstFactory.instanceCreationExpression2(
         isConst ? Keyword.CONST : null,
@@ -961,15 +1049,15 @@ class ConstantFinderTest extends EngineTestCase {
   }
 
   VariableElement _setupVariableDeclaration(
-      String name, bool isConst, bool isInitialized) {
+      String name, bool isConst, bool isInitialized, {isFinal: false}) {
     VariableDeclaration variableDeclaration = isInitialized
         ? AstFactory.variableDeclaration2(name, AstFactory.integer(0))
         : AstFactory.variableDeclaration(name);
     SimpleIdentifier identifier = variableDeclaration.name;
     VariableElement element = ElementFactory.localVariableElement(identifier);
     identifier.staticElement = element;
-    AstFactory.variableDeclarationList2(
-        isConst ? Keyword.CONST : null, [variableDeclaration]);
+    Keyword keyword = isConst ? Keyword.CONST : isFinal ? Keyword.FINAL : null;
+    AstFactory.variableDeclarationList2(keyword, [variableDeclaration]);
     _node = variableDeclaration;
     return element;
   }
@@ -1345,6 +1433,30 @@ class B extends A {
 const B b = const B();''');
   }
 
+  void test_dependencyOnInitializedNonStaticConst() {
+    // Even though non-static consts are not allowed by the language, we need
+    // to handle them for error recovery purposes.
+    // a depends on A() depends on A.x
+    _assertProperDependencies('''
+class A {
+  const A();
+  const int x = 1;
+}
+const A a = const A();
+''', [CompileTimeErrorCode.CONST_INSTANCE_FIELD]);
+  }
+
+  void test_dependencyOnInitializedFinal() {
+    // a depends on A() depends on A.x
+    _assertProperDependencies('''
+class A {
+  const A();
+  final int x = 1;
+}
+const A a = const A();
+''');
+  }
+
   void test_dependencyOnNonFactoryRedirect() {
     // a depends on A.foo() depends on A.bar()
     _assertProperDependencies(r'''
@@ -1428,6 +1540,40 @@ const A a = const A();''');
     _assertProperDependencies(r'''
 const x = y + 1;
 const y = 2;''');
+  }
+
+  void test_final_initialized_at_declaration() {
+    CompilationUnit compilationUnit = resolveSource('''
+class A {
+  final int i = 123;
+  const A();
+}
+
+const A a = const A();
+''');
+    EvaluationResultImpl result =
+        _evaluateInstanceCreationExpression(compilationUnit, 'a');
+    Map<String, DartObjectImpl> fields = _assertType(result, "A");
+    expect(fields, hasLength(1));
+    _assertIntField(fields, "i", 123);
+  }
+
+  void test_non_static_const_initialized_at_declaration() {
+    // Even though non-static consts are not allowed by the language, we need
+    // to handle them for error recovery purposes.
+    CompilationUnit compilationUnit = resolveSource('''
+class A {
+  const int i = 123;
+  const A();
+}
+
+const A a = const A();
+''');
+    EvaluationResultImpl result =
+        _evaluateInstanceCreationExpression(compilationUnit, 'a');
+    Map<String, DartObjectImpl> fields = _assertType(result, "A");
+    expect(fields, hasLength(1));
+    _assertIntField(fields, "i", 123);
   }
 
   void test_fromEnvironment_bool_default_false() {
@@ -8306,6 +8452,17 @@ class ValidatingConstantValueComputer extends ConstantValueComputer {
   void beforeComputeValue(AstNode constNode) {
     super.beforeComputeValue(constNode);
     _nodeBeingEvaluated = constNode;
+  }
+
+  @override
+  void beforeGetFieldEvaluationResult(FieldElementImpl field) {
+    super.beforeGetFieldEvaluationResult(field);
+    // If we are getting the constant value for a node in the graph, make sure
+    // we properly recorded the dependency.
+    VariableDeclaration node = findVariableDeclaration(field);
+    if (node != null && referenceGraph.nodes.contains(node)) {
+      expect(referenceGraph.containsPath(_nodeBeingEvaluated, node), isTrue);
+    }
   }
 
   @override

@@ -3067,7 +3067,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     if (_inFieldContext) {
       SimpleIdentifier fieldName = node.name;
       FieldElementImpl field;
-      if (isConst && hasInitializer) {
+      if ((isConst || isFinal) && hasInitializer) {
         field = new ConstFieldElementImpl.con1(fieldName);
       } else {
         field = new FieldElementImpl.forNode(fieldName);
@@ -11310,8 +11310,17 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
-    if (node.element.isConst && node.initializer != null) {
-      (node.element as ConstVariableElement).constantInitializer =
+    VariableElement element = node.element;
+    // Note: in addition to cloning the initializers for const variables, we
+    // have to clone the initializers for non-static final fields (because if
+    // they occur in a class with a const constructor, they will be needed to
+    // evaluate the const constructor).
+    if ((element.isConst ||
+            (element is FieldElement &&
+                element.isFinal &&
+                !element.isStatic)) &&
+        node.initializer != null) {
+      (element as ConstVariableElement).constantInitializer =
           new ConstantAstCloner().cloneNode(node.initializer);
     }
     return null;

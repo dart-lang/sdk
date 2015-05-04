@@ -913,6 +913,23 @@ var v = const A('foo');''');
     verify([source]);
   }
 
+  void test_fieldTypeMismatch_generic() {
+    Source source = addSource(r'''
+class C<T> {
+  final T x = y;
+  const C();
+}
+const y = 1;
+var v = const C<String>();
+''');
+    resolve(source);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+      HintCode.INVALID_ASSIGNMENT
+    ]);
+    verify([source]);
+  }
+
   void test_fieldTypeMismatch_unresolved() {
     Source source = addSource(r'''
 class A {
@@ -925,6 +942,20 @@ var v = const A('foo');''');
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
       StaticWarningCode.UNDEFINED_CLASS
     ]);
+    verify([source]);
+  }
+
+  void test_fieldTypeOk_generic() {
+    Source source = addSource(r'''
+class C<T> {
+  final T x = y;
+  const C();
+}
+const y = 1;
+var v = const C<int>();
+''');
+    resolve(source);
+    assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
 

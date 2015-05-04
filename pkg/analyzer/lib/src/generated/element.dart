@@ -1526,7 +1526,14 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 }
 
 /**
- * A [FieldElement] for a 'const' field that has an initializer.
+ * A [FieldElement] for a 'const' or 'final' field that has an initializer.
+ *
+ * TODO(paulberry): we should rename this class to reflect the fact that it's
+ * used for both const and final fields.  However, we shouldn't do so until
+ * we've created an API for reading the values of constants; until that API is
+ * available, clients are likely to read constant values by casting to
+ * ConstFieldElementImpl, so it would be a breaking change to rename this
+ * class.
  */
 class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   /**
