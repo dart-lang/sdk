@@ -169,8 +169,8 @@ CompilationPipeline* CompilationPipeline::New(Zone* zone,
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   ASSERT(!function.HasCode());
-  const Error& error = Error::Handle(Compiler::CompileFunction(thread,
-                                                               function));
+  const Error& error =
+      Error::Handle(Compiler::CompileFunction(thread, function));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
   }

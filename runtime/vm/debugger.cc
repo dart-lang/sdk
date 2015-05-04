@@ -1638,6 +1638,7 @@ RawFunction* Debugger::FindBestFit(const Script& script,
   GrowableObjectArray& closures = GrowableObjectArray::Handle(isolate_);
   Function& function = Function::Handle(isolate_);
   Function& best_fit = Function::Handle(isolate_);
+  Error& error = Error::Handle(isolate_);
 
   const ClassTable& class_table = *isolate_->class_table();
   const intptr_t num_classes = class_table.NumCids();
@@ -1654,7 +1655,14 @@ RawFunction* Debugger::FindBestFit(const Script& script,
         continue;
       }
       // Parse class definition if not done yet.
-      cls.EnsureIsFinalized(isolate_);
+      error = cls.EnsureIsFinalized(isolate_);
+      if (!error.IsNull()) {
+        // Ignore functions in this class.
+        // TODO(hausner): Should we propagate this error? How?
+        // EnsureIsFinalized only returns an error object if there
+        // is no longjump base on the stack.
+        continue;
+      }
       functions = cls.functions();
       if (!functions.IsNull()) {
         const intptr_t num_functions = functions.Length();
@@ -1781,11 +1789,16 @@ void Debugger::SyncBreakpoint(SourceBreakpoint* bpt) {
 
 
 RawError* Debugger::OneTimeBreakAtEntry(const Function& target_function) {
-  SourceBreakpoint* bpt = SetBreakpointAtEntry(target_function);
-  if (bpt != NULL) {
-    bpt->SetIsOneShot();
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    SourceBreakpoint* bpt = SetBreakpointAtEntry(target_function);
+    if (bpt != NULL) {
+      bpt->SetIsOneShot();
+    }
+    return Error::null();
+  } else {
+    return isolate_->object_store()->sticky_error();
   }
-  return Error::null();
 }
 
 
