@@ -4,6 +4,7 @@
 
 library test.src.task.dart_test;
 
+import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -1513,6 +1514,25 @@ class A {''');
     expect(outputs[UNITS], hasLength(2));
   }
 
+  test_perform_useMemento() {
+    String content = r'''
+library lib;
+import 'lib2.dart';
+export 'lib3.dart';
+part 'part.dart';
+class A {''';
+    AnalysisTarget target = newSource('/test.dart', content);
+    _computeResult(target, PARSED_UNIT);
+    // update content
+    context.setContents(target, content);
+    assertIsInvalid(target, PARSED_UNIT);
+    // recompute
+    _computeResult(target, PARSED_UNIT);
+    assertIsValid(target, PARSED_UNIT);
+    // values from the memento are returned
+    assertSameResults(ParseDartTask.DESCRIPTOR.results);
+  }
+
   void _performParseTask(String content) {
     AnalysisTarget target = newSource('/test.dart', content);
     _computeResult(target, PARSED_UNIT);
@@ -1807,10 +1827,12 @@ class ScanDartTaskTest extends _AbstractDartTaskTest {
     _computeResult(target, TOKEN_STREAM);
     // update content
     context.setContents(target, 'main() {}');
+    assertIsInvalid(target, TOKEN_STREAM);
     // recompute
     _computeResult(target, TOKEN_STREAM);
-    // values from the mememto are returned
-    assertSameResults([LINE_INFO, SCAN_ERRORS, TOKEN_STREAM]);
+    assertIsValid(target, TOKEN_STREAM);
+    // values from the memento are returned
+    assertSameResults(ScanDartTask.DESCRIPTOR.results);
   }
 
   void _performScanTask(String content) {
@@ -1847,6 +1869,16 @@ class _AbstractDartTaskTest extends AbstractContextTest {
   Map<ResultDescriptor<dynamic>, dynamic> oldOutputs;
   Map<ResultDescriptor<dynamic>, dynamic> outputs;
   GatheringErrorListener errorListener = new GatheringErrorListener();
+
+  void assertIsInvalid(AnalysisTarget target, ResultDescriptor descriptor) {
+    CacheEntry entry = context.getCacheEntry(target);
+    expect(entry.isInvalid(descriptor), isTrue);
+  }
+
+  void assertIsValid(AnalysisTarget target, ResultDescriptor descriptor) {
+    CacheEntry entry = context.getCacheEntry(target);
+    expect(entry.isValid(descriptor), isTrue);
+  }
 
   void assertSameResults(List<ResultDescriptor> descriptors) {
     descriptors.forEach((descriptor) {

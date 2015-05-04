@@ -1906,6 +1906,23 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
 }
 
 /**
+ * The memento for [ParseDartTask].
+ */
+class ParseDartMemento {
+  final Token inputTokenStream;
+  final List<Source> exportedLibraries;
+  final List<Source> importedLibraries;
+  final List<Source> includedParts;
+  final List<AnalysisError> parseErrors;
+  final CompilationUnit parsedUnit;
+  final SourceKind sourceKind;
+  final List<Source> units;
+  ParseDartMemento(this.inputTokenStream, this.exportedLibraries,
+      this.importedLibraries, this.includedParts, this.parseErrors,
+      this.parsedUnit, this.sourceKind, this.units);
+}
+
+/**
  * A task that parses the content of a Dart file, producing an AST structure.
  */
 class ParseDartTask extends SourceBasedAnalysisTask {
@@ -1950,6 +1967,21 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     LineInfo lineInfo = getRequiredInput(LINE_INFO_INPUT_NAME);
     Token tokenStream = getRequiredInput(TOKEN_STREAM_INPUT_NAME);
 
+    if (inputMemento is ParseDartMemento) {
+      ParseDartMemento memento = inputMemento;
+      if (identical(memento.inputTokenStream, tokenStream)) {
+        outputMemento = memento;
+        outputs[EXPORTED_LIBRARIES] = memento.exportedLibraries;
+        outputs[IMPORTED_LIBRARIES] = memento.importedLibraries;
+        outputs[INCLUDED_PARTS] = memento.includedParts;
+        outputs[PARSE_ERRORS] = memento.parseErrors;
+        outputs[PARSED_UNIT] = memento.parsedUnit;
+        outputs[SOURCE_KIND] = memento.sourceKind;
+        outputs[UNITS] = memento.units;
+        return;
+      }
+    }
+
     RecordingErrorListener errorListener = new RecordingErrorListener();
     Parser parser = new Parser(source, errorListener);
     AnalysisOptions options = context.analysisOptions;
@@ -1959,9 +1991,9 @@ class ParseDartTask extends SourceBasedAnalysisTask {
 
     bool hasNonPartOfDirective = false;
     bool hasPartOfDirective = false;
-    HashSet<Source> exportedSources = new HashSet<Source>();
-    HashSet<Source> importedSources = new HashSet<Source>();
-    HashSet<Source> includedSources = new HashSet<Source>();
+    HashSet<Source> exportedSourceSet = new HashSet<Source>();
+    HashSet<Source> importedSourceSet = new HashSet<Source>();
+    HashSet<Source> includedSourceSet = new HashSet<Source>();
     for (Directive directive in unit.directives) {
       if (directive is PartOfDirective) {
         hasPartOfDirective = true;
@@ -1972,12 +2004,12 @@ class ParseDartTask extends SourceBasedAnalysisTask {
               resolveDirective(context, source, directive, errorListener);
           if (referencedSource != null) {
             if (directive is ExportDirective) {
-              exportedSources.add(referencedSource);
+              exportedSourceSet.add(referencedSource);
             } else if (directive is ImportDirective) {
-              importedSources.add(referencedSource);
+              importedSourceSet.add(referencedSource);
             } else if (directive is PartDirective) {
               if (referencedSource != source) {
-                includedSources.add(referencedSource);
+                includedSourceSet.add(referencedSource);
               }
             } else {
               throw new AnalysisException(
@@ -1991,7 +2023,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     // Always include "dart:core" source.
     //
     Source coreLibrarySource = context.sourceFactory.forUri(DartSdk.DART_CORE);
-    importedSources.add(coreLibrarySource);
+    importedSourceSet.add(coreLibrarySource);
     //
     // Compute kind.
     //
@@ -2002,13 +2034,21 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
-    outputs[EXPORTED_LIBRARIES] = exportedSources.toList();
-    outputs[IMPORTED_LIBRARIES] = importedSources.toList();
-    outputs[INCLUDED_PARTS] = includedSources.toList();
-    outputs[PARSE_ERRORS] = errorListener.getErrorsForSource(source);
+    List<Source> exportedSources = exportedSourceSet.toList();
+    List<Source> importedSources = importedSourceSet.toList();
+    List<Source> includedSources = includedSourceSet.toList();
+    List<AnalysisError> parseErrors = errorListener.errors;
+    List<Source> unitSources = <Source>[source]..addAll(includedSourceSet);
+    outputs[EXPORTED_LIBRARIES] = exportedSources;
+    outputs[IMPORTED_LIBRARIES] = importedSources;
+    outputs[INCLUDED_PARTS] = includedSources;
+    outputs[PARSE_ERRORS] = parseErrors;
     outputs[PARSED_UNIT] = unit;
     outputs[SOURCE_KIND] = sourceKind;
-    outputs[UNITS] = <Source>[source]..addAll(includedSources);
+    outputs[UNITS] = unitSources;
+    outputMemento = new ParseDartMemento(tokenStream, exportedSources,
+        importedSources, includedSources, parseErrors, unit, sourceKind,
+        unitSources);
   }
 
   /**
