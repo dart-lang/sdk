@@ -58,17 +58,15 @@ main() {
 function() {
   var i = 0;
   L1:
-    while (true) {
-      if (P.identical(V.foo(true), true)) {
-        P.print(1);
-        if (!P.identical(V.foo(false), true)) {
-          i = V.foo(i);
-          continue L1;
-        }
-      }
-      P.print(2);
-      return null;
+    while (P.identical(V.foo(true), true)) {
+      P.print(1);
+      if (!P.identical(V.foo(false), true))
+        i = V.foo(i);
+      else
+        break L1;
     }
+  P.print(2);
+  return null;
 }"""),
 const TestEntry("""
 foo(a) => a;
