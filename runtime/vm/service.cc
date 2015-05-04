@@ -1173,7 +1173,7 @@ static void PrintSentinel(JSONStream* js,
 static SourceBreakpoint* LookupBreakpoint(Isolate* isolate, const char* id) {
   size_t end_pos = strcspn(id, "/");
   if (end_pos == strlen(id)) {
-    return false;
+    return NULL;
   }
   const char* rest = id + end_pos + 1;  // +1 for '/'.
   if (strncmp("breakpoints", id, end_pos) == 0) {
