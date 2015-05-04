@@ -1443,7 +1443,10 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t field_cid = field().guarded_cid();
   const intptr_t nullability = field().is_nullable() ? kNullCid : kIllegalCid;
 
-  ASSERT(field_cid != kDynamicCid);
+  if (field_cid == kDynamicCid) {
+    ASSERT(!compiler->is_optimizing());
+    return;  // Nothing to emit.
+  }
 
   const bool emit_full_guard =
       !compiler->is_optimizing() || (field_cid == kIllegalCid);
@@ -1591,7 +1594,10 @@ LocationSummary* GuardFieldLengthInstr::MakeLocationSummary(Zone* zone,
 
 
 void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(field().guarded_list_length() != Field::kNoFixedLength);
+  if (field().guarded_list_length() == Field::kNoFixedLength) {
+    ASSERT(!compiler->is_optimizing());
+    return;  // Nothing to emit.
+  }
 
   Label* deopt = compiler->is_optimizing() ?
       compiler->AddDeoptStub(deopt_id(), ICData::kDeoptGuardField) : NULL;
