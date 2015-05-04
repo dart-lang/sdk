@@ -1,6 +1,7 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
 <link rel="import" href="function_ref.html">
 <link rel="import" href="nav_bar.html">
+<link rel="import" href="eval_link.html">
 <link rel="import" href="observatory_element.html">
 <link rel="import" href="script_inset.html">
 <link rel="import" href="script_ref.html">
@@ -145,7 +146,7 @@
         font-size: 1px;
         border-bottom: 1px dashed #888;
       }
-      .noStack {
+      .noMessages .noStack {
         margin: 0px 20px 10px 20px;
         font: normal 14px consolas, courier, monospace;
         line-height: 125%;
@@ -169,6 +170,13 @@
     </template>
     <ul id="frameList" class="list-group">
       <!-- debugger-frame elements are added programmatically -->
+    </ul>
+    <hr>
+    <template if="{{ !hasMessages }}">
+      <div class="noMessages">No messages</div>
+    </template>
+    <ul id="messageList" class="list-group">
+      <!-- debugger-message elements are added programmatically -->
     </ul>
   </template>
 </polymer-element>
@@ -265,6 +273,104 @@
           </div>
           <!-- TODO(turnidge): Add eval box here? -->
           <div class="frameContractor">
+            <template if="{{expanded}}">
+              <a on-click="{{ toggleExpand }}">
+                <icon-expand-less></icon-expand-less>
+              </a>
+            </template>
+          </div>
+        </div>
+      </template>
+    </div>
+  </template>
+</polymer-element>
+
+<polymer-element name="debugger-message" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <style>
+      .messageOuter {
+        position: relative;
+        padding: 5px;
+        border: 1px solid white;
+      }
+      .messageOuter:hover {
+        border: 1px solid #e0e0e0;
+      }
+      .shadow {
+        box-shadow:  0 2px 10px 0 rgba(0, 0, 0, 0.16),
+        0 2px 5px 0 rgba(0, 0, 0, 0.26);
+      }
+      .current {
+        box-shadow:  0 2px 10px 0 rgba(0, 0, 0, 0.26),
+        0 2px 5px 0 rgba(0, 0, 0, 0.46);
+        border: 1px solid #444;
+      }
+      .messageSummaryText {
+        display: inline-block;
+        padding: 5px;
+      }
+      .messageId {
+        display: inline-block;
+        width: 100px;
+      }
+      .messageOuter .messageExpander {
+        position: absolute;
+        right: 5px;
+        top: 5px;
+        display: none;
+      }
+      .messageOuter:hover .messageExpander {
+        display: inline-block;
+      }
+      .messageContractor {
+        position: absolute;
+        right: 5px;
+        bottom: 5px;
+        display: inline-block;
+      }
+    </style>
+    <div id="messageOuter" class="messageOuter">
+      <a on-click="{{ toggleExpand }}">
+        <div class="messageSummary">
+          <div class="messageSummaryText">
+            <div class="messageId"><b>message {{ message['depth'] }}</b></div>
+            <function-ref ref="{{ message['handlerFunction'] }}"></function-ref>
+            ( <script-ref ref="{{ message['handlerScript'] }}"
+                          pos="{{ message['handlerTokenPos'] }}">
+            </script-ref> )
+          </div>
+          <template if="{{ !expanded }}">
+            <div class="messageExpander">
+              <icon-expand-more></icon-expand-more>
+            </div>
+          </template>
+        </div>
+      </a>
+
+      <template if="{{expanded}}">
+        <div class="messageDetails">
+          <div class="flex-row">
+            <div class="flex-item-60-percent">
+              <template if="{{ message['handlerFunction'] != null }}">
+              <script-inset height="{{ scriptHeight }}"
+                            script="{{ message['handlerFunction'].script }}"
+                            startPos="{{ message['handlerFunction'].tokenPos }}"
+                            endPos="{{ message['handlerFunction'].endTokenPos }}"
+                            inDebuggerContext="{{ true }}">
+              </script-inset>
+              </template>
+            </div>
+            <div class="flex-item-40-percent">
+              <div class="memberItem">
+                <div class="memberName"></div>
+                <div class="memberValue">
+                  <eval-link callback="{{ previewMessage }}" label="[preview]" result="{{ preview }}"></eval-link>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="messageContractor">
             <template if="{{expanded}}">
               <a on-click="{{ toggleExpand }}">
                 <icon-expand-less></icon-expand-less>

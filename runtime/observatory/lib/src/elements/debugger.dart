@@ -1207,6 +1207,7 @@ class DebuggerPageElement extends ObservatoryElement {
 class DebuggerStackElement extends ObservatoryElement {
   @published Isolate isolate;
   @observable bool hasStack = false;
+  @observable bool hasMessages = false;
   @observable bool isSampled = false;
   @observable int currentFrame;
   ObservatoryDebugger debugger;
@@ -1228,7 +1229,18 @@ class DebuggerStackElement extends ObservatoryElement {
     frameList.insert(0, li);
   }
 
-  void updateStack(ServiceMap newStack, ServiceEvent pauseEvent) {
+  _addMessage(List messageList, ServiceMap messageInfo) {
+    DebuggerMessageElement messageElement = new Element.tag('debugger-message');
+    messageElement.message = messageInfo;
+
+    var li = new LIElement();
+    li.classes.add('list-group-item');
+    li.children.insert(0, messageElement);
+
+    messageList.add(li);
+  }
+
+  void updateStackFrames(ServiceMap newStack) {
     List frameElements = $['frameList'].children;
     List newFrames = newStack['frames'];
 
@@ -1275,8 +1287,45 @@ class DebuggerStackElement extends ObservatoryElement {
       }
     }
 
-    isSampled = pauseEvent == null;
     hasStack = frameElements.isNotEmpty;
+  }
+
+  void updateStackMessages(ServiceMap newStack) {
+    List messageElements = $['messageList'].children;
+    List newMessages = newStack['messages'];
+
+    // Remove any extra message elements.
+    if (messageElements.length > newMessages.length) {
+      // Remove old messages from the front of the queue.
+      int removeCount = messageElements.length - newMessages.length;
+      for (int i = 0; i < removeCount; i++) {
+        messageElements.removeAt(0);
+      }
+    }
+
+    // Add any new messages to the tail of the queue.
+    int newStartingIndex = messageElements.length;
+    if (messageElements.length < newMessages.length) {
+      for (int i = newStartingIndex; i < newMessages.length; i++) {
+        _addMessage(messageElements, newMessages[i]);
+      }
+    }
+    assert(messageElements.length == newMessages.length);
+
+    if (messageElements.isNotEmpty) {
+      // Update old messages.
+      for (int i = 0; i < newStartingIndex; i++) {
+        messageElements[i].children[0].updateMessage(newMessages[i]);
+      }
+    }
+
+    hasMessages = messageElements.isNotEmpty;
+  }
+
+  void updateStack(ServiceMap newStack, ServiceEvent pauseEvent) {
+    updateStackFrames(newStack);
+    updateStackMessages(newStack);
+    isSampled = pauseEvent == null;
   }
 
   void setCurrentFrame(int value) {
@@ -1397,6 +1446,100 @@ class DebuggerFrameElement extends ObservatoryElement {
         }
         busy = false;
       });
+  }
+}
+
+@CustomTag('debugger-message')
+class DebuggerMessageElement extends ObservatoryElement {
+  @published ServiceMap message;
+  @observable ServiceObject preview;
+
+  // Is this the current message?
+  bool _current = false;
+
+  // Has this message been pinned open?
+  bool _pinned = false;
+
+  void setCurrent(bool value) {
+    _current = value;
+    var messageOuter = $['messageOuter'];
+    if (_current) {
+      messageOuter.classes.add('current');
+      expanded = true;
+      messageOuter.classes.add('shadow');
+      scrollIntoView();
+    } else {
+      messageOuter.classes.remove('current');
+      if (_pinned) {
+        expanded = true;
+        messageOuter.classes.add('shadow');
+      } else {
+        expanded = false;
+        messageOuter.classes.remove('shadow');
+      }
+    }
+  }
+
+  @observable String scriptHeight;
+  @observable bool expanded = false;
+  @observable bool busy = false;
+
+  DebuggerMessageElement.created() : super.created();
+
+  void updateMessage(ServiceMap newMessage) {
+    bool messageChanged =
+        (message['messageObjectId'] != newMessage['messageObjectId']);
+    message['depth'] = newMessage['depth'];
+    message['handlerFunction'] = newMessage['handlerFunction'];
+    message['messageObjectId'] = newMessage['messageObjectId'];
+    if (messageChanged) {
+      // Message object id has changed: clear preview and collapse.
+      preview = null;
+      if (expanded) {
+        toggleExpand(null, null, null);
+      }
+    }
+  }
+
+  @override
+  void attached() {
+    super.attached();
+    int windowHeight = window.innerHeight;
+    scriptHeight = '${windowHeight ~/ 1.6}px';
+  }
+
+  void toggleExpand(var a, var b, var c) {
+    if (busy) {
+      return;
+    }
+    busy = true;
+    var function = message['handlerFunction'];
+    var loadedFunction;
+    if (function == null) {
+      // Complete immediately.
+      loadedFunction = new Future.value(null);
+    } else {
+      loadedFunction = function.load();
+    }
+    loadedFunction.then((_) {
+      _pinned = !_pinned;
+      var messageOuter = $['messageOuter'];
+      if (_pinned) {
+        expanded = true;
+        messageOuter.classes.add('shadow');
+      } else {
+        expanded = false;
+        messageOuter.classes.remove('shadow');
+      }
+      busy = false;
+    });
+  }
+
+  Future<ServiceObject> previewMessage(_) {
+    return message.isolate.getObject(message['messageObjectId']).then((result) {
+      preview = result;
+      return result;
+    });
   }
 }
 

@@ -4,6 +4,9 @@
 
 #include "vm/message.h"
 
+#include "vm/dart_entry.h"
+#include "vm/json_stream.h"
+#include "vm/object.h"
 #include "vm/port.h"
 
 namespace dart {
@@ -15,6 +18,26 @@ bool Message::RedirectToDeliveryFailurePort() {
   dest_port_ = delivery_failure_port_;
   delivery_failure_port_ = kIllegalPort;
   return true;
+}
+
+
+intptr_t Message::Id() const {
+  // Messages are allocated on the C heap. Use the raw address as the id.
+  return reinterpret_cast<intptr_t>(this);
+}
+
+const char* Message::PriorityAsString(Priority priority) {
+  switch (priority) {
+    case kNormalPriority:
+      return "Normal";
+    break;
+    case kOOBPriority:
+      return "OOB";
+    break;
+    default:
+      UNIMPLEMENTED();
+      return NULL;
+  }
 }
 
 
@@ -105,5 +128,96 @@ void MessageQueue::Clear() {
   }
 }
 
+
+MessageQueue::Iterator::Iterator(const MessageQueue* queue)
+    : next_(NULL) {
+  Reset(queue);
+}
+
+
+MessageQueue::Iterator::~Iterator() {
+}
+
+void MessageQueue::Iterator::Reset(const MessageQueue* queue) {
+  ASSERT(queue != NULL);
+  next_ = queue->head_;
+}
+
+// returns false when there are no more messages left.
+bool MessageQueue::Iterator::HasNext() {
+  return next_ != NULL;
+}
+
+// Returns the current message and moves forward.
+Message* MessageQueue::Iterator::Next() {
+  Message* current = next_;
+  next_ = next_->next_;
+  return current;
+}
+
+
+intptr_t MessageQueue::Length() const {
+  MessageQueue::Iterator it(this);
+  intptr_t length = 0;
+  while (it.HasNext()) {
+    it.Next();
+    length++;
+  }
+  return length;
+}
+
+
+Message* MessageQueue::FindMessageById(intptr_t id) {
+  MessageQueue::Iterator it(this);
+  while (it.HasNext()) {
+    Message* current = it.Next();
+     ASSERT(current != NULL);
+    if (current->Id() == id) {
+      return current;
+    }
+  }
+  return NULL;
+}
+
+
+void MessageQueue::PrintJSON(JSONStream* stream) {
+  Isolate* isolate = Isolate::Current();
+  JSONArray messages(stream);
+
+  Object& msg_handler = Object::Handle(isolate);
+
+  MessageQueue::Iterator it(this);
+  intptr_t depth = 0;
+  while (it.HasNext()) {
+    Message* current = it.Next();
+    JSONObject message(&messages);
+    message.AddProperty("type", "Message");
+    message.AddPropertyF("name", "Isolate Message (%" Px ")", current->Id());
+    message.AddPropertyF("messageObjectId", "messages/%" Px "",
+                         current->Id());
+    message.AddProperty("size", current->len());
+    message.AddProperty("depth", depth++);
+    message.AddProperty("_destinationPort",
+        static_cast<intptr_t>(current->dest_port()));
+    message.AddProperty("priority",
+        Message::PriorityAsString(current->priority()));
+    // TODO(johnmccutchan): Move port -> handler map out of Dart and into the
+    // VM, that way we can lookup the handler without invoking Dart code.
+    msg_handler = DartLibraryCalls::LookupHandler(current->dest_port());
+    if (msg_handler.IsInstance() && Instance::Cast(msg_handler).IsClosure()) {
+      // Grab function from closure.
+      msg_handler = Closure::function(Instance::Cast(msg_handler));
+    }
+    if (!msg_handler.IsFunction()) {
+      // No handler function.
+      continue;
+    }
+    const Function& function = Function::Cast(msg_handler);
+    const Script& script = Script::Handle(function.script());
+    message.AddProperty("handlerFunction", function);
+    message.AddProperty("handlerScript", script);
+    message.AddProperty("handlerTokenPos", function.token_pos());
+  }
+}
 
 }  // namespace dart

@@ -733,17 +733,26 @@ static bool GetStack(Isolate* isolate, JSONStream* js) {
   const bool full = BoolParameter::Parse(js->LookupParam("full"), false);
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Stack");
-  JSONArray jsarr(&jsobj, "frames");
+  {
+    JSONArray jsarr(&jsobj, "frames");
 
-  intptr_t num_frames = stack->Length();
-  for (intptr_t i = 0; i < num_frames; i++) {
-    ActivationFrame* frame = stack->FrameAt(i);
-    JSONObject jsobj(&jsarr);
-    frame->PrintToJSONObject(&jsobj, full);
-    // TODO(turnidge): Implement depth differently -- differentiate
-    // inlined frames.
-    jsobj.AddProperty("depth", i);
+    intptr_t num_frames = stack->Length();
+    for (intptr_t i = 0; i < num_frames; i++) {
+      ActivationFrame* frame = stack->FrameAt(i);
+      JSONObject jsobj(&jsarr);
+      frame->PrintToJSONObject(&jsobj, full);
+      // TODO(turnidge): Implement depth differently -- differentiate
+      // inlined frames.
+      jsobj.AddProperty("depth", i);
+    }
   }
+
+  {
+    MessageHandler::AcquiredQueues aq;
+    isolate->message_handler()->AcquireQueues(&aq);
+    jsobj.AddProperty("messages", aq.queue());
+  }
+
   return true;
 }
 
@@ -1163,14 +1172,11 @@ static void PrintSentinel(JSONStream* js,
 
 static SourceBreakpoint* LookupBreakpoint(Isolate* isolate, const char* id) {
   size_t end_pos = strcspn(id, "/");
-  const char* rest = NULL;
-  if (end_pos < strlen(id)) {
-    rest = id + end_pos + 1;  // +1 for '/'.
+  if (end_pos == strlen(id)) {
+    return false;
   }
+  const char* rest = id + end_pos + 1;  // +1 for '/'.
   if (strncmp("breakpoints", id, end_pos) == 0) {
-    if (rest == NULL) {
-      return NULL;
-    }
     intptr_t bpt_id = 0;
     SourceBreakpoint* bpt = NULL;
     if (GetIntegerId(rest, &bpt_id)) {
@@ -1182,6 +1188,40 @@ static SourceBreakpoint* LookupBreakpoint(Isolate* isolate, const char* id) {
 }
 
 
+// Scans |isolate|'s message queue looking for a message with |id|.
+// If found, the message is printed to |js| and true is returned.
+// If not found, false is returned.
+static bool PrintMessage(JSONStream* js, Isolate* isolate, const char* id) {
+  size_t end_pos = strcspn(id, "/");
+  if (end_pos == strlen(id)) {
+    return false;
+  }
+  const char* rest = id + end_pos + 1;  // +1 for '/'.
+  if (strncmp("messages", id, end_pos) == 0) {
+    uword message_id = 0;
+    if (GetUnsignedIntegerId(rest, &message_id, 16)) {
+      MessageHandler::AcquiredQueues aq;
+      isolate->message_handler()->AcquireQueues(&aq);
+      Message* message = aq.queue()->FindMessageById(message_id);
+      if (message == NULL) {
+        printf("Could not find message %" Px "\n", message_id);
+        // Not found.
+        return false;
+      }
+      SnapshotReader reader(message->data(),
+                            message->len(),
+                            Snapshot::kMessage,
+                            isolate,
+                            isolate->current_zone());
+      const Object& msg_obj = Object::Handle(reader.ReadObject());
+      msg_obj.PrintJSON(js);
+      return true;
+    } else {
+      printf("Could not get id from %s\n", rest);
+    }
+  }
+  return false;
+}
 
 
 static bool PrintInboundReferences(Isolate* isolate,
@@ -2328,6 +2368,10 @@ static bool GetObject(Isolate* isolate, JSONStream* js) {
   SourceBreakpoint* bpt = LookupBreakpoint(isolate, id);
   if (bpt != NULL) {
     bpt->PrintJSON(js);
+    return true;
+  }
+
+  if (PrintMessage(js, isolate, id)) {
     return true;
   }
 

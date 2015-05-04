@@ -506,6 +506,7 @@ TEST_CASE(Service_EmbedderRootHandler) {
   EXPECT_STREQ("{\"result\":beta, \"id\":\"0\"}", handler.msg());
 }
 
+
 TEST_CASE(Service_EmbedderIsolateHandler) {
   const char* kScript =
     "var port;\n"  // Set to our mock port by C++.
@@ -542,7 +543,6 @@ TEST_CASE(Service_EmbedderIsolateHandler) {
   handler.HandleNextMessage();
   EXPECT_STREQ("{\"result\":beta, \"id\":\"0\"}", handler.msg());
 }
-
 
 // TODO(zra): Remove when tests are ready to enable.
 #if !defined(TARGET_ARCH_ARM64)

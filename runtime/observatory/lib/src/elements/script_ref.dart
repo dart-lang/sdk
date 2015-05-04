@@ -10,7 +10,7 @@ import 'service_ref.dart';
 
 @CustomTag('script-ref')
 class ScriptRefElement extends ServiceRefElement {
-  @published int pos = -1;
+  @published int pos;
 
   String get hoverText {
     if (ref == null) {
@@ -34,7 +34,7 @@ class ScriptRefElement extends ServiceRefElement {
     if (ref == null) {
       return super.name;
     }
-    if (pos >= 0) {
+    if ((pos != null) && (pos >= 0)) {
       if (ref.loaded) {
         // Script is loaded, get the line number.
         Script script = ref;
@@ -51,7 +51,7 @@ class ScriptRefElement extends ServiceRefElement {
     if (ref == null) {
       return super.url;
     }
-    if (pos >= 0) {
+    if ((pos != null) && (pos >= 0)) {
       if (ref.loaded) {
         return '${super.url}---pos=${pos}';
       } else {

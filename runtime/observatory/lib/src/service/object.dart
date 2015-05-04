@@ -79,6 +79,7 @@ abstract class ServiceObject extends Observable {
   bool get isNull => type == 'null';
   bool get isSentinel => type == 'Sentinel';
   bool get isString => type == 'String';
+  bool get isMessage => type == 'Message';
 
   // Kinds of Instance.
   bool get isMirrorReference => vmType == 'MirrorReference';
@@ -2209,6 +2210,7 @@ class Script extends ServiceObject with Coverage {
     if (mapIsRef) {
       return;
     }
+    _loaded = true;
     lineOffset = map['lineOffset'];
     columnOffset = map['columnOffset'];
     _parseTokenPosTable(map['tokenPosTable']);
@@ -2282,8 +2284,6 @@ class Script extends ServiceObject with Coverage {
   }
 
   void _processSource(String source) {
-    // Preemptyively mark that this is not loaded.
-    _loaded = false;
     if (source == null) {
       return;
     }
@@ -2291,8 +2291,6 @@ class Script extends ServiceObject with Coverage {
     if (sourceLines.length == 0) {
       return;
     }
-    // We have the source to the script. This is now loaded.
-    _loaded = true;
     lines.clear();
     Logger.root.info('Adding ${sourceLines.length} source lines for ${_url}');
     for (var i = 0; i < sourceLines.length; i++) {

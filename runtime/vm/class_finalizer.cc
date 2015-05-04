@@ -2320,7 +2320,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   if (cls.is_finalized()) {
     return;
   }
-  if (false && cls.is_patch()) {
+  if (cls.is_patch()) {
     // The fields and functions of a patch class are copied to the
     // patched class after parsing. There is nothing to finalize.
     ASSERT(Array::Handle(cls.functions()).Length() == 0);

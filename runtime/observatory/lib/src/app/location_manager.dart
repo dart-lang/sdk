@@ -115,7 +115,7 @@ class LocationManager extends Observable {
   /// queryParameters present in [updateParameters], then generate a new uri
   /// and navigate to that.
   goReplacingParameters(Map updatedParameters, [bool addToBrowserHistory = true]) {
-    go(makeLinkReplacingParameter(updatedParameters), addToBrowserHistory);
+    go(makeLinkReplacingParameters(updatedParameters), addToBrowserHistory);
   }
 
   makeLinkReplacingParameters(Map updatedParameters) {

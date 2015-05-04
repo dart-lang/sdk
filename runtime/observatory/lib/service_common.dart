@@ -316,7 +316,7 @@ abstract class CommonWebSocketVM extends VM {
         request.method != 'getIsolateMetric' &&
         request.method != 'getVMMetric') {
       Logger.root.info(
-          'GET [${serial}] ${request.method} from ${target.networkAddress}');
+          'GET [${serial}] ${request.method}(${request.params}) from ${target.networkAddress}');
     }
     // Send message.
     _webSocket.send(message);
