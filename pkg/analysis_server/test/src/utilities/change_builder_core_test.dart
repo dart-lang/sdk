@@ -132,7 +132,37 @@ class EditBuilderImplTest {
     expect(edit.replacement, text);
   }
 
-  void test_writeln() {
+  void test_writeln_withoutText() {
+    ChangeBuilderImpl builder = new ChangeBuilderImpl();
+    int timeStamp = 39;
+    int offset = 52;
+    int length = 12;
+    builder.addFileEdit(source, timeStamp, (FileEditBuilderImpl builder) {
+      builder.addReplacement(offset, length, (EditBuilderImpl builder) {
+        builder.writeln();
+      });
+    });
+
+    SourceChange sourceChange = builder.sourceChange;
+    expect(sourceChange, isNotNull);
+
+    List<SourceFileEdit> fileEdits = sourceChange.edits;
+    expect(fileEdits, hasLength(1));
+    SourceFileEdit fileEdit = fileEdits[0];
+    expect(fileEdit, isNotNull);
+    expect(fileEdit.file, source.fullName);
+    expect(fileEdit.fileStamp, timeStamp);
+
+    List<SourceEdit> edits = fileEdit.edits;
+    expect(edits, hasLength(1));
+    SourceEdit edit = edits[0];
+    expect(edit, isNotNull);
+    expect(edit.offset, offset);
+    expect(edit.length, length);
+    expect(edit.replacement == '\n' || edit.replacement == '\r\n', isTrue);
+  }
+
+  void test_writeln_withText() {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
     int timeStamp = 39;
     int offset = 52;

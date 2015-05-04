@@ -152,7 +152,9 @@ class EditBuilderImpl implements EditBuilder {
 
   @override
   void writeln([String string]) {
-    _buffer.write(string);
+    if (string != null) {
+      _buffer.write(string);
+    }
     if (_eol == null) {
       _buffer.writeln();
     } else {

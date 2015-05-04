@@ -54,6 +54,23 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     return edits[0];
   }
 
+  void test_writeClassDeclaration_interfaces() {
+    Source source = addSource('/test.dart', 'class A {}');
+    CompilationUnit unit = resolveLibraryUnit(source);
+    ClassDeclaration declaration = unit.declarations[0];
+
+    DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
+    builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
+      builder.addInsertion(0, (DartEditBuilder builder) {
+        builder.writeClassDeclaration('C',
+            interfaces: [declaration.element.type]);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(
+        edit.replacement, equalsIgnoringWhitespace('class C implements A { }'));
+  }
+
   void test_writeClassDeclaration_isAbstract() {
     Source source = addSource('/test.dart', '');
     resolveLibraryUnit(source);
@@ -68,14 +85,64 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     expect(edit.replacement, equalsIgnoringWhitespace('abstract class C { }'));
   }
 
-  void test_writeClassDeclaration_nameOnly() {
+  void test_writeClassDeclaration_memberWriter() {
     Source source = addSource('/test.dart', '');
     resolveLibraryUnit(source);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
       builder.addInsertion(0, (DartEditBuilder builder) {
-        builder.writeClassDeclaration('C');
+        builder.writeClassDeclaration('C', memberWriter: () {
+          builder.write('/**/');
+        });
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('class C { /**/ }'));
+  }
+
+  void test_writeClassDeclaration_mixins_noSuperclass() {
+    Source source = addSource('/test.dart', 'class A {}');
+    CompilationUnit unit = resolveLibraryUnit(source);
+    ClassDeclaration classA = unit.declarations[0];
+
+    DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
+    builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
+      builder.addInsertion(0, (DartEditBuilder builder) {
+        builder.writeClassDeclaration('C', mixins: [classA.element.type]);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement,
+        equalsIgnoringWhitespace('class C extends Object with A { }'));
+  }
+
+  void test_writeClassDeclaration_mixins_superclass() {
+    Source source = addSource('/test.dart', 'class A {} class B {}');
+    CompilationUnit unit = resolveLibraryUnit(source);
+    ClassDeclaration classA = unit.declarations[0];
+    ClassDeclaration classB = unit.declarations[1];
+
+    DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
+    builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
+      builder.addInsertion(0, (DartEditBuilder builder) {
+        builder.writeClassDeclaration('C',
+            mixins: [classB.element.type], superclass: classA.element.type);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement,
+        equalsIgnoringWhitespace('class C extends A with B { }'));
+  }
+
+  void test_writeClassDeclaration_nameGroupName() {
+    Source source = addSource('/test.dart', '');
+    resolveLibraryUnit(source);
+
+    DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
+    builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
+      builder.addInsertion(0, (DartEditBuilder builder) {
+        builder.writeClassDeclaration('C', nameGroupName: 'name');
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -103,6 +170,214 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     });
     SourceEdit edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('class C extends B { }'));
+  }
+
+  void test_writeFieldDeclaration_initializerWriter() {
+    String content = 'class A {}';
+    Source source = addSource('/test.dart', content);
+    resolveLibraryUnit(source);
+
+    DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
+    builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+        builder.writeFieldDeclaration('f', initializerWriter: () {
+          builder.write('e');
+        });
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('var f = e;'));
+  }
+
+  void test_writeFieldDeclaration_isConst() {
+    String content = 'class A {}';
+    Source source = addSource('/test.dart', content);
+    resolveLibraryUnit(source);
+
+    DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
+    builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+        builder.writeFieldDeclaration('f', isConst: true);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('const f;'));
+  }
+
+  void test_writeFieldDeclaration_isConst_isFinal() {
+    String content = 'class A {}';
+    Source source = addSource('/test.dart', content);
+    resolveLibraryUnit(source);
+
+    DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
+    builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+        builder.writeFieldDeclaration('f', isConst: true, isFinal: true);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('const f;'));
+  }
+
+  void test_writeFieldDeclaration_isFinal() {
+    String content = 'class A {}';
+    Source source = addSource('/test.dart', content);
+    resolveLibraryUnit(source);
+
+    DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
+    builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+        builder.writeFieldDeclaration('f', isFinal: true);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('final f;'));
+  }
+
+  void test_writeFieldDeclaration_isStatic() {
+    String content = 'class A {}';
+    Source source = addSource('/test.dart', content);
+    resolveLibraryUnit(source);
+
+    DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
+    builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+        builder.writeFieldDeclaration('f', isStatic: true);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('static var f;'));
+  }
+
+  void test_writeFieldDeclaration_nameGroupName() {
+    String content = 'class A {}';
+    Source source = addSource('/test.dart', content);
+    resolveLibraryUnit(source);
+
+    DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
+    builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+        builder.writeFieldDeclaration('f', nameGroupName: 'name');
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('var f;'));
+
+    List<LinkedEditGroup> linkedEditGroups =
+        builder.sourceChange.linkedEditGroups;
+    expect(linkedEditGroups, hasLength(1));
+    LinkedEditGroup group = linkedEditGroups[0];
+    expect(group.length, 1);
+    expect(group.positions, hasLength(1));
+    Position position = group.positions[0];
+    expect(position.offset, equals(13));
+  }
+
+  void test_writeFieldDeclaration_type_typeGroupName() {
+    String content = 'class A {} class B {}';
+    Source source = addSource('/test.dart', content);
+    CompilationUnit unit = resolveLibraryUnit(source);
+    ClassDeclaration declaration = unit.declarations[0];
+
+    DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
+    builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+        builder.writeFieldDeclaration('f',
+            type: declaration.element.type, typeGroupName: 'type');
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('A f;'));
+
+    List<LinkedEditGroup> linkedEditGroups =
+        builder.sourceChange.linkedEditGroups;
+    expect(linkedEditGroups, hasLength(1));
+    LinkedEditGroup group = linkedEditGroups[0];
+    expect(group.length, 1);
+    expect(group.positions, hasLength(1));
+    Position position = group.positions[0];
+    expect(position.offset, equals(20));
+  }
+
+  void test_writeGetterDeclaration_bodyWriter() {
+    String content = 'class A {}';
+    Source source = addSource('/test.dart', content);
+    resolveLibraryUnit(source);
+
+    DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
+    builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilderImpl builder) {
+        builder.writeGetterDeclaration('g', bodyWriter: () {
+          builder.write('{}');
+        });
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('get g {}'));
+  }
+
+  void test_writeGetterDeclaration_isStatic() {
+    String content = 'class A {}';
+    Source source = addSource('/test.dart', content);
+    resolveLibraryUnit(source);
+
+    DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
+    builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilderImpl builder) {
+        builder.writeGetterDeclaration('g', isStatic: true);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('static get g => null;'));
+  }
+
+  void test_writeGetterDeclaration_nameGroupName() {
+    String content = 'class A {}';
+    Source source = addSource('/test.dart', content);
+    resolveLibraryUnit(source);
+
+    DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
+    builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilderImpl builder) {
+        builder.writeGetterDeclaration('g', nameGroupName: 'name');
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('get g => null;'));
+
+    List<LinkedEditGroup> linkedEditGroups =
+        builder.sourceChange.linkedEditGroups;
+    expect(linkedEditGroups, hasLength(1));
+    LinkedEditGroup group = linkedEditGroups[0];
+    expect(group.length, 1);
+    expect(group.positions, hasLength(1));
+    Position position = group.positions[0];
+    expect(position.offset, equals(13));
+  }
+
+  void test_writeGetterDeclaration_returnType() {
+    String content = 'class A {} class B {}';
+    Source source = addSource('/test.dart', content);
+    CompilationUnit unit = resolveLibraryUnit(source);
+    ClassDeclaration classA = unit.declarations[0];
+
+    DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
+    builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilderImpl builder) {
+        builder.writeGetterDeclaration('g', returnType: classA.element.type, returnTypeGroupName: 'returnType');
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('A get g => null;'));
+
+    List<LinkedEditGroup> linkedEditGroups =
+        builder.sourceChange.linkedEditGroups;
+    expect(linkedEditGroups, hasLength(1));
+    LinkedEditGroup group = linkedEditGroups[0];
+    expect(group.length, 1);
+    expect(group.positions, hasLength(1));
+    Position position = group.positions[0];
+    expect(position.offset, equals(20));
   }
 
   void test_writeOverrideOfInheritedMember() {
@@ -413,6 +688,72 @@ f(int i, String s) {
     });
     SourceEdit edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('A'));
+  }
+
+  void test_writeTypes_empty() {
+    String content = 'class A {}';
+    Source source = addSource('/test.dart', content);
+    resolveLibraryUnit(source);
+
+    DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
+    builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+        (builder as DartEditBuilderImpl).writeTypes([]);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, isEmpty);
+  }
+
+  void test_writeTypes_noPrefix() {
+    String content = 'class A {} class B {}';
+    Source source = addSource('/test.dart', content);
+    CompilationUnit unit = resolveLibraryUnit(source);
+    ClassDeclaration classA = unit.declarations[0];
+    ClassDeclaration classB = unit.declarations[1];
+
+    DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
+    builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+        (builder as DartEditBuilderImpl)
+            .writeTypes([classA.element.type, classB.element.type]);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('A, B'));
+  }
+
+  void test_writeTypes_null() {
+    String content = 'class A {}';
+    Source source = addSource('/test.dart', content);
+    resolveLibraryUnit(source);
+
+    DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
+    builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+        (builder as DartEditBuilderImpl).writeTypes(null);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, isEmpty);
+  }
+
+  void test_writeTypes_prefix() {
+    String content = 'class A {} class B {}';
+    Source source = addSource('/test.dart', content);
+    CompilationUnit unit = resolveLibraryUnit(source);
+    ClassDeclaration classA = unit.declarations[0];
+    ClassDeclaration classB = unit.declarations[1];
+
+    DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
+    builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+        (builder as DartEditBuilderImpl).writeTypes(
+            [classA.element.type, classB.element.type], prefix: 'implements ');
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('implements A, B'));
   }
 }
 

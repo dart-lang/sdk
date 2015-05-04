@@ -13,6 +13,7 @@ import 'package:analysis_server/utilities/change_builder_dart.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -42,29 +43,9 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
  */
 class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /**
-   * The string used when writing the 'abstract' modifier.
-   */
-  static const String ABSTRACT_MODIFIER = 'abstract ';
-
-  /**
-   * The string used when writing the 'const' modifier.
-   */
-  static const String CONST_MODIFIER = 'const ';
-
-  /**
    * A utility class used to help build the source code.
    */
   final CorrectionUtils utils;
-
-//  /**
-//   * The string used when writing the 'final' modifier.
-//   */
-//  static const String FINAL_MODIFIER = 'final ';
-//
-//  /**
-//   * The string used when writing the 'static' modifier.
-//   */
-//  static const String STATIC_MODIFIER = 'static ';
 
   /**
    * Initialize a newly created builder to build a source edit.
@@ -77,56 +58,42 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   DartFileEditBuilderImpl get dartFileEditBuilder => fileEditBuilder;
 
   @override
-  void writeClassDeclaration(String name, {Iterator<DartType> interfaces,
-      bool isAbstract: false, void memberWriter(), Iterator<DartType> mixins, DartType superclass}) {
-    // TODO(brianwilkerson) Add support for type parameters
-    // Map<String, DartType>, List<TypeParameter>?
-    //
-    // TODO(brianwilkerson) Make additional optional parameters visible in the
-    // public API.
+  void writeClassDeclaration(String name, {Iterable<DartType> interfaces,
+      bool isAbstract: false, void memberWriter(), Iterable<DartType> mixins,
+      String nameGroupName, DartType superclass}) {
+    // TODO(brianwilkerson) Add support for type parameters, probably as a
+    // parameterWriter parameter.
+    // TODO(brianwilkerson) Add a superclassGroupName parameter.
     if (isAbstract) {
-      write(ABSTRACT_MODIFIER);
+      write(Keyword.ABSTRACT.syntax);
+      write(' ');
     }
     write('class ');
-    addLinkedEdit(DartEditBuilder.NAME_GROUP_ID, (LinkedEditBuilder builder) {
+    if (nameGroupName == null) {
       write(name);
-    });
+    } else {
+      addLinkedEdit(DartEditBuilder.NAME_GROUP_ID, (LinkedEditBuilder builder) {
+        write(name);
+      });
+    }
     if (superclass != null) {
       write(' extends ');
       writeType(superclass, groupName: DartEditBuilder.SUPERCLASS_GROUP_ID);
+    } else if (mixins != null && mixins.isNotEmpty) {
+      write(' extends Object ');
     }
     writeTypes(mixins, prefix: ' with ');
     writeTypes(interfaces, prefix: ' implements ');
     writeln(' {');
     if (memberWriter != null) {
+      writeln();
       memberWriter();
+      writeln();
     }
     write('}');
   }
 
-  /**
-   * Write the code for a comma-separated list of [types], optionally prefixed
-   * by a [prefix]. If the list of [types] is `null` or does not return any
-   * types, then nothing will be written.
-   */
-  void writeTypes(Iterator<DartType> types, {String prefix}) {
-    if (types == null) {
-      return;
-    }
-    bool first = true;
-    while (types.moveNext()) {
-      if (first) {
-        if (prefix != null) {
-          write(prefix);
-        }
-        first = false;
-      } else {
-        write(', ');
-      }
-      writeType(types.current);
-    }
-  }
-
+  //@override
   void writeConstructorDeclaration(ClassElement classElement,
       {ArgumentList argumentList, SimpleIdentifier constructorName,
       bool isConst: false}) {
@@ -135,7 +102,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     // TODO(brianwilkerson) Support passing a list of final fields rather than
     // an argument list.
     if (isConst) {
-      write(CONST_MODIFIER);
+      write(Keyword.CONST.syntax);
+      write(' ');
     }
     write(classElement.name);
     write('.');
@@ -166,6 +134,71 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
+  void writeFieldDeclaration(String name, {void initializerWriter(),
+      bool isConst: false, bool isFinal: false, bool isStatic: false,
+      String nameGroupName, DartType type, String typeGroupName}) {
+    if (isStatic) {
+      write(Keyword.STATIC.syntax);
+      write(' ');
+    }
+    bool typeRequired = true;
+    if (isConst) {
+      write(Keyword.CONST.syntax);
+      typeRequired = false;
+    } else if (isFinal) {
+      write(Keyword.FINAL.syntax);
+      typeRequired = false;
+    }
+    if (type != null) {
+      writeType(type, groupName: typeGroupName);
+    } else if (typeRequired) {
+      write(Keyword.VAR.syntax);
+    }
+    write(' ');
+    if (nameGroupName != null) {
+      addLinkedEdit(nameGroupName, (LinkedEditBuilder builder) {
+        write(name);
+      });
+    } else {
+      write(name);
+    }
+    if (initializerWriter != null) {
+      write(' = ');
+      initializerWriter();
+    }
+    write(';');
+  }
+
+  @override
+  void writeGetterDeclaration(String name, {void bodyWriter(),
+      bool isStatic: false, String nameGroupName, DartType returnType,
+      String returnTypeGroupName}) {
+    if (isStatic) {
+      write(Keyword.STATIC.syntax);
+      write(' ');
+    }
+    if (returnType != null) {
+      writeType(returnType, groupName: returnTypeGroupName);
+      write(' ');
+    }
+    write(Keyword.GET.syntax);
+    write(' ');
+    if (nameGroupName != null) {
+      addLinkedEdit(nameGroupName, (LinkedEditBuilder builder) {
+        write(name);
+      });
+    } else {
+      write(name);
+    }
+    if (bodyWriter == null) {
+      write(' => null;');
+    } else {
+      write(' ');
+      bodyWriter();
+    }
+  }
+
+  @override
   void writeOverrideOfInheritedMember(ExecutableElement member) {
     // prepare environment
     String prefix = utils.getIndent(1);
@@ -190,11 +223,14 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         groupName: DartEditBuilder.RETURN_TYPE_GROUP_ID);
     write(' ');
     if (isGetter) {
-      write('get ');
+      write(Keyword.GET.syntax);
+      write(' ');
     } else if (isSetter) {
-      write('set ');
+      write(Keyword.SET.syntax);
+      write(' ');
     } else if (isOperator) {
-      write('operator ');
+      write(Keyword.OPERATOR.syntax);
+      write(' ');
     }
     // name
     write(member.displayName);
@@ -330,9 +366,32 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
       return true;
     } else if (required) {
-      write('var');
+      write(Keyword.VAR.syntax);
     }
     return false;
+  }
+
+  /**
+   * Write the code for a comma-separated list of [types], optionally prefixed
+   * by a [prefix]. If the list of [types] is `null` or does not return any
+   * types, then nothing will be written.
+   */
+  void writeTypes(Iterable<DartType> types, {String prefix}) {
+    if (types == null || types.isEmpty) {
+      return;
+    }
+    bool first = true;
+    for (DartType type in types) {
+      if (first) {
+        if (prefix != null) {
+          write(prefix);
+        }
+        first = false;
+      } else {
+        write(', ');
+      }
+      writeType(type);
+    }
   }
 
   void _addSuperTypeProposals(
