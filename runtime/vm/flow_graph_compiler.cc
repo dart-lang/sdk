@@ -64,6 +64,7 @@ static void NooptModeHandler(bool value) {
     FLAG_optimization_counter_threshold = -1;
     FLAG_use_field_guards = false;
     FLAG_use_osr = false;
+    FLAG_emit_edge_counters = false;
   }
 }
 

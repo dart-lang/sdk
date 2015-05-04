@@ -42,6 +42,7 @@ DECLARE_FLAG(bool, enable_asserts);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
+DECLARE_FLAG(bool, use_field_guards);
 
 // Quick access to the locally defined zone() method.
 #define Z (zone())
@@ -3502,21 +3503,32 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
                                        dst_name);
   }
 
-  store_value = Bind(BuildStoreExprTemp(store_value));
-  GuardFieldClassInstr* guard_field_class =
-      new(Z) GuardFieldClassInstr(store_value,
-                               node->field(),
-                               isolate()->GetNextDeoptId());
-  AddInstruction(guard_field_class);
-
-  store_value = Bind(BuildLoadExprTemp());
-  GuardFieldLengthInstr* guard_field_length =
-      new(Z) GuardFieldLengthInstr(store_value,
+  if (FLAG_use_field_guards) {
+    if (node->field().guarded_cid() != kDynamicCid) {
+      store_value = Bind(BuildStoreExprTemp(store_value));
+      GuardFieldClassInstr* guard_field_class =
+          new(Z) GuardFieldClassInstr(store_value,
                                    node->field(),
                                    isolate()->GetNextDeoptId());
-  AddInstruction(guard_field_length);
-
-  store_value = Bind(BuildLoadExprTemp());
+      AddInstruction(guard_field_class);
+      store_value = Bind(BuildLoadExprTemp());
+      if (node->field().guarded_list_length() != Field::kNoFixedLength) {
+        GuardFieldLengthInstr* guard_field_length =
+            new(Z) GuardFieldLengthInstr(store_value,
+                                         node->field(),
+                                         isolate()->GetNextDeoptId());
+        AddInstruction(guard_field_length);
+        store_value = Bind(BuildLoadExprTemp());
+      } else {
+        // Advance deopt-id counter to remain in sync.
+        isolate()->GetNextDeoptId();
+      }
+    } else {
+      // Advance deopt-id counter to remain in sync.
+      isolate()->GetNextDeoptId();
+      isolate()->GetNextDeoptId();
+    }
+  }
   StoreInstanceFieldInstr* store =
       new(Z) StoreInstanceFieldInstr(node->field(),
                                      for_instance.value(),
