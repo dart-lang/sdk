@@ -425,9 +425,10 @@ class AnalysisServer {
    * first context that implicitly analyzes it.
    *
    * If the [path] is not analyzed by any context, a [ContextSourcePair] with
-   * `null` context and `file` [Source] is returned.
+   * a `null` context and `file` [Source] is returned.
    *
-   * If the [path] dosn't represent a file, `null` is returned as a [Source].
+   * If the [path] dosn't represent a file, a [ContextSourcePair] with a `null`
+   * context and `null` [Source] is returned.
    *
    * Does not return `null`.
    */
@@ -443,21 +444,21 @@ class AnalysisServer {
     }
     // try to find the deep-most containing context
     Resource resource = resourceProvider.getResource(path);
-    File file = resource is File ? resource : null;
+    if (resource is! File) {
+      return new ContextSourcePair(null, null);
+    }
+    File file = resource;
     {
       AnalysisContext containingContext = getContainingContext(path);
       if (containingContext != null) {
-        Source source = file != null
-            ? ContextManager.createSourceInContext(containingContext, file)
-            : null;
+        Source source =
+            ContextManager.createSourceInContext(containingContext, file);
         return new ContextSourcePair(containingContext, source);
       }
     }
     // try to find a context that analysed the file
     for (AnalysisContext context in folderMap.values) {
-      Source source = file != null
-          ? ContextManager.createSourceInContext(context, file)
-          : null;
+      Source source = ContextManager.createSourceInContext(context, file);
       SourceKind kind = context.getKindOf(source);
       if (kind != SourceKind.UNKNOWN) {
         return new ContextSourcePair(context, source);
@@ -472,7 +473,7 @@ class AnalysisServer {
       }
     }
     // file-based source
-    Source fileSource = file != null ? file.createSource() : null;
+    Source fileSource = file.createSource();
     return new ContextSourcePair(null, fileSource);
   }
 

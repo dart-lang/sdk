@@ -243,6 +243,20 @@ import "../foo/foo.dart";
     expect(source.fullName, filePath);
   }
 
+  test_getContextSourcePair_nonFile() {
+    String dirPath = '/dir';
+    Folder dir = resourceProvider.newFolder(dirPath);
+
+    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    _configureSourceFactory(context);
+    server.folderMap[dir] = context;
+
+    ContextSourcePair pair = server.getContextSourcePair(dirPath);
+    expect(pair, isNotNull);
+    expect(pair.context, isNull);
+    expect(pair.source, isNull);
+  }
+
   test_getContextSourcePair_package_inRoot() {
     String rootPath = '/my_package';
     String filePath = rootPath + '/lib/file.dart';
