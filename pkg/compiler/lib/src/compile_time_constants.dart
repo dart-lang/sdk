@@ -919,9 +919,14 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       CallStructure callStructure,
       List<AstConstant> concreteArguments,
       List<AstConstant> normalizedArguments) {
-    assert(invariant(node, !target.isRedirectingFactory,
-        message: "makeConstructedConstant can only be called with the "
-                 "effective target: $constructor"));
+    if (target.isRedirectingFactory) {
+      // This happens is case of cyclic redirection.
+      assert(invariant(node, compiler.compilationFailed,
+          message: "makeConstructedConstant can only be called with the "
+                   "effective target: $constructor"));
+      return new AstConstant(
+          context, node, new ErroneousConstantExpression());
+    }
     assert(invariant(node, callStructure.signatureApplies(constructor) ||
                      compiler.compilationFailed,
         message: "Call structure $callStructure does not apply to constructor "
