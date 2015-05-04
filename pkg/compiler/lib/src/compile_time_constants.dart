@@ -12,6 +12,7 @@ import 'dart_types.dart';
 import 'dart2jslib.dart' show Compiler, CompilerTask, MessageKind, invariant;
 import 'elements/elements.dart';
 import 'elements/modelx.dart' show FunctionElementX;
+import 'helpers/helpers.dart';
 import 'resolution/resolution.dart';
 import 'resolution/operators.dart';
 import 'tree/tree.dart';
@@ -469,10 +470,10 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
           new StringConstantExpression(
               text,
               constantSystem.createString(new LiteralDartString(text))))];
-    AstConstant constant = makeConstructedConstant(
-        compiler, handler, context, node, type, compiler.symbolConstructor,
-        CallStructure.ONE_ARG,
-        arguments, arguments);
+    ConstructorElement constructor = compiler.symbolConstructor;
+    AstConstant constant = createConstructorInvocation(
+        node, type, constructor, CallStructure.ONE_ARG,
+        normalizedArguments: arguments);
     return new AstConstant(
         context, node, new SymbolConstantExpression(constant.value, text));
   }
@@ -729,7 +730,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     }
 
     Send send = node.send;
-    FunctionElement constructor = elements[send];
+    ConstructorElement constructor = elements[send];
     if (Elements.isUnresolved(constructor)) {
       return signalNotCompileTimeConstant(node);
     }
@@ -741,118 +742,168 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
           message: MessageKind.DEFERRED_COMPILE_TIME_CONSTANT_CONSTRUCTION);
     }
 
+    InterfaceType type = elements.getType(node);
+    CallStructure callStructure = elements.getSelector(send).callStructure;
+
+    return createConstructorInvocation(
+        node, type, constructor, callStructure,
+        arguments: node.send.arguments);
+  }
+
+  AstConstant createConstructorInvocation(
+      Node node,
+      InterfaceType type,
+      ConstructorElement constructor,
+      CallStructure callStructure,
+      {Link<Node> arguments,
+       List<AstConstant> normalizedArguments}) {
     // TODO(ahe): This is nasty: we must eagerly analyze the
     // constructor to ensure the redirectionTarget has been computed
     // correctly.  Find a way to avoid this.
     compiler.analyzeElement(constructor.declaration);
 
-    InterfaceType type = elements.getType(node);
-    CallStructure callStructure = elements.getSelector(send).callStructure;
+    // The redirection chain of this element may not have been resolved through
+    // a post-process action, so we have to make sure it is done here.
+    compiler.resolver.resolveRedirectionChain(constructor, node);
+    InterfaceType constructedType =
+        constructor.computeEffectiveTargetType(type);
+    ConstructorElement target = constructor.effectiveTarget;
+    // The constructor must be an implementation to ensure that field
+    // initializers are handled correctly.
+    ConstructorElement implementation = target.implementation;
 
-    Map<Node, AstConstant> concreteArgumentMap =
-        <Node, AstConstant>{};
-    for (Link<Node> link = send.arguments; !link.isEmpty; link = link.tail) {
-      Node argument = link.head;
-      NamedArgument namedArgument = argument.asNamedArgument();
-      if (namedArgument != null) {
-        argument = namedArgument.expression;
-      }
-      concreteArgumentMap[argument] = evaluateConstant(argument);
+    if (implementation.isErroneous) {
+      return new AstConstant(
+          context, node, new ConstructedConstantExpression(
+              new ConstructedConstantValue(
+                  constructedType, const <FieldElement, ConstantValue>{}),
+              type,
+              constructor,
+              callStructure,
+              const <ConstantExpression>[]));
     }
-    List<AstConstant> normalizedArguments =
-        evaluateArgumentsToConstructor(
-          node, callStructure, send.arguments, constructor.implementation,
-          compileArgument: (node) => concreteArgumentMap[node]);
-    List<AstConstant> concreteArguments =
-        concreteArgumentMap.values.toList();
 
-    if (constructor == compiler.intEnvironment ||
-        constructor == compiler.boolEnvironment ||
-        constructor == compiler.stringEnvironment) {
-
-      AstConstant createEvaluatedConstant(ConstantValue value) {
-        return new AstConstant(
-            context, node, new ConstructedConstantExpression(
-                value,
-                type,
-                constructor,
-                elements.getSelector(send).callStructure,
-                concreteArguments.map((e) => e.expression).toList()));
-      }
-
-      var firstArgument = normalizedArguments[0].value;
-      ConstantValue defaultValue = normalizedArguments[1].value;
-
-      if (firstArgument.isNull) {
-        compiler.reportError(
-            send.arguments.head, MessageKind.NULL_NOT_ALLOWED);
-        return null;
-      }
-
-      if (!firstArgument.isString) {
-        DartType type = defaultValue.getType(compiler.coreTypes);
-        compiler.reportError(
-            send.arguments.head, MessageKind.NOT_ASSIGNABLE,
-            {'fromType': type, 'toType': compiler.stringClass.rawType});
-        return null;
-      }
-
-      if (constructor == compiler.intEnvironment &&
-          !(defaultValue.isNull || defaultValue.isInt)) {
-        DartType type = defaultValue.getType(compiler.coreTypes);
-        compiler.reportError(
-            send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE,
-            {'fromType': type, 'toType': compiler.intClass.rawType});
-        return null;
-      }
-
-      if (constructor == compiler.boolEnvironment &&
-          !(defaultValue.isNull || defaultValue.isBool)) {
-        DartType type = defaultValue.getType(compiler.coreTypes);
-        compiler.reportError(
-            send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE,
-            {'fromType': type, 'toType': compiler.boolClass.rawType});
-        return null;
-      }
-
-      if (constructor == compiler.stringEnvironment &&
-          !(defaultValue.isNull || defaultValue.isString)) {
-        DartType type = defaultValue.getType(compiler.coreTypes);
-        compiler.reportError(
-            send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE,
-            {'fromType': type, 'toType': compiler.stringClass.rawType});
-        return null;
-      }
-
-      String value =
-          compiler.fromEnvironment(firstArgument.primitiveValue.slowToString());
-
-      if (value == null) {
-        return createEvaluatedConstant(defaultValue);
-      } else if (constructor == compiler.intEnvironment) {
-        int number = int.parse(value, onError: (_) => null);
-        return createEvaluatedConstant(
-            (number == null)
-                ? defaultValue
-                : constantSystem.createInt(number));
-      } else if (constructor == compiler.boolEnvironment) {
-        if (value == 'true') {
-          return createEvaluatedConstant(constantSystem.createBool(true));
-        } else if (value == 'false') {
-          return createEvaluatedConstant(constantSystem.createBool(false));
-        } else {
-          return createEvaluatedConstant(defaultValue);
+    List<AstConstant> concreteArguments;
+    if (arguments != null) {
+      Map<Node, AstConstant> concreteArgumentMap =
+          <Node, AstConstant>{};
+      for (Link<Node> link = arguments; !link.isEmpty; link = link.tail) {
+        Node argument = link.head;
+        NamedArgument namedArgument = argument.asNamedArgument();
+        if (namedArgument != null) {
+          argument = namedArgument.expression;
         }
-      } else {
-        assert(constructor == compiler.stringEnvironment);
-        return createEvaluatedConstant(
-            constantSystem.createString(new DartString.literal(value)));
+        concreteArgumentMap[argument] = evaluateConstant(argument);
       }
+
+      normalizedArguments = evaluateArgumentsToConstructor(
+          node, callStructure, arguments, implementation,
+          compileArgument: (node) => concreteArgumentMap[node]);
+      concreteArguments = concreteArgumentMap.values.toList();
+    } else {
+      assert(normalizedArguments != null);
+      concreteArguments = normalizedArguments;
+    }
+
+    if (target == compiler.intEnvironment ||
+        target == compiler.boolEnvironment ||
+        target == compiler.stringEnvironment) {
+      return createFromEnvironmentConstant(
+          node, constructedType, target,
+          callStructure, normalizedArguments, concreteArguments);
     } else {
       return makeConstructedConstant(
-          compiler, handler, context,
-          node, type, constructor, callStructure,
-          concreteArguments, normalizedArguments);
+          compiler, handler, context, node,
+          type, constructor,
+          constructedType, implementation,
+          callStructure, concreteArguments, normalizedArguments);
+    }
+  }
+
+  AstConstant createFromEnvironmentConstant(
+      Node node,
+      InterfaceType type,
+      ConstructorElement constructor,
+      CallStructure callStructure,
+      List<AstConstant> normalizedArguments,
+      List<AstConstant> concreteArguments) {
+    AstConstant createEvaluatedConstant(ConstantValue value) {
+      return new AstConstant(
+          context, node, new ConstructedConstantExpression(
+              value,
+              type,
+              constructor,
+              callStructure,
+              concreteArguments.map((e) => e.expression).toList()));
+    }
+
+    var firstArgument = normalizedArguments[0].value;
+    ConstantValue defaultValue = normalizedArguments[1].value;
+
+    if (firstArgument.isNull) {
+      compiler.reportError(
+          normalizedArguments[0].node, MessageKind.NULL_NOT_ALLOWED);
+      return null;
+    }
+
+    if (!firstArgument.isString) {
+      DartType type = defaultValue.getType(compiler.coreTypes);
+      compiler.reportError(
+          normalizedArguments[0].node, MessageKind.NOT_ASSIGNABLE,
+          {'fromType': type, 'toType': compiler.stringClass.rawType});
+      return null;
+    }
+
+    if (constructor == compiler.intEnvironment &&
+        !(defaultValue.isNull || defaultValue.isInt)) {
+      DartType type = defaultValue.getType(compiler.coreTypes);
+      compiler.reportError(
+          normalizedArguments[1].node, MessageKind.NOT_ASSIGNABLE,
+          {'fromType': type, 'toType': compiler.intClass.rawType});
+      return null;
+    }
+
+    if (constructor == compiler.boolEnvironment &&
+        !(defaultValue.isNull || defaultValue.isBool)) {
+      DartType type = defaultValue.getType(compiler.coreTypes);
+      compiler.reportError(
+          normalizedArguments[1].node, MessageKind.NOT_ASSIGNABLE,
+          {'fromType': type, 'toType': compiler.boolClass.rawType});
+      return null;
+    }
+
+    if (constructor == compiler.stringEnvironment &&
+        !(defaultValue.isNull || defaultValue.isString)) {
+      DartType type = defaultValue.getType(compiler.coreTypes);
+      compiler.reportError(
+          normalizedArguments[1].node, MessageKind.NOT_ASSIGNABLE,
+          {'fromType': type, 'toType': compiler.stringClass.rawType});
+      return null;
+    }
+
+    String value =
+        compiler.fromEnvironment(firstArgument.primitiveValue.slowToString());
+
+    if (value == null) {
+      return createEvaluatedConstant(defaultValue);
+    } else if (constructor == compiler.intEnvironment) {
+      int number = int.parse(value, onError: (_) => null);
+      return createEvaluatedConstant(
+          (number == null)
+              ? defaultValue
+              : constantSystem.createInt(number));
+    } else if (constructor == compiler.boolEnvironment) {
+      if (value == 'true') {
+        return createEvaluatedConstant(constantSystem.createBool(true));
+      } else if (value == 'false') {
+        return createEvaluatedConstant(constantSystem.createBool(false));
+      } else {
+        return createEvaluatedConstant(defaultValue);
+      }
+    } else {
+      assert(constructor == compiler.stringEnvironment);
+      return createEvaluatedConstant(
+          constantSystem.createString(new DartString.literal(value)));
     }
   }
 
@@ -863,31 +914,24 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       Node node,
       InterfaceType type,
       ConstructorElement constructor,
+      InterfaceType constructedType,
+      ConstructorElement target,
       CallStructure callStructure,
       List<AstConstant> concreteArguments,
       List<AstConstant> normalizedArguments) {
+    assert(invariant(node, !target.isRedirectingFactory,
+        message: "makeConstructedConstant can only be called with the "
+                 "effective target: $constructor"));
     assert(invariant(node, callStructure.signatureApplies(constructor) ||
                      compiler.compilationFailed,
         message: "Call structure $callStructure does not apply to constructor "
                  "$constructor."));
 
-    // The redirection chain of this element may not have been resolved through
-    // a post-process action, so we have to make sure it is done here.
-    compiler.resolver.resolveRedirectionChain(constructor, node);
-    InterfaceType constructedType =
-        constructor.computeEffectiveTargetType(type);
-    ConstructorElement target = constructor.effectiveTarget;
-    ClassElement classElement = target.enclosingClass;
-    // The constructor must be an implementation to ensure that field
-    // initializers are handled correctly.
-    target = target.implementation;
-    assert(invariant(node, target.isImplementation));
-
     ConstructorEvaluator evaluator = new ConstructorEvaluator(
         constructedType, target, handler, compiler);
     evaluator.evaluateConstructorFieldValues(normalizedArguments);
     Map<FieldElement, AstConstant> fieldConstants =
-        evaluator.buildFieldConstants(classElement);
+        evaluator.buildFieldConstants(target.enclosingClass);
     Map<FieldElement, ConstantValue> fieldValues =
         <FieldElement, ConstantValue>{};
     fieldConstants.forEach((FieldElement field, AstConstant astConstant) {

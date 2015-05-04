@@ -101,6 +101,8 @@ class TypeVariableHandler {
               typeVariableElement.node,
               typeVariableType,
               _typeVariableConstructor,
+              typeVariableType,
+              _typeVariableConstructor,
               const CallStructure.unnamed(3),
               arguments,
               arguments);
