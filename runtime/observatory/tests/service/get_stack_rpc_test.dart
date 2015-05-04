@@ -7,11 +7,11 @@ import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 import 'dart:async';
-import 'dart:isolate';
+import 'dart:isolate' as isolate;
 
 int counter = 0;
 const stoppedAtLine = 23;
-var port = new RawReceivePort(msgHandler);
+var port = new isolate.RawReceivePort(msgHandler);
 
 // This name is used in a test below.
 void msgHandler(_) {

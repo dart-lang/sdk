@@ -5,8 +5,6 @@
 
 library get_object_rpc_test;
 
-import 'dart:async';
-
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 
@@ -22,6 +20,8 @@ class _DummySubClass extends _DummyClass {
 }
 
 void warmup() {
+  // Silence analyzer.
+  new _DummySubClass();
   new _DummyClass().dummyFunction();
 }
 

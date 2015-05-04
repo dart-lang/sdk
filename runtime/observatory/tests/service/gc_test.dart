@@ -9,13 +9,12 @@ import 'test_helper.dart';
 import 'dart:async';
 
 void script() {
-  List<int> data;
   var grow;
   grow = (int iterations, int size, Duration duration) {
     if (iterations <= 0) {
       return;
     }
-    data = new List<int>(size);
+    new List<int>(size);
     new Timer(duration, () => grow(iterations - 1, size, duration));
   };
   grow(100, 1 << 24, new Duration(seconds: 1));

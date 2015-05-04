@@ -6,11 +6,12 @@
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
-import 'dart:async';
 
 import 'dart:math' as math;
 
 breakHere() {}
+
+use(dynamic v) => v;
 
 class C {
   var instVar = 1;
@@ -18,10 +19,13 @@ class C {
 
   method(methodParam) {
     var methodTemp = 4;
+    use(methodTemp);
     [5].forEach((outerParam) {
       var outerTemp = 6;
+      use(outerTemp);
       [7].forEach((innerParam) {
         var innerTemp = 8;
+        use(innerTemp);
         breakHere();
       });
     });
@@ -29,10 +33,13 @@ class C {
 
   static method2(methodParam) {
     var methodTemp = 4;
+    use(methodTemp);
     [5].forEach((outerParam) {
       var outerTemp = 6;
+      use(outerTemp);
       [7].forEach((innerParam) {
         var innerTemp = 8;
+        use(innerTemp);
         breakHere();
       });
     });
@@ -40,16 +47,20 @@ class C {
 
   method3(methodParam) {
     var methodTemp = 4;
+    use(methodTemp);
     breakHere();
   }
 
   static var closureWithReturnedHome;
   method4(methodParam) {
     var methodTemp = 4;
+    use(methodTemp);
     [5].forEach((outerParam) {
       var outerTemp = 6;
+      use(outerTemp);
       closureWithReturnedHome = (innerParam) {
         var innerTemp = 8;
+        use(innerTemp);
         breakHere();
       };
     });
@@ -57,6 +68,8 @@ class C {
 }
 
 testMethod(Isolate isolate) async {
+  // silence analyzer.
+  expect(math.sqrt(4), equals(2));
   Library rootLib = await isolate.rootLib.load();
   ServiceFunction function =
       rootLib.functions.singleWhere((f) => f.name == 'breakHere');

@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--compile-all --error_on_bad_type --error_on_bad_override
 
-import 'dart:async';
-
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 
@@ -19,6 +17,8 @@ class _TestClass {
 var myVar;
 
 eval(Isolate isolate, String expression) async {
+  // Silence analyzer.
+  new _TestClass(null, null);
   Map params = {
     'targetId': isolate.rootLib.id,
     'expression': expression,
