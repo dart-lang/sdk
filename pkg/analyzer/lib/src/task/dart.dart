@@ -2383,6 +2383,17 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
 }
 
 /**
+ * The memento for [ScanDartTask].
+ */
+class ScanDartMemento {
+  final String content;
+  final Token tokenStream;
+  final LineInfo lineInfo;
+  final List<AnalysisError> errors;
+  ScanDartMemento(this.content, this.tokenStream, this.lineInfo, this.errors);
+}
+
+/**
  * A task that scans the content of a file, producing a set of Dart tokens.
  */
 class ScanDartTask extends SourceBasedAnalysisTask {
@@ -2416,15 +2427,31 @@ class ScanDartTask extends SourceBasedAnalysisTask {
     Source source = getRequiredSource();
     String content = getRequiredInput(CONTENT_INPUT_NAME);
 
+    if (inputMemento is ScanDartMemento) {
+      ScanDartMemento memento = inputMemento;
+      if (memento.content == content) {
+        outputMemento = memento;
+        outputs[TOKEN_STREAM] = memento.tokenStream;
+        outputs[LINE_INFO] = memento.lineInfo;
+        outputs[SCAN_ERRORS] = memento.errors;
+        return;
+      }
+    }
+
     RecordingErrorListener errorListener = new RecordingErrorListener();
     Scanner scanner =
         new Scanner(source, new CharSequenceReader(content), errorListener);
     scanner.preserveComments = context.analysisOptions.preserveComments;
     scanner.enableNullAwareOperators =
         context.analysisOptions.enableNullAwareOperators;
-    outputs[TOKEN_STREAM] = scanner.tokenize();
-    outputs[LINE_INFO] = new LineInfo(scanner.lineStarts);
-    outputs[SCAN_ERRORS] = errorListener.getErrorsForSource(source);
+
+    Token tokenStream = scanner.tokenize();
+    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
+    List<AnalysisError> errors = errorListener.errors;
+    outputs[TOKEN_STREAM] = tokenStream;
+    outputs[LINE_INFO] = lineInfo;
+    outputs[SCAN_ERRORS] = errors;
+    outputMemento = new ScanDartMemento(content, tokenStream, lineInfo, errors);
   }
 
   /**

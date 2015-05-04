@@ -1802,6 +1802,17 @@ class ScanDartTaskTest extends _AbstractDartTaskTest {
     expect(outputs[TOKEN_STREAM], isNotNull);
   }
 
+  test_perform_useMemento() {
+    AnalysisTarget target = newSource('/test.dart', 'main() {}');
+    _computeResult(target, TOKEN_STREAM);
+    // update content
+    context.setContents(target, 'main() {}');
+    // recompute
+    _computeResult(target, TOKEN_STREAM);
+    // values from the mememto are returned
+    assertSameResults([LINE_INFO, SCAN_ERRORS, TOKEN_STREAM]);
+  }
+
   void _performScanTask(String content) {
     AnalysisTarget target = newSource('/test.dart', content);
     _computeResult(target, TOKEN_STREAM);
@@ -1833,8 +1844,17 @@ class _AbstractDartTaskTest extends AbstractContextTest {
   Source emptySource;
 
   AnalysisTask task;
+  Map<ResultDescriptor<dynamic>, dynamic> oldOutputs;
   Map<ResultDescriptor<dynamic>, dynamic> outputs;
   GatheringErrorListener errorListener = new GatheringErrorListener();
+
+  void assertSameResults(List<ResultDescriptor> descriptors) {
+    descriptors.forEach((descriptor) {
+      var oldResult = oldOutputs[descriptor];
+      var newResult = outputs[descriptor];
+      expect(newResult, same(oldResult), reason: descriptor.name);
+    });
+  }
 
   void setUp() {
     super.setUp();
@@ -1842,6 +1862,7 @@ class _AbstractDartTaskTest extends AbstractContextTest {
   }
 
   void _computeResult(AnalysisTarget target, ResultDescriptor result) {
+    oldOutputs = outputs;
     task = analysisDriver.computeResult(target, result);
     expect(task.caughtException, isNull);
     outputs = task.outputs;
