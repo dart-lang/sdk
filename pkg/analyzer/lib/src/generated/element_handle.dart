@@ -61,6 +61,9 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   bool get isEnum => actualElement.isEnum;
 
   @override
+  bool get isMixinApplication => actualElement.isMixinApplication;
+
+  @override
   bool get isOrInheritsProxy => actualElement.isOrInheritsProxy;
 
   @override

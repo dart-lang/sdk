@@ -4963,6 +4963,7 @@ class ElementBuilderTest extends EngineTestCase {
     List<TypeParameterElement> typeParameters = type.typeParameters;
     expect(typeParameters, hasLength(0));
     expect(type.isAbstract, isTrue);
+    expect(type.isMixinApplication, isFalse);
     expect(type.isSynthetic, isFalse);
   }
 
@@ -4981,6 +4982,7 @@ class ElementBuilderTest extends EngineTestCase {
     List<TypeParameterElement> typeParameters = type.typeParameters;
     expect(typeParameters, hasLength(0));
     expect(type.isAbstract, isFalse);
+    expect(type.isMixinApplication, isFalse);
     expect(type.isSynthetic, isFalse);
   }
 
@@ -5005,6 +5007,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(typeParameters[0].name, firstVariableName);
     expect(typeParameters[1].name, secondVariableName);
     expect(type.isAbstract, isFalse);
+    expect(type.isMixinApplication, isFalse);
     expect(type.isSynthetic, isFalse);
   }
 
@@ -5031,6 +5034,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(type, isNotNull);
     expect(type.name, className);
     expect(type.isAbstract, isFalse);
+    expect(type.isMixinApplication, isFalse);
     expect(type.isSynthetic, isFalse);
     List<TypeParameterElement> typeParameters = type.typeParameters;
     expect(typeParameters, hasLength(1));
@@ -5072,6 +5076,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(alias.element, same(type));
     expect(type.name, equals('C'));
     expect(type.isAbstract, isFalse);
+    expect(type.isMixinApplication, isTrue);
     expect(type.isSynthetic, isFalse);
     expect(type.typeParameters, isEmpty);
     expect(type.fields, isEmpty);
@@ -5099,6 +5104,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(types, hasLength(1));
     ClassElement type = types[0];
     expect(type.isAbstract, isTrue);
+    expect(type.isMixinApplication, isTrue);
   }
 
   void test_visitClassTypeAlias_typeParams() {
