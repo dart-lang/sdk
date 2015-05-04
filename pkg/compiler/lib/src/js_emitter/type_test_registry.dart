@@ -98,7 +98,7 @@ class TypeTestRegistry {
     for (FunctionType type in checkedFunctionTypes) {
       ClassElement contextClass = Types.getClassContext(type);
       if (contextClass != null) {
-        rtiNeededClasses.add(contextClass);
+        addClassWithSuperclasses(contextClass);
       }
     }
 
