@@ -43,6 +43,7 @@ const int DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE = 1056;
 const int DART_RELEVANCE_LOCAL_VARIABLE = 1059;
 const int DART_RELEVANCE_LOW = 500;
 const int DART_RELEVANCE_PARAMETER = 1059;
+const int DART_RELEVANCE_NAMED_PARAMETER = 1060;
 
 /**
  * The base class for contributing code completion suggestions.

@@ -77,7 +77,7 @@ class ArgListContributorTest extends AbstractCompletionTest {
     for (String name in namedArguments) {
       expected.add(assertSuggest('$name: ',
           csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-          relevance: DART_RELEVANCE_PARAMETER));
+          relevance: DART_RELEVANCE_NAMED_PARAMETER));
     }
     assertNoOtherSuggestions(expected);
   }

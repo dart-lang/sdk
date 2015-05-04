@@ -19,7 +19,7 @@ void _addNamedParameterSuggestion(
     DartCompletionRequest request, List<String> namedArgs, String name) {
   if (name != null && name.length > 0 && !namedArgs.contains(name)) {
     request.addSuggestion(new CompletionSuggestion(
-        CompletionSuggestionKind.NAMED_ARGUMENT, DART_RELEVANCE_PARAMETER,
+        CompletionSuggestionKind.NAMED_ARGUMENT, DART_RELEVANCE_NAMED_PARAMETER,
         '$name: ', name.length + 2, 0, false, false));
   }
 }
