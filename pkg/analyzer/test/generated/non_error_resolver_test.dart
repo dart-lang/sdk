@@ -2108,6 +2108,23 @@ class A {
     verify([source]);
   }
 
+  void test_instance_creation_inside_annotation() {
+    Source source = addSource('''
+class C {
+  const C();
+}
+class D {
+  final C c;
+  const D(this.c);
+}
+@D(const C())
+f() {}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_instanceAccessToStaticMember_fromComment() {
     Source source = addSource(r'''
 class A {

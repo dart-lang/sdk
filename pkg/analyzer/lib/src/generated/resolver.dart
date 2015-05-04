@@ -2670,7 +2670,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       bool wasInFunction = _inFunction;
       _inFunction = true;
       try {
-        _visitChildren(holder, expression);
+        _visitChildren(holder, node);
       } finally {
         _inFunction = wasInFunction;
       }
@@ -2765,6 +2765,11 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitFunctionExpression(FunctionExpression node) {
+    if (node.parent is FunctionDeclaration) {
+      // visitFunctionDeclaration has already created the element for the
+      // declaration.  We just need to visit children.
+      return super.visitFunctionExpression(node);
+    }
     ElementHolder holder = new ElementHolder();
     bool wasInFunction = _inFunction;
     _inFunction = true;
