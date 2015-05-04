@@ -10,7 +10,6 @@ import 'dart:math' as math;
 import 'package:barback/barback.dart';
 
 import '../barback/asset_environment.dart';
-import '../barback/pub_package_provider.dart';
 import '../log.dart' as log;
 import '../utils.dart';
 import 'barback.dart';
@@ -26,8 +25,6 @@ class ServeCommand extends BarbackCommand {
       'directories to serve can be provided as well.';
   String get invocation => "pub serve [directories...]";
   String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-serve.html";
-
-  PubPackageProvider _provider;
 
   String get hostname => argResults['hostname'];
 

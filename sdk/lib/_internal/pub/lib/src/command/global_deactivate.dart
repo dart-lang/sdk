@@ -4,8 +4,6 @@
 
 library pub.command.global_deactivate;
 
-import 'dart:async';
-
 import '../command.dart';
 import '../log.dart' as log;
 import '../utils.dart';

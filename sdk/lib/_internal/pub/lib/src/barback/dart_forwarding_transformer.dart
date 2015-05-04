@@ -17,10 +17,7 @@ import '../utils.dart';
 /// parallel to make sure the original Dart file is still available for use by
 /// Dartium.
 class DartForwardingTransformer extends Transformer {
-  /// The mode that the transformer is running in.
-  final BarbackMode _mode;
-
-  DartForwardingTransformer(this._mode);
+  DartForwardingTransformer();
 
   String get allowedExtensions => ".dart";
 

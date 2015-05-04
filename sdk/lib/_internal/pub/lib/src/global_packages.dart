@@ -151,8 +151,6 @@ class GlobalPackages {
   /// Installs the package [dep] and its dependencies into the system cache.
   Future _installInCache(PackageDep dep, List<String> executables,
       {bool overwriteBinStubs}) async {
-    var source = cache.sources[dep.source];
-
     // Create a dummy package with just [dep] so we can do resolution on it.
     var root = new Package.inMemory(new Pubspec("pub global activate",
         dependencies: [dep], sources: cache.sources));
@@ -255,7 +253,7 @@ class GlobalPackages {
         log.message('Package ${log.bold(name)} is currently active at version '
             '${log.bold(id.version)}.');
       }
-    } on IOException catch (error) {
+    } on IOException {
       // If we couldn't read the lock file, it's not activated.
       return null;
     }
@@ -287,14 +285,14 @@ class GlobalPackages {
     var lockFile;
     try {
       lockFile = new LockFile.load(lockFilePath, cache.sources);
-    } on IOException catch (error) {
+    } on IOException {
       var oldLockFilePath = p.join(_directory, '$name.lock');
       try {
         // TODO(nweiz): This looks for Dart 1.6's old lockfile location.
         // Remove it when Dart 1.6 is old enough that we don't think anyone
         // will have these lockfiles anymore (issue 20703).
         lockFile = new LockFile.load(oldLockFilePath, cache.sources);
-      } on IOException catch (error) {
+      } on IOException {
         // If we couldn't read the lock file, it's not activated.
         dataError("No active package ${log.bold(name)}.");
       }
@@ -478,7 +476,6 @@ class GlobalPackages {
     }
 
     if (executables.isNotEmpty) {
-      var packages = pluralize("package", executables.length);
       var message = new StringBuffer("Binstubs exist for non-activated "
           "packages:\n");
       executables.forEach((package, executableNames) {

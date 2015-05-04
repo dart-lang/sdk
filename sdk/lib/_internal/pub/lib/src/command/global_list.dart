@@ -4,8 +4,6 @@
 
 library pub.command.global_list;
 
-import 'dart:async';
-
 import '../command.dart';
 
 /// Handles the `global list` pub command.

@@ -418,7 +418,7 @@ void renameDir(String from, String to) {
     log.io("Renaming directory $from to $to.");
     try {
       new Directory(from).renameSync(to);
-    } on IOException catch (error) {
+    } on IOException {
       // Ensure that [to] isn't left in an inconsistent state. See issue 12436.
       if (entryExists(to)) deleteEntry(to);
       rethrow;
@@ -1016,10 +1016,4 @@ class PubProcessResult {
   }
 
   bool get success => exitCode == exit_codes.SUCCESS;
-}
-
-/// Gets a [Uri] for [uri], which can either already be one, or be a [String].
-Uri _getUri(uri) {
-  if (uri is Uri) return uri;
-  return Uri.parse(uri);
 }

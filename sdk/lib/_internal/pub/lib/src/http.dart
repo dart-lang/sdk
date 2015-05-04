@@ -53,14 +53,6 @@ class _PubHttpClient extends http.BaseClient {
     request.headers[HttpHeaders.USER_AGENT] = "Dart pub ${sdk.version}";
     _logRequest(request);
 
-    // TODO(nweiz): remove this when issue 4061 is fixed.
-    var stackTrace;
-    try {
-      throw null;
-    } catch (_, localStackTrace) {
-      stackTrace = localStackTrace;
-    }
-
     var timeoutLength = HTTP_TIMEOUT;
     var timeoutString = request.headers.remove('Pub-Request-Timeout');
     if (timeoutString == 'None') {
@@ -244,7 +236,7 @@ Map parseJsonResponse(http.Response response) {
   var value;
   try {
     value = JSON.decode(response.body);
-  } on FormatException catch (e) {
+  } on FormatException {
     invalidServerResponse(response);
   }
   if (value is! Map) invalidServerResponse(response);

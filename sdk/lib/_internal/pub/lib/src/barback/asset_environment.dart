@@ -18,7 +18,6 @@ import '../io.dart';
 import '../log.dart' as log;
 import '../package.dart';
 import '../package_graph.dart';
-import '../sdk.dart' as sdk;
 import '../source/cached.dart';
 import '../utils.dart';
 import 'admin_server.dart';
@@ -276,7 +275,6 @@ class AssetEnvironment {
     log.fine("Executables for $packageName: $executableIds");
     if (executableIds.isEmpty) return {};
 
-    var package = graph.packages[packageName];
     var server = await servePackageBinDirectory(packageName);
     try {
       var precompiled = {};
@@ -477,7 +475,7 @@ class AssetEnvironment {
       if (!containsDart2JS && useDart2JS) {
         _builtInTransformers.addAll([
           new Dart2JSTransformer(this, mode),
-          new DartForwardingTransformer(mode)
+          new DartForwardingTransformer()
         ]);
       }
 
