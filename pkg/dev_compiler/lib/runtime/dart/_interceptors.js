@@ -3,7 +3,11 @@ var _interceptors;
   'use strict';
   let JSArray = Array;
   let JSMutableArray$ = dart.generic(function(E) {
-    class JSMutableArray extends JSArray$(E) {}
+    class JSMutableArray extends JSArray$(E) {
+      JSMutableArray() {
+        super.JSArray();
+      }
+    }
     JSMutableArray[dart.implements] = () => [JSMutableIndexable];
     return JSMutableArray;
   });
@@ -419,7 +423,11 @@ var _interceptors;
     }
   }
   JSDouble[dart.implements] = () => [core.double];
-  class JSPositiveInt extends JSInt {}
+  class JSPositiveInt extends JSInt {
+    JSPositiveInt() {
+      super.JSInt();
+    }
+  }
   class JSUInt32 extends JSPositiveInt {}
   class JSUInt31 extends JSUInt32 {}
   let _defaultSplit = Symbol('_defaultSplit');

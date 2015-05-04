@@ -20,6 +20,9 @@ var covariance;
   });
   let Foo = Foo$();
   class Bar extends Foo$(core.int) {
+    Bar() {
+      super.Foo();
+    }
     add(x) {
       core.print(`Bar.add got ${x}`);
       super.add(x);

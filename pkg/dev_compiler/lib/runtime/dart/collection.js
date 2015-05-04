@@ -3823,6 +3823,9 @@ var collection;
   let _HashMap = _HashMap$();
   let _IdentityHashMap$ = dart.generic(function(K, V) {
     class _IdentityHashMap extends _HashMap$(K, V) {
+      _IdentityHashMap() {
+        super._HashMap();
+      }
       [_computeHashCode](key) {
         return core.identityHashCode(key) & 0x3ffffff;
       }
@@ -4244,6 +4247,9 @@ var collection;
   let _LinkedHashMap = _LinkedHashMap$();
   let _LinkedIdentityHashMap$ = dart.generic(function(K, V) {
     class _LinkedIdentityHashMap extends _LinkedHashMap$(K, V) {
+      _LinkedIdentityHashMap() {
+        super._LinkedHashMap();
+      }
       [_computeHashCode](key) {
         return core.identityHashCode(key) & 0x3ffffff;
       }
@@ -4621,6 +4627,9 @@ var collection;
   let _HashSet = _HashSet$();
   let _IdentityHashSet$ = dart.generic(function(E) {
     class _IdentityHashSet extends _HashSet$(E) {
+      _IdentityHashSet() {
+        super._HashSet();
+      }
       [_newSet]() {
         return new (_IdentityHashSet$(E))();
       }
@@ -5001,6 +5010,9 @@ var collection;
   let _LinkedHashSet = _LinkedHashSet$();
   let _LinkedIdentityHashSet$ = dart.generic(function(E) {
     class _LinkedIdentityHashSet extends _LinkedHashSet$(E) {
+      _LinkedIdentityHashSet() {
+        super._LinkedHashSet();
+      }
       [_newSet]() {
         return new (_LinkedIdentityHashSet$(E))();
       }

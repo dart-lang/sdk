@@ -682,10 +682,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     assert(_hasUnnamedConstructor(node.element) == fields.isNotEmpty);
 
     // If we don't have a method body, skip this.
-    if (fields.isEmpty) return null;
+    var superCall = _superConstructorCall(node);
+    if (fields.isEmpty && superCall == null) return null;
 
     dynamic body = _initializeFields(fields);
-    var superCall = _superConstructorCall(node);
     if (superCall != null) body = [[body, superCall]];
     return new JS.Method(
         _propertyName(name), js.call('function() { #; }', body));

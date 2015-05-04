@@ -92,6 +92,9 @@ var cascade;
   });
   let Base = Base$();
   class Foo extends Base$(core.int) {
+    Foo() {
+      super.Base();
+    }
     test_final_field_generic(t) {
       this.x[core.$add](1);
       this.x[core.$add](2);

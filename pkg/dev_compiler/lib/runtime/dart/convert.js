@@ -261,6 +261,9 @@ var convert;
   dart.defineNamedConstructor(ByteConversionSink, 'withCallback');
   dart.defineNamedConstructor(ByteConversionSink, 'from');
   class ByteConversionSinkBase extends ByteConversionSink {
+    ByteConversionSinkBase() {
+      super.ByteConversionSink();
+    }
     addSlice(chunk, start, end, isLast) {
       this.add(chunk[core.$sublist](start, end));
       if (isLast)

@@ -818,6 +818,9 @@ var async;
   let Stream = Stream$();
   let _StreamImpl$ = dart.generic(function(T) {
     class _StreamImpl extends Stream$(T) {
+      _StreamImpl() {
+        super.Stream();
+      }
       listen(onData, opts) {
         dart.as(onData, dart.functionType(dart.void, [T]));
         let onError = opts && 'onError' in opts ? opts.onError : null;
@@ -1989,6 +1992,9 @@ var async;
   let _asyncCompleteError = Symbol('_asyncCompleteError');
   let _AsyncCompleter$ = dart.generic(function(T) {
     class _AsyncCompleter extends _Completer$(T) {
+      _AsyncCompleter() {
+        super._Completer();
+      }
       complete(value) {
         if (value === void 0)
           value = null;
@@ -2005,6 +2011,9 @@ var async;
   let _AsyncCompleter = _AsyncCompleter$();
   let _SyncCompleter$ = dart.generic(function(T) {
     class _SyncCompleter extends _Completer$(T) {
+      _SyncCompleter() {
+        super._Completer();
+      }
       complete(value) {
         if (value === void 0)
           value = null;

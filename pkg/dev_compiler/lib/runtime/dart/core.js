@@ -559,10 +559,21 @@ var core;
       return _js_helper.Primitives.extractStackTrace(this);
     }
   }
-  class AssertionError extends Error {}
+  class AssertionError extends Error {
+    AssertionError() {
+      super.Error();
+    }
+  }
   class TypeError extends AssertionError {}
-  class CastError extends Error {}
+  class CastError extends Error {
+    CastError() {
+      super.Error();
+    }
+  }
   class NullThrownError extends Error {
+    NullThrownError() {
+      super.Error();
+    }
     toString() {
       return "Throw of null.";
     }

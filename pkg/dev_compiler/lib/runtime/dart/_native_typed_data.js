@@ -576,6 +576,9 @@ var _native_typed_data;
   dart.defineNamedConstructor(NativeByteData, 'view');
   let _setRangeFast = Symbol('_setRangeFast');
   class NativeTypedArray extends NativeTypedData {
+    NativeTypedArray() {
+      super.NativeTypedData();
+    }
     [_setRangeFast](start, end, source, skipCount) {
       let targetLength = this.length;
       this[_checkIndex](start, dart.notNull(targetLength) + 1);

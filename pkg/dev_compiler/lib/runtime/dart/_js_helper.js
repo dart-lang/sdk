@@ -2883,7 +2883,11 @@ var _js_helper;
   function closureFromTearOff(receiver, functions, reflectionInfo, isStatic, jsArguments, name) {
     return Closure.fromTearOff(receiver, _interceptors.JSArray.markFixedList(dart.as(functions, core.List)), _interceptors.JSArray.markFixedList(dart.as(reflectionInfo, core.List)), !!isStatic, jsArguments, name);
   }
-  class TearOffClosure extends Closure {}
+  class TearOffClosure extends Closure {
+    TearOffClosure() {
+      super.Closure();
+    }
+  }
   let _self = Symbol('_self');
   let _target = Symbol('_target');
   let _name = Symbol('_name');
