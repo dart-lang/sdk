@@ -85,7 +85,9 @@ class _ImportUriSuggestionBuilder extends SimpleAstVisitor {
     Source source = request.source;
     String sourceFullName = source.fullName;
     String sourceShortName = source.shortName;
-    String dirPath = partial.endsWith('/') ? partial : dirname(partial);
+    String dirPath = (partial.endsWith('/') || partial.endsWith(separator))
+        ? partial
+        : dirname(partial);
     String prefix = dirPath == '.' ? '' : dirPath;
     if (isRelative(dirPath)) {
       String sourceDir = dirname(sourceFullName);
@@ -111,13 +113,14 @@ class _ImportUriSuggestionBuilder extends SimpleAstVisitor {
     }
   }
 
-  void _addFolderSuggestions(String partial, String prefix, Folder folder) {
+  void _addPackageFolderSuggestions(
+      String partial, String prefix, Folder folder) {
     for (Resource child in folder.getChildren()) {
       if (child is Folder) {
         String childPrefix = '$prefix${child.shortName}/';
         _addSuggestion(childPrefix);
         if (partial.startsWith(childPrefix)) {
-          _addFolderSuggestions(partial, childPrefix, child);
+          _addPackageFolderSuggestions(partial, childPrefix, child);
         }
       } else {
         _addSuggestion('$prefix${child.shortName}');
@@ -134,7 +137,7 @@ class _ImportUriSuggestionBuilder extends SimpleAstVisitor {
         String prefix = 'package:$pkgName/';
         _addSuggestion(prefix);
         for (Folder folder in folders) {
-          _addFolderSuggestions(partial, prefix, folder);
+          _addPackageFolderSuggestions(partial, prefix, folder);
         }
       });
     }
