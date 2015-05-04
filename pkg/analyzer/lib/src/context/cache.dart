@@ -331,6 +331,17 @@ class CacheEntry {
   }
 
   /**
+   * Return the memento of the result represented by the given [descriptor].
+   */
+  Object getMemento(ResultDescriptor descriptor) {
+    ResultData data = _resultMap[descriptor];
+    if (data == null) {
+      return null;
+    }
+    return data.memento;
+  }
+
+  /**
    * Return the state of the result represented by the given [descriptor].
    */
   CacheState getState(ResultDescriptor descriptor) {
@@ -441,10 +452,11 @@ class CacheEntry {
 
   /**
    * Set the value of the result represented by the given [descriptor] to the
-   * given [value].
+   * given [value]. The optional [memento] may help to recompute [value] more
+   * efficiently after invalidation.
    */
   /*<V>*/ void setValue(ResultDescriptor /*<V>*/ descriptor, dynamic /*V*/
-      value, List<TargetedResult> dependedOn) {
+      value, List<TargetedResult> dependedOn, Object memento) {
     _validateStateChange(descriptor, CacheState.VALID);
     ResultData data = _getResultData(descriptor);
     {
@@ -454,6 +466,7 @@ class CacheEntry {
     }
     data.state = CacheState.VALID;
     data.value = value == null ? descriptor.defaultValue : value;
+    data.memento = memento;
   }
 
   @override
@@ -819,6 +832,12 @@ class ResultData {
    * value (for example, when the [state] is [CacheState.INVALID]).
    */
   Object value;
+
+  /**
+   * The optional data that is remembered with [value] and, when [value] is
+   * invalidated, may help to recompute it more efficiently.
+   */
+  Object memento;
 
   /**
    * A list of the results on which this result depends.

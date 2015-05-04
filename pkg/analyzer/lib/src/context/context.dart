@@ -959,7 +959,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           _sourceChanged(source);
         }
         entry.modificationTime = _contentCache.getModificationStamp(source);
-        entry.setValue(CONTENT, newContents, cache.TargetedResult.EMPTY_LIST);
+        entry.setValue(
+            CONTENT, newContents, cache.TargetedResult.EMPTY_LIST, null);
       } else {
         entry.modificationTime = _contentCache.getModificationStamp(source);
       }
@@ -974,7 +975,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         String fileContentsData = fileContents.data;
         if (fileContentsData == originalContents) {
           entry.setValue(
-              CONTENT, fileContentsData, cache.TargetedResult.EMPTY_LIST);
+              CONTENT, fileContentsData, cache.TargetedResult.EMPTY_LIST, null);
           entry.modificationTime = fileContents.modificationTime;
           changed = false;
         }
@@ -1067,7 +1068,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       //
       cache.CacheEntry entry = getCacheEntry(librarySource);
       setValue(ResultDescriptor result, value) {
-        entry.setValue(result, value, cache.TargetedResult.EMPTY_LIST);
+        entry.setValue(result, value, cache.TargetedResult.EMPTY_LIST, null);
       }
       setValue(BUILD_DIRECTIVES_ERRORS, AnalysisError.NO_ERRORS);
       setValue(BUILD_FUNCTION_TYPE_ALIASES_ERRORS, AnalysisError.NO_ERRORS);
@@ -1118,7 +1119,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
     cache.CacheEntry entry = getCacheEntry(AnalysisContextTarget.request);
     entry.setValue(
-        TYPE_PROVIDER, typeProvider, cache.TargetedResult.EMPTY_LIST);
+        TYPE_PROVIDER, typeProvider, cache.TargetedResult.EMPTY_LIST, null);
   }
 
   @override
@@ -1362,7 +1363,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         cache.CacheEntry entry = _cache.get(source);
         if (entry != null) {
           entry.modificationTime = _contentCache.getModificationStamp(source);
-          entry.setValue(CONTENT, contents, cache.TargetedResult.EMPTY_LIST);
+          entry.setValue(
+              CONTENT, contents, cache.TargetedResult.EMPTY_LIST, null);
         }
       }
     } else if (originalContents != null) {

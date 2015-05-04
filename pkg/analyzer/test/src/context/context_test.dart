@@ -366,7 +366,7 @@ class AnalysisContextForTests extends AnalysisContextImpl {
       CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
       unit.element = library.definingCompilationUnit;
       CacheEntry entry = getCacheEntry(librarySource);
-      entry.setValue(PARSED_UNIT, unit, TargetedResult.EMPTY_LIST);
+      entry.setValue(PARSED_UNIT, unit, TargetedResult.EMPTY_LIST, null);
     });
   }
 

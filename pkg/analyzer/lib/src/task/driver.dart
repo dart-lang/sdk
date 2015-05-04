@@ -124,8 +124,11 @@ class AnalysisDriver {
       return null;
     }
     try {
-      return new WorkOrder(taskManager,
-          new WorkItem(context, target, taskManager.findTask(target, result)));
+      TaskDescriptor taskDescriptor = taskManager.findTask(target, result);
+      Object memento = entry.getMemento(result);
+      WorkItem workItem =
+          new WorkItem(context, target, taskDescriptor, memento);
+      return new WorkOrder(taskManager, workItem);
     } catch (exception, stackTrace) {
       throw new AnalysisException(
           'Could not create work order (target = $target; result = $result)',
@@ -215,7 +218,7 @@ class AnalysisDriver {
       for (ResultDescriptor result in task.descriptor.results) {
         // TODO(brianwilkerson) We could check here that a value was produced
         // and throw an exception if not (unless we want to allow null values).
-        entry.setValue(result, outputs[result], dependedOn);
+        entry.setValue(result, outputs[result], dependedOn, task.outputMemento);
       }
     } else {
       entry.setErrorState(task.caughtException, item.descriptor.results);
@@ -280,6 +283,12 @@ class WorkItem {
   final TaskDescriptor descriptor;
 
   /**
+   * The optional data that the task associated with [target] last time.
+   * This data may help to compute outputs more efficiently.
+   */
+  final Object inputMemento;
+
+  /**
    * An iterator used to iterate over the descriptors of the inputs to the task,
    * or `null` if all of the inputs have been collected and the task can be
    * created.
@@ -309,7 +318,7 @@ class WorkItem {
    * Initialize a newly created work item to compute the inputs for the task
    * described by the given descriptor.
    */
-  WorkItem(this.context, this.target, this.descriptor) {
+  WorkItem(this.context, this.target, this.descriptor, this.inputMemento) {
     AnalysisTarget actualTarget = identical(
             target, AnalysisContextTarget.request)
         ? new AnalysisContextTarget(context)
@@ -330,7 +339,7 @@ class WorkItem {
     if (builder != null) {
       throw new StateError("some inputs have not been computed");
     }
-    return descriptor.createTask(context, target, inputs);
+    return descriptor.createTask(context, target, inputs, inputMemento);
   }
 
   /**
@@ -375,7 +384,8 @@ class WorkItem {
         try {
           TaskDescriptor descriptor =
               taskManager.findTask(inputTarget, inputResult);
-          return new WorkItem(context, inputTarget, descriptor);
+          Object memento = inputEntry.getMemento(inputResult);
+          return new WorkItem(context, inputTarget, descriptor, memento);
         } on AnalysisException catch (exception, stackTrace) {
           this.exception = new CaughtException(exception, stackTrace);
           return null;

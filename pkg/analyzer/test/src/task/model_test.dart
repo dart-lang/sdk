@@ -58,7 +58,8 @@ class AnalysisTaskTest extends EngineTestCase {
 @reflectiveTest
 class ContributionPointImplTest extends EngineTestCase {
   test_contributors_empty() {
-    CompositeResultDescriptorImpl point = new CompositeResultDescriptorImpl('point');
+    CompositeResultDescriptorImpl point =
+        new CompositeResultDescriptorImpl('point');
     List<ResultDescriptor> contributors = point.contributors;
     expect(contributors, isEmpty);
   }
@@ -66,7 +67,8 @@ class ContributionPointImplTest extends EngineTestCase {
   test_contributors_nonEmpty() {
     ResultDescriptorImpl result1 = new ResultDescriptorImpl('result1', null);
     ResultDescriptorImpl result2 = new ResultDescriptorImpl('result2', null);
-    CompositeResultDescriptorImpl point = new CompositeResultDescriptorImpl('point');
+    CompositeResultDescriptorImpl point =
+        new CompositeResultDescriptorImpl('point');
     point.recordContributor(result1);
     point.recordContributor(result2);
     List<ResultDescriptor> contributors = point.contributors;
@@ -84,7 +86,8 @@ class ContributionPointImplTest extends EngineTestCase {
 
   test_name() {
     String name = 'point';
-    CompositeResultDescriptorImpl point = new CompositeResultDescriptorImpl(name);
+    CompositeResultDescriptorImpl point =
+        new CompositeResultDescriptorImpl(name);
     expect(point.name, name);
   }
 }
@@ -92,7 +95,8 @@ class ContributionPointImplTest extends EngineTestCase {
 @reflectiveTest
 class ResultDescriptorImplTest extends EngineTestCase {
   test_create_withContribution() {
-    CompositeResultDescriptorImpl point = new CompositeResultDescriptorImpl('point');
+    CompositeResultDescriptorImpl point =
+        new CompositeResultDescriptorImpl('point');
     ResultDescriptorImpl result =
         new ResultDescriptorImpl('result', null, contributesTo: point);
     expect(result, isNotNull);
@@ -144,10 +148,13 @@ class TaskDescriptorImplTest extends EngineTestCase {
     AnalysisContext context = null;
     AnalysisTarget target = new TestSource();
     Map<String, dynamic> inputs = {};
-    AnalysisTask createTask = descriptor.createTask(context, target, inputs);
+    String inputMemento = 'main() {}';
+    AnalysisTask createTask =
+        descriptor.createTask(context, target, inputs, inputMemento);
     expect(createTask, isNotNull);
     expect(createTask.context, context);
     expect(createTask.inputs, inputs);
+    expect(createTask.inputMemento, inputMemento);
     expect(createTask.target, target);
   }
 }
