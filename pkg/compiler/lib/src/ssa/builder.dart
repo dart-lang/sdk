@@ -2104,11 +2104,28 @@ class SsaBuilder extends NewResolvedVisitor {
       instantiatedTypes = new List<DartType>.from(currentInlinedInstantiations);
     }
 
-    /// Fills [typeArguments] with the values of type arguments to be set on
-    /// the newly created object. Returns the source if the arguments can
-    /// simply be copied over.
-    HThis computeSourceOrTypeArguments(ClassElement classElement,
-                                       List<HInstruction> typeArguments) {
+    HInstruction newObject;
+    if (!isNativeUpgradeFactory) {
+      newObject = new HForeignNew(classElement,
+          ssaType,
+          constructorArguments,
+          instantiatedTypes);
+      add(newObject);
+    } else {
+      // Bulk assign to the initialized fields.
+      newObject = graph.explicitReceiverParameter;
+      // Null guard ensures an error if we are being called from an explicit
+      // 'new' of the constructor instead of via an upgrade. It is optimized out
+      // if there are field initializers.
+      add(new HFieldGet(
+          null, newObject, backend.dynamicType, isAssignable: false));
+      for (int i = 0; i < fields.length; i++) {
+        add(new HFieldSet(fields[i], newObject, constructorArguments[i]));
+      }
+    }
+    removeInlinedInstantiation(type);
+    // Create the runtime type information, if needed.
+    if (backend.classNeedsRti(classElement)) {
       // Read the values of the type arguments and create a list to set on the
       // newly create object.  We can identify the case where the new list
       // would be of the form:
@@ -2162,6 +2179,7 @@ class SsaBuilder extends NewResolvedVisitor {
         return constant.primitiveValue == expectedIndex++;
       }
 
+      List<HInstruction> typeArguments = <HInstruction>[];
       classElement.typeVariables.forEach((TypeVariableType typeVariable) {
         HInstruction argument = localsHandler.readLocal(
             localsHandler.getTypeVariableAsLocal(typeVariable));
@@ -2172,64 +2190,13 @@ class SsaBuilder extends NewResolvedVisitor {
       });
 
       if (source != null && allIndexed && remainingTypeVariables == 0) {
-        return source;
-      } else {
-        return null;
-      }
-    }
-
-    HInstruction newObject;
-    if (!isNativeUpgradeFactory) {
-      List<HInstruction> typeArguments = <HInstruction>[];
-      HThis source;
-      if (backend.classNeedsRti(classElement)) {
-        source = computeSourceOrTypeArguments(classElement, typeArguments);
-      }
-
-      // If the class needs rti and the type arguments cannot simply be copied
-      // over, we pass the type arguments to the constructor which will then set
-      // the type info on the object.
-      if (source == null && typeArguments.isNotEmpty) {
-        HInstruction typeArgumentsInstruction = buildLiteralList(typeArguments);
-        add(typeArgumentsInstruction);
-        constructorArguments..add(typeArgumentsInstruction);
-      }
-
-      newObject = new HForeignNew(classElement,
-          ssaType,
-          constructorArguments,
-          instantiatedTypes);
-      add(newObject);
-
-      if (source != null) {
         copyRuntimeTypeInfo(source, newObject);
-      }
-    } else {
-      // Bulk assign to the initialized fields.
-      newObject = graph.explicitReceiverParameter;
-      // Null guard ensures an error if we are being called from an explicit
-      // 'new' of the constructor instead of via an upgrade. It is optimized out
-      // if there are field initializers.
-      add(new HFieldGet(
-          null, newObject, backend.dynamicType, isAssignable: false));
-      for (int i = 0; i < fields.length; i++) {
-        add(new HFieldSet(fields[i], newObject, constructorArguments[i]));
-      }
-
-      if (backend.classNeedsRti(classElement)) {
-        List<HInstruction> typeArguments = <HInstruction>[];
-        HThis source =
-            computeSourceOrTypeArguments(classElement, typeArguments);
-        if (source != null) {
-          copyRuntimeTypeInfo(source, newObject);
-        } else {
-          newObject = callSetRuntimeTypeInfo(classElement, typeArguments,
-                                             newObject);
-        }
+      } else {
+        newObject =
+            callSetRuntimeTypeInfo(classElement, typeArguments, newObject);
       }
     }
 
-    removeInlinedInstantiation(type);
     // Generate calls to the constructor bodies.
     HInstruction interceptor = null;
     for (int index = constructors.length - 1; index >= 0; index--) {
