@@ -2,7 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.cps_ir.optimizers;
+import 'optimizers.dart' show Pass, ParentVisitor;
+
+import '../constants/constant_system.dart';
+import '../constants/expressions.dart';
+import '../resolution/operators.dart';
+import '../constants/values.dart';
+import '../dart_types.dart' as types;
+import '../dart2jslib.dart' as dart2js;
+import '../tree/tree.dart' show LiteralDartString;
+import 'cps_ir_nodes.dart';
+import '../types/types.dart' show TypeMask, TypesTask;
+import '../types/constants.dart' show computeTypeMask;
+import '../elements/elements.dart' show ClassElement, Element, Entity,
+    FieldElement, FunctionElement, ParameterElement;
+import '../dart2jslib.dart' show ClassWorld;
+import '../universe/universe.dart';
 
 abstract class TypeSystem<T> {
   T get dynamicType;
@@ -15,9 +30,13 @@ abstract class TypeSystem<T> {
   T get mapType;
 
   T getReturnType(FunctionElement element);
+  T getSelectorReturnType(Selector selector);
   T getParameterType(ParameterElement element);
   T join(T a, T b);
   T typeOf(ConstantValue constant);
+
+  /// True if all values satisfying [type] are booleans (null is not a boolean).
+  bool isDefinitelyBool(T type);
 }
 
 class UnitTypeSystem implements TypeSystem<String> {
@@ -34,8 +53,11 @@ class UnitTypeSystem implements TypeSystem<String> {
 
   getParameterType(_) => UNIT;
   getReturnType(_) => UNIT;
+  getSelectorReturnType(_) => UNIT;
   join(a, b) => UNIT;
   typeOf(_) => UNIT;
+
+  bool isDefinitelyBool(_) => false;
 }
 
 class TypeMaskSystem implements TypeSystem<TypeMask> {
@@ -64,6 +86,10 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
     return inferrer.getGuaranteedReturnTypeOfElement(function);
   }
 
+  TypeMask getSelectorReturnType(Selector selector) {
+    return inferrer.getGuaranteedTypeOfSelector(selector);
+  }
+
   @override
   TypeMask join(TypeMask a, TypeMask b) {
     return a.union(b, classWorld);
@@ -72,6 +98,10 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   @override
   TypeMask typeOf(ConstantValue constant) {
     return computeTypeMask(inferrer.compiler, constant);
+  }
+
+  bool isDefinitelyBool(TypeMask t) {
+    return t.containsOnlyBool(classWorld) && !t.isNullable;
   }
 }
 
@@ -124,8 +154,8 @@ class TypePropagator<T> extends Pass {
     // Transform. Uses the data acquired in the previous analysis phase to
     // replace branches with fixed targets and side-effect-free expressions
     // with constant results.
-    _TransformingVisitor transformer = new _TransformingVisitor(
-        analyzer.reachableNodes, analyzer.values, _internalError);
+    _TransformingVisitor<T> transformer = new _TransformingVisitor<T>(
+        analyzer.reachableNodes, analyzer.values, _internalError, _typeSystem);
     transformer.transform(root);
   }
 
@@ -136,13 +166,17 @@ class TypePropagator<T> extends Pass {
  * Uses the information from a preceding analysis pass in order to perform the
  * actual transformations on the CPS graph.
  */
-class _TransformingVisitor extends RecursiveVisitor {
+class _TransformingVisitor<T> extends RecursiveVisitor {
   final Set<Node> reachable;
   final Map<Node, _AbstractValue> values;
+  final TypeSystem<T> typeSystem;
 
   final dart2js.InternalErrorFunction internalError;
 
-  _TransformingVisitor(this.reachable, this.values, this.internalError);
+  _TransformingVisitor(this.reachable,
+                       this.values,
+                       this.internalError,
+                       this.typeSystem);
 
   void transform(RootNode root) {
     visit(root);
@@ -275,6 +309,24 @@ class _TransformingVisitor extends RecursiveVisitor {
       super.visitTypeOperator(node);
     } else {
       visitLetPrim(letPrim);
+    }
+  }
+
+  _AbstractValue<T> getValue(Primitive primitive) {
+    _AbstractValue<T> value = values[primitive];
+    return value == null ? new _AbstractValue.nothing() : value;
+  }
+
+  void visitIdentical(Identical node) {
+    Primitive left = node.left.definition;
+    Primitive right = node.right.definition;
+    _AbstractValue<T> leftValue = getValue(left);
+    _AbstractValue<T> rightValue = getValue(right);
+    // Replace identical(x, true) by x when x is known to be a boolean.
+    if (leftValue.isDefinitelyBool(typeSystem) &&
+        rightValue.isConstant &&
+        rightValue.constant.isTrue) {
+      left.substituteFor(node);
     }
   }
 }
@@ -505,7 +557,7 @@ class _TypePropagationVisitor<T> implements Visitor {
     if (lhs.isNothing) {
       return;  // And come back later.
     } else if (lhs.isNonConst) {
-      setValues(nonConstant());
+      setValues(nonConstant(typeSystem.getSelectorReturnType(node.selector)));
       return;
     } else if (!node.selector.isOperator) {
       // TODO(jgruber): Handle known methods on constants such as String.length.
@@ -916,6 +968,12 @@ class _AbstractValue<T> {
       return new _AbstractValue.nonConstant(
           typeSystem.join(this.type, that.type));
     }
+  }
+
+  /// True if all members of this value are booleans.
+  bool isDefinitelyBool(TypeSystem<T> typeSystem) {
+    if (kind == NOTHING) return true;
+    return typeSystem.isDefinitelyBool(type);
   }
 }
 

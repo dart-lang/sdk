@@ -37,8 +37,8 @@ function() {
   L0:
     while (true)
       while (true) {
-        while (P.identical(V.foo(true), true))
-          if (P.identical(V.foo(false), true)) {
+        while (V.foo(true))
+          if (V.foo(false)) {
             P.print(2);
             continue L0;
           }
@@ -80,7 +80,7 @@ main() {
  print(3);
 }""", """
 function() {
-  P.identical(V.foo(true), true) ? P.print(1) : P.print(2);
+  V.foo(true) ? P.print(1) : P.print(2);
   P.print(3);
   return null;
 }"""),
@@ -98,7 +98,7 @@ main() {
  print(3);
 }""", """
 function() {
-  if (P.identical(V.foo(true), true)) {
+  if (V.foo(true)) {
     P.print(1);
     P.print(1);
   } else {
