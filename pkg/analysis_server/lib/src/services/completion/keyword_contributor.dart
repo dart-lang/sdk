@@ -107,14 +107,21 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
           !node.directives.any((d) => d is LibraryDirective)) {
         _addSuggestions([Keyword.LIBRARY], DART_RELEVANCE_HIGH);
       }
-      _addSuggestions(
-          [Keyword.EXPORT, Keyword.IMPORT, Keyword.PART], DART_RELEVANCE_HIGH);
+      _addSuggestions([Keyword.EXPORT, Keyword.PART], DART_RELEVANCE_HIGH);
+      _addSuggestion2("import '';",
+          offset: 8, relevance: DART_RELEVANCE_HIGH + 1);
+      _addSuggestion2("import '' as ;",
+          offset: 8, relevance: DART_RELEVANCE_HIGH);
+      _addSuggestion2("import '' hide ;",
+          offset: 8, relevance: DART_RELEVANCE_HIGH);
+      _addSuggestion2("import '' show ;",
+          offset: 8, relevance: DART_RELEVANCE_HIGH);
     }
     if (entity == null || entity is Declaration) {
       if (previousMember is FunctionDeclaration &&
           previousMember.functionExpression is FunctionExpression &&
           previousMember.functionExpression.body is EmptyFunctionBody) {
-        _addSuggestion2(ASYNC, DART_RELEVANCE_HIGH);
+        _addSuggestion2(ASYNC, relevance: DART_RELEVANCE_HIGH);
       }
       _addCompilationUnitKeywords();
     }
@@ -139,7 +146,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   @override
   visitFunctionExpression(FunctionExpression node) {
     if (entity == node.body) {
-      _addSuggestion2(ASYNC, DART_RELEVANCE_HIGH);
+      _addSuggestion2(ASYNC, relevance: DART_RELEVANCE_HIGH);
       if (node.body is EmptyFunctionBody &&
           node.parent is FunctionDeclaration &&
           node.parent.parent is CompilationUnit) {
@@ -174,7 +181,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
         _addClassBodyKeywords();
         _addSuggestion2(ASYNC);
       } else {
-        _addSuggestion2(ASYNC, DART_RELEVANCE_HIGH);
+        _addSuggestion2(ASYNC, relevance: DART_RELEVANCE_HIGH);
       }
     }
   }
@@ -308,14 +315,17 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   void _addSuggestion(Keyword keyword,
       [int relevance = DART_RELEVANCE_KEYWORD]) {
-    _addSuggestion2(keyword.syntax, relevance);
+    _addSuggestion2(keyword.syntax, relevance: relevance);
   }
 
   void _addSuggestion2(String completion,
-      [int relevance = DART_RELEVANCE_KEYWORD]) {
+      {int offset, int relevance: DART_RELEVANCE_KEYWORD}) {
+    if (offset == null) {
+      offset = completion.length;
+    }
     request.addSuggestion(new CompletionSuggestion(
-        CompletionSuggestionKind.KEYWORD, relevance, completion,
-        completion.length, 0, false, false));
+        CompletionSuggestionKind.KEYWORD, relevance, completion, offset, 0,
+        false, false));
   }
 
   void _addSuggestions(List<Keyword> keywords,

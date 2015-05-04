@@ -411,7 +411,7 @@ class CompletionTest extends AbstractAnalysisTest {
       expect(replacementOffset, equals(completionOffset - 2));
       expect(replacementLength, equals(2));
       assertHasResult(
-          CompletionSuggestionKind.KEYWORD, 'import', DART_RELEVANCE_HIGH);
+          CompletionSuggestionKind.KEYWORD, 'export', DART_RELEVANCE_HIGH);
       assertHasResult(
           CompletionSuggestionKind.KEYWORD, 'class', DART_RELEVANCE_HIGH);
     });

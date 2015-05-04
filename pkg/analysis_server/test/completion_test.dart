@@ -1982,19 +1982,18 @@ class Q {
 
     // keywords
     buildTests('test017', '''
-!1library foo;
-!2import 'x' !5as r;
+!1!2import 'x' !5as r;
 !3export '!8uri' !6hide Q !7show X;
 !4part 'x';''', <String>[
       "1+library",
-      "2+import",
+      "2+import '!';",
       "3+export",
       "4+part",
       "5+as",
       "6+hide",
       "7+show",
       "8-null"
-    ], failingTests: '1567');
+    ], failingTests: '567');
 
     // keywords
     buildTests('test018', '''!1part !2of foo;''', <String>["1+part", "2+of"],

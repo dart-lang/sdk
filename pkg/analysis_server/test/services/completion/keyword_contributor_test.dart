@@ -179,10 +179,17 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Set<String> actualCompletions = new Set<String>();
     expectedCompletions.addAll(expectedKeywords.map((k) => k.syntax));
     expectedCompletions.addAll(pseudoKeywords);
+    if (expectedCompletions.contains(Keyword.IMPORT.syntax)) {
+      expectedCompletions.remove(Keyword.IMPORT.syntax);
+      expectedCompletions.add("import '';");
+      expectedCompletions.add("import '' as ;");
+      expectedCompletions.add("import '' hide ;");
+      expectedCompletions.add("import '' show ;");
+    }
     for (CompletionSuggestion s in request.suggestions) {
       if (s.kind == CompletionSuggestionKind.KEYWORD) {
         Keyword k = Keyword.keywords[s.completion];
-        if (k == null && !pseudoKeywords.contains(s.completion)) {
+        if (k == null && !expectedCompletions.contains(s.completion)) {
           fail('Invalid keyword suggested: ${s.completion}');
         } else {
           if (!actualCompletions.add(s.completion)) {
@@ -201,8 +208,18 @@ class KeywordContributorTest extends AbstractCompletionTest {
     }
     for (CompletionSuggestion s in request.suggestions) {
       if (s.kind == CompletionSuggestionKind.KEYWORD) {
-        expect(s.relevance, equals(relevance), reason: s.completion);
-        expect(s.selectionOffset, equals(s.completion.length));
+        if (s.completion.startsWith(Keyword.IMPORT.syntax)) {
+          int importRelevance = relevance;
+          if (importRelevance == DART_RELEVANCE_HIGH &&
+              s.completion == "import '';") {
+            ++importRelevance;
+          }
+          expect(s.relevance, equals(importRelevance), reason: s.completion);
+          expect(s.selectionOffset, equals(Keyword.IMPORT.syntax.length + 2));
+        } else {
+          expect(s.relevance, equals(relevance), reason: s.completion);
+          expect(s.selectionOffset, equals(s.completion.length));
+        }
         expect(s.selectionLength, equals(0));
         expect(s.isDeprecated, equals(false));
         expect(s.isPotential, equals(false));
