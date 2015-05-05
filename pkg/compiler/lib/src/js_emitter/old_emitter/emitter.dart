@@ -276,6 +276,10 @@ class OldEmitter implements Emitter {
         return jsAst.js.expressionTemplateYielding(
             typeAccess(compiler.objectClass));
 
+      case JsBuiltin.classNameFromIsCheckProperty:
+        int isPrefixLength = namer.operatorIsPrefix.length;
+        return jsAst.js.expressionTemplateFor('#.substring($isPrefixLength)');
+
       case JsBuiltin.isFunctionType:
         return backend.rti.representationGenerator.templateForIsFunctionType;
 

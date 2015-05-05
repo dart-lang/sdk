@@ -271,14 +271,9 @@ bool checkSubtype(Object object, String isField, List checks, String asField) {
 ///
 /// In minified mode, uses the unminified names if available.
 String computeTypeName(String isField, List arguments) {
-  // Shorten the field name to the class name and append the textual
+  // Extract the class name from the is field and append the textual
   // representation of the type arguments.
-  // TODO(floitsch): change this to:
-  // String className = JS_BUILTIN('depends:none;effects:none;returns:String',
-  //                               JsBuiltin.classNameFroIsCheckProperty,
-  //                               isField);
-  int prefixLength = JS_OPERATOR_IS_PREFIX().length;
-  return Primitives.formatType(isField.substring(prefixLength, isField.length),
+  return Primitives.formatType(classNameFromIsCheckProperty(isField),
                                arguments);
 }
 

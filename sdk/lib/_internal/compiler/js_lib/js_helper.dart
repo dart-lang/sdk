@@ -92,6 +92,15 @@ part 'linked_hash_map.dart';
 abstract class InternalMap {
 }
 
+/// Extracts the classname from the isCheckProperty.
+// TODO(floitsch): move this to foreign_helper.dart or similar.
+@ForceInline()
+String classNameFromIsCheckProperty(String isCheckProperty) {
+  return JS_BUILTIN('returns:String;depends:none;effects:none',
+                    JsBuiltin.classNameFromIsCheckProperty,
+                    isCheckProperty);
+}
+
 /// Returns true if the given [type] is a function type object.
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()
@@ -2823,8 +2832,7 @@ intTypeCast(value) {
 }
 
 void propertyTypeError(value, property) {
-  // Cuts the property name to the class name.
-  String name = property.substring(3, property.length);
+  String name = classNameFromIsCheckProperty(property);
   throw new TypeErrorImplementation(value, name);
 }
 

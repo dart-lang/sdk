@@ -89,13 +89,24 @@ enum JsGetName {
 }
 
 enum JsBuiltin {
-   /// Returns the JavaScript constructor function for Dart's Object class.
-   /// This can be used for type tests, as in
-   ///
-   ///     var constructor = JS_BUILTIN('', JsBuiltin.dartObjectContructor);
-   ///     if (JS('bool', '# instanceof #', obj, constructor))
-   ///       ...
+  /// Returns the JavaScript constructor function for Dart's Object class.
+  /// This can be used for type tests, as in
+  ///
+  ///     var constructor = JS_BUILTIN('', JsBuiltin.dartObjectContructor);
+  ///     if (JS('bool', '# instanceof #', obj, constructor))
+  ///       ...
   dartObjectConstructor,
+
+  /// Returns the class name given an [isCheckProperty].
+  ///
+  /// This relies on a deterministic encoding of is-check properties (for
+  /// example `$isFoo` for a class `Foo`). In minified code the returned
+  /// classname is the minified name of the class.
+  ///
+  ///     JS_BUILTIN('returns:String;depends:none;effects:none',
+  ///                JsBuiltin.classNameFromIsCheckProperty,
+  ///                isCheckProperty);
+  classNameFromIsCheckProperty,
 
   /// Returns true if the given type is a function type. Returns false for
   /// the one `Function` type singleton. (See [isFunctionTypeSingleton]).

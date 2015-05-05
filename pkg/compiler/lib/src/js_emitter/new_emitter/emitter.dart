@@ -138,6 +138,10 @@ class Emitter implements emitterTask.Emitter {
         return js.js.expressionTemplateYielding(
             typeAccess(_compiler.objectClass));
 
+      case JsBuiltin.classNameFromIsCheckProperty:
+        int isPrefixLength = namer.operatorIsPrefix.length;
+        return js.js.expressionTemplateFor('#.substring($isPrefixLength)');
+
       case JsBuiltin.isFunctionType:
         return _backend.rti.representationGenerator.templateForIsFunctionType;
 
