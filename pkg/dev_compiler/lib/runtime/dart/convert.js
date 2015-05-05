@@ -1578,7 +1578,7 @@ var convert;
       return new _Utf8StringSinkAdapter(this, this[_stringSink], allowMalformed);
     }
     asStringSink() {
-      return new ClosableStringSink.fromStringSink(this[_stringSink], dart.bind(this, 'close'));
+      return new ClosableStringSink.fromStringSink(this[_stringSink], this.close.bind(this));
     }
   }
   class _StringCallbackSink extends _StringSinkConversionSink {

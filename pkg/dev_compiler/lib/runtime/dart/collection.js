@@ -1626,8 +1626,8 @@ var collection;
       [core.$add](element) {
         dart.as(element, E);
         this[core.$set]((() => {
-          let o = this, x = o[core.$length];
-          o[core.$length] = dart.notNull(x) + 1;
+          let x = this[core.$length];
+          this[core.$length] = dart.notNull(x) + 1;
           return x;
         }).bind(this)(), element);
       }
@@ -1635,8 +1635,8 @@ var collection;
         dart.as(iterable, core.Iterable$(E));
         for (let element of iterable) {
           this[core.$set]((() => {
-            let o = this, x = o[core.$length];
-            o[core.$length] = dart.notNull(x) + 1;
+            let x = this[core.$length];
+            this[core.$length] = dart.notNull(x) + 1;
             return x;
           }).bind(this)(), element);
         }
@@ -1645,8 +1645,7 @@ var collection;
         for (let i = 0; dart.notNull(i) < dart.notNull(this[core.$length]); i = dart.notNull(i) + 1) {
           if (dart.equals(this[core.$get](i), element)) {
             this[core.$setRange](i, dart.notNull(this[core.$length]) - 1, this, dart.notNull(i) + 1);
-            let o = this;
-            o[core.$length] = dart.notNull(o[core.$length]) - 1;
+            this[core.$length] = dart.notNull(this[core.$length]) - 1;
             return true;
           }
         }
@@ -1739,8 +1738,7 @@ var collection;
         core.RangeError.checkValidRange(start, end, this[core.$length]);
         let length = dart.notNull(end) - dart.notNull(start);
         this[core.$setRange](start, dart.notNull(this[core.$length]) - dart.notNull(length), this, end);
-        let o = this;
-        o[core.$length] = dart.notNull(o[core.$length]) - dart.notNull(length);
+        this[core.$length] = dart.notNull(this[core.$length]) - dart.notNull(length);
       }
       [core.$fillRange](start, end, fill) {
         if (fill === void 0)
@@ -1853,8 +1851,7 @@ var collection;
         }
         if (!(typeof index == 'number'))
           throw new core.ArgumentError(index);
-        let o = this;
-        o[core.$length] = dart.notNull(o[core.$length]) + 1;
+        this[core.$length] = dart.notNull(this[core.$length]) + 1;
         this[core.$setRange](dart.notNull(index) + 1, this[core.$length], this, index);
         this[core.$set](index, element);
       }
@@ -1871,8 +1868,7 @@ var collection;
           iterable = iterable[core.$toList]();
         }
         let insertionLength = iterable[core.$length];
-        let o = this;
-        o[core.$length] = dart.notNull(o[core.$length]) + dart.notNull(insertionLength);
+        this[core.$length] = dart.notNull(this[core.$length]) + dart.notNull(insertionLength);
         this[core.$setRange](dart.notNull(index) + dart.notNull(insertionLength), this[core.$length], this, index);
         this[core.$setAll](index, iterable);
       }

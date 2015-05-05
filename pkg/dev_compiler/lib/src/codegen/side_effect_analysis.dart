@@ -28,6 +28,8 @@ import 'package:analyzer/src/generated/element.dart';
 /// correctness of a `true` value. However it may return `false` for things
 /// that are in fact, stateless.
 bool isStateless(Expression node, [AstNode context]) {
+  // `this` and `super` cannot be reassigned.
+  if (node is ThisExpression || node is SuperExpression) return true;
   if (node is SimpleIdentifier) {
     var e = node.staticElement;
     if (e is PropertyAccessorElement) e = e.variable;
