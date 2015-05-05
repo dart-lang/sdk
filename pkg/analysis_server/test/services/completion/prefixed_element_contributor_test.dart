@@ -557,7 +557,8 @@ class C1 extends C2 implements C3 {
       assertNotSuggested('fs2');
       assertSuggestInvocationMethod('mi2', 'C2', null);
       assertNotSuggested('ms2');
-      assertSuggestInvocationMethod('m', 'C2', null);
+      assertSuggestInvocationMethod('m', 'C2', null,
+          relevance: DART_RELEVANCE_HIGH);
       assertNotSuggested('fi3');
       assertNotSuggested('fs3');
       assertNotSuggested('mi3');

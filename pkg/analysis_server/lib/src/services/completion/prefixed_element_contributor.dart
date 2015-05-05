@@ -73,8 +73,20 @@ class _ExpressionSuggestionBuilder implements SuggestionBuilder {
       }
     }
     if (node is Expression) {
+      String containingMethodName;
+      bool isSuper = node is SuperExpression;
+      if (isSuper) {
+        MethodDeclaration containingMethod =
+            node.getAncestor((p) => p is MethodDeclaration);
+        if (containingMethod != null) {
+          SimpleIdentifier id = containingMethod.name;
+          if (id != null) {
+            containingMethodName = id.name;
+          }
+        }
+      }
       InterfaceTypeSuggestionBuilder.suggestionsFor(request, node.bestType,
-          isSuper: node is SuperExpression);
+          isSuper: isSuper, containingMethodName: containingMethodName);
       return new Future.value(true);
     }
     return new Future.value(false);
