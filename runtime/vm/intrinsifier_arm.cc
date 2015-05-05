@@ -875,7 +875,7 @@ void Intrinsifier::Bigint_rsh(Assembler* assembler) {
   __ Bind(&loop_entry);
   __ teq(R8, Operand(R6));
   __ b(&loop, NE);
-  __ str(R1, Address(R8, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ str(R1, Address(R8, 0));
   // Returning Object::null() is not required, since this method is private.
   __ Ret();
 }
