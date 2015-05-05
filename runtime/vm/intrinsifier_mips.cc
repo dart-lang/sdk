@@ -868,9 +868,12 @@ void Intrinsifier::Bigint_rsh(Assembler* assembler) {
   // T2 = 32 - T3
   __ subu(T2, ZR, T3);
   __ addiu(T2, T2, Immediate(32));
+  // T1 = x_digits[n ~/ _DIGIT_BITS] >> (n % _DIGIT_BITS)
+  __ lw(T1, Address(V0, 0));
+  __ addiu(V0, V0, Immediate(Bigint::kBytesPerDigit));
   Label loop_exit;
   __ beq(V1, T6, &loop_exit);
-  __ delay_slot()->mov(T1, ZR);
+  __ delay_slot()->srlv(T1, T1, T3);
   Label loop;
   __ Bind(&loop);
   __ lw(T0, Address(V0, 0));
