@@ -84,7 +84,8 @@ abstract class Stream<T> {
     // Use the controller's buffering to fill in the value even before
     // the stream has a listener. For a single value, it's not worth it
     // to wait for a listener before doing the `then` on the future.
-    _StreamController<T> controller = new StreamController<T>(sync: true);
+    _StreamController<T> controller =
+        new StreamController<T>(sync: true) as _StreamController<T>;
     future.then((value) {
         controller._add(value);
         controller._closeUnchecked();
@@ -1409,8 +1410,8 @@ class StreamView<T> extends Stream<T> {
 
   bool get isBroadcast => _stream.isBroadcast;
 
-  Stream<T> asBroadcastStream({void onListen(StreamSubscription subscription),
-                               void onCancel(StreamSubscription subscription)})
+  Stream<T> asBroadcastStream({void onListen(StreamSubscription<T> subscription),
+                               void onCancel(StreamSubscription<T> subscription)})
       => _stream.asBroadcastStream(onListen: onListen, onCancel: onCancel);
 
   StreamSubscription<T> listen(void onData(T value),

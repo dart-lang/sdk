@@ -63,7 +63,7 @@ var async;
       Stream() {
       }
       fromFuture(future) {
-        let controller = new (StreamController$(T))({sync: true});
+        let controller = dart.as(new (StreamController$(T))({sync: true}), _StreamController$(T));
         future.then(value => {
           controller[_add](dart.as(value, T));
           controller[_closeUnchecked]();
@@ -1270,7 +1270,7 @@ var async;
         this[_next] = this[_previous] = this;
       }
       get [_controller]() {
-        return dart.as(super[_controller], _BroadcastStreamController);
+        return dart.as(super[_controller], _BroadcastStreamController$(T));
       }
       [_expectsEvent](eventId) {
         return (dart.notNull(this[_eventState]) & dart.notNull(_BroadcastSubscription._STATE_EVENT_ID)) == eventId;
@@ -1395,15 +1395,15 @@ var async;
         return dart.as(subscription, StreamSubscription$(T));
       }
       [_recordCancel](subscription) {
-        dart.as(subscription, _BroadcastSubscription$(T));
+        dart.as(subscription, StreamSubscription$(T));
         if (core.identical(subscription[_next], subscription))
           return null;
         dart.assert(!dart.notNull(core.identical(subscription[_next], subscription)));
         if (subscription[_isFiring]) {
-          subscription[_setRemoveAfterFiring]();
+          dart.dcall(subscription[_setRemoveAfterFiring]);
         } else {
           dart.assert(!dart.notNull(core.identical(subscription[_next], subscription)));
-          this[_removeListener](subscription);
+          this[_removeListener](dart.as(subscription, _BroadcastSubscription$(T)));
           if (!dart.notNull(this[_isFiring]) && dart.notNull(this[_isEmpty])) {
             this[_callOnCancel]();
           }
@@ -1906,7 +1906,7 @@ var async;
     dart.defineNamedConstructor(Future, 'delayed');
     dart.defineLazyProperties(Future, {
       get _nullFuture() {
-        return new Future.value(null);
+        return new _Future.immediate(null);
       }
     });
     return Future;
@@ -2719,9 +2719,9 @@ var async;
       }
       asBroadcastStream(opts) {
         let onListen = opts && 'onListen' in opts ? opts.onListen : null;
-        dart.as(onListen, dart.functionType(dart.void, [StreamSubscription]));
+        dart.as(onListen, dart.functionType(dart.void, [StreamSubscription$(T)]));
         let onCancel = opts && 'onCancel' in opts ? opts.onCancel : null;
-        dart.as(onCancel, dart.functionType(dart.void, [StreamSubscription]));
+        dart.as(onCancel, dart.functionType(dart.void, [StreamSubscription$(T)]));
         return this[_stream].asBroadcastStream({onListen: onListen, onCancel: onCancel});
       }
       listen(onData, opts) {
@@ -3275,9 +3275,11 @@ var async;
         if (this[_isUsed])
           throw new core.StateError("Stream has already been listened to.");
         this[_isUsed] = true;
-        let _ = new _BufferingStreamSubscription(onData, onError, onDone, cancelOnError);
-        _[_setPendingEvents](this[_pending]());
-        return _;
+        return dart.as((() => {
+          let _ = new _BufferingStreamSubscription(onData, onError, onDone, cancelOnError);
+          _[_setPendingEvents](this[_pending]());
+          return _;
+        }).bind(this)(), StreamSubscription$(T));
       }
     }
     return _GeneratedStreamImpl;
@@ -3378,13 +3380,17 @@ var async;
   // Function _nullDoneHandler: () → void
   function _nullDoneHandler() {
   }
-  class _DelayedEvent extends core.Object {
-    _DelayedEvent() {
-      this.next = null;
+  let _DelayedEvent$ = dart.generic(function(T) {
+    class _DelayedEvent extends core.Object {
+      _DelayedEvent() {
+        this.next = null;
+      }
     }
-  }
+    return _DelayedEvent;
+  });
+  let _DelayedEvent = _DelayedEvent$();
   let _DelayedData$ = dart.generic(function(T) {
-    class _DelayedData extends _DelayedEvent {
+    class _DelayedData extends _DelayedEvent$(T) {
       _DelayedData(value) {
         this.value = value;
         super._DelayedEvent();
@@ -3641,7 +3647,6 @@ var async;
         throw new core.UnsupportedError("Cannot change handlers of asBroadcastStream source subscription.");
       }
       onError(handleError) {
-        dart.as(handleError, dart.functionType(dart.void, [core.Object]));
         throw new core.UnsupportedError("Cannot change handlers of asBroadcastStream source subscription.");
       }
       onDone(handleDone) {
@@ -3878,7 +3883,7 @@ var async;
         dart.as(data, S);
         dart.as(sink, _EventSink$(T));
         let outputData = data;
-        sink[_add](outputData);
+        sink[_add](dart.as(outputData, T));
       }
       [_handleError](error, stackTrace, sink) {
         dart.as(sink, _EventSink$(T));
@@ -4385,7 +4390,7 @@ var async;
         dart.as(onDone, dart.functionType(dart.void, []));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         cancelOnError = core.identical(true, cancelOnError);
-        let subscription = new _SinkTransformerStreamSubscription(this[_stream], dart.as(this[_sinkMapper], _SinkMapper), onData, onError, onDone, cancelOnError);
+        let subscription = new (_SinkTransformerStreamSubscription$(dart.dynamic, T))(this[_stream], dart.as(this[_sinkMapper], _SinkMapper), onData, onError, onDone, cancelOnError);
         return subscription;
       }
     }

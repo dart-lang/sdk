@@ -22,11 +22,11 @@ part of dart.async;
 ), "CompositeCast", """line 36, column 15 of dart:async/broadcast_stream_controller.dart: """, controller is _StreamControllerLifecycle<T>, false), onData, onError, onDone, cancelOnError) {
 _next = _previous = this;
 }
- _BroadcastStreamController get _controller => ((__x2) => DEVC$RT.cast(__x2, DEVC$RT.type((_StreamControllerLifecycle<T> _) {
+ _BroadcastStreamController<T> get _controller => ((__x2) => DEVC$RT.cast(__x2, DEVC$RT.type((_StreamControllerLifecycle<T> _) {
 }
-), DEVC$RT.type((_BroadcastStreamController<dynamic> _) {
+), DEVC$RT.type((_BroadcastStreamController<T> _) {
 }
-), "ImplicitCast", """line 40, column 49 of dart:async/broadcast_stream_controller.dart: """, __x2 is _BroadcastStreamController<dynamic>, true))(super._controller);
+), "CompositeCast", """line 40, column 52 of dart:async/broadcast_stream_controller.dart: """, __x2 is _BroadcastStreamController<T>, false))(super._controller);
  bool _expectsEvent(int eventId) => (_eventState & _STATE_EVENT_ID) == eventId;
  void _toggleEventId() {
 _eventState ^= _STATE_EVENT_ID;
@@ -106,13 +106,17 @@ _runGuarded(_onListen);
 }
 ), "CompositeCast", """line 201, column 12 of dart:async/broadcast_stream_controller.dart: """, subscription is StreamSubscription<T>, false);
 }
- Future _recordCancel(_BroadcastSubscription<T> subscription) {
+ Future _recordCancel(StreamSubscription<T> subscription) {
 if (identical(subscription._next, subscription)) return null;
  assert (!identical(subscription._next, subscription)); if (subscription._isFiring) {
 subscription._setRemoveAfterFiring();
 }
  else {
-assert (!identical(subscription._next, subscription)); _removeListener(subscription);
+assert (!identical(subscription._next, subscription)); _removeListener(DEVC$RT.cast(subscription, DEVC$RT.type((StreamSubscription<T> _) {
+}
+), DEVC$RT.type((_BroadcastSubscription<T> _) {
+}
+), "CompositeCast", """line 212, column 23 of dart:async/broadcast_stream_controller.dart: """, subscription is _BroadcastSubscription<T>, false));
  if (!_isFiring && _isEmpty) {
 _callOnCancel();
 }

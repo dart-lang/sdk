@@ -556,12 +556,12 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  num getFloat32(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
+  double getFloat32(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _getFloat32(byteOffset, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('getFloat32')
-  @Returns('num')
-  num _getFloat32(int byteOffset, [bool littleEndian]) native;
+  @Returns('double')
+  double _getFloat32(int byteOffset, [bool littleEndian]) native;
 
   /**
    * Returns the floating point number represented by the eight bytes at
@@ -571,12 +571,12 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  num getFloat64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
+  double getFloat64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _getFloat64(byteOffset, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('getFloat64')
-  @Returns('num')
-  num _getFloat64(int byteOffset, [bool littleEndian]) native;
+  @Returns('double')
+  double _getFloat64(int byteOffset, [bool littleEndian]) native;
 
   /**
    * Returns the (possibly negative) integer represented by the two bytes at
@@ -890,9 +890,9 @@ abstract class NativeTypedArrayOfDouble
 
   int get length => JS('JSUInt32', '#.length', this);
 
-  num operator[](int index) {
+  double operator[](int index) {
     _checkIndex(index, length);
-    return JS('num', '#[#]', this, index);
+    return JS('double', '#[#]', this, index);
   }
 
   void operator[]=(int index, num value) {

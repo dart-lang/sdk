@@ -18,7 +18,7 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
   }
   void operator []=(K key, V val) => _throwUnmodifiable();
   V putIfAbsent(K key, V ifAbsent()) => _throwUnmodifiable();
-  V remove(K key) => _throwUnmodifiable();
+  V remove(Object key) => _throwUnmodifiable();
   void clear() => _throwUnmodifiable();
   void addAll(Map<K, V> other) => _throwUnmodifiable();
 }
@@ -36,7 +36,7 @@ class ConstantStringMap<K, V> extends ConstantMap<K, V>
   final _jsObject;
   final List<K> _keys;
 
-  bool containsValue(V needle) {
+  bool containsValue(Object needle) {
     return values.any((V value) => value == needle);
   }
 
@@ -116,10 +116,10 @@ class GeneralConstantMap<K, V> extends ConstantMap<K, V> {
       Map backingMap = new LinkedHashMap<K, V>();
       JS('', r'this.$map = #', fillLiteralMap(_jsData, backingMap));
     }
-    return JS('Map', r'this.$map');
+    return JS('Map<K, V>', r'this.$map');
   }
 
-  bool containsValue(V needle) {
+  bool containsValue(Object needle) {
     return _getMap().containsValue(needle);
   }
 

@@ -248,7 +248,7 @@ class ListMapView<E> implements Map<int, E> {
 
   ListMapView(this._values);
 
-  E operator[] (int key) => containsKey(key) ? _values[key] : null;
+  E operator[] (Object key) => containsKey(key) ? _values[key] : null;
   int get length => _values.length;
 
   Iterable<E> get values => new SubListIterable<E>(_values, 0, null);
@@ -257,7 +257,7 @@ class ListMapView<E> implements Map<int, E> {
   bool get isEmpty => _values.isEmpty;
   bool get isNotEmpty => _values.isNotEmpty;
   bool containsValue(Object value) => _values.contains(value);
-  bool containsKey(int key) => key is int && key >= 0 && key < length;
+  bool containsKey(Object key) => key is int && key >= 0 && key < length;
 
   void forEach(void f(int key, E value)) {
     int length = _values.length;
@@ -280,7 +280,7 @@ class ListMapView<E> implements Map<int, E> {
   }
 
   /** This operation is not supported by an unmodifiable map. */
-  E remove(int key) {
+  E remove(Object key) {
     throw new UnsupportedError("Cannot modify an unmodifiable map");
   }
 

@@ -100,7 +100,7 @@ abstract class _ForwardingStream<S, T> extends Stream<T> {
   // Override the following methods in subclasses to change the behavior.
 
   void _handleData(S data, _EventSink<T> sink) {
-    var outputData = data;
+    dynamic outputData = data;
     sink._add(outputData);
   }
 

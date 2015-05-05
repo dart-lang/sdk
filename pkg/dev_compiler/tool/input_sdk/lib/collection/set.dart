@@ -33,7 +33,7 @@ abstract class SetMixin<E> implements Set<E> {
 
   bool contains(Object element);
 
-  E lookup(E element);
+  E lookup(Object element);
 
   bool remove(Object element);
 

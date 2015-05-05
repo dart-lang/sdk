@@ -34,7 +34,7 @@ class _SinkTransformerStreamSubscription<S, T>
   StreamSubscription<S> _subscription;
 
   _SinkTransformerStreamSubscription(Stream<S> source,
-                                     _SinkMapper mapper,
+                                     _SinkMapper<S, T> mapper,
                                      void onData(T data),
                                      Function onError,
                                      void onDone(),

@@ -41,12 +41,12 @@ assert (_isCanceled); _PendingEvents events = _pending;
  return events;
 }
  void onData(void handleData(T event)) {
-if (handleData == null) handleData = DEVC$RT.cast(_nullDataHandler, __CastType51, DEVC$RT.type((__CastType49<T> _) {
+if (handleData == null) handleData = DEVC$RT.cast(_nullDataHandler, __CastType52, DEVC$RT.type((__CastType50<T> _) {
 }
-), "CompositeCast", """line 153, column 42 of dart:async/stream_impl.dart: """, _nullDataHandler is __CastType49<T>, false);
- _onData = ((__x53) => DEVC$RT.cast(__x53, ZoneUnaryCallback, DEVC$RT.type((_DataHandler<T> _) {
+), "CompositeCast", """line 153, column 42 of dart:async/stream_impl.dart: """, _nullDataHandler is __CastType50<T>, false);
+ _onData = ((__x54) => DEVC$RT.cast(__x54, ZoneUnaryCallback, DEVC$RT.type((_DataHandler<T> _) {
 }
-), "CompositeCast", """line 154, column 15 of dart:async/stream_impl.dart: """, __x53 is _DataHandler<T>, false))(_zone.registerUnaryCallback(handleData));
+), "CompositeCast", """line 154, column 15 of dart:async/stream_impl.dart: """, __x54 is _DataHandler<T>, false))(_zone.registerUnaryCallback(handleData));
 }
  void onError(Function handleError) {
 if (handleError == null) handleError = _nullErrorHandler;
@@ -172,15 +172,15 @@ assert (!_isCanceled); assert (!_isPaused); assert (!_inCallback); bool wasInput
  _state &= ~_STATE_IN_CALLBACK;
  _checkState(wasInputPaused);
 }
- void _sendError(var error, StackTrace stackTrace) {
+ void _sendError(Object error, StackTrace stackTrace) {
 assert (!_isCanceled); assert (!_isPaused); assert (!_inCallback); bool wasInputPaused = _isInputPaused;
  void sendError() {
 if (_isCanceled && !_waitsForCancel) return; _state |= _STATE_IN_CALLBACK;
  if (_onError is ZoneBinaryCallback) {
-  _zone.runBinaryGuarded(DEVC$RT.cast(_onError, Function, __CastType54, "ImplicitCast", """line 358, column 32 of dart:async/stream_impl.dart: """, _onError is __CastType54, true), error, stackTrace);
+  _zone.runBinaryGuarded(DEVC$RT.cast(_onError, Function, __CastType55, "ImplicitCast", """line 358, column 32 of dart:async/stream_impl.dart: """, _onError is __CastType55, true), error, stackTrace);
   }
  else {
-  _zone.runUnaryGuarded(DEVC$RT.cast(_onError, Function, __CastType57, "ImplicitCast", """line 360, column 31 of dart:async/stream_impl.dart: """, _onError is __CastType57, true), error);
+  _zone.runUnaryGuarded(DEVC$RT.cast(_onError, Function, __CastType58, "ImplicitCast", """line 360, column 31 of dart:async/stream_impl.dart: """, _onError is __CastType58, true), error);
   }
  _state &= ~_STATE_IN_CALLBACK;
 }
@@ -261,7 +261,7 @@ cancelOnError = identical(true, cancelOnError);
 }
 ), "CompositeCast", """line 476, column 12 of dart:async/stream_impl.dart: """, subscription is StreamSubscription<T>, false);
 }
- _BufferingStreamSubscription<T> _createSubscription(void onData(T data), Function onError, void onDone(), bool cancelOnError) {
+ StreamSubscription<T> _createSubscription(void onData(T data), Function onError, void onDone(), bool cancelOnError) {
 return new _BufferingStreamSubscription<T>(onData, onError, onDone, cancelOnError);
 }
  void _onListen(StreamSubscription subscription) {
@@ -271,10 +271,14 @@ return new _BufferingStreamSubscription<T>(onData, onError, onDone, cancelOnErro
  class _GeneratedStreamImpl<T> extends _StreamImpl<T> {final _EventGenerator _pending;
  bool _isUsed = false;
  _GeneratedStreamImpl(this._pending);
- StreamSubscription _createSubscription(void onData(T data), Function onError, void onDone(), bool cancelOnError) {
+ StreamSubscription<T> _createSubscription(void onData(T data), Function onError, void onDone(), bool cancelOnError) {
 if (_isUsed) throw new StateError("Stream has already been listened to.");
  _isUsed = true;
- return new _BufferingStreamSubscription(onData, onError, onDone, cancelOnError).._setPendingEvents(_pending());
+ return ((__x60) => DEVC$RT.cast(__x60, DEVC$RT.type((_BufferingStreamSubscription<dynamic> _) {
+}
+), DEVC$RT.type((StreamSubscription<T> _) {
+}
+), "CompositeCast", """line 515, column 12 of dart:async/stream_impl.dart: """, __x60 is StreamSubscription<T>, false))(new _BufferingStreamSubscription(onData, onError, onDone, cancelOnError).._setPendingEvents(_pending()));
 }
 }
  class _IterablePendingEvents<T> extends _PendingEvents {Iterator<T> _iterator;
@@ -314,10 +318,10 @@ Zone.current.handleUncaughtError(error, stackTrace);
 }
  void _nullDoneHandler() {
 }
- abstract class _DelayedEvent {_DelayedEvent next;
- void perform(_EventDispatch dispatch);
+ abstract class _DelayedEvent<T> {_DelayedEvent next;
+ void perform(_EventDispatch<T> dispatch);
 }
- class _DelayedData<T> extends _DelayedEvent {final T value;
+ class _DelayedData<T> extends _DelayedEvent<T> {final T value;
  _DelayedData(this.value);
  void perform(_EventDispatch<T> dispatch) {
 dispatch._sendData(value);
@@ -460,7 +464,7 @@ _state &= ~_SCHEDULED;
  final Zone _zone;
  _AsBroadcastStreamController<T> _controller;
  StreamSubscription<T> _subscription;
- _AsBroadcastStream(this._source, void onListenHandler(StreamSubscription subscription), void onCancelHandler(StreamSubscription subscription)) : _onListenHandler = ((__x59) => DEVC$RT.cast(__x59, ZoneUnaryCallback, _broadcastCallback, "CompositeCast", """line 813, column 28 of dart:async/stream_impl.dart: """, __x59 is _broadcastCallback, false))(Zone.current.registerUnaryCallback(onListenHandler)), _onCancelHandler = ((__x60) => DEVC$RT.cast(__x60, ZoneUnaryCallback, _broadcastCallback, "CompositeCast", """line 814, column 28 of dart:async/stream_impl.dart: """, __x60 is _broadcastCallback, false))(Zone.current.registerUnaryCallback(onCancelHandler)), _zone = Zone.current {
+ _AsBroadcastStream(this._source, void onListenHandler(StreamSubscription subscription), void onCancelHandler(StreamSubscription subscription)) : _onListenHandler = ((__x61) => DEVC$RT.cast(__x61, ZoneUnaryCallback, _broadcastCallback, "CompositeCast", """line 813, column 28 of dart:async/stream_impl.dart: """, __x61 is _broadcastCallback, false))(Zone.current.registerUnaryCallback(onListenHandler)), _onCancelHandler = ((__x62) => DEVC$RT.cast(__x62, ZoneUnaryCallback, _broadcastCallback, "CompositeCast", """line 814, column 28 of dart:async/stream_impl.dart: """, __x62 is _broadcastCallback, false))(Zone.current.registerUnaryCallback(onCancelHandler)), _zone = Zone.current {
 _controller = new _AsBroadcastStreamController<T>(_onListen, _onCancel);
 }
  bool get isBroadcast => true;
@@ -515,7 +519,7 @@ if (_subscription == null) return false;
  void onData(void handleData(T data)) {
 throw new UnsupportedError("Cannot change handlers of asBroadcastStream source subscription.");
 }
- void onError(void handleError(Object data)) {
+ void onError(Function handleError) {
 throw new UnsupportedError("Cannot change handlers of asBroadcastStream source subscription.");
 }
  void onDone(void handleDone()) {
@@ -640,7 +644,7 @@ _Future<bool> hasNext = DEVC$RT.cast(_futureOrPrefetch, dynamic, DEVC$RT.type((_
  _state = _STATE_EXTRA_DONE;
 }
 }
- typedef void __CastType49<T>(T __u50);
- typedef void __CastType51(dynamic __u52);
- typedef dynamic __CastType54(dynamic __u55, dynamic __u56);
- typedef dynamic __CastType57(dynamic __u58);
+ typedef void __CastType50<T>(T __u51);
+ typedef void __CastType52(dynamic __u53);
+ typedef dynamic __CastType55(dynamic __u56, dynamic __u57);
+ typedef dynamic __CastType58(dynamic __u59);

@@ -343,7 +343,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
     _checkState(wasInputPaused);
   }
 
-  void _sendError(var error, StackTrace stackTrace) {
+  void _sendError(Object error, StackTrace stackTrace) {
     assert(!_isCanceled);
     assert(!_isPaused);
     assert(!_inCallback);
@@ -478,7 +478,7 @@ abstract class _StreamImpl<T> extends Stream<T> {
 
   // -------------------------------------------------------------------
   /** Create a subscription object. Called by [subcribe]. */
-  _BufferingStreamSubscription<T> _createSubscription(
+  StreamSubscription<T> _createSubscription(
       void onData(T data),
       Function onError,
       void onDone(),
@@ -505,7 +505,7 @@ class _GeneratedStreamImpl<T> extends _StreamImpl<T> {
    */
   _GeneratedStreamImpl(this._pending);
 
-  StreamSubscription _createSubscription(
+  StreamSubscription<T> _createSubscription(
       void onData(T data),
       Function onError,
       void onDone(),
@@ -580,15 +580,15 @@ void _nullDoneHandler() {}
 
 
 /** A delayed event on a buffering stream subscription. */
-abstract class _DelayedEvent {
+abstract class _DelayedEvent<T> {
   /** Added as a linked list on the [StreamController]. */
   _DelayedEvent next;
   /** Execute the delayed event on the [StreamController]. */
-  void perform(_EventDispatch dispatch);
+  void perform(_EventDispatch<T> dispatch);
 }
 
 /** A delayed data event. */
-class _DelayedData<T> extends _DelayedEvent {
+class _DelayedData<T> extends _DelayedEvent<T> {
   final T value;
   _DelayedData(this.value);
   void perform(_EventDispatch<T> dispatch) {
@@ -894,7 +894,7 @@ class _BroadcastSubscriptionWrapper<T> implements StreamSubscription<T> {
         "Cannot change handlers of asBroadcastStream source subscription.");
   }
 
-  void onError(void handleError(Object data)) {
+  void onError(Function handleError) {
     throw new UnsupportedError(
         "Cannot change handlers of asBroadcastStream source subscription.");
   }

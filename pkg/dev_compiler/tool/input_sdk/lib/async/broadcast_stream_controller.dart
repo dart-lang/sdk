@@ -37,7 +37,7 @@ class _BroadcastSubscription<T> extends _ControllerSubscription<T>
     _next = _previous = this;
   }
 
-  _BroadcastStreamController get _controller => super._controller;
+  _BroadcastStreamController<T> get _controller => super._controller;
 
   bool _expectsEvent(int eventId) =>
       (_eventState & _STATE_EVENT_ID) == eventId;
@@ -201,7 +201,7 @@ abstract class _BroadcastStreamController<T>
     return subscription;
   }
 
-  Future _recordCancel(_BroadcastSubscription<T> subscription) {
+  Future _recordCancel(StreamSubscription<T> subscription) {
     // If already removed by the stream, don't remove it again.
     if (identical(subscription._next, subscription)) return null;
     assert(!identical(subscription._next, subscription));

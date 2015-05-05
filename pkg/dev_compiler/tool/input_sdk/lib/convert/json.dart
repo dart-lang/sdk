@@ -871,9 +871,10 @@ class _JsonUtf8Stringifier extends _JsonStringifier {
   int index = 0;
 
   _JsonUtf8Stringifier(toEncodable, int bufferSize, this.addChunk)
-      : super(toEncodable),
-        this.bufferSize = bufferSize,
-        buffer = new Uint8List(bufferSize);
+      : this.bufferSize = bufferSize,
+        buffer = new Uint8List(bufferSize),
+        super(toEncodable)
+        ;
 
   /**
    * Convert [object] to UTF-8 encoded JSON.

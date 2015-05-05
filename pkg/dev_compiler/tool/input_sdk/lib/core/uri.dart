@@ -944,9 +944,10 @@ class Uri {
                         : path;
       _pathSegments = new UnmodifiableListView(
         pathToSplit == "" ? const<String>[]
-                          : pathToSplit.split("/")
-                                       .map(Uri.decodeComponent)
-                                       .toList(growable: false));
+                          : new List<String>.from(
+                              pathToSplit.split("/")
+                                         .map(Uri.decodeComponent),
+                              growable: false));
     }
     return _pathSegments;
   }

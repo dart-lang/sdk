@@ -1,7 +1,7 @@
 part of dart.collection;
  abstract class SetMixin<E> implements Set<E> {bool add(E element);
  bool contains(Object element);
- E lookup(E element);
+ E lookup(Object element);
  bool remove(Object element);
  Iterator<E> get iterator;
  Set<E> toSet();

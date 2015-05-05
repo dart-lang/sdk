@@ -222,7 +222,7 @@ class Isolate {
                                                  Uri packageRoot }) {
     if (packageRoot != null) throw new UnimplementedError("packageRoot");
     try {
-      if (args is List<String>) {
+      if (args is List) {
         for (int i = 0; i < args.length; i++) {
           if (args[i] is! String) {
             throw new ArgumentError("Args must be a list of Strings $args");

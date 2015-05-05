@@ -27,6 +27,10 @@ _symbolMapToStringMap(Map<Symbol, dynamic> map) {
   return result;
 }
 
+class SupportJsExtensionMethods {
+  const SupportJsExtensionMethods();
+}
+
 @patch
 int identityHashCode(Object object) => objectHashCode(object);
 

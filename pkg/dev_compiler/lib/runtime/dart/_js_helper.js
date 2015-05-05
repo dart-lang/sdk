@@ -51,7 +51,6 @@ var _js_helper;
         return dart.as(this[_throwUnmodifiable](), V);
       }
       remove(key) {
-        dart.as(key, K);
         return dart.as(this[_throwUnmodifiable](), V);
       }
       clear() {
@@ -79,7 +78,6 @@ var _js_helper;
         super._();
       }
       containsValue(needle) {
-        dart.as(needle, V);
         return this.values[core.$any](value => dart.equals(value, needle));
       }
       containsKey(key) {
@@ -169,10 +167,9 @@ var _js_helper;
           let backingMap = new (collection.LinkedHashMap$(K, V))();
           this.$map = fillLiteralMap(this[_jsData], backingMap);
         }
-        return this.$map;
+        return dart.as(this.$map, core.Map$(K, V));
       }
       containsValue(needle) {
-        dart.as(needle, V);
         return this[_getMap]().containsValue(needle);
       }
       containsKey(key) {

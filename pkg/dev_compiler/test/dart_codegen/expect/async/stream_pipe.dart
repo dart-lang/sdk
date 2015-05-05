@@ -55,8 +55,8 @@ part of dart.async;
   return new _ForwardingStreamSubscription<S, T>(this, onData, onError, onDone, cancelOnError);
   }
  void _handleData(S data, _EventSink<T> sink) {
-  var outputData = data;
-   sink._add(outputData);
+  dynamic outputData = data;
+   sink._add(DEVC$RT.cast(outputData, dynamic, T, "CompositeCast", """line 104, column 15 of dart:async/stream_pipe.dart: """, outputData is T, false));
   }
  void _handleError(error, StackTrace stackTrace, _EventSink<T> sink) {
   sink._addError(error, stackTrace);
@@ -130,7 +130,7 @@ sink._add(inputEvent);
  void _handleData(S inputEvent, _EventSink<T> sink) {
 T outputEvent;
  try {
-outputEvent = ((__x61) => DEVC$RT.cast(__x61, dynamic, T, "CompositeCast", """line 235, column 21 of dart:async/stream_pipe.dart: """, __x61 is T, false))(_transform(inputEvent));
+outputEvent = ((__x63) => DEVC$RT.cast(__x63, dynamic, T, "CompositeCast", """line 235, column 21 of dart:async/stream_pipe.dart: """, __x63 is T, false))(_transform(inputEvent));
 }
  catch (e, s) {
 _addErrorWithReplacement(sink, e, s);

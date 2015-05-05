@@ -19,7 +19,7 @@ class LineSplitter extends Converter<String, List<String>> {
     return lines;
   }
 
-  StringConversionSink startChunkedConversion(Sink<String> sink) {
+  StringConversionSink startChunkedConversion(Sink<dynamic> sink) {
     if (sink is! StringConversionSink) {
       sink = new StringConversionSink.from(sink);
     }

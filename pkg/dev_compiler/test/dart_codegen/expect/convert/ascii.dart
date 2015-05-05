@@ -49,11 +49,7 @@ if (sink is! ByteConversionSink) {
   }
 ), ByteConversionSink, "ImplicitCast", """line 109, column 55 of dart:convert/ascii.dart: """, sink is ByteConversionSink, true));
 }
- Stream<List<int>> bind(Stream<String> stream) => ((__x0) => DEVC$RT.cast(__x0, DEVC$RT.type((DDC$async$.Stream<dynamic> _) {
-}
-), DEVC$RT.type((DDC$async$.Stream<List<int>> _) {
-}
-), "CompositeCast", """line 113, column 52 of dart:convert/ascii.dart: """, __x0 is DDC$async$.Stream<List<int>>, false))(super.bind(stream));
+ Stream<List<int>> bind(Stream<String> stream) => super.bind(stream);
 }
  class AsciiEncoder extends _UnicodeSubsetEncoder {const AsciiEncoder() : super(_ASCII_MASK);
 }
@@ -106,11 +102,7 @@ int value = bytes[i];
  return buffer.toString();
 }
  ByteConversionSink startChunkedConversion(Sink<String> sink);
- Stream<String> bind(Stream<List<int>> stream) => ((__x1) => DEVC$RT.cast(__x1, DEVC$RT.type((DDC$async$.Stream<dynamic> _) {
-}
-), DEVC$RT.type((DDC$async$.Stream<String> _) {
-}
-), "CompositeCast", """line 221, column 52 of dart:convert/ascii.dart: """, __x1 is DDC$async$.Stream<String>, false))(super.bind(stream));
+ Stream<String> bind(Stream<List<int>> stream) => super.bind(stream);
 }
  class AsciiDecoder extends _UnicodeSubsetDecoder {const AsciiDecoder({
 bool allowInvalid : false}

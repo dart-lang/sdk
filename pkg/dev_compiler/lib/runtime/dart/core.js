@@ -1230,7 +1230,6 @@ var core;
   let $single = dart.JsSymbol('$single');
   let $any = dart.JsSymbol('$any');
   let $every = dart.JsSymbol('$every');
-  let $sort = dart.JsSymbol('$sort');
   let $contains = dart.JsSymbol('$contains');
   let $isEmpty = dart.JsSymbol('$isEmpty');
   let $isNotEmpty = dart.JsSymbol('$isNotEmpty');
@@ -1240,6 +1239,7 @@ var core;
   let $hashCode = dart.JsSymbol('$hashCode');
   let $addAll = dart.JsSymbol('$addAll');
   let $reversed = dart.JsSymbol('$reversed');
+  let $sort = dart.JsSymbol('$sort');
   let $shuffle = dart.JsSymbol('$shuffle');
   let $indexOf = dart.JsSymbol('$indexOf');
   let $lastIndexOf = dart.JsSymbol('$lastIndexOf');
@@ -1409,13 +1409,6 @@ var core;
         dart.as(f, dart.functionType(bool, [E]));
         return _internal.IterableMixinWorkaround.every(this, f);
       }
-      [$sort](compare) {
-        if (compare === void 0)
-          compare = null;
-        dart.as(compare, dart.functionType(int, [E, E]));
-        this[$checkMutable]('sort');
-        _internal.IterableMixinWorkaround.sortList(this, compare);
-      }
       [$contains](other) {
         for (let i = 0; dart.notNull(i) < dart.notNull(this[$length]); i = dart.notNull(i) + 1) {
           if (dart.equals(this[$get](i), other))
@@ -1494,6 +1487,7 @@ var core;
         if (compare === void 0)
           compare = null;
         dart.as(compare, dart.functionType(int, [E, E]));
+        this[$checkMutable]('sort');
         _internal.IterableMixinWorkaround.sortList(this, compare);
       }
       [$shuffle](random) {
@@ -2510,7 +2504,7 @@ var core;
     get pathSegments() {
       if (this[_pathSegments] == null) {
         let pathToSplit = !dart.notNull(this.path.isEmpty) && this.path.codeUnitAt(0) == Uri._SLASH ? this.path.substring(1) : this.path;
-        this[_pathSegments] = new collection.UnmodifiableListView(pathToSplit == "" ? dart.const(dart.setType([], List$(String))) : pathToSplit.split("/")[$map](dart.bind(Uri, 'decodeComponent'))[$toList]({growable: false}));
+        this[_pathSegments] = new (collection.UnmodifiableListView$(String))(pathToSplit == "" ? dart.const(dart.setType([], List$(String))) : new List$(String).from(pathToSplit.split("/")[$map](dart.bind(Uri, 'decodeComponent')), {growable: false}));
       }
       return this[_pathSegments];
     }
@@ -3354,6 +3348,10 @@ var core;
     });
     return result;
   }
+  class SupportJsExtensionMethods extends Object {
+    SupportJsExtensionMethods() {
+    }
+  }
   class _ListConstructorSentinel extends Object {
     _ListConstructorSentinel() {
     }
@@ -3437,7 +3435,6 @@ var core;
   exports.$single = $single;
   exports.$any = $any;
   exports.$every = $every;
-  exports.$sort = $sort;
   exports.$contains = $contains;
   exports.$isEmpty = $isEmpty;
   exports.$isNotEmpty = $isNotEmpty;
@@ -3447,6 +3444,7 @@ var core;
   exports.$hashCode = $hashCode;
   exports.$addAll = $addAll;
   exports.$reversed = $reversed;
+  exports.$sort = $sort;
   exports.$shuffle = $shuffle;
   exports.$indexOf = $indexOf;
   exports.$lastIndexOf = $lastIndexOf;
@@ -3487,4 +3485,5 @@ var core;
   exports.Symbol = Symbol;
   exports.Type = Type;
   exports.Uri = Uri;
+  exports.SupportJsExtensionMethods = SupportJsExtensionMethods;
 })(core || (core = {}));

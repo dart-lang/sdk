@@ -109,14 +109,14 @@ RangeError.checkValidIndex(index, this);
 }
  class ListMapView<E> implements Map<int, E> {List<E> _values;
  ListMapView(this._values);
- E operator [](int key) => containsKey(key) ? _values[key] : null;
+ E operator [](Object key) => containsKey(key) ? _values[key] : null;
  int get length => _values.length;
  Iterable<E> get values => new SubListIterable<E>(_values, 0, null);
  Iterable<int> get keys => new _ListIndicesIterable(_values);
  bool get isEmpty => _values.isEmpty;
  bool get isNotEmpty => _values.isNotEmpty;
  bool containsValue(Object value) => _values.contains(value);
- bool containsKey(int key) => key is int && key >= 0 && key < length;
+ bool containsKey(Object key) => key is int && key >= 0 && key < length;
  void forEach(void f(int key, E value)) {
 int length = _values.length;
  for (int i = 0; i < length; i++) {
@@ -132,7 +132,7 @@ throw new UnsupportedError("Cannot modify an unmodifiable map");
  E putIfAbsent(int key, E ifAbsent()) {
 throw new UnsupportedError("Cannot modify an unmodifiable map");
 }
- E remove(int key) {
+ E remove(Object key) {
 throw new UnsupportedError("Cannot modify an unmodifiable map");
 }
  void clear() {

@@ -97,10 +97,6 @@ part of dart.core;
   }
  bool any(bool f(E element)) => IterableMixinWorkaround.any(this, f);
  bool every(bool f(E element)) => IterableMixinWorkaround.every(this, f);
- void sort([int compare(E a, E b)]) {
-  checkMutable('sort');
-   IterableMixinWorkaround.sortList(this, compare);
-  }
  bool contains(Object other) {
   for (int i = 0; i < length; i++) {
     if (this[i] == other) return true;
@@ -122,11 +118,11 @@ part of dart.core;
   }
  Set<E> toSet() => new Set<E>.from(this);
  Iterator<E> get iterator => new ListIterator<E>(this);
- int get hashCode => ((__x14) => DEVC$RT.cast(__x14, dynamic, int, "DynamicCast", """line 262, column 23 of dart:core/list.dart: """, __x14 is int, true))(Primitives.objectHashCode(this));
+ int get hashCode => ((__x14) => DEVC$RT.cast(__x14, dynamic, int, "DynamicCast", """line 257, column 23 of dart:core/list.dart: """, __x14 is int, true))(Primitives.objectHashCode(this));
  E operator [](int index) {
   if (index is! int) throw new ArgumentError(index);
    if (index >= length || index < 0) throw new RangeError.value(index);
-   return ((__x15) => DEVC$RT.cast(__x15, dynamic, E, "CompositeCast", """line 273, column 12 of dart:core/list.dart: """, __x15 is E, false))(JS('var', '#[#]', this, index));
+   return ((__x15) => DEVC$RT.cast(__x15, dynamic, E, "CompositeCast", """line 268, column 12 of dart:core/list.dart: """, __x15 is E, false))(JS('var', '#[#]', this, index));
   }
  void operator []=(int index, E value) {
   checkMutable('indexed set');
@@ -134,7 +130,7 @@ part of dart.core;
    if (index >= length || index < 0) throw new RangeError.value(index);
    JS('void', r'#[#] = #', this, index, value);
   }
- int get length => ((__x16) => DEVC$RT.cast(__x16, dynamic, int, "DynamicCast", """line 292, column 21 of dart:core/list.dart: """, __x16 is int, true))(JS('JSUInt32', r'#.length', this));
+ int get length => ((__x16) => DEVC$RT.cast(__x16, dynamic, int, "DynamicCast", """line 287, column 21 of dart:core/list.dart: """, __x16 is int, true))(JS('JSUInt32', r'#.length', this));
  void set length(int newLength) {
   if (newLength is! int) throw new ArgumentError(newLength);
    if (newLength < 0) throw new RangeError.value(newLength);
@@ -152,7 +148,8 @@ part of dart.core;
   }
  Iterable<E> get reversed => new IterableMixinWorkaround<E>().reversedList(this);
  void sort([int compare(E a, E b)]) {
-  IterableMixinWorkaround.sortList(this, compare);
+  checkMutable('sort');
+   IterableMixinWorkaround.sortList(this, compare);
   }
  void shuffle([Random random]) {
   IterableMixinWorkaround.shuffleList(this, random);
@@ -198,12 +195,12 @@ part of dart.core;
     throw new RangeError.value(index);
     }
    checkGrowable('removeAt');
-   return ((__x17) => DEVC$RT.cast(__x17, dynamic, E, "CompositeCast", """line 524, column 12 of dart:core/list.dart: """, __x17 is E, false))(JS('var', r'#.splice(#, 1)[0]', this, index));
+   return ((__x17) => DEVC$RT.cast(__x17, dynamic, E, "CompositeCast", """line 519, column 12 of dart:core/list.dart: """, __x17 is E, false))(JS('var', r'#.splice(#, 1)[0]', this, index));
   }
  E removeLast() {
   checkGrowable('removeLast');
    if (length == 0) throw new RangeError.value(-1);
-   return ((__x18) => DEVC$RT.cast(__x18, dynamic, E, "CompositeCast", """line 535, column 12 of dart:core/list.dart: """, __x18 is E, false))(JS('var', r'#.pop()', this));
+   return ((__x18) => DEVC$RT.cast(__x18, dynamic, E, "CompositeCast", """line 530, column 12 of dart:core/list.dart: """, __x18 is E, false))(JS('var', r'#.pop()', this));
   }
  void removeWhere(bool test(E element)) {
   IterableMixinWorkaround.removeWhereList(this, test);

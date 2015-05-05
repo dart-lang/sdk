@@ -740,9 +740,9 @@ class EmptyIterable<E> extends IterableBase<E> implements EfficientLength {
 
   Iterable<E> takeWhile(bool test(E element)) => this;
 
-  List toList({ bool growable: true }) => growable ? <E>[] : new List<E>(0);
+  List<E> toList({ bool growable: true }) => growable ? <E>[] : new List<E>(0);
 
-  Set toSet() => new Set<E>();
+  Set<E> toSet() => new Set<E>();
 }
 
 /** The always empty iterator. */

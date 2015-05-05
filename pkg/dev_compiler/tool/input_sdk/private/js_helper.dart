@@ -685,7 +685,7 @@ class Primitives {
   static const int DOLLAR_CHAR_VALUE = 36;
 
   // TODO(jmesserly): remove this method.
-  static constructorNameFallback = JS('Function', r'''
+  static var constructorNameFallback = JS('Function', r'''
   function getTagFallback(o) {
     var constructor = o.constructor;
     if (typeof constructor == "function") {

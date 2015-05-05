@@ -1,5 +1,5 @@
 part of dart.async;
- abstract class Future<T> {static final _Future _nullFuture = new Future.value(null);
+ abstract class Future<T> {static final _Future _nullFuture = new _Future.immediate(null);
  factory Future(computation()) {
   _Future result = new _Future<T>();
    Timer.run(() {

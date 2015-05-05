@@ -110,7 +110,7 @@ class Symbol implements core.Symbol {
   Symbol.validated(String name)
       : this._name = validatePublicSymbol(name);
 
-  bool operator ==(other) => other is Symbol && _name == other._name;
+  bool operator ==(Object other) => other is Symbol && _name == other._name;
 
   int get hashCode {
     const arbitraryPrime = 664597;

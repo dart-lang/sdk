@@ -283,7 +283,7 @@ findInterceptorForType(Type type) {
 abstract class Interceptor {
   const Interceptor();
 
-  bool operator ==(other) => identical(this, other);
+  bool operator ==(Object other) => identical(this, other);
 
   int get hashCode => Primitives.objectHashCode(this);
 

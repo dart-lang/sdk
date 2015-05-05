@@ -262,11 +262,6 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
 
   bool every(bool f(E element)) => IterableMixinWorkaround.every(this, f);
 
-  void sort([int compare(E a, E b)]) {
-    checkMutable('sort');
-    IterableMixinWorkaround.sortList(this, compare);
-  }
-
   bool contains(Object other) {
     for (int i = 0; i < length; i++) {
       if (this[i] == other) return true;
@@ -386,7 +381,7 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
          nums.join(', '); // '-11, 2, 13'
    */
   void sort([int compare(E a, E b)]) {
-    // XXX checkMutable('sort');
+    checkMutable('sort');
     IterableMixinWorkaround.sortList(this, compare);
   }
 

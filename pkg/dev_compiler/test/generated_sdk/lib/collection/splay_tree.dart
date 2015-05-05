@@ -233,10 +233,6 @@ abstract class _SplayTree<K> {
   }
 }
 
-class _TypeTest<T> {
-  bool test(v) => v is T;
-}
-
 /**
  * A [Map] of objects that can be ordered relative to each other.
  *
@@ -596,7 +592,7 @@ abstract class _SplayTreeIterator<T> implements Iterator<T> {
     return true;
   }
 
-  T _getValue(_SplayTreeNode node);
+  T _getValue(_SplayTreeMapNode node);
 }
 
 class _SplayTreeKeyIterable<K> extends IterableBase<K>
@@ -795,7 +791,7 @@ class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>, SetMixin<E> {
     return _root.key;
   }
 
-  Set<E> intersection(Set<E> other) {
+  Set<E> intersection(Set<Object> other) {
     Set<E> result = new SplayTreeSet<E>(_comparator, _validKey);
     for (E element in this) {
       if (other.contains(element)) result.add(element);
@@ -803,7 +799,7 @@ class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>, SetMixin<E> {
     return result;
   }
 
-  Set<E> difference(Set<E> other) {
+  Set<E> difference(Set<Object> other) {
     Set<E> result = new SplayTreeSet<E>(_comparator, _validKey);
     for (E element in this) {
       if (!other.contains(element)) result.add(element);

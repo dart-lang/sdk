@@ -13,7 +13,7 @@ part of dart.async;
 }
  class _SinkTransformerStreamSubscription<S, T> extends _BufferingStreamSubscription<T> {EventSink _transformerSink;
  StreamSubscription<S> _subscription;
- _SinkTransformerStreamSubscription(Stream<S> source, _SinkMapper mapper, void onData(T data), Function onError, void onDone(), bool cancelOnError) : super(onData, onError, onDone, cancelOnError) {
+ _SinkTransformerStreamSubscription(Stream<S> source, _SinkMapper<S, T> mapper, void onData(T data), Function onError, void onDone(), bool cancelOnError) : super(onData, onError, onDone, cancelOnError) {
 _EventSinkWrapper<T> eventSink = new _EventSinkWrapper<T>(this);
  _transformerSink = mapper(eventSink);
  _subscription = source.listen(_handleData, onError: _handleError, onDone: _handleDone);
@@ -95,7 +95,7 @@ try {
 Function onError, void onDone(), bool cancelOnError}
 ) {
 cancelOnError = identical(true, cancelOnError);
- StreamSubscription<T> subscription = new _SinkTransformerStreamSubscription(_stream, DEVC$RT.cast(_sinkMapper, DEVC$RT.type((_SinkMapper<S, T> _) {
+ StreamSubscription<T> subscription = new _SinkTransformerStreamSubscription<dynamic, T>(_stream, DEVC$RT.cast(_sinkMapper, DEVC$RT.type((_SinkMapper<S, T> _) {
 }
 ), DEVC$RT.type((_SinkMapper<dynamic, dynamic> _) {
 }
@@ -117,17 +117,17 @@ cancelOnError = identical(true, cancelOnError);
 }
  class _StreamHandlerTransformer<S, T> extends _StreamSinkTransformer<S, T> {_StreamHandlerTransformer({
 void handleData(S data, EventSink<T> sink), void handleError(Object error, StackTrace stackTrace, EventSink<T> sink), void handleDone(EventSink<T> sink)}
-) : super(((__x64) => DEVC$RT.cast(__x64, DEVC$RT.type((__CastType62<T> _) {
+) : super(((__x66) => DEVC$RT.cast(__x66, DEVC$RT.type((__CastType64<T> _) {
 }
 ), DEVC$RT.type((_SinkMapper<S, T> _) {
 }
-), "InferableClosure", """line 233, column 15 of dart:async/stream_transformers.dart: """, __x64 is _SinkMapper<S, T>, false))((EventSink<T> outputSink) {
-if (handleData == null) handleData = DEVC$RT.cast(_defaultHandleData, __CastType68, DEVC$RT.type((__CastType65<S, T> _) {
+), "InferableClosure", """line 233, column 15 of dart:async/stream_transformers.dart: """, __x66 is _SinkMapper<S, T>, false))((EventSink<T> outputSink) {
+if (handleData == null) handleData = DEVC$RT.cast(_defaultHandleData, __CastType70, DEVC$RT.type((__CastType67<S, T> _) {
 }
-), "CompositeCast", """line 234, column 48 of dart:async/stream_transformers.dart: """, _defaultHandleData is __CastType65<S, T>, false);
- if (handleError == null) handleError = DEVC$RT.cast(_defaultHandleError, __CastType75, DEVC$RT.type((__CastType71<T> _) {
+), "CompositeCast", """line 234, column 48 of dart:async/stream_transformers.dart: """, _defaultHandleData is __CastType67<S, T>, false);
+ if (handleError == null) handleError = DEVC$RT.cast(_defaultHandleError, __CastType77, DEVC$RT.type((__CastType73<T> _) {
 }
-), "CompositeCast", """line 235, column 50 of dart:async/stream_transformers.dart: """, _defaultHandleError is __CastType71<T>, false);
+), "CompositeCast", """line 235, column 50 of dart:async/stream_transformers.dart: """, _defaultHandleError is __CastType73<T>, false);
  if (handleDone == null) handleDone = _defaultHandleDone;
  return new _HandlerEventSink<S, T>(handleData, handleError, handleDone, outputSink);
 }
@@ -164,8 +164,8 @@ cancelOnError = identical(true, cancelOnError);
  return result;
 }
 }
- typedef dynamic __CastType62<T>(EventSink<T> __u63);
- typedef void __CastType65<S, T>(S __u66, EventSink<T> __u67);
- typedef void __CastType68(dynamic __u69, EventSink<dynamic> __u70);
- typedef void __CastType71<T>(Object __u72, StackTrace __u73, EventSink<T> __u74);
- typedef void __CastType75(dynamic __u76, StackTrace __u77, EventSink<dynamic> __u78);
+ typedef dynamic __CastType64<T>(EventSink<T> __u65);
+ typedef void __CastType67<S, T>(S __u68, EventSink<T> __u69);
+ typedef void __CastType70(dynamic __u71, EventSink<dynamic> __u72);
+ typedef void __CastType73<T>(Object __u74, StackTrace __u75, EventSink<T> __u76);
+ typedef void __CastType77(dynamic __u78, StackTrace __u79, EventSink<dynamic> __u80);

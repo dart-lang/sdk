@@ -212,6 +212,9 @@ _symbolMapToStringMap(Map<Symbol, dynamic> map) {
   });
   return result;
 }
+class SupportJsExtensionMethods {
+  const SupportJsExtensionMethods();
+}
 class _ListConstructorSentinel {
   const _ListConstructorSentinel();
 }

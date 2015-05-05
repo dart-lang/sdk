@@ -167,7 +167,7 @@ class _JsonMap implements LinkedHashMap {
 
   _JsonMap(this._original);
 
-  operator[](key) {
+  operator[](Object key) {
     if (_isUpgraded) {
       return _upgradedMap[key];
     } else if (key is !String) {
@@ -217,7 +217,7 @@ class _JsonMap implements LinkedHashMap {
     });
   }
 
-  bool containsValue(value) {
+  bool containsValue(Object value) {
     if (_isUpgraded) return _upgradedMap.containsValue(value);
     List<String> keys = _computeKeys();
     for (int i = 0; i < keys.length; i++) {
@@ -227,7 +227,7 @@ class _JsonMap implements LinkedHashMap {
     return false;
   }
 
-  bool containsKey(key) {
+  bool containsKey(Object key) {
     if (_isUpgraded) return _upgradedMap.containsKey(key);
     if (key is !String) return false;
     return _hasProperty(_original, key);

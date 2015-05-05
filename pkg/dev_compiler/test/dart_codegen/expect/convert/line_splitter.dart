@@ -5,11 +5,15 @@ part of dart.convert;
    _LineSplitterSink._addSlice(data, 0, data.length, true, lines.add);
    return lines;
   }
- StringConversionSink startChunkedConversion(Sink<String> sink) {
+ StringConversionSink startChunkedConversion(Sink<dynamic> sink) {
   if (sink is! StringConversionSink) {
-    sink = new StringConversionSink.from(sink);
+    sink = new StringConversionSink.from(DEVC$RT.cast(sink, DEVC$RT.type((Sink<dynamic> _) {
+      }
+    ), DEVC$RT.type((Sink<String> _) {
+      }
+    ), "CompositeCast", """line 24, column 44 of dart:convert/line_splitter.dart: """, sink is Sink<String>, false));
     }
-   return new _LineSplitterSink(DEVC$RT.cast(sink, DEVC$RT.type((Sink<String> _) {
+   return new _LineSplitterSink(DEVC$RT.cast(sink, DEVC$RT.type((Sink<dynamic> _) {
     }
   ), StringConversionSink, "ImplicitCast", """line 26, column 34 of dart:convert/line_splitter.dart: """, sink is StringConversionSink, true));
   }

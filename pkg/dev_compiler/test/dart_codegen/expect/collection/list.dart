@@ -219,11 +219,7 @@ if (length == 0) {
  return result;
 }
  void sort([int compare(E a, E b)]) {
-if (compare == null) {
-  var defaultCompare = Comparable.compare;
-   compare = defaultCompare;
-  }
- Sort.sort(this, compare);
+Sort.sort(this, compare == null ? Comparable.compare : compare);
 }
  void shuffle([Random random]) {
 if (random == null) random = new Random();
@@ -277,7 +273,7 @@ RangeError.checkValidRange(start, end, this.length);
     }
   ), DEVC$RT.type((List<dynamic> _) {
     }
-  ), "ImplicitCast", """line 369, column 19 of dart:collection/list.dart: """, iterable is List<dynamic>, true);
+  ), "ImplicitCast", """line 365, column 19 of dart:collection/list.dart: """, iterable is List<dynamic>, true);
    otherStart = skipCount;
   }
  else {
@@ -289,12 +285,12 @@ RangeError.checkValidRange(start, end, this.length);
   }
  if (otherStart < start) {
   for (int i = length - 1; i >= 0; i--) {
-    this[start + i] = ((__x5) => DEVC$RT.cast(__x5, dynamic, E, "CompositeCast", """line 381, column 27 of dart:collection/list.dart: """, __x5 is E, false))(otherList[otherStart + i]);
+    this[start + i] = ((__x5) => DEVC$RT.cast(__x5, dynamic, E, "CompositeCast", """line 377, column 27 of dart:collection/list.dart: """, __x5 is E, false))(otherList[otherStart + i]);
     }
   }
  else {
   for (int i = 0; i < length; i++) {
-    this[start + i] = ((__x6) => DEVC$RT.cast(__x6, dynamic, E, "CompositeCast", """line 385, column 27 of dart:collection/list.dart: """, __x6 is E, false))(otherList[otherStart + i]);
+    this[start + i] = ((__x6) => DEVC$RT.cast(__x6, dynamic, E, "CompositeCast", """line 381, column 27 of dart:collection/list.dart: """, __x6 is E, false))(otherList[otherStart + i]);
     }
   }
 }

@@ -60,7 +60,7 @@ abstract class MapMixin<K, V> implements Map<K, V> {
     }
   }
 
-  bool containsValue(V value) {
+  bool containsValue(Object value) {
     for (K key in keys) {
       if (this[key] == value) return true;
     }

@@ -15,7 +15,7 @@ part of dart.core;
  bool containsAll(Iterable<Object> other);
  Set<E> intersection(Set<Object> other);
  Set<E> union(Set<E> other);
- Set<E> difference(Set<E> other);
+ Set<E> difference(Set<Object> other);
  void clear();
  Set<E> toSet();
 }

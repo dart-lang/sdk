@@ -11,16 +11,16 @@ part of dart.convert;
 }
  class _FusedCodec<S, M, T> extends Codec<S, T> {final Codec<S, M> _first;
  final Codec<M, T> _second;
- Converter<S, T> get encoder => ((__x2) => DEVC$RT.cast(__x2, DEVC$RT.type((Converter<S, dynamic> _) {
+ Converter<S, T> get encoder => ((__x0) => DEVC$RT.cast(__x0, DEVC$RT.type((Converter<S, dynamic> _) {
 }
 ), DEVC$RT.type((Converter<S, T> _) {
 }
-), "CompositeCast", """line 87, column 34 of dart:convert/codec.dart: """, __x2 is Converter<S, T>, false))(_first.encoder.fuse(_second.encoder));
- Converter<T, S> get decoder => ((__x3) => DEVC$RT.cast(__x3, DEVC$RT.type((Converter<T, dynamic> _) {
+), "CompositeCast", """line 87, column 34 of dart:convert/codec.dart: """, __x0 is Converter<S, T>, false))(_first.encoder.fuse(_second.encoder));
+ Converter<T, S> get decoder => ((__x1) => DEVC$RT.cast(__x1, DEVC$RT.type((Converter<T, dynamic> _) {
 }
 ), DEVC$RT.type((Converter<T, S> _) {
 }
-), "CompositeCast", """line 88, column 34 of dart:convert/codec.dart: """, __x3 is Converter<T, S>, false))(_second.decoder.fuse(_first.decoder));
+), "CompositeCast", """line 88, column 34 of dart:convert/codec.dart: """, __x1 is Converter<T, S>, false))(_second.decoder.fuse(_first.decoder));
  _FusedCodec(this._first, this._second);
 }
  class _InvertedCodec<T, S> extends Codec<T, S> {final Codec<S, T> _codec;

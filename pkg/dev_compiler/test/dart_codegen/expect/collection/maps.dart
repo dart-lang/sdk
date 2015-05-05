@@ -15,7 +15,7 @@ part of dart.collection;
     this[key] = other[key];
     }
   }
- bool containsValue(V value) {
+ bool containsValue(Object value) {
   for (K key in keys) {
     if (this[key] == value) return true;
     }

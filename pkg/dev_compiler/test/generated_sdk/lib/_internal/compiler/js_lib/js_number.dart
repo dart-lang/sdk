@@ -94,7 +94,7 @@ class JSNumber extends Interceptor implements num {
 
   double truncateToDouble() => this < 0 ? ceilToDouble() : floorToDouble();
 
-  num clamp(lowerLimit, upperLimit) {
+  num clamp(num lowerLimit, num upperLimit) {
     if (lowerLimit is! num) throw new ArgumentError(lowerLimit);
     if (upperLimit is! num) throw new ArgumentError(upperLimit);
     if (lowerLimit.compareTo(upperLimit) > 0) {
@@ -198,9 +198,9 @@ class JSNumber extends Interceptor implements num {
     return JS('num', '# - #', this, other);
   }
 
-  num operator /(num other) {
+  double operator /(num other) {
     if (other is !num) throw new ArgumentError(other);
-    return JS('num', '# / #', this, other);
+    return JS('double', '# / #', this, other);
   }
 
   num operator *(num other) {

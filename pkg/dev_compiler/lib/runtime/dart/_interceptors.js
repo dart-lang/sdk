@@ -144,13 +144,13 @@ var _interceptors;
         throw new core.ArgumentError(lowerLimit);
       if (!dart.is(upperLimit, core.num))
         throw new core.ArgumentError(upperLimit);
-      if (dart.dsend(dart.dsend(lowerLimit, 'compareTo', upperLimit), '>', 0)) {
+      if (dart.notNull(lowerLimit.compareTo(upperLimit)) > 0) {
         throw new core.ArgumentError(lowerLimit);
       }
-      if (dart.notNull(this.compareTo(dart.as(lowerLimit, core.num))) < 0)
-        return dart.as(lowerLimit, core.num);
-      if (dart.notNull(this.compareTo(dart.as(upperLimit, core.num))) > 0)
-        return dart.as(upperLimit, core.num);
+      if (dart.notNull(this.compareTo(lowerLimit)) < 0)
+        return lowerLimit;
+      if (dart.notNull(this.compareTo(upperLimit)) > 0)
+        return upperLimit;
       return this;
     }
     toDouble() {

@@ -32,7 +32,7 @@ var convert;
       super.Codec();
     }
     decodeStream(byteStream) {
-      return dart.as(byteStream.transform(dart.as(this.decoder, async.StreamTransformer$(core.List$(core.int), dart.dynamic))).fold(new core.StringBuffer(), (buffer, string) => ((() => {
+      return dart.as(byteStream.transform(this.decoder).fold(new core.StringBuffer(), (buffer, string) => ((() => {
         dart.dsend(buffer, 'write', string);
         return buffer;
       })())).then(buffer => dart.toString(buffer)), async.Future$(core.String));
@@ -86,13 +86,15 @@ var convert;
         return new (_FusedConverter$(S, T, dart.dynamic))(this, other);
       }
       startChunkedConversion(sink) {
+        dart.as(sink, core.Sink$(T));
         throw new core.UnsupportedError(`This converter does not support chunked conversions: ${this}`);
       }
       bind(source) {
-        return new async.Stream.eventTransformed(source, (sink => new _ConverterStreamEventSink(this, sink)).bind(this));
+        dart.as(source, async.Stream$(S));
+        return new async.Stream$(T).eventTransformed(source, (sink => new _ConverterStreamEventSink(this, sink)).bind(this));
       }
     }
-    Converter[dart.implements] = () => [async.StreamTransformer];
+    Converter[dart.implements] = () => [async.StreamTransformer$(S, T)];
     return Converter;
   });
   let Converter = Converter$();
@@ -128,7 +130,7 @@ var convert;
       return new _UnicodeSubsetEncoderSink(this[_subsetMask], dart.as(sink, ByteConversionSink));
     }
     bind(stream) {
-      return dart.as(super.bind(stream), async.Stream$(core.List$(core.int)));
+      return super.bind(stream);
     }
   }
   class AsciiEncoder extends _UnicodeSubsetEncoder {
@@ -211,7 +213,7 @@ var convert;
       return dart.toString(buffer);
     }
     bind(stream) {
-      return dart.as(super.bind(stream), async.Stream$(core.String));
+      return super.bind(stream);
     }
   }
   class AsciiDecoder extends _UnicodeSubsetDecoder {
@@ -490,6 +492,7 @@ var convert;
         return dart.as(this[_second].convert(this[_first].convert(input)), T);
       }
       startChunkedConversion(sink) {
+        dart.as(sink, core.Sink$(T));
         return this[_first].startChunkedConversion(this[_second].startChunkedConversion(sink));
       }
     }
@@ -704,7 +707,7 @@ var convert;
       return new _JsonEncoderSink(dart.as(sink, StringConversionSink), this[_toEncodable$], this.indent);
     }
     bind(stream) {
-      return dart.as(super.bind(stream), async.Stream$(core.String));
+      return super.bind(stream);
     }
     fuse(other) {
       if (dart.is(other, Utf8Encoder)) {
@@ -779,7 +782,7 @@ var convert;
       return new _JsonUtf8EncoderSink(byteSink, this[_toEncodable$], this[_indent], this[_bufferSize]);
     }
     bind(stream) {
-      return dart.as(super.bind(stream), async.Stream$(core.List$(core.int)));
+      return super.bind(stream);
     }
     fuse(other) {
       return super.fuse(other);
@@ -1385,7 +1388,7 @@ var convert;
     }
     startChunkedConversion(sink) {
       if (!dart.is(sink, StringConversionSink)) {
-        sink = new StringConversionSink.from(sink);
+        sink = new StringConversionSink.from(dart.as(sink, core.Sink$(core.String)));
       }
       return new _LineSplitterSink(dart.as(sink, StringConversionSink));
     }
@@ -1735,7 +1738,7 @@ var convert;
       return new _Utf8EncoderSink(dart.as(sink, ByteConversionSink));
     }
     bind(stream) {
-      return dart.as(super.bind(stream), async.Stream$(core.List$(core.int)));
+      return super.bind(stream);
     }
   }
   class _Utf8Encoder extends core.Object {
@@ -1941,7 +1944,7 @@ var convert;
       return stringSink.asUtf8Sink(this[_allowMalformed]);
     }
     bind(stream) {
-      return dart.as(super.bind(stream), async.Stream$(core.String));
+      return super.bind(stream);
     }
     fuse(next) {
       return super.fuse(next);

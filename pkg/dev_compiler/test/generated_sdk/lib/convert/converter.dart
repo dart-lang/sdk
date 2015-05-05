@@ -10,7 +10,7 @@ part of dart.convert;
  * It is recommended that implementations of `Converter` extend this class,
  * to inherit any further methods that may be added to the class.
  */
-abstract class Converter<S, T> implements StreamTransformer {
+abstract class Converter<S, T> implements StreamTransformer<S, T> {
   const Converter();
 
   /**
@@ -31,13 +31,13 @@ abstract class Converter<S, T> implements StreamTransformer {
   /**
    * Starts a chunked conversion.
    */
-  ChunkedConversionSink startChunkedConversion(Sink sink) {
+  ChunkedConversionSink startChunkedConversion(Sink<T> sink) {
     throw new UnsupportedError(
         "This converter does not support chunked conversions: $this");
   }
 
   // Subclasses are encouraged to provide better types.
-  Stream bind(Stream source) {
+  Stream<T> bind(Stream<S> source) {
     return new Stream.eventTransformed(
         source,
         (EventSink sink) => new _ConverterStreamEventSink(this, sink));
@@ -57,7 +57,7 @@ class _FusedConverter<S, M, T> extends Converter<S, T> {
 
   T convert(S input) => _second.convert(_first.convert(input));
 
-  ChunkedConversionSink startChunkedConversion(Sink sink) {
+  ChunkedConversionSink startChunkedConversion(Sink<T> sink) {
     return _first.startChunkedConversion(_second.startChunkedConversion(sink));
   }
 }

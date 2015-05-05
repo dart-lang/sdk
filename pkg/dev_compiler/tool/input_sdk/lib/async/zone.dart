@@ -603,7 +603,7 @@ abstract class _Zone implements Zone {
   _ZoneFunction get _fork;
   _ZoneFunction get _handleUncaughtError;
   _Zone get parent;
-  _ZoneDelegate get _delegate;
+  ZoneDelegate get _delegate;
   Map get _map;
 
   bool inSameErrorZone(Zone otherZone) {

@@ -1692,11 +1692,7 @@ var collection;
         if (compare === void 0)
           compare = null;
         dart.as(compare, dart.functionType(core.int, [E, E]));
-        if (compare == null) {
-          let defaultCompare = dart.bind(core.Comparable, 'compare');
-          compare = defaultCompare;
-        }
-        _internal.Sort.sort(this, compare);
+        _internal.Sort.sort(this, compare == null ? dart.bind(core.Comparable, 'compare') : compare);
       }
       [core.$shuffle](random) {
         if (random === void 0)
@@ -1921,7 +1917,6 @@ var collection;
         }
       }
       containsValue(value) {
-        dart.as(value, V);
         for (let key of this.keys) {
           if (dart.equals(this.get(key), value))
             return true;
@@ -2981,15 +2976,6 @@ var collection;
     return _SplayTree;
   });
   let _SplayTree = _SplayTree$();
-  let _TypeTest$ = dart.generic(function(T) {
-    class _TypeTest extends core.Object {
-      test(v) {
-        return dart.is(v, T);
-      }
-    }
-    return _TypeTest;
-  });
-  let _TypeTest = _TypeTest$();
   let _comparator = Symbol('_comparator');
   let _validKey = Symbol('_validKey');
   let SplayTreeMap$ = dart.generic(function(K, V) {
@@ -3247,7 +3233,7 @@ var collection;
       get current() {
         if (this[_currentNode] == null)
           return null;
-        return this[_getValue](this[_currentNode]);
+        return this[_getValue](dart.as(this[_currentNode], _SplayTreeMapNode));
       }
       [_findLeftMostDescendent](node) {
         while (node != null) {
@@ -3488,7 +3474,6 @@ var collection;
         return this[_root].key;
       }
       intersection(other) {
-        dart.as(other, core.Set$(E));
         let result = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.functionType(core.int, [E, E])), this[_validKey]);
         for (let element of this) {
           if (other[core.$contains](element))
@@ -3497,7 +3482,6 @@ var collection;
         return result;
       }
       difference(other) {
-        dart.as(other, core.Set$(E));
         let result = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.functionType(core.int, [E, E])), this[_validKey]);
         for (let element of this) {
           if (!dart.notNull(other[core.$contains](element)))

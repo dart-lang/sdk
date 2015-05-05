@@ -577,10 +577,10 @@ RangeError.checkNotNegative(count, "count");
  return this;
 }
  Iterable<E> takeWhile(bool test(E element)) => this;
- List toList({
+ List<E> toList({
 bool growable : true}
 ) => growable ? <E> [] : new List<E>(0);
- Set toSet() => new Set<E>();
+ Set<E> toSet() => new Set<E>();
 }
  class EmptyIterator<E> implements Iterator<E> {const EmptyIterator();
  bool moveNext() => false;
