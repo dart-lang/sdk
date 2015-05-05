@@ -19,6 +19,7 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/general.dart';
+import 'package:analyzer/src/task/incremental_element_builder.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
@@ -527,15 +528,20 @@ class BuildClassConstructorsTask extends SourceBasedAnalysisTask {
 }
 
 /**
+ * The memento for [BuildCompilationUnitElementTask].
+ */
+class BuildCompilationUnitElementMemento {
+  final List<ClassElement> classElements;
+  final CompilationUnit unit;
+  final CompilationUnitElement unitElement;
+  BuildCompilationUnitElementMemento(
+      this.classElements, this.unit, this.unitElement);
+}
+
+/**
  * A task that builds a compilation unit element for a single compilation unit.
  */
 class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
-  /**
-   * The name of the input whose value is the line information for the
-   * compilation unit.
-   */
-  static const String LINE_INFO_INPUT_NAME = 'LINE_INFO_INPUT_NAME';
-
   /**
    * The name of the input whose value is the AST for the compilation unit.
    */
@@ -571,6 +577,21 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     Source source = getRequiredSource();
     CompilationUnit unit = getRequiredInput(PARSED_UNIT_INPUT_NAME);
     //
+    // Use memento.
+    //
+    if (inputMemento is BuildCompilationUnitElementMemento) {
+      BuildCompilationUnitElementMemento memento = inputMemento;
+      unit = AstCloner.clone(unit);
+      new IncrementalCompilationUnitElementBuilder(memento.unit, unit).build();
+      CompilationUnitElement element = unit.element;
+      outputs[CLASS_ELEMENTS] = element.types;
+      outputs[COMPILATION_UNIT_ELEMENT] = element;
+      outputs[RESOLVED_UNIT1] = unit;
+      outputMemento =
+          new BuildCompilationUnitElementMemento(element.types, unit, element);
+      return;
+    }
+    //
     // Process inputs.
     //
     unit = AstCloner.clone(unit);
@@ -582,6 +603,8 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     outputs[CLASS_ELEMENTS] = element.types;
     outputs[COMPILATION_UNIT_ELEMENT] = element;
     outputs[RESOLVED_UNIT1] = unit;
+    outputMemento =
+        new BuildCompilationUnitElementMemento(element.types, unit, element);
   }
 
   /**
@@ -1918,9 +1941,9 @@ class ParseDartMemento {
   final CompilationUnit parsedUnit;
   final SourceKind sourceKind;
   final List<Source> units;
-  ParseDartMemento(this.inputTokenStream, this.explicitlyImportedLibraries, this.exportedLibraries,
-      this.importedLibraries, this.includedParts, this.parseErrors,
-      this.parsedUnit, this.sourceKind, this.units);
+  ParseDartMemento(this.inputTokenStream, this.explicitlyImportedLibraries,
+      this.exportedLibraries, this.importedLibraries, this.includedParts,
+      this.parseErrors, this.parsedUnit, this.sourceKind, this.units);
 }
 
 /**
@@ -1973,7 +1996,8 @@ class ParseDartTask extends SourceBasedAnalysisTask {
       ParseDartMemento memento = inputMemento;
       if (identical(memento.inputTokenStream, tokenStream)) {
         outputMemento = memento;
-        outputs[EXPLICITLY_IMPORTED_LIBRARIES] = memento.explicitlyImportedLibraries;
+        outputs[EXPLICITLY_IMPORTED_LIBRARIES] =
+            memento.explicitlyImportedLibraries;
         outputs[EXPORTED_LIBRARIES] = memento.exportedLibraries;
         outputs[IMPORTED_LIBRARIES] = memento.importedLibraries;
         outputs[INCLUDED_PARTS] = memento.includedParts;
@@ -2025,7 +2049,8 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     //
     // Always include "dart:core" source.
     //
-    HashSet<Source> importedSourceSet = new HashSet.from(explicitlyImportedSourceSet);
+    HashSet<Source> importedSourceSet =
+        new HashSet.from(explicitlyImportedSourceSet);
     Source coreLibrarySource = context.sourceFactory.forUri(DartSdk.DART_CORE);
     importedSourceSet.add(coreLibrarySource);
     //
@@ -2038,7 +2063,8 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
-    List<Source> explicitlyImportedSources = explicitlyImportedSourceSet.toList();
+    List<Source> explicitlyImportedSources =
+        explicitlyImportedSourceSet.toList();
     List<Source> exportedSources = exportedSourceSet.toList();
     List<Source> importedSources = importedSourceSet.toList();
     List<Source> includedSources = includedSourceSet.toList();
@@ -2052,9 +2078,9 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     outputs[PARSED_UNIT] = unit;
     outputs[SOURCE_KIND] = sourceKind;
     outputs[UNITS] = unitSources;
-    outputMemento = new ParseDartMemento(tokenStream, explicitlyImportedSources, exportedSources,
-        importedSources, includedSources, parseErrors, unit, sourceKind,
-        unitSources);
+    outputMemento = new ParseDartMemento(tokenStream, explicitlyImportedSources,
+        exportedSources, importedSources, includedSources, parseErrors, unit,
+        sourceKind, unitSources);
   }
 
   /**
