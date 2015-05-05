@@ -72,9 +72,9 @@ part of dart.collection;
  Iterable map(f(E element)) => new EfficientLengthMappedIterable<E, dynamic>(this, f);
  E get single {
   if (length > 1) throw IterableElementError.tooMany();
-   Iterator it = iterator;
+   Iterator<E> it = iterator;
    if (!it.moveNext()) throw IterableElementError.noElement();
-   E result = DEVC$RT.cast(it.current, dynamic, E, "CompositeCast", """line 130, column 16 of dart:collection/set.dart: """, it.current is E, false);
+   E result = it.current;
    return result;
   }
  String toString() => IterableBase.iterableToFullString(this, '{', '}');
@@ -142,20 +142,20 @@ part of dart.collection;
   return new SkipWhileIterable<E>(this, test);
   }
  E get first {
-  Iterator it = iterator;
+  Iterator<E> it = iterator;
    if (!it.moveNext()) {
     throw IterableElementError.noElement();
     }
-   return DEVC$RT.cast(it.current, dynamic, E, "CompositeCast", """line 220, column 12 of dart:collection/set.dart: """, it.current is E, false);
+   return it.current;
   }
  E get last {
-  Iterator it = iterator;
+  Iterator<E> it = iterator;
    if (!it.moveNext()) {
     throw IterableElementError.noElement();
     }
    E result;
    do {
-    result = DEVC$RT.cast(it.current, dynamic, E, "CompositeCast", """line 230, column 16 of dart:collection/set.dart: """, it.current is E, false);
+    result = it.current;
     }
    while (it.moveNext()); return result;
   }

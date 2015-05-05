@@ -268,7 +268,7 @@ class List<E> {
 
   @patch
   factory List.filled(int length, E fill) {
-    List result = new List<E>(length);
+    List<E> result = new List<E>(length);
     if (length != 0 && fill != null) {
       for (int i = 0; i < result.length; i++) {
         result[i] = fill;

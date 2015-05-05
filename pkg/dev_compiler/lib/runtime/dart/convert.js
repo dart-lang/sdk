@@ -91,7 +91,7 @@ var convert;
       }
       bind(source) {
         dart.as(source, async.Stream$(S));
-        return new async.Stream$(T).eventTransformed(source, (sink => new _ConverterStreamEventSink(this, sink)).bind(this));
+        return new (async.Stream$(T)).eventTransformed(source, (sink => new _ConverterStreamEventSink(this, sink)).bind(this));
       }
     }
     Converter[dart.implements] = () => [async.StreamTransformer$(S, T)];

@@ -1,6 +1,6 @@
 part of dart.collection;
- bool _defaultEquals(a, b) => a == b;
- int _defaultHashCode(a) => a.hashCode;
+ bool _defaultEquals(Object a, Object b) => a == b;
+ int _defaultHashCode(Object a) => a.hashCode;
  typedef bool _Equality<K>(K a, K b);
  typedef int _Hasher<K>(K object);
  abstract class HashMap<K, V> implements Map<K, V> {external factory HashMap({

@@ -125,7 +125,7 @@ abstract class SetMixin<E> implements Set<E> {
 
   E get single {
     if (length > 1) throw IterableElementError.tooMany();
-    Iterator it = iterator;
+    Iterator<E> it = iterator;
     if (!it.moveNext()) throw IterableElementError.noElement();
     E result = it.current;
     return result;
@@ -213,7 +213,7 @@ abstract class SetMixin<E> implements Set<E> {
   }
 
   E get first {
-    Iterator it = iterator;
+    Iterator<E> it = iterator;
     if (!it.moveNext()) {
       throw IterableElementError.noElement();
     }
@@ -221,7 +221,7 @@ abstract class SetMixin<E> implements Set<E> {
   }
 
   E get last {
-    Iterator it = iterator;
+    Iterator<E> it = iterator;
     if (!it.moveNext()) {
       throw IterableElementError.noElement();
     }

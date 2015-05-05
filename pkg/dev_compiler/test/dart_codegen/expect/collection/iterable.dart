@@ -84,27 +84,27 @@ part of dart.collection;
   return new SkipWhileIterable<E>(this, test);
   }
  E get first {
-  Iterator it = iterator;
+  Iterator<E> it = iterator;
    if (!it.moveNext()) {
     throw IterableElementError.noElement();
     }
-   return DEVC$RT.cast(it.current, dynamic, E, "CompositeCast", """line 127, column 12 of dart:collection/iterable.dart: """, it.current is E, false);
+   return it.current;
   }
  E get last {
-  Iterator it = iterator;
+  Iterator<E> it = iterator;
    if (!it.moveNext()) {
     throw IterableElementError.noElement();
     }
    E result;
    do {
-    result = DEVC$RT.cast(it.current, dynamic, E, "CompositeCast", """line 137, column 16 of dart:collection/iterable.dart: """, it.current is E, false);
+    result = it.current;
     }
    while (it.moveNext()); return result;
   }
  E get single {
-  Iterator it = iterator;
+  Iterator<E> it = iterator;
    if (!it.moveNext()) throw IterableElementError.noElement();
-   E result = DEVC$RT.cast(it.current, dynamic, E, "CompositeCast", """line 145, column 16 of dart:collection/iterable.dart: """, it.current is E, false);
+   E result = it.current;
    if (it.moveNext()) throw IterableElementError.tooMany();
    return result;
   }
@@ -224,7 +224,7 @@ bool growable : true}
  Set<E> toSet() => new Set<E>.from(this);
  int get length {
 assert (this is! EfficientLength); int count = 0;
- Iterator it = iterator;
+ Iterator<E> it = iterator;
  while (it.moveNext()) {
   count++;
   }
@@ -245,27 +245,27 @@ return new SkipIterable<E>(this, n);
 return new SkipWhileIterable<E>(this, test);
 }
  E get first {
-Iterator it = iterator;
+Iterator<E> it = iterator;
  if (!it.moveNext()) {
   throw IterableElementError.noElement();
   }
- return DEVC$RT.cast(it.current, dynamic, E, "CompositeCast", """line 323, column 12 of dart:collection/iterable.dart: """, it.current is E, false);
+ return it.current;
 }
  E get last {
-Iterator it = iterator;
+Iterator<E> it = iterator;
  if (!it.moveNext()) {
   throw IterableElementError.noElement();
   }
  E result;
  do {
-  result = DEVC$RT.cast(it.current, dynamic, E, "CompositeCast", """line 333, column 16 of dart:collection/iterable.dart: """, it.current is E, false);
+  result = it.current;
   }
  while (it.moveNext()); return result;
 }
  E get single {
-Iterator it = iterator;
+Iterator<E> it = iterator;
  if (!it.moveNext()) throw IterableElementError.noElement();
- E result = DEVC$RT.cast(it.current, dynamic, E, "CompositeCast", """line 341, column 16 of dart:collection/iterable.dart: """, it.current is E, false);
+ E result = it.current;
  if (it.moveNext()) throw IterableElementError.tooMany();
  return result;
 }

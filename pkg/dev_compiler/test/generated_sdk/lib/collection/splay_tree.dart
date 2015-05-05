@@ -258,9 +258,10 @@ abstract class _SplayTree<K> {
  */
 class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
   Comparator<K> _comparator;
-  _Predicate _validKey;
+  _Predicate<Object> _validKey;
 
-  SplayTreeMap([int compare(K key1, K key2), bool isValidKey(potentialKey)])
+  SplayTreeMap([int compare(K key1, K key2),
+                bool isValidKey(Object potentialKey)])
       : _comparator = (compare == null) ? Comparable.compare : compare,
         _validKey = (isValidKey != null) ? isValidKey : ((v) => v is K);
 
@@ -269,7 +270,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
    */
   factory SplayTreeMap.from(Map other,
                             [int compare(K key1, K key2),
-                             bool isValidKey(potentialKey)]) {
+                             bool isValidKey(Object potentialKey)]) {
     SplayTreeMap<K, V> result = new SplayTreeMap<K, V>();
     other.forEach((k, v) { result[k] = v; });
     return result;
@@ -292,7 +293,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
                                     {K key(element),
                                      V value(element),
                                      int compare(K key1, K key2),
-                                     bool isValidKey(potentialKey) }) {
+                                     bool isValidKey(Object potentialKey) }) {
     SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare, isValidKey);
     Maps._fillMapWithMappedIterable(map, iterable, key, value);
     return map;
@@ -310,7 +311,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
    * It is an error if the two [Iterable]s don't have the same length.
    */
   factory SplayTreeMap.fromIterables(Iterable<K> keys, Iterable<V> values,
-      [int compare(K key1, K key2), bool isValidKey(potentialKey)]) {
+      [int compare(K key1, K key2), bool isValidKey(Object potentialKey)]) {
     SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare, isValidKey);
     Maps._fillMapWithIterables(map, keys, values);
     return map;
@@ -658,8 +659,8 @@ class _SplayTreeNodeIterator<K>
  * in that case.
  */
 class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>, SetMixin<E> {
-  Comparator _comparator;
-  _Predicate _validKey;
+  Comparator<E> _comparator;
+  _Predicate<Object> _validKey;
 
   /**
    * Create a new [SplayTreeSet] with the given compare function.
@@ -685,7 +686,8 @@ class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>, SetMixin<E> {
    * If omitted, the `isValidKey` function defaults to checking against the
    * type parameter: `other is E`.
    */
-  SplayTreeSet([int compare(E key1, E key2), bool isValidKey(potentialKey)])
+  SplayTreeSet([int compare(E key1, E key2),
+                bool isValidKey(Object potentialKey)])
       : _comparator = (compare == null) ? Comparable.compare : compare,
         _validKey = (isValidKey != null) ? isValidKey : ((v) => v is E);
 
@@ -698,7 +700,7 @@ class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>, SetMixin<E> {
    */
   factory SplayTreeSet.from(Iterable elements,
                             [int compare(E key1, E key2),
-                             bool isValidKey(potentialKey)]) {
+                             bool isValidKey(Object potentialKey)]) {
     SplayTreeSet<E> result = new SplayTreeSet<E>(compare, isValidKey);
     for (final E element in elements) {
       result.add(element);

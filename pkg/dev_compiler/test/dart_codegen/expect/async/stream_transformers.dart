@@ -117,17 +117,17 @@ cancelOnError = identical(true, cancelOnError);
 }
  class _StreamHandlerTransformer<S, T> extends _StreamSinkTransformer<S, T> {_StreamHandlerTransformer({
 void handleData(S data, EventSink<T> sink), void handleError(Object error, StackTrace stackTrace, EventSink<T> sink), void handleDone(EventSink<T> sink)}
-) : super(((__x66) => DEVC$RT.cast(__x66, DEVC$RT.type((__CastType64<T> _) {
+) : super(((__x61) => DEVC$RT.cast(__x61, DEVC$RT.type((__CastType59<T> _) {
 }
 ), DEVC$RT.type((_SinkMapper<S, T> _) {
 }
-), "InferableClosure", """line 233, column 15 of dart:async/stream_transformers.dart: """, __x66 is _SinkMapper<S, T>, false))((EventSink<T> outputSink) {
-if (handleData == null) handleData = DEVC$RT.cast(_defaultHandleData, __CastType70, DEVC$RT.type((__CastType67<S, T> _) {
+), "InferableClosure", """line 233, column 15 of dart:async/stream_transformers.dart: """, __x61 is _SinkMapper<S, T>, false))((EventSink<T> outputSink) {
+if (handleData == null) handleData = DEVC$RT.cast(_defaultHandleData, __CastType65, DEVC$RT.type((__CastType62<S, T> _) {
 }
-), "CompositeCast", """line 234, column 48 of dart:async/stream_transformers.dart: """, _defaultHandleData is __CastType67<S, T>, false);
- if (handleError == null) handleError = DEVC$RT.cast(_defaultHandleError, __CastType77, DEVC$RT.type((__CastType73<T> _) {
+), "CompositeCast", """line 234, column 48 of dart:async/stream_transformers.dart: """, _defaultHandleData is __CastType62<S, T>, false);
+ if (handleError == null) handleError = DEVC$RT.cast(_defaultHandleError, __CastType72, DEVC$RT.type((__CastType68<T> _) {
 }
-), "CompositeCast", """line 235, column 50 of dart:async/stream_transformers.dart: """, _defaultHandleError is __CastType73<T>, false);
+), "CompositeCast", """line 235, column 50 of dart:async/stream_transformers.dart: """, _defaultHandleError is __CastType68<T>, false);
  if (handleDone == null) handleDone = _defaultHandleDone;
  return new _HandlerEventSink<S, T>(handleData, handleError, handleDone, outputSink);
 }
@@ -164,8 +164,8 @@ cancelOnError = identical(true, cancelOnError);
  return result;
 }
 }
- typedef dynamic __CastType64<T>(EventSink<T> __u65);
- typedef void __CastType67<S, T>(S __u68, EventSink<T> __u69);
- typedef void __CastType70(dynamic __u71, EventSink<dynamic> __u72);
- typedef void __CastType73<T>(Object __u74, StackTrace __u75, EventSink<T> __u76);
- typedef void __CastType77(dynamic __u78, StackTrace __u79, EventSink<dynamic> __u80);
+ typedef dynamic __CastType59<T>(EventSink<T> __u60);
+ typedef void __CastType62<S, T>(S __u63, EventSink<T> __u64);
+ typedef void __CastType65(dynamic __u66, EventSink<dynamic> __u67);
+ typedef void __CastType68<T>(Object __u69, StackTrace __u70, EventSink<T> __u71);
+ typedef void __CastType72(dynamic __u73, StackTrace __u74, EventSink<dynamic> __u75);

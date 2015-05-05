@@ -73,7 +73,7 @@ abstract class HashSet<E> implements Set<E> {
    */
   factory HashSet({ bool equals(E e1, E e2),
                     int hashCode(E e),
-                    bool isValidKey(potentialKey) }) {
+                    bool isValidKey(Object potentialKey) }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {

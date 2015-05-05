@@ -5,9 +5,9 @@
 part of dart.collection;
 
 /** Default function for equality comparison in customized HashMaps */
-bool _defaultEquals(a, b) => a == b;
+bool _defaultEquals(Object a, Object b) => a == b;
 /** Default function for hash-code computation in customized HashMaps */
-int _defaultHashCode(a) => a.hashCode;
+int _defaultHashCode(Object a) => a.hashCode;
 
 /** Type of custom equality function */
 typedef bool _Equality<K>(K a, K b);
@@ -68,7 +68,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
    */
   factory HashMap({ bool equals(K key1, K key2),
                     int hashCode(K key),
-                    bool isValidKey(potentialKey) }) {
+                    bool isValidKey(Object potentialKey) }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {

@@ -366,8 +366,9 @@ class _IdentityHashMap<K, V> extends _HashMap<K, V> {
 class _CustomHashMap<K, V> extends _HashMap<K, V> {
   final _Equality<K> _equals;
   final _Hasher<K> _hashCode;
-  final _Predicate _validKey;
-  _CustomHashMap(this._equals, this._hashCode, bool validKey(potentialKey))
+  final _Predicate<Object> _validKey;
+  _CustomHashMap(this._equals, this._hashCode,
+                 bool validKey(Object potentialKey))
       : _validKey = (validKey != null) ? validKey : ((v) => v is K);
 
   V operator[](Object key) {
@@ -788,9 +789,9 @@ class _LinkedIdentityHashMap<K, V> extends _LinkedHashMap<K, V> {
 class _LinkedCustomHashMap<K, V> extends _LinkedHashMap<K, V> {
   final _Equality<K> _equals;
   final _Hasher<K> _hashCode;
-  final _Predicate _validKey;
+  final _Predicate<Object> _validKey;
   _LinkedCustomHashMap(this._equals, this._hashCode,
-                       bool validKey(potentialKey))
+                       bool validKey(Object potentialKey))
       : _validKey = (validKey != null) ? validKey : ((v) => v is K);
 
   V operator[](Object key) {
@@ -1187,8 +1188,9 @@ class _IdentityHashSet<E> extends _HashSet<E> {
 class _CustomHashSet<E> extends _HashSet<E> {
   _Equality<E> _equality;
   _Hasher<E> _hasher;
-  _Predicate _validKey;
-  _CustomHashSet(this._equality, this._hasher, bool validKey(potentialKey))
+  _Predicate<Object> _validKey;
+  _CustomHashSet(this._equality, this._hasher,
+                 bool validKey(Object potentialKey))
       : _validKey = (validKey != null) ? validKey : ((x) => x is E);
 
   Set<E> _newSet() => new _CustomHashSet<E>(_equality, _hasher, _validKey);
@@ -1588,9 +1590,9 @@ class _LinkedIdentityHashSet<E> extends _LinkedHashSet<E> {
 class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
   _Equality<E> _equality;
   _Hasher<E> _hasher;
-  _Predicate _validKey;
+  _Predicate<Object> _validKey;
   _LinkedCustomHashSet(this._equality, this._hasher,
-                       bool validKey(potentialKey))
+                       bool validKey(Object potentialKey))
       : _validKey = (validKey != null) ? validKey : ((x) => x is E);
 
   Set<E> _newSet() =>

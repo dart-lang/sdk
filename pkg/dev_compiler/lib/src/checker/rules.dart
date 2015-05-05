@@ -613,6 +613,9 @@ class DownwardsInference {
     if (e is ConditionalExpression) {
       return _inferConditionalExpression(e, t, errors);
     }
+    if (e is ParenthesizedExpression) {
+      return _inferParenthesizedExpression(e, t, errors);
+    }
     if (e is Conversion) return _inferExpression(e.node, t, errors);
     if (rules.isSubTypeOf(rules.getStaticType(e), t)) return true;
     if (cast && rules.getStaticType(e).isDynamic) {
@@ -715,6 +718,11 @@ class DownwardsInference {
       ConditionalExpression e, DartType t, errors) {
     return _inferExpression(e.thenExpression, t, errors) &&
         _inferExpression(e.elseExpression, t, errors);
+  }
+
+  bool _inferParenthesizedExpression(
+      ParenthesizedExpression e, DartType t, errors) {
+    return _inferExpression(e.expression, t, errors);
   }
 
   bool _inferInstanceCreationExpression(

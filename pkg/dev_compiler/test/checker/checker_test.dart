@@ -37,6 +37,8 @@ void main() {
                         bool isValidKey(potentialKey)]) {
             : _comparator = /*warning:DownCastComposite*/(compare == null) ? Comparable.compare : compare,
               _validKey = /*info:InferredType should be pass*/(isValidKey != null) ? isValidKey : ((v) => true);
+              _Predicate<Object> _v = /*warning:DownCastComposite*/(isValidKey != null) ? isValidKey : ((v) => true);
+              _v = /*info:InferredType should be pass*/(isValidKey != null) ? _v : ((v) => true);
           }
         }
         void main() {

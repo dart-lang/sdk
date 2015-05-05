@@ -1284,7 +1284,7 @@ var core;
             result[$set](i, fill);
           }
         }
-        return dart.as(result, List$(E));
+        return result;
       }
       from(elements, opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
@@ -2504,7 +2504,7 @@ var core;
     get pathSegments() {
       if (this[_pathSegments] == null) {
         let pathToSplit = !dart.notNull(this.path.isEmpty) && this.path.codeUnitAt(0) == Uri._SLASH ? this.path.substring(1) : this.path;
-        this[_pathSegments] = new (collection.UnmodifiableListView$(String))(pathToSplit == "" ? dart.const(dart.setType([], List$(String))) : new List$(String).from(pathToSplit.split("/")[$map](dart.bind(Uri, 'decodeComponent')), {growable: false}));
+        this[_pathSegments] = new (collection.UnmodifiableListView$(String))(pathToSplit == "" ? dart.const(dart.setType([], List$(String))) : new (List$(String)).from(pathToSplit.split("/")[$map](dart.bind(Uri, 'decodeComponent')), {growable: false}));
       }
       return this[_pathSegments];
     }

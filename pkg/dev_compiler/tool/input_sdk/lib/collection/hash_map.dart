@@ -5,9 +5,9 @@
 part of dart.collection;
 
 /** Default function for equality comparison in customized HashMaps */
-bool _defaultEquals(a, b) => a == b;
+bool _defaultEquals(Object a, Object b) => a == b;
 /** Default function for hash-code computation in customized HashMaps */
-int _defaultHashCode(a) => a.hashCode;
+int _defaultHashCode(Object a) => a.hashCode;
 
 /** Type of custom equality function */
 typedef bool _Equality<K>(K a, K b);

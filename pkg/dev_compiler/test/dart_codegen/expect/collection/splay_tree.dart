@@ -144,26 +144,26 @@ _root = null;
 }
 }
  class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {Comparator<K> _comparator;
- _Predicate _validKey;
- SplayTreeMap([int compare(K key1, K key2), bool isValidKey(potentialKey)]) : _comparator = ((__x12) => DEVC$RT.cast(__x12, dynamic, DEVC$RT.type((Comparator<K> _) {
+ _Predicate<Object> _validKey;
+ SplayTreeMap([int compare(K key1, K key2), bool isValidKey(Object potentialKey)]) : _comparator = ((__x12) => DEVC$RT.cast(__x12, dynamic, DEVC$RT.type((Comparator<K> _) {
 }
-), "CompositeCast", """line 264, column 23 of dart:collection/splay_tree.dart: """, __x12 is Comparator<K>, false))((compare == null) ? Comparable.compare : compare), _validKey = (isValidKey != null) ? isValidKey : ((v) => v is K);
- factory SplayTreeMap.from(Map other, [int compare(K key1, K key2), bool isValidKey(potentialKey)]) {
+), "CompositeCast", """line 265, column 23 of dart:collection/splay_tree.dart: """, __x12 is Comparator<K>, false))((compare == null) ? Comparable.compare : compare), _validKey = (isValidKey != null) ? isValidKey : ((v) => v is K);
+ factory SplayTreeMap.from(Map other, [int compare(K key1, K key2), bool isValidKey(Object potentialKey)]) {
 SplayTreeMap<K, V> result = new SplayTreeMap<K, V>();
  other.forEach((k, v) {
-result[k] = DEVC$RT.cast(v, dynamic, V, "CompositeCast", """line 274, column 40 of dart:collection/splay_tree.dart: """, v is V, false);
+result[k] = DEVC$RT.cast(v, dynamic, V, "CompositeCast", """line 275, column 40 of dart:collection/splay_tree.dart: """, v is V, false);
 }
 );
  return result;
 }
  factory SplayTreeMap.fromIterable(Iterable iterable, {
-K key(element), V value(element), int compare(K key1, K key2), bool isValidKey(potentialKey)}
+K key(element), V value(element), int compare(K key1, K key2), bool isValidKey(Object potentialKey)}
 ) {
 SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare, isValidKey);
  Maps._fillMapWithMappedIterable(map, iterable, key, value);
  return map;
 }
- factory SplayTreeMap.fromIterables(Iterable<K> keys, Iterable<V> values, [int compare(K key1, K key2), bool isValidKey(potentialKey)]) {
+ factory SplayTreeMap.fromIterables(Iterable<K> keys, Iterable<V> values, [int compare(K key1, K key2), bool isValidKey(Object potentialKey)]) {
 SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare, isValidKey);
  Maps._fillMapWithIterables(map, keys, values);
  return map;
@@ -174,14 +174,14 @@ SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare, isValidKey);
 if (key == null) throw new ArgumentError(key);
  if (!_validKey(key)) return null;
  if (_root != null) {
-int comp = _splay(DEVC$RT.cast(key, Object, K, "CompositeCast", """line 327, column 25 of dart:collection/splay_tree.dart: """, key is K, false));
+int comp = _splay(DEVC$RT.cast(key, Object, K, "CompositeCast", """line 328, column 25 of dart:collection/splay_tree.dart: """, key is K, false));
  if (comp == 0) {
 _SplayTreeMapNode mapRoot = DEVC$RT.cast(_root, DEVC$RT.type((_SplayTreeNode<K> _) {
   }
 ), DEVC$RT.type((_SplayTreeMapNode<dynamic, dynamic> _) {
   }
-), "AssignmentCast", """line 329, column 37 of dart:collection/splay_tree.dart: """, _root is _SplayTreeMapNode<dynamic, dynamic>, true);
- return DEVC$RT.cast(mapRoot.value, dynamic, V, "CompositeCast", """line 330, column 16 of dart:collection/splay_tree.dart: """, mapRoot.value is V, false);
+), "AssignmentCast", """line 330, column 37 of dart:collection/splay_tree.dart: """, _root is _SplayTreeMapNode<dynamic, dynamic>, true);
+ return DEVC$RT.cast(mapRoot.value, dynamic, V, "CompositeCast", """line 331, column 16 of dart:collection/splay_tree.dart: """, mapRoot.value is V, false);
 }
 }
  return null;
@@ -192,8 +192,8 @@ if (!_validKey(key)) return null;
 }
 ), DEVC$RT.type((_SplayTreeMapNode<dynamic, dynamic> _) {
 }
-), "AssignmentCast", """line 338, column 33 of dart:collection/splay_tree.dart: """, __x13 is _SplayTreeMapNode<dynamic, dynamic>, true))(_remove(DEVC$RT.cast(key, Object, K, "CompositeCast", """line 338, column 41 of dart:collection/splay_tree.dart: """, key is K, false)));
- if (mapRoot != null) return DEVC$RT.cast(mapRoot.value, dynamic, V, "CompositeCast", """line 339, column 33 of dart:collection/splay_tree.dart: """, mapRoot.value is V, false);
+), "AssignmentCast", """line 339, column 33 of dart:collection/splay_tree.dart: """, __x13 is _SplayTreeMapNode<dynamic, dynamic>, true))(_remove(DEVC$RT.cast(key, Object, K, "CompositeCast", """line 339, column 41 of dart:collection/splay_tree.dart: """, key is K, false)));
+ if (mapRoot != null) return DEVC$RT.cast(mapRoot.value, dynamic, V, "CompositeCast", """line 340, column 33 of dart:collection/splay_tree.dart: """, mapRoot.value is V, false);
  return null;
 }
  void operator []=(K key, V value) {
@@ -204,7 +204,7 @@ _SplayTreeMapNode mapRoot = DEVC$RT.cast(_root, DEVC$RT.type((_SplayTreeNode<K> 
 }
 ), DEVC$RT.type((_SplayTreeMapNode<dynamic, dynamic> _) {
 }
-), "AssignmentCast", """line 349, column 35 of dart:collection/splay_tree.dart: """, _root is _SplayTreeMapNode<dynamic, dynamic>, true);
+), "AssignmentCast", """line 350, column 35 of dart:collection/splay_tree.dart: """, _root is _SplayTreeMapNode<dynamic, dynamic>, true);
  mapRoot.value = value;
  return;}
  _addNewRoot(new _SplayTreeMapNode<K, dynamic>(key, value), comp);
@@ -217,8 +217,8 @@ _SplayTreeMapNode mapRoot = DEVC$RT.cast(_root, DEVC$RT.type((_SplayTreeNode<K> 
 }
 ), DEVC$RT.type((_SplayTreeMapNode<dynamic, dynamic> _) {
 }
-), "AssignmentCast", """line 361, column 35 of dart:collection/splay_tree.dart: """, _root is _SplayTreeMapNode<dynamic, dynamic>, true);
- return DEVC$RT.cast(mapRoot.value, dynamic, V, "CompositeCast", """line 362, column 14 of dart:collection/splay_tree.dart: """, mapRoot.value is V, false);
+), "AssignmentCast", """line 362, column 35 of dart:collection/splay_tree.dart: """, _root is _SplayTreeMapNode<dynamic, dynamic>, true);
+ return DEVC$RT.cast(mapRoot.value, dynamic, V, "CompositeCast", """line 363, column 14 of dart:collection/splay_tree.dart: """, mapRoot.value is V, false);
 }
  int modificationCount = _modificationCount;
  int splayCount = _splayCount;
@@ -249,7 +249,7 @@ _SplayTreeMapNode<K, V> node = DEVC$RT.cast(nodes.current, DEVC$RT.type((_SplayT
 }
 ), DEVC$RT.type((_SplayTreeMapNode<K, V> _) {
 }
-), "CompositeCast", """line 393, column 38 of dart:collection/splay_tree.dart: """, nodes.current is _SplayTreeMapNode<K, V>, false);
+), "CompositeCast", """line 394, column 38 of dart:collection/splay_tree.dart: """, nodes.current is _SplayTreeMapNode<K, V>, false);
  f(node.key, node.value);
 }
 }
@@ -260,7 +260,7 @@ return _count;
 _clear();
 }
  bool containsKey(Object key) {
-return _validKey(key) && _splay(DEVC$RT.cast(key, Object, K, "CompositeCast", """line 407, column 37 of dart:collection/splay_tree.dart: """, key is K, false)) == 0;
+return _validKey(key) && _splay(DEVC$RT.cast(key, Object, K, "CompositeCast", """line 408, column 37 of dart:collection/splay_tree.dart: """, key is K, false)) == 0;
 }
  bool containsValue(Object value) {
 bool found = false;
@@ -275,12 +275,12 @@ if (node.value == value) return true;
   }
 ), DEVC$RT.type((_SplayTreeMapNode<dynamic, dynamic> _) {
   }
-), "ImplicitCast", """line 419, column 41 of dart:collection/splay_tree.dart: """, node.right is _SplayTreeMapNode<dynamic, dynamic>, true))) return true;
+), "ImplicitCast", """line 420, column 41 of dart:collection/splay_tree.dart: """, node.right is _SplayTreeMapNode<dynamic, dynamic>, true))) return true;
  node = DEVC$RT.cast(node.left, DEVC$RT.type((_SplayTreeNode<dynamic> _) {
   }
 ), DEVC$RT.type((_SplayTreeMapNode<dynamic, dynamic> _) {
   }
-), "ImplicitCast", """line 420, column 16 of dart:collection/splay_tree.dart: """, node.left is _SplayTreeMapNode<dynamic, dynamic>, true);
+), "ImplicitCast", """line 421, column 16 of dart:collection/splay_tree.dart: """, node.left is _SplayTreeMapNode<dynamic, dynamic>, true);
 }
  return false;
 }
@@ -288,7 +288,7 @@ if (node.value == value) return true;
 }
 ), DEVC$RT.type((_SplayTreeMapNode<dynamic, dynamic> _) {
 }
-), "ImplicitCast", """line 424, column 18 of dart:collection/splay_tree.dart: """, _root is _SplayTreeMapNode<dynamic, dynamic>, true));
+), "ImplicitCast", """line 425, column 18 of dart:collection/splay_tree.dart: """, _root is _SplayTreeMapNode<dynamic, dynamic>, true));
 }
  Iterable<K> get keys => new _SplayTreeKeyIterable<K>(this);
  Iterable<V> get values => new _SplayTreeValueIterable<K, V>(this);
@@ -297,11 +297,11 @@ return Maps.mapToString(this);
 }
  K firstKey() {
 if (_root == null) return null;
- return DEVC$RT.cast(_first.key, dynamic, K, "CompositeCast", """line 440, column 12 of dart:collection/splay_tree.dart: """, _first.key is K, false);
+ return DEVC$RT.cast(_first.key, dynamic, K, "CompositeCast", """line 441, column 12 of dart:collection/splay_tree.dart: """, _first.key is K, false);
 }
  K lastKey() {
 if (_root == null) return null;
- return DEVC$RT.cast(_last.key, dynamic, K, "CompositeCast", """line 448, column 12 of dart:collection/splay_tree.dart: """, _last.key is K, false);
+ return DEVC$RT.cast(_last.key, dynamic, K, "CompositeCast", """line 449, column 12 of dart:collection/splay_tree.dart: """, _last.key is K, false);
 }
  K lastKeyBefore(K key) {
 if (key == null) throw new ArgumentError(key);
@@ -352,7 +352,7 @@ if (_currentNode == null) return null;
 }
 ), DEVC$RT.type((_SplayTreeMapNode<dynamic, dynamic> _) {
 }
-), "ImplicitCast", """line 544, column 22 of dart:collection/splay_tree.dart: """, _currentNode is _SplayTreeMapNode<dynamic, dynamic>, true));
+), "ImplicitCast", """line 545, column 22 of dart:collection/splay_tree.dart: """, _currentNode is _SplayTreeMapNode<dynamic, dynamic>, true));
 }
  void _findLeftMostDescendent(_SplayTreeNode node) {
 while (node != null) {
@@ -396,7 +396,7 @@ _rebuildWorkList(_currentNode);
 var setOrMap = _tree;
  SplayTreeSet<K> set = new SplayTreeSet<K>(DEVC$RT.cast(setOrMap._comparator, dynamic, DEVC$RT.type((__CastType14<K> _) {
 }
-), "CompositeCast", """line 609, column 29 of dart:collection/splay_tree.dart: """, setOrMap._comparator is __CastType14<K>, false), DEVC$RT.cast(setOrMap._validKey, dynamic, __CastType17, "CompositeCast", """line 609, column 51 of dart:collection/splay_tree.dart: """, setOrMap._validKey is __CastType17, false));
+), "CompositeCast", """line 610, column 29 of dart:collection/splay_tree.dart: """, setOrMap._comparator is __CastType14<K>, false), DEVC$RT.cast(setOrMap._validKey, dynamic, __CastType17, "CompositeCast", """line 610, column 51 of dart:collection/splay_tree.dart: """, setOrMap._validKey is __CastType17, false));
  set._count = _tree._count;
  set._root = set._copyNode(_tree._root);
  return set;
@@ -409,10 +409,10 @@ var setOrMap = _tree;
  Iterator<V> get iterator => new _SplayTreeValueIterator<K, V>(_map);
 }
  class _SplayTreeKeyIterator<K> extends _SplayTreeIterator<K> {_SplayTreeKeyIterator(_SplayTree<K> map) : super(map);
- K _getValue(_SplayTreeNode node) => DEVC$RT.cast(node.key, dynamic, K, "CompositeCast", """line 627, column 39 of dart:collection/splay_tree.dart: """, node.key is K, false);
+ K _getValue(_SplayTreeNode node) => DEVC$RT.cast(node.key, dynamic, K, "CompositeCast", """line 628, column 39 of dart:collection/splay_tree.dart: """, node.key is K, false);
 }
  class _SplayTreeValueIterator<K, V> extends _SplayTreeIterator<V> {_SplayTreeValueIterator(SplayTreeMap<K, V> map) : super(map);
- V _getValue(_SplayTreeMapNode node) => DEVC$RT.cast(node.value, dynamic, V, "CompositeCast", """line 632, column 42 of dart:collection/splay_tree.dart: """, node.value is V, false);
+ V _getValue(_SplayTreeMapNode node) => DEVC$RT.cast(node.value, dynamic, V, "CompositeCast", """line 633, column 42 of dart:collection/splay_tree.dart: """, node.value is V, false);
 }
  class _SplayTreeNodeIterator<K> extends _SplayTreeIterator<_SplayTreeNode<K>> {_SplayTreeNodeIterator(_SplayTree<K> tree) : super(tree);
  _SplayTreeNodeIterator.startAt(_SplayTree<K> tree, var startKey) : super.startAt(tree, startKey);
@@ -420,18 +420,20 @@ var setOrMap = _tree;
 }
 ), DEVC$RT.type((_SplayTreeNode<K> _) {
 }
-), "CompositeCast", """line 640, column 55 of dart:collection/splay_tree.dart: """, node is _SplayTreeNode<K>, false);
+), "CompositeCast", """line 641, column 55 of dart:collection/splay_tree.dart: """, node is _SplayTreeNode<K>, false);
 }
- class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>, SetMixin<E> {Comparator _comparator;
- _Predicate _validKey;
- SplayTreeSet([int compare(E key1, E key2), bool isValidKey(potentialKey)]) : _comparator = (compare == null) ? Comparable.compare : compare, _validKey = (isValidKey != null) ? isValidKey : ((v) => v is E);
- factory SplayTreeSet.from(Iterable elements, [int compare(E key1, E key2), bool isValidKey(potentialKey)]) {
+ class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>, SetMixin<E> {Comparator<E> _comparator;
+ _Predicate<Object> _validKey;
+ SplayTreeSet([int compare(E key1, E key2), bool isValidKey(Object potentialKey)]) : _comparator = ((__x19) => DEVC$RT.cast(__x19, dynamic, DEVC$RT.type((Comparator<E> _) {
+}
+), "CompositeCast", """line 691, column 23 of dart:collection/splay_tree.dart: """, __x19 is Comparator<E>, false))((compare == null) ? Comparable.compare : compare), _validKey = (isValidKey != null) ? isValidKey : ((v) => v is E);
+ factory SplayTreeSet.from(Iterable elements, [int compare(E key1, E key2), bool isValidKey(Object potentialKey)]) {
 SplayTreeSet<E> result = new SplayTreeSet<E>(compare, isValidKey);
  for (final E element in DEVC$RT.cast(elements, DEVC$RT.type((Iterable<dynamic> _) {
 }
 ), DEVC$RT.type((Iterable<E> _) {
 }
-), "CompositeCast", """line 703, column 29 of dart:collection/splay_tree.dart: """, elements is Iterable<E>, false)) {
+), "CompositeCast", """line 705, column 29 of dart:collection/splay_tree.dart: """, elements is Iterable<E>, false)) {
 result.add(element);
 }
  return result;
@@ -443,11 +445,11 @@ result.add(element);
  bool get isNotEmpty => _root != null;
  E get first {
 if (_count == 0) throw IterableElementError.noElement();
- return DEVC$RT.cast(_first.key, dynamic, E, "CompositeCast", """line 721, column 12 of dart:collection/splay_tree.dart: """, _first.key is E, false);
+ return DEVC$RT.cast(_first.key, dynamic, E, "CompositeCast", """line 723, column 12 of dart:collection/splay_tree.dart: """, _first.key is E, false);
 }
  E get last {
 if (_count == 0) throw IterableElementError.noElement();
- return DEVC$RT.cast(_last.key, dynamic, E, "CompositeCast", """line 726, column 12 of dart:collection/splay_tree.dart: """, _last.key is E, false);
+ return DEVC$RT.cast(_last.key, dynamic, E, "CompositeCast", """line 728, column 12 of dart:collection/splay_tree.dart: """, _last.key is E, false);
 }
  E get single {
 if (_count == 0) throw IterableElementError.noElement();
@@ -455,7 +457,7 @@ if (_count == 0) throw IterableElementError.noElement();
  return _root.key;
 }
  bool contains(Object object) {
-return _validKey(object) && _splay(DEVC$RT.cast(object, Object, E, "CompositeCast", """line 737, column 40 of dart:collection/splay_tree.dart: """, object is E, false)) == 0;
+return _validKey(object) && _splay(DEVC$RT.cast(object, Object, E, "CompositeCast", """line 739, column 40 of dart:collection/splay_tree.dart: """, object is E, false)) == 0;
 }
  bool add(E element) {
 int compare = _splay(element);
@@ -465,7 +467,7 @@ int compare = _splay(element);
 }
  bool remove(Object object) {
 if (!_validKey(object)) return false;
- return _remove(DEVC$RT.cast(object, Object, E, "CompositeCast", """line 749, column 20 of dart:collection/splay_tree.dart: """, object is E, false)) != null;
+ return _remove(DEVC$RT.cast(object, Object, E, "CompositeCast", """line 751, column 20 of dart:collection/splay_tree.dart: """, object is E, false)) != null;
 }
  void addAll(Iterable<E> elements) {
 for (E element in elements) {
@@ -477,21 +479,17 @@ _addNewRoot(new _SplayTreeNode<E>(element), compare);
 }
  void removeAll(Iterable<Object> elements) {
 for (Object element in elements) {
-if (_validKey(element)) _remove(DEVC$RT.cast(element, Object, E, "CompositeCast", """line 763, column 39 of dart:collection/splay_tree.dart: """, element is E, false));
+if (_validKey(element)) _remove(DEVC$RT.cast(element, Object, E, "CompositeCast", """line 765, column 39 of dart:collection/splay_tree.dart: """, element is E, false));
 }
 }
  void retainAll(Iterable<Object> elements) {
-SplayTreeSet<E> retainSet = new SplayTreeSet<E>(DEVC$RT.cast(_comparator, DEVC$RT.type((Comparator<dynamic> _) {
-}
-), DEVC$RT.type((__CastType19<E> _) {
-}
-), "CompositeCast", """line 769, column 53 of dart:collection/splay_tree.dart: """, _comparator is __CastType19<E>, false), _validKey);
+SplayTreeSet<E> retainSet = new SplayTreeSet<E>(_comparator, _validKey);
  int modificationCount = _modificationCount;
  for (Object object in elements) {
 if (modificationCount != _modificationCount) {
 throw new ConcurrentModificationError(this);
 }
- if (_validKey(object) && _splay(DEVC$RT.cast(object, Object, E, "CompositeCast", """line 777, column 39 of dart:collection/splay_tree.dart: """, object is E, false)) == 0) retainSet.add(_root.key);
+ if (_validKey(object) && _splay(DEVC$RT.cast(object, Object, E, "CompositeCast", """line 779, column 39 of dart:collection/splay_tree.dart: """, object is E, false)) == 0) retainSet.add(_root.key);
 }
  if (retainSet._count != _count) {
 _root = retainSet._root;
@@ -501,27 +499,19 @@ _root = retainSet._root;
 }
  E lookup(Object object) {
 if (!_validKey(object)) return null;
- int comp = _splay(DEVC$RT.cast(object, Object, E, "CompositeCast", """line 789, column 23 of dart:collection/splay_tree.dart: """, object is E, false));
+ int comp = _splay(DEVC$RT.cast(object, Object, E, "CompositeCast", """line 791, column 23 of dart:collection/splay_tree.dart: """, object is E, false));
  if (comp != 0) return null;
  return _root.key;
 }
  Set<E> intersection(Set<Object> other) {
-Set<E> result = new SplayTreeSet<E>(DEVC$RT.cast(_comparator, DEVC$RT.type((Comparator<dynamic> _) {
-}
-), DEVC$RT.type((__CastType19<E> _) {
-}
-), "CompositeCast", """line 795, column 41 of dart:collection/splay_tree.dart: """, _comparator is __CastType19<E>, false), _validKey);
+Set<E> result = new SplayTreeSet<E>(_comparator, _validKey);
  for (E element in this) {
 if (other.contains(element)) result.add(element);
 }
  return result;
 }
  Set<E> difference(Set<Object> other) {
-Set<E> result = new SplayTreeSet<E>(DEVC$RT.cast(_comparator, DEVC$RT.type((Comparator<dynamic> _) {
-}
-), DEVC$RT.type((__CastType19<E> _) {
-}
-), "CompositeCast", """line 803, column 41 of dart:collection/splay_tree.dart: """, _comparator is __CastType19<E>, false), _validKey);
+Set<E> result = new SplayTreeSet<E>(_comparator, _validKey);
  for (E element in this) {
 if (!other.contains(element)) result.add(element);
 }
@@ -531,11 +521,7 @@ if (!other.contains(element)) result.add(element);
 return _clone()..addAll(other);
 }
  SplayTreeSet<E> _clone() {
-var set = new SplayTreeSet<E>(DEVC$RT.cast(_comparator, DEVC$RT.type((Comparator<dynamic> _) {
-}
-), DEVC$RT.type((__CastType19<E> _) {
-}
-), "CompositeCast", """line 815, column 35 of dart:collection/splay_tree.dart: """, _comparator is __CastType19<E>, false), _validKey);
+var set = new SplayTreeSet<E>(_comparator, _validKey);
  set._count = _count;
  set._root = _copyNode(_root);
  return set;
@@ -551,5 +537,4 @@ _clear();
  String toString() => IterableBase.iterableToFullString(this, '{', '}');
 }
  typedef int __CastType14<K>(K __u15, K __u16);
- typedef bool __CastType17(dynamic __u18);
- typedef int __CastType19<E>(E __u20, E __u21);
+ typedef bool __CastType17(Object __u18);

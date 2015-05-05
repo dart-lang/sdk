@@ -17,11 +17,11 @@ var collection;
     return UnmodifiableListView;
   });
   dart.defineLazyClassGeneric(exports, 'UnmodifiableListView', {get: UnmodifiableListView$});
-  // Function _defaultEquals: (dynamic, dynamic) → bool
+  // Function _defaultEquals: (Object, Object) → bool
   function _defaultEquals(a, b) {
     return dart.equals(a, b);
   }
-  // Function _defaultHashCode: (dynamic) → int
+  // Function _defaultHashCode: (Object) → int
   function _defaultHashCode(a) {
     return dart.hashCode(a);
   }
@@ -46,21 +46,21 @@ var collection;
             if (equals == null) {
               return new (_HashMap$(K, V))();
             }
-            hashCode = dart.as(_defaultHashCode, __CastType0);
+            hashCode = _defaultHashCode;
           } else {
             if (dart.notNull(core.identical(core.identityHashCode, hashCode)) && dart.notNull(core.identical(core.identical, equals))) {
               return new (_IdentityHashMap$(K, V))();
             }
             if (equals == null) {
-              equals = dart.as(_defaultEquals, __CastType2);
+              equals = _defaultEquals;
             }
           }
         } else {
           if (hashCode == null) {
-            hashCode = dart.as(_defaultHashCode, dart.functionType(core.int, [K]));
+            hashCode = _defaultHashCode;
           }
           if (equals == null) {
-            equals = dart.as(_defaultEquals, dart.functionType(core.bool, [K, K]));
+            equals = _defaultEquals;
           }
         }
         return new (_CustomHashMap$(K, V))(equals, hashCode, isValidKey);
@@ -96,16 +96,6 @@ var collection;
     return HashMap;
   });
   let HashMap = HashMap$();
-  let __CastType0$ = dart.generic(function(K) {
-    let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.int, [K]));
-    return __CastType0;
-  });
-  let __CastType0 = __CastType0$();
-  let __CastType2$ = dart.generic(function(K) {
-    let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(core.bool, [K, K]));
-    return __CastType2;
-  });
-  let __CastType2 = __CastType2$();
   let _newSet = Symbol('_newSet');
   let SetMixin$ = dart.generic(function(E) {
     class SetMixin extends core.Object {
@@ -210,7 +200,7 @@ var collection;
         let it = this[core.$iterator];
         if (!dart.notNull(it.moveNext()))
           throw _internal.IterableElementError.noElement();
-        let result = dart.as(it.current, E);
+        let result = it.current;
         return result;
       }
       toString() {
@@ -303,7 +293,7 @@ var collection;
         if (!dart.notNull(it.moveNext())) {
           throw _internal.IterableElementError.noElement();
         }
-        return dart.as(it.current, E);
+        return it.current;
       }
       get [core.$last]() {
         let it = this[core.$iterator];
@@ -312,7 +302,7 @@ var collection;
         }
         let result = null;
         do {
-          result = dart.as(it.current, E);
+          result = it.current;
         } while (it.moveNext());
         return result;
       }
@@ -429,21 +419,21 @@ var collection;
             if (equals == null) {
               return new (_HashSet$(E))();
             }
-            hashCode = dart.as(_defaultHashCode, __CastType5);
+            hashCode = _defaultHashCode;
           } else {
             if (dart.notNull(core.identical(core.identityHashCode, hashCode)) && dart.notNull(core.identical(core.identical, equals))) {
               return new (_IdentityHashSet$(E))();
             }
             if (equals == null) {
-              equals = dart.as(_defaultEquals, __CastType7);
+              equals = _defaultEquals;
             }
           }
         } else {
           if (hashCode == null) {
-            hashCode = dart.as(_defaultHashCode, dart.functionType(core.int, [E]));
+            hashCode = _defaultHashCode;
           }
           if (equals == null) {
-            equals = dart.as(_defaultEquals, dart.functionType(core.bool, [E, E]));
+            equals = _defaultEquals;
           }
         }
         return new (_CustomHashSet$(E))(equals, hashCode, isValidKey);
@@ -467,16 +457,6 @@ var collection;
     return HashSet;
   });
   let HashSet = HashSet$();
-  let __CastType5$ = dart.generic(function(E) {
-    let __CastType5 = dart.typedef('__CastType5', () => dart.functionType(core.int, [E]));
-    return __CastType5;
-  });
-  let __CastType5 = __CastType5$();
-  let __CastType7$ = dart.generic(function(E) {
-    let __CastType7 = dart.typedef('__CastType7', () => dart.functionType(core.bool, [E, E]));
-    return __CastType7;
-  });
-  let __CastType7 = __CastType7$();
   let IterableMixin$ = dart.generic(function(E) {
     class IterableMixin extends core.Object {
       [core.$map](f) {
@@ -599,7 +579,7 @@ var collection;
         if (!dart.notNull(it.moveNext())) {
           throw _internal.IterableElementError.noElement();
         }
-        return dart.as(it.current, E);
+        return it.current;
       }
       get [core.$last]() {
         let it = this[core.$iterator];
@@ -608,7 +588,7 @@ var collection;
         }
         let result = null;
         do {
-          result = dart.as(it.current, E);
+          result = it.current;
         } while (it.moveNext());
         return result;
       }
@@ -616,7 +596,7 @@ var collection;
         let it = this[core.$iterator];
         if (!dart.notNull(it.moveNext()))
           throw _internal.IterableElementError.noElement();
-        let result = dart.as(it.current, E);
+        let result = it.current;
         if (it.moveNext())
           throw _internal.IterableElementError.tooMany();
         return result;
@@ -815,7 +795,7 @@ var collection;
         if (!dart.notNull(it.moveNext())) {
           throw _internal.IterableElementError.noElement();
         }
-        return dart.as(it.current, E);
+        return it.current;
       }
       get [core.$last]() {
         let it = this[core.$iterator];
@@ -824,7 +804,7 @@ var collection;
         }
         let result = null;
         do {
-          result = dart.as(it.current, E);
+          result = it.current;
         } while (it.moveNext());
         return result;
       }
@@ -832,7 +812,7 @@ var collection;
         let it = this[core.$iterator];
         if (!dart.notNull(it.moveNext()))
           throw _internal.IterableElementError.noElement();
-        let result = dart.as(it.current, E);
+        let result = it.current;
         if (it.moveNext())
           throw _internal.IterableElementError.tooMany();
         return result;
@@ -1089,21 +1069,21 @@ var collection;
             if (equals == null) {
               return new (_LinkedHashMap$(K, V))();
             }
-            hashCode = dart.as(_defaultHashCode, __CastType10);
+            hashCode = _defaultHashCode;
           } else {
             if (dart.notNull(core.identical(core.identityHashCode, hashCode)) && dart.notNull(core.identical(core.identical, equals))) {
               return new (_LinkedIdentityHashMap$(K, V))();
             }
             if (equals == null) {
-              equals = dart.as(_defaultEquals, __CastType12);
+              equals = _defaultEquals;
             }
           }
         } else {
           if (hashCode == null) {
-            hashCode = dart.as(_defaultHashCode, dart.functionType(core.int, [K]));
+            hashCode = _defaultHashCode;
           }
           if (equals == null) {
-            equals = dart.as(_defaultEquals, dart.functionType(core.bool, [K, K]));
+            equals = _defaultEquals;
           }
         }
         return new (_LinkedCustomHashMap$(K, V))(equals, hashCode, isValidKey);
@@ -1147,16 +1127,6 @@ var collection;
     return LinkedHashMap;
   });
   let LinkedHashMap = LinkedHashMap$();
-  let __CastType10$ = dart.generic(function(K) {
-    let __CastType10 = dart.typedef('__CastType10', () => dart.functionType(core.int, [K]));
-    return __CastType10;
-  });
-  let __CastType10 = __CastType10$();
-  let __CastType12$ = dart.generic(function(K) {
-    let __CastType12 = dart.typedef('__CastType12', () => dart.functionType(core.bool, [K, K]));
-    return __CastType12;
-  });
-  let __CastType12 = __CastType12$();
   let LinkedHashSet$ = dart.generic(function(E) {
     class LinkedHashSet extends core.Object {
       LinkedHashSet(opts) {
@@ -1168,21 +1138,21 @@ var collection;
             if (equals == null) {
               return new (_LinkedHashSet$(E))();
             }
-            hashCode = dart.as(_defaultHashCode, __CastType15);
+            hashCode = _defaultHashCode;
           } else {
             if (dart.notNull(core.identical(core.identityHashCode, hashCode)) && dart.notNull(core.identical(core.identical, equals))) {
               return new (_LinkedIdentityHashSet$(E))();
             }
             if (equals == null) {
-              equals = dart.as(_defaultEquals, __CastType17);
+              equals = _defaultEquals;
             }
           }
         } else {
           if (hashCode == null) {
-            hashCode = dart.as(_defaultHashCode, dart.functionType(core.int, [E]));
+            hashCode = _defaultHashCode;
           }
           if (equals == null) {
-            equals = dart.as(_defaultEquals, dart.functionType(core.bool, [E, E]));
+            equals = _defaultEquals;
           }
         }
         return new (_LinkedCustomHashSet$(E))(equals, hashCode, isValidKey);
@@ -1207,16 +1177,6 @@ var collection;
     return LinkedHashSet;
   });
   let LinkedHashSet = LinkedHashSet$();
-  let __CastType15$ = dart.generic(function(E) {
-    let __CastType15 = dart.typedef('__CastType15', () => dart.functionType(core.int, [E]));
-    return __CastType15;
-  });
-  let __CastType15 = __CastType15$();
-  let __CastType17$ = dart.generic(function(E) {
-    let __CastType17 = dart.typedef('__CastType17', () => dart.functionType(core.bool, [E, E]));
-    return __CastType17;
-  });
-  let __CastType17 = __CastType17$();
   let _modificationCount = Symbol('_modificationCount');
   let _length = Symbol('_length');
   let _next = Symbol('_next');
@@ -3031,7 +2991,7 @@ var collection;
       get(key) {
         if (key == null)
           throw new core.ArgumentError(key);
-        if (!dart.notNull(dart.dcall(this[_validKey], key)))
+        if (!dart.notNull(this[_validKey](key)))
           return null;
         if (this[_root] != null) {
           let comp = this[_splay](dart.as(key, K));
@@ -3043,7 +3003,7 @@ var collection;
         return null;
       }
       remove(key) {
-        if (!dart.notNull(dart.dcall(this[_validKey], key)))
+        if (!dart.notNull(this[_validKey](key)))
           return null;
         let mapRoot = dart.as(this[_remove](dart.as(key, K)), _SplayTreeMapNode);
         if (mapRoot != null)
@@ -3115,7 +3075,7 @@ var collection;
         this[_clear]();
       }
       containsKey(key) {
-        return dart.notNull(dart.dcall(this[_validKey], key)) && this[_splay](dart.as(key, K)) == 0;
+        return dart.notNull(this[_validKey](key)) && this[_splay](dart.as(key, K)) == 0;
       }
       containsValue(value) {
         let found = false;
@@ -3291,7 +3251,7 @@ var collection;
       }
       [core.$toSet]() {
         let setOrMap = this[_tree];
-        let set = new (SplayTreeSet$(K))(dart.as(setOrMap[_comparator], __CastType20), dart.as(setOrMap[_validKey], __CastType23));
+        let set = new (SplayTreeSet$(K))(dart.as(setOrMap[_comparator], __CastType0), dart.as(setOrMap[_validKey], __CastType3));
         set[_count] = this[_tree][_count];
         set[_root] = set[_copyNode](this[_tree][_root]);
         return set;
@@ -3369,7 +3329,7 @@ var collection;
           compare = null;
         if (isValidKey === void 0)
           isValidKey = null;
-        this[_comparator] = compare == null ? dart.bind(core.Comparable, 'compare') : compare;
+        this[_comparator] = dart.as(compare == null ? dart.bind(core.Comparable, 'compare') : compare, core.Comparator$(E));
         this[_validKey] = isValidKey != null ? isValidKey : v => dart.is(v, E);
         super._SplayTree();
       }
@@ -3387,7 +3347,7 @@ var collection;
       [_compare](e1, e2) {
         dart.as(e1, E);
         dart.as(e2, E);
-        return dart.dcall(this[_comparator], e1, e2);
+        return this[_comparator](e1, e2);
       }
       get [core.$iterator]() {
         return new (_SplayTreeKeyIterator$(E))(this);
@@ -3419,7 +3379,7 @@ var collection;
         return this[_root].key;
       }
       [core.$contains](object) {
-        return dart.notNull(dart.dcall(this[_validKey], object)) && this[_splay](dart.as(object, E)) == 0;
+        return dart.notNull(this[_validKey](object)) && this[_splay](dart.as(object, E)) == 0;
       }
       add(element) {
         dart.as(element, E);
@@ -3430,7 +3390,7 @@ var collection;
         return true;
       }
       remove(object) {
-        if (!dart.notNull(dart.dcall(this[_validKey], object)))
+        if (!dart.notNull(this[_validKey](object)))
           return false;
         return this[_remove](dart.as(object, E)) != null;
       }
@@ -3445,18 +3405,18 @@ var collection;
       }
       removeAll(elements) {
         for (let element of elements) {
-          if (dart.dcall(this[_validKey], element))
+          if (this[_validKey](element))
             this[_remove](dart.as(element, E));
         }
       }
       retainAll(elements) {
-        let retainSet = new (SplayTreeSet$(E))(dart.as(this[_comparator], __CastType25), this[_validKey]);
+        let retainSet = new (SplayTreeSet$(E))(this[_comparator], this[_validKey]);
         let modificationCount = this[_modificationCount];
         for (let object of elements) {
           if (modificationCount != this[_modificationCount]) {
             throw new core.ConcurrentModificationError(this);
           }
-          if (dart.notNull(dart.dcall(this[_validKey], object)) && this[_splay](dart.as(object, E)) == 0)
+          if (dart.notNull(this[_validKey](object)) && this[_splay](dart.as(object, E)) == 0)
             retainSet.add(this[_root].key);
         }
         if (retainSet[_count] != this[_count]) {
@@ -3466,7 +3426,7 @@ var collection;
         }
       }
       lookup(object) {
-        if (!dart.notNull(dart.dcall(this[_validKey], object)))
+        if (!dart.notNull(this[_validKey](object)))
           return null;
         let comp = this[_splay](dart.as(object, E));
         if (comp != 0)
@@ -3474,7 +3434,7 @@ var collection;
         return this[_root].key;
       }
       intersection(other) {
-        let result = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.functionType(core.int, [E, E])), this[_validKey]);
+        let result = new (SplayTreeSet$(E))(this[_comparator], this[_validKey]);
         for (let element of this) {
           if (other[core.$contains](element))
             result.add(element);
@@ -3482,7 +3442,7 @@ var collection;
         return result;
       }
       difference(other) {
-        let result = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.functionType(core.int, [E, E])), this[_validKey]);
+        let result = new (SplayTreeSet$(E))(this[_comparator], this[_validKey]);
         for (let element of this) {
           if (!dart.notNull(other[core.$contains](element)))
             result.add(element);
@@ -3496,7 +3456,7 @@ var collection;
         return _;
       }
       [_clone]() {
-        let set = new (SplayTreeSet$(E))(dart.as(this[_comparator], dart.functionType(core.int, [E, E])), this[_validKey]);
+        let set = new (SplayTreeSet$(E))(this[_comparator], this[_validKey]);
         set[_count] = this[_count];
         set[_root] = this[_copyNode](this[_root]);
         return set;
@@ -3524,17 +3484,12 @@ var collection;
     return SplayTreeSet;
   });
   let SplayTreeSet = SplayTreeSet$();
-  let __CastType20$ = dart.generic(function(K) {
-    let __CastType20 = dart.typedef('__CastType20', () => dart.functionType(core.int, [K, K]));
-    return __CastType20;
+  let __CastType0$ = dart.generic(function(K) {
+    let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.int, [K, K]));
+    return __CastType0;
   });
-  let __CastType20 = __CastType20$();
-  let __CastType23 = dart.typedef('__CastType23', () => dart.functionType(core.bool, [dart.dynamic]));
-  let __CastType25$ = dart.generic(function(E) {
-    let __CastType25 = dart.typedef('__CastType25', () => dart.functionType(core.int, [E, E]));
-    return __CastType25;
-  });
-  let __CastType25 = __CastType25$();
+  let __CastType0 = __CastType0$();
+  let __CastType3 = dart.typedef('__CastType3', () => dart.functionType(core.bool, [core.Object]));
   let _strings = Symbol('_strings');
   let _nums = Symbol('_nums');
   let _rest = Symbol('_rest');
@@ -3855,7 +3810,7 @@ var collection;
         super._HashMap();
       }
       get(key) {
-        if (!dart.notNull(dart.dcall(this[_validKey], key)))
+        if (!dart.notNull(this[_validKey](key)))
           return null;
         return super[_get](key);
       }
@@ -3865,12 +3820,12 @@ var collection;
         super[_set](key, value);
       }
       containsKey(key) {
-        if (!dart.notNull(dart.dcall(this[_validKey], key)))
+        if (!dart.notNull(this[_validKey](key)))
           return false;
         return super[_containsKey](key);
       }
       remove(key) {
-        if (!dart.notNull(dart.dcall(this[_validKey], key)))
+        if (!dart.notNull(this[_validKey](key)))
           return null;
         return super[_remove](key);
       }
@@ -4278,7 +4233,7 @@ var collection;
         super._LinkedHashMap();
       }
       get(key) {
-        if (!dart.notNull(dart.dcall(this[_validKey], key)))
+        if (!dart.notNull(this[_validKey](key)))
           return null;
         return super[_get](key);
       }
@@ -4288,12 +4243,12 @@ var collection;
         super[_set](key, value);
       }
       containsKey(key) {
-        if (!dart.notNull(dart.dcall(this[_validKey], key)))
+        if (!dart.notNull(this[_validKey](key)))
           return false;
         return super[_containsKey](key);
       }
       remove(key) {
-        if (!dart.notNull(dart.dcall(this[_validKey], key)))
+        if (!dart.notNull(this[_validKey](key)))
           return null;
         return super[_remove](key);
       }
@@ -4682,17 +4637,17 @@ var collection;
         return super[_add](object);
       }
       [core.$contains](object) {
-        if (!dart.notNull(dart.dcall(this[_validKey], object)))
+        if (!dart.notNull(this[_validKey](object)))
           return false;
         return super[_contains](object);
       }
       lookup(object) {
-        if (!dart.notNull(dart.dcall(this[_validKey], object)))
+        if (!dart.notNull(this[_validKey](object)))
           return null;
         return super[_lookup](object);
       }
       remove(object) {
-        if (!dart.notNull(dart.dcall(this[_validKey], object)))
+        if (!dart.notNull(this[_validKey](object)))
           return false;
         return super[_remove](object);
       }
@@ -5065,30 +5020,30 @@ var collection;
         return super[_add](element);
       }
       [core.$contains](object) {
-        if (!dart.notNull(dart.dcall(this[_validKey], object)))
+        if (!dart.notNull(this[_validKey](object)))
           return false;
         return super[_contains](object);
       }
       lookup(object) {
-        if (!dart.notNull(dart.dcall(this[_validKey], object)))
+        if (!dart.notNull(this[_validKey](object)))
           return null;
         return super[_lookup](object);
       }
       remove(object) {
-        if (!dart.notNull(dart.dcall(this[_validKey], object)))
+        if (!dart.notNull(this[_validKey](object)))
           return false;
         return super[_remove](object);
       }
       containsAll(elements) {
         for (let element of elements) {
-          if (!dart.notNull(dart.dcall(this[_validKey], element)) || !dart.notNull(this[core.$contains](element)))
+          if (!dart.notNull(this[_validKey](element)) || !dart.notNull(this[core.$contains](element)))
             return false;
         }
         return true;
       }
       removeAll(elements) {
         for (let element of elements) {
-          if (dart.dcall(this[_validKey], element)) {
+          if (this[_validKey](element)) {
             super[_remove](element);
           }
         }
