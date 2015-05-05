@@ -46,6 +46,10 @@ cc/ThreadInterrupterMedium: Skip
 cc/ThreadInterrupterLow: Skip
 cc/Service_Profile: Skip
 
+[ $arch == arm ]
+cc/Int8ListLengthMaxElements: Skip # Issue 23314
+cc/ArrayLengthMaxElements: Skip # Issue 23314
+
 [ $compiler == dart2js ]
 dart/redirection_type_shuffling_test: Skip # Depends on lazy enforcement of type bounds
 dart/byte_array_test: Skip # compilers not aware of byte arrays
