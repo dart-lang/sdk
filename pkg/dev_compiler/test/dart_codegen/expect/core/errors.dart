@@ -97,7 +97,7 @@ explanation = ": Only valid value is $start";
 }
  class IndexError extends ArgumentError implements RangeError {final indexable;
  final int length;
- IndexError(int invalidValue, indexable, [String name, String message, int length]) : this.indexable = indexable, this.length = ((__x3) => DEVC$RT.cast(__x3, dynamic, int, "DynamicCast", """line 371, column 23 of dart:core/errors.dart: """, __x3 is int, true))((length != null) ? length : indexable.length), super.value(invalidValue, name, (message != null) ? message : "Index out of range");
+ IndexError(int invalidValue, indexable, [String name, String message, int length]) : this.indexable = indexable, this.length = (length != null) ? length : DEVC$RT.cast(indexable.length, dynamic, int, "DynamicCast", """line 371, column 51 of dart:core/errors.dart: """, indexable.length is int, true), super.value(invalidValue, name, (message != null) ? message : "Index out of range");
  int get start => 0;
  int get end => length - 1;
  String toString() {

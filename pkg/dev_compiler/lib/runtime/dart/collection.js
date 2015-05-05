@@ -3000,7 +3000,7 @@ var collection;
         if (isValidKey === void 0)
           isValidKey = null;
         this[_comparator] = dart.as(compare == null ? dart.bind(core.Comparable, 'compare') : compare, core.Comparator$(K));
-        this[_validKey] = dart.as(isValidKey != null ? isValidKey : v => dart.is(v, K), _Predicate);
+        this[_validKey] = isValidKey != null ? isValidKey : v => dart.is(v, K);
         super._SplayTree();
       }
       from(other, compare, isValidKey) {
@@ -3383,8 +3383,8 @@ var collection;
           compare = null;
         if (isValidKey === void 0)
           isValidKey = null;
-        this[_comparator] = dart.as(compare == null ? dart.bind(core.Comparable, 'compare') : compare, core.Comparator);
-        this[_validKey] = dart.as(isValidKey != null ? isValidKey : v => dart.is(v, E), _Predicate);
+        this[_comparator] = compare == null ? dart.bind(core.Comparable, 'compare') : compare;
+        this[_validKey] = isValidKey != null ? isValidKey : v => dart.is(v, E);
         super._SplayTree();
       }
       from(elements, compare, isValidKey) {
@@ -3619,10 +3619,10 @@ var collection;
       get(key) {
         if (_HashMap._isStringKey(key)) {
           let strings = this[_strings];
-          return dart.as(strings == null ? null : _HashMap._getTableEntry(strings, key), V);
+          return strings == null ? null : dart.as(_HashMap._getTableEntry(strings, key), V);
         } else if (_HashMap._isNumericKey(key)) {
           let nums = this[_nums];
-          return dart.as(nums == null ? null : _HashMap._getTableEntry(nums, key), V);
+          return nums == null ? null : dart.as(_HashMap._getTableEntry(nums, key), V);
         } else {
           return this[_get](key);
         }
@@ -3633,7 +3633,7 @@ var collection;
           return null;
         let bucket = this[_getBucket](rest, key);
         let index = this[_findBucketIndex](bucket, key);
-        return dart.as(dart.notNull(index) < 0 ? null : bucket[dart.notNull(index) + 1], V);
+        return dart.notNull(index) < 0 ? null : dart.as(bucket[dart.notNull(index) + 1], V);
       }
       set(key, value) {
         dart.as(key, K);
@@ -3867,7 +3867,7 @@ var collection;
       _CustomHashMap(equals, hashCode, validKey) {
         this[_equals] = equals;
         this[_hashCode] = hashCode;
-        this[_validKey] = dart.as(validKey != null ? validKey : v => dart.is(v, K), _Predicate);
+        this[_validKey] = validKey != null ? validKey : v => dart.is(v, K);
         super._HashMap();
       }
       get(key) {
@@ -4047,13 +4047,13 @@ var collection;
           if (strings == null)
             return null;
           let cell = dart.as(_LinkedHashMap._getTableEntry(strings, key), LinkedHashMapCell);
-          return dart.as(cell == null ? null : cell[_value], V);
+          return cell == null ? null : dart.as(cell[_value], V);
         } else if (_LinkedHashMap._isNumericKey(key)) {
           let nums = this[_nums];
           if (nums == null)
             return null;
           let cell = dart.as(_LinkedHashMap._getTableEntry(nums, key), LinkedHashMapCell);
-          return dart.as(cell == null ? null : cell[_value], V);
+          return cell == null ? null : dart.as(cell[_value], V);
         } else {
           return this[_get](key);
         }
@@ -4290,7 +4290,7 @@ var collection;
       _LinkedCustomHashMap(equals, hashCode, validKey) {
         this[_equals] = equals;
         this[_hashCode] = hashCode;
-        this[_validKey] = dart.as(validKey != null ? validKey : v => dart.is(v, K), _Predicate);
+        this[_validKey] = validKey != null ? validKey : v => dart.is(v, K);
         super._LinkedHashMap();
       }
       get(key) {
@@ -4674,7 +4674,7 @@ var collection;
       _CustomHashSet(equality, hasher, validKey) {
         this[_equality] = equality;
         this[_hasher] = hasher;
-        this[_validKey] = dart.as(validKey != null ? validKey : x => dart.is(x, E), _Predicate);
+        this[_validKey] = validKey != null ? validKey : x => dart.is(x, E);
         super._HashSet();
       }
       [_newSet]() {
@@ -5056,7 +5056,7 @@ var collection;
       _LinkedCustomHashSet(equality, hasher, validKey) {
         this[_equality] = equality;
         this[_hasher] = hasher;
-        this[_validKey] = dart.as(validKey != null ? validKey : x => dart.is(x, E), _Predicate);
+        this[_validKey] = validKey != null ? validKey : x => dart.is(x, E);
         super._LinkedHashSet();
       }
       [_newSet]() {

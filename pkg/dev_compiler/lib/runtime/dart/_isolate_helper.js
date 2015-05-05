@@ -889,7 +889,7 @@ var _isolate_helper;
         {
           exports._globalState.currentManagerId = dart.as(dart.dindex(msg, 'id'), core.int);
           let functionName = dart.as(dart.dindex(msg, 'functionName'), core.String);
-          let entryPoint = dart.as(functionName == null ? exports._globalState.entry : IsolateNatives._getJSFunctionFromName(functionName), core.Function);
+          let entryPoint = functionName == null ? exports._globalState.entry : dart.as(IsolateNatives._getJSFunctionFromName(functionName), core.Function);
           let args = dart.dindex(msg, 'args');
           let message = _deserializeMessage(dart.dindex(msg, 'msg'));
           let isSpawnUri = dart.dindex(msg, 'isSpawnUri');
@@ -977,7 +977,7 @@ var _isolate_helper;
       return globalFunctionsContainer[functionName]();
     }
     static _getJSFunctionName(f) {
-      return dart.as(dart.is(f, _js_helper.Closure) ? f.$name : null, core.String);
+      return dart.is(f, _js_helper.Closure) ? dart.as(f.$name, core.String) : null;
     }
     static _allocate(ctor) {
       return new ctor();

@@ -878,7 +878,7 @@ var convert;
   class _JsonStringifier extends core.Object {
     _JsonStringifier(_toEncodable) {
       this[_seen] = new core.List();
-      this[_toEncodable$] = dart.as(_toEncodable != null ? _toEncodable : _defaultToEncodable, core.Function);
+      this[_toEncodable$] = _toEncodable != null ? _toEncodable : _defaultToEncodable;
     }
     static hexDigit(x) {
       return dart.notNull(x) < 10 ? 48 + dart.notNull(x) : 87 + dart.notNull(x);
@@ -2362,10 +2362,10 @@ var convert;
       return this[_parent].length;
     }
     [core.$elementAt](index) {
-      return dart.as(this[_parent][_isUpgraded] ? this[_parent].keys[core.$elementAt](index) : this[_parent][_computeKeys]()[core.$get](index), core.String);
+      return this[_parent][_isUpgraded] ? dart.as(this[_parent].keys[core.$elementAt](index), core.String) : this[_parent][_computeKeys]()[core.$get](index);
     }
     get [core.$iterator]() {
-      return dart.as(this[_parent][_isUpgraded] ? this[_parent].keys[core.$iterator] : this[_parent][_computeKeys]()[core.$iterator], core.Iterator);
+      return this[_parent][_isUpgraded] ? this[_parent].keys[core.$iterator] : this[_parent][_computeKeys]()[core.$iterator];
     }
     [core.$contains](key) {
       return this[_parent].containsKey(key);

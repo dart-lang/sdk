@@ -28,7 +28,7 @@ if (offset != -1) {
 offset = -1;
 }
  if (offset == -1) {
-String source = ((__x4) => DEVC$RT.cast(__x4, dynamic, String, "DynamicCast", """line 113, column 23 of dart:core/exceptions.dart: """, __x4 is String, true))(this.source);
+String source = ((__x3) => DEVC$RT.cast(__x3, dynamic, String, "DynamicCast", """line 113, column 23 of dart:core/exceptions.dart: """, __x3 is String, true))(this.source);
  if (source.length > 78) {
   source = source.substring(0, 75) + "...";
   }
@@ -38,7 +38,7 @@ String source = ((__x4) => DEVC$RT.cast(__x4, dynamic, String, "DynamicCast", ""
  int lineStart = 0;
  bool lastWasCR;
  for (int i = 0; i < offset; i++) {
-int char = ((__x5) => DEVC$RT.cast(__x5, dynamic, int, "DynamicCast", """line 123, column 18 of dart:core/exceptions.dart: """, __x5 is int, true))(source.codeUnitAt(i));
+int char = ((__x4) => DEVC$RT.cast(__x4, dynamic, int, "DynamicCast", """line 123, column 18 of dart:core/exceptions.dart: """, __x4 is int, true))(source.codeUnitAt(i));
  if (char == 0x0a) {
   if (lineStart != i || !lastWasCR) {
     lineNum++;
@@ -60,7 +60,7 @@ report += " (at character ${offset + 1})\n";
 }
  int lineEnd = DEVC$RT.cast(source.length, dynamic, int, "DynamicCast", """line 141, column 19 of dart:core/exceptions.dart: """, source.length is int, true);
  for (int i = offset; i < source.length; i++) {
-int char = ((__x6) => DEVC$RT.cast(__x6, dynamic, int, "DynamicCast", """line 143, column 18 of dart:core/exceptions.dart: """, __x6 is int, true))(source.codeUnitAt(i));
+int char = ((__x5) => DEVC$RT.cast(__x5, dynamic, int, "DynamicCast", """line 143, column 18 of dart:core/exceptions.dart: """, __x5 is int, true))(source.codeUnitAt(i));
  if (char == 0x0a || char == 0x0d) {
   lineEnd = i;
    break;
@@ -87,7 +87,7 @@ int index = offset - lineStart;
    prefix = postfix = "...";
   }
 }
- String slice = ((__x7) => DEVC$RT.cast(__x7, dynamic, String, "DynamicCast", """line 171, column 20 of dart:core/exceptions.dart: """, __x7 is String, true))(source.substring(start, end));
+ String slice = ((__x6) => DEVC$RT.cast(__x6, dynamic, String, "DynamicCast", """line 171, column 20 of dart:core/exceptions.dart: """, __x6 is String, true))(source.substring(start, end));
  int markOffset = offset - start + prefix.length;
  return "$report$prefix$slice$postfix\n${" " * markOffset}^\n";
 }

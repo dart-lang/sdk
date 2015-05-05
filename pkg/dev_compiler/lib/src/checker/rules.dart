@@ -610,6 +610,9 @@ class DownwardsInference {
   /// Downward inference
   bool _inferExpression(Expression e, DartType t, List<String> errors,
       {cast: true}) {
+    if (e is ConditionalExpression) {
+      return _inferConditionalExpression(e, t, errors);
+    }
     if (e is Conversion) return _inferExpression(e.node, t, errors);
     if (rules.isSubTypeOf(rules.getStaticType(e), t)) return true;
     if (cast && rules.getStaticType(e).isDynamic) {
@@ -620,8 +623,9 @@ class DownwardsInference {
     if (e is ListLiteral) return _inferListLiteral(e, t, errors);
     if (e is MapLiteral) return _inferMapLiteral(e, t, errors);
     if (e is NamedExpression) return _inferNamedExpression(e, t, errors);
-    if (e is InstanceCreationExpression) return _inferInstanceCreationExpression(
-        e, t, errors);
+    if (e is InstanceCreationExpression) {
+      return _inferInstanceCreationExpression(e, t, errors);
+    }
     errors.add("$e cannot be typed as $t");
     return false;
   }
@@ -706,6 +710,12 @@ class DownwardsInference {
   }
 
   /// These assume that e is not already a subtype of t
+
+  bool _inferConditionalExpression(
+      ConditionalExpression e, DartType t, errors) {
+    return _inferExpression(e.thenExpression, t, errors) &&
+        _inferExpression(e.elseExpression, t, errors);
+  }
 
   bool _inferInstanceCreationExpression(
       InstanceCreationExpression e, DartType t, errors) {

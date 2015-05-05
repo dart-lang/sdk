@@ -14,6 +14,37 @@ import '../test_util.dart';
 void main() {
   configureTest();
 
+  test('ternary operator', () {
+    testChecker({
+      '/main.dart': '''
+        abstract class Comparable<T> {
+          int compareTo(T other);
+          static int compare(Comparable a, Comparable b) => a.compareTo(b);
+        }
+        typedef int Comparator<T>(T a, T b);
+
+        typedef bool _Predicate<T>(T value);
+
+        class SplayTreeMap<K, V> {
+          Comparator<K> _comparator;
+          _Predicate _validKey;
+
+          // Initializing _comparator needs a cast, since K may not always be
+          // Comparable.
+          // Initializing _validKey shouldn't need a cast.  Currently
+          // it requires inference to work because of dartbug.com/23381
+          SplayTreeMap([int compare(K key1, K key2),
+                        bool isValidKey(potentialKey)]) {
+            : _comparator = /*warning:DownCastComposite*/(compare == null) ? Comparable.compare : compare,
+              _validKey = /*info:InferredType should be pass*/(isValidKey != null) ? isValidKey : ((v) => true);
+          }
+        }
+        void main() {
+        }
+      '''
+    });
+  });
+
   test('dynamic invocation', () {
     testChecker({
       '/main.dart': '''

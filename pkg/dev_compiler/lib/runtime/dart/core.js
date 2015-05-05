@@ -732,7 +732,7 @@ var core;
       if (length === void 0)
         length = null;
       this.indexable = indexable;
-      this.length = dart.as(length != null ? length : dart.dload(indexable, 'length'), int);
+      this.length = length != null ? length : dart.as(dart.dload(indexable, 'length'), int);
       super.value(invalidValue, name, message != null ? message : "Index out of range");
     }
     get start() {
@@ -1030,7 +1030,7 @@ var core;
       }
       get(object) {
         let values = _js_helper.Primitives.getProperty(object, Expando._EXPANDO_PROPERTY_NAME);
-        return dart.as(values == null ? null : _js_helper.Primitives.getProperty(values, this[_getKey]()), T);
+        return values == null ? null : dart.as(_js_helper.Primitives.getProperty(values, this[_getKey]()), T);
       }
       set(object, value) {
         dart.as(value, T);
@@ -2353,7 +2353,7 @@ var core;
     file(path, opts) {
       let windows = opts && 'windows' in opts ? opts.windows : null;
       windows = windows == null ? Uri._isWindows : windows;
-      return dart.as(windows ? Uri._makeWindowsFileUrl(path) : Uri._makeFileUri(path), Uri);
+      return windows ? dart.as(Uri._makeWindowsFileUrl(path), Uri) : dart.as(Uri._makeFileUri(path), Uri);
     }
     static get base() {
       let uri = _js_helper.Primitives.currentUri();

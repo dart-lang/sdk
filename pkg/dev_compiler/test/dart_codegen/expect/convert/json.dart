@@ -202,7 +202,7 @@ _isDone = true;
  static const int CHAR_u = 0x75;
  final List _seen = new List();
  final Function _toEncodable;
- _JsonStringifier(Object _toEncodable(Object o)) : _toEncodable = ((__x14) => DEVC$RT.cast(__x14, dynamic, Function, "DynamicCast", """line 547, column 24 of dart:convert/json.dart: """, __x14 is Function, true))((_toEncodable != null) ? _toEncodable : _defaultToEncodable);
+ _JsonStringifier(Object _toEncodable(Object o)) : _toEncodable = (_toEncodable != null) ? _toEncodable : _defaultToEncodable;
  void writeString(String characters);
  void writeStringSlice(String characters, int start, int end);
  void writeCharCode(int charCode);

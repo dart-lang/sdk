@@ -274,7 +274,7 @@ part of dart.core;
   bool windows}
 ) {
   windows = windows == null ? Uri._isWindows : windows;
-   return ((__x21) => DEVC$RT.cast(__x21, dynamic, Uri, "DynamicCast", """line 698, column 12 of dart:core/uri.dart: """, __x21 is Uri, true))(windows ? _makeWindowsFileUrl(path) : _makeFileUri(path));
+   return windows ? ((__x20) => DEVC$RT.cast(__x20, dynamic, Uri, "DynamicCast", """line 698, column 22 of dart:core/uri.dart: """, __x20 is Uri, true))(_makeWindowsFileUrl(path)) : ((__x21) => DEVC$RT.cast(__x21, dynamic, Uri, "DynamicCast", """line 698, column 50 of dart:core/uri.dart: """, __x21 is Uri, true))(_makeFileUri(path));
   }
  external static Uri get base;
  external static bool get _isWindows;

@@ -46,9 +46,9 @@ part of dart.core;
  class _GeneratorIterable<E> extends IterableBase<E> implements EfficientLength {final int _start;
  final int _end;
  final _Generator<E> _generator;
- _GeneratorIterable(this._end, E generator(int n)) : _start = 0, _generator = ((__x8) => DEVC$RT.cast(__x8, dynamic, DEVC$RT.type((_Generator<E> _) {
+ _GeneratorIterable(this._end, E generator(int n)) : _start = 0, _generator = ((__x7) => DEVC$RT.cast(__x7, dynamic, DEVC$RT.type((_Generator<E> _) {
 }
-), "CompositeCast", """line 320, column 22 of dart:core/iterable.dart: """, __x8 is _Generator<E>, false))((generator != null) ? generator : _id);
+), "CompositeCast", """line 320, column 22 of dart:core/iterable.dart: """, __x7 is _Generator<E>, false))((generator != null) ? generator : _id);
  _GeneratorIterable.slice(this._start, this._end, this._generator);
  Iterator<E> get iterator => new _GeneratorIterator<E>(_start, _end, _generator);
  int get length => _end - _start;

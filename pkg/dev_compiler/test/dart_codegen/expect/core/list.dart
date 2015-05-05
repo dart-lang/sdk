@@ -32,7 +32,7 @@ part of dart.core;
  void forEach(void f(E element)) {
   int length = this.length;
    for (int i = 0; i < length; i++) {
-    f(((__x9) => DEVC$RT.cast(__x9, dynamic, E, "CompositeCast", """line 153, column 9 of dart:core/list.dart: """, __x9 is E, false))(JS('', '#[#]', this, i)));
+    f(((__x8) => DEVC$RT.cast(__x8, dynamic, E, "CompositeCast", """line 153, column 9 of dart:core/list.dart: """, __x8 is E, false))(JS('', '#[#]', this, i)));
      if (length != this.length) {
       throw new ConcurrentModificationError(this);
       }
@@ -46,7 +46,7 @@ part of dart.core;
    for (int i = 0; i < this.length; i++) {
     list[i] = "${this[i]}";
     }
-   return ((__x10) => DEVC$RT.cast(__x10, dynamic, String, "DynamicCast", """line 169, column 12 of dart:core/list.dart: """, __x10 is String, true))(JS('String', "#.join(#)", list, separator));
+   return ((__x9) => DEVC$RT.cast(__x9, dynamic, String, "DynamicCast", """line 169, column 12 of dart:core/list.dart: """, __x9 is String, true))(JS('String', "#.join(#)", list, separator));
   }
  Iterable<E> take(int n) {
   return new IterableMixinWorkaround<E>().takeList(this, n);
@@ -61,7 +61,7 @@ part of dart.core;
   return new IterableMixinWorkaround<E>().skipWhile(this, test);
   }
  E reduce(E combine(E value, E element)) {
-  return ((__x11) => DEVC$RT.cast(__x11, dynamic, E, "CompositeCast", """line 189, column 12 of dart:core/list.dart: """, __x11 is E, false))(IterableMixinWorkaround.reduce(this, combine));
+  return ((__x10) => DEVC$RT.cast(__x10, dynamic, E, "CompositeCast", """line 189, column 12 of dart:core/list.dart: """, __x10 is E, false))(IterableMixinWorkaround.reduce(this, combine));
   }
  fold(initialValue, combine(previousValue, E element)) {
   return IterableMixinWorkaround.fold(this, initialValue, combine);
@@ -69,15 +69,15 @@ part of dart.core;
  E firstWhere(bool test(E value), {
   E orElse()}
 ) {
-  return ((__x12) => DEVC$RT.cast(__x12, dynamic, E, "CompositeCast", """line 197, column 12 of dart:core/list.dart: """, __x12 is E, false))(IterableMixinWorkaround.firstWhere(this, test, orElse));
+  return ((__x11) => DEVC$RT.cast(__x11, dynamic, E, "CompositeCast", """line 197, column 12 of dart:core/list.dart: """, __x11 is E, false))(IterableMixinWorkaround.firstWhere(this, test, orElse));
   }
  E lastWhere(bool test(E value), {
   E orElse()}
 ) {
-  return ((__x13) => DEVC$RT.cast(__x13, dynamic, E, "CompositeCast", """line 201, column 12 of dart:core/list.dart: """, __x13 is E, false))(IterableMixinWorkaround.lastWhereList(this, test, orElse));
+  return ((__x12) => DEVC$RT.cast(__x12, dynamic, E, "CompositeCast", """line 201, column 12 of dart:core/list.dart: """, __x12 is E, false))(IterableMixinWorkaround.lastWhereList(this, test, orElse));
   }
  E singleWhere(bool test(E value)) {
-  return ((__x14) => DEVC$RT.cast(__x14, dynamic, E, "CompositeCast", """line 205, column 12 of dart:core/list.dart: """, __x14 is E, false))(IterableMixinWorkaround.singleWhere(this, test));
+  return ((__x13) => DEVC$RT.cast(__x13, dynamic, E, "CompositeCast", """line 205, column 12 of dart:core/list.dart: """, __x13 is E, false))(IterableMixinWorkaround.singleWhere(this, test));
   }
  E elementAt(int index) {
   return this[index];
@@ -122,11 +122,11 @@ part of dart.core;
   }
  Set<E> toSet() => new Set<E>.from(this);
  Iterator<E> get iterator => new ListIterator<E>(this);
- int get hashCode => ((__x15) => DEVC$RT.cast(__x15, dynamic, int, "DynamicCast", """line 262, column 23 of dart:core/list.dart: """, __x15 is int, true))(Primitives.objectHashCode(this));
+ int get hashCode => ((__x14) => DEVC$RT.cast(__x14, dynamic, int, "DynamicCast", """line 262, column 23 of dart:core/list.dart: """, __x14 is int, true))(Primitives.objectHashCode(this));
  E operator [](int index) {
   if (index is! int) throw new ArgumentError(index);
    if (index >= length || index < 0) throw new RangeError.value(index);
-   return ((__x16) => DEVC$RT.cast(__x16, dynamic, E, "CompositeCast", """line 273, column 12 of dart:core/list.dart: """, __x16 is E, false))(JS('var', '#[#]', this, index));
+   return ((__x15) => DEVC$RT.cast(__x15, dynamic, E, "CompositeCast", """line 273, column 12 of dart:core/list.dart: """, __x15 is E, false))(JS('var', '#[#]', this, index));
   }
  void operator []=(int index, E value) {
   checkMutable('indexed set');
@@ -134,7 +134,7 @@ part of dart.core;
    if (index >= length || index < 0) throw new RangeError.value(index);
    JS('void', r'#[#] = #', this, index, value);
   }
- int get length => ((__x17) => DEVC$RT.cast(__x17, dynamic, int, "DynamicCast", """line 292, column 21 of dart:core/list.dart: """, __x17 is int, true))(JS('JSUInt32', r'#.length', this));
+ int get length => ((__x16) => DEVC$RT.cast(__x16, dynamic, int, "DynamicCast", """line 292, column 21 of dart:core/list.dart: """, __x16 is int, true))(JS('JSUInt32', r'#.length', this));
  void set length(int newLength) {
   if (newLength is! int) throw new ArgumentError(newLength);
    if (newLength < 0) throw new RangeError.value(newLength);
@@ -198,12 +198,12 @@ part of dart.core;
     throw new RangeError.value(index);
     }
    checkGrowable('removeAt');
-   return ((__x18) => DEVC$RT.cast(__x18, dynamic, E, "CompositeCast", """line 524, column 12 of dart:core/list.dart: """, __x18 is E, false))(JS('var', r'#.splice(#, 1)[0]', this, index));
+   return ((__x17) => DEVC$RT.cast(__x17, dynamic, E, "CompositeCast", """line 524, column 12 of dart:core/list.dart: """, __x17 is E, false))(JS('var', r'#.splice(#, 1)[0]', this, index));
   }
  E removeLast() {
   checkGrowable('removeLast');
    if (length == 0) throw new RangeError.value(-1);
-   return ((__x19) => DEVC$RT.cast(__x19, dynamic, E, "CompositeCast", """line 535, column 12 of dart:core/list.dart: """, __x19 is E, false))(JS('var', r'#.pop()', this));
+   return ((__x18) => DEVC$RT.cast(__x18, dynamic, E, "CompositeCast", """line 535, column 12 of dart:core/list.dart: """, __x18 is E, false))(JS('var', r'#.pop()', this));
   }
  void removeWhere(bool test(E element)) {
   IterableMixinWorkaround.removeWhereList(this, test);

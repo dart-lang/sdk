@@ -292,7 +292,7 @@ var _interceptors;
       return this[_shlPositive](other);
     }
     [_shlPositive](other) {
-      return dart.as(other > 31 ? 0 : this << other >>> 0, core.num);
+      return other > 31 ? 0 : dart.as(this << other >>> 0, core.num);
     }
     ['>>'](other) {
       if (false)
@@ -304,7 +304,7 @@ var _interceptors;
       return this[_shrOtherPositive](other);
     }
     [_shrOtherPositive](other) {
-      return dart.as(this > 0 ? this[_shrBothPositive](other) : this >> (dart.notNull(other) > 31 ? 31 : other) >>> 0, core.num);
+      return this > 0 ? this[_shrBothPositive](other) : dart.as(this >> (dart.notNull(other) > 31 ? 31 : other) >>> 0, core.num);
     }
     [_shrReceiverPositive](other) {
       if (other < 0)
@@ -312,7 +312,7 @@ var _interceptors;
       return this[_shrBothPositive](other);
     }
     [_shrBothPositive](other) {
-      return dart.as(other > 31 ? 0 : this >>> other, core.num);
+      return other > 31 ? 0 : dart.as(this >>> other, core.num);
     }
     ['&'](other) {
       if (!dart.is(other, core.num))

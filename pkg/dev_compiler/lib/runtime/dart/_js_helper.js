@@ -2421,7 +2421,7 @@ var _js_helper;
   class NullError extends core.Error {
     NullError(message, match) {
       this[_message] = message;
-      this[_method] = dart.as(match == null ? null : match.method, core.String);
+      this[_method] = match == null ? null : dart.as(match.method, core.String);
       super.Error();
     }
     toString() {
@@ -2434,8 +2434,8 @@ var _js_helper;
   class JsNoSuchMethodError extends core.Error {
     JsNoSuchMethodError(message, match) {
       this[_message] = message;
-      this[_method] = dart.as(match == null ? null : match.method, core.String);
-      this[_receiver] = dart.as(match == null ? null : match.receiver, core.String);
+      this[_method] = match == null ? null : dart.as(match.method, core.String);
+      this[_receiver] = match == null ? null : dart.as(match.receiver, core.String);
       super.Error();
     }
     toString() {
@@ -2517,7 +2517,7 @@ var _js_helper;
       } else if (dart.notNull((match = dart.dsend(nullCall, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dsend(nullLiteralCall, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dsend(undefCall, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dsend(undefLiteralCall, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dsend(nullProperty, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dsend(nullLiteralCall, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dsend(undefProperty, 'matchTypeError', message)) != null) || dart.notNull((match = dart.dsend(undefLiteralProperty, 'matchTypeError', message)) != null)) {
         return saveStackTrace(new NullError(dart.as(message, core.String), match));
       }
-      return saveStackTrace(new UnknownJsTypeError(dart.as(typeof message == 'string' ? message : '', core.String)));
+      return saveStackTrace(new UnknownJsTypeError(typeof message == 'string' ? dart.as(message, core.String) : ''));
     }
     if (ex instanceof RangeError) {
       if (typeof message == 'string' && dart.notNull(contains(dart.as(message, core.String), 'call stack'))) {
