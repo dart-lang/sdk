@@ -26,6 +26,7 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
+DECLARE_FLAG(int, optimization_counter_threshold);
 
 // Input parameters:
 //   RSP : points to return address.
@@ -1214,12 +1215,14 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
 // Loads function into 'temp_reg', preserves 'ic_reg'.
 void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
                                              Register temp_reg) {
-  Register ic_reg = RBX;
-  Register func_reg = temp_reg;
-  ASSERT(ic_reg != func_reg);
-  __ Comment("Increment function counter");
-  __ movq(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
-  __ incl(FieldAddress(func_reg, Function::usage_counter_offset()));
+  if (FLAG_optimization_counter_threshold >= 0) {
+    Register ic_reg = RBX;
+    Register func_reg = temp_reg;
+    ASSERT(ic_reg != func_reg);
+    __ Comment("Increment function counter");
+    __ movq(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
+    __ incl(FieldAddress(func_reg, Function::usage_counter_offset()));
+  }
 }
 
 
@@ -1296,13 +1299,15 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ Bind(&ok);
 #endif
 
-  const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-  // Update counter.
-  __ movq(R8, Address(R12, count_offset));
-  __ addq(R8, Immediate(Smi::RawValue(1)));
-  __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
-  __ cmovnoq(R9, R8);
-  __ StoreIntoSmiField(Address(R12, count_offset), R9);
+  if (FLAG_optimization_counter_threshold >= 0) {
+    const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
+    // Update counter.
+    __ movq(R8, Address(R12, count_offset));
+    __ addq(R8, Immediate(Smi::RawValue(1)));
+    __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovnoq(R9, R8);
+    __ StoreIntoSmiField(Address(R12, count_offset), R9);
+  }
 
   __ ret();
 }
@@ -1453,18 +1458,20 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ jmp(&call_target_function);
 
   __ Bind(&found);
-  __ Comment("Update caller's counter");
   // R12: Pointer to an IC data check group.
   const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
   __ movq(RAX, Address(R12, target_offset));
 
-  // Update counter.
-  __ movq(R8, Address(R12, count_offset));
-  __ addq(R8, Immediate(Smi::RawValue(1)));
-  __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
-  __ cmovnoq(R9, R8);
-  __ StoreIntoSmiField(Address(R12, count_offset), R9);
+  if (FLAG_optimization_counter_threshold >= 0) {
+    // Update counter.
+    __ Comment("Update caller's counter");
+    __ movq(R8, Address(R12, count_offset));
+    __ addq(R8, Immediate(Smi::RawValue(1)));
+    __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovnoq(R9, R8);
+    __ StoreIntoSmiField(Address(R12, count_offset), R9);
+  }
 
   __ Comment("Call target");
   __ Bind(&call_target_function);
@@ -1671,12 +1678,14 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   const intptr_t target_offset = ICData::TargetIndexFor(0) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
 
-  // Increment count for this call.
-  __ movq(R8, Address(R12, count_offset));
-  __ addq(R8, Immediate(Smi::RawValue(1)));
-  __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
-  __ cmovnoq(R9, R8);
-  __ StoreIntoSmiField(Address(R12, count_offset), R9);
+  if (FLAG_optimization_counter_threshold >= 0) {
+    // Increment count for this call.
+    __ movq(R8, Address(R12, count_offset));
+    __ addq(R8, Immediate(Smi::RawValue(1)));
+    __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovnoq(R9, R8);
+    __ StoreIntoSmiField(Address(R12, count_offset), R9);
+  }
 
   // Load arguments descriptor into R10.
   __ movq(R10, FieldAddress(RBX, ICData::arguments_descriptor_offset()));

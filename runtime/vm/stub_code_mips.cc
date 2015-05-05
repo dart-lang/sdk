@@ -25,6 +25,7 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
+DECLARE_FLAG(int, optimization_counter_threshold);
 
 // Input parameters:
 //   RA : return address.
@@ -1337,15 +1338,17 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
 // Loads function into 'temp_reg'.
 void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
                                              Register temp_reg) {
-  __ Comment("UsageCounterIncrement");
-  Register ic_reg = S5;
-  Register func_reg = temp_reg;
-  ASSERT(temp_reg == T0);
-  __ Comment("Increment function counter");
-  __ lw(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
-  __ lw(T1, FieldAddress(func_reg, Function::usage_counter_offset()));
-  __ addiu(T1, T1, Immediate(1));
-  __ sw(T1, FieldAddress(func_reg, Function::usage_counter_offset()));
+  if (FLAG_optimization_counter_threshold >= 0) {
+    __ Comment("UsageCounterIncrement");
+    Register ic_reg = S5;
+    Register func_reg = temp_reg;
+    ASSERT(temp_reg == T0);
+    __ Comment("Increment function counter");
+    __ lw(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
+    __ lw(T1, FieldAddress(func_reg, Function::usage_counter_offset()));
+    __ addiu(T1, T1, Immediate(1));
+    __ sw(T1, FieldAddress(func_reg, Function::usage_counter_offset()));
+  }
 }
 
 
@@ -1404,14 +1407,16 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ Stop("Incorrect IC data");
   __ Bind(&ok);
 #endif
-  // Update counter.
-  const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-  __ lw(T4, Address(T0, count_offset));
-  __ AddImmediateDetectOverflow(T7, T4, Smi::RawValue(1), T5, T6);
-  __ slt(CMPRES1, T5, ZR);  // T5 is < 0 if there was overflow.
-  __ LoadImmediate(T4, Smi::RawValue(Smi::kMaxValue));
-  __ movz(T4, T7, CMPRES1);
-  __ sw(T4, Address(T0, count_offset));
+  if (FLAG_optimization_counter_threshold >= 0) {
+    // Update counter.
+    const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
+    __ lw(T4, Address(T0, count_offset));
+    __ AddImmediateDetectOverflow(T7, T4, Smi::RawValue(1), T5, T6);
+    __ slt(CMPRES1, T5, ZR);  // T5 is < 0 if there was overflow.
+    __ LoadImmediate(T4, Smi::RawValue(Smi::kMaxValue));
+    __ movz(T4, T7, CMPRES1);
+    __ sw(T4, Address(T0, count_offset));
+  }
 
   __ Ret();
 }
@@ -1593,13 +1598,15 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
   __ lw(T3, Address(T0, target_offset));
 
-  // Update counter.
-  __ lw(T4, Address(T0, count_offset));
-  __ AddImmediateDetectOverflow(T7, T4, Smi::RawValue(1), T5, T6);
-  __ slt(CMPRES1, T5, ZR);  // T5 is < 0 if there was overflow.
-  __ LoadImmediate(T4, Smi::RawValue(Smi::kMaxValue));
-  __ movz(T4, T7, CMPRES1);
-  __ sw(T4, Address(T0, count_offset));
+  if (FLAG_optimization_counter_threshold >= 0) {
+    // Update counter.
+    __ lw(T4, Address(T0, count_offset));
+    __ AddImmediateDetectOverflow(T7, T4, Smi::RawValue(1), T5, T6);
+    __ slt(CMPRES1, T5, ZR);  // T5 is < 0 if there was overflow.
+    __ LoadImmediate(T4, Smi::RawValue(Smi::kMaxValue));
+    __ movz(T4, T7, CMPRES1);
+    __ sw(T4, Address(T0, count_offset));
+  }
 
   __ Comment("Call target");
   __ Bind(&call_target_function);
@@ -1789,13 +1796,15 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   const intptr_t target_offset = ICData::TargetIndexFor(0) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
 
-  // Increment count for this call.
-  __ lw(T4, Address(T0, count_offset));
-  __ AddImmediateDetectOverflow(T7, T4, Smi::RawValue(1), T5, T6);
-  __ slt(CMPRES1, T5, ZR);  // T5 is < 0 if there was overflow.
-  __ LoadImmediate(T4, Smi::RawValue(Smi::kMaxValue));
-  __ movz(T4, T7, CMPRES1);
-  __ sw(T4, Address(T0, count_offset));
+  if (FLAG_optimization_counter_threshold >= 0) {
+    // Increment count for this call.
+    __ lw(T4, Address(T0, count_offset));
+    __ AddImmediateDetectOverflow(T7, T4, Smi::RawValue(1), T5, T6);
+    __ slt(CMPRES1, T5, ZR);  // T5 is < 0 if there was overflow.
+    __ LoadImmediate(T4, Smi::RawValue(Smi::kMaxValue));
+    __ movz(T4, T7, CMPRES1);
+    __ sw(T4, Address(T0, count_offset));
+  }
 
   // Load arguments descriptor into S4.
   __ lw(S4,  FieldAddress(S5, ICData::arguments_descriptor_offset()));

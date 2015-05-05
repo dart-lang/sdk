@@ -25,6 +25,7 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
+DECLARE_FLAG(int, optimization_counter_threshold);
 
 // Input parameters:
 //   LR : return address.
@@ -1265,16 +1266,18 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
 // Loads function into 'temp_reg'.
 void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
                                              Register temp_reg) {
-  Register ic_reg = R5;
-  Register func_reg = temp_reg;
-  ASSERT(temp_reg == R6);
-  __ Comment("Increment function counter");
-  __ LoadFieldFromOffset(func_reg, ic_reg, ICData::owner_offset(), kNoPP);
-  __ LoadFieldFromOffset(
-      R7, func_reg, Function::usage_counter_offset(), kNoPP, kWord);
-  __ AddImmediate(R7, R7, 1, kNoPP);
-  __ StoreFieldToOffset(
-      R7, func_reg, Function::usage_counter_offset(), kNoPP, kWord);
+  if (FLAG_optimization_counter_threshold >= 0) {
+    Register ic_reg = R5;
+    Register func_reg = temp_reg;
+    ASSERT(temp_reg == R6);
+    __ Comment("Increment function counter");
+    __ LoadFieldFromOffset(func_reg, ic_reg, ICData::owner_offset(), kNoPP);
+    __ LoadFieldFromOffset(
+        R7, func_reg, Function::usage_counter_offset(), kNoPP, kWord);
+    __ AddImmediate(R7, R7, 1, kNoPP);
+    __ StoreFieldToOffset(
+        R7, func_reg, Function::usage_counter_offset(), kNoPP, kWord);
+  }
 }
 
 
@@ -1343,13 +1346,15 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ Stop("Incorrect IC data");
   __ Bind(&ok);
 #endif
-  const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-  // Update counter.
-  __ LoadFromOffset(R1, R6, count_offset, kNoPP);
-  __ adds(R1, R1, Operand(Smi::RawValue(1)));
-  __ LoadImmediate(R2, Smi::RawValue(Smi::kMaxValue), kNoPP);
-  __ csel(R1, R2, R1, VS);  // Overflow.
-  __ StoreToOffset(R1, R6, count_offset, kNoPP);
+  if (FLAG_optimization_counter_threshold >= 0) {
+    const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
+    // Update counter.
+    __ LoadFromOffset(R1, R6, count_offset, kNoPP);
+    __ adds(R1, R1, Operand(Smi::RawValue(1)));
+    __ LoadImmediate(R2, Smi::RawValue(Smi::kMaxValue), kNoPP);
+    __ csel(R1, R2, R1, VS);  // Overflow.
+    __ StoreToOffset(R1, R6, count_offset, kNoPP);
+  }
 
   __ ret();
 }
@@ -1520,12 +1525,14 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
   __ LoadFromOffset(R0, R6, target_offset, kNoPP);
 
-  // Update counter.
-  __ LoadFromOffset(R1, R6, count_offset, kNoPP);
-  __ adds(R1, R1, Operand(Smi::RawValue(1)));
-  __ LoadImmediate(R2, Smi::RawValue(Smi::kMaxValue), kNoPP);
-  __ csel(R1, R2, R1, VS);  // Overflow.
-  __ StoreToOffset(R1, R6, count_offset, kNoPP);
+  if (FLAG_optimization_counter_threshold >= 0) {
+    // Update counter.
+    __ LoadFromOffset(R1, R6, count_offset, kNoPP);
+    __ adds(R1, R1, Operand(Smi::RawValue(1)));
+    __ LoadImmediate(R2, Smi::RawValue(Smi::kMaxValue), kNoPP);
+    __ csel(R1, R2, R1, VS);  // Overflow.
+    __ StoreToOffset(R1, R6, count_offset, kNoPP);
+  }
 
   __ Comment("Call target");
   __ Bind(&call_target_function);
@@ -1705,12 +1712,14 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   const intptr_t target_offset = ICData::TargetIndexFor(0) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
 
-  // Increment count for this call.
-  __ LoadFromOffset(R1, R6, count_offset, kNoPP);
-  __ adds(R1, R1, Operand(Smi::RawValue(1)));
-  __ LoadImmediate(R2, Smi::RawValue(Smi::kMaxValue), kNoPP);
-  __ csel(R1, R2, R1, VS);  // Overflow.
-  __ StoreToOffset(R1, R6, count_offset, kNoPP);
+  if (FLAG_optimization_counter_threshold >= 0) {
+    // Increment count for this call.
+    __ LoadFromOffset(R1, R6, count_offset, kNoPP);
+    __ adds(R1, R1, Operand(Smi::RawValue(1)));
+    __ LoadImmediate(R2, Smi::RawValue(Smi::kMaxValue), kNoPP);
+    __ csel(R1, R2, R1, VS);  // Overflow.
+    __ StoreToOffset(R1, R6, count_offset, kNoPP);
+  }
 
   // Load arguments descriptor into R4.
   __ LoadFieldFromOffset(R4, R5, ICData::arguments_descriptor_offset(), kNoPP);

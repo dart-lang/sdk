@@ -58,6 +58,7 @@ DECLARE_FLAG(bool, use_cha);
 DECLARE_FLAG(bool, use_field_guards);
 DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
+DECLARE_FLAG(bool, ic_range_profiling);
 
 static void NooptModeHandler(bool value) {
   if (value) {
@@ -66,6 +67,8 @@ static void NooptModeHandler(bool value) {
     FLAG_use_field_guards = false;
     FLAG_use_osr = false;
     FLAG_emit_edge_counters = false;
+    FLAG_ic_range_profiling = false;
+    FLAG_collect_code = false;
   }
 }
 

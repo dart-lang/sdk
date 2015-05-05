@@ -27,7 +27,7 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
-DEFINE_FLAG(bool, verify_incoming_contexts, false, "");
+DECLARE_FLAG(int, optimization_counter_threshold);
 
 #define INT32_SIZEOF(x) static_cast<int32_t>(sizeof(x))
 
@@ -1185,12 +1185,14 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
 // Loads function into 'temp_reg'.
 void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
                                              Register temp_reg) {
-  Register ic_reg = ECX;
-  Register func_reg = temp_reg;
-  ASSERT(ic_reg != func_reg);
-  __ Comment("Increment function counter");
-  __ movl(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
-  __ incl(FieldAddress(func_reg, Function::usage_counter_offset()));
+  if (FLAG_optimization_counter_threshold >= 0) {
+    Register ic_reg = ECX;
+    Register func_reg = temp_reg;
+    ASSERT(ic_reg != func_reg);
+    __ Comment("Increment function counter");
+    __ movl(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
+    __ incl(FieldAddress(func_reg, Function::usage_counter_offset()));
+  }
 }
 
 
@@ -1258,14 +1260,15 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ Stop("Incorrect IC data");
   __ Bind(&ok);
 #endif
-  // Update counter.
-  const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-  __ movl(ECX, Address(EBX, count_offset));
-  __ addl(ECX, Immediate(Smi::RawValue(1)));
-  __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
-  __ cmovno(EDI, ECX);
-  __ StoreIntoSmiField(Address(EBX, count_offset), EDI);
-
+  if (FLAG_optimization_counter_threshold >= 0) {
+    // Update counter.
+    const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
+    __ movl(ECX, Address(EBX, count_offset));
+    __ addl(ECX, Immediate(Smi::RawValue(1)));
+    __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovno(EDI, ECX);
+    __ StoreIntoSmiField(Address(EBX, count_offset), EDI);
+  }
   __ ret();
 }
 
@@ -1422,13 +1425,14 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // EBX: Pointer to an IC data check group.
   const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-
-  __ Comment("Update caller's counter");
-  __ movl(EAX, Address(EBX, count_offset));
-  __ addl(EAX, Immediate(Smi::RawValue(1)));
-  __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
-  __ cmovno(EDI, EAX);
-  __ StoreIntoSmiField(Address(EBX, count_offset), EDI);
+  if (FLAG_optimization_counter_threshold >= 0) {
+    __ Comment("Update caller's counter");
+    __ movl(EAX, Address(EBX, count_offset));
+    __ addl(EAX, Immediate(Smi::RawValue(1)));
+    __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovno(EDI, EAX);
+    __ StoreIntoSmiField(Address(EBX, count_offset), EDI);
+  }
 
   __ movl(EAX, Address(EBX, target_offset));
   __ Bind(&call_target_function);
@@ -1629,12 +1633,14 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   const intptr_t target_offset = ICData::TargetIndexFor(0) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
 
-  // Increment count for this call.
-  __ movl(EAX, Address(EBX, count_offset));
-  __ addl(EAX, Immediate(Smi::RawValue(1)));
-  __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
-  __ cmovno(EDI, EAX);
-  __ StoreIntoSmiField(Address(EBX, count_offset), EDI);
+  if (FLAG_optimization_counter_threshold >= 0) {
+    // Increment count for this call.
+    __ movl(EAX, Address(EBX, count_offset));
+    __ addl(EAX, Immediate(Smi::RawValue(1)));
+    __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovno(EDI, EAX);
+    __ StoreIntoSmiField(Address(EBX, count_offset), EDI);
+  }
 
   // Load arguments descriptor into EDX.
   __ movl(EDX, FieldAddress(ECX, ICData::arguments_descriptor_offset()));

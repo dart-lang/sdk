@@ -26,6 +26,7 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
+DECLARE_FLAG(int, optimization_counter_threshold);
 
 // Input parameters:
 //   LR : return address.
@@ -1238,14 +1239,16 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
 // Loads function into 'temp_reg'.
 void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
                                              Register temp_reg) {
-  Register ic_reg = R5;
-  Register func_reg = temp_reg;
-  ASSERT(temp_reg == R6);
-  __ Comment("Increment function counter");
-  __ ldr(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
-  __ ldr(R7, FieldAddress(func_reg, Function::usage_counter_offset()));
-  __ add(R7, R7, Operand(1));
-  __ str(R7, FieldAddress(func_reg, Function::usage_counter_offset()));
+  if (FLAG_optimization_counter_threshold >= 0) {
+    Register ic_reg = R5;
+    Register func_reg = temp_reg;
+    ASSERT(temp_reg == R6);
+    __ Comment("Increment function counter");
+    __ ldr(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
+    __ ldr(R7, FieldAddress(func_reg, Function::usage_counter_offset()));
+    __ add(R7, R7, Operand(1));
+    __ str(R7, FieldAddress(func_reg, Function::usage_counter_offset()));
+  }
 }
 
 
@@ -1301,12 +1304,14 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ Stop("Incorrect IC data");
   __ Bind(&ok);
 #endif
-  // Update counter.
-  const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-  __ LoadFromOffset(kWord, R1, R6, count_offset);
-  __ adds(R1, R1, Operand(Smi::RawValue(1)));
-  __ LoadImmediate(R1, Smi::RawValue(Smi::kMaxValue), VS);  // Overflow.
-  __ StoreIntoSmiField(Address(R6, count_offset), R1);
+  if (FLAG_optimization_counter_threshold >= 0) {
+    // Update counter.
+    const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
+    __ LoadFromOffset(kWord, R1, R6, count_offset);
+    __ adds(R1, R1, Operand(Smi::RawValue(1)));
+    __ LoadImmediate(R1, Smi::RawValue(Smi::kMaxValue), VS);  // Overflow.
+    __ StoreIntoSmiField(Address(R6, count_offset), R1);
+  }
   __ Ret();
 }
 
@@ -1460,11 +1465,13 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
   __ LoadFromOffset(kWord, R0, R6, target_offset);
 
-  __ Comment("Update caller's counter");
-  __ LoadFromOffset(kWord, R1, R6, count_offset);
-  __ adds(R1, R1, Operand(Smi::RawValue(1)));
-  __ LoadImmediate(R1, Smi::RawValue(Smi::kMaxValue), VS);  // Overflow.
-  __ StoreIntoSmiField(Address(R6, count_offset), R1);
+  if (FLAG_optimization_counter_threshold >= 0) {
+    __ Comment("Update caller's counter");
+    __ LoadFromOffset(kWord, R1, R6, count_offset);
+    __ adds(R1, R1, Operand(Smi::RawValue(1)));
+    __ LoadImmediate(R1, Smi::RawValue(Smi::kMaxValue), VS);  // Overflow.
+    __ StoreIntoSmiField(Address(R6, count_offset), R1);
+  }
 
   __ Comment("Call target");
   __ Bind(&call_target_function);
@@ -1652,11 +1659,13 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   const intptr_t target_offset = ICData::TargetIndexFor(0) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
 
-  // Increment count for this call.
-  __ LoadFromOffset(kWord, R1, R6, count_offset);
-  __ adds(R1, R1, Operand(Smi::RawValue(1)));
-  __ LoadImmediate(R1, Smi::RawValue(Smi::kMaxValue), VS);  // Overflow.
-  __ StoreIntoSmiField(Address(R6, count_offset), R1);
+  if (FLAG_optimization_counter_threshold >= 0) {
+    // Increment count for this call.
+    __ LoadFromOffset(kWord, R1, R6, count_offset);
+    __ adds(R1, R1, Operand(Smi::RawValue(1)));
+    __ LoadImmediate(R1, Smi::RawValue(Smi::kMaxValue), VS);  // Overflow.
+    __ StoreIntoSmiField(Address(R6, count_offset), R1);
+  }
 
   // Load arguments descriptor into R4.
   __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
