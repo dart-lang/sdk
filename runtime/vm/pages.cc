@@ -46,11 +46,14 @@ DEFINE_FLAG(bool, concurrent_sweep, true,
 DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 
 HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
+  ASSERT(memory != NULL);
   ASSERT(memory->size() > VirtualMemory::PageSize());
   bool is_executable = (type == kExecutable);
-  memory->Commit(is_executable);
-
+  if (!memory->Commit(is_executable)) {
+    return NULL;
+  }
   HeapPage* result = reinterpret_cast<HeapPage*>(memory->address());
+  ASSERT(result != NULL);
   result->memory_ = memory;
   result->next_ = NULL;
   result->executable_ = is_executable;
@@ -64,7 +67,12 @@ HeapPage* HeapPage::Allocate(intptr_t size_in_words, PageType type) {
   if (memory == NULL) {
     return NULL;
   }
-  return Initialize(memory, type);
+  HeapPage* result = Initialize(memory, type);
+  if (result == NULL) {
+    delete memory;  // Release reservation to OS.
+    return NULL;
+  }
+  return result;
 }
 
 
