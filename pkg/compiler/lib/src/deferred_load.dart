@@ -38,6 +38,8 @@ import 'elements/elements.dart' show
     TypedefElement,
     VoidElement;
 
+import 'dart_types.dart';
+
 import 'util/util.dart' show
     Link, makeUnique;
 import 'util/uri_extras.dart' as uri_extras;
@@ -192,7 +194,6 @@ class DeferredLoadTask extends CompilerTask {
   /// Returns the [OutputUnit] where [constant] belongs.
   OutputUnit outputUnitForConstant(ConstantValue constant) {
     if (!isProgramSplit) return mainOutputUnit;
-
     return _constantToOutputUnit[constant];
   }
 
@@ -247,16 +248,6 @@ class DeferredLoadTask extends CompilerTask {
       Set<ConstantValue> constants,
       isMirrorUsage) {
 
-    /// Recursively add the constant and its dependencies to [constants].
-    void addConstants(ConstantValue constant) {
-      if (constants.contains(constant)) return;
-      constants.add(constant);
-      if (constant is ConstructedConstantValue) {
-        elements.add(constant.type.element);
-      }
-      constant.getDependencies().forEach(addConstants);
-    }
-
     /// Collects all direct dependencies of [element].
     ///
     /// The collected dependent elements and constants are are added to
@@ -287,7 +278,7 @@ class DeferredLoadTask extends CompilerTask {
       }
       treeElements.forEachConstantNode((Node node, _) {
         // Explicitly depend on the backend constants.
-        addConstants(
+        constants.add(
             backend.constants.getConstantForNode(node, treeElements).value);
       });
       elements.addAll(treeElements.otherDependencies);
@@ -298,9 +289,38 @@ class DeferredLoadTask extends CompilerTask {
       ConstantExpression constant =
           backend.constants.getConstantForMetadata(metadata);
       if (constant != null) {
-        addConstants(constant.value);
+        constants.add(constant.value);
       }
     }
+
+    collectTypeDependencies(DartType type) {
+      if (type is FunctionType) {
+        for (DartType argumentType in type.parameterTypes) {
+          collectTypeDependencies(argumentType);
+        }
+        for (DartType argumentType in type.optionalParameterTypes) {
+          collectTypeDependencies(argumentType);
+        }
+        for (DartType argumentType in type.namedParameterTypes) {
+          collectTypeDependencies(argumentType);
+        }
+        collectTypeDependencies(type.returnType);
+      } else if (type is TypedefType) {
+        elements.add(type.element);
+        collectTypeDependencies(type.unalias(compiler));
+      } else if (type is InterfaceType) {
+        elements.add(type.element);
+      }
+    }
+
+    if (element is FunctionElement &&
+        compiler.resolverWorld.closurizedMembers.contains(element)) {
+      collectTypeDependencies(element.type);
+    }
+
+    // TODO(sigurdm): Also collect types that are used in is checks and for
+    // checked mode.
+
     if (element.isClass) {
       // If we see a class, add everything its live instance members refer
       // to.  Static members are not relevant, unless we are processing
@@ -370,40 +390,70 @@ class DeferredLoadTask extends CompilerTask {
     return result;
   }
 
-  /// Recursively traverses the graph of dependencies from [element], mapping
-  /// deferred imports to each dependency it needs in the sets
-  /// [_importedDeferredBy] and [_constantsDeferredBy].
-  void _mapDependencies(Element element, Import import,
-                        {isMirrorUsage: false}) {
-    Set<Element> elements = _importedDeferredBy.putIfAbsent(import,
-        () => new Set<Element>());
+  /// Add all dependencies of [constant] to the mapping of [import].
+  void _mapConstantDependencies(ConstantValue constant, Import import) {
     Set<ConstantValue> constants = _constantsDeferredBy.putIfAbsent(import,
         () => new Set<ConstantValue>());
+    if (constants.contains(constant)) return;
+    constants.add(constant);
+    if (constant is ConstructedConstantValue) {
+      _mapDependencies(element: constant.type.element, import: import);
+    }
+    constant.getDependencies().forEach((ConstantValue dependency) {
+      _mapConstantDependencies(dependency, import);
+    });
+  }
 
-    // Only process elements once, unless we are doing dependencies due to
-    // mirrors, which are added in additional traversals.
-    if (!isMirrorUsage && elements.contains(element)) return;
-    // Anything used directly by main will be loaded from the start
-    // We do not need to traverse it again.
-    if (import != _fakeMainImport && _mainElements.contains(element)) return;
+  /// Recursively traverses the graph of dependencies from one of [element]
+  /// or [constant], mapping deferred imports to each dependency it needs in the
+  /// sets [_importedDeferredBy] and [_constantsDeferredBy].
+  /// Only one of [element] and [constant] should be given.
+  void _mapDependencies({Element element,
+                         Import import,
+                         isMirrorUsage: false}) {
 
-    // Here we modify [_importedDeferredBy].
-    elements.add(element);
+    Set<Element> elements = _importedDeferredBy.putIfAbsent(import,
+        () => new Set<Element>());
+
 
     Set<Element> dependentElements = new Set<Element>();
+    Set<ConstantValue> dependentConstants = new Set<ConstantValue>();
 
-    // This call can modify [_importedDeferredBy] and [_constantsDeferredBy].
-    _collectAllElementsAndConstantsResolvedFrom(
-        element, dependentElements, constants, isMirrorUsage);
+    LibraryElement library;
 
-    LibraryElement library = element.library;
+    if (element != null) {
+      // Only process elements once, unless we are doing dependencies due to
+      // mirrors, which are added in additional traversals.
+      if (!isMirrorUsage && elements.contains(element)) return;
+      // Anything used directly by main will be loaded from the start
+      // We do not need to traverse it again.
+      if (import != _fakeMainImport && _mainElements.contains(element)) return;
+      elements.add(element);
+
+
+      // This call can modify [dependentElements] and [dependentConstants].
+      _collectAllElementsAndConstantsResolvedFrom(
+          element, dependentElements, dependentConstants, isMirrorUsage);
+
+      library = element.library;
+    }
+
     for (Element dependency in dependentElements) {
       if (_isExplicitlyDeferred(dependency, library)) {
         for (Import deferredImport in _getImports(dependency, library)) {
-          _mapDependencies(dependency, deferredImport);
-        };
+          _mapDependencies(element: dependency, import: deferredImport);
+        }
       } else {
-        _mapDependencies(dependency, import);
+        _mapDependencies(element: dependency, import: import);
+      }
+    }
+
+    for (ConstantValue dependency in dependentConstants) {
+      if (dependency is DeferredConstantValue) {
+        _mapConstantDependencies(dependency,
+                                 dependency.prefix.deferredImport);
+      } else {
+        _mapConstantDependencies(dependency, import);
       }
     }
   }
@@ -420,7 +470,8 @@ class DeferredLoadTask extends CompilerTask {
       // So we have to filter them out here.
       if (element is AnalyzableElementX && !element.hasTreeElements) return;
       if (compiler.backend.isAccessibleByReflection(element)) {
-        _mapDependencies(element, deferredImport, isMirrorUsage: true);
+        _mapDependencies(element: element, import: deferredImport,
+                         isMirrorUsage: true);
       }
     }
 
@@ -435,8 +486,8 @@ class DeferredLoadTask extends CompilerTask {
         ConstantExpression constant =
             backend.constants.getConstantForMetadata(metadata);
         if (constant != null) {
-          _mapDependencies(constant.value.getType(compiler.coreTypes).element,
-              deferredImport);
+          _mapConstantDependencies(constant.value,
+                                   deferredImport);
         }
       }
       for (LibraryTag tag in library.tags) {
@@ -444,8 +495,8 @@ class DeferredLoadTask extends CompilerTask {
           ConstantExpression constant =
               backend.constants.getConstantForMetadata(metadata);
           if (constant != null) {
-            _mapDependencies(constant.value.getType(compiler.coreTypes).element,
-                deferredImport);
+            _mapConstantDependencies(constant.value,
+                                     deferredImport);
           }
         }
       }
@@ -482,7 +533,7 @@ class DeferredLoadTask extends CompilerTask {
               metadata.constant.value.getType(compiler.coreTypes).element;
           if (element == deferredLibraryClass) {
             ConstructedConstantValue constant = metadata.constant.value;
-            StringConstantValue s = constant.fields[0];
+            StringConstantValue s = constant.fields.values.single;
             result = s.primitiveValue.slowToString();
             break;
           }
@@ -549,14 +600,14 @@ class DeferredLoadTask extends CompilerTask {
     measureElement(mainLibrary, () {
 
       // Starting from main, traverse the program and find all dependencies.
-      _mapDependencies(compiler.mainFunction, _fakeMainImport);
+      _mapDependencies(element: compiler.mainFunction, import: _fakeMainImport);
 
       // Also add "global" dependencies to the main OutputUnit.  These are
       // things that the backend need but cannot associate with a particular
       // element, for example, startRootIsolate.  This set also contains
       // elements for which we lack precise information.
       for (Element element in compiler.globalDependencies.otherDependencies) {
-        _mapDependencies(element, _fakeMainImport);
+        _mapDependencies(element: element, import: _fakeMainImport);
       }
 
       // Now check to see if we have to add more elements due to mirrors.
@@ -584,6 +635,8 @@ class DeferredLoadTask extends CompilerTask {
                 .imports.add(import);
           }
         }
+      }
+      for (Import import in _constantsDeferredBy.keys) {
         for (ConstantValue constant in _constantsDeferredBy[import]) {
           // Only one file should be loaded when the program starts, so make
           // sure that only one OutputUnit is created for [fakeMainImport].

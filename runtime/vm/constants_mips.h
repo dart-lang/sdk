@@ -182,6 +182,7 @@ const Register CTX = S6;  // Location of current context at method entry.
 const Register PP = S7;  // Caches object pool pointer in generated code.
 const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
+const Register LRREG = RA;  // Link register.
 const Register ICREG = S5;  // IC data register.
 const Register ARGS_DESC_REG = S4;
 
@@ -467,8 +468,7 @@ class Instr {
   // Reserved break instruction codes.
   static const int32_t kBreakPointCode = 0xdeb0;  // For breakpoint.
   static const int32_t kStopMessageCode = 0xdeb1;  // For Stop(message).
-  static const int32_t kSimulatorMessageCode = 0xdeb2;  // For trace msg in sim.
-  static const int32_t kSimulatorBreakCode = 0xdeb3;  // For breakpoint in sim.
+  static const int32_t kSimulatorBreakCode = 0xdeb2;  // For breakpoint in sim.
   static const int32_t kSimulatorRedirectCode = 0xca11;  // For redirection.
 
   static const int32_t kBreakPointZeroInstruction =

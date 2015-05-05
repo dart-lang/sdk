@@ -21,11 +21,13 @@ main() {
   Logger.root.info('Starting Observatory');
   GoogleChart.initOnce().then((_) {
     // Charts loaded, initialize polymer.
-    Logger.root.info('Initializing Polymer');
-    try {
-      initPolymer();
-    } catch (e) {
-      Logger.root.severe('Error initializing polymer: $e');
-    }
+    initPolymer().run(() {
+      Logger.root.info('Polymer initialized');
+      // Code here is in the polymer Zone, which ensures that
+      // @observable properties work correctly.
+      Polymer.onReady.then((_) {
+        Logger.root.info('Polymer elements have been upgraded');
+      });
+    });
   });
 }

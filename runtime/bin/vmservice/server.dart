@@ -35,17 +35,9 @@ class WebSocketClient extends Client {
     }
   }
 
-  void post(var serial, dynamic result) {
+  void post(dynamic result) {
     try {
-      if (serial == null && result is! String) {
-        socket.add(result);
-      } else {
-        Map map = {
-          'id': serial,
-          'result': result
-        };
-        socket.add(JSON.encode(map));
-      }
+      socket.add(result);
     } catch (_) {
       print("Ignoring error posting over WebSocket.");
     }
@@ -68,7 +60,7 @@ class HttpRequestClient extends Client {
   HttpRequestClient(this.request, VMService service)
       : super(service, sendEvents:false);
 
-  void post(var serial, String result) {
+  void post(String result) {
     request.response..headers.contentType = jsonContentType
                     ..write(result)
                     ..close();

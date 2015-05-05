@@ -16,6 +16,7 @@ import 'dart:_js_embedded_names' show
     INTERCEPTORS_BY_TAG,
     IS_HUNK_LOADED,
     IS_HUNK_INITIALIZED,
+    JsBuiltin,
     JsGetName,
     LEAF_TAGS,
     METADATA,
@@ -42,22 +43,20 @@ import 'dart:async' show
 import 'dart:_foreign_helper' show
     DART_CLOSURE_TO_JS,
     JS,
+    JS_BUILTIN,
     JS_CALL_IN_ISOLATE,
     JS_CONST,
     JS_CURRENT_ISOLATE,
     JS_CURRENT_ISOLATE_CONTEXT,
-    JS_DART_OBJECT_CONSTRUCTOR,
     JS_EFFECT,
     JS_EMBEDDED_GLOBAL,
-    JS_FUNCTION_CLASS_NAME,
     JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG,
     JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG,
     JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG,
     JS_FUNCTION_TYPE_RETURN_TYPE_TAG,
-    JS_FUNCTION_TYPE_TAG,
     JS_FUNCTION_TYPE_VOID_RETURN_TAG,
-    JS_GET_NAME,
     JS_GET_FLAG,
+    JS_GET_NAME,
     JS_HAS_EQUALS,
     JS_IS_INDEXABLE_FIELD_NAME,
     JS_NULL_CLASS_NAME,
@@ -92,6 +91,52 @@ part 'linked_hash_map.dart';
 /// them.
 abstract class InternalMap {
 }
+
+/// Returns true if the given [type] is a function type object.
+// TODO(floitsch): move this to foreign_helper.dart or similar.
+@ForceInline()
+bool isDartFunctionType(Object type) {
+  return JS_BUILTIN('returns:bool;effects:none;depends:none',
+                    JsBuiltin.isFunctionType, type);
+}
+
+
+/// Creates a function type object.
+// TODO(floitsch): move this to foreign_helper.dart or similar.
+@ForceInline()
+createDartFunctionType() {
+  return JS_BUILTIN('returns:=Object;effects:none;depends:none',
+                    JsBuiltin.createFunctionType);
+}
+
+/// Returns true if the given [type] is _the_ `Function` type.
+// TODO(floitsch): move this to foreign_helper.dart or similar.
+@ForceInline()
+bool isDartFunctionTypeLiteral(Object type) {
+  return JS_BUILTIN('returns:bool;effects:none;depends:none',
+                    JsBuiltin.isFunctionTypeLiteral, type);
+}
+
+/// Retrieves the class name from type information stored on the constructor of
+/// [type].
+// TODO(floitsch): move this to foreign_helper.dart or similar.
+@ForceInline()
+String getDartTypeName(Object type) {
+  return JS_BUILTIN('String', JsBuiltin.typeName, type);
+}
+
+/// Returns the raw runtime type of the given object [o].
+///
+/// The argument [o] must be the interceptor for primitive types. If
+/// necessary run it through [getInterceptor] first.
+// TODO(floitsch): move this to foreign_helper.dart or similar.
+// TODO(floitsch): we should call getInterceptor ourselves, but currently
+//    getInterceptor is not GVNed.
+@ForceInline()
+Object getRawRuntimeType(Object o) {
+  return JS_BUILTIN('', JsBuiltin.rawRuntimeType, o);
+}
+
 
 /// No-op method that is called to inform the compiler that preambles might
 /// be needed when executing the resulting JS file in a command-line
@@ -726,7 +771,7 @@ class Primitives {
       // the name out of that. If the decompiled name is a string containing an
       // identifier, we use that instead of the very generic 'Object'.
       var decompiled =
-          JS('var', r'#.match(/^\s*function\s*(\S*)\s*\(/)[1]',
+          JS('var', r'#.match(/^\s*function\s*([\w$]*)\s*\(/)[1]',
               JS('var', r'String(#.constructor)', object));
       if (decompiled is String)
         if (JS('bool', r'/^\w+$/.test(#)', decompiled))
@@ -1435,6 +1480,30 @@ throwAbstractClassInstantiationError(className) {
   throw new AbstractClassInstantiationError(className);
 }
 
+// This is used in open coded for-in loops on arrays.
+//
+//     checkConcurrentModificationError(a.length == startLength, a)
+//
+// is replaced in codegen by:
+//
+//     a.length == startLength || throwConcurrentModificationError(a)
+//
+// TODO(sra): We would like to annotate this as @NoSideEffects() so that loops
+// with no other effects can recognize that the array length does not
+// change. However, in the usual case where the loop does have other effects,
+// that causes the length in the loop condition to be phi(startLength,a.length),
+// which causes confusion in range analysis and the insertion of a bounds check.
+@NoInline()
+checkConcurrentModificationError(sameLength, collection) {
+  if (true != sameLength) {
+    throwConcurrentModificationError(collection);
+  }
+}
+
+@NoInline()
+throwConcurrentModificationError(collection) {
+  throw new ConcurrentModificationError(collection);
+}
 
 /**
  * Helper class for building patterns recognizing native type errors.
@@ -3115,7 +3184,7 @@ class RuntimeFunctionType extends RuntimeType {
   }
 
   toRti() {
-    var result = JS('=Object', '{ #: "dynafunc" }', JS_FUNCTION_TYPE_TAG());
+    var result = createDartFunctionType();
     if (isVoid) {
       JS('', '#[#] = true', result, JS_FUNCTION_TYPE_VOID_RETURN_TAG());
     } else {
@@ -3972,7 +4041,7 @@ class SyncStarIterator implements Iterator {
 /// An Iterable corresponding to a sync* method.
 ///
 /// Each invocation of a sync* method will return a new instance of this class.
-class SyncStarIterable extends IterableBase {
+class SyncStarIterable extends Iterable {
   // This is a function that will return a helper function that does the
   // iteration of the sync*.
   //

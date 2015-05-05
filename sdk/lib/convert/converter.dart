@@ -37,9 +37,9 @@ abstract class Converter<S, T> implements StreamTransformer {
   }
 
   // Subclasses are encouraged to provide better types.
-  Stream bind(Stream source) {
+  Stream bind(Stream stream) {
     return new Stream.eventTransformed(
-        source,
+        stream,
         (EventSink sink) => new _ConverterStreamEventSink(this, sink));
   }
 }

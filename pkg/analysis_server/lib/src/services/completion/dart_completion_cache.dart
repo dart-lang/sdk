@@ -177,17 +177,20 @@ class DartCompletionCache extends CompletionCache {
   /**
    * Add constructor suggestions for the given class.
    */
-  void _addConstructorSuggestions(ClassElement classElem, int relevance) {
+  void _addConstructorSuggestions(
+      ClassElement classElem, int relevance, Source importForSource) {
     String className = classElem.name;
     for (ConstructorElement constructor in classElem.constructors) {
       if (!constructor.isPrivate) {
-        CompletionSuggestion suggestion =
-            createSuggestion(constructor, relevance: relevance);
-        String name = suggestion.completion;
-        name = name.length > 0 ? '$className.$name' : className;
-        suggestion.completion = name;
-        suggestion.selectionOffset = suggestion.completion.length;
-        importedConstructorSuggestions.add(suggestion);
+        CompletionSuggestion suggestion = createSuggestion(constructor,
+            relevance: relevance, importForSource: importForSource);
+        if (suggestion != null) {
+          String name = suggestion.completion;
+          name = name.length > 0 ? '$className.$name' : className;
+          suggestion.completion = name;
+          suggestion.selectionOffset = suggestion.completion.length;
+          importedConstructorSuggestions.add(suggestion);
+        }
       }
     }
   }
@@ -299,7 +302,7 @@ class DartCompletionCache extends CompletionCache {
             element.isPublic &&
             !excludedLibs.contains(element.library) &&
             !_importedCompletions.contains(element.displayName)) {
-          _addSuggestion(element, DART_RELEVANCE_LOW);
+          _addSuggestion(element, DART_RELEVANCE_LOW, importForSource: source);
         }
       }
     });
@@ -308,7 +311,8 @@ class DartCompletionCache extends CompletionCache {
   /**
    * Add a suggestion for the given element.
    */
-  void _addSuggestion(Element element, int relevance) {
+  void _addSuggestion(Element element, int relevance,
+      {Source importForSource}) {
     if (element is ExecutableElement) {
       // Do not suggest operators or local functions
       if (element.isOperator) {
@@ -321,25 +325,27 @@ class DartCompletionCache extends CompletionCache {
       }
     }
 
-    CompletionSuggestion suggestion =
-        createSuggestion(element, relevance: relevance);
+    CompletionSuggestion suggestion = createSuggestion(element,
+        relevance: relevance, importForSource: importForSource);
 
-    if (element is ExecutableElement) {
-      DartType returnType = element.returnType;
-      if (returnType != null && returnType.isVoid) {
-        importedVoidReturnSuggestions.add(suggestion);
+    if (suggestion != null) {
+      if (element is ExecutableElement) {
+        DartType returnType = element.returnType;
+        if (returnType != null && returnType.isVoid) {
+          importedVoidReturnSuggestions.add(suggestion);
+        } else {
+          otherImportedSuggestions.add(suggestion);
+        }
+      } else if (element is FunctionTypeAliasElement) {
+        importedTypeSuggestions.add(suggestion);
+      } else if (element is ClassElement) {
+        importedTypeSuggestions.add(suggestion);
+        _addConstructorSuggestions(element, relevance, importForSource);
       } else {
         otherImportedSuggestions.add(suggestion);
       }
-    } else if (element is FunctionTypeAliasElement) {
-      importedTypeSuggestions.add(suggestion);
-    } else if (element is ClassElement) {
-      importedTypeSuggestions.add(suggestion);
-      _addConstructorSuggestions(element, relevance);
-    } else {
-      otherImportedSuggestions.add(suggestion);
+      _importedCompletions.add(suggestion.completion);
     }
-    _importedCompletions.add(suggestion.completion);
   }
 
   /**

@@ -4,30 +4,79 @@
 
 library dart2js.source_information;
 
-import '../dart2jslib.dart' show SourceSpan;
+import '../dart2jslib.dart' show SourceSpan, MessageKind;
 import '../elements/elements.dart' show AstElement;
 import '../scanner/scannerlib.dart' show Token;
 import '../tree/tree.dart' show Node;
 import '../js/js.dart' show JavaScriptNodeSourceInformation;
-import 'code_output.dart';
 import 'source_file.dart';
 
 /// Interface for passing source information, for instance for use in source
 /// maps, through the backend.
 abstract class SourceInformation extends JavaScriptNodeSourceInformation {
   SourceSpan get sourceSpan;
-  void beginMapping(CodeOutput output);
-  void endMapping(CodeOutput output);
+
+  /// The source location associated with the start of the JS node.
+  SourceLocation get startPosition => null;
+
+  /// The source location associated with the closing of the JS node.
+  SourceLocation get closingPosition => null;
+
+  /// The source location associated with the end of the JS node.
+  SourceLocation get endPosition => null;
+}
+
+/// Factory for creating [SourceInformationBuilder]s.
+class SourceInformationFactory {
+  const SourceInformationFactory();
+
+  /// Create a [SourceInformationBuilder] for [element].
+  SourceInformationBuilder forContext(AstElement element) {
+    return const SourceInformationBuilder();
+  }
+}
+
+/// Interface for generating [SourceInformation].
+class SourceInformationBuilder {
+  const SourceInformationBuilder();
+
+  /// Create a [SourceInformationBuilder] for [element].
+  SourceInformationBuilder forContext(AstElement element) {
+    return this;
+  }
+
+  /// Generate [SourceInformation] the declaration of [element].
+  SourceInformation buildDeclaration(AstElement element) => null;
+
+  /// Generate [SourceInformation] for the generic [node].
+  @deprecated
+  SourceInformation buildGeneric(Node node) => null;
+
+  /// Generate [SourceInformation] for the return [node].
+  SourceInformation buildReturn(Node node) => null;
+
+  /// Generate [SourceInformation] for the loop [node].
+  SourceInformation buildLoop(Node node) => null;
+
+  /// Generate [SourceInformation] for the read access in [node].
+  SourceInformation buildGet(Node node) => null;
+
+  /// Generate [SourceInformation] for the invocation in [node].
+  SourceInformation buildCall(Node node) => null;
 }
 
 /// Source information that contains start source position and optionally an
 /// end source position.
-class StartEndSourceInformation implements SourceInformation {
+class StartEndSourceInformation extends SourceInformation {
+  @override
   final SourceLocation startPosition;
+
+  @override
   final SourceLocation endPosition;
 
   StartEndSourceInformation(this.startPosition, [this.endPosition]);
 
+  @override
   SourceSpan get sourceSpan {
     Uri uri = startPosition.sourceUri;
     int begin = startPosition.offset;
@@ -35,22 +84,9 @@ class StartEndSourceInformation implements SourceInformation {
     return new SourceSpan(uri, begin, end);
   }
 
-  void beginMapping(CodeBuffer output) {
-    output.beginMappedRange();
-    output.setSourceLocation(startPosition);
-  }
-
-  void endMapping(CodeBuffer output) {
-    if (endPosition != null) {
-      output.setSourceLocation(endPosition);
-    }
-    output.endMappedRange();
-  }
-
   int get hashCode {
-    return (startPosition.hashCode * 17 +
-            endPosition.hashCode * 19)
-           & 0x7FFFFFFF;
+    return 0x7FFFFFFF &
+           (startPosition.hashCode * 17 + endPosition.hashCode * 19);
   }
 
   bool operator ==(other) {
@@ -83,11 +119,11 @@ class StartEndSourceInformation implements SourceInformation {
     SourceLocation sourcePosition, endSourcePosition;
     if (beginToken.charOffset < sourceFile.length) {
       sourcePosition =
-          new TokenSourceLocation(sourceFile, beginToken, name);
+          new OffsetSourceLocation(sourceFile, beginToken.charOffset, name);
     }
     if (endToken.charOffset < sourceFile.length) {
       endSourcePosition =
-          new TokenSourceLocation(sourceFile, endToken, name);
+          new OffsetSourceLocation(sourceFile, endToken.charOffset, name);
     }
     return new StartEndSourceInformation(sourcePosition, endSourcePosition);
   }
@@ -104,44 +140,123 @@ class StartEndSourceInformation implements SourceInformation {
   }
 }
 
+class StartEndSourceInformationFactory implements SourceInformationFactory {
+  const StartEndSourceInformationFactory();
+
+  @override
+  SourceInformationBuilder forContext(AstElement element) {
+    return new StartEndSourceInformationBuilder(element);
+  }
+}
+
+/// [SourceInformationBuilder] that generates [PositionSourceInformation].
+class StartEndSourceInformationBuilder extends SourceInformationBuilder {
+  final SourceFile sourceFile;
+  final String name;
+
+  StartEndSourceInformationBuilder(AstElement element)
+      : sourceFile = element.compilationUnit.script.file,
+        name = element.name;
+
+  SourceInformation buildDeclaration(AstElement element) {
+    return StartEndSourceInformation.computeSourceInformation(element);
+  }
+
+  SourceLocation sourceFileLocationForToken(Token token) {
+    SourceLocation location =
+        new OffsetSourceLocation(sourceFile, token.charOffset, name);
+    checkValidSourceFileLocation(location, sourceFile, token.charOffset);
+    return location;
+  }
+
+  void checkValidSourceFileLocation(
+      SourceLocation location, SourceFile sourceFile, int offset) {
+    if (!location.isValid) {
+      throw MessageKind.INVALID_SOURCE_FILE_LOCATION.message(
+          {'offset': offset,
+           'fileName': sourceFile.filename,
+           'length': sourceFile.length});
+    }
+  }
+
+  @override
+  SourceInformation buildLoop(Node node) {
+    return new StartEndSourceInformation(
+        sourceFileLocationForToken(node.getBeginToken()),
+        sourceFileLocationForToken(node.getEndToken()));
+  }
+
+  @override
+  SourceInformation buildGeneric(Node node) {
+    return new StartEndSourceInformation(
+        sourceFileLocationForToken(node.getBeginToken()));
+  }
+
+  @override
+  SourceInformation buildReturn(Node node) => buildGeneric(node);
+
+  @override
+  SourceInformation buildGet(Node node) => buildGeneric(node);
+
+  @override
+  SourceInformation buildCall(Node node) => buildGeneric(node);
+
+  @override
+  SourceInformationBuilder forContext(
+      AstElement element, {SourceInformation sourceInformation}) {
+    return new StartEndSourceInformationBuilder(element);
+  }
+}
+
 /// [SourceInformation] that consists of an offset position into the source
 /// code.
-class PositionSourceInformation implements SourceInformation {
-  final SourceLocation sourcePosition;
-
-  PositionSourceInformation(this.sourcePosition);
+class PositionSourceInformation extends SourceInformation {
+  @override
+  final SourceLocation startPosition;
 
   @override
-  void beginMapping(CodeOutput output) {
-    output.setSourceLocation(sourcePosition);
-  }
+  final SourceLocation closingPosition;
+
+  PositionSourceInformation(this.startPosition,
+                            [this.closingPosition]);
 
   @override
-  void endMapping(CodeOutput output) {
-    // Do nothing.
-  }
-
   SourceSpan get sourceSpan {
-    Uri uri = sourcePosition.sourceUri;
-    int offset = sourcePosition.offset;
+    SourceLocation location =
+        startPosition != null ? startPosition : closingPosition;
+    Uri uri = location.sourceUri;
+    int offset = location.offset;
     return new SourceSpan(uri, offset, offset);
   }
 
   int get hashCode {
-    return sourcePosition.hashCode * 17 & 0x7FFFFFFF;
+    return 0x7FFFFFFF &
+           (startPosition.hashCode * 17 + closingPosition.hashCode * 19);
   }
 
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! PositionSourceInformation) return false;
-    return sourcePosition == other.sourcePosition;
+    return startPosition == other.startPosition &&
+           closingPosition == other.closingPosition;
   }
 
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.write('${sourcePosition.sourceUri}:');
+    if (startPosition != null) {
+      sb.write('${startPosition.sourceUri}:');
+    } else {
+      sb.write('${closingPosition.sourceUri}:');
+    }
     // Use 1-based line/column info to match usual dart tool output.
-    sb.write('[${sourcePosition.line + 1},${sourcePosition.column + 1}]');
+    if (startPosition != null) {
+      sb.write('[${startPosition.line + 1},'
+                '${startPosition.column + 1}]');
+    }
+    if (closingPosition != null) {
+      sb.write('-[${closingPosition.line + 1},'
+                 '${closingPosition.column + 1}]');
+    }
     return sb.toString();
   }
 }
@@ -196,17 +311,71 @@ abstract class SourceLocation {
   }
 }
 
-class TokenSourceLocation extends SourceLocation {
-  final Token token;
+class OffsetSourceLocation extends SourceLocation {
+  final int offset;
   final String sourceName;
 
-  TokenSourceLocation(SourceFile sourceFile, this.token, this.sourceName)
-    : super(sourceFile);
-
-  @override
-  int get offset => token.charOffset;
+  OffsetSourceLocation(SourceFile sourceFile, this.offset, this.sourceName)
+      : super(sourceFile);
 
   String toString() {
     return '${super.toString()}:$sourceName';
+  }
+}
+
+class PositionSourceInformationFactory implements SourceInformationFactory {
+  const PositionSourceInformationFactory();
+
+  @override
+  SourceInformationBuilder forContext(AstElement element) {
+    return new PositionSourceInformationBuilder(element);
+  }
+}
+
+/// [SourceInformationBuilder] that generates [PositionSourceInformation].
+class PositionSourceInformationBuilder implements SourceInformationBuilder {
+  final SourceFile sourceFile;
+  final String name;
+
+  PositionSourceInformationBuilder(AstElement element)
+      : sourceFile = element.implementation.compilationUnit.script.file,
+        name = element.name;
+
+  SourceInformation buildDeclaration(AstElement element) {
+    if (element.isSynthesized) {
+      return new PositionSourceInformation(
+          new OffsetSourceLocation(
+              sourceFile, element.position.charOffset, name));
+    } else {
+      return new PositionSourceInformation(
+          null,
+          new OffsetSourceLocation(sourceFile,
+              element.resolvedAst.node.getEndToken().charOffset, name));
+    }
+  }
+
+  SourceInformation buildBegin(Node node) {
+    return new PositionSourceInformation(new OffsetSourceLocation(
+        sourceFile, node.getBeginToken().charOffset, name));
+  }
+
+  @override
+  SourceInformation buildGeneric(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildReturn(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildLoop(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildGet(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildCall(Node node) => buildBegin(node);
+
+  @override
+  SourceInformationBuilder forContext(AstElement element) {
+    return new PositionSourceInformationBuilder(element);
   }
 }

@@ -4,11 +4,12 @@
 
 library test.integration.server.get.version;
 
-import '../../reflective_tests.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
 import '../integration_tests.dart';
 
 main() {
-  runReflectiveTests(Test);
+  defineReflectiveTests(Test);
 }
 
 @reflectiveTest

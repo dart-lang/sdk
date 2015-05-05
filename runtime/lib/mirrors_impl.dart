@@ -5,7 +5,9 @@
 // VM-specific implementation of the dart:mirrors library.
 
 import "dart:collection" show UnmodifiableListView, UnmodifiableMapView;
+import "dart:async" show Future;
 
+var dirty = false;
 final emptyList = new UnmodifiableListView([]);
 final emptyMap = new UnmodifiableMapView({});
 
@@ -15,17 +17,11 @@ class _InternalMirrorError {
   String toString() => _msg;
 }
 
-Map _makeMemberMap(List mirrors) {
-  return new UnmodifiableMapView<Symbol, DeclarationMirror>(
-      new Map<Symbol, DeclarationMirror>.fromIterable(
-          mirrors, key: (e) => e.simpleName));
-}
-
-String _n(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
+String _n(Symbol symbol) => internal.Symbol.getName(symbol);
 
 Symbol _s(String name) {
   if (name == null) return null;
-  return new _symbol_dev.Symbol.unvalidated(name);
+  return new internal.Symbol.unvalidated(name);
 }
 
 Symbol _computeQualifiedName(DeclarationMirror owner, Symbol simpleName) {
@@ -224,30 +220,28 @@ class _AccessorCache {
   }
 }
 
-
 class _LocalMirrorSystem extends MirrorSystem {
-  final Map<Uri, LibraryMirror> libraries;
-  final IsolateMirror isolate;
+  final TypeMirror dynamicType = new _SpecialTypeMirror('dynamic');
+  final TypeMirror voidType = new _SpecialTypeMirror('void');
 
-  _LocalMirrorSystem(List<LibraryMirror> libraries, this.isolate)
-      : this.libraries = new Map<Uri, LibraryMirror>.fromIterable(
-            libraries, key: (e) => e.uri);
-
-  TypeMirror _dynamicType = null;
-  TypeMirror get dynamicType {
-    if (_dynamicType == null) {
-      _dynamicType = new _SpecialTypeMirror('dynamic');
+  var _libraries;
+  Map<Uri, LibraryMirror> get libraries {
+    if ((_libraries == null) || dirty) {
+      _libraries = new Map<Uri, LibraryMirror>.fromIterable(
+          _computeLibraries(), key: (e) => e.uri);
     }
-    return _dynamicType;
+    return _libraries;
   }
+  static _computeLibraries() native "MirrorSystem_libraries";
 
-  TypeMirror _voidType = null;
-  TypeMirror get voidType {
-    if (_voidType == null) {
-      _voidType = new _SpecialTypeMirror('void');
+  var _isolate;
+  IsolateMirror get isolate {
+    if (_isolate == null) {
+      _isolate = _computeIsolate();
     }
-    return _voidType;
+    return _isolate;
   }
+  static _computeIsolate() native "MirrorSystem_isolate";
 
   String toString() => "MirrorSystem for isolate '${isolate.debugName}'";
 }
@@ -622,14 +616,15 @@ class _LocalClassMirror extends _LocalObjectMirror
 
   DeclarationMirror get owner {
     if (_owner == null) {
-      _owner = _library(_reflectee);
+      var uri = _LocalClassMirror._libraryUri(_reflectee);
+      _owner = currentMirrorSystem().libraries[Uri.parse(uri)];
     }
     return _owner;
   }
 
   bool get isPrivate => _n(simpleName).startsWith('_');
 
-  final bool isTopLevel = true;
+  bool get isTopLevel => true;
 
   SourceLocation get location {
     return _location(_reflectee);
@@ -757,34 +752,29 @@ class _LocalClassMirror extends _LocalObjectMirror
   Map<Symbol, DeclarationMirror> _declarations;
   Map<Symbol, DeclarationMirror> get declarations {
     if (_declarations != null) return _declarations;
+
     var decls = new Map<Symbol, DeclarationMirror>();
-    decls.addAll(_members);
-    decls.addAll(_constructors);
-    typeVariables.forEach((tv) => decls[tv.simpleName] = tv);
+
+    var whoseMembers = _isMixinAlias ? _trueSuperclass : this;
+    var members = mixin._computeMembers(_instantiator,
+                                        whoseMembers.mixin._reflectee);
+    for (var member in members) {
+      decls[member.simpleName] = member;
+    }
+
+    var constructors = _computeConstructors(_instantiator, _reflectee);
+    var stringName = _n(simpleName);
+    for (var constructor in constructors) {
+      constructor._patchConstructorName(stringName);
+      decls[constructor.simpleName] = constructor;
+    }
+
+    for (var typeVariable in typeVariables) {
+      decls[typeVariable.simpleName] = typeVariable;
+    }
+
     return _declarations =
         new UnmodifiableMapView<Symbol, DeclarationMirror>(decls);
-  }
-
-  Map<Symbol, Mirror> _cachedMembers;
-  Map<Symbol, Mirror> get _members {
-    if (_cachedMembers == null) {
-      var whoseMembers = _isMixinAlias ? _trueSuperclass : this;
-      _cachedMembers = _makeMemberMap(mixin._computeMembers(
-          _instantiator, whoseMembers.mixin._reflectee));
-    }
-    return _cachedMembers;
-  }
-
-  Map<Symbol, MethodMirror> _cachedConstructors;
-  Map<Symbol, MethodMirror> get _constructors {
-    if (_cachedConstructors == null) {
-      var constructorsList = _computeConstructors(_instantiator, _reflectee);
-      var stringName = _n(simpleName);
-      constructorsList.forEach((c) => c._patchConstructorName(stringName));
-      _cachedConstructors =
-          new Map.fromIterable(constructorsList, key: (e) => e.simpleName);
-    }
-    return _cachedConstructors;
   }
 
   bool get _isAnonymousMixinApplication {
@@ -904,8 +894,8 @@ class _LocalClassMirror extends _LocalObjectMirror
     return false;
   }
 
-  static _library(reflectee)
-      native "ClassMirror_library";
+  static _libraryUri(reflectee)
+      native "ClassMirror_libraryUri";
 
   static _supertype(reflectedType)
       native "ClassMirror_supertype";
@@ -1134,7 +1124,8 @@ class _LocalTypedefMirror extends _LocalDeclarationMirror
   DeclarationMirror _owner;
   DeclarationMirror get owner {
     if (_owner == null) {
-      _owner = _LocalClassMirror._library(_reflectee);
+      var uri = _LocalClassMirror._libraryUri(_reflectee);
+      _owner = currentMirrorSystem().libraries[Uri.parse(uri)];
     }
     return _owner;
   }
@@ -1247,16 +1238,15 @@ class _LocalLibraryMirror extends _LocalObjectMirror implements LibraryMirror {
   Map<Symbol, DeclarationMirror> _declarations;
   Map<Symbol, DeclarationMirror> get declarations {
     if (_declarations != null) return _declarations;
-    return _declarations =
-        new UnmodifiableMapView<Symbol, DeclarationMirror>(_members);
-  }
 
-  Map<Symbol, Mirror> _cachedMembers;
-  Map<Symbol, Mirror> get _members {
-    if (_cachedMembers == null) {
-      _cachedMembers = _makeMemberMap(_computeMembers(_reflectee));
+    var decls = new Map<Symbol, DeclarationMirror>();
+    var members = _computeMembers(_reflectee);
+    for (var member in members) {
+      decls[member.simpleName] = member;
     }
-    return _cachedMembers;
+
+    return _declarations =
+        new UnmodifiableMapView<Symbol, DeclarationMirror>(decls);
   }
 
   SourceLocation get location {
@@ -1305,7 +1295,7 @@ class _LocalLibraryMirror extends _LocalObjectMirror implements LibraryMirror {
 class _LocalLibraryDependencyMirror
     extends _LocalMirror implements LibraryDependencyMirror {
   final LibraryMirror sourceLibrary;
-  final LibraryMirror targetLibrary;
+  var _targetMirrorOrPrefix;
   final List<CombinatorMirror> combinators;
   final Symbol prefix;
   final bool isImport;
@@ -1313,7 +1303,7 @@ class _LocalLibraryDependencyMirror
   final List<InstanceMirror> metadata;
 
   _LocalLibraryDependencyMirror(this.sourceLibrary,
-                                this.targetLibrary,
+                                this._targetMirrorOrPrefix,
                                 this.combinators,
                                 prefixString,
                                 this.isImport,
@@ -1323,6 +1313,29 @@ class _LocalLibraryDependencyMirror
         metadata = new UnmodifiableListView(unwrappedMetadata.map(reflect));
 
   bool get isExport => !isImport;
+
+  LibraryMirror get targetLibrary {
+    if (_targetMirrorOrPrefix is _LocalLibraryMirror) {
+      return _targetMirrorOrPrefix;
+    }
+    var mirrorOrNull = _tryUpgradePrefix(_targetMirrorOrPrefix);
+    if (mirrorOrNull != null) {
+      _targetMirrorOrPrefix = mirrorOrNull;
+    }
+    return mirrorOrNull;
+  }
+
+  Future<LibraryMirror> loadLibrary() {
+    if (_targetMirrorOrPrefix is _LocalLibraryMirror) {
+      return new Future.value(_targetMirrorOrPrefix);
+    }
+    var savedPrefix = _targetMirrorOrPrefix;
+    return savedPrefix.loadLibrary().then((_) {
+      return _tryUpgradePrefix(savedPrefix);
+    });
+  }
+
+  static _tryUpgradePrefix(libraryPrefix) native "LibraryMirror_fromPrefix";
 }
 
 class _LocalCombinatorMirror extends _LocalMirror implements CombinatorMirror {
@@ -1339,34 +1352,38 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
     implements MethodMirror {
   final Type _instantiator;
   final bool isStatic;
-  final bool isAbstract;
-  final bool isGetter;
-  final bool isSetter;
-  final bool isConstructor;
-  final bool isConstConstructor;
-  final bool isGenerativeConstructor;
-  final bool isRedirectingConstructor;
-  final bool isFactoryConstructor;
-  final bool isOperator;
-
-  static const _operators = const ["%", "&", "*", "+", "-", "/", "<", "<<",
-      "<=", "==", ">", ">=", ">>", "[]", "[]=", "^", "|", "~", "unary-", "~/"];
+  final int _kindFlags;
 
   _LocalMethodMirror(reflectee,
                      String simpleName,
                      this._owner,
                      this._instantiator,
                      this.isStatic,
-                     this.isAbstract,
-                     this.isGetter,
-                     this.isSetter,
-                     this.isConstructor,
-                     this.isConstConstructor,
-                     this.isGenerativeConstructor,
-                     this.isRedirectingConstructor,
-                     this.isFactoryConstructor)
-      : this.isOperator = _operators.contains(simpleName),
-        super(reflectee, _s(simpleName));
+                     this._kindFlags)
+      : super(reflectee, _s(simpleName));
+
+  static const kAbstract = 0;
+  static const kGetter = 1;
+  static const kSetter = 2;
+  static const kConstructor = 3;
+  static const kConstCtor = 4;
+  static const kGenerativeCtor = 5;
+  static const kRedirectingCtor = 6;
+  static const kFactoryCtor = 7;
+
+  // These offsets much be kept in sync with those in mirrors.h.
+  bool get isAbstract =>               0 != (_kindFlags & (1 << kAbstract));
+  bool get isGetter =>                 0 != (_kindFlags & (1 << kGetter));
+  bool get isSetter =>                 0 != (_kindFlags & (1 << kSetter));
+  bool get isConstructor =>            0 != (_kindFlags & (1 << kConstructor));
+  bool get isConstConstructor =>       0 != (_kindFlags & (1 << kConstCtor));
+  bool get isGenerativeConstructor =>  0 != (_kindFlags & (1 << kGenerativeCtor));
+  bool get isRedirectingConstructor => 0 != (_kindFlags & (1 << kRedirectingCtor));
+  bool get isFactoryConstructor =>     0 != (_kindFlags & (1 << kFactoryCtor));
+
+  static const _operators = const ["%", "&", "*", "+", "-", "/", "<", "<<",
+      "<=", "==", ">", ">=", ">>", "[]", "[]=", "^", "|", "~", "unary-", "~/"];
+  bool get isOperator => _operators.contains(_n(simpleName));
 
   DeclarationMirror _owner;
   DeclarationMirror get owner {
@@ -1430,17 +1447,11 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
     return _constructorName;
   }
 
-  String _source = null;
-  String get source {
-    if (_source == null) {
-      _source = _MethodMirror_source(_reflectee);
-    }
-    return _source;
-  }
+  String get source => _MethodMirror_source(_reflectee);
 
   void _patchConstructorName(ownerName) {
     var cn = _n(constructorName);
-    if(cn == ''){
+    if (cn == '') {
       _simpleName = _s(ownerName);
     } else {
       _simpleName = _s(ownerName + "." + cn);
@@ -1593,8 +1604,6 @@ class _SpecialTypeMirror extends _LocalMirror
 
   Symbol get qualifiedName => simpleName;
 
-  // TODO(11955): Remove once dynamicType and voidType are canonical objects in
-  // the object store.
   bool operator ==(other) {
     if (other is! _SpecialTypeMirror) {
       return false;
@@ -1616,17 +1625,8 @@ class _SpecialTypeMirror extends _LocalMirror
 }
 
 class _Mirrors {
-  static MirrorSystem _currentMirrorSystem = null;
-
-  // Creates a new local MirrorSystem.
-  static MirrorSystem makeLocalMirrorSystem()
-      native 'Mirrors_makeLocalMirrorSystem';
-
-  // The MirrorSystem for the current isolate.
+  static MirrorSystem _currentMirrorSystem = new _LocalMirrorSystem();
   static MirrorSystem currentMirrorSystem() {
-    if (_currentMirrorSystem == null) {
-      _currentMirrorSystem = makeLocalMirrorSystem();
-    }
     return _currentMirrorSystem;
   }
 

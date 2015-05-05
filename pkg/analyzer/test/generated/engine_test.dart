@@ -11,6 +11,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/src/cancelable_future.dart';
+import 'package:analyzer/src/context/cache.dart' show CacheEntry;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -33,6 +34,7 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/task/task_dart.dart';
+import 'package:analyzer/task/model.dart' hide AnalysisTask;
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 import 'package:watcher/src/utils.dart';
@@ -1217,21 +1219,6 @@ main() {}''');
     expect(namespace, isNotNull);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ClassElement, ClassElement, namespace.get("A"));
-  }
-
-  void test_getRefactoringUnsafeSources() {
-    // not sources initially
-    List<Source> sources = _context.refactoringUnsafeSources;
-    expect(sources, hasLength(0));
-    // add new source, unresolved
-    Source source = _addSource("/test.dart", "library lib;");
-    sources = _context.refactoringUnsafeSources;
-    expect(sources, hasLength(1));
-    expect(sources[0], source);
-    // resolve source
-    _context.computeLibraryElement(source);
-    sources = _context.refactoringUnsafeSources;
-    expect(sources, hasLength(0));
   }
 
   void test_getResolvedCompilationUnit_library() {
@@ -5445,6 +5432,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  List<AnalysisTarget> get explicitTargets {
+    fail("Unexpected invocation of visitCacheItems");
+    return null;
+  }
+  @override
   List<Source> get htmlSources {
     fail("Unexpected invocation of getHtmlSources");
     return null;
@@ -5462,6 +5454,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   List<Source> get launchableServerLibrarySources {
     fail("Unexpected invocation of getLaunchableServerLibrarySources");
+    return null;
+  }
+  @override
+  LibraryResolverFactory get libraryResolverFactory {
+    fail("Unexpected invocation of getLibraryResolverFactory");
     return null;
   }
   @override
@@ -5489,20 +5486,17 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
-  List<Source> get refactoringUnsafeSources {
-    fail("Unexpected invocation of getRefactoringUnsafeSources");
+  List<AnalysisTarget> get priorityTargets {
+    fail("Unexpected invocation of visitCacheItems");
     return null;
   }
-  @override
-  LibraryResolverFactory get libraryResolverFactory {
-    fail("Unexpected invocation of getLibraryResolverFactory");
-    return null;
-  }
+
   @override
   ResolverVisitorFactory get resolverVisitorFactory {
     fail("Unexpected invocation of getResolverVisitorFactory");
     return null;
   }
+
   @override
   SourceFactory get sourceFactory {
     fail("Unexpected invocation of getSourceFactory");
@@ -5513,13 +5507,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
   void set sourceFactory(SourceFactory factory) {
     fail("Unexpected invocation of setSourceFactory");
   }
-
   @override
   List<Source> get sources {
     fail("Unexpected invocation of sources");
     return null;
   }
-
   @override
   AnalysisContextStatistics get statistics {
     fail("Unexpected invocation of getStatistics");
@@ -5619,6 +5611,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
   bool exists(Source source) {
     fail("Unexpected invocation of exists");
     return false;
+  }
+  @override
+  CacheEntry getCacheEntry(AnalysisTarget target) {
+    fail("Unexpected invocation of visitCacheItems");
+    return null;
   }
   @override
   CompilationUnitElement getCompilationUnitElement(
@@ -5757,18 +5754,21 @@ class TestAnalysisContext implements InternalAnalysisContext {
   void removeListener(AnalysisListener listener) {
     fail("Unexpected invocation of removeListener");
   }
+
   @override
   CompilationUnit resolveCompilationUnit(
       Source unitSource, LibraryElement library) {
     fail("Unexpected invocation of resolveCompilationUnit");
     return null;
   }
+
   @override
   CompilationUnit resolveCompilationUnit2(
       Source unitSource, Source librarySource) {
     fail("Unexpected invocation of resolveCompilationUnit");
     return null;
   }
+
   @override
   ht.HtmlUnit resolveHtmlUnit(Source htmlSource) {
     fail("Unexpected invocation of resolveHtmlUnit");
@@ -6119,17 +6119,6 @@ class TestAnalysisContext_test_getPublicNamespace extends TestAnalysisContext {
   TestAnalysisContext_test_getPublicNamespace();
   @override
   Namespace getPublicNamespace(LibraryElement library) {
-    invoked = true;
-    return null;
-  }
-}
-
-class TestAnalysisContext_test_getRefactoringUnsafeSources
-    extends TestAnalysisContext {
-  bool invoked = false;
-  TestAnalysisContext_test_getRefactoringUnsafeSources();
-  @override
-  List<Source> get refactoringUnsafeSources {
     invoked = true;
     return null;
   }

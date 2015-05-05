@@ -4,7 +4,7 @@
 
 library tree_ir.optimization.variable_merger;
 
-import 'optimization.dart' show Pass, PassMixin;
+import 'optimization.dart' show Pass;
 import '../tree_ir_nodes.dart';
 import '../../elements/elements.dart' show Local, ParameterElement;
 
@@ -34,7 +34,7 @@ class VariableMerger extends RecursiveVisitor implements Pass {
       builder.build(node.parameters, body);
       _computeLiveness(builder.blocks);
       Map<Variable, Variable> subst =
-          _computeRegisterAllocation(builder.blocks);
+          _computeRegisterAllocation(builder.blocks, node.parameters);
       new SubstituteVariables(subst).apply(node);
     });
   }
@@ -165,10 +165,14 @@ class BlockGraphBuilder extends RecursiveVisitor {
     read(node.variable);
   }
 
+  visitVariableDeclaration(VariableDeclaration node) {
+    assert(node.variable.isCaptured);
+    visitStatement(node.next);
+  }
+
   visitAssign(Assign node) {
     visitExpression(node.value);
     write(node.variable);
-    visitStatement(node.next);
   }
 
   visitIf(If node) {
@@ -227,16 +231,17 @@ class BlockGraphBuilder extends RecursiveVisitor {
 
   visitConditional(Conditional node) {
     visitExpression(node.condition);
-    // TODO(asgerf): When assignment expressions are added, this is no longer
-    // sound; then we need to handle as a branch.
+    Block afterCondition = _currentBlock;
+    branchFrom(afterCondition);
     visitExpression(node.thenExpression);
+    branchFrom(afterCondition);
     visitExpression(node.elseExpression);
   }
 
   visitLogicalOperator(LogicalOperator node) {
     visitExpression(node.left);
-    // TODO(asgerf): When assignment expressions are added, this is no longer
-    // sound; then we need to handle as a branch.
+    Block afterCondition = _currentBlock;
+    branchFrom(afterCondition);
     visitExpression(node.right);
   }
 
@@ -350,20 +355,20 @@ const bool NO_PRESERVE_VARS = const bool.fromEnvironment('NO_PRESERVE_VARS');
 ///
 /// We never merge variables that originated from distinct source variables,
 /// so we build a separate register interference graph for each source variable.
-Map<Variable, Variable> _computeRegisterAllocation(List<Block> blocks) {
+Map<Variable, Variable> _computeRegisterAllocation(List<Block> blocks,
+                                                   List<Variable> parameters) {
   Map<Variable, Set<Variable>> interference = <Variable, Set<Variable>>{};
 
   /// Group for the given variable. We attempt to merge variables in the same
   /// group.
-  /// By default, variables are grouped based on their source variable, but
-  /// this can be disabled for testing purposes.
-  Local group(Variable variable) {
-    if (NO_PRESERVE_VARS) {
-      // Parameters may not occur more than once in a parameter list,
-      // so except for parameters, we try to merge all variables.
-      return variable.element is ParameterElement ? variable.element : null;
-    }
-    return variable.element;
+  /// By default, variables are grouped based on their source variable name,
+  /// but this can be disabled for testing purposes.
+  String group(Variable variable) {
+    if (NO_PRESERVE_VARS) return '';
+    // Group variables based on the source variable's name, not its element,
+    // so if multiple locals are declared with the same name, they will
+    // map to the same (hoisted) variable in the output.
+    return variable.element == null ? '' : variable.element.name;
   }
 
   Set<Variable> empty = new Set<Variable>();
@@ -372,7 +377,7 @@ Map<Variable, Variable> _computeRegisterAllocation(List<Block> blocks) {
   // live after the assignment (if it came from the same source variable).
   for (Block block in blocks) {
     // Group the liveOut set by source variable.
-    Map<Local, Set<Variable>> liveOut = <Local, Set<Variable>>{};
+    Map<String, Set<Variable>> liveOut = <String, Set<Variable>>{};
     for (Variable variable in block.liveOut) {
       liveOut.putIfAbsent(
           group(variable),
@@ -409,10 +414,22 @@ Map<Variable, Variable> _computeRegisterAllocation(List<Block> blocks) {
   List<Variable> variables = interference.keys.toList();
   variables.sort((x, y) => interference[y].length - interference[x].length);
 
-  Map<Local, List<Variable>> registers = <Local, List<Variable>>{};
+  Map<String, List<Variable>> registers = <String, List<Variable>>{};
   Map<Variable, Variable> subst = <Variable, Variable>{};
 
+  // Parameters are special in that they must have a ParameterElement and
+  // cannot be merged with each other. Ensure that they are not substituted.
+  // Other variables can still be substituted by a parameter.
+  for (Variable parameter in parameters) {
+    if (parameter.isCaptured) continue;
+    subst[parameter] = parameter;
+    registers[group(parameter)] = <Variable>[parameter];
+  }
+
   for (Variable v1 in variables) {
+    // Parameters have already been assigned a substitute; skip those.
+    if (subst.containsKey(v1)) continue;
+
     List<Variable> register = registers[group(v1)];
 
     // Optimization: For the first variable in a group, allocate a new color
@@ -493,22 +510,41 @@ class SubstituteVariables extends RecursiveTransformer {
     return node;
   }
 
-  Statement visitAssign(Assign node) {
+  Expression visitAssign(Assign node) {
     node.variable = replaceWrite(node.variable);
-
-    visitExpression(node.value);
-    node.next = visitStatement(node.next);
+    node.value = visitExpression(node.value);
 
     // Remove assignments of form "x := x"
     if (node.value is VariableUse) {
       VariableUse value = node.value;
       if (value.variable == node.variable) {
-        value.variable.readCount--;
-        node.variable.writeCount--;
-        return node.next;
+        --node.variable.writeCount;
+        return value;
       }
     }
 
     return node;
   }
+
+  Statement visitExpressionStatement(ExpressionStatement node) {
+    node.expression = visitExpression(node.expression);
+    node.next = visitStatement(node.next);
+    if (node.expression is VariableUse) {
+      VariableUse use = node.expression;
+      --use.variable.readCount;
+      return node.next;
+    }
+    return node;
+  }
+
+  Statement visitVariableDeclaration(VariableDeclaration node) {
+    // VariableDeclaration is only used for captured variables, which are never
+    // merged, so this is not strictly necessary. But it's nicer if this class
+    // works for arbitrary substitution maps.
+    node.variable = replaceWrite(node.variable);
+    node.value = visitExpression(node.value);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
 }

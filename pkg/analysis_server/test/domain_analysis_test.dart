@@ -13,18 +13,18 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:path/path.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
 import 'mock_sdk.dart';
 import 'mocks.dart';
-import 'reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
 
-  runReflectiveTests(AnalysisDomainTest);
-  runReflectiveTests(SetSubscriptionsTest);
+  defineReflectiveTests(AnalysisDomainTest);
+  defineReflectiveTests(SetSubscriptionsTest);
 
   MockServerChannel serverChannel;
   MemoryResourceProvider resourceProvider;

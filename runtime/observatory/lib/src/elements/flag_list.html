@@ -1,6 +1,7 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
 <link rel="import" href="nav_bar.html">
 <link rel="import" href="observatory_element.html">
+<link rel="import" href="view_footer.html">
 
 <polymer-element name="flag-list" extends="observatory-element">
   <template>
@@ -9,7 +10,6 @@
       <top-nav-menu></top-nav-menu>
       <nav-menu link="{{ makeLink('/flags') }}" anchor="flags" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
-      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content-centered">
@@ -35,7 +35,7 @@
         </template>
       </template>
     </div>
-
+    <view-footer></view-footer>
   </template>
 </polymer-element>
 

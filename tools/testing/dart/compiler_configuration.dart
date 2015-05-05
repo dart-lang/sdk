@@ -60,6 +60,7 @@ abstract class CompilerConfiguration {
     bool isHostChecked = configuration['host_checked'];
     bool useSdk = configuration['use_sdk'];
     bool isCsp = configuration['csp'];
+    bool useCps = configuration['cps_ir'];
 
     switch (compiler) {
       case 'dartanalyzer':
@@ -73,8 +74,8 @@ abstract class CompilerConfiguration {
       case 'dart2js':
         return new Dart2jsCompilerConfiguration(
             isDebug: isDebug, isChecked: isChecked,
-            isHostChecked: isHostChecked, useSdk: useSdk, isCsp: isCsp,
-            extraDart2jsOptions:
+            isHostChecked: isHostChecked, useCps: useCps, useSdk: useSdk,
+            isCsp: isCsp, extraDart2jsOptions:
                 TestUtils.getExtraOptions(configuration, 'dart2js_options'));
       case 'dart2dart':
         return new Dart2dartCompilerConfiguration(
@@ -225,13 +226,18 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
 /// Configuration for dart2js compiler.
 class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   final bool isCsp;
+  final bool useCps;
   final List<String> extraDart2jsOptions;
+  // We cache the extended environment to save memory.
+  static Map<String, String> cpsFlagCache;
+  static Map<String, String> environmentOverridesCacheObject;
 
   Dart2jsCompilerConfiguration({
       bool isDebug,
       bool isChecked,
       bool isHostChecked,
       bool useSdk,
+      bool this.useCps,
       bool this.isCsp,
       this.extraDart2jsOptions})
       : super(
@@ -253,13 +259,15 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       CommandBuilder commandBuilder,
       List arguments,
       Map<String, String> environmentOverrides) {
+    List compilerArguments = new List.from(arguments)
+      ..addAll(extraDart2jsOptions);
     return new CommandArtifact(
         <Command>[
             this.computeCompilationCommand(
                 '$tempDir/out.js',
                 buildDir,
                 CommandBuilder.instance,
-                []..addAll(arguments)..addAll(extraDart2jsOptions),
+                compilerArguments,
                 environmentOverrides)],
         '$tempDir/out.js',
         'application/javascript');

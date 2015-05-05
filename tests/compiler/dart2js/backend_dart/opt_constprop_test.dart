@@ -9,7 +9,7 @@ import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
 import 'package:compiler/src/cps_ir/cps_ir_nodes_sexpr.dart';
 import 'package:compiler/src/cps_ir/optimizers.dart';
-import 'package:compiler/src/dart2jslib.dart' as dart2js;
+import 'package:compiler/src/constant_system_dart.dart';
 
 // The tests in this file that ensure that sparse constant propagation on the
 // CPS IR works as expected.
@@ -500,7 +500,7 @@ Future testConstantPropagator(String input, String expectedOutput) {
     final stringifier   = new SExpressionStringifier();
     final optimizer     = new TypePropagator(
         compiler.types,
-        dart2js.DART_CONSTANT_SYSTEM,
+        DART_CONSTANT_SYSTEM,
         new UnitTypeSystem(),
         compiler.internalError);
 

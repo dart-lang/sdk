@@ -7,7 +7,7 @@
  */
 library text.formatter;
 
-import 'package:html5lib/dom.dart' as dom;
+import 'package:html/dom.dart' as dom;
 
 import 'codegen_tools.dart';
 

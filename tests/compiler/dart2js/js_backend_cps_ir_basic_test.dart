@@ -1,7 +1,6 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=-DUSE_CPS_IR=true
 
 // Tests for basic functionality.
 
@@ -26,9 +25,7 @@ main() {
   print('($m)');
 }""",r"""
 function() {
-  var l, m;
-  l = [1, 2, 3];
-  m = P.LinkedHashMap_LinkedHashMap$_literal(["s", 1]);
+  var l = [1, 2, 3], m = P.LinkedHashMap_LinkedHashMap$_literal(["s", 1]);
   P.print("()");
   P.print("(" + true + ")");
   P.print("(" + 1 + ")");
@@ -81,9 +78,7 @@ main() {
   """,
   """
 function() {
-  var a, b;
-  a = 10;
-  b = 1;
+  var a = 10, b = 1;
   P.print(b);
   P.print(a);
   P.print(a);
@@ -111,8 +106,8 @@ main() {
   print(new Set.from([1, 2, 3]));
 }""", r"""
 function() {
-  P.print(P.Set_Set(null));
-  P.print(P.Set_Set$from([1, 2, 3], null));
+  P.print(P.LinkedHashSet_LinkedHashSet(null));
+  P.print(P.LinkedHashSet_LinkedHashSet$from([1, 2, 3], null));
   return null;
 }"""),
   // Call synthetic constructor.
@@ -162,8 +157,7 @@ var foo = 0;
 main() { print(foo = 42); }
 """, r"""
 function() {
-  var v0;
-  v0 = 42;
+  var v0 = 42;
   $.foo = v0;
   P.print(v0);
   return null;
@@ -174,6 +168,19 @@ main() { foo = 42; }
 """, r"""
 function() {
   V.foo(42);
+  return null;
+}"""),
+  // Assert
+  const TestEntry("""
+foo() { print('X'); }
+main() {
+  assert(true);
+  assert(false);
+  assert(foo());
+  print('Done');
+}""", r"""
+function() {
+  P.print("Done");
   return null;
 }""")
 ];

@@ -21,8 +21,10 @@ const RANGE2_ADJUST = - (FIRST_FIELD_CODE + RANGE1_SIZE - RANGE2_FIRST);
 const RANGE3_ADJUST =
     - (FIRST_FIELD_CODE + RANGE1_SIZE + RANGE2_SIZE - RANGE3_FIRST);
 
-String get setupProgramName => 'setupProgram';
-
+const String setupProgramName ='setupProgram';
+// TODO(floitsch): make sure this property can't clash with anything. It's
+//   unlikely since it lives on types, but still.
+const String typeNameProperty = r'builtin$cls';
 
 jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
                                 JavaScriptBackend backend,
@@ -141,7 +143,7 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
      'deferredActionString': js.string(namer.deferredAction)};
 
    String skeleton = '''
-function $setupProgramName(programData) {
+function $setupProgramName(programData, typesOffset) {
   "use strict";
   if (#needsClassSupport) {
 
@@ -237,7 +239,7 @@ function $setupProgramName(programData) {
         body += "this." + #deferredActionString + "();";
       }
       str += ") {\\n" + body + "}\\n";
-      str += name + ".builtin\$cls=\\"" + name + "\\";\\n";
+      str += name + ".$typeNameProperty=\\"" + name + "\\";\\n";
       str += "\$desc=\$collectedClasses." + name + "[1];\\n";
       str += name + ".prototype = \$desc;\\n";
       if (typeof defineClass.name != "string") {
@@ -667,17 +669,19 @@ function $setupProgramName(programData) {
       var funcs = [prototype[name] = prototype[alias] = f];
       f.\$stubName = name;
       functions.push(name);
-      for (; index < array.length; index += 2) {
-        f = array[index + 1];
+      for (index++; index < array.length; index++) {
+        f = array[index];
         if (typeof f != "function") break;
-        f.\$stubName = ${readString("array", "index + 2")};
+        if (!isStatic) {
+          f.\$stubName = ${readString("array", "++index")};
+        }
         funcs.push(f);
         if (f.\$stubName) {
           prototype[f.\$stubName] = f;
           functions.push(f.\$stubName);
         }
       }
-      index++;
+
       for (var i = 0; i < funcs.length; index++, i++) {
         funcs[i].\$callName = ${readString("array", "index")};
       }
@@ -694,6 +698,8 @@ function $setupProgramName(programData) {
       var isIntercepted =
              requiredParameterCount + optionalParameterCount != funcs[0].length;
       var functionTypeIndex = ${readFunctionType("array", "2")};
+      if (typeof functionTypeIndex == "number")
+        ${readFunctionType("array", "2")} = functionTypeIndex + typesOffset;
       var unmangledNameIndex = $unmangledNameIndex;
 
       if (getterStubName) {

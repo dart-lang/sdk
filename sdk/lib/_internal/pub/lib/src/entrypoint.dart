@@ -255,6 +255,20 @@ class Entrypoint {
     if (!sdkMatches) changed = null;
 
     var graph = await loadPackageGraph();
+
+    // Clean out any outdated snapshots.
+    if (dirExists(binDir)) {
+      for (var entry in listDir(binDir)) {
+        if (!dirExists(entry)) continue;
+
+        var package = path.basename(entry);
+        if (!graph.packages.containsKey(package) ||
+            graph.isPackageMutable(package)) {
+          deleteEntry(entry);
+        }
+      }
+    }
+
     var executables = new Map.fromIterable(root.immediateDependencies,
         key: (dep) => dep.name,
         value: (dep) => _executablesForPackage(graph, dep.name, changed));
@@ -319,7 +333,7 @@ class Entrypoint {
       return executables;
     }
 
-    // If any executables doesn't exist, precompile them regardless of what
+    // If any executables don't exist, precompile them regardless of what
     // changed. Since we delete the bin directory before recompiling, we need to
     // recompile all executables.
     var executablesExist = executables.every((executable) =>

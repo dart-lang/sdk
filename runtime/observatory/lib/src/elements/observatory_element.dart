@@ -17,7 +17,6 @@ class ObservatoryElement extends PolymerElement {
 
   ObservatoryApplication get app => ObservatoryApplication.app;
   Page get page => app.currentPage;
-  ObservableMap get args => page.args;
 
   @override
   void attached() {
@@ -116,6 +115,9 @@ class ObservatoryElement extends PolymerElement {
   /// Create a link that can be consumed by [goto].
   String gotoLink(String url, [ServiceObject obj]) {
     return app.locationManager.makeLink(makeLink(url, obj));
+  }
+  String gotoLinkForwardingParameters(String url, [ServiceObject obj]) {
+    return app.locationManager.makeLinkForwardingParameters(makeLink(url, obj));
   }
 
   String formatTimePrecise(double time) => Utils.formatTimePrecise(time);

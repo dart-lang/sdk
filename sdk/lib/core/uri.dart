@@ -30,6 +30,9 @@ class Uri {
    * Returns the scheme component.
    *
    * Returns the empty string if there is no scheme component.
+   *
+   * A URI scheme is case insensitive.
+   * The returned scheme is canonicalized to lowercase letters.
    */
   // We represent the missing scheme as an empty string.
   // A valid scheme cannot be empty.
@@ -74,6 +77,10 @@ class Uri {
    *
    * If the host is an IP version 6 address, the surrounding `[` and `]` is
    * removed.
+   *
+   * The host string is case-insensitive.
+   * The returned host name is canonicalized to lower-case
+   * with upper-case percent-escapes.
    */
   String get host {
     if (_host == null) return "";
@@ -704,8 +711,22 @@ class Uri {
    * If the path passed is not a legal file path [ArgumentError] is thrown.
    */
   factory Uri.file(String path, {bool windows}) {
-    windows = windows == null ? Uri._isWindows : windows;
-    return windows ? _makeWindowsFileUrl(path) : _makeFileUri(path);
+    windows = (windows == null) ? Uri._isWindows : windows;
+    return windows ? _makeWindowsFileUrl(path, false)
+                   : _makeFileUri(path, false);
+  }
+
+  /**
+   * Like [Uri.file] except that a non-empty URI path ends in a slash.
+   *
+   * If [path] is not empty, and it doesn't end in a directory separator,
+   * then a slash is added to the returned URI's path.
+   * In all other cases, the result is the same as returned by `Uri.file`.
+   */
+  factory Uri.directory(String path, {bool windows}) {
+    windows = (windows == null) ? Uri._isWindows : windows;
+    return windows ? _makeWindowsFileUrl(path, true)
+                   : _makeFileUri(path, true);
   }
 
   /**
@@ -737,7 +758,7 @@ class Uri {
   static _checkWindowsPathReservedCharacters(List<String> segments,
                                              bool argumentError,
                                              [int firstSegment = 0]) {
-    segments.skip(firstSegment).forEach((segment) {
+    for (var segment in segments.skip(firstSegment)) {
       if (segment.contains(new RegExp(r'["*/:<>?\\|]'))) {
         if (argumentError) {
           throw new ArgumentError("Illegal character in path");
@@ -745,7 +766,7 @@ class Uri {
           throw new UnsupportedError("Illegal character in path");
         }
       }
-    });
+    }
   }
 
   static _checkWindowsDriveLetter(int charCode, bool argumentError) {
@@ -762,18 +783,24 @@ class Uri {
     }
   }
 
-  static _makeFileUri(String path) {
+  static _makeFileUri(String path, bool slashTerminated) {
     const String sep = "/";
+    var segments = path.split(sep);
+    if (slashTerminated &&
+        segments.isNotEmpty &&
+        segments.last.isNotEmpty) {
+      segments.add("");  // Extra separator at end.
+    }
     if (path.startsWith(sep)) {
       // Absolute file:// URI.
-      return new Uri(scheme: "file", pathSegments: path.split(sep));
+      return new Uri(scheme: "file", pathSegments: segments);
     } else {
       // Relative URI.
-      return new Uri(pathSegments: path.split(sep));
+      return new Uri(pathSegments: segments);
     }
   }
 
-  static _makeWindowsFileUrl(String path) {
+  static _makeWindowsFileUrl(String path, bool slashTerminated) {
     if (path.startsWith(r"\\?\")) {
       if (path.startsWith(r"UNC\", 4)) {
         path = path.replaceRange(0, 7, r'\');
@@ -798,6 +825,10 @@ class Uri {
       }
       // Absolute file://C:/ URI.
       var pathSegments = path.split(sep);
+      if (slashTerminated &&
+          pathSegments.last.isNotEmpty) {
+        pathSegments.add("");  // Extra separator at end.
+      }
       _checkWindowsPathReservedCharacters(pathSegments, true, 1);
       return new Uri(scheme: "file", pathSegments: pathSegments);
     }
@@ -812,11 +843,19 @@ class Uri {
             (pathStart < 0) ? "" : path.substring(pathStart + 1);
         var pathSegments = pathPart.split(sep);
         _checkWindowsPathReservedCharacters(pathSegments, true);
+        if (slashTerminated &&
+            pathSegments.last.isNotEmpty) {
+          pathSegments.add("");  // Extra separator at end.
+        }
         return new Uri(
             scheme: "file", host: hostPart, pathSegments: pathSegments);
       } else {
         // Absolute file:// URI.
         var pathSegments = path.split(sep);
+        if (slashTerminated &&
+            pathSegments.last.isNotEmpty) {
+          pathSegments.add("");  // Extra separator at end.
+        }
         _checkWindowsPathReservedCharacters(pathSegments, true);
         return new Uri(scheme: "file", pathSegments: pathSegments);
       }
@@ -824,6 +863,11 @@ class Uri {
       // Relative URI.
       var pathSegments = path.split(sep);
       _checkWindowsPathReservedCharacters(pathSegments, true);
+      if (slashTerminated &&
+          pathSegments.isNotEmpty &&
+          pathSegments.last.isNotEmpty) {
+        pathSegments.add("");  // Extra separator at end.
+      }
       return new Uri(pathSegments: pathSegments);
     }
   }
@@ -981,6 +1025,25 @@ class Uri {
     return _queryParameters;
   }
 
+  /**
+   * Returns an URI where the path has been normalized.
+   *
+   * A normalized path does not contain `.` segments or non-leading `..`
+   * segments.
+   * Only a relative path may contain leading `..` segments,
+   * a path that starts with `/` will also drop any leading `..` segments.
+   *
+   * This uses the same normalization strategy as [resolveUri], as specified by
+   * RFC 3986.
+   *
+   * Does not change any part of the URI except the path.
+   */
+  Uri normalizePath() {
+    String path = _removeDotSegments(_path);
+    if (identical(path, _path)) return this;
+    return this.replace(path: path);
+  }
+
   static int _makePort(int port, String scheme) {
     // Perform scheme specific normalization.
     if (port != null && port == _defaultPort(scheme)) return null;
@@ -988,7 +1051,7 @@ class Uri {
   }
 
   /**
-   * Check and normalize a most name.
+   * Check and normalize a host name.
    *
    * If the host name starts and ends with '[' and ']', it is considered an
    * IPv6 address. If [strictIPv6] is false, the address is also considered

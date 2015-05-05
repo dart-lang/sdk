@@ -279,8 +279,13 @@ class List<E> {
     if (growable) return list;
     return makeListFixedLength(list);
   }
-}
 
+  @patch
+  factory List.unmodifiable(Iterable elements) {
+    List result = new List<E>.from(elements, growable: false);
+    return makeFixedListUnmodifiable(result);
+  }
+}
 
 @patch
 class String {
@@ -310,7 +315,7 @@ class String {
 
   static String _stringFromJSArray(List list, int start, int endOrNull) {
     int len = list.length;
-    int end = _checkBounds(len, start, endOrNull);
+    int end = RangeError.checkValidRange(start, endOrNull, len);
     if (start > 0 || end < len) {
       list = list.sublist(start, end);
     }
@@ -320,20 +325,8 @@ class String {
   static String _stringFromUint8List(
       NativeUint8List charCodes, int start, int endOrNull) {
     int len = charCodes.length;
-    int end = _checkBounds(len, start, endOrNull);
+    int end = RangeError.checkValidRange(start, endOrNull, len);
     return Primitives.stringFromNativeUint8List(charCodes, start, end);
-  }
-
-  static int _checkBounds(int len, int start, int end) {
-    if (start < 0 || start > len) {
-      throw new RangeError.range(start, 0, len);
-    }
-    if (end == null) {
-      end = len;
-    } else if (end < start || end > len) {
-      throw new RangeError.range(end, start, len);
-    }
-    return end;
   }
 
   static String _stringFromIterable(Iterable<int> charCodes,
@@ -409,8 +402,14 @@ class StringBuffer {
     _writeString(new String.fromCharCode(charCode));
   }
 
-  void _writeString(str) {
-    _contents = Primitives.stringConcatUnchecked(_contents, str);
+  @patch
+  void writeAll(Iterable objects, [String separator = ""]) {
+    _contents = _writeAll(_contents, objects, separator);
+  }
+
+  @patch
+  void writeln([Object obj = ""]) {
+    _writeString('$obj\n');
   }
 
   @patch
@@ -420,6 +419,31 @@ class StringBuffer {
 
   @patch
   String toString() => Primitives.flattenString(_contents);
+
+  void _writeString(str) {
+    _contents = Primitives.stringConcatUnchecked(_contents, str);
+  }
+
+  static String _writeAll(String string, Iterable objects, String separator) {
+    Iterator iterator = objects.iterator;
+    if (!iterator.moveNext()) return string;
+    if (separator.isEmpty) {
+      do {
+        string = _writeOne(string, iterator.current);
+      } while (iterator.moveNext());
+    } else {
+      string = _writeOne(string, iterator.current);
+      while (iterator.moveNext()) {
+        string = _writeOne(string, separator);
+        string = _writeOne(string, iterator.current);
+      }
+    }
+    return string;
+  }
+
+  static String _writeOne(String string, Object obj) {
+    return Primitives.stringConcatUnchecked(string, '$obj');
+  }
 }
 
 @patch

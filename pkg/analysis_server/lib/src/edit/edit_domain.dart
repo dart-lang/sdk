@@ -6,9 +6,12 @@ library edit.domain;
 
 import 'dart:async';
 
+import 'package:analysis_server/edit/assist/assist_core.dart';
+import 'package:analysis_server/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -40,6 +43,11 @@ class EditDomainHandler implements RequestHandler {
   final AnalysisServer server;
 
   /**
+   * The server plugin that defines the extension points used by this handler.
+   */
+  final ServerPlugin plugin;
+
+  /**
    * The [SearchEngine] for this server.
    */
   SearchEngine searchEngine;
@@ -49,7 +57,7 @@ class EditDomainHandler implements RequestHandler {
   /**
    * Initialize a newly created handler to handle requests for the given [server].
    */
-  EditDomainHandler(this.server) {
+  EditDomainHandler(this.server, this.plugin) {
     searchEngine = server.searchEngine;
     _newRefactoringManager();
   }
@@ -90,7 +98,12 @@ class EditDomainHandler implements RequestHandler {
         selectionStart: start,
         selectionLength: length);
     DartFormatter formatter = new DartFormatter();
-    SourceCode formattedResult = formatter.formatSource(code);
+    SourceCode formattedResult;
+    try {
+      formattedResult = formatter.formatSource(code);
+    } on FormatterException {
+      return new Response.formatWithErrors(request);
+    }
     String formattedSource = formattedResult.text;
 
     List<SourceEdit> edits = <SourceEdit>[];
@@ -102,23 +115,35 @@ class EditDomainHandler implements RequestHandler {
       edits.add(edit);
     }
 
-    return new EditFormatResult(edits, formattedResult.selectionStart,
-        formattedResult.selectionLength).toResponse(request.id);
+    int newStart = formattedResult.selectionStart;
+    int newLength = formattedResult.selectionLength;
+
+    // Sending null start/length values would violate protocol, so convert back
+    // to 0.
+    if (newStart == null) {
+      newStart = 0;
+    }
+    if (newLength == null) {
+      newLength = 0;
+    }
+
+    return new EditFormatResult(edits, newStart, newLength)
+        .toResponse(request.id);
   }
 
   Response getAssists(Request request) {
-    var params = new EditGetAssistsParams.fromRequest(request);
+    EditGetAssistsParams params = new EditGetAssistsParams.fromRequest(request);
+    ContextSourcePair pair = server.getContextSourcePair(params.file);
+    engine.AnalysisContext context = pair.context;
+    Source source = pair.source;
     List<SourceChange> changes = <SourceChange>[];
-    List<CompilationUnit> units =
-        server.getResolvedCompilationUnits(params.file);
-    if (units.isNotEmpty) {
-      CompilationUnit unit = units[0];
-      List<Assist> assists = computeAssists(unit, params.offset, params.length);
+    if (context != null && source != null) {
+      List<Assist> assists =
+          computeAssists(plugin, context, source, params.offset, params.length);
       assists.forEach((Assist assist) {
         changes.add(assist.change);
       });
     }
-    // respond
     return new EditGetAssistsResult(changes).toResponse(request.id);
   }
 
@@ -137,7 +162,7 @@ class EditDomainHandler implements RequestHandler {
         for (engine.AnalysisError error in errorInfo.errors) {
           int errorLine = lineInfo.getLocation(error.offset).lineNumber;
           if (errorLine == requestLine) {
-            List<Fix> fixes = computeFixes(unit, error);
+            List<Fix> fixes = computeFixes(plugin, unit.element.context, error);
             if (fixes.isNotEmpty) {
               AnalysisError serverError =
                   newAnalysisError_fromEngine(lineInfo, error);
@@ -469,7 +494,7 @@ class _RefactoringManager {
         refactoring = new ExtractMethodRefactoring(
             searchEngine, units[0], offset, length);
         feedback = new ExtractMethodFeedback(
-            offset, length, null, [], false, [], [], []);
+            offset, length, '', [], false, [], [], []);
       }
     }
     if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {

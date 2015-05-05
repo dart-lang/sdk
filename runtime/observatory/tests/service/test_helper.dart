@@ -14,7 +14,7 @@ bool _isWebSocketDisconnect(e) {
   if (e is! ServiceException) {
     return false;
   }
-  return (e as ServiceException).message == 'WebSocket disconnected';
+  return (e as ServiceException).message == 'WebSocket closed';
 }
 
 // This invocation should set up the state being tested.
@@ -23,6 +23,7 @@ const String _TESTEE_MODE_FLAG = "--testee-mode";
 class _TestLauncher {
   Process process;
   final List<String> args;
+  bool killedByTester = false;
 
   _TestLauncher() : args = ['--enable-vm-service:0',
                             Platform.script.toFilePath(),
@@ -68,6 +69,9 @@ class _TestLauncher {
         print(line);
       });
       process.exitCode.then((exitCode) {
+        if ((exitCode != 0) && !killedByTester) {
+          throw "Testee exited with $exitCode";
+        }
         print("** Process exited");
       });
       return completer.future;
@@ -76,7 +80,9 @@ class _TestLauncher {
 
   void requestExit() {
     print('** Killing script');
-    process.kill();
+    if (process.kill()) {
+      killedByTester = true;
+    }
   }
 }
 
@@ -106,8 +112,8 @@ void runIsolateTests(List<String> mainArgs,
     var process = new _TestLauncher();
     process.launch(pause_on_exit).then((port) {
       String addr = 'ws://localhost:$port/ws';
-      var testIndex = 0;
-      var totalTests = tests.length - 1;
+      var testIndex = 1;
+      var totalTests = tests.length;
       var name = Platform.script.pathSegments.last;
       runZoned(() {
         new WebSocketVM(new WebSocketVMTarget(addr)).load()
@@ -118,6 +124,7 @@ void runIsolateTests(List<String> mainArgs,
               return test(isolate);
             })).then((_) => process.requestExit());
       }, onError: (e, st) {
+        process.requestExit();
         if (!_isWebSocketDisconnect(e)) {
           print('Unexpected exception in service tests: $e $st');
           throw e;
@@ -167,8 +174,8 @@ Future runVMTests(List<String> mainArgs,
     var process = new _TestLauncher();
     process.launch(pause_on_exit).then((port) async {
       String addr = 'ws://localhost:$port/ws';
-      var testIndex = 0;
-      var totalTests = tests.length - 1;
+      var testIndex = 1;
+      var totalTests = tests.length;
       var name = Platform.script.pathSegments.last;
       runZoned(() {
         new WebSocketVM(new WebSocketVMTarget(addr)).load()
@@ -178,6 +185,7 @@ Future runVMTests(List<String> mainArgs,
               return test(vm);
             })).then((_) => process.requestExit());
       }, onError: (e, st) {
+        process.requestExit();
         if (!_isWebSocketDisconnect(e)) {
           print('Unexpected exception in service tests: $e $st');
           throw e;

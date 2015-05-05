@@ -70,7 +70,8 @@ class Simulator {
   void set_dregister_bits(DRegister reg, int64_t value);
   int64_t get_dregister_bits(DRegister reg) const;
 
-  // Accessor to the internal simulator stack top.
+  // Accessors to the internal simulator stack base and top.
+  uword StackBase() const { return reinterpret_cast<uword>(stack_); }
   uword StackTop() const;
 
   // Accessor to the instruction counter.

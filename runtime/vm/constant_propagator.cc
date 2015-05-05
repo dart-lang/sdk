@@ -182,6 +182,11 @@ void ConstantPropagator::VisitReThrow(ReThrowInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitStop(StopInstr* instr) {
+  // Nothing to do.
+}
+
+
 void ConstantPropagator::VisitGoto(GotoInstr* instr) {
   SetReachable(instr->successor());
 

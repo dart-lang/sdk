@@ -9,8 +9,9 @@ part of app;
 class ObservatoryApplication extends Observable {
   static ObservatoryApplication app;
   final _pageRegistry = new List<Page>();
+  LocationManager _locationManager;
+  LocationManager get locationManager => _locationManager;
   @observable Page currentPage;
-  @observable final LocationManager locationManager;
   VM _vm;
   VM get vm => _vm;
   set vm(VM vm) {
@@ -25,8 +26,22 @@ class ObservatoryApplication extends Observable {
     }
     if (vm != null) {
       Logger.root.info('Registering new VM callbacks');
-      vm.onConnect.then(_vmConnected);
-      vm.onDisconnect.then(_vmDisconnected);
+
+      vm.onConnect.then((_) {
+        if (vm is WebSocketVM) {
+          targets.add(vm.target);
+        }
+        _removeDisconnectEvents();
+      });
+
+      vm.onDisconnect.then((String reason) {
+        if (this.vm != vm) {
+          // This disconnect event occured *after* a new VM was installed.
+          return;
+        }
+        notifications.add(new ServiceEvent.connectionClosed(reason));
+      });
+
       vm.errors.stream.listen(_onError);
       vm.events.stream.listen(_onEvent);
       vm.exceptions.stream.listen(_onException);
@@ -42,12 +57,13 @@ class ObservatoryApplication extends Observable {
   @observable ObservableList<ServiceEvent> notifications =
       new ObservableList<ServiceEvent>();
 
-  void _initOnce(bool chromium) {
+  void _initOnce() {
     assert(app == null);
     app = this;
     _registerPages();
     Analytics.initialize();
-    locationManager._init(this);
+    // Visit the current page.
+    locationManager._visit();
   }
 
   void removePauseEvents(Isolate isolate) {
@@ -105,9 +121,11 @@ class ObservatoryApplication extends Observable {
     _pageRegistry.add(new ClassTreePage(this));
     _pageRegistry.add(new DebuggerPage(this));
     _pageRegistry.add(new CpuProfilerPage(this));
+    _pageRegistry.add(new TableCpuProfilerPage(this));
     _pageRegistry.add(new AllocationProfilerPage(this));
     _pageRegistry.add(new HeapMapPage(this));
     _pageRegistry.add(new VMConnectPage(this));
+    _pageRegistry.add(new IsolateReconnectPage(this));
     _pageRegistry.add(new ErrorViewPage(this));
     _pageRegistry.add(new MetricsPage(this));
     // Note that ErrorPage must be the last entry in the list as it is
@@ -117,7 +135,7 @@ class ObservatoryApplication extends Observable {
 
   void _onError(ServiceError error) {
     lastErrorOrException = error;
-    _visit('error/', null);
+    _visit(Uri.parse('error/'), null);
   }
 
   void _onException(ServiceException exception) {
@@ -125,21 +143,15 @@ class ObservatoryApplication extends Observable {
     if (exception.kind == 'NetworkException') {
       // Got a network exception, visit the vm-connect page.
       this.vm = null;
-      locationManager.go(locationManager.makeLink('/vm-connect/'));
+      locationManager.go(locationManager.makeLink('/vm-connect'));
     } else {
-      _visit('error/', null);
+      _visit(Uri.parse('error/'), {});
     }
   }
 
-  void _visit(String url, String args) {
-    var argsMap;
-    if (args == null) {
-      argsMap = {};
-    } else {
-      argsMap = Uri.splitQueryString(args);
-    }
-    if (argsMap['trace'] != null) {
-      var traceArg = argsMap['trace'];
+  void _visit(Uri uri, Map internalArguments) {
+    if (internalArguments['trace'] != null) {
+      var traceArg = internalArguments['trace'];
       if (traceArg == 'on') {
         Tracer.start();
       } else if (traceArg == 'off') {
@@ -152,12 +164,11 @@ class ObservatoryApplication extends Observable {
     if (_traceView != null) {
       _traceView.tracer = Tracer.current;
     }
-    Uri uri = Uri.parse(url);
     for (var i = 0; i < _pageRegistry.length; i++) {
       var page = _pageRegistry[i];
       if (page.canVisit(uri)) {
         _installPage(page);
-        page.visit(uri, argsMap);
+        page.visit(uri, internalArguments);
         return;
       }
     }
@@ -196,31 +207,20 @@ class ObservatoryApplication extends Observable {
   }
 
   ObservatoryApplication(this.rootElement) :
-      locationManager = new HashLocationManager(),
       targets = new TargetManager() {
+    _locationManager = new LocationManager(this);
     vm = new WebSocketVM(targets.defaultTarget);
-    _initOnce(false);
+    _initOnce();
   }
 
   void _removeDisconnectEvents() {
     notifications.removeWhere((oldEvent) {
-        return (oldEvent.eventType == ServiceEvent.kVMDisconnected);
+        return (oldEvent.eventType == ServiceEvent.kConnectionClosed);
       });
   }
 
-  _vmConnected(VM vm) {
-    if (vm is WebSocketVM) {
-      targets.add(vm.target);
-    }
-    _removeDisconnectEvents();
-  }
-
-  _vmDisconnected(VM vm) {
-    if (this.vm != vm) {
-      // This disconnect event occured *after* a new VM was installed.
-      return;
-    }
-    this.vm = null;
-    notifications.add(new ServiceEvent.vmDisconencted());
+  loadCrashDump(Map crashDump) {
+    this.vm = new FakeVM(crashDump['result']);
+    app.locationManager.go('#/vm');
   }
 }

@@ -29,7 +29,7 @@ part of dart.collection;
  * and a constant time length getter.
  */
 class LinkedList<E extends LinkedListEntry<E>>
-    extends IterableBase<E>
+    extends Iterable<E>
     implements _LinkedListLink {
 
   int _modificationCount = 0;

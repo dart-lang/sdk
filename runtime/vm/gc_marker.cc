@@ -11,6 +11,7 @@
 #include "vm/allocation.h"
 #include "vm/dart_api_state.h"
 #include "vm/isolate.h"
+#include "vm/log.h"
 #include "vm/pages.h"
 #include "vm/raw_object.h"
 #include "vm/stack_frame.h"
@@ -147,7 +148,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
 
   bool visit_function_code() const { return visit_function_code_; }
 
-  GrowableArray<RawFunction*>* skipped_code_functions() {
+  virtual GrowableArray<RawFunction*>* skipped_code_functions() {
     return &skipped_code_functions_;
   }
 
@@ -239,6 +240,8 @@ class MarkingVisitor : public ObjectPointerVisitor {
   }
 
   void DetachCode() {
+    intptr_t unoptimized_code_count = 0;
+    intptr_t current_code_count = 0;
     for (int i = 0; i < skipped_code_functions_.length(); i++) {
       RawFunction* func = skipped_code_functions_[i];
       RawCode* code = func->ptr()->instructions_->ptr()->code_;
@@ -250,7 +253,6 @@ class MarkingVisitor : public ObjectPointerVisitor {
         func->StorePointer(
             &(func->ptr()->instructions_),
             stub_code->LazyCompile_entry()->code()->ptr()->instructions_);
-        func->StorePointer(&(func->ptr()->unoptimized_code_), Code::null());
         if (FLAG_log_code_drop) {
           // NOTE: This code runs while GC is in progress and runs within
           // a NoHandleScope block. Hence it is not okay to use a regular Zone
@@ -260,9 +262,26 @@ class MarkingVisitor : public ObjectPointerVisitor {
           // helper functions to the raw object interface.
           String name;
           name = func->ptr()->name_;
-          OS::Print("Detaching code: %s\n", name.ToCString());
+          ISL_Print("Detaching code: %s\n", name.ToCString());
+          current_code_count++;
         }
       }
+
+      code = func->ptr()->unoptimized_code_;
+      if (!code->IsMarked()) {
+        // If the code wasn't strongly visited through other references
+        // after skipping the function's code pointer, then we disconnect the
+        // code from the function.
+        func->StorePointer(&(func->ptr()->unoptimized_code_), Code::null());
+        if (FLAG_log_code_drop) {
+          unoptimized_code_count++;
+        }
+      }
+    }
+    if (FLAG_log_code_drop) {
+      ISL_Print("  total detached current: %" Pd "\n", current_code_count);
+      ISL_Print("  total detached unoptimized: %" Pd "\n",
+                unoptimized_code_count);
     }
   }
 
@@ -337,7 +356,7 @@ void GCMarker::IterateRoots(Isolate* isolate,
   isolate->VisitObjectPointers(visitor,
                                visit_prologue_weak_persistent_handles,
                                StackFrameIterator::kDontValidateFrames);
-  heap_->IterateNewPointers(visitor);
+  heap_->new_space()->VisitObjectPointers(visitor);
 }
 
 

@@ -4,11 +4,14 @@
 
 library vm_connect_element;
 
+import 'dart:convert';
 import 'dart:html';
-import 'package:polymer/polymer.dart';
+
 import 'observatory_element.dart';
 import 'package:observatory/app.dart';
+import 'package:observatory/elements.dart';
 import 'package:observatory/service_html.dart';
+import 'package:polymer/polymer.dart';
 
 void _connectToVM(ObservatoryApplication app, WebSocketVMTarget target) {
   app.vm = new WebSocketVM(target);
@@ -19,13 +22,6 @@ class VMConnectTargetElement extends ObservatoryElement {
   @published WebSocketVMTarget target;
 
   VMConnectTargetElement.created() : super.created();
-
-  bool get isChromeTarget {
-    if (target == null) {
-      return false;
-    }
-    return target.chrome;
-  }
 
   bool get isCurrentTarget {
     if (app.vm == null) {
@@ -58,21 +54,20 @@ class VMConnectTargetElement extends ObservatoryElement {
 @CustomTag('vm-connect')
 class VMConnectElement extends ObservatoryElement {
   @published String standaloneVmAddress = '';
-  @published String chromiumAddress = 'localhost:9222';
-  @observable ObservableList<WebSocketVMTarget> chromeTargets =
-      new ObservableList<WebSocketVMTarget>();
 
   VMConnectElement.created() : super.created() {
-    pollPeriod = new Duration(seconds: 1);
   }
 
   void _connect(WebSocketVMTarget target) {
     _connectToVM(app, target);
-    app.locationManager.go('#/vm');
+    app.locationManager.goForwardingParameters('/vm');
   }
 
-  void onPoll() {
-    _refreshTabs();
+  @override
+  void attached() {
+    super.attached();
+    var fileInput = shadowRoot.querySelector('#crashDumpFile');
+    fileInput.onChange.listen(_onCrashDumpFileChange);
   }
 
   String _normalizeStandaloneAddress(String networkAddress) {
@@ -85,33 +80,24 @@ class VMConnectElement extends ObservatoryElement {
   void connectStandalone(Event e, var detail, Node target) {
     // Prevent any form action.
     e.preventDefault();
+    if (standaloneVmAddress == null) {
+      return;
+    }
+    if (standaloneVmAddress.isEmpty) {
+      return;
+    }
     var targetAddress = _normalizeStandaloneAddress(standaloneVmAddress);
     var target = app.targets.findOrMake(targetAddress);
     _connect(target);
   }
 
-  void getTabs(Event e, var detail, Node target) {
-    // Prevent any form action.
-    e.preventDefault();
-    _refreshTabs();
-  }
-
-  void _refreshTabs() {
-    ChromiumTargetLister.fetch(chromiumAddress).then((targets) {
-      chromeTargets.clear();
-      if (targets == null) {
-        return;
-      }
-      for (var i = 0; i < targets.length; i++) {
-        if (targets[i].networkAddress == null) {
-          // Don't add targets that don't have a network address.
-          // This happens when a tab has devtools open!
-          continue;
-        }
-        chromeTargets.add(targets[i]);
-      }
-    }).catchError((e) {
-      chromeTargets.clear();
+  _onCrashDumpFileChange(e) {
+    var fileInput = shadowRoot.querySelector('#crashDumpFile');
+    var reader = new FileReader();
+    reader.readAsText(fileInput.files[0]);
+    reader.onLoad.listen((_) {
+      var crashDump = JSON.decode(reader.result);
+      app.loadCrashDump(crashDump);
     });
   }
 }

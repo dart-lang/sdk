@@ -15,12 +15,13 @@ class MetadataCollector {
   /// A map used to canonicalize the entries of globalMetadata.
   final Map<String, int> _globalMetadataMap = <String, int>{};
 
-  /// A list of JS expression representing types including function types and
-  /// typedefs.
-  final List<String> types = <String>[];
+  /// A map with lists of JS expressions, one list for each output unit. The
+  /// entries represent types including function types and typedefs.
+  final Map<OutputUnit, List<String>> types = <OutputUnit, List<String>>{};
 
   /// A map used to canonicalize the entries of types.
-  final Map<String, int> _typesMap = <String, int>{};
+  final Map<OutputUnit, Map<String, int>> _typesMap =
+      <OutputUnit, Map<String, int>>{};
 
   MetadataCollector(this._compiler, this._emitter);
 
@@ -90,11 +91,19 @@ class MetadataCollector {
             _emitter.constantReference(constant.value), _compiler).getText());
   }
 
-  int reifyType(DartType type) {
+  int reifyType(DartType type, {bool ignoreTypeVariables: false}) {
+    return reifyTypeForOutputUnit(type,
+                                  _compiler.deferredLoadTask.mainOutputUnit,
+                                  ignoreTypeVariables: ignoreTypeVariables);
+  }
+
+  int reifyTypeForOutputUnit(DartType type, OutputUnit outputUnit,
+                             {bool ignoreTypeVariables: false}) {
     jsAst.Expression representation =
         _backend.rti.getTypeRepresentation(
             type,
             (variable) {
+              if (ignoreTypeVariables) return new jsAst.LiteralNull();
               return js.number(
                   _typeVariableHandler.reifyTypeVariable(
                       variable.element));
@@ -103,8 +112,8 @@ class MetadataCollector {
               return _backend.isAccessibleByReflection(typedef.element);
             });
 
-    return addType(
-        jsAst.prettyPrint(representation, _compiler).getText());
+    return addTypeInOutputUnit(
+        jsAst.prettyPrint(representation, _compiler).getText(), outputUnit);
   }
 
   int reifyName(String name) {
@@ -118,10 +127,17 @@ class MetadataCollector {
     });
   }
 
-  int addType(String compiledType) {
-    return _typesMap.putIfAbsent(compiledType, () {
-      types.add(compiledType);
-      return types.length - 1;
+  int addTypeInOutputUnit(String compiledType, OutputUnit outputUnit) {
+    if (_typesMap[outputUnit] == null) {
+      _typesMap[outputUnit] = <String, int>{};
+    }
+    return _typesMap[outputUnit].putIfAbsent(compiledType, () {
+
+      if (types[outputUnit] == null)
+        types[outputUnit] = <String>[];
+
+      types[outputUnit].add(compiledType);
+      return types[outputUnit].length - 1;
     });
   }
 

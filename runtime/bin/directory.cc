@@ -143,6 +143,7 @@ void FUNCTION_NAME(Directory_List)(Dart_NativeArguments args) {
                Dart_Null(),
                0,
                NULL);
+  if (Dart_IsError(results)) Dart_PropagateError(results);
   SyncDirectoryListing sync_listing(results,
                                     DartUtils::GetStringValue(path),
                                     DartUtils::GetBooleanValue(recursive),

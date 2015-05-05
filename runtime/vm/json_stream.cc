@@ -22,6 +22,7 @@ JSONStream::JSONStream(intptr_t buf_size)
     : open_objects_(0),
       buffer_(buf_size),
       reply_port_(ILLEGAL_PORT),
+      seq_(""),
       method_(""),
       param_keys_(NULL),
       param_values_(NULL),
@@ -35,10 +36,12 @@ JSONStream::~JSONStream() {
 
 void JSONStream::Setup(Zone* zone,
                        Dart_Port reply_port,
+                       const String& seq,
                        const String& method,
                        const Array& param_keys,
                        const Array& param_values) {
   set_reply_port(reply_port);
+  seq_ = seq.ToCString();
   method_ = method.ToCString();
 
   String& string_iterator = String::Handle();
@@ -66,6 +69,13 @@ void JSONStream::Setup(Zone* zone,
               isolate_name, method_);
     setup_time_micros_ = OS::GetCurrentTimeMicros();
   }
+  buffer_.Printf("{\"result\":");
+}
+
+
+void JSONStream::SetupError() {
+  buffer_.Clear();
+  buffer_.Printf("{\"error\":");
 }
 
 
@@ -83,6 +93,8 @@ void JSONStream::PostReply() {
   if (FLAG_trace_service) {
     process_delta_micros = OS::GetCurrentTimeMicros() - setup_time_micros_;
   }
+  // TODO(turnidge): Handle non-string sequence numbers.
+  buffer_.Printf(", \"id\":\"%s\"}", seq());
   const String& reply = String::Handle(String::New(ToCString()));
   ASSERT(!reply.IsNull());
 
@@ -261,6 +273,12 @@ void JSONStream::PrintValue(Metric* metric) {
 }
 
 
+void JSONStream::PrintValue(MessageQueue* queue) {
+  PrintCommaIfNeeded();
+  queue->PrintJSON(this);
+}
+
+
 void JSONStream::PrintValue(Isolate* isolate, bool ref) {
   PrintCommaIfNeeded();
   isolate->PrintJSON(this, ref);
@@ -329,6 +347,13 @@ void JSONStream::PrintProperty(const char* name, Metric* metric) {
   PrintPropertyName(name);
   PrintValue(metric);
 }
+
+
+void JSONStream::PrintProperty(const char* name, MessageQueue* queue) {
+  PrintPropertyName(name);
+  PrintValue(queue);
+}
+
 
 void JSONStream::PrintProperty(const char* name, Isolate* isolate) {
   PrintPropertyName(name);

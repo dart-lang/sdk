@@ -25,14 +25,16 @@
 namespace dart {
 
 
-#if defined(TARGET_OS_ANDROID) || defined(HOST_ARCH_ARM64)
-  DEFINE_FLAG(bool, profile, false, "Enable Sampling Profiler");
-#else
-  DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");
-#endif
+DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
-DEFINE_FLAG(int, profile_period, 1000,
-            "Time between profiler samples in microseconds. Minimum 50.");
+#if defined(TARGET_OS_ANDROID) || defined(TARGET_ARCH_ARM64) ||                \
+    defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+  DEFINE_FLAG(int, profile_period, 10000,
+              "Time between profiler samples in microseconds. Minimum 50.");
+#else
+  DEFINE_FLAG(int, profile_period, 1000,
+              "Time between profiler samples in microseconds. Minimum 50.");
+#endif
 DEFINE_FLAG(int, profile_depth, 8,
             "Maximum number stack frames walked. Minimum 1. Maximum 255.");
 #if defined(PROFILE_NATIVE_CODE) || defined(USING_SIMULATOR)
@@ -954,10 +956,24 @@ void Profiler::RecordSampleInterruptCallback(
                             (isolate->vm_tag() == VMTag::kDartTagId);
 
   uintptr_t sp = 0;
+  uintptr_t fp = state.fp;
+  uintptr_t pc = state.pc;
+  uintptr_t lr = state.lr;
+#if defined(USING_SIMULATOR)
+  Simulator* simulator = NULL;
+#endif
 
   if (in_dart_code) {
     // If we're in Dart code, use the Dart stack pointer.
+#if defined(USING_SIMULATOR)
+    simulator = isolate->simulator();
+    sp = simulator->get_register(SPREG);
+    fp = simulator->get_register(FPREG);
+    pc = simulator->get_pc();
+    lr = simulator->get_register(LRREG);
+#else
     sp = state.dsp;
+#endif
   } else {
     // If we're in runtime code, use the C stack pointer.
     sp = state.csp;
@@ -975,18 +991,18 @@ void Profiler::RecordSampleInterruptCallback(
     return;
   }
 
-  if ((sp == 0) || (state.fp == 0) || (state.pc == 0)) {
+  if ((sp == 0) || (fp == 0) || (pc == 0)) {
     // None of these registers should be zero.
     return;
   }
 
-  if (sp > state.fp) {
+  if (sp > fp) {
     // Assuming the stack grows down, we should never have a stack pointer above
     // the frame pointer.
     return;
   }
 
-  if (StubCode::InJumpToExceptionHandlerStub(state.pc)) {
+  if (StubCode::InJumpToExceptionHandlerStub(pc)) {
     // The JumpToExceptionHandler stub manually adjusts the stack pointer,
     // frame pointer, and some isolate state before jumping to a catch entry.
     // It is not safe to walk the stack when executing this stub.
@@ -995,11 +1011,24 @@ void Profiler::RecordSampleInterruptCallback(
 
   uword stack_lower = 0;
   uword stack_upper = 0;
+#if defined(USING_SIMULATOR)
+  if (in_dart_code) {
+    stack_lower = simulator->StackBase();
+    stack_upper = simulator->StackTop();
+  } else if (!isolate->GetProfilerStackBounds(&stack_lower, &stack_upper)) {
+    // Could not get stack boundary.
+    return;
+  }
+  if ((stack_lower == 0) || (stack_upper == 0)) {
+    return;
+  }
+#else
   if (!isolate->GetProfilerStackBounds(&stack_lower, &stack_upper) ||
       (stack_lower == 0) || (stack_upper == 0)) {
     // Could not get stack boundary.
     return;
   }
+#endif
 
   if (sp > stack_lower) {
     // The stack pointer gives us a tighter lower bound.
@@ -1016,7 +1045,7 @@ void Profiler::RecordSampleInterruptCallback(
     return;
   }
 
-  if ((state.fp < stack_lower) || (state.fp >= stack_upper)) {
+  if ((fp < stack_lower) || (fp >= stack_upper)) {
     // Frame pointer is outside isolate stack boundary.
     return;
   }
@@ -1044,8 +1073,8 @@ void Profiler::RecordSampleInterruptCallback(
   sample->set_vm_tag(vm_tag);
   sample->set_user_tag(isolate->user_tag());
   sample->set_sp(sp);
-  sample->set_fp(state.fp);
-  sample->set_lr(state.lr);
+  sample->set_fp(fp);
+  sample->set_lr(lr);
   CopyStackBuffer(sample);
   CopyPCMarkerIfSafe(sample);
 
@@ -1054,8 +1083,8 @@ void Profiler::RecordSampleInterruptCallback(
     ProfilerNativeStackWalker stackWalker(sample,
                                           stack_lower,
                                           stack_upper,
-                                          state.pc,
-                                          state.fp,
+                                          pc,
+                                          fp,
                                           sp);
     stackWalker.walk();
   } else if (exited_dart_code) {
@@ -1068,13 +1097,13 @@ void Profiler::RecordSampleInterruptCallback(
                                         sample,
                                         stack_lower,
                                         stack_upper,
-                                        state.pc,
-                                        state.fp,
+                                        pc,
+                                        fp,
                                         sp);
     stackWalker.walk();
   } else {
     sample->set_vm_tag(VMTag::kEmbedderTagId);
-    sample->SetAt(0, state.pc);
+    sample->SetAt(0, pc);
   }
 }
 

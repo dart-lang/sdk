@@ -389,7 +389,29 @@ abstract class ContextManager {
   UriResolver _computePackageUriResolver(Folder folder, _ContextInfo info) {
     if (info.packageRoot != null) {
       info.packageMapInfo = null;
-      return new PackageUriResolver([new JavaFile(info.packageRoot)]);
+      JavaFile packagesDir = new JavaFile(info.packageRoot);
+      Map<String, List<Folder>> packageMap = new Map<String, List<Folder>>();
+      if (packagesDir.isDirectory()) {
+        for (JavaFile file in packagesDir.listFiles()) {
+          // Ensure symlinks in packages directory are canonicalized
+          // to prevent 'type X cannot be assigned to type X' warnings
+          String path;
+          try {
+            path = file.getCanonicalPath();
+          } catch (e, s) {
+            // Ignore packages that do not exist
+            _instrumentationService.logException(e, s);
+            continue;
+          }
+          Resource res = resourceProvider.getResource(path);
+          if (res is Folder) {
+            packageMap[file.getName()] = <Folder>[res];
+          }
+        }
+        return new PackageMapUriResolver(resourceProvider, packageMap);
+      }
+      //TODO(danrubel) remove this if it will never be called
+      return new PackageUriResolver([packagesDir]);
     } else {
       beginComputePackageMap();
       OptimizingPubPackageMapInfo packageMapInfo;

@@ -6,7 +6,8 @@ part of tree_ir.optimization;
 
 /**
  * Performs the following transformations on the tree:
- * - Assignment propagation
+ * - Assignment inlining
+ * - Assignment expression propagation
  * - If-to-conditional conversion
  * - Flatten nested ifs
  * - Break inlining
@@ -16,8 +17,8 @@ part of tree_ir.optimization;
  * introduce redexes of each other.
  *
  *
- * ASSIGNMENT PROPAGATION:
- * Single-use definitions are propagated to their use site when possible.
+ * ASSIGNMENT INLINING:
+ * Single-use definitions are inlined at their use site when possible.
  * For example:
  *
  *   { v0 = foo(); return v0; }
@@ -39,6 +40,19 @@ part of tree_ir.optimization;
  *
  * See [visitVariableUse] for the implementation of the heuristic for
  * propagating a definition.
+ *
+ *
+ * ASSIGNMENT EXPRESSION PROPAGATION:
+ * Definitions with multiple uses are propagated to their first use site
+ * when possible. For example:
+ *
+ *     { v0 = foo(); bar(v0); return v0; }
+ *       ==>
+ *     { bar(v0 = foo()); return v0; }
+ *
+ * Note that the [RestoreInitializers] phase will later undo this rewrite
+ * in cases where it prevents an assignment from being pulled into an
+ * initializer.
  *
  *
  * IF-TO-CONDITIONAL CONVERSION:
@@ -99,9 +113,21 @@ class StatementRewriter extends Transformer implements Pass {
     node.replaceEachBody(visitStatement);
   }
 
-  // The binding environment.  The rightmost element of the list is the nearest
-  // available enclosing binding.
-  List<Assign> environment = <Assign>[];
+  /// True if targeting Dart.
+  final bool isDartMode;
+
+  /// The most recently evaluated impure expressions, with the most recent
+  /// expression being last.
+  ///
+  /// Most importantly, this contains [Assign] expressions that we attempt to
+  /// inline at their use site. It also contains other impure expressions that
+  /// we can propagate to a variable use if they are known to return the value
+  /// of that variable.
+  ///
+  /// Except for [Conditional]s, expressions in the environment have
+  /// not been processed, and all their subexpressions must therefore be
+  /// variables uses.
+  List<Expression> environment = <Expression>[];
 
   /// Binding environment for variables that are assigned to effectively
   /// constant expressions (see [isEffectivelyConstant]).
@@ -111,12 +137,22 @@ class StatementRewriter extends Transformer implements Pass {
   /// for a break to L' if L maps to L'.
   Map<Label, Jump> labelRedirects = <Label, Jump>{};
 
+  /// Number of uses of the given variable that are still unseen.
+  /// Used to detect the first use of a variable (since we do backwards
+  /// traversal, the first use is the last one seen).
+  Map<Variable, int> unseenUses = <Variable, int>{};
+
   /// Rewriter for methods.
-  StatementRewriter() : constantEnvironment = <Variable, Expression>{};
+  StatementRewriter({this.isDartMode})
+      : constantEnvironment = <Variable, Expression>{} {
+    assert(isDartMode != null);
+  }
 
   /// Rewriter for nested functions.
   StatementRewriter.nested(StatementRewriter parent)
-      : constantEnvironment = parent.constantEnvironment;
+      : constantEnvironment = parent.constantEnvironment,
+        unseenUses = parent.unseenUses,
+        isDartMode = parent.isDartMode;
 
   /// A set of labels that can be safely inlined at their use.
   ///
@@ -134,34 +170,91 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   void inEmptyEnvironment(void action()) {
-    List<Assign> oldEnvironment = environment;
-    environment = <Assign>[];
+    List oldEnvironment = environment;
+    environment = <Expression>[];
     action();
     assert(environment.isEmpty);
     environment = oldEnvironment;
   }
 
-  Expression visitExpression(Expression e) => e.processed ? e : e.accept(this);
+  /// Left-hand side of the given assignment, or `null` if not an assignment.
+  Variable getLeftHand(Expression e) {
+    return e is Assign ? e.variable : null;
+  }
+
+  /// If the given expression always returns the value of one of its
+  /// subexpressions, returns that subexpression, otherwise `null`.
+  Expression getValueSubexpression(Expression e) {
+    if (isDartMode &&
+        e is InvokeMethod &&
+        (e.selector.isSetter || e.selector.isIndexSet)) {
+      return e.arguments.last;
+    }
+    if (e is SetField) return e.value;
+    return null;
+  }
+
+  /// If the given expression always returns the value of one of its
+  /// subexpressions, and that subexpression is a variable use, returns that
+  /// variable. Otherwise `null`.
+  Variable getRightHand(Expression e) {
+    Expression value = getValueSubexpression(e);
+    return value is VariableUse ? value.variable : null;
+  }
 
   @override
   Expression visitVariableUse(VariableUse node) {
+    // Count of number of unseen uses remaining.
+    unseenUses.putIfAbsent(node.variable, () => node.variable.readCount);
+    --unseenUses[node.variable];
+
+    // We traverse the tree right-to-left, so when we have seen all uses,
+    // it means we are looking at the first use.
+    assert(unseenUses[node.variable] < node.variable.readCount);
+    assert(unseenUses[node.variable] >= 0);
+    bool isFirstUse = unseenUses[node.variable] == 0;
+
     // Propagate constant to use site.
     Expression constant = constantEnvironment[node.variable];
     if (constant != null) {
       --node.variable.readCount;
-      return constant;
+      return visitExpression(constant);
     }
 
-    // Propagate a variable's definition to its use site if:
-    // 1.  It has a single use, to avoid code growth and potential duplication
-    //     of side effects, AND
-    // 2.  It was the most recent expression evaluated so that we do not
-    //     reorder expressions with side effects.
-    if (!environment.isEmpty &&
-        environment.last.variable == node.variable &&
-        node.variable.readCount == 1) {
-      --node.variable.readCount;
-      return visitExpression(environment.removeLast().value);
+    // Try to propagate another expression into this variable use.
+    if (!environment.isEmpty) {
+      Expression binding = environment.last;
+
+      // Is this variable assigned by the most recently evaluated impure
+      // expression?
+      //
+      // If so, propagate the assignment, e.g:
+      //
+      //     { x = foo(); bar(x, x) } ==> bar(x = foo(), x)
+      //
+      // We must ensure that no other uses separate this use from the
+      // assignment. We therefore only propagate assignments into the first use.
+      //
+      // Note that if this is only use, `visitAssign` will then remove the
+      // redundant assignment.
+      if (getLeftHand(binding) == node.variable && isFirstUse) {
+        environment.removeLast();
+        --node.variable.readCount;
+        return visitExpression(binding);
+      }
+
+      // Is the most recently evaluated impure expression known to have the
+      // value of this variable?
+      //
+      // If so, we can replace this use with the impure expression, e.g:
+      //
+      //     { E.foo = x; bar(x) } ==> bar(E.foo = x)
+      //
+      if (getRightHand(binding) == node.variable) {
+        environment.removeLast();
+        --node.variable.readCount;
+        return visitExpression(binding);
+      }
     }
 
     // If the definition could not be propagated, leave the variable use.
@@ -177,44 +270,76 @@ class StatementRewriter extends Transformer implements Pass {
     return exp is Constant ||
            exp is This ||
            exp is ReifyTypeVar ||
+           exp is InvokeStatic && exp.isEffectivelyConstant ||
            exp is VariableUse && constantEnvironment.containsKey(exp.variable);
   }
 
-  Statement visitAssign(Assign node) {
-    if (isEffectivelyConstant(node.value) &&
-        node.variable.writeCount == 1) {
+  /// True if [node] is an assignment that can be propagated as a constant.
+  bool isEffectivelyConstantAssignment(Expression node) {
+    return node is Assign &&
+           node.variable.writeCount == 1 &&
+           isEffectivelyConstant(node.value);
+  }
+
+  Statement visitExpressionStatement(ExpressionStatement stmt) {
+    if (isEffectivelyConstantAssignment(stmt.expression)) {
+      Assign assign = stmt.expression;
       // Handle constant assignments specially.
       // They are always safe to propagate (though we should avoid duplication).
       // Moreover, they should not prevent other expressions from propagating.
-      if (node.variable.readCount <= 1) {
+      if (assign.variable.readCount <= 1) {
         // A single-use constant should always be propagted to its use site.
-        constantEnvironment[node.variable] = visitExpression(node.value);
-        --node.variable.writeCount;
-        return visitStatement(node.next);
+        constantEnvironment[assign.variable] = assign.value;
+        --assign.variable.writeCount;
+        return visitStatement(stmt.next);
       } else {
         // With more than one use, we cannot propagate the constant.
         // Visit the following statement without polluting [environment] so
         // that any preceding non-constant assignments might still propagate.
-        node.next = visitStatement(node.next);
-        node.value = visitExpression(node.value);
-        return node;
+        stmt.next = visitStatement(stmt.next);
+        assign.value = visitExpression(assign.value);
+        return stmt;
       }
-    } else {
-      // Try to propagate assignment, and block previous assignment until this
-      // has propagated.
-      environment.add(node);
-      Statement next = visitStatement(node.next);
-      if (!environment.isEmpty && environment.last == node) {
-        // The definition could not be propagated. Residualize the let binding.
-        node.next = next;
-        environment.removeLast();
-        node.value = visitExpression(node.value);
-        return node;
-      }
-      assert(!environment.contains(node));
-      --node.variable.writeCount; // This assignment was removed.
-      return next;
     }
+    // Try to propagate the expression, and block previous impure expressions
+    // until this has propagated.
+    environment.add(stmt.expression);
+    stmt.next = visitStatement(stmt.next);
+    if (!environment.isEmpty && environment.last == stmt.expression) {
+      // Retain the expression statement.
+      environment.removeLast();
+      stmt.expression = visitExpression(stmt.expression);
+      return stmt;
+    } else {
+      // Expression was propagated into the successor.
+      return stmt.next;
+    }
+  }
+
+  Expression visitAssign(Assign node) {
+    node.value = visitExpression(node.value);
+    // Remove assignments to variables without any uses. This can happen
+    // because the assignment was propagated into its use, e.g:
+    //
+    //     { x = foo(); bar(x) } ==> bar(x = foo()) ==> bar(foo())
+    //
+    if (node.variable.readCount == 0) {
+      --node.variable.writeCount;
+      return node.value;
+    }
+    return node;
+  }
+
+  Statement visitVariableDeclaration(VariableDeclaration node) {
+    if (isEffectivelyConstant(node.value)) {
+      node.next = visitStatement(node.next);
+    } else {
+      inEmptyEnvironment(() {
+        node.next = visitStatement(node.next);
+      });
+    }
+    node.value = visitExpression(node.value);
+    return node;
   }
 
   Expression visitInvokeStatic(InvokeStatic node) {
@@ -256,13 +381,25 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitConditional(Conditional node) {
-    node.condition = visitExpression(node.condition);
-
-    inEmptyEnvironment(() {
-      node.thenExpression = visitExpression(node.thenExpression);
-      node.elseExpression = visitExpression(node.elseExpression);
-    });
-
+    // Conditional expressions do not exist in the input, but they are
+    // introduced by if-to-conditional conversion.
+    // Their subexpressions have already been processed; do not reprocess them.
+    //
+    // Note that this can only happen for conditional expressions. It is an
+    // error for any other type of expression to be visited twice or to be
+    // created and then visited. We use this special treatment of conditionals
+    // to allow for assignment inlining after if-to-conditional conversion.
+    //
+    // There are several reasons we should not reprocess the subexpressions:
+    //
+    // - It will mess up the [seenUses] counter, since a single use will be
+    //   counted twice.
+    //
+    // - Other visit methods assume that all subexpressions are variable uses
+    //   because they come fresh out of the tree IR builder.
+    //
+    // - Reprocessing can be expensive.
+    //
     return node;
   }
 
@@ -298,6 +435,14 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
+  Statement visitThrow(Throw node) {
+    node.value = visitExpression(node.value);
+    return node;
+  }
+
+  Statement visitRethrow(Rethrow node) {
+    return node;
+  }
 
   Statement visitBreak(Break node) {
     // Redirect through chain of breaks.
@@ -362,20 +507,16 @@ class StatementRewriter extends Transformer implements Pass {
     inEmptyEnvironment(() {
       node.thenStatement = visitStatement(node.thenStatement);
       node.elseStatement = visitStatement(node.elseStatement);
+
+      tryCollapseIf(node);
     });
 
-    tryCollapseIf(node);
-
-    Statement reduced = combineStatementsWithSubexpressions(
+    Statement reduced = combineStatementsInBranches(
         node.thenStatement,
         node.elseStatement,
-        (t,f) => new Conditional(node.condition, t, f)..processed = true);
+        node.condition);
     if (reduced != null) {
-      // TODO(asgerf): Avoid revisiting nodes or visiting nodes that we created.
-      //               This breaks the assumption that all subexpressions are
-      //               variable uses, and it can be expensive.
-      // Revisit in case the break can now be inlined.
-      return visitStatement(reduced);
+      return reduced;
     }
 
     return node;
@@ -440,22 +581,7 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
-  Statement visitExpressionStatement(ExpressionStatement node) {
-    node.expression = visitExpression(node.expression);
-    // Do not allow propagation of assignments past an expression evaluated
-    // for its side effects because it risks reordering side effects.
-    // TODO(kmillikin): Rethink this.  Some propagation is benign,
-    // e.g. variables, or other pure values that are not destroyed by
-    // the expression statement.  If they can occur here they should be
-    // handled well.
-    inEmptyEnvironment(() {
-      node.next = visitStatement(node.next);
-    });
-    return node;
-  }
-
-  Statement visitSetField(SetField node) {
-    node.next = visitStatement(node.next);
+  Expression visitSetField(SetField node) {
     node.value = visitExpression(node.value);
     node.object = visitExpression(node.object);
     return node;
@@ -511,33 +637,78 @@ class StatementRewriter extends Transformer implements Pass {
   ///
   /// If non-null is returned, the caller MUST discard [s] and [t] and use
   /// the returned statement instead.
-  static Statement combineStatementsWithSubexpressions(
+  Statement combineStatementsInBranches(
       Statement s,
       Statement t,
-      Expression combine(Expression s, Expression t)) {
+      Expression condition) {
     if (s is Return && t is Return) {
-      return new Return(combine(s.value, t.value));
-    }
-    if (s is Assign && t is Assign && s.variable == t.variable) {
-      Statement next = combineStatements(s.next, t.next);
-      if (next != null) {
-        // Destroy both original assignments to the variable.
-        --s.variable.writeCount;
-        --t.variable.writeCount;
-        // The Assign constructor will increment the reference count again.
-        return new Assign(s.variable,
-                          combine(s.value, t.value),
-                          next);
-      }
+      return new Return(new Conditional(condition, s.value, t.value));
     }
     if (s is ExpressionStatement && t is ExpressionStatement) {
+      // Combine the two expressions and the two successor statements.
+      //
+      //    C ? {E1 ; S1} : {E2 ; S2}
+      //      ==>
+      //    (C ? E1 : E2) : combine(S1, S2)
+      //
+      // If E1 and E2 are assignments, we want to propagate these into the
+      // combined statement.
+      //
+      // It might not be possible to combine the statements, so we combine the
+      // expressions, put the result in the environment, and then uncombine the
+      // expressions if the statements could not be combined.
+
+      // Combine the expressions.
+      CombinedExpressions values =
+          combineAsConditional(s.expression, t.expression, condition);
+
+      // Put this into the environment and try to combine the statements.
+      // We are not in risk of reprocessing the original subexpressions because
+      // the combined expression will always hide them inside a Conditional.
+      environment.add(values.combined);
       Statement next = combineStatements(s.next, t.next);
-      if (next != null) {
-        return new ExpressionStatement(combine(s.expression, t.expression),
-                                       next);
+
+      if (next == null) {
+        // Statements could not be combined.
+        // Restore the environment and uncombine expressions again.
+        environment.removeLast();
+        values.uncombine();
+        return null;
+      } else if (!environment.isEmpty && environment.last == values.combined) {
+        // Statements were combined but the combined expression could not be
+        // propagated. Leave it as an expression statement here.
+        environment.removeLast();
+        s.expression = values.combined;
+        s.next = next;
+        return s;
+      } else {
+        // Statements were combined and the combined expressions were
+        // propagated into the combined statement.
+        return next;
       }
     }
     return null;
+  }
+
+  /// Creates the expression `[condition] ? [s] : [t]` or an equivalent
+  /// expression if something better can be done.
+  ///
+  /// In particular, assignments will be merged as follows:
+  ///
+  ///     C ? (v = E1) : (v = E2)
+  ///       ==>
+  ///     v = C ? E1 : E2
+  ///
+  /// The latter form is more compact and can also be inlined.
+  CombinedExpressions combineAsConditional(
+      Expression s,
+      Expression t,
+      Expression condition) {
+    if (s is Assign && t is Assign && s.variable == t.variable) {
+      Expression values = new Conditional(condition, s.value, t.value);
+      return new CombinedAssigns(s, t, new CombinedExpressions(values));
+    }
+    return new CombinedExpressions(new Conditional(condition, s, t));
   }
 
   /// Returns a statement equivalent to both [s] and [t], or null if [s] and
@@ -545,9 +716,14 @@ class StatementRewriter extends Transformer implements Pass {
   /// If non-null is returned, the caller MUST discard [s] and [t] and use
   /// the returned statement instead.
   /// If two breaks are combined, the label's break counter will be decremented.
-  static Statement combineStatements(Statement s, Statement t) {
+  Statement combineStatements(Statement s, Statement t) {
     if (s is Break && t is Break && s.target == t.target) {
       --t.target.useCount; // Two breaks become one.
+      if (s.target.useCount == 1 && safeForInlining.contains(s.target)) {
+        // Only one break remains; inline it.
+        --s.target.useCount;
+        return visitStatement(s.target.binding.next);
+      }
       return s;
     }
     if (s is Continue && t is Continue && s.target == t.target) {
@@ -555,20 +731,35 @@ class StatementRewriter extends Transformer implements Pass {
       return s;
     }
     if (s is Return && t is Return) {
-      Expression e = combineExpressions(s.value, t.value);
-      if (e != null) {
-        return new Return(e);
+      CombinedExpressions values = combineExpressions(s.value, t.value);
+      if (values != null) {
+        return new Return(values.combined);
       }
     }
-    if (s is Assign && t is Assign &&
-        s.variable == t.variable &&
-        isSameVariable(s.value, t.value)) {
+    if (s is ExpressionStatement && t is ExpressionStatement) {
+      CombinedExpressions values =
+          combineExpressions(s.expression, t.expression);
+      if (values == null) return null;
+      environment.add(values.combined);
       Statement next = combineStatements(s.next, t.next);
-      if (next != null) {
+      if (next == null) {
+        // The successors could not be combined.
+        // Restore the environment and uncombine the values again.
+        assert(environment.last == values.combined);
+        environment.removeLast();
+        values.uncombine();
+        return null;
+      } else if (!environment.isEmpty && environment.last == values.combined) {
+        // The successors were combined but the combined expressions were not
+        // propagated. Leave the combined expression as a statement.
+        environment.removeLast();
+        s.expression = values.combined;
         s.next = next;
-        --t.variable.writeCount;
-        --(t.value as VariableUse).variable.readCount;
         return s;
+      } else {
+        // The successors were combined, and the combined expressions were
+        // propagated into the successors.
+        return next;
       }
     }
     return null;
@@ -577,13 +768,18 @@ class StatementRewriter extends Transformer implements Pass {
   /// Returns an expression equivalent to both [e1] and [e2].
   /// If non-null is returned, the caller must discard [e1] and [e2] and use
   /// the resulting expression in the tree.
-  static Expression combineExpressions(Expression e1, Expression e2) {
+  CombinedExpressions combineExpressions(Expression e1, Expression e2) {
     if (e1 is VariableUse && e2 is VariableUse && e1.variable == e2.variable) {
-      --e1.variable.readCount; // Two references become one.
-      return e1;
+      return new CombinedUses(e1, e2);
+    }
+    if (e1 is Assign && e2 is Assign && e1.variable == e2.variable) {
+      CombinedExpressions values = combineExpressions(e1.value, e2.value);
+      if (values != null) {
+        return new CombinedAssigns(e1, e2, values);
+      }
     }
     if (e1 is Constant && e2 is Constant && e1.value == e2.value) {
-      return e1;
+      return new CombinedExpressions(e1);
     }
     return null;
   }
@@ -597,8 +793,9 @@ class StatementRewriter extends Transformer implements Pass {
   ///
   /// [branch1] and [branch2] control the position of the S statement.
   ///
-  /// Returns true if another collapse redex might have been introduced.
+  /// Must be called with an empty environment.
   void tryCollapseIf(If node) {
+    assert(environment.isEmpty);
     // Repeatedly try to collapse nested ifs.
     // The transformation is shrinking (destroys an if) so it remains linear.
     // Here is an example where more than one iteration is required:
@@ -653,22 +850,11 @@ class StatementRewriter extends Transformer implements Pass {
             makeCondition(outerIf.condition, branch1),
             makeCondition(innerIf.condition, branch2));
         outerIf.thenStatement = innerThen;
-
-        // Try to inline the remaining break.  Do not propagate assignments.
-        inEmptyEnvironment(() {
-          // TODO(asgerf): Avoid quadratic cost from repeated processing. This
-          //               should be easier after we introduce basic blocks.
-          outerIf.elseStatement = visitStatement(combinedElse);
-        });
-
+        outerIf.elseStatement = combinedElse;
         return outerIf.elseStatement is If;
       }
     }
     return false;
-  }
-
-  static bool isSameVariable(Expression e1, Expression e2) {
-    return e1 is VariableUse && e2 is VariableUse && e1.variable == e2.variable;
   }
 
   Expression makeCondition(Expression e, bool polarity) {
@@ -678,4 +864,64 @@ class StatementRewriter extends Transformer implements Pass {
   Statement getBranch(If node, bool polarity) {
     return polarity ? node.thenStatement : node.elseStatement;
   }
+}
+
+/// Result of combining two expressions, with the potential for reverting the
+/// combination.
+///
+/// Reverting a combination is done by calling [uncombine]. In this case,
+/// both the original expressions should remain in the tree, and the [combined]
+/// expression should be orphaned.
+///
+/// Explicitly reverting a combination is necessary to maintain variable
+/// reference counts.
+abstract class CombinedExpressions {
+  Expression get combined;
+  void uncombine();
+
+  factory CombinedExpressions(Expression e) = GenericCombinedExpressions;
+}
+
+/// Combines assignments of form `[variable] := E1` and `[variable] := E2` into
+/// a single assignment of form `[variable] := combine(E1, E2)`.
+class CombinedAssigns implements CombinedExpressions {
+  Assign assign1, assign2;
+  CombinedExpressions value;
+  Expression combined;
+
+  CombinedAssigns(this.assign1, this.assign2, this.value) {
+    assert(assign1.variable == assign2.variable);
+    assign1.variable.writeCount -= 2; // Destroy the two original assignemnts.
+    combined = new Assign(assign1.variable, value.combined);
+  }
+
+  void uncombine() {
+    value.uncombine();
+    ++assign1.variable.writeCount; // Restore original reference count.
+  }
+}
+
+/// Combines two variable uses into one.
+class CombinedUses implements CombinedExpressions {
+  VariableUse use1, use2;
+  Expression combined;
+
+  CombinedUses(this.use1, this.use2) {
+    assert(use1.variable == use2.variable);
+    use1.variable.readCount -= 2; // Destroy both the original uses.
+    combined = new VariableUse(use1.variable);
+  }
+
+  void uncombine() {
+    ++use1.variable.readCount; // Restore original reference count.
+  }
+}
+
+/// Result of combining two expressions that do not affect reference counting.
+class GenericCombinedExpressions implements CombinedExpressions {
+  Expression combined;
+
+  GenericCombinedExpressions(this.combined);
+
+  void uncombine() {}
 }

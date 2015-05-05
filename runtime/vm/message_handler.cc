@@ -34,6 +34,7 @@ class MessageHandlerTask : public ThreadPool::Task {
 MessageHandler::MessageHandler()
     : queue_(new MessageQueue()),
       oob_queue_(new MessageQueue()),
+      oob_message_handling_allowed_(true),
       live_ports_(0),
       paused_(0),
       pause_on_start_(false),
@@ -208,6 +209,9 @@ bool MessageHandler::HandleNextMessage() {
 
 
 bool MessageHandler::HandleOOBMessages() {
+  if (!oob_message_handling_allowed_) {
+    return true;
+  }
   MonitorLocker ml(&monitor_);
 #if defined(DEBUG)
   CheckAccess();
@@ -331,6 +335,41 @@ void MessageHandler::decrement_live_ports() {
   CheckAccess();
 #endif
   live_ports_--;
+}
+
+
+MessageHandler::AcquiredQueues::AcquiredQueues()
+    : handler_(NULL) {
+}
+
+
+MessageHandler::AcquiredQueues::~AcquiredQueues() {
+  Reset(NULL);
+}
+
+
+void MessageHandler::AcquiredQueues::Reset(MessageHandler* handler) {
+  if (handler_ != NULL) {
+    // Release ownership. The OOB flag is set without holding the monitor.
+    handler_->monitor_.Exit();
+    handler_->oob_message_handling_allowed_ = true;
+  }
+  handler_ = handler;
+  if (handler_ == NULL) {
+    return;
+  }
+  ASSERT(handler_ != NULL);
+  // Take ownership. The OOB flag is set without holding the monitor.
+  handler_->oob_message_handling_allowed_ = false;
+  handler_->monitor_.Enter();
+}
+
+
+void MessageHandler::AcquireQueues(AcquiredQueues* acquired_queues) {
+  ASSERT(acquired_queues != NULL);
+  // No double dipping.
+  ASSERT(acquired_queues->handler_ == NULL);
+  acquired_queues->Reset(this);
 }
 
 }  // namespace dart

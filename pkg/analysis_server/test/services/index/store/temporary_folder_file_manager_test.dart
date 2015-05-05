@@ -8,13 +8,12 @@ import 'dart:io';
 
 import 'package:analysis_server/src/services/index/store/temporary_folder_file_manager.dart';
 import 'package:path/path.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
-
-import '../../../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(_SeparateFileManagerTest);
+  defineReflectiveTests(_SeparateFileManagerTest);
 }
 
 @reflectiveTest

@@ -4,15 +4,21 @@
 
 part of app;
 
+class IsolateNotFound implements Exception {
+  String isolateId;
+  IsolateNotFound(this.isolateId);
+  String toString() => "IsolateNotFound: $isolateId";
+}
+
 /// A [Page] controls the user interface of Observatory. At any given time
 /// one page will be the current page. Pages are registered at startup.
 /// When the user navigates within the application, each page is asked if it
 /// can handle the current location, the first page to say yes, wins.
 abstract class Page extends Observable {
   final ObservatoryApplication app;
-
+  final ObservableMap<String, String> internalArguments =
+      new ObservableMap<String, String>();
   @observable ObservatoryElement element;
-  @observable ObservableMap args;
 
   Page(this.app);
 
@@ -27,8 +33,9 @@ abstract class Page extends Observable {
   }
 
   /// Called when the page should update its state based on [uri].
-  void visit(Uri uri, Map argsMap) {
-    args = toObservable(argsMap);
+  void visit(Uri uri, Map internalArguments) {
+    this.internalArguments.clear();
+    this.internalArguments.addAll(internalArguments);
     Analytics.reportPageView(uri);
     _visit(uri);
   }
@@ -58,11 +65,13 @@ class SimplePage extends Page {
   }
 
   Future<Isolate> getIsolate(Uri uri) {
-    return app.vm.getIsolate(uri.queryParameters['isolateId'])
-      .catchError((e, stack) {
-        Logger.root.severe('$path visit error: $e\n$stack');
-        return e;
-      });
+    var isolateId = uri.queryParameters['isolateId'];
+    return app.vm.getIsolate(isolateId).then((isolate) {
+      if (isolate == null) {
+        throw new IsolateNotFound(isolateId);
+      }
+      return isolate;
+    });
   }
 
   bool canVisit(Uri uri) => uri.path == path;
@@ -112,7 +121,7 @@ class VMPage extends SimplePage {
         serviceElement.object = vm;
       }
     }).catchError((e, stack) {
-      Logger.root.severe('VMPage visit error: $e\n$stack');
+      Logger.root.severe('VMPage visit error: $e');
     });
   }
 }
@@ -204,6 +213,27 @@ class CpuProfilerPage extends SimplePage {
   }
 }
 
+class TableCpuProfilerPage extends SimplePage {
+  TableCpuProfilerPage(app)
+      : super('profiler-table', 'cpu-profile-table', app);
+
+  void _visit(Uri uri) {
+    super._visit(uri);
+    getIsolate(uri).then((isolate) {
+      if (element != null) {
+        /// Update the page.
+        CpuProfileTableElement page = element;
+        page.isolate = isolate;
+        // TODO(johnmccutchan): Provide a more general mechanism to notify
+        // elements of URI parameter changes. Possibly via a stream off of
+        // LocationManager. With a stream individual elements (not just pages)
+        // could be notified.
+        page.checkParameters();
+      }
+    });
+  }
+}
+
 class AllocationProfilerPage extends SimplePage {
   AllocationProfilerPage(app)
       : super('allocation-profiler', 'heap-profile', app);
@@ -252,7 +282,7 @@ class ErrorViewPage extends Page {
   }
 
   // TODO(turnidge): How to test this page?
-  bool canVisit(Uri uri) => uri.path.startsWith('error/');
+  bool canVisit(Uri uri) => uri.path == 'error';
 }
 
 class VMConnectPage extends Page {
@@ -270,8 +300,26 @@ class VMConnectPage extends Page {
     assert(canVisit(uri));
   }
 
-  // TODO(turnidge): Update this to not have the trailing slash.
-  bool canVisit(Uri uri) => uri.path.startsWith('vm-connect/');
+  bool canVisit(Uri uri) => uri.path == 'vm-connect';
+}
+
+class IsolateReconnectPage extends Page {
+  IsolateReconnectPage(app) : super(app);
+
+  void onInstall() {
+    if (element == null) {
+      element = new Element.tag('isolate-reconnect');
+    }
+    assert(element != null);
+  }
+
+  void _visit(Uri uri) {
+    app.vm.reload();
+    assert(element != null);
+    assert(canVisit(uri));
+  }
+
+  bool canVisit(Uri uri) => uri.path == 'isolate-reconnect';
 }
 
 class MetricsPage extends Page {

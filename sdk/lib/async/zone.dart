@@ -491,93 +491,98 @@ class _ZoneDelegate implements ZoneDelegate {
   dynamic handleUncaughtError(Zone zone, error, StackTrace stackTrace) {
     _ZoneFunction implementation = _delegationTarget._handleUncaughtError;
     _Zone implZone = implementation.zone;
-    return (implementation.function)(
+    HandleUncaughtErrorHandler handler = implementation.function;
+    return handler(
         implZone, _parentDelegate(implZone), zone, error, stackTrace);
   }
 
   dynamic run(Zone zone, f()) {
     _ZoneFunction implementation = _delegationTarget._run;
     _Zone implZone = implementation.zone;
-    return (implementation.function)(
-        implZone, _parentDelegate(implZone), zone, f);
+    RunHandler handler = implementation.function;
+    return handler(implZone, _parentDelegate(implZone), zone, f);
   }
 
   dynamic runUnary(Zone zone, f(arg), arg) {
     _ZoneFunction implementation = _delegationTarget._runUnary;
     _Zone implZone = implementation.zone;
-    return (implementation.function)(
+    RunUnaryHandler handler = implementation.function;
+    return handler(
         implZone, _parentDelegate(implZone), zone, f, arg);
   }
 
   dynamic runBinary(Zone zone, f(arg1, arg2), arg1, arg2) {
     _ZoneFunction implementation = _delegationTarget._runBinary;
     _Zone implZone = implementation.zone;
-    return (implementation.function)(
+    RunBinaryHandler handler = implementation.function;
+    return handler(
         implZone, _parentDelegate(implZone), zone, f, arg1, arg2);
   }
 
   ZoneCallback registerCallback(Zone zone, f()) {
     _ZoneFunction implementation = _delegationTarget._registerCallback;
     _Zone implZone = implementation.zone;
-    return (implementation.function)(
-        implZone, _parentDelegate(implZone), zone, f);
+    RegisterCallbackHandler handler = implementation.function;
+    return handler(implZone, _parentDelegate(implZone), zone, f);
   }
 
   ZoneUnaryCallback registerUnaryCallback(Zone zone, f(arg)) {
     _ZoneFunction implementation = _delegationTarget._registerUnaryCallback;
     _Zone implZone = implementation.zone;
-    return (implementation.function)(
-        implZone, _parentDelegate(implZone), zone, f);
+    RegisterUnaryCallbackHandler handler = implementation.function;
+    return handler(implZone, _parentDelegate(implZone), zone, f);
   }
 
   ZoneBinaryCallback registerBinaryCallback(Zone zone, f(arg1, arg2)) {
     _ZoneFunction implementation = _delegationTarget._registerBinaryCallback;
     _Zone implZone = implementation.zone;
-    return (implementation.function)(
-        implZone, _parentDelegate(implZone), zone, f);
+    RegisterBinaryCallbackHandler handler = implementation.function;
+    return handler(implZone, _parentDelegate(implZone), zone, f);
   }
 
   AsyncError errorCallback(Zone zone, Object error, StackTrace stackTrace) {
     _ZoneFunction implementation = _delegationTarget._errorCallback;
     _Zone implZone = implementation.zone;
     if (identical(implZone, _ROOT_ZONE)) return null;
-    return (implementation.function)(implZone, _parentDelegate(implZone), zone,
-                                     error, stackTrace);
+    ErrorCallbackHandler handler = implementation.function;
+    return handler(implZone, _parentDelegate(implZone), zone,
+                   error, stackTrace);
   }
 
   void scheduleMicrotask(Zone zone, f()) {
     _ZoneFunction implementation = _delegationTarget._scheduleMicrotask;
     _Zone implZone = implementation.zone;
-    (implementation.function)(
-        implZone, _parentDelegate(implZone), zone, f);
+    ScheduleMicrotaskHandler handler = implementation.function;
+    handler(implZone, _parentDelegate(implZone), zone, f);
   }
 
   Timer createTimer(Zone zone, Duration duration, void f()) {
     _ZoneFunction implementation = _delegationTarget._createTimer;
     _Zone implZone = implementation.zone;
-    return (implementation.function)(
-        implZone, _parentDelegate(implZone), zone, duration, f);
+    CreateTimerHandler handler = implementation.function;
+    return handler(implZone, _parentDelegate(implZone), zone, duration, f);
   }
 
   Timer createPeriodicTimer(Zone zone, Duration period, void f(Timer timer)) {
     _ZoneFunction implementation = _delegationTarget._createPeriodicTimer;
     _Zone implZone = implementation.zone;
-    return (implementation.function)(
-        implZone, _parentDelegate(implZone), zone, period, f);
+    CreatePeriodicTimerHandler handler = implementation.function;
+    return handler(implZone, _parentDelegate(implZone), zone, period, f);
   }
 
   void print(Zone zone, String line) {
     _ZoneFunction implementation = _delegationTarget._print;
     _Zone implZone = implementation.zone;
-    (implementation.function)(
-        implZone, _parentDelegate(implZone), zone, line);
+    PrintHandler handler = implementation.function;
+    handler(implZone, _parentDelegate(implZone), zone, line);
   }
 
   Zone fork(Zone zone, ZoneSpecification specification,
             Map zoneValues) {
     _ZoneFunction implementation = _delegationTarget._fork;
     _Zone implZone = implementation.zone;
-    return (implementation.function)(
+    ForkHandler handler = implementation.function;
+    return handler(
         implZone, _parentDelegate(implZone), zone, specification, zoneValues);
   }
 }
@@ -776,7 +781,8 @@ class _CustomZone extends _Zone {
     _ZoneFunction implementation = this._handleUncaughtError;
     assert(implementation != null);
     ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
-    return (implementation.function)(
+    HandleUncaughtErrorHandler handler = implementation.function;
+    return handler(
         implementation.zone, parentDelegate, this, error, stackTrace);
   }
 
@@ -784,32 +790,33 @@ class _CustomZone extends _Zone {
     _ZoneFunction implementation = this._fork;
     assert(implementation != null);
     ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
-    return (implementation.function)(
-        implementation.zone, parentDelegate, this,
-                          specification, zoneValues);
+    ForkHandler handler = implementation.function;
+    return handler(implementation.zone, parentDelegate, this,
+                   specification, zoneValues);
   }
 
   dynamic run(f()) {
     _ZoneFunction implementation = this._run;
     assert(implementation != null);
     ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
-    return (implementation.function)(
-        implementation.zone, parentDelegate, this, f);
+    RunHandler handler = implementation.function;
+    return handler(implementation.zone, parentDelegate, this, f);
   }
 
   dynamic runUnary(f(arg), arg) {
     _ZoneFunction implementation = this._runUnary;
     assert(implementation != null);
     ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
-    return (implementation.function)(
-        implementation.zone, parentDelegate, this, f, arg);
+    RunUnaryHandler handler = implementation.function;
+    return handler(implementation.zone, parentDelegate, this, f, arg);
   }
 
   dynamic runBinary(f(arg1, arg2), arg1, arg2) {
     _ZoneFunction implementation = this._runBinary;
     assert(implementation != null);
     ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
-    return (implementation.function)(
+    RunBinaryHandler handler = implementation.function;
+    return handler(
         implementation.zone, parentDelegate, this, f, arg1, arg2);
   }
 
@@ -817,24 +824,24 @@ class _CustomZone extends _Zone {
     _ZoneFunction implementation = this._registerCallback;
     assert(implementation != null);
     ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
-    return (implementation.function)(
-        implementation.zone, parentDelegate, this, f);
+    RegisterCallbackHandler handler = implementation.function;
+    return handler(implementation.zone, parentDelegate, this, f);
   }
 
   ZoneUnaryCallback registerUnaryCallback(f(arg)) {
     _ZoneFunction implementation = this._registerUnaryCallback;
     assert(implementation != null);
     ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
-    return (implementation.function)(
-        implementation.zone, parentDelegate, this, f);
+    RegisterUnaryCallbackHandler handler = implementation.function;
+    return handler(implementation.zone, parentDelegate, this, f);
   }
 
   ZoneBinaryCallback registerBinaryCallback(f(arg1, arg2)) {
     _ZoneFunction implementation = this._registerBinaryCallback;
     assert(implementation != null);
     ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
-    return (implementation.function)(
-        implementation.zone, parentDelegate, this, f);
+    RegisterBinaryCallbackHandler handler = implementation.function;
+    return handler(implementation.zone, parentDelegate, this, f);
   }
 
   AsyncError errorCallback(Object error, StackTrace stackTrace) {
@@ -843,7 +850,8 @@ class _CustomZone extends _Zone {
     final Zone implementationZone = implementation.zone;
     if (identical(implementationZone, _ROOT_ZONE)) return null;
     final ZoneDelegate parentDelegate = _parentDelegate(implementationZone);
-    return (implementation.function)(
+    ErrorCallbackHandler handler = implementation.function;
+    return handler(
         implementationZone, parentDelegate, this, error, stackTrace);
   }
 
@@ -851,23 +859,24 @@ class _CustomZone extends _Zone {
     _ZoneFunction implementation = this._scheduleMicrotask;
     assert(implementation != null);
     ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
-    return (implementation.function)(
-        implementation.zone, parentDelegate, this, f);
+    ScheduleMicrotaskHandler handler = implementation.function;
+    return handler(implementation.zone, parentDelegate, this, f);
   }
 
   Timer createTimer(Duration duration, void f()) {
     _ZoneFunction implementation = this._createTimer;
     assert(implementation != null);
     ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
-    return (implementation.function)(
-        implementation.zone, parentDelegate, this, duration, f);
+    CreateTimerHandler handler = implementation.function;
+    return handler(implementation.zone, parentDelegate, this, duration, f);
   }
 
   Timer createPeriodicTimer(Duration duration, void f(Timer timer)) {
     _ZoneFunction implementation = this._createPeriodicTimer;
     assert(implementation != null);
     ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
-    return (implementation.function)(
+    CreatePeriodicTimerHandler handler = implementation.function;
+    return handler(
         implementation.zone, parentDelegate, this, duration, f);
   }
 
@@ -875,8 +884,8 @@ class _CustomZone extends _Zone {
     _ZoneFunction implementation = this._print;
     assert(implementation != null);
     ZoneDelegate parentDelegate = _parentDelegate(implementation.zone);
-    return (implementation.function)(
-        implementation.zone, parentDelegate, this, line);
+    PrintHandler handler = implementation.function;
+    return handler(implementation.zone, parentDelegate, this, line);
   }
 }
 
@@ -943,8 +952,10 @@ void _rootScheduleMicrotask(Zone self, ZoneDelegate parent, Zone zone, f()) {
   if (!identical(_ROOT_ZONE, zone)) {
     bool hasErrorHandler = !_ROOT_ZONE.inSameErrorZone(zone);
     f = zone.bindCallback(f, runGuarded: hasErrorHandler);
+    // Use root zone as event zone if the function is already bound.
+    zone = _ROOT_ZONE;
   }
-  _scheduleAsyncCallback(f);
+  _scheduleAsyncCallback(new _AsyncCallbackEntry(f, zone));
 }
 
 Timer _rootCreateTimer(Zone self, ZoneDelegate parent, Zone zone,

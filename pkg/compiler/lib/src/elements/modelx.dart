@@ -326,7 +326,9 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   String toString() => '<$name: $message>';
 
-  accept(ElementVisitor visitor) => visitor.visitErroneousElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitErroneousElement(this, arg);
+  }
 }
 
 /// A constructor that was synthesized to recover from a compile-time error.
@@ -475,7 +477,9 @@ class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
     return unwrapped;
   }
 
-  accept(ElementVisitor visitor) => visitor.visitWarnOnUseElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitWarnOnUseElement(this, arg);
+  }
 }
 
 abstract class AmbiguousElementX extends ElementX implements AmbiguousElement {
@@ -517,7 +521,9 @@ abstract class AmbiguousElementX extends ElementX implements AmbiguousElement {
     return set;
   }
 
-  accept(ElementVisitor visitor) => visitor.visitAmbiguousElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitAmbiguousElement(this, arg);
+  }
 
   bool get isTopLevel => false;
 
@@ -725,7 +731,9 @@ class CompilationUnitElementX extends ElementX
 
   Element get analyzableElement => library;
 
-  accept(ElementVisitor visitor) => visitor.visitCompilationUnitElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitCompilationUnitElement(this, arg);
+  }
 }
 
 class Importers {
@@ -1104,7 +1112,9 @@ class LibraryElementX
     return getLibraryOrScriptName().compareTo(other.getLibraryOrScriptName());
   }
 
-  accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitLibraryElement(this, arg);
+  }
 
   // TODO(johnniwinther): Remove these when issue 18630 is fixed.
   LibraryElementX get patch => super.patch;
@@ -1137,7 +1147,9 @@ class PrefixElementX extends ElementX implements PrefixElement {
     importScope.addImport(this, element, import, listener);
   }
 
-  accept(ElementVisitor visitor) => visitor.visitPrefixElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitPrefixElement(this, arg);
+  }
 
   void markAsDeferred(Import deferredImport) {
     _deferredImport = deferredImport;
@@ -1211,7 +1223,9 @@ class TypedefElementX extends ElementX
     hasBeenCheckedForCycles = true;
   }
 
-  accept(ElementVisitor visitor) => visitor.visitTypedefElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitTypedefElement(this, arg);
+  }
 
   // A typedef cannot be patched therefore defines itself.
   AstElement get definingElement => this;
@@ -1348,7 +1362,9 @@ abstract class VariableElementX extends ElementX with AstElementMixin
   // cases, for example, for function typed parameters.
   Token get position => token;
 
-  accept(ElementVisitor visitor) => visitor.visitVariableElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitVariableElement(this, arg);
+  }
 
   DeclarationSite get declarationSite => variables;
 }
@@ -1380,7 +1396,9 @@ class FieldElementX extends VariableElementX
     : super(name.source, ElementKind.FIELD, enclosingElement,
             variables, name.token);
 
-  accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitFieldElement(this, arg);
+  }
 
   MemberElement get memberContext => this;
 
@@ -1451,7 +1469,9 @@ class ErroneousFieldElementX extends ElementX implements FieldElementX {
   }
 
   // TODO(ahe): Should this throw or do nothing?
-  accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitFieldElement(this, arg);
+  }
 
   // TODO(ahe): Should return the context of the error site?
   MemberElement get memberContext => this;
@@ -1524,7 +1544,9 @@ class FormalElementX extends ElementX
 
   FunctionType get functionType => type;
 
-  accept(ElementVisitor visitor) => visitor.visitFormalElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitFormalElement(this, arg);
+  }
 
   // A parameter is defined by the declaration element.
   AstElement get definingElement => declaration;
@@ -1557,7 +1579,9 @@ abstract class ParameterElementX extends FormalElementX
 
   MemberElement get memberContext => executableContext.memberContext;
 
-  accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitParameterElement(this, arg);
+  }
 
   bool get isLocal => true;
 }
@@ -1594,7 +1618,9 @@ class InitializingFormalElementX extends ParameterElementX
               variables, identifier, initializer,
               isOptional: isOptional, isNamed: isNamed);
 
-  accept(ElementVisitor visitor) => visitor.visitFieldParameterElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitFieldParameterElement(this, arg);
+  }
 
   MemberElement get memberContext => enclosingElement;
 
@@ -1675,7 +1701,9 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
     return isClassMember && !isStatic;
   }
 
-  accept(ElementVisitor visitor) => visitor.visitAbstractFieldElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitAbstractFieldElement(this, arg);
+  }
 
   bool get isAbstract {
     return getter != null && getter.isAbstract
@@ -1863,7 +1891,9 @@ abstract class BaseFunctionElementX
            _hasNoBody;
   }
 
-  accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitFunctionElement(this, arg);
+  }
 
   // A function is defined by the implementation element.
   AstElement get definingElement => implementation;
@@ -2038,7 +2068,9 @@ class ConstructorBodyElementX extends BaseFunctionElementX
 
   Element get analyzableElement => constructor.analyzableElement;
 
-  accept(ElementVisitor visitor) => visitor.visitConstructorBodyElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitConstructorBodyElement(this, arg);
+  }
 
   MemberElement get memberContext => constructor;
 }
@@ -2054,17 +2086,24 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
   final ConstructorElement definingConstructor;
   final bool isDefaultConstructor;
 
-  SynthesizedConstructorElementX(String name,
-                                 this.definingConstructor,
-                                 Element enclosing,
-                                 this.isDefaultConstructor)
-      : super(name,
+  SynthesizedConstructorElementX.notForDefault(String name,
+                                               this.definingConstructor,
+                                               Element enclosing)
+      : isDefaultConstructor = false,
+        super(name,
               ElementKind.GENERATIVE_CONSTRUCTOR,
               Modifiers.EMPTY,
-              enclosing);
+              enclosing) ;
 
-  SynthesizedConstructorElementX.forDefault(superMember, Element enclosing)
-      : this('', superMember, enclosing, true);
+  SynthesizedConstructorElementX.forDefault(this.definingConstructor,
+                                            Element enclosing)
+      : isDefaultConstructor = true,
+        super('',
+              ElementKind.GENERATIVE_CONSTRUCTOR,
+              Modifiers.EMPTY,
+              enclosing) {
+    typeCache = new FunctionType.synthesized(enclosingClass.thisType);
+  }
 
   FunctionExpression parseNode(DiagnosticListener listener) => null;
 
@@ -2076,11 +2115,21 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
 
   bool get isSynthesized => true;
 
+  DartType get type {
+    if (isDefaultConstructor) {
+      return super.type;
+    } else {
+      // TODO(johnniwinther): Ensure that the function type substitutes type
+      // variables correctly.
+      return definingConstructor.type;
+    }
+  }
+
   FunctionSignature computeSignature(compiler) {
     if (functionSignatureCache != null) return functionSignatureCache;
     if (isDefaultConstructor) {
       return functionSignatureCache = new FunctionSignatureX(
-          type: new FunctionType(this, enclosingClass.thisType));
+          type: type);
     }
     if (definingConstructor.isErroneous) {
       return functionSignatureCache =
@@ -2092,8 +2141,8 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
         definingConstructor.computeSignature(compiler);
   }
 
-  accept(ElementVisitor visitor) {
-    return visitor.visitFunctionElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitFunctionElement(this, arg);
   }
 }
 
@@ -2697,7 +2746,9 @@ class EnumClassElementX extends ClassElementX implements EnumClassElement {
   Node parseNode(Compiler compiler) => node;
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitEnumClassElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitEnumClassElement(this, arg);
+  }
 
   List<DartType> computeTypeParameters(Compiler compiler) => const <DartType>[];
 
@@ -2857,7 +2908,9 @@ class MixinApplicationElementX extends BaseClassElementX
     return createTypeVariables(named.typeParameters);
   }
 
-  accept(ElementVisitor visitor) => visitor.visitMixinApplicationElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitMixinApplicationElement(this, arg);
+  }
 }
 
 class LabelDefinitionX implements LabelDefinition {
@@ -2946,7 +2999,9 @@ class TypeVariableElementX extends ElementX with AstElementMixin
 
   Token get position => node.getBeginToken();
 
-  accept(ElementVisitor visitor) => visitor.visitTypeVariableElement(this);
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitTypeVariableElement(this, arg);
+  }
 
   // A type variable cannot be patched therefore defines itself.
   AstElement get definingElement => this;

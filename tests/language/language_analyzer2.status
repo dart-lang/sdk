@@ -14,6 +14,7 @@ enum_syntax_test/05: Fail # 21649
 enum_syntax_test/06: Fail # 21649
 
 regress_17382_test: Skip # don't care about the static warning.
+getter_setter_in_lib_test: Fail # issue 23286
 
 # Test issue 12694 (was analyzer issue), (1) when "abstract" is import prefix using it as type is warning; (2) currently analyzer resolves prefix as field (don't ask)
 built_in_identifier_prefix_test: CompileTimeError # Issue 12694
@@ -422,6 +423,8 @@ unary_plus_negative_test: CompileTimeError
 unbound_getter_test: StaticWarning
 unhandled_exception_negative_test: CompileTimeError
 unresolved_top_level_method_negative_test: StaticWarning
+vm/debug_break_vm_test/*: Skip
+vm/debug_break_enabled_vm_test: Skip
 vm/type_cast_vm_test: StaticWarning
 vm/type_vm_test: StaticWarning
 void_type_test: StaticWarning
@@ -459,3 +462,7 @@ regress_12561_test: StaticWarning
 main_not_a_function_test/01: Fail # Issue 20030
 main_test/03: Fail # Issue 20030
 no_main_test/01: Fail # Issue 20030
+
+# This test is expected to generate a warning, since it's
+# intentionally referring to a variable that's not in scope.
+transitive_private_library_access_test: StaticWarning

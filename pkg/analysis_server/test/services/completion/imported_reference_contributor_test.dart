@@ -7,7 +7,6 @@ library test.services.completion.toplevel;
 import 'package:analysis_server/src/protocol.dart' as protocol
     show Element, ElementKind;
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
-import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_reference_contributor.dart';
@@ -15,15 +14,17 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
-import '../../reflective_tests.dart';
 import 'completion_test_util.dart';
+import 'package:analysis_server/src/analysis_server.dart';
+import '../../operation/operation_queue_test.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ImportedReferenceContributorTest);
+  defineReflectiveTests(ImportedReferenceContributorTest);
 }
 
 @reflectiveTest
@@ -47,7 +48,6 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
     if (!(contributor as ImportedReferenceContributor).shouldWaitForLowPrioritySuggestions) {
       return null;
     }
-    expect(request.unit.element, isNotNull);
     List<CompletionSuggestion> oldSuggestions = request.suggestions;
     /*
      * Simulate a source change to flush the cached compilation unit
@@ -61,8 +61,13 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
     setUpContributor();
     int replacementOffset = request.replacementOffset;
     int replacementLength = request.replacementLength;
-    request = new DartCompletionRequest(context, searchEngine, testSource,
-        completionOffset, cache, new CompletionPerformance());
+    AnalysisServer server = new AnalysisServerMock();
+    /*
+     * Pass null for searchEngine to ensure that it is not used
+     * when the cache has been populated.
+     */
+    request = new DartCompletionRequest(
+        server, context, testSource, completionOffset, cache);
     request.replacementOffset = replacementOffset;
     request.replacementLength = replacementLength;
 
@@ -91,6 +96,7 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
       fail(sb.toString());
     }
 
+    computeFastResult = null;
     if (computeFast()) {
       expect(request.unit.element, isNull);
       assertResultsFromCache(oldSuggestions);
@@ -117,42 +123,76 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
   }
 
   @override
+  CompletionSuggestion assertSuggestImportedClass(String name,
+      {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
+      int relevance: DART_RELEVANCE_DEFAULT, String importUri}) {
+    return assertSuggestClass(name,
+        relevance: relevance, kind: kind, importUri: importUri);
+  }
+
+  @override
   CompletionSuggestion assertSuggestImportedConstructor(String name,
-      {int relevance: DART_RELEVANCE_DEFAULT}) {
-    return assertSuggestConstructor(name, relevance: relevance);
+      {int relevance: DART_RELEVANCE_DEFAULT, String importUri}) {
+    return assertSuggestConstructor(name,
+        relevance: relevance, importUri: importUri);
   }
 
   @override
   CompletionSuggestion assertSuggestImportedField(String name, String type,
-      {int relevance: DART_RELEVANCE_INHERITED_FIELD}) {
-    return assertSuggestField(name, type, relevance: relevance);
+      {int relevance: DART_RELEVANCE_INHERITED_FIELD, String importUri}) {
+    return assertSuggestField(name, type,
+        relevance: relevance, importUri: importUri);
   }
 
   @override
   CompletionSuggestion assertSuggestImportedFunction(
       String name, String returnType,
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      bool deprecated: false, int relevance: DART_RELEVANCE_DEFAULT}) {
+      bool deprecated: false, int relevance: DART_RELEVANCE_DEFAULT,
+      String importUri}) {
     return assertSuggestFunction(name, returnType,
-        kind: kind, deprecated: deprecated, relevance: relevance);
+        kind: kind,
+        deprecated: deprecated,
+        relevance: relevance,
+        importUri: importUri);
+  }
+
+  @override
+  CompletionSuggestion assertSuggestImportedFunctionTypeAlias(
+      String name, String returnType, [bool isDeprecated = false,
+      int relevance = DART_RELEVANCE_DEFAULT,
+      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+      String importUri]) {
+    return assertSuggestFunctionTypeAlias(
+        name, returnType, isDeprecated, relevance, kind, importUri);
   }
 
   CompletionSuggestion assertSuggestImportedGetter(
       String name, String returnType,
-      {int relevance: DART_RELEVANCE_INHERITED_ACCESSOR}) {
-    return assertSuggestGetter(name, returnType, relevance: relevance);
+      {int relevance: DART_RELEVANCE_INHERITED_ACCESSOR, String importUri}) {
+    return assertSuggestGetter(name, returnType,
+        relevance: relevance, importUri: importUri);
   }
 
   CompletionSuggestion assertSuggestImportedMethod(
       String name, String declaringType, String returnType,
-      {int relevance: DART_RELEVANCE_INHERITED_METHOD}) {
+      {int relevance: DART_RELEVANCE_INHERITED_METHOD, String importUri}) {
     return assertSuggestMethod(name, declaringType, returnType,
-        relevance: relevance);
+        relevance: relevance, importUri: importUri);
   }
 
   CompletionSuggestion assertSuggestImportedSetter(String name,
-      {int relevance: DART_RELEVANCE_INHERITED_ACCESSOR}) {
-    return assertSuggestSetter(name, relevance);
+      {int relevance: DART_RELEVANCE_INHERITED_ACCESSOR, String importUri}) {
+    return assertSuggestSetter(name, relevance, importUri);
+  }
+
+  @override
+  CompletionSuggestion assertSuggestImportedTopLevelVar(
+      String name, String returnType, [int relevance = DART_RELEVANCE_DEFAULT,
+      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+      String importUri]) {
+    return assertSuggestTopLevelVar(
+        name, returnType, relevance, kind, importUri);
   }
 
   @override
@@ -223,17 +263,6 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
       assertNotCached('i2');
       assertNotCached('m1');
       assertNotCached('_pf');
-    });
-  }
-
-  test_internal_sdk_libs() {
-    addTestSource('main() {p^}');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggest('print');
-      assertSuggest('pow', relevance: DART_RELEVANCE_LOW);
-      // Do not suggest completions from internal SDK library
-      assertNotSuggested('printToConsole');
     });
   }
 
@@ -455,6 +484,18 @@ main() {new ^ String x = "hello";}''');
       expect(suggestion.hasNamedParameters, true);
 
       assertSuggestLibraryPrefix('math');
+    });
+  }
+
+  test_internal_sdk_libs() {
+    addTestSource('main() {p^}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggest('print');
+      assertSuggest('pow',
+          relevance: DART_RELEVANCE_LOW, importUri: 'dart:math');
+      // Do not suggest completions from internal SDK library
+      assertNotSuggested('printToConsole');
     });
   }
 

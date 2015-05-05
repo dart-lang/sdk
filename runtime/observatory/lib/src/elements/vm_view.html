@@ -7,15 +7,16 @@
 <link rel="import" href="nav_bar.html">
 <link rel="import" href="observatory_element.html">
 <link rel="import" href="script_ref.html">
+<link rel="import" href="view_footer.html">
 
 <polymer-element name="vm-view" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="css/shared.css">
 
     <nav-bar>
-      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <top-nav-menu last="{{ false }}"></top-nav-menu>
+      <vm-nav-menu vm="{{ vm }}" last="{{ true }}"></vm-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
-      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content">
@@ -57,10 +58,8 @@
         </div>
       </div>
     </div>
-
     <br>
     <hr>
-
     <ul class="list-group">
       <template repeat="{{ isolate in vm.isolates }}">
       	<li class="list-group-item">
@@ -69,6 +68,7 @@
         <hr>
       </template>
     </ul>
+    <view-footer></view-footer>
   </template>
 </polymer-element>
 

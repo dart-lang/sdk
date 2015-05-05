@@ -297,9 +297,10 @@ namespace dart {
   V(Mirrors_evalInLibraryWithPrivateKey, 2)                                    \
   V(Mirrors_makeLocalClassMirror, 1)                                           \
   V(Mirrors_makeLocalTypeMirror, 1)                                            \
-  V(Mirrors_makeLocalMirrorSystem, 0)                                          \
   V(Mirrors_mangleName, 2)                                                     \
   V(MirrorReference_equals, 2)                                                 \
+  V(MirrorSystem_libraries, 0)                                                 \
+  V(MirrorSystem_isolate, 0)                                                   \
   V(InstanceMirror_invoke, 5)                                                  \
   V(InstanceMirror_invokeGetter, 3)                                            \
   V(InstanceMirror_invokeSetter, 4)                                            \
@@ -307,7 +308,7 @@ namespace dart {
   V(ClosureMirror_function, 1)                                                 \
   V(TypeMirror_subtypeTest, 2)                                                 \
   V(TypeMirror_moreSpecificTest, 2)                                            \
-  V(ClassMirror_library, 1)                                                    \
+  V(ClassMirror_libraryUri, 1)                                                 \
   V(ClassMirror_supertype, 1)                                                  \
   V(ClassMirror_supertype_instantiated, 1)                                     \
   V(ClassMirror_interfaces, 1)                                                 \
@@ -324,6 +325,7 @@ namespace dart {
   V(ClassMirror_invokeConstructor, 5)                                          \
   V(ClassMirror_type_variables, 1)                                             \
   V(ClassMirror_type_arguments, 1)                                             \
+  V(LibraryMirror_fromPrefix, 1)                                               \
   V(LibraryMirror_invoke, 5)                                                   \
   V(LibraryMirror_invokeGetter, 3)                                             \
   V(LibraryMirror_invokeSetter, 4)                                             \
@@ -350,6 +352,8 @@ namespace dart {
   V(GrowableList_setLength, 2)                                                 \
   V(GrowableList_setData, 2)                                                   \
   V(Internal_makeListFixedLength, 1)                                           \
+  V(Internal_makeFixedListUnmodifiable, 1)                                     \
+  V(Internal_inquireIs64Bit, 0)                                                \
   V(LinkedHashMap_allocate, 1)                                                 \
   V(LinkedHashMap_getLength, 1)                                                \
   V(LinkedHashMap_insertOrUpdate, 3)                                           \

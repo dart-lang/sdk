@@ -1,7 +1,6 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=-DUSE_CPS_IR=true
 
 // Tests of closures.
 
@@ -21,12 +20,10 @@ main(x) {
 """,
 r"""
 function(x) {
-  var _box_0, a;
-  _box_0 = {};
+  var _box_0 = {}, a;
   _box_0._captured_x_0 = x;
   a = new V.main_a(_box_0);
-  x = _box_0._captured_x_0;
-  _box_0._captured_x_0 = J.getInterceptor$ns(x).$add(x, "1");
+  _box_0._captured_x_0 = J.getInterceptor$ns(x = _box_0._captured_x_0).$add(x, "1");
   P.print(a.call$0());
   return null;
 }"""),
@@ -55,12 +52,10 @@ main() {
 """,
 r"""
 function() {
-  var _box_0, a, x;
-  _box_0 = {};
+  var _box_0 = {}, a, x;
   _box_0._captured_x_0 = 122;
   a = new V.main_closure(_box_0);
-  x = _box_0._captured_x_0;
-  _box_0._captured_x_0 = J.getInterceptor$ns(x).$add(x, 1);
+  _box_0._captured_x_0 = J.getInterceptor$ns(x = _box_0._captured_x_0).$add(x, 1);
   P.print(a.call$0());
   return null;
 }"""),
@@ -78,12 +73,10 @@ main() {
 """,
 r"""
 function() {
-  var _box_0, a, x;
-  _box_0 = {};
+  var _box_0 = {}, a, x;
   _box_0._captured_x_0 = 122;
   a = new V.main_closure(_box_0);
-  x = _box_0._captured_x_0;
-  _box_0._captured_x_0 = J.getInterceptor$ns(x).$add(x, 1);
+  _box_0._captured_x_0 = J.getInterceptor$ns(x = _box_0._captured_x_0).$add(x, 1);
   P.print(a.call$0().call$0());
   return null;
 }"""),
@@ -99,10 +92,8 @@ main() {
 """,
 r"""
 function() {
-  var a, i;
-  a = null;
-  i = 0;
-  while (P.identical(J.getInterceptor$n(i).$lt(i, 10), true)) {
+  var a = null, i = 0;
+  while (J.getInterceptor$n(i).$lt(i, 10)) {
     a = new V.main_closure(i);
     i = J.getInterceptor$ns(i).$add(i, 1);
   }

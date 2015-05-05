@@ -6,11 +6,11 @@ library services.src.search.search_engine;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analysis_server/src/services/correction/source_range.dart';
 
 /**
  * A [SearchEngine] implementation.
@@ -197,11 +197,11 @@ class _Requestor {
 
   _Requestor(this.index);
 
-  void add(Element element, Relationship relationship, MatchKind kind) {
+  void add(Element element, RelationshipImpl relationship, MatchKind kind) {
     Future relationsFuture = index.getRelationships(element, relationship);
-    Future matchesFuture = relationsFuture.then((List<Location> locations) {
+    Future matchesFuture = relationsFuture.then((List<LocationImpl> locations) {
       List<SearchMatch> matches = <SearchMatch>[];
-      for (Location location in locations) {
+      for (LocationImpl location in locations) {
         matches.add(new SearchMatch(kind, location.element,
             new SourceRange(location.offset, location.length),
             location.isResolved, location.isQualified));

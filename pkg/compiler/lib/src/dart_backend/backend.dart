@@ -182,18 +182,18 @@ class DartBackend extends Backend {
       assert(checkTreeIntegrity(treeRoot));
     }
 
-    applyTreePass(new StatementRewriter());
+    applyTreePass(new StatementRewriter(isDartMode: true));
     applyTreePass(new VariableMerger());
     applyTreePass(new LoopRewriter());
     applyTreePass(new LogicalRewriter());
+    applyTreePass(new PullIntoInitializers());
 
     // Backend-specific transformations.
     new backend_ast_emitter.UnshadowParameters().unshadow(treeRoot);
     context.traceGraph('Unshadow parameters', treeRoot);
 
     TreeElementMapping treeElements = new TreeElementMapping(element);
-    backend_ast.RootNode backendAst =
-        backend_ast_emitter.emit(treeRoot);
+    backend_ast.RootNode backendAst = backend_ast_emitter.emit(treeRoot);
     Node frontend_ast = backend2frontend.emit(treeElements, backendAst);
     return new ElementAst(frontend_ast, treeElements);
 
@@ -521,9 +521,11 @@ class DartConstantTask extends ConstantCompilerTask
     });
   }
 
-  ConstantExpression compileNode(Node node, TreeElements elements) {
+  ConstantExpression compileNode(Node node, TreeElements elements,
+                                 {bool enforceConst: true}) {
     return measure(() {
-      return constantCompiler.compileNodeWithDefinitions(node, elements);
+      return constantCompiler.compileNodeWithDefinitions(node, elements,
+          isConst: enforceConst);
     });
   }
 

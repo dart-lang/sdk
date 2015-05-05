@@ -111,7 +111,7 @@ abstract class UnmodifiableMapBase<K, V> =
  * It accesses the values by iterating over the keys of the map, and using the
  * map's `operator[]` to lookup the keys.
  */
-class _MapBaseValueIterable<V> extends IterableBase<V>
+class _MapBaseValueIterable<V> extends Iterable<V>
                                implements EfficientLength {
   final Map _map;
   _MapBaseValueIterable(this._map);
@@ -285,11 +285,11 @@ class Maps {
    */
   static String mapToString(Map m) {
     // Reuse the list in IterableBase for detecting toString cycles.
-    if (IterableBase._isToStringVisiting(m)) { return '{...}'; }
+    if (_isToStringVisiting(m)) { return '{...}'; }
 
     var result = new StringBuffer();
     try {
-      IterableBase._toStringVisiting.add(m);
+      _toStringVisiting.add(m);
       result.write('{');
       bool first = true;
       m.forEach((k, v) {
@@ -303,8 +303,8 @@ class Maps {
       });
       result.write('}');
     } finally {
-      assert(identical(IterableBase._toStringVisiting.last, m));
-      IterableBase._toStringVisiting.removeLast();
+      assert(identical(_toStringVisiting.last, m));
+      _toStringVisiting.removeLast();
     }
 
     return result.toString();

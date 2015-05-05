@@ -72,7 +72,6 @@ uintptr_t SignalHandler::GetLinkRegister(const mcontext_t& mcontext) {
   lr = static_cast<uintptr_t>(mcontext.arm_lr);
 #elif defined(TARGET_ARCH_ARM64)
   lr = static_cast<uintptr_t>(mcontext.regs[30]);
-  UNIMPLEMENTED();
 #else
   UNIMPLEMENTED();
 #endif  // TARGET_ARCH_...

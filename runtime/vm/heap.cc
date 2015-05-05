@@ -16,6 +16,7 @@
 #include "vm/raw_object.h"
 #include "vm/scavenger.h"
 #include "vm/service.h"
+#include "vm/service_event.h"
 #include "vm/stack_frame.h"
 #include "vm/tags.h"
 #include "vm/verifier.h"
@@ -211,35 +212,15 @@ bool Heap::CodeContains(uword addr) const {
 }
 
 
-void Heap::IterateObjects(ObjectVisitor* visitor) const {
+void Heap::VisitObjects(ObjectVisitor* visitor) const {
   new_space_->VisitObjects(visitor);
   old_space_->VisitObjects(visitor);
 }
 
 
-void Heap::IteratePointers(ObjectPointerVisitor* visitor) const {
+void Heap::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   new_space_->VisitObjectPointers(visitor);
   old_space_->VisitObjectPointers(visitor);
-}
-
-
-void Heap::IterateNewPointers(ObjectPointerVisitor* visitor) const {
-  new_space_->VisitObjectPointers(visitor);
-}
-
-
-void Heap::IterateOldPointers(ObjectPointerVisitor* visitor) const {
-  old_space_->VisitObjectPointers(visitor);
-}
-
-
-void Heap::IterateNewObjects(ObjectVisitor* visitor) const {
-  new_space_->VisitObjects(visitor);
-}
-
-
-void Heap::IterateOldObjects(ObjectVisitor* visitor) const {
-  old_space_->VisitObjects(visitor);
 }
 
 
@@ -482,13 +463,13 @@ ObjectSet* Heap::CreateAllocatedObjectSet(
   {
     VerifyObjectVisitor object_visitor(
         isolate(), allocated_set, mark_expectation);
-    this->IterateObjects(&object_visitor);
+    this->VisitObjects(&object_visitor);
   }
   {
     // VM isolate heap is premarked.
     VerifyObjectVisitor vm_object_visitor(
         isolate(), allocated_set, kRequireMarked);
-    vm_isolate->heap()->IterateObjects(&vm_object_visitor);
+    vm_isolate->heap()->VisitObjects(&vm_object_visitor);
   }
   return allocated_set;
 }
@@ -497,7 +478,7 @@ ObjectSet* Heap::CreateAllocatedObjectSet(
 bool Heap::Verify(MarkExpectation mark_expectation) const {
   ObjectSet* allocated_set = CreateAllocatedObjectSet(mark_expectation);
   VerifyPointersVisitor visitor(isolate(), allocated_set);
-  IteratePointers(&visitor);
+  VisitObjectPointers(&visitor);
   delete allocated_set;
   // Only returning a value so that Heap::Validate can be called from an ASSERT.
   return true;
@@ -640,8 +621,9 @@ void Heap::RecordAfterGC() {
   ASSERT(gc_in_progress_);
   gc_in_progress_ = false;
   if (Service::NeedsEvents()) {
-    GCEvent event(stats_);
-    Service::HandleGCEvent(&event);
+    ServiceEvent event(Isolate::Current(), ServiceEvent::kGC);
+    event.set_gc_stats(&stats_);
+    Service::HandleEvent(&event);
   }
 }
 
@@ -697,21 +679,6 @@ void Heap::PrintStats() {
     stats_.data_[1],
     stats_.data_[2],
     stats_.data_[3]);
-}
-
-
-void GCEvent::PrintJSON(JSONStream* js) const {
-  Isolate* isolate = Isolate::Current();
-  {
-    JSONObject jsobj(js);
-    jsobj.AddProperty("type", "ServiceEvent");
-    jsobj.AddPropertyF("id", "gc/%" Pd, stats_.num_);
-    jsobj.AddProperty("eventType", "GC");  // TODO(koda): "GarbageCollected"
-    jsobj.AddProperty("isolate", isolate);
-    jsobj.AddProperty("reason", Heap::GCReasonToString(stats_.reason_));
-    isolate->heap()->PrintToJSONObject(Heap::kNew, &jsobj);
-    isolate->heap()->PrintToJSONObject(Heap::kOld, &jsobj);
-  }
 }
 
 

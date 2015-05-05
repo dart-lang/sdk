@@ -17,6 +17,7 @@ class GrowableObjectArray;
 class Instance;
 class JSONArray;
 class JSONObject;
+class MessageQueue;
 class Metric;
 class Object;
 class ServiceEvent;
@@ -31,9 +32,11 @@ class JSONStream : ValueObject {
 
   void Setup(Zone* zone,
              Dart_Port reply_port,
+             const String& seq,
              const String& method,
              const Array& param_keys,
              const Array& param_values);
+  void SetupError();
 
   void PostReply();
 
@@ -63,6 +66,7 @@ class JSONStream : ValueObject {
   // otherwise.
   bool ParamIs(const char* key, const char* value) const;
 
+  const char* seq() const { return seq_; }
   const char* method() const { return method_; }
   const char** param_keys() const { return param_keys_; }
   const char** param_values() const { return param_values_; }
@@ -88,6 +92,7 @@ class JSONStream : ValueObject {
   void PrintValue(SourceBreakpoint* bpt);
   void PrintValue(const ServiceEvent* event);
   void PrintValue(Metric* metric);
+  void PrintValue(MessageQueue* queue);
   void PrintValue(Isolate* isolate, bool ref = true);
   bool PrintValueStr(const String& s, intptr_t limit);
 
@@ -105,6 +110,7 @@ class JSONStream : ValueObject {
   void PrintProperty(const char* name, const ServiceEvent* event);
   void PrintProperty(const char* name, SourceBreakpoint* bpt);
   void PrintProperty(const char* name, Metric* metric);
+  void PrintProperty(const char* name, MessageQueue* queue);
   void PrintProperty(const char* name, Isolate* isolate);
   void PrintPropertyName(const char* name);
   void PrintCommaIfNeeded();
@@ -119,6 +125,7 @@ class JSONStream : ValueObject {
   intptr_t open_objects_;
   TextBuffer buffer_;
   Dart_Port reply_port_;
+  const char* seq_;
   const char* method_;
   const char** param_keys_;
   const char** param_values_;
@@ -179,6 +186,9 @@ class JSONObject : public ValueObject {
   void AddProperty(const char* name, Metric* metric) const {
     stream_->PrintProperty(name, metric);
   }
+  void AddProperty(const char* name, MessageQueue* queue) const {
+    stream_->PrintProperty(name, queue);
+  }
   void AddProperty(const char* name, Isolate* isolate) const {
     stream_->PrintProperty(name, isolate);
   }
@@ -229,6 +239,9 @@ class JSONArray : public ValueObject {
   }
   void AddValue(Metric* metric) const {
     stream_->PrintValue(metric);
+  }
+  void AddValue(MessageQueue* queue) const {
+    stream_->PrintValue(queue);
   }
   void AddValueF(const char* format, ...) const PRINTF_ATTRIBUTE(2, 3);
 

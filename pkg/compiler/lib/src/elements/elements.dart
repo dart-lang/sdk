@@ -422,7 +422,7 @@ abstract class Element implements Entity {
   /// Returns the [Element] that holds the [TreeElements] for this element.
   AnalyzableElement get analyzableElement;
 
-  accept(ElementVisitor visitor);
+  accept(ElementVisitor visitor, arg);
 }
 
 class Elements {
@@ -488,6 +488,12 @@ class Elements {
     if (outer.isGenerativeConstructor) return false;
     if (outer.isInstanceMember) return false;
     return true;
+  }
+
+  static bool hasAccessToTypeVariables(Element element) {
+    Element outer = element.outermostEnclosingMemberOrTopLevel;
+    return (outer != null && outer.isFactoryConstructor) ||
+        !isInStaticContext(element);
   }
 
   static bool isStaticOrTopLevelField(Element element) {

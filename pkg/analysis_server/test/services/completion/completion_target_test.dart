@@ -7,14 +7,14 @@ library test.services.completion.target;
 import 'package:analysis_server/src/services/completion/completion_target.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
-import '../../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(CompletionTargetTest);
+  defineReflectiveTests(CompletionTargetTest);
 }
 
 @reflectiveTest

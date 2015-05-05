@@ -8,7 +8,7 @@
 #include "bin/builtin.h"
 #include "bin/utils.h"
 
-#include "../third_party/zlib/zlib.h"
+#include "zlib/zlib.h"
 
 
 namespace dart {

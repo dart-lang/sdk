@@ -284,14 +284,14 @@ class HeapProfileElement extends ObservatoryElement {
       profile = null;
       return;
     }
-    isolate.invokeRpc('getAllocationProfile', {}).then(_update);
+    isolate.invokeRpc('_getAllocationProfile', {}).then(_update);
   }
 
   void refresh(var done) {
     if (isolate == null) {
       return;
     }
-    isolate.invokeRpc('getAllocationProfile', {})
+    isolate.invokeRpc('_getAllocationProfile', {})
         .then(_update).whenComplete(done);
   }
 
@@ -299,7 +299,7 @@ class HeapProfileElement extends ObservatoryElement {
     if (isolate == null) {
       return;
     }
-    isolate.invokeRpc('getAllocationProfile', { 'gc': 'full' })
+    isolate.invokeRpc('_getAllocationProfile', { 'gc': 'full' })
         .then(_update).whenComplete(done);
   }
 
@@ -307,7 +307,7 @@ class HeapProfileElement extends ObservatoryElement {
     if (isolate == null) {
       return;
     }
-    isolate.invokeRpc('getAllocationProfile', { 'reset': 'true' })
+    isolate.invokeRpc('_getAllocationProfile', { 'reset': 'true' })
         .then(_update).whenComplete(done);
   }
 

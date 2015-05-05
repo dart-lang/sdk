@@ -2487,6 +2487,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier className = node.name;
     ClassElementImpl element = new ClassElementImpl.forNode(className);
     element.abstract = node.abstractKeyword != null;
+    element.mixinApplication = true;
     element.typedef = true;
     List<TypeParameterElement> typeParameters = holder.typeParameters;
     element.typeParameters = typeParameters;
@@ -2670,7 +2671,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       bool wasInFunction = _inFunction;
       _inFunction = true;
       try {
-        _visitChildren(holder, expression);
+        _visitChildren(holder, node);
       } finally {
         _inFunction = wasInFunction;
       }
@@ -2765,6 +2766,11 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitFunctionExpression(FunctionExpression node) {
+    if (node.parent is FunctionDeclaration) {
+      // visitFunctionDeclaration has already created the element for the
+      // declaration.  We just need to visit children.
+      return super.visitFunctionExpression(node);
+    }
     ElementHolder holder = new ElementHolder();
     bool wasInFunction = _inFunction;
     _inFunction = true;
@@ -3062,7 +3068,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     if (_inFieldContext) {
       SimpleIdentifier fieldName = node.name;
       FieldElementImpl field;
-      if (isConst && hasInitializer) {
+      if ((isConst || isFinal) && hasInitializer) {
         field = new ConstFieldElementImpl.con1(fieldName);
       } else {
         field = new FieldElementImpl.forNode(fieldName);
@@ -3301,7 +3307,7 @@ class ElementHolder {
 
   List<PropertyAccessorElement> get accessors {
     if (_accessors == null) {
-      return PropertyAccessorElementImpl.EMPTY_ARRAY;
+      return PropertyAccessorElement.EMPTY_LIST;
     }
     List<PropertyAccessorElement> result = _accessors;
     _accessors = null;
@@ -3310,7 +3316,7 @@ class ElementHolder {
 
   List<ConstructorElement> get constructors {
     if (_constructors == null) {
-      return ConstructorElementImpl.EMPTY_ARRAY;
+      return ConstructorElement.EMPTY_LIST;
     }
     List<ConstructorElement> result = _constructors;
     _constructors = null;
@@ -3319,7 +3325,7 @@ class ElementHolder {
 
   List<ClassElement> get enums {
     if (_enums == null) {
-      return ClassElementImpl.EMPTY_ARRAY;
+      return ClassElement.EMPTY_LIST;
     }
     List<ClassElement> result = _enums;
     _enums = null;
@@ -3328,7 +3334,7 @@ class ElementHolder {
 
   List<FieldElement> get fields {
     if (_fields == null) {
-      return FieldElementImpl.EMPTY_ARRAY;
+      return FieldElement.EMPTY_LIST;
     }
     List<FieldElement> result = _fields;
     _fields = null;
@@ -3337,7 +3343,7 @@ class ElementHolder {
 
   List<FieldElement> get fieldsWithoutFlushing {
     if (_fields == null) {
-      return FieldElementImpl.EMPTY_ARRAY;
+      return FieldElement.EMPTY_LIST;
     }
     List<FieldElement> result = _fields;
     return result;
@@ -3345,7 +3351,7 @@ class ElementHolder {
 
   List<FunctionElement> get functions {
     if (_functions == null) {
-      return FunctionElementImpl.EMPTY_ARRAY;
+      return FunctionElement.EMPTY_LIST;
     }
     List<FunctionElement> result = _functions;
     _functions = null;
@@ -3354,7 +3360,7 @@ class ElementHolder {
 
   List<LabelElement> get labels {
     if (_labels == null) {
-      return LabelElementImpl.EMPTY_ARRAY;
+      return LabelElement.EMPTY_LIST;
     }
     List<LabelElement> result = _labels;
     _labels = null;
@@ -3363,7 +3369,7 @@ class ElementHolder {
 
   List<LocalVariableElement> get localVariables {
     if (_localVariables == null) {
-      return LocalVariableElementImpl.EMPTY_ARRAY;
+      return LocalVariableElement.EMPTY_LIST;
     }
     List<LocalVariableElement> result = _localVariables;
     _localVariables = null;
@@ -3372,7 +3378,7 @@ class ElementHolder {
 
   List<MethodElement> get methods {
     if (_methods == null) {
-      return MethodElementImpl.EMPTY_ARRAY;
+      return MethodElement.EMPTY_LIST;
     }
     List<MethodElement> result = _methods;
     _methods = null;
@@ -3381,7 +3387,7 @@ class ElementHolder {
 
   List<ParameterElement> get parameters {
     if (_parameters == null) {
-      return ParameterElementImpl.EMPTY_ARRAY;
+      return ParameterElement.EMPTY_LIST;
     }
     List<ParameterElement> result = _parameters;
     _parameters = null;
@@ -3390,7 +3396,7 @@ class ElementHolder {
 
   List<TopLevelVariableElement> get topLevelVariables {
     if (_topLevelVariables == null) {
-      return TopLevelVariableElementImpl.EMPTY_ARRAY;
+      return TopLevelVariableElement.EMPTY_LIST;
     }
     List<TopLevelVariableElement> result = _topLevelVariables;
     _topLevelVariables = null;
@@ -3399,7 +3405,7 @@ class ElementHolder {
 
   List<FunctionTypeAliasElement> get typeAliases {
     if (_typeAliases == null) {
-      return FunctionTypeAliasElementImpl.EMPTY_ARRAY;
+      return FunctionTypeAliasElement.EMPTY_LIST;
     }
     List<FunctionTypeAliasElement> result = _typeAliases;
     _typeAliases = null;
@@ -3408,7 +3414,7 @@ class ElementHolder {
 
   List<TypeParameterElement> get typeParameters {
     if (_typeParameters == null) {
-      return TypeParameterElementImpl.EMPTY_ARRAY;
+      return TypeParameterElement.EMPTY_LIST;
     }
     List<TypeParameterElement> result = _typeParameters;
     _typeParameters = null;
@@ -3417,7 +3423,7 @@ class ElementHolder {
 
   List<ClassElement> get types {
     if (_types == null) {
-      return ClassElementImpl.EMPTY_ARRAY;
+      return ClassElement.EMPTY_LIST;
     }
     List<ClassElement> result = _types;
     _types = null;
@@ -7683,11 +7689,6 @@ class LibraryResolver {
   TypeProvider _typeProvider;
 
   /**
-   * The object used to access the types from the core library.
-   */
-  TypeProvider get typeProvider => _typeProvider;
-
-  /**
    * A table mapping library sources to the information being maintained for those libraries.
    */
   HashMap<Source, Library> _libraryMap = new HashMap<Source, Library>();
@@ -7723,6 +7724,11 @@ class LibraryResolver {
    * @return an array containing the libraries that were resolved
    */
   Set<Library> get resolvedLibraries => _librariesInCycles;
+
+  /**
+   * The object used to access the types from the core library.
+   */
+  TypeProvider get typeProvider => _typeProvider;
 
   /**
    * Create an object to represent the information about the library defined by the compilation unit
@@ -7910,6 +7916,18 @@ class LibraryResolver {
     //}
     _performConstantEvaluation();
     return targetLibrary.libraryElement;
+  }
+
+  /**
+   * Resolve the identifiers and perform type analysis in the libraries in the current cycle.
+   *
+   * @throws AnalysisException if any of the identifiers could not be resolved or if any of the
+   *           libraries could not have their types analyzed
+   */
+  void resolveReferencesAndTypes() {
+    for (Library library in _librariesInCycles) {
+      _resolveReferencesAndTypesInLibrary(library);
+    }
   }
 
   /**
@@ -8464,18 +8482,6 @@ class LibraryResolver {
         }
       }
     });
-  }
-
-  /**
-   * Resolve the identifiers and perform type analysis in the libraries in the current cycle.
-   *
-   * @throws AnalysisException if any of the identifiers could not be resolved or if any of the
-   *           libraries could not have their types analyzed
-   */
-  void resolveReferencesAndTypes() {
-    for (Library library in _librariesInCycles) {
-      _resolveReferencesAndTypesInLibrary(library);
-    }
   }
 
   /**
@@ -11305,8 +11311,17 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
-    if (node.element.isConst && node.initializer != null) {
-      (node.element as ConstVariableElement).constantInitializer =
+    VariableElement element = node.element;
+    // Note: in addition to cloning the initializers for const variables, we
+    // have to clone the initializers for non-static final fields (because if
+    // they occur in a class with a const constructor, they will be needed to
+    // evaluate the const constructor).
+    if ((element.isConst ||
+            (element is FieldElement &&
+                element.isFinal &&
+                !element.isStatic)) &&
+        node.initializer != null) {
+      (element as ConstVariableElement).constantInitializer =
           new ConstantAstCloner().cloneNode(node.initializer);
     }
     return null;
@@ -13272,15 +13287,15 @@ abstract class TypeProvider {
   InterfaceType get listType;
 
   /**
+   * Return the type representing the built-in type 'Map'.
+   */
+  InterfaceType get mapType;
+
+  /**
    * Return a list containing all of the types that cannot be either extended or
    * implemented.
    */
   List<InterfaceType> get nonSubtypableTypes;
-
-  /**
-   * Return the type representing the built-in type 'Map'.
-   */
-  InterfaceType get mapType;
 
   /**
    * Return a [DartObjectImpl] representing the `null` object.
@@ -13774,6 +13789,12 @@ class TypeResolverVisitor extends ScopedVisitor {
     SimpleIdentifier stackTrace = node.stackTraceParameter;
     if (stackTrace != null) {
       _recordType(stackTrace, typeProvider.stackTraceType);
+      Element element = stackTrace.staticElement;
+      if (element is VariableElementImpl) {
+        element.type = typeProvider.stackTraceType;
+      } else {
+        // TODO(brianwilkerson) Report the internal error
+      }
     }
     return null;
   }
@@ -14519,7 +14540,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     } else if (type is FunctionType) {
       return type.typeArguments;
     }
-    return TypeImpl.EMPTY_ARRAY;
+    return DartType.EMPTY_LIST;
   }
 
   /**
@@ -14811,7 +14832,7 @@ class TypeResolverVisitor extends ScopedVisitor {
         aliasElement.typeParameters = alias.typeParameters;
         type.typeArguments = alias.type.typeArguments;
       } else {
-        type.typeArguments = TypeImpl.EMPTY_ARRAY;
+        type.typeArguments = DartType.EMPTY_LIST;
       }
     }
     element.type = type;

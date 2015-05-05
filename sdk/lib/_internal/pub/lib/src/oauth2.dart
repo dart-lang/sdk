@@ -83,7 +83,6 @@ void clearCredentials(SystemCache cache) {
 /// re-run [fn] if a recoverable authorization error is detected.
 Future withClient(SystemCache cache, Future fn(Client client)) {
   return _getClient(cache).then((client) {
-    var completer = new Completer();
     return fn(client).whenComplete(() {
       client.close();
       // Be sure to save the credentials even when an error happens.

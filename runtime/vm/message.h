@@ -6,12 +6,15 @@
 #define VM_MESSAGE_H_
 
 #include "platform/assert.h"
+#include "vm/allocation.h"
 #include "vm/globals.h"
 
 // Duplicated from dart_api.h to avoid including the whole header.
 typedef int64_t Dart_Port;
 
 namespace dart {
+
+class JSONStream;
 
 class Message {
  public:
@@ -68,6 +71,10 @@ class Message {
 
   bool RedirectToDeliveryFailurePort();
 
+  intptr_t Id() const;
+
+  static const char* PriorityAsString(Priority priority);
+
  private:
   friend class MessageQueue;
 
@@ -97,6 +104,31 @@ class MessageQueue {
 
   // Clear all messages from the message queue.
   void Clear();
+
+  // Iterator class.
+  class Iterator : public ValueObject {
+   public:
+    explicit Iterator(const MessageQueue* queue);
+    virtual ~Iterator();
+
+    void Reset(const MessageQueue* queue);
+
+    // Returns false when there are no more messages left.
+    bool HasNext();
+
+    // Returns the current message and moves forward.
+    Message* Next();
+
+   private:
+    Message* next_;
+  };
+
+  intptr_t Length() const;
+
+  // Returns the message with id or NULL.
+  Message* FindMessageById(intptr_t id);
+
+  void PrintJSON(JSONStream* stream);
 
  private:
   Message* head_;

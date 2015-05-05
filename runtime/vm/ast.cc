@@ -559,37 +559,118 @@ AstNode* LoadIndexedNode::MakeAssignmentNode(AstNode* rhs) {
 
 
 AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
-  const String& setter_name = String::Handle(Field::SetterName(field_name()));
-
-  if (is_super_getter_) {
+  if (is_super_getter()) {
     ASSERT(receiver() != NULL);
-    // If the static setter is not found in the superclass, noSuchMethod will be
-    // called at runtime.
+    const String& setter_name =
+        String::ZoneHandle(Field::SetterSymbol(field_name_));
+    Function& setter = Function::ZoneHandle(
+        Resolver::ResolveDynamicAnyArgs(cls(), setter_name));
+    if (setter.IsNull() || setter.is_abstract()) {
+      // No instance setter found in super class chain,
+      // noSuchMethod will be called at runtime.
+      return new StaticSetterNode(token_pos(),
+                                  receiver(),
+                                  cls(),
+                                  field_name_,
+                                  rhs);
+    }
     return new StaticSetterNode(token_pos(),
                                 receiver(),
-                                cls(),
-                                field_name(),
+                                field_name_,
+                                setter,
                                 rhs);
   }
+
+  if (owner().IsLibraryPrefix()) {
+    const LibraryPrefix& prefix = LibraryPrefix::Cast(owner_);
+    // The parser has already dealt with the pathological case where a
+    // library imports itself. See Parser::ResolveIdentInPrefixScope()
+    ASSERT(field_name_.CharAt(0) != Library::kPrivateIdentifierStart);
+
+    // If the prefix is not yet loaded, the getter doesn't exist. Return a
+    // setter that will throw a NSME at runtime.
+    if (!prefix.is_loaded()) {
+      return new StaticSetterNode(token_pos(), NULL, cls(), field_name_, rhs);
+    }
+
+    Object& obj = Object::Handle(prefix.LookupObject(field_name_));
+    if (obj.IsField()) {
+      const Field& field = Field::ZoneHandle(Field::Cast(obj).raw());
+      if (!field.is_final()) {
+        if (Isolate::Current()->TypeChecksEnabled()) {
+          rhs = new AssignableNode(field.token_pos(),
+                                   rhs,
+                                   AbstractType::ZoneHandle(field.type()),
+                                   field_name_);
+        }
+        return new StoreStaticFieldNode(token_pos(), field, rhs);
+      }
+    }
+
+    // No field found in prefix. Look for a setter function.
+    const String& setter_name = String::Handle(Field::SetterName(field_name_));
+    obj = prefix.LookupObject(setter_name);
+    if (obj.IsFunction()) {
+      const Function& setter = Function::ZoneHandle(Function::Cast(obj).raw());
+      ASSERT(setter.is_static() && setter.IsSetterFunction());
+      return new StaticSetterNode(
+          token_pos(), NULL, field_name_, setter, rhs);
+    }
+
+    // No writeable field and no setter found in the prefix. Return a
+    // non-existing setter that will throw an NSM error.
+    return new StaticSetterNode(token_pos(), NULL, cls(), field_name_, rhs);
+  }
+
+  if (owner().IsLibrary()) {
+    const Library& library = Library::Cast(owner());
+    Object& obj = Object::Handle(library.ResolveName(field_name_));
+    if (obj.IsField()) {
+      const Field& field = Field::ZoneHandle(Field::Cast(obj).raw());
+      if (!field.is_final()) {
+        if (Isolate::Current()->TypeChecksEnabled()) {
+          rhs = new AssignableNode(field.token_pos(),
+                                   rhs,
+                                   AbstractType::ZoneHandle(field.type()),
+                                   field_name_);
+        }
+        return new StoreStaticFieldNode(token_pos(), field, rhs);
+      }
+    }
+
+    // No field found in library. Look for a setter function.
+    const String& setter_name = String::Handle(Field::SetterName(field_name_));
+    obj = library.ResolveName(setter_name);
+    if (obj.IsFunction()) {
+      const Function& setter = Function::ZoneHandle(Function::Cast(obj).raw());
+      ASSERT(setter.is_static() && setter.IsSetterFunction());
+      return new StaticSetterNode(token_pos(), NULL, field_name_, setter, rhs);
+    }
+
+    // No writeable field and no setter found in the library. Return a
+    // non-existing setter that will throw an NSM error.
+    return new StaticSetterNode(token_pos(), NULL, cls(), field_name_, rhs);
+  }
+
   const Function& setter =
-      Function::ZoneHandle(cls().LookupStaticFunction(setter_name));
-  if (!setter.IsNull()) {
-    return new StaticSetterNode(token_pos(), NULL, cls(), field_name(), rhs);
+      Function::ZoneHandle(cls().LookupSetterFunction(field_name_));
+  if (!setter.IsNull() && setter.IsStaticFunction()) {
+    return new StaticSetterNode(token_pos(), NULL, field_name_, setter, rhs);
   }
   // Could not find a static setter. Look for a field.
   // Access to a lazily initialized static field that has not yet been
   // initialized is compiled to a static implicit getter.
   // A setter may not exist for such a field.
-  const Field& field = Field::ZoneHandle(cls().LookupStaticField(field_name()));
+  const Field& field = Field::ZoneHandle(cls().LookupStaticField(field_name_));
   if (!field.IsNull()) {
     if (field.is_final()) {
       // Attempting to assign to a final variable will cause a NoSuchMethodError
       // to be thrown. Change static getter to non-existent static setter in
       // order to trigger the throw at runtime.
-      return new StaticSetterNode(token_pos(), NULL, cls(), field_name(), rhs);
+      return new StaticSetterNode(token_pos(), NULL, cls(), field_name_, rhs);
     }
 #if defined(DEBUG)
-    const String& getter_name = String::Handle(Field::GetterName(field_name()));
+    const String& getter_name = String::Handle(Field::GetterName(field_name_));
     const Function& getter =
         Function::Handle(cls().LookupStaticFunction(getter_name));
     ASSERT(!getter.IsNull() &&
@@ -604,15 +685,9 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     }
     return new StoreStaticFieldNode(token_pos(), field, rhs);
   }
-  // Didn't find a static setter or a static field.
-  // If this static getter is in an instance function where
-  // a receiver is available, we turn this static getter
-  // into an instance setter (and will get an error at runtime if an
-  // instance setter cannot be found either).
-  if (receiver() != NULL) {
-    return new InstanceSetterNode(token_pos(), receiver(), field_name(), rhs);
-  }
-  return new StaticSetterNode(token_pos(), NULL, cls(), field_name(), rhs);
+  // Didn't find a static setter or a static field. Make a call to
+  // the non-existent setter to trigger a NoSuchMethodError at runtime.
+  return new StaticSetterNode(token_pos(), NULL, cls(), field_name_, rhs);
 }
 
 

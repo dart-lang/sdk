@@ -8,7 +8,6 @@ library dart2js.ir_nodes;
 
 import '../constants/expressions.dart';
 import '../constants/values.dart' as values show ConstantValue;
-import '../cps_ir/optimizers.dart';
 import '../dart_types.dart' show DartType, GenericType, TypeVariableType;
 import '../dart2jslib.dart' as dart2js show
     CURRENT_ELEMENT_SPANNABLE,
@@ -37,11 +36,12 @@ abstract class Definition<T extends Definition<T>> extends Node {
 
   bool get hasAtMostOneUse  => firstRef == null || firstRef.next == null;
   bool get hasExactlyOneUse => firstRef != null && firstRef.next == null;
+  bool get hasNoUses => firstRef == null;
   bool get hasAtLeastOneUse => firstRef != null;
   bool get hasMultipleUses  => !hasAtMostOneUse;
 
   void substituteFor(Definition<T> other) {
-    if (other.firstRef == null) return;
+    if (other.hasNoUses) return;
     Reference<T> previous, current = other.firstRef;
     do {
       current.definition = this;
@@ -51,6 +51,7 @@ abstract class Definition<T extends Definition<T>> extends Node {
     previous.next = firstRef;
     if (firstRef != null) firstRef.previous = previous;
     firstRef = other.firstRef;
+    other.firstRef = null;
   }
 }
 
@@ -225,17 +226,17 @@ class InvokeStatic extends Expression implements Invoke {
    */
   final Selector selector;
 
-  final Reference<Continuation> continuation;
   final List<Reference<Primitive>> arguments;
+  final Reference<Continuation> continuation;
   final SourceInformation sourceInformation;
 
   InvokeStatic(this.target,
                this.selector,
-               Continuation cont,
                List<Primitive> args,
+               Continuation cont,
                this.sourceInformation)
-      : continuation = new Reference<Continuation>(cont),
-        arguments = _referenceList(args) {
+      : arguments = _referenceList(args),
+        continuation = new Reference<Continuation>(cont) {
     assert(target is ErroneousElement || selector.name == target.name);
   }
 
@@ -264,22 +265,26 @@ class InvokeMethod extends Expression implements Invoke {
   Reference<Primitive> receiver;
   Selector selector;
   CallingConvention callingConvention;
-  final Reference<Continuation> continuation;
   final List<Reference<Primitive>> arguments;
+  final Reference<Continuation> continuation;
+  final SourceInformation sourceInformation;
 
   InvokeMethod(Primitive receiver,
                Selector selector,
+               List<Primitive> arguments,
                Continuation continuation,
-               List<Primitive> arguments)
+               {SourceInformation sourceInformation})
       : this.internal(new Reference<Primitive>(receiver),
                       selector,
+                      _referenceList(arguments),
                       new Reference<Continuation>(continuation),
-                      _referenceList(arguments));
+                      sourceInformation);
 
   InvokeMethod.internal(this.receiver,
                         this.selector,
-                        this.continuation,
                         this.arguments,
+                        this.continuation,
+                        this.sourceInformation,
                         [this.callingConvention = CallingConvention.DART]) {
     assert(isValid);
   }
@@ -331,17 +336,17 @@ class InvokeMethodDirectly extends Expression implements Invoke {
   Reference<Primitive> receiver;
   final Element target;
   final Selector selector;
-  final Reference<Continuation> continuation;
   final List<Reference<Primitive>> arguments;
+  final Reference<Continuation> continuation;
 
   InvokeMethodDirectly(Primitive receiver,
                        this.target,
                        this.selector,
-                       Continuation cont,
-                       List<Primitive> args)
+                       List<Primitive> args,
+                       Continuation cont)
       : this.receiver = new Reference<Primitive>(receiver),
-        continuation = new Reference<Continuation>(cont),
-        arguments = _referenceList(args) {
+          arguments = _referenceList(args),
+          continuation = new Reference<Continuation>(cont) {
     assert(selector != null);
     assert(selector.kind == SelectorKind.CALL ||
            selector.kind == SelectorKind.OPERATOR ||
@@ -359,8 +364,8 @@ class InvokeMethodDirectly extends Expression implements Invoke {
 class InvokeConstructor extends Expression implements Invoke {
   final DartType type;
   final FunctionElement target;
-  final Reference<Continuation> continuation;
   final List<Reference<Primitive>> arguments;
+  final Reference<Continuation> continuation;
   final Selector selector;
 
   /// The class being instantiated. This is the same as `target.enclosingClass`
@@ -373,10 +378,10 @@ class InvokeConstructor extends Expression implements Invoke {
   InvokeConstructor(this.type,
                     this.target,
                     this.selector,
-                    Continuation cont,
-                    List<Primitive> args)
-      : continuation = new Reference<Continuation>(cont),
-        arguments = _referenceList(args) {
+                    List<Primitive> args,
+                    Continuation cont)
+      : arguments = _referenceList(args),
+        continuation = new Reference<Continuation>(cont) {
     assert(dart2js.invariant(target,
         target.isErroneous ||
         type.isDynamic ||
@@ -415,14 +420,49 @@ class TypeOperator extends Expression {
 
 /// Invoke [toString] on each argument and concatenate the results.
 class ConcatenateStrings extends Expression {
-  final Reference<Continuation> continuation;
   final List<Reference<Primitive>> arguments;
+  final Reference<Continuation> continuation;
 
-  ConcatenateStrings(Continuation cont, List<Primitive> args)
-      : continuation = new Reference<Continuation>(cont),
-        arguments = _referenceList(args);
+  ConcatenateStrings(List<Primitive> args, Continuation cont)
+      : arguments = _referenceList(args),
+        continuation = new Reference<Continuation>(cont);
 
   accept(Visitor visitor) => visitor.visitConcatenateStrings(this);
+}
+
+/// Throw a value.
+///
+/// Throw is an expression, i.e., it always occurs in tail position with
+/// respect to a body or expression.
+class Throw extends Expression {
+  Reference<Primitive> value;
+
+  Throw(Primitive value) : value = new Reference<Primitive>(value);
+
+  accept(Visitor visitor) => visitor.visitThrow(this);
+}
+
+/// Rethrow
+///
+/// Rethrow can only occur inside a continuation bound by [LetHandler].  It
+/// implicitly throws the exception parameter of the enclosing handler with
+/// the same stack trace as the enclosing handler.
+class Rethrow extends Expression {
+  accept(Visitor visitor) => visitor.visitRethrow(this);
+}
+
+/// A throw occurring in non-tail position.
+///
+/// The CPS translation of an expression produces a primitive as the value
+/// of the expression.  For convenience in the implementation of the
+/// translation, a [NonTailThrow] is used as that value.  A cleanup pass
+/// removes these and replaces them with [Throw] expressions.
+class NonTailThrow extends Primitive {
+  final Reference<Primitive> value;
+
+  NonTailThrow(Primitive value) : value = new Reference<Primitive>(value);
+
+  accept(Visitor visitor) => visitor.visitNonTailThrow(this);
 }
 
 /// Gets the value from a [MutableVariable].
@@ -945,6 +985,8 @@ abstract class Visitor<T> {
   T visitInvokeMethodDirectly(InvokeMethodDirectly node);
   T visitInvokeConstructor(InvokeConstructor node);
   T visitConcatenateStrings(ConcatenateStrings node);
+  T visitThrow(Throw node);
+  T visitRethrow(Rethrow node);
   T visitBranch(Branch node);
   T visitTypeOperator(TypeOperator node);
   T visitSetMutableVariable(SetMutableVariable node);
@@ -960,6 +1002,7 @@ abstract class Visitor<T> {
   T visitParameter(Parameter node);
   T visitContinuation(Continuation node);
   T visitMutableVariable(MutableVariable node);
+  T visitNonTailThrow(NonTailThrow node);
 
   // JavaScript specific nodes.
 
@@ -1114,6 +1157,17 @@ class RecursiveVisitor implements Visitor {
     node.arguments.forEach(processReference);
   }
 
+  processThrow(Throw node) {}
+  visitThrow(Throw node) {
+    processThrow(node);
+    processReference(node.value);
+  }
+
+  processRethrow(Rethrow node) {}
+  visitRethrow(Rethrow node) {
+    processRethrow(node);
+  }
+
   processBranch(Branch node) {}
   visitBranch(Branch node) {
     processBranch(node);
@@ -1163,10 +1217,14 @@ class RecursiveVisitor implements Visitor {
   }
 
   processConstant(Constant node) {}
-  visitConstant(Constant node) => processConstant(node);
+  visitConstant(Constant node)  {
+    processConstant(node);
+  }
 
   processReifyTypeVar(ReifyTypeVar node) {}
-  visitReifyTypeVar(ReifyTypeVar node) => processReifyTypeVar(node);
+  visitReifyTypeVar(ReifyTypeVar node) {
+    processReifyTypeVar(node);
+  }
 
   processCreateFunction(CreateFunction node) {}
   visitCreateFunction(CreateFunction node) {
@@ -1186,7 +1244,9 @@ class RecursiveVisitor implements Visitor {
   }
 
   processParameter(Parameter node) {}
-  visitParameter(Parameter node) => processParameter(node);
+  visitParameter(Parameter node) {
+    processParameter(node);
+  }
 
   processContinuation(Continuation node) {}
   visitContinuation(Continuation node) {
@@ -1256,9 +1316,14 @@ class RecursiveVisitor implements Visitor {
   }
 
   processTypeExpression(TypeExpression node) {}
-  @override
   visitTypeExpression(TypeExpression node) {
     processTypeExpression(node);
     node.arguments.forEach(processReference);
+  }
+
+  processNonTailThrow(NonTailThrow node) {}
+  visitNonTailThrow(NonTailThrow node) {
+    processNonTailThrow(node);
+    processReference(node.value);
   }
 }

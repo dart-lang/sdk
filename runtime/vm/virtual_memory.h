@@ -35,7 +35,8 @@ class VirtualMemory {
     return region_.Contains(addr);
   }
 
-  // Commits the virtual memory area, which is guaranteed to be zeroed.
+  // Commits the virtual memory area, which is guaranteed to be zeroed. Returns
+  // true on success and false on failure (e.g., out-of-memory).
   bool Commit(bool is_executable) {
     return Commit(start(), size(), is_executable);
   }

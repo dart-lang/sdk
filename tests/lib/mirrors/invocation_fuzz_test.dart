@@ -37,6 +37,10 @@ var blacklist = [
   // TODO(15274): Fix them and remove from blacklist.
   'dart.io.SystemEncoding.decode',  // Windows only
   'dart.io.SystemEncoding.encode',  // Windows only
+
+  // Don't call private methods in dart.async as they may circumvent the zoned
+  // error handling below.
+  new RegExp(r"^dart\.async\._.*$"),
 ];
 
 bool isBlacklisted(Symbol qualifiedSymbol) {

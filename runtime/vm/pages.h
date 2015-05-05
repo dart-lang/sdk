@@ -69,6 +69,7 @@ class HeapPage {
     object_end_ = val;
   }
 
+  // These return NULL on OOM.
   static HeapPage* Initialize(VirtualMemory* memory, PageType type);
   static HeapPage* Allocate(intptr_t size_in_words, PageType type);
 
@@ -368,6 +369,8 @@ class PageSpace {
                                     bool is_locked);
   // Makes bump block walkable; do not call concurrently with mutator.
   void MakeIterable() const;
+  // Return any bump allocation block to the freelist.
+  void AbandonBumpAllocation();
   HeapPage* AllocatePage(HeapPage::PageType type);
   void FreePage(HeapPage* page, HeapPage* previous_page);
   HeapPage* AllocateLargePage(intptr_t size, HeapPage::PageType type);

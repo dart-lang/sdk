@@ -27,6 +27,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, always_megamorphic_calls, false,
+    "Instance call always as megamorphic.");
 DEFINE_FLAG(bool, trace_inlining_intervals, false,
     "Inlining interval diagnostics");
 DEFINE_FLAG(bool, enable_simd_inline, true,
@@ -52,8 +54,27 @@ DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(int, stacktrace_every);
 DECLARE_FLAG(charp, stacktrace_filter);
 DECLARE_FLAG(bool, use_cha);
+DECLARE_FLAG(bool, use_field_guards);
 DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
+
+static void NooptModeHandler(bool value) {
+  if (value) {
+    FLAG_always_megamorphic_calls = value;
+    FLAG_optimization_counter_threshold = -1;
+    FLAG_use_field_guards = false;
+    FLAG_use_osr = false;
+    FLAG_emit_edge_counters = false;
+  }
+}
+
+
+// --noopt disables optimizer and tunes unoptimized code to run as fast
+// as possible.
+DEFINE_FLAG_HANDLER(NooptModeHandler,
+                    noopt,
+                    "Run fast unoptimized code only.");
+
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
 // with PushArgument.  Recursively allocates from outermost to innermost
@@ -128,7 +149,7 @@ FlowGraphCompiler::FlowGraphCompiler(
         patch_code_pc_offset_(Code::kInvalidPc),
         lazy_deopt_pc_offset_(Code::kInvalidPc),
         deopt_id_to_ic_data_(NULL),
-        inlined_code_intervals_(NULL),
+        inlined_code_intervals_(Array::ZoneHandle(Object::empty_array().raw())),
         inline_id_to_function_(inline_id_to_function),
         caller_inline_id_(caller_inline_id) {
   ASSERT(flow_graph->parsed_function().function().raw() ==
@@ -448,43 +469,46 @@ void FlowGraphCompiler::VisitBlocks() {
     // truncate 'inline_id_to_function_'.
   }
 
-  intervals.Add(IntervalStruct(prev_offset, prev_inlining_id));
-  inlined_code_intervals_ = &Array::ZoneHandle(Array::New(
-      intervals.length() * Code::kInlIntNumEntries, Heap::kOld));
-  Smi& start_h = Smi::Handle();
-  Smi& caller_inline_id = Smi::Handle();
-  Smi& inline_id = Smi::Handle();
-  for (intptr_t i = 0; i < intervals.length(); i++) {
-    if (FLAG_trace_inlining_intervals && is_optimizing()) {
-      const Function* function =
-          inline_id_to_function_.At(intervals[i].inlining_id);
-      intervals[i].Dump();
-      OS::Print(" %s parent %" Pd "\n",
-          function->ToQualifiedCString(),
-          caller_inline_id_[intervals[i].inlining_id]);
-    }
-    const intptr_t id = intervals[i].inlining_id;
-    start_h = Smi::New(intervals[i].start);
-    inline_id = Smi::New(id);
-    caller_inline_id = Smi::New(caller_inline_id_[intervals[i].inlining_id]);
+  if (is_optimizing()) {
+    intervals.Add(IntervalStruct(prev_offset, prev_inlining_id));
+    inlined_code_intervals_ =
+        Array::New(intervals.length() * Code::kInlIntNumEntries, Heap::kOld);
+    Smi& start_h = Smi::Handle();
+    Smi& caller_inline_id = Smi::Handle();
+    Smi& inline_id = Smi::Handle();
+    for (intptr_t i = 0; i < intervals.length(); i++) {
+      if (FLAG_trace_inlining_intervals && is_optimizing()) {
+        const Function* function =
+            inline_id_to_function_.At(intervals[i].inlining_id);
+        intervals[i].Dump();
+        OS::Print(" %s parent %" Pd "\n",
+            function->ToQualifiedCString(),
+            caller_inline_id_[intervals[i].inlining_id]);
+      }
+      const intptr_t id = intervals[i].inlining_id;
+      start_h = Smi::New(intervals[i].start);
+      inline_id = Smi::New(id);
+      caller_inline_id = Smi::New(caller_inline_id_[intervals[i].inlining_id]);
 
-    const intptr_t p = i * Code::kInlIntNumEntries;
-    inlined_code_intervals_->SetAt(p + Code::kInlIntStart, start_h);
-    inlined_code_intervals_->SetAt(p + Code::kInlIntInliningId, inline_id);
-    inlined_code_intervals_->SetAt(p + Code::kInlIntCallerId, caller_inline_id);
+      const intptr_t p = i * Code::kInlIntNumEntries;
+      inlined_code_intervals_.SetAt(p + Code::kInlIntStart, start_h);
+      inlined_code_intervals_.SetAt(p + Code::kInlIntInliningId, inline_id);
+      inlined_code_intervals_.SetAt(
+          p + Code::kInlIntCallerId, caller_inline_id);
+    }
   }
   set_current_block(NULL);
   if (FLAG_trace_inlining_intervals && is_optimizing()) {
     OS::Print("Intervals:\n");
     Smi& temp = Smi::Handle();
-    for (intptr_t i = 0; i < inlined_code_intervals_->Length();
+    for (intptr_t i = 0; i < inlined_code_intervals_.Length();
          i += Code::kInlIntNumEntries) {
-      temp ^= inlined_code_intervals_->At(i + Code::kInlIntStart);
+      temp ^= inlined_code_intervals_.At(i + Code::kInlIntStart);
       ASSERT(!temp.IsNull());
       OS::Print("% " Pd " start: %" Px " ", i, temp.Value());
-      temp ^= inlined_code_intervals_->At(i + Code::kInlIntInliningId);
+      temp ^= inlined_code_intervals_.At(i + Code::kInlIntInliningId);
       OS::Print("inl-id: %" Pd " ", temp.Value());
-      temp ^= inlined_code_intervals_->At(i + Code::kInlIntCallerId);
+      temp ^= inlined_code_intervals_.At(i + Code::kInlIntCallerId);
       OS::Print("caller-id: %" Pd " \n", temp.Value());
     }
   }
@@ -846,18 +870,17 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
 }
 
 
-void FlowGraphCompiler::FinalizeDeoptInfo(const Code& code) {
+RawArray* FlowGraphCompiler::CreateDeoptInfo(Assembler* assembler) {
   // For functions with optional arguments, all incoming arguments are copied
   // to spill slots. The deoptimization environment does not track them.
   const Function& function = parsed_function().function();
   const intptr_t incoming_arg_count =
       function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
-  DeoptInfoBuilder builder(zone(), incoming_arg_count);
+  DeoptInfoBuilder builder(zone(), incoming_arg_count, assembler);
 
   intptr_t deopt_info_table_size = DeoptTable::SizeFor(deopt_infos_.length());
   if (deopt_info_table_size == 0) {
-    code.set_deopt_info_array(Object::empty_array());
-    code.set_object_table(Object::empty_array());
+    return Object::empty_array().raw();
   } else {
     const Array& array =
         Array::Handle(Array::New(deopt_info_table_size, Heap::kOld));
@@ -872,18 +895,13 @@ void FlowGraphCompiler::FinalizeDeoptInfo(const Code& code) {
           deopt_infos_[i]->flags());
       DeoptTable::SetEntry(array, i, offset, info, reason_and_flags);
     }
-    code.set_deopt_info_array(array);
-    const Array& object_array =
-        Array::Handle(Array::MakeArray(builder.object_table()));
-    ASSERT(code.object_table() == Array::null());
-    code.set_object_table(object_array);
+    return array.raw();
   }
 }
 
 
 void FlowGraphCompiler::FinalizeStackmaps(const Code& code) {
   if (stackmap_table_builder_ == NULL) {
-    // The unoptimizing compiler has no stack maps.
     code.set_stackmaps(Object::null_array());
   } else {
     // Finalize the stack map array and add it to the code object.
@@ -894,6 +912,12 @@ void FlowGraphCompiler::FinalizeStackmaps(const Code& code) {
 
 
 void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
+  if (code.is_optimized()) {
+    // Optimized code does not need variable descriptors. They are
+    // only stored in the unoptimized version.
+    code.set_var_descriptors(Object::empty_var_descriptors());
+    return;
+  }
   LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle();
   if (parsed_function().node_sequence() == NULL) {
     ASSERT(flow_graph().IsIrregexpFunction());
@@ -980,8 +1004,12 @@ void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t argument_count,
     LocationSummary* locs,
     const ICData& ic_data) {
+  if (FLAG_always_megamorphic_calls) {
+    EmitMegamorphicInstanceCall(ic_data, argument_count,
+                                deopt_id, token_pos, locs);
+    return;
+  }
   ASSERT(!ic_data.IsNull());
-  ASSERT(FLAG_propagate_ic_data || (ic_data.NumberOfUsedChecks() == 0));
   uword label_address = 0;
   StubCode* stub_code = isolate()->stub_code();
   if (is_optimizing() && (ic_data.NumberOfUsedChecks() == 0)) {
@@ -1537,7 +1565,9 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
   const ICData& ic_data = ICData::ZoneHandle(zone(), ICData::New(
       parsed_function().function(), target_name,
       arguments_descriptor, deopt_id, num_args_tested));
-  (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
+  if (deopt_id_to_ic_data_ != NULL) {
+    (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
+  }
   return &ic_data;
 }
 
@@ -1559,7 +1589,9 @@ const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
       parsed_function().function(), String::Handle(zone(), target.name()),
       arguments_descriptor, deopt_id, num_args_tested));
   ic_data.AddTarget(target);
-  (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
+  if (deopt_id_to_ic_data_ != NULL) {
+    (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
+  }
   return &ic_data;
 }
 
@@ -1603,6 +1635,9 @@ const Class& FlowGraphCompiler::BoxClassFor(Representation rep) {
 
 
 RawArray* FlowGraphCompiler::InliningIdToFunction() const {
+  if (inline_id_to_function_.length() == 0) {
+    return Object::empty_array().raw();
+  }
   const Array& res = Array::Handle(
       Array::New(inline_id_to_function_.length(), Heap::kOld));
   for (intptr_t i = 0; i < inline_id_to_function_.length(); i++) {

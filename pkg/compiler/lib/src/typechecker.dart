@@ -817,6 +817,17 @@ class TypeCheckerVisitor extends Visitor<DartType> {
               // getter.
               reportTypeWarning(node, MessageKind.GETTER_NOT_FOUND,
                   {'className': receiverType.name, 'memberName': name});
+            } else if (name == 'await') {
+              Map arguments = {'className': receiverType.name};
+              String functionName = executableContext.name;
+              MessageKind kind;
+              if (functionName == '') {
+                kind = MessageKind.AWAIT_MEMBER_NOT_FOUND_IN_CLOSURE;
+              } else {
+                kind = MessageKind.AWAIT_MEMBER_NOT_FOUND;
+                arguments['functionName'] = functionName;
+              }
+              reportTypeWarning(node, kind, arguments);
             } else {
               reportTypeWarning(node, MessageKind.MEMBER_NOT_FOUND,
                   {'className': receiverType.name, 'memberName': name});
@@ -912,18 +923,18 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       if (error) {
         // TODO(johnniwinther): Improve access to declaring element and handle
         // synthesized member signatures. Currently function typed instance
-        // members provide no access to there own name.
+        // members provide no access to their own name.
         if (element == null) {
           element = type.element;
-        } else if (type.element.isTypedef) {
-          if (element != null) {
-            reportTypeInfo(element,
-                           MessageKind.THIS_IS_THE_DECLARATION,
-                           {'name': element.name});
-          }
+        } else if (type.isTypedef) {
+          reportTypeInfo(element,
+              MessageKind.THIS_IS_THE_DECLARATION,
+              {'name': element.name});
           element = type.element;
         }
-        reportTypeInfo(element, MessageKind.THIS_IS_THE_METHOD);
+        if (element != null) {
+          reportTypeInfo(element, MessageKind.THIS_IS_THE_METHOD);
+        }
       }
     } else {
       while(!arguments.isEmpty) {

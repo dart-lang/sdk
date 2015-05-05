@@ -94,7 +94,9 @@ main() {
       var data = context.createImageData(canvas.width, canvas.height).data;
       expect(inscrutable(data).runtimeType == data.runtimeType, isTrue);
     });
+  });
 
+  group('types2_runtimeTypeName', () {
     test('runtimeTypeName', () {
       var data = context.createImageData(canvas.width, canvas.height).data;
       expect('${inscrutable(data).runtimeType}', 'Uint8ClampedList');

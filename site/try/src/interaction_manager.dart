@@ -762,9 +762,10 @@ class InitialState extends InteractionState {
     if (context.isFirstCompile) {
       outputDiv.append(context.compilerConsole);
     }
+    var diagnostics = mainEditorPane.querySelectorAll('a.diagnostic');
     context.oldDiagnostics
         ..clear()
-        ..addAll(mainEditorPane.querySelectorAll('a.diagnostic'));
+        ..addAll(diagnostics);
   }
 
   void aboutToRun() {

@@ -13,6 +13,9 @@ import '../../io/source_information.dart' show SourceInformation;
 import '../../util/maplet.dart';
 import '../../constants/values.dart';
 import '../../dart2jslib.dart';
+import '../../dart_types.dart';
+
+part 'type_test_emitter.dart';
 
 class CodegenBailout {
   final tree_ir.Node node;
@@ -24,7 +27,8 @@ class CodegenBailout {
 }
 
 class CodeGenerator extends tree_ir.StatementVisitor
-                    with tree_ir.ExpressionVisitor<js.Expression> {
+                    with tree_ir.ExpressionVisitor<js.Expression>,
+                         TypeTestEmitter {
   final CodegenRegistry registry;
 
   final Glue glue;
@@ -59,18 +63,52 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
     List<js.Parameter> parameters = new List<js.Parameter>();
     Set<tree_ir.Variable> parameterSet = new Set<tree_ir.Variable>();
+    Set<String> declaredVariables = new Set<String>();
 
     for (tree_ir.Variable parameter in function.parameters) {
       String name = getVariableName(parameter);
       parameters.add(new js.Parameter(name));
       parameterSet.add(parameter);
+      declaredVariables.add(name);
     }
 
     List<js.VariableInitialization> jsVariables = <js.VariableInitialization>[];
 
+    // Declare variables with an initializer. Pull statements into the
+    // initializer until we find a statement that cannot be pulled in.
+    int accumulatorIndex = 0;
+    while (accumulatorIndex < accumulator.length) {
+      js.Node node = accumulator[accumulatorIndex];
+
+      // Check that node is an assignment to a local variable.
+      if (node is! js.ExpressionStatement) break;
+      js.ExpressionStatement stmt = node;
+      if (stmt.expression is! js.Assignment) break;
+      js.Assignment assign = stmt.expression;
+      if (assign.leftHandSide is! js.VariableUse) break;
+      if (assign.op != null) break; // Compound assignment.
+      js.VariableUse use = assign.leftHandSide;
+
+      // We cannot declare a variable more than once.
+      if (!declaredVariables.add(use.name)) break;
+
+      js.VariableInitialization jsVariable = new js.VariableInitialization(
+        new js.VariableDeclaration(use.name),
+        assign.value);
+      jsVariables.add(jsVariable);
+
+      ++accumulatorIndex;
+    }
+
+    // Discard the statements that were pulled in the initializer.
+    if (accumulatorIndex > 0) {
+      accumulator = accumulator.sublist(accumulatorIndex);
+    }
+
+    // Declare remaining variables.
     for (tree_ir.Variable variable in variableNames.keys) {
-      if (parameterSet.contains(variable)) continue;
       String name = getVariableName(variable);
+      if (declaredVariables.contains(name)) continue;
       js.VariableInitialization jsVariable = new js.VariableInitialization(
         new js.VariableDeclaration(name),
         null);
@@ -107,10 +145,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
     }
 
     // Synthesize a variable name that isn't used elsewhere.
-    // The [usedVariableNames] set is shared between nested emitters,
-    // so this also prevents clash with variables in an enclosing/inner scope.
-    // The renaming phase after codegen will further prefix local variables
-    // so they cannot clash with top-level variables or fields.
     String prefix = variable.element == null ? 'v' : variable.element.name;
     int counter = 0;
     name = glue.safeVariableName(variable.element == null
@@ -209,8 +243,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
     checkStaticTargetIsValid(node, node.target);
     if (node.constant != null) return giveup(node);
 
-    ClassElement instantiatedClass = node.target.enclosingClass;
-    registry.registerInstantiatedClass(instantiatedClass);
+    registry.registerInstantiatedType(node.type);
     Selector selector = node.selector;
     FunctionElement target = node.target;
     List<js.Expression> arguments = visitArguments(node.arguments);
@@ -225,7 +258,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
       registry.registerDynamicSetter(selector);
     } else {
       assert(invariant(CURRENT_ELEMENT_SPANNABLE,
-          selector.isCall || selector.isOperator || selector.isIndex,
+          selector.isCall || selector.isOperator ||
+          selector.isIndex || selector.isIndexSet,
           message: 'unexpected kind ${selector.kind}'));
       // TODO(sigurdm): We should find a better place to register the call.
       Selector call = new Selector.callClosureFrom(selector);
@@ -351,8 +385,16 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitTypeOperator(tree_ir.TypeOperator node) {
-    return giveup(node);
-    // TODO: implement visitTypeOperator
+    if (!node.isTypeTest) {
+      giveup(node, 'type casts not implemented.');
+    }
+    DartType type = node.type;
+    if (type is InterfaceType && type.typeArguments.isEmpty) {
+      glue.registerIsCheck(type, registry);
+      js.Expression value = visitExpression(node.receiver);
+      return emitSubtypeTest(node, value, type);
+    }
+    return giveup(node, 'type check unimplemented for $type.');
   }
 
   @override
@@ -362,6 +404,13 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   js.Expression buildVariableAccess(tree_ir.Variable variable) {
     return new js.VariableUse(getVariableName(variable));
+  }
+
+  @override
+  js.Expression visitAssign(tree_ir.Assign node) {
+    return new js.Assignment(
+        buildVariableAccess(node.variable),
+        visitExpression(node.value));
   }
 
   @override
@@ -388,13 +437,13 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   void visitIf(tree_ir.If node) {
     accumulator.add(new js.If(visitExpression(node.condition),
-                              buildBody(node.thenStatement),
-                              buildBody(node.elseStatement)));
+                              buildBodyStatement(node.thenStatement),
+                              buildBodyStatement(node.elseStatement)));
   }
 
   @override
   void visitLabeledStatement(tree_ir.LabeledStatement node) {
-    accumulator.add(buildLabeled(() => buildBody(node.body),
+    accumulator.add(buildLabeled(() => buildBodyStatement(node.body),
                                  node.label,
                                  node.next));
     visitStatement(node.next);
@@ -411,17 +460,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
     }
     fallthrough = savedFallthrough;
     return result;
-  }
-
-  @override
-  void visitAssign(tree_ir.Assign node) {
-    tree_ir.Expression value = node.value;
-    js.Expression definition = visitExpression(value);
-
-    accumulator.add(new js.ExpressionStatement(new js.Assignment(
-        buildVariableAccess(node.variable),
-        definition)));
-    visitStatement(node.next);
   }
 
   @override
@@ -450,11 +488,20 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   /// Builds a nested statement.
-  js.Statement buildBody(tree_ir.Statement statement) {
+  js.Statement buildBodyStatement(tree_ir.Statement statement) {
     List<js.Statement> savedAccumulator = accumulator;
-    accumulator = new List<js.Statement>();
+    accumulator = <js.Statement>[];
     visitStatement(statement);
     js.Statement result = _bodyAsStatement();
+    accumulator = savedAccumulator;
+    return result;
+  }
+
+  js.Block buildBodyBlock(tree_ir.Statement statement) {
+    List<js.Statement> savedAccumulator = accumulator;
+    accumulator = <js.Statement>[];
+    visitStatement(statement);
+    js.Statement result = new js.Block(accumulator);
     accumulator = savedAccumulator;
     return result;
   }
@@ -463,7 +510,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
                           tree_ir.Statement body,
                           tree_ir.Label label,
                           tree_ir.Statement fallthroughStatement) {
-    return buildLabeled(() => new js.While(condition, buildBody(body)),
+    return buildLabeled(() => new js.While(condition, buildBodyStatement(body)),
                         label,
                         fallthroughStatement);
   }
@@ -490,9 +537,24 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
+  void visitThrow(tree_ir.Throw node) {
+    accumulator.add(new js.Throw(visitExpression(node.value)));
+  }
+
+  @override
+  void visitRethrow(tree_ir.Rethrow node) {
+    glue.reportInternalError('rethrow seen in JavaScript output');
+  }
+
+  @override
   void visitTry(tree_ir.Try node) {
-    // TODO(kmillikin): implement TryStatement.
-    return giveup(node);
+    js.Block tryBlock = buildBodyBlock(node.tryBody);
+    tree_ir.Variable exceptionVariable = node.catchParameters.first;
+    js.VariableDeclaration exceptionParameter =
+        new js.VariableDeclaration(getVariableName(exceptionVariable));
+    js.Block catchBlock = buildBodyBlock(node.catchBody);
+    js.Catch catchPart = new js.Catch(exceptionParameter, catchBlock);
+    accumulator.add(new js.Try(tryBlock, catchPart, null));
   }
 
   @override
@@ -503,6 +565,10 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   js.Expression visitCreateInstance(tree_ir.CreateInstance node) {
     ClassElement cls = node.classElement;
+    // TODO(asgerf): To allow inlining of InvokeConstructor, CreateInstance must
+    //               carry a DartType so we can register the instantiated type
+    //               with its type arguments. Otherwise dataflow analysis is
+    //               needed to reconstruct the instantiated type.
     registry.registerInstantiatedClass(cls);
     js.Expression instance = new js.New(
         glue.constructorAccess(cls),
@@ -530,14 +596,12 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
-  void visitSetField(tree_ir.SetField node) {
+  js.Assignment visitSetField(tree_ir.SetField node) {
     js.PropertyAccess field =
         new js.PropertyAccess.field(
             visitExpression(node.object),
             glue.instanceFieldPropertyName(node.field));
-    js.Assignment asn = new js.Assignment(field, visitExpression(node.value));
-    accumulator.add(new js.ExpressionStatement(asn));
-    visitStatement(node.next);
+    return new js.Assignment(field, visitExpression(node.value));
   }
 
   js.Expression buildStaticHelperInvocation(FunctionElement helper,
@@ -593,6 +657,11 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   visitFunctionDeclaration(tree_ir.FunctionDeclaration node) {
+    return errorUnsupportedNode(node);
+  }
+
+  @override
+  visitVariableDeclaration(tree_ir.VariableDeclaration node) {
     return errorUnsupportedNode(node);
   }
 

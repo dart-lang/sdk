@@ -6,6 +6,8 @@ library test.domain.completion;
 
 import 'dart:async';
 
+import 'package:analysis_server/completion/completion_core.dart'
+    show CompletionRequest;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/constants.dart';
@@ -23,18 +25,18 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
 import 'mock_sdk.dart';
 import 'mocks.dart';
-import 'reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(CompletionManagerTest);
-  runReflectiveTests(CompletionTest);
-  runReflectiveTests(_NoSearchEngine);
+  defineReflectiveTests(CompletionManagerTest);
+  defineReflectiveTests(CompletionTest);
+  defineReflectiveTests(_NoSearchEngine);
 }
 
 @reflectiveTest
@@ -409,7 +411,7 @@ class CompletionTest extends AbstractAnalysisTest {
       expect(replacementOffset, equals(completionOffset - 2));
       expect(replacementLength, equals(2));
       assertHasResult(
-          CompletionSuggestionKind.KEYWORD, 'import', DART_RELEVANCE_HIGH);
+          CompletionSuggestionKind.KEYWORD, 'export', DART_RELEVANCE_HIGH);
       assertHasResult(
           CompletionSuggestionKind.KEYWORD, 'class', DART_RELEVANCE_HIGH);
     });
@@ -647,9 +649,10 @@ class Test_AnalysisServer extends AnalysisServer {
   final MockContext mockContext = new MockContext();
 
   Test_AnalysisServer(ServerCommunicationChannel channel,
-      ResourceProvider resourceProvider, OptimizingPubPackageMapProvider packageMapProvider,
-      Index index, AnalysisServerOptions analysisServerOptions,
-      DartSdk defaultSdk, InstrumentationService instrumentationService)
+      ResourceProvider resourceProvider,
+      OptimizingPubPackageMapProvider packageMapProvider, Index index,
+      AnalysisServerOptions analysisServerOptions, DartSdk defaultSdk,
+      InstrumentationService instrumentationService)
       : super(channel, resourceProvider, packageMapProvider, index,
           analysisServerOptions, defaultSdk, instrumentationService);
 

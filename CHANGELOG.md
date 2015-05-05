@@ -1,4 +1,83 @@
-## 1.9.1 (2015-03-25)
+## 1.11.0
+
+### Core library changes
+
+* `dart:core`
+  * Add `unmodifiable` constructor to `List` -
+    [r45334](https://code.google.com/p/dart/source/detail?r=45334)
+* `dart:isolate` *Experimental*
+  * Make the `priority` parameter of `Isolate.ping` and `Isolate.kill` methods
+    a named parameter.
+  * Remove the `Isolate.AS_EVENT` priority.
+  * Add extra `response` parameter to `Isolate.ping` and
+    `Isolate.addOnExitListener` -
+    [r45092](https://code.google.com/p/dart/source/detail?r=45092)
+
+## 1.10.0 – 2015-04-29
+
+### Core library changes
+
+* `dart:convert`
+  * **POTENTIALLY BREAKING** Fix behavior of `HtmlEscape`. It no longer escapes
+  no-break space (U+00A0) anywhere or forward slash (`/`, `U+002F`) in element
+  context. Slash is still escaped using `HtmlEscapeMode.UNKNOWN`.
+  [r45003](https://code.google.com/p/dart/source/detail?r=45003),
+  [r45153](https://code.google.com/p/dart/source/detail?r=45153),
+  [r45189](https://code.google.com/p/dart/source/detail?r=45189)
+
+* `dart:core`
+  * `Uri.parse` added `start` and `end` positional arguments.
+
+* `dart:html`
+  * **POTENTIALLY BREAKING** `CssClassSet` method arguments must now be 'tokens', i.e. non-empty
+  strings with no white-space characters. The implementation was incorrect for
+  class names containing spaces. The fix is to forbid spaces and provide a
+  faster implementation.
+  [Announcement](https://groups.google.com/a/dartlang.org/d/msg/announce/jmUI2XJHfC8/UZUCvJH3p2oJ)
+
+* `dart:io`
+
+  * `ProcessResult` now exposes a constructor.
+  * `import` and `Isolate.spawnUri` now supports the
+    [Data URI scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) on the VM.
+
+## Tool Changes
+
+### pub
+
+  * Running `pub run foo` within a package now runs the `foo` executable defined
+    by the `foo` package. The previous behavior ran `bin/foo`. This makes it
+    easy to run binaries in dependencies, for instance `pub run test`.
+
+  * On Mac and Linux, signals sent to `pub run` and forwarded to the child
+    command.
+
+## 1.9.3 – 2015-04-14
+
+This is a bug fix release which merges a number of commits from `bleeding_edge`.
+
+* dart2js: Addresses as issue with minified Javascript output with CSP enabled -
+  [r44453](https://code.google.com/p/dart/source/detail?r=44453)
+
+* Editor: Fixes accidental updating of files in the pub cache during rename
+  refactoring - [r44677](https://code.google.com/p/dart/source/detail?r=44677)
+
+* Editor: Fix for
+  [issue 23032](https://code.google.com/p/dart/issues/detail?id=23032)
+  regarding skipped breakpoints on Windows -
+  [r44824](https://code.google.com/p/dart/source/detail?r=44824)
+
+* dart:mirrors: Fix `MethodMirror.source` when the method is on the first line
+  in a script -
+  [r44957](https://code.google.com/p/dart/source/detail?r=44957),
+  [r44976](https://code.google.com/p/dart/source/detail?r=44976)
+
+* pub: Fix for
+  [issue 23084](https://code.google.com/p/dart/issues/detail?id=23084):
+  Pub can fail to load transformers necessary for local development -
+  [r44876](https://code.google.com/p/dart/source/detail?r=44876)
+
+## 1.9.1 – 2015-03-25
 
 ### Language changes
 
@@ -78,7 +157,7 @@ documentation on the [Dart API site](http://api.dartlang.org).
 
   * `HttpServer.bind` and `HttpServer.bindSecure` added the `v6Only` named
     argument. If this is true, only IPv6 connections will be accepted.
-    
+
   * `HttpServer.bind`, `HttpServer.bindSecure`, `ServerSocket.bind`,
     `RawServerSocket.bind`, `SecureServerSocket.bind` and
     `RawSecureServerSocket.bind` added the `shared` named argument. If this is
@@ -112,7 +191,7 @@ documentation on the [Dart API site](http://api.dartlang.org).
   * Isolates spawned via `Isolate.spawn` now allow most objects, including
     top-level and static functions, to be sent between them.
 
-## 1.8.5 (2015-01-21)
+## 1.8.5 – 2015-01-21
 
 * Code generation for SIMD on ARM and ARM64 is fixed.
 
@@ -122,7 +201,7 @@ documentation on the [Dart API site](http://api.dartlang.org).
 
 [issue 21795]: https://code.google.com/p/dart/issues/detail?id=21795
 
-## 1.8.3 (2014-12-10)
+## 1.8.3 – 2014-12-10
 
 * Breakpoints can be set in the Editor using file suffixes ([issue 21280][]).
 
@@ -139,7 +218,7 @@ documentation on the [Dart API site](http://api.dartlang.org).
 [issue 21280]: https://code.google.com/p/dart/issues/detail?id=21280
 [issue 21698]: https://code.google.com/p/dart/issues/detail?id=21698
 
-## 1.8.0 (2014-11-28)
+## 1.8.0 – 2014-11-28
 
 * `dart:collection`: `SplayTree` added the `toSet` function.
 
@@ -180,7 +259,7 @@ documentation on the [Dart API site](http://api.dartlang.org).
 
 [alpn]: https://tools.ietf.org/html/rfc7301
 
-## 1.7.0 (2014-10-15)
+## 1.7.0 – 2014-10-15
 
 ### Tool changes
 

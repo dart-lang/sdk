@@ -46,11 +46,14 @@ DEFINE_FLAG(bool, concurrent_sweep, true,
 DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 
 HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
+  ASSERT(memory != NULL);
   ASSERT(memory->size() > VirtualMemory::PageSize());
   bool is_executable = (type == kExecutable);
-  memory->Commit(is_executable);
-
+  if (!memory->Commit(is_executable)) {
+    return NULL;
+  }
   HeapPage* result = reinterpret_cast<HeapPage*>(memory->address());
+  ASSERT(result != NULL);
   result->memory_ = memory;
   result->next_ = NULL;
   result->executable_ = is_executable;
@@ -64,7 +67,12 @@ HeapPage* HeapPage::Allocate(intptr_t size_in_words, PageType type) {
   if (memory == NULL) {
     return NULL;
   }
-  return Initialize(memory, type);
+  HeapPage* result = Initialize(memory, type);
+  if (result == NULL) {
+    delete memory;  // Release reservation to OS.
+    return NULL;
+  }
+  return result;
 }
 
 
@@ -125,6 +133,7 @@ void HeapPage::WriteProtect(bool read_only) {
       prot = VirtualMemory::kReadOnly;
     }
   } else {
+    // TODO(23217): Should this really make all pages non-executable?
     prot = VirtualMemory::kReadWrite;
   }
   bool status = memory_->Protect(prot);
@@ -508,6 +517,15 @@ void PageSpace::MakeIterable() const {
 }
 
 
+void PageSpace::AbandonBumpAllocation() {
+  if (bump_top_ < bump_end_) {
+    freelist_[HeapPage::kData].Free(bump_top_, bump_end_ - bump_top_);
+    bump_top_ = 0;
+    bump_end_ = 0;
+  }
+}
+
+
 bool PageSpace::Contains(uword addr) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     if (it.page()->Contains(addr)) {
@@ -605,6 +623,10 @@ RawObject* PageSpace::FindObject(FindObjectVisitor* visitor,
 
 
 void PageSpace::WriteProtect(bool read_only) {
+  if (read_only) {
+    // Avoid MakeIterable trying to write to the heap.
+    AbandonBumpAllocation();
+  }
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     it.page()->WriteProtect(read_only);
   }
@@ -654,14 +676,13 @@ class HeapMapAsJSONVisitor : public ObjectVisitor {
 void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) {
   JSONObject heap_map(stream);
   heap_map.AddProperty("type", "HeapMap");
-  heap_map.AddProperty("id", "heapmap");
-  heap_map.AddProperty("free_class_id",
+  heap_map.AddProperty("freeClassId",
                        static_cast<intptr_t>(kFreeListElement));
-  heap_map.AddProperty("unit_size_bytes",
+  heap_map.AddProperty("unitSizeBytes",
                        static_cast<intptr_t>(kObjectAlignment));
-  heap_map.AddProperty("page_size_bytes", kPageSizeInWords * kWordSize);
+  heap_map.AddProperty("pageSizeBytes", kPageSizeInWords * kWordSize);
   {
-    JSONObject class_list(&heap_map, "class_list");
+    JSONObject class_list(&heap_map, "classList");
     isolate->class_table()->PrintToJSONObject(&class_list);
   }
   {
@@ -674,7 +695,7 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) {
     JSONArray all_pages(&heap_map, "pages");
     for (HeapPage* page = pages_; page != NULL; page = page->next()) {
       JSONObject page_container(&all_pages);
-      page_container.AddPropertyF("object_start",
+      page_container.AddPropertyF("objectStart",
                                   "0x%" Px "", page->object_start());
       JSONArray page_map(&page_container, "objects");
       HeapMapAsJSONVisitor printer(&page_map);
@@ -682,7 +703,7 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) {
     }
     for (HeapPage* page = exec_pages_; page != NULL; page = page->next()) {
       JSONObject page_container(&all_pages);
-      page_container.AddPropertyF("object_start",
+      page_container.AddPropertyF("objectStart",
                                   "0x%" Px "", page->object_start());
       JSONArray page_map(&page_container, "objects");
       HeapMapAsJSONVisitor printer(&page_map);
@@ -780,9 +801,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   int64_t mid1 = OS::GetCurrentTimeMicros();
 
   // Abandon the remainder of the bump allocation block.
-  MakeIterable();
-  bump_top_ = 0;
-  bump_end_ = 0;
+  AbandonBumpAllocation();
   // Reset the freelists and setup sweeping.
   freelist_[HeapPage::kData].Reset();
   freelist_[HeapPage::kExecutable].Reset();

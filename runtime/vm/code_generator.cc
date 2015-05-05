@@ -1242,8 +1242,13 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     if (!CanOptimizeFunction(function, isolate) || function.is_intrinsic()) {
       return;
     }
+
+    // The unoptimized code is on the stack and should never be detached from
+    // the function at this point.
+    ASSERT(function.unoptimized_code() != Object::null());
     intptr_t osr_id =
         Code::Handle(function.unoptimized_code()).GetDeoptIdForOsr(frame->pc());
+    ASSERT(osr_id != Isolate::kNoDeoptId);
     if (FLAG_trace_osr) {
       OS::Print("Attempting OSR for %s at id=%" Pd ", count=%" Pd "\n",
                 function.ToFullyQualifiedCString(),
@@ -1434,14 +1439,21 @@ DEOPT_REASONS(DEOPT_REASON_TO_TEXT)
 
 void DeoptimizeAt(const Code& optimized_code, uword pc) {
   ASSERT(optimized_code.is_optimized());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   ICData::DeoptReasonId deopt_reason = ICData::kDeoptUnknown;
   uint32_t deopt_flags = 0;
-  const TypedData& deopt_info = TypedData::Handle(
+  const TypedData& deopt_info = TypedData::Handle(zone,
       optimized_code.GetDeoptInfoAtPc(pc, &deopt_reason, &deopt_flags));
   ASSERT(!deopt_info.IsNull());
-  const Function& function = Function::Handle(optimized_code.function());
-  Compiler::EnsureUnoptimizedCode(Thread::Current(), function);
-  const Code& unoptimized_code = Code::Handle(function.unoptimized_code());
+  const Function& function = Function::Handle(zone, optimized_code.function());
+  const Error& error =
+      Error::Handle(zone, Compiler::EnsureUnoptimizedCode(thread, function));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+  }
+  const Code& unoptimized_code =
+      Code::Handle(zone, function.unoptimized_code());
   ASSERT(!unoptimized_code.IsNull());
   // The switch to unoptimized code may have already occurred.
   if (function.HasOptimizedCode()) {
@@ -1452,7 +1464,7 @@ void DeoptimizeAt(const Code& optimized_code, uword pc) {
   uword lazy_deopt_jump = optimized_code.GetLazyDeoptPc();
   ASSERT(lazy_deopt_jump != 0);
   const Instructions& instrs =
-      Instructions::Handle(optimized_code.instructions());
+      Instructions::Handle(zone, optimized_code.instructions());
   {
     WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
     CodePatcher::InsertCallAt(pc, lazy_deopt_jump);
@@ -1573,7 +1585,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
     // The code will be the same as before.
     ASSERT(code.raw() == optimized_code.raw());
 
-    // Some sanity checking of the optimized/unoptimized code.
+    // Some sanity checking of the optimized code.
     ASSERT(!optimized_code.IsNull() && optimized_code.is_optimized());
   }
 #endif

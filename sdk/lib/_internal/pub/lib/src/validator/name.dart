@@ -9,7 +9,6 @@ import 'dart:async';
 import 'package:path/path.dart' as path;
 
 import '../entrypoint.dart';
-import '../utils.dart';
 import '../validator.dart';
 
 /// Dart reserved words, from the Dart spec.

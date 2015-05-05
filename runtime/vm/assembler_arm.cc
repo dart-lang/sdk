@@ -1470,14 +1470,6 @@ void Assembler::vcgtqs(QRegister qd, QRegister qn, QRegister qm) {
 }
 
 
-void Assembler::svc(uint32_t imm24, Condition cond) {
-  ASSERT(cond != kNoCondition);
-  ASSERT(imm24 < (1 << 24));
-  int32_t encoding = (cond << kConditionShift) | B27 | B26 | B25 | B24 | imm24;
-  Emit(encoding);
-}
-
-
 void Assembler::bkpt(uint16_t imm16) {
   // bkpt requires that the cond field is AL.
   int32_t encoding = (AL << kConditionShift) | B24 | B21 |
@@ -3387,7 +3379,8 @@ void Assembler::TryAllocate(const Class& cls,
     const uword top_address = heap->TopAddress(space);
     LoadImmediate(temp_reg, top_address);
     ldr(instance_reg, Address(temp_reg));
-    AddImmediate(instance_reg, instance_size);
+    // TODO(koda): Protect against unsigned overflow here.
+    AddImmediateSetFlags(instance_reg, instance_reg, instance_size);
 
     // instance_reg: potential next object start.
     const uword end_address = heap->EndAddress(space);
@@ -3434,8 +3427,8 @@ void Assembler::TryAllocateArray(intptr_t cid,
     Heap::Space space = heap->SpaceForAllocation(cid);
     LoadImmediate(temp1, heap->TopAddress(space));
     ldr(instance, Address(temp1, 0));  // Potential new object start.
-    AddImmediate(end_address, instance, instance_size);
-    b(failure, VS);
+    AddImmediateSetFlags(end_address, instance, instance_size);
+    b(failure, CS);  // Branch if unsigned overflow.
 
     // Check if the allocation fits into the remaining space.
     // instance: potential new object start.
@@ -3484,7 +3477,7 @@ void Assembler::Stop(const char* message) {
   b(&stop);
   Emit(reinterpret_cast<int32_t>(message));
   Bind(&stop);
-  svc(kStopMessageSvcCode);
+  bkpt(Instr::kStopMessageCode);
 }
 
 

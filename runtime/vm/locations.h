@@ -459,7 +459,7 @@ class SmallSet {
 
   void Remove(T value) { data_ &= ~ToMask(value); }
 
-  bool IsEmpty() const { return data_ != 0; }
+  bool IsEmpty() const { return data_ == 0; }
 
   intptr_t data() const { return data_; }
 

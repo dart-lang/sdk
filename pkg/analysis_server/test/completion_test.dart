@@ -115,7 +115,7 @@ class D {f(){} g(){f!1(f!2);}}''', <String>["1+f", "2+f"]);
 class F {m() { m(); !1}}''', <String>["1+m"]);
 
     buildTests('testCommentSnippets017', '''
-class F {var x = !1false;}''', <String>["1+true"], failingTests: '1');
+class F {var x = !1false;}''', <String>["1+true"]);
 
     buildTests('testCommentSnippets018', '''
 class Map{}class Arrays{}class C{ m(!1){} n(!2 x, q)''',
@@ -1093,7 +1093,7 @@ void main() {
 }''', <String>["1+a", "1-x", "1-y"], failingTests: '1');
 
     buildTests('testCompletion_import', '''
-import '!1';''', <String>["1+dart:!", "1+package:!"], failingTests: '1');
+import '!1';''', <String>["1+dart:!", "1+package:!"]);
 
     buildTests('testCompletion_import_dart', '''
 import 'dart:math
@@ -1109,7 +1109,7 @@ import 'dart:!1''', <String>[
     buildTests('testCompletion_import_hasStringLiteral_noSemicolon', '''
 import '!1'
 
-class A {}''', <String>["1+dart:!", "1+package:!"], failingTests: '1');
+class A {}''', <String>["1+dart:!", "1+package:!"]);
 
     buildTests('testCompletion_import_noSpace', '''
 import!1''', <String>["1+ 'dart:!';", "1+ 'package:!';"], failingTests: '1');
@@ -1408,8 +1408,7 @@ f() { var vvv = 42; return !1 }''', <String>["1+vvv"]);
 
     buildTests('testCompletion_staticField1', '''
 class num{}class Sunflower {static final n!2um MAX_D = 300;nu!3m xc, yc;Sun!4flower() {x!Xc = y!Yc = MA!1 }}''',
-        <String>["1+MAX_D", "X+xc", "Y+yc", "2+num", "3+num", "4+Sunflower"],
-        failingTests: '2');
+        <String>["1+MAX_D", "X+xc", "Y+yc", "2+num", "3+num", "4+Sunflower"]);
 
     buildTests('testCompletion_super_superType', '''
 class A {
@@ -1969,7 +1968,7 @@ class Q {
       "J+if",
       "K+else",
       "L+return"
-    ], failingTests: '59BCHK');
+    ], failingTests: '35BCHK');
 
     // operators in function
     buildTests('test015', '''f(a,b,c) => a + b * c !1;''', <String>["1+=="],
@@ -1983,19 +1982,18 @@ class Q {
 
     // keywords
     buildTests('test017', '''
-!1library foo;
-!2import 'x' !5as r;
+!1!2import 'x' !5as r;
 !3export '!8uri' !6hide Q !7show X;
 !4part 'x';''', <String>[
       "1+library",
-      "2+import",
+      "2+import '!';",
       "3+export",
       "4+part",
       "5+as",
       "6+hide",
       "7+show",
       "8-null"
-    ], failingTests: '1567');
+    ], failingTests: '567');
 
     // keywords
     buildTests('test018', '''!1part !2of foo;''', <String>["1+part", "2+of"],
@@ -2006,7 +2004,7 @@ var truefalse = 0;
 var falsetrue = 1;
 main() {
   var foo = true!1
-}''', <String>["1+true", "1+truefalse", "1-falsetrue"], failingTests: '1');
+}''', <String>["1+true", "1+truefalse", "1-falsetrue"]);
 
     buildTests('test020', '''var x = null.!1''', <String>["1+toString"],
         failingTests: '1');

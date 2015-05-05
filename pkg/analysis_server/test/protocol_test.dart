@@ -8,19 +8,18 @@ import 'dart:convert';
 
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
-
-import 'reflective_tests.dart';
-
-Matcher _throwsRequestFailure = throwsA(new isInstanceOf<RequestFailure>());
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(NotificationTest);
-  runReflectiveTests(RequestTest);
-  runReflectiveTests(RequestErrorTest);
-  runReflectiveTests(ResponseTest);
+  defineReflectiveTests(NotificationTest);
+  defineReflectiveTests(RequestTest);
+  defineReflectiveTests(RequestErrorTest);
+  defineReflectiveTests(ResponseTest);
 }
+
+Matcher _throwsRequestFailure = throwsA(new isInstanceOf<RequestFailure>());
 
 @reflectiveTest
 class InvalidParameterResponseMatcher extends Matcher {
@@ -110,8 +109,11 @@ class RequestErrorTest {
     var trace = 'a stack trace\r\nbar';
     RequestError error = new RequestError(
         RequestErrorCode.UNKNOWN_REQUEST, 'msg', stackTrace: trace);
-    expect(error.toJson(),
-        {CODE: 'UNKNOWN_REQUEST', MESSAGE: 'msg', STACK_TRACE: trace});
+    expect(error.toJson(), {
+      CODE: 'UNKNOWN_REQUEST',
+      MESSAGE: 'msg',
+      STACK_TRACE: trace
+    });
   }
 }
 

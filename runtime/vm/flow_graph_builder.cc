@@ -42,6 +42,7 @@ DECLARE_FLAG(bool, enable_asserts);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
+DECLARE_FLAG(bool, use_field_guards);
 
 // Quick access to the locally defined zone() method.
 #define Z (zone())
@@ -3166,10 +3167,7 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
   // resolved at compile time (in the caller instance getter's super class).
   // Unlike a static getter, a super getter has a receiver parameter.
   const bool is_super_setter = (node->receiver() != NULL);
-  Function& setter_function =
-      Function::ZoneHandle(Z, is_super_setter
-          ? Resolver::ResolveDynamicAnyArgs(node->cls(), setter_name)
-          : node->cls().LookupStaticFunction(setter_name));
+  const Function& setter_function = node->function();
   StaticCallInstr* call;
   if (setter_function.IsNull()) {
     if (is_super_setter) {
@@ -3505,21 +3503,21 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
                                        dst_name);
   }
 
-  store_value = Bind(BuildStoreExprTemp(store_value));
-  GuardFieldClassInstr* guard_field_class =
-      new(Z) GuardFieldClassInstr(store_value,
-                               node->field(),
-                               isolate()->GetNextDeoptId());
-  AddInstruction(guard_field_class);
-
-  store_value = Bind(BuildLoadExprTemp());
-  GuardFieldLengthInstr* guard_field_length =
-      new(Z) GuardFieldLengthInstr(store_value,
-                                   node->field(),
-                                   isolate()->GetNextDeoptId());
-  AddInstruction(guard_field_length);
-
-  store_value = Bind(BuildLoadExprTemp());
+  if (FLAG_use_field_guards) {
+    store_value = Bind(BuildStoreExprTemp(store_value));
+    GuardFieldClassInstr* guard_field_class =
+        new(Z) GuardFieldClassInstr(store_value,
+                                 node->field(),
+                                 isolate()->GetNextDeoptId());
+    AddInstruction(guard_field_class);
+    store_value = Bind(BuildLoadExprTemp());
+    GuardFieldLengthInstr* guard_field_length =
+        new(Z) GuardFieldLengthInstr(store_value,
+                                     node->field(),
+                                     isolate()->GetNextDeoptId());
+    AddInstruction(guard_field_length);
+    store_value = Bind(BuildLoadExprTemp());
+  }
   StoreInstanceFieldInstr* store =
       new(Z) StoreInstanceFieldInstr(node->field(),
                                      for_instance.value(),
@@ -4325,6 +4323,11 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
   Goto(finally_entry);
   AppendFragment(finally_entry, for_finally_block);
   exit_ = for_finally_block.exit_;
+}
+
+
+void EffectGraphVisitor::VisitStopNode(StopNode* node) {
+  AddInstruction(new(Z) StopInstr(node->message()));
 }
 
 

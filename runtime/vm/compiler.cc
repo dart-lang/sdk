@@ -169,8 +169,8 @@ CompilationPipeline* CompilationPipeline::New(Zone* zone,
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   ASSERT(!function.HasCode());
-  const Error& error = Error::Handle(Compiler::CompileFunction(thread,
-                                                               function));
+  const Error& error =
+      Error::Handle(Compiler::CompileFunction(thread, function));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
   }
@@ -470,13 +470,13 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
       GrowableArray<const Function*> inline_id_to_function;
       // For a given inlining-id(index) specifies the caller's inlining-id.
       GrowableArray<intptr_t> caller_inline_id;
-      inline_id_to_function.Add(&function);
-      // Top scope function has no caller (-1).
-      caller_inline_id.Add(-1);
       // Collect all instance fields that are loaded in the graph and
       // have non-generic type feedback attached to them that can
       // potentially affect optimizations.
       if (optimized) {
+        inline_id_to_function.Add(&function);
+        // Top scope function has no caller (-1).
+        caller_inline_id.Add(-1);
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphoptimizer_timer,
                          isolate);
@@ -719,6 +719,10 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::codefinalizer_timer,
                          isolate);
+        // CreateDeoptInfo uses the object pool and needs to be done before
+        // FinalizeCode.
+        const Array& deopt_info_array = Array::Handle(
+            graph_compiler.CreateDeoptInfo(&assembler));
         const Code& code = Code::Handle(
             Code::FinalizeCode(function, &assembler, optimized));
         code.set_is_optimized(optimized);
@@ -726,7 +730,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         code.set_inlined_id_to_function(
             Array::Handle(graph_compiler.InliningIdToFunction()));
         graph_compiler.FinalizePcDescriptors(code);
-        graph_compiler.FinalizeDeoptInfo(code);
+        code.set_deopt_info_array(deopt_info_array);
         graph_compiler.FinalizeStackmaps(code);
         graph_compiler.FinalizeVarDescriptors(code);
         graph_compiler.FinalizeExceptionHandlers(code);
@@ -862,18 +866,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
     ISL_Print("}\n");
   }
 
-  const Array& object_table = Array::Handle(code.object_table());
-  if (object_table.Length() > 0) {
-    ISL_Print("Object Table: {\n");
-    for (intptr_t i = 0; i < object_table.Length(); i++) {
-      ISL_Print("  %" Pd ": %s\n", i,
-          Object::Handle(object_table.At(i)).ToCString());
-    }
-    ISL_Print("}\n");
-  }
-
-  const Array& object_pool = Array::Handle(
-      Instructions::Handle(code.instructions()).object_pool());
+  const Array& object_pool = Array::Handle(code.ObjectPool());
   if (object_pool.Length() > 0) {
     ISL_Print("Object Pool: {\n");
     for (intptr_t i = 0; i < object_pool.Length(); i++) {
@@ -976,6 +969,16 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     TIMERSCOPE(isolate, time_compilation);
     Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
     per_compile_timer.Start();
+
+    // Restore unoptimized code if needed.
+    if (optimized) {
+      const Error& error = Error::Handle(
+          zone, Compiler::EnsureUnoptimizedCode(Thread::Current(), function));
+      if (!error.IsNull()) {
+        return error.raw();
+      }
+    }
+
     ParsedFunction* parsed_function = new(zone) ParsedFunction(
         thread, Function::ZoneHandle(zone, function.raw()));
     if (FLAG_trace_compiler) {
@@ -1058,10 +1061,10 @@ RawError* Compiler::CompileFunction(Thread* thread,
 }
 
 
-void Compiler::EnsureUnoptimizedCode(Thread* thread,
+RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
                                      const Function& function) {
   if (function.unoptimized_code() != Object::null()) {
-    return;
+    return Error::null();
   }
   Code& original_code = Code::ZoneHandle(thread->zone());
   if (function.HasCode()) {
@@ -1072,7 +1075,7 @@ void Compiler::EnsureUnoptimizedCode(Thread* thread,
   const Error& error = Error::Handle(
       CompileFunctionHelper(pipeline, function, false, Isolate::kNoDeoptId));
   if (!error.IsNull()) {
-    Exceptions::PropagateError(error);
+    return error.raw();
   }
   // Since CompileFunctionHelper replaces the current code, re-attach the
   // the original code if the function was already compiled.
@@ -1084,6 +1087,7 @@ void Compiler::EnsureUnoptimizedCode(Thread* thread,
   if (FLAG_trace_compiler) {
     ISL_Print("Ensure unoptimized code for %s\n", function.ToCString());
   }
+  return Error::null();
 }
 
 

@@ -11,14 +11,13 @@ import 'package:analysis_server/src/source/optimizing_pub_package_map_provider.d
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:path/path.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
-
-import '../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(OptimizingPubPackageMapProviderTest);
-  runReflectiveTests(OptimizingPubPackageMapInfoTest);
+  defineReflectiveTests(OptimizingPubPackageMapProviderTest);
+  defineReflectiveTests(OptimizingPubPackageMapInfoTest);
 }
 
 @reflectiveTest

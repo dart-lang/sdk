@@ -13,6 +13,7 @@ await_test: CompileTimeError # Issue 22052
 async_await_test/02: CompileTimeError # Issue 22052
 regress_17382_test: Skip # don't care about the static warning.
 regress_23038_test/01: Skip # Issue 23038
+getter_setter_in_lib_test: Fail # issue 23286
 
 issue13179_test: CompileTimeError # Issue 13179
 
@@ -476,6 +477,7 @@ unary_plus_negative_test: CompileTimeError
 unbound_getter_test: StaticWarning
 unhandled_exception_negative_test: CompileTimeError
 unresolved_top_level_method_negative_test: StaticWarning
+vm/debug_break_enabled_vm_test: CompileTimeError, OK
 vm/type_cast_vm_test: StaticWarning
 vm/type_vm_test: StaticWarning
 void_type_test: StaticWarning
@@ -521,6 +523,18 @@ const_dynamic_type_literal_test: CompileTimeError # Issue 22989
 regress_21912_test/02: StaticWarning # Issue 21912
 regress_22976_test/02: StaticWarning # Issue 22976
 
+variable_declaration_metadata_test/02: MissingCompileTimeError # Issue 23204
+variable_declaration_metadata_test/03: MissingCompileTimeError # Issue 23204
+variable_declaration_metadata_test/04: MissingCompileTimeError # Issue 23204
+variable_declaration_metadata_test/06: MissingCompileTimeError # Issue 23204
+variable_declaration_metadata_test/08: MissingCompileTimeError # Issue 23204
+variable_declaration_metadata_test/09: MissingCompileTimeError # Issue 23204
+variable_declaration_metadata_test/10: MissingCompileTimeError # Issue 23204
+variable_declaration_metadata_test/12: MissingCompileTimeError # Issue 23204
+variable_declaration_metadata_test/13: MissingCompileTimeError # Issue 23204
+variable_declaration_metadata_test/14: MissingCompileTimeError # Issue 23204
+variable_declaration_metadata_test/16: MissingCompileTimeError # Issue 23204
+
 # Null-aware operators aren't implemented in the Java-based analyzer.
 if_null_evaluation_order_test: CompileTimeError
 if_null_precedence_test: CompileTimeError
@@ -530,6 +544,10 @@ if_null_assignment_static_test: CompileTimeError
 conditional_property_assignment_test: CompileTimeError
 conditional_property_access_test: CompileTimeError
 conditional_method_invocation_test: CompileTimeError
+
+# This test is expected to generate a warning, since it's
+# intentionally referring to a variable that's not in scope.
+transitive_private_library_access_test: StaticWarning
 
 # Issue 16391. These tests are supposed to produce a compile time
 # error in checked mode, but they don't:
@@ -561,3 +579,12 @@ const_init2_test/02: MissingCompileTimeError # Issue 16391
 malformed2_test/01: MissingCompileTimeError # Issue 16391
 type_check_const_function_typedef2_test/00: MissingCompileTimeError # Issue 16391
 type_parameter_test/05: MissingCompileTimeError # Issue 16391
+
+compile_time_constant_checked5_test/03: MissingCompileTimeError # Issue 23292
+compile_time_constant_checked5_test/04: MissingCompileTimeError # Issue 23292
+compile_time_constant_checked5_test/08: MissingCompileTimeError # Issue 23292
+compile_time_constant_checked5_test/09: MissingCompileTimeError # Issue 23292
+compile_time_constant_checked5_test/13: MissingCompileTimeError # Issue 23292
+compile_time_constant_checked5_test/14: MissingCompileTimeError # Issue 23292
+compile_time_constant_checked5_test/18: MissingCompileTimeError # Issue 23292
+compile_time_constant_checked5_test/19: MissingCompileTimeError # Issue 23292

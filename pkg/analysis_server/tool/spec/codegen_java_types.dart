@@ -7,7 +7,7 @@
  */
 library java.generator.types;
 
-import 'package:html5lib/dom.dart' as dom;
+import 'package:html/dom.dart' as dom;
 
 import 'api.dart';
 import 'codegen_java.dart';

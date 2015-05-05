@@ -11,18 +11,19 @@
 <link rel="import" href="nav_bar.html">
 <link rel="import" href="object_common.html">
 <link rel="import" href="context_ref.html">
+<link rel="import" href="view_footer.html">
 
 <polymer-element name="instance-view" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
+      <vm-nav-menu vm="{{ instance.isolate.vm }}"></vm-nav-menu>
       <isolate-nav-menu isolate="{{ instance.isolate }}"></isolate-nav-menu>
       <!-- TODO(turnidge): Add library nav menu here. -->
       <class-nav-menu cls="{{ instance.clazz }}"></class-nav-menu>
       <nav-menu link="." anchor="instance" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
-      <nav-control></nav-control>
     </nav-bar>
 
     <template if="{{ instance.isError }}">
@@ -151,7 +152,7 @@
                     <field-ref ref="{{ field['decl'] }}"></field-ref>
                   </div>
                   <div class="memberValue">
-                    <any-service-ref ref="{{ field.value }}"></any-service-ref>
+                    <any-service-ref ref="{{ field['value'] }}"></any-service-ref>
                   </div>
                 </div>
               </template>
@@ -181,11 +182,8 @@
       <div class="content">
         <eval-box callback="{{ eval }}"></eval-box>
       </div>
-
-      <br><br><br><br>
-      <br><br><br><br>
-
     </template>
+    <view-footer></view-footer>
   </template>
 </polymer-element>
 

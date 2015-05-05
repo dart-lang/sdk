@@ -159,11 +159,15 @@ class JSString extends Interceptor implements String, JSIndexable {
   }
 
   String toLowerCase() {
-    return JS('String', r'#.toLowerCase()', this);
+    return JS(
+        'returns:String;effects:none;depends:none;throws:null(1)',
+        r'#.toLowerCase()', this);
   }
 
   String toUpperCase() {
-    return JS('String', r'#.toUpperCase()', this);
+    return JS(
+        'returns:String;effects:none;depends:none;throws:null(1)',
+        r'#.toUpperCase()', this);
   }
 
   // Characters with Whitespace property (Unicode 6.2).
@@ -434,7 +438,7 @@ class JSString extends Interceptor implements String, JSIndexable {
   int compareTo(String other) {
     if (other is !String) throw new ArgumentError(other);
     return this == other ? 0
-      : JS('bool', r'# < #', this, other) ? -1 : 1;
+        : JS('bool', r'# < #', this, other) ? -1 : 1;
   }
 
   // Note: if you change this, also change the function [S].

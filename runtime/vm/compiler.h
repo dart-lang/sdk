@@ -42,7 +42,8 @@ class Compiler : public AllStatic {
   static RawError* CompileFunction(Thread* thread, const Function& function);
 
   // Generates unoptimized code if not present, current code is unchanged.
-  static void EnsureUnoptimizedCode(Thread* thread, const Function& function);
+  static RawError* EnsureUnoptimizedCode(Thread* thread,
+                                         const Function& function);
 
   // Generates optimized code for function.
   //

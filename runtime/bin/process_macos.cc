@@ -392,6 +392,7 @@ class ProcessStarter {
       return CleanupAndReturnError();
     }
     FDUtils::SetCloseOnExec(read_in_[0]);
+    FDUtils::SetCloseOnExec(read_in_[1]);
 
     // For detached processes the pipe to connect stderr and stdin are not used.
     if (mode_ != kDetached) {
@@ -400,11 +401,13 @@ class ProcessStarter {
         return CleanupAndReturnError();
       }
       FDUtils::SetCloseOnExec(read_err_[0]);
+      FDUtils::SetCloseOnExec(read_err_[1]);
 
       result = TEMP_FAILURE_RETRY(pipe(write_out_));
       if (result < 0) {
         return CleanupAndReturnError();
       }
+      FDUtils::SetCloseOnExec(write_out_[0]);
       FDUtils::SetCloseOnExec(write_out_[1]);
     }
 
@@ -429,25 +432,17 @@ class ProcessStarter {
 
 
   void ExecProcess() {
-    VOID_TEMP_FAILURE_RETRY(close(write_out_[1]));
-    VOID_TEMP_FAILURE_RETRY(close(read_in_[0]));
-    VOID_TEMP_FAILURE_RETRY(close(read_err_[0]));
-    VOID_TEMP_FAILURE_RETRY(close(exec_control_[0]));
-
     if (TEMP_FAILURE_RETRY(dup2(write_out_[0], STDIN_FILENO)) == -1) {
       ReportChildError();
     }
-    VOID_TEMP_FAILURE_RETRY(close(write_out_[0]));
 
     if (TEMP_FAILURE_RETRY(dup2(read_in_[1], STDOUT_FILENO)) == -1) {
       ReportChildError();
     }
-    VOID_TEMP_FAILURE_RETRY(close(read_in_[1]));
 
     if (TEMP_FAILURE_RETRY(dup2(read_err_[1], STDERR_FILENO)) == -1) {
       ReportChildError();
     }
-    VOID_TEMP_FAILURE_RETRY(close(read_err_[1]));
 
     if (working_directory_ != NULL &&
         TEMP_FAILURE_RETRY(chdir(working_directory_)) == -1) {

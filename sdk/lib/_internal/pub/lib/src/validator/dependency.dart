@@ -11,7 +11,6 @@ import 'package:pub_semver/pub_semver.dart';
 import '../entrypoint.dart';
 import '../log.dart' as log;
 import '../package.dart';
-import '../utils.dart';
 import '../validator.dart';
 
 /// The range of all pub versions that don't support `^` version constraints.

@@ -14,16 +14,20 @@ import 'package:analysis_server/src/services/completion/dart_completion_manager.
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:path/path.dart' as path;
 
 const String DYNAMIC = 'dynamic';
 
 /**
  * Return a suggestion based upon the given element
  * or `null` if a suggestion is not appropriate for the given element.
+ * If the suggestion is not currently in scope, then specify
+ * importForSource as the source to which an import should be added.
  */
 CompletionSuggestion createSuggestion(Element element,
     {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-    int relevance: DART_RELEVANCE_DEFAULT}) {
+    int relevance: DART_RELEVANCE_DEFAULT, Source importForSource}) {
   String nameForType(DartType type) {
     if (type == null) {
       return DYNAMIC;
@@ -78,6 +82,34 @@ CompletionSuggestion createSuggestion(Element element,
         (ParameterElement parameter) =>
             parameter.parameterKind == ParameterKind.NAMED);
   }
+  if (importForSource != null) {
+    String srcPath = path.dirname(importForSource.fullName);
+    LibraryElement libElem = element.library;
+    if (libElem != null) {
+      Source libSource = libElem.source;
+      if (libSource != null) {
+        UriKind uriKind = libSource.uriKind;
+        if (uriKind == UriKind.DART_URI) {
+          suggestion.importUri = libSource.uri.toString();
+        } else if (uriKind == UriKind.PACKAGE_URI) {
+          suggestion.importUri = libSource.uri.toString();
+        } else if (uriKind == UriKind.FILE_URI &&
+            element.source.uriKind == UriKind.FILE_URI) {
+          try {
+            suggestion.importUri =
+                path.relative(libSource.fullName, from: srcPath);
+          } catch (_) {
+            // ignored
+          }
+        }
+      }
+    }
+    if (suggestion.importUri == null) {
+      // Do not include out of scope suggestions
+      // for which we cannot determine an import
+      return null;
+    }
+  }
   return suggestion;
 }
 
@@ -125,12 +157,13 @@ visitInheritedTypeNames(ClassDeclaration node, void inherited(String name)) {
 /**
  * Starting with the given class node, traverse the inheritence hierarchy
  * calling the given functions with each non-null non-empty inherited class
- * declaration. For each locally defined class declaration, call [local].
+ * declaration. For each locally defined declaration, call [localDeclaration].
  * For each class identifier in the hierarchy that is not defined locally,
- * call the [imported] function.
+ * call the [importedTypeName] function.
  */
 void visitInheritedTypes(ClassDeclaration node,
-    void local(ClassDeclaration classNode), void imported(String typeName)) {
+    {void localDeclaration(ClassDeclaration classNode),
+    void importedTypeName(String typeName)}) {
   CompilationUnit unit = node.getAncestor((p) => p is CompilationUnit);
   List<ClassDeclaration> todo = new List<ClassDeclaration>();
   todo.add(node);
@@ -149,10 +182,14 @@ void visitInheritedTypes(ClassDeclaration node,
           return false;
         }, orElse: () => null);
         if (classNode is ClassDeclaration) {
-          local(classNode);
+          if (localDeclaration != null) {
+            localDeclaration(classNode);
+          }
           todo.add(classNode);
         } else {
-          imported(name);
+          if (importedTypeName != null) {
+            importedTypeName(name);
+          }
         }
       }
     });

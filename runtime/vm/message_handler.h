@@ -96,6 +96,38 @@ class MessageHandler {
     return paused_on_exit_;
   }
 
+  class AcquiredQueues : public ValueObject {
+   public:
+    AcquiredQueues();
+
+    ~AcquiredQueues();
+
+    MessageQueue* queue() {
+      if (handler_ == NULL) {
+        return NULL;
+      }
+      return handler_->queue_;
+    }
+
+    MessageQueue* oob_queue() {
+      if (handler_ == NULL) {
+        return NULL;
+      }
+      return handler_->oob_queue_;
+    }
+
+   private:
+    void Reset(MessageHandler* handler);
+
+    MessageHandler* handler_;
+
+    friend class MessageHandler;
+  };
+
+  // Gives temporary ownership of |queue| and |oob_queue|. Calling this
+  // has the side effect that no OOB messages will be handled if a stack
+  // overflow interrupt is delivered.
+  void AcquireQueues(AcquiredQueues* acquired_queue);
 
 #if defined(DEBUG)
   // Check that it is safe to access this message handler.
@@ -166,6 +198,9 @@ class MessageHandler {
   Monitor monitor_;  // Protects all fields in MessageHandler.
   MessageQueue* queue_;
   MessageQueue* oob_queue_;
+  // This flag is not thread safe and can only reliably be accessed on a single
+  // thread.
+  bool oob_message_handling_allowed_;
   intptr_t live_ports_;  // The number of open ports, including control ports.
   intptr_t paused_;  // The number of pause messages received.
   bool pause_on_start_;

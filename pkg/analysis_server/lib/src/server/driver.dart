@@ -17,15 +17,14 @@ import 'package:analysis_server/starter.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/file_instrumentation.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/options.dart';
-import 'package:analyzer/plugin/plugin.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
-import 'package:analyzer/src/plugin/plugin_impl.dart';
 import 'package:args/args.dart';
+import 'package:plugin/manager.dart';
+import 'package:plugin/plugin.dart';
 
 /**
  * Initializes incremental logger.
@@ -49,6 +48,130 @@ void _initIncrementalLogger(String spec) {
     File file = new File(fileName);
     IOSink sink = file.openWrite();
     logger = new StringSinkLogger(sink);
+  }
+}
+
+/// Commandline argument parser. (Copied from analyzer/lib/options.dart)
+/// TODO(pquitslund): replaces with a simple [ArgParser] instance
+/// when the args package supports ignoring unrecognized
+/// options/flags (https://github.com/dart-lang/args/issues/9).
+class CommandLineParser {
+  final List<String> _knownFlags;
+  final bool _alwaysIgnoreUnrecognized;
+  final ArgParser _parser;
+
+  /// Creates a new command line parser
+  CommandLineParser({bool alwaysIgnoreUnrecognized: false})
+      : _knownFlags = <String>[],
+        _alwaysIgnoreUnrecognized = alwaysIgnoreUnrecognized,
+        _parser = new ArgParser(allowTrailingOptions: true);
+
+  ArgParser get parser => _parser;
+
+  /// Defines a flag.
+  /// See [ArgParser.addFlag()].
+  void addFlag(String name, {String abbr, String help, bool defaultsTo: false,
+      bool negatable: true, void callback(bool value), bool hide: false}) {
+    _knownFlags.add(name);
+    _parser.addFlag(name,
+        abbr: abbr,
+        help: help,
+        defaultsTo: defaultsTo,
+        negatable: negatable,
+        callback: callback,
+        hide: hide);
+  }
+
+  /// Defines a value-taking option.
+  /// See [ArgParser.addOption()].
+  void addOption(String name, {String abbr, String help, List<String> allowed,
+      Map<String, String> allowedHelp, String defaultsTo, void callback(value),
+      bool allowMultiple: false}) {
+    _knownFlags.add(name);
+    _parser.addOption(name,
+        abbr: abbr,
+        help: help,
+        allowed: allowed,
+        allowedHelp: allowedHelp,
+        defaultsTo: defaultsTo,
+        callback: callback,
+        allowMultiple: allowMultiple);
+  }
+
+  /// Generates a string displaying usage information for the defined options.
+  /// See [ArgParser.usage].
+  String getUsage() => _parser.usage;
+
+  /// Parses [args], a list of command-line arguments, matches them against the
+  /// flags and options defined by this parser, and returns the result. The
+  /// values of any defined variables are captured in the given map.
+  /// See [ArgParser].
+  ArgResults parse(
+      List<String> args, Map<String, String> definedVariables) => _parser
+      .parse(_filterUnknowns(parseDefinedVariables(args, definedVariables)));
+
+  List<String> parseDefinedVariables(
+      List<String> args, Map<String, String> definedVariables) {
+    int count = args.length;
+    List<String> remainingArgs = <String>[];
+    for (int i = 0; i < count; i++) {
+      String arg = args[i];
+      if (arg == '--') {
+        while (i < count) {
+          remainingArgs.add(args[i++]);
+        }
+      } else if (arg.startsWith("-D")) {
+        definedVariables[arg.substring(2)] = args[++i];
+      } else {
+        remainingArgs.add(arg);
+      }
+    }
+    return remainingArgs;
+  }
+
+  List<String> _filterUnknowns(List<String> args) {
+
+    // Only filter args if the ignore flag is specified, or if
+    // _alwaysIgnoreUnrecognized was set to true
+    if (_alwaysIgnoreUnrecognized ||
+        args.contains('--ignore-unrecognized-flags')) {
+
+      // Filter all unrecognized flags and options.
+      List<String> filtered = <String>[];
+      for (int i = 0; i < args.length; ++i) {
+        String arg = args[i];
+        if (arg.startsWith('--') && arg.length > 2) {
+          String option = arg.substring(2);
+          // strip the last '=value'
+          int equalsOffset = option.lastIndexOf('=');
+          if (equalsOffset != -1) {
+            option = option.substring(0, equalsOffset);
+          }
+          // check the option
+          if (!_knownFlags.contains(option)) {
+            //"eat" params by advancing to the next flag/option
+            i = _getNextFlagIndex(args, i);
+          } else {
+            filtered.add(arg);
+          }
+        } else {
+          filtered.add(arg);
+        }
+      }
+
+      return filtered;
+    } else {
+      return args;
+    }
+  }
+
+  _getNextFlagIndex(args, i) {
+    for (; i < args.length; ++i) {
+      if (args[i].startsWith('--')) {
+        return i;
+      }
+    }
+    return i;
   }
 }
 
@@ -81,6 +204,26 @@ class Driver implements ServerStarter {
       "enable-incremental-resolution-api";
 
   /**
+   * The name of the option used to enable instrumentation.
+   */
+  static const String ENABLE_INSTRUMENTATION_OPTION = "enable-instrumentation";
+
+  /**
+   * The name of the option used to enable the use of the new task model.
+   */
+  static const String ENABLE_NEW_TASK_MODEL = "enable-new-task-model";
+
+  /**
+   * The name of the option used to set the file read mode.
+   */
+  static const String FILE_READ_MODE = "file-read-mode";
+
+  /**
+   * The name of the option used to print usage information.
+   */
+  static const String HELP_OPTION = "help";
+
+  /**
    * The name of the option used to describe the incremental resolution logger.
    */
   static const String INCREMENTAL_RESOLUTION_LOG = "incremental-resolution-log";
@@ -99,14 +242,10 @@ class Driver implements ServerStarter {
   static const String INSTRUMENTATION_LOG_FILE = "instrumentation-log-file";
 
   /**
-   * The name of the option used to enable instrumentation.
+   * The name of the option used to specify if [print] should print to the
+   * console instead of being intercepted.
    */
-  static const String ENABLE_INSTRUMENTATION_OPTION = "enable-instrumentation";
-
-  /**
-   * The name of the option used to print usage information.
-   */
-  static const String HELP_OPTION = "help";
+  static const String INTERNAL_DELAY_FREQUENCY = 'internal-delay-frequency';
 
   /**
    * The name of the option used to specify if [print] should print to the
@@ -115,10 +254,14 @@ class Driver implements ServerStarter {
   static const String INTERNAL_PRINT_TO_CONSOLE = "internal-print-to-console";
 
   /**
-   * The name of the option used to specify if [print] should print to the
-   * console instead of being intercepted.
+   * The name of the flag used to disable error notifications.
    */
-  static const String INTERNAL_DELAY_FREQUENCY = 'internal-delay-frequency';
+  static const String NO_ERROR_NOTIFICATION = "no-error-notification";
+
+  /**
+   * The name of the flag used to disable the index.
+   */
+  static const String NO_INDEX = "no-index";
 
   /**
    * The option for specifying the http diagnostic port.
@@ -133,21 +276,6 @@ class Driver implements ServerStarter {
    * operational.
    */
   static const String SDK_OPTION = "sdk";
-
-  /**
-   * The name of the flag used to disable error notifications.
-   */
-  static const String NO_ERROR_NOTIFICATION = "no-error-notification";
-
-  /**
-   * The name of the flag used to disable the index.
-   */
-  static const String NO_INDEX = "no-index";
-
-  /**
-   * The name of the option used to set the file read mode.
-   */
-  static const String FILE_READ_MODE = "file-read-mode";
 
   /**
    * The instrumentation server that is to be used by the analysis server.
@@ -184,24 +312,6 @@ class Driver implements ServerStarter {
       _printUsage(parser.parser);
       return;
     }
-
-    // TODO(brianwilkerson) Enable this after it is possible for an
-    // instrumentation server to be provided.
-//    if (results[ENABLE_INSTRUMENTATION_OPTION]) {
-//      if (instrumentationServer == null) {
-//        print('Exiting server: enabled instrumentation without providing an instrumentation server');
-//        print('');
-//        _printUsage(parser);
-//        return;
-//      }
-//    } else {
-//      if (instrumentationServer != null) {
-//        print('Exiting server: providing an instrumentation server without enabling instrumentation');
-//        print('');
-//        _printUsage(parser);
-//        return;
-//      }
-//    }
 
     // TODO (danrubel) Remove this workaround
     // once the underlying VM and dart:io issue has been fixed.
@@ -244,7 +354,9 @@ class Driver implements ServerStarter {
       // which will make a guess.
       defaultSdk = DirectoryBasedDartSdk.defaultSdk;
     }
-
+    //
+    // Initialize the instrumentation service.
+    //
     if (instrumentationServer != null) {
       String filePath = results[INSTRUMENTATION_LOG_FILE];
       if (filePath != null) {
@@ -258,6 +370,12 @@ class Driver implements ServerStarter {
         results[CLIENT_VERSION], AnalysisServer.VERSION, defaultSdk.sdkVersion);
     AnalysisEngine.instance.instrumentationService = service;
     //
+    // Enable the new task model, if appropriate.
+    //
+    if (results[ENABLE_NEW_TASK_MODEL]) {
+      AnalysisEngine.instance.useTaskModel = true;
+    }
+    //
     // Process all of the plugins so that extensions are registered.
     //
     ServerPlugin serverPlugin = new ServerPlugin();
@@ -267,7 +385,9 @@ class Driver implements ServerStarter {
     plugins.addAll(_userDefinedPlugins);
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
-
+    //
+    // Create the sockets and start listening for requests.
+    //
     socketServer = new SocketServer(
         analysisServerOptions, defaultSdk, service, serverPlugin);
     httpServer = new HttpAnalysisServer(socketServer);
@@ -335,6 +455,11 @@ class Driver implements ServerStarter {
     parser.addFlag(ENABLE_INSTRUMENTATION_OPTION,
         help: "enable sending instrumentation information to a server",
         defaultsTo: false,
+        negatable: false);
+    parser.addFlag(ENABLE_NEW_TASK_MODEL,
+        help: "enable the use of the new task model",
+        defaultsTo: false,
+        hide: true,
         negatable: false);
     parser.addFlag(HELP_OPTION,
         help: "print this help message without starting a server",

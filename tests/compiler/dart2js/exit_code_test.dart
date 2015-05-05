@@ -12,6 +12,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
 import 'package:compiler/compiler.dart' as api;
+import 'package:compiler/src/compile_time_constants.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
 import 'package:compiler/src/dart2jslib.dart';
 import 'package:compiler/src/apiimpl.dart' as apiimpl;
@@ -137,7 +138,8 @@ class TestResolver extends ResolverTask {
 
 int checkedResults = 0;
 
-Future testExitCode(String marker, String type, int expectedExitCode) {
+Future testExitCode(
+    String marker, String type, int expectedExitCode, List options) {
   bool testOccurred = false;
 
   void onTest(String testMarker, String testType) {
@@ -196,17 +198,19 @@ Future testExitCode(String marker, String type, int expectedExitCode) {
     entry.exitFunc = exit;
     entry.compileFunc = compile;
 
-    Future result = entry.internalMain(
-        ["tests/compiler/dart2js/exit_code_helper.dart"]);
+    List<String> args = new List<String>.from(options)
+        ..add("tests/compiler/dart2js/exit_code_helper.dart");
+    Future result = entry.internalMain(args);
     return result.catchError((e, s) {
       // Capture crashes.
     }).whenComplete(checkResult);
   });
 }
 
-Future testExitCodes(String marker, Map<String,int> expectedExitCodes) {
+Future testExitCodes(
+    String marker, Map<String,int> expectedExitCodes, List<String> options) {
   return Future.forEach(expectedExitCodes.keys, (String type) {
-    return testExitCode(marker, type, expectedExitCodes[type]);
+    return testExitCode(marker, type, expectedExitCodes[type], options);
   });
 }
 
@@ -214,23 +218,30 @@ void main() {
   bool isCheckedMode = false;
   assert((isCheckedMode = true));
 
-  final beforeRun = {
-    '': 0,
-    'NoSuchMethodError': 253,
-    'assert': isCheckedMode ? 253 : 0,
-    'invariant': 253
-  };
+  Map _expectedExitCode({bool beforeRun: false, bool fatalWarnings: false}) {
+    if (beforeRun) {
+      return {
+        '': 0,
+        'NoSuchMethodError': 253,
+        'assert': isCheckedMode ? 253 : 0,
+        'invariant': 253
+      };
+    }
 
-  final duringRun = {
-    '': 0,
-    'NoSuchMethodError': 253,
-    'assert': isCheckedMode ? 253 : 0,
-    'invariant': 253,
-    'warning': 0,
-    'error': 1,
-    'internalError': 253,
-  };
+    // duringRun:
+    return {
+      '': 0,
+      'NoSuchMethodError': 253,
+      'assert': isCheckedMode ? 253 : 0,
+      'invariant': 253,
+      'warning': fatalWarnings ? 1 : 0,
+      'error': 1,
+      'internalError': 253,
+    };
+  }
 
+  const beforeRun = false;
+  const duringRun = true;
   final tests = {
     'Compiler': beforeRun,
     'Compiler.run': beforeRun,
@@ -242,18 +253,20 @@ void main() {
     'Compiler.codegen': duringRun,
     'ResolverTask.computeClassMembers': duringRun,
   };
+  int totalExpectedErrors = 0;
 
-  asyncStart();
-  Future.forEach(tests.keys, (marker) {
-    return testExitCodes(marker, tests[marker]);
-  }).then((_) {
-    int countResults(Map runType) {
-      return runType.length *
-             tests.values.where((r) => r == runType).length;
+  asyncTest(() async {
+    for (String marker in tests.keys) {
+      var expected = _expectedExitCode(beforeRun: tests[marker]);
+      totalExpectedErrors += expected.length;
+      await testExitCodes(marker, expected, []);
+
+      expected = _expectedExitCode(
+          beforeRun: tests[marker], fatalWarnings: true);
+      totalExpectedErrors += expected.length;
+      await testExitCodes(marker, expected, ['--fatal-warnings']);
     }
 
-    Expect.equals(countResults(beforeRun) + countResults(duringRun),
-                  checkedResults);
-    asyncEnd();
+    Expect.equals(totalExpectedErrors, checkedResults);
   });
 }

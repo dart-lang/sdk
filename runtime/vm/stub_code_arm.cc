@@ -641,7 +641,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ LoadImmediate(R6, heap->TopAddress(space));
   __ ldr(R0, Address(R6, 0));  // Potential new object start.
   __ adds(R7, R0, Operand(R8));  // Potential next object start.
-  __ b(&slow_case, VS);
+  __ b(&slow_case, CS);  // Branch if unsigned overflow.
 
   // Check if the allocation fits into the remaining space.
   // R0: potential new object start.
@@ -984,7 +984,9 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // R2: Header word.
   if (TargetCPUFeatures::arm_version() == ARMv5TE) {
     // TODO(21263): Implement 'swp' and use it below.
+#if !defined(USING_SIMULATOR)
     ASSERT(OS::NumberOfAvailableProcessors() <= 1);
+#endif
     __ orr(R2, R2, Operand(1 << RawObject::kRememberedBit));
     __ str(R2, FieldAddress(R0, Object::tags_offset()));
   } else {

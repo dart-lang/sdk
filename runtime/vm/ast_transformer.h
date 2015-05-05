@@ -49,10 +49,6 @@ class AwaitTransformer : public AstNodeVisitor {
 
   AstNode* Transform(AstNode* expr);
 
-  static AstNode* RestoreSavedTryContext(Zone* zone,
-                                         LocalScope* scope,
-                                         int16_t try_index);
-
  private:
   LocalVariable* EnsureCurrentTempVar();
   LocalVariable* AddToPreambleNewTempVar(AstNode* node);

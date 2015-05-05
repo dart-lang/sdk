@@ -110,7 +110,7 @@ class TestOptionsParser {
               'The architecture to run tests for',
               ['-a', '--arch'],
               ['all', 'ia32', 'x64', 'arm', 'armv5te', 'arm64', 'mips',
-               'simarm', 'simarm64', 'simmips'],
+               'simarm', 'simarmv5te', 'simarm64', 'simmips'],
               'ia32'),
           new _TestOptionSpecification(
               'system',
@@ -143,6 +143,13 @@ class TestOptionsParser {
               'csp',
               'Run tests under Content Security Policy restrictions',
               ['--csp'],
+              [],
+              false,
+              type: 'bool'),
+          new _TestOptionSpecification(
+              'cps_ir',
+              'Run the compiler with the cps based backend',
+              ['--cps-ir'],
               [],
               false,
               type: 'bool'),

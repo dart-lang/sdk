@@ -38,6 +38,7 @@
 namespace dart {
 
 DEFINE_FLAG(bool, enable_asserts, false, "Enable assert statements.");
+DEFINE_FLAG(bool, enable_debug_break, false, "Allow use of break \"message\".");
 DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
@@ -284,13 +285,17 @@ class Parser::TryStack : public ZoneAllocated {
         inlined_finally_nodes_(),
         outer_try_(outer_try),
         try_index_(try_index),
-        inside_catch_(false) { }
+        inside_catch_(false),
+        inside_finally_(false) { }
 
   TryStack* outer_try() const { return outer_try_; }
   Block* try_block() const { return try_block_; }
   intptr_t try_index() const { return try_index_; }
   bool inside_catch() const { return inside_catch_; }
   void enter_catch() { inside_catch_ = true; }
+  bool inside_finally() const { return inside_finally_; }
+  void enter_finally() { inside_finally_ = true; }
+  void exit_finally() { inside_finally_ = false; }
 
   void AddNodeForFinallyInlining(AstNode* node);
   AstNode* GetNodeToInlineFinally(int index) {
@@ -305,7 +310,9 @@ class Parser::TryStack : public ZoneAllocated {
   GrowableArray<AstNode*> inlined_finally_nodes_;
   TryStack* outer_try_;
   const intptr_t try_index_;
-  bool inside_catch_;
+  bool inside_catch_;  // True when parsing a catch clause of this try.
+  bool inside_finally_;  // True when parsing a finally clause of an inner try
+                         // of this try.
 
   DISALLOW_COPY_AND_ASSIGN(TryStack);
 };
@@ -2041,7 +2048,6 @@ AstNode* Parser::ParseSuperCall(const String& function_name) {
         Class::ZoneHandle(Z, current_class().SuperClass());
     AstNode* closure = new StaticGetterNode(supercall_pos,
                                             LoadReceiver(supercall_pos),
-                                            /* is_super_getter */ true,
                                             super_class,
                                             function_name);
     // 'this' is not passed as parameter to the closure.
@@ -2214,8 +2220,8 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name,
       // Emit a StaticGetterNode anyway, so that noSuchMethod gets called.
     }
   }
-  return new StaticGetterNode(
-      field_pos, implicit_argument, true, super_class, field_name);
+  return new(Z) StaticGetterNode(
+      field_pos, implicit_argument, super_class, field_name);
 }
 
 
@@ -3906,8 +3912,8 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     if (field->has_static && has_initializer) {
       class_field.set_value(init_value);
       if (!has_simple_literal) {
-        String& getter_name = String::Handle(Z,
-                                             Field::GetterSymbol(*field->name));
+        String& getter_name =
+            String::Handle(Z, Field::GetterSymbol(*field->name));
         getter = Function::New(getter_name,
                                RawFunction::kImplicitStaticFinalGetter,
                                field->has_static,
@@ -3928,8 +3934,8 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
 
     // For instance fields, we create implicit getter and setter methods.
     if (!field->has_static) {
-      String& getter_name = String::Handle(Z,
-                                           Field::GetterSymbol(*field->name));
+      String& getter_name =
+          String::Handle(Z, Field::GetterSymbol(*field->name));
       getter = Function::New(getter_name, RawFunction::kImplicitGetter,
                              field->has_static,
                              field->has_final,
@@ -3947,8 +3953,8 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
       members->AddFunction(getter);
       if (!field->has_final) {
         // Build a setter accessor for non-const fields.
-        String& setter_name = String::Handle(Z,
-                                             Field::SetterSymbol(*field->name));
+        String& setter_name =
+            String::Handle(Z, Field::SetterSymbol(*field->name));
         setter = Function::New(setter_name, RawFunction::kImplicitSetter,
                                field->has_static,
                                field->has_final,
@@ -6153,6 +6159,9 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   // We need to inline this code in all recorded exit points.
   intptr_t node_index = 0;
   SequenceNode* finally_clause = NULL;
+  if (try_stack_ != NULL) {
+    try_stack_->enter_finally();
+  }
   do {
     OpenBlock();
     ArgumentListNode* no_args =
@@ -6185,6 +6194,10 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
       node_index++;
     }
   } while (finally_clause == NULL);
+
+  if (try_stack_ != NULL) {
+    try_stack_->exit_finally();
+  }
 
   const GrowableObjectArray& handler_types =
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
@@ -8255,6 +8268,28 @@ AstNode* Parser::ParseDoWhileStatement(String* label_name) {
 }
 
 
+static LocalVariable* LookupSavedTryContextVar(LocalScope* scope) {
+  LocalVariable* var =
+      scope->LocalLookupVariable(Symbols::SavedTryContextVar());
+  ASSERT((var != NULL) && !var->is_captured());
+  return var;
+}
+
+
+static LocalVariable* LookupAsyncSavedTryContextVar(LocalScope* scope,
+                                                    uint16_t try_index) {
+  const String& async_saved_try_ctx_name =
+      String::ZoneHandle(Symbols::New(String::Handle(
+          String::NewFormatted(
+              "%s%d",
+              Symbols::AsyncSavedTryCtxVarPrefix().ToCString(),
+              try_index))));
+  LocalVariable* var = scope->LocalLookupVariable(async_saved_try_ctx_name);
+  ASSERT((var != NULL) && var->is_captured());\
+  return var;
+}
+
+
 // If the await or yield being parsed is in a try block, the continuation code
 // needs to restore the corresponding stack-based variable :saved_try_ctx_var,
 // and the stack-based variable :saved_try_ctx_var of the outer try block.
@@ -8269,32 +8304,33 @@ AstNode* Parser::ParseDoWhileStatement(String* label_name) {
 //     Set the context variable for the outer try block. Note that the try
 //     declaring the finally is popped before parsing the finally clause, so the
 //     outer try block is at the top of the try block list.
-//
-// TODO(regis): Could we return the variables instead of their containing
-// scopes? Check if they are already setup at this point.
-void Parser::CheckAsyncOpInTryBlock(LocalScope** try_scope,
-                                    int16_t* try_index,
-                                    LocalScope** outer_try_scope,
-                                    int16_t* outer_try_index) const {
-  *try_scope = NULL;
-  *try_index = CatchClauseNode::kInvalidTryIndex;
-  *outer_try_scope = NULL;
-  *outer_try_index = CatchClauseNode::kInvalidTryIndex;
+void Parser::CheckAsyncOpInTryBlock(
+    LocalVariable** saved_try_ctx,
+    LocalVariable** async_saved_try_ctx,
+    LocalVariable** outer_saved_try_ctx,
+    LocalVariable** outer_async_saved_try_ctx) const {
+  *saved_try_ctx = NULL;
+  *async_saved_try_ctx = NULL;
+  *outer_saved_try_ctx = NULL;
+  *outer_async_saved_try_ctx = NULL;
   if (try_stack_ != NULL) {
     LocalScope* scope = try_stack_->try_block()->scope;
+    uint16_t try_index = try_stack_->try_index();
     const int current_function_level = current_block_->scope->function_level();
     if (scope->function_level() == current_function_level) {
       // The block declaring :saved_try_ctx_var variable is the parent of the
       // pushed try block.
-      *try_scope = scope->parent();
-      *try_index = try_stack_->try_index();
-      if (try_stack_->outer_try() != NULL) {
-        // TODO(regis): Collecting the outer try scope is not necessary if we
-        // are in a finally block. Add support for try_stack_->inside_finally().
+      *saved_try_ctx = LookupSavedTryContextVar(scope->parent());
+      *async_saved_try_ctx = LookupAsyncSavedTryContextVar(scope, try_index);
+      if ((try_stack_->outer_try() != NULL) && !try_stack_->inside_finally()) {
+        // Collecting the outer try scope is not necessary if we
+        // are in a finally block.
         scope = try_stack_->outer_try()->try_block()->scope;
+        try_index = try_stack_->outer_try()->try_index();
         if (scope->function_level() == current_function_level) {
-          *outer_try_scope = scope->parent();
-          *outer_try_index = try_stack_->outer_try()->try_index();
+          *outer_saved_try_ctx = LookupSavedTryContextVar(scope->parent());
+          *outer_async_saved_try_ctx =
+              LookupAsyncSavedTryContextVar(scope, try_index);
         }
       }
     }
@@ -8302,7 +8338,7 @@ void Parser::CheckAsyncOpInTryBlock(LocalScope** try_scope,
   // An async or async* has an implicitly created try-catch around the
   // function body, so the await or yield inside the async closure should always
   // be created with a try scope.
-  ASSERT((*try_scope != NULL) ||
+  ASSERT((*saved_try_ctx != NULL) ||
          innermost_function().IsAsyncFunction() ||
          innermost_function().IsAsyncGenerator() ||
          innermost_function().IsSyncGenClosure() ||
@@ -8426,13 +8462,14 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
 
   // Build while loop condition.
   // while (await :for-in-iter.moveNext())
-  LocalScope* try_scope;
-  int16_t try_index;
-  LocalScope* outer_try_scope;
-  int16_t outer_try_index;
-  CheckAsyncOpInTryBlock(&try_scope, &try_index,
-                         &outer_try_scope, &outer_try_index);
-
+  LocalVariable* saved_try_ctx;
+  LocalVariable* async_saved_try_ctx;
+  LocalVariable* outer_saved_try_ctx;
+  LocalVariable* outer_async_saved_try_ctx;
+  CheckAsyncOpInTryBlock(&saved_try_ctx,
+                         &async_saved_try_ctx,
+                         &outer_saved_try_ctx,
+                         &outer_async_saved_try_ctx);
   ArgumentListNode* no_args = new(Z) ArgumentListNode(stream_pos);
   AstNode* iterator_moveNext = new(Z) InstanceCallNode(
       stream_pos,
@@ -8442,10 +8479,10 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   AstNode* await_moveNext =
       new(Z) AwaitNode(stream_pos,
                        iterator_moveNext,
-                       try_scope,
-                       try_index,
-                       outer_try_scope,
-                       outer_try_index);
+                       saved_try_ctx,
+                       async_saved_try_ctx,
+                       outer_saved_try_ctx,
+                       outer_async_saved_try_ctx);
   OpenBlock();
   AwaitTransformer at(current_block_->statements, async_temp_scope_);
   await_moveNext = at.Transform(await_moveNext);
@@ -8523,9 +8560,12 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   try_stack_->enter_catch();
   SequenceNode* catch_block = new(Z) SequenceNode(await_for_pos, NULL);
 
-  if (outer_try_scope != NULL) {
-    catch_block->Add(AwaitTransformer::RestoreSavedTryContext(
-        Z, outer_try_scope, outer_try_index));
+  if (outer_saved_try_ctx != NULL) {
+    catch_block->Add(new (Z) StoreLocalNode(
+        Scanner::kNoSourcePos,
+        outer_saved_try_ctx,
+        new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+                              outer_async_saved_try_ctx)));
   }
 
   // We don't need to copy the current exception and stack trace variables
@@ -8539,7 +8579,10 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
       new(Z) LoadLocalNode(await_for_pos, stack_trace_var)));
 
   TryStack* try_statement = PopTry();
-  ASSERT(try_index == try_statement->try_index());
+  const intptr_t try_index = try_statement->try_index();
+  TryStack* outer_try = try_stack_;
+  const intptr_t outer_try_index = (outer_try != NULL) ?
+      outer_try->try_index() : CatchClauseNode::kInvalidTryIndex;
 
   // The finally block contains a call to cancel the stream.
   // :for-in-iter.cancel()
@@ -8547,6 +8590,9 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   // Inline the finally block to the exit points in the try block.
   intptr_t node_index = 0;
   SequenceNode* finally_clause = NULL;
+  if (try_stack_ != NULL) {
+    try_stack_->enter_finally();
+  }
   do {
     OpenBlock();
     ArgumentListNode* no_args =
@@ -8569,6 +8615,10 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
       node_index++;
     }
   } while (finally_clause == NULL);
+
+  if (try_stack_ != NULL) {
+    try_stack_->exit_finally();
+  }
 
   // Create the try-statement and add to the current sequence, which is
   // the block around the loop statement.
@@ -8935,6 +8985,9 @@ SequenceNode* Parser::ParseFinallyBlock(
   OpenBlock();
   ExpectToken(Token::kLBRACE);
 
+  if (try_stack_ != NULL) {
+    try_stack_->enter_finally();
+  }
   // In case of async closures we need to restore the saved try index of an
   // outer try block (if it exists).  The current try block has already been
   // removed from the stack of try blocks.
@@ -8942,9 +8995,17 @@ SequenceNode* Parser::ParseFinallyBlock(
     if (try_stack_ != NULL) {
       LocalScope* scope = try_stack_->try_block()->scope;
       if (scope->function_level() == current_block_->scope->function_level()) {
+        LocalVariable* saved_try_ctx =
+            LookupSavedTryContextVar(scope->parent());
+        LocalVariable* async_saved_try_ctx =
+            LookupAsyncSavedTryContextVar(scope->parent(),
+                                          try_stack_->try_index());
         current_block_->statements->Add(
-            AwaitTransformer::RestoreSavedTryContext(
-                Z, scope->parent(), try_stack_->try_index()));
+            new (Z) StoreLocalNode(
+                Scanner::kNoSourcePos,
+                saved_try_ctx,
+                new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+                                      async_saved_try_ctx)));
       }
     }
     // We need to save the exception variables as in catch clauses, whether
@@ -8961,6 +9022,9 @@ SequenceNode* Parser::ParseFinallyBlock(
   ParseStatementSequence();
   ExpectToken(Token::kRBRACE);
   SequenceNode* finally_block = CloseBlock();
+  if (try_stack_ != NULL) {
+    try_stack_->exit_finally();
+  }
   return finally_block;
 }
 
@@ -9202,11 +9266,18 @@ SequenceNode* Parser::ParseCatchClauses(
     const TryStack* try_block = try_stack_->outer_try();
     if (try_block != NULL) {
       LocalScope* scope = try_block->try_block()->scope;
-      if (scope->function_level() ==
-          current_block_->scope->function_level()) {
-        async_code->Add(
-            AwaitTransformer::RestoreSavedTryContext(
-                Z, scope->parent(), try_block->try_index()));
+      if (scope->function_level() == current_block_->scope->function_level()) {
+        LocalVariable* saved_try_ctx =
+            LookupSavedTryContextVar(scope->parent());
+        LocalVariable* async_saved_try_ctx =
+            LookupAsyncSavedTryContextVar(scope->parent(),
+                                          try_block->try_index());
+        current_block_->statements->Add(
+            new (Z) StoreLocalNode(
+                Scanner::kNoSourcePos,
+                saved_try_ctx,
+                new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+                                      async_saved_try_ctx)));
       }
     }
     SaveExceptionAndStacktrace(async_code,
@@ -9494,6 +9565,10 @@ AstNode* Parser::ParseJump(String* label_name) {
     if (target == NULL) {
       ReportError(jump_pos, "label '%s' not found", target_name.ToCString());
     }
+  } else if (FLAG_enable_debug_break && (CurrentToken() == Token::kSTRING)) {
+    const char* message = strdup(CurrentLiteral()->ToCString());
+    ConsumeToken();
+    return new(Z) StopNode(jump_pos, message);
   } else {
     target = current_block_->scope->LookupInnermostLabel(jump_kind);
     if (target == NULL) {
@@ -9572,25 +9647,29 @@ AstNode* Parser::ParseYieldStatement() {
     // If this expression is part of a try block, also append the code for
     // restoring the saved try context that lives on the stack and possibly the
     // saved try context of the outer try block.
-    LocalScope* try_scope;
-    int16_t try_index;
-    LocalScope* outer_try_scope;
-    int16_t outer_try_index;
-    CheckAsyncOpInTryBlock(&try_scope, &try_index,
-                           &outer_try_scope, &outer_try_index);
-    if (try_scope != NULL) {
-      yield->AddNode(
-          AwaitTransformer::RestoreSavedTryContext(Z,
-                                                   try_scope,
-                                                   try_index));
-      if (outer_try_scope != NULL) {
-        yield->AddNode(
-            AwaitTransformer::RestoreSavedTryContext(Z,
-                                                     outer_try_scope,
-                                                     outer_try_index));
+    LocalVariable* saved_try_ctx;
+    LocalVariable* async_saved_try_ctx;
+    LocalVariable* outer_saved_try_ctx;
+    LocalVariable* outer_async_saved_try_ctx;
+    CheckAsyncOpInTryBlock(&saved_try_ctx,
+                           &async_saved_try_ctx,
+                           &outer_saved_try_ctx,
+                           &outer_async_saved_try_ctx);
+    if (saved_try_ctx != NULL) {
+      yield->AddNode(new (Z) StoreLocalNode(
+          Scanner::kNoSourcePos,
+          saved_try_ctx,
+          new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+                                async_saved_try_ctx)));
+      if (outer_saved_try_ctx != NULL) {
+        yield->AddNode(new (Z) StoreLocalNode(
+            Scanner::kNoSourcePos,
+            outer_saved_try_ctx,
+            new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+                                  outer_async_saved_try_ctx)));
       }
     } else {
-      ASSERT(outer_try_scope == NULL);
+      ASSERT(outer_saved_try_ctx == NULL);
     }
   } else {
     // yield statement in async* function.
@@ -9607,7 +9686,6 @@ AstNode* Parser::ParseYieldStatement() {
             new(Z) LoadLocalNode(Scanner::kNoSourcePos, controller_var),
             is_yield_each ? Symbols::AddStream() : Symbols::add(),
             add_args);
-
 
     // if (:controller.add[Stream](expr)) {
     //   return;
@@ -9635,25 +9713,29 @@ AstNode* Parser::ParseYieldStatement() {
     // If this expression is part of a try block, also append the code for
     // restoring the saved try context that lives on the stack and possibly the
     // saved try context of the outer try block.
-    LocalScope* try_scope;
-    int16_t try_index;
-    LocalScope* outer_try_scope;
-    int16_t outer_try_index;
-    CheckAsyncOpInTryBlock(&try_scope, &try_index,
-                           &outer_try_scope, &outer_try_index);
-    if (try_scope != NULL) {
-      yield->AddNode(
-          AwaitTransformer::RestoreSavedTryContext(Z,
-                                                   try_scope,
-                                                   try_index));
-      if (outer_try_scope != NULL) {
-        yield->AddNode(
-            AwaitTransformer::RestoreSavedTryContext(Z,
-                                                     outer_try_scope,
-                                                     outer_try_index));
+    LocalVariable* saved_try_ctx;
+    LocalVariable* async_saved_try_ctx;
+    LocalVariable* outer_saved_try_ctx;
+    LocalVariable* outer_async_saved_try_ctx;
+    CheckAsyncOpInTryBlock(&saved_try_ctx,
+                           &async_saved_try_ctx,
+                           &outer_saved_try_ctx,
+                           &outer_async_saved_try_ctx);
+    if (saved_try_ctx != NULL) {
+      yield->AddNode(new (Z) StoreLocalNode(
+          Scanner::kNoSourcePos,
+          saved_try_ctx,
+          new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+                                async_saved_try_ctx)));
+      if (outer_saved_try_ctx != NULL) {
+        yield->AddNode(new (Z) StoreLocalNode(
+            Scanner::kNoSourcePos,
+            outer_saved_try_ctx,
+            new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+                                  outer_async_saved_try_ctx)));
       }
     } else {
-      ASSERT(outer_try_scope == NULL);
+      ASSERT(outer_saved_try_ctx == NULL);
     }
   }
   return yield;
@@ -9748,7 +9830,9 @@ AstNode* Parser::ParseStatement() {
     ExpectToken(Token::kRBRACE);
   } else if (token == Token::kBREAK) {
     statement = ParseJump(label_name);
-    AddNodeForFinallyInlining(statement);
+    if ((statement != NULL) && !statement->IsStopNode()) {
+      AddNodeForFinallyInlining(statement);
+    }
     ExpectSemicolon();
   } else if (token == Token::kCONTINUE) {
     statement = ParseJump(label_name);
@@ -10445,7 +10529,8 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
 static AstNode* LiteralIfStaticConst(Zone* zone, AstNode* expr) {
   if (expr->IsLoadStaticFieldNode()) {
     const Field& field = expr->AsLoadStaticFieldNode()->field();
-    if (field.is_const()) {
+    if (field.is_const() &&
+        !expr->AsLoadStaticFieldNode()->is_deferred_reference()) {
       ASSERT(field.value() != Object::sentinel().raw());
       ASSERT(field.value() != Object::transition_sentinel().raw());
       return new(zone) LiteralNode(expr->token_pos(),
@@ -10587,19 +10672,20 @@ AstNode* Parser::ParseUnaryExpr() {
     ConsumeToken();
     parsed_function()->record_await();
 
-    LocalScope* try_scope;
-    int16_t try_index;
-    LocalScope* outer_try_scope;
-    int16_t outer_try_index;
-    CheckAsyncOpInTryBlock(&try_scope, &try_index,
-                           &outer_try_scope, &outer_try_index);
-
+    LocalVariable* saved_try_ctx;
+    LocalVariable* async_saved_try_ctx;
+    LocalVariable* outer_saved_try_ctx;
+    LocalVariable* outer_async_saved_try_ctx;
+    CheckAsyncOpInTryBlock(&saved_try_ctx,
+                           &async_saved_try_ctx,
+                           &outer_saved_try_ctx,
+                           &outer_async_saved_try_ctx);
     expr = new (Z) AwaitNode(op_pos,
                              ParseUnaryExpr(),
-                             try_scope,
-                             try_index,
-                             outer_try_scope,
-                             outer_try_index);
+                             saved_try_ctx,
+                             async_saved_try_ctx,
+                             outer_saved_try_ctx,
+                             outer_async_saved_try_ctx);
   } else if (IsPrefixOperator(CurrentToken())) {
     Token::Kind unary_op = CurrentToken();
     if (unary_op == Token::kSUB) {
@@ -10728,7 +10814,6 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
         closure = new(Z) StaticGetterNode(
             call_pos,
             NULL,
-            false,
             Class::ZoneHandle(Z, cls.raw()),
             func_name);
         return BuildClosureCall(call_pos, closure, arguments);
@@ -10808,31 +10893,23 @@ AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
     ASSERT(getter.kind() == RawFunction::kImplicitStaticFinalGetter);
     return new(Z) StaticGetterNode(ident_pos,
                                    NULL,  // Receiver.
-                                   false,  // is_super_getter.
                                    field_owner,
                                    field_name);
   }
 }
 
 
-AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
-                                        const String& field_name,
-                                        intptr_t ident_pos,
-                                        bool consume_cascades) {
-  TRACE_PARSER("ParseStaticFieldAccess");
+// Reference to 'field_name' with explicit class as primary.
+AstNode* Parser::GenerateStaticFieldAccess(const Class& cls,
+                                           const String& field_name,
+                                           intptr_t ident_pos) {
   AstNode* access = NULL;
   const Field& field = Field::ZoneHandle(Z, cls.LookupStaticField(field_name));
   Function& func = Function::ZoneHandle(Z);
   if (field.IsNull()) {
     // No field, check if we have an explicit getter function.
-    const String& getter_name =
-        String::ZoneHandle(Z, Field::GetterName(field_name));
-    const int kNumArguments = 0;  // no arguments.
-    func = Resolver::ResolveStatic(cls,
-                                   getter_name,
-                                   kNumArguments,
-                                   Object::empty_array());
-    if (func.IsNull()) {
+    func = cls.LookupGetterFunction(field_name);
+    if (func.IsNull() || func.IsDynamicFunction()) {
       // We might be referring to an implicit closure, check to see if
       // there is a function of the same name.
       func = cls.LookupStaticFunction(field_name);
@@ -10846,14 +10923,13 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
         // a throw NoSuchMethodError().
         access = new(Z) StaticGetterNode(ident_pos,
                                          NULL,
-                                         false,
                                          Class::ZoneHandle(Z, cls.raw()),
                                          field_name);
       }
     } else {
       ASSERT(func.kind() != RawFunction::kImplicitStaticFinalGetter);
       access = new(Z) StaticGetterNode(
-          ident_pos, NULL, false, Class::ZoneHandle(Z, cls.raw()), field_name);
+          ident_pos, NULL, Class::ZoneHandle(Z, cls.raw()), field_name);
     }
   } else {
     access = GenerateStaticFieldLookup(field, ident_pos);
@@ -10881,7 +10957,6 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
       StaticGetterNode* getter = new(Z) StaticGetterNode(
           primary->token_pos(),
           NULL,  // No receiver.
-          false,  // Not a super getter.
           Class::ZoneHandle(Z, current_class().raw()),
           name);
       getter->set_is_deferred(primary->is_deferred_reference());
@@ -10975,12 +11050,14 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       } else {
         // Field access.
         Class& cls = Class::Handle(Z);
+        bool is_deferred = false;
         if (left->IsPrimaryNode()) {
           PrimaryNode* primary_node = left->AsPrimaryNode();
           if (primary_node->primary().IsClass()) {
             // If the primary node referred to a class we are loading a
             // qualified static field.
             cls ^= primary_node->primary().raw();
+            is_deferred = primary_node->is_deferred_reference();
           }
         }
         if (cls.IsNull()) {
@@ -10988,8 +11065,13 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           selector = CallGetter(ident_pos, left, *ident);
         } else {
           // Static field access.
-          selector =
-              ParseStaticFieldAccess(cls, *ident, ident_pos, !is_cascade);
+          selector = GenerateStaticFieldAccess(cls, *ident, ident_pos);
+          ASSERT(selector != NULL);
+          if (selector->IsLoadStaticFieldNode()) {
+            selector->AsLoadStaticFieldNode()->set_is_deferred(is_deferred);
+          } else if (selector->IsStaticGetterNode()) {
+            selector->AsStaticGetterNode()->set_is_deferred(is_deferred);
+          }
         }
       }
     } else if (CurrentToken() == Token::kLBRACK) {
@@ -11264,18 +11346,16 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
         }
       }
       // The referenced class may not have been parsed yet. It would be wrong
-      // to resolve it too early to an imported class of the same name.
+      // to resolve it too early to an imported class of the same name. Only
+      // resolve the class when a finalized type is requested.
       if (finalization > ClassFinalizer::kResolveTypeParameters) {
-        // Resolve classname in the scope of the current library.
-        resolved_type_class = ResolveClassInCurrentLibraryScope(
-            unresolved_class_name);
+        resolved_type_class = library_.LookupClass(unresolved_class_name);
       }
     } else {
-      LibraryPrefix& lib_prefix =
-          LibraryPrefix::Handle(Z, unresolved_class.library_prefix());
       // Resolve class name in the scope of the library prefix.
-      resolved_type_class =
-          ResolveClassInPrefixScope(lib_prefix, unresolved_class_name);
+      const LibraryPrefix& lib_prefix =
+          LibraryPrefix::Handle(Z, unresolved_class.library_prefix());
+      resolved_type_class = lib_prefix.LookupClass(unresolved_class_name);
     }
     // At this point, we can only have a parameterized_type.
     const Type& parameterized_type = Type::Cast(*type);
@@ -11385,8 +11465,8 @@ RawInstance* Parser::TryCanonicalize(const Instance& instance,
 // If the field is already initialized, return no ast (NULL).
 // Otherwise, if the field is constant, initialize the field and return no ast.
 // If the field is not initialized and not const, return the ast for the getter.
-AstNode* Parser::RunStaticFieldInitializer(const Field& field,
-                                           intptr_t field_ref_pos) {
+StaticGetterNode* Parser::RunStaticFieldInitializer(const Field& field,
+                                                    intptr_t field_ref_pos) {
   ASSERT(field.is_static());
   const Class& field_owner = Class::ZoneHandle(Z, field.owner());
   const String& field_name = String::ZoneHandle(Z, field.name());
@@ -11401,7 +11481,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field,
     } else {
       // The implicit static getter will throw the exception if necessary.
       return new(Z) StaticGetterNode(
-          field_ref_pos, NULL, false, field_owner, field_name);
+          field_ref_pos, NULL, field_owner, field_name);
     }
   } else if (value.raw() == Object::sentinel().raw()) {
     // This field has not been referenced yet and thus the value has
@@ -11450,7 +11530,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field,
       return NULL;   // Constant
     } else {
       return new(Z) StaticGetterNode(
-          field_ref_pos, NULL, false, field_owner, field_name);
+          field_ref_pos, NULL, field_owner, field_name);
     }
   }
   if (getter.IsNull() ||
@@ -11459,7 +11539,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field,
   }
   ASSERT(getter.kind() == RawFunction::kImplicitGetter);
   return new(Z) StaticGetterNode(
-      field_ref_pos, NULL, false, field_owner, field_name);
+      field_ref_pos, NULL, field_owner, field_name);
 }
 
 
@@ -11545,6 +11625,16 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
     return true;
   }
 
+  // If we are compiling top-level code, we don't need to look for
+  // the identifier in the current (top-level) class. The class scope
+  // of the top-level class is part of the library scope.
+  if (current_class().IsTopLevel()) {
+    if (node != NULL) {
+      *node = NULL;
+    }
+    return false;
+  }
+
   // Try to find the identifier in the class scope of the current class.
   // If the current class is the result of a mixin application, we must
   // use the class scope of the class from which the function originates.
@@ -11586,7 +11676,14 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
 
   // Now check if a getter/setter method exists for it in which case
   // it is still a field.
+  // A setter without a corresponding getter binds to the non-existing
+  // getter. (The getter could be followed by an assignment which will
+  // convert it to a setter node. If there is no assignment the non-existing
+  // getter will throw a NoSuchMethodError.)
   func = cls.LookupGetterFunction(ident);
+  if (func.IsNull()) {
+    func = cls.LookupSetterFunction(ident);
+  }
   if (!func.IsNull()) {
     if (func.IsDynamicFunction() || func.is_abstract()) {
       if (node != NULL) {
@@ -11597,50 +11694,10 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
       return true;
     } else if (func.IsStaticFunction()) {
       if (node != NULL) {
-        ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
-        // The static getter may later be changed into a dynamically
-        // resolved instance setter if no static setter can
-        // be found.
-        AstNode* receiver = NULL;
-        const bool kTestOnly = true;
-        if (!current_function().is_static() &&
-            (LookupReceiver(current_block_->scope, kTestOnly) != NULL)) {
-          receiver = LoadReceiver(ident_pos);
-        }
         *node = new(Z) StaticGetterNode(ident_pos,
-                                        receiver,
-                                        false,
+                                        NULL,
                                         Class::ZoneHandle(Z, cls.raw()),
                                         ident);
-      }
-      return true;
-    }
-  }
-  func = cls.LookupSetterFunction(ident);
-  if (!func.IsNull()) {
-    if (func.IsDynamicFunction() || func.is_abstract()) {
-      if (node != NULL) {
-        // We create a getter node even though a getter doesn't exist as
-        // it could be followed by an assignment which will convert it to
-        // a setter node. If there is no assignment we will get an error
-        // when we try to invoke the getter.
-        CheckInstanceFieldAccess(ident_pos, ident);
-        ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
-        *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
-      }
-      return true;
-    } else if (func.IsStaticFunction()) {
-      if (node != NULL) {
-        // We create a getter node even though a getter doesn't exist as
-        // it could be followed by an assignment which will convert it to
-        // a setter node. If there is no assignment we will get an error
-        // when we try to invoke the getter.
-        *node = new(Z) StaticGetterNode(
-            ident_pos,
-            NULL,
-            false,
-            Class::ZoneHandle(Z, cls.raw()),
-            ident);
       }
       return true;
     }
@@ -11650,17 +11707,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   if (node != NULL) {
     *node = NULL;
   }
-  return false;  // Not an unqualified identifier.
-}
-
-
-RawClass* Parser::ResolveClassInCurrentLibraryScope(const String& name) {
-  HANDLESCOPE(I);
-  const Object& obj = Object::Handle(Z, library_.ResolveName(name));
-  if (obj.IsClass()) {
-    return Class::Cast(obj).raw();
-  }
-  return Class::null();
+  return false;
 }
 
 
@@ -11678,17 +11725,22 @@ AstNode* Parser::ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
   } else if (obj.IsField()) {
     const Field& field = Field::Cast(obj);
     ASSERT(field.is_static());
-    return GenerateStaticFieldLookup(field, ident_pos);
+    AstNode* get_field = GenerateStaticFieldLookup(field, ident_pos);
+    if (get_field->IsStaticGetterNode()) {
+      get_field->AsStaticGetterNode()->set_owner(library_);
+    }
+    return get_field;
   } else if (obj.IsFunction()) {
     const Function& func = Function::Cast(obj);
     ASSERT(func.is_static());
     if (func.IsGetterFunction() || func.IsSetterFunction()) {
-      return new(Z) StaticGetterNode(ident_pos,
-                                     /* receiver */ NULL,
-                                     /* is_super_getter */ false,
-                                     Class::ZoneHandle(Z, func.Owner()),
-                                     ident);
-
+      StaticGetterNode* getter =
+          new(Z) StaticGetterNode(ident_pos,
+                                  /* receiver */ NULL,
+                                  Class::ZoneHandle(Z, func.Owner()),
+                                  ident);
+      getter->set_owner(library_);
+      return getter;
     } else {
       return new(Z) PrimaryNode(ident_pos, Function::ZoneHandle(Z, func.raw()));
     }
@@ -11697,17 +11749,6 @@ AstNode* Parser::ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
   }
   // Lexically unresolved primary identifiers are referenced by their name.
   return new(Z) PrimaryNode(ident_pos, ident);
-}
-
-
-RawClass* Parser::ResolveClassInPrefixScope(const LibraryPrefix& prefix,
-                                            const String& name) {
-  HANDLESCOPE(I);
-  const Object& obj = Object::Handle(Z, prefix.LookupObject(name));
-  if (obj.IsClass()) {
-    return Class::Cast(obj).raw();
-  }
-  return Class::null();
 }
 
 
@@ -11723,7 +11764,7 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
     // Private names are not exported by libraries. The name mangling
     // of private names with a library-specific suffix usually ensures
     // that _x in library A is not found when looked up from library B.
-    // In the pathological case where a library includes itself with
+    // In the pathological case where a library imports itself with
     // a prefix, the name mangling would not help in hiding the private
     // name, so we need to explicitly reject private names here.
     return NULL;
@@ -11760,6 +11801,7 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
       get_field->AsLoadStaticFieldNode()->set_is_deferred(is_deferred);
     } else if (get_field->IsStaticGetterNode()) {
       get_field->AsStaticGetterNode()->set_is_deferred(is_deferred);
+      get_field->AsStaticGetterNode()->set_owner(prefix);
     }
     return get_field;
   } else if (obj.IsFunction()) {
@@ -11767,12 +11809,12 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
     ASSERT(func.is_static());
     if (func.IsGetterFunction() || func.IsSetterFunction()) {
       StaticGetterNode* getter = new(Z) StaticGetterNode(
-          ident_pos,
-          /* receiver */ NULL,
-          /* is_super_getter */ false,
-          Class::ZoneHandle(Z, func.Owner()),
-          ident);
+         ident_pos,
+         /* receiver */ NULL,
+         Class::ZoneHandle(Z, func.Owner()),
+         ident);
       getter->set_is_deferred(is_deferred);
+      getter->set_owner(prefix);
       return getter;
     } else {
       PrimaryNode* primary = new(Z) PrimaryNode(

@@ -8,11 +8,11 @@ library analyzer2dart.util;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:compiler/src/elements/elements.dart' show PublicName;
 import 'package:compiler/src/universe/universe.dart';
 import 'package:compiler/src/io/source_file.dart';
 
-Selector createSelectorFromMethodInvocation(ArgumentList node,
-                                            String name) {
+CallStructure createCallStructureFromMethodInvocation(ArgumentList node) {
   int arity = 0;
   List<String> namedArguments = <String>[];
   for (Expression argument in node.arguments) {
@@ -22,7 +22,14 @@ Selector createSelectorFromMethodInvocation(ArgumentList node,
       arity++;
     }
   }
-  return new Selector.call(name, null, arity, namedArguments);
+  return new CallStructure(arity, namedArguments);
+}
+
+Selector createSelectorFromMethodInvocation(ArgumentList node,
+                                            String name) {
+  CallStructure callStructure = createCallStructureFromMethodInvocation(node);
+  // TODO(johnniwinther): Support private names.
+  return new Selector(SelectorKind.CALL, new PublicName(name), callStructure);
 }
 
 /// Prints [message] together with source code pointed to by [node] from

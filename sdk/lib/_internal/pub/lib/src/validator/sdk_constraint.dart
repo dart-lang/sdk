@@ -6,11 +6,7 @@ library pub.validator.sdk_constraint;
 
 import 'dart:async';
 
-import 'package:pub_semver/pub_semver.dart';
-
 import '../entrypoint.dart';
-import '../log.dart' as log;
-import '../package.dart';
 import '../validator.dart';
 
 /// A validator that validates that a package's SDK constraint doesn't use the

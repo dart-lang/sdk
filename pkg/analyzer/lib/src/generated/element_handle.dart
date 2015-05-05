@@ -61,6 +61,9 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   bool get isEnum => actualElement.isEnum;
 
   @override
+  bool get isMixinApplication => actualElement.isMixinApplication;
+
+  @override
   bool get isOrInheritsProxy => actualElement.isOrInheritsProxy;
 
   @override
@@ -600,6 +603,9 @@ class FieldElementHandle extends PropertyInducingElementHandle
 
   @override
   ElementKind get kind => ElementKind.FIELD;
+
+  @override
+  VariableDeclaration get node => actualElement.node;
 }
 
 /**
@@ -837,6 +843,9 @@ class LocalVariableElementHandle extends VariableElementHandle
 
   @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
+
+  @override
+  VariableDeclaration get node => actualElement.node;
 
   @override
   SourceRange get visibleRange => actualElement.visibleRange;
@@ -1083,9 +1092,6 @@ abstract class VariableElementHandle extends ElementHandle
   @override
   bool get isPotentiallyMutatedInScope =>
       actualElement.isPotentiallyMutatedInScope;
-
-  @override
-  VariableDeclaration get node => actualElement.node;
 
   @override
   DartType get type => actualElement.type;

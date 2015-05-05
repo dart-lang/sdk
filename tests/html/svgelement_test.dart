@@ -29,11 +29,13 @@ main() {
   };
 
   testConstructor(String tagName, Function isExpectedClass,
-      [bool expectation = true]) {
+      [bool expectation = true, allowsInnerHtml = true]) {
     test(tagName, () {
       expect(isExpectedClass(new svg.SvgElement.tag(tagName)), expectation);
-      expect(isExpectedClass(
-          new svg.SvgElement.svg('<$tagName></$tagName>')), expectation);
+      if (allowsInnerHtml) {
+        expect(isExpectedClass(new svg.SvgElement.svg('<$tagName></$tagName>')),
+            expectation && allowsInnerHtml);
+      }
     });
   }
   group('additionalConstructors', () {
@@ -243,7 +245,6 @@ main() {
   });
 
   group('constructors', () {
-    group('supported', () {
       testConstructor('a', (e) => e is svg.AElement);
       testConstructor('circle', (e) => e is svg.CircleElement);
       testConstructor('clipPath', (e) => e is svg.ClipPathElement);
@@ -275,8 +276,9 @@ main() {
       testConstructor('title', (e) => e is svg.TitleElement);
       testConstructor('use', (e) => e is svg.UseElement);
       testConstructor('view', (e) => e is svg.ViewElement);
+      // TODO(alanknight): Issue 23144
       testConstructor('altGlyph', (e) => e is svg.AltGlyphElement,
-          svg.AltGlyphElement.supported);
+          svg.AltGlyphElement.supported, false);
       testConstructor('animate', (e) => e is svg.AnimateElement,
           svg.AnimateElement.supported);
       testConstructor('animateMotion', (e) => e is svg.AnimateMotionElement,
@@ -335,11 +337,10 @@ main() {
       testConstructor('filter', (e) => e is svg.FilterElement,
           svg.FilterElement.supported);
       testConstructor('foreignObject', (e) => e is svg.ForeignObjectElement,
-          svg.ForeignObjectElement.supported);
+          svg.ForeignObjectElement.supported, false);
       testConstructor('metadata', (e) => e is svg.MetadataElement);
       testConstructor('set', (e) => e is svg.SetElement,
           svg.SetElement.supported);
-    });
   });
 
   group('outerHtml', () {

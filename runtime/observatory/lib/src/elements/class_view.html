@@ -10,18 +10,19 @@
 <link rel="import" href="observatory_element.html">
 <link rel="import" href="script_inset.html">
 <link rel="import" href="script_ref.html">
+<link rel="import" href="view_footer.html">
 
 <polymer-element name="class-view" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
+      <vm-nav-menu vm="{{ cls.isolate.vm }}"></vm-nav-menu>
       <isolate-nav-menu isolate="{{ cls.isolate }}"></isolate-nav-menu>
       <library-nav-menu library="{{ cls.library }}"></library-nav-menu>
       <class-nav-menu cls="{{ cls }}" last="{{ true }}"></class-nav-menu>
       <nav-refresh callback="{{ refreshCoverage }}" label="Refresh Coverage"></nav-refresh>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
-      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content">
@@ -133,7 +134,7 @@
           </div>
         </curly-block><br><br>
       </template>
-      
+
       <template if="{{ !cls.hasNoAllocations }}">
         instances
           <div class="memberItem">
@@ -153,12 +154,14 @@
                 </eval-link>
               </template>
               <template if="{{ instances != null }}">
-                sample
-                <any-service-ref ref="{{ instances['sample'] }}"></any-service-ref>
-                <template if="{{ instances['totalCount'] > instances['sampleCount'] }}">
+                <template repeat="{{ sample in instances['samples'] }}">
+                  <any-service-ref ref="{{ sample }}">
+                  </any-service-ref><br>
+                </template>
+                <template if="{{ instances['totalCount'] > instances['samples'].length }}">
                   <eval-link callback="{{ reachable }}"
                            label="[more]"
-                           expr="{{ instances['sampleCount'] * 2 }}">
+                           expr="{{ instances['samples'].length * 2 }}">
                   </eval-link>
                 </template>
                 of total {{ instances['totalCount'] }}
@@ -208,8 +211,7 @@
                   endPos="{{ cls.endTokenPos }}">
     </script-inset>
 
-    <br><br><br><br>
-    <br><br><br><br>
+    <view-footer></view-footer>
   </template>
 </polymer-element>
 

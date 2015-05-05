@@ -26,6 +26,7 @@ namespace dart {
   V(InlinedFinally)                                                            \
   V(For)                                                                       \
   V(Jump)                                                                      \
+  V(Stop)                                                                      \
   V(LoadInstanceField)                                                         \
   V(NativeBody)                                                                \
   V(Primary)                                                                   \
@@ -104,30 +105,6 @@ void AwaitTransformer::VisitLiteralNode(LiteralNode* node) {
 
 void AwaitTransformer::VisitTypeNode(TypeNode* node) {
   result_ = new(Z) TypeNode(node->token_pos(), node->type());
-}
-
-
-// Restore the currently relevant :saved_try_context_var on the stack
-// from the captured :async_saved_try_ctx_var_<try_index>.
-AstNode* AwaitTransformer::RestoreSavedTryContext(Zone* zone,
-                                                  LocalScope* scope,
-                                                  int16_t try_index) {
-  LocalVariable* saved_try_ctx =
-      scope->LocalLookupVariable(Symbols::SavedTryContextVar());
-  ASSERT((saved_try_ctx != NULL) && !saved_try_ctx->is_captured());
-  const String& async_saved_try_ctx_name = String::ZoneHandle(zone,
-      Symbols::New(String::Handle(zone,
-          String::NewFormatted("%s%d",
-                               Symbols::AsyncSavedTryCtxVarPrefix().ToCString(),
-                               try_index))));
-  LocalVariable* async_saved_try_ctx =
-      scope->LocalLookupVariable(async_saved_try_ctx_name);
-  ASSERT(async_saved_try_ctx != NULL);
-  ASSERT(async_saved_try_ctx->is_captured());
-  return new (zone) StoreLocalNode(
-      Scanner::kNoSourcePos,
-      saved_try_ctx,
-      new (zone) LoadLocalNode(Scanner::kNoSourcePos, async_saved_try_ctx));
 }
 
 
@@ -236,17 +213,21 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   // If this expression is part of a try block, also append the code for
   // restoring the saved try context that lives on the stack and possibly the
   // saved try context of the outer try block.
-  if (node->try_scope() != NULL) {
-    preamble_->Add(RestoreSavedTryContext(Z,
-                                          node->try_scope(),
-                                          node->try_index()));
-    if (node->outer_try_scope() != NULL) {
-      preamble_->Add(RestoreSavedTryContext(Z,
-                                            node->outer_try_scope(),
-                                            node->outer_try_index()));
+  if (node->saved_try_ctx() != NULL) {
+    preamble_->Add(new (Z) StoreLocalNode(
+        Scanner::kNoSourcePos,
+        node->saved_try_ctx(),
+        new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+                              node->async_saved_try_ctx())));
+    if (node->outer_saved_try_ctx() != NULL) {
+      preamble_->Add(new (Z) StoreLocalNode(
+          Scanner::kNoSourcePos,
+          node->outer_saved_try_ctx(),
+          new (Z) LoadLocalNode(Scanner::kNoSourcePos,
+                                node->outer_async_saved_try_ctx())));
     }
   } else {
-    ASSERT(node->outer_try_scope() == NULL);
+    ASSERT(node->outer_saved_try_ctx() == NULL);
   }
 
   LoadLocalNode* load_error_param = new (Z) LoadLocalNode(
@@ -513,12 +494,13 @@ void AwaitTransformer::VisitStaticGetterNode(StaticGetterNode* node) {
   if (new_receiver != NULL) {
     new_receiver = Transform(new_receiver);
   }
-  LocalVariable* result = AddToPreambleNewTempVar(
+  StaticGetterNode* new_getter =
       new(Z) StaticGetterNode(node->token_pos(),
                               new_receiver,
-                              node->is_super_getter(),
                               node->cls(),
-                              node->field_name()));
+                              node->field_name());
+  new_getter->set_owner(node->owner());
+  LocalVariable* result = AddToPreambleNewTempVar(new_getter);
   result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
@@ -529,12 +511,20 @@ void AwaitTransformer::VisitStaticSetterNode(StaticSetterNode* node) {
     new_receiver = Transform(new_receiver);
   }
   AstNode* new_value = Transform(node->value());
-  LocalVariable* result = AddToPreambleNewTempVar(
-      new(Z) StaticSetterNode(node->token_pos(),
-                              new_receiver,
-                              node->cls(),
-                              node->field_name(),
-                              new_value));
+  StaticSetterNode* new_setter =
+      node->function().IsNull()
+      ? new(Z) StaticSetterNode(node->token_pos(),
+                                new_receiver,
+                                node->cls(),
+                                node->field_name(),
+                                new_value)
+      : new(Z) StaticSetterNode(node->token_pos(),
+                                new_receiver,
+                                node->field_name(),
+                                node->function(),
+                                new_value);
+
+  LocalVariable* result = AddToPreambleNewTempVar(new_setter);
   result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 

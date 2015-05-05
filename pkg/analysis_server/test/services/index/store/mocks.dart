@@ -16,7 +16,7 @@ class MockElementCodec extends TypedMock implements ElementCodec {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class MockLocation extends TypedMock implements Location {
+class MockLocation extends TypedMock implements LocationImpl {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

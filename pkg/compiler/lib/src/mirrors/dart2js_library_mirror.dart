@@ -163,6 +163,11 @@ class Dart2JsLibraryDependencyMirror implements LibraryDependencySourceMirror {
   }
 
   List<InstanceMirror> get metadata => const <InstanceMirror>[];
+
+  /*Future<LibraryMirror>*/ loadLibrary() {
+    throw new UnsupportedError(
+        'LibraryDependencyMirror.loadLibrary unsupported.');
+  }
 }
 
 class Dart2JsCombinatorMirror implements CombinatorSourceMirror {

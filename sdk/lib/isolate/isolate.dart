@@ -63,8 +63,6 @@ class Isolate {
   static const int IMMEDIATE = 0;
   /** Argument to `ping` and `kill`: Ask for action before the next event. */
   static const int BEFORE_NEXT_EVENT = 1;
-  /** Argument to `ping` and `kill`: Ask for action after normal events. */
-  static const int AS_EVENT = 2;
 
   /**
    * Control port used to send control messages to the isolate.
@@ -259,20 +257,26 @@ class Isolate {
   external void resume(Capability resumeCapability);
 
   /**
-   * Asks the isolate to send a message on [responsePort] when it terminates.
+   * Asks the isolate to send [response] on [responsePort] when it terminates.
    *
    * WARNING: This method is experimental and not handled on every platform yet.
    *
-   * The isolate will send a `null` message on [responsePort] as the last
+   * The isolate will send a `response` message on `responsePort` as the last
    * thing before it terminates. It will run no further code after the message
    * has been sent.
    *
+   * Adding the same port more than once will only cause it to receive one
+   * message, using the last response value that was added.
+   *
    * If the isolate is already dead, no message will be sent.
+   * If `response` cannot be sent to the isolate, then the request is ignored.
+   * It is recommended to only use simple values that can be sent to all
+   * isolates, like `null`, booleans, numbers or strings.
    */
   /* TODO(lrn): Can we do better? Can the system recognize this message and
    * send a reply if the receiving isolate is dead?
    */
-  external void addOnExitListener(SendPort responsePort);
+  external void addOnExitListener(SendPort responsePort, {Object response});
 
   /**
    * Stop listening on exit messages from the isolate.
@@ -308,8 +312,7 @@ class Isolate {
    * The isolate is requested to terminate itself.
    * The [priority] argument specifies when this must happen.
    *
-   * The [priority] must be one of [IMMEDIATE], [BEFORE_NEXT_EVENT] or
-   * [AS_EVENT].
+   * The [priority] must be one of [IMMEDIATE] or [BEFORE_NEXT_EVENT].
    * The shutdown is performed at different times depending on the priority:
    *
    * * `IMMEDIATE`: The the isolate shuts down as soon as possible.
@@ -323,44 +326,35 @@ class Isolate {
    *     control returns to the event loop of the receiving isolate,
    *     after the current event, and any already scheduled control events,
    *     are completed.
-   * * `AS_EVENT`: The shutdown does not happen until all prevously sent
-   *     non-control messages from the current isolate to the receiving isolate
-   *     have been processed.
-   *     The kill operation effectively puts the shutdown into the normal event
-   *     queue after previously sent messages, and it is affected by any control
-   *     messages that affect normal events, including `pause`.
-   *     This can be used to wait for a another event to be processed.
    */
-  external void kill([int priority = BEFORE_NEXT_EVENT]);
+  external void kill({int priority: BEFORE_NEXT_EVENT});
 
   /**
-   * Request that the isolate send a response on the [responsePort].
+   * Request that the isolate send [response] on the [responsePort].
    *
    * WARNING: This method is experimental and not handled on every platform yet.
    *
-   * If the isolate is alive, it will eventually send a `null` response on
-   * the response port.
+   * If the isolate is alive, it will eventually send `response`
+   * (defaulting to `null`) on the response port.
    *
-   * The [pingType] must be one of [IMMEDIATE], [BEFORE_NEXT_EVENT] or
-   * [AS_EVENT].
+   * The [priority] must be one of [IMMEDIATE] or [BEFORE_NEXT_EVENT].
    * The response is sent at different times depending on the ping type:
    *
    * * `IMMEDIATE`: The the isolate responds as soon as it receives the
    *     control message. This is after any previous control message
-   *     from the same isolate has been received.
+   *     from the same isolate has been received, but may be during
+   *     execution of another event.
    * * `BEFORE_NEXT_EVENT`: The response is scheduled for the next time
    *     control returns to the event loop of the receiving isolate,
    *     after the current event, and any already scheduled control events,
    *     are completed.
-   * * `AS_EVENT`: The response is not sent until all prevously sent
-   *     non-control messages from the current isolate to the receiving isolate
-   *     have been processed.
-   *     The ping effectively puts the response into the normal event queue
-   *     after previously sent messages, and it is affected by any control
-   *     messages that affect normal events, including `pause`.
-   *     This can be used to wait for a another event to be processed.
+   *
+   * If `response` cannot be sent to the isolate, then the request is ignored.
+   * It is recommended to only use simple values that can be sent to all
+   * isolates, like `null`, booleans, numbers or strings.
    */
-  external void ping(SendPort responsePort, [int pingType = IMMEDIATE]);
+  external void ping(SendPort responsePort, {Object response,
+                                             int priority: IMMEDIATE});
 
   /**
    * Requests that uncaught errors of the isolate are sent back to [port].
@@ -372,6 +366,7 @@ class Isolate {
    * created by calling `toString` on the error.
    * The second element is a `String` representation of an accompanying
    * stack trace, or `null` if no stack trace was provided.
+   * To convert this back to a [StackTrace] object, use [StackTrace.fromString].
    *
    * Listening using the same port more than once does nothing. It will only
    * get each error once.
@@ -607,12 +602,6 @@ class RemoteError implements Error {
   final StackTrace stackTrace;
   RemoteError(String description, String stackDescription)
       : _description = description,
-        stackTrace = new _RemoteStackTrace(stackDescription);
+        stackTrace = new StackTrace.fromString(stackDescription);
   String toString() => _description;
-}
-
-class _RemoteStackTrace implements StackTrace {
-  String _trace;
-  _RemoteStackTrace(this._trace);
-  String toString() => _trace;
 }

@@ -1,30 +1,32 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile-all --error_on_bad_type --error_on_bad_override --checked
+// VMOptions=--compile-all --error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 import 'dart:async';
 
-void helper(i) {
-  print(i);
+int counter = 0;
+
+void periodicTask(_) {
+  counter++;
+  counter++;  // Line 15.  We set our breakpoint here.
+  counter++;
+  if (counter % 300 == 0) {
+    print('counter = $counter');
+  }
 }
 
-void testFunction() {
-  int i = 0;
-  while (true) {
-    if (++i % 100000000 == 0) {
-      helper(i);  // line 18
-    }
-  }
+void startTimer() {
+  new Timer.periodic(const Duration(milliseconds:10), periodicTask);
 }
 
 var tests = [
 
 // Pause
-(Isolate isolate) {
+(Isolate isolate) async {
   Completer completer = new Completer();
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
@@ -34,11 +36,11 @@ var tests = [
     }
   });
   isolate.pause();
-  return completer.future;
+  await completer.future;
 },
 
 // Resume
-(Isolate isolate) {
+(Isolate isolate) async {
   Completer completer = new Completer();
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
@@ -48,49 +50,13 @@ var tests = [
     }
   });
   isolate.resume();
-  return completer.future;
+  await completer.future;
 },
 
 // Add breakpoint
-(Isolate isolate) {
-  return isolate.rootLib.load().then((_) {
-      // Set up a listener to wait for breakpoint events.
-      Completer completer = new Completer();
-      var subscription;
-      subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-        if (event.eventType == ServiceEvent.kPauseBreakpoint) {
-          print('Breakpoint reached');
-          subscription.cancel();
-          completer.complete();
-        }
-      });
+(Isolate isolate) async {
+  await isolate.rootLib.load();
 
-      // Add the breakpoint.
-      var script = isolate.rootLib.scripts[0];
-      return isolate.addBreakpoint(script, 18).then((result) {
-          expect(result is Breakpoint, isTrue);
-          Breakpoint bpt = result;
-          expect(bpt.type, equals('Breakpoint'));
-          expect(bpt.script.id, equals(script.id));
-          expect(bpt.tokenPos, equals(58));
-          expect(isolate.breakpoints.length, equals(1));
-          return completer.future;  // Wait for breakpoint events.
-      });
-    });
-},
-
-// Get the stack trace
-(Isolate isolate) {
-  return isolate.getStack().then((ServiceMap stack) {
-      expect(stack.type, equals('Stack'));
-      expect(stack['frames'].length, greaterThanOrEqualTo(1));
-      expect(stack['frames'][0]['function'].name, equals('testFunction'));
-      expect(stack['frames'][0]['tokenPos'], equals(58));
-  });
-},
-
-// Stepping
-(Isolate isolate) {
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
   var subscription;
@@ -102,23 +68,62 @@ var tests = [
     }
   });
 
-  return isolate.stepInto().then((isolate) {
-    return completer.future;  // Wait for breakpoint events.
-  });
+  var script = isolate.rootLib.scripts[0];
+  await script.load();
+
+  // Add the breakpoint.
+  var result = await isolate.addBreakpoint(script, 15);
+  expect(result is Breakpoint, isTrue);
+  Breakpoint bpt = result;
+  expect(bpt.type, equals('Breakpoint'));
+  expect(bpt.script.id, equals(script.id));
+  expect(bpt.script.tokenToLine(bpt.tokenPos), equals(15));
+  expect(isolate.breakpoints.length, equals(1));
+
+  await completer.future;  // Wait for breakpoint events.
 },
 
-// Get the stack trace again.  Our position has updated.
-(Isolate isolate) {
-  return isolate.getStack().then((ServiceMap stack) {
-      expect(stack.type, equals('Stack'));
-      expect(stack['frames'].length, greaterThanOrEqualTo(2));
-      expect(stack['frames'][0]['function'].name, equals('testFunction'));
-      expect(stack['frames'][0]['tokenPos'], equals(60));
+// We are at the breakpoint on line 15.
+(Isolate isolate) async {
+  ServiceMap stack = await isolate.getStack();
+  expect(stack.type, equals('Stack'));
+  expect(stack['frames'].length, greaterThanOrEqualTo(1));
+
+  Script script = stack['frames'][0]['script'];
+  expect(script.name,endsWith('debugging_test.dart'));
+  expect(script.tokenToLine(stack['frames'][0]['tokenPos']), equals(15));
+},
+
+// Stepping
+(Isolate isolate) async {
+  // Set up a listener to wait for breakpoint events.
+  Completer completer = new Completer();
+  var subscription;
+  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
+    if (event.eventType == ServiceEvent.kPauseBreakpoint) {
+      print('Breakpoint reached');
+      subscription.cancel();
+      completer.complete();
+    }
   });
+
+  await isolate.stepOver();
+  await completer.future;  // Wait for breakpoint events.
+},
+
+// We are now at line 16.
+(Isolate isolate) async {
+  ServiceMap stack = await isolate.getStack();
+  expect(stack.type, equals('Stack'));
+  expect(stack['frames'].length, greaterThanOrEqualTo(1));
+
+  Script script = stack['frames'][0]['script'];
+  expect(script.name,endsWith('debugging_test.dart'));
+  expect(script.tokenToLine(stack['frames'][0]['tokenPos']), equals(16));
 },
 
 // Remove breakpoint
-(Isolate isolate) {
+(Isolate isolate) async {
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
   var subscription;
@@ -133,13 +138,12 @@ var tests = [
 
   expect(isolate.breakpoints.length, equals(1));
   var bpt = isolate.breakpoints.values.first;
-  return isolate.removeBreakpoint(bpt).then((_) {
-    return completer.future;
-  });
+  await isolate.removeBreakpoint(bpt);
+  await completer.future;
 },
 
 // Resume
-(Isolate isolate) {
+(Isolate isolate) async {
   Completer completer = new Completer();
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
@@ -149,11 +153,11 @@ var tests = [
     }
   });
   isolate.resume();
-  return completer.future;
+  await completer.future;
 },
 
 // Add breakpoint at function entry
-(Isolate isolate) {
+(Isolate isolate) async {
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
   var subscription;
@@ -167,21 +171,32 @@ var tests = [
 
   // Find a specific function.
   ServiceFunction function = isolate.rootLib.functions.firstWhere(
-      (f) => f.name == 'helper');
+      (f) => f.name == 'periodicTask');
   expect(function, isNotNull);
 
   // Add the breakpoint at function entry
-  return isolate.addBreakpointAtEntry(function).then((result) {
-    expect(result is Breakpoint, isTrue);
-    Breakpoint bpt = result;
-    expect(bpt.type, equals('Breakpoint'));
-    expect(bpt.script.name, equals('debugging_test.dart'));
-    expect(bpt.tokenPos, equals(29));
-    expect(isolate.breakpoints.length, equals(1));
-    return completer.future;  // Wait for breakpoint events.
-  });
+  var result = await isolate.addBreakpointAtEntry(function);
+  expect(result is Breakpoint, isTrue);
+  Breakpoint bpt = result;
+  expect(bpt.type, equals('Breakpoint'));
+  expect(bpt.script.name, equals('debugging_test.dart'));
+  expect(bpt.script.tokenToLine(bpt.tokenPos), equals(14));
+  expect(isolate.breakpoints.length, equals(1));
+
+  await completer.future;  // Wait for breakpoint events.
+},
+
+// We are now at line 14.
+(Isolate isolate) async {
+  ServiceMap stack = await isolate.getStack();
+  expect(stack.type, equals('Stack'));
+  expect(stack['frames'].length, greaterThanOrEqualTo(1));
+
+  Script script = stack['frames'][0]['script'];
+  expect(script.name,endsWith('debugging_test.dart'));
+  expect(script.tokenToLine(stack['frames'][0]['tokenPos']), equals(14));
 },
 
 ];
 
-main(args) => runIsolateTests(args, tests, testeeConcurrent: testFunction);
+main(args) => runIsolateTests(args, tests, testeeBefore: startTimer);

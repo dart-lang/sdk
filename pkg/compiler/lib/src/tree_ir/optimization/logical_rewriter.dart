@@ -312,7 +312,7 @@ class LogicalRewriter extends RecursiveTransformer
       // !true ==> false
       if (!polarity) {
         values.BoolConstantValue value = e.value;
-        return new Constant.primitive(value.negate());
+        return new Constant.bool(value.negate());
       }
       return e;
     }
@@ -343,6 +343,5 @@ class LogicalRewriter extends RecursiveTransformer
       return new LogicalOperator.or(e1, e2);
     }
   }
-
 }
 

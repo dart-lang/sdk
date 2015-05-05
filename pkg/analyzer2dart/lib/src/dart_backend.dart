@@ -4,10 +4,12 @@
 
 library analyzer2dart.dart_backend;
 
-import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/constant_system_dart.dart';
+import 'package:compiler/src/constants/constant_system.dart';
 import 'package:compiler/src/dart_backend/dart_backend.dart';
 import 'package:compiler/src/dart2jslib.dart';
 import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/elements.dart';
 
 import 'driver.dart';
 import 'converted_world.dart';

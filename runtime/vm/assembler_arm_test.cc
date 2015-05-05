@@ -1807,12 +1807,14 @@ ASSEMBLER_TEST_RUN(IntDiv_supported, test) {
 
 ASSEMBLER_TEST_GENERATE(IntDiv_unsupported, assembler) {
 #if defined(USING_SIMULATOR)
-  bool orig = TargetCPUFeatures::integer_division_supported();
-  HostCPUFeatures::set_integer_division_supported(false);
-  __ mov(R0, Operand(27));
-  __ mov(R1, Operand(9));
-  __ IntegerDivide(R0, R0, R1, D0, D1);
-  HostCPUFeatures::set_integer_division_supported(orig);
+  if (TargetCPUFeatures::can_divide()) {
+    bool orig = TargetCPUFeatures::integer_division_supported();
+    HostCPUFeatures::set_integer_division_supported(false);
+    __ mov(R0, Operand(27));
+    __ mov(R1, Operand(9));
+    __ IntegerDivide(R0, R0, R1, D0, D1);
+    HostCPUFeatures::set_integer_division_supported(orig);
+  }
   __ bx(LR);
 #else
   if (TargetCPUFeatures::can_divide()) {

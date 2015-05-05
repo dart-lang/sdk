@@ -8,13 +8,13 @@ import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:path/path.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
 main() {
-  runReflectiveTests(AnalysisGetHoverIntegrationTest);
+  defineReflectiveTests(AnalysisGetHoverIntegrationTest);
 }
 
 @reflectiveTest

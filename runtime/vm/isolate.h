@@ -421,7 +421,7 @@ class Isolate : public BaseIsolate {
   bool AddResumeCapability(const Capability& capability);
   bool RemoveResumeCapability(const Capability& capability);
 
-  void AddExitListener(const SendPort& listener);
+  void AddExitListener(const SendPort& listener, const Instance& response);
   void RemoveExitListener(const SendPort& listener);
   void NotifyExitListeners();
 
@@ -669,6 +669,9 @@ class Isolate : public BaseIsolate {
 
   Counters* counters() { return &counters_; }
 
+  // Handle service messages until we are told to resume execution.
+  void PauseEventHandler();
+
  private:
   Isolate();
   explicit Isolate(Isolate* original);
@@ -774,6 +777,9 @@ class Isolate : public BaseIsolate {
   // Isolate list next pointer.
   Isolate* next_;
 
+  // Used to wake the isolate when it is in the pause event loop.
+  Monitor* pause_loop_monitor_;
+
   // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object)                                         \
   object* object##_handle_;
@@ -804,6 +810,8 @@ class Isolate : public BaseIsolate {
   static Dart_FileCloseCallback file_close_callback_;
   static Dart_EntropySource entropy_source_callback_;
   static Dart_IsolateInterruptCallback vmstats_callback_;
+
+  static void WakePauseEventHandler(Dart_Isolate isolate);
 
   // Manage list of existing isolates.
   static void AddIsolateTolist(Isolate* isolate);

@@ -165,12 +165,6 @@ main() {
 
   const Group('Top level field', const <TestSpec>[
     const TestSpec('''
-main(args) {
-  return deprecated;
-}
-'''),
-
-    const TestSpec('''
 var field;
 main(args) {
   return field;
@@ -285,8 +279,7 @@ main(a) {
 }
 ''', '''
 main(a) {
-  a = a ? "" : a;
-  print(a);
+  print(a = a ? "" : a);
   return a;
 }
 '''),
@@ -332,120 +325,120 @@ main() {
 
   const Group('Binary expressions', const <TestSpec>[
     const TestSpec('''
-main(a) {
-  return a + deprecated;
+main(a, b) {
+  return a + b;
 }
 '''),
 
     const TestSpec('''
-main(a) {
-  return a - deprecated;
+main(a, b) {
+  return a - b;
 }
 '''),
 
     const TestSpec('''
-main(a) {
-  return a * deprecated;
+main(a, b) {
+  return a * b;
 }
 '''),
 
     const TestSpec('''
-main(a) {
-  return a / deprecated;
+main(a, b) {
+  return a / b;
 }
 '''),
 
     const TestSpec('''
-main(a) {
-  return a ~/ deprecated;
+main(a, b) {
+  return a ~/ b;
 }
 '''),
 
     const TestSpec('''
-main(a) {
-  return a % deprecated;
+main(a, b) {
+  return a % b;
 }
 '''),
 
     const TestSpec('''
-main(a) {
-  return a < deprecated;
+main(a, b) {
+  return a < b;
 }
 '''),
 
     const TestSpec('''
-main(a) {
-  return a <= deprecated;
+main(a, b) {
+  return a <= b;
 }
 '''),
 
     const TestSpec('''
-main(a) {
-  return a > deprecated;
+main(a, b) {
+  return a > b;
 }
 '''),
 
     const TestSpec('''
-main(a) {
-  return a >= deprecated;
+main(a, b) {
+  return a >= b;
 }
 '''),
 
     const TestSpec('''
-main(a) {
-  return a << deprecated;
+main(a, b) {
+  return a << b;
 }
 '''),
 
     const TestSpec('''
-main(a) {
-  return a >> deprecated;
+main(a, b) {
+  return a >> b;
 }
 '''),
 
     const TestSpec('''
-main(a) {
-  return a & deprecated;
+main(a, b) {
+  return a & b;
 }
 '''),
 
     const TestSpec('''
-main(a) {
-  return a | deprecated;
+main(a, b) {
+  return a | b;
 }
 '''),
 
     const TestSpec('''
-main(a) {
-  return a ^ deprecated;
+main(a, b) {
+  return a ^ b;
 }
 '''),
 
     const TestSpec('''
-main(a) {
-  return a == deprecated;
+main(a, b) {
+  return a == b;
 }
 '''),
 
     const TestSpec('''
-main(a) {
-  return a != deprecated;
+main(a, b) {
+  return a != b;
 }
 ''','''
-main(a) {
-  return !(a == deprecated);
+main(a, b) {
+  return !(a == b);
 }
 '''),
 
     const TestSpec('''
-main(a) {
-  return a && deprecated;
+main(a, b) {
+  return a && b;
 }
 '''),
 
     const TestSpec('''
-main(a) {
-  return a || deprecated;
+main(a, b) {
+  return a || b;
 }
 '''),
   ]),

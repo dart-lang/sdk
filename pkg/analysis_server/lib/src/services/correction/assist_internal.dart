@@ -6,6 +6,8 @@ library services.src.correction.assist;
 
 import 'dart:collection';
 
+import 'package:analysis_server/edit/assist/assist_core.dart';
+import 'package:analysis_server/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
@@ -28,8 +30,8 @@ typedef _SimpleIdentifierVisitor(SimpleIdentifier node);
  * The computer for Dart assists.
  */
 class AssistProcessor {
-  final Source source;
-  final String file;
+  Source source;
+  String file;
   int fileStamp;
   final CompilationUnit unit;
   final int selectionOffset;
@@ -51,8 +53,9 @@ class AssistProcessor {
 
   SourceChange change = new SourceChange('<message>');
 
-  AssistProcessor(this.source, this.file, this.unit, this.selectionOffset,
-      this.selectionLength) {
+  AssistProcessor(this.unit, this.selectionOffset, this.selectionLength) {
+    source = unit.element.source;
+    file = source.fullName;
     unitElement = unit.element;
     context = unitElement.context;
     unitLibraryElement = unitElement.library;
@@ -219,7 +222,7 @@ class AssistProcessor {
       _addInsertEdit(declaredIdentifier.identifier.offset, '$typeSource ');
     }
     // add proposal
-    _addAssist(AssistKind.ADD_TYPE_ANNOTATION, []);
+    _addAssist(DartAssistKind.ADD_TYPE_ANNOTATION, []);
   }
 
   void _addProposal_addTypeAnnotation_SimpleFormalParameter() {
@@ -262,7 +265,7 @@ class AssistProcessor {
     // add edit
     _addInsertEdit(name.offset, '$typeSource ');
     // add proposal
-    _addAssist(AssistKind.ADD_TYPE_ANNOTATION, []);
+    _addAssist(DartAssistKind.ADD_TYPE_ANNOTATION, []);
   }
 
   void _addProposal_addTypeAnnotation_VariableDeclaration() {
@@ -322,7 +325,7 @@ class AssistProcessor {
       _addInsertEdit(variable.offset, '$typeSource ');
     }
     // add proposal
-    _addAssist(AssistKind.ADD_TYPE_ANNOTATION, []);
+    _addAssist(DartAssistKind.ADD_TYPE_ANNOTATION, []);
   }
 
   void _addProposal_assignToLocalVariable() {
@@ -384,7 +387,7 @@ class AssistProcessor {
     builder.append(' = ');
     // add proposal
     _insertBuilder(builder);
-    _addAssist(AssistKind.ASSIGN_TO_LOCAL_VARIABLE, []);
+    _addAssist(DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE, []);
   }
 
   void _addProposal_convertToBlockFunctionBody() {
@@ -403,7 +406,7 @@ class AssistProcessor {
     String newBodySource = '{$eol$prefix$indent$returnSource;$eol$prefix}';
     _addReplaceEdit(rangeNode(body), newBodySource);
     // add proposal
-    _addAssist(AssistKind.CONVERT_INTO_BLOCK_BODY, []);
+    _addAssist(DartAssistKind.CONVERT_INTO_BLOCK_BODY, []);
   }
 
   void _addProposal_convertToExpressionFunctionBody() {
@@ -438,7 +441,7 @@ class AssistProcessor {
     }
     _addReplaceEdit(rangeNode(body), newBodySource);
     // add proposal
-    _addAssist(AssistKind.CONVERT_INTO_EXPRESSION_BODY, []);
+    _addAssist(DartAssistKind.CONVERT_INTO_EXPRESSION_BODY, []);
   }
 
   void _addProposal_convertToForIndexLoop() {
@@ -513,7 +516,7 @@ class AssistProcessor {
     _addInsertEdit(firstBlockLine,
         '$prefix$indent$loopVariable = $listName[$indexName];$eol');
     // add proposal
-    _addAssist(AssistKind.CONVERT_INTO_FOR_INDEX, []);
+    _addAssist(DartAssistKind.CONVERT_INTO_FOR_INDEX, []);
   }
 
   void _addProposal_convertToIsNot_onIs() {
@@ -562,7 +565,7 @@ class AssistProcessor {
     }
     _addInsertEdit(isExpression.isOperator.end, '!');
     // add proposal
-    _addAssist(AssistKind.CONVERT_INTO_IS_NOT, []);
+    _addAssist(DartAssistKind.CONVERT_INTO_IS_NOT, []);
   }
 
   void _addProposal_convertToIsNot_onNot() {
@@ -611,7 +614,7 @@ class AssistProcessor {
     }
     _addInsertEdit(isExpression.isOperator.end, '!');
     // add proposal
-    _addAssist(AssistKind.CONVERT_INTO_IS_NOT, []);
+    _addAssist(DartAssistKind.CONVERT_INTO_IS_NOT, []);
   }
 
   /**
@@ -668,7 +671,7 @@ class AssistProcessor {
     _addRemoveEdit(rangeStartStart(prefixExpression, prefixExpression.operand));
     _addReplaceEdit(rangeNode(isEmptyIdentifier), 'isNotEmpty');
     // add proposal
-    _addAssist(AssistKind.CONVERT_INTO_IS_NOT_EMPTY, []);
+    _addAssist(DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY, []);
   }
 
   void _addProposal_encapsulateField() {
@@ -741,7 +744,7 @@ class AssistProcessor {
         '  }';
     _addInsertEdit(fieldDeclaraton.end, getterCode + setterCode);
     // add proposal
-    _addAssist(AssistKind.ENCAPSULATE_FIELD, []);
+    _addAssist(DartAssistKind.ENCAPSULATE_FIELD, []);
   }
 
   void _addProposal_exchangeOperands() {
@@ -799,7 +802,7 @@ class AssistProcessor {
       }
     }
     // add proposal
-    _addAssist(AssistKind.EXCHANGE_OPERANDS, []);
+    _addAssist(DartAssistKind.EXCHANGE_OPERANDS, []);
   }
 
   void _addProposal_importAddShow() {
@@ -841,7 +844,7 @@ class AssistProcessor {
     String showCombinator = ' show ${StringUtils.join(referencedNames, ', ')}';
     _addInsertEdit(importDirective.end - 1, showCombinator);
     // add proposal
-    _addAssist(AssistKind.IMPORT_ADD_SHOW, []);
+    _addAssist(DartAssistKind.IMPORT_ADD_SHOW, []);
   }
 
   void _addProposal_introduceLocalTestedType() {
@@ -919,7 +922,7 @@ class AssistProcessor {
     builder.setExitOffset();
     // add proposal
     _insertBuilder(builder);
-    _addAssist(AssistKind.INTRODUCE_LOCAL_CAST_TYPE, []);
+    _addAssist(DartAssistKind.INTRODUCE_LOCAL_CAST_TYPE, []);
   }
 
   void _addProposal_invertIf() {
@@ -943,7 +946,7 @@ class AssistProcessor {
     _addReplaceEdit(rangeNode(thenStatement), elseSource);
     _addReplaceEdit(rangeNode(elseStatement), thenSource);
     // add proposal
-    _addAssist(AssistKind.INVERT_IF_STATEMENT, []);
+    _addAssist(DartAssistKind.INVERT_IF_STATEMENT, []);
   }
 
   void _addProposal_joinIfStatementInner() {
@@ -1003,7 +1006,7 @@ class AssistProcessor {
           'if ($condition) {$eol$newSource$prefix}');
     }
     // done
-    _addAssist(AssistKind.JOIN_IF_WITH_INNER, []);
+    _addAssist(DartAssistKind.JOIN_IF_WITH_INNER, []);
   }
 
   void _addProposal_joinIfStatementOuter() {
@@ -1065,7 +1068,7 @@ class AssistProcessor {
           'if ($condition) {$eol$newSource$prefix}');
     }
     // done
-    _addAssist(AssistKind.JOIN_IF_WITH_OUTER, []);
+    _addAssist(DartAssistKind.JOIN_IF_WITH_OUTER, []);
   }
 
   void _addProposal_joinVariableDeclaration_onAssignment() {
@@ -1135,7 +1138,7 @@ class AssistProcessor {
       _addReplaceEdit(rangeEndStart(declNode, assignOffset), ' ');
     }
     // add proposal
-    _addAssist(AssistKind.JOIN_VARIABLE_DECLARATION, []);
+    _addAssist(DartAssistKind.JOIN_VARIABLE_DECLARATION, []);
   }
 
   void _addProposal_joinVariableDeclaration_onDeclaration() {
@@ -1197,7 +1200,7 @@ class AssistProcessor {
       _addReplaceEdit(rangeEndStart(decl.name, assignOffset), ' ');
     }
     // add proposal
-    _addAssist(AssistKind.JOIN_VARIABLE_DECLARATION, []);
+    _addAssist(DartAssistKind.JOIN_VARIABLE_DECLARATION, []);
   }
 
   void _addProposal_removeTypeAnnotation() {
@@ -1246,7 +1249,7 @@ class AssistProcessor {
       _addReplaceEdit(typeRange, 'var ');
     }
     // add proposal
-    _addAssist(AssistKind.REMOVE_TYPE_ANNOTATION, []);
+    _addAssist(DartAssistKind.REMOVE_TYPE_ANNOTATION, []);
   }
 
   void _addProposal_replaceConditionalWithIfElse() {
@@ -1343,7 +1346,7 @@ class AssistProcessor {
       _addReplaceEdit(rangeNode(statement), src);
     }
     // add proposal
-    _addAssist(AssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE, []);
+    _addAssist(DartAssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE, []);
   }
 
   void _addProposal_replaceIfElseWithConditional() {
@@ -1391,7 +1394,7 @@ class AssistProcessor {
       }
     }
     // add proposal
-    _addAssist(AssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL, []);
+    _addAssist(DartAssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL, []);
   }
 
   void _addProposal_splitAndCondition() {
@@ -1480,7 +1483,7 @@ class AssistProcessor {
       _addIndentEdit(linesRange, thenIndentOld, thenIndentNew);
     }
     // add proposal
-    _addAssist(AssistKind.SPLIT_AND_CONDITION, []);
+    _addAssist(DartAssistKind.SPLIT_AND_CONDITION, []);
   }
 
   void _addProposal_splitVariableDeclaration() {
@@ -1513,7 +1516,7 @@ class AssistProcessor {
     SourceRange assignRange = rangeEndLength(statement, 0);
     _addReplaceEdit(assignRange, eol + indent + name + ' = ' + initSrc + ';');
     // add proposal
-    _addAssist(AssistKind.SPLIT_VARIABLE_DECLARATION, []);
+    _addAssist(DartAssistKind.SPLIT_VARIABLE_DECLARATION, []);
   }
 
   void _addProposal_surroundWith() {
@@ -1556,7 +1559,7 @@ class AssistProcessor {
       _addInsertEdit(statementsRange.end, '$indentOld}$eol');
       exitPosition = _newPosition(lastStatement.end);
       // add proposal
-      _addAssist(AssistKind.SURROUND_WITH_BLOCK, []);
+      _addAssist(DartAssistKind.SURROUND_WITH_BLOCK, []);
     }
     // "if"
     {
@@ -1578,7 +1581,7 @@ class AssistProcessor {
       sb.append(eol);
       _insertBuilder(sb, statementsRange.length);
       // add proposal
-      _addAssist(AssistKind.SURROUND_WITH_IF, []);
+      _addAssist(DartAssistKind.SURROUND_WITH_IF, []);
     }
     // "while"
     {
@@ -1600,7 +1603,7 @@ class AssistProcessor {
       sb.append(eol);
       _insertBuilder(sb, statementsRange.length);
       // add proposal
-      _addAssist(AssistKind.SURROUND_WITH_WHILE, []);
+      _addAssist(DartAssistKind.SURROUND_WITH_WHILE, []);
     }
     // "for-in"
     {
@@ -1628,7 +1631,7 @@ class AssistProcessor {
       sb.append(eol);
       _insertBuilder(sb, statementsRange.length);
       // add proposal
-      _addAssist(AssistKind.SURROUND_WITH_FOR_IN, []);
+      _addAssist(DartAssistKind.SURROUND_WITH_FOR_IN, []);
     }
     // "for"
     {
@@ -1668,7 +1671,7 @@ class AssistProcessor {
       sb.append(eol);
       _insertBuilder(sb, statementsRange.length);
       // add proposal
-      _addAssist(AssistKind.SURROUND_WITH_FOR, []);
+      _addAssist(DartAssistKind.SURROUND_WITH_FOR, []);
     }
     // "do-while"
     {
@@ -1690,7 +1693,7 @@ class AssistProcessor {
       sb.append(eol);
       _insertBuilder(sb, statementsRange.length);
       // add proposal
-      _addAssist(AssistKind.SURROUND_WITH_DO_WHILE, []);
+      _addAssist(DartAssistKind.SURROUND_WITH_DO_WHILE, []);
     }
     // "try-catch"
     {
@@ -1730,7 +1733,7 @@ class AssistProcessor {
       sb.append(eol);
       _insertBuilder(sb, statementsRange.length);
       // add proposal
-      _addAssist(AssistKind.SURROUND_WITH_TRY_CATCH, []);
+      _addAssist(DartAssistKind.SURROUND_WITH_TRY_CATCH, []);
     }
     // "try-finally"
     {
@@ -1763,7 +1766,7 @@ class AssistProcessor {
       //
       _insertBuilder(sb, statementsRange.length);
       // add proposal
-      _addAssist(AssistKind.SURROUND_WITH_TRY_FINALLY, []);
+      _addAssist(DartAssistKind.SURROUND_WITH_TRY_FINALLY, []);
     }
   }
 
@@ -1901,6 +1904,18 @@ class AssistProcessor {
       return precedence < TokenClass.LOGICAL_AND_OPERATOR.precedence;
     }
     return false;
+  }
+}
+
+/**
+ * An [AssistContributor] that provides the default set of assists.
+ */
+class DefaultAssistContributor extends DartAssistContributor {
+  @override
+  List<Assist> internalComputeAssists(
+      CompilationUnit unit, int offset, int length) {
+    AssistProcessor processor = new AssistProcessor(unit, offset, length);
+    return processor.compute();
   }
 }
 

@@ -55,9 +55,9 @@ class CodeViewElement extends ObservatoryElement {
     }
     code.load().then((Code c) {
       c.loadScript();
+      _updateDisassembly();
+      _updateInline();
     });
-    _updateDisassembly();
-    _updateInline();
   }
 
   void refresh(var done) {
@@ -234,7 +234,6 @@ class CodeViewElement extends ObservatoryElement {
   }
 
   void _updateDisassembly() {
-    notifyPropertyChange(#code, true, false);
     _updateDiasssemblyTable();
     _updateDisassemblyDOMTable();
   }

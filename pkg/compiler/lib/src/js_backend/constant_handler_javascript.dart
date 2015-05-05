@@ -41,11 +41,14 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
     });
   }
 
-  ConstantExpression compileNode(Node node, TreeElements elements) {
+  ConstantExpression compileNode(Node node, TreeElements elements,
+                                 {bool enforceConst: true}) {
     return measure(() {
       ConstantExpression result =
-          dartConstantCompiler.compileNode(node, elements);
-      jsConstantCompiler.compileNode(node, elements);
+          dartConstantCompiler.compileNode(node, elements,
+                                           enforceConst: enforceConst);
+      jsConstantCompiler.compileNode(node, elements,
+          enforceConst: enforceConst);
       return result;
     });
   }
@@ -163,8 +166,9 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     return initialValue;
   }
 
-  ConstantExpression compileNode(Node node, TreeElements elements) {
-    return compileNodeWithDefinitions(node, elements);
+  ConstantExpression compileNode(Node node, TreeElements elements,
+                                 {bool enforceConst: true}) {
+    return compileNodeWithDefinitions(node, elements, isConst: enforceConst);
   }
 
   ConstantExpression compileNodeWithDefinitions(Node node,
@@ -213,19 +217,18 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
 
   void forgetElement(Element element) {
     super.forgetElement(element);
-    element.accept(new ForgetConstantElementVisitor(this));
+    const ForgetConstantElementVisitor().visit(element, this);
     if (element is AstElement && element.hasNode) {
       element.node.accept(new ForgetConstantNodeVisitor(this));
     }
   }
 }
 
-class ForgetConstantElementVisitor extends ElementVisitor {
-  final JavaScriptConstantCompiler constants;
+class ForgetConstantElementVisitor
+    extends BaseElementVisitor<dynamic, JavaScriptConstantCompiler> {
+  const ForgetConstantElementVisitor();
 
-  ForgetConstantElementVisitor(this.constants);
-
-  void visitElement(Element e) {
+  void visitElement(Element e, JavaScriptConstantCompiler constants) {
     for (MetadataAnnotation data in e.metadata) {
       constants.metadataConstantMap.remove(data);
       if (data.hasNode) {
@@ -234,10 +237,11 @@ class ForgetConstantElementVisitor extends ElementVisitor {
     }
   }
 
-  void visitFunctionElement(FunctionElement e) {
-    super.visitFunctionElement(e);
+  void visitFunctionElement(FunctionElement e,
+                            JavaScriptConstantCompiler constants) {
+    super.visitFunctionElement(e, constants);
     if (e.hasFunctionSignature) {
-      e.functionSignature.forEachParameter(this.visit);
+      e.functionSignature.forEachParameter((p) => visit(p, constants));
     }
   }
 }

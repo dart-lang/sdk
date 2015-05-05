@@ -45,6 +45,7 @@
 # ......math/
 # ......mirrors/
 # ......typed_data/
+# ......api_readme.md
 # ....util/
 # ......(more will come here)
 
@@ -260,6 +261,7 @@ def Main():
       f.close()
 
   Copy(join(HOME, 'README.dart-sdk'), join(SDK_tmp, 'README'))
+  Copy(join(HOME, 'sdk', 'api_readme.md'), join(SDK_tmp, 'lib', 'api_readme.md'))
 
   move(SDK_tmp, SDK)
 

@@ -158,11 +158,25 @@ UNIT_TEST_CASE(MessageHandler_HasOOBMessages) {
   Message* message = new Message(1, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message);
   EXPECT(!handler.HasOOBMessages());
+  {
+    // Acquire ownership of message handler queues, verify one regular message.
+    MessageHandler::AcquiredQueues aq;
+    handler.AcquireQueues(&aq);
+    EXPECT(aq.queue()->Length() == 1);
+  }
 
   // Post an oob message.
   message = new Message(1, NULL, 0, Message::kOOBPriority);
   handler_peer.PostMessage(message);
   EXPECT(handler.HasOOBMessages());
+  {
+    // Acquire ownership of message handler queues, verify one regular and one
+    // OOB message.
+    MessageHandler::AcquiredQueues aq;
+    handler.AcquireQueues(&aq);
+    EXPECT(aq.queue()->Length() == 1);
+    EXPECT(aq.oob_queue()->Length() == 1);
+  }
 
   // Delete all pending messages.
   handler_peer.CloseAllPorts();

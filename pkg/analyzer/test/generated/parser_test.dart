@@ -485,10 +485,6 @@ class C {
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
         BinaryExpression, expression.leftOperand);
   }
-
-  void test_topLevelVariable_withMetadata() {
-    ParserTestCase.parseCompilationUnit("String @A string;");
-  }
 }
 
 /**
@@ -1899,6 +1895,14 @@ class Foo {
         [ParserErrorCode.TOP_LEVEL_OPERATOR]);
   }
 
+  void test_topLevelVariable_withMetadata() {
+    ParserTestCase.parseCompilationUnit("String @A string;", [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
+    ]);
+  }
+
   void test_typedefInClass_withoutReturnType() {
     ParserTestCase.parseCompilationUnit(
         "class C { typedef F(x); }", [ParserErrorCode.TYPEDEF_IN_CLASS]);
@@ -2502,6 +2506,15 @@ class C {
 class NonErrorParserTest extends ParserTestCase {
   void test_constFactory_external() {
     parse("parseClassMember", <Object>["C"], "external const factory C();");
+  }
+
+  void test_staticMethod_notParsingFunctionBodies() {
+    ParserTestCase.parseFunctionBodies = false;
+    try {
+      parse4("parseCompilationUnit", "class C { static void m() {} }");
+    } finally {
+      ParserTestCase.parseFunctionBodies = true;
+    }
   }
 }
 
@@ -3271,28 +3284,25 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
 
   void test_importDirectivePartial_as() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(
-        "import 'b.dart' d as b;",
-        [ParserErrorCode.UNEXPECTED_TOKEN]);
+        "import 'b.dart' d as b;", [ParserErrorCode.UNEXPECTED_TOKEN]);
     ImportDirective importDirective = unit.childEntities.first;
     expect(importDirective.asKeyword, isNotNull);
     expect(unit.directives, hasLength(1));
     expect(unit.declarations, hasLength(0));
   }
 
-  void test_importDirectivePartial_show() {
+  void test_importDirectivePartial_hide() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(
-        "import 'b.dart' d show foo;",
-        [ParserErrorCode.UNEXPECTED_TOKEN]);
+        "import 'b.dart' d hide foo;", [ParserErrorCode.UNEXPECTED_TOKEN]);
     ImportDirective importDirective = unit.childEntities.first;
     expect(importDirective.combinators, hasLength(1));
     expect(unit.directives, hasLength(1));
     expect(unit.declarations, hasLength(0));
   }
 
-  void test_importDirectivePartial_hide() {
+  void test_importDirectivePartial_show() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(
-        "import 'b.dart' d hide foo;",
-        [ParserErrorCode.UNEXPECTED_TOKEN]);
+        "import 'b.dart' d show foo;", [ParserErrorCode.UNEXPECTED_TOKEN]);
     ImportDirective importDirective = unit.childEntities.first;
     expect(importDirective.combinators, hasLength(1));
     expect(unit.directives, hasLength(1));

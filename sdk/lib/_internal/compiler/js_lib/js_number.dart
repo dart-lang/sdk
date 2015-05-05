@@ -57,7 +57,8 @@ class JSNumber extends Interceptor implements num {
     return JS('num', r'# % #', this, b);
   }
 
-  num abs() => JS('num', r'Math.abs(#)', this);
+  num abs() => JS('returns:num;effects:none;depends:none;throws:never',
+      r'Math.abs(#)', this);
 
   num get sign => this > 0 ? 1 : this < 0 ? -1 : this;
 

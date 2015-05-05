@@ -5,13 +5,13 @@
 library test.integration.analysis.navigation;
 
 import 'package:analysis_server/src/protocol.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
 main() {
-  runReflectiveTests(AnalysisNavigationTest);
+  defineReflectiveTests(AnalysisNavigationTest);
 }
 
 @reflectiveTest

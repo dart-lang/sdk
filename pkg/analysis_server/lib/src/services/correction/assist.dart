@@ -4,43 +4,43 @@
 
 library services.correction.assist;
 
-import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/services/correction/assist_internal.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analysis_server/edit/assist/assist_core.dart';
+import 'package:analysis_server/src/plugin/server_plugin.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
- * Computes [Assist]s at the given location.
- *
- * Returns the computed [Assist]s, not `null`.
+ * Compute and return the assists available at the given selection (described by
+ * the [offset] and [length]) in the given [source]. The source was analyzed in
+ * the given [context]. The [plugin] is used to get the list of assist
+ * contributors.
  */
-List<Assist> computeAssists(CompilationUnit unit, int offset, int length) {
-  Source source = unit.element.source;
-  String file = source.fullName;
-  AssistProcessor processor =
-      new AssistProcessor(source, file, unit, offset, length);
-  return processor.compute();
-}
-
-/**
- * A description of a single proposed assist.
- */
-class Assist {
-  final AssistKind kind;
-  final SourceChange change;
-
-  Assist(this.kind, this.change);
-
-  @override
-  String toString() {
-    return 'Assist(kind=$kind, change=$change)';
+List<Assist> computeAssists(ServerPlugin plugin, AnalysisContext context,
+    Source source, int offset, int length) {
+  List<Assist> assists = <Assist>[];
+  List<AssistContributor> contributors = plugin.assistContributors;
+  for (AssistContributor contributor in contributors) {
+    try {
+      List<Assist> contributedAssists =
+          contributor.computeAssists(context, source, offset, length);
+      if (contributedAssists != null) {
+        assists.addAll(contributedAssists);
+      }
+    } catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logError(
+          'Exception from assist contributor: ${contributor.runtimeType}',
+          new CaughtException(exception, stackTrace));
+    }
   }
+  assists.sort(Assist.SORT_BY_RELEVANCE);
+  return assists;
 }
 
 /**
- * An enumeration of possible quick assist kinds.
+ * An enumeration of possible assist kinds.
  */
-class AssistKind {
+class DartAssistKind {
   static const ADD_PART_DIRECTIVE =
       const AssistKind('ADD_PART_DIRECTIVE', 30, "Add 'part' directive");
   static const ADD_TYPE_ANNOTATION =
@@ -103,13 +103,4 @@ class AssistKind {
       'SURROUND_WITH_TRY_FINALLY', 30, "Surround with 'try-finally'");
   static const SURROUND_WITH_WHILE =
       const AssistKind('SURROUND_WITH_WHILE', 30, "Surround with 'while'");
-
-  final name;
-  final int relevance;
-  final String message;
-
-  const AssistKind(this.name, this.relevance, this.message);
-
-  @override
-  String toString() => name;
 }

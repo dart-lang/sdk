@@ -98,7 +98,7 @@ enum FileLock {
  * You might want to use a stream to read large files,
  * to manipulate the data with tranformers,
  * or for compatibility with another API, such as [WebSocket]s.
- * 
+ *
  *     import 'dart:io';
  *     import 'dart:convert';
  *     import 'dart:async';
@@ -136,7 +136,7 @@ enum FileLock {
  * Be sure to close the file with the [close] method.
  *
  *     import 'dart:io';
- *    
+ *
  *     void main() {
  *       var file = new File('file.txt');
  *       var sink = file.openWrite();
@@ -158,7 +158,7 @@ enum FileLock {
  *
  *     main() {
  *       final file = new File('file.txt');
- *     
+ *
  *       file.length().then((len) {
  *         print(len);
  *       });
@@ -170,7 +170,7 @@ enum FileLock {
  * ## Other resources
  *
  * * [Dart by Example](https://www.dartlang.org/dart-by-example/#files-directories-and-symlinks)
- * provides additional task-oriented code samples that show how to use 
+ * provides additional task-oriented code samples that show how to use
  * various API from the Directory class and the related [File] class.
  *
  * * [I/O for Command-Line Apps](https://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-dartio---file-and-socket-io-for-command-line-apps)
@@ -182,7 +182,7 @@ enum FileLock {
  * about files and directories.
 
  */
-abstract class File extends FileSystemEntity {
+abstract class File implements FileSystemEntity {
   /**
    * Creates a [File] object.
    *

@@ -10,14 +10,14 @@ import 'package:analysis_server/src/protocol.dart' hide ElementKind;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import 'abstract_refactoring.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ConvertGetterToMethodTest);
+  defineReflectiveTests(ConvertGetterToMethodTest);
 }
 
 @reflectiveTest

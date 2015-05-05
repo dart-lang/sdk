@@ -146,9 +146,9 @@ class HeapMapElement extends ObservatoryElement {
         break;
       }
     }
-    return new ObjectInfo(int.parse(page['object_start']) +
-                          pageOffset * fragmentation['unit_size_bytes'],
-        size * fragmentation['unit_size_bytes']);
+    return new ObjectInfo(int.parse(page['objectStart']) +
+                          pageOffset * fragmentation['unitSizeBytes'],
+        size * fragmentation['unitSizeBytes']);
   }
 
   void _handleMouseMove(MouseEvent event) {
@@ -163,7 +163,7 @@ class HeapMapElement extends ObservatoryElement {
     isolate.getObjectByAddress(address).then((result) {
       if (result is DartError) {
         Logger.root.severe(result.message);
-      } else {
+      } else if (result.type != 'Sentinel') {
         app.locationManager.go(gotoLink('/inspect', result));
       }
     });
@@ -174,12 +174,12 @@ class HeapMapElement extends ObservatoryElement {
       return;
     }
     _updateClassList(
-        fragmentation['class_list'], fragmentation['free_class_id']);
+        fragmentation['classList'], fragmentation['freeClassId']);
     var pages = fragmentation['pages'];
     var width = _fragmentationCanvas.parent.client.width;
     _pageHeight = _PAGE_SEPARATION_HEIGHT +
-        fragmentation['page_size_bytes'] ~/
-        fragmentation['unit_size_bytes'] ~/ width;
+        fragmentation['pageSizeBytes'] ~/
+        fragmentation['unitSizeBytes'] ~/ width;
     var height = min(_pageHeight * pages.length, _MAX_CANVAS_HEIGHT);
     _fragmentationData =
         _fragmentationCanvas.context2D.createImageData(width, height);

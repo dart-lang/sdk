@@ -6,6 +6,9 @@ library test.services.completion.suggestion;
 
 import 'dart:async';
 
+import 'package:analysis_server/completion/completion_core.dart'
+    show CompletionRequest;
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
@@ -15,14 +18,15 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
-import '../../reflective_tests.dart';
+import '../../operation/operation_queue_test.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(DartCompletionManagerTest);
+  defineReflectiveTests(DartCompletionManagerTest);
 }
 
 /**
@@ -44,7 +48,6 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
   Index index;
   SearchEngineImpl searchEngine;
   Source source;
-  CompletionPerformance perf;
   DartCompletionManager manager;
   MockCompletionContributor contributor1;
   MockCompletionContributor contributor2;
@@ -63,7 +66,6 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     index = createLocalMemoryIndex();
     searchEngine = new SearchEngineImpl(index);
     source = addSource('/does/not/exist.dart', '');
-    perf = new CompletionPerformance();
     manager = new DartCompletionManager.create(context, searchEngine, source);
     suggestion1 = new CompletionSuggestion(CompletionSuggestionKind.INVOCATION,
         DART_RELEVANCE_DEFAULT, "suggestion1", 1, 1, false, false);
@@ -83,7 +85,9 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     manager.contributors = [contributor1, contributor2];
     int count = 0;
     bool done = false;
-    CompletionRequest completionRequest = new CompletionRequest(0, perf);
+    AnalysisServer server = new AnalysisServerMock(searchEngine: searchEngine);
+    CompletionRequest completionRequest =
+        new CompletionRequestImpl(server, context, source, 0);
     manager.results(completionRequest).listen((CompletionResult r) {
       switch (++count) {
         case 1:
@@ -120,7 +124,9 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     manager.contributors = [contributor1, contributor2];
     int count = 0;
     bool done = false;
-    CompletionRequest completionRequest = new CompletionRequest(0, perf);
+    AnalysisServer server = new AnalysisServerMock(searchEngine: searchEngine);
+    CompletionRequest completionRequest =
+        new CompletionRequestImpl(server, context, source, 0);
     manager.results(completionRequest).listen((CompletionResult r) {
       switch (++count) {
         case 1:

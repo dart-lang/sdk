@@ -181,12 +181,12 @@ class RelationshipCodec {
 
   RelationshipCodec(this._stringCodec);
 
-  Relationship decode(int idIndex) {
+  RelationshipImpl decode(int idIndex) {
     String id = _stringCodec.decode(idIndex);
-    return Relationship.getRelationship(id);
+    return RelationshipImpl.getRelationship(id);
   }
 
-  int encode(Relationship relationship) {
+  int encode(RelationshipImpl relationship) {
     String id = relationship.identifier;
     return _stringCodec.encode(id);
   }

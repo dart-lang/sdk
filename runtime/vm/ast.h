@@ -34,6 +34,7 @@ namespace dart {
   V(DoWhile)                                                                   \
   V(For)                                                                       \
   V(Jump)                                                                      \
+  V(Stop)                                                                      \
   V(ArgumentList)                                                              \
   V(Array)                                                                     \
   V(Closure)                                                                   \
@@ -161,35 +162,37 @@ class AwaitNode : public AstNode {
  public:
   AwaitNode(intptr_t token_pos,
             AstNode* expr,
-            LocalScope* try_scope,
-            int16_t try_index,
-            LocalScope* outer_try_scope,
-            intptr_t outer_try_index)
+            LocalVariable* saved_try_ctx,
+            LocalVariable* async_saved_try_ctx,
+            LocalVariable* outer_saved_try_ctx,
+            LocalVariable* outer_async_saved_try_ctx)
     : AstNode(token_pos),
       expr_(expr),
-      try_scope_(try_scope),
-      try_index_(try_index),
-      outer_try_scope_(outer_try_scope),
-      outer_try_index_(outer_try_index) { }
+      saved_try_ctx_(saved_try_ctx),
+      async_saved_try_ctx_(async_saved_try_ctx),
+      outer_saved_try_ctx_(outer_saved_try_ctx),
+      outer_async_saved_try_ctx_(outer_async_saved_try_ctx) { }
 
   void VisitChildren(AstNodeVisitor* visitor) const {
     expr_->Visit(visitor);
   }
 
   AstNode* expr() const { return expr_; }
-  LocalScope* try_scope() const { return try_scope_; }
-  int16_t try_index() const { return try_index_; }
-  LocalScope* outer_try_scope() const { return outer_try_scope_; }
-  int16_t outer_try_index() const { return outer_try_index_; }
+  LocalVariable* saved_try_ctx() const { return saved_try_ctx_; }
+  LocalVariable* async_saved_try_ctx() const { return async_saved_try_ctx_; }
+  LocalVariable* outer_saved_try_ctx() const { return outer_saved_try_ctx_; }
+  LocalVariable* outer_async_saved_try_ctx() const {
+    return outer_async_saved_try_ctx_;
+  }
 
   DECLARE_COMMON_NODE_FUNCTIONS(AwaitNode);
 
  private:
   AstNode* expr_;
-  LocalScope* try_scope_;
-  int16_t try_index_;
-  LocalScope* outer_try_scope_;
-  int16_t outer_try_index_;
+  LocalVariable* saved_try_ctx_;
+  LocalVariable* async_saved_try_ctx_;
+  LocalVariable* outer_saved_try_ctx_;
+  LocalVariable* outer_async_saved_try_ctx_;
 
   DISALLOW_COPY_AND_ASSIGN(AwaitNode);
 };
@@ -1141,6 +1144,27 @@ class JumpNode : public AstNode {
 };
 
 
+class StopNode : public AstNode {
+ public:
+  StopNode(intptr_t token_pos, const char* message)
+      : AstNode(token_pos),
+        message_(message) {
+    ASSERT(message != NULL);
+  }
+
+  const char* message() const { return message_; }
+
+  virtual void VisitChildren(AstNodeVisitor* visitor) const { }
+
+  DECLARE_COMMON_NODE_FUNCTIONS(StopNode);
+
+ private:
+  const char* message_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(StopNode);
+};
+
+
 class LoadLocalNode : public AstNode {
  public:
   LoadLocalNode(intptr_t token_pos, const LocalVariable* local)
@@ -1262,6 +1286,7 @@ class LoadStaticFieldNode : public AstNode {
 
   const Field& field() const { return field_; }
   void set_is_deferred(bool value) { is_deferred_reference_ = value; }
+  bool is_deferred_reference() const { return is_deferred_reference_; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const { }
 
@@ -1522,30 +1547,36 @@ class StaticGetterNode : public AstNode {
  public:
   StaticGetterNode(intptr_t token_pos,
                    AstNode* receiver,
-                   bool is_super_getter,
                    const Class& cls,
                    const String& field_name)
       : AstNode(token_pos),
         receiver_(receiver),
+        owner_(Object::ZoneHandle(cls.raw())),
         cls_(cls),
         field_name_(field_name),
-        is_super_getter_(is_super_getter),
         is_deferred_reference_(false) {
     ASSERT(cls_.IsZoneHandle());
     ASSERT(field_name_.IsZoneHandle());
     ASSERT(field_name_.IsSymbol());
   }
 
-  // The receiver is required
-  // 1) for a super getter (an instance method that is resolved at compile
-  //    time rather than at runtime).
-  // 2) when transforming this StaticGetterNode issued in a non-static
-  //    context to an InstanceSetterNode. This may occurs when we find a
-  //    static getter, but no field and no static setter are declared.
+  // The receiver is required for a super getter (an instance method that
+  // is resolved at compile time rather than at runtime).
   AstNode* receiver() const { return receiver_; }
+
+  // The getter node needs to remmeber how the getter was referenced
+  // so that it can resolve a corresponding setter if necessary.
+  // The owner of this getter is either a class, the top-level library scope,
+  // or a prefix (if the getter has been referenced throug a library prefix).
+  void set_owner(const Object& value) {
+    ASSERT(value.IsLibraryPrefix() || value.IsLibrary() || value.IsClass());
+    owner_ = value.raw();
+  }
+  const Object& owner() const { return owner_; }
+
   const Class& cls() const { return cls_; }
   const String& field_name() const { return field_name_; }
-  bool is_super_getter() const { return is_super_getter_; }
+  bool is_super_getter() const { return receiver_ != NULL; }
   void set_is_deferred(bool value) { is_deferred_reference_ = value; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const { }
@@ -1559,9 +1590,9 @@ class StaticGetterNode : public AstNode {
 
  private:
   AstNode* receiver_;
+  Object& owner_;
   const Class& cls_;
   const String& field_name_;
-  const bool is_super_getter_;
   bool is_deferred_reference_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StaticGetterNode);
@@ -1570,16 +1601,36 @@ class StaticGetterNode : public AstNode {
 
 class StaticSetterNode : public AstNode {
  public:
+  // Static setter with resolved setter function.
+  StaticSetterNode(intptr_t token_pos,
+                   AstNode* receiver,
+                   const String& field_name,
+                   const Function& function,
+                   AstNode* value)
+      : AstNode(token_pos),
+        receiver_(receiver),
+        cls_(Class::ZoneHandle(function.Owner())),
+        field_name_(field_name),
+        function_(function),
+        value_(value) {
+    ASSERT(function_.IsZoneHandle());
+    ASSERT(function.is_static() || receiver != NULL);
+    ASSERT(field_name_.IsZoneHandle());
+    ASSERT(value_ != NULL);
+  }
+
+  // For unresolved setters.
   StaticSetterNode(intptr_t token_pos,
                    AstNode* receiver,
                    const Class& cls,
                    const String& field_name,
                    AstNode* value)
-      : AstNode(token_pos),
-        receiver_(receiver),
-        cls_(cls),
-        field_name_(field_name),
-        value_(value) {
+  : AstNode(token_pos),
+  receiver_(receiver),
+  cls_(cls),
+  field_name_(field_name),
+  function_(Function::ZoneHandle()),
+  value_(value) {
     ASSERT(cls_.IsZoneHandle());
     ASSERT(field_name_.IsZoneHandle());
     ASSERT(value_ != NULL);
@@ -1590,6 +1641,8 @@ class StaticSetterNode : public AstNode {
   AstNode* receiver() const { return receiver_; }
   const Class& cls() const { return cls_; }
   const String& field_name() const { return field_name_; }
+  // function() returns null for unresolved setters.
+  const Function& function() const { return function_; }
   AstNode* value() const { return value_; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
@@ -1602,6 +1655,7 @@ class StaticSetterNode : public AstNode {
   AstNode* receiver_;
   const Class& cls_;
   const String& field_name_;
+  const Function& function_;
   AstNode* value_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StaticSetterNode);

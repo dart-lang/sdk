@@ -389,7 +389,10 @@ class _Timer implements Timer {
             timer._enqueue();
           }
           // Execute pending micro tasks.
-          _runPendingImmediateCallback();
+          var immediateCallback = _removePendingImmediateCallback();
+          if (immediateCallback != null) {
+            immediateCallback();
+          }
         }
       }
     } finally {

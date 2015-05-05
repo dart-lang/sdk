@@ -14,8 +14,9 @@ class JSONObject;
 class RuntimeEntry;
 
 #define VM_TAG_LIST(V)                                                         \
-  V(Idle)                                                                      \
-  V(VM) /* Catch all */                                                        \
+  V(Idle)          /* isolate is idle and is_runnable() */                     \
+  V(LoadWait)      /* isolate is idle and !is_runnable() */                    \
+  V(VM)            /* Catch all */                                             \
   V(CompileOptimized)                                                          \
   V(CompileUnoptimized)                                                        \
   V(CompileTopLevel)                                                           \

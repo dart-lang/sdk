@@ -440,6 +440,7 @@ class EmbeddedArray<T, 0> {
   M(Return)                                                                    \
   M(Throw)                                                                     \
   M(ReThrow)                                                                   \
+  M(Stop)                                                                      \
   M(Goto)                                                                      \
   M(IndirectGoto)                                                              \
   M(Branch)                                                                    \
@@ -2122,6 +2123,32 @@ class ReThrowInstr : public TemplateInstruction<0, Throws> {
   const intptr_t catch_try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(ReThrowInstr);
+};
+
+
+class StopInstr : public TemplateInstruction<0, NoThrow> {
+ public:
+  explicit StopInstr(const char* message)
+      : message_(message) {
+    ASSERT(message != NULL);
+  }
+
+  const char* message() const { return message_; }
+
+  DECLARE_INSTRUCTION(Stop);
+
+  virtual intptr_t ArgumentCount() const { return 0; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+
+ private:
+  const char* message_;
+
+  DISALLOW_COPY_AND_ASSIGN(StopInstr);
 };
 
 

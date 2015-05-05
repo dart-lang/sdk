@@ -1960,8 +1960,7 @@ class TypeResolver {
             outer != null && outer.isFactoryConstructor;
         if (!outer.isClass &&
             !outer.isTypedef &&
-            !isInFactoryConstructor &&
-            Elements.isInStaticContext(visitor.enclosingElement)) {
+            !Elements.hasAccessToTypeVariables(visitor.enclosingElement)) {
           registry.registerThrowRuntimeError();
           type = reportFailureAndCreateType(
               MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
@@ -2112,6 +2111,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
    * This field is updated when nested closures are visited.
    */
   Element enclosingElement;
+
+  /// Whether we are in a context where `this` is accessible (this will be false
+  /// in static contexts, factory methods, and field initializers).
   bool inInstanceContext;
   bool inCheckContext;
   bool inCatchBlock;
@@ -2262,11 +2264,17 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     inStaticContext(() => visit(node));
   }
 
-  ErroneousElement warnAndCreateErroneousElement(Node node,
-                                                 String name,
-                                                 MessageKind kind,
-                                                 [Map arguments = const {}]) {
-    compiler.reportWarning(node, kind, arguments);
+  ErroneousElement reportAndCreateErroneousElement(
+      Node node,
+      String name,
+      MessageKind kind,
+      Map arguments,
+      {bool isError: false}) {
+    if (isError) {
+      compiler.reportError(node, kind, arguments);
+    } else {
+      compiler.reportWarning(node, kind, arguments);
+    }
     // TODO(ahe): Use [allowedCategory] to synthesize a more precise subclass
     // of [ErroneousElementX]. For example, [ErroneousFieldElementX],
     // [ErroneousConstructorElementX], etc.
@@ -2300,18 +2308,40 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       element = reportLookupErrorIfAny(element, node, node.source);
       if (element == null) {
         if (!inInstanceContext) {
-          element = warnAndCreateErroneousElement(
-              node, node.source, MessageKind.CANNOT_RESOLVE,
-              {'name': node});
+          // We report an error within initializers because `this` is implicitly
+          // accessed when unqualified identifiers are not resolved.  For
+          // details, see section 16.14.3 of the spec (2nd edition):
+          //   An unqualified invocation `i` of the form `id(a1, ...)`
+          //   ...
+          //   If `i` does not occur inside a top level or static function, `i`
+          //   is equivalent to `this.id(a1 , ...)`.
+          bool inInitializer = enclosingElement.isGenerativeConstructor ||
+              (enclosingElement.isInstanceMember && enclosingElement.isField);
+          MessageKind kind;
+          Map arguments = {'name': name};
+          if (inInitializer) {
+            kind = MessageKind.CANNOT_RESOLVE_IN_INITIALIZER;
+          } else if (name == 'await') {
+            var functionName = enclosingElement.name;
+            if (functionName == '') {
+              kind = MessageKind.CANNOT_RESOLVE_AWAIT_IN_CLOSURE;
+            } else {
+              kind = MessageKind.CANNOT_RESOLVE_AWAIT;
+              arguments['functionName'] = functionName;
+            }
+          } else {
+            kind = MessageKind.CANNOT_RESOLVE;
+          }
+          element = reportAndCreateErroneousElement(node, name, kind,
+              arguments, isError: inInitializer);
           registry.registerThrowNoSuchMethod();
         }
       } else if (element.isErroneous) {
         // Use the erroneous element.
       } else {
         if ((element.kind.category & allowedCategory) == 0) {
-          element = warnAndCreateErroneousElement(
-              node, name,
-              MessageKind.GENERIC,
+          element = reportAndCreateErroneousElement(
+              node, name, MessageKind.GENERIC,
               // TODO(ahe): Improve error message. Need UX input.
               {'text': "is not an expression $element"});
         }
@@ -2601,7 +2631,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // [target] may be null which means invoking noSuchMethod on
       // super.
       if (target == null) {
-        target = warnAndCreateErroneousElement(
+        target = reportAndCreateErroneousElement(
             node, name, MessageKind.NO_SUCH_SUPER_MEMBER,
             {'className': currentClass, 'memberName': name});
         // We still need to register the invocation, because we might
@@ -2640,13 +2670,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         MessageKind kind = (target == null)
             ? MessageKind.MEMBER_NOT_FOUND
             : MessageKind.MEMBER_NOT_STATIC;
-        return new ElementResult(warnAndCreateErroneousElement(
+        return new ElementResult(reportAndCreateErroneousElement(
             node, name, kind,
             {'className': receiverClass.name, 'memberName': name}));
       } else if (isPrivateName(name) &&
                  target.library != enclosingElement.library) {
         registry.registerThrowNoSuchMethod();
-        return new ElementResult(warnAndCreateErroneousElement(
+        return new ElementResult(reportAndCreateErroneousElement(
             node, name, MessageKind.PRIVATE_ACCESS,
             {'libraryName': target.library.getLibraryOrScriptName(),
              'name': name}));
@@ -2656,15 +2686,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       target = prefix.lookupLocalMember(name);
       if (Elements.isUnresolved(target)) {
         registry.registerThrowNoSuchMethod();
-        return new ElementResult(warnAndCreateErroneousElement(
+        return new ElementResult(reportAndCreateErroneousElement(
             node, name, MessageKind.NO_SUCH_LIBRARY_MEMBER,
             {'libraryName': prefix.name, 'memberName': name}));
       } else if (target.isAmbiguous) {
         registry.registerThrowNoSuchMethod();
         AmbiguousElement ambiguous = target;
-        target = warnAndCreateErroneousElement(node, name,
-                                               ambiguous.messageKind,
-                                               ambiguous.messageArguments);
+        target = reportAndCreateErroneousElement(
+            node, name, ambiguous.messageKind, ambiguous.messageArguments);
         ambiguous.diagnose(enclosingElement, compiler);
         return new ElementResult(target);
       } else if (target.kind == ElementKind.CLASS) {
@@ -2805,14 +2834,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         target = field.getter;
         if (target == null && !inInstanceContext) {
           registry.registerThrowNoSuchMethod();
-          target =
-              warnAndCreateErroneousElement(node.selector, field.name,
-                                            MessageKind.CANNOT_RESOLVE_GETTER);
+          target = reportAndCreateErroneousElement(node.selector, field.name,
+              MessageKind.CANNOT_RESOLVE_GETTER, const {});
         }
       } else if (target.isTypeVariable) {
         ClassElement cls = target.enclosingClass;
         assert(enclosingElement.enclosingClass == cls);
-        if (Elements.isInStaticContext(enclosingElement)) {
+        if (!Elements.hasAccessToTypeVariables(enclosingElement)) {
           compiler.reportError(node,
               MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
               {'typeVariableName': node.selector});
@@ -2840,7 +2868,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
         // Don't try to make constants of calls to type literals.
         if (!node.isCall) {
-          analyzeConstantDeferred(node);
+          analyzeConstantDeferred(node, enforceConst: false);
         } else {
           // The node itself is not a constant but we register the selector (the
           // identifier that refers to the class/typedef) as a constant.
@@ -2850,7 +2878,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             // the type literal from the selector.
             registry.useElement(node.selector, target);
           }
-          analyzeConstantDeferred(node.selector);
+          analyzeConstantDeferred(node.selector, enforceConst: false);
         }
       }
       if (isPotentiallyMutableTarget(target)) {
@@ -2933,6 +2961,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           registry.registerJsCall(node, this);
         } else if (selector.name == 'JS_EMBEDDED_GLOBAL') {
           registry.registerJsEmbeddedGlobalCall(node, this);
+        } else if (selector.name == 'JS_BUILTIN') {
+          registry.registerJsBuiltinCall(node, this);
         } else if (selector.name == 'JS_INTERCEPTOR_CONSTANT') {
           if (!node.argumentsNode.isEmpty) {
             Node argument = node.argumentsNode.nodes.head;
@@ -2981,30 +3011,51 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         setter = field.setter;
         getter = field.getter;
         if (setter == null && !inInstanceContext) {
-          setter = warnAndCreateErroneousElement(
-              node.selector, field.name, MessageKind.CANNOT_RESOLVE_SETTER);
+          setter = reportAndCreateErroneousElement(node.selector, field.name,
+              MessageKind.CANNOT_RESOLVE_SETTER, const {});
           registry.registerThrowNoSuchMethod();
         }
         if (isComplex && getter == null && !inInstanceContext) {
-          getter = warnAndCreateErroneousElement(
-              node.selector, field.name, MessageKind.CANNOT_RESOLVE_GETTER);
+          getter = reportAndCreateErroneousElement(node.selector, field.name,
+              MessageKind.CANNOT_RESOLVE_GETTER, const {});
           registry.registerThrowNoSuchMethod();
         }
       } else if (target.impliesType) {
-        setter = warnAndCreateErroneousElement(
-            node.selector, target.name, MessageKind.ASSIGNING_TYPE);
+        setter = reportAndCreateErroneousElement(node.selector, target.name,
+            MessageKind.ASSIGNING_TYPE, const {});
         registry.registerThrowNoSuchMethod();
-      } else if (target.isFinal ||
-                 target.isConst ||
-                 (target.isFunction &&
-                  Elements.isStaticOrTopLevelFunction(target) &&
-                  !target.isSetter)) {
-        if (target.isFunction) {
-          setter = warnAndCreateErroneousElement(
-              node.selector, target.name, MessageKind.ASSIGNING_METHOD);
+      } else if (target.isFinal || target.isConst) {
+        if (Elements.isStaticOrTopLevelField(target) || target.isLocal) {
+          setter = reportAndCreateErroneousElement(
+              node.selector, target.name, MessageKind.CANNOT_RESOLVE_SETTER,
+              const {});
+        } else if (node.isSuperCall) {
+          setter = reportAndCreateErroneousElement(
+              node.selector, target.name, MessageKind.SETTER_NOT_FOUND_IN_SUPER,
+              {'name': target.name, 'className': currentClass.name});
+          registry.registerSuperNoSuchMethod();
         } else {
-          setter = warnAndCreateErroneousElement(
-              node.selector, target.name, MessageKind.CANNOT_RESOLVE_SETTER);
+          // For instance fields we don't report a warning here because the type
+          // checker will detect this as well and report a better error message
+          // with the context of the containing class.
+        }
+        registry.registerThrowNoSuchMethod();
+      } else if (target.isFunction && target.name != '[]=') {
+        assert(!target.isSetter);
+        if (Elements.isStaticOrTopLevelFunction(target) || target.isLocal) {
+          setter = reportAndCreateErroneousElement(
+              node.selector, target.name, MessageKind.ASSIGNING_METHOD,
+              const {});
+        } else if (node.isSuperCall) {
+          setter = reportAndCreateErroneousElement(
+              node.selector, target.name, MessageKind.ASSIGNING_METHOD_IN_SUPER,
+              {'name': target.name,
+               'superclassName': target.enclosingElement.name});
+          registry.registerSuperNoSuchMethod();
+        } else {
+          // For instance methods we don't report a warning here because the
+          // type checker will detect this as well and report a better error
+          // message with the context of the containing class.
         }
         registry.registerThrowNoSuchMethod();
       }
@@ -3035,7 +3086,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (node.isSuperCall) {
         getter = currentClass.lookupSuperSelector(getterSelector);
         if (getter == null) {
-          target = warnAndCreateErroneousElement(
+          target = reportAndCreateErroneousElement(
               node, selector.name, MessageKind.NO_SUCH_SUPER_MEMBER,
               {'className': currentClass, 'memberName': selector.name});
           registry.registerSuperNoSuchMethod();
@@ -3390,10 +3441,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
   }
 
-  void analyzeConstant(Node node) {
+  void analyzeConstant(Node node, {enforceConst: true}) {
     ConstantExpression constant =
         compiler.resolver.constantCompiler.compileNode(
-            node, registry.mapping);
+            node, registry.mapping, enforceConst: enforceConst);
 
     if (constant == null) {
       assert(invariant(node, compiler.compilationFailed));
@@ -3425,9 +3476,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
   }
 
-  void analyzeConstantDeferred(Node node) {
+  void analyzeConstantDeferred(Node node, {bool enforceConst: true}) {
     addDeferredAction(enclosingElement, () {
-      analyzeConstant(node);
+      analyzeConstant(node, enforceConst: enforceConst);
     });
   }
 
@@ -3613,6 +3664,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   visitSyncForIn(SyncForIn node) {
+    registry.registerSyncForIn(node);
     registry.setIteratorSelector(node, compiler.iteratorSelector);
     registry.registerDynamicGetter(compiler.iteratorSelector);
     registry.setCurrentSelector(node, compiler.currentSelector);
@@ -4121,7 +4173,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
 
 // TODO(johnniwinther): Replace with a traversal on the AST when the type
 // annotations in typedef alias are stored in a [TreeElements] mapping.
-class TypedefCyclicVisitor extends DartTypeVisitor {
+class TypedefCyclicVisitor extends BaseDartTypeVisitor {
   final Compiler compiler;
   final TypedefElementX element;
   bool hasCyclicReference = false;
@@ -4443,8 +4495,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
   FunctionElement createForwardingConstructor(ConstructorElement target,
                                               ClassElement enclosing) {
-    return new SynthesizedConstructorElementX(
-        target.name, target, enclosing, false);
+    return new SynthesizedConstructorElementX.notForDefault(
+        target.name, target, enclosing);
   }
 
   void doApplyMixinTo(MixinApplicationElementX mixinApplication,

@@ -564,6 +564,10 @@ class ResolutionCallbacks {
   /// Register an is check to the backend.
   void onIsCheck(DartType type, Registry registry) {}
 
+  /// Called during resolution to notify to the backend that the
+  /// program has a for-in loop.
+  void onSyncForIn(Registry registry) {}
+
   /// Register an as check to the backend.
   void onAsCheck(DartType type, Registry registry) {}
 
@@ -718,6 +722,10 @@ abstract class Compiler implements DiagnosticListener {
    */
   final bool preserveComments;
 
+  /// Use the new CPS based backend end.  This flag works for both the Dart and
+  /// JavaScript backend.
+  final bool useCpsIr;
+
   /**
    * Is the compiler in verbose mode.
    */
@@ -749,6 +757,7 @@ abstract class Compiler implements DiagnosticListener {
   Map<Uri, SuppressionInfo> suppressedWarnings = <Uri, SuppressionInfo>{};
 
   final bool suppressWarnings;
+  final bool fatalWarnings;
 
   /// If `true`, some values are cached for reuse in incremental compilation.
   /// Incremental compilation is basically calling [run] more than once.
@@ -999,6 +1008,7 @@ abstract class Compiler implements DiagnosticListener {
             this.analyzeMain: false,
             bool analyzeSignaturesOnly: false,
             this.preserveComments: false,
+            this.useCpsIr: false,
             this.verbose: false,
             this.sourceMapUri: null,
             this.outputUri: null,
@@ -1009,6 +1019,7 @@ abstract class Compiler implements DiagnosticListener {
             this.showPackageWarnings: false,
             this.useContentSecurityPolicy: false,
             this.suppressWarnings: false,
+            this.fatalWarnings: false,
             bool hasIncrementalSupport: false,
             this.enableExperimentalMirrors: false,
             this.allowNativeExtensions: false,
@@ -1047,9 +1058,17 @@ abstract class Compiler implements DiagnosticListener {
     globalDependencies =
         new CodegenRegistry(this, new TreeElementMapping(null));
 
+    SourceInformationFactory sourceInformationFactory =
+        const SourceInformationFactory();
+    if (generateSourceMap) {
+      sourceInformationFactory =
+          const bool.fromEnvironment('USE_NEW_SOURCE_INFO', defaultValue: false)
+              ? const PositionSourceInformationFactory()
+              : const StartEndSourceInformationFactory();
+    }
     if (emitJavaScript) {
-      js_backend.JavaScriptBackend jsBackend =
-          new js_backend.JavaScriptBackend(this, generateSourceMap);
+      js_backend.JavaScriptBackend jsBackend = new js_backend.JavaScriptBackend(
+      this, sourceInformationFactory, generateSourceMap: generateSourceMap);
       backend = jsBackend;
     } else {
       backend = new dart_backend.DartBackend(this, strips,
@@ -1068,7 +1087,7 @@ abstract class Compiler implements DiagnosticListener {
       resolver = new ResolverTask(this, backend.constantCompilerTask),
       closureToClassMapper = new closureMapping.ClosureTask(this),
       checker = new TypeCheckerTask(this),
-      irBuilder = new IrBuilderTask(this),
+      irBuilder = new IrBuilderTask(this, sourceInformationFactory),
       typesTask = new ti.TypesTask(this),
       constants = backend.constantCompilerTask,
       deferredLoadTask = new DeferredLoadTask(this),
@@ -1468,7 +1487,7 @@ abstract class Compiler implements DiagnosticListener {
 
   bool irEnabled() {
     // TODO(sigurdm,kmillikin): Support checked-mode checks.
-    return const bool.fromEnvironment('USE_NEW_BACKEND') &&
+    return useCpsIr &&
         backend is DartBackend &&
         !enableTypeAssertions &&
         !enableConcreteTypeInference;

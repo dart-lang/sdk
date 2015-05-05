@@ -235,6 +235,7 @@ const Register CTX = R9;  // Location of current context at method entry.
 const Register PP = R10;  // Caches object pool pointer in generated code.
 const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
+const Register LRREG = LR;  // Link register.
 const Register ICREG = R5;  // IC data register.
 const Register ARGS_DESC_REG = R4;
 
@@ -339,13 +340,6 @@ enum Shift {
 };
 
 
-// Special Supervisor Call 24-bit codes used in the presence of the ARM
-// simulator for redirection, breakpoints, and stop messages.
-// See /usr/include/asm/unistd.h
-const uint32_t kRedirectionSvcCode = 0x90001f;  //  unused syscall, was sys_stty
-const uint32_t kBreakpointSvcCode = 0x900020;  // unused syscall, was sys_gtty
-const uint32_t kStopMessageSvcCode = 0x9f0001;  // __ARM_NR_breakpoint
-
 // Constants used for the decoding or encoding of the individual fields of
 // instructions. Based on the "Figure 3-1 ARM instruction set summary".
 enum InstructionFields {
@@ -447,6 +441,11 @@ class Instr {
   static const int32_t kNopInstruction =  // nop
       ((AL << kConditionShift) | (0x32 << 20) | (0xf << 12));
 
+  static const int32_t kBreakPointCode = 0xdeb0;  // For breakpoint.
+  static const int32_t kStopMessageCode = 0xdeb1;  // For Stop(message).
+  static const int32_t kSimulatorBreakCode = 0xdeb2;  // For breakpoint in sim.
+  static const int32_t kSimulatorRedirectCode = 0xca11;  // For redirection.
+
   // Breakpoint instruction filling assembler code buffers in debug mode.
   static const int32_t kBreakPointInstruction =  // bkpt(0xdeb0)
       ((AL << kConditionShift) | (0x12 << 20) | (0xdeb << 8) | (0x7 << 4));
@@ -456,11 +455,11 @@ class Instr {
   // breakpoint inserted in generated code for debugging, e.g. bkpt(0).
   static const int32_t kSimulatorBreakpointInstruction =
       // svc #kBreakpointSvcCode
-      ((AL << kConditionShift) | (0xf << 24) | kBreakpointSvcCode);
+      ((AL << kConditionShift) | (0xf << 24) | kSimulatorBreakCode);
 
   // Runtime call redirection instruction used by the simulator.
   static const int32_t kSimulatorRedirectInstruction =
-      ((AL << kConditionShift) | (0xf << 24) | kRedirectionSvcCode);
+      ((AL << kConditionShift) | (0xf << 24) | kSimulatorRedirectCode);
 
   // Get the raw instruction bits.
   inline int32_t InstructionBits() const {

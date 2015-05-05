@@ -101,6 +101,12 @@ class AnnotationCreator
   }
 
   @override
+  Annotation visitIdentical(IdenticalConstantExpression exp,
+                            AnnotationInfo context) {
+    return null;
+  }
+
+  @override
   Annotation visitConcatenate(ConcatenateConstantExpression exp,
                               AnnotationInfo context) {
     return null;
@@ -165,6 +171,12 @@ class AnnotationCreator
   Annotation visitVariable(VariableConstantExpression exp,
                            AnnotationInfo context) {
     return createAnnotation(exp.element, context);
+  }
+
+  @override
+  Annotation visitDeferred(DeferredConstantExpression exp,
+                           AnnotationInfo context) {
+    return exp.expression.accept(this, context);
   }
 }
 

@@ -4,6 +4,7 @@
 <link rel="import" href="observatory_element.html">
 <link rel="import" href="nav_bar.html">
 <link rel="import" href="script_ref.html">
+<link rel="import" href="view_footer.html">
 
 <polymer-element name="code-view" extends="observatory-element">
   <template>
@@ -41,11 +42,11 @@
     </style>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
+      <vm-nav-menu vm="{{ code.isolate.vm }}"></vm-nav-menu>
       <isolate-nav-menu isolate="{{ code.isolate }}"></isolate-nav-menu>
       <nav-menu link="{{ makeLink('/inspect', code) }}" anchor="{{ code.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
       <nav-refresh callback="{{ refreshTicks }}" label="Refresh Ticks"></nav-refresh>
-      <nav-control></nav-control>
     </nav-bar>
     <div class="content">
       <template if="{{ code.isDartCode && code.isOptimized }}">
@@ -132,8 +133,7 @@
       <tbody class="monospace" id="disassemblyTableBody">
       </tbody>
     </table>
-    <br><br><br>
-    <br><br><br>
+    <view-footer></view-footer>
   </template>
 </polymer-element>
 

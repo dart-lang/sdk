@@ -21,6 +21,7 @@ namespace dart {
 class Isolate;
 class ObjectPointerVisitor;
 class ObjectSet;
+class ServiceEvent;
 class VirtualMemory;
 
 DECLARE_FLAG(bool, verbose_gc);
@@ -105,18 +106,10 @@ class Heap {
   bool StubCodeContains(uword addr) const;
 
   // Visit all pointers.
-  void IteratePointers(ObjectPointerVisitor* visitor) const;
-
-  // Visit all pointers in the space.
-  void IterateNewPointers(ObjectPointerVisitor* visitor) const;
-  void IterateOldPointers(ObjectPointerVisitor* visitor) const;
+  void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
   // Visit all objects.
-  void IterateObjects(ObjectVisitor* visitor) const;
-
-  // Visit all object in the space.
-  void IterateNewObjects(ObjectVisitor* visitor) const;
-  void IterateOldObjects(ObjectVisitor* visitor) const;
+  void VisitObjects(ObjectVisitor* visitor) const;
 
   // Find an object by visiting all pointers in the specified heap space,
   // the 'visitor' is used to determine if an object is found or not.
@@ -320,19 +313,9 @@ class Heap {
 
   int pretenure_policy_;
 
-  friend class GCEvent;
+  friend class ServiceEvent;
   friend class GCTestHelper;
   DISALLOW_COPY_AND_ASSIGN(Heap);
-};
-
-
-class GCEvent {
- public:
-  explicit GCEvent(const Heap::GCStats& stats)
-      : stats_(stats) {}
-  void PrintJSON(JSONStream* js) const;
- private:
-  const Heap::GCStats& stats_;
 };
 
 

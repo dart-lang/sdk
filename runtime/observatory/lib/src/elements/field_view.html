@@ -5,12 +5,14 @@
 <link rel="import" href="nav_bar.html">
 <link rel="import" href="script_ref.html">
 <link rel="import" href="observatory_element.html">
+<link rel="import" href="view_footer.html">
 
 <polymer-element name="field-view" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
+      <vm-nav-menu vm="{{ field.isolate.vm }}"></vm-nav-menu>
       <isolate-nav-menu isolate="{{ field.isolate }}"></isolate-nav-menu>
       <library-nav-menu library="{{ field.library }}"></library-nav-menu>
       <template if="{{ field.dartOwner is ServiceClass }}">
@@ -18,7 +20,6 @@
       </template>
       <nav-menu link="{{ makeLink('/inspect', field) }}" anchor="{{ field.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
-      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content">
@@ -82,6 +83,7 @@
         </template>
       </div>
     </div>
+    <view-footer></view-footer>
   </template>
 </polymer-element>
 

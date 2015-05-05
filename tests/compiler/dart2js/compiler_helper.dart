@@ -69,6 +69,7 @@ Future<String> compile(String code,
                                     compiler.globalDependencies);
     compiler.processQueue(compiler.enqueuer.resolution, element);
     compiler.world.populate();
+    compiler.backend.onResolutionComplete();
     var context = new js.JavaScriptItemCompilationContext();
     leg.ResolutionWorkItem resolutionWork =
         new leg.ResolutionWorkItem(element, context);
@@ -126,6 +127,7 @@ Future<String> compileAll(String code,
       trustTypeAnnotations: trustTypeAnnotations,
       expectedWarnings: expectedWarnings,
       outputProvider: outputCollector);
+  compiler.diagnosticHandler = createHandler(compiler, code);
   return compiler.runCompiler(uri).then((_) {
     Expect.isFalse(compiler.compilationFailed,
                    'Unexpected compilation error(s): ${compiler.errors}');

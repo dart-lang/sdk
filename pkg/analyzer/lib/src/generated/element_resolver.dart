@@ -393,6 +393,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   @override
+  Object visitEnumDeclaration(EnumDeclaration node) {
+    _setMetadata(node.element, node);
+    return null;
+  }
+
+  @override
   Object visitExportDirective(ExportDirective node) {
     ExportElement exportElement = node.element;
     if (exportElement != null) {

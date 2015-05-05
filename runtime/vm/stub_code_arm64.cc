@@ -659,8 +659,10 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ add(R3, R3, Operand(R2, LSL, 2));  // R2 is Smi.
   ASSERT(kSmiTagShift == 1);
   __ andi(R3, R3, Immediate(~(kObjectAlignment - 1)));
+  // R0: potential new object start.
+  // R3: object size in bytes.
   __ adds(R7, R3, Operand(R0));
-  __ b(&slow_case, VS);
+  __ b(&slow_case, CS);  // Branch if unsigned overflow.
 
   // Check if the allocation fits into the remaining space.
   // R0: potential new object start.

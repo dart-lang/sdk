@@ -26,7 +26,6 @@ DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(bool, enable_asserts);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, use_osr);
 
@@ -2586,7 +2585,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       : instruction_(instruction) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    if (FLAG_use_osr) {
+    if (FLAG_use_osr && osr_entry_label()->IsLinked()) {
       uword flags_address = Isolate::Current()->stack_overflow_flags_address();
       Register temp = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
@@ -6154,6 +6153,17 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 2,
                                 locs());
   __ int3();
+}
+
+
+LocationSummary* StopInstr::MakeLocationSummary(Zone* zone,
+                                                bool opt) const {
+  return new(zone) LocationSummary(zone, 0, 0, LocationSummary::kNoCall);
+}
+
+
+void StopInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ Stop(message());
 }
 
 

@@ -607,7 +607,7 @@ class RuntimeTypes {
   }
 }
 
-class TypeRepresentationGenerator extends DartTypeVisitor {
+class TypeRepresentationGenerator implements DartTypeVisitor {
   final Compiler compiler;
   OnVariableCallback onVariable;
   ShouldEncodeTypedefCallback shouldEncodeTypedef;
@@ -638,9 +638,8 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
     return backend.emitter.typeAccess(element);
   }
 
-  visit(DartType type) {
-    return type.accept(this, null);
-  }
+  @override
+  visit(DartType type, [_]) => type.accept(this, null);
 
   visitTypeVariableType(TypeVariableType type, _) {
     return onVariable(type);
@@ -673,6 +672,21 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
     return new jsAst.ArrayInitializer(elements);
   }
 
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is a function type.
+  jsAst.Template get templateForIsFunctionType {
+    return jsAst.js.expressionTemplateFor("'${namer.functionTypeTag}' in #");
+  }
+
+  /// Returns the JavaScript template that creates at runtime a new function
+  /// type object.
+  jsAst.Template get templateForCreateFunctionType {
+    // The value of the functionTypeTag can be anything. We use "dynaFunc" for
+    // easier debugging.
+    return jsAst.js.expressionTemplateFor(
+        '{ ${namer.functionTypeTag}: "dynafunc" }');
+  }
+
   visitFunctionType(FunctionType type, _) {
     List<jsAst.Property> properties = <jsAst.Property>[];
 
@@ -680,7 +694,9 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
       properties.add(new jsAst.Property(js.string(name), value));
     }
 
-    addProperty(namer.functionTypeTag, js.string(''));
+    // Type representations for functions have a property which is a tag marking
+    // them as function types. The value is not used, so '1' is just a dummy.
+    addProperty(namer.functionTypeTag, js.number(1));
     if (type.returnType.isVoid) {
       addProperty(namer.functionTypeVoidReturnTag, js('true'));
     } else if (!type.returnType.treatAsDynamic) {
@@ -738,7 +754,7 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
     }
   }
 
-  visitType(DartType type, _) {
+  visitStatementType(StatementType type, _) {
     compiler.internalError(NO_LOCATION_SPANNABLE,
         'Unexpected type: $type (${type.kind}).');
   }
@@ -779,23 +795,15 @@ class ArgumentCollector extends DartTypeVisitor {
   ArgumentCollector(this.backend);
 
   collect(DartType type, {bool isTypeArgument: false}) {
-    type.accept(this, isTypeArgument);
+    visit(type, isTypeArgument);
   }
 
   /// Collect all types in the list as if they were arguments of an
   /// InterfaceType.
   collectAll(List<DartType> types) {
     for (DartType type in types) {
-      type.accept(this, true);
+      visit(type, true);
     }
-  }
-
-  visitType(DartType type, _) {
-    // Do nothing.
-  }
-
-  visitDynamicType(DynamicType type, _) {
-    // Do not collect [:dynamic:].
   }
 
   visitTypedefType(TypedefType type, bool isTypeArgument) {
@@ -819,23 +827,15 @@ class FunctionArgumentCollector extends DartTypeVisitor {
   FunctionArgumentCollector(this.backend);
 
   collect(DartType type) {
-    type.accept(this, false);
+    visit(type, false);
   }
 
   /// Collect all types in the list as if they were arguments of an
   /// InterfaceType.
   collectAll(Link<DartType> types) {
-    for (Link<DartType> link = types; !link.isEmpty; link = link.tail) {
-      link.head.accept(this, true);
+    for (DartType type in types) {
+      visit(type, true);
     }
-  }
-
-  visitType(DartType type, _) {
-    // Do nothing.
-  }
-
-  visitDynamicType(DynamicType type, _) {
-    // Do not collect [:dynamic:].
   }
 
   visitTypedefType(TypedefType type, bool inFunctionType) {

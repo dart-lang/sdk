@@ -6,3 +6,5 @@ library GetterSetterInLib;
 
 get foo => 42;
 set foo(a) {}
+
+get bar => 77;

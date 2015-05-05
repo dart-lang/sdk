@@ -8,13 +8,10 @@ import 'package:unittest/unittest.dart';
 
 import 'cancelable_future_test.dart' as cancelable_future_test;
 import 'enum_test.dart' as enum_test;
-import 'error_test.dart' as error;
 import 'file_system/test_all.dart' as file_system;
 import 'generated/test_all.dart' as generated;
 import 'instrumentation/test_all.dart' as instrumentation;
-import 'options_test.dart' as options;
 import 'parse_compilation_unit_test.dart' as parse_compilation_unit;
-import 'plugin/test_all.dart' as plugin_test_all;
 import 'source/test_all.dart' as source;
 import 'src/test_all.dart' as src;
 import 'task/test_all.dart' as task;
@@ -25,13 +22,10 @@ main() {
   group('analysis engine', () {
     cancelable_future_test.main();
     enum_test.main();
-    error.main();
     file_system.main();
     generated.main();
     instrumentation.main();
-    options.main();
     parse_compilation_unit.main();
-    plugin_test_all.main();
     source.main();
     src.main();
     task.main();

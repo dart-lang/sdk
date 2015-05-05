@@ -5,8 +5,9 @@
 // Patch file for dart:collection classes.
 import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper' show
-    fillLiteralMap, InternalMap, NoInline, NoThrows, patch, JsLinkedHashMap,
-    LinkedHashMapCell, LinkedHashMapKeyIterable, LinkedHashMapKeyIterator;
+    fillLiteralMap, InternalMap, NoInline, NoSideEffects, NoThrows, patch,
+    JsLinkedHashMap, LinkedHashMapCell, LinkedHashMapKeyIterable,
+    LinkedHashMapKeyIterator;
 
 @patch
 class HashMap<K, V> {
@@ -386,6 +387,7 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
   final _Equality<K> _equals;
   final _Hasher<K> _hashCode;
   final _Predicate _validKey;
+
   _CustomHashMap(this._equals, this._hashCode, bool validKey(potentialKey))
       : _validKey = (validKey != null) ? validKey : ((v) => v is K);
 
@@ -427,7 +429,7 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
   String toString() => Maps.mapToString(this);
 }
 
-class HashMapKeyIterable<E> extends IterableBase<E>
+class HashMapKeyIterable<E> extends Iterable<E>
                             implements EfficientLength {
   final _map;
   HashMapKeyIterable(this._map);
@@ -492,7 +494,7 @@ class LinkedHashMap<K, V> {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
-          return new JsLinkedHashMap<K, V>();
+          return new JsLinkedHashMap<K, V>.es6();
         }
         hashCode = _defaultHashCode;
       } else {
@@ -521,16 +523,28 @@ class LinkedHashMap<K, V> {
   // Private factory constructor called by generated code for map literals.
   @NoInline()
   factory LinkedHashMap._literal(List keyValuePairs) {
-    return fillLiteralMap(keyValuePairs, new JsLinkedHashMap<K, V>());
+    return fillLiteralMap(keyValuePairs, new JsLinkedHashMap<K, V>.es6());
   }
 
   // Private factory constructor called by generated code for map literals.
-  @NoThrows() @NoInline()
+  @NoThrows() @NoInline() @NoSideEffects()
   factory LinkedHashMap._empty() {
-    return new JsLinkedHashMap<K, V>();
+    return new JsLinkedHashMap<K, V>.es6();
   }
+
+  // Private factory static function called by generated code for map literals.
+  // This version is for map literals without type parameters.
+  @NoInline()
+  static _makeEmpty() => new JsLinkedHashMap();
+
+  // Private factory static function called by generated code for map literals.
+  // This version is for map literals without type parameters.
+  @NoInline()
+  static _makeLiteral(keyValuePairs) =>
+      fillLiteralMap(keyValuePairs, new JsLinkedHashMap());
 }
 
+// TODO(floitsch): use ES6 Maps when available.
 class _LinkedIdentityHashMap<K, V> extends JsLinkedHashMap<K, V> {
   int internalComputeHashCode(var key) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
@@ -550,10 +564,12 @@ class _LinkedIdentityHashMap<K, V> extends JsLinkedHashMap<K, V> {
   }
 }
 
+// TODO(floitsch): use ES6 maps when available.
 class _LinkedCustomHashMap<K, V> extends JsLinkedHashMap<K, V> {
   final _Equality<K> _equals;
   final _Hasher<K> _hashCode;
   final _Predicate _validKey;
+
   _LinkedCustomHashMap(this._equals, this._hashCode,
                        bool validKey(potentialKey))
       : _validKey = (validKey != null) ? validKey : ((v) => v is K);

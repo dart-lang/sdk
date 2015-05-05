@@ -1501,6 +1501,10 @@ DART_EXPORT bool Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
   }
   // TODO(16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
+  if (iso->object_store()->root_library() == Library::null()) {
+    // The embedder should have called Dart_LoadScript by now.
+    return false;
+  }
   return iso->MakeRunnable();
 }
 
@@ -2031,6 +2035,14 @@ DART_EXPORT Dart_Handle Dart_NewInteger(int64_t value) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_NewIntegerFromUint64(uint64_t value) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_CALLBACK_STATE(isolate);
+  return Api::NewHandle(isolate, Integer::NewFromUint64(value));
+}
+
+
 DART_EXPORT Dart_Handle Dart_NewIntegerFromHexCString(const char* str) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -2089,8 +2101,9 @@ DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
   if (int_obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, integer, Integer);
   }
-  ASSERT(!int_obj.IsSmi());
-  if (int_obj.IsMint() && !int_obj.IsNegative()) {
+  if (int_obj.IsSmi()) {
+    ASSERT(int_obj.IsNegative());
+  } else if (int_obj.IsMint() && !int_obj.IsNegative()) {
     *value = int_obj.AsInt64Value();
     return Api::Success();
   } else {
@@ -5440,6 +5453,14 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   // The code that completes the futures (invoked below) may call into the
   // newly loaded code and trigger one of these breakpoints.
   isolate->debugger()->NotifyDoneLoading();
+
+  // Notify mirrors that MirrorSystem.libraries needs to be recomputed.
+  const Library& libmirrors =
+      Library::Handle(isolate, Library::MirrorsLibrary());
+  const Field& dirty_bit = Field::Handle(isolate,
+      libmirrors.LookupLocalField(String::Handle(String::New("dirty"))));
+  ASSERT(!dirty_bit.IsNull() && dirty_bit.is_static());
+  dirty_bit.set_value(Bool::True());
 
   if (complete_futures) {
     const Library& corelib = Library::Handle(isolate, Library::CoreLibrary());

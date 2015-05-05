@@ -142,16 +142,15 @@ class _ElementCssClassSet extends CssClassSetImpl {
 
   static bool _add(Element _element, String value) {
     DomTokenList list = _classListOf(_element);
-    // Compute returned result independently of action upon the set. One day we
-    // will be able to optimize it way if unused.
-    bool added = !_classListContains(list, value);
+    // Compute returned result independently of action upon the set.
+    bool added = !_classListContainsBeforeAddOrRemove(list, value);
     _classListAdd(list, value);
     return added;
   }
 
   static bool _remove(Element _element, String value) {
     DomTokenList list = _classListOf(_element);
-    bool removed = _classListContains(list, value);
+    bool removed = _classListContainsBeforeAddOrRemove(list, value);
     _classListRemove(list, value);
     return removed;
   }
@@ -225,7 +224,17 @@ class _ElementCssClassSet extends CssClassSetImpl {
       JS('returns:JSUInt31;effects:none;depends:all;', '#.length', list);
 
   static bool _classListContains(DomTokenList list, String value) =>
-      JS('returns:bool;effects:none;depends:all;',
+      JS('returns:bool;effects:none;depends:all',
+          '#.contains(#)', list, value);
+
+  static bool _classListContainsBeforeAddOrRemove(
+      DomTokenList list, String value) =>
+      // 'throws:never' is a lie, since 'contains' will throw on an illegal
+      // token.  However, we always call this function immediately prior to
+      // add/remove/toggle with the same token.  Often the result of 'contains'
+      // is unused and the lie makes it possible for the 'contains' instruction
+      // to be removed.
+      JS('returns:bool;effects:none;depends:all;throws:null(1)',
           '#.contains(#)', list, value);
 
   static void _classListAdd(DomTokenList list, String value) {

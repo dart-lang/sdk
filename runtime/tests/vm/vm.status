@@ -40,11 +40,15 @@ cc/ThreadInterrupterHigh: Skip
 cc/ThreadInterrupterMedium: Skip
 cc/ThreadInterrupterLow: Skip
 
-[ $arch == simarm || $arch == simmips ]
+[ $arch == simarm || $arch == simarmv5te || $arch == simarm64 || $arch == simmips ]
 cc/ThreadInterrupterHigh: Skip
 cc/ThreadInterrupterMedium: Skip
 cc/ThreadInterrupterLow: Skip
 cc/Service_Profile: Skip
+
+[ $arch == arm ]
+cc/Int8ListLengthMaxElements: Skip # Issue 23314
+cc/ArrayLengthMaxElements: Skip # Issue 23314
 
 [ $compiler == dart2js ]
 dart/redirection_type_shuffling_test: Skip # Depends on lazy enforcement of type bounds
@@ -65,6 +69,11 @@ dart/inline_stack_frame_test: RuntimeError # Issue 7953
 # Data uri's not supported by dart2js or the analyzer.
 dart/data_uri*test: Skip
 
+[ $compiler == dart2js && $cps_ir ]
+dart/error_stacktrace_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+dart/inline_stack_frame_test: Crash # (throw new ExpectException(message)): Unhandled node
+dart/optimized_stacktrace_test: Crash # (throw new ExpectException(message)): Unhandled node
+
 [ $runtime == vm ]
 dart/data_uri_failures_test/wrongmime: RuntimeError, OK # VM is more restrictive than the browser
 dart/data_uri_failures_test/nomime: RuntimeError, OK
@@ -77,6 +86,7 @@ dart/data_uri_failures_test/base64: RuntimeError, OK
 
 [ $arch == mips ]
 cc/StaticNonNullSumCallCodegen: Crash, Pass # Issue 17440
+cc/ArrayLengthMaxElements: Crash  # Issue 23275
 
 [ $arch == mips && $mode == debug ]
 cc/FindCodeObject: Skip # Takes more than 8 minutes. Issue 17440

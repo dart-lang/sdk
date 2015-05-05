@@ -198,7 +198,7 @@ FileStat: type $type
  * ## Other resources
  *
  * [Dart by Example](https://www.dartlang.org/dart-by-example/#files-directories-and-symlinks)
- * provides additional task-oriented code samples that show how to use 
+ * provides additional task-oriented code samples that show how to use
  * various API from the [Directory] class and the [File] class,
  * both subclasses of FileSystemEntity.
  *
@@ -213,6 +213,14 @@ FileStat: type $type
  */
 abstract class FileSystemEntity {
   String get path;
+
+  /**
+   * Returns a [Uri] representing the file system entity's location.
+   *
+   * The returned URI's scheme is always "file" if the entity's [path] is
+   * absolute, otherwise the scheme will be empty.
+   */
+  Uri get uri => new Uri.file(path);
 
   /**
    * Checks whether the file system entity with this path exists. Returns

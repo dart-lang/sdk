@@ -25,7 +25,7 @@ elif HOST_OS == 'linux':
   CHROMEDRIVER_FILES = ['chromedriver']
 elif HOST_OS == 'win':
   # TODO: provide proper list.
-  CONTENTSHELL_FILES = ['content_shell.exe', 'AHEM____.ttf']
+  CONTENTSHELL_FILES = ['content_shell.exe', 'AHEM____.ttf', 'icudtl.dat', ]
   CHROMEDRIVER_FILES = ['chromedriver.exe']
 else:
   raise Exception('Unsupported platform')

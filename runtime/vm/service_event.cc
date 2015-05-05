@@ -36,7 +36,8 @@ ServiceEvent::ServiceEvent(const DebuggerEvent* debugger_event)
       type_(TranslateEventType(debugger_event->type())),
       breakpoint_(NULL),
       top_frame_(NULL),
-      exception_(NULL) {
+      exception_(NULL),
+      gc_stats_(NULL) {
   DebuggerEvent::EventType type = debugger_event->type();
   if (type == DebuggerEvent::kBreakpointReached) {
     set_breakpoint(debugger_event->breakpoint());
@@ -78,6 +79,8 @@ const char* ServiceEvent::EventTypeToCString(EventType type) {
       return "BreakpointResolved";
     case kBreakpointRemoved:
       return "BreakpointRemoved";
+    case kGC:
+      return "GC";  // TODO(koda): Change to GarbageCollected.
     default:
       UNREACHABLE();
       return "Unknown";
@@ -99,6 +102,11 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   }
   if (exception() != NULL) {
     jsobj.AddProperty("exception", *(exception()));
+  }
+  if (gc_stats() != NULL) {
+    jsobj.AddProperty("reason", Heap::GCReasonToString(gc_stats()->reason_));
+    isolate()->heap()->PrintToJSONObject(Heap::kNew, &jsobj);
+    isolate()->heap()->PrintToJSONObject(Heap::kOld, &jsobj);
   }
 }
 

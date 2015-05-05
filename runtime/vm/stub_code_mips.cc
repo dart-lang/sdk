@@ -706,8 +706,8 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ LoadImmediate(T3, heap->TopAddress(space));
   __ lw(T0, Address(T3, 0));  // Potential new object start.
 
-  __ AdduDetectOverflow(T1, T0, T2, CMPRES1);  // Potential next object start.
-  __ bltz(CMPRES1, &slow_case);  // CMPRES1 < 0 on overflow.
+  __ addu(T1, T0, T2);  // Potential next object start.
+  __ BranchUnsignedLess(T1, T0, &slow_case);  // Branch on unsigned overflow.
 
   // Check if the allocation fits into the remaining space.
   // T0: potential new object start.

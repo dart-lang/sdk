@@ -9,6 +9,7 @@
 <link rel="import" href="observatory_element.html">
 <link rel="import" href="script_inset.html">
 <link rel="import" href="script_ref.html">
+<link rel="import" href="view_footer.html">
 
 <polymer-element name="isolate-view" extends="observatory-element">
   <template>
@@ -25,11 +26,10 @@
 
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ isolate }}" last="{{ true }}">
-      </isolate-nav-menu>
+      <vm-nav-menu vm="{{ isolate.vm }}"></vm-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}" last="{{ true }}"></isolate-nav-menu>
       <nav-refresh callback="{{ refreshCoverage }}" label="Refresh Coverage"></nav-refresh>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
-      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content">
@@ -138,8 +138,7 @@
     <div class="content">
       <eval-box callback="{{ eval }}"></eval-box>
     </div>
-    <br><br><br><br>
-    <br><br><br><br>
+    <view-footer></view-footer>
   </template>
 </polymer-element>
 

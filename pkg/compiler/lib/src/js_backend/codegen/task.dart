@@ -10,6 +10,7 @@ import 'codegen.dart';
 import 'unsugar.dart';
 
 import '../js_backend.dart';
+import '../../constants/constant_system.dart';
 import '../../dart2jslib.dart';
 import '../../cps_ir/cps_ir_nodes.dart' as cps;
 import '../../cps_ir/cps_ir_builder.dart';
@@ -20,7 +21,7 @@ import '../../types/types.dart' show TypeMask, UnionTypeMask, FlatTypeMask,
     ForwardingTypeMask;
 import '../../elements/elements.dart';
 import '../../js/js.dart' as js;
-import '../../io/source_information.dart' show StartEndSourceInformation;
+import '../../io/source_information.dart' show SourceInformationFactory;
 import '../../tree_ir/tree_ir_builder.dart' as tree_builder;
 import '../../dart_backend/backend_ast_emitter.dart' as backend_ast_emitter;
 import '../../cps_ir/optimizers.dart';
@@ -38,6 +39,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
   final ConstantSystem constantSystem;
   final Compiler compiler;
   final Glue glue;
+  final SourceInformationFactory sourceInformationFactory;
 
   TypeSystem types;
 
@@ -49,9 +51,10 @@ class CpsFunctionCompiler implements FunctionCompiler {
   IrBuilderTask get irBuilderTask => compiler.irBuilder;
 
   CpsFunctionCompiler(Compiler compiler, JavaScriptBackend backend,
-                      {bool generateSourceMap: true})
+                      SourceInformationFactory sourceInformationFactory)
       : fallbackCompiler =
-            new ssa.SsaFunctionCompiler(backend, generateSourceMap),
+            new ssa.SsaFunctionCompiler(backend, sourceInformationFactory),
+        this.sourceInformationFactory = sourceInformationFactory,
         constantSystem = backend.constantSystem,
         compiler = compiler,
         glue = new Glue(compiler);
@@ -208,10 +211,11 @@ class CpsFunctionCompiler implements FunctionCompiler {
       assert(checkTreeIntegrity(node));
     }
 
-    applyTreePass(new StatementRewriter());
+    applyTreePass(new StatementRewriter(isDartMode: false));
     applyTreePass(new VariableMerger());
     applyTreePass(new LoopRewriter());
     applyTreePass(new LogicalRewriter());
+    applyTreePass(new PullIntoInitializers());
 
     return node;
   }
@@ -219,7 +223,6 @@ class CpsFunctionCompiler implements FunctionCompiler {
   js.Fun compileToJavaScript(CodegenWorkItem work,
                              tree_ir.FunctionDefinition definition) {
     CodeGenerator codeGen = new CodeGenerator(glue, work.registry);
-
     return attachPosition(codeGen.buildFunction(definition), work.element);
   }
 
@@ -230,6 +233,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   js.Node attachPosition(js.Node node, AstElement element) {
     return node.withSourceInformation(
-        StartEndSourceInformation.computeSourceInformation(element));
+        sourceInformationFactory.forContext(element)
+            .buildDeclaration(element));
   }
 }

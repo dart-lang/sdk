@@ -7,6 +7,7 @@ import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import "package:compiler/src/io/code_output.dart";
 import 'package:compiler/src/io/source_file.dart';
+import 'package:compiler/src/io/source_information.dart';
 import "mock_compiler.dart";
 import 'package:compiler/src/js_backend/js_backend.dart';
 
@@ -33,10 +34,10 @@ void testSourceMapLocations(String codeWithMarkers) {
   SourceFile sourceFile = new StringSourceFile.fromName('<test script>', code);
   asyncTest(() => compileAll(sourceFile).then((CodeOutput output) {
     Set<int> locations = new Set<int>();
-    output.forEachSourceLocation((int offset, var sourcePosition) {
+    output.forEachSourceLocation((int offset, SourceLocation sourcePosition) {
       if (sourcePosition != null &&
           sourcePosition.sourceUri == sourceFile.uri) {
-        locations.add(sourcePosition.token.charOffset);
+        locations.add(sourcePosition.offset);
       }
     });
 

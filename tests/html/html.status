@@ -6,7 +6,6 @@ event_test: Skip  # Issue 1996
 interactive_test: Skip # Must be run manually.
 dromaeo_smoke_test: Skip # Issue 14521, 8257
 cross_frame_test: Skip # Test reloads itself. Issue 18558
-svgelement_test/constructors: Skip # Temporary suppression, WIP alanknight
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Issue 18931 (Disabled for Chrome 35 roll)
@@ -54,7 +53,9 @@ keyboard_event_test: Fail # Issue 13902
 isolates_test: Fail # Issue 13921
 indexeddb_3_test: Skip # Issue 19578.  Timeouts and RuntimeError
 fileapi_test/getFile: Pass, Fail # Issue 20488
-node_validator_test/dom_clobbering: Skip # Dartium is immune to DOM clobbering, so the HTML passes through the sanitizer.
+
+# DO NOT Suppress/Skip the below XSS security test for dart2js - any failure is a P0 bug.
+node_validator_important_if_you_suppress_make_the_bug_critical_test/dom_clobbering: Fail # Dartium is immune to DOM clobbering, so the HTML passes through the sanitizer.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) && $mode == debug ]
 websocket_test/websocket: Skip # Issue 17666
@@ -104,9 +105,12 @@ element_types_test/supported_meter: RuntimeError # Issue 18573
 touchevent_test/supported: Fail # Touch events are only supported on touch devices
 xhr_cross_origin_test: Pass, Fail # Issue 11884
 xhr_test: Pass, Fail # Issue 11884
-audiocontext_test/functional: Skip # Renderer crash. Issue 22327
 element_animate_test/omit_timing: Skip # Timing out inexplicably. Temporarily suppressing (alanknight)
 element_animate_test/timing_dict: Skip # Timing out inexplicably. Temporarily suppressing (alanknight)
+
+[ $runtime == chrome && ($system == windows || $system == macos) ]
+# New failure on Chrome 42.  Linux bots are not yet updated.
+element_animate_test/simple_timing: RuntimeError # Please triage this failure
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ContentShellOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
@@ -184,6 +188,9 @@ xhr_test/supported_overrideMimeType: Fail
 xsltprocessor_test/supported: Fail
 worker_test/functional: Fail # IE uses incorrect security context for Blob URIs.
 transferables_test: Fail # Issue 9846
+
+[ $compiler == dart2js && $minified ]
+canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue 12605
 
 [ $compiler == dart2js && $runtime == chrome ]
 css_test/supportsPointConversions: Fail # Issues 21710
@@ -290,7 +297,7 @@ indexeddb_1_test/functional: Skip # Times out. Issue 21433
 indexeddb_2_test: RuntimeError # Issue 21433
 indexeddb_4_test: RuntimeError # Issue 21433
 indexeddb_5_test: RuntimeError # Issue 21433
-wheelevent_test: RuntimeError # Issue 21434
+wheelevent_test: RuntimeError # Issue 21434, 12958
 js_test: RuntimeError # Issue 21434
 
 [ $runtime == opera ]
@@ -381,7 +388,7 @@ postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (tim
 wheelevent_test: Fail # Issue 12958
 
 [ $compiler == dart2js &&  $runtime == chrome]
-svgelement_test/supported_altGlyph: RuntimeError # Issue 22154
+svgelement_test/supported_altGlyph: RuntimeError # Issue 23144
 
 [ ($runtime == dartium) && ($system == macos || $system == windows || $system == linux)]
 # Desktop operating systems do not support touch events on chrome 34 dartium.
@@ -389,9 +396,6 @@ touchevent_test/supported: Fail
 
 [ (($runtime == dartium || $runtime == drt) && $system == macos) || $system == windows ]
 xhr_test/xhr: Skip # Times out.  Issue 21527
-
-[ $compiler == none && $runtime == dartium ]
-element_offset_test/offset: Pass, Fail # Issue 13719, 13296
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 custom/document_register_basic_test: StaticWarning
@@ -411,3 +415,149 @@ typed_arrays_range_checks_test: StaticWarning
 typing_test: StaticWarning
 webgl_1_test: StaticWarning
 window_nosuchmethod_test: StaticWarning
+
+[ $compiler == dart2js && $cps_ir ]
+async_spawnuri_test: Crash # cannot compile methods that need interceptor calling convention.
+async_test: Crash # cannot compile methods that need interceptor calling convention.
+audiobuffersourcenode_test: Crash #  try/finally
+audiocontext_test: Crash #  try/finally
+audioelement_test: Crash # cannot compile methods that need interceptor calling convention.
+b_element_test: Crash # cannot compile methods that need interceptor calling convention.
+blob_constructor_test: Crash # cannot compile methods that need interceptor calling convention.
+cache_test: Crash #  try/finally
+callbacks_test: Crash # cannot compile methods that need interceptor calling convention.
+canvas_pixel_array_type_alias_test: Crash #  try/finally
+canvas_test: Crash # cannot compile methods that need interceptor calling convention.
+canvasrenderingcontext2d_test: Crash #  try/finally
+cdata_test: Crash # cannot compile methods that need interceptor calling convention.
+client_rect_test: Crash # cannot compile methods that need interceptor calling convention.
+cross_domain_iframe_test: Crash # cannot compile methods that need interceptor calling convention.
+crypto_test: Crash #  try/finally
+css_rule_list_test: Crash # cannot compile methods that need interceptor calling convention.
+css_test: Crash #  try/finally
+cssstyledeclaration_test: Crash # cannot compile methods that need interceptor calling convention.
+custom/attribute_changed_callback_test: Crash #  try/finally
+custom/constructor_calls_created_synchronously_test: Crash # cannot compile methods that need interceptor calling convention.
+custom/created_callback_test: Crash # cannot compile methods that need interceptor calling convention.
+custom/document_register_basic_test: Crash # cannot compile methods that need interceptor calling convention.
+custom/document_register_type_extensions_test: Crash #  try/finally
+custom/element_upgrade_test: Crash # cannot compile methods that need interceptor calling convention.
+custom/entered_left_view_test: Crash #  try/finally
+custom/js_custom_test: Crash # cannot compile methods that need interceptor calling convention.
+custom/mirrors_test: Crash # cannot compile methods that need interceptor calling convention.
+custom/regress_194523002_test: Crash # unsupported element kind: _defaultEnvironment:field
+custom_element_method_clash_test: Crash #  try/finally
+custom_element_name_clash_test: Crash #  try/finally
+custom_elements_23127_test: Crash #  try/finally
+custom_elements_test: Crash #  try/finally
+custom_tags_test: Crash # cannot compile methods that need interceptor calling convention.
+dart_object_local_storage_test: Crash # cannot compile methods that need interceptor calling convention.
+datalistelement_test: Crash # cannot compile methods that need interceptor calling convention.
+document_test: Crash #  try/finally
+documentfragment_test: Crash # cannot compile methods that need interceptor calling convention.
+dom_constructors_test: Crash # cannot compile methods that need interceptor calling convention.
+domparser_test: Crash # cannot compile methods that need interceptor calling convention.
+element_add_test: Crash #  try/finally
+element_animate_test: Crash #  try/finally
+element_classes_svg_test: Crash # cannot compile methods that need interceptor calling convention.
+element_classes_test: Crash # cannot compile methods that need interceptor calling convention.
+element_constructor_1_test: Crash # cannot compile methods that need interceptor calling convention.
+element_dimensions_test: Crash #  try/finally
+element_offset_test: Crash #  try/finally
+element_test: Crash #  try/finally
+element_types_constructors1_test: Crash #  try/finally
+element_types_constructors2_test: Crash #  try/finally
+element_types_constructors3_test: Crash #  try/finally
+element_types_constructors4_test: Crash #  try/finally
+element_types_constructors5_test: Crash #  try/finally
+element_types_constructors6_test: Crash #  try/finally
+element_types_test: Crash #  try/finally
+event_customevent_test: Crash # cannot compile methods that need interceptor calling convention.
+events_test: Crash # cannot compile methods that need interceptor calling convention.
+exceptions_test: Crash # cannot compile methods that need interceptor calling convention.
+fileapi_test: Crash #  try/finally
+filereader_test: Crash # cannot compile methods that need interceptor calling convention.
+fontface_loaded_test: Crash # cannot compile methods that need interceptor calling convention.
+fontface_test: Crash # cannot compile methods that need interceptor calling convention.
+form_data_test: Crash #  try/finally
+form_element_test: Crash # cannot compile methods that need interceptor calling convention.
+geolocation_test: Crash # cannot compile methods that need interceptor calling convention.
+hidden_dom_1_test: Crash # cannot compile methods that need interceptor calling convention.
+hidden_dom_2_test: Crash # cannot compile methods that need interceptor calling convention.
+history_test: Crash #  try/finally
+htmlcollection_test: Crash # cannot compile methods that need interceptor calling convention.
+htmlelement_test: Crash # cannot compile methods that need interceptor calling convention.
+htmloptionscollection_test: Crash # cannot compile methods that need interceptor calling convention.
+indexeddb_1_test: Crash #  try/finally
+indexeddb_2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+indexeddb_3_test: Crash # cannot compile methods that need interceptor calling convention.
+indexeddb_4_test: Crash # cannot compile methods that need interceptor calling convention.
+indexeddb_5_test: Crash # cannot compile methods that need interceptor calling convention.
+input_element_test: Crash #  try/finally
+instance_of_test: Crash # cannot compile methods that need interceptor calling convention.
+isolates_test: Crash # cannot compile methods that need interceptor calling convention.
+js_interop_1_test: Crash # cannot compile methods that need interceptor calling convention.
+js_test: Crash #  try/finally
+keyboard_event_test: Crash # cannot compile methods that need interceptor calling convention.
+localstorage_test: Crash # cannot compile methods that need interceptor calling convention.
+location_test: Crash # cannot compile methods that need interceptor calling convention.
+media_stream_test: Crash #  try/finally
+mediasource_test: Crash #  try/finally
+messageevent_test: Crash # cannot compile methods that need interceptor calling convention.
+mouse_event_test: Crash # cannot compile methods that need interceptor calling convention.
+mutationobserver_test: Crash #  try/finally
+native_gc_test: Crash # cannot compile methods that need interceptor calling convention.
+navigator_test: Crash # cannot compile methods that need interceptor calling convention.
+node_test: Crash #  try/finally
+node_validator_important_if_you_suppress_make_the_bug_critical_test: Crash #  try/finally
+non_instantiated_is_test: Crash # cannot compile methods that need interceptor calling convention.
+notification_test: Crash #  try/finally
+performance_api_test: Crash #  try/finally
+postmessage_structured_test: Crash #  try/finally
+query_test: Crash # cannot compile methods that need interceptor calling convention.
+queryall_test: Crash # cannot compile methods that need interceptor calling convention.
+range_test: Crash #  try/finally
+request_animation_frame_test: Crash # cannot compile methods that need interceptor calling convention.
+rtc_test: Crash #  try/finally
+selectelement_test: Crash # cannot compile methods that need interceptor calling convention.
+serialized_script_value_test: Crash # cannot compile methods that need interceptor calling convention.
+shadow_dom_test: Crash #  try/finally
+shadowroot_test: Crash # cannot compile methods that need interceptor calling convention.
+speechrecognition_test: Crash #  try/finally
+storage_quota_test/missingenumcheck: Crash # cannot compile methods that need interceptor calling convention.
+storage_quota_test/none: Crash # cannot compile methods that need interceptor calling convention.
+storage_test: Crash # cannot compile methods that need interceptor calling convention.
+streams_test: Crash # cannot compile methods that need interceptor calling convention.
+svg_test: Crash #  try/finally
+svgelement_test: Crash #  try/finally
+table_test: Crash # cannot compile methods that need interceptor calling convention.
+touchevent_test: Crash #  try/finally
+track_element_constructor_test: Crash # cannot compile methods that need interceptor calling convention.
+transferables_test: Crash # cannot compile methods that need interceptor calling convention.
+transition_event_test: Crash #  try/finally
+typed_arrays_1_test: Crash #  try/finally
+typed_arrays_2_test: Crash # cannot compile methods that need interceptor calling convention.
+typed_arrays_3_test: Crash # cannot compile methods that need interceptor calling convention.
+typed_arrays_4_test: Crash # cannot compile methods that need interceptor calling convention.
+typed_arrays_5_test: Crash # cannot compile methods that need interceptor calling convention.
+typed_arrays_arraybuffer_test: Crash # cannot compile methods that need interceptor calling convention.
+typed_arrays_dataview_test: Crash # cannot compile methods that need interceptor calling convention.
+typed_arrays_range_checks_test: Crash # cannot compile methods that need interceptor calling convention.
+typed_arrays_simd_test: Crash # cannot compile methods that need interceptor calling convention.
+typing_test: Crash # cannot compile methods that need interceptor calling convention.
+unknownelement_test: Crash # cannot compile methods that need interceptor calling convention.
+uri_test: Crash # cannot compile methods that need interceptor calling convention.
+url_test: Crash #  try/finally
+webgl_1_test: Crash #  try/finally
+websocket_test: Crash #  try/finally
+websql_test: Crash #  try/finally
+wheelevent_test: Crash # cannot compile methods that need interceptor calling convention.
+window_eq_test: Crash # cannot compile methods that need interceptor calling convention.
+window_mangling_test: Crash # cannot compile methods that need interceptor calling convention.
+window_nosuchmethod_test: Crash # cannot compile methods that need interceptor calling convention.
+window_test: Crash # cannot compile methods that need interceptor calling convention.
+worker_api_test: Crash # cannot compile methods that need interceptor calling convention.
+worker_test: Crash #  try/finally
+xhr_cross_origin_test: Crash #  try/finally
+xhr_test: Crash #  try/finally
+xsltprocessor_test: Crash #  try/finally

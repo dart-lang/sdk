@@ -5,13 +5,14 @@
 
 // VM implementation of int.
 
+import 'dart:_internal' as internal;
+
 patch class int {
 
   /* patch */ const factory int.fromEnvironment(String name,
                                                 {int defaultValue})
       native "Integer_fromEnvironment";
 
-  static bool is64Bit() => 1 << 32 is _Smi;
 
   static int _tryParseSmi(String str, int first, int last) {
     assert(first <= last);
@@ -26,7 +27,7 @@ patch class int {
         return null;  // Empty.
       }
     }
-    var smiLimit = is64Bit() ? 18 : 9;
+    var smiLimit = internal.is64Bit ? 18 : 9;
     if ((last - ix) >= smiLimit) {
       return null;  // May not fit into a Smi.
     }
@@ -112,7 +113,7 @@ patch class int {
 
   static int _parseRadix(String source, int radix,
                          int start, int end, int sign) {
-    int tableIndex = (radix - 2) * 4 + (int.is64Bit() ? 2 : 0);
+    int tableIndex = (radix - 2) * 4 + (internal.is64Bit ? 2 : 0);
     int blockSize = _PARSE_LIMITS[tableIndex];
     int length = end - start;
     if (length <= blockSize) {

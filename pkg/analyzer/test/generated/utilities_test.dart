@@ -362,9 +362,8 @@ class AstClonerTest extends EngineTestCase {
   }
 
   void test_visitCompilationUnit_directive_declaration() {
-    _assertClone(AstFactory.compilationUnit4([
-      AstFactory.libraryDirective2("l")
-    ], [
+    _assertClone(AstFactory.compilationUnit4(
+        [AstFactory.libraryDirective2("l")], [
       AstFactory.topLevelVariableDeclaration2(
           Keyword.VAR, [AstFactory.variableDeclaration("a")])
     ]));
@@ -391,9 +390,8 @@ class AstClonerTest extends EngineTestCase {
   }
 
   void test_visitCompilationUnit_script_directives_declarations() {
-    _assertClone(AstFactory.compilationUnit8("!#/bin/dartvm", [
-      AstFactory.libraryDirective2("l")
-    ], [
+    _assertClone(AstFactory.compilationUnit8("!#/bin/dartvm",
+        [AstFactory.libraryDirective2("l")], [
       AstFactory.topLevelVariableDeclaration2(
           Keyword.VAR, [AstFactory.variableDeclaration("a")])
     ]));
@@ -761,9 +759,8 @@ class AstClonerTest extends EngineTestCase {
   }
 
   void test_visitForStatement_cu() {
-    _assertClone(AstFactory.forStatement(null, AstFactory.identifier3("c"), [
-      AstFactory.identifier3("u")
-    ], AstFactory.block()));
+    _assertClone(AstFactory.forStatement(null, AstFactory.identifier3("c"),
+        [AstFactory.identifier3("u")], AstFactory.block()));
   }
 
   void test_visitForStatement_e() {
@@ -778,15 +775,13 @@ class AstClonerTest extends EngineTestCase {
 
   void test_visitForStatement_ecu() {
     _assertClone(AstFactory.forStatement(AstFactory.identifier3("e"),
-        AstFactory.identifier3("c"), [
-      AstFactory.identifier3("u")
-    ], AstFactory.block()));
+        AstFactory.identifier3("c"), [AstFactory.identifier3("u")],
+        AstFactory.block()));
   }
 
   void test_visitForStatement_eu() {
-    _assertClone(AstFactory.forStatement(AstFactory.identifier3("e"), null, [
-      AstFactory.identifier3("u")
-    ], AstFactory.block()));
+    _assertClone(AstFactory.forStatement(AstFactory.identifier3("e"), null,
+        [AstFactory.identifier3("u")], AstFactory.block()));
   }
 
   void test_visitForStatement_i() {
@@ -804,16 +799,14 @@ class AstClonerTest extends EngineTestCase {
   void test_visitForStatement_icu() {
     _assertClone(AstFactory.forStatement2(AstFactory.variableDeclarationList2(
             Keyword.VAR, [AstFactory.variableDeclaration("i")]),
-        AstFactory.identifier3("c"), [
-      AstFactory.identifier3("u")
-    ], AstFactory.block()));
+        AstFactory.identifier3("c"), [AstFactory.identifier3("u")],
+        AstFactory.block()));
   }
 
   void test_visitForStatement_iu() {
     _assertClone(AstFactory.forStatement2(AstFactory.variableDeclarationList2(
-        Keyword.VAR, [AstFactory.variableDeclaration("i")]), null, [
-      AstFactory.identifier3("u")
-    ], AstFactory.block()));
+            Keyword.VAR, [AstFactory.variableDeclaration("i")]), null,
+        [AstFactory.identifier3("u")], AstFactory.block()));
   }
 
   void test_visitForStatement_u() {
@@ -905,9 +898,8 @@ class AstClonerTest extends EngineTestCase {
   }
 
   void test_visitImportDirective_combinator() {
-    _assertClone(AstFactory.importDirective3("a.dart", null, [
-      AstFactory.showCombinator([AstFactory.identifier3("A")])
-    ]));
+    _assertClone(AstFactory.importDirective3("a.dart", null,
+        [AstFactory.showCombinator([AstFactory.identifier3("A")])]));
   }
 
   void test_visitImportDirective_combinators() {
@@ -926,9 +918,8 @@ class AstClonerTest extends EngineTestCase {
   }
 
   void test_visitImportDirective_prefix_combinator() {
-    _assertClone(AstFactory.importDirective3("a.dart", "p", [
-      AstFactory.showCombinator([AstFactory.identifier3("A")])
-    ]));
+    _assertClone(AstFactory.importDirective3("a.dart", "p",
+        [AstFactory.showCombinator([AstFactory.identifier3("A")])]));
   }
 
   void test_visitImportDirective_prefix_combinators() {
@@ -1343,9 +1334,8 @@ class AstClonerTest extends EngineTestCase {
   }
 
   void test_visitSwitchCase_singleLabel() {
-    _assertClone(AstFactory.switchCase2([
-      AstFactory.label2("l1")
-    ], AstFactory.identifier3("a"), [AstFactory.block()]));
+    _assertClone(AstFactory.switchCase2([AstFactory.label2("l1")],
+        AstFactory.identifier3("a"), [AstFactory.block()]));
   }
 
   void test_visitSwitchDefault_multipleLabels() {
@@ -1405,9 +1395,8 @@ class AstClonerTest extends EngineTestCase {
   }
 
   void test_visitTryStatement_catch() {
-    _assertClone(AstFactory.tryStatement2(AstFactory.block(), [
-      AstFactory.catchClause3(AstFactory.typeName4("E"))
-    ]));
+    _assertClone(AstFactory.tryStatement2(AstFactory.block(),
+        [AstFactory.catchClause3(AstFactory.typeName4("E"))]));
   }
 
   void test_visitTryStatement_catches() {
@@ -1418,9 +1407,9 @@ class AstClonerTest extends EngineTestCase {
   }
 
   void test_visitTryStatement_catchFinally() {
-    _assertClone(AstFactory.tryStatement3(AstFactory.block(), [
-      AstFactory.catchClause3(AstFactory.typeName4("E"))
-    ], AstFactory.block()));
+    _assertClone(AstFactory.tryStatement3(AstFactory.block(),
+        [AstFactory.catchClause3(AstFactory.typeName4("E"))],
+        AstFactory.block()));
   }
 
   void test_visitTryStatement_finally() {
@@ -1485,13 +1474,6 @@ class AstClonerTest extends EngineTestCase {
 
   void test_visitVariableDeclaration_uninitialized() {
     _assertClone(AstFactory.variableDeclaration("a"));
-  }
-
-  void test_visitVariableDeclaration_withMetadata() {
-    VariableDeclaration declaration = AstFactory.variableDeclaration("a");
-    declaration.metadata
-        .add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
-    _assertClone(declaration);
   }
 
   void test_visitVariableDeclarationList_const_type() {
@@ -3389,9 +3371,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_compilationUnit() {
-    CompilationUnit node = AstFactory.compilationUnit8("", [
-      AstFactory.libraryDirective2("lib")
-    ], [
+    CompilationUnit node = AstFactory.compilationUnit8("",
+        [AstFactory.libraryDirective2("lib")], [
       AstFactory.topLevelVariableDeclaration2(
           null, [AstFactory.variableDeclaration("X")])
     ]);
@@ -3490,9 +3471,9 @@ class NodeReplacerTest extends EngineTestCase {
 
   void test_enumConstantDeclaration() {
     EnumConstantDeclaration node = new EnumConstantDeclaration(
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST), [
-      AstFactory.annotation(AstFactory.identifier3("a"))
-    ], AstFactory.identifier3("C"));
+        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST),
+        [AstFactory.annotation(AstFactory.identifier3("a"))],
+        AstFactory.identifier3("C"));
     _assertReplace(
         node, new Getter_NodeReplacerTest_test_enumConstantDeclaration());
     _testAnnotatedNode(node);
@@ -3591,9 +3572,8 @@ class NodeReplacerTest extends EngineTestCase {
 
   void test_forStatement_withInitialization() {
     ForStatement node = AstFactory.forStatement(AstFactory.identifier3("a"),
-        AstFactory.booleanLiteral(true), [
-      AstFactory.integer(0)
-    ], AstFactory.block());
+        AstFactory.booleanLiteral(true), [AstFactory.integer(0)],
+        AstFactory.block());
     _assertReplace(node,
         new Getter_NodeReplacerTest_test_forStatement_withInitialization_3());
     _assertReplace(node,
@@ -3607,11 +3587,10 @@ class NodeReplacerTest extends EngineTestCase {
 
   void test_forStatement_withVariables() {
     ForStatement node = AstFactory.forStatement2(AstFactory
-        .variableDeclarationList2(null, [
-      AstFactory.variableDeclaration("i")
-    ]), AstFactory.booleanLiteral(true), [
-      AstFactory.integer(0)
-    ], AstFactory.block());
+            .variableDeclarationList2(
+                null, [AstFactory.variableDeclaration("i")]),
+        AstFactory.booleanLiteral(true), [AstFactory.integer(0)],
+        AstFactory.block());
     _assertReplace(
         node, new Getter_NodeReplacerTest_test_forStatement_withVariables_2());
     _assertReplace(
@@ -3685,9 +3664,8 @@ class NodeReplacerTest extends EngineTestCase {
 
   void test_functionTypedFormalParameter() {
     FunctionTypedFormalParameter node = AstFactory.functionTypedFormalParameter(
-        AstFactory.typeName4("R"), "f", [
-      AstFactory.simpleFormalParameter3("p")
-    ]);
+        AstFactory.typeName4("R"), "f",
+        [AstFactory.simpleFormalParameter3("p")]);
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata = [AstFactory.annotation(AstFactory.identifier3("a"))];
@@ -3790,18 +3768,16 @@ class NodeReplacerTest extends EngineTestCase {
 
   void test_listLiteral() {
     ListLiteral node = AstFactory.listLiteral2(null,
-        AstFactory.typeArgumentList([AstFactory.typeName4("E")]), [
-      AstFactory.identifier3("e")
-    ]);
+        AstFactory.typeArgumentList([AstFactory.typeName4("E")]),
+        [AstFactory.identifier3("e")]);
     _assertReplace(node, new ListGetter_NodeReplacerTest_test_listLiteral(0));
     _testTypedLiteral(node);
   }
 
   void test_mapLiteral() {
     MapLiteral node = AstFactory.mapLiteral(null,
-        AstFactory.typeArgumentList([AstFactory.typeName4("E")]), [
-      AstFactory.mapLiteralEntry("k", AstFactory.identifier3("v"))
-    ]);
+        AstFactory.typeArgumentList([AstFactory.typeName4("E")]),
+        [AstFactory.mapLiteralEntry("k", AstFactory.identifier3("v"))]);
     _assertReplace(node, new ListGetter_NodeReplacerTest_test_mapLiteral(0));
     _testTypedLiteral(node);
   }
@@ -3970,9 +3946,8 @@ class NodeReplacerTest extends EngineTestCase {
   void test_switchStatement() {
     SwitchStatement node = AstFactory.switchStatement(
         AstFactory.identifier3("x"), [
-      AstFactory.switchCase2([AstFactory.label2("l")], AstFactory.integer(0), [
-        AstFactory.block()
-      ]),
+      AstFactory.switchCase2([AstFactory.label2("l")], AstFactory.integer(0),
+          [AstFactory.block()]),
       AstFactory.switchDefault([AstFactory.label2("l")], [AstFactory.block()])
     ]);
     _assertReplace(node, new Getter_NodeReplacerTest_test_switchStatement());
@@ -3998,9 +3973,9 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_tryStatement() {
-    TryStatement node = AstFactory.tryStatement3(AstFactory.block(), [
-      AstFactory.catchClause("e", [AstFactory.block()])
-    ], AstFactory.block());
+    TryStatement node = AstFactory.tryStatement3(AstFactory.block(),
+        [AstFactory.catchClause("e", [AstFactory.block()])],
+        AstFactory.block());
     _assertReplace(node, new Getter_NodeReplacerTest_test_tryStatement_2());
     _assertReplace(node, new Getter_NodeReplacerTest_test_tryStatement());
     _assertReplace(node, new ListGetter_NodeReplacerTest_test_tryStatement(0));

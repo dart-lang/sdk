@@ -37,23 +37,63 @@ class DeclarationTypePlaceholder {
   DeclarationTypePlaceholder(this.typeNode, this.requiresVar);
 }
 
-class SendVisitor extends OldResolvedVisitor {
+class SendVisitor extends Visitor {
+  final TreeElements elements;
   final PlaceholderCollector collector;
 
-  SendVisitor(this.collector, TreeElements elements)
-      : super(elements);
+  SendVisitor(this.collector, this.elements);
 
-  visitOperatorSend(Send node) {
-  }
-
-  visitForeignSend(Send node) {}
-
-  visitSuperSend(Send node) {
+  visitSend(Send node) {
     Element element = elements[node];
-    if (element != null && element.isConstructor) {
-      collector.tryMakeConstructorPlaceholder(node, element);
+    if (elements.isAssert(node)) {
+      return;
+    } else if (elements.isTypeLiteral(node)) {
+      DartType type = elements.getTypeLiteralType(node);
+      if (!type.isDynamic) {
+        if (type is TypeVariableType) {
+          collector.makeTypeVariablePlaceholder(node.selector, type);
+        } else {
+          collector.makeTypePlaceholder(node.selector, type);
+        }
+      }
+    } else if (node.isSuperCall) {
+      if (element != null && element.isConstructor) {
+        collector.tryMakeConstructorPlaceholder(node, element);
+      } else {
+        collector.tryMakeMemberPlaceholder(node.selector);
+      }
+    } else if (node.isOperator) {
+      return;
+    } else if (node.isPropertyAccess) {
+      if (!Elements.isUnresolved(element) && element.impliesType) {
+        collector.makeElementPlaceholder(node, element);
+      } else {
+        visitGetterSend(node);
+      }
+    } else if (element != null && Initializers.isConstructorRedirect(node)) {
+      visitStaticSend(node);
+    } else if (Elements.isClosureSend(node, element)) {
+      if (element != null) {
+        collector.tryMakeLocalPlaceholder(element, node.selector);
+      }
     } else {
-      collector.tryMakeMemberPlaceholder(node.selector);
+      if (Elements.isUnresolved(element)) {
+        if (element == null) {
+          // Example: f() with 'f' unbound.
+          // This can only happen inside an instance method.
+          visitDynamicSend(node);
+        } else {
+          visitStaticSend(node);
+        }
+      } else if (element.isInstanceMember) {
+        // Example: f() with 'f' bound to instance method.
+        visitDynamicSend(node);
+      } else if (!element.isInstanceMember) {
+        // Example: A.f() or f() with 'f' bound to a static function.
+        // Also includes new A() or new A.named() which is treated like a
+        // static call to a factory.
+        visitStaticSend(node);
+      }
     }
   }
 
@@ -61,13 +101,6 @@ class SendVisitor extends OldResolvedVisitor {
     final element = elements[node];
     if (element == null || !element.isErroneous) {
       collector.tryMakeMemberPlaceholder(node.selector);
-    }
-  }
-
-  visitClosureSend(Send node) {
-    final element = elements[node];
-    if (element != null) {
-      collector.tryMakeLocalPlaceholder(element, node.selector);
     }
   }
 
@@ -98,10 +131,6 @@ class SendVisitor extends OldResolvedVisitor {
         }
       }
     }
-  }
-
-  visitAssertSend(node) {
-    visitStaticSend(node);
   }
 
   visitStaticSend(Send node) {
@@ -138,19 +167,8 @@ class SendVisitor extends OldResolvedVisitor {
     collector.internalError(reason, node: node);
   }
 
-  visitTypePrefixSend(Send node) {
-    collector.makeElementPlaceholder(node, elements[node]);
-  }
-
-  visitTypeLiteralSend(Send node) {
-    DartType type = elements.getTypeLiteralType(node);
-    if (!type.isDynamic) {
-      if (type is TypeVariableType) {
-        collector.makeTypeVariablePlaceholder(node.selector, type);
-      } else {
-        collector.makeTypePlaceholder(node.selector, type);
-      }
-    }
+  visitNode(Node node) {
+    internalError(node, "Unhandled node");
   }
 }
 

@@ -5,7 +5,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.6.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.6.2</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -1326,11 +1326,12 @@
           selection offset and selection length.
         </p>
         <p>
-          If a request is made for a file which does not exist, or
-          which is not currently subject to analysis (e.g. because it
-          is not associated with any analysis root specified to
-          analysis.setAnalysisRoots), an error of type
-          <tt>FORMAT_INVALID_FILE</tt> will be generated.
+          If a request is made for a file which does not exist, or which is not
+          currently subject to analysis (e.g. because it is not associated with
+          any analysis root specified to analysis.setAnalysisRoots), an error of
+          type <tt>FORMAT_INVALID_FILE</tt> will be generated. If the source
+          contains syntax errors, an error of type <tt>FORMAT_WITH_ERRORS</tt>
+          will be generated.
         </p>
         <params>
           <field name="file">
@@ -2200,6 +2201,13 @@
               field is omitted if the parameterName field is omitted.
             </p>
           </field>
+          <field name="importUri" optional="true">
+            <ref>String</ref>
+            <p>
+              The import to be added if the suggestion is out of scope
+              and needs an import to be added to be in scope.
+            </p>
+          </field>
         </object>
       </type>
       <type name="CompletionSuggestionKind">
@@ -2243,7 +2251,14 @@
               For suggestions of this kind, the completion is the keyword.
             </p>
           </value>
-          <value><code>NAMED_ARGUMENT</code></value>
+          <value>
+            <code>NAMED_ARGUMENT</code>
+            <p>
+              A named argument for the current callsite is being suggested.
+              For suggestions of this kind, the completion is
+              the named argument identifier including a trailing ':' and space.
+            </p>
+          </value>
           <value><code>OPTIONAL_ARGUMENT</code></value>
           <value><code>PARAMETER</code></value>
         </enum>
@@ -3122,6 +3137,13 @@
             <p>
               An "edit.format" request specified a FilePath
               which does not match a Dart file in an analysis root.
+            </p>
+          </value>
+          <value>
+            <code>FORMAT_WITH_ERRORS</code>
+            <p>
+              An "edit.format" request specified a file that contains syntax
+              errors.
             </p>
           </value>
           <value>

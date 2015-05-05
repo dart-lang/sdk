@@ -337,7 +337,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   if (builtinId != Builtin::kInvalidLibrary) {
     // Special case for importing a builtin library.
     if (tag == Dart_kImportTag) {
-      return Builtin::LoadAndCheckLibrary(builtinId);
+      return Builtin::LoadLibrary(url, builtinId);
     }
     ASSERT(tag == Dart_kSourceTag);
     return DartUtils::NewError("Unable to part '%s' ", url_string);

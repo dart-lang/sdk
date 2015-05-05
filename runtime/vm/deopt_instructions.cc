@@ -27,7 +27,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
                            fpu_register_t* fpu_registers,
                            intptr_t* cpu_registers)
     : code_(code.raw()),
-      object_table_(code.object_table()),
+      object_pool_(code.ObjectPool()),
       deopt_info_(TypedData::null()),
       dest_frame_is_allocated_(false),
       dest_frame_(NULL),
@@ -130,7 +130,7 @@ DeoptContext::~DeoptContext() {
 
 
 void DeoptContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&object_table_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&object_pool_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&deopt_info_));
 
   // Visit any object pointers on the destination stack.
@@ -783,10 +783,16 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
   // from the simulator.
   ASSERT(Isolate::IsDeoptAfter(ret_address_instr->deopt_id()));
   ASSERT(!object_table.IsNull());
-  Function& function = Function::Handle();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Function& function = Function::Handle(zone);
   function ^= object_table.At(ret_address_instr->object_table_index());
   ASSERT(code != NULL);
-  Compiler::EnsureUnoptimizedCode(Thread::Current(), function);
+  const Error& error = Error::Handle(zone,
+      Compiler::EnsureUnoptimizedCode(thread, function));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+  }
   *code ^= function.unoptimized_code();
   ASSERT(!code->IsNull());
   uword res = code->GetPcForDeoptId(ret_address_instr->deopt_id(),
@@ -916,12 +922,13 @@ class DeoptInfoBuilder::TrieNode : public ZoneAllocated {
 };
 
 
-DeoptInfoBuilder::DeoptInfoBuilder(Zone* zone, const intptr_t num_args)
+DeoptInfoBuilder::DeoptInfoBuilder(Zone* zone,
+                                   const intptr_t num_args,
+                                   Assembler* assembler)
     : zone_(zone),
       instructions_(),
-      object_table_(GrowableObjectArray::Handle(
-          GrowableObjectArray::New(Heap::kOld))),
       num_args_(num_args),
+      assembler_(assembler),
       trie_root_(new(zone) TrieNode()),
       current_info_number_(0),
       frame_start_(-1),
@@ -930,15 +937,7 @@ DeoptInfoBuilder::DeoptInfoBuilder(Zone* zone, const intptr_t num_args)
 
 
 intptr_t DeoptInfoBuilder::FindOrAddObjectInTable(const Object& obj) const {
-  for (intptr_t i = 0; i < object_table_.Length(); i++) {
-    if (object_table_.At(i) == obj.raw()) {
-      return i;
-    }
-  }
-  // Add object.
-  const intptr_t result = object_table_.Length();
-  object_table_.Add(obj, Heap::kOld);
-  return result;
+  return assembler_->object_pool().FindObject(obj, kNotPatchable);
 }
 
 

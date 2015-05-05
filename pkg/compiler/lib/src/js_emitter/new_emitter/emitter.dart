@@ -4,6 +4,9 @@
 
 library dart2js.new_js_emitter.emitter;
 
+import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
+    JsBuiltin;
+
 import '../program_builder.dart' show ProgramBuilder;
 import '../model.dart';
 import 'model_emitter.dart';
@@ -21,10 +24,15 @@ import '../js_emitter.dart' show
 import '../js_emitter.dart' as emitterTask show
     Emitter;
 
+import '../../util/util.dart' show
+    NO_LOCATION_SPANNABLE;
+
 class Emitter implements emitterTask.Emitter {
   final Compiler _compiler;
   final Namer namer;
   final ModelEmitter _emitter;
+
+  JavaScriptBackend get _backend => _compiler.backend;
 
   Emitter(Compiler compiler, Namer namer, NativeEmitter nativeEmitter)
       : this._compiler = compiler,
@@ -66,12 +74,12 @@ class Emitter implements emitterTask.Emitter {
   }
 
   js.PropertyAccess _globalPropertyAccess(Element element) {
-     String name = namer.globalPropertyName(element);
-     js.PropertyAccess pa = new js.PropertyAccess.field(
-         new js.VariableUse(namer.globalObjectFor(element)),
-         name);
-     return pa;
-   }
+    String name = namer.globalPropertyName(element);
+    js.PropertyAccess pa = new js.PropertyAccess.field(
+        new js.VariableUse(namer.globalObjectFor(element)),
+        name);
+    return pa;
+  }
 
   @override
   js.Expression isolateLazyInitializerAccess(FieldElement element) {
@@ -122,5 +130,42 @@ class Emitter implements emitterTask.Emitter {
   }
 
   @override
-  void invalidateCaches() {}
+  js.Template templateForBuiltin(JsBuiltin builtin) {
+    String typeNameProperty = ModelEmitter.typeNameProperty;
+
+    switch (builtin) {
+      case JsBuiltin.dartObjectConstructor:
+        return js.js.expressionTemplateYielding(
+            typeAccess(_compiler.objectClass));
+
+      case JsBuiltin.isFunctionType:
+        return _backend.rti.representationGenerator.templateForIsFunctionType;
+
+      case JsBuiltin.isFunctionTypeLiteral:
+        String functionClassName =
+            _backend.namer.runtimeTypeName(_compiler.functionClass);
+
+        return js.js.expressionTemplateFor(
+            '#.$typeNameProperty === "$functionClassName"');
+
+      case JsBuiltin.typeName:
+        return js.js.expressionTemplateFor("#.$typeNameProperty");
+
+      case JsBuiltin.rawRuntimeType:
+        return js.js.expressionTemplateFor("#.constructor");
+
+      case JsBuiltin.createFunctionType:
+        return _backend.rti.representationGenerator
+            .templateForCreateFunctionType;
+
+      default:
+        _compiler.internalError(NO_LOCATION_SPANNABLE,
+                                "Unhandled Builtin: $builtin");
+        return null;
+    }
+  }
+
+  @override
+  void invalidateCaches() {
+  }
 }

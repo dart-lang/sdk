@@ -220,8 +220,8 @@ static int GetScaleFactor(intptr_t size) {
   __ ldr(R0, Address(R0, 0));                                                  \
                                                                                \
   /* R2: allocation size. */                                                   \
-  __ add(R1, R0, Operand(R2));                                                 \
-  __ b(&fall_through, VS);                                                     \
+  __ adds(R1, R0, Operand(R2));                                                \
+  __ b(&fall_through, CS);  /* Fail on unsigned overflow. */                   \
                                                                                \
   /* Check if the allocation fits into the remaining space. */                 \
   /* R0: potential new object start. */                                        \
@@ -1730,6 +1730,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   Label fail;
 
   __ mov(R6, length_reg);  // Save the length register.
+  // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);
   const intptr_t fixed_size = sizeof(RawString) + kObjectAlignment - 1;
   __ AddImmediate(length_reg, length_reg, fixed_size, kNoPP);
@@ -1744,7 +1745,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   // length_reg: allocation size.
   __ adds(R1, R0, Operand(length_reg));
-  __ b(&fail, VS);  // Fail on overflow.
+  __ b(&fail, CS);  // Fail on unsigned overflow.
 
   // Check if the allocation fits into the remaining space.
   // R0: potential new object start.

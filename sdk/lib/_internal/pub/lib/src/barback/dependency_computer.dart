@@ -11,6 +11,7 @@ import '../dart.dart';
 import '../io.dart';
 import '../package.dart';
 import '../package_graph.dart';
+import '../pubspec.dart';
 import '../utils.dart';
 import 'cycle_exception.dart';
 import 'transformer_config.dart';
@@ -104,6 +105,17 @@ class DependencyComputer {
   /// loaded.
   Set<TransformerId> _transformersNeededByTransformer(TransformerId id) {
     if (id.isBuiltInTransformer) return new Set();
+
+    if (!_graph.packages.containsKey(id.package)) {
+      // Throw this here rather than during pubspec parsing because by the time
+      // we're here, we're sure that the package is actually transforming public
+      // assets and that being unable to load it will be a problem.
+      throw new PubspecException(
+          'Error loading transformer "$id": package "${id.package}" is not '
+              'a dependency.',
+          id.span);
+    }
+
     _loadPackageComputer(id.package);
     return _packageComputers[id.package]._transformersNeededByTransformer(id);
   }

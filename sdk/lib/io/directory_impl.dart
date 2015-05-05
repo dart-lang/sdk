@@ -43,6 +43,10 @@ class _Directory extends FileSystemEntity implements Directory {
     }
   }
 
+  Uri get uri {
+    return new Uri.directory(path);
+  }
+
   Future<bool> exists() {
     return _IOService._dispatch(_DIRECTORY_EXISTS, [path]).then((response) {
       if (_isErrorResponse(response)) {

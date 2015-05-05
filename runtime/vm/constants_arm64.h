@@ -114,6 +114,7 @@ const Register PP = R27;  // Caches object pool pointer in generated code.
 const Register kNoPP = kNoRegister;
 const Register FPREG = FP;  // Frame pointer register.
 const Register SPREG = R18;  // Stack pointer register.
+const Register LRREG = LR;  // Link register.
 const Register ICREG = R5;  // IC data register.
 const Register ARGS_DESC_REG = R4;  // Arguments descriptor register.
 
@@ -799,8 +800,7 @@ class Instr {
   // Reserved brk and hlt instruction codes.
   static const int32_t kBreakPointCode = 0xdeb0;  // For breakpoint.
   static const int32_t kStopMessageCode = 0xdeb1;  // For Stop(message).
-  static const int32_t kSimulatorMessageCode = 0xdeb2;  // For trace msg in sim.
-  static const int32_t kSimulatorBreakCode = 0xdeb3;  // For breakpoint in sim.
+  static const int32_t kSimulatorBreakCode = 0xdeb2;  // For breakpoint in sim.
   static const int32_t kSimulatorRedirectCode = 0xca11;  // For redirection.
 
   // Breakpoint instruction filling assembler code buffers in debug mode.
@@ -814,7 +814,7 @@ class Instr {
       HLT | (kSimulatorBreakCode << kImm16Shift);
 
   // Runtime call redirection instruction used by the simulator.
-  static const int32_t kRedirectInstruction =
+  static const int32_t kSimulatorRedirectInstruction =
       HLT | (kSimulatorRedirectCode << kImm16Shift);
 
   // Read one particular bit out of the instruction bits.

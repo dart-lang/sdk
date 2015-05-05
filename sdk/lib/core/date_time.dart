@@ -215,7 +215,8 @@ class DateTime implements Comparable {
    * * An optional time-zone offset part,
    *   possibly separated from the previous by a space.
    *   The time zone is either 'z' or 'Z', or it is a signed two digit hour
-   *   part and an optional two digit minute part.
+   *   part and an optional two digit minute part. The sign must be either
+   *   "+" or "-", and can not be omitted.
    *   The minutes may be separted from the hours by a ':'.
    *   Examples: "Z", "-10", "01:30", "1130".
    *
@@ -262,9 +263,9 @@ class DateTime implements Comparable {
      * timezonemins_opt ::= <empty> | colon_opt digit{2}
      */
     final RegExp re = new RegExp(
-        r'^([+-]?\d{4,6})-?(\d\d)-?(\d\d)'  // The day part.
-        r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(.\d{1,6})?)?)?' // The time part
-        r'( ?[zZ]| ?([-+])(\d\d)(?::?(\d\d))?)?)?$'); // The timezone part
+        r'^([+-]?\d{4,6})-?(\d\d)-?(\d\d)'  // Day part.
+        r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:\.(\d{1,6}))?)?)?' // Time part.
+        r'( ?[zZ]| ?([-+])(\d\d)(?::?(\d\d))?)?)?$'); // Timezone part.
 
     Match match = re.firstMatch(formattedString);
     if (match != null) {
@@ -273,9 +274,37 @@ class DateTime implements Comparable {
         return int.parse(matched);
       }
 
-      double parseDoubleOrZero(String matched) {
-        if (matched == null) return 0.0;
-        return double.parse(matched);
+      // Parses fractional second digits of '.(\d{1,6})' into milliseconds.
+      // Uses first three digits (assumed to be zero if not there), and
+      // rounds up if fourth digit is 5 or greater.
+      // Should be equivalent to `(double.parse(".$matchd")*1000).round()`.
+      int parseMilliseconds(String matched) {
+        if (matched == null) return 0;
+        int length = matched.length;
+        assert(length >= 1);
+        assert(length <= 6);
+
+        int result = (matched.codeUnitAt(0) ^ 0x30);
+        if (length <= 3) {
+          int i = 1;
+          while (i < length) {
+            result *= 10;
+            result += matched.codeUnitAt(i) ^ 0x30;
+            i++;
+          }
+          while (i < 3) {
+            result *= 10;
+            i++;
+          }
+          return result;
+        }
+        // Parse the prefix from 0..3 without creating a new substring.
+        result = result * 10 + (matched.codeUnitAt(1) ^ 0x30);
+        result = result * 10 + (matched.codeUnitAt(2) ^ 0x30);
+        if (matched.codeUnitAt(3) >= 0x35) {
+          result += 1;
+        }
+        return result;
       }
 
       int years = int.parse(match[1]);
@@ -285,7 +314,7 @@ class DateTime implements Comparable {
       int minute = parseIntOrZero(match[5]);
       int second = parseIntOrZero(match[6]);
       bool addOneMillisecond = false;
-      int millisecond = (parseDoubleOrZero(match[7]) * 1000).round();
+      int millisecond = parseMilliseconds(match[7]);
       if (millisecond == 1000) {
         addOneMillisecond = true;
         millisecond = 999;

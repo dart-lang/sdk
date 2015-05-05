@@ -7,8 +7,7 @@
 
 library sexpr_unstringifier;
 
-import 'package:compiler/src/constants/expressions.dart'
-    show PrimitiveConstantExpression;
+import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/dart2jslib.dart' as dart2js
     show MessageKind;
@@ -145,7 +144,6 @@ class SExpressionUnstringifier {
   static const String LITERAL_LIST = "LiteralList";
   static const String LITERAL_MAP = "LiteralMap";
   static const String REIFY_TYPE_VAR = "ReifyTypeVar";
-  static const String THIS = "This";
 
   // Other
   static const String FUNCTION_DEFINITION = "FunctionDefinition";
@@ -190,7 +188,7 @@ class SExpressionUnstringifier {
     } else {
       kind = SelectorKind.CALL;
     }
-    return new Selector(kind, new PublicName(name), 
+    return new Selector(kind, new PublicName(name),
         new CallStructure.unnamed(argumentCount));
   }
 
@@ -356,7 +354,7 @@ class SExpressionUnstringifier {
     assert(cont != null);
 
     tokens.consumeEnd();
-    return new ConcatenateStrings(cont, args);
+    return new ConcatenateStrings(args, cont);
   }
 
   /// (DeclareFunction name = function in body)
@@ -396,7 +394,7 @@ class SExpressionUnstringifier {
 
     tokens.consumeEnd();
     Selector selector = dummySelector(constructorName, args.length);
-    return new InvokeConstructor(type, element, selector, cont, args);
+    return new InvokeConstructor(type, element, selector, args, cont);
   }
 
   /// (InvokeContinuation rec? name (args))
@@ -431,7 +429,7 @@ class SExpressionUnstringifier {
 
     tokens.consumeEnd();
     Selector selector = dummySelector(methodName, args.length);
-    return new InvokeMethod(receiver, selector, cont, args);
+    return new InvokeMethod(receiver, selector, args, cont);
   }
 
   /// (InvokeStatic method (args) cont)
@@ -449,7 +447,7 @@ class SExpressionUnstringifier {
     Selector selector = dummySelector(methodName, args.length);
 
     tokens.consumeEnd();
-    return new InvokeStatic(entity, selector, cont, args, null);
+    return new InvokeStatic(entity, selector, args, cont, null);
   }
 
   /// (InvokeMethodDirectly receiver method (args) cont)
@@ -469,7 +467,7 @@ class SExpressionUnstringifier {
     tokens.consumeEnd();
     Element element = new DummyElement(methodName);
     Selector selector = dummySelector(methodName, args.length);
-    return new InvokeMethodDirectly(receiver, element, selector, cont, args);
+    return new InvokeMethodDirectly(receiver, element, selector, args, cont);
   }
 
   // (rec? name (args) body)
@@ -602,8 +600,6 @@ class SExpressionUnstringifier {
         return parseLiteralMap();
       case REIFY_TYPE_VAR:
         return parseReifyTypeVar();
-      case THIS:
-        return parseThis();
       default:
         assert(false);
     }
@@ -620,16 +616,16 @@ class SExpressionUnstringifier {
     switch (tag) {
       case NULL:
         result = new Constant(
-            new PrimitiveConstantExpression(new NullConstantValue()));
+            new NullConstantExpression(new NullConstantValue()));
         break;
       case BOOL:
         String value = tokens.read();
         if (value == "true") {
           result = new Constant(
-              new PrimitiveConstantExpression(new TrueConstantValue()));
+              new BoolConstantExpression(true, new TrueConstantValue()));
         } else if (value == "false") {
           result = new Constant(
-              new PrimitiveConstantExpression(new FalseConstantValue()));
+              new BoolConstantExpression(false, new FalseConstantValue()));
         } else {
           throw "Invalid Boolean value '$value'.";
         }
@@ -641,9 +637,10 @@ class SExpressionUnstringifier {
         } while (tokens.current != ")");
         String string = strings.join(" ");
         assert(string.startsWith('"') && string.endsWith('"'));
+        String text = string.substring(1, string.length - 1);
         StringConstantValue value = new StringConstantValue(
-            new LiteralDartString(string.substring(1, string.length - 1)));
-        result = new Constant(new PrimitiveConstantExpression(value));
+            new LiteralDartString(text));
+        result = new Constant(new StringConstantExpression(text, value));
         break;
       case INT:
         String value = tokens.read();
@@ -651,8 +648,8 @@ class SExpressionUnstringifier {
         if (intValue == null) {
           throw "Invalid int value 'value'.";
         }
-        result = new Constant(
-            new PrimitiveConstantExpression(new IntConstantValue(intValue)));
+        result = new Constant(new IntConstantExpression(
+            intValue, new IntConstantValue(intValue)));
         break;
       case DOUBLE:
         String value = tokens.read();
@@ -660,8 +657,8 @@ class SExpressionUnstringifier {
         if (doubleValue == null) {
           throw "Invalid double value '$value'.";
         }
-        result = new Constant(new PrimitiveConstantExpression(
-            new DoubleConstantValue(doubleValue)));
+        result = new Constant(new DoubleConstantExpression(
+            doubleValue, new DoubleConstantValue(doubleValue)));
         break;
       default:
         throw "Unexpected constant tag '$tag'.";
@@ -728,12 +725,5 @@ class SExpressionUnstringifier {
 
     tokens.consumeEnd();
     return new ReifyTypeVar(type);
-  }
-
-  /// (This)
-  This parseThis() {
-    tokens.consumeStart(THIS);
-    tokens.consumeEnd();
-    return new This();
   }
 }

@@ -16,14 +16,14 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
-import 'reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ContextManagerTest);
+  defineReflectiveTests(ContextManagerTest);
 }
 
 @reflectiveTest

@@ -7,18 +7,19 @@
 <link rel="import" href="nav_bar.html">
 <link rel="import" href="object_common.html">
 <link rel="import" href="context_ref.html">
+<link rel="import" href="view_footer.html">
 
 <polymer-element name="context-view" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
+      <vm-nav-menu vm="{{ context.isolate.vm }}"></vm-nav-menu>
       <isolate-nav-menu isolate="{{ context.isolate }}"></isolate-nav-menu>
       <!-- TODO(turnidge): Add library nav menu here. -->
       <class-nav-menu cls="{{ context.clazz }}"></class-nav-menu>
       <nav-menu link="." anchor="instance" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
-      <nav-control></nav-control>
     </nav-bar>
 
     <template if="{{ !context.isError }}">
@@ -58,11 +59,8 @@
           </curly-block><br><br>
         </template>
       </div>
-
-      <br><br><br><br>
-      <br><br><br><br>
-
     </template>
+    <view-footer></view-footer>
   </template>
 </polymer-element>
 

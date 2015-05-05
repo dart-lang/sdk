@@ -14,25 +14,53 @@ export 'emptyset.dart';
 part 'indentation.dart';
 part 'link.dart';
 
-/// If an integer is masked by this constant, the result is guaranteed to be in
-/// Smi range.
-const int SMI_MASK = 0x3fffffff;
+/// Helper functions for creating hash codes.
+class Hashing {
+  /// If an integer is masked by this constant, the result is guaranteed to be
+  /// in Smi range.
+  static const int SMI_MASK = 0x3fffffff;
 
-/// Mix the bits of [value] and merge them with [existing].
-int mixHashCodeBits(int existing, int value) {
-  // Spread the bits of value. Try to stay in the 30-bit range to
-  // avoid overflowing into a more expensive integer representation.
-  int h = value & 0x1fffffff;
-  h += ((h & 0x3fff) << 15) ^ 0x1fffcd7d;
-  h ^= (h >> 10);
-  h += ((h & 0x3ffffff) << 3);
-  h ^= (h >> 6);
-  h += ((h & 0x7ffffff) << 2) + ((h & 0x7fff) << 14);
-  h ^= (h >> 16);
-  // Combine the two hash values.
-  int high = existing >> 15;
-  int low = existing & 0x7fff;
-  return ((high * 13) ^ (low * 997) ^ h) & SMI_MASK;
+  /// Mix the bits of [value] and merge them with [existing].
+  static int mixHashCodeBits(int existing, int value) {
+    // Spread the bits of value. Try to stay in the 30-bit range to
+    // avoid overflowing into a more expensive integer representation.
+    int h = value & 0x1fffffff;
+    h += ((h & 0x3fff) << 15) ^ 0x1fffcd7d;
+    h ^= (h >> 10);
+    h += ((h & 0x3ffffff) << 3);
+    h ^= (h >> 6);
+    h += ((h & 0x7ffffff) << 2) + ((h & 0x7fff) << 14);
+    h ^= (h >> 16);
+    // Combine the two hash values.
+    int high = existing >> 15;
+    int low = existing & 0x7fff;
+    return ((high * 13) ^ (low * 997) ^ h) & SMI_MASK;
+  }
+
+  /// Mix the bits of `object.hashCode` with [existing].
+  static int objectHash(Object object, [int existing = 0]) {
+    return mixHashCodeBits(existing, object.hashCode);
+  }
+
+  /// Mix the bits of the element hash codes of [list] with [existing].
+  static int listHash(List list, [int existing = 0]) {
+    int h = existing;
+    int length = list.length;
+    for (int i = 0; i < length; i++) {
+      h = mixHashCodeBits(h, list[i].hashCode);
+    }
+    return h;
+  }
+
+  /// Mix the bits of the key/value hash codes from [map] with [existing].
+  static int mapHash(Map map, [int existing = 0]) {
+    int h = existing;
+    for (var key in map.keys) {
+      h = mixHashCodeBits(h, key.hashCode);
+      h = mixHashCodeBits(h, map[key].hashCode);
+    }
+    return h;
+  }
 }
 
 /**

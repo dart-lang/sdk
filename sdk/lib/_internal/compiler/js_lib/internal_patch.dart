@@ -20,6 +20,10 @@ void printToConsole(String line) {
 
 @patch
 List makeListFixedLength(List growableList) {
-  JSArray.markFixedList(growableList);
-  return growableList;
+  return JSArray.markFixedList(growableList);
+}
+
+@patch
+List makeFixedListUnmodifiable(List fixedLengthList) {
+  return JSArray.markUnmodifiableList(fixedLengthList);
 }

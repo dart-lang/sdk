@@ -10,14 +10,14 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
-import '../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(GetTypeHierarchyTest);
+  defineReflectiveTests(GetTypeHierarchyTest);
 }
 
 @reflectiveTest
@@ -114,9 +114,8 @@ library lib_a;
 class A {}
 class B extends A {}
 ''');
-    packageMapProvider.packageMap['pkgA'] = [
-      resourceProvider.getResource('/packages/pkgA')
-    ];
+    packageMapProvider.packageMap['pkgA'] =
+        [resourceProvider.getResource('/packages/pkgA')];
     // reference the package from a project
     addTestFile('''
 import 'package:pkgA/libA.dart';

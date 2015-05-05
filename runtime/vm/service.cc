@@ -56,15 +56,9 @@ static void PrintRequest(const JSONObject& obj, JSONStream* js) {
   JSONObject jsobj(&obj, "request");
   jsobj.AddProperty("method", js->method());
   {
-    JSONArray jsarr(&jsobj, "param_keys");
+    JSONObject params(&jsobj, "params");
     for (intptr_t i = 0; i < js->num_params(); i++) {
-      jsarr.AddValue(js->GetParamKey(i));
-    }
-  }
-  {
-    JSONArray jsarr(&jsobj, "param_values");
-    for (intptr_t i = 0; i < js->num_params(); i++) {
-      jsarr.AddValue(js->GetParamValue(i));
+      params.AddProperty(js->GetParamKey(i), js->GetParamValue(i));
     }
   }
 }
@@ -298,7 +292,10 @@ class BoolParameter : public MethodParameter {
     return (strcmp("true", value) == 0) || (strcmp("false", value) == 0);
   }
 
-  static bool Parse(const char* value) {
+  static bool Parse(const char* value, bool default_value = false) {
+    if (value == NULL) {
+      return default_value;
+    }
     return strcmp("true", value) == 0;
   }
 };
@@ -412,7 +409,7 @@ static bool ValidateParameters(const MethodParameter* const* parameters,
       PrintMissingParamError(js, name);
       return false;
     }
-    if (!parameter->Validate(value)) {
+    if (has_parameter && !parameter->Validate(value)) {
       PrintInvalidParamError(js, name);
       return false;
     }
@@ -424,22 +421,25 @@ static bool ValidateParameters(const MethodParameter* const* parameters,
 void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
   ASSERT(isolate != NULL);
   ASSERT(!msg.IsNull());
-  ASSERT(msg.Length() == 5);
+  ASSERT(msg.Length() == 6);
 
   {
     StackZone zone(isolate);
     HANDLESCOPE(isolate);
 
     Instance& reply_port = Instance::Handle(isolate);
+    String& seq = String::Handle(isolate);
     String& method_name = String::Handle(isolate);
     Array& param_keys = Array::Handle(isolate);
     Array& param_values = Array::Handle(isolate);
     reply_port ^= msg.At(1);
-    method_name ^= msg.At(2);
-    param_keys ^= msg.At(3);
-    param_values ^= msg.At(4);
+    seq ^= msg.At(2);
+    method_name ^= msg.At(3);
+    param_keys ^= msg.At(4);
+    param_values ^= msg.At(5);
 
     ASSERT(!method_name.IsNull());
+    ASSERT(!seq.IsNull());
     ASSERT(!param_keys.IsNull());
     ASSERT(!param_values.IsNull());
     ASSERT(param_keys.Length() == param_values.Length());
@@ -450,7 +450,7 @@ void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
 
     JSONStream js;
     js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(),
-             method_name, param_keys, param_values);
+             seq, method_name, param_keys, param_values);
 
     const char* c_method_name = method_name.ToCString();
 
@@ -560,21 +560,15 @@ void Service::SendEvent(const String& meta,
 }
 
 
-void Service::HandleGCEvent(GCEvent* event) {
-  if (ServiceIsolate::IsServiceIsolateDescendant(Isolate::Current())) {
+void Service::HandleEvent(ServiceEvent* event) {
+  if (ServiceIsolate::IsServiceIsolateDescendant(event->isolate())) {
     return;
   }
   JSONStream js;
-  event->PrintJSON(&js);
-  const String& message = String::Handle(String::New(js.ToCString()));
-  // TODO(turnidge): Pass the real eventType here.
-  SendEvent(0, message);
-}
-
-
-void Service::HandleEvent(ServiceEvent* event) {
-  JSONStream js;
-  event->PrintJSON(&js);
+  {
+    JSONObject jsobj(&js);
+    jsobj.AddProperty("event", event);
+  }
   const String& message = String::Handle(String::New(js.ToCString()));
   SendEvent(event->type(), message);
 }
@@ -727,24 +721,38 @@ static bool GetIsolate(Isolate* isolate, JSONStream* js) {
 
 static const MethodParameter* get_stack_params[] = {
   ISOLATE_PARAMETER,
+  new BoolParameter("full", false),
   NULL,
 };
 
 
 static bool GetStack(Isolate* isolate, JSONStream* js) {
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
+  // Do we want the complete script object and complete local variable objects?
+  // This is true for dump requests.
+  const bool full = BoolParameter::Parse(js->LookupParam("full"), false);
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Stack");
-  JSONArray jsarr(&jsobj, "frames");
-  intptr_t num_frames = stack->Length();
-  for (intptr_t i = 0; i < num_frames; i++) {
-    ActivationFrame* frame = stack->FrameAt(i);
-    JSONObject jsobj(&jsarr);
-    frame->PrintToJSONObject(&jsobj);
-    // TODO(turnidge): Implement depth differently -- differentiate
-    // inlined frames.
-    jsobj.AddProperty("depth", i);
+  {
+    JSONArray jsarr(&jsobj, "frames");
+
+    intptr_t num_frames = stack->Length();
+    for (intptr_t i = 0; i < num_frames; i++) {
+      ActivationFrame* frame = stack->FrameAt(i);
+      JSONObject jsobj(&jsarr);
+      frame->PrintToJSONObject(&jsobj, full);
+      // TODO(turnidge): Implement depth differently -- differentiate
+      // inlined frames.
+      jsobj.AddProperty("depth", i);
+    }
   }
+
+  {
+    MessageHandler::AcquiredQueues aq;
+    isolate->message_handler()->AcquireQueues(&aq);
+    jsobj.AddProperty("messages", aq.queue());
+  }
+
   return true;
 }
 
@@ -762,11 +770,14 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
   JSONStream js;
   {
     JSONObject jsobj(&js);
-    jsobj.AddProperty("type", "ServiceEvent");
-    jsobj.AddProperty("eventType", "_Echo");
-    jsobj.AddProperty("isolate", isolate);
-    if (text != NULL) {
-      jsobj.AddProperty("text", text);
+    {
+      JSONObject event(&jsobj, "event");
+      event.AddProperty("type", "ServiceEvent");
+      event.AddProperty("eventType", "_Echo");
+      event.AddProperty("isolate", isolate);
+      if (text != NULL) {
+        event.AddProperty("text", text);
+      }
     }
   }
   const String& message = String::Handle(String::New(js.ToCString()));
@@ -1161,14 +1172,11 @@ static void PrintSentinel(JSONStream* js,
 
 static SourceBreakpoint* LookupBreakpoint(Isolate* isolate, const char* id) {
   size_t end_pos = strcspn(id, "/");
-  const char* rest = NULL;
-  if (end_pos < strlen(id)) {
-    rest = id + end_pos + 1;  // +1 for '/'.
+  if (end_pos == strlen(id)) {
+    return NULL;
   }
+  const char* rest = id + end_pos + 1;  // +1 for '/'.
   if (strncmp("breakpoints", id, end_pos) == 0) {
-    if (rest == NULL) {
-      return NULL;
-    }
     intptr_t bpt_id = 0;
     SourceBreakpoint* bpt = NULL;
     if (GetIntegerId(rest, &bpt_id)) {
@@ -1180,6 +1188,40 @@ static SourceBreakpoint* LookupBreakpoint(Isolate* isolate, const char* id) {
 }
 
 
+// Scans |isolate|'s message queue looking for a message with |id|.
+// If found, the message is printed to |js| and true is returned.
+// If not found, false is returned.
+static bool PrintMessage(JSONStream* js, Isolate* isolate, const char* id) {
+  size_t end_pos = strcspn(id, "/");
+  if (end_pos == strlen(id)) {
+    return false;
+  }
+  const char* rest = id + end_pos + 1;  // +1 for '/'.
+  if (strncmp("messages", id, end_pos) == 0) {
+    uword message_id = 0;
+    if (GetUnsignedIntegerId(rest, &message_id, 16)) {
+      MessageHandler::AcquiredQueues aq;
+      isolate->message_handler()->AcquireQueues(&aq);
+      Message* message = aq.queue()->FindMessageById(message_id);
+      if (message == NULL) {
+        printf("Could not find message %" Px "\n", message_id);
+        // Not found.
+        return false;
+      }
+      SnapshotReader reader(message->data(),
+                            message->len(),
+                            Snapshot::kMessage,
+                            isolate,
+                            isolate->current_zone());
+      const Object& msg_obj = Object::Handle(reader.ReadObject());
+      msg_obj.PrintJSON(js);
+      return true;
+    } else {
+      printf("Could not get id from %s\n", rest);
+    }
+  }
+  return false;
+}
 
 
 static bool PrintInboundReferences(Isolate* isolate,
@@ -1603,10 +1645,14 @@ static bool GetInstances(Isolate* isolate, JSONStream* js) {
   }
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "InstanceSet");
-  jsobj.AddProperty("id", "instance_set");
   jsobj.AddProperty("totalCount", count);
-  jsobj.AddProperty("sampleCount", storage.Length());
-  jsobj.AddProperty("sample", storage);
+  {
+    JSONArray samples(&jsobj, "samples");
+    for (int i = 0; i < storage.Length(); i++) {
+      const Object& sample = Object::Handle(storage.At(i));
+      samples.AddValue(Instance::Cast(sample));
+    }
+  }
   return true;
 }
 
@@ -1811,7 +1857,6 @@ static bool RemoveBreakpoint(Isolate* isolate, JSONStream* js) {
   // TODO(turnidge): Consider whether the 'Success' type is proper.
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Success");
-  jsobj.AddProperty("id", "");
   return true;
 }
 
@@ -2009,7 +2054,6 @@ static bool Resume(Isolate* isolate, JSONStream* js) {
     isolate->message_handler()->set_pause_on_start(false);
     JSONObject jsobj(js);
     jsobj.AddProperty("type", "Success");
-    jsobj.AddProperty("id", "");
     {
       ServiceEvent event(isolate, ServiceEvent::kResume);
       Service::HandleEvent(&event);
@@ -2020,7 +2064,6 @@ static bool Resume(Isolate* isolate, JSONStream* js) {
     isolate->message_handler()->set_pause_on_exit(false);
     JSONObject jsobj(js);
     jsobj.AddProperty("type", "Success");
-    jsobj.AddProperty("id", "");
     // We don't send a resume event because we will be exiting.
     return true;
   }
@@ -2040,7 +2083,6 @@ static bool Resume(Isolate* isolate, JSONStream* js) {
     isolate->Resume();
     JSONObject jsobj(js);
     jsobj.AddProperty("type", "Success");
-    jsobj.AddProperty("id", "");
     return true;
   }
 
@@ -2060,7 +2102,6 @@ static bool Pause(Isolate* isolate, JSONStream* js) {
   isolate->ScheduleInterrupts(Isolate::kApiInterrupt);
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Success");
-  jsobj.AddProperty("id", "");
   return true;
 }
 
@@ -2203,9 +2244,12 @@ void Service::SendGraphEvent(Isolate* isolate) {
   JSONStream js;
   {
     JSONObject jsobj(&js);
-    jsobj.AddProperty("type", "ServiceEvent");
-    jsobj.AddProperty("eventType", "_Graph");
-    jsobj.AddProperty("isolate", isolate);
+    {
+      JSONObject event(&jsobj, "event");
+      event.AddProperty("type", "ServiceEvent");
+      event.AddProperty("eventType", "_Graph");
+      event.AddProperty("isolate", isolate);
+    }
   }
   const String& message = String::Handle(String::New(js.ToCString()));
   SendEvent(message, buffer, stream.bytes_written());
@@ -2260,7 +2304,11 @@ static bool GetObjectByAddress(Isolate* isolate, JSONStream* js) {
     ContainsAddressVisitor visitor(isolate, addr);
     object = isolate->heap()->FindObject(&visitor);
   }
-  object.PrintJSON(js, ref);
+  if (object.IsNull()) {
+    PrintSentinel(js, "objects/free", "<free>");
+  } else {
+    object.PrintJSON(js, ref);
+  }
   return true;
 }
 
@@ -2320,6 +2368,10 @@ static bool GetObject(Isolate* isolate, JSONStream* js) {
   SourceBreakpoint* bpt = LookupBreakpoint(isolate, id);
   if (bpt != NULL) {
     bpt->PrintJSON(js);
+    return true;
+  }
+
+  if (PrintMessage(js, isolate, id)) {
     return true;
   }
 
@@ -2461,11 +2513,9 @@ static bool SetFlag(Isolate* isolate, JSONStream* js) {
   const char* error = NULL;
   if (Flags::SetFlag(flag_name, flag_value, &error)) {
     jsobj.AddProperty("type", "Success");
-    jsobj.AddProperty("id", "");
     return true;
   } else {
-    jsobj.AddProperty("type", "Failure");
-    jsobj.AddProperty("id", "");
+    jsobj.AddProperty("type", "Error");
     jsobj.AddProperty("message", error);
     return true;
   }
@@ -2510,7 +2560,7 @@ static ServiceMethodDescriptor service_methods_[] = {
     eval_params },
   { "evalFrame", EvalFrame,
     eval_frame_params },
-  { "getAllocationProfile", GetAllocationProfile,
+  { "_getAllocationProfile", GetAllocationProfile,
     get_allocation_profile_params },
   { "_getCallSiteData", GetCallSiteData,
     get_call_site_data_params },
@@ -2524,9 +2574,9 @@ static ServiceMethodDescriptor service_methods_[] = {
     get_flag_list_params },
   { "getHeapMap", GetHeapMap,
     get_heap_map_params },
-  { "getInboundReferences", GetInboundReferences,
+  { "_getInboundReferences", GetInboundReferences,
     get_inbound_references_params },
-  { "getInstances", GetInstances,
+  { "_getInstances", GetInstances,
     get_instances_params },
   { "getIsolate", GetIsolate,
     get_isolate_params },
@@ -2538,9 +2588,9 @@ static ServiceMethodDescriptor service_methods_[] = {
     get_object_params },
   { "getObjectByAddress", GetObjectByAddress,
     get_object_by_address_params },
-  { "getRetainedSize", GetRetainedSize,
+  { "_getRetainedSize", GetRetainedSize,
     get_retained_size_params },
-  { "getRetainingPath", GetRetainingPath,
+  { "_getRetainingPath", GetRetainingPath,
     get_retaining_path_params },
   { "getStack", GetStack,
     get_stack_params },

@@ -442,6 +442,16 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    if (entity == node.identifier) {
+      optype.isPrefixed = true;
+    } else {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   void visitNormalFormalParameter(NormalFormalParameter node) {
     optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
@@ -595,7 +605,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     if ((node.keyword == null || node.keyword.lexeme != 'var') &&
-        (node.type == null)) {
+        (node.type == null || identical(entity, node.type))) {
       optype.includeTypeNameSuggestions = true;
     }
   }

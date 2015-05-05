@@ -371,6 +371,16 @@ Future<Map> mapFromIterableAsync(Iterable iter, {key(element),
   })).then((_) => map);
 }
 
+/// Returns a new map with all entries in both [map1] and [map2].
+///
+/// If there are overlapping keys, [map2]'s value wins.
+Map mergeMaps(Map map1, Map map2) {
+  var result = {};
+  result.addAll(map1);
+  result.addAll(map2);
+  return result;
+}
+
 /// Returns the transitive closure of [graph].
 ///
 /// This assumes [graph] represents a graph with a vertex for each key and an

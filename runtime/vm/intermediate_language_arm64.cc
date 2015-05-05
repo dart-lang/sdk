@@ -2593,7 +2593,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       : instruction_(instruction) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    if (FLAG_use_osr) {
+    if (FLAG_use_osr && osr_entry_label()->IsLinked()) {
       uword flags_address = Isolate::Current()->stack_overflow_flags_address();
       const Register value = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
@@ -5402,6 +5402,17 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 2,
                                 locs());
   __ brk(0);
+}
+
+
+LocationSummary* StopInstr::MakeLocationSummary(Zone* zone,
+                                                bool opt) const {
+  return new(zone) LocationSummary(zone, 0, 0, LocationSummary::kNoCall);
+}
+
+
+void StopInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ Stop(message());
 }
 
 

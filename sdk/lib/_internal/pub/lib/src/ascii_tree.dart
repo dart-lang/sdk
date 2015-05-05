@@ -65,7 +65,6 @@ String fromFiles(List<String> files, {String baseDir, bool showAllChildren}) {
   var root = {};
   for (var file in files) {
     if (baseDir != null) file = path.relative(file, from: baseDir);
-    var parts = path.split(file);
     var directory = root;
     for (var part in path.split(file)) {
       directory = directory.putIfAbsent(part, () => {});

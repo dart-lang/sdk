@@ -302,7 +302,6 @@ class Assembler : public ValueObject {
  public:
   explicit Assembler(bool use_far_branches = false)
       : buffer_(),
-        object_pool_(GrowableObjectArray::Handle()),
         prologue_offset_(-1),
         jit_cookie_(0),
         comments_() {
@@ -801,7 +800,12 @@ class Assembler : public ValueObject {
   const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
     return buffer_.pointer_offsets();
   }
-  const GrowableObjectArray& object_pool() const { return object_pool_; }
+
+  const GrowableObjectArray& object_pool_data() const {
+    return object_pool_.data();
+  }
+
+  ObjectPool& object_pool() { return object_pool_; }
 
   void FinalizeInstructions(const MemoryRegion& region) {
     buffer_.FinalizeInstructions(region);
@@ -982,7 +986,7 @@ class Assembler : public ValueObject {
   int32_t jit_cookie();
 
   AssemblerBuffer buffer_;
-  GrowableObjectArray& object_pool_;  // Object pool is not used on ia32.
+  ObjectPool object_pool_;
   intptr_t prologue_offset_;
   int32_t jit_cookie_;
   GrowableArray<CodeComment*> comments_;

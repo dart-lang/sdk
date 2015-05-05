@@ -2,7 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js;
+library dart2js.constant_system.dart;
+
+import 'constants/constant_system.dart';
+import 'constants/values.dart';
+import 'dart2jslib.dart' show Compiler;
+import 'dart_types.dart';
+import 'tree/tree.dart' show DartString;
 
 const DART_CONSTANT_SYSTEM = const DartConstantSystem();
 

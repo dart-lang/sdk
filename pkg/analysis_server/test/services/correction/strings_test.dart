@@ -5,13 +5,12 @@
 library test.services.correction.strings;
 
 import 'package:analysis_server/src/services/correction/strings.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart' hide isEmpty;
-
-import '../../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(StringsTest);
+  defineReflectiveTests(StringsTest);
 }
 
 @reflectiveTest

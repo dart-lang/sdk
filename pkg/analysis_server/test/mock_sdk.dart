@@ -316,7 +316,7 @@ class _MockSdkLibrary implements SdkLibrary {
   bool get isDocumented => throw unimplemented;
 
   @override
-  bool get isImplementation => throw unimplemented;
+  bool get isImplementation => false;
 
   @override
   bool get isInternal => shortName.startsWith('dart:_');

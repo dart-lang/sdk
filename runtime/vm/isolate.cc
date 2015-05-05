@@ -202,18 +202,22 @@ bool IsolateMessageHandler::HandleLibMessage(const Array& message) {
       break;
     }
     case kPingMsg: {
-      // [ OOB, kPingMsg, responsePort, priority ]
-      if (message.Length() != 4) return true;
+      // [ OOB, kPingMsg, responsePort, priority, response ]
+      if (message.Length() != 5) return true;
       const Object& obj2 = Object::Handle(I, message.At(2));
       if (!obj2.IsSendPort()) return true;
       const SendPort& send_port = SendPort::Cast(obj2);
       const Object& obj3 = Object::Handle(I, message.At(3));
       if (!obj3.IsSmi()) return true;
       const intptr_t priority = Smi::Cast(obj3).Value();
+      const Object& obj4 = Object::Handle(I, message.At(4));
+      if (!obj4.IsInstance() && !obj4.IsNull()) return true;
+      const Instance& response =
+          obj4.IsNull() ? Instance::null_instance() : Instance::Cast(obj4);
       if (priority == kImmediateAction) {
         uint8_t* data = NULL;
         intptr_t len = 0;
-        SerializeObject(Object::null_instance(), &data, &len, false);
+        SerializeObject(response, &data, &len, false);
         PortMap::PostMessage(new Message(send_port.Id(),
                                          data, len,
                                          Message::kNormalPriority));
@@ -268,21 +272,31 @@ bool IsolateMessageHandler::HandleLibMessage(const Array& message) {
     case kAddErrorMsg:
     case kDelErrorMsg: {
       // [ OOB, msg, listener port ]
-      if (message.Length() != 3) return true;
+      if (message.Length() < 3) return true;
       const Object& obj = Object::Handle(I, message.At(2));
       if (!obj.IsSendPort()) return true;
       const SendPort& listener = SendPort::Cast(obj);
       switch (msg_type) {
-        case kAddExitMsg:
-          I->AddExitListener(listener);
+        case kAddExitMsg: {
+          if (message.Length() != 4) return true;
+          // [ OOB, msg, listener port, response object ]
+          const Object& response = Object::Handle(I, message.At(3));
+          if (!response.IsInstance() && !response.IsNull()) return true;
+          I->AddExitListener(listener,
+                             response.IsNull() ? Instance::null_instance()
+                                               : Instance::Cast(response));
           break;
+        }
         case kDelExitMsg:
+          if (message.Length() != 3) return true;
           I->RemoveExitListener(listener);
           break;
         case kAddErrorMsg:
+          if (message.Length() != 3) return true;
           I->AddErrorListener(listener);
           break;
         case kDelErrorMsg:
+          if (message.Length() != 3) return true;
           I->RemoveErrorListener(listener);
           break;
         default:
@@ -597,10 +611,11 @@ Isolate::Isolate()
       metrics_list_head_(NULL),
       cha_(NULL),
       next_(NULL),
+      pause_loop_monitor_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       reusable_handles_() {
-  set_vm_tag(VMTag::kIdleTagId);
+  set_vm_tag(VMTag::kEmbedderTagId);
   set_user_tag(UserTags::kDefaultUserTag);
 }
 
@@ -661,6 +676,7 @@ Isolate::Isolate(Isolate* original)
       metrics_list_head_(NULL),
       cha_(NULL),
       next_(NULL),
+      pause_loop_monitor_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       reusable_handles_() {
@@ -687,6 +703,8 @@ Isolate::~Isolate() {
   delete spawn_state_;
   delete log_;
   log_ = NULL;
+  delete pause_loop_monitor_;
+  pause_loop_monitor_ = NULL;
 }
 
 
@@ -924,6 +942,7 @@ bool Isolate::MakeRunnable() {
   }
   // Set the isolate as runnable and if we are being spawned schedule
   // isolate on thread pool for execution.
+  ASSERT(object_store()->root_library() != Library::null());
   is_runnable_ = true;
   if (!ServiceIsolate::IsServiceIsolate(this)) {
     message_handler()->set_pause_on_start(FLAG_pause_isolates_on_start);
@@ -1004,21 +1023,23 @@ bool Isolate::RemoveResumeCapability(const Capability& capability) {
 
 // TODO(iposva): Remove duplicated code and start using some hash based
 // structure instead of these linear lookups.
-void Isolate::AddExitListener(const SendPort& listener) {
+void Isolate::AddExitListener(const SendPort& listener,
+                              const Instance& response) {
   // Ensure a limit for the number of listeners remembered.
-  static const intptr_t kMaxListeners = kSmiMax / (6 * kWordSize);
+  static const intptr_t kMaxListeners = kSmiMax / (12 * kWordSize);
 
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
        this, object_store()->exit_listeners());
   SendPort& current = SendPort::Handle(this);
   intptr_t insertion_index = -1;
-  for (intptr_t i = 0; i < listeners.Length(); i++) {
+  for (intptr_t i = 0; i < listeners.Length(); i += 2) {
     current ^= listeners.At(i);
     if (current.IsNull()) {
       if (insertion_index < 0) {
         insertion_index = i;
       }
     } else if (current.Id() == listener.Id()) {
+      listeners.SetAt(i + 1, response);
       return;
     }
   }
@@ -1030,8 +1051,10 @@ void Isolate::AddExitListener(const SendPort& listener) {
       return;
     }
     listeners.Add(listener);
+    listeners.Add(response);
   } else {
     listeners.SetAt(insertion_index, listener);
+    listeners.SetAt(insertion_index + 1, response);
   }
 }
 
@@ -1040,12 +1063,13 @@ void Isolate::RemoveExitListener(const SendPort& listener) {
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
       this, object_store()->exit_listeners());
   SendPort& current = SendPort::Handle(this);
-  for (intptr_t i = 0; i < listeners.Length(); i++) {
+  for (intptr_t i = 0; i < listeners.Length(); i += 2) {
     current ^= listeners.At(i);
     if (!current.IsNull() && (current.Id() == listener.Id())) {
       // Remove the matching listener from the list.
       current = SendPort::null();
       listeners.SetAt(i, current);
+      listeners.SetAt(i + 1, Object::null_instance());
       return;
     }
   }
@@ -1058,13 +1082,15 @@ void Isolate::NotifyExitListeners() {
   if (listeners.IsNull()) return;
 
   SendPort& listener = SendPort::Handle(this);
-  for (intptr_t i = 0; i < listeners.Length(); i++) {
+  Instance& response = Instance::Handle(this);
+  for (intptr_t i = 0; i < listeners.Length(); i += 2) {
     listener ^= listeners.At(i);
     if (!listener.IsNull()) {
       Dart_Port port_id = listener.Id();
       uint8_t* data = NULL;
       intptr_t len = 0;
-      SerializeObject(Object::null_instance(), &data, &len, false);
+      response ^= listeners.At(i + 1);
+      SerializeObject(response, &data, &len, false);
       Message* msg = new Message(port_id, data, len, Message::kNormalPriority);
       PortMap::PostMessage(msg);
     }
@@ -1692,6 +1718,51 @@ void Isolate::TrackDeoptimizedCode(const Code& code) {
   // TODO(johnmccutchan): Scan this array and the isolate's profile before
   // old space GC and remove the keep_code flag.
   deoptimized_code.Add(code);
+}
+
+
+void Isolate::WakePauseEventHandler(Dart_Isolate isolate) {
+  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
+  MonitorLocker ml(iso->pause_loop_monitor_);
+  ml.Notify();
+}
+
+
+void Isolate::PauseEventHandler() {
+  // We are stealing a pause event (like a breakpoint) from the
+  // embedder.  We don't know what kind of thread we are on -- it
+  // could be from our thread pool or it could be a thread from the
+  // embedder.  Sit on the current thread handling service events
+  // until we are told to resume.
+  if (pause_loop_monitor_ == NULL) {
+    pause_loop_monitor_ = new Monitor();
+  }
+  Dart_EnterScope();
+  MonitorLocker ml(pause_loop_monitor_);
+
+  Dart_MessageNotifyCallback saved_notify_callback =
+      message_notify_callback();
+  set_message_notify_callback(Isolate::WakePauseEventHandler);
+
+  bool resume = false;
+  while (true) {
+    // Handle all available vm service messages, up to a resume
+    // request.
+    while (!resume && Dart_HasServiceMessages()) {
+      pause_loop_monitor_->Exit();
+      resume = Dart_HandleServiceMessages();
+      pause_loop_monitor_->Enter();
+    }
+    if (resume) {
+      break;
+    }
+
+    // Wait for more service messages.
+    Monitor::WaitResult res = ml.Wait();
+    ASSERT(res == Monitor::kNotified);
+  }
+  set_message_notify_callback(saved_notify_callback);
+  Dart_ExitScope();
 }
 
 

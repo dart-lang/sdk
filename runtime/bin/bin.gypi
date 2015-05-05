@@ -185,6 +185,7 @@
       'toolsets': ['host', 'target'],
       'include_dirs': [
         '..',
+        '../../third_party',
         '../include',
       ],
       'includes': [
@@ -282,6 +283,7 @@
       'toolsets': ['host', 'target'],
       'include_dirs': [
         '..',
+        '../../third_party',
       ],
       'includes': [
         'io_impl_sources.gypi',

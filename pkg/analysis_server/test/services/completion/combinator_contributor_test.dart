@@ -7,14 +7,14 @@ library test.services.completion.dart.combinator;
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import 'completion_test_util.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(CombinatorContributorTest);
+  defineReflectiveTests(CombinatorContributorTest);
 }
 
 @reflectiveTest
@@ -68,8 +68,8 @@ class CombinatorContributorTest extends AbstractCompletionTest {
       assertSuggestClass('PB',
           relevance: DART_RELEVANCE_DEFAULT,
           kind: CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestTopLevelVar('T1', null,
-          DART_RELEVANCE_DEFAULT, CompletionSuggestionKind.IDENTIFIER);
+      assertSuggestTopLevelVar('T1', null, DART_RELEVANCE_DEFAULT,
+          CompletionSuggestionKind.IDENTIFIER);
       assertSuggestFunction('F1', 'PB',
           kind: CompletionSuggestionKind.IDENTIFIER);
       assertNotSuggested('C');
@@ -111,15 +111,15 @@ class CombinatorContributorTest extends AbstractCompletionTest {
       assertSuggestClass('PB',
           relevance: DART_RELEVANCE_DEFAULT,
           kind: CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestTopLevelVar('T1', null,
-          DART_RELEVANCE_DEFAULT, CompletionSuggestionKind.IDENTIFIER);
+      assertSuggestTopLevelVar('T1', null, DART_RELEVANCE_DEFAULT,
+          CompletionSuggestionKind.IDENTIFIER);
       assertSuggestFunction('F1', 'PB',
           kind: CompletionSuggestionKind.IDENTIFIER);
       assertSuggestClass('Clz',
           relevance: DART_RELEVANCE_DEFAULT,
           kind: CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestFunctionTypeAlias('F2', null,
-          false, DART_RELEVANCE_DEFAULT, CompletionSuggestionKind.IDENTIFIER);
+      assertSuggestFunctionTypeAlias('F2', null, false, DART_RELEVANCE_DEFAULT,
+          CompletionSuggestionKind.IDENTIFIER);
       assertNotSuggested('C');
       assertNotSuggested('D');
       assertNotSuggested('X');

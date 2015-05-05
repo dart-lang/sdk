@@ -69,7 +69,7 @@ class Helper {
         j += 60;
       } catch (e, trace) {
         i = 700;
-        trace.printStackTrace(e);
+        print(trace.toString());
         print(e.getMessage());
       }
       try {
@@ -80,14 +80,14 @@ class Helper {
       }
     } on MyParameterizedException<String, TestException> catch (e, trace) {
       i = 800;
-      trace.printStackTrace(e);
+      print(trace.toString());
       rethrow;
     } on MyException catch (exception) {
       i = 100;
       print(exception.getMessage());
     } on TestException catch (e, trace) {
       i = 200;
-      trace.printStackTrace(e);
+      print(trace.toString());
     } finally {
       i = 900;
     }

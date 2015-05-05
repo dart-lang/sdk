@@ -5,6 +5,7 @@ import '../../constants/values.dart' as values;
 import 'variable_merger.dart';
 
 export 'variable_merger.dart' show VariableMerger;
+export 'pull_into_initializers.dart' show PullIntoInitializers;
 
 part 'logical_rewriter.dart';
 part 'loop_rewriter.dart';

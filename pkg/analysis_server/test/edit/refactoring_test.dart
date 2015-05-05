@@ -7,27 +7,29 @@ library test.edit.refactoring;
 import 'dart:async';
 
 import 'package:analysis_server/src/edit/edit_domain.dart';
+import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
+import 'package:plugin/manager.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
 import '../mocks.dart';
-import '../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ConvertGetterMethodToMethodTest);
-  runReflectiveTests(ConvertMethodToGetterTest);
-  runReflectiveTests(ExtractLocalVariableTest);
-  runReflectiveTests(ExtractMethodTest);
-  runReflectiveTests(GetAvailableRefactoringsTest);
-  runReflectiveTests(InlineLocalTest);
-  runReflectiveTests(InlineMethodTest);
-  runReflectiveTests(MoveFileTest);
-  runReflectiveTests(RenameTest);
-  runReflectiveTests(_NoSearchEngine);
+  defineReflectiveTests(ConvertGetterMethodToMethodTest);
+  defineReflectiveTests(ConvertMethodToGetterTest);
+  defineReflectiveTests(ExtractLocalVariableTest);
+  defineReflectiveTests(ExtractMethodTest);
+  defineReflectiveTests(GetAvailableRefactoringsTest);
+  defineReflectiveTests(InlineLocalTest);
+  defineReflectiveTests(InlineMethodTest);
+  defineReflectiveTests(MoveFileTest);
+  defineReflectiveTests(RenameTest);
+  defineReflectiveTests(_NoSearchEngine);
 }
 
 @reflectiveTest
@@ -609,13 +611,6 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   List<RefactoringKind> kinds;
 
   /**
-   * Tests that there is a RENAME refactoring available at the [search] offset.
-   */
-  Future assertHasRenameRefactoring(String code, String search) async {
-    return assertHasKind(code, search, RefactoringKind.RENAME, true);
-  }
-
-  /**
    * Tests that there is refactoring of the given [kind] is available at the
    * [search] offset.
    */
@@ -630,6 +625,13 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
       matcher = isNot(matcher);
     }
     expect(kinds, matcher);
+  }
+
+  /**
+   * Tests that there is a RENAME refactoring available at the [search] offset.
+   */
+  Future assertHasRenameRefactoring(String code, String search) async {
+    return assertHasKind(code, search, RefactoringKind.RENAME, true);
   }
 
   @override
@@ -667,8 +669,17 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     createProject();
-    handler = new EditDomainHandler(server);
+    ExtensionManager manager = new ExtensionManager();
+    ServerPlugin plugin = new ServerPlugin();
+    manager.processPlugins([plugin]);
+    handler = new EditDomainHandler(server, plugin);
     server.handlers = [handler];
+  }
+
+  Future test_convertMethodToGetter_hasElement() {
+    return assertHasKind('''
+int getValue() => 42;
+''', 'getValue', RefactoringKind.CONVERT_METHOD_TO_GETTER, true);
   }
 
   Future test_extractLocal() async {
@@ -681,12 +692,6 @@ main() {
     await getRefactoringsForString('1 + 2');
     expect(kinds, contains(RefactoringKind.EXTRACT_LOCAL_VARIABLE));
     expect(kinds, contains(RefactoringKind.EXTRACT_METHOD));
-  }
-
-  Future test_convertMethodToGetter_hasElement() {
-    return assertHasKind('''
-int getValue() => 42;
-''', 'getValue', RefactoringKind.CONVERT_METHOD_TO_GETTER, true);
   }
 
   Future test_rename_hasElement_class() {
@@ -986,7 +991,7 @@ main() {
 
 @reflectiveTest
 class MoveFileTest extends _AbstractGetRefactoring_Test {
-  MoveFileOptions options = new MoveFileOptions(null);
+  MoveFileOptions options;
 
   test_OK() {
     resourceProvider.newFile('/project/bin/lib.dart', '');
@@ -994,7 +999,7 @@ class MoveFileTest extends _AbstractGetRefactoring_Test {
 import 'dart:math';
 import 'lib.dart';
 ''');
-    options.newFile = '/project/test.dart';
+    _setOptions('/project/test.dart');
     return assertSuccessfulRefactoring(() {
       return _sendMoveRequest();
     }, '''
@@ -1008,6 +1013,10 @@ import 'bin/lib.dart';
             RefactoringKind.MOVE_FILE, testFile, 0, 0, false, options: options)
         .toRequest('0');
     return serverChannel.sendRequest(request);
+  }
+
+  void _setOptions(String newFile) {
+    options = new MoveFileOptions(newFile);
   }
 }
 
@@ -1702,9 +1711,12 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   @override
   void setUp() {
     super.setUp();
-    server.handlers = [new EditDomainHandler(server),];
     createProject();
-    handler = new EditDomainHandler(server);
+    ExtensionManager manager = new ExtensionManager();
+    ServerPlugin plugin = new ServerPlugin();
+    manager.processPlugins([plugin]);
+    handler = new EditDomainHandler(server, plugin);
+    server.handlers = [handler];
   }
 }
 

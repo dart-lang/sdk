@@ -423,7 +423,6 @@ abstract class TestSuite {
     var dartDir = TestUtils.dartDir;
     var futures = [
       listDir(dartDir.append('pkg'), isValid),
-      listDir(dartDir.append('pkg').append('third_party'), isValid),
       listDir(dartDir.append('third_party').append('pkg'), isValid),
       listDir(dartDir.append('runtime').append('observatory'), isValid),
     ];
@@ -2221,6 +2220,9 @@ class TestUtils {
     }
     if (compiler == "dart2js" && configuration["csp"]) {
       args.add("--csp");
+    }
+    if (compiler == "dart2js" && configuration["cps_ir"]) {
+      args.add("--use-cps-ir");
     }
     if (compiler == "dartanalyzer" || compiler == "dart2analyzer") {
       args.add("--show-package-warnings");

@@ -67,6 +67,14 @@ class TaskManager {
   }
 
   /**
+   * Add the task descriptors in the given list of [descriptors] to the list of
+   * analysis task descriptors that can be used to compute analysis results.
+   */
+  void addTaskDescriptors(List<TaskDescriptor> descriptors) {
+    descriptors.forEach(addTaskDescriptor);
+  }
+
+  /**
    * Find a task that will compute the given [result] for the given [target].
    */
   TaskDescriptor findTask(AnalysisTarget target, ResultDescriptor result) {

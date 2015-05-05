@@ -8,18 +8,18 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/store/codec.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../../abstract_single_unit.dart';
 import '../../../mocks.dart';
-import '../../../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(_ContextCodecTest);
-  runReflectiveTests(_ElementCodecTest);
-  runReflectiveTests(_RelationshipCodecTest);
-  runReflectiveTests(_StringCodecTest);
+  defineReflectiveTests(_ContextCodecTest);
+  defineReflectiveTests(_ElementCodecTest);
+  defineReflectiveTests(_RelationshipCodecTest);
+  defineReflectiveTests(_StringCodecTest);
 }
 
 @reflectiveTest
@@ -389,7 +389,8 @@ class _RelationshipCodecTest {
   }
 
   void test_all() {
-    Relationship relationship = Relationship.getRelationship('my-relationship');
+    RelationshipImpl relationship =
+        RelationshipImpl.getRelationship('my-relationship');
     int id = codec.encode(relationship);
     expect(codec.decode(id), relationship);
   }

@@ -14,7 +14,7 @@ import 'dart:_js_embedded_names' show
     INSTANCE_FROM_CLASS_ID;
 
 import 'dart:async';
-import 'dart:collection' show Queue, HashMap;
+import 'dart:collection' show Queue;
 import 'dart:isolate';
 import 'dart:_native_typed_data' show NativeByteBuffer, NativeTypedData;
 
@@ -311,7 +311,7 @@ class _IsolateContext implements IsolateContext {
   List<_IsolateEvent> delayedEvents = [];
   Set<Capability> pauseTokens = new Set();
 
-  // Container with the "on exit" handler send-ports.
+  // Container with the "on exit" handler send-ports and responses.
   var doneHandlers;
 
   /**
@@ -355,19 +355,28 @@ class _IsolateContext implements IsolateContext {
     _updateGlobalState();
   }
 
-  void addDoneListener(SendPort responsePort) {
+  void addDoneListener(SendPort responsePort, Object response) {
     if (doneHandlers == null) {
       doneHandlers = [];
     }
-    // If necessary, we can switch doneHandlers to a Set if it gets larger.
-    // That is not expected to happen in practice.
-    if (doneHandlers.contains(responsePort)) return;
+    for (int i = 0; i < doneHandlers.length; i += 2) {
+      if (responsePort == doneHandlers[i]) {
+        doneHandlers[i + 1] = response;
+        return;
+      }
+    }
     doneHandlers.add(responsePort);
+    doneHandlers.add(response);
   }
 
   void removeDoneListener(SendPort responsePort) {
     if (doneHandlers == null) return;
-    doneHandlers.remove(responsePort);
+    for (int i = 0; i < doneHandlers.length; i += 2) {
+      if (responsePort == doneHandlers[i]) {
+        doneHandlers.removeRange(i, i + 2);
+        return;
+      }
+    }
   }
 
   void setErrorsFatal(Capability authentification, bool errorsAreFatal) {
@@ -375,18 +384,14 @@ class _IsolateContext implements IsolateContext {
     this.errorsAreFatal = errorsAreFatal;
   }
 
-  void handlePing(SendPort responsePort, int pingType) {
+  void handlePing(SendPort responsePort, int pingType, Object response) {
     if (pingType == Isolate.IMMEDIATE ||
         (pingType == Isolate.BEFORE_NEXT_EVENT &&
          !_isExecutingEvent)) {
-      responsePort.send(null);
+      responsePort.send(response);
       return;
     }
-    void respond() { responsePort.send(null); }
-    if (pingType == Isolate.AS_EVENT) {
-      _globalState.topEventLoop.enqueue(this, respond, "ping");
-      return;
-    }
+    void respond() { responsePort.send(response); }
     assert(pingType == Isolate.BEFORE_NEXT_EVENT);
     if (_scheduledControlEvents == null) {
       _scheduledControlEvents = new Queue();
@@ -400,10 +405,6 @@ class _IsolateContext implements IsolateContext {
         (priority == Isolate.BEFORE_NEXT_EVENT &&
          !_isExecutingEvent)) {
       kill();
-      return;
-    }
-    if (priority == Isolate.AS_EVENT) {
-      _globalState.topEventLoop.enqueue(this, kill, "kill");
       return;
     }
     assert(priority == Isolate.BEFORE_NEXT_EVENT);
@@ -499,7 +500,7 @@ class _IsolateContext implements IsolateContext {
         removePause(message[1]);
         break;
       case 'add-ondone':
-        addDoneListener(message[1]);
+        addDoneListener(message[1], message[2]);
         break;
       case 'remove-ondone':
         removeDoneListener(message[1]);
@@ -508,7 +509,7 @@ class _IsolateContext implements IsolateContext {
         setErrorsFatal(message[1], message[2]);
         break;
       case "ping":
-        handlePing(message[1], message[2]);
+        handlePing(message[1], message[2], message[3]);
         break;
       case "kill":
         handleKill(message[1], message[2]);
@@ -574,8 +575,10 @@ class _IsolateContext implements IsolateContext {
     _globalState.isolates.remove(id); // indicate this isolate is not active
     errorPorts.clear();
     if (doneHandlers != null) {
-      for (SendPort port in doneHandlers) {
-        port.send(null);
+      for (int i = 0; i < doneHandlers.length; i += 2) {
+        SendPort responsePort = doneHandlers[i];
+        Object response = doneHandlers[i + 1];
+        responsePort.send(response);
       }
       doneHandlers = null;
     }

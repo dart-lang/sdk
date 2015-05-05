@@ -22,21 +22,26 @@ DEFINE_FLAG(bool, verify_on_transition, false, "Verify on dart <==> VM.");
 
 void VerifyObjectVisitor::VisitObject(RawObject* raw_obj) {
   if (raw_obj->IsHeapObject()) {
-    switch (mark_expectation_) {
-     case kForbidMarked:
+    uword raw_addr = RawObject::ToAddr(raw_obj);
+    if (raw_obj->IsFreeListElement()) {
       if (raw_obj->IsMarked()) {
-        uword raw_addr = RawObject::ToAddr(raw_obj);
-        FATAL1("Marked object encountered %#" Px "\n", raw_addr);
+        FATAL1("Marked free list element encountered %#" Px "\n", raw_addr);
       }
-      break;
-     case kAllowMarked:
-      break;
-     case kRequireMarked:
-      if (!raw_obj->IsMarked()) {
-        uword raw_addr = RawObject::ToAddr(raw_obj);
-        FATAL1("Unmarked object encountered %#" Px "\n", raw_addr);
+    } else {
+      switch (mark_expectation_) {
+       case kForbidMarked:
+        if (raw_obj->IsMarked()) {
+          FATAL1("Marked object encountered %#" Px "\n", raw_addr);
+        }
+        break;
+       case kAllowMarked:
+        break;
+       case kRequireMarked:
+        if (!raw_obj->IsMarked()) {
+          FATAL1("Unmarked object encountered %#" Px "\n", raw_addr);
+        }
+        break;
       }
-      break;
     }
   }
   allocated_set_->Add(raw_obj);

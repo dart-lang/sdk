@@ -101,11 +101,16 @@ void DeferredObjectRef::Materialize(DeoptContext* deopt_context) {
 
 
 void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
-  Function& function = Function::Handle(deopt_context->zone());
+  Thread* thread = deopt_context->thread();
+  Zone* zone = deopt_context->zone();
+  Function& function = Function::Handle(zone);
   function ^= deopt_context->ObjectAt(index_);
-  Compiler::EnsureUnoptimizedCode(deopt_context->thread(), function);
-  const Code& code =
-      Code::Handle(deopt_context->zone(), function.unoptimized_code());
+  const Error& error = Error::Handle(zone,
+      Compiler::EnsureUnoptimizedCode(thread, function));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+  }
+  const Code& code = Code::Handle(zone, function.unoptimized_code());
   // Check that deopt_id exists.
   // TODO(vegorov): verify after deoptimization targets as well.
 #ifdef DEBUG
@@ -128,7 +133,7 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
   if (pc != 0) {
     // If the deoptimization happened at an IC call, update the IC data
     // to avoid repeated deoptimization at the same site next time around.
-    ICData& ic_data = ICData::Handle();
+    ICData& ic_data = ICData::Handle(zone);
     CodePatcher::GetInstanceCallAt(pc, code, &ic_data);
     if (!ic_data.IsNull()) {
       ic_data.AddDeoptReason(deopt_context->deopt_reason());
@@ -147,17 +152,22 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
 
 
 void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
+  Thread* thread = deopt_context->thread();
+  Zone* zone = deopt_context->zone();
   uword* dest_addr = reinterpret_cast<uword*>(slot());
-  Function& function = Function::Handle(deopt_context->zone());
+  Function& function = Function::Handle(zone);
   function ^= deopt_context->ObjectAt(index_);
   if (function.IsNull()) {
     // Callee's PC marker is not used (pc of Deoptimize stub). Set to 0.
     *dest_addr = 0;
     return;
   }
-  Compiler::EnsureUnoptimizedCode(deopt_context->thread(), function);
-  const Code& code =
-      Code::Handle(deopt_context->zone(), function.unoptimized_code());
+  const Error& error = Error::Handle(zone,
+      Compiler::EnsureUnoptimizedCode(thread, function));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+  }
+  const Code& code = Code::Handle(zone, function.unoptimized_code());
   ASSERT(!code.IsNull());
   ASSERT(function.HasCode());
   const intptr_t pc_marker =
@@ -188,12 +198,17 @@ void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
 
 
 void DeferredPp::Materialize(DeoptContext* deopt_context) {
-  Function& function = Function::Handle(deopt_context->zone());
+  Thread* thread = deopt_context->thread();
+  Zone* zone = deopt_context->zone();
+  Function& function = Function::Handle(zone);
   function ^= deopt_context->ObjectAt(index_);
   ASSERT(!function.IsNull());
-  Compiler::EnsureUnoptimizedCode(deopt_context->thread(), function);
-  const Code& code =
-      Code::Handle(deopt_context->zone(), function.unoptimized_code());
+  const Error& error = Error::Handle(zone,
+      Compiler::EnsureUnoptimizedCode(thread, function));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+  }
+  const Code& code = Code::Handle(zone, function.unoptimized_code());
   ASSERT(!code.IsNull());
   ASSERT(code.ObjectPool() != Object::null());
   *slot() = code.ObjectPool();

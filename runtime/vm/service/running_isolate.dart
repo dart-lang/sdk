@@ -11,6 +11,8 @@ class RunningIsolate implements MessageRouter {
 
   RunningIsolate(this.portId, this.sendPort, this.name);
 
+  String get serviceId => 'isolates/$portId';
+
   Future<String> route(Message message) {
     // Send message to isolate.
     return message.send(sendPort);

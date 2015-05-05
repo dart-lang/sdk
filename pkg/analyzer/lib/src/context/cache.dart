@@ -11,7 +11,9 @@ import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, CacheState, InternalAnalysisContext, RetentionPriority;
 import 'package:analyzer/src/generated/html.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/task/model.dart';
 
 /**
@@ -133,6 +135,8 @@ class AnalysisCache {
    * Associate the given [entry] with the given [target].
    */
   void put(AnalysisTarget target, CacheEntry entry) {
+    entry._cache = this;
+    entry._target = target;
     entry.fixExceptionState();
     int count = _partitions.length;
     for (int i = 0; i < count; i++) {
@@ -212,6 +216,18 @@ class AnalysisCache {
       }
     }
   }
+
+  ResultData _getDataFor(TargetedResult result) {
+    AnalysisTarget target = result.target;
+    int count = _partitions.length;
+    for (int i = 0; i < count; i++) {
+      if (_partitions[i].contains(target)) {
+        CacheEntry entry = _partitions[i].get(target);
+        return entry._getResultData(result.result);
+      }
+    }
+    return null;
+  }
 }
 
 /**
@@ -224,6 +240,16 @@ class CacheEntry {
    * referenced by another source.
    */
   static int _EXPLICITLY_ADDED_FLAG = 0;
+
+  /**
+   * The cache that contains this entry.
+   */
+  AnalysisCache _cache;
+
+  /**
+   * The target this entry is about.
+   */
+  AnalysisTarget _target;
 
   /**
    * The most recent time at which the state of the target matched the state
@@ -305,6 +331,17 @@ class CacheEntry {
   }
 
   /**
+   * Return the memento of the result represented by the given [descriptor].
+   */
+  Object getMemento(ResultDescriptor descriptor) {
+    ResultData data = _resultMap[descriptor];
+    if (data == null) {
+      return null;
+    }
+    return data.memento;
+  }
+
+  /**
    * Return the state of the result represented by the given [descriptor].
    */
   CacheState getState(ResultDescriptor descriptor) {
@@ -348,9 +385,23 @@ class CacheEntry {
   }
 
   /**
-   * Set the [CacheState.ERROR] state for given [descriptors], their values to
-   * the corresponding default values, and remember the [exception] that caused
-   * this state.
+   * Return `true` if the state of the result represented by the given
+   * [descriptor] is [CacheState.INVALID].
+   */
+  bool isInvalid(ResultDescriptor descriptor) =>
+      getState(descriptor) == CacheState.INVALID;
+
+  /**
+   * Return `true` if the state of the result represented by the given
+   * [descriptor] is [CacheState.VALID].
+   */
+  bool isValid(ResultDescriptor descriptor) =>
+      getState(descriptor) == CacheState.VALID;
+
+  /**
+   * For each of the given [descriptors], set their states to
+   * [CacheState.ERROR], their values to the corresponding default values, and
+   * remember the [exception] that caused this state.
    */
   void setErrorState(
       CaughtException exception, List<ResultDescriptor> descriptors) {
@@ -363,8 +414,8 @@ class CacheEntry {
     this._exception = exception;
     for (ResultDescriptor descriptor in descriptors) {
       ResultData data = _getResultData(descriptor);
-      data.state = CacheState.ERROR;
-      data.value = descriptor.defaultValue;
+      TargetedResult thisResult = new TargetedResult(_target, descriptor);
+      data.invalidate(_cache, thisResult, CacheState.ERROR);
     }
   }
 
@@ -381,7 +432,11 @@ class CacheEntry {
     }
     _validateStateChange(descriptor, state);
     if (state == CacheState.INVALID) {
-      _resultMap.remove(descriptor);
+      ResultData data = _resultMap[descriptor];
+      if (data != null) {
+        TargetedResult thisResult = new TargetedResult(_target, descriptor);
+        data.invalidate(_cache, thisResult, CacheState.INVALID);
+      }
     } else {
       ResultData data = _getResultData(descriptor);
       data.state = state;
@@ -397,14 +452,21 @@ class CacheEntry {
 
   /**
    * Set the value of the result represented by the given [descriptor] to the
-   * given [value].
+   * given [value]. The optional [memento] may help to recompute [value] more
+   * efficiently after invalidation.
    */
   /*<V>*/ void setValue(ResultDescriptor /*<V>*/ descriptor, dynamic /*V*/
-      value) {
+      value, List<TargetedResult> dependedOn, Object memento) {
     _validateStateChange(descriptor, CacheState.VALID);
     ResultData data = _getResultData(descriptor);
+    {
+      TargetedResult thisResult = new TargetedResult(_target, descriptor);
+      data.invalidate(_cache, thisResult, CacheState.INVALID);
+      data.setDependedOnResults(_cache, thisResult, dependedOn);
+    }
     data.state = CacheState.VALID;
     data.value = value == null ? descriptor.defaultValue : value;
+    data.memento = memento;
   }
 
   @override
@@ -472,7 +534,7 @@ class CacheEntry {
       buffer.write('; ');
       buffer.write(result.toString());
       buffer.write(' = ');
-      buffer.write(data..state);
+      buffer.write(data.state);
     }
   }
 }
@@ -756,23 +818,99 @@ class DefaultRetentionPolicy implements CacheRetentionPolicy {
 // can be typed.
 class ResultData {
   /**
+   * The [ResultDescriptor] this result is for.
+   */
+  final ResultDescriptor descriptor;
+
+  /**
    * The state of the cached value.
    */
   CacheState state;
 
   /**
    * The value being cached, or the default value for the result if there is no
-   * value (for example, when the [state] is [CacheState.INVALID].
+   * value (for example, when the [state] is [CacheState.INVALID]).
    */
   Object value;
+
+  /**
+   * The optional data that is remembered with [value] and, when [value] is
+   * invalidated, may help to recompute it more efficiently.
+   */
+  Object memento;
+
+  /**
+   * A list of the results on which this result depends.
+   */
+  List<TargetedResult> dependedOnResults = <TargetedResult>[];
+
+  /**
+   * A list of the results that depend on this result.
+   */
+  List<TargetedResult> dependentResults = <TargetedResult>[];
 
   /**
    * Initialize a newly created result holder to represent the value of data
    * described by the given [descriptor].
    */
-  ResultData(ResultDescriptor descriptor) {
+  ResultData(this.descriptor) {
     state = CacheState.INVALID;
     value = descriptor.defaultValue;
+  }
+
+  /**
+   * Add the given [result] to the list of dependent results.
+   */
+  void addDependentResult(TargetedResult result) {
+    dependentResults.add(result);
+  }
+
+  /**
+   * Invalidate this [ResultData] that corresponds to [thisResult] and
+   * propagate invalidation to the results that depend on this one.
+   */
+  void invalidate(
+      AnalysisCache cache, TargetedResult thisResult, CacheState newState) {
+    // Invalidate this result.
+    state = newState;
+    value = descriptor.defaultValue;
+    // Stop depending on other results.
+    List<TargetedResult> dependedOnResults = this.dependedOnResults;
+    this.dependedOnResults = <TargetedResult>[];
+    dependedOnResults.forEach((TargetedResult dependedOnResult) {
+      ResultData data = cache._getDataFor(dependedOnResult);
+      data.removeDependentResult(thisResult);
+    });
+    // Invalidate results that depend on this result.
+    List<TargetedResult> dependentResults = this.dependentResults;
+    this.dependentResults = <TargetedResult>[];
+    dependentResults.forEach((TargetedResult dependentResult) {
+      ResultData data = cache._getDataFor(dependentResult);
+      data.invalidate(cache, dependentResult, newState);
+    });
+  }
+
+  /**
+   * Remove the given [result] from the list of dependent results.
+   */
+  void removeDependentResult(TargetedResult result) {
+    dependentResults.remove(result);
+  }
+
+  /**
+   * Set the [dependedOn] on which this result depends.
+   */
+  void setDependedOnResults(AnalysisCache cache, TargetedResult thisResult,
+      List<TargetedResult> dependedOn) {
+    dependedOnResults.forEach((TargetedResult dependedOnResult) {
+      ResultData data = cache._getDataFor(dependedOnResult);
+      data.removeDependentResult(thisResult);
+    });
+    dependedOnResults = dependedOn;
+    dependedOnResults.forEach((TargetedResult dependentResult) {
+      ResultData data = cache._getDataFor(dependentResult);
+      data.addDependentResult(thisResult);
+    });
   }
 }
 
@@ -789,7 +927,50 @@ class SdkCachePartition extends CachePartition {
       : super(context, maxCacheSize, DefaultRetentionPolicy.POLICY);
 
   @override
-  bool contains(AnalysisTarget target) => target.source.isInSystemLibrary;
+  bool contains(AnalysisTarget target) {
+    Source source = target.source;
+    return source != null && source.isInSystemLibrary;
+  }
+}
+
+/**
+ * A specification of a specific result computed for a specific target.
+ */
+class TargetedResult {
+  /**
+   * An empty list of results.
+   */
+  static final List<TargetedResult> EMPTY_LIST = const <TargetedResult>[];
+
+  /**
+   * The target with which the result is associated.
+   */
+  final AnalysisTarget target;
+
+  /**
+   * The result associated with the target.
+   */
+  final ResultDescriptor result;
+
+  /**
+   * Initialize a new targeted result.
+   */
+  TargetedResult(this.target, this.result);
+
+  @override
+  int get hashCode {
+    return JenkinsSmiHash.combine(target.hashCode, result.hashCode);
+  }
+
+  @override
+  bool operator ==(other) {
+    return other is TargetedResult &&
+        other.target == target &&
+        other.result == result;
+  }
+
+  @override
+  String toString() => '$result for $target';
 }
 
 /**

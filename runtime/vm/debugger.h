@@ -12,7 +12,6 @@
 
 namespace dart {
 
-class ActiveVariables;
 class CodeBreakpoint;
 class Isolate;
 class JSONArray;
@@ -174,7 +173,6 @@ class ActivationFrame : public ZoneAllocated {
   intptr_t TokenPos();
   intptr_t LineNumber();
   intptr_t ColumnNumber();
-  void SetContext(const Context& ctx) { ctx_ = ctx.raw(); }
 
   // Returns true if this frame is for a function that is visible
   // to the user and can be debugged.
@@ -198,11 +196,14 @@ class ActivationFrame : public ZoneAllocated {
   RawArray* GetLocalVariables();
   RawObject* GetReceiver();
 
-  RawContext* GetSavedCurrentContext();
+  const Context& GetSavedCurrentContext();
 
   RawObject* Evaluate(const String& expr);
 
-  void PrintToJSONObject(JSONObject* jsobj);
+  // Print the activation frame into |jsobj|. if |full| is false, script
+  // and local variable objects are only references. if |full| is true,
+  // the complete script, function, and, local variable objects are included.
+  void PrintToJSONObject(JSONObject* jsobj, bool full = false);
 
  private:
   void PrintContextMismatchError(const String& var_name,
@@ -460,7 +461,7 @@ class Debugger {
   };
 
   static bool HasEventHandler();
-  static void InvokeEventHandler(DebuggerEvent* event);
+  void InvokeEventHandler(DebuggerEvent* event);
 
   void FindCompiledFunctions(const Script& script,
                              intptr_t start_pos,

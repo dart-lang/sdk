@@ -5,13 +5,12 @@
 library test.services.correction.levenshtein;
 
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
-
-import '../../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(LevenshteinTest);
+  defineReflectiveTests(LevenshteinTest);
 }
 
 @reflectiveTest

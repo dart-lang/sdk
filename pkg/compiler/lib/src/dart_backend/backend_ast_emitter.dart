@@ -142,6 +142,25 @@ class BuilderContext<T> {
     return name;
   }
 
+  /// Adds declarations for all variables that are still undeclared.
+  void declareRemainingVariables() {
+    // These variables can be referenced from other variable initializers if
+    // they are set by an assignment expression, so we declare variables before
+    // those with initializers.
+    List<VariableDeclaration> declarations = <VariableDeclaration>[];
+    for (tree.Variable variable in variableNames.keys) {
+      if (!declaredVariables.contains(variable)) {
+        String name = getVariableName(variable);
+        VariableDeclaration decl = new VariableDeclaration(name);
+        decl.element = variable.element;
+        declarations.add(decl);
+        declaredVariables.add(variable);
+      }
+    }
+    // Prepend all variables at once to avoid quadratic blowup.
+    variables.insertAll(0, declarations);
+  }
+
   String getConstantName(VariableElement element) {
     assert(element.kind == ElementKind.VARIABLE);
     if (element.enclosingElement != currentElement) {
@@ -301,11 +320,7 @@ class ASTEmitter
       // Some of the variable declarations have already been added
       // if their first assignment could be pulled into the initializer.
       // Add the remaining variable declarations now.
-      for (tree.Variable variable in context.variableNames.keys) {
-        if (!context.declaredVariables.contains(variable)) {
-          context.addDeclaration(variable);
-        }
-      }
+      context.declareRemainingVariables();
 
       // Add constant declarations.
       List<VariableDeclaration> constants = <VariableDeclaration>[];
@@ -329,18 +344,14 @@ class ASTEmitter
         bodyParts.add(new VariableDeclarations(context.variables));
       }
       bodyParts.addAll(context.statements);
-
       body = new Block(bodyParts);
-
     }
-    FunctionType functionType = context.currentElement.type;
-
     return new ConstructorDefinition(
         parameters,
         body,
         initializers,
-        context.currentElement.name, definition.element.isConst)
-        ..element = context.currentElement;
+        context.currentElement.name,
+        definition.element.isConst)..element = context.currentElement;
   }
 
   @override
@@ -370,12 +381,7 @@ class ASTEmitter
       // Some of the variable declarations have already been added
       // if their first assignment could be pulled into the initializer.
       // Add the remaining variable declarations now.
-      for (tree.Variable variable in context.variableNames.keys) {
-        if (!context.declaredVariables.contains(variable) &&
-            !context.handlerVariables.contains(variable)) {
-          context.addDeclaration(variable);
-        }
-      }
+      context.declareRemainingVariables();
 
       // Add constant declarations.
       List<VariableDeclaration> constants = <VariableDeclaration>[];
@@ -498,10 +504,25 @@ class ASTEmitter
   @override
   void visitExpressionStatement(tree.ExpressionStatement stmt,
                                 BuilderContext<Statement> context) {
+    if (stmt.expression is tree.Assign) {
+      emitAssignStatement(stmt.expression, stmt, context);
+      return;
+    }
     Expression e = visitExpression(stmt.expression, context);
     context.addStatement(new ExpressionStatement(e));
-
     visitStatement(stmt.next, context);
+  }
+
+  @override
+  void visitVariableDeclaration(tree.VariableDeclaration node,
+                                BuilderContext<Statement> context) {
+    Expression value = visitExpression(node.value, context);
+    String name = context.getVariableName(node.variable);
+    VariableDeclaration decl = new VariableDeclaration(name, value)
+                                   ..element = node.variable.element;
+    context.declaredVariables.add(node.variable);
+    context.addStatement(new VariableDeclarations([decl]));
+    visitStatement(node.next, context);
   }
 
   @override
@@ -515,63 +536,48 @@ class ASTEmitter
 
   bool isNullLiteral(Expression exp) => exp is Literal && exp.value.isNull;
 
-  @override
-  void visitAssign(tree.Assign stmt,
-                   BuilderContext<Statement> context) {
+  void emitAssignStatement(tree.Assign assign,
+                           tree.Statement statement,
+                           BuilderContext<Statement> context) {
     // Try to emit a local function declaration. This is useful for functions
     // that may occur in expression context, but could not be inlined anywhere.
-    if (stmt.variable.element is FunctionElement &&
-        stmt.value is tree.FunctionExpression &&
-        !context.declaredVariables.contains(stmt.variable) &&
-        stmt.variable.writeCount == 1) {
-      tree.FunctionExpression functionExp = stmt.value;
+    if (assign.variable.element is FunctionElement &&
+        assign.value is tree.FunctionExpression &&
+        !context.declaredVariables.contains(assign.variable) &&
+        assign.variable.writeCount == 1) {
+      tree.FunctionExpression functionExp = assign.value;
       FunctionExpression function =
           makeSubFunction(functionExp.definition, context);
       FunctionDeclaration decl = new FunctionDeclaration(function);
       context.addStatement(decl);
-      context.declaredVariables.add(stmt.variable);
+      context.declaredVariables.add(assign.variable);
 
-      visitStatement(stmt.next, context);
+      visitStatement(statement.next, context);
       return;
     }
 
-    bool isFirstOccurrence = (context.variableNames[stmt.variable] == null);
-    bool isDeclaredHere = stmt.variable.host == context.currentElement;
-    String name = context.getVariableName(stmt.variable);
-    Expression definition = visitExpression(stmt.value, context);
+    Expression definition = visitExpression(assign.value, context);
+    bool isFirstOccurrence = (context.variableNames[assign.variable] == null);
+    bool isDeclaredHere = assign.variable.host == context.currentElement;
+    bool isFirstStatement = context.firstStatement == statement;
 
     // Try to pull into initializer.
-    if (context.firstStatement == stmt && isFirstOccurrence && isDeclaredHere) {
+    if (isFirstStatement && isFirstOccurrence && isDeclaredHere) {
       if (isNullLiteral(definition)) definition = null;
-      context.addDeclaration(stmt.variable, definition);
-      context.firstStatement = stmt.next;
-      visitStatement(stmt.next, context);
-      return;
-    }
-
-    // Emit a variable declaration if we are required to do so.
-    // For captured variables, this ensures that a fresh variable is created.
-    if (stmt.isDeclaration) {
-      assert(isFirstOccurrence);
-      assert(isDeclaredHere);
-      if (isNullLiteral(definition)) definition = null;
-      VariableDeclaration decl = new VariableDeclaration(name, definition)
-                                     ..element = stmt.variable.element;
-      context.declaredVariables.add(stmt.variable);
-      context.addStatement(new VariableDeclarations([decl]));
-      visitStatement(stmt.next, context);
+      context.addDeclaration(assign.variable, definition);
+      context.firstStatement = statement.next;
+      visitStatement(statement.next, context);
       return;
     }
 
     context.addStatement(new ExpressionStatement(makeAssignment(
-        context.makeVariableAccess(stmt.variable),
+        context.makeVariableAccess(assign.variable),
         definition)));
-    visitStatement(stmt.next, context);
+    visitStatement(statement.next, context);
   }
 
   @override
-  void visitReturn(tree.Return stmt,
-                   BuilderContext<Statement> context) {
+  void visitReturn(tree.Return stmt, BuilderContext<Statement> context) {
     if (context.currentElement.isGenerativeConstructor &&
         !context.inInitializer) {
       assert(() {
@@ -586,8 +592,18 @@ class ASTEmitter
   }
 
   @override
-  void visitBreak(tree.Break stmt,
-                  BuilderContext<Statement> context) {
+  void visitThrow(tree.Throw stmt, BuilderContext<Statement> context) {
+    Expression value = visitExpression(stmt.value, context);
+    context.addStatement(new ExpressionStatement(new Throw(value)));
+  }
+
+  @override
+  void visitRethrow(tree.Rethrow stmt, BuilderContext<Statement> context) {
+    context.addStatement(new Rethrow());
+  }
+
+  @override
+  void visitBreak(tree.Break stmt, BuilderContext<Statement> context) {
     tree.Statement fall = context.fallthrough;
     if (stmt.target.binding.next == fall) {
       // Fall through to break target
@@ -653,6 +669,7 @@ class ASTEmitter
     VariableDeclaration exceptionParameter =
         new VariableDeclaration(context.getVariableName(exceptionVariable));
     exceptionParameter.element = exceptionVariable.element;
+    stmt.catchParameters.forEach(context.declaredVariables.add);
     if (stmt.catchParameters.length == 2) {
       tree.Variable stackTraceVariable = stmt.catchParameters[1];
       context.handlerVariables.add(stackTraceVariable);
@@ -878,6 +895,14 @@ class ASTEmitter
     return context.makeVariableAccess(exp.variable);
   }
 
+  @override
+  Expression visitAssign(tree.Assign node, BuilderContext<Statement> context) {
+    // This is called only when an assignment occurs in expression context.
+    return makeAssignment(
+        context.makeVariableAccess(node.variable),
+        visitExpression(node.value, context));
+  }
+
   FunctionExpression makeSubFunction(tree.FunctionDefinition function,
                                      BuilderContext<Statement> context) {
     return visitFunctionDefinition(function,
@@ -904,13 +929,15 @@ class ASTEmitter
   }
 
   List<Statement> buildInInitializerContext(tree.Statement root,
-                                     BuilderContext context) {
+                                            BuilderContext context) {
     BuilderContext inner = new BuilderContext<Statement>.initializer(context);
     inner.currentElement = context.currentElement;
+    inner.firstStatement = root;
     visitStatement(root, inner);
     List<Statement> bodyParts;
     for (tree.Variable variable in inner.variableNames.keys) {
-      if (!context.declaredVariables.contains(variable)) {
+      if (!context.declaredVariables.contains(variable) &&
+          !inner.declaredVariables.contains(variable)) {
         inner.addDeclaration(variable);
       }
     }
@@ -1232,6 +1259,12 @@ class ConstantEmitter
   }
 
   @override
+  Expression visitIdentical(IdenticalConstantExpression exp,
+                            BuilderContext<Statement> context) {
+    return handlePrimitiveConstant(exp.value);
+  }
+
+  @override
   Expression visitConditional(ConditionalConstantExpression exp,
                               BuilderContext<Statement> context) {
     if (exp.condition.value.isTrue) {
@@ -1245,6 +1278,12 @@ class ConstantEmitter
   Expression visitUnary(UnaryConstantExpression exp,
                         BuilderContext<Statement> context) {
     return handlePrimitiveConstant(exp.value);
+  }
+
+  @override
+  Expression visitDeferred(DeferredConstantExpression exp,
+                           BuilderContext<Statement> context) {
+    return exp.expression.accept(this);
   }
 }
 
@@ -1290,7 +1329,10 @@ class UnshadowParameters extends tree.RecursiveVisitor {
             param.element);
         definition.parameters[i] = newParam;
         definition.replaceEachBody((tree.Statement body) {
-          return new tree.Assign(param, new tree.VariableUse(newParam), body);
+          return tree.Assign.makeStatement(
+              param,
+              new tree.VariableUse(newParam),
+              body);
         });
         newParam.writeCount = 1; // Being a parameter counts as a write.
         param.writeCount--; // Not a parameter anymore.

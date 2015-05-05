@@ -1,6 +1,7 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
 <link rel="import" href="nav_bar.html">
 <link rel="import" href="observatory_element.html">
+<link rel="import" href="view_footer.html">
 
 <polymer-element name="vm-connect-target" extends="observatory-element">
   <template>
@@ -17,14 +18,12 @@
     <link rel="stylesheet" href="css/shared.css">
     <span>
       <template if="{{ isCurrentTarget }}">
-        <a on-click="{{ connectToVm }}" _href="{{ gotoLink('/vm') }}">{{ target.name }} (Connected)</a>
+        <a on-click="{{ connectToVm }}" _href="{{ gotoLinkForwardingParameters('/vm') }}">{{ target.name }} (Connected)</a>
       </template>
       <template if="{{ !isCurrentTarget }}">
-        <a on-click="{{ connectToVm }}" _href="{{ gotoLink('/vm') }}">{{ target.name }}</a>
+        <a on-click="{{ connectToVm }}" _href="{{ gotoLinkForwardingParameters('/vm') }}">{{ target.name }}</a>
       </template>
-      <template if="{{ !isChromeTarget }}">
-        <button class="delete-button" on-click="{{ deleteVm }}">&#10006; Remove</button>
-      </template>
+      <button class="delete-button" on-click="{{ deleteVm }}">&#10006; Remove</button>
     </span>
   </template>
 </polymer-element>
@@ -41,7 +40,6 @@
 
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
-      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content-centered">
@@ -50,7 +48,7 @@
       <hr>
       <div class="flex-row">
         <div class="flex-item-40-percent">
-          <h2><img style="height: 48px" src="img/dart_icon.png">Standalone</h2>
+          <h2>WebSocket</h2>
           <br>
           <ul>
             <template repeat="{{ target in app.targets.history }}">
@@ -71,25 +69,18 @@
 
         <div class="flex-item-20-percent"></div>
         <div class="flex-item-40-percent">
-          <h2><img style="height: 48px" src="img/chromium_icon.png">Chromium</h2>
+          <h2>Crash dump</h2>
           <br>
-          <ul>
-            <template repeat="{{ target in chromeTargets }}">
-              <li><vm-connect-target target="{{ target }}"></vm-connect-target></li>
-            </template>
-          </ul>
-          <hr>
-          <form autocomplete="on">
-            <input class="textbox" placeholder="localhost:9222" type="text" value="{{ chromiumAddress }}">
-            <input class="button" type="submit" value="Get Tabs" on-click="{{ getTabs }}">
-          </form>
+          <input type="file" id="crashDumpFile">
           <br>
-          <pre class="well">Run Chromium with:
-'--remote-debugging-port=9222'</pre>
+          <br>
+          <pre class="well">Request a crash dump with:
+'curl localhost:8181/_getCrashDump > dump.json'</pre>
           <hr>
         </div>
       </div>
     </div>
+    <view-footer></view-footer>
   </template>
 </polymer-element>
 

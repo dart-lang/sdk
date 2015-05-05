@@ -10,14 +10,14 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import 'abstract_refactoring.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ExtractLocalTest);
+  defineReflectiveTests(ExtractLocalTest);
 }
 
 @reflectiveTest
@@ -702,6 +702,25 @@ main() {
   A a = new A();
   var res = a.foo;
   int b = 1 + res; // marker
+}
+''');
+  }
+
+  test_singleExpression_hasParseError_expectedSemicolon() {
+    verifyNoTestUnitErrors = false;
+    indexTestUnit('''
+main(p) {
+  foo
+  p.bar.baz;
+}
+''');
+    _createRefactoringForString('p.bar');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main(p) {
+  foo
+  var res = p.bar;
+  res.baz;
 }
 ''');
   }

@@ -28,7 +28,7 @@ class AnalysisDriver {
   /**
    * The context in which analysis is to be performed.
    */
-  final ExtendedAnalysisContext context;
+  final InternalAnalysisContext context;
 
   /**
    * The work order that was previously computed but that has not yet been
@@ -123,8 +123,17 @@ class AnalysisDriver {
         state == CacheState.IN_PROCESS) {
       return null;
     }
-    return new WorkOrder(taskManager,
-        new WorkItem(context, target, taskManager.findTask(target, result)));
+    try {
+      TaskDescriptor taskDescriptor = taskManager.findTask(target, result);
+      Object memento = entry.getMemento(result);
+      WorkItem workItem =
+          new WorkItem(context, target, taskDescriptor, memento);
+      return new WorkOrder(taskManager, workItem);
+    } catch (exception, stackTrace) {
+      throw new AnalysisException(
+          'Could not create work order (target = $target; result = $result)',
+          new CaughtException(exception, stackTrace));
+    }
   }
 
   /**
@@ -204,11 +213,12 @@ class AnalysisDriver {
     task.perform();
     CacheEntry entry = context.getCacheEntry(task.target);
     if (task.caughtException == null) {
+      List<TargetedResult> dependedOn = item.inputTargetedResults.toList();
       Map<ResultDescriptor, dynamic> outputs = task.outputs;
       for (ResultDescriptor result in task.descriptor.results) {
         // TODO(brianwilkerson) We could check here that a value was produced
         // and throw an exception if not (unless we want to allow null values).
-        entry.setValue(result, outputs[result]);
+        entry.setValue(result, outputs[result], dependedOn, task.outputMemento);
       }
     } else {
       entry.setErrorState(task.caughtException, item.descriptor.results);
@@ -239,6 +249,20 @@ abstract class ExtendedAnalysisContext implements InternalAnalysisContext {
 }
 
 /**
+ * An exception indicating that an attempt was made to perform a task on a
+ * target while gathering the inputs to perform the same task for the same
+ * target.
+ */
+class InfiniteTaskLoopException extends AnalysisException {
+  /**
+   * Initialize a newly created exception to represent an attempt to perform
+   * the task for the target represented by the given [item].
+   */
+  InfiniteTaskLoopException(WorkItem item) : super(
+          'Infinite loop while performing task ${item.descriptor.name} for ${item.target}');
+}
+
+/**
  * A description of a single anaysis task that can be performed to advance
  * analysis.
  */
@@ -246,7 +270,7 @@ class WorkItem {
   /**
    * The context in which the task will be performed.
    */
-  final ExtendedAnalysisContext context;
+  final InternalAnalysisContext context;
 
   /**
    * The target for which a task is to be performed.
@@ -259,11 +283,23 @@ class WorkItem {
   final TaskDescriptor descriptor;
 
   /**
+   * The optional data that the task associated with [target] last time.
+   * This data may help to compute outputs more efficiently.
+   */
+  final Object inputMemento;
+
+  /**
    * An iterator used to iterate over the descriptors of the inputs to the task,
    * or `null` if all of the inputs have been collected and the task can be
    * created.
    */
   TaskInputBuilder builder;
+
+  /**
+   * The [TargetedResult]s outputs of this task depends on.
+   */
+  final HashSet<TargetedResult> inputTargetedResults =
+      new HashSet<TargetedResult>();
 
   /**
    * The inputs to the task that have been computed.
@@ -282,7 +318,7 @@ class WorkItem {
    * Initialize a newly created work item to compute the inputs for the task
    * described by the given descriptor.
    */
-  WorkItem(this.context, this.target, this.descriptor) {
+  WorkItem(this.context, this.target, this.descriptor, this.inputMemento) {
     AnalysisTarget actualTarget = identical(
             target, AnalysisContextTarget.request)
         ? new AnalysisContextTarget(context)
@@ -303,7 +339,7 @@ class WorkItem {
     if (builder != null) {
       throw new StateError("some inputs have not been computed");
     }
-    return descriptor.createTask(context, target, inputs);
+    return descriptor.createTask(context, target, inputs, inputMemento);
   }
 
   /**
@@ -324,14 +360,9 @@ class WorkItem {
    */
   WorkItem gatherInputs(TaskManager taskManager) {
     while (builder != null) {
-      //
-      // TODO(brianwilkerson) Capture information about which inputs were used
-      // to compute the results. This information can later be used to compute
-      // which results depend on a given result, and hence which results need to
-      // be invalidated when one result is invalidated.
-      //
       AnalysisTarget inputTarget = builder.currentTarget;
       ResultDescriptor inputResult = builder.currentResult;
+      inputTargetedResults.add(new TargetedResult(inputTarget, inputResult));
       CacheEntry inputEntry = context.getCacheEntry(inputTarget);
       CacheState inputState = inputEntry.getState(inputResult);
       if (inputState == CacheState.ERROR) {
@@ -353,7 +384,8 @@ class WorkItem {
         try {
           TaskDescriptor descriptor =
               taskManager.findTask(inputTarget, inputResult);
-          return new WorkItem(context, inputTarget, descriptor);
+          Object memento = inputEntry.getMemento(inputResult);
+          return new WorkItem(context, inputTarget, descriptor, memento);
         } on AnalysisException catch (exception, stackTrace) {
           this.exception = new CaughtException(exception, stackTrace);
           return null;
@@ -367,6 +399,9 @@ class WorkItem {
     }
     return null;
   }
+
+  @override
+  String toString() => 'Run $descriptor on $target';
 }
 
 /**
@@ -442,17 +477,4 @@ class WorkOrder implements Iterator<WorkItem> {
     }
     return false;
   }
-}
-
-/**
- * An exception indicating that an attempt was made to perform a task on a
- * target while gathering the inputs to perform the same task for the same
- * target.
- */
-class InfiniteTaskLoopException extends AnalysisException {
-  /**
-   * Initialize a newly created exception to represent an attempt to perform
-   * the task for the target represented by the given [item].
-   */
-  InfiniteTaskLoopException(WorkItem item) : super('Infinite loop while performing task ${item.descriptor.name} for ${item.target}');
 }

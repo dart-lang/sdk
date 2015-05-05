@@ -381,8 +381,8 @@ class Parser : public ValueObject {
   void CheckRecursiveInvocation();
 
   const Instance& EvaluateConstExpr(intptr_t expr_pos, AstNode* expr);
-  AstNode* RunStaticFieldInitializer(const Field& field,
-                                     intptr_t field_ref_pos);
+  StaticGetterNode* RunStaticFieldInitializer(const Field& field,
+                                              intptr_t field_ref_pos);
   RawObject* EvaluateConstConstructorCall(const Class& type_class,
                                           const TypeArguments& type_arguments,
                                           const Function& constructor,
@@ -628,11 +628,12 @@ class Parser : public ValueObject {
   void PushTry(Block* try_block);
   // Pop the inner most try block from the stack.
   TryStack* PopTry();
-  // Collect try block scopes and indices if await or yield is in try block.
-  void CheckAsyncOpInTryBlock(LocalScope** try_scope,
-                              int16_t* try_index,
-                              LocalScope** outer_try_scope,
-                              int16_t* outer_try_index) const;
+  // Collect saved try context variables if await or yield is in try block.
+  void CheckAsyncOpInTryBlock(
+      LocalVariable** saved_try_ctx,
+      LocalVariable** async_saved_try_ctx,
+      LocalVariable** outer_saved_try_ctx,
+      LocalVariable** outer_async_saved_try_ctx) const;
   // Add specified node to try block list so that it can be patched with
   // inlined finally code if needed.
   void AddNodeForFinallyInlining(AstNode* node);
@@ -710,10 +711,9 @@ class Parser : public ValueObject {
   AstNode* ParseClosureCall(AstNode* closure);
   AstNode* GenerateStaticFieldLookup(const Field& field,
                                      intptr_t ident_pos);
-  AstNode* ParseStaticFieldAccess(const Class& cls,
-                                  const String& field_name,
-                                  intptr_t ident_pos,
-                                  bool consume_cascades);
+  AstNode* GenerateStaticFieldAccess(const Class& cls,
+                                     const String& field_name,
+                                     intptr_t ident_pos);
 
   LocalVariable* LookupLocalScope(const String& ident);
   void CheckInstanceFieldAccess(intptr_t field_pos, const String& field_name);
@@ -733,11 +733,6 @@ class Parser : public ValueObject {
   AstNode* ResolveIdentInPrefixScope(intptr_t ident_pos,
                                      const LibraryPrefix& prefix,
                                      const String& ident);
-
-  // Find class with the given name in the library or prefix scope.
-  RawClass* ResolveClassInCurrentLibraryScope(const String& name);
-  RawClass* ResolveClassInPrefixScope(const LibraryPrefix& prefix,
-                                      const String& name);
 
   AstNode* ResolveIdent(intptr_t ident_pos,
                         const String& ident,

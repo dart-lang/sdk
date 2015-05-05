@@ -24,7 +24,7 @@ abstract class EfficientLength {
  * All other methods are implemented in terms of [length] and [elementAt],
  * including [iterator].
  */
-abstract class ListIterable<E> extends IterableBase<E>
+abstract class ListIterable<E> extends Iterable<E>
                                implements EfficientLength {
   int get length;
   E elementAt(int i);
@@ -346,7 +346,7 @@ class ListIterator<E> implements Iterator<E> {
 
 typedef T _Transformation<S, T>(S value);
 
-class MappedIterable<S, T> extends IterableBase<T> {
+class MappedIterable<S, T> extends Iterable<T> {
   final Iterable<S> _iterable;
   final _Transformation<S, T> _f;
 
@@ -416,7 +416,7 @@ class MappedListIterable<S, T> extends ListIterable<T>
 
 typedef bool _ElementPredicate<E>(E element);
 
-class WhereIterable<E> extends IterableBase<E> {
+class WhereIterable<E> extends Iterable<E> {
   final Iterable<E> _iterable;
   final _ElementPredicate _f;
 
@@ -445,7 +445,7 @@ class WhereIterator<E> extends Iterator<E> {
 
 typedef Iterable<T> _ExpandFunction<S, T>(S sourceElement);
 
-class ExpandIterable<S, T> extends IterableBase<T> {
+class ExpandIterable<S, T> extends Iterable<T> {
   final Iterable<S> _iterable;
   final _ExpandFunction _f;
 
@@ -488,7 +488,7 @@ class ExpandIterator<S, T> implements Iterator<T> {
   }
 }
 
-class TakeIterable<E> extends IterableBase<E> {
+class TakeIterable<E> extends Iterable<E> {
   final Iterable<E> _iterable;
   final int _takeCount;
 
@@ -545,7 +545,7 @@ class TakeIterator<E> extends Iterator<E> {
   }
 }
 
-class TakeWhileIterable<E> extends IterableBase<E> {
+class TakeWhileIterable<E> extends Iterable<E> {
   final Iterable<E> _iterable;
   final _ElementPredicate _f;
 
@@ -578,7 +578,7 @@ class TakeWhileIterator<E> extends Iterator<E> {
   }
 }
 
-class SkipIterable<E> extends IterableBase<E> {
+class SkipIterable<E> extends Iterable<E> {
   final Iterable<E> _iterable;
   final int _skipCount;
 
@@ -638,7 +638,7 @@ class SkipIterator<E> extends Iterator<E> {
   E get current => _iterator.current;
 }
 
-class SkipWhileIterable<E> extends IterableBase<E> {
+class SkipWhileIterable<E> extends Iterable<E> {
   final Iterable<E> _iterable;
   final _ElementPredicate _f;
 
@@ -672,7 +672,7 @@ class SkipWhileIterator<E> extends Iterator<E> {
 /**
  * The always empty [Iterable].
  */
-class EmptyIterable<E> extends IterableBase<E> implements EfficientLength {
+class EmptyIterable<E> extends Iterable<E> implements EfficientLength {
   const EmptyIterable();
 
   Iterator<E> get iterator => const EmptyIterator();

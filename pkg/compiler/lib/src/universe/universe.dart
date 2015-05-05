@@ -285,12 +285,8 @@ class CallStructure {
 
   // TODO(johnniwinther): Cache hash code?
   int get hashCode {
-    int named = namedArguments.length;
-    int hash = mixHashCodeBits(argumentCount, named);
-    for (int i = 0; i < named; i++) {
-      hash = mixHashCodeBits(hash, namedArguments[i].hashCode);
-    }
-    return hash;
+    return Hashing.listHash(namedArguments,
+        Hashing.objectHash(argumentCount, namedArguments.length));
   }
 
   bool operator ==(other) {
@@ -759,9 +755,9 @@ class Selector {
                              Name name,
                              CallStructure callStructure) {
     // Add bits from name and kind.
-    int hash = mixHashCodeBits(name.hashCode, kind.hashCode);
+    int hash = Hashing.mixHashCodeBits(name.hashCode, kind.hashCode);
     // Add bits from the call structure.
-    return mixHashCodeBits(hash, callStructure.hashCode);
+    return Hashing.mixHashCodeBits(hash, callStructure.hashCode);
   }
 
   String toString() {
@@ -810,7 +806,7 @@ class TypedSelector extends Selector {
         .putIfAbsent(untyped, () => new Map<TypeMask, TypedSelector>());
     TypedSelector result = map[mask];
     if (result == null) {
-      int hashCode = mixHashCodeBits(untyped.hashCode, mask.hashCode);
+      int hashCode = Hashing.mixHashCodeBits(untyped.hashCode, mask.hashCode);
       result = map[mask] = new TypedSelector.internal(mask, untyped, hashCode);
     }
     return result;

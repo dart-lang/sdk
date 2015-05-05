@@ -4,11 +4,12 @@
 
 library test.integration.analysis.get.errors.before.analysis;
 
-import '../../reflective_tests.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
 import 'get_errors.dart';
 
 main() {
-  runReflectiveTests(Test);
+  defineReflectiveTests(Test);
 }
 
 @reflectiveTest

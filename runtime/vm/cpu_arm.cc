@@ -18,15 +18,63 @@
 #include <unistd.h>  /* NOLINT */
 #endif
 
+// ARM version differences.
+// We support three major 32-bit ARM ISA versions: ARMv5TE, ARMv6 and variants,
+// and ARMv7 and variants. For each of these we detect the presence of vfp,
+// neon, and integer division instructions. Considering ARMv5TE as the baseline,
+// later versions add the following features/instructions that we use:
+//
+// ARMv6:
+// - PC read offset in store instructions is 8 rather than 12, matching the
+//   offset in read instructions,
+// - strex, ldrex, and clrex load/store/clear exclusive instructions,
+// - umaal multiplication instruction,
+// ARMv7:
+// - movw, movt 16-bit immediate load instructions,
+// - mls multiplication instruction,
+// - vmovs, vmovd floating point immediate load instructions.
+//
+// If an aarch64 CPU is detected, we generate ARMv7 code.
+//
+// If an instruction is missing on ARMv5TE or ARMv6, we emulate it, if possible.
+// Where we are missing vfp, we do not unbox doubles, or generate intrinsics for
+// floating point operations. Where we are missing neon, we do not unbox SIMD
+// values, or inline operations on SIMD values. Where we are missing integer
+// division, we do not inline division operations, and we do not generate
+// intrinsics that do division. See the feature tests in flow_graph_optimizer.cc
+// for details.
+//
+// Alignment:
+//
+// Before ARMv6, that is only for ARMv5TE, unaligned accesses will cause a
+// crash. This includes the ldrd and strd instructions, which must use addresses
+// that are 8-byte aligned. Since we don't always guarantee that for our uses
+// of ldrd and strd, these instructions are emulated with two load or store
+// instructions on ARMv5TE. On ARMv6 and on, we assume that the kernel is
+// set up to fixup unaligned accesses. This can be verified by checking
+// /proc/cpu/alignment on modern Linux systems.
+
 namespace dart {
 
+// TODO(zra): Add a target for ARMv6.
+#if defined(TARGET_ARCH_ARM_5TE)
+DEFINE_FLAG(bool, use_vfp, false, "Use vfp instructions if supported");
+DEFINE_FLAG(bool, use_neon, false, "Use neon instructions if supported");
+DEFINE_FLAG(bool, use_integer_division, false,
+            "Use integer division instruction if supported");
+#else
 DEFINE_FLAG(bool, use_vfp, true, "Use vfp instructions if supported");
 DEFINE_FLAG(bool, use_neon, true, "Use neon instructions if supported");
+DEFINE_FLAG(bool, use_integer_division, true,
+            "Use integer division instruction if supported");
+#endif
+
 #if !defined(HOST_ARCH_ARM)
-DEFINE_FLAG(bool, sim_use_armv7, true, "Use all ARMv7 instructions");
-DEFINE_FLAG(bool, sim_use_armv5te, false, "Restrict to ARMv5TE instructions");
-DEFINE_FLAG(bool, sim_use_armv6, false, "Restrict to ARMv6 instructions");
+#if defined(TARGET_ARCH_ARM_5TE)
 DEFINE_FLAG(bool, sim_use_hardfp, false, "Use the softfp ABI.");
+#else
+DEFINE_FLAG(bool, sim_use_hardfp, true, "Use the softfp ABI.");
+#endif
 #endif
 
 void CPU::FlushICache(uword start, uword size) {
@@ -121,10 +169,11 @@ void HostCPUFeatures::InitOnce() {
   bool is_krait = CpuInfo::FieldContains(kCpuInfoHardware, "QCT APQ8064");
   if (is_krait) {
     // Special case for Qualcomm Krait CPUs in Nexus 4 and 7.
-    integer_division_supported_ = true;
+    integer_division_supported_ = FLAG_use_integer_division;
   } else {
     integer_division_supported_ =
-        CpuInfo::FieldContains(kCpuInfoFeatures, "idiva") || is_arm64;
+        (CpuInfo::FieldContains(kCpuInfoFeatures, "idiva") || is_arm64) &&
+        FLAG_use_integer_division;
   }
   neon_supported_ =
       (CpuInfo::FieldContains(kCpuInfoFeatures, "neon") || is_arm64) &&
@@ -160,19 +209,17 @@ void HostCPUFeatures::Cleanup() {
 void HostCPUFeatures::InitOnce() {
   CpuInfo::InitOnce();
   hardware_ = CpuInfo::GetCpuModel();
+
+#if defined(TARGET_ARCH_ARM_5TE)
+  arm_version_ = ARMv5TE;
+#else
+  arm_version_ = ARMv7;
+#endif
+
+  integer_division_supported_ = FLAG_use_integer_division;
   vfp_supported_ = FLAG_use_vfp;
   neon_supported_ = FLAG_use_vfp && FLAG_use_neon;
   hardfp_supported_ = FLAG_sim_use_hardfp;
-  if (FLAG_sim_use_armv5te) {
-    arm_version_ = ARMv5TE;
-    integer_division_supported_ = false;
-  } else if (FLAG_sim_use_armv6) {
-    arm_version_ = ARMv6;
-    integer_division_supported_ = true;
-  } else if (FLAG_sim_use_armv7) {
-    arm_version_ = ARMv7;
-    integer_division_supported_ = true;
-  }
 #if defined(DEBUG)
   initialized_ = true;
 #endif

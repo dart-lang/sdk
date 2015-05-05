@@ -79,6 +79,7 @@ abstract class ServiceObject extends Observable {
   bool get isNull => type == 'null';
   bool get isSentinel => type == 'Sentinel';
   bool get isString => type == 'String';
+  bool get isMessage => type == 'Message';
 
   // Kinds of Instance.
   bool get isMirrorReference => vmType == 'MirrorReference';
@@ -369,17 +370,11 @@ abstract class VM extends ServiceObjectOwner {
   final StreamController<ServiceEvent> events =
       new StreamController.broadcast();
 
-  void postServiceEvent(String response, ByteData data) {
-    var map;
-    try {
-      map = _parseJSON(response);
-      assert(!map.containsKey('_data'));
-      if (data != null) {
-        map['_data'] = data;
-      }
-    } catch (_) {
-      Logger.root.severe('Ignoring malformed event response: ${response}');
-      return;
+  void postServiceEvent(Map response, ByteData data) {
+    var map = toObservable(response);
+    assert(!map.containsKey('_data'));
+    if (data != null) {
+      map['_data'] = data;
     }
     if (map['type'] != 'ServiceEvent') {
       Logger.root.severe(
@@ -465,26 +460,6 @@ abstract class VM extends ServiceObjectOwner {
     return new Future.value(_isolateCache[isolateId]);
   }
 
-  dynamic _reviver(dynamic key, dynamic value) {
-    return value;
-  }
-
-  ObservableMap _parseJSON(String response) {
-    var map;
-    try {
-      var decoder = new JsonDecoder(_reviver);
-      map = decoder.convert(response);
-    } catch (e) {
-      return toObservable({
-        'type': 'ServiceException',
-        'kind': 'JSONDecodeException',
-        'response': map,
-        'message': 'Could not decode JSON: $e',
-      });
-    }
-    return toObservable(map);
-  }
-
   Future<ObservableMap> _processMap(ObservableMap map) {
     // Verify that the top level response is a service map.
     if (!_isServiceMap(map)) {
@@ -493,7 +468,7 @@ abstract class VM extends ServiceObjectOwner {
         'type': 'ServiceException',
         'kind': 'ResponseFormatException',
         'response': map,
-        'message': 'Top level service responses must be service maps: ${map}.',
+        'message': "Response is missing the 'type' field.",
       })));
     }
     // Preemptively capture ServiceError and ServiceExceptions.
@@ -507,11 +482,11 @@ abstract class VM extends ServiceObjectOwner {
   }
 
   // Implemented in subclass.
-  Future<String> invokeRpcRaw(String method, Map params);
+  Future<Map> invokeRpcRaw(String method, Map params);
 
   Future<ObservableMap> invokeRpcNoUpgrade(String method, Map params) {
-    return invokeRpcRaw(method, params).then((String response) {
-      var map = _parseJSON(response);
+    return invokeRpcRaw(method, params).then((Map response) {
+      var map = toObservable(response);
       if (Tracer.current != null) {
         Tracer.current.trace("Received response for ${method}/${params}}",
                              map:map);
@@ -592,6 +567,77 @@ abstract class VM extends ServiceObjectOwner {
     return Future.wait(reloads);
   }
 }
+
+class FakeVM extends VM {
+  final Map _responses = {};
+  FakeVM(Map responses) {
+    if (responses == null) {
+      return;
+    }
+    responses.forEach((uri, response) {
+      // Encode as string.
+      _responses[_canonicalizeUri(Uri.parse(uri))] = response;
+    });
+  }
+
+  String _canonicalizeUri(Uri uri) {
+    // We use the uri as the key to the response map. Uri parameters can be
+    // serialized in any order, this function canonicalizes the uri parameters
+    // so they are serialized in sorted-by-parameter-name order.
+    var method = uri.path;
+    // Create a map sorted on insertion order.
+    var parameters = new Map();
+    // Sort keys.
+    var sortedKeys = uri.queryParameters.keys.toList();
+    sortedKeys.sort();
+    // Filter keys.
+    if (method == 'getStack') {
+      // Remove the 'full' parameter.
+      sortedKeys.remove('full');
+    }
+    // Insert parameters in sorted order.
+    for (var key in sortedKeys) {
+      parameters[key] = uri.queryParameters[key];
+    }
+    // Return canonical uri.
+    return new Uri(path: method, queryParameters: parameters).toString();
+  }
+
+  /// Force the VM to disconnect.
+  void disconnect() {
+    _onDisconnect.complete(this);
+  }
+
+  // Always connected.
+  Future _onConnect;
+  Future get onConnect {
+    if (_onConnect != null) {
+      return _onConnect;
+    }
+    _onConnect = new Future.value(this);
+    return _onConnect;
+  }
+  // Only complete when requested.
+  Completer _onDisconnect = new Completer();
+  Future get onDisconnect => _onDisconnect.future;
+
+  Future<Map> invokeRpcRaw(String method, Map params) {
+    if (params.isEmpty) {
+      params = null;
+    }
+    var key = _canonicalizeUri(new Uri(path: method, queryParameters: params));
+    var response = _responses[key];
+    if (response == null) {
+      return new Future.error({
+        'type': 'ServiceException',
+        'kind': 'NotContainedInResponses',
+        'key': key
+      });
+    }
+    return new Future.value(response);
+  }
+}
+
 
 /// Snapshot in time of tag counters.
 class TagProfileSnapshot {
@@ -1182,7 +1228,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     Map params = {
       'targetId': target.id,
     };
-    return invokeRpc('getRetainedSize', params);
+    return invokeRpc('_getRetainedSize', params);
   }
 
   Future<ServiceObject> getRetainingPath(ServiceObject target, var limit) {
@@ -1190,7 +1236,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
       'targetId': target.id,
       'limit': limit.toString(),
     };
-    return invokeRpc('getRetainingPath', params);
+    return invokeRpc('_getRetainingPath', params);
   }
 
   Future<ServiceObject> getInboundReferences(ServiceObject target, var limit) {
@@ -1198,7 +1244,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
       'targetId': target.id,
       'limit': limit.toString(),
     };
-    return invokeRpc('getInboundReferences', params);
+    return invokeRpc('_getInboundReferences', params);
   }
 
   Future<ServiceObject> getTypeArgumentsList(bool onlyWithInstantiations) {
@@ -1213,7 +1259,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
       'classId': cls.id,
       'limit': limit.toString(),
     };
-    return invokeRpc('getInstances', params);
+    return invokeRpc('_getInstances', params);
   }
 
   Future<ServiceObject> getObjectByAddress(String address, [bool ref=true]) {
@@ -1294,6 +1340,11 @@ class ServiceMap extends ServiceObject implements ObservableMap {
     name = _map['name'];
     vmName = (_map.containsKey('vmName') ? _map['vmName'] : name);
   }
+
+  // TODO(turnidge): These are temporary until we have a proper root
+  // object for all dart heap objects.
+  int get size => _map['size'];
+  int get clazz => _map['class'];
 
   // Forward Map interface calls.
   void addAll(Map other) => _map.addAll(other);
@@ -1404,12 +1455,12 @@ class ServiceEvent extends ServiceObject {
   static const kBreakpointRemoved  = 'BreakpointRemoved';
   static const kGraph              = '_Graph';
   static const kGC                 = 'GC';
-  static const kVMDisconnected     = 'VMDisconnected';
+  static const kConnectionClosed   = 'ConnectionClosed';
 
   ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
 
-  ServiceEvent.vmDisconencted() : super._empty(null) {
-    eventType = kVMDisconnected;
+  ServiceEvent.connectionClosed(this.reason) : super._empty(null) {
+    eventType = kConnectionClosed;
   }
 
   @observable String eventType;
@@ -1418,6 +1469,7 @@ class ServiceEvent extends ServiceObject {
   @observable ServiceMap exception;
   @observable ByteData data;
   @observable int count;
+  @observable String reason;
 
   void _update(ObservableMap map, bool mapIsRef) {
     _loaded = true;
@@ -2124,6 +2176,8 @@ class Script extends ServiceObject with Coverage {
   @observable String kind;
   @observable int firstTokenPos;
   @observable int lastTokenPos;
+  @observable int lineOffset;
+  @observable int columnOffset;
   @observable Library library;
   bool get canCache => true;
   bool get immutable => true;
@@ -2135,7 +2189,7 @@ class Script extends ServiceObject with Coverage {
 
   ScriptLine getLine(int line) {
     assert(line >= 1);
-    return lines[line - 1];
+    return lines[line - lineOffset - 1];
   }
 
   /// This function maps a token position to a line number.
@@ -2156,6 +2210,9 @@ class Script extends ServiceObject with Coverage {
     if (mapIsRef) {
       return;
     }
+    _loaded = true;
+    lineOffset = map['lineOffset'];
+    columnOffset = map['columnOffset'];
     _parseTokenPosTable(map['tokenPosTable']);
     _processSource(map['source']);
     library = map['library'];
@@ -2227,8 +2284,6 @@ class Script extends ServiceObject with Coverage {
   }
 
   void _processSource(String source) {
-    // Preemptyively mark that this is not loaded.
-    _loaded = false;
     if (source == null) {
       return;
     }
@@ -2236,12 +2291,10 @@ class Script extends ServiceObject with Coverage {
     if (sourceLines.length == 0) {
       return;
     }
-    // We have the source to the script. This is now loaded.
-    _loaded = true;
     lines.clear();
     Logger.root.info('Adding ${sourceLines.length} source lines for ${_url}');
     for (var i = 0; i < sourceLines.length; i++) {
-      lines.add(new ScriptLine(this, i + 1, sourceLines[i]));
+      lines.add(new ScriptLine(this, i + lineOffset + 1, sourceLines[i]));
     }
     for (var bpt in isolate.breakpoints.values) {
       if (bpt.script == this) {
@@ -2559,7 +2612,7 @@ class Code extends ServiceObject {
   /// a [ServiceError].
   Future<ServiceObject> reload() {
     assert(kind != null);
-    if (kind == CodeKind.Dart) {
+    if (isDartCode) {
       // We only reload Dart code.
       return super.reload();
     }
@@ -2698,6 +2751,8 @@ class Code extends ServiceObject {
 
   @reflectable bool get isDartCode => (kind == CodeKind.Dart) ||
                                       (kind == CodeKind.Stub);
+
+  String toString() => 'Code($kind, $name)';
 }
 
 

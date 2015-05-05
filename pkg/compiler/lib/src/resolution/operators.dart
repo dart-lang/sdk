@@ -4,6 +4,8 @@
 
 library dart2js.operators;
 
+import '../elements/elements.dart';
+
 enum UnaryOperatorKind {
   NOT,
   NEGATE,
@@ -43,7 +45,6 @@ class UnaryOperator {
   }
 }
 
-
 enum BinaryOperatorKind {
   EQ,
   NOT_EQ,
@@ -63,6 +64,8 @@ enum BinaryOperatorKind {
   AND,
   OR,
   XOR,
+  LOGICAL_AND,
+  LOGICAL_OR,
 }
 
 class BinaryOperator {
@@ -71,7 +74,10 @@ class BinaryOperator {
 
   const BinaryOperator._(this.kind, this.name);
 
+  /// `true` if this operator can be implemented through an `operator [name]`
+  /// method.
   bool get isUserDefinable => true;
+
   String get selectorName => name;
 
   String toString() => name;
@@ -147,6 +153,14 @@ class BinaryOperator {
   static const BinaryOperator XOR =
       const BinaryOperator._(BinaryOperatorKind.XOR, '^');
 
+  /// The logical && operator.
+  static const BinaryOperator LOGICAL_AND =
+      const _LogicalOperator(BinaryOperatorKind.LOGICAL_AND, '&&');
+
+  /// The binary | operator.
+  static const BinaryOperator LOGICAL_OR =
+      const _LogicalOperator(BinaryOperatorKind.LOGICAL_OR, '||');
+
   static BinaryOperator parse(String value) {
     switch (value) {
       case '==': return EQ;
@@ -167,18 +181,32 @@ class BinaryOperator {
       case '&': return AND;
       case '^': return XOR;
       case '|': return OR;
+      case '&&': return LOGICAL_AND;
+      case '||': return LOGICAL_OR;
       default: return null;
     }
   }
 }
 
-/// The operator !=, which is not user definable operator but instead is a negation
+/// The operator !=, which is not user definable operator but instead is a
+/// negation of a call to user definable operator, namely ==.
 class _NotEqualsOperator extends BinaryOperator {
   const _NotEqualsOperator() : super._(BinaryOperatorKind.NOT_EQ, '!=');
 
   bool get isUserDefinable => false;
 
   String get selectorName => '==';
+}
+
+/// The operators && and || which are not user definable operators but control
+/// structures.
+class _LogicalOperator extends BinaryOperator {
+  const _LogicalOperator(BinaryOperatorKind kind, String name)
+      : super._(kind, name);
+
+  bool get isUserDefinable => false;
+
+  String get selectorName => null;
 }
 
 enum AssignmentOperatorKind {

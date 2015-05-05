@@ -26,7 +26,7 @@ import 'package:compiler/src/scanner/scannerlib.dart' show
 import 'package:compiler/src/elements/visitor.dart' show
     ElementVisitor;
 
-import 'package:compiler/src/dart2jslib.dart' show
+import 'package:compiler/src/compile_time_constants.dart' show
     DartConstantCompiler;
 
 import 'package:compiler/src/universe/universe.dart' show
@@ -198,7 +198,7 @@ class ForgetElementTestCase extends CompilerTestCase {
     });
 
     List<MetadataAnnotation> metadata =
-        (new MetadataCollector()..visit(library)).metadata;
+        (new MetadataCollector()..visit(library, null)).metadata;
     return collector.nodes;
   }
 
@@ -282,16 +282,16 @@ class NodeCollector extends tree.Visitor {
 class MetadataCollector extends ElementVisitor {
   final List<MetadataAnnotation> metadata = <MetadataAnnotation>[];
 
-  void visitElement(Element e) {
+  void visitElement(Element e, _) {
     metadata.addAll(e.metadata.toList());
   }
 
-  void visitScopeContainerElement(ScopeContainerElement e) {
+  void visitScopeContainerElement(ScopeContainerElement e, _) {
     super.visitScopeContainerElement(e);
     e.forEachLocalMember(this.visit);
   }
 
-  void visitFunctionElement(FunctionElement e) {
+  void visitFunctionElement(FunctionElement e, _) {
     super.visitFunctionElement(e);
     if (e.hasFunctionSignature) {
       e.functionSignature.forEachParameter(this.visit);

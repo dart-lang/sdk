@@ -29,7 +29,6 @@ class ObjectPointerVisitor {
   virtual GrowableArray<RawFunction*>* skipped_code_functions() {
     return NULL;
   }
-
   // len argument is the number of pointers to visit starting from 'p'.
   void VisitPointers(RawObject** p, intptr_t len) {
     VisitPointers(p, (p + len - 1));

@@ -60,7 +60,7 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Creates('Null')",
     ],
 
-    # Normally Window is nevernull, but starting from a <template> element in
+    # Normally Window is never null, but starting from a <template> element in
     # JavaScript, this will be null:
     #     template.content.ownerDocument.defaultView
     'Document.window': [
@@ -68,12 +68,17 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('Window|=Object|Null')",
     ],
 
-    'Document.getElementsByTagName': [
+    'Document.getElementsByClassName': [
       "@Creates('NodeList|HtmlCollection')",
       "@Returns('NodeList|HtmlCollection')",
     ],
 
-    'Document.getElementsByClassName': [
+    'Document.getElementsByName': [
+      "@Creates('NodeList|HtmlCollection')",
+      "@Returns('NodeList|HtmlCollection')",
+    ],
+
+    'Document.getElementsByTagName': [
       "@Creates('NodeList|HtmlCollection')",
       "@Returns('NodeList|HtmlCollection')",
     ],
@@ -98,12 +103,17 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('JSExtendableArray')",
     ],
 
-    'Element.getElementsByTagName': [
+    'Element.getElementsByClassName': [
       "@Creates('NodeList|HtmlCollection')",
       "@Returns('NodeList|HtmlCollection')",
     ],
 
-    'Element.getElementsByClassName': [
+    'Element.getElementsByName': [
+      "@Creates('NodeList|HtmlCollection')",
+      "@Returns('NodeList|HtmlCollection')",
+    ],
+
+    'Element.getElementsByTagName': [
       "@Creates('NodeList|HtmlCollection')",
       "@Returns('NodeList|HtmlCollection')",
     ],
@@ -280,12 +290,17 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@annotation_Returns_SerializedScriptValue",
     ],
 
-    'ShadowRoot.getElementsByTagName': [
+    'ShadowRoot.getElementsByClassName': [
       "@Creates('NodeList|HtmlCollection')",
       "@Returns('NodeList|HtmlCollection')",
     ],
 
-    'ShadowRoot.getElementsByClassName': [
+    'ShadowRoot.getElementsByName': [
+      "@Creates('NodeList|HtmlCollection')",
+      "@Returns('NodeList|HtmlCollection')",
+    ],
+
+    'ShadowRoot.getElementsByTagName': [
       "@Creates('NodeList|HtmlCollection')",
       "@Returns('NodeList|HtmlCollection')",
     ],

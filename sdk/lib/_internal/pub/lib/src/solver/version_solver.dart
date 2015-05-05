@@ -259,35 +259,6 @@ class PubspecCache {
 
     return results;
   }
-
-  /// This dumps the set of packages that were looked at by the solver to a
-  /// JSON map whose format matches the map passed to [testResolve] in the
-  /// version solver unit tests.
-  ///
-  /// If a real-world version solve is failing, this can be used to mirror that
-  /// data to build a regression test using mock packages.
-  String _debugDescribePackageGraph() {
-    var packages = {};
-    _pubspecs.forEach((id, pubspec) {
-      var deps = {};
-      packages["${id.name} ${id.version}"] = deps;
-
-      for (var dep in pubspec.dependencies) {
-        deps[dep.name] = dep.constraint.toString();
-      }
-    });
-
-    // Add in the packages that we know of but didn't need their pubspecs.
-    _versions.forEach((ref, versions) {
-      for (var id in versions) {
-        packages.putIfAbsent("${id.name} ${id.version}", () => {});
-      }
-    });
-
-    // TODO(rnystrom): Include dev dependencies and dependency overrides.
-
-    return JSON.encode(packages);
-  }
 }
 
 /// A reference from a depending package to a package that it depends on.

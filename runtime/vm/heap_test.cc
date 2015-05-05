@@ -252,4 +252,15 @@ TEST_CASE(FindObject) {
   }
 }
 
+
+TEST_CASE(IterateReadOnly) {
+  const String& obj = String::Handle(String::New("x", Heap::kOld));
+  Heap* heap = Thread::Current()->isolate()->heap();
+  EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
+  heap->WriteProtect(true);
+  EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
+  heap->WriteProtect(false);
+  EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
+}
+
 }  // namespace dart.

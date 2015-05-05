@@ -1,13 +1,13 @@
 import "dart:async";
 import "package:expect/expect.dart";
 
-class Blah extends StackTrace {
+class Blah implements StackTrace {
   Blah(this._trace);
-  
+
   toString() {
     return "Blah " + _trace.toString();
   }
-  
+
   var _trace;
 }
 

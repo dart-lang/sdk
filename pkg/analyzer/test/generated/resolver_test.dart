@@ -273,8 +273,7 @@ class AnalysisContextFactory {
     ];
     htmlUnit.functions = <FunctionElement>[
       ElementFactory.functionElement3("query", elementElement,
-          <ClassElement>[provider.stringType.element],
-          ClassElementImpl.EMPTY_ARRAY)
+          <ClassElement>[provider.stringType.element], ClassElement.EMPTY_LIST)
     ];
     TopLevelVariableElementImpl document = ElementFactory
         .topLevelVariableElement3(
@@ -294,7 +293,7 @@ class AnalysisContextFactory {
     mathUnit.source = mathSource;
     FunctionElement cosElement = ElementFactory.functionElement3("cos",
         provider.doubleType.element, <ClassElement>[provider.numType.element],
-        ClassElementImpl.EMPTY_ARRAY);
+        ClassElement.EMPTY_LIST);
     TopLevelVariableElement ln10Element = ElementFactory
         .topLevelVariableElement3("LN10", true, false, provider.doubleType);
     TopLevelVariableElement piElement = ElementFactory.topLevelVariableElement3(
@@ -311,10 +310,10 @@ class AnalysisContextFactory {
     randomElement.constructors = <ConstructorElement>[randomConstructor];
     FunctionElement sinElement = ElementFactory.functionElement3("sin",
         provider.doubleType.element, <ClassElement>[provider.numType.element],
-        ClassElementImpl.EMPTY_ARRAY);
+        ClassElement.EMPTY_LIST);
     FunctionElement sqrtElement = ElementFactory.functionElement3("sqrt",
         provider.doubleType.element, <ClassElement>[provider.numType.element],
-        ClassElementImpl.EMPTY_ARRAY);
+        ClassElement.EMPTY_LIST);
     mathUnit.accessors = <PropertyAccessorElement>[
       ln10Element.getter,
       piElement.getter
@@ -914,6 +913,23 @@ var v = const A('foo');''');
     verify([source]);
   }
 
+  void test_fieldTypeMismatch_generic() {
+    Source source = addSource(r'''
+class C<T> {
+  final T x = y;
+  const C();
+}
+const y = 1;
+var v = const C<String>();
+''');
+    resolve(source);
+    assertErrors(source, [
+      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+      HintCode.INVALID_ASSIGNMENT
+    ]);
+    verify([source]);
+  }
+
   void test_fieldTypeMismatch_unresolved() {
     Source source = addSource(r'''
 class A {
@@ -926,6 +942,20 @@ var v = const A('foo');''');
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
       StaticWarningCode.UNDEFINED_CLASS
     ]);
+    verify([source]);
+  }
+
+  void test_fieldTypeOk_generic() {
+    Source source = addSource(r'''
+class C<T> {
+  final T x = y;
+  const C();
+}
+const y = 1;
+var v = const C<int>();
+''');
+    resolve(source);
+    assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
 
@@ -1384,6 +1414,20 @@ class ElementResolverTest extends EngineTestCase {
     ContinueStatement statement = AstFactory.continueStatement();
     _resolveStatement(statement, null, null);
     _listener.assertNoErrors();
+  }
+
+  void test_visitEnumDeclaration() {
+    ClassElementImpl enumElement =
+        ElementFactory.enumElement(_typeProvider, ('E'));
+    EnumDeclaration enumNode = AstFactory.enumDeclaration2('E', []);
+    Annotation annotationNode =
+        AstFactory.annotation(AstFactory.identifier3('a'));
+    annotationNode.element = ElementFactory.classElement2('A');
+    enumNode.metadata.add(annotationNode);
+    enumNode.name.staticElement = enumElement;
+    _resolveNode(enumNode);
+    List<ElementAnnotation> metadata = enumElement.metadata;
+    expect(metadata, hasLength(1));
   }
 
   void test_visitExportDirective_noCombinators() {
@@ -7737,7 +7781,7 @@ class ResolverTestCase extends EngineTestCase {
       AnalysisContext context, String libraryName, [List<String> typeNames]) {
     List<CompilationUnitElement> sourcedCompilationUnits;
     if (typeNames == null) {
-      sourcedCompilationUnits = CompilationUnitElementImpl.EMPTY_ARRAY;
+      sourcedCompilationUnits = CompilationUnitElement.EMPTY_LIST;
     } else {
       int count = typeNames.length;
       sourcedCompilationUnits = new List<CompilationUnitElement>(count);

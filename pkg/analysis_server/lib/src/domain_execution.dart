@@ -96,7 +96,7 @@ class ExecutionDomainHandler implements RequestHandler {
       return new Response.invalidParameter(request, 'id',
           'There is no execution context with an id of $contextId');
     }
-    AnalysisContext context = server.getAnalysisContext(path);
+    AnalysisContext context = server.getContainingContext(path);
     if (context == null) {
       return new Response.invalidExecutionContext(request, contextId);
     }

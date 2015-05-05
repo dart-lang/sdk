@@ -5,6 +5,9 @@
 patch List makeListFixedLength(List growableList)
     native "Internal_makeListFixedLength";
 
+patch List makeFixedListUnmodifiable(List fixedLengthList)
+    native "Internal_makeFixedListUnmodifiable";
+
 class VMLibraryHooks {
   // Example: "dart:isolate _Timer._factory"
   static var timerFactory;
@@ -15,3 +18,7 @@ class VMLibraryHooks {
 patch class CodeUnits {
   static final int cid = ClassID.getID(new CodeUnits(""));
 }
+
+final bool is64Bit = _inquireIs64Bit();
+
+bool _inquireIs64Bit() native "Internal_inquireIs64Bit";

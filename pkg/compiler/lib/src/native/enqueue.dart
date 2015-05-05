@@ -54,6 +54,18 @@ class NativeEnqueuer {
   // TODO(sra): The entry from codegen will not have a resolver.
   void registerJsEmbeddedGlobalCall(Send node, ResolverVisitor resolver) {}
 
+  /**
+   * Handles JS-compiler builtin calls, which can be an instantiation point for
+   * types.
+   *
+   * For example, the following code instantiates and returns a String class
+   *
+   *     JS_BUILTIN('String', 'int2string', 0)
+   *
+   */
+  // TODO(sra): The entry from codegen will not have a resolver.
+  void registerJsBuiltinCall(Send node, ResolverVisitor resolver) {}
+
   /// Emits a summary information using the [log] function.
   void logSummary(log(message)) {}
 
@@ -312,14 +324,14 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       ConstructedConstantValue constructedObject = value;
       if (constructedObject.type.element != annotationClass) continue;
 
-      List<ConstantValue> fields = constructedObject.fields;
+      Iterable<ConstantValue> fields = constructedObject.fields.values;
       // TODO(sra): Better validation of the constant.
-      if (fields.length != 1 || fields[0] is! StringConstantValue) {
+      if (fields.length != 1 || fields.single is! StringConstantValue) {
         PartialMetadataAnnotation partial = annotation;
         compiler.internalError(annotation,
             'Annotations needs one string: ${partial.parseNode(compiler)}');
       }
-      StringConstantValue specStringConstant = fields[0];
+      StringConstantValue specStringConstant = fields.single;
       String specString = specStringConstant.toDartString().slowToString();
       if (name == null) {
         name = specString;
@@ -487,6 +499,14 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   void registerJsEmbeddedGlobalCall(Send node, ResolverVisitor resolver) {
     NativeBehavior behavior =
         NativeBehavior.ofJsEmbeddedGlobalCall(node, compiler, resolver);
+    processNativeBehavior(behavior, node);
+    nativeBehaviors[node] = behavior;
+    flushQueue();
+  }
+
+  void registerJsBuiltinCall(Send node, ResolverVisitor resolver) {
+    NativeBehavior behavior =
+        NativeBehavior.ofJsBuiltinCall(node, compiler, resolver);
     processNativeBehavior(behavior, node);
     nativeBehaviors[node] = behavior;
     flushQueue();

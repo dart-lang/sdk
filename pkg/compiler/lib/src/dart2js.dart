@@ -296,11 +296,13 @@ Future<api.CompilationResult> compile(List<String> argv) {
       diagnosticHandler.showWarnings = false;
       passThrough('--suppress-warnings');
     }),
+    new OptionHandler('--fatal-warnings', passThrough),
     new OptionHandler('--suppress-hints',
                       (_) => diagnosticHandler.showHints = false),
     new OptionHandler(
         '--output-type=dart|--output-type=dart-multi|--output-type=js',
         setOutputType),
+    new OptionHandler('--use-cps-ir', passThrough),
     new OptionHandler('--verbose', setVerbose),
     new OptionHandler('--version', (_) => wantVersion = true),
     new OptionHandler('--library-root=.+', setLibraryRoot),
@@ -562,6 +564,9 @@ Supported options:
   --suppress-warnings
     Do not display any warnings.
 
+  --fatal-warnings
+    Treat warnings as compilation errors.
+
   --suppress-hints
     Do not display any hints.
 
@@ -626,6 +631,9 @@ be removed in a future version:
   --generate-code-with-compile-time-errors
     Generates output even if the program contains compile-time errors. Use the
     exit code to determine if compilation failed.
+
+  --use-cps-ir
+    Experimental.  Use the new CPS based backend for code generation.
 '''.trim());
 }
 

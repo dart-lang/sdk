@@ -137,7 +137,6 @@ class Pubspec {
           fields.nodes['transformers'].span);
     }
 
-    var i = 0;
     _transformers = transformers.nodes.map((phase) {
       var phaseNodes = phase is YamlList ? phase.nodes : [phase];
       return phaseNodes.map((transformerNode) {
@@ -265,10 +264,6 @@ class Pubspec {
     }
 
     yaml.nodes.forEach((key, value) {
-      // Don't allow path separators or other stuff meaningful to the shell.
-      validateName(name, description) {
-      }
-
       if (key.value is! String) {
         _error('"executables" keys must be strings.', key.span);
       }
@@ -556,13 +551,6 @@ class Pubspec {
 
   /// Throws a [PubspecException] with the given message.
   void _error(String message, SourceSpan span) {
-    var name;
-    try {
-      name = this.name;
-    } on PubspecException catch (_) {
-      // [name] is null.
-    }
-
     throw new PubspecException(message, span);
   }
 }

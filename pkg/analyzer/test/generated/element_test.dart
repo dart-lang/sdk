@@ -37,6 +37,7 @@ main() {
   runReflectiveTests(HtmlElementImplTest);
   runReflectiveTests(LibraryElementImplTest);
   runReflectiveTests(MultiplyDefinedElementImplTest);
+  runReflectiveTests(ParameterElementImplTest);
 }
 
 @reflectiveTest
@@ -915,6 +916,94 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
 
 @reflectiveTest
 class CompilationUnitElementImplTest extends EngineTestCase {
+  void test_getElementAt() {
+    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+    AnalysisContext context = contextHelper.context;
+    String code = r'''
+class A {
+  int field;
+}
+main() {
+  int localVar = 42;
+}
+''';
+    Source libSource = contextHelper.addSource("/my_lib.dart", code);
+    // prepare library/unit elements
+    LibraryElement libraryElement = context.computeLibraryElement(libSource);
+    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
+    // A
+    ClassElement elementA;
+    {
+      int offset = code.indexOf('A {');
+      elementA = unitElement.getElementAt(offset);
+      expect(elementA, isNotNull);
+      expect(elementA.enclosingElement, unitElement);
+      expect(elementA.name, 'A');
+    }
+    // A.field
+    {
+      int offset = code.indexOf('field;');
+      FieldElement element = unitElement.getElementAt(offset);
+      expect(element, isNotNull);
+      expect(element.enclosingElement, elementA);
+      expect(element.name, 'field');
+    }
+    // main
+    FunctionElement mainElement;
+    {
+      int offset = code.indexOf('main() {');
+      mainElement = unitElement.getElementAt(offset);
+      expect(mainElement, isNotNull);
+      expect(mainElement.enclosingElement, unitElement);
+      expect(mainElement.name, 'main');
+    }
+    // main.localVar
+    {
+      int offset = code.indexOf('localVar');
+      LocalVariableElement element = unitElement.getElementAt(offset);
+      expect(element, isNotNull);
+      expect(element.enclosingElement, mainElement);
+      expect(element.name, 'localVar');
+    }
+    // null
+    expect(unitElement.getElementAt(1000), isNull);
+  }
+
+  void test_getElementAt_multipleUnitsInLibrary() {
+    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+    AnalysisContext context = contextHelper.context;
+    Source libSource = contextHelper.addSource("/my_lib.dart", r'''
+library my_lib;
+part 'unit_a.dart';
+part 'unit_b.dart';
+''');
+    Source unitSourceA =
+        contextHelper.addSource("/unit_a.dart", 'part of my_lib;class A {}');
+    Source unitSourceB =
+        contextHelper.addSource("/unit_b.dart", 'part of my_lib;class B {}');
+    int offset = 'part of my_lib;class A {}'.indexOf('A {}');
+    // prepare library/unit elements
+    context.computeLibraryElement(libSource);
+    CompilationUnitElement unitElementA =
+        context.getCompilationUnitElement(unitSourceA, libSource);
+    CompilationUnitElement unitElementB =
+        context.getCompilationUnitElement(unitSourceB, libSource);
+    // A
+    {
+      ClassElement element = unitElementA.getElementAt(offset);
+      expect(element, isNotNull);
+      expect(element.enclosingElement, unitElementA);
+      expect(element.name, 'A');
+    }
+    // B
+    {
+      ClassElement element = unitElementB.getElementAt(offset);
+      expect(element, isNotNull);
+      expect(element.enclosingElement, unitElementB);
+      expect(element.name, 'B');
+    }
+  }
+
   void test_getEnum_declared() {
     TestTypeProvider typeProvider = new TestTypeProvider();
     CompilationUnitElementImpl unit =
@@ -2634,8 +2723,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
 
   void test_isAssignableTo_void() {
     InterfaceTypeImpl intType = _typeProvider.intType;
-    expect(
-        VoidTypeImpl.instance.isAssignableTo(intType), isFalse);
+    expect(VoidTypeImpl.instance.isAssignableTo(intType), isFalse);
   }
 
   void test_isDirectSupertypeOf_extends() {
@@ -3620,6 +3708,90 @@ class MultiplyDefinedElementImplTest extends EngineTestCase {
     Element element = ElementFactory.localVariableElement2("xx");
     expect(MultiplyDefinedElementImpl.fromElements(null, element, element),
         same(element));
+  }
+}
+
+@reflectiveTest
+class ParameterElementImplTest extends EngineTestCase {
+  void test_node_DefaultFormalParameter() {
+    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+    AnalysisContext context = contextHelper.context;
+    Source source = contextHelper.addSource("/test.dart", r'''
+main([int p = 42]) {
+}''');
+    // prepare CompilationUnitElement
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
+    // p
+    {
+      ParameterElement element = unitElement.functions[0].parameters[0];
+      DefaultFormalParameter node = element.node;
+      expect(node, isNotNull);
+      expect(node.identifier.name, 'p');
+      expect(node.element, same(element));
+    }
+  }
+
+  void test_node_FieldFormalParameter() {
+    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+    AnalysisContext context = contextHelper.context;
+    Source source = contextHelper.addSource("/test.dart", r'''
+class A {
+  int p;
+  A(this.p) {
+  }
+}''');
+    // prepare CompilationUnitElement
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
+    // p
+    {
+      ClassElement classA = unitElement.types[0];
+      ConstructorElement constructorA = classA.constructors[0];
+      FieldFormalParameterElement element = constructorA.parameters[0];
+      FieldFormalParameter node = element.node;
+      expect(node, isNotNull);
+      expect(node.identifier.name, 'p');
+      expect(node.element, same(element));
+    }
+  }
+
+  void test_node_FunctionTypedFormalParameter() {
+    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+    AnalysisContext context = contextHelper.context;
+    Source source = contextHelper.addSource("/test.dart", r'''
+main(p(int a, int b)) {
+}''');
+    // prepare CompilationUnitElement
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
+    // p
+    {
+      ParameterElement element = unitElement.functions[0].parameters[0];
+      FunctionTypedFormalParameter node = element.node;
+      expect(node, isNotNull);
+      expect(node.identifier.name, 'p');
+      expect(node.element, same(element));
+    }
+  }
+
+  void test_node_SimpleFormalParameter() {
+    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+    AnalysisContext context = contextHelper.context;
+    Source source = contextHelper.addSource("/test.dart", r'''
+main(int p) {
+}''');
+    // prepare CompilationUnitElement
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
+    // p
+    {
+      ParameterElement element = unitElement.functions[0].parameters[0];
+      SimpleFormalParameter node = element.node;
+      expect(node, isNotNull);
+      expect(node.identifier.name, 'p');
+      expect(node.element, same(element));
+    }
   }
 }
 

@@ -175,7 +175,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_PARAMETER_INVOKE,
                     element: 'parameter(m#o)',
                     arguments: '(null,42)',
-                    selector: 'Selector(call, call, arity=2)')),
+                    selector: 'CallStructure(arity=2)')),
   ],
   'Local variables': const [
     // Local variables
@@ -190,7 +190,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_LOCAL_VARIABLE_INVOKE,
                     element: 'variable(m#o)',
                     arguments: '(null,42)',
-                    selector: 'Selector(call, call, arity=2)')),
+                    selector: 'CallStructure(arity=2)')),
   ],
   'Local functions': const [
     // Local functions
@@ -201,7 +201,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_LOCAL_FUNCTION_INVOKE,
                     element: 'function(m#o)',
                     arguments: '(null,42)',
-                    selector: 'Selector(call, call, arity=2)')),
+                    selector: 'CallStructure(arity=2)')),
   ],
   'Static fields': const [
     // Static fields
@@ -505,6 +505,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_STATIC_FUNCTION_INVOKE,
                     element: 'function(C#o)',
                     arguments: '(null,42)')),
+    const Test(
+        '''
+        class C { static o(a, b) {} }
+        m() => C.o(null);
+        ''',
+        const Visit(VisitKind.VISIT_STATIC_FUNCTION_INCOMPATIBLE_INVOKE,
+                    element: 'function(C#o)',
+                    arguments: '(null)')),
   ],
   'Top level fields': const [
     // Top level fields
@@ -554,6 +562,12 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_INVOKE,
                     element: 'field(o)',
                     arguments: '(null,42)')),
+    const Test(
+        '''
+        m() => o;
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_GET,
+                    name: 'o')),
   ],
   'Top level properties': const [
     // Top level properties
@@ -623,6 +637,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_INVOKE,
                     element: 'function(o)',
                     arguments: '(null,42)')),
+    const Test(
+        '''
+        o(a, b) {}
+        m() => o(null);
+        ''',
+        const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_INCOMPATIBLE_INVOKE,
+                    element: 'function(o)',
+                    arguments: '(null)')),
     const Test.prefix(
         '''
         o(a, b) {}
@@ -630,6 +652,13 @@ const Map<String, List<Test>> SEND_TESTS = const {
         'm() { p.o(null, 42); }',
         const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_INVOKE,
                     element: 'function(o)',
+                    arguments: '(null,42)')),
+    const Test(
+        '''
+        m() => o(null, 42);
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
+                    name: 'o',
                     arguments: '(null,42)')),
   ],
   'Dynamic properties': const [
@@ -814,8 +843,17 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_SUPER_FIELD_INVOKE,
-                    element: 'field(B#o)',
-                    arguments: '(null,42)')),
+                element: 'field(B#o)',
+                arguments: '(null,42)')),
+    const Test.clazz(
+            '''
+        class B {
+        }
+        class C extends B {
+          m() => super.o;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GET)),
   ],
   'Super properties': const [
     // Super properties
@@ -879,6 +917,28 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_SUPER_METHOD_INVOKE,
                     element: 'function(B#o)',
+                    arguments: '(null,42)')),
+    const Test.clazz(
+        '''
+        class B {
+          o(a, b) {}
+        }
+        class C extends B {
+          m() { super.o(null); }
+        }
+        ''',
+        const Visit(VisitKind.VISIT_SUPER_METHOD_INCOMPATIBLE_INVOKE,
+                    element: 'function(B#o)',
+                    arguments: '(null)')),
+    const Test.clazz(
+            '''
+            class B {
+            }
+            class C extends B {
+              m() => super.o(null, 42);
+            }
+            ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INVOKE,
                     arguments: '(null,42)')),
   ],
   'Expression invoke': const [
@@ -1119,6 +1179,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
                     element: 'function(B#+)',
                     operator: '+',
                     right: '42')),
+    const Test.clazz(
+        '''
+        class B {}
+        class C extends B {
+          m() => super + 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_BINARY,
+                    operator: '+',
+                    right: '42')),
   ],
   'Index': const [
     // Index
@@ -1151,6 +1221,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_SUPER_INDEX,
                     element: 'function(B#[])',
+                    index: '42')),
+    const Test.clazz(
+        '''
+        class B {
+        }
+        class C extends B {
+          m() => super[42];
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INDEX,
                     index: '42')),
     const Test.clazz(
         '''
@@ -1251,6 +1331,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_SUPER_UNARY,
                     element: 'function(B#unary-)', operator: '-')),
+    const Test.clazz(
+        '''
+        class B {
+        }
+        class C extends B {
+          m() => -super;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_UNARY,
+                    operator: '-')),
     const Test.clazz(
         '''
         class B {
@@ -2075,6 +2165,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_SUPER_FIELD_SETTER_POSTFIX,
             getter: 'field(A#a)', setter: 'setter(B#a)',
             operator: '++')),
+
+    const Test(
+        '''
+        set topLevel(var value) { }
+        m() => topLevel++;
+        ''',
+        const Visit(VisitKind.ERROR_UNRESOLVED_POSTFIX,
+            operator: '++')),
   ],
   'Constructor invocations': const [
     const Test(
@@ -2095,7 +2193,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
             element: 'generative_constructor(Class#)',
             arguments: '()',
             type: 'Class',
-            selector: 'Selector(call, , arity=0)')),
+            selector: 'CallStructure(arity=0)')),
     const Test(
         '''
         class Class {
@@ -2107,7 +2205,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
             element: 'generative_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class',
-            selector: 'Selector(call, , arity=2)')),
+            selector: 'CallStructure(arity=2)')),
     const Test(
         '''
         class Class {
@@ -2119,7 +2217,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
             element: 'generative_constructor(Class#named)',
             arguments: '(true,42)',
             type: 'Class',
-            selector: 'Selector(call, named, arity=2)')),
+            selector: 'CallStructure(arity=2)')),
     const Test(
         '''
         class Class {
@@ -2132,7 +2230,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
             element: 'generative_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class',
-            selector: 'Selector(call, , arity=2)')),
+            selector: 'CallStructure(arity=2)')),
     const Test(
         '''
         class Class {
@@ -2145,7 +2243,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
             element: 'function(Class#)',
             arguments: '(true,42)',
             type: 'Class',
-            selector: 'Selector(call, , arity=2)')),
+            selector: 'CallStructure(arity=2)')),
     const Test(
         '''
         class Class<T> {
@@ -2161,7 +2259,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
             type: 'Class<double>',
             target: 'generative_constructor(Class#b)',
             targetType: 'Class<Class<int>>',
-            selector: 'Selector(call, , arity=2)')),
+            selector: 'CallStructure(arity=2)')),
     const Test(
         '''
         class Class {
@@ -2191,7 +2289,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
             element: 'generative_constructor(AbstractClass#)',
             type: 'AbstractClass',
             arguments: '()',
-            selector: 'Selector(call, , arity=0)')),
+            selector: 'CallStructure(arity=0)')),
     const Test(
         '''
         class Class {
@@ -2251,6 +2349,824 @@ const Map<String, List<Test>> SEND_TESTS = const {
   ],
 };
 
+const Map<String, List<Test>> DECL_TESTS = const {
+  'Function declarations': const [
+    const Test(
+        '''
+        m(a, b) {}
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
+              element: 'function(m)',
+              parameters: '(a,b)',
+              body: '{}'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(m#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(m#b)',
+              index: 1),
+        ]),
+    const Test(
+        '''
+        m(a, [b]) {}
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
+              element: 'function(m)',
+              parameters: '(a,[b])',
+              body: '{}'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(m#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_OPTIONAL_PARAMETER_DECL,
+              element: 'parameter(m#b)',
+              index: 1),
+        ]),
+    const Test(
+        '''
+        m(a, [b = null]) {}
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
+              element: 'function(m)',
+              parameters: '(a,[b=null])',
+              body: '{}'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(m#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_OPTIONAL_PARAMETER_DECL,
+              element: 'parameter(m#b)',
+              constant: 'null',
+              index: 1),
+        ]),
+    const Test(
+        '''
+        m(a, [b = 42]) {}
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
+              element: 'function(m)',
+              parameters: '(a,[b=42])',
+              body: '{}'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(m#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_OPTIONAL_PARAMETER_DECL,
+              element: 'parameter(m#b)',
+              constant: 42,
+              index: 1),
+        ]),
+    const Test(
+        '''
+        m(a, {b}) {}
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
+              element: 'function(m)',
+              parameters: '(a,{b})',
+              body: '{}'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(m#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_NAMED_PARAMETER_DECL,
+              element: 'parameter(m#b)'),
+        ]),
+    const Test(
+        '''
+        m(a, {b: null}) {}
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
+              element: 'function(m)',
+              parameters: '(a,{b: null})',
+              body: '{}'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(m#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_NAMED_PARAMETER_DECL,
+              element: 'parameter(m#b)',
+              constant: 'null'),
+        ]),
+    const Test(
+        '''
+        m(a, {b:42}) {}
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
+              element: 'function(m)',
+              parameters: '(a,{b: 42})',
+              body: '{}'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(m#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_NAMED_PARAMETER_DECL,
+              element: 'parameter(m#b)',
+              constant: 42),
+        ]),
+    const Test(
+        '''
+        get m => null;
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_DECL,
+              element: 'getter(m)',
+              body: '=>null;'),
+        ]),
+    const Test(
+        '''
+        set m(a) {}
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_DECL,
+              element: 'setter(m)',
+              parameters: '(a)',
+              body: '{}'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(m#a)',
+              index: 0),
+        ]),
+    const Test.clazz(
+        '''
+        class C {
+          static m(a, b) {}
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_STATIC_FUNCTION_DECL,
+              element: 'function(C#m)',
+              parameters: '(a,b)',
+              body: '{}'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(m#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(m#b)',
+              index: 1),
+        ]),
+    const Test.clazz(
+        '''
+        class C {
+          static get m => null;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_STATIC_GETTER_DECL,
+              element: 'getter(C#m)',
+              body: '=>null;'),
+        ]),
+    const Test.clazz(
+        '''
+        class C {
+          static set m(a) {}
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_STATIC_SETTER_DECL,
+              element: 'setter(C#m)',
+              parameters: '(a)',
+              body: '{}'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(m#a)',
+              index: 0),
+        ]),
+    const Test.clazz(
+        '''
+        class C {
+          m(a, b) {}
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_INSTANCE_METHOD_DECL,
+              element: 'function(C#m)',
+              parameters: '(a,b)',
+              body: '{}'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(m#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(m#b)',
+              index: 1),
+        ]),
+    const Test.clazz(
+        '''
+        class C {
+          get m => null;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_INSTANCE_GETTER_DECL,
+              element: 'getter(C#m)',
+              body: '=>null;'),
+        ]),
+    const Test.clazz(
+        '''
+        class C {
+          set m(a) {}
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_INSTANCE_SETTER_DECL,
+              element: 'setter(C#m)',
+              parameters: '(a)',
+              body: '{}'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(m#a)',
+              index: 0),
+        ]),
+    const Test.clazz(
+        '''
+        abstract class C {
+          m(a, b);
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_ABSTRACT_METHOD_DECL,
+              element: 'function(C#m)',
+              parameters: '(a,b)'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(m#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(m#b)',
+              index: 1),
+        ]),
+    const Test.clazz(
+        '''
+        abstract class C {
+          get m;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_ABSTRACT_GETTER_DECL,
+              element: 'getter(C#m)'),
+        ]),
+    const Test.clazz(
+        '''
+        abstract class C {
+          set m(a);
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_ABSTRACT_SETTER_DECL,
+              element: 'setter(C#m)',
+              parameters: '(a)'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(m#a)',
+              index: 0),
+        ]),
+    const Test(
+        '''
+        m(a, b) {}
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
+              element: 'function(m)',
+              parameters: '(a,b)',
+              body: '{}'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(m#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(m#b)',
+              index: 1),
+        ]),
+    const Test(
+        '''
+        m() {
+          local(a, b) {}
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
+               element: 'function(m)',
+               parameters: '()',
+               body: '{local(a,b){}}'),
+          const Visit(VisitKind.VISIT_LOCAL_FUNCTION_DECL,
+               element: 'function(m#local)',
+               parameters: '(a,b)',
+               body: '{}'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(local#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(local#b)',
+              index: 1),
+        ]),
+    const Test(
+        '''
+        m() => (a, b) {};
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
+               element: 'function(m)',
+               parameters: '()',
+               body: '=>(a,b){};'),
+          const Visit(VisitKind.VISIT_CLOSURE_DECL,
+               element: 'function(m#)',
+               parameters: '(a,b)',
+               body: '{}'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#b)',
+              index: 1),
+        ]),
+  ],
+  'Constructor declarations': const [
+    const Test.clazz(
+        '''
+        class C {
+          C(a, b);
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_GENERATIVE_CONSTRUCTOR_DECL,
+              element: 'generative_constructor(C#)',
+              parameters: '(a,b)',
+              body: ';'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#b)',
+              index: 1),
+        ],
+        method: ''),
+    const Test.clazz(
+        '''
+        class C {
+          var b;
+          C(a, this.b);
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_GENERATIVE_CONSTRUCTOR_DECL,
+              element: 'generative_constructor(C#)',
+              parameters: '(a,this.b)',
+              body: ';'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_REQUIRED_INITIALIZING_FORMAL_DECL,
+              element: 'initializing_formal(#b)',
+              index: 1),
+        ],
+        method: ''),
+    const Test.clazz(
+        '''
+        class C {
+          var b;
+          C(a, [this.b = 42]);
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_GENERATIVE_CONSTRUCTOR_DECL,
+              element: 'generative_constructor(C#)',
+              parameters: '(a,[this.b=42])',
+              body: ';'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_OPTIONAL_INITIALIZING_FORMAL_DECL,
+              element: 'initializing_formal(#b)',
+              constant: 42,
+              index: 1),
+        ],
+        method: ''),
+    const Test.clazz(
+        '''
+        class C {
+          var b;
+          C(a, {this.b: 42});
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_GENERATIVE_CONSTRUCTOR_DECL,
+              element: 'generative_constructor(C#)',
+              parameters: '(a,{this.b: 42})',
+              body: ';'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_NAMED_INITIALIZING_FORMAL_DECL,
+              element: 'initializing_formal(#b)',
+              constant: 42),
+        ],
+        method: ''),
+    const Test.clazz(
+        '''
+        class C {
+          C(a, b) : super();
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_GENERATIVE_CONSTRUCTOR_DECL,
+              element: 'generative_constructor(C#)',
+              parameters: '(a,b)',
+              body: ';'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#b)',
+              index: 1),
+          const Visit(VisitKind.VISIT_SUPER_CONSTRUCTOR_INVOKE,
+              element: 'generative_constructor(Object#)',
+              type: 'Object',
+              arguments: '()',
+              selector: 'Selector(call, super, arity=0)'),
+        ],
+        method: ''),
+    const Test.clazz(
+        '''
+        class C {
+          var field;
+          C(a, b) : this.field = a;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_GENERATIVE_CONSTRUCTOR_DECL,
+              element: 'generative_constructor(C#)',
+              parameters: '(a,b)',
+              body: ';'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#b)',
+              index: 1),
+          const Visit(VisitKind.VISIT_FIELD_INITIALIZER,
+              element: 'field(C#field)',
+              rhs: 'a'),
+        ],
+        method: ''),
+    const Test.clazz(
+        '''
+        class C {
+          C(a, b) : this._(a, b);
+          C._(a, b);
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_REDIRECTING_GENERATIVE_CONSTRUCTOR_DECL,
+              element: 'generative_constructor(C#)',
+              parameters: '(a,b)',
+              initializers: ':this._(a,b)'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#b)',
+              index: 1),
+          const Visit(VisitKind.VISIT_THIS_CONSTRUCTOR_INVOKE,
+              element: 'generative_constructor(C#_)',
+              arguments: '(a,b)',
+              selector: 'Selector(call, _, arity=2)'),
+        ],
+        method: ''),
+    const Test.clazz(
+        '''
+        class C {
+          factory C(a, b) => null;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_FACTORY_CONSTRUCTOR_DECL,
+              element: 'function(C#)',
+              parameters: '(a,b)',
+              body: '=>null;'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#b)',
+              index: 1),
+        ],
+        method: ''),
+    const Test.clazz(
+        '''
+        class C {
+          factory C(a, b) = C._;
+          C._(a, b);
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_DECL,
+              element: 'function(C#)',
+              parameters: '(a,b)',
+              target: 'generative_constructor(C#_)',
+              type: 'C'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#b)',
+              index: 1),
+        ],
+        method: ''),
+    const Test.clazz(
+        '''
+        class C {
+          factory C(a, b) = D;
+        }
+        class D<T> {
+          D(a, b);
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_DECL,
+              element: 'function(C#)',
+              parameters: '(a,b)',
+              target: 'generative_constructor(D#)',
+              type: 'D'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#b)',
+              index: 1),
+        ],
+        method: ''),
+    const Test.clazz(
+        '''
+        class C {
+          factory C(a, b) = D<int>;
+        }
+        class D<T> {
+          D(a, b);
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_DECL,
+              element: 'function(C#)',
+              parameters: '(a,b)',
+              target: 'generative_constructor(D#)',
+              type: 'D<int>'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#b)',
+              index: 1),
+        ],
+        method: ''),
+    const Test.clazz(
+        '''
+        class C {
+          factory C(a, b) = D<int>;
+        }
+        class D<T> {
+          factory D(a, b) = E<D<T>>;
+        }
+        class E<S> {
+          E(a, b);
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_DECL,
+              element: 'function(C#)',
+              parameters: '(a,b)',
+              target: 'function(D#)',
+              type: 'D<int>'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#b)',
+              index: 1),
+        ],
+        method: ''),
+  ],
+  "Field declarations": const [
+    const Test.clazz(
+        '''
+        class C {
+          var m;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_INSTANCE_FIELD_DECL,
+              element: 'field(C#m)'),
+        ]),
+    const Test.clazz(
+        '''
+        class C {
+          var m, n;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_INSTANCE_FIELD_DECL,
+              element: 'field(C#m)'),
+        ]),
+    const Test.clazz(
+        '''
+        class C {
+          var m = 42;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_INSTANCE_FIELD_DECL,
+              element: 'field(C#m)',
+              rhs: 42),
+        ]),
+    const Test(
+        '''
+        m() {
+          var local;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
+              element: 'function(m)',
+              parameters: '()',
+              body: '{var local;}'),
+          const Visit(VisitKind.VISIT_LOCAL_VARIABLE_DECL,
+              element: 'variable(m#local)'),
+        ]),
+    const Test(
+        '''
+        m() {
+          var local = 42;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
+              element: 'function(m)',
+              parameters: '()',
+              body: '{var local=42;}'),
+          const Visit(VisitKind.VISIT_LOCAL_VARIABLE_DECL,
+              element: 'variable(m#local)',
+              rhs: 42),
+        ]),
+    const Test(
+        '''
+        m() {
+          const local = 42;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
+              element: 'function(m)',
+              parameters: '()',
+              body: '{const local=42;}'),
+          const Visit(VisitKind.VISIT_LOCAL_CONSTANT_DECL,
+              element: 'variable(m#local)',
+              constant: 42),
+        ]),
+    const Test(
+        '''
+        m() {
+          var local1, local2;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
+              element: 'function(m)',
+              parameters: '()',
+              body: '{var local1,local2;}'),
+          const Visit(VisitKind.VISIT_LOCAL_VARIABLE_DECL,
+              element: 'variable(m#local1)'),
+          const Visit(VisitKind.VISIT_LOCAL_VARIABLE_DECL,
+              element: 'variable(m#local2)'),
+        ]),
+    const Test(
+        '''
+        m() {
+          var local1 = 42, local2 = true;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
+              element: 'function(m)',
+              parameters: '()',
+              body: '{var local1=42,local2=true;}'),
+          const Visit(VisitKind.VISIT_LOCAL_VARIABLE_DECL,
+              element: 'variable(m#local1)',
+              rhs: 42),
+          const Visit(VisitKind.VISIT_LOCAL_VARIABLE_DECL,
+              element: 'variable(m#local2)',
+              rhs: true),
+        ]),
+    const Test(
+        '''
+        m() {
+          const local1 = 42, local2 = true;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
+              element: 'function(m)',
+              parameters: '()',
+              body: '{const local1=42,local2=true;}'),
+          const Visit(VisitKind.VISIT_LOCAL_CONSTANT_DECL,
+              element: 'variable(m#local1)',
+              constant: 42),
+          const Visit(VisitKind.VISIT_LOCAL_CONSTANT_DECL,
+              element: 'variable(m#local2)',
+              constant: true),
+        ]),
+    const Test.clazz(
+        '''
+        class C {
+          static var m;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
+                element: 'field(C#m)'),
+        ]),
+    const Test.clazz(
+        '''
+        class C {
+          static var m, n;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
+                element: 'field(C#m)'),
+        ]),
+    const Test.clazz(
+        '''
+        class C {
+          static var k, l, m, n;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
+                element: 'field(C#m)'),
+        ]),
+    const Test.clazz(
+        '''
+        class C {
+          static var m = 42;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
+                element: 'field(C#m)',
+                rhs: 42),
+        ]),
+    const Test.clazz(
+        '''
+        class C {
+          static var m = 42, n = true;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
+                element: 'field(C#m)',
+                rhs: 42),
+        ]),
+    const Test.clazz(
+        '''
+        class C {
+          static const m = 42;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_STATIC_CONSTANT_DECL,
+                element: 'field(C#m)',
+                constant: 42),
+        ]),
+    const Test(
+        '''
+        var m;
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_DECL,
+                element: 'field(m)'),
+        ]),
+    const Test(
+        '''
+        var m, n;
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_DECL,
+                element: 'field(m)'),
+        ]),
+    const Test(
+        '''
+        var m = 42;
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_DECL,
+                element: 'field(m)',
+                rhs: 42),
+        ]),
+    const Test(
+        '''
+        const m = 42;
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_TOP_LEVEL_CONSTANT_DECL,
+                element: 'field(m)',
+                constant: 42),
+        ]),
+  ],
+};
+
 main(List<String> arguments) {
   asyncTest(() => Future.forEach([
     () {
@@ -2258,6 +3174,12 @@ main(List<String> arguments) {
           arguments,
           SEND_TESTS,
           (elements) => new SemanticSendTestVisitor(elements));
+    },
+    () {
+      return test(
+          arguments,
+          DECL_TESTS,
+          (elements) => new SemanticDeclarationTestVisitor(elements));
     },
   ], (f) => f()));
 }
@@ -2301,7 +3223,7 @@ Future test(List<String> arguments,
       if (expectedVisits is! List) {
         expectedVisits = [expectedVisits];
       }
-      AstElement element;
+      Element element;
       String cls = test.cls;
       String method = test.method;
       if (cls == null) {
@@ -2313,26 +3235,38 @@ Future test(List<String> arguments,
                          "${library.compilationUnit.script.text}");
         element = classElement.localLookup(method);
       }
-      Expect.isNotNull(element, "Element '$method' not found in:\n"
-                                "${library.compilationUnit.script.text}");
-      ResolvedAst resolvedAst = element.resolvedAst;
-      SemanticTestVisitor visitor = createVisitor(resolvedAst.elements);
-      try {
-        compiler.withCurrentElement(resolvedAst.element, () {
-          //print(resolvedAst.node.toDebugString());
-          resolvedAst.node.accept(visitor);
-        });
-      } catch (e, s) {
-        Expect.fail("$e:\n$s\nIn test:\n"
-                    "${library.compilationUnit.script.text}");
+
+      void testAstElement(AstElement astElement) {
+        Expect.isNotNull(astElement, "Element '$method' not found in:\n"
+                                     "${library.compilationUnit.script.text}");
+        ResolvedAst resolvedAst = astElement.resolvedAst;
+        SemanticTestVisitor visitor = createVisitor(resolvedAst.elements);
+        try {
+          compiler.withCurrentElement(resolvedAst.element, () {
+            //print(resolvedAst.node.toDebugString());
+            resolvedAst.node.accept(visitor);
+          });
+        } catch (e, s) {
+          Expect.fail("$e:\n$s\nIn test:\n"
+                      "${library.compilationUnit.script.text}");
+        }
+        Expect.listEquals(expectedVisits, visitor.visits,
+            "In test:\n"
+            "${library.compilationUnit.script.text}");
       }
-      Expect.listEquals(expectedVisits, visitor.visits,
-          "In test:\n"
-          "${library.compilationUnit.script.text}");
+      if (element.isAbstractField) {
+        AbstractFieldElement abstractFieldElement = element;
+        if (abstractFieldElement.getter != null) {
+          testAstElement(abstractFieldElement.getter);
+        } else if (abstractFieldElement.setter != null) {
+          testAstElement(abstractFieldElement.setter);
+        }
+      } else {
+        testAstElement(element);
+      }
     });
   });
 }
-
 
 abstract class SemanticTestVisitor extends TraversalVisitor {
   List<Visit> visits = <Visit>[];
@@ -2417,7 +3351,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_INVOKE,
         constant: constant.getText(), arguments: arguments));
@@ -2525,7 +3459,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_INVOKE,
         constant: constant.getText(), arguments: arguments));
@@ -2613,10 +3547,10 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       LocalFunctionElement function,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_LOCAL_FUNCTION_INVOKE,
-        element: function, arguments: arguments, selector: selector));
+        element: function, arguments: arguments, selector: callStructure));
     apply(arguments, arg);
   }
 
@@ -2634,10 +3568,10 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       LocalVariableElement variable,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_LOCAL_VARIABLE_INVOKE,
-        element: variable, arguments: arguments, selector: selector));
+        element: variable, arguments: arguments, selector: callStructure));
     apply(arguments, arg);
   }
 
@@ -2665,10 +3599,10 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       ParameterElement parameter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_PARAMETER_INVOKE,
-        element: parameter, arguments: arguments, selector: selector));
+        element: parameter, arguments: arguments, selector: callStructure));
     apply(arguments, arg);
   }
 
@@ -2696,7 +3630,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       FieldElement field,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_STATIC_FIELD_INVOKE,
         element: field, arguments: arguments));
@@ -2728,9 +3662,21 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       MethodElement function,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_STATIC_FUNCTION_INVOKE,
+        element: function, arguments: arguments));
+    apply(arguments, arg);
+  }
+
+  @override
+  visitStaticFunctionIncompatibleInvoke(
+      Send node,
+      MethodElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_STATIC_FUNCTION_INCOMPATIBLE_INVOKE,
         element: function, arguments: arguments));
     apply(arguments, arg);
   }
@@ -2749,7 +3695,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       FunctionElement getter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_STATIC_GETTER_INVOKE,
         element: getter, arguments: arguments));
@@ -2775,9 +3721,22 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Node argument,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_BINARY,
-            element: function, operator: operator, right: argument));
+        element: function, operator: operator, right: argument));
     apply(argument, arg);
   }
+
+  @override
+  visitUnresolvedSuperBinary(
+      Send node,
+      Element element,
+      BinaryOperator operator,
+      Node argument,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_BINARY,
+        operator: operator, right: argument));
+    apply(argument, arg);
+  }
+
 
   @override
   visitSuperIndex(
@@ -2787,6 +3746,17 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_INDEX,
             element: function, index: index));
+    apply(index, arg);
+  }
+
+  @override
+  visitUnresolvedSuperIndex(
+      Send node,
+      Element element,
+      Node index,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INDEX,
+        index: index));
     apply(index, arg);
   }
 
@@ -2810,7 +3780,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   visitThisInvoke(
       Send node,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_THIS_INVOKE, arguments: arguments));
     apply(arguments, arg);
@@ -2860,7 +3830,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       FieldElement field,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_INVOKE,
         element: field, arguments: arguments));
@@ -2892,9 +3862,21 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       MethodElement function,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_INVOKE,
+        element: function, arguments: arguments));
+    apply(arguments, arg);
+  }
+
+  @override
+  visitTopLevelFunctionIncompatibleInvoke(
+      Send node,
+      MethodElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_INCOMPATIBLE_INVOKE,
         element: function, arguments: arguments));
     apply(arguments, arg);
   }
@@ -2913,7 +3895,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       FunctionElement getter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_INVOKE,
         element: getter, arguments: arguments));
@@ -2945,7 +3927,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       TypeVariableElement element,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_INVOKE,
         element: element, arguments: arguments));
@@ -2977,7 +3959,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_INVOKE,
         constant: constant.getText(), arguments: arguments));
@@ -3024,14 +4006,34 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
+  visitUnresolvedSuperGet(
+      Send node,
+      Element element,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GET));
+  }
+
+  @override
   visitSuperFieldInvoke(
       Send node,
       FieldElement field,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_FIELD_INVOKE,
         element: field, arguments: arguments));
+    apply(arguments, arg);
+  }
+
+  @override
+  visitUnresolvedSuperInvoke(
+      Send node,
+      Element element,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INVOKE,
+        arguments: arguments));
     apply(arguments, arg);
   }
 
@@ -3059,9 +4061,21 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       MethodElement method,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_METHOD_INVOKE,
+        element: method, arguments: arguments));
+    apply(arguments, arg);
+  }
+
+  @override
+  visitSuperMethodIncompatibleInvoke(
+      Send node,
+      MethodElement method,
+      NodeList arguments,
+      CallStructure callStructure,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_SUPER_METHOD_INCOMPATIBLE_INVOKE,
         element: method, arguments: arguments));
     apply(arguments, arg);
   }
@@ -3079,7 +4093,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       FunctionElement getter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_GETTER_INVOKE,
         element: getter, arguments: arguments));
@@ -3105,6 +4119,16 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_UNARY,
         element: function, operator: operator));
+  }
+
+  @override
+  visitUnresolvedSuperUnary(
+      Send node,
+      UnaryOperator operator,
+      Element element,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_UNARY,
+        operator: operator));
   }
 
   @override
@@ -3241,7 +4265,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       FunctionElement setter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     // TODO: implement errorStaticSetterInvoke
   }
@@ -3277,7 +4301,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       FunctionElement setter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     // TODO: implement errorSuperSetterInvoke
   }
@@ -3313,7 +4337,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       FunctionElement setter,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     // TODO: implement errorTopLevelSetterInvoke
   }
@@ -4078,7 +5102,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     // TODO: implement visitConstantInvoke
   }
@@ -4094,21 +5118,22 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorUnresolvedGet(
+  visitUnresolvedGet(
       Send node,
-      ErroneousElement element,
+      Element element,
       arg) {
-    // TODO: implement errorUnresolvedGet
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_GET, name: element.name));
   }
 
   @override
-  errorUnresolvedInvoke(
+  visitUnresolvedInvoke(
       Send node,
-      ErroneousElement element,
+      Element element,
       NodeList arguments,
       Selector selector,
       arg) {
-    // TODO: implement errorUnresolvedInvoke
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
+        name: element.name, arguments: arguments));
   }
 
   @override
@@ -4117,7 +5142,8 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       ErroneousElement element,
       IncDecOperator operator,
       arg) {
-    // TODO: implement errorUnresolvedPostfix
+    visits.add(new Visit(
+        VisitKind.ERROR_UNRESOLVED_POSTFIX, operator: operator));
   }
 
   @override
@@ -4158,16 +5184,6 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorUnresolvedSuperBinary(
-      Send node,
-      ErroneousElement element,
-      BinaryOperator operator,
-      Node argument,
-      arg) {
-    // TODO: implement errorUnresolvedSuperBinary
-  }
-
-  @override
   errorUnresolvedSuperCompoundIndexSet(
       Send node,
       ErroneousElement element,
@@ -4186,24 +5202,6 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Node rhs,
       arg) {
     // TODO: implement errorUnresolvedSuperIndexSet
-  }
-
-  @override
-  errorUnresolvedSuperUnary(
-      Send node,
-      UnaryOperator operator,
-      ErroneousElement element,
-      arg) {
-    // TODO: implement errorUnresolvedSuperUnary
-  }
-
-  @override
-  errorUnresolvedSuperIndex(
-      Send node,
-      Element element,
-      Node index,
-      arg) {
-    // TODO: implement errorUnresolvedSuperIndex
   }
 
   @override
@@ -4325,14 +5323,14 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(
         VisitKind.VISIT_FACTORY_CONSTRUCTOR_INVOKE,
         element: constructor,
         type: type,
         arguments: arguments,
-        selector: selector));
+        selector: callStructure));
     apply(arguments, arg);
   }
 
@@ -4342,14 +5340,14 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(
         VisitKind.VISIT_GENERATIVE_CONSTRUCTOR_INVOKE,
         element: constructor,
         type: type,
         arguments: arguments,
-        selector: selector));
+        selector: callStructure));
     apply(arguments, arg);
   }
 
@@ -4361,7 +5359,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       ConstructorElement effectiveTarget,
       InterfaceType effectiveTargetType,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(
         VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
@@ -4370,7 +5368,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
         target: effectiveTarget,
         targetType: effectiveTargetType,
         arguments: arguments,
-        selector: selector));
+        selector: callStructure));
     apply(arguments, arg);
   }
 
@@ -4380,14 +5378,14 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(
         VisitKind.VISIT_REDIRECTING_GENERATIVE_CONSTRUCTOR_INVOKE,
         element: constructor,
         type: type,
         arguments: arguments,
-        selector: selector));
+        selector: callStructure));
     apply(arguments, arg);
   }
 
@@ -4397,14 +5395,637 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(
         VisitKind.ERROR_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
         element: constructor,
         type: type,
         arguments: arguments,
+        selector: callStructure));
+    apply(arguments, arg);
+  }
+
+  @override
+  errorUnresolvedRedirectingFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+        element: constructor,
+        type: type,
+        arguments: arguments,
         selector: selector));
+    apply(arguments, arg);
+  }
+}
+
+class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
+
+  SemanticDeclarationTestVisitor(TreeElements elements) : super(elements);
+
+  @override
+  errorUnresolvedSuperConstructorInvoke(
+      Send node,
+      Element element,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    // TODO: implement errorUnresolvedSuperConstructorInvoke
+  }
+
+  @override
+  errorUnresolvedThisConstructorInvoke(
+      Send node,
+      Element element,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    // TODO: implement errorUnresolvedThisConstructorInvoke
+  }
+
+  @override
+  visitAbstractMethodDeclaration(
+      FunctionExpression node,
+      MethodElement method,
+      NodeList parameters,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_ABSTRACT_METHOD_DECL,
+        element: method, parameters: parameters));
+    applyParameters(parameters, arg);
+  }
+
+  @override
+  visitClosureDeclaration(
+      FunctionExpression node,
+      LocalFunctionElement function,
+      NodeList parameters,
+      Node body,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_CLOSURE_DECL,
+        element: function, parameters: parameters, body: body));
+    applyParameters(parameters, arg);
+    apply(body, arg);
+  }
+
+  @override
+  visitFactoryConstructorDeclaration(
+      FunctionExpression node,
+      ConstructorElement constructor,
+      NodeList parameters,
+      Node body,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_FACTORY_CONSTRUCTOR_DECL,
+        element: constructor, parameters: parameters, body: body));
+    applyParameters(parameters, arg);
+    apply(body, arg);
+  }
+
+  @override
+  visitFieldInitializer(
+      SendSet node,
+      FieldElement field,
+      Node initializer,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_FIELD_INITIALIZER,
+        element: field, rhs: initializer));
+    apply(initializer, arg);
+  }
+
+  @override
+  visitGenerativeConstructorDeclaration(
+      FunctionExpression node,
+      ConstructorElement constructor,
+      NodeList parameters,
+      NodeList initializers,
+      Node body,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_GENERATIVE_CONSTRUCTOR_DECL,
+        element: constructor, parameters: parameters, body: body));
+    applyParameters(parameters, arg);
+    applyInitializers(initializers, arg);
+    apply(body, arg);
+  }
+
+  @override
+  visitInstanceMethodDeclaration(
+      FunctionExpression node,
+      MethodElement method,
+      NodeList parameters,
+      Node body,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_INSTANCE_METHOD_DECL,
+        element: method, parameters: parameters, body: body));
+    applyParameters(parameters, arg);
+    apply(body, arg);
+  }
+
+  @override
+  visitLocalFunctionDeclaration(
+      FunctionExpression node,
+      LocalFunctionElement function,
+      NodeList parameters,
+      Node body,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_LOCAL_FUNCTION_DECL,
+        element: function, parameters: parameters, body: body));
+    applyParameters(parameters, arg);
+    apply(body, arg);
+  }
+
+  @override
+  visitRedirectingFactoryConstructorDeclaration(
+      FunctionExpression node,
+      ConstructorElement constructor,
+      NodeList parameters,
+      InterfaceType redirectionType,
+      ConstructorElement redirectionTarget,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_DECL,
+        element: constructor,
+        parameters: parameters,
+        target: redirectionTarget,
+        type: redirectionType));
+    applyParameters(parameters, arg);
+  }
+
+  @override
+  visitRedirectingGenerativeConstructorDeclaration(
+      FunctionExpression node,
+      ConstructorElement constructor,
+      NodeList parameters,
+      NodeList initializers,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_REDIRECTING_GENERATIVE_CONSTRUCTOR_DECL,
+        element: constructor,
+        parameters: parameters,
+        initializers: initializers));
+    applyParameters(parameters, arg);
+    applyInitializers(initializers, arg);
+  }
+
+  @override
+  visitStaticFunctionDeclaration(
+      FunctionExpression node,
+      MethodElement function,
+      NodeList parameters,
+      Node body,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_STATIC_FUNCTION_DECL,
+        element: function, parameters: parameters, body: body));
+    applyParameters(parameters, arg);
+    apply(body, arg);
+  }
+
+  @override
+  visitSuperConstructorInvoke(
+      Send node,
+      ConstructorElement superConstructor,
+      InterfaceType type,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_SUPER_CONSTRUCTOR_INVOKE,
+        element: superConstructor, type: type,
+        arguments: arguments, selector: selector));
+    apply(arguments, arg);
+  }
+
+  @override
+  visitThisConstructorInvoke(
+      Send node,
+      ConstructorElement thisConstructor,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_THIS_CONSTRUCTOR_INVOKE,
+        element: thisConstructor, arguments: arguments, selector: selector));
+    apply(arguments, arg);
+  }
+
+  @override
+  visitTopLevelFunctionDeclaration(
+      FunctionExpression node,
+      MethodElement function,
+      NodeList parameters,
+      Node body,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
+        element: function, parameters: parameters, body: body));
+    applyParameters(parameters, arg);
+    apply(body, arg);
+  }
+
+  @override
+  errorUnresolvedFieldInitializer(
+      SendSet node,
+      Element element,
+      Node initializer,
+      arg) {
+    // TODO: implement errorUnresolvedFieldInitializer
+  }
+
+  @override
+  visitOptionalParameterDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      ParameterElement parameter,
+      ConstantExpression defaultValue,
+      int index,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_OPTIONAL_PARAMETER_DECL,
+        element: parameter,
+        constant: defaultValue != null ? defaultValue.getText() : null,
+        index: index));
+  }
+
+  @override
+  visitParameterDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      ParameterElement parameter,
+      int index,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+        element: parameter, index: index));
+  }
+
+  @override
+  visitInitializingFormalDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      InitializingFormalElement initializingFormal,
+      int index,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_REQUIRED_INITIALIZING_FORMAL_DECL,
+        element: initializingFormal, index: index));
+  }
+
+  @override
+  visitLocalVariableDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      LocalVariableElement variable,
+      Node initializer,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_LOCAL_VARIABLE_DECL,
+        element: variable, rhs: initializer));
+    if (initializer != null) {
+      apply(initializer, arg);
+    }
+    return null;
+  }
+
+  @override
+  visitLocalConstantDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      LocalVariableElement variable,
+      ConstantExpression constant,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_LOCAL_CONSTANT_DECL,
+        element: variable, constant: constant.getText()));
+    return null;
+  }
+
+  @override
+  visitNamedInitializingFormalDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      InitializingFormalElement initializingFormal,
+      ConstantExpression defaultValue,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_NAMED_INITIALIZING_FORMAL_DECL,
+        element: initializingFormal,
+        constant: defaultValue != null ? defaultValue.getText() : null));
+  }
+
+  @override
+  visitNamedParameterDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      ParameterElement parameter,
+      ConstantExpression defaultValue,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_NAMED_PARAMETER_DECL,
+        element: parameter,
+        constant: defaultValue != null ? defaultValue.getText() : null));
+  }
+
+  @override
+  visitOptionalInitializingFormalDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      InitializingFormalElement initializingFormal,
+      ConstantExpression defaultValue,
+      int index,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_OPTIONAL_INITIALIZING_FORMAL_DECL,
+        element: initializingFormal,
+        constant: defaultValue != null ? defaultValue.getText() : null,
+        index: index));
+  }
+
+  @override
+  visitInstanceFieldDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      FieldElement field,
+      Node initializer,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_INSTANCE_FIELD_DECL,
+        element: field, rhs: initializer));
+    if (initializer != null) {
+      apply(initializer, arg);
+    }
+    return null;
+  }
+
+  @override
+  visitStaticConstantDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      FieldElement field,
+      ConstantExpression constant,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_STATIC_CONSTANT_DECL,
+        element: field, constant: constant.getText()));
+    return null;
+  }
+
+  @override
+  visitStaticFieldDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      FieldElement field,
+      Node initializer,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
+        element: field, rhs: initializer));
+    if (initializer != null) {
+      apply(initializer, arg);
+    }
+    return null;
+  }
+
+  @override
+  visitTopLevelConstantDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      FieldElement field,
+      ConstantExpression constant,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_CONSTANT_DECL,
+        element: field, constant: constant.getText()));
+    return null;
+  }
+
+  @override
+  visitTopLevelFieldDeclaration(
+      VariableDefinitions node,
+      Node definition,
+      FieldElement field,
+      Node initializer,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_DECL,
+        element: field, rhs: initializer));
+    if (initializer != null) {
+      apply(initializer, arg);
+    }
+    return null;
+  }
+
+  @override
+  visitAbstractGetterDeclaration(
+      FunctionExpression node,
+      MethodElement getter,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_ABSTRACT_GETTER_DECL,
+        element: getter));
+    return null;
+  }
+
+  @override
+  visitAbstractSetterDeclaration(
+      FunctionExpression node,
+      MethodElement setter,
+      NodeList parameters,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_ABSTRACT_SETTER_DECL,
+        element: setter, parameters: parameters));
+    applyParameters(parameters, arg);
+    return null;
+  }
+
+  @override
+  visitInstanceGetterDeclaration(
+      FunctionExpression node,
+      MethodElement getter,
+      Node body,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_INSTANCE_GETTER_DECL,
+        element: getter, body: body));
+    apply(body, arg);
+    return null;
+  }
+
+  @override
+  visitInstanceSetterDeclaration(
+      FunctionExpression node,
+      MethodElement setter,
+      NodeList parameters,
+      Node body,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_INSTANCE_SETTER_DECL,
+        element: setter, parameters: parameters, body: body));
+    applyParameters(parameters, arg);
+    apply(body, arg);
+    return null;
+  }
+
+  @override
+  visitTopLevelGetterDeclaration(
+      FunctionExpression node,
+      MethodElement getter,
+      Node body,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_DECL,
+        element: getter, body: body));
+    apply(body, arg);
+    return null;
+  }
+
+  @override
+  visitTopLevelSetterDeclaration(
+      FunctionExpression node,
+      MethodElement setter,
+      NodeList parameters,
+      Node body,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_DECL,
+        element: setter, parameters: parameters, body: body));
+    applyParameters(parameters, arg);
+    apply(body, arg);
+    return null;
+  }
+
+  @override
+  visitStaticGetterDeclaration(
+      FunctionExpression node,
+      MethodElement getter,
+      Node body,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_STATIC_GETTER_DECL,
+        element: getter, body: body));
+    apply(body, arg);
+    return null;
+  }
+
+  @override
+  visitStaticSetterDeclaration(
+      FunctionExpression node,
+      MethodElement setter,
+      NodeList parameters,
+      Node body,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_STATIC_SETTER_DECL,
+        element: setter, parameters: parameters, body: body));
+    applyParameters(parameters, arg);
+    apply(body, arg);
+    return null;
+  }
+
+  @override
+  errorUnresolvedClassConstructorInvoke(
+      NewExpression node,
+      Element constructor,
+      MalformedType type,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    // TODO(johnniwinther): Test [type] and [selector].
+    visits.add(new Visit(
+        VisitKind.ERROR_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
+        arguments: arguments));
+    apply(arguments, arg);
+  }
+
+  @override
+  errorUnresolvedConstructorInvoke(
+      NewExpression node,
+      Element constructor,
+      DartType type,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    // TODO(johnniwinther): Test [type] and [selector].
+    visits.add(new Visit(
+        VisitKind.ERROR_UNRESOLVED_CONSTRUCTOR_INVOKE,
+        arguments: arguments));
+    apply(arguments, arg);
+  }
+
+  @override
+  visitConstConstructorInvoke(
+      NewExpression node,
+      ConstructedConstantExpression constant,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_CONST_CONSTRUCTOR_INVOKE,
+                         constant: constant.getText()));
+  }
+
+  @override
+  visitFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      CallStructure callStructure,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_FACTORY_CONSTRUCTOR_INVOKE,
+        element: constructor,
+        type: type,
+        arguments: arguments,
+        selector: callStructure));
+    apply(arguments, arg);
+  }
+
+  @override
+  visitGenerativeConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      CallStructure callStructure,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_GENERATIVE_CONSTRUCTOR_INVOKE,
+        element: constructor,
+        type: type,
+        arguments: arguments,
+        selector: callStructure));
+    apply(arguments, arg);
+  }
+
+  @override
+  visitRedirectingFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      ConstructorElement effectiveTarget,
+      InterfaceType effectiveTargetType,
+      NodeList arguments,
+      CallStructure callStructure,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+        element: constructor,
+        type: type,
+        target: effectiveTarget,
+        targetType: effectiveTargetType,
+        arguments: arguments,
+        selector: callStructure));
+    apply(arguments, arg);
+  }
+
+  @override
+  visitRedirectingGenerativeConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      CallStructure callStructure,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_REDIRECTING_GENERATIVE_CONSTRUCTOR_INVOKE,
+        element: constructor,
+        type: type,
+        arguments: arguments,
+        selector: callStructure));
+    apply(arguments, arg);
+  }
+
+  @override
+  errorAbstractClassConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      CallStructure callStructure,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.ERROR_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
+        element: constructor,
+        type: type,
+        arguments: arguments,
+        selector: callStructure));
     apply(arguments, arg);
   }
 
@@ -4440,9 +6061,13 @@ enum VisitKind {
   VISIT_LOCAL_VARIABLE_COMPOUND,
   VISIT_LOCAL_VARIABLE_PREFIX,
   VISIT_LOCAL_VARIABLE_POSTFIX,
+  VISIT_LOCAL_VARIABLE_DECL,
+  VISIT_LOCAL_CONSTANT_DECL,
 
   VISIT_LOCAL_FUNCTION_GET,
   VISIT_LOCAL_FUNCTION_INVOKE,
+  VISIT_LOCAL_FUNCTION_DECL,
+  VISIT_CLOSURE_DECL,
 
   VISIT_STATIC_FIELD_GET,
   VISIT_STATIC_FIELD_SET,
@@ -4450,6 +6075,8 @@ enum VisitKind {
   VISIT_STATIC_FIELD_COMPOUND,
   VISIT_STATIC_FIELD_PREFIX,
   VISIT_STATIC_FIELD_POSTFIX,
+  VISIT_STATIC_FIELD_DECL,
+  VISIT_STATIC_CONSTANT_DECL,
 
   VISIT_STATIC_GETTER_GET,
   VISIT_STATIC_SETTER_SET,
@@ -4458,9 +6085,13 @@ enum VisitKind {
   VISIT_STATIC_METHOD_SETTER_COMPOUND,
   VISIT_STATIC_GETTER_SETTER_PREFIX,
   VISIT_STATIC_GETTER_SETTER_POSTFIX,
+  VISIT_STATIC_GETTER_DECL,
+  VISIT_STATIC_SETTER_DECL,
 
   VISIT_STATIC_FUNCTION_GET,
   VISIT_STATIC_FUNCTION_INVOKE,
+  VISIT_STATIC_FUNCTION_INCOMPATIBLE_INVOKE,
+  VISIT_STATIC_FUNCTION_DECL,
 
   VISIT_TOP_LEVEL_FIELD_GET,
   VISIT_TOP_LEVEL_FIELD_SET,
@@ -4468,6 +6099,8 @@ enum VisitKind {
   VISIT_TOP_LEVEL_FIELD_COMPOUND,
   VISIT_TOP_LEVEL_FIELD_PREFIX,
   VISIT_TOP_LEVEL_FIELD_POSTFIX,
+  VISIT_TOP_LEVEL_FIELD_DECL,
+  VISIT_TOP_LEVEL_CONSTANT_DECL,
 
   VISIT_TOP_LEVEL_GETTER_GET,
   VISIT_TOP_LEVEL_SETTER_SET,
@@ -4475,9 +6108,13 @@ enum VisitKind {
   VISIT_TOP_LEVEL_GETTER_SETTER_COMPOUND,
   VISIT_TOP_LEVEL_GETTER_SETTER_PREFIX,
   VISIT_TOP_LEVEL_GETTER_SETTER_POSTFIX,
+  VISIT_TOP_LEVEL_GETTER_DECL,
+  VISIT_TOP_LEVEL_SETTER_DECL,
 
   VISIT_TOP_LEVEL_FUNCTION_GET,
   VISIT_TOP_LEVEL_FUNCTION_INVOKE,
+  VISIT_TOP_LEVEL_FUNCTION_INCOMPATIBLE_INVOKE,
+  VISIT_TOP_LEVEL_FUNCTION_DECL,
 
   VISIT_DYNAMIC_PROPERTY_GET,
   VISIT_DYNAMIC_PROPERTY_SET,
@@ -4518,6 +6155,12 @@ enum VisitKind {
 
   VISIT_SUPER_METHOD_GET,
   VISIT_SUPER_METHOD_INVOKE,
+  VISIT_SUPER_METHOD_INCOMPATIBLE_INVOKE,
+
+  VISIT_UNRESOLVED_GET,
+  VISIT_UNRESOLVED_INVOKE,
+  VISIT_UNRESOLVED_SUPER_GET,
+  VISIT_UNRESOLVED_SUPER_INVOKE,
 
   VISIT_BINARY,
   VISIT_INDEX,
@@ -4527,7 +6170,9 @@ enum VisitKind {
   VISIT_INDEX_POSTFIX,
 
   VISIT_SUPER_BINARY,
+  VISIT_UNRESOLVED_SUPER_BINARY,
   VISIT_SUPER_INDEX,
+  VISIT_UNRESOLVED_SUPER_INDEX,
   VISIT_SUPER_EQUALS,
   VISIT_SUPER_NOT_EQUALS,
   VISIT_SUPER_INDEX_PREFIX,
@@ -4535,6 +6180,7 @@ enum VisitKind {
 
   VISIT_UNARY,
   VISIT_SUPER_UNARY,
+  VISIT_UNRESOLVED_SUPER_UNARY,
   VISIT_NOT,
 
   VISIT_EXPRESSION_INVOKE,
@@ -4589,10 +6235,36 @@ enum VisitKind {
   VISIT_FACTORY_CONSTRUCTOR_INVOKE,
   VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
 
+  VISIT_SUPER_CONSTRUCTOR_INVOKE,
+  VISIT_THIS_CONSTRUCTOR_INVOKE,
+  VISIT_FIELD_INITIALIZER,
+
   ERROR_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
   ERROR_UNRESOLVED_CONSTRUCTOR_INVOKE,
   ERROR_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
   ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
 
-  // TODO(johnniwinther): Add tests for error cases.
+  VISIT_INSTANCE_GETTER_DECL,
+  VISIT_INSTANCE_SETTER_DECL,
+  VISIT_INSTANCE_METHOD_DECL,
+  VISIT_ABSTRACT_GETTER_DECL,
+  VISIT_ABSTRACT_SETTER_DECL,
+  VISIT_ABSTRACT_METHOD_DECL,
+  VISIT_INSTANCE_FIELD_DECL,
+
+  VISIT_GENERATIVE_CONSTRUCTOR_DECL,
+  VISIT_REDIRECTING_GENERATIVE_CONSTRUCTOR_DECL,
+  VISIT_FACTORY_CONSTRUCTOR_DECL,
+  VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_DECL,
+
+  VISIT_REQUIRED_PARAMETER_DECL,
+  VISIT_OPTIONAL_PARAMETER_DECL,
+  VISIT_NAMED_PARAMETER_DECL,
+  VISIT_REQUIRED_INITIALIZING_FORMAL_DECL,
+  VISIT_OPTIONAL_INITIALIZING_FORMAL_DECL,
+  VISIT_NAMED_INITIALIZING_FORMAL_DECL,
+
+  ERROR_UNRESOLVED_POSTFIX,
+
+  // TODO(johnniwinther): Add tests for more error cases.
 }

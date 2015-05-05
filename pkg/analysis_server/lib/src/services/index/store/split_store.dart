@@ -19,25 +19,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 
-class _TopElementData {
-  final String name;
-  final int elementId1;
-  final int elementId2;
-  final int elementId3;
-
-  factory _TopElementData(ElementCodec elementCodec, Element element) {
-    return new _TopElementData._(element.name, elementCodec.encode1(element),
-        elementCodec.encode2(element), elementCodec.encode3(element));
-  }
-
-  _TopElementData._(
-      this.name, this.elementId1, this.elementId2, this.elementId3);
-
-  Element getElement(AnalysisContext context, ElementCodec elementCodec) {
-    return elementCodec.decode(context, elementId1, elementId2, elementId3);
-  }
-}
-
 /**
  * A manager for files content.
  */
@@ -291,22 +272,23 @@ class IndexNode {
    *
    * [element] - the the element that has the relationship with the locations to
    *    be returned.
-   * [relationship] - the [Relationship] between the given [element] and the
+   * [relationship] - the [RelationshipImpl] between the given [element] and the
    *    locations to be returned
    */
-  List<Location> getRelationships(Element element, Relationship relationship) {
+  List<LocationImpl> getRelationships(
+      Element element, RelationshipImpl relationship) {
     // prepare key
     RelationKeyData key = new RelationKeyData.forObject(
         _elementCodec, _relationshipCodec, element, relationship);
     // find LocationData(s)
     List<LocationData> locationDatas = _relations[key];
     if (locationDatas == null) {
-      return Location.EMPTY_ARRAY;
+      return LocationImpl.EMPTY_ARRAY;
     }
     // convert to Location(s)
-    List<Location> locations = <Location>[];
+    List<LocationImpl> locations = <LocationImpl>[];
     for (LocationData locationData in locationDatas) {
-      Location location = locationData.getLocation(context, _elementCodec);
+      LocationImpl location = locationData.getLocation(context, _elementCodec);
       if (location != null) {
         locations.add(location);
       }
@@ -339,11 +321,11 @@ class IndexNode {
    * Records that the given [element] and [location] have the given [relationship].
    *
    * [element] - the [Element] that is related to the location.
-   * [relationship] - the [Relationship] between [element] and [location].
-   * [location] - the [Location] where relationship happens.
+   * [relationship] - the [RelationshipImpl] between [element] and [location].
+   * [location] - the [LocationImpl] where relationship happens.
    */
   void recordRelationship(
-      Element element, Relationship relationship, Location location) {
+      Element element, RelationshipImpl relationship, LocationImpl location) {
     RelationKeyData key = new RelationKeyData.forObject(
         _elementCodec, _relationshipCodec, element, relationship);
     // prepare LocationData(s)
@@ -359,7 +341,7 @@ class IndexNode {
 
 class InspectLocation {
   final String nodeName;
-  final Relationship relationship;
+  final RelationshipImpl relationship;
   final List<String> path;
   final int offset;
   final int length;
@@ -370,7 +352,7 @@ class InspectLocation {
 }
 
 /**
- * A container with information about a [Location].
+ * A container with information about a [LocationImpl].
  */
 class LocationData {
   static const int _FLAG_QUALIFIED = 1 << 0;
@@ -386,7 +368,7 @@ class LocationData {
   LocationData.forData(this.elementId1, this.elementId2, this.elementId3,
       this.offset, this.length, this.flags);
 
-  LocationData.forObject(ElementCodec elementCodec, Location location)
+  LocationData.forObject(ElementCodec elementCodec, LocationImpl location)
       : elementId1 = elementCodec.encode1(location.element),
         elementId2 = elementCodec.encode2(location.element),
         elementId3 = elementCodec.encode3(location.element),
@@ -423,7 +405,7 @@ class LocationData {
   /**
    * Returns a {@link Location} that is represented by this {@link LocationData}.
    */
-  Location getLocation(AnalysisContext context, ElementCodec elementCodec) {
+  LocationImpl getLocation(AnalysisContext context, ElementCodec elementCodec) {
     Element element =
         elementCodec.decode(context, elementId1, elementId2, elementId3);
     if (element == null) {
@@ -431,7 +413,7 @@ class LocationData {
     }
     bool isQualified = (flags & _FLAG_QUALIFIED) != 0;
     bool isResovled = (flags & _FLAG_RESOLVED) != 0;
-    return new Location(element, offset, length,
+    return new LocationImpl(element, offset, length,
         isQualified: isQualified, isResolved: isResovled);
   }
 }
@@ -487,7 +469,7 @@ abstract class NodeManager {
 }
 
 /**
- * An [Element] to [Location] relation key.
+ * An [Element] to [LocationImpl] relation key.
  */
 class RelationKeyData {
   final int elementId1;
@@ -500,7 +482,7 @@ class RelationKeyData {
 
   RelationKeyData.forObject(ElementCodec elementCodec,
       RelationshipCodec relationshipCodec, Element element,
-      Relationship relationship)
+      RelationshipImpl relationship)
       : elementId1 = elementCodec.encode1(element),
         elementId2 = elementCodec.encode2(element),
         elementId3 = elementCodec.encode3(element),
@@ -517,11 +499,6 @@ class RelationKeyData {
   }
 
   @override
-  String toString() {
-    return 'Key($elementId2, $elementId2, $elementId3, $relationshipId)';
-  }
-
-  @override
   bool operator ==(Object obj) {
     if (obj is! RelationKeyData) {
       return false;
@@ -532,12 +509,18 @@ class RelationKeyData {
         other.elementId3 == elementId3 &&
         other.relationshipId == relationshipId;
   }
+
+  @override
+  String toString() {
+    return 'Key($elementId2, $elementId2, $elementId3, $relationshipId)';
+  }
 }
 
 /**
- * An [IndexStore] which keeps index information in separate nodes for each unit.
+ * An [InternalIndexStore] which keeps index information in separate nodes for
+ * each unit.
  */
-class SplitIndexStore implements IndexStore {
+class SplitIndexStore implements InternalIndexStore {
   /**
    * The [ContextCodec] to encode/decode [AnalysisContext]s.
    */
@@ -581,8 +564,8 @@ class SplitIndexStore implements IndexStore {
    * A table mapping element names to the node names that may have relations with elements with
    * these names.
    */
-  Map<Relationship, IntToIntSetMap> _relToNameMap =
-      new HashMap<Relationship, IntToIntSetMap>();
+  Map<RelationshipImpl, IntToIntSetMap> _relToNameMap =
+      new HashMap<RelationshipImpl, IntToIntSetMap>();
 
   /**
    * The [NodeManager] to get/put [IndexNode]s.
@@ -728,8 +711,8 @@ class SplitIndexStore implements IndexStore {
     }
   }
 
-  Future<List<Location>> getRelationships(
-      Element element, Relationship relationship) {
+  Future<List<LocationImpl>> getRelationships(
+      Element element, RelationshipImpl relationship) {
     // prepare node names
     List<int> nodeNameIds;
     {
@@ -742,23 +725,26 @@ class SplitIndexStore implements IndexStore {
       }
     }
     // prepare Future(s) for reading each IndexNode
-    List<Future<List<Location>>> nodeFutures = <Future<List<Location>>>[];
+    List<Future<List<LocationImpl>>> nodeFutures =
+        <Future<List<LocationImpl>>>[];
     for (int nodeNameId in nodeNameIds) {
       String nodeName = _stringCodec.decode(nodeNameId);
       Future<IndexNode> nodeFuture = _nodeManager.getNode(nodeName);
-      Future<List<Location>> locationsFuture = nodeFuture.then((node) {
+      Future<List<LocationImpl>> locationsFuture = nodeFuture.then((node) {
         if (node == null) {
           // TODO(scheglov) remove node
-          return Location.EMPTY_ARRAY;
+          return LocationImpl.EMPTY_ARRAY;
         }
         return node.getRelationships(element, relationship);
       });
       nodeFutures.add(locationsFuture);
     }
     // return Future that merges separate IndexNode Location(s)
-    return Future.wait(nodeFutures).then((List<List<Location>> locationsList) {
-      List<Location> allLocations = <Location>[];
-      for (List<Location> locations in locationsList) {
+    return Future
+        .wait(nodeFutures)
+        .then((List<List<LocationImpl>> locationsList) {
+      List<LocationImpl> allLocations = <LocationImpl>[];
+      for (List<LocationImpl> locations in locationsList) {
         allLocations.addAll(locations);
       }
       return allLocations;
@@ -828,7 +814,7 @@ class SplitIndexStore implements IndexStore {
 
   @override
   void recordRelationship(
-      Element element, Relationship relationship, Location location) {
+      Element element, RelationshipImpl relationship, LocationImpl location) {
     if (element == null || element is MultiplyDefinedElement) {
       return;
     }
@@ -944,7 +930,8 @@ class SplitIndexStore implements IndexStore {
     units.add(unit);
   }
 
-  void _recordNodeNameForElement(Element element, Relationship relationship) {
+  void _recordNodeNameForElement(
+      Element element, RelationshipImpl relationship) {
     IntToIntSetMap nameToNodeNames = _relToNameMap[relationship];
     if (nameToNodeNames == null) {
       nameToNodeNames = new IntToIntSetMap();
@@ -1031,5 +1018,24 @@ class _DataOutputStream {
       _buf = newBuf;
     }
     _buf[_pos++] = value;
+  }
+}
+
+class _TopElementData {
+  final String name;
+  final int elementId1;
+  final int elementId2;
+  final int elementId3;
+
+  factory _TopElementData(ElementCodec elementCodec, Element element) {
+    return new _TopElementData._(element.name, elementCodec.encode1(element),
+        elementCodec.encode2(element), elementCodec.encode3(element));
+  }
+
+  _TopElementData._(
+      this.name, this.elementId1, this.elementId2, this.elementId3);
+
+  Element getElement(AnalysisContext context, ElementCodec elementCodec) {
+    return elementCodec.decode(context, elementId1, elementId2, elementId3);
   }
 }

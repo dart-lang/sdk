@@ -15,7 +15,7 @@ import 'package:analyzer/src/generated/source.dart';
  * A container with information computed by an index - relations between
  * elements.
  */
-abstract class IndexStore {
+abstract class InternalIndexStore {
   /**
    * Answers index statistics.
    */
@@ -76,11 +76,11 @@ abstract class IndexStore {
    *
    * [element] - the the [Element] that has the relationship with the locations
    *    to be returned.
-   * [relationship] - the [Relationship] between the given element and the
+   * [relationship] - the [RelationshipImpl] between the given element and the
    *    locations to be returned
    */
-  Future<List<Location>> getRelationships(
-      Element element, Relationship relationship);
+  Future<List<LocationImpl>> getRelationships(
+      Element element, RelationshipImpl relationship);
 
   /**
    * Returns top-level [Element]s whose names satisfy to [nameFilter].
@@ -107,11 +107,11 @@ abstract class IndexStore {
    * would be a list containing both `location1` and `location2`.
    *
    * [element] - the [Element] that is related to the location.
-   * [relationship] - the [Relationship] between the element and the location.
-   * [location] the [Location] where relationship happens.
+   * [relationship] - the [RelationshipImpl] between the element and the location.
+   * [location] the [LocationImpl] where relationship happens.
    */
   void recordRelationship(
-      Element element, Relationship relationship, Location location);
+      Element element, RelationshipImpl relationship, LocationImpl location);
 
   /**
    * Records the declaration of the given top-level [element].

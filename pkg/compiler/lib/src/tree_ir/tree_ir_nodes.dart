@@ -42,13 +42,6 @@ abstract class Node {
 abstract class Expression extends Node {
   accept(ExpressionVisitor v);
   accept1(ExpressionVisitor1 v, arg);
-
-  /// Temporary variable used by [StatementRewriter].
-  /// If set to true, this expression has already had enclosing assignments
-  /// propagated into its variables, and should not be processed again.
-  /// It is only set for expressions that are known to be in risk of redundant
-  /// processing.
-  bool processed = false;
 }
 
 abstract class Statement extends Node {
@@ -143,6 +136,24 @@ class VariableUse extends Expression {
   }
 }
 
+class Assign extends Expression {
+  Variable variable;
+  Expression value;
+
+  Assign(this.variable, this.value) {
+    variable.writeCount++;
+  }
+
+  accept(ExpressionVisitor v) => v.visitAssign(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitAssign(this, arg);
+
+  static ExpressionStatement makeStatement(Variable variable,
+                                           Expression value,
+                                           [Statement next]) {
+    return new ExpressionStatement(new Assign(variable, value), next);
+  }
+}
+
 /**
  * Common interface for invocations with arguments.
  */
@@ -161,6 +172,14 @@ class InvokeStatic extends Expression implements Invoke {
   final List<Expression> arguments;
   final Selector selector;
   final SourceInformation sourceInformation;
+
+  /// True if the [target] is known not to diverge or read or write any
+  /// mutable state.
+  ///
+  /// This is set for calls to `getInterceptor` and `identical` to indicate
+  /// that they can be safely be moved across an impure expression
+  /// (assuming the [arguments] are not affected by the impure expression).
+  bool isEffectivelyConstant = false;
 
   InvokeStatic(this.target, this.selector, this.arguments,
                {this.sourceInformation});
@@ -254,8 +273,9 @@ class Constant extends Expression {
 
   Constant(this.expression);
 
-  Constant.primitive(values.PrimitiveConstantValue primitiveValue)
-      : expression = new PrimitiveConstantExpression(primitiveValue);
+  Constant.bool(values.BoolConstantValue constantValue)
+      : expression = new BoolConstantExpression(
+          constantValue.primitiveValue, constantValue);
 
   accept(ExpressionVisitor visitor) => visitor.visitConstant(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitConstant(this, arg);
@@ -519,33 +539,26 @@ class Continue extends Jump {
   accept1(StatementVisitor1 visitor, arg) => visitor.visitContinue(this, arg);
 }
 
-/**
- * An assignments of an [Expression] to a [Variable].
- *
- * In contrast to the CPS-based IR, non-primitive expressions can be assigned
- * to variables.
- */
-class Assign extends Statement {
-  Statement next;
+/// Declares a captured [variable] with an initial [value].
+///
+/// All uses of the variable must be inside the [next] statement.
+class VariableDeclaration extends Statement implements DartSpecificNode {
   Variable variable;
   Expression value;
+  Statement next;
 
-  /// If true, this assignes to a fresh variable scoped to the [next]
-  /// statement.
-  ///
-  /// Variable declarations themselves are hoisted to function level.
-  bool isDeclaration;
-
-  /// Creates an assignment to [variable] and updates its `writeCount`.
-  Assign(this.variable, this.value, this.next,
-         { this.isDeclaration: false }) {
-    variable.writeCount++;
+  VariableDeclaration(this.variable, this.value, this.next) {
+    assert(variable.isCaptured); // Because otherwise no declaration is needed.
+    ++variable.writeCount;
   }
 
-  bool get hasExactlyOneUse => variable.readCount == 1;
+  accept(StatementVisitor visitor) {
+    return visitor.visitVariableDeclaration(this);
+  }
 
-  accept(StatementVisitor visitor) => visitor.visitAssign(this);
-  accept1(StatementVisitor1 visitor, arg) => visitor.visitAssign(this, arg);
+  accept1(StatementVisitor1 visitor, arg) {
+    return visitor.visitVariableDeclaration(this, arg);
+  }
 }
 
 /**
@@ -568,6 +581,37 @@ class Return extends Statement {
 
   accept(StatementVisitor visitor) => visitor.visitReturn(this);
   accept1(StatementVisitor1 visitor, arg) => visitor.visitReturn(this, arg);
+}
+
+/// A throw statement.
+///
+/// In the Tree IR, throw is a statement (like JavaScript and unlike Dart).
+/// It does not have a successor statement.
+class Throw extends Statement {
+  Expression value;
+
+  Statement get next => null;
+  void set next(Statement s) => throw 'UNREACHABLE';
+
+  Throw(this.value);
+
+  accept(StatementVisitor visitor) => visitor.visitThrow(this);
+  accept1(StatementVisitor1 visitor, arg) => visitor.visitThrow(this, arg);
+}
+
+/// A rethrow of an exception.
+///
+/// Rethrow can only occur nested inside a catch block.  It implicitly throws
+/// the block's caught exception value without changing the caught stack
+/// trace.  It does not have a successor statement.
+class Rethrow extends Statement {
+  Statement get next => null;
+  void set next(Statement s) => throw 'UNREACHABLE';
+
+  Rethrow();
+
+  accept(StatementVisitor visitor) => visitor.visitRethrow(this);
+  accept1(StatementVisitor1 visitor, arg) => visitor.visitRethrow(this, arg);
 }
 
 /**
@@ -818,16 +862,15 @@ class GetField extends Expression implements JsSpecificNode {
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitGetField(this, arg);
 }
 
-class SetField extends Statement implements JsSpecificNode {
+class SetField extends Expression implements JsSpecificNode {
   Expression object;
   Element field;
   Expression value;
-  Statement next;
 
-  SetField(this.object, this.field, this.value, this.next);
+  SetField(this.object, this.field, this.value);
 
-  accept(StatementVisitor visitor) => visitor.visitSetField(this);
-  accept1(StatementVisitor1 visitor, arg) => visitor.visitSetField(this, arg);
+  accept(ExpressionVisitor visitor) => visitor.visitSetField(this);
+  accept1(ExpressionVisitor1 visitor, arg) => visitor.visitSetField(this, arg);
 }
 
 class ReifyRuntimeType extends Expression implements JsSpecificNode {
@@ -880,6 +923,7 @@ class TypeExpression extends Expression {
 abstract class ExpressionVisitor<E> {
   E visitExpression(Expression node) => node.accept(this);
   E visitVariableUse(VariableUse node);
+  E visitAssign(Assign node);
   E visitInvokeStatic(InvokeStatic node);
   E visitInvokeMethod(InvokeMethod node);
   E visitInvokeMethodDirectly(InvokeMethodDirectly node);
@@ -901,11 +945,13 @@ abstract class ExpressionVisitor<E> {
   E visitReifyRuntimeType(ReifyRuntimeType node);
   E visitReadTypeVariable(ReadTypeVariable node);
   E visitTypeExpression(TypeExpression node);
+  E visitSetField(SetField node);
 }
 
 abstract class ExpressionVisitor1<E, A> {
   E visitExpression(Expression node, A arg) => node.accept1(this, arg);
   E visitVariableUse(VariableUse node, A arg);
+  E visitAssign(Assign node, A arg);
   E visitInvokeStatic(InvokeStatic node, A arg);
   E visitInvokeMethod(InvokeMethod node, A arg);
   E visitInvokeMethodDirectly(InvokeMethodDirectly node, A arg);
@@ -927,38 +973,41 @@ abstract class ExpressionVisitor1<E, A> {
   E visitReifyRuntimeType(ReifyRuntimeType node, A arg);
   E visitReadTypeVariable(ReadTypeVariable node, A arg);
   E visitTypeExpression(TypeExpression node, A arg);
+  E visitSetField(SetField node, A arg);
 }
 
 abstract class StatementVisitor<S> {
   S visitStatement(Statement node) => node.accept(this);
   S visitLabeledStatement(LabeledStatement node);
-  S visitAssign(Assign node);
   S visitReturn(Return node);
+  S visitThrow(Throw node);
+  S visitRethrow(Rethrow node);
   S visitBreak(Break node);
   S visitContinue(Continue node);
   S visitIf(If node);
   S visitWhileTrue(WhileTrue node);
   S visitWhileCondition(WhileCondition node);
   S visitFunctionDeclaration(FunctionDeclaration node);
+  S visitVariableDeclaration(VariableDeclaration node);
   S visitExpressionStatement(ExpressionStatement node);
   S visitTry(Try node);
-  S visitSetField(SetField node);
 }
 
 abstract class StatementVisitor1<S, A> {
   S visitStatement(Statement node, A arg) => node.accept1(this, arg);
   S visitLabeledStatement(LabeledStatement node, A arg);
-  S visitAssign(Assign node, A arg);
   S visitReturn(Return node, A arg);
+  S visitThrow(Throw node, A arg);
+  S visitRethrow(Rethrow node, A arg);
   S visitBreak(Break node, A arg);
   S visitContinue(Continue node, A arg);
   S visitIf(If node, A arg);
   S visitWhileTrue(WhileTrue node, A arg);
   S visitWhileCondition(WhileCondition node, A arg);
   S visitFunctionDeclaration(FunctionDeclaration node, A arg);
+  S visitVariableDeclaration(VariableDeclaration node, A arg);
   S visitExpressionStatement(ExpressionStatement node, A arg);
   S visitTry(Try node, A arg);
-  S visitSetField(SetField node, A arg);
 }
 
 abstract class RootVisitor<T> {
@@ -981,6 +1030,7 @@ abstract class InitializerVisitor<T> {
   T visitSuperInitializer(SuperInitializer node);
 }
 
+
 abstract class InitializerVisitor1<T, A> {
   T visitInitializer(Initializer node, A arg) => node.accept1(this, arg);
   T visitFieldInitializer(FieldInitializer node, A arg);
@@ -993,10 +1043,20 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
 
   visitInnerFunction(FunctionDefinition node);
 
-  visitVariable(Variable node) {}
+  visitVariable(Variable variable) {}
 
   visitVariableUse(VariableUse node) {
     visitVariable(node.variable);
+  }
+
+  visitVariableDeclaration(VariableDeclaration node) {
+    visitVariable(node.variable);
+    visitStatement(node.next);
+  }
+
+  visitAssign(Assign node) {
+    visitVariable(node.variable);
+    visitExpression(node.value);
   }
 
   visitInvokeStatic(InvokeStatic node) {
@@ -1066,15 +1126,15 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
     visitStatement(node.next);
   }
 
-  visitAssign(Assign node) {
-    visitExpression(node.value);
-    visitVariable(node.variable);
-    visitStatement(node.next);
-  }
-
   visitReturn(Return node) {
     visitExpression(node.value);
   }
+
+  visitThrow(Throw node) {
+    visitExpression(node.value);
+  }
+
+  visitRethrow(Rethrow node) {}
 
   visitBreak(Break node) {}
 
@@ -1118,7 +1178,6 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   visitSetField(SetField node) {
     visitExpression(node.object);
     visitExpression(node.value);
-    visitStatement(node.next);
   }
 
   visitCreateBox(CreateBox node) {
@@ -1160,6 +1219,16 @@ class RecursiveTransformer extends Transformer {
   }
 
   visitVariableUse(VariableUse node) => node;
+
+  visitVariableDeclaration(VariableDeclaration node) {
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  visitAssign(Assign node) {
+    node.value = visitExpression(node.value);
+    return node;
+  }
 
   visitInvokeStatic(InvokeStatic node) {
     _replaceExpressions(node.arguments);
@@ -1241,16 +1310,17 @@ class RecursiveTransformer extends Transformer {
     return node;
   }
 
-  visitAssign(Assign node) {
-    node.value = visitExpression(node.value);
-    node.next = visitStatement(node.next);
-    return node;
-  }
-
   visitReturn(Return node) {
     node.value = visitExpression(node.value);
     return node;
   }
+
+  visitThrow(Throw node) {
+    node.value = visitExpression(node.value);
+    return node;
+  }
+
+  visitRethrow(Rethrow node) => node;
 
   visitBreak(Break node) => node;
 
@@ -1301,7 +1371,6 @@ class RecursiveTransformer extends Transformer {
   visitSetField(SetField node) {
     node.object = visitExpression(node.object);
     node.value = visitExpression(node.value);
-    node.next = visitStatement(node.next);
     return node;
   }
 

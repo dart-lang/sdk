@@ -48,6 +48,11 @@ patch class List<E> {
     return makeListFixedLength(list);
   }
 
+  /* patch */ factory List.unmodifiable(Iterable elements) {
+    List result = new List<E>.from(elements, growable: false);
+    return makeFixedListUnmodifiable(result);
+  }
+
   // Factory constructing a mutable List from a parser generated List literal.
   // [elements] contains elements that are already type checked.
   factory List._fromLiteral(List elements) {

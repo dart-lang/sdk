@@ -188,6 +188,8 @@ class HGraph {
 
   HConstant addDeferredConstant(ConstantValue constant, PrefixElement prefix,
                                 Compiler compiler) {
+    // TODO(sigurdm,johnniwinter): These deferred constants should be created
+    // by the constant evaluator.
     ConstantValue wrapper = new DeferredConstantValue(constant, prefix);
     compiler.deferredLoadTask.registerConstantDeferredUse(wrapper, prefix);
     return addConstant(wrapper, compiler);
@@ -841,6 +843,11 @@ abstract class HInstruction implements Spannable {
         && !sideEffects.dependsOnSomething()
         && !canThrow();
   }
+
+  /// An instruction is an 'allocation' is it is the sole alias for an object.
+  /// This applies to to instructions that allocate new objects and can be
+  /// extended to methods that return other allocations without escaping them.
+  bool get isAllocation => false;
 
   /// Overridden by [HCheck] to return the actual non-[HCheck]
   /// instruction it checks against.
@@ -1713,37 +1720,52 @@ abstract class HForeign extends HInstruction {
 class HForeignCode extends HForeign {
   final js.Template codeTemplate;
   final bool isStatement;
-  final bool _canThrow;
   final native.NativeBehavior nativeBehavior;
+  native.NativeThrowBehavior throwBehavior;
 
   HForeignCode(this.codeTemplate,
-           TypeMask type,
-           List<HInstruction> inputs,
-           {this.isStatement: false,
-            SideEffects effects,
-            native.NativeBehavior nativeBehavior,
-            canThrow: false})
+      TypeMask type,
+      List<HInstruction> inputs,
+      {this.isStatement: false,
+       SideEffects effects,
+       native.NativeBehavior nativeBehavior,
+       native.NativeThrowBehavior throwBehavior})
       : this.nativeBehavior = nativeBehavior,
-        this._canThrow = canThrow,
+        this.throwBehavior = throwBehavior,
         super(type, inputs) {
-    if(codeTemplate == null) throw this;
+    assert(codeTemplate != null);
     if (effects == null && nativeBehavior != null) {
       effects = nativeBehavior.sideEffects;
     }
+    if (this.throwBehavior == null) {
+      this.throwBehavior = (nativeBehavior == null)
+          ? native.NativeThrowBehavior.MAY
+          : nativeBehavior.throwBehavior;
+    }
+    assert(this.throwBehavior != null);
+
     if (effects != null) sideEffects.add(effects);
   }
 
-  HForeignCode.statement(codeTemplate, List<HInstruction> inputs,
-                     SideEffects effects,
-                     native.NativeBehavior nativeBehavior,
-                     TypeMask type)
+  HForeignCode.statement(js.Template codeTemplate, List<HInstruction> inputs,
+      SideEffects effects,
+      native.NativeBehavior nativeBehavior,
+      TypeMask type)
       : this(codeTemplate, type, inputs, isStatement: true,
              effects: effects, nativeBehavior: nativeBehavior);
 
   accept(HVisitor visitor) => visitor.visitForeignCode(this);
 
   bool isJsStatement() => isStatement;
-  bool canThrow() => _canThrow || super.canThrow();
+  bool canThrow() => canBeNull()
+      ? throwBehavior.canThrow
+      : throwBehavior.onNonNull.canThrow;
+
+  bool onlyThrowsNSM() => throwBehavior.isOnlyNullNSMGuard;
+
+  bool get isAllocation => nativeBehavior != null &&
+      nativeBehavior.isAllocation &&
+      !canBeNull();
 }
 
 class HForeignNew extends HForeign {
@@ -1760,6 +1782,8 @@ class HForeignNew extends HForeign {
       : super(type, inputs);
 
   accept(HVisitor visitor) => visitor.visitForeignNew(this);
+
+  bool get isAllocation => true;
 }
 
 abstract class HInvokeBinary extends HInstruction {
@@ -2165,7 +2189,7 @@ class HPhi extends HInstruction {
     input.usedBy.add(this);
   }
 
-  toString() => 'phi';
+  toString() => 'phi $id';
   accept(HVisitor visitor) => visitor.visitPhi(this);
 }
 
@@ -2404,6 +2428,8 @@ class HLiteralList extends HInstruction {
   HLiteralList(List<HInstruction> inputs, TypeMask type) : super(inputs, type);
   toString() => 'literal list';
   accept(HVisitor visitor) => visitor.visitLiteralList(this);
+
+  bool get isAllocation => true;
 }
 
 /**

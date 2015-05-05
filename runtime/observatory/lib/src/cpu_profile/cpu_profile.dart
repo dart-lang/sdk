@@ -41,6 +41,24 @@ class CodeCallTree {
       _setCodePercentage(node, child);
     }
   }
+
+  _recordCallerAndCalleesInner(CodeCallTreeNode caller,
+                      CodeCallTreeNode callee) {
+    if (caller != null) {
+      caller.profileCode._recordCallee(callee.profileCode, callee.count);
+      callee.profileCode._recordCaller(caller.profileCode, callee.count);
+    }
+
+    for (var child in callee.children) {
+      _recordCallerAndCalleesInner(callee, child);
+    }
+  }
+
+  _recordCallerAndCallees() {
+    for (var child in root.children) {
+      _recordCallerAndCalleesInner(null, child);
+    }
+  }
 }
 
 class FunctionCallTreeNodeCode {
@@ -129,11 +147,136 @@ class FunctionCallTreeNode {
   }
 }
 
+/// Predicate filter function. Returns true if path from root to [node] and all
+/// of [node]'s children should be added to the filtered tree.
+typedef bool FunctionCallTreeNodeFilter(FunctionCallTreeNode node);
+
+/// Build a filter version of a FunctionCallTree.
+class _FilteredFunctionCallTreeBuilder {
+  /// The filter.
+  final FunctionCallTreeNodeFilter filter;
+  /// The unfiltered tree.
+  final FunctionCallTree _unfilteredTree;
+  /// The filtered tree (construct by [build]).
+  final FunctionCallTree filtered;
+  final List _currentPath = [];
+
+  /// Construct a filtered tree builder using [filter] and [tree].
+  _FilteredFunctionCallTreeBuilder(this.filter, FunctionCallTree tree)
+      : _unfilteredTree = tree,
+        filtered =
+          new FunctionCallTree(
+              tree.inclusive,
+              new FunctionCallTreeNode(
+                  tree.root.profileFunction,
+                  tree.root.count));
+
+  /// Build the filtered tree.
+  build() {
+    assert(filtered != null);
+    assert(filter != null);
+    assert(_unfilteredTree != null);
+    _descend(_unfilteredTree.root);
+  }
+
+  FunctionCallTreeNode _findFunctionInChildren(FunctionCallTreeNode current,
+                                               FunctionCallTreeNode needle) {
+    for (var child in current.children) {
+      if (child.profileFunction == needle.profileFunction) {
+        return child;
+      }
+    }
+    return null;
+  }
+
+  /// Add all nodes in [_currentPath].
+  FunctionCallTreeNode _addCurrentPath() {
+    FunctionCallTreeNode current = filtered.root;
+    // Tree root is always the first element of the current path.
+    assert(_unfilteredTree.root == _currentPath[0]);
+    // Assert that unfiltered tree's root and filtered tree's root are different.
+    assert(_unfilteredTree.root != current);
+    for (var i = 1; i < _currentPath.length; i++) {
+      // toAdd is from the unfiltered tree.
+      var toAdd = _currentPath[i];
+      // See if we already have a node for toAdd in the filtered tree.
+      var child = _findFunctionInChildren(current, toAdd);
+      if (child == null) {
+        // New node.
+        child = new FunctionCallTreeNode(toAdd.profileFunction, toAdd.count);
+        current.children.add(child);
+      }
+      current = child;
+      assert(current.count == toAdd.count);
+    }
+    return current;
+  }
+
+  /// Starting at [current] append [next] and all of [next]'s sub-trees
+  _appendTree(FunctionCallTreeNode current, FunctionCallTreeNode next) {
+    if (next == null) {
+      return;
+    }
+    var child = _findFunctionInChildren(current, next);
+    if (child == null) {
+      child = new FunctionCallTreeNode(next.profileFunction, next.count);
+      current.children.add(child);
+    }
+    current = child;
+    for (var nextChild in next.children) {
+      _appendTree(current, nextChild);
+    }
+  }
+
+  /// Add path from root to [child], [child], and all of [child]'s sub-trees
+  /// to filtered tree.
+  _addTree(FunctionCallTreeNode child) {
+    var current = _addCurrentPath();
+    _appendTree(current, child);
+  }
+
+  /// Descend further into the tree. [current] is from the unfiltered tree.
+  _descend(FunctionCallTreeNode current) {
+    if (current == null) {
+      return;
+    }
+    _currentPath.add(current);
+
+    if (filter(current)) {
+      // Filter matched.
+      if (current.children.length == 0) {
+        // Have no children. Add this path.
+        _addTree(null);
+      } else {
+        // Add all child trees.
+        for (var child in current.children) {
+          _addTree(child);
+        }
+      }
+    } else {
+      // Did not match, descend to each child.
+      for (var child in current.children) {
+        _descend(child);
+      }
+    }
+
+    var last = _currentPath.removeLast();
+    assert(current == last);
+  }
+}
+
 class FunctionCallTree {
   final bool inclusive;
   final FunctionCallTreeNode root;
   FunctionCallTree(this.inclusive, this.root) {
     _setFunctionPercentage(null, root);
+  }
+
+  FunctionCallTree filtered(FunctionCallTreeNodeFilter filter) {
+    var treeFilter = new _FilteredFunctionCallTreeBuilder(filter, this);
+    treeFilter.build();
+    _setFunctionPercentage(null, treeFilter.filtered.root);
+    return treeFilter.filtered;
   }
 
   void _setFunctionPercentage(FunctionCallTreeNode parent,
@@ -152,6 +295,23 @@ class FunctionCallTree {
     }
     for (var child in node.children) {
       _setFunctionPercentage(node, child);
+    }
+  }
+
+  _markFunctionCallsInner(FunctionCallTreeNode caller,
+                     FunctionCallTreeNode callee) {
+    if (caller != null) {
+      caller.profileFunction._recordCallee(callee.profileFunction, callee.count);
+      callee.profileFunction._recordCaller(caller.profileFunction, callee.count);
+    }
+    for (var child in callee.children) {
+      _markFunctionCallsInner(callee, child);
+    }
+  }
+
+  _markFunctionCalls() {
+    for (var child in root.children) {
+      _markFunctionCallsInner(null, child);
     }
   }
 }
@@ -186,6 +346,8 @@ class ProfileCode {
   String formattedCpuTime = '';
   String formattedOnStackTime = '';
   final Set<String> attributes = new Set<String>();
+  final Map<ProfileCode, int> callers = new Map<ProfileCode, int>();
+  final Map<ProfileCode, int> callees = new Map<ProfileCode, int>();
 
   void _processTicks(List<String> profileTicks) {
     assert(profileTicks != null);
@@ -262,6 +424,22 @@ class ProfileCode {
       '${Utils.formatPercent(exclusiveTicks, profile.sampleCount)} '
       '($exclusiveTicks)';
   }
+
+  _recordCaller(ProfileCode caller, int count) {
+    var r = callers[caller];
+    if (r == null) {
+      r = 0;
+    }
+    callers[caller] = r + count;
+  }
+
+  _recordCallee(ProfileCode callee, int count) {
+    var r = callees[callee];
+    if (r == null) {
+      r = 0;
+    }
+    callees[callee] = r + count;
+  }
 }
 
 class ProfileFunction {
@@ -269,6 +447,9 @@ class ProfileFunction {
   final ServiceFunction function;
   // List of compiled code objects containing this function.
   final List<ProfileCode> profileCodes = new List<ProfileCode>();
+  final Map<ProfileFunction, int> callers = new Map<ProfileFunction, int>();
+  final Map<ProfileFunction, int> callees = new Map<ProfileFunction, int>();
+
   // Absolute ticks:
   int exclusiveTicks = 0;
   int inclusiveTicks = 0;
@@ -356,6 +537,7 @@ class ProfileFunction {
   }
 
   ProfileFunction.fromMap(this.profile, this.function, Map data) {
+    function.profile = this;
     for (var codeIndex in data['codes']) {
       var profileCode = profile.codes[codeIndex];
       profileCodes.add(profileCode);
@@ -397,6 +579,22 @@ class ProfileFunction {
         '${Utils.formatPercent(exclusiveTicks, profile.sampleCount)} '
         '($exclusiveTicks)';
   }
+
+  _recordCaller(ProfileFunction caller, int count) {
+    var r = callers[caller];
+    if (r == null) {
+      r = 0;
+    }
+    callers[caller] = r + count;
+  }
+
+  _recordCallee(ProfileFunction callee, int count) {
+    var r = callees[callee];
+    if (r == null) {
+      r = 0;
+    }
+    callees[callee] = r + count;
+  }
 }
 
 
@@ -416,7 +614,9 @@ class CpuProfile {
 
   final Map<String, List> tries = <String, List>{};
   final List<ProfileCode> codes = new List<ProfileCode>();
+  bool _builtCodeCalls = false;
   final List<ProfileFunction> functions = new List<ProfileFunction>();
+  bool _builtFunctionCalls = false;
 
   CodeCallTree loadCodeTree(String name) {
     if (name == 'inclusive') {
@@ -434,7 +634,25 @@ class CpuProfile {
     }
   }
 
-  void clear() {
+  buildCodeCallerAndCallees() {
+    if (_builtCodeCalls) {
+      return;
+    }
+    _builtCodeCalls = true;
+    var tree = loadCodeTree('inclusive');
+    tree._recordCallerAndCallees();
+  }
+
+  buildFunctionCallerAndCallees() {
+    if (_builtFunctionCalls) {
+      return;
+    }
+    _builtFunctionCalls = true;
+    var tree = loadFunctionTree('inclusive');
+    tree._markFunctionCalls();
+  }
+
+  clear() {
     sampleCount = 0;
     samplePeriod = 0;
     sampleRate = 0.0;
@@ -443,9 +661,11 @@ class CpuProfile {
     codes.clear();
     functions.clear();
     tries.clear();
+    _builtCodeCalls = false;
+    _builtFunctionCalls = false;
   }
 
-  void load(Isolate isolate, ServiceMap profile) {
+  load(Isolate isolate, ServiceMap profile) {
     clear();
     if ((isolate == null) || (profile == null)) {
       return;

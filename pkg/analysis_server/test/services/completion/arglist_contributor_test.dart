@@ -7,14 +7,14 @@ library test.services.completion.dart.arglist;
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import 'completion_test_util.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ArgListContributorTest);
+  defineReflectiveTests(ArgListContributorTest);
 }
 
 @reflectiveTest
@@ -77,7 +77,7 @@ class ArgListContributorTest extends AbstractCompletionTest {
     for (String name in namedArguments) {
       expected.add(assertSuggest('$name: ',
           csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-          relevance: DART_RELEVANCE_PARAMETER));
+          relevance: DART_RELEVANCE_NAMED_PARAMETER));
     }
     assertNoOtherSuggestions(expected);
   }

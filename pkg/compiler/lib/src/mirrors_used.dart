@@ -4,6 +4,8 @@
 
 library dart2js.mirrors_used;
 
+import 'compile_time_constants.dart' show
+    ConstantCompiler;
 import 'constants/expressions.dart';
 import 'constants/values.dart' show
     ConstantValue,
@@ -20,7 +22,6 @@ import 'dart_types.dart' show
 import 'dart2jslib.dart' show
     Compiler,
     CompilerTask,
-    ConstantCompiler,
     MessageKind,
     TreeElements,
     invariant;
@@ -328,7 +329,7 @@ class MirrorUsageAnalyzer {
   /// Convert a [constant] to an instance of [MirrorUsage] using information
   /// that was resolved during [MirrorUsageAnalyzerTask.validate].
   MirrorUsage buildUsage(ConstructedConstantValue constant) {
-    Map<Element, ConstantValue> fields = constant.fieldElements;
+    Map<Element, ConstantValue> fields = constant.fields;
     VariableElement symbolsField = compiler.mirrorsUsedClass.lookupLocalMember(
         'symbols');
     VariableElement targetsField = compiler.mirrorsUsedClass.lookupLocalMember(

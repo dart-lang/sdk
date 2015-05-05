@@ -14,8 +14,6 @@
             '../tools/make_links.py',
             '<!@(["python", "../tools/list_pkg_directories.py", "."])',
             '<!@(["python", "../tools/list_pkg_directories.py", '
-                '"third_party"])',
-            '<!@(["python", "../tools/list_pkg_directories.py", '
                 '"../third_party/pkg"])',
             '<!@(["python", "../tools/list_pkg_directories.py", '
                 '"../third_party/pkg_tested"])',

@@ -4,11 +4,11 @@
 
 library analyzer.src.plugin.engine_plugin;
 
-import 'package:analyzer/plugin/plugin.dart';
 import 'package:analyzer/plugin/task.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:plugin/plugin.dart';
 
 /**
  * A plugin that defines the extension points and extensions that are inherently
@@ -40,9 +40,7 @@ class EnginePlugin implements Plugin {
   /**
    * Return a list containing all of the task descriptors that were contributed.
    */
-  List<TaskDescriptor> taskDescriptors() {
-    return taskExtensionPoint.extensions;
-  }
+  List<TaskDescriptor> get taskDescriptors => taskExtensionPoint.extensions;
 
   @override
   String get uniqueIdentifier => UNIQUE_IDENTIFIER;
@@ -63,19 +61,27 @@ class EnginePlugin implements Plugin {
     //
     // Register Dart tasks.
     //
+    registerExtension(taskId, BuildClassConstructorsTask.DESCRIPTOR);
     registerExtension(taskId, BuildCompilationUnitElementTask.DESCRIPTOR);
     registerExtension(taskId, BuildDirectiveElementsTask.DESCRIPTOR);
     registerExtension(taskId, BuildEnumMemberElementsTask.DESCRIPTOR);
     registerExtension(taskId, BuildExportNamespaceTask.DESCRIPTOR);
-    registerExtension(taskId, BuildSourceClosuresTask.DESCRIPTOR);
     registerExtension(taskId, BuildFunctionTypeAliasesTask.DESCRIPTOR);
+    registerExtension(taskId, BuildLibraryConstructorsTask.DESCRIPTOR);
     registerExtension(taskId, BuildLibraryElementTask.DESCRIPTOR);
     registerExtension(taskId, BuildPublicNamespaceTask.DESCRIPTOR);
+    registerExtension(taskId, BuildSourceClosuresTask.DESCRIPTOR);
     registerExtension(taskId, BuildTypeProviderTask.DESCRIPTOR);
+    registerExtension(taskId, GatherUsedImportedElementsTask.DESCRIPTOR);
+    registerExtension(taskId, GatherUsedLocalElementsTask.DESCRIPTOR);
+    registerExtension(taskId, GenerateHintsTask.DESCRIPTOR);
     registerExtension(taskId, ParseDartTask.DESCRIPTOR);
     registerExtension(taskId, ResolveLibraryTypeNamesTask.DESCRIPTOR);
+    registerExtension(taskId, ResolveReferencesTask.DESCRIPTOR);
     registerExtension(taskId, ResolveUnitTypeNamesTask.DESCRIPTOR);
+    registerExtension(taskId, ResolveVariableReferencesTask.DESCRIPTOR);
     registerExtension(taskId, ScanDartTask.DESCRIPTOR);
+    registerExtension(taskId, VerifyUnitTask.DESCRIPTOR);
     //
     // Register HTML tasks.
     //

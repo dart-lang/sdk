@@ -1490,7 +1490,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ movq(RBX, Address(RBP, kFirstLocalSlotFromFp * kWordSize));
     __ UpdateRangeFeedback(RDX, 2, RBX, RCX, &done);
     __ Bind(&done);
-    __ LeaveFrame();
+    __ LeaveStubFrame();
     __ ret();
   } else {
     __ jmp(RCX);

@@ -1176,7 +1176,7 @@ uword Simulator::CompareExchange(uword* address,
 uword Simulator::StackTop() const {
   // To be safe in potential stack underflows we leave some buffer above and
   // set the stack top.
-  return reinterpret_cast<uword>(stack_) +
+  return StackBase() +
       (Isolate::GetSpecifiedStackSize() + Isolate::kStackSizeBuffer);
 }
 
@@ -1506,7 +1506,7 @@ typedef void (*SimulatorNativeCall)(NativeArguments* arguments, uword target);
 void Simulator::SupervisorCall(Instr* instr) {
   int svc = instr->SvcField();
   switch (svc) {
-    case kRedirectionSvcCode: {
+    case Instr::kSimulatorRedirectCode: {
       SimulatorSetjmpBuffer buffer(this);
 
       if (!setjmp(buffer.buffer_)) {
@@ -1627,17 +1627,9 @@ void Simulator::SupervisorCall(Instr* instr) {
 
       break;
     }
-    case kBreakpointSvcCode: {
+    case Instr::kSimulatorBreakCode: {
       SimulatorDebugger dbg(this);
       dbg.Stop(instr, "breakpoint");
-      break;
-    }
-    case kStopMessageSvcCode: {
-      SimulatorDebugger dbg(this);
-      const char* message = *reinterpret_cast<const char**>(
-          reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
-      set_pc(get_pc() + Instr::kInstrSize);
-      dbg.Stop(instr, message);
       break;
     }
     default: {
@@ -1696,10 +1688,18 @@ void Simulator::DecodeType01(Instr* instr) {
           if ((instr->Bits(21, 2) == 0x1) && (instr->ConditionField() == AL)) {
             // Format(instr, "bkpt #'imm12_4");
             SimulatorDebugger dbg(this);
-            set_pc(get_pc() + Instr::kInstrSize);
-            char buffer[32];
-            snprintf(buffer, sizeof(buffer), "bkpt #0x%x", instr->BkptField());
-            dbg.Stop(instr, buffer);
+            int32_t imm = instr->BkptField();
+            if (imm == Instr::kStopMessageCode) {
+              const char* message = *reinterpret_cast<const char**>(
+                  reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
+              set_pc(get_pc() + Instr::kInstrSize);
+              dbg.Stop(instr, message);
+            } else {
+              char buffer[32];
+              snprintf(buffer, sizeof(buffer), "bkpt #0x%x", imm);
+              set_pc(get_pc() + Instr::kInstrSize);
+              dbg.Stop(instr, buffer);
+            }
           } else {
              // Format(instr, "smc'cond");
             UnimplementedInstruction(instr);
@@ -1728,10 +1728,6 @@ void Simulator::DecodeType01(Instr* instr) {
           case 3: {
             // Registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
             // Format(instr, "mls'cond's 'rn, 'rm, 'rs, 'rd");
-            if (TargetCPUFeatures::arm_version() != ARMv7) {
-              UnimplementedInstruction(instr);
-              break;
-            }
             rd_val = get_register(rd);
             // fall through
           }
@@ -1740,6 +1736,10 @@ void Simulator::DecodeType01(Instr* instr) {
             // Format(instr, "mul'cond's 'rn, 'rm, 'rs");
             int32_t alu_out = rm_val * rs_val;
             if (instr->Bits(21, 3) == 3) {  // mls
+              if (TargetCPUFeatures::arm_version() != ARMv7) {
+                UnimplementedInstruction(instr);
+                break;
+              }
               alu_out = -alu_out;
             }
             alu_out += rd_val;

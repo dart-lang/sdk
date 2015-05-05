@@ -76,12 +76,15 @@ class BlockCollector extends StatementVisitor {
     visitStatement(node.next);
   }
 
-  visitAssign(Assign node) {
+  visitReturn(Return node) {
     _addStatement(node);
-    visitStatement(node.next);
   }
 
-  visitReturn(Return node) {
+  visitThrow(Throw node) {
+    _addStatement(node);
+  }
+
+  visitRethrow(Rethrow node) {
     _addStatement(node);
   }
 
@@ -173,11 +176,10 @@ class BlockCollector extends StatementVisitor {
     visitStatement(node.next);
   }
 
-  visitSetField(SetField node) {
+  visitVariableDeclaration(VariableDeclaration node) {
     _addStatement(node);
     visitStatement(node.next);
   }
-
 }
 
 class TreeTracer extends TracerUtil with StatementVisitor {
@@ -266,16 +268,16 @@ class TreeTracer extends TracerUtil with StatementVisitor {
     // These do not get added to a block's list of statements.
   }
 
-  visitAssign(Assign node) {
-    String name = names.varName(node.variable);
-    String rhs = expr(node.value);
-    Variable v = node.variable;
-    String extra = "(r=${v.readCount}, w=${v.writeCount})";
-    printStatement(null, "assign $name = $rhs $extra");
-  }
-
   visitReturn(Return node) {
     printStatement(null, "return ${expr(node.value)}");
+  }
+
+  visitThrow(Throw node) {
+    printStatement(null, "throw ${expr(node.value)}");
+  }
+
+  visitRethrow(Rethrow node) {
+    printStatement(null, "rethrow");
   }
 
   visitBreak(Break node) {
@@ -321,6 +323,12 @@ class TreeTracer extends TracerUtil with StatementVisitor {
     printStatement(null, 'function ${node.definition.element.name}');
   }
 
+  visitVariableDeclaration(VariableDeclaration node) {
+    String variable = names.varName(node.variable);
+    String value = expr(node.value);
+    printStatement(null, 'declare $variable = $value');
+  }
+
   visitSetField(SetField node) {
     String object = expr(node.object);
     String field = node.field.name;
@@ -343,6 +351,12 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
 
   String visitVariableUse(VariableUse node) {
     return names.varName(node.variable);
+  }
+
+  String visitAssign(Assign node) {
+    String variable = names.varName(node.variable);
+    String value = visitExpression(node.value);
+    return '$variable = $value';
   }
 
   String formatArguments(Invoke node) {
@@ -426,7 +440,10 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
   }
 
   static bool usesInfixNotation(Expression node) {
-    return node is Conditional || node is LogicalOperator;
+    return node is Conditional ||
+           node is LogicalOperator ||
+           node is Assign ||
+           node is SetField;
   }
 
   String visitConditional(Conditional node) {
@@ -481,6 +498,16 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
       object = '($object)';
     }
     return '$object.$field';
+  }
+
+  String visitSetField(SetField node) {
+    String object = visitExpression(node.object);
+    String field = node.field.name;
+    if (usesInfixNotation(node.object)) {
+      object = '($object)';
+    }
+    String value = visitExpression(node.value);
+    return '$object.$field = $value';
   }
 
   String visitCreateBox(CreateBox node) {

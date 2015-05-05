@@ -55,6 +55,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaTypePropagator(compiler),
           new SsaCodeMotion(),
           new SsaLoadElimination(compiler),
+          new SsaRedundantPhiEliminator(),
           new SsaDeadPhiEliminator(),
           new SsaTypePropagator(compiler),
           new SsaValueRangeAnalyzer(compiler, constantSystem, this, work),
@@ -197,6 +198,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
     assert(inputs.length == 1);
     HInstruction input = inputs[0];
     if (input.isBoolean(compiler)) return input;
+
+    // If the code is unreachable, remove the HBoolify.  This can happen when
+    // there is a throw expression in a short-circuit conditional.  Removing the
+    // unreachable HBoolify makes it easier to reconstruct the short-circuit
+    // operation.
+    if (input.instructionType.isEmpty && !input.instructionType.isNullable)
+      return input;
+
     // All values that cannot be 'true' are boolified to false.
     TypeMask mask = input.instructionType;
     if (!mask.contains(backend.jsBoolClass, compiler.world)) {
@@ -513,35 +522,46 @@ class SsaInstructionSimplifier extends HBaseVisitor
     TypeMask leftType = left.instructionType;
     TypeMask rightType = right.instructionType;
 
+    HInstruction makeTrue() => graph.addConstantBool(true, compiler);
+    HInstruction makeFalse() => graph.addConstantBool(false, compiler);
+
     // Intersection of int and double return conflicting, so
     // we don't optimize on numbers to preserve the runtime semantics.
     if (!(left.isNumberOrNull(compiler) && right.isNumberOrNull(compiler))) {
       TypeMask intersection = leftType.intersection(rightType, compiler.world);
       if (intersection.isEmpty && !intersection.isNullable) {
-        return graph.addConstantBool(false, compiler);
+        return makeFalse();
       }
     }
 
     if (left.isNull() && right.isNull()) {
-      return graph.addConstantBool(true, compiler);
+      return makeTrue();
+    }
+
+    HInstruction compareConstant(HConstant constant, HInstruction input) {
+      if (constant.constant.isTrue) {
+        return input;
+      } else {
+        return new HNot(input, backend.boolType);
+      }
     }
 
     if (left.isConstantBoolean() && right.isBoolean(compiler)) {
-      HConstant constant = left;
-      if (constant.constant.isTrue) {
-        return right;
-      } else {
-        return new HNot(right, backend.boolType);
-      }
+      return compareConstant(left, right);
     }
 
     if (right.isConstantBoolean() && left.isBoolean(compiler)) {
-      HConstant constant = right;
-      if (constant.constant.isTrue) {
-        return left;
-      } else {
-        return new HNot(left, backend.boolType);
-      }
+      return compareConstant(right, left);
+    }
+
+
+    if (identical(left.nonCheck(), right.nonCheck())) {
+      // Avoid constant-folding `identical(x, x)` when `x` might be double.  The
+      // dart2js runtime has not always been consistent with the Dart
+      // specification (section 16.0.1), which makes distinctions on NaNs and
+      // -0.0 that are hard to implement efficiently.
+      if (left.isIntegerOrNull(compiler)) return makeTrue();
+      if (!left.canBePrimitiveNumber(compiler)) return makeTrue();
     }
 
     return null;
@@ -738,7 +758,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       ConstantValue constant = receiver.constant;
       if (constant.isConstructedObject) {
         ConstructedConstantValue constructedConstant = constant;
-        Map<Element, ConstantValue> fields = constructedConstant.fieldElements;
+        Map<Element, ConstantValue> fields = constructedConstant.fields;
         ConstantValue value = fields[node.element];
         if (value != null) {
           return graph.addConstant(value, compiler);
@@ -820,6 +840,19 @@ class SsaInstructionSimplifier extends HBaseVisitor
       }
     }
     return new HFieldSet(field, receiver, value);
+  }
+
+  HInstruction visitInvokeStatic(HInvokeStatic node) {
+    if (node.element == backend.getCheckConcurrentModificationError()) {
+      if (node.inputs.length == 2) {
+        HInstruction firstArgument = node.inputs[0];
+        if (firstArgument is HConstant) {
+          HConstant constant = firstArgument;
+          if (constant.constant.isTrue) return constant;
+        }
+      }
+    }
+    return node;
   }
 
   HInstruction visitStringConcat(HStringConcat node) {
@@ -1004,6 +1037,13 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   /// Returns true of [foreign] will throw an noSuchMethod error if
   /// receiver is `null` before having any other side-effects.
   bool templateThrowsNSMonNull(HForeignCode foreign, HInstruction receiver) {
+    if (foreign.inputs.length < 1) return false;
+    if (foreign.inputs.first != receiver) return false;
+    if (foreign.throwBehavior.isNullNSMGuard) return true;
+
+    // TODO(sra): Fix NativeThrowBehavior to distinguish MAY from
+    // throws-nsm-on-null-followed-by-MAY and remove all the code below.
+
     // We look for a template of the form
     //
     // #.something -or- #.something()
@@ -1022,7 +1062,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       js.PropertyAccess access = node;
       if (access.receiver is js.InterpolatedExpression) {
         js.InterpolatedExpression hole = access.receiver;
-        return hole.isPositional && foreign.inputs.first == receiver;
+        return hole.isPositional && hole.nameOrPosition == 0;
       }
     }
     return false;
@@ -1900,6 +1940,9 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   }
 
   void visitInstruction(HInstruction instruction) {
+    if (instruction.isAllocation) {
+      memorySet.registerAllocation(instruction);
+    }
     memorySet.killAffectedBy(instruction);
   }
 

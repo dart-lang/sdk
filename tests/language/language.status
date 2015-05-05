@@ -38,12 +38,15 @@ deferred_shadow_load_library_test: Fail # Issue 17523
 deferred_closurize_load_library_test: Fail  # Issue 17523
 deferred_inlined_test: Fail  # Issue 17523
 deferred_optimized_test: Fail  # Issue 17523
-multiline_strings_test: Fail # Issue (pending)
 regress_22443_test: Fail # Issue 17523
 enum_mirror_test: Skip # Issue 11511.
+getter_setter_in_lib_test: Fail # Issue 23288
 
 override_inheritance_mixed_test/08: Fail # Issue 18124
 override_inheritance_mixed_test/09: Fail # Issue 18124
+
+[ $compiler == dart2dart ]
+multiline_strings_test: Fail # Issue (pending)
 
 [ $compiler == none || $compiler == dart2dart ]
 # Non-contractive types are not supported in the vm.
@@ -59,6 +62,7 @@ async_star_test/05: Timeout, RuntimeError
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
+vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 
 [ $compiler == none && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
@@ -72,20 +76,17 @@ dynamic_prefix_core_test/none: Fail # Issue 12478
 export_ambiguous_main_negative_test: Fail # Issue 14763
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $unchecked ]
-assertion_test: Fail # Issue 13719: Please triage this failure.
-generic_test: Fail # Issue 13719: Please triage this failure.
-list_literal4_test: Fail # Issue 13719: Please triage this failure.
-map_literal4_test: Fail # Issue 13719: Please triage this failure.
-named_parameters_type_test/01: Fail # Issue 13719: Please triage this failure.
-named_parameters_type_test/02: Fail # Issue 13719: Please triage this failure.
-named_parameters_type_test/03: Fail # Issue 13719: Please triage this failure.
-positional_parameters_type_test/01: Fail # Issue 13719: Please triage this failure.
-positional_parameters_type_test/02: Fail # Issue 13719: Please triage this failure.
-type_checks_in_factory_method_test: Fail # Issue 13719: Please triage this failure.
-vm/type_vm_test: Fail # Issue 13719: Please triage this failure.
-
-[ $compiler == none && $runtime == dartium ]
-first_class_types_literals_test: Pass, Fail # Issue 13719: Please triage this failure.
+assertion_test: Fail # Issue 14651.
+generic_test: Fail # Issue 14651.
+list_literal4_test: Fail # Issue 14651.
+map_literal4_test: Fail # Issue 14651.
+named_parameters_type_test/01: Fail # Issue 14651.
+named_parameters_type_test/02: Fail # Issue 14651.
+named_parameters_type_test/03: Fail # Issue 14651.
+positional_parameters_type_test/01: Fail # Issue 14651.
+positional_parameters_type_test/02: Fail # Issue 14651.
+type_checks_in_factory_method_test: Fail # Issue 14651.
+vm/type_vm_test: Fail # Issue 14651.
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
 issue13474_test: Pass, Fail # Issue 14651.
@@ -98,6 +99,7 @@ main_test/05: Fail # Issue 20028
 main_test/21: Fail # Issue 20028
 main_test/42: Fail # Issue 20028
 mirror_in_static_init_test: Fail # Issue 22071
+vm/debug_break_enabled_vm_test/*: Skip # Issue 14651.
 
 [ $compiler == none && $runtime == drt ]
 disassemble_test: Pass, Fail # Issue 18122
@@ -116,6 +118,5 @@ large_class_declaration_test: SkipSlow # Times out. Issue 20352
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 gc_test: SkipSlow # Times out flakily. Issue 20956
 
-[ $compiler == none && $runtime == vm && ( $arch == simarm || $arch == arm || $arch == armv5te || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
+[ $compiler == none && $runtime == vm && ( $arch == simarm || $arch == arm || $arch == simarmv5te || $arch == armv5te || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
-

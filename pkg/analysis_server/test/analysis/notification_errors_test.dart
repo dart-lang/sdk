@@ -7,14 +7,14 @@ library test.analysis.notification_errors;
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
-import '../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(NotificationErrorsTest);
+  defineReflectiveTests(NotificationErrorsTest);
 }
 
 @reflectiveTest

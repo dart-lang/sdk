@@ -59,8 +59,6 @@ DEFINE_FLAG(bool, overlap_type_arguments, true,
 DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
-DEFINE_FLAG(bool, trace_disabling_optimized_code, false,
-    "Trace disabling optimized code.");
 DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
     "Throw an exception when the result of an integer calculation will not "
     "fit into a javascript integer.");
@@ -760,8 +758,9 @@ class PremarkingVisitor : public ObjectVisitor {
   explicit PremarkingVisitor(Isolate* isolate) : ObjectVisitor(isolate) {}
 
   void VisitObject(RawObject* obj) {
-    // RawInstruction objects are premarked on allocation.
-    if (!obj->IsMarked()) {
+    ASSERT(!obj->IsMarked());
+    // Free list elements should never be marked.
+    if (!obj->IsFreeListElement()) {
       obj->SetMarkBitUnsynchronized();
     }
   }
@@ -833,7 +832,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   PremarkingVisitor premarker(isolate);
   isolate->heap()->WriteProtect(false);
   ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
-  isolate->heap()->IterateOldObjects(&premarker);
+  isolate->heap()->old_space()->VisitObjects(&premarker);
   isolate->heap()->WriteProtect(true);
 }
 
@@ -1602,6 +1601,12 @@ void Object::PrintJSONImpl(JSONStream* stream, bool ref) const {
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  if (ref) {
+    return;
+  }
+  Class& cls = Class::Handle(this->clazz());
+  jsobj.AddProperty("class", cls);
+  jsobj.AddProperty("size", raw()->Size());
 }
 
 
@@ -3525,7 +3530,7 @@ RawType* Class::CanonicalTypeFromIndex(intptr_t idx) const {
     }
   }
   Object& types = Object::Handle(canonical_types());
-  if (types.IsNull()) {
+  if (types.IsNull() || !types.IsArray()) {
     return Type::null();
   }
   if ((idx < 0) || (idx >= Array::Cast(types).Length())) {
@@ -5091,25 +5096,31 @@ void Function::ClearCode() const {
 
 void Function::SwitchToUnoptimizedCode() const {
   ASSERT(HasOptimizedCode());
-  Isolate* isolate = Isolate::Current();
-  const Code& current_code = Code::Handle(isolate, CurrentCode());
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
+  const Code& current_code = Code::Handle(zone, CurrentCode());
 
-  if (FLAG_trace_deoptimization) {
+  if (FLAG_trace_deoptimization_verbose) {
     OS::Print("Disabling optimized code: '%s' entry: %#" Px "\n",
       ToFullyQualifiedCString(),
       current_code.EntryPoint());
   }
   // Patch entry of the optimized code.
   CodePatcher::PatchEntry(current_code);
-  // Use previously compiled unoptimized code.
-  AttachCode(Code::Handle(isolate, unoptimized_code()));
-  CodePatcher::RestoreEntry(Code::Handle(isolate, unoptimized_code()));
+  const Error& error = Error::Handle(zone,
+      Compiler::EnsureUnoptimizedCode(thread, *this));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+  }
+  AttachCode(Code::Handle(zone, unoptimized_code()));
+  CodePatcher::RestoreEntry(Code::Handle(zone, unoptimized_code()));
   isolate->TrackDeoptimizedCode(current_code);
 }
 
 
 void Function::set_unoptimized_code(const Code& value) const {
-  ASSERT(!value.is_optimized());
+  ASSERT(value.IsNull() || !value.is_optimized());
   StorePointer(&raw_ptr()->unoptimized_code_, value.raw());
 }
 
@@ -5551,13 +5562,9 @@ bool Function::IsOptimizable() const {
   if (is_optimizable() && (script() != Script::null()) &&
       ((end_token_pos() - token_pos()) < FLAG_huge_method_cutoff_in_tokens)) {
     // Additional check needed for implicit getters.
-    if (HasCode() &&
-       (Code::Handle(unoptimized_code()).Size() >=
-        FLAG_huge_method_cutoff_in_code_size)) {
-      return false;
-    } else {
-      return true;
-    }
+    return (unoptimized_code() == Object::null()) ||
+           (Code::Handle(unoptimized_code()).Size() <
+            FLAG_huge_method_cutoff_in_code_size);
   }
   return false;
 }
@@ -6591,10 +6598,46 @@ RawString* Function::QualifiedUserVisibleName() const {
 }
 
 
-RawString* Function::GetSource() {
+RawString* Function::GetSource() const {
+  if (IsImplicitConstructor() || IsSignatureFunction()) {
+    // We may need to handle more cases when the restrictions on mixins are
+    // relaxed. In particular we might start associating some source with the
+    // forwarding constructors when it becomes possible to specify a particular
+    // constructor from the mixin to use.
+    return String::null();
+  }
   const Script& func_script = Script::Handle(script());
-  // Without the + 1 the final "}" is not included.
-  return func_script.GetSnippet(token_pos(), end_token_pos() + 1);
+  const TokenStream& stream = TokenStream::Handle(func_script.tokens());
+  if (!func_script.HasSource()) {
+    // When source is not available, avoid printing the whole token stream and
+    // doing expensive position calculations.
+    return stream.GenerateSource(token_pos(), end_token_pos() + 1);
+  }
+
+  const TokenStream::Iterator tkit(stream, end_token_pos());
+  intptr_t from_line;
+  intptr_t from_col;
+  intptr_t to_line;
+  intptr_t to_col;
+  func_script.GetTokenLocation(token_pos(), &from_line, &from_col);
+  func_script.GetTokenLocation(end_token_pos(), &to_line, &to_col);
+  intptr_t last_tok_len = String::Handle(tkit.CurrentLiteral()).Length();
+  // Handle special cases for end tokens of closures (where we exclude the last
+  // token):
+  // (1) "foo(() => null, bar);": End token is `,', but we don't print it.
+  // (2) "foo(() => null);": End token is ')`, but we don't print it.
+  // (3) "var foo = () => null;": End token is `;', but in this case the token
+  // semicolon belongs to the assignment so we skip it.
+  if ((tkit.CurrentTokenKind() == Token::kCOMMA) ||                   // Case 1.
+      (tkit.CurrentTokenKind() == Token::kRPAREN) ||                  // Case 2.
+      (tkit.CurrentTokenKind() == Token::kSEMICOLON &&
+       String::Handle(name()).Equals("<anonymous closure>"))) {  // Case 3.
+    last_tok_len = 0;
+  }
+  const String& result = String::Handle(func_script.GetSnippet(
+      from_line, from_col, to_line, to_col + last_tok_len));
+  ASSERT(!result.IsNull());
+  return result.raw();
 }
 
 
@@ -6833,7 +6876,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("code", code);
   }
   jsobj.AddProperty("_optimizable", is_optimizable());
-  jsobj.AddProperty("_inlinable", CanBeInlined());
+  jsobj.AddProperty("_inlinable", is_inlinable());
   code = unoptimized_code();
   if (!code.IsNull()) {
     jsobj.AddProperty("_unoptimizedCode", code);
@@ -8394,16 +8437,6 @@ RawString* Script::GetLine(intptr_t line_number) const {
 }
 
 
-RawString* Script::GetSnippet(intptr_t from_token_pos,
-                              intptr_t to_token_pos) const {
-  intptr_t from_line, from_column;
-  intptr_t to_line, to_column;
-  GetTokenLocation(from_token_pos, &from_line, &from_column);
-  GetTokenLocation(to_token_pos, &to_line, &to_column);
-  return GetSnippet(from_line, from_column, to_line, to_column);
-}
-
-
 RawString* Script::GetSnippet(intptr_t from_line,
                               intptr_t from_column,
                               intptr_t to_line,
@@ -8519,6 +8552,8 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   jsobj.AddProperty("library", lib);
   const String& source = String::Handle(Source());
+  jsobj.AddProperty("lineOffset", line_offset());
+  jsobj.AddProperty("columnOffset", col_offset());
   jsobj.AddPropertyStr("source", source);
 
   // Print the line number table
@@ -9316,6 +9351,7 @@ RawObject* Library::LookupImportedObject(const String& name) const {
   String& import_lib_url = String::Handle();
   String& first_import_lib_url = String::Handle();
   Object& found_obj = Object::Handle();
+  String& found_obj_name = String::Handle();
   for (intptr_t i = 0; i < num_imports(); i++) {
     import ^= ImportAt(i);
     obj = import.Lookup(name);
@@ -9331,13 +9367,28 @@ RawObject* Library::LookupImportedObject(const String& name) const {
           // from the Dart library.
           first_import_lib_url = import_lib.url();
           found_obj = obj.raw();
+          found_obj_name = obj.DictionaryName();
         } else if (import_lib_url.StartsWith(Symbols::DartScheme())) {
           // The newly found object is exported from a Dart system
           // library. It is hidden by the previously found object.
           // We continue to search.
         } else {
           // We found two different objects with the same name.
-          return Object::null();
+          // Note that we need to compare the names again because
+          // looking up an unmangled name can return a getter or a
+          // setter. A getter name is the same as the unmangled name,
+          // but a setter name is different from an unmangled name or a
+          // getter name.
+          if (Field::IsGetterName(found_obj_name)) {
+            found_obj_name = Field::NameFromGetter(found_obj_name);
+          }
+          String& second_obj_name = String::Handle(obj.DictionaryName());
+          if (Field::IsGetterName(second_obj_name)) {
+            second_obj_name = Field::NameFromGetter(second_obj_name);
+          }
+          if (found_obj_name.Equals(second_obj_name)) {
+            return Object::null();
+          }
         }
       }
     }
@@ -10310,7 +10361,7 @@ RawObject* Namespace::Lookup(const String& name) const {
   if (Field::IsGetterName(name)) {
     filter_name = &String::Handle(Field::NameFromGetter(name));
   } else if (Field::IsSetterName(name)) {
-    filter_name = &String::Handle(Field::NameFromGetter(name));
+    filter_name = &String::Handle(Field::NameFromSetter(name));
   } else {
     if (obj.IsNull() || obj.IsLibraryPrefix()) {
       obj = lib.LookupEntry(String::Handle(Field::GetterName(name)), &ignore);
@@ -12026,12 +12077,6 @@ void Code::set_deopt_info_array(const Array& array) const {
 }
 
 
-void Code::set_object_table(const Array& array) const {
-  ASSERT(array.IsOld());
-  StorePointer(&raw_ptr()->object_table_, array.raw());
-}
-
-
 void Code::set_static_calls_target_table(const Array& value) const {
   StorePointer(&raw_ptr()->static_calls_target_table_, value.raw());
 #if defined(DEBUG)
@@ -12281,7 +12326,7 @@ RawCode* Code::FinalizeCode(const char* name,
     code.set_is_alive(true);
 
     // Set object pool in Instructions object.
-    const GrowableObjectArray& object_pool = assembler->object_pool();
+    const GrowableObjectArray& object_pool = assembler->object_pool_data();
     if (object_pool.IsNull()) {
       instrs.set_object_pool(Object::empty_array().raw());
     } else {
@@ -12530,7 +12575,8 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     descriptors.PrintToJSONObject(&desc, false);
   }
   const Array& inlined_function_table = Array::Handle(inlined_id_to_function());
-  if (!inlined_function_table.IsNull()) {
+  if (!inlined_function_table.IsNull() &&
+      (inlined_function_table.Length() > 0)) {
     JSONArray inlined_functions(&jsobj, "_inlinedFunctions");
     Function& function = Function::Handle();
     for (intptr_t i = 0; i < inlined_function_table.Length(); i++) {
@@ -12540,7 +12586,7 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     }
   }
   const Array& intervals = Array::Handle(inlined_intervals());
-  if (!intervals.IsNull()) {
+  if (!intervals.IsNull() && (intervals.Length() > 0)) {
     Smi& start = Smi::Handle();
     Smi& end = Smi::Handle();
     Smi& temp_smi = Smi::Handle();
@@ -12620,6 +12666,7 @@ RawStackmap* Code::GetStackmap(
 intptr_t Code::GetCallerId(intptr_t inlined_id) const {
   if (inlined_id < 0) return -1;
   const Array& intervals = Array::Handle(inlined_intervals());
+  if (intervals.IsNull() || (intervals.Length() == 0)) return -1;
   Smi& temp_smi = Smi::Handle();
   for (intptr_t i = 0; i < intervals.Length() - Code::kInlIntNumEntries;
        i += Code::kInlIntNumEntries) {
@@ -12637,7 +12684,7 @@ void Code::GetInlinedFunctionsAt(
     intptr_t offset, GrowableArray<Function*>* fs) const {
   fs->Clear();
   const Array& intervals = Array::Handle(inlined_intervals());
-  if (intervals.IsNull()) {
+  if (intervals.IsNull() || (intervals.Length() == 0)) {
     // E.g., for code stubs.
     return;
   }
@@ -12679,6 +12726,7 @@ void Code::GetInlinedFunctionsAt(
 void Code::DumpInlinedIntervals() const {
   OS::Print("Inlined intervals:\n");
   const Array& intervals = Array::Handle(inlined_intervals());
+  if (intervals.IsNull() || (intervals.Length() == 0)) return;
   Smi& start = Smi::Handle();
   Smi& inlining_id = Smi::Handle();
   Smi& caller_id = Smi::Handle();
@@ -13928,6 +13976,8 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
 
   if (raw()->IsHeapObject()) {
     jsobj->AddProperty("size", raw()->Size());
+  } else {
+    jsobj->AddProperty("size", (intptr_t)0);
   }
 
   // Walk the superclass chain, adding all instance fields.
@@ -15104,7 +15154,10 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  jsobj.AddProperty("typeArguments", TypeArguments::Handle(arguments()));
+  const TypeArguments& typeArgs = TypeArguments::Handle(arguments());
+  if (!typeArgs.IsNull()) {
+    jsobj.AddProperty("typeArguments", typeArgs);
+  }
 }
 
 

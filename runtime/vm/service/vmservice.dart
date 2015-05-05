@@ -46,7 +46,7 @@ class VMService extends MessageRouter {
   void _eventMessageHandler(dynamic eventMessage) {
     for (var client in clients) {
       if (client.sendEvents) {
-        client.post(null, eventMessage);
+        client.post(eventMessage);
       }
     }
   }
@@ -66,13 +66,16 @@ class VMService extends MessageRouter {
   }
 
   void _exit() {
-    if (onShutdown != null) {
-      onShutdown();
-    }
     isolateLifecyclePort.close();
     scriptLoadPort.close();
-    for (var client in clients) {
+    // Create a copy of the set as a list because client.close() alters the set.
+    var clientsList = clients.toList();
+    for (var client in clientsList) {
       client.close();
+    }
+    // Call embedder shutdown hook after the internal shutdown.
+    if (onShutdown != null) {
+      onShutdown();
     }
     _onExit();
   }
@@ -139,6 +142,51 @@ class VMService extends MessageRouter {
     message.setResponse(JSON.encode(result));
   }
 
+  Future<String> _getCrashDump() async {
+    final perIsolateRequests = [
+        // ?isolateId=<isolate id> will be appended to each of these requests.
+        Uri.parse('getIsolate'),             // Isolate information.
+        Uri.parse('_getAllocationProfile'),  // State of heap.
+        Uri.parse('getStack?full=true'),     // Call stack + local variables.
+    ];
+
+    // Snapshot of running isolates.
+    var isolates = runningIsolates.isolates.values.toList();
+
+    // Collect the mapping from request uris to responses.
+    var responses = {
+    };
+
+    // Request VM.
+    var getVM = Uri.parse('getVM');
+    var getVmResponse = JSON.decode(
+        await new Message.fromUri(getVM).sendToVM());
+    responses[getVM.toString()] = getVmResponse['result'];
+
+    // Request command line flags.
+    var getFlagList = Uri.parse('getFlagList');
+    var getFlagListResponse = JSON.decode(
+        await new Message.fromUri(getFlagList).sendToVM());
+    responses[getFlagList.toString()] = getFlagListResponse['result'];
+
+    // Make requests to each isolate.
+    for (var isolate in isolates) {
+      for (var request in perIsolateRequests) {
+        var message = new Message.forIsolate(request, isolate);
+        // Decode the JSON and and insert it into the map. The map key
+        // is the request Uri.
+        var response = JSON.decode(await isolate.route(message));
+        responses[message.toUri().toString()] = response['result'];
+      }
+    }
+
+    // Encode the entire crash dump.
+    return JSON.encode({
+      'id' : null,
+      'result' : responses,
+    });
+  }
+
   Future<String> route(Message message) {
     if (message.completed) {
       return message.response;
@@ -147,6 +195,9 @@ class VMService extends MessageRouter {
     if ((message.path.length == 1) && (message.path[0] == 'clients')) {
       _clientCollection(message);
       return message.response;
+    }
+    if (message.method == '_getCrashDump') {
+      return _getCrashDump();
     }
     if (message.params['isolateId'] != null) {
       return runningIsolates.route(message);

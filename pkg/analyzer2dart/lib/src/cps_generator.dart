@@ -11,11 +11,10 @@ import 'package:compiler/src/elements/elements.dart' as dart2js;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/element.dart' as analyzer;
 
-import 'package:compiler/src/dart2jslib.dart'
+import 'package:compiler/src/constant_system_dart.dart'
     show DART_CONSTANT_SYSTEM;
 import 'package:compiler/src/cps_ir/cps_ir_nodes.dart' as ir;
 import 'package:compiler/src/cps_ir/cps_ir_builder.dart';
-import 'package:compiler/src/cps_ir/cps_ir_builder_task.dart';
 import 'package:compiler/src/universe/universe.dart';
 
 import 'semantic_visitor.dart';
@@ -201,10 +200,9 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     analyzer.Element staticElement = semantics.element;
     dart2js.Element element = converter.convertElement(staticElement);
     List<ir.Primitive> arguments = visitArguments(node.argumentList);
-    return irBuilder.buildStaticInvocation(
+    return irBuilder.buildStaticFunctionInvocation(
         element,
-        createSelectorFromMethodInvocation(
-            node.argumentList, node.methodName.name),
+        createCallStructureFromMethodInvocation(node.argumentList),
         arguments);
   }
 
@@ -217,13 +215,16 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
                                      AccessSemantics semantics) {
     analyzer.Element staticElement = semantics.element;
     dart2js.Element element = converter.convertElement(staticElement);
-    ir.Primitive receiver = irBuilder.buildLocalGet(element);
     List<ir.Definition> arguments = visitArguments(node.argumentList);
-    return irBuilder.buildCallInvocation(
-      receiver,
-      createSelectorFromMethodInvocation(
-          node.argumentList, node.methodName.name),
-      arguments);
+    CallStructure callStructure = createCallStructureFromMethodInvocation(
+        node.argumentList);
+    if (semantics.kind == AccessKind.LOCAL_FUNCTION) {
+      return irBuilder.buildLocalFunctionInvocation(
+          element, callStructure, arguments);
+    } else {
+      return irBuilder.buildLocalVariableInvocation(
+        element, callStructure, arguments);
+    }
   }
 
   @override
@@ -245,7 +246,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     List<ir.Definition> arguments = visitArguments(node.argumentList);
     return irBuilder.buildCallInvocation(
         target,
-        createSelectorFromMethodInvocation(node.argumentList, 'call'),
+        createCallStructureFromMethodInvocation(node.argumentList),
         arguments);
   }
 
@@ -257,13 +258,9 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
       dart2js.Element element = converter.convertElement(staticElement);
       dart2js.DartType type = converter.convertType(node.staticType);
       List<ir.Primitive> arguments = visitArguments(node.argumentList);
-      String name = '';
-      if (node.constructorName.name != null) {
-        name = node.constructorName.name.name;
-      }
       return irBuilder.buildConstructorInvocation(
           element,
-          createSelectorFromMethodInvocation(node.argumentList, name),
+          createCallStructureFromMethodInvocation(node.argumentList),
           type,
           arguments);
     }
@@ -272,36 +269,36 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
 
   @override
   ir.Constant visitNullLiteral(NullLiteral node) {
-    return irBuilder.buildNullLiteral();
+    return irBuilder.buildNullConstant();
   }
 
   @override
   ir.Constant visitBooleanLiteral(BooleanLiteral node) {
-    return irBuilder.buildBooleanLiteral(node.value);
+    return irBuilder.buildBooleanConstant(node.value);
   }
 
   @override
   ir.Constant visitDoubleLiteral(DoubleLiteral node) {
-    return irBuilder.buildDoubleLiteral(node.value);
+    return irBuilder.buildDoubleConstant(node.value);
   }
 
   @override
   ir.Constant visitIntegerLiteral(IntegerLiteral node) {
-    return irBuilder.buildIntegerLiteral(node.value);
+    return irBuilder.buildIntegerConstant(node.value);
   }
 
   @override
   visitAdjacentStrings(AdjacentStrings node) {
     String value = node.stringValue;
     if (value != null) {
-      return irBuilder.buildStringLiteral(value);
+      return irBuilder.buildStringConstant(value);
     }
     giveUp(node, "Non constant adjacent strings.");
   }
 
   @override
   ir.Constant visitSimpleStringLiteral(SimpleStringLiteral node) {
-    return irBuilder.buildStringLiteral(node.value);
+    return irBuilder.buildStringConstant(node.value);
   }
 
   @override
@@ -347,7 +344,12 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   }
 
   ir.Primitive handleLocalAccess(AstNode node, AccessSemantics semantics) {
-    return irBuilder.buildLocalGet(getLocal(node, semantics));
+    dart2js.Element local = getLocal(node, semantics);
+    if (semantics.kind == AccessKind.LOCAL_FUNCTION) {
+      return irBuilder.buildLocalFunctionGet(local);
+    } else {
+      return irBuilder.buildLocalVariableGet(local);
+    }
   }
 
   ir.Primitive handleLocalAssignment(AssignmentExpression node,
@@ -355,7 +357,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     if (node.operator.lexeme != '=') {
       return giveUp(node, 'Assignment operator: ${node.operator.lexeme}');
     }
-    return irBuilder.buildLocalSet(
+    return irBuilder.buildLocalVariableSet(
         getLocal(node, semantics),
         build(node.rightHandSide));
   }
@@ -390,7 +392,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     // [TreeShaker] and shared with the [CpsGeneratingVisitor].
     assert(invariant(node, target.isTopLevel || target.isStatic,
                      '$target expected to be top-level or static.'));
-    return irBuilder.buildStaticSet(target, build(node.rightHandSide));
+    return irBuilder.buildStaticFieldSet(target, build(node.rightHandSide));
   }
 
   @override
@@ -410,7 +412,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     // [TreeShaker] and shared with the [CpsGeneratingVisitor].
     assert(invariant(node, target.isTopLevel || target.isStatic,
                      '$target expected to be top-level or static.'));
-    return irBuilder.buildStaticGet(target);
+    return irBuilder.buildStaticFieldGet(target);
   }
 
   ir.Primitive handleBinaryExpression(BinaryExpression node,

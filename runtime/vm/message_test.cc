@@ -17,6 +17,9 @@ static uint8_t* AllocMsg(const char* str) {
 TEST_CASE(MessageQueue_BasicOperations) {
   MessageQueue queue;
   EXPECT(queue.IsEmpty());
+  MessageQueue::Iterator it(&queue);
+  // Queue is empty.
+  EXPECT(!it.HasNext());
 
   Dart_Port port = 1;
 
@@ -31,19 +34,43 @@ TEST_CASE(MessageQueue_BasicOperations) {
   Message* msg1 = new Message(
       port, AllocMsg(str1), strlen(str1) + 1, Message::kNormalPriority);
   queue.Enqueue(msg1, false);
+  EXPECT(queue.Length() == 1);
   EXPECT(!queue.IsEmpty());
+  it.Reset(&queue);
+  EXPECT(it.HasNext());
+  EXPECT(it.Next() == msg1);
+  EXPECT(!it.HasNext());
 
   Message* msg2 = new Message(
       port, AllocMsg(str2), strlen(str2) + 1, Message::kNormalPriority);
   queue.Enqueue(msg2, false);
+  EXPECT(queue.Length() == 2);
   EXPECT(!queue.IsEmpty());
+  it.Reset(&queue);
+  EXPECT(it.HasNext());
+  EXPECT(it.Next() == msg1);
+  EXPECT(it.HasNext());
+  EXPECT(it.Next() == msg2);
+  EXPECT(!it.HasNext());
 
-  // Remove two messages.
+  // Lookup messages by id.
+  EXPECT(queue.FindMessageById(reinterpret_cast<intptr_t>(msg1)) == msg1);
+  EXPECT(queue.FindMessageById(reinterpret_cast<intptr_t>(msg2)) == msg2);
+
+  // Lookup bad id.
+  EXPECT(queue.FindMessageById(0x1) == NULL);
+
+  // Remove message 1
   Message* msg = queue.Dequeue();
   EXPECT(msg != NULL);
   EXPECT_STREQ(str1, reinterpret_cast<char*>(msg->data()));
   EXPECT(!queue.IsEmpty());
 
+  it.Reset(&queue);
+  EXPECT(it.HasNext());
+  EXPECT(it.Next() == msg2);
+
+  // Remove message 2
   msg = queue.Dequeue();
   EXPECT(msg != NULL);
   EXPECT_STREQ(str2, reinterpret_cast<char*>(msg->data()));

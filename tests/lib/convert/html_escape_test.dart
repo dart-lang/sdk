@@ -14,10 +14,10 @@ const _OUTPUT_UNKNOWN = '&lt;A &lt;&#47;test&gt; of \xA0 &quot;double&quot; '
   '&amp; &#39;single&#39; values&gt;';
 
 const _OUTPUT_ATTRIBUTE =
-    "<A </test> of \xA0 &quot;double&quot; &amp; 'single' values>";
+    "&lt;A &lt;/test&gt; of \xA0 &quot;double&quot; &amp; 'single' values&gt;";
 
 const _OUTPUT_SQ_ATTRIBUTE =
-    '<A </test> of \xA0 "double" &amp; &#39;single&#39; values>';
+    '&lt;A &lt;/test&gt; of \xA0 "double" &amp; &#39;single&#39; values&gt;';
 
 const _OUTPUT_ELEMENT =
     """&lt;A &lt;/test&gt; of \xA0 "double" &amp; 'single' values&gt;""";

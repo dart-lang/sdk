@@ -6,6 +6,8 @@ library test.services.completion.computer.dart.relevance;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/analysis_server.dart'
+    show ContextSourcePair;
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/protocol.dart';
@@ -16,16 +18,15 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../analysis_abstract.dart';
 import '../../mocks.dart';
-import '../../reflective_tests.dart';
-import 'package:analysis_server/src/analysis_server.dart' show ContextSourcePair;
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(CommonUsageComputerTest);
+  defineReflectiveTests(CommonUsageComputerTest);
 }
 
 @reflectiveTest
@@ -140,8 +141,8 @@ class CommonUsageComputerTest extends AbstractAnalysisTest {
     expect(replacementOffset, equals(completionOffset));
     expect(replacementLength, equals(0));
     assertHasResult(CompletionSuggestionKind.INVOCATION, 'delayed');
-    assertHasResult(CompletionSuggestionKind.INVOCATION,
-        'value', DART_RELEVANCE_COMMON_USAGE);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'value',
+        DART_RELEVANCE_COMMON_USAGE);
     assertNoResult('Future');
     assertNoResult('Object');
     assertNoResult('A');
@@ -209,8 +210,8 @@ class CommonUsageComputerTest extends AbstractAnalysisTest {
     expect(replacementOffset, equals(completionOffset));
     expect(replacementLength, equals(0));
     assertHasResult(CompletionSuggestionKind.INVOCATION, 'nextBool');
-    assertHasResult(CompletionSuggestionKind.INVOCATION,
-        'nextDouble', DART_RELEVANCE_COMMON_USAGE - 1);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'nextDouble',
+        DART_RELEVANCE_COMMON_USAGE - 1);
     assertHasResult(CompletionSuggestionKind.INVOCATION, 'nextInt',
         DART_RELEVANCE_COMMON_USAGE);
     assertNoResult('Random');

@@ -35,6 +35,11 @@ DEFINE_FLAG(bool, show_invisible_frames, false,
 DEFINE_FLAG(bool, trace_debugger_stacktrace, false,
             "Trace debugger stacktrace collection");
 DEFINE_FLAG(bool, verbose_debug, false, "Verbose debugger messages");
+DEFINE_FLAG(bool, steal_breakpoints, false,
+            "Intercept breakpoints and other pause events before they "
+            "are sent to the embedder and use a generic VM breakpoint "
+            "handler instead.  This handler dispatches breakpoints to "
+            "the VM service.");
 
 
 Debugger::EventHandler* Debugger::event_handler_ = NULL;
@@ -239,7 +244,10 @@ void Debugger::InvokeEventHandler(DebuggerEvent* event) {
     Service::HandleEvent(&service_event);
   }
 
-  if (event_handler_ != NULL) {
+  if (FLAG_steal_breakpoints && event->IsPauseEvent()) {
+    // We allow the embedder's default breakpoint handler to be overridden.
+    isolate_->PauseEventHandler();
+  } else if (event_handler_ != NULL) {
     (*event_handler_)(event);
   }
 
@@ -460,7 +468,17 @@ intptr_t ActivationFrame::ColumnNumber() {
 
 void ActivationFrame::GetVarDescriptors() {
   if (var_descriptors_.IsNull()) {
-    var_descriptors_ = code().var_descriptors();
+    if (code().is_optimized()) {
+      Thread* thread = Thread::Current();
+      Zone* zone = thread->zone();
+      const Error& error = Error::Handle(zone,
+          Compiler::EnsureUnoptimizedCode(thread, function()));
+      if (!error.IsNull()) {
+        Exceptions::PropagateError(error);
+      }
+    }
+    var_descriptors_ =
+        Code::Handle(function().unoptimized_code()).var_descriptors();
     ASSERT(!var_descriptors_.IsNull());
   }
 }
@@ -473,7 +491,8 @@ bool ActivationFrame::IsDebuggable() const {
 
 // Calculate the context level at the current token index of the frame.
 intptr_t ActivationFrame::ContextLevel() {
-  if (context_level_ < 0 && !ctx_.IsNull()) {
+  const Context& ctx = GetSavedCurrentContext();
+  if (context_level_ < 0 && !ctx.IsNull()) {
     ASSERT(!code_.is_optimized());
     context_level_ = 0;
     // TODO(hausner): What to do if there is no descriptor entry
@@ -513,7 +532,8 @@ intptr_t ActivationFrame::ContextLevel() {
 
 
 // Get the saved current context of this activation.
-RawContext* ActivationFrame::GetSavedCurrentContext() {
+const Context& ActivationFrame::GetSavedCurrentContext() {
+  if (!ctx_.IsNull()) return ctx_;
   GetVarDescriptors();
   intptr_t var_desc_len = var_descriptors_.Length();
   for (intptr_t i = 0; i < var_desc_len; i++) {
@@ -525,12 +545,12 @@ RawContext* ActivationFrame::GetSavedCurrentContext() {
         OS::PrintErr("\tFound saved current ctx at index %d\n",
             var_info.index());
       }
-      ASSERT(Object::Handle(GetLocalVar(var_info.index())).IsContext());
-      return Context::RawCast(GetLocalVar(var_info.index()));
+      ctx_ ^= GetLocalVar(var_info.index());
+      return ctx_;
     }
   }
   UNREACHABLE();
-  return Context::null();
+  return Context::ZoneHandle(Context::null());
 }
 
 
@@ -654,7 +674,7 @@ intptr_t ActivationFrame::NumLocalVariables() {
   return desc_indices_.length();
 }
 
-// TODO(hausner): Handle captured variables.
+
 RawObject* ActivationFrame::GetLocalVar(intptr_t slot_index) {
   if (deopt_frame_.IsNull()) {
     uword var_address = fp() + slot_index * kWordSize;
@@ -695,7 +715,8 @@ void ActivationFrame::PrintContextMismatchError(
 
   OS::PrintErr("-------------------------\n"
                "Context contents:\n");
-  ctx_.Dump(8);
+  const Context& ctx = GetSavedCurrentContext();
+  ctx.Dump(8);
 
   OS::PrintErr("-------------------------\n"
                "Debugger stack trace...\n\n");
@@ -744,7 +765,8 @@ void ActivationFrame::VariableAt(intptr_t i,
     *value = GetLocalInstanceVar(var_info.index());
   } else {
     ASSERT(kind == RawLocalVarDescriptors::kContextVar);
-    ASSERT(!ctx_.IsNull());
+    const Context& ctx = GetSavedCurrentContext();
+    ASSERT(!ctx.IsNull());
 
     // The context level at the PC/token index of this activation frame.
     intptr_t frame_ctx_level = ContextLevel();
@@ -755,15 +777,15 @@ void ActivationFrame::VariableAt(intptr_t i,
     intptr_t ctx_slot = var_info.index();
     if (level_diff == 0) {
       if ((ctx_slot < 0) ||
-          (ctx_slot >= ctx_.num_variables())) {
+          (ctx_slot >= ctx.num_variables())) {
         PrintContextMismatchError(*name, ctx_slot,
                                   frame_ctx_level, var_ctx_level);
       }
-      ASSERT((ctx_slot >= 0) && (ctx_slot < ctx_.num_variables()));
-      *value = ctx_.At(ctx_slot);
+      ASSERT((ctx_slot >= 0) && (ctx_slot < ctx.num_variables()));
+      *value = ctx.At(ctx_slot);
     } else {
       ASSERT(level_diff > 0);
-      Context& var_ctx = Context::Handle(ctx_.raw());
+      Context& var_ctx = Context::Handle(ctx.raw());
       while (level_diff > 0 && !var_ctx.IsNull()) {
         level_diff--;
         var_ctx = var_ctx.parent();
@@ -873,12 +895,13 @@ const char* ActivationFrame::ToCString() {
 }
 
 
-void ActivationFrame::PrintToJSONObject(JSONObject* jsobj) {
+void ActivationFrame::PrintToJSONObject(JSONObject* jsobj,
+                                        bool full) {
   const Script& script = Script::Handle(SourceScript());
   jsobj->AddProperty("type", "Frame");
-  jsobj->AddProperty("script", script);
+  jsobj->AddProperty("script", script, !full);
   jsobj->AddProperty("tokenPos", TokenPos());
-  jsobj->AddProperty("function", function());
+  jsobj->AddProperty("function", function(), !full);
   jsobj->AddProperty("code", code());
   {
     JSONArray jsvars(jsobj, "vars");
@@ -890,7 +913,7 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj) {
       intptr_t unused;
       VariableAt(v, &var_name, &unused, &unused, &var_value);
       jsvar.AddProperty("name", var_name.ToCString());
-      jsvar.AddProperty("value", var_value);
+      jsvar.AddProperty("value", var_value, !full);
     }
   }
 }
@@ -1058,7 +1081,7 @@ void Debugger::Shutdown() {
     delete bpt;
   }
   // Signal isolate shutdown event.
-  if (!ServiceIsolate::IsServiceIsolate(isolate_)) {
+  if (!ServiceIsolate::IsServiceIsolateDescendant(isolate_)) {
     SignalIsolateEvent(DebuggerEvent::kIsolateShutdown);
   }
 }
@@ -1185,13 +1208,8 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
   ActivationFrame* activation =
       new ActivationFrame(pc, frame->fp(), frame->sp(), code,
                           deopt_frame, deopt_frame_offset);
-
-  // Recover the context for this frame.
-  const Context& ctx =
-      Context::Handle(isolate, activation->GetSavedCurrentContext());
-  ASSERT(!ctx.IsNull());
-  activation->SetContext(ctx);
   if (FLAG_trace_debugger_stacktrace) {
+    const Context& ctx = activation->GetSavedCurrentContext();
     OS::PrintErr("\tUsing saved context: %s\n", ctx.ToCString());
   }
   if (FLAG_trace_debugger_stacktrace) {
@@ -1620,6 +1638,7 @@ RawFunction* Debugger::FindBestFit(const Script& script,
   GrowableObjectArray& closures = GrowableObjectArray::Handle(isolate_);
   Function& function = Function::Handle(isolate_);
   Function& best_fit = Function::Handle(isolate_);
+  Error& error = Error::Handle(isolate_);
 
   const ClassTable& class_table = *isolate_->class_table();
   const intptr_t num_classes = class_table.NumCids();
@@ -1636,7 +1655,14 @@ RawFunction* Debugger::FindBestFit(const Script& script,
         continue;
       }
       // Parse class definition if not done yet.
-      cls.EnsureIsFinalized(isolate_);
+      error = cls.EnsureIsFinalized(isolate_);
+      if (!error.IsNull()) {
+        // Ignore functions in this class.
+        // TODO(hausner): Should we propagate this error? How?
+        // EnsureIsFinalized only returns an error object if there
+        // is no longjump base on the stack.
+        continue;
+      }
       functions = cls.functions();
       if (!functions.IsNull()) {
         const intptr_t num_functions = functions.Length();
@@ -1763,11 +1789,16 @@ void Debugger::SyncBreakpoint(SourceBreakpoint* bpt) {
 
 
 RawError* Debugger::OneTimeBreakAtEntry(const Function& target_function) {
-  SourceBreakpoint* bpt = SetBreakpointAtEntry(target_function);
-  if (bpt != NULL) {
-    bpt->SetIsOneShot();
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    SourceBreakpoint* bpt = SetBreakpointAtEntry(target_function);
+    if (bpt != NULL) {
+      bpt->SetIsOneShot();
+    }
+    return Error::null();
+  } else {
+    return isolate_->object_store()->sticky_error();
   }
-  return Error::null();
 }
 
 
@@ -2260,7 +2291,7 @@ void Debugger::Initialize(Isolate* isolate) {
 
 void Debugger::NotifyIsolateCreated() {
   // Signal isolate creation event.
-  if (!ServiceIsolate::IsServiceIsolate(isolate_)) {
+  if (!ServiceIsolate::IsServiceIsolateDescendant(isolate_)) {
     SignalIsolateEvent(DebuggerEvent::kIsolateCreated);
   }
 }

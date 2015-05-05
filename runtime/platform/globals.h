@@ -96,6 +96,8 @@
 #error Automatic target os detection failed.
 #endif
 
+namespace dart {
+
 struct simd128_value_t {
   union {
     int32_t int_storage[4];
@@ -377,27 +379,30 @@ inline double MicrosecondsToMilliseconds(int64_t micros) {
 
 // A macro to disallow the copy constructor and operator= functions.
 // This should be used in the private: declarations for a class.
+#if !defined(DISALLOW_COPY_AND_ASSIGN)
 #define DISALLOW_COPY_AND_ASSIGN(TypeName)                                     \
 private:                                                                       \
   TypeName(const TypeName&);                                                   \
   void operator=(const TypeName&)
-
+#endif  // !defined(DISALLOW_COPY_AND_ASSIGN)
 
 // A macro to disallow all the implicit constructors, namely the default
 // constructor, copy constructor and operator= functions. This should be
 // used in the private: declarations for a class that wants to prevent
 // anyone from instantiating it. This is especially useful for classes
 // containing only static methods.
+#if !defined(DISALLOW_IMPLICIT_CONSTRUCTORS)
 #define DISALLOW_IMPLICIT_CONSTRUCTORS(TypeName)                               \
 private:                                                                       \
   TypeName();                                                                  \
   DISALLOW_COPY_AND_ASSIGN(TypeName)
-
+#endif  // !defined(DISALLOW_IMPLICIT_CONSTRUCTORS)
 
 // Macro to disallow allocation in the C++ heap. This should be used
 // in the private section for a class. Don't use UNREACHABLE here to
 // avoid circular dependencies between platform/globals.h and
 // platform/assert.h.
+#if !defined(DISALLOW_ALLOCATION)
 #define DISALLOW_ALLOCATION()                                                  \
 public:                                                                        \
   void operator delete(void* pointer) {                                        \
@@ -406,7 +411,7 @@ public:                                                                        \
   }                                                                            \
 private:                                                                       \
   void* operator new(size_t size);
-
+#endif  // !defined(DISALLOW_ALLOCATION)
 
 // The USE(x) template is used to silence C++ compiler warnings issued
 // for unused variables.
@@ -542,5 +547,7 @@ static inline T ReadUnaligned(const T* ptr) {
 #else
 #define PRINTF_ATTRIBUTE(string_index, first_to_check)
 #endif
+
+}  // namespace dart
 
 #endif  // PLATFORM_GLOBALS_H_

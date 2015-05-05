@@ -7,12 +7,14 @@
 <link rel="import" href="nav_bar.html">
 <link rel="import" href="script_inset.html">
 <link rel="import" href="script_ref.html">
+<link rel="import" href="view_footer.html">
 
 <polymer-element name="function-view" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
+      <vm-nav-menu vm="{{ function.isolate.vm }}"></vm-nav-menu>
       <isolate-nav-menu isolate="{{ function.isolate }}"></isolate-nav-menu>
       <library-nav-menu library="{{ function.library }}"></library-nav-menu>
       <template if="{{ function.dartOwner is ServiceClass }}">
@@ -21,7 +23,6 @@
       <nav-menu link="{{ makeLink('/inspect', function) }}" anchor="{{ function.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refreshCoverage }}" label="Refresh Coverage"></nav-refresh>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
-      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content">
@@ -101,7 +102,7 @@
                   endPos="{{ function.endTokenPos }}">
     </script-inset>
 
-    <br>
+    <view-footer></view-footer>
   </template>
 </polymer-element>
 

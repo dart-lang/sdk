@@ -7,6 +7,7 @@ library js;
 import 'package:js_ast/js_ast.dart';
 export 'package:js_ast/js_ast.dart';
 
+import '../helpers/helpers.dart';
 import '../io/code_output.dart' show CodeBuffer;
 import '../io/source_information.dart' show SourceInformation;
 import '../js_emitter/js_emitter.dart' show USE_NEW_EMITTER;
@@ -33,31 +34,56 @@ class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
   final leg.Compiler compiler;
   final DumpInfoTask monitor;
   final CodeBuffer outBuffer = new CodeBuffer();
+  Node rootNode;
 
   Dart2JSJavaScriptPrintingContext(leg.Compiler this.compiler,
       DumpInfoTask this.monitor);
 
+  @override
   void error(String message) {
     compiler.internalError(NO_LOCATION_SPANNABLE, message);
   }
 
+  @override
   void emit(String string) {
     outBuffer.add(string);
   }
 
-  void enterNode(Node node) {
+  @override
+  void enterNode(Node node, int startPosition) {
     SourceInformation sourceInformation = node.sourceInformation;
     if (sourceInformation != null) {
-      sourceInformation.beginMapping(outBuffer);
+      if (rootNode == null) {
+        rootNode = node;
+      }
+      if (sourceInformation.startPosition != null) {
+        outBuffer.addSourceLocation(
+            startPosition, sourceInformation.startPosition);
+      }
     }
-    if (monitor != null) monitor.enteringAst(node, outBuffer.length);
   }
 
-  void exitNode(Node node) {
-    if (monitor != null) monitor.exitingAst(node, outBuffer.length);
+  void exitNode(Node node,
+                int startPosition,
+                int endPosition,
+                int closingPosition) {
     SourceInformation sourceInformation = node.sourceInformation;
     if (sourceInformation != null) {
-      sourceInformation.endMapping(outBuffer);
+      if (closingPosition != null &&
+          sourceInformation.closingPosition != null) {
+        outBuffer.addSourceLocation(
+            closingPosition, sourceInformation.closingPosition);
+      }
+      if (sourceInformation.endPosition != null) {
+        outBuffer.addSourceLocation(endPosition, sourceInformation.endPosition);
+      }
+      if (rootNode == node) {
+        outBuffer.addSourceLocation(endPosition, null);
+        rootNode = null;
+      }
+    }
+    if (monitor != null) {
+      monitor.recordAstSize(node, endPosition - startPosition);
     }
   }
 }

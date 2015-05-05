@@ -754,6 +754,8 @@ static void PrintUsage() {
 "--enable-vm-service[:<port number>]\n"
 "  enables the VM service and listens on specified port for connections\n"
 "  (default port number is 8181)\n"
+"--noopt\n"
+"  run unoptimized code only\n"
 "\n"
 "The following options are only used for VM development and may\n"
 "be changed in any future version:\n");

@@ -65,17 +65,16 @@ class CheckTreeIntegrity extends RecursiveVisitor {
     read(node.variable);
   }
 
+  visitVariableDeclaration(VariableDeclaration node) {
+    visitExpression(node.value);
+    declare(node.variable);
+    visitStatement(node.next);
+    undeclare(node.variable);
+  }
+
   visitAssign(Assign node) {
     visitExpression(node.value);
-    if (node.isDeclaration) {
-      declare(node.variable);
-    } else {
-      write(node.variable);
-    }
-    visitStatement(node.next);
-    if (node.isDeclaration) {
-      undeclare(node.variable);
-    }
+    write(node.variable);
   }
 
   visitTry(Try node) {

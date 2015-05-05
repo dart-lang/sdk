@@ -6,8 +6,6 @@ part of js_backend;
 
 const VERBOSE_OPTIMIZER_HINTS = false;
 
-const bool USE_CPS_IR = const bool.fromEnvironment("USE_CPS_IR");
-
 class JavaScriptItemCompilationContext extends ItemCompilationContext {
   final Set<HInstruction> boundsChecked = new Set<HInstruction>();
   final Set<HInstruction> allocatedFixedLists = new Set<HInstruction>();
@@ -304,6 +302,7 @@ class JavaScriptBackend extends Backend {
   Element jsStringToString;
   Element jsStringOperatorAdd;
   Element objectEquals;
+  Element cachedCheckConcurrentModificationError;
 
   ClassElement typeLiteralClass;
   ClassElement mapLiteralClass;
@@ -311,6 +310,8 @@ class JavaScriptBackend extends Backend {
   ClassElement typeVariableClass;
   ConstructorElement mapLiteralConstructor;
   ConstructorElement mapLiteralConstructorEmpty;
+  Element mapLiteralUntypedMaker;
+  Element mapLiteralUntypedEmptyMaker;
 
   ClassElement noSideEffectsClass;
   ClassElement noThrowsClass;
@@ -510,6 +511,9 @@ class JavaScriptBackend extends Backend {
   /// Holds the class for the [JsGetName] enum.
   EnumClassElement jsGetNameEnum;
 
+  /// Holds the class for the [JsBuiltins] enum.
+  EnumClassElement jsBuiltinEnum;
+
   /// True if a call to preserveMetadataMarker has been seen.  This means that
   /// metadata must be retained for dart:mirrors to work correctly.
   bool mustRetainMetadata = false;
@@ -598,7 +602,9 @@ class JavaScriptBackend extends Backend {
 
   bool enabledNoSuchMethod = false;
 
-  JavaScriptBackend(Compiler compiler, bool generateSourceMap)
+  JavaScriptBackend(Compiler compiler,
+                    SourceInformationFactory sourceInformationFactory,
+                    {bool generateSourceMap: true})
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<String, Selector>(),
         interceptedElements = new Map<String, Set<Element>>(),
@@ -606,16 +612,16 @@ class JavaScriptBackend extends Backend {
         specializedGetInterceptors = new Map<String, Set<ClassElement>>(),
         super(compiler) {
     emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
-    typeVariableHandler = new TypeVariableHandler(this);
+    typeVariableHandler = new TypeVariableHandler(compiler);
     customElementsAnalysis = new CustomElementsAnalysis(this);
     noSuchMethodRegistry = new NoSuchMethodRegistry(this);
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     resolutionCallbacks = new JavaScriptResolutionCallbacks(this);
     patchResolverTask = new PatchResolverTask(compiler);
-    functionCompiler = USE_CPS_IR
+    functionCompiler = compiler.useCpsIr
          ? new CpsFunctionCompiler(
-             compiler, this, generateSourceMap: generateSourceMap)
-         : new SsaFunctionCompiler(this, generateSourceMap);
+             compiler, this, sourceInformationFactory)
+         : new SsaFunctionCompiler(this, sourceInformationFactory);
   }
 
   ConstantSystem get constantSystem => constants.constantSystem;
@@ -964,7 +970,8 @@ class JavaScriptBackend extends Backend {
                                  Enqueuer enqueuer,
                                  Registry registry) {
     if (!cls.typeVariables.isEmpty) {
-      typeVariableHandler.registerClassWithTypeVariables(cls);
+      typeVariableHandler.registerClassWithTypeVariables(cls, enqueuer,
+                                                         registry);
     }
 
     // Register any helper that will be needed by the backend.
@@ -1016,10 +1023,27 @@ class JavaScriptBackend extends Backend {
           }
           return ctor;
         }
+        Element getMember(String name) {
+          // The constructor is on the patch class, but dart2js unit tests don't
+          // have a patch class.
+          ClassElement implementation = cls.patch != null ? cls.patch : cls;
+          Element element = implementation.lookupLocalMember(name);
+          if (element == null || !element.isFunction || !element.isStatic) {
+            compiler.internalError(mapLiteralClass,
+                "Map literal class $mapLiteralClass missing "
+                "'$name' static member function");
+          }
+          return element;
+        }
         mapLiteralConstructor = getFactory('_literal', 1);
         mapLiteralConstructorEmpty = getFactory('_empty', 0);
         enqueueInResolution(mapLiteralConstructor, registry);
         enqueueInResolution(mapLiteralConstructorEmpty, registry);
+
+        mapLiteralUntypedMaker = getMember('_makeLiteral');
+        mapLiteralUntypedEmptyMaker = getMember('_makeEmpty');
+        enqueueInResolution(mapLiteralUntypedMaker, registry);
+        enqueueInResolution(mapLiteralUntypedEmptyMaker, registry);
       }
     }
     if (cls == closureClass) {
@@ -1618,6 +1642,18 @@ class JavaScriptBackend extends Backend {
         element == jsFixedArrayClass;
   }
 
+  /// Return [true] if the class is represented by a native JavaSCript type in
+  /// the generated code.
+  bool isNativePrimitiveType(ClassElement cls ) {
+    // TODO(karlklose): cleanup/merge with hasDirectCheck, when the rest of the
+    // checks are implemented in the CPS IR.
+    return cls == compiler.intClass ||
+        cls == compiler.numClass ||
+        cls == compiler.doubleClass ||
+        cls == compiler.boolClass ||
+        cls == compiler.stringClass;
+  }
+
   bool mayGenerateInstanceofCheck(DartType type) {
     // We can use an instanceof check for raw types that have no subclass that
     // is mixed-in or in an implements clause.
@@ -1642,6 +1678,18 @@ class JavaScriptBackend extends Backend {
 
   Element getThrowAbstractClassInstantiationError() {
     return findHelper('throwAbstractClassInstantiationError');
+  }
+
+  Element getCheckConcurrentModificationError() {
+    if (cachedCheckConcurrentModificationError == null) {
+      cachedCheckConcurrentModificationError =
+          findHelper('checkConcurrentModificationError');
+    }
+    return cachedCheckConcurrentModificationError;
+  }
+
+  Element getThrowConcurrentModificationError() {
+    return findHelper('throwConcurrentModificationError');
   }
 
   Element getStringInterpolationHelper() {
@@ -1836,7 +1884,6 @@ class JavaScriptBackend extends Backend {
     if (element == disableTreeShakingMarker) {
       compiler.disableTypeInferenceForMirrors = true;
       isTreeShakingDisabled = true;
-      typeVariableHandler.onTreeShakingDisabled(enqueuer);
     } else if (element == preserveNamesMarker) {
       mustPreserveNames = true;
     } else if (element == preserveMetadataMarker) {
@@ -2019,6 +2066,7 @@ class JavaScriptBackend extends Backend {
         preserveNamesMarker = find(library, 'preserveNames');
       } else if (uri == DART_EMBEDDED_NAMES) {
         jsGetNameEnum = find(library, 'JsGetName');
+        jsBuiltinEnum = find(library, 'JsBuiltin');
       } else if (uri == DART_HTML) {
         htmlLibraryIsLoaded = true;
       }
@@ -2733,6 +2781,13 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     registerBackendStaticInvocation(backend.getTraceFromException(), registry);
   }
 
+  void onSyncForIn(Registry registry) {
+    assert(registry.isForResolution);
+    // The SSA builder recognizes certain for-in loops and can generate calls to
+    // throwConcurrentModificationError.
+    registerBackendStaticInvocation(
+        backend.getCheckConcurrentModificationError(), registry);
+  }
 
   void onTypeVariableExpression(Registry registry) {
     assert(registry.isForResolution);

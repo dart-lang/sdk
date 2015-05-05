@@ -84,8 +84,8 @@ class OldEmitter implements Emitter {
    */
   // TODO(ahe): Generate statics with their class, and store only libraries in
   // this map.
-  final Map<Element, ClassBuilder> elementDescriptors =
-      new Map<Element, ClassBuilder>();
+  final Map<Fragment, Map<Element, ClassBuilder>> elementDescriptors =
+      new Map<Fragment, Map<Element, ClassBuilder>>();
 
   final bool generateSourceMap;
 
@@ -269,6 +269,39 @@ class OldEmitter implements Emitter {
     return globalPropertyAccess(element);
   }
 
+  @override
+  jsAst.Template templateForBuiltin(JsBuiltin builtin) {
+    switch (builtin) {
+      case JsBuiltin.dartObjectConstructor:
+        return jsAst.js.expressionTemplateYielding(
+            typeAccess(compiler.objectClass));
+
+      case JsBuiltin.isFunctionType:
+        return backend.rti.representationGenerator.templateForIsFunctionType;
+
+      case JsBuiltin.isFunctionTypeLiteral:
+        String functionClassName =
+            backend.namer.runtimeTypeName(compiler.functionClass);
+        return jsAst.js.expressionTemplateFor(
+          '#.$typeNameProperty === "$functionClassName"');
+
+      case JsBuiltin.typeName:
+        return jsAst.js.expressionTemplateFor("#.$typeNameProperty");
+
+      case JsBuiltin.rawRuntimeType:
+        return jsAst.js.expressionTemplateFor("#.constructor");
+
+      case JsBuiltin.createFunctionType:
+        return backend.rti.representationGenerator
+            .templateForCreateFunctionType;
+
+      default:
+        compiler.internalError(NO_LOCATION_SPANNABLE,
+            "Unhandled Builtin: $builtin");
+        return null;
+    }
+  }
+
   List<jsAst.Statement> buildTrivialNsmHandlers(){
     return nsmEmitter.buildTrivialNsmHandlers();
   }
@@ -434,14 +467,15 @@ class OldEmitter implements Emitter {
              cspPrecompiledConstructorNamesFor(outputUnit))]);
   }
 
-  void emitClass(Class cls, ClassBuilder enclosingBuilder) {
+  void assembleClass(Class cls, ClassBuilder enclosingBuilder,
+                     Fragment fragment) {
     ClassElement classElement = cls.element;
     compiler.withCurrentElement(classElement, () {
       if (compiler.hasIncrementalSupport) {
         ClassBuilder cachedBuilder =
             cachedClassBuilders.putIfAbsent(classElement, () {
               ClassBuilder builder = new ClassBuilder(classElement, namer);
-              classEmitter.emitClass(cls, builder);
+              classEmitter.emitClass(cls, builder, fragment);
               return builder;
             });
         invariant(classElement, cachedBuilder.fields.isEmpty);
@@ -450,12 +484,13 @@ class OldEmitter implements Emitter {
         invariant(classElement, cachedBuilder.fieldMetadata == null);
         enclosingBuilder.properties.addAll(cachedBuilder.properties);
       } else {
-        classEmitter.emitClass(cls, enclosingBuilder);
+        classEmitter.emitClass(cls, enclosingBuilder, fragment);
       }
     });
   }
 
-  void emitStaticFunctions(Iterable<Method> staticFunctions) {
+  void assembleStaticFunctions(Iterable<Method> staticFunctions,
+                               Fragment fragment) {
     if (staticFunctions == null) return;
 
     for (Method method in staticFunctions) {
@@ -465,7 +500,8 @@ class OldEmitter implements Emitter {
       if (element == null) continue;
       ClassBuilder builder = new ClassBuilder(element, namer);
       containerBuilder.addMemberMethod(method, builder);
-      getElementDescriptor(element).properties.addAll(builder.properties);
+      getElementDescriptor(element, fragment).properties
+          .addAll(builder.properties);
     }
   }
 
@@ -616,26 +652,38 @@ class OldEmitter implements Emitter {
     }
   }
 
-  void emitMetadata(Program program, CodeOutput output) {
+  void emitMetadata(Program program, CodeOutput output, OutputUnit outputUnit) {
 
-   addMetadataGlobal(List<String> list, String global) {
-     String globalAccess = generateEmbeddedGlobalAccessString(global);
-     output.add('$globalAccess$_=$_[');
-     for (String data in list) {
-       if (data is String) {
-         if (data != 'null') {
-           output.add(data);
-         }
-       } else {
-         throw 'Unexpected value in ${global}: ${Error.safeToString(data)}';
-       }
-       output.add(',$n');
-     }
-     output.add('];$n');
-   }
+    jsAst.Expression constructList(List<String> list) {
+      String listAsString = list == null ? '[]' : '[${list.join(",")}]';
+      return js.uncachedExpressionTemplate(listAsString).instantiate([]);
+    }
 
-   addMetadataGlobal(program.metadata, embeddedNames.METADATA);
-   addMetadataGlobal(program.metadataTypes, embeddedNames.TYPES);
+    List<String> types = program.metadataTypes[outputUnit];
+
+    if (outputUnit == compiler.deferredLoadTask.mainOutputUnit) {
+      jsAst.Expression metadataAccess =
+          generateEmbeddedGlobalAccess(embeddedNames.METADATA);
+      jsAst.Expression typesAccess =
+          generateEmbeddedGlobalAccess(embeddedNames.TYPES);
+
+      output.addBuffer(
+          jsAst.prettyPrint(new jsAst.Block([
+              js.statement('# = #;', [metadataAccess,
+                                      constructList(program.metadata)]),
+              js.statement('# = #;', [typesAccess, constructList(types)])]),
+              compiler, monitor: compiler.dumpInfoTask));
+      output.add(n);
+    } else if (types != null) {
+      output.addBuffer(
+          jsAst.prettyPrint(
+              js.statement('var ${namer.deferredTypesName} = #;',
+                           constructList(types)),
+              compiler, monitor: compiler.dumpInfoTask));
+      if (compiler.enableMinification) {
+        output.add('\n');
+      }
+    }
   }
 
   void emitCompileTimeConstants(CodeOutput output,
@@ -941,7 +989,8 @@ class OldEmitter implements Emitter {
     output.add(N);
   }
 
-  void writeLibraryDescriptor(CodeOutput output, LibraryElement library) {
+  void writeLibraryDescriptor(CodeOutput output, LibraryElement library,
+                              Fragment fragment) {
     var uri = "";
     if (!compiler.enableMinification || backend.mustPreserveUris) {
       uri = library.canonicalUri;
@@ -949,7 +998,7 @@ class OldEmitter implements Emitter {
         uri = relativize(compiler.outputUri, library.canonicalUri, false);
       }
     }
-    ClassBuilder descriptor = elementDescriptors[library];
+    ClassBuilder descriptor = elementDescriptors[fragment][library];
     if (descriptor == null) {
       // Nothing of the library was emitted.
       // TODO(floitsch): this should not happen. We currently have an example
@@ -988,10 +1037,10 @@ class OldEmitter implements Emitter {
         ..add('],$n');
   }
 
-  void emitPrecompiledConstructor(OutputUnit outputUnit,
-                                  String constructorName,
-                                  jsAst.Expression constructorAst,
-                                  List<String> fields) {
+  void assemblePrecompiledConstructor(OutputUnit outputUnit,
+                                      String constructorName,
+                                      jsAst.Expression constructorAst,
+                                      List<String> fields) {
     cspPrecompiledFunctionFor(outputUnit).add(
         new jsAst.FunctionDeclaration(
             new jsAst.VariableDeclaration(constructorName), constructorAst));
@@ -1003,7 +1052,7 @@ class OldEmitter implements Emitter {
 
     cspPrecompiledFunctionFor(outputUnit).add(js.statement(r'''
         {
-          #constructorName.builtin$cls = #constructorNameString;
+          #constructorName.#typeNameProperty = #constructorNameString;
           if (!"name" in #constructorName)
               #constructorName.name = #constructorNameString;
           $desc = $collectedClasses.#constructorName[1];
@@ -1014,6 +1063,7 @@ class OldEmitter implements Emitter {
           }
         }''',
         {"constructorName": constructorName,
+         "typeNameProperty": typeNameProperty,
          "constructorNameString": js.string(constructorName),
          "hasIsolateSupport": hasIsolateSupport,
          "fieldNamesArray": fieldNamesArray}));
@@ -1021,8 +1071,9 @@ class OldEmitter implements Emitter {
     cspPrecompiledConstructorNamesFor(outputUnit).add(js('#', constructorName));
   }
 
-  void emitTypedefs() {
-    OutputUnit mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
+  void assembleTypedefs(Program program) {
+    Fragment mainFragment = program.mainFragment;
+    OutputUnit mainOutputUnit = mainFragment.outputUnit;
 
     // Emit all required typedef declarations into the main output unit.
     // TODO(karlklose): unify required classes and typedefs to declarations
@@ -1031,7 +1082,10 @@ class OldEmitter implements Emitter {
       LibraryElement library = typedef.library;
       // TODO(karlklose): add a TypedefBuilder and move this code there.
       DartType type = typedef.alias;
-      int typeIndex = task.metadataCollector.reifyType(type);
+      // TODO(zarah): reify type variables once reflection on type arguments of
+      // typedefs is supported.
+      int typeIndex =
+          task.metadataCollector.reifyType(type, ignoreTypeVariables: true);
       ClassBuilder builder = new ClassBuilder(typedef, namer);
       builder.addProperty(embeddedNames.TYPEDEF_TYPE_PROPERTY_NAME,
                           js.number(typeIndex));
@@ -1046,17 +1100,17 @@ class OldEmitter implements Emitter {
       jsAst.Node declaration = builder.toObjectInitializer();
       String mangledName = namer.globalPropertyName(typedef);
       String reflectionName = getReflectionName(typedef, mangledName);
-      getElementDescriptor(library)
+      getElementDescriptor(library, mainFragment)
           ..addProperty(mangledName, declaration)
           ..addProperty("+$reflectionName", js.string(''));
       // Also emit a trivial constructor for CSP mode.
       String constructorName = mangledName;
       jsAst.Expression constructorAst = js('function() {}');
       List<String> fieldNames = [];
-      emitPrecompiledConstructor(mainOutputUnit,
-                                 constructorName,
-                                 constructorAst,
-                                 fieldNames);
+      assemblePrecompiledConstructor(mainOutputUnit,
+                                     constructorName,
+                                     constructorAst,
+                                     fieldNames);
     }
   }
 
@@ -1121,17 +1175,27 @@ class OldEmitter implements Emitter {
     }
   }
 
-  void emitLibrary(Library library) {
+  void assembleLibrary(Library library, Fragment fragment) {
     LibraryElement libraryElement = library.element;
 
-    emitStaticFunctions(library.statics);
+    assembleStaticFunctions(library.statics, fragment);
 
-    ClassBuilder libraryBuilder = getElementDescriptor(libraryElement);
+    ClassBuilder libraryBuilder =
+        getElementDescriptor(libraryElement, fragment);
     for (Class cls in library.classes) {
-      emitClass(cls, libraryBuilder);
+      assembleClass(cls, libraryBuilder, fragment);
     }
 
     classEmitter.emitFields(library, libraryBuilder, emitStatics: true);
+  }
+
+  void assembleProgram(Program program) {
+    for (Fragment fragment in program.fragments) {
+      for (Library library in fragment.libraries) {
+        assembleLibrary(library, fragment);
+      }
+    }
+    assembleTypedefs(program);
   }
 
   void emitMainOutputUnit(Program program,
@@ -1233,24 +1297,25 @@ class OldEmitter implements Emitter {
     mainOutput.add('$isolateProperties$_=$_$isolatePropertiesName$N');
 
     emitFunctionThatReturnsNull(mainOutput);
-    mainFragment.libraries.forEach(emitLibrary);
 
     Iterable<LibraryElement> libraries =
         task.outputLibraryLists[mainOutputUnit];
     if (libraries == null) libraries = [];
-    emitTypedefs();
     emitMangledNames(mainOutput);
 
-    checkEverythingEmitted(elementDescriptors.keys);
+    Map<Element, ClassBuilder> descriptors = elementDescriptors[mainFragment];
+    if (descriptors == null) descriptors = const {};
+
+    checkEverythingEmitted(descriptors.keys);
 
     CodeBuffer libraryBuffer = new CodeBuffer();
     for (LibraryElement library in Elements.sortedByPosition(libraries)) {
-      writeLibraryDescriptor(libraryBuffer, library);
-      elementDescriptors.remove(library);
+      writeLibraryDescriptor(libraryBuffer, library, mainFragment);
+      descriptors.remove(library);
     }
 
-    if (elementDescriptors.isNotEmpty) {
-      List<Element> remainingLibraries = elementDescriptors.keys
+    if (descriptors.isNotEmpty) {
+      List<Element> remainingLibraries = descriptors.keys
           .where((Element e) => e is LibraryElement)
           .toList();
 
@@ -1260,8 +1325,8 @@ class OldEmitter implements Emitter {
       for (LibraryElement element in remainingLibraries) {
         assert(element is LibraryElement || compiler.hasIncrementalSupport);
         if (element is LibraryElement) {
-          writeLibraryDescriptor(libraryBuffer, element);
-          elementDescriptors.remove(element);
+          writeLibraryDescriptor(libraryBuffer, element, mainFragment);
+          descriptors.remove(element);
         }
       }
     }
@@ -1290,7 +1355,7 @@ class OldEmitter implements Emitter {
       mainOutput.add(N);
     }
 
-    mainOutput.add('$setupProgramName(dart)$N');
+    mainOutput.add('$setupProgramName(dart, 0)$N');
 
     interceptorEmitter.emitGetInterceptorMethods(mainOutput);
     interceptorEmitter.emitOneShotInterceptors(mainOutput);
@@ -1323,7 +1388,7 @@ class OldEmitter implements Emitter {
 
     mainOutput.add('\n');
 
-    emitMetadata(program, mainOutput);
+    emitMetadata(program, mainOutput, mainOutputUnit);
 
     isolateProperties = isolatePropertiesName;
     // The following code should not use the short-hand for the
@@ -1527,10 +1592,9 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     for (Fragment fragment in program.deferredFragments) {
       OutputUnit outputUnit = fragment.outputUnit;
 
+      Map<Element, ClassBuilder> descriptors = elementDescriptors[fragment];
 
-      fragment.libraries.forEach(emitLibrary);
-
-      if (elementDescriptors.isNotEmpty) {
+      if (descriptors != null && descriptors.isNotEmpty) {
         Iterable<LibraryElement> libraries =
             task.outputLibraryLists[outputUnit];
         if (libraries == null) libraries = [];
@@ -1539,8 +1603,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
         CodeBuffer buffer = new CodeBuffer();
         outputBuffers[outputUnit] = buffer;
         for (LibraryElement library in Elements.sortedByPosition(libraries)) {
-          writeLibraryDescriptor(buffer, library);
-          elementDescriptors.remove(library);
+          writeLibraryDescriptor(buffer, library, fragment);
+          descriptors.remove(library);
         }
       }
     }
@@ -1551,6 +1615,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
   int emitProgram(ProgramBuilder programBuilder) {
     Program program = programBuilder.buildProgram(
         storeFunctionTypesInMetadata: true);
+
+    assembleProgram(program);
 
     // Shorten the code by using [namer.currentIsolate] as temporary.
     isolateProperties = namer.currentIsolate;
@@ -1583,7 +1649,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     return '';
   }
 
-  ClassBuilder getElementDescriptor(Element element) {
+  ClassBuilder getElementDescriptor(Element element, Fragment fragment) {
     Element owner = element.library;
     if (!element.isLibrary && !element.isTopLevel && !element.isNative) {
       // For static (not top level) elements, record their code in a buffer
@@ -1601,9 +1667,9 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     if (owner == null) {
       compiler.internalError(element, 'Owner is null.');
     }
-    return elementDescriptors.putIfAbsent(
-        owner,
-        () => new ClassBuilder(owner, namer));
+    return elementDescriptors
+        .putIfAbsent(fragment, () => new Map<Element, ClassBuilder>())
+        .putIfAbsent(owner, () => new ClassBuilder(owner, namer));
   }
 
   /// Emits support-code for deferred loading into [output].
@@ -1728,6 +1794,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
                     '$globalsHolder.$setupProgramName$N')
           ..add('var ${namer.isolateName}$_=$_'
                     '${globalsHolder}.${namer.isolateName}$N');
+      String typesAccess =
+          generateEmbeddedGlobalAccessString(embeddedNames.TYPES);
       if (libraryDescriptorBuffer != null) {
         // TODO(ahe): This defines a lot of properties on the
         // Isolate.prototype object.  We know this will turn it into a
@@ -1753,7 +1821,13 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
                   allowVariableMinification: false));
           output.add(N);
         }
-        output.add('$setupProgramName(dart)$N');
+        output.add('$setupProgramName(dart, ${typesAccess}.length)$N');
+      }
+
+      if (task.metadataCollector.types[outputUnit] != null) {
+        emitMetadata(program, output, outputUnit);
+        output.add('${typesAccess}.'
+                   'push.apply(${typesAccess},$_${namer.deferredTypesName})$N');
       }
 
       // Set the currentIsolate variable to the current isolate (which is

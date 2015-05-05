@@ -11,15 +11,15 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
-import '../../reflective_tests.dart';
 import 'abstract_refactoring.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(MoveFileTest);
+  defineReflectiveTests(MoveFileTest);
 }
 
 @reflectiveTest

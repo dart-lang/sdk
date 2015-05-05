@@ -10,7 +10,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:http/http.dart' as http;
-import 'package:stack_trace/stack_trace.dart';
 
 import 'command/build.dart';
 import 'command/cache.dart';

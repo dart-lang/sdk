@@ -996,7 +996,7 @@ void Simulator::UnalignedAccess(const char* msg, uword addr, Instr* instr) {
 uword Simulator::StackTop() const {
   // To be safe in potential stack underflows we leave some buffer above and
   // set the stack top.
-  return reinterpret_cast<uword>(stack_) +
+  return StackBase() +
       (Isolate::GetSpecifiedStackSize() + Isolate::kStackSizeBuffer);
 }
 
@@ -1217,12 +1217,6 @@ void Simulator::DoBreak(Instr *instr) {
     dbg.Stop(instr, message);
     // Adjust for extra pc increment.
     set_pc(get_pc() - Instr::kInstrSize);
-  } else if (instr->BreakCodeField() == Instr::kSimulatorMessageCode) {
-    const char* message = *reinterpret_cast<const char**>(
-        reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
-    if (IsTracingExecution()) {
-      OS::Print("Message: %s\n", message);
-    }
   } else if (instr->BreakCodeField() == Instr::kSimulatorRedirectCode) {
     SimulatorSetjmpBuffer buffer(this);
 

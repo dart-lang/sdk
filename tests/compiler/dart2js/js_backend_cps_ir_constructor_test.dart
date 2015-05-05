@@ -1,7 +1,6 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=-DUSE_CPS_IR=true
 
 // Tests of interceptors.
 
@@ -68,8 +67,7 @@ main() {
 }""",
 r"""
 function(x, y) {
-  var v0;
-  v0 = new V.Sub(y, x);
+  var v0 = new V.Sub(y, x);
   v0.Base0$0();
   v0.Sub$2(x, y);
   return v0;
@@ -98,11 +96,9 @@ main() {
 }""",
 r"""
 function(x, y) {
-  var _box_0, v0;
-  _box_0 = {};
+  var _box_0 = {}, v0;
   _box_0._captured_x1_0 = x;
-  v0 = new V.Sub(y, new V.Base_closure(_box_0));
-  v0.Base0$0();
+  (v0 = new V.Sub(y, new V.Base_closure(_box_0))).Base0$0();
   v0.Base$1(_box_0);
   v0.Sub$2(x, y);
   return v0;
@@ -130,12 +126,7 @@ main() {
 """,
 r"""
 function() {
-  var v0, v1, v2, v3, v4;
-  v0 = V.foo("y1");
-  v1 = V.foo("y2");
-  v2 = V.foo("x1");
-  v3 = V.foo("x3");
-  v4 = V.foo("x2");
+  var v0 = V.foo("y1"), v1 = V.foo("y2"), v2 = V.foo("x1"), v3 = V.foo("x3"), v4 = V.foo("x2");
   return new V.Sub(v0, v1, V.foo("y3"), v2, v4, v3);
 }"""),
 
@@ -159,8 +150,7 @@ main() {
 """,
 r"""
 function() {
-  var v0;
-  v0 = new V.Foo();
+  var v0 = new V.Foo();
   v0.Bar$5$q$w$y$z("x", null, "w", "y", "z");
   return v0;
 }"""),
@@ -195,8 +185,7 @@ main() {
   new C<int>();
 }""", r"""
 function($T) {
-  var v0;
-  v0 = H.setRuntimeTypeInfo(new V.C(), [$T]);
+  var v0 = H.setRuntimeTypeInfo(new V.C(), [$T]);
   v0.C$0();
   return v0;
 }"""),
@@ -213,6 +202,69 @@ main() {
 }""", r"""
 function($T) {
   return H.setRuntimeTypeInfo(new V.C(V.D$($T)), [$T]);
+}"""),
+
+
+  const TestEntry.forMethod('generative_constructor(A#)', r"""
+class A {
+  var x;
+  A() : this.b(1);
+  A.b(this.x);
+}
+main() {
+  print(new A().x);
+}""", r"""
+function() {
+  return new V.A(1);
+}"""),
+
+
+const TestEntry.forMethod('function(Foo#make)', r"""
+class Foo {
+  factory Foo.make(x) {
+    print('Foo');
+    return new Foo.create(x);
+  }
+  var x;
+  Foo.create(this.x);
+}
+main() {
+  print(new Foo.make(5));
+}""", r"""
+function(x) {
+  P.print("Foo");
+  return V.Foo$create(x);
+}"""),
+const TestEntry(r"""
+class Foo {
+  factory Foo.make(x) = Foo.create;
+  var x;
+  Foo.create(this.x);
+}
+main() {
+  print(new Foo.make(5));
+}""", r"""
+function() {
+  P.print(V.Foo$create(5));
+  return null;
+}"""),
+const TestEntry(r"""
+class A {
+  factory A(x) = B<int>;
+  get typevar;
+}
+class B<T> implements A {
+  var x;
+  B(this.x);
+
+  get typevar => T;
+}
+main() {
+  new A(5).typevar;
+}""", r"""
+function() {
+  V.B$(5, P.$int).get$typevar();
+  return null;
 }"""),
 ];
 

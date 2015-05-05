@@ -427,6 +427,11 @@ void AstPrinter::VisitThrowNode(ThrowNode* node) {
 }
 
 
+void AstPrinter::VisitStopNode(StopNode* node) {
+  ISL_Print("(%s %s)", node->PrettyName(), node->message());
+}
+
+
 void AstPrinter::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
   VisitGenericAstNode(node);
 }

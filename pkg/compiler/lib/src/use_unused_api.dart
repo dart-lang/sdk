@@ -11,6 +11,7 @@ library dart2js.use_unused_api;
 import '../compiler.dart' as api;
 
 import 'colors.dart' as colors;
+import 'constants/constant_system.dart' as constants;
 import 'constants/values.dart' as constants;
 import 'cps_ir/cps_ir_builder.dart' as ir_builder;
 import 'cps_ir/cps_ir_builder_task.dart' as ir_builder;
@@ -26,6 +27,7 @@ import 'filenames.dart' as filenames;
 import 'inferrer/concrete_types_inferrer.dart' as concrete_types_inferrer;
 import 'inferrer/type_graph_inferrer.dart' as type_graph_inferrer;
 import 'io/code_output.dart' as io;
+import 'io/source_map_builder.dart' as io;
 import 'js/js.dart' as js;
 import 'js_backend/js_backend.dart' as js_backend;
 import 'js_emitter/js_emitter.dart' as js_emitter;
@@ -41,8 +43,8 @@ import 'scanner/scannerlib.dart' show
     PartialClassElement,
     PartialFunctionElement;
 
-class ElementVisitor extends elements_visitor.ElementVisitor {
-  visitElement(e) {}
+class ElementVisitor extends elements_visitor.BaseElementVisitor {
+  visitElement(e, a) {}
 }
 
 void main(List<String> arguments) {
@@ -64,7 +66,7 @@ void main(List<String> arguments) {
   useColor();
   useFilenames();
   useSsa(null);
-  useCodeBuffer(null);
+  useIo(null, null);
   usedByTests();
   useElements(null, null, null, null, null);
   useIr(null, null);
@@ -82,7 +84,7 @@ useApi() {
 }
 
 void useConstant(constants.ConstantValue constant,
-                 dart2jslib.ConstantSystem cs) {
+                 constants.ConstantSystem cs) {
   constant.isObject;
   cs.isBool(constant);
 }
@@ -154,28 +156,28 @@ void useImmutableEmptySet(util.ImmutableEmptySet set) {
 
 void useElementVisitor(ElementVisitor visitor) {
   visitor
-    ..visit(null)
-    ..visitAbstractFieldElement(null)
-    ..visitAmbiguousElement(null)
-    ..visitBoxFieldElement(null)
-    ..visitClassElement(null)
-    ..visitClosureClassElement(null)
-    ..visitClosureFieldElement(null)
-    ..visitCompilationUnitElement(null)
-    ..visitConstructorBodyElement(null)
-    ..visitElement(null)
-    ..visitErroneousElement(null)
-    ..visitFieldParameterElement(null)
-    ..visitFunctionElement(null)
-    ..visitLibraryElement(null)
-    ..visitMixinApplicationElement(null)
-    ..visitPrefixElement(null)
-    ..visitScopeContainerElement(null)
-    ..visitTypeDeclarationElement(null)
-    ..visitTypeVariableElement(null)
-    ..visitTypedefElement(null)
-    ..visitVariableElement(null)
-    ..visitWarnOnUseElement(null);
+    ..visit(null, null)
+    ..visitAbstractFieldElement(null, null)
+    ..visitAmbiguousElement(null, null)
+    ..visitBoxFieldElement(null, null)
+    ..visitClassElement(null, null)
+    ..visitClosureClassElement(null, null)
+    ..visitClosureFieldElement(null, null)
+    ..visitCompilationUnitElement(null, null)
+    ..visitConstructorBodyElement(null, null)
+    ..visitElement(null, null)
+    ..visitErroneousElement(null, null)
+    ..visitFieldParameterElement(null, null)
+    ..visitFunctionElement(null, null)
+    ..visitLibraryElement(null, null)
+    ..visitMixinApplicationElement(null, null)
+    ..visitPrefixElement(null, null)
+    ..visitScopeContainerElement(null, null)
+    ..visitTypeDeclarationElement(null, null)
+    ..visitTypeVariableElement(null, null)
+    ..visitTypedefElement(null, null)
+    ..visitVariableElement(null, null)
+    ..visitWarnOnUseElement(null, null);
 }
 
 useJsNode(js.Node node) {
@@ -211,7 +213,11 @@ useSsa(ssa.HInstruction instruction) {
   new ssa.HStatementSequenceInformation(null);
 }
 
-useCodeBuffer(io.CodeBuffer buffer) {
+useIo(io.CodeBuffer buffer, io.LineColumnMap map) {
+  map..addFirst(null, null, null)
+     ..forEachLine(null)
+     ..getFirstElementsInLine(null)
+     ..forEachColumn(null, null);
 }
 
 usedByTests() {
@@ -252,11 +258,7 @@ useIr(ir_builder.IrBuilderTask task,
     ..hasIr(null)
     ..getIr(null);
   builder
-    ..buildIntegerLiteral(null)
-    ..buildDoubleLiteral(null)
-    ..buildBooleanLiteral(null)
-    ..buildNullLiteral()
-    ..buildStringLiteral(null)
+    ..buildStringConstant(null)
     ..buildDynamicGet(null, null);
 }
 
@@ -288,8 +290,9 @@ useProgramBuilder(program_builder.ProgramBuilder builder) {
 }
 
 useSemanticVisitor() {
-  new semantic_visitor.BulkVisitor().apply(null, null);
+  new semantic_visitor.BulkSendVisitor().apply(null, null);
   new semantic_visitor.TraversalVisitor(null).apply(null, null);
+  new semantic_visitor.BulkDeclarationVisitor().apply(null, null);
 }
 
 class DummyTreeVisitor extends tree_ir.RootVisitor

@@ -4,13 +4,9 @@
 
 [ $compiler == dart2dart && $builder_tag == new_backend ]
 Language/12_Expressions/18_Assignment_A04_t09: RuntimeError # Issue 23015
-LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # issue 19953
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # issue 19953
-LibTest/core/List/List_class_A01_t02: Crash # issue 19953
 
 [ $compiler == dart2dart && $builder_tag != new_backend ]
 Language/12_Expressions/18_Assignment_A04_t09: RuntimeError # co19-roll r667: Please triage this failure
-Language/13_Statements/12_Labels_A01_t03: fail # co19-roll r546: Please triage this failure
 
 [ $compiler == dart2dart ]
 Language/03_Overview/1_Scoping_A02_t05: Fail # Inherited from dart2js
@@ -54,8 +50,6 @@ Language/12_Expressions/12_Instance_Creation/1_New_A06_t06: fail # co19-roll r54
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t15: CompileTimeError # Issue 21092
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t01: MissingCompileTimeError # Issue 21134
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t03: MissingCompileTimeError # Issue 21134
-Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t17: MissingCompileTimeError # Issue 21210
-Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t18: MissingCompileTimeError # Issue 21210
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: RuntimeError # co19-roll r623: Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A07_t02: Pass, RuntimeError # co19-roll r607: Please triage this failure
 Language/12_Expressions/22_Equality_A01_t01: fail # co19-roll r546: Please triage this failure
@@ -64,6 +58,7 @@ Language/12_Expressions/30_Identifier_Reference_A02_t01: fail # co19-roll r546: 
 Language/13_Statements/04_Local_Function_Declaration_A04_t01: Fail, MissingCompileTimeError # co19-roll r607: Please triage this failure
 Language/13_Statements/04_Local_Function_Declaration_A04_t03: MissingCompileTimeError # co19-roll r667: Please triage this failure
 Language/13_Statements/09_Switch_A01_t02: fail # co19-roll r546: Please triage this failure
+Language/13_Statements/12_Labels_A01_t03: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t08: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t09: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t10: fail # co19-roll r546: Please triage this failure
@@ -79,7 +74,6 @@ Language/16_Reference/1_Lexical_Rules_A02_t06: fail # co19-roll r546: Please tri
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: RuntimeError # Issue 22032
 LibTest/core/DateTime/parse_A03_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/Function/Function_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
-LibTest/core/Function/apply_A01_t01: RuntimeError # Issue 21673
 LibTest/core/Invocation/memberName_A01_t01: Pass, RuntimeError # co18-roll r607: Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # inherited from VM. Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # inherited from VM. Issue 22200
