@@ -2111,30 +2111,30 @@ const c_num = const C<num>();''');
   }
 
   void test_isValidSymbol() {
-    expect(ConstantValueComputer.isValidPublicSymbol(""), isTrue);
-    expect(ConstantValueComputer.isValidPublicSymbol("foo"), isTrue);
-    expect(ConstantValueComputer.isValidPublicSymbol("foo.bar"), isTrue);
-    expect(ConstantValueComputer.isValidPublicSymbol("foo\$"), isTrue);
-    expect(ConstantValueComputer.isValidPublicSymbol("foo\$bar"), isTrue);
-    expect(ConstantValueComputer.isValidPublicSymbol("iff"), isTrue);
-    expect(ConstantValueComputer.isValidPublicSymbol("gif"), isTrue);
-    expect(ConstantValueComputer.isValidPublicSymbol("if\$"), isTrue);
-    expect(ConstantValueComputer.isValidPublicSymbol("\$if"), isTrue);
-    expect(ConstantValueComputer.isValidPublicSymbol("foo="), isTrue);
-    expect(ConstantValueComputer.isValidPublicSymbol("foo.bar="), isTrue);
-    expect(ConstantValueComputer.isValidPublicSymbol("foo.+"), isTrue);
-    expect(ConstantValueComputer.isValidPublicSymbol("void"), isTrue);
-    expect(ConstantValueComputer.isValidPublicSymbol("_foo"), isFalse);
-    expect(ConstantValueComputer.isValidPublicSymbol("_foo.bar"), isFalse);
-    expect(ConstantValueComputer.isValidPublicSymbol("foo._bar"), isFalse);
-    expect(ConstantValueComputer.isValidPublicSymbol("if"), isFalse);
-    expect(ConstantValueComputer.isValidPublicSymbol("if.foo"), isFalse);
-    expect(ConstantValueComputer.isValidPublicSymbol("foo.if"), isFalse);
-    expect(ConstantValueComputer.isValidPublicSymbol("foo=.bar"), isFalse);
-    expect(ConstantValueComputer.isValidPublicSymbol("foo."), isFalse);
-    expect(ConstantValueComputer.isValidPublicSymbol("+.foo"), isFalse);
-    expect(ConstantValueComputer.isValidPublicSymbol("void.foo"), isFalse);
-    expect(ConstantValueComputer.isValidPublicSymbol("foo.void"), isFalse);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol(""), isTrue);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("foo"), isTrue);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("foo.bar"), isTrue);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("foo\$"), isTrue);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("foo\$bar"), isTrue);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("iff"), isTrue);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("gif"), isTrue);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("if\$"), isTrue);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("\$if"), isTrue);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("foo="), isTrue);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("foo.bar="), isTrue);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("foo.+"), isTrue);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("void"), isTrue);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("_foo"), isFalse);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("_foo.bar"), isFalse);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("foo._bar"), isFalse);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("if"), isFalse);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("if.foo"), isFalse);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("foo.if"), isFalse);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("foo=.bar"), isFalse);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("foo."), isFalse);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("+.foo"), isFalse);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("void.foo"), isFalse);
+    expect(ConstantEvaluationEngine.isValidPublicSymbol("foo.void"), isFalse);
   }
 
   void test_length_of_improperly_typed_string_expression() {
@@ -2432,8 +2432,9 @@ class ConstantVisitorTest extends ResolverTestCase {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ErrorReporter errorReporter =
         new ErrorReporter(errorListener, _dummySource());
-    _assertValue(0, expression
-        .accept(new ConstantVisitor(new TestTypeProvider(), errorReporter)));
+    _assertValue(0, expression.accept(new ConstantVisitor(
+        new ConstantEvaluationEngine(
+            new TestTypeProvider(), new DeclaredVariables()), errorReporter)));
     errorListener.assertNoErrors();
   }
 
@@ -2455,7 +2456,9 @@ class ConstantVisitorTest extends ResolverTestCase {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ErrorReporter errorReporter =
         new ErrorReporter(errorListener, _dummySource());
-    expression.accept(new ConstantVisitor(typeProvider, errorReporter));
+    expression.accept(new ConstantVisitor(
+        new ConstantEvaluationEngine(typeProvider, new DeclaredVariables()),
+        errorReporter));
     errorListener
         .assertErrorsWithCodes([CompileTimeErrorCode.INVALID_CONSTANT]);
   }
@@ -2469,8 +2472,9 @@ class ConstantVisitorTest extends ResolverTestCase {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ErrorReporter errorReporter =
         new ErrorReporter(errorListener, _dummySource());
-    DartObjectImpl result = expression
-        .accept(new ConstantVisitor(new TestTypeProvider(), errorReporter));
+    DartObjectImpl result = expression.accept(new ConstantVisitor(
+        new ConstantEvaluationEngine(
+            new TestTypeProvider(), new DeclaredVariables()), errorReporter));
     expect(result, isNull);
     errorListener
         .assertErrorsWithCodes([CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL]);
@@ -2484,8 +2488,9 @@ class ConstantVisitorTest extends ResolverTestCase {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ErrorReporter errorReporter =
         new ErrorReporter(errorListener, _dummySource());
-    DartObjectImpl result = expression
-        .accept(new ConstantVisitor(new TestTypeProvider(), errorReporter));
+    DartObjectImpl result = expression.accept(new ConstantVisitor(
+        new ConstantEvaluationEngine(
+            new TestTypeProvider(), new DeclaredVariables()), errorReporter));
     expect(result, isNull);
     errorListener
         .assertErrorsWithCodes([CompileTimeErrorCode.INVALID_CONSTANT]);
@@ -2499,8 +2504,9 @@ class ConstantVisitorTest extends ResolverTestCase {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ErrorReporter errorReporter =
         new ErrorReporter(errorListener, _dummySource());
-    DartObjectImpl result = expression
-        .accept(new ConstantVisitor(new TestTypeProvider(), errorReporter));
+    DartObjectImpl result = expression.accept(new ConstantVisitor(
+        new ConstantEvaluationEngine(
+            new TestTypeProvider(), new DeclaredVariables()), errorReporter));
     expect(result, isNull);
     errorListener
         .assertErrorsWithCodes([CompileTimeErrorCode.INVALID_CONSTANT]);
@@ -2514,8 +2520,9 @@ class ConstantVisitorTest extends ResolverTestCase {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ErrorReporter errorReporter =
         new ErrorReporter(errorListener, _dummySource());
-    _assertValue(1, expression
-        .accept(new ConstantVisitor(new TestTypeProvider(), errorReporter)));
+    _assertValue(1, expression.accept(new ConstantVisitor(
+        new ConstantEvaluationEngine(
+            new TestTypeProvider(), new DeclaredVariables()), errorReporter)));
     errorListener.assertNoErrors();
   }
 
@@ -2586,7 +2593,8 @@ const b = 3;''');
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
     DartObjectImpl result = expression.accept(new ConstantVisitor(
-        typeProvider, errorReporter, lexicalEnvironment: lexicalEnvironment));
+        new ConstantEvaluationEngine(typeProvider, new DeclaredVariables()),
+        errorReporter, lexicalEnvironment: lexicalEnvironment));
     errorListener.assertNoErrors();
     return result;
   }

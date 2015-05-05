@@ -824,6 +824,11 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   final TypeProvider _typeProvider;
 
   /**
+   * The set of variables declared using '-D' on the command line.
+   */
+  final DeclaredVariables declaredVariables;
+
+  /**
    * The type representing the type 'bool'.
    */
   InterfaceType _boolType;
@@ -853,8 +858,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param errorReporter the error reporter by which errors will be reported
    */
-  ConstantVerifier(
-      this._errorReporter, this._currentLibrary, this._typeProvider) {
+  ConstantVerifier(this._errorReporter, this._currentLibrary,
+      this._typeProvider, this.declaredVariables) {
     this._boolType = _typeProvider.boolType;
     this._intType = _typeProvider.intType;
     this._numType = _typeProvider.numType;
@@ -975,8 +980,9 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
             AnalysisErrorListener.NULL_LISTENER;
         ErrorReporter subErrorReporter =
             new ErrorReporter(errorListener, _errorReporter.source);
-        DartObjectImpl result =
-            key.accept(new ConstantVisitor(_typeProvider, subErrorReporter));
+        DartObjectImpl result = key.accept(new ConstantVisitor(
+            new ConstantEvaluationEngine(_typeProvider, declaredVariables),
+            subErrorReporter));
         if (result != null) {
           if (keys.contains(result)) {
             invalidKeys.add(key);
@@ -1179,8 +1185,9 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     ErrorReporter subErrorReporter =
         new ErrorReporter(errorListener, _errorReporter.source);
-    DartObjectImpl result =
-        expression.accept(new ConstantVisitor(_typeProvider, subErrorReporter));
+    DartObjectImpl result = expression.accept(new ConstantVisitor(
+        new ConstantEvaluationEngine(_typeProvider, declaredVariables),
+        subErrorReporter));
     _reportErrors(errorListener.errors, errorCode);
     return result;
   }
@@ -1286,8 +1293,9 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
                   AnalysisErrorListener.NULL_LISTENER;
               ErrorReporter subErrorReporter =
                   new ErrorReporter(errorListener, _errorReporter.source);
-              DartObjectImpl result = initializer
-                  .accept(new ConstantVisitor(_typeProvider, subErrorReporter));
+              DartObjectImpl result = initializer.accept(new ConstantVisitor(
+                  new ConstantEvaluationEngine(
+                      _typeProvider, declaredVariables), subErrorReporter));
               if (result == null) {
                 _errorReporter.reportErrorForNode(
                     CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
@@ -1313,8 +1321,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     ErrorReporter subErrorReporter =
         new ErrorReporter(errorListener, _errorReporter.source);
     DartObjectImpl result = expression.accept(
-        new _ConstantVerifier_validateInitializerExpression(
-            _typeProvider, subErrorReporter, this, parameterElements));
+        new _ConstantVerifier_validateInitializerExpression(_typeProvider,
+            subErrorReporter, this, parameterElements, declaredVariables));
     _reportErrors(errorListener.errors,
         CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
     if (result != null) {
@@ -8471,7 +8479,8 @@ class LibraryResolver {
             ErrorReporter errorReporter =
                 new ErrorReporter(_errorListener, source);
             ConstantVerifier constantVerifier = new ConstantVerifier(
-                errorReporter, library.libraryElement, _typeProvider);
+                errorReporter, library.libraryElement, _typeProvider,
+                analysisContext.declaredVariables);
             unit.accept(constantVerifier);
           } on AnalysisException catch (exception, stackTrace) {
             AnalysisEngine.instance.logger.logError(
@@ -8995,7 +9004,8 @@ class LibraryResolver2 {
           ErrorReporter errorReporter =
               new ErrorReporter(_errorListener, unit.source);
           ConstantVerifier constantVerifier = new ConstantVerifier(
-              errorReporter, library.libraryElement, _typeProvider);
+              errorReporter, library.libraryElement, _typeProvider,
+              analysisContext.declaredVariables);
           ast.accept(constantVerifier);
         }
       }
@@ -15274,9 +15284,11 @@ class _ConstantVerifier_validateInitializerExpression extends ConstantVisitor {
 
   List<ParameterElement> parameterElements;
 
-  _ConstantVerifier_validateInitializerExpression(TypeProvider arg0,
-      ErrorReporter arg1, this.verifier, this.parameterElements)
-      : super(arg0, arg1);
+  _ConstantVerifier_validateInitializerExpression(TypeProvider typeProvider,
+      ErrorReporter errorReporter, this.verifier, this.parameterElements,
+      DeclaredVariables declaredVariables)
+      : super(new ConstantEvaluationEngine(typeProvider, declaredVariables),
+          errorReporter);
 
   @override
   DartObjectImpl visitSimpleIdentifier(SimpleIdentifier node) {

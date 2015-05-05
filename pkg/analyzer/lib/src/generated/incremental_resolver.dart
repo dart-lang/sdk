@@ -972,8 +972,8 @@ class IncrementalResolver {
     // validate
     {
       ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
-      ConstantVerifier constantVerifier =
-          new ConstantVerifier(errorReporter, _definingLibrary, _typeProvider);
+      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter,
+          _definingLibrary, _typeProvider, _context.declaredVariables);
       node.accept(constantVerifier);
     }
   }
