@@ -1150,7 +1150,7 @@ var core;
         let newStart = dart.notNull(this[_start]) + dart.notNull(count);
         if (dart.notNull(newStart) >= dart.notNull(this[_end]))
           return new (_internal.EmptyIterable$(E))();
-        return new exports._GeneratorIterable$(E).slice(newStart, this[_end], this[_generator]);
+        return new (exports._GeneratorIterable$(E)).slice(newStart, this[_end], this[_generator]);
       }
       [$take](count) {
         RangeError.checkNotNegative(count, "count");
@@ -1159,7 +1159,7 @@ var core;
         let newEnd = dart.notNull(this[_start]) + dart.notNull(count);
         if (dart.notNull(newEnd) >= dart.notNull(this[_end]))
           return this;
-        return new exports._GeneratorIterable$(E).slice(this[_start], newEnd, this[_generator]);
+        return new (exports._GeneratorIterable$(E)).slice(this[_start], newEnd, this[_generator]);
       }
       static _id(n) {
         return n;
@@ -1428,13 +1428,13 @@ var core;
       [$toList](opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
         if (growable) {
-          return new _interceptors.JSArray$(E).markGrowable(this.slice());
+          return new (_interceptors.JSArray$(E)).markGrowable(this.slice());
         } else {
-          return new _interceptors.JSArray$(E).markFixed(this.slice());
+          return new (_interceptors.JSArray$(E)).markFixed(this.slice());
         }
       }
       [$toSet]() {
-        return new exports.Set$(E).from(this);
+        return new (exports.Set$(E)).from(this);
       }
       get [$iterator]() {
         return new (_internal.ListIterator$(E))(this);
@@ -1583,7 +1583,7 @@ var core;
         }
         if (start == end)
           return dart.setType([], List$(E));
-        return new _interceptors.JSArray$(E).markGrowable(this.slice(start, end));
+        return new (_interceptors.JSArray$(E)).markGrowable(this.slice(start, end));
       }
       [$getRange](start, end) {
         return new (_internal.IterableMixinWorkaround$(E))().getRangeList(this, start, end);
@@ -1638,16 +1638,16 @@ var core;
         return new (collection.LinkedHashMap$(K, V))();
       }
       from(other) {
-        return new collection.LinkedHashMap$(K, V).from(other);
+        return new (collection.LinkedHashMap$(K, V)).from(other);
       }
       identity() {
-        return new collection.LinkedHashMap$(K, V).identity();
+        return new (collection.LinkedHashMap$(K, V)).identity();
       }
       fromIterable(iterable, opts) {
-        return new collection.LinkedHashMap$(K, V).fromIterable(iterable, opts);
+        return new (collection.LinkedHashMap$(K, V)).fromIterable(iterable, opts);
       }
       fromIterables(keys, values) {
-        return new collection.LinkedHashMap$(K, V).fromIterables(keys, values);
+        return new (collection.LinkedHashMap$(K, V)).fromIterables(keys, values);
       }
     }
     dart.defineNamedConstructor(Map, 'from');
@@ -1691,10 +1691,10 @@ var core;
         return new (collection.LinkedHashSet$(E))();
       }
       identity() {
-        return new collection.LinkedHashSet$(E).identity();
+        return new (collection.LinkedHashSet$(E)).identity();
       }
       from(elements) {
-        return new collection.LinkedHashSet$(E).from(elements);
+        return new (collection.LinkedHashSet$(E)).from(elements);
       }
     }
     Set[dart.implements] = () => [_internal.EfficientLength];

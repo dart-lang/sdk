@@ -3736,8 +3736,8 @@ var _js_helper;
     let hashesMap = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.DEFERRED_LIBRARY_HASHES);
     let hashes = dart.as(hashesMap[loadId], core.List$(core.String));
     if (uris == null)
-      return new async.Future$(core.Null).value(null);
-    let indices = new core.List$(core.int).generate(uris[core.$length], i => dart.as(i, core.int));
+      return new (async.Future$(core.Null)).value(null);
+    let indices = new (core.List$(core.int)).generate(uris[core.$length], i => dart.as(i, core.int));
     let isHunkLoaded = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.IS_HUNK_LOADED);
     let isHunkInitialized = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.IS_HUNK_INITIALIZED);
     let indicesToLoad = indices[core.$where](i => !isHunkLoaded(hashes[core.$get](i)))[core.$toList]();

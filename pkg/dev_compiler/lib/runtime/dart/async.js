@@ -1774,17 +1774,17 @@ var async;
       sync(computation) {
         try {
           let result = computation();
-          return new Future$(T).value(result);
+          return new (Future$(T)).value(result);
         } catch (error) {
           let stackTrace = dart.stackTrace(error);
-          return new Future$(T).error(error, stackTrace);
+          return new (Future$(T)).error(error, stackTrace);
         }
 
       }
       value(value) {
         if (value === void 0)
           value = null;
-        return new _Future$(T).immediate(value);
+        return new (_Future$(T)).immediate(value);
       }
       error(error, stackTrace) {
         if (stackTrace === void 0)
@@ -1797,7 +1797,7 @@ var async;
             stackTrace = replacement.stackTrace;
           }
         }
-        return new _Future$(T).immediateError(error, stackTrace);
+        return new (_Future$(T)).immediateError(error, stackTrace);
       }
       delayed(duration, computation) {
         if (computation === void 0)
@@ -1870,7 +1870,7 @@ var async;
           }, {onError: handleError});
         }
         if (remaining == 0) {
-          return new Future$(core.List).value(dart.const([]));
+          return new (Future$(core.List)).value(dart.const([]));
         }
         values = new core.List(remaining);
         return result;
@@ -2198,7 +2198,7 @@ var async;
         return dart.as(result, Future$(T));
       }
       asStream() {
-        return new Stream$(T).fromFuture(this);
+        return new (Stream$(T)).fromFuture(this);
       }
       [_markPendingCompletion]() {
         if (!dart.notNull(this[_mayComplete]))
@@ -3695,7 +3695,7 @@ var async;
       }
       moveNext() {
         if (this[_state] == _StreamIteratorImpl._STATE_DONE) {
-          return new _Future$(core.bool).immediate(false);
+          return new (_Future$(core.bool)).immediate(false);
         }
         if (this[_state] == _StreamIteratorImpl._STATE_MOVING) {
           throw new core.StateError("Already waiting for next.");
@@ -3714,18 +3714,18 @@ var async;
               this[_current] = dart.as(this[_futureOrPrefetch], T);
               this[_futureOrPrefetch] = null;
               this[_subscription].resume();
-              return new _Future$(core.bool).immediate(true);
+              return new (_Future$(core.bool)).immediate(true);
             }
             case _StreamIteratorImpl._STATE_EXTRA_ERROR:
             {
               let prefetch = dart.as(this[_futureOrPrefetch], AsyncError);
               this[_clear]();
-              return new _Future$(core.bool).immediateError(prefetch.error, prefetch.stackTrace);
+              return new (_Future$(core.bool)).immediateError(prefetch.error, prefetch.stackTrace);
             }
             case _StreamIteratorImpl._STATE_EXTRA_DONE:
             {
               this[_clear]();
-              return new _Future$(core.bool).immediate(false);
+              return new (_Future$(core.bool)).immediate(false);
             }
           }
         }

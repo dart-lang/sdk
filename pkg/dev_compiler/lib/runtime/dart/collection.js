@@ -560,10 +560,10 @@ var collection;
       }
       [core.$toList](opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
-        return new core.List$(E).from(this, {growable: growable});
+        return new (core.List$(E)).from(this, {growable: growable});
       }
       [core.$toSet]() {
-        return new core.Set$(E).from(this);
+        return new (core.Set$(E)).from(this);
       }
       get [core.$length]() {
         dart.assert(!dart.is(this, _internal.EfficientLength));
@@ -776,10 +776,10 @@ var collection;
       }
       [core.$toList](opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
-        return new core.List$(E).from(this, {growable: growable});
+        return new (core.List$(E)).from(this, {growable: growable});
       }
       [core.$toSet]() {
-        return new core.Set$(E).from(this);
+        return new (core.Set$(E)).from(this);
       }
       get [core.$length]() {
         dart.assert(!dart.is(this, _internal.EfficientLength));
@@ -2219,7 +2219,7 @@ var collection;
         return new (ListQueue$(E))();
       }
       from(elements) {
-        return new ListQueue$(E).from(elements);
+        return new (ListQueue$(E)).from(elements);
       }
       [Symbol.iterator]() {
         return new dart.JsIterator(this[core.$iterator]);

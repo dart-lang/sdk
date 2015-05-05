@@ -33,7 +33,7 @@ var isolate;
         return dart.as(_isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(msg => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)})), async.Future$(Isolate));
       } catch (e) {
         let st = dart.stackTrace(e);
-        return new async.Future$(Isolate).error(e, st);
+        return new (async.Future$(Isolate)).error(e, st);
       }
 
     }
@@ -55,7 +55,7 @@ var isolate;
         return dart.as(_isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(msg => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)})), async.Future$(Isolate));
       } catch (e) {
         let st = dart.stackTrace(e);
-        return new async.Future$(Isolate).error(e, st);
+        return new (async.Future$(Isolate)).error(e, st);
       }
 
     }

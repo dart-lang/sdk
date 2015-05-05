@@ -24,7 +24,7 @@ var _isolate_helper;
   class _Serializer extends core.Object {
     _Serializer(opts) {
       let serializeSendPorts = opts && 'serializeSendPorts' in opts ? opts.serializeSendPorts : true;
-      this.serializedObjectIds = new core.Map$(dart.dynamic, core.int).identity();
+      this.serializedObjectIds = new (core.Map$(dart.dynamic, core.int)).identity();
       this[_serializeSendPorts] = dart.as(serializeSendPorts, core.bool);
     }
     serialize(x) {
@@ -1022,7 +1022,7 @@ var _isolate_helper;
     }
     static _startWorker(functionName, uri, args, message, isSpawnUri, startPaused, replyPort, onError) {
       if (args != null)
-        args = new core.List$(core.String).from(args);
+        args = new (core.List$(core.String)).from(args);
       if (exports._globalState.isWorker) {
         exports._globalState.mainManager.postMessage(_serializeMessage(dart.map({command: 'spawn-worker', functionName: functionName, args: args, msg: message, uri: uri, isSpawnUri: isSpawnUri, startPaused: startPaused, replyPort: replyPort})));
       } else {
@@ -1035,7 +1035,7 @@ var _isolate_helper;
       }
       message = _clone(message);
       if (args != null)
-        args = new core.List$(core.String).from(args);
+        args = new (core.List$(core.String)).from(args);
       exports._globalState.topEventLoop.enqueue(new _IsolateContext(), () => {
         let func = IsolateNatives._getJSFunctionFromName(functionName);
         IsolateNatives._startIsolate(dart.as(func, core.Function), args, message, isSpawnUri, startPaused, replyPort);

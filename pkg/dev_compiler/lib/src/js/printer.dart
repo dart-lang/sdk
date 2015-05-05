@@ -60,6 +60,7 @@ class Printer implements NodeVisitor {
 
   bool inForInit = false;
   bool atStatementBegin = false;
+  bool inNewTarget = false;
   bool pendingSemicolon = false;
   bool pendingSpace = false;
 
@@ -560,6 +561,7 @@ class Printer implements NodeVisitor {
     if (needsParentheses) {
       inForInit = false;
       atStatementBegin = false;
+      inNewTarget = false;
       out("(");
       visit(node);
       out(")");
@@ -616,8 +618,10 @@ class Printer implements NodeVisitor {
 
   visitNew(New node) {
     out("new ");
+    inNewTarget = true;
     visitNestedExpression(node.target, ACCESS,
                           newInForInit: inForInit, newAtStatementBegin: false);
+    inNewTarget = false;
     out("(");
     visitCommaSeparated(node.arguments, ASSIGNMENT,
                         newInForInit: false, newAtStatementBegin: false);
@@ -809,7 +813,23 @@ class Printer implements NodeVisitor {
   }
 
   visitAccess(PropertyAccess access) {
-    visitNestedExpression(access.receiver, CALL,
+    // Normally we can omit parens on the receiver if it is a Call, even though
+    // Call expressions have lower precedence. However this optimization doesn't
+    // work inside New expressions:
+    //
+    //     new obj.foo().bar()
+    //
+    // This will be parsed as:
+    //
+    //     (new obj.foo()).bar()
+    //
+    // Which is incorrect. So we must have parenthesis in this case:
+    //
+    //     new (obj.foo()).bar()
+    //
+    int precedence = inNewTarget ? ACCESS : CALL;
+
+    visitNestedExpression(access.receiver, precedence,
                           newInForInit: inForInit,
                           newAtStatementBegin: atStatementBegin);
     propertyNameOut(access.selector, inAccess: true);
