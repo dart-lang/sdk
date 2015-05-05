@@ -69,7 +69,6 @@ class HeapPage {
     object_end_ = val;
   }
 
-  // These return NULL on OOM.
   static HeapPage* Initialize(VirtualMemory* memory, PageType type);
   static HeapPage* Allocate(intptr_t size_in_words, PageType type);
 
