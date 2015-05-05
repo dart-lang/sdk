@@ -13,29 +13,54 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
- * Incrementally updates the existing [oldUnitElement] and builds elements for
+ * Incrementally updates the existing [unitElement] and builds elements for
  * the [newUnit].
  */
 class IncrementalCompilationUnitElementBuilder {
   final Source source;
   final CompilationUnit oldUnit;
-  final CompilationUnitElement oldUnitElement;
+  final CompilationUnitElementImpl unitElement;
   final CompilationUnit newUnit;
+  final ElementHolder holder = new ElementHolder();
 
   IncrementalCompilationUnitElementBuilder(
       CompilationUnit oldUnit, this.newUnit)
       : oldUnit = oldUnit,
-        oldUnitElement = oldUnit.element,
+        unitElement = oldUnit.element,
         source = oldUnit.element.source;
 
   void build() {
     new CompilationUnitBuilder().buildCompilationUnit(source, newUnit);
     _processDirectives();
+    _processUnitMembers();
+    newUnit.element = unitElement;
+  }
+
+  void _addElementsToHolder(CompilationUnitMember node) {
+    List<Element> elements = _getElements(node);
+    elements.forEach(_addElementToHolder);
+  }
+
+  void _addElementToHolder(Element element) {
+    if (element is PropertyAccessorElement) {
+      holder.addAccessor(element);
+    } else if (element is ClassElement) {
+      if (element.isEnum) {
+        holder.addEnum(element);
+      } else {
+        holder.addType(element);
+      }
+    } else if (element is FunctionElement) {
+      holder.addFunction(element);
+    } else if (element is FunctionTypeAliasElement) {
+      holder.addTypeAlias(element);
+    } else if (element is TopLevelVariableElement) {
+      holder.addTopLevelVariable(element);
+    }
   }
 
   void _processDirectives() {
-    Map<String, Directive> oldDirectiveMap = <String, Directive>{};
-    // Fill the old directives map.
+    Map<String, Directive> oldDirectiveMap = new HashMap<String, Directive>();
     for (Directive oldDirective in oldUnit.directives) {
       String code = TokenUtils.getFullCode(oldDirective);
       oldDirectiveMap[code] = oldDirective;
@@ -56,15 +81,45 @@ class IncrementalCompilationUnitElementBuilder {
         }
       }
       // Do replacement.
-      _replaceNode(newDirective, oldDirective, oldDirective.element);
+      _replaceNode(newDirective, oldDirective);
     }
+  }
+
+  void _processUnitMembers() {
+    Map<String, CompilationUnitMember> oldNodeMap =
+        new HashMap<String, CompilationUnitMember>();
+    for (CompilationUnitMember oldNode in oldUnit.declarations) {
+      String code = TokenUtils.getFullCode(oldNode);
+      oldNodeMap[code] = oldNode;
+    }
+    // Replace new nodes with the identical old nodes.
+    for (CompilationUnitMember newNode in newUnit.declarations) {
+      String code = TokenUtils.getFullCode(newNode);
+      // Prepare an old node.
+      CompilationUnitMember oldNode = oldNodeMap[code];
+      if (oldNode == null) {
+        _addElementsToHolder(newNode);
+        continue;
+      }
+      // Do replacement.
+      _replaceNode(newNode, oldNode);
+      _addElementsToHolder(oldNode);
+    }
+    // Update CompilationUnitElement.
+    unitElement.accessors = holder.accessors;
+    unitElement.enums = holder.enums;
+    unitElement.functions = holder.functions;
+    unitElement.typeAliases = holder.typeAliases;
+    unitElement.types = holder.types;
+    unitElement.topLevelVariables = holder.topLevelVariables;
+    holder.validate();
   }
 
   /**
    * Replaces [newNode] with [oldNode], updates tokens and elements.
    * The nodes must have the same tokens, but offsets may be different.
    */
-  void _replaceNode(AstNode newNode, AstNode oldNode, Element oldElement) {
+  void _replaceNode(AstNode newNode, AstNode oldNode) {
     // Replace node.
     NodeReplacer.replace(newNode, oldNode);
     // Replace tokens.
@@ -79,7 +134,44 @@ class IncrementalCompilationUnitElementBuilder {
     TokenUtils.copyTokenOffsets(offsetMap, oldNode.beginToken,
         newNode.beginToken, oldNode.endToken, newNode.endToken, true);
     // Change elements offsets.
-    oldElement.accept(new _UpdateElementOffsetsVisitor(offsetMap));
+    {
+      var visitor = new _UpdateElementOffsetsVisitor(offsetMap);
+      List<Element> elements = _getElements(oldNode);
+      for (Element element in elements) {
+        element.accept(visitor);
+      }
+    }
+  }
+
+  /**
+   * Returns [Element]s that are declared directly by the given [node].
+   * This does not include any child elements - parameters, local variables.
+   *
+   * Usually just one [Element] is returned, but [VariableDeclarationList]
+   * nodes may declare more than one.
+   */
+  static List<Element> _getElements(AstNode node) {
+    List<Element> elements = <Element>[];
+    if (node is TopLevelVariableDeclaration) {
+      VariableDeclarationList variableList = node.variables;
+      if (variableList != null) {
+        for (VariableDeclaration variable in variableList.variables) {
+          TopLevelVariableElement element = variable.element;
+          elements.add(element);
+          elements.add(element.getter);
+          elements.add(element.setter);
+        }
+      }
+    } else if (node is Directive && node.element != null) {
+      elements.add(node.element);
+    } else if (node is Declaration && node.element != null) {
+      Element element = node.element;
+      elements.add(element);
+      if (element is PropertyAccessorElement) {
+        elements.add(element.variable);
+      }
+    }
+    return elements;
   }
 }
 
@@ -100,16 +192,19 @@ class TokenUtils {
         copyTokenOffsets(offsetMap, (oldToken as CommentToken).parent,
             (newToken as CommentToken).parent, oldEndToken, newEndToken);
       }
-      while (oldToken.type != TokenType.EOF) {
+      while (oldToken != null) {
         offsetMap[oldToken.offset] = newToken.offset;
         oldToken.offset = newToken.offset;
         oldToken = oldToken.next;
         newToken = newToken.next;
       }
+      assert(oldToken == null);
+      assert(newToken == null);
+      return;
     }
     while (true) {
       if (oldToken.precedingComments != null) {
-        assert(newToken.precedingComments == null);
+        assert(newToken.precedingComments != null);
         copyTokenOffsets(offsetMap, oldToken.precedingComments,
             newToken.precedingComments, oldEndToken, newEndToken);
       }
@@ -140,9 +235,12 @@ class TokenUtils {
     return joinTokens(tokens);
   }
 
+  /**
+   * Returns all tokends (including comments) of the given [node].
+   */
   static List<Token> getTokens(AstNode node) {
     List<Token> tokens = <Token>[];
-    Token token = node.beginToken;
+    Token token = getBeginTokenNotComment(node);
     Token endToken = node.endToken;
     while (true) {
       // append comment tokens
@@ -177,9 +275,11 @@ class _UpdateElementOffsetsVisitor extends GeneralizingElementVisitor {
 
   visitElement(Element element) {
     int oldOffset = element.nameOffset;
-    int newOffset = map[oldOffset];
-    assert(newOffset != null);
-    (element as ElementImpl).nameOffset = newOffset;
+    if (oldOffset != -1) {
+      int newOffset = map[oldOffset];
+      assert(newOffset != null);
+      (element as ElementImpl).nameOffset = newOffset;
+    }
     if (element is! LibraryElement) {
       super.visitElement(element);
     }
