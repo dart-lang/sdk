@@ -251,20 +251,19 @@ class BacktrackingSolver {
   /// If there are no more versions, continues to backtrack to previous
   /// selections, and so on. If there is nothing left to backtrack to,
   /// completes to the last failure that occurred.
-  Future<List<PackageId>> _traverseSolution() => resetStack(() {
-    return new Traverser(this).traverse().catchError((error) {
-      if (error is! SolveFailure) throw error;
+  Future<List<PackageId>> _traverseSolution() => resetStack(() async {
+    // Avoid starving the event queue by waiting for a timer-level event.
+    await new Future(() {});
 
-      return _backtrack(error).then((canTry) {
-        if (canTry) {
-          _attemptedSolutions++;
-          return _traverseSolution();
-        }
+    try {
+      return await new Traverser(this).traverse();
+    } on SolveFailure catch (error) {
+      // All out of solutions, so fail.
+      if (!(await _backtrack(error))) rethrow;
 
-        // All out of solutions, so fail.
-        throw error;
-      });
-    });
+      _attemptedSolutions++;
+      await _traverseSolution();
+    }
   });
 
   /// Backtracks from the current failed solution and determines the next
