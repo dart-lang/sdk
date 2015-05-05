@@ -424,3 +424,16 @@ Map<String, DartType> getObjectMemberMap(TypeProvider typeProvider) {
   }
   return map;
 }
+
+/// Searches all supertype, in order of most derived members, to see if any
+/// [match] a condition. If so, returns the first match, otherwise returns null.
+InterfaceType findSupertype(InterfaceType type, bool match(InterfaceType t)) {
+  for (var m in type.mixins.reversed) {
+    if (match(m)) return m;
+  }
+  var s = type.superclass;
+  if (s == null) return null;
+
+  if (match(s)) return type;
+  return findSupertype(s, match);
+}

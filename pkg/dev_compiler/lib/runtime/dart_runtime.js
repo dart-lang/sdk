@@ -945,6 +945,18 @@ var dart, _js_helper, _js_primitives;
   }
   dart.noSuchMethod = noSuchMethod;
 
+  class JsIterator {
+    constructor(dartIterator) {
+      this.dartIterator = dartIterator;
+    }
+    next() {
+      let i = this.dartIterator;
+      var done = !i.moveNext();
+      return { done: done, value: done ? void 0 : i.current };
+    }
+  }
+  dart.JsIterator = JsIterator;
+
   // TODO(jmesserly): right now this is a sentinel. It should be a type object
   // of some sort, assuming we keep around `dynamic` at runtime.
   dart.dynamic = { toString() { return 'dynamic'; } };

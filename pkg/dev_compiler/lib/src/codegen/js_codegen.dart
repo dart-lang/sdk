@@ -573,30 +573,62 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       jsMethods.add(_emitImplicitConstructor(node, name, fields));
     }
 
-    for (var member in node.members) {
-      if (member is ConstructorDeclaration) {
-        jsMethods.add(_emitConstructor(member, name, fields, isObject));
-      } else if (member is MethodDeclaration) {
-        jsMethods.add(_emitMethodDeclaration(type, member));
+    bool hasJsPeer = getAnnotationValue(node, _isJsPeerInterface) != null;
+
+    bool hasIterator = false;
+    for (var m in node.members) {
+      if (m is ConstructorDeclaration) {
+        jsMethods.add(_emitConstructor(m, name, fields, isObject));
+      } else if (m is MethodDeclaration) {
+        jsMethods.add(_emitMethodDeclaration(type, m));
+
+        if (!hasJsPeer && m.isGetter && m.name.name == 'iterator') {
+          hasIterator = true;
+          jsMethods.add(_emitIterable(type));
+        }
       }
     }
 
-    // Support for adapting dart:core Iterator/Iterable to ES6 versions.
-    // This lets them use for-of loops transparently.
-    // https://github.com/lukehoban/es6features#iterators--forof
-    if (element.library.isDartCore && element.name == 'Iterable') {
-      JS.Fun body = js.call('''function() {
-        var iterator = this.iterator;
-        return {
-          next() {
-            var done = iterator.moveNext();
-            return { done: done, current: done ? void 0 : iterator.current };
-          }
-        };
-      }''');
-      jsMethods.add(new JS.Method(js.call('$_SYMBOL.iterator'), body));
+    // If the type doesn't have an `iterator`, but claims to implement Iterable,
+    // we inject the adaptor method here, as it's less code size to put the
+    // helper on a parent class. This pattern is common in the core libraries
+    // (e.g. IterableMixin<E> and IterableBase<E>).
+    //
+    // (We could do this same optimization for any interface with an `iterator`
+    // method, but that's more expensive to check for, so it doesn't seem worth
+    // it. The above case for an explicit `iterator` method will catch those.)
+    if (!hasJsPeer && !hasIterator && _implementsIterable(type)) {
+      jsMethods.add(_emitIterable(type));
     }
+
     return jsMethods.where((m) => m != null).toList(growable: false);
+  }
+
+  bool _implementsIterable(InterfaceType t) =>
+      t.interfaces.any((i) => i.element.type == types.iterableType);
+
+  /// Support for adapting dart:core Iterable to ES6 versions.
+  ///
+  /// This lets them use for-of loops transparently:
+  /// <https://github.com/lukehoban/es6features#iterators--forof>
+  ///
+  /// This will return `null` if the adapter was already added on a super type,
+  /// otherwise it returns the adapter code.
+  // TODO(jmesserly): should we adapt `Iterator` too?
+  JS.Method _emitIterable(InterfaceType t) {
+    // If a parent had an `iterator` (concrete or abstract) or implements
+    // Iterable, we know the adapter is already there, so we can skip it as a
+    // simple code size optimization.
+    var parent = t.lookUpGetterInSuperclass('iterator', t.element.library);
+    if (parent != null) return null;
+    parent = findSupertype(t, _implementsIterable);
+    if (parent != null) return null;
+
+    // Otherwise, emit the adapter method, which wraps the Dart iterator in
+    // an ES6 iterator.
+    return new JS.Method(js.call('$_SYMBOL.iterator'), js.call(
+        'function() { return new dart.JsIterator(this.#); }',
+        [_emitMemberName('iterator', type: t)]));
   }
 
   /// Emit class members that need to come after the class declaration, such

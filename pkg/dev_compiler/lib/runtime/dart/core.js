@@ -1085,6 +1085,7 @@ var core;
       return dart.notNull(this.isGetter) || dart.notNull(this.isSetter);
     }
   }
+  let $iterator = dart.JsSymbol('$iterator');
   let $join = dart.JsSymbol('$join');
   let Iterable$ = dart.generic(function(E) {
     class Iterable extends Object {
@@ -1097,21 +1098,15 @@ var core;
           return new (_internal.EmptyIterable$(E))();
         return new (exports._GeneratorIterable$(E))(count, generator);
       }
+      [dart.JsSymbol.iterator]() {
+        return new dart.JsIterator(this[$iterator]);
+      }
       [$join](separator) {
         if (separator === void 0)
           separator = "";
         let buffer = new StringBuffer();
         buffer.writeAll(this, separator);
         return dart.toString(buffer);
-      }
-      [dart.JsSymbol.iterator]() {
-        var iterator = this.iterator;
-        return {
-          next() {
-            var done = iterator.moveNext();
-            return {done: done, current: done ? void 0 : iterator.current};
-          }
-        };
       }
     }
     dart.defineNamedConstructor(Iterable, 'generate');
@@ -1126,7 +1121,6 @@ var core;
   let _end = dart.JsSymbol('_end');
   let _start = dart.JsSymbol('_start');
   let _generator = dart.JsSymbol('_generator');
-  let $iterator = dart.JsSymbol('$iterator');
   let $skip = dart.JsSymbol('$skip');
   let $take = dart.JsSymbol('$take');
   let _GeneratorIterable$ = dart.generic(function(E) {
@@ -3412,10 +3406,10 @@ var core;
   exports.identityHashCode = identityHashCode;
   exports.int = int;
   exports.Invocation = Invocation;
+  exports.$iterator = $iterator;
   exports.$join = $join;
   exports.Iterable$ = Iterable$;
   exports.Iterable = Iterable;
-  exports.$iterator = $iterator;
   exports.$skip = $skip;
   exports.$take = $take;
   exports.BidirectionalIterator$ = BidirectionalIterator$;

@@ -109,6 +109,9 @@ var collection;
   let _newSet = Symbol('_newSet');
   let SetMixin$ = dart.generic(function(E) {
     class SetMixin extends core.Object {
+      [Symbol.iterator]() {
+        return new dart.JsIterator(this[core.$iterator]);
+      }
       get [core.$isEmpty]() {
         return this[core.$length] == 0;
       }
@@ -454,6 +457,9 @@ var collection;
           result.add(e);
         return result;
       }
+      [Symbol.iterator]() {
+        return new dart.JsIterator(this[core.$iterator]);
+      }
     }
     HashSet[dart.implements] = () => [core.Set$(E)];
     dart.defineNamedConstructor(HashSet, 'identity');
@@ -676,6 +682,9 @@ var collection;
       }
       toString() {
         return IterableBase.iterableToShortString(this, '(', ')');
+      }
+      [Symbol.iterator]() {
+        return new dart.JsIterator(this[core.$iterator]);
       }
     }
     IterableMixin[dart.implements] = () => [core.Iterable$(E)];
@@ -1020,6 +1029,9 @@ var collection;
         parts[core.$add](penultimateString);
         parts[core.$add](ultimateString);
       }
+      [Symbol.iterator]() {
+        return new dart.JsIterator(this[core.$iterator]);
+      }
     }
     IterableBase[dart.implements] = () => [core.Iterable$(E)];
     dart.defineLazyProperties(IterableBase, {
@@ -1184,6 +1196,9 @@ var collection;
           result.add(element);
         }
         return result;
+      }
+      [Symbol.iterator]() {
+        return new dart.JsIterator(this[core.$iterator]);
       }
     }
     LinkedHashSet[dart.implements] = () => [HashSet$(E)];
@@ -1395,6 +1410,9 @@ var collection;
     class ListMixin extends core.Object {
       get [core.$iterator]() {
         return new (_internal.ListIterator$(E))(this);
+      }
+      [Symbol.iterator]() {
+        return new dart.JsIterator(this[core.$iterator]);
       }
       [core.$elementAt](index) {
         return this[core.$get](index);
@@ -2211,6 +2229,9 @@ var collection;
       }
       from(elements) {
         return new ListQueue$(E).from(elements);
+      }
+      [Symbol.iterator]() {
+        return new dart.JsIterator(this[core.$iterator]);
       }
     }
     Queue[dart.implements] = () => [core.Iterable$(E), _internal.EfficientLength];
