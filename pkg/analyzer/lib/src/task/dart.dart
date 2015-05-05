@@ -1910,6 +1910,7 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
  */
 class ParseDartMemento {
   final Token inputTokenStream;
+  final List<Source> explicitlyImportedLibraries;
   final List<Source> exportedLibraries;
   final List<Source> importedLibraries;
   final List<Source> includedParts;
@@ -1917,7 +1918,7 @@ class ParseDartMemento {
   final CompilationUnit parsedUnit;
   final SourceKind sourceKind;
   final List<Source> units;
-  ParseDartMemento(this.inputTokenStream, this.exportedLibraries,
+  ParseDartMemento(this.inputTokenStream, this.explicitlyImportedLibraries, this.exportedLibraries,
       this.importedLibraries, this.includedParts, this.parseErrors,
       this.parsedUnit, this.sourceKind, this.units);
 }
@@ -1942,6 +1943,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor('ParseDartTask',
       createTask, buildInputs, <ResultDescriptor>[
+    EXPLICITLY_IMPORTED_LIBRARIES,
     EXPORTED_LIBRARIES,
     IMPORTED_LIBRARIES,
     INCLUDED_PARTS,
@@ -1971,6 +1973,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
       ParseDartMemento memento = inputMemento;
       if (identical(memento.inputTokenStream, tokenStream)) {
         outputMemento = memento;
+        outputs[EXPLICITLY_IMPORTED_LIBRARIES] = memento.explicitlyImportedLibraries;
         outputs[EXPORTED_LIBRARIES] = memento.exportedLibraries;
         outputs[IMPORTED_LIBRARIES] = memento.importedLibraries;
         outputs[INCLUDED_PARTS] = memento.includedParts;
@@ -1991,8 +1994,8 @@ class ParseDartTask extends SourceBasedAnalysisTask {
 
     bool hasNonPartOfDirective = false;
     bool hasPartOfDirective = false;
+    HashSet<Source> explicitlyImportedSourceSet = new HashSet<Source>();
     HashSet<Source> exportedSourceSet = new HashSet<Source>();
-    HashSet<Source> importedSourceSet = new HashSet<Source>();
     HashSet<Source> includedSourceSet = new HashSet<Source>();
     for (Directive directive in unit.directives) {
       if (directive is PartOfDirective) {
@@ -2006,7 +2009,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
             if (directive is ExportDirective) {
               exportedSourceSet.add(referencedSource);
             } else if (directive is ImportDirective) {
-              importedSourceSet.add(referencedSource);
+              explicitlyImportedSourceSet.add(referencedSource);
             } else if (directive is PartDirective) {
               if (referencedSource != source) {
                 includedSourceSet.add(referencedSource);
@@ -2022,6 +2025,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     //
     // Always include "dart:core" source.
     //
+    HashSet<Source> importedSourceSet = new HashSet.from(explicitlyImportedSourceSet);
     Source coreLibrarySource = context.sourceFactory.forUri(DartSdk.DART_CORE);
     importedSourceSet.add(coreLibrarySource);
     //
@@ -2034,11 +2038,13 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
+    List<Source> explicitlyImportedSources = explicitlyImportedSourceSet.toList();
     List<Source> exportedSources = exportedSourceSet.toList();
     List<Source> importedSources = importedSourceSet.toList();
     List<Source> includedSources = includedSourceSet.toList();
     List<AnalysisError> parseErrors = errorListener.errors;
     List<Source> unitSources = <Source>[source]..addAll(includedSourceSet);
+    outputs[EXPLICITLY_IMPORTED_LIBRARIES] = explicitlyImportedSources;
     outputs[EXPORTED_LIBRARIES] = exportedSources;
     outputs[IMPORTED_LIBRARIES] = importedSources;
     outputs[INCLUDED_PARTS] = includedSources;
@@ -2046,7 +2052,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     outputs[PARSED_UNIT] = unit;
     outputs[SOURCE_KIND] = sourceKind;
     outputs[UNITS] = unitSources;
-    outputMemento = new ParseDartMemento(tokenStream, exportedSources,
+    outputMemento = new ParseDartMemento(tokenStream, explicitlyImportedSources, exportedSources,
         importedSources, includedSources, parseErrors, unit, sourceKind,
         unitSources);
   }

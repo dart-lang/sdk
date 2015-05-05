@@ -24,6 +24,17 @@ final CompositeResultDescriptor<List<AnalysisError>> DART_ERRORS =
     new CompositeResultDescriptor<List<AnalysisError>>('DART_ERRORS');
 
 /**
+ * The sources of the libraries that are explicitly imported into a library.
+ *
+ * The list will be empty if there are no explicit imports, but will not be
+ * `null`.
+ *
+ * The result is only available for targets representing a Dart library.
+ */
+final ListResultDescriptor<Source> EXPLICITLY_IMPORTED_LIBRARIES =
+    new ListResultDescriptor<Source>('EXPLICITLY_IMPORTED_LIBRARIES', Source.EMPTY_ARRAY);
+
+/**
  * The sources of the libraries that are exported from a library.
  *
  * The list will be empty if there are no exported libraries, but will not be
@@ -35,11 +46,11 @@ final ListResultDescriptor<Source> EXPORTED_LIBRARIES =
     new ListResultDescriptor<Source>('EXPORTED_LIBRARIES', Source.EMPTY_ARRAY);
 
 /**
- * The sources of the libraries that are imported into a library.
+ * The sources of the libraries that are implicitly or explicitly imported into
+ * a library.
  *
- * Not `null`.
- * The default value is empty.
- * When computed, this list will always contain at least `dart:core` source.
+ * The list will minimally contain the source for `dart:core` because it is
+ * implicitly imported into every library, and therefore will never be `null`.
  *
  * The result is only available for targets representing a Dart library.
  */
