@@ -5279,8 +5279,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
     // or final field implies a setter which throws a NoSuchMethodError,
     // thus we need to check for conflicts with existing setters and
     // getters.
-    String& accessor_name = String::Handle(Z,
-                                           Field::GetterName(var_name));
+    String& accessor_name = String::Handle(Z, Field::GetterName(var_name));
     if (library_.LookupLocalObject(accessor_name) != Object::null()) {
       ReportError(name_pos, "getter for '%s' is already defined",
                   var_name.ToCString());
@@ -5302,8 +5301,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
     }
     if (CurrentToken() == Token::kASSIGN) {
       ConsumeToken();
-      Instance& field_value = Instance::Handle(Z,
-                                               Object::sentinel().raw());
+      Instance& field_value = Instance::Handle(Z, Object::sentinel().raw());
       bool has_simple_literal = false;
       if (LookaheadToken(1) == Token::kSEMICOLON) {
         has_simple_literal = IsSimpleLiteral(type, &field_value);
@@ -5312,8 +5310,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
       field.set_value(field_value);
       if (!has_simple_literal) {
         // Create a static final getter.
-        String& getter_name = String::Handle(Z,
-                                             Field::GetterSymbol(var_name));
+        String& getter_name = String::Handle(Z, Field::GetterSymbol(var_name));
         getter = Function::New(getter_name,
                                RawFunction::kImplicitStaticFinalGetter,
                                is_static,
@@ -5411,8 +5408,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
     ReportError(name_pos, "missing '%s' cannot be patched",
                 func_name.ToCString());
   }
-  String& accessor_name = String::Handle(Z,
-                                         Field::GetterName(func_name));
+  String& accessor_name = String::Handle(Z, Field::GetterName(func_name));
   if (library_.LookupLocalObject(accessor_name) != Object::null()) {
     ReportError(name_pos, "'%s' is already defined as getter",
                 func_name.ToCString());

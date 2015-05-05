@@ -6973,8 +6973,6 @@ void RedirectionData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 RawString* Field::GetterName(const String& field_name) {
   CompilerStats::make_accessor_name++;
-  // TODO(koda): Avoid most of these allocations by adding prefix-based lookup
-  // to Class::Lookup*.
   return String::Concat(Symbols::GetterPrefix(), field_name);
 }
 
@@ -6986,8 +6984,6 @@ RawString* Field::GetterSymbol(const String& field_name) {
 
 RawString* Field::SetterName(const String& field_name) {
   CompilerStats::make_accessor_name++;
-  // TODO(koda): Avoid most of these allocations by adding prefix-based lookup
-  // to Class::Lookup*.
   return String::Concat(Symbols::SetterPrefix(), field_name);
 }
 
@@ -8914,6 +8910,19 @@ RawObject* Library::GetMetadata(const Object& obj) const {
 }
 
 
+static bool ShouldBePrivate(const String& name) {
+  return
+      (name.Length() >= 1 &&
+       name.CharAt(0) == '_') ||
+      (name.Length() >= 5 &&
+       (name.CharAt(4) == '_' &&
+        (name.CharAt(0) == 'g' || name.CharAt(0) == 's') &&
+        name.CharAt(1) == 'e' &&
+        name.CharAt(2) == 't' &&
+        name.CharAt(3) == ':'));
+}
+
+
 RawObject* Library::ResolveName(const String& name) const {
   Object& obj = Object::Handle();
   if (FLAG_use_lib_cache && LookupResolvedNamesCache(name, &obj)) {
@@ -8930,7 +8939,7 @@ RawObject* Library::ResolveName(const String& name) const {
   if (obj.IsNull()) {
     accessor_name = Field::SetterName(name);
     obj = LookupLocalObject(accessor_name);
-    if (obj.IsNull()) {
+    if (obj.IsNull() && !ShouldBePrivate(name)) {
       obj = LookupImportedObject(name);
     }
   }
@@ -9266,19 +9275,6 @@ RawObject* Library::LookupLocalObject(const String& name) const {
 }
 
 
-static bool ShouldBePrivate(const String& name) {
-  return
-      (name.Length() >= 1 &&
-       name.CharAt(0) == '_') ||
-      (name.Length() >= 5 &&
-       (name.CharAt(4) == '_' &&
-        (name.CharAt(0) == 'g' || name.CharAt(0) == 's') &&
-        name.CharAt(1) == 'e' &&
-        name.CharAt(2) == 't' &&
-        name.CharAt(3) == ':'));
-}
-
-
 RawField* Library::LookupFieldAllowPrivate(const String& name) const {
   Object& obj = Object::Handle(LookupObjectAllowPrivate(name));
   if (obj.IsField()) {
@@ -9352,6 +9348,10 @@ RawObject* Library::LookupImportedObject(const String& name) const {
   String& first_import_lib_url = String::Handle();
   Object& found_obj = Object::Handle();
   String& found_obj_name = String::Handle();
+  // We don't look up getter names explicitly. Setter names are
+  // looked up explicitly when converting top-level getters to setters.
+  ASSERT(!Field::IsGetterName(name));
+  ASSERT(!ShouldBePrivate(name));
   for (intptr_t i = 0; i < num_imports(); i++) {
     import ^= ImportAt(i);
     obj = import.Lookup(name);
@@ -10361,18 +10361,13 @@ RawObject* Namespace::Lookup(const String& name) const {
   intptr_t ignore = 0;
 
   // Lookup the name in the library's symbols.
-  const String* filter_name = &name;
   Object& obj = Object::Handle(isolate, lib.LookupEntry(name, &ignore));
-  if (Field::IsGetterName(name)) {
-    filter_name = &String::Handle(Field::NameFromGetter(name));
-  } else if (Field::IsSetterName(name)) {
-    filter_name = &String::Handle(Field::NameFromSetter(name));
-  } else {
-    if (obj.IsNull() || obj.IsLibraryPrefix()) {
-      obj = lib.LookupEntry(String::Handle(Field::GetterName(name)), &ignore);
-      if (obj.IsNull()) {
-        obj = lib.LookupEntry(String::Handle(Field::SetterName(name)), &ignore);
-      }
+  if (!Field::IsGetterName(name) &&
+      !Field::IsSetterName(name) &&
+      (obj.IsNull() || obj.IsLibraryPrefix())) {
+    obj = lib.LookupEntry(String::Handle(Field::GetterName(name)), &ignore);
+    if (obj.IsNull()) {
+      obj = lib.LookupEntry(String::Handle(Field::SetterName(name)), &ignore);
     }
   }
 
@@ -10381,7 +10376,7 @@ RawObject* Namespace::Lookup(const String& name) const {
     // Lookup in the re-exported symbols.
     obj = lib.LookupReExport(name);
   }
-  if (obj.IsNull() || HidesName(*filter_name) || obj.IsLibraryPrefix()) {
+  if (obj.IsNull() || HidesName(name) || obj.IsLibraryPrefix()) {
     return Object::null();
   }
   return obj.raw();
