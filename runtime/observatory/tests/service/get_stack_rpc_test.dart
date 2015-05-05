@@ -37,6 +37,8 @@ var tests = [
   await isolate.rootLib.load();
   var script = isolate.rootLib.scripts[0];
   await script.load();
+  await hasStoppedAtBreakpoint(isolate);
+  // Sanity check.
   expect(isolate.pauseEvent.eventType, equals(ServiceEvent.kPauseBreakpoint));
 },
 
