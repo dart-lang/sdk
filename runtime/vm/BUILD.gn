@@ -171,12 +171,13 @@ generate_core_libraries("core_libraries") {
     ["core", "core"],
     ["collection", "collection"],
     ["convert", "convert"],
+    ["debugger", "debugger"],
     ["_internal", "internal"],
     ["isolate", "isolate"],
     ["math", "math"],
     ["mirrors", "mirrors"],
-    ["typed_data", "typed_data"],
     ["profiler", "profiler"],
+    ["typed_data", "typed_data"],
   ]
 }
 
