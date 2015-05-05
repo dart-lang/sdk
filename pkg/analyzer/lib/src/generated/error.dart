@@ -1924,7 +1924,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * constant expression depends on itself.
    */
   static const CompileTimeErrorCode RECURSIVE_COMPILE_TIME_CONSTANT =
-      const CompileTimeErrorCode('RECURSIVE_COMPILE_TIME_CONSTANT', "");
+      const CompileTimeErrorCode('RECURSIVE_COMPILE_TIME_CONSTANT',
+          "Compile-time constant expression depends on itself");
 
   /**
    * 7.6.1 Generative Constructors: A generative constructor may be redirecting,

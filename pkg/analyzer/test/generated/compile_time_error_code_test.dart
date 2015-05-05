@@ -135,28 +135,6 @@ class B extends Object mixin A {}''');
     verify([source]);
   }
 
-  void fail_recursiveCompileTimeConstant() {
-    Source source = addSource(r'''
-class A {
-  const A();
-  final m = const A();
-}''');
-    resolve(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT]);
-    verify([source]);
-  }
-
-  void fail_recursiveCompileTimeConstant_cycle() {
-    Source source = addSource(r'''
-const x = y + 1;
-const y = x + 1;''');
-    resolve(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT]);
-    verify([source]);
-  }
-
   void fail_superInitializerInObject() {
     Source source = addSource(r'''
 ''');
@@ -857,8 +835,11 @@ int f() {
   return 3;
 }''');
     resolve(source);
+    // TODO(paulberry): the error CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE is
+    // redundant and ought to be suppressed.
     assertErrors(source, [
-      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST
+      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
+      CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
     ]);
     verify([source]);
   }
@@ -1368,8 +1349,12 @@ class A {
 }
 f(p) { return const A(p); }''');
     resolve(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT]);
+    // TODO(paulberry): the error INVALID_CONSTAT is redundant and ought to be
+    // suppressed.
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
+      CompileTimeErrorCode.INVALID_CONSTANT
+    ]);
     verify([source]);
   }
 
@@ -4380,8 +4365,12 @@ class B {
 }
 var b = const B();''');
     resolve(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    // TODO(paulberry): the error INVALID_CONSTAT is redundant and ought to be
+    // suppressed.
+    assertErrors(source, [
+      CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
+      CompileTimeErrorCode.INVALID_CONSTANT
+    ]);
     verify([source]);
   }
 
@@ -4655,6 +4644,44 @@ class A {
     Source source = addSource("f({_p : 0}) {}");
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER]);
+    verify([source]);
+  }
+
+  void test_recursiveCompileTimeConstant() {
+    Source source = addSource(r'''
+class A {
+  const A();
+  final m = const A();
+}''');
+    resolve(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT]);
+    verify([source]);
+  }
+
+  void test_recursiveCompileTimeConstant_cycle() {
+    Source source = addSource(r'''
+const x = y + 1;
+const y = x + 1;''');
+    resolve(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+      CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT
+    ]);
+    verify([source]);
+  }
+
+  void test_recursiveCompileTimeConstant_initializer_after_toplevel_var() {
+    Source source = addSource('''
+const y = const C();
+class C {
+  const C() : x = y;
+  final x;
+}
+''');
+    resolve(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT]);
     verify([source]);
   }
 

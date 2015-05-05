@@ -9,7 +9,6 @@ library engine.ast;
 
 import 'dart:collection';
 
-import 'constant.dart';
 import 'element.dart';
 import 'engine.dart' show AnalysisEngine;
 import 'java_core.dart';
@@ -5261,18 +5260,6 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 }
 
 /**
- * Object representing a "const" instance creation expression, and its
- * evaluation result.  This is used as the AnalysisTarget for constant
- * evaluation of instance creation expressions.
- */
-class ConstantInstanceCreationHandle {
-  /**
-   * The result of evaluating the constant.
-   */
-  EvaluationResultImpl evaluationResult;
-}
-
-/**
  * A constructor declaration.
  *
  * > constructorDeclaration ::=
@@ -10519,12 +10506,6 @@ class InstanceCreationExpression extends Expression {
   ConstructorElement staticElement;
 
   /**
-   * The [ConstantInstanceCreationHandle] holding the result of evaluating this
-   * expression, if it is constant.
-   */
-  ConstantInstanceCreationHandle constantHandle;
-
-  /**
    * Initialize a newly created instance creation expression.
    */
   InstanceCreationExpression(this.keyword, ConstructorName constructorName,
@@ -10568,16 +10549,6 @@ class InstanceCreationExpression extends Expression {
 
   @override
   Token get endToken => _argumentList.endToken;
-
-  /**
-   * The result of evaluating this expression, if it is constant.
-   */
-  EvaluationResultImpl get evaluationResult {
-    if (constantHandle != null) {
-      return constantHandle.evaluationResult;
-    }
-    return null;
-  }
 
   /**
    * Return `true` if this creation expression is used to invoke a constant

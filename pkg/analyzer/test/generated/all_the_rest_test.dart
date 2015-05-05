@@ -965,16 +965,6 @@ class ConstantFinderTest extends EngineTestCase {
     expect(_findConstantDeclarations().isEmpty, isTrue);
   }
 
-  void test_visitInstanceCreationExpression_const() {
-    _setupInstanceCreationExpression("A", true);
-    expect(_findConstructorInvocations().contains(_node), isTrue);
-  }
-
-  void test_visitInstanceCreationExpression_nonConst() {
-    _setupInstanceCreationExpression("A", false);
-    expect(_findConstructorInvocations().isEmpty, isTrue);
-  }
-
   void test_visitVariableDeclaration_const() {
     VariableElement element = _setupVariableDeclaration("v", true, true);
     expect(_findVariableDeclarations()[element], same(_node));
@@ -1053,15 +1043,6 @@ class ConstantFinderTest extends EngineTestCase {
     return constructorMap;
   }
 
-  List<InstanceCreationExpression> _findConstructorInvocations() {
-    ConstantFinder finder = new ConstantFinder();
-    _node.accept(finder);
-    List<InstanceCreationExpression> constructorInvocations =
-        finder.constructorInvocations;
-    expect(constructorInvocations, isNotNull);
-    return constructorInvocations;
-  }
-
   Map<PotentiallyConstVariableElement, VariableDeclaration> _findVariableDeclarations() {
     ConstantFinder finder = new ConstantFinder();
     _node.accept(finder);
@@ -1118,12 +1099,6 @@ class ConstantFinderTest extends EngineTestCase {
       classElement.constructors = <ConstructorElement>[constructorElement];
     }
     return variableDeclaration;
-  }
-
-  void _setupInstanceCreationExpression(String name, bool isConst) {
-    _node = AstFactory.instanceCreationExpression2(
-        isConst ? Keyword.CONST : null,
-        AstFactory.typeName3(AstFactory.identifier3(name)));
   }
 
   VariableElement _setupVariableDeclaration(
@@ -1630,7 +1605,7 @@ class A {
 const A a = const A();
 ''');
     EvaluationResultImpl result =
-        _evaluateInstanceCreationExpression(compilationUnit, 'a');
+        _evaluateTopLevelVariable(compilationUnit, 'a');
     Map<String, DartObjectImpl> fields = _assertType(result, "A");
     expect(fields, hasLength(1));
     _assertIntField(fields, "i", 123);
@@ -1739,7 +1714,7 @@ class A {
   final int k;
 }''');
     EvaluationResultImpl result =
-        _evaluateInstanceCreationExpression(compilationUnit, "foo");
+        _evaluateTopLevelVariable(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "A");
     expect(fields, hasLength(1));
     _assertIntField(fields, "k", 13);
@@ -1773,7 +1748,7 @@ class B {
   final int k;
 }''');
     EvaluationResultImpl result =
-        _evaluateInstanceCreationExpression(compilationUnit, "foo");
+        _evaluateTopLevelVariable(compilationUnit, "foo");
     Map<String, DartObjectImpl> fieldsOfA = _assertType(result, "A");
     expect(fieldsOfA, hasLength(1));
     Map<String, DartObjectImpl> fieldsOfB =
@@ -1793,7 +1768,7 @@ class B {
   static const bar = 4;
 }''');
     EvaluationResultImpl result =
-        _evaluateInstanceCreationExpression(compilationUnit, "foo");
+        _evaluateTopLevelVariable(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "A");
     expect(fields, hasLength(1));
     _assertIntField(fields, "k", 7);
@@ -1808,7 +1783,7 @@ class A {
   final int k;
 }''');
     EvaluationResultImpl result =
-        _evaluateInstanceCreationExpression(compilationUnit, "foo");
+        _evaluateTopLevelVariable(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "A");
     expect(fields, hasLength(1));
     _assertIntField(fields, "k", 7);
@@ -1826,7 +1801,7 @@ class B extends A {
   final int y;
 }''');
     EvaluationResultImpl result =
-        _evaluateInstanceCreationExpression(compilationUnit, "foo");
+        _evaluateTopLevelVariable(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "B");
     expect(fields, hasLength(2));
     _assertIntField(fields, "y", 5);
@@ -1844,7 +1819,7 @@ class A {
   const A(this.x)
 }''');
     EvaluationResultImpl result =
-        _evaluateInstanceCreationExpression(compilationUnit, "foo");
+        _evaluateTopLevelVariable(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "A");
     expect(fields, hasLength(1));
     _assertIntField(fields, "x", 42);
@@ -1878,7 +1853,7 @@ class B extends A {
   final int y;
 }''');
     EvaluationResultImpl result =
-        _evaluateInstanceCreationExpression(compilationUnit, "foo");
+        _evaluateTopLevelVariable(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "B");
     expect(fields, hasLength(2));
     _assertIntField(fields, "y", 4);
@@ -1896,8 +1871,8 @@ class A {
   const A.a2() : x = 5;
   final int x;
 }''');
-    Map<String, DartObjectImpl> aFields = _assertType(
-        _evaluateInstanceCreationExpression(compilationUnit, "foo"), "A");
+    Map<String, DartObjectImpl> aFields =
+        _assertType(_evaluateTopLevelVariable(compilationUnit, "foo"), "A");
     _assertIntField(aFields, 'x', 5);
   }
 
@@ -1909,8 +1884,8 @@ class A {
   const A.a2(x) : y = x + 10;
   final int y;
 }''');
-    Map<String, DartObjectImpl> aFields = _assertType(
-        _evaluateInstanceCreationExpression(compilationUnit, "foo"), "A");
+    Map<String, DartObjectImpl> aFields =
+        _assertType(_evaluateTopLevelVariable(compilationUnit, "foo"), "A");
     _assertIntField(aFields, 'y', 111);
   }
 
@@ -1924,8 +1899,7 @@ class A {
   const A() : this.b();
   const A.b() : this();
 }''');
-    _assertValidUnknown(
-        _evaluateInstanceCreationExpression(compilationUnit, "foo"));
+    _assertValidUnknown(_evaluateTopLevelVariable(compilationUnit, "foo"));
   }
 
   void test_instanceCreationExpression_nonFactoryRedirect_defaultArg() {
@@ -1936,8 +1910,8 @@ class A {
   const A.a2([x = 100]) : y = x + 10;
   final int y;
 }''');
-    Map<String, DartObjectImpl> aFields = _assertType(
-        _evaluateInstanceCreationExpression(compilationUnit, "foo"), "A");
+    Map<String, DartObjectImpl> aFields =
+        _assertType(_evaluateTopLevelVariable(compilationUnit, "foo"), "A");
     _assertIntField(aFields, 'y', 110);
   }
 
@@ -1950,8 +1924,7 @@ class A {
     // We don't care what value foo evaluates to (since there is a compile
     // error), but we shouldn't crash, and we should figure
     // out that it evaluates to an instance of class A.
-    _assertType(
-        _evaluateInstanceCreationExpression(compilationUnit, "foo"), "A");
+    _assertType(_evaluateTopLevelVariable(compilationUnit, "foo"), "A");
   }
 
   void test_instanceCreationExpression_nonFactoryRedirect_toNonConst() {
@@ -1964,8 +1937,7 @@ class A {
     // We don't care what value foo evaluates to (since there is a compile
     // error), but we shouldn't crash, and we should figure
     // out that it evaluates to an instance of class A.
-    _assertType(
-        _evaluateInstanceCreationExpression(compilationUnit, "foo"), "A");
+    _assertType(_evaluateTopLevelVariable(compilationUnit, "foo"), "A");
   }
 
   void test_instanceCreationExpression_nonFactoryRedirect_unnamed() {
@@ -1976,8 +1948,8 @@ class A {
   const A() : x = 5;
   final int x;
 }''');
-    Map<String, DartObjectImpl> aFields = _assertType(
-        _evaluateInstanceCreationExpression(compilationUnit, "foo"), "A");
+    Map<String, DartObjectImpl> aFields =
+        _assertType(_evaluateTopLevelVariable(compilationUnit, "foo"), "A");
     _assertIntField(aFields, 'x', 5);
   }
 
@@ -1990,8 +1962,7 @@ class A {
 class B implements A {
   const B();
 }''');
-    _assertType(
-        _evaluateInstanceCreationExpression(compilationUnit, "foo"), "B");
+    _assertType(_evaluateTopLevelVariable(compilationUnit, "foo"), "B");
   }
 
   void test_instanceCreationExpression_redirect_cycle() {
@@ -2004,8 +1975,7 @@ class A {
   const factory A() = A.b;
   const factory A.b() = A;
 }''');
-    _assertValidUnknown(
-        _evaluateInstanceCreationExpression(compilationUnit, "foo"));
+    _assertValidUnknown(_evaluateTopLevelVariable(compilationUnit, "foo"));
   }
 
   void test_instanceCreationExpression_redirect_extern() {
@@ -2014,8 +1984,7 @@ const foo = const A();
 class A {
   external const factory A();
 }''');
-    _assertValidUnknown(
-        _evaluateInstanceCreationExpression(compilationUnit, "foo"));
+    _assertValidUnknown(_evaluateTopLevelVariable(compilationUnit, "foo"));
   }
 
   void test_instanceCreationExpression_redirect_nonConst() {
@@ -2028,8 +1997,7 @@ class A {
   const factory A() = A.b;
   A.b();
 }''');
-    _assertValidUnknown(
-        _evaluateInstanceCreationExpression(compilationUnit, "foo"));
+    _assertValidUnknown(_evaluateTopLevelVariable(compilationUnit, "foo"));
   }
 
   void test_instanceCreationExpression_redirectWithTypeParams() {
@@ -2045,7 +2013,7 @@ class B<T> implements A {
 
 const A a = const A(10);''');
     EvaluationResultImpl result =
-        _evaluateInstanceCreationExpression(compilationUnit, "a");
+        _evaluateTopLevelVariable(compilationUnit, "a");
     Map<String, DartObjectImpl> fields = _assertType(result, "B<int>");
     expect(fields, hasLength(1));
     _assertIntField(fields, "x", 10);
@@ -2067,7 +2035,7 @@ class B<U> implements A {
 
 const A<int> a = const A<int>(10);''');
     EvaluationResultImpl result =
-        _evaluateInstanceCreationExpression(compilationUnit, "a");
+        _evaluateTopLevelVariable(compilationUnit, "a");
     Map<String, DartObjectImpl> fields = _assertType(result, "B<int>");
     expect(fields, hasLength(1));
     _assertIntField(fields, "x", 10);
@@ -2077,7 +2045,7 @@ const A<int> a = const A<int>(10);''');
     CompilationUnit compilationUnit =
         resolveSource("const foo = const Symbol('a');");
     EvaluationResultImpl evaluationResult =
-        _evaluateInstanceCreationExpression(compilationUnit, "foo");
+        _evaluateTopLevelVariable(compilationUnit, "foo");
     expect(evaluationResult.value, isNotNull);
     DartObjectImpl value = evaluationResult.value;
     expect(value.type, typeProvider.symbolType);
@@ -2100,11 +2068,11 @@ class C<E> {
 const c_int = const C<int>();
 const c_num = const C<num>();''');
     EvaluationResultImpl c_int =
-        _evaluateInstanceCreationExpression(compilationUnit, "c_int");
+        _evaluateTopLevelVariable(compilationUnit, "c_int");
     _assertType(c_int, "C<int>");
     DartObjectImpl c_int_value = c_int.value;
     EvaluationResultImpl c_num =
-        _evaluateInstanceCreationExpression(compilationUnit, "c_num");
+        _evaluateTopLevelVariable(compilationUnit, "c_num");
     _assertType(c_num, "C<num>");
     DartObjectImpl c_num_value = c_num.value;
     expect(c_int_value == c_num_value, isFalse);
@@ -2177,7 +2145,7 @@ class A {
 const A a = const A();
 ''');
     EvaluationResultImpl result =
-        _evaluateInstanceCreationExpression(compilationUnit, 'a');
+        _evaluateTopLevelVariable(compilationUnit, 'a');
     Map<String, DartObjectImpl> fields = _assertType(result, "A");
     expect(fields, hasLength(1));
     _assertIntField(fields, "i", 123);
@@ -2282,7 +2250,7 @@ const A a = const A();
         defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
     CompilationUnit compilationUnit = resolveSource(
         "const $varName = const bool.fromEnvironment('$envVarName'$defaultArg);");
-    return _evaluateInstanceCreationExpression(compilationUnit, varName);
+    return _evaluateTopLevelVariable(compilationUnit, varName);
   }
 
   EvaluationResultImpl _check_fromEnvironment_int(
@@ -2296,7 +2264,7 @@ const A a = const A();
         defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
     CompilationUnit compilationUnit = resolveSource(
         "const $varName = const int.fromEnvironment('$envVarName'$defaultArg);");
-    return _evaluateInstanceCreationExpression(compilationUnit, varName);
+    return _evaluateTopLevelVariable(compilationUnit, varName);
   }
 
   EvaluationResultImpl _check_fromEnvironment_string(
@@ -2310,7 +2278,7 @@ const A a = const A();
         defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
     CompilationUnit compilationUnit = resolveSource(
         "const $varName = const String.fromEnvironment('$envVarName'$defaultArg);");
-    return _evaluateInstanceCreationExpression(compilationUnit, varName);
+    return _evaluateTopLevelVariable(compilationUnit, varName);
   }
 
   void _checkInstanceCreation_withSupertypeParams(bool isExplicit) {
@@ -2328,12 +2296,12 @@ class C<T, U> extends A<U> {
 const b_int_num = const B<int, num>();
 const c_int_num = const C<int, num>();""");
     EvaluationResultImpl b_int_num =
-        _evaluateInstanceCreationExpression(compilationUnit, "b_int_num");
+        _evaluateTopLevelVariable(compilationUnit, "b_int_num");
     Map<String, DartObjectImpl> b_int_num_fields =
         _assertType(b_int_num, "B<int, num>");
     _assertFieldType(b_int_num_fields, GenericState.SUPERCLASS_FIELD, "A<int>");
     EvaluationResultImpl c_int_num =
-        _evaluateInstanceCreationExpression(compilationUnit, "c_int_num");
+        _evaluateTopLevelVariable(compilationUnit, "c_int_num");
     Map<String, DartObjectImpl> c_int_num_fields =
         _assertType(c_int_num, "C<int, num>");
     _assertFieldType(c_int_num_fields, GenericState.SUPERCLASS_FIELD, "A<num>");
@@ -2352,8 +2320,7 @@ class A {
   const A(${isNamed ? "{$formalParam}" : "[$formalParam]"})${isFieldFormal ? "" : " : $fieldName = $paramName"};
   final int $fieldName;
 }""");
-    EvaluationResultImpl x =
-        _evaluateInstanceCreationExpression(compilationUnit, "x");
+    EvaluationResultImpl x = _evaluateTopLevelVariable(compilationUnit, "x");
     Map<String, DartObjectImpl> fieldsOfX = _assertType(x, "A");
     expect(fieldsOfX, hasLength(1));
     if (hasDefault) {
@@ -2361,8 +2328,7 @@ class A {
     } else {
       _assertNullField(fieldsOfX, fieldName);
     }
-    EvaluationResultImpl y =
-        _evaluateInstanceCreationExpression(compilationUnit, "y");
+    EvaluationResultImpl y = _evaluateTopLevelVariable(compilationUnit, "y");
     Map<String, DartObjectImpl> fieldsOfY = _assertType(y, "A");
     expect(fieldsOfY, hasLength(1));
     _assertIntField(fieldsOfY, fieldName, 10);
@@ -2392,11 +2358,12 @@ class A {
     return null;
   }
 
-  EvaluationResultImpl _evaluateInstanceCreationExpression(
+  EvaluationResultImpl _evaluateTopLevelVariable(
       CompilationUnit compilationUnit, String name) {
-    Expression expression =
-        findTopLevelConstantExpression(compilationUnit, name);
-    return (expression as InstanceCreationExpression).evaluationResult;
+    VariableDeclaration varDecl =
+        findTopLevelDeclaration(compilationUnit, name);
+    ConstTopLevelVariableElementImpl varElement = varDecl.element;
+    return varElement.evaluationResult;
   }
 
   ConstantValueComputer _makeConstantValueComputer() {
@@ -2436,31 +2403,6 @@ class ConstantVisitorTest extends ResolverTestCase {
         new ConstantEvaluationEngine(
             new TestTypeProvider(), new DeclaredVariables()), errorReporter)));
     errorListener.assertNoErrors();
-  }
-
-  void test_visitConditionalExpression_instanceCreation_invalidFieldInitializer() {
-    TestTypeProvider typeProvider = new TestTypeProvider();
-    LibraryElementImpl libraryElement = ElementFactory.library(null, "lib");
-    String className = "C";
-    ClassElementImpl classElement = ElementFactory.classElement2(className);
-    (libraryElement.definingCompilationUnit as CompilationUnitElementImpl).types =
-        <ClassElement>[classElement];
-    ConstructorElementImpl constructorElement = ElementFactory
-        .constructorElement(classElement, null, true, [typeProvider.intType]);
-    constructorElement.parameters[0] =
-        new FieldFormalParameterElementImpl(AstFactory.identifier3("x"));
-    InstanceCreationExpression expression = AstFactory
-        .instanceCreationExpression2(Keyword.CONST,
-            AstFactory.typeName4(className), [AstFactory.integer(0)]);
-    expression.staticElement = constructorElement;
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    ErrorReporter errorReporter =
-        new ErrorReporter(errorListener, _dummySource());
-    expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(typeProvider, new DeclaredVariables()),
-        errorReporter));
-    errorListener
-        .assertErrorsWithCodes([CompileTimeErrorCode.INVALID_CONSTANT]);
   }
 
   void test_visitConditionalExpression_nonBooleanCondition() {
@@ -8111,30 +8053,6 @@ class ReferenceFinderTest extends EngineTestCase {
         new HashMap<ConstructorElement, ConstructorDeclaration>();
     _head = AstFactory.variableDeclaration("v1");
   }
-  void test_visitInstanceCreationExpression_const() {
-    _visitNode(_makeTailConstructor("A", true, true, true));
-    _assertOneArc(_tail);
-  }
-  void test_visitInstanceCreationExpression_nonConstDeclaration() {
-    // In the source:
-    //   const x = const A();
-    // x depends on "const A()" even if the A constructor
-    // isn't declared as const.
-    _visitNode(_makeTailConstructor("A", false, true, true));
-    _assertOneArc(_tail);
-  }
-  void test_visitInstanceCreationExpression_nonConstUsage() {
-    _visitNode(_makeTailConstructor("A", true, false, true));
-    _assertNoArcs();
-  }
-  void test_visitInstanceCreationExpression_notInMap() {
-    // In the source:
-    //   const x = const A();
-    // x depends on "const A()" even if the AST for the A constructor
-    // isn't available.
-    _visitNode(_makeTailConstructor("A", true, true, false));
-    _assertOneArc(_tail);
-  }
   void test_visitSimpleIdentifier_const() {
     _visitNode(_makeTailVariable("v2", true, true));
     _assertOneArc(_tail);
@@ -8178,31 +8096,6 @@ class ReferenceFinderTest extends EngineTestCase {
   ReferenceFinder _createReferenceFinder(AstNode source) => new ReferenceFinder(
       source, _referenceGraph, _variableDeclarationMap,
       _constructorDeclarationMap);
-  InstanceCreationExpression _makeTailConstructor(
-      String name, bool isConstDeclaration, bool isConstUsage, bool inMap) {
-    List<ConstructorInitializer> initializers =
-        new List<ConstructorInitializer>();
-    ConstructorDeclaration constructorDeclaration = AstFactory
-        .constructorDeclaration(AstFactory.identifier3(name), null,
-            AstFactory.formalParameterList(), initializers);
-    if (isConstDeclaration) {
-      constructorDeclaration.constKeyword = new KeywordToken(Keyword.CONST, 0);
-    }
-    ClassElementImpl classElement = ElementFactory.classElement2(name);
-    SimpleIdentifier identifier = AstFactory.identifier3(name);
-    TypeName type = AstFactory.typeName3(identifier);
-    InstanceCreationExpression instanceCreationExpression = AstFactory
-        .instanceCreationExpression2(
-            isConstUsage ? Keyword.CONST : Keyword.NEW, type);
-    _tail = instanceCreationExpression;
-    ConstructorElementImpl constructorElement = ElementFactory
-        .constructorElement(classElement, name, isConstDeclaration);
-    if (inMap) {
-      _constructorDeclarationMap[constructorElement] = constructorDeclaration;
-    }
-    instanceCreationExpression.staticElement = constructorElement;
-    return instanceCreationExpression;
-  }
   SuperConstructorInvocation _makeTailSuperConstructorInvocation(
       String name, bool isConst, bool inMap) {
     List<ConstructorInitializer> initializers =

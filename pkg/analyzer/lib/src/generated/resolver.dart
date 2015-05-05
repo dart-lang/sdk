@@ -912,11 +912,17 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
-      EvaluationResultImpl evaluationResult = node.evaluationResult;
-      // Note: evaluationResult might be null if there are circular references
-      // among constants.
-      if (evaluationResult != null) {
-        _reportErrors(evaluationResult.errors, null);
+      // We need to evaluate the constant to see if any errors occur during its
+      // evaluation.
+      ConstructorElement constructor = node.staticElement;
+      if (constructor != null) {
+        ConstantEvaluationEngine evaluationEngine =
+            new ConstantEvaluationEngine(_typeProvider, declaredVariables);
+        ConstantVisitor constantVisitor =
+            new ConstantVisitor(evaluationEngine, _errorReporter);
+        evaluationEngine.evaluateConstructorCall(node,
+            node.argumentList.arguments, constructor, constantVisitor,
+            _errorReporter);
       }
     }
     _validateInstanceCreationArguments(node);
@@ -1052,18 +1058,15 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     Expression initializer = node.initializer;
-    if (initializer != null && node.isConst) {
+    if (initializer != null && (node.isConst || node.isFinal)) {
       VariableElementImpl element = node.element as VariableElementImpl;
       EvaluationResultImpl result = element.evaluationResult;
       if (result == null) {
-        //
-        // Normally we don't need to visit const variable declarations because
-        // we have already computed their values. But if we missed it for some
-        // reason, this gives us a second chance.
-        //
-        result = new EvaluationResultImpl.con1(_validate(initializer,
-            CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE));
-        element.evaluationResult = result;
+        // Variables marked "const" should have had their values computed by
+        // ConstantValueComputer.  Other variables will only have had their
+        // values computed if the value was needed (e.g. final variables in a
+        // class containing const constructors).
+        assert(!node.isConst);
         return null;
       }
       _reportErrors(result.errors,
@@ -1159,6 +1162,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
           identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL) ||
           identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_INT) ||
           identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM) ||
+          identical(dataErrorCode, CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT) ||
           identical(dataErrorCode,
               CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH) ||
           identical(dataErrorCode,
@@ -2859,14 +2863,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     (node.element as ParameterElementImpl).parameters = holder.parameters;
     holder.validate();
     return null;
-  }
-
-  @override
-  Object visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (node.isConst) {
-      node.constantHandle = new ConstantInstanceCreationHandle();
-    }
-    return super.visitInstanceCreationExpression(node);
   }
 
   @override
