@@ -2275,6 +2275,29 @@ void Debugger::SignalBpReached() {
 }
 
 
+void Debugger::BreakHere() {
+  // We ignore this breakpoint when the VM is executing code invoked
+  // by the debugger to evaluate variables values, or when we see a nested
+  // breakpoint or exception event.
+  if (ignore_breakpoints_ || IsPaused() || !HasEventHandler()) {
+    return;
+  }
+
+  DebuggerStackTrace* stack_trace = CollectStackTrace();
+  ASSERT(stack_trace->Length() > 0);
+  ASSERT(stack_trace_ == NULL);
+  stack_trace_ = stack_trace;
+
+  // We are in the native call to Debugger_breakHere or Debugger_breakHereIf,
+  // the developer gets a better experience by not seeing this call. To
+  // accomplish this, we continue execution until the call exits (step out).
+  SetStepOut();
+  HandleSteppingRequest(stack_trace_);
+
+  stack_trace_ = NULL;
+}
+
+
 void Debugger::Initialize(Isolate* isolate) {
   if (initialized_) {
     return;

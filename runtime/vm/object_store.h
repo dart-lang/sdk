@@ -25,12 +25,13 @@ class ObjectStore {
     kCore,
     kCollection,
     kConvert,
+    kDebugger,
     kInternal,
     kIsolate,
     kMath,
     kMirrors,
-    kTypedData,
     kProfiler,
+    kTypedData,
   };
 
   ~ObjectStore();
@@ -257,12 +258,14 @@ class ObjectStore {
   RawLibrary* core_library() const { return core_library_; }
   RawLibrary* collection_library() const { return collection_library_; }
   RawLibrary* convert_library() const { return convert_library_; }
+  RawLibrary* debugger_library() const { return debugger_library_; }
   RawLibrary* internal_library() const { return internal_library_; }
   RawLibrary* isolate_library() const { return isolate_library_; }
   RawLibrary* math_library() const { return math_library_; }
   RawLibrary* mirrors_library() const { return mirrors_library_; }
-  RawLibrary* typed_data_library() const { return typed_data_library_; }
   RawLibrary* profiler_library() const { return profiler_library_; }
+  RawLibrary* typed_data_library() const { return typed_data_library_; }
+
   void set_bootstrap_library(BootstrapLibraryId index, const Library& value) {
     switch (index) {
       case kAsync:
@@ -277,6 +280,9 @@ class ObjectStore {
       case kConvert:
         convert_library_ = value.raw();
         break;
+      case kDebugger:
+        debugger_library_ = value.raw();
+        break;
       case kInternal:
         internal_library_ = value.raw();
         break;
@@ -289,11 +295,11 @@ class ObjectStore {
       case kMirrors:
         mirrors_library_ = value.raw();
         break;
-      case kTypedData:
-        typed_data_library_ = value.raw();
-        break;
       case kProfiler:
         profiler_library_ = value.raw();
+        break;
+      case kTypedData:
+        typed_data_library_ = value.raw();
         break;
       default:
         UNREACHABLE();
@@ -483,14 +489,15 @@ class ObjectStore {
   RawLibrary* core_library_;
   RawLibrary* collection_library_;
   RawLibrary* convert_library_;
+  RawLibrary* debugger_library_;
   RawLibrary* internal_library_;
   RawLibrary* isolate_library_;
   RawLibrary* math_library_;
   RawLibrary* mirrors_library_;
   RawLibrary* native_wrappers_library_;
+  RawLibrary* profiler_library_;
   RawLibrary* root_library_;
   RawLibrary* typed_data_library_;
-  RawLibrary* profiler_library_;
   RawGrowableObjectArray* libraries_;
   RawGrowableObjectArray* pending_classes_;
   RawGrowableObjectArray* pending_functions_;

@@ -47,6 +47,10 @@ static bootstrap_lib_props bootstrap_libraries[] = {
                collection,
                Bootstrap::collection_source_paths_,
                Bootstrap::collection_patch_paths_),
+  INIT_LIBRARY(ObjectStore::kDebugger,
+               debugger,
+               Bootstrap::debugger_source_paths_,
+               Bootstrap::debugger_patch_paths_),
   INIT_LIBRARY(ObjectStore::kInternal,
                _internal,
                Bootstrap::_internal_source_paths_,
@@ -63,16 +67,14 @@ static bootstrap_lib_props bootstrap_libraries[] = {
                mirrors,
                Bootstrap::mirrors_source_paths_,
                Bootstrap::mirrors_patch_paths_),
-  INIT_LIBRARY(ObjectStore::kTypedData,
-               typed_data,
-               Bootstrap::typed_data_source_paths_,
-               Bootstrap::typed_data_patch_paths_),
-
   INIT_LIBRARY(ObjectStore::kProfiler,
                profiler,
                Bootstrap::profiler_source_paths_,
                Bootstrap::profiler_patch_paths_),
-
+  INIT_LIBRARY(ObjectStore::kTypedData,
+               typed_data,
+               Bootstrap::typed_data_source_paths_,
+               Bootstrap::typed_data_patch_paths_),
   { ObjectStore::kNone, NULL, NULL, NULL, NULL }
 };
 

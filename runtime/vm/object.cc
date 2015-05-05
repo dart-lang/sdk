@@ -9841,6 +9841,11 @@ RawLibrary* Library::CollectionLibrary() {
 }
 
 
+RawLibrary* Library::DebuggerLibrary() {
+  return Isolate::Current()->object_store()->debugger_library();
+}
+
+
 RawLibrary* Library::InternalLibrary() {
   return Isolate::Current()->object_store()->internal_library();
 }
@@ -9866,13 +9871,13 @@ RawLibrary* Library::NativeWrappersLibrary() {
 }
 
 
-RawLibrary* Library::TypedDataLibrary() {
-  return Isolate::Current()->object_store()->typed_data_library();
+RawLibrary* Library::ProfilerLibrary() {
+  return Isolate::Current()->object_store()->profiler_library();
 }
 
 
-RawLibrary* Library::ProfilerLibrary() {
-  return Isolate::Current()->object_store()->profiler_library();
+RawLibrary* Library::TypedDataLibrary() {
+  return Isolate::Current()->object_store()->typed_data_library();
 }
 
 
@@ -10492,12 +10497,12 @@ void Library::CheckFunctionFingerprints() {
   MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
   all_libs.Clear();
-  all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
-  TYPED_DATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
-
-  all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::ProfilerLibrary()));
   PROFILER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+
+  all_libs.Clear();
+  all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
+  TYPED_DATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
 #undef CHECK_FINGERPRINTS
 

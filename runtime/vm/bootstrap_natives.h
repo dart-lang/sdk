@@ -63,6 +63,8 @@ namespace dart {
   V(Bigint_getUsed, 1)                                                         \
   V(Bigint_getDigits, 1)                                                       \
   V(Bigint_allocate, 4)                                                        \
+  V(Debugger_breakHere, 0)                                                     \
+  V(Debugger_breakHereIf, 1)                                                   \
   V(Double_getIsNegative, 1)                                                   \
   V(Double_getIsInfinite, 1)                                                   \
   V(Double_getIsNaN, 1)                                                        \

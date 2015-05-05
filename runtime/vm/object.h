@@ -3048,13 +3048,14 @@ class Library : public Object {
   static RawLibrary* ConvertLibrary();
   static RawLibrary* CoreLibrary();
   static RawLibrary* CollectionLibrary();
+  static RawLibrary* DebuggerLibrary();
   static RawLibrary* InternalLibrary();
   static RawLibrary* IsolateLibrary();
   static RawLibrary* MathLibrary();
   static RawLibrary* MirrorsLibrary();
   static RawLibrary* NativeWrappersLibrary();
-  static RawLibrary* TypedDataLibrary();
   static RawLibrary* ProfilerLibrary();
+  static RawLibrary* TypedDataLibrary();
 
   // Eagerly compile all classes and functions in the library.
   static RawError* CompileAll();
