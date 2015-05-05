@@ -73,7 +73,8 @@ class _ExpressionSuggestionBuilder implements SuggestionBuilder {
       }
     }
     if (node is Expression) {
-      InterfaceTypeSuggestionBuilder.suggestionsFor(request, node.bestType);
+      InterfaceTypeSuggestionBuilder.suggestionsFor(request, node.bestType,
+          isSuper: node is SuperExpression);
       return new Future.value(true);
     }
     return new Future.value(false);

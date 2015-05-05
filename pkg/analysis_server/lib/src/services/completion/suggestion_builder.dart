@@ -345,7 +345,15 @@ class InterfaceTypeSuggestionBuilder {
     }
   }
 
-  void _buildSuggestions(InterfaceType type, LibraryElement library) {
+  void _buildSuggestions(
+      InterfaceType type, LibraryElement library, bool isSuper) {
+    if (isSuper) {
+      // Suggest members from superclass if the target is "super"
+      type = type.superclass;
+      if (type == null) {
+        return;
+      }
+    }
     // Visit all of the types in the class hierarchy, collecting possible
     // completions.  If multiple elements are found that complete to the same
     // identifier, addSuggestion will discard all but the first (with a few
@@ -412,7 +420,8 @@ class InterfaceTypeSuggestionBuilder {
   /**
    * Add suggestions for the visible members in the given interface
    */
-  static void suggestionsFor(DartCompletionRequest request, DartType type) {
+  static void suggestionsFor(DartCompletionRequest request, DartType type,
+      {bool isSuper: false}) {
     CompilationUnit compilationUnit =
         request.target.containingNode.getAncestor((n) => n is CompilationUnit);
     LibraryElement library = compilationUnit.element.library;
@@ -421,7 +430,7 @@ class InterfaceTypeSuggestionBuilder {
     }
     if (type is InterfaceType) {
       return new InterfaceTypeSuggestionBuilder(request)._buildSuggestions(
-          type, library);
+          type, library, isSuper);
     }
   }
 }

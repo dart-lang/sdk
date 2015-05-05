@@ -634,7 +634,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   CompletionSuggestion assertSuggestInvocationMethod(
       String name, String declaringType, String returnType,
-      [int relevance = DART_RELEVANCE_DEFAULT]) {
+      {int relevance: DART_RELEVANCE_DEFAULT}) {
     if (contributor is PrefixedElementContributor) {
       return assertSuggestMethod(name, declaringType, returnType,
           relevance: relevance);

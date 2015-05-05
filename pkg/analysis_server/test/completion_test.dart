@@ -1421,7 +1421,7 @@ class B extends A {
   main() {
     super.!1
   }
-}''', <String>["1+fa", "1-fb", "1+ma", "1-mb"], failingTests: '1');
+}''', <String>["1+fa", "1-fb", "1+ma", "1-mb"]);
 
     buildTests('testCompletion_superConstructorInvocation_noNamePrefix', '''
 class A {
