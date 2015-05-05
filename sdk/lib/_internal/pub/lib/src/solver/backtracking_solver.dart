@@ -262,7 +262,7 @@ class BacktrackingSolver {
       if (!(await _backtrack(error))) rethrow;
 
       _attemptedSolutions++;
-      await _traverseSolution();
+      return await _traverseSolution();
     }
   });
 
