@@ -273,13 +273,17 @@ class _UpdateElementOffsetsVisitor extends GeneralizingElementVisitor {
 
   _UpdateElementOffsetsVisitor(this.map);
 
-  visitElement(Element element) {
-    int oldOffset = element.nameOffset;
-    if (oldOffset != -1) {
-      int newOffset = map[oldOffset];
-      assert(newOffset != null);
-      (element as ElementImpl).nameOffset = newOffset;
+  void visitElement(Element element) {
+    if (element is CompilationUnitElement) {
+      return;
     }
+    if (element.isSynthetic) {
+      return;
+    }
+    int oldOffset = element.nameOffset;
+    int newOffset = map[oldOffset];
+    assert(newOffset != null);
+    (element as ElementImpl).nameOffset = newOffset;
     if (element is! LibraryElement) {
       super.visitElement(element);
     }
