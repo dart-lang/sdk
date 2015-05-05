@@ -2255,6 +2255,61 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
   __ Ret();
 }
 
+
+void StubCode::EmitMegamorphicLookup(
+    Assembler* assembler, Register receiver, Register cache, Register target) {
+  ASSERT((cache != T0) && (cache != T2));
+  __ LoadTaggedClassIdMayBeSmi(T0, receiver);
+  // T0: class ID of the receiver (smi).
+  __ lw(T2, FieldAddress(cache, MegamorphicCache::buckets_offset()));
+  __ lw(T1, FieldAddress(cache, MegamorphicCache::mask_offset()));
+  // T2: cache buckets array.
+  // T1: mask.
+  __ mov(T3, T0);
+
+  Label loop, update, call_target_function;
+  __ b(&loop);
+
+  __ Bind(&update);
+  __ addiu(T3, T3, Immediate(Smi::RawValue(1)));
+  __ Bind(&loop);
+  __ and_(T3, T3, T1);
+  const intptr_t base = Array::data_offset();
+  // T3 is smi tagged, but table entries are two words, so LSL 2.
+  __ sll(TMP, T3, 2);
+  __ addu(TMP, T2, TMP);
+  __ lw(T4, FieldAddress(TMP, base));
+
+  ASSERT(kIllegalCid == 0);
+  __ beq(T4, ZR, &call_target_function);
+  __ bne(T4, T0, &update);
+
+  __ Bind(&call_target_function);
+  // Call the target found in the cache.  For a class id match, this is a
+  // proper target for the given name and arguments descriptor.  If the
+  // illegal class id was found, the target is a cache miss handler that can
+  // be invoked as a normal Dart function.
+  __ sll(T1, T3, 2);
+  __ addu(T1, T2, T1);
+  __ lw(T0, FieldAddress(T1, base + kWordSize));
+
+  __ lw(target, FieldAddress(T0, Function::instructions_offset()));
+  // TODO(srdjan): Evaluate performance impact of moving the instruction below
+  // to the call site, instead of having it here.
+  __ AddImmediate(target, Instructions::HeaderSize() - kHeapObjectTag);
+}
+
+
+// Called from megamorphic calls.
+//  T0: receiver.
+//  T1: lookup cache.
+// Result:
+//  T1: entry point.
+void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
+  EmitMegamorphicLookup(assembler, T0, T1, T1);
+  __ Ret();
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_MIPS

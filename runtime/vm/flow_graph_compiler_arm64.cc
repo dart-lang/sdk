@@ -24,6 +24,7 @@ namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(bool, enable_simd_inline);
+DECLARE_FLAG(bool, use_megamorphic_stub);
 
 
 FlowGraphCompiler::~FlowGraphCompiler() {
@@ -1269,47 +1270,21 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
-  __ LoadFromOffset(R0, SP, (argument_count - 1) * kWordSize, PP);
-  __ LoadTaggedClassIdMayBeSmi(R0, R0);
+  const Register receiverR = R0;
+  const Register cacheR = R1;
+  const Register targetR = R1;
+  __ LoadFromOffset(receiverR, SP, (argument_count - 1) * kWordSize, PP);
+  __ LoadObject(cacheR, cache, PP);
 
-  // R0: class ID of the receiver (smi).
-  __ LoadObject(R1, cache, PP);
-  __ LoadFieldFromOffset(R2, R1, MegamorphicCache::buckets_offset(), PP);
-  __ LoadFieldFromOffset(R1, R1, MegamorphicCache::mask_offset(), PP);
-  // R2: cache buckets array.
-  // R1: mask.
-  __ mov(R3, R0);
-
-  Label loop, update, call_target_function;
-  __ b(&loop);
-
-  __ Bind(&update);
-  __ add(R3, R3, Operand(Smi::RawValue(1)));
-  __ Bind(&loop);
-  __ and_(R3, R3, Operand(R1));
-  const intptr_t base = Array::data_offset();
-  // R3 is smi tagged, but table entries are 16 bytes, so LSL 3.
-  __ add(TMP, R2, Operand(R3, LSL, 3));
-  __ LoadFieldFromOffset(R4, TMP, base, PP);
-
-  ASSERT(kIllegalCid == 0);
-  __ tst(R4, Operand(R4));
-  __ b(&call_target_function, EQ);
-  __ CompareRegisters(R4, R0);
-  __ b(&update, NE);
-
-  __ Bind(&call_target_function);
-  // Call the target found in the cache.  For a class id match, this is a
-  // proper target for the given name and arguments descriptor.  If the
-  // illegal class id was found, the target is a cache miss handler that can
-  // be invoked as a normal Dart function.
-  __ add(TMP, R2, Operand(R3, LSL, 3));
-  __ LoadFieldFromOffset(R0, TMP, base + kWordSize, PP);
-  __ LoadFieldFromOffset(R1, R0, Function::instructions_offset(), PP);
+  if (FLAG_use_megamorphic_stub) {
+    StubCode* stub_code = isolate()->stub_code();
+    __ BranchLink(&stub_code->MegamorphicLookupLabel(), PP);
+  } else  {
+    StubCode::EmitMegamorphicLookup(assembler(), receiverR, cacheR, targetR);
+  }
   __ LoadObject(R5, ic_data, PP);
   __ LoadObject(R4, arguments_descriptor, PP);
-  __ AddImmediate(R1, R1, Instructions::HeaderSize() - kHeapObjectTag, PP);
-  __ blr(R1);
+  __ blr(targetR);
   AddCurrentDescriptor(RawPcDescriptors::kOther,
       Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);

@@ -2054,6 +2054,60 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
   __ ret();
 }
 
+
+void StubCode::EmitMegamorphicLookup(
+    Assembler* assembler, Register receiver, Register cache, Register target) {
+  ASSERT((cache != EAX) && (cache != EDI));
+  __ LoadTaggedClassIdMayBeSmi(EAX, receiver);
+
+  // EAX: class ID of the receiver (smi).
+  __ movl(EDI, FieldAddress(cache, MegamorphicCache::buckets_offset()));
+  __ movl(EBX, FieldAddress(cache, MegamorphicCache::mask_offset()));
+  // EDI: cache buckets array.
+  // EBX: mask.
+  __ movl(ECX, EAX);
+
+  Label loop, update, call_target_function;
+  __ jmp(&loop);
+
+  __ Bind(&update);
+  __ addl(ECX, Immediate(Smi::RawValue(1)));
+  __ Bind(&loop);
+  __ andl(ECX, EBX);
+  const intptr_t base = Array::data_offset();
+  // ECX is smi tagged, but table entries are two words, so TIMES_4.
+  __ movl(EDX, FieldAddress(EDI, ECX, TIMES_4, base));
+
+  ASSERT(kIllegalCid == 0);
+  __ testl(EDX, EDX);
+  __ j(ZERO, &call_target_function, Assembler::kNearJump);
+  __ cmpl(EDX, EAX);
+  __ j(NOT_EQUAL, &update, Assembler::kNearJump);
+
+  __ Bind(&call_target_function);
+  // Call the target found in the cache.  For a class id match, this is a
+  // proper target for the given name and arguments descriptor.  If the
+  // illegal class id was found, the target is a cache miss handler that can
+  // be invoked as a normal Dart function.
+  __ movl(EAX, FieldAddress(EDI, ECX, TIMES_4, base + kWordSize));
+  __ movl(target, FieldAddress(EAX, Function::instructions_offset()));
+  // TODO(srdjan): Evaluate performance impact of moving the instruction below
+  // to the call site, instead of having it here.
+  __ addl(target, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+}
+
+
+// Called from megamorphic calls.
+//  EDI: receiver.
+//  EBX: lookup cache.
+// Result:
+//  EBX: entry point.
+void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
+  EmitMegamorphicLookup(assembler, EDI, EBX, EBX);
+  __ ret();
+}
+
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

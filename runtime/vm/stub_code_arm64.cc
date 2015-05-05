@@ -2108,6 +2108,60 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
   __ ret();
 }
 
+
+void StubCode::EmitMegamorphicLookup(
+    Assembler* assembler, Register receiver, Register cache, Register target) {
+  ASSERT((cache != R0) && (cache != R2));
+  __ LoadTaggedClassIdMayBeSmi(R0, receiver);
+  // R0: class ID of the receiver (smi).
+  __ LoadFieldFromOffset(R2, cache, MegamorphicCache::buckets_offset(), PP);
+  __ LoadFieldFromOffset(R1, cache, MegamorphicCache::mask_offset(), PP);
+  // R2: cache buckets array.
+  // R1: mask.
+  __ mov(R3, R0);
+
+  Label loop, update, call_target_function;
+  __ b(&loop);
+
+  __ Bind(&update);
+  __ add(R3, R3, Operand(Smi::RawValue(1)));
+  __ Bind(&loop);
+  __ and_(R3, R3, Operand(R1));
+  const intptr_t base = Array::data_offset();
+  // R3 is smi tagged, but table entries are 16 bytes, so LSL 3.
+  __ add(TMP, R2, Operand(R3, LSL, 3));
+  __ LoadFieldFromOffset(R4, TMP, base, PP);
+
+  ASSERT(kIllegalCid == 0);
+  __ tst(R4, Operand(R4));
+  __ b(&call_target_function, EQ);
+  __ CompareRegisters(R4, R0);
+  __ b(&update, NE);
+
+  __ Bind(&call_target_function);
+  // Call the target found in the cache.  For a class id match, this is a
+  // proper target for the given name and arguments descriptor.  If the
+  // illegal class id was found, the target is a cache miss handler that can
+  // be invoked as a normal Dart function.
+  __ add(TMP, R2, Operand(R3, LSL, 3));
+  __ LoadFieldFromOffset(R0, TMP, base + kWordSize, PP);
+  __ LoadFieldFromOffset(R1, R0, Function::instructions_offset(), PP);
+  // TODO(srdjan): Evaluate performance impact of moving the instruction below
+  // to the call site, instead of having it here.
+  __ AddImmediate(target, R1, Instructions::HeaderSize() - kHeapObjectTag, PP);
+}
+
+
+// Called from megamorphic calls.
+//  R0: receiver.
+//  R1: lookup cache.
+// Result:
+//  R1: entry point.
+void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
+  EmitMegamorphicLookup(assembler, R0, R1, R1);
+  __ ret();
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM64

@@ -38,6 +38,7 @@ DEFINE_FLAG(int, min_optimization_counter_threshold, 5000,
 DEFINE_FLAG(int, optimization_counter_scale, 2000,
     "The scale of invocation count, by size of the function.");
 DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
+DEFINE_FLAG(bool, use_megamorphic_stub, true, "Out of line megamorphic lookup");
 
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(int, deoptimize_every);

@@ -23,6 +23,7 @@ namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, use_megamorphic_stub);
 
 
 FlowGraphCompiler::~FlowGraphCompiler() {
@@ -1292,48 +1293,21 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
   __ Comment("MegamorphicInstanceCall");
-  __ lw(T0, Address(SP, (argument_count - 1) * kWordSize));
-  __ LoadTaggedClassIdMayBeSmi(T0, T0);
+  const Register receiverR = T0;
+  const Register cacheR = T1;
+  const Register targetR = T1;
+  __ lw(receiverR, Address(SP, (argument_count - 1) * kWordSize));
+  __ LoadObject(cacheR, cache);
 
-  // T0: class ID of the receiver (smi).
-  __ LoadObject(T1, cache);
-  __ lw(T2, FieldAddress(T1, MegamorphicCache::buckets_offset()));
-  __ lw(T1, FieldAddress(T1, MegamorphicCache::mask_offset()));
-  // T2: cache buckets array.
-  // T1: mask.
-  __ mov(T3, T0);
-
-  Label loop, update, call_target_function;
-  __ b(&loop);
-
-  __ Bind(&update);
-  __ addiu(T3, T3, Immediate(Smi::RawValue(1)));
-  __ Bind(&loop);
-  __ and_(T3, T3, T1);
-  const intptr_t base = Array::data_offset();
-  // T3 is smi tagged, but table entries are two words, so LSL 2.
-  __ sll(TMP, T3, 2);
-  __ addu(TMP, T2, TMP);
-  __ lw(T4, FieldAddress(TMP, base));
-
-  ASSERT(kIllegalCid == 0);
-  __ beq(T4, ZR, &call_target_function);
-  __ bne(T4, T0, &update);
-
-  __ Bind(&call_target_function);
-  // Call the target found in the cache.  For a class id match, this is a
-  // proper target for the given name and arguments descriptor.  If the
-  // illegal class id was found, the target is a cache miss handler that can
-  // be invoked as a normal Dart function.
-  __ sll(T1, T3, 2);
-  __ addu(T1, T2, T1);
-  __ lw(T0, FieldAddress(T1, base + kWordSize));
-
-  __ lw(T1, FieldAddress(T0, Function::instructions_offset()));
+  if (FLAG_use_megamorphic_stub) {
+    StubCode* stub_code = isolate()->stub_code();
+    __ BranchLink(&stub_code->MegamorphicLookupLabel());
+  } else  {
+    StubCode::EmitMegamorphicLookup(assembler(), receiverR, cacheR, targetR);
+  }
   __ LoadObject(S5, ic_data);
   __ LoadObject(S4, arguments_descriptor);
-  __ AddImmediate(T1, Instructions::HeaderSize() - kHeapObjectTag);
-  __ jalr(T1);
+  __ jalr(targetR);
   AddCurrentDescriptor(RawPcDescriptors::kOther,
       Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);

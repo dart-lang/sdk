@@ -27,8 +27,10 @@ namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
+
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, enable_simd_inline);
+DECLARE_FLAG(bool, use_megamorphic_stub);
 
 
 FlowGraphCompiler::~FlowGraphCompiler() {
@@ -1303,54 +1305,29 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     intptr_t deopt_id,
     intptr_t token_pos,
     LocationSummary* locs) {
-  MegamorphicCacheTable* table = Isolate::Current()->megamorphic_cache_table();
+  MegamorphicCacheTable* table = isolate()->megamorphic_cache_table();
   const String& name = String::Handle(ic_data.target_name());
   const Array& arguments_descriptor =
       Array::ZoneHandle(ic_data.arguments_descriptor());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
-  Label load_cache;
-  __ movl(EBX, Address(ESP, (argument_count - 1) * kWordSize));
-  __ LoadTaggedClassIdMayBeSmi(EAX, EBX);
+  const Register receiverR = EDI;
+  const Register cacheR = EBX;
+  const Register targetR = EBX;
+  __ movl(receiverR, Address(ESP, (argument_count - 1) * kWordSize));
+  __ LoadObject(cacheR, cache);
 
-  // EAX: class ID of the receiver (smi).
-  __ Bind(&load_cache);
-  __ LoadObject(EBX, cache);
-  __ movl(EDI, FieldAddress(EBX, MegamorphicCache::buckets_offset()));
-  __ movl(EBX, FieldAddress(EBX, MegamorphicCache::mask_offset()));
-  // EDI: cache buckets array.
-  // EBX: mask.
-  __ movl(ECX, EAX);
+  if (FLAG_use_megamorphic_stub) {
+    StubCode* stub_code = isolate()->stub_code();
+    __ call(&stub_code->MegamorphicLookupLabel());
+  } else  {
+    StubCode::EmitMegamorphicLookup(assembler(), receiverR, cacheR, targetR);
+  }
 
-  Label loop, update, call_target_function;
-  __ jmp(&loop);
-
-  __ Bind(&update);
-  __ addl(ECX, Immediate(Smi::RawValue(1)));
-  __ Bind(&loop);
-  __ andl(ECX, EBX);
-  const intptr_t base = Array::data_offset();
-  // ECX is smi tagged, but table entries are two words, so TIMES_4.
-  __ movl(EDX, FieldAddress(EDI, ECX, TIMES_4, base));
-
-  ASSERT(kIllegalCid == 0);
-  __ testl(EDX, EDX);
-  __ j(ZERO, &call_target_function, Assembler::kNearJump);
-  __ cmpl(EDX, EAX);
-  __ j(NOT_EQUAL, &update, Assembler::kNearJump);
-
-  __ Bind(&call_target_function);
-  // Call the target found in the cache.  For a class id match, this is a
-  // proper target for the given name and arguments descriptor.  If the
-  // illegal class id was found, the target is a cache miss handler that can
-  // be invoked as a normal Dart function.
-  __ movl(EAX, FieldAddress(EDI, ECX, TIMES_4, base + kWordSize));
-  __ movl(EBX, FieldAddress(EAX, Function::instructions_offset()));
   __ LoadObject(ECX, ic_data);
   __ LoadObject(EDX, arguments_descriptor);
-  __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ call(EBX);
+  __ call(targetR);
   AddCurrentDescriptor(RawPcDescriptors::kOther,
       Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
