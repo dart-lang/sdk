@@ -186,6 +186,68 @@ class ConstantAstCloner extends AstCloner {
 }
 
 /**
+ * Interface used by unit tests to verify correct dependency analysis during
+ * constant evaluation.
+ */
+abstract class ConstantEvaluationValidator {
+  /**
+   * This method is called just before computing the constant value associated
+   * with [constNode]. Unit tests will override this method to introduce
+   * additional error checking.
+   */
+  void beforeComputeValue(AstNode constNode);
+
+  /**
+   * This method is called just before getting the constant initializers
+   * associated with the [constructor]. Unit tests will override this method to
+   * introduce additional error checking.
+   */
+  void beforeGetConstantInitializers(ConstructorElement constructor);
+
+  /**
+   * This method is called just before retrieving an evaluation result from an
+   * AST node. Unit tests will override it to introduce additional error
+   * checking.
+   */
+  void beforeGetEvaluationResult(AstNode node);
+
+  /**
+   * This method is called just before getting the constant value of a field
+   * with an initializer.  Unit tests will override this method to introduce
+   * additional error checking.
+   */
+  void beforeGetFieldEvaluationResult(FieldElementImpl field);
+
+  /**
+   * This method is called just before getting a parameter's default value. Unit
+   * tests will override this method to introduce additional error checking.
+   */
+  void beforeGetParameterDefault(ParameterElement parameter);
+}
+
+/**
+ * Implementation of [ConstantEvaluationValidator] used in production; does no
+ * validation.
+ */
+class ConstantEvaluationValidator_ForProduction
+    implements ConstantEvaluationValidator {
+  @override
+  void beforeComputeValue(AstNode constNode) {}
+
+  @override
+  void beforeGetConstantInitializers(ConstructorElement constructor) {}
+
+  @override
+  void beforeGetEvaluationResult(AstNode node) {}
+
+  @override
+  void beforeGetFieldEvaluationResult(FieldElementImpl field) {}
+
+  @override
+  void beforeGetParameterDefault(ParameterElement parameter) {}
+}
+
+/**
  * Instances of the class `ConstantEvaluator` evaluate constant expressions to
  * produce their compile-time value. According to the Dart Language
  * Specification:
@@ -262,8 +324,8 @@ class ConstantEvaluator {
   EvaluationResult evaluate(Expression expression) {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
-    DartObjectImpl result = expression
-        .accept(new ConstantVisitor.con1(_typeProvider, errorReporter));
+    DartObjectImpl result =
+        expression.accept(new ConstantVisitor(_typeProvider, errorReporter));
     if (result != null) {
       return EvaluationResult.forValue(result);
     }
@@ -416,7 +478,13 @@ class ConstantValueComputer {
   /**
    * The type provider used to access the known types.
    */
-  TypeProvider typeProvider;
+  final TypeProvider typeProvider;
+
+  /**
+   * Validator used to verify correct dependency analysis when running unit
+   * tests.
+   */
+  final ConstantEvaluationValidator validator;
 
   /**
    * The object used to find constant variables and constant constructor
@@ -461,9 +529,11 @@ class ConstantValueComputer {
    * the type provider used to access known types. The [declaredVariables] is
    * the set of variables declared on the command line using '-D'.
    */
-  ConstantValueComputer(TypeProvider typeProvider, this._declaredVariables) {
-    this.typeProvider = typeProvider;
-  }
+  ConstantValueComputer(this.typeProvider, this._declaredVariables,
+      [ConstantEvaluationValidator validator])
+      : validator = validator != null
+          ? validator
+          : new ConstantEvaluationValidator_ForProduction();
 
   /**
    * Add the constants in the given compilation [unit] to the list of constants
@@ -472,33 +542,6 @@ class ConstantValueComputer {
   void add(CompilationUnit unit) {
     unit.accept(_constantFinder);
   }
-
-  /**
-   * This method is called just before computing the constant value associated
-   * with [constNode]. Unit tests will override this method to introduce
-   * additional error checking.
-   */
-  void beforeComputeValue(AstNode constNode) {}
-
-  /**
-   * This method is called just before getting the constant value of a field
-   * with an initializer.  Unit tests will override this method to introduce
-   * additional error checking.
-   */
-  void beforeGetFieldEvaluationResult(FieldElementImpl field) {}
-
-  /**
-   * This method is called just before getting the constant initializers
-   * associated with the [constructor]. Unit tests will override this method to
-   * introduce additional error checking.
-   */
-  void beforeGetConstantInitializers(ConstructorElement constructor) {}
-
-  /**
-   * This method is called just before getting a parameter's default value. Unit
-   * tests will override this method to introduce additional error checking.
-   */
-  void beforeGetParameterDefault(ParameterElement parameter) {}
 
   /**
    * Compute values for all of the constants in the compilation units that were
@@ -614,13 +657,6 @@ class ConstantValueComputer {
     }
   }
 
-  /**
-   * Create the ConstantVisitor used to evaluate constants. Unit tests will
-   * override this method to introduce additional error checking.
-   */
-  ConstantVisitor createConstantVisitor(ErrorReporter errorReporter) =>
-      new ConstantVisitor.con1(typeProvider, errorReporter);
-
   ConstructorDeclaration findConstructorDeclaration(
           ConstructorElement constructor) =>
       constructorDeclarationMap[_getConstructorBase(constructor)];
@@ -697,7 +733,7 @@ class ConstantValueComputer {
    * Compute a value for the given [constNode].
    */
   void _computeValueFor(AstNode constNode) {
-    beforeComputeValue(constNode);
+    validator.beforeComputeValue(constNode);
     if (constNode is VariableDeclaration) {
       VariableElement element = constNode.element;
       RecordingErrorListener errorListener = new RecordingErrorListener();
@@ -705,7 +741,8 @@ class ConstantValueComputer {
           new ErrorReporter(errorListener, element.source);
       DartObjectImpl dartObject =
           (element as PotentiallyConstVariableElement).constantInitializer
-              .accept(createConstantVisitor(errorReporter));
+              .accept(new ConstantVisitor(typeProvider, errorReporter,
+                  validator: validator));
       if (dartObject != null) {
         if (!_runtimeTypeMatch(dartObject, element.type)) {
           errorReporter.reportErrorForElement(
@@ -733,7 +770,8 @@ class ConstantValueComputer {
           expression.getAncestor((node) => node is CompilationUnit);
       ErrorReporter errorReporter = new ErrorReporter(
           errorListener, sourceCompilationUnit.element.source);
-      ConstantVisitor constantVisitor = createConstantVisitor(errorReporter);
+      ConstantVisitor constantVisitor = new ConstantVisitor(
+          typeProvider, errorReporter, validator: validator);
       DartObjectImpl result = _evaluateConstructorCall(constNode,
           expression.argumentList.arguments, constructor, constantVisitor,
           errorReporter);
@@ -757,8 +795,8 @@ class ConstantValueComputer {
           RecordingErrorListener errorListener = new RecordingErrorListener();
           ErrorReporter errorReporter =
               new ErrorReporter(errorListener, element.source);
-          DartObjectImpl dartObject =
-              defaultValue.accept(createConstantVisitor(errorReporter));
+          DartObjectImpl dartObject = defaultValue.accept(new ConstantVisitor(
+              typeProvider, errorReporter, validator: validator));
           (element as ParameterElementImpl).evaluationResult =
               new EvaluationResultImpl.con2(dartObject, errorListener.errors);
         }
@@ -783,8 +821,8 @@ class ConstantValueComputer {
               constNode.getAncestor((node) => node is CompilationUnit);
           ErrorReporter errorReporter = new ErrorReporter(
               errorListener, sourceCompilationUnit.element.source);
-          ConstantVisitor constantVisitor =
-              createConstantVisitor(errorReporter);
+          ConstantVisitor constantVisitor = new ConstantVisitor(
+              typeProvider, errorReporter, validator: validator);
           DartObjectImpl result = _evaluateConstructorCall(constNode,
               constNode.arguments.arguments, element, constantVisitor,
               errorReporter);
@@ -932,7 +970,7 @@ class ConstantValueComputer {
       // it an unknown value will suppress further errors.
       return new DartObjectImpl.validWithUnknownValue(definingClass);
     }
-    beforeGetConstantInitializers(constructor);
+    validator.beforeGetConstantInitializers(constructor);
     ConstructorElementImpl constructorBase = _getConstructorBase(constructor);
     List<ConstructorInitializer> initializers =
         constructorBase.constantInitializers;
@@ -951,7 +989,7 @@ class ConstantValueComputer {
       if ((field.isFinal || field.isConst) &&
           !field.isStatic &&
           field is ConstFieldElementImpl) {
-        beforeGetFieldEvaluationResult(field);
+        validator.beforeGetFieldEvaluationResult(field);
         EvaluationResultImpl evaluationResult = field.evaluationResult;
         DartType fieldType =
             FieldMember.from(field, constructor.returnType).type;
@@ -993,7 +1031,7 @@ class ConstantValueComputer {
       if (argumentValue == null && baseParameter is ParameterElementImpl) {
         // The parameter is an optional positional parameter for which no value
         // was provided, so use the default value.
-        beforeGetParameterDefault(baseParameter);
+        validator.beforeGetParameterDefault(baseParameter);
         EvaluationResultImpl evaluationResult = baseParameter.evaluationResult;
         if (evaluationResult == null) {
           // No default was provided, so the default value is null.
@@ -1031,8 +1069,9 @@ class ConstantValueComputer {
         }
       }
     }
-    ConstantVisitor initializerVisitor =
-        new ConstantVisitor.con2(typeProvider, parameterMap, errorReporter);
+    ConstantVisitor initializerVisitor = new ConstantVisitor(
+        typeProvider, errorReporter,
+        validator: validator, lexicalEnvironment: parameterMap);
     String superName = null;
     NodeList<Expression> superArguments = null;
     for (ConstructorInitializer initializer in initializers) {
@@ -1269,7 +1308,13 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    */
   final TypeProvider _typeProvider;
 
-  HashMap<String, DartObjectImpl> _lexicalEnvironment;
+  final HashMap<String, DartObjectImpl> _lexicalEnvironment;
+
+  /**
+   * Validator used to verify correct dependency analysis when running unit
+   * tests.
+   */
+  final ConstantEvaluationValidator validator;
 
   /**
    * Error reporter that we use to report errors accumulated while computing the
@@ -1284,35 +1329,22 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   /**
    * Initialize a newly created constant visitor. The [_typeProvider] is the
-   * type provider used to access known types. The [_errorReporter] is used to
-   * report errors found during evaluation.
-   */
-  ConstantVisitor.con1(this._typeProvider, this._errorReporter) {
-    this._lexicalEnvironment = null;
-    this._dartObjectComputer =
-        new DartObjectComputer(_errorReporter, _typeProvider);
-  }
-
-  /**
-   * Initialize a newly created constant visitor. The [_typeProvider] is the
-   * type provider used to access known types. The [lexicalEnvironment] is a map
-   * containing values which should override identifiers, or `null` if no
+   * type provider used to access known types. The [lexicalEnvironment] is a
+   * map containing values which should override identifiers, or `null` if no
    * overriding is necessary. The [_errorReporter] is used to report errors
-   * found during evaluation.
+   * found during evaluation.  The [validator] is used by unit tests to verify
+   * correct dependency analysis.
    */
-  ConstantVisitor.con2(this._typeProvider,
-      HashMap<String, DartObjectImpl> lexicalEnvironment, this._errorReporter) {
-    this._lexicalEnvironment = lexicalEnvironment;
+  ConstantVisitor(this._typeProvider, this._errorReporter,
+      {ConstantEvaluationValidator validator,
+      HashMap<String, DartObjectImpl> lexicalEnvironment})
+      : validator = validator != null
+          ? validator
+          : new ConstantEvaluationValidator_ForProduction(),
+        _lexicalEnvironment = lexicalEnvironment {
     this._dartObjectComputer =
         new DartObjectComputer(_errorReporter, _typeProvider);
   }
-
-  /**
-   * This method is called just before retrieving an evaluation result from an
-   * AST node. Unit tests will override it to introduce additional error
-   * checking.
-   */
-  void beforeGetEvaluationResult(AstNode node) {}
 
   @override
   DartObjectImpl visitAdjacentStrings(AdjacentStrings node) {
@@ -1441,7 +1473,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       _error(node, null);
       return null;
     }
-    beforeGetEvaluationResult(node);
+    validator.beforeGetEvaluationResult(node);
     EvaluationResultImpl result = node.evaluationResult;
     if (result != null) {
       return result.value;
@@ -1705,7 +1737,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
     if (element is VariableElementImpl) {
       VariableElementImpl variableElementImpl = element;
-      beforeGetEvaluationResult(node);
+      validator.beforeGetEvaluationResult(node);
       EvaluationResultImpl value = variableElementImpl.evaluationResult;
       if (variableElementImpl.isConst && value != null) {
         return value.value;

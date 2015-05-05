@@ -975,8 +975,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
             AnalysisErrorListener.NULL_LISTENER;
         ErrorReporter subErrorReporter =
             new ErrorReporter(errorListener, _errorReporter.source);
-        DartObjectImpl result = key
-            .accept(new ConstantVisitor.con1(_typeProvider, subErrorReporter));
+        DartObjectImpl result =
+            key.accept(new ConstantVisitor(_typeProvider, subErrorReporter));
         if (result != null) {
           if (keys.contains(result)) {
             invalidKeys.add(key);
@@ -1179,8 +1179,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     ErrorReporter subErrorReporter =
         new ErrorReporter(errorListener, _errorReporter.source);
-    DartObjectImpl result = expression
-        .accept(new ConstantVisitor.con1(_typeProvider, subErrorReporter));
+    DartObjectImpl result =
+        expression.accept(new ConstantVisitor(_typeProvider, subErrorReporter));
     _reportErrors(errorListener.errors, errorCode);
     return result;
   }
@@ -1286,8 +1286,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
                   AnalysisErrorListener.NULL_LISTENER;
               ErrorReporter subErrorReporter =
                   new ErrorReporter(errorListener, _errorReporter.source);
-              DartObjectImpl result = initializer.accept(
-                  new ConstantVisitor.con1(_typeProvider, subErrorReporter));
+              DartObjectImpl result = initializer
+                  .accept(new ConstantVisitor(_typeProvider, subErrorReporter));
               if (result == null) {
                 _errorReporter.reportErrorForNode(
                     CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
@@ -15276,7 +15276,7 @@ class _ConstantVerifier_validateInitializerExpression extends ConstantVisitor {
 
   _ConstantVerifier_validateInitializerExpression(TypeProvider arg0,
       ErrorReporter arg1, this.verifier, this.parameterElements)
-      : super.con1(arg0, arg1);
+      : super(arg0, arg1);
 
   @override
   DartObjectImpl visitSimpleIdentifier(SimpleIdentifier node) {

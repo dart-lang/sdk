@@ -466,6 +466,84 @@ abstract class AbstractScannerTest {
   }
 }
 
+/**
+ * Implementation of [ConstantEvaluationValidator] used during unit tests;
+ * verifies that any nodes referenced during constant evaluation are present in
+ * the dependency graph.
+ */
+class ConstantEvaluationValidator_ForTest
+    implements ConstantEvaluationValidator {
+  ConstantValueComputer computer;
+
+  AstNode _nodeBeingEvaluated;
+
+  @override
+  void beforeComputeValue(AstNode constNode) {
+    _nodeBeingEvaluated = constNode;
+  }
+
+  @override
+  void beforeGetConstantInitializers(ConstructorElement constructor) {
+    // If we are getting the constant initializers for a node in the graph,
+    // make sure we properly recorded the dependency.
+    ConstructorDeclaration node =
+        computer.findConstructorDeclaration(constructor);
+    if (node != null && computer.referenceGraph.nodes.contains(node)) {
+      expect(computer.referenceGraph.containsPath(_nodeBeingEvaluated, node),
+          isTrue);
+    }
+  }
+
+  @override
+  void beforeGetEvaluationResult(AstNode node) {
+    // If we are getting the evaluation result for a node in the graph,
+    // make sure we properly recorded the dependency.
+    if (computer.referenceGraph.nodes.contains(node)) {
+      expect(computer.referenceGraph.containsPath(_nodeBeingEvaluated, node),
+          isTrue);
+    }
+  }
+
+  @override
+  void beforeGetFieldEvaluationResult(FieldElementImpl field) {
+    // If we are getting the constant value for a node in the graph, make sure
+    // we properly recorded the dependency.
+    VariableDeclaration node = computer.findVariableDeclaration(field);
+    if (node != null && computer.referenceGraph.nodes.contains(node)) {
+      expect(computer.referenceGraph.containsPath(_nodeBeingEvaluated, node),
+          isTrue);
+    }
+  }
+
+  @override
+  void beforeGetParameterDefault(ParameterElement parameter) {
+    // Find the ConstructorElement and figure out which
+    // parameter we're talking about.
+    ConstructorElement constructor =
+        parameter.getAncestor((element) => element is ConstructorElement);
+    int parameterIndex;
+    List<ParameterElement> parameters = constructor.parameters;
+    int numParameters = parameters.length;
+    for (parameterIndex = 0; parameterIndex < numParameters; parameterIndex++) {
+      if (identical(parameters[parameterIndex], parameter)) {
+        break;
+      }
+    }
+    expect(parameterIndex < numParameters, isTrue);
+    // If we are getting the default parameter for a constructor in the graph,
+    // make sure we properly recorded the dependency on the parameter.
+    ConstructorDeclaration constructorNode =
+        computer.constructorDeclarationMap[constructor];
+    if (constructorNode != null) {
+      FormalParameter parameterNode =
+          constructorNode.parameters.parameters[parameterIndex];
+      expect(computer.referenceGraph.nodes.contains(parameterNode), isTrue);
+      expect(computer.referenceGraph.containsPath(
+          _nodeBeingEvaluated, parameterNode), isTrue);
+    }
+  }
+}
+
 @reflectiveTest
 class ConstantEvaluatorTest extends ResolverTestCase {
   void fail_constructor() {
@@ -1433,6 +1511,17 @@ class B extends A {
 const B b = const B();''');
   }
 
+  void test_dependencyOnInitializedFinal() {
+    // a depends on A() depends on A.x
+    _assertProperDependencies('''
+class A {
+  const A();
+  final int x = 1;
+}
+const A a = const A();
+''');
+  }
+
   void test_dependencyOnInitializedNonStaticConst() {
     // Even though non-static consts are not allowed by the language, we need
     // to handle them for error recovery purposes.
@@ -1444,17 +1533,6 @@ class A {
 }
 const A a = const A();
 ''', [CompileTimeErrorCode.CONST_INSTANCE_FIELD]);
-  }
-
-  void test_dependencyOnInitializedFinal() {
-    // a depends on A() depends on A.x
-    _assertProperDependencies('''
-class A {
-  const A();
-  final int x = 1;
-}
-const A a = const A();
-''');
   }
 
   void test_dependencyOnNonFactoryRedirect() {
@@ -1546,24 +1624,6 @@ const y = 2;''');
     CompilationUnit compilationUnit = resolveSource('''
 class A {
   final int i = 123;
-  const A();
-}
-
-const A a = const A();
-''');
-    EvaluationResultImpl result =
-        _evaluateInstanceCreationExpression(compilationUnit, 'a');
-    Map<String, DartObjectImpl> fields = _assertType(result, "A");
-    expect(fields, hasLength(1));
-    _assertIntField(fields, "i", 123);
-  }
-
-  void test_non_static_const_initialized_at_declaration() {
-    // Even though non-static consts are not allowed by the language, we need
-    // to handle them for error recovery purposes.
-    CompilationUnit compilationUnit = resolveSource('''
-class A {
-  const int i = 123;
   const A();
 }
 
@@ -2105,6 +2165,24 @@ const int i = s.length;
     expect(_assertValidInt(result), 5);
   }
 
+  void test_non_static_const_initialized_at_declaration() {
+    // Even though non-static consts are not allowed by the language, we need
+    // to handle them for error recovery purposes.
+    CompilationUnit compilationUnit = resolveSource('''
+class A {
+  const int i = 123;
+  const A();
+}
+
+const A a = const A();
+''');
+    EvaluationResultImpl result =
+        _evaluateInstanceCreationExpression(compilationUnit, 'a');
+    Map<String, DartObjectImpl> fields = _assertType(result, "A");
+    expect(fields, hasLength(1));
+    _assertIntField(fields, "i", 123);
+  }
+
   void test_symbolLiteral_void() {
     CompilationUnit compilationUnit =
         resolveSource("const voidSymbol = #void;");
@@ -2322,8 +2400,12 @@ class A {
   }
 
   ConstantValueComputer _makeConstantValueComputer() {
-    return new ValidatingConstantValueComputer(
-        analysisContext2.typeProvider, analysisContext2.declaredVariables);
+    ConstantEvaluationValidator_ForTest validator =
+        new ConstantEvaluationValidator_ForTest();
+    validator.computer = new ConstantValueComputer(
+        analysisContext2.typeProvider, analysisContext2.declaredVariables,
+        validator);
+    return validator.computer;
   }
 
   void _validate(bool shouldBeValid, VariableDeclarationList declarationList) {
@@ -2340,27 +2422,6 @@ class A {
   }
 }
 
-class ConstantValueComputerTest_ValidatingConstantVisitor
-    extends ConstantVisitor {
-  final DirectedGraph<AstNode> _referenceGraph;
-  final AstNode _nodeBeingEvaluated;
-
-  ConstantValueComputerTest_ValidatingConstantVisitor(TypeProvider typeProvider,
-      this._referenceGraph, this._nodeBeingEvaluated,
-      ErrorReporter errorReporter)
-      : super.con1(typeProvider, errorReporter);
-
-  @override
-  void beforeGetEvaluationResult(AstNode node) {
-    super.beforeGetEvaluationResult(node);
-    // If we are getting the evaluation result for a node in the graph,
-    // make sure we properly recorded the dependency.
-    if (_referenceGraph.nodes.contains(node)) {
-      expect(_referenceGraph.containsPath(_nodeBeingEvaluated, node), isTrue);
-    }
-  }
-}
-
 @reflectiveTest
 class ConstantVisitorTest extends ResolverTestCase {
   void test_visitConditionalExpression_false() {
@@ -2371,8 +2432,8 @@ class ConstantVisitorTest extends ResolverTestCase {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ErrorReporter errorReporter =
         new ErrorReporter(errorListener, _dummySource());
-    _assertValue(0, expression.accept(
-        new ConstantVisitor.con1(new TestTypeProvider(), errorReporter)));
+    _assertValue(0, expression
+        .accept(new ConstantVisitor(new TestTypeProvider(), errorReporter)));
     errorListener.assertNoErrors();
   }
 
@@ -2394,7 +2455,7 @@ class ConstantVisitorTest extends ResolverTestCase {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ErrorReporter errorReporter =
         new ErrorReporter(errorListener, _dummySource());
-    expression.accept(new ConstantVisitor.con1(typeProvider, errorReporter));
+    expression.accept(new ConstantVisitor(typeProvider, errorReporter));
     errorListener
         .assertErrorsWithCodes([CompileTimeErrorCode.INVALID_CONSTANT]);
   }
@@ -2408,8 +2469,8 @@ class ConstantVisitorTest extends ResolverTestCase {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ErrorReporter errorReporter =
         new ErrorReporter(errorListener, _dummySource());
-    DartObjectImpl result = expression.accept(
-        new ConstantVisitor.con1(new TestTypeProvider(), errorReporter));
+    DartObjectImpl result = expression
+        .accept(new ConstantVisitor(new TestTypeProvider(), errorReporter));
     expect(result, isNull);
     errorListener
         .assertErrorsWithCodes([CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL]);
@@ -2423,8 +2484,8 @@ class ConstantVisitorTest extends ResolverTestCase {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ErrorReporter errorReporter =
         new ErrorReporter(errorListener, _dummySource());
-    DartObjectImpl result = expression.accept(
-        new ConstantVisitor.con1(new TestTypeProvider(), errorReporter));
+    DartObjectImpl result = expression
+        .accept(new ConstantVisitor(new TestTypeProvider(), errorReporter));
     expect(result, isNull);
     errorListener
         .assertErrorsWithCodes([CompileTimeErrorCode.INVALID_CONSTANT]);
@@ -2438,8 +2499,8 @@ class ConstantVisitorTest extends ResolverTestCase {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ErrorReporter errorReporter =
         new ErrorReporter(errorListener, _dummySource());
-    DartObjectImpl result = expression.accept(
-        new ConstantVisitor.con1(new TestTypeProvider(), errorReporter));
+    DartObjectImpl result = expression
+        .accept(new ConstantVisitor(new TestTypeProvider(), errorReporter));
     expect(result, isNull);
     errorListener
         .assertErrorsWithCodes([CompileTimeErrorCode.INVALID_CONSTANT]);
@@ -2453,8 +2514,8 @@ class ConstantVisitorTest extends ResolverTestCase {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ErrorReporter errorReporter =
         new ErrorReporter(errorListener, _dummySource());
-    _assertValue(1, expression.accept(
-        new ConstantVisitor.con1(new TestTypeProvider(), errorReporter)));
+    _assertValue(1, expression
+        .accept(new ConstantVisitor(new TestTypeProvider(), errorReporter)));
     errorListener.assertNoErrors();
   }
 
@@ -2524,8 +2585,8 @@ const b = 3;''');
         findTopLevelConstantExpression(compilationUnit, name);
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
-    DartObjectImpl result = expression.accept(new ConstantVisitor.con2(
-        typeProvider, lexicalEnvironment, errorReporter));
+    DartObjectImpl result = expression.accept(new ConstantVisitor(
+        typeProvider, errorReporter, lexicalEnvironment: lexicalEnvironment));
     errorListener.assertNoErrors();
     return result;
   }
@@ -8473,76 +8534,6 @@ class UriResolver_SourceFactoryTest_test_fromEncoding_valid
       return new TestSource();
     }
     return null;
-  }
-}
-
-class ValidatingConstantValueComputer extends ConstantValueComputer {
-  AstNode _nodeBeingEvaluated;
-  ValidatingConstantValueComputer(
-      TypeProvider typeProvider, DeclaredVariables declaredVariables)
-      : super(typeProvider, declaredVariables);
-
-  @override
-  void beforeComputeValue(AstNode constNode) {
-    super.beforeComputeValue(constNode);
-    _nodeBeingEvaluated = constNode;
-  }
-
-  @override
-  void beforeGetFieldEvaluationResult(FieldElementImpl field) {
-    super.beforeGetFieldEvaluationResult(field);
-    // If we are getting the constant value for a node in the graph, make sure
-    // we properly recorded the dependency.
-    VariableDeclaration node = findVariableDeclaration(field);
-    if (node != null && referenceGraph.nodes.contains(node)) {
-      expect(referenceGraph.containsPath(_nodeBeingEvaluated, node), isTrue);
-    }
-  }
-
-  @override
-  void beforeGetConstantInitializers(ConstructorElement constructor) {
-    super.beforeGetConstantInitializers(constructor);
-    // If we are getting the constant initializers for a node in the graph,
-    // make sure we properly recorded the dependency.
-    ConstructorDeclaration node = findConstructorDeclaration(constructor);
-    if (node != null && referenceGraph.nodes.contains(node)) {
-      expect(referenceGraph.containsPath(_nodeBeingEvaluated, node), isTrue);
-    }
-  }
-
-  @override
-  void beforeGetParameterDefault(ParameterElement parameter) {
-    super.beforeGetParameterDefault(parameter);
-    // Find the ConstructorElement and figure out which
-    // parameter we're talking about.
-    ConstructorElement constructor =
-        parameter.getAncestor((element) => element is ConstructorElement);
-    int parameterIndex;
-    List<ParameterElement> parameters = constructor.parameters;
-    int numParameters = parameters.length;
-    for (parameterIndex = 0; parameterIndex < numParameters; parameterIndex++) {
-      if (identical(parameters[parameterIndex], parameter)) {
-        break;
-      }
-    }
-    expect(parameterIndex < numParameters, isTrue);
-    // If we are getting the default parameter for a constructor in the graph,
-    // make sure we properly recorded the dependency on the parameter.
-    ConstructorDeclaration constructorNode =
-        constructorDeclarationMap[constructor];
-    if (constructorNode != null) {
-      FormalParameter parameterNode =
-          constructorNode.parameters.parameters[parameterIndex];
-      expect(referenceGraph.nodes.contains(parameterNode), isTrue);
-      expect(referenceGraph.containsPath(_nodeBeingEvaluated, parameterNode),
-          isTrue);
-    }
-  }
-
-  @override
-  ConstantVisitor createConstantVisitor(ErrorReporter errorReporter) {
-    return new ConstantValueComputerTest_ValidatingConstantVisitor(
-        typeProvider, referenceGraph, _nodeBeingEvaluated, errorReporter);
   }
 }
 
