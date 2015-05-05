@@ -3251,6 +3251,19 @@ f() {
     // We cannot verify resolution with undefined labels
   }
 
+  void test_length_of_erroneous_constant() {
+    // Attempting to compute the length of constant that couldn't be evaluated
+    // (due to an error) should not crash the analyzer (see dartbug.com/23383)
+    Source source = addSource("const int i = (1 ? 'alpha' : 'beta').length;");
+    resolve(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+      StaticTypeWarningCode.NON_BOOL_CONDITION
+    ]);
+    verify([source]);
+  }
+
   void test_memberWithClassName_field() {
     Source source = addSource(r'''
 class A {

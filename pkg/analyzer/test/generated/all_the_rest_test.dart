@@ -2077,6 +2077,34 @@ const c_num = const C<num>();''');
     expect(ConstantValueComputer.isValidPublicSymbol("foo.void"), isFalse);
   }
 
+  void test_length_of_improperly_typed_string_expression() {
+    // Since type annotations are ignored in unchecked mode, the improper
+    // types on s1 and s2 shouldn't prevent us from evaluating i to
+    // 'alpha'.length.
+    CompilationUnit compilationUnit = resolveSource('''
+const int s1 = 'alpha';
+const int s2 = 'beta';
+const int i = (true ? s1 : s2).length;
+''');
+    ConstTopLevelVariableElementImpl element =
+        findTopLevelDeclaration(compilationUnit, 'i').element;
+    EvaluationResultImpl result = element.evaluationResult;
+    expect(_assertValidInt(result), 5);
+  }
+
+  void test_length_of_improperly_typed_string_identifier() {
+    // Since type annotations are ignored in unchecked mode, the improper type
+    // on s shouldn't prevent us from evaluating i to 'alpha'.length.
+    CompilationUnit compilationUnit = resolveSource('''
+const int s = 'alpha';
+const int i = s.length;
+''');
+    ConstTopLevelVariableElementImpl element =
+        findTopLevelDeclaration(compilationUnit, 'i').element;
+    EvaluationResultImpl result = element.evaluationResult;
+    expect(_assertValidInt(result), 5);
+  }
+
   void test_symbolLiteral_void() {
     CompilationUnit compilationUnit =
         resolveSource("const voidSymbol = #void;");

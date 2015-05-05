@@ -1314,19 +1314,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    */
   void beforeGetEvaluationResult(AstNode node) {}
 
-  /**
-   * Return `true` if the given [element] represents the `length` getter in
-   * class 'String'.
-   */
-  bool isStringLength(Element element) {
-    if (element is PropertyAccessorElement) {
-      if (element.isGetter && element.name == 'length') {
-        return element.enclosingElement == _typeProvider.stringType.element;
-      }
-    }
-    return false;
-  }
-
   @override
   DartObjectImpl visitAdjacentStrings(AdjacentStrings node) {
     DartObjectImpl result = null;
@@ -1600,17 +1587,16 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitPrefixedIdentifier(PrefixedIdentifier node) {
+    SimpleIdentifier prefixNode = node.prefix;
+    Element prefixElement = prefixNode.staticElement;
     // String.length
-    {
-      Element element = node.staticElement;
-      if (isStringLength(element)) {
-        DartObjectImpl prefixResult = node.prefix.accept(this);
+    if (prefixElement is! PrefixElement && prefixElement is! ClassElement) {
+      DartObjectImpl prefixResult = node.prefix.accept(this);
+      if (_isStringLength(prefixResult, node.identifier)) {
         return prefixResult.stringLength(_typeProvider);
       }
     }
     // importPrefix.CONST
-    SimpleIdentifier prefixNode = node.prefix;
-    Element prefixElement = prefixNode.staticElement;
     if (prefixElement is! PrefixElement) {
       DartObjectImpl prefixResult = prefixNode.accept(this);
       if (prefixResult == null) {
@@ -1647,12 +1633,13 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitPropertyAccess(PropertyAccess node) {
-    Element element = node.propertyName.staticElement;
-    if (isStringLength(element)) {
-      DartObjectImpl prefixResult = node.realTarget.accept(this);
-      return prefixResult.stringLength(_typeProvider);
+    if (node.target != null) {
+      DartObjectImpl prefixResult = node.target.accept(this);
+      if (_isStringLength(prefixResult, node.propertyName)) {
+        return prefixResult.stringLength(_typeProvider);
+      }
     }
-    return _getConstantValue(node, element);
+    return _getConstantValue(node, node.propertyName.staticElement);
   }
 
   @override
@@ -1740,6 +1727,18 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     // TODO(brianwilkerson) Figure out which error to report.
     _error(node, null);
     return null;
+  }
+
+  /**
+   * Return `true` if the given [targetResult] represents a string and the
+   * [identifier] is "length".
+   */
+  bool _isStringLength(
+      DartObjectImpl targetResult, SimpleIdentifier identifier) {
+    if (targetResult == null || targetResult.type != _typeProvider.stringType) {
+      return false;
+    }
+    return identifier.name == 'length';
   }
 
   /**
