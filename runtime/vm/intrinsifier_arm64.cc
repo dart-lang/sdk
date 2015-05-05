@@ -697,12 +697,94 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
 
 
 void Intrinsifier::Bigint_lsh(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // static void _lsh(Uint32List x_digits, int x_used, int n,
+  //                  Uint32List r_digits)
+
+  // R2 = x_used, R3 = x_digits, x_used > 0, x_used is Smi.
+  __ ldp(R2, R3, Address(SP, 2 * kWordSize, Address::PairOffset));
+  __ add(R2, R2, Operand(2));  // x_used > 0, Smi. R2 = x_used + 1, round up.
+  __ AsrImmediate(R2, R2, 2);  // R2 = num of digit pairs to read.
+  // R4 = r_digits, R5 = n, n is Smi, n % _DIGIT_BITS != 0.
+  __ ldp(R4, R5, Address(SP, 0 * kWordSize, Address::PairOffset));
+  __ SmiUntag(R5);
+  // R0 = n ~/ (2*_DIGIT_BITS)
+  __ AsrImmediate(R0, R5, 6);
+  // R6 = &x_digits[0]
+  __ add(R6, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
+  // R7 = &x_digits[2*R2]
+  __ add(R7, R6, Operand(R2, LSL, 3));
+  // R8 = &r_digits[2*1]
+  __ add(R8, R4, Operand(TypedData::data_offset() - kHeapObjectTag +
+                         2 * Bigint::kBytesPerDigit));
+  // R8 = &r_digits[2*(R2 + n ~/ (2*_DIGIT_BITS) + 1)]
+  __ add(R0, R0, Operand(R2));
+  __ add(R8, R8, Operand(R0, LSL, 3));
+  // R3 = n % (2 * _DIGIT_BITS)
+  __ AndImmediate(R3, R5, 63, kNoPP);
+  // R2 = 64 - R3
+  __ LoadImmediate(R2, 64, kNoPP);
+  __ sub(R2, R2, Operand(R3));
+  __ mov(R1, ZR);
+  Label loop;
+  __ Bind(&loop);
+  __ ldr(R0, Address(R7, -2 * Bigint::kBytesPerDigit, Address::PreIndex));
+  __ lsrv(R4, R0, R2);
+  __ orr(R1, R1, Operand(R4));
+  __ str(R1, Address(R8, -2 * Bigint::kBytesPerDigit, Address::PreIndex));
+  __ lslv(R1, R0, R3);
+  __ cmp(R7, Operand(R6));
+  __ b(&loop, NE);
+  __ str(R1, Address(R8, -2 * Bigint::kBytesPerDigit, Address::PreIndex));
+  // Returning Object::null() is not required, since this method is private.
+  __ ret();
 }
 
 
 void Intrinsifier::Bigint_rsh(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // static void _lsh(Uint32List x_digits, int x_used, int n,
+  //                  Uint32List r_digits)
+
+  // R2 = x_used, R3 = x_digits, x_used > 0, x_used is Smi.
+  __ ldp(R2, R3, Address(SP, 2 * kWordSize, Address::PairOffset));
+  __ add(R2, R2, Operand(2));  // x_used > 0, Smi. R2 = x_used + 1, round up.
+  __ AsrImmediate(R2, R2, 2);  // R2 = num of digit pairs to read.
+  // R4 = r_digits, R5 = n, n is Smi, n % _DIGIT_BITS != 0.
+  __ ldp(R4, R5, Address(SP, 0 * kWordSize, Address::PairOffset));
+  __ SmiUntag(R5);
+  // R0 = n ~/ (2*_DIGIT_BITS)
+  __ AsrImmediate(R0, R5, 6);
+  // R8 = &r_digits[0]
+  __ add(R8, R4, Operand(TypedData::data_offset() - kHeapObjectTag));
+  // R7 = &x_digits[2*(n ~/ (2*_DIGIT_BITS))]
+  __ add(R7, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
+  __ add(R7, R7, Operand(R0, LSL, 3));
+  // R6 = &r_digits[2*(R2 - n ~/ (2*_DIGIT_BITS) - 1)]
+  __ add(R0, R0, Operand(1));
+  __ sub(R0, R2, Operand(R0));
+  __ add(R6, R8, Operand(R0, LSL, 3));
+  // R3 = n % (2*_DIGIT_BITS)
+  __ AndImmediate(R3, R5, 63, kNoPP);
+  // R2 = 64 - R3
+  __ LoadImmediate(R2, 64, kNoPP);
+  __ sub(R2, R2, Operand(R3));
+  // R1 = x_digits[n ~/ (2*_DIGIT_BITS)] >> (n % (2*_DIGIT_BITS))
+  __ ldr(R1, Address(R7, 2 * Bigint::kBytesPerDigit, Address::PostIndex));
+  __ lsrv(R1, R1, R3);
+  Label loop_entry;
+  __ b(&loop_entry);
+  Label loop;
+  __ Bind(&loop);
+  __ ldr(R0, Address(R7, 2 * Bigint::kBytesPerDigit, Address::PostIndex));
+  __ lslv(R4, R0, R2);
+  __ orr(R1, R1, Operand(R4));
+  __ str(R1, Address(R8, 2 * Bigint::kBytesPerDigit, Address::PostIndex));
+  __ lsrv(R1, R0, R3);
+  __ Bind(&loop_entry);
+  __ cmp(R8, Operand(R6));
+  __ b(&loop, NE);
+  __ str(R1, Address(R8, 0));
+  // Returning Object::null() is not required, since this method is private.
+  __ ret();
 }
 
 
