@@ -9,11 +9,13 @@ library dart.debugger;
 class Debugger {
   /// Stop the program as if a breakpoint where hit at the following statement.
   /// NOTE: When invoked, the isolate will not return until a debugger
-  /// continues execution. The behaviour is the same regardless of whether or
-  /// not a debugger is connected.
+  /// continues execution. When running in the Dart VM the behaviour is the same
+  /// regardless of whether or not a debugger is connected. When compiled to
+  /// JavaScript, this uses the "debugger" statement, and behaves exactly as
+  /// that does.
   external static void breakHere();
 
   /// If [expr] is true, stop the program as if a breakpoint where hit at the
-  /// following statement.
+  /// following statement. See [breakHere].
   external static void breakHereIf(bool expr);
 }
