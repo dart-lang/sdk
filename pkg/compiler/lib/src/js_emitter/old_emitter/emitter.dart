@@ -306,6 +306,16 @@ class OldEmitter implements Emitter {
         return jsAst.js.expressionTemplateFor(
             "('$isPrefix' + #) in #.prototype");
 
+      case JsBuiltin.getMetadata:
+        String metadataAccess =
+            generateEmbeddedGlobalAccessString(embeddedNames.METADATA);
+        return jsAst.js.expressionTemplateFor("$metadataAccess[#]");
+
+      case JsBuiltin.getType:
+        String typesAccess =
+            generateEmbeddedGlobalAccessString(embeddedNames.TYPES);
+        return jsAst.js.expressionTemplateFor("$typesAccess[#]");
+
       default:
         compiler.internalError(NO_LOCATION_SPANNABLE,
             "Unhandled Builtin: $builtin");

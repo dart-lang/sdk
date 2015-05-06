@@ -19,9 +19,7 @@ import 'dart:_js_embedded_names' show
     JsBuiltin,
     JsGetName,
     LEAF_TAGS,
-    METADATA,
-    NATIVE_SUPERCLASS_TAG_NAME,
-    TYPES;
+    NATIVE_SUPERCLASS_TAG_NAME;
 
 import 'dart:collection';
 
@@ -152,6 +150,20 @@ Object getRawRuntimeType(Object o) {
 bool builtinIsSubtype(type, String other) {
   return JS_BUILTIN('returns:bool;effects:none;depends:none',
                     JsBuiltin.isSubtype, other, type);
+}
+
+/// Returns the metadata of the given [index].
+@ForceInline()
+getMetadata(int index) {
+  return JS_BUILTIN('returns:var;effects:none;depends:none',
+                    JsBuiltin.getMetadata, index);
+}
+
+/// Returns the type of the given [index].
+@ForceInline()
+getType(int index) {
+  return JS_BUILTIN('returns:var;effects:none;depends:none',
+                    JsBuiltin.getType, index);
 }
 
 /// No-op method that is called to inform the compiler that preambles might
@@ -529,8 +541,8 @@ class ReflectionInfo {
       metadataIndex = JS('int', '#[# + # + #]', data,
           parameter, optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
     }
-    var metadata = JS_EMBEDDED_GLOBAL('', METADATA);
-    return JS('String', '#[#]', metadata, metadataIndex);
+    var name = getMetadata(metadataIndex);
+    return JS('String', '#', name);
   }
 
   List<int> parameterMetadataAnnotations(int parameter) {
@@ -611,16 +623,6 @@ class ReflectionInfo {
   }
 
   String get reflectionName => JS('String', r'#.$reflectionName', jsFunction);
-}
-
-getMetadata(int index) {
-  var metadata = JS_EMBEDDED_GLOBAL('', METADATA);
-  return JS('', '#[#]', metadata, index);
-}
-
-getType(int index) {
-  var types = JS_EMBEDDED_GLOBAL('', TYPES);
-  return JS('', '#[#]', types, index);
 }
 
 class Primitives {
@@ -2282,14 +2284,20 @@ abstract class Closure implements Function {
 
     var signatureFunction;
     if (JS('bool', 'typeof # == "number"', functionType)) {
-      var types = JS_EMBEDDED_GLOBAL('', TYPES);
-      // It is ok, if the access is inlined into the JS. The access is safe in
-      // and outside the function. In fact we prefer if there is a textual
-      // inlining.
+      // We cannot call [getType] here, since the types-metadata might not be
+      // set yet. This is, because fromTearOff might be called for constants
+      // when the program isn't completely set up yet.
+      //
+      // Note that we cannot just textually inline the call
+      // `getType(functionType)` since we cannot guarantee that the (then)
+      // captured variable `functionType` isn't reused.
       signatureFunction =
-          JS('', '(function(s){return function(){return #[s]}})(#)',
-              types,
-              functionType);
+          JS('',
+             '''(function(t) {
+                    return function(){ return #(t); };
+                })(#)''',
+             RAW_DART_FUNCTION_REF(getType),
+             functionType);
     } else if (!isStatic
                && JS('bool', 'typeof # == "function"', functionType)) {
       var getReceiver = isIntercepted

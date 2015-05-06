@@ -5,7 +5,9 @@
 library dart2js.new_js_emitter.emitter;
 
 import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
-    JsBuiltin;
+    JsBuiltin,
+    METADATA,
+    TYPES;
 
 import '../program_builder.dart' show ProgramBuilder;
 import '../model.dart';
@@ -167,6 +169,15 @@ class Emitter implements emitterTask.Emitter {
         // built.
         String isPrefix = namer.operatorIsPrefix;
         return js.js.expressionTemplateFor("('$isPrefix' + #) in #.prototype");
+
+      case JsBuiltin.getMetadata:
+        String metadataAccess =
+            _emitter.generateEmbeddedGlobalAccessString(METADATA);
+        return js.js.expressionTemplateFor("$metadataAccess[#]");
+
+      case JsBuiltin.getType:
+        String typesAccess = _emitter.generateEmbeddedGlobalAccessString(TYPES);
+        return js.js.expressionTemplateFor("$typesAccess[#]");
 
       default:
         _compiler.internalError(NO_LOCATION_SPANNABLE,

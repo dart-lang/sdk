@@ -31,7 +31,6 @@ const MANGLED_NAMES = 'mangledNames';
 const LIBRARIES = 'libraries';
 const FINISHED_CLASSES = 'finishedClasses';
 const ALL_CLASSES = 'allClasses';
-const METADATA = 'metadata';
 const INTERCEPTORS_BY_TAG = 'interceptorsByTag';
 const LEAF_TAGS = 'leafTags';
 const LAZIES = 'lazies';
@@ -46,8 +45,16 @@ const IS_HUNK_INITIALIZED = 'isHunkInitialized';
 const DEFERRED_INITIALIZED = 'deferredInitialized';
 const PRECOMPILED = 'precompiled';
 
+/// The name of the embedded global for metadata.
+///
+/// Use [JsBuiltin.getMetadata] instead of directly accessing this embedded
+/// global.
+const METADATA = 'metadata';
+
 /// A list of types used in the program e.g. for reflection or encoding of
 /// function types.
+///
+/// Use [JsBuiltin.getType] instead of directly accessing this embedded global.
 const TYPES = 'types';
 
 /// Returns a function that creates a new Isolate (its static state).
@@ -146,4 +153,16 @@ enum JsBuiltin {
   ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
   ///                JsBuiltin.isSubtype, other, type);
   isSubtype,
+
+  /// Returns the metadata of the given [index].
+  ///
+  ///     JS_BUILTIN('returns:var;effects:none;depends:none',
+  ///                JsBuiltin.getMetadata, index);
+  getMetadata,
+
+  /// Returns the type of the given [index].
+  ///
+  ///     JS_BUILTIN('returns:var;effects:none;depends:none',
+  ///                JsBuiltin.getType, index);
+  getType,
 }

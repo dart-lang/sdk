@@ -66,8 +66,12 @@ class ModelEmitter {
   }
 
   js.Expression generateEmbeddedGlobalAccess(String global) {
-    // TODO(floitsch): We should not use "init" for globals.
-    return js.js("init.$global");
+    return js.js(generateEmbeddedGlobalAccessString(global));
+  }
+
+  String generateEmbeddedGlobalAccessString(String global) {
+    // TODO(floitsch): don't use 'init' as global embedder storage.
+    return 'init.$global';
   }
 
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
