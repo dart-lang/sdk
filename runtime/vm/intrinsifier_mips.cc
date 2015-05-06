@@ -788,7 +788,16 @@ void Intrinsifier::Smi_bitNegate(Assembler* assembler) {
 
 
 void Intrinsifier::Smi_bitLength(Assembler* assembler) {
-  // TODO(sra): Implement.
+  __ lw(V0, Address(SP, 0 * kWordSize));
+  __ SmiUntag(V0);
+  // XOR with sign bit to complement bits if value is negative.
+  __ sra(T0, V0, 31);
+  __ xor_(V0, V0, T0);
+  __ clz(V0, V0);
+  __ LoadImmediate(T0, 32);
+  __ subu(V0, T0, V0);
+  __ Ret();
+  __ delay_slot()->SmiTag(V0);
 }
 
 

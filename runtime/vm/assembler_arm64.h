@@ -660,6 +660,11 @@ class Assembler : public ValueObject {
     EmitLogicalShiftOp(BICS, rd, rn, o, kDoubleWord);
   }
 
+  // Count leading zero bits.
+  void clz(Register rd, Register rn) {
+    EmitMiscDP1Source(CLZ, rd, rn, kDoubleWord);
+  }
+
   // Misc. arithmetic.
   void udiv(Register rd, Register rn, Register rm) {
     EmitMiscDP2Source(UDIV, rd, rn, rm, kDoubleWord);
@@ -1779,6 +1784,21 @@ class Assembler : public ValueObject {
     const int32_t encoding =
         op | loimm | hiimm |
         (static_cast<int32_t>(crd) << kRdShift);
+    Emit(encoding);
+  }
+
+  void EmitMiscDP1Source(MiscDP1SourceOp op,
+                         Register rd, Register rn,
+                         OperandSize sz) {
+    ASSERT((rd != CSP) && (rn != CSP));
+    ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
+    const Register crd = ConcreteRegister(rd);
+    const Register crn = ConcreteRegister(rn);
+    const int32_t size = (sz == kDoubleWord) ? B31 : 0;
+    const int32_t encoding =
+        op | size |
+        (static_cast<int32_t>(crd) << kRdShift) |
+        (static_cast<int32_t>(crn) << kRnShift);
     Emit(encoding);
   }
 

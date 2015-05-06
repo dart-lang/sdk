@@ -2420,6 +2420,43 @@ static int32_t divide32(int32_t top, int32_t bottom, bool signd) {
 }
 
 
+void Simulator::DecodeMiscDP1Source(Instr* instr) {
+  if (instr->Bit(29) != 0) {
+    UnimplementedInstruction(instr);
+  }
+
+  const Register rd = instr->RdField();
+  const Register rn = instr->RnField();
+  const int op = instr->Bits(10, 10);
+  const int64_t rn_val64 = get_register(rn, R31IsZR);
+  const int32_t rn_val32 = get_wregister(rn, R31IsZR);
+  switch (op) {
+    case 4: {
+      // Format(instr, "clz'sf 'rd, 'rn");
+      int64_t rd_val = 0;
+      int64_t rn_val = (instr->SFField() == 1) ? rn_val64 : rn_val32;
+      if (rn_val != 0) {
+        while (rn_val > 0) {
+          rd_val++;
+          rn_val <<= 1;
+        }
+      } else {
+        rd_val = (instr->SFField() == 1) ? 64 : 32;
+      }
+      if (instr->SFField() == 1) {
+        set_register(instr, rd, rd_val, R31IsZR);
+      } else {
+        set_wregister(rd, rd_val, R31IsZR);
+      }
+      break;
+    }
+    default:
+      UnimplementedInstruction(instr);
+      break;
+  }
+}
+
+
 void Simulator::DecodeMiscDP2Source(Instr* instr) {
   if (instr->Bit(29) != 0) {
     UnimplementedInstruction(instr);
@@ -2428,7 +2465,7 @@ void Simulator::DecodeMiscDP2Source(Instr* instr) {
   const Register rd = instr->RdField();
   const Register rn = instr->RnField();
   const Register rm = instr->RmField();
-  const int op = instr->Bits(10, 6);
+  const int op = instr->Bits(10, 5);
   const int64_t rn_val64 = get_register(rn, R31IsZR);
   const int64_t rm_val64 = get_register(rm, R31IsZR);
   const int32_t rn_val32 = get_wregister(rn, R31IsZR);
@@ -2612,6 +2649,8 @@ void Simulator::DecodeDPRegister(Instr* instr) {
     DecodeAddSubWithCarry(instr);
   } else if (instr->IsLogicalShiftOp()) {
     DecodeLogicalShift(instr);
+  } else if (instr->IsMiscDP1SourceOp()) {
+    DecodeMiscDP1Source(instr);
   } else if (instr->IsMiscDP2SourceOp()) {
     DecodeMiscDP2Source(instr);
   } else if (instr->IsMiscDP3SourceOp()) {
