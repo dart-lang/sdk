@@ -2104,7 +2104,8 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(1).reg() == kLengthReg);
 
   Label slow_path, done;
-  if (num_elements()->BindsToConstant() &&
+  if (compiler->is_optimizing() &&
+      num_elements()->BindsToConstant() &&
       num_elements()->BoundConstant().IsSmi()) {
     const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();
     if ((length >= 0) && (length <= Array::kMaxElements)) {

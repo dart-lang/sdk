@@ -2106,7 +2106,8 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(kElementTypePos).reg() == kElemTypeReg);
   ASSERT(locs()->in(kLengthPos).reg() == kLengthReg);
 
-  if (num_elements()->BindsToConstant() &&
+  if (compiler->is_optimizing() &&
+      num_elements()->BindsToConstant() &&
       num_elements()->BoundConstant().IsSmi()) {
     const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();
     if ((length >= 0) && (length <= Array::kMaxElements)) {
