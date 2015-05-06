@@ -2065,7 +2065,7 @@ abstract class DartType {
  * A [FieldFormalParameterElementImpl] for parameters that have an initializer.
  */
 class DefaultFieldFormalParameterElementImpl
-    extends FieldFormalParameterElementImpl {
+    extends FieldFormalParameterElementImpl with ConstVariableElement {
   /**
    * The result of evaluating this variable's initializer.
    */
@@ -2088,7 +2088,8 @@ class DefaultFieldFormalParameterElementImpl
 /**
  * A [ParameterElement] for parameters that have an initializer.
  */
-class DefaultParameterElementImpl extends ParameterElementImpl {
+class DefaultParameterElementImpl extends ParameterElementImpl
+    with ConstVariableElement {
   /**
    * The result of evaluating this variable's initializer.
    */
@@ -8343,7 +8344,7 @@ abstract class ParameterElement implements LocalElement, VariableElement {
  * A concrete implementation of a [ParameterElement].
  */
 class ParameterElementImpl extends VariableElementImpl
-    implements ParameterElement {
+    with PotentiallyConstVariableElement implements ParameterElement {
   /**
    * An empty list of parameter elements.
    */

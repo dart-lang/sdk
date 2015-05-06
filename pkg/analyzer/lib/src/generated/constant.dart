@@ -1148,9 +1148,9 @@ class ConstantValueComputer {
       constructor.isCycleFree = true;
     } else if (constNode is FormalParameter) {
       if (constNode is DefaultFormalParameter) {
-        DefaultFormalParameter parameter = constNode;
-        ParameterElement element = parameter.element;
-        Expression defaultValue = parameter.defaultValue;
+        ParameterElement element = constNode.element;
+        Expression defaultValue =
+            (element as PotentiallyConstVariableElement).constantInitializer;
         if (defaultValue != null) {
           RecordingErrorListener errorListener = new RecordingErrorListener();
           ErrorReporter errorReporter =

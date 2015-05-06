@@ -1162,7 +1162,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
           identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL) ||
           identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_INT) ||
           identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM) ||
-          identical(dataErrorCode, CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT) ||
+          identical(dataErrorCode,
+              CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT) ||
           identical(dataErrorCode,
               CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH) ||
           identical(dataErrorCode,
@@ -10912,6 +10913,22 @@ class ResolverVisitor extends ScopedVisitor {
     //
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
+    return null;
+  }
+
+  @override
+  Object visitDefaultFormalParameter(DefaultFormalParameter node) {
+    super.visitDefaultFormalParameter(node);
+    FormalParameterList parent = node.parent;
+    AstNode grandparent = parent.parent;
+    if (grandparent is ConstructorDeclaration &&
+        grandparent.constKeyword != null) {
+      // For const constructors, we need to clone the ASTs for default formal
+      // parameters, so that we can use them during constant evaluation.
+      ParameterElement element = node.element;
+      (element as ConstVariableElement).constantInitializer =
+          new ConstantAstCloner().cloneNode(node.defaultValue);
+    }
     return null;
   }
 
