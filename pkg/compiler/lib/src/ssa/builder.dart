@@ -1293,12 +1293,6 @@ class SsaBuilder extends NewResolvedVisitor {
     if (cachedCanBeInlined == false) return false;
 
     bool meetsHardConstraints() {
-      // Don't inline from one output unit to another. If something is deferred
-      // it is to save space in the loading code.
-      if (!compiler.deferredLoadTask
-          .inSameOutputUnit(element,compiler.currentElement)) {
-        return false;
-      }
       if (compiler.disableInlining) return false;
 
       assert(selector != null
@@ -1348,12 +1342,18 @@ class SsaBuilder extends NewResolvedVisitor {
         return InlineWeeder.canBeInlined(function, -1, false);
       }
       // TODO(sra): Measure if inlining would 'reduce' the size.  One desirable
-      // case we miss my doing nothing is inlining very simple constructors
+      // case we miss by doing nothing is inlining very simple constructors
       // where all fields are initialized with values from the arguments at this
       // call site.  The code is slightly larger (`new Foo(1)` vs `Foo$(1)`) but
       // that usually means the factory constructor is left unused and not
       // emitted.
-      return false;
+      // We at least inline bodies that are empty (and thus have a size of 1).
+      return InlineWeeder.canBeInlined(function, 1, true);
+    }
+
+    bool doesNotContainCode() {
+      // A function with size 1 does not contain any code.
+      return InlineWeeder.canBeInlined(function, 1, true);
     }
 
     bool heuristicSayGoodToGo() {
@@ -1364,6 +1364,16 @@ class SsaBuilder extends NewResolvedVisitor {
 
       if (element.isSynthesized) return true;
 
+      // Don't inline across deferred import to prevent leaking code. The only
+      // exception is an empty function (which does not contain code).
+      bool hasOnlyNonDeferredImportPaths = compiler.deferredLoadTask
+          .hasOnlyNonDeferredImportPaths(compiler.currentElement, element);
+
+      if (!hasOnlyNonDeferredImportPaths) {
+        return doesNotContainCode();
+      }
+
+      // Do not inline code that is rarely executed unless it reduces size.
       if (inExpressionOfThrow || inLazyInitializerExpression) {
         return reductiveHeuristic();
       }
