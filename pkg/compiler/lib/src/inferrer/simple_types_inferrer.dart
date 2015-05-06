@@ -1436,7 +1436,6 @@ class SimpleTypeInferrerVisitor<T>
       return inferrer.typeOfNativeBehavior(nativeBehavior);
     } else if (name == 'JS_NULL_CLASS_NAME'
                || name == 'JS_OBJECT_CLASS_NAME'
-               || name == 'JS_OPERATOR_IS_PREFIX'
                || name == 'JS_OPERATOR_AS_PREFIX'
                || name == 'JS_STRING_CONCAT') {
       return types.stringType;

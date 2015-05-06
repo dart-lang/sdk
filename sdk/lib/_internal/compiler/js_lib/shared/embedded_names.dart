@@ -135,4 +135,15 @@ enum JsBuiltin {
   ///
   ///     JS_BUILTIN('', JsBuiltin.rawRuntimeType, o)
   rawRuntimeType,
+
+  /// Returns whether the given type is a subtype of other.
+  ///
+  /// The argument `other` is the name of the potential supertype. It is
+  /// computed by `runtimeTypeToString`;
+  ///
+  /// *The `other` name must be passed in before the `type`.*
+  ///
+  ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
+  ///                JsBuiltin.isSubtype, other, type);
+  isSubtype,
 }

@@ -451,20 +451,15 @@ bool isSubtype(var s, var t) {
   // constructed from the type of [t].
   var typeOfS = isJsArray(s) ? getIndex(s, 0) : s;
   var typeOfT = isJsArray(t) ? getIndex(t, 0) : t;
+
   // Check for a subtyping flag.
-  var name = runtimeTypeToString(typeOfT);
   // Get the necessary substitution of the type arguments, if there is one.
   var substitution;
   if (isNotIdentical(typeOfT, typeOfS)) {
-    // TODO(floitsch): change this to:
-    // if (!JS_BUILTIN('depends:none;effects:none;returns:bool',
-    //                JsBuiltin.implementsType,
-    //                typeOfSPrototype, name)) {
-    //  return false;
-    // }
-    var test = '${JS_OPERATOR_IS_PREFIX()}${name}';
+    if (!builtinIsSubtype(typeOfS, runtimeTypeToString(typeOfT))) {
+      return false;
+    }
     var typeOfSPrototype = JS('', '#.prototype', typeOfS);
-    if (hasNoField(typeOfSPrototype, test)) return false;
     var field = '${JS_OPERATOR_AS_PREFIX()}${runtimeTypeToString(typeOfT)}';
     substitution = getField(typeOfSPrototype, field);
   }

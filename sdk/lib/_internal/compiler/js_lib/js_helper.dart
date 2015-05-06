@@ -62,7 +62,6 @@ import 'dart:_foreign_helper' show
     JS_NULL_CLASS_NAME,
     JS_OBJECT_CLASS_NAME,
     JS_OPERATOR_AS_PREFIX,
-    JS_OPERATOR_IS_PREFIX,
     JS_SIGNATURE_NAME,
     JS_STRING_CONCAT,
     RAW_DART_FUNCTION_REF;
@@ -146,6 +145,14 @@ Object getRawRuntimeType(Object o) {
   return JS_BUILTIN('', JsBuiltin.rawRuntimeType, o);
 }
 
+/// Returns whether the given [type] is a subtype of [other].
+///
+/// The argument [other] is the name of the other type, as computed by
+/// [runtimeTypeToString].
+bool builtinIsSubtype(type, String other) {
+  return JS_BUILTIN('returns:bool;effects:none;depends:none',
+                    JsBuiltin.isSubtype, other, type);
+}
 
 /// No-op method that is called to inform the compiler that preambles might
 /// be needed when executing the resulting JS file in a command-line

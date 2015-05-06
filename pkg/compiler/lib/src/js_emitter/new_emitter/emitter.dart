@@ -162,6 +162,12 @@ class Emitter implements emitterTask.Emitter {
         return _backend.rti.representationGenerator
             .templateForCreateFunctionType;
 
+      case JsBuiltin.isSubtype:
+        // TODO(floitsch): move this closer to where is-check properties are
+        // built.
+        String isPrefix = namer.operatorIsPrefix;
+        return js.js.expressionTemplateFor("('$isPrefix' + #) in #.prototype");
+
       default:
         _compiler.internalError(NO_LOCATION_SPANNABLE,
                                 "Unhandled Builtin: $builtin");
