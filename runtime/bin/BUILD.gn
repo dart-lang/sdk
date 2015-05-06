@@ -179,3 +179,63 @@ static_library("libdart_embedder_noio") {
     "../vm:libdart_platform",
   ]
 }
+
+io_impl_sources_gypi =
+    exec_script("../../tools/gypi_to_gn.py",
+                [ rebase_path("io_impl_sources.gypi") ],
+                "scope",
+                [ "io_impl_sources.gypi" ])
+
+# A source set for the implementation of 'dart:io' library
+# (without secure sockets).
+source_set("embedded_dart_io") {
+  configs += ["..:dart_config",]
+
+  # Set custom sources assignment filter. The custom filters does three things:
+  # 1) Filters out unnecessary files pulled in from the gypi files.
+  # 2) Filters out secure socket support.
+  # 3) Enables dart:io by filtering out _unsupported.cc implementations.
+  custom_sources_filter = [
+    "*net/nss_memio.cc",
+    "*net/nss_memio.h",
+    "*secure_socket.cc",
+    "*secure_socket.h",
+    "*filter_unsupported.cc",
+    "*io_service_unsupported.cc",
+    "*_test.cc",
+    "*_test.h",
+    "*dbg*",
+    "builtin.cc",
+    "builtin_gen_snapshot.cc",
+  ]
+  if (!is_mac) {
+    # Dart tree uses *_macos.* instead of *_mac.*
+    custom_sources_filter += [
+      "*_macos.h",
+      "*_macos.cc",
+    ]
+  }
+  set_sources_assignment_filter(custom_sources_filter)
+
+  defines = [ "DART_IO_SECURE_SOCKET_DISABLED" ]
+
+  sources = io_impl_sources_gypi.sources + builtin_impl_sources_gypi.sources
+  sources += [
+    "builtin_nolib.cc",
+    "builtin_natives.cc",
+    "io_natives.cc",
+    "io_natives.h",
+    "embedded_dart_io.cc",
+    "embedded_dart_io.h",
+    "log_android.cc",
+    "log_linux.cc",
+    "log_macos.cc",
+    "log_win.cc",
+    "log.h",
+  ]
+
+  include_dirs = [
+    "..",
+    "//third_party"
+  ]
+}
