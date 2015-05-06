@@ -3268,6 +3268,23 @@ LoadLocalInstr* EffectGraphVisitor::BuildLoadThisVar(LocalScope* scope) {
 }
 
 
+LoadFieldInstr* EffectGraphVisitor::BuildNativeGetter(
+    NativeBodyNode* node,
+    MethodRecognizer::Kind kind,
+    intptr_t offset,
+    const Type& type,
+    intptr_t class_id) {
+  Value* receiver = Bind(BuildLoadThisVar(node->scope()));
+  LoadFieldInstr* load = new(Z) LoadFieldInstr(receiver,
+                                               offset,
+                                               type,
+                                               node->token_pos());
+  load->set_result_cid(class_id);
+  load->set_recognized_kind(kind);
+  return load;
+}
+
+
 void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
   const Function& function = owner()->function();
   if (!function.IsClosureFunction()) {
@@ -3291,18 +3308,13 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
       }
       case MethodRecognizer::kStringBaseLength:
       case MethodRecognizer::kStringBaseIsEmpty: {
-        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
         // Treat length loads as mutable (i.e. affected by side effects) to
         // avoid hoisting them since we can't hoist the preceding class-check.
         // This is because of externalization of strings that affects their
         // class-id.
-        LoadFieldInstr* load = new(Z) LoadFieldInstr(
-            receiver,
-            String::length_offset(),
-            Type::ZoneHandle(Z, Type::SmiType()),
-            node->token_pos());
-        load->set_result_cid(kSmiCid);
-        load->set_recognized_kind(MethodRecognizer::kStringBaseLength);
+        LoadFieldInstr* load = BuildNativeGetter(
+            node, MethodRecognizer::kStringBaseLength, String::length_offset(),
+            Type::ZoneHandle(Z, Type::SmiType()), kSmiCid);
         if (kind == MethodRecognizer::kStringBaseLength) {
           return ReturnDefinition(load);
         }
@@ -3322,15 +3334,10 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
       case MethodRecognizer::kObjectArrayLength:
       case MethodRecognizer::kImmutableArrayLength:
       case MethodRecognizer::kTypedDataLength: {
-        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
-        LoadFieldInstr* load = new(Z) LoadFieldInstr(
-            receiver,
-            OffsetForLengthGetter(kind),
-            Type::ZoneHandle(Z, Type::SmiType()),
-            node->token_pos());
+        LoadFieldInstr* load = BuildNativeGetter(
+            node, kind, OffsetForLengthGetter(kind),
+            Type::ZoneHandle(Z, Type::SmiType()), kSmiCid);
         load->set_is_immutable(kind != MethodRecognizer::kGrowableArrayLength);
-        load->set_result_cid(kSmiCid);
-        load->set_recognized_kind(kind);
         return ReturnDefinition(load);
       }
       case MethodRecognizer::kClassIDgetID: {
@@ -3371,37 +3378,20 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         return ReturnDefinition(create_array);
       }
       case MethodRecognizer::kBigint_getDigits: {
-        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
-        LoadFieldInstr* load = new(Z) LoadFieldInstr(
-            receiver,
-            Bigint::digits_offset(),
+        return ReturnDefinition(BuildNativeGetter(
+            node, kind, Bigint::digits_offset(),
             Type::ZoneHandle(Z, Type::DynamicType()),
-            node->token_pos());
-        load->set_result_cid(kTypedDataUint32ArrayCid);
-        load->set_recognized_kind(kind);
-        return ReturnDefinition(load);
+            kTypedDataUint32ArrayCid));
       }
       case MethodRecognizer::kBigint_getUsed: {
-        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
-        LoadFieldInstr* load = new(Z) LoadFieldInstr(
-            receiver,
-            Bigint::used_offset(),
-            Type::ZoneHandle(Z, Type::SmiType()),
-            node->token_pos());
-        load->set_result_cid(kSmiCid);
-        load->set_recognized_kind(kind);
-        return ReturnDefinition(load);
+        return ReturnDefinition(BuildNativeGetter(
+            node, kind, Bigint::used_offset(),
+            Type::ZoneHandle(Z, Type::SmiType()), kSmiCid));
       }
       case MethodRecognizer::kBigint_getNeg: {
-        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
-        LoadFieldInstr* load = new(Z) LoadFieldInstr(
-            receiver,
-            Bigint::neg_offset(),
-            Type::ZoneHandle(Z, Type::BoolType()),
-            node->token_pos());
-        load->set_result_cid(kBoolCid);
-        load->set_recognized_kind(kind);
-        return ReturnDefinition(load);
+        return ReturnDefinition(BuildNativeGetter(
+            node, kind, Bigint::neg_offset(),
+            Type::ZoneHandle(Z, Type::BoolType()), kBoolCid));
       }
       default:
         break;
