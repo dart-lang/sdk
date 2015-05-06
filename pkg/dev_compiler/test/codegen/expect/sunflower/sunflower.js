@@ -1,5 +1,8 @@
-var sunflower;
-(function(exports) {
+var sunflower = dart.defineLibrary(sunflower, {});
+var math = dart.import(math);
+var dom = dart.import(dom);
+var core = dart.import(core);
+(function(exports, math, dom, core) {
   'use strict';
   let ORANGE = "orange";
   let SEED_RADIUS = 2;
@@ -91,4 +94,4 @@ var sunflower;
   exports.SunflowerSeed = SunflowerSeed;
   exports.Circle = Circle;
   exports.CirclePainter = CirclePainter;
-})(sunflower || (sunflower = {}));
+})(sunflower, math, dom, core);

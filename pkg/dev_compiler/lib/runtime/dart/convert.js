@@ -1,5 +1,10 @@
-var convert;
-(function(exports) {
+var convert = dart.defineLibrary(convert, {});
+var core = dart.import(core);
+var async = dart.lazyImport(async);
+var typed_data = dart.lazyImport(typed_data);
+var _internal = dart.import(_internal);
+var collection = dart.import(collection);
+(function(exports, core, async, typed_data, _internal, collection) {
   'use strict';
   let ASCII = dart.const(new AsciiCodec());
   let _ASCII_MASK = 127;
@@ -2429,4 +2434,4 @@ var convert;
   exports.Utf8Codec = Utf8Codec;
   exports.Utf8Encoder = Utf8Encoder;
   exports.Utf8Decoder = Utf8Decoder;
-})(convert || (convert = {}));
+})(convert, core, async, typed_data, _internal, collection);

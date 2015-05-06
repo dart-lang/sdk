@@ -1,5 +1,6 @@
-var try_catch;
-(function(exports) {
+var try_catch = dart.defineLibrary(try_catch, {});
+var core = dart.import(core);
+(function(exports, core) {
   'use strict';
   // Function foo: () → dynamic
   function foo() {
@@ -74,4 +75,4 @@ var try_catch;
   exports.qux = qux;
   exports.wub = wub;
   exports.main = main;
-})(try_catch || (try_catch = {}));
+})(try_catch, core);

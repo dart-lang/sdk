@@ -1,5 +1,6 @@
-var BenchmarkBase;
-(function(exports) {
+var BenchmarkBase = dart.defineLibrary(BenchmarkBase, {});
+var core = dart.import(core);
+(function(exports, core) {
   'use strict';
   class Expect extends core.Object {
     static equals(expected, actual) {
@@ -66,4 +67,4 @@ var BenchmarkBase;
   // Exports:
   exports.Expect = Expect;
   exports.BenchmarkBase = BenchmarkBase;
-})(BenchmarkBase || (BenchmarkBase = {}));
+})(BenchmarkBase, core);

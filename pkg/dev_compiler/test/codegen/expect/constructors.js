@@ -1,5 +1,6 @@
-var constructors;
-(function(exports) {
+var constructors = dart.defineLibrary(constructors, {});
+var core = dart.import(core);
+(function(exports, core) {
   'use strict';
   class A extends core.Object {}
   class B extends core.Object {
@@ -116,4 +117,4 @@ var constructors;
   exports.M = M;
   exports.N = N;
   exports.P = P;
-})(constructors || (constructors = {}));
+})(constructors, core);

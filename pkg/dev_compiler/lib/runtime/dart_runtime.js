@@ -966,6 +966,22 @@ var dart, _js_helper, _js_primitives;
   dart.global = window || global;
   dart.JsSymbol = Symbol;
 
+  function import_(value) {
+    if (!value) throw 'missing required module';
+    return value;
+  }
+  dart.import = import_;
+  
+  function lazyImport(value) {
+    return defineLibrary(value, {});
+  }
+  dart.lazyImport = lazyImport;
+
+  function defineLibrary(value, defaultValue) {
+    return value ? value : defaultValue;
+  }
+  dart.defineLibrary = defineLibrary;
+
   // TODO(jmesserly): hack to bootstrap the SDK
   _js_helper = _js_helper || {};
   _js_helper.checkNum = notNull;

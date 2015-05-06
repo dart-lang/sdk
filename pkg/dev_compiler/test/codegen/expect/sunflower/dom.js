@@ -1,5 +1,6 @@
-var dom;
-(function(exports) {
+var dom = dart.defineLibrary(dom, window);
+var core = dart.import(core);
+(function(exports, core) {
   'use strict';
   class JsName extends core.Object {
     JsName(opts) {
@@ -41,4 +42,4 @@ var dom;
   exports.RenderingContext = RenderingContext;
   exports.CanvasDrawingStyles = CanvasDrawingStyles;
   exports.CanvasPathMethods = CanvasPathMethods;
-})(dom || (dom = window));
+})(dom, core);

@@ -1,5 +1,7 @@
-var map_keys;
-(function(exports) {
+var map_keys = dart.defineLibrary(map_keys, {});
+var core = dart.import(core);
+var math = dart.import(math);
+(function(exports, core, math) {
   'use strict';
   // Function main: () → dynamic
   function main() {
@@ -12,5 +14,5 @@ var map_keys;
   }
   // Exports:
   exports.main = main;
-})(map_keys || (map_keys = {}));
+})(map_keys, core, math);
 //# sourceMappingURL=map_keys.js.map

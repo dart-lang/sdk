@@ -1,4 +1,4 @@
-var _js_primitives;
+var _js_primitives = dart.defineLibrary(_js_primitives, {});
 (function(exports) {
   'use strict';
   // Function printString: (String) → void
@@ -22,4 +22,4 @@ var _js_primitives;
   }
   // Exports:
   exports.printString = printString;
-})(_js_primitives || (_js_primitives = {}));
+})(_js_primitives);

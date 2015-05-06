@@ -1,5 +1,10 @@
-var core;
-(function(exports) {
+var core = dart.defineLibrary(core, {});
+var _js_helper = dart.lazyImport(_js_helper);
+var _internal = dart.lazyImport(_internal);
+var collection = dart.lazyImport(collection);
+var _interceptors = dart.lazyImport(_interceptors);
+var convert = dart.lazyImport(convert);
+(function(exports, _js_helper, _internal, collection, _interceptors, convert) {
   'use strict';
   class Object {
     constructor() {
@@ -3486,4 +3491,4 @@ var core;
   exports.Type = Type;
   exports.Uri = Uri;
   exports.SupportJsExtensionMethods = SupportJsExtensionMethods;
-})(core || (core = {}));
+})(core, _js_helper, _internal, collection, _interceptors, convert);

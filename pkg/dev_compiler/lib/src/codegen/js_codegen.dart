@@ -68,6 +68,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   ConstantEvaluator _constEvaluator;
 
+  /// Imported libraries, and the temporaries used to refer to them.
+  final _imports = new Map<LibraryElement, JS.TemporaryId>();
   final _exports = new Set<String>();
   final _lazyFields = <VariableDeclaration>[];
   final _properties = <FunctionDeclaration>[];
@@ -77,8 +79,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final _temps = new HashMap<Element, JS.TemporaryId>();
 
   /// The name for the library's exports inside itself.
-  /// This much be a constant because we interpolate it into template strings,
-  /// and otherwise it would break caching for them.
   /// `exports` was chosen as the most similar to ES module patterns.
   final _exportsVar = new JS.TemporaryId('exports');
   final _namedArgTemp = new JS.TemporaryId('opts');
@@ -141,19 +141,33 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       body.add(js.statement('#.# = #;', [_exportsVar, name, name]));
     }
 
-    var name = jsLibraryName(libraryInfo.library);
+    var name = new JS.Identifier(jsLibraryName(currentLibrary));
 
-    var defaultValue = js.call(jsDefaultValue);
-    return new JS.Program([
-      js.statement('var #;', name),
-      js.statement("(function(#) { 'use strict'; #; })(# || (# = #));", [
-        _exportsVar,
-        body,
+    // TODO(jmesserly): it would be great to run the renamer on the body,
+    // then figure out if we really need each of these parameters.
+    // See ES6 modules: https://github.com/dart-lang/dev_compiler/issues/34
+    var program = [
+      js.statement('var # = dart.defineLibrary(#, #);', [
         name,
         name,
-        defaultValue
+        js.call(jsDefaultValue)
       ])
-    ]);
+    ];
+
+    var params = [_exportsVar];
+    var args = [name];
+    _imports.forEach((library, temp) {
+      var name = new JS.Identifier(temp.name);
+      params.add(temp);
+      args.add(name);
+      var helper = _libraryMightNotBeLoaded(library) ? 'lazyImport' : 'import';
+      program.add(js.statement('var # = dart.#(#);', [name, helper, name]));
+    });
+
+    program.add(js.statement(
+        "(function(#) { 'use strict'; #; })(#);", [params, body, args]));
+
+    return new JS.Program(program);
   }
 
   JS.Identifier _initSymbol(JS.Identifier id) {
@@ -477,7 +491,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   bool _typeMightNotBeLoaded(DartType type) {
     var library = type.element.library;
     if (library == currentLibrary) return _lazyClass(type);
+    return _libraryMightNotBeLoaded(library);
+  }
 
+  bool _libraryMightNotBeLoaded(LibraryElement library) {
     // The SDK is a special case: we optimize the order to prevent laziness.
     if (library.isInSdk) {
       // SDK is loaded before non-SDK libraies
@@ -1101,7 +1118,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     // library member
     if (element.enclosingElement is CompilationUnitElement &&
-        (element.library != libraryInfo.library ||
+        (element.library != currentLibrary ||
             element is TopLevelVariableElement && !element.isConst)) {
       var memberName = _emitMemberName(name, isStatic: true);
       return js.call('#.#', [_libraryName(element.library), memberName]);
@@ -2243,7 +2260,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // correctly.
     var name = js.string(node.components.join('.'), "'");
     var nameHint = 'symbol_' + node.components.join('_');
-    return _const(node, js.call('new core.Symbol(#)', name), nameHint);
+    return _const(
+        node, new JS.New(_emitTypeName(types.symbolType), [name]), nameHint);
   }
 
   @override
@@ -2492,8 +2510,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// This never uses the library's name (the identifier in the `library`
   /// declaration) as it doesn't have any meaningful rules enforced.
   JS.Identifier _libraryName(LibraryElement library) {
-    if (library == libraryInfo.library) return _exportsVar;
-    return new JS.Identifier(jsLibraryName(library));
+    if (library == currentLibrary) return _exportsVar;
+    return _imports.putIfAbsent(
+        library, () => new JS.TemporaryId(jsLibraryName(library)));
   }
 
   DartType getStaticType(Expression e) => rules.getStaticType(e);

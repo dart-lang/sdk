@@ -1,5 +1,14 @@
-var _isolate_helper;
-(function(exports) {
+var _isolate_helper = dart.defineLibrary(_isolate_helper, {});
+var core = dart.import(core);
+var _native_typed_data = dart.import(_native_typed_data);
+var _interceptors = dart.lazyImport(_interceptors);
+var _js_helper = dart.lazyImport(_js_helper);
+var isolate = dart.import(isolate);
+var _foreign_helper = dart.import(_foreign_helper);
+var _js_embedded_names = dart.import(_js_embedded_names);
+var collection = dart.import(collection);
+var async = dart.import(async);
+(function(exports, core, _native_typed_data, _interceptors, _js_helper, isolate, _foreign_helper, _js_embedded_names, collection, async) {
   'use strict';
   // Function _serializeMessage: (dynamic) → dynamic
   function _serializeMessage(message) {
@@ -1384,4 +1393,4 @@ var _isolate_helper;
   exports.TimerImpl = TimerImpl;
   exports.hasTimer = hasTimer;
   exports.CapabilityImpl = CapabilityImpl;
-})(_isolate_helper || (_isolate_helper = {}));
+})(_isolate_helper, core, _native_typed_data, _interceptors, _js_helper, isolate, _foreign_helper, _js_embedded_names, collection, async);

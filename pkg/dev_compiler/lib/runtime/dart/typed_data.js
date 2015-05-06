@@ -1,5 +1,7 @@
-var typed_data;
-(function(exports) {
+var typed_data = dart.defineLibrary(typed_data, {});
+var core = dart.import(core);
+var _native_typed_data = dart.lazyImport(_native_typed_data);
+(function(exports, core, _native_typed_data) {
   'use strict';
   class ByteBuffer extends core.Object {}
   class TypedData extends core.Object {}
@@ -882,4 +884,4 @@ var typed_data;
   exports.Float32x4 = Float32x4;
   exports.Int32x4 = Int32x4;
   exports.Float64x2 = Float64x2;
-})(typed_data || (typed_data = {}));
+})(typed_data, core, _native_typed_data);

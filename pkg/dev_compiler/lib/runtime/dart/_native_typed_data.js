@@ -1,5 +1,12 @@
-var _native_typed_data;
-(function(exports) {
+var _native_typed_data = dart.defineLibrary(_native_typed_data, {});
+var core = dart.import(core);
+var typed_data = dart.lazyImport(typed_data);
+var collection = dart.import(collection);
+var _internal = dart.import(_internal);
+var _interceptors = dart.lazyImport(_interceptors);
+var _js_helper = dart.lazyImport(_js_helper);
+var math = dart.import(math);
+(function(exports, core, typed_data, collection, _internal, _interceptors, _js_helper, math) {
   'use strict';
   class NativeByteBuffer extends core.Object {
     NativeByteBuffer() {
@@ -1555,4 +1562,4 @@ var _native_typed_data;
   exports.NativeFloat32x4 = NativeFloat32x4;
   exports.NativeInt32x4 = NativeInt32x4;
   exports.NativeFloat64x2 = NativeFloat64x2;
-})(_native_typed_data || (_native_typed_data = {}));
+})(_native_typed_data, core, typed_data, collection, _internal, _interceptors, _js_helper, math);

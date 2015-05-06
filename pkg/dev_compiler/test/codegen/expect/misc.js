@@ -1,5 +1,6 @@
-var misc;
-(function(exports) {
+var misc = dart.defineLibrary(misc, {});
+var core = dart.import(core);
+(function(exports, core) {
   'use strict';
   // Function main: () → dynamic
   function main() {
@@ -9,4 +10,4 @@ var misc;
   }
   // Exports:
   exports.main = main;
-})(misc || (misc = {}));
+})(misc, core);

@@ -1,5 +1,6 @@
-var _foreign_helper;
-(function(exports) {
+var _foreign_helper = dart.defineLibrary(_foreign_helper, {});
+var core = dart.import(core);
+(function(exports, core) {
   'use strict';
   // Function JS: (String, String, [dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic]) → dynamic
   function JS(typeDescription, codeTemplate, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11) {
@@ -152,4 +153,4 @@ var _foreign_helper;
   exports.JS_EFFECT = JS_EFFECT;
   exports.JS_CONST = JS_CONST;
   exports.JS_STRING_CONCAT = JS_STRING_CONCAT;
-})(_foreign_helper || (_foreign_helper = {}));
+})(_foreign_helper, core);

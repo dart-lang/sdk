@@ -1,5 +1,10 @@
-var _interceptors;
-(function(exports) {
+var _interceptors = dart.defineLibrary(_interceptors, {});
+var core = dart.import(core);
+var _js_helper = dart.lazyImport(_js_helper);
+var _internal = dart.import(_internal);
+var _foreign_helper = dart.import(_foreign_helper);
+var _js_embedded_names = dart.import(_js_embedded_names);
+(function(exports, core, _js_helper, _internal, _foreign_helper, _js_embedded_names) {
   'use strict';
   let JSArray = Array;
   let JSMutableArray$ = dart.generic(function(E) {
@@ -1086,4 +1091,4 @@ var _interceptors;
   exports.JavaScriptObject = JavaScriptObject;
   exports.PlainJavaScriptObject = PlainJavaScriptObject;
   exports.UnknownJavaScriptObject = UnknownJavaScriptObject;
-})(_interceptors || (_interceptors = {}));
+})(_interceptors, core, _js_helper, _internal, _foreign_helper, _js_embedded_names);

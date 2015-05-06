@@ -1,5 +1,7 @@
-var DeltaBlue;
-(function(exports) {
+var DeltaBlue = dart.defineLibrary(DeltaBlue, {});
+var BenchmarkBase = dart.import(BenchmarkBase);
+var core = dart.import(core);
+(function(exports, BenchmarkBase, core) {
   'use strict';
   // Function main: () → dynamic
   function main() {
@@ -466,4 +468,4 @@ var DeltaBlue;
   exports.chainTest = chainTest;
   exports.projectionTest = projectionTest;
   exports.change = change;
-})(DeltaBlue || (DeltaBlue = {}));
+})(DeltaBlue, BenchmarkBase, core);

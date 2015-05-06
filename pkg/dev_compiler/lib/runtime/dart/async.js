@@ -1,5 +1,10 @@
-var async;
-(function(exports) {
+var async = dart.defineLibrary(async, {});
+var core = dart.import(core);
+var _internal = dart.import(_internal);
+var _js_helper = dart.lazyImport(_js_helper);
+var _isolate_helper = dart.lazyImport(_isolate_helper);
+var collection = dart.import(collection);
+(function(exports, core, _internal, _js_helper, _isolate_helper, collection) {
   'use strict';
   // Function _invokeErrorHandler: (Function, Object, StackTrace) → dynamic
   function _invokeErrorHandler(errorHandler, error, stackTrace) {
@@ -5361,4 +5366,4 @@ var async;
   exports.ZoneDelegate = ZoneDelegate;
   exports.Zone = Zone;
   exports.runZoned = runZoned;
-})(async || (async = {}));
+})(async, core, _internal, _js_helper, _isolate_helper, collection);

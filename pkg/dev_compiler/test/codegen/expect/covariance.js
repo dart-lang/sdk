@@ -1,5 +1,6 @@
-var covariance;
-(function(exports) {
+var covariance = dart.defineLibrary(covariance, {});
+var core = dart.import(core);
+(function(exports, core) {
   'use strict';
   let _t = Symbol('_t');
   let Foo$ = dart.generic(function(T) {
@@ -38,4 +39,4 @@ var covariance;
   exports.Foo = Foo;
   exports.Bar = Bar;
   exports.main = main;
-})(covariance || (covariance = {}));
+})(covariance, core);

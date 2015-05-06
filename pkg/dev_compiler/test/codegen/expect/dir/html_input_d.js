@@ -1,4 +1,4 @@
-var html_input_d;
+var html_input_d = dart.defineLibrary(html_input_d, {});
 (function(exports) {
   'use strict';
   // Function fib: (int) → int
@@ -7,4 +7,4 @@ var html_input_d;
   }
   // Exports:
   exports.fib = fib;
-})(html_input_d || (html_input_d = {}));
+})(html_input_d);

@@ -1,5 +1,10 @@
-var _internal;
-(function(exports) {
+var _internal = dart.defineLibrary(_internal, {});
+var core = dart.import(core);
+var collection = dart.import(collection);
+var math = dart.lazyImport(math);
+var _interceptors = dart.lazyImport(_interceptors);
+var _js_primitives = dart.lazyImport(_js_primitives);
+(function(exports, core, collection, math, _interceptors, _js_primitives) {
   'use strict';
   class EfficientLength extends core.Object {}
   let ListIterable$ = dart.generic(function(E) {
@@ -2040,4 +2045,4 @@ var _internal;
   exports.Sort = Sort;
   exports.Symbol = Symbol;
   exports.POWERS_OF_TEN = POWERS_OF_TEN;
-})(_internal || (_internal = {}));
+})(_internal, core, collection, math, _interceptors, _js_primitives);

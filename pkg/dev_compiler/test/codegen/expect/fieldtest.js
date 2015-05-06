@@ -1,5 +1,6 @@
-var fieldtest;
-(function(exports) {
+var fieldtest = dart.defineLibrary(fieldtest, {});
+var core = dart.import(core);
+(function(exports, core) {
   'use strict';
   class A extends core.Object {
     A() {
@@ -82,4 +83,4 @@ var fieldtest;
   exports.BaseWithGetter = BaseWithGetter;
   exports.Derived = Derived;
   exports.main = main;
-})(fieldtest || (fieldtest = {}));
+})(fieldtest, core);

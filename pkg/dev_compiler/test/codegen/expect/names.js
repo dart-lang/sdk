@@ -1,5 +1,6 @@
-var names;
-(function(exports) {
+var names = dart.defineLibrary(names, {});
+var core = dart.import(core);
+(function(exports, core) {
   'use strict';
   exports.exports = 42;
   let _foo$ = Symbol('_foo');
@@ -47,4 +48,4 @@ var names;
   exports.Frame = Frame;
   exports.Frame2 = Frame2;
   exports.main = main;
-})(names || (names = {}));
+})(names, core);

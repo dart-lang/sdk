@@ -1,5 +1,9 @@
-var html_input_a;
-(function(exports) {
+var html_input_a = dart.defineLibrary(html_input_a, {});
+var core = dart.import(core);
+var html_input_b = dart.import(html_input_b);
+var html_input_c = dart.import(html_input_c);
+var html_input_d = dart.import(html_input_d);
+(function(exports, core, html_input_b, html_input_c, html_input_d) {
   'use strict';
   // Function main: () → dynamic
   function main() {
@@ -8,4 +12,4 @@ var html_input_a;
   }
   // Exports:
   exports.main = main;
-})(html_input_a || (html_input_a = {}));
+})(html_input_a, core, html_input_b, html_input_c, html_input_d);

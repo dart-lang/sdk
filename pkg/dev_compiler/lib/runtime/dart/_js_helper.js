@@ -1,5 +1,14 @@
-var _js_helper;
-(function(exports) {
+var _js_helper = dart.defineLibrary(_js_helper, {});
+var core = dart.import(core);
+var collection = dart.import(collection);
+var _internal = dart.import(_internal);
+var _foreign_helper = dart.import(_foreign_helper);
+var _js_embedded_names = dart.import(_js_embedded_names);
+var _interceptors = dart.lazyImport(_interceptors);
+var _js_names = dart.import(_js_names);
+var async = dart.import(async);
+var _isolate_helper = dart.lazyImport(_isolate_helper);
+(function(exports, core, collection, _internal, _foreign_helper, _js_embedded_names, _interceptors, _js_names, async, _isolate_helper) {
   'use strict';
   class NoSideEffects extends core.Object {
     NoSideEffects() {
@@ -4080,4 +4089,4 @@ var _js_helper;
   exports.missingMain = missingMain;
   exports.badMain = badMain;
   exports.mainHasTooManyParameters = mainHasTooManyParameters;
-})(_js_helper || (_js_helper = {}));
+})(_js_helper, core, collection, _internal, _foreign_helper, _js_embedded_names, _interceptors, _js_names, async, _isolate_helper);

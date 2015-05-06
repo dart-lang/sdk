@@ -1,5 +1,10 @@
-var _js_names;
-(function(exports) {
+var _js_names = dart.defineLibrary(_js_names, {});
+var _foreign_helper = dart.lazyImport(_foreign_helper);
+var _js_embedded_names = dart.import(_js_embedded_names);
+var core = dart.import(core);
+var _interceptors = dart.import(_interceptors);
+var _js_helper = dart.lazyImport(_js_helper);
+(function(exports, _foreign_helper, _js_embedded_names, core, _interceptors, _js_helper) {
   'use strict';
   // Function preserveNames: () → dynamic
   function preserveNames() {
@@ -76,4 +81,4 @@ var _js_names;
   exports.extractKeys = extractKeys;
   exports.unmangleGlobalNameIfPreservedAnyways = unmangleGlobalNameIfPreservedAnyways;
   exports.unmangleAllIdentifiersIfPreservedAnyways = unmangleAllIdentifiersIfPreservedAnyways;
-})(_js_names || (_js_names = {}));
+})(_js_names, _foreign_helper, _js_embedded_names, core, _interceptors, _js_helper);
