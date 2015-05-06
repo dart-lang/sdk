@@ -64,37 +64,41 @@ class DependencyValidator extends Validator {
   }
 
   /// Warn that dependencies should use the hosted source.
-  Future _warnAboutSource(PackageDep dep) {
-    return entrypoint.cache.sources['hosted']
-        .getVersions(dep.name, dep.name)
-        .catchError((e) => <Version>[])
-        .then((versions) {
-      var constraint;
-      var primary = Version.primary(versions);
-      if (primary != null) {
-        constraint = _constraintForVersion(primary);
-      } else {
-        constraint = dep.constraint.toString();
-        if (!dep.constraint.isAny && dep.constraint is! Version) {
-          constraint = '"$constraint"';
-        }
-      }
+  Future _warnAboutSource(PackageDep dep) async {
+    var versions;
+    try {
+      var pubspecs = await entrypoint.cache.sources['hosted']
+          .getVersions(dep.name, dep.name);
+      versions = pubspecs.map((pubspec) => pubspec.version);
+    } catch (error) {
+      versions = [];
+    }
 
-      // Path sources are errors. Other sources are just warnings.
-      var messages = warnings;
-      if (dep.source == "path") {
-        messages = errors;
+    var constraint;
+    var primary = Version.primary(versions);
+    if (primary != null) {
+      constraint = _constraintForVersion(primary);
+    } else {
+      constraint = dep.constraint.toString();
+      if (!dep.constraint.isAny && dep.constraint is! Version) {
+        constraint = '"$constraint"';
       }
+    }
 
-      messages.add('Don\'t depend on "${dep.name}" from the ${dep.source} '
-              'source. Use the hosted source instead. For example:\n'
-          '\n'
-          'dependencies:\n'
-          '  ${dep.name}: $constraint\n'
-          '\n'
-          'Using the hosted source ensures that everyone can download your '
-              'package\'s dependencies along with your package.');
-    });
+    // Path sources are errors. Other sources are just warnings.
+    var messages = warnings;
+    if (dep.source == "path") {
+      messages = errors;
+    }
+
+    messages.add('Don\'t depend on "${dep.name}" from the ${dep.source} '
+            'source. Use the hosted source instead. For example:\n'
+        '\n'
+        'dependencies:\n'
+        '  ${dep.name}: $constraint\n'
+        '\n'
+        'Using the hosted source ensures that everyone can download your '
+            'package\'s dependencies along with your package.');
   }
 
   /// Warn that dependencies should have version constraints.

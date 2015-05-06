@@ -139,7 +139,7 @@ class SolveResult {
 class PubspecCache {
   final SourceRegistry _sources;
 
-  /// The already-requested cached version lists.
+  /// The already-requested cached pubspec lists.
   final _versions = new Map<PackageRef, List<PackageId>>();
 
   /// The errors from failed version list requests.
@@ -224,13 +224,20 @@ class PubspecCache {
 
     var source = _sources[package.source];
     return source.getVersions(package.name, package.description)
-        .then((versions) {
+        .then((pubspecs) {
       // Sort by priority so we try preferred versions first.
-      versions.sort(_type == SolveType.DOWNGRADE ? Version.antiprioritize :
-          Version.prioritize);
+      pubspecs.sort((pubspec1, pubspec2) {
+        return _type == SolveType.DOWNGRADE
+            ? Version.antiprioritize(pubspec1.version, pubspec2.version)
+            : Version.prioritize(pubspec1.version, pubspec2.version);
+      });
 
-      var ids = versions.reversed.map(
-          (version) => package.atVersion(version)).toList();
+      var ids = pubspecs.reversed.map((pubspec) {
+        var id = package.atVersion(pubspec.version);
+        // Eagerly cache the pubspec now since we have it.
+        _pubspecs[id] = pubspec;
+        return id;
+      }).toList();
       _versions[package] = ids;
       return ids;
     }).catchError((error, trace) {

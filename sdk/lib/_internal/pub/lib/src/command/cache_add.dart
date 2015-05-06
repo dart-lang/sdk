@@ -30,7 +30,7 @@ class CacheAddCommand extends PubCommand {
         help: "Version constraint.");
   }
 
-  Future run() {
+  Future run() async {
     // Make sure there is a package.
     if (argResults.rest.isEmpty) {
       usageException("No package to add given.");
@@ -59,38 +59,36 @@ class CacheAddCommand extends PubCommand {
     var source = cache.sources["hosted"];
 
     // TODO(rnystrom): Allow specifying the server.
-    return source.getVersions(package, package).then((versions) {
-      versions = versions.where(constraint.allows).toList();
+    var pubspecs = await source.getVersions(package, package);
+    var versions = pubspecs.map((pubspec) => pubspec.version)
+        .where(constraint.allows).toList();
 
-      if (versions.isEmpty) {
-        // TODO(rnystrom): Show most recent unmatching version?
-        fail("Package $package has no versions that match $constraint.");
+    if (versions.isEmpty) {
+      // TODO(rnystrom): Show most recent unmatching version?
+      fail("Package $package has no versions that match $constraint.");
+    }
+
+    downloadVersion(version) async {
+      var id = new PackageId(package, source.name, version, package);
+      if (await cache.contains(id)) {
+        // TODO(rnystrom): Include source and description if not hosted.
+        // See solve_report.dart for code to harvest.
+        log.message("Already cached ${id.name} ${id.version}.");
+        return null;
       }
 
-      downloadVersion(Version version) {
-        var id = new PackageId(package, source.name, version, package);
-        return cache.contains(id).then((contained) {
-          if (contained) {
-            // TODO(rnystrom): Include source and description if not hosted.
-            // See solve_report.dart for code to harvest.
-            log.message("Already cached ${id.name} ${id.version}.");
-            return null;
-          }
+      // Download it.
+      await source.downloadToSystemCache(id);
+    }
 
-          // Download it.
-          return source.downloadToSystemCache(id);
-        });
-      }
-
-      if (argResults["all"]) {
-        // Install them in ascending order.
-        versions.sort();
-        return Future.forEach(versions, downloadVersion);
-      } else {
-        // Pick the best matching version.
-        versions.sort(Version.prioritize);
-        return downloadVersion(versions.last);
-      }
-    });
+    if (argResults["all"]) {
+      // Install them in ascending order.
+      versions.sort();
+      await Future.forEach(versions, downloadVersion);
+    } else {
+      // Pick the best matching version.
+      versions.sort(Version.prioritize);
+      await downloadVersion(versions.last);
+    }
   }
 }
