@@ -213,10 +213,6 @@ class DeferredLoadTask extends CompilerTask {
     return outputUnitTo.imports.containsAll(outputUnitFrom.imports);
   }
 
-  bool isFromMainOutputUnit(Element element) {
-    return outputUnitForElement(element) == mainOutputUnit;
-  }
-
   void registerConstantDeferredUse(DeferredConstantValue constant,
                                    PrefixElement prefix) {
     OutputUnit outputUnit = new OutputUnit();
