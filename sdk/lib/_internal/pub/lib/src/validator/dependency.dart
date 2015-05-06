@@ -69,7 +69,7 @@ class DependencyValidator extends Validator {
     try {
       var pubspecs = await entrypoint.cache.sources['hosted']
           .getVersions(dep.name, dep.name);
-      versions = pubspecs.map((pubspec) => pubspec.version);
+      versions = pubspecs.map((pubspec) => pubspec.version).toList();
     } catch (error) {
       versions = [];
     }

@@ -148,6 +148,12 @@ class PubspecCache {
   /// The already-requested cached pubspecs.
   final _pubspecs = new Map<PackageId, Pubspec>();
 
+  // TODO(nweiz): Currently, if [getCachedPubspec] returns pubspecs cached via
+  // [getVersions], the "complex backtrack" test case in version_solver_test
+  // fails. Fix that. See also [BacktrackingSolver._getTransitiveDependers].
+  /// The set of package ids for which [getPubspec] has been explicitly called.
+  final _explicitlyCached = new Set<PackageId>();
+
   /// The type of version resolution that was run.
   final SolveType _type;
 
@@ -176,6 +182,8 @@ class PubspecCache {
 
   /// Loads the pubspec for the package identified by [id].
   Future<Pubspec> getPubspec(PackageId id) {
+    _explicitlyCached.add(id);
+
     // Complete immediately if it's already cached.
     if (_pubspecs.containsKey(id)) {
       _pubspecCacheHits++;
@@ -193,7 +201,8 @@ class PubspecCache {
 
   /// Returns the previously cached pubspec for the package identified by [id]
   /// or returns `null` if not in the cache.
-  Pubspec getCachedPubspec(PackageId id) => _pubspecs[id];
+  Pubspec getCachedPubspec(PackageId id) =>
+      _explicitlyCached.contains(id) ? _pubspecs[id] : null;
 
   /// Gets the list of versions for [package].
   ///

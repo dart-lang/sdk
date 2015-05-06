@@ -1377,7 +1377,7 @@ class MockSource extends CachedSource {
     return new Future.value('${id.name}-${id.version}');
   }
 
-  Future<List<Version>> getVersions(String name, String description) {
+  Future<List<Pubspec>> getVersions(String name, String description) {
     return new Future.sync(() {
       // Make sure the solver doesn't request the same thing twice.
       if (_requestedVersions.contains(description)) {
@@ -1392,7 +1392,8 @@ class MockSource extends CachedSource {
             '"$description".');
       }
 
-      return _packages[description].keys.toList();
+      return _packages[description].values
+          .map((package) => package.pubspec).toList();
     });
   }
 

@@ -380,6 +380,10 @@ class BacktrackingSolver {
 
     for (var i = 0; i < _selected.length; i++) {
       var id = _selected[i].current;
+      // TODO(nweiz): The "complex backtrack" test case in version_solver_test
+      // currently depends on this returning `null` for pubspecs that haven't
+      // been explicitly cached, but that's gross. We should make this resilient
+      // to more pubspecs being available.
       var pubspec = cache.getCachedPubspec(id);
       if (pubspec != null) addDependencies(id.name, pubspec.dependencies);
     }
