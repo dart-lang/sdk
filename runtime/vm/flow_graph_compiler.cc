@@ -661,6 +661,8 @@ void FlowGraphCompiler::SetNeedsStacktrace(intptr_t try_index) {
 void FlowGraphCompiler::AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                                              intptr_t deopt_id,
                                              intptr_t token_pos) {
+  // When running with optimizations disabled, don't emit deopt-descriptors.
+  if (!CanOptimize() && (kind == RawPcDescriptors::kDeopt)) return;
   pc_descriptors_list()->AddDescriptor(kind,
                                        assembler()->CodeSize(),
                                        deopt_id,
