@@ -21,7 +21,7 @@ main() {
   Logger.root.info('Starting Observatory');
   GoogleChart.initOnce().then((_) {
     // Charts loaded, initialize polymer.
-    initPolymer().run(() {
+    initPolymer().then((zone) {
       Logger.root.info('Polymer initialized');
       // Code here is in the polymer Zone, which ensures that
       // @observable properties work correctly.
