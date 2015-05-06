@@ -5,11 +5,11 @@
 // Sanity check on the growing behavior of a growable list.
 
 import "package:expect/expect.dart";
-import "dart:collection" show IterableBase;
+import "dart:collection" show EfficientLengthIterable;
 
 // Iterable generating numbers in range [0..count).
 // May perform callback at some point underways.
-class TestIterableBase extends IterableBase<int> {
+class TestIterableBase extends Iterable<int> {
   final int length;
   final int count;
   // call [callback] if generating callbackIndex.
@@ -26,9 +26,8 @@ class TestIterable extends TestIterableBase {
   int get length => throw "SHOULD NOT BE CALLED";
 }
 
-// Implement Set for private EfficientLength interface.
 class EfficientTestIterable extends TestIterableBase
-                            implements Set<int> {
+                            implements EfficientLengthIterable<int> {
   EfficientTestIterable(length, count, [callbackIndex = -1, callback])
       : super(length, count, callbackIndex, callback);
   // Avoid warnings because we don't actually implement Set.
@@ -57,7 +56,7 @@ class CallbackIterator implements Iterator<int> {
 
 
 void main() {
-  // Without EfficientLength interface
+  // Without EfficientLengthIterable interface
   {
     // Change length of list after 20 additions.
     var l = [];
@@ -80,7 +79,7 @@ void main() {
     }, (e) => e is ConcurrentModificationError);
   }
 
-  // With EfficientLength interface (uses length).
+  // With EfficientLengthIterable interface (uses length).
   {
     // Change length of list after 20 additions.
     var l = [];

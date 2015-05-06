@@ -370,7 +370,7 @@ class LinkedHashMapCell {
 }
 
 class LinkedHashMapKeyIterable<E> extends Iterable<E>
-                                  implements EfficientLength {
+                                  implements EfficientLengthIterable<E> {
   final _map;
   LinkedHashMapKeyIterable(this._map);
 
