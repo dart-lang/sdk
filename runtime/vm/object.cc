@@ -9348,9 +9348,6 @@ RawObject* Library::LookupImportedObject(const String& name) const {
   String& first_import_lib_url = String::Handle();
   Object& found_obj = Object::Handle();
   String& found_obj_name = String::Handle();
-  // We don't look up getter names explicitly. Setter names are
-  // looked up explicitly when converting top-level getters to setters.
-  ASSERT(!Field::IsGetterName(name));
   ASSERT(!ShouldBePrivate(name));
   for (intptr_t i = 0; i < num_imports(); i++) {
     import ^= ImportAt(i);
