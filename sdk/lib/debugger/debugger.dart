@@ -11,13 +11,9 @@ class Debugger {
   /// NOTE: When invoked, the isolate will not return until a debugger
   /// continues execution. The behaviour is the same regardless of whether or
   /// not a debugger is connected.
-  static void breakHere() {
-    print('Debugger.breakHere not supported on this platform.');
-  }
+  external static void breakHere();
 
   /// If [expr] is true, stop the program as if a breakpoint where hit at the
   /// following statement.
-  static void breakHereIf(bool expr) {
-    print('Debugger.breakHereIf not supported on this platform.');
-  }
+  external static void breakHereIf(bool expr);
 }
