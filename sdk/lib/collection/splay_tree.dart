@@ -274,7 +274,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
   factory SplayTreeMap.from(Map other,
                             [int compare(K key1, K key2),
                              bool isValidKey(potentialKey)]) {
-    SplayTreeMap<K, V> result = new SplayTreeMap<K, V>();
+    SplayTreeMap<K, V> result = new SplayTreeMap<K, V>(compare, isValidKey);
     other.forEach((k, v) { result[k] = v; });
     return result;
   }
