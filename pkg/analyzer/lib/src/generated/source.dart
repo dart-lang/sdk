@@ -399,7 +399,13 @@ abstract class Source implements AnalysisTarget {
   /**
    * An empty list of sources.
    */
+  @deprecated
   static const List<Source> EMPTY_ARRAY = const <Source>[];
+
+  /**
+   * An empty list of sources.
+   */
+  static const List<Source> EMPTY_LIST = const <Source>[];
 
   /**
    * Get the contents and timestamp of this source.

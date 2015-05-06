@@ -5371,7 +5371,7 @@ class SourcesChangedEventTest {
 
   static void assertEvent(SourcesChangedEvent event,
       {bool wereSourcesAdded: false,
-      List<Source> changedSources: Source.EMPTY_ARRAY,
+      List<Source> changedSources: Source.EMPTY_LIST,
       bool wereSourcesRemovedOrDeleted: false}) {
     expect(event.wereSourcesAdded, wereSourcesAdded);
     expect(event.changedSources, changedSources);
@@ -5383,7 +5383,7 @@ class SourcesChangedListener {
   List<SourcesChangedEvent> actualEvents = [];
 
   void assertEvent({bool wereSourcesAdded: false,
-      List<Source> changedSources: Source.EMPTY_ARRAY,
+      List<Source> changedSources: Source.EMPTY_LIST,
       bool wereSourcesRemovedOrDeleted: false}) {
     if (actualEvents.isEmpty) {
       fail('Expected event but found none');
@@ -5994,7 +5994,7 @@ class TestAnalysisContext_test_getHtmlFilesReferencing
   @override
   List<Source> getHtmlFilesReferencing(Source source) {
     invoked = true;
-    return Source.EMPTY_ARRAY;
+    return Source.EMPTY_LIST;
   }
 }
 
@@ -6004,7 +6004,7 @@ class TestAnalysisContext_test_getHtmlSources extends TestAnalysisContext {
   @override
   List<Source> get htmlSources {
     invoked = true;
-    return Source.EMPTY_ARRAY;
+    return Source.EMPTY_LIST;
   }
 }
 
@@ -6025,7 +6025,7 @@ class TestAnalysisContext_test_getLaunchableClientLibrarySources
   @override
   List<Source> get launchableClientLibrarySources {
     invoked = true;
-    return Source.EMPTY_ARRAY;
+    return Source.EMPTY_LIST;
   }
 }
 
@@ -6036,7 +6036,7 @@ class TestAnalysisContext_test_getLaunchableServerLibrarySources
   @override
   List<Source> get launchableServerLibrarySources {
     invoked = true;
-    return Source.EMPTY_ARRAY;
+    return Source.EMPTY_LIST;
   }
 }
 
@@ -6047,7 +6047,7 @@ class TestAnalysisContext_test_getLibrariesContaining
   @override
   List<Source> getLibrariesContaining(Source source) {
     invoked = true;
-    return Source.EMPTY_ARRAY;
+    return Source.EMPTY_LIST;
   }
 }
 
@@ -6058,7 +6058,7 @@ class TestAnalysisContext_test_getLibrariesDependingOn
   @override
   List<Source> getLibrariesDependingOn(Source librarySource) {
     invoked = true;
-    return Source.EMPTY_ARRAY;
+    return Source.EMPTY_LIST;
   }
 }
 
@@ -6089,7 +6089,7 @@ class TestAnalysisContext_test_getLibrarySources extends TestAnalysisContext {
   @override
   List<Source> get librarySources {
     invoked = true;
-    return Source.EMPTY_ARRAY;
+    return Source.EMPTY_LIST;
   }
 }
 

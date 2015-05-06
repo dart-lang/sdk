@@ -233,13 +233,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void set analysisPriorityOrder(List<Source> sources) {
     if (sources == null || sources.isEmpty) {
-      _priorityOrder = Source.EMPTY_ARRAY;
+      _priorityOrder = Source.EMPTY_LIST;
     } else {
       while (sources.remove(null)) {
         // Nothing else to do.
       }
       if (sources.isEmpty) {
-        _priorityOrder = Source.EMPTY_ARRAY;
+        _priorityOrder = Source.EMPTY_LIST;
       } else {
         _priorityOrder = sources;
       }
@@ -776,7 +776,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   List<Source> getHtmlFilesReferencing(Source source) {
     SourceKind sourceKind = getKindOf(source);
     if (sourceKind == null) {
-      return Source.EMPTY_ARRAY;
+      return Source.EMPTY_LIST;
     }
     List<Source> htmlSources = new List<Source>();
     while (true) {
@@ -811,7 +811,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       break;
     }
     if (htmlSources.isEmpty) {
-      return Source.EMPTY_ARRAY;
+      return Source.EMPTY_LIST;
     }
     return htmlSources;
   }
@@ -826,7 +826,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //    if (sourceEntry is DartEntry) {
 //      return sourceEntry.containingLibraries;
 //    }
-    return Source.EMPTY_ARRAY;
+    return Source.EMPTY_LIST;
   }
 
   @override
@@ -845,7 +845,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     if (dependentLibraries.isEmpty) {
-      return Source.EMPTY_ARRAY;
+      return Source.EMPTY_LIST;
     }
     return dependentLibraries;
   }
@@ -858,7 +858,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //      HtmlEntry htmlEntry = entry;
 //      return htmlEntry.getValue(HtmlEntry.REFERENCED_LIBRARIES);
 //    }
-    return Source.EMPTY_ARRAY;
+    return Source.EMPTY_LIST;
   }
 
   @override
@@ -1078,11 +1078,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // CONSTRUCTORS
       // CONSTRUCTORS_ERRORS
       entry.setState(CONTENT, CacheState.FLUSHED);
-      setValue(EXPORTED_LIBRARIES, Source.EMPTY_ARRAY);
+      setValue(EXPORTED_LIBRARIES, Source.EMPTY_LIST);
       // EXPORT_SOURCE_CLOSURE
-      setValue(IMPORTED_LIBRARIES, Source.EMPTY_ARRAY);
+      setValue(IMPORTED_LIBRARIES, Source.EMPTY_LIST);
       // IMPORT_SOURCE_CLOSURE
-      setValue(INCLUDED_PARTS, Source.EMPTY_ARRAY);
+      setValue(INCLUDED_PARTS, Source.EMPTY_LIST);
       setValue(IS_CLIENT, true);
       setValue(IS_LAUNCHABLE, false);
       setValue(LIBRARY_ELEMENT, library);

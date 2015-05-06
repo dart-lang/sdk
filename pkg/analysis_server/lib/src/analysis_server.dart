@@ -979,7 +979,7 @@ class AnalysisServer {
     folderMap.forEach((Folder folder, AnalysisContext context) {
       List<Source> sourceList = sourceMap[context];
       if (sourceList == null) {
-        sourceList = Source.EMPTY_ARRAY;
+        sourceList = Source.EMPTY_LIST;
       }
       context.analysisPriorityOrder = sourceList;
       // Schedule the context for analysis so that it has the opportunity to

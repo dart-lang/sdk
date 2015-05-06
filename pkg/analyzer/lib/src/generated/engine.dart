@@ -919,7 +919,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * A list containing sources for which data should not be flushed.
    */
-  List<Source> _priorityOrder = Source.EMPTY_ARRAY;
+  List<Source> _priorityOrder = Source.EMPTY_LIST;
 
   /**
    * A map from all sources for which there are futures pending to a list of
@@ -1090,13 +1090,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void set analysisPriorityOrder(List<Source> sources) {
     if (sources == null || sources.isEmpty) {
-      _priorityOrder = Source.EMPTY_ARRAY;
+      _priorityOrder = Source.EMPTY_LIST;
     } else {
       while (sources.remove(null)) {
         // Nothing else to do.
       }
       if (sources.isEmpty) {
-        _priorityOrder = Source.EMPTY_ARRAY;
+        _priorityOrder = Source.EMPTY_LIST;
       }
       //
       // Cap the size of the priority list to being less than the cache size.
@@ -1639,7 +1639,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> computeExportedLibraries(Source source) => _getDartParseData2(
-      source, DartEntry.EXPORTED_LIBRARIES, Source.EMPTY_ARRAY);
+      source, DartEntry.EXPORTED_LIBRARIES, Source.EMPTY_LIST);
 
   @override
   HtmlElement computeHtmlElement(Source source) =>
@@ -1647,7 +1647,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> computeImportedLibraries(Source source) => _getDartParseData2(
-      source, DartEntry.IMPORTED_LIBRARIES, Source.EMPTY_ARRAY);
+      source, DartEntry.IMPORTED_LIBRARIES, Source.EMPTY_LIST);
 
   @override
   SourceKind computeKindOf(Source source) {
@@ -1919,7 +1919,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   List<Source> getHtmlFilesReferencing(Source source) {
     SourceKind sourceKind = getKindOf(source);
     if (sourceKind == null) {
-      return Source.EMPTY_ARRAY;
+      return Source.EMPTY_LIST;
     }
     List<Source> htmlSources = new List<Source>();
     while (true) {
@@ -1952,7 +1952,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       break;
     }
     if (htmlSources.isEmpty) {
-      return Source.EMPTY_ARRAY;
+      return Source.EMPTY_LIST;
     }
     return htmlSources;
   }
@@ -1972,7 +1972,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (sourceEntry is DartEntry) {
       return sourceEntry.containingLibraries;
     }
-    return Source.EMPTY_ARRAY;
+    return Source.EMPTY_LIST;
   }
 
   @override
@@ -1995,7 +1995,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     if (dependentLibraries.isEmpty) {
-      return Source.EMPTY_ARRAY;
+      return Source.EMPTY_LIST;
     }
     return dependentLibraries;
   }
@@ -2007,7 +2007,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       HtmlEntry htmlEntry = sourceEntry;
       return htmlEntry.getValue(HtmlEntry.REFERENCED_LIBRARIES);
     }
-    return Source.EMPTY_ARRAY;
+    return Source.EMPTY_LIST;
   }
 
   @override
@@ -2301,9 +2301,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         dartEntry.setState(SourceEntry.CONTENT, CacheState.FLUSHED);
         dartEntry.setValue(SourceEntry.LINE_INFO, new LineInfo(<int>[0]));
         // DartEntry.ELEMENT - set in recordElementData
-        dartEntry.setValue(DartEntry.EXPORTED_LIBRARIES, Source.EMPTY_ARRAY);
-        dartEntry.setValue(DartEntry.IMPORTED_LIBRARIES, Source.EMPTY_ARRAY);
-        dartEntry.setValue(DartEntry.INCLUDED_PARTS, Source.EMPTY_ARRAY);
+        dartEntry.setValue(DartEntry.EXPORTED_LIBRARIES, Source.EMPTY_LIST);
+        dartEntry.setValue(DartEntry.IMPORTED_LIBRARIES, Source.EMPTY_LIST);
+        dartEntry.setValue(DartEntry.INCLUDED_PARTS, Source.EMPTY_LIST);
         // DartEntry.IS_CLIENT - set in recordElementData
         // DartEntry.IS_LAUNCHABLE - set in recordElementData
         dartEntry.setValue(DartEntry.PARSE_ERRORS, AnalysisError.NO_ERRORS);
@@ -5347,17 +5347,17 @@ class AnalysisContextImpl_CycleBuilder {
   List<Source> _getSources(Source source, DartEntry dartEntry,
       DataDescriptor<List<Source>> descriptor) {
     if (dartEntry == null) {
-      return Source.EMPTY_ARRAY;
+      return Source.EMPTY_LIST;
     }
     CacheState exportState = dartEntry.getState(descriptor);
     if (exportState == CacheState.ERROR) {
-      return Source.EMPTY_ARRAY;
+      return Source.EMPTY_LIST;
     } else if (exportState != CacheState.VALID) {
       if (_taskData == null) {
         _taskData =
             AnalysisContextImpl_this._createParseDartTask(source, dartEntry);
       }
-      return Source.EMPTY_ARRAY;
+      return Source.EMPTY_LIST;
     }
     return dartEntry.getValue(descriptor);
   }
@@ -7252,7 +7252,7 @@ class DartEntry extends SourceEntry {
    */
   static final DataDescriptor<List<Source>> CONTAINING_LIBRARIES =
       new DataDescriptor<List<Source>>(
-          "DartEntry.CONTAINING_LIBRARIES", Source.EMPTY_ARRAY);
+          "DartEntry.CONTAINING_LIBRARIES", Source.EMPTY_LIST);
 
   /**
    * The data descriptor representing the library element for the library. This
@@ -7269,7 +7269,7 @@ class DartEntry extends SourceEntry {
    */
   static final DataDescriptor<List<Source>> EXPORTED_LIBRARIES =
       new DataDescriptor<List<Source>>(
-          "DartEntry.EXPORTED_LIBRARIES", Source.EMPTY_ARRAY);
+          "DartEntry.EXPORTED_LIBRARIES", Source.EMPTY_LIST);
 
   /**
    * The data descriptor representing the hints resulting from auditing the
@@ -7286,7 +7286,7 @@ class DartEntry extends SourceEntry {
    */
   static final DataDescriptor<List<Source>> IMPORTED_LIBRARIES =
       new DataDescriptor<List<Source>>(
-          "DartEntry.IMPORTED_LIBRARIES", Source.EMPTY_ARRAY);
+          "DartEntry.IMPORTED_LIBRARIES", Source.EMPTY_LIST);
 
   /**
    * The data descriptor representing the list of included parts. This data is
@@ -7295,7 +7295,7 @@ class DartEntry extends SourceEntry {
    */
   static final DataDescriptor<List<Source>> INCLUDED_PARTS =
       new DataDescriptor<List<Source>>(
-          "DartEntry.INCLUDED_PARTS", Source.EMPTY_ARRAY);
+          "DartEntry.INCLUDED_PARTS", Source.EMPTY_LIST);
 
   /**
    * The data descriptor representing the client flag. This data is only
@@ -8547,7 +8547,7 @@ class HtmlEntry extends SourceEntry {
    */
   static final DataDescriptor<List<Source>> REFERENCED_LIBRARIES =
       new DataDescriptor<List<Source>>(
-          "HtmlEntry.REFERENCED_LIBRARIES", Source.EMPTY_ARRAY);
+          "HtmlEntry.REFERENCED_LIBRARIES", Source.EMPTY_LIST);
 
   /**
    * The data descriptor representing the errors resulting from resolving the
@@ -9427,7 +9427,7 @@ class ParseDartTask extends AnalysisTask {
   List<Source> _toArray(HashSet<Source> sources) {
     int size = sources.length;
     if (size == 0) {
-      return Source.EMPTY_ARRAY;
+      return Source.EMPTY_LIST;
     }
     return new List.from(sources);
   }
@@ -9524,7 +9524,7 @@ class ParseHtmlTask extends AnalysisTask {
   /**
    * A list containing the sources of the libraries that are referenced within the HTML.
    */
-  List<Source> _referencedLibraries = Source.EMPTY_ARRAY;
+  List<Source> _referencedLibraries = Source.EMPTY_LIST;
 
   /**
    * Initialize a newly created task to perform analysis within the given context.
@@ -9560,7 +9560,7 @@ class ParseHtmlTask extends AnalysisTask {
     List<Source> libraries = new List<Source>();
     _unit.accept(new ParseHtmlTask_getLibrarySources(this, libraries));
     if (libraries.isEmpty) {
-      return Source.EMPTY_ARRAY;
+      return Source.EMPTY_LIST;
     }
     return libraries;
   }

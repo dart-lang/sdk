@@ -32,7 +32,8 @@ final CompositeResultDescriptor<List<AnalysisError>> DART_ERRORS =
  * The result is only available for targets representing a Dart library.
  */
 final ListResultDescriptor<Source> EXPLICITLY_IMPORTED_LIBRARIES =
-    new ListResultDescriptor<Source>('EXPLICITLY_IMPORTED_LIBRARIES', Source.EMPTY_ARRAY);
+    new ListResultDescriptor<Source>(
+        'EXPLICITLY_IMPORTED_LIBRARIES', Source.EMPTY_LIST);
 
 /**
  * The sources of the libraries that are exported from a library.
@@ -43,7 +44,7 @@ final ListResultDescriptor<Source> EXPLICITLY_IMPORTED_LIBRARIES =
  * The result is only available for targets representing a Dart library.
  */
 final ListResultDescriptor<Source> EXPORTED_LIBRARIES =
-    new ListResultDescriptor<Source>('EXPORTED_LIBRARIES', Source.EMPTY_ARRAY);
+    new ListResultDescriptor<Source>('EXPORTED_LIBRARIES', Source.EMPTY_LIST);
 
 /**
  * The sources of the libraries that are implicitly or explicitly imported into
@@ -55,7 +56,7 @@ final ListResultDescriptor<Source> EXPORTED_LIBRARIES =
  * The result is only available for targets representing a Dart library.
  */
 final ListResultDescriptor<Source> IMPORTED_LIBRARIES =
-    new ListResultDescriptor<Source>('IMPORTED_LIBRARIES', Source.EMPTY_ARRAY);
+    new ListResultDescriptor<Source>('IMPORTED_LIBRARIES', Source.EMPTY_LIST);
 
 /**
  * The sources of the parts that are included in a library.
@@ -66,7 +67,7 @@ final ListResultDescriptor<Source> IMPORTED_LIBRARIES =
  * The result is only available for targets representing a Dart library.
  */
 final ListResultDescriptor<Source> INCLUDED_PARTS =
-    new ListResultDescriptor<Source>('INCLUDED_PARTS', Source.EMPTY_ARRAY);
+    new ListResultDescriptor<Source>('INCLUDED_PARTS', Source.EMPTY_LIST);
 
 /**
  * A flag specifying whether a library is dependent on code that is only
@@ -131,7 +132,7 @@ final ResultDescriptor<Token> TOKEN_STREAM =
  * The result is only available for targets representing a Dart library.
  */
 final ListResultDescriptor<Source> UNITS =
-    new ListResultDescriptor<Source>('UNITS', Source.EMPTY_ARRAY);
+    new ListResultDescriptor<Source>('UNITS', Source.EMPTY_LIST);
 
 /**
  * A specific compilation unit in a specific library.
