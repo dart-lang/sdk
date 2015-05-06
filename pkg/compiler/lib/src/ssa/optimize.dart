@@ -99,15 +99,22 @@ class SsaOptimizerTask extends CompilerTask {
   }
 }
 
+/// Returns `true` if [mask] represents only types that have a length that
+/// cannot change.  The current implementation is conservative for the purpose
+/// of identifying gvn-able lengths and mis-identifies some unions of fixed
+/// length indexables (see TODO) as not fixed length.
 bool isFixedLength(mask, Compiler compiler) {
   ClassWorld classWorld = compiler.world;
   JavaScriptBackend backend = compiler.backend;
   if (mask.isContainer && mask.length != null) {
     // A container on which we have inferred the length.
     return true;
-  } else if (mask.containsOnly(backend.jsFixedArrayClass)
-             || mask.containsOnlyString(classWorld)
-             || backend.isTypedArray(mask)) {
+  }
+  // TODO(sra): Recognize any combination of fixed length indexables.
+  if (mask.containsOnly(backend.jsFixedArrayClass) ||
+      mask.containsOnly(backend.jsUnmodifiableArrayClass) ||
+      mask.containsOnlyString(classWorld) ||
+      backend.isTypedArray(mask)) {
     return true;
   }
   return false;

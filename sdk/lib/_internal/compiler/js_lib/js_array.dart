@@ -83,8 +83,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     // to know if the property exists.
     JS('void', r'#.fixed$length = Array', list);
     JS('void', r'#.immutable$list = Array', list);
-    // TODO(23309): Make it detectable that the list has fixed length.
-    return JS('JSArray', '#', list);
+    return JS('JSUnmodifiableArray', '#', list);
   }
 
   checkMutable(reason) {
@@ -613,6 +612,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 class JSMutableArray<E> extends JSArray<E> implements JSMutableIndexable {}
 class JSFixedArray<E> extends JSMutableArray<E> {}
 class JSExtendableArray<E> extends JSMutableArray<E> {}
+class JSUnmodifiableArray<E> extends JSArray<E> {} // Already is JSIndexable.
 
 
 /// An [Iterator] that iterates a JSArray.
