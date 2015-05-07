@@ -17,7 +17,6 @@ import 'test_support.dart';
 main() {
   groupSep = ' | ';
   runReflectiveTests(AnalysisTaskTest);
-  runReflectiveTests(ContributionPointImplTest);
   runReflectiveTests(ResultDescriptorImplTest);
   runReflectiveTests(SimpleResultCachingPolicyTest);
   runReflectiveTests(TaskDescriptorImplTest);
@@ -57,59 +56,12 @@ class AnalysisTaskTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class ContributionPointImplTest extends EngineTestCase {
-  test_contributors_empty() {
-    CompositeResultDescriptorImpl point =
-        new CompositeResultDescriptorImpl('point');
-    List<ResultDescriptor> contributors = point.contributors;
-    expect(contributors, isEmpty);
-  }
-
-  test_contributors_nonEmpty() {
-    ResultDescriptorImpl result1 = new ResultDescriptorImpl('result1', null);
-    ResultDescriptorImpl result2 = new ResultDescriptorImpl('result2', null);
-    CompositeResultDescriptorImpl point =
-        new CompositeResultDescriptorImpl('point');
-    point.recordContributor(result1);
-    point.recordContributor(result2);
-    List<ResultDescriptor> contributors = point.contributors;
-    expect(contributors, isNotNull);
-    expect(contributors, hasLength(2));
-    if (!(contributors[0] == result1 && contributors[1] == result2) ||
-        (contributors[0] == result2 && contributors[1] == result1)) {
-      fail("Invalid contributors: $contributors");
-    }
-  }
-
-  test_create() {
-    expect(new CompositeResultDescriptorImpl('name'), isNotNull);
-  }
-
-  test_name() {
-    String name = 'point';
-    CompositeResultDescriptorImpl point =
-        new CompositeResultDescriptorImpl(name);
-    expect(point.name, name);
-  }
-}
-
-@reflectiveTest
 class ResultDescriptorImplTest extends EngineTestCase {
   test_create_withCachingPolicy() {
     ResultCachingPolicy policy = new SimpleResultCachingPolicy(128, 16);
     ResultDescriptorImpl result =
         new ResultDescriptorImpl('result', null, cachingPolicy: policy);
     expect(result.cachingPolicy, same(policy));
-  }
-
-  test_create_withContribution() {
-    CompositeResultDescriptorImpl point =
-        new CompositeResultDescriptorImpl('point');
-    ResultDescriptorImpl result =
-        new ResultDescriptorImpl('result', null, contributesTo: point);
-    expect(result, isNotNull);
-    List<ResultDescriptor> contributors = point.contributors;
-    expect(contributors, unorderedEquals([result]));
   }
 
   test_create_withoutCachingPolicy() {

@@ -1337,14 +1337,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   Object /*V*/ _computeResult(
       AnalysisTarget target, ResultDescriptor /*<V>*/ descriptor) {
     cache.CacheEntry entry = getCacheEntry(target);
-    if (descriptor is CompositeResultDescriptor) {
-      List compositeResults = [];
-      for (ResultDescriptor descriptor in descriptor.contributors) {
-        List value = _computeResult(target, descriptor);
-        compositeResults.addAll(value);
-      }
-      return compositeResults;
-    }
     CacheState state = entry.getState(descriptor);
     if (state == CacheState.FLUSHED || state == CacheState.INVALID) {
       _driver.computeResult(target, descriptor);
@@ -1487,14 +1479,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     cache.CacheEntry entry = _cache.get(target);
     if (entry == null) {
       return descriptor.defaultValue;
-    }
-    if (descriptor is CompositeResultDescriptor) {
-      List compositeResults = [];
-      for (ResultDescriptor descriptor in descriptor.contributors) {
-        List value = _getResult(target, descriptor);
-        compositeResults.addAll(value);
-      }
-      return compositeResults;
     }
     if (entry.isValid(descriptor)) {
       return entry.getValue(descriptor);

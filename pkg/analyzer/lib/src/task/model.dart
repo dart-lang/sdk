@@ -15,43 +15,18 @@ const ResultCachingPolicy DEFAULT_CACHING_POLICY =
     const SimpleResultCachingPolicy(-1, -1);
 
 /**
- * A concrete implementation of a [CompositeResultDescriptor].
- */
-class CompositeResultDescriptorImpl<V> extends ResultDescriptorImpl<V>
-    implements CompositeResultDescriptor<V> {
-  /**
-   * The results that contribute to this result.
-   */
-  final List<ResultDescriptor<V>> contributors = <ResultDescriptor<V>>[];
-
-  /**
-   * Initialize a newly created composite result to have the given [name].
-   */
-  CompositeResultDescriptorImpl(String name) : super(name, null);
-
-  /**
-   * Record that the given analysis [result] contibutes to this result.
-   */
-  void recordContributor(ResultDescriptor<V> result) {
-    contributors.add(result);
-  }
-}
-
-/**
  * A concrete implementation of a [ListResultDescriptor].
  */
 class ListResultDescriptorImpl<E> extends ResultDescriptorImpl<List<E>>
     implements ListResultDescriptor<E> {
   /**
    * Initialize a newly created analysis result to have the given [name] and
-   * [defaultValue]. If a composite result is specified, then this result will
-   * contribute to it.
+   * [defaultValue]. If a [cachingPolicy] is provided, it will control how long
+   * values associated with this result will remain in the cache.
    */
   ListResultDescriptorImpl(String name, List<E> defaultValue,
-      {CompositeResultDescriptor contributesTo,
-      ResultCachingPolicy<List<E>> cachingPolicy: DEFAULT_CACHING_POLICY})
-      : super(name, defaultValue,
-          contributesTo: contributesTo, cachingPolicy: cachingPolicy);
+      {ResultCachingPolicy<List<E>> cachingPolicy: DEFAULT_CACHING_POLICY})
+      : super(name, defaultValue, cachingPolicy: cachingPolicy);
 
   @override
   ListTaskInput<E> of(AnalysisTarget target) =>
@@ -79,16 +54,11 @@ class ResultDescriptorImpl<V> implements ResultDescriptor<V> {
 
   /**
    * Initialize a newly created analysis result to have the given [name] and
-   * [defaultValue]. If a composite result is specified, then this result will
-   * contribute to it.
+   * [defaultValue]. If a [cachingPolicy] is provided, it will control how long
+   * values associated with this result will remain in the cache.
    */
   ResultDescriptorImpl(this.name, this.defaultValue,
-      {CompositeResultDescriptor contributesTo,
-      this.cachingPolicy: DEFAULT_CACHING_POLICY}) {
-    if (contributesTo is CompositeResultDescriptorImpl) {
-      contributesTo.recordContributor(this);
-    }
-  }
+      {this.cachingPolicy: DEFAULT_CACHING_POLICY});
 
   @override
   TaskInput<V> of(AnalysisTarget target) =>

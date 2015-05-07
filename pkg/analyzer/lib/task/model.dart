@@ -246,28 +246,6 @@ abstract class AnalysisTask {
 }
 
 /**
- * A [ResultDescriptor] that denotes an analysis result that is a union of
- * one or more other results.
- *
- * Clients are not expected to subtype this class.
- */
-abstract class CompositeResultDescriptor<V> extends ResultDescriptor<V> {
-  /**
-   * Initialize a newly created composite result to have the given [name].
-   */
-  factory CompositeResultDescriptor(
-      String name) = CompositeResultDescriptorImpl;
-
-  /**
-   * Return a list containing the descriptors of the results that are unioned
-   * together to compose the value of this result.
-   *
-   * Clients must not modify the returned list.
-   */
-  List<ResultDescriptor<V>> get contributors;
-}
-
-/**
  * A description of a [List]-based analysis result that can be computed by an
  * [AnalysisTask].
  *
@@ -275,12 +253,12 @@ abstract class CompositeResultDescriptor<V> extends ResultDescriptor<V> {
  */
 abstract class ListResultDescriptor<E> implements ResultDescriptor<List<E>> {
   /**
-   * Initialize a newly created analysis result to have the given [name]. If a
-   * composite result is specified, then this result will contribute to it.
+   * Initialize a newly created analysis result to have the given [name] and
+   * [defaultValue]. If a [cachingPolicy] is provided, it will control how long
+   * values associated with this result will remain in the cache.
    */
   factory ListResultDescriptor(String name, List<E> defaultValue,
-      {CompositeResultDescriptor<List<E>> contributesTo,
-      ResultCachingPolicy<List<E>> cachingPolicy}) = ListResultDescriptorImpl<E>;
+      {ResultCachingPolicy<List<E>> cachingPolicy}) = ListResultDescriptorImpl<E>;
 
   @override
   ListTaskInput<E> of(AnalysisTarget target);
@@ -371,16 +349,15 @@ abstract class ResultCachingPolicy<T> {
  */
 abstract class ResultDescriptor<V> {
   /**
-   * Initialize a newly created analysis result to have the given [name]. If a
-   * composite result is specified, then this result will contribute to it.
+   * Initialize a newly created analysis result to have the given [name] and
+   * [defaultValue].
    *
    * The given [cachingPolicy] is used to limit the total size of results
    * described by this descriptor. If no policy is specified, the results are
    * never evicted from the cache, and removed only when they are invalidated.
    */
   factory ResultDescriptor(String name, V defaultValue,
-      {CompositeResultDescriptor<V> contributesTo,
-      ResultCachingPolicy<V> cachingPolicy}) = ResultDescriptorImpl;
+      {ResultCachingPolicy<V> cachingPolicy}) = ResultDescriptorImpl;
 
   /**
    * Return the caching policy for results described by this descriptor.
