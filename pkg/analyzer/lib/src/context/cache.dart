@@ -40,11 +40,7 @@ class AnalysisCache {
    * so the most specific partition (usually an [SdkCachePartition]) should be
    * first and the most general (usually a [UniversalCachePartition]) last.
    */
-  AnalysisCache(this._partitions) {
-    for (CachePartition partition in _partitions) {
-      partition._cache = this;
-    }
-  }
+  AnalysisCache(this._partitions);
 
   // TODO(brianwilkerson) Implement or delete this.
 //  /**
@@ -645,15 +641,6 @@ class CacheFlushManager<T> {
  */
 abstract class CachePartition {
   /**
-   * The [AnalysisCache] that owns this partition.
-   *
-   * TODO(scheglov) It seems wrong. Partitions may be shared between caches.
-   * But we need a way to go from every "enclosing" partition into "enclosed"
-   * ones.
-   */
-  AnalysisCache _cache;
-
-  /**
    * The context that owns this partition. Multiple contexts can reference a
    * partition, but only one context can own it.
    */
@@ -760,7 +747,7 @@ abstract class CachePartition {
   int size() => _targetMap.length;
 
   ResultData _getDataFor(TargetedResult result) {
-    return _cache._getDataFor(result);
+    return context.analysisCache._getDataFor(result);
   }
 
   /**
@@ -845,6 +832,9 @@ class SdkCachePartition extends CachePartition {
 
   @override
   bool contains(AnalysisTarget target) {
+    if (target is AnalysisContextTarget) {
+      return true;
+    }
     Source source = target.source;
     return source != null && source.isInSystemLibrary;
   }

@@ -106,7 +106,7 @@ class CacheEntryTest extends EngineTestCase {
     context = new _InternalAnalysisContextMock();
     when(context.priorityTargets).thenReturn([]);
     cache = createCache(context: context);
-//    when(context.analysisCache).thenReturn(cache);
+    when(context.analysisCache).thenReturn(cache);
   }
 
   test_explicitlyAdded() {

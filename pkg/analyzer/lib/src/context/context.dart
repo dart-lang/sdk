@@ -190,6 +190,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  cache.AnalysisCache get analysisCache => _cache;
+
+  @override
   AnalysisOptions get analysisOptions => _options;
 
   @override
@@ -566,8 +569,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  LibraryElement computeLibraryElement(Source source) => _computeResult(
-      source, LIBRARY_ELEMENT); //_computeResult(source, HtmlEntry.ELEMENT);
+  LibraryElement computeLibraryElement(Source source) {
+    //_computeResult(source, HtmlEntry.ELEMENT);
+    return _computeResult(source, LIBRARY_ELEMENT);
+  }
 
   @override
   LineInfo computeLineInfo(Source source) => _computeResult(source, LINE_INFO);

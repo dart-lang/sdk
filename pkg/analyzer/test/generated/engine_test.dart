@@ -5410,6 +5410,11 @@ class SourcesChangedListener {
  */
 class TestAnalysisContext implements InternalAnalysisContext {
   @override
+  AnalysisCache get analysisCache {
+    fail("Unexpected invocation of analysisCache");
+    return null;
+  }
+  @override
   AnalysisOptions get analysisOptions {
     fail("Unexpected invocation of getAnalysisOptions");
     return null;
