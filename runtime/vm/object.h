@@ -4040,6 +4040,9 @@ class Code : public Object {
     StorePointer(&raw_ptr()->var_descriptors_, value.raw());
   }
 
+  // Will compute local var descriptors is necessary.
+  RawLocalVarDescriptors* GetLocalVarDescriptors() const;
+
   RawExceptionHandlers* exception_handlers() const {
     return raw_ptr()->exception_handlers_;
   }

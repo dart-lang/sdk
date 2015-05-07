@@ -2923,7 +2923,7 @@ TEST_CASE(PcDescriptorsCompressed) {
   const int kNumEntries = 6;
   // Add PcDescriptors to the code.
   PcDescriptors& descriptors = PcDescriptors::Handle();
-  // PcDescritpors have no try-index.
+  // PcDescriptors have no try-index.
   descriptors ^= PcDescriptors::New(kNumEntries, false);
   descriptors.AddDescriptor(0, 10, RawPcDescriptors::kOther, 1, 20, -1);
   descriptors.AddDescriptor(1, 20, RawPcDescriptors::kDeopt, 2, 30, -1);

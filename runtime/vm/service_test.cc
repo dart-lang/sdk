@@ -367,7 +367,7 @@ TEST_CASE(Service_LocalVarDescriptors) {
   EXPECT(!code_c.IsNull());
 
   const LocalVarDescriptors& descriptors =
-      LocalVarDescriptors::Handle(code_c.var_descriptors());
+      LocalVarDescriptors::Handle(code_c.GetLocalVarDescriptors());
   // Generate an ID for this object.
   ObjectIdRing* ring = isolate->object_id_ring();
   intptr_t id = ring->GetIdForObject(descriptors.raw());

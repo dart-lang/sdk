@@ -12047,6 +12047,17 @@ Code::Comments::Comments(const Array& comments)
 }
 
 
+RawLocalVarDescriptors* Code::GetLocalVarDescriptors() const {
+  LocalVarDescriptors& v = LocalVarDescriptors::Handle(var_descriptors());
+  if (v.IsNull()) {
+    const Function& f = Function::Handle(function());
+    ASSERT(!f.IsIrregexpFunction());  // Not yet implemented.
+    Compiler::ComputeLocalVarDescriptors(*this);
+  }
+  return v.raw();
+}
+
+
 void Code::set_state_bits(intptr_t bits) const {
   StoreNonPointer(&raw_ptr()->state_bits_, bits);
 }

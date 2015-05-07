@@ -31,6 +31,8 @@ DEFINE_FLAG(bool, always_megamorphic_calls, false,
     "Instance call always as megamorphic.");
 DEFINE_FLAG(bool, trace_inlining_intervals, false,
     "Inlining interval diagnostics");
+DEFINE_FLAG(bool, eager_info_computation, false,
+    "TRANSITIONAL: Eagerly compute local var descriptors.");
 DEFINE_FLAG(bool, enable_simd_inline, true,
     "Enable inlining of SIMD related method calls.");
 DEFINE_FLAG(int, min_optimization_counter_threshold, 5000,
@@ -926,6 +928,7 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
   }
   LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle();
   if (parsed_function().node_sequence() == NULL) {
+    // TODO(srdjan): Implement lazy local var descriptors if Irregexp functions.
     ASSERT(flow_graph().IsIrregexpFunction());
     var_descs = LocalVarDescriptors::New(1);
     RawLocalVarDescriptors::VarInfo info;
@@ -936,9 +939,11 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
     info.set_index(parsed_function().current_context_var()->index());
     var_descs.SetVar(0, Symbols::CurrentContextVar(), &info);
   } else {
-    var_descs =
-        parsed_function_.node_sequence()->scope()->GetVarDescriptors(
-            parsed_function_.function());
+    if (FLAG_eager_info_computation) {
+      var_descs =
+          parsed_function_.node_sequence()->scope()->GetVarDescriptors(
+              parsed_function_.function());
+    }
   }
   code.set_var_descriptors(var_descs);
 }

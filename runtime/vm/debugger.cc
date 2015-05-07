@@ -478,7 +478,7 @@ void ActivationFrame::GetVarDescriptors() {
       }
     }
     var_descriptors_ =
-        Code::Handle(function().unoptimized_code()).var_descriptors();
+        Code::Handle(function().unoptimized_code()).GetLocalVarDescriptors();
     ASSERT(!var_descriptors_.IsNull());
   }
 }

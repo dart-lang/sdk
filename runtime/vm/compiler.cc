@@ -890,7 +890,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
   ISL_Print("Variable Descriptors for function '%s' {\n",
             function_fullname);
   const LocalVarDescriptors& var_descriptors =
-      LocalVarDescriptors::Handle(code.var_descriptors());
+      LocalVarDescriptors::Handle(code.GetLocalVarDescriptors());
   intptr_t var_desc_length =
       var_descriptors.IsNull() ? 0 : var_descriptors.Length();
   String& var_name = String::Handle();
@@ -1126,6 +1126,24 @@ RawError* Compiler::CompileParsedFunction(
   }
   UNREACHABLE();
   return Error::null();
+}
+
+
+void Compiler::ComputeLocalVarDescriptors(const Code& code) {
+  ASSERT(!code.is_optimized());
+  const Function& function = Function::Handle(code.function());
+  ParsedFunction* parsed_function = new ParsedFunction(
+      Thread::Current(), Function::ZoneHandle(function.raw()));
+  LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle();
+  if (function.IsIrregexpFunction()) {
+    UNREACHABLE();  // Special parsing needed, not yet implemented.
+  } else {
+    Parser::ParseFunction(parsed_function);
+    parsed_function->AllocateVariables();
+    var_descs =
+        parsed_function->node_sequence()->scope()->GetVarDescriptors(function);
+  }
+  code.set_var_descriptors(var_descs);
 }
 
 
