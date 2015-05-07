@@ -441,13 +441,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  void addSourceInfo(Source source, SourceEntry info) {
-    // TODO(brianwilkerson) This method needs to be replaced by something that
-    // will copy CacheEntry's.
-//    _cache.put(source, info);
-  }
-
-  @override
   void applyAnalysisDelta(AnalysisDelta delta) {
     ChangeSet changeSet = new ChangeSet();
     delta.analysisLevels.forEach((Source source, AnalysisLevel level) {

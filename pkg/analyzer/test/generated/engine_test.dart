@@ -5541,10 +5541,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of addListener");
   }
   @override
-  void addSourceInfo(Source source, SourceEntry info) {
-    fail("Unexpected invocation of addSourceInfo");
-  }
-  @override
   void applyAnalysisDelta(AnalysisDelta delta) {
     fail("Unexpected invocation of applyAnalysisDelta");
   }
@@ -5796,15 +5792,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {
     fail("Unexpected invocation of visitCacheItems");
-  }
-}
-
-class TestAnalysisContext_test_addSourceInfo extends TestAnalysisContext {
-  bool invoked = false;
-  TestAnalysisContext_test_addSourceInfo();
-  @override
-  void addSourceInfo(Source source, SourceEntry info) {
-    invoked = true;
   }
 }
 

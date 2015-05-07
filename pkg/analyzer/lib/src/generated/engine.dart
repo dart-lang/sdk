@@ -1464,14 +1464,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  void addSourceInfo(Source source, SourceEntry info) {
-    // This implementation assumes that the access to the cache does not need to
-    // be synchronized because no other object can have access to this context
-    // while this method is being invoked.
-    _cache.put(source, info);
-  }
-
-  @override
   void applyAnalysisDelta(AnalysisDelta delta) {
     ChangeSet changeSet = new ChangeSet();
     delta.analysisLevels.forEach((Source source, AnalysisLevel level) {
@@ -9076,11 +9068,6 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * A factory to override how [TypeResolverVisitor] is created.
    */
   TypeResolverVisitorFactory get typeResolverVisitorFactory;
-
-  /**
-   * Add the given [source] with the given [information] to this context.
-   */
-  void addSourceInfo(Source source, SourceEntry information);
 
   /**
    * Return a list containing the sources of the libraries that are exported by
