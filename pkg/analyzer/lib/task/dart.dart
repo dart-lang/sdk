@@ -18,8 +18,8 @@ import 'package:analyzer/task/model.dart';
  *
  * The result is only available for targets representing a Dart compilation unit.
  */
-final ResultDescriptor<List<AnalysisError>> DART_ERRORS =
-    new ResultDescriptor<List<AnalysisError>>(
+final ListResultDescriptor<AnalysisError> DART_ERRORS =
+    new ListResultDescriptor<AnalysisError>(
         'DART_ERRORS', AnalysisError.NO_ERRORS);
 
 /**

@@ -38,8 +38,8 @@ const ResultCachingPolicy AST_CACHING_POLICY =
  *
  * The result is only available for targets representing a Dart library.
  */
-final ResultDescriptor<List<AnalysisError>> BUILD_DIRECTIVES_ERRORS =
-    new ResultDescriptor<List<AnalysisError>>(
+final ListResultDescriptor<AnalysisError> BUILD_DIRECTIVES_ERRORS =
+    new ListResultDescriptor<AnalysisError>(
         'BUILD_DIRECTIVES_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
@@ -49,8 +49,8 @@ final ResultDescriptor<List<AnalysisError>> BUILD_DIRECTIVES_ERRORS =
  *
  * The result is only available for targets representing a Dart library.
  */
-final ResultDescriptor<List<AnalysisError>> BUILD_FUNCTION_TYPE_ALIASES_ERRORS =
-    new ResultDescriptor<List<AnalysisError>>(
+final ListResultDescriptor<AnalysisError> BUILD_FUNCTION_TYPE_ALIASES_ERRORS =
+    new ListResultDescriptor<AnalysisError>(
         'BUILD_FUNCTION_TYPE_ALIASES_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
@@ -60,8 +60,8 @@ final ResultDescriptor<List<AnalysisError>> BUILD_FUNCTION_TYPE_ALIASES_ERRORS =
  *
  * The result is only available for targets representing a Dart library.
  */
-final ResultDescriptor<List<AnalysisError>> BUILD_LIBRARY_ERRORS =
-    new ResultDescriptor<List<AnalysisError>>(
+final ListResultDescriptor<AnalysisError> BUILD_LIBRARY_ERRORS =
+    new ListResultDescriptor<AnalysisError>(
         'BUILD_LIBRARY_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
@@ -84,8 +84,8 @@ final ResultDescriptor<CompilationUnitElement> COMPILATION_UNIT_ELEMENT =
 /**
  * The [ConstructorElement]s of a [ClassElement].
  */
-final ResultDescriptor<List<ConstructorElement>> CONSTRUCTORS =
-    new ResultDescriptor<List<ConstructorElement>>('CONSTRUCTORS', null);
+final ListResultDescriptor<ConstructorElement> CONSTRUCTORS =
+    new ListResultDescriptor<ConstructorElement>('CONSTRUCTORS', null);
 
 /**
  * The errors produced while building a [ClassElement] constructors.
@@ -94,8 +94,8 @@ final ResultDescriptor<List<ConstructorElement>> CONSTRUCTORS =
  *
  * The result is only available for targets representing a [ClassElement].
  */
-final ResultDescriptor<List<AnalysisError>> CONSTRUCTORS_ERRORS =
-    new ResultDescriptor<List<AnalysisError>>(
+final ListResultDescriptor<AnalysisError> CONSTRUCTORS_ERRORS =
+    new ListResultDescriptor<AnalysisError>(
         'CONSTRUCTORS_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
@@ -128,8 +128,8 @@ final ListResultDescriptor<Source> EXPORT_SOURCE_CLOSURE =
  *
  * The result is only available for targets representing a Dart compilation unit.
  */
-final ResultDescriptor<List<AnalysisError>> HINTS =
-    new ResultDescriptor<List<AnalysisError>>(
+final ListResultDescriptor<AnalysisError> HINTS =
+    new ListResultDescriptor<AnalysisError>(
         'HINT_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
@@ -208,8 +208,8 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT5 =
  * The result is only available for targets representing a Dart compilation unit
  * in a specific library.
  */
-final ResultDescriptor<List<AnalysisError>> LIBRARY_UNIT_ERRORS =
-    new ResultDescriptor<List<AnalysisError>>(
+final ListResultDescriptor<AnalysisError> LIBRARY_UNIT_ERRORS =
+    new ListResultDescriptor<AnalysisError>(
         'LIBRARY_UNIT_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
@@ -219,8 +219,8 @@ final ResultDescriptor<List<AnalysisError>> LIBRARY_UNIT_ERRORS =
  *
  * The result is only available for targets representing a Dart compilation unit.
  */
-final ResultDescriptor<List<AnalysisError>> PARSE_ERRORS =
-    new ResultDescriptor<List<AnalysisError>>(
+final ListResultDescriptor<AnalysisError> PARSE_ERRORS =
+    new ListResultDescriptor<AnalysisError>(
         'PARSE_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
@@ -230,8 +230,8 @@ final ResultDescriptor<List<AnalysisError>> PARSE_ERRORS =
  *
  * The result is only available for targets representing a unit.
  */
-final ResultDescriptor<List<AnalysisError>> RESOLVE_REFERENCES_ERRORS =
-    new ResultDescriptor<List<AnalysisError>>(
+final ListResultDescriptor<AnalysisError> RESOLVE_REFERENCES_ERRORS =
+    new ListResultDescriptor<AnalysisError>(
         'RESOLVE_REFERENCES_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
@@ -241,8 +241,8 @@ final ResultDescriptor<List<AnalysisError>> RESOLVE_REFERENCES_ERRORS =
  *
  * The result is only available for targets representing a Dart library.
  */
-final ResultDescriptor<List<AnalysisError>> RESOLVE_TYPE_NAMES_ERRORS =
-    new ResultDescriptor<List<AnalysisError>>(
+final ListResultDescriptor<AnalysisError> RESOLVE_TYPE_NAMES_ERRORS =
+    new ListResultDescriptor<AnalysisError>(
         'RESOLVE_TYPE_NAMES_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
@@ -307,8 +307,8 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT5 =
  *
  * The result is only available for targets representing a Dart compilation unit.
  */
-final ResultDescriptor<List<AnalysisError>> SCAN_ERRORS =
-    new ResultDescriptor<List<AnalysisError>>(
+final ListResultDescriptor<AnalysisError> SCAN_ERRORS =
+    new ListResultDescriptor<AnalysisError>(
         'SCAN_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
@@ -344,8 +344,8 @@ final ResultDescriptor<UsedLocalElements> USED_LOCAL_ELEMENTS =
  *
  * The result is only available for targets representing a Dart compilation unit.
  */
-final ResultDescriptor<List<AnalysisError>> VERIFY_ERRORS =
-    new ResultDescriptor<List<AnalysisError>>(
+final ListResultDescriptor<AnalysisError> VERIFY_ERRORS =
+    new ListResultDescriptor<AnalysisError>(
         'VERIFY_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
