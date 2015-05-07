@@ -5,7 +5,6 @@
 library test.src.context.context_test;
 
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
@@ -38,12 +37,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
-import 'package:analyzer/src/generated/testing/element_factory.dart';
-import 'package:analyzer/src/generated/testing/test_type_provider.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
-import 'package:analyzer/task/dart.dart';
 import 'package:plugin/manager.dart';
 import 'package:unittest/unittest.dart';
 import 'package:watcher/src/utils.dart';
@@ -72,7 +66,6 @@ class AnalysisContextForTests extends AnalysisContextImpl {
     SourceFactory sourceFactory =
         new SourceFactory([new DartUriResolver(sdk), new FileUriResolver()]);
     this.sourceFactory = sourceFactory;
-//    initWithCore();
   }
 
   @override
@@ -119,266 +112,15 @@ class AnalysisContextForTests extends AnalysisContextImpl {
     return super.getModificationStamp(source);
   }
 
-  /**
-   * Initialize the given analysis context with a fake core library already resolved.
-   *
-   * @param context the context to be initialized (not `null`)
-   * @return the analysis context that was created
-   */
-  void initWithCore() {
-    AnalysisContext coreContext = sourceFactory.dartSdk.context;
-    //
-    // dart:core
-    //
-    TestTypeProvider provider = new TestTypeProvider();
-    typeProvider = provider;
-    CompilationUnitElementImpl coreUnit =
-        new CompilationUnitElementImpl("core.dart");
-    Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
-    coreContext.setContents(coreSource, "");
-    coreUnit.source = coreSource;
-    ClassElementImpl proxyClassElement = ElementFactory.classElement2("_Proxy");
-    coreUnit.types = <ClassElement>[
-      provider.boolType.element,
-      provider.deprecatedType.element,
-      provider.doubleType.element,
-      provider.functionType.element,
-      provider.intType.element,
-      provider.iterableType.element,
-      provider.iteratorType.element,
-      provider.listType.element,
-      provider.mapType.element,
-      provider.nullType.element,
-      provider.numType.element,
-      provider.objectType.element,
-      proxyClassElement,
-      provider.stackTraceType.element,
-      provider.stringType.element,
-      provider.symbolType.element,
-      provider.typeType.element
-    ];
-    coreUnit.functions = <FunctionElement>[
-      ElementFactory.functionElement3("identical", provider.boolType.element,
-          <ClassElement>[
-        provider.objectType.element,
-        provider.objectType.element
-      ], null),
-      ElementFactory.functionElement3("print", VoidTypeImpl.instance.element,
-          <ClassElement>[provider.objectType.element], null)
-    ];
-    TopLevelVariableElement proxyTopLevelVariableElt = ElementFactory
-        .topLevelVariableElement3("proxy", true, false, proxyClassElement.type);
-    TopLevelVariableElement deprecatedTopLevelVariableElt = ElementFactory
-        .topLevelVariableElement3(
-            "deprecated", true, false, provider.deprecatedType);
-    coreUnit.accessors = <PropertyAccessorElement>[
-      proxyTopLevelVariableElt.getter,
-      deprecatedTopLevelVariableElt.getter
-    ];
-    coreUnit.topLevelVariables = <TopLevelVariableElement>[
-      proxyTopLevelVariableElt,
-      deprecatedTopLevelVariableElt
-    ];
-    LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
-        coreContext, AstFactory.libraryIdentifier2(["dart", "core"]));
-    coreLibrary.definingCompilationUnit = coreUnit;
-    //
-    // dart:async
-    //
-    CompilationUnitElementImpl asyncUnit =
-        new CompilationUnitElementImpl("async.dart");
-    Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
-    coreContext.setContents(asyncSource, "");
-    asyncUnit.source = asyncSource;
-    // Future
-    ClassElementImpl futureElement =
-        ElementFactory.classElement2("Future", ["T"]);
-    InterfaceType futureType = futureElement.type;
-    //   factory Future.value([value])
-    ConstructorElementImpl futureConstructor =
-        ElementFactory.constructorElement2(futureElement, "value");
-    futureConstructor.parameters = <ParameterElement>[
-      ElementFactory.positionalParameter2("value", provider.dynamicType)
-    ];
-    futureConstructor.factory = true;
-    (futureConstructor.type as FunctionTypeImpl).typeArguments =
-        futureElement.type.typeArguments;
-    futureElement.constructors = <ConstructorElement>[futureConstructor];
-    //   Future then(onValue(T value), { Function onError });
-    List<ParameterElement> parameters = <ParameterElement>[
-      ElementFactory.requiredParameter2(
-          "value", futureElement.typeParameters[0].type)
-    ];
-    FunctionTypeAliasElementImpl aliasElement =
-        new FunctionTypeAliasElementImpl.forNode(null);
-    aliasElement.synthetic = true;
-    aliasElement.parameters = parameters;
-    aliasElement.returnType = provider.dynamicType;
-    aliasElement.enclosingElement = asyncUnit;
-    FunctionTypeImpl aliasType = new FunctionTypeImpl.con2(aliasElement);
-    aliasElement.shareTypeParameters(futureElement.typeParameters);
-    aliasType.typeArguments = futureElement.type.typeArguments;
-    MethodElement thenMethod = ElementFactory.methodElementWithParameters(
-        "then", futureElement.type.typeArguments, futureType, [
-      ElementFactory.requiredParameter2("onValue", aliasType),
-      ElementFactory.namedParameter2("onError", provider.functionType)
-    ]);
-    futureElement.methods = <MethodElement>[thenMethod];
-    // Completer
-    ClassElementImpl completerElement =
-        ElementFactory.classElement2("Completer", ["T"]);
-    ConstructorElementImpl completerConstructor =
-        ElementFactory.constructorElement2(completerElement, null);
-    (completerConstructor.type as FunctionTypeImpl).typeArguments =
-        completerElement.type.typeArguments;
-    completerElement.constructors = <ConstructorElement>[completerConstructor];
-    asyncUnit.types = <ClassElement>[
-      completerElement,
-      futureElement,
-      ElementFactory.classElement2("Stream", ["T"])
-    ];
-    LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        coreContext, AstFactory.libraryIdentifier2(["dart", "async"]));
-    asyncLibrary.definingCompilationUnit = asyncUnit;
-    //
-    // dart:html
-    //
-    CompilationUnitElementImpl htmlUnit =
-        new CompilationUnitElementImpl("html_dartium.dart");
-    Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
-    coreContext.setContents(htmlSource, "");
-    htmlUnit.source = htmlSource;
-    ClassElementImpl elementElement = ElementFactory.classElement2("Element");
-    InterfaceType elementType = elementElement.type;
-    ClassElementImpl canvasElement =
-        ElementFactory.classElement("CanvasElement", elementType);
-    ClassElementImpl contextElement =
-        ElementFactory.classElement2("CanvasRenderingContext");
-    InterfaceType contextElementType = contextElement.type;
-    ClassElementImpl context2dElement = ElementFactory.classElement(
-        "CanvasRenderingContext2D", contextElementType);
-    canvasElement.methods = <MethodElement>[
-      ElementFactory.methodElement(
-          "getContext", contextElementType, [provider.stringType])
-    ];
-    canvasElement.accessors = <PropertyAccessorElement>[
-      ElementFactory.getterElement("context2D", false, context2dElement.type)
-    ];
-    canvasElement.fields = canvasElement.accessors
-        .map((PropertyAccessorElement accessor) => accessor.variable)
-        .toList();
-    ClassElementImpl documentElement =
-        ElementFactory.classElement("Document", elementType);
-    ClassElementImpl htmlDocumentElement =
-        ElementFactory.classElement("HtmlDocument", documentElement.type);
-    htmlDocumentElement.methods = <MethodElement>[
-      ElementFactory.methodElement(
-          "query", elementType, <DartType>[provider.stringType])
-    ];
-    htmlUnit.types = <ClassElement>[
-      ElementFactory.classElement("AnchorElement", elementType),
-      ElementFactory.classElement("BodyElement", elementType),
-      ElementFactory.classElement("ButtonElement", elementType),
-      canvasElement,
-      contextElement,
-      context2dElement,
-      ElementFactory.classElement("DivElement", elementType),
-      documentElement,
-      elementElement,
-      htmlDocumentElement,
-      ElementFactory.classElement("InputElement", elementType),
-      ElementFactory.classElement("SelectElement", elementType)
-    ];
-    htmlUnit.functions = <FunctionElement>[
-      ElementFactory.functionElement3("query", elementElement,
-          <ClassElement>[provider.stringType.element], ClassElement.EMPTY_LIST)
-    ];
-    TopLevelVariableElementImpl document = ElementFactory
-        .topLevelVariableElement3(
-            "document", false, true, htmlDocumentElement.type);
-    htmlUnit.topLevelVariables = <TopLevelVariableElement>[document];
-    htmlUnit.accessors = <PropertyAccessorElement>[document.getter];
-    LibraryElementImpl htmlLibrary = new LibraryElementImpl.forNode(
-        coreContext, AstFactory.libraryIdentifier2(["dart", "dom", "html"]));
-    htmlLibrary.definingCompilationUnit = htmlUnit;
-    //
-    // dart:math
-    //
-    CompilationUnitElementImpl mathUnit =
-        new CompilationUnitElementImpl("math.dart");
-    Source mathSource = sourceFactory.forUri("dart:math");
-    coreContext.setContents(mathSource, "");
-    mathUnit.source = mathSource;
-    FunctionElement cosElement = ElementFactory.functionElement3("cos",
-        provider.doubleType.element, <ClassElement>[provider.numType.element],
-        ClassElement.EMPTY_LIST);
-    TopLevelVariableElement ln10Element = ElementFactory
-        .topLevelVariableElement3("LN10", true, false, provider.doubleType);
-    TopLevelVariableElement piElement = ElementFactory.topLevelVariableElement3(
-        "PI", true, false, provider.doubleType);
-    ClassElementImpl randomElement = ElementFactory.classElement2("Random");
-    randomElement.abstract = true;
-    ConstructorElementImpl randomConstructor =
-        ElementFactory.constructorElement2(randomElement, null);
-    randomConstructor.factory = true;
-    ParameterElementImpl seedParam = new ParameterElementImpl("seed", 0);
-    seedParam.parameterKind = ParameterKind.POSITIONAL;
-    seedParam.type = provider.intType;
-    randomConstructor.parameters = <ParameterElement>[seedParam];
-    randomElement.constructors = <ConstructorElement>[randomConstructor];
-    FunctionElement sinElement = ElementFactory.functionElement3("sin",
-        provider.doubleType.element, <ClassElement>[provider.numType.element],
-        ClassElement.EMPTY_LIST);
-    FunctionElement sqrtElement = ElementFactory.functionElement3("sqrt",
-        provider.doubleType.element, <ClassElement>[provider.numType.element],
-        ClassElement.EMPTY_LIST);
-    mathUnit.accessors = <PropertyAccessorElement>[
-      ln10Element.getter,
-      piElement.getter
-    ];
-    mathUnit.functions = <FunctionElement>[cosElement, sinElement, sqrtElement];
-    mathUnit.topLevelVariables = <TopLevelVariableElement>[
-      ln10Element,
-      piElement
-    ];
-    mathUnit.types = <ClassElement>[randomElement];
-    LibraryElementImpl mathLibrary = new LibraryElementImpl.forNode(
-        coreContext, AstFactory.libraryIdentifier2(["dart", "math"]));
-    mathLibrary.definingCompilationUnit = mathUnit;
-    //
-    // Set empty sources for the rest of the libraries.
-    //
-    Source source = sourceFactory.forUri("dart:_interceptors");
-    coreContext.setContents(source, "");
-    source = sourceFactory.forUri("dart:_js_helper");
-    coreContext.setContents(source, "");
-    //
-    // Record the elements.
-    //
-    HashMap<Source, LibraryElement> elementMap =
-        new HashMap<Source, LibraryElement>();
-    elementMap[coreSource] = coreLibrary;
-    elementMap[asyncSource] = asyncLibrary;
-    elementMap[htmlSource] = htmlLibrary;
-    elementMap[mathSource] = mathLibrary;
-    recordLibraryElements(elementMap);
-    elementMap.forEach((Source librarySource, LibraryElement library) {
-      CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
-      unit.element = library.definingCompilationUnit;
-      CacheEntry entry = getCacheEntry(librarySource);
-      entry.setValue(PARSED_UNIT, unit, TargetedResult.EMPTY_LIST, null);
-    });
-  }
-
-  /**
-   * Set the analysis options, even if they would force re-analysis. This method should only be
-   * invoked before the fake SDK is initialized.
-   *
-   * @param options the analysis options to be set
-   */
-  void _internalSetAnalysisOptions(AnalysisOptions options) {
-    super.analysisOptions = options;
-  }
+//  /**
+//   * Set the analysis options, even if they would force re-analysis. This method should only be
+//   * invoked before the fake SDK is initialized.
+//   *
+//   * @param options the analysis options to be set
+//   */
+//  void _internalSetAnalysisOptions(AnalysisOptions options) {
+//    super.analysisOptions = options;
+//  }
 }
 
 @reflectiveTest
@@ -397,8 +139,8 @@ class AnalysisContextImplTest extends EngineTestCase {
     _context.applyChanges(new ChangeSet());
     expect(_context.performAnalysisTask().changeNotices, isNull);
     // This test appears to be flaky. If it is named "test_" it fails, if it's
-    // named "fail_" it doesn't fail. I'm guessing that it's dependent on some
-    // other test being run (or not).
+    // named "fail_" it doesn't fail. I'm guessing that it's dependent on
+    // whether some other test is run.
     fail('Should have failed');
   }
 
@@ -524,11 +266,15 @@ import 'libB.dart';''';
   }
 
   void fail_computeImportedLibraries_none() {
+    // This is failing because computeImportedLibraries now always includes
+    // dart:core, and we don't have any way of knowing whether it was explicit.
     Source source = _addSource("/test.dart", "library test;");
     expect(_context.computeImportedLibraries(source), hasLength(0));
   }
 
   void fail_computeImportedLibraries_some() {
+    // This is failing because computeImportedLibraries now always includes
+    // dart:core, and we don't have any way of knowing whether it was explicit.
     //    addSource("/lib1.dart", "library lib1;");
     //    addSource("/lib2.dart", "library lib2;");
     Source source = _addSource(
@@ -536,7 +282,7 @@ import 'libB.dart';''';
     expect(_context.computeImportedLibraries(source), hasLength(2));
   }
 
-  void fail_computeKindOf_html() {
+  void test_computeKindOf_html() {
     Source source = _addSource("/test.html", "");
     expect(_context.computeKindOf(source), same(SourceKind.HTML));
   }
@@ -610,9 +356,7 @@ import 'libB.dart';''';
     _context
         .computeResolvedCompilationUnitAsync(partSource, librarySource)
         .then((_) {
-      // TODO(brianwilkerson) Uncomment the line below (and figure out why
-      // invoking 'fail' directly causes a failing test to fail.
-      //fail('Expected resolution to fail');
+      fail('Expected resolution to fail');
     }, onError: (e) {
       expect(e, new isInstanceOf<AnalysisNotScheduledError>());
       completed = true;
@@ -768,12 +512,12 @@ class A {
     expect(sources[0], source);
   }
 
-  void fail_getKindOf_html() {
+  void test_getKindOf_html() {
     Source source = _addSource("/test.html", "");
     expect(_context.getKindOf(source), same(SourceKind.HTML));
   }
 
-  void fail_getLibrariesContaining() {
+  void test_getLibrariesContaining() {
     _context = contextWithCore();
     _sourceFactory = _context.sourceFactory;
     Source librarySource = _addSource("/lib.dart", r'''
@@ -1383,13 +1127,13 @@ library test2;''');
   Future test_applyChanges_add() {
     SourcesChangedListener listener = new SourcesChangedListener();
     _context.onSourcesChanged.listen(listener.onData);
-    expect(_context.sourcesNeedingProcessing.isEmpty, isTrue);
+    expect(_context.sourcesNeedingProcessing, isEmpty);
     Source source =
         new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
     ChangeSet changeSet = new ChangeSet();
     changeSet.addedSource(source);
     _context.applyChanges(changeSet);
-    expect(_context.sourcesNeedingProcessing.contains(source), isTrue);
+    expect(_context.sourcesNeedingProcessing, contains(source));
     return pumpEventQueue().then((_) {
       listener.assertEvent(wereSourcesAdded: true);
       listener.assertNoMoreEvents();
@@ -1399,13 +1143,13 @@ library test2;''');
   Future test_applyChanges_change() {
     SourcesChangedListener listener = new SourcesChangedListener();
     _context.onSourcesChanged.listen(listener.onData);
-    expect(_context.sourcesNeedingProcessing.isEmpty, isTrue);
+    expect(_context.sourcesNeedingProcessing, isEmpty);
     Source source =
         new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
     ChangeSet changeSet1 = new ChangeSet();
     changeSet1.addedSource(source);
     _context.applyChanges(changeSet1);
-    expect(_context.sourcesNeedingProcessing.contains(source), isTrue);
+    expect(_context.sourcesNeedingProcessing, contains(source));
     Source source2 =
         new FileBasedSource.con1(FileUtilities2.createFile("/test2.dart"));
     ChangeSet changeSet2 = new ChangeSet();
@@ -1422,13 +1166,13 @@ library test2;''');
   Future test_applyChanges_change_content() {
     SourcesChangedListener listener = new SourcesChangedListener();
     _context.onSourcesChanged.listen(listener.onData);
-    expect(_context.sourcesNeedingProcessing.isEmpty, isTrue);
+    expect(_context.sourcesNeedingProcessing, isEmpty);
     Source source =
         new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
     ChangeSet changeSet1 = new ChangeSet();
     changeSet1.addedSource(source);
     _context.applyChanges(changeSet1);
-    expect(_context.sourcesNeedingProcessing.contains(source), isTrue);
+    expect(_context.sourcesNeedingProcessing, contains(source));
     Source source2 =
         new FileBasedSource.con1(FileUtilities2.createFile("/test2.dart"));
     ChangeSet changeSet2 = new ChangeSet();
@@ -1509,13 +1253,13 @@ int b = aa;''';
   Future test_applyChanges_change_range() {
     SourcesChangedListener listener = new SourcesChangedListener();
     _context.onSourcesChanged.listen(listener.onData);
-    expect(_context.sourcesNeedingProcessing.isEmpty, isTrue);
+    expect(_context.sourcesNeedingProcessing, isEmpty);
     Source source =
         new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
     ChangeSet changeSet1 = new ChangeSet();
     changeSet1.addedSource(source);
     _context.applyChanges(changeSet1);
-    expect(_context.sourcesNeedingProcessing.contains(source), isTrue);
+    expect(_context.sourcesNeedingProcessing, contains(source));
     Source source2 =
         new FileBasedSource.con1(FileUtilities2.createFile("/test2.dart"));
     ChangeSet changeSet2 = new ChangeSet();
@@ -2280,13 +2024,13 @@ int a = 0;''');
   }
 
   void test_updateAnalysis() {
-    expect(_context.sourcesNeedingProcessing.isEmpty, isTrue);
+    expect(_context.sourcesNeedingProcessing, isEmpty);
     Source source =
         new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
     AnalysisDelta delta = new AnalysisDelta();
     delta.setAnalysisLevel(source, AnalysisLevel.ALL);
     _context.applyAnalysisDelta(delta);
-    expect(_context.sourcesNeedingProcessing.contains(source), isTrue);
+    expect(_context.sourcesNeedingProcessing, contains(source));
     delta = new AnalysisDelta();
     delta.setAnalysisLevel(source, AnalysisLevel.NONE);
     _context.applyAnalysisDelta(delta);

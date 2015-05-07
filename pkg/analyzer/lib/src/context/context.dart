@@ -369,7 +369,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     bool hintsEnabled = _options.hint;
     bool lintsEnabled = _options.lint;
 
-    MapIterator<AnalysisTarget, cache.CacheEntry> iterator = _cache.iterator();
+    MapIterator<AnalysisTarget, cache.CacheEntry> iterator = _privatePartition.iterator();
     while (iterator.moveNext()) {
       AnalysisTarget target = iterator.key;
       if (target is Source) {
@@ -557,8 +557,15 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _computeResult(source, IMPORTED_LIBRARIES);
 
   @override
-  SourceKind computeKindOf(Source source) =>
-      _computeResult(source, SOURCE_KIND);
+  SourceKind computeKindOf(Source source) {
+    String name = source.shortName;
+    if (AnalysisEngine.isDartFileName(name)) {
+      return _computeResult(source, SOURCE_KIND);
+    } else if (AnalysisEngine.isHtmlFileName(name)) {
+      return SourceKind.HTML;
+    }
+    return SourceKind.UNKNOWN;
+  }
 
   @override
   LibraryElement computeLibraryElement(Source source) => _computeResult(
@@ -817,16 +824,38 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  SourceKind getKindOf(Source source) => _getResult(source, SOURCE_KIND);
+  SourceKind getKindOf(Source source) {
+    String name = source.shortName;
+    if (AnalysisEngine.isDartFileName(name)) {
+      return _getResult(source, SOURCE_KIND);
+    } else if (AnalysisEngine.isHtmlFileName(name)) {
+      return SourceKind.HTML;
+    }
+    return SourceKind.UNKNOWN;
+  }
 
   @override
   List<Source> getLibrariesContaining(Source source) {
-    // TODO(brianwilkerson) Implement this.
-//    cache.CacheEntry sourceEntry = _cache.get(source);
-//    if (sourceEntry is DartEntry) {
-//      return sourceEntry.containingLibraries;
-//    }
-    return Source.EMPTY_LIST;
+    SourceKind kind = getKindOf(source);
+    if (kind == SourceKind.LIBRARY) {
+      return <Source>[source];
+    } else if (kind == SourceKind.PART) {
+      List<Source> libraries = <Source>[];
+      MapIterator<AnalysisTarget, cache.CacheEntry> iterator = _cache.iterator();
+      while (iterator.moveNext()) {
+        AnalysisTarget target = iterator.key;
+        if (target is Source && getKindOf(target) == SourceKind.LIBRARY) {
+          List<Source> parts = _getResult(target, INCLUDED_PARTS);
+          if (parts.contains(source)) {
+            libraries.add(target);
+          }
+        }
+      }
+      if (libraries.isNotEmpty) {
+        return libraries;
+      }
+    }
+    return Source.EMPTY_ARRAY;
   }
 
   @override
@@ -891,11 +920,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return the cache entry associated with the given [source], or `null` if
-   * there is no entry associated with the source.
+   * Return the cache entry associated with the given [target], or `null` if
+   * there is no entry associated with the target.
    */
-  cache.CacheEntry getReadableSourceEntryOrNull(Source source) =>
-      _cache.get(source);
+  cache.CacheEntry getReadableSourceEntryOrNull(AnalysisTarget target) =>
+      _cache.get(target);
 
   @override
   CompilationUnit getResolvedCompilationUnit(
