@@ -10,6 +10,7 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/model.dart';
 
 /**
@@ -102,7 +103,8 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT =
  * The result is only available for targets representing a Dart compilation unit.
  */
 final ResultDescriptor<CompilationUnit> PARSED_UNIT =
-    new ResultDescriptor<CompilationUnit>('PARSED_UNIT', null);
+    new ResultDescriptor<CompilationUnit>('PARSED_UNIT', null,
+        cachingPolicy: AST_CACHING_POLICY);
 
 /**
  * The resolved [CompilationUnit] associated with a unit.
@@ -110,7 +112,8 @@ final ResultDescriptor<CompilationUnit> PARSED_UNIT =
  * The result is only available for targets representing a unit.
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT =
-    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT', null);
+    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT', null,
+        cachingPolicy: AST_CACHING_POLICY);
 
 /**
  * The token stream produced while scanning a compilation unit.
@@ -120,8 +123,8 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT =
  *
  * The result is only available for targets representing a Dart compilation unit.
  */
-final ResultDescriptor<Token> TOKEN_STREAM =
-    new ResultDescriptor<Token>('TOKEN_STREAM', null);
+final ResultDescriptor<Token> TOKEN_STREAM = new ResultDescriptor<Token>(
+    'TOKEN_STREAM', null, cachingPolicy: TOKEN_STREAM_CACHING_POLICY);
 
 /**
  * The sources of the Dart files that a library consists of.

@@ -23,6 +23,7 @@ import 'package:analyzer/src/generated/engine.dart'
         AnalysisOptions,
         AnalysisOptionsImpl,
         AnalysisResult,
+        CacheState,
         ChangeNotice,
         ChangeSet,
         IncrementalAnalysisCache,
@@ -38,6 +39,7 @@ import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
+import 'package:analyzer/task/dart.dart';
 import 'package:plugin/manager.dart';
 import 'package:unittest/unittest.dart';
 import 'package:watcher/src/utils.dart';
@@ -282,11 +284,6 @@ import 'libB.dart';''';
     expect(_context.computeImportedLibraries(source), hasLength(2));
   }
 
-  void test_computeKindOf_html() {
-    Source source = _addSource("/test.html", "");
-    expect(_context.computeKindOf(source), same(SourceKind.HTML));
-  }
-
   void fail_computeResolvableCompilationUnit_dart_exception() {
     TestSource source = _addSourceWithException("/test.dart");
     try {
@@ -324,8 +321,7 @@ import 'libB.dart';''';
     // Complete all pending analysis tasks and flush the AST so that it won't
     // be available immediately.
     _performPendingAnalysisTasks();
-    CacheEntry entry = _context.getReadableSourceEntryOrNull(source);
-    entry.flushAstStructures();
+    _flushAst(source);
     CancelableFuture<CompilationUnit> future =
         _context.computeResolvedCompilationUnitAsync(source, source);
     bool completed = false;
@@ -510,27 +506,6 @@ class A {
     sources = _context.htmlSources;
     expect(sources, hasLength(1));
     expect(sources[0], source);
-  }
-
-  void test_getKindOf_html() {
-    Source source = _addSource("/test.html", "");
-    expect(_context.getKindOf(source), same(SourceKind.HTML));
-  }
-
-  void test_getLibrariesContaining() {
-    _context = contextWithCore();
-    _sourceFactory = _context.sourceFactory;
-    Source librarySource = _addSource("/lib.dart", r'''
-library lib;
-part 'part.dart';''');
-    Source partSource = _addSource("/part.dart", "part of lib;");
-    _context.computeLibraryElement(librarySource);
-    List<Source> result = _context.getLibrariesContaining(librarySource);
-    expect(result, hasLength(1));
-    expect(result[0], librarySource);
-    result = _context.getLibrariesContaining(partSource);
-    expect(result, hasLength(1));
-    expect(result[0], librarySource);
   }
 
   void fail_getLibrariesReferencedFromHtml() {
@@ -1117,6 +1092,19 @@ library test2;''');
     _context.analysisOptions = options;
   }
 
+  void test_applyChanges_change_flush_element() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source librarySource = _addSource("/lib.dart", r'''
+library lib;
+int a = 0;''');
+    expect(_context.computeLibraryElement(librarySource), isNotNull);
+    _context.setContents(librarySource, r'''
+library lib;
+int aa = 0;''');
+    expect(_context.getLibraryElement(librarySource), isNull);
+  }
+
   @override
   void tearDown() {
     _context = null;
@@ -1184,19 +1172,6 @@ library test2;''');
       listener.assertEvent(wereSourcesAdded: true, changedSources: [source]);
       listener.assertNoMoreEvents();
     });
-  }
-
-  void test_applyChanges_change_flush_element() {
-    _context = contextWithCore();
-    _sourceFactory = _context.sourceFactory;
-    Source librarySource = _addSource("/lib.dart", r'''
-library lib;
-int a = 0;''');
-    expect(_context.computeLibraryElement(librarySource), isNotNull);
-    _context.setContents(librarySource, r'''
-library lib;
-int aa = 0;''');
-    expect(_context.getLibraryElement(librarySource), isNull);
   }
 
   Future test_applyChanges_change_multiple() {
@@ -1346,6 +1321,11 @@ class A {}""");
     expect(_context.computeHtmlElement(source), isNull);
   }
 
+  void test_computeKindOf_html() {
+    Source source = _addSource("/test.html", "");
+    expect(_context.computeKindOf(source), same(SourceKind.HTML));
+  }
+
   void test_computeKindOf_library() {
     Source source = _addSource("/test.dart", "library lib;");
     expect(_context.computeKindOf(source), same(SourceKind.LIBRARY));
@@ -1396,8 +1376,7 @@ main() {}''');
     // Complete all pending analysis tasks and flush the AST so that it won't
     // be available immediately.
     _performPendingAnalysisTasks();
-    CacheEntry entry = _context.getReadableSourceEntryOrNull(source);
-    entry.flushAstStructures();
+    _flushAst(source);
     // Dispose of the context.
     _context.dispose();
     // Any attempt to start an asynchronous computation should return a future
@@ -1515,6 +1494,11 @@ main() {}''');
     expect(result, hasLength(0));
   }
 
+  void test_getKindOf_html() {
+    Source source = _addSource("/test.html", "");
+    expect(_context.getKindOf(source), same(SourceKind.HTML));
+  }
+
   void test_getKindOf_library() {
     Source source = _addSource("/test.dart", "library lib;");
     expect(_context.getKindOf(source), same(SourceKind.UNKNOWN));
@@ -1628,6 +1612,22 @@ main() {}''');
     Source source = _addSource("/test.dart", '');
     _context.computeLibraryElement(source);
     expect(_context.launchableServerLibrarySources, isEmpty);
+  }
+
+  void test_getLibrariesContaining() {
+    _context = contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source librarySource = _addSource("/lib.dart", r'''
+library lib;
+part 'part.dart';''');
+    Source partSource = _addSource("/part.dart", "part of lib;");
+    _context.computeLibraryElement(librarySource);
+    List<Source> result = _context.getLibrariesContaining(librarySource);
+    expect(result, hasLength(1));
+    expect(result[0], librarySource);
+    result = _context.getLibrariesContaining(partSource);
+    expect(result, hasLength(1));
+    expect(result[0], librarySource);
   }
 
   void test_getLibrariesDependingOn() {
@@ -1860,17 +1860,6 @@ main() {}''');
     expect(errorInfo.errors, hasLength(0));
   }
 
-//  void test_resolveCompilationUnit_sourceChangeDuringResolution() {
-//    _context = new _AnalysisContext_sourceChangeDuringResolution();
-//    AnalysisContextFactory.initContextWithCore(_context);
-//    _sourceFactory = _context.sourceFactory;
-//    Source source = _addSource("/lib.dart", "library lib;");
-//    CompilationUnit compilationUnit =
-//        _context.resolveCompilationUnit2(source, source);
-//    expect(compilationUnit, isNotNull);
-//    expect(_context.getLineInfo(source), isNotNull);
-//  }
-
   void test_parseCompilationUnit_nonExistentSource() {
     Source source =
         new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
@@ -1881,6 +1870,17 @@ main() {}''');
       // Expected result
     }
   }
+
+//  void test_resolveCompilationUnit_sourceChangeDuringResolution() {
+//    _context = new _AnalysisContext_sourceChangeDuringResolution();
+//    AnalysisContextFactory.initContextWithCore(_context);
+//    _sourceFactory = _context.sourceFactory;
+//    Source source = _addSource("/lib.dart", "library lib;");
+//    CompilationUnit compilationUnit =
+//        _context.resolveCompilationUnit2(source, source);
+//    expect(compilationUnit, isNotNull);
+//    expect(_context.getLineInfo(source), isNotNull);
+//  }
 
   void test_performAnalysisTask_modifiedAfterParse() {
     // TODO(scheglov) no threads in Dart
@@ -2044,8 +2044,7 @@ int a = 0;''');
     // Complete all pending analysis tasks and flush the AST so that it won't
     // be available immediately.
     _performPendingAnalysisTasks();
-    CacheEntry entry = _context.getReadableSourceEntryOrNull(source);
-    entry.flushAstStructures();
+    _flushAst(source);
     bool completed = false;
     _context
         .computeResolvedCompilationUnitAsync(source, source)
@@ -2068,8 +2067,7 @@ int a = 0;''');
     // Complete all pending analysis tasks and flush the AST so that it won't
     // be available immediately.
     _performPendingAnalysisTasks();
-    CacheEntry entry = _context.getReadableSourceEntryOrNull(source);
-    entry.flushAstStructures();
+    _flushAst(source);
     CancelableFuture<CompilationUnit> future =
         _context.computeResolvedCompilationUnitAsync(source, source);
     bool completed = false;
@@ -2186,6 +2184,11 @@ int a = 0;''');
       }
     }
     return null;
+  }
+
+  void _flushAst(Source source) {
+    CacheEntry entry = _context.getReadableSourceEntryOrNull(source);
+    entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
   }
 
   IncrementalAnalysisCache _getIncrementalAnalysisCache(

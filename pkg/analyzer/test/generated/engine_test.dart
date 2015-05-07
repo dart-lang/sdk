@@ -5485,6 +5485,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of getPrioritySources");
     return null;
   }
+
   @override
   List<AnalysisTarget> get priorityTargets {
     fail("Unexpected invocation of visitCacheItems");
@@ -5502,7 +5503,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of getSourceFactory");
     return null;
   }
-
   @override
   void set sourceFactory(SourceFactory factory) {
     fail("Unexpected invocation of setSourceFactory");
@@ -5750,6 +5750,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
     fail("Unexpected invocation of recordLibraryElements");
   }
+
   @override
   void removeListener(AnalysisListener listener) {
     fail("Unexpected invocation of removeListener");

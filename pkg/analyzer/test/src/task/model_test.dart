@@ -19,6 +19,7 @@ main() {
   runReflectiveTests(AnalysisTaskTest);
   runReflectiveTests(ContributionPointImplTest);
   runReflectiveTests(ResultDescriptorImplTest);
+  runReflectiveTests(SimpleResultCachingPolicyTest);
   runReflectiveTests(TaskDescriptorImplTest);
 }
 
@@ -94,6 +95,13 @@ class ContributionPointImplTest extends EngineTestCase {
 
 @reflectiveTest
 class ResultDescriptorImplTest extends EngineTestCase {
+  test_create_withCachingPolicy() {
+    ResultCachingPolicy policy = new SimpleResultCachingPolicy(128, 16);
+    ResultDescriptorImpl result =
+        new ResultDescriptorImpl('result', null, cachingPolicy: policy);
+    expect(result.cachingPolicy, same(policy));
+  }
+
   test_create_withContribution() {
     CompositeResultDescriptorImpl point =
         new CompositeResultDescriptorImpl('point');
@@ -102,6 +110,14 @@ class ResultDescriptorImplTest extends EngineTestCase {
     expect(result, isNotNull);
     List<ResultDescriptor> contributors = point.contributors;
     expect(contributors, unorderedEquals([result]));
+  }
+
+  test_create_withoutCachingPolicy() {
+    ResultDescriptorImpl result = new ResultDescriptorImpl('result', null);
+    ResultCachingPolicy cachingPolicy = result.cachingPolicy;
+    expect(cachingPolicy, isNotNull);
+    expect(cachingPolicy.maxActiveSize, -1);
+    expect(cachingPolicy.maxIdleSize, -1);
   }
 
   test_create_withoutContribution() {
@@ -119,6 +135,16 @@ class ResultDescriptorImplTest extends EngineTestCase {
     String name = 'result';
     ResultDescriptorImpl result = new ResultDescriptorImpl(name, null);
     expect(result.name, name);
+  }
+}
+
+@reflectiveTest
+class SimpleResultCachingPolicyTest extends EngineTestCase {
+  test_create() {
+    ResultCachingPolicy policy = new SimpleResultCachingPolicy(256, 32);
+    expect(policy.maxActiveSize, 256);
+    expect(policy.maxIdleSize, 32);
+    expect(policy.measure(null), 1);
   }
 }
 

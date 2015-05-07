@@ -20,9 +20,16 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/incremental_element_builder.dart';
+import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
+
+/**
+ * The [ResultCachingPolicy] for ASTs.
+ */
+const ResultCachingPolicy AST_CACHING_POLICY =
+    const SimpleResultCachingPolicy(256, 64);
 
 /**
  * The errors produced while resolving a library directives.
@@ -64,7 +71,8 @@ final ResultDescriptor<List<AnalysisError>> BUILD_LIBRARY_ERRORS =
  * The [ClassElement]s of a [LibrarySpecificUnit].
  */
 final ListResultDescriptor<ClassElement> CLASS_ELEMENTS =
-    new ListResultDescriptor<ClassElement>('CLASS_ELEMENTS', null);
+    new ListResultDescriptor<ClassElement>('CLASS_ELEMENTS', null,
+        cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
  * The element model associated with a single compilation unit.
@@ -73,7 +81,8 @@ final ListResultDescriptor<ClassElement> CLASS_ELEMENTS =
  */
 final ResultDescriptor<CompilationUnitElement> COMPILATION_UNIT_ELEMENT =
     new ResultDescriptor<CompilationUnitElement>(
-        'COMPILATION_UNIT_ELEMENT', null);
+        'COMPILATION_UNIT_ELEMENT', null,
+        cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
  * The [ConstructorElement]s of a [ClassElement].
@@ -91,6 +100,12 @@ final ResultDescriptor<List<ConstructorElement>> CONSTRUCTORS =
 final ResultDescriptor<List<AnalysisError>> CONSTRUCTORS_ERRORS =
     new ResultDescriptor<List<AnalysisError>>(
         'CONSTRUCTORS_ERRORS', AnalysisError.NO_ERRORS);
+
+/**
+ * The [ResultCachingPolicy] for [Element]s.
+ */
+const ResultCachingPolicy ELEMENT_CACHING_POLICY =
+    const SimpleResultCachingPolicy(-1, -1);
 
 /**
  * The sources representing the export closure of a library.
@@ -130,7 +145,8 @@ final ListResultDescriptor<Source> IMPORT_SOURCE_CLOSURE =
  * The result is only available for targets representing a Dart library.
  */
 final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT1 =
-    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT1', null);
+    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT1', null,
+        cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
  * The partial [LibraryElement] associated with a library.
@@ -141,7 +157,8 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT1 =
  * The result is only available for targets representing a Dart library.
  */
 final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT2 =
-    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT2', null);
+    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT2', null,
+        cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
  * The partial [LibraryElement] associated with a library.
@@ -151,7 +168,8 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT2 =
  * The result is only available for targets representing a Dart library.
  */
 final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT3 =
-    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT3', null);
+    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT3', null,
+        cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
  * The partial [LibraryElement] associated with a library.
@@ -165,7 +183,8 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT3 =
  * The result is only available for targets representing a Dart library.
  */
 final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT4 =
-    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT4', null);
+    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT4', null,
+        cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
  * The partial [LibraryElement] associated with a library.
@@ -175,7 +194,8 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT4 =
  * The result is only available for targets representing a Dart library.
  */
 final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT5 =
-    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT5', null);
+    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT5', null,
+        cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
  * The errors produced while parsing a compilation unit.
@@ -220,7 +240,8 @@ final ResultDescriptor<List<AnalysisError>> RESOLVE_TYPE_NAMES_ERRORS =
  * The result is only available for targets representing a unit.
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT1 =
-    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT1', null);
+    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT1', null,
+        cachingPolicy: AST_CACHING_POLICY);
 
 /**
  * The partially resolved [CompilationUnit] associated with a unit.
@@ -230,7 +251,8 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT1 =
  * The result is only available for targets representing a unit.
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT2 =
-    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT2', null);
+    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT2', null,
+        cachingPolicy: AST_CACHING_POLICY);
 
 /**
  * The partially resolved [CompilationUnit] associated with a unit.
@@ -240,7 +262,8 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT2 =
  * The result is only available for targets representing a unit.
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT3 =
-    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT3', null);
+    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT3', null,
+        cachingPolicy: AST_CACHING_POLICY);
 
 /**
  * The partially resolved [CompilationUnit] associated with a unit.
@@ -250,7 +273,8 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT3 =
  * The result is only available for targets representing a unit.
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT4 =
-    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT4', null);
+    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT4', null,
+        cachingPolicy: AST_CACHING_POLICY);
 
 /**
  * The partially resolved [CompilationUnit] associated with a unit.
@@ -260,7 +284,8 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT4 =
  * The result is only available for targets representing a unit.
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT5 =
-    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT5', null);
+    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT5', null,
+        cachingPolicy: AST_CACHING_POLICY);
 
 /**
  * The errors produced while scanning a compilation unit.
@@ -274,6 +299,12 @@ final ResultDescriptor<List<AnalysisError>> SCAN_ERRORS =
         'SCAN_ERRORS', AnalysisError.NO_ERRORS, contributesTo: DART_ERRORS);
 
 /**
+ * The [ResultCachingPolicy] for [TOKEN_STREAM].
+ */
+const ResultCachingPolicy TOKEN_STREAM_CACHING_POLICY =
+    const SimpleResultCachingPolicy(1, 1);
+
+/**
  * The [TypeProvider] of the context.
  */
 final ResultDescriptor<TypeProvider> TYPE_PROVIDER =
@@ -283,13 +314,15 @@ final ResultDescriptor<TypeProvider> TYPE_PROVIDER =
  * The [UsedImportedElements] of a [LibrarySpecificUnit].
  */
 final ResultDescriptor<UsedImportedElements> USED_IMPORTED_ELEMENTS =
-    new ResultDescriptor<UsedImportedElements>('USED_IMPORTED_ELEMENTS', null);
+    new ResultDescriptor<UsedImportedElements>('USED_IMPORTED_ELEMENTS', null,
+        cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
  * The [UsedLocalElements] of a [LibrarySpecificUnit].
  */
 final ResultDescriptor<UsedLocalElements> USED_LOCAL_ELEMENTS =
-    new ResultDescriptor<UsedLocalElements>('USED_LOCAL_ELEMENTS', null);
+    new ResultDescriptor<UsedLocalElements>('USED_LOCAL_ELEMENTS', null,
+        cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
  * The errors produced while verifying a compilation unit.

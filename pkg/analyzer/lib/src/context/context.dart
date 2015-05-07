@@ -181,9 +181,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * Initialize a newly created analysis context.
    */
   AnalysisContextImpl() {
-    _privatePartition = new cache.UniversalCachePartition(this,
-        AnalysisOptionsImpl.DEFAULT_CACHE_SIZE,
-        new ContextRetentionPolicy(this));
+    _privatePartition = new cache.UniversalCachePartition(this);
     _cache = createCacheFromSourceFactory(null);
     _taskManager = AnalysisEngine.instance.taskManager;
     _driver = new AnalysisDriver(_taskManager, this);
@@ -210,7 +208,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     int cacheSize = options.cacheSize;
     if (this._options.cacheSize != cacheSize) {
       this._options.cacheSize = cacheSize;
-      _privatePartition.maxCacheSize = cacheSize;
     }
     this._options.analyzeFunctionBodiesPredicate =
         options.analyzeFunctionBodiesPredicate;
@@ -369,7 +366,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     bool hintsEnabled = _options.hint;
     bool lintsEnabled = _options.lint;
 
-    MapIterator<AnalysisTarget, cache.CacheEntry> iterator = _privatePartition.iterator();
+    MapIterator<AnalysisTarget, cache.CacheEntry> iterator =
+        _privatePartition.iterator();
     while (iterator.moveNext()) {
       AnalysisTarget target = iterator.key;
       if (target is Source) {
@@ -841,7 +839,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return <Source>[source];
     } else if (kind == SourceKind.PART) {
       List<Source> libraries = <Source>[];
-      MapIterator<AnalysisTarget, cache.CacheEntry> iterator = _cache.iterator();
+      MapIterator<AnalysisTarget, cache.CacheEntry> iterator =
+          _cache.iterator();
       while (iterator.moveNext()) {
         AnalysisTarget target = iterator.key;
         if (target is Source && getKindOf(target) == SourceKind.LIBRARY) {
@@ -1965,56 +1964,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 }
 
 /**
- * A retention policy used by an analysis context.
- */
-class ContextRetentionPolicy implements cache.CacheRetentionPolicy {
-  /**
-   * The context associated with this policy.
-   */
-  final AnalysisContextImpl context;
-
-  /**
-   * Initialize a newly created policy to be associated with the given
-   * [context].
-   */
-  ContextRetentionPolicy(this.context);
-
-  @override
-  RetentionPriority getAstPriority(
-      AnalysisTarget target, cache.CacheEntry entry) {
-    int priorityCount = context._priorityOrder.length;
-    for (int i = 0; i < priorityCount; i++) {
-      if (target == context._priorityOrder[i]) {
-        return RetentionPriority.HIGH;
-      }
-    }
-    if (_astIsNeeded(entry)) {
-      return RetentionPriority.MEDIUM;
-    }
-    return RetentionPriority.LOW;
-  }
-
-  bool _astIsNeeded(cache.CacheEntry entry) =>
-      entry.isInvalid(BUILD_FUNCTION_TYPE_ALIASES_ERRORS) ||
-          entry.isInvalid(BUILD_LIBRARY_ERRORS) ||
-          entry.isInvalid(CONSTRUCTORS_ERRORS) ||
-          entry.isInvalid(HINTS) ||
-          //entry.isInvalid(LINTS) ||
-          entry.isInvalid(RESOLVE_REFERENCES_ERRORS) ||
-          entry.isInvalid(RESOLVE_TYPE_NAMES_ERRORS) ||
-          entry.isInvalid(VERIFY_ERRORS);
-}
-
-/**
  * An object that manages the partitions that can be shared between analysis
  * contexts.
  */
 class PartitionManager {
-  /**
-   * The default cache size for a Dart SDK partition.
-   */
-  static int _DEFAULT_SDK_CACHE_SIZE = 256;
-
   /**
    * A table mapping SDK's to the partitions used for those SDK's.
    */
@@ -2042,8 +1995,7 @@ class PartitionManager {
     // Check cache for an existing partition.
     cache.SdkCachePartition partition = _sdkPartitions[sdk];
     if (partition == null) {
-      partition =
-          new cache.SdkCachePartition(sdkContext, _DEFAULT_SDK_CACHE_SIZE);
+      partition = new cache.SdkCachePartition(sdkContext);
       _sdkPartitions[sdk] = partition;
     }
     return partition;

@@ -9,6 +9,12 @@ import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/task/model.dart';
 
 /**
+ * The default [ResultCachingPolicy], results are never flushed.
+ */
+const ResultCachingPolicy DEFAULT_CACHING_POLICY =
+    const SimpleResultCachingPolicy(-1, -1);
+
+/**
  * A concrete implementation of a [CompositeResultDescriptor].
  */
 class CompositeResultDescriptorImpl<V> extends ResultDescriptorImpl<V>
@@ -42,8 +48,10 @@ class ListResultDescriptorImpl<E> extends ResultDescriptorImpl<List<E>>
    * contribute to it.
    */
   ListResultDescriptorImpl(String name, List<E> defaultValue,
-      {CompositeResultDescriptor contributesTo})
-      : super(name, defaultValue, contributesTo: contributesTo);
+      {CompositeResultDescriptor contributesTo,
+      ResultCachingPolicy<List<E>> cachingPolicy: DEFAULT_CACHING_POLICY})
+      : super(name, defaultValue,
+          contributesTo: contributesTo, cachingPolicy: cachingPolicy);
 
   @override
   ListTaskInput<E> of(AnalysisTarget target) =>
@@ -65,12 +73,18 @@ class ResultDescriptorImpl<V> implements ResultDescriptor<V> {
   final V defaultValue;
 
   /**
+   * The caching policy for results described by this descriptor.
+   */
+  final ResultCachingPolicy<V> cachingPolicy;
+
+  /**
    * Initialize a newly created analysis result to have the given [name] and
    * [defaultValue]. If a composite result is specified, then this result will
    * contribute to it.
    */
   ResultDescriptorImpl(this.name, this.defaultValue,
-      {CompositeResultDescriptor contributesTo}) {
+      {CompositeResultDescriptor contributesTo,
+      this.cachingPolicy: DEFAULT_CACHING_POLICY}) {
     if (contributesTo is CompositeResultDescriptorImpl) {
       contributesTo.recordContributor(this);
     }
@@ -82,6 +96,23 @@ class ResultDescriptorImpl<V> implements ResultDescriptor<V> {
 
   @override
   String toString() => name;
+}
+
+/**
+ * A simple [ResultCachingPolicy] implementation that consider all the objects
+ * to be of the size `1`.
+ */
+class SimpleResultCachingPolicy<T> implements ResultCachingPolicy<T> {
+  @override
+  final int maxActiveSize;
+
+  @override
+  final int maxIdleSize;
+
+  const SimpleResultCachingPolicy(this.maxActiveSize, this.maxIdleSize);
+
+  @override
+  int measure(T object) => 1;
 }
 
 /**

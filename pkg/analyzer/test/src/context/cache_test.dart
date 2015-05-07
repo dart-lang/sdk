@@ -5,14 +5,19 @@
 library test.src.task.driver_test;
 
 import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, CacheState, RetentionPriority;
+    show
+        AnalysisContext,
+        CacheState,
+        InternalAnalysisContext,
+        RetentionPriority;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../generated/engine_test.dart';
@@ -23,6 +28,7 @@ main() {
   groupSep = ' | ';
   runReflectiveTests(AnalysisCacheTest);
   runReflectiveTests(CacheEntryTest);
+  runReflectiveTests(CacheFlushManagerTest);
   runReflectiveTests(SdkCachePartitionTest);
   runReflectiveTests(UniversalCachePartitionTest);
   runReflectiveTests(ResultDataTest);
@@ -30,35 +36,12 @@ main() {
 
 AnalysisCache createCache({AnalysisContext context,
     RetentionPriority policy: RetentionPriority.LOW}) {
-  CachePartition partition = new UniversalCachePartition(
-      context, 8, new TestCacheRetentionPolicy(policy));
+  CachePartition partition = new UniversalCachePartition(context);
   return new AnalysisCache(<CachePartition>[partition]);
 }
 
 @reflectiveTest
 class AnalysisCacheTest extends EngineTestCase {
-  void test_astSize_empty() {
-    AnalysisCache cache = createCache();
-    expect(cache.astSize, 0);
-  }
-
-  void test_astSize_nonEmpty() {
-    ResultDescriptor result = new ResultDescriptor('test', null);
-    AstNode node = new NullLiteral(null);
-    AnalysisCache cache = createCache();
-    AnalysisTarget target1 = new TestSource('/test1.dart');
-    CacheEntry entry1 = new CacheEntry();
-    entry1.setValue(result, node, TargetedResult.EMPTY_LIST, null);
-    AnalysisTarget target2 = new TestSource('/test2.dart');
-    CacheEntry entry2 = new CacheEntry();
-    entry2.setValue(result, node, TargetedResult.EMPTY_LIST, null);
-    cache.put(target1, entry1);
-    cache.accessedAst(target1);
-    cache.put(target2, entry2);
-    cache.accessedAst(target2);
-    expect(cache.astSize, 2);
-  }
-
   void test_creation() {
     expect(createCache(), isNotNull);
   }
@@ -103,38 +86,6 @@ class AnalysisCacheTest extends EngineTestCase {
     cache.remove(target);
   }
 
-  void test_setMaxCacheSize() {
-    CachePartition partition = new UniversalCachePartition(
-        null, 8, new TestCacheRetentionPolicy(RetentionPriority.MEDIUM));
-    AnalysisCache cache = new AnalysisCache(<CachePartition>[partition]);
-    ResultDescriptor result = new ResultDescriptor('test', null);
-    AstNode node = new NullLiteral(null);
-    int size = 6;
-    for (int i = 0; i < size; i++) {
-      AnalysisTarget target = new TestSource("/test$i.dart");
-      CacheEntry entry = new CacheEntry();
-      entry.setValue(result, node, TargetedResult.EMPTY_LIST, null);
-      cache.put(target, entry);
-      cache.accessedAst(target);
-    }
-
-    void _assertNonFlushedCount(int expectedCount, AnalysisCache cache) {
-      int nonFlushedCount = 0;
-      MapIterator<AnalysisTarget, CacheEntry> iterator = cache.iterator();
-      while (iterator.moveNext()) {
-        if (iterator.value.getState(result) != CacheState.FLUSHED) {
-          nonFlushedCount++;
-        }
-      }
-      expect(nonFlushedCount, expectedCount);
-    }
-
-    _assertNonFlushedCount(size, cache);
-    int newSize = size - 2;
-    partition.maxCacheSize = newSize;
-    _assertNonFlushedCount(newSize, cache);
-  }
-
   void test_size() {
     AnalysisCache cache = createCache();
     int size = 4;
@@ -148,6 +99,16 @@ class AnalysisCacheTest extends EngineTestCase {
 
 @reflectiveTest
 class CacheEntryTest extends EngineTestCase {
+  InternalAnalysisContext context;
+  AnalysisCache cache;
+
+  void setUp() {
+    context = new _InternalAnalysisContextMock();
+    when(context.priorityTargets).thenReturn([]);
+    cache = createCache(context: context);
+//    when(context.analysisCache).thenReturn(cache);
+  }
+
   test_explicitlyAdded() {
     CacheEntry entry = new CacheEntry();
     expect(entry.explicitlyAdded, false);
@@ -186,14 +147,11 @@ class CacheEntryTest extends EngineTestCase {
     expect(entry.exception, isNull);
   }
 
-  test_flushAstStructures() {
-    ResultDescriptor result = new ResultDescriptor('test', null);
+  test_getMemento_noResult() {
+    String defaultValue = 'value';
+    ResultDescriptor result = new ResultDescriptor('test', defaultValue);
     CacheEntry entry = new CacheEntry();
-    entry.setValue(
-        result, new NullLiteral(null), TargetedResult.EMPTY_LIST, null);
-    expect(entry.hasAstStructure, true);
-    entry.flushAstStructures();
-    expect(entry.hasAstStructure, false);
+    expect(entry.getMemento(result), null);
   }
 
   test_getState() {
@@ -209,24 +167,34 @@ class CacheEntryTest extends EngineTestCase {
     expect(entry.getValue(result), defaultValue);
   }
 
-  test_getMemento_noResult() {
-    String defaultValue = 'value';
-    ResultDescriptor result = new ResultDescriptor('test', defaultValue);
+  test_getValue_flushResults() {
+    ResultCachingPolicy cachingPolicy = new SimpleResultCachingPolicy(2, 2);
+    ResultDescriptor descriptor1 =
+        new ResultDescriptor('result1', null, cachingPolicy: cachingPolicy);
+    ResultDescriptor descriptor2 =
+        new ResultDescriptor('result2', null, cachingPolicy: cachingPolicy);
+    ResultDescriptor descriptor3 =
+        new ResultDescriptor('result3', null, cachingPolicy: cachingPolicy);
+    AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry();
-    expect(entry.getMemento(result), null);
-  }
-
-  test_hasAstStructure_false() {
-    CacheEntry entry = new CacheEntry();
-    expect(entry.hasAstStructure, false);
-  }
-
-  test_hasAstStructure_true() {
-    ResultDescriptor result = new ResultDescriptor('test', null);
-    CacheEntry entry = new CacheEntry();
-    entry.setValue(
-        result, new NullLiteral(null), TargetedResult.EMPTY_LIST, null);
-    expect(entry.hasAstStructure, true);
+    cache.put(target, entry);
+    {
+      entry.setValue(descriptor1, 1, TargetedResult.EMPTY_LIST, null);
+      expect(entry.getState(descriptor1), CacheState.VALID);
+    }
+    {
+      entry.setValue(descriptor2, 2, TargetedResult.EMPTY_LIST, null);
+      expect(entry.getState(descriptor1), CacheState.VALID);
+      expect(entry.getState(descriptor2), CacheState.VALID);
+    }
+    // get descriptor1, so that descriptor2 will be flushed
+    entry.getValue(descriptor1);
+    {
+      entry.setValue(descriptor3, 3, TargetedResult.EMPTY_LIST, null);
+      expect(entry.getState(descriptor1), CacheState.VALID);
+      expect(entry.getState(descriptor2), CacheState.FLUSHED);
+      expect(entry.getState(descriptor3), CacheState.VALID);
+    }
   }
 
   test_hasErrorState_false() {
@@ -274,7 +242,6 @@ class CacheEntryTest extends EngineTestCase {
   }
 
   test_setErrorState_invalidateDependent() {
-    AnalysisCache cache = createCache();
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry();
     cache.put(target, entry);
@@ -388,7 +355,6 @@ class CacheEntryTest extends EngineTestCase {
   }
 
   test_setState_invalid_invalidateDependent() {
-    AnalysisCache cache = createCache();
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry();
     cache.put(target, entry);
@@ -438,8 +404,35 @@ class CacheEntryTest extends EngineTestCase {
     expect(entry.getMemento(result), memento);
   }
 
+  test_setValue_flushResults() {
+    ResultCachingPolicy cachingPolicy = new SimpleResultCachingPolicy(2, 2);
+    ResultDescriptor descriptor1 =
+        new ResultDescriptor('result1', null, cachingPolicy: cachingPolicy);
+    ResultDescriptor descriptor2 =
+        new ResultDescriptor('result2', null, cachingPolicy: cachingPolicy);
+    ResultDescriptor descriptor3 =
+        new ResultDescriptor('result3', null, cachingPolicy: cachingPolicy);
+    AnalysisTarget target = new TestSource();
+    CacheEntry entry = new CacheEntry();
+    cache.put(target, entry);
+    {
+      entry.setValue(descriptor1, 1, TargetedResult.EMPTY_LIST, null);
+      expect(entry.getState(descriptor1), CacheState.VALID);
+    }
+    {
+      entry.setValue(descriptor2, 2, TargetedResult.EMPTY_LIST, null);
+      expect(entry.getState(descriptor1), CacheState.VALID);
+      expect(entry.getState(descriptor2), CacheState.VALID);
+    }
+    {
+      entry.setValue(descriptor3, 3, TargetedResult.EMPTY_LIST, null);
+      expect(entry.getState(descriptor1), CacheState.FLUSHED);
+      expect(entry.getState(descriptor2), CacheState.VALID);
+      expect(entry.getState(descriptor3), CacheState.VALID);
+    }
+  }
+
   test_setValue_invalidateDependent() {
-    AnalysisCache cache = createCache();
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry();
     cache.put(target, entry);
@@ -473,7 +466,6 @@ class CacheEntryTest extends EngineTestCase {
   }
 
   test_setValue_invalidateDependent2() {
-    AnalysisCache cache = createCache();
     AnalysisTarget target1 = new TestSource('a');
     AnalysisTarget target2 = new TestSource('b');
     CacheEntry entry1 = new CacheEntry();
@@ -517,8 +509,149 @@ class CacheEntryTest extends EngineTestCase {
   }
 }
 
+@reflectiveTest
+class CacheFlushManagerTest {
+  CacheFlushManager manager = new CacheFlushManager(
+      new SimpleResultCachingPolicy(15, 3), (AnalysisTarget target) => false);
+
+  test_madeActive() {
+    manager.madeActive();
+    expect(manager.maxSize, 15);
+  }
+
+  test_madeIdle() {
+    manager.madeActive();
+    AnalysisTarget target = new TestSource();
+    // prepare TargetedResult(s)
+    List<TargetedResult> results = <TargetedResult>[];
+    for (int i = 0; i < 15; i++) {
+      ResultDescriptor descriptor = new ResultDescriptor('result$i', null);
+      results.add(new TargetedResult(target, descriptor));
+    }
+    // notify about storing TargetedResult(s)
+    for (TargetedResult result in results) {
+      manager.resultStored(result, null);
+    }
+    expect(manager.recentlyUsed, results);
+    expect(manager.currentSize, 15);
+    // make idle
+    List<TargetedResult> resultsToFlush = manager.madeIdle();
+    expect(manager.maxSize, 3);
+    expect(manager.recentlyUsed, results.skip(15 - 3));
+    expect(resultsToFlush, results.take(15 - 3));
+  }
+
+  test_new() {
+    expect(manager.maxActiveSize, 15);
+    expect(manager.maxIdleSize, 3);
+    expect(manager.maxSize, 3);
+    expect(manager.currentSize, 0);
+    expect(manager.recentlyUsed, isEmpty);
+  }
+
+  test_resultAccessed() {
+    ResultDescriptor descriptor1 = new ResultDescriptor('result1', null);
+    ResultDescriptor descriptor2 = new ResultDescriptor('result2', null);
+    ResultDescriptor descriptor3 = new ResultDescriptor('result3', null);
+    AnalysisTarget target = new TestSource();
+    TargetedResult result1 = new TargetedResult(target, descriptor1);
+    TargetedResult result2 = new TargetedResult(target, descriptor2);
+    TargetedResult result3 = new TargetedResult(target, descriptor3);
+    manager.resultStored(result1, null);
+    manager.resultStored(result2, null);
+    manager.resultStored(result3, null);
+    expect(manager.currentSize, 3);
+    expect(manager.recentlyUsed, orderedEquals([result1, result2, result3]));
+    // access result2
+    manager.resultAccessed(result2);
+    expect(manager.currentSize, 3);
+    expect(manager.recentlyUsed, orderedEquals([result1, result3, result2]));
+  }
+
+  test_resultAccessed_noSuchResult() {
+    ResultDescriptor descriptor1 = new ResultDescriptor('result1', null);
+    ResultDescriptor descriptor2 = new ResultDescriptor('result2', null);
+    ResultDescriptor descriptor3 = new ResultDescriptor('result3', null);
+    AnalysisTarget target = new TestSource();
+    TargetedResult result1 = new TargetedResult(target, descriptor1);
+    TargetedResult result2 = new TargetedResult(target, descriptor2);
+    TargetedResult result3 = new TargetedResult(target, descriptor3);
+    manager.resultStored(result1, null);
+    manager.resultStored(result2, null);
+    expect(manager.currentSize, 2);
+    expect(manager.recentlyUsed, orderedEquals([result1, result2]));
+    // access result3, no-op
+    manager.resultAccessed(result3);
+    expect(manager.currentSize, 2);
+    expect(manager.recentlyUsed, orderedEquals([result1, result2]));
+  }
+
+  test_resultStored() {
+    ResultDescriptor descriptor1 = new ResultDescriptor('result1', null);
+    ResultDescriptor descriptor2 = new ResultDescriptor('result2', null);
+    ResultDescriptor descriptor3 = new ResultDescriptor('result3', null);
+    ResultDescriptor descriptor4 = new ResultDescriptor('result4', null);
+    AnalysisTarget target = new TestSource();
+    TargetedResult result1 = new TargetedResult(target, descriptor1);
+    TargetedResult result2 = new TargetedResult(target, descriptor2);
+    TargetedResult result3 = new TargetedResult(target, descriptor3);
+    TargetedResult result4 = new TargetedResult(target, descriptor4);
+    manager.resultStored(result1, null);
+    manager.resultStored(result2, null);
+    manager.resultStored(result3, null);
+    expect(manager.currentSize, 3);
+    expect(manager.recentlyUsed, orderedEquals([result1, result2, result3]));
+    // store result2 again
+    {
+      List<TargetedResult> resultsToFlush = manager.resultStored(result2, null);
+      expect(resultsToFlush, isEmpty);
+      expect(manager.currentSize, 3);
+      expect(manager.recentlyUsed, orderedEquals([result1, result3, result2]));
+    }
+    // store result4
+    {
+      List<TargetedResult> resultsToFlush = manager.resultStored(result4, null);
+      expect(resultsToFlush, [result1]);
+      expect(manager.currentSize, 3);
+      expect(manager.recentlyUsed, orderedEquals([result3, result2, result4]));
+      expect(manager.resultSizeMap, {result3: 1, result2: 1, result4: 1});
+    }
+  }
+
+  test_targetRemoved() {
+    ResultDescriptor descriptor1 = new ResultDescriptor('result1', null);
+    ResultDescriptor descriptor2 = new ResultDescriptor('result2', null);
+    ResultDescriptor descriptor3 = new ResultDescriptor('result3', null);
+    AnalysisTarget target1 = new TestSource('a.dart');
+    AnalysisTarget target2 = new TestSource('b.dart');
+    TargetedResult result1 = new TargetedResult(target1, descriptor1);
+    TargetedResult result2 = new TargetedResult(target2, descriptor2);
+    TargetedResult result3 = new TargetedResult(target1, descriptor3);
+    manager.resultStored(result1, null);
+    manager.resultStored(result2, null);
+    manager.resultStored(result3, null);
+    expect(manager.currentSize, 3);
+    expect(manager.recentlyUsed, orderedEquals([result1, result2, result3]));
+    expect(manager.resultSizeMap, {result1: 1, result2: 1, result3: 1});
+    // remove target1
+    {
+      manager.targetRemoved(target1);
+      expect(manager.currentSize, 1);
+      expect(manager.recentlyUsed, orderedEquals([result2]));
+      expect(manager.resultSizeMap, {result2: 1});
+    }
+    // remove target2
+    {
+      manager.targetRemoved(target2);
+      expect(manager.currentSize, 0);
+      expect(manager.recentlyUsed, isEmpty);
+      expect(manager.resultSizeMap, isEmpty);
+    }
+  }
+}
+
 abstract class CachePartitionTest extends EngineTestCase {
-  CachePartition createPartition([CacheRetentionPolicy policy = null]);
+  CachePartition createPartition();
 
   void test_creation() {
     expect(createPartition(), isNotNull);
@@ -542,6 +675,15 @@ abstract class CachePartitionTest extends EngineTestCase {
     expect(partition.get(target), isNull);
   }
 
+  void test_put_alreadyInPartition() {
+    CachePartition partition1 = createPartition();
+    CachePartition partition2 = createPartition();
+    AnalysisTarget target = new TestSource();
+    CacheEntry entry = new CacheEntry();
+    partition1.put(target, entry);
+    expect(() => partition2.put(target, entry), throwsStateError);
+  }
+
   void test_put_noFlush() {
     CachePartition partition = createPartition();
     AnalysisTarget target = new TestSource();
@@ -559,48 +701,6 @@ abstract class CachePartitionTest extends EngineTestCase {
     partition.remove(target);
     expect(partition.get(target), isNull);
   }
-
-  void test_setMaxCacheSize() {
-    CachePartition partition =
-        createPartition(new TestCacheRetentionPolicy(RetentionPriority.LOW));
-    ResultDescriptor result = new ResultDescriptor('result', null);
-    NullLiteral node = new NullLiteral(null);
-    int size = 6; // Must be <= partition.maxCacheSize
-    for (int i = 0; i < size; i++) {
-      AnalysisTarget target = new TestSource("/test$i.dart");
-      CacheEntry entry = new CacheEntry();
-      entry.setValue(result, node, TargetedResult.EMPTY_LIST, null);
-      partition.put(target, entry);
-      partition.accessedAst(target);
-    }
-
-    void assertNonFlushedCount(int expectedCount, CachePartition partition) {
-      int nonFlushedCount = 0;
-      Map<AnalysisTarget, CacheEntry> entryMap = partition.map;
-      entryMap.values.forEach((CacheEntry entry) {
-        if (entry.getState(result) != CacheState.FLUSHED) {
-          nonFlushedCount++;
-        }
-      });
-      expect(nonFlushedCount, expectedCount);
-    }
-
-    assertNonFlushedCount(size, partition);
-    int newSize = size - 2;
-    partition.maxCacheSize = newSize;
-    assertNonFlushedCount(newSize, partition);
-  }
-
-  void test_size() {
-    CachePartition partition = createPartition();
-    int size = 4;
-    for (int i = 0; i < size; i++) {
-      AnalysisTarget target = new TestSource("/test$i.dart");
-      partition.put(target, new CacheEntry());
-      partition.accessedAst(target);
-    }
-    expect(partition.size(), size);
-  }
 }
 
 @reflectiveTest
@@ -616,8 +716,8 @@ class ResultDataTest extends EngineTestCase {
 
 @reflectiveTest
 class SdkCachePartitionTest extends CachePartitionTest {
-  CachePartition createPartition([CacheRetentionPolicy policy = null]) {
-    return new SdkCachePartition(null, 8);
+  CachePartition createPartition() {
+    return new SdkCachePartition(null);
   }
 
   void test_contains_false() {
@@ -627,7 +727,7 @@ class SdkCachePartitionTest extends CachePartitionTest {
   }
 
   void test_contains_true() {
-    SdkCachePartition partition = new SdkCachePartition(null, 8);
+    SdkCachePartition partition = new SdkCachePartition(null);
     SourceFactory factory = new SourceFactory(
         [new DartUriResolver(DirectoryBasedDartSdk.defaultSdk)]);
     AnalysisTarget target = factory.forUri("dart:core");
@@ -636,26 +736,19 @@ class SdkCachePartitionTest extends CachePartitionTest {
 }
 
 @reflectiveTest
-class TestCacheRetentionPolicy extends CacheRetentionPolicy {
-  final RetentionPriority policy;
-
-  TestCacheRetentionPolicy([this.policy = RetentionPriority.MEDIUM]);
-
-  @override
-  RetentionPriority getAstPriority(AnalysisTarget target, CacheEntry entry) =>
-      policy;
-}
-
-@reflectiveTest
 class UniversalCachePartitionTest extends CachePartitionTest {
-  CachePartition createPartition([CacheRetentionPolicy policy = null]) {
-    return new UniversalCachePartition(null, 8, policy);
+  CachePartition createPartition() {
+    return new UniversalCachePartition(null);
   }
 
   void test_contains() {
-    UniversalCachePartition partition =
-        new UniversalCachePartition(null, 8, null);
+    UniversalCachePartition partition = new UniversalCachePartition(null);
     TestSource source = new TestSource();
     expect(partition.contains(source), isTrue);
   }
+}
+
+class _InternalAnalysisContextMock extends TypedMock
+    implements InternalAnalysisContext {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

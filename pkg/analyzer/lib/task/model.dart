@@ -279,7 +279,8 @@ abstract class ListResultDescriptor<E> implements ResultDescriptor<List<E>> {
    * composite result is specified, then this result will contribute to it.
    */
   factory ListResultDescriptor(String name, List<E> defaultValue,
-      {CompositeResultDescriptor<List<E>> contributesTo}) = ListResultDescriptorImpl<E>;
+      {CompositeResultDescriptor<List<E>> contributesTo,
+      ResultCachingPolicy<List<E>> cachingPolicy}) = ListResultDescriptorImpl<E>;
 
   @override
   ListTaskInput<E> of(AnalysisTarget target);
@@ -338,6 +339,32 @@ abstract class MapTaskInput<K, V> extends TaskInput<Map<K, V>> {
 }
 
 /**
+ * A policy object that can compute sizes of results and provide the maximum
+ * active and idle sizes that can be kept in the cache.
+ *
+ * All the [ResultDescriptor]s with the same [ResultCachingPolicy] instance
+ * share the same total size in a cache.
+ */
+abstract class ResultCachingPolicy<T> {
+  /**
+   * Return the maximum total size of results that can be kept in the cache
+   * while analysis is in progress.
+   */
+  int get maxActiveSize;
+
+  /**
+   * Return the maximum total size of results that can be kept in the cache
+   * while analysis is idle.
+   */
+  int get maxIdleSize;
+
+  /**
+   * Return the size of the given [object].
+   */
+  int measure(T object);
+}
+
+/**
  * A description of an analysis result that can be computed by an [AnalysisTask].
  *
  * Clients are not expected to subtype this class.
@@ -346,9 +373,19 @@ abstract class ResultDescriptor<V> {
   /**
    * Initialize a newly created analysis result to have the given [name]. If a
    * composite result is specified, then this result will contribute to it.
+   *
+   * The given [cachingPolicy] is used to limit the total size of results
+   * described by this descriptor. If no policy is specified, the results are
+   * never evicted from the cache, and removed only when they are invalidated.
    */
   factory ResultDescriptor(String name, V defaultValue,
-      {CompositeResultDescriptor<V> contributesTo}) = ResultDescriptorImpl;
+      {CompositeResultDescriptor<V> contributesTo,
+      ResultCachingPolicy<V> cachingPolicy}) = ResultDescriptorImpl;
+
+  /**
+   * Return the caching policy for results described by this descriptor.
+   */
+  ResultCachingPolicy<V> get cachingPolicy;
 
   /**
    * Return the default value for results described by this descriptor.
