@@ -499,13 +499,23 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   /**
    * Handle an import/export tag by loading the referenced library and
    * registering its dependency in [handler] for the computation of the import/
-   * export scope.
+   * export scope. If the tag does not contain a valid URI, then its dependency
+   * is not registered in [handler].
    */
-  Future registerLibraryFromTag(LibraryDependencyHandler handler,
-                                LibraryElement library,
-                                LibraryDependency tag) {
+  Future<Null> registerLibraryFromTag(LibraryDependencyHandler handler,
+                                      LibraryElement library,
+                                      LibraryDependency tag) {
     Uri base = library.canonicalUri;
-    Uri resolvedUri = base.resolve(tag.uri.dartString.slowToString());
+    String tagUriString = tag.uri.dartString.slowToString();
+    Uri resolvedUri;
+    try {
+      resolvedUri = base.resolve(tagUriString);
+    } on FormatException {
+      compiler.reportError(
+          tag.uri, MessageKind.INVALID_URI, {'uri': tagUriString});
+      // 'reportError' does not stop necessarily stop compilation
+      return new Future.value();
+    }
     return createLibrary(handler, library, resolvedUri, tag.uri)
         .then((LibraryElement loadedLibrary) {
           if (loadedLibrary == null) return;

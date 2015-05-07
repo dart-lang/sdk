@@ -1560,6 +1560,17 @@ import 'dart:mirrors';
 main() {}
 """]);
 
+  static const MessageKind INVALID_URI = const MessageKind(
+      "'#{uri}' is not a valid URI.",
+      howToFix: DONT_KNOW_HOW_TO_FIX,
+      examples: const [
+        """
+// can't have a '[' in a URI
+import '../../Udyn[mic ils/expect.dart';
+
+main() {}
+"""]);
+
   static const MessageKind READ_SCRIPT_ERROR = const MessageKind(
       "Can't read '#{uri}' (#{exception}).",
       // Don't know how to fix since the underlying error is unknown.

@@ -418,7 +418,7 @@ abstract class Backend {
   /// have special treatment, such as being allowed to extends blacklisted
   /// classes or member being eagerly resolved.
   bool isBackendLibrary(LibraryElement library) {
-    // TODO(johnnwinther): Remove this when patching is only done by the
+    // TODO(johnniwinther): Remove this when patching is only done by the
     // JavaScript backend.
     Uri canonicalUri = library.canonicalUri;
     if (canonicalUri == js_backend.JavaScriptBackend.DART_JS_HELPER ||
@@ -654,7 +654,7 @@ abstract class Compiler implements DiagnosticListener {
   final CacheStrategy cacheStrategy;
 
   /**
-   * Map from token to the first preceeding comment token.
+   * Map from token to the first preceding comment token.
    */
   final TokenMap commentMap = new TokenMap();
 
@@ -1053,7 +1053,7 @@ abstract class Compiler implements DiagnosticListener {
       progress = new Stopwatch()..start();
     }
 
-    // TODO(johnniwinther): Separate the dependency tracking from the enqueueing
+    // TODO(johnniwinther): Separate the dependency tracking from the enqueuing
     // for global dependencies.
     globalDependencies =
         new CodegenRegistry(this, new TreeElementMapping(null));
