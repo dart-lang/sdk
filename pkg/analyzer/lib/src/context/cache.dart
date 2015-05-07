@@ -65,8 +65,9 @@ class AnalysisCache {
   CacheEntry get(AnalysisTarget target) {
     int count = _partitions.length;
     for (int i = 0; i < count; i++) {
-      if (_partitions[i].contains(target)) {
-        return _partitions[i].get(target);
+      CachePartition partition = _partitions[i];
+      if (partition.isResponsibleFor(target)) {
+        return partition.get(target);
       }
     }
     //
@@ -83,8 +84,9 @@ class AnalysisCache {
   InternalAnalysisContext getContextFor(AnalysisTarget target) {
     int count = _partitions.length;
     for (int i = 0; i < count; i++) {
-      if (_partitions[i].contains(target)) {
-        return _partitions[i].context;
+      CachePartition partition = _partitions[i];
+      if (partition.isResponsibleFor(target)) {
+        return partition.context;
       }
     }
     //
@@ -119,9 +121,10 @@ class AnalysisCache {
     entry.fixExceptionState();
     int count = _partitions.length;
     for (int i = 0; i < count; i++) {
-      if (_partitions[i].contains(target)) {
+      CachePartition partition = _partitions[i];
+      if (partition.isResponsibleFor(target)) {
         if (_TRACE_CHANGES) {
-          CacheEntry oldEntry = _partitions[i].get(target);
+          CacheEntry oldEntry = partition.get(target);
           if (oldEntry == null) {
             AnalysisEngine.instance.logger
                 .logInformation('Added a cache entry for $target.');
@@ -131,7 +134,7 @@ class AnalysisCache {
 //                'Diff = ${entry.getDiff(oldEntry)}');
           }
         }
-        _partitions[i].put(target, entry);
+        partition.put(target, entry);
         return;
       }
     }
@@ -145,12 +148,13 @@ class AnalysisCache {
   void remove(AnalysisTarget target) {
     int count = _partitions.length;
     for (int i = 0; i < count; i++) {
-      if (_partitions[i].contains(target)) {
+      CachePartition partition = _partitions[i];
+      if (partition.isResponsibleFor(target)) {
         if (_TRACE_CHANGES) {
           AnalysisEngine.instance.logger
               .logInformation('Removed the cache entry for $target.');
         }
-        _partitions[i].remove(target);
+        partition.remove(target);
         return;
       }
     }
@@ -169,13 +173,9 @@ class AnalysisCache {
   }
 
   ResultData _getDataFor(TargetedResult result) {
-    AnalysisTarget target = result.target;
-    int count = _partitions.length;
-    for (int i = 0; i < count; i++) {
-      if (_partitions[i].contains(target)) {
-        CacheEntry entry = _partitions[i].get(target);
-        return entry._getResultData(result.result);
-      }
+    CacheEntry entry = get(result.target);
+    if (entry != null) {
+      return entry._getResultData(result.result);
     }
     return null;
   }
@@ -675,11 +675,9 @@ abstract class CachePartition {
   Map<AnalysisTarget, CacheEntry> get map => _targetMap;
 
   /**
-   * Return `true` if the given [target] is contained in this partition.
+   * Return `true` if this partition is responsible for the given [target].
    */
-  // TODO(brianwilkerson) Rename this to something more meaningful, such as
-  // isResponsibleFor.
-  bool contains(AnalysisTarget target);
+  bool isResponsibleFor(AnalysisTarget target);
 
   /**
    * Return the entry associated with the given [target].
@@ -832,7 +830,7 @@ class SdkCachePartition extends CachePartition {
   SdkCachePartition(InternalAnalysisContext context) : super(context);
 
   @override
-  bool contains(AnalysisTarget target) {
+  bool isResponsibleFor(AnalysisTarget target) {
     if (target is AnalysisContextTarget) {
       return true;
     }
@@ -892,5 +890,5 @@ class UniversalCachePartition extends CachePartition {
   UniversalCachePartition(InternalAnalysisContext context) : super(context);
 
   @override
-  bool contains(AnalysisTarget target) => true;
+  bool isResponsibleFor(AnalysisTarget target) => true;
 }

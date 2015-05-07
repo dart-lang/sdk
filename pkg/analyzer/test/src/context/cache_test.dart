@@ -743,7 +743,7 @@ class SdkCachePartitionTest extends CachePartitionTest {
   void test_contains_false() {
     CachePartition partition = createPartition();
     AnalysisTarget target = new TestSource();
-    expect(partition.contains(target), isFalse);
+    expect(partition.isResponsibleFor(target), isFalse);
   }
 
   void test_contains_true() {
@@ -751,7 +751,7 @@ class SdkCachePartitionTest extends CachePartitionTest {
     SourceFactory factory = new SourceFactory(
         [new DartUriResolver(DirectoryBasedDartSdk.defaultSdk)]);
     AnalysisTarget target = factory.forUri("dart:core");
-    expect(partition.contains(target), isTrue);
+    expect(partition.isResponsibleFor(target), isTrue);
   }
 }
 
@@ -764,7 +764,7 @@ class UniversalCachePartitionTest extends CachePartitionTest {
   void test_contains() {
     UniversalCachePartition partition = new UniversalCachePartition(null);
     TestSource source = new TestSource();
-    expect(partition.contains(source), isTrue);
+    expect(partition.isResponsibleFor(source), isTrue);
   }
 }
 
