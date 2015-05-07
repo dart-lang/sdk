@@ -80,16 +80,13 @@ class DependencyQueue {
   /// It is an error to call this if [isEmpty] returns `true`. Note that this
   /// function is *not* re-entrant. You should only advance after the previous
   /// advance has completed.
-  Future<PackageDep> advance() {
+  Future<PackageDep> advance() async {
     // Emit the sorted ones first.
-    if (_presorted.isNotEmpty) {
-      return new Future.value(_presorted.removeFirst());
-    }
+    if (_presorted.isNotEmpty) return _presorted.removeFirst();
 
     // Sort the remaining packages when we need the first one.
-    if (!_isSorted) return _sort().then((_) => _remaining.removeAt(0));
-
-    return new Future.value(_remaining.removeAt(0));
+    if (!_isSorted) await _sort();
+    return _remaining.removeAt(0);
   }
 
   /// Sorts the unselected packages by number of versions and name.
@@ -123,32 +120,31 @@ class DependencyQueue {
 
   /// Given a dependency, returns a future that completes to the number of
   /// versions available for it.
-  Future<int> _getNumVersions(PackageDep dep) {
+  Future<int> _getNumVersions(PackageDep dep) async {
     // There is only ever one version of the root package.
-    if (dep.isRoot) {
-      return new Future.value(1);
-    }
+    if (dep.isRoot) return 1;
 
-    return _solver.cache.getVersions(dep.toRef()).then((versions) {
-      // If the root package depends on this one, ignore versions that don't
-      // match that constraint. Since the root package's dependency constraints
-      // won't change during solving, we can safely filter out packages that
-      // don't meet it.
-      for (var rootDep in _solver.root.immediateDependencies) {
-        if (rootDep.name == dep.name) {
-          versions = versions.where(
-              (id) => rootDep.constraint.allows(id.version));
-          break;
-        }
-      }
-
-      return versions.length;
-    }).catchError((error, trace) {
+    var versions;
+    try {
+      versions = await _solver.cache.getVersions(dep.toRef());
+    } catch (error, stackTrace) {
       // If it fails for any reason, just treat that as no versions. This
       // will sort this reference higher so that we can traverse into it
       // and report the error more properly.
       log.solver("Could not get versions for $dep:\n$error\n\n$trace");
       return 0;
-    });
+    }
+
+    // If the root package depends on this one, ignore versions that don't match
+    // that constraint. Since the root package's dependency constraints won't
+    // change during solving, we can safely filter out packages that don't meet
+    // it.
+    for (var rootDep in _solver.root.immediateDependencies) {
+      if (rootDep.name != dep.name) continue;
+      return versions.where((id) => rootDep.constraint.allows(id.version))
+          .length;
+    }
+
+    return versions.length;
   }
 }

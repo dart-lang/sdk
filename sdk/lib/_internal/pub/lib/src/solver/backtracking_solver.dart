@@ -126,7 +126,7 @@ class BacktrackingSolver {
   ///
   /// Completes with a list of specific package versions if successful or an
   /// error if it failed to find a solution.
-  Future<SolveResult> solve() {
+  Future<SolveResult> solve() async {
     var stopwatch = new Stopwatch();
 
     _logParameters();
@@ -135,40 +135,36 @@ class BacktrackingSolver {
     var overrides = _overrides.values.toList();
     overrides.sort((a, b) => a.name.compareTo(b.name));
 
-    // TODO(nweiz): Use async/await here once
-    // https://github.com/dart-lang/async_await/issues/79 is fixed.
-    return new Future.sync(() {
+    try {
       stopwatch.start();
 
       // Pre-cache the root package's known pubspec.
       cache.cache(new PackageId.root(root), root.pubspec);
 
       _validateSdkConstraint(root.pubspec);
-      return _traverseSolution();
-    }).then((packages) {
+      var packages = await _traverseSolution();
+
       var pubspecs = new Map.fromIterable(packages,
           key: (id) => id.name,
           value: (id) => cache.getCachedPubspec(id));
 
-      return Future.wait(
-              packages.map((id) => sources[id.source].resolveId(id)))
-          .then((packages) {
-        return new SolveResult.success(sources, root, lockFile, packages,
-            overrides, pubspecs, _getAvailableVersions(packages),
-            attemptedSolutions);
-      });
-    }).catchError((error) {
-      if (error is! SolveFailure) throw error;
+      var resolved = await Future.wait(
+          packages.map((id) => sources[id.source].resolveId(id)));
+
+      return new SolveResult.success(sources, root, lockFile, resolved,
+          overrides, pubspecs, _getAvailableVersions(resolved),
+          attemptedSolutions);
+    } on SolveFailure catch (error) {
       // Wrap a failure in a result so we can attach some other data.
       return new SolveResult.failure(sources, root, lockFile, overrides,
           error, attemptedSolutions);
-    }).whenComplete(() {
+    } finally {
       // Gather some solving metrics.
       var buffer = new StringBuffer();
       buffer.writeln('${runtimeType} took ${stopwatch.elapsed} seconds.');
       buffer.writeln(cache.describeResults());
       log.solver(buffer);
-    });
+    }
   }
 
   /// Generates a map containing all of the known available versions for each
@@ -274,9 +270,9 @@ class BacktrackingSolver {
   /// possible solution.
   ///
   /// Returns `true` if there is a new solution to try.
-  Future<bool> _backtrack(SolveFailure failure) {
+  Future<bool> _backtrack(SolveFailure failure) async {
     // Bail if there is nothing to backtrack to.
-    if (_selected.isEmpty) return new Future.value(false);
+    if (_selected.isEmpty) return false;
 
     // Mark any packages that may have led to this failure so that we know to
     // consider them when backtracking.
@@ -289,28 +285,22 @@ class BacktrackingSolver {
     }
 
     // Advance past the current version of the leaf-most package.
-    advanceVersion() {
+    while (!_selected.isEmpty) {
       _backjump(failure);
       var previous = _selected.last.current;
-      return _selected.last.advance().then((success) {
-        if (success) {
-          logSolve();
-          return true;
-        }
+      var success = await _selected.last.advance();
+      if (success) {
+        logSolve();
+        return true;
+      }
 
-        logSolve('$previous is last version, backtracking');
+      logSolve('$previous is last version, backtracking');
 
-        // That package has no more versions, so pop it and try the next one.
-        _selected.removeLast();
-        if (_selected.isEmpty) return false;
-
-        // If we got here, the leafmost package was discarded so we need to
-        // advance the next one.
-        return advanceVersion();
-      });
+      // That package has no more versions, so pop it and try the next one.
+      _selected.removeLast();
     }
 
-    return advanceVersion();
+    return false;
   }
 
   /// Walks the selected packages from most to least recent to determine which
@@ -489,155 +479,156 @@ class Traverser {
   /// Completes to a list of package IDs if the traversal completed
   /// successfully and found a solution. Completes to an error if the traversal
   /// failed. Otherwise, recurses to the next package in the queue, etc.
-  Future<List<PackageId>> _traversePackage() {
-    if (_packages.isEmpty) {
-      // We traversed the whole graph. If we got here, we successfully found
-      // a solution.
-      return new Future<List<PackageId>>.value(_visited.toList());
-    }
-
-    var id = _packages.removeFirst();
-
-    // Don't visit the same package twice.
-    if (_visited.contains(id)) {
-      return _traversePackage();
-    }
-    _visited.add(id);
-
-    return _solver.cache.getPubspec(id).then((pubspec) {
-      _validateSdkConstraint(pubspec);
-
-      var deps = pubspec.dependencies.toSet();
-
-      if (id.isRoot) {
-        // Include dev dependencies of the root package.
-        deps.addAll(pubspec.devDependencies);
-
-        // Add all overrides. This ensures a dependency only present as an
-        // override is still included.
-        deps.addAll(_solver._overrides.values);
+  Future<List<PackageId>> _traversePackage() async {
+    // TODO(nweiz): Use a real while loop when issue 23394 is fixed.
+    await Future.doWhile(() async {
+      // Move past any packages we've already traversed.
+      while (_packages.isNotEmpty && _visited.contains(_packages.first)) {
+        _packages.removeFirst();
       }
 
-      // Replace any overridden dependencies.
-      deps = deps.map((dep) {
-        var override = _solver._overrides[dep.name];
-        if (override != null) return override;
+      // If there are no more packages to traverse, we've traversed the whole
+      // graph. If we got here, we successfully found a solution.
+      if (_packages.isEmpty) return false;
 
-        // Not overridden.
-        return dep;
-      }).toSet();
+      var id = _packages.removeFirst();
+      _visited.add(id);
+      await _traverseDeps(id, await _dependencyQueueFor(id));
+      return true;
+    });
 
-      // Make sure the package doesn't have any bad dependencies.
-      for (var dep in deps) {
-        if (!dep.isRoot && _solver.sources[dep.source] is UnknownSource) {
-          throw new UnknownSourceException(id.name,
-              [new Dependency(id.name, id.version, dep)]);
-        }
-      }
+    return _visited.toList();
+  }
 
-      return _traverseDeps(id, new DependencyQueue(_solver, deps));
-    }).catchError((error) {
-      if (error is! PackageNotFoundException) throw error;
-
+  Future<DependencyQueue> _dependencyQueueFor(PackageId id) async {
+    var pubspec;
+    try {
+      pubspec = await _solver.cache.getPubspec(id);
+    } on PackageNotFoundException catch (error) {
       // We can only get here if the lockfile refers to a specific package
       // version that doesn't exist (probably because it was yanked).
       throw new NoVersionException(id.name, null, id.version, []);
-    });
+    }
+
+    _validateSdkConstraint(pubspec);
+
+    var deps = pubspec.dependencies.toSet();
+
+    if (id.isRoot) {
+      // Include dev dependencies of the root package.
+      deps.addAll(pubspec.devDependencies);
+
+      // Add all overrides. This ensures a dependency only present as an
+      // override is still included.
+      deps.addAll(_solver._overrides.values);
+    }
+
+    // Replace any overridden dependencies.
+    deps = deps.map((dep) {
+      var override = _solver._overrides[dep.name];
+      if (override != null) return override;
+
+      // Not overridden.
+      return dep;
+    }).toSet();
+
+    // Make sure the package doesn't have any bad dependencies.
+    for (var dep in deps) {
+      if (!dep.isRoot && _solver.sources[dep.source] is UnknownSource) {
+        throw new UnknownSourceException(id.name,
+            [new Dependency(id.name, id.version, dep)]);
+      }
+    }
+
+    return new DependencyQueue(_solver, deps);
   }
 
   /// Traverses the references that [depender] depends on, stored in [deps].
   ///
-  /// Desctructively modifies [deps]. Completes to a list of packages if the
-  /// traversal is complete. Completes it to an error if a failure occurred.
-  /// Otherwise, recurses.
-  Future<List<PackageId>> _traverseDeps(PackageId depender,
-      DependencyQueue deps) {
-    // Move onto the next package if we've traversed all of these references.
-    if (deps.isEmpty) return _traversePackage();
+  /// Desctructively modifies [deps].
+  Future _traverseDeps(PackageId depender, DependencyQueue deps) {
+    // TODO(nweiz): Use a real while loop when issue 23394 is fixed.
+    return Future.doWhile(() async {
+      if (deps.isEmpty) return false;
 
-    return resetStack(() {
-      return deps.advance().then((dep) {
-        var dependency = new Dependency(depender.name, depender.version, dep);
-        return _registerDependency(dependency).then((_) {
-          if (dep.name == "barback") return _addImplicitDependencies();
-        });
-      }).then((_) => _traverseDeps(depender, deps));
+      var dep = await deps.advance();
+      var dependency = new Dependency(depender.name, depender.version, dep);
+      await _registerDependency(dependency);
+      if (dep.name == "barback") await _addImplicitDependencies();
+      return true;
     });
   }
 
   /// Register [dependency]'s constraints on the package it depends on and
   /// enqueues the package for processing if necessary.
-  Future _registerDependency(Dependency dependency) {
-    return new Future.sync(() {
-      _validateDependency(dependency);
+  Future _registerDependency(Dependency dependency) async {
+    _validateDependency(dependency);
 
-      var dep = dependency.dep;
-      var dependencies = _getDependencies(dep.name);
-      dependencies.add(dependency);
+    var dep = dependency.dep;
+    var dependencies = _getDependencies(dep.name);
+    dependencies.add(dependency);
 
-      var constraint = _getConstraint(dep.name);
+    var constraint = _getConstraint(dep.name);
 
-      // See if it's possible for a package to match that constraint.
-      if (constraint.isEmpty) {
-        var constraints = dependencies
-            .map((dep) => "  ${dep.dep.constraint} from ${dep.depender}")
-            .join('\n');
-        _solver.logSolve(
-            'disjoint constraints on ${dep.name}:\n$constraints');
-        throw new DisjointConstraintException(dep.name, dependencies);
-      }
+    // See if it's possible for a package to match that constraint.
+    if (constraint.isEmpty) {
+      var constraints = dependencies
+          .map((dep) => "  ${dep.dep.constraint} from ${dep.depender}")
+          .join('\n');
+      _solver.logSolve(
+          'disjoint constraints on ${dep.name}:\n$constraints');
+      throw new DisjointConstraintException(dep.name, dependencies);
+    }
 
-      var selected = _validateSelected(dep, constraint);
-      if (selected != null) {
-        // The selected package version is good, so enqueue it to traverse
-        // into it.
-        _packages.add(selected);
-        return null;
-      }
+    var selected = _validateSelected(dep, constraint);
+    if (selected != null) {
+      // The selected package version is good, so enqueue it to traverse
+      // into it.
+      _packages.add(selected);
+      return;
+    }
 
-      // We haven't selected a version. Try all of the versions that match
-      // the constraints we currently have for this package.
-      var locked = _getValidLocked(dep.name);
+    // We haven't selected a version. Try all of the versions that match
+    // the constraints we currently have for this package.
+    var locked = _getValidLocked(dep.name);
 
-      return VersionQueue.create(locked, () {
-        return _getAllowedVersions(dep);
-      }).then((versions) => _packages.add(_solver.select(versions)));
-    });
+    var versions = await VersionQueue.create(
+        locked, () => _getAllowedVersions(dep));
+    _packages.add(_solver.select(versions));
   }
 
   /// Gets all versions of [dep] that match the current constraints placed on
   /// it.
-  Future<Iterable<PackageId>> _getAllowedVersions(PackageDep dep) {
+  Future<Iterable<PackageId>> _getAllowedVersions(PackageDep dep) async {
     var constraint = _getConstraint(dep.name);
-    return _solver.cache.getVersions(dep.toRef()).then((versions) {
-      var allowed = versions.where((id) => constraint.allows(id.version));
+    var versions;
+    try {
+      versions = await _solver.cache.getVersions(dep.toRef());
+    } on PackageNotFoundException catch (error) {
+      // Show the user why the package was being requested.
+      throw new DependencyNotFoundException(
+          dep.name, error, _getDependencies(dep.name));
+    }
 
-      if (allowed.isEmpty) {
-        _solver.logSolve('no versions for ${dep.name} match $constraint');
-        throw new NoVersionException(dep.name, null, constraint,
-            _getDependencies(dep.name));
-      }
+    var allowed = versions.where((id) => constraint.allows(id.version));
 
-      // If we're doing an upgrade on this package, only allow the latest
-      // version.
-      if (_solver._forceLatest.contains(dep.name)) allowed = [allowed.first];
+    if (allowed.isEmpty) {
+      _solver.logSolve('no versions for ${dep.name} match $constraint');
+      throw new NoVersionException(dep.name, null, constraint,
+          _getDependencies(dep.name));
+    }
 
-      // Remove the locked version, if any, since that was already handled.
-      var locked = _getValidLocked(dep.name);
-      if (locked != null) {
-        allowed = allowed.where((dep) => dep.version != locked.version);
-      }
+    // If we're doing an upgrade on this package, only allow the latest
+    // version.
+    if (_solver._forceLatest.contains(dep.name)) allowed = [allowed.first];
 
-      return allowed;
-    }).catchError((error, stackTrace) {
-      if (error is PackageNotFoundException) {
-        // Show the user why the package was being requested.
-        throw new DependencyNotFoundException(
-            dep.name, error, _getDependencies(dep.name));
-      }
+    // Remove the locked version, if any, since that was already handled.
+    var locked = _getValidLocked(dep.name);
+    if (locked != null) {
+      allowed = allowed.where((dep) => dep.version != locked.version);
+    }
 
-      throw error;
-    });
+    return allowed;
   }
 
   /// Ensures that dependency [dep] from [depender] is consistent with the
@@ -692,11 +683,11 @@ class Traverser {
   ///
   /// Pub has an implicit version constraint on barback and various other
   /// packages used in barback's plugin isolate.
-  Future _addImplicitDependencies() {
+  Future _addImplicitDependencies() async {
     /// Ensure we only add the barback dependency once.
-    if (_getDependencies("barback").length != 1) return new Future.value();
+    if (_getDependencies("barback").length != 1) return;
 
-    return Future.wait(barback.pubConstraints.keys.map((depName) {
+    await Future.wait(barback.pubConstraints.keys.map((depName) {
       var constraint = barback.pubConstraints[depName];
       _solver.logSolve('add implicit $constraint pub dependency on '
           '$depName');
