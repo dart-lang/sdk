@@ -411,10 +411,10 @@ void _iterablePartsToStrings(Iterable iterable, List parts) {
  *
  * Methods that worry about reading the length of an `Iterable` because it
  * may be inefficient or may trigger side-effects, or may even never complete,
- * can first check if the iterable `is EfficientLengthIterableIterable`,
+ * can first check if the iterable `is EfficientLengthIterable`,
  * and if so, use [length] without those concerns.
  *
- * The `EfficientLengthIterable` type should never be used as an API type
+ * The `EfficientLengthIterable` type should never be used as a type
  * assertion - neither as argument type or return type of a function.
  * Always use [Iterable] for the type and just document the performance if it
  * is relevant. This avoids needlessly restricting the values that can be used.
