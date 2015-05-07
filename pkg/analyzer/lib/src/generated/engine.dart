@@ -19,6 +19,7 @@ import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/src/task/task_dart.dart';
+import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
 
 import '../../instrumentation/instrumentation.dart';
@@ -5773,6 +5774,9 @@ class AnalysisEngine {
     if (_taskManager == null) {
       _taskManager = new TaskManager();
       _taskManager.addTaskDescriptors(enginePlugin.taskDescriptors);
+      // TODO(brianwilkerson) Create a way to associate different results with
+      // different file suffixes, then make this pluggable.
+      _taskManager.addGeneralResult(DART_ERRORS);
     }
     return _taskManager;
   }

@@ -548,7 +548,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> computeImportedLibraries(Source source) =>
-      _computeResult(source, IMPORTED_LIBRARIES);
+      _computeResult(source, EXPLICITLY_IMPORTED_LIBRARIES);
 
   @override
   SourceKind computeKindOf(Source source) {
@@ -1415,6 +1415,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Return a list containing all of the cache entries for targets associated
+   * with the given [source].
+   */
+  List<cache.CacheEntry> _entriesFor(Source source) {
+    List<cache.CacheEntry> entries = <cache.CacheEntry>[];
+    MapIterator<AnalysisTarget, cache.CacheEntry> iterator = _cache.iterator();
+    while (iterator.moveNext()) {
+      if (iterator.key.source == source) {
+        entries.add(iterator.value);
+      }
+    }
+    return entries;
+  }
+
+  /**
    * Return a list containing all of the change notices that are waiting to be
    * returned. If there are no notices, then return either `null` or an empty
    * list, depending on the value of [nullIfEmpty].
@@ -1751,6 +1766,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       try {
         TimestampedData<String> fileContents = getContents(source);
         if (fileContents.data == sourceContent) {
+          int time = fileContents.modificationTime;
+          for (cache.CacheEntry entry in _entriesFor(source)) {
+            entry.modificationTime = time;
+          }
           return;
         }
       } catch (e) {}
@@ -1885,58 +1904,56 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   bool _validateCacheConsistency() {
     int consistencyCheckStart = JavaSystem.nanoTime();
-    List<AnalysisTarget> changedTargets = new List<AnalysisTarget>();
-    List<AnalysisTarget> missingTargets = new List<AnalysisTarget>();
+    HashSet<Source> changedSources = new HashSet<Source>();
+    HashSet<Source> missingSources = new HashSet<Source>();
     MapIterator<AnalysisTarget, cache.CacheEntry> iterator = _cache.iterator();
     while (iterator.moveNext()) {
-      AnalysisTarget target = iterator.key;
-      cache.CacheEntry entry = iterator.value;
-      if (target is Source) {
-        int sourceTime = getModificationStamp(target);
+      Source source = iterator.key.source;
+      if (source != null) {
+        cache.CacheEntry entry = iterator.value;
+        int sourceTime = getModificationStamp(source);
         if (sourceTime != entry.modificationTime) {
-          changedTargets.add(target);
+          changedSources.add(source);
         }
-      }
-      if (entry.exception != null) {
-        if (!exists(target)) {
-          missingTargets.add(target);
+        if (entry.exception != null) {
+          if (!exists(source)) {
+            missingSources.add(source);
+          }
         }
       }
     }
-    int count = changedTargets.length;
-    for (int i = 0; i < count; i++) {
-      _sourceChanged(changedTargets[i]);
+    for (Source source in changedSources) {
+      _sourceChanged(source);
     }
     int removalCount = 0;
-    for (AnalysisTarget target in missingTargets) {
-      if (target is Source &&
-          getLibrariesContaining(target).isEmpty &&
-          getLibrariesDependingOn(target).isEmpty) {
-        _cache.remove(target);
+    for (Source source in missingSources) {
+      if (getLibrariesContaining(source).isEmpty &&
+          getLibrariesDependingOn(source).isEmpty) {
+        _cache.remove(source);
         removalCount++;
       }
     }
     int consistencyCheckEnd = JavaSystem.nanoTime();
-    if (changedTargets.length > 0 || missingTargets.length > 0) {
+    if (changedSources.length > 0 || missingSources.length > 0) {
       StringBuffer buffer = new StringBuffer();
       buffer.write("Consistency check took ");
       buffer.write((consistencyCheckEnd - consistencyCheckStart) / 1000000.0);
       buffer.writeln(" ms and found");
       buffer.write("  ");
-      buffer.write(changedTargets.length);
+      buffer.write(changedSources.length);
       buffer.writeln(" inconsistent entries");
       buffer.write("  ");
-      buffer.write(missingTargets.length);
+      buffer.write(missingSources.length);
       buffer.write(" missing sources (");
       buffer.write(removalCount);
       buffer.writeln(" removed");
-      for (Source source in missingTargets) {
+      for (Source source in missingSources) {
         buffer.write("    ");
         buffer.writeln(source.fullName);
       }
       _logInformation(buffer.toString());
     }
-    return changedTargets.length > 0;
+    return changedSources.length > 0;
   }
 }
 

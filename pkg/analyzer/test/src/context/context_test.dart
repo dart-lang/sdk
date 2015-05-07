@@ -176,18 +176,12 @@ import 'libB.dart';''';
     expect(context.computeHtmlElement(source), same(element));
   }
 
-  void fail_computeImportedLibraries_none() {
-    // This is failing because computeImportedLibraries now always includes
-    // dart:core, and we don't have any way of knowing whether it was explicit.
+  void test_computeImportedLibraries_none() {
     Source source = addSource("/test.dart", "library test;");
     expect(context.computeImportedLibraries(source), hasLength(0));
   }
 
-  void fail_computeImportedLibraries_some() {
-    // This is failing because computeImportedLibraries now always includes
-    // dart:core, and we don't have any way of knowing whether it was explicit.
-    //    addSource("/lib1.dart", "library lib1;");
-    //    addSource("/lib2.dart", "library lib2;");
+  void test_computeImportedLibraries_some() {
     Source source = addSource(
         "/test.dart", "library test; import 'lib1.dart'; import 'lib2.dart';");
     expect(context.computeImportedLibraries(source), hasLength(2));
@@ -424,9 +418,10 @@ class A {
     expect(result[0], librarySource);
   }
 
-  void fail_getResolvedCompilationUnit_library() {
+  void test_getResolvedCompilationUnit_library() {
     Source source = addSource("/lib.dart", "library libb;");
     LibraryElement library = context.computeLibraryElement(source);
+    context.computeErrors(source); // Force the resolved unit to be built.
     expect(context.getResolvedCompilationUnit(source, library), isNotNull);
     context.setContents(source, "library lib;");
     expect(context.getResolvedCompilationUnit(source, library), isNull);
@@ -563,7 +558,7 @@ part of lib;
         reason: "part resolved 3");
   }
 
-  void fail_performAnalysisTask_changePartContents_makeItAPart() {
+  void test_performAnalysisTask_changePartContents_makeItAPart() {
     Source libSource = addSource("/lib.dart", r'''
 library lib;
 part 'part.dart';
@@ -596,7 +591,7 @@ void g() { f(null); }''');
   /**
    * https://code.google.com/p/dart/issues/detail?id=12424
    */
-  void fail_performAnalysisTask_changePartContents_makeItNotPart() {
+  void test_performAnalysisTask_changePartContents_makeItNotPart() {
     Source libSource = addSource("/lib.dart", r'''
 library lib;
 part 'part.dart';
@@ -615,7 +610,7 @@ void g() { f(null); }''');
     expect(context.getErrors(libSource).errors.length != 0, isTrue);
   }
 
-  void fail_performAnalysisTask_changePartContents_noSemanticChanges() {
+  void test_performAnalysisTask_changePartContents_noSemanticChanges() {
     Source libSource =
         addSource("/test.dart", "library lib; part 'test-part.dart';");
     Source partSource = addSource("/test-part.dart", "part of lib;");
@@ -915,7 +910,7 @@ int ya = 0;''';
     });
   }
 
-  void test_setContents_unchanged_consistentModificationTime() {
+  void fail_setContents_unchanged_consistentModificationTime() {
     String contents = "// foo";
     Source source = addSource("/test.dart", contents);
     // do all, no tasks
@@ -1205,7 +1200,7 @@ main() {}''');
     expect(info, isNotNull);
   }
 
-  Future test_computeResolvedCompilationUnitAsync_afterDispose() {
+  Future fail_computeResolvedCompilationUnitAsync_afterDispose() {
     Source source = addSource("/lib.dart", "library lib;");
     // Complete all pending analysis tasks and flush the AST so that it won't
     // be available immediately.
