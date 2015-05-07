@@ -15101,41 +15101,39 @@ void Type::set_type_state(int8_t state) const {
 
 
 const char* Type::ToCString() const {
-  if (IsResolved()) {
-    const TypeArguments& type_arguments = TypeArguments::Handle(arguments());
-    const char* class_name;
-    if (HasResolvedTypeClass()) {
-      class_name = String::Handle(
-          Class::Handle(type_class()).Name()).ToCString();
-    } else {
-      class_name = UnresolvedClass::Handle(unresolved_class()).ToCString();
-    }
-    if (type_arguments.IsNull()) {
-      const char* format = "Type: class '%s'";
-      const intptr_t len = OS::SNPrint(NULL, 0, format, class_name) + 1;
-      char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-      OS::SNPrint(chars, len, format, class_name);
-      return chars;
-    } else if (IsFinalized() && IsRecursive()) {
-      const char* format = "Type: (@%" Px " H%" Px ") class '%s', args:[%s]";
-      const intptr_t hash = Hash();
-      const char* args_cstr = TypeArguments::Handle(arguments()).ToCString();
-      const intptr_t len =
-          OS::SNPrint(NULL, 0, format, raw(), hash, class_name, args_cstr) + 1;
-      char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-      OS::SNPrint(chars, len, format, raw(), hash, class_name, args_cstr);
-      return chars;
-    } else {
-      const char* format = "Type: class '%s', args:[%s]";
-      const char* args_cstr = TypeArguments::Handle(arguments()).ToCString();
-      const intptr_t len =
-          OS::SNPrint(NULL, 0, format, class_name, args_cstr) + 1;
-      char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-      OS::SNPrint(chars, len, format, class_name, args_cstr);
-      return chars;
-    }
+  const char* unresolved = IsResolved() ? "" : "Unresolved ";
+  const TypeArguments& type_arguments = TypeArguments::Handle(arguments());
+  const char* class_name;
+  if (HasResolvedTypeClass()) {
+    class_name = String::Handle(
+        Class::Handle(type_class()).Name()).ToCString();
   } else {
-    return "Unresolved Type";
+    class_name = UnresolvedClass::Handle(unresolved_class()).ToCString();
+  }
+  if (type_arguments.IsNull()) {
+    const char* format = "%sType: class '%s'";
+    const intptr_t len =
+        OS::SNPrint(NULL, 0, format, unresolved, class_name) + 1;
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, unresolved, class_name);
+    return chars;
+  } else if (IsResolved() && IsFinalized() && IsRecursive()) {
+    const char* format = "Type: (@%" Px " H%" Px ") class '%s', args:[%s]";
+    const intptr_t hash = Hash();
+    const char* args_cstr = TypeArguments::Handle(arguments()).ToCString();
+    const intptr_t len =
+        OS::SNPrint(NULL, 0, format, raw(), hash, class_name, args_cstr) + 1;
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, raw(), hash, class_name, args_cstr);
+    return chars;
+  } else {
+    const char* format = "%sType: class '%s', args:[%s]";
+    const char* args_cstr = TypeArguments::Handle(arguments()).ToCString();
+    const intptr_t len =
+        OS::SNPrint(NULL, 0, format, unresolved, class_name, args_cstr) + 1;
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, unresolved, class_name, args_cstr);
+    return chars;
   }
 }
 
