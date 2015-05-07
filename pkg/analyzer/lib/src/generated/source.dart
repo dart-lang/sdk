@@ -399,8 +399,8 @@ abstract class Source implements AnalysisTarget {
   /**
    * An empty list of sources.
    */
-  @deprecated
-  static const List<Source> EMPTY_ARRAY = const <Source>[];
+  @deprecated // Use Source.EMPTY_LIST
+  static const List<Source> EMPTY_ARRAY = EMPTY_LIST;
 
   /**
    * An empty list of sources.

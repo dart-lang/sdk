@@ -1411,7 +1411,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (nullIfEmpty) {
         return null;
       }
-      return ChangeNoticeImpl.EMPTY_ARRAY;
+      return ChangeNoticeImpl.EMPTY_LIST;
     }
     List<ChangeNotice> notices = new List.from(_pendingNotices.values);
     _pendingNotices.clear();
