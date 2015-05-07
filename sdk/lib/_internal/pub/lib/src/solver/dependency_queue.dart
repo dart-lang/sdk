@@ -131,7 +131,7 @@ class DependencyQueue {
       // If it fails for any reason, just treat that as no versions. This
       // will sort this reference higher so that we can traverse into it
       // and report the error more properly.
-      log.solver("Could not get versions for $dep:\n$error\n\n$trace");
+      log.solver("Could not get versions for $dep:\n$error\n\n$stackTrace");
       return 0;
     }
 

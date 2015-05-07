@@ -504,7 +504,7 @@ class Traverser {
     var pubspec;
     try {
       pubspec = await _solver.cache.getPubspec(id);
-    } on PackageNotFoundException catch (error) {
+    } on PackageNotFoundException {
       // We can only get here if the lockfile refers to a specific package
       // version that doesn't exist (probably because it was yanked).
       throw new NoVersionException(id.name, null, id.version, []);
