@@ -26,10 +26,20 @@ class AbstractContextTest {
   ExtensionManager extensionManager = new ExtensionManager();
 
   DartSdk sdk = new MockSdk();
+  SourceFactory sourceFactory;
   AnalysisContextImpl context;
 
   TaskManager taskManager = new TaskManager();
   AnalysisDriver analysisDriver;
+
+  Source addSource(String path, String contents) {
+    Source source = newSource(path, contents);
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.addedSource(source);
+    context.applyChanges(changeSet);
+    context.setContents(source, contents);
+    return source;
+  }
 
   /**
    * Assert that the given [elements] has the same number of items as the number
@@ -82,15 +92,18 @@ class AbstractContextTest {
     // configure TaskManager
     {
       EnginePlugin plugin = AnalysisEngine.instance.enginePlugin;
-      extensionManager.processPlugins([plugin]);
+      if (plugin.taskExtensionPoint == null) {
+        extensionManager.processPlugins([plugin]);
+      }
       taskManager.addTaskDescriptors(plugin.taskDescriptors);
     }
     // prepare AnalysisContext
-    context = createAnalysisContext();
-    context.sourceFactory = new SourceFactory(<UriResolver>[
+    sourceFactory = new SourceFactory(<UriResolver>[
       new DartUriResolver(sdk),
       new ResourceUriResolver(resourceProvider)
     ]);
+    context = createAnalysisContext();
+    context.sourceFactory = sourceFactory;
     // prepare AnalysisDriver
     analysisDriver = new AnalysisDriver(taskManager, context);
   }
