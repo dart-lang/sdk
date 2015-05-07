@@ -8679,7 +8679,7 @@ class ParameterMember extends VariableMember implements ParameterElement {
  *
  * This class is not intended to be part of the public API for analyzer.
  */
-abstract class PotentiallyConstVariableElement {
+abstract class PotentiallyConstVariableElement implements VariableElementImpl {
   /**
    * If this element represents a constant variable, and it has an initializer,
    * a copy of the initializer for the constant.  Otherwise `null`.

@@ -7,8 +7,6 @@
 
 library engine.all_the_rest_test;
 
-import 'dart:collection';
-
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -475,72 +473,40 @@ class ConstantEvaluationValidator_ForTest
     implements ConstantEvaluationValidator {
   ConstantValueComputer computer;
 
-  AstNode _nodeBeingEvaluated;
+  Element _nodeBeingEvaluated;
 
   @override
-  void beforeComputeValue(AstNode constNode) {
-    _nodeBeingEvaluated = constNode;
+  void beforeComputeValue(Element element) {
+    _nodeBeingEvaluated = element;
   }
 
   @override
   void beforeGetConstantInitializers(ConstructorElement constructor) {
-    // If we are getting the constant initializers for a node in the graph,
-    // make sure we properly recorded the dependency.
-    ConstructorDeclaration node =
-        computer.findConstructorDeclaration(constructor);
-    if (node != null && computer.referenceGraph.nodes.contains(node)) {
-      expect(computer.referenceGraph.containsPath(_nodeBeingEvaluated, node),
-          isTrue);
-    }
+    // Make sure we properly recorded the dependency.
+    expect(
+        computer.referenceGraph.containsPath(_nodeBeingEvaluated, constructor),
+        isTrue);
   }
 
   @override
-  void beforeGetEvaluationResult(AstNode node) {
-    // If we are getting the evaluation result for a node in the graph,
-    // make sure we properly recorded the dependency.
-    if (computer.referenceGraph.nodes.contains(node)) {
-      expect(computer.referenceGraph.containsPath(_nodeBeingEvaluated, node),
-          isTrue);
-    }
+  void beforeGetEvaluationResult(Element element) {
+    // Make sure we properly recorded the dependency.
+    expect(computer.referenceGraph.containsPath(_nodeBeingEvaluated, element),
+        isTrue);
   }
 
   @override
   void beforeGetFieldEvaluationResult(FieldElementImpl field) {
-    // If we are getting the constant value for a node in the graph, make sure
-    // we properly recorded the dependency.
-    VariableDeclaration node = computer.findVariableDeclaration(field);
-    if (node != null && computer.referenceGraph.nodes.contains(node)) {
-      expect(computer.referenceGraph.containsPath(_nodeBeingEvaluated, node),
-          isTrue);
-    }
+    // Make sure we properly recorded the dependency.
+    expect(computer.referenceGraph.containsPath(_nodeBeingEvaluated, field),
+        isTrue);
   }
 
   @override
   void beforeGetParameterDefault(ParameterElement parameter) {
-    // Find the ConstructorElement and figure out which
-    // parameter we're talking about.
-    ConstructorElement constructor =
-        parameter.getAncestor((element) => element is ConstructorElement);
-    int parameterIndex;
-    List<ParameterElement> parameters = constructor.parameters;
-    int numParameters = parameters.length;
-    for (parameterIndex = 0; parameterIndex < numParameters; parameterIndex++) {
-      if (identical(parameters[parameterIndex], parameter)) {
-        break;
-      }
-    }
-    expect(parameterIndex < numParameters, isTrue);
-    // If we are getting the default parameter for a constructor in the graph,
-    // make sure we properly recorded the dependency on the parameter.
-    ConstructorDeclaration constructorNode =
-        computer.constructorDeclarationMap[constructor];
-    if (constructorNode != null) {
-      FormalParameter parameterNode =
-          constructorNode.parameters.parameters[parameterIndex];
-      expect(computer.referenceGraph.nodes.contains(parameterNode), isTrue);
-      expect(computer.referenceGraph.containsPath(
-          _nodeBeingEvaluated, parameterNode), isTrue);
-    }
+    // Make sure we properly recorded the dependency.
+    expect(computer.referenceGraph.containsPath(_nodeBeingEvaluated, parameter),
+        isTrue);
   }
 }
 
@@ -957,73 +923,73 @@ class ConstantFinderTest extends EngineTestCase {
 
   void test_visitConstructorDeclaration_const() {
     ConstructorElement element = _setupConstructorDeclaration("A", true);
-    expect(_findConstantDeclarations()[element], same(_node));
+    expect(_findConstants(), contains(element));
   }
 
   void test_visitConstructorDeclaration_nonConst() {
     _setupConstructorDeclaration("A", false);
-    expect(_findConstantDeclarations().isEmpty, isTrue);
+    expect(_findConstants(), isEmpty);
   }
 
   void test_visitVariableDeclaration_const() {
     VariableElement element = _setupVariableDeclaration("v", true, true);
-    expect(_findVariableDeclarations()[element], same(_node));
+    expect(_findConstants(), contains(element));
   }
 
   void test_visitVariableDeclaration_final_inClass() {
     _setupFieldDeclaration('C', 'f', Keyword.FINAL);
-    expect(_findVariableDeclarations(), isEmpty);
+    expect(_findConstants(), isEmpty);
   }
 
   void test_visitVariableDeclaration_final_inClassWithConstConstructor() {
     VariableDeclaration field = _setupFieldDeclaration('C', 'f', Keyword.FINAL,
         hasConstConstructor: true);
-    expect(_findVariableDeclarations()[field.element], same(field));
+    expect(_findConstants(), contains(field.element));
   }
 
   void test_visitVariableDeclaration_final_outsideClass() {
     _setupVariableDeclaration('v', false, true, isFinal: true);
-    expect(_findVariableDeclarations(), isEmpty);
+    expect(_findConstants(), isEmpty);
   }
 
   void test_visitVariableDeclaration_noInitializer() {
     _setupVariableDeclaration("v", true, false);
-    expect(_findVariableDeclarations().isEmpty, isTrue);
+    expect(_findConstants(), isEmpty);
   }
 
   void test_visitVariableDeclaration_nonConst() {
     _setupVariableDeclaration("v", false, true);
-    expect(_findVariableDeclarations().isEmpty, isTrue);
+    expect(_findConstants(), isEmpty);
   }
 
   void test_visitVariableDeclaration_static_const_inClass() {
     VariableDeclaration field =
         _setupFieldDeclaration('C', 'f', Keyword.CONST, isStatic: true);
-    expect(_findVariableDeclarations()[field.element], same(field));
+    expect(_findConstants(), contains(field.element));
   }
 
   void test_visitVariableDeclaration_static_const_inClassWithConstConstructor() {
     VariableDeclaration field = _setupFieldDeclaration('C', 'f', Keyword.CONST,
         isStatic: true, hasConstConstructor: true);
-    expect(_findVariableDeclarations()[field.element], same(field));
+    expect(_findConstants(), contains(field.element));
   }
 
   void test_visitVariableDeclaration_static_final_inClassWithConstConstructor() {
-    _setupFieldDeclaration('C', 'f', Keyword.FINAL,
+    VariableDeclaration field = _setupFieldDeclaration('C', 'f', Keyword.FINAL,
         isStatic: true, hasConstConstructor: true);
-    expect(_findVariableDeclarations(), isEmpty);
+    expect(_findConstants(), isNot(contains(field.element)));
   }
 
   void test_visitVariableDeclaration_uninitialized_final_inClassWithConstConstructor() {
-    _setupFieldDeclaration('C', 'f', Keyword.FINAL,
+    VariableDeclaration field = _setupFieldDeclaration('C', 'f', Keyword.FINAL,
         isInitialized: false, hasConstConstructor: true);
-    expect(_findVariableDeclarations(), isEmpty);
+    expect(_findConstants(), isNot(contains(field.element)));
   }
 
   void test_visitVariableDeclaration_uninitialized_static_const_inClass() {
     _setupFieldDeclaration('C', 'f', Keyword.CONST,
         isStatic: true, isInitialized: false);
-    expect(_findVariableDeclarations(), isEmpty);
+    expect(_findConstants(), isEmpty);
   }
 
   List<Annotation> _findAnnotations() {
@@ -1034,22 +1000,12 @@ class ConstantFinderTest extends EngineTestCase {
     return annotations;
   }
 
-  Map<ConstructorElement, ConstructorDeclaration> _findConstantDeclarations() {
+  Set<Element> _findConstants() {
     ConstantFinder finder = new ConstantFinder();
     _node.accept(finder);
-    Map<ConstructorElement, ConstructorDeclaration> constructorMap =
-        finder.constructorMap;
-    expect(constructorMap, isNotNull);
-    return constructorMap;
-  }
-
-  Map<PotentiallyConstVariableElement, VariableDeclaration> _findVariableDeclarations() {
-    ConstantFinder finder = new ConstantFinder();
-    _node.accept(finder);
-    Map<PotentiallyConstVariableElement, VariableDeclaration> variableMap =
-        finder.variableMap;
-    expect(variableMap, isNotNull);
-    return variableMap;
+    Set<Element> constants = finder.constantsToCompute;
+    expect(constants, isNotNull);
+    return constants;
   }
 
   ConstructorElement _setupConstructorDeclaration(String name, bool isConst) {
@@ -1380,6 +1336,23 @@ const int d = c;''');
     NodeList<CompilationUnitMember> members = unit.declarations;
     expect(members, hasLength(1));
     _validate(true, (members[0] as TopLevelVariableDeclaration).variables);
+  }
+
+  void test_computeValues_value_depends_on_enum() {
+    Source librarySource = addSource('''
+enum E { id0, id1 }
+const E e = E.id0;
+''');
+    LibraryElement libraryElement = resolve(librarySource);
+    CompilationUnit unit =
+        analysisContext.resolveCompilationUnit(librarySource, libraryElement);
+    expect(unit, isNotNull);
+    ConstantValueComputer computer = _makeConstantValueComputer();
+    computer.add(unit);
+    computer.computeValues();
+    TopLevelVariableDeclaration declaration = unit.declarations
+        .firstWhere((member) => member is TopLevelVariableDeclaration);
+    _validate(true, declaration.variables);
   }
 
   void test_dependencyOnConstructor() {
@@ -8039,71 +8012,54 @@ class MockDartSdk implements DartSdk {
 
 @reflectiveTest
 class ReferenceFinderTest extends EngineTestCase {
-  DirectedGraph<AstNode> _referenceGraph;
-  Map<PotentiallyConstVariableElement, VariableDeclaration> _variableDeclarationMap;
-  Map<ConstructorElement, ConstructorDeclaration> _constructorDeclarationMap;
-  VariableDeclaration _head;
-  AstNode _tail;
+  DirectedGraph<Element> _referenceGraph;
+  VariableElement _head;
+  Element _tail;
   @override
   void setUp() {
-    _referenceGraph = new DirectedGraph<AstNode>();
-    _variableDeclarationMap =
-        new HashMap<PotentiallyConstVariableElement, VariableDeclaration>();
-    _constructorDeclarationMap =
-        new HashMap<ConstructorElement, ConstructorDeclaration>();
-    _head = AstFactory.variableDeclaration("v1");
+    _referenceGraph = new DirectedGraph<Element>();
+    _head = ElementFactory.topLevelVariableElement2("v1");
   }
   void test_visitSimpleIdentifier_const() {
-    _visitNode(_makeTailVariable("v2", true, true));
+    _visitNode(_makeTailVariable("v2", true));
     _assertOneArc(_tail);
   }
   void test_visitSimpleIdentifier_nonConst() {
-    _visitNode(_makeTailVariable("v2", false, true));
-    _assertNoArcs();
-  }
-  void test_visitSimpleIdentifier_notInMap() {
-    _visitNode(_makeTailVariable("v2", true, false));
+    _visitNode(_makeTailVariable("v2", false));
     _assertNoArcs();
   }
   void test_visitSuperConstructorInvocation_const() {
-    _visitNode(_makeTailSuperConstructorInvocation("A", true, true));
+    _visitNode(_makeTailSuperConstructorInvocation("A", true));
     _assertOneArc(_tail);
   }
   void test_visitSuperConstructorInvocation_nonConst() {
-    _visitNode(_makeTailSuperConstructorInvocation("A", false, true));
-    _assertNoArcs();
-  }
-  void test_visitSuperConstructorInvocation_notInMap() {
-    _visitNode(_makeTailSuperConstructorInvocation("A", true, false));
+    _visitNode(_makeTailSuperConstructorInvocation("A", false));
     _assertNoArcs();
   }
   void test_visitSuperConstructorInvocation_unresolved() {
     SuperConstructorInvocation superConstructorInvocation =
         AstFactory.superConstructorInvocation();
-    _tail = superConstructorInvocation;
     _visitNode(superConstructorInvocation);
     _assertNoArcs();
   }
   void _assertNoArcs() {
-    Set<AstNode> tails = _referenceGraph.getTails(_head);
+    Set<Element> tails = _referenceGraph.getTails(_head);
     expect(tails, hasLength(0));
   }
-  void _assertOneArc(AstNode tail) {
-    Set<AstNode> tails = _referenceGraph.getTails(_head);
+  void _assertOneArc(Element tail) {
+    Set<Element> tails = _referenceGraph.getTails(_head);
     expect(tails, hasLength(1));
     expect(tails.first, same(tail));
   }
-  ReferenceFinder _createReferenceFinder(AstNode source) => new ReferenceFinder(
-      source, _referenceGraph, _variableDeclarationMap,
-      _constructorDeclarationMap);
+  ReferenceFinder _createReferenceFinder(Element source) =>
+      new ReferenceFinder(source, _referenceGraph);
   SuperConstructorInvocation _makeTailSuperConstructorInvocation(
-      String name, bool isConst, bool inMap) {
+      String name, bool isConst) {
     List<ConstructorInitializer> initializers =
         new List<ConstructorInitializer>();
     ConstructorDeclaration constructorDeclaration = AstFactory
         .constructorDeclaration(AstFactory.identifier3(name), null,
             AstFactory.formalParameterList(), initializers);
-    _tail = constructorDeclaration;
     if (isConst) {
       constructorDeclaration.constKeyword = new KeywordToken(Keyword.CONST, 0);
     }
@@ -8112,24 +8068,19 @@ class ReferenceFinderTest extends EngineTestCase {
         AstFactory.superConstructorInvocation();
     ConstructorElementImpl constructorElement =
         ElementFactory.constructorElement(classElement, name, isConst);
-    if (inMap) {
-      _constructorDeclarationMap[constructorElement] = constructorDeclaration;
-    }
+    _tail = constructorElement;
     superConstructorInvocation.staticElement = constructorElement;
     return superConstructorInvocation;
   }
-  SimpleIdentifier _makeTailVariable(String name, bool isConst, bool inMap) {
+  SimpleIdentifier _makeTailVariable(String name, bool isConst) {
     VariableDeclaration variableDeclaration =
         AstFactory.variableDeclaration(name);
-    _tail = variableDeclaration;
     ConstLocalVariableElementImpl variableElement =
         ElementFactory.constLocalVariableElement(name);
+    _tail = variableElement;
     variableElement.const3 = isConst;
     AstFactory.variableDeclarationList2(
         isConst ? Keyword.CONST : Keyword.VAR, [variableDeclaration]);
-    if (inMap) {
-      _variableDeclarationMap[variableElement] = variableDeclaration;
-    }
     SimpleIdentifier identifier = AstFactory.identifier3(name);
     identifier.staticElement = variableElement;
     return identifier;

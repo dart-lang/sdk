@@ -428,8 +428,8 @@ class ConstantEvaluationEngine {
       // it an unknown value will suppress further errors.
       return new DartObjectImpl.validWithUnknownValue(definingClass);
     }
-    validator.beforeGetConstantInitializers(constructor);
     ConstructorElementImpl constructorBase = _getConstructorBase(constructor);
+    validator.beforeGetConstantInitializers(constructorBase);
     List<ConstructorInitializer> initializers =
         constructorBase.constantInitializers;
     if (initializers == null) {
@@ -702,10 +702,10 @@ class ConstantEvaluationEngine {
 abstract class ConstantEvaluationValidator {
   /**
    * This method is called just before computing the constant value associated
-   * with [constNode]. Unit tests will override this method to introduce
+   * with [element]. Unit tests will override this method to introduce
    * additional error checking.
    */
-  void beforeComputeValue(AstNode constNode);
+  void beforeComputeValue(Element element);
 
   /**
    * This method is called just before getting the constant initializers
@@ -716,10 +716,10 @@ abstract class ConstantEvaluationValidator {
 
   /**
    * This method is called just before retrieving an evaluation result from an
-   * AST node. Unit tests will override it to introduce additional error
+   * element. Unit tests will override it to introduce additional error
    * checking.
    */
-  void beforeGetEvaluationResult(AstNode node);
+  void beforeGetEvaluationResult(Element element);
 
   /**
    * This method is called just before getting the constant value of a field
@@ -742,13 +742,13 @@ abstract class ConstantEvaluationValidator {
 class ConstantEvaluationValidator_ForProduction
     implements ConstantEvaluationValidator {
   @override
-  void beforeComputeValue(AstNode constNode) {}
+  void beforeComputeValue(Element element) {}
 
   @override
   void beforeGetConstantInitializers(ConstructorElement constructor) {}
 
   @override
-  void beforeGetEvaluationResult(AstNode node) {}
+  void beforeGetEvaluationResult(Element element) {}
 
   @override
   void beforeGetFieldEvaluationResult(FieldElementImpl field) {}
@@ -852,18 +852,10 @@ class ConstantEvaluator {
  */
 class ConstantFinder extends RecursiveAstVisitor<Object> {
   /**
-   * A table mapping constant variable elements to the declarations of those
-   * variables.
+   * The elements whose constant values need to be computed, with the exception
+   * of annotations.
    */
-  final HashMap<PotentiallyConstVariableElement, VariableDeclaration> variableMap =
-      new HashMap<PotentiallyConstVariableElement, VariableDeclaration>();
-
-  /**
-   * A table mapping constant constructors to the declarations of those
-   * constructors.
-   */
-  final HashMap<ConstructorElement, ConstructorDeclaration> constructorMap =
-      new HashMap<ConstructorElement, ConstructorDeclaration>();
+  HashSet<Element> constantsToCompute = new HashSet<Element>();
 
   /**
    * A collection of annotations.
@@ -904,7 +896,8 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
     if (node.constKeyword != null) {
       ConstructorElement element = node.element;
       if (element != null) {
-        constructorMap[element] = node;
+        constantsToCompute.add(element);
+        constantsToCompute.addAll(element.parameters);
       }
     }
     return null;
@@ -922,7 +915,7 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
                 node.isFinal &&
                 !element.isStatic)) {
       if (node.element != null) {
-        variableMap[node.element as PotentiallyConstVariableElement] = node;
+        constantsToCompute.add(node.element);
       }
     }
     return null;
@@ -962,18 +955,16 @@ class ConstantValueComputer {
    * A graph in which the nodes are the constants, and the edges are from each
    * constant to the other constants that are referenced by it.
    */
-  DirectedGraph<AstNode> referenceGraph = new DirectedGraph<AstNode>();
+  DirectedGraph<Element> referenceGraph = new DirectedGraph<Element>();
 
   /**
-   * A table mapping constant variables to the declarations of those variables.
+   * The elements whose constant values need to be computed.  Any elements
+   * which appear in [referenceGraph] but not in this set either belong to a
+   * different library cycle (and hence don't need to be recomputed) or were
+   * computed during a previous stage of resolution stage (e.g. constants
+   * associated with enums).
    */
-  HashMap<PotentiallyConstVariableElement, VariableDeclaration> _variableDeclarationMap;
-
-  /**
-   * A table mapping constant constructors to the declarations of those
-   * constructors.
-   */
-  HashMap<ConstructorElement, ConstructorDeclaration> constructorDeclarationMap;
+  HashSet<Element> _constantsToCompute;
 
   /**
    * A collection of annotations.
@@ -1010,85 +1001,85 @@ class ConstantValueComputer {
    * added.
    */
   void computeValues() {
-    _variableDeclarationMap = _constantFinder.variableMap;
-    constructorDeclarationMap = _constantFinder.constructorMap;
+    _constantsToCompute = _constantFinder.constantsToCompute;
     _annotations = _constantFinder.annotations;
-    _variableDeclarationMap.values.forEach((VariableDeclaration declaration) {
-      ReferenceFinder referenceFinder = new ReferenceFinder(declaration,
-          referenceGraph, _variableDeclarationMap, constructorDeclarationMap);
-      referenceGraph.addNode(declaration);
-      declaration.initializer.accept(referenceFinder);
-    });
-    constructorDeclarationMap.forEach((ConstructorElementImpl element,
-        ConstructorDeclaration declaration) {
-      element.isCycleFree = false;
-      ConstructorElement redirectedConstructor =
-          evaluationEngine.getConstRedirectedConstructor(element);
-      if (redirectedConstructor != null) {
-        ConstructorElement redirectedConstructorBase =
-            ConstantEvaluationEngine._getConstructorBase(redirectedConstructor);
-        ConstructorDeclaration redirectedConstructorDeclaration =
-            findConstructorDeclaration(redirectedConstructorBase);
-        referenceGraph.addEdge(declaration, redirectedConstructorDeclaration);
-        return;
-      }
-      ReferenceFinder referenceFinder = new ReferenceFinder(declaration,
-          referenceGraph, _variableDeclarationMap, constructorDeclarationMap);
-      referenceGraph.addNode(declaration);
-      bool superInvocationFound = false;
-      NodeList<ConstructorInitializer> initializers = declaration.initializers;
-      for (ConstructorInitializer initializer in initializers) {
-        if (initializer is SuperConstructorInvocation) {
-          superInvocationFound = true;
-        }
-        initializer.accept(referenceFinder);
-      }
-      if (!superInvocationFound) {
-        // No explicit superconstructor invocation found, so we need to
-        // manually insert a reference to the implicit superconstructor.
-        InterfaceType superclass =
-            (element.returnType as InterfaceType).superclass;
-        if (superclass != null && !superclass.isObject) {
-          ConstructorElement unnamedConstructor =
-              superclass.element.unnamedConstructor;
-          ConstructorDeclaration superConstructorDeclaration =
-              findConstructorDeclaration(unnamedConstructor);
-          if (superConstructorDeclaration != null) {
-            referenceGraph.addEdge(declaration, superConstructorDeclaration);
-          }
-        }
-      }
-      for (FieldElement field in element.enclosingElement.fields) {
-        // Note: non-static const isn't allowed but we handle it anyway so that
-        // we won't be confused by incorrect code.
-        if ((field.isFinal || field.isConst) && !field.isStatic) {
-          VariableDeclaration fieldDeclaration = _variableDeclarationMap[field];
-          if (fieldDeclaration != null) {
-            referenceGraph.addEdge(declaration, fieldDeclaration);
-          }
-        }
-      }
-      for (FormalParameter parameter in declaration.parameters.parameters) {
-        referenceGraph.addNode(parameter);
-        referenceGraph.addEdge(declaration, parameter);
-        if (parameter is DefaultFormalParameter) {
-          Expression defaultValue = parameter.defaultValue;
+    for (Element element in _constantsToCompute) {
+      referenceGraph.addNode(element);
+      if (element is ParameterElement) {
+        if (element.initializer != null) {
+          Expression defaultValue =
+              (element as ConstVariableElement).constantInitializer;
           if (defaultValue != null) {
-            ReferenceFinder parameterReferenceFinder = new ReferenceFinder(
-                parameter, referenceGraph, _variableDeclarationMap,
-                constructorDeclarationMap);
+            ReferenceFinder parameterReferenceFinder =
+                new ReferenceFinder(element, referenceGraph);
             defaultValue.accept(parameterReferenceFinder);
           }
         }
+      } else if (element is PotentiallyConstVariableElement) {
+        ReferenceFinder referenceFinder =
+            new ReferenceFinder(element, referenceGraph);
+        element.constantInitializer.accept(referenceFinder);
+      } else if (element is ConstructorElementImpl) {
+        element.isCycleFree = false;
+        ConstructorElement redirectedConstructor =
+            evaluationEngine.getConstRedirectedConstructor(element);
+        if (redirectedConstructor != null) {
+          ConstructorElement redirectedConstructorBase =
+              ConstantEvaluationEngine
+                  ._getConstructorBase(redirectedConstructor);
+          referenceGraph.addEdge(element, redirectedConstructorBase);
+          continue;
+        }
+        ReferenceFinder referenceFinder =
+            new ReferenceFinder(element, referenceGraph);
+        bool superInvocationFound = false;
+        List<ConstructorInitializer> initializers =
+            element.constantInitializers;
+        for (ConstructorInitializer initializer in initializers) {
+          if (initializer is SuperConstructorInvocation) {
+            superInvocationFound = true;
+          }
+          initializer.accept(referenceFinder);
+        }
+        if (!superInvocationFound) {
+          // No explicit superconstructor invocation found, so we need to
+          // manually insert a reference to the implicit superconstructor.
+          InterfaceType superclass =
+              (element.returnType as InterfaceType).superclass;
+          if (superclass != null && !superclass.isObject) {
+            ConstructorElement unnamedConstructor = ConstantEvaluationEngine
+                ._getConstructorBase(superclass.element.unnamedConstructor);
+            if (unnamedConstructor != null) {
+              referenceGraph.addEdge(element, unnamedConstructor);
+            }
+          }
+        }
+        for (FieldElement field in element.enclosingElement.fields) {
+          // Note: non-static const isn't allowed but we handle it anyway so that
+          // we won't be confused by incorrect code.
+          if ((field.isFinal || field.isConst) &&
+              !field.isStatic &&
+              field.initializer != null) {
+            referenceGraph.addEdge(element, field);
+          }
+        }
+        for (ParameterElement parameterElement in element.parameters) {
+          referenceGraph.addEdge(element, parameterElement);
+        }
+      } else {
+        // Should not happen.
+        assert(false);
+        AnalysisEngine.instance.logger.logError(
+            "Constant value computer trying to compute the value of a node of type ${element.runtimeType}");
       }
-    });
-    List<List<AstNode>> topologicalSort =
+    }
+    List<List<Element>> topologicalSort =
         referenceGraph.computeTopologicalSort();
-    for (List<AstNode> constantsInCycle in topologicalSort) {
+    for (List<Element> constantsInCycle in topologicalSort) {
       if (constantsInCycle.length == 1) {
         _computeValueFor(constantsInCycle[0]);
       } else {
-        for (AstNode constant in constantsInCycle) {
+        for (Element constant in constantsInCycle) {
           _generateCycleError(constantsInCycle, constant);
         }
       }
@@ -1097,58 +1088,22 @@ class ConstantValueComputer {
     // including them in the topological sort.  We just process all the
     // annotations after all other constants are finished.
     for (Annotation annotation in _annotations) {
-      _computeValueFor(annotation);
+      _computeValueForAnnotation(annotation);
     }
   }
 
-  ConstructorDeclaration findConstructorDeclaration(
-          ConstructorElement constructor) => constructorDeclarationMap[
-      ConstantEvaluationEngine._getConstructorBase(constructor)];
-
-  VariableDeclaration findVariableDeclaration(
-          PotentiallyConstVariableElement variable) =>
-      _variableDeclarationMap[variable];
-
   /**
-   * Compute a value for the given [constNode].
+   * Compute a value for the given [element].
    */
-  void _computeValueFor(AstNode constNode) {
-    evaluationEngine.validator.beforeComputeValue(constNode);
-    if (constNode is VariableDeclaration) {
-      VariableElement element = constNode.element;
-      RecordingErrorListener errorListener = new RecordingErrorListener();
-      ErrorReporter errorReporter =
-          new ErrorReporter(errorListener, element.source);
-      DartObjectImpl dartObject =
-          (element as PotentiallyConstVariableElement).constantInitializer
-              .accept(new ConstantVisitor(evaluationEngine, errorReporter));
-      // Only check the type for truly const declarations (don't check final
-      // fields with initializers, since their types may be generic.  The type
-      // of the final field will be checked later, when the constructor is
-      // invoked).
-      if (dartObject != null && constNode.isConst) {
-        if (!evaluationEngine.runtimeTypeMatch(dartObject, element.type)) {
-          errorReporter.reportErrorForElement(
-              CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, element, [
-            dartObject.type,
-            element.type
-          ]);
-        }
-      }
-      (element as VariableElementImpl).evaluationResult =
-          new EvaluationResultImpl.con2(dartObject, errorListener.errors);
-    } else if (constNode is ConstructorDeclaration) {
-      // No evaluation needs to be done; constructor declarations are only in
-      // the dependency graph to ensure that any constants referred to in
-      // initializer lists and parameter defaults are evaluated before
-      // invocations of the constructor.  However we do need to annotate the
-      // element as being free of constant evaluation cycles so that later code
-      // will know that it is safe to evaluate.
-      ConstructorElementImpl constructor = constNode.element;
-      constructor.isCycleFree = true;
-    } else if (constNode is FormalParameter) {
-      if (constNode is DefaultFormalParameter) {
-        ParameterElement element = constNode.element;
+  void _computeValueFor(Element element) {
+    if (!_constantsToCompute.contains(element)) {
+      // Element is in the dependency graph but should have been computed by
+      // a previous stage of analysis.
+      return;
+    }
+    evaluationEngine.validator.beforeComputeValue(element);
+    if (element is ParameterElement) {
+      if (element.initializer != null) {
         Expression defaultValue =
             (element as PotentiallyConstVariableElement).constantInitializer;
         if (defaultValue != null) {
@@ -1161,47 +1116,82 @@ class ConstantValueComputer {
               new EvaluationResultImpl.con2(dartObject, errorListener.errors);
         }
       }
-    } else if (constNode is Annotation) {
-      ElementAnnotationImpl elementAnnotation = constNode.elementAnnotation;
-      // elementAnnotation is null if the annotation couldn't be resolved, in
-      // which case we skip it.
-      if (elementAnnotation != null) {
-        Element element = elementAnnotation.element;
-        if (element is PropertyAccessorElement &&
-            element.variable is VariableElementImpl) {
-          // The annotation is a reference to a compile-time constant variable.
-          // Just copy the evaluation result.
-          VariableElementImpl variableElement =
-              element.variable as VariableElementImpl;
-          elementAnnotation.evaluationResult = variableElement.evaluationResult;
-        } else if (element is ConstructorElementImpl &&
-            constNode.arguments != null) {
-          RecordingErrorListener errorListener = new RecordingErrorListener();
-          CompilationUnit sourceCompilationUnit =
-              constNode.getAncestor((node) => node is CompilationUnit);
-          ErrorReporter errorReporter = new ErrorReporter(
-              errorListener, sourceCompilationUnit.element.source);
-          ConstantVisitor constantVisitor =
-              new ConstantVisitor(evaluationEngine, errorReporter);
-          DartObjectImpl result = evaluationEngine.evaluateConstructorCall(
-              constNode, constNode.arguments.arguments, element,
-              constantVisitor, errorReporter);
-          elementAnnotation.evaluationResult =
-              new EvaluationResultImpl.con2(result, errorListener.errors);
-        } else {
-          // This may happen for invalid code (e.g. failing to pass arguments
-          // to an annotation which references a const constructor).  The error
-          // is detected elsewhere, so just silently ignore it here.
-          elementAnnotation.evaluationResult =
-              new EvaluationResultImpl.con1(null);
+    } else if (element is VariableElement) {
+      RecordingErrorListener errorListener = new RecordingErrorListener();
+      ErrorReporter errorReporter =
+          new ErrorReporter(errorListener, element.source);
+      DartObjectImpl dartObject =
+          (element as PotentiallyConstVariableElement).constantInitializer
+              .accept(new ConstantVisitor(evaluationEngine, errorReporter));
+      // Only check the type for truly const declarations (don't check final
+      // fields with initializers, since their types may be generic.  The type
+      // of the final field will be checked later, when the constructor is
+      // invoked).
+      if (dartObject != null && element.isConst) {
+        if (!evaluationEngine.runtimeTypeMatch(dartObject, element.type)) {
+          errorReporter.reportErrorForElement(
+              CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, element, [
+            dartObject.type,
+            element.type
+          ]);
         }
       }
+      (element as VariableElementImpl).evaluationResult =
+          new EvaluationResultImpl.con2(dartObject, errorListener.errors);
+    } else if (element is ConstructorElement) {
+      // No evaluation needs to be done; constructor declarations are only in
+      // the dependency graph to ensure that any constants referred to in
+      // initializer lists and parameter defaults are evaluated before
+      // invocations of the constructor.  However we do need to annotate the
+      // element as being free of constant evaluation cycles so that later code
+      // will know that it is safe to evaluate.
+      (element as ConstructorElementImpl).isCycleFree = true;
     } else {
       // Should not happen.
       assert(false);
       AnalysisEngine.instance.logger.logError(
-          "Constant value computer trying to compute the value of a node which is not a VariableDeclaration, InstanceCreationExpression, FormalParameter, or ConstructorDeclaration");
+          "Constant value computer trying to compute the value of a node of type ${element.runtimeType}");
       return;
+    }
+  }
+
+  /**
+   * Compute a value for the given annotation.
+   */
+  void _computeValueForAnnotation(Annotation constNode) {
+    ElementAnnotationImpl elementAnnotation = constNode.elementAnnotation;
+    // elementAnnotation is null if the annotation couldn't be resolved, in
+    // which case we skip it.
+    if (elementAnnotation != null) {
+      Element element = elementAnnotation.element;
+      if (element is PropertyAccessorElement &&
+          element.variable is VariableElementImpl) {
+        // The annotation is a reference to a compile-time constant variable.
+        // Just copy the evaluation result.
+        VariableElementImpl variableElement =
+            element.variable as VariableElementImpl;
+        elementAnnotation.evaluationResult = variableElement.evaluationResult;
+      } else if (element is ConstructorElementImpl &&
+          constNode.arguments != null) {
+        RecordingErrorListener errorListener = new RecordingErrorListener();
+        CompilationUnit sourceCompilationUnit =
+            constNode.getAncestor((node) => node is CompilationUnit);
+        ErrorReporter errorReporter = new ErrorReporter(
+            errorListener, sourceCompilationUnit.element.source);
+        ConstantVisitor constantVisitor =
+            new ConstantVisitor(evaluationEngine, errorReporter);
+        DartObjectImpl result = evaluationEngine.evaluateConstructorCall(
+            constNode, constNode.arguments.arguments, element, constantVisitor,
+            errorReporter);
+        elementAnnotation.evaluationResult =
+            new EvaluationResultImpl.con2(result, errorListener.errors);
+      } else {
+        // This may happen for invalid code (e.g. failing to pass arguments
+        // to an annotation which references a const constructor).  The error
+        // is detected elsewhere, so just silently ignore it here.
+        elementAnnotation.evaluationResult =
+            new EvaluationResultImpl.con1(null);
+      }
     }
   }
 
@@ -1211,9 +1201,8 @@ class ConstantValueComputer {
    * in the given [cycle], each of which directly or indirectly references the
    * constant.
    */
-  void _generateCycleError(List<AstNode> cycle, AstNode constNode) {
-    if (constNode is VariableDeclaration) {
-      VariableElement element = constNode.element;
+  void _generateCycleError(List<Element> cycle, Element element) {
+    if (element is VariableElement) {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       ErrorReporter errorReporter =
           new ErrorReporter(errorListener, element.source);
@@ -1224,7 +1213,7 @@ class ConstantValueComputer {
           CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, element, []);
       (element as VariableElementImpl).evaluationResult =
           new EvaluationResultImpl.con2(null, errorListener.errors);
-    } else if (constNode is ConstructorDeclaration) {
+    } else if (element is ConstructorElement) {
       // We don't report cycle errors on constructor declarations since there
       // is nowhere to put the error information.
     } else {
@@ -1232,7 +1221,7 @@ class ConstantValueComputer {
       // never appear as part of a cycle because they can't be referred to.
       assert(false);
       AnalysisEngine.instance.logger.logError(
-          "Constant value computer trying to report a cycle error for a node of type ${constNode.runtimeType}");
+          "Constant value computer trying to report a cycle error for a node of type ${element.runtimeType}");
     }
   }
 }
@@ -1723,7 +1712,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
     if (element is VariableElementImpl) {
       VariableElementImpl variableElementImpl = element;
-      evaluationEngine.validator.beforeGetEvaluationResult(node);
+      evaluationEngine.validator.beforeGetEvaluationResult(element);
       EvaluationResultImpl value = variableElementImpl.evaluationResult;
       if (variableElementImpl.isConst && value != null) {
         return value.value;
@@ -4878,53 +4867,31 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
   /**
    * The element representing the construct that will be visited.
    */
-  final AstNode _source;
+  final Element _source;
 
   /**
    * A graph in which the nodes are the constant variables and the edges are
    * from each variable to the other constant variables that are referenced in
    * the head's initializer.
    */
-  final DirectedGraph<AstNode> _referenceGraph;
-
-  /**
-   * A table mapping constant variables to the declarations of those variables.
-   */
-  final HashMap<PotentiallyConstVariableElement, VariableDeclaration> _variableDeclarationMap;
-
-  /**
-   * A table mapping constant constructors to the declarations of those
-   * constructors.
-   */
-  final HashMap<ConstructorElement, ConstructorDeclaration> _constructorDeclarationMap;
+  final DirectedGraph<Element> _referenceGraph;
 
   /**
    * Initialize a newly created reference finder to find references from a given
    * variable to other variables and to add those references to the given graph.
    * The [source] is the element representing the variable whose initializer
    * will be visited. The [referenceGraph] is a graph recording which variables
-   * (heads) reference which other variables (tails) in their initializers. The
-   * [variableDeclarationMap] is a table mapping constant variables to the
-   * declarations of those variables. The [constructorDeclarationMap] is a table
-   * mapping constant constructors to the declarations of those constructors.
+   * (heads) reference which other variables (tails) in their initializers.
    */
-  ReferenceFinder(this._source, this._referenceGraph,
-      this._variableDeclarationMap, this._constructorDeclarationMap);
-
-  ConstructorDeclaration findConstructorDeclaration(
-          ConstructorElement constructor) => _constructorDeclarationMap[
-      ConstantEvaluationEngine._getConstructorBase(constructor)];
+  ReferenceFinder(this._source, this._referenceGraph);
 
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
-      ConstructorElement constructor = node.staticElement;
+      ConstructorElement constructor =
+          ConstantEvaluationEngine._getConstructorBase(node.staticElement);
       if (constructor != null) {
-        ConstructorDeclaration declaration =
-            findConstructorDeclaration(constructor);
-        if (declaration != null) {
-          _referenceGraph.addEdge(_source, declaration);
-        }
+        _referenceGraph.addEdge(_source, constructor);
       }
     }
     return super.visitInstanceCreationExpression(node);
@@ -4934,13 +4901,10 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
   Object visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     super.visitRedirectingConstructorInvocation(node);
-    ConstructorElement target = node.staticElement;
+    ConstructorElement target =
+        ConstantEvaluationEngine._getConstructorBase(node.staticElement);
     if (target != null && target.isConst) {
-      ConstructorDeclaration targetDeclaration =
-          _constructorDeclarationMap[target];
-      if (targetDeclaration != null) {
-        _referenceGraph.addEdge(_source, targetDeclaration);
-      }
+      _referenceGraph.addEdge(_source, target);
     }
     return null;
   }
@@ -4953,16 +4917,7 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
     }
     if (element is VariableElement) {
       if (element.isConst) {
-        VariableDeclaration variableDeclaration =
-            _variableDeclarationMap[element];
-        // The declaration will be null when the variable is not defined in the
-        // compilation units that were used to produce the
-        // variableDeclarationMap.  In such cases, the variable should already
-        // have a value associated with it, but we don't bother to check because
-        // there's nothing we can do about it at this point.
-        if (variableDeclaration != null) {
-          _referenceGraph.addEdge(_source, variableDeclaration);
-        }
+        _referenceGraph.addEdge(_source, element);
       }
     }
     return null;
@@ -4971,18 +4926,10 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
   @override
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     super.visitSuperConstructorInvocation(node);
-    ConstructorElement constructor = node.staticElement;
+    ConstructorElement constructor =
+        ConstantEvaluationEngine._getConstructorBase(node.staticElement);
     if (constructor != null && constructor.isConst) {
-      ConstructorDeclaration constructorDeclaration =
-          _constructorDeclarationMap[constructor];
-      // The declaration will be null when the constructor is not defined in the
-      // compilation units that were used to produce the
-      // constructorDeclarationMap.  In such cases, the constructor should
-      // already have its initializer AST's stored in it, but we don't bother
-      // to check because there's nothing we can do about it at this point.
-      if (constructorDeclaration != null) {
-        _referenceGraph.addEdge(_source, constructorDeclaration);
-      }
+      _referenceGraph.addEdge(_source, constructor);
     }
     return null;
   }
