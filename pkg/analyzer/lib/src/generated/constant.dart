@@ -1198,6 +1198,7 @@ class ConstantValueComputer {
       }
     } else {
       // Should not happen.
+      assert(false);
       AnalysisEngine.instance.logger.logError(
           "Constant value computer trying to compute the value of a node which is not a VariableDeclaration, InstanceCreationExpression, FormalParameter, or ConstructorDeclaration");
       return;
@@ -4921,7 +4922,9 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
       if (constructor != null) {
         ConstructorDeclaration declaration =
             findConstructorDeclaration(constructor);
-        _referenceGraph.addEdge(_source, declaration);
+        if (declaration != null) {
+          _referenceGraph.addEdge(_source, declaration);
+        }
       }
     }
     return super.visitInstanceCreationExpression(node);
