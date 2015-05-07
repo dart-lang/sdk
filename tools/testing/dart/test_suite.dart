@@ -1455,7 +1455,7 @@ class StandardTestSuite extends TestSuite {
   /** Helper to create a compilation command for a single input file. */
   Command _compileCommand(String inputFile, String outputFile,
       String compiler, String dir, optionsFromFile) {
-    assert (compiler == 'dart2js')
+    assert(compiler == 'dart2js');
     List<String> args;
     if (compilerPath.endsWith('.dart')) {
       // Run the compiler script via the Dart VM.
