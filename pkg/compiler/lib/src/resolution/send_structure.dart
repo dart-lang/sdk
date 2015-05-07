@@ -1937,17 +1937,25 @@ class NewInvokeStructure<R, A> extends NewStructure<R, A> {
             semantics.effectiveTargetSemantics.type,
             node.send.argumentsNode, callStructure, arg);
       case ConstructorAccessKind.ABSTRACT:
-        return visitor.errorAbstractClassConstructorInvoke(
+        return visitor.visitAbstractClassConstructorInvoke(
             node, semantics.element, semantics.type,
             node.send.argumentsNode, callStructure, arg);
-      case ConstructorAccessKind.ERRONEOUS:
-        return visitor.errorUnresolvedConstructorInvoke(
+      case ConstructorAccessKind.UNRESOLVED_CONSTRUCTOR:
+        return visitor.visitUnresolvedConstructorInvoke(
             node, semantics.element, semantics.type,
             node.send.argumentsNode, selector, arg);
+      case ConstructorAccessKind.UNRESOLVED_TYPE:
+        return visitor.visitUnresolvedClassConstructorInvoke(
+            node, semantics.element, semantics.type,
+            node.send.argumentsNode, selector, arg);
+      case ConstructorAccessKind.NON_CONSTANT_CONSTRUCTOR:
+        return visitor.errorNonConstantConstructorInvoke(
+            node, semantics.element, semantics.type,
+            node.send.argumentsNode, callStructure, arg);
       case ConstructorAccessKind.ERRONEOUS_REDIRECTING_FACTORY:
-        return visitor.errorUnresolvedRedirectingFactoryConstructorInvoke(
+        return visitor.visitUnresolvedRedirectingFactoryConstructorInvoke(
             node, semantics.element, semantics.type,
-            node.send.argumentsNode, selector, arg);
+            node.send.argumentsNode, callStructure, arg);
     }
     throw new SpannableAssertionFailure(node,
         "Unhandled constructor invocation kind: ${semantics.kind}");

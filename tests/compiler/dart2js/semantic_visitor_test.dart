@@ -2268,16 +2268,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new Class.unresolved(true, 42);
         ''',
         const Visit(
-            VisitKind.ERROR_UNRESOLVED_CONSTRUCTOR_INVOKE,
+            VisitKind.VISIT_UNRESOLVED_CONSTRUCTOR_INVOKE,
             arguments: '(true,42)')),
     const Test(
         '''
         m() => new Unresolved(true, 42);
         ''',
         const Visit(
-            // TODO(johnniwinther): Update this to
-            // `VisitKind.ERROR_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE`.
-            VisitKind.ERROR_UNRESOLVED_CONSTRUCTOR_INVOKE,
+            VisitKind.VISIT_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
             arguments: '(true,42)')),
     const Test(
         '''
@@ -2285,7 +2283,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new AbstractClass();
         ''',
         const Visit(
-            VisitKind.ERROR_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
+            VisitKind.VISIT_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
             element: 'generative_constructor(AbstractClass#)',
             type: 'AbstractClass',
             arguments: '()',
@@ -2298,11 +2296,11 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new Class(true, 42);
         ''',
         const Visit(
-            VisitKind.ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+            VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
             element: 'function(Class#)',
             arguments: '(true,42)',
             type: 'Class',
-            selector: 'Selector(call, , arity=2)')),
+            selector: 'CallStructure(arity=2)')),
     const Test(
         '''
         class Class {
@@ -2311,11 +2309,11 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new Class(true, 42);
         ''',
         const Visit(
-            VisitKind.ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+            VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
             element: 'function(Class#)',
             arguments: '(true,42)',
             type: 'Class',
-            selector: 'Selector(call, , arity=2)')),
+            selector: 'CallStructure(arity=2)')),
     const Test(
         '''
         class Class {
@@ -2325,11 +2323,11 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new Class(true, 42);
         ''',
         const Visit(
-            VisitKind.ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+            VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
             element: 'function(Class#)',
             arguments: '(true,42)',
             type: 'Class',
-            selector: 'Selector(call, , arity=2)')),
+            selector: 'CallStructure(arity=2)')),
     const Test(
         '''
         abstract class AbstractClass {
@@ -2341,11 +2339,11 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new Class(true, 42);
         ''',
         const Visit(
-            VisitKind.ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+            VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
             element: 'function(Class#)',
             arguments: '(true,42)',
             type: 'Class',
-            selector: 'Selector(call, , arity=2)')),
+            selector: 'CallStructure(arity=2)')),
   ],
 };
 
@@ -5279,31 +5277,31 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorUnresolvedClassConstructorInvoke(
-      NewExpression node,
-      Element constructor,
-      MalformedType type,
-      NodeList arguments,
-      Selector selector,
-      arg) {
-    // TODO(johnniwinther): Test [type] and [selector].
-    visits.add(new Visit(
-        VisitKind.ERROR_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
-        arguments: arguments));
-    apply(arguments, arg);
-  }
-
-  @override
-  errorUnresolvedConstructorInvoke(
+  visitUnresolvedClassConstructorInvoke(
       NewExpression node,
       Element constructor,
       DartType type,
       NodeList arguments,
       Selector selector,
       arg) {
-    // TODO(johnniwinther): Test [type] and [selector].
+    // TODO(johnniwinther): Test [type] when it is not `dynamic`.
     visits.add(new Visit(
-        VisitKind.ERROR_UNRESOLVED_CONSTRUCTOR_INVOKE,
+        VisitKind.VISIT_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
+        arguments: arguments));
+    apply(arguments, arg);
+  }
+
+  @override
+  visitUnresolvedConstructorInvoke(
+      NewExpression node,
+      Element constructor,
+      DartType type,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    // TODO(johnniwinther): Test [type] when it is not `dynamic`.
+    visits.add(new Visit(
+        VisitKind.VISIT_UNRESOLVED_CONSTRUCTOR_INVOKE,
         arguments: arguments));
     apply(arguments, arg);
   }
@@ -5390,7 +5388,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorAbstractClassConstructorInvoke(
+  visitAbstractClassConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
       InterfaceType type,
@@ -5398,7 +5396,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       CallStructure callStructure,
       arg) {
     visits.add(new Visit(
-        VisitKind.ERROR_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
+        VisitKind.VISIT_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
         element: constructor,
         type: type,
         arguments: arguments,
@@ -5407,19 +5405,19 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorUnresolvedRedirectingFactoryConstructorInvoke(
+  visitUnresolvedRedirectingFactoryConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(
-        VisitKind.ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+        VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
         element: constructor,
         type: type,
         arguments: arguments,
-        selector: selector));
+        selector: callStructure));
     apply(arguments, arg);
   }
 }
@@ -5902,7 +5900,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorUnresolvedClassConstructorInvoke(
+  visitUnresolvedClassConstructorInvoke(
       NewExpression node,
       Element constructor,
       MalformedType type,
@@ -5911,13 +5909,13 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       arg) {
     // TODO(johnniwinther): Test [type] and [selector].
     visits.add(new Visit(
-        VisitKind.ERROR_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
+        VisitKind.VISIT_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
         arguments: arguments));
     apply(arguments, arg);
   }
 
   @override
-  errorUnresolvedConstructorInvoke(
+  visitUnresolvedConstructorInvoke(
       NewExpression node,
       Element constructor,
       DartType type,
@@ -5926,7 +5924,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       arg) {
     // TODO(johnniwinther): Test [type] and [selector].
     visits.add(new Visit(
-        VisitKind.ERROR_UNRESOLVED_CONSTRUCTOR_INVOKE,
+        VisitKind.VISIT_UNRESOLVED_CONSTRUCTOR_INVOKE,
         arguments: arguments));
     apply(arguments, arg);
   }
@@ -6013,7 +6011,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorAbstractClassConstructorInvoke(
+  visitAbstractClassConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
       InterfaceType type,
@@ -6021,7 +6019,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       CallStructure callStructure,
       arg) {
     visits.add(new Visit(
-        VisitKind.ERROR_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
+        VisitKind.VISIT_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
         element: constructor,
         type: type,
         arguments: arguments,
@@ -6030,19 +6028,19 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorUnresolvedRedirectingFactoryConstructorInvoke(
+  visitUnresolvedRedirectingFactoryConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(
-        VisitKind.ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+        VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
         element: constructor,
         type: type,
         arguments: arguments,
-        selector: selector));
+        selector: callStructure));
     apply(arguments, arg);
   }
 }
@@ -6239,10 +6237,10 @@ enum VisitKind {
   VISIT_THIS_CONSTRUCTOR_INVOKE,
   VISIT_FIELD_INITIALIZER,
 
-  ERROR_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
-  ERROR_UNRESOLVED_CONSTRUCTOR_INVOKE,
-  ERROR_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
-  ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+  VISIT_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
+  VISIT_UNRESOLVED_CONSTRUCTOR_INVOKE,
+  VISIT_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
+  VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
 
   VISIT_INSTANCE_GETTER_DECL,
   VISIT_INSTANCE_SETTER_DECL,

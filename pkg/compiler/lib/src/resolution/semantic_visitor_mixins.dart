@@ -33,17 +33,6 @@ abstract class ErrorBulkMixin<R, A>
   }
 
   @override
-  R errorAbstractClassConstructorInvoke(
-      NewExpression node,
-      ConstructorElement element,
-      InterfaceType type,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
   R errorClassTypeLiteralCompound(
       Send node,
       ConstantExpression constant,
@@ -251,6 +240,17 @@ abstract class ErrorBulkMixin<R, A>
   }
 
   @override
+  R errorNonConstantConstructorInvoke(
+      NewExpression node,
+      Element element,
+      InterfaceType type,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return bulkHandleError(node, arg);
+  }
+
+  @override
   R errorStaticFunctionSet(
       Send node,
       MethodElement function,
@@ -443,28 +443,6 @@ abstract class ErrorBulkMixin<R, A>
   }
 
   @override
-  R errorUnresolvedClassConstructorInvoke(
-      NewExpression node,
-      Element element,
-      MalformedType type,
-      NodeList arguments,
-      Selector selector,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorUnresolvedConstructorInvoke(
-      NewExpression node,
-      Element constructor,
-      DartType type,
-      NodeList arguments,
-      Selector selector,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
   R errorUnresolvedPostfix(
       Send node,
       Element element,
@@ -479,17 +457,6 @@ abstract class ErrorBulkMixin<R, A>
       Element element,
       IncDecOperator operator,
       A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorUnresolvedRedirectingFactoryConstructorInvoke(
-       NewExpression node,
-       ConstructorElement constructor,
-       InterfaceType type,
-       NodeList arguments,
-       Selector selector,
-       A arg) {
     return bulkHandleError(node, arg);
   }
 
@@ -2342,6 +2309,17 @@ abstract class NewBulkMixin<R, A>
   }
 
   @override
+  R visitAbstractClassConstructorInvoke(
+      NewExpression node,
+      ConstructorElement element,
+      InterfaceType type,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return bulkHandleNew(node, arg);
+  }
+
+  @override
   R visitConstConstructorInvoke(
       NewExpression node,
       ConstructedConstantExpression constant,
@@ -2388,6 +2366,39 @@ abstract class NewBulkMixin<R, A>
       NodeList arguments,
       CallStructure callStructure,
       A arg) {
+    return bulkHandleNew(node, arg);
+  }
+
+  @override
+  R visitUnresolvedClassConstructorInvoke(
+      NewExpression node,
+      Element element,
+      DartType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleNew(node, arg);
+  }
+
+  @override
+  R visitUnresolvedConstructorInvoke(
+      NewExpression node,
+      Element constructor,
+      DartType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleNew(node, arg);
+  }
+
+  @override
+  R visitUnresolvedRedirectingFactoryConstructorInvoke(
+       NewExpression node,
+       ConstructorElement constructor,
+       InterfaceType type,
+       NodeList arguments,
+       CallStructure callStructure,
+       A arg) {
     return bulkHandleNew(node, arg);
   }
 }
@@ -4798,10 +4809,10 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorUnresolvedClassConstructorInvoke(
+  R visitUnresolvedClassConstructorInvoke(
       NewExpression node,
       Element constructor,
-      MalformedType type,
+      DartType type,
       NodeList arguments,
       Selector selector,
       A arg) {
@@ -4810,7 +4821,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorUnresolvedConstructorInvoke(
+  R visitUnresolvedConstructorInvoke(
       NewExpression node,
       Element constructor,
       DartType type,
@@ -4872,7 +4883,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorAbstractClassConstructorInvoke(
+  R visitAbstractClassConstructorInvoke(
       NewExpression node,
       ConstructorElement element,
       InterfaceType type,
@@ -4884,12 +4895,24 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorUnresolvedRedirectingFactoryConstructorInvoke(
+  R visitUnresolvedRedirectingFactoryConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R errorNonConstantConstructorInvoke(
+      NewExpression node,
+      Element element,
+      InterfaceType type,
+      NodeList arguments,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -6590,6 +6613,49 @@ abstract class BaseImplementationOfNewMixin<R, A>
       InterfaceType type,
       ConstructorElement effectiveTarget,
       InterfaceType effectiveTargetType,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return handleConstructorInvoke(
+        node, constructor, type, arguments, callStructure, arg);
+  }
+
+  R visitUnresolvedConstructorInvoke(
+      NewExpression node,
+      Element constructor,
+      DartType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return handleConstructorInvoke(
+        node, constructor, type, arguments, selector.callStructure, arg);
+  }
+
+  R visitUnresolvedClassConstructorInvoke(
+      NewExpression node,
+      Element element,
+      DartType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return handleConstructorInvoke(
+        node, element, type, arguments, selector.callStructure, arg);
+  }
+
+  R visitAbstractClassConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return handleConstructorInvoke(
+        node, constructor, type, arguments, callStructure, arg);
+  }
+  R visitUnresolvedRedirectingFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       A arg) {

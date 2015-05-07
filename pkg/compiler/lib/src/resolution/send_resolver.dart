@@ -419,8 +419,15 @@ abstract class SendResolverMixin {
         ConstructorElement constructor,
         DartType type) {
     if (constructor.isErroneous) {
+      if (constructor is ErroneousElement) {
+        ErroneousElement error = constructor;
+        if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
+          return new ConstructorAccessSemantics(
+              ConstructorAccessKind.UNRESOLVED_CONSTRUCTOR, constructor, type);
+        }
+      }
       return new ConstructorAccessSemantics(
-          ConstructorAccessKind.ERRONEOUS, constructor, type);
+          ConstructorAccessKind.UNRESOLVED_TYPE, constructor, type);
     } else if (constructor.isRedirectingFactory) {
       ConstructorElement effectiveTarget = constructor.effectiveTarget;
       if (effectiveTarget == constructor ||
@@ -482,7 +489,7 @@ abstract class SendResolverMixin {
       // This is a non-constant constant constructor invocation, like
       // `const Const(method())`.
       constructorAccessSemantics = new ConstructorAccessSemantics(
-          ConstructorAccessKind.ERRONEOUS, element, type);
+          ConstructorAccessKind.NON_CONSTANT_CONSTRUCTOR, element, type);
     } else {
       constructorAccessSemantics =
           computeConstructorAccessSemantics(element, type);

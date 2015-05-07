@@ -5,7 +5,7 @@
 library dart2js.semantics_visitor;
 
 import '../constants/expressions.dart';
-import '../dart2jslib.dart' show invariant;
+import '../dart2jslib.dart' show invariant, MessageKind;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../helpers/helpers.dart';
@@ -3028,9 +3028,9 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   /// where [type] is `C<int>`.
   ///
-  // TODO(johnniwinther): Update [type] to be [InterfaceType] when this is no
-  // longer a catch-all clause for the erroneous constructor invocations.
-  R errorUnresolvedConstructorInvoke(
+  // TODO(johnniwinther): Change [type] to [InterfaceType] when is it not
+  // `dynamic`.
+  R visitUnresolvedConstructorInvoke(
       NewExpression node,
       Element constructor,
       DartType type,
@@ -3045,12 +3045,30 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   /// where [type] is the malformed type `Unresolved`.
   ///
-  R errorUnresolvedClassConstructorInvoke(
+  // TODO(johnniwinther): Change [type] to [MalformedType] when is it not
+  // `dynamic`.
+  R visitUnresolvedClassConstructorInvoke(
       NewExpression node,
       Element element,
       MalformedType type,
       NodeList arguments,
       Selector selector,
+      A arg);
+
+  /// Constant invocation of a non-constant constructor.
+  ///
+  /// For instance
+  ///   class C {
+  ///     C(a, b);
+  ///   }
+  ///   m() => const C(true, 42);
+  ///
+  R errorNonConstantConstructorInvoke(
+      NewExpression node,
+      Element element,
+      InterfaceType type,
+      NodeList arguments,
+      CallStructure callStructure,
       A arg);
 
   /// Invocation of a constructor on an abstract [type] with [arguments].
@@ -3060,7 +3078,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   /// where [type] is the malformed type `Unresolved`.
   ///
-  R errorAbstractClassConstructorInvoke(
+  R visitAbstractClassConstructorInvoke(
       NewExpression node,
       ConstructorElement element,
       InterfaceType type,
@@ -3080,12 +3098,12 @@ abstract class SemanticSendVisitor<R, A> {
   ///   m1() => new C(true, 42);
   ///   m2() => new C.a(true, 42);
   ///
-  R errorUnresolvedRedirectingFactoryConstructorInvoke(
+  R visitUnresolvedRedirectingFactoryConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 }
 
