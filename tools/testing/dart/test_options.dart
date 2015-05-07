@@ -60,9 +60,6 @@ class TestOptionsParser {
    none: Do not compile the Dart code (run native Dart code on the VM).
          (only valid with the following runtimes: vm, drt)
 
-   dart2dart: Compile Dart code to Dart code
-              (only valid with the following runtimes: vm, drt)
-
    dart2js: Compile dart code to JavaScript by running dart2js.
          (only valid with the following runtimes: d8, drt, chrome,
          safari, ie9, ie10, ie11, firefox, opera, chromeOnAndroid,
@@ -72,7 +69,7 @@ class TestOptionsParser {
    dart2analyzer: Perform static analysis on Dart code by running the analyzer on Dart.
           (only valid with the following runtimes: none)''',
               ['-c', '--compiler'],
-              ['none', 'dart2dart', 'dart2js', 'dartanalyzer', 'dart2analyzer'],
+              ['none', 'dart2js', 'dartanalyzer', 'dart2analyzer'],
               'none'),
           // TODO(antonm): fix the option drt.
           new _TestOptionSpecification(
@@ -651,7 +648,6 @@ Note: currently only implemented for dart2js.''',
         validRuntimes = const ['none'];
         break;
       case 'none':
-      case 'dart2dart':
         validRuntimes = const ['vm', 'drt', 'dartium',
                                'ContentShellOnAndroid', 'DartiumOnAndroid'];
         break;

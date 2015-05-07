@@ -78,28 +78,6 @@
       ],
     },
     {
-      # This is the target that is built on the dart2dart bots.
-      # It must depend on anything that is required by dart2dart
-      # tests.
-      'target_name': 'dart2dart_bot',
-      'type': 'none',
-      'dependencies': [
-        'create_sdk',
-        'packages',
-      ],
-    },
-    {
-      # This is the target that is built on the dartc bots.
-      # It must depend on anything that is required by dartc
-      # tests.
-      'target_name': 'dartc_bot',
-      'type': 'none',
-      'dependencies': [
-        'create_sdk',
-        'packages',
-      ],
-    },
-    {
       # This is the target that is built on the dart2js build bots.
       # It must depend on anything that is required by the dart2js
       # test suites.

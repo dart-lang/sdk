@@ -28,10 +28,6 @@ dummy_compiler_test: Pass, RuntimeError # Issue 17662
 recursive_import_test: Pass, RuntimeError # Issue 17662
 source_mirrors_test: Pass, RuntimeError # Issue 17662
 
-[ $compiler == dart2dart && $builder_tag != new_backend ]
-source_mirrors_test: Slow, Pass
-dummy_compiler_test: Slow, Pass
-
 [ $compiler == dart2js && $cps_ir ]
 dummy_compiler_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 recursive_import_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node

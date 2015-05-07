@@ -26,11 +26,6 @@ debugging_test: Skip
 [ $arch == simarm || $arch == simmips || $arch == simarm64]
 *: SkipSlow
 
-# The transformations of dart2dart are not guaranteed to preserve the
-# state/properties of the VM that the Observatory tests are inspecting.
-[ $compiler == dart2dart ]
-*: Skip
-
 # All tests use dart:io
 [ $browser || $compiler == dart2js ]
 *: SkipByDesign

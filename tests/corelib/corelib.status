@@ -2,21 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dart2dart]
-bool_from_environment2_test: Skip
-bool_from_environment_default_value_test: Skip
-bool_from_environment_test: Skip
-from_environment_const_type_test: Skip
-from_environment_const_type_undefined_test: Skip
-int_from_environment2_test: Skip
-int_from_environment3_test: Skip
-int_from_environment_default_value_test: Skip
-int_from_environment_test: Skip
-string_from_environment2_test: Skip
-string_from_environment3_test: Skip
-string_from_environment_default_value: Skip
-string_from_environment_test: Skip
-
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 bool_from_environment2_test: Skip
 bool_from_environment_default_value_test: Skip
@@ -39,7 +24,7 @@ compare_to2_test: Fail    # Bug 4018
 symbol_test/01: Fail, Pass # bug 11669
 
 # #void should be a valid symbol.
-[ $compiler == none || $compiler == dart2js || $compiler == dart2dart ]
+[ $compiler == none || $compiler == dart2js ]
 symbol_reserved_word_test/02: CompileTimeError # bug 20191
 symbol_reserved_word_test/05: CompileTimeError # bug 20191
 
@@ -57,7 +42,7 @@ integer_to_radix_string_test: RuntimeError # issue 22045
 
 # With the exception of 'void', const Symbol() should not accept reserved
 # words.
-[ $compiler == none || $compiler == dart2js || $compiler == dart2dart]
+[ $compiler == none || $compiler == dart2js ]
 symbol_reserved_word_test/04: MissingCompileTimeError # bug 11669, 19972
 symbol_reserved_word_test/07: MissingCompileTimeError # bug 11669, 19972
 symbol_reserved_word_test/10: MissingCompileTimeError # bug 11669, 19972
@@ -68,7 +53,7 @@ symbol_reserved_word_test/07: Fail # bug 11669, 19972 / dartium/drt cannot detec
 symbol_reserved_word_test/10: Fail # bug 11669, 19972 / dartium/drt cannot detect CompileTimeErrors
 
 # With the exception of 'void', new Symbol() should not accept reserved words.
-[ $compiler == none || $compiler == dart2dart ]
+[ $compiler == none ]
 symbol_reserved_word_test/06: RuntimeError # bug 11669
 symbol_reserved_word_test/09: RuntimeError # bug 11669
 symbol_reserved_word_test/12: RuntimeError # bug 11669
@@ -77,7 +62,7 @@ symbol_reserved_word_test/12: RuntimeError # bug 11669
 symbol_test/02: MissingCompileTimeError # bug 11669
 symbol_test/03: MissingCompileTimeError # bug 11669
 
-[ $compiler == none || $compiler == dart2dart ]
+[ $compiler == none ]
 symbol_test/none: Fail # bug 11669
 symbol_operator_test/03: Fail # bug 11669
 string_case_test/01: Fail # Bug 18061
@@ -154,13 +139,6 @@ string_case_test/01: Fail, OK  # Bug in Firefox.
 [ $compiler == dart2js && $runtime == dartium ]
 string_case_test/02: Fail, OK  # Bug in dartium version of V8.
 string_case_test/03: Fail, OK  # Bug in dartium version of V8.
-
-[ $compiler == dart2dart ]
-compare_to2_test: Fail # inherited from VM
-unicode_test: Fail # inherited from VM
-
-[ $compiler == dart2dart && $minified ]
-error_stack_trace1_test: Fail # Fails in minified mode, test depends on method names.
 
 [ $compiler == dartanalyzer ]
 from_environment_const_type_test: Skip # The -D option that defines a constant

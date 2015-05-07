@@ -1328,7 +1328,7 @@ class StandardTestSuite extends TestSuite {
         contentShellOptions.add('--no-timeout');
         contentShellOptions.add('--dump-render-tree');
 
-        if (compiler == 'none' || compiler == 'dart2dart') {
+        if (compiler == 'none') {
           dartFlags.add('--ignore-unrecognized-flags');
           if (configuration["checked"]) {
             dartFlags.add('--enable_asserts');
@@ -1455,7 +1455,7 @@ class StandardTestSuite extends TestSuite {
   /** Helper to create a compilation command for a single input file. */
   Command _compileCommand(String inputFile, String outputFile,
       String compiler, String dir, optionsFromFile) {
-    assert (['dart2js', 'dart2dart'].contains(compiler));
+    assert (compiler == 'dart2js')
     List<String> args;
     if (compilerPath.endsWith('.dart')) {
       // Run the compiler script via the Dart VM.
@@ -1495,7 +1495,6 @@ class StandardTestSuite extends TestSuite {
   String get scriptType {
     switch (configuration['compiler']) {
       case 'none':
-      case 'dart2dart':
         return 'application/dart';
       case 'dart2js':
       case 'dartanalyzer':
@@ -1592,7 +1591,7 @@ class StandardTestSuite extends TestSuite {
    *
    *     // VMOptions=--flag1 --flag2
    *
-   *   - Flags can be passed to dart2js, dart2dart or vm by adding a comment
+   *   - Flags can be passed to dart2js or vm by adding a comment
    *   to the test file:
    *
    *     // SharedOptions=--flag1 --flag2
@@ -1744,18 +1743,14 @@ class StandardTestSuite extends TestSuite {
   }
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
-    var COMPILERS = const ['none', 'dart2dart'];
+    var COMPILERS = const ['none'];
     var RUNTIMES = const ['none', 'vm', 'drt', 'dartium',
                           'ContentShellOnAndroid', 'DartiumOnAndroid'];
     var needsVmOptions = COMPILERS.contains(configuration['compiler']) &&
                          RUNTIMES.contains(configuration['runtime']);
     if (!needsVmOptions) return [[]];
     final vmOptions = optionsFromFile['vmOptions'];
-    if (configuration['compiler'] != 'dart2dart') return vmOptions;
-    // Temporary workaround for race in test suite: tests with different
-    // vm options are still compiled into the same output file which
-    // may lead to reads from empty files.
-    return [vmOptions[0]];
+    return vmOptions;
   }
 
   /**
@@ -2203,7 +2198,7 @@ class TestUtils {
       args.add("--enable_type_checks");
     }
     String compiler = configuration["compiler"];
-    if (compiler == "dart2js" || compiler == "dart2dart") {
+    if (compiler == "dart2js") {
       args = [];
       if (configuration["checked"]) {
         args.add('--enable-checked-mode');
@@ -2214,7 +2209,7 @@ class TestUtils {
         args.add("--categories=all");
       }
     }
-    if ((compiler == "dart2js" || compiler == "dart2dart") &&
+    if ((compiler == "dart2js") &&
         configuration["minified"]) {
       args.add("--minify");
     }

@@ -28,27 +28,7 @@ conditional_property_assignment_test: Fail
 conditional_property_access_test: Fail
 conditional_method_invocation_test: Fail
 
-[ $compiler == dart2dart ]
-deferred_load_library_wrong_args_test/none: Fail # Issue 17523
-deferred_load_inval_code_test: Fail # Issue 17523
-deferred_not_loaded_check_test: Fail # Issue 17523
-deferred_constraints_type_annotation_test/*: Fail, Pass # Issue 17523
-deferred_constraints_constants_test/*: Fail, Pass # Issue 17523
-deferred_shadow_load_library_test: Fail # Issue 17523
-deferred_closurize_load_library_test: Fail  # Issue 17523
-deferred_inlined_test: Fail  # Issue 17523
-deferred_optimized_test: Fail  # Issue 17523
-regress_22443_test: Fail # Issue 17523
-enum_mirror_test: Skip # Issue 11511.
-getter_setter_in_lib_test: Fail # Issue 23288
-
-override_inheritance_mixed_test/08: Fail # Issue 18124
-override_inheritance_mixed_test/09: Fail # Issue 18124
-
-[ $compiler == dart2dart ]
-multiline_strings_test: Fail # Issue (pending)
-
-[ $compiler == none || $compiler == dart2dart ]
+[ $compiler == none ]
 # Non-contractive types are not supported in the vm.
 cyclic_type_test/02: Fail, OK
 cyclic_type_test/04: Fail, OK

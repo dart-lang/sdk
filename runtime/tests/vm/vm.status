@@ -80,10 +80,6 @@ dart/data_uri_failures_test/nomime: RuntimeError, OK
 dart/data_uri_failures_test/nocharset: RuntimeError, OK
 dart/data_uri_failures_test/base64: RuntimeError, OK
 
-[ $compiler == dart2dart ]
-# Skip until we stabilize language tests.
-*: Skip
-
 [ $arch == mips ]
 cc/StaticNonNullSumCallCodegen: Crash, Pass # Issue 17440
 cc/ArrayLengthMaxElements: Crash  # Issue 23275

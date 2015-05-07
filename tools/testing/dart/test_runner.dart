@@ -1564,7 +1564,7 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
     if (hasCrashed) return Expectation.CRASH;
     if (hasTimedOut) return Expectation.TIMEOUT;
 
-    // Handle dart2js/dart2dart specific crash detection
+    // Handle dart2js specific crash detection
     if (exitCode == DART2JS_EXITCODE_CRASH ||
         exitCode == VmCommandOutputImpl.DART_VM_EXITCODE_COMPILE_TIME_ERROR ||
         exitCode == VmCommandOutputImpl.DART_VM_EXITCODE_UNCAUGHT_EXCEPTION) {

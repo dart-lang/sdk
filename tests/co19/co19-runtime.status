@@ -49,7 +49,6 @@ Language/14_Libraries_and_Scripts/2_Exports_A05_t02: Fail
 Language/14_Libraries_and_Scripts/3_Parts_A01_t06: Fail
 
 [ $runtime == vm ]
-# These flaky tests also fail with dart2dart.
 LibTest/math/MutableRectangle/MutableRectangle.fromPoints_A01_t01: Pass, RuntimeError # co19-roll r607: Please triage this failure
 
 [ $compiler == none && $runtime == vm && $mode == debug ]

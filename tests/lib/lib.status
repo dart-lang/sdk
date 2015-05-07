@@ -193,13 +193,6 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
 [ $runtime == vm ]
 js/*: Skip
 
-[ $compiler == dart2dart ]
-mirrors/*: Skip # Issue 11511
-async/schedule_microtask6_test: Fail             # Issue 10957 - may be related to issue 10910
-
-[ $compiler == dart2dart && $minified ]
-convert/json_lib_test: Fail # Issue 10961
-
 [ $compiler == dart2js && $minified ]
 mirrors/mirrors_used_get_name_test: RuntimeError
 mirrors/mirrors_used_get_name2_test: RuntimeError
@@ -275,10 +268,6 @@ mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 19127
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 20806.
-
-[ $compiler == dart2dart ]
-# Deferred loading is not supported by dart2dart.
-async/deferred/deferred_in_isolate_test: Skip # Issue 17523
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 # Dart vm does not support spawn from a dom-enabled isolate.

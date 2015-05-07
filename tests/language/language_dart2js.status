@@ -18,7 +18,7 @@ try_catch_on_syntax_test/11: Fail # Issue 19823
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
 
-[ $compiler == dart2js || $compiler == dart2dart ]
+[ $compiler == dart2js ]
 symbol_literal_test/*: Fail # Issue 21825
 constructor_duplicate_final_test/01: Fail # Issue 13363
 constructor_duplicate_final_test/02: Fail # Issue 13363
@@ -93,7 +93,7 @@ malbounded_type_test_test/04: Fail # Issue 14121
 malbounded_type_test2_test: Fail # Issue 14121
 default_factory2_test/01: Fail # Issue 14121
 
-[ ($compiler == dart2js || $compiler == dart2dart) && $checked ]
+[ $compiler == dart2js && $checked ]
 compile_time_constant_checked5_test/06: Fail # Issue 23182
 compile_time_constant_checked5_test/07: Fail # Issue 23182
 compile_time_constant_checked5_test/10: Fail # Issue 23182
@@ -217,84 +217,6 @@ call_through_getter_test: Fail, OK
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
-
-[ $compiler == dart2dart && $builder_tag == new_backend ]
-regress_13494_test: Pass # Issue 22370, passes for the wrong reason
-
-[ $compiler == dart2dart && $minified == true ]
-type_variable_conflict2_test/01: RuntimeError # Issue 16180
-
-[ $compiler == dart2dart ]
-sync_generator2_test/07: MissingCompileTimeError # Issue 22324
-sync_generator2_test/08: MissingCompileTimeError # Issue 22324
-sync_generator2_test/10: MissingCompileTimeError # Issue 22324
-
-regress_13494_test: Fail # Issue 22370
-
-enum_duplicate_test/01: CompileTimeError # Issue 22169
-
-built_in_identifier_prefix_test: Fail # Issue 6972
-constructor_initializer_test/none: Fail # Issue 12633
-
-# Mixins fail on the VM.
-mixin_with_two_implicit_constructors_test: Fail # Issue 11889
-
-# Calling unresolved class constructor:
-call_nonexistent_constructor_test/01: Fail # Issue 13082
-call_nonexistent_constructor_test/02: Fail # Issue 13082
-private_access_test/05: Fail # Issue 13082
-private_access_test/06: Fail # Issue 13082
-
-bad_override_test/01: Fail # Issue 11496
-bad_override_test/02: Fail # Issue 11496
-
-constructor_named_arguments_test/01: Fail # Issue 5519
-not_enough_positional_arguments_test/01: Fail # Issue 12839
-not_enough_positional_arguments_test/02: Fail # Issue 12839
-not_enough_positional_arguments_test/05: Fail # Issue 12839
-
-metadata_test: Fail # Issue 12762
-const_evaluation_test/01: Fail # Issue 12762
-built_in_identifier_test/01: Fail # Issue 13022
-method_override4_test: Fail # Issue 12810
-method_override5_test: Fail # Issue 12810
-scope_variable_test/01: Fail # Issue 13016
-factory_redirection_test/01: Fail # Issue 12753
-
-# DartVM problem.
-constructor5_test: Fail
-constructor6_test: Fail
-closure_in_initializer_test: Fail
-
-new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
-new_expression_type_args_test/01: Fail # Wrongly reports compile-time error.
-
-deferred*: skip # Issue 17523
-cha_deopt1_test: skip # Issue 17523
-cha_deopt2_test: skip # Issue 17523
-cha_deopt3_test: skip # Issue 17523
-issue_1751477_test: skip # Issue 17523
-
-external_test/21: MissingCompileTimeError # Issue 12888
-external_test/24: MissingCompileTimeError # Issue 12888
-
-function_propagation_test: RuntimeError # Issue 21673
-function_subtype_call0_test: RuntimeError # Issue 21673
-function_subtype_call1_test: RuntimeError # Issue 21673
-function_subtype_call2_test: RuntimeError # Issue 21673
-
-instance_creation_in_function_annotation_test: Fail # Issue 23363
-
-[ $compiler == dart2dart && $minified ]
-cyclic_type_test/0*: Fail # Issue 12605.
-cyclic_type2_test: Fail # Issue 12605.
-super_getter_setter_test: Fail # Issue 11065.
-f_bounded_quantification4_test: Fail # Issue 12605.
-f_bounded_quantification5_test: Fail # Issue 12605.
-type_variable_typedef_test: Fail # Issue 11467
-
-invocation_mirror_test: Fail, OK # Issue 12706 (hardcoded names).
-super_call4_test: Fail, OK # hardcoded names.
 
 [ $minified ]
 stack_trace_test: Fail, OK # Stack trace not preserved in minified code.

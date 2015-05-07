@@ -77,10 +77,6 @@ abstract class CompilerConfiguration {
             isHostChecked: isHostChecked, useCps: useCps, useSdk: useSdk,
             isCsp: isCsp, extraDart2jsOptions:
                 TestUtils.getExtraOptions(configuration, 'dart2js_options'));
-      case 'dart2dart':
-        return new Dart2dartCompilerConfiguration(
-            isDebug: isDebug, isChecked: isChecked,
-            isHostChecked: isHostChecked, useSdk: useSdk);
       case 'none':
         return new NoneCompilerConfiguration(
             isDebug: isDebug, isChecked: isChecked,
@@ -166,8 +162,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
-/// Common configuration for dart2js-based tools, such as, dart2js and
-/// dart2dart.
+/// Common configuration for dart2js-based tools, such as, dart2js
 class Dart2xCompilerConfiguration extends CompilerConfiguration {
   final String moniker;
   static Map<String, List<Uri>> _bootstrapDependenciesCache =
@@ -286,54 +281,6 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
         nativeDirectoryToUri(TestUtils.dartDir.toNativePath()).resolve('sdk/');
     Uri preambleDir = sdk.resolve('lib/_internal/compiler/js_lib/preambles/');
     return runtimeConfiguration.dart2jsPreambles(preambleDir)
-        ..add(artifact.filename);
-  }
-}
-
-/// Configuration for dart2dart compiler.
-class Dart2dartCompilerConfiguration extends Dart2xCompilerConfiguration {
-  Dart2dartCompilerConfiguration({
-      bool isDebug,
-      bool isChecked,
-      bool isHostChecked,
-      bool useSdk})
-      : super(
-          'dart2dart',
-          isDebug: isDebug, isChecked: isChecked,
-          isHostChecked: isHostChecked, useSdk: useSdk);
-
-  CommandArtifact computeCompilationArtifact(
-      String buildDir,
-      String tempDir,
-      CommandBuilder commandBuilder,
-      List arguments,
-      Map<String, String> environmentOverrides) {
-    String outputFileName = '$tempDir/out.dart';
-    arguments = new List.from(arguments)..add('--output-type=dart');
-    return new CommandArtifact(
-        <Command>[
-            this.computeCompilationCommand(
-                outputFileName,
-                buildDir,
-                CommandBuilder.instance,
-                arguments,
-                environmentOverrides)],
-        outputFileName,
-        'application/dart');
-  }
-
-  List<String> computeRuntimeArguments(
-      RuntimeConfiguration runtimeConfiguration,
-      String buildDir,
-      TestInformation info,
-      List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> originalArguments,
-      CommandArtifact artifact) {
-    // TODO(antonm): support checked.
-    return <String>[]
-        ..addAll(vmOptions)
-        ..add('--ignore-unrecognized-flags')
         ..add(artifact.filename);
   }
 }
