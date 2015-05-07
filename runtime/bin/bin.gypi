@@ -498,7 +498,7 @@
             '../tools/create_resources.py',
             # The following two files are used to trigger a rebuild.
             '<(PRODUCT_DIR)/observatory/deployed/web/index.html',
-            '<(PRODUCT_DIR)/observatory/deployed/web/index.html_bootstrap.dart.js',
+            '<(PRODUCT_DIR)/observatory/deployed/web/index.html.polymer.bootstrap.dart.js',
             '<@(_sources)',
           ],
           'outputs': [
