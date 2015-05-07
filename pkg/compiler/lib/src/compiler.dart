@@ -25,6 +25,7 @@ abstract class WorkItem {
    * Invariant: [element] must be a declaration element.
    */
   final AstElement element;
+
   TreeElements get resolutionTree;
 
   WorkItem(this.element, this.compilationContext) {
@@ -186,15 +187,29 @@ class CodegenRegistry extends Registry {
 /// [WorkItem] used exclusively by the [CodegenEnqueuer].
 class CodegenWorkItem extends WorkItem {
   Registry registry;
-  final TreeElements resolutionTree;
 
-  CodegenWorkItem(AstElement element,
-                  ItemCompilationContext compilationContext)
-      : this.resolutionTree = element.resolvedAst.elements,
-        super(element, compilationContext) {
-    assert(invariant(element, resolutionTree != null,
+  factory CodegenWorkItem(
+      Compiler compiler,
+      AstElement element,
+      ItemCompilationContext compilationContext) {
+    // If this assertion fails, the resolution callbacks of the backend may be
+    // missing call of form registry.registerXXX. Alternatively, the code
+    // generation could spuriously be adding dependencies on things we know we
+    // don't need.
+    assert(invariant(element,
+        compiler.enqueuer.resolution.hasBeenResolved(element),
+        message: "$element has not been resolved."));
+    assert(invariant(element, element.resolvedAst.elements != null,
         message: 'Resolution tree is null for $element in codegen work item'));
+    return new CodegenWorkItem.internal(element, compilationContext);
   }
+
+  CodegenWorkItem.internal(
+      AstElement element,
+      ItemCompilationContext compilationContext)
+      : super(element, compilationContext);
+
+  TreeElements get resolutionTree => element.resolvedAst.elements;
 
   void run(Compiler compiler, CodegenEnqueuer world) {
     if (world.isProcessed(element)) return;
