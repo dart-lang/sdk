@@ -242,38 +242,43 @@ class CacheEntryTest extends EngineTestCase {
   }
 
   test_setErrorState_invalidateDependent() {
-    AnalysisTarget target = new TestSource();
-    CacheEntry entry = new CacheEntry();
-    cache.put(target, entry);
+    AnalysisTarget target1 = new TestSource('/a.dart');
+    AnalysisTarget target2 = new TestSource('/b.dart');
+    CacheEntry entry1 = new CacheEntry();
+    CacheEntry entry2 = new CacheEntry();
+    cache.put(target1, entry1);
+    cache.put(target2, entry2);
     ResultDescriptor result1 = new ResultDescriptor('result1', -1);
     ResultDescriptor result2 = new ResultDescriptor('result2', -2);
     ResultDescriptor result3 = new ResultDescriptor('result3', -3);
     ResultDescriptor result4 = new ResultDescriptor('result4', -4);
     // set results, all of them are VALID
-    entry.setValue(result1, 111, TargetedResult.EMPTY_LIST, null);
-    entry.setValue(result2, 222, [new TargetedResult(target, result1)], null);
-    entry.setValue(result3, 333, [new TargetedResult(target, result2)], null);
-    entry.setValue(result4, 444, [], null);
-    expect(entry.getState(result1), CacheState.VALID);
-    expect(entry.getState(result2), CacheState.VALID);
-    expect(entry.getState(result3), CacheState.VALID);
-    expect(entry.getState(result4), CacheState.VALID);
-    expect(entry.getValue(result1), 111);
-    expect(entry.getValue(result2), 222);
-    expect(entry.getValue(result3), 333);
-    expect(entry.getValue(result4), 444);
+    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST, null);
+    entry2.setValue(result2, 222, [new TargetedResult(target1, result1)], null);
+    entry2.setValue(result3, 333, [new TargetedResult(target2, result2)], null);
+    entry2.setValue(result4, 444, [], null);
+    expect(entry1.getState(result1), CacheState.VALID);
+    expect(entry2.getState(result2), CacheState.VALID);
+    expect(entry2.getState(result3), CacheState.VALID);
+    expect(entry2.getState(result4), CacheState.VALID);
+    expect(entry1.getValue(result1), 111);
+    expect(entry2.getValue(result2), 222);
+    expect(entry2.getValue(result3), 333);
+    expect(entry2.getValue(result4), 444);
     // set error state
     CaughtException exception = new CaughtException(null, null);
-    entry.setErrorState(exception, <ResultDescriptor>[result1]);
+    entry1.setErrorState(exception, <ResultDescriptor>[result1]);
     // result2 and result3 are invalidated, result4 is intact
-    expect(entry.getState(result1), CacheState.ERROR);
-    expect(entry.getState(result2), CacheState.ERROR);
-    expect(entry.getState(result3), CacheState.ERROR);
-    expect(entry.getState(result4), CacheState.VALID);
-    expect(entry.getValue(result1), -1);
-    expect(entry.getValue(result2), -2);
-    expect(entry.getValue(result3), -3);
-    expect(entry.getValue(result4), 444);
+    expect(entry1.getState(result1), CacheState.ERROR);
+    expect(entry2.getState(result2), CacheState.ERROR);
+    expect(entry2.getState(result3), CacheState.ERROR);
+    expect(entry2.getState(result4), CacheState.VALID);
+    expect(entry1.getValue(result1), -1);
+    expect(entry2.getValue(result2), -2);
+    expect(entry2.getValue(result3), -3);
+    expect(entry2.getValue(result4), 444);
+    expect(entry1.exception, exception);
+    expect(entry2.exception, exception);
   }
 
   test_setErrorState_noDescriptors() {

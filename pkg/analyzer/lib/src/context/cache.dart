@@ -345,9 +345,7 @@ class CacheEntry {
     }
     this._exception = exception;
     for (ResultDescriptor descriptor in descriptors) {
-      ResultData data = _getResultData(descriptor);
-      TargetedResult thisResult = new TargetedResult(_target, descriptor);
-      data.invalidate(_partition, thisResult, CacheState.ERROR);
+      _invalidate(descriptor, exception);
     }
   }
 
@@ -366,8 +364,7 @@ class CacheEntry {
     if (state == CacheState.INVALID) {
       ResultData data = _resultMap[descriptor];
       if (data != null) {
-        TargetedResult thisResult = new TargetedResult(_target, descriptor);
-        data.invalidate(_partition, thisResult, CacheState.INVALID);
+        _invalidate(descriptor, null);
       }
     } else {
       ResultData data = _getResultData(descriptor);
@@ -394,9 +391,9 @@ class CacheEntry {
     if (_partition != null) {
       _partition.resultStored(thisResult, value);
     }
+    _invalidate(descriptor, null);
     ResultData data = _getResultData(descriptor);
-    data.invalidate(_partition, thisResult, CacheState.INVALID);
-    data.setDependedOnResults(_partition, thisResult, dependedOn);
+    _setDependedOnResults(data, thisResult, dependedOn);
     data.state = CacheState.VALID;
     data.value = value == null ? descriptor.defaultValue : value;
     data.memento = memento;
@@ -420,6 +417,49 @@ class CacheEntry {
    */
   ResultData _getResultData(ResultDescriptor descriptor) {
     return _resultMap.putIfAbsent(descriptor, () => new ResultData(descriptor));
+  }
+
+  /**
+   * Invalidate the result represented by the given [descriptor].
+   * Propagate invalidation to other results that depend on it.
+   */
+  void _invalidate(ResultDescriptor descriptor, CaughtException exception) {
+    ResultData thisData = _getResultData(descriptor);
+    // Invalidate this result.
+    if (exception == null) {
+      thisData.state = CacheState.INVALID;
+    } else {
+      thisData.state = CacheState.ERROR;
+      _exception = exception;
+    }
+    thisData.value = descriptor.defaultValue;
+    // Stop depending on other results.
+    TargetedResult thisResult = new TargetedResult(_target, descriptor);
+    List<TargetedResult> dependedOnResults = thisData.dependedOnResults;
+    thisData.dependedOnResults = <TargetedResult>[];
+    dependedOnResults.forEach((TargetedResult dependedOnResult) {
+      ResultData data = _partition._getDataFor(dependedOnResult);
+      data.dependentResults.remove(thisResult);
+    });
+    // Invalidate results that depend on this result.
+    List<TargetedResult> dependentResults = thisData.dependentResults;
+    thisData.dependentResults = <TargetedResult>[];
+    dependentResults.forEach((TargetedResult dependentResult) {
+      CacheEntry entry = _partition.get(dependentResult.target);
+      entry._invalidate(dependentResult.result, exception);
+    });
+  }
+
+  /**
+   * Set the [dependedOn] on which this result depends.
+   */
+  void _setDependedOnResults(ResultData thisData, TargetedResult thisResult,
+      List<TargetedResult> dependedOn) {
+    thisData.dependedOnResults = dependedOn;
+    thisData.dependedOnResults.forEach((TargetedResult dependentResult) {
+      ResultData data = _partition._getDataFor(dependentResult);
+      data.dependentResults.add(thisResult);
+    });
   }
 
   /**
@@ -785,66 +825,11 @@ class ResultData {
   }
 
   /**
-   * Add the given [result] to the list of dependent results.
-   */
-  void addDependentResult(TargetedResult result) {
-    dependentResults.add(result);
-  }
-
-  /**
    * Flush this value.
    */
   void flush() {
     state = CacheState.FLUSHED;
     value = descriptor.defaultValue;
-  }
-
-  /**
-   * Invalidate this [ResultData] that corresponds to [thisResult] and
-   * propagate invalidation to the results that depend on this one.
-   */
-  void invalidate(CachePartition partition, TargetedResult thisResult,
-      CacheState newState) {
-    // Invalidate this result.
-    state = newState;
-    value = descriptor.defaultValue;
-    // Stop depending on other results.
-    List<TargetedResult> dependedOnResults = this.dependedOnResults;
-    this.dependedOnResults = <TargetedResult>[];
-    dependedOnResults.forEach((TargetedResult dependedOnResult) {
-      ResultData data = partition._getDataFor(dependedOnResult);
-      data.removeDependentResult(thisResult);
-    });
-    // Invalidate results that depend on this result.
-    List<TargetedResult> dependentResults = this.dependentResults;
-    this.dependentResults = <TargetedResult>[];
-    dependentResults.forEach((TargetedResult dependentResult) {
-      ResultData data = partition._getDataFor(dependentResult);
-      data.invalidate(partition, dependentResult, newState);
-    });
-  }
-
-  /**
-   * Remove the given [result] from the list of dependent results.
-   */
-  void removeDependentResult(TargetedResult result) {
-    dependentResults.remove(result);
-  }
-
-  /**
-   * Set the [dependedOn] on which this result depends.
-   */
-  void setDependedOnResults(CachePartition partition, TargetedResult thisResult,
-      List<TargetedResult> dependedOn) {
-    dependedOnResults.forEach((TargetedResult dependedOnResult) {
-      ResultData data = partition._getDataFor(dependedOnResult);
-      data.removeDependentResult(thisResult);
-    });
-    dependedOnResults = dependedOn;
-    dependedOnResults.forEach((TargetedResult dependentResult) {
-      ResultData data = partition._getDataFor(dependentResult);
-      data.addDependentResult(thisResult);
-    });
   }
 }
 
