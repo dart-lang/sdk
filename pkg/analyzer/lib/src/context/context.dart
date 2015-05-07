@@ -674,29 +674,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return source.exists();
   }
 
-  Element findElementById(int id) {
-    // TODO(brianwilkerson) Implement this.
-    return null;
-//    _ElementByIdFinder finder = new _ElementByIdFinder(id);
-//    try {
-//      MapIterator<AnalysisTarget, cache.CacheEntry> iterator =
-//          _cache.iterator();
-//      while (iterator.moveNext()) {
-//        cache.CacheEntry entry = iterator.value;
-//        if (entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY) {
-//          DartEntry dartEntry = entry;
-//          LibraryElement library = dartEntry.getValue(DartEntry.ELEMENT);
-//          if (library != null) {
-//            library.accept(finder);
-//          }
-//        }
-//      }
-//    } on _ElementByIdFinderException {
-//      return finder.result;
-//    }
-//    return null;
-  }
-
   @override
   cache.CacheEntry getCacheEntry(AnalysisTarget target) {
     cache.CacheEntry entry = _cache.get(target);

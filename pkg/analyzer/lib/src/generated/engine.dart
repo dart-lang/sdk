@@ -1796,26 +1796,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return source.exists();
   }
 
-  Element findElementById(int id) {
-    _ElementByIdFinder finder = new _ElementByIdFinder(id);
-    try {
-      MapIterator<Source, SourceEntry> iterator = _cache.iterator();
-      while (iterator.moveNext()) {
-        SourceEntry sourceEntry = iterator.value;
-        if (sourceEntry.kind == SourceKind.LIBRARY) {
-          DartEntry dartEntry = sourceEntry;
-          LibraryElement library = dartEntry.getValue(DartEntry.ELEMENT);
-          if (library != null) {
-            library.accept(finder);
-          }
-        }
-      }
-    } on _ElementByIdFinderException {
-      return finder.result;
-    }
-    return null;
-  }
-
   @override
   cache.CacheEntry getCacheEntry(AnalysisTarget target) {
     return null;
@@ -11687,21 +11667,3 @@ class _AnalysisFutureHelper<T> {
     return pendingFuture.future;
   }
 }
-
-class _ElementByIdFinder extends GeneralizingElementVisitor {
-  final int _id;
-  Element result;
-
-  _ElementByIdFinder(this._id);
-
-  @override
-  visitElement(Element element) {
-    if (element.id == _id) {
-      result = element;
-      throw new _ElementByIdFinderException();
-    }
-    super.visitElement(element);
-  }
-}
-
-class _ElementByIdFinderException {}
