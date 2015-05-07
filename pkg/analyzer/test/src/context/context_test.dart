@@ -59,7 +59,7 @@ class AnalysisContextImplTest extends AbstractContextTest {
     fail('Should have failed');
   }
 
-  void fail_applyChanges_overriddenSource() {
+  void test_applyChanges_overriddenSource() {
     // Note: addSource adds the source to the contentCache.
     Source source = addSource("/test.dart", "library test;");
     context.computeErrors(source);
@@ -140,13 +140,13 @@ import 'libB.dart';''';
     });
   }
 
-  void fail_computeErrors_dart_none() {
+  void test_computeErrors_dart_none() {
     Source source = addSource("/lib.dart", "library lib;");
     List<AnalysisError> errors = context.computeErrors(source);
     expect(errors, hasLength(0));
   }
 
-  void fail_computeErrors_dart_part() {
+  void test_computeErrors_dart_part() {
     Source librarySource =
         addSource("/lib.dart", "library lib; part 'part.dart';");
     Source partSource = addSource("/part.dart", "part of 'lib';");
@@ -156,7 +156,7 @@ import 'libB.dart';''';
     expect(errors.length > 0, isTrue);
   }
 
-  void fail_computeErrors_dart_some() {
+  void test_computeErrors_dart_some() {
     Source source = addSource("/lib.dart", "library 'lib';");
     List<AnalysisError> errors = context.computeErrors(source);
     expect(errors, isNotNull);
@@ -312,7 +312,7 @@ class A {
     expect(element, same(myEnum));
   }
 
-  void fail_getErrors_dart_none() {
+  void test_getErrors_dart_none() {
     Source source = addSource("/lib.dart", "library lib;");
     var errorInfo = context.getErrors(source);
     expect(errorInfo, isNotNull);
@@ -323,18 +323,17 @@ class A {
     expect(errors, hasLength(0));
   }
 
-  void fail_getErrors_dart_some() {
+  void test_getErrors_dart_some() {
     Source source = addSource("/lib.dart", "library 'lib';");
     var errorInfo = context.getErrors(source);
     expect(errorInfo, isNotNull);
     List<AnalysisError> errors = errorInfo.errors;
     expect(errors, hasLength(0));
-    context.computeErrors(source);
-    errors = errorInfo.errors;
+    errors = context.computeErrors(source);
     expect(errors, hasLength(1));
   }
 
-  void fail_getErrors_html_none() {
+  void test_getErrors_html_none() {
     Source source = addSource("/test.html", "<html></html>");
     AnalysisErrorInfo errorInfo = context.getErrors(source);
     expect(errorInfo, isNotNull);

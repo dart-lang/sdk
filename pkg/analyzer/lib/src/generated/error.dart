@@ -191,6 +191,18 @@ class AnalysisError {
     buffer.write(_message);
     return buffer.toString();
   }
+
+  /**
+   * Merge all of the errors in the lists in the given list of [errorLists] into
+   * a single list of errors.
+   */
+  static List<AnalysisError> mergeLists(List<List<AnalysisError>> errorLists) {
+    List<AnalysisError> errors = <AnalysisError>[];
+    for (List<AnalysisError> errorList in errorLists) {
+      errors.addAll(errorList);
+    }
+    return errors;
+  }
 }
 
 /**

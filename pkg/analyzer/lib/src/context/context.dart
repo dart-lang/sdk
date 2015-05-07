@@ -762,9 +762,27 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   AnalysisErrorInfo getErrors(Source source) {
-    List<AnalysisError> errors = _getResult(source, DART_ERRORS);
+    // TODO(brianwilkerson) Figure out how to implement this cleanly. The
+    // problem is that _getResult doesn't know to go into the individual inputs
+    // for the task to get their values for tasks that are just merging other
+    // result values. Therefore, if some, but not all, of the error lists have
+    // been computed, no errors will be returned by it.
+    List<List<AnalysisError>> errorLists = <List<AnalysisError>>[];
+    errorLists.add(_getResult(source, BUILD_DIRECTIVES_ERRORS));
+    errorLists.add(_getResult(source, BUILD_LIBRARY_ERRORS));
+    errorLists.add(_getResult(source, PARSE_ERRORS));
+    errorLists.add(_getResult(source, SCAN_ERRORS));
+    for (Source library in getLibrariesContaining(source)) {
+      LibrarySpecificUnit unit = new LibrarySpecificUnit(library, source);
+      errorLists.add(_getResult(unit, BUILD_FUNCTION_TYPE_ALIASES_ERRORS));
+      errorLists.add(_getResult(unit, HINTS));
+      errorLists.add(_getResult(unit, RESOLVE_REFERENCES_ERRORS));
+      errorLists.add(_getResult(unit, RESOLVE_TYPE_NAMES_ERRORS));
+      errorLists.add(_getResult(unit, VERIFY_ERRORS));
+    }
     LineInfo lineInfo = _getResult(source, LINE_INFO);
-    return new AnalysisErrorInfoImpl(errors, lineInfo);
+    return new AnalysisErrorInfoImpl(
+        AnalysisError.mergeLists(errorLists), lineInfo);
   }
 
   @override

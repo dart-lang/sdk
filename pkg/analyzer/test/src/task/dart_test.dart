@@ -33,9 +33,12 @@ main() {
   runReflectiveTests(BuildLibraryElementTaskTest);
   runReflectiveTests(BuildPublicNamespaceTaskTest);
   runReflectiveTests(BuildTypeProviderTaskTest);
+  runReflectiveTests(ContainingLibrariesTaskTest);
+  runReflectiveTests(DartErrorsTaskTest);
   runReflectiveTests(GatherUsedImportedElementsTaskTest);
   runReflectiveTests(GatherUsedLocalElementsTaskTest);
   runReflectiveTests(GenerateHintsTaskTest);
+  runReflectiveTests(LibraryUnitErrorsTaskTest);
   runReflectiveTests(ParseDartTaskTest);
   runReflectiveTests(ResolveUnitTypeNamesTaskTest);
   runReflectiveTests(ResolveLibraryTypeNamesTaskTest);
@@ -1184,6 +1187,148 @@ class BuildTypeProviderTaskTest extends _AbstractDartTaskTest {
 }
 
 @reflectiveTest
+class ContainingLibrariesTaskTest extends _AbstractDartTaskTest {
+  test_buildInputs() {
+    Map<String, TaskInput> inputs =
+        ContainingLibrariesTask.buildInputs(emptySource);
+    expect(inputs, isNotNull);
+    expect(inputs, isEmpty);
+  }
+
+  test_constructor() {
+    ContainingLibrariesTask task =
+        new ContainingLibrariesTask(context, emptySource);
+    expect(task, isNotNull);
+    expect(task.context, context);
+    expect(task.target, emptySource);
+  }
+
+  test_createTask() {
+    ContainingLibrariesTask task =
+        ContainingLibrariesTask.createTask(context, emptySource);
+    expect(task, isNotNull);
+    expect(task.context, context);
+    expect(task.target, emptySource);
+  }
+
+  test_description() {
+    ContainingLibrariesTask task =
+        new ContainingLibrariesTask(null, emptySource);
+    expect(task.description, isNotNull);
+  }
+
+  test_descriptor() {
+    TaskDescriptor descriptor = ContainingLibrariesTask.DESCRIPTOR;
+    expect(descriptor, isNotNull);
+  }
+
+  test_perform_definingCompilationUnit() {
+    AnalysisTarget library = newSource('/test.dart', 'library test;');
+    _computeResult(library, INCLUDED_PARTS);
+    _computeResult(library, CONTAINING_LIBRARIES);
+    expect(task, new isInstanceOf<ContainingLibrariesTask>());
+    expect(outputs, hasLength(1));
+    List<Source> containingLibraries = outputs[CONTAINING_LIBRARIES];
+    expect(containingLibraries, unorderedEquals([library]));
+  }
+
+  test_perform_partInMultipleLibraries() {
+    AnalysisTarget library1 =
+        newSource('/lib1.dart', 'library test; part "part.dart";');
+    AnalysisTarget library2 =
+        newSource('/lib2.dart', 'library test; part "part.dart";');
+    AnalysisTarget part = newSource('/part.dart', 'part of test;');
+    _computeResult(library1, INCLUDED_PARTS);
+    _computeResult(library2, INCLUDED_PARTS);
+    _computeResult(part, SOURCE_KIND);
+    _computeResult(part, CONTAINING_LIBRARIES);
+    expect(task, new isInstanceOf<ContainingLibrariesTask>());
+    expect(outputs, hasLength(1));
+    List<Source> containingLibraries = outputs[CONTAINING_LIBRARIES];
+    expect(containingLibraries, unorderedEquals([library1, library2]));
+  }
+
+  test_perform_partInSingleLibrary() {
+    AnalysisTarget library =
+        newSource('/lib.dart', 'library test; part "part.dart";');
+    AnalysisTarget part = newSource('/part.dart', 'part of test;');
+    _computeResult(library, INCLUDED_PARTS);
+    _computeResult(part, SOURCE_KIND);
+    _computeResult(part, CONTAINING_LIBRARIES);
+    expect(task, new isInstanceOf<ContainingLibrariesTask>());
+    expect(outputs, hasLength(1));
+    List<Source> containingLibraries = outputs[CONTAINING_LIBRARIES];
+    expect(containingLibraries, unorderedEquals([library]));
+  }
+}
+
+@reflectiveTest
+class DartErrorsTaskTest extends _AbstractDartTaskTest {
+  test_buildInputs() {
+    Map<String, TaskInput> inputs = DartErrorsTask.buildInputs(emptySource);
+    expect(inputs, isNotNull);
+    expect(inputs.keys, unorderedEquals([
+      DartErrorsTask.BUILD_DIRECTIVES_ERRORS_INPUT,
+      DartErrorsTask.BUILD_LIBRARY_ERRORS_INPUT,
+      DartErrorsTask.PARSE_ERRORS_INPUT,
+      DartErrorsTask.SCAN_ERRORS_INPUT,
+      DartErrorsTask.LIBRARY_UNIT_ERRORS_INPUT
+    ]));
+  }
+
+  test_constructor() {
+    DartErrorsTask task = new DartErrorsTask(context, emptySource);
+    expect(task, isNotNull);
+    expect(task.context, context);
+    expect(task.target, emptySource);
+  }
+
+  test_createTask() {
+    DartErrorsTask task = DartErrorsTask.createTask(context, emptySource);
+    expect(task, isNotNull);
+    expect(task.context, context);
+    expect(task.target, emptySource);
+  }
+
+  test_description() {
+    DartErrorsTask task = new DartErrorsTask(null, emptySource);
+    expect(task.description, isNotNull);
+  }
+
+  test_descriptor() {
+    TaskDescriptor descriptor = DartErrorsTask.DESCRIPTOR;
+    expect(descriptor, isNotNull);
+  }
+
+  test_perform_definingCompilationUnit() {
+    AnalysisTarget library =
+        newSource('/test.dart', 'library test; import "dart:math";');
+    _computeResult(library, INCLUDED_PARTS);
+    _computeResult(library, DART_ERRORS);
+    expect(task, new isInstanceOf<DartErrorsTask>());
+    expect(outputs, hasLength(1));
+    List<AnalysisError> errors = outputs[DART_ERRORS];
+    expect(errors, hasLength(1));
+  }
+
+  test_perform_partInSingleLibrary() {
+    AnalysisTarget library = newSource(
+        '/lib.dart', 'library test; import "dart:math"; part "part.dart";');
+    AnalysisTarget part =
+        newSource('/part.dart', 'part of test; class A extends A {}');
+    _computeResult(library, INCLUDED_PARTS);
+    _computeResult(library, DART_ERRORS);
+    _computeResult(part, DART_ERRORS);
+    expect(task, new isInstanceOf<DartErrorsTask>());
+    expect(outputs, hasLength(1));
+    List<AnalysisError> errors = outputs[DART_ERRORS];
+    // This should contain only the errors in the part file, not the ones in the
+    // library.
+    expect(errors, hasLength(1));
+  }
+}
+
+@reflectiveTest
 class GatherUsedImportedElementsTaskTest extends _AbstractDartTaskTest {
   UsedImportedElements usedElements;
   Set<String> usedElementNames;
@@ -1455,6 +1600,70 @@ f(A a) {
     _fillErrorListener(HINTS);
     errorListener.assertErrorsWithCodes(
         <ErrorCode>[HintCode.UNUSED_ELEMENT, HintCode.UNUSED_ELEMENT]);
+  }
+}
+
+@reflectiveTest
+class LibraryUnitErrorsTaskTest extends _AbstractDartTaskTest {
+  test_buildInputs() {
+    Map<String, TaskInput> inputs = LibraryUnitErrorsTask
+        .buildInputs(new LibrarySpecificUnit(emptySource, emptySource));
+    expect(inputs, isNotNull);
+    expect(inputs.keys, unorderedEquals([
+      LibraryUnitErrorsTask.BUILD_FUNCTION_TYPE_ALIASES_ERRORS_INPUT,
+      LibraryUnitErrorsTask.HINTS_INPUT,
+      LibraryUnitErrorsTask.RESOLVE_REFERENCES_ERRORS_INPUT,
+      LibraryUnitErrorsTask.RESOLVE_TYPE_NAMES_ERRORS_INPUT,
+      LibraryUnitErrorsTask.VERIFY_ERRORS_INPUT
+    ]));
+  }
+
+  test_constructor() {
+    LibraryUnitErrorsTask task =
+        new LibraryUnitErrorsTask(context, emptySource);
+    expect(task, isNotNull);
+    expect(task.context, context);
+    expect(task.target, emptySource);
+  }
+
+  test_createTask() {
+    LibraryUnitErrorsTask task =
+        LibraryUnitErrorsTask.createTask(context, emptySource);
+    expect(task, isNotNull);
+    expect(task.context, context);
+    expect(task.target, emptySource);
+  }
+
+  test_description() {
+    LibraryUnitErrorsTask task = new LibraryUnitErrorsTask(null, emptySource);
+    expect(task.description, isNotNull);
+  }
+
+  test_descriptor() {
+    TaskDescriptor descriptor = LibraryUnitErrorsTask.DESCRIPTOR;
+    expect(descriptor, isNotNull);
+  }
+
+  test_perform_definingCompilationUnit() {
+    AnalysisTarget library =
+        newSource('/test.dart', 'library test; import "dart:math";');
+    _computeResult(
+        new LibrarySpecificUnit(library, library), LIBRARY_UNIT_ERRORS);
+    expect(task, new isInstanceOf<LibraryUnitErrorsTask>());
+    expect(outputs, hasLength(1));
+    List<AnalysisError> errors = outputs[LIBRARY_UNIT_ERRORS];
+    expect(errors, hasLength(1));
+  }
+
+  test_perform_partInSingleLibrary() {
+    AnalysisTarget library =
+        newSource('/lib.dart', 'library test; part "part.dart";');
+    AnalysisTarget part = newSource('/part.dart', 'part of test;');
+    _computeResult(new LibrarySpecificUnit(library, part), LIBRARY_UNIT_ERRORS);
+    expect(task, new isInstanceOf<LibraryUnitErrorsTask>());
+    expect(outputs, hasLength(1));
+    List<AnalysisError> errors = outputs[LIBRARY_UNIT_ERRORS];
+    expect(errors, hasLength(0));
   }
 }
 

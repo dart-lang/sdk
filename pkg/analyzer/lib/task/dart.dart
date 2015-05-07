@@ -16,13 +16,11 @@ import 'package:analyzer/task/model.dart';
 /**
  * The analysis errors associated with a target.
  *
- * The value combines errors represented by multiple other results.
+ * The result is only available for targets representing a Dart compilation unit.
  */
-// TODO(brianwilkerson) If we want to associate errors with targets smaller than
-// a file, we will need other contribution points to collect them. In which case
-// we might want to rename this and/or document that it applies to files.
-final CompositeResultDescriptor<List<AnalysisError>> DART_ERRORS =
-    new CompositeResultDescriptor<List<AnalysisError>>('DART_ERRORS');
+final ResultDescriptor<List<AnalysisError>> DART_ERRORS =
+    new ResultDescriptor<List<AnalysisError>>(
+        'DART_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
  * The sources of the libraries that are explicitly imported into a library.
