@@ -1034,38 +1034,38 @@ class Primitives {
 
   static getMonth(receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'#.getUTCMonth() + 1', lazyAsJsDate(receiver))
-      : JS('int', r'#.getMonth() + 1', lazyAsJsDate(receiver));
+      ? JS('JSUInt31', r'#.getUTCMonth() + 1', lazyAsJsDate(receiver))
+      : JS('JSUInt31', r'#.getMonth() + 1', lazyAsJsDate(receiver));
   }
 
   static getDay(receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'(#.getUTCDate() + 0)', lazyAsJsDate(receiver))
-      : JS('int', r'(#.getDate() + 0)', lazyAsJsDate(receiver));
+      ? JS('JSUInt31', r'(#.getUTCDate() + 0)', lazyAsJsDate(receiver))
+      : JS('JSUInt31', r'(#.getDate() + 0)', lazyAsJsDate(receiver));
   }
 
   static getHours(receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'(#.getUTCHours() + 0)', lazyAsJsDate(receiver))
-      : JS('int', r'(#.getHours() + 0)', lazyAsJsDate(receiver));
+      ? JS('JSUInt31', r'(#.getUTCHours() + 0)', lazyAsJsDate(receiver))
+      : JS('JSUInt31', r'(#.getHours() + 0)', lazyAsJsDate(receiver));
   }
 
   static getMinutes(receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'(#.getUTCMinutes() + 0)', lazyAsJsDate(receiver))
-      : JS('int', r'(#.getMinutes() + 0)', lazyAsJsDate(receiver));
+      ? JS('JSUInt31', r'(#.getUTCMinutes() + 0)', lazyAsJsDate(receiver))
+      : JS('JSUInt31', r'(#.getMinutes() + 0)', lazyAsJsDate(receiver));
   }
 
   static getSeconds(receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'(#.getUTCSeconds() + 0)', lazyAsJsDate(receiver))
-      : JS('int', r'(#.getSeconds() + 0)', lazyAsJsDate(receiver));
+      ? JS('JSUInt31', r'(#.getUTCSeconds() + 0)', lazyAsJsDate(receiver))
+      : JS('JSUInt31', r'(#.getSeconds() + 0)', lazyAsJsDate(receiver));
   }
 
   static getMilliseconds(receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'(#.getUTCMilliseconds() + 0)', lazyAsJsDate(receiver))
-      : JS('int', r'(#.getMilliseconds() + 0)', lazyAsJsDate(receiver));
+      ? JS('JSUInt31', r'(#.getUTCMilliseconds() + 0)', lazyAsJsDate(receiver))
+      : JS('JSUInt31', r'(#.getMilliseconds() + 0)', lazyAsJsDate(receiver));
   }
 
   static getWeekday(receiver) {
