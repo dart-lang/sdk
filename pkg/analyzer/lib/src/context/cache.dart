@@ -115,9 +115,10 @@ class AnalysisCache {
   }
 
   /**
-   * Associate the given [entry] with the given [target].
+   * Puts the given [entry] into the cache.
    */
-  void put(AnalysisTarget target, CacheEntry entry) {
+  void put(CacheEntry entry) {
+    AnalysisTarget target = entry.target;
     entry.fixExceptionState();
     int count = _partitions.length;
     for (int i = 0; i < count; i++) {
@@ -134,7 +135,7 @@ class AnalysisCache {
 //                'Diff = ${entry.getDiff(oldEntry)}');
           }
         }
-        partition.put(target, entry);
+        partition.put(entry);
         return;
       }
     }
@@ -193,14 +194,14 @@ class CacheEntry {
   static int _EXPLICITLY_ADDED_FLAG = 0;
 
   /**
+   * The target this entry is about.
+   */
+  final AnalysisTarget target;
+
+  /**
    * The partition that is responsible for this entry.
    */
   CachePartition _partition;
-
-  /**
-   * The target this entry is about.
-   */
-  AnalysisTarget _target;
 
   /**
    * The most recent time at which the state of the target matched the state
@@ -224,6 +225,8 @@ class CacheEntry {
    */
   Map<ResultDescriptor, ResultData> _resultMap =
       new HashMap<ResultDescriptor, ResultData>();
+
+  CacheEntry(this.target);
 
   /**
    * The exception that caused one or more values to have a state of
@@ -287,7 +290,7 @@ class CacheEntry {
       return descriptor.defaultValue;
     }
     if (_partition != null) {
-      _partition.resultAccessed(_target, descriptor);
+      _partition.resultAccessed(target, descriptor);
     }
     return data.value;
   }
@@ -383,7 +386,7 @@ class CacheEntry {
   /*<V>*/ void setValue(ResultDescriptor /*<V>*/ descriptor, dynamic /*V*/
       value, List<TargetedResult> dependedOn, Object memento) {
     _validateStateChange(descriptor, CacheState.VALID);
-    TargetedResult thisResult = new TargetedResult(_target, descriptor);
+    TargetedResult thisResult = new TargetedResult(target, descriptor);
     if (_partition != null) {
       _partition.resultStored(thisResult, value);
     }
@@ -430,7 +433,7 @@ class CacheEntry {
     }
     thisData.value = descriptor.defaultValue;
     // Stop depending on other results.
-    TargetedResult thisResult = new TargetedResult(_target, descriptor);
+    TargetedResult thisResult = new TargetedResult(target, descriptor);
     List<TargetedResult> dependedOnResults = thisData.dependedOnResults;
     thisData.dependedOnResults = <TargetedResult>[];
     dependedOnResults.forEach((TargetedResult dependedOnResult) {
@@ -692,15 +695,15 @@ abstract class CachePartition {
       new SingleMapIterator<AnalysisTarget, CacheEntry>(_targetMap);
 
   /**
-   * Associate the given [entry] with the given [target].
+   * Puts the given [entry] into the partition.
    */
-  void put(AnalysisTarget target, CacheEntry entry) {
+  void put(CacheEntry entry) {
+    AnalysisTarget target = entry.target;
     if (entry._partition != null) {
       throw new StateError(
           'The entry for $target is already in ${entry._partition}');
     }
     entry._partition = this;
-    entry._target = target;
     entry.fixExceptionState();
     _targetMap[target] = entry;
   }

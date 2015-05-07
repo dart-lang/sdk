@@ -678,8 +678,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   cache.CacheEntry getCacheEntry(AnalysisTarget target) {
     cache.CacheEntry entry = _cache.get(target);
     if (entry == null) {
-      entry = new cache.CacheEntry();
-      _cache.put(target, entry);
+      entry = new cache.CacheEntry(target);
+      _cache.put(entry);
     }
     return entry;
   }
@@ -1407,10 +1407,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * entry that was created.
    */
   cache.CacheEntry _createCacheEntry(Source source, bool explicitlyAdded) {
-    cache.CacheEntry entry = new cache.CacheEntry();
+    cache.CacheEntry entry = new cache.CacheEntry(source);
     entry.modificationTime = getModificationStamp(source);
     entry.explicitlyAdded = explicitlyAdded;
-    _cache.put(source, entry);
+    _cache.put(entry);
     return entry;
   }
 
