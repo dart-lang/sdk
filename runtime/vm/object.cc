@@ -12054,7 +12054,7 @@ RawLocalVarDescriptors* Code::GetLocalVarDescriptors() const {
     ASSERT(!f.IsIrregexpFunction());  // Not yet implemented.
     Compiler::ComputeLocalVarDescriptors(*this);
   }
-  return v.raw();
+  return var_descriptors();
 }
 
 
