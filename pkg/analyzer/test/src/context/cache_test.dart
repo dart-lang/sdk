@@ -420,9 +420,11 @@ class CacheEntryTest extends EngineTestCase {
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry();
     cache.put(target, entry);
+    Object memento1 = 'aaa';
     {
-      entry.setValue(descriptor1, 1, TargetedResult.EMPTY_LIST, null);
+      entry.setValue(descriptor1, 1, TargetedResult.EMPTY_LIST, memento1);
       expect(entry.getState(descriptor1), CacheState.VALID);
+      expect(entry.getMemento(descriptor1), memento1);
     }
     {
       entry.setValue(descriptor2, 2, TargetedResult.EMPTY_LIST, null);
@@ -434,6 +436,7 @@ class CacheEntryTest extends EngineTestCase {
       expect(entry.getState(descriptor1), CacheState.FLUSHED);
       expect(entry.getState(descriptor2), CacheState.VALID);
       expect(entry.getState(descriptor3), CacheState.VALID);
+      expect(entry.getMemento(descriptor1), isNull);
     }
   }
 
@@ -716,6 +719,18 @@ class ResultDataTest extends EngineTestCase {
     expect(data, isNotNull);
     expect(data.state, CacheState.INVALID);
     expect(data.value, value);
+  }
+
+  test_flush() {
+    ResultDescriptor result = new ResultDescriptor('test', -1);
+    ResultData data = new ResultData(result);
+    data.state = CacheState.VALID;
+    data.value = 123;
+    data.memento = 'abc';
+    data.flush();
+    expect(data.state, CacheState.FLUSHED);
+    expect(data.value, -1);
+    expect(data.memento, isNull);
   }
 }
 

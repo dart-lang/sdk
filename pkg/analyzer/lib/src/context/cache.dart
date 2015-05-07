@@ -817,6 +817,7 @@ class ResultData {
   void flush() {
     state = CacheState.FLUSHED;
     value = descriptor.defaultValue;
+    memento = null;
   }
 }
 
