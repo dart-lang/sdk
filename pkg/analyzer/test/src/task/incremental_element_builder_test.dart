@@ -68,6 +68,33 @@ import 'dart:math';
     }
   }
 
+  test_directives_keepOffset_partOf() {
+    String libCode = '''
+// comment to shift tokens
+library my_lib;
+part 'test.dart';
+''';
+    Source libSource = newSource('/lib.dart', libCode);
+    _buildOldUnit(r'''
+part of my_lib;
+class A {}
+''', libSource);
+    _buildNewUnit(r'''
+part of my_lib;
+class A {}
+''');
+    var oldDirectives = oldUnit.directives;
+    var newDirectives = newUnit.directives;
+    {
+      Directive newNode = newDirectives[0];
+      expect(newNode, same(oldDirectives[0]));
+      expect(getNodeText(newNode), 'part of my_lib;');
+      LibraryElement element = newNode.element;
+      expect(element, isNotNull);
+      expect(element.nameOffset, libCode.indexOf('my_lib;'));
+    }
+  }
+
   test_directives_remove() {
     _buildOldUnit(r'''
 library test;
@@ -557,10 +584,13 @@ bool a =1, b = 2;
     expect(newUnit.element, unitElement);
   }
 
-  void _buildOldUnit(String oldCode) {
+  void _buildOldUnit(String oldCode, [Source libSource]) {
     this.oldCode = oldCode;
     source = newSource('/test.dart', oldCode);
-    oldUnit = context.resolveCompilationUnit2(source, source);
+    if (libSource == null) {
+      libSource = source;
+    }
+    oldUnit = context.resolveCompilationUnit2(source, libSource);
     unitElement = oldUnit.element;
     expect(unitElement, isNotNull);
   }

@@ -162,6 +162,7 @@ class IncrementalCompilationUnitElementBuilder {
           elements.add(element.setter);
         }
       }
+    } else if (node is PartDirective || node is PartOfDirective) {
     } else if (node is Directive && node.element != null) {
       elements.add(node.element);
     } else if (node is Declaration && node.element != null) {
