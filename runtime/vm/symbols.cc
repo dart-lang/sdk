@@ -30,8 +30,8 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_LITERAL)
 
   "",  // matches kKwTableStart.
 
-#define DEFINE_KEYWORD_SYMBOL_INDEX(token, chars, ignore1, ignore2)            \
-  chars,
+#define DEFINE_KEYWORD_SYMBOL_INDEX(t, s, p, a)                                \
+  s,
   DART_KEYWORD_LIST(DEFINE_KEYWORD_SYMBOL_INDEX)
 #undef DEFINE_KEYWORD_SYMBOL_INDEX
 };
@@ -65,20 +65,14 @@ void Symbols::InitOnce(Isolate* isolate) {
   // Create all predefined symbols.
   ASSERT((sizeof(names) / sizeof(const char*)) == Symbols::kNullCharId);
 
-  // First set up all the predefined string symbols.
-  for (intptr_t i = 1; i < Symbols::kKwTableStart; i++) {
+  // Set up all the predefined string symbols and create symbols for language
+  // keywords. We don't expect to find any overlaps between the predefined
+  // string symbols and the language keywords. If an overlap is introduced
+  // inadvertantly the ASSERT in AddToVMIsolate while fail.
+  for (intptr_t i = 1; i < Symbols::kNullCharId; i++) {
     String* str = String::ReadOnlyHandle();
     *str = OneByteString::New(names[i], Heap::kOld);
     AddToVMIsolate(*str);
-    symbol_handles_[i] = str;
-  }
-
-  // Create symbols for language keywords. Some keywords are equal to
-  // symbols we already created, so use New() instead of Add() to ensure
-  // that the symbols are canonicalized.
-  for (intptr_t i = Symbols::kKwTableStart; i < Symbols::kNullCharId; i++) {
-    String* str = String::ReadOnlyHandle();
-    *str = New(names[i]);
     symbol_handles_[i] = str;
   }
 
