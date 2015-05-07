@@ -124,8 +124,7 @@ class TypeVariableHandler {
    * there, otherwise a new entry for [c] is created.
    */
   int _reifyTypeVariableConstant(ConstantValue c, TypeVariableElement variable) {
-    String name = jsAst.prettyPrint(_task.constantReference(c),
-                                    _compiler).getText();
+    jsAst.Expression name = _task.constantReference(c);
     int index;
     if (_typeVariableConstants.containsKey(variable)) {
       index = _typeVariableConstants[variable];
@@ -153,7 +152,7 @@ class TypeVariableHandler {
     }
 
     // TODO(15613): Remove quotes.
-    _metadataCollector.globalMetadata.add('"Placeholder for ${variable}"');
+    _metadataCollector.globalMetadata.add(js('"Placeholder for ${variable}"'));
     return _typeVariableConstants[variable] =
         _metadataCollector.globalMetadata.length - 1;
   }

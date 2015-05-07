@@ -10,14 +10,15 @@ class MetadataCollector {
 
   /// A list of JS expressions that represent metadata, parameter names and
   /// type variable types.
-  final List<String> globalMetadata = <String>[];
+  final List<jsAst.Expression> globalMetadata = <jsAst.Expression>[];
 
   /// A map used to canonicalize the entries of globalMetadata.
   final Map<String, int> _globalMetadataMap = <String, int>{};
 
   /// A map with lists of JS expressions, one list for each output unit. The
   /// entries represent types including function types and typedefs.
-  final Map<OutputUnit, List<String>> types = <OutputUnit, List<String>>{};
+  final Map<OutputUnit, List<jsAst.Expression>> types =
+      <OutputUnit, List<jsAst.Expression>>{};
 
   /// A map used to canonicalize the entries of types.
   final Map<OutputUnit, Map<String, int>> _typesMap =
@@ -70,11 +71,10 @@ class MetadataCollector {
     for (ParameterElement element in signature.optionalParameters) {
       ConstantExpression constant =
           _backend.constants.getConstantForVariable(element);
-      String stringRepresentation = (constant == null)
-          ? "null"
-          : jsAst.prettyPrint(
-              _emitter.constantReference(constant.value), _compiler).getText();
-      defaultValues.add(addGlobalMetadata(stringRepresentation));
+      jsAst.Expression expression = (constant == null)
+          ? null
+          : _emitter.constantReference(constant.value);
+      defaultValues.add(addGlobalMetadata(expression));
     }
     return defaultValues;
   }
@@ -86,9 +86,7 @@ class MetadataCollector {
       _compiler.internalError(annotation, 'Annotation value is null.');
       return -1;
     }
-    return addGlobalMetadata(
-        jsAst.prettyPrint(
-            _emitter.constantReference(constant.value), _compiler).getText());
+    return addGlobalMetadata(_emitter.constantReference(constant.value));
   }
 
   int reifyType(DartType type, {bool ignoreTypeVariables: false}) {
@@ -112,31 +110,33 @@ class MetadataCollector {
               return _backend.isAccessibleByReflection(typedef.element);
             });
 
-    return addTypeInOutputUnit(
-        jsAst.prettyPrint(representation, _compiler).getText(), outputUnit);
+    return addTypeInOutputUnit(representation, outputUnit);
   }
 
   int reifyName(String name) {
-    return addGlobalMetadata('"$name"');
+    return addGlobalMetadata(js('"$name"'));
   }
 
-  int addGlobalMetadata(String string) {
+  int addGlobalMetadata(jsAst.Expression expression) {
+    // TODO(sigmund): consider adding an effient way to compare expressions
+    String string = jsAst.prettyPrint(expression, _compiler).getText();
     return _globalMetadataMap.putIfAbsent(string, () {
-      globalMetadata.add(string);
+      globalMetadata.add(expression);
       return globalMetadata.length - 1;
     });
   }
 
-  int addTypeInOutputUnit(String compiledType, OutputUnit outputUnit) {
+  int addTypeInOutputUnit(jsAst.Expression type, OutputUnit outputUnit) {
+    String string = jsAst.prettyPrint(type, _compiler).getText();
     if (_typesMap[outputUnit] == null) {
       _typesMap[outputUnit] = <String, int>{};
     }
-    return _typesMap[outputUnit].putIfAbsent(compiledType, () {
+    return _typesMap[outputUnit].putIfAbsent(string, () {
 
       if (types[outputUnit] == null)
-        types[outputUnit] = <String>[];
+        types[outputUnit] = <jsAst.Expression>[];
 
-      types[outputUnit].add(compiledType);
+      types[outputUnit].add(type);
       return types[outputUnit].length - 1;
     });
   }

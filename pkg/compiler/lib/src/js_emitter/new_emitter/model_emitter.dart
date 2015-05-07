@@ -138,7 +138,8 @@ class ModelEmitter {
     // deferred hash (which depends on the output) when emitting the main
     // fragment.
     fragments.skip(1).forEach((DeferredFragment deferredUnit) {
-      List<String> types = program.metadataTypes[deferredUnit.outputUnit];
+      List<js.Expression> types =
+          program.metadataTypes[deferredUnit.outputUnit];
       js.Expression ast = emitDeferredFragment(types, deferredUnit,
                                                program.holders);
       String code = js.prettyPrint(ast, compiler).getText();
@@ -421,26 +422,19 @@ class ModelEmitter {
   }
 
   List<js.Property> emitMetadata(Program program) {
-
     List<js.Property> metadataGlobals = <js.Property>[];
-
-    js.Property createGlobal(List<String> list, String global) {
-      String listAsString = "[${list.join(",")}]";
-      js.Expression metadata =
-                js.js.uncachedExpressionTemplate(listAsString).instantiate([]);
-      return new js.Property(js.string(global), metadata);
-    }
-
-    metadataGlobals.add(createGlobal(program.metadata, METADATA));
-    List<String> types =
+    metadataGlobals.add(new js.Property(
+        js.string(METADATA), new js.ArrayInitializer(program.metadata)));
+    List<js.Expression> types =
         program.metadataTypes[program.fragments.first.outputUnit];
-    if (types == null) types = <String>[];
-    metadataGlobals.add(createGlobal(types, TYPES));
+    if (types == null) types = <js.Expression>[];
+    metadataGlobals.add(new js.Property(
+        js.string(TYPES), new js.ArrayInitializer(types)));
 
     return metadataGlobals;
   }
 
-  js.Expression emitDeferredFragment(List<String> types,
+  js.Expression emitDeferredFragment(List<js.Expression> types,
                                      DeferredFragment fragment,
                                      List<Holder> holders) {
     // TODO(floitsch): initialize eager classes.
@@ -466,7 +460,7 @@ class ModelEmitter {
 
     js.Expression deferredTypes = types == null
         ? js.string("[]")
-        : js.string("[${types.join(",")}]");
+        : unparse(compiler, new js.ArrayInitializer(types));
 
     js.ArrayInitializer hunk =
         new js.ArrayInitializer([deferredArray, immediateString,

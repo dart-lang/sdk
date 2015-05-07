@@ -675,12 +675,11 @@ class OldEmitter implements Emitter {
 
   void emitMetadata(Program program, CodeOutput output, OutputUnit outputUnit) {
 
-    jsAst.Expression constructList(List<String> list) {
-      String listAsString = list == null ? '[]' : '[${list.join(",")}]';
-      return js.uncachedExpressionTemplate(listAsString).instantiate([]);
+    jsAst.Expression constructList(List<jsAst.Expression> list) {
+      return new jsAst.ArrayInitializer(list == null ? [] : list);
     }
 
-    List<String> types = program.metadataTypes[outputUnit];
+    List<jsAst.Expression> types = program.metadataTypes[outputUnit];
 
     if (outputUnit == compiler.deferredLoadTask.mainOutputUnit) {
       jsAst.Expression metadataAccess =
