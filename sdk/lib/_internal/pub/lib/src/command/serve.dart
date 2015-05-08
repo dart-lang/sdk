@@ -98,17 +98,15 @@ class ServeCommand extends BarbackCommand {
     var directoryLength = sourceDirectories.map((dir) => dir.length)
         .reduce(math.max);
 
-    if (adminPort != null) {
-      var server = await environment.startAdminServer(adminPort);
-      server.results.listen((_) {
-        // The admin server produces no result values.
-        assert(false);
-      }, onError: _fatalError);
+    var server = await environment.startAdminServer(adminPort);
+    server.results.listen((_) {
+      // The admin server produces no result values.
+      assert(false);
+    }, onError: _fatalError);
 
-      if (logAdminUrl) {
-        log.message("Running admin server on "
-                    "${log.bold('http://$hostname:${server.port}')}");
-      }
+    if (logAdminUrl) {
+      log.message("Running admin server on "
+          "${log.bold('http://$hostname:${server.port}')}");
     }
 
     // Start up the servers. We pause updates while this is happening so
