@@ -36,7 +36,7 @@ const ResultCachingPolicy AST_CACHING_POLICY =
  *
  * The list will be empty if there were no errors, but will not be `null`.
  *
- * The result is only available for targets representing a Dart library.
+ * The result is only available for [Source]s representing a library.
  */
 final ListResultDescriptor<AnalysisError> BUILD_DIRECTIVES_ERRORS =
     new ListResultDescriptor<AnalysisError>(
@@ -47,7 +47,7 @@ final ListResultDescriptor<AnalysisError> BUILD_DIRECTIVES_ERRORS =
  *
  * The list will be empty if there were no errors, but will not be `null`.
  *
- * The result is only available for targets representing a Dart library.
+ * The result is only available for [LibrarySpecificUnit]s.
  */
 final ListResultDescriptor<AnalysisError> BUILD_FUNCTION_TYPE_ALIASES_ERRORS =
     new ListResultDescriptor<AnalysisError>(
@@ -58,14 +58,18 @@ final ListResultDescriptor<AnalysisError> BUILD_FUNCTION_TYPE_ALIASES_ERRORS =
  *
  * The list will be empty if there were no errors, but will not be `null`.
  *
- * The result is only available for targets representing a Dart library.
+ * The result is only available for [Source]s representing a library.
  */
 final ListResultDescriptor<AnalysisError> BUILD_LIBRARY_ERRORS =
     new ListResultDescriptor<AnalysisError>(
         'BUILD_LIBRARY_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
- * The [ClassElement]s of a [LibrarySpecificUnit].
+ * The [ClassElement]s of a [Source] representing a Dart library.
+ *
+ * The list contains the elements for all of the classes defined in the library,
+ * not just those in the defining compilation unit. The list will be empty if
+ * there are no classes, but will not be `null`.
  */
 final ListResultDescriptor<ClassElement> CLASS_ELEMENTS =
     new ListResultDescriptor<ClassElement>('CLASS_ELEMENTS', null,
@@ -74,7 +78,7 @@ final ListResultDescriptor<ClassElement> CLASS_ELEMENTS =
 /**
  * The element model associated with a single compilation unit.
  *
- * The result is only available for targets representing a Dart compilation unit.
+ * The result is only available for [LibrarySpecificUnit]s.
  */
 final ResultDescriptor<CompilationUnitElement> COMPILATION_UNIT_ELEMENT =
     new ResultDescriptor<CompilationUnitElement>(
@@ -82,7 +86,7 @@ final ResultDescriptor<CompilationUnitElement> COMPILATION_UNIT_ELEMENT =
         cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
- * The list of [Element]s which a given constant element depends on.
+ * The list of [Element]s on which the target constant element depends.
  *
  * The result is only available for targets representing a constant [Element]
  * (i.e. a constant variable declaration, a constant constructor, or a
@@ -120,7 +124,7 @@ final ListResultDescriptor<AnalysisError> CONSTRUCTORS_ERRORS =
 /**
  * The sources representing the libraries that include a given source as a part.
  *
- * The result is only available for targets representing a compilation unit.
+ * The result is only available for [Source]s representing a compilation unit.
  */
 final ListResultDescriptor<Source> CONTAINING_LIBRARIES =
     new ListResultDescriptor<Source>('CONTAINING_LIBRARIES', Source.EMPTY_LIST);
@@ -135,7 +139,7 @@ const ResultCachingPolicy ELEMENT_CACHING_POLICY =
  * The sources representing the export closure of a library.
  * The [Source]s include only library sources, not their units.
  *
- * The result is only available for targets representing a Dart library.
+ * The result is only available for [Source]s representing a library.
  */
 final ListResultDescriptor<Source> EXPORT_SOURCE_CLOSURE =
     new ListResultDescriptor<Source>('EXPORT_SOURCE_CLOSURE', null);
@@ -145,7 +149,7 @@ final ListResultDescriptor<Source> EXPORT_SOURCE_CLOSURE =
  *
  * The list will be empty if there were no errors, but will not be `null`.
  *
- * The result is only available for targets representing a Dart compilation unit.
+ * The result is only available for [LibrarySpecificUnit]s.
  */
 final ListResultDescriptor<AnalysisError> HINTS =
     new ListResultDescriptor<AnalysisError>(
@@ -155,7 +159,7 @@ final ListResultDescriptor<AnalysisError> HINTS =
  * The sources representing the import closure of a library.
  * The [Source]s include only library sources, not their units.
  *
- * The result is only available for targets representing a Dart library.
+ * The result is only available for [Source]s representing a library.
  */
 final ListResultDescriptor<Source> IMPORT_SOURCE_CLOSURE =
     new ListResultDescriptor<Source>('IMPORT_SOURCE_CLOSURE', null);
@@ -166,7 +170,7 @@ final ListResultDescriptor<Source> IMPORT_SOURCE_CLOSURE =
  * The [LibraryElement] and its [CompilationUnitElement]s are attached to each
  * other. Directives 'library', 'part' and 'part of' are resolved.
  *
- * The result is only available for targets representing a Dart library.
+ * The result is only available for [Source]s representing a library.
  */
 final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT1 =
     new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT1', null,
@@ -178,7 +182,7 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT1 =
  * In addition to [LIBRARY_ELEMENT1] [LibraryElement.imports] and
  * [LibraryElement.exports] are set.
  *
- * The result is only available for targets representing a Dart library.
+ * The result is only available for [Source]s representing a library.
  */
 final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT2 =
     new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT2', null,
@@ -189,7 +193,7 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT2 =
  *
  * In addition to [LIBRARY_ELEMENT2] the [LibraryElement.publicNamespace] is set.
  *
- * The result is only available for targets representing a Dart library.
+ * The result is only available for [Source]s representing a library.
  */
 final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT3 =
     new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT3', null,
@@ -204,7 +208,7 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT3 =
  *
  * Also [LibraryElement.exportNamespace] is set.
  *
- * The result is only available for targets representing a Dart library.
+ * The result is only available for [Source]s representing a library.
  */
 final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT4 =
     new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT4', null,
@@ -215,7 +219,7 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT4 =
  *
  * [LIBRARY_ELEMENT4] plus [RESOLVED_UNIT4] for every unit.
  *
- * The result is only available for targets representing a Dart library.
+ * The result is only available for [Source]s representing a library.
  */
 final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT5 =
     new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT5', null,
@@ -224,8 +228,7 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT5 =
 /**
  * The analysis errors associated with a compilation unit in a specific library.
  *
- * The result is only available for targets representing a Dart compilation unit
- * in a specific library.
+ * The result is only available for [LibrarySpecificUnit]s.
  */
 final ListResultDescriptor<AnalysisError> LIBRARY_UNIT_ERRORS =
     new ListResultDescriptor<AnalysisError>(
@@ -236,7 +239,7 @@ final ListResultDescriptor<AnalysisError> LIBRARY_UNIT_ERRORS =
  *
  * The list will be empty if there were no errors, but will not be `null`.
  *
- * The result is only available for targets representing a Dart compilation unit.
+ * The result is only available for [Source]s representing a compilation unit.
  */
 final ListResultDescriptor<AnalysisError> PARSE_ERRORS =
     new ListResultDescriptor<AnalysisError>(
@@ -247,7 +250,7 @@ final ListResultDescriptor<AnalysisError> PARSE_ERRORS =
  *
  * The list will be empty if there were no errors, but will not be `null`.
  *
- * The result is only available for targets representing a unit.
+ * The result is only available for [LibrarySpecificUnit]s.
  */
 final ListResultDescriptor<AnalysisError> RESOLVE_REFERENCES_ERRORS =
     new ListResultDescriptor<AnalysisError>(
@@ -258,7 +261,7 @@ final ListResultDescriptor<AnalysisError> RESOLVE_REFERENCES_ERRORS =
  *
  * The list will be empty if there were no errors, but will not be `null`.
  *
- * The result is only available for targets representing a Dart library.
+ * The result is only available for [LibrarySpecificUnit]s.
  */
 final ListResultDescriptor<AnalysisError> RESOLVE_TYPE_NAMES_ERRORS =
     new ListResultDescriptor<AnalysisError>(
@@ -269,7 +272,7 @@ final ListResultDescriptor<AnalysisError> RESOLVE_TYPE_NAMES_ERRORS =
  *
  * All declarations bound to the element defined by the declaration.
  *
- * The result is only available for targets representing a unit.
+ * The result is only available for [LibrarySpecificUnit]s.
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT1 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT1', null,
@@ -280,7 +283,7 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT1 =
  *
  * All the enum member elements are built.
  *
- * The result is only available for targets representing a unit.
+ * The result is only available for [LibrarySpecificUnit]s.
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT2 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT2', null,
@@ -291,7 +294,7 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT2 =
  *
  * All the function type aliases are resolved.
  *
- * The result is only available for targets representing a unit.
+ * The result is only available for [LibrarySpecificUnit]s.
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT3 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT3', null,
@@ -302,7 +305,7 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT3 =
  *
  * [RESOLVED_UNIT3] with resolved type names.
  *
- * The result is only available for targets representing a unit.
+ * The result is only available for [LibrarySpecificUnit]s.
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT4 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT4', null,
@@ -313,7 +316,7 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT4 =
  *
  * [RESOLVED_UNIT4] plus resolved local variables and formal parameters.
  *
- * The result is only available for targets representing a unit.
+ * The result is only available for [LibrarySpecificUnit]s.
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT5 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT5', null,
@@ -324,7 +327,7 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT5 =
  *
  * The list will be empty if there were no errors, but will not be `null`.
  *
- * The result is only available for targets representing a Dart compilation unit.
+ * The result is only available for [Source]s representing a compilation unit.
  */
 final ListResultDescriptor<AnalysisError> SCAN_ERRORS =
     new ListResultDescriptor<AnalysisError>(
@@ -337,7 +340,7 @@ const ResultCachingPolicy TOKEN_STREAM_CACHING_POLICY =
     const SimpleResultCachingPolicy(1, 1);
 
 /**
- * The [TypeProvider] of the context.
+ * The [TypeProvider] of the [AnalysisContext].
  */
 final ResultDescriptor<TypeProvider> TYPE_PROVIDER =
     new ResultDescriptor<TypeProvider>('TYPE_PROVIDER', null);
@@ -361,7 +364,7 @@ final ResultDescriptor<UsedLocalElements> USED_LOCAL_ELEMENTS =
  *
  * The list will be empty if there were no errors, but will not be `null`.
  *
- * The result is only available for targets representing a Dart compilation unit.
+ * The result is only available for [LibrarySpecificUnit]s.
  */
 final ListResultDescriptor<AnalysisError> VERIFY_ERRORS =
     new ListResultDescriptor<AnalysisError>(
@@ -607,7 +610,6 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'BuildCompilationUnitElementTask', createTask, buildInputs,
       <ResultDescriptor>[
-    CLASS_ELEMENTS,
     COMPILATION_UNIT_ELEMENT,
     RESOLVED_UNIT1
   ]);
@@ -639,7 +641,6 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
-    outputs[CLASS_ELEMENTS] = element.types;
     outputs[COMPILATION_UNIT_ELEMENT] = element;
     outputs[RESOLVED_UNIT1] = unit;
   }

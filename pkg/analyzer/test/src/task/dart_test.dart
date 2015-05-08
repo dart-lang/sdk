@@ -205,8 +205,7 @@ part 'part.dart';
 class A {}
 class B = Object with A;
 ''');
-    expect(outputs, hasLength(3));
-    expect(outputs[CLASS_ELEMENTS], hasLength(2));
+    expect(outputs, hasLength(2));
     expect(outputs[COMPILATION_UNIT_ELEMENT], isNotNull);
     expect(outputs[RESOLVED_UNIT1], isNotNull);
   }

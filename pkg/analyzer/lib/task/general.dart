@@ -8,25 +8,19 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/model.dart';
 
 /**
- * The contents of a single file.
+ * The content of a [Source].
  */
 final ResultDescriptor<String> CONTENT =
     new ResultDescriptor<String>('CONTENT', null);
 
 /**
- * The line information for a single file.
+ * The line information for a [Source].
  */
 final ResultDescriptor<LineInfo> LINE_INFO =
     new ResultDescriptor<LineInfo>('LINE_INFO', null);
 
 /**
- * The modification time of a file.
+ * The modification time of a [Source].
  */
 final ResultDescriptor<int> MODIFICATION_TIME =
     new ResultDescriptor<int>('MODIFICATION_TIME', -1);
-
-/**
- * The kind of a [Source].
- */
-final ResultDescriptor<SourceKind> SOURCE_KIND =
-    new ResultDescriptor<SourceKind>('SOURCE_KIND', SourceKind.UNKNOWN);

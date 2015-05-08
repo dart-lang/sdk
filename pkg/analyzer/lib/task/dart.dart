@@ -14,9 +14,8 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/model.dart';
 
 /**
- * The analysis errors associated with a target.
- *
- * The result is only available for targets representing a Dart compilation unit.
+ * The analysis errors associated with a [Source] representing a compilation
+ * unit.
  */
 final ListResultDescriptor<AnalysisError> DART_ERRORS =
     new ListResultDescriptor<AnalysisError>(
@@ -28,7 +27,7 @@ final ListResultDescriptor<AnalysisError> DART_ERRORS =
  * The list will be empty if there are no explicit imports, but will not be
  * `null`.
  *
- * The result is only available for targets representing a Dart library.
+ * The result is only available for [Source]s representing a library.
  */
 final ListResultDescriptor<Source> EXPLICITLY_IMPORTED_LIBRARIES =
     new ListResultDescriptor<Source>(
@@ -40,7 +39,7 @@ final ListResultDescriptor<Source> EXPLICITLY_IMPORTED_LIBRARIES =
  * The list will be empty if there are no exported libraries, but will not be
  * `null`.
  *
- * The result is only available for targets representing a Dart library.
+ * The result is only available for [Source]s representing a library.
  */
 final ListResultDescriptor<Source> EXPORTED_LIBRARIES =
     new ListResultDescriptor<Source>('EXPORTED_LIBRARIES', Source.EMPTY_LIST);
@@ -52,7 +51,7 @@ final ListResultDescriptor<Source> EXPORTED_LIBRARIES =
  * The list will minimally contain the source for `dart:core` because it is
  * implicitly imported into every library, and therefore will never be `null`.
  *
- * The result is only available for targets representing a Dart library.
+ * The result is only available for [Source]s representing a library.
  */
 final ListResultDescriptor<Source> IMPORTED_LIBRARIES =
     new ListResultDescriptor<Source>('IMPORTED_LIBRARIES', Source.EMPTY_LIST);
@@ -63,7 +62,7 @@ final ListResultDescriptor<Source> IMPORTED_LIBRARIES =
  * The list will be empty if there are no parts, but will not be `null`. The
  * list does *not* include the source for the defining compilation unit.
  *
- * The result is only available for targets representing a Dart library.
+ * The result is only available for [Source]s representing a library.
  */
 final ListResultDescriptor<Source> INCLUDED_PARTS =
     new ListResultDescriptor<Source>('INCLUDED_PARTS', Source.EMPTY_LIST);
@@ -72,7 +71,7 @@ final ListResultDescriptor<Source> INCLUDED_PARTS =
  * A flag specifying whether a library is dependent on code that is only
  * available in a client.
  *
- * The result is only available for targets representing a Dart library.
+ * The result is only available for [Source]s representing a library.
  */
 final ResultDescriptor<bool> IS_CLIENT =
     new ResultDescriptor<bool>('IS_CLIENT', false);
@@ -80,7 +79,7 @@ final ResultDescriptor<bool> IS_CLIENT =
 /**
  * A flag specifying whether a library is launchable.
  *
- * The result is only available for targets representing a Dart library.
+ * The result is only available for [Source]s representing a library.
  */
 final ResultDescriptor<bool> IS_LAUNCHABLE =
     new ResultDescriptor<bool>('IS_LAUNCHABLE', false);
@@ -88,7 +87,7 @@ final ResultDescriptor<bool> IS_LAUNCHABLE =
 /**
  * The fully built [LibraryElement] associated with a library.
  *
- * The result is only available for targets representing a Dart library.
+ * The result is only available for [Source]s representing a library.
  */
 final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT =
     new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT', null);
@@ -98,20 +97,26 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT =
  *
  * The AST structure will not have resolution information associated with it.
  *
- * The result is only available for targets representing a Dart compilation unit.
+ * The result is only available for [Source]s representing a compilation unit.
  */
 final ResultDescriptor<CompilationUnit> PARSED_UNIT =
     new ResultDescriptor<CompilationUnit>('PARSED_UNIT', null,
         cachingPolicy: AST_CACHING_POLICY);
 
 /**
- * The resolved [CompilationUnit] associated with a unit.
+ * The resolved [CompilationUnit] associated with a compilation unit.
  *
- * The result is only available for targets representing a unit.
+ * The result is only available for [LibrarySpecificUnit]s.
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT', null,
         cachingPolicy: AST_CACHING_POLICY);
+
+/**
+ * The kind of a [Source].
+ */
+final ResultDescriptor<SourceKind> SOURCE_KIND =
+    new ResultDescriptor<SourceKind>('SOURCE_KIND', SourceKind.UNKNOWN);
 
 /**
  * The token stream produced while scanning a compilation unit.
@@ -119,7 +124,7 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT =
  * The value is the first token in the file, or the special end-of-file marker
  * at the end of the stream if the file does not contain any tokens.
  *
- * The result is only available for targets representing a Dart compilation unit.
+ * The result is only available for [Source]s representing a compilation unit.
  */
 final ResultDescriptor<Token> TOKEN_STREAM = new ResultDescriptor<Token>(
     'TOKEN_STREAM', null, cachingPolicy: TOKEN_STREAM_CACHING_POLICY);
@@ -130,7 +135,7 @@ final ResultDescriptor<Token> TOKEN_STREAM = new ResultDescriptor<Token>(
  * The list will include the source of the defining unit and [INCLUDED_PARTS].
  * So, it is never empty or `null`.
  *
- * The result is only available for targets representing a Dart library.
+ * The result is only available for [Source]s representing a library.
  */
 final ListResultDescriptor<Source> UNITS =
     new ListResultDescriptor<Source>('UNITS', Source.EMPTY_LIST);
