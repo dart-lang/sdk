@@ -181,8 +181,8 @@ class DartUtils {
 
   static Dart_Handle SetWorkingDirectory(Dart_Handle builtin_lib);
 
-  static Dart_Handle ResolveScriptUri(Dart_Handle script_uri,
-                                      Dart_Handle builtin_lib);
+  static Dart_Handle ResolveUriInWorkingDirectory(Dart_Handle script_uri,
+                                                  Dart_Handle builtin_lib);
 
   static Dart_Handle FilePathFromUri(Dart_Handle script_uri,
                                      Dart_Handle builtin_lib);

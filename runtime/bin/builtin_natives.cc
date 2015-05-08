@@ -64,8 +64,8 @@ namespace bin {
   V(File_GetStdioHandleType, 1)                                                \
   V(File_GetType, 2)                                                           \
   V(File_AreIdentical, 2)                                                      \
-  V(Logger_PrintString, 1)                                                     \
-  V(Builtin_LoadScript, 4)                                                     \
+  V(Builtin_PrintString, 1)                                                    \
+  V(Builtin_LoadSource, 4)                                                     \
   V(Builtin_AsyncLoadError, 3)                                                 \
   V(Builtin_DoneLoading, 0)                                                    \
   V(Builtin_NativeLibraryExtension, 0)                                         \
@@ -121,7 +121,7 @@ const uint8_t* Builtin::NativeSymbol(Dart_NativeFunction nf) {
 
 // Implementation of native functions which are used for some
 // test/debug functionality in standalone dart mode.
-void FUNCTION_NAME(Logger_PrintString)(Dart_NativeArguments args) {
+void FUNCTION_NAME(Builtin_PrintString)(Dart_NativeArguments args) {
   intptr_t length = 0;
   uint8_t* chars = NULL;
   Dart_Handle str = Dart_GetNativeArgument(args, 0);
