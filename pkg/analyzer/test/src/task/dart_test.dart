@@ -6,6 +6,7 @@ library test.src.task.dart_test;
 
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -34,6 +35,7 @@ main() {
   runReflectiveTests(BuildPublicNamespaceTaskTest);
   runReflectiveTests(BuildTypeProviderTaskTest);
   runReflectiveTests(ComputeConstantDependenciesTaskTest);
+  runReflectiveTests(ComputeConstantValueTaskTest);
   runReflectiveTests(ContainingLibrariesTaskTest);
   runReflectiveTests(DartErrorsTaskTest);
   runReflectiveTests(GatherUsedImportedElementsTaskTest);
@@ -1179,6 +1181,65 @@ const y = 1;
     // Now compute the dependencies for x, and check that it is the list [y].
     _computeResult(x, CONSTANT_DEPENDENCIES);
     expect(outputs[CONSTANT_DEPENDENCIES], [y]);
+  }
+}
+
+@reflectiveTest
+class ComputeConstantValueTaskTest extends _AbstractDartTaskTest {
+  fail_circular_reference() {
+    // TODO(paulberry): get this to work.
+    EvaluationResultImpl evaluationResult = _computeTopLevelVariableConstValue(
+        'x', '''
+const x = y + 1;
+const y = x + 1;
+''');
+    expect(evaluationResult, isNotNull);
+    expect(evaluationResult.value, isNull);
+    expect(evaluationResult.errors, hasLength(1));
+    expect(evaluationResult.errors[0].errorCode,
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT);
+  }
+
+  test_dependency() {
+    EvaluationResultImpl evaluationResult = _computeTopLevelVariableConstValue(
+        'x', '''
+const x = y + 1;
+const y = 1;
+''');
+    expect(evaluationResult, isNotNull);
+    expect(evaluationResult.value, isNotNull);
+    expect(evaluationResult.value.intValue, 2);
+  }
+
+  test_simple_constant() {
+    EvaluationResultImpl evaluationResult = _computeTopLevelVariableConstValue(
+        'x', '''
+const x = 1;
+''');
+    expect(evaluationResult, isNotNull);
+    expect(evaluationResult.value, isNotNull);
+    expect(evaluationResult.value.intValue, 1);
+  }
+
+  EvaluationResultImpl _computeTopLevelVariableConstValue(
+      String variableName, String content) {
+    Source source = newSource('/test.dart', content);
+    // First compute the library element for the source.
+    _computeResult(source, LIBRARY_ELEMENT1);
+    LibraryElement libraryElement = outputs[LIBRARY_ELEMENT1];
+    // Find the element for the given constant.
+    List<PropertyAccessorElement> accessors =
+        libraryElement.definingCompilationUnit.accessors;
+    Element variableElement = accessors
+        .firstWhere((PropertyAccessorElement accessor) {
+      return accessor.isGetter && accessor.name == variableName;
+    }).variable;
+    // Now compute the value of the constant.
+    _computeResult(variableElement, CONSTANT_EVALUATED_ELEMENT);
+    expect(outputs[CONSTANT_EVALUATED_ELEMENT], same(variableElement));
+    EvaluationResultImpl evaluationResult =
+        (variableElement as TopLevelVariableElementImpl).evaluationResult;
+    return evaluationResult;
   }
 }
 

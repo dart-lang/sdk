@@ -82,6 +82,15 @@ final ResultDescriptor<CompilationUnitElement> COMPILATION_UNIT_ELEMENT =
         cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
+ * An [Element] that has been successfully constant-evaluated.
+ *
+ * TODO(paulberry): is ELEMENT_CACHING_POLICY the correct caching policy?
+ */
+final ResultDescriptor<Element> CONSTANT_EVALUATED_ELEMENT =
+    new ResultDescriptor<Element>('CONST_EVALUATED_ELEMENT', null,
+        cachingPolicy: ELEMENT_CACHING_POLICY);
+
+/**
  * The [ConstructorElement]s of a [ClassElement].
  */
 final ListResultDescriptor<ConstructorElement> CONSTRUCTORS =
@@ -1614,7 +1623,7 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
 /**
  * A task that computes [CONSTANT_DEPENDENCIES] for a constant.
  */
-class ComputeConstantDependenciesTask extends AnalysisTask {
+class ComputeConstantDependenciesTask extends ElementBasedAnalysisTask {
   /**
    * The name of the [RESOLVED_UNIT] input.
    */
@@ -1625,15 +1634,8 @@ class ComputeConstantDependenciesTask extends AnalysisTask {
       <ResultDescriptor>[CONSTANT_DEPENDENCIES]);
 
   ComputeConstantDependenciesTask(
-      InternalAnalysisContext context, AnalysisTarget target)
-      : super(context, target);
-
-  @override
-  String get description {
-    Source source = target.source;
-    String sourceName = source == null ? '<unknown source>' : source.fullName;
-    return '${descriptor.name} for element $target in source $sourceName';
-  }
+      InternalAnalysisContext context, Element element)
+      : super(context, element);
 
   @override
   TaskDescriptor get descriptor => DESCRIPTOR;
@@ -1681,6 +1683,71 @@ class ComputeConstantDependenciesTask extends AnalysisTask {
   static ComputeConstantDependenciesTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new ComputeConstantDependenciesTask(context, target);
+  }
+}
+
+/**
+ * A task that computes the value of a constant ([CONSTANT_EVALUATED_ELEMENT]) and
+ * stores it in the element model.
+ */
+class ComputeConstantValueTask extends ElementBasedAnalysisTask {
+  /**
+   * The name of the input which ensures that dependent constants are evaluated
+   * before the target.
+   */
+  static const String DEPENDENCIES_INPUT = 'DEPENDENCIES_INPUT';
+
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'ComputeConstantValueTask', createTask, buildInputs,
+      <ResultDescriptor>[CONSTANT_EVALUATED_ELEMENT]);
+
+  ComputeConstantValueTask(InternalAnalysisContext context, Element element)
+      : super(context, element);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    //
+    // Prepare inputs.
+    //
+    // Note: DEPENDENCIES_INPUT is not needed.  It is merely a bookkeeping
+    // dependency to ensure that the constants that this constant depends on
+    // are computed first.
+    Element element = target;
+    AnalysisContext context = element.context;
+    TypeProvider typeProvider = context.typeProvider;
+    //
+    // Compute the value of the constant.
+    //
+    new ConstantEvaluationEngine(typeProvider, context.declaredVariables)
+        .computeConstantValue(element);
+    //
+    // Record outputs.
+    //
+    outputs[CONSTANT_EVALUATED_ELEMENT] = element;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the given
+   * [target].
+   */
+  static Map<String, TaskInput> buildInputs(Element target) {
+    return <String, TaskInput>{
+      DEPENDENCIES_INPUT:
+          CONSTANT_DEPENDENCIES.of(target).toListOf(CONSTANT_EVALUATED_ELEMENT)
+    };
+  }
+
+  /**
+   * Create a [ComputeConstantValueTask] based on the given [target] in the
+   * given [context].
+   */
+  static ComputeConstantValueTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new ComputeConstantValueTask(context, target);
   }
 }
 
@@ -1820,6 +1887,25 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
   static DartErrorsTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new DartErrorsTask(context, target);
+  }
+}
+
+/**
+ * A base class for analysis tasks whose target is expected to be an element.
+ */
+abstract class ElementBasedAnalysisTask extends AnalysisTask {
+  /**
+   * Initialize a newly created task to perform analysis within the given
+   * [context] in order to produce results for the given [element].
+   */
+  ElementBasedAnalysisTask(AnalysisContext context, Element element)
+      : super(context, element);
+
+  @override
+  String get description {
+    Source source = target.source;
+    String sourceName = source == null ? '<unknown source>' : source.fullName;
+    return '${descriptor.name} for element $target in source $sourceName';
   }
 }
 

@@ -308,6 +308,64 @@ class ConstantEvaluationEngine {
   }
 
   /**
+   * Compute the constant value associated with the given [element].
+   */
+  void computeConstantValue(Element element) {
+    validator.beforeComputeValue(element);
+    if (element is ParameterElement) {
+      if (element.initializer != null) {
+        Expression defaultValue =
+            (element as PotentiallyConstVariableElement).constantInitializer;
+        if (defaultValue != null) {
+          RecordingErrorListener errorListener = new RecordingErrorListener();
+          ErrorReporter errorReporter =
+              new ErrorReporter(errorListener, element.source);
+          DartObjectImpl dartObject =
+              defaultValue.accept(new ConstantVisitor(this, errorReporter));
+          (element as ParameterElementImpl).evaluationResult =
+              new EvaluationResultImpl.con2(dartObject, errorListener.errors);
+        }
+      }
+    } else if (element is VariableElement) {
+      RecordingErrorListener errorListener = new RecordingErrorListener();
+      ErrorReporter errorReporter =
+          new ErrorReporter(errorListener, element.source);
+      DartObjectImpl dartObject =
+          (element as PotentiallyConstVariableElement).constantInitializer
+              .accept(new ConstantVisitor(this, errorReporter));
+      // Only check the type for truly const declarations (don't check final
+      // fields with initializers, since their types may be generic.  The type
+      // of the final field will be checked later, when the constructor is
+      // invoked).
+      if (dartObject != null && element.isConst) {
+        if (!runtimeTypeMatch(dartObject, element.type)) {
+          errorReporter.reportErrorForElement(
+              CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, element, [
+            dartObject.type,
+            element.type
+          ]);
+        }
+      }
+      (element as VariableElementImpl).evaluationResult =
+          new EvaluationResultImpl.con2(dartObject, errorListener.errors);
+    } else if (element is ConstructorElement) {
+      // No evaluation needs to be done; constructor declarations are only in
+      // the dependency graph to ensure that any constants referred to in
+      // initializer lists and parameter defaults are evaluated before
+      // invocations of the constructor.  However we do need to annotate the
+      // element as being free of constant evaluation cycles so that later code
+      // will know that it is safe to evaluate.
+      (element as ConstructorElementImpl).isCycleFree = true;
+    } else {
+      // Should not happen.
+      assert(false);
+      AnalysisEngine.instance.logger.logError(
+          "Constant value computer trying to compute the value of a node of type ${element.runtimeType}");
+      return;
+    }
+  }
+
+  /**
    * Determine which constant elements need to have their values computed
    * prior to computing the value of [element], and report them using
    * [callback].
@@ -1110,58 +1168,7 @@ class ConstantValueComputer {
       // a previous stage of analysis.
       return;
     }
-    evaluationEngine.validator.beforeComputeValue(element);
-    if (element is ParameterElement) {
-      if (element.initializer != null) {
-        Expression defaultValue =
-            (element as PotentiallyConstVariableElement).constantInitializer;
-        if (defaultValue != null) {
-          RecordingErrorListener errorListener = new RecordingErrorListener();
-          ErrorReporter errorReporter =
-              new ErrorReporter(errorListener, element.source);
-          DartObjectImpl dartObject = defaultValue
-              .accept(new ConstantVisitor(evaluationEngine, errorReporter));
-          (element as ParameterElementImpl).evaluationResult =
-              new EvaluationResultImpl.con2(dartObject, errorListener.errors);
-        }
-      }
-    } else if (element is VariableElement) {
-      RecordingErrorListener errorListener = new RecordingErrorListener();
-      ErrorReporter errorReporter =
-          new ErrorReporter(errorListener, element.source);
-      DartObjectImpl dartObject =
-          (element as PotentiallyConstVariableElement).constantInitializer
-              .accept(new ConstantVisitor(evaluationEngine, errorReporter));
-      // Only check the type for truly const declarations (don't check final
-      // fields with initializers, since their types may be generic.  The type
-      // of the final field will be checked later, when the constructor is
-      // invoked).
-      if (dartObject != null && element.isConst) {
-        if (!evaluationEngine.runtimeTypeMatch(dartObject, element.type)) {
-          errorReporter.reportErrorForElement(
-              CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, element, [
-            dartObject.type,
-            element.type
-          ]);
-        }
-      }
-      (element as VariableElementImpl).evaluationResult =
-          new EvaluationResultImpl.con2(dartObject, errorListener.errors);
-    } else if (element is ConstructorElement) {
-      // No evaluation needs to be done; constructor declarations are only in
-      // the dependency graph to ensure that any constants referred to in
-      // initializer lists and parameter defaults are evaluated before
-      // invocations of the constructor.  However we do need to annotate the
-      // element as being free of constant evaluation cycles so that later code
-      // will know that it is safe to evaluate.
-      (element as ConstructorElementImpl).isCycleFree = true;
-    } else {
-      // Should not happen.
-      assert(false);
-      AnalysisEngine.instance.logger.logError(
-          "Constant value computer trying to compute the value of a node of type ${element.runtimeType}");
-      return;
-    }
+    evaluationEngine.computeConstantValue(element);
   }
 
   /**
