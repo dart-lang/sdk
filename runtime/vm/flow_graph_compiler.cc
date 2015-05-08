@@ -928,7 +928,10 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
   }
   LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle();
   if (parsed_function().node_sequence() == NULL) {
-    // TODO(srdjan): Implement lazy local var descriptors if Irregexp functions.
+    // Eager local var descriptors computation for Irregexp function as it is
+    // complicated to factor out.
+    // TODO(srdjan): Consider canonicalizing and reusing the local var
+    // descriptor for IrregexpFunction.
     ASSERT(flow_graph().IsIrregexpFunction());
     var_descs = LocalVarDescriptors::New(1);
     RawLocalVarDescriptors::VarInfo info;
@@ -938,12 +941,6 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
     info.end_pos = 0;
     info.set_index(parsed_function().current_context_var()->index());
     var_descs.SetVar(0, Symbols::CurrentContextVar(), &info);
-  } else {
-    if (FLAG_eager_info_computation) {
-      var_descs =
-          parsed_function_.node_sequence()->scope()->GetVarDescriptors(
-              parsed_function_.function());
-    }
   }
   code.set_var_descriptors(var_descs);
 }

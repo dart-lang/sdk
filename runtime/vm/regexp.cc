@@ -5063,10 +5063,10 @@ RegExpEngine::CompilationResult RegExpEngine::Compile(
 
   IRRegExpMacroAssembler* macro_assembler =
       new(zone) IRRegExpMacroAssembler(specialization_cid,
-                                          data->capture_count,
-                                          parsed_function,
-                                          ic_data_array,
-                                          zone);
+                                       data->capture_count,
+                                       parsed_function,
+                                       ic_data_array,
+                                       zone);
 
   // Inserted here, instead of in Assembler, because it depends on information
   // in the AST that isn't replicated in the Node structure.
