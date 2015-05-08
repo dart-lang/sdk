@@ -15,7 +15,7 @@ class Point {
 }
 
 void testeeDo() {
-  Debugger.inspect(new Point(3, 4));
+  inspect(new Point(3, 4));
 }
 
 var tests = [
