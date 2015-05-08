@@ -27,8 +27,7 @@ var blacklist = [
   'dart.io.Process.killPid',
 
   // Don't break into the debugger.
-  'dart.debugger.Debugger.breakHereIf',
-  'dart.debugger.Debugger.breakHere',
+  'dart.developer.debugger',
 
   // Don't run blocking io calls.
   new RegExp(r".*Sync$"),
