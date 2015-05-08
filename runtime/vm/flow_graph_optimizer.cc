@@ -43,7 +43,6 @@ DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_IA32)
 DEFINE_FLAG(bool, trace_smi_widening, false, "Trace Smi->Int32 widening pass.");
 #endif
-DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, source_lines);
 DECLARE_FLAG(bool, trace_type_check_elimination);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);

@@ -14,7 +14,6 @@ namespace dart {
 DEFINE_FLAG(bool, trace_type_propagation, false,
             "Trace flow graph type propagation");
 
-DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, propagate_types);
 DECLARE_FLAG(bool, use_cha);
 

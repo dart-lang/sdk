@@ -22,7 +22,6 @@ DEFINE_FLAG(bool, error_on_bad_type, false,
 DEFINE_FLAG(bool, print_classes, false, "Prints details about loaded classes.");
 DEFINE_FLAG(bool, trace_class_finalization, false, "Trace class finalization.");
 DEFINE_FLAG(bool, trace_type_finalization, false, "Trace type finalization.");
-DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, use_cha);
 
 

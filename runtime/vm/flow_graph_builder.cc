@@ -39,8 +39,6 @@ DEFINE_FLAG(bool, support_debugger, true, "Emit code needed for debugging");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
 
-DECLARE_FLAG(bool, enable_asserts);
-DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(bool, use_field_guards);

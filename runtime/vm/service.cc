@@ -38,8 +38,6 @@ namespace dart {
 
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, trace_service_pause_events);
-DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(bool, enable_asserts);
 
 // TODO(johnmccutchan): Unify embedder service handler lists and their APIs.
 EmbedderServiceHandler* Service::isolate_service_handler_head_ = NULL;

@@ -48,7 +48,6 @@ DECLARE_FLAG(charp, deoptimize_filter);
 DECLARE_FLAG(bool, disassemble);
 DECLARE_FLAG(bool, disassemble_optimized);
 DECLARE_FLAG(bool, emit_edge_counters);
-DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, propagate_ic_data);

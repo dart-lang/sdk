@@ -24,7 +24,6 @@ DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
-DECLARE_FLAG(bool, enable_type_checks);
 
 bool Intrinsifier::CanIntrinsify(const Function& function) {
   if (!FLAG_intrinsify) return false;

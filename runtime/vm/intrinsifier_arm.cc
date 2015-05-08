@@ -18,8 +18,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, enable_type_checks);
-
 // When entering intrinsics code:
 // R5: IC Data
 // R4: Arguments descriptor

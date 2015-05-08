@@ -24,8 +24,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, enable_type_checks);
-
 // When entering intrinsics code:
 // ECX: IC Data
 // EDX: Arguments descriptor

@@ -56,8 +56,6 @@ DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
 DEFINE_FLAG(bool, trace_type_checks, false, "Trace runtime type checks.");
 
 DECLARE_FLAG(int, deoptimization_counter_threshold);
-DECLARE_FLAG(bool, enable_asserts);
-DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
 DEFINE_FLAG(bool, use_osr, true, "Use on-stack replacement.");

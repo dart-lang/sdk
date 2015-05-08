@@ -22,7 +22,6 @@
 namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
-DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, use_megamorphic_stub);
 
 
