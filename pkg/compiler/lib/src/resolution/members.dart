@@ -3227,6 +3227,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     ConstructorElement redirectionTarget = resolveRedirectingFactory(
         node, inConstContext: isConstConstructor);
     constructor.immediateRedirectionTarget = redirectionTarget;
+
+    Node constructorReference = node.constructorReference;
+    if (constructorReference is Send) {
+      constructor.redirectionDeferredPrefix =
+          compiler.deferredLoadTask.deferredPrefixElement(constructorReference,
+                                                          registry.mapping);
+    }
+
     registry.setRedirectingTargetConstructor(node, redirectionTarget);
     if (Elements.isUnresolved(redirectionTarget)) {
       registry.registerThrowNoSuchMethod();

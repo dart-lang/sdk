@@ -3227,22 +3227,27 @@ class SsaBuilder extends NewResolvedVisitor {
     pushInvokeDynamic(send, selector, [receiver]);
   }
 
+  /// Inserts a call to checkDeferredIsLoaded for [prefixElement].
+  /// If [prefixElement] is [null] ndo nothing.
+  void generateIsDeferredLoadedCheckIfNeeded(PrefixElement prefixElement,
+                                             ast.Node location) {
+    if (prefixElement == null) return;
+    String loadId =
+        compiler.deferredLoadTask.importDeferName[prefixElement.deferredImport];
+    HInstruction loadIdConstant = addConstantString(loadId);
+    String uri = prefixElement.deferredImport.uri.dartString.slowToString();
+    HInstruction uriConstant = addConstantString(uri);
+    Element helper = backend.getCheckDeferredIsLoaded();
+    pushInvokeStatic(location, helper, [loadIdConstant, uriConstant]);
+    pop();
+  }
+
   /// Inserts a call to checkDeferredIsLoaded if the send has a prefix that
   /// resolves to a deferred library.
-  void generateIsDeferredLoadedCheckIfNeeded(ast.Send node) {
-    DeferredLoadTask deferredTask = compiler.deferredLoadTask;
-    PrefixElement prefixElement =
-         deferredTask.deferredPrefixElement(node, elements);
-    if (prefixElement != null) {
-      String loadId =
-          deferredTask.importDeferName[prefixElement.deferredImport];
-      HInstruction loadIdConstant = addConstantString(loadId);
-      String uri = prefixElement.deferredImport.uri.dartString.slowToString();
-      HInstruction uriConstant = addConstantString(uri);
-      Element helper = backend.getCheckDeferredIsLoaded();
-      pushInvokeStatic(node, helper, [loadIdConstant, uriConstant]);
-      pop();
-    }
+  void generateIsDeferredLoadedCheckOfSend(ast.Send node) {
+    generateIsDeferredLoadedCheckIfNeeded(
+        compiler.deferredLoadTask.deferredPrefixElement(node, elements),
+        node);
   }
 
   /// Generate read access of an unresolved static or top level entity.
@@ -3294,7 +3299,7 @@ class SsaBuilder extends NewResolvedVisitor {
 
   /// Read a static or top level [field].
   void generateStaticFieldGet(ast.Send node, FieldElement field) {
-    generateIsDeferredLoadedCheckIfNeeded(node);
+    generateIsDeferredLoadedCheckOfSend(node);
 
     ConstantExpression constant =
         backend.constants.getConstantForVariable(field);
@@ -3324,7 +3329,7 @@ class SsaBuilder extends NewResolvedVisitor {
     if (getter.isDeferredLoaderGetter) {
       generateDeferredLoaderGet(node, getter);
     } else {
-      generateIsDeferredLoadedCheckIfNeeded(node);
+      generateIsDeferredLoadedCheckOfSend(node);
       pushInvokeStatic(node, getter, <HInstruction>[]);
     }
   }
@@ -3338,7 +3343,7 @@ class SsaBuilder extends NewResolvedVisitor {
 
   /// Generate a closurization of the static or top level [function].
   void generateStaticFunctionGet(ast.Send node, MethodElement function) {
-    generateIsDeferredLoadedCheckIfNeeded(node);
+    generateIsDeferredLoadedCheckOfSend(node);
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HStatic].
     push(new HStatic(function.declaration, backend.nonNullType));
@@ -4650,7 +4655,7 @@ class SsaBuilder extends NewResolvedVisitor {
 
   handleNewSend(ast.NewExpression node) {
     ast.Send send = node.send;
-    generateIsDeferredLoadedCheckIfNeeded(send);
+    generateIsDeferredLoadedCheckOfSend(send);
 
     bool isFixedList = false;
     bool isFixedListConstructorCall =
@@ -4715,6 +4720,19 @@ class SsaBuilder extends NewResolvedVisitor {
     }
 
     bool isRedirected = constructorDeclaration.isRedirectingFactory;
+    if (!constructorDeclaration.isCyclicRedirection) {
+      // Insert a check for every deferred redirection on the path to the
+      // final target.
+      ConstructorElement target = constructorDeclaration;
+      while (target.isRedirectingFactory) {
+        if (constructorDeclaration.redirectionDeferredPrefix != null) {
+          generateIsDeferredLoadedCheckIfNeeded(
+              target.redirectionDeferredPrefix,
+              node);
+        }
+        target = target.immediateRedirectionTarget;
+      }
+    }
     InterfaceType type = elements.getType(node);
     InterfaceType expectedType =
         constructorDeclaration.computeEffectiveTargetType(type);
@@ -4908,7 +4926,7 @@ class SsaBuilder extends NewResolvedVisitor {
       ast.Send node,
       FunctionElement function,
       CallStructure callStructure) {
-    generateIsDeferredLoadedCheckIfNeeded(node);
+    generateIsDeferredLoadedCheckOfSend(node);
 
     List<HInstruction> inputs = makeStaticArgumentList(
         callStructure,
@@ -5123,7 +5141,7 @@ class SsaBuilder extends NewResolvedVisitor {
 
   /// Generate the constant value for a constant type literal.
   void generateConstantTypeLiteral(ast.Send node) {
-    generateIsDeferredLoadedCheckIfNeeded(node);
+    generateIsDeferredLoadedCheckOfSend(node);
     // TODO(karlklose): add type representation
     if (node.isCall) {
       // The node itself is not a constant but we register the selector (the
@@ -5447,7 +5465,7 @@ class SsaBuilder extends NewResolvedVisitor {
 
   @override
   handleSendSet(ast.SendSet node) {
-    generateIsDeferredLoadedCheckIfNeeded(node);
+    generateIsDeferredLoadedCheckOfSend(node);
     Element element = elements[node];
     if (!Elements.isUnresolved(element) && element.impliesType) {
       ast.Identifier selector = node.selector;

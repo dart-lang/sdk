@@ -1960,8 +1960,13 @@ abstract class ConstructorElementX extends FunctionElementX
         : super(name, kind, modifiers, enclosing, false);
 
   FunctionElement immediateRedirectionTarget;
+  PrefixElement redirectionDeferredPrefix;
 
   bool get isRedirectingFactory => immediateRedirectionTarget != null;
+
+  // TODO(johnniwinther): This should also return true for cyclic redirecting
+  // generative constructors.
+  bool get isCyclicRedirection => effectiveTarget.isRedirectingFactory;
 
   /// This field is set by the post process queue when checking for cycles.
   ConstructorElement internalEffectiveTarget;

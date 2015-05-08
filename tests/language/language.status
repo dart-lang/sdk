@@ -28,6 +28,8 @@ conditional_property_assignment_test: Fail
 conditional_property_access_test: Fail
 conditional_method_invocation_test: Fail
 
+deferred_redirecting_factory_test/02: Fail # Issue 23408
+deferred_redirecting_factory_test/03: Fail # Issue 23408
 [ $compiler == none ]
 # Non-contractive types are not supported in the vm.
 cyclic_type_test/02: Fail, OK

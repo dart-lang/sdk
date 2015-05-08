@@ -1232,6 +1232,12 @@ abstract class ConstructorElement extends FunctionElement
   /// constructor so its immediate redirection target is `null`.
   ConstructorElement get immediateRedirectionTarget;
 
+  bool get isCyclicRedirection;
+
+  /// The prefix of the immediateRedirectionTarget, if it is deferred.
+  /// [null] if it is not deferred.
+  PrefixElement get redirectionDeferredPrefix;
+
   /// Is `true` if this constructor is a redirecting generative constructor.
   bool get isRedirectingGenerative;
 

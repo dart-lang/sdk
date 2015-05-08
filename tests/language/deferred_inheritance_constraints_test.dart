@@ -22,7 +22,7 @@ class C = C1 with
 class D { 
   D() ;
   factory D.factory() = 
-    lib. /// redirecting_constructor: static type warning, runtime error
+    lib. /// redirecting_constructor: static type warning
     Foo2;
 }
 
@@ -30,5 +30,7 @@ void main() {
   new A();
   new B();
   new C();
-  new D.factory();
+  Expect.throws(() { /// redirecting_constructor: continued
+    new D.factory();
+  }); /// redirecting_constructor: continued
 }
