@@ -329,6 +329,8 @@ class JsBuilder {
   /// [escapedString].
   LiteralString string(String value) => new LiteralString('"$value"');
 
+  LiteralString name(String name) => new LiteralString(name);
+
   LiteralNumber number(num value) => new LiteralNumber('$value');
 
   LiteralBool boolean(bool value) => new LiteralBool(value);

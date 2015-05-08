@@ -1009,22 +1009,14 @@ class OldEmitter implements Emitter {
     output.add(N);
   }
 
-  void writeLibraryDescriptor(CodeOutput output, LibraryElement library,
-                              Fragment fragment) {
+  jsAst.Expression generateLibraryDescriptor(LibraryElement library,
+                                             Fragment fragment) {
     var uri = "";
     if (!compiler.enableMinification || backend.mustPreserveUris) {
       uri = library.canonicalUri;
       if (uri.scheme == 'file' && compiler.outputUri != null) {
         uri = relativize(compiler.outputUri, library.canonicalUri, false);
       }
-    }
-    ClassBuilder descriptor = elementDescriptors[fragment][library];
-    if (descriptor == null) {
-      // Nothing of the library was emitted.
-      // TODO(floitsch): this should not happen. We currently have an example
-      // with language/prefix6_negative_test.dart where we have an instance
-      // method without its corresponding class.
-      return;
     }
 
     String libraryName =
@@ -1034,27 +1026,33 @@ class OldEmitter implements Emitter {
 
     jsAst.Fun metadata = task.metadataCollector.buildMetadataFunction(library);
 
-    jsAst.ObjectInitializer initializers = descriptor.toObjectInitializer();
+    ClassBuilder descriptor = elementDescriptors[fragment][library];
+
+    jsAst.ObjectInitializer initializer;
+    if (descriptor == null) {
+      // Nothing of the library was emitted.
+      // TODO(floitsch): this should not happen. We currently have an example
+      // with language/prefix6_negative_test.dart where we have an instance
+      // method without its corresponding class.
+      initializer = new jsAst.ObjectInitializer([]);
+    } else {
+      initializer = descriptor.toObjectInitializer();
+    }
 
     compiler.dumpInfoTask.registerElementAst(library, metadata);
-    compiler.dumpInfoTask.registerElementAst(library, initializers);
-    output
-        ..add('["$libraryName",$_')
-        ..add('"${uri}",$_');
-    if (metadata != null) {
-      output.addBuffer(jsAst.prettyPrint(metadata,
-                                         compiler,
-                                         monitor: compiler.dumpInfoTask));
+    compiler.dumpInfoTask.registerElementAst(library, initializer);
+
+    List<jsAst.Expression> parts = <jsAst.Expression>[];
+    parts..add(js.string(libraryName))
+         ..add(js.string(uri.toString()))
+         ..add(metadata == null ? new jsAst.ArrayHole() : metadata)
+         ..add(js.name(namer.globalObjectFor(library)))
+         ..add(initializer);
+    if (library == compiler.mainApp) {
+      parts.add(js.number(1));
     }
-    output
-        ..add(',$_')
-        ..add(namer.globalObjectFor(library))
-        ..add(',$_')
-        ..addBuffer(jsAst.prettyPrint(initializers,
-                                      compiler,
-                                      monitor: compiler.dumpInfoTask))
-        ..add(library == compiler.mainApp ? ',${n}1' : "")
-        ..add('],$n');
+
+    return new jsAst.ArrayInitializer(parts);
   }
 
   void assemblePrecompiledConstructor(OutputUnit outputUnit,
@@ -1328,9 +1326,9 @@ class OldEmitter implements Emitter {
 
     checkEverythingEmitted(descriptors.keys);
 
-    CodeBuffer libraryBuffer = new CodeBuffer();
+    List<jsAst.Expression> parts = <jsAst.Expression>[];
     for (LibraryElement library in Elements.sortedByPosition(libraries)) {
-      writeLibraryDescriptor(libraryBuffer, library, mainFragment);
+      parts.add(generateLibraryDescriptor(library, mainFragment));
       descriptors.remove(library);
     }
 
@@ -1345,11 +1343,12 @@ class OldEmitter implements Emitter {
       for (LibraryElement element in remainingLibraries) {
         assert(element is LibraryElement || compiler.hasIncrementalSupport);
         if (element is LibraryElement) {
-          writeLibraryDescriptor(libraryBuffer, element, mainFragment);
+          parts.add(generateLibraryDescriptor(element, mainFragment));
           descriptors.remove(element);
         }
       }
     }
+    jsAst.ArrayInitializer descriptorsAst = new jsAst.ArrayInitializer(parts);
 
     bool needsNativeSupport = program.needsNativeSupport;
     mainOutput.addBuffer(
@@ -1360,9 +1359,9 @@ class OldEmitter implements Emitter {
     // The argument to reflectionDataParser is assigned to a temporary 'dart'
     // so that 'dart.' will appear as the prefix to dart methods in stack
     // traces and profile entries.
-    mainOutput..add('var dart = [$n')
-              ..addBuffer(libraryBuffer)
-              ..add(']$N');
+    mainOutput..add('var dart =')
+              ..addBuffer(jsAst.prettyPrint(descriptorsAst, compiler))
+              ..add('$N');
     if (compiler.useContentSecurityPolicy) {
       jsAst.Statement precompiledFunctionAst =
           buildCspPrecompiledFunctionFor(mainOutputUnit);
@@ -1606,8 +1605,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
   Map<OutputUnit, String> emitDeferredOutputUnits(Program program) {
     if (!program.isSplit) return const {};
 
-    Map<OutputUnit, CodeBuffer> outputBuffers =
-        new Map<OutputUnit, CodeBuffer>();
+    Map<OutputUnit, jsAst.Expression> outputs =
+        new Map<OutputUnit, jsAst.Expression>();
 
     for (Fragment fragment in program.deferredFragments) {
       OutputUnit outputUnit = fragment.outputUnit;
@@ -1620,16 +1619,17 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
         if (libraries == null) libraries = [];
 
         // TODO(johnniwinther): Avoid creating [CodeBuffer]s.
-        CodeBuffer buffer = new CodeBuffer();
-        outputBuffers[outputUnit] = buffer;
+        List<jsAst.Expression> parts = <jsAst.Expression>[];
         for (LibraryElement library in Elements.sortedByPosition(libraries)) {
-          writeLibraryDescriptor(buffer, library, fragment);
+          parts.add(generateLibraryDescriptor(library, fragment));
           descriptors.remove(library);
         }
+
+        outputs[outputUnit] = new jsAst.ArrayInitializer(parts);
       }
     }
 
-    return emitDeferredCode(program, outputBuffers);
+    return emitDeferredCode(program, outputs);
   }
 
   int emitProgram(ProgramBuilder programBuilder) {
@@ -1772,14 +1772,14 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
   /// can be used for calling the initializer.
   Map<OutputUnit, String> emitDeferredCode(
       Program program,
-      Map<OutputUnit, CodeBuffer> deferredBuffers) {
+      Map<OutputUnit, jsAst.Expression> deferredAsts) {
 
     Map<OutputUnit, String> hunkHashes = new Map<OutputUnit, String>();
 
     for (Fragment fragment in program.deferredFragments) {
       OutputUnit outputUnit = fragment.outputUnit;
 
-      CodeOutput libraryDescriptorBuffer = deferredBuffers[outputUnit];
+      jsAst.Expression libraryDescriptor = deferredAsts[outputUnit];
 
       List<CodeOutputListener> outputListeners = <CodeOutputListener>[];
       Hasher hasher = new Hasher();
@@ -1816,7 +1816,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
                     '${globalsHolder}.${namer.isolateName}$N');
       String typesAccess =
           generateEmbeddedGlobalAccessString(embeddedNames.TYPES);
-      if (libraryDescriptorBuffer != null) {
+      if (libraryDescriptor != null) {
         // TODO(ahe): This defines a lot of properties on the
         // Isolate.prototype object.  We know this will turn it into a
         // slow object in V8, so instead we should do something similar
@@ -1826,9 +1826,9 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
             // The argument to reflectionDataParser is assigned to a temporary
             // 'dart' so that 'dart.' will appear as the prefix to dart methods
             // in stack traces and profile entries.
-            ..add('var dart = [$n ')
-            ..addBuffer(libraryDescriptorBuffer)
-            ..add(']$N');
+            ..add('var dart = $n ')
+            ..addBuffer(jsAst.prettyPrint(libraryDescriptor, compiler))
+            ..add('$N');
 
         if (compiler.useContentSecurityPolicy) {
           jsAst.Statement precompiledFunctionAst =
