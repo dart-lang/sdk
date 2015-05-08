@@ -861,6 +861,13 @@ class ConstructorElementY extends ElementY
 
   @override
   get nestedClosures => unsupported('nestedClosures');
+
+  @override
+  bool get isCyclicRedirection => effectiveTarget.isRedirectingFactory;
+
+  // TODO(johnniwinther): implement redirectionDeferredPrefix
+  @override
+  dart2js.PrefixElement get redirectionDeferredPrefix => null;
 }
 
 class InstanceMethodElementY extends ElementY
