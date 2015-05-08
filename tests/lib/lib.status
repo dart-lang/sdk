@@ -766,7 +766,6 @@ mirrors/reflected_type_test/03: Crash # Instance of 'TypeOperator': unimplemente
 mirrors/reflected_type_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/reflected_type_typedefs_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/reflected_type_typevars_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-mirrors/reflectively_instantiate_uninstantiated_class_test: Crash #  "on T" catch block
 mirrors/reflect_model_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/reflect_two_classes_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 mirrors/regress_14304_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator

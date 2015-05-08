@@ -389,13 +389,11 @@ await_test: Crash #  cannot handle async/sync*/async* functions
 bad_constructor_test/06: Crash # (new A()): Error expression `new A()` unhandled.
 bad_named_constructor_negative_test: Crash #  Error expression `BadNamedConstructorNegativeTest.testMain()` unhandled.
 bad_named_parameters2_test/01: Crash # (try {caught=false;np.foo(b:25);}on NoSuchMethodError catch (e){caught=true;}): "on T" catch block
-bad_named_parameters2_test/none: Crash # (try {caught=false;}on NoSuchMethodError catch (e){caught=true;}): "on T" catch block
 bad_named_parameters_test/01: Crash #  "on T" catch block
 bad_named_parameters_test/02: Crash # (try {caught=false;}on NoSuchMethodError catch (e){caught=true;}): "on T" catch block
 bad_named_parameters_test/03: Crash # (try {caught=false;}on NoSuchMethodError catch (e){caught=true;}): "on T" catch block
 bad_named_parameters_test/04: Crash # (try {caught=false;}on NoSuchMethodError catch (e){caught=true;}): "on T" catch block
 bad_named_parameters_test/05: Crash # (try {caught=false;}on NoSuchMethodError catch (e){caught=true;}): "on T" catch block
-bad_named_parameters_test/none: Crash # (try {caught=false;}on NoSuchMethodError catch (e){caught=true;}): "on T" catch block
 bailout2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 bailout3_test: Crash # (throw 0): Unhandled node
 bailout4_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -430,7 +428,6 @@ call_constructor_on_unresolvable_class_test/06: Crash # (new lib.A()): Error exp
 call_constructor_on_unresolvable_class_test/07: Crash # (new A()): Error expression `new A()` unhandled.
 call_nonexistent_constructor_test/01: Crash #  "on T" catch block
 call_nonexistent_constructor_test/02: Crash # (try {}on NoSuchMethodError catch (e){i=-1;}on String catch (e){i=1;}): "on T" catch block
-call_nonexistent_constructor_test/none: Crash # (try {}on NoSuchMethodError catch (e){i=-1;}on String catch (e){i=1;}): "on T" catch block
 call_nonexistent_static_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 call_nonexistent_static_test/02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 call_nonexistent_static_test/03: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -887,7 +884,6 @@ f_bounded_quantification4_test: Crash # Instance of 'TypeOperator': unimplemente
 f_bounded_quantification5_test: Crash #  "on T" catch block
 f_bounded_quantification_test/01: Crash #  "on T" catch block
 f_bounded_quantification_test/02: Crash # (try {}on TypeError catch (error){got_type_error=true;}): "on T" catch block
-f_bounded_quantification_test/none: Crash # (try {}on TypeError catch (error){got_type_error=true;}): "on T" catch block
 fibo_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 field3a_negative_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 field3_negative_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -1291,7 +1287,6 @@ issue12284_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenera
 issue12336_test: Crash # (throw new ExpectException(message)): Unhandled node
 issue13179_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 issue13474_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-issue1363_test: Crash # (try {contents=libCup.getContents();}on TypeError catch (e){hasThrown=true;}): "on T" catch block
 issue13673_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 issue14014_3_test: Crash # (throw 'Test failed'): Unhandled node
 issue15606_test/01: Crash # (Unresolved): Error expression `Unresolved` unhandled.
@@ -1848,7 +1843,6 @@ string_optimizations_test: Crash # Instance of 'TypeOperator': unimplemented in 
 string_supertype_checked_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 string_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 substring_test/01: Crash #  "on T" catch block
-substring_test/none: Crash # (try {}on TypeError catch (e){}on ArgumentError catch (e){}): "on T" catch block
 super_abstract_method_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 super_all_named_constructor_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 super_assign_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -2061,8 +2055,6 @@ type_variable_bounds2_test/05: Crash # Instance of 'TypeOperator': unimplemented
 type_variable_bounds2_test/06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_variable_bounds2_test/none: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_variable_bounds3_test/00: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-type_variable_bounds4_test/01: Crash #  "on T" catch block
-type_variable_bounds4_test/none: Crash #  "on T" catch block
 type_variable_closure2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_variable_closure_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_variable_conflict2_test/01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -2074,7 +2066,6 @@ type_variable_conflict2_test/09: Crash # Instance of 'TypeOperator': unimplement
 type_variable_field_initializer_closure_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_variable_field_initializer_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_variable_function_type_test: Crash # (throw new ExpectException(message)): Unhandled node
-type_variable_identifier_expression_test: Crash # (try {var buf=new B<A>().doFunc();print(buf);}on NoSuchMethodError catch (e){}): "on T" catch block
 type_variable_initializer_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_variable_nested_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 type_variable_scope2_test: Crash #  "on T" catch block

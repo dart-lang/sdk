@@ -9599,8 +9599,6 @@ Language/07_Classes/1_Instance_Methods/2_Operators_A02_t20: Crash # Instance of 
 Language/07_Classes/1_Instance_Methods/2_Operators_A05_t01: Crash # (throw new ExpectException(message)): Unhandled node
 Language/07_Classes/1_Instance_Methods/2_Operators_A06_t01: Crash # (throw new ExpectException(message)): Unhandled node
 Language/07_Classes/1_Instance_Methods/2_Operators_A08_t01: Crash # cannot compile methods that need interceptor calling convention.
-Language/07_Classes/2_Getters_A01_t03: Crash # (try {var x=new C().getter;}on C catch (ok){}): "on T" catch block
-Language/07_Classes/2_Getters_A01_t05: Crash # (try {var x=C.getter;}on C catch (ok){}): "on T" catch block
 Language/07_Classes/2_Getters_A02_t01: Crash #  "on T" catch block
 Language/07_Classes/2_Getters_A04_t08: Crash # (C.foo()): Error expression `C.foo()` unhandled.
 Language/07_Classes/2_Getters_A04_t09: Crash # (C.foo()): Error expression `C.foo()` unhandled.
@@ -9759,7 +9757,6 @@ Language/12_Expressions/04_Booleans/1_Boolean_Conversion_A01_t03: Crash # Instan
 Language/12_Expressions/04_Booleans/1_Boolean_Conversion_A02_t01: Crash #  "on T" catch block
 Language/12_Expressions/04_Booleans_A02_t01: Crash # (throw new ExpectException(message)): Unhandled node
 Language/12_Expressions/04_Booleans_A04_t02: Crash #  "on T" catch block
-Language/12_Expressions/05_Strings/1_String_Interpolation_A01_t06: Crash # (try {"${T}";}on NoSuchMethodError catch (ok){print(ok);}): "on T" catch block
 Language/12_Expressions/05_Strings/1_String_Interpolation_A01_t07: Crash #  "on T" catch block
 Language/12_Expressions/05_Strings/1_String_Interpolation_A01_t12: Crash # handleStaticFunctionGet: function(foo)
 Language/12_Expressions/05_Strings/1_String_Interpolation_A01_t13: Crash #  "on T" catch block
@@ -9835,7 +9832,6 @@ Language/12_Expressions/07_Maps_A10_t05: Crash #  "on T" catch block
 Language/12_Expressions/08_Throw_A02_t01: Crash # (throw "fail1"): Unhandled node
 Language/12_Expressions/08_Throw_A03_t02: Crash #  "on T" catch block
 Language/12_Expressions/08_Throw_A03_t03: Crash #  "on T" catch block
-Language/12_Expressions/08_Throw_A03_t04: Crash #  "on T" catch block
 Language/12_Expressions/08_Throw_A04_t01: Crash # (throw last): Unhandled node
 Language/12_Expressions/08_Throw_A08_t01: Crash # (try {bar(new Error());}on Error catch (e){Expect.isNotNull(e.stackTrace);}): "on T" catch block
 Language/12_Expressions/09_Function_Expressions_A02_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -9854,7 +9850,6 @@ Language/12_Expressions/10_Expressions_A01_t01: Crash # Instance of 'TypeOperato
 Language/12_Expressions/10_This_A01_t06: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/10_This_A02_t01: Crash #  "on T" catch block
 Language/12_Expressions/10_This_A03_t02: Crash # (func(1,2)): Error expression `func(1,2)` unhandled.
-Language/12_Expressions/12_Instance_Creation/1_New_A01_t04: Crash # (try {A();}on NoSuchMethodError catch (e){}): "on T" catch block
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t02: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t07: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
@@ -10173,7 +10168,6 @@ Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t30: Crash # Instance
 Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t31: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t32: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 Language/12_Expressions/21_Bitwise_Expressions_A01_t01: Crash # Please triage this failure.
-Language/12_Expressions/21_Bitwise_Expressions_A01_t14: Crash # (try {fun|1;}on NoSuchMethodError catch (e){}): "on T" catch block
 Language/12_Expressions/21_Bitwise_Expressions_A02_t01: Crash # (throw new ExpectException(message)): Unhandled node
 Language/12_Expressions/21_Bitwise_Expressions_A02_t02: Crash # (throw new ExpectException(message)): Unhandled node
 Language/12_Expressions/21_Bitwise_Expressions_A02_t03: Crash # (throw new ExpectException(message)): Unhandled node
@@ -10462,7 +10456,6 @@ Language/13_Statements/14_Continue_A03_t04: Crash #  not exactly one catch block
 Language/13_Statements/14_Continue_A03_t05: Crash #  Unhandled node
 Language/13_Statements/14_Continue_A03_t06: Crash #  "on T" catch block
 Language/13_Statements/14_Continue_A03_t07: Crash #  "on T" catch block
-Language/13_Statements/15_Assert_A02_t01: Crash # (try {var i=1;String s=i;return false;}on TypeError catch (e){return true;}): "on T" catch block
 Language/13_Statements/15_Assert_A03_t01: Crash #  "on T" catch block
 Language/13_Statements/15_Assert_A03_t02: Crash #  "on T" catch block
 Language/13_Statements/15_Assert_A03_t03: Crash #  "on T" catch block
@@ -13271,7 +13264,6 @@ LibTest/collection/LinkedList/firstWhere_A02_t01: Crash # Instance of 'TypeOpera
 LibTest/collection/LinkedList/firstWhere_A03_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LibTest/collection/LinkedList/fold_A01_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LibTest/collection/LinkedList/forEach_A01_t01: Crash # (throw new ExpectException(message)): Unhandled node
-LibTest/collection/LinkedList/forEach_A01_t02: Crash # (try {var i=1;String s=i;return false;}on TypeError catch (e){return true;}): "on T" catch block
 LibTest/collection/LinkedList/forEach_A02_t01: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 LibTest/collection/LinkedList/isEmpty_A01_t01: Crash # (throw new ExpectException(message)): Unhandled node
 LibTest/collection/LinkedList/isNotEmpty_A01_t01: Crash # (throw new ExpectException(message)): Unhandled node

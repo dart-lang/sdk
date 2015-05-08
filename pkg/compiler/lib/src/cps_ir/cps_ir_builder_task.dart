@@ -503,15 +503,6 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   visitTryStatement(ast.TryStatement node) {
-    // Multiple catch blocks are not yet implemented.
-    if (node.catchBlocks.isEmpty ||
-        !node.catchBlocks.nodes.tail.isEmpty) {
-      return giveup(node, 'not exactly one catch block');
-    }
-    // 'on T' catch blocks are not yet implemented.
-    if ((node.catchBlocks.nodes.head as ast.CatchBlock).onKeyword != null) {
-      return giveup(node, '"on T" catch block');
-    }
     // Finally blocks are not yet implemented.
     if (node.finallyBlock != null) {
       return giveup(node, 'try/finally');
@@ -525,7 +516,12 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       if (catchClause.trace != null) {
         stackTraceVariable = elements[catchClause.trace];
       }
+      DartType type;
+      if (catchClause.onKeyword != null) {
+        type = elements.getType(catchClause.type);
+      }
       catchClauseInfos.add(new CatchClauseInfo(
+          type: type,
           exceptionVariable: exceptionVariable,
           stackTraceVariable: stackTraceVariable,
           buildCatchBlock: subbuild(catchClause.block)));

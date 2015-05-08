@@ -1786,39 +1786,78 @@ abstract class IrBuilder {
       catchBuilder.environment.update(variable, value);
     }
 
-    // TODO(kmillikin): Handle multiple catch clauses.
-    assert(catchClauseInfos.length == 1);
-    for (CatchClauseInfo catchClauseInfo in catchClauseInfos) {
-      LocalVariableElement exceptionVariable =
-          catchClauseInfo.exceptionVariable;
-      ir.Parameter exceptionParameter = new ir.Parameter(exceptionVariable);
-      catchBuilder.declareLocalVariable(exceptionVariable,
-                                        initialValue: exceptionParameter);
-      ir.Parameter traceParameter;
-      LocalVariableElement stackTraceVariable =
-          catchClauseInfo.stackTraceVariable;
-      if (stackTraceVariable != null) {
-        traceParameter = new ir.Parameter(stackTraceVariable);
-        catchBuilder.declareLocalVariable(stackTraceVariable,
-                                          initialValue: traceParameter);
-      } else {
-        // Use a dummy continuation parameter for the stack trace parameter.
-        // This will ensure that all handlers have two parameters and so they
-        // can be treated uniformly.
-        traceParameter = new ir.Parameter(null);
+    // Handlers are always translated as having both exception and stack trace
+    // parameters.  Multiple clauses do not have to use the same names for
+    // them.  Choose the first of each as the name hint for the respective
+    // handler parameter.
+    ir.Parameter exceptionParameter =
+        new ir.Parameter(catchClauseInfos.first.exceptionVariable);
+    LocalVariableElement traceVariable;
+    CatchClauseInfo catchAll;
+    for (int i = 0; i < catchClauseInfos.length; ++i) {
+      CatchClauseInfo info = catchClauseInfos[i];
+      if (info.type == null) {
+        catchAll = info;
+        catchClauseInfos.length = i;
+        break;
       }
-      catchClauseInfo.buildCatchBlock(catchBuilder);
-      if (catchBuilder.isOpen) catchBuilder.jumpTo(join);
-      List<ir.Parameter> catchParameters =
-          <ir.Parameter>[exceptionParameter, traceParameter];
-      ir.Continuation catchContinuation = new ir.Continuation(catchParameters);
-      catchContinuation.body = catchBuilder._root;
+      if (traceVariable == null) {
+        traceVariable = info.stackTraceVariable;
+      }
+    }
+    ir.Parameter traceParameter = new ir.Parameter(traceVariable);
+    // Expand multiple catch clauses into an explicit if/then/else.  Iterate
+    // them in reverse so the current block becomes the next else block.
+    ir.Expression catchBody;
+    if (catchAll == null) {
+      catchBody = new ir.Rethrow();
+    } else {
+      IrBuilder clauseBuilder = catchBuilder.makeDelimitedBuilder();
+      clauseBuilder.declareLocalVariable(catchAll.exceptionVariable,
+                                         initialValue: exceptionParameter);
+      if (catchAll.stackTraceVariable != null) {
+        clauseBuilder.declareLocalVariable(catchAll.stackTraceVariable,
+                                           initialValue: traceParameter);
+      }
+      catchAll.buildCatchBlock(clauseBuilder);
+      if (clauseBuilder.isOpen) clauseBuilder.jumpTo(join);
+      catchBody = clauseBuilder._root;
+    }
+    for (CatchClauseInfo clause in catchClauseInfos.reversed) {
+      IrBuilder clauseBuilder = catchBuilder.makeDelimitedBuilder();
+      clauseBuilder.declareLocalVariable(clause.exceptionVariable,
+                                         initialValue: exceptionParameter);
+      if (clause.stackTraceVariable != null) {
+        clauseBuilder.declareLocalVariable(clause.stackTraceVariable,
+                                           initialValue: traceParameter);
+      }
+      clause.buildCatchBlock(clauseBuilder);
+      if (clauseBuilder.isOpen) clauseBuilder.jumpTo(join);
+      ir.Continuation thenContinuation = new ir.Continuation([]);
+      thenContinuation.body = clauseBuilder._root;
+      ir.Continuation elseContinuation = new ir.Continuation([]);
+      elseContinuation.body = catchBody;
 
-      tryCatchBuilder.add(
-          new ir.LetHandler(catchContinuation, tryBuilder._root));
-      tryCatchBuilder._current = null;
+      ir.Parameter typeMatches = new ir.Parameter(null);
+      ir.Continuation checkType = new ir.Continuation([typeMatches]);
+      checkType.body =
+          new ir.LetCont.many([thenContinuation, elseContinuation],
+              new ir.Branch(new ir.IsTrue(typeMatches),
+                            thenContinuation,
+                            elseContinuation));
+      catchBody =
+          new ir.LetCont(checkType,
+              new ir.TypeOperator(exceptionParameter, clause.type, checkType,
+                                  isTypeTest: true));
     }
 
+    List<ir.Parameter> catchParameters =
+        <ir.Parameter>[exceptionParameter, traceParameter];
+    ir.Continuation catchContinuation = new ir.Continuation(catchParameters);
+    catchContinuation.body = catchBody;
+
+    tryCatchBuilder.add(
+        new ir.LetHandler(catchContinuation, tryBuilder._root));
     add(new ir.LetCont(join.continuation, tryCatchBuilder._root));
     environment = join.environment;
   }
@@ -2648,13 +2687,14 @@ class TryStatementInfo {
       new Set<LocalVariableElement>();
 }
 
-// TODO(johnniwinther): Support passing of [DartType] for the exception.
 class CatchClauseInfo {
+  final DartType type;
   final LocalVariableElement exceptionVariable;
   final LocalVariableElement stackTraceVariable;
   final SubbuildFunction buildCatchBlock;
 
-  CatchClauseInfo({this.exceptionVariable,
+  CatchClauseInfo({this.type,
+                   this.exceptionVariable,
                    this.stackTraceVariable,
                    this.buildCatchBlock});
 }
