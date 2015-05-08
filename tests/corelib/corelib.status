@@ -573,3 +573,4 @@ uri_path_test: Crash # (throw new ExpectException(message)): Unhandled node
 uri_query_test: Crash # (throw new ExpectException(message)): Unhandled node
 uri_scheme_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 uri_test: Crash # (throw new ExpectException(message)): Unhandled node
+list_unmodifiable_test: Crash # handleStaticFunctionGet: function(createConstList)

@@ -644,3 +644,4 @@ third_party/di_tests/di_test: Crash #  try/finally
 typed_data/test/typed_buffers_test/01: Crash # cannot compile methods that need interceptor calling convention.
 typed_data/test/typed_buffers_test/none: Crash # cannot compile methods that need interceptor calling convention.
 typed_mock/test/typed_mock_test: Crash #  try/finally
+analyzer/test/src/context/context_test: Crash #  try/finally

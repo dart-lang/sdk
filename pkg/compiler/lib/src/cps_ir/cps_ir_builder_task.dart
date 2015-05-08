@@ -198,6 +198,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
    */
   ir.RootNode buildExecutable(ExecutableElement element);
 
+  ClosureClassMap get closureClassMap;
   ClosureScope getClosureScopeForNode(ast.Node node);
   ClosureEnvironment getClosureEnvironment();
 
@@ -530,7 +531,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     irBuilder.buildTry(
         tryStatementInfo: tryStatements[node],
         buildTryBlock: subbuild(node.tryBlock),
-        catchClauseInfos: catchClauseInfos);
+        catchClauseInfos: catchClauseInfos,
+        closureClassMap: closureClassMap);
   }
 
   // ## Expressions ##
@@ -2101,6 +2103,7 @@ class DartIrBuilderVisitor extends IrBuilderVisitor {
     irBuilder.declareLocalFunction(element, inner);
   }
 
+  ClosureClassMap get closureClassMap => null;
   ClosureScope getClosureScopeForNode(ast.Node node) => null;
   ClosureEnvironment getClosureEnvironment() => null;
 
@@ -2235,7 +2238,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   ///
   /// Will be initialized upon entering the body of a function.
   /// It is computed by the [ClosureTranslator].
-  ClosureClassMap closureMap;
+  ClosureClassMap closureClassMap;
 
   /// During construction of a constructor factory, [fieldValues] maps fields
   /// to the primitive containing their initial value.
@@ -2289,11 +2292,11 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   /// captured reference to `this`), returns a [ClosureEnvironment]
   /// indicating how to access these.
   ClosureEnvironment getClosureEnvironment() {
-    if (closureMap.closureElement == null) return null;
+    if (closureClassMap.closureElement == null) return null;
     return new ClosureEnvironment(
-        closureMap.closureElement,
-        closureMap.thisLocal,
-        mapValues(closureMap.freeVariableMap, getLocation));
+        closureClassMap.closureElement,
+        closureClassMap.thisLocal,
+        mapValues(closureClassMap.freeVariableMap, getLocation));
   }
 
   /// If [node] has declarations for variables that should be boxed,
@@ -2302,7 +2305,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   ///
   /// Also see [ClosureScope].
   ClosureScope getClosureScopeForNode(ast.Node node) {
-    closurelib.ClosureScope scope = closureMap.capturingScopes[node];
+    closurelib.ClosureScope scope = closureClassMap.capturingScopes[node];
     if (scope == null) return null;
     // We translate a ClosureScope from closure.dart into IR builder's variant
     // because the IR builder should not depend on the synthetic elements
@@ -2695,10 +2698,11 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   ir.FunctionDefinition buildConstructorBody(ConstructorBodyElement body) {
     ConstructorElement constructor = body.constructor;
     ast.FunctionExpression node = constructor.node;
-    closureMap = compiler.closureToClassMapper.computeClosureToClassMapping(
-        constructor,
-        node,
-        elements);
+    closureClassMap =
+        compiler.closureToClassMapper.computeClosureToClassMapping(
+            constructor,
+            node,
+            elements);
 
     // We compute variables boxed in mutable variables on entry to each try
     // block, not including variables captured by a closure (which are boxed
@@ -2727,10 +2731,11 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     assert(node != null);
     assert(elements[node] != null);
 
-    closureMap = compiler.closureToClassMapper.computeClosureToClassMapping(
-        element,
-        node,
-        elements);
+    closureClassMap =
+        compiler.closureToClassMapper.computeClosureToClassMapping(
+            element,
+            node,
+            elements);
     DartCapturedVariables variables = _analyzeCapturedVariables(node);
     tryStatements = variables.tryStatements;
     IrBuilder builder = getBuilderFor(element);

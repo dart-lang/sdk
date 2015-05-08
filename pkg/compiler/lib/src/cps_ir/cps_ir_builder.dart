@@ -488,9 +488,15 @@ abstract class IrBuilder {
   }
 
   /// Creates a [ir.MutableVariable] for the given local.
-  void makeMutableVariable(Local local) {
-    mutableVariables[local] =
-        new ir.MutableVariable(local.executableContext, local);
+  void makeMutableVariable(Local local, [ClosureClassMap closureMap]) {
+    ExecutableElement owner;
+    if (closureMap == null || closureMap.closureClassElement == null) {
+      owner = local.executableContext;
+    } else {
+      assert(local.executableContext == closureMap.closureElement);
+      owner = closureMap.callElement;
+    }
+    mutableVariables[local] = new ir.MutableVariable(owner, local);
   }
 
   /// Remove an [ir.MutableVariable] for a local.
@@ -1711,7 +1717,8 @@ abstract class IrBuilder {
   void buildTry(
       {TryStatementInfo tryStatementInfo,
        SubbuildFunction buildTryBlock,
-       List<CatchClauseInfo> catchClauseInfos: const <CatchClauseInfo>[]}) {
+       List<CatchClauseInfo> catchClauseInfos: const <CatchClauseInfo>[],
+       ClosureClassMap closureClassMap}) {
     assert(isOpen);
 
     // Catch handlers are in scope for their body.  The CPS translation of
@@ -1753,7 +1760,7 @@ abstract class IrBuilder {
     for (LocalVariableElement variable in tryStatementInfo.boxedOnEntry) {
       assert(!tryCatchBuilder.isInMutableVariable(variable));
       ir.Primitive value = tryCatchBuilder.buildLocalVariableGet(variable);
-      tryCatchBuilder.makeMutableVariable(variable);
+      tryCatchBuilder.makeMutableVariable(variable, closureClassMap);
       tryCatchBuilder.declareLocalVariable(variable, initialValue: value);
     }
 
