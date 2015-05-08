@@ -1360,7 +1360,8 @@ class OldEmitter implements Emitter {
     // so that 'dart.' will appear as the prefix to dart methods in stack
     // traces and profile entries.
     mainOutput..add('var dart =')
-              ..addBuffer(jsAst.prettyPrint(descriptorsAst, compiler))
+              ..addBuffer(jsAst.prettyPrint(descriptorsAst, compiler,
+                                            monitor: compiler.dumpInfoTask))
               ..add('$N');
     if (compiler.useContentSecurityPolicy) {
       jsAst.Statement precompiledFunctionAst =
@@ -1827,7 +1828,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
             // 'dart' so that 'dart.' will appear as the prefix to dart methods
             // in stack traces and profile entries.
             ..add('var dart = $n ')
-            ..addBuffer(jsAst.prettyPrint(libraryDescriptor, compiler))
+            ..addBuffer(jsAst.prettyPrint(libraryDescriptor, compiler,
+                                          monitor: compiler.dumpInfoTask))
             ..add('$N');
 
         if (compiler.useContentSecurityPolicy) {
