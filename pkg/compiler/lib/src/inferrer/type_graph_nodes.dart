@@ -804,17 +804,11 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     // Dart code, for example:
     // int + int -> int
     // uint31 | uint31 -> uint31
-    if (name == '*' || name == '+' ||name == '%' || name == 'remainder' ||
+    if (name == '*' || name == '+' || name == '%' || name == 'remainder' ||
         name == '~/') {
       if (isPositiveInt(receiver) &&
           arguments.hasOnePositionalArgumentThatMatches(isPositiveInt)) {
-        // uint31 + uint31 -> uint32
-        if (name == '+' && isUInt31(receiver) &&
-            arguments.hasOnePositionalArgumentThatMatches(isUInt31)) {
-          return inferrer.types.uint32Type;
-        } else {
-          return inferrer.types.positiveIntType;
-        }
+        return inferrer.types.positiveIntType;
       } else if (arguments.hasOnePositionalArgumentThatMatches(isInt)) {
         return inferrer.types.intType;
       } else if (arguments.hasOnePositionalArgumentThatMatches(isEmpty)) {
