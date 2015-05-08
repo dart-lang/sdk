@@ -18,6 +18,7 @@ import bots.bot_utils as bot_utils
 from os.path import join
 
 DART_PATH = os.path.abspath(os.path.join(__file__, '..', '..'))
+DRY_RUN = False
 
 def BuildOptions():
   usage = """usage: %prog promote [options]
@@ -37,6 +38,7 @@ def BuildOptions():
       '--revision', help='The svn revision to promote', action='store')
   group.add_option(
       '--channel', type='string', help='Channel to promote.', default=None)
+  group.add_option("--dry", help='Dry run', default=False, action="store_true")
   result.add_option_group(group)
 
   return result
@@ -73,6 +75,9 @@ def main():
   else:
     die('Invalid command specified: {0}.  See help below'.format(args[0]))
 
+  if options.dry:
+    global DRY_RUN
+    DRY_RUN = True
   if command == 'promote':
     _PromoteDartArchiveBuild(options.channel, options.revision)
 
@@ -113,6 +118,8 @@ def _PromoteDartArchiveBuild(channel, revision):
     # into the directory instead of to the directory.
     def wait_for_delete_to_be_consistent_with_list(gs_path):
       while True:
+        if DRY_RUN:
+          break
         (_, _, exit_code) = Gsutil(['ls', gs_path], throw_on_error=False)
         # gsutil will exit 1 if the "directory" does not exist
         if exit_code != 0:
@@ -165,8 +172,11 @@ def _PromoteDartArchiveBuild(channel, revision):
 
 def Gsutil(cmd, throw_on_error=True):
   gsutilTool = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
-  return bot_utils.run([sys.executable, gsutilTool] + cmd,
-                       throw_on_error=throw_on_error)
+  command = [sys.executable, gsutilTool] + cmd
+  if DRY_RUN:
+    print "DRY runnning: %s" % command
+    return
+  return bot_utils.run(command, throw_on_error=throw_on_error)
 
 
 if __name__ == '__main__':
