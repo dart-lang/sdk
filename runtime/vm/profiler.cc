@@ -37,7 +37,7 @@ DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 #endif
 DEFINE_FLAG(int, profile_depth, 8,
             "Maximum number stack frames walked. Minimum 1. Maximum 255.");
-#if defined(PROFILE_NATIVE_CODE) || defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR)
 DEFINE_FLAG(bool, profile_vm, true,
             "Always collect native stack traces.");
 #else
