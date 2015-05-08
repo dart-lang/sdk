@@ -2254,6 +2254,13 @@ void Service::SendGraphEvent(Isolate* isolate) {
 }
 
 
+void Service::SendInspectEvent(Isolate* isolate, const Object& inspectee) {
+  ServiceEvent event(isolate, ServiceEvent::kInspect);
+  event.set_inspectee(&inspectee);
+  Service::HandleEvent(&event);
+}
+
+
 class ContainsAddressVisitor : public FindObjectVisitor {
  public:
   ContainsAddressVisitor(Isolate* isolate, uword addr)

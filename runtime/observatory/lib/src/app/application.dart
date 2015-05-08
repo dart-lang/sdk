@@ -107,6 +107,10 @@ class ObservatoryApplication extends Observable {
         notifications.add(event);
         break;
 
+      case ServiceEvent.kInspect:
+        notifications.add(event);
+        break;
+
       default:
         // Ignore unrecognized events.
         Logger.root.severe('Unrecognized event: $event');

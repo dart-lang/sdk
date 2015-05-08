@@ -20,3 +20,7 @@ library dart.developer;
 /// JavaScript, this uses the "debugger" statement, and behaves exactly as
 /// that does.
 external bool debugger({bool when: true, String msg});
+
+/// Send a reference to [object] to any attached debuggers so they may open an
+/// inspector on the object. Returns the argument.
+external inspect(object);

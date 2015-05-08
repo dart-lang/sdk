@@ -30,6 +30,7 @@ class ServiceEvent {
     kBreakpointRemoved,
 
     kGC,
+    kInspect,
 
     kIllegal,
   };
@@ -40,6 +41,7 @@ class ServiceEvent {
         breakpoint_(NULL),
         top_frame_(NULL),
         exception_(NULL),
+        inspectee_(NULL),
         gc_stats_(NULL) {}
 
   explicit ServiceEvent(const DebuggerEvent* debugger_event);
@@ -78,6 +80,14 @@ class ServiceEvent {
     exception_ = exception;
   }
 
+  const Object* inspectee() const {
+    return inspectee_;
+  }
+  void set_inspectee(const Object* inspectee) {
+    ASSERT(type_ == kInspect);
+    inspectee_ = inspectee;
+  }
+
   const Heap::GCStats* gc_stats() const {
     return gc_stats_;
   }
@@ -96,6 +106,7 @@ class ServiceEvent {
   SourceBreakpoint* breakpoint_;
   ActivationFrame* top_frame_;
   const Object* exception_;
+  const Object* inspectee_;
   const Heap::GCStats* gc_stats_;
 };
 

@@ -3,3 +3,5 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch bool debugger({bool when: true, String msg}) native "Developer_debugger";
+
+patch inspect(object) native "Developer_inspect";

@@ -1067,6 +1067,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     switch(event.eventType) {
       case ServiceEvent.kIsolateStart:
       case ServiceEvent.kIsolateExit:
+      case ServiceEvent.kInspect:
         // Handled elsewhere.
         break;
 
@@ -1455,6 +1456,7 @@ class ServiceEvent extends ServiceObject {
   static const kBreakpointRemoved  = 'BreakpointRemoved';
   static const kGraph              = '_Graph';
   static const kGC                 = 'GC';
+  static const kInspect            = 'Inspect';
   static const kConnectionClosed   = 'ConnectionClosed';
 
   ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
@@ -1467,6 +1469,7 @@ class ServiceEvent extends ServiceObject {
   @observable Breakpoint breakpoint;
   @observable ServiceMap topFrame;
   @observable ServiceMap exception;
+  @observable ServiceObject inspectee;
   @observable ByteData data;
   @observable int count;
   @observable String reason;
@@ -1486,6 +1489,9 @@ class ServiceEvent extends ServiceObject {
     }
     if (map['exception'] != null) {
       exception = map['exception'];
+    }
+    if (map['inspectee'] != null) {
+      inspectee = map['inspectee'];
     }
     if (map['_data'] != null) {
       data = map['_data'];

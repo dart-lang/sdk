@@ -11,6 +11,7 @@
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/service.h"
 
 namespace dart {
 
@@ -27,6 +28,13 @@ DEFINE_NATIVE_ENTRY(Developer_debugger, 2) {
     debugger->BreakHere(msg);
   }
   return when.raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(Developer_inspect, 1) {
+  GET_NATIVE_ARGUMENT(Instance, inspectee, arguments->NativeArgAt(0));
+  Service::SendInspectEvent(isolate, inspectee);
+  return inspectee.raw();
 }
 
 }  // namespace dart

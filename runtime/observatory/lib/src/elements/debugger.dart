@@ -1086,6 +1086,7 @@ class ObservatoryDebugger extends Debugger {
       case ServiceEvent.kIsolateStart:
       case ServiceEvent.kGraph:
       case ServiceEvent.kGC:
+      case ServiceEvent.kInspect:
         break;
 
       default:

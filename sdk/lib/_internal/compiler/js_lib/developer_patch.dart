@@ -23,3 +23,10 @@ bool debugger({bool when: true, String msg}) {
   }
   return when;
 }
+
+/// Send a reference to [object] to any attached debuggers so they may open an
+/// inspector on the object. Returns the argument.
+@patch
+inspect(object) {
+  return object;
+}
