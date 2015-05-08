@@ -9,11 +9,9 @@
       'type': 'none',
       'dependencies': [
         'analysis_server',
-        'analyzer_java',
         'create_sdk',
         'dart2js',
         'dartanalyzer',
-        'editor',
         'packages',
         'runtime',
         'samples',
@@ -54,13 +52,6 @@
       'type': 'none',
       'dependencies': [
         'utils/dartanalyzer/dartanalyzer.gyp:dartanalyzer',
-      ],
-    },
-    {
-      'target_name': 'analyzer_java',
-      'type': 'none',
-      'dependencies': [
-        'editor/analyzer_java.gyp:analyzer',
       ],
     },
     {
@@ -107,45 +98,6 @@
       'type': 'none',
       'dependencies': [
         'utils/apidoc/docgen.gyp:dartdocgen',
-      ],
-    },
-    {
-      'target_name': 'editor',
-      'type': 'none',
-      'dependencies': [
-        'editor/build/generated/editor_deps.gyp:editor_deps',
-
-        # This dependency on create_sdk does not mean that the
-        # Editor is rebuilt if the SDK is. It only means that when you build
-        # the Editor, you should also build the SDK. If we wanted to
-        # make sure that the editor is rebuilt when the SDK is, we
-        # should list a *file* in PRODUCT_DIR which the action below
-        # uses as input.
-        # This is the desired behavior as we would otherwise have to
-        # rebuild the editor each time the VM, dart2js, or library
-        # code changes.
-        'create_sdk',
-      ],
-      'actions': [
-        {
-          'action_name': 'create_editor_py',
-          'inputs': [
-            'tools/create_editor.py',
-            '<(SHARED_INTERMEDIATE_DIR)/editor_deps/editor.stamp',
-            '<!@(["python", "tools/list_files.py", "", "editor/tools/features/'
-            'com.google.dart.tools.deploy.feature_releng"])',
-          ],
-          'outputs': [
-            '<(PRODUCT_DIR)/editor/VERSION',
-          ],
-          'action': [
-            'python',
-            'tools/create_editor.py',
-            '--out', '<(PRODUCT_DIR)/editor',
-            '--build', '<(INTERMEDIATE_DIR)',
-          ],
-          'message': 'Creating editor.',
-        },
       ],
     },
     {
