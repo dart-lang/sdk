@@ -26,8 +26,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, use_jscre);
-
 // Forward declarations.
 #define DEFINE_FORWARD_DECLARATION(clazz)                                      \
   class clazz;

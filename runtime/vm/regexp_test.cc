@@ -11,8 +11,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, use_jscre);
-
 static RawArray* Match(const String& pat, const String& str) {
   Zone* zone = Thread::Current()->zone();
   const JSRegExp& regexp = JSRegExp::Handle(
