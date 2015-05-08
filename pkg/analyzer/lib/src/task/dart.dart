@@ -82,6 +82,16 @@ final ResultDescriptor<CompilationUnitElement> COMPILATION_UNIT_ELEMENT =
         cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
+ * The list of [Element]s which a given constant element depends on.
+ *
+ * The result is only available for targets representing a constant [Element]
+ * (i.e. a constant variable declaration, a constant constructor, or a
+ * parameter element with a default value).
+ */
+final ListResultDescriptor<Element> CONSTANT_DEPENDENCIES =
+    new ListResultDescriptor<Element>('CONSTANT_DEPENDENCIES', <Element>[]);
+
+/**
  * An [Element] that has been successfully constant-evaluated.
  *
  * TODO(paulberry): is ELEMENT_CACHING_POLICY the correct caching policy?
