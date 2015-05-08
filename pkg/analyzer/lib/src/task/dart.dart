@@ -226,6 +226,15 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT5 =
         cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
+ * The flag specifying whether all analysis errors are computed in a specific
+ * library.
+ *
+ * The result is only available for [Source]s representing a library.
+ */
+final ResultDescriptor<bool> LIBRARY_ERRORS_READY =
+    new ResultDescriptor<bool>('LIBRARY_ERRORS_READY', false);
+
+/**
  * The analysis errors associated with a compilation unit in a specific library.
  *
  * The result is only available for [LibrarySpecificUnit]s.
@@ -609,10 +618,7 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'BuildCompilationUnitElementTask', createTask, buildInputs,
-      <ResultDescriptor>[
-    COMPILATION_UNIT_ELEMENT,
-    RESOLVED_UNIT1
-  ]);
+      <ResultDescriptor>[COMPILATION_UNIT_ELEMENT, RESOLVED_UNIT1]);
 
   /**
    * Initialize a newly created task to build a compilation unit element for
@@ -2252,6 +2258,50 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
   static GenerateHintsTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new GenerateHintsTask(context, target);
+  }
+}
+
+/**
+ * A task computes all of the errors of all of the units for a single
+ * library source and sets the [LIBRARY_ERRORS_READY] flag.
+ */
+class LibraryErrorsReadyTask extends SourceBasedAnalysisTask {
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'LibraryErrorsReadyTask', createTask, buildInputs,
+      <ResultDescriptor>[LIBRARY_ERRORS_READY]);
+
+  LibraryErrorsReadyTask(InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    outputs[LIBRARY_ERRORS_READY] = true;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [library].
+   */
+  static Map<String, TaskInput> buildInputs(Source library) {
+    return <String, TaskInput>{
+      'allErrors': UNITS.of(library).toListOf(DART_ERRORS)
+    };
+  }
+
+  /**
+   * Create a [LibraryErrorsReadyTask] based on the given [target] in the given
+   * [context].
+   */
+  static LibraryErrorsReadyTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new LibraryErrorsReadyTask(context, target);
   }
 }
 

@@ -41,6 +41,7 @@ main() {
   runReflectiveTests(GatherUsedImportedElementsTaskTest);
   runReflectiveTests(GatherUsedLocalElementsTaskTest);
   runReflectiveTests(GenerateHintsTaskTest);
+  runReflectiveTests(LibraryErrorsReadyTaskTest);
   runReflectiveTests(LibraryUnitErrorsTaskTest);
   runReflectiveTests(ParseDartTaskTest);
   runReflectiveTests(ResolveUnitTypeNamesTaskTest);
@@ -1656,6 +1657,34 @@ f(A a) {
     _fillErrorListener(HINTS);
     errorListener.assertErrorsWithCodes(
         <ErrorCode>[HintCode.UNUSED_ELEMENT, HintCode.UNUSED_ELEMENT]);
+  }
+}
+
+@reflectiveTest
+class LibraryErrorsReadyTaskTest extends _AbstractDartTaskTest {
+  test_perform() {
+    Source library = newSource('/lib.dart', r'''
+library lib;
+part 'part1.dart';
+part 'part2.dart';
+X v1;
+''');
+    Source part1 = newSource('/part1.dart', r'''
+part of lib;
+X v2;
+''');
+    Source part2 = newSource('/part2.dart', r'''
+part of lib;
+X v3;
+''');
+    _computeResult(library, LIBRARY_ERRORS_READY);
+    expect(task, new isInstanceOf<LibraryErrorsReadyTask>());
+    expect(outputs, hasLength(1));
+    bool ready = outputs[LIBRARY_ERRORS_READY];
+    expect(ready, isTrue);
+    expect(context.getErrors(library).errors, hasLength(1));
+    expect(context.getErrors(part1).errors, hasLength(1));
+    expect(context.getErrors(part2).errors, hasLength(1));
   }
 }
 
