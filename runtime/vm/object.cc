@@ -12047,9 +12047,9 @@ Code::Comments::Comments(const Array& comments)
 
 
 RawLocalVarDescriptors* Code::GetLocalVarDescriptors() const {
-  ASSERT(!is_optimized());
   const LocalVarDescriptors& v = LocalVarDescriptors::Handle(var_descriptors());
   if (v.IsNull()) {
+    ASSERT(!is_optimized());
     const Function& f = Function::Handle(function());
     ASSERT(!f.IsIrregexpFunction());  // Not yet implemented.
     Compiler::ComputeLocalVarDescriptors(*this);
