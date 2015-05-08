@@ -315,6 +315,7 @@ class ScriptInsetElement extends ObservatoryElement {
     }
     container.children.clear();
     container.children.add(table);
+    makeCssClassUncopyable(table, "noCopy");
   }
 
   void loadFunctionsOf(Library lib) {
@@ -449,25 +450,25 @@ class ScriptInsetElement extends ObservatoryElement {
     var busy = false;
     if (line == null || !line.possibleBpt) {
       e.classes.add("emptyBreakpoint");
+      e.classes.add('noCopy');
       e.text = nbsp;
       return e;
     }
     e.text = 'B';
     update() {
+      e.classes.clear();
+      e.classes.add('noCopy');
+
       if (busy) {
-        e.classes.clear();
         e.classes.add("busyBreakpoint");
       } else {
         if (line.breakpoints != null) {
           if (line.breakpointResolved) {
-            e.classes.clear();
             e.classes.add("resolvedBreakpoint");
           } else {
-            e.classes.clear();
             e.classes.add("unresolvedBreakpoint");
           }
         } else {
-          e.classes.clear();
           e.classes.add("possibleBreakpoint");
         }
       }
@@ -504,6 +505,7 @@ class ScriptInsetElement extends ObservatoryElement {
   Element lineNumberElement(ScriptLine line) {
     var lineNumber = line == null ? "..." : line.line;
     var e = span("$nbsp$lineNumber$nbsp");
+    e.classes.add('noCopy');
 
     if ((line == null) || (line.hits == null)) {
       hitsUnknown(e);
@@ -552,6 +554,9 @@ class ScriptInsetElement extends ObservatoryElement {
       }
       consumeUntil(line.text.length);
     }
+
+    // So blank lines are included when copying script to the clipboard.
+    e.append(span('\n'));
 
     return e;
   }
