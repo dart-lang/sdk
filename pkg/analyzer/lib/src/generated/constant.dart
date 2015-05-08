@@ -23,6 +23,11 @@ import 'utilities_collection.dart';
 import 'utilities_dart.dart' show ParameterKind;
 
 /**
+ * Callback used by [ReferenceFinder] to report that a dependency was found.
+ */
+typedef void ReferenceFinderCallback(Element dependency);
+
+/**
  * The state of an object representing a boolean value.
  */
 class BoolState extends InstanceState {
@@ -186,7 +191,7 @@ class ConstantAstCloner extends AstCloner {
 }
 
 /**
- * Helper class encapsulating the methods for evaluating constant instance
+ * Helper class encapsulating the methods for evaluating constants and
  * constant instance creation expressions.
  */
 class ConstantEvaluationEngine {
@@ -300,6 +305,74 @@ class ConstantEvaluationEngine {
     }
     String name = argumentValues[0].stringValue;
     return isValidPublicSymbol(name);
+  }
+
+  /**
+   * Determine which constant elements need to have their values computed
+   * prior to computing the value of [element], and report them using
+   * [callback].
+   */
+  void computeDependencies(Element element, ReferenceFinderCallback callback) {
+    ReferenceFinder referenceFinder = new ReferenceFinder(callback);
+    if (element is ParameterElement) {
+      if (element.initializer != null) {
+        Expression defaultValue =
+            (element as ConstVariableElement).constantInitializer;
+        if (defaultValue != null) {
+          defaultValue.accept(referenceFinder);
+        }
+      }
+    } else if (element is PotentiallyConstVariableElement) {
+      element.constantInitializer.accept(referenceFinder);
+    } else if (element is ConstructorElementImpl) {
+      element.isCycleFree = false;
+      ConstructorElement redirectedConstructor =
+          getConstRedirectedConstructor(element);
+      if (redirectedConstructor != null) {
+        ConstructorElement redirectedConstructorBase =
+            ConstantEvaluationEngine._getConstructorBase(redirectedConstructor);
+        callback(redirectedConstructorBase);
+        return;
+      }
+      bool superInvocationFound = false;
+      List<ConstructorInitializer> initializers = element.constantInitializers;
+      for (ConstructorInitializer initializer in initializers) {
+        if (initializer is SuperConstructorInvocation) {
+          superInvocationFound = true;
+        }
+        initializer.accept(referenceFinder);
+      }
+      if (!superInvocationFound) {
+        // No explicit superconstructor invocation found, so we need to
+        // manually insert a reference to the implicit superconstructor.
+        InterfaceType superclass =
+            (element.returnType as InterfaceType).superclass;
+        if (superclass != null && !superclass.isObject) {
+          ConstructorElement unnamedConstructor = ConstantEvaluationEngine
+              ._getConstructorBase(superclass.element.unnamedConstructor);
+          if (unnamedConstructor != null) {
+            callback(unnamedConstructor);
+          }
+        }
+      }
+      for (FieldElement field in element.enclosingElement.fields) {
+        // Note: non-static const isn't allowed but we handle it anyway so that
+        // we won't be confused by incorrect code.
+        if ((field.isFinal || field.isConst) &&
+            !field.isStatic &&
+            field.initializer != null) {
+          callback(field);
+        }
+      }
+      for (ParameterElement parameterElement in element.parameters) {
+        callback(parameterElement);
+      }
+    } else {
+      // Should not happen.
+      assert(false);
+      AnalysisEngine.instance.logger.logError(
+          "Constant value computer trying to compute the value of a node of type ${element.runtimeType}");
+    }
   }
 
   /**
@@ -1005,73 +1078,9 @@ class ConstantValueComputer {
     _annotations = _constantFinder.annotations;
     for (Element element in _constantsToCompute) {
       referenceGraph.addNode(element);
-      if (element is ParameterElement) {
-        if (element.initializer != null) {
-          Expression defaultValue =
-              (element as ConstVariableElement).constantInitializer;
-          if (defaultValue != null) {
-            ReferenceFinder parameterReferenceFinder =
-                new ReferenceFinder(element, referenceGraph);
-            defaultValue.accept(parameterReferenceFinder);
-          }
-        }
-      } else if (element is PotentiallyConstVariableElement) {
-        ReferenceFinder referenceFinder =
-            new ReferenceFinder(element, referenceGraph);
-        element.constantInitializer.accept(referenceFinder);
-      } else if (element is ConstructorElementImpl) {
-        element.isCycleFree = false;
-        ConstructorElement redirectedConstructor =
-            evaluationEngine.getConstRedirectedConstructor(element);
-        if (redirectedConstructor != null) {
-          ConstructorElement redirectedConstructorBase =
-              ConstantEvaluationEngine
-                  ._getConstructorBase(redirectedConstructor);
-          referenceGraph.addEdge(element, redirectedConstructorBase);
-          continue;
-        }
-        ReferenceFinder referenceFinder =
-            new ReferenceFinder(element, referenceGraph);
-        bool superInvocationFound = false;
-        List<ConstructorInitializer> initializers =
-            element.constantInitializers;
-        for (ConstructorInitializer initializer in initializers) {
-          if (initializer is SuperConstructorInvocation) {
-            superInvocationFound = true;
-          }
-          initializer.accept(referenceFinder);
-        }
-        if (!superInvocationFound) {
-          // No explicit superconstructor invocation found, so we need to
-          // manually insert a reference to the implicit superconstructor.
-          InterfaceType superclass =
-              (element.returnType as InterfaceType).superclass;
-          if (superclass != null && !superclass.isObject) {
-            ConstructorElement unnamedConstructor = ConstantEvaluationEngine
-                ._getConstructorBase(superclass.element.unnamedConstructor);
-            if (unnamedConstructor != null) {
-              referenceGraph.addEdge(element, unnamedConstructor);
-            }
-          }
-        }
-        for (FieldElement field in element.enclosingElement.fields) {
-          // Note: non-static const isn't allowed but we handle it anyway so that
-          // we won't be confused by incorrect code.
-          if ((field.isFinal || field.isConst) &&
-              !field.isStatic &&
-              field.initializer != null) {
-            referenceGraph.addEdge(element, field);
-          }
-        }
-        for (ParameterElement parameterElement in element.parameters) {
-          referenceGraph.addEdge(element, parameterElement);
-        }
-      } else {
-        // Should not happen.
-        assert(false);
-        AnalysisEngine.instance.logger.logError(
-            "Constant value computer trying to compute the value of a node of type ${element.runtimeType}");
-      }
+      evaluationEngine.computeDependencies(element, (Element dependency) {
+        referenceGraph.addEdge(element, dependency);
+      });
     }
     List<List<Element>> topologicalSort =
         referenceGraph.computeTopologicalSort();
@@ -4865,25 +4874,17 @@ class NumState extends InstanceState {
  */
 class ReferenceFinder extends RecursiveAstVisitor<Object> {
   /**
-   * The element representing the construct that will be visited.
+   * The callback which should be used to report any dependencies that were
+   * found.
    */
-  final Element _source;
-
-  /**
-   * A graph in which the nodes are the constant variables and the edges are
-   * from each variable to the other constant variables that are referenced in
-   * the head's initializer.
-   */
-  final DirectedGraph<Element> _referenceGraph;
+  final ReferenceFinderCallback _callback;
 
   /**
    * Initialize a newly created reference finder to find references from a given
    * variable to other variables and to add those references to the given graph.
-   * The [source] is the element representing the variable whose initializer
-   * will be visited. The [referenceGraph] is a graph recording which variables
-   * (heads) reference which other variables (tails) in their initializers.
+   * The [_callback] will be invoked for every dependency found.
    */
-  ReferenceFinder(this._source, this._referenceGraph);
+  ReferenceFinder(this._callback);
 
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
@@ -4891,7 +4892,7 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
       ConstructorElement constructor =
           ConstantEvaluationEngine._getConstructorBase(node.staticElement);
       if (constructor != null) {
-        _referenceGraph.addEdge(_source, constructor);
+        _callback(constructor);
       }
     }
     return super.visitInstanceCreationExpression(node);
@@ -4904,7 +4905,7 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
     ConstructorElement target =
         ConstantEvaluationEngine._getConstructorBase(node.staticElement);
     if (target != null && target.isConst) {
-      _referenceGraph.addEdge(_source, target);
+      _callback(target);
     }
     return null;
   }
@@ -4917,7 +4918,7 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
     }
     if (element is VariableElement) {
       if (element.isConst) {
-        _referenceGraph.addEdge(_source, element);
+        _callback(element);
       }
     }
     return null;
@@ -4929,7 +4930,7 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
     ConstructorElement constructor =
         ConstantEvaluationEngine._getConstructorBase(node.staticElement);
     if (constructor != null && constructor.isConst) {
-      _referenceGraph.addEdge(_source, constructor);
+      _callback(constructor);
     }
     return null;
   }

@@ -8,6 +8,7 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
 import 'package:analyzer/src/generated/error.dart';
@@ -1636,6 +1637,79 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
   static BuildTypeProviderTask createTask(
       AnalysisContext context, AnalysisContextTarget target) {
     return new BuildTypeProviderTask(context, target);
+  }
+}
+
+/**
+ * A task that computes [CONSTANT_DEPENDENCIES] for a constant.
+ */
+class ComputeConstantDependenciesTask extends AnalysisTask {
+  /**
+   * The name of the [RESOLVED_UNIT] input.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
+
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'ComputeConstantDependenciesTask', createTask, buildInputs,
+      <ResultDescriptor>[CONSTANT_DEPENDENCIES]);
+
+  ComputeConstantDependenciesTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  String get description {
+    Source source = target.source;
+    String sourceName = source == null ? '<unknown source>' : source.fullName;
+    return '${descriptor.name} for element $target in source $sourceName';
+  }
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    //
+    // Prepare inputs.
+    //
+    // Note: UNIT_INPUT is not needed.  It is merely a bookkeeping dependency
+    // to ensure that resolution has occurred before we attempt to determine
+    // constant dependencies.
+    //
+    Element element = target;
+    AnalysisContext context = element.context;
+    TypeProvider typeProvider = context.typeProvider;
+    //
+    // Compute dependencies.
+    //
+    List<Element> dependencies = <Element>[];
+    new ConstantEvaluationEngine(typeProvider, context.declaredVariables)
+        .computeDependencies(element, dependencies.add);
+    //
+    // Record outputs.
+    //
+    outputs[CONSTANT_DEPENDENCIES] = dependencies;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(Element target) {
+    return <String, TaskInput>{
+      UNIT_INPUT: RESOLVED_UNIT
+          .of(new LibrarySpecificUnit(target.library.source, target.source))
+    };
+  }
+
+  /**
+   * Create a [ResolveReferencesTask] based on the given [target] in
+   * the given [context].
+   */
+  static ComputeConstantDependenciesTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new ComputeConstantDependenciesTask(context, target);
   }
 }
 

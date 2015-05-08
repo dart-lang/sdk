@@ -33,6 +33,7 @@ main() {
   runReflectiveTests(BuildLibraryElementTaskTest);
   runReflectiveTests(BuildPublicNamespaceTaskTest);
   runReflectiveTests(BuildTypeProviderTaskTest);
+  runReflectiveTests(ComputeConstantDependenciesTaskTest);
   runReflectiveTests(ContainingLibrariesTaskTest);
   runReflectiveTests(DartErrorsTaskTest);
   runReflectiveTests(GatherUsedImportedElementsTaskTest);
@@ -1183,6 +1184,29 @@ class BuildTypeProviderTaskTest extends _AbstractDartTaskTest {
     expect(typeProvider.boolType, isNotNull);
     expect(typeProvider.intType, isNotNull);
     expect(typeProvider.futureType, isNotNull);
+  }
+}
+
+@reflectiveTest
+class ComputeConstantDependenciesTaskTest extends _AbstractDartTaskTest {
+  test_perform() {
+    Source source = newSource('/test.dart', '''
+const x = y;
+const y = 1;
+''');
+    // First compute the library element for the source.
+    _computeResult(source, LIBRARY_ELEMENT1);
+    LibraryElement libraryElement = outputs[LIBRARY_ELEMENT1];
+    // Find the elements for the constants x and y.
+    List<PropertyAccessorElement> accessors =
+        libraryElement.definingCompilationUnit.accessors;
+    Element x = accessors.firstWhere((PropertyAccessorElement accessor) =>
+        accessor.isGetter && accessor.name == 'x').variable;
+    Element y = accessors.firstWhere((PropertyAccessorElement accessor) =>
+        accessor.isGetter && accessor.name == 'y').variable;
+    // Now compute the dependencies for x, and check that it is the list [y].
+    _computeResult(x, CONSTANT_DEPENDENCIES);
+    expect(outputs[CONSTANT_DEPENDENCIES], [y]);
   }
 }
 

@@ -8052,7 +8052,9 @@ class ReferenceFinderTest extends EngineTestCase {
     expect(tails.first, same(tail));
   }
   ReferenceFinder _createReferenceFinder(Element source) =>
-      new ReferenceFinder(source, _referenceGraph);
+      new ReferenceFinder((Element dependency) {
+    _referenceGraph.addEdge(source, dependency);
+  });
   SuperConstructorInvocation _makeTailSuperConstructorInvocation(
       String name, bool isConst) {
     List<ConstructorInitializer> initializers =
