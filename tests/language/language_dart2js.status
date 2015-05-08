@@ -121,7 +121,6 @@ positional_parameters_type_test/01: MissingRuntimeError, OK
 positional_parameters_type_test/02: MissingRuntimeError, OK
 issue13474_test: RuntimeError, OK
 generic_field_mixin3_test: Crash # Issue 18651
-deferred_inheritance_constraints_test/redirecting_constructor: MissingRuntimeError # Issue 23399
 
 [ $compiler == dart2js && $unchecked && $minified ]
 f_bounded_quantification5_test: Fail, OK # Issue 12605
