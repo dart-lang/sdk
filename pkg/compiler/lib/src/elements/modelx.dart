@@ -283,6 +283,10 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   bool get isSynthesized => true;
 
+  bool get isCyclicRedirection => false;
+
+  PrefixElement get redirectionDeferredPrefix => null;
+
   AbstractFieldElement abstractField;
 
   unsupported() {
@@ -412,6 +416,10 @@ class ErroneousConstructorElementX extends ErroneousElementX
 
   set nestedClosures(_) {
     throw new UnsupportedError("nestedClosures=");
+  }
+
+  set redirectionDeferredPrefix(_) {
+    throw new UnsupportedError("redirectionDeferredPrefix=");
   }
 
   bool get hasNoBody => false;
