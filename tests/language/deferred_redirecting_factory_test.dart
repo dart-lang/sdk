@@ -40,9 +40,9 @@ test3() async {
 
 
 test() async {
-  await test1(); /// 01: ok
-  await test2(); /// 02: ok
-  await test3(); /// 03: ok
+  await test1();
+  await test2();
+  await test3();
 }
 
 void main() {
