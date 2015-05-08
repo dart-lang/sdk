@@ -391,3 +391,13 @@ suite('instanceOf', () => {
     assert.equal(intType, core.int);
   });
 });
+
+suite('primitives', function() {
+  'use strict';
+
+  test('fixed length list', () => {
+    let list = new core.List(10);
+    list[0] = 42;
+    assert.throws(() => list.add(42));
+  });
+});

@@ -967,7 +967,8 @@ var dart, _js_helper, _js_primitives;
   dart.JsSymbol = Symbol;
 
   function import_(value) {
-    if (!value) throw 'missing required module';
+    // TODO(jmesserly): throw once we're loading all of core libs.
+    if (!value && console) console.warn('missing required module');
     return value;
   }
   dart.import = import_;

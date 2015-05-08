@@ -85,7 +85,7 @@ class JSArray<E> implements List<E>, JSIndexable {
   }
 
   checkGrowable(reason) {
-    if (this is !JSExtendableArray) {
+    if (JS('bool', r'#.fixed$length', this)) {
       throw new UnsupportedError(reason);
     }
   }
