@@ -209,34 +209,6 @@ class B = Object with A;
     expect(outputs[RESOLVED_UNIT1], isNotNull);
   }
 
-  test_perform_useMemento() {
-    Source source = newSource('/test.dart', r'''
-class A {}
-class B {}
-class C {}
-''');
-    AnalysisTarget target = new LibrarySpecificUnit(source, source);
-    _computeResult(target, RESOLVED_UNIT1);
-    // update content
-    context.setContents(source, r'''
-class C {}
-class A {}
-class B {}
-''');
-    assertIsInvalid(target, RESOLVED_UNIT1);
-    // recompute
-    _computeResult(target, RESOLVED_UNIT1);
-    assertIsValid(target, RESOLVED_UNIT1);
-    // values are produced using memento
-    List<ClassElement> newClassElements = outputs[CLASS_ELEMENTS];
-    CompilationUnit newUnit = outputs[RESOLVED_UNIT1];
-    CompilationUnitElement newUnitElement = outputs[COMPILATION_UNIT_ELEMENT];
-    expect(
-        newClassElements.map((_) => _.name), unorderedEquals(['A', 'B', 'C']));
-    expect(newUnitElement, same(oldOutputs[COMPILATION_UNIT_ELEMENT]));
-    expect(newUnit.element, newUnitElement);
-  }
-
   void _performBuildTask(String content) {
     Source source = newSource('/test.dart', content);
     AnalysisTarget target = new LibrarySpecificUnit(source, source);
@@ -1778,25 +1750,6 @@ class A {''');
     expect(outputs[UNITS], hasLength(2));
   }
 
-  test_perform_useMemento() {
-    String content = r'''
-library lib;
-import 'lib2.dart';
-export 'lib3.dart';
-part 'part.dart';
-class A {''';
-    AnalysisTarget target = newSource('/test.dart', content);
-    _computeResult(target, PARSED_UNIT);
-    // update content
-    context.setContents(target, content);
-    assertIsInvalid(target, PARSED_UNIT);
-    // recompute
-    _computeResult(target, PARSED_UNIT);
-    assertIsValid(target, PARSED_UNIT);
-    // values from the memento are returned
-    assertSameResults(ParseDartTask.DESCRIPTOR.results);
-  }
-
   void _performParseTask(String content) {
     AnalysisTarget target = newSource('/test.dart', content);
     _computeResult(target, PARSED_UNIT);
@@ -2084,19 +2037,6 @@ class ScanDartTaskTest extends _AbstractDartTaskTest {
     expect(outputs[LINE_INFO], isNotNull);
     expect(outputs[SCAN_ERRORS], hasLength(0));
     expect(outputs[TOKEN_STREAM], isNotNull);
-  }
-
-  test_perform_useMemento() {
-    AnalysisTarget target = newSource('/test.dart', 'main() {}');
-    _computeResult(target, TOKEN_STREAM);
-    // update content
-    context.setContents(target, 'main() {}');
-    assertIsInvalid(target, TOKEN_STREAM);
-    // recompute
-    _computeResult(target, TOKEN_STREAM);
-    assertIsValid(target, TOKEN_STREAM);
-    // values from the memento are returned
-    assertSameResults(ScanDartTask.DESCRIPTOR.results);
   }
 
   void _performScanTask(String content) {

@@ -20,7 +20,6 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/general.dart';
-import 'package:analyzer/src/task/incremental_element_builder.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
@@ -575,17 +574,6 @@ class BuildClassConstructorsTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * The memento for [BuildCompilationUnitElementTask].
- */
-class BuildCompilationUnitElementMemento {
-  final List<ClassElement> classElements;
-  final CompilationUnit unit;
-  final CompilationUnitElement unitElement;
-  BuildCompilationUnitElementMemento(
-      this.classElements, this.unit, this.unitElement);
-}
-
-/**
  * A task that builds a compilation unit element for a single compilation unit.
  */
 class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
@@ -624,21 +612,6 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     Source source = getRequiredSource();
     CompilationUnit unit = getRequiredInput(PARSED_UNIT_INPUT_NAME);
     //
-    // Use memento.
-    //
-    if (inputMemento is BuildCompilationUnitElementMemento) {
-      BuildCompilationUnitElementMemento memento = inputMemento;
-      unit = AstCloner.clone(unit);
-      new IncrementalCompilationUnitElementBuilder(memento.unit, unit).build();
-      CompilationUnitElement element = unit.element;
-      outputs[CLASS_ELEMENTS] = element.types;
-      outputs[COMPILATION_UNIT_ELEMENT] = element;
-      outputs[RESOLVED_UNIT1] = unit;
-      outputMemento =
-          new BuildCompilationUnitElementMemento(element.types, unit, element);
-      return;
-    }
-    //
     // Process inputs.
     //
     unit = AstCloner.clone(unit);
@@ -650,8 +623,6 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     outputs[CLASS_ELEMENTS] = element.types;
     outputs[COMPILATION_UNIT_ELEMENT] = element;
     outputs[RESOLVED_UNIT1] = unit;
-    outputMemento =
-        new BuildCompilationUnitElementMemento(element.types, unit, element);
   }
 
   /**
@@ -2277,24 +2248,6 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * The memento for [ParseDartTask].
- */
-class ParseDartMemento {
-  final Token inputTokenStream;
-  final List<Source> explicitlyImportedLibraries;
-  final List<Source> exportedLibraries;
-  final List<Source> importedLibraries;
-  final List<Source> includedParts;
-  final List<AnalysisError> parseErrors;
-  final CompilationUnit parsedUnit;
-  final SourceKind sourceKind;
-  final List<Source> units;
-  ParseDartMemento(this.inputTokenStream, this.explicitlyImportedLibraries,
-      this.exportedLibraries, this.importedLibraries, this.includedParts,
-      this.parseErrors, this.parsedUnit, this.sourceKind, this.units);
-}
-
-/**
  * A task that parses the content of a Dart file, producing an AST structure.
  */
 class ParseDartTask extends SourceBasedAnalysisTask {
@@ -2339,23 +2292,6 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     Source source = getRequiredSource();
     LineInfo lineInfo = getRequiredInput(LINE_INFO_INPUT_NAME);
     Token tokenStream = getRequiredInput(TOKEN_STREAM_INPUT_NAME);
-
-    if (inputMemento is ParseDartMemento) {
-      ParseDartMemento memento = inputMemento;
-      if (identical(memento.inputTokenStream, tokenStream)) {
-        outputMemento = memento;
-        outputs[EXPLICITLY_IMPORTED_LIBRARIES] =
-            memento.explicitlyImportedLibraries;
-        outputs[EXPORTED_LIBRARIES] = memento.exportedLibraries;
-        outputs[IMPORTED_LIBRARIES] = memento.importedLibraries;
-        outputs[INCLUDED_PARTS] = memento.includedParts;
-        outputs[PARSE_ERRORS] = memento.parseErrors;
-        outputs[PARSED_UNIT] = memento.parsedUnit;
-        outputs[SOURCE_KIND] = memento.sourceKind;
-        outputs[UNITS] = memento.units;
-        return;
-      }
-    }
 
     RecordingErrorListener errorListener = new RecordingErrorListener();
     Parser parser = new Parser(source, errorListener);
@@ -2426,9 +2362,6 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     outputs[PARSED_UNIT] = unit;
     outputs[SOURCE_KIND] = sourceKind;
     outputs[UNITS] = unitSources;
-    outputMemento = new ParseDartMemento(tokenStream, explicitlyImportedSources,
-        exportedSources, importedSources, includedSources, parseErrors, unit,
-        sourceKind, unitSources);
   }
 
   /**
@@ -2805,17 +2738,6 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * The memento for [ScanDartTask].
- */
-class ScanDartMemento {
-  final String content;
-  final Token tokenStream;
-  final LineInfo lineInfo;
-  final List<AnalysisError> errors;
-  ScanDartMemento(this.content, this.tokenStream, this.lineInfo, this.errors);
-}
-
-/**
  * A task that scans the content of a file, producing a set of Dart tokens.
  */
 class ScanDartTask extends SourceBasedAnalysisTask {
@@ -2849,17 +2771,6 @@ class ScanDartTask extends SourceBasedAnalysisTask {
     Source source = getRequiredSource();
     String content = getRequiredInput(CONTENT_INPUT_NAME);
 
-    if (inputMemento is ScanDartMemento) {
-      ScanDartMemento memento = inputMemento;
-      if (memento.content == content) {
-        outputMemento = memento;
-        outputs[TOKEN_STREAM] = memento.tokenStream;
-        outputs[LINE_INFO] = memento.lineInfo;
-        outputs[SCAN_ERRORS] = memento.errors;
-        return;
-      }
-    }
-
     RecordingErrorListener errorListener = new RecordingErrorListener();
     Scanner scanner =
         new Scanner(source, new CharSequenceReader(content), errorListener);
@@ -2873,7 +2784,6 @@ class ScanDartTask extends SourceBasedAnalysisTask {
     outputs[TOKEN_STREAM] = tokenStream;
     outputs[LINE_INFO] = lineInfo;
     outputs[SCAN_ERRORS] = errors;
-    outputMemento = new ScanDartMemento(content, tokenStream, lineInfo, errors);
   }
 
   /**

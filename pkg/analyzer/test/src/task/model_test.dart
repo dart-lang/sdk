@@ -126,13 +126,10 @@ class TaskDescriptorImplTest extends EngineTestCase {
     AnalysisContext context = null;
     AnalysisTarget target = new TestSource();
     Map<String, dynamic> inputs = {};
-    String inputMemento = 'main() {}';
-    AnalysisTask createTask =
-        descriptor.createTask(context, target, inputs, inputMemento);
+    AnalysisTask createTask = descriptor.createTask(context, target, inputs);
     expect(createTask, isNotNull);
     expect(createTask.context, context);
     expect(createTask.inputs, inputs);
-    expect(createTask.inputMemento, inputMemento);
     expect(createTask.target, target);
   }
 }

@@ -23,11 +23,6 @@ class TestAnalysisTask extends AnalysisTask {
   CaughtException exception;
 
   /**
-   * The memento to associate with the result.
-   */
-  dynamic memento;
-
-  /**
    * The results whose values are to be provided as outputs from this task.
    */
   List<ResultDescriptor> results;
@@ -38,8 +33,7 @@ class TestAnalysisTask extends AnalysisTask {
   int value;
 
   TestAnalysisTask(AnalysisContext context, AnalysisTarget target,
-      {this.descriptor, this.exception, this.memento, this.results,
-      this.value: 1})
+      {this.descriptor, this.exception, this.results, this.value: 1})
       : super(context, target);
 
   @override
@@ -53,12 +47,10 @@ class TestAnalysisTask extends AnalysisTask {
       for (ResultDescriptor result in results) {
         outputs[result] = value++;
       }
-      outputMemento = memento;
     } else if (descriptor != null) {
       for (ResultDescriptor result in descriptor.results) {
         outputs[result] = value++;
       }
-      outputMemento = memento;
     }
   }
 }

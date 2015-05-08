@@ -103,23 +103,11 @@ abstract class AnalysisTask {
   Map<String, dynamic> inputs;
 
   /**
-   * The optional data that the task associated with [target] last time.
-   * This data may help to compute outputs more efficiently.
-   */
-  Object inputMemento;
-
-  /**
    * A table mapping result descriptors whose values are produced by this task
    * to the values that were produced.
    */
   Map<ResultDescriptor, dynamic> outputs =
       new HashMap<ResultDescriptor, dynamic>();
-
-  /**
-   * An optional data that the task wants to associate with [target].
-   * This data may help later to compute outputs more efficiently.
-   */
-  Object outputMemento;
 
   /**
    * The exception that was thrown while performing this task, or `null` if the
@@ -415,7 +403,7 @@ abstract class TaskDescriptor {
    * used to compute results based on the given [inputs].
    */
   AnalysisTask createTask(AnalysisContext context, AnalysisTarget target,
-      Map<String, dynamic> inputs, Object inputMemento);
+      Map<String, dynamic> inputs);
 }
 
 /**

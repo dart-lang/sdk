@@ -122,10 +122,9 @@ class TaskDescriptorImpl implements TaskDescriptor {
 
   @override
   AnalysisTask createTask(AnalysisContext context, AnalysisTarget target,
-      Map<String, dynamic> inputs, Object inputMemento) {
+      Map<String, dynamic> inputs) {
     AnalysisTask task = buildTask(context, target);
     task.inputs = inputs;
-    task.inputMemento = inputMemento;
     return task;
   }
 

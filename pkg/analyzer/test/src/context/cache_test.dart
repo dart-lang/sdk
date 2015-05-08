@@ -136,7 +136,7 @@ class CacheEntryTest extends EngineTestCase {
     CaughtException exception = new CaughtException(null, null);
     entry.setErrorState(exception, <ResultDescriptor>[result]);
     // set the same result to VALID
-    entry.setValue(result, 1, TargetedResult.EMPTY_LIST, null);
+    entry.setValue(result, 1, TargetedResult.EMPTY_LIST);
     // fix the exception state
     entry.fixExceptionState();
     expect(entry.exception, isNull);
@@ -149,13 +149,6 @@ class CacheEntryTest extends EngineTestCase {
     entry.fixExceptionState();
     expect(entry.getState(result), CacheState.INVALID);
     expect(entry.exception, isNull);
-  }
-
-  test_getMemento_noResult() {
-    AnalysisTarget target = new TestSource();
-    ResultDescriptor result = new ResultDescriptor('test', null);
-    CacheEntry entry = new CacheEntry(target);
-    expect(entry.getMemento(result), null);
   }
 
   test_getState() {
@@ -185,18 +178,18 @@ class CacheEntryTest extends EngineTestCase {
     CacheEntry entry = new CacheEntry(target);
     cache.put(entry);
     {
-      entry.setValue(descriptor1, 1, TargetedResult.EMPTY_LIST, null);
+      entry.setValue(descriptor1, 1, TargetedResult.EMPTY_LIST);
       expect(entry.getState(descriptor1), CacheState.VALID);
     }
     {
-      entry.setValue(descriptor2, 2, TargetedResult.EMPTY_LIST, null);
+      entry.setValue(descriptor2, 2, TargetedResult.EMPTY_LIST);
       expect(entry.getState(descriptor1), CacheState.VALID);
       expect(entry.getState(descriptor2), CacheState.VALID);
     }
     // get descriptor1, so that descriptor2 will be flushed
     entry.getValue(descriptor1);
     {
-      entry.setValue(descriptor3, 3, TargetedResult.EMPTY_LIST, null);
+      entry.setValue(descriptor3, 3, TargetedResult.EMPTY_LIST);
       expect(entry.getState(descriptor1), CacheState.VALID);
       expect(entry.getState(descriptor2), CacheState.FLUSHED);
       expect(entry.getState(descriptor3), CacheState.VALID);
@@ -222,7 +215,7 @@ class CacheEntryTest extends EngineTestCase {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
     CacheEntry entry = new CacheEntry(target);
-    entry.setValue(result, 'value', TargetedResult.EMPTY_LIST, null);
+    entry.setValue(result, 'value', TargetedResult.EMPTY_LIST);
     entry.invalidateAllInformation();
     expect(entry.getState(result), CacheState.INVALID);
     expect(entry.getValue(result), isNull);
@@ -235,9 +228,9 @@ class CacheEntryTest extends EngineTestCase {
     ResultDescriptor result3 = new ResultDescriptor('res3', 3);
     // prepare some good state
     CacheEntry entry = new CacheEntry(target);
-    entry.setValue(result1, 10, TargetedResult.EMPTY_LIST, null);
-    entry.setValue(result2, 20, TargetedResult.EMPTY_LIST, null);
-    entry.setValue(result3, 30, TargetedResult.EMPTY_LIST, null);
+    entry.setValue(result1, 10, TargetedResult.EMPTY_LIST);
+    entry.setValue(result2, 20, TargetedResult.EMPTY_LIST);
+    entry.setValue(result3, 30, TargetedResult.EMPTY_LIST);
     // set error state
     CaughtException exception = new CaughtException(null, null);
     entry.setErrorState(exception, <ResultDescriptor>[result1, result2]);
@@ -263,10 +256,10 @@ class CacheEntryTest extends EngineTestCase {
     ResultDescriptor result3 = new ResultDescriptor('result3', -3);
     ResultDescriptor result4 = new ResultDescriptor('result4', -4);
     // set results, all of them are VALID
-    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST, null);
-    entry2.setValue(result2, 222, [new TargetedResult(target1, result1)], null);
-    entry2.setValue(result3, 333, [new TargetedResult(target2, result2)], null);
-    entry2.setValue(result4, 444, [], null);
+    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry2.setValue(result2, 222, [new TargetedResult(target1, result1)]);
+    entry2.setValue(result3, 333, [new TargetedResult(target2, result2)]);
+    entry2.setValue(result4, 444, []);
     expect(entry1.getState(result1), CacheState.VALID);
     expect(entry2.getState(result2), CacheState.VALID);
     expect(entry2.getState(result3), CacheState.VALID);
@@ -322,7 +315,7 @@ class CacheEntryTest extends EngineTestCase {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
     CacheEntry entry = new CacheEntry(target);
-    entry.setValue(result, 42, TargetedResult.EMPTY_LIST, null);
+    entry.setValue(result, 42, TargetedResult.EMPTY_LIST);
     // an invalid state change
     expect(() {
       entry.setState(result, CacheState.ERROR);
@@ -337,7 +330,7 @@ class CacheEntryTest extends EngineTestCase {
     ResultDescriptor result = new ResultDescriptor('test', 1);
     CacheEntry entry = new CacheEntry(target);
     // set VALID
-    entry.setValue(result, 10, TargetedResult.EMPTY_LIST, null);
+    entry.setValue(result, 10, TargetedResult.EMPTY_LIST);
     expect(entry.getState(result), CacheState.VALID);
     expect(entry.getValue(result), 10);
     // set FLUSHED
@@ -351,7 +344,7 @@ class CacheEntryTest extends EngineTestCase {
     ResultDescriptor result = new ResultDescriptor('test', 1);
     CacheEntry entry = new CacheEntry(target);
     // set VALID
-    entry.setValue(result, 10, TargetedResult.EMPTY_LIST, null);
+    entry.setValue(result, 10, TargetedResult.EMPTY_LIST);
     expect(entry.getState(result), CacheState.VALID);
     expect(entry.getValue(result), 10);
     // set IN_PROCESS
@@ -365,15 +358,13 @@ class CacheEntryTest extends EngineTestCase {
     ResultDescriptor result = new ResultDescriptor('test', 1);
     CacheEntry entry = new CacheEntry(target);
     // set VALID
-    String memento = 'main() {}';
-    entry.setValue(result, 10, TargetedResult.EMPTY_LIST, memento);
+    entry.setValue(result, 10, TargetedResult.EMPTY_LIST);
     expect(entry.getState(result), CacheState.VALID);
     expect(entry.getValue(result), 10);
     // set INVALID
     entry.setState(result, CacheState.INVALID);
     expect(entry.getState(result), CacheState.INVALID);
     expect(entry.getValue(result), 1);
-    expect(entry.getMemento(result), memento);
   }
 
   test_setState_invalid_invalidateDependent() {
@@ -385,10 +376,10 @@ class CacheEntryTest extends EngineTestCase {
     ResultDescriptor result3 = new ResultDescriptor('result3', -3);
     ResultDescriptor result4 = new ResultDescriptor('result4', -4);
     // set results, all of them are VALID
-    entry.setValue(result1, 111, TargetedResult.EMPTY_LIST, null);
-    entry.setValue(result2, 222, [new TargetedResult(target, result1)], null);
-    entry.setValue(result3, 333, [new TargetedResult(target, result2)], null);
-    entry.setValue(result4, 444, [], null);
+    entry.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry.setValue(result2, 222, [new TargetedResult(target, result1)]);
+    entry.setValue(result3, 333, [new TargetedResult(target, result2)]);
+    entry.setValue(result4, 444, []);
     expect(entry.getState(result1), CacheState.VALID);
     expect(entry.getState(result2), CacheState.VALID);
     expect(entry.getState(result3), CacheState.VALID);
@@ -420,12 +411,10 @@ class CacheEntryTest extends EngineTestCase {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
     String value = 'value';
-    String memento = 'main() {}';
     CacheEntry entry = new CacheEntry(target);
-    entry.setValue(result, value, TargetedResult.EMPTY_LIST, memento);
+    entry.setValue(result, value, TargetedResult.EMPTY_LIST);
     expect(entry.getState(result), CacheState.VALID);
     expect(entry.getValue(result), value);
-    expect(entry.getMemento(result), memento);
   }
 
   test_setValue_flushResults() {
@@ -439,23 +428,20 @@ class CacheEntryTest extends EngineTestCase {
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry(target);
     cache.put(entry);
-    Object memento1 = 'aaa';
     {
-      entry.setValue(descriptor1, 1, TargetedResult.EMPTY_LIST, memento1);
+      entry.setValue(descriptor1, 1, TargetedResult.EMPTY_LIST);
       expect(entry.getState(descriptor1), CacheState.VALID);
-      expect(entry.getMemento(descriptor1), memento1);
     }
     {
-      entry.setValue(descriptor2, 2, TargetedResult.EMPTY_LIST, null);
+      entry.setValue(descriptor2, 2, TargetedResult.EMPTY_LIST);
       expect(entry.getState(descriptor1), CacheState.VALID);
       expect(entry.getState(descriptor2), CacheState.VALID);
     }
     {
-      entry.setValue(descriptor3, 3, TargetedResult.EMPTY_LIST, null);
+      entry.setValue(descriptor3, 3, TargetedResult.EMPTY_LIST);
       expect(entry.getState(descriptor1), CacheState.FLUSHED);
       expect(entry.getState(descriptor2), CacheState.VALID);
       expect(entry.getState(descriptor3), CacheState.VALID);
-      expect(entry.getMemento(descriptor1), isNull);
     }
   }
 
@@ -468,10 +454,10 @@ class CacheEntryTest extends EngineTestCase {
     ResultDescriptor result3 = new ResultDescriptor('result3', -3);
     ResultDescriptor result4 = new ResultDescriptor('result4', -4);
     // set results, all of them are VALID
-    entry.setValue(result1, 111, TargetedResult.EMPTY_LIST, null);
-    entry.setValue(result2, 222, [new TargetedResult(target, result1)], null);
-    entry.setValue(result3, 333, [new TargetedResult(target, result2)], null);
-    entry.setValue(result4, 444, [], null);
+    entry.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry.setValue(result2, 222, [new TargetedResult(target, result1)]);
+    entry.setValue(result3, 333, [new TargetedResult(target, result2)]);
+    entry.setValue(result4, 444, []);
     expect(entry.getState(result1), CacheState.VALID);
     expect(entry.getState(result2), CacheState.VALID);
     expect(entry.getState(result3), CacheState.VALID);
@@ -481,7 +467,7 @@ class CacheEntryTest extends EngineTestCase {
     expect(entry.getValue(result3), 333);
     expect(entry.getValue(result4), 444);
     // set result1, invalidates result2 and result3, result4 is intact
-    entry.setValue(result1, 1111, TargetedResult.EMPTY_LIST, null);
+    entry.setValue(result1, 1111, TargetedResult.EMPTY_LIST);
     expect(entry.getState(result1), CacheState.VALID);
     expect(entry.getState(result2), CacheState.INVALID);
     expect(entry.getState(result3), CacheState.INVALID);
@@ -503,9 +489,9 @@ class CacheEntryTest extends EngineTestCase {
     ResultDescriptor result2 = new ResultDescriptor('result2', -2);
     ResultDescriptor result3 = new ResultDescriptor('result3', -3);
     // set results, all of them are VALID
-    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST, null);
-    entry1.setValue(result2, 222, [new TargetedResult(target1, result1)], null);
-    entry2.setValue(result3, 333, [new TargetedResult(target1, result2)], null);
+    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry1.setValue(result2, 222, [new TargetedResult(target1, result1)]);
+    entry2.setValue(result3, 333, [new TargetedResult(target1, result2)]);
     expect(entry1.getState(result1), CacheState.VALID);
     expect(entry1.getState(result2), CacheState.VALID);
     expect(entry2.getState(result3), CacheState.VALID);
@@ -513,7 +499,7 @@ class CacheEntryTest extends EngineTestCase {
     expect(entry1.getValue(result2), 222);
     expect(entry2.getValue(result3), 333);
     // set result1, invalidates result2 and result3
-    entry1.setValue(result1, 1111, TargetedResult.EMPTY_LIST, null);
+    entry1.setValue(result1, 1111, TargetedResult.EMPTY_LIST);
     expect(entry1.getState(result1), CacheState.VALID);
     expect(entry1.getState(result2), CacheState.INVALID);
     expect(entry2.getState(result3), CacheState.INVALID);
@@ -532,7 +518,7 @@ class CacheEntryTest extends EngineTestCase {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
     CacheEntry entry = new CacheEntry(target);
-    entry.setValue(result, 42, TargetedResult.EMPTY_LIST, null);
+    entry.setValue(result, 42, TargetedResult.EMPTY_LIST);
     expect(entry.toString(), isNotNull);
   }
 }
@@ -746,11 +732,9 @@ class ResultDataTest extends EngineTestCase {
     ResultData data = new ResultData(result);
     data.state = CacheState.VALID;
     data.value = 123;
-    data.memento = 'abc';
     data.flush();
     expect(data.state, CacheState.FLUSHED);
     expect(data.value, -1);
-    expect(data.memento, isNull);
   }
 }
 
