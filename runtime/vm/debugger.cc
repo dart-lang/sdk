@@ -2275,7 +2275,7 @@ void Debugger::SignalBpReached() {
 }
 
 
-void Debugger::BreakHere() {
+void Debugger::BreakHere(const String& msg) {
   // We ignore this breakpoint when the VM is executing code invoked
   // by the debugger to evaluate variables values, or when we see a nested
   // breakpoint or exception event.
@@ -2287,6 +2287,8 @@ void Debugger::BreakHere() {
   ASSERT(stack_trace->Length() > 0);
   ASSERT(stack_trace_ == NULL);
   stack_trace_ = stack_trace;
+
+  // TODO(johnmccutchan): Send |msg| to Observatory.
 
   // We are in the native call to Debugger_breakHere or Debugger_breakHereIf,
   // the developer gets a better experience by not seeing this call. To

@@ -25,7 +25,7 @@ class ObjectStore {
     kCore,
     kCollection,
     kConvert,
-    kDebugger,
+    kDeveloper,
     kInternal,
     kIsolate,
     kMath,
@@ -258,7 +258,7 @@ class ObjectStore {
   RawLibrary* core_library() const { return core_library_; }
   RawLibrary* collection_library() const { return collection_library_; }
   RawLibrary* convert_library() const { return convert_library_; }
-  RawLibrary* debugger_library() const { return debugger_library_; }
+  RawLibrary* developer_library() const { return developer_library_; }
   RawLibrary* internal_library() const { return internal_library_; }
   RawLibrary* isolate_library() const { return isolate_library_; }
   RawLibrary* math_library() const { return math_library_; }
@@ -280,8 +280,8 @@ class ObjectStore {
       case kConvert:
         convert_library_ = value.raw();
         break;
-      case kDebugger:
-        debugger_library_ = value.raw();
+      case kDeveloper:
+        developer_library_ = value.raw();
         break;
       case kInternal:
         internal_library_ = value.raw();
@@ -489,7 +489,7 @@ class ObjectStore {
   RawLibrary* core_library_;
   RawLibrary* collection_library_;
   RawLibrary* convert_library_;
-  RawLibrary* debugger_library_;
+  RawLibrary* developer_library_;
   RawLibrary* internal_library_;
   RawLibrary* isolate_library_;
   RawLibrary* math_library_;

@@ -9837,8 +9837,8 @@ RawLibrary* Library::CollectionLibrary() {
 }
 
 
-RawLibrary* Library::DebuggerLibrary() {
-  return Isolate::Current()->object_store()->debugger_library();
+RawLibrary* Library::DeveloperLibrary() {
+  return Isolate::Current()->object_store()->developer_library();
 }
 
 

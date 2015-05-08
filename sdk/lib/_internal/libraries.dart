@@ -54,10 +54,10 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       maturity: Maturity.STABLE,
       dart2jsPatchPath: "_internal/compiler/js_lib/core_patch.dart"),
 
-  "debugger": const LibraryInfo(
-      "debugger/debugger.dart",
+  "developer": const LibraryInfo(
+      "developer/developer.dart",
       maturity: Maturity.UNSTABLE,
-      dart2jsPatchPath: "_internal/compiler/js_lib/debugger_patch.dart"),
+      dart2jsPatchPath: "_internal/compiler/js_lib/developer_patch.dart"),
 
   "html": const LibraryInfo(
       "html/dartium/html_dartium.dart",

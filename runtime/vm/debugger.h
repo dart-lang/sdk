@@ -442,7 +442,7 @@ class Debugger {
   void SignalBpReached();
   void DebuggerStepCallback();
 
-  void BreakHere();
+  void BreakHere(const String& msg);
 
   void SignalExceptionThrown(const Instance& exc);
   void SignalIsolateEvent(DebuggerEvent::EventType type);

@@ -3046,7 +3046,7 @@ class Library : public Object {
   static RawLibrary* ConvertLibrary();
   static RawLibrary* CoreLibrary();
   static RawLibrary* CollectionLibrary();
-  static RawLibrary* DebuggerLibrary();
+  static RawLibrary* DeveloperLibrary();
   static RawLibrary* InternalLibrary();
   static RawLibrary* IsolateLibrary();
   static RawLibrary* MathLibrary();

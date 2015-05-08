@@ -63,8 +63,6 @@ namespace dart {
   V(Bigint_getUsed, 1)                                                         \
   V(Bigint_getDigits, 1)                                                       \
   V(Bigint_allocate, 4)                                                        \
-  V(Debugger_breakHere, 0)                                                     \
-  V(Debugger_breakHereIf, 1)                                                   \
   V(Double_getIsNegative, 1)                                                   \
   V(Double_getIsInfinite, 1)                                                   \
   V(Double_getIsNaN, 1)                                                        \
@@ -89,6 +87,7 @@ namespace dart {
   V(Double_toStringAsFixed, 2)                                                 \
   V(Double_toStringAsExponential, 2)                                           \
   V(Double_toStringAsPrecision, 2)                                             \
+  V(Developer_debugger, 2)                                                     \
   V(JSSyntaxRegExp_factory, 4)                                                 \
   V(JSSyntaxRegExp_getPattern, 1)                                              \
   V(JSSyntaxRegExp_getIsMultiLine, 1)                                          \

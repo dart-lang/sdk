@@ -14,29 +14,19 @@
 
 namespace dart {
 
-// dart:debugger.
+// Native implementations for the dart:developer library.
 
-DEFINE_NATIVE_ENTRY(Debugger_breakHere, 0) {
+DEFINE_NATIVE_ENTRY(Developer_debugger, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, when, arguments->NativeArgAt(0));
+  GET_NATIVE_ARGUMENT(String, msg, arguments->NativeArgAt(1));
   Debugger* debugger = isolate->debugger();
   if (!debugger) {
-    return Object::null();
+    return when.raw();
   }
-  debugger->BreakHere();
-  return Object::null();
+  if (when.value()) {
+    debugger->BreakHere(msg);
+  }
+  return when.raw();
 }
-
-
-DEFINE_NATIVE_ENTRY(Debugger_breakHereIf, 1) {
-  Debugger* debugger = isolate->debugger();
-  if (!debugger) {
-    return Object::null();
-  }
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, expr, arguments->NativeArgAt(0));
-  if (expr.value()) {
-    debugger->BreakHere();
-  }
-  return Object::null();
-}
-
 
 }  // namespace dart

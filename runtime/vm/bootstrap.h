@@ -24,7 +24,7 @@ class Bootstrap : public AllStatic {
   static const char* core_source_paths_[];
   static const char* collection_source_paths_[];
   static const char* convert_source_paths_[];
-  static const char* debugger_source_paths_[];
+  static const char* developer_source_paths_[];
   static const char* _internal_source_paths_[];
   static const char* isolate_source_paths_[];
   static const char* json_source_paths_[];
@@ -39,7 +39,7 @@ class Bootstrap : public AllStatic {
   static const char* core_patch_paths_[];
   static const char* collection_patch_paths_[];
   static const char* convert_patch_paths_[];
-  static const char* debugger_patch_paths_[];
+  static const char* developer_patch_paths_[];
   static const char* _internal_patch_paths_[];
   static const char* isolate_patch_paths_[];
   static const char* math_patch_paths_[];

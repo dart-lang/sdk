@@ -8,7 +8,7 @@ import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 import 'dart:async';
 import 'dart:isolate' as isolate;
-import 'dart:debugger' as debugger;
+import 'dart:developer' as developer;
 
 int counter = 0;
 const stoppedAtLine = 23;
@@ -19,7 +19,7 @@ void msgHandler(_) { }
 
 void periodicTask(_) {
   port.sendPort.send(34);
-  debugger.Debugger.breakHere(); // We will be at a breakpoint at the next line.
+  developer.debugger(msg: "foo", when: true); // We will be at the next line.
   counter++;
   if (counter % 300 == 0) {
     print('counter = $counter');

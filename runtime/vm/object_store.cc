@@ -62,7 +62,7 @@ ObjectStore::ObjectStore()
     core_library_(Library::null()),
     collection_library_(Library::null()),
     convert_library_(Library::null()),
-    debugger_library_(Library::null()),
+    developer_library_(Library::null()),
     internal_library_(Library::null()),
     isolate_library_(Library::null()),
     math_library_(Library::null()),

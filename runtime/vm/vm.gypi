@@ -15,8 +15,8 @@
     'collection_patch_cc_file': '<(gen_source_dir)/collection_patch_gen.cc',
     'convert_cc_file': '<(gen_source_dir)/convert_gen.cc',
     'convert_patch_cc_file': '<(gen_source_dir)/convert_patch_gen.cc',
-    'debugger_cc_file': '<(gen_source_dir)/debugger_gen.cc',
-    'debugger_patch_cc_file': '<(gen_source_dir)/debugger_patch_gen.cc',
+    'developer_cc_file': '<(gen_source_dir)/developer_gen.cc',
+    'developer_patch_cc_file': '<(gen_source_dir)/developer_patch_gen.cc',
     'internal_cc_file': '<(gen_source_dir)/internal_gen.cc',
     'internal_patch_cc_file': '<(gen_source_dir)/internal_patch_gen.cc',
     'isolate_cc_file': '<(gen_source_dir)/isolate_gen.cc',
@@ -115,8 +115,8 @@
         'generate_collection_patch_cc_file#host',
         'generate_convert_cc_file#host',
         'generate_convert_patch_cc_file#host',
-        'generate_debugger_cc_file#host',
-        'generate_debugger_patch_cc_file#host',
+        'generate_developer_cc_file#host',
+        'generate_developer_patch_cc_file#host',
         'generate_internal_cc_file#host',
         'generate_internal_patch_cc_file#host',
         'generate_isolate_cc_file#host',
@@ -134,7 +134,7 @@
         '../lib/async_sources.gypi',
         '../lib/collection_sources.gypi',
         '../lib/core_sources.gypi',
-        '../lib/debugger_sources.gypi',
+        '../lib/developer_sources.gypi',
         '../lib/internal_sources.gypi',
         '../lib/isolate_sources.gypi',
         '../lib/math_sources.gypi',
@@ -153,8 +153,8 @@
         '<(collection_patch_cc_file)',
         '<(convert_cc_file)',
         '<(convert_patch_cc_file)',
-        '<(debugger_cc_file)',
-        '<(debugger_patch_cc_file)',
+        '<(developer_cc_file)',
+        '<(developer_patch_cc_file)',
         '<(internal_cc_file)',
         '<(internal_patch_cc_file)',
         '<(isolate_cc_file)',
@@ -180,7 +180,7 @@
         '../lib/async_sources.gypi',
         '../lib/collection_sources.gypi',
         '../lib/core_sources.gypi',
-        '../lib/debugger_sources.gypi',
+        '../lib/developer_sources.gypi',
         '../lib/internal_sources.gypi',
         '../lib/isolate_sources.gypi',
         '../lib/math_sources.gypi',
@@ -995,12 +995,12 @@
       ]
     },
     {
-      'target_name': 'generate_debugger_cc_file',
+      'target_name': 'generate_developer_cc_file',
       'type': 'none',
       'toolsets':['host'],
       'includes': [
         # Load the shared library sources.
-        '../../sdk/lib/debugger/debugger_sources.gypi',
+        '../../sdk/lib/developer/developer_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
@@ -1011,36 +1011,36 @@
       ],
       'actions': [
         {
-          'action_name': 'generate_debugger_cc',
+          'action_name': 'generate_developer_cc',
           'inputs': [
             '../tools/gen_library_src_paths.py',
             '<(libgen_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
-            '<(debugger_cc_file)',
+            '<(developer_cc_file)',
           ],
           'action': [
             'python',
             'tools/gen_library_src_paths.py',
-            '--output', '<(debugger_cc_file)',
+            '--output', '<(developer_cc_file)',
             '--input_cc', '<(libgen_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::debugger_source_paths_',
-            '--library_name', 'dart:debugger',
+            '--var_name', 'dart::Bootstrap::developer_source_paths_',
+            '--library_name', 'dart:developer',
             '<@(_sources)',
           ],
-          'message': 'Generating ''<(debugger_cc_file)'' file.'
+          'message': 'Generating ''<(developer_cc_file)'' file.'
         },
       ]
     },
     {
-      'target_name': 'generate_debugger_patch_cc_file',
+      'target_name': 'generate_developer_patch_cc_file',
       'type': 'none',
       'toolsets':['host'],
       'includes': [
         # Load the runtime implementation sources.
-        '../lib/debugger_sources.gypi',
+        '../lib/developer_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
@@ -1051,26 +1051,26 @@
       ],
       'actions': [
         {
-          'action_name': 'generate_debugger_patch_cc',
+          'action_name': 'generate_developer_patch_cc',
           'inputs': [
             '../tools/gen_library_src_paths.py',
             '<(libgen_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
-            '<(debugger_patch_cc_file)',
+            '<(developer_patch_cc_file)',
           ],
           'action': [
             'python',
             'tools/gen_library_src_paths.py',
-            '--output', '<(debugger_patch_cc_file)',
+            '--output', '<(developer_patch_cc_file)',
             '--input_cc', '<(libgen_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::debugger_patch_paths_',
-            '--library_name', 'dart:debugger',
+            '--var_name', 'dart::Bootstrap::developer_patch_paths_',
+            '--library_name', 'dart:developer',
             '<@(_sources)',
           ],
-          'message': 'Generating ''<(debugger_patch_cc_file)'' file.'
+          'message': 'Generating ''<(developer_patch_cc_file)'' file.'
         },
       ]
     },
