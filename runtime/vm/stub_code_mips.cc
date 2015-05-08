@@ -26,6 +26,7 @@ DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
 DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(bool, support_debugger);
 
 // Input parameters:
 //   RA : return address.
@@ -1454,12 +1455,14 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 #endif  // DEBUG
 
 
-  __ Comment("Check single stepping");
   Label stepping, done_stepping;
-  __ LoadIsolate(T0);
-  __ lbu(T0, Address(T0, Isolate::single_step_offset()));
-  __ BranchNotEqual(T0, Immediate(0), &stepping);
-  __ Bind(&done_stepping);
+  if (FLAG_support_debugger) {
+    __ Comment("Check single stepping");
+    __ LoadIsolate(T0);
+    __ lbu(T0, Address(T0, Isolate::single_step_offset()));
+    __ BranchNotEqual(T0, Immediate(0), &stepping);
+    __ Bind(&done_stepping);
+  }
 
   __ Comment("Range feedback collection");
   Label not_smi_or_overflow;
@@ -1643,17 +1646,19 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 
   // Call single step callback in debugger.
-  __ Bind(&stepping);
-  __ EnterStubFrame();
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
-  __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ lw(RA, Address(SP, 0 * kWordSize));
-  __ lw(S5, Address(SP, 1 * kWordSize));
-  __ addiu(SP, SP, Immediate(2 * kWordSize));
-  __ LeaveStubFrame();
-  __ b(&done_stepping);
+  if (FLAG_support_debugger) {
+    __ Bind(&stepping);
+    __ EnterStubFrame();
+    __ addiu(SP, SP, Immediate(-2 * kWordSize));
+    __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
+    __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ lw(RA, Address(SP, 0 * kWordSize));
+    __ lw(S5, Address(SP, 1 * kWordSize));
+    __ addiu(SP, SP, Immediate(2 * kWordSize));
+    __ LeaveStubFrame();
+    __ b(&done_stepping);
+  }
 }
 
 
@@ -1783,10 +1788,12 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(T0);
-  __ lbu(T0, Address(T0, Isolate::single_step_offset()));
-  __ BranchNotEqual(T0, Immediate(0), &stepping);
-  __ Bind(&done_stepping);
+  if (FLAG_support_debugger) {
+    __ LoadIsolate(T0);
+    __ lbu(T0, Address(T0, Isolate::single_step_offset()));
+    __ BranchNotEqual(T0, Immediate(0), &stepping);
+    __ Bind(&done_stepping);
+  }
 
   // S5: IC data object (preserved).
   __ lw(T0, FieldAddress(S5, ICData::ic_data_offset()));
@@ -1818,17 +1825,19 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ jr(T4);
 
   // Call single step callback in debugger.
-  __ Bind(&stepping);
-  __ EnterStubFrame();
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
-  __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ lw(RA, Address(SP, 0 * kWordSize));
-  __ lw(S5, Address(SP, 1 * kWordSize));
-  __ addiu(SP, SP, Immediate(2 * kWordSize));
-  __ LeaveStubFrame();
-  __ b(&done_stepping);
+  if (FLAG_support_debugger) {
+    __ Bind(&stepping);
+    __ EnterStubFrame();
+    __ addiu(SP, SP, Immediate(-2 * kWordSize));
+    __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
+    __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ lw(RA, Address(SP, 0 * kWordSize));
+    __ lw(S5, Address(SP, 1 * kWordSize));
+    __ addiu(SP, SP, Immediate(2 * kWordSize));
+    __ LeaveStubFrame();
+    __ b(&done_stepping);
+  }
 }
 
 
@@ -2221,10 +2230,12 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(T0);
-  __ lbu(T0, Address(T0, Isolate::single_step_offset()));
-  __ BranchNotEqual(T0, Immediate(0), &stepping);
-  __ Bind(&done_stepping);
+  if (FLAG_support_debugger) {
+    __ LoadIsolate(T0);
+    __ lbu(T0, Address(T0, Isolate::single_step_offset()));
+    __ BranchNotEqual(T0, Immediate(0), &stepping);
+    __ Bind(&done_stepping);
+  }
 
   const Register temp1 = T2;
   const Register temp2 = T3;
@@ -2236,15 +2247,17 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   __ Ret();
 
   // Call single step callback in debugger.
-  __ Bind(&stepping);
-  __ EnterStubFrame();
-  __ addiu(SP, SP, Immediate(-1 * kWordSize));
-  __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ lw(RA, Address(SP, 0 * kWordSize));
-  __ addiu(SP, SP, Immediate(1 * kWordSize));
-  __ LeaveStubFrame();
-  __ b(&done_stepping);
+  if (FLAG_support_debugger) {
+    __ Bind(&stepping);
+    __ EnterStubFrame();
+    __ addiu(SP, SP, Immediate(-1 * kWordSize));
+    __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ lw(RA, Address(SP, 0 * kWordSize));
+    __ addiu(SP, SP, Immediate(1 * kWordSize));
+    __ LeaveStubFrame();
+    __ b(&done_stepping);
+  }
 }
 
 

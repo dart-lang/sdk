@@ -35,6 +35,7 @@ DEFINE_FLAG(bool, eliminate_type_checks, true,
             "Eliminate type checks when allowed by static type analysis.");
 DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
+DEFINE_FLAG(bool, support_debugger, true, "Emit code needed for debugging");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
 
@@ -1042,7 +1043,8 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   // No debugger check is done in native functions or for return
   // statements for which there is no associated source position.
   const Function& function = owner()->function();
-  if ((node->token_pos() != Scanner::kNoSourcePos) && !function.is_native()) {
+  if (FLAG_support_debugger &&
+      (node->token_pos() != Scanner::kNoSourcePos) && !function.is_native()) {
     AddInstruction(new(Z) DebugStepCheckInstr(node->token_pos(),
                                               RawPcDescriptors::kRuntimeCall));
   }
@@ -3428,14 +3430,16 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
   // a safe point for the debugger to stop, add an explicit stub
   // call. Exception: don't do this when assigning to or from internal
   // variables, or for generated code that has no source position.
-  if ((node->value()->IsLiteralNode() ||
-      (node->value()->IsLoadLocalNode() &&
-          !node->value()->AsLoadLocalNode()->local().IsInternal()) ||
-      node->value()->IsClosureNode()) &&
-      !node->local().IsInternal() &&
-      (node->token_pos() != Scanner::kNoSourcePos)) {
-    AddInstruction(new(Z) DebugStepCheckInstr(
-        node->token_pos(), RawPcDescriptors::kRuntimeCall));
+  if (FLAG_support_debugger) {
+    if ((node->value()->IsLiteralNode() ||
+        (node->value()->IsLoadLocalNode() &&
+            !node->value()->AsLoadLocalNode()->local().IsInternal()) ||
+        node->value()->IsClosureNode()) &&
+        !node->local().IsInternal() &&
+        (node->token_pos() != Scanner::kNoSourcePos)) {
+      AddInstruction(new(Z) DebugStepCheckInstr(
+          node->token_pos(), RawPcDescriptors::kRuntimeCall));
+    }
   }
 
   ValueGraphVisitor for_value(owner());
@@ -4239,11 +4243,13 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
 
 
 void EffectGraphVisitor::BuildThrowNode(ThrowNode* node) {
-  if (node->exception()->IsLiteralNode() ||
-      node->exception()->IsLoadLocalNode() ||
-      node->exception()->IsClosureNode()) {
-    AddInstruction(new(Z) DebugStepCheckInstr(
-        node->token_pos(), RawPcDescriptors::kRuntimeCall));
+  if (FLAG_support_debugger) {
+    if (node->exception()->IsLiteralNode() ||
+        node->exception()->IsLoadLocalNode() ||
+        node->exception()->IsClosureNode()) {
+      AddInstruction(new(Z) DebugStepCheckInstr(
+          node->token_pos(), RawPcDescriptors::kRuntimeCall));
+    }
   }
   ValueGraphVisitor for_exception(owner());
   node->exception()->Visit(&for_exception);
