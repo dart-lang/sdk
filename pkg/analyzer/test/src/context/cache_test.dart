@@ -20,7 +20,6 @@ import 'package:analyzer/task/model.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../generated/engine_test.dart';
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
 
@@ -40,27 +39,35 @@ AnalysisCache createCache({AnalysisContext context,
   return new AnalysisCache(<CachePartition>[partition]);
 }
 
+class AbstractCacheTest {
+  InternalAnalysisContext context;
+  AnalysisCache cache;
+
+  void setUp() {
+    context = new _InternalAnalysisContextMock();
+    when(context.priorityTargets).thenReturn([]);
+    cache = createCache(context: context);
+    when(context.analysisCache).thenReturn(cache);
+  }
+}
+
 @reflectiveTest
-class AnalysisCacheTest extends EngineTestCase {
+class AnalysisCacheTest extends AbstractCacheTest {
   void test_creation() {
-    expect(createCache(), isNotNull);
+    expect(cache, isNotNull);
   }
 
   void test_get() {
-    AnalysisCache cache = createCache();
     AnalysisTarget target = new TestSource();
     expect(cache.get(target), isNull);
   }
 
   void test_getContextFor() {
-    AnalysisContext context = new TestAnalysisContext();
-    AnalysisCache cache = createCache(context: context);
     AnalysisTarget target = new TestSource();
     expect(cache.getContextFor(target), context);
   }
 
   void test_iterator() {
-    AnalysisCache cache = createCache();
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry(target);
     cache.put(entry);
@@ -72,7 +79,6 @@ class AnalysisCacheTest extends EngineTestCase {
   }
 
   void test_put() {
-    AnalysisCache cache = createCache();
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry(target);
     expect(cache.get(target), isNull);
@@ -81,13 +87,37 @@ class AnalysisCacheTest extends EngineTestCase {
   }
 
   void test_remove() {
-    AnalysisCache cache = createCache();
-    AnalysisTarget target = new TestSource();
-    cache.remove(target);
+    AnalysisTarget target1 = new TestSource('/a.dart');
+    AnalysisTarget target2 = new TestSource('/b.dart');
+    AnalysisTarget target3 = new TestSource('/c.dart');
+    CacheEntry entry1 = new CacheEntry(target1);
+    CacheEntry entry2 = new CacheEntry(target2);
+    CacheEntry entry3 = new CacheEntry(target3);
+    cache.put(entry1);
+    cache.put(entry2);
+    cache.put(entry3);
+    ResultDescriptor result1 = new ResultDescriptor('result1', -1);
+    ResultDescriptor result2 = new ResultDescriptor('result2', -2);
+    ResultDescriptor result3 = new ResultDescriptor('result3', -3);
+    // set results, all of them are VALID
+    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry2.setValue(result2, 222, [new TargetedResult(target1, result1)]);
+    entry3.setValue(result3, 333, []);
+    expect(entry1.getState(result1), CacheState.VALID);
+    expect(entry2.getState(result2), CacheState.VALID);
+    expect(entry3.getState(result3), CacheState.VALID);
+    expect(entry1.getValue(result1), 111);
+    expect(entry2.getValue(result2), 222);
+    expect(entry3.getValue(result3), 333);
+    // remove entry1, invalidate result2 and remove empty entry2
+    cache.remove(target1);
+    expect(cache.get(target1), isNull);
+    expect(cache.get(target2), isNull);
+    expect(cache.get(target3), entry3);
+    expect(entry3.getState(result3), CacheState.VALID);
   }
 
   void test_size() {
-    AnalysisCache cache = createCache();
     int size = 4;
     for (int i = 0; i < size; i++) {
       AnalysisTarget target = new TestSource("/test$i.dart");
@@ -98,17 +128,7 @@ class AnalysisCacheTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class CacheEntryTest extends EngineTestCase {
-  InternalAnalysisContext context;
-  AnalysisCache cache;
-
-  void setUp() {
-    context = new _InternalAnalysisContextMock();
-    when(context.priorityTargets).thenReturn([]);
-    cache = createCache(context: context);
-    when(context.analysisCache).thenReturn(cache);
-  }
-
+class CacheEntryTest extends AbstractCacheTest {
   test_explicitlyAdded() {
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry(target);

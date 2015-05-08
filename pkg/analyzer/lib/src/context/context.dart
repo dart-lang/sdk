@@ -1632,35 +1632,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * In response to a change to at least one of the compilation units in the
-   * library defined by the given [librarySource], invalidate any results that
-   * are dependent on the result of resolving that library.
-   *
-   * <b>Note:</b> Any cache entries that were accessed before this method was
-   * invoked must be re-accessed after this method returns.
-   */
-  void _invalidateLibraryResolution(Source librarySource) {
-    // TODO(brianwilkerson) Figure out whether we still need this.
-    // TODO(brianwilkerson) This could be optimized. There's no need to flush
-    // all of these entries if the public namespace hasn't changed, which will
-    // be a fairly common case. The question is whether we can afford the time
-    // to compute the namespace to look for differences.
-//    DartEntry libraryEntry = _getReadableDartEntry(librarySource);
-//    if (libraryEntry != null) {
-//      List<Source> includedParts =
-//          libraryEntry.getValue(DartEntry.INCLUDED_PARTS);
-//      libraryEntry.invalidateAllResolutionInformation(false);
-//      _workManager.add(librarySource, SourcePriority.LIBRARY);
-//      for (Source partSource in includedParts) {
-//        SourceEntry partEntry = _cache.get(partSource);
-//        if (partEntry is DartEntry) {
-//          partEntry.invalidateAllResolutionInformation(false);
-//        }
-//      }
-//    }
-  }
-
-  /**
    * Log the given debugging [message].
    */
   void _logInformation(String message) {
@@ -1812,20 +1783,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * Record that the given [source] has been removed.
    */
   void _sourceRemoved(Source source) {
-    List<Source> containingLibraries = getLibrariesContaining(source);
-    if (containingLibraries != null && containingLibraries.isNotEmpty) {
-      HashSet<Source> libraries = new HashSet<Source>();
-      for (Source librarySource in containingLibraries) {
-        libraries.add(librarySource);
-        for (Source dependentLibrary
-            in getLibrariesDependingOn(librarySource)) {
-          libraries.add(dependentLibrary);
-        }
-      }
-      for (Source librarySource in libraries) {
-        _invalidateLibraryResolution(librarySource);
-      }
-    }
     _cache.remove(source);
     _removeFromPriorityOrder(source);
   }

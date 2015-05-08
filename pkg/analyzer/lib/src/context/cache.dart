@@ -434,6 +434,16 @@ class CacheEntry {
   }
 
   /**
+   * Invalidates all the results of this entry, with propagation.
+   */
+  void _invalidateAll() {
+    List<ResultDescriptor> results = _resultMap.keys.toList();
+    for (ResultDescriptor result in results) {
+      _invalidate(result, true);
+    }
+  }
+
+  /**
    * Set the [dependedOn] on which this result depends.
    */
   void _setDependedOnResults(ResultData thisData, TargetedResult thisResult,
@@ -716,7 +726,10 @@ abstract class CachePartition {
     for (CacheFlushManager flushManager in _flushManagerMap.values) {
       flushManager.targetRemoved(target);
     }
-    _targetMap.remove(target);
+    CacheEntry entry = _targetMap.remove(target);
+    if (entry != null) {
+      entry._invalidateAll();
+    }
   }
 
   /**
