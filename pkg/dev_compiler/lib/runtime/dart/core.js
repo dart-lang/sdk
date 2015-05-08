@@ -143,17 +143,17 @@ var convert = dart.lazyImport(convert);
       let match = re.firstMatch(formattedString);
       if (match != null) {
         // Function parseIntOrZero: (String) → int
-        function parseIntOrZero(matched) {
+        let parseIntOrZero = matched => {
           if (matched == null)
             return 0;
           return int.parse(matched);
-        }
+        };
         // Function parseDoubleOrZero: (String) → double
-        function parseDoubleOrZero(matched) {
+        let parseDoubleOrZero = matched => {
           if (matched == null)
             return 0.0;
           return double.parse(matched);
-        }
+        };
         let years = int.parse(match.get(1));
         let month = int.parse(match.get(2));
         let day = int.parse(match.get(3));
@@ -487,7 +487,7 @@ var convert = dart.lazyImport(convert);
     }
     toString() {
       // Function sixDigits: (int) → String
-      function sixDigits(n) {
+      let sixDigits = n => {
         if (dart.notNull(n) >= 100000)
           return `${n}`;
         if (dart.notNull(n) >= 10000)
@@ -499,13 +499,13 @@ var convert = dart.lazyImport(convert);
         if (dart.notNull(n) >= 10)
           return `0000${n}`;
         return `00000${n}`;
-      }
+      };
       // Function twoDigits: (int) → String
-      function twoDigits(n) {
+      let twoDigits = n => {
         if (dart.notNull(n) >= 10)
           return `${n}`;
         return `0${n}`;
-      }
+      };
       if (dart.notNull(this.inMicroseconds) < 0) {
         return `-${this['unary-']()}`;
       }
@@ -2094,9 +2094,9 @@ var convert = dart.lazyImport(convert);
     }
     static parse(uri) {
       // Function isRegName: (int) → bool
-      function isRegName(ch) {
+      let isRegName = ch => {
         return dart.notNull(ch) < 128 && dart.notNull(!dart.equals(dart.dsend(Uri._regNameTable[$get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
-      }
+      };
       let EOI = -1;
       let scheme = "";
       let userinfo = "";
@@ -2109,7 +2109,7 @@ var convert = dart.lazyImport(convert);
       let pathStart = 0;
       let char = EOI;
       // Function parseAuth: () → void
-      function parseAuth() {
+      let parseAuth = () => {
         if (index == uri.length) {
           char = EOI;
           return;
@@ -2167,7 +2167,7 @@ var convert = dart.lazyImport(convert);
         if (dart.notNull(index) < dart.notNull(uri.length)) {
           char = uri.codeUnitAt(index);
         }
-      }
+      };
       let NOT_IN_PATH = 0;
       let IN_PATH = 1;
       let ALLOW_AUTH = 2;
@@ -3055,9 +3055,9 @@ var convert = dart.lazyImport(convert);
     }
     get hashCode() {
       // Function combine: (dynamic, dynamic) → int
-      function combine(part, current) {
+      let combine = (part, current) => {
         return dart.as(dart.dsend(dart.dsend(dart.dsend(current, '*', 31), '+', dart.hashCode(part)), '&', 1073741823), int);
-      }
+      };
       return combine(this.scheme, combine(this.userInfo, combine(this.host, combine(this.port, combine(this.path, combine(this.query, combine(this.fragment, 1)))))));
     }
     static _addIfNonEmpty(sb, test, first, second) {
@@ -3104,9 +3104,9 @@ var convert = dart.lazyImport(convert);
     }
     static parseIPv4Address(host) {
       // Function error: (String) → void
-      function error(msg) {
+      let error = msg => {
         throw new FormatException(`Illegal IPv4 address, ${msg}`);
-      }
+      };
       let bytes = host.split('.');
       if (bytes[$length] != 4) {
         error('IPv4 address should contain exactly 4 parts');
@@ -3127,13 +3127,13 @@ var convert = dart.lazyImport(convert);
       if (end == null)
         end = host.length;
       // Function error: (String, [dynamic]) → void
-      function error(msg, position) {
+      let error = (msg, position) => {
         if (position === void 0)
           position = null;
         throw new FormatException(`Illegal IPv6 address, ${msg}`, host, dart.as(position, int));
-      }
+      };
       // Function parseHex: (int, int) → int
-      function parseHex(start, end) {
+      let parseHex = (start, end) => {
         if (dart.notNull(end) - dart.notNull(start) > 4) {
           error('an IPv6 part can only contain a maximum of 4 hex digits', start);
         }
@@ -3142,7 +3142,7 @@ var convert = dart.lazyImport(convert);
           error('each part must be in the range of `0x0..0xFFFF`', start);
         }
         return value;
-      }
+      };
       if (dart.notNull(host.length) < 2)
         error('address is too short');
       let parts = dart.setType([], List$(int));
@@ -3220,11 +3220,11 @@ var convert = dart.lazyImport(convert);
       let encoding = opts && 'encoding' in opts ? opts.encoding : convert.UTF8;
       let spaceToPlus = opts && 'spaceToPlus' in opts ? opts.spaceToPlus : false;
       // Function byteToHex: (dynamic, dynamic) → dynamic
-      function byteToHex(byte, buffer) {
+      let byteToHex = (byte, buffer) => {
         let hex = '0123456789ABCDEF';
         dart.dsend(buffer, 'writeCharCode', hex.codeUnitAt(dart.as(dart.dsend(byte, '>>', 4), int)));
         dart.dsend(buffer, 'writeCharCode', hex.codeUnitAt(dart.as(dart.dsend(byte, '&', 15), int)));
-      }
+      };
       let result = new StringBuffer();
       let bytes = encoding.encode(text);
       for (let i = 0; dart.notNull(i) < dart.notNull(bytes[$length]); i = dart.notNull(i) + 1) {

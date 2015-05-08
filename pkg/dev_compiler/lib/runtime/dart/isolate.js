@@ -132,12 +132,12 @@ var async = dart.import(async);
       let controller = null;
       let port = null;
       // Function handleError: (dynamic) → void
-      function handleError(message) {
+      let handleError = message => {
         let errorDescription = dart.as(dart.dindex(message, 0), core.String);
         let stackDescription = dart.as(dart.dindex(message, 1), core.String);
         let error = new RemoteError(errorDescription, stackDescription);
         controller.addError(error, error.stackTrace);
-      }
+      };
       controller = new async.StreamController.broadcast({
         sync: true,
         onListen: (() => {

@@ -754,13 +754,13 @@ var collection = dart.import(collection);
     convert(object) {
       let bytes = dart.setType([], core.List$(core.List$(core.int)));
       // Function addChunk: (Uint8List, int, int) → void
-      function addChunk(chunk, start, end) {
+      let addChunk = (chunk, start, end) => {
         if (dart.notNull(start) > 0 || dart.notNull(end) < dart.notNull(chunk[core.$length])) {
           let length = dart.notNull(end) - dart.notNull(start);
           chunk = new typed_data.Uint8List.view(chunk.buffer, dart.notNull(chunk.offsetInBytes) + dart.notNull(start), length);
         }
         bytes[core.$add](chunk);
-      }
+      };
       _JsonUtf8Stringifier.stringify(object, this[_indent], dart.as(this[_toEncodable$], dart.functionType(dart.dynamic, [core.Object])), this[_bufferSize], addChunk);
       if (bytes[core.$length] == 1)
         return bytes[core.$get](0);
@@ -2018,7 +2018,7 @@ var collection = dart.import(collection);
       this[_expectedUnits] = 0;
       this[_extraUnits] = 0;
       // Function scanOneByteCharacters: (dynamic, int) → int
-      function scanOneByteCharacters(units, from) {
+      let scanOneByteCharacters = (units, from) => {
         let to = endIndex;
         let mask = _ONE_BYTE_LIMIT;
         for (let i = from; dart.notNull(i) < dart.notNull(to); i = dart.notNull(i) + 1) {
@@ -2027,13 +2027,13 @@ var collection = dart.import(collection);
             return dart.notNull(i) - dart.notNull(from);
         }
         return dart.notNull(to) - dart.notNull(from);
-      }
+      };
       // Function addSingleBytes: (int, int) → void
-      function addSingleBytes(from, to) {
+      let addSingleBytes = ((from, to) => {
         dart.assert(dart.notNull(from) >= dart.notNull(startIndex) && dart.notNull(from) <= dart.notNull(endIndex));
         dart.assert(dart.notNull(to) >= dart.notNull(startIndex) && dart.notNull(to) <= dart.notNull(endIndex));
         this[_stringSink].write(new core.String.fromCharCodes(codeUnits, from, to));
-      }
+      }).bind(this);
       let i = startIndex;
       loop:
         while (true) {
@@ -2138,7 +2138,7 @@ var collection = dart.import(collection);
   function _convertJsonToDart(json, reviver) {
     dart.assert(reviver != null);
     // Function walk: (dynamic) → dynamic
-    function walk(e) {
+    let walk = e => {
       if (e == null || typeof e != "object") {
         return e;
       }
@@ -2159,7 +2159,7 @@ var collection = dart.import(collection);
       }
       map[_original] = processed;
       return map;
-    }
+    };
     return dart.dcall(reviver, null, walk(json));
   }
   // Function _convertJsonToDartLazy: (dynamic) → dynamic

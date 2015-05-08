@@ -2466,7 +2466,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
   // Function unwrapException: (dynamic) → dynamic
   function unwrapException(ex) {
     // Function saveStackTrace: (dynamic) → dynamic
-    function saveStackTrace(error) {
+    let saveStackTrace = error => {
       if (dart.is(error, core.Error)) {
         let thrownStackTrace = error.$thrownJsError;
         if (thrownStackTrace == null) {
@@ -2474,7 +2474,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         }
       }
       return error;
-    }
+    };
     if (ex == null)
       return null;
     if (typeof ex !== "object")

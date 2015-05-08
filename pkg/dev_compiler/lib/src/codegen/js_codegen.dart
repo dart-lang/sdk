@@ -1068,7 +1068,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var params = _visit(node.parameters);
     if (params == null) params = [];
 
-    if (node.parent is FunctionDeclaration) {
+    var parent = node.parent;
+    if (parent is FunctionDeclaration &&
+        parent.parent is! FunctionDeclarationStatement) {
       return new JS.Fun(params, _visit(node.body));
     } else {
       String code;
@@ -1093,10 +1095,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       return js.comment('Unimplemented function get/set statement: $node');
     }
 
+    // Use an => function to bind this.
+    // Technically we only need to do this if the function actually closes over
+    // `this`, but it seems harmless enough to just do it always.
     var name = new JS.Identifier(func.name.name);
     return new JS.Block([
       js.comment("// Function ${func.name.name}: ${func.element.type}\n"),
-      new JS.FunctionDeclaration(name, _visit(func.functionExpression))
+      js.statement('let # = #;', [name, _visit(func.functionExpression)])
     ]);
   }
 

@@ -3085,7 +3085,7 @@ var math = dart.lazyImport(math);
         let found = false;
         let initialSplayCount = this[_splayCount];
         // Function visit: (_SplayTreeMapNode<dynamic, dynamic>) → bool
-        function visit(node) {
+        let visit = (node => {
           while (node != null) {
             if (dart.equals(node.value, value))
               return true;
@@ -3097,7 +3097,7 @@ var math = dart.lazyImport(math);
             node = dart.as(node.left, _SplayTreeMapNode);
           }
           return false;
-        }
+        }).bind(this);
         return visit(dart.as(this[_root], _SplayTreeMapNode));
       }
       get keys() {

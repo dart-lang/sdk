@@ -555,9 +555,9 @@ var async = dart.import(async);
         return;
       }
       // Function respond: () → void
-      function respond() {
+      let respond = () => {
         responsePort.send(null);
-      }
+      };
       if (pingType == isolate.Isolate.AS_EVENT) {
         exports._globalState.topEventLoop.enqueue(this, respond, "ping");
         return;
@@ -779,11 +779,11 @@ var async = dart.import(async);
     [_runHelper]() {
       if (exports.globalWindow != null) {
         // Function next: () → void
-        function next() {
+        let next = (() => {
           if (!dart.notNull(this.runIteration()))
             return;
           async.Timer.run(next);
-        }
+        }).bind(this);
         next();
       } else {
         while (this.runIteration()) {
@@ -1059,7 +1059,7 @@ var async = dart.import(async);
       _js_helper.Primitives.initializeStatics(context.id);
       replyTo.send([_SPAWNED_SIGNAL, context.controlPort.sendPort, context.pauseCapability, context.terminateCapability]);
       // Function runStartFunction: () → void
-      function runStartFunction() {
+      let runStartFunction = () => {
         context.initialized = true;
         if (!dart.notNull(isSpawnUri)) {
           dart.dcall(topLevel, message);
@@ -1070,7 +1070,7 @@ var async = dart.import(async);
         } else {
           dart.dcall(topLevel);
         }
-      }
+      };
       if (startPaused) {
         context.addPause(context.pauseCapability, context.pauseCapability);
         exports._globalState.topEventLoop.enqueue(context, runStartFunction, 'start isolate');
@@ -1290,20 +1290,20 @@ var async = dart.import(async);
       this[_handle] = null;
       if (milliseconds == 0 && (!dart.notNull(hasTimer()) || dart.notNull(exports._globalState.isWorker))) {
         // Function internalCallback: () → void
-        function internalCallback() {
+        let internalCallback = (() => {
           this[_handle] = null;
           callback();
-        }
+        }).bind(this);
         this[_handle] = 1;
         exports._globalState.topEventLoop.enqueue(exports._globalState.currentContext, internalCallback, 'timer');
         this[_inEventLoop] = true;
       } else if (hasTimer()) {
         // Function internalCallback: () → void
-        function internalCallback() {
+        let internalCallback = (() => {
           this[_handle] = null;
           leaveJsAsync();
           callback();
-        }
+        }).bind(this);
         enterJsAsync();
         this[_handle] = self.setTimeout(_js_helper.convertDartClosureToJS(internalCallback, 0), milliseconds);
       } else {
