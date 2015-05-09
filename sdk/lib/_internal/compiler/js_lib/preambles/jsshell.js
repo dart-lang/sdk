@@ -18,6 +18,46 @@
 
   self.location = { href: "file://" + workingDirectory + "/" };
 
+   function computeCurrentScript() {
+    try {
+      throw new Error();
+    } catch(e) {
+      var stack = e.stack;
+      print(stack);
+      // The jsshell stack looks like:
+      //   computeCurrentScript@...preambles/jsshell.js:23:13
+      //   self.document.currentScript@...preambles/jsshell.js:53:37
+      //   @/tmp/foo.js:308:1
+      //   @/tmp/foo.js:303:1
+      //   @/tmp/foo.js:5:1
+      var re = new RegExp("^.*@(.*):[0-9]*:[0-9]*$", "mg");
+      var lastMatch = null;
+      do {
+        var match = re.exec(stack);
+        if (match != null) lastMatch = match;
+      } while (match != null);
+      return lastMatch[1];
+    }
+  }
+
+  // Adding a 'document' is dangerous since it invalidates the 'typeof document'
+  // test to see if we are running in the browser. It means that the runtime
+  // needs to do more precise checks.
+  // Note that we can't run "currentScript" right away, since that would give
+  // us the location of the preamble file. Instead we wait for the first access
+  // which should happen just before invoking main. At this point we are in
+  // the main file and setting the currentScript property is correct.
+  // Note that we cannot use `thisFileName()`, since that would give us the
+  // preamble and not the script file.
+  var cachedCurrentScript = null;
+  self.document = { get currentScript() {
+      if (cachedCurrentScript == null) {
+        cachedCurrentScript = {src: computeCurrentScript()};
+      }
+      return cachedCurrentScript;
+    }
+  };
+
   // Support for deferred loading.
   self.dartDeferredLibraryLoader = function(uri, successCallback, errorCallback) {
     try {

@@ -753,28 +753,19 @@ class IsolateNatives {
   static final Expando<int> workerIds = new Expando<int>();
 
   /**
-   * The src url for the script tag that loaded this Used to create
-   * JavaScript workers.
+   * The src url for the script tag that loaded this function.
+   *
+   * Used to create JavaScript workers and load deferred libraries.
    */
   static String computeThisScript() {
     var currentScript = JS_EMBEDDED_GLOBAL('', CURRENT_SCRIPT);
     if (currentScript != null) {
       return JS('String', 'String(#.src)', currentScript);
     }
-    if (Primitives.isD8) return computeThisScriptD8();
-    if (Primitives.isJsshell) return computeThisScriptJsshell();
     // A worker has no script tag - so get an url from a stack-trace.
     if (_globalState.isWorker) return computeThisScriptFromTrace();
     return null;
   }
-
-  static String computeThisScriptJsshell() {
-    return JS('String|Null', 'thisFilename()');
-  }
-
-  // TODO(ahe): The following is for supporting D8.  We should move this code
-  // to a helper library that is only loaded when testing on D8.
-  static String computeThisScriptD8() => computeThisScriptFromTrace();
 
   static String computeThisScriptFromTrace() {
     var stack = JS('String|Null', 'new Error().stack');
