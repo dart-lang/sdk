@@ -82,6 +82,6 @@ class BuildUnitElementTask extends AnalysisTask {
   @override
   void internalPerform() {
     CompilationUnitBuilder builder = new CompilationUnitBuilder();
-    unitElement = builder.buildCompilationUnit(source, unit);
+    unitElement = builder.buildCompilationUnit(source, unit, library);
   }
 }

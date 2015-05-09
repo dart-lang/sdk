@@ -82,10 +82,15 @@ class ElementFactory {
           [List<String> parameterNames]) =>
       classTypeAlias(typeName, objectType, parameterNames);
 
-  static CompilationUnitElementImpl compilationUnit(String fileName) {
+  static CompilationUnitElementImpl compilationUnit(String fileName,
+      [Source librarySource]) {
     Source source = new NonExistingSource(fileName, UriKind.FILE_URI);
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl(fileName);
     unit.source = source;
+    if (librarySource == null) {
+      librarySource = source;
+    }
+    unit.librarySource = librarySource;
     return unit;
   }
 

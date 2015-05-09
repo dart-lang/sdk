@@ -636,6 +636,7 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     //
     // Prepare inputs.
     //
+    LibrarySpecificUnit librarySpecificUnit = target;
     Source source = getRequiredSource();
     CompilationUnit unit = getRequiredInput(PARSED_UNIT_INPUT_NAME);
     //
@@ -643,7 +644,8 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     //
     unit = AstCloner.clone(unit);
     CompilationUnitBuilder builder = new CompilationUnitBuilder();
-    CompilationUnitElement element = builder.buildCompilationUnit(source, unit);
+    CompilationUnitElement element =
+        builder.buildCompilationUnit(source, unit, librarySpecificUnit.library);
     //
     // Record outputs.
     //
@@ -1687,9 +1689,11 @@ class ComputeConstantDependenciesTask extends ElementBasedAnalysisTask {
    * given [target].
    */
   static Map<String, TaskInput> buildInputs(Element target) {
+    CompilationUnitElementImpl unit = target
+        .getAncestor((Element element) => element is CompilationUnitElement);
     return <String, TaskInput>{
       UNIT_INPUT: RESOLVED_UNIT
-          .of(new LibrarySpecificUnit(target.library.source, target.source))
+          .of(new LibrarySpecificUnit(unit.librarySource, target.source))
     };
   }
 

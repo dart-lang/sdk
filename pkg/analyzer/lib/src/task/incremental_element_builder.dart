@@ -18,6 +18,7 @@ import 'package:analyzer/src/generated/source.dart';
  */
 class IncrementalCompilationUnitElementBuilder {
   final Source source;
+  final Source librarySource;
   final CompilationUnit oldUnit;
   final CompilationUnitElementImpl unitElement;
   final CompilationUnit newUnit;
@@ -27,10 +28,12 @@ class IncrementalCompilationUnitElementBuilder {
       CompilationUnit oldUnit, this.newUnit)
       : oldUnit = oldUnit,
         unitElement = oldUnit.element,
-        source = oldUnit.element.source;
+        source = oldUnit.element.source,
+        librarySource = (oldUnit.element as CompilationUnitElementImpl).librarySource;
 
   void build() {
-    new CompilationUnitBuilder().buildCompilationUnit(source, newUnit);
+    new CompilationUnitBuilder().buildCompilationUnit(
+        source, newUnit, librarySource);
     _processDirectives();
     _processUnitMembers();
     newUnit.element = unitElement;

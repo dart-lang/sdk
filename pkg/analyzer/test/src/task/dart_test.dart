@@ -1168,12 +1168,13 @@ class ComputeConstantDependenciesTaskTest extends _AbstractDartTaskTest {
 const x = y;
 const y = 1;
 ''');
-    // First compute the library element for the source.
-    _computeResult(source, LIBRARY_ELEMENT1);
-    LibraryElement libraryElement = outputs[LIBRARY_ELEMENT1];
+    // First compute the resolved unit for the source.
+    LibrarySpecificUnit librarySpecificUnit =
+        new LibrarySpecificUnit(source, source);
+    _computeResult(librarySpecificUnit, RESOLVED_UNIT1);
+    CompilationUnit unit = outputs[RESOLVED_UNIT1];
     // Find the elements for the constants x and y.
-    List<PropertyAccessorElement> accessors =
-        libraryElement.definingCompilationUnit.accessors;
+    List<PropertyAccessorElement> accessors = unit.element.accessors;
     Element x = accessors.firstWhere((PropertyAccessorElement accessor) =>
         accessor.isGetter && accessor.name == 'x').variable;
     Element y = accessors.firstWhere((PropertyAccessorElement accessor) =>
@@ -1224,12 +1225,13 @@ const x = 1;
   EvaluationResultImpl _computeTopLevelVariableConstValue(
       String variableName, String content) {
     Source source = newSource('/test.dart', content);
-    // First compute the library element for the source.
-    _computeResult(source, LIBRARY_ELEMENT1);
-    LibraryElement libraryElement = outputs[LIBRARY_ELEMENT1];
+    // First compute the resolved unit for the source.
+    LibrarySpecificUnit librarySpecificUnit =
+        new LibrarySpecificUnit(source, source);
+    _computeResult(librarySpecificUnit, RESOLVED_UNIT1);
+    CompilationUnit unit = outputs[RESOLVED_UNIT1];
     // Find the element for the given constant.
-    List<PropertyAccessorElement> accessors =
-        libraryElement.definingCompilationUnit.accessors;
+    List<PropertyAccessorElement> accessors = unit.element.accessors;
     Element variableElement = accessors
         .firstWhere((PropertyAccessorElement accessor) {
       return accessor.isGetter && accessor.name == variableName;

@@ -3563,9 +3563,9 @@ class LibraryElementImplTest extends EngineTestCase {
     LibraryElementImpl library = ElementFactory.library(context, "test");
     CompilationUnitElement unitLib = library.definingCompilationUnit;
     CompilationUnitElementImpl unitA =
-        ElementFactory.compilationUnit("unit_a.dart");
+        ElementFactory.compilationUnit("unit_a.dart", unitLib.source);
     CompilationUnitElementImpl unitB =
-        ElementFactory.compilationUnit("unit_b.dart");
+        ElementFactory.compilationUnit("unit_b.dart", unitLib.source);
     library.parts = <CompilationUnitElement>[unitA, unitB];
     expect(library.units,
         unorderedEquals(<CompilationUnitElement>[unitLib, unitA, unitB]));

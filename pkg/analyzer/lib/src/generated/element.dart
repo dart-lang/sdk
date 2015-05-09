@@ -1276,6 +1276,15 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   Source source;
 
   /**
+   * The source of the library containing this compilation unit.
+   *
+   * This is the same as the source of the containing [LibraryElement],
+   * except that it does not require the containing [LibraryElement] to be
+   * computed.
+   */
+  Source librarySource;
+
+  /**
    * A list containing all of the top-level accessors (getters and setters)
    * contained in this compilation unit.
    */
@@ -7019,6 +7028,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * [unit].
    */
   void set definingCompilationUnit(CompilationUnitElement unit) {
+    assert((unit as CompilationUnitElementImpl).librarySource == unit.source);
     (unit as CompilationUnitElementImpl).enclosingElement = this;
     this._definingCompilationUnit = unit;
   }
@@ -7210,6 +7220,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    */
   void set parts(List<CompilationUnitElement> parts) {
     for (CompilationUnitElement compilationUnit in parts) {
+      assert((compilationUnit as CompilationUnitElementImpl).librarySource ==
+          source);
       (compilationUnit as CompilationUnitElementImpl).enclosingElement = this;
     }
     this._parts = parts;

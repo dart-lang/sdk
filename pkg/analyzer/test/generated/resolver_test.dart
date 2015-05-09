@@ -118,7 +118,7 @@ class AnalysisContextFactory {
         new CompilationUnitElementImpl("core.dart");
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
     coreContext.setContents(coreSource, "");
-    coreUnit.source = coreSource;
+    coreUnit.librarySource = coreUnit.source = coreSource;
     ClassElementImpl proxyClassElement = ElementFactory.classElement2("_Proxy");
     coreUnit.types = <ClassElement>[
       provider.boolType.element,
@@ -171,7 +171,7 @@ class AnalysisContextFactory {
         new CompilationUnitElementImpl("async.dart");
     Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
     coreContext.setContents(asyncSource, "");
-    asyncUnit.source = asyncSource;
+    asyncUnit.librarySource = asyncUnit.source = asyncSource;
     // Future
     ClassElementImpl futureElement =
         ElementFactory.classElement2("Future", ["T"]);
@@ -229,7 +229,7 @@ class AnalysisContextFactory {
         new CompilationUnitElementImpl("html_dartium.dart");
     Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
     coreContext.setContents(htmlSource, "");
-    htmlUnit.source = htmlSource;
+    htmlUnit.librarySource = htmlUnit.source = htmlSource;
     ClassElementImpl elementElement = ElementFactory.classElement2("Element");
     InterfaceType elementType = elementElement.type;
     ClassElementImpl canvasElement =
@@ -290,7 +290,7 @@ class AnalysisContextFactory {
         new CompilationUnitElementImpl("math.dart");
     Source mathSource = sourceFactory.forUri(_DART_MATH);
     coreContext.setContents(mathSource, "");
-    mathUnit.source = mathSource;
+    mathUnit.librarySource = mathUnit.source = mathSource;
     FunctionElement cosElement = ElementFactory.functionElement3("cos",
         provider.doubleType.element, <ClassElement>[provider.numType.element],
         ClassElement.EMPTY_LIST);
@@ -1896,7 +1896,8 @@ class ElementResolverTest extends EngineTestCase {
         new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
         new CompilationUnitElementImpl("test.dart");
-    definingCompilationUnit.source = source;
+    definingCompilationUnit.librarySource =
+        definingCompilationUnit.source = source;
     _definingLibrary = ElementFactory.library(context, "test");
     _definingLibrary.definingCompilationUnit = definingCompilationUnit;
     Library library = new Library(context, _listener, source);
@@ -5713,7 +5714,8 @@ class InheritanceManagerTest extends EngineTestCase {
         new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
         new CompilationUnitElementImpl("test.dart");
-    definingCompilationUnit.source = source;
+    definingCompilationUnit.librarySource =
+        definingCompilationUnit.source = source;
     _definingLibrary = ElementFactory.library(context, "test");
     _definingLibrary.definingCompilationUnit = definingCompilationUnit;
     return new InheritanceManager(_definingLibrary);
@@ -7779,6 +7781,9 @@ class ResolverTestCase extends EngineTestCase {
    */
   LibraryElementImpl createTestLibrary(
       AnalysisContext context, String libraryName, [List<String> typeNames]) {
+    String fileName = "$libraryName.dart";
+    FileBasedSource definingCompilationUnitSource =
+        _createNamedSource(fileName);
     List<CompilationUnitElement> sourcedCompilationUnits;
     if (typeNames == null) {
       sourcedCompilationUnits = CompilationUnitElement.EMPTY_LIST;
@@ -7793,14 +7798,15 @@ class ResolverTestCase extends EngineTestCase {
         CompilationUnitElementImpl compilationUnit =
             new CompilationUnitElementImpl(fileName);
         compilationUnit.source = _createNamedSource(fileName);
+        compilationUnit.librarySource = definingCompilationUnitSource;
         compilationUnit.types = <ClassElement>[type];
         sourcedCompilationUnits[i] = compilationUnit;
       }
     }
-    String fileName = "$libraryName.dart";
     CompilationUnitElementImpl compilationUnit =
         new CompilationUnitElementImpl(fileName);
-    compilationUnit.source = _createNamedSource(fileName);
+    compilationUnit.librarySource =
+        compilationUnit.source = definingCompilationUnitSource;
     LibraryElementImpl library = new LibraryElementImpl.forNode(
         context, AstFactory.libraryIdentifier2([libraryName]));
     library.definingCompilationUnit = compilationUnit;
@@ -10995,7 +11001,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
         new FileBasedSource.con1(FileUtilities2.createFile("/lib.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
         new CompilationUnitElementImpl("lib.dart");
-    definingCompilationUnit.source = source;
+    definingCompilationUnit.librarySource =
+        definingCompilationUnit.source = source;
     LibraryElementImpl definingLibrary =
         new LibraryElementImpl.forNode(context, null);
     definingLibrary.definingCompilationUnit = definingCompilationUnit;
@@ -11498,7 +11505,8 @@ class SubtypeManagerTest extends EngineTestCase {
     FileBasedSource source =
         new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
     _definingCompilationUnit = new CompilationUnitElementImpl("test.dart");
-    _definingCompilationUnit.source = source;
+    _definingCompilationUnit.librarySource =
+        _definingCompilationUnit.source = source;
     LibraryElementImpl definingLibrary =
         ElementFactory.library(context, "test");
     definingLibrary.definingCompilationUnit = _definingCompilationUnit;

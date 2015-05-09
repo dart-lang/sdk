@@ -780,10 +780,11 @@ class CompilationUnitBuilder {
   /**
    * Build the compilation unit element for the given [source] based on the
    * compilation [unit] associated with the source. Throw an AnalysisException
-   * if the element could not be built.
+   * if the element could not be built.  [librarySource] is the source for the
+   * containing library.
    */
   CompilationUnitElementImpl buildCompilationUnit(
-      Source source, CompilationUnit unit) {
+      Source source, CompilationUnit unit, Source librarySource) {
     return PerformanceStatistics.resolve.makeCurrentWhile(() {
       if (unit == null) {
         return null;
@@ -797,6 +798,7 @@ class CompilationUnitBuilder {
       element.enums = holder.enums;
       element.functions = holder.functions;
       element.source = source;
+      element.librarySource = librarySource;
       element.typeAliases = holder.typeAliases;
       element.types = holder.types;
       element.topLevelVariables = holder.topLevelVariables;
@@ -7160,8 +7162,9 @@ class LibraryElementBuilder {
     CompilationUnitBuilder builder = new CompilationUnitBuilder();
     Source librarySource = library.librarySource;
     CompilationUnit definingCompilationUnit = library.definingCompilationUnit;
-    CompilationUnitElementImpl definingCompilationUnitElement =
-        builder.buildCompilationUnit(librarySource, definingCompilationUnit);
+    CompilationUnitElementImpl definingCompilationUnitElement = builder
+        .buildCompilationUnit(
+            librarySource, definingCompilationUnit, librarySource);
     NodeList<Directive> directives = definingCompilationUnit.directives;
     LibraryIdentifier libraryNameNode = null;
     bool hasPartDirective = false;
@@ -7191,7 +7194,7 @@ class LibraryElementBuilder {
           hasPartDirective = true;
           CompilationUnit partUnit = library.getAST(partSource);
           CompilationUnitElementImpl part =
-              builder.buildCompilationUnit(partSource, partUnit);
+              builder.buildCompilationUnit(partSource, partUnit, librarySource);
           part.uriOffset = partUri.offset;
           part.uriEnd = partUri.end;
           part.uri = partDirective.uriContent;
@@ -7262,8 +7265,9 @@ class LibraryElementBuilder {
     CompilationUnitBuilder builder = new CompilationUnitBuilder();
     Source librarySource = library.librarySource;
     CompilationUnit definingCompilationUnit = library.definingCompilationUnit;
-    CompilationUnitElementImpl definingCompilationUnitElement =
-        builder.buildCompilationUnit(librarySource, definingCompilationUnit);
+    CompilationUnitElementImpl definingCompilationUnitElement = builder
+        .buildCompilationUnit(
+            librarySource, definingCompilationUnit, librarySource);
     NodeList<Directive> directives = definingCompilationUnit.directives;
     LibraryIdentifier libraryNameNode = null;
     bool hasPartDirective = false;
@@ -7293,8 +7297,8 @@ class LibraryElementBuilder {
           hasPartDirective = true;
           CompilationUnit partUnit = library.getAST(partSource);
           if (partUnit != null) {
-            CompilationUnitElementImpl part =
-                builder.buildCompilationUnit(partSource, partUnit);
+            CompilationUnitElementImpl part = builder.buildCompilationUnit(
+                partSource, partUnit, librarySource);
             part.uriOffset = partUri.offset;
             part.uriEnd = partUri.end;
             part.uri = partDirective.uriContent;
