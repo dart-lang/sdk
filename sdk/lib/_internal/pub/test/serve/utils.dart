@@ -155,6 +155,7 @@ ScheduledProcess startPubServe({Iterable<String> args,
     "serve",
     "--port=0", // Use port 0 to get an ephemeral port.
     "--force-poll",
+    "--admin-port=0", // Use port 0 to get an ephemeral port.
     "--log-admin-url"
   ];
 
@@ -223,6 +224,7 @@ final _parsePortRegExp = new RegExp(r"([^ ]+) +on http://localhost:(\d+)");
 /// Parses the port number from the "Running admin server on localhost:1234"
 /// line printed by pub serve.
 bool _parseAdminPort(String line) {
+  expect(line, startsWith('Running admin server on'));
   var match = _parsePortRegExp.firstMatch(line);
   if (match == null) return false;
   _adminPort = int.parse(match[2]);
