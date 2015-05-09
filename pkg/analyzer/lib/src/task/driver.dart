@@ -25,6 +25,12 @@ class AnalysisDriver {
    */
   final TaskManager taskManager;
 
+//  /**
+//   * The list of [WorkManager] used to figure out which analysis results to
+//   * compute.
+//   */
+//  final List<WorkManager> workManagers;
+
   /**
    * The context in which analysis is to be performed.
    */
@@ -468,4 +474,25 @@ class WorkOrder implements Iterator<WorkItem> {
     }
     return false;
   }
+}
+
+/**
+ * [AnalysisDriver] uses [WorkManager]s to select results to compute.
+ *
+ * They know specific of the targets and results they care about,
+ * so they can request analysis results in optimal order.
+ */
+abstract class WorkManager {
+  /**
+   * Return the next [TargetedResult] that this work manager wants to be
+   * computed, or `null` if this manager doesn't need any new results.
+   */
+  TargetedResult getNextResult();
+
+  /**
+   * Notifies the manager that the given [outputs] were produced for
+   * the given [target].
+   */
+  void resultsComputed(
+      AnalysisTarget target, Map<ResultDescriptor, dynamic> outputs);
 }

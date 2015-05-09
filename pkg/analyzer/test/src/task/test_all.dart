@@ -7,6 +7,7 @@ library test.src.task.test_all;
 import 'package:unittest/unittest.dart';
 
 import 'dart_test.dart' as dart_test;
+import 'dart_work_manager_test.dart' as dart_work_manager_test;
 import 'driver_test.dart' as driver_test;
 import 'general_test.dart' as general_test;
 import 'incremental_element_builder_test.dart'
@@ -20,6 +21,7 @@ main() {
   groupSep = ' | ';
   group('task tests', () {
     dart_test.main();
+    dart_work_manager_test.main();
     driver_test.main();
     general_test.main();
     incremental_element_builder_test.main();

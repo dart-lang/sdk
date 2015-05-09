@@ -594,6 +594,8 @@ class TestSource extends Source {
   UriKind get uriKind {
     throw new UnsupportedOperationException();
   }
+  @override
+  String toString() => '$_name';
   bool operator ==(Object other) {
     if (other is TestSource) {
       return other._name == _name;
