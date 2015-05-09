@@ -88,6 +88,6 @@ _processLoadRequest(request) {
   } else if ((uri.scheme == 'data')) {
     _loadDataUri(sp, uri);
   } else {
-    sp.send('Unknown scheme (${uri.scheme}) for $uri');
+    sp.send('Unknown scheme for $uri');
   }
 }

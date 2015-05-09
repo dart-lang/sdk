@@ -283,13 +283,13 @@ Dart_Handle DartUtils::SetWorkingDirectory(Dart_Handle builtin_lib) {
 }
 
 
-Dart_Handle DartUtils::ResolveUriInWorkingDirectory(Dart_Handle script_uri,
-                                                    Dart_Handle builtin_lib) {
+Dart_Handle DartUtils::ResolveScriptUri(Dart_Handle script_uri,
+                                        Dart_Handle builtin_lib) {
   const int kNumArgs = 1;
   Dart_Handle dart_args[kNumArgs];
   dart_args[0] = script_uri;
   return Dart_Invoke(builtin_lib,
-                     NewString("_resolveInWorkingDirectory"),
+                     NewString("_resolveScriptUri"),
                      kNumArgs,
                      dart_args);
 }
@@ -515,7 +515,7 @@ void FUNCTION_NAME(Builtin_AsyncLoadError)(Dart_NativeArguments args) {
 
 // Callback function that gets called from dartutils when the library
 // source has been read. Loads the library or part into the VM.
-void FUNCTION_NAME(Builtin_LoadSource)(Dart_NativeArguments args) {
+void FUNCTION_NAME(Builtin_LoadScript)(Dart_NativeArguments args) {
   Dart_Handle tag_in = Dart_GetNativeArgument(args, 0);
   Dart_Handle resolved_script_uri = Dart_GetNativeArgument(args, 1);
   Dart_Handle library_uri = Dart_GetNativeArgument(args, 2);

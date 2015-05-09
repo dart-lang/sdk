@@ -196,20 +196,19 @@ class UriResolverIsolateScope {
 Dart_Isolate UriResolverIsolateScope::isolate = NULL;
 
 
-static Dart_Handle ResolveUriInWorkingDirectory(const char* script_uri) {
+static Dart_Handle ResolveScriptUri(const char* script_uri) {
   bool failed = false;
   char* result_string = NULL;
 
   {
     UriResolverIsolateScope scope;
 
-    // Run DartUtils::ResolveUriInWorkingDirectory in context of uri resolver
-    // isolate.
+    // Run DartUtils::ResolveScriptUri in context of uri resolver isolate.
     Dart_Handle builtin_lib =
         Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
     CHECK_RESULT(builtin_lib);
 
-    Dart_Handle result = DartUtils::ResolveUriInWorkingDirectory(
+    Dart_Handle result = DartUtils::ResolveScriptUri(
         DartUtils::NewString(script_uri), builtin_lib);
     if (Dart_IsError(result)) {
       failed = true;
@@ -311,7 +310,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   const char* mapped_library_url_string = DartUtils::MapLibraryUrl(
       url_mapping, library_url_string);
   if (mapped_library_url_string != NULL) {
-    library_url = ResolveUriInWorkingDirectory(mapped_library_url_string);
+    library_url = ResolveScriptUri(mapped_library_url_string);
     library_url_string = DartUtils::GetStringValue(library_url);
   }
 
@@ -357,7 +356,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   Dart_Handle resolved_url = url;
   if (mapped_url_string != NULL) {
     // Mapped urls are relative to working directory.
-    resolved_url = ResolveUriInWorkingDirectory(mapped_url_string);
+    resolved_url = ResolveScriptUri(mapped_url_string);
     if (Dart_IsError(resolved_url)) {
       return resolved_url;
     }
@@ -384,7 +383,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
 
 
 static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
-  Dart_Handle resolved_script_uri = ResolveUriInWorkingDirectory(script_name);
+  Dart_Handle resolved_script_uri = ResolveScriptUri(script_name);
   if (Dart_IsError(resolved_script_uri)) {
     return resolved_script_uri;
   }

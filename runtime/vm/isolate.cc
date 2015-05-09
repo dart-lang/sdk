@@ -937,13 +937,13 @@ bool Isolate::MakeRunnable() {
 
   MutexLocker ml(mutex_);
   // Check if we are in a valid state to make the isolate runnable.
-  if (is_runnable() == true) {
+  if (is_runnable_ == true) {
     return false;  // Already runnable.
   }
   // Set the isolate as runnable and if we are being spawned schedule
   // isolate on thread pool for execution.
   ASSERT(object_store()->root_library() != Library::null());
-  set_is_runnable(true);
+  is_runnable_ = true;
   if (!ServiceIsolate::IsServiceIsolate(this)) {
     message_handler()->set_pause_on_start(FLAG_pause_isolates_on_start);
     message_handler()->set_pause_on_exit(FLAG_pause_isolates_on_exit);

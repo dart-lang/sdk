@@ -15,7 +15,7 @@ namespace bin {
 
 // Lists the native function implementing basic logging facility.
 #define BUILTIN_NATIVE_LIST(V)                                                 \
-  V(Builtin_PrintString, 1)
+  V(Logger_PrintString, 1)
 
 BUILTIN_NATIVE_LIST(DECLARE_FUNCTION);
 
@@ -63,7 +63,7 @@ const uint8_t* Builtin::NativeSymbol(Dart_NativeFunction nf) {
 
 // Implementation of native functions which are used for some
 // test/debug functionality in standalone dart mode.
-void FUNCTION_NAME(Builtin_PrintString)(Dart_NativeArguments args) {
+void FUNCTION_NAME(Logger_PrintString)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t length = 0;
   uint8_t* chars = NULL;
