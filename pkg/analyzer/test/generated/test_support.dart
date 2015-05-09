@@ -124,7 +124,7 @@ class EngineTestCase {
     if (offset == -1) {
       throw new IllegalArgumentException("Not found '$prefix'.");
     }
-    AstNode node = new NodeLocator.con1(offset).searchWithin(root);
+    AstNode node = new NodeLocator(offset).searchWithin(root);
     return node.getAncestor(predicate);
   }
 }

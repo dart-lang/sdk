@@ -323,7 +323,7 @@ class ConstantEvaluationEngine {
           DartObjectImpl dartObject =
               defaultValue.accept(new ConstantVisitor(this, errorReporter));
           (element as ParameterElementImpl).evaluationResult =
-              new EvaluationResultImpl.con2(dartObject, errorListener.errors);
+              new EvaluationResultImpl(dartObject, errorListener.errors);
         }
       }
     } else if (element is VariableElement) {
@@ -347,7 +347,7 @@ class ConstantEvaluationEngine {
         }
       }
       (element as VariableElementImpl).evaluationResult =
-          new EvaluationResultImpl.con2(dartObject, errorListener.errors);
+          new EvaluationResultImpl(dartObject, errorListener.errors);
     } else if (element is ConstructorElement) {
       // No evaluation needs to be done; constructor declarations are only in
       // the dependency graph to ensure that any constants referred to in
@@ -1200,13 +1200,12 @@ class ConstantValueComputer {
             constNode, constNode.arguments.arguments, element, constantVisitor,
             errorReporter);
         elementAnnotation.evaluationResult =
-            new EvaluationResultImpl.con2(result, errorListener.errors);
+            new EvaluationResultImpl(result, errorListener.errors);
       } else {
         // This may happen for invalid code (e.g. failing to pass arguments
         // to an annotation which references a const constructor).  The error
         // is detected elsewhere, so just silently ignore it here.
-        elementAnnotation.evaluationResult =
-            new EvaluationResultImpl.con1(null);
+        elementAnnotation.evaluationResult = new EvaluationResultImpl(null);
       }
     }
   }
@@ -1228,7 +1227,7 @@ class ConstantValueComputer {
       errorReporter.reportErrorForElement(
           CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, element, []);
       (element as VariableElementImpl).evaluationResult =
-          new EvaluationResultImpl.con2(null, errorListener.errors);
+          new EvaluationResultImpl(null, errorListener.errors);
     } else if (element is ConstructorElement) {
       // We don't report cycle errors on constructor declarations since there
       // is nowhere to put the error information.
@@ -2167,13 +2166,13 @@ class DartObjectComputer {
       Expression node, EvaluationResultImpl evaluationResult) {
     if (evaluationResult.value != null) {
       try {
-        return new EvaluationResultImpl.con1(
+        return new EvaluationResultImpl(
             evaluationResult.value.stringLength(_typeProvider));
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
-    return new EvaluationResultImpl.con1(null);
+    return new EvaluationResultImpl(null);
   }
 
   DartObjectImpl times(BinaryExpression node, DartObjectImpl leftOperand,
@@ -3410,10 +3409,16 @@ class EvaluationResultImpl {
    */
   final DartObjectImpl value;
 
+  EvaluationResultImpl(this.value, [List<AnalysisError> errors]) {
+    this._errors = errors == null ? <AnalysisError>[] : errors;
+  }
+
+  @deprecated // Use new EvaluationResultImpl(value)
   EvaluationResultImpl.con1(this.value) {
     this._errors = new List<AnalysisError>(0);
   }
 
+  @deprecated // Use new EvaluationResultImpl(value, errors)
   EvaluationResultImpl.con2(this.value, List<AnalysisError> errors) {
     this._errors = errors;
   }

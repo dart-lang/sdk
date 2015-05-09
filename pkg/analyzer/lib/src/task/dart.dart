@@ -436,7 +436,7 @@ class BuildClassConstructorsTask extends SourceBasedAnalysisTask {
       }
       if (_findForwardedConstructors(classElement, superType, callback)) {
         if (implicitConstructors.isEmpty) {
-          errors.add(new AnalysisError.con2(classElement.source,
+          errors.add(new AnalysisError(classElement.source,
               classElement.nameOffset, classElement.name.length,
               CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
               [superType.element.name]));
@@ -459,7 +459,7 @@ class BuildClassConstructorsTask extends SourceBasedAnalysisTask {
       if (_findForwardedConstructors(classElement, superType, callback) &&
           !constructorFound) {
         SourceRange withRange = classElement.withClauseRange;
-        errors.add(new AnalysisError.con2(classElement.source, withRange.offset,
+        errors.add(new AnalysisError(classElement.source, withRange.offset,
             withRange.length, CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
             [superType.element.name]));
         classElement.mixinErrorsReported = true;
@@ -538,7 +538,7 @@ class BuildClassConstructorsTask extends SourceBasedAnalysisTask {
       }
       implicitConstructor.parameters = implicitParameters;
     }
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(implicitConstructor);
+    FunctionTypeImpl type = new FunctionTypeImpl(implicitConstructor);
     type.typeArguments = classType.typeArguments;
     implicitConstructor.type = type;
     return implicitConstructor;
@@ -793,9 +793,8 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
               ErrorCode errorCode = (importElement.isDeferred
                   ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
                   : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY);
-              errors.add(new AnalysisError.con2(importedSource,
-                  uriLiteral.offset, uriLiteral.length, errorCode,
-                  [uriLiteral.toSource()]));
+              errors.add(new AnalysisError(importedSource, uriLiteral.offset,
+                  uriLiteral.length, errorCode, [uriLiteral.toSource()]));
             }
           }
         }
@@ -820,9 +819,8 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
             directive.element = exportElement;
             exports.add(exportElement);
             if (exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
-              errors.add(new AnalysisError.con2(exportedSource,
-                  uriLiteral.offset, uriLiteral.length,
-                  CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
+              errors.add(new AnalysisError(exportedSource, uriLiteral.offset,
+                  uriLiteral.length, CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
                   [uriLiteral.toSource()]));
             }
           }
@@ -1284,7 +1282,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
           String partLibraryName =
               _getPartLibraryName(partSource, partUnit, directivesToResolve);
           if (partLibraryName == null) {
-            errors.add(new AnalysisError.con2(librarySource, partUri.offset,
+            errors.add(new AnalysisError(librarySource, partUri.offset,
                 partUri.length, CompileTimeErrorCode.PART_OF_NON_PART,
                 [partUri.toSource()]));
           } else if (libraryNameNode == null) {
@@ -1294,7 +1292,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
               partsLibraryName = null;
             }
           } else if (libraryNameNode.name != partLibraryName) {
-            errors.add(new AnalysisError.con2(librarySource, partUri.offset,
+            errors.add(new AnalysisError(librarySource, partUri.offset,
                 partUri.length, StaticWarningCode.PART_OF_DIFFERENT_LIBRARY, [
               libraryNameNode.name,
               partLibraryName
@@ -1312,11 +1310,11 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       AnalysisError error;
       if (partsLibraryName != _UNKNOWN_LIBRARY_NAME &&
           partsLibraryName != null) {
-        error = new AnalysisErrorWithProperties.con1(librarySource,
+        error = new AnalysisErrorWithProperties(librarySource, 0, 0,
             ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART)
           ..setProperty(ErrorProperty.PARTS_LIBRARY_NAME, partsLibraryName);
       } else {
-        error = new AnalysisError.con1(librarySource,
+        error = new AnalysisError(librarySource, 0, 0,
             ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
       }
       errors.add(error);
@@ -2563,15 +2561,13 @@ class ParseDartTask extends SourceBasedAnalysisTask {
       return null;
     }
     if (code == UriValidationCode.URI_WITH_INTERPOLATION) {
-      errorListener.onError(new AnalysisError.con2(librarySource,
-          uriLiteral.offset, uriLiteral.length,
-          CompileTimeErrorCode.URI_WITH_INTERPOLATION));
+      errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
+          uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION));
       return null;
     }
     if (code == UriValidationCode.INVALID_URI) {
-      errorListener.onError(new AnalysisError.con2(librarySource,
-          uriLiteral.offset, uriLiteral.length,
-          CompileTimeErrorCode.INVALID_URI, [uriContent]));
+      errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
+          uriLiteral.length, CompileTimeErrorCode.INVALID_URI, [uriContent]));
       return null;
     }
     throw new AnalysisException('Failed to handle validation code: $code');

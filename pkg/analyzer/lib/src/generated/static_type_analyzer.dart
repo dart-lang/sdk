@@ -622,8 +622,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
                   newFutureType = returnType as InterfaceTypeImpl;
                 } else {
                   InterfaceType futureType = targetType as InterfaceType;
-                  newFutureType =
-                      new InterfaceTypeImpl.con1(futureType.element);
+                  newFutureType = new InterfaceTypeImpl(futureType.element);
                   newFutureType.typeArguments = <DartType>[returnType];
                 }
                 // set the 'then' invocation type

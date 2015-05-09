@@ -1253,7 +1253,7 @@ enum B {B1, B2, B3}''');
 @reflectiveTest
 class FunctionTypeImplTest extends EngineTestCase {
   void test_creation() {
-    expect(new FunctionTypeImpl.con1(
+    expect(new FunctionTypeImpl(
             new FunctionElementImpl.forNode(AstFactory.identifier3("f"))),
         isNotNull);
   }
@@ -1261,19 +1261,19 @@ class FunctionTypeImplTest extends EngineTestCase {
   void test_getElement() {
     FunctionElementImpl typeElement =
         new FunctionElementImpl.forNode(AstFactory.identifier3("f"));
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(typeElement);
+    FunctionTypeImpl type = new FunctionTypeImpl(typeElement);
     expect(type.element, typeElement);
   }
 
   void test_getNamedParameterTypes() {
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(
+    FunctionTypeImpl type = new FunctionTypeImpl(
         new FunctionElementImpl.forNode(AstFactory.identifier3("f")));
     Map<String, DartType> types = type.namedParameterTypes;
     expect(types, hasLength(0));
   }
 
   void test_getNormalParameterTypes() {
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(
+    FunctionTypeImpl type = new FunctionTypeImpl(
         new FunctionElementImpl.forNode(AstFactory.identifier3("f")));
     List<DartType> types = type.normalParameterTypes;
     expect(types, hasLength(0));
@@ -1284,26 +1284,26 @@ class FunctionTypeImplTest extends EngineTestCase {
     FunctionElementImpl functionElement =
         new FunctionElementImpl.forNode(AstFactory.identifier3("f"));
     functionElement.returnType = expectedReturnType;
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(functionElement);
+    FunctionTypeImpl type = new FunctionTypeImpl(functionElement);
     DartType returnType = type.returnType;
     expect(returnType, expectedReturnType);
   }
 
   void test_getTypeArguments() {
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(
+    FunctionTypeImpl type = new FunctionTypeImpl(
         new FunctionElementImpl.forNode(AstFactory.identifier3("f")));
     List<DartType> types = type.typeArguments;
     expect(types, hasLength(0));
   }
 
   void test_hashCode_element() {
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(
+    FunctionTypeImpl type = new FunctionTypeImpl(
         new FunctionElementImpl.forNode(AstFactory.identifier3("f")));
     type.hashCode;
   }
 
   void test_hashCode_noElement() {
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(null);
+    FunctionTypeImpl type = new FunctionTypeImpl(null);
     type.hashCode;
   }
 
@@ -1653,7 +1653,7 @@ class FunctionTypeImplTest extends EngineTestCase {
     ];
     functionAliasElement.returnType = stringType;
     FunctionTypeImpl functionAliasType =
-        new FunctionTypeImpl.con1(functionAliasElement);
+        new FunctionTypeImpl(functionAliasElement);
     functionAliasElement.type = functionAliasType;
     FunctionElementImpl functionElement =
         new FunctionElementImpl.forNode(AstFactory.identifier3("f"));
@@ -1662,7 +1662,7 @@ class FunctionTypeImplTest extends EngineTestCase {
       ElementFactory.positionalParameter2("d", stringType)
     ];
     functionElement.returnType = provider.dynamicType;
-    FunctionTypeImpl functionType = new FunctionTypeImpl.con1(functionElement);
+    FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
     functionElement.type = functionType;
     expect(functionType.isAssignableTo(functionAliasType), isTrue);
   }
@@ -1696,7 +1696,7 @@ class FunctionTypeImplTest extends EngineTestCase {
     MethodElementImpl methodElement =
         new MethodElementImpl.forNode(AstFactory.identifier3("m"));
     enclosingClass.methods = <MethodElement>[methodElement];
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(methodElement);
+    FunctionTypeImpl type = new FunctionTypeImpl(methodElement);
     DartType expectedType = enclosingClass.typeParameters[0].type;
     type.typeArguments = <DartType>[expectedType];
     List<DartType> arguments = type.typeArguments;
@@ -1717,9 +1717,9 @@ class FunctionTypeImplTest extends EngineTestCase {
     ];
     functionElement.returnType = parameterType;
     definingClass.methods = <MethodElement>[functionElement];
-    FunctionTypeImpl functionType = new FunctionTypeImpl.con1(functionElement);
+    FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
     functionType.typeArguments = <DartType>[parameterType];
-    InterfaceTypeImpl argumentType = new InterfaceTypeImpl.con1(
+    InterfaceTypeImpl argumentType = new InterfaceTypeImpl(
         new ClassElementImpl.forNode(AstFactory.identifier3("D")));
     FunctionType result = functionType.substitute2(
         <DartType>[argumentType], <DartType>[parameterType]);
@@ -1736,13 +1736,13 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 
   void test_substitute2_notEqual() {
-    DartType returnType = new InterfaceTypeImpl.con1(
+    DartType returnType = new InterfaceTypeImpl(
         new ClassElementImpl.forNode(AstFactory.identifier3("R")));
-    DartType normalParameterType = new InterfaceTypeImpl.con1(
+    DartType normalParameterType = new InterfaceTypeImpl(
         new ClassElementImpl.forNode(AstFactory.identifier3("A")));
-    DartType optionalParameterType = new InterfaceTypeImpl.con1(
+    DartType optionalParameterType = new InterfaceTypeImpl(
         new ClassElementImpl.forNode(AstFactory.identifier3("B")));
-    DartType namedParameterType = new InterfaceTypeImpl.con1(
+    DartType namedParameterType = new InterfaceTypeImpl(
         new ClassElementImpl.forNode(AstFactory.identifier3("C")));
     FunctionElementImpl functionElement =
         new FunctionElementImpl.forNode(AstFactory.identifier3("f"));
@@ -1753,8 +1753,8 @@ class FunctionTypeImplTest extends EngineTestCase {
       ElementFactory.namedParameter2(namedParameterName, namedParameterType)
     ];
     functionElement.returnType = returnType;
-    FunctionTypeImpl functionType = new FunctionTypeImpl.con1(functionElement);
-    InterfaceTypeImpl argumentType = new InterfaceTypeImpl.con1(
+    FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
+    InterfaceTypeImpl argumentType = new InterfaceTypeImpl(
         new ClassElementImpl.forNode(AstFactory.identifier3("D")));
     TypeParameterTypeImpl parameterType = new TypeParameterTypeImpl(
         new TypeParameterElementImpl.forNode(AstFactory.identifier3("E")));
@@ -1958,7 +1958,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classD = ElementFactory.classElement2("D");
     InterfaceType typeA = classA.type;
     classB.interfaces = <InterfaceType>[typeA];
-    InterfaceTypeImpl typeBT = new InterfaceTypeImpl.con1(classB);
+    InterfaceTypeImpl typeBT = new InterfaceTypeImpl(classB);
     DartType typeT = classC.type.typeArguments[0];
     typeBT.typeArguments = <DartType>[typeT];
     classC.interfaces = <InterfaceType>[typeBT];
@@ -1969,7 +1969,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeObject = ElementFactory.object.type;
     expect(superinterfacesOfA.contains(typeObject), isTrue);
     // B<D>
-    InterfaceTypeImpl typeBD = new InterfaceTypeImpl.con1(classB);
+    InterfaceTypeImpl typeBD = new InterfaceTypeImpl(classB);
     typeBD.typeArguments = <DartType>[classD.type];
     Set<InterfaceType> superinterfacesOfBD =
         InterfaceTypeImpl.computeSuperinterfaceSet(typeBD);
@@ -1977,7 +1977,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     expect(superinterfacesOfBD.contains(typeObject), isTrue);
     expect(superinterfacesOfBD.contains(typeA), isTrue);
     // C<D>
-    InterfaceTypeImpl typeCD = new InterfaceTypeImpl.con1(classC);
+    InterfaceTypeImpl typeCD = new InterfaceTypeImpl(classC);
     typeCD.typeArguments = <DartType>[classD.type];
     Set<InterfaceType> superinterfacesOfCD =
         InterfaceTypeImpl.computeSuperinterfaceSet(typeCD);
@@ -2001,7 +2001,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeA = classA.type;
     ClassElement classB = ElementFactory.classElement("B", typeA, ["T"]);
     ClassElementImpl classC = ElementFactory.classElement2("C", ["T"]);
-    InterfaceTypeImpl typeBT = new InterfaceTypeImpl.con1(classB);
+    InterfaceTypeImpl typeBT = new InterfaceTypeImpl(classB);
     DartType typeT = classC.type.typeArguments[0];
     typeBT.typeArguments = <DartType>[typeT];
     classC.supertype = typeBT;
@@ -2013,7 +2013,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeObject = ElementFactory.object.type;
     expect(superinterfacesOfA.contains(typeObject), isTrue);
     // B<D>
-    InterfaceTypeImpl typeBD = new InterfaceTypeImpl.con1(classB);
+    InterfaceTypeImpl typeBD = new InterfaceTypeImpl(classB);
     typeBD.typeArguments = <DartType>[classD.type];
     Set<InterfaceType> superinterfacesOfBD =
         InterfaceTypeImpl.computeSuperinterfaceSet(typeBD);
@@ -2021,7 +2021,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     expect(superinterfacesOfBD.contains(typeObject), isTrue);
     expect(superinterfacesOfBD.contains(typeA), isTrue);
     // C<D>
-    InterfaceTypeImpl typeCD = new InterfaceTypeImpl.con1(classC);
+    InterfaceTypeImpl typeCD = new InterfaceTypeImpl(classC);
     typeCD.typeArguments = <DartType>[classD.type];
     Set<InterfaceType> superinterfacesOfCD =
         InterfaceTypeImpl.computeSuperinterfaceSet(typeCD);
@@ -2151,8 +2151,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   void test_creation() {
-    expect(new InterfaceTypeImpl.con1(ElementFactory.classElement2("A")),
-        isNotNull);
+    expect(new InterfaceTypeImpl(ElementFactory.classElement2("A")), isNotNull);
   }
 
   void test_getAccessors() {
@@ -2162,19 +2161,19 @@ class InterfaceTypeImplTest extends EngineTestCase {
     PropertyAccessorElement getterH =
         ElementFactory.getterElement("h", false, null);
     typeElement.accessors = <PropertyAccessorElement>[getterG, getterH];
-    InterfaceTypeImpl type = new InterfaceTypeImpl.con1(typeElement);
+    InterfaceTypeImpl type = new InterfaceTypeImpl(typeElement);
     expect(type.accessors.length, 2);
   }
 
   void test_getAccessors_empty() {
     ClassElementImpl typeElement = ElementFactory.classElement2("A");
-    InterfaceTypeImpl type = new InterfaceTypeImpl.con1(typeElement);
+    InterfaceTypeImpl type = new InterfaceTypeImpl(typeElement);
     expect(type.accessors.length, 0);
   }
 
   void test_getElement() {
     ClassElementImpl typeElement = ElementFactory.classElement2("A");
-    InterfaceTypeImpl type = new InterfaceTypeImpl.con1(typeElement);
+    InterfaceTypeImpl type = new InterfaceTypeImpl(typeElement);
     expect(type.element, typeElement);
   }
 
@@ -2207,7 +2206,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     // A<I>
     //
     InterfaceType typeI = ElementFactory.classElement2("I").type;
-    InterfaceTypeImpl typeAI = new InterfaceTypeImpl.con1(classA);
+    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(classA);
     typeAI.typeArguments = <DartType>[typeI];
     PropertyAccessorElement getter = typeAI.getGetter(getterName);
     expect(getter, isNotNull);
@@ -2252,14 +2251,14 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElementImpl classA = ElementFactory.classElement2("A", ["E"]);
     ClassElementImpl classB = ElementFactory.classElement2("B", ["F"]);
     InterfaceType typeB = classB.type;
-    InterfaceTypeImpl typeAF = new InterfaceTypeImpl.con1(classA);
+    InterfaceTypeImpl typeAF = new InterfaceTypeImpl(classA);
     typeAF.typeArguments = <DartType>[typeB.typeArguments[0]];
     classB.interfaces = <InterfaceType>[typeAF];
     //
     // B<I>
     //
     InterfaceType typeI = ElementFactory.classElement2("I").type;
-    InterfaceTypeImpl typeBI = new InterfaceTypeImpl.con1(classB);
+    InterfaceTypeImpl typeBI = new InterfaceTypeImpl(classB);
     typeBI.typeArguments = <DartType>[typeI];
     List<InterfaceType> interfaces = typeBI.interfaces;
     expect(interfaces, hasLength(1));
@@ -2303,7 +2302,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
 
   void test_getLeastUpperBound_functionType() {
     DartType interfaceType = ElementFactory.classElement2("A").type;
-    FunctionTypeImpl functionType = new FunctionTypeImpl.con1(
+    FunctionTypeImpl functionType = new FunctionTypeImpl(
         new FunctionElementImpl.forNode(AstFactory.identifier3("f")));
     expect(interfaceType.getLeastUpperBound(functionType), isNull);
   }
@@ -2531,7 +2530,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     // A<I>
     //
     InterfaceType typeI = ElementFactory.classElement2("I").type;
-    InterfaceTypeImpl typeAI = new InterfaceTypeImpl.con1(classA);
+    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(classA);
     typeAI.typeArguments = <DartType>[typeI];
     MethodElement method = typeAI.getMethod(methodName);
     expect(method, isNotNull);
@@ -2556,13 +2555,13 @@ class InterfaceTypeImplTest extends EngineTestCase {
     MethodElementImpl methodOne = ElementFactory.methodElement("one", null);
     MethodElementImpl methodTwo = ElementFactory.methodElement("two", null);
     typeElement.methods = <MethodElement>[methodOne, methodTwo];
-    InterfaceTypeImpl type = new InterfaceTypeImpl.con1(typeElement);
+    InterfaceTypeImpl type = new InterfaceTypeImpl(typeElement);
     expect(type.methods.length, 2);
   }
 
   void test_getMethods_empty() {
     ClassElementImpl typeElement = ElementFactory.classElement2("A");
-    InterfaceTypeImpl type = new InterfaceTypeImpl.con1(typeElement);
+    InterfaceTypeImpl type = new InterfaceTypeImpl(typeElement);
     expect(type.methods.length, 0);
   }
 
@@ -2594,14 +2593,14 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElementImpl classA = ElementFactory.classElement2("A", ["E"]);
     ClassElementImpl classB = ElementFactory.classElement2("B", ["F"]);
     InterfaceType typeB = classB.type;
-    InterfaceTypeImpl typeAF = new InterfaceTypeImpl.con1(classA);
+    InterfaceTypeImpl typeAF = new InterfaceTypeImpl(classA);
     typeAF.typeArguments = <DartType>[typeB.typeArguments[0]];
     classB.mixins = <InterfaceType>[typeAF];
     //
     // B<I>
     //
     InterfaceType typeI = ElementFactory.classElement2("I").type;
-    InterfaceTypeImpl typeBI = new InterfaceTypeImpl.con1(classB);
+    InterfaceTypeImpl typeBI = new InterfaceTypeImpl(classB);
     typeBI.typeArguments = <DartType>[typeI];
     List<InterfaceType> interfaces = typeBI.mixins;
     expect(interfaces, hasLength(1));
@@ -2639,7 +2638,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     // A<I>
     //
     InterfaceType typeI = ElementFactory.classElement2("I").type;
-    InterfaceTypeImpl typeAI = new InterfaceTypeImpl.con1(classA);
+    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(classA);
     typeAI.typeArguments = <DartType>[typeI];
     PropertyAccessorElement setter = typeAI.getSetter(setterName);
     expect(setter, isNotNull);
@@ -2677,14 +2676,14 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElementImpl classA = ElementFactory.classElement2("A", ["E"]);
     ClassElementImpl classB = ElementFactory.classElement2("B", ["F"]);
     InterfaceType typeB = classB.type;
-    InterfaceTypeImpl typeAF = new InterfaceTypeImpl.con1(classA);
+    InterfaceTypeImpl typeAF = new InterfaceTypeImpl(classA);
     typeAF.typeArguments = <DartType>[typeB.typeArguments[0]];
     classB.supertype = typeAF;
     //
     // B<I>
     //
     InterfaceType typeI = ElementFactory.classElement2("I").type;
-    InterfaceTypeImpl typeBI = new InterfaceTypeImpl.con1(classB);
+    InterfaceTypeImpl typeBI = new InterfaceTypeImpl(classB);
     typeBI.typeArguments = <DartType>[typeI];
     InterfaceType superclass = typeBI.superclass;
     expect(superclass.element, same(classA));
@@ -2714,9 +2713,9 @@ class InterfaceTypeImplTest extends EngineTestCase {
     //
     ClassElement classA = ElementFactory.classElement2("A", ["E"]);
     ClassElement classB = ElementFactory.classElement2("B", ["F", "G"]);
-    InterfaceTypeImpl typeAF = new InterfaceTypeImpl.con1(classA);
+    InterfaceTypeImpl typeAF = new InterfaceTypeImpl(classA);
     typeAF.typeArguments = <DartType>[classB.typeParameters[0].type];
-    InterfaceTypeImpl typeAG = new InterfaceTypeImpl.con1(classA);
+    InterfaceTypeImpl typeAG = new InterfaceTypeImpl(classA);
     typeAG.typeArguments = <DartType>[classB.typeParameters[1].type];
     expect(typeAG.isAssignableTo(typeAF), isFalse);
   }
@@ -2770,8 +2769,8 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classA = ElementFactory.classElement2("A", ["E"]);
     ClassElement classI = ElementFactory.classElement2("I");
     ClassElement classJ = ElementFactory.classElement("J", classI.type);
-    InterfaceTypeImpl typeAI = new InterfaceTypeImpl.con1(classA);
-    InterfaceTypeImpl typeAJ = new InterfaceTypeImpl.con1(classA);
+    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(classA);
+    InterfaceTypeImpl typeAJ = new InterfaceTypeImpl(classA);
     typeAI.typeArguments = <DartType>[classI.type];
     typeAJ.typeArguments = <DartType>[classJ.type];
     expect(typeAJ.isMoreSpecificThan(typeAI), isTrue);
@@ -3024,9 +3023,9 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classK = ElementFactory.classElement2("K");
     InterfaceType typeA = classA.type;
     InterfaceType typeA_dynamic = typeA.substitute4(<DartType>[dynamicType]);
-    InterfaceTypeImpl typeAI = new InterfaceTypeImpl.con1(classA);
-    InterfaceTypeImpl typeAJ = new InterfaceTypeImpl.con1(classA);
-    InterfaceTypeImpl typeAK = new InterfaceTypeImpl.con1(classA);
+    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(classA);
+    InterfaceTypeImpl typeAJ = new InterfaceTypeImpl(classA);
+    InterfaceTypeImpl typeAK = new InterfaceTypeImpl(classA);
     typeAI.typeArguments = <DartType>[classI.type];
     typeAJ.typeArguments = <DartType>[classJ.type];
     typeAK.typeArguments = <DartType>[classK.type];
@@ -3299,7 +3298,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
         classA.type.typeArguments;
     ClassElementImpl classB = ElementFactory.classElement2("B", ["F"]);
     InterfaceType typeB = classB.type;
-    InterfaceTypeImpl typeAF = new InterfaceTypeImpl.con1(classA);
+    InterfaceTypeImpl typeAF = new InterfaceTypeImpl(classA);
     typeAF.typeArguments = <DartType>[typeB.typeArguments[0]];
     classB.supertype = typeAF;
     LibraryElementImpl library =
@@ -3310,7 +3309,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     // B<I>
     //
     InterfaceType typeI = ElementFactory.classElement2("I").type;
-    InterfaceTypeImpl typeBI = new InterfaceTypeImpl.con1(classB);
+    InterfaceTypeImpl typeBI = new InterfaceTypeImpl(classB);
     typeBI.typeArguments = <DartType>[typeI];
     MethodElement method = typeBI.lookUpMethod(methodName, library);
     expect(method, isNotNull);
@@ -3469,7 +3468,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
   void test_substitute_exception() {
     try {
       ClassElementImpl classA = ElementFactory.classElement2("A");
-      InterfaceTypeImpl type = new InterfaceTypeImpl.con1(classA);
+      InterfaceTypeImpl type = new InterfaceTypeImpl(classA);
       InterfaceType argumentType = ElementFactory.classElement2("B").type;
       type.substitute2(<DartType>[argumentType], <DartType>[]);
       fail(
@@ -3485,7 +3484,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     TypeParameterElementImpl parameterElement =
         new TypeParameterElementImpl.forNode(AstFactory.identifier3("E"));
-    InterfaceTypeImpl type = new InterfaceTypeImpl.con1(classA);
+    InterfaceTypeImpl type = new InterfaceTypeImpl(classA);
     TypeParameterTypeImpl parameter =
         new TypeParameterTypeImpl(parameterElement);
     type.typeArguments = <DartType>[parameter];
@@ -3902,7 +3901,7 @@ class TypeParameterTypeImplTest extends EngineTestCase {
     TypeParameterElementImpl element =
         new TypeParameterElementImpl.forNode(AstFactory.identifier3("E"));
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
-    InterfaceTypeImpl argument = new InterfaceTypeImpl.con1(
+    InterfaceTypeImpl argument = new InterfaceTypeImpl(
         new ClassElementImpl.forNode(AstFactory.identifier3("A")));
     TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(element);
     expect(type.substitute2(<DartType>[argument], <DartType>[parameter]),
@@ -3912,7 +3911,7 @@ class TypeParameterTypeImplTest extends EngineTestCase {
   void test_substitute_notEqual() {
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(
         new TypeParameterElementImpl.forNode(AstFactory.identifier3("E")));
-    InterfaceTypeImpl argument = new InterfaceTypeImpl.con1(
+    InterfaceTypeImpl argument = new InterfaceTypeImpl(
         new ClassElementImpl.forNode(AstFactory.identifier3("A")));
     TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(
         new TypeParameterElementImpl.forNode(AstFactory.identifier3("F")));
@@ -3962,7 +3961,7 @@ class VoidTypeImplTest extends EngineTestCase {
 class _FunctionTypeImplTest_isSubtypeOf_baseCase_classFunction
     extends InterfaceTypeImpl {
   _FunctionTypeImplTest_isSubtypeOf_baseCase_classFunction(ClassElement arg0)
-      : super.con1(arg0);
+      : super(arg0);
 
   @override
   bool get isDartCoreFunction => true;

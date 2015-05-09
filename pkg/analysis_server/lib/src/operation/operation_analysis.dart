@@ -174,7 +174,7 @@ void sendAnalysisNotificationOverrides(
  */
 void setCacheSize(AnalysisContext context, int cacheSize) {
   AnalysisOptionsImpl options =
-      new AnalysisOptionsImpl.con1(context.analysisOptions);
+      new AnalysisOptionsImpl.from(context.analysisOptions);
   options.cacheSize = cacheSize;
   context.analysisOptions = options;
 }

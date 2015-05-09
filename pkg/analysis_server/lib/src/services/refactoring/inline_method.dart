@@ -324,7 +324,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     RefactoringStatus fatalStatus = new RefactoringStatus.fatal(
         'Method declaration or reference must be selected to activate this refactoring.');
     // prepare selected SimpleIdentifier
-    AstNode node = new NodeLocator.con1(offset).searchWithin(unit);
+    AstNode node = new NodeLocator(offset).searchWithin(unit);
     if (node is! SimpleIdentifier) {
       return fatalStatus;
     }

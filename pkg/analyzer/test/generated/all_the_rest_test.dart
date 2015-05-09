@@ -4921,9 +4921,9 @@ class DirectoryBasedSourceContainerTest {
     JavaFile file2 =
         FileUtilities2.createFile("/does/not/exist/folder/some2.dart");
     JavaFile file3 = FileUtilities2.createFile("/does/not/exist3/some3.dart");
-    FileBasedSource source1 = new FileBasedSource.con1(file1);
-    FileBasedSource source2 = new FileBasedSource.con1(file2);
-    FileBasedSource source3 = new FileBasedSource.con1(file3);
+    FileBasedSource source1 = new FileBasedSource(file1);
+    FileBasedSource source2 = new FileBasedSource(file2);
+    FileBasedSource source3 = new FileBasedSource(file3);
     DirectoryBasedSourceContainer container =
         new DirectoryBasedSourceContainer.con1(dir);
     expect(container.contains(source1), isTrue);
@@ -6346,7 +6346,7 @@ void main() {
 }''';
     CompilationUnit cu = _resolveContents(code);
     int offset = code.indexOf('foo(0)');
-    AstNode node = new NodeLocator.con1(offset).searchWithin(cu);
+    AstNode node = new NodeLocator(offset).searchWithin(cu);
     MethodInvocation invocation =
         node.getAncestor((n) => n is MethodInvocation);
     Element element = ElementLocator.locate(invocation);
@@ -6456,7 +6456,7 @@ core.int value;''');
     CompilationUnit cu = _resolveContents(code);
     int start = _getOffsetOfMatch(code, nodePattern, index);
     int end = start + nodePattern.length;
-    return new NodeLocator.con2(start, end).searchWithin(cu);
+    return new NodeLocator(start, end).searchWithin(cu);
   }
 
   int _getOffsetOfMatch(String contents, String pattern, int matchIndex) {
@@ -7303,22 +7303,22 @@ class FileBasedSourceTest {
   void test_equals_false_differentFiles() {
     JavaFile file1 = FileUtilities2.createFile("/does/not/exist1.dart");
     JavaFile file2 = FileUtilities2.createFile("/does/not/exist2.dart");
-    FileBasedSource source1 = new FileBasedSource.con1(file1);
-    FileBasedSource source2 = new FileBasedSource.con1(file2);
+    FileBasedSource source1 = new FileBasedSource(file1);
+    FileBasedSource source2 = new FileBasedSource(file2);
     expect(source1 == source2, isFalse);
   }
 
   void test_equals_false_null() {
     JavaFile file = FileUtilities2.createFile("/does/not/exist1.dart");
-    FileBasedSource source1 = new FileBasedSource.con1(file);
+    FileBasedSource source1 = new FileBasedSource(file);
     expect(source1 == null, isFalse);
   }
 
   void test_equals_true() {
     JavaFile file1 = FileUtilities2.createFile("/does/not/exist.dart");
     JavaFile file2 = FileUtilities2.createFile("/does/not/exist.dart");
-    FileBasedSource source1 = new FileBasedSource.con1(file1);
-    FileBasedSource source2 = new FileBasedSource.con1(file2);
+    FileBasedSource source1 = new FileBasedSource(file1);
+    FileBasedSource source2 = new FileBasedSource(file2);
     expect(source1 == source2, isTrue);
   }
 
@@ -7368,28 +7368,28 @@ class FileBasedSourceTest {
     SourceFactory factory = new SourceFactory([new FileUriResolver()]);
     String fullPath = "/does/not/exist.dart";
     JavaFile file = FileUtilities2.createFile(fullPath);
-    FileBasedSource source = new FileBasedSource.con1(file);
+    FileBasedSource source = new FileBasedSource(file);
     expect(factory.fromEncoding(source.encoding), source);
   }
 
   void test_getFullName() {
     String fullPath = "/does/not/exist.dart";
     JavaFile file = FileUtilities2.createFile(fullPath);
-    FileBasedSource source = new FileBasedSource.con1(file);
+    FileBasedSource source = new FileBasedSource(file);
     expect(source.fullName, file.getAbsolutePath());
   }
 
   void test_getShortName() {
     JavaFile file = FileUtilities2.createFile("/does/not/exist.dart");
-    FileBasedSource source = new FileBasedSource.con1(file);
+    FileBasedSource source = new FileBasedSource(file);
     expect(source.shortName, "exist.dart");
   }
 
   void test_hashCode() {
     JavaFile file1 = FileUtilities2.createFile("/does/not/exist.dart");
     JavaFile file2 = FileUtilities2.createFile("/does/not/exist.dart");
-    FileBasedSource source1 = new FileBasedSource.con1(file1);
-    FileBasedSource source2 = new FileBasedSource.con1(file2);
+    FileBasedSource source1 = new FileBasedSource(file1);
+    FileBasedSource source2 = new FileBasedSource(file2);
     expect(source2.hashCode, source1.hashCode);
   }
 
@@ -7412,7 +7412,7 @@ class FileBasedSourceTest {
 
   void test_isInSystemLibrary_false() {
     JavaFile file = FileUtilities2.createFile("/does/not/exist.dart");
-    FileBasedSource source = new FileBasedSource.con1(file);
+    FileBasedSource source = new FileBasedSource(file);
     expect(source, isNotNull);
     expect(source.fullName, file.getAbsolutePath());
     expect(source.isInSystemLibrary, isFalse);
@@ -7420,7 +7420,7 @@ class FileBasedSourceTest {
 
   void test_issue14500() {
     // see https://code.google.com/p/dart/issues/detail?id=14500
-    FileBasedSource source = new FileBasedSource.con1(
+    FileBasedSource source = new FileBasedSource(
         FileUtilities2.createFile("/some/packages/foo:bar.dart"));
     expect(source, isNotNull);
     expect(source.exists(), isFalse);
@@ -7429,7 +7429,7 @@ class FileBasedSourceTest {
   void test_resolveRelative_dart_fileName() {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
     FileBasedSource source =
-        new FileBasedSource.con2(parseUriWithException("dart:test"), file);
+        new FileBasedSource(file, parseUriWithException("dart:test"));
     expect(source, isNotNull);
     Uri relative = source.resolveRelativeUri(parseUriWithException("lib.dart"));
     expect(relative, isNotNull);
@@ -7439,7 +7439,7 @@ class FileBasedSourceTest {
   void test_resolveRelative_dart_filePath() {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
     FileBasedSource source =
-        new FileBasedSource.con2(parseUriWithException("dart:test"), file);
+        new FileBasedSource(file, parseUriWithException("dart:test"));
     expect(source, isNotNull);
     Uri relative =
         source.resolveRelativeUri(parseUriWithException("c/lib.dart"));
@@ -7449,8 +7449,8 @@ class FileBasedSourceTest {
 
   void test_resolveRelative_dart_filePathWithParent() {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source = new FileBasedSource.con2(
-        parseUriWithException("dart:test/b/test.dart"), file);
+    FileBasedSource source = new FileBasedSource(
+        file, parseUriWithException("dart:test/b/test.dart"));
     expect(source, isNotNull);
     Uri relative =
         source.resolveRelativeUri(parseUriWithException("../c/lib.dart"));
@@ -7466,7 +7466,7 @@ class FileBasedSourceTest {
       return;
     }
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source = new FileBasedSource.con1(file);
+    FileBasedSource source = new FileBasedSource(file);
     expect(source, isNotNull);
     Uri relative = source.resolveRelativeUri(parseUriWithException("lib.dart"));
     expect(relative, isNotNull);
@@ -7481,7 +7481,7 @@ class FileBasedSourceTest {
       return;
     }
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source = new FileBasedSource.con1(file);
+    FileBasedSource source = new FileBasedSource(file);
     expect(source, isNotNull);
     Uri relative =
         source.resolveRelativeUri(parseUriWithException("c/lib.dart"));
@@ -7496,7 +7496,7 @@ class FileBasedSourceTest {
       return;
     }
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source = new FileBasedSource.con1(file);
+    FileBasedSource source = new FileBasedSource(file);
     expect(source, isNotNull);
     Uri relative =
         source.resolveRelativeUri(parseUriWithException("../c/lib.dart"));
@@ -7506,8 +7506,8 @@ class FileBasedSourceTest {
 
   void test_resolveRelative_package_fileName() {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source = new FileBasedSource.con2(
-        parseUriWithException("package:b/test.dart"), file);
+    FileBasedSource source =
+        new FileBasedSource(file, parseUriWithException("package:b/test.dart"));
     expect(source, isNotNull);
     Uri relative = source.resolveRelativeUri(parseUriWithException("lib.dart"));
     expect(relative, isNotNull);
@@ -7516,8 +7516,8 @@ class FileBasedSourceTest {
 
   void test_resolveRelative_package_fileNameWithoutPackageName() {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source = new FileBasedSource.con2(
-        parseUriWithException("package:test.dart"), file);
+    FileBasedSource source =
+        new FileBasedSource(file, parseUriWithException("package:test.dart"));
     expect(source, isNotNull);
     Uri relative = source.resolveRelativeUri(parseUriWithException("lib.dart"));
     expect(relative, isNotNull);
@@ -7526,8 +7526,8 @@ class FileBasedSourceTest {
 
   void test_resolveRelative_package_filePath() {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source = new FileBasedSource.con2(
-        parseUriWithException("package:b/test.dart"), file);
+    FileBasedSource source =
+        new FileBasedSource(file, parseUriWithException("package:b/test.dart"));
     expect(source, isNotNull);
     Uri relative =
         source.resolveRelativeUri(parseUriWithException("c/lib.dart"));
@@ -7537,8 +7537,8 @@ class FileBasedSourceTest {
 
   void test_resolveRelative_package_filePathWithParent() {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source = new FileBasedSource.con2(
-        parseUriWithException("package:a/b/test.dart"), file);
+    FileBasedSource source = new FileBasedSource(
+        file, parseUriWithException("package:a/b/test.dart"));
     expect(source, isNotNull);
     Uri relative =
         source.resolveRelativeUri(parseUriWithException("../c/lib.dart"));
@@ -7549,7 +7549,7 @@ class FileBasedSourceTest {
   void test_system() {
     JavaFile file = FileUtilities2.createFile("/does/not/exist.dart");
     FileBasedSource source =
-        new FileBasedSource.con2(parseUriWithException("dart:core"), file);
+        new FileBasedSource(file, parseUriWithException("dart:core"));
     expect(source, isNotNull);
     expect(source.fullName, file.getAbsolutePath());
     expect(source.isInSystemLibrary, isTrue);
@@ -8198,8 +8198,8 @@ class SourceFactoryTest {
     SourceFactory factory =
         new SourceFactory([new UriResolver_nonAbsolute_absolute()]);
     String absolutePath = "/does/not/matter.dart";
-    Source containingSource = new FileBasedSource.con1(
-        FileUtilities2.createFile("/does/not/exist.dart"));
+    Source containingSource =
+        new FileBasedSource(FileUtilities2.createFile("/does/not/exist.dart"));
     Source result = factory.resolveUri(containingSource, absolutePath);
     expect(result.fullName,
         FileUtilities2.createFile(absolutePath).getAbsolutePath());
@@ -8207,8 +8207,8 @@ class SourceFactoryTest {
   void test_resolveUri_nonAbsolute_relative() {
     SourceFactory factory =
         new SourceFactory([new UriResolver_nonAbsolute_relative()]);
-    Source containingSource = new FileBasedSource.con1(
-        FileUtilities2.createFile("/does/not/have.dart"));
+    Source containingSource =
+        new FileBasedSource(FileUtilities2.createFile("/does/not/have.dart"));
     Source result = factory.resolveUri(containingSource, "exist.dart");
     expect(result.fullName,
         FileUtilities2.createFile("/does/not/exist.dart").getAbsolutePath());
@@ -8245,8 +8245,8 @@ class SourceFactoryTest {
   void test_restoreUri() {
     JavaFile file1 = FileUtilities2.createFile("/some/file1.dart");
     JavaFile file2 = FileUtilities2.createFile("/some/file2.dart");
-    Source source1 = new FileBasedSource.con1(file1);
-    Source source2 = new FileBasedSource.con1(file2);
+    Source source1 = new FileBasedSource(file1);
+    Source source2 = new FileBasedSource(file2);
     Uri expected1 = parseUriWithException("file:///my_file.dart");
     SourceFactory factory =
         new SourceFactory([new UriResolver_restoreUri(source1, expected1)]);
@@ -8346,14 +8346,14 @@ class UriResolver_absolute extends UriResolver {
 class UriResolver_nonAbsolute_absolute extends UriResolver {
   @override
   Source resolveAbsolute(Uri uri) {
-    return new FileBasedSource.con2(uri, new JavaFile.fromUri(uri));
+    return new FileBasedSource(new JavaFile.fromUri(uri), uri);
   }
 }
 
 class UriResolver_nonAbsolute_relative extends UriResolver {
   @override
   Source resolveAbsolute(Uri uri) {
-    return new FileBasedSource.con2(uri, new JavaFile.fromUri(uri));
+    return new FileBasedSource(new JavaFile.fromUri(uri), uri);
   }
 }
 

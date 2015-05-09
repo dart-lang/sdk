@@ -99,6 +99,24 @@ class ContentCache {
   }
 }
 
+class CustomUriResolver extends UriResolver {
+  final Map<String, String> _urlMappings;
+
+  CustomUriResolver(this._urlMappings);
+
+  @override
+  Source resolveAbsolute(Uri uri) {
+    String mapping = _urlMappings[uri.toString()];
+    if (mapping == null) return null;
+
+    Uri fileUri = new Uri.file(mapping);
+    if (!fileUri.isAbsolute) return null;
+
+    JavaFile javaFile = new JavaFile.fromUri(fileUri);
+    return new FileBasedSource(javaFile);
+  }
+}
+
 /**
  * Instances of the class `DartUriResolver` resolve `dart` URI's.
  */
@@ -157,24 +175,6 @@ class DartUriResolver extends UriResolver {
    * @return `true` if the given URI is a `dart:` URI
    */
   static bool isDartUri(Uri uri) => DART_SCHEME == uri.scheme;
-}
-
-class CustomUriResolver extends UriResolver {
-  final Map<String, String> _urlMappings;
-
-  CustomUriResolver(this._urlMappings);
-
-  @override
-  Source resolveAbsolute(Uri uri) {
-    String mapping = _urlMappings[uri.toString()];
-    if (mapping == null) return null;
-
-    Uri fileUri = new Uri.file(mapping);
-    if (!fileUri.isAbsolute) return null;
-
-    JavaFile javaFile = new JavaFile.fromUri(fileUri);
-    return new FileBasedSource.con1(javaFile);
-  }
 }
 
 /**
@@ -428,9 +428,6 @@ abstract class Source implements AnalysisTarget {
    */
   String get encoding;
 
-  @override
-  Source get source => this;
-
   /**
    * Return the full (long) version of the name that can be displayed to the user to denote this
    * source. For example, for a source representing a file this would typically be the absolute path
@@ -477,6 +474,9 @@ abstract class Source implements AnalysisTarget {
    * @return a name that can be displayed to the user to denote this source
    */
   String get shortName;
+
+  @override
+  Source get source => this;
 
   /**
    * Return the URI from which this source was originally derived.

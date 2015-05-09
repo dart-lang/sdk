@@ -844,7 +844,7 @@ void g() { f(null); }''');
 
   void fail_setAnalysisOptions_reduceAnalysisPriorityOrder() {
     AnalysisOptionsImpl options =
-        new AnalysisOptionsImpl.con1(context.analysisOptions);
+        new AnalysisOptionsImpl.from(context.analysisOptions);
     List<Source> sources = new List<Source>();
     for (int index = 0; index < options.cacheSize; index++) {
       sources.add(addSource("/lib.dart$index", ""));
@@ -1727,7 +1727,7 @@ main() {}''');
 
   void test_setChangedContents_notResolved() {
     AnalysisOptionsImpl options =
-        new AnalysisOptionsImpl.con1(context.analysisOptions);
+        new AnalysisOptionsImpl.from(context.analysisOptions);
     options.incremental = true;
     context.analysisOptions = options;
     String oldCode = r'''
@@ -1862,7 +1862,7 @@ int a = 0;''');
   void xtest_performAnalysisTask_stress() {
     int maxCacheSize = 4;
     AnalysisOptionsImpl options =
-        new AnalysisOptionsImpl.con1(context.analysisOptions);
+        new AnalysisOptionsImpl.from(context.analysisOptions);
     options.cacheSize = maxCacheSize;
     context.analysisOptions = options;
     int sourceCount = maxCacheSize + 2;

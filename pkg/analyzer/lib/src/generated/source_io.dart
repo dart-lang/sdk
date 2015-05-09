@@ -128,11 +128,24 @@ class FileBasedSource extends Source {
   String _encoding;
 
   /**
+   * Initialize a newly created source object to represent the given [file]. If
+   * a [uri] is given, then it will be used as the URI from which the source was
+   * derived, otherwise a `file:` URI will be created based on the [file].
+   */
+  FileBasedSource(JavaFile file, [Uri uri])
+      : this.uri = (uri == null ? file.toURI() : uri),
+        this.file = file,
+        id = _idTable.putIfAbsent(
+            '${uri == null ? file.toURI() : uri}@${file.getPath()}',
+            () => _idTable.length);
+
+  /**
    * Initialize a newly created source object.
    *
    * @param file the file represented by this source
    */
-  FileBasedSource.con1(JavaFile file) : this.con2(file.toURI(), file);
+  @deprecated // Use new FileBasedSource(file)
+  FileBasedSource.con1(JavaFile file) : this(file);
 
   /**
    * Initialize a newly created source object.
@@ -140,6 +153,7 @@ class FileBasedSource extends Source {
    * @param file the file represented by this source
    * @param uri the URI from which this source was originally derived
    */
+  @deprecated // Use new FileBasedSource(file, uri)
   FileBasedSource.con2(Uri uri, JavaFile file)
       : uri = uri,
         file = file,
@@ -266,7 +280,7 @@ class FileUriResolver extends UriResolver {
     if (!isFileUri(uri)) {
       return null;
     }
-    return new FileBasedSource.con2(uri, new JavaFile.fromUri(uri));
+    return new FileBasedSource(new JavaFile.fromUri(uri), uri);
   }
 
   /**
@@ -437,11 +451,11 @@ class PackageUriResolver extends UriResolver {
         if (_isSelfReference(packagesDirectory, canonicalFile)) {
           uri = canonicalFile.toURI();
         }
-        return new FileBasedSource.con2(uri, canonicalFile);
+        return new FileBasedSource(canonicalFile, uri);
       }
     }
-    return new FileBasedSource.con2(
-        uri, getCanonicalFile(_packagesDirectories[0], pkgName, relPath));
+    return new FileBasedSource(
+        getCanonicalFile(_packagesDirectories[0], pkgName, relPath), uri);
   }
 
   @override
@@ -523,7 +537,7 @@ class RelativeFileUriResolver extends UriResolver {
       for (JavaFile dir in _relativeDirectories) {
         JavaFile file = new JavaFile.relative(dir, filePath);
         if (file.exists()) {
-          return new FileBasedSource.con2(uri, file);
+          return new FileBasedSource(file, uri);
         }
       }
     }

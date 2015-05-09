@@ -101,7 +101,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   SimpleIdentifier _getInterpolationIdentifier(SourceReference reference) {
     Source source = reference.element.source;
     CompilationUnit unit = context.parseCompilationUnit(source);
-    NodeLocator nodeLocator = new NodeLocator.con1(reference.range.offset);
+    NodeLocator nodeLocator = new NodeLocator(reference.range.offset);
     AstNode node = nodeLocator.searchWithin(unit);
     if (node is SimpleIdentifier) {
       AstNode parent = node.parent;

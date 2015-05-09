@@ -564,7 +564,7 @@ class AnalysisServer {
     List<CompilationUnit> units = getResolvedCompilationUnits(file);
     List<AstNode> nodes = <AstNode>[];
     for (CompilationUnit unit in units) {
-      AstNode node = new NodeLocator.con1(offset).searchWithin(unit);
+      AstNode node = new NodeLocator(offset).searchWithin(unit);
       if (node != null) {
         nodes.add(node);
       }
@@ -1139,7 +1139,7 @@ class AnalysisServer {
     //
     folderMap.forEach((Folder folder, AnalysisContext context) {
       AnalysisOptionsImpl options =
-          new AnalysisOptionsImpl.con1(context.analysisOptions);
+          new AnalysisOptionsImpl.from(context.analysisOptions);
       optionUpdaters.forEach((OptionUpdater optionUpdater) {
         optionUpdater(options);
       });
@@ -1321,7 +1321,7 @@ class ServerContextManager extends ContextManager {
     context.contentCache = analysisServer.overlayState;
     analysisServer.folderMap[folder] = context;
     context.sourceFactory = _createSourceFactory(packageUriResolver);
-    context.analysisOptions = new AnalysisOptionsImpl.con1(defaultOptions);
+    context.analysisOptions = new AnalysisOptionsImpl.from(defaultOptions);
     _onContextsChangedController
         .add(new ContextsChangedEvent(added: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);

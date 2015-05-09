@@ -89,21 +89,12 @@ class AnalysisError {
   bool isStaticOnly = false;
 
   /**
-   * Initialize a newly created analysis error for the specified [source]. The
-   * error will have the given [errorCode] and the list of [arguments] will be
-   * used to complete the message. The error has no location information.
+   * Initialize a newly created analysis error. The error is associated with the
+   * given [source] and is located at the given [offset] with the given
+   * [length]. The error will have the given [errorCode] and the list of
+   * [arguments] will be used to complete the message.
    */
-  AnalysisError.con1(this.source, this.errorCode, [List<Object> arguments]) {
-    this._message = formatList(errorCode.message, arguments);
-  }
-
-  /**
-   * Initialize a newly created analysis error for the specified [source] at the
-   * given [offset] with the given [length]. The error will have the given
-   * [errorCode] and the list of [arguments] will be used to complete the
-   * message.
-   */
-  AnalysisError.con2(this.source, this.offset, int length, this.errorCode,
+  AnalysisError(this.source, this.offset, int length, this.errorCode,
       [List<Object> arguments]) {
     this._length = length;
     this._message = formatList(errorCode.message, arguments);
@@ -112,6 +103,27 @@ class AnalysisError {
       this._correction = formatList(correctionTemplate, arguments);
     }
   }
+
+  /**
+   * Initialize a newly created analysis error for the specified [source]. The
+   * error will have the given [errorCode] and the list of [arguments] will be
+   * used to complete the message. The error has no location information.
+   */
+  @deprecated // Use new AnalysisError(source, 0, 0, errorCode, arguments)
+  AnalysisError.con1(Source source, ErrorCode errorCode,
+      [List<Object> arguments])
+      : this(source, 0, 0, errorCode, arguments);
+
+  /**
+   * Initialize a newly created analysis error for the specified [source] at the
+   * given [offset] with the given [length]. The error will have the given
+   * [errorCode] and the list of [arguments] will be used to complete the
+   * message.
+   */
+  @deprecated // Use new AnalysisError(source, offset, length, errorCode, arguments)
+  AnalysisError.con2(Source source, int offset, int length, ErrorCode errorCode,
+      [List<Object> arguments])
+      : this(source, offset, length, errorCode, arguments);
 
   /**
    * Return the template used to create the correction to be displayed for this
@@ -244,13 +256,25 @@ class AnalysisErrorWithProperties extends AnalysisError {
       new HashMap<ErrorProperty, Object>();
 
   /**
+   * Initialize a newly created analysis error. The error is associated with the
+   * given [source] and is located at the given [offset] with the given
+   * [length]. The error will have the given [errorCode] and the list of
+   * [arguments] will be used to complete the message.
+   */
+  AnalysisErrorWithProperties(
+      Source source, int offset, int length, ErrorCode errorCode,
+      [List<Object> arguments])
+      : super(source, offset, length, errorCode, arguments);
+
+  /**
    * Initialize a newly created analysis error for the specified [source]. The
    * error will have the given [errorCode] and the list of [arguments] will be
    * used to complete the message. The error has no location information.
    */
+  @deprecated // Use new AnalysisErrorWithProperties(source, 0, 0, errorCode, arguments)
   AnalysisErrorWithProperties.con1(Source source, ErrorCode errorCode,
       [List<Object> arguments])
-      : super.con1(source, errorCode, arguments);
+      : this(source, 0, 0, errorCode, arguments);
 
   /**
    * Initialize a newly created analysis error for the specified [source] at the
@@ -258,10 +282,11 @@ class AnalysisErrorWithProperties extends AnalysisError {
    * [errorCode] and the list of [arguments] will be used to complete the
    * message.
    */
+  @deprecated // Use new AnalysisErrorWithProperties(source, offset, length, errorCode, arguments)
   AnalysisErrorWithProperties.con2(
       Source source, int offset, int length, ErrorCode errorCode,
       [List<Object> arguments])
-      : super.con2(source, offset, length, errorCode, arguments);
+      : this(source, offset, length, errorCode, arguments);
 
   @override
   Object getProperty(ErrorProperty property) => _propertyMap[property];
@@ -2471,7 +2496,7 @@ class ErrorReporter {
    */
   AnalysisErrorWithProperties newErrorWithProperties(
           ErrorCode errorCode, AstNode node, List<Object> arguments) =>
-      new AnalysisErrorWithProperties.con2(
+      new AnalysisErrorWithProperties(
           _source, node.offset, node.length, errorCode, arguments);
 
   /**
@@ -2519,7 +2544,7 @@ class ErrorReporter {
   void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
       [List<Object> arguments]) {
     _errorListener.onError(
-        new AnalysisError.con2(_source, offset, length, errorCode, arguments));
+        new AnalysisError(_source, offset, length, errorCode, arguments));
   }
 
   /**

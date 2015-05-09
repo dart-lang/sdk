@@ -953,9 +953,8 @@ class Foo {
 
   void test_expectedExecutable_topLevel_eof() {
     parse2("parseCompilationUnitMember", <Object>[emptyCommentAndMetadata()],
-        "x", [
-      new AnalysisError.con2(null, 0, 1, ParserErrorCode.EXPECTED_EXECUTABLE)
-    ]);
+        "x",
+        [new AnalysisError(null, 0, 1, ParserErrorCode.EXPECTED_EXECUTABLE)]);
   }
 
   void test_expectedInterpolationIdentifier() {
@@ -967,9 +966,8 @@ class Foo {
     // The scanner inserts an empty string token between the two $'s; we need to
     // make sure that the MISSING_IDENTIFIER error that is generated has a
     // nonzero width so that it will show up in the editor UI.
-    parse2("parseStringLiteral", <Object>[], "'\$\$foo'", [
-      new AnalysisError.con2(null, 2, 1, ParserErrorCode.MISSING_IDENTIFIER)
-    ]);
+    parse2("parseStringLiteral", <Object>[], "'\$\$foo'",
+        [new AnalysisError(null, 2, 1, ParserErrorCode.MISSING_IDENTIFIER)]);
   }
 
   void test_expectedStringLiteral() {

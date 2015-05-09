@@ -1546,7 +1546,7 @@ class PoorMansIncrementalResolver {
   }
 
   static AstNode _findNodeCovering(AstNode root, int offset, int end) {
-    NodeLocator nodeLocator = new NodeLocator.con2(offset, end);
+    NodeLocator nodeLocator = new NodeLocator(offset, end);
     return nodeLocator.searchWithin(root);
   }
 

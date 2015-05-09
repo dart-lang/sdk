@@ -511,7 +511,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (unit == null) {
       return null;
     }
-    NodeLocator locator = new NodeLocator.con1(element.nameOffset);
+    NodeLocator locator = new NodeLocator(element.nameOffset);
     AstNode nameNode = locator.searchWithin(unit);
     while (nameNode != null) {
       if (nameNode is AnnotatedNode) {

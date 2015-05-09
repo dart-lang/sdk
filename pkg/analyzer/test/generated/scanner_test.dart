@@ -1074,7 +1074,7 @@ class ScannerTest {
     GatheringErrorListener listener = new GatheringErrorListener();
     _scanWithListener(source, listener);
     listener.assertErrors([
-      new AnalysisError.con2(null, expectedOffset, 1, expectedError,
+      new AnalysisError(null, expectedOffset, 1, expectedError,
           [source.codeUnitAt(expectedOffset)])
     ]);
   }
@@ -1093,7 +1093,7 @@ class ScannerTest {
     GatheringErrorListener listener = new GatheringErrorListener();
     Token token = _scanWithListener(source, listener);
     listener.assertErrors([
-      new AnalysisError.con2(null, expectedOffset, 1, expectedError,
+      new AnalysisError(null, expectedOffset, 1, expectedError,
           [source.codeUnitAt(expectedOffset)])
     ]);
     _checkTokens(token, expectedTokens);

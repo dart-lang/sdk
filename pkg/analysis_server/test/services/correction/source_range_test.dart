@@ -46,7 +46,7 @@ class SourceRangesTest extends AbstractSingleUnitTest {
 
   void test_rangeError() {
     AnalysisError error =
-        new AnalysisError.con2(null, 10, 5, ParserErrorCode.CONST_CLASS, []);
+        new AnalysisError(null, 10, 5, ParserErrorCode.CONST_CLASS, []);
     expect(rangeError(error), new SourceRange(10, 5));
   }
 

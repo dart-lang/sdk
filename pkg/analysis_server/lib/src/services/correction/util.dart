@@ -442,7 +442,7 @@ AstNode getParsedClassElementNode(ClassElement classElement) {
       classElement.getAncestor((e) => e is CompilationUnitElement);
   CompilationUnit unit = getParsedUnit(unitElement);
   int offset = classElement.nameOffset;
-  AstNode classNameNode = new NodeLocator.con1(offset).searchWithin(unit);
+  AstNode classNameNode = new NodeLocator(offset).searchWithin(unit);
   if (classElement.isEnum) {
     return classNameNode.getAncestor((node) => node is EnumDeclaration);
   } else {
@@ -642,8 +642,7 @@ class CorrectionUtils {
   /**
    * Returns the [AstNode] that encloses the given offset.
    */
-  AstNode findNode(int offset) =>
-      new NodeLocator.con1(offset).searchWithin(unit);
+  AstNode findNode(int offset) => new NodeLocator(offset).searchWithin(unit);
 
   /**
    * Returns names of elements that might conflict with a new local variable

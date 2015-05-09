@@ -125,7 +125,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
 
   @override
   String get refactoringName {
-    AstNode node = new NodeLocator.con1(selectionOffset).searchWithin(unit);
+    AstNode node = new NodeLocator(selectionOffset).searchWithin(unit);
     if (node != null &&
         node.getAncestor((node) => node is ClassDeclaration) != null) {
       return 'Extract Method';

@@ -922,7 +922,7 @@ class NodeLocatorTest extends ParserTestCase {
   }
 
   void test_searchWithin_null() {
-    NodeLocator locator = new NodeLocator.con2(0, 0);
+    NodeLocator locator = new NodeLocator(0, 0);
     expect(locator.searchWithin(null), isNull);
   }
 
@@ -937,7 +937,7 @@ class NodeLocatorTest extends ParserTestCase {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
 class A {}
 class B {}''');
-    NodeLocator locator = new NodeLocator.con2(1024, 1024);
+    NodeLocator locator = new NodeLocator(1024, 1024);
     AstNode node = locator.searchWithin(unit.declarations[0]);
     expect(node, isNull);
   }
@@ -946,14 +946,14 @@ class B {}''');
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
 class A {}
 class B {}''');
-    NodeLocator locator = new NodeLocator.con2(0, 0);
+    NodeLocator locator = new NodeLocator(0, 0);
     AstNode node = locator.searchWithin(unit.declarations[1]);
     expect(node, isNull);
   }
 
   void _assertLocate(CompilationUnit unit, int start, int end,
       Predicate<AstNode> predicate, Type expectedClass) {
-    NodeLocator locator = new NodeLocator.con2(start, end);
+    NodeLocator locator = new NodeLocator(start, end);
     AstNode node = locator.searchWithin(unit);
     expect(node, isNotNull);
     expect(locator.foundNode, same(node));
@@ -2154,7 +2154,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitForEachStatement_variable() {
-    _assertSource("for (a in b) {}", new ForEachStatement.con2(null,
+    _assertSource("for (a in b) {}", new ForEachStatement.withReference(null,
         TokenFactory.tokenFromKeyword(Keyword.FOR),
         TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
         AstFactory.identifier3("a"), TokenFactory.tokenFromKeyword(Keyword.IN),
@@ -2163,7 +2163,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitForEachStatement_variable_await() {
-    _assertSource("await for (a in b) {}", new ForEachStatement.con2(
+    _assertSource("await for (a in b) {}", new ForEachStatement.withReference(
         TokenFactory.tokenFromString("await"),
         TokenFactory.tokenFromKeyword(Keyword.FOR),
         TokenFactory.tokenFromType(TokenType.OPEN_PAREN),

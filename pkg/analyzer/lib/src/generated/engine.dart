@@ -1535,7 +1535,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (unit == null) {
       return null;
     }
-    NodeLocator locator = new NodeLocator.con1(element.nameOffset);
+    NodeLocator locator = new NodeLocator(element.nameOffset);
     AstNode nameNode = locator.searchWithin(unit);
     while (nameNode != null) {
       if (nameNode is AnnotatedNode) {
@@ -6085,7 +6085,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * The default value for enabling enum support.
    */
   @deprecated
-  static bool DEFAULT_ENABLE_ENUM = false;
+  static bool DEFAULT_ENABLE_ENUM = true;
 
   /**
    * A predicate indicating whether analysis is to parse and analyze function
@@ -6172,7 +6172,28 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * Initialize a newly created set of analysis options to have the same values
    * as those in the given set of analysis [options].
    */
+  @deprecated // Use new AnalysisOptionsImpl.from(options)
   AnalysisOptionsImpl.con1(AnalysisOptions options) {
+    analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
+    cacheSize = options.cacheSize;
+    dart2jsHint = options.dart2jsHint;
+    enableNullAwareOperators = options.enableNullAwareOperators;
+    enableStrictCallChecks = options.enableStrictCallChecks;
+    generateImplicitErrors = options.generateImplicitErrors;
+    generateSdkErrors = options.generateSdkErrors;
+    hint = options.hint;
+    incremental = options.incremental;
+    incrementalApi = options.incrementalApi;
+    incrementalValidation = options.incrementalValidation;
+    lint = options.lint;
+    preserveComments = options.preserveComments;
+  }
+
+  /**
+   * Initialize a newly created set of analysis options to have the same values
+   * as those in the given set of analysis [options].
+   */
+  AnalysisOptionsImpl.from(AnalysisOptions options) {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
@@ -8249,9 +8270,9 @@ class GenerateDartErrorsTask extends AnalysisTask {
       }
     }
     StringLiteral uriLiteral = directive.uri;
-    errorListener.onError(new AnalysisError.con2(librarySource,
-        uriLiteral.offset, uriLiteral.length,
-        CompileTimeErrorCode.URI_DOES_NOT_EXIST, [directive.uriContent]));
+    errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
+        uriLiteral.length, CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+        [directive.uriContent]));
   }
 }
 
@@ -8475,8 +8496,8 @@ class GetContentTask extends AnalysisTask {
       AnalysisEngine.instance.instrumentationService.logFileRead(
           source.fullName, _modificationTime, _content);
     } catch (exception, stackTrace) {
-      errors.add(new AnalysisError.con1(
-          source, ScannerErrorCode.UNABLE_GET_CONTENT, [exception]));
+      errors.add(new AnalysisError(
+          source, 0, 0, ScannerErrorCode.UNABLE_GET_CONTENT, [exception]));
       throw new AnalysisException("Could not get contents of $source",
           new CaughtException(exception, stackTrace));
     }
@@ -9166,7 +9187,7 @@ abstract class Logger {
    * Log the given [exception] as one representing an error. The [message] is an
    * explanation of why the error occurred or what it means.
    */
-  @deprecated
+  @deprecated // Use logError(message, exception)
   void logError2(String message, Object exception);
 
   /**
@@ -9180,7 +9201,7 @@ abstract class Logger {
    * Log the given [exception] as one representing an informational message. The
    * [message] is an explanation of why the error occurred or what it means.
    */
-  @deprecated
+  @deprecated // Use logInformation(message, exception)
   void logInformation2(String message, Object exception);
 }
 
@@ -9448,15 +9469,13 @@ class ParseDartTask extends AnalysisTask {
       return null;
     }
     if (code == UriValidationCode.URI_WITH_INTERPOLATION) {
-      errorListener.onError(new AnalysisError.con2(librarySource,
-          uriLiteral.offset, uriLiteral.length,
-          CompileTimeErrorCode.URI_WITH_INTERPOLATION));
+      errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
+          uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION));
       return null;
     }
     if (code == UriValidationCode.INVALID_URI) {
-      errorListener.onError(new AnalysisError.con2(librarySource,
-          uriLiteral.offset, uriLiteral.length,
-          CompileTimeErrorCode.INVALID_URI, [uriContent]));
+      errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
+          uriLiteral.length, CompileTimeErrorCode.INVALID_URI, [uriContent]));
       return null;
     }
     throw new RuntimeException(

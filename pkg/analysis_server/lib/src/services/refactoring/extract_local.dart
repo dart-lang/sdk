@@ -319,7 +319,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   List<AstNode> _findNodes(List<SourceRange> ranges) {
     List<AstNode> nodes = <AstNode>[];
     for (SourceRange range in ranges) {
-      AstNode node = new NodeLocator.con1(range.offset).searchWithin(unit);
+      AstNode node = new NodeLocator(range.offset).searchWithin(unit);
       nodes.add(node);
     }
     return nodes;
@@ -402,7 +402,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     AstNode enclosingFunction;
     {
       AstNode selectionNode =
-          new NodeLocator.con1(selectionOffset).searchWithin(unit);
+          new NodeLocator(selectionOffset).searchWithin(unit);
       enclosingFunction = getEnclosingExecutableNode(selectionNode);
     }
     // visit function

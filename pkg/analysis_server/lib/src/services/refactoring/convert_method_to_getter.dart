@@ -124,7 +124,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
       {
         CompilationUnit refUnit = refElement.unit;
         AstNode refNode =
-            new NodeLocator.con1(refRange.offset).searchWithin(refUnit);
+            new NodeLocator(refRange.offset).searchWithin(refUnit);
         invocation = refNode.getAncestor((node) => node is MethodInvocation);
       }
       // we need invocation

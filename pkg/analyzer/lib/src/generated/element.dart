@@ -1567,15 +1567,28 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   EvaluationResultImpl _result;
 
   /**
+   * Initialize a newly created synthetic field element to have the given
+   * [name] and [offset].
+   */
+  ConstFieldElementImpl(String name, int offset) : super(name, offset);
+
+  /**
    * Initialize a newly created field element to have the given [name].
    */
+  @deprecated // Use new ConstFieldElementImpl.forNode(name)
   ConstFieldElementImpl.con1(Identifier name) : super.forNode(name);
 
   /**
    * Initialize a newly created synthetic field element to have the given
    * [name] and [offset].
    */
+  @deprecated // Use new ConstFieldElementImpl(name, offset)
   ConstFieldElementImpl.con2(String name, int offset) : super(name, offset);
+
+  /**
+   * Initialize a newly created field element to have the given [name].
+   */
+  ConstFieldElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -2850,7 +2863,7 @@ abstract class ElementImpl implements Element {
       return null;
     }
     int offset = nameOffset;
-    AstNode node = new NodeLocator.con1(offset).searchWithin(unit);
+    AstNode node = new NodeLocator(offset).searchWithin(unit);
     if (node == null) {
       return null;
     }
@@ -4579,13 +4592,28 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * Initialize a newly created function type to be declared by the given
    * [element].
    */
+  FunctionTypeImpl(ExecutableElement element) : super(element, null);
+
+  /**
+   * Initialize a newly created function type to be declared by the given
+   * [element].
+   */
+  @deprecated // Use new FunctionTypeImpl(element)
   FunctionTypeImpl.con1(ExecutableElement element) : super(element, null);
 
   /**
    * Initialize a newly created function type to be declared by the given
    * [element].
    */
+  @deprecated // Use new FunctionTypeImpl.forTypedef(element)
   FunctionTypeImpl.con2(FunctionTypeAliasElement element)
+      : super(element, element == null ? null : element.name);
+
+  /**
+   * Initialize a newly created function type to be declared by the given
+   * [element].
+   */
+  FunctionTypeImpl.forTypedef(FunctionTypeAliasElement element)
       : super(element, element == null ? null : element.name);
 
   /**
@@ -5230,8 +5258,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     Element element = this.element;
     FunctionTypeImpl newType = (element is ExecutableElement)
-        ? new FunctionTypeImpl.con1(element)
-        : new FunctionTypeImpl.con2(element as FunctionTypeAliasElement);
+        ? new FunctionTypeImpl(element)
+        : new FunctionTypeImpl.forTypedef(element as FunctionTypeAliasElement);
     newType.typeArguments =
         TypeImpl.substitute(typeArguments, argumentTypes, parameterTypes);
     return newType;
@@ -6045,7 +6073,7 @@ abstract class InterfaceType implements ParameterizedType {
         lubArguments[i] = DynamicTypeImpl.instance;
       }
     }
-    InterfaceTypeImpl lub = new InterfaceTypeImpl.con1(firstElement);
+    InterfaceTypeImpl lub = new InterfaceTypeImpl(firstElement);
     lub.typeArguments = lubArguments;
     return lub;
   }
@@ -6063,6 +6091,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /**
    * Initialize a newly created type to be declared by the given [element].
    */
+  InterfaceTypeImpl(ClassElement element) : super(element, element.displayName);
+
+  /**
+   * Initialize a newly created type to be declared by the given [element].
+   */
+  @deprecated // Use new InterfaceTypeImpl(element)
   InterfaceTypeImpl.con1(ClassElement element)
       : super(element, element.displayName);
 
@@ -6070,7 +6104,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * Initialize a newly created type to have the given [name]. This constructor
    * should only be used in cases where there is no declaration of the type.
    */
+  @deprecated // Use new InterfaceTypeImpl.named(name)
   InterfaceTypeImpl.con2(String name) : super(null, name);
+
+  /**
+   * Initialize a newly created type to have the given [name]. This constructor
+   * should only be used in cases where there is no declaration of the type.
+   */
+  InterfaceTypeImpl.named(String name) : super(null, name);
 
   @override
   List<PropertyAccessorElement> get accessors {
@@ -6620,7 +6661,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (JavaArrays.equals(newTypeArguments, typeArguments)) {
       return this;
     }
-    InterfaceTypeImpl newType = new InterfaceTypeImpl.con1(element);
+    InterfaceTypeImpl newType = new InterfaceTypeImpl(element);
     newType.typeArguments = newTypeArguments;
     return newType;
   }
@@ -7171,7 +7212,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       function.synthetic = true;
       function.enclosingElement = this;
       function.returnType = loadLibraryReturnType;
-      function.type = new FunctionTypeImpl.con1(function);
+      function.type = new FunctionTypeImpl(function);
       _loadLibraryFunction = function;
     }
     return _loadLibraryFunction;
