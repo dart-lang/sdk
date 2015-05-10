@@ -89,6 +89,8 @@ class FileGlobFilter extends LintFilter {
 class Group implements Comparable<Group> {
 
   /// Defined rule groups.
+  static const Group errors =
+      const Group._('errors', description: 'Possible coding errors.');
   static const Group pub = const Group._('pub',
       description: 'Pub-related rules.',
       link: const Hyperlink('See the <strong>Pubspec Format</strong>',
@@ -108,10 +110,12 @@ class Group implements Comparable<Group> {
 
   factory Group(String name, {String description: '', Hyperlink link}) {
     switch (name.toLowerCase()) {
-      case 'style':
-        return style;
+      case 'errors':
+        return errors;
       case 'pub':
         return pub;
+      case 'style':
+        return style;
       default:
         return new Group._(name,
             custom: true, description: description, link: link);
