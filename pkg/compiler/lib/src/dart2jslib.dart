@@ -28,7 +28,7 @@ import 'elements/modelx.dart'
     show ErroneousElementX,
          ClassElementX,
          CompilationUnitElementX,
-         FunctionElementX,
+         MethodElementX,
          LibraryElementX,
          PrefixElementX,
          VoidElementX,

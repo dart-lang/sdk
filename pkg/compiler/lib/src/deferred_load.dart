@@ -25,6 +25,7 @@ import 'js_backend/js_backend.dart' show
     JavaScriptBackend;
 
 import 'elements/elements.dart' show
+    AccessorElement,
     AstElement,
     ClassElement,
     Element,
@@ -240,7 +241,7 @@ class DeferredLoadTask extends CompilerTask {
       element = element.enclosingClass;
     }
     if (element.isAccessor) {
-      element = (element as FunctionElement).abstractField;
+      element = (element as AccessorElement).abstractField;
     }
     return library.getImportsFor(element);
   }

@@ -371,7 +371,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
    * the import/export scopes are not set up.
    */
   Future processLibraryTags(LibraryDependencyHandler handler,
-                            LibraryElement library) {
+                            LibraryElementX library) {
     TagState tagState = new TagState();
 
     bool importsDartCore = false;
@@ -659,7 +659,7 @@ class ImportLink {
   /**
    * Imports the library into the [importingLibrary].
    */
-  void importLibrary(Compiler compiler, LibraryElement importingLibrary) {
+  void importLibrary(Compiler compiler, LibraryElementX importingLibrary) {
     assert(invariant(importingLibrary,
                      importedLibrary.exportsHandled,
                      message: 'Exports not handled on $importedLibrary'));
@@ -732,7 +732,7 @@ class ExportLink {
  * exports performed in [LibraryDependencyHandler.computeExports].
  */
 class LibraryDependencyNode {
-  final LibraryElement library;
+  final LibraryElementX library;
 
   // TODO(ahe): Remove [hashCodeCounter] and [hashCode] when
   // VM implementation of Object.hashCode is not slow.
@@ -775,7 +775,7 @@ class LibraryDependencyNode {
   Map<Element, Link<Export>> pendingExportMap =
       new Map<Element, Link<Export>>();
 
-  LibraryDependencyNode(LibraryElement this.library);
+  LibraryDependencyNode(this.library);
 
   /**
    * Registers that the library of this node imports [importLibrary] through the
@@ -1025,7 +1025,7 @@ class LibraryDependencyHandler implements LibraryLoader {
   /**
    * Registers that [library] depends on [loadedLibrary] through [tag].
    */
-  void registerDependency(LibraryElement library,
+  void registerDependency(LibraryElementX library,
                           LibraryDependency tag,
                           LibraryElement loadedLibrary) {
     if (tag != null) {

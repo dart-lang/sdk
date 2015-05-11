@@ -392,7 +392,7 @@ api.DiagnosticHandler createHandler(MockCompiler compiler, String text,
 class MockElement extends FunctionElementX {
   MockElement(Element enclosingElement)
       : super('', ElementKind.FUNCTION, Modifiers.EMPTY,
-              enclosingElement, false);
+              enclosingElement);
 
   get node => null;
 

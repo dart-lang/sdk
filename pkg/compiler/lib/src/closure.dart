@@ -304,7 +304,7 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
                                 LocalFunctionElementX other,
                                 ClosureClassElement enclosing)
       : expression = other,
-        super(name, other.kind, other.modifiers, enclosing, false) {
+        super(name, other.kind, other.modifiers, enclosing) {
     asyncMarker = other.asyncMarker;
     functionSignatureCache = other.functionSignature;
   }

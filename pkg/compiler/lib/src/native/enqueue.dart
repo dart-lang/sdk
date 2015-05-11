@@ -225,7 +225,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
    * Returns the source string of the class named in the extends clause, or
    * `null` if there is no extends clause.
    */
-  String findExtendsNameOfClass(ClassElement classElement) {
+  String findExtendsNameOfClass(BaseClassElementX classElement) {
     //  "class B extends A ... {}"  --> "A"
     //  "class B extends foo.A ... {}"  --> "A"
     //  "class B<T> extends foo.A<T,T> with M1, M2 ... {}"  --> "A"
@@ -360,7 +360,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     flushing = false;
   }
 
-  processClass(ClassElementX classElement, cause) {
+  processClass(BaseClassElementX classElement, cause) {
     // TODO(ahe): Fix this assertion to work in incremental compilation.
     assert(compiler.hasIncrementalSupport ||
            !registeredClasses.contains(classElement));
@@ -422,7 +422,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   /// Sets the native name of [element], either from an annotation, or
   /// defaulting to the Dart name.
-  void setNativeName(Element element) {
+  void setNativeName(ElementX element) {
     String name = findJsNameFromAnnotation(element);
     if (name == null) name = element.name;
     element.setNative(name);
@@ -436,7 +436,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   ///    use the declared @JSName as the expression
   /// 3. If [element] does not have a @JSName annotation, qualify the name of
   ///    the method with the @Native name of the enclosing class.
-  void setNativeNameForStaticMethod(Element element) {
+  void setNativeNameForStaticMethod(ElementX element) {
     String name = findJsNameFromAnnotation(element);
     if (name == null) name = element.name;
     if (isIdentifier(name)) {

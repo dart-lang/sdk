@@ -128,7 +128,7 @@ import 'elements/modelx.dart'
     show LibraryElementX,
          MetadataAnnotationX,
          ClassElementX,
-         FunctionElementX;
+         BaseFunctionElementX;
 import 'helpers/helpers.dart';  // Included for debug helpers.
 import 'library_loader.dart' show LibraryLoader;
 import 'scanner/scannerlib.dart';  // Scanner, Parsers, Listeners
@@ -541,8 +541,8 @@ void tryPatchFunction(DiagnosticListener listener,
 }
 
 void patchFunction(DiagnosticListener listener,
-                   FunctionElementX origin,
-                   FunctionElementX patch) {
+                   BaseFunctionElementX origin,
+                   BaseFunctionElementX patch) {
   if (!origin.modifiers.isExternal) {
     listener.reportError(origin, MessageKind.PATCH_NON_EXTERNAL);
     listener.reportInfo(

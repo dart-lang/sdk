@@ -411,9 +411,6 @@ abstract class Element implements Entity {
   bool get isAbstract;
   bool isForeign(Backend backend);
 
-  void addMetadata(MetadataAnnotation annotation);
-  void setNative(String name);
-
   Scope buildScope();
 
   void diagnose(Element context, DiagnosticListener listener);
@@ -840,12 +837,14 @@ abstract class ScopeContainerElement implements Element {
 }
 
 abstract class CompilationUnitElement extends Element {
+  /// Use [library] instead.
+  @deprecated
+  get enclosingElement;
+
   Script get script;
   PartOf get partTag;
 
   void forEachLocalMember(f(Element element));
-  void addMember(Element element, DiagnosticListener listener);
-  void setPartOf(PartOf tag, DiagnosticListener listener);
   bool get hasMembers;
 
   int compareTo(CompilationUnitElement other);
@@ -887,32 +886,14 @@ abstract class LibraryElement extends Element
    * an underscore.
    */
   bool get isInternalLibrary;
+
   bool get canUseNative;
   bool get exportsHandled;
 
-  // TODO(kasperl): We should try to get rid of these.
-  void set libraryTag(LibraryName value);
-
   LibraryElement get implementation;
-
-  void addCompilationUnit(CompilationUnitElement element);
-  void addTag(LibraryTag tag, DiagnosticListener listener);
-  void addImport(Element element, Import import, DiagnosticListener listener);
-
-  /// Record which element an import or export tag resolved to.
-  /// (Belongs on builder object).
-  void recordResolvedTag(LibraryDependency tag, LibraryElement library);
 
   /// Return the library element corresponding to an import or export.
   LibraryElement getLibraryFromTag(LibraryDependency tag);
-
-  void addMember(Element element, DiagnosticListener listener);
-  void addToScope(Element element, DiagnosticListener listener);
-
-  // TODO(kasperl): Get rid of this method.
-  Iterable<Element> getNonPrivateElementsInScope();
-
-  void setExports(Iterable<Element> exportedElements);
 
   Element find(String elementName);
   Element findLocal(String elementName);
@@ -1139,10 +1120,6 @@ abstract class FunctionElement extends Element
   FunctionElement get patch;
   FunctionElement get origin;
 
-  /// Used to retrieve a link to the abstract field element representing this
-  /// element.
-  AbstractFieldElement get abstractField;
-
   /// Do not use [computeSignature] outside of the resolver; instead retrieve
   /// the signature through the [functionSignature] field.
   /// Trying to access a function signature that has not been computed in
@@ -1164,6 +1141,25 @@ abstract class FunctionElement extends Element
 
   /// `true` if this function is external.
   bool get isExternal;
+}
+
+/// A getter or setter.
+abstract class AccessorElement extends MethodElement {
+  /// Used to retrieve a link to the abstract field element representing this
+  /// element.
+  AbstractFieldElement get abstractField;
+}
+
+/// A getter.
+abstract class GetterElement extends AccessorElement {
+  /// The setter corresponding to this getter, if any.
+  SetterElement get setter;
+}
+
+/// A setter.
+abstract class SetterElement extends AccessorElement {
+  /// The getter corresponding to this setter, if any.
+  GetterElement get getter;
 }
 
 /// Enum for the synchronous/asynchronous function body modifiers.

@@ -166,15 +166,9 @@ class MemberListener extends NodeListener {
           method.modifiers,
           enclosingClass);
     } else {
-      ElementKind kind = ElementKind.FUNCTION;
-      if (getOrSet != null) {
-        kind = (identical(getOrSet.stringValue, 'get'))
-               ? ElementKind.GETTER : ElementKind.SETTER;
-      }
-      memberElement =
-          new PartialFunctionElement(name, beginToken, getOrSet, endToken,
-                                     kind, method.modifiers, enclosingClass,
-                                     !method.hasBody());
+      memberElement = new PartialFunctionElement(
+          name, beginToken, getOrSet, endToken,
+          method.modifiers, enclosingClass, hasBody: method.hasBody());
     }
     addMember(memberElement);
   }
@@ -228,14 +222,14 @@ class MemberListener extends NodeListener {
     pushNode(null);
   }
 
-  void addMetadata(Element memberElement) {
+  void addMetadata(ElementX memberElement) {
     for (Link link = metadata; !link.isEmpty; link = link.tail) {
       memberElement.addMetadata(link.head);
     }
     metadata = const Link<MetadataAnnotation>();
   }
 
-  void addMember(Element memberElement) {
+  void addMember(ElementX memberElement) {
     addMetadata(memberElement);
     enclosingClass.addMember(memberElement, listener);
   }
