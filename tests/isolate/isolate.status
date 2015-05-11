@@ -107,7 +107,7 @@ handle_error_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
 handle_error2_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
 handle_error3_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
 timer_isolate_test: Fail, Pass # Issue 15487. Issue 13921: Dom isolates don't support spawnFunction
-deferred_in_isolate_test: Fail, OK  # Issue 16209, 13921 Dom isolates don't support spawnFunction
+deferred_in_isolate2_test: Fail, OK  # Issue 16209, 13921 Dom isolates don't support spawnFunction
 bool_from_environment_default_value_test: Skip
 int_from_environment_default_value_test: Skip
 string_from_environment_default_value_test: Skip
