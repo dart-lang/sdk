@@ -85,7 +85,10 @@ class _RenameVisitor extends VariableDeclarationVisitor {
 
   declare(Identifier node) {
     var id = identifierKey(node);
-    scope.declared.add(id);
+    var notAlreadyDeclared = scope.declared.add(id);
+    // Normal identifiers can be declared multiple times, because we don't
+    // implement block scope yet. However temps should only be declared once.
+    assert(notAlreadyDeclared || node is! TemporaryId);
     _markUsed(node, id, scope);
   }
 

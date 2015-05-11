@@ -53,10 +53,10 @@ var core = dart.import(core);
   function wub() {
     try {
       throw "on without exception parameter";
-    } catch (e$) {
-      if (dart.is(e$, core.String)) {
+    } catch (e) {
+      if (dart.is(e, core.String)) {
       } else
-        throw e$;
+        throw e;
     }
 
   }

@@ -1172,7 +1172,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       return _getTemp(element, '${name.substring(1)}');
     }
 
-    if (_isTemporary(element)) {
+    if (element is TemporaryVariableElement) {
       if (name[0] == '#') {
         return new JS.InterpolatedExpression(name.substring(1));
       } else {
@@ -1775,7 +1775,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // * create a new subtype of LocalVariableElementImpl to mark a temp.
     var id =
         new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, -1));
-    id.staticElement = new LocalVariableElementImpl.forNode(id);
+    id.staticElement = new TemporaryVariableElement.forNode(id);
     id.staticType = type;
     return id;
   }
@@ -1801,8 +1801,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     assert(nameHint != null); // so it's not marked unused
     return value;
   }
-
-  bool _isTemporary(Element node) => node.nameOffset == -1;
 
   /// Returns a new expression, which can be be used safely *once* on the
   /// left hand side, and *once* on the right side of an assignment.
@@ -2619,3 +2617,13 @@ bool _isJsPeerInterface(DartObjectImpl value) =>
 // but we don't have summary support yet.
 // bool _supportJsExtensionMethod(AnnotatedNode node) =>
 //    _getAnnotation(node, "SupportJsExtensionMethod") != null;
+
+/// A special kind of element created by the compiler, signifying a temporary
+/// variable. These objects use instance equality, and should be shared
+/// everywhere in the tree where they are treated as the same variable.
+class TemporaryVariableElement extends LocalVariableElementImpl {
+  TemporaryVariableElement.forNode(Identifier name) : super.forNode(name);
+
+  int get hashCode => identityHashCode(this);
+  bool operator ==(Object other) => identical(this, other);
+}
