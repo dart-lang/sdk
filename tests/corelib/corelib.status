@@ -212,6 +212,7 @@ big_integer_parsed_mul_div_vm_test: Pass, Slow
 [ $compiler == dart2js && $cps_ir ]
 apply2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 apply_test: Crash # (test0): handleStaticFunctionGet: function(test0)
+bool_from_environment_test: RuntimeError # Please triage this failure.
 collection_removes_test: RuntimeError # Please triage this failure.
 collection_to_string_test: Crash # Instance of 'TypeOperator': type check unimplemented for List.
 compare_to2_test: Crash # Instance of 'TypeOperator': type check unimplemented for List.
@@ -245,6 +246,7 @@ hash_set_test/none: Crash # (testIdentitySet): handleStaticFunctionGet: function
 hash_set_type_check_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 hashcode_test: Crash # (bar): handleStaticFunctionGet: function(bar)
 indexed_list_access_test: Crash # (getIt): handleStaticFunctionGet: function(getIt)
+int_from_environment_test: RuntimeError # Please triage this failure.
 int_parse_radix_test/01: Crash # Please triage this failure.
 int_parse_radix_test/02: Crash # Please triage this failure.
 int_parse_radix_test/none: Crash # Please triage this failure.
@@ -335,6 +337,8 @@ splay_tree_from_iterables_test: Crash # Instance of 'TypeOperator': type check u
 splay_tree_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_buffer_test: Crash # (Expect.isTrue): handleStaticFunctionGet: function(Expect#isTrue)
 string_codeunits_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+string_from_environment2_test: RuntimeError # Please triage this failure.
+string_from_environment_test: RuntimeError # Please triage this failure.
 string_fromcharcode_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_fromcharcodes_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_operations_with_null_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

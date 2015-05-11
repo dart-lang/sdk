@@ -700,6 +700,7 @@ generic_constructor_mixin_test: Crash # Please triage this failure.
 generic_creation_test: RuntimeError # Please triage this failure.
 generic_deep_test: Crash # Instance of 'TypeOperator': type check unimplemented for S<Z>.
 generic_field_mixin2_test: Crash # Please triage this failure.
+generic_field_mixin3_test: Crash # Instance of 'TypeOperator': type check unimplemented for A<T>.
 generic_field_mixin_test: Crash # Instance of 'TypeOperator': type check unimplemented for A<int>.
 generic_inheritance_test: Crash # Instance of 'TypeOperator': type check unimplemented for A<Object>.
 generic_instanceof2_test: Crash # Instance of 'TypeOperator': type check unimplemented for Foo<int, num>.
@@ -987,10 +988,19 @@ super_getter_setter_test: RuntimeError # Please triage this failure.
 super_implicit_closure_test: RuntimeError # Please triage this failure.
 super_inferrer_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 super_operator_index2_test: RuntimeError # Please triage this failure.
+super_operator_index5_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index5_test: RuntimeError # Please triage this failure.
+super_operator_index6_test: Crash # (super[0]+=1): visitUnresolvedSuperGetterCompoundIndexSet
 super_operator_index6_test: RuntimeError # Please triage this failure.
+super_operator_index7_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index7_test: RuntimeError # Please triage this failure.
+super_operator_index8_test: Crash # (super[f()]=g()): visitUnresolvedSuperIndexSet
 super_operator_index8_test: RuntimeError # Please triage this failure.
+super_operator_index_test/01: Crash # (super[4]+=5): visitUnresolvedSuperGetterCompoundIndexSet
+super_operator_index_test/03: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
+super_operator_index_test/04: Crash # (super[4]+=5): visitUnresolvedSuperSetterCompoundIndexSet
+super_operator_index_test/05: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
+super_operator_index_test/06: Crash # (super[4]+=5): visitUnresolvedSuperGetterCompoundIndexSet
 super_operator_test: Crash # (testRegression6403): handleStaticFunctionGet: function(testRegression6403)
 switch6_test: Crash # (switch (a){case 0:{x=0;break;}case 1:x=1;break;}): Unhandled node
 switch8_test: Crash # (switch (new List(1)[0]){case const A():throw 'Test failed';}): Unhandled node
