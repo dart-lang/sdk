@@ -189,6 +189,8 @@ def main():
     status = ProcessBot(name, 'pub')
   elif name.startswith('vm-android'):
     status = ProcessBot(name, 'android')
+  elif name.startswith('dart-sdk'):
+    status = ProcessBot(name, 'dart_sdk')
   elif name.startswith('cross') or name.startswith('target'):
     status = ProcessBot(name, 'cross-vm',
                         custom_env=EnvironmentWithoutBotoConfig())
