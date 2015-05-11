@@ -8453,13 +8453,13 @@ class LibraryResolver {
   void _performConstantEvaluation() {
     PerformanceStatistics.resolve.makeCurrentWhile(() {
       ConstantValueComputer computer = new ConstantValueComputer(
-          _typeProvider, analysisContext.declaredVariables);
+          analysisContext, _typeProvider, analysisContext.declaredVariables);
       for (Library library in _librariesInCycles) {
         for (Source source in library.compilationUnitSources) {
           try {
             CompilationUnit unit = library.getAST(source);
             if (unit != null) {
-              computer.add(unit);
+              computer.add(unit, source, library.librarySource);
             }
           } on AnalysisException catch (exception, stackTrace) {
             AnalysisEngine.instance.logger.logError(
@@ -8983,13 +8983,13 @@ class LibraryResolver2 {
   void _performConstantEvaluation() {
     PerformanceStatistics.resolve.makeCurrentWhile(() {
       ConstantValueComputer computer = new ConstantValueComputer(
-          _typeProvider, analysisContext.declaredVariables);
+          analysisContext, _typeProvider, analysisContext.declaredVariables);
       for (ResolvableLibrary library in _librariesInCycle) {
         for (ResolvableCompilationUnit unit
             in library.resolvableCompilationUnits) {
           CompilationUnit ast = unit.compilationUnit;
           if (ast != null) {
-            computer.add(ast);
+            computer.add(ast, unit.source, library.librarySource);
           }
         }
       }

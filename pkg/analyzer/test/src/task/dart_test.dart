@@ -1163,6 +1163,67 @@ class BuildTypeProviderTaskTest extends _AbstractDartTaskTest {
 
 @reflectiveTest
 class ComputeConstantDependenciesTaskTest extends _AbstractDartTaskTest {
+  Annotation findClassAnnotation(CompilationUnit unit, String className) {
+    for (CompilationUnitMember member in unit.declarations) {
+      if (member is ClassDeclaration && member.name.name == className) {
+        expect(member.metadata, hasLength(1));
+        return member.metadata[0];
+      }
+    }
+    fail('Annotation not found');
+    return null;
+  }
+
+  test_annotation_with_args() {
+    Source source = newSource('/test.dart', '''
+const x = 1;
+@D(x) class C {}
+class D { const D(value); }
+''');
+    // First compute the resolved unit for the source.
+    LibrarySpecificUnit librarySpecificUnit =
+        new LibrarySpecificUnit(source, source);
+    _computeResult(librarySpecificUnit, RESOLVED_UNIT1);
+    CompilationUnit unit = outputs[RESOLVED_UNIT1];
+    // Find the elements for x and D's constructor, and the annotation on C.
+    List<PropertyAccessorElement> accessors = unit.element.accessors;
+    Element x = accessors.firstWhere((PropertyAccessorElement accessor) =>
+        accessor.isGetter && accessor.name == 'x').variable;
+    List<ClassElement> types = unit.element.types;
+    Element constructorForD =
+        types.firstWhere((ClassElement cls) => cls.name == 'D').constructors[0];
+    Annotation annotation = findClassAnnotation(unit, 'C');
+    // Now compute the dependencies for the annotation, and check that it is
+    // the set [x, constructorForD].
+    // TODO(paulberry): test librarySource != source
+    _computeResult(new ConstantEvaluationTarget_Annotation(
+        context, source, source, annotation), CONSTANT_DEPENDENCIES);
+    expect(
+        outputs[CONSTANT_DEPENDENCIES].toSet(), [x, constructorForD].toSet());
+  }
+
+  test_annotation_without_args() {
+    Source source = newSource('/test.dart', '''
+const x = 1;
+@x class C {}
+''');
+    // First compute the resolved unit for the source.
+    LibrarySpecificUnit librarySpecificUnit =
+        new LibrarySpecificUnit(source, source);
+    _computeResult(librarySpecificUnit, RESOLVED_UNIT1);
+    CompilationUnit unit = outputs[RESOLVED_UNIT1];
+    // Find the element for x and the annotation on C.
+    List<PropertyAccessorElement> accessors = unit.element.accessors;
+    Element x = accessors.firstWhere((PropertyAccessorElement accessor) =>
+        accessor.isGetter && accessor.name == 'x').variable;
+    Annotation annotation = findClassAnnotation(unit, 'C');
+    // Now compute the dependencies for the annotation, and check that it is
+    // the list [x].
+    _computeResult(new ConstantEvaluationTarget_Annotation(
+        context, source, source, annotation), CONSTANT_DEPENDENCIES);
+    expect(outputs[CONSTANT_DEPENDENCIES], [x]);
+  }
+
   test_perform() {
     Source source = newSource('/test.dart', '''
 const x = y;
@@ -1187,6 +1248,26 @@ const y = 1;
 
 @reflectiveTest
 class ComputeConstantValueTaskTest extends _AbstractDartTaskTest {
+  EvaluationResultImpl computeClassAnnotation(
+      Source source, CompilationUnit unit, String className) {
+    for (CompilationUnitMember member in unit.declarations) {
+      if (member is ClassDeclaration && member.name.name == className) {
+        expect(member.metadata, hasLength(1));
+        Annotation annotation = member.metadata[0];
+        ConstantEvaluationTarget_Annotation target =
+            new ConstantEvaluationTarget_Annotation(
+                context, source, source, annotation);
+        _computeResult(target, CONSTANT_VALUE);
+        expect(outputs[CONSTANT_VALUE], same(target));
+        EvaluationResultImpl evaluationResult =
+            (annotation.elementAnnotation as ElementAnnotationImpl).evaluationResult;
+        return evaluationResult;
+      }
+    }
+    fail('Annotation not found');
+    return null;
+  }
+
   fail_circular_reference() {
     // TODO(paulberry): get this to work.
     EvaluationResultImpl evaluationResult = _computeTopLevelVariableConstValue(
@@ -1199,6 +1280,51 @@ const y = x + 1;
     expect(evaluationResult.errors, hasLength(1));
     expect(evaluationResult.errors[0].errorCode,
         CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT);
+  }
+
+  test_annotation_with_args() {
+    Source source = newSource('/test.dart', '''
+const x = 1;
+@D(x) class C {}
+class D {
+  const D(this.value);
+  final value;
+}
+''');
+    // First compute the resolved unit for the source.
+    LibrarySpecificUnit librarySpecificUnit =
+        new LibrarySpecificUnit(source, source);
+    _computeResult(librarySpecificUnit, RESOLVED_UNIT1);
+    CompilationUnit unit = outputs[RESOLVED_UNIT1];
+    // Compute the constant value of the annotation on C.
+    EvaluationResultImpl evaluationResult =
+        computeClassAnnotation(source, unit, 'C');
+    // And check that it has the expected value.
+    expect(evaluationResult, isNotNull);
+    expect(evaluationResult.value, isNotNull);
+    expect(evaluationResult.value.type, isNotNull);
+    expect(evaluationResult.value.type.name, 'D');
+    expect(evaluationResult.value.fields, contains('value'));
+    expect(evaluationResult.value.fields['value'].intValue, 1);
+  }
+
+  test_annotation_without_args() {
+    Source source = newSource('/test.dart', '''
+const x = 1;
+@x class C {}
+''');
+    // First compute the resolved unit for the source.
+    LibrarySpecificUnit librarySpecificUnit =
+        new LibrarySpecificUnit(source, source);
+    _computeResult(librarySpecificUnit, RESOLVED_UNIT1);
+    CompilationUnit unit = outputs[RESOLVED_UNIT1];
+    // Compute the constant value of the annotation on C.
+    EvaluationResultImpl evaluationResult =
+        computeClassAnnotation(source, unit, 'C');
+    // And check that it has the expected value.
+    expect(evaluationResult, isNotNull);
+    expect(evaluationResult.value, isNotNull);
+    expect(evaluationResult.value.intValue, 1);
   }
 
   test_dependency() {
@@ -1237,8 +1363,8 @@ const x = 1;
       return accessor.isGetter && accessor.name == variableName;
     }).variable;
     // Now compute the value of the constant.
-    _computeResult(variableElement, CONSTANT_EVALUATED_ELEMENT);
-    expect(outputs[CONSTANT_EVALUATED_ELEMENT], same(variableElement));
+    _computeResult(variableElement, CONSTANT_VALUE);
+    expect(outputs[CONSTANT_VALUE], same(variableElement));
     EvaluationResultImpl evaluationResult =
         (variableElement as TopLevelVariableElementImpl).evaluationResult;
     return evaluationResult;

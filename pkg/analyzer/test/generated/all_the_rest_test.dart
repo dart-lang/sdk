@@ -33,10 +33,12 @@ import 'package:analyzer/src/generated/testing/html_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/task/dart.dart';
 import 'package:path/src/context.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
+import 'engine_test.dart';
 import 'parser_test.dart';
 import 'resolver_test.dart';
 import 'test_support.dart';
@@ -473,11 +475,11 @@ class ConstantEvaluationValidator_ForTest
     implements ConstantEvaluationValidator {
   ConstantValueComputer computer;
 
-  Element _nodeBeingEvaluated;
+  ConstantEvaluationTarget _nodeBeingEvaluated;
 
   @override
-  void beforeComputeValue(Element element) {
-    _nodeBeingEvaluated = element;
+  void beforeComputeValue(ConstantEvaluationTarget constant) {
+    _nodeBeingEvaluated = constant;
   }
 
   @override
@@ -489,9 +491,9 @@ class ConstantEvaluationValidator_ForTest
   }
 
   @override
-  void beforeGetEvaluationResult(Element element) {
+  void beforeGetEvaluationResult(ConstantEvaluationTarget constant) {
     // Make sure we properly recorded the dependency.
-    expect(computer.referenceGraph.containsPath(_nodeBeingEvaluated, element),
+    expect(computer.referenceGraph.containsPath(_nodeBeingEvaluated, constant),
         isTrue);
   }
 
@@ -894,12 +896,15 @@ class ConstantEvaluatorTest extends ResolverTestCase {
 @reflectiveTest
 class ConstantFinderTest extends EngineTestCase {
   AstNode _node;
-
   TypeProvider _typeProvider;
+  AnalysisContext _context;
+  Source _source;
 
   void setUp() {
     super.setUp();
     _typeProvider = new TestTypeProvider();
+    _context = new TestAnalysisContext();
+    _source = new TestSource();
   }
 
   /**
@@ -993,17 +998,21 @@ class ConstantFinderTest extends EngineTestCase {
   }
 
   List<Annotation> _findAnnotations() {
-    ConstantFinder finder = new ConstantFinder();
-    _node.accept(finder);
-    List<Annotation> annotations = finder.annotations;
-    expect(annotations, isNotNull);
-    return annotations;
+    Set<Annotation> annotations = new Set<Annotation>();
+    for (ConstantEvaluationTarget target in _findConstants()) {
+      if (target is ConstantEvaluationTarget_Annotation) {
+        expect(target.context, same(_context));
+        expect(target.source, same(_source));
+        annotations.add(target.annotation);
+      }
+    }
+    return new List<Annotation>.from(annotations);
   }
 
-  Set<Element> _findConstants() {
-    ConstantFinder finder = new ConstantFinder();
+  Set<ConstantEvaluationTarget> _findConstants() {
+    ConstantFinder finder = new ConstantFinder(_context, _source, _source);
     _node.accept(finder);
-    Set<Element> constants = finder.constantsToCompute;
+    Set<ConstantEvaluationTarget> constants = finder.constantsToCompute;
     expect(constants, isNotNull);
     return constants;
   }
@@ -1260,7 +1269,7 @@ const int c = b;''');
     analysisContext.computeErrors(librarySource);
     expect(unit, isNotNull);
     ConstantValueComputer computer = _makeConstantValueComputer();
-    computer.add(unit);
+    computer.add(unit, librarySource, librarySource);
     computer.computeValues();
     NodeList<CompilationUnitMember> members = unit.declarations;
     expect(members, hasLength(3));
@@ -1278,7 +1287,7 @@ const int a = 0;''');
         analysisContext.resolveCompilationUnit(librarySource, libraryElement);
     expect(unit, isNotNull);
     ConstantValueComputer computer = _makeConstantValueComputer();
-    computer.add(unit);
+    computer.add(unit, librarySource, librarySource);
     computer.computeValues();
     NodeList<CompilationUnitMember> members = unit.declarations;
     expect(members, hasLength(2));
@@ -1309,8 +1318,8 @@ const int d = c;''');
         analysisContext.resolveCompilationUnit(partSource, libraryElement);
     expect(partUnit, isNotNull);
     ConstantValueComputer computer = _makeConstantValueComputer();
-    computer.add(libraryUnit);
-    computer.add(partUnit);
+    computer.add(libraryUnit, librarySource, librarySource);
+    computer.add(partUnit, partSource, librarySource);
     computer.computeValues();
     NodeList<CompilationUnitMember> libraryMembers = libraryUnit.declarations;
     expect(libraryMembers, hasLength(2));
@@ -1331,7 +1340,7 @@ const int d = c;''');
         analysisContext.resolveCompilationUnit(librarySource, libraryElement);
     expect(unit, isNotNull);
     ConstantValueComputer computer = _makeConstantValueComputer();
-    computer.add(unit);
+    computer.add(unit, librarySource, librarySource);
     computer.computeValues();
     NodeList<CompilationUnitMember> members = unit.declarations;
     expect(members, hasLength(1));
@@ -1348,7 +1357,7 @@ const E e = E.id0;
         analysisContext.resolveCompilationUnit(librarySource, libraryElement);
     expect(unit, isNotNull);
     ConstantValueComputer computer = _makeConstantValueComputer();
-    computer.add(unit);
+    computer.add(unit, librarySource, librarySource);
     computer.computeValues();
     TopLevelVariableDeclaration declaration = unit.declarations
         .firstWhere((member) => member is TopLevelVariableDeclaration);
@@ -2164,7 +2173,7 @@ const A a = const A();
         analysisContext.resolveCompilationUnit(source, element);
     expect(unit, isNotNull);
     ConstantValueComputer computer = _makeConstantValueComputer();
-    computer.add(unit);
+    computer.add(unit, source, source);
     computer.computeValues();
     assertErrors(source, expectedErrorCodes);
   }
@@ -2342,7 +2351,7 @@ class A {
   ConstantValueComputer _makeConstantValueComputer() {
     ConstantEvaluationValidator_ForTest validator =
         new ConstantEvaluationValidator_ForTest();
-    validator.computer = new ConstantValueComputer(
+    validator.computer = new ConstantValueComputer(analysisContext2,
         analysisContext2.typeProvider, analysisContext2.declaredVariables,
         validator);
     return validator.computer;
@@ -8012,12 +8021,12 @@ class MockDartSdk implements DartSdk {
 
 @reflectiveTest
 class ReferenceFinderTest extends EngineTestCase {
-  DirectedGraph<Element> _referenceGraph;
+  DirectedGraph<ConstantEvaluationTarget> _referenceGraph;
   VariableElement _head;
   Element _tail;
   @override
   void setUp() {
-    _referenceGraph = new DirectedGraph<Element>();
+    _referenceGraph = new DirectedGraph<ConstantEvaluationTarget>();
     _head = ElementFactory.topLevelVariableElement2("v1");
   }
   void test_visitSimpleIdentifier_const() {
@@ -8043,16 +8052,16 @@ class ReferenceFinderTest extends EngineTestCase {
     _assertNoArcs();
   }
   void _assertNoArcs() {
-    Set<Element> tails = _referenceGraph.getTails(_head);
+    Set<ConstantEvaluationTarget> tails = _referenceGraph.getTails(_head);
     expect(tails, hasLength(0));
   }
   void _assertOneArc(Element tail) {
-    Set<Element> tails = _referenceGraph.getTails(_head);
+    Set<ConstantEvaluationTarget> tails = _referenceGraph.getTails(_head);
     expect(tails, hasLength(1));
     expect(tails.first, same(tail));
   }
-  ReferenceFinder _createReferenceFinder(Element source) =>
-      new ReferenceFinder((Element dependency) {
+  ReferenceFinder _createReferenceFinder(ConstantEvaluationTarget source) =>
+      new ReferenceFinder((ConstantEvaluationTarget dependency) {
     _referenceGraph.addEdge(source, dependency);
   });
   SuperConstructorInvocation _makeTailSuperConstructorInvocation(

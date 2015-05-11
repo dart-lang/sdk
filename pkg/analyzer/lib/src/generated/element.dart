@@ -10,7 +10,9 @@ library engine.element;
 import 'dart:collection';
 
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/task/model.dart' show AnalysisTarget;
+import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/task/model.dart'
+    show AnalysisTarget, ConstantEvaluationTarget;
 
 import 'ast.dart';
 import 'constant.dart' show EvaluationResultImpl;
@@ -1635,7 +1637,7 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
  * class.
  */
 abstract class ConstructorElement
-    implements ClassMemberElement, ExecutableElement {
+    implements ClassMemberElement, ExecutableElement, ConstantEvaluationTarget {
   /**
    * An empty list of constructor elements.
    */
@@ -8361,7 +8363,8 @@ abstract class NamespaceCombinator {
 /**
  * A parameter defined within an executable element.
  */
-abstract class ParameterElement implements LocalElement, VariableElement {
+abstract class ParameterElement
+    implements LocalElement, VariableElement, ConstantEvaluationTarget {
   /**
    * An empty list of parameter elements.
    */
@@ -8732,7 +8735,8 @@ class ParameterMember extends VariableMember implements ParameterElement {
  *
  * This class is not intended to be part of the public API for analyzer.
  */
-abstract class PotentiallyConstVariableElement implements VariableElementImpl {
+abstract class PotentiallyConstVariableElement
+    implements VariableElementImpl, ConstantEvaluationTarget {
   /**
    * If this element represents a constant variable, and it has an initializer,
    * a copy of the initializer for the constant.  Otherwise `null`.
@@ -10132,7 +10136,7 @@ abstract class UriReferencedElementImpl extends ElementImpl
 /**
  * A variable. There are concrete subclasses for different kinds of variables.
  */
-abstract class VariableElement implements Element {
+abstract class VariableElement implements Element, ConstantEvaluationTarget {
   /**
    * An empty list of variable elements.
    */

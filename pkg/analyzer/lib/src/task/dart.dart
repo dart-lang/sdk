@@ -86,22 +86,24 @@ final ResultDescriptor<CompilationUnitElement> COMPILATION_UNIT_ELEMENT =
         cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
- * The list of [Element]s on which the target constant element depends.
+ * The list of [ConstantEvaluationTarget]s on which the target constant element
+ * depends.
  *
- * The result is only available for targets representing a constant [Element]
- * (i.e. a constant variable declaration, a constant constructor, or a
- * parameter element with a default value).
+ * The result is only available for targets representing a
+ * [ConstantEvaluationTarget] (i.e. a constant variable declaration, a constant
+ * constructor, or a parameter element with a default value).
  */
-final ListResultDescriptor<Element> CONSTANT_DEPENDENCIES =
-    new ListResultDescriptor<Element>('CONSTANT_DEPENDENCIES', <Element>[]);
+final ListResultDescriptor<ConstantEvaluationTarget> CONSTANT_DEPENDENCIES =
+    new ListResultDescriptor<ConstantEvaluationTarget>(
+        'CONSTANT_DEPENDENCIES', const <ConstantEvaluationTarget>[]);
 
 /**
- * An [Element] that has been successfully constant-evaluated.
+ * A [ConstantEvaluationTarget] that has been successfully constant-evaluated.
  *
  * TODO(paulberry): is ELEMENT_CACHING_POLICY the correct caching policy?
  */
-final ResultDescriptor<Element> CONSTANT_EVALUATED_ELEMENT =
-    new ResultDescriptor<Element>('CONST_EVALUATED_ELEMENT', null,
+final ResultDescriptor<ConstantEvaluationTarget> CONSTANT_VALUE =
+    new ResultDescriptor<ConstantEvaluationTarget>('CONSTANT_VALUE', null,
         cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
@@ -1640,7 +1642,7 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
 /**
  * A task that computes [CONSTANT_DEPENDENCIES] for a constant.
  */
-class ComputeConstantDependenciesTask extends ElementBasedAnalysisTask {
+class ComputeConstantDependenciesTask extends ConstantEvaluationAnalysisTask {
   /**
    * The name of the [RESOLVED_UNIT] input.
    */
@@ -1651,8 +1653,8 @@ class ComputeConstantDependenciesTask extends ElementBasedAnalysisTask {
       <ResultDescriptor>[CONSTANT_DEPENDENCIES]);
 
   ComputeConstantDependenciesTask(
-      InternalAnalysisContext context, Element element)
-      : super(context, element);
+      InternalAnalysisContext context, ConstantEvaluationTarget constant)
+      : super(context, constant);
 
   @override
   TaskDescriptor get descriptor => DESCRIPTOR;
@@ -1666,15 +1668,15 @@ class ComputeConstantDependenciesTask extends ElementBasedAnalysisTask {
     // to ensure that resolution has occurred before we attempt to determine
     // constant dependencies.
     //
-    Element element = target;
-    AnalysisContext context = element.context;
+    ConstantEvaluationTarget constant = target;
+    AnalysisContext context = constant.context;
     TypeProvider typeProvider = context.typeProvider;
     //
     // Compute dependencies.
     //
-    List<Element> dependencies = <Element>[];
+    List<ConstantEvaluationTarget> dependencies = <ConstantEvaluationTarget>[];
     new ConstantEvaluationEngine(typeProvider, context.declaredVariables)
-        .computeDependencies(element, dependencies.add);
+        .computeDependencies(constant, dependencies.add);
     //
     // Record outputs.
     //
@@ -1686,13 +1688,24 @@ class ComputeConstantDependenciesTask extends ElementBasedAnalysisTask {
    * input descriptors describing those inputs for a task with the
    * given [target].
    */
-  static Map<String, TaskInput> buildInputs(Element target) {
-    CompilationUnitElementImpl unit = target
-        .getAncestor((Element element) => element is CompilationUnitElement);
-    return <String, TaskInput>{
-      UNIT_INPUT: RESOLVED_UNIT
-          .of(new LibrarySpecificUnit(unit.librarySource, target.source))
-    };
+  static Map<String, TaskInput> buildInputs(ConstantEvaluationTarget target) {
+    if (target is Element) {
+      CompilationUnitElementImpl unit = (target as Element)
+          .getAncestor((Element element) => element is CompilationUnitElement);
+      return <String, TaskInput>{
+        UNIT_INPUT: RESOLVED_UNIT
+            .of(new LibrarySpecificUnit(unit.librarySource, target.source))
+      };
+    } else if (target is ConstantEvaluationTarget_Annotation) {
+      return <String, TaskInput>{
+        UNIT_INPUT: RESOLVED_UNIT
+            .of(new LibrarySpecificUnit(target.librarySource, target.source))
+      };
+    } else {
+      // Should never happen.
+      assert(false);
+      return <String, TaskInput>{};
+    }
   }
 
   /**
@@ -1706,10 +1719,10 @@ class ComputeConstantDependenciesTask extends ElementBasedAnalysisTask {
 }
 
 /**
- * A task that computes the value of a constant ([CONSTANT_EVALUATED_ELEMENT]) and
+ * A task that computes the value of a constant ([CONSTANT_VALUE]) and
  * stores it in the element model.
  */
-class ComputeConstantValueTask extends ElementBasedAnalysisTask {
+class ComputeConstantValueTask extends ConstantEvaluationAnalysisTask {
   /**
    * The name of the input which ensures that dependent constants are evaluated
    * before the target.
@@ -1718,10 +1731,11 @@ class ComputeConstantValueTask extends ElementBasedAnalysisTask {
 
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'ComputeConstantValueTask', createTask, buildInputs,
-      <ResultDescriptor>[CONSTANT_EVALUATED_ELEMENT]);
+      <ResultDescriptor>[CONSTANT_VALUE]);
 
-  ComputeConstantValueTask(InternalAnalysisContext context, Element element)
-      : super(context, element);
+  ComputeConstantValueTask(
+      InternalAnalysisContext context, ConstantEvaluationTarget constant)
+      : super(context, constant);
 
   @override
   TaskDescriptor get descriptor => DESCRIPTOR;
@@ -1734,18 +1748,18 @@ class ComputeConstantValueTask extends ElementBasedAnalysisTask {
     // Note: DEPENDENCIES_INPUT is not needed.  It is merely a bookkeeping
     // dependency to ensure that the constants that this constant depends on
     // are computed first.
-    Element element = target;
-    AnalysisContext context = element.context;
+    ConstantEvaluationTarget constant = target;
+    AnalysisContext context = constant.context;
     TypeProvider typeProvider = context.typeProvider;
     //
     // Compute the value of the constant.
     //
     new ConstantEvaluationEngine(typeProvider, context.declaredVariables)
-        .computeConstantValue(element);
+        .computeConstantValue(constant);
     //
     // Record outputs.
     //
-    outputs[CONSTANT_EVALUATED_ELEMENT] = element;
+    outputs[CONSTANT_VALUE] = constant;
   }
 
   /**
@@ -1753,10 +1767,10 @@ class ComputeConstantValueTask extends ElementBasedAnalysisTask {
    * input descriptors describing those inputs for a task with the given
    * [target].
    */
-  static Map<String, TaskInput> buildInputs(Element target) {
+  static Map<String, TaskInput> buildInputs(ConstantEvaluationTarget target) {
     return <String, TaskInput>{
       DEPENDENCIES_INPUT:
-          CONSTANT_DEPENDENCIES.of(target).toListOf(CONSTANT_EVALUATED_ELEMENT)
+          CONSTANT_DEPENDENCIES.of(target).toListOf(CONSTANT_VALUE)
     };
   }
 
@@ -1768,6 +1782,39 @@ class ComputeConstantValueTask extends ElementBasedAnalysisTask {
       AnalysisContext context, AnalysisTarget target) {
     return new ComputeConstantValueTask(context, target);
   }
+}
+
+/**
+ * A base class for analysis tasks whose target is expected to be a
+ * [ConstantEvaluationTarget].
+ */
+abstract class ConstantEvaluationAnalysisTask extends AnalysisTask {
+  /**
+   * Initialize a newly created task to perform analysis within the given
+   * [context] in order to produce results for the given [constant].
+   */
+  ConstantEvaluationAnalysisTask(
+      AnalysisContext context, ConstantEvaluationTarget constant)
+      : super(context, constant);
+
+  @override
+  String get description {
+    Source source = target.source;
+    String sourceName = source == null ? '<unknown source>' : source.fullName;
+    return '${descriptor.name} for element $target in source $sourceName';
+  }
+}
+
+/**
+ * Interface for [AnalysisTarget]s for which constant evaluation can be
+ * performed.
+ */
+abstract class ConstantEvaluationTarget extends AnalysisTarget {
+  /**
+   * Return the [AnalysisContext] which should be used to evaluate this
+   * constant.
+   */
+  AnalysisContext get context;
 }
 
 /**
@@ -1906,25 +1953,6 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
   static DartErrorsTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new DartErrorsTask(context, target);
-  }
-}
-
-/**
- * A base class for analysis tasks whose target is expected to be an element.
- */
-abstract class ElementBasedAnalysisTask extends AnalysisTask {
-  /**
-   * Initialize a newly created task to perform analysis within the given
-   * [context] in order to produce results for the given [element].
-   */
-  ElementBasedAnalysisTask(AnalysisContext context, Element element)
-      : super(context, element);
-
-  @override
-  String get description {
-    Source source = target.source;
-    String sourceName = source == null ? '<unknown source>' : source.fullName;
-    return '${descriptor.name} for element $target in source $sourceName';
   }
 }
 

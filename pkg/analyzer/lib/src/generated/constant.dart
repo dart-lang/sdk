@@ -9,7 +9,9 @@ library engine.constant;
 
 import 'dart:collection';
 
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/src/task/dart.dart';
 
 import 'ast.dart';
 import 'element.dart';
@@ -25,7 +27,7 @@ import 'utilities_dart.dart' show ParameterKind;
 /**
  * Callback used by [ReferenceFinder] to report that a dependency was found.
  */
-typedef void ReferenceFinderCallback(Element dependency);
+typedef void ReferenceFinderCallback(ConstantEvaluationTarget dependency);
 
 /**
  * The state of an object representing a boolean value.
@@ -308,84 +310,118 @@ class ConstantEvaluationEngine {
   }
 
   /**
-   * Compute the constant value associated with the given [element].
+   * Compute the constant value associated with the given [constant].
    */
-  void computeConstantValue(Element element) {
-    validator.beforeComputeValue(element);
-    if (element is ParameterElement) {
-      if (element.initializer != null) {
+  void computeConstantValue(ConstantEvaluationTarget constant) {
+    validator.beforeComputeValue(constant);
+    if (constant is ParameterElement) {
+      if (constant.initializer != null) {
         Expression defaultValue =
-            (element as PotentiallyConstVariableElement).constantInitializer;
+            (constant as PotentiallyConstVariableElement).constantInitializer;
         if (defaultValue != null) {
           RecordingErrorListener errorListener = new RecordingErrorListener();
           ErrorReporter errorReporter =
-              new ErrorReporter(errorListener, element.source);
+              new ErrorReporter(errorListener, constant.source);
           DartObjectImpl dartObject =
               defaultValue.accept(new ConstantVisitor(this, errorReporter));
-          (element as ParameterElementImpl).evaluationResult =
+          (constant as ParameterElementImpl).evaluationResult =
               new EvaluationResultImpl(dartObject, errorListener.errors);
         }
       }
-    } else if (element is VariableElement) {
+    } else if (constant is VariableElement) {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       ErrorReporter errorReporter =
-          new ErrorReporter(errorListener, element.source);
+          new ErrorReporter(errorListener, constant.source);
       DartObjectImpl dartObject =
-          (element as PotentiallyConstVariableElement).constantInitializer
+          (constant as PotentiallyConstVariableElement).constantInitializer
               .accept(new ConstantVisitor(this, errorReporter));
       // Only check the type for truly const declarations (don't check final
       // fields with initializers, since their types may be generic.  The type
       // of the final field will be checked later, when the constructor is
       // invoked).
-      if (dartObject != null && element.isConst) {
-        if (!runtimeTypeMatch(dartObject, element.type)) {
+      if (dartObject != null && constant.isConst) {
+        if (!runtimeTypeMatch(dartObject, constant.type)) {
           errorReporter.reportErrorForElement(
-              CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, element, [
-            dartObject.type,
-            element.type
-          ]);
+              CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, constant,
+              [dartObject.type, constant.type]);
         }
       }
-      (element as VariableElementImpl).evaluationResult =
+      (constant as VariableElementImpl).evaluationResult =
           new EvaluationResultImpl(dartObject, errorListener.errors);
-    } else if (element is ConstructorElement) {
+    } else if (constant is ConstructorElement) {
       // No evaluation needs to be done; constructor declarations are only in
       // the dependency graph to ensure that any constants referred to in
       // initializer lists and parameter defaults are evaluated before
       // invocations of the constructor.  However we do need to annotate the
       // element as being free of constant evaluation cycles so that later code
       // will know that it is safe to evaluate.
-      (element as ConstructorElementImpl).isCycleFree = true;
+      (constant as ConstructorElementImpl).isCycleFree = true;
+    } else if (constant is ConstantEvaluationTarget_Annotation) {
+      Annotation constNode = constant.annotation;
+      ElementAnnotationImpl elementAnnotation = constNode.elementAnnotation;
+      // elementAnnotation is null if the annotation couldn't be resolved, in
+      // which case we skip it.
+      if (elementAnnotation != null) {
+        Element element = elementAnnotation.element;
+        if (element is PropertyAccessorElement &&
+            element.variable is VariableElementImpl) {
+          // The annotation is a reference to a compile-time constant variable.
+          // Just copy the evaluation result.
+          VariableElementImpl variableElement =
+              element.variable as VariableElementImpl;
+          elementAnnotation.evaluationResult = variableElement.evaluationResult;
+        } else if (element is ConstructorElementImpl &&
+            constNode.arguments != null) {
+          RecordingErrorListener errorListener = new RecordingErrorListener();
+          CompilationUnit sourceCompilationUnit =
+              constNode.getAncestor((node) => node is CompilationUnit);
+          ErrorReporter errorReporter = new ErrorReporter(
+              errorListener, sourceCompilationUnit.element.source);
+          ConstantVisitor constantVisitor =
+              new ConstantVisitor(this, errorReporter);
+          DartObjectImpl result = evaluateConstructorCall(constNode,
+              constNode.arguments.arguments, element, constantVisitor,
+              errorReporter);
+          elementAnnotation.evaluationResult =
+              new EvaluationResultImpl(result, errorListener.errors);
+        } else {
+          // This may happen for invalid code (e.g. failing to pass arguments
+          // to an annotation which references a const constructor).  The error
+          // is detected elsewhere, so just silently ignore it here.
+          elementAnnotation.evaluationResult = new EvaluationResultImpl(null);
+        }
+      }
     } else {
       // Should not happen.
       assert(false);
       AnalysisEngine.instance.logger.logError(
-          "Constant value computer trying to compute the value of a node of type ${element.runtimeType}");
+          "Constant value computer trying to compute the value of a node of type ${constant.runtimeType}");
       return;
     }
   }
 
   /**
    * Determine which constant elements need to have their values computed
-   * prior to computing the value of [element], and report them using
+   * prior to computing the value of [constant], and report them using
    * [callback].
    */
-  void computeDependencies(Element element, ReferenceFinderCallback callback) {
+  void computeDependencies(
+      ConstantEvaluationTarget constant, ReferenceFinderCallback callback) {
     ReferenceFinder referenceFinder = new ReferenceFinder(callback);
-    if (element is ParameterElement) {
-      if (element.initializer != null) {
+    if (constant is ParameterElement) {
+      if (constant.initializer != null) {
         Expression defaultValue =
-            (element as ConstVariableElement).constantInitializer;
+            (constant as ConstVariableElement).constantInitializer;
         if (defaultValue != null) {
           defaultValue.accept(referenceFinder);
         }
       }
-    } else if (element is PotentiallyConstVariableElement) {
-      element.constantInitializer.accept(referenceFinder);
-    } else if (element is ConstructorElementImpl) {
-      element.isCycleFree = false;
+    } else if (constant is PotentiallyConstVariableElement) {
+      constant.constantInitializer.accept(referenceFinder);
+    } else if (constant is ConstructorElementImpl) {
+      constant.isCycleFree = false;
       ConstructorElement redirectedConstructor =
-          getConstRedirectedConstructor(element);
+          getConstRedirectedConstructor(constant);
       if (redirectedConstructor != null) {
         ConstructorElement redirectedConstructorBase =
             ConstantEvaluationEngine._getConstructorBase(redirectedConstructor);
@@ -393,7 +429,7 @@ class ConstantEvaluationEngine {
         return;
       }
       bool superInvocationFound = false;
-      List<ConstructorInitializer> initializers = element.constantInitializers;
+      List<ConstructorInitializer> initializers = constant.constantInitializers;
       for (ConstructorInitializer initializer in initializers) {
         if (initializer is SuperConstructorInvocation) {
           superInvocationFound = true;
@@ -404,7 +440,7 @@ class ConstantEvaluationEngine {
         // No explicit superconstructor invocation found, so we need to
         // manually insert a reference to the implicit superconstructor.
         InterfaceType superclass =
-            (element.returnType as InterfaceType).superclass;
+            (constant.returnType as InterfaceType).superclass;
         if (superclass != null && !superclass.isObject) {
           ConstructorElement unnamedConstructor = ConstantEvaluationEngine
               ._getConstructorBase(superclass.element.unnamedConstructor);
@@ -413,7 +449,7 @@ class ConstantEvaluationEngine {
           }
         }
       }
-      for (FieldElement field in element.enclosingElement.fields) {
+      for (FieldElement field in constant.enclosingElement.fields) {
         // Note: non-static const isn't allowed but we handle it anyway so that
         // we won't be confused by incorrect code.
         if ((field.isFinal || field.isConst) &&
@@ -422,14 +458,40 @@ class ConstantEvaluationEngine {
           callback(field);
         }
       }
-      for (ParameterElement parameterElement in element.parameters) {
+      for (ParameterElement parameterElement in constant.parameters) {
         callback(parameterElement);
+      }
+    } else if (constant is ConstantEvaluationTarget_Annotation) {
+      Annotation constNode = constant.annotation;
+      ElementAnnotationImpl elementAnnotation = constNode.elementAnnotation;
+      // elementAnnotation is null if the annotation couldn't be resolved, in
+      // which case we skip it.
+      if (elementAnnotation != null) {
+        Element element = elementAnnotation.element;
+        if (element is PropertyAccessorElement &&
+            element.variable is VariableElementImpl) {
+          // The annotation is a reference to a compile-time constant variable,
+          // so it depends on the variable.
+          callback(element.variable);
+        } else if (element is ConstructorElementImpl && element.isConst) {
+          // The annotation is a constructor invocation, so it depends on the
+          // constructor.
+          // TODO(paulberry): make sure the right thing happens if the
+          // constructor is non-const.
+          callback(element);
+        } else {
+          // This could happen in the event of invalid code.  The error will be
+          // reported at constant evaluation time.
+        }
+      }
+      if (constNode.arguments != null) {
+        constNode.arguments.accept(referenceFinder);
       }
     } else {
       // Should not happen.
       assert(false);
       AnalysisEngine.instance.logger.logError(
-          "Constant value computer trying to compute the value of a node of type ${element.runtimeType}");
+          "Constant value computer trying to compute the value of a node of type ${constant.runtimeType}");
     }
   }
 
@@ -827,16 +889,30 @@ class ConstantEvaluationEngine {
 }
 
 /**
+ * Wrapper around an [Annotation] which can be used as a
+ * [ConstantEvaluationTarget].
+ */
+class ConstantEvaluationTarget_Annotation implements ConstantEvaluationTarget {
+  final AnalysisContext context;
+  final Source source;
+  final Source librarySource;
+  final Annotation annotation;
+
+  ConstantEvaluationTarget_Annotation(
+      this.context, this.source, this.librarySource, this.annotation);
+}
+
+/**
  * Interface used by unit tests to verify correct dependency analysis during
  * constant evaluation.
  */
 abstract class ConstantEvaluationValidator {
   /**
    * This method is called just before computing the constant value associated
-   * with [element]. Unit tests will override this method to introduce
+   * with [constant]. Unit tests will override this method to introduce
    * additional error checking.
    */
-  void beforeComputeValue(Element element);
+  void beforeComputeValue(ConstantEvaluationTarget constant);
 
   /**
    * This method is called just before getting the constant initializers
@@ -850,7 +926,7 @@ abstract class ConstantEvaluationValidator {
    * element. Unit tests will override it to introduce additional error
    * checking.
    */
-  void beforeGetEvaluationResult(Element element);
+  void beforeGetEvaluationResult(ConstantEvaluationTarget constant);
 
   /**
    * This method is called just before getting the constant value of a field
@@ -873,13 +949,13 @@ abstract class ConstantEvaluationValidator {
 class ConstantEvaluationValidator_ForProduction
     implements ConstantEvaluationValidator {
   @override
-  void beforeComputeValue(Element element) {}
+  void beforeComputeValue(ConstantEvaluationTarget constant) {}
 
   @override
   void beforeGetConstantInitializers(ConstructorElement constructor) {}
 
   @override
-  void beforeGetEvaluationResult(Element element) {}
+  void beforeGetEvaluationResult(ConstantEvaluationTarget constant) {}
 
   @override
   void beforeGetFieldEvaluationResult(FieldElementImpl field) {}
@@ -982,26 +1058,28 @@ class ConstantEvaluator {
  * those compilation units.
  */
 class ConstantFinder extends RecursiveAstVisitor<Object> {
-  /**
-   * The elements whose constant values need to be computed, with the exception
-   * of annotations.
-   */
-  HashSet<Element> constantsToCompute = new HashSet<Element>();
+  final AnalysisContext context;
+  final Source source;
+  final Source librarySource;
 
   /**
-   * A collection of annotations.
+   * The elements and AST nodes whose constant values need to be computed.
    */
-  final List<Annotation> annotations = <Annotation>[];
+  HashSet<ConstantEvaluationTarget> constantsToCompute =
+      new HashSet<ConstantEvaluationTarget>();
 
   /**
    * True if instance variables marked as "final" should be treated as "const".
    */
   bool treatFinalInstanceVarAsConst = false;
 
+  ConstantFinder(this.context, this.source, this.librarySource);
+
   @override
   Object visitAnnotation(Annotation node) {
     super.visitAnnotation(node);
-    annotations.add(node);
+    constantsToCompute.add(new ConstantEvaluationTarget_Annotation(
+        context, source, librarySource, node));
     return null;
   }
 
@@ -1077,16 +1155,11 @@ class ConstantValueComputer {
       "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|d(?:efault|o)|e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|i[fns]|n(?:ew|ull)|ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|r(?:ue|y))|v(?:ar|oid)|w(?:hile|ith))";
 
   /**
-   * The object used to find constant variables and constant constructor
-   * invocations in the compilation units that were added.
-   */
-  ConstantFinder _constantFinder = new ConstantFinder();
-
-  /**
    * A graph in which the nodes are the constants, and the edges are from each
    * constant to the other constants that are referenced by it.
    */
-  DirectedGraph<Element> referenceGraph = new DirectedGraph<Element>();
+  DirectedGraph<ConstantEvaluationTarget> referenceGraph =
+      new DirectedGraph<ConstantEvaluationTarget>();
 
   /**
    * The elements whose constant values need to be computed.  Any elements
@@ -1095,12 +1168,8 @@ class ConstantValueComputer {
    * computed during a previous stage of resolution stage (e.g. constants
    * associated with enums).
    */
-  HashSet<Element> _constantsToCompute;
-
-  /**
-   * A collection of annotations.
-   */
-  List<Annotation> _annotations;
+  HashSet<ConstantEvaluationTarget> _constantsToCompute =
+      new HashSet<ConstantEvaluationTarget>();
 
   /**
    * The evaluation engine that does the work of evaluating instance creation
@@ -1108,13 +1177,15 @@ class ConstantValueComputer {
    */
   final ConstantEvaluationEngine evaluationEngine;
 
+  final AnalysisContext _context;
+
   /**
    * Initialize a newly created constant value computer. The [typeProvider] is
    * the type provider used to access known types. The [declaredVariables] is
    * the set of variables declared on the command line using '-D'.
    */
-  ConstantValueComputer(
-      TypeProvider typeProvider, DeclaredVariables declaredVariables,
+  ConstantValueComputer(this._context, TypeProvider typeProvider,
+      DeclaredVariables declaredVariables,
       [ConstantEvaluationValidator validator])
       : evaluationEngine = new ConstantEvaluationEngine(
           typeProvider, declaredVariables, validator: validator);
@@ -1123,8 +1194,11 @@ class ConstantValueComputer {
    * Add the constants in the given compilation [unit] to the list of constants
    * whose value needs to be computed.
    */
-  void add(CompilationUnit unit) {
-    unit.accept(_constantFinder);
+  void add(CompilationUnit unit, Source source, Source librarySource) {
+    ConstantFinder constantFinder =
+        new ConstantFinder(_context, source, librarySource);
+    unit.accept(constantFinder);
+    _constantsToCompute.addAll(constantFinder.constantsToCompute);
   }
 
   /**
@@ -1132,103 +1206,62 @@ class ConstantValueComputer {
    * added.
    */
   void computeValues() {
-    _constantsToCompute = _constantFinder.constantsToCompute;
-    _annotations = _constantFinder.annotations;
-    for (Element element in _constantsToCompute) {
-      referenceGraph.addNode(element);
-      evaluationEngine.computeDependencies(element, (Element dependency) {
-        referenceGraph.addEdge(element, dependency);
+    for (ConstantEvaluationTarget constant in _constantsToCompute) {
+      referenceGraph.addNode(constant);
+      evaluationEngine.computeDependencies(constant,
+          (ConstantEvaluationTarget dependency) {
+        referenceGraph.addEdge(constant, dependency);
       });
     }
-    List<List<Element>> topologicalSort =
+    List<List<ConstantEvaluationTarget>> topologicalSort =
         referenceGraph.computeTopologicalSort();
-    for (List<Element> constantsInCycle in topologicalSort) {
+    for (List<ConstantEvaluationTarget> constantsInCycle in topologicalSort) {
       if (constantsInCycle.length == 1) {
         _computeValueFor(constantsInCycle[0]);
       } else {
-        for (Element constant in constantsInCycle) {
+        for (ConstantEvaluationTarget constant in constantsInCycle) {
           _generateCycleError(constantsInCycle, constant);
         }
       }
     }
-    // Since no constant can depend on an annotation, we don't waste time
-    // including them in the topological sort.  We just process all the
-    // annotations after all other constants are finished.
-    for (Annotation annotation in _annotations) {
-      _computeValueForAnnotation(annotation);
-    }
   }
 
   /**
-   * Compute a value for the given [element].
+   * Compute a value for the given [constant].
    */
-  void _computeValueFor(Element element) {
-    if (!_constantsToCompute.contains(element)) {
+  void _computeValueFor(ConstantEvaluationTarget constant) {
+    if (!_constantsToCompute.contains(constant)) {
       // Element is in the dependency graph but should have been computed by
       // a previous stage of analysis.
+      // TODO(paulberry): once we have moved over to the new task model, this
+      // should only occur for constants associated with enum members.  Once
+      // that happens we should add an assertion to verify that it doesn't
+      // occur in any other cases.
       return;
     }
-    evaluationEngine.computeConstantValue(element);
+    evaluationEngine.computeConstantValue(constant);
   }
 
   /**
-   * Compute a value for the given annotation.
-   */
-  void _computeValueForAnnotation(Annotation constNode) {
-    ElementAnnotationImpl elementAnnotation = constNode.elementAnnotation;
-    // elementAnnotation is null if the annotation couldn't be resolved, in
-    // which case we skip it.
-    if (elementAnnotation != null) {
-      Element element = elementAnnotation.element;
-      if (element is PropertyAccessorElement &&
-          element.variable is VariableElementImpl) {
-        // The annotation is a reference to a compile-time constant variable.
-        // Just copy the evaluation result.
-        VariableElementImpl variableElement =
-            element.variable as VariableElementImpl;
-        elementAnnotation.evaluationResult = variableElement.evaluationResult;
-      } else if (element is ConstructorElementImpl &&
-          constNode.arguments != null) {
-        RecordingErrorListener errorListener = new RecordingErrorListener();
-        CompilationUnit sourceCompilationUnit =
-            constNode.getAncestor((node) => node is CompilationUnit);
-        ErrorReporter errorReporter = new ErrorReporter(
-            errorListener, sourceCompilationUnit.element.source);
-        ConstantVisitor constantVisitor =
-            new ConstantVisitor(evaluationEngine, errorReporter);
-        DartObjectImpl result = evaluationEngine.evaluateConstructorCall(
-            constNode, constNode.arguments.arguments, element, constantVisitor,
-            errorReporter);
-        elementAnnotation.evaluationResult =
-            new EvaluationResultImpl(result, errorListener.errors);
-      } else {
-        // This may happen for invalid code (e.g. failing to pass arguments
-        // to an annotation which references a const constructor).  The error
-        // is detected elsewhere, so just silently ignore it here.
-        elementAnnotation.evaluationResult = new EvaluationResultImpl(null);
-      }
-    }
-  }
-
-  /**
-   * Generate an error indicating that the given [constNode] is not a valid
+   * Generate an error indicating that the given [constant] is not a valid
    * compile-time constant because it references at least one of the constants
    * in the given [cycle], each of which directly or indirectly references the
    * constant.
    */
-  void _generateCycleError(List<Element> cycle, Element element) {
-    if (element is VariableElement) {
+  void _generateCycleError(
+      List<ConstantEvaluationTarget> cycle, ConstantEvaluationTarget constant) {
+    if (constant is VariableElement) {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       ErrorReporter errorReporter =
-          new ErrorReporter(errorListener, element.source);
+          new ErrorReporter(errorListener, constant.source);
       // TODO(paulberry): It would be really nice if we could extract enough
       // information from the 'cycle' argument to provide the user with a
       // description of the cycle.
       errorReporter.reportErrorForElement(
-          CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, element, []);
-      (element as VariableElementImpl).evaluationResult =
+          CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, constant, []);
+      (constant as VariableElementImpl).evaluationResult =
           new EvaluationResultImpl(null, errorListener.errors);
-    } else if (element is ConstructorElement) {
+    } else if (constant is ConstructorElement) {
       // We don't report cycle errors on constructor declarations since there
       // is nowhere to put the error information.
     } else {
@@ -1236,7 +1269,7 @@ class ConstantValueComputer {
       // never appear as part of a cycle because they can't be referred to.
       assert(false);
       AnalysisEngine.instance.logger.logError(
-          "Constant value computer trying to report a cycle error for a node of type ${element.runtimeType}");
+          "Constant value computer trying to report a cycle error for a node of type ${constant.runtimeType}");
     }
   }
 }
