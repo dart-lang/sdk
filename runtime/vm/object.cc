@@ -927,6 +927,10 @@ void Object::RegisterPrivateClass(const Class& cls,
 
 RawError* Object::Init(Isolate* isolate) {
   TIMERSCOPE(isolate, time_bootstrap);
+
+#if defined(DART_NO_SNAPSHOT)
+  // Object::Init version when we are running in a version of dart that does
+  // not have a full snapshot linked in.
   ObjectStore* object_store = isolate->object_store();
 
   Class& cls = Class::Handle(isolate);
@@ -1426,11 +1430,10 @@ RawError* Object::Init(Isolate* isolate) {
   isolate->object_store()->InitKnownObjects();
 
   return Error::null();
-}
-
-
-void Object::InitFromSnapshot(Isolate* isolate) {
-  TIMERSCOPE(isolate, time_bootstrap);
+#else  // defined(DART_NO_SNAPSHOT).
+  // Object::Init version when we are running in a version of dart that has
+  // a full snapshot linked in and an isolate is initialized using the full
+  // snapshot.
   ObjectStore* object_store = isolate->object_store();
 
   Class& cls = Class::Handle();
@@ -1540,6 +1543,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   object_store->set_empty_context(context);
 
   StubCode::InitBootstrapStubs(isolate);
+#endif  // defined(DART_NO_SNAPSHOT).
+
+  return Error::null();
 }
 
 

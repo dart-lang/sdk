@@ -455,7 +455,9 @@ RECOGNIZED_LIST(DEFINE_ENUM_LIST)
   static bool AlwaysInline(const Function& function);
   static bool PolymorphicTarget(const Function& function);
   static const char* KindToCString(Kind kind);
+#if defined(DART_NO_SNAPSHOT)
   static void InitializeState();
+#endif  // defined(DART_NO_SNAPSHOT).
 };
 
 

@@ -25,15 +25,21 @@ bool MethodRecognizer::PolymorphicTarget(const Function& function) {
 }
 
 
-const char* MethodRecognizer::KindToCString(Kind kind) {
 #define KIND_TO_STRING(class_name, function_name, enum_name, fp)               \
-  if (kind == k##enum_name) return #enum_name;
+  #enum_name,
+static const char* recognized_list_method_name[] = {
 RECOGNIZED_LIST(KIND_TO_STRING)
+};
 #undef KIND_TO_STRING
+
+const char* MethodRecognizer::KindToCString(Kind kind) {
+  if (kind > kUnknown && kind < kNumRecognizedMethods)
+    return recognized_list_method_name[kind];
   return "?";
 }
 
 
+#if defined(DART_NO_SNAPSHOT)
 void MethodRecognizer::InitializeState() {
   GrowableArray<Library*> libs(3);
   libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
@@ -83,5 +89,6 @@ void MethodRecognizer::InitializeState() {
 #undef SET_IS_POLYMORPHIC_TARGET
 #undef SET_FUNCTION_BIT
 }
+#endif  // defined(DART_NO_SNAPSHOT).
 
 }  // namespace dart

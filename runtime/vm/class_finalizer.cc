@@ -183,6 +183,7 @@ void ClassFinalizer::CollectInterfaces(const Class& cls,
 }
 
 
+#if defined(DART_NO_SNAPSHOT)
 void ClassFinalizer::VerifyBootstrapClasses() {
   if (FLAG_trace_class_finalization) {
     OS::Print("VerifyBootstrapClasses START.\n");
@@ -246,6 +247,7 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   }
   Isolate::Current()->heap()->Verify();
 }
+#endif  // defined(DART_NO_SNAPSHOT).
 
 
 // Resolve unresolved_class in the library of cls, or return null.

@@ -349,12 +349,12 @@
       },
     },
     {
-      'target_name': 'libdart_withcore',
+      'target_name': 'libdart_nosnapshot',
       'type': 'static_library',
       'toolsets':['target','host'],
       'dependencies': [
-        'libdart_lib_withcore',
-        'libdart_vm',
+        'libdart_lib_nosnapshot',
+        'libdart_vm_nosnapshot',
         'libdouble_conversion',
         'generate_version_cc_file#host',
       ],
@@ -382,7 +382,7 @@
       'type': 'executable',
       'toolsets':['host'],
       'dependencies': [
-        'libdart_withcore',
+        'libdart_nosnapshot',
         'libdart_builtin',
       ],
       'include_dirs': [
@@ -609,7 +609,7 @@
       'type': 'executable',
       'toolsets':['host'],
       'dependencies': [
-        'libdart_withcore',
+        'libdart_nosnapshot',
         'libdart_builtin',
         'libdart_io',
         'generate_bootstrap_resources_cc_file#host',
@@ -662,7 +662,7 @@
       'target_name': 'dart_no_snapshot',
       'type': 'executable',
       'dependencies': [
-        'libdart_withcore',
+        'libdart_nosnapshot',
         'libdart_builtin',
         'libdart_io',
         'generate_resources_cc_file#host',
@@ -721,7 +721,7 @@
       'target_name': 'run_vm_tests',
       'type': 'executable',
       'dependencies': [
-        'libdart_withcore',
+        'libdart',
         'libdart_builtin',
         'libdart_io',
         'generate_snapshot_file#host',

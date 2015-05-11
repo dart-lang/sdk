@@ -525,7 +525,6 @@ class Object {
 
   // Initialize a new isolate either from source or from a snapshot.
   static RawError* Init(Isolate* isolate);
-  static void InitFromSnapshot(Isolate* isolate);
 
   static void MakeUnusedSpaceTraversable(const Object& obj,
                                          intptr_t original_size,

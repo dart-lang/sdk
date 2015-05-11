@@ -224,15 +224,12 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Setup for profiling.
   Profiler::InitProfilingForIsolate(isolate);
 
-  if (snapshot_buffer == NULL) {
-    const Error& error = Error::Handle(Object::Init(isolate));
-    if (!error.IsNull()) {
-      return error.raw();
-    }
-  } else {
-    // Initialize from snapshot (this should replicate the functionality
-    // of Object::Init(..) in a regular isolate creation path.
-    Object::InitFromSnapshot(isolate);
+  const Error& error = Error::Handle(Object::Init(isolate));
+  if (!error.IsNull()) {
+    return error.raw();
+  }
+  if (snapshot_buffer != NULL) {
+    // Read the snapshot and setup the initial state.
 
     // TODO(turnidge): Remove once length is not part of the snapshot.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
