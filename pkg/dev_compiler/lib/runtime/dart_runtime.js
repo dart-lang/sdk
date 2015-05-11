@@ -885,6 +885,7 @@ var dart, _js_helper, _js_primitives;
   /** Sets the type of `obj` to be `type` */
   function setType(obj, type) {
     obj.__proto__ = type.prototype;
+    return obj;
   }
   dart.setType = setType;
 
