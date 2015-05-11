@@ -45,14 +45,6 @@ class DartWorkManagerTest {
     expect(manager.librarySourceQueue, unorderedEquals(sources));
   }
 
-  void expect_librarySources(List<Source> sources) {
-    expect(manager.librarySources, unorderedEquals(sources));
-  }
-
-  void expect_partSources(List<Source> sources) {
-    expect(manager.partSources, unorderedEquals(sources));
-  }
-
   void expect_unknownSourceQueue(List<Source> sources) {
     expect(manager.unknownSourceQueue, unorderedEquals(sources));
   }
@@ -68,14 +60,10 @@ class DartWorkManagerTest {
   void test_applyChange_add() {
     // add source1
     manager.applyChange([source1], [], []);
-    expect_librarySources([]);
-    expect_partSources([]);
     expect_unknownSourceQueue([source1]);
     expect_librarySourceQueue([]);
     // add source2
     manager.applyChange([source2], [], []);
-    expect_librarySources([]);
-    expect_partSources([]);
     expect_librarySourceQueue([]);
     expect_unknownSourceQueue([source1, source2]);
   }
@@ -83,60 +71,42 @@ class DartWorkManagerTest {
   void test_applyChange_add_duplicate() {
     // add source1
     manager.applyChange([source1], [], []);
-    expect_librarySources([]);
-    expect_partSources([]);
     expect_unknownSourceQueue([source1]);
     expect_librarySourceQueue([]);
     // add source2
     manager.applyChange([source1], [], []);
-    expect_librarySources([]);
-    expect_partSources([]);
     expect_librarySourceQueue([]);
     expect_unknownSourceQueue([source1]);
   }
 
   void test_applyChange_addRemove() {
     manager.applyChange([source1, source2], [], [source2, source3]);
-    expect_librarySources([]);
-    expect_partSources([]);
     expect_unknownSourceQueue([source1]);
     expect_librarySourceQueue([]);
   }
 
   void test_applyChange_change() {
-    manager.librarySources.addAll([source1, source3]);
-    manager.partSources.addAll([source2]);
     manager.librarySourceQueue.addAll([source1, source3]);
     manager.unknownSourceQueue.addAll([source4]);
     // change source1
     manager.applyChange([], [source1], []);
-    expect_librarySources([source3]);
-    expect_partSources([source2]);
     expect_librarySourceQueue([source3]);
     expect_unknownSourceQueue([source4, source1]);
   }
 
   void test_applyChange_remove() {
-    manager.librarySources.addAll([source1, source3]);
-    manager.partSources.addAll([source2]);
     manager.librarySourceQueue.addAll([source1, source3]);
     manager.unknownSourceQueue.addAll([source4]);
     // remove source1
     manager.applyChange([], [], [source1]);
-    expect_librarySources([source3]);
-    expect_partSources([source2]);
     expect_librarySourceQueue([source3]);
     expect_unknownSourceQueue([source4]);
     // remove source3
     manager.applyChange([], [], [source3]);
-    expect_librarySources([]);
-    expect_partSources([source2]);
     expect_librarySourceQueue([]);
     expect_unknownSourceQueue([source4]);
     // remove source4
     manager.applyChange([], [], [source4]);
-    expect_librarySources([]);
-    expect_partSources([source2]);
     expect_librarySourceQueue([]);
     expect_unknownSourceQueue([]);
   }
@@ -183,9 +153,7 @@ class DartWorkManagerTest {
     expect_librarySourceQueue([source2]);
   }
 
-  void test_getNextResult_hasLibraries_nothingToDo() {
-    manager.librarySources.addAll([source1]);
-    manager.partSources.addAll([source2]);
+  void test_getNextResult_nothingToDo() {
     TargetedResult request = manager.getNextResult();
     expect(request, isNull);
   }
@@ -278,8 +246,6 @@ class DartWorkManagerTest {
   void test_resultsComputed_isLibrary() {
     manager.unknownSourceQueue.addAll([source1, source2, source3]);
     manager.resultsComputed(source2, {SOURCE_KIND: SourceKind.LIBRARY});
-    expect_librarySources([source2]);
-    expect_partSources([]);
     expect_librarySourceQueue([source2]);
     expect_unknownSourceQueue([source1, source3]);
   }
@@ -287,8 +253,6 @@ class DartWorkManagerTest {
   void test_resultsComputed_isPart() {
     manager.unknownSourceQueue.addAll([source1, source2, source3]);
     manager.resultsComputed(source2, {SOURCE_KIND: SourceKind.PART});
-    expect_librarySources([]);
-    expect_partSources([source2]);
     expect_librarySourceQueue([]);
     expect_unknownSourceQueue([source1, source3]);
   }
@@ -296,8 +260,6 @@ class DartWorkManagerTest {
   void test_resultsComputed_noSourceKind() {
     manager.unknownSourceQueue.addAll([source1, source2]);
     manager.resultsComputed(source1, {});
-    expect_librarySources([]);
-    expect_partSources([]);
     expect_librarySourceQueue([]);
     expect_unknownSourceQueue([source1, source2]);
   }
@@ -305,8 +267,6 @@ class DartWorkManagerTest {
   void test_resultsComputed_notDart() {
     manager.unknownSourceQueue.addAll([source1, source2]);
     manager.resultsComputed(new TestSource('test.html'), {});
-    expect_librarySources([]);
-    expect_partSources([]);
     expect_librarySourceQueue([]);
     expect_unknownSourceQueue([source1, source2]);
   }

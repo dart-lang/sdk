@@ -23,16 +23,6 @@ class DartWorkManager implements WorkManager {
   final InternalAnalysisContext context;
 
   /**
-   * The known library source.
-   */
-  final HashSet<Source> librarySources = new HashSet<Source>();
-
-  /**
-   * The know part sources.
-   */
-  final HashSet<Source> partSources = new HashSet<Source>();
-
-  /**
    * The [TargetedResult]s that should be computed with priority.
    */
   final LinkedHashSet<TargetedResult> priorityResultQueue =
@@ -69,12 +59,6 @@ class DartWorkManager implements WorkManager {
     addedSources = addedSources.where(_isDartSource).toList();
     changedSources = changedSources.where(_isDartSource).toList();
     removedSources = removedSources.where(_isDartSource).toList();
-    // library
-    librarySources.removeAll(changedSources);
-    librarySources.removeAll(removedSources);
-    // part
-    partSources.removeAll(changedSources);
-    partSources.removeAll(removedSources);
     // unknown queue
     unknownSourceQueue.addAll(addedSources);
     unknownSourceQueue.addAll(changedSources);
@@ -157,12 +141,7 @@ class DartWorkManager implements WorkManager {
       SourceKind kind = outputs[SOURCE_KIND];
       if (kind != null) {
         unknownSourceQueue.remove(target);
-        if (kind == SourceKind.PART) {
-          librarySources.remove(target);
-          partSources.add(target);
-        } else {
-          librarySources.add(target);
-          partSources.remove(target);
+        if (kind == SourceKind.LIBRARY) {
           librarySourceQueue.add(target);
         }
       }
