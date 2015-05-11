@@ -5,7 +5,6 @@
 library timer_cancel_test;
 
 import 'dart:async';
-import 'dart:isolate';
 import 'package:unittest/unittest.dart';
 
 main() {

@@ -31,7 +31,8 @@ compile_time_error_test/none: Pass, Slow
 browser/*: SkipByDesign  # Browser specific tests
 
 [ $compiler == dart2js && $runtime == jsshell ]
-pause_test: Fail  # non-zero timer not supported.
+pause_test: Fail, OK  # non-zero timer not supported.
+timer_isolate_test: Fail, OK # Needs Timer to run.
 
 [ $compiler == dart2js && $runtime == safari ]
 cross_isolate_message_test: Skip # Issue 12627
@@ -50,6 +51,7 @@ message3_test/constList_identical: RuntimeError # Issue 21817
 message3_test/constMap: RuntimeError  # Issue 21817
 message3_test/constInstance: RuntimeError # Issue 21817
 browser/issue_12474_test: CompileTimeError # Issue 22529
+enum_const_test/02: RuntimeError # Issue 21817
 
 [ $compiler == dart2js && $jscl ]
 spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
@@ -81,6 +83,7 @@ nested_spawn2_test: Skip # Issue 19127: This test is timing out.
 spawn_uri_nested_vm_test: Skip # Issue 14479: This test is timing out.
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
+typed_message_test: Crash, Fail # Issue 13921, 14400
 message_enum_test: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
 compile_time_error_test/none: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
 isolate_import_test/none: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
@@ -103,6 +106,11 @@ kill_self_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
 handle_error_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
 handle_error2_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
 handle_error3_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
+timer_isolate_test: Fail, Pass # Issue 15487. Issue 13921: Dom isolates don't support spawnFunction
+deferred_in_isolate_test: Fail, OK  # Issue 16209, 13921 Dom isolates don't support spawnFunction
+bool_from_environment_default_value_test: Skip
+int_from_environment_default_value_test: Skip
+string_from_environment_default_value_test: Skip
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
@@ -112,6 +120,7 @@ mint_maker_test: StaticWarning
 package_root_test: SkipByDesign # Uses dart:io.
 
 [ $compiler == dart2js && $cps_ir ]
+bool_from_environment_default_value_test: Crash # (test): handleStaticFunctionGet: function(test)
 compile_time_error_test/01: Crash # (entry): handleStaticFunctionGet: function(entry)
 compile_time_error_test/none: Crash # (entry): handleStaticFunctionGet: function(entry)
 count_test: Crash # (main): handleStaticFunctionGet: function(main)
@@ -122,6 +131,7 @@ handle_error3_test: Crash # (isomain1): handleStaticFunctionGet: function(isomai
 handle_error_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
 illegal_msg_function_test: Crash # (main): handleStaticFunctionGet: function(main)
 illegal_msg_mirror_test: Crash # (main): handleStaticFunctionGet: function(main)
+int_from_environment_default_value_test: Crash # (test): handleStaticFunctionGet: function(test)
 isolate_complex_messages_test: Crash # (main): handleStaticFunctionGet: function(main)
 isolate_current_test: Crash # (i2l): handleStaticFunctionGet: function(i2l)
 isolate_import_test/01: Crash # (entry): handleStaticFunctionGet: function(entry)
@@ -164,4 +174,8 @@ spawn_uri_multi_test/none: Crash # unsupported element kind: _defaultEnvironment
 stacktrace_message_test: Crash # (main): handleStaticFunctionGet: function(main)
 start_paused_test: Crash # (notyet): handleStaticFunctionGet: function(notyet)
 static_function_test: Crash # (main): handleStaticFunctionGet: function(main)
+string_from_environment_default_value_test: Crash # (test): handleStaticFunctionGet: function(test)
+timer_isolate_test: Crash # cannot compile methods that need interceptor calling convention.
+typed_message_test: Crash # (logMessages): handleStaticFunctionGet: function(logMessages)
 unresolved_ports_test: Crash # (main): handleStaticFunctionGet: function(main)
+

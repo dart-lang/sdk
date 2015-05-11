@@ -174,8 +174,6 @@ generic_closure_test: RuntimeError # Issue 12605
 const_switch_test/02: RuntimeError # Issue 17960
 const_switch_test/04: RuntimeError # Issue 17960
 
-enum_const_test/02: RuntimeError # Issue 21817
-
 const_dynamic_type_literal_test/02: CompileTimeError # Issue 23009
 const_dynamic_type_literal_test/03: CompileTimeError # Issue 23009
 
@@ -1143,7 +1141,6 @@ type_variable_nested_test: Crash # Instance of 'TypeOperator': type check unimpl
 type_variable_scope2_test: Crash # Instance of 'TypeOperator': type check unimplemented for Foo.
 type_variable_typedef_test: Crash # (foo): handleStaticFunctionGet: function(foo)
 typed_equality_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-typed_message_test: Crash # (logMessages): handleStaticFunctionGet: function(logMessages)
 typedef_is_test: Crash # Instance of 'TypeOperator': type check unimplemented for Func1.
 typevariable_substitution2_test/01: Crash # Please triage this failure.
 typevariable_substitution2_test/02: Crash # Please triage this failure.

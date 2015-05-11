@@ -138,7 +138,6 @@ async/multiple_timer_test: RuntimeError,OK # Needs Timer to run.
 async/timer_cancel_test: RuntimeError,OK # Needs Timer to run.
 async/timer_cancel1_test: RuntimeError,OK # Needs Timer to run.
 async/timer_cancel2_test: RuntimeError,OK # Needs Timer to run.
-async/timer_isolate_test: Fail, OK # Needs Timer to run.
 async/timer_repeat_test: RuntimeError,OK # Needs Timer to run.
 async/timer_test: RuntimeError,OK # Needs Timer to run.
 async/stream_controller_async_test: RuntimeError # Timer interface not supported; Issue 7728.
@@ -244,7 +243,6 @@ async/schedule_microtask6_test: Fail # Issue 10910
 async/timer_test: Fail, Pass # Issue 15487
 async/multiple_timer_test: Fail, Pass # Issue 15487
 async/stream_periodic3_test: Fail, Pass # Issue 15487
-async/timer_isolate_test: Fail, Pass # Issue 15487. Issue 13921: spawnFunction is not allowed on Dartium's DOM thread.
 async/timer_isActive_test: Fail, Pass # Issue 22352
 mirrors/immutable_collections_test: SkipSlow # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
 mirrors/mirrors_reader_test: SkipSlow # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
@@ -268,10 +266,6 @@ mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 19127
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 20806.
-
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
-# Dart vm does not support spawn from a dom-enabled isolate.
-async/deferred/deferred_in_isolate_test: RuntimeError # Issue 16209
 
 [ $compiler == dart2js && $runtime == jsshell ]
 async/schedule_microtask_test: Fail  # Preamble file does not correctly implement scheduleImmediate.

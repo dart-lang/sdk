@@ -4,17 +4,14 @@
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 bool_from_environment2_test: Skip
-bool_from_environment_default_value_test: Skip
 bool_from_environment_test: Skip
 from_environment_const_type_test: Skip
 from_environment_const_type_undefined_test: Skip
 int_from_environment2_test: Skip
 int_from_environment3_test: Skip
-int_from_environment_default_value_test: Skip
 int_from_environment_test: Skip
 string_from_environment2_test: Skip
 string_from_environment3_test: Skip
-string_from_environment_default_value: Skip
 string_from_environment_test: Skip
 
 [ $compiler == none ]
@@ -215,7 +212,6 @@ big_integer_parsed_mul_div_vm_test: Pass, Slow
 [ $compiler == dart2js && $cps_ir ]
 apply2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 apply_test: Crash # (test0): handleStaticFunctionGet: function(test0)
-bool_from_environment_default_value_test: Crash # (test): handleStaticFunctionGet: function(test)
 collection_removes_test: RuntimeError # Please triage this failure.
 collection_to_string_test: Crash # Instance of 'TypeOperator': type check unimplemented for List.
 compare_to2_test: Crash # Instance of 'TypeOperator': type check unimplemented for List.
@@ -249,7 +245,6 @@ hash_set_test/none: Crash # (testIdentitySet): handleStaticFunctionGet: function
 hash_set_type_check_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 hashcode_test: Crash # (bar): handleStaticFunctionGet: function(bar)
 indexed_list_access_test: Crash # (getIt): handleStaticFunctionGet: function(getIt)
-int_from_environment_default_value_test: Crash # (test): handleStaticFunctionGet: function(test)
 int_parse_radix_test/01: Crash # Please triage this failure.
 int_parse_radix_test/02: Crash # Please triage this failure.
 int_parse_radix_test/none: Crash # Please triage this failure.
