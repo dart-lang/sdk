@@ -9,38 +9,31 @@ namespace dart {
 void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
                                    intptr_t pc_offset,
                                    intptr_t deopt_id,
-                                   intptr_t token_index,
+                                   intptr_t token_pos,
                                    intptr_t try_index) {
   ASSERT((kind == RawPcDescriptors::kRuntimeCall) ||
          (kind == RawPcDescriptors::kOther) ||
          (deopt_id != Isolate::kNoDeoptId));
-  struct PcDesc data;
-  data.pc_offset = pc_offset;
-  data.kind = kind;
-  data.deopt_id = deopt_id;
-  data.SetTokenPos(token_index);
-  data.try_index = try_index;
-  list_.Add(data);
-  if (try_index >= 0) {
-    has_try_index_ = true;
-  }
+
+  PcDescriptors::EncodeInteger(&delta_encoded_data_,
+                               static_cast<intptr_t>(kind));
+  PcDescriptors::EncodeInteger(&delta_encoded_data_,
+                               try_index);
+  PcDescriptors::EncodeInteger(&delta_encoded_data_,
+                               pc_offset - prev_pc_offset);
+  PcDescriptors::EncodeInteger(&delta_encoded_data_,
+                               deopt_id - prev_deopt_id);
+  PcDescriptors::EncodeInteger(&delta_encoded_data_,
+                               token_pos - prev_token_pos);
+
+  prev_pc_offset = pc_offset;
+  prev_deopt_id = deopt_id;
+  prev_token_pos = token_pos;
 }
 
 
 RawPcDescriptors* DescriptorList::FinalizePcDescriptors(uword entry_point) {
-  intptr_t num_descriptors = Length();
-  const PcDescriptors& descriptors =
-      PcDescriptors::Handle(PcDescriptors::New(num_descriptors,
-                                               has_try_index_));
-  for (intptr_t i = 0; i < num_descriptors; i++) {
-    descriptors.AddDescriptor(i,
-                              PcOffset(i),
-                              Kind(i),
-                              DeoptId(i),
-                              TokenPos(i),
-                              TryIndex(i));
-  }
-  return descriptors.raw();
+  return PcDescriptors::New(&delta_encoded_data_);
 }
 
 
