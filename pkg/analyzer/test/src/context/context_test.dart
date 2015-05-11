@@ -217,15 +217,15 @@ import 'libB.dart';''';
     expect(resolvedUnit, same(parsedUnit));
   }
 
-  Future fail_computeResolvedCompilationUnitAsync_dispose() {
+  Future test_computeResolvedCompilationUnitAsync_dispose() {
     Source source = addSource("/lib.dart", "library lib;");
     // Complete all pending analysis tasks and flush the AST so that it won't
     // be available immediately.
     _performPendingAnalysisTasks();
     _flushAst(source);
+    bool completed = false;
     CancelableFuture<CompilationUnit> future =
         context.computeResolvedCompilationUnitAsync(source, source);
-    bool completed = false;
     future.then((CompilationUnit unit) {
       fail('Future should have completed with error');
     }, onError: (error) {
@@ -1200,7 +1200,7 @@ main() {}''');
     expect(info, isNotNull);
   }
 
-  Future fail_computeResolvedCompilationUnitAsync_afterDispose() {
+  Future test_computeResolvedCompilationUnitAsync_afterDispose() {
     Source source = addSource("/lib.dart", "library lib;");
     // Complete all pending analysis tasks and flush the AST so that it won't
     // be available immediately.
@@ -2033,7 +2033,7 @@ int a = 0;''');
   }
 
   void _flushAst(Source source) {
-    CacheEntry entry = context.getReadableSourceEntryOrNull(source);
+    CacheEntry entry = context.getReadableSourceEntryOrNull(new LibrarySpecificUnit(source, source));
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
   }
 
@@ -2046,7 +2046,7 @@ int a = 0;''');
     return context2.test_priorityOrder;
   }
 
-  void _performPendingAnalysisTasks([int maxTasks = 20]) {
+  void _performPendingAnalysisTasks([int maxTasks = 512]) {
     for (int i = 0; context.performAnalysisTask().hasMoreWork; i++) {
       if (i > maxTasks) {
         fail('Analysis did not terminate.');
