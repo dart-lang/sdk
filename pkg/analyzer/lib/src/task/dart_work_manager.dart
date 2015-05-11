@@ -14,6 +14,7 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:analyzer/src/generated/utilities_collection.dart';
 
 /**
  * The manager for Dart specific analysis.
@@ -67,10 +68,21 @@ class DartWorkManager implements WorkManager {
     // library queue
     librarySourceQueue.removeAll(changedSources);
     librarySourceQueue.removeAll(removedSources);
-    // TODO(scheglov) This is an inefficient implementation.
-    // We could make the cache to return invalidated results and use them
-    // to allow work managers to schedule work request.
-    librarySourceQueue.addAll(librarySources);
+    // Some of the libraries might have been invalidated, reschedule them.
+    {
+      MapIterator<AnalysisTarget, CacheEntry> iterator =
+          (context.analysisCache as AnalysisCache).iterator();
+      while (iterator.moveNext()) {
+        AnalysisTarget target = iterator.key;
+        if (_isDartSource(target)) {
+          CacheEntry entry = iterator.value;
+          if (entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY &&
+              entry.getValue(LIBRARY_ERRORS_READY) != true) {
+            librarySourceQueue.add(target);
+          }
+        }
+      }
+    }
   }
 
   @override

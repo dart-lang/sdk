@@ -13,6 +13,7 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/task/model.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
@@ -26,7 +27,6 @@ main() {
 
 @reflectiveTest
 class DartWorkManagerTest {
-  AnalysisCache cache;
   InternalAnalysisContext context = new _InternalAnalysisContextMock();
   DartWorkManager manager;
 
@@ -42,7 +42,7 @@ class DartWorkManagerTest {
   CacheEntry entry4;
 
   void expect_librarySourceQueue(List<Source> sources) {
-    expect(manager.librarySourceQueue, orderedEquals(sources));
+    expect(manager.librarySourceQueue, unorderedEquals(sources));
   }
 
   void expect_librarySources(List<Source> sources) {
@@ -54,24 +54,15 @@ class DartWorkManagerTest {
   }
 
   void expect_unknownSourceQueue(List<Source> sources) {
-    expect(manager.unknownSourceQueue, orderedEquals(sources));
+    expect(manager.unknownSourceQueue, unorderedEquals(sources));
   }
 
   void setUp() {
-    cache = new AnalysisCache([new UniversalCachePartition(context)]);
     manager = new DartWorkManager(context);
-    entry1 = new CacheEntry(source1);
-    entry2 = new CacheEntry(source2);
-    entry3 = new CacheEntry(source3);
-    entry4 = new CacheEntry(source4);
-    cache.put(entry1);
-    cache.put(entry2);
-    cache.put(entry3);
-    cache.put(entry4);
-    when(context.getCacheEntry(source1)).thenReturn(entry1);
-    when(context.getCacheEntry(source2)).thenReturn(entry2);
-    when(context.getCacheEntry(source3)).thenReturn(entry3);
-    when(context.getCacheEntry(source4)).thenReturn(entry4);
+    entry1 = context.getCacheEntry(source1);
+    entry2 = context.getCacheEntry(source2);
+    entry3 = context.getCacheEntry(source3);
+    entry4 = context.getCacheEntry(source4);
   }
 
   void test_applyChange_add() {
@@ -148,6 +139,18 @@ class DartWorkManagerTest {
     expect_partSources([source2]);
     expect_librarySourceQueue([]);
     expect_unknownSourceQueue([]);
+  }
+
+  void test_applyChange_scheduleInvalidatedLibraries() {
+    // libraries source1 and source3 are invalid
+    entry1.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
+    entry2.setValue(SOURCE_KIND, SourceKind.PART, []);
+    entry3.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
+    entry1.setValue(LIBRARY_ERRORS_READY, false, []);
+    entry3.setValue(LIBRARY_ERRORS_READY, false, []);
+    // change source2, schedule source1 and source3
+    manager.applyChange([], [source2], []);
+    expect_librarySourceQueue([source1, source3]);
   }
 
   void test_getNextResult_hasLibraries_firstIsError() {
@@ -272,5 +275,22 @@ class DartWorkManagerTest {
 
 class _InternalAnalysisContextMock extends TypedMock
     implements InternalAnalysisContext {
+  @override
+  AnalysisCache analysisCache;
+
+  _InternalAnalysisContextMock() {
+    analysisCache = new AnalysisCache([new UniversalCachePartition(this)]);
+  }
+
+  @override
+  CacheEntry getCacheEntry(AnalysisTarget target) {
+    CacheEntry entry = analysisCache.get(target);
+    if (entry == null) {
+      entry = new CacheEntry(target);
+      analysisCache.put(entry);
+    }
+    return entry;
+  }
+
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
