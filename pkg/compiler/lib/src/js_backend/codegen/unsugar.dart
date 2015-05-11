@@ -14,6 +14,7 @@ import '../../elements/elements.dart' show
     ExecutableElement;
 import '../../js_backend/codegen/glue.dart';
 import '../../dart2jslib.dart' show Selector, World;
+import '../../cps_ir/cps_ir_builder.dart' show ThisParameterLocal;
 
 class ExplicitReceiverParameterEntity implements Local {
   String get name => 'receiver';
