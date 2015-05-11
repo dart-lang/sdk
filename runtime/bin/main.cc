@@ -65,9 +65,9 @@ static const char* commandline_package_root = NULL;
 // dart functions and not run anything.
 static bool has_compile_all = false;
 
-// Global flag that is used to indicate that we want to print the source code
-// for script that is being run.
-static bool has_print_script = false;
+// Global flag that is used to indicate that we want to trace resolution of
+// URIs and the loading of libraries, parts and scripts.
+static bool has_trace_loading = false;
 
 
 static const char* DEFAULT_VM_SERVICE_SERVER_IP = "127.0.0.1";
@@ -282,17 +282,6 @@ static bool ProcessDebugOption(const char* option_value,
 }
 
 
-static bool ProcessPrintScriptOption(const char* arg,
-                                     CommandLineOptions* vm_options) {
-  ASSERT(arg != NULL);
-  if (*arg != '\0') {
-    return false;
-  }
-  has_print_script = true;
-  return true;
-}
-
-
 static bool ProcessGenScriptSnapshotOption(const char* filename,
                                            CommandLineOptions* vm_options) {
   if (filename != NULL && strlen(filename) != 0) {
@@ -361,6 +350,16 @@ static bool ProcessTraceDebugProtocolOption(const char* arg,
 }
 
 
+static bool ProcessTraceLoadingOption(const char* arg,
+                                      CommandLineOptions* vm_options) {
+  if (*arg != '\0') {
+    return false;
+  }
+  has_trace_loading = true;
+  return true;
+}
+
+
 static struct {
   const char* option_name;
   bool (*process)(const char* option, CommandLineOptions* vm_options);
@@ -378,10 +377,10 @@ static struct {
   { "--compile_all", ProcessCompileAllOption },
   { "--debug", ProcessDebugOption },
   { "--snapshot=", ProcessGenScriptSnapshotOption },
-  { "--print-script", ProcessPrintScriptOption },
   { "--enable-vm-service", ProcessEnableVmServiceOption },
   { "--observe", ProcessObserveOption },
   { "--trace-debug-protocol", ProcessTraceDebugProtocolOption },
+  { "--trace-loading", ProcessTraceLoadingOption},
   { NULL, NULL }
 };
 
@@ -634,7 +633,10 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
 
   // Prepare for script loading by setting up the 'print' and 'timer'
   // closures and setting up 'package root' for URI resolution.
-  result = DartUtils::PrepareForScriptLoading(package_root, false, builtin_lib);
+  result = DartUtils::PrepareForScriptLoading(package_root,
+                                              false,
+                                              has_trace_loading,
+                                              builtin_lib);
   CHECK_RESULT(result);
 
   result = Dart_SetEnvironmentCallback(EnvironmentCallback);
@@ -748,12 +750,13 @@ static void PrintUsage() {
 "--snapshot=<file_name>\n"
 "  loads Dart script and generates a snapshot in the specified file\n"
 "\n"
-"--print-script\n"
-"  generates Dart source code back and prints it after parsing a Dart script\n"
+"--trace-loading\n"
+"  enables tracing of library and script loading\n"
 "\n"
 "--enable-vm-service[:<port number>]\n"
 "  enables the VM service and listens on specified port for connections\n"
 "  (default port number is 8181)\n"
+"\n"
 "--noopt\n"
 "  run unoptimized code only\n"
 "\n"
@@ -813,40 +816,6 @@ static void DartExitOnError(Dart_Handle error) {
 static void ShutdownIsolate(void* callback_data) {
   IsolateData* isolate_data = reinterpret_cast<IsolateData*>(callback_data);
   delete isolate_data;
-}
-
-
-static Dart_Handle GenerateScriptSource() {
-  Dart_Handle library_url = Dart_LibraryUrl(Dart_RootLibrary());
-  if (Dart_IsError(library_url)) {
-    return library_url;
-  }
-  Dart_Handle script_urls = Dart_GetScriptURLs(library_url);
-  if (Dart_IsError(script_urls)) {
-    return script_urls;
-  }
-  intptr_t length;
-  Dart_Handle result = Dart_ListLength(script_urls, &length);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  for (intptr_t i = 0; i < length; i++) {
-    Dart_Handle script_url = Dart_ListGetAt(script_urls, i);
-    if (Dart_IsError(script_url)) {
-      return script_url;
-    }
-    result = Dart_GenerateScriptSource(library_url, script_url);
-    if (Dart_IsError(result)) {
-      return result;
-    }
-    const char* script_source = NULL;
-    result = Dart_StringToCString(result, &script_source);
-    if (Dart_IsError(result)) {
-      return result;
-    }
-    Log::Print("%s\n", script_source);
-  }
-  return Dart_True();
 }
 
 
@@ -1053,47 +1022,43 @@ void main(int argc, char** argv) {
                 "Unable to find root library for '%s'\n",
                 script_name);
     }
-    if (has_print_script) {
-      result = GenerateScriptSource();
-      DartExitOnError(result);
-    } else {
-      // The helper function _getMainClosure creates a closure for the main
-      // entry point which is either explicitly or implictly exported from the
-      // root library.
-      Dart_Handle main_closure = Dart_Invoke(
-          builtin_lib, Dart_NewStringFromCString("_getMainClosure"), 0, NULL);
-      DartExitOnError(main_closure);
 
-      // Set debug breakpoint if specified on the command line before calling
-      // the main function.
-      if (breakpoint_at != NULL) {
-        result = SetBreakpoint(breakpoint_at, root_lib);
-        if (Dart_IsError(result)) {
-          ErrorExit(kErrorExitCode,
-                    "Error setting breakpoint at '%s': %s\n",
-                    breakpoint_at,
-                    Dart_GetError(result));
-        }
+    // The helper function _getMainClosure creates a closure for the main
+    // entry point which is either explicitly or implictly exported from the
+    // root library.
+    Dart_Handle main_closure = Dart_Invoke(
+        builtin_lib, Dart_NewStringFromCString("_getMainClosure"), 0, NULL);
+    DartExitOnError(main_closure);
+
+    // Set debug breakpoint if specified on the command line before calling
+    // the main function.
+    if (breakpoint_at != NULL) {
+      result = SetBreakpoint(breakpoint_at, root_lib);
+      if (Dart_IsError(result)) {
+        ErrorExit(kErrorExitCode,
+                  "Error setting breakpoint at '%s': %s\n",
+                  breakpoint_at,
+                  Dart_GetError(result));
       }
-
-      // Call _startIsolate in the isolate library to enable dispatching the
-      // initial startup message.
-      const intptr_t kNumIsolateArgs = 2;
-      Dart_Handle isolate_args[kNumIsolateArgs];
-      isolate_args[0] = main_closure;                         // entryPoint
-      isolate_args[1] = CreateRuntimeOptions(&dart_options);  // args
-
-      Dart_Handle isolate_lib = Dart_LookupLibrary(
-          Dart_NewStringFromCString("dart:isolate"));
-      result = Dart_Invoke(isolate_lib,
-                           Dart_NewStringFromCString("_startMainIsolate"),
-                           kNumIsolateArgs, isolate_args);
-      DartExitOnError(result);
-
-      // Keep handling messages until the last active receive port is closed.
-      result = Dart_RunLoop();
-      DartExitOnError(result);
     }
+
+    // Call _startIsolate in the isolate library to enable dispatching the
+    // initial startup message.
+    const intptr_t kNumIsolateArgs = 2;
+    Dart_Handle isolate_args[kNumIsolateArgs];
+    isolate_args[0] = main_closure;                         // entryPoint
+    isolate_args[1] = CreateRuntimeOptions(&dart_options);  // args
+
+    Dart_Handle isolate_lib = Dart_LookupLibrary(
+        Dart_NewStringFromCString("dart:isolate"));
+    result = Dart_Invoke(isolate_lib,
+                         Dart_NewStringFromCString("_startMainIsolate"),
+                         kNumIsolateArgs, isolate_args);
+    DartExitOnError(result);
+
+    // Keep handling messages until the last active receive port is closed.
+    result = Dart_RunLoop();
+    DartExitOnError(result);
   }
 
   Dart_ExitScope();

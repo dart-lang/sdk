@@ -624,6 +624,7 @@ void FUNCTION_NAME(Builtin_GetCurrentDirectory)(Dart_NativeArguments args) {
 void DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
                                       Dart_Handle internal_lib,
                                       bool is_service_isolate,
+                                      bool trace_loading,
                                       const char* package_root) {
   // Setup the internal library's 'internalPrint' function.
   Dart_Handle print = Dart_Invoke(
@@ -634,10 +635,15 @@ void DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
   DART_CHECK_VALID(result);
 
   if (!is_service_isolate) {
-    result =
-        Dart_SetField(builtin_lib, NewString("_isWindows"),
-                      IsWindowsHost() ? Dart_True() : Dart_False());
-    DART_CHECK_VALID(result);
+    if (IsWindowsHost()) {
+      result = Dart_SetField(builtin_lib, NewString("_isWindows"), Dart_True());
+      DART_CHECK_VALID(result);
+    }
+    if (trace_loading) {
+      result = Dart_SetField(builtin_lib,
+                             NewString("_traceLoading"), Dart_True());
+      DART_CHECK_VALID(result);
+    }
   }
 
   if (!is_service_isolate) {
@@ -702,6 +708,7 @@ void DartUtils::PrepareIsolateLibrary(Dart_Handle isolate_lib) {
 
 Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
                                                bool is_service_isolate,
+                                               bool trace_loading,
                                                Dart_Handle builtin_lib) {
   // First ensure all required libraries are available.
   Dart_Handle url = NewString(kCoreLibURL);
@@ -731,6 +738,7 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
   PrepareBuiltinLibrary(builtin_lib,
                         internal_lib,
                         is_service_isolate,
+                        trace_loading,
                         package_root);
   PrepareAsyncLibrary(async_lib, isolate_lib);
   PrepareCoreLibrary(core_lib, builtin_lib, is_service_isolate);

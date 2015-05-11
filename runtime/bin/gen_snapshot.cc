@@ -585,7 +585,10 @@ int main(int argc, char** argv) {
     // Prepare for script loading by setting up the 'print' and 'timer'
     // closures and setting up 'package root' for URI resolution.
     result =
-        DartUtils::PrepareForScriptLoading(package_root, false, builtin_lib);
+        DartUtils::PrepareForScriptLoading(package_root,
+                                           false,
+                                           false,
+                                           builtin_lib);
     CHECK_RESULT(result);
     Dart_ExitScope();
     Dart_ExitIsolate();

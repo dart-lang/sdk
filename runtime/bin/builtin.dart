@@ -7,12 +7,6 @@ library builtin;
 import 'dart:isolate';
 import 'dart:typed_data';
 
-// import 'root_library'; happens here from C Code
-
-// Build time flag to enable debug logging of loading code.
-const _logLoading = false;
-
-
 // The root library (aka the script) is imported into this library. The
 // standalone embedder uses this to lookup the main entrypoint in the
 // root library's namespace.
@@ -59,6 +53,10 @@ const Dart_kImportTag = 0;
 const Dart_kSourceTag = 1;
 const Dart_kCanonicalizeUrl = 2;
 
+// Embedder sets this to true if the --trace-loading flag was passed on the
+// command line.
+bool _traceLoading = false;
+
 // A port for communicating with the service isolate for I/O.
 SendPort _loadPort;
 // Maintain a number of outstanding load requests. Current loading request is
@@ -66,18 +64,19 @@ SendPort _loadPort;
 int _numOutstandingLoadRequests = 0;
 
 // The current working directory when the embedder was launched.
-var _workingDirectoryUri;
-// The URI that the entry point script was loaded from. Remembered so that
-// package imports can be resolved relative to it.
-var _entryPointScript;
+Uri _workingDirectory;
+// The URI that the root script was loaded from. Remembered so that
+// package imports can be resolved relative to it. The root script is the basis
+// for the root library in the VM.
+Uri _rootScript;
 // The directory to look in to resolve "package:" scheme URIs. By detault it is
 // the 'packages' directory right next to the script.
-var _packageRoot = _entryPointScript.resolve('packages/');
+Uri _packageRoot = _rootScript.resolve('packages/');
 
 // Special handling for Windows paths so that they are compatible with URI
 // handling.
-// Embedder sets whether we are running on Windows.
-var _isWindows;
+// Embedder sets this to true if we are running on Windows.
+bool _isWindows = false;
 
 
 // A class wrapping the load error message in an Error object.
@@ -152,12 +151,12 @@ _enforceTrailingSlash(uri) {
 // Embedder Entrypoint:
 // The embedder calls this method with the current working directory.
 void _setWorkingDirectory(cwd) {
-  if (_logLoading) {
+  if (_traceLoading) {
     _print('# Setting working directory: $cwd');
   }
-  _workingDirectoryUri = new Uri.directory(cwd);
-  if (_logLoading) {
-    _print('# Working directory URI: $_workingDirectoryUri');
+  _workingDirectory = new Uri.directory(cwd);
+  if (_traceLoading) {
+    _print('# Working directory URI: $_workingDirectory');
   }
 }
 
@@ -165,18 +164,21 @@ void _setWorkingDirectory(cwd) {
 // Embedder Entrypoint:
 // The embedder calls this method with a custom package root.
 _setPackageRoot(String packageRoot) {
+  if (_traceLoading) {
+    _print('# Setting package root: $packageRoot');
+  }
   packageRoot = _enforceTrailingSlash(packageRoot);
   if (packageRoot.startsWith('file:') ||
       packageRoot.startsWith('http:') ||
       packageRoot.startsWith('https:')) {
-    _packageRoot = _workingDirectoryUri.resolve(packageRoot);
+    _packageRoot = _workingDirectory.resolve(packageRoot);
   } else {
     packageRoot = _sanitizeWindowsPath(packageRoot);
     packageRoot = _trimWindowsPath(packageRoot);
-    _packageRoot = _workingDirectoryUri.resolveUri(new Uri.file(packageRoot));
+    _packageRoot = _workingDirectory.resolveUri(new Uri.file(packageRoot));
   }
-  if (_logLoading) {
-    _print('# Package root: $packageRoot -> $_packageRoot');
+  if (_traceLoading) {
+    _print('# Package root URI: $_packageRoot');
   }
 }
 
@@ -193,7 +195,7 @@ Uri _resolvePackageUri(Uri uri) {
           "'$right', not '$wrong'.";
   }
 
-  if (_logLoading) {
+  if (_traceLoading) {
     _print('# Package root: $_packageRoot');
     _print('# uri path: ${uri.path}');
   }
@@ -204,7 +206,7 @@ Uri _resolvePackageUri(Uri uri) {
 // Resolves the script uri in the current working directory iff the given uri
 // did not specify a scheme (e.g. a path to a script file on the command line).
 Uri _resolveScriptUri(String scriptName) {
-  if (_workingDirectoryUri == null) {
+  if (_workingDirectory == null) {
     throw 'No current working directory set.';
   }
   scriptName = _sanitizeWindowsPath(scriptName);
@@ -213,15 +215,15 @@ Uri _resolveScriptUri(String scriptName) {
   if (scriptUri.scheme == '') {
     // Script does not have a scheme, assume that it is a path,
     // resolve it against the working directory.
-    scriptUri = _workingDirectoryUri.resolveUri(scriptUri);
+    scriptUri = _workingDirectory.resolveUri(scriptUri);
   }
 
-  // Remember the entry point script URI so that we can resolve packages
-  // based on this location.
-  _entryPointScript = scriptUri;
+  // Remember the root script URI so that we can resolve packages based on
+  // this location.
+  _rootScript = scriptUri;
 
-  if (_logLoading) {
-    _print('# Resolved entry point to: $_entryPointScript');
+  if (_traceLoading) {
+    _print('# Resolved entry point to: $_rootScript');
   }
   return scriptUri;
 }
@@ -230,7 +232,7 @@ Uri _resolveScriptUri(String scriptName) {
 void _finishLoadRequest(String uri) {
   assert(_numOutstandingLoadRequests > 0);
   _numOutstandingLoadRequests--;
-  if (_logLoading) {
+  if (_traceLoading) {
     _print("Loading of $uri finished, "
            "${_numOutstandingLoadRequests} requests remaining");
   }
@@ -243,7 +245,7 @@ void _finishLoadRequest(String uri) {
 void _startLoadRequest(String uri, Uri resourceUri) {
   assert(_numOutstandingLoadRequests >= 0);
   _numOutstandingLoadRequests++;
-  if (_logLoading) {
+  if (_traceLoading) {
     _print("Loading of $resourceUri for $uri started, "
            "${_numOutstandingLoadRequests} requests outstanding");
   }
@@ -260,7 +262,7 @@ void _loadScript(int tag, String uri, String libraryUri, Uint8List data) {
 
 
 void _asyncLoadError(int tag, String uri, String libraryUri, LoadError error) {
-  if (_logLoading) {
+  if (_traceLoading) {
     _print("_asyncLoadError($uri), error: $error");
   }
   if (tag == Dart_kImportTag) {
@@ -300,7 +302,7 @@ _loadDataFromLoadPort(int tag,
     _loadPort.send(msg);
     _startLoadRequest(uri, resourceUri);
   } catch (e) {
-    if (_logLoading) {
+    if (_traceLoading) {
       _print("Exception when communicating with service isolate: $e");
     }
     // Wrap inside a LoadError unless we are already propagating a previously
@@ -336,7 +338,7 @@ _loadDataAsync(int tag, String uri, String libraryUri) {
 // Function called by standalone embedder to resolve uris when the VM requests
 // Dart_kCanonicalizeUrl from the tag handler.
 String _resolveUri(String base, String userString) {
-  if (_logLoading) {
+  if (_traceLoading) {
     _print('# Resolving: $userString from $base');
   }
   var baseUri = Uri.parse(base);
@@ -347,7 +349,7 @@ String _resolveUri(String base, String userString) {
   } else {
     result = baseUri.resolve(userString).toString();
   }
-  if (_logLoading) {
+  if (_traceLoading) {
     _print('Resolved $userString in $base to $result');
   }
   return result;
@@ -357,7 +359,7 @@ String _resolveUri(String base, String userString) {
 // Embedder Entrypoint (gen_snapshot):
 // Resolve relative paths relative to working directory.
 String _resolveInWorkingDirectory(String fileName) {
-  if (_workingDirectoryUri == null) {
+  if (_workingDirectory == null) {
     throw 'No current working directory set.';
   }
   var name = _sanitizeWindowsPath(fileName);
@@ -366,9 +368,9 @@ String _resolveInWorkingDirectory(String fileName) {
   if (uri.scheme != '') {
     throw 'Schemes are not supported when resolving filenames.';
   }
-  uri = _workingDirectoryUri.resolveUri(uri);
+  uri = _workingDirectory.resolveUri(uri);
 
-  if (_logLoading) {
+  if (_traceLoading) {
     _print('# Resolved in working directory: $fileName -> $uri');
   }
   return uri.toString();
@@ -396,7 +398,7 @@ String _platformExtensionFileName(String name) {
 // Returns either a file path or a URI starting with http[s]:, as a String.
 String _filePathFromUri(String userUri) {
   var uri = Uri.parse(userUri);
-  if (_logLoading) {
+  if (_traceLoading) {
     _print('# Getting file path from: $uri');
   }
 
@@ -414,7 +416,7 @@ String _filePathFromUri(String userUri) {
     default:
     // Only handling file, http, and package URIs
     // in standalone binary.
-    if (_logLoading) {
+    if (_traceLoading) {
       _print('# Unknown scheme (${uri.scheme}) in $uri.');
     }
     throw 'Not a known scheme: $uri';
