@@ -76,6 +76,7 @@ class EnginePlugin implements Plugin {
     registerExtension(taskId, ComputeConstantValueTask.DESCRIPTOR);
     registerExtension(taskId, ContainingLibrariesTask.DESCRIPTOR);
     registerExtension(taskId, DartErrorsTask.DESCRIPTOR);
+    registerExtension(taskId, EvaluateUnitConstantsTask.DESCRIPTOR);
     registerExtension(taskId, GatherUsedImportedElementsTask.DESCRIPTOR);
     registerExtension(taskId, GatherUsedLocalElementsTask.DESCRIPTOR);
     registerExtension(taskId, GenerateHintsTask.DESCRIPTOR);

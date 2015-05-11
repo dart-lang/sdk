@@ -38,6 +38,7 @@ main() {
   runReflectiveTests(ComputeConstantValueTaskTest);
   runReflectiveTests(ContainingLibrariesTaskTest);
   runReflectiveTests(DartErrorsTaskTest);
+  runReflectiveTests(EvaluateUnitConstantsTaskTest);
   runReflectiveTests(GatherUsedImportedElementsTaskTest);
   runReflectiveTests(GatherUsedLocalElementsTaskTest);
   runReflectiveTests(GenerateHintsTaskTest);
@@ -160,6 +161,8 @@ class C = B with M;
 
 @reflectiveTest
 class BuildCompilationUnitElementTaskTest extends _AbstractDartTaskTest {
+  Source source;
+
   test_buildInputs() {
     LibrarySpecificUnit target =
         new LibrarySpecificUnit(emptySource, emptySource);
@@ -197,6 +200,35 @@ class BuildCompilationUnitElementTaskTest extends _AbstractDartTaskTest {
     expect(descriptor, isNotNull);
   }
 
+  test_perform_find_constants() {
+    _performBuildTask('''
+const x = 1;
+class C {
+  static const y = 1;
+  const C([p = 1]);
+}
+@x
+f() {
+  const z = 1;
+}
+''');
+    CompilationUnit unit = outputs[RESOLVED_UNIT1];
+    CompilationUnitElement unitElement = outputs[COMPILATION_UNIT_ELEMENT];
+    Annotation annotation = unit.declarations
+        .firstWhere((m) => m is FunctionDeclaration).metadata[0];
+    List<ConstantEvaluationTarget> expectedConstants = [
+      unitElement.accessors.firstWhere((e) => e.isGetter).variable,
+      unitElement.types[0].fields[0],
+      unitElement.functions[0].localVariables[0],
+      unitElement.types[0].constructors[0],
+      new ConstantEvaluationTarget_Annotation(
+          context, source, source, annotation),
+      unitElement.types[0].constructors[0].parameters[0]
+    ];
+    expect(
+        outputs[COMPILATION_UNIT_CONSTANTS].toSet(), expectedConstants.toSet());
+  }
+
   test_perform_library() {
     _performBuildTask(r'''
 library lib;
@@ -206,13 +238,14 @@ part 'part.dart';
 class A {}
 class B = Object with A;
 ''');
-    expect(outputs, hasLength(2));
+    expect(outputs, hasLength(3));
     expect(outputs[COMPILATION_UNIT_ELEMENT], isNotNull);
     expect(outputs[RESOLVED_UNIT1], isNotNull);
+    expect(outputs[COMPILATION_UNIT_CONSTANTS], isNotNull);
   }
 
   void _performBuildTask(String content) {
-    Source source = newSource('/test.dart', content);
+    source = newSource('/test.dart', content);
     AnalysisTarget target = new LibrarySpecificUnit(source, source);
     _computeResult(target, RESOLVED_UNIT1);
     expect(task, new isInstanceOf<BuildCompilationUnitElementTask>());
@@ -1514,6 +1547,33 @@ class DartErrorsTaskTest extends _AbstractDartTaskTest {
 }
 
 @reflectiveTest
+class EvaluateUnitConstantsTaskTest extends _AbstractDartTaskTest {
+  test_perform() {
+    Source source = newSource('/test.dart', '''
+class C {
+  const C();
+}
+
+@x
+f() {}
+
+const x = const C();
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    _computeResult(target, CONSTANT_RESOLVED_UNIT);
+    expect(task, new isInstanceOf<EvaluateUnitConstantsTask>());
+    CompilationUnit unit = outputs[CONSTANT_RESOLVED_UNIT];
+    CompilationUnitElement unitElement = unit.element;
+    expect((unitElement.types[0].constructors[
+        0] as ConstructorElementImpl).isCycleFree, isTrue);
+    expect((unitElement.functions[0].metadata[
+        0] as ElementAnnotationImpl).evaluationResult, isNotNull);
+    expect((unitElement.topLevelVariables[
+        0] as TopLevelVariableElementImpl).evaluationResult, isNotNull);
+  }
+}
+
+@reflectiveTest
 class GatherUsedImportedElementsTaskTest extends _AbstractDartTaskTest {
   UsedImportedElements usedElements;
   Set<String> usedElementNames;
@@ -2061,27 +2121,17 @@ main(A a) {
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     // prepare unit and "a.m()" invocation
-    CompilationUnit unit;
-    MethodInvocation invocation;
-    {
-      _computeResult(target, RESOLVED_UNIT1);
-      unit = outputs[RESOLVED_UNIT1];
-      // walk the AST
-      FunctionDeclaration function = unit.declarations[1];
-      BlockFunctionBody body = function.functionExpression.body;
-      ExpressionStatement statement = body.block.statements[0];
-      invocation = statement.expression;
-      // not resolved yet
-      expect(invocation.methodName.staticElement, isNull);
-    }
-    // fully resolve
-    {
-      _computeResult(target, RESOLVED_UNIT);
-      expect(task, new isInstanceOf<ResolveReferencesTask>());
-      expect(outputs[RESOLVED_UNIT], same(outputs[RESOLVED_UNIT]));
-      // a.m() is resolved now
-      expect(invocation.methodName.staticElement, isNotNull);
-    }
+    _computeResult(target, RESOLVED_UNIT);
+    CompilationUnit unit = outputs[RESOLVED_UNIT];
+    // walk the AST
+    FunctionDeclaration function = unit.declarations[1];
+    BlockFunctionBody body = function.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    MethodInvocation invocation = statement.expression;
+    expect(task, new isInstanceOf<ResolveReferencesTask>());
+    expect(unit, same(outputs[RESOLVED_UNIT]));
+    // a.m() is resolved now
+    expect(invocation.methodName.staticElement, isNotNull);
   }
 
   test_perform_errors() {

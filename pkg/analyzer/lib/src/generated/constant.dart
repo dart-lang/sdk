@@ -900,6 +900,22 @@ class ConstantEvaluationTarget_Annotation implements ConstantEvaluationTarget {
 
   ConstantEvaluationTarget_Annotation(
       this.context, this.source, this.librarySource, this.annotation);
+
+  @override
+  int get hashCode => JenkinsSmiHash.hash4(context.hashCode, source.hashCode,
+      librarySource.hashCode, annotation.hashCode);
+
+  @override
+  bool operator ==(other) {
+    if (other is ConstantEvaluationTarget_Annotation) {
+      return this.context == other.context &&
+          this.source == other.source &&
+          this.librarySource == other.librarySource &&
+          this.annotation == other.annotation;
+    } else {
+      return false;
+    }
+  }
 }
 
 /**

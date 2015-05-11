@@ -14,6 +14,16 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/model.dart';
 
 /**
+ * The resolved [CompilationUnit] associated with a compilation unit, with
+ * constants resolved.
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ResultDescriptor<CompilationUnit> CONSTANT_RESOLVED_UNIT =
+    new ResultDescriptor<CompilationUnit>('CONSTANT_RESOLVED_UNIT', null,
+        cachingPolicy: AST_CACHING_POLICY);
+
+/**
  * The analysis errors associated with a [Source] representing a compilation
  * unit.
  */
@@ -104,7 +114,8 @@ final ResultDescriptor<CompilationUnit> PARSED_UNIT =
         cachingPolicy: AST_CACHING_POLICY);
 
 /**
- * The resolved [CompilationUnit] associated with a compilation unit.
+ * The resolved [CompilationUnit] associated with a compilation unit, with
+ * constants not yet resolved.
  *
  * The result is only available for [LibrarySpecificUnit]s.
  */

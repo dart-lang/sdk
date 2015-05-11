@@ -76,6 +76,17 @@ final ListResultDescriptor<ClassElement> CLASS_ELEMENTS =
         cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
+ * A list of the [ConstantEvaluationTarget]s defined in a unit.  This includes
+ * constants defined at top level, statically inside classes, and local to
+ * functions, as well as constant constructors, annotations, and default values
+ * of parameters to constant constructors.
+ */
+final ListResultDescriptor<ConstantEvaluationTarget> COMPILATION_UNIT_CONSTANTS =
+    new ListResultDescriptor<ConstantEvaluationTarget>(
+        'COMPILATION_UNIT_CONSTANTS', null,
+        cachingPolicy: ELEMENT_CACHING_POLICY);
+
+/**
  * The element model associated with a single compilation unit.
  *
  * The result is only available for [LibrarySpecificUnit]s.
@@ -620,7 +631,11 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'BuildCompilationUnitElementTask', createTask, buildInputs,
-      <ResultDescriptor>[COMPILATION_UNIT_ELEMENT, RESOLVED_UNIT1]);
+      <ResultDescriptor>[
+    COMPILATION_UNIT_ELEMENT,
+    RESOLVED_UNIT1,
+    COMPILATION_UNIT_CONSTANTS
+  ]);
 
   /**
    * Initialize a newly created task to build a compilation unit element for
@@ -648,11 +663,18 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     CompilationUnitBuilder builder = new CompilationUnitBuilder();
     CompilationUnitElement element =
         builder.buildCompilationUnit(source, unit, librarySpecificUnit.library);
+    ConstantFinder constantFinder =
+        new ConstantFinder(context, source, librarySpecificUnit.library);
+    unit.accept(constantFinder);
+    List<ConstantEvaluationTarget> constants =
+        new List<ConstantEvaluationTarget>.from(
+            constantFinder.constantsToCompute);
     //
     // Record outputs.
     //
     outputs[COMPILATION_UNIT_ELEMENT] = element;
     outputs[RESOLVED_UNIT1] = unit;
+    outputs[COMPILATION_UNIT_CONSTANTS] = constants;
   }
 
   /**
@@ -1953,6 +1975,64 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
   static DartErrorsTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new DartErrorsTask(context, target);
+  }
+}
+
+/**
+ * A task that builds [CONSTANT_RESOLVED_UNIT] for a unit.
+ */
+class EvaluateUnitConstantsTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [RESOLVED_UNIT] input.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
+
+  /**
+   * The name of the [CONSTANT_VALUE] input.
+   */
+  static const String CONSTANT_VALUES = 'CONSTANT_VALUES';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'EvaluateUnitConstantsTask', createTask, buildInputs,
+      <ResultDescriptor>[CONSTANT_RESOLVED_UNIT]);
+
+  EvaluateUnitConstantsTask(AnalysisContext context, LibrarySpecificUnit target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    // No actual work needs to be performed; the task manager will ensure that
+    // all constants are evaluated before this method is called.
+    CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    outputs[CONSTANT_RESOLVED_UNIT] = unit;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(LibrarySpecificUnit target) {
+    return <String, TaskInput>{
+      UNIT_INPUT: RESOLVED_UNIT.of(target),
+      CONSTANT_VALUES:
+          COMPILATION_UNIT_CONSTANTS.of(target).toListOf(CONSTANT_VALUE)
+    };
+  }
+
+  /**
+   * Create an [EvaluateUnitConstantsTask] based on the given [target] in
+   * the given [context].
+   */
+  static EvaluateUnitConstantsTask createTask(
+      AnalysisContext context, LibrarySpecificUnit target) {
+    return new EvaluateUnitConstantsTask(context, target);
   }
 }
 
