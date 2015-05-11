@@ -101,7 +101,7 @@ class Group implements Comparable<Group> {
           'https://www.dartlang.org/articles/style-guide/'));
 
   /// List of builtin groups in presentation order.
-  static Iterable<Group> get builtin => [style, pub];
+  static Iterable<Group> get builtin => [errors, style, pub];
 
   final String name;
   final bool custom;
@@ -109,17 +109,10 @@ class Group implements Comparable<Group> {
   final Hyperlink link;
 
   factory Group(String name, {String description: '', Hyperlink link}) {
-    switch (name.toLowerCase()) {
-      case 'errors':
-        return errors;
-      case 'pub':
-        return pub;
-      case 'style':
-        return style;
-      default:
-        return new Group._(name,
-            custom: true, description: description, link: link);
-    }
+    var n = name.toLowerCase();
+    return builtin.firstWhere((g) => g.name == n,
+        orElse: () => new Group._(name,
+            custom: true, description: description, link: link));
   }
 
   @override
