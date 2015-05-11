@@ -213,7 +213,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         this._options.generateSdkErrors != options.generateSdkErrors ||
         this._options.dart2jsHint != options.dart2jsHint ||
         (this._options.hint && !options.hint) ||
-        (this._options.lint && !options.lint) || 
+        (this._options.lint && !options.lint) ||
         this._options.preserveComments != options.preserveComments ||
         this._options.enableNullAwareOperators !=
             options.enableNullAwareOperators ||
@@ -644,7 +644,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     for (Source librarySource in containingLibraries) {
       LibrarySpecificUnit target =
           new LibrarySpecificUnit(librarySource, unitSource);
-      CompilationUnit unit = _getResult(target, RESOLVED_UNIT);
+      CompilationUnit unit = _cache.getValue(target, RESOLVED_UNIT);
       if (unit == null) {
         units = null;
         break;
@@ -659,7 +659,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     for (Source librarySource in containingLibraries) {
       LibrarySpecificUnit target =
           new LibrarySpecificUnit(librarySource, unitSource);
-      if (_getResultState(target, RESOLVED_UNIT) == CacheState.FLUSHED) {
+      if (_cache.getState(target, RESOLVED_UNIT) == CacheState.FLUSHED) {
         dartWorkManager.addPriorityResult(target, RESOLVED_UNIT);
       }
     }
@@ -691,7 +691,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   CompilationUnitElement getCompilationUnitElement(
       Source unitSource, Source librarySource) {
     AnalysisTarget target = new LibrarySpecificUnit(librarySource, unitSource);
-    return _getResult(target, COMPILATION_UNIT_ELEMENT);
+    return _cache.getValue(target, COMPILATION_UNIT_ELEMENT);
   }
 
   @override
@@ -746,19 +746,19 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     // result values. Therefore, if some, but not all, of the error lists have
     // been computed, no errors will be returned by it.
     List<List<AnalysisError>> errorLists = <List<AnalysisError>>[];
-    errorLists.add(_getResult(source, BUILD_DIRECTIVES_ERRORS));
-    errorLists.add(_getResult(source, BUILD_LIBRARY_ERRORS));
-    errorLists.add(_getResult(source, PARSE_ERRORS));
-    errorLists.add(_getResult(source, SCAN_ERRORS));
+    errorLists.add(_cache.getValue(source, BUILD_DIRECTIVES_ERRORS));
+    errorLists.add(_cache.getValue(source, BUILD_LIBRARY_ERRORS));
+    errorLists.add(_cache.getValue(source, PARSE_ERRORS));
+    errorLists.add(_cache.getValue(source, SCAN_ERRORS));
     for (Source library in getLibrariesContaining(source)) {
       LibrarySpecificUnit unit = new LibrarySpecificUnit(library, source);
-      errorLists.add(_getResult(unit, BUILD_FUNCTION_TYPE_ALIASES_ERRORS));
-      errorLists.add(_getResult(unit, HINTS));
-      errorLists.add(_getResult(unit, RESOLVE_REFERENCES_ERRORS));
-      errorLists.add(_getResult(unit, RESOLVE_TYPE_NAMES_ERRORS));
-      errorLists.add(_getResult(unit, VERIFY_ERRORS));
+      errorLists.add(_cache.getValue(unit, BUILD_FUNCTION_TYPE_ALIASES_ERRORS));
+      errorLists.add(_cache.getValue(unit, HINTS));
+      errorLists.add(_cache.getValue(unit, RESOLVE_REFERENCES_ERRORS));
+      errorLists.add(_cache.getValue(unit, RESOLVE_TYPE_NAMES_ERRORS));
+      errorLists.add(_cache.getValue(unit, VERIFY_ERRORS));
     }
-    LineInfo lineInfo = _getResult(source, LINE_INFO);
+    LineInfo lineInfo = _cache.getValue(source, LINE_INFO);
     return new AnalysisErrorInfoImpl(
         AnalysisError.mergeLists(errorLists), lineInfo);
   }
@@ -821,7 +821,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   SourceKind getKindOf(Source source) {
     String name = source.shortName;
     if (AnalysisEngine.isDartFileName(name)) {
-      return _getResult(source, SOURCE_KIND);
+      return _cache.getValue(source, SOURCE_KIND);
     } else if (AnalysisEngine.isHtmlFileName(name)) {
       return SourceKind.HTML;
     }
@@ -840,7 +840,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       while (iterator.moveNext()) {
         AnalysisTarget target = iterator.key;
         if (target is Source && getKindOf(target) == SourceKind.LIBRARY) {
-          List<Source> parts = _getResult(target, INCLUDED_PARTS);
+          List<Source> parts = _cache.getValue(target, INCLUDED_PARTS);
           if (parts.contains(source)) {
             libraries.add(target);
           }
@@ -887,10 +887,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   LibraryElement getLibraryElement(Source source) =>
-      _getResult(source, LIBRARY_ELEMENT);
+      _cache.getValue(source, LIBRARY_ELEMENT);
 
   @override
-  LineInfo getLineInfo(Source source) => _getResult(source, LINE_INFO);
+  LineInfo getLineInfo(Source source) => _cache.getValue(source, LINE_INFO);
 
   @override
   int getModificationStamp(Source source) {
@@ -938,7 +938,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         !AnalysisEngine.isDartFileName(librarySource.shortName)) {
       return null;
     }
-    return _getResult(
+    return _cache.getValue(
         new LibrarySpecificUnit(librarySource, unitSource), RESOLVED_UNIT);
   }
 
@@ -1461,26 +1461,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _pendingNotices[source] = notice;
     }
     return notice;
-  }
-
-  Object _getResult(AnalysisTarget target, ResultDescriptor descriptor) {
-    cache.CacheEntry entry = _cache.get(target);
-    if (entry == null) {
-      return descriptor.defaultValue;
-    }
-    if (entry.isValid(descriptor)) {
-      return entry.getValue(descriptor);
-    }
-    return descriptor.defaultValue;
-  }
-
-  CacheState _getResultState(
-      AnalysisTarget target, ResultDescriptor descriptor) {
-    cache.CacheEntry entry = _cache.get(target);
-    if (entry == null) {
-      return CacheState.INVALID;
-    }
-    return entry.getState(descriptor);
   }
 
   /**

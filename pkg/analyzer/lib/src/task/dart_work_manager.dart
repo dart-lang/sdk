@@ -178,8 +178,8 @@ class DartWorkManager implements WorkManager {
    * computing, i.e. it is not in the valid and not in the error state.
    */
   bool _needsComputing(AnalysisTarget target, ResultDescriptor result) {
-    CacheEntry entry = context.getCacheEntry(target);
-    CacheState state = entry.getState(result);
+    AnalysisCache cache = context.analysisCache;
+    CacheState state = cache.getState(target, result);
     return state != CacheState.VALID && state != CacheState.ERROR;
   }
 }

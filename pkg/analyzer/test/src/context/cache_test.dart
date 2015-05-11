@@ -67,6 +67,45 @@ class AnalysisCacheTest extends AbstractCacheTest {
     expect(cache.getContextFor(target), context);
   }
 
+  void test_getState_hasEntry_flushed() {
+    ResultDescriptor result = new ResultDescriptor('result', -1);
+    AnalysisTarget target = new TestSource();
+    CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
+    entry.setState(result, CacheState.FLUSHED);
+    expect(cache.getState(target, result), CacheState.FLUSHED);
+  }
+
+  void test_getState_hasEntry_valid() {
+    ResultDescriptor result = new ResultDescriptor('result', -1);
+    AnalysisTarget target = new TestSource();
+    CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
+    entry.setValue(result, '', []);
+    expect(cache.getState(target, result), CacheState.VALID);
+  }
+
+  void test_getState_noEntry() {
+    ResultDescriptor result = new ResultDescriptor('result', -1);
+    AnalysisTarget target = new TestSource();
+    expect(cache.getState(target, result), CacheState.INVALID);
+  }
+
+  void test_getValue_hasEntry_valid() {
+    ResultDescriptor result = new ResultDescriptor('result', -1);
+    AnalysisTarget target = new TestSource();
+    CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
+    entry.setValue(result, 111, []);
+    expect(cache.getValue(target, result), 111);
+  }
+
+  void test_getValue_noEntry() {
+    ResultDescriptor result = new ResultDescriptor('result', -1);
+    AnalysisTarget target = new TestSource();
+    expect(cache.getValue(target, result), -1);
+  }
+
   void test_iterator() {
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry(target);

@@ -102,6 +102,34 @@ class AnalysisCache {
   }
 
   /**
+   * Return the state of the given [result] for the given [target].
+   *
+   * It does not update the cache, if the corresponding [CacheEntry] does not
+   * exist, then [CacheState.INVALID] is returned.
+   */
+  CacheState getState(AnalysisTarget target, ResultDescriptor result) {
+    CacheEntry entry = get(target);
+    if (entry == null) {
+      return CacheState.INVALID;
+    }
+    return entry.getState(result);
+  }
+
+  /**
+   * Return the value of the given [result] for the given [target].
+   *
+   * It does not update the cache, if the corresponding [CacheEntry] does not
+   * exist, then the default value is returned.
+   */
+  Object getValue(AnalysisTarget target, ResultDescriptor result) {
+    CacheEntry entry = get(target);
+    if (entry == null) {
+      return result.defaultValue;
+    }
+    return entry.getValue(result);
+  }
+
+  /**
    * Return an iterator returning all of the map entries mapping targets to
    * cache entries.
    */
