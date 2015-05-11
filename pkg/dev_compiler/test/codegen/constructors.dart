@@ -83,3 +83,26 @@ class P extends N {
   P.foo(int x) : this(x + 42);
   P.bar() : this.foo(1);
 }
+
+class Q<T> {
+  T x;
+
+  Q(y) : x = y;
+
+  static Q foo() => new Q("hello");
+
+  String bar() {
+    var q = foo();
+    return q.x;
+  }
+
+  String bar2() {
+    var q = new Q("world");
+    return q.x;
+  }
+
+  static String baz() {
+    var q = new Q<int>(42);
+    return q.bar() + q.bar2();
+  }
+}

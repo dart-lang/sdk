@@ -72,6 +72,13 @@ suite('generic', () => {
     assert.equal(someValue[dart.originalDeclaration], SomeType);
     assert.deepEqual(someValue[dart.typeArguments], ['hi', 123]);
   });
+
+  test('proper type constructor is called', () => {
+    // This tests https://github.com/dart-lang/dev_compiler/issues/178
+    let l = dart.setType([1, 2, 3], core.List$(core.int));
+    let s = l[core.$join]();
+    assert.equal(s, '123');
+  });
 });
 
 

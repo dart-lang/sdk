@@ -1342,7 +1342,7 @@ var convert = dart.lazyImport(convert);
       [$join](separator) {
         if (separator === void 0)
           separator = "";
-        let list = new List(this[$length]);
+        let list = new (List$())(this[$length]);
         for (let i = 0; dart.notNull(i) < dart.notNull(this[$length]); i = dart.notNull(i) + 1) {
           list[$set](i, `${this[$get](i)}`);
         }

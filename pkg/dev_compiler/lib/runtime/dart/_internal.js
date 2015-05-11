@@ -844,7 +844,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       }
       [core.$map](f) {
         dart.as(f, dart.functionType(dart.dynamic, [E]));
-        return dart.const(new EmptyIterable());
+        return dart.const(new (EmptyIterable$())());
       }
       [core.$reduce](combine) {
         dart.as(combine, dart.functionType(E, [E, E]));

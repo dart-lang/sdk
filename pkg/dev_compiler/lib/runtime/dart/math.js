@@ -31,7 +31,7 @@ var _js_helper = dart.lazyImport(_js_helper);
         return `Point(${this.x}, ${this.y})`;
       }
       ['=='](other) {
-        if (!dart.is(other, Point))
+        if (!dart.is(other, Point$()))
           return false;
         return dart.notNull(dart.equals(this.x, dart.dload(other, 'x'))) && dart.notNull(dart.equals(this.y, dart.dload(other, 'y')));
       }

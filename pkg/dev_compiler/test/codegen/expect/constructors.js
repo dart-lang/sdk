@@ -100,6 +100,30 @@ var core = dart.import(core);
   }
   dart.defineNamedConstructor(P, 'foo');
   dart.defineNamedConstructor(P, 'bar');
+  let Q$ = dart.generic(function(T) {
+    class Q extends core.Object {
+      Q(y) {
+        this.x = dart.as(y, T);
+      }
+      static foo() {
+        return new (Q$())("hello");
+      }
+      bar() {
+        let q = Q.foo();
+        return dart.as(q.x, core.String);
+      }
+      bar2() {
+        let q = new (Q$())("world");
+        return dart.as(q.x, core.String);
+      }
+      static baz() {
+        let q = new (Q$(core.int))(42);
+        return dart.notNull(q.bar()) + dart.notNull(q.bar2());
+      }
+    }
+    return Q;
+  });
+  let Q = Q$();
   // Exports:
   exports.A = A;
   exports.B = B;
@@ -117,4 +141,6 @@ var core = dart.import(core);
   exports.M = M;
   exports.N = N;
   exports.P = P;
+  exports.Q$ = Q$;
+  exports.Q = Q;
 })(constructors, core);

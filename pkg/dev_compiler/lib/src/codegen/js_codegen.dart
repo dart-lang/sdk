@@ -68,6 +68,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   ConstantEvaluator _constEvaluator;
 
+  ClassElement _currentClassElement = null;
+
   /// Imported libraries, and the temporaries used to refer to them.
   final _imports = new Map<LibraryElement, JS.TemporaryId>();
   final _exports = new Set<String>();
@@ -332,6 +334,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     if (jsName != null) return _emitJsType(node.name.name, jsName);
 
+    // Set current class
+    assert(_currentClassElement == null);
+    _currentClassElement = classElem;
+
     var ctors = <ConstructorDeclaration>[];
     var fields = <FieldDeclaration>[];
     var staticFields = <FieldDeclaration>[];
@@ -354,6 +360,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     var body = _finishClassMembers(
         classElem, classExpr, ctors, fields, staticFields, jsPeerName);
+
+    // Unset current class
+    assert(_currentClassElement == classElem);
+    _currentClassElement = null;
 
     var result = _finishClassDef(type, body);
 
@@ -1235,9 +1245,17 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var typeArgs = null;
     if (type is ParameterizedType) {
       var args = type.typeArguments;
+      var isCurrentClass =
+          type is InterfaceType ? type.element == _currentClassElement : false;
       if (args.any((a) => a != types.dynamicType)) {
         name = '$name\$';
         typeArgs = args.map(_emitTypeName);
+      } else if (args.isNotEmpty && isCurrentClass) {
+        // When creating a `new S<dynamic>` we try and use the raw form
+        // `new S()`, but this does not work if we're inside the same class,
+        // because `S` refers to the current S<T> we are generating.
+        name = '$name\$';
+        typeArgs = [];
       }
     }
 

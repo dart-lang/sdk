@@ -214,7 +214,7 @@ var collection = dart.import(collection);
         return controller.stream;
       }
       asyncExpand(convert) {
-        dart.as(convert, dart.functionType(Stream, [T]));
+        dart.as(convert, dart.functionType(Stream$(), [T]));
         let controller = null;
         let subscription = null;
         // Function onListen: () → void
@@ -863,9 +863,9 @@ var collection = dart.import(collection);
       ['=='](other) {
         if (core.identical(this, other))
           return true;
-        if (!dart.is(other, _ControllerStream))
+        if (!dart.is(other, _ControllerStream$()))
           return false;
-        let otherStream = dart.as(other, _ControllerStream);
+        let otherStream = dart.as(other, _ControllerStream$());
         return core.identical(otherStream[_controller], this[_controller]);
       }
     }
@@ -1835,7 +1835,7 @@ var collection = dart.import(collection);
             if (cleanUp != null) {
               for (let value of values) {
                 if (value != null) {
-                  new Future.sync(() => {
+                  new (Future$()).sync(() => {
                     dart.dcall(cleanUp, value);
                   });
                 }
@@ -1864,7 +1864,7 @@ var collection = dart.import(collection);
               }
             } else {
               if (dart.notNull(cleanUp != null) && dart.notNull(value != null)) {
-                new Future.sync(() => {
+                new (Future$()).sync(() => {
                   dart.dcall(cleanUp, value);
                 });
               }
@@ -1886,7 +1886,7 @@ var collection = dart.import(collection);
         return Future.doWhile(() => {
           if (!dart.notNull(iterator.moveNext()))
             return false;
-          return new Future.sync(() => dart.dcall(f, iterator.current)).then(_ => true);
+          return new (Future$()).sync(() => dart.dcall(f, iterator.current)).then(_ => true);
         });
       }
       static doWhile(f) {
@@ -1895,7 +1895,7 @@ var collection = dart.import(collection);
         let nextIteration = null;
         nextIteration = Zone.current.bindUnaryCallback(keepGoing => {
           if (keepGoing) {
-            new Future.sync(f).then(dart.as(nextIteration, __CastType4), {onError: doneSignal[_completeError].bind(doneSignal)});
+            new (Future$()).sync(f).then(dart.as(nextIteration, __CastType4), {onError: doneSignal[_completeError].bind(doneSignal)});
           } else {
             doneSignal[_complete](null);
           }
@@ -2171,7 +2171,7 @@ var collection = dart.import(collection);
       then(f, opts) {
         dart.as(f, dart.functionType(dart.dynamic, [T]));
         let onError = opts && 'onError' in opts ? opts.onError : null;
-        let result = new _Future();
+        let result = new (_Future$())();
         if (!dart.notNull(core.identical(result[_zone], _ROOT_ZONE))) {
           f = dart.as(result[_zone].registerUnaryCallback(f), __CastType6);
           if (onError != null) {
@@ -2184,7 +2184,7 @@ var collection = dart.import(collection);
       catchError(onError, opts) {
         let test = opts && 'test' in opts ? opts.test : null;
         dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
-        let result = new _Future();
+        let result = new (_Future$())();
         if (!dart.notNull(core.identical(result[_zone], _ROOT_ZONE))) {
           onError = _registerErrorHandler(onError, result[_zone]);
           if (test != null)
@@ -2258,7 +2258,7 @@ var collection = dart.import(collection);
       }
       static _chainForeignFuture(source, target) {
         dart.assert(!dart.notNull(target[_isComplete]));
-        dart.assert(!dart.is(source, _Future));
+        dart.assert(!dart.is(source, _Future$()));
         target[_isChained] = true;
         source.then(value => {
           dart.assert(target[_isChained]);
@@ -2274,7 +2274,7 @@ var collection = dart.import(collection);
       }
       static _chainCoreFuture(source, target) {
         dart.assert(!dart.notNull(target[_isComplete]));
-        dart.assert(dart.is(source, _Future));
+        dart.assert(dart.is(source, _Future$()));
         target[_isChained] = true;
         let listener = new _FutureListener.chain(target);
         if (source[_isComplete]) {
@@ -2286,8 +2286,8 @@ var collection = dart.import(collection);
       [_complete](value) {
         dart.assert(!dart.notNull(this[_isComplete]));
         if (dart.is(value, Future)) {
-          if (dart.is(value, _Future)) {
-            _Future._chainCoreFuture(dart.as(value, _Future), this);
+          if (dart.is(value, _Future$())) {
+            _Future._chainCoreFuture(dart.as(value, _Future$()), this);
           } else {
             _Future._chainForeignFuture(dart.as(value, Future), this);
           }
@@ -2317,7 +2317,7 @@ var collection = dart.import(collection);
         if (value == null) {
         } else if (dart.is(value, Future)) {
           let typedFuture = dart.as(value, Future$(T));
-          if (dart.is(typedFuture, _Future)) {
+          if (dart.is(typedFuture, _Future$())) {
             let coreFuture = dart.as(typedFuture, _Future$(T));
             if (dart.notNull(coreFuture[_isComplete]) && dart.notNull(coreFuture[_hasError])) {
               this[_markPendingCompletion]();
@@ -2454,11 +2454,11 @@ var collection = dart.import(collection);
                   onError: (error, stackTrace) => {
                     if (stackTrace === void 0)
                       stackTrace = null;
-                    if (!dart.is(completeResult, _Future)) {
-                      completeResult = new _Future();
+                    if (!dart.is(completeResult, _Future$())) {
+                      completeResult = new (_Future$())();
                       dart.dsend(completeResult, _setError, error, stackTrace);
                     }
-                    _Future._propagateToListeners(dart.as(completeResult, _Future), new _FutureListener.chain(result));
+                    _Future._propagateToListeners(dart.as(completeResult, _Future$()), new _FutureListener.chain(result));
                   }
                 });
               }
@@ -2480,7 +2480,7 @@ var collection = dart.import(collection);
             if (dart.notNull(listenerHasValue) && !dart.notNull(core.identical(sourceValue, listenerValueOrError)) && dart.is(listenerValueOrError, Future)) {
               let chainSource = dart.as(listenerValueOrError, Future);
               let result = listener.result;
-              if (dart.is(chainSource, _Future)) {
+              if (dart.is(chainSource, _Future$())) {
                 if (chainSource[_isComplete]) {
                   result[_isChained] = true;
                   source = chainSource;
@@ -2510,8 +2510,8 @@ var collection = dart.import(collection);
         let onTimeout = opts && 'onTimeout' in opts ? opts.onTimeout : null;
         dart.as(onTimeout, dart.functionType(dart.dynamic, []));
         if (this[_isComplete])
-          return new _Future.immediate(this);
-        let result = new _Future();
+          return new (_Future$()).immediate(this);
+        let result = new (_Future$())();
         let timer = null;
         if (onTimeout == null) {
           timer = new Timer(timeLimit, () => {
