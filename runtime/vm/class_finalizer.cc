@@ -1683,6 +1683,13 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
           param ^= mixin_type_args.TypeAt(i);
           param_bound = param.bound();
           if (!param_bound.IsInstantiated()) {
+            // Make sure the bound is finalized before instantiating it.
+            if (!param_bound.IsFinalized() &&
+                !param_bound.IsBeingFinalized()) {
+              param_bound =
+                  FinalizeType(mixin_app_class, param_bound, kCanonicalize);
+              param.set_bound(param_bound);  // In case part of recursive type.
+            }
             param_bound = param_bound.InstantiateFrom(mixin_type_args,
                                                       &bound_error);
             // The instantiator contains only TypeParameter objects and no
