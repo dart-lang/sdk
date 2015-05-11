@@ -62,7 +62,8 @@ def DartArchiveUploadSDKs(system, sdk32_zip, sdk64_zip):
 
 def CreateUploadSDK():
   BuildSDK()
-  CreateUploadSDKZips()
+  if BUILD_OS == 'linux':
+    CreateUploadSDKZips()
 
 def CreateUploadAPIDocs():
   api_path = os.path.join(bot_utils.DART_DIR,
