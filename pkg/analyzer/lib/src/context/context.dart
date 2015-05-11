@@ -1016,25 +1016,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return changed;
   }
 
-  /**
-   * Invalidates hints in the given [librarySource] and included parts.
-   */
-  void invalidateLibraryHints(Source librarySource) {
-    cache.CacheEntry entry = _cache.get(librarySource);
-    // Prepare sources to invalidate hints in.
-    List<Source> sources = <Source>[librarySource];
-    sources.addAll(entry.getValue(INCLUDED_PARTS));
-    // Invalidate hints.
-    for (Source source in sources) {
-      LibrarySpecificUnit unitTarget =
-          new LibrarySpecificUnit(librarySource, source);
-      cache.CacheEntry unitEntry = _cache.get(unitTarget);
-      if (unitEntry.getState(HINTS) == CacheState.VALID) {
-        unitEntry.setState(HINTS, CacheState.INVALID);
-      }
-    }
-  }
-
   @override
   bool isClientLibrary(Source librarySource) {
     cache.CacheEntry entry = _cache.get(librarySource);
@@ -1291,21 +1272,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _pendingFutureTargets.remove(pendingFuture.target);
       }
     }
-  }
-
-  /**
-   * Return the priority that should be used when the source associated with
-   * the given [entry] is added to the work manager.
-   */
-  SourcePriority _computePriority(cache.CacheEntry entry) {
-    // Used in commented out code.
-    SourceKind kind = entry.getValue(SOURCE_KIND);
-    if (kind == SourceKind.LIBRARY) {
-      return SourcePriority.LIBRARY;
-    } else if (kind == SourceKind.PART) {
-      return SourcePriority.NORMAL_PART;
-    }
-    return SourcePriority.UNKNOWN;
   }
 
   Object /*V*/ _computeResult(
