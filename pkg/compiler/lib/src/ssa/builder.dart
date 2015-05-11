@@ -201,11 +201,33 @@ class LocalsHandler {
   /// variables are in scope.
   ClassElement get contextClass => executableContext.contextClass;
 
+  /// The type of the current instance, if concrete.
+  ///
+  /// This allows for handling fixed type argument in case of inlining. For
+  /// instance, checking `'foo'` against `String` instead of `T` in `main`:
+  ///
+  ///     class Foo<T> {
+  ///       T field;
+  ///       Foo(this.field);
+  ///     }
+  ///     main() {
+  ///       new Foo<String>('foo');
+  ///     }
+  ///
+  /// [instanceType] is not used if it contains type variables, since these
+  /// might not be in scope or from the current instance.
+  ///
+  final InterfaceType instanceType;
+
   SourceInformationBuilder get sourceInformationBuilder {
     return builder.sourceInformationBuilder;
   }
 
-  LocalsHandler(this.builder, this.executableContext);
+  LocalsHandler(this.builder, this.executableContext,
+                InterfaceType instanceType)
+      : this.instanceType =
+          instanceType == null || instanceType.containsTypeVariables
+              ? null : instanceType;
 
   /// Substituted type variables occurring in [type] into the context of
   /// [contextClass].
@@ -216,6 +238,9 @@ class LocalsHandler {
         type = type.substByContext(
             contextClass.asInstanceOf(typeContext));
       }
+    }
+    if (instanceType != null) {
+      type = type.substByContext(instanceType);
     }
     return type;
   }
@@ -231,6 +256,7 @@ class LocalsHandler {
       : directLocals = new Map<Local, HInstruction>.from(other.directLocals),
         redirectionMapping = other.redirectionMapping,
         executableContext = other.executableContext,
+        instanceType = other.instanceType,
         builder = other.builder,
         closureData = other.closureData;
 
@@ -1094,7 +1120,7 @@ class SsaBuilder extends NewResolvedVisitor {
       this.work = work,
       this.rti = backend.rti,
       super(work.resolutionTree) {
-    localsHandler = new LocalsHandler(this, work.element);
+    localsHandler = new LocalsHandler(this, work.element, null);
     sourceElementStack.add(work.element);
     sourceInformationBuilder =
         sourceInformationFactory.forContext(work.element.implementation);
@@ -1272,7 +1298,8 @@ class SsaBuilder extends NewResolvedVisitor {
   bool tryInlineMethod(Element element,
                        Selector selector,
                        List<HInstruction> providedArguments,
-                       ast.Node currentNode) {
+                       ast.Node currentNode,
+                       {InterfaceType instanceType}) {
     // TODO(johnniwinther): Register this on the [registry]. Currently the
     // [CodegenRegistry] calls the enqueuer, but [element] should _not_ be
     // enqueued.
@@ -1428,7 +1455,8 @@ class SsaBuilder extends NewResolvedVisitor {
       }
       List<HInstruction> compiledArguments = completeSendArgumentsList(
           function, selector, providedArguments, currentNode);
-      enterInlinedMethod(function, currentNode, compiledArguments);
+      enterInlinedMethod(
+          function, currentNode, compiledArguments, instanceType: instanceType);
       inlinedFrom(function, () {
         if (!isReachable) {
           emitReturn(graph.addConstantNull(compiler), null);
@@ -1691,8 +1719,9 @@ class SsaBuilder extends NewResolvedVisitor {
    * stores it in the [returnLocal] field.
    */
   void setupStateForInlining(FunctionElement function,
-                             List<HInstruction> compiledArguments) {
-    localsHandler = new LocalsHandler(this, function);
+                             List<HInstruction> compiledArguments,
+                             {InterfaceType instanceType}) {
+    localsHandler = new LocalsHandler(this, function, instanceType);
     localsHandler.closureData =
         compiler.closureToClassMapper.computeClosureToClassMapping(
             function, function.node, elements);
@@ -3589,7 +3618,7 @@ class SsaBuilder extends NewResolvedVisitor {
       HInstruction runtimeType = addTypeVariableReference(type);
       Element helper = backend.getCheckSubtypeOfRuntimeType();
       List<HInstruction> inputs = <HInstruction>[expression, runtimeType];
-      pushInvokeStatic(null, helper, inputs, backend.boolType);
+      pushInvokeStatic(null, helper, inputs, typeMask: backend.boolType);
       HInstruction call = pop();
       return new HIs.variable(type, expression, call, backend.boolType);
     } else if (RuntimeTypes.hasTypeArguments(type)) {
@@ -3607,7 +3636,7 @@ class SsaBuilder extends NewResolvedVisitor {
                                                  isFieldName,
                                                  representations,
                                                  asFieldName];
-      pushInvokeStatic(node, helper, inputs, backend.boolType);
+      pushInvokeStatic(node, helper, inputs, typeMask: backend.boolType);
       HInstruction call = pop();
       return new HIs.compound(type, expression, call, backend.boolType);
     } else if (type.isMalformed) {
@@ -3842,7 +3871,7 @@ class SsaBuilder extends NewResolvedVisitor {
         compiler.internalError(node,
             'Isolate library and compiler mismatch.');
       }
-      pushInvokeStatic(null, element, [], backend.dynamicType);
+      pushInvokeStatic(null, element, [], typeMask: backend.dynamicType);
     }
   }
 
@@ -4053,7 +4082,7 @@ class SsaBuilder extends NewResolvedVisitor {
       }
       List<HInstruction> inputs = <HInstruction>[];
       addGenericSendArgumentsToList(link, inputs);
-      pushInvokeStatic(node, element, inputs, backend.dynamicType);
+      pushInvokeStatic(node, element, inputs, typeMask: backend.dynamicType);
     }
   }
 
@@ -4260,7 +4289,7 @@ class SsaBuilder extends NewResolvedVisitor {
                       graph.addConstant(kindConstant, compiler),
                       argumentsInstruction,
                       argumentNamesInstruction],
-                      backend.dynamicType);
+                      typeMask: backend.dynamicType);
 
     var inputs = <HInstruction>[pop()];
     push(buildInvokeSuper(compiler.noSuchMethodSelector, element, inputs));
@@ -4510,11 +4539,11 @@ class SsaBuilder extends NewResolvedVisitor {
       pushInvokeStatic(null,
                        backend.getGetRuntimeTypeArgument(),
                        [target, substitutionName, index],
-                        backend.dynamicType);
+                       typeMask: backend.dynamicType);
     } else {
       pushInvokeStatic(null, backend.getGetTypeArgumentByIndex(),
           [target, index],
-          backend.dynamicType);
+          typeMask: backend.dynamicType);
     }
     return pop();
   }
@@ -4643,7 +4672,7 @@ class SsaBuilder extends NewResolvedVisitor {
         null,
         typeInfoSetterElement,
         <HInstruction>[newObject, typeInfo],
-        backend.dynamicType);
+        typeMask: backend.dynamicType);
 
     // The new object will now be referenced through the
     // `setRuntimeTypeInfo` call. We therefore set the type of that
@@ -4806,7 +4835,8 @@ class SsaBuilder extends NewResolvedVisitor {
       potentiallyAddTypeArguments(inputs, cls, expectedType);
 
       addInlinedInstantiation(expectedType);
-      pushInvokeStatic(node, constructor, inputs, elementType);
+      pushInvokeStatic(node, constructor, inputs,
+          typeMask: elementType, instanceType: expectedType);
       removeInlinedInstantiation(expectedType);
     }
     HInstruction newInstance = stack.last;
@@ -5160,7 +5190,7 @@ class SsaBuilder extends NewResolvedVisitor {
     pushInvokeStatic(node,
                      backend.getRuntimeTypeToString(),
                      [value],
-                     backend.stringType);
+                     typeMask: backend.stringType);
     pushInvokeStatic(node,
                      backend.getCreateRuntimeType(),
                      [pop()]);
@@ -5389,19 +5419,23 @@ class SsaBuilder extends NewResolvedVisitor {
   void pushInvokeStatic(ast.Node location,
                         Element element,
                         List<HInstruction> arguments,
-                        [TypeMask type]) {
-    if (tryInlineMethod(element, null, arguments, location)) {
+                        {TypeMask typeMask,
+                         InterfaceType instanceType}) {
+    if (tryInlineMethod(element, null, arguments, location,
+                        instanceType: instanceType)) {
       return;
     }
 
-    if (type == null) {
-      type = TypeMaskFactory.inferredReturnTypeForElement(element, compiler);
+    if (typeMask == null) {
+      typeMask =
+          TypeMaskFactory.inferredReturnTypeForElement(element, compiler);
     }
     bool targetCanThrow = !compiler.world.getCannotThrow(element);
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HInvokeStatic].
     HInvokeStatic instruction = new HInvokeStatic(
-        element.declaration, arguments, type, targetCanThrow: targetCanThrow);
+        element.declaration, arguments, typeMask,
+        targetCanThrow: targetCanThrow);
     if (!currentInlinedInstantiations.isEmpty) {
       instruction.instantiatedTypes = new List<DartType>.from(
           currentInlinedInstantiations);
@@ -6329,7 +6363,8 @@ class SsaBuilder extends NewResolvedVisitor {
         mapType.intersection(returnTypeMask, compiler.world);
 
     addInlinedInstantiation(expectedType);
-    pushInvokeStatic(node, constructor, inputs, instructionType);
+    pushInvokeStatic(node, constructor, inputs,
+        typeMask: instructionType, instanceType: expectedType);
     removeInlinedInstantiation(expectedType);
   }
 
@@ -7021,7 +7056,8 @@ class SsaBuilder extends NewResolvedVisitor {
    */
   void enterInlinedMethod(FunctionElement function,
                           ast.Node _,
-                          List<HInstruction> compiledArguments) {
+                          List<HInstruction> compiledArguments,
+                          {InterfaceType instanceType}) {
     TypesInferrer inferrer = compiler.typesTask.typesInferrer;
     AstInliningState state = new AstInliningState(
         function, returnLocal, returnType, elements, stack, localsHandler,
@@ -7032,7 +7068,8 @@ class SsaBuilder extends NewResolvedVisitor {
     // Setting up the state of the (AST) builder is performed even when the
     // inlined function is in IR, because the irInliner uses the [returnElement]
     // of the AST builder.
-    setupStateForInlining(function, compiledArguments);
+    setupStateForInlining(
+        function, compiledArguments, instanceType: instanceType);
   }
 
   void leaveInlinedMethod() {
