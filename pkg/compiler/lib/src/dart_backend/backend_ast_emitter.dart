@@ -988,6 +988,11 @@ class ASTEmitter
   }
 
   @override
+  visitCreateInvocationMirror(tree.CreateInvocationMirror node, arg) {
+    return errorUnsupportedNode(node);
+  }
+
+  @override
   Expression visitReadTypeVariable(tree.ReadTypeVariable node, arg) {
     return errorUnsupportedNode(node);
   }

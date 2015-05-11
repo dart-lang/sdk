@@ -645,3 +645,5 @@ typed_data/test/typed_buffers_test/01: Crash # cannot compile methods that need 
 typed_data/test/typed_buffers_test/none: Crash # cannot compile methods that need interceptor calling convention.
 typed_mock/test/typed_mock_test: Crash #  try/finally
 analyzer/test/src/context/context_test: Crash #  try/finally
+analyzer/test/src/task/incremental_element_builder_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
+analyzer/test/src/task/dart_work_manager_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally

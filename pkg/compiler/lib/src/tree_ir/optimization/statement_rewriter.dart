@@ -270,6 +270,7 @@ class StatementRewriter extends Transformer implements Pass {
     return exp is Constant ||
            exp is This ||
            exp is ReifyTypeVar ||
+           exp is CreateInvocationMirror ||
            exp is InvokeStatic && exp.isEffectivelyConstant ||
            exp is VariableUse && constantEnvironment.containsKey(exp.variable);
   }
@@ -613,8 +614,14 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
-  @override
   Expression visitTypeExpression(TypeExpression node) {
+    for (int i = node.arguments.length - 1; i >= 0; --i) {
+      node.arguments[i] = visitExpression(node.arguments[i]);
+    }
+    return node;
+  }
+
+  Expression visitCreateInvocationMirror(CreateInvocationMirror node) {
     for (int i = node.arguments.length - 1; i >= 0; --i) {
       node.arguments[i] = visitExpression(node.arguments[i]);
     }

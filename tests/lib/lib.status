@@ -842,3 +842,4 @@ typed_data/typed_data_list_test: Crash # Instance of 'TypeOperator': unimplement
 typed_data/typed_data_load2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 typed_data/typed_data_sublist_type_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
 typed_data/typed_list_iterable_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+developer/inspect_test : Crash # bailout: cannot compile methods that need interceptor calling convention.

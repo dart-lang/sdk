@@ -76,6 +76,10 @@ class Glue {
     return _namer.invocationName(selector);
   }
 
+  FunctionElement get createInvocationMirrorMethod {
+    return _backend.getCreateInvocationMirror();
+  }
+
   void registerUseInterceptorInCodegen() {
     _backend.registerUseInterceptor(_enqueuer);
   }

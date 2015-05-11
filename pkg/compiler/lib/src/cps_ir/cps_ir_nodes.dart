@@ -667,6 +667,17 @@ class Interceptor extends Primitive implements JsSpecificNode {
   accept(Visitor visitor) => visitor.visitInterceptor(this);
 }
 
+/// Create an instance of [Invocation] for use in a call to `noSuchMethod`.
+class CreateInvocationMirror extends Primitive implements JsSpecificNode {
+  final Selector selector;
+  final List<Reference<Primitive>> arguments;
+
+  CreateInvocationMirror(this.selector, List<Primitive> arguments)
+      : this.arguments = _referenceList(arguments);
+
+  accept(Visitor visitor) => visitor.visitCreateInvocationMirror(this);
+}
+
 class Constant extends Primitive {
   final ConstantExpression expression;
 
@@ -1021,6 +1032,7 @@ abstract class Visitor<T> {
   T visitReifyRuntimeType(ReifyRuntimeType node);
   T visitReadTypeVariable(ReadTypeVariable node);
   T visitTypeExpression(TypeExpression node);
+  T visitCreateInvocationMirror(CreateInvocationMirror node);
 }
 
 /// Recursively visits the entire CPS term, and calls abstract `process*`
@@ -1325,5 +1337,11 @@ class RecursiveVisitor implements Visitor {
   visitNonTailThrow(NonTailThrow node) {
     processNonTailThrow(node);
     processReference(node.value);
+  }
+
+  processCreateInvocationMirror(CreateInvocationMirror node) {}
+  visitCreateInvocationMirror(CreateInvocationMirror node) {
+    processCreateInvocationMirror(node);
+    node.arguments.forEach(processReference);
   }
 }

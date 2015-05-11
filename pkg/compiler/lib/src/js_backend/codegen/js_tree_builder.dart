@@ -73,4 +73,9 @@ class JsTreeBuilder extends Builder {
         node.arguments.map(getVariableUse).toList(growable: false),
         node.typeInformation.map(getVariableUse).toList(growable: false));
   }
+
+  Expression visitCreateInvocationMirror(cps_ir.CreateInvocationMirror node) {
+    return new CreateInvocationMirror(node.selector,
+        node.arguments.map(getVariableUse).toList(growable: false));
+  }
 }

@@ -457,6 +457,9 @@ abstract class IrBuilder {
   void _createFunctionParameter(Local parameterElement);
   void _createThisParameter();
 
+  /// Reifies the value of [variable] on the current receiver object.
+  ir.Primitive buildReifyTypeVariable(TypeVariableType variable);
+
   /// Creates an access to the receiver from the current (or enclosing) method.
   ///
   /// If inside a closure class, [buildThis] will redirect access through
@@ -2304,6 +2307,11 @@ class DartIrBuilder extends IrBuilder {
         (k) => new ir.InvokeConstructor(type, element, selector,
             arguments, k));
   }
+
+  @override
+  ir.Primitive buildReifyTypeVariable(TypeVariableType variable) {
+    return addPrimitive(new ir.ReifyTypeVar(variable.element));
+  }
 }
 
 /// State shared between JsIrBuilders within the same function.
@@ -2531,6 +2539,7 @@ class JsIrBuilder extends IrBuilder {
 
   ir.Primitive buildThis() {
     if (jsState.receiver != null) return jsState.receiver;
+    assert(state.thisParameter != null);
     return state.thisParameter;
   }
 
@@ -2600,11 +2609,11 @@ class JsIrBuilder extends IrBuilder {
 
   ir.Primitive buildTypeExpression(DartType type) {
     if (type is TypeVariableType) {
-      return buildTypeVariableAccess(buildThis(), type);
+      return buildTypeVariableAccess(type);
     } else if (type is InterfaceType) {
       List<ir.Primitive> arguments = <ir.Primitive>[];
       type.forEachTypeVariable((TypeVariableType variable) {
-        ir.Primitive value = buildTypeVariableAccess(buildThis(), variable);
+        ir.Primitive value = buildTypeVariableAccess(variable);
         arguments.add(value);
       });
       return addPrimitive(new ir.TypeExpression(type, arguments));
@@ -2614,8 +2623,13 @@ class JsIrBuilder extends IrBuilder {
     }
   }
 
-  ir.Primitive buildTypeVariableAccess(ir.Primitive target,
-                                       TypeVariableType variable) {
+  /// Obtains the internal type representation of the type held in [variable].
+  ///
+  /// The value of [variable] is taken from the current receiver object, or
+  /// if we are currently building a constructor field initializer, from the
+  /// corresponding type argument (field initializers are evaluated before the
+  /// receiver object is created).
+  ir.Primitive buildTypeVariableAccess(TypeVariableType variable) {
     ir.Parameter accessTypeArgumentParameter() {
       for (int i = 0; i < environment.length; i++) {
         Local local = environment.index2variable[i];
@@ -2630,8 +2644,20 @@ class JsIrBuilder extends IrBuilder {
     if (jsState.inInitializers) {
       return accessTypeArgumentParameter();
     } else {
+      ir.Primitive target = buildThis();
       return addPrimitive(new ir.ReadTypeVariable(variable, target));
     }
+  }
+
+  @override
+  ir.Primitive buildReifyTypeVariable(TypeVariableType variable) {
+    ir.Primitive typeArgument = buildTypeVariableAccess(variable);
+    return addPrimitive(new ir.ReifyRuntimeType(typeArgument));
+  }
+
+  ir.Primitive buildInvocationMirror(Selector selector,
+                                     List<ir.Primitive> arguments) {
+    return addPrimitive(new ir.CreateInvocationMirror(selector, arguments));
   }
 }
 

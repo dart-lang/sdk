@@ -3050,7 +3050,7 @@ abstract class SemanticSendVisitor<R, A> {
   R visitUnresolvedClassConstructorInvoke(
       NewExpression node,
       Element element,
-      MalformedType type,
+      DartType type,
       NodeList arguments,
       Selector selector,
       A arg);
