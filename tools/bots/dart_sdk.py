@@ -107,7 +107,7 @@ def UploadApiDocs(dir_name):
 
   # Update latest.txt to contain the newest revision.
   with utils.TempDir('latest_file') as temp_dir:
-    latest_file = join(temp_dir, 'latest.txt')
+    latest_file = os.path.join(temp_dir, 'latest.txt')
     with open(latest_file, 'w') as f:
       f.write('%s' % revision)
     DartArchiveFile(latest_file, apidocs_destination_latestfile)
