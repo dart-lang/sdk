@@ -164,6 +164,18 @@ class ImportUriContributorTest extends AbstractCompletionTest {
         csKind: CompletionSuggestionKind.IMPORT);
   }
 
+  test_import_package_missing_lib() {
+    var pkgSrc = addPackageSource('bar', 'bar.dart', 'library bar;');
+    provider.deleteFolder(dirname(pkgSrc.fullName));
+    addTestSource('import "p^" class');
+    computeFast();
+    expect(request.replacementOffset, completionOffset - 1);
+    expect(request.replacementLength, 1);
+    assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('package:bar/', csKind: CompletionSuggestionKind.IMPORT);
+    assertNotSuggested('package:bar/bar.dart');
+  }
+
   test_outside_import() {
     addTestSource('import ^"d" import');
     computeFast();
