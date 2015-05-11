@@ -428,7 +428,11 @@ class DartConstantSystem extends ConstantSystem {
 
   @override
   ConstantValue createType(Compiler compiler, DartType type) {
-    return new TypeConstantValue(type, compiler.coreTypes.typeType);
+    // TODO(johnniwinther): Change the `Type` type to
+    // `compiler.coreTypes.typeType` and check the backend specific value in
+    // [checkConstMapKeysDontOverrideEquals] in 'members.dart'.
+    return new TypeConstantValue(type,
+        compiler.backend.typeImplementation.computeType(compiler));
   }
 
   bool isInt(ConstantValue constant) => constant.isInt;
