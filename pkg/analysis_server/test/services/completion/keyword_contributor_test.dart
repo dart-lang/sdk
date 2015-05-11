@@ -258,6 +258,25 @@ class KeywordContributorTest extends AbstractCompletionTest {
         relevance: DART_RELEVANCE_HIGH);
   }
 
+  test_anonymous_function_async() {
+    addTestSource('main() {foo(() ^ {}}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([],
+        pseudoKeywords: ['async'], relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_anonymous_function_async2() {
+    addTestSource('main() {foo(() a^ {}}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS, pseudoKeywords: ['async']);
+  }
+
+  test_anonymous_function_async3() {
+    addTestSource('main() {foo(() async ^ {}}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
   test_argument() {
     addTestSource('main() {foo(^);}');
     expect(computeFast(), isTrue);

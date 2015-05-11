@@ -52,6 +52,23 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitBlock(Block node) {
+    if (entity is ExpressionStatement) {
+      Expression expression = (entity as ExpressionStatement).expression;
+      if (expression is SimpleIdentifier) {
+        Token token = expression.token;
+        Token previous = token.previous;
+        if (previous.isSynthetic) {
+          previous = previous.previous;
+        }
+        Token next = token.next;
+        if (next.isSynthetic) {
+          next = next.next;
+        }
+        if (previous.lexeme == ')' && next.lexeme == '{') {
+          _addSuggestion2(ASYNC);
+        }
+      }
+    }
     _addStatementKeywords(node);
   }
 
@@ -151,7 +168,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   @override
   visitFunctionExpression(FunctionExpression node) {
     if (entity == node.body) {
-      _addSuggestion2(ASYNC, relevance: DART_RELEVANCE_HIGH);
+      if (!node.body.isAsynchronous) {
+        _addSuggestion2(ASYNC, relevance: DART_RELEVANCE_HIGH);
+      }
       if (node.body is EmptyFunctionBody &&
           node.parent is FunctionDeclaration &&
           node.parent.parent is CompilationUnit) {
