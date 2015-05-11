@@ -2379,7 +2379,8 @@ const Map<String, List<Test>> DECL_TESTS = const {
               index: 0),
           const Visit(VisitKind.VISIT_OPTIONAL_PARAMETER_DECL,
               element: 'parameter(m#b)',
-              index: 1),
+              index: 1,
+              constant: 'null'),
         ]),
     const Test(
         '''
@@ -2428,7 +2429,8 @@ const Map<String, List<Test>> DECL_TESTS = const {
               element: 'parameter(m#a)',
               index: 0),
           const Visit(VisitKind.VISIT_NAMED_PARAMETER_DECL,
-              element: 'parameter(m#b)'),
+              element: 'parameter(m#b)',
+              constant: 'null'),
         ]),
     const Test(
         '''

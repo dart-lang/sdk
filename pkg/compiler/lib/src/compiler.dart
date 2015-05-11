@@ -867,9 +867,15 @@ abstract class Compiler implements DiagnosticListener {
   Element identicalFunction;
   Element loadLibraryFunction;
   Element functionApplyMethod;
-  Element intEnvironment;
-  Element boolEnvironment;
-  Element stringEnvironment;
+
+  /// The [int.fromEnvironment] constructor.
+  ConstructorElement intEnvironment;
+
+  /// The [bool.fromEnvironment] constructor.
+  ConstructorElement boolEnvironment;
+
+  /// The [String.fromEnvironment] constructor.
+  ConstructorElement stringEnvironment;
 
   /// Tracks elements with compile-time errors.
   final Set<Element> elementsWithCompileTimeErrors = new Set<Element>();

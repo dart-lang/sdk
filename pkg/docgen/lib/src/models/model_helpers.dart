@@ -79,7 +79,7 @@ class AnnotationInfo {
 }
 
 class AnnotationCreator
-    extends ConstantExpressionVisitor<AnnotationInfo, Annotation> {
+    extends ConstantExpressionVisitor<Annotation, AnnotationInfo> {
 
   const AnnotationCreator();
 
@@ -144,12 +144,6 @@ class AnnotationCreator
   }
 
   @override
-  Annotation visitPrimitive(PrimitiveConstantExpression exp,
-                            AnnotationInfo context) {
-    return null;
-  }
-
-  @override
   Annotation visitSymbol(SymbolConstantExpression exp,
                          AnnotationInfo context) {
     return null;
@@ -171,6 +165,67 @@ class AnnotationCreator
   Annotation visitVariable(VariableConstantExpression exp,
                            AnnotationInfo context) {
     return createAnnotation(exp.element, context);
+  }
+
+  @override
+  Annotation visitBool(BoolConstantExpression exp,
+                       AnnotationInfo context) {
+    return null;
+  }
+
+  @override
+  Annotation visitBoolFromEnvironment(BoolFromEnvironmentConstantExpression exp,
+                                      AnnotationInfo context) {
+    return null;
+  }
+
+  @override
+  Annotation visitDouble(DoubleConstantExpression exp,
+                         AnnotationInfo context) {
+    return null;
+  }
+
+  @override
+  Annotation visitInt(IntConstantExpression exp,
+                      AnnotationInfo context) {
+    return null;
+  }
+
+  @override
+  Annotation visitIntFromEnvironment(IntFromEnvironmentConstantExpression exp,
+                                     AnnotationInfo context) {
+    return null;
+  }
+
+  @override
+  Annotation visitNamed(NamedArgumentReference exp,
+                        AnnotationInfo context) {
+    return null;
+  }
+
+  @override
+  Annotation visitNull(NullConstantExpression exp,
+                       AnnotationInfo context) {
+    return null;
+  }
+
+  @override
+  Annotation visitPositional(PositionalArgumentReference exp,
+                             AnnotationInfo context) {
+    return null;
+  }
+
+  @override
+  Annotation visitString(StringConstantExpression exp,
+                         AnnotationInfo context) {
+    return null;
+  }
+
+  @override
+  Annotation visitStringFromEnvironment(
+      StringFromEnvironmentConstantExpression exp,
+      AnnotationInfo context) {
+    return null;
   }
 
   @override

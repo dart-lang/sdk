@@ -760,16 +760,15 @@ abstract class DeclarationResolverMixin {
       return new RequiredParameterStructure(
           definitions, node, element, index);
     } else {
-      ConstantExpression defaultValue;
-      if (element.initializer != null) {
-        defaultValue = elements.getConstant(element.initializer);
-      }
+      // TODO(johnniwinther): Should we differentiate between implicit (null)
+      // and explicit values? What about optional parameters on redirecting
+      // factories?
       if (isNamed) {
         return new NamedParameterStructure(
-            definitions, node, element, defaultValue);
+            definitions, node, element, element.constant);
       } else {
         return new OptionalParameterStructure(
-            definitions, node, element, defaultValue, index);
+            definitions, node, element, element.constant, index);
       }
     }
   }

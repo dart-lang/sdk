@@ -6,6 +6,7 @@ library elements.modelx;
 
 import 'elements.dart';
 import '../constants/expressions.dart';
+import '../constants/constructors.dart';
 import '../helpers/helpers.dart';  // Included for debug helpers.
 import '../tree/tree.dart';
 import '../util/util.dart';
@@ -310,6 +311,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   get memberContext => unsupported();
   get executableContext => unsupported();
   get isExternal => unsupported();
+  get constantConstructor => null;
 
   bool get isRedirectingGenerative => unsupported();
   bool get isRedirectingFactory => unsupported();
@@ -333,11 +335,16 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   accept(ElementVisitor visitor, arg) {
     return visitor.visitErroneousElement(this, arg);
   }
+
+  @override
+  bool get isFromEnvironmentConstructor => false;
 }
 
 /// A constructor that was synthesized to recover from a compile-time error.
 class ErroneousConstructorElementX extends ErroneousElementX
-    with PatchMixin<FunctionElement>, AnalyzableElementX
+    with PatchMixin<FunctionElement>,
+         AnalyzableElementX,
+         ConstantConstructorMixin
     implements ConstructorElementX {
   // TODO(ahe): Instead of subclassing [ErroneousElementX], this class should
   // be more like [ErroneousFieldElementX]. In particular, its kind should be
@@ -1263,7 +1270,24 @@ class VariableList implements DeclarationSite {
   DartType computeType(Element element, Compiler compiler) => type;
 }
 
-abstract class VariableElementX extends ElementX with AstElementMixin
+abstract class ConstantVariableMixin implements VariableElement {
+  ConstantExpression _constant;
+
+  ConstantExpression get constant {
+    assert(invariant(this, _constant != null,
+        message: "Constant has not been computed for $this."));
+    return _constant;
+  }
+
+  void set constant(ConstantExpression value) {
+    assert(invariant(this, _constant == null || _constant == value,
+        message: "Constant has already been computed for $this."));
+    _constant = value;
+  }
+}
+
+abstract class VariableElementX extends ElementX
+    with AstElementMixin, ConstantVariableMixin
     implements VariableElement {
   final Token token;
   final VariableList variables;
@@ -1422,7 +1446,8 @@ class FieldElementX extends VariableElementX
 }
 
 /// A field that was synthesized to recover from a compile-time error.
-class ErroneousFieldElementX extends ElementX implements FieldElementX {
+class ErroneousFieldElementX extends ElementX
+    with ConstantVariableMixin implements FieldElementX {
   final VariableList variables;
 
   ErroneousFieldElementX(Identifier name, Element enclosingElement)
@@ -1567,7 +1592,8 @@ class FormalElementX extends ElementX
 /// to ensure that default values on parameters are computed once (on the
 /// origin parameter) but can be found through both the origin and the patch.
 abstract class ParameterElementX extends FormalElementX
-  with PatchMixin<ParameterElement> implements ParameterElement {
+    with PatchMixin<ParameterElement>, ConstantVariableMixin
+    implements ParameterElement {
   final Expression initializer;
   final bool isOptional;
   final bool isNamed;
@@ -1957,8 +1983,32 @@ class LocalFunctionElementX extends BaseFunctionElementX
   bool get isLocal => true;
 }
 
+abstract class ConstantConstructorMixin implements ConstructorElement {
+  ConstantConstructor _constantConstructor;
+
+  ConstantConstructor get constantConstructor {
+    if (isPatch) {
+      ConstructorElement originConstructor = origin;
+      return originConstructor.constantConstructor;
+    }
+    if (!isConst || isFromEnvironmentConstructor) return null;
+    if (_constantConstructor == null) {
+      _constantConstructor = computeConstantConstructor(resolvedAst);
+    }
+    return _constantConstructor;
+  }
+
+  bool get isFromEnvironmentConstructor {
+    return name == 'fromEnvironment' &&
+           library.isDartCore &&
+           (enclosingClass.name == 'bool' ||
+            enclosingClass.name == 'int' ||
+            enclosingClass.name == 'String');
+  }
+}
+
 abstract class ConstructorElementX extends FunctionElementX
-    implements ConstructorElement {
+    with ConstantConstructorMixin implements ConstructorElement {
   bool isRedirectingGenerative = false;
 
   ConstructorElementX(String name,

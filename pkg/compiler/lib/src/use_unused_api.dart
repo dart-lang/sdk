@@ -12,6 +12,7 @@ import '../compiler.dart' as api;
 
 import 'colors.dart' as colors;
 import 'constants/constant_system.dart' as constants;
+import 'constants/expressions.dart' as constants;
 import 'constants/values.dart' as constants;
 import 'cps_ir/cps_ir_builder.dart' as ir_builder;
 import 'cps_ir/cps_ir_builder_task.dart' as ir_builder;
@@ -51,7 +52,7 @@ void main(List<String> arguments) {
   useApi();
   dart2js.main(arguments);
   dart2jslib.isPublicName(null);
-  useConstant(null, null);
+  useConstant(null, null, null);
   useNode(null);
   useUtil(null);
   useSetlet(null);
@@ -84,9 +85,12 @@ useApi() {
 }
 
 void useConstant(constants.ConstantValue constant,
+                 constants.ConstructedConstantExpression constructedConstant,
                  constants.ConstantSystem cs) {
   constant.isObject;
   cs.isBool(constant);
+  constructedConstant.computeInstanceType();
+  constructedConstant.computeInstanceFields();
 }
 
 void useNode(tree.Node node) {

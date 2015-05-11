@@ -1119,7 +1119,7 @@ class TypeGenerator {
 
 
 class ConstantEmitter
-    extends ConstantExpressionVisitor<BuilderContext<Statement>, Expression> {
+    extends ConstantExpressionVisitor<Expression, BuilderContext<Statement>> {
   const ConstantEmitter();
 
   /// Creates the [Expression] for the constant [exp].
@@ -1152,8 +1152,32 @@ class ConstantEmitter
   }
 
   @override
-  Expression visitPrimitive(PrimitiveConstantExpression exp,
-                            BuilderContext<Statement> context) {
+  Expression visitBool(BoolConstantExpression exp,
+                       BuilderContext<Statement> context) {
+    return handlePrimitiveConstant(exp.value);
+  }
+
+  @override
+  Expression visitInt(IntConstantExpression exp,
+                      BuilderContext<Statement> context) {
+    return handlePrimitiveConstant(exp.value);
+  }
+
+  @override
+  Expression visitDouble(DoubleConstantExpression exp,
+                         BuilderContext<Statement> context) {
+    return handlePrimitiveConstant(exp.value);
+  }
+
+  @override
+  Expression visitString(StringConstantExpression exp,
+                         BuilderContext<Statement> context) {
+    return handlePrimitiveConstant(exp.value);
+  }
+
+  @override
+  Expression visitNull(NullConstantExpression exp,
+                       BuilderContext<Statement> context) {
     return handlePrimitiveConstant(exp.value);
   }
 
@@ -1221,7 +1245,7 @@ class ConstantEmitter
   Expression visitConcatenate(ConcatenateConstantExpression exp,
                               BuilderContext<Statement> context) {
 
-    return new StringConcat(visitExpressions(exp.arguments, context));
+    return new StringConcat(visitExpressions(exp.expressions, context));
   }
 
   @override
@@ -1282,6 +1306,39 @@ class ConstantEmitter
   @override
   Expression visitUnary(UnaryConstantExpression exp,
                         BuilderContext<Statement> context) {
+    return handlePrimitiveConstant(exp.value);
+  }
+
+  @override
+  Expression visitNamed(NamedArgumentReference exp,
+                        BuilderContext<Statement> context) {
+    throw new UnsupportedError("ConstantEmitter.visitNamed");
+  }
+
+  @override
+  Expression visitPositional(PositionalArgumentReference exp,
+                             BuilderContext<Statement> context) {
+    throw new UnsupportedError("ConstantEmitter.visitPositional");
+  }
+
+  @override
+  Expression visitBoolFromEnvironment(
+      BoolFromEnvironmentConstantExpression exp,
+      BuilderContext<Statement> context) {
+    return handlePrimitiveConstant(exp.value);
+  }
+
+  @override
+  Expression visitIntFromEnvironment(
+      IntFromEnvironmentConstantExpression exp,
+      BuilderContext<Statement> context) {
+    return handlePrimitiveConstant(exp.value);
+  }
+
+  @override
+  Expression visitStringFromEnvironment(
+      StringFromEnvironmentConstantExpression exp,
+      BuilderContext<Statement> context) {
     return handlePrimitiveConstant(exp.value);
   }
 

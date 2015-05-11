@@ -998,6 +998,10 @@ abstract class LocalElement extends Element implements TypedElement, Local {
 /// A top level, static or instance field, a formal parameter or local variable.
 abstract class VariableElement extends ExecutableElement {
   Expression get initializer;
+
+  /// The constant expression defining the value of the variable if `const`,
+  /// `null` otherwise.
+  ConstantExpression get constant;
 }
 
 /// An entity that defines a local entity (memory slot) in generated code.
@@ -1261,6 +1265,13 @@ abstract class ConstructorElement extends FunctionElement
   /// Class `E` has a synthesized constructor, `E.c`, whose defining constructor
   /// is `C.c`.
   ConstructorElement get definingConstructor;
+
+  /// The constant constructor defining the binding of fields if `const`,
+  /// `null` otherwise.
+  ConstantConstructor get constantConstructor;
+
+  /// `true` if this constructor is either `bool.fromEnviroment`
+  bool get isFromEnvironmentConstructor;
 
   /// Use [enclosingClass] instead.
   @deprecated
