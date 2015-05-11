@@ -165,217 +165,107 @@ io/test_runner_test: Skip  # Timeout.
 io/http_client_stays_alive_test: Skip  # Timeout.
 
 [ $compiler == dart2js && $cps_ir ]
-array_bounds_check_generalization_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-assert_test: Crash #  "on T" catch block
-byte_array_view_optimized_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-constant_left_shift_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-coverage_test: Crash # unsupported element kind: context:field
-deoptimization_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-double_temp_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-double_to_int_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-int_list_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/addlatexhash_test: Crash # (try {test(tempDir.path);}finally {tempDir.delete(recursive:true);}): not exactly one catch block
-io/async_catch_errors_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/code_collection_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/create_recursive_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/dart_std_io_pipe_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/delete_symlink_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+array_bounds_check_generalization_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+constant_left_shift_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+coverage_test: Crash # (onCoverageOutput): handleStaticFunctionGet: function(onCoverageOutput)
+io/addlatexhash_test: Crash # (testSameHash): handleStaticFunctionGet: function(testSameHash)
+io/async_catch_errors_test: Crash # unsupported element kind: events:field
+io/create_recursive_test: Crash # unsupported element kind: context:field
 io/dependency_graph_test: Crash # unsupported element kind: UnableToRun:field
-io/directory_chdir_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/directory_create_race_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/directory_error_test: Crash #  Unhandled node
-io/directory_fuzz_test: Crash # Please triage this failure.
-io/directory_invalid_arguments_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/directory_list_nonexistent_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+io/directory_chdir_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/directory_error_test: Crash # (testCreateInNonExistent): handleStaticFunctionGet: function(testCreateInNonExistent)
+io/directory_fuzz_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/directory_invalid_arguments_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/directory_list_nonexistent_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/directory_list_pause_test: Crash # Please triage this failure.
-io/directory_non_ascii_sync_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/directory_non_ascii_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/directory_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/directory_uri_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/echo_server_stream_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/file_absolute_path_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/file_constructor_test: Crash #  "on T" catch block
-io/file_copy_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/file_error_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/file_fuzz_test: Crash # Please triage this failure.
-io/file_input_stream_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/file_invalid_arguments_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/file_lock_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/file_non_ascii_sync_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/file_non_ascii_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/file_output_stream_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/file_read_encoded_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/file_read_special_device_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/file_stat_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/file_stream_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/file_system_async_links_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/file_system_delete_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/file_system_exists_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/file_system_links_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/file_system_uri_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+io/directory_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/directory_uri_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/echo_server_stream_test: Crash # (startEchoServer): handleStaticFunctionGet: function(startEchoServer)
+io/file_copy_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/file_error_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/file_invalid_arguments_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/file_lock_test: Crash # unsupported element kind: context:field
+io/file_read_encoded_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/file_stat_test: Crash # unsupported element kind: context:field
+io/file_system_delete_test: Crash # (Expect.isFalse): handleStaticFunctionGet: function(Expect#isFalse)
+io/file_system_exists_test: Crash # (Expect.isTrue): handleStaticFunctionGet: function(Expect#isTrue)
+io/file_system_links_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/file_system_watcher_test: Crash # unsupported element kind: context:field
-io/file_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+io/file_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/file_typed_data_test: Crash # Please triage this failure.
-io/file_uri_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/file_windows_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/file_write_as_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/http_10_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/http_advanced_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_auth_digest_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_auth_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_basic_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+io/file_uri_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/http_advanced_test: Crash # (startIsolatedHttpServer): handleStaticFunctionGet: function(startIsolatedHttpServer)
+io/http_basic_test: Crash # (startTestServer): handleStaticFunctionGet: function(startTestServer)
 io/http_bind_test: Crash #  cannot handle async/sync*/async* functions
-io/http_client_connect_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/http_client_exception_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_client_request_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_close_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_compression_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_connection_header_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/http_connection_info_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_content_length_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_cookie_date_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_cookie_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/http_cross_process_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/http_date_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_detach_socket_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/http_head_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/http_headers_state_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_headers_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/http_ipv6_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_keep_alive_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_no_reason_phrase_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_outgoing_size_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_parser_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/http_proxy_configuration_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+io/http_client_exception_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/http_content_length_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/http_cookie_date_test: Crash # Please triage this failure.
+io/http_date_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/http_detach_socket_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/http_headers_state_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/http_headers_test: Crash # Instance of 'TypeOperator': type check unimplemented for Iterable.
+io/http_parser_test: Crash #  Unhandled node
 io/http_proxy_test: Crash # Please triage this failure.
-io/http_read_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_redirect_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/http_request_pipeling_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_requested_uri_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/http_response_deadline_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_server_early_client_close_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_server_response_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/http_server_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/http_session_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/https_bad_certificate_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/https_client_certificate_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/https_client_exception_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/https_server_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/https_unauthorized_test: Crash # (throw e): Unhandled node
-io/internet_address_invalid_arguments_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/internet_address_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/io_sink_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+io/http_read_test: Crash # (startIsolatedHttpServer): handleStaticFunctionGet: function(startIsolatedHttpServer)
+io/http_server_early_client_close_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
+io/http_server_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/https_bad_certificate_test: Crash #  cannot handle async/sync*/async* functions
+io/https_server_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/internet_address_invalid_arguments_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/internet_address_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/issue_22636_test: Crash #  cannot handle async/sync*/async* functions
 io/issue_22637_test: Crash #  cannot handle async/sync*/async* functions
-io/link_async_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/link_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/link_uri_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/network_interface_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/observatory_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/parent_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/pipe_server_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/platform_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/print_sync_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/process_check_arguments_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/process_detached_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/process_environment_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/process_exit_negative_test: Crash # (a): Error expression `a` unhandled.
-io/process_exit_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/process_invalid_arguments_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/process_kill_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/process_non_ascii_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/process_path_environment_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/process_path_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/process_pid_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/process_run_output_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/process_run_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/process_segfault_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/process_set_exit_code_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/process_start_exception_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/process_stderr_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/process_stdin_transform_unsubscribe_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/process_stdout_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/process_sync_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/process_working_directory_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/raw_datagram_read_all_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+io/link_async_test: Crash # (testCreateLoopingLink): handleStaticFunctionGet: function(testCreateLoopingLink)
+io/link_test: Crash # unsupported element kind: context:field
+io/link_uri_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/observatory_test: Crash # (asyncSuccess): handleStaticFunctionGet: function(asyncSuccess)
+io/parent_test: Crash # (testObjects): handleStaticFunctionGet: function(testObjects)
+io/pipe_server_test: Crash # (startPipeServer): handleStaticFunctionGet: function(startPipeServer)
+io/platform_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/process_invalid_arguments_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/process_run_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
 io/raw_datagram_socket_test: Crash #  Unhandled node
-io/raw_secure_server_closing_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/raw_secure_server_socket_argument_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/raw_secure_server_socket_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+io/raw_secure_server_closing_test: Crash # Please triage this failure.
+io/raw_secure_server_socket_argument_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/raw_secure_server_socket_test: Crash # Please triage this failure.
 io/raw_secure_socket_pause_test: Crash #  Unhandled node
 io/raw_secure_socket_test: Crash #  Unhandled node
-io/raw_server_socket_cancel_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/raw_socket_cross_process_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/raw_socket_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+io/raw_server_socket_cancel_test: Crash #  Unhandled node
+io/raw_socket_cross_process_test: Crash #  Unhandled node
+io/raw_socket_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/raw_socket_typed_data_test: Crash # Please triage this failure.
-io/raw_socket_write_destroy_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/read_into_const_list_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/regress_10026_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
 io/regress_21160_test: Crash #  Unhandled node
-io/regress_21987_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/regress_7679_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/regress_8828_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/regress_9194_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/resolve_symbolic_links_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/secure_bad_certificate_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/secure_builtin_roots_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/secure_client_raw_server_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/secure_client_server_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/secure_multiple_client_server_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/secure_server_client_certificate_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/secure_server_client_no_certificate_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/secure_server_closing_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/secure_server_socket_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/secure_session_resume_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/secure_socket_alpn_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/secure_socket_argument_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/secure_socket_bad_data_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/secure_socket_renegotiate_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/secure_socket_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/secure_unauthorized_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/signals_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
+io/resolve_symbolic_links_test: Crash # (asyncSuccess): handleStaticFunctionGet: function(asyncSuccess)
+io/secure_client_raw_server_test: Crash # (testClient): handleStaticFunctionGet: function(testClient)
+io/secure_client_server_test: Crash # (testClient): handleStaticFunctionGet: function(testClient)
+io/secure_multiple_client_server_test: Crash # (testClient): handleStaticFunctionGet: function(testClient)
+io/secure_server_closing_test: Crash # Please triage this failure.
+io/secure_server_socket_test: Crash # Please triage this failure.
+io/secure_socket_alpn_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+io/secure_socket_argument_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/secure_socket_bad_data_test: Crash # (runClient): handleStaticFunctionGet: function(runClient)
 io/skipping_dart2js_compilations_test: Crash # unsupported element kind: currentWorkingDirectory:field
-io/sleep_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/snapshot_fail_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/socket_bind_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/socket_close_test: Crash #  Unhandled node
-io/socket_cross_process_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/socket_exception_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/socket_info_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/socket_invalid_arguments_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/socket_ipv6_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/socket_many_connections_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/socket_port_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/socket_source_address_test: Crash #  cannot handle async/sync*/async* functions
-io/socket_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/socket_upgrade_to_secure_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/status_file_parser_test: Crash # (throw new Exception('Cannot find test status file ${path}')): Unhandled node
-io/stdio_nonblocking_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/stdout_bad_argument_test: Crash # handleStaticFunctionGet: function(print)
-io/stdout_close_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/stdout_stderr_non_blocking_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/stdout_stderr_terminal_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/stdout_stderr_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/stream_pipe_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/test_extension_fail_test: Crash # (throw new StateError("bad exit code")): Unhandled node
-io/test_extension_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+io/sleep_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/socket_bind_test: Crash # (asyncEnd): handleStaticFunctionGet: function(asyncEnd)
+io/socket_close_test: Crash # (asyncEnd): handleStaticFunctionGet: function(asyncEnd)
+io/socket_exception_test: Crash # Please triage this failure.
+io/socket_many_connections_test: Crash # (startTestServer): handleStaticFunctionGet: function(startTestServer)
+io/socket_source_address_test: Crash # (RawSocket.connect): handleStaticFunctionGet: origin function(RawSocket#connect)
+io/socket_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/socket_upgrade_to_secure_test: Crash # Please triage this failure.
+io/status_file_parser_test: Crash # unsupported element kind: IssueNumberPattern:field
+io/stdout_bad_argument_test: Crash # (print): handleStaticFunctionGet: function(print)
+io/stdout_stderr_terminal_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/test_extension_fail_test: Crash # unsupported element kind: context:field
+io/test_extension_test: Crash # unsupported element kind: context:field
 io/test_runner_test: Crash #  Unhandled node
-io/uri_platform_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/web_socket_error_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/web_socket_ping_test: Crash # (throw new StateError('Hash update method called after digest was retrieved')): Unhandled node
-io/web_socket_pipe_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/web_socket_protocol_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/web_socket_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/web_socket_typed_data_test: Crash # (throw new ExpectException(message)): Unhandled node
-io/windows_environment_test: Crash # (throw "Exit code not 0"): Unhandled node
-io/windows_file_system_async_links_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-io/windows_file_system_links_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-io/zlib_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-medium_integer_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-oom_error_stacktrace_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-out_of_memory_test: Crash #  "on T" catch block
-priority_queue_stress_test: Crash # cannot compile methods that need interceptor calling convention.
-slowpath_safepoints_test: Crash # handleStaticFunctionGet: function(noop)
-status_expression_test: Crash # (throw new ExpectException(message)): Unhandled node
-typed_array_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
+io/uri_platform_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/web_socket_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/windows_environment_test: Crash # unsupported element kind: context:field
+io/windows_file_system_links_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/zlib_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+priority_queue_stress_test: RuntimeError # Please triage this failure.
+slowpath_safepoints_test: Crash # (noop): handleStaticFunctionGet: function(noop)
+status_expression_test: Crash # unsupported element kind: regexp:field
+typed_array_test: Crash # (float64_sender): handleStaticFunctionGet: function(float64_sender)
 verified_mem_test: Crash # unsupported element kind: a:field

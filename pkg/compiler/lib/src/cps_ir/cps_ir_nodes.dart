@@ -329,6 +329,9 @@ class InvokeMethod extends Expression implements Invoke {
 /// invocations to intercepted methods, where the effective receiver is instead
 /// passed as a formal parameter.
 ///
+/// TODO(sra): Review. A direct call to a method that is mixed into a native
+/// class will still require an explicit argument.
+///
 /// When targeting Dart, this instruction is used to represent super calls.
 /// Here, [receiver] must always be a reference to `this`, and [target] must be
 /// a method that is available in the super class.

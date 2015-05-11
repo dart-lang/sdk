@@ -417,51 +417,51 @@ webgl_1_test: StaticWarning
 window_nosuchmethod_test: StaticWarning
 
 [ $compiler == dart2js && $cps_ir ]
-async_spawnuri_test: Crash # cannot compile methods that need interceptor calling convention.
-async_test: Crash # cannot compile methods that need interceptor calling convention.
+async_spawnuri_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+async_test: Crash # (cancellingIsolate): handleStaticFunctionGet: function(cancellingIsolate)
 audiobuffersourcenode_test: Crash #  try/finally
 audiocontext_test: Crash #  try/finally
-audioelement_test: Crash # cannot compile methods that need interceptor calling convention.
-b_element_test: Crash # cannot compile methods that need interceptor calling convention.
-blob_constructor_test: Crash # cannot compile methods that need interceptor calling convention.
+audioelement_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+b_element_test: Crash # unsupported element kind: _defaultEnvironment:field
+blob_constructor_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 cache_test: Crash #  try/finally
-callbacks_test: Crash # cannot compile methods that need interceptor calling convention.
+callbacks_test: Crash # unsupported element kind: _defaultEnvironment:field
 canvas_pixel_array_type_alias_test: Crash #  try/finally
-canvas_test: Crash # cannot compile methods that need interceptor calling convention.
+canvas_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 canvasrenderingcontext2d_test: Crash #  try/finally
-cdata_test: Crash # cannot compile methods that need interceptor calling convention.
-client_rect_test: Crash # cannot compile methods that need interceptor calling convention.
-cross_domain_iframe_test: Crash # cannot compile methods that need interceptor calling convention.
+cdata_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+client_rect_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+cross_domain_iframe_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 crypto_test: Crash #  try/finally
-css_rule_list_test: Crash # cannot compile methods that need interceptor calling convention.
+css_rule_list_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 css_test: Crash #  try/finally
-cssstyledeclaration_test: Crash # cannot compile methods that need interceptor calling convention.
+cssstyledeclaration_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 custom/attribute_changed_callback_test: Crash #  try/finally
-custom/constructor_calls_created_synchronously_test: Crash # cannot compile methods that need interceptor calling convention.
-custom/created_callback_test: Crash # cannot compile methods that need interceptor calling convention.
-custom/document_register_basic_test: Crash # cannot compile methods that need interceptor calling convention.
+custom/constructor_calls_created_synchronously_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+custom/created_callback_test: Crash # (NestedElement.test): handleStaticFunctionGet: function(NestedElement#test)
+custom/document_register_basic_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 custom/document_register_type_extensions_test: Crash #  try/finally
-custom/element_upgrade_test: Crash # cannot compile methods that need interceptor calling convention.
+custom/element_upgrade_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 custom/entered_left_view_test: Crash #  try/finally
-custom/js_custom_test: Crash # cannot compile methods that need interceptor calling convention.
-custom/mirrors_test: Crash # cannot compile methods that need interceptor calling convention.
+custom/js_custom_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+custom/mirrors_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 custom/regress_194523002_test: Crash # unsupported element kind: _defaultEnvironment:field
 custom_element_method_clash_test: Crash #  try/finally
 custom_element_name_clash_test: Crash #  try/finally
 custom_elements_23127_test: Crash #  try/finally
 custom_elements_test: Crash #  try/finally
-custom_tags_test: Crash # cannot compile methods that need interceptor calling convention.
-dart_object_local_storage_test: Crash # cannot compile methods that need interceptor calling convention.
-datalistelement_test: Crash # cannot compile methods that need interceptor calling convention.
+custom_tags_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+dart_object_local_storage_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+datalistelement_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 document_test: Crash #  try/finally
-documentfragment_test: Crash # cannot compile methods that need interceptor calling convention.
-dom_constructors_test: Crash # cannot compile methods that need interceptor calling convention.
-domparser_test: Crash # cannot compile methods that need interceptor calling convention.
+documentfragment_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+dom_constructors_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+domparser_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 element_add_test: Crash #  try/finally
 element_animate_test: Crash #  try/finally
-element_classes_svg_test: Crash # cannot compile methods that need interceptor calling convention.
-element_classes_test: Crash # cannot compile methods that need interceptor calling convention.
-element_constructor_1_test: Crash # cannot compile methods that need interceptor calling convention.
+element_classes_svg_test: Crash # (elementsTearDown): handleStaticFunctionGet: function(elementsTearDown)
+element_classes_test: Crash # (listElementTearDown): handleStaticFunctionGet: function(listElementTearDown)
+element_constructor_1_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 element_dimensions_test: Crash #  try/finally
 element_offset_test: Crash #  try/finally
 element_test: Crash #  try/finally
@@ -472,91 +472,91 @@ element_types_constructors4_test: Crash #  try/finally
 element_types_constructors5_test: Crash #  try/finally
 element_types_constructors6_test: Crash #  try/finally
 element_types_test: Crash #  try/finally
-event_customevent_test: Crash # cannot compile methods that need interceptor calling convention.
-events_test: Crash # cannot compile methods that need interceptor calling convention.
-exceptions_test: Crash # cannot compile methods that need interceptor calling convention.
+event_customevent_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+events_test: Crash # unsupported element kind: _defaultEnvironment:field
+exceptions_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 fileapi_test: Crash #  try/finally
-filereader_test: Crash # cannot compile methods that need interceptor calling convention.
-fontface_loaded_test: Crash # cannot compile methods that need interceptor calling convention.
-fontface_test: Crash # cannot compile methods that need interceptor calling convention.
+filereader_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+fontface_loaded_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+fontface_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 form_data_test: Crash #  try/finally
-form_element_test: Crash # cannot compile methods that need interceptor calling convention.
-geolocation_test: Crash # cannot compile methods that need interceptor calling convention.
-hidden_dom_1_test: Crash # cannot compile methods that need interceptor calling convention.
-hidden_dom_2_test: Crash # cannot compile methods that need interceptor calling convention.
+form_element_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+geolocation_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+hidden_dom_1_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+hidden_dom_2_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 history_test: Crash #  try/finally
-htmlcollection_test: Crash # cannot compile methods that need interceptor calling convention.
-htmlelement_test: Crash # cannot compile methods that need interceptor calling convention.
-htmloptionscollection_test: Crash # cannot compile methods that need interceptor calling convention.
+htmlcollection_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+htmlelement_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+htmloptionscollection_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 indexeddb_1_test: Crash #  try/finally
-indexeddb_2_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-indexeddb_3_test: Crash # cannot compile methods that need interceptor calling convention.
-indexeddb_4_test: Crash # cannot compile methods that need interceptor calling convention.
-indexeddb_5_test: Crash # cannot compile methods that need interceptor calling convention.
+indexeddb_2_test: Crash # Please triage this failure.
+indexeddb_3_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+indexeddb_4_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+indexeddb_5_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 input_element_test: Crash #  try/finally
-instance_of_test: Crash # cannot compile methods that need interceptor calling convention.
-isolates_test: Crash # cannot compile methods that need interceptor calling convention.
-js_interop_1_test: Crash # cannot compile methods that need interceptor calling convention.
+instance_of_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+isolates_test: Crash # (isolateEntry): handleStaticFunctionGet: function(isolateEntry)
+js_interop_1_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 js_test: Crash #  try/finally
-keyboard_event_test: Crash # cannot compile methods that need interceptor calling convention.
-localstorage_test: Crash # cannot compile methods that need interceptor calling convention.
-location_test: Crash # cannot compile methods that need interceptor calling convention.
+keyboard_event_test: Crash # unsupported element kind: _defaultEnvironment:field
+localstorage_test: Crash # (try {fn();}finally {window.localStorage.clear();}): try/finally
+location_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 media_stream_test: Crash #  try/finally
 mediasource_test: Crash #  try/finally
-messageevent_test: Crash # cannot compile methods that need interceptor calling convention.
-mouse_event_test: Crash # cannot compile methods that need interceptor calling convention.
+messageevent_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+mouse_event_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 mutationobserver_test: Crash #  try/finally
-native_gc_test: Crash # cannot compile methods that need interceptor calling convention.
-navigator_test: Crash # cannot compile methods that need interceptor calling convention.
+native_gc_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+navigator_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 node_test: Crash #  try/finally
 node_validator_important_if_you_suppress_make_the_bug_critical_test: Crash #  try/finally
-non_instantiated_is_test: Crash # cannot compile methods that need interceptor calling convention.
+non_instantiated_is_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 notification_test: Crash #  try/finally
 performance_api_test: Crash #  try/finally
 postmessage_structured_test: Crash #  try/finally
-query_test: Crash # cannot compile methods that need interceptor calling convention.
-queryall_test: Crash # cannot compile methods that need interceptor calling convention.
+query_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+queryall_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 range_test: Crash #  try/finally
-request_animation_frame_test: Crash # cannot compile methods that need interceptor calling convention.
+request_animation_frame_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 rtc_test: Crash #  try/finally
-selectelement_test: Crash # cannot compile methods that need interceptor calling convention.
-serialized_script_value_test: Crash # cannot compile methods that need interceptor calling convention.
+selectelement_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+serialized_script_value_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 shadow_dom_test: Crash #  try/finally
-shadowroot_test: Crash # cannot compile methods that need interceptor calling convention.
+shadowroot_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 speechrecognition_test: Crash #  try/finally
-storage_quota_test/missingenumcheck: Crash # cannot compile methods that need interceptor calling convention.
-storage_quota_test/none: Crash # cannot compile methods that need interceptor calling convention.
-storage_test: Crash # cannot compile methods that need interceptor calling convention.
-streams_test: Crash # cannot compile methods that need interceptor calling convention.
+storage_quota_test/missingenumcheck: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+storage_quota_test/none: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+storage_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+streams_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 svg_test: Crash #  try/finally
 svgelement_test: Crash #  try/finally
-table_test: Crash # cannot compile methods that need interceptor calling convention.
+table_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 touchevent_test: Crash #  try/finally
-track_element_constructor_test: Crash # cannot compile methods that need interceptor calling convention.
-transferables_test: Crash # cannot compile methods that need interceptor calling convention.
+track_element_constructor_test: Crash # unsupported element kind: _defaultEnvironment:field
+transferables_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 transition_event_test: Crash #  try/finally
 typed_arrays_1_test: Crash #  try/finally
-typed_arrays_2_test: Crash # cannot compile methods that need interceptor calling convention.
-typed_arrays_3_test: Crash # cannot compile methods that need interceptor calling convention.
-typed_arrays_4_test: Crash # cannot compile methods that need interceptor calling convention.
-typed_arrays_5_test: Crash # cannot compile methods that need interceptor calling convention.
-typed_arrays_arraybuffer_test: Crash # cannot compile methods that need interceptor calling convention.
-typed_arrays_dataview_test: Crash # cannot compile methods that need interceptor calling convention.
-typed_arrays_range_checks_test: Crash # cannot compile methods that need interceptor calling convention.
-typed_arrays_simd_test: Crash # cannot compile methods that need interceptor calling convention.
-typing_test: Crash # cannot compile methods that need interceptor calling convention.
-unknownelement_test: Crash # cannot compile methods that need interceptor calling convention.
-uri_test: Crash # cannot compile methods that need interceptor calling convention.
+typed_arrays_2_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+typed_arrays_3_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+typed_arrays_4_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+typed_arrays_5_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+typed_arrays_arraybuffer_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+typed_arrays_dataview_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+typed_arrays_range_checks_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+typed_arrays_simd_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+typing_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+unknownelement_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+uri_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
 url_test: Crash #  try/finally
 webgl_1_test: Crash #  try/finally
 websocket_test: Crash #  try/finally
 websql_test: Crash #  try/finally
-wheelevent_test: Crash # cannot compile methods that need interceptor calling convention.
-window_eq_test: Crash # cannot compile methods that need interceptor calling convention.
-window_mangling_test: Crash # cannot compile methods that need interceptor calling convention.
-window_nosuchmethod_test: Crash # cannot compile methods that need interceptor calling convention.
-window_test: Crash # cannot compile methods that need interceptor calling convention.
-worker_api_test: Crash # cannot compile methods that need interceptor calling convention.
+wheelevent_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+window_eq_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+window_mangling_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+window_nosuchmethod_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+window_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+worker_api_test: Crash # (worker): handleStaticFunctionGet: function(worker)
 worker_test: Crash #  try/finally
 xhr_cross_origin_test: Crash #  try/finally
 xhr_test: Crash #  try/finally

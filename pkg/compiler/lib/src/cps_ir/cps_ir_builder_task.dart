@@ -57,6 +57,10 @@ class IrBuilderTask extends CompilerTask {
   }
 
   ir.RootNode buildNode(AstElement element) {
+    return measure(() => _buildNode(element));
+  }
+
+  ir.RootNode _buildNode(AstElement element) {
     bailoutMessage = null;
     if (!canBuild(element)) {
       bailoutMessage = 'unsupported element ${element.name}:${element.kind}';

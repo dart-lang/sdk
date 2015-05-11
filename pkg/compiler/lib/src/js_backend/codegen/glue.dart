@@ -118,7 +118,6 @@ class Glue {
         hasBeenInstantiated: hasBeenInstantiated);
   }
 
-
   String getInterceptorName(Set<ClassElement> interceptedClasses) {
     return _backend.namer.nameForGetInterceptor(interceptedClasses);
   }
@@ -210,5 +209,9 @@ class Glue {
 
   String getTypeTestTag(DartType type) {
     return _backend.namer.operatorIsType(type);
+  }
+
+  bool operatorEqHandlesNullArgument(FunctionElement element) {
+    return _backend.operatorEqHandlesNullArgument(element);
   }
 }

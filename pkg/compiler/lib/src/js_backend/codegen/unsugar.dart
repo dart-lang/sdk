@@ -6,20 +6,37 @@ import '../../cps_ir/cps_ir_nodes.dart';
 import '../../cps_ir/optimizers.dart';
 import '../../constants/expressions.dart';
 import '../../constants/values.dart';
-import '../../elements/elements.dart'
-    show ClassElement, FieldElement, FunctionElement, Element;
+import '../../elements/elements.dart' show
+    ClassElement,
+    FieldElement,
+    FunctionElement,
+    Local,
+    ExecutableElement;
 import '../../js_backend/codegen/glue.dart';
 import '../../dart2jslib.dart' show Selector, World;
+
+class ExplicitReceiverParameterEntity implements Local {
+  String get name => 'receiver';
+  final ExecutableElement executableContext;
+  ExplicitReceiverParameterEntity(this.executableContext);
+  toString() => 'ExplicitReceiverParameterEntity($executableContext)';
+}
 
 /// Rewrites the initial CPS IR to make Dart semantics explicit and inserts
 /// special nodes that respect JavaScript behavior.
 ///
 /// Performs the following rewrites:
-///  - rewrite [IsTrue] in a [Branch] to do boolean conversion.
-///  - converts two-parameter exception handlers to one-parameter ones.
+///  - Rewrite [IsTrue] in a [Branch] to do boolean conversion.
+///  - Add interceptors at call sites that use interceptor calling convention.
+///  - Add explicit receiver argument for methods that are called in interceptor
+///    calling convention.
+///  - Convert two-parameter exception handlers to one-parameter ones.
 class UnsugarVisitor extends RecursiveVisitor {
   Glue _glue;
   ParentVisitor _parentVisitor = new ParentVisitor();
+
+  Parameter thisParameter;
+  Parameter explicitReceiverParameter;
 
   // In a catch block, rethrow implicitly throws the block's exception
   // parameter.  This is the exception parameter when nested in a catch
@@ -29,8 +46,32 @@ class UnsugarVisitor extends RecursiveVisitor {
   UnsugarVisitor(this._glue);
 
   void rewrite(FunctionDefinition function) {
+    bool inInterceptedMethod = _glue.isInterceptedMethod(function.element);
+
+    if (function.element.name == '==' &&
+        function.parameters.length == 1 &&
+        !_glue.operatorEqHandlesNullArgument(function.element)) {
+      // Insert the null check that the language semantics requires us to
+      // perform before calling operator ==.
+      insertEqNullCheck(function);
+    }
+
+    if (inInterceptedMethod) {
+      thisParameter = function.thisParameter;
+      ThisParameterLocal holder = thisParameter.hint;
+      explicitReceiverParameter = new Parameter(
+          new ExplicitReceiverParameterEntity(
+              holder.executableContext));
+      function.parameters.insert(0, explicitReceiverParameter);
+    }
+
     // Set all parent pointers.
     _parentVisitor.visit(function);
+
+    if (inInterceptedMethod) {
+      explicitReceiverParameter.substituteFor(thisParameter);
+    }
+
     visit(function);
   }
 
@@ -47,6 +88,19 @@ class UnsugarVisitor extends RecursiveVisitor {
             new TrueConstantValue()));
   }
 
+  Constant get falseConstant {
+    return new Constant(
+        new BoolConstantExpression(
+            false,
+            new FalseConstantValue()));
+  }
+
+  Constant get nullConstant {
+    return new Constant(
+        new NullConstantExpression(
+            new NullConstantValue()));
+  }
+
   void insertLetPrim(Primitive primitive, Expression node) {
     LetPrim let = new LetPrim(primitive);
     InteriorNode parent = node.parent;
@@ -54,6 +108,42 @@ class UnsugarVisitor extends RecursiveVisitor {
     let.body = node;
     node.parent = let;
     let.parent = parent;
+  }
+
+  void insertEqNullCheck(FunctionDefinition function) {
+    // Replace
+    //
+    //     body;
+    //
+    // with
+    //
+    //     if (identical(arg, null))
+    //       return false;
+    //     else
+    //       body;
+    //
+    Continuation originalBody = new Continuation(<Parameter>[]);
+    originalBody.body = function.body.body;
+
+    Continuation returnFalse = new Continuation(<Parameter>[]);
+    Primitive falsePrimitive = falseConstant;
+    returnFalse.body =
+        new LetPrim(falsePrimitive,
+            new InvokeContinuation(
+                function.body.returnContinuation, <Primitive>[falsePrimitive]));
+
+    Primitive nullPrimitive = nullConstant;
+    Primitive test = new Identical(function.parameters.single, nullPrimitive);
+
+    Expression newBody =
+        new LetCont.many(<Continuation>[returnFalse, originalBody],
+            new LetPrim(nullPrimitive,
+                new LetPrim(test,
+                    new Branch(
+                        new IsTrue(test),
+                        returnFalse,
+                        originalBody))));
+    function.body.body = newBody;
   }
 
   /// Insert a static call to [function] at the point of [node] with result
@@ -145,32 +235,42 @@ class UnsugarVisitor extends RecursiveVisitor {
 
   processInvokeMethod(InvokeMethod node) {
     Selector selector = node.selector;
-    // TODO(karlklose):  should we rewrite all selectors?
     if (!_glue.isInterceptedSelector(selector)) return;
 
     Primitive receiver = node.receiver.definition;
-    Set<ClassElement> interceptedClasses =
-        _glue.getInterceptedClassesOn(selector);
-    _glue.registerSpecializedGetInterceptor(interceptedClasses);
+    Primitive newReceiver;
 
-    Primitive intercepted = new Interceptor(receiver, interceptedClasses);
-    insertLetPrim(intercepted, node);
+    if (receiver == explicitReceiverParameter) {
+      // If the receiver is the explicit receiver, we are calling a method in
+      // the same interceptor:
+      //  Change 'receiver.foo()'  to  'this.foo(receiver)'.
+      newReceiver = thisParameter;
+    } else {
+      // TODO(sra): Move the computation of interceptedClasses to a much later
+      // phase and take into account the remaining uses of the interceptor.
+      Set<ClassElement> interceptedClasses =
+        _glue.getInterceptedClassesOn(selector);
+      _glue.registerSpecializedGetInterceptor(interceptedClasses);
+      newReceiver = new Interceptor(receiver, interceptedClasses);
+      insertLetPrim(newReceiver, node);
+    }
+
     node.arguments.insert(0, node.receiver);
     node.callingConvention = CallingConvention.JS_INTERCEPTED;
     assert(node.isValid);
-    node.receiver = new Reference<Primitive>(intercepted);
-  }
-
-  Primitive makeNull() {
-    NullConstantValue nullConst = new NullConstantValue();
-    return new Constant(new NullConstantExpression(nullConst));
+    node.receiver = new Reference<Primitive>(newReceiver);
   }
 
   processInvokeMethodDirectly(InvokeMethodDirectly node) {
     if (_glue.isInterceptedMethod(node.target)) {
-      Primitive nullPrim = makeNull();
+      Primitive nullPrim = nullConstant;
       insertLetPrim(nullPrim, node);
       node.arguments.insert(0, node.receiver);
+      // TODO(sra): `null` is not adequate.  Interceptors project the class
+      // hierarchy onto an interceptor hierarchy.  A super call that does a
+      // method call will use the javascript 'this' parameter to avoid calling
+      // getInterceptor again, so the receiver must be the interceptor (likely
+      // `this`), not `null`.
       node.receiver = new Reference<Primitive>(nullPrim);
     }
   }

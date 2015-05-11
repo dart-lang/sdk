@@ -117,13 +117,6 @@ class CpsFunctionCompiler implements FunctionCompiler {
         giveUp(irBuilderTask.bailoutMessage);
       }
     }
-    if (element.isInstanceMember && !element.isGenerativeConstructorBody) {
-      Selector selector = new Selector.fromElement(cpsNode.element);
-      if (glue.isInterceptedSelector(selector)) {
-        giveUp('cannot compile methods that need interceptor calling '
-            'convention.');
-      }
-    }
     traceGraph("IR Builder", cpsNode);
     new UnsugarVisitor(glue).rewrite(cpsNode);
     traceGraph("Unsugaring", cpsNode);
