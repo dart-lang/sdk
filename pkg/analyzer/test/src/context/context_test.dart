@@ -487,7 +487,7 @@ part of lib;
     expect(librariesWithPart, unorderedEquals([libSource]));
   }
 
-  void fail_performAnalysisTask_changeLibraryContents() {
+  void test_performAnalysisTask_changeLibraryContents() {
     Source libSource =
         addSource("/test.dart", "library lib; part 'test-part.dart';");
     Source partSource = addSource("/test-part.dart", "part of lib;");
@@ -522,7 +522,7 @@ part of lib;
         reason: "part resolved 3");
   }
 
-  void fail_performAnalysisTask_changeLibraryThenPartContents() {
+  void test_performAnalysisTask_changeLibraryThenPartContents() {
     Source libSource =
         addSource("/test.dart", "library lib; part 'test-part.dart';");
     Source partSource = addSource("/test-part.dart", "part of lib;");

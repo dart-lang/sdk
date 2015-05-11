@@ -67,6 +67,10 @@ class DartWorkManager implements WorkManager {
     // library queue
     librarySourceQueue.removeAll(changedSources);
     librarySourceQueue.removeAll(removedSources);
+    // TODO(scheglov) This is an inefficient implementation.
+    // We could make the cache to return invalidated results and use them
+    // to allow work managers to schedule work request.
+    librarySourceQueue.addAll(librarySources);
   }
 
   @override
@@ -101,6 +105,14 @@ class DartWorkManager implements WorkManager {
     // all libraries had been processed.
     // No results to compute.
     return null;
+  }
+
+  @override
+  WorkOrderPriority getNextResultPriority() {
+    if (unknownSourceQueue.isNotEmpty || librarySourceQueue.isNotEmpty) {
+      return WorkOrderPriority.NORMAL;
+    }
+    return WorkOrderPriority.NONE;
   }
 
   @override

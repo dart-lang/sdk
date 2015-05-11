@@ -13,12 +13,11 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
-import 'package:analyzer/src/task/driver.dart';
-import 'package:analyzer/src/task/manager.dart';
 import 'package:plugin/manager.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
+import 'package:analyzer/src/task/driver.dart';
 
 class AbstractContextTest {
   MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
@@ -28,8 +27,6 @@ class AbstractContextTest {
   DartSdk sdk = new MockSdk();
   SourceFactory sourceFactory;
   AnalysisContextImpl context;
-
-  TaskManager taskManager = new TaskManager();
   AnalysisDriver analysisDriver;
 
   Source addSource(String path, String contents) {
@@ -95,7 +92,6 @@ class AbstractContextTest {
       if (plugin.taskExtensionPoint == null) {
         extensionManager.processPlugins([plugin]);
       }
-      taskManager.addTaskDescriptors(plugin.taskDescriptors);
     }
     // prepare AnalysisContext
     sourceFactory = new SourceFactory(<UriResolver>[
@@ -104,8 +100,7 @@ class AbstractContextTest {
     ]);
     context = createAnalysisContext();
     context.sourceFactory = sourceFactory;
-    // prepare AnalysisDriver
-    analysisDriver = new AnalysisDriver(taskManager, context);
+    analysisDriver = context.driver;
   }
 
   void tearDown() {}

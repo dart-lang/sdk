@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
+import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
@@ -216,6 +217,20 @@ class DartWorkManagerTest {
     // source1 is out, source2 is waiting
     expect_librarySourceQueue([]);
     expect_unknownSourceQueue([source2]);
+  }
+
+  void test_getNextResultPriority_hasLibrary() {
+    manager.librarySourceQueue.addAll([source1]);
+    expect(manager.getNextResultPriority(), WorkOrderPriority.NORMAL);
+  }
+
+  void test_getNextResultPriority_hasUnknown() {
+    manager.unknownSourceQueue.addAll([source1]);
+    expect(manager.getNextResultPriority(), WorkOrderPriority.NORMAL);
+  }
+
+  void test_getNextResultPriority_nothingToDo() {
+    expect(manager.getNextResultPriority(), WorkOrderPriority.NONE);
   }
 
   void test_resultsComputed_isLibrary() {

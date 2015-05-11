@@ -12,7 +12,7 @@ import 'package:analyzer/src/context/cache.dart' as cache;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart' hide WorkManager;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/html.dart' as ht;
 import 'package:analyzer/src/generated/java_core.dart';
@@ -23,6 +23,7 @@ import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/dart.dart';
@@ -98,9 +99,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   TaskManager _taskManager;
 
   /**
+   * The [DartWorkManager] instance that performs Dart specific scheduling.
+   */
+  DartWorkManager dartWorkManager;
+
+  /**
    * The analysis driver used to perform analysis.
    */
-  AnalysisDriver _driver;
+  AnalysisDriver driver;
 
   /**
    * A list containing sources for which data should not be flushed.
@@ -184,7 +190,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     _privatePartition = new cache.UniversalCachePartition(this);
     _cache = createCacheFromSourceFactory(null);
     _taskManager = AnalysisEngine.instance.taskManager;
-    _driver = new AnalysisDriver(_taskManager, this);
+    // TODO(scheglov) Get WorkManager(Factory)(s) from plugins.
+    dartWorkManager = new DartWorkManager(this);
+    driver =
+        new AnalysisDriver(_taskManager, <WorkManager>[dartWorkManager], this);
     _onSourcesChangedController =
         new StreamController<SourcesChangedEvent>.broadcast();
   }
@@ -495,6 +504,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     for (Source source in removedSources) {
       _sourceRemoved(source);
     }
+    dartWorkManager.applyChange(
+        changeSet.addedSources, changeSet.changedSources, removedSources);
     _onSourcesChangedController.add(new SourcesChangedEvent(changeSet));
   }
 
@@ -1064,7 +1075,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   AnalysisResult performAnalysisTask() {
     return PerformanceStatistics.performAnaysis.makeCurrentWhile(() {
-      bool done = !_driver.performAnalysisTask();
+      bool done = !driver.performAnalysisTask();
       if (done) {
         done = !_validateCacheConsistency();
       }
@@ -1185,6 +1196,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void setContents(Source source, String contents) {
     _contentsChanged(source, contents, true);
+    dartWorkManager.applyChange(
+        Source.EMPTY_LIST, <Source>[source], Source.EMPTY_LIST);
   }
 
   @override
@@ -1308,7 +1321,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     cache.CacheEntry entry = getCacheEntry(target);
     CacheState state = entry.getState(descriptor);
     if (state == CacheState.FLUSHED || state == CacheState.INVALID) {
-      _driver.computeResult(target, descriptor);
+      driver.computeResult(target, descriptor);
     }
     state = entry.getState(descriptor);
     if (state == CacheState.ERROR) {
