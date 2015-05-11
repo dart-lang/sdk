@@ -10,11 +10,11 @@ import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, CacheState, InternalAnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
-import 'package:analyzer/src/generated/utilities_collection.dart';
 
 /**
  * The manager for Dart specific analysis.
@@ -33,6 +33,12 @@ class DartWorkManager implements WorkManager {
   final HashSet<Source> partSources = new HashSet<Source>();
 
   /**
+   * The [TargetedResult]s that should be computed with priority.
+   */
+  final LinkedHashSet<TargetedResult> priorityResultQueue =
+      new LinkedHashSet<TargetedResult>();
+
+  /**
    * The sources whose kind we don't know yet.
    */
   final LinkedHashSet<Source> unknownSourceQueue = new LinkedHashSet<Source>();
@@ -46,6 +52,14 @@ class DartWorkManager implements WorkManager {
    * Initialize a newly created manager.
    */
   DartWorkManager(this.context);
+
+  /**
+   * Specifies that the client want the given [result] of the given [target]
+   * to be computed with priority.
+   */
+  void addPriorityResult(AnalysisTarget target, ResultDescriptor result) {
+    priorityResultQueue.add(new TargetedResult(target, result));
+  }
 
   /**
    * Notifies the manager about changes in the explicit source list.
@@ -87,13 +101,20 @@ class DartWorkManager implements WorkManager {
 
   @override
   TargetedResult getNextResult() {
+    // Try to find a priority result to compute.
+    while (priorityResultQueue.isNotEmpty) {
+      TargetedResult result = priorityResultQueue.first;
+      if (!_needsComputing(result.target, result.result)) {
+        priorityResultQueue.remove(result);
+        continue;
+      }
+      return result;
+    }
     // Try to find a new library to analyze.
     while (librarySourceQueue.isNotEmpty) {
       Source librarySource = librarySourceQueue.first;
-      CacheEntry entry = context.getCacheEntry(librarySource);
-      CacheState state = entry.getState(LIBRARY_ERRORS_READY);
       // Maybe done with this library.
-      if (state == CacheState.VALID || state == CacheState.ERROR) {
+      if (!_needsComputing(librarySource, LIBRARY_ERRORS_READY)) {
         librarySourceQueue.remove(librarySource);
         continue;
       }
@@ -103,10 +124,8 @@ class DartWorkManager implements WorkManager {
     // No libraries in the queue, check whether there are sources to organize.
     while (unknownSourceQueue.isNotEmpty) {
       Source source = unknownSourceQueue.first;
-      CacheEntry entry = context.getCacheEntry(source);
-      CacheState state = entry.getState(SOURCE_KIND);
       // Maybe done with this source.
-      if (state == CacheState.VALID || state == CacheState.ERROR) {
+      if (!_needsComputing(source, SOURCE_KIND)) {
         unknownSourceQueue.remove(source);
         continue;
       }
@@ -121,6 +140,9 @@ class DartWorkManager implements WorkManager {
 
   @override
   WorkOrderPriority getNextResultPriority() {
+    if (priorityResultQueue.isNotEmpty) {
+      return WorkOrderPriority.PRIORITY;
+    }
     if (unknownSourceQueue.isNotEmpty || librarySourceQueue.isNotEmpty) {
       return WorkOrderPriority.NORMAL;
     }
@@ -149,5 +171,15 @@ class DartWorkManager implements WorkManager {
 
   bool _isDartSource(AnalysisTarget target) {
     return target is Source && AnalysisEngine.isDartFileName(target.fullName);
+  }
+
+  /**
+   * Returns `true` if the given [result] of the given [target] needs
+   * computing, i.e. it is not in the valid and not in the error state.
+   */
+  bool _needsComputing(AnalysisTarget target, ResultDescriptor result) {
+    CacheEntry entry = context.getCacheEntry(target);
+    CacheState state = entry.getState(result);
+    return state != CacheState.VALID && state != CacheState.ERROR;
   }
 }

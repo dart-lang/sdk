@@ -190,6 +190,40 @@ class DartWorkManagerTest {
     expect(request, isNull);
   }
 
+  void test_getNextResult_hasPriority_firstIsError() {
+    manager.addPriorityResult(source1, SOURCE_KIND);
+    manager.addPriorityResult(source2, SOURCE_KIND);
+    expect(manager.priorityResultQueue, unorderedEquals([
+      new TargetedResult(source1, SOURCE_KIND),
+      new TargetedResult(source2, SOURCE_KIND)
+    ]));
+    // configure state and get next result
+    entry1.setErrorState(caughtException, [SOURCE_KIND]);
+    TargetedResult request = manager.getNextResult();
+    expect(request.target, source2);
+    expect(request.result, SOURCE_KIND);
+    // source1 is out, source2 is waiting
+    expect(manager.priorityResultQueue,
+        unorderedEquals([new TargetedResult(source2, SOURCE_KIND)]));
+  }
+
+  void test_getNextResult_hasPriority_firstIsValid() {
+    manager.addPriorityResult(source1, SOURCE_KIND);
+    manager.addPriorityResult(source2, SOURCE_KIND);
+    expect(manager.priorityResultQueue, unorderedEquals([
+      new TargetedResult(source1, SOURCE_KIND),
+      new TargetedResult(source2, SOURCE_KIND)
+    ]));
+    // configure state and get next result
+    entry1.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
+    TargetedResult request = manager.getNextResult();
+    expect(request.target, source2);
+    expect(request.result, SOURCE_KIND);
+    // source1 is out, source2 is waiting
+    expect(manager.priorityResultQueue,
+        unorderedEquals([new TargetedResult(source2, SOURCE_KIND)]));
+  }
+
   void test_getNextResult_hasUnknown_firstIsError() {
     entry1.setErrorState(caughtException, [SOURCE_KIND]);
     manager.unknownSourceQueue.addAll([source1, source2]);
@@ -225,6 +259,11 @@ class DartWorkManagerTest {
   void test_getNextResultPriority_hasLibrary() {
     manager.librarySourceQueue.addAll([source1]);
     expect(manager.getNextResultPriority(), WorkOrderPriority.NORMAL);
+  }
+
+  void test_getNextResultPriority_hasPriority() {
+    manager.addPriorityResult(source1, SOURCE_KIND);
+    expect(manager.getNextResultPriority(), WorkOrderPriority.PRIORITY);
   }
 
   void test_getNextResultPriority_hasUnknown() {

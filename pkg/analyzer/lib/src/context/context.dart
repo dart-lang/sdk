@@ -638,41 +638,32 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<CompilationUnit> ensureResolvedDartUnits(Source unitSource) {
-    // TODO(brianwilkerson) Implement this.
+    // Check every library.
+    List<CompilationUnit> units = <CompilationUnit>[];
+    List<Source> containingLibraries = getLibrariesContaining(unitSource);
+    for (Source librarySource in containingLibraries) {
+      LibrarySpecificUnit target =
+          new LibrarySpecificUnit(librarySource, unitSource);
+      CompilationUnit unit = _getResult(target, RESOLVED_UNIT);
+      if (unit == null) {
+        units = null;
+        break;
+      }
+      units.add(unit);
+    }
+    // If we have results, then we're done.
+    if (units != null) {
+      return units;
+    }
+    // Schedule recomputing RESOLVED_UNIT results.
+    for (Source librarySource in containingLibraries) {
+      LibrarySpecificUnit target =
+          new LibrarySpecificUnit(librarySource, unitSource);
+      if (_getResultState(target, RESOLVED_UNIT) == CacheState.FLUSHED) {
+        dartWorkManager.addPriorityResult(target, RESOLVED_UNIT);
+      }
+    }
     return null;
-//    cache.CacheEntry entry = _cache.get(unitSource);
-//    // Check every library.
-//    List<CompilationUnit> units = <CompilationUnit>[];
-//    List<Source> containingLibraries = entry.containingLibraries;
-//    for (Source librarySource in containingLibraries) {
-//      CompilationUnit unit =
-//          entry.getValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource);
-//      if (unit == null) {
-//        units = null;
-//        break;
-//      }
-//      units.add(unit);
-//    }
-//    // Invalidate the flushed RESOLVED_UNIT to force it eventually.
-//    if (units == null) {
-//      bool shouldBeScheduled = false;
-//      for (Source librarySource in containingLibraries) {
-//        if (entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource) ==
-//            CacheState.FLUSHED) {
-//          entry.setStateInLibrary(
-//              DartEntry.RESOLVED_UNIT, librarySource, CacheState.INVALID);
-//          shouldBeScheduled = true;
-//        }
-//      }
-//      if (shouldBeScheduled) {
-//        _workManager.add(unitSource, SourcePriority.UNKNOWN);
-//      }
-//      // We cannot provide resolved units right now,
-//      // but the future analysis will.
-//      return null;
-//    }
-//    // done
-//    return units;
   }
 
   @override
@@ -1481,6 +1472,15 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return entry.getValue(descriptor);
     }
     return descriptor.defaultValue;
+  }
+
+  CacheState _getResultState(
+      AnalysisTarget target, ResultDescriptor descriptor) {
+    cache.CacheEntry entry = _cache.get(target);
+    if (entry == null) {
+      return CacheState.INVALID;
+    }
+    return entry.getState(descriptor);
   }
 
   /**

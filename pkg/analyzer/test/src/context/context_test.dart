@@ -1230,6 +1230,90 @@ main() {}''');
     expect(context.isDisposed, isTrue);
   }
 
+  void test_ensureResolvedDartUnits_definingUnit_hasResolved() {
+    Source source = addSource('/test.dart', '');
+    LibrarySpecificUnit libTarget = new LibrarySpecificUnit(source, source);
+    analysisDriver.computeResult(libTarget, RESOLVED_UNIT);
+    CompilationUnit unit =
+        context.getCacheEntry(libTarget).getValue(RESOLVED_UNIT);
+    List<CompilationUnit> units = context.ensureResolvedDartUnits(source);
+    expect(units, unorderedEquals([unit]));
+  }
+
+  void test_ensureResolvedDartUnits_definingUnit_notResolved() {
+    Source source = addSource('/test.dart', '');
+    LibrarySpecificUnit libTarget = new LibrarySpecificUnit(source, source);
+    analysisDriver.computeResult(libTarget, RESOLVED_UNIT);
+    // flush
+    context.getCacheEntry(libTarget).setState(
+        RESOLVED_UNIT, CacheState.FLUSHED);
+    // schedule recomputing
+    List<CompilationUnit> units = context.ensureResolvedDartUnits(source);
+    expect(units, isNull);
+    // should be the next result to compute
+    TargetedResult nextResult = context.dartWorkManager.getNextResult();
+    expect(nextResult.target, libTarget);
+    expect(nextResult.result, RESOLVED_UNIT);
+  }
+
+  void test_ensureResolvedDartUnits_partUnit_notResolved() {
+    Source libSource1 = addSource('/lib1.dart', r'''
+library lib;
+part 'part.dart';
+''');
+    Source libSource2 = addSource('/lib2.dart', r'''
+library lib;
+part 'part.dart';
+''');
+    Source partSource = addSource('/part.dart', r'''
+part of lib;
+''');
+    LibrarySpecificUnit partTarget1 =
+        new LibrarySpecificUnit(libSource1, partSource);
+    LibrarySpecificUnit partTarget2 =
+        new LibrarySpecificUnit(libSource2, partSource);
+    analysisDriver.computeResult(partTarget1, RESOLVED_UNIT);
+    analysisDriver.computeResult(partTarget2, RESOLVED_UNIT);
+    // flush
+    context.getCacheEntry(partTarget1).setState(
+        RESOLVED_UNIT, CacheState.FLUSHED);
+    context.getCacheEntry(partTarget2).setState(
+        RESOLVED_UNIT, CacheState.FLUSHED);
+    // schedule recomputing
+    List<CompilationUnit> units = context.ensureResolvedDartUnits(partSource);
+    expect(units, isNull);
+    // should be the next result to compute
+    TargetedResult nextResult = context.dartWorkManager.getNextResult();
+    expect(nextResult.target, anyOf(partTarget1, partTarget2));
+    expect(nextResult.result, RESOLVED_UNIT);
+  }
+
+  void test_ensureResolvedDartUnits_partUnit_hasResolved() {
+    Source libSource1 = addSource('/lib1.dart', r'''
+library lib;
+part 'part.dart';
+''');
+    Source libSource2 = addSource('/lib2.dart', r'''
+library lib;
+part 'part.dart';
+''');
+    Source partSource = addSource('/part.dart', r'''
+part of lib;
+''');
+    LibrarySpecificUnit partTarget1 =
+        new LibrarySpecificUnit(libSource1, partSource);
+    LibrarySpecificUnit partTarget2 =
+        new LibrarySpecificUnit(libSource2, partSource);
+    analysisDriver.computeResult(partTarget1, RESOLVED_UNIT);
+    analysisDriver.computeResult(partTarget2, RESOLVED_UNIT);
+    CompilationUnit unit1 =
+        context.getCacheEntry(partTarget1).getValue(RESOLVED_UNIT);
+    CompilationUnit unit2 =
+        context.getCacheEntry(partTarget2).getValue(RESOLVED_UNIT);
+    List<CompilationUnit> units = context.ensureResolvedDartUnits(partSource);
+    expect(units, unorderedEquals([unit1, unit2]));
+  }
+
   void test_exists_false() {
     TestSource source = new TestSource();
     source.exists2 = false;
