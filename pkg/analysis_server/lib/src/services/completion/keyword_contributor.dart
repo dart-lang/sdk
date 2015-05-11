@@ -128,6 +128,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitExpression(Expression node) {
+    _addExpressionKeywords(node);
+  }
+
+  @override
   visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (entity == node.expression) {
       _addExpressionKeywords(node);
@@ -195,6 +200,25 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitNode(AstNode node) {
+    // ignored
+  }
+
+  @override
+  visitPrefixedIdentifier(PrefixedIdentifier node) {
+    if (entity != node.identifier) {
+      _addExpressionKeywords(node);
+    }
+  }
+
+  @override
+  visitReturnStatement(ReturnStatement node) {
+    if (entity == node.expression) {
+      _addExpressionKeywords(node);
+    }
+  }
+
+  @override
+  visitStringLiteral(StringLiteral node) {
     // ignored
   }
 

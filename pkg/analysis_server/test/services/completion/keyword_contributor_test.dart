@@ -880,6 +880,24 @@ class A {
     assertSuggestKeywords(EXPRESSION_START_INSTANCE, pseudoKeywords: ['await']);
   }
 
+  test_method_body_expression1() {
+    addTestSource('class A { foo() {return b == true ? ^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_INSTANCE);
+  }
+
+  test_method_body_expression2() {
+    addTestSource('class A { foo() {return b == true ? 1 : ^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_INSTANCE);
+  }
+
+  test_method_body_return() {
+    addTestSource('class A { foo() {return ^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_INSTANCE);
+  }
+
   test_method_param() {
     addTestSource('class A { foo(^) {});}');
     expect(computeFast(), isTrue);
