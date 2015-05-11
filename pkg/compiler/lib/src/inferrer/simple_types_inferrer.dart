@@ -835,38 +835,7 @@ class SimpleTypeInferrerVisitor<T>
     }
 
     if (node.isIndex) {
-      if (op == '=') {
-        // [: foo[0] = 42 :]
-        handleDynamicSend(
-            node,
-            setterSelector,
-            receiverType,
-            new ArgumentsTypes<T>([indexType, rhsType], null));
-        return rhsType;
-      } else {
-        // [: foo[0] += 42 :] or [: foo[0]++ :].
-        T getterType = handleDynamicSend(
-            node,
-            getterSelector,
-            receiverType,
-            new ArgumentsTypes<T>([indexType], null));
-        T returnType = handleDynamicSend(
-            node,
-            operatorSelector,
-            getterType,
-            new ArgumentsTypes<T>([rhsType], null));
-        handleDynamicSend(
-            node,
-            setterSelector,
-            receiverType,
-            new ArgumentsTypes<T>([indexType, returnType], null));
-
-        if (node.isPostfix) {
-          return getterType;
-        } else {
-          return returnType;
-        }
-      }
+      return internalError(node, "Unexpected index operation");
     } else if (op == '=') {
       return handlePlainAssignment(
           node, element, setterSelector, receiverType, rhsType,
@@ -916,6 +885,259 @@ class SimpleTypeInferrerVisitor<T>
         return newType;
       }
     }
+  }
+
+  /// Handle compound index set, like `foo[0] += 42` or `foo[0]++`.
+  T handleCompoundIndexSet(
+      ast.SendSet node,
+      T receiverType,
+      T indexType,
+      T rhsType) {
+    Selector getterSelector =
+         elements.getGetterSelectorInComplexSendSet(node);
+     Selector operatorSelector =
+         elements.getOperatorSelectorInComplexSendSet(node);
+     Selector setterSelector = elements.getSelector(node);
+
+    T getterType = handleDynamicSend(
+        node,
+        getterSelector,
+        receiverType,
+        new ArgumentsTypes<T>([indexType], null));
+    T returnType = handleDynamicSend(
+        node,
+        operatorSelector,
+        getterType,
+        new ArgumentsTypes<T>([rhsType], null));
+    handleDynamicSend(
+        node,
+        setterSelector,
+        receiverType,
+        new ArgumentsTypes<T>([indexType, returnType], null));
+
+    if (node.isPostfix) {
+      return getterType;
+    } else {
+      return returnType;
+    }
+  }
+
+  /// Handle compound prefix/postfix operations, like `a[0]++`.
+  T handleCompoundPrefixPostfix(
+      ast.Send node,
+      T receiverType,
+      T indexType) {
+    return handleCompoundIndexSet(
+        node, receiverType, indexType, types.uint31Type);
+  }
+
+  @override
+  T visitIndexPostfix(
+      ast.Send node,
+      ast.Node receiver,
+      ast.Node index,
+      op.IncDecOperator operator,
+      _) {
+    T receiverType = visit(receiver);
+    T indexType = visit(index);
+    return handleCompoundPrefixPostfix(node, receiverType, indexType);
+  }
+
+  @override
+  T visitIndexPrefix(
+      ast.Send node,
+      ast.Node receiver,
+      ast.Node index,
+      op.IncDecOperator operator,
+      _) {
+    T receiverType = visit(receiver);
+    T indexType = visit(index);
+    return handleCompoundPrefixPostfix(node, receiverType, indexType);
+  }
+
+  @override
+  T visitCompoundIndexSet(
+      ast.SendSet node,
+      ast.Node receiver,
+      ast.Node index,
+      op.AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    T receiverType = visit(receiver);
+    T indexType = visit(index);
+    T rhsType = visit(rhs);
+    return handleCompoundIndexSet(node, receiverType, indexType, rhsType);
+  }
+
+  @override
+  T visitSuperIndexPrefix(
+      ast.Send node,
+      MethodElement getter,
+      MethodElement setter,
+      ast.Node index,
+      op.IncDecOperator operator,
+      _) {
+    T indexType = visit(index);
+    return handleCompoundPrefixPostfix(node, superType, indexType);
+  }
+
+  @override
+  T visitSuperIndexPostfix(
+      ast.Send node,
+      MethodElement getter,
+      MethodElement setter,
+      ast.Node index,
+      op.IncDecOperator operator,
+      _) {
+    T indexType = visit(index);
+    return handleCompoundPrefixPostfix(node, superType, indexType);
+  }
+
+  /// Handle compound super index set, like `super[42] =+ 2`.
+  T handleSuperCompoundIndexSet(
+      ast.SendSet node,
+      ast.Node index,
+      ast.Node rhs) {
+    T receiverType = superType;
+    T indexType = visit(index);
+    T rhsType = visit(rhs);
+    return handleCompoundIndexSet(node, receiverType, indexType, rhsType);
+  }
+
+  @override
+  T visitSuperCompoundIndexSet(
+      ast.SendSet node,
+      FunctionElement getter,
+      FunctionElement setter,
+      ast.Node index,
+      op.AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    return handleSuperCompoundIndexSet(node, index, rhs);
+  }
+
+  @override
+  T visitUnresolvedSuperGetterCompoundIndexSet(
+      ast.SendSet node,
+      Element element,
+      ast.Node index,
+      op.AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    return handleSuperCompoundIndexSet(node, index, rhs);
+  }
+
+  @override
+  T visitUnresolvedSuperSetterCompoundIndexSet(
+      ast.SendSet node,
+      FunctionElement getter,
+      Element element,
+      ast.Node index,
+      op.AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    return handleSuperCompoundIndexSet(node, index, rhs);
+  }
+
+  @override
+  T visitUnresolvedSuperGetterIndexPrefix(
+      ast.SendSet node,
+      Element element,
+      ast.Node index,
+      op.IncDecOperator operator,
+      _) {
+    T indexType = visit(index);
+    return handleCompoundPrefixPostfix(node, superType, indexType);
+  }
+
+  @override
+  T visitUnresolvedSuperSetterIndexPrefix(
+      ast.SendSet node,
+      FunctionElement getter,
+      Element element,
+      ast.Node index,
+      op.IncDecOperator operator,
+      _) {
+    T indexType = visit(index);
+    return handleCompoundPrefixPostfix(node, superType, indexType);
+  }
+
+  @override
+  T visitUnresolvedSuperGetterIndexPostfix(
+      ast.SendSet node,
+      Element element,
+      ast.Node index,
+      op.IncDecOperator operator,
+      _) {
+    T indexType = visit(index);
+    return handleCompoundPrefixPostfix(node, superType, indexType);
+  }
+
+  @override
+  T visitUnresolvedSuperSetterIndexPostfix(
+      ast.SendSet node,
+      FunctionElement getter,
+      Element element,
+      ast.Node index,
+      op.IncDecOperator operator,
+      _) {
+    T indexType = visit(index);
+    return handleCompoundPrefixPostfix(node, superType, indexType);
+  }
+
+  /// Handle index set, like `foo[0] = 42`.
+  T handleIndexSet(ast.SendSet node, T receiverType, T indexType, T rhsType) {
+    Selector setterSelector = elements.getSelector(node);
+    handleDynamicSend(
+        node,
+        setterSelector,
+        receiverType,
+        new ArgumentsTypes<T>([indexType, rhsType], null));
+    return rhsType;
+  }
+
+  @override
+  T visitIndexSet(
+      ast.SendSet node,
+      ast.Node receiver,
+      ast.Node index,
+      ast.Node rhs,
+      _) {
+    T receiverType = visit(receiver);
+    T indexType = visit(index);
+    T rhsType = visit(rhs);
+    return handleIndexSet(node, receiverType, indexType, rhsType);
+  }
+
+  /// Handle super index set, like `super[42] = true`.
+  T handleSuperIndexSet(
+      ast.SendSet node,
+      ast.Node index,
+      ast.Node rhs) {
+    T receiverType = superType;
+    T indexType = visit(index);
+    T rhsType = visit(rhs);
+    return handleIndexSet(node, receiverType, indexType, rhsType);
+  }
+
+  @override
+  T visitSuperIndexSet(
+      ast.SendSet node,
+      FunctionElement function,
+      ast.Node index,
+      ast.Node rhs,
+      _) {
+    return handleSuperIndexSet(node, index, rhs);
+  }
+
+  @override
+  T visitUnresolvedSuperIndexSet(
+      ast.SendSet node,
+      Element element,
+      ast.Node index,
+      ast.Node rhs,
+      _) {
+    return handleSuperIndexSet(node, index, rhs);
   }
 
   T handlePlainAssignment(ast.Node node,

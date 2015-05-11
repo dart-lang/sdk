@@ -340,11 +340,24 @@ abstract class SendResolverMixin {
       }
     } else if (node.isSuperCall) {
       if (Elements.isUnresolved(element)) {
-        return new StaticAccess.unresolvedSuper(element);
+        if (isCompound) {
+          if (Elements.isUnresolved(getter)) {
+            // TODO(johnniwinther): Ensure that [getter] is not null. This
+            // happens in the case of missing super getter.
+            return new CompoundAccessSemantics(
+                CompoundAccessKind.UNRESOLVED_SUPER_GETTER, getter, element);
+          } else {
+            return new CompoundAccessSemantics(
+                CompoundAccessKind.UNRESOLVED_SUPER_SETTER, getter, element);
+          }
+        } else {
+          return new StaticAccess.unresolvedSuper(element);
+        }
       } else if (isCompound && Elements.isUnresolved(getter)) {
         // TODO(johnniwinther): Ensure that [getter] is not null. This happens
         // in the case of missing super getter.
-        return new StaticAccess.unresolved(getter);
+        return new CompoundAccessSemantics(
+            CompoundAccessKind.UNRESOLVED_SUPER_GETTER, getter, element);
       } else if (element.isField) {
         if (getter != null && getter != element) {
           CompoundAccessKind accessKind;

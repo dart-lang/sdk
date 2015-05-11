@@ -470,47 +470,6 @@ abstract class ErrorBulkMixin<R, A>
   }
 
   @override
-  R errorUnresolvedSuperCompoundIndexSet(
-      SendSet node,
-      Element element,
-      Node index,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorUnresolvedSuperIndexPostfix(
-      Send node,
-      Element function,
-      Node index,
-      IncDecOperator operator,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorUnresolvedSuperIndexPrefix(
-      Send node,
-      Element function,
-      Node index,
-      IncDecOperator operator,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorUnresolvedSuperIndexSet(
-      SendSet node,
-      Element element,
-      Node index,
-      Node rhs,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
   R errorUndefinedUnaryExpression(
       Send node,
       Operator operator,
@@ -664,6 +623,27 @@ abstract class PrefixBulkMixin<R, A>
       Send node,
       FunctionElement indexFunction,
       FunctionElement indexSetFunction,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    return bulkHandlePrefix(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSuperGetterIndexPrefix(
+      Send node,
+      Element element,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    return bulkHandlePrefix(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSuperSetterIndexPrefix(
+      Send node,
+      MethodElement getter,
+      Element element,
       Node index,
       IncDecOperator operator,
       A arg) {
@@ -854,6 +834,27 @@ abstract class PostfixBulkMixin<R, A>
       Send node,
       FunctionElement indexFunction,
       FunctionElement indexSetFunction,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    return bulkHandlePostfix(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSuperGetterIndexPostfix(
+      Send node,
+      Element element,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    return bulkHandlePostfix(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSuperSetterIndexPostfix(
+      Send node,
+      MethodElement getter,
+      Element element,
       Node index,
       IncDecOperator operator,
       A arg) {
@@ -1692,9 +1693,42 @@ abstract class IndexSetBulkMixin<R, A>
   }
 
   @override
+  R visitUnresolvedSuperGetterCompoundIndexSet(
+      SendSet node,
+      Element element,
+      Node index,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg) {
+    return bulkHandleIndexSet(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSuperSetterCompoundIndexSet(
+      SendSet node,
+      MethodElement getter,
+      Element element,
+      Node index,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg) {
+    return bulkHandleIndexSet(node, arg);
+  }
+
+  @override
   R visitSuperIndexSet(
       SendSet node,
       FunctionElement function,
+      Node index,
+      Node rhs,
+      A arg) {
+    return bulkHandleIndexSet(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSuperIndexSet(
+      SendSet node,
+      Element element,
       Node index,
       Node rhs,
       A arg) {
@@ -4687,7 +4721,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorUnresolvedSuperIndexSet(
+  R visitUnresolvedSuperIndexSet(
       Send node,
       Element element,
       Node index,
@@ -4699,8 +4733,22 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorUnresolvedSuperCompoundIndexSet(
+  R visitUnresolvedSuperGetterCompoundIndexSet(
       SendSet node,
+      Element element,
+      Node index,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg) {
+    apply(index, arg);
+    apply(rhs, arg);
+    return null;
+  }
+
+  @override
+  R visitUnresolvedSuperSetterCompoundIndexSet(
+      SendSet node,
+      MethodElement getter,
       Element element,
       Node index,
       AssignmentOperator operator,
@@ -4732,9 +4780,9 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorUnresolvedSuperIndexPostfix(
+  R visitUnresolvedSuperGetterIndexPostfix(
       Send node,
-      Element function,
+      Element element,
       Node index,
       IncDecOperator operator,
       A arg) {
@@ -4743,9 +4791,33 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorUnresolvedSuperIndexPrefix(
+  R visitUnresolvedSuperSetterIndexPostfix(
       Send node,
-      Element function,
+      MethodElement getter,
+      Element element,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    apply(index, arg);
+    return null;
+  }
+
+  @override
+  R visitUnresolvedSuperGetterIndexPrefix(
+      Send node,
+      Element element,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    apply(index, arg);
+    return null;
+  }
+
+  @override
+  R visitUnresolvedSuperSetterIndexPrefix(
+      Send node,
+      MethodElement getter,
+      Element element,
       Node index,
       IncDecOperator operator,
       A arg) {
@@ -6401,6 +6473,23 @@ abstract class BaseImplementationOfSuperIncDecsMixin<R, A>
       A arg,
       {bool isPrefix});
 
+  R handleUnresolvedSuperGetterIndexPostfixPrefix(
+      Send node,
+      Element element,
+      Node index,
+      IncDecOperator operator,
+      A arg,
+      {bool isPrefix});
+
+  R handleUnresolvedSuperSetterIndexPostfixPrefix(
+      Send node,
+      FunctionElement indexFunction,
+      Element element,
+      Node index,
+      IncDecOperator operator,
+      A arg,
+      {bool isPrefix});
+
   @override
   R visitSuperFieldFieldPostfix(
       Send node,
@@ -6555,6 +6644,52 @@ abstract class BaseImplementationOfSuperIncDecsMixin<R, A>
     return handleSuperIndexPostfixPrefix(
         node, indexFunction, indexSetFunction,
         index, operator, arg, isPrefix: true);
+  }
+
+  @override
+  R visitUnresolvedSuperGetterIndexPostfix(
+      Send node,
+      Element element,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    return handleUnresolvedSuperGetterIndexPostfixPrefix(
+        node, element, index, operator, arg, isPrefix: false);
+  }
+
+  @override
+  R visitUnresolvedSuperGetterIndexPrefix(
+      Send node,
+      Element element,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    return handleUnresolvedSuperGetterIndexPostfixPrefix(
+        node, element, index, operator, arg, isPrefix: true);
+  }
+
+  @override
+  R visitUnresolvedSuperSetterIndexPostfix(
+      Send node,
+      MethodElement indexFunction,
+      Element element,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    return handleUnresolvedSuperSetterIndexPostfixPrefix(
+        node, indexFunction, element, index, operator, arg, isPrefix: false);
+  }
+
+  @override
+  R visitUnresolvedSuperSetterIndexPrefix(
+      Send node,
+      MethodElement indexFunction,
+      Element element,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    return handleUnresolvedSuperSetterIndexPostfixPrefix(
+        node, indexFunction, element, index, operator, arg, isPrefix: true);
   }
 }
 

@@ -1681,6 +1681,62 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
+  ir.Primitive handleUnresolvedSuperGetterIndexPostfixPrefix(
+      ast.Send node,
+      Element element,
+      ast.Node index,
+      op.IncDecOperator operator,
+      arg,
+      {bool isPrefix}) {
+    return giveup(node, 'handleSuperUnresolvedGetterIndexPostfixPrefix');
+  }
+
+  @override
+  ir.Primitive handleUnresolvedSuperSetterIndexPostfixPrefix(
+      ast.Send node,
+      FunctionElement indexFunction,
+      Element element,
+      ast.Node index,
+      op.IncDecOperator operator,
+      arg,
+      {bool isPrefix}) {
+    return giveup(node, 'handleSuperUnresolvedGetterIndexPostfixPrefix');
+  }
+
+  @override
+  ir.Primitive visitUnresolvedSuperGetterCompoundIndexSet(
+      ast.Send node,
+      Element element,
+      ast.Node index,
+      op.AssignmentOperator operator,
+      ast.Node rhs,
+      arg) {
+    return giveup(node, 'visitUnresolvedSuperGetterCompoundIndexSet');
+  }
+
+  @override
+  ir.Primitive visitUnresolvedSuperIndexSet(
+      ast.Send node,
+      Element element,
+      ast.Node index,
+      ast.Node rhs,
+      arg) {
+    return giveup(node, 'visitUnresolvedSuperIndexSet');
+  }
+
+  @override
+  ir.Primitive visitUnresolvedSuperSetterCompoundIndexSet(
+      ast.Send node,
+      MethodElement getter,
+      Element element,
+      ast.Node index,
+      op.AssignmentOperator operator,
+      ast.Node rhs,
+      arg) {
+    return giveup(node, 'visitUnresolvedSuperSetterCompoundIndexSet');
+  }
+
+  @override
   ir.Primitive handleStaticSetterSet(
       ast.SendSet node,
       FunctionElement setter,

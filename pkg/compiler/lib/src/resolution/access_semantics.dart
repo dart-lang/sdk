@@ -143,6 +143,11 @@ enum CompoundAccessKind {
   SUPER_METHOD_SETTER,
   /// Read from a superclass getter and write to a superclass field.
   SUPER_GETTER_FIELD,
+
+  /// Read from a superclass where the getter (and maybe setter) is unresolved.
+  UNRESOLVED_SUPER_GETTER,
+  /// Read from a superclass getter and write to an unresolved setter.
+  UNRESOLVED_SUPER_SETTER,
 }
 
 /**

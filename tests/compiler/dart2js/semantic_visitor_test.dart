@@ -1250,6 +1250,42 @@ const Map<String, List<Test>> SEND_TESTS = const {
     const Test.clazz(
         '''
         class B {
+          operator []=(a, b) {}
+        }
+        class C extends B {
+          m() => ++super[42];
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_INDEX_PREFIX,
+                    index: '42',
+                    operator: '++')),
+    const Test.clazz(
+        '''
+        class B {
+        }
+        class C extends B {
+          m() => ++super[42];
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_INDEX_PREFIX,
+                    index: '42',
+                    operator: '++')),
+    const Test.clazz(
+        '''
+        class B {
+          operator [](_) => null;
+        }
+        class C extends B {
+          m() => ++super[42];
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_INDEX_PREFIX,
+                    getter: 'function(B#[])',
+                    index: '42',
+                    operator: '++')),
+    const Test.clazz(
+        '''
+        class B {
           operator [](_) => null;
           operator []=(a, b) {}
         }
@@ -1260,6 +1296,42 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_SUPER_INDEX_POSTFIX,
                     getter: 'function(B#[])',
                     setter: 'function(B#[]=)',
+                    index: '42',
+                    operator: '--')),
+    const Test.clazz(
+        '''
+        class B {
+          operator []=(a, b) {}
+        }
+        class C extends B {
+          m() => super[42]--;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_INDEX_POSTFIX,
+                    index: '42',
+                    operator: '--')),
+    const Test.clazz(
+        '''
+        class B {
+        }
+        class C extends B {
+          m() => super[42]--;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_INDEX_POSTFIX,
+                    index: '42',
+                    operator: '--')),
+    const Test.clazz(
+        '''
+        class B {
+          operator [](_) => null;
+        }
+        class C extends B {
+          m() => super[42]--;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_INDEX_POSTFIX,
+                    getter: 'function(B#[])',
                     index: '42',
                     operator: '--')),
   ],
@@ -1377,6 +1449,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_SUPER_INDEX_SET,
             element: 'function(B#[]=)', index: '1', rhs: '2')),
+    const Test.clazz(
+        '''
+        class B {
+        }
+        class C extends B {
+          m() => super[1] = 2;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INDEX_SET,
+            index: '1', rhs: '2')),
   ],
   'Compound assignment': const [
     // Compound assignment
@@ -1705,8 +1787,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_COMPOUND_INDEX_SET,
             receiver: '0', index: '1', operator: '+=', rhs: '42')),
-    // TODO(johnniwinther): Enable this when the getter element is stored.
-    /*const Test.clazz(
+    const Test.clazz(
         '''
         class B {
           operator [](_) {}
@@ -1718,7 +1799,40 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_SUPER_COMPOUND_INDEX_SET,
             getter: 'function(B#[])', setter: 'function(B#[]=)',
-            index: '1', operator: '+=', rhs: '42')),*/
+            index: '1', operator: '+=', rhs: '42')),
+    const Test.clazz(
+        '''
+        class B {
+          operator []=(a, b) {}
+        }
+        class C extends B {
+          m() => super[1] += 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_COMPOUND_INDEX_SET,
+            index: '1', operator: '+=', rhs: '42')),
+    const Test.clazz(
+        '''
+        class B {
+        }
+        class C extends B {
+          m() => super[1] += 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_COMPOUND_INDEX_SET,
+            index: '1', operator: '+=', rhs: '42')),
+    const Test.clazz(
+        '''
+        class B {
+          operator [](_) {}
+        }
+        class C extends B {
+          m() => super[1] += 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_COMPOUND_INDEX_SET,
+            getter: 'function(B#[])',
+            index: '1', operator: '+=', rhs: '42')),
   ],
   'Prefix expression': const [
     // Prefix expression
@@ -5184,44 +5298,97 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorUnresolvedSuperCompoundIndexSet(
+  visitUnresolvedSuperGetterCompoundIndexSet(
       Send node,
-      ErroneousElement element,
+      Element element,
       Node index,
       AssignmentOperator operator,
       Node rhs,
       arg) {
-    // TODO: implement errorUnresolvedSuperCompoundIndexSet
+    visits.add(new Visit(
+        VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_COMPOUND_INDEX_SET,
+        index: index, operator: operator, rhs: rhs));
+    apply(index, arg);
+    apply(rhs, arg);
   }
 
   @override
-  errorUnresolvedSuperIndexSet(
+  visitUnresolvedSuperSetterCompoundIndexSet(
+      Send node,
+      MethodElement getter,
+      Element element,
+      Node index,
+      AssignmentOperator operator,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_COMPOUND_INDEX_SET,
+        getter: getter, index: index, operator: operator, rhs: rhs));
+    apply(index, arg);
+    apply(rhs, arg);
+  }
+
+  @override
+  visitUnresolvedSuperIndexSet(
       Send node,
       ErroneousElement element,
       Node index,
       Node rhs,
       arg) {
-    // TODO: implement errorUnresolvedSuperIndexSet
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INDEX_SET,
+               index: index, rhs: rhs));
+    apply(index, arg);
+    apply(rhs, arg);
   }
 
   @override
-  errorUnresolvedSuperIndexPostfix(
+  visitUnresolvedSuperGetterIndexPostfix(
       Send node,
-      Element function,
+      Element element,
       Node index,
       IncDecOperator operator,
       arg) {
-    // TODO: implement errorUnresolvedSuperIndexPostfix
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_INDEX_POSTFIX,
+               index: index, operator: operator));
+    apply(index, arg);
   }
 
   @override
-  errorUnresolvedSuperIndexPrefix(
+  visitUnresolvedSuperSetterIndexPostfix(
       Send node,
-      Element function,
+      MethodElement getter,
+      Element element,
       Node index,
       IncDecOperator operator,
       arg) {
-    // TODO: implement errorUnresolvedSuperIndexPrefix
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_INDEX_POSTFIX,
+               getter: getter, index: index, operator: operator));
+    apply(index, arg);
+  }
+
+  @override
+  visitUnresolvedSuperGetterIndexPrefix(
+      Send node,
+      Element element,
+      Node index,
+      IncDecOperator operator,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_INDEX_PREFIX,
+               index: index, operator: operator));
+    apply(index, arg);
+  }
+
+  @override
+  visitUnresolvedSuperSetterIndexPrefix(
+      Send node,
+      MethodElement getter,
+      Element element,
+      Node index,
+      IncDecOperator operator,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_INDEX_PREFIX,
+               getter: getter, index: index, operator: operator));
+    apply(index, arg);
   }
 
   @override
@@ -6176,7 +6343,11 @@ enum VisitKind {
   VISIT_SUPER_EQUALS,
   VISIT_SUPER_NOT_EQUALS,
   VISIT_SUPER_INDEX_PREFIX,
+  VISIT_UNRESOLVED_SUPER_GETTER_INDEX_PREFIX,
+  VISIT_UNRESOLVED_SUPER_SETTER_INDEX_PREFIX,
   VISIT_SUPER_INDEX_POSTFIX,
+  VISIT_UNRESOLVED_SUPER_GETTER_INDEX_POSTFIX,
+  VISIT_UNRESOLVED_SUPER_SETTER_INDEX_POSTFIX,
 
   VISIT_UNARY,
   VISIT_SUPER_UNARY,
@@ -6220,7 +6391,10 @@ enum VisitKind {
   VISIT_INDEX_SET,
   VISIT_COMPOUND_INDEX_SET,
   VISIT_SUPER_INDEX_SET,
+  VISIT_UNRESOLVED_SUPER_INDEX_SET,
   VISIT_SUPER_COMPOUND_INDEX_SET,
+  VISIT_UNRESOLVED_SUPER_GETTER_COMPOUND_INDEX_SET,
+  VISIT_UNRESOLVED_SUPER_SETTER_COMPOUND_INDEX_SET,
 
   VISIT_ASSERT,
   VISIT_LOGICAL_AND,
