@@ -2441,7 +2441,10 @@ class _CompilerCoreTypes implements CoreTypes {
   InterfaceType get numType => numClass.computeType(compiler);
 
   @override
-  InterfaceType get stringType =>  stringClass.computeType(compiler);
+  InterfaceType get stringType => stringClass.computeType(compiler);
+
+  @override
+  InterfaceType get typeType => typeClass.computeType(compiler);
 
   @override
   InterfaceType iterableType([DartType elementType = const DynamicType()]) {

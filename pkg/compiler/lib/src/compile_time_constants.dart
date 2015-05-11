@@ -348,7 +348,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     DartType type = elements.getType(node);
     return new AstConstant(
         context, node, new ListConstantExpression(
-            new ListConstantValue(type, argumentValues),
+            constantSystem.createList(type, argumentValues),
             type,
             argumentExpressions));
   }
@@ -479,10 +479,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
   }
 
   ConstantExpression makeTypeConstant(DartType elementType) {
-    DartType constantType =
-        compiler.backend.typeImplementation.computeType(compiler);
     return new TypeConstantExpression(
-        new TypeConstantValue(elementType, constantType), elementType);
+        constantSystem.createType(compiler, elementType), elementType);
   }
 
   /// Returns true if the prefix of the send resolves to a deferred import
@@ -854,6 +852,24 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       return null;
     }
 
+    if (constructor == compiler.boolEnvironment &&
+        !(defaultValue.isNull || defaultValue.isBool)) {
+      DartType type = defaultValue.getType(compiler.coreTypes);
+      compiler.reportError(
+          normalizedArguments[1].node, MessageKind.NOT_ASSIGNABLE,
+          {'fromType': type, 'toType': compiler.boolClass.rawType});
+      return null;
+    }
+
+    if (constructor == compiler.stringEnvironment &&
+        !(defaultValue.isNull || defaultValue.isString)) {
+      DartType type = defaultValue.getType(compiler.coreTypes);
+      compiler.reportError(
+          normalizedArguments[1].node, MessageKind.NOT_ASSIGNABLE,
+          {'fromType': type, 'toType': compiler.stringClass.rawType});
+      return null;
+    }
+
     String name =
         firstArgument.primitiveValue.slowToString();
     String value =
@@ -873,24 +889,6 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
             value, name, normalizedArguments[1].expression);
       }
       return new AstConstant(context, node, expression);
-    }
-
-    if (constructor == compiler.boolEnvironment &&
-        !(defaultValue.isNull || defaultValue.isBool)) {
-      DartType type = defaultValue.getType(compiler.coreTypes);
-      compiler.reportError(
-          normalizedArguments[1].node, MessageKind.NOT_ASSIGNABLE,
-          {'fromType': type, 'toType': compiler.boolClass.rawType});
-      return null;
-    }
-
-    if (constructor == compiler.stringEnvironment &&
-        !(defaultValue.isNull || defaultValue.isString)) {
-      DartType type = defaultValue.getType(compiler.coreTypes);
-      compiler.reportError(
-          normalizedArguments[1].node, MessageKind.NOT_ASSIGNABLE,
-          {'fromType': type, 'toType': compiler.stringClass.rawType});
-      return null;
     }
 
     if (value == null) {

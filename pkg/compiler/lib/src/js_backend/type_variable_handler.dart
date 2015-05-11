@@ -87,7 +87,11 @@ class TypeVariableHandler {
       ConstantExpression bound = new IntConstantExpression(
           boundIndex,
           _backend.constantSystem.createInt(boundIndex));
-      ConstantExpression type = _backend.constants.createTypeConstant(cls);
+      ConstantExpression type =
+          new TypeConstantExpression(
+              _backend.constantSystem.createType(
+                  _backend.compiler, cls.rawType),
+              cls.rawType);
       List<AstConstant> arguments =
           [wrapConstant(type), wrapConstant(name), wrapConstant(bound)];
 

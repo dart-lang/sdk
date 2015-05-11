@@ -394,18 +394,41 @@ class DartConstantSystem extends ConstantSystem {
 
   const DartConstantSystem();
 
+
+  @override
   IntConstantValue createInt(int i) => new IntConstantValue(i);
+
+  @override
   DoubleConstantValue createDouble(double d) => new DoubleConstantValue(d);
+
+  @override
   StringConstantValue createString(DartString string) {
     return new StringConstantValue(string);
   }
+
+  @override
   BoolConstantValue createBool(bool value) => new BoolConstantValue(value);
+
+  @override
   NullConstantValue createNull() => new NullConstantValue();
+
+  @override
+  ListConstantValue createList(InterfaceType type,
+                               List<ConstantValue> values) {
+    return new ListConstantValue(type, values);
+  }
+
+  @override
   MapConstantValue createMap(Compiler compiler,
                              InterfaceType type,
                              List<ConstantValue> keys,
                              List<ConstantValue> values) {
     return new MapConstantValue(type, keys, values);
+  }
+
+  @override
+  ConstantValue createType(Compiler compiler, DartType type) {
+    return new TypeConstantValue(type, compiler.coreTypes.typeType);
   }
 
   bool isInt(ConstantValue constant) => constant.isInt;

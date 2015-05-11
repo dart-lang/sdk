@@ -178,8 +178,7 @@ class CustomElementsAnalysisJoin {
 
   TypeConstantValue makeTypeConstant(ClassElement element) {
     DartType elementType = element.rawType;
-    DartType constantType = backend.typeImplementation.rawType;
-    return new TypeConstantValue(elementType, constantType);
+    return backend.constantSystem.createType(compiler, elementType);
   }
 
   List<Element> computeEscapingConstructors(ClassElement classElement) {

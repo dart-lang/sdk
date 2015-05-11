@@ -52,7 +52,7 @@ void main(List<String> arguments) {
   useApi();
   dart2js.main(arguments);
   dart2jslib.isPublicName(null);
-  useConstant(null, null, null);
+  useConstant(null, null, null, null, null);
   useNode(null);
   useUtil(null);
   useSetlet(null);
@@ -85,12 +85,15 @@ useApi() {
 }
 
 void useConstant(constants.ConstantValue constant,
+                 constants.ConstantExpression expression,
                  constants.ConstructedConstantExpression constructedConstant,
-                 constants.ConstantSystem cs) {
+                 constants.ConstantSystem cs,
+                 constants.Environment env) {
   constant.isObject;
   cs.isBool(constant);
   constructedConstant.computeInstanceType();
   constructedConstant.computeInstanceFields();
+  expression.evaluate(null, null);
 }
 
 void useNode(tree.Node node) {

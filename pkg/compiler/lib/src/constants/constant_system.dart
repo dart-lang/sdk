@@ -61,10 +61,16 @@ abstract class ConstantSystem {
   ConstantValue createString(DartString string);
   ConstantValue createBool(bool value);
   ConstantValue createNull();
+  ConstantValue createList(InterfaceType type,
+                           List<ConstantValue> values);
+  // TODO(johnniwinther): Remove the need for [compiler].
   ConstantValue createMap(Compiler compiler,
                           InterfaceType type,
                           List<ConstantValue> keys,
                           List<ConstantValue> values);
+  // TODO(johnniwinther): Remove the need for [compiler].
+  ConstantValue createType(Compiler compiler,
+                           DartType type);
 
   // We need to special case the subtype check for JavaScript constant
   // system because an int is a double at runtime.
