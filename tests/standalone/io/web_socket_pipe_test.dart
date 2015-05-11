@@ -40,7 +40,6 @@ testPipe({int messages, bool transform}) {
         }
       }
 
-      next();
       client.listen(
           (data) {
             count++;
@@ -52,6 +51,8 @@ testPipe({int messages, bool transform}) {
             next();
           },
           onDone: () => print("Client received close"));
+
+      next();
     });
   });
 }
