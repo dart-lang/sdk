@@ -123,9 +123,15 @@ void defineLinterEngineTests() {
 
     group('groups', () {
       test('factory', () {
-        expect(new Group('Style').custom, isFalse);
-        expect(new Group('Pub').custom, isFalse);
+        expect(new Group('style').custom, isFalse);
+        expect(new Group('pub').custom, isFalse);
+        expect(new Group('errors').custom, isFalse);
         expect(new Group('Kustom').custom, isTrue);
+      });
+      test('builtins', () {
+        expect(Group.builtin.contains(Group.style), isTrue);
+        expect(Group.builtin.contains(Group.errors), isTrue);
+        expect(Group.builtin.contains(Group.pub), isTrue);
       });
     });
 
