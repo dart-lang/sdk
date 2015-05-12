@@ -136,6 +136,7 @@ class SExpressionUnstringifier {
   static const String LET_MUTABLE = "LetMutable";
   static const String SET_MUTABLE_VARIABLE = "SetMutableVariable";
   static const String TYPE_OPERATOR = "TypeOperator";
+  static const String SET_STATIC = "SetStatic";
 
   // Primitives
   static const String CONSTANT = "Constant";
@@ -144,6 +145,7 @@ class SExpressionUnstringifier {
   static const String LITERAL_LIST = "LiteralList";
   static const String LITERAL_MAP = "LiteralMap";
   static const String REIFY_TYPE_VAR = "ReifyTypeVar";
+  static const String GET_STATIC = "GetStatic";
 
   // Other
   static const String FUNCTION_DEFINITION = "FunctionDefinition";
@@ -246,6 +248,8 @@ class SExpressionUnstringifier {
         return parseSetMutableVariable();
       case TYPE_OPERATOR:
         return parseTypeOperator();
+      case SET_STATIC:
+        return parseSetStatic();
       default:
         assert(false);
     }
@@ -564,6 +568,20 @@ class SExpressionUnstringifier {
     return new TypeOperator(recv, type, cont, isTypeTest: operator == 'is');
   }
 
+  /// (SetStatic field value body)
+  SetStatic parseSetStatic() {
+    tokens.consumeStart(SET_STATIC);
+    Element fieldElement = new DummyElement(tokens.read());
+
+    Primitive value = name2variable[tokens.read()];
+    assert(value != null);
+
+    Expression body = parseExpression();
+
+    tokens.consumeEnd();
+    return new SetStatic(fieldElement, value, null).plug(body);
+  }
+
   /// (LetPrim (name primitive) body)
   LetPrim parseLetPrim() {
     tokens.consumeStart(LET_PRIM);
@@ -600,6 +618,8 @@ class SExpressionUnstringifier {
         return parseLiteralMap();
       case REIFY_TYPE_VAR:
         return parseReifyTypeVar();
+      case GET_STATIC:
+        return parseGetStatic();
       default:
         assert(false);
     }
@@ -725,5 +745,15 @@ class SExpressionUnstringifier {
 
     tokens.consumeEnd();
     return new ReifyTypeVar(type);
+  }
+
+  /// (GetStatic field)
+  GetStatic parseGetStatic() {
+    tokens.consumeStart(GET_STATIC);
+
+    Element field = new DummyElement(tokens.read());
+
+    tokens.consumeEnd();
+    return new GetStatic(field, null);
   }
 }

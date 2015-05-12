@@ -63,7 +63,6 @@ deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed
 [ $compiler == dart2js && $cps_ir ]
 10216a_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 10216b_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-11673_test: Crash # (use): handleStaticFunctionGet: function(use)
 12320_test: Crash # (run): handleStaticFunctionGet: function(run)
 16407_test: Crash # unsupported element kind: foo:field
 17094_test: RuntimeError # Please triage this failure.
@@ -71,14 +70,11 @@ deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed
 17856_test: Crash # Instance of 'TypeOperator': type check unimplemented for Map.
 21166_test: Crash # unsupported element kind: a:field
 21666_test: Crash # Instance of 'TypeOperator': type check unimplemented for fInt.
-22487_test: Crash # (divIsInt): handleStaticFunctionGet: function(divIsInt)
 22868_test: Crash #  cannot handle async/sync*/async* functions
 22895_test: Crash #  cannot handle async/sync*/async* functions
 22917_test: Crash # (test): handleStaticFunctionGet: function(test)
 23264_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-23404_test: Crash # (foo): handleStaticFunctionGet: function(foo)
 LayoutTests_fast_mediastream_getusermedia_t01_test/01: Crash # Please triage this failure.
-LayoutTests_fast_mediastream_getusermedia_t01_test/none: Crash # (gotStream1): handleStaticFunctionGet: function(gotStream1)
 async_stacktrace_test/asyncStar: Crash # (runTests): handleStaticFunctionGet: function(runTests)
 async_stacktrace_test/none: Crash # (runTests): handleStaticFunctionGet: function(runTests)
 bailout8_test: Crash # (foo): handleStaticFunctionGet: function(foo)
@@ -135,8 +131,6 @@ switch_test/01: Crash #  Unhandled node
 switch_test/02: Crash #  Unhandled node
 switch_test/none: Crash # (switch (val){}): Unhandled node
 this_phi_elimination_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-timer_negative_test: Crash # (test): handleStaticFunctionGet: function(test)
-timer_test: Crash # (test): handleStaticFunctionGet: function(test)
 type_argument_factory_crash_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
 type_argument_factory_nocrash_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
 type_constant_switch_test/none: Crash # (switch (v){}): Unhandled node

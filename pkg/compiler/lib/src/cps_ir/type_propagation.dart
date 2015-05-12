@@ -872,6 +872,14 @@ class _TypePropagationVisitor<T> implements Visitor {
     setReachable(node.body);
   }
 
+  void visitGetStatic(GetStatic node) {
+    setValue(node, nonConstant());
+  }
+
+  void visitSetStatic(SetStatic node) {
+    setReachable(node.body);
+  }
+
   void visitCreateBox(CreateBox node) {
     setValue(node, nonConstant());
   }

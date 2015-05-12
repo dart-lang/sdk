@@ -500,6 +500,17 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     return '$object.$field = $value';
   }
 
+  String visitGetStatic(GetStatic node) {
+    String element = node.element.name;
+    return element;
+  }
+
+  String visitSetStatic(SetStatic node) {
+    String element = node.element.name;
+    String value = visitExpression(node.value);
+    return '$element = $value';
+  }
+
   String visitCreateBox(CreateBox node) {
     return 'CreateBox';
   }

@@ -771,7 +771,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     if (function.isForeign(compiler.backend)) {
       return giveup(node, 'handleStaticFunctionGet: foreign: $function');
     }
-    return giveup(node, 'handleStaticFunctionGet: $function');
+    return irBuilder.buildStaticFunctionGet(function);
   }
 
   @override
@@ -3687,6 +3687,10 @@ class CleanupPass extends ir.RecursiveVisitor {
   }
 
   processSetField(ir.SetField node) {
+    node.body = replacementFor(node.body);
+  }
+
+  processSetStatic(ir.SetStatic node) {
     node.body = replacementFor(node.body);
   }
 
