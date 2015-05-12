@@ -461,11 +461,13 @@ RECOGNIZED_LIST(DEFINE_ENUM_LIST)
 };
 
 
+#if defined(DART_NO_SNAPSHOT)
 #define CHECK_FINGERPRINT2(f, p0, p1, fp) \
   ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1, fp))
 
 #define CHECK_FINGERPRINT3(f, p0, p1, p2, fp) \
   ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1 ", " #p2, fp))
+#endif  // defined(DART_NO_SNAPSHOT).
 
 
 }  // namespace dart

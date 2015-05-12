@@ -3057,9 +3057,11 @@ class Library : public Object {
   // Eagerly compile all classes and functions in the library.
   static RawError* CompileAll();
 
+#if defined(DART_NO_SNAPSHOT)
   // Checks function fingerprints. Prints mismatches and aborts if
   // mismatch found.
   static void CheckFunctionFingerprints();
+#endif  // defined(DART_NO_SNAPSHOT).
 
   static bool IsPrivate(const String& name);
   // Construct the full name of a corelib member.

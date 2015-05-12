@@ -67,6 +67,41 @@ uword FlowGraphBuilder::FindDoubleConstant(double value) {
 }
 
 
+#define RECOGNIZE_FACTORY(test_factory_symbol, cid, fp)                        \
+  { Symbols::k##test_factory_symbol##Id, cid,                                  \
+    fp, #test_factory_symbol ", " #cid },
+
+static struct {
+  intptr_t symbold_id;
+  intptr_t cid;
+  intptr_t finger_print;
+  const char* name;
+} factory_recognizer_list[] = {
+  RECOGNIZED_LIST_FACTORY_LIST(RECOGNIZE_FACTORY)
+};
+
+#undef RECOGNIZE_FACTORY
+
+intptr_t FactoryRecognizer::ResultCid(const Function& factory) {
+  ASSERT(factory.IsFactory());
+  const Class& function_class = Class::Handle(factory.Owner());
+  const Library& lib = Library::Handle(function_class.library());
+  ASSERT((lib.raw() == Library::CoreLibrary()) ||
+         (lib.raw() == Library::TypedDataLibrary()));
+  const String& factory_name = String::Handle(factory.name());
+  for (intptr_t i = 0;
+       factory_recognizer_list[i].symbold_id != Symbols::kIllegal;
+       i++) {
+    if (String::EqualsIgnoringPrivateKey(
+            factory_name,
+            Symbols::Symbol(factory_recognizer_list[i].symbold_id))) {
+      return factory_recognizer_list[i].cid;
+    }
+  }
+  return kDynamicCid;
+}
+
+
 // Base class for a stack of enclosing statements of interest (e.g.,
 // blocks (breakable) and loops (continuable)).
 class NestedStatement : public ValueObject {

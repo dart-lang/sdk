@@ -10462,6 +10462,7 @@ RawFunction* Library::GetFunction(const GrowableArray<Library*>& libs,
 }
 
 
+#if defined(DART_NO_SNAPSHOT)
 void Library::CheckFunctionFingerprints() {
   GrowableArray<Library*> all_libs;
   Function& func = Function::Handle();
@@ -10522,6 +10523,7 @@ Class& cls = Class::Handle();
     FATAL("Fingerprint mismatch.");
   }
 }
+#endif  // defined(DART_NO_SNAPSHOT).
 
 
 RawInstructions* Instructions::New(intptr_t size) {

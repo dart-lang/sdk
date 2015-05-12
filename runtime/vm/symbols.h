@@ -417,6 +417,11 @@ class Symbols : public AllStatic {
   // Offset of Null character which is the predefined character symbol.
   static const int kNullCharCodeSymbolOffset = 0;
 
+  static const String& Symbol(intptr_t index) {
+    ASSERT((index > kIllegal) && (index < kMaxPredefinedId));
+    return *(symbol_handles_[index]);
+  }
+
   // Access methods for one byte character symbols stored in the vm isolate.
   static const String& Dot() {
     return *(symbol_handles_[kNullCharId + '.']);

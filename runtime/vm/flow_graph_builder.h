@@ -30,7 +30,6 @@ class TestGraphVisitor;
 
 // List of recognized list factories:
 // (factory-name-symbol, result-cid, fingerprint).
-// TODO(srdjan): Store the values in the snapshot instead.
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
   V(_ListFactory, kArrayCid, 335347617)                                        \
   V(_GrowableListWithData, kGrowableObjectArrayCid, 536409567)                 \
@@ -53,25 +52,7 @@ class TestGraphVisitor;
 class FactoryRecognizer : public AllStatic {
  public:
   // Return kDynamicCid if factory is not recognized.
-  static intptr_t ResultCid(const Function& factory) {
-    ASSERT(factory.IsFactory());
-    const Class& function_class = Class::Handle(factory.Owner());
-    const Library& lib = Library::Handle(function_class.library());
-    ASSERT((lib.raw() == Library::CoreLibrary()) ||
-        (lib.raw() == Library::TypedDataLibrary()));
-    const String& factory_name = String::Handle(factory.name());
-#define RECOGNIZE_FACTORY(test_factory_symbol, cid, fp)                        \
-    if (String::EqualsIgnoringPrivateKey(                                      \
-        factory_name, Symbols::test_factory_symbol())) {                       \
-      CHECK_FINGERPRINT2(factory, test_factory_symbol, cid, fp);               \
-      return cid;                                                              \
-    }                                                                          \
-
-RECOGNIZED_LIST_FACTORY_LIST(RECOGNIZE_FACTORY);
-#undef RECOGNIZE_FACTORY
-
-    return kDynamicCid;
-  }
+  static intptr_t ResultCid(const Function& factory);
 };
 
 
