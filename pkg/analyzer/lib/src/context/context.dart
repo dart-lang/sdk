@@ -260,6 +260,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _priorityOrder = sources;
       }
     }
+    dartWorkManager.applyPriorityTargets(_priorityOrder);
   }
 
   @override

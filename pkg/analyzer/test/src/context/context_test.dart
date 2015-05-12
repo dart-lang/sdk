@@ -2033,7 +2033,8 @@ int a = 0;''');
   }
 
   void _flushAst(Source source) {
-    CacheEntry entry = context.getReadableSourceEntryOrNull(new LibrarySpecificUnit(source, source));
+    CacheEntry entry = context
+        .getReadableSourceEntryOrNull(new LibrarySpecificUnit(source, source));
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
   }
 

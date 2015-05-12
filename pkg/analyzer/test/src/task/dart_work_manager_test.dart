@@ -123,6 +123,44 @@ class DartWorkManagerTest {
     expect_librarySourceQueue([source1, source3]);
   }
 
+  void test_applyPriorityTargets_library() {
+    entry1.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
+    entry2.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
+    entry3.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
+    manager.priorityResultQueue
+        .add(new TargetedResult(source1, LIBRARY_ERRORS_READY));
+    manager.priorityResultQueue
+        .add(new TargetedResult(source2, LIBRARY_ERRORS_READY));
+    // -source1 +source3
+    manager.applyPriorityTargets([source2, source3]);
+    expect(manager.priorityResultQueue, unorderedEquals([
+      new TargetedResult(source2, LIBRARY_ERRORS_READY),
+      new TargetedResult(source3, LIBRARY_ERRORS_READY)
+    ]));
+    // get next request
+    TargetedResult request = manager.getNextResult();
+    expect(request.target, source2);
+    expect(request.result, LIBRARY_ERRORS_READY);
+  }
+
+  void test_applyPriorityTargets_part() {
+    entry1.setValue(SOURCE_KIND, SourceKind.PART, []);
+    entry2.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
+    entry3.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
+    // +source2 +source3
+    when(context.getLibrariesContaining(source1))
+        .thenReturn([source2, source3]);
+    manager.applyPriorityTargets([source1]);
+    expect(manager.priorityResultQueue, unorderedEquals([
+      new TargetedResult(source2, LIBRARY_ERRORS_READY),
+      new TargetedResult(source3, LIBRARY_ERRORS_READY)
+    ]));
+    // get next request
+    TargetedResult request = manager.getNextResult();
+    expect(request.target, source2);
+    expect(request.result, LIBRARY_ERRORS_READY);
+  }
+
   void test_getNextResult_hasLibraries_firstIsError() {
     entry1.setErrorState(caughtException, [LIBRARY_ERRORS_READY]);
     manager.librarySourceQueue.addAll([source1, source2]);
@@ -151,11 +189,6 @@ class DartWorkManagerTest {
     expect(request.result, LIBRARY_ERRORS_READY);
     // source1 is out, source2 is waiting
     expect_librarySourceQueue([source2]);
-  }
-
-  void test_getNextResult_nothingToDo() {
-    TargetedResult request = manager.getNextResult();
-    expect(request, isNull);
   }
 
   void test_getNextResult_hasPriority_firstIsError() {
@@ -222,6 +255,11 @@ class DartWorkManagerTest {
     // source1 is out, source2 is waiting
     expect_librarySourceQueue([]);
     expect_unknownSourceQueue([source2]);
+  }
+
+  void test_getNextResult_nothingToDo() {
+    TargetedResult request = manager.getNextResult();
+    expect(request, isNull);
   }
 
   void test_getNextResultPriority_hasLibrary() {

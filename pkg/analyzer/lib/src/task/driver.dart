@@ -415,6 +415,11 @@ class WorkItem {
  */
 abstract class WorkManager {
   /**
+   * Notifies the managers that the given set of priority [targets] was set.
+   */
+  void applyPriorityTargets(List<AnalysisTarget> targets);
+
+  /**
    * Return the next [TargetedResult] that this work manager wants to be
    * computed, or `null` if this manager doesn't need any new results.
    */

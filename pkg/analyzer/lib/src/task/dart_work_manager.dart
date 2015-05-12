@@ -44,6 +44,11 @@ class DartWorkManager implements WorkManager {
   DartWorkManager(this.context);
 
   /**
+   * Returns the correctly typed result of `context.analysisCache`.
+   */
+  AnalysisCache get analysisCache => context.analysisCache;
+
+  /**
    * Specifies that the client want the given [result] of the given [target]
    * to be computed with priority.
    */
@@ -69,7 +74,7 @@ class DartWorkManager implements WorkManager {
     // Some of the libraries might have been invalidated, reschedule them.
     {
       MapIterator<AnalysisTarget, CacheEntry> iterator =
-          (context.analysisCache as AnalysisCache).iterator();
+          analysisCache.iterator();
       while (iterator.moveNext()) {
         AnalysisTarget target = iterator.key;
         if (_isDartSource(target)) {
@@ -77,6 +82,32 @@ class DartWorkManager implements WorkManager {
           if (entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY &&
               entry.getValue(LIBRARY_ERRORS_READY) != true) {
             librarySourceQueue.add(target);
+          }
+        }
+      }
+    }
+  }
+
+  @override
+  void applyPriorityTargets(List<AnalysisTarget> targets) {
+    // Unschedule the old targets.
+    List<TargetedResult> resultsToUnschedule = <TargetedResult>[];
+    for (TargetedResult result in priorityResultQueue) {
+      if (result.result == LIBRARY_ERRORS_READY) {
+        resultsToUnschedule.add(result);
+      }
+    }
+    priorityResultQueue.removeAll(resultsToUnschedule);
+    // Schedule new targets.
+    for (AnalysisTarget target in targets) {
+      if (_isDartSource(target)) {
+        SourceKind sourceKind = analysisCache.getValue(target, SOURCE_KIND);
+        if (sourceKind == SourceKind.LIBRARY) {
+          addPriorityResult(target, LIBRARY_ERRORS_READY);
+        } else if (sourceKind == SourceKind.PART) {
+          List<Source> libraries = context.getLibrariesContaining(target);
+          for (Source library in libraries) {
+            addPriorityResult(library, LIBRARY_ERRORS_READY);
           }
         }
       }
@@ -157,8 +188,7 @@ class DartWorkManager implements WorkManager {
    * computing, i.e. it is not in the valid and not in the error state.
    */
   bool _needsComputing(AnalysisTarget target, ResultDescriptor result) {
-    AnalysisCache cache = context.analysisCache;
-    CacheState state = cache.getState(target, result);
+    CacheState state = analysisCache.getState(target, result);
     return state != CacheState.VALID && state != CacheState.ERROR;
   }
 }
