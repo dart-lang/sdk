@@ -7,6 +7,7 @@
 
 #include "vm/allocation.h"
 #include "vm/flags.h"
+#include "vm/isolate.h"
 #include "vm/timer.h"
 
 
@@ -15,49 +16,62 @@ namespace dart {
 
 DECLARE_FLAG(bool, compiler_stats);
 
-class CompilerStats : AllStatic {
+// TODO(hausner): Might want to expose some of these values in the
+// observatory. Use the metrics mechanism (metrics.h) for this.
+
+class CompilerStats {
  public:
-  static int64_t num_tokens_total;
-  static int64_t num_literal_tokens_total;
-  static int64_t num_ident_tokens_total;
-  static int64_t num_tokens_consumed;
-  static int64_t num_token_checks;
-  static int64_t num_tokens_rewind;
-  static int64_t num_tokens_lookahead;
+  explicit CompilerStats(Isolate* isolate);
+  ~CompilerStats() { }
 
-  static int64_t num_lib_cache_hit;
-  static int64_t num_names_cached;
-  static int64_t make_accessor_name;
-  static int64_t make_field_name;
+  Isolate* isolate_;
 
-  static int64_t num_classes_compiled;
-  static int64_t num_functions_compiled;
-  static int64_t num_implicit_final_getters;
-  static int64_t num_static_initializer_funcs;
+  // TODO(hausner): add these timers to the timer list maintained
+  // in the isolate?
+  Timer parser_timer;         // Cumulative runtime of parser.
+  Timer scanner_timer;        // Cumulative runtime of scanner.
+  Timer codegen_timer;        // Cumulative runtime of code generator.
+  Timer graphbuilder_timer;   // Included in codegen_timer.
+  Timer ssa_timer;            // Included in codegen_timer.
+  Timer graphinliner_timer;   // Included in codegen_timer.
+  Timer graphinliner_parse_timer;  // Included in codegen_timer.
+  Timer graphinliner_build_timer;  // Included in codegen_timer.
+  Timer graphinliner_ssa_timer;    // Included in codegen_timer.
+  Timer graphinliner_opt_timer;    // Included in codegen_timer.
+  Timer graphinliner_subst_timer;  // Included in codegen_timer.
 
-  static int64_t src_length;        // Total number of characters in source.
-  static int64_t code_allocated;    // Bytes allocated for generated code.
-  static Timer parser_timer;         // Cumulative runtime of parser.
-  static Timer scanner_timer;        // Cumulative runtime of scanner.
-  static Timer codegen_timer;        // Cumulative runtime of code generator.
-  static Timer graphbuilder_timer;   // Included in codegen_timer.
-  static Timer ssa_timer;            // Included in codegen_timer.
-  static Timer graphinliner_timer;   // Included in codegen_timer.
-  static Timer graphinliner_parse_timer;  // Included in codegen_timer.
-  static Timer graphinliner_build_timer;  // Included in codegen_timer.
-  static Timer graphinliner_ssa_timer;    // Included in codegen_timer.
-  static Timer graphinliner_opt_timer;    // Included in codegen_timer.
-  static Timer graphinliner_find_timer;   // Included in codegen_timer.
-  static Timer graphinliner_plug_timer;   // Included in codegen_timer.
-  static Timer graphinliner_subst_timer;  // Included in codegen_timer.
+  Timer graphoptimizer_timer;  // Included in codegen_timer.
+  Timer graphcompiler_timer;   // Included in codegen_timer.
+  Timer codefinalizer_timer;   // Included in codegen_timer.
 
-  static Timer graphoptimizer_timer;  // Included in codegen_timer.
-  static Timer graphcompiler_timer;   // Included in codegen_timer.
-  static Timer codefinalizer_timer;   // Included in codegen_timer.
+  int64_t num_tokens_total;
+  int64_t num_literal_tokens_total;
+  int64_t num_ident_tokens_total;
+  int64_t num_tokens_consumed;
+  int64_t num_token_checks;
+  int64_t num_tokens_rewind;
+  int64_t num_tokens_lookahead;
 
-  static void Print();
+  int64_t num_classes_compiled;
+  int64_t num_functions_compiled;
+  int64_t num_implicit_final_getters;
+
+  int64_t src_length;          // Total number of characters in source.
+  int64_t total_code_size;     // Bytes allocated for code and meta info.
+  int64_t total_instr_size;    // Total size of generated code in bytes.
+  int64_t pc_desc_size;
+  int64_t vardesc_size;
+
+  void Print();
 };
 
+#define INC_STAT(isolate, counter, incr)                                       \
+  if (FLAG_compiler_stats) { (isolate)->compiler_stats()->counter += (incr); }
+
+#define CSTAT_TIMER_SCOPE(iso, t)                                              \
+  TimerScope timer(FLAG_compiler_stats,                                        \
+  FLAG_compiler_stats ? &((iso)->compiler_stats()->t) : NULL,                  \
+  iso);
 
 }  // namespace dart
 

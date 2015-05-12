@@ -397,9 +397,6 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
     // A successful allocation should increase usage_.
     ASSERT(usage_before.used_in_words < usage_.used_in_words);
 #endif
-    if (FLAG_compiler_stats && (type == HeapPage::kExecutable)) {
-      CompilerStats::code_allocated += size;
-    }
   } else {
 #ifdef DEBUG
     // A failed allocation should not change used_in_words.

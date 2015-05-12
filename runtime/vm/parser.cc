@@ -444,7 +444,7 @@ void Parser::set_current_class(const Class& value) {
 
 void Parser::SetPosition(intptr_t position) {
   if (position < TokenPos() && position != 0) {
-    CompilerStats::num_tokens_rewind += (TokenPos() - position);
+    INC_STAT(I, num_tokens_rewind, (TokenPos() - position));
   }
   tokens_iterator_.SetCurrentPosition(position);
   token_kind_ = Token::kILLEGAL;
@@ -455,7 +455,7 @@ void Parser::ParseCompilationUnit(const Library& library,
                                   const Script& script) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate->long_jump_base()->IsSafeToJump());
-  TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
+  CSTAT_TIMER_SCOPE(isolate, parser_timer);
   VMTagScope tagScope(isolate, VMTag::kCompileTopLevelTagId);
   Parser parser(script, library, 0);
   parser.ParseTopLevel();
@@ -472,8 +472,8 @@ void Parser::ComputeCurrentToken() {
 
 
 Token::Kind Parser::LookaheadToken(int num_tokens) {
-  CompilerStats::num_tokens_lookahead++;
-  CompilerStats::num_token_checks++;
+  INC_STAT(I, num_tokens_lookahead, 1);
+  INC_STAT(I, num_token_checks, 1);
   return tokens_iterator_.LookaheadTokenKind(num_tokens);
 }
 
@@ -774,7 +774,7 @@ struct TopLevel {
 void Parser::ParseClass(const Class& cls) {
   if (!cls.is_synthesized_class()) {
     Isolate* isolate = Isolate::Current();
-    TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
+    CSTAT_TIMER_SCOPE(isolate, parser_timer);
     ASSERT(isolate->long_jump_base()->IsSafeToJump());
     const Script& script = Script::Handle(isolate, cls.script());
     const Library& lib = Library::Handle(isolate, cls.library());
@@ -782,7 +782,7 @@ void Parser::ParseClass(const Class& cls) {
     parser.ParseClassDefinition(cls);
   } else if (cls.is_enum_class()) {
     Isolate* isolate = Isolate::Current();
-    TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
+    CSTAT_TIMER_SCOPE(isolate, parser_timer);
     ASSERT(isolate->long_jump_base()->IsSafeToJump());
     const Script& script = Script::Handle(isolate, cls.script());
     const Library& lib = Library::Handle(isolate, cls.library());
@@ -843,8 +843,8 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
 void Parser::ParseFunction(ParsedFunction* parsed_function) {
   Isolate* isolate = parsed_function->isolate();
   Zone* zone = parsed_function->zone();
-  TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
-  CompilerStats::num_functions_compiled++;
+  CSTAT_TIMER_SCOPE(isolate, parser_timer);
+  INC_STAT(isolate, num_functions_compiled, 1);
   ASSERT(isolate->long_jump_base()->IsSafeToJump());
   ASSERT(parsed_function != NULL);
   const Function& func = parsed_function->function();
@@ -882,7 +882,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       break;
     case RawFunction::kImplicitStaticFinalGetter:
       node_sequence = parser.ParseStaticFinalGetter(func);
-      CompilerStats::num_implicit_final_getters++;
+      INC_STAT(isolate, num_implicit_final_getters, 1);
       break;
     case RawFunction::kMethodExtractor:
       node_sequence = parser.ParseMethodExtractor(func);
@@ -4492,7 +4492,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
 
 void Parser::ParseClassDefinition(const Class& cls) {
   TRACE_PARSER("ParseClassDefinition");
-  CompilerStats::num_classes_compiled++;
+  INC_STAT(I, num_classes_compiled, 1);
   set_current_class(cls);
   is_top_level_ = true;
   String& class_name = String::Handle(Z, cls.Name());
@@ -4552,7 +4552,7 @@ void Parser::ParseClassDefinition(const Class& cls) {
 
 void Parser::ParseEnumDefinition(const Class& cls) {
   TRACE_PARSER("ParseEnumDefinition");
-  CompilerStats::num_classes_compiled++;
+  INC_STAT(I, num_classes_compiled, 1);
 
   SkipMetadata();
   ExpectToken(Token::kENUM);

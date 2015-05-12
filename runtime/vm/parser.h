@@ -291,7 +291,7 @@ class Parser : public ValueObject {
     if (token_kind_ == Token::kILLEGAL) {
       ComputeCurrentToken();
     }
-    CompilerStats::num_token_checks++;
+    INC_STAT(isolate_, num_token_checks, 1);
     return token_kind_;
   }
 
@@ -311,7 +311,7 @@ class Parser : public ValueObject {
     // Reset cache and advance the token.
     token_kind_ = Token::kILLEGAL;
     tokens_iterator_.Advance();
-    CompilerStats::num_tokens_consumed++;
+    INC_STAT(isolate_, num_tokens_consumed, 1);
   }
   void ConsumeRightAngleBracket();
   void CheckToken(Token::Kind token_expected, const char* msg = NULL);

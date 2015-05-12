@@ -594,6 +594,7 @@ Isolate::Isolate()
       defer_finalization_count_(0),
       deopt_context_(NULL),
       edge_counter_increment_size_(-1),
+      compiler_stats_(NULL),
       is_service_isolate_(false),
       log_(new class Log()),
       stacktrace_(NULL),
@@ -660,6 +661,8 @@ Isolate::Isolate(Isolate* original)
       gc_epilogue_callback_(NULL),
       defer_finalization_count_(0),
       deopt_context_(NULL),
+      edge_counter_increment_size_(-1),
+      compiler_stats_(NULL),
       is_service_isolate_(false),
       log_(new class Log()),
       stacktrace_(NULL),
@@ -705,6 +708,10 @@ Isolate::~Isolate() {
   log_ = NULL;
   delete pause_loop_monitor_;
   pause_loop_monitor_ = NULL;
+  if (compiler_stats_ != NULL) {
+    delete compiler_stats_;
+    compiler_stats_ = NULL;
+  }
 }
 
 
@@ -776,7 +783,9 @@ Isolate* Isolate::Init(const char* name_prefix, bool is_vm_isolate) {
                 "\tisolate:    %s\n", result->name());
     }
   }
-
+  if (FLAG_compiler_stats) {
+    result->compiler_stats_ = new CompilerStats(result);
+  }
   // Add to isolate list.
   AddIsolateTolist(result);
 
@@ -1431,7 +1440,9 @@ void Isolate::Shutdown() {
     api_state()->weak_persistent_handles().VisitHandles(&visitor);
     api_state()->prologue_weak_persistent_handles().VisitHandles(&visitor);
 
-    CompilerStats::Print();
+    if (compiler_stats_ != NULL) {
+      compiler_stats()->Print();
+    }
     if (FLAG_trace_isolates) {
       heap()->PrintSizes();
       megamorphic_cache_table()->PrintSizes();

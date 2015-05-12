@@ -12,71 +12,47 @@ namespace dart {
 
 DEFINE_FLAG(bool, compiler_stats, false, "Compiler stat counters.");
 
-// Bytes allocated for generated code.
-int64_t CompilerStats::code_allocated = 0;
 
-// Total number of characters in source.
-int64_t CompilerStats::src_length = 0;
+CompilerStats::CompilerStats(Isolate* isolate)
+    : isolate_(isolate),
+      parser_timer(true, "parser timer"),
+      scanner_timer(true, "scanner timer"),
+      codegen_timer(true, "codegen timer"),
+      graphbuilder_timer(true, "flow graph builder timer"),
+      ssa_timer(true, "flow graph SSA timer"),
+      graphinliner_timer(true, "flow graph inliner timer"),
+      graphinliner_parse_timer(true, "inliner parsing timer"),
+      graphinliner_build_timer(true, "inliner building timer"),
+      graphinliner_ssa_timer(true, "inliner SSA timer"),
+      graphinliner_opt_timer(true, "inliner optimization timer"),
+      graphinliner_subst_timer(true, "inliner substitution timer"),
+      graphoptimizer_timer(true, "flow graph optimizer timer"),
+      graphcompiler_timer(true, "flow graph compiler timer"),
+      codefinalizer_timer(true, "code finalization timer"),
+      num_tokens_total(0),
+      num_literal_tokens_total(0),
+      num_ident_tokens_total(0),
+      num_tokens_consumed(0),
+      num_token_checks(0),
+      num_tokens_rewind(0),
+      num_tokens_lookahead(0),
+      num_classes_compiled(0),
+      num_functions_compiled(0),
+      num_implicit_final_getters(0),
+      src_length(0),
+      total_code_size(0),
+      total_instr_size(0),
+      pc_desc_size(0),
+      vardesc_size(0) {
+}
 
-// Cumulative runtime of parser.
-Timer CompilerStats::parser_timer(true, "parser timer");
-
-// Cumulative runtime of scanner.
-Timer CompilerStats::scanner_timer(true, "scanner timer");
-
-// Cumulative runtime of code generator.
-Timer CompilerStats::codegen_timer(true, "codegen timer");
-
-// Cumulative timer of flow graph builder, included in codegen_timer.
-Timer CompilerStats::graphbuilder_timer(true, "flow graph builder timer");
-
-// Cumulative timer of flow graph SSA construction, included in codegen_timer.
-Timer CompilerStats::ssa_timer(true, "flow graph SSA timer");
-
-// Cumulative timer of flow graph inliner, included in codegen_timer.
-Timer CompilerStats::graphinliner_timer(true, "flow graph inliner timer");
-// Cumulative sub-timers of flow graph inliner.
-Timer CompilerStats::graphinliner_parse_timer(true, "inliner parsing timer");
-Timer CompilerStats::graphinliner_build_timer(true, "inliner building timer");
-Timer CompilerStats::graphinliner_ssa_timer(true, "inliner SSA timer");
-Timer CompilerStats::graphinliner_opt_timer(true, "inliner optimization timer");
-Timer CompilerStats::graphinliner_subst_timer(true,
-                                              "inliner substitution timer");
-
-// Cumulative timer of flow graph optimizer, included in codegen_timer.
-Timer CompilerStats::graphoptimizer_timer(true, "flow graph optimizer timer");
-
-// Cumulative timer of flow graph compiler, included in codegen_timer.
-Timer CompilerStats::graphcompiler_timer(true, "flow graph compiler timer");
-
-// Cumulative timer of code finalization, included in codegen_timer.
-Timer CompilerStats::codefinalizer_timer(true, "code finalization timer");
-
-
-int64_t CompilerStats::num_tokens_total = 0;
-int64_t CompilerStats::num_literal_tokens_total = 0;
-int64_t CompilerStats::num_ident_tokens_total = 0;
-int64_t CompilerStats::num_tokens_consumed = 0;
-int64_t CompilerStats::num_token_checks = 0;
-int64_t CompilerStats::num_tokens_rewind = 0;
-int64_t CompilerStats::num_tokens_lookahead = 0;
-
-int64_t CompilerStats::num_lib_cache_hit = 0;
-int64_t CompilerStats::num_names_cached = 0;
-int64_t CompilerStats::make_accessor_name = 0;
-int64_t CompilerStats::make_field_name = 0;
-
-int64_t CompilerStats::num_classes_compiled = 0;
-int64_t CompilerStats::num_functions_compiled = 0;
-
-int64_t CompilerStats::num_implicit_final_getters = 0;
-int64_t CompilerStats::num_static_initializer_funcs = 0;
 
 void CompilerStats::Print() {
   if (!FLAG_compiler_stats) {
     return;
   }
-  OS::Print("==== Compiler Stats ====\n");
+  OS::Print("==== Compiler Stats for isolate '%s' ====\n",
+            isolate_->debugger_name());
   OS::Print("Number of tokens:   %" Pd64 "\n", num_tokens_total);
   OS::Print("  Literal tokens:   %" Pd64 "\n", num_literal_tokens_total);
   OS::Print("  Ident tokens:     %" Pd64 "\n", num_ident_tokens_total);
@@ -94,12 +70,6 @@ void CompilerStats::Print() {
   OS::Print("Classes parsed:     %" Pd64 "\n", num_classes_compiled);
   OS::Print("Functions compiled: %" Pd64 "\n", num_functions_compiled);
   OS::Print("  Impl getters:     %" Pd64 "\n", num_implicit_final_getters);
-  OS::Print("  Init funcs:       %" Pd64 "\n", num_static_initializer_funcs);
-
-  OS::Print("Lib names cached:   %" Pd64 "\n", num_names_cached);
-  OS::Print("Lib name cache hit: %" Pd64 "\n", num_lib_cache_hit);
-  OS::Print("Accessor mangling:  %" Pd64 " field->acc  %" Pd64 " acc->field\n",
-            make_accessor_name, make_field_name);
 
   OS::Print("Source length:      %" Pd64 " characters\n", src_length);
   int64_t scan_usecs = scanner_timer.TotalElapsedTime();
@@ -148,10 +118,14 @@ void CompilerStats::Print() {
             codefinalizer_usecs / 1000);
   OS::Print("Compilation speed:  %" Pd64 " tokens per msec\n",
             (1000 * num_tokens_total) / (parse_usecs + codegen_usecs));
-  OS::Print("Code size:          %" Pd64 " KB\n",
-            code_allocated / 1024);
   OS::Print("Code density:       %" Pd64 " tokens per KB\n",
-            (num_tokens_total * 1024) / code_allocated);
+            (num_tokens_total * 1024) / total_instr_size);
+  OS::Print("Instr size:         %" Pd64 " KB\n",
+            total_instr_size / 1024);
+  OS::Print("Pc Desc size:       %" Pd64 " KB\n", pc_desc_size / 1024);
+  OS::Print("VarDesc size:       %" Pd64 " KB\n", vardesc_size / 1024);
+
+  OS::Print("Code size:          %" Pd64 " KB\n", total_code_size / 1024);
 }
 
 }  // namespace dart

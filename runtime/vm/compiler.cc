@@ -375,11 +375,11 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
   if (optimized && !function.IsOptimizable()) {
     return false;
   }
-  TimerScope timer(FLAG_compiler_stats, &CompilerStats::codegen_timer);
   bool is_compiled = false;
   Thread* const thread = Thread::Current();
   Zone* const zone = thread->zone();
   Isolate* const isolate = thread->isolate();
+  CSTAT_TIMER_SCOPE(isolate, codegen_timer);
   HANDLESCOPE(isolate);
 
   // We may reattempt compilation if the function needs to be assembled using
@@ -405,9 +405,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
       // TimerScope needs an isolate to be properly terminated in case of a
       // LongJump.
       {
-        TimerScope timer(FLAG_compiler_stats,
-                         &CompilerStats::graphbuilder_timer,
-                         isolate);
+        CSTAT_TIMER_SCOPE(isolate, graphbuilder_timer);
         ZoneGrowableArray<const ICData*>* ic_data_array =
             new(zone) ZoneGrowableArray<const ICData*>();
         if (optimized) {
@@ -454,9 +452,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
       }
 
       if (optimized) {
-        TimerScope timer(FLAG_compiler_stats,
-                         &CompilerStats::ssa_timer,
-                         isolate);
+        CSTAT_TIMER_SCOPE(isolate, ssa_timer);
         // Transform to SSA (virtual register 0 and no inlining arguments).
         flow_graph->ComputeSSA(0, NULL);
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -477,9 +473,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         inline_id_to_function.Add(&function);
         // Top scope function has no caller (-1).
         caller_inline_id.Add(-1);
-        TimerScope timer(FLAG_compiler_stats,
-                         &CompilerStats::graphoptimizer_timer,
-                         isolate);
+        CSTAT_TIMER_SCOPE(isolate, graphoptimizer_timer);
 
         FlowGraphOptimizer optimizer(flow_graph);
         optimizer.ApplyICData();
@@ -494,8 +488,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
 
         // Inlining (mutates the flow graph)
         if (FLAG_use_inlining) {
-          TimerScope timer(FLAG_compiler_stats,
-                           &CompilerStats::graphinliner_timer);
+          CSTAT_TIMER_SCOPE(isolate, graphinliner_timer);
           // Propagate types to create more inlining opportunities.
           FlowGraphTypePropagator::Propagate(flow_graph);
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -709,28 +702,36 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
                                        inline_id_to_function,
                                        caller_inline_id);
       {
-        TimerScope timer(FLAG_compiler_stats,
-                         &CompilerStats::graphcompiler_timer,
-                         isolate);
+        CSTAT_TIMER_SCOPE(isolate, graphcompiler_timer);
         graph_compiler.CompileGraph();
         pipeline->FinalizeCompilation();
       }
       {
-        TimerScope timer(FLAG_compiler_stats,
-                         &CompilerStats::codefinalizer_timer,
-                         isolate);
+        CSTAT_TIMER_SCOPE(isolate, codefinalizer_timer);
         // CreateDeoptInfo uses the object pool and needs to be done before
         // FinalizeCode.
-        const Array& deopt_info_array = Array::Handle(
-            graph_compiler.CreateDeoptInfo(&assembler));
+        const Array& deopt_info_array =
+            Array::Handle(isolate, graph_compiler.CreateDeoptInfo(&assembler));
+        INC_STAT(isolate, total_code_size,
+                 deopt_info_array.Length() * sizeof(uword));
         const Code& code = Code::Handle(
             Code::FinalizeCode(function, &assembler, optimized));
         code.set_is_optimized(optimized);
-        code.set_inlined_intervals(graph_compiler.inlined_code_intervals());
-        code.set_inlined_id_to_function(
-            Array::Handle(graph_compiler.InliningIdToFunction()));
+
+        const Array& intervals = graph_compiler.inlined_code_intervals();
+        INC_STAT(isolate, total_code_size,
+                 intervals.Length() * sizeof(uword));
+        code.set_inlined_intervals(intervals);
+
+        const Array& inlined_id_array =
+            Array::Handle(isolate, graph_compiler.InliningIdToFunction());
+        INC_STAT(isolate, total_code_size,
+                 inlined_id_array.Length() * sizeof(uword));
+        code.set_inlined_id_to_function(inlined_id_array);
+
         graph_compiler.FinalizePcDescriptors(code);
         code.set_deopt_info_array(deopt_info_array);
+
         graph_compiler.FinalizeStackmaps(code);
         graph_compiler.FinalizeVarDescriptors(code);
         graph_compiler.FinalizeExceptionHandlers(code);

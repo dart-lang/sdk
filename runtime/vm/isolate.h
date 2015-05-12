@@ -37,6 +37,7 @@ class CHA;
 class Class;
 class Code;
 class CodeIndexTable;
+class CompilerStats;
 class Debugger;
 class DeoptContext;
 class Error;
@@ -596,6 +597,10 @@ class Isolate : public BaseIsolate {
     return thread_state_;
   }
 
+  CompilerStats* compiler_stats() {
+    return compiler_stats_;
+  }
+
   // Returns the number of sampled threads.
   intptr_t ProfileInterrupt();
 
@@ -737,6 +742,8 @@ class Isolate : public BaseIsolate {
   intptr_t defer_finalization_count_;
   DeoptContext* deopt_context_;
   int32_t edge_counter_increment_size_;
+
+  CompilerStats* compiler_stats_;
 
   // Log.
   bool is_service_isolate_;

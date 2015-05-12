@@ -125,6 +125,7 @@ class TimerList : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(TimerList);
 };
 
+
 // The class TimerScope is used to start and stop a timer within a scope.
 // It is used as follows:
 // {
@@ -136,8 +137,10 @@ class TimerList : public ValueObject {
 class TimerScope : public StackResource {
  public:
   TimerScope(bool flag, Timer* timer, Isolate* isolate = NULL)
-      : StackResource(isolate), flag_(flag), nested_(false), timer_(timer) {
-    if (flag_) {
+      : StackResource(isolate),
+        nested_(false),
+        timer_(flag ? timer : NULL) {
+    if (timer_ != NULL) {
       if (!timer_->running()) {
         timer_->Start();
       } else {
@@ -146,7 +149,7 @@ class TimerScope : public StackResource {
     }
   }
   ~TimerScope() {
-    if (flag_) {
+    if (timer_ != NULL) {
       if (!nested_) {
         timer_->Stop();
       }
@@ -154,7 +157,6 @@ class TimerScope : public StackResource {
   }
 
  private:
-  const bool flag_;
   bool nested_;
   Timer* const timer_;
 
@@ -166,8 +168,10 @@ class TimerScope : public StackResource {
 class PauseTimerScope : public StackResource {
  public:
   PauseTimerScope(bool flag, Timer* timer, Isolate* isolate = NULL)
-      : StackResource(isolate), flag_(flag), nested_(false), timer_(timer) {
-    if (flag_) {
+      : StackResource(isolate),
+        nested_(false),
+        timer_(flag ? timer : NULL) {
+    if (timer_) {
       if (timer_->running()) {
         timer_->Stop();
       } else {
@@ -176,7 +180,7 @@ class PauseTimerScope : public StackResource {
     }
   }
   ~PauseTimerScope() {
-    if (flag_) {
+    if (timer_) {
       if (!nested_) {
         timer_->Start();
       }
@@ -184,7 +188,6 @@ class PauseTimerScope : public StackResource {
   }
 
  private:
-  const bool flag_;
   bool nested_;
   Timer* const timer_;
 

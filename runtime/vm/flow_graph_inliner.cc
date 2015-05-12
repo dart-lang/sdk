@@ -681,9 +681,7 @@ class CallSiteInliner : public ValueObject {
       bool in_cache;
       ParsedFunction* parsed_function;
       {
-        TimerScope timer(FLAG_compiler_stats,
-                         &CompilerStats::graphinliner_parse_timer,
-                         isolate());
+        CSTAT_TIMER_SCOPE(isolate(), graphinliner_parse_timer);
         const Error& error = Error::Handle(Z,
             Compiler::EnsureUnoptimizedCode(Thread::Current(), function));
         if (!error.IsNull()) {
@@ -707,9 +705,7 @@ class CallSiteInliner : public ValueObject {
       builder.SetInitialBlockId(caller_graph_->max_block_id());
       FlowGraph* callee_graph;
       {
-        TimerScope timer(FLAG_compiler_stats,
-                         &CompilerStats::graphinliner_build_timer,
-                         isolate());
+        CSTAT_TIMER_SCOPE(isolate(), graphinliner_build_timer);
         callee_graph = builder.BuildGraph();
       }
 
@@ -763,9 +759,7 @@ class CallSiteInliner : public ValueObject {
       block_scheduler.AssignEdgeWeights();
 
       {
-        TimerScope timer(FLAG_compiler_stats,
-                         &CompilerStats::graphinliner_ssa_timer,
-                         isolate());
+        CSTAT_TIMER_SCOPE(isolate(), graphinliner_ssa_timer);
         // Compute SSA on the callee graph, catching bailouts.
         callee_graph->ComputeSSA(caller_graph_->max_virtual_register_number(),
                                  param_stubs);
@@ -773,9 +767,7 @@ class CallSiteInliner : public ValueObject {
       }
 
       {
-        TimerScope timer(FLAG_compiler_stats,
-                         &CompilerStats::graphinliner_opt_timer,
-                         isolate());
+        CSTAT_TIMER_SCOPE(isolate(), graphinliner_opt_timer);
         // TODO(zerny): Do more optimization passes on the callee graph.
         FlowGraphOptimizer optimizer(callee_graph);
         optimizer.ApplyICData();
@@ -953,9 +945,7 @@ class CallSiteInliner : public ValueObject {
   }
 
   void InlineCall(InlinedCallData* call_data) {
-    TimerScope timer(FLAG_compiler_stats,
-                     &CompilerStats::graphinliner_subst_timer,
-                     Isolate::Current());
+    CSTAT_TIMER_SCOPE(Isolate::Current(), graphinliner_subst_timer);
     FlowGraph* callee_graph = call_data->callee_graph;
     TargetEntryInstr* callee_entry =
         callee_graph->graph_entry()->normal_entry();

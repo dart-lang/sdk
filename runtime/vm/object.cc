@@ -6685,6 +6685,7 @@ void Function::SaveICDataMap(
     set_ic_data_array(Object::empty_array());
   } else {
     const Array& a = Array::Handle(Array::New(count, Heap::kOld));
+    INC_STAT(Isolate::Current(), total_code_size, count * sizeof(uword));
     count = 0;
     for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
       if (deopt_id_to_ic_data[i] != NULL) {
@@ -6975,7 +6976,6 @@ void RedirectionData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 RawString* Field::GetterName(const String& field_name) {
-  CompilerStats::make_accessor_name++;
   return String::Concat(Symbols::GetterPrefix(), field_name);
 }
 
@@ -6986,7 +6986,6 @@ RawString* Field::GetterSymbol(const String& field_name) {
 
 
 RawString* Field::SetterName(const String& field_name) {
-  CompilerStats::make_accessor_name++;
   return String::Concat(Symbols::SetterPrefix(), field_name);
 }
 
@@ -6997,13 +6996,11 @@ RawString* Field::SetterSymbol(const String& field_name) {
 
 
 RawString* Field::NameFromGetter(const String& getter_name) {
-  CompilerStats::make_field_name++;
   return String::SubString(getter_name, strlen(kGetterPrefix));
 }
 
 
 RawString* Field::NameFromSetter(const String& setter_name) {
-  CompilerStats::make_field_name++;
   return String::SubString(setter_name, strlen(kSetterPrefix));
 }
 
@@ -7947,6 +7944,7 @@ class CompressedTokenStreamData : public ValueObject {
 
 RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
                                  const String& private_key) {
+  Isolate* isolate = Isolate::Current();
   // Copy the relevant data out of the scanner into a compressed stream of
   // tokens.
   CompressedTokenStreamData data;
@@ -7955,12 +7953,12 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
     Scanner::TokenDescriptor token = tokens[i];
     if (token.kind == Token::kIDENT) {  // Identifier token.
       if (FLAG_compiler_stats) {
-        CompilerStats::num_ident_tokens_total += 1;
+        INC_STAT(isolate, num_ident_tokens_total, 1);
       }
       data.AddIdentToken(token.literal);
     } else if (Token::NeedsLiteralToken(token.kind)) {  // Literal token.
       if (FLAG_compiler_stats) {
-        CompilerStats::num_literal_tokens_total += 1;
+        INC_STAT(isolate, num_literal_tokens_total, 1);
       }
       data.AddLiteralToken(token);
     } else {  // Keyword, pseudo keyword etc.
@@ -7968,19 +7966,19 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
       data.AddSimpleToken(token.kind);
     }
   }
-  if (FLAG_compiler_stats) {
-    CompilerStats::num_tokens_total += len;
-  }
+  INC_STAT(isolate, num_tokens_total, len);
   data.AddSimpleToken(Token::kEOS);  // End of stream.
 
   // Create and setup the token stream object.
   const ExternalTypedData& stream = ExternalTypedData::Handle(
+      isolate,
       ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
                              data.GetStream(), data.Length(), Heap::kOld));
   stream.AddFinalizer(data.GetStream(), DataFinalizer);
-  const TokenStream& result = TokenStream::Handle(New());
+  const TokenStream& result = TokenStream::Handle(isolate, New());
   result.SetPrivateKey(private_key);
-  const Array& token_objects = Array::Handle(data.MakeTokenObjectsArray());
+  const Array& token_objects =
+      Array::Handle(isolate, data.MakeTokenObjectsArray());
   {
     NoSafepointScope no_safepoint;
     result.SetStream(stream);
@@ -8301,15 +8299,13 @@ void Script::Tokenize(const String& private_key) const {
   }
   // Get the source, scan and allocate the token stream.
   VMTagScope tagScope(isolate, VMTag::kCompileScannerTagId);
-  TimerScope timer(FLAG_compiler_stats, &CompilerStats::scanner_timer);
+  CSTAT_TIMER_SCOPE(isolate, scanner_timer);
   const String& src = String::Handle(isolate, Source());
   Scanner scanner(src, private_key);
   set_tokens(TokenStream::Handle(isolate,
                                  TokenStream::New(scanner.GetStream(),
                                                   private_key)));
-  if (FLAG_compiler_stats) {
-    CompilerStats::src_length += src.Length();
-  }
+  INC_STAT(isolate, src_length, src.Length());
 }
 
 
@@ -10616,12 +10612,15 @@ void PcDescriptors::CopyData(GrowableArray<uint8_t>* delta_encoded_data) {
 
 RawPcDescriptors* PcDescriptors::New(GrowableArray<uint8_t>* data) {
   ASSERT(Object::pc_descriptors_class() != Class::null());
-  PcDescriptors& result = PcDescriptors::Handle();
+  Isolate* isolate = Isolate::Current();
+  PcDescriptors& result = PcDescriptors::Handle(isolate);
   {
     uword size = PcDescriptors::InstanceSize(data->length());
     RawObject* raw = Object::Allocate(PcDescriptors::kClassId,
                                       size,
                                       Heap::kOld);
+    INC_STAT(isolate, total_code_size, size);
+    INC_STAT(isolate, pc_desc_size, size);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(data->length());
@@ -11041,6 +11040,8 @@ RawLocalVarDescriptors* LocalVarDescriptors::New(intptr_t num_variables) {
     RawObject* raw = Object::Allocate(LocalVarDescriptors::kClassId,
                                       size,
                                       Heap::kOld);
+    INC_STAT(Isolate::Current(), total_code_size, size);
+    INC_STAT(Isolate::Current(), vardesc_size, size);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.StoreNonPointer(&result.raw_ptr()->num_entries_, num_variables);
@@ -12113,6 +12114,9 @@ void Code::set_is_alive(bool value) const {
 void Code::set_stackmaps(const Array& maps) const {
   ASSERT(maps.IsOld());
   StorePointer(&raw_ptr()->stackmaps_, maps.raw());
+  INC_STAT(Isolate::Current(),
+           total_code_size,
+           maps.IsNull() ? 0 : maps.Length() * sizeof(uword));
 }
 
 
@@ -12331,6 +12335,8 @@ RawCode* Code::FinalizeCode(const char* name,
   Code& code = Code::ZoneHandle(Code::New(pointer_offset_count));
   Instructions& instrs =
       Instructions::ZoneHandle(Instructions::New(assembler->CodeSize()));
+  INC_STAT(Isolate::Current(), total_instr_size, assembler->CodeSize());
+  INC_STAT(Isolate::Current(), total_code_size, assembler->CodeSize());
 
   // Copy the instructions into the instruction area and apply all fixups.
   // Embedded pointers are still in handles at this point.
@@ -12375,6 +12381,8 @@ RawCode* Code::FinalizeCode(const char* name,
     if (object_pool.IsNull()) {
       instrs.set_object_pool(Object::empty_array().raw());
     } else {
+      INC_STAT(Isolate::Current(),
+               total_code_size, object_pool.Length() * sizeof(uintptr_t));
       // TODO(regis): Once MakeArray takes a Heap::Space argument, call it here
       // with Heap::kOld and change the ARM and MIPS assemblers to work with a
       // GrowableObjectArray in new space.
@@ -12390,6 +12398,8 @@ RawCode* Code::FinalizeCode(const char* name,
     }
   }
   code.set_comments(assembler->GetCodeComments());
+  INC_STAT(Isolate::Current(),
+           total_code_size, code.comments().comments_.Length());
   return code.raw();
 }
 
