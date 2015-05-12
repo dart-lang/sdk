@@ -1085,13 +1085,17 @@ abstract class IrBuilder {
   /// Create a read access of the static [field].
   ir.Primitive buildStaticFieldGet(FieldElement field,
                                    {SourceInformation sourceInformation}) {
-    return addPrimitive(new ir.GetStatic(field, sourceInformation));
+    Selector selector = new Selector.getter(field.name, field.library);
+    // TODO(karlklose,sigurdm): build different nodes for getters.
+    return _buildInvokeStatic(
+        field, selector, const <ir.Primitive>[], sourceInformation);
   }
 
   /// Create a getter invocation of the static [getter].
   ir.Primitive buildStaticGetterGet(MethodElement getter,
                                     {SourceInformation sourceInformation}) {
     Selector selector = new Selector.getter(getter.name, getter.library);
+    // TODO(karlklose,sigurdm): build different nodes for getters.
     return _buildInvokeStatic(
         getter, selector, const <ir.Primitive>[], sourceInformation);
   }
@@ -1100,14 +1104,21 @@ abstract class IrBuilder {
   /// [function].
   ir.Primitive buildStaticFunctionGet(MethodElement function,
                                       {SourceInformation sourceInformation}) {
-    return addPrimitive(new ir.GetStatic(function, sourceInformation));
+    Selector selector =
+        new Selector.getter(function.name, function.library);
+    // TODO(karlklose,sigurdm): build different nodes for getters.
+    return _buildInvokeStatic(
+        function, selector, const <ir.Primitive>[], sourceInformation);
   }
 
   /// Create a write access to the static [field] with the [value].
   ir.Primitive buildStaticFieldSet(FieldElement field,
                                    ir.Primitive value,
                                    {SourceInformation sourceInformation}) {
-    add(new ir.SetStatic(field, value, sourceInformation));
+    Selector selector = new Selector.setter(field.name, field.library);
+    // TODO(karlklose,sigurdm): build different nodes for setters.
+    _buildInvokeStatic(
+        field, selector, <ir.Primitive>[value], sourceInformation);
     return value;
   }
 
@@ -1116,6 +1127,7 @@ abstract class IrBuilder {
                                     ir.Primitive value,
                                     {SourceInformation sourceInformation}) {
     Selector selector = new Selector.setter(setter.name, setter.library);
+    // TODO(karlklose,sigurdm): build different nodes for setters.
     _buildInvokeStatic(
         setter, selector, <ir.Primitive>[value], sourceInformation);
     return value;

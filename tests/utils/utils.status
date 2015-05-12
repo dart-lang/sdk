@@ -30,5 +30,5 @@ source_mirrors_test: Pass, RuntimeError # Issue 17662
 
 [ $compiler == dart2js && $cps_ir ]
 dummy_compiler_test: Crash # (provider): handleStaticFunctionGet: function(provider)
-recursive_import_test : Crash # t: Failed assertion: line 1960 pos 12: 'compiler.compilationFailed' is not true.
-source_mirrors_test : Crash # t: Failed assertion: line 1960 pos 12: 'compiler.compilationFailed' is not true.
+recursive_import_test: Crash # (asyncSuccess): handleStaticFunctionGet: function(asyncSuccess)
+source_mirrors_test: Crash # (provider): handleStaticFunctionGet: function(provider)

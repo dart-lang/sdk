@@ -214,7 +214,7 @@ abstract class InteriorNode extends Node {
   void set body(Expression body);
 }
 
-/// Invoke a static function or static getter/setter.
+/// Invoke a static function or static field getter/setter.
 class InvokeStatic extends Expression implements Invoke {
   /// [FunctionElement] or [FieldElement].
   final Entity target;
@@ -624,34 +624,6 @@ class GetField extends Primitive implements JsSpecificNode {
   accept(Visitor visitor) => visitor.visitGetField(this);
 }
 
-/// Reads the value of a static field or tears off a static method.
-class GetStatic extends Primitive {
-  final Element element;
-  final SourceInformation sourceInformation;
-
-  GetStatic(this.element, this.sourceInformation);
-
-  accept(Visitor visitor) => visitor.visitGetStatic(this);
-}
-
-/// Sets the value of a static field.
-class SetStatic extends Expression implements InteriorNode {
-  final Element element;
-  final Reference<Primitive> value;
-  Expression body;
-  final SourceInformation sourceInformation;
-
-  SetStatic(this.element, Primitive value, this.sourceInformation)
-      : this.value = new Reference<Primitive>(value);
-
-  Expression plug(Expression expr) {
-    assert(body == null);
-    return body = expr;
-  }
-
-  accept(Visitor visitor) => visitor.visitSetStatic(this);
-}
-
 /// Creates an object for holding boxed variables captured by a closure.
 class CreateBox extends Primitive implements JsSpecificNode {
   accept(Visitor visitor) => visitor.visitCreateBox(this);
@@ -1033,7 +1005,6 @@ abstract class Visitor<T> {
   T visitTypeOperator(TypeOperator node);
   T visitSetMutableVariable(SetMutableVariable node);
   T visitDeclareFunction(DeclareFunction node);
-  T visitSetStatic(SetStatic node);
 
   // Definitions.
   T visitLiteralList(LiteralList node);
@@ -1046,7 +1017,6 @@ abstract class Visitor<T> {
   T visitContinuation(Continuation node);
   T visitMutableVariable(MutableVariable node);
   T visitNonTailThrow(NonTailThrow node);
-  T visitGetStatic(GetStatic node);
 
   // JavaScript specific nodes.
 
@@ -1341,18 +1311,6 @@ class RecursiveVisitor implements Visitor {
   visitGetField(GetField node) {
     processGetField(node);
     processReference(node.object);
-  }
-
-  processGetStatic(GetStatic node) {}
-  visitGetStatic(GetStatic node) {
-    processGetStatic(node);
-  }
-
-  processSetStatic(SetStatic node) {}
-  visitSetStatic(SetStatic node) {
-    processSetStatic(node);
-    processReference(node.value);
-    visit(node.body);
   }
 
   processCreateBox(CreateBox node) {}

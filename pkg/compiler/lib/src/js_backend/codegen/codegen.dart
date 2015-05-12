@@ -240,6 +240,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitInvokeConstructor(tree_ir.InvokeConstructor node) {
+    checkStaticTargetIsValid(node, node.target);
     if (node.constant != null) return giveup(node);
 
     registry.registerInstantiatedType(node.type);
@@ -275,14 +276,44 @@ class CodeGenerator extends tree_ir.StatementVisitor
                            visitArguments(node.arguments));
   }
 
+  /// Checks that the target of the static call is not an [ErroneousElement].
+  ///
+  /// This helper should be removed and the code to generate the CPS IR for
+  /// the dart2js backend should construct a call to a helper that throw an
+  /// appropriate error message instead of the static call.
+  ///
+  /// See [SsaBuilder.visitStaticSend] as an example how to do this.
+  void checkStaticTargetIsValid(tree_ir.Node node, Element target) {
+    if (target.isErroneous) {
+      giveup(node, 'cannot generate error handling code'
+                   ' for call to unresolved target');
+    }
+  }
+
   @override
   js.Expression visitInvokeStatic(tree_ir.InvokeStatic node) {
+    checkStaticTargetIsValid(node, node.target);
     Selector selector = node.selector;
-    assert(selector.isGetter || selector.isSetter || selector.isCall);
-    FunctionElement target = node.target;
-    List<js.Expression> arguments = visitArguments(node.arguments);
-    return buildStaticInvoke(selector, target, arguments,
-        sourceInformation: node.sourceInformation);
+    if (node.target is FunctionElement) {
+      assert(selector.isGetter || selector.isSetter || selector.isCall);
+      FunctionElement target = node.target;
+      List<js.Expression> arguments = visitArguments(node.arguments);
+      return buildStaticInvoke(selector, target, arguments,
+          sourceInformation: node.sourceInformation);
+    } else {
+      assert(selector.isGetter || selector.isSetter);
+      FieldElement target = node.target;
+      registry.registerStaticUse(target);
+      js.Expression field = glue.staticFieldAccess(target);
+      if (selector.isGetter) {
+        assert(node.arguments.isEmpty);
+        return field;
+      } else {
+        assert(node.arguments.length == 1);
+        js.Expression value = visitExpression(node.arguments.first);
+        return new js.Assignment(field, value);
+      }
+    }
   }
 
   @override
@@ -585,27 +616,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
             visitExpression(node.object),
             glue.instanceFieldPropertyName(node.field));
     return new js.Assignment(field, visitExpression(node.value));
-  }
-
-  @override
-  js.Expression visitGetStatic(tree_ir.GetStatic node) {
-    assert(node.element is FieldElement || node.element is FunctionElement);
-    if (node.element is FieldElement) {
-      registry.registerStaticUse(node.element.declaration);
-      return glue.staticFieldAccess(node.element);
-    } else {
-      registry.registerGetOfStaticFunction(node.element.declaration);
-      return glue.isolateStaticClosureAccess(node.element);
-    }
-  }
-
-  @override
-  js.Expression visitSetStatic(tree_ir.SetStatic node) {
-    assert(node.element is FieldElement);
-    registry.registerStaticUse(node.element.declaration);
-    js.Expression field = glue.staticFieldAccess(node.element);
-    js.Expression value = visitExpression(node.value);
-    return new js.Assignment(field, value);
   }
 
   js.Expression buildStaticHelperInvocation(FunctionElement helper,

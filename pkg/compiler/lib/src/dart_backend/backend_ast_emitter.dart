@@ -969,21 +969,6 @@ class ASTEmitter
   }
 
   @override
-  Expression visitGetStatic(tree.GetStatic node,
-                            BuilderContext<Statement> context) {
-    return new Identifier(node.element.name)..element = node.element;
-  }
-
-  @override
-  Expression visitSetStatic(tree.SetStatic node,
-                            BuilderContext<Statement> context) {
-    Expression target =
-        new Identifier(node.element.name)..element = node.element;
-    Expression value = visitExpression(node.value, context);
-    return makeAssignment(target, value);
-  }
-
-  @override
   Expression visitTypeExpression(tree.TypeExpression node, arg) {
     throw '$node not supported by dart backend';
   }

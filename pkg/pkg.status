@@ -142,52 +142,52 @@ third_party/di_tests/di_test: Pass, Slow # Issue 22896
 analyzer/test/*: PubGetError
 
 [ $compiler == dart2js && $cps_ir ]
-analysis_server/tool/spec/check_all_test : Crash # bailout: unsupported element kind: context:field
-analyzer/test/cancelable_future_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/enum_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/file_system/memory_file_system_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/file_system/physical_resource_provider_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/file_system/resource_uri_resolver_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/generated/all_the_rest_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/generated/ast_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/generated/compile_time_error_code_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/generated/element_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/generated/incremental_resolver_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/generated/incremental_scanner_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/generated/java_core_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/generated/java_io_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/generated/non_error_resolver_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/generated/parser_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/generated/resolver_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/generated/scanner_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/generated/static_type_warning_code_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/generated/static_warning_code_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/generated/utilities_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/instrumentation/instrumentation_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/parse_compilation_unit_test : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable.
-analyzer/test/source/package_map_provider_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/source/package_map_resolver_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/src/context/cache_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/src/context/context_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/src/task/dart_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/src/task/dart_work_manager_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/src/task/driver_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/src/task/general_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/src/task/incremental_element_builder_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/src/task/inputs_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/src/task/manager_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/src/task/model_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/src/util/asserts_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer/test/src/util/lru_map_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-analyzer2dart/test/driver_test : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable.
-analyzer2dart/test/end2end_test : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable.
-analyzer2dart/test/identifier_semantics_test : Crash # bailout: unsupported element kind: NOT_SDK:field
-analyzer2dart/test/sexpr_test : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable.
-analyzer2dart/test/tree_shaker_test : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable.
-fixnum/test/int_32_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-fixnum/test/int_64_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-js_ast/test/printer_callback_test : Crash # bailout: unsupported element kind: templateManager:field
-stub_core_library/test/stub_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-typed_data/test/typed_buffers_test/01 : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable.
-typed_data/test/typed_buffers_test/none : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable.
-typed_mock/test/typed_mock_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
+analysis_server/tool/spec/check_all_test: Crash # unsupported element kind: context:field
+analyzer/test/cancelable_future_test: Crash #  try/finally
+analyzer/test/enum_test: Crash #  try/finally
+analyzer/test/file_system/memory_file_system_test: Crash #  try/finally
+analyzer/test/file_system/physical_resource_provider_test: Crash #  try/finally
+analyzer/test/file_system/resource_uri_resolver_test: Crash #  try/finally
+analyzer/test/generated/all_the_rest_test: Crash #  try/finally
+analyzer/test/generated/ast_test: Crash #  try/finally
+analyzer/test/generated/compile_time_error_code_test: Crash #  try/finally
+analyzer/test/generated/element_test: Crash #  try/finally
+analyzer/test/generated/incremental_resolver_test: Crash #  try/finally
+analyzer/test/generated/incremental_scanner_test: Crash #  try/finally
+analyzer/test/generated/java_core_test: Crash #  try/finally
+analyzer/test/generated/java_io_test: Crash #  try/finally
+analyzer/test/generated/non_error_resolver_test: Crash #  try/finally
+analyzer/test/generated/parser_test: Crash #  try/finally
+analyzer/test/generated/resolver_test: Crash #  try/finally
+analyzer/test/generated/scanner_test: Crash #  try/finally
+analyzer/test/generated/static_type_warning_code_test: Crash #  try/finally
+analyzer/test/generated/static_warning_code_test: Crash #  try/finally
+analyzer/test/generated/utilities_test: Crash #  try/finally
+analyzer/test/instrumentation/instrumentation_test: Crash #  try/finally
+analyzer/test/parse_compilation_unit_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+analyzer/test/source/package_map_provider_test: Crash #  try/finally
+analyzer/test/source/package_map_resolver_test: Crash #  try/finally
+analyzer/test/src/context/cache_test: Crash #  try/finally
+analyzer/test/src/context/context_test: Crash #  try/finally
+analyzer/test/src/task/dart_test: Crash #  try/finally
+analyzer/test/src/task/dart_work_manager_test: Crash #  try/finally
+analyzer/test/src/task/driver_test: Crash #  try/finally
+analyzer/test/src/task/general_test: Crash #  try/finally
+analyzer/test/src/task/incremental_element_builder_test: Crash #  try/finally
+analyzer/test/src/task/inputs_test: Crash #  try/finally
+analyzer/test/src/task/manager_test: Crash #  try/finally
+analyzer/test/src/task/model_test: Crash #  try/finally
+analyzer/test/src/util/asserts_test: Crash #  try/finally
+analyzer/test/src/util/lru_map_test: Crash #  try/finally
+analyzer2dart/test/driver_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+analyzer2dart/test/end2end_test: Crash # (unittester): handleStaticFunctionGet: function(unittester)
+analyzer2dart/test/identifier_semantics_test: Crash # unsupported element kind: NOT_SDK:field
+analyzer2dart/test/sexpr_test: Crash # (unittester): handleStaticFunctionGet: function(unittester)
+analyzer2dart/test/tree_shaker_test: Crash # (_defaultErrorFormatter): handleStaticFunctionGet: function(_defaultErrorFormatter)
+fixnum/test/int_32_test: Crash #  try/finally
+fixnum/test/int_64_test: Crash #  try/finally
+js_ast/test/printer_callback_test: Crash # (check): handleStaticFunctionGet: function(check)
+stub_core_library/test/stub_test: Crash #  try/finally
+typed_data/test/typed_buffers_test/01: Crash # (roundToFloat): handleStaticFunctionGet: function(roundToFloat)
+typed_data/test/typed_buffers_test/none: Crash # (roundToFloat): handleStaticFunctionGet: function(roundToFloat)
+typed_mock/test/typed_mock_test: Crash #  try/finally

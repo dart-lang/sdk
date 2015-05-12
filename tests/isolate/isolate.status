@@ -123,41 +123,63 @@ mint_maker_test: StaticWarning
 package_root_test: SkipByDesign # Uses dart:io.
 
 [ $compiler == dart2js && $cps_ir ]
-bool_from_environment_default_value_test : RuntimeError
-count_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-cross_isolate_message_test : Crash # bailout: (switch (msg[0]){case "ready1":SendPort toIsolate1=msg[1];Isolate.spawn(crossIsolate2,toIsolate1);break;case "fromIsolate1":expect(msg[1],100);fromIsolate1.close();break;default:fail("unreachable! Tag: ${msg[0]}");}): Unhandled node
-deferred_in_isolate2_test : Crash # bailout: unsupported element kind: _defaultEnvironment:field
-function_send_test : Crash # bailout: (try {p.send(func);}finally {p.send(0);}): try/finally
-handle_error2_test : Crash # bailout: (switch (state){case 1:Expect.equals(new ArgumentError("whoops").toString(),"${error}");state++ ;break;case 2:Expect.equals(new RangeError.value(37).toString(),"${error}");state++ ;reply.close();subscription.cancel();asyncEnd();break;default:throw "Bad state for error: ${state}: ${error}";}): Unhandled node
-handle_error3_test : Crash # bailout: (switch (state2){case 1:Expect.equals(new ArgumentError("whoops").toString(),"${error}");state2++ ;break;case 2:Expect.equals(new RangeError.value(37).toString(),"${error}");state2++ ;reply2.close();isolate2.removeErrorListener(errorPort2.sendPort);errorPort2.close();asyncEnd();break;default:throw "Bad state-2 for error: ${state}: ${error}";}): Unhandled node
-handle_error_test : Crash # bailout: (switch (state){case 1:Expect.equals(new ArgumentError("whoops").toString(),"${error}");state++ ;sendPort.send(state);break;case 2:Expect.equals(new RangeError.value(37).toString(),"${error}");state++ ;sendPort.send(state);reply.close();subscription.cancel();asyncEnd();break;default:throw "Bad state for error: ${state}: ${error}";}): Unhandled node
-illegal_msg_function_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-illegal_msg_mirror_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-int_from_environment_default_value_test : RuntimeError
-isolate_complex_messages_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-isolate_current_test : Crash # bailout: (switch (state){case 0:response.complete(v);state++ ;break;case 1:p.close();Expect.isTrue(v);asyncEnd();}): Unhandled node
-mandel_isolate_test : Crash # bailout: unsupported element kind: _defaultEnvironment:field
-message2_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-message3_test/byteBuffer : Crash # Instance of 'TypeOperator': type check unimplemented for Map.
-message3_test/constInstance : Crash # Assertion failure: Unknown variable: variable(runTests#constF).
-message3_test/constList : Crash # Instance of 'TypeOperator': type check unimplemented for Map.
-message3_test/constList_identical : Crash # Instance of 'TypeOperator': type check unimplemented for Map.
-message3_test/constMap : Crash # Instance of 'TypeOperator': type check unimplemented for Map.
-message3_test/fun : Crash # Instance of 'TypeOperator': type check unimplemented for Map.
-message3_test/int32x4 : Crash # Instance of 'TypeOperator': type check unimplemented for Map.
-message3_test/none : Crash # Instance of 'TypeOperator': type check unimplemented for Map.
-message_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-mint_maker_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-nested_spawn2_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-nested_spawn_test : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable.
-raw_port_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-request_reply_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-spawn_function_custom_class_test : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable.
-spawn_function_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-spawn_uri_multi_test/01 : Crash # bailout: unsupported element kind: _defaultEnvironment:field
-spawn_uri_multi_test/none : Crash # bailout: unsupported element kind: _defaultEnvironment:field
-stacktrace_message_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-static_function_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-string_from_environment_default_value_test : RuntimeError
-timer_isolate_test : Crash # bailout: unsupported element kind: _defaultEnvironment:field
-unresolved_ports_test : Crash # bailout: unsupported element kind: _defaultEnvironment:field
+bool_from_environment_default_value_test: Crash # (test): handleStaticFunctionGet: function(test)
+compile_time_error_test/01: Crash # (entry): handleStaticFunctionGet: function(entry)
+compile_time_error_test/none: Crash # (entry): handleStaticFunctionGet: function(entry)
+count_test: Crash # (main): handleStaticFunctionGet: function(main)
+cross_isolate_message_test: Crash # (main): handleStaticFunctionGet: function(main)
+deferred_in_isolate2_test: Crash # handleStaticFunctionGet: function(loadDeferred)
+function_send_test: Crash # (toplevel): handleStaticFunctionGet: function(toplevel)
+handle_error2_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
+handle_error3_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
+handle_error_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
+illegal_msg_function_test: Crash # (main): handleStaticFunctionGet: function(main)
+illegal_msg_mirror_test: Crash # (main): handleStaticFunctionGet: function(main)
+int_from_environment_default_value_test: Crash # (test): handleStaticFunctionGet: function(test)
+isolate_complex_messages_test: Crash # (main): handleStaticFunctionGet: function(main)
+isolate_current_test: Crash # (i2l): handleStaticFunctionGet: function(i2l)
+isolate_import_test/01: Crash # (entry): handleStaticFunctionGet: function(entry)
+isolate_import_test/none: Crash # (entry): handleStaticFunctionGet: function(entry)
+isolate_stress_test: Crash # (worker): handleStaticFunctionGet: function(worker)
+issue_22778_test: Crash # (func): handleStaticFunctionGet: function(func)
+kill2_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
+kill_self_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
+kill_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
+mandel_isolate_test: Crash # (main): handleStaticFunctionGet: function(main)
+message2_test: Crash # (main): handleStaticFunctionGet: function(main)
+message3_test/byteBuffer: Crash # (echoMain): handleStaticFunctionGet: function(echoMain)
+message3_test/constInstance: Crash # (echoMain): handleStaticFunctionGet: function(echoMain)
+message3_test/constList: Crash # (echoMain): handleStaticFunctionGet: function(echoMain)
+message3_test/constList_identical: Crash # (echoMain): handleStaticFunctionGet: function(echoMain)
+message3_test/constMap: Crash # (echoMain): handleStaticFunctionGet: function(echoMain)
+message3_test/fun: Crash # (echoMain): handleStaticFunctionGet: function(echoMain)
+message3_test/int32x4: Crash # (echoMain): handleStaticFunctionGet: function(echoMain)
+message3_test/none: Crash # (echoMain): handleStaticFunctionGet: function(echoMain)
+message_enum_test: Crash # (sendIt): handleStaticFunctionGet: function(sendIt)
+message_test: Crash # (main): handleStaticFunctionGet: function(main)
+mint_maker_test: Crash # (main): handleStaticFunctionGet: function(main)
+nested_spawn2_test: Crash # (main): handleStaticFunctionGet: function(main)
+nested_spawn_test: Crash # (main): handleStaticFunctionGet: function(main)
+object_leak_test: Crash # (fun): handleStaticFunctionGet: function(fun)
+ondone_test: Crash # (isomain): handleStaticFunctionGet: function(isomain)
+pause_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
+ping_pause_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
+ping_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
+raw_port_test: Crash # (main): handleStaticFunctionGet: function(main)
+request_reply_test: Crash # (main): handleStaticFunctionGet: function(main)
+simple_message_test/01: Crash # (entry): handleStaticFunctionGet: function(entry)
+simple_message_test/none: Crash # (entry): handleStaticFunctionGet: function(entry)
+spawn_function_custom_class_test: Crash # (main): handleStaticFunctionGet: function(main)
+spawn_function_test: Crash # (main): handleStaticFunctionGet: function(main)
+spawn_uri_missing_from_isolate_test: Crash # (isolate): handleStaticFunctionGet: function(isolate)
+spawn_uri_missing_test: Crash # (doTest): handleStaticFunctionGet: function(doTest)
+spawn_uri_multi_test/01: Crash # unsupported element kind: _defaultEnvironment:field
+spawn_uri_multi_test/none: Crash # unsupported element kind: _defaultEnvironment:field
+stacktrace_message_test: Crash # (main): handleStaticFunctionGet: function(main)
+start_paused_test: Crash # (notyet): handleStaticFunctionGet: function(notyet)
+static_function_test: Crash # (main): handleStaticFunctionGet: function(main)
+string_from_environment_default_value_test: Crash # (test): handleStaticFunctionGet: function(test)
+timer_isolate_test: Crash # cannot compile methods that need interceptor calling convention.
+typed_message_test: Crash # (logMessages): handleStaticFunctionGet: function(logMessages)
+unresolved_ports_test: Crash # (main): handleStaticFunctionGet: function(main)
+

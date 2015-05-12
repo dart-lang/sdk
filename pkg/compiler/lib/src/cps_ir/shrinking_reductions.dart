@@ -658,14 +658,6 @@ class ParentVisitor extends RecursiveVisitor {
     node.object.parent = node;
   }
 
-  processGetStatic(GetStatic node) {
-  }
-
-  processSetStatic(SetStatic node) {
-    node.value.parent = node;
-    node.body.parent = node;
-  }
-
   processGetMutableVariable(GetMutableVariable node) {
     node.variable.parent = node;
   }

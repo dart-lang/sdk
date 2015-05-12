@@ -662,17 +662,5 @@ class Builder implements cps_ir.Visitor<Node> {
         node.dartType,
         node.arguments.map(getVariableUse).toList());
   }
-
-  Expression visitGetStatic(cps_ir.GetStatic node) {
-    return new GetStatic(node.element, node.sourceInformation);
-  }
-
-  Statement visitSetStatic(cps_ir.SetStatic node) {
-    SetStatic setStatic = new SetStatic(
-        node.element,
-        getVariableUse(node.value),
-        node.sourceInformation);
-    return new ExpressionStatement(setStatic, visit(node.body));
-  }
 }
 

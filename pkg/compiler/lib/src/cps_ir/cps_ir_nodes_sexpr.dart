@@ -335,18 +335,6 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     return '(GetField $object $field)';
   }
 
-  String visitGetStatic(GetStatic node) {
-    String element = node.element.name;
-    return '(GetStatic $element)';
-  }
-
-  String visitSetStatic(SetStatic node) {
-    String element = node.element.name;
-    String value = access(node.value);
-    String body = indentBlock(() => visit(node.body));
-    return '$indentation(SetStatic $element $value)\n$body';
-  }
-
   String visitCreateBox(CreateBox node) {
     return '(CreateBox)';
   }

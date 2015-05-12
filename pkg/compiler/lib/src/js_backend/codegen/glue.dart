@@ -52,10 +52,6 @@ class Glue {
     return _backend.emitter.staticFunctionAccess(element);
   }
 
-  js.Expression isolateStaticClosureAccess(FunctionElement element) {
-    return _backend.emitter.isolateStaticClosureAccess(element);
-  }
-
   js.Expression staticFieldAccess(FieldElement element) {
     return _backend.emitter.staticFieldAccess(element);
   }

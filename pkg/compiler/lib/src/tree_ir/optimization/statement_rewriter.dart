@@ -593,15 +593,6 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
-  Expression visitGetStatic(GetStatic node) {
-    return node;
-  }
-
-  Expression visitSetStatic(SetStatic node) {
-    node.value = visitExpression(node.value);
-    return node;
-  }
-
   Expression visitCreateBox(CreateBox node) {
     return node;
   }
