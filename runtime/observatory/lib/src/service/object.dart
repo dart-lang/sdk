@@ -1830,7 +1830,15 @@ class Instance extends ServiceObject {
     _loaded = true;
   }
 
-  String get shortName => valueAsString != null ? valueAsString : 'a ${clazz.name}';
+  String get shortName {
+    if (isClosure) {
+      return closureFunc.qualifiedName;
+    }
+    if (valueAsString != null) {
+      return valueAsString;
+    }
+    return 'a ${clazz.name}';
+  }
 
   String toString() => 'Instance($shortName)';
 }
@@ -2068,6 +2076,8 @@ class ScriptLine extends Observable {
   }
   bool _isBlank;
 
+  bool get isTrivialLine => !possibleBpt;
+
   static bool _isTrivialToken(String token) {
     if (token == 'else') {
       return true;
@@ -2088,6 +2098,9 @@ class ScriptLine extends Observable {
   }
 
   static bool _isTrivialLine(String text) {
+    if (text.trimLeft().startsWith('//')) {
+      return true;
+    }
     var wsTokens = text.split(new RegExp(r"(\s)+"));
     for (var wsToken in wsTokens) {
       var tokens = wsToken.split(new RegExp(r"(\b)"));
@@ -2173,6 +2186,14 @@ class CallSiteEntry {
   }
 
   String toString() => "CallSiteEntry(${receiverContainer.name}, $count)";
+}
+
+/// The location of a local variable reference in a script.
+class LocalVarLocation {
+  final int line;
+  final int column;
+  final int endColumn;
+  LocalVarLocation(this.line, this.column, this.endColumn);
 }
 
 class Script extends ServiceObject with Coverage {
@@ -2330,6 +2351,120 @@ class Script extends ServiceObject with Coverage {
     if (line != null) {
       getLine(line).removeBreakpoint(bpt);
     }
+  }
+
+  List<LocalVarLocation> scanLineForLocalVariableLocations(Pattern pattern,
+                                                            String name,
+                                                            String lineContents,
+                                                            int lineNumber,
+                                                            int columnOffset) {
+    var r = <LocalVarLocation>[];
+
+    pattern.allMatches(lineContents).forEach((Match match) {
+      // We have a match but our regular expression may have matched extra
+      // characters on either side of the name. Tighten the location.
+      var nameStart = match.input.indexOf(name, match.start);
+      var column = nameStart + columnOffset;
+      var endColumn = column + name.length;
+      var localVarLocation = new LocalVarLocation(lineNumber,
+                                                  column,
+                                                  endColumn);
+      r.add(localVarLocation);
+    });
+
+    return r;
+  }
+
+  List<LocalVarLocation> scanForLocalVariableLocations(String name,
+                                                       int tokenPos,
+                                                       int endTokenPos) {
+    // A pattern that matches:
+    // start of line OR non-(alpha numeric OR period) character followed by
+    // name followed by
+    // a non-alpha numerc character.
+    //
+    // NOTE: This pattern can over match on both ends. This is corrected for
+    // [scanLineForLocalVariableLocationse].
+    var pattern = new RegExp("(^|[^A-Za-z0-9\.])$name[^A-Za-z0-9]");
+
+    // Result.
+    var r = <LocalVarLocation>[];
+
+    // Limits.
+    final lastLine = tokenToLine(endTokenPos);
+    if (lastLine == null) {
+      return r;
+    }
+    
+    final lastColumn = tokenToCol(endTokenPos);
+    if (lastColumn == null) {
+      return r;
+    }
+    // Current scan position.
+    var line = tokenToLine(tokenPos);
+    if (line == null) {
+      return r;
+    }
+    var column = tokenToCol(tokenPos);
+    if (column == null) {
+      return r;
+    }
+
+    // Move back by name length.
+    // TODO(johnmccutchan): Fix LocalVarDescriptor to set column before the
+    // identifier name.
+    column = math.max(0, column - name.length);
+
+    var lineContents;
+
+    if (line == lastLine) {
+      // Only one line.
+      if (!getLine(line).isTrivialLine) {
+        lineContents = getLine(line).text.substring(column, lastColumn - 1);
+        return scanLineForLocalVariableLocations(pattern,
+                                                  name,
+                                                  lineContents,
+                                                  line,
+                                                  column);
+      }
+    }
+
+    // Scan first line.
+    if (!getLine(line).isTrivialLine) {
+      lineContents = getLine(line).text.substring(column);
+      r.addAll(scanLineForLocalVariableLocations(pattern,
+                                                  name,
+                                                  lineContents,
+                                                  line++,
+                                                  column));
+    }
+
+    // Scan middle lines.
+    while (line < (lastLine - 1)) {
+      if (getLine(line).isTrivialLine) {
+        line++;
+        continue;
+      }
+      lineContents = getLine(line).text;
+      r.addAll(
+          scanLineForLocalVariableLocations(pattern,
+                                             name,
+                                             lineContents,
+                                             line++,
+                                             0));
+    }
+
+    // Scan last line.
+    if (!getLine(line).isTrivialLine) {
+      lineContents = getLine(line).text.substring(0, lastColumn - 1);
+      r.addAll(
+          scanLineForLocalVariableLocations(pattern,
+                                             name,
+                                             lineContents,
+                                             line,
+                                             0));
+    }
+    return r;
   }
 }
 

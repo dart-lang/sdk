@@ -4,6 +4,7 @@
 
 library utils;
 
+import 'dart:async';
 import 'dart:math';
 
 class Utils {
@@ -139,4 +140,25 @@ class Utils {
   }
 
   static bool runningInJavaScript() => identical(1.0, 1);
+}
+
+/// A [Task] that can be scheduled on the Dart event queue.
+class Task {
+  Timer _timer;
+  final Function callback;
+
+  Task(this.callback);
+
+  /// Queue [this] to run on the next Dart event queue pump. Does nothing
+  /// if [this] is already queued.
+  queue() {
+    if (_timer != null) {
+      // Already scheduled.
+      return;
+    }
+    _timer = new Timer(Duration.ZERO, () {
+     _timer = null;
+     callback();
+    });
+  }
 }

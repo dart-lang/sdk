@@ -6,6 +6,7 @@ library service;
 
 import 'dart:async';
 import 'dart:typed_data';
+import 'dart:math' as math;
 
 import 'package:logging/logging.dart';
 import 'package:observatory/cpu_profile.dart';

@@ -250,11 +250,12 @@
           <div class="flex-row">
             <div class="flex-item-60-percent">
               <script-inset height="{{ scriptHeight }}"
-			    script="{{ frame['function'].script }}"
+                            script="{{ frame['function'].script }}"
                             startPos="{{ frame['function'].tokenPos }}"
                             endPos="{{ frame['function'].endTokenPos }}"
                             currentPos="{{ frame['tokenPos'] }}"
-                            inDebuggerContext="{{ true }}">
+                            inDebuggerContext="{{ true }}"
+                            variables="{{ frame['vars'] }}">
               </script-inset>
             </div>
             <div class="flex-item-40-percent">

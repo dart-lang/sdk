@@ -910,10 +910,13 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj,
       JSONObject jsvar(&jsvars);
       String& var_name = String::Handle();
       Instance& var_value = Instance::Handle();
-      intptr_t unused;
-      VariableAt(v, &var_name, &unused, &unused, &var_value);
+      intptr_t token_pos;
+      intptr_t end_token_pos;
+      VariableAt(v, &var_name, &token_pos, &end_token_pos, &var_value);
       jsvar.AddProperty("name", var_name.ToCString());
       jsvar.AddProperty("value", var_value, !full);
+      jsvar.AddProperty("tokenPos", token_pos);
+      jsvar.AddProperty("endTokenPos", end_token_pos);
     }
   }
 }
