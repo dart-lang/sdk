@@ -125,6 +125,7 @@ compile_time_error_test/01: Crash # (entry): handleStaticFunctionGet: function(e
 compile_time_error_test/none: Crash # (entry): handleStaticFunctionGet: function(entry)
 count_test: Crash # (main): handleStaticFunctionGet: function(main)
 cross_isolate_message_test: Crash # (main): handleStaticFunctionGet: function(main)
+deferred_in_isolate2_test: Crash # handleStaticFunctionGet: function(loadDeferred)
 function_send_test: Crash # (toplevel): handleStaticFunctionGet: function(toplevel)
 handle_error2_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
 handle_error3_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
