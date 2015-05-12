@@ -101,7 +101,7 @@ class Group implements Comparable<Group> {
           'https://www.dartlang.org/articles/style-guide/'));
 
   /// List of builtin groups in presentation order.
-  static Iterable<Group> get builtin => [errors, style, pub];
+  static const Iterable<Group> builtin = const [errors, style, pub];
 
   final String name;
   final bool custom;
