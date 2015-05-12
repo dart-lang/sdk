@@ -78,6 +78,7 @@ static struct {
   const char* name;
 } factory_recognizer_list[] = {
   RECOGNIZED_LIST_FACTORY_LIST(RECOGNIZE_FACTORY)
+  { Symbols::kIllegal, -1, -1, NULL }
 };
 
 #undef RECOGNIZE_FACTORY
