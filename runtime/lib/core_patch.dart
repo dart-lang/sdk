@@ -8,7 +8,6 @@ import "dart:typed_data";
 // Equivalent of calling FATAL from C++ code.
 _fatal(msg) native "DartCore_fatal";
 
-
 // We need to pass the exception and stack trace objects as second and third
 // parameter to the continuation.  See vm/ast_transformer.cc for usage.
 void  _asyncCatchHelper(catchFunction, continuation) {

@@ -4,7 +4,47 @@
 
 part of _js_helper;
 
+class ConstantMapView<K, V> extends UnmodifiableMapView
+                      implements ConstantMap {
+ ConstantMapView(Map base) : super(base);
+}
+
 abstract class ConstantMap<K, V> implements Map<K, V> {
+  // Used to create unmodifiable maps from other maps.
+  factory ConstantMap.from(Map other) {
+    List keys = other.keys.toList();
+    bool allStrings = true;
+    for (var k in keys) {
+      if (k is! String) {
+        allStrings = false;
+        break;
+      }
+    }
+    if (allStrings) {
+      bool containsProto = false;
+      var protoValue = null;
+      var object = JS('=Object', '{}');
+      int length = 0;
+      for (var k in keys) {
+        var v = other[k];
+        if (k != "__proto__") {
+          if (!jsHasOwnProperty(object, k)) length++;
+          JS("void", "#[#] = #", object, k, v);
+        } else {
+          containsProto = true;
+          protoValue = v;
+        }
+      }
+      if (containsProto) {
+        length++;
+        return new ConstantProtoMap<K, V>._(length, object, keys, protoValue);
+      }
+      return new ConstantStringMap<K, V>._(length, object, keys);
+    }
+    // TODO(lrn): Make a proper unmodifiable map implementation.
+    return new ConstantMapView<K, V>(new Map.from(other));
+  }
+
   const ConstantMap._();
 
   bool get isEmpty => length == 0;
@@ -13,7 +53,7 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
 
   String toString() => Maps.mapToString(this);
 
-  _throwUnmodifiable() {
+  static _throwUnmodifiable() {
     throw new UnsupportedError("Cannot modify unmodifiable Map");
   }
   void operator []=(K key, V val) => _throwUnmodifiable();
@@ -25,8 +65,8 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
 
 class ConstantStringMap<K, V> extends ConstantMap<K, V> {
 
-  // This constructor is not used.  The instantiation is shortcut by the
-  // compiler. It is here to make the uninitialized final fields legal.
+  // This constructor is not used for actual compile-time constants.
+  // The instantiation of constant maps is shortcut by the compiler.
   const ConstantStringMap._(this.length, this._jsObject, this._keys)
       : super._();
 

@@ -172,7 +172,7 @@ patch class int {
 
   // For each radix, 2-36, how many digits are guaranteed to fit in a smi,
   // and magnitude of such a block (radix ** digit-count).
-  // 32-bit limit/multiplier at (radix - 2)*4, 64-bit limit at (radix-2)*4+1
+  // 32-bit limit/multiplier at (radix - 2)*4, 64-bit limit at (radix-2)*4+2
   static const _PARSE_LIMITS = const [
     30, 1073741824,  62, 4611686018427387904,  /* radix: 2 */
     18,  387420489,  39, 4052555153018976267,

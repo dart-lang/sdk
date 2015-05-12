@@ -13,6 +13,7 @@ import 'dart:_js_helper' show patch,
                               jsonEncodeNative,
                               JSSyntaxRegExp,
                               Primitives,
+                              ConstantMap,
                               stringJoinUnchecked,
                               objectHashCode;
 
@@ -285,6 +286,12 @@ class List<E> {
     List result = new List<E>.from(elements, growable: false);
     return makeFixedListUnmodifiable(result);
   }
+}
+
+@patch
+class Map<K, V> {
+  @patch
+  factory Map.unmodifiable(Map other) = ConstantMap<K, V>.from;
 }
 
 @patch
