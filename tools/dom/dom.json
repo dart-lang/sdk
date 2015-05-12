@@ -16648,29 +16648,14 @@
       "DOM_DELTA_PAGE": {},
       "DOM_DELTA_PIXEL": {},
       "deltaMode": {},
-      "deltaX": {
-        "support_level": "untriaged"
-      },
-      "deltaY": {
-        "support_level": "untriaged"
-      },
-      "deltaZ": {
-        "support_level": "untriaged"
-      },
+      "deltaX": {},
+      "deltaY": {},
+      "deltaZ": {},
       "initWebKitWheelEvent": {
         "support_level": "experimental"
       },
       "webkitDirectionInvertedFromDevice": {
         "support_level": "experimental"
-      },
-      "wheelDelta": {
-        "support_level": "nonstandard"
-      },
-      "wheelDeltaX": {
-        "support_level": "nonstandard"
-      },
-      "wheelDeltaY": {
-        "support_level": "nonstandard"
       }
     },
     "support_level": "stable"

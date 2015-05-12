@@ -185,8 +185,6 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
     'CSSKeyframesRule':
         'CSSKeyframesRule,MozCSSKeyframesRule,WebKitCSSKeyframesRule',
 
-    'WheelEvent': 'WheelEvent,MouseWheelEvent,MouseScrollEvent',
-
 }, dart2jsOnly=True)
 
 def IsRegisteredType(type_name):

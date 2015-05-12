@@ -92,8 +92,6 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'URL.revokeObjectURL',
     'URL.toString',
     'WheelEvent.deltaMode',
-    'WheelEvent.wheelDeltaX',
-    'WheelEvent.wheelDeltaY',
     'Window.cancelAnimationFrame',
     'Window.console',
     'Window.document',

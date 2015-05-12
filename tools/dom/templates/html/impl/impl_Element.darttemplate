@@ -942,18 +942,7 @@ $if DART2JS
       const _CustomEventStreamProvider<WheelEvent>(
         Element._determineMouseWheelEventType);
 
-  static String _determineMouseWheelEventType(EventTarget e) {
-    if (JS('bool', '#.onwheel !== undefined', e)) {
-      // W3C spec, and should be IE9+, but IE has a bug exposing onwheel.
-      return 'wheel';
-    } else if (JS('bool', '#.onmousewheel !== undefined', e)) {
-      // Chrome & IE
-      return 'mousewheel';
-    } else {
-      // Firefox
-      return 'DOMMouseScroll';
-    }
-  }
+  static String _determineMouseWheelEventType(EventTarget e) => 'wheel';
 
   /**
    * Static factory designed to expose `transitionend` events to event

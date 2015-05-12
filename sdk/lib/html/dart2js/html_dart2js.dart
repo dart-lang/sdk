@@ -2611,14 +2611,23 @@ class Comment extends CharacterData {
 class CompositionEvent extends UIEvent {
   factory CompositionEvent(String type,
       {bool canBubble: false, bool cancelable: false, Window view,
-      String data}) {
+      String data, String locale}) {
     if (view == null) {
       view = window;
     }
     var e = document._createEvent("CompositionEvent");
-    e._initCompositionEvent(type, canBubble, cancelable, view, data);
+
+    if (Device.isFirefox) {
+      // Firefox requires the locale parameter that isn't supported elsewhere.
+      JS('void', '#.initCompositionEvent(#, #, #, #, #, #)',
+          e, type, canBubble, cancelable, view, data, locale);
+    } else {
+      e._initCompositionEvent(type, canBubble, cancelable, view, data);
+    }
+
     return e;
   }
+
   // To suppress missing implicit constructor warnings.
   factory CompositionEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -12814,18 +12823,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
       const _CustomEventStreamProvider<WheelEvent>(
         Element._determineMouseWheelEventType);
 
-  static String _determineMouseWheelEventType(EventTarget e) {
-    if (JS('bool', '#.onwheel !== undefined', e)) {
-      // W3C spec, and should be IE9+, but IE has a bug exposing onwheel.
-      return 'wheel';
-    } else if (JS('bool', '#.onmousewheel !== undefined', e)) {
-      // Chrome & IE
-      return 'mousewheel';
-    } else {
-      // Firefox
-      return 'DOMMouseScroll';
-    }
-  }
+  static String _determineMouseWheelEventType(EventTarget e) => 'wheel';
 
   /**
    * Static factory designed to expose `transitionend` events to event
@@ -31566,78 +31564,45 @@ class WebSocket extends EventTarget {
 
 
 @DomName('WheelEvent')
-@Native("WheelEvent,MouseWheelEvent,MouseScrollEvent")
+@Native("WheelEvent")
 class WheelEvent extends MouseEvent {
 
   factory WheelEvent(String type,
-      {Window view, int deltaX: 0, int deltaY: 0,
+      {Window view, int deltaX: 0, int deltaY: 0, int deltaZ: 0,
+      int deltaMode: 0,
       int detail: 0, int screenX: 0, int screenY: 0, int clientX: 0,
       int clientY: 0, int button: 0, bool canBubble: true,
       bool cancelable: true, bool ctrlKey: false, bool altKey: false,
       bool shiftKey: false, bool metaKey: false, EventTarget relatedTarget}) {
+
+    var options = {
+      'view': view,
+      'deltaMode': deltaMode,
+      'deltaX': deltaX,
+      'deltaY': deltaY,
+      'deltaZ': deltaZ,
+      'detail': detail,
+      'screenX': screenX,
+      'screenY': screenY,
+      'clientX': clientX,
+      'clientY': clientY,
+      'button': button,
+      'bubbles': canBubble,
+      'cancelable': cancelable,
+      'ctrlKey': ctrlKey,
+      'altKey': altKey,
+      'shiftKey': shiftKey,
+      'metaKey': metaKey,
+      'relatedTarget': relatedTarget,
+    };
+
     if (view == null) {
       view = window;
     }
-    var eventType = 'WheelEvent';
-    if (Device.isFirefox) {
-      eventType = 'MouseScrollEvents';
-    }
-    final event = document._createEvent(eventType);
-    // If polyfilling, then flip these because we'll flip them back to match
-    // the W3C standard:
-    // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaY
-    if (JS('bool', '#.deltaY === undefined', event)) {
-      deltaX = -deltaX;
-      deltaY = -deltaY;
-    }
-    if (event._hasInitWheelEvent) {
-      var modifiers = [];
-      if (ctrlKey) {
-        modifiers.push('Control');
-      }
-      if (altKey) {
-        modifiers.push('Alt');
-      }
-      if (shiftKey) {
-        modifiers.push('Shift');
-      }
-      if (metaKey) {
-        modifiers.push('Meta');
-      }
-      event._initWheelEvent(type, canBubble, cancelable, view, detail, screenX,
-          screenY, clientX, clientY, button, relatedTarget, modifiers.join(' '),
-          deltaX, deltaY, 0, 0);
-    } else if (event._hasInitMouseScrollEvent) {
-      var axis = 0;
-      var detail = 0;
-      if (deltaX != 0 && deltaY != 0) {
-        throw new UnsupportedError(
-            'Cannot modify deltaX and deltaY simultaneously');
-      }
-      if (deltaY != 0) {
-        detail = deltaY;
-        axis = JS('int', 'MouseScrollEvent.VERTICAL_AXIS');
-      } else if (deltaX != 0) {
-        detail = deltaX;
-        axis = JS('int', 'MouseScrollEvent.HORIZONTAL_AXIS');
-      }
-      event._initMouseScrollEvent(type, canBubble, cancelable, view, detail,
-          screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
-          metaKey, button, relatedTarget, axis);
-    } else {
-      // Chrome does an auto-convert to pixels.
-      deltaY = deltaY ~/ 120;
+    
+    return JS('WheelEvent', 'new WheelEvent(#, #)',
+        type, convertDartToNative_Dictionary(options));
 
-      event._initMouseEvent(type, canBubble, cancelable, view, detail,
-          screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
-          metaKey, button, relatedTarget);
-      JS('void', '#.initWebKitWheelEvent(#, #, #, #, #, #, #, #, #, #, #)',
-          event, deltaX, deltaY,
-          view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
-          metaKey);
-    }
-
-    return event;
   }
 
   // To suppress missing implicit constructor warnings.
@@ -31658,18 +31623,15 @@ class WheelEvent extends MouseEvent {
   @JSName('deltaX')
   @DomName('WheelEvent.deltaX')
   @DocsEditable()
-  @Experimental() // untriaged
   final double _deltaX;
 
   @JSName('deltaY')
   @DomName('WheelEvent.deltaY')
   @DocsEditable()
-  @Experimental() // untriaged
   final double _deltaY;
 
   @DomName('WheelEvent.deltaZ')
   @DocsEditable()
-  @Experimental() // untriaged
   final double deltaZ;
 
 
@@ -31686,24 +31648,6 @@ class WheelEvent extends MouseEvent {
     if (JS('bool', '#.deltaY !== undefined', this)) {
       // W3C WheelEvent
       return this._deltaY;
-    } else if (JS('bool', '#.wheelDelta !== undefined', this)) {
-      // Chrome and IE
-      return -this._wheelDelta;
-    } else if (JS('bool', '#.detail !== undefined', this)) {
-      // Firefox
-
-      // Handle DOMMouseScroll case where it uses detail and the axis to
-      // differentiate.
-      if (JS('bool', '#.axis == MouseScrollEvent.VERTICAL_AXIS', this)) {
-        var detail = this._detail;
-        // Firefox is normally the number of lines to scale (normally 3)
-        // so multiply it by 40 to get pixels to move, matching IE & WebKit.
-        if (detail.abs() < 100) {
-          return -detail * 40;
-        }
-        return -detail;
-      }
-      return 0;
     }
     throw new UnsupportedError(
         'deltaY is not supported');
@@ -31722,26 +31666,6 @@ class WheelEvent extends MouseEvent {
     if (JS('bool', '#.deltaX !== undefined', this)) {
       // W3C WheelEvent
       return this._deltaX;
-    } else if (JS('bool', '#.wheelDeltaX !== undefined', this)) {
-      // Chrome
-      return -this._wheelDeltaX;
-    } else if (JS('bool', '#.detail !== undefined', this)) {
-      // Firefox and IE.
-      // IE will have detail set but will not set axis.
-
-      // Handle DOMMouseScroll case where it uses detail and the axis to
-      // differentiate.
-      if (JS('bool', '#.axis !== undefined && '
-        '#.axis == MouseScrollEvent.HORIZONTAL_AXIS', this, this)) {
-        var detail = this._detail;
-        // Firefox is normally the number of lines to scale (normally 3)
-        // so multiply it by 40 to get pixels to move, matching IE & WebKit.
-        if (detail < 100) {
-          return -detail * 40;
-        }
-        return -detail;
-      }
-      return 0;
     }
     throw new UnsupportedError(
         'deltaX is not supported');

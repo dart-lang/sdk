@@ -814,6 +814,8 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Touch.get:webkitRadiusY',
     'Touch.get:webkitForce',
     'WheelEvent.wheelDelta',
+    'WheelEvent.wheelDeltaX',
+    'WheelEvent.wheelDeltaY',
     'Window.on:wheel',
     'WindowEventHandlers.on:beforeUnload',
     'WorkerGlobalScope.webkitIndexedDB',

@@ -15,11 +15,11 @@ eventTest(String name, Event eventFn(), void validate(Event),
   test(name, () {
     final el = new Element.tag('div');
     var fired = false;
-    el.on[type].add((ev) {
+    el.on[type].listen((ev) {
       fired = true;
       validate(ev);
     });
-    el.on[type].dispatch(eventFn());
+    el.dispatchEvent(eventFn());
     expect(fired, isTrue, reason: 'Expected event to be dispatched.');
   });
 }
@@ -49,9 +49,9 @@ main() {
   // });
 
   eventTest('CompositionEvent',
-      () => new CompositionEvent('compositionstart', window, 'data'),
+      () => new CompositionEvent('compositionstart', view: window, data: 'data'),
       (ev) { expect(ev.data, 'data'); },
-      type: 'compositionstart');
+      'compositionstart');
 
   // initCustomEvent is not yet implemented
   // eventTest('CustomEvent',
@@ -60,7 +60,9 @@ main() {
 
   // DeviceMotionEvent has no properties to itself, so just test that it doesn't
   // error out on creation and can be dispatched.
-  eventTest('DeviceMotionEvent', () => new DeviceMotionEvent('foo'), (ev) {});
+  // Suppress. DeviceMotion has no constructor, and I don't think it can be
+  // created on a non-mobile device. Issue 23321
+  // eventTest('DeviceMotionEvent', () => new DeviceMotionEvent('foo'), (ev) {});
 
   // initDeviceOrientationEvent is not yet implemented
   // eventTest('DeviceOrientationEvent',
@@ -89,31 +91,21 @@ main() {
   });
 
   eventTest('HashChangeEvent',
-      () => new HashChangeEvent('foo', 'http://old.url', 'http://new.url'),
-      (ev) {
-    expect(ev.oldUrl, equals('http//old.url'));
+      () => new HashChangeEvent('foo', oldUrl: 'http://old.url',
+          newUrl: 'http://new.url'), (ev) {
+    expect(ev.oldUrl, equals('http://old.url'));
     expect(ev.newUrl, equals('http://new.url'));
   });
 
-  eventTest('KeyboardEvent',
-      () => new KeyboardEvent('foo', window, 'key', 10, ctrlKey: true,
-          altKey: true, shiftKey: true, metaKey: true, altGraphKey: true),
-      (ev) {
-    expect.equals(ev.keyIdentifier, equals('key'));
-    expect.equals(ev.keyLocation, equals(10));
-    expect(ev.ctrlKey, isTrue);
-    expect(ev.altKey, isTrue);
-    expect(ev.shiftKey, isTrue);
-    expect(ev.metaKey, isTrue);
-    expect(ev.altGraphKey, isTrue);
-  });
+  // KeyboardEvent has its own test file, and has cross-browser issues.
 
   eventTest('MouseEvent',
       // canBubble and cancelable are currently required to avoid dartc
       // complaining about the types of the named arguments.
-      () => new MouseEvent('foo', window, 1, 2, 3, 4, 5, 6, canBubble: true,
+      () => new MouseEvent('foo', view: window, detail: 1, screenX: 2,
+          screenY: 3, clientX: 4, clientY: 5, button: 6, canBubble: true,
           cancelable: true, ctrlKey: true, altKey: true, shiftKey: true,
-          metaKey: true, relatedTarget: new Element.tag('div')),
+          metaKey: true, relatedTarget: document.body),
       (ev) {
     expect(ev.detail, 1);
     expect(ev.screen.x, 2);
@@ -127,24 +119,7 @@ main() {
     expect(ev.altKey, isTrue);
     expect(ev.shiftKey, isTrue);
     expect(ev.metaKey, isTrue);
-    expect(ev.relatedTarget.tagName, 'DIV');
-  });
-
-  eventTest('MutationEvent',
-      () => new MutationEvent('foo', new Element.tag('div'), 'red', 'blue',
-          'color', MutationEvent.MODIFICATION),
-      (ev) {
-    expect(ev.relatedNode.tagName, 'DIV');
-    expect.equals(ev.prevValue, 'red');
-    expect.equals(ev.newValue, 'blue');
-    expect.equals(ev.attrName, 'color');
-    expect.equals(ev.attrChange, equals(MutationEvent.MODIFICATION));
-  });
-
-  test('DOMMutationEvent', () {
-    var div = new DivElement();
-    div.on['DOMSubtreeModified'].add(expectAsync((DOMMutationEvent e) {}));
-    div.append(new SpanElement());
+    expect(ev.relatedTarget, document.body);
   });
 
   // Issue 1005.
@@ -178,20 +153,17 @@ main() {
   // });
 
   eventTest('StorageEvent',
-      () => new StorageEvent('foo', 'key', 'http://example.url',
-          window.localStorage, canBubble: true, cancelable: true,
+      () => new StorageEvent('foo', key: 'key', url: 'http://example.url',
+          storageArea: window.localStorage, canBubble: true, cancelable: true,
           oldValue: 'old', newValue: 'new'),
       (ev) {
     expect(ev.key, 'key');
     expect(ev.url, 'http://example.url');
     // Equality isn't preserved for storageArea
-    expect.isNotNull(ev.storageArea);
+    expect(ev.storageArea, isNotNull);
     expect(ev.oldValue, 'old');
     expect(ev.newValue, 'new');
   });
-
-  eventTest('TextEvent', () => new TextEvent('foo', window, 'data'),
-      (ev) { expect(ev.data, 'data'); });
 
   // Issue 1005.
   // eventTest('TransitionEvent', () => new TransitionEvent('foo', 'color', 0.5),
@@ -200,19 +172,19 @@ main() {
   //   expect(ev.elapsedTime, 0.5);
   // });
 
-  eventTest('UIEvent', () => new UIEvent('foo', window, 12),
+  eventTest('UIEvent', () => new UIEvent('foo', view: window, detail: 12),
       (ev) {
-    expect(window, ev.view, window);
-    expect(12, ev.detail, 12);
+    expect(window, ev.view);
+    expect(12, ev.detail);
   });
 
   eventTest('WheelEvent',
-      () => new WheelEvent(1, 2, window, 3, 4, 5, 6, ctrlKey: true,
-          altKey: true, shiftKey: true, metaKey: true),
+      () => new WheelEvent("mousewheel", view: window, deltaX: 1, deltaY: 0,
+          detail: 4, screenX: 3, screenY: 4, clientX: 5, clientY: 6,
+          ctrlKey: true, altKey: true, shiftKey: true, metaKey: true),
       (ev) {
-    // wheelDelta* properties are multiplied by 120 for some reason
-    expect(ev.wheelDeltaX, 120);
-    expect(ev.wheelDeltaY, 240);
+    expect(ev.deltaX, 1);
+    expect(ev.deltaY, 0);
     expect(ev.screen.x, 3);
     expect(ev.screen.y, 4);
     expect(ev.client.x, 5);
@@ -221,5 +193,5 @@ main() {
     expect(ev.altKey, isTrue);
     expect(ev.shiftKey, isTrue);
     expect(ev.metaKey, isTrue);
-  }, type: 'mousewheel');
+  }, 'mousewheel');
 }

@@ -3476,14 +3476,17 @@ class Comment extends CharacterData {
 class CompositionEvent extends UIEvent {
   factory CompositionEvent(String type,
       {bool canBubble: false, bool cancelable: false, Window view,
-      String data}) {
+      String data, String locale}) {
     if (view == null) {
       view = window;
     }
     var e = document._createEvent("CompositionEvent");
-    e._initCompositionEvent(type, canBubble, cancelable, view, data);
+
+      e._initCompositionEvent(type, canBubble, cancelable, view, data);
+
     return e;
   }
+
   // To suppress missing implicit constructor warnings.
   factory CompositionEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -32956,15 +32959,19 @@ class WebSocket extends EventTarget {
 class WheelEvent extends MouseEvent {
 
   factory WheelEvent(String type,
-      {Window view, int deltaX: 0, int deltaY: 0,
+      {Window view, int deltaX: 0, int deltaY: 0, int deltaZ: 0,
+      int deltaMode: 0,
       int detail: 0, int screenX: 0, int screenY: 0, int clientX: 0,
       int clientY: 0, int button: 0, bool canBubble: true,
       bool cancelable: true, bool ctrlKey: false, bool altKey: false,
       bool shiftKey: false, bool metaKey: false, EventTarget relatedTarget}) {
+
     var options = {
       'view': view,
+      'deltaMode': deltaMode,
       'deltaX': deltaX,
       'deltaY': deltaY,
+      'deltaZ': deltaZ,
       'detail': detail,
       'screenX': screenX,
       'screenY': screenY,
@@ -32979,6 +32986,7 @@ class WheelEvent extends MouseEvent {
       'metaKey': metaKey,
       'relatedTarget': relatedTarget,
     };
+
     return _blink.BlinkWheelEvent.constructorCallback_2(type, options);
   }
 
@@ -33003,28 +33011,15 @@ class WheelEvent extends MouseEvent {
 
   @DomName('WheelEvent.deltaX')
   @DocsEditable()
-  @Experimental() // untriaged
   double get _deltaX => _blink.BlinkWheelEvent.instance.deltaX_Getter_(this);
 
   @DomName('WheelEvent.deltaY')
   @DocsEditable()
-  @Experimental() // untriaged
   double get _deltaY => _blink.BlinkWheelEvent.instance.deltaY_Getter_(this);
 
   @DomName('WheelEvent.deltaZ')
   @DocsEditable()
-  @Experimental() // untriaged
   double get deltaZ => _blink.BlinkWheelEvent.instance.deltaZ_Getter_(this);
-
-  @DomName('WheelEvent.wheelDeltaX')
-  @DocsEditable()
-  @Experimental() // non-standard
-  int get wheelDeltaX => _blink.BlinkWheelEvent.instance.wheelDeltaX_Getter_(this);
-
-  @DomName('WheelEvent.wheelDeltaY')
-  @DocsEditable()
-  @Experimental() // non-standard
-  int get wheelDeltaY => _blink.BlinkWheelEvent.instance.wheelDeltaY_Getter_(this);
 
 
   /**

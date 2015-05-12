@@ -9,13 +9,26 @@ part of $LIBRARYNAME;
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   factory $CLASSNAME(String type,
       {bool canBubble: false, bool cancelable: false, Window view,
-      String data}) {
+      String data, String locale}) {
     if (view == null) {
       view = window;
     }
     var e = document._createEvent("CompositionEvent");
-    e._initCompositionEvent(type, canBubble, cancelable, view, data);
+
+$if DART2JS
+    if (Device.isFirefox) {
+      // Firefox requires the locale parameter that isn't supported elsewhere.
+      JS('void', '#.initCompositionEvent(#, #, #, #, #, #)',
+          e, type, canBubble, cancelable, view, data, locale);
+    } else {
+      e._initCompositionEvent(type, canBubble, cancelable, view, data);
+    }
+$else
+      e._initCompositionEvent(type, canBubble, cancelable, view, data);
+$endif
+
     return e;
   }
+
 $!MEMBERS
 }
