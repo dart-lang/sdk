@@ -260,10 +260,10 @@ main(arguments) {
             // answer as computeHashFromFile.
             hash = computeHash(new File(outPath).readAsStringSync());
           }
-          query = 'script[src="cached/$hash/$filepath"]';
+          query = 'script[src="$filepath?____cached=$hash"]';
         } else {
           var hash = computeHashFromFile(outPath);
-          query = 'link[href="cached/$hash/$filepath"]';
+          query = 'link[href="$filepath?____cached=$hash"]';
         }
         expect(doc.querySelector(query), isNotNull,
             reason: "should find `$query` in $htmlPath for $outPath");

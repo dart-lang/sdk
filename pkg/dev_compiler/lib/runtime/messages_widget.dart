@@ -15,7 +15,10 @@ import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:dev_compiler/src/summary.dart';
 
-main() async => displayMessages(await HttpRequest.getString('messages.json'));
+main() async {
+  await window.animationFrame;
+  displayMessages(await HttpRequest.getString('messages.json'));
+}
 
 void displayMessages(String data) {
   var summary = GlobalSummary.parse(JSON.decode(data));

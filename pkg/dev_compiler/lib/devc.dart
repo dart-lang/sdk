@@ -290,22 +290,16 @@ class CompilerServer {
     if (isEntryPage) compiler._runAgain();
 
     // To help browsers cache resources that don't change, we serve these
-    // resources under a path containing their hash:
-    //    /cached/{hash}/{path-to-file.js}
-    bool isCached = segments.length > 1 && segments[0] == 'cached';
-    if (isCached) {
-      // Changing the request lets us record that the hash prefix is handled
-      // here, and that the underlying handler should use the rest of the url to
-      // determine where to find the resource in the file system.
-      request = request.change(path: path.join('cached', segments[1]));
-    }
+    // resources by adding a query parameter containing their hash:
+    //    /{path-to-file.js}?____cached={hash}
+    var hash = request.url.queryParameters['____cached'];
     var response = handler(request);
-    var policy = isCached ? 'max-age=${24 * 60 * 60}' : 'no-cache';
+    var policy = hash != null ? 'max-age=${24 * 60 * 60}' : 'no-cache';
     var headers = {'cache-control': policy};
-    if (isCached) {
+    if (hash != null) {
       // Note: the cache-control header should be enough, but this doesn't hurt
       // and can help renew the policy after it expires.
-      headers['ETag'] = segments[1];
+      headers['ETag'] = hash;
     }
     return response.change(headers: headers);
   };

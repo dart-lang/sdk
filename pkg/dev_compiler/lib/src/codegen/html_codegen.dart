@@ -53,10 +53,10 @@ String generateEntryHtml(HtmlSourceNode root, CompilerOptions options) {
   var fragment = new DocumentFragment();
   for (var resource in resources) {
     var resourcePath = resourceOutputPath(resource.uri, root.uri);
+    var ext = path.extension(resourcePath);
     if (resource.cachingHash != null) {
       resourcePath = _addHash(resourcePath, resource.cachingHash);
     }
-    var ext = path.extension(resourcePath);
     if (ext == '.css') {
       fragment.nodes.add(_cssInclude(resourcePath));
     } else if (ext == '.js') {
@@ -98,7 +98,8 @@ Node _invokeMain(String mainLibraryName) {
 /// reverse of what the server does to determine whether a request needs to have
 /// cache headers added to it.
 _addHash(String outPath, String hash) {
-  return path.join('cached', hash, outPath);
+  // (the ____ prefix makes it look better in the web inspector)
+  return '$outPath?____cached=$hash';
 }
 
 final _log = new Logger('dev_compiler.src.codegen.html_codegen');
