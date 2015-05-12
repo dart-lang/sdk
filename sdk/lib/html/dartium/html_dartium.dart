@@ -18492,9 +18492,17 @@ class HttpRequest extends HttpRequestEventTarget {
     }
 
     xhr.onLoad.listen((e) {
-      // Note: file:// URIs have status of 0.
-      if ((xhr.status >= 200 && xhr.status < 300) ||
-          xhr.status == 0 || xhr.status == 304) {
+      var accepted = xhr.status >= 200 && xhr.status < 300;
+      var fileUri = xhr.status == 0; // file:// URIs have status of 0.
+      var notModified = xhr.status == 304;
+      // Redirect status is specified up to 307, but others have been used in
+      // practice. Notably Google Drive uses 308 Resume Incomplete for
+      // resumable uploads, and it's also been used as a redirect. The
+      // redirect case will be handled by the browser before it gets to us,
+      // so if we see it we should pass it through to the user.
+      var unknownRedirect = xhr.status > 307 && xhr.status < 400;
+      
+      if (accepted || fileUri || notModified || unknownRedirect) {
         completer.complete(xhr);
       } else {
         completer.completeError(e);

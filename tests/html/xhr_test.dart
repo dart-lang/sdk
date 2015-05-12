@@ -64,7 +64,7 @@ main() {
       xhr.send();
     });
 
-    test('XHR file', () {
+    test('XHR_file', () {
       var loadEndCalled = false;
 
       var xhr = new HttpRequest();
