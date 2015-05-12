@@ -31568,7 +31568,7 @@ class WebSocket extends EventTarget {
 class WheelEvent extends MouseEvent {
 
   factory WheelEvent(String type,
-      {Window view, int deltaX: 0, int deltaY: 0, int deltaZ: 0,
+      {Window view, num deltaX: 0, num deltaY: 0, num deltaZ: 0,
       int deltaMode: 0,
       int detail: 0, int screenX: 0, int screenY: 0, int clientX: 0,
       int clientY: 0, int button: 0, bool canBubble: true,
