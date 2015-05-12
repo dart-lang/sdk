@@ -471,7 +471,7 @@ class ClassA {}''');
     expect(importNode.source, libSource);
   }
 
-  void fail_performAnalysisTask_addPart() {
+  void test_performAnalysisTask_addPart() {
     Source libSource = addSource("/lib.dart", r'''
 library lib;
 part 'part.dart';''');
@@ -910,7 +910,7 @@ int ya = 0;''';
     });
   }
 
-  void fail_setContents_unchanged_consistentModificationTime() {
+  void test_setContents_unchanged_consistentModificationTime() {
     String contents = "// foo";
     Source source = addSource("/test.dart", contents);
     // do all, no tasks
@@ -1987,18 +1987,9 @@ int a = 0;''');
   }
 
   /**
-   * Perform analysis tasks up to 512 times and asserts that that was enough.
+   * Perform analysis tasks up to 512 times and assert that it was enough.
    */
-  void _analyzeAll_assertFinished() {
-    _analyzeAll_assertFinished2(512);
-  }
-
-  /**
-   * Perform analysis tasks up to the given number of times and asserts that that was enough.
-   *
-   * @param maxIterations the maximum number of tasks to perform
-   */
-  void _analyzeAll_assertFinished2(int maxIterations) {
+  void _analyzeAll_assertFinished([int maxIterations = 512]) {
     for (int i = 0; i < maxIterations; i++) {
       List<ChangeNotice> notice = context.performAnalysisTask().changeNotices;
       if (notice == null) {

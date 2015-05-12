@@ -1824,16 +1824,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     HashSet<Source> missingSources = new HashSet<Source>();
     MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
     while (iterator.moveNext()) {
-      Source source = iterator.key.source;
-      if (source != null) {
+      AnalysisTarget target = iterator.key;
+      if (target is Source) {
         CacheEntry entry = iterator.value;
-        int sourceTime = getModificationStamp(source);
+        int sourceTime = getModificationStamp(target);
         if (sourceTime != entry.modificationTime) {
-          changedSources.add(source);
+          changedSources.add(target);
         }
         if (entry.exception != null) {
-          if (!exists(source)) {
-            missingSources.add(source);
+          if (!exists(target)) {
+            missingSources.add(target);
           }
         }
       }
