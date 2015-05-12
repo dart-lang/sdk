@@ -452,18 +452,57 @@ class ModelEmitter {
     return js.js.expressionTemplateFor('$readMetadataTypeName(#)');
   }
 
+  static final String readMetadataName = "readLazyMetadata";
+  static final String lazyMetadataName = "lazy_$METADATA";
+
+  js.Statement get readMetadataFunction {
+    // Types are non-evaluated and must be compiled at first use.
+    // Compiled strings are guaranteed not to be strings, and it's thus safe
+    // to use a type-test to determine if a type has already been compiled.
+    return js.js.statement('''function $readMetadataName(index) {
+      var lazyMetadata = #lazyMetadataAccess[index];
+      if (typeof lazyMetadata == 'string') {
+        #metadataAccess[index] = expressionCompile(lazyMetadata);
+        #lazyMetadataAccess[index] = null;
+      }
+      return #metadataAccess[index];
+    }''', {
+      "lazyMetadataAccess": generateEmbeddedGlobalAccess(lazyMetadataName),
+      "metadataAccess": generateEmbeddedGlobalAccess(METADATA)
+    });
+  }
+
+  js.Template get templateForReadMetadata {
+    // TODO(floitsch): make sure that no local variable shadows the access to
+    // the readMetadata function.
+    return js.js.expressionTemplateFor('$readMetadataName(#)');
+  }
+
   List<js.Property> emitMetadata(Program program) {
+    // Unparses all given js-expressions (suitable for `expressionCompile`) and
+    // returns the result in a js-array.
+    // If the given [expressions] is null returns the empty js-array.
+    js.ArrayInitializer unparseExpressions(List<js.Expression> expressions) {
+      if (expressions == null) expressions = <js.Expression>[];
+      List<js.LiteralString> unparsedExpressions = expressions
+          .map((expr) => unparse(compiler, expr, protectForEval: false))
+          .toList();
+      return new js.ArrayInitializer(unparsedExpressions);
+    }
+
     List<js.Property> metadataGlobals = <js.Property>[];
-    metadataGlobals.add(new js.Property(
-        js.string(METADATA), new js.ArrayInitializer(program.metadata)));
+
+    js.ArrayInitializer unparsedMetadata = unparseExpressions(program.metadata);
+    metadataGlobals.add(new js.Property(js.string(lazyMetadataName),
+                                        unparsedMetadata));
+    metadataGlobals.add(new js.Property(js.string(METADATA),
+                                        new js.ArrayInitializer([])));
+
     List<js.Expression> types =
         program.metadataTypes[program.fragments.first.outputUnit];
-    if (types == null) types = <js.Expression>[];
-    List<js.LiteralString> unparsedTypes = types
-        .map((type) => unparse(compiler, type, protectForEval: false))
-        .toList();
-    js.ArrayInitializer typesArray = new js.ArrayInitializer(unparsedTypes);
-    metadataGlobals.add(new js.Property(js.string(TYPES), typesArray));
+    metadataGlobals.add(new js.Property(js.string(TYPES),
+                                        unparseExpressions(types)));
+
     return metadataGlobals;
   }
 

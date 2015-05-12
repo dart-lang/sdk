@@ -171,9 +171,7 @@ class Emitter implements emitterTask.Emitter {
         return js.js.expressionTemplateFor("('$isPrefix' + #) in #.prototype");
 
       case JsBuiltin.getMetadata:
-        String metadataAccess =
-            _emitter.generateEmbeddedGlobalAccessString(METADATA);
-        return js.js.expressionTemplateFor("$metadataAccess[#]");
+        return _emitter.templateForReadMetadata;
 
       case JsBuiltin.getType:
         return _emitter.templateForReadType;
