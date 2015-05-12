@@ -8,6 +8,7 @@
 #include "include/dart_api.h"
 
 #include "vm/allocation.h"
+#include "vm/object_id_ring.h"
 #include "vm/os_thread.h"
 
 namespace dart {
@@ -15,6 +16,7 @@ namespace dart {
 class Array;
 class EmbedderServiceHandler;
 class GCEvent;
+class GrowableObjectArray;
 class Instance;
 class Isolate;
 class JSONStream;
@@ -22,6 +24,40 @@ class Object;
 class RawInstance;
 class ServiceEvent;
 class String;
+
+class ServiceIdZone {
+ public:
+  ServiceIdZone();
+  virtual ~ServiceIdZone();
+
+  // Returned string will be zone allocated.
+  virtual char* GetServiceId(const Object& obj) = 0;
+
+ private:
+};
+
+
+class RingServiceIdZone : public ServiceIdZone {
+ public:
+  explicit RingServiceIdZone(ObjectIdRing* ring, ObjectIdRing::IdPolicy policy);
+  virtual ~RingServiceIdZone();
+
+  // Returned string will be zone allocated.
+  virtual char* GetServiceId(const Object& obj);
+
+  void set_policy(ObjectIdRing::IdPolicy policy) {
+    policy_ = policy;
+  }
+
+  ObjectIdRing::IdPolicy policy() const {
+    return policy_;
+  }
+
+ private:
+  ObjectIdRing* ring_;
+  ObjectIdRing::IdPolicy policy_;
+};
+
 
 class Service : public AllStatic {
  public:

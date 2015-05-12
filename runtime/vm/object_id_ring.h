@@ -11,6 +11,7 @@ namespace dart {
 class RawObject;
 class Isolate;
 class ObjectPointerVisitor;
+class JSONStream;
 
 // A ring buffer of object pointers that have been given an id. An object
 // may be pointed to by multiple ids. Objects contained in the ring will
@@ -26,6 +27,13 @@ class ObjectIdRing {
     kExpired,    // Entry was evicted during an insertion into a full ring.
   };
 
+  enum IdPolicy {
+    kAllocateId,        // Always allocate a new object id.
+    kReuseId,           // If the object is already in the ring, reuse id.
+                        // Otherwise allocate a new object id.
+    kNumIdPolicy,
+  };
+
   static const int32_t kMaxId = 0x3FFFFFFF;
   static const int32_t kInvalidId = -1;
   static const int32_t kDefaultCapacity = 1024;
@@ -36,17 +44,20 @@ class ObjectIdRing {
 
   // Adds the argument to the ring and returns its id. Note we do not allow
   // adding Object::null().
-  int32_t GetIdForObject(RawObject* raw_obj);
+  int32_t GetIdForObject(RawObject* raw_obj, IdPolicy policy = kAllocateId);
 
   // Returns Object::null() when the result is not kValid.
   RawObject* GetObjectForId(int32_t id, LookupResult* kind);
 
   void VisitPointers(ObjectPointerVisitor* visitor);
 
+  void PrintJSON(JSONStream* js);
+
  private:
   friend class ObjectIdRingTestHelper;
 
   void SetCapacityAndMaxSerial(int32_t capacity, int32_t max_serial);
+  int32_t FindExistingIdForObject(RawObject* raw_obj);
 
   ObjectIdRing(Isolate* isolate, int32_t capacity);
   Isolate* isolate_;
@@ -66,6 +77,7 @@ class ObjectIdRing {
   int32_t NextSerial();
   int32_t AllocateNewId(RawObject* object);
   int32_t IndexOfId(int32_t id);
+  int32_t IdOfIndex(int32_t index);
   bool IsValidContiguous(int32_t id);
   bool IsValidId(int32_t id);
 

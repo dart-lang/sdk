@@ -39,6 +39,35 @@ namespace dart {
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, trace_service_pause_events);
 
+ServiceIdZone::ServiceIdZone() {
+}
+
+
+ServiceIdZone::~ServiceIdZone() {
+}
+
+
+RingServiceIdZone::RingServiceIdZone(
+    ObjectIdRing* ring, ObjectIdRing::IdPolicy policy)
+        : ring_(ring),
+          policy_(policy) {
+  ASSERT(ring_ != NULL);
+}
+
+
+RingServiceIdZone::~RingServiceIdZone() {
+}
+
+
+char* RingServiceIdZone::GetServiceId(const Object& obj) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  ASSERT(zone != NULL);
+  const intptr_t id = ring_->GetIdForObject(obj.raw(), policy_);
+  return zone->PrintToString("objects/%" Pd "", id);
+}
+
+
 // TODO(johnmccutchan): Unify embedder service handler lists and their APIs.
 EmbedderServiceHandler* Service::isolate_service_handler_head_ = NULL;
 EmbedderServiceHandler* Service::root_service_handler_head_ = NULL;
@@ -450,6 +479,29 @@ void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
     js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(),
              seq, method_name, param_keys, param_values);
 
+    // RPC came in with a custom service id zone.
+    const char* id_zone_param = js.LookupParam("_idZone");
+
+    if (id_zone_param != NULL) {
+      // Override id zone.
+      if (strcmp("default", id_zone_param) == 0) {
+        // Ring with eager id allocation. This is the default ring and default
+        // policy.
+        // Nothing to do.
+      } else if (strcmp("default.reuse", id_zone_param) == 0) {
+        // Change the default ring's policy.
+        RingServiceIdZone* zone =
+            reinterpret_cast<RingServiceIdZone*>(js.id_zone());
+        zone->set_policy(ObjectIdRing::kReuseId);
+      } else {
+        // TODO(johnmccutchan): Support creating, deleting, and selecting
+        // custom service id zones.
+        // For now, always return an error.
+        PrintInvalidParamError(&js, "_idZone");
+        js.PostReply();
+        return;
+      }
+    }
     const char* c_method_name = method_name.ToCString();
 
     ServiceMethodDescriptor* method = FindMethod(c_method_name);
@@ -719,7 +771,7 @@ static bool GetIsolate(Isolate* isolate, JSONStream* js) {
 
 static const MethodParameter* get_stack_params[] = {
   ISOLATE_PARAMETER,
-  new BoolParameter("full", false),
+  new BoolParameter("_full", false),
   NULL,
 };
 
@@ -728,7 +780,7 @@ static bool GetStack(Isolate* isolate, JSONStream* js) {
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   // Do we want the complete script object and complete local variable objects?
   // This is true for dump requests.
-  const bool full = BoolParameter::Parse(js->LookupParam("full"), false);
+  const bool full = BoolParameter::Parse(js->LookupParam("_full"), false);
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Stack");
   {
@@ -784,14 +836,28 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
 }
 
 
-static bool _TriggerEchoEvent(Isolate* isolate, JSONStream* js) {
+static bool TriggerEchoEvent(Isolate* isolate, JSONStream* js) {
   Service::SendEchoEvent(isolate, js->LookupParam("text"));
   JSONObject jsobj(js);
   return HandleCommonEcho(&jsobj, js);
 }
 
 
-static bool _Echo(Isolate* isolate, JSONStream* js) {
+static bool DumpIdZone(Isolate* isolate, JSONStream* js) {
+  // TODO(johnmccutchan): Respect _idZone parameter passed to RPC. For now,
+  // always send the ObjectIdRing.
+  //
+  ObjectIdRing* ring = isolate->object_id_ring();
+  ASSERT(ring != NULL);
+  // When printing the ObjectIdRing, force object id reuse policy.
+  RingServiceIdZone reuse_zone(ring, ObjectIdRing::kReuseId);
+  js->set_id_zone(&reuse_zone);
+  ring->PrintJSON(js);
+  return true;
+}
+
+
+static bool Echo(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   return HandleCommonEcho(&jsobj, js);
 }
@@ -2318,7 +2384,7 @@ static bool GetObjectByAddress(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool _RespondWithMalformedJson(Isolate* isolate,
+static bool RespondWithMalformedJson(Isolate* isolate,
                                       JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("a", "a");
@@ -2332,7 +2398,7 @@ static bool _RespondWithMalformedJson(Isolate* isolate,
 }
 
 
-static bool _RespondWithMalformedObject(Isolate* isolate,
+static bool RespondWithMalformedObject(Isolate* isolate,
                                         JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("bart", "simpson");
@@ -2547,13 +2613,14 @@ static bool SetName(Isolate* isolate, JSONStream* js) {
 
 
 static ServiceMethodDescriptor service_methods_[] = {
-  { "_echo", _Echo,
+  { "_dumpIdZone", DumpIdZone, NULL },
+  { "_echo", Echo,
     NULL },
-  { "_respondWithMalformedJson", _RespondWithMalformedJson,
+  { "_respondWithMalformedJson", RespondWithMalformedJson,
     NULL },
-  { "_respondWithMalformedObject", _RespondWithMalformedObject,
+  { "_respondWithMalformedObject", RespondWithMalformedObject,
     NULL },
-  { "_triggerEchoEvent", _TriggerEchoEvent,
+  { "_triggerEchoEvent", TriggerEchoEvent,
     NULL },
   { "addBreakpoint", AddBreakpoint,
     add_breakpoint_params },

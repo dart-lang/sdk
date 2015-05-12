@@ -218,7 +218,6 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
              FLAG_new_gen_semi_max_size * MBInWords,
              FLAG_old_gen_heap_size * MBInWords,
              FLAG_external_max_size * MBInWords);
-  ObjectIdRing::Init(isolate);
   ObjectStore::Init(isolate);
 
   // Setup for profiling.

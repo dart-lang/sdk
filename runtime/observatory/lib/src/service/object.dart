@@ -590,11 +590,8 @@ class FakeVM extends VM {
     // Sort keys.
     var sortedKeys = uri.queryParameters.keys.toList();
     sortedKeys.sort();
-    // Filter keys.
-    if (method == 'getStack') {
-      // Remove the 'full' parameter.
-      sortedKeys.remove('full');
-    }
+    // Filter keys to remove any private options.
+    sortedKeys.removeWhere((k) => k.startsWith('_'));
     // Insert parameters in sorted order.
     for (var key in sortedKeys) {
       parameters[key] = uri.queryParameters[key];

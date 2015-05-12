@@ -11,6 +11,7 @@
 #include "vm/metrics.h"
 #include "vm/object.h"
 #include "vm/service_event.h"
+#include "vm/service.h"
 #include "vm/unicode.h"
 
 
@@ -21,6 +22,9 @@ DECLARE_FLAG(bool, trace_service);
 JSONStream::JSONStream(intptr_t buf_size)
     : open_objects_(0),
       buffer_(buf_size),
+      default_id_zone_(Isolate::Current()->object_id_ring(),
+                       ObjectIdRing::kAllocateId),
+      id_zone_(&default_id_zone_),
       reply_port_(ILLEGAL_PORT),
       seq_(""),
       method_(""),
@@ -282,6 +286,12 @@ void JSONStream::PrintValue(MessageQueue* queue) {
 void JSONStream::PrintValue(Isolate* isolate, bool ref) {
   PrintCommaIfNeeded();
   isolate->PrintJSON(this, ref);
+}
+
+
+void JSONStream::PrintServiceId(const char* name, const Object& o) {
+  ASSERT(id_zone_ != NULL);
+  PrintProperty(name, id_zone_->GetServiceId(o));
 }
 
 

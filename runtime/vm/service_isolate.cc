@@ -539,6 +539,10 @@ void ServiceIsolate::MaybeInjectVMServiceLibrary(Isolate* isolate) {
   library.SetLoadInProgress();
   const Error& error = Error::Handle(isolate,
                                      Compiler::Compile(library, script));
+  if (!error.IsNull()) {
+    OS::PrintErr("vm-service: Isolate creation error: %s\n",
+          error.ToErrorCString());
+  }
   ASSERT(error.IsNull());
   Dart_Handle result = Dart_FinalizeLoading(false);
   ASSERT(!Dart_IsError(result));

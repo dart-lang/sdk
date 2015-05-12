@@ -142,12 +142,17 @@ class VMService extends MessageRouter {
     message.setResponse(JSON.encode(result));
   }
 
+  // TODO(johnmccutchan): Turn this into a command line tool that uses the
+  // service library.
   Future<String> _getCrashDump() async {
     final perIsolateRequests = [
         // ?isolateId=<isolate id> will be appended to each of these requests.
-        Uri.parse('getIsolate'),             // Isolate information.
-        Uri.parse('_getAllocationProfile'),  // State of heap.
-        Uri.parse('getStack?full=true'),     // Call stack + local variables.
+        // Isolate information.
+        Uri.parse('getIsolate'),
+        // State of heap.
+        Uri.parse('_getAllocationProfile'),
+        // Call stack + local variables.
+        Uri.parse('getStack?_full=true'),
     ];
 
     // Snapshot of running isolates.
@@ -177,6 +182,16 @@ class VMService extends MessageRouter {
         // is the request Uri.
         var response = JSON.decode(await isolate.route(message));
         responses[message.toUri().toString()] = response['result'];
+      }
+      // Dump the object id ring requests.
+      var message =
+          new Message.forIsolate(Uri.parse('_dumpIdZone'), isolate);
+      var response = JSON.decode(await isolate.route(message));
+      // Insert getObject requests into responses map.
+      for (var object in response['result']['objects']) {
+        final requestUri =
+            'getObject&isolateId=${isolate.serviceId}?objectId=${object["id"]}';
+        responses[requestUri] = object;
       }
     }
 

@@ -127,7 +127,9 @@ interface Service {
   eval(isolateId string, targetId string, expression string) InstanceRef
 
   // Returns the current execution stack for an isolate.
-  getStack(isolateId string) Stack
+  //
+  // _full is an optional private parameter.
+  getStack(isolateId string, _full bool) Stack
 
   // Returns code coverage information for a library, script, class,
   // or function.
@@ -536,7 +538,7 @@ struct Script extends Object {
   // (tokenPos, columnNumber) pairs:
   //
   //    [lineNumber, (tokenPos, columnNumber)*]
-  // 
+  //
   // For example, the following table:
   //
   //    [[1, 100, 5, 101, 8],[2, 102, 7]]

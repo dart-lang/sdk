@@ -8,6 +8,7 @@
 #include "include/dart_api.h"  // for Dart_Port
 #include "platform/json.h"
 #include "vm/allocation.h"
+#include "vm/service.h"
 
 namespace dart {
 
@@ -39,6 +40,13 @@ class JSONStream : ValueObject {
   void SetupError();
 
   void PostReply();
+
+  void set_id_zone(ServiceIdZone* id_zone) {
+    id_zone_ = id_zone;
+  }
+  ServiceIdZone* id_zone() {
+    return id_zone_;
+  }
 
   TextBuffer* buffer() { return &buffer_; }
   const char* ToCString() { return buffer_.buf(); }
@@ -96,6 +104,7 @@ class JSONStream : ValueObject {
   void PrintValue(Isolate* isolate, bool ref = true);
   bool PrintValueStr(const String& s, intptr_t limit);
 
+  void PrintServiceId(const char* name, const Object& o);
   void PrintPropertyBool(const char* name, bool b);
   void PrintProperty(const char* name, intptr_t i);
   void PrintProperty64(const char* name, int64_t i);
@@ -124,6 +133,9 @@ class JSONStream : ValueObject {
 
   intptr_t open_objects_;
   TextBuffer buffer_;
+  // Default service id zone.
+  RingServiceIdZone default_id_zone_;
+  ServiceIdZone* id_zone_;
   Dart_Port reply_port_;
   const char* seq_;
   const char* method_;
@@ -149,6 +161,10 @@ class JSONObject : public ValueObject {
 
   ~JSONObject() {
     stream_->CloseObject();
+  }
+
+  void AddServiceId(const char* name, const Object& o) const {
+    stream_->PrintServiceId(name, o);
   }
 
   void AddProperty(const char* name, bool b) const {

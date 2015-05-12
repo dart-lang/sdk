@@ -27,8 +27,16 @@ class ObjectIdRingTestHelper {
     EXPECT(!ring->IsValidId(id));
   }
 
+  static void ExpectIndexId(ObjectIdRing* ring, intptr_t index, intptr_t id) {
+    EXPECT_EQ(id, ring->IdOfIndex(index));
+  }
+
+  static void ExpectInvalidIndex(ObjectIdRing* ring, intptr_t index) {
+    EXPECT_EQ(-1, ring->IdOfIndex(index));
+  }
+
   static RawObject* MakeString(const char* s) {
-    return String::New(s);
+    return Symbols::New(s);
   }
 
   static void ExpectString(RawObject* obj, const char* s) {
@@ -48,29 +56,48 @@ TEST_CASE(ObjectIdRingSerialWrapTest) {
   ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
   id = ring->GetIdForObject(ObjectIdRingTestHelper::MakeString("0"));
   EXPECT_EQ(0, id);
+  ObjectIdRingTestHelper::ExpectIndexId(ring, 0, 0);
+  ObjectIdRingTestHelper::ExpectInvalidIndex(ring, 1);
   id = ring->GetIdForObject(ObjectIdRingTestHelper::MakeString("1"));
   EXPECT_EQ(1, id);
+  ObjectIdRingTestHelper::ExpectIndexId(ring, 0, 0);
+  ObjectIdRingTestHelper::ExpectIndexId(ring, 1, 1);
   // Test that id 1 gives us the "1" string.
   ObjectIdRingTestHelper::ExpectString(ring->GetObjectForId(id, &kind), "1");
   EXPECT_EQ(ObjectIdRing::kValid, kind);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 0);
+  ObjectIdRingTestHelper::ExpectIndexId(ring, 0, 0);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 1);
+  ObjectIdRingTestHelper::ExpectIndexId(ring, 1, 1);
   ObjectIdRingTestHelper::ExpectIdIsInvalid(ring, 2);
   ObjectIdRingTestHelper::ExpectIdIsInvalid(ring, 3);
+  // We have wrapped, index 0 is being reused.
   id = ring->GetIdForObject(ObjectIdRingTestHelper::MakeString("2"));
   EXPECT_EQ(2, id);
   ObjectIdRingTestHelper::ExpectIdIsInvalid(ring, 0);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 1);
+  // Index 0 has id 2.
+  ObjectIdRingTestHelper::ExpectIndexId(ring, 0, 2);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 2);
+  // Index 1 has id 1.
+  ObjectIdRingTestHelper::ExpectIndexId(ring, 1, 1);
   ObjectIdRingTestHelper::ExpectIdIsInvalid(ring, 3);
   id = ring->GetIdForObject(ObjectIdRingTestHelper::MakeString("3"));
   EXPECT_EQ(3, id);
+  // Index 0 has id 2.
+  ObjectIdRingTestHelper::ExpectIndexId(ring, 0, 2);
+  // Index 1 has id 3.
+  ObjectIdRingTestHelper::ExpectIndexId(ring, 1, 3);
   ObjectIdRingTestHelper::ExpectIdIsInvalid(ring, 0);
   ObjectIdRingTestHelper::ExpectIdIsInvalid(ring, 1);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 2);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 3);
   id = ring->GetIdForObject(ObjectIdRingTestHelper::MakeString("4"));
   EXPECT_EQ(0, id);
+  // Index 0 has id 0.
+  ObjectIdRingTestHelper::ExpectIndexId(ring, 0, 0);
+  // Index 1 has id 3.
+  ObjectIdRingTestHelper::ExpectIndexId(ring, 1, 3);
   ObjectIdRingTestHelper::ExpectString(ring->GetObjectForId(id, &kind), "4");
   EXPECT_EQ(ObjectIdRing::kValid, kind);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 0);
@@ -79,6 +106,10 @@ TEST_CASE(ObjectIdRingSerialWrapTest) {
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 3);
   id = ring->GetIdForObject(ObjectIdRingTestHelper::MakeString("5"));
   EXPECT_EQ(1, id);
+  // Index 0 has id 0.
+  ObjectIdRingTestHelper::ExpectIndexId(ring, 0, 0);
+  // Index 1 has id 1.
+  ObjectIdRingTestHelper::ExpectIndexId(ring, 1, 1);
   ObjectIdRingTestHelper::ExpectString(ring->GetObjectForId(id, &kind), "5");
   EXPECT_EQ(ObjectIdRing::kValid, kind);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 0);
@@ -112,8 +143,15 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
   EXPECT_NE(Object::null(), raw_obj);
   intptr_t raw_obj_id1 = ring->GetIdForObject(raw_obj);
   EXPECT_EQ(0, raw_obj_id1);
+  // Get id 0 again.
+  EXPECT_EQ(raw_obj_id1,
+      ring->GetIdForObject(raw_obj, ObjectIdRing::kReuseId));
+  // Add to ring a second time.
   intptr_t raw_obj_id2 = ring->GetIdForObject(raw_obj);
   EXPECT_EQ(1, raw_obj_id2);
+  // Get id 0 again.
+  EXPECT_EQ(raw_obj_id1,
+      ring->GetIdForObject(raw_obj, ObjectIdRing::kReuseId));
   RawObject* raw_obj1 = ring->GetObjectForId(raw_obj_id1, &kind);
   EXPECT_EQ(ObjectIdRing::kValid, kind);
   RawObject* raw_obj2 = ring->GetObjectForId(raw_obj_id2, &kind);
@@ -142,6 +180,9 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
   EXPECT(Dart_IsList(moved_handle));
   EXPECT_VALID(Dart_ListLength(moved_handle, &list_length));
   EXPECT_EQ(3, list_length);
+  // Test id reuse.
+  EXPECT_EQ(raw_obj_id1,
+      ring->GetIdForObject(raw_object_moved1, ObjectIdRing::kReuseId));
 }
 
 

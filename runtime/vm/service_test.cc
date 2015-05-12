@@ -108,6 +108,38 @@ static RawClass* GetClass(const Library& lib, const char* name) {
 }
 
 
+TEST_CASE(Service_IdZones) {
+  Isolate* isolate = Isolate::Current();
+  ObjectIdRing* ring = isolate->object_id_ring();
+
+  const String& test_a = String::Handle(isolate, String::New("a"));
+  const String& test_b = String::Handle(isolate, String::New("b"));
+  const String& test_c = String::Handle(isolate, String::New("c"));
+  const String& test_d = String::Handle(isolate, String::New("d"));
+
+  // Both RingServiceIdZones share the same backing store and id space.
+
+  // Always allocate a new id.
+  RingServiceIdZone always_new_zone(ring, ObjectIdRing::kAllocateId);
+  EXPECT_STREQ("objects/0", always_new_zone.GetServiceId(test_a));
+  EXPECT_STREQ("objects/1", always_new_zone.GetServiceId(test_a));
+  EXPECT_STREQ("objects/2", always_new_zone.GetServiceId(test_a));
+  EXPECT_STREQ("objects/3", always_new_zone.GetServiceId(test_b));
+  EXPECT_STREQ("objects/4", always_new_zone.GetServiceId(test_c));
+
+  // Reuse an existing id or allocate a new id.
+  RingServiceIdZone reuse_zone(ring, ObjectIdRing::kReuseId);
+  EXPECT_STREQ("objects/0", reuse_zone.GetServiceId(test_a));
+  EXPECT_STREQ("objects/0", reuse_zone.GetServiceId(test_a));
+  EXPECT_STREQ("objects/3", reuse_zone.GetServiceId(test_b));
+  EXPECT_STREQ("objects/3", reuse_zone.GetServiceId(test_b));
+  EXPECT_STREQ("objects/4", reuse_zone.GetServiceId(test_c));
+  EXPECT_STREQ("objects/4", reuse_zone.GetServiceId(test_c));
+  EXPECT_STREQ("objects/5", reuse_zone.GetServiceId(test_d));
+  EXPECT_STREQ("objects/5", reuse_zone.GetServiceId(test_d));
+}
+
+
 TEST_CASE(Service_Code) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.

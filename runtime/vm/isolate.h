@@ -77,6 +77,7 @@ class RawInt32x4;
 class RawUserTag;
 class SampleBuffer;
 class SendPort;
+class ServiceIdZone;
 class Simulator;
 class StackResource;
 class StackZone;

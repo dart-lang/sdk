@@ -706,6 +706,8 @@ Isolate::~Isolate() {
   delete spawn_state_;
   delete log_;
   log_ = NULL;
+  delete object_id_ring_;
+  object_id_ring_ = NULL;
   delete pause_loop_monitor_;
   pause_loop_monitor_ = NULL;
   if (compiler_stats_ != NULL) {
@@ -786,6 +788,7 @@ Isolate* Isolate::Init(const char* name_prefix, bool is_vm_isolate) {
   if (FLAG_compiler_stats) {
     result->compiler_stats_ = new CompilerStats(result);
   }
+  ObjectIdRing::Init(result);
   // Add to isolate list.
   AddIsolateTolist(result);
 
