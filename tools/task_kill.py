@@ -27,7 +27,6 @@ EXECUTABLE_NAMES = {
     'chrome': 'chrome.exe',
     'content_shell': 'content_shell.exe',
     'dart': 'dart.exe',
-    'editor': 'DartEditor.exe',
     'iexplore': 'iexplore.exe',
     'firefox': 'firefox.exe',
     'git': 'git.exe',
@@ -37,9 +36,6 @@ EXECUTABLE_NAMES = {
     'chrome': 'chrome',
     'content_shell': 'content_shell',
     'dart': 'dart',
-    'editor': 'DartEditor',
-    'java': 'java',
-    'eggplant': 'Eggplant',
     'firefox': 'firefox.exe',
     'git': 'git',
     'svn': 'svn'
@@ -48,7 +44,6 @@ EXECUTABLE_NAMES = {
     'chrome': 'Chrome',
     'content_shell': 'Content Shell',
     'dart': 'dart',
-    'editor': 'DartEditor',
     'firefox': 'firefox',
     'safari': 'Safari',
     'git': 'git',
@@ -70,8 +65,6 @@ def GetOptions():
                     help="Kill all git and svn processes")
   parser.add_option("--kill_browsers", default=False,
                      help="Kill all browser processes")
-  parser.add_option("--kill_editor", default=True,
-                     help="Kill all editor processes")
   (options, args) = parser.parse_args()
   return options
 
@@ -194,14 +187,6 @@ def KillDart():
   status = Kill("dart")
   return status
 
-def KillEditor():
-  status = Kill("editor")
-  if os_name == "linux":
-    # it is important to kill java after editor on linux
-    status += Kill("java")
-    status += Kill("eggplant")
-  return status
-
 def Main():
   options = GetOptions()
   status = 0
@@ -211,8 +196,6 @@ def Main():
     status += KillVCSystems()
   if options.kill_browsers:
     status += KillBrowsers()
-  if options.kill_editor:
-    status += KillEditor()
   return status
 
 if __name__ == '__main__':
