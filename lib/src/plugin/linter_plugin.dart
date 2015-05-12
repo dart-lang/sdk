@@ -26,21 +26,6 @@ final LinterPlugin linterPlugin = new LinterPlugin();
 /// inherently defined by the linter.
 class LinterPlugin implements Plugin {
 
-  /// A subset of rules that we are considering enabled by "default".
-  static final List<LintRule> _rules = [
-    new CamelCaseTypes(),
-    new ConstantIdentifierNames(),
-    new EmptyConstructorBodies(),
-    new LibraryNames(),
-    new LibraryPrefixes(),
-    new NonConstantIdentifierNames(),
-    new OneMemberAbstracts(),
-    new SlashForDocComments(),
-    new SuperGoesLast(),
-    new TypeInitFormals(),
-    new UnnecessaryBraceInStringInterp()
-  ];
-
   /// The unique identifier of this plugin.
   static const String UNIQUE_IDENTIFIER = 'linter.core';
 
@@ -65,7 +50,20 @@ class LinterPlugin implements Plugin {
 
   @override
   void registerExtensions(RegisterExtension registerExtension) {
-    _rules.forEach((LintRule rule) =>
+    /// A subset of rules that we are considering enabled by "default".
+    [
+      new CamelCaseTypes(),
+      new ConstantIdentifierNames(),
+      new EmptyConstructorBodies(),
+      new LibraryNames(),
+      new LibraryPrefixes(),
+      new NonConstantIdentifierNames(),
+      new OneMemberAbstracts(),
+      new SlashForDocComments(),
+      new SuperGoesLast(),
+      new TypeInitFormals(),
+      new UnnecessaryBraceInStringInterp()
+    ].forEach((LintRule rule) =>
         registerExtension(LINT_RULE_EXTENSION_POINT_ID, rule));
   }
 
