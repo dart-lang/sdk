@@ -37,6 +37,11 @@ class Universe {
   /// Invariant: Elements are declaration elements.
   final Set<ClassElement> _allInstantiatedClasses = new Set<ClassElement>();
 
+  /// The set of all referenced static fields.
+  ///
+  /// Invariant: Elements are declaration elements.
+  final Set<FieldElement> allReferencedStaticFields = new Set<FieldElement>();
+
   /**
    * Documentation wanted -- johnniwinther
    *
@@ -183,6 +188,13 @@ class Universe {
     // against the type variable of a typedef.
     isChecks.add(type);
     return type;
+  }
+
+  void registerStaticFieldUse(FieldElement staticField) {
+    assert(Elements.isStaticOrTopLevel(staticField) && staticField.isField);
+    assert(staticField.isDeclaration);
+
+    allReferencedStaticFields.add(staticField);
   }
 
   void forgetElement(Element element, Compiler compiler) {

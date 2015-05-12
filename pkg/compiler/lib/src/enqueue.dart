@@ -516,6 +516,9 @@ abstract class Enqueuer {
   void registerStaticUse(Element element) {
     if (element == null) return;
     assert(invariant(element, element.isDeclaration));
+    if (Elements.isStaticOrTopLevel(element) && element.isField) {
+      universe.registerStaticFieldUse(element);
+    }
     addToWorkList(element);
     compiler.backend.registerStaticUse(element, this);
   }

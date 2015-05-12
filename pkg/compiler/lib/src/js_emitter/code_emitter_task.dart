@@ -10,7 +10,7 @@ const USE_NEW_EMITTER = const bool.fromEnvironment("dart2js.use.new.emitter");
  * Generates the code for all used classes in the program. Static fields (even
  * in classes) are ignored, since they can be treated as non-class elements.
  *
- * The code for the containing (used) methods must exist in the [:universe:].
+ * The code for the containing (used) methods must exist in the `universe`.
  */
 class CodeEmitterTask extends CompilerTask {
   // TODO(floitsch): the code-emitter task should not need a namer.
@@ -363,8 +363,9 @@ class CodeEmitterTask extends CompilerTask {
 
   void computeNeededStaticNonFinalFields() {
     JavaScriptConstantCompiler handler = backend.constants;
-    Iterable<VariableElement> staticNonFinalFields =
-        handler.getStaticNonFinalFieldsForEmission();
+    Iterable<VariableElement> staticNonFinalFields = handler
+        .getStaticNonFinalFieldsForEmission()
+        .where(compiler.codegenWorld.allReferencedStaticFields.contains);
     for (Element element in Elements.sortedByPosition(staticNonFinalFields)) {
       List<VariableElement> list = outputStaticNonFinalFieldLists.putIfAbsent(
             compiler.deferredLoadTask.outputUnitForElement(element),

@@ -199,14 +199,11 @@ class ProgramBuilder {
   }
 
   List<StaticField> _buildStaticNonFinalFields(LibrariesMap librariesMap) {
-    // TODO(floitsch): handle static non-final fields correctly with deferred
-    // libraries.
-    if (librariesMap != _registry.mainLibrariesMap) {
-      return const <StaticField>[];
-    }
-    Iterable<VariableElement> staticNonFinalFields =
-        backend.constants.getStaticNonFinalFieldsForEmission();
-    return Elements.sortedByPosition(staticNonFinalFields)
+    List<VariableElement> staticNonFinalFields =
+         _task.outputStaticNonFinalFieldLists[librariesMap.outputUnit];
+    if (staticNonFinalFields == null) return const <StaticField>[];
+
+    return staticNonFinalFields
         .map(_buildStaticField)
         .toList(growable: false);
   }

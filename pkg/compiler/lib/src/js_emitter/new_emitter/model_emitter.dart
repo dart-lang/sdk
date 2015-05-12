@@ -518,15 +518,16 @@ class ModelEmitter {
 
     deferredCode.add(
         emitLazilyInitializedStatics(fragment.staticLazilyInitializedFields));
-
     deferredCode.add(emitConstants(fragment.constants));
 
     js.ArrayInitializer deferredArray = new js.ArrayInitializer(deferredCode);
 
     // This is the code that must be evaluated after all deferred classes have
     // been setup.
-    js.Statement immediateCode =
-        emitEagerClassInitializations(fragment.libraries);
+    js.Statement immediateCode = new js.Block([
+        emitStaticNonFinalFields(fragment.staticNonFinalFields),
+        emitEagerClassInitializations(fragment.libraries)]);
+
 
     js.LiteralString immediateString = unparse(compiler, immediateCode);
 
