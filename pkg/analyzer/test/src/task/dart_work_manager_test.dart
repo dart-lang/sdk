@@ -5,10 +5,12 @@
 library test.src.task.dart_work_manager_test;
 
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show CacheState, InternalAnalysisContext;
+    show CacheState, ChangeNoticeImpl, InternalAnalysisContext;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/driver.dart';
@@ -281,20 +283,6 @@ class DartWorkManagerTest {
     expect(manager.getNextResultPriority(), WorkOrderPriority.NONE);
   }
 
-  void test_resultsComputed_isLibrary() {
-    manager.unknownSourceQueue.addAll([source1, source2, source3]);
-    manager.resultsComputed(source2, {SOURCE_KIND: SourceKind.LIBRARY});
-    expect_librarySourceQueue([source2]);
-    expect_unknownSourceQueue([source1, source3]);
-  }
-
-  void test_resultsComputed_isPart() {
-    manager.unknownSourceQueue.addAll([source1, source2, source3]);
-    manager.resultsComputed(source2, {SOURCE_KIND: SourceKind.PART});
-    expect_librarySourceQueue([]);
-    expect_unknownSourceQueue([source1, source3]);
-  }
-
   void test_resultsComputed_noSourceKind() {
     manager.unknownSourceQueue.addAll([source1, source2]);
     manager.resultsComputed(source1, {});
@@ -308,12 +296,43 @@ class DartWorkManagerTest {
     expect_librarySourceQueue([]);
     expect_unknownSourceQueue([source1, source2]);
   }
+
+  void test_resultsComputed_parsedUnit() {
+    CompilationUnit unit = AstFactory.compilationUnit();
+    manager.resultsComputed(source1, {PARSED_UNIT: unit});
+    expect(context.getNotice(source1).parsedDartUnit, unit);
+    expect(context.getNotice(source1).resolvedDartUnit, isNull);
+  }
+
+  void test_resultsComputed_resolvedUnit() {
+    CompilationUnit unit = AstFactory.compilationUnit();
+    manager.resultsComputed(
+        new LibrarySpecificUnit(source1, source2), {RESOLVED_UNIT: unit});
+    expect(context.getNotice(source2).parsedDartUnit, isNull);
+    expect(context.getNotice(source2).resolvedDartUnit, unit);
+  }
+
+  void test_resultsComputed_sourceKind_isLibrary() {
+    manager.unknownSourceQueue.addAll([source1, source2, source3]);
+    manager.resultsComputed(source2, {SOURCE_KIND: SourceKind.LIBRARY});
+    expect_librarySourceQueue([source2]);
+    expect_unknownSourceQueue([source1, source3]);
+  }
+
+  void test_resultsComputed_sourceKind_isPart() {
+    manager.unknownSourceQueue.addAll([source1, source2, source3]);
+    manager.resultsComputed(source2, {SOURCE_KIND: SourceKind.PART});
+    expect_librarySourceQueue([]);
+    expect_unknownSourceQueue([source1, source3]);
+  }
 }
 
 class _InternalAnalysisContextMock extends TypedMock
     implements InternalAnalysisContext {
   @override
   AnalysisCache analysisCache;
+
+  Map<Source, ChangeNoticeImpl> _pendingNotices = <Source, ChangeNoticeImpl>{};
 
   _InternalAnalysisContextMock() {
     analysisCache = new AnalysisCache([new UniversalCachePartition(this)]);
@@ -327,6 +346,12 @@ class _InternalAnalysisContextMock extends TypedMock
       analysisCache.put(entry);
     }
     return entry;
+  }
+
+  @override
+  ChangeNoticeImpl getNotice(Source source) {
+    return _pendingNotices.putIfAbsent(
+        source, () => new ChangeNoticeImpl(source));
   }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

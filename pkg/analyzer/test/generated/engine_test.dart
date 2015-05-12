@@ -5689,6 +5689,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return 0;
   }
   @override
+  ChangeNoticeImpl getNotice(Source source) {
+    fail("Unexpected invocation of getNotice");
+    return null;
+  }
+  @override
   Namespace getPublicNamespace(LibraryElement library) {
     fail("Unexpected invocation of getPublicNamespace");
     return null;

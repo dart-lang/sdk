@@ -7,6 +7,7 @@ library analyzer.src.task.dart_work_manager;
 import 'dart:collection';
 
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/generated/ast.dart' show CompilationUnit;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, CacheState, InternalAnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
@@ -177,6 +178,21 @@ class DartWorkManager implements WorkManager {
         }
       }
     }
+    // Update notice.
+    if (_isDartSource(target)) {
+      CompilationUnit unit = outputs[PARSED_UNIT];
+      if (unit != null) {
+        context.getNotice(target).parsedDartUnit = unit;
+      }
+    }
+    if (target is LibrarySpecificUnit) {
+      CompilationUnit unit = outputs[RESOLVED_UNIT];
+      if (unit != null) {
+        context.getNotice(target.source).resolvedDartUnit = unit;
+      }
+    }
+    // TODO(scheglov) Move getError() implementation into DWM.
+    // Set errors into notice on any error result change.
   }
 
   bool _isDartSource(AnalysisTarget target) {

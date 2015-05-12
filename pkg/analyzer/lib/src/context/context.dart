@@ -1416,12 +1416,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return notices;
   }
 
-  /**
-   * Return a change notice for the given [source], creating one if one does not
-   * already exist.
-   */
-  ChangeNoticeImpl _getNotice(Source source) {
-    // Used in commented out code.
+  @override
+  ChangeNoticeImpl getNotice(Source source) {
     ChangeNoticeImpl notice = _pendingNotices[source];
     if (notice == null) {
       notice = new ChangeNoticeImpl(source);

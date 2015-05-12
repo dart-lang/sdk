@@ -2014,6 +2014,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  ChangeNoticeImpl getNotice(Source source) {
+    ChangeNoticeImpl notice = _pendingNotices[source];
+    if (notice == null) {
+      notice = new ChangeNoticeImpl(source);
+      _pendingNotices[source] = notice;
+    }
+    return notice;
+  }
+
+  @override
   Namespace getPublicNamespace(LibraryElement library) {
     // TODO(brianwilkerson) Rename this to not start with 'get'.
     // Note that this is not part of the API of the interface.
@@ -2364,7 +2374,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           if (source != librarySource) {
             _workManager.add(source, SourcePriority.PRIORITY_PART);
           }
-          ChangeNoticeImpl notice = _getNotice(source);
+          ChangeNoticeImpl notice = getNotice(source);
           notice.resolvedDartUnit = unit;
           notice.setErrors(dartEntry.allErrors, lineInfo);
         }
@@ -2439,7 +2449,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           if (source != librarySource) {
             _workManager.add(source, SourcePriority.PRIORITY_PART);
           }
-          ChangeNoticeImpl notice = _getNotice(source);
+          ChangeNoticeImpl notice = getNotice(source);
           notice.resolvedDartUnit = unit;
           notice.setErrors(dartEntry.allErrors, lineInfo);
         }
@@ -3676,19 +3686,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return a change notice for the given [source], creating one if one does not
-   * already exist.
-   */
-  ChangeNoticeImpl _getNotice(Source source) {
-    ChangeNoticeImpl notice = _pendingNotices[source];
-    if (notice == null) {
-      notice = new ChangeNoticeImpl(source);
-      _pendingNotices[source] = notice;
-    }
-    return notice;
-  }
-
-  /**
    * Return the cache entry associated with the given [source], or `null` if the
    * source is not a Dart file.
    *
@@ -4127,7 +4124,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     dartEntry.setValueInLibrary(DartEntry.BUILT_UNIT, library, task.unit);
     dartEntry.setValueInLibrary(
         DartEntry.BUILT_ELEMENT, library, task.unitElement);
-    ChangeNoticeImpl notice = _getNotice(source);
+    ChangeNoticeImpl notice = getNotice(source);
     LineInfo lineInfo = dartEntry.getValue(SourceEntry.LINE_INFO);
     notice.setErrors(dartEntry.allErrors, lineInfo);
     return dartEntry;
@@ -4161,7 +4158,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     dartEntry.setValueInLibrary(
         DartEntry.VERIFICATION_ERRORS, librarySource, task.errors);
-    ChangeNoticeImpl notice = _getNotice(source);
+    ChangeNoticeImpl notice = getNotice(source);
     LineInfo lineInfo = dartEntry.getValue(SourceEntry.LINE_INFO);
     notice.setErrors(dartEntry.allErrors, lineInfo);
     return dartEntry;
@@ -4196,7 +4193,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
       if (thrownException == null) {
         dartEntry.setValueInLibrary(DartEntry.HINTS, librarySource, hints);
-        ChangeNoticeImpl notice = _getNotice(unitSource);
+        ChangeNoticeImpl notice = getNotice(unitSource);
         LineInfo lineInfo = dartEntry.getValue(SourceEntry.LINE_INFO);
         notice.setErrors(dartEntry.allErrors, lineInfo);
       } else {
@@ -4238,7 +4235,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
       if (thrownException == null) {
         dartEntry.setValueInLibrary(DartEntry.LINTS, librarySource, lints);
-        ChangeNoticeImpl notice = _getNotice(unitSource);
+        ChangeNoticeImpl notice = getNotice(unitSource);
         LineInfo lineInfo = dartEntry.getValue(SourceEntry.LINE_INFO);
         notice.setErrors(dartEntry.allErrors, lineInfo);
       } else {
@@ -4266,7 +4263,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       sourceEntry.recordContentError(thrownException);
       {
         sourceEntry.setValue(SourceEntry.CONTENT_ERRORS, task.errors);
-        ChangeNoticeImpl notice = _getNotice(source);
+        ChangeNoticeImpl notice = getNotice(source);
         notice.setErrors(sourceEntry.allErrors, null);
       }
       _workManager.remove(source);
@@ -4285,7 +4282,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       IncrementalAnalysisTask task) {
     CompilationUnit unit = task.compilationUnit;
     if (unit != null) {
-      ChangeNoticeImpl notice = _getNotice(task.source);
+      ChangeNoticeImpl notice = getNotice(task.source);
       notice.resolvedDartUnit = unit;
       _incrementalAnalysisCache =
           IncrementalAnalysisCache.cacheResult(task.cache, unit);
@@ -4347,7 +4344,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     dartEntry.setValue(DartEntry.IMPORTED_LIBRARIES, task.importedSources);
     dartEntry.setValue(DartEntry.INCLUDED_PARTS, newParts);
     _cache.storedAst(source);
-    ChangeNoticeImpl notice = _getNotice(source);
+    ChangeNoticeImpl notice = getNotice(source);
     if (notice.resolvedDartUnit == null) {
       notice.parsedDartUnit = task.compilationUnit;
     }
@@ -4379,7 +4376,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     htmlEntry.setValue(
         HtmlEntry.REFERENCED_LIBRARIES, task.referencedLibraries);
     _cache.storedAst(source);
-    ChangeNoticeImpl notice = _getNotice(source);
+    ChangeNoticeImpl notice = getNotice(source);
     notice.setErrors(htmlEntry.allErrors, lineInfo);
     return htmlEntry;
   }
@@ -4422,7 +4419,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     htmlEntry.setValue(HtmlEntry.ELEMENT, task.element);
     htmlEntry.setValue(HtmlEntry.RESOLUTION_ERRORS, task.resolutionErrors);
     _cache.storedAst(source);
-    ChangeNoticeImpl notice = _getNotice(source);
+    ChangeNoticeImpl notice = getNotice(source);
     notice.resolvedHtmlUnit = task.resolvedUnit;
     LineInfo lineInfo = htmlEntry.getValue(SourceEntry.LINE_INFO);
     notice.setErrors(htmlEntry.allErrors, lineInfo);
@@ -4448,7 +4445,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     dartEntry.setValue(DartEntry.TOKEN_STREAM, task.tokenStream);
     dartEntry.setValue(DartEntry.SCAN_ERRORS, task.errors);
     _cache.storedAst(source);
-    ChangeNoticeImpl notice = _getNotice(source);
+    ChangeNoticeImpl notice = getNotice(source);
     notice.setErrors(dartEntry.allErrors, lineInfo);
     return dartEntry;
   }
@@ -4674,7 +4671,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // prepare notice
       {
         LineInfo lineInfo = getLineInfo(unitSource);
-        ChangeNoticeImpl notice = _getNotice(unitSource);
+        ChangeNoticeImpl notice = getNotice(unitSource);
         notice.resolvedDartUnit = oldUnit;
         notice.setErrors(dartEntry.allErrors, lineInfo);
       }
@@ -9123,6 +9120,12 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * Return context that owns the given [source].
    */
   InternalAnalysisContext getContextFor(Source source);
+
+  /**
+   * Return a change notice for the given [source], creating one if one does not
+   * already exist.
+   */
+  ChangeNoticeImpl getNotice(Source source);
 
   /**
    * Return a namespace containing mappings for all of the public names defined
