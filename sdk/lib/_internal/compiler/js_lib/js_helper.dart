@@ -1866,7 +1866,7 @@ class NullError extends Error implements NoSuchMethodError {
 
   String toString() {
     if (_method == null) return 'NullError: $_message';
-    return 'NullError: Cannot call "$_method" on null';
+    return "NullError: method not found: '$_method' on null";
   }
 }
 
@@ -1883,10 +1883,10 @@ class JsNoSuchMethodError extends Error implements NoSuchMethodError {
   String toString() {
     if (_method == null) return 'NoSuchMethodError: $_message';
     if (_receiver == null) {
-      return 'NoSuchMethodError: Cannot call "$_method" ($_message)';
+      return "NoSuchMethodError: method not found: '$_method' ($_message)";
     }
-    return 'NoSuchMethodError: Cannot call "$_method" on "$_receiver" '
-        '($_message)';
+    return "NoSuchMethodError: "
+        "method not found: '$_method' on '$_receiver' ($_message)";
   }
 }
 
@@ -2236,19 +2236,22 @@ abstract class Closure implements Function {
     // dynClosureConstructor.prototype = proto;
     // return dynClosureConstructor;
 
-    // We need to create a new subclass of either TearOffClosure or
-    // BoundClosure.  For this, we need to create an object whose prototype is
-    // the prototype is either TearOffClosure.prototype or
+    // We need to create a new subclass of TearOffClosure, one of StaticClosure
+    // or BoundClosure.  For this, we need to create an object whose prototype
+    // is the prototype is either StaticClosure.prototype or
     // BoundClosure.prototype, respectively in pseudo JavaScript code. The
     // simplest way to access the JavaScript construction function of a Dart
-    // class is to create an instance and access its constructor property.  The
-    // newly created instance could in theory be used directly as the
-    // prototype, but it might include additional fields that we don't need.
-    // So we only use the new instance to access the constructor property and
-    // use Object.create to create the desired prototype.
+    // class is to create an instance and access its constructor property.
+    // Creating an instance ensures that any lazy class initialization has taken
+    // place. The newly created instance could in theory be used directly as the
+    // prototype, but it might include additional fields that we don't need.  So
+    // we only use the new instance to access the constructor property and use
+    // Object.create to create the desired prototype.
+    //
+    // TODO(sra): Perhaps cache the prototype to avoid the allocation.
     var prototype = isStatic
-        ? JS('TearOffClosure', 'Object.create(#.constructor.prototype)',
-             new TearOffClosure())
+        ? JS('StaticClosure', 'Object.create(#.constructor.prototype)',
+             new StaticClosure())
         : JS('BoundClosure', 'Object.create(#.constructor.prototype)',
              new BoundClosure(null, null, null, null));
 
@@ -2258,8 +2261,7 @@ abstract class Closure implements Function {
         : isCsp
             ? JS('', 'function(a,b,c,d) {this.\$initialize(a,b,c,d)}')
             : JS('',
-                 'new Function("a","b","c","d",'
-                     '"this.\$initialize(a,b,c,d);"+#)',
+                 'new Function("a,b,c,d", "this.\$initialize(a,b,c,d);" + #)',
                  functionCounter++);
 
     // It is necessary to set the constructor property, otherwise it will be
@@ -2562,7 +2564,10 @@ abstract class Closure implements Function {
   // backend rather than simply adding it here, as we do not want this getter
   // to be visible to resolution and the generation of extra stubs.
 
-  String toString() => "Closure";
+  String toString() {
+    String name = Primitives.objectTypeName(this);
+    return "Closure '$name'";
+  }
 }
 
 /// Called from implicit method getter (aka tear-off).
@@ -2583,11 +2588,19 @@ closureFromTearOff(receiver,
 }
 
 /// Represents an implicit closure of a function.
-class TearOffClosure extends Closure {
+abstract class TearOffClosure extends Closure {
 }
 
-/// Represents a 'tear-off' closure, that is an instance method bound
-/// to a specific receiver (instance).
+class StaticClosure extends TearOffClosure {
+  String toString() {
+    String name = JS('String|Null', '#.\$name', this);
+    if (name == null) return "Closure of unknown static method";
+    return "Closure '$name'";
+  }
+}
+
+/// Represents a 'tear-off' or property extraction closure of an instance
+/// method, that is an instance method bound to a specific receiver (instance).
 class BoundClosure extends TearOffClosure {
   /// The receiver or interceptor.
   // TODO(ahe): This could just be the interceptor, we always know if
@@ -2630,6 +2643,11 @@ class BoundClosure extends TearOffClosure {
       receiverHashCode = Primitives.objectHashCode(_receiver);
     }
     return receiverHashCode ^ Primitives.objectHashCode(_target);
+  }
+
+  toString() {
+    var receiver = _receiver == null ? _self : _receiver;
+    return "Closure '$_name' of ${Primitives.objectToString(receiver)}";
   }
 
   @NoInline()

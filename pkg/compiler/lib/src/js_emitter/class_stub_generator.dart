@@ -224,7 +224,7 @@ List<jsAst.Statement> buildTearOffCode(JavaScriptBackend backend) {
   } else {
     // Default values for mocked-up test libraries.
     tearOffAccessText =
-        r'''function() { throw 'Helper \'closureFromTearOff\' missing.' }''';
+        r'''function() { throw "Helper 'closureFromTearOff' missing." }''';
     tearOffAccessExpression = js(tearOffAccessText);
     tearOffGlobalObjectName = 'MissingHelperFunction';
     tearOffGlobalObject = '($tearOffAccessText())';
