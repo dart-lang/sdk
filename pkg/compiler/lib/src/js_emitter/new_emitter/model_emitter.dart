@@ -160,13 +160,21 @@ class ModelEmitter {
     return totalSize;
   }
 
-  js.LiteralString unparse(Compiler compiler, js.Node value) {
+  /// Unparses the given [value].
+  ///
+  /// Pretty-prints the given [value] and, if [protectForEval] is
+  /// true, wraps the resulting string in parenthesis. The result is escaped
+  /// and returned.
+  js.LiteralString unparse(Compiler compiler, js.Node value,
+                           {bool protectForEval: true}) {
     String text = js.prettyPrint(value, compiler).getText();
-    if (value is js.Fun) text = '($text)';
-    if (value is js.LiteralExpression &&
-        (value.template.startsWith("function ") ||
-         value.template.startsWith("{"))) {
-      text = '($text)';
+    if (protectForEval) {
+      if (value is js.Fun) text = '($text)';
+      if (value is js.LiteralExpression &&
+      (value.template.startsWith("function ") ||
+      value.template.startsWith("{"))) {
+        text = '($text)';
+      }
     }
     return js.js.escapedString(text);
   }
@@ -201,6 +209,7 @@ class ModelEmitter {
            backend.emitter.staticFunctionAccess(backend.getCyclicThrowHelper()),
        'outputContainsConstantList': program.outputContainsConstantList,
        'embeddedGlobals': emitEmbeddedGlobals(program),
+       'readMetadataTypeFunction': readMetadataTypeFunction,
        'staticNonFinals':
             emitStaticNonFinalFields(fragment.staticNonFinalFields),
        'operatorIsPrefix': js.string(namer.operatorIsPrefix),
@@ -421,6 +430,28 @@ class ModelEmitter {
     return new js.Property(js.string(GET_TYPE_FROM_NAME), function);
   }
 
+  static final String readMetadataTypeName = "readMetadataType";
+
+  js.Statement get readMetadataTypeFunction {
+    // Types are non-evaluated and must be compiled at first use.
+    // Compiled strings are guaranteed not to be strings, and it's thus safe
+    // to use a type-test to determine if a type has already been compiled.
+    return js.js.statement('''function $readMetadataTypeName(index) {
+      var type = #typesAccess[index];
+      if (typeof type == 'string') {
+        type = expressionCompile(type);
+        #typesAccess[index] = type;
+      }
+      return type;
+    }''', {"typesAccess": generateEmbeddedGlobalAccess(TYPES)});
+  }
+
+  js.Template get templateForReadType {
+    // TODO(floitsch): make sure that no local variable shadows the access to
+    // the readMetadataType function.
+    return js.js.expressionTemplateFor('$readMetadataTypeName(#)');
+  }
+
   List<js.Property> emitMetadata(Program program) {
     List<js.Property> metadataGlobals = <js.Property>[];
     metadataGlobals.add(new js.Property(
@@ -428,9 +459,11 @@ class ModelEmitter {
     List<js.Expression> types =
         program.metadataTypes[program.fragments.first.outputUnit];
     if (types == null) types = <js.Expression>[];
-    metadataGlobals.add(new js.Property(
-        js.string(TYPES), new js.ArrayInitializer(types)));
-
+    List<js.LiteralString> unparsedTypes = types
+        .map((type) => unparse(compiler, type, protectForEval: false))
+        .toList();
+    js.ArrayInitializer typesArray = new js.ArrayInitializer(unparsedTypes);
+    metadataGlobals.add(new js.Property(js.string(TYPES), typesArray));
     return metadataGlobals;
   }
 
@@ -458,7 +491,7 @@ class ModelEmitter {
 
     js.LiteralString immediateString = unparse(compiler, immediateCode);
 
-    js.Expression deferredTypes = types == null
+    js.Expression deferredTypes = (types == null)
         ? js.string("[]")
         : unparse(compiler, new js.ArrayInitializer(types));
 
@@ -1155,6 +1188,13 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
 
   // Initialize globals.
   #embeddedGlobals;
+
+  function expressionCompile(__s__) {
+    'use strict';
+    return eval('(' + __s__ + ')');
+  }
+
+  #readMetadataTypeFunction;
 
   // TODO(floitsch): this order means that native classes may not be
   // referenced from constants. I'm mostly afraid of things like using them as

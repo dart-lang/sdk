@@ -176,8 +176,7 @@ class Emitter implements emitterTask.Emitter {
         return js.js.expressionTemplateFor("$metadataAccess[#]");
 
       case JsBuiltin.getType:
-        String typesAccess = _emitter.generateEmbeddedGlobalAccessString(TYPES);
-        return js.js.expressionTemplateFor("$typesAccess[#]");
+        return _emitter.templateForReadType;
 
       default:
         _compiler.internalError(NO_LOCATION_SPANNABLE,

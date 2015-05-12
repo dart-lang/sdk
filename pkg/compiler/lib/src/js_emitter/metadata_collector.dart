@@ -110,6 +110,13 @@ class MetadataCollector {
               return _backend.isAccessibleByReflection(typedef.element);
             });
 
+    if (representation is jsAst.LiteralString) {
+      // We don't want the representation to be a string, since we use
+      // strings as indicator for non-initialized types in the lazy emitter.
+      _compiler.internalError(
+          NO_LOCATION_SPANNABLE, 'reified types should not be strings.');
+    }
+
     return addTypeInOutputUnit(representation, outputUnit);
   }
 
@@ -133,8 +140,9 @@ class MetadataCollector {
     }
     return _typesMap[outputUnit].putIfAbsent(string, () {
 
-      if (types[outputUnit] == null)
+      if (types[outputUnit] == null) {
         types[outputUnit] = <jsAst.Expression>[];
+      }
 
       types[outputUnit].add(type);
       return types[outputUnit].length - 1;
