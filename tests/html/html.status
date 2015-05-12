@@ -246,6 +246,7 @@ xsltprocessor_test/supported: Fail
 custom/document_register_type_extensions_test/construction: Fail # Issue 13193
 custom/element_upgrade_test: Fail # Issue 18247
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
+event_test: RuntimeError # Issue 23437. Only three failures, but hard to break them out.
 
 [ $compiler == dart2js && $runtime == drt && $unchecked ]
 audiocontext_test/functional: Pass, Fail

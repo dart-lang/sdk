@@ -259,7 +259,6 @@ LayoutTests/fast/html/imports/import-events_t01: StaticWarning # co19-roll r761:
 
 # co19-roll r786
 LayoutTests/fast/events/initkeyboardevent-crash_t01: StaticWarning # co19-roll r786: Please triage this failure.
-LayoutTests/fast/events/wheelevent-constructor_t01: StaticWarning # co19-roll r786: Please triage this failure.
 
 # co19-roll r801
 LayoutTests/fast/html/select-dropdown-consistent-background-color_t01: StaticWarning # co19-roll r801: Please triage this failure.
