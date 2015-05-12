@@ -9023,6 +9023,7 @@ LibTest/html/Element/isTagSupported_A01_t02: RuntimeError # Please triage this f
 LibTest/html/Element/leftView_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/loadEvent_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Element/marginEdge_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/Element/mouseWheelEvent_A01_t01: Skip # Times out, Issue 23437
 LibTest/html/Element/onError_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Element/onFocus_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/html/Element/onLoad_A01_t01: Skip # Times out. Please triage this failure
@@ -9071,6 +9072,7 @@ LibTest/html/IFrameElement/leftView_A01_t01: RuntimeError # Please triage this f
 LibTest/html/IFrameElement/marginEdge_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/offsetTo_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/onClick_A01_t01: Skip # Times out. Please triage this failure
+LibTest/html/IFrameElement/onMouseWheel_A01_t01: Skip # Times out. Issue 23437
 LibTest/html/IFrameElement/outerHtml_setter_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/ownerDocument_A01_t05: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/paddingEdge_A01_t01: RuntimeError # Please triage this failure
