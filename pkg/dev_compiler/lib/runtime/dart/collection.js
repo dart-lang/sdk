@@ -30,12 +30,12 @@ var math = dart.lazyImport(math);
     return dart.hashCode(a);
   }
   let _Equality$ = dart.generic(function(K) {
-    let _Equality = dart.typedef('_Equality', () => dart.functionType(core.bool, [K, K]));
+    let _Equality = dart.typedef('_Equality', dart.functionType(core.bool, [K, K]));
     return _Equality;
   });
   let _Equality = _Equality$();
   let _Hasher$ = dart.generic(function(K) {
-    let _Hasher = dart.typedef('_Hasher', () => dart.functionType(core.int, [K]));
+    let _Hasher = dart.typedef('_Hasher', dart.functionType(core.int, [K]));
     return _Hasher;
   });
   let _Hasher = _Hasher$();
@@ -100,7 +100,6 @@ var math = dart.lazyImport(math);
     return HashMap;
   });
   let HashMap = HashMap$();
-  let _newSet = Symbol('_newSet');
   let SetMixin$ = dart.generic(function(E) {
     class SetMixin extends core.Object {
       [Symbol.iterator]() {
@@ -383,6 +382,7 @@ var math = dart.lazyImport(math);
     return SetBase;
   });
   let SetBase = SetBase$();
+  let _newSet = Symbol('_newSet');
   let _HashSetBase$ = dart.generic(function(E) {
     class _HashSetBase extends SetBase$(E) {
       difference(other) {
@@ -881,26 +881,26 @@ var math = dart.lazyImport(math);
         throw new core.RangeError.index(index, this, "index", null, elementIndex);
       }
       toString() {
-        return IterableBase.iterableToShortString(this, '(', ')');
+        return IterableBase$().iterableToShortString(this, '(', ')');
       }
       static iterableToShortString(iterable, leftDelimiter, rightDelimiter) {
         if (leftDelimiter === void 0)
           leftDelimiter = '(';
         if (rightDelimiter === void 0)
           rightDelimiter = ')';
-        if (IterableBase._isToStringVisiting(iterable)) {
+        if (IterableBase$()._isToStringVisiting(iterable)) {
           if (leftDelimiter == "(" && rightDelimiter == ")") {
             return "(...)";
           }
           return `${leftDelimiter}...${rightDelimiter}`;
         }
         let parts = [];
-        IterableBase._toStringVisiting[core.$add](iterable);
+        IterableBase$()._toStringVisiting[core.$add](iterable);
         try {
-          IterableBase._iterablePartsToStrings(iterable, parts);
+          IterableBase$()._iterablePartsToStrings(iterable, parts);
         } finally {
-          dart.assert(core.identical(IterableBase._toStringVisiting[core.$last], iterable));
-          IterableBase._toStringVisiting[core.$removeLast]();
+          dart.assert(core.identical(IterableBase$()._toStringVisiting[core.$last], iterable));
+          IterableBase$()._toStringVisiting[core.$removeLast]();
         }
         return dart.toString((() => {
           let _ = new core.StringBuffer(leftDelimiter);
@@ -914,23 +914,23 @@ var math = dart.lazyImport(math);
           leftDelimiter = '(';
         if (rightDelimiter === void 0)
           rightDelimiter = ')';
-        if (IterableBase._isToStringVisiting(iterable)) {
+        if (IterableBase$()._isToStringVisiting(iterable)) {
           return `${leftDelimiter}...${rightDelimiter}`;
         }
         let buffer = new core.StringBuffer(leftDelimiter);
-        IterableBase._toStringVisiting[core.$add](iterable);
+        IterableBase$()._toStringVisiting[core.$add](iterable);
         try {
           buffer.writeAll(iterable, ", ");
         } finally {
-          dart.assert(core.identical(IterableBase._toStringVisiting[core.$last], iterable));
-          IterableBase._toStringVisiting[core.$removeLast]();
+          dart.assert(core.identical(IterableBase$()._toStringVisiting[core.$last], iterable));
+          IterableBase$()._toStringVisiting[core.$removeLast]();
         }
         buffer.write(rightDelimiter);
         return dart.toString(buffer);
       }
       static _isToStringVisiting(o) {
-        for (let i = 0; dart.notNull(i) < dart.notNull(IterableBase._toStringVisiting[core.$length]); i = dart.notNull(i) + 1) {
-          if (core.identical(o, IterableBase._toStringVisiting[core.$get](i)))
+        for (let i = 0; dart.notNull(i) < dart.notNull(IterableBase$()._toStringVisiting[core.$length]); i = dart.notNull(i) + 1) {
+          if (core.identical(o, IterableBase$()._toStringVisiting[core.$get](i)))
             return true;
         }
         return false;
@@ -1018,14 +1018,14 @@ var math = dart.lazyImport(math);
       }
     }
     IterableBase[dart.implements] = () => [core.Iterable$(E)];
-    dart.defineLazyProperties(IterableBase, {
-      get _toStringVisiting() {
-        return [];
-      }
-    });
     return IterableBase;
   });
   let IterableBase = IterableBase$();
+  dart.defineLazyProperties(IterableBase, {
+    get _toStringVisiting() {
+      return [];
+    }
+  });
   let _iterator = Symbol('_iterator');
   let _state = Symbol('_state');
   let _move = Symbol('_move');
@@ -1033,35 +1033,35 @@ var math = dart.lazyImport(math);
     class HasNextIterator extends core.Object {
       HasNextIterator(iterator) {
         this[_iterator] = iterator;
-        this[_state] = HasNextIterator._NOT_MOVED_YET;
+        this[_state] = HasNextIterator$()._NOT_MOVED_YET;
       }
       get hasNext() {
-        if (this[_state] == HasNextIterator._NOT_MOVED_YET)
+        if (this[_state] == HasNextIterator$()._NOT_MOVED_YET)
           this[_move]();
-        return this[_state] == HasNextIterator._HAS_NEXT_AND_NEXT_IN_CURRENT;
+        return this[_state] == HasNextIterator$()._HAS_NEXT_AND_NEXT_IN_CURRENT;
       }
       next() {
         if (!dart.notNull(this.hasNext))
           throw new core.StateError("No more elements");
-        dart.assert(this[_state] == HasNextIterator._HAS_NEXT_AND_NEXT_IN_CURRENT);
+        dart.assert(this[_state] == HasNextIterator$()._HAS_NEXT_AND_NEXT_IN_CURRENT);
         let result = dart.as(this[_iterator].current, E);
         this[_move]();
         return result;
       }
       [_move]() {
         if (this[_iterator].moveNext()) {
-          this[_state] = HasNextIterator._HAS_NEXT_AND_NEXT_IN_CURRENT;
+          this[_state] = HasNextIterator$()._HAS_NEXT_AND_NEXT_IN_CURRENT;
         } else {
-          this[_state] = HasNextIterator._NO_NEXT;
+          this[_state] = HasNextIterator$()._NO_NEXT;
         }
       }
     }
-    HasNextIterator._HAS_NEXT_AND_NEXT_IN_CURRENT = 0;
-    HasNextIterator._NO_NEXT = 1;
-    HasNextIterator._NOT_MOVED_YET = 2;
     return HasNextIterator;
   });
   let HasNextIterator = HasNextIterator$();
+  HasNextIterator._HAS_NEXT_AND_NEXT_IN_CURRENT = 0;
+  HasNextIterator._NO_NEXT = 1;
+  HasNextIterator._NOT_MOVED_YET = 2;
   let LinkedHashMap$ = dart.generic(function(K, V) {
     class LinkedHashMap extends core.Object {
       LinkedHashMap(opts) {
@@ -1617,11 +1617,11 @@ var math = dart.lazyImport(math);
       }
       [core.$removeWhere](test) {
         dart.as(test, dart.functionType(core.bool, [E]));
-        ListMixin._filter(this, test, false);
+        ListMixin$()._filter(this, test, false);
       }
       [core.$retainWhere](test) {
         dart.as(test, dart.functionType(core.bool, [E]));
-        ListMixin._filter(this, test, true);
+        ListMixin$()._filter(this, test, true);
       }
       static _filter(source, test, retainMatching) {
         dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
@@ -2448,12 +2448,12 @@ var math = dart.lazyImport(math);
         this[_table] = null;
         this[_modificationCount] = 0;
         super.IterableBase();
-        if (initialCapacity == null || dart.notNull(initialCapacity) < dart.notNull(ListQueue._INITIAL_CAPACITY)) {
-          initialCapacity = ListQueue._INITIAL_CAPACITY;
-        } else if (!dart.notNull(ListQueue._isPowerOf2(initialCapacity))) {
-          initialCapacity = ListQueue._nextPowerOf2(initialCapacity);
+        if (initialCapacity == null || dart.notNull(initialCapacity) < dart.notNull(ListQueue$()._INITIAL_CAPACITY)) {
+          initialCapacity = ListQueue$()._INITIAL_CAPACITY;
+        } else if (!dart.notNull(ListQueue$()._isPowerOf2(initialCapacity))) {
+          initialCapacity = ListQueue$()._nextPowerOf2(initialCapacity);
         }
-        dart.assert(ListQueue._isPowerOf2(initialCapacity));
+        dart.assert(ListQueue$()._isPowerOf2(initialCapacity));
         this[_table] = new (core.List$(E))(initialCapacity);
       }
       from(elements) {
@@ -2466,7 +2466,7 @@ var math = dart.lazyImport(math);
           queue[_tail] = length;
           return queue;
         } else {
-          let capacity = ListQueue._INITIAL_CAPACITY;
+          let capacity = ListQueue$()._INITIAL_CAPACITY;
           if (dart.is(elements, _internal.EfficientLength)) {
             capacity = elements[core.$length];
           }
@@ -2715,7 +2715,7 @@ var math = dart.lazyImport(math);
       [_preGrow](newElementCount) {
         dart.assert(dart.notNull(newElementCount) >= dart.notNull(this[core.$length]));
         newElementCount = dart.notNull(newElementCount) + (dart.notNull(newElementCount) >> 1);
-        let newCapacity = ListQueue._nextPowerOf2(newElementCount);
+        let newCapacity = ListQueue$()._nextPowerOf2(newElementCount);
         let newTable = new (core.List$(E))(newCapacity);
         this[_tail] = this[_writeToList](newTable);
         this[_table] = newTable;
@@ -2724,10 +2724,10 @@ var math = dart.lazyImport(math);
     }
     ListQueue[dart.implements] = () => [Queue$(E)];
     dart.defineNamedConstructor(ListQueue, 'from');
-    ListQueue._INITIAL_CAPACITY = 8;
     return ListQueue;
   });
   let ListQueue = ListQueue$();
+  ListQueue._INITIAL_CAPACITY = 8;
   let _queue = Symbol('_queue');
   let _end = Symbol('_end');
   let _position = Symbol('_position');
@@ -2759,7 +2759,7 @@ var math = dart.lazyImport(math);
   });
   let _ListQueueIterator = _ListQueueIterator$();
   let _Predicate$ = dart.generic(function(T) {
-    let _Predicate = dart.typedef('_Predicate', () => dart.functionType(core.bool, [T]));
+    let _Predicate = dart.typedef('_Predicate', dart.functionType(core.bool, [T]));
     return _Predicate;
   });
   let _Predicate = _Predicate$();
@@ -3489,11 +3489,11 @@ var math = dart.lazyImport(math);
   });
   let SplayTreeSet = SplayTreeSet$();
   let __CastType0$ = dart.generic(function(K) {
-    let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.int, [K, K]));
+    let __CastType0 = dart.typedef('__CastType0', dart.functionType(core.int, [K, K]));
     return __CastType0;
   });
   let __CastType0 = __CastType0$();
-  let __CastType3 = dart.typedef('__CastType3', () => dart.functionType(core.bool, [core.Object]));
+  let __CastType3 = dart.typedef('__CastType3', dart.functionType(core.bool, [core.Object]));
   let _strings = Symbol('_strings');
   let _nums = Symbol('_nums');
   let _rest = Symbol('_rest');
@@ -3531,12 +3531,12 @@ var math = dart.lazyImport(math);
         return new (_internal.MappedIterable$(K, V))(this.keys, (each => this.get(each)).bind(this));
       }
       containsKey(key) {
-        if (_HashMap._isStringKey(key)) {
+        if (_HashMap$()._isStringKey(key)) {
           let strings = this[_strings];
-          return strings == null ? false : _HashMap._hasTableEntry(strings, key);
-        } else if (_HashMap._isNumericKey(key)) {
+          return strings == null ? false : _HashMap$()._hasTableEntry(strings, key);
+        } else if (_HashMap$()._isNumericKey(key)) {
           let nums = this[_nums];
-          return nums == null ? false : _HashMap._hasTableEntry(nums, key);
+          return nums == null ? false : _HashMap$()._hasTableEntry(nums, key);
         } else {
           return this[_containsKey](key);
         }
@@ -3560,12 +3560,12 @@ var math = dart.lazyImport(math);
         }).bind(this));
       }
       get(key) {
-        if (_HashMap._isStringKey(key)) {
+        if (_HashMap$()._isStringKey(key)) {
           let strings = this[_strings];
-          return strings == null ? null : dart.as(_HashMap._getTableEntry(strings, key), V);
-        } else if (_HashMap._isNumericKey(key)) {
+          return strings == null ? null : dart.as(_HashMap$()._getTableEntry(strings, key), V);
+        } else if (_HashMap$()._isNumericKey(key)) {
           let nums = this[_nums];
-          return nums == null ? null : dart.as(_HashMap._getTableEntry(nums, key), V);
+          return nums == null ? null : dart.as(_HashMap$()._getTableEntry(nums, key), V);
         } else {
           return this[_get](key);
         }
@@ -3581,15 +3581,15 @@ var math = dart.lazyImport(math);
       set(key, value) {
         dart.as(key, K);
         dart.as(value, V);
-        if (_HashMap._isStringKey(key)) {
+        if (_HashMap$()._isStringKey(key)) {
           let strings = this[_strings];
           if (strings == null)
-            this[_strings] = strings = _HashMap._newHashTable();
+            this[_strings] = strings = _HashMap$()._newHashTable();
           this[_addHashTableEntry](strings, key, value);
-        } else if (_HashMap._isNumericKey(key)) {
+        } else if (_HashMap$()._isNumericKey(key)) {
           let nums = this[_nums];
           if (nums == null)
-            this[_nums] = nums = _HashMap._newHashTable();
+            this[_nums] = nums = _HashMap$()._newHashTable();
           this[_addHashTableEntry](nums, key, value);
         } else {
           this[_set](key, value);
@@ -3600,11 +3600,11 @@ var math = dart.lazyImport(math);
         dart.as(value, V);
         let rest = this[_rest];
         if (rest == null)
-          this[_rest] = rest = _HashMap._newHashTable();
+          this[_rest] = rest = _HashMap$()._newHashTable();
         let hash = this[_computeHashCode](key);
         let bucket = rest[hash];
         if (bucket == null) {
-          _HashMap._setTableEntry(rest, hash, [key, value]);
+          _HashMap$()._setTableEntry(rest, hash, [key, value]);
           this[_length] = dart.notNull(this[_length]) + 1;
           this[_keys] = null;
         } else {
@@ -3628,9 +3628,9 @@ var math = dart.lazyImport(math);
         return value;
       }
       remove(key) {
-        if (_HashMap._isStringKey(key)) {
+        if (_HashMap$()._isStringKey(key)) {
           return this[_removeHashTableEntry](this[_strings], key);
-        } else if (_HashMap._isNumericKey(key)) {
+        } else if (_HashMap$()._isNumericKey(key)) {
           return this[_removeHashTableEntry](this[_nums], key);
         } else {
           return this[_remove](key);
@@ -3711,16 +3711,16 @@ var math = dart.lazyImport(math);
       [_addHashTableEntry](table, key, value) {
         dart.as(key, K);
         dart.as(value, V);
-        if (!dart.notNull(_HashMap._hasTableEntry(table, key))) {
+        if (!dart.notNull(_HashMap$()._hasTableEntry(table, key))) {
           this[_length] = dart.notNull(this[_length]) + 1;
           this[_keys] = null;
         }
-        _HashMap._setTableEntry(table, key, value);
+        _HashMap$()._setTableEntry(table, key, value);
       }
       [_removeHashTableEntry](table, key) {
-        if (dart.notNull(table != null) && dart.notNull(_HashMap._hasTableEntry(table, key))) {
-          let value = dart.as(_HashMap._getTableEntry(table, key), V);
-          _HashMap._deleteTableEntry(table, key);
+        if (dart.notNull(table != null) && dart.notNull(_HashMap$()._hasTableEntry(table, key))) {
+          let value = dart.as(_HashMap$()._getTableEntry(table, key), V);
+          _HashMap$()._deleteTableEntry(table, key);
           this[_length] = dart.notNull(this[_length]) - 1;
           this[_keys] = null;
           return value;
@@ -3772,8 +3772,8 @@ var math = dart.lazyImport(math);
       static _newHashTable() {
         let table = Object.create(null);
         let temporaryKey = '<non-identifier-key>';
-        _HashMap._setTableEntry(table, temporaryKey, table);
-        _HashMap._deleteTableEntry(table, temporaryKey);
+        _HashMap$()._setTableEntry(table, temporaryKey, table);
+        _HashMap$()._deleteTableEntry(table, temporaryKey);
         return table;
       }
     }
@@ -3950,17 +3950,17 @@ var math = dart.lazyImport(math);
         return new (_internal.MappedIterable$(K, V))(this.keys, (each => this.get(each)).bind(this));
       }
       containsKey(key) {
-        if (_LinkedHashMap._isStringKey(key)) {
+        if (_LinkedHashMap$()._isStringKey(key)) {
           let strings = this[_strings];
           if (strings == null)
             return false;
-          let cell = dart.as(_LinkedHashMap._getTableEntry(strings, key), LinkedHashMapCell);
+          let cell = dart.as(_LinkedHashMap$()._getTableEntry(strings, key), LinkedHashMapCell);
           return cell != null;
-        } else if (_LinkedHashMap._isNumericKey(key)) {
+        } else if (_LinkedHashMap$()._isNumericKey(key)) {
           let nums = this[_nums];
           if (nums == null)
             return false;
-          let cell = dart.as(_LinkedHashMap._getTableEntry(nums, key), LinkedHashMapCell);
+          let cell = dart.as(_LinkedHashMap$()._getTableEntry(nums, key), LinkedHashMapCell);
           return cell != null;
         } else {
           return this[_containsKey](key);
@@ -3985,17 +3985,17 @@ var math = dart.lazyImport(math);
         }).bind(this));
       }
       get(key) {
-        if (_LinkedHashMap._isStringKey(key)) {
+        if (_LinkedHashMap$()._isStringKey(key)) {
           let strings = this[_strings];
           if (strings == null)
             return null;
-          let cell = dart.as(_LinkedHashMap._getTableEntry(strings, key), LinkedHashMapCell);
+          let cell = dart.as(_LinkedHashMap$()._getTableEntry(strings, key), LinkedHashMapCell);
           return cell == null ? null : dart.as(cell[_value], V);
-        } else if (_LinkedHashMap._isNumericKey(key)) {
+        } else if (_LinkedHashMap$()._isNumericKey(key)) {
           let nums = this[_nums];
           if (nums == null)
             return null;
-          let cell = dart.as(_LinkedHashMap._getTableEntry(nums, key), LinkedHashMapCell);
+          let cell = dart.as(_LinkedHashMap$()._getTableEntry(nums, key), LinkedHashMapCell);
           return cell == null ? null : dart.as(cell[_value], V);
         } else {
           return this[_get](key);
@@ -4015,15 +4015,15 @@ var math = dart.lazyImport(math);
       set(key, value) {
         dart.as(key, K);
         dart.as(value, V);
-        if (_LinkedHashMap._isStringKey(key)) {
+        if (_LinkedHashMap$()._isStringKey(key)) {
           let strings = this[_strings];
           if (strings == null)
-            this[_strings] = strings = _LinkedHashMap._newHashTable();
+            this[_strings] = strings = _LinkedHashMap$()._newHashTable();
           this[_addHashTableEntry](strings, key, value);
-        } else if (_LinkedHashMap._isNumericKey(key)) {
+        } else if (_LinkedHashMap$()._isNumericKey(key)) {
           let nums = this[_nums];
           if (nums == null)
-            this[_nums] = nums = _LinkedHashMap._newHashTable();
+            this[_nums] = nums = _LinkedHashMap$()._newHashTable();
           this[_addHashTableEntry](nums, key, value);
         } else {
           this[_set](key, value);
@@ -4034,12 +4034,12 @@ var math = dart.lazyImport(math);
         dart.as(value, V);
         let rest = this[_rest];
         if (rest == null)
-          this[_rest] = rest = _LinkedHashMap._newHashTable();
+          this[_rest] = rest = _LinkedHashMap$()._newHashTable();
         let hash = this[_computeHashCode](key);
         let bucket = rest[hash];
         if (bucket == null) {
           let cell = this[_newLinkedCell](key, value);
-          _LinkedHashMap._setTableEntry(rest, hash, [cell]);
+          _LinkedHashMap$()._setTableEntry(rest, hash, [cell]);
         } else {
           let index = this[_findBucketIndex](bucket, key);
           if (dart.notNull(index) >= 0) {
@@ -4061,9 +4061,9 @@ var math = dart.lazyImport(math);
         return value;
       }
       remove(key) {
-        if (_LinkedHashMap._isStringKey(key)) {
+        if (_LinkedHashMap$()._isStringKey(key)) {
           return this[_removeHashTableEntry](this[_strings], key);
-        } else if (_LinkedHashMap._isNumericKey(key)) {
+        } else if (_LinkedHashMap$()._isNumericKey(key)) {
           return this[_removeHashTableEntry](this[_nums], key);
         } else {
           return this[_remove](key);
@@ -4103,9 +4103,9 @@ var math = dart.lazyImport(math);
       [_addHashTableEntry](table, key, value) {
         dart.as(key, K);
         dart.as(value, V);
-        let cell = dart.as(_LinkedHashMap._getTableEntry(table, key), LinkedHashMapCell);
+        let cell = dart.as(_LinkedHashMap$()._getTableEntry(table, key), LinkedHashMapCell);
         if (cell == null) {
-          _LinkedHashMap._setTableEntry(table, key, this[_newLinkedCell](key, value));
+          _LinkedHashMap$()._setTableEntry(table, key, this[_newLinkedCell](key, value));
         } else {
           cell[_value] = value;
         }
@@ -4113,11 +4113,11 @@ var math = dart.lazyImport(math);
       [_removeHashTableEntry](table, key) {
         if (table == null)
           return null;
-        let cell = dart.as(_LinkedHashMap._getTableEntry(table, key), LinkedHashMapCell);
+        let cell = dart.as(_LinkedHashMap$()._getTableEntry(table, key), LinkedHashMapCell);
         if (cell == null)
           return null;
         this[_unlinkCell](cell);
-        _LinkedHashMap._deleteTableEntry(table, key);
+        _LinkedHashMap$()._deleteTableEntry(table, key);
         return dart.as(cell[_value], V);
       }
       [_modified]() {
@@ -4193,8 +4193,8 @@ var math = dart.lazyImport(math);
       static _newHashTable() {
         let table = Object.create(null);
         let temporaryKey = '<non-identifier-key>';
-        _LinkedHashMap._setTableEntry(table, temporaryKey, table);
-        _LinkedHashMap._deleteTableEntry(table, temporaryKey);
+        _LinkedHashMap$()._setTableEntry(table, temporaryKey, table);
+        _LinkedHashMap$()._deleteTableEntry(table, temporaryKey);
         return table;
       }
       toString() {
@@ -4376,12 +4376,12 @@ var math = dart.lazyImport(math);
         return !dart.notNull(this[core.$isEmpty]);
       }
       [core.$contains](object) {
-        if (_HashSet._isStringElement(object)) {
+        if (_HashSet$()._isStringElement(object)) {
           let strings = this[_strings];
-          return strings == null ? false : _HashSet._hasTableEntry(strings, object);
-        } else if (_HashSet._isNumericElement(object)) {
+          return strings == null ? false : _HashSet$()._hasTableEntry(strings, object);
+        } else if (_HashSet$()._isNumericElement(object)) {
           let nums = this[_nums];
-          return nums == null ? false : _HashSet._hasTableEntry(nums, object);
+          return nums == null ? false : _HashSet$()._hasTableEntry(nums, object);
         } else {
           return this[_contains](object);
         }
@@ -4394,7 +4394,7 @@ var math = dart.lazyImport(math);
         return dart.notNull(this[_findBucketIndex](bucket, object)) >= 0;
       }
       lookup(object) {
-        if (dart.notNull(_HashSet._isStringElement(object)) || dart.notNull(_HashSet._isNumericElement(object))) {
+        if (dart.notNull(_HashSet$()._isStringElement(object)) || dart.notNull(_HashSet$()._isNumericElement(object))) {
           return dart.as(this[core.$contains](object) ? object : null, E);
         }
         return this[_lookup](object);
@@ -4411,15 +4411,15 @@ var math = dart.lazyImport(math);
       }
       add(element) {
         dart.as(element, E);
-        if (_HashSet._isStringElement(element)) {
+        if (_HashSet$()._isStringElement(element)) {
           let strings = this[_strings];
           if (strings == null)
-            this[_strings] = strings = _HashSet._newHashTable();
+            this[_strings] = strings = _HashSet$()._newHashTable();
           return this[_addHashTableEntry](strings, element);
-        } else if (_HashSet._isNumericElement(element)) {
+        } else if (_HashSet$()._isNumericElement(element)) {
           let nums = this[_nums];
           if (nums == null)
-            this[_nums] = nums = _HashSet._newHashTable();
+            this[_nums] = nums = _HashSet$()._newHashTable();
           return this[_addHashTableEntry](nums, element);
         } else {
           return this[_add](element);
@@ -4429,11 +4429,11 @@ var math = dart.lazyImport(math);
         dart.as(element, E);
         let rest = this[_rest];
         if (rest == null)
-          this[_rest] = rest = _HashSet._newHashTable();
+          this[_rest] = rest = _HashSet$()._newHashTable();
         let hash = this[_computeHashCode](element);
         let bucket = rest[hash];
         if (bucket == null) {
-          _HashSet._setTableEntry(rest, hash, [element]);
+          _HashSet$()._setTableEntry(rest, hash, [element]);
         } else {
           let index = this[_findBucketIndex](bucket, element);
           if (dart.notNull(index) >= 0)
@@ -4451,9 +4451,9 @@ var math = dart.lazyImport(math);
         }
       }
       remove(object) {
-        if (_HashSet._isStringElement(object)) {
+        if (_HashSet$()._isStringElement(object)) {
           return this[_removeHashTableEntry](this[_strings], object);
-        } else if (_HashSet._isNumericElement(object)) {
+        } else if (_HashSet$()._isNumericElement(object)) {
           return this[_removeHashTableEntry](this[_nums], object);
         } else {
           return this[_remove](object);
@@ -4522,16 +4522,16 @@ var math = dart.lazyImport(math);
       }
       [_addHashTableEntry](table, element) {
         dart.as(element, E);
-        if (_HashSet._hasTableEntry(table, element))
+        if (_HashSet$()._hasTableEntry(table, element))
           return false;
-        _HashSet._setTableEntry(table, element, 0);
+        _HashSet$()._setTableEntry(table, element, 0);
         this[_length] = dart.notNull(this[_length]) + 1;
         this[_elements] = null;
         return true;
       }
       [_removeHashTableEntry](table, element) {
-        if (dart.notNull(table != null) && dart.notNull(_HashSet._hasTableEntry(table, element))) {
-          _HashSet._deleteTableEntry(table, element);
+        if (dart.notNull(table != null) && dart.notNull(_HashSet$()._hasTableEntry(table, element))) {
+          _HashSet$()._deleteTableEntry(table, element);
           this[_length] = dart.notNull(this[_length]) - 1;
           this[_elements] = null;
           return true;
@@ -4576,8 +4576,8 @@ var math = dart.lazyImport(math);
       static _newHashTable() {
         let table = Object.create(null);
         let temporaryKey = '<non-identifier-key>';
-        _HashSet._setTableEntry(table, temporaryKey, table);
-        _HashSet._deleteTableEntry(table, temporaryKey);
+        _HashSet$()._setTableEntry(table, temporaryKey, table);
+        _HashSet$()._deleteTableEntry(table, temporaryKey);
         return table;
       }
     }
@@ -4720,17 +4720,17 @@ var math = dart.lazyImport(math);
         return !dart.notNull(this[core.$isEmpty]);
       }
       [core.$contains](object) {
-        if (_LinkedHashSet._isStringElement(object)) {
+        if (_LinkedHashSet$()._isStringElement(object)) {
           let strings = this[_strings];
           if (strings == null)
             return false;
-          let cell = dart.as(_LinkedHashSet._getTableEntry(strings, object), LinkedHashSetCell);
+          let cell = dart.as(_LinkedHashSet$()._getTableEntry(strings, object), LinkedHashSetCell);
           return cell != null;
-        } else if (_LinkedHashSet._isNumericElement(object)) {
+        } else if (_LinkedHashSet$()._isNumericElement(object)) {
           let nums = this[_nums];
           if (nums == null)
             return false;
-          let cell = dart.as(_LinkedHashSet._getTableEntry(nums, object), LinkedHashSetCell);
+          let cell = dart.as(_LinkedHashSet$()._getTableEntry(nums, object), LinkedHashSetCell);
           return cell != null;
         } else {
           return this[_contains](object);
@@ -4744,7 +4744,7 @@ var math = dart.lazyImport(math);
         return dart.notNull(this[_findBucketIndex](bucket, object)) >= 0;
       }
       lookup(object) {
-        if (dart.notNull(_LinkedHashSet._isStringElement(object)) || dart.notNull(_LinkedHashSet._isNumericElement(object))) {
+        if (dart.notNull(_LinkedHashSet$()._isStringElement(object)) || dart.notNull(_LinkedHashSet$()._isNumericElement(object))) {
           return dart.as(this[core.$contains](object) ? object : null, E);
         } else {
           return this[_lookup](object);
@@ -4784,15 +4784,15 @@ var math = dart.lazyImport(math);
       }
       add(element) {
         dart.as(element, E);
-        if (_LinkedHashSet._isStringElement(element)) {
+        if (_LinkedHashSet$()._isStringElement(element)) {
           let strings = this[_strings];
           if (strings == null)
-            this[_strings] = strings = _LinkedHashSet._newHashTable();
+            this[_strings] = strings = _LinkedHashSet$()._newHashTable();
           return this[_addHashTableEntry](strings, element);
-        } else if (_LinkedHashSet._isNumericElement(element)) {
+        } else if (_LinkedHashSet$()._isNumericElement(element)) {
           let nums = this[_nums];
           if (nums == null)
-            this[_nums] = nums = _LinkedHashSet._newHashTable();
+            this[_nums] = nums = _LinkedHashSet$()._newHashTable();
           return this[_addHashTableEntry](nums, element);
         } else {
           return this[_add](element);
@@ -4802,12 +4802,12 @@ var math = dart.lazyImport(math);
         dart.as(element, E);
         let rest = this[_rest];
         if (rest == null)
-          this[_rest] = rest = _LinkedHashSet._newHashTable();
+          this[_rest] = rest = _LinkedHashSet$()._newHashTable();
         let hash = this[_computeHashCode](element);
         let bucket = rest[hash];
         if (bucket == null) {
           let cell = this[_newLinkedCell](element);
-          _LinkedHashSet._setTableEntry(rest, hash, [cell]);
+          _LinkedHashSet$()._setTableEntry(rest, hash, [cell]);
         } else {
           let index = this[_findBucketIndex](bucket, element);
           if (dart.notNull(index) >= 0)
@@ -4818,9 +4818,9 @@ var math = dart.lazyImport(math);
         return true;
       }
       remove(object) {
-        if (_LinkedHashSet._isStringElement(object)) {
+        if (_LinkedHashSet$()._isStringElement(object)) {
           return this[_removeHashTableEntry](this[_strings], object);
-        } else if (_LinkedHashSet._isNumericElement(object)) {
+        } else if (_LinkedHashSet$()._isNumericElement(object)) {
           return this[_removeHashTableEntry](this[_nums], object);
         } else {
           return this[_remove](object);
@@ -4871,20 +4871,20 @@ var math = dart.lazyImport(math);
       }
       [_addHashTableEntry](table, element) {
         dart.as(element, E);
-        let cell = dart.as(_LinkedHashSet._getTableEntry(table, element), LinkedHashSetCell);
+        let cell = dart.as(_LinkedHashSet$()._getTableEntry(table, element), LinkedHashSetCell);
         if (cell != null)
           return false;
-        _LinkedHashSet._setTableEntry(table, element, this[_newLinkedCell](element));
+        _LinkedHashSet$()._setTableEntry(table, element, this[_newLinkedCell](element));
         return true;
       }
       [_removeHashTableEntry](table, element) {
         if (table == null)
           return false;
-        let cell = dart.as(_LinkedHashSet._getTableEntry(table, element), LinkedHashSetCell);
+        let cell = dart.as(_LinkedHashSet$()._getTableEntry(table, element), LinkedHashSetCell);
         if (cell == null)
           return false;
         this[_unlinkCell](cell);
-        _LinkedHashSet._deleteTableEntry(table, element);
+        _LinkedHashSet$()._deleteTableEntry(table, element);
         return true;
       }
       [_modified]() {
@@ -4959,8 +4959,8 @@ var math = dart.lazyImport(math);
       static _newHashTable() {
         let table = Object.create(null);
         let temporaryKey = '<non-identifier-key>';
-        _LinkedHashSet._setTableEntry(table, temporaryKey, table);
-        _LinkedHashSet._deleteTableEntry(table, temporaryKey);
+        _LinkedHashSet$()._setTableEntry(table, temporaryKey, table);
+        _LinkedHashSet$()._deleteTableEntry(table, temporaryKey);
         return table;
       }
     }
@@ -5096,10 +5096,10 @@ var math = dart.lazyImport(math);
   exports.UnmodifiableListView$ = UnmodifiableListView$;
   exports.HashMap$ = HashMap$;
   exports.HashMap = HashMap;
-  exports.SetBase$ = SetBase$;
-  exports.SetBase = SetBase;
   exports.SetMixin$ = SetMixin$;
   exports.SetMixin = SetMixin;
+  exports.SetBase$ = SetBase$;
+  exports.SetBase = SetBase;
   exports.HashSet$ = HashSet$;
   exports.HashSet = HashSet;
   exports.IterableMixin$ = IterableMixin$;
@@ -5116,14 +5116,14 @@ var math = dart.lazyImport(math);
   exports.LinkedList = LinkedList;
   exports.LinkedListEntry$ = LinkedListEntry$;
   exports.LinkedListEntry = LinkedListEntry;
-  exports.ListBase$ = ListBase$;
-  exports.ListBase = ListBase;
   exports.ListMixin$ = ListMixin$;
   exports.ListMixin = ListMixin;
-  exports.MapBase$ = MapBase$;
-  exports.MapBase = MapBase;
+  exports.ListBase$ = ListBase$;
+  exports.ListBase = ListBase;
   exports.MapMixin$ = MapMixin$;
   exports.MapMixin = MapMixin;
+  exports.MapBase$ = MapBase$;
+  exports.MapBase = MapBase;
   exports.UnmodifiableMapBase$ = UnmodifiableMapBase$;
   exports.UnmodifiableMapBase = UnmodifiableMapBase;
   exports.MapView$ = MapView$;

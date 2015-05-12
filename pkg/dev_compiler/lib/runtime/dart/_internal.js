@@ -366,7 +366,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
   });
   let ListIterator = ListIterator$();
   let _Transformation$ = dart.generic(function(S, T) {
-    let _Transformation = dart.typedef('_Transformation', () => dart.functionType(T, [S]));
+    let _Transformation = dart.typedef('_Transformation', dart.functionType(T, [S]));
     return _Transformation;
   });
   let _Transformation = _Transformation$();
@@ -463,7 +463,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
   });
   let MappedListIterable = MappedListIterable$();
   let _ElementPredicate$ = dart.generic(function(E) {
-    let _ElementPredicate = dart.typedef('_ElementPredicate', () => dart.functionType(core.bool, [E]));
+    let _ElementPredicate = dart.typedef('_ElementPredicate', dart.functionType(core.bool, [E]));
     return _ElementPredicate;
   });
   let _ElementPredicate = _ElementPredicate$();
@@ -503,7 +503,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
   });
   let WhereIterator = WhereIterator$();
   let _ExpandFunction$ = dart.generic(function(S, T) {
-    let _ExpandFunction = dart.typedef('_ExpandFunction', () => dart.functionType(core.Iterable$(T), [S]));
+    let _ExpandFunction = dart.typedef('_ExpandFunction', dart.functionType(core.Iterable$(T), [S]));
     return _ExpandFunction;
   });
   let _ExpandFunction = _ExpandFunction$();
@@ -1162,11 +1162,11 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         core.RangeError.checkValidRange(start, end, list[core.$length]);
       }
       getRangeList(list, start, end) {
-        IterableMixinWorkaround._rangeCheck(list, start, end);
+        IterableMixinWorkaround$()._rangeCheck(list, start, end);
         return new (SubListIterable$(T))(dart.as(list, core.Iterable$(T)), start, end);
       }
       static setRangeList(list, start, end, from, skipCount) {
-        IterableMixinWorkaround._rangeCheck(list, start, end);
+        IterableMixinWorkaround$()._rangeCheck(list, start, end);
         let length = dart.notNull(end) - dart.notNull(start);
         if (length == 0)
           return;
@@ -1187,7 +1187,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         Lists.copy(otherList, otherStart, list, start, length);
       }
       static replaceRangeList(list, start, end, iterable) {
-        IterableMixinWorkaround._rangeCheck(list, start, end);
+        IterableMixinWorkaround$()._rangeCheck(list, start, end);
         if (!dart.is(iterable, EfficientLength)) {
           iterable = iterable[core.$toList]();
         }
@@ -1212,7 +1212,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         }
       }
       static fillRangeList(list, start, end, fillValue) {
-        IterableMixinWorkaround._rangeCheck(list, start, end);
+        IterableMixinWorkaround$()._rangeCheck(list, start, end);
         for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
           list[core.$set](i, fillValue);
         }
@@ -1299,22 +1299,22 @@ var _js_primitives = dart.lazyImport(_js_primitives);
     }
   }
   let __CastType0$ = dart.generic(function(S, T) {
-    let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.Iterable$(T), [S]));
+    let __CastType0 = dart.typedef('__CastType0', dart.functionType(core.Iterable$(T), [S]));
     return __CastType0;
   });
   let __CastType0 = __CastType0$();
   let __CastType2$ = dart.generic(function(E) {
-    let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(core.bool, [E]));
+    let __CastType2 = dart.typedef('__CastType2', dart.functionType(core.bool, [E]));
     return __CastType2;
   });
   let __CastType2 = __CastType2$();
   let __CastType4$ = dart.generic(function(E) {
-    let __CastType4 = dart.typedef('__CastType4', () => dart.functionType(core.bool, [E]));
+    let __CastType4 = dart.typedef('__CastType4', dart.functionType(core.bool, [E]));
     return __CastType4;
   });
   let __CastType4 = __CastType4$();
   let __CastType6$ = dart.generic(function(T) {
-    let __CastType6 = dart.typedef('__CastType6', () => dart.functionType(core.bool, [T]));
+    let __CastType6 = dart.typedef('__CastType6', dart.functionType(core.bool, [T]));
     return __CastType6;
   });
   let __CastType6 = __CastType6$();
@@ -1963,6 +1963,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
   Symbol.publicIdentifierRE = '(?!' + `${Symbol.reservedWordRE}` + '\\b(?!\\$))[a-zA-Z$][\\w$]*';
   Symbol.identifierRE = '(?!' + `${Symbol.reservedWordRE}` + '\\b(?!\\$))[a-zA-Z$_][\\w$]*';
   Symbol.operatorRE = '(?:[\\-+*/%&|^]|\\[\\]=?|==|~/?|<[<=]?|>[>=]?|unary-)';
+  let POWERS_OF_TEN = dart.const([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22]);
   dart.defineLazyProperties(Symbol, {
     get publicSymbolPattern() {
       return new core.RegExp(`^(?:${Symbol.operatorRE}$|${Symbol.publicIdentifierRE}(?:=?$|[.](?!$)))+?$`);
@@ -1971,7 +1972,6 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       return new core.RegExp(`^(?:${Symbol.operatorRE}$|${Symbol.identifierRE}(?:=?$|[.](?!$)))+?$`);
     }
   });
-  let POWERS_OF_TEN = dart.const([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22]);
   // Exports:
   exports.EfficientLength = EfficientLength;
   exports.ListIterable$ = ListIterable$;

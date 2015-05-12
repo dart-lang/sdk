@@ -27,13 +27,6 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     return JSExtendableArray;
   });
   let JSExtendableArray = JSExtendableArray$();
-  let _isInt32 = Symbol('_isInt32');
-  let _tdivFast = Symbol('_tdivFast');
-  let _tdivSlow = Symbol('_tdivSlow');
-  let _shlPositive = Symbol('_shlPositive');
-  let _shrReceiverPositive = Symbol('_shrReceiverPositive');
-  let _shrOtherPositive = Symbol('_shrOtherPositive');
-  let _shrBothPositive = Symbol('_shrBothPositive');
   class Interceptor extends core.Object {
     Interceptor() {
     }
@@ -53,6 +46,13 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       return _js_helper.getRuntimeType(this);
     }
   }
+  let _isInt32 = Symbol('_isInt32');
+  let _tdivFast = Symbol('_tdivFast');
+  let _tdivSlow = Symbol('_tdivSlow');
+  let _shlPositive = Symbol('_shlPositive');
+  let _shrReceiverPositive = Symbol('_shrReceiverPositive');
+  let _shrOtherPositive = Symbol('_shrOtherPositive');
+  let _shrBothPositive = Symbol('_shrBothPositive');
   class JSNumber extends Interceptor {
     JSNumber() {
       super.Interceptor();
@@ -1062,8 +1062,8 @@ var _js_embedded_names = dart.import(_js_embedded_names);
   exports.JSFixedArray = JSFixedArray;
   exports.JSExtendableArray$ = JSExtendableArray$;
   exports.JSExtendableArray = JSExtendableArray;
-  exports.JSNumber = JSNumber;
   exports.Interceptor = Interceptor;
+  exports.JSNumber = JSNumber;
   exports.JSInt = JSInt;
   exports.JSDouble = JSDouble;
   exports.JSPositiveInt = JSPositiveInt;

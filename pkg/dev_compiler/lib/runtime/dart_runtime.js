@@ -210,7 +210,7 @@ var dart, _js_helper, _js_primitives;
     if (t2 == core.Type) {
       // Special case Types.
       result = t1.prototype instanceof core.Type ||
-        t1 instanceof AbstractFunctionType ||
+        t1 instanceof FunctionType ||
         isSubtype_(t1, t2);
     } else {
       result = isSubtype_(t1, t2)
@@ -339,7 +339,7 @@ var dart, _js_helper, _js_primitives;
   function isGroundType(type) {
     // TODO(vsm): Cache this if we start using it at runtime.
 
-    if (type instanceof AbstractFunctionType) {
+    if (type instanceof FunctionType) {
       if (!_isTop(type.returnType, false)) return false;
       for (let i = 0; i < type.args.length; ++i) {
         if (!_isBottom(type.args[i], true)) return false;
@@ -390,9 +390,14 @@ var dart, _js_helper, _js_primitives;
     return name;
   }
 
-  class AbstractFunctionType {
-    constructor() {
-      this._stringValue = null;
+  // TODO(jmesserly): extends Type?
+  class FunctionType {
+    constructor(returnType, args, optionals, named, opt_typedefName) {
+      this.returnType = returnType;
+      this.args = args;
+      this.optionals = optionals;
+      this.named = named;
+      this._stringValue = opt_typedefName;
     }
 
     get name() {
@@ -434,16 +439,6 @@ var dart, _js_helper, _js_primitives;
     }
   }
 
-  class FunctionType extends AbstractFunctionType {
-    constructor(returnType, args, optionals, named) {
-      super();
-      this.returnType = returnType;
-      this.args = args;
-      this.optionals = optionals;
-      this.named = named;
-    }
-  }
-
   function functionType(returnType, args, extra) {
     // TODO(vsm): Cache / memomize?
     var optionals;
@@ -462,49 +457,14 @@ var dart, _js_helper, _js_primitives;
   }
   dart.functionType = functionType;
 
-  class Typedef extends AbstractFunctionType {
-    constructor(name, closure) {
-      super();
-      this._name = name;
-      this._closure = closure;
-      this._functionType = null;
-    }
-
-    get name() {
-      return this._name;
-    }
-
-    get functionType() {
-      if (!this._functionType) {
-        this._functionType = this._closure();
-      }
-      return this._functionType;
-    }
-
-    get returnType() {
-      return this.functionType.returnType;
-    }
-
-    get args() {
-      return this.functionType.args;
-    }
-
-    get optionals() {
-      return this.functionType.optionals;
-    }
-
-    get named() {
-      return this.functionType.named;
-    }
-  }
-
-  function typedef(name, closure) {
-    return new Typedef(name, closure);
+  function typedef(name, functionType) {
+    let f = functionType;
+    return new FunctionType(f.returnType, f.args, f.optionals, f.named, name);
   }
   dart.typedef = typedef;
 
   function isFunctionType(type) {
-    return isClassSubType(type, core.Function) || type instanceof AbstractFunctionType;
+    return isClassSubType(type, core.Function) || type instanceof FunctionType;
   }
 
   function getFunctionType(obj) {

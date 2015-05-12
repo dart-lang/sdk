@@ -387,8 +387,10 @@ Object getConstantField(
   return (f == null || f.type != expectedType) ? null : f.value;
 }
 
-InterfaceType fillDynamicTypeArgs(InterfaceType t, TypeProvider types) =>
-    t.substitute4(new List.filled(t.typeArguments.length, types.dynamicType));
+ParameterizedType fillDynamicTypeArgs(ParameterizedType t, TypeProvider types) {
+  var dyn = new List.filled(t.typeArguments.length, types.dynamicType);
+  return t.substitute2(dyn, t.typeArguments);
+}
 
 /// Similar to [SimpleIdentifier] inGetterContext, inSetterContext, and
 /// inDeclarationContext, this method returns true if [node] is used in an

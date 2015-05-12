@@ -1,14 +1,11 @@
 var convert = dart.defineLibrary(convert, {});
 var core = dart.import(core);
-var async = dart.lazyImport(async);
-var typed_data = dart.lazyImport(typed_data);
+var async = dart.import(async);
+var typed_data = dart.import(typed_data);
 var _internal = dart.import(_internal);
 var collection = dart.import(collection);
 (function(exports, core, async, typed_data, _internal, collection) {
   'use strict';
-  let ASCII = dart.const(new AsciiCodec());
-  let _ASCII_MASK = 127;
-  let _allowInvalid = Symbol('_allowInvalid');
   let Codec$ = dart.generic(function(S, T) {
     class Codec extends core.Object {
       Codec() {
@@ -49,12 +46,7 @@ var collection = dart.import(collection);
       return Encoding._nameToEncoding.get(name);
     }
   }
-  dart.defineLazyProperties(Encoding, {
-    get _nameToEncoding() {
-      return dart.map({"iso_8859-1:1987": LATIN1, "iso-ir-100": LATIN1, "iso_8859-1": LATIN1, "iso-8859-1": LATIN1, latin1: LATIN1, l1: LATIN1, ibm819: LATIN1, cp819: LATIN1, csisolatin1: LATIN1, "iso-ir-6": ASCII, "ansi_x3.4-1968": ASCII, "ansi_x3.4-1986": ASCII, "iso_646.irv:1991": ASCII, "iso646-us": ASCII, "us-ascii": ASCII, us: ASCII, ibm367: ASCII, cp367: ASCII, csascii: ASCII, ascii: ASCII, csutf8: UTF8, "utf-8": UTF8});
-    },
-    set _nameToEncoding(_) {}
-  });
+  let _allowInvalid = Symbol('_allowInvalid');
   class AsciiCodec extends Encoding {
     AsciiCodec(opts) {
       let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : false;
@@ -81,7 +73,8 @@ var collection = dart.import(collection);
       return this[_allowInvalid] ? dart.const(new AsciiDecoder({allowInvalid: true})) : dart.const(new AsciiDecoder({allowInvalid: false}));
     }
   }
-  let _subsetMask = Symbol('_subsetMask');
+  let ASCII = dart.const(new AsciiCodec());
+  let _ASCII_MASK = 127;
   let Converter$ = dart.generic(function(S, T) {
     class Converter extends core.Object {
       Converter() {
@@ -103,6 +96,7 @@ var collection = dart.import(collection);
     return Converter;
   });
   let Converter = Converter$();
+  let _subsetMask = Symbol('_subsetMask');
   class _UnicodeSubsetEncoder extends Converter$(core.String, core.List$(core.int)) {
     _UnicodeSubsetEncoder(subsetMask) {
       this[_subsetMask] = subsetMask;
@@ -143,7 +137,6 @@ var collection = dart.import(collection);
       super._UnicodeSubsetEncoder(_ASCII_MASK);
     }
   }
-  let _sink = Symbol('_sink');
   class StringConversionSinkMixin extends core.Object {
     add(str) {
       return this.addSlice(str, 0, str.length, false);
@@ -157,6 +150,7 @@ var collection = dart.import(collection);
   }
   StringConversionSinkMixin[dart.implements] = () => [StringConversionSink];
   class StringConversionSinkBase extends StringConversionSinkMixin {}
+  let _sink = Symbol('_sink');
   class _UnicodeSubsetEncoderSink extends StringConversionSinkBase {
     _UnicodeSubsetEncoderSink(subsetMask, sink) {
       this[_subsetMask] = subsetMask;
@@ -240,7 +234,6 @@ var collection = dart.import(collection);
       }
     }
   }
-  let _utf8Sink = Symbol('_utf8Sink');
   let ChunkedConversionSink$ = dart.generic(function(T) {
     class ChunkedConversionSink extends core.Object {
       ChunkedConversionSink() {
@@ -277,6 +270,7 @@ var collection = dart.import(collection);
         this.close();
     }
   }
+  let _utf8Sink = Symbol('_utf8Sink');
   class _ErrorHandlingAsciiDecoderSink extends ByteConversionSinkBase {
     _ErrorHandlingAsciiDecoderSink(utf8Sink) {
       this[_utf8Sink] = utf8Sink;
@@ -381,7 +375,7 @@ var collection = dart.import(collection);
   }
   _ByteCallbackSink._INITIAL_BUFFER_SIZE = 1024;
   let _ChunkedConversionCallback$ = dart.generic(function(T) {
-    let _ChunkedConversionCallback = dart.typedef('_ChunkedConversionCallback', () => dart.functionType(dart.void, [T]));
+    let _ChunkedConversionCallback = dart.typedef('_ChunkedConversionCallback', dart.functionType(dart.void, [T]));
     return _ChunkedConversionCallback;
   });
   let _ChunkedConversionCallback = _ChunkedConversionCallback$();
@@ -504,24 +498,12 @@ var collection = dart.import(collection);
     return _FusedConverter;
   });
   let _FusedConverter = _FusedConverter$();
-  let HTML_ESCAPE = dart.const(new HtmlEscape());
-  let _name = Symbol('_name');
-  class HtmlEscapeMode extends core.Object {
-    _(name, escapeLtGt, escapeQuot, escapeApos, escapeSlash) {
-      this[_name] = name;
-      this.escapeLtGt = escapeLtGt;
-      this.escapeQuot = escapeQuot;
-      this.escapeApos = escapeApos;
-      this.escapeSlash = escapeSlash;
-    }
-    toString() {
-      return this[_name];
-    }
-  }
-  dart.defineNamedConstructor(HtmlEscapeMode, '_');
-  HtmlEscapeMode.UNKNOWN = dart.const(new HtmlEscapeMode._('unknown', true, true, true, true));
-  HtmlEscapeMode.ATTRIBUTE = dart.const(new HtmlEscapeMode._('attribute', false, true, false, false));
-  HtmlEscapeMode.ELEMENT = dart.const(new HtmlEscapeMode._('element', true, false, false, true));
+  dart.defineLazyProperties(Encoding, {
+    get _nameToEncoding() {
+      return dart.map({"iso_8859-1:1987": LATIN1, "iso-ir-100": LATIN1, "iso_8859-1": LATIN1, "iso-8859-1": LATIN1, latin1: LATIN1, l1: LATIN1, ibm819: LATIN1, cp819: LATIN1, csisolatin1: LATIN1, "iso-ir-6": ASCII, "ansi_x3.4-1968": ASCII, "ansi_x3.4-1986": ASCII, "iso_646.irv:1991": ASCII, "iso646-us": ASCII, "us-ascii": ASCII, us: ASCII, ibm367: ASCII, cp367: ASCII, csascii: ASCII, ascii: ASCII, csutf8: UTF8, "utf-8": UTF8});
+    },
+    set _nameToEncoding(_) {}
+  });
   let _convert = Symbol('_convert');
   class HtmlEscape extends Converter$(core.String, core.String) {
     HtmlEscape(mode) {
@@ -598,6 +580,24 @@ var collection = dart.import(collection);
       return new _HtmlEscapeSink(this, dart.as(sink, StringConversionSink));
     }
   }
+  let HTML_ESCAPE = dart.const(new HtmlEscape());
+  let _name = Symbol('_name');
+  class HtmlEscapeMode extends core.Object {
+    _(name, escapeLtGt, escapeQuot, escapeApos, escapeSlash) {
+      this[_name] = name;
+      this.escapeLtGt = escapeLtGt;
+      this.escapeQuot = escapeQuot;
+      this.escapeApos = escapeApos;
+      this.escapeSlash = escapeSlash;
+    }
+    toString() {
+      return this[_name];
+    }
+  }
+  dart.defineNamedConstructor(HtmlEscapeMode, '_');
+  HtmlEscapeMode.UNKNOWN = dart.const(new HtmlEscapeMode._('unknown', true, true, true, true));
+  HtmlEscapeMode.ATTRIBUTE = dart.const(new HtmlEscapeMode._('attribute', false, true, false, false));
+  HtmlEscapeMode.ELEMENT = dart.const(new HtmlEscapeMode._('element', true, false, false, true));
   let _escape = Symbol('_escape');
   class _HtmlEscapeSink extends StringConversionSinkBase {
     _HtmlEscapeSink(escape, sink) {
@@ -641,9 +641,6 @@ var collection = dart.import(collection);
       return "Cyclic error in JSON stringify";
     }
   }
-  let JSON = dart.const(new JsonCodec());
-  let _Reviver = dart.typedef('_Reviver', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
-  let _ToEncodable = dart.typedef('_ToEncodable', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   let _reviver = Symbol('_reviver');
   let _toEncodable$ = Symbol('_toEncodable');
   class JsonCodec extends Codec$(core.Object, core.String) {
@@ -685,6 +682,9 @@ var collection = dart.import(collection);
     }
   }
   dart.defineNamedConstructor(JsonCodec, 'withReviver');
+  let JSON = dart.const(new JsonCodec());
+  let _Reviver = dart.typedef('_Reviver', dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
+  let _ToEncodable = dart.typedef('_ToEncodable', dart.functionType(dart.dynamic, [dart.dynamic]));
   class JsonEncoder extends Converter$(core.Object, core.String) {
     JsonEncoder(toEncodable) {
       if (toEncodable === void 0)
@@ -1274,11 +1274,9 @@ var collection = dart.import(collection);
       }
     }
   }
-  let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.Object, [core.Object]));
-  let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(dart.dynamic, [dart.dynamic]));
-  let __CastType4 = dart.typedef('__CastType4', () => dart.functionType(dart.dynamic, [core.Object]));
-  let LATIN1 = dart.const(new Latin1Codec());
-  let _LATIN1_MASK = 255;
+  let __CastType0 = dart.typedef('__CastType0', dart.functionType(core.Object, [core.Object]));
+  let __CastType2 = dart.typedef('__CastType2', dart.functionType(dart.dynamic, [dart.dynamic]));
+  let __CastType4 = dart.typedef('__CastType4', dart.functionType(dart.dynamic, [core.Object]));
   class Latin1Codec extends Encoding {
     Latin1Codec(opts) {
       let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : false;
@@ -1305,6 +1303,8 @@ var collection = dart.import(collection);
       return this[_allowInvalid] ? dart.const(new Latin1Decoder({allowInvalid: true})) : dart.const(new Latin1Decoder({allowInvalid: false}));
     }
   }
+  let LATIN1 = dart.const(new Latin1Codec());
+  let _LATIN1_MASK = 255;
   class Latin1Encoder extends _UnicodeSubsetEncoder {
     Latin1Encoder() {
       super._UnicodeSubsetEncoder(_LATIN1_MASK);
@@ -1478,7 +1478,7 @@ var collection = dart.import(collection);
     }
   }
   dart.defineNamedConstructor(ClosableStringSink, 'fromStringSink');
-  let _StringSinkCloseCallback = dart.typedef('_StringSinkCloseCallback', () => dart.functionType(dart.void, []));
+  let _StringSinkCloseCallback = dart.typedef('_StringSinkCloseCallback', dart.functionType(dart.void, []));
   class _ClosableStringSink extends core.Object {
     _ClosableStringSink(sink, callback) {
       this[_sink] = sink;
@@ -1683,7 +1683,6 @@ var collection = dart.import(collection);
   dart.defineNamedConstructor(_Utf8ConversionSink, '_');
   let UNICODE_REPLACEMENT_CHARACTER_RUNE = 65533;
   let UNICODE_BOM_CHARACTER_RUNE = 65279;
-  let UTF8 = dart.const(new Utf8Codec());
   let _allowMalformed = Symbol('_allowMalformed');
   class Utf8Codec extends Encoding {
     Utf8Codec(opts) {
@@ -1707,6 +1706,7 @@ var collection = dart.import(collection);
       return new Utf8Decoder({allowMalformed: this[_allowMalformed]});
     }
   }
+  let UTF8 = dart.const(new Utf8Codec());
   let _fillBuffer = Symbol('_fillBuffer');
   let _writeSurrogate = Symbol('_writeSurrogate');
   class Utf8Encoder extends Converter$(core.String, core.List$(core.int)) {
@@ -2396,33 +2396,33 @@ var collection = dart.import(collection);
     }
   }
   // Exports:
-  exports.ASCII = ASCII;
-  exports.AsciiCodec = AsciiCodec;
-  exports.Encoding = Encoding;
   exports.Codec$ = Codec$;
   exports.Codec = Codec;
+  exports.Encoding = Encoding;
+  exports.AsciiCodec = AsciiCodec;
+  exports.ASCII = ASCII;
   exports.Converter$ = Converter$;
   exports.Converter = Converter;
   exports.AsciiEncoder = AsciiEncoder;
-  exports.StringConversionSinkBase = StringConversionSinkBase;
   exports.StringConversionSinkMixin = StringConversionSinkMixin;
+  exports.StringConversionSinkBase = StringConversionSinkBase;
   exports.AsciiDecoder = AsciiDecoder;
-  exports.ByteConversionSinkBase = ByteConversionSinkBase;
-  exports.ByteConversionSink = ByteConversionSink;
   exports.ChunkedConversionSink$ = ChunkedConversionSink$;
   exports.ChunkedConversionSink = ChunkedConversionSink;
+  exports.ByteConversionSink = ByteConversionSink;
+  exports.ByteConversionSinkBase = ByteConversionSinkBase;
+  exports.HtmlEscape = HtmlEscape;
   exports.HTML_ESCAPE = HTML_ESCAPE;
   exports.HtmlEscapeMode = HtmlEscapeMode;
-  exports.HtmlEscape = HtmlEscape;
   exports.JsonUnsupportedObjectError = JsonUnsupportedObjectError;
   exports.JsonCyclicError = JsonCyclicError;
-  exports.JSON = JSON;
   exports.JsonCodec = JsonCodec;
+  exports.JSON = JSON;
   exports.JsonEncoder = JsonEncoder;
   exports.JsonUtf8Encoder = JsonUtf8Encoder;
   exports.JsonDecoder = JsonDecoder;
-  exports.LATIN1 = LATIN1;
   exports.Latin1Codec = Latin1Codec;
+  exports.LATIN1 = LATIN1;
   exports.Latin1Encoder = Latin1Encoder;
   exports.Latin1Decoder = Latin1Decoder;
   exports.LineSplitter = LineSplitter;
@@ -2430,8 +2430,8 @@ var collection = dart.import(collection);
   exports.ClosableStringSink = ClosableStringSink;
   exports.UNICODE_REPLACEMENT_CHARACTER_RUNE = UNICODE_REPLACEMENT_CHARACTER_RUNE;
   exports.UNICODE_BOM_CHARACTER_RUNE = UNICODE_BOM_CHARACTER_RUNE;
-  exports.UTF8 = UTF8;
   exports.Utf8Codec = Utf8Codec;
+  exports.UTF8 = UTF8;
   exports.Utf8Encoder = Utf8Encoder;
   exports.Utf8Decoder = Utf8Decoder;
 })(convert, core, async, typed_data, _internal, collection);

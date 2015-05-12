@@ -76,22 +76,47 @@ var convert = dart.lazyImport(convert);
     }
   }
   dart.defineNamedConstructor(bool, 'fromEnvironment');
-  class Function extends Object {
-    static apply(f, positionalArguments, namedArguments) {
-      if (namedArguments === void 0)
-        namedArguments = null;
-      return _js_helper.Primitives.applyFunction(f, positionalArguments, namedArguments == null ? null : Function._toMangledNames(namedArguments));
+  class num extends Object {
+    static parse(input, onError) {
+      if (onError === void 0)
+        onError = null;
+      let source = input.trim();
+      num._parseError = false;
+      let result = int.parse(source, {onError: num._onParseErrorInt});
+      if (!dart.notNull(num._parseError))
+        return result;
+      num._parseError = false;
+      result = double.parse(source, num._onParseErrorDouble);
+      if (!dart.notNull(num._parseError))
+        return result;
+      if (onError == null)
+        throw new FormatException(input);
+      return onError(input);
     }
-    static _toMangledNames(namedArguments) {
-      let result = dart.map();
-      namedArguments.forEach((symbol, value) => {
-        result.set(_symbolToString(dart.as(symbol, Symbol)), value);
-      });
-      return result;
+    static _onParseErrorInt(_) {
+      num._parseError = true;
+      return 0;
+    }
+    static _onParseErrorDouble(_) {
+      num._parseError = true;
+      return 0.0;
     }
   }
+  num[dart.implements] = () => [Comparable$(num)];
+  class int extends num {
+    fromEnvironment(name, opts) {
+      let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : null;
+      throw new UnsupportedError('int.fromEnvironment can only be used as a const constructor');
+    }
+    static parse(source, opts) {
+      let radix = opts && 'radix' in opts ? opts.radix : null;
+      let onError = opts && 'onError' in opts ? opts.onError : null;
+      return _js_helper.Primitives.parseInt(source, radix, onError);
+    }
+  }
+  dart.defineNamedConstructor(int, 'fromEnvironment');
   let Comparator$ = dart.generic(function(T) {
-    let Comparator = dart.typedef('Comparator', () => dart.functionType(int, [T, T]));
+    let Comparator = dart.typedef('Comparator', dart.functionType(int, [T, T]));
     return Comparator;
   });
   let Comparator = Comparator$();
@@ -376,34 +401,6 @@ var convert = dart.lazyImport(convert);
   DateTime.DECEMBER = 12;
   DateTime.MONTHS_PER_YEAR = 12;
   DateTime._MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
-  class num extends Object {
-    static parse(input, onError) {
-      if (onError === void 0)
-        onError = null;
-      let source = input.trim();
-      num._parseError = false;
-      let result = int.parse(source, {onError: num._onParseErrorInt});
-      if (!dart.notNull(num._parseError))
-        return result;
-      num._parseError = false;
-      result = double.parse(source, num._onParseErrorDouble);
-      if (!dart.notNull(num._parseError))
-        return result;
-      if (onError == null)
-        throw new FormatException(input);
-      return onError(input);
-    }
-    static _onParseErrorInt(_) {
-      num._parseError = true;
-      return 0;
-    }
-    static _onParseErrorDouble(_) {
-      num._parseError = true;
-      return 0.0;
-    }
-  }
-  num[dart.implements] = () => [Comparable$(num)];
-  num._parseError = false;
   class double extends num {
     static parse(source, onError) {
       if (onError === void 0)
@@ -1034,37 +1031,51 @@ var convert = dart.lazyImport(convert);
         return `Expando:${this.name}`;
       }
       get(object) {
-        let values = _js_helper.Primitives.getProperty(object, Expando._EXPANDO_PROPERTY_NAME);
+        let values = _js_helper.Primitives.getProperty(object, Expando$()._EXPANDO_PROPERTY_NAME);
         return values == null ? null : dart.as(_js_helper.Primitives.getProperty(values, this[_getKey]()), T);
       }
       set(object, value) {
         dart.as(value, T);
-        let values = _js_helper.Primitives.getProperty(object, Expando._EXPANDO_PROPERTY_NAME);
+        let values = _js_helper.Primitives.getProperty(object, Expando$()._EXPANDO_PROPERTY_NAME);
         if (values == null) {
           values = new Object();
-          _js_helper.Primitives.setProperty(object, Expando._EXPANDO_PROPERTY_NAME, values);
+          _js_helper.Primitives.setProperty(object, Expando$()._EXPANDO_PROPERTY_NAME, values);
         }
         _js_helper.Primitives.setProperty(values, this[_getKey](), value);
       }
       [_getKey]() {
-        let key = dart.as(_js_helper.Primitives.getProperty(this, Expando._KEY_PROPERTY_NAME), String);
+        let key = dart.as(_js_helper.Primitives.getProperty(this, Expando$()._KEY_PROPERTY_NAME), String);
         if (key == null) {
           key = `expando$key$${(() => {
-            let x = Expando._keyCount;
-            Expando._keyCount = dart.notNull(x) + 1;
+            let x = Expando$()._keyCount;
+            Expando$()._keyCount = dart.notNull(x) + 1;
             return x;
           })()}`;
-          _js_helper.Primitives.setProperty(this, Expando._KEY_PROPERTY_NAME, key);
+          _js_helper.Primitives.setProperty(this, Expando$()._KEY_PROPERTY_NAME, key);
         }
         return key;
       }
     }
-    Expando._KEY_PROPERTY_NAME = 'expando$key';
-    Expando._EXPANDO_PROPERTY_NAME = 'expando$values';
-    Expando._keyCount = 0;
     return Expando;
   });
   let Expando = Expando$();
+  Expando._KEY_PROPERTY_NAME = 'expando$key';
+  Expando._EXPANDO_PROPERTY_NAME = 'expando$values';
+  Expando._keyCount = 0;
+  class Function extends Object {
+    static apply(f, positionalArguments, namedArguments) {
+      if (namedArguments === void 0)
+        namedArguments = null;
+      return _js_helper.Primitives.applyFunction(f, positionalArguments, namedArguments == null ? null : Function._toMangledNames(namedArguments));
+    }
+    static _toMangledNames(namedArguments) {
+      let result = dart.map();
+      namedArguments.forEach((symbol, value) => {
+        result.set(_symbolToString(dart.as(symbol, Symbol)), value);
+      });
+      return result;
+    }
+  }
   // Function identical: (Object, Object) → bool
   function identical(a, b) {
     return _js_helper.Primitives.identicalImplementation(a, b);
@@ -1073,18 +1084,6 @@ var convert = dart.lazyImport(convert);
   function identityHashCode(object) {
     return _js_helper.objectHashCode(object);
   }
-  class int extends num {
-    fromEnvironment(name, opts) {
-      let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : null;
-      throw new UnsupportedError('int.fromEnvironment can only be used as a const constructor');
-    }
-    static parse(source, opts) {
-      let radix = opts && 'radix' in opts ? opts.radix : null;
-      let onError = opts && 'onError' in opts ? opts.onError : null;
-      return _js_helper.Primitives.parseInt(source, radix, onError);
-    }
-  }
-  dart.defineNamedConstructor(int, 'fromEnvironment');
   class Invocation extends Object {
     get isAccessor() {
       return dart.notNull(this.isGetter) || dart.notNull(this.isSetter);
@@ -1119,7 +1118,7 @@ var convert = dart.lazyImport(convert);
   });
   let Iterable = Iterable$();
   let _Generator$ = dart.generic(function(E) {
-    let _Generator = dart.typedef('_Generator', () => dart.functionType(E, [int]));
+    let _Generator = dart.typedef('_Generator', dart.functionType(E, [int]));
     return _Generator;
   });
   let _Generator = _Generator$();
@@ -1133,7 +1132,7 @@ var convert = dart.lazyImport(convert);
       _GeneratorIterable(end, generator) {
         this[_end] = end;
         this[_start] = 0;
-        this[_generator] = dart.as(generator != null ? generator : _GeneratorIterable._id, _Generator$(E));
+        this[_generator] = dart.as(generator != null ? generator : exports._GeneratorIterable$()._id, _Generator$(E));
         super.IterableBase();
       }
       slice(start, end, generator) {
@@ -1671,6 +1670,7 @@ var convert = dart.lazyImport(convert);
     }
   }
   dart.defineNamedConstructor(Null, '_uninstantiable');
+  num._parseError = false;
   class Pattern extends Object {}
   // Function print: (Object) → void
   function print(object) {
@@ -3362,8 +3362,8 @@ var convert = dart.lazyImport(convert);
     }
   }
   // Exports:
-  exports.JsName = JsName;
   exports.Object = Object;
+  exports.JsName = JsName;
   exports.JsPeerInterface = JsPeerInterface;
   exports.SupportJsExtensionMethod = SupportJsExtensionMethod;
   exports.Deprecated = Deprecated;
@@ -3371,14 +3371,14 @@ var convert = dart.lazyImport(convert);
   exports.override = override;
   exports.proxy = proxy;
   exports.bool = bool;
+  exports.num = num;
+  exports.int = int;
   exports.Comparator$ = Comparator$;
   exports.Comparator = Comparator;
-  exports.Function = Function;
   exports.Comparable$ = Comparable$;
   exports.Comparable = Comparable;
   exports.DateTime = DateTime;
   exports.double = double;
-  exports.num = num;
   exports.Duration = Duration;
   exports.Error = Error;
   exports.AssertionError = AssertionError;
@@ -3405,9 +3405,9 @@ var convert = dart.lazyImport(convert);
   exports.IntegerDivisionByZeroException = IntegerDivisionByZeroException;
   exports.Expando$ = Expando$;
   exports.Expando = Expando;
+  exports.Function = Function;
   exports.identical = identical;
   exports.identityHashCode = identityHashCode;
-  exports.int = int;
   exports.Invocation = Invocation;
   exports.$iterator = $iterator;
   exports.$join = $join;

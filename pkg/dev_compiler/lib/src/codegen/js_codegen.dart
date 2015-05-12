@@ -24,7 +24,6 @@ import 'package:dev_compiler/src/js/js_ast.dart' as JS;
 import 'package:dev_compiler/src/js/js_ast.dart' show js;
 
 import 'package:dev_compiler/src/checker/rules.dart';
-import 'package:dev_compiler/src/dependency_graph.dart';
 import 'package:dev_compiler/src/info.dart';
 import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/utils.dart';
@@ -33,6 +32,7 @@ import 'code_generator.dart';
 import 'js_field_storage.dart';
 import 'js_names.dart' as JS;
 import 'js_metalet.dart' as JS;
+import 'js_module_item_order.dart';
 import 'js_printer.dart' show writeJsLibrary;
 import 'side_effect_analysis.dart';
 
@@ -66,10 +66,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// The variable for the current catch clause
   SimpleIdentifier _catchParameter;
 
-  ConstantEvaluator _constEvaluator;
-
-  ClassElement _currentClassElement = null;
-
   /// Imported libraries, and the temporaries used to refer to them.
   final _imports = new Map<LibraryElement, JS.TemporaryId>();
   final _exports = new Set<String>();
@@ -77,26 +73,24 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final _properties = <FunctionDeclaration>[];
   final _privateNames = new HashMap<String, JS.TemporaryId>();
   final _extensionMethodNames = new HashSet<String>();
-  final _pendingStatements = <JS.Statement>[];
+  final _moduleItems = <JS.Statement>[];
   final _temps = new HashMap<Element, JS.TemporaryId>();
+  final _qualifiedIds = new HashMap<Element, JS.MaybeQualifiedId>();
+  final _qualifiedGenericIds = new HashMap<Element, JS.MaybeQualifiedId>();
 
   /// The name for the library's exports inside itself.
   /// `exports` was chosen as the most similar to ES module patterns.
   final _exportsVar = new JS.TemporaryId('exports');
   final _namedArgTemp = new JS.TemporaryId('opts');
 
-  /// Classes we have not emitted yet. Values can be [ClassDeclaration] or
-  /// [ClassTypeAlias].
-  final _pendingClasses = new HashMap<Element, CompilationUnitMember>();
+  ConstFieldVisitor _constField;
 
-  /// Memoized results of [_lazyClass].
-  final _lazyClassMemo = new HashMap<Element, bool>();
-
-  /// Memoized results of [_inLibraryCycle].
-  final _libraryCycleMemo = new HashMap<LibraryElement, bool>();
+  ModuleItemLoadOrder _loader;
 
   JSCodegenVisitor(this.options, this.rules, this.libraryInfo,
-      this._extensionMethods, this._fieldsNeedingStorage);
+      this._extensionMethods, this._fieldsNeedingStorage) {
+    _loader = new ModuleItemLoadOrder(_emitModuleItem);
+  }
 
   LibraryElement get currentLibrary => libraryInfo.library;
   TypeProvider get types => rules.provider;
@@ -117,30 +111,50 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
     if (jsDefaultValue == null) jsDefaultValue = '{}';
 
-    var body = <JS.Statement>[];
+    // TODO(jmesserly): visit scriptTag, directives?
 
-    // Collect classes we need to emit, used for:
-    // * tracks what we've emitted so we don't emit twice
-    // * provides a mapping from ClassElement back to the ClassDeclaration.
+    _loader.collectElements(currentLibrary, library.partsThenLibrary);
+
     for (var unit in library.partsThenLibrary) {
+      _constField = new ConstFieldVisitor(types, unit);
+
       for (var decl in unit.declarations) {
-        if (decl is ClassDeclaration ||
-            decl is ClassTypeAlias ||
-            decl is FunctionTypeAlias) {
-          _pendingClasses[decl.element] = decl;
+        if (decl is TopLevelVariableDeclaration) {
+          _visit(decl);
+        } else {
+          _loader.loadDeclaration(decl, decl.element);
+        }
+        if (decl is ClassDeclaration) {
+          // Static fields can be emitted into the top-level code, so they need
+          // to potentially be ordered independently of the class.
+          for (var member in decl.members) {
+            if (member is FieldDeclaration && member.isStatic) {
+              for (var f in member.fields.variables) {
+                _loader.loadDeclaration(f, f.element);
+              }
+            }
+          }
         }
       }
     }
 
-    for (var unit in library.partsThenLibrary) body.add(_visit(unit));
+    // Flush any unwritten fields/properties.
+    _flushLazyFields(_moduleItems);
+    _flushLibraryProperties(_moduleItems);
 
-    assert(_pendingClasses.isEmpty);
+    // Mark all qualified names as qualified or not, depending on if they need
+    // to be loaded lazily or not.
+    unqualifyIfNeeded(Element e, JS.MaybeQualifiedId id) {
+      id.setQualified(!_loader.isLoaded(e));
+    }
+    _qualifiedIds.forEach(unqualifyIfNeeded);
+    _qualifiedGenericIds.forEach(unqualifyIfNeeded);
 
-    if (_exports.isNotEmpty) body.add(js.comment('Exports:'));
+    if (_exports.isNotEmpty) _moduleItems.add(js.comment('Exports:'));
 
     // TODO(jmesserly): make these immutable in JS?
     for (var name in _exports) {
-      body.add(js.statement('#.# = #;', [_exportsVar, name, name]));
+      _moduleItems.add(js.statement('#.# = #;', [_exportsVar, name, name]));
     }
 
     var name = new JS.Identifier(jsLibraryName(currentLibrary));
@@ -162,19 +176,31 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       var name = new JS.Identifier(temp.name);
       params.add(temp);
       args.add(name);
-      var helper = _libraryMightNotBeLoaded(library) ? 'lazyImport' : 'import';
+      var helper = _loader.libraryIsLoaded(library) ? 'import' : 'lazyImport';
       program.add(js.statement('var # = dart.#(#);', [name, helper, name]));
     });
 
-    program.add(js.statement(
-        "(function(#) { 'use strict'; #; })(#);", [params, body, args]));
+    program.add(js.statement("(function(#) { 'use strict'; #; })(#);", [
+      params,
+      _moduleItems,
+      args
+    ]));
 
     return new JS.Program(program);
   }
 
+  void _emitModuleItem(AstNode node) {
+    // Attempt to group adjacent fields/properties.
+    if (node is! VariableDeclaration) _flushLazyFields(_moduleItems);
+    if (node is! FunctionDeclaration) _flushLibraryProperties(_moduleItems);
+
+    var code = _visit(node);
+    if (code != null) _moduleItems.add(code);
+  }
+
   JS.Identifier _initSymbol(JS.Identifier id) {
     var s = js.statement('let # = $_SYMBOL(#);', [id, js.string(id.name, "'")]);
-    _pendingStatements.add(s);
+    _moduleItems.add(s);
     return id;
   }
 
@@ -184,34 +210,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var name = currentLibrary.name;
     if (name == 'dart.core' || name == 'dart._internal') return 'dart.JsSymbol';
     return 'Symbol';
-  }
-
-  @override
-  JS.Statement visitCompilationUnit(CompilationUnit node) {
-    var source = node.element.source;
-
-    _constEvaluator = new ConstantEvaluator(source, types);
-
-    // TODO(jmesserly): scriptTag, directives.
-    var body = <JS.Statement>[];
-    for (var child in node.declarations) {
-      // Attempt to group adjacent fields/properties.
-      if (child is! TopLevelVariableDeclaration) _flushLazyFields(body);
-      if (child is! FunctionDeclaration) _flushLibraryProperties(body);
-
-      var code = _visit(child);
-      if (code != null) {
-        _flushPendingStatements(body);
-        body.add(code);
-      }
-    }
-
-    // Flush any unwritten fields/properties.
-    _flushLazyFields(body);
-    _flushLibraryProperties(body);
-
-    assert(_pendingStatements.isEmpty);
-    return _statement(body);
   }
 
   bool isPublic(String name) => !name.startsWith('_');
@@ -280,17 +278,19 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   @override
   visitFunctionTypeAlias(FunctionTypeAlias node) {
     // If we've already emitted this class, skip it.
-    var type = node.element.type;
-    if (_pendingClasses.remove(node.element) == null) return null;
+    var element = node.element;
+    var type = element.type;
+    var name = element.name;
 
-    var name = type.name;
-    var result = js.statement('let # = dart.typedef(#, () => #);', [
-      new JS.Identifier(name),
+    _loader.startTopLevel(element);
+    var fnType = js.statement('let # = dart.typedef(#, #);', [
+      name,
       js.string(name, "'"),
-      _emitTypeName(node.element.type, lowerTypedef: true)
+      _emitTypeName(type, lowerTypedef: true)
     ]);
+    _loader.finishTopLevel(element);
 
-    return _finishClassDef(type, result);
+    return _finishClassDef(type, fnType);
   }
 
   @override
@@ -299,14 +299,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   @override
   JS.Statement visitClassTypeAlias(ClassTypeAlias node) {
     // If we've already emitted this class, skip it.
-    var type = node.element.type;
-    if (_pendingClasses.remove(node.element) == null) return null;
+    var element = node.element;
 
-    var name = node.name.name;
     var classDecl = new JS.ClassDeclaration(new JS.ClassExpression(
-        new JS.Identifier(name), _classHeritage(node), []));
+        new JS.Identifier(element.name), _classHeritage(element), []));
 
-    return _finishClassDef(type, classDecl);
+    return _finishClassDef(element.type, classDecl);
   }
 
   JS.Statement _emitJsType(String dartClassName, DartObjectImpl jsName) {
@@ -328,29 +326,22 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // If we've already emitted this class, skip it.
     var classElem = node.element;
     var type = classElem.type;
-    if (_pendingClasses.remove(classElem) == null) return null;
-
     var jsName = getAnnotationValue(node, _isJsNameAnnotation);
 
     if (jsName != null) return _emitJsType(node.name.name, jsName);
 
-    // Set current class
-    assert(_currentClassElement == null);
-    _currentClassElement = classElem;
-
     var ctors = <ConstructorDeclaration>[];
     var fields = <FieldDeclaration>[];
-    var staticFields = <FieldDeclaration>[];
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
         ctors.add(member);
-      } else if (member is FieldDeclaration) {
-        (member.isStatic ? staticFields : fields).add(member);
+      } else if (member is FieldDeclaration && !member.isStatic) {
+        fields.add(member);
       }
     }
 
     var classExpr = new JS.ClassExpression(new JS.Identifier(type.name),
-        _classHeritage(node), _emitClassMethods(node, ctors, fields));
+        _classHeritage(classElem), _emitClassMethods(node, ctors, fields));
 
     String jsPeerName;
     var jsPeer = getAnnotationValue(node, _isJsPeerInterface);
@@ -358,12 +349,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       jsPeerName = getConstantField(jsPeer, 'name', types.stringType);
     }
 
-    var body = _finishClassMembers(
-        classElem, classExpr, ctors, fields, staticFields, jsPeerName);
-
-    // Unset current class
-    assert(_currentClassElement == classElem);
-    _currentClassElement = null;
+    var body =
+        _finishClassMembers(classElem, classExpr, ctors, fields, jsPeerName);
 
     var result = _finishClassDef(type, body);
 
@@ -372,7 +359,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       // the native JS type eagerly at this point.
       // If we wanted to support laziness, we could defer the hookup until
       // the end of the Dart library cycle load.
-      assert(!_lazyClass(type));
+      assert(_loader.isLoaded(classElem));
 
       // TODO(jmesserly): this copies the dynamic members.
       // Probably fine for objects coming from JS, but not if we actually
@@ -399,19 +386,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var name = type.name;
     var genericName = '$name\$';
 
-    JS.Statement genericDef;
-    JS.Expression genericInst;
+    JS.Statement genericDef = null;
     if (type.typeParameters.isNotEmpty) {
       genericDef = _emitGenericClassDef(type, body);
-      var target = genericName;
-      if (_needQualifiedName(type.element)) {
-        target = js.call('#.#', [_exportsVar, genericName]);
-      }
-      genericInst = js.call('#()', [target]);
     }
 
     // The base class and all mixins must be declared before this class.
-    if (_lazyClass(type)) {
+    if (!_loader.isLoaded(type.element)) {
       // TODO(jmesserly): the lazy class def is a simple solution for now.
       // We may want to consider other options in the future.
 
@@ -437,118 +418,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (isPublic(name)) _addExport(name);
 
     if (genericDef != null) {
-      body = js.statement('{ #; let # = #; }', [genericDef, name, genericInst]);
+      var dynType = fillDynamicTypeArgs(type, types);
+      var genericInst = _emitTypeName(dynType, lowerGeneric: true);
+      return js.statement('{ #; let # = #; }', [genericDef, name, genericInst]);
     }
-
-    if (type.isObject) return body;
-
-    // If we're not lazy, we still need to ensure our dependencies are
-    // generated first.
-    var classDefs = <JS.Statement>[];
-    if (type is InterfaceType) {
-      _emitClassIfNeeded(classDefs, type.superclass);
-      for (var m in type.element.mixins) {
-        _emitClassIfNeeded(classDefs, m);
-      }
-    } else if (type is FunctionType) {
-      _emitClassIfNeeded(classDefs, types.functionType);
-    }
-    classDefs.add(body);
-    return _statement(classDefs);
-  }
-
-  void _emitClassIfNeeded(List<JS.Statement> defs, DartType base) {
-    // We can only emit classes from this library.
-    if (base.element.library != currentLibrary) return;
-
-    var baseNode = _pendingClasses[base.element];
-    if (baseNode != null) defs.add(visitClassDeclaration(baseNode));
-  }
-
-  /// Returns true if the supertype or mixins aren't loaded.
-  /// If that is the case, we'll emit a lazy class definition.
-  bool _lazyClass(DartType type) {
-    if (type.isObject) return false;
-
-    // Use the element as the key, as those are unique whereas generic types
-    // can have their arguments substituted.
-    assert(type.element.library == currentLibrary);
-    var result = _lazyClassMemo[type.element];
-    if (result != null) return result;
-
-    if (type is InterfaceType) {
-      result = _typeMightNotBeLoaded(type.superclass) ||
-          type.mixins.any(_typeMightNotBeLoaded);
-    } else if (type is FunctionType) {
-      result = _typeMightNotBeLoaded(types.functionType);
-    }
-    return _lazyClassMemo[type.element] = result;
-  }
-
-  /// Returns true if the class might not be loaded.
-  ///
-  /// If the class is from our library, this can happen because it's lazy.
-  ///
-  /// If the class is from a different library, it could happen if we're in
-  /// a library cycle. In other words, if that different library depends back
-  /// on this library via some transitive import path.
-  ///
-  /// If we could control the global import ordering, we could eliminate some
-  /// of these cases, by ordering the imports of the cyclic libraries in an
-  /// optimal way. For example, we could order the libraries in a cycle to
-  /// minimize laziness. However, we currently assume we cannot control the
-  /// order that the cycle of libraries will be loaded in.
-  bool _typeMightNotBeLoaded(DartType type) {
-    var library = type.element.library;
-    if (library == currentLibrary) return _lazyClass(type);
-    return _libraryMightNotBeLoaded(library);
-  }
-
-  bool _libraryMightNotBeLoaded(LibraryElement library) {
-    // The SDK is a special case: we optimize the order to prevent laziness.
-    if (library.isInSdk) {
-      // SDK is loaded before non-SDK libraies
-      if (!currentLibrary.isInSdk) return false;
-
-      // Compute the order of both SDK libraries. If unknown, assume it's after.
-      var classOrder = corelibOrder.indexOf(library.name);
-      if (classOrder == -1) classOrder = corelibOrder.length;
-
-      var currentOrder = corelibOrder.indexOf(currentLibrary.name);
-      if (currentOrder == -1) currentOrder = corelibOrder.length;
-
-      // If the dart:* library we are currently compiling is loaded after the
-      // class's library, then we know the class is available.
-      if (classOrder != currentOrder) return currentOrder < classOrder;
-
-      // If we don't know the order of the class's library or the current
-      // library, do the normal cycle check. (Not all SDK libs are cycles.)
-    }
-
-    return _inLibraryCycle(library);
-  }
-
-  /// Returns true if [library] depends on the [currentLibrary] via some
-  /// transitive import.
-  bool _inLibraryCycle(LibraryElement library) {
-    // SDK libs don't depend on things outside the SDK.
-    // (We can reach this via the recursive call below.)
-    if (library.isInSdk && !currentLibrary.isInSdk) return false;
-
-    var result = _libraryCycleMemo[library];
-    if (result != null) return result;
-
-    result = library == currentLibrary;
-    _libraryCycleMemo[library] = result;
-    for (var e in library.imports) {
-      if (result) break;
-      result = _inLibraryCycle(e.importedLibrary);
-    }
-    for (var e in library.exports) {
-      if (result) break;
-      result = _inLibraryCycle(e.exportedLibrary);
-    }
-    return _libraryCycleMemo[library] = result;
+    return body;
   }
 
   JS.Statement _emitGenericClassDef(ParameterizedType type, JS.Statement body) {
@@ -564,25 +438,21 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     ]);
   }
 
-  JS.Expression _classHeritage(node) {
-    if (node.element.type.isObject) return null;
+  JS.Expression _classHeritage(ClassElement element) {
+    var type = element.type;
+    if (type.isObject) return null;
 
-    DartType supertype;
-    if (node is ClassDeclaration) {
-      var ext = node.extendsClause;
-      supertype = ext != null ? ext.superclass.type : types.objectType;
-    } else {
-      supertype = (node as ClassTypeAlias).superclass.type;
-    }
+    // Assume we can load eagerly, until proven otherwise.
+    _loader.startTopLevel(element);
 
-    JS.Expression heritage = _emitTypeName(supertype);
-
-    if (node.withClause != null) {
-      var mixins = _visitList(node.withClause.mixinTypes);
+    JS.Expression heritage = _emitTypeName(type.superclass);
+    if (type.mixins.isNotEmpty) {
+      var mixins = type.mixins.map(_emitTypeName).toList();
       mixins.insert(0, heritage);
       heritage = js.call('dart.mixin(#)', [mixins]);
     }
 
+    _loader.finishTopLevel(element);
     return heritage;
   }
 
@@ -663,8 +533,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// inside the ES6 `class { ... }` node.
   JS.Statement _finishClassMembers(ClassElement classElem,
       JS.ClassExpression cls, List<ConstructorDeclaration> ctors,
-      List<FieldDeclaration> fields, List<FieldDeclaration> staticFields,
-      String jsPeerName) {
+      List<FieldDeclaration> fields, String jsPeerName) {
     var name = classElem.name;
     var body = <JS.Statement>[];
     body.add(new JS.ClassDeclaration(cls));
@@ -706,23 +575,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       }
     }
 
-    // Static fields
-    var lazyStatics = <VariableDeclaration>[];
-    for (FieldDeclaration member in staticFields) {
-      for (VariableDeclaration field in member.fields.variables) {
-        var fieldName = field.name.name;
-        if ((field.isConst || _isFieldInitConstant(field)) &&
-            !JS.invalidStaticFieldName(fieldName)) {
-          var init = _visit(field.initializer);
-          if (init == null) init = new JS.LiteralNull();
-          body.add(js.statement('#.# = #;', [name, fieldName, init]));
-        } else {
-          lazyStatics.add(field);
-        }
-      }
-    }
-    var lazy = _emitLazyFields(new JS.Identifier(name), lazyStatics);
-    if (lazy != null) body.add(lazy);
     return _statement(body);
   }
 
@@ -744,7 +596,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var superCall = _superConstructorCall(node);
     if (fields.isEmpty && superCall == null) return null;
 
-    dynamic body = _initializeFields(fields);
+    dynamic body = _initializeFields(node, fields);
     if (superCall != null) body = [[body, superCall]];
     return new JS.Method(
         _propertyName(name), js.call('function() { #; }', body));
@@ -833,7 +685,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       // These are expanded into each non-redirecting constructor.
       // In the future we may want to create an initializer function if we have
       // multiple constructors, but it needs to be balanced against readability.
-      body.add(_initializeFields(fields, node.parameters, node.initializers));
+      body.add(_initializeFields(node, fields));
 
       var superCall = node.initializers.firstWhere(
           (i) => i is SuperConstructorInvocation, orElse: () => null);
@@ -897,9 +749,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   ///   2. field initializing parameters,
   ///   3. constructor field initializers,
   ///   4. initialize fields not covered in 1-3
-  JS.Statement _initializeFields(List<FieldDeclaration> fieldDecls,
-      [FormalParameterList parameters,
-      NodeList<ConstructorInitializer> initializers]) {
+  JS.Statement _initializeFields(
+      AstNode node, List<FieldDeclaration> fieldDecls) {
+    var unit = node.getAncestor((a) => a is CompilationUnit);
+    var constField = new ConstFieldVisitor(types, unit);
 
     // Run field initializers if they can have side-effects.
     var fields = new Map<FieldElement, JS.Expression>();
@@ -907,7 +760,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     for (var declaration in fieldDecls) {
       for (var fieldNode in declaration.fields.variables) {
         var element = fieldNode.element;
-        if (_isFieldInitConstant(fieldNode)) {
+        if (constField.isFieldInitConstant(fieldNode)) {
           unsetFields[element] = fieldNode;
         } else {
           fields[element] = _visitInitializer(fieldNode);
@@ -916,17 +769,18 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
 
     // Initialize fields from `this.fieldName` parameters.
-    if (parameters != null) {
+    if (node is ConstructorDeclaration) {
+      var parameters = node.parameters;
+      var initializers = node.initializers;
+
       for (var p in parameters.parameters) {
         var element = p.element;
         if (element is FieldFormalParameterElement) {
           fields[element.field] = _visit(p);
         }
       }
-    }
 
-    // Run constructor field initializers such as `: foo = bar.baz`
-    if (initializers != null) {
+      // Run constructor field initializers such as `: foo = bar.baz`
       for (var init in initializers) {
         if (init is ConstructorFieldInitializer) {
           fields[init.fieldName.staticElement] = _visit(init.expression);
@@ -1129,14 +983,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // indirects back to a (possibly synthetic) field.
     var element = accessor;
     if (element is PropertyAccessorElement) element = accessor.variable;
+
+    _loader.declareBeforeUse(element);
+
     var name = element.name;
 
     // library member
-    if (element.enclosingElement is CompilationUnitElement &&
-        (element.library != currentLibrary ||
-            element is TopLevelVariableElement && !element.isConst)) {
-      var memberName = _emitMemberName(name, isStatic: true);
-      return js.call('#.#', [_libraryName(element.library), memberName]);
+    if (element.enclosingElement is CompilationUnitElement) {
+      return _maybeQualifiedName(
+          element, _emitMemberName(name, isStatic: true));
     }
 
     // Unqualified class member. This could mean implicit-this, or implicit
@@ -1150,7 +1005,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       // library prefix. We don't need those because static calls can't use
       // the generic type.
       if (isStatic) {
-        return js.call('#.#', [type.name, member]);
+        var dynType = _emitTypeName(fillDynamicTypeArgs(type, types));
+        return new JS.PropertyAccess(dynType, member);
       }
 
       // For instance members, we add implicit-this.
@@ -1200,7 +1056,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return new JS.ObjectInitializer(properties);
   }
 
-  JS.Expression _emitTypeName(DartType type, {bool lowerTypedef: false}) {
+  /// Emits a Dart [type] into code.
+  ///
+  /// If [lowerTypedef] is set, a typedef will be expanded as if it were a
+  /// function type. Similarly if [lowerGeneric] is set, the `List$()` form
+  /// will be used instead of `List`. These flags are used when generating
+  /// the definitions for typedefs and generic types, respectively.
+  JS.Expression _emitTypeName(DartType type,
+      {bool lowerTypedef: false, bool lowerGeneric: false}) {
+
     // The void and dynamic types are not defined in core.
     if (type.isVoid) {
       return js.call('dart.void');
@@ -1208,77 +1072,81 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       return js.call('dart.dynamic');
     }
 
+    _loader.declareBeforeUse(type.element);
+
+    // TODO(jmesserly): like constants, should we hoist function types out of
+    // methods? Similar issue with generic types. For all of these, we may want
+    // to canonicalize them too, at least when inside the same library.
     var name = type.name;
     var element = type.element;
-    if (name == '' || lowerTypedef && type is FunctionType) {
-      if (type is FunctionType) {
-        var returnType = type.returnType;
-        var parameterTypes = type.normalParameterTypes;
-        var optionalTypes = type.optionalParameterTypes;
-        var namedTypes = type.namedParameterTypes;
-        if (namedTypes.isEmpty) {
-          if (optionalTypes.isEmpty) {
-            return js.call('dart.functionType(#, #)', [
-              _emitTypeName(returnType),
-              _emitTypeNames(parameterTypes)
-            ]);
-          } else {
-            return js.call('dart.functionType(#, #, #)', [
-              _emitTypeName(returnType),
-              _emitTypeNames(parameterTypes),
-              _emitTypeNames(optionalTypes)
-            ]);
-          }
+    if (name == '' || lowerTypedef) {
+      var fnType = type as FunctionType;
+      var returnType = fnType.returnType;
+      var parameterTypes = fnType.normalParameterTypes;
+      var optionalTypes = fnType.optionalParameterTypes;
+      var namedTypes = fnType.namedParameterTypes;
+      if (namedTypes.isEmpty) {
+        if (optionalTypes.isEmpty) {
+          return js.call('dart.functionType(#, #)', [
+            _emitTypeName(returnType),
+            _emitTypeNames(parameterTypes)
+          ]);
         } else {
-          assert(optionalTypes.isEmpty);
           return js.call('dart.functionType(#, #, #)', [
             _emitTypeName(returnType),
             _emitTypeNames(parameterTypes),
-            _emitTypeProperties(namedTypes)
+            _emitTypeNames(optionalTypes)
           ]);
         }
+      } else {
+        assert(optionalTypes.isEmpty);
+        return js.call('dart.functionType(#, #, #)', [
+          _emitTypeName(returnType),
+          _emitTypeNames(parameterTypes),
+          _emitTypeProperties(namedTypes)
+        ]);
       }
-      // TODO(jmesserly): remove when we're using coercion reifier.
-      return _unimplementedCall('Unimplemented type $type');
     }
 
-    var typeArgs = null;
+    if (type is TypeParameterType) {
+      return new JS.Identifier(name);
+    }
+
     if (type is ParameterizedType) {
       var args = type.typeArguments;
       var isCurrentClass =
-          type is InterfaceType ? type.element == _currentClassElement : false;
+          args.isNotEmpty && _loader.isCurrentElement(type.element);
+      Iterable jsArgs = null;
       if (args.any((a) => a != types.dynamicType)) {
-        name = '$name\$';
-        typeArgs = args.map(_emitTypeName);
-      } else if (args.isNotEmpty && isCurrentClass) {
+        jsArgs = args.map(_emitTypeName);
+      } else if (lowerGeneric || isCurrentClass) {
         // When creating a `new S<dynamic>` we try and use the raw form
         // `new S()`, but this does not work if we're inside the same class,
         // because `S` refers to the current S<T> we are generating.
-        name = '$name\$';
-        typeArgs = [];
+        jsArgs = [];
+      }
+      if (jsArgs != null) {
+        var genericName = _maybeQualifiedName(
+            element, _propertyName('$name\$'), _qualifiedGenericIds);
+        return js.call('#(#)', [genericName, jsArgs]);
       }
     }
 
-    JS.Expression result;
-    if (_needQualifiedName(element)) {
-      result = js.call('#.#', [_libraryName(element.library), name]);
-    } else {
-      result = new JS.Identifier(name);
-    }
-
-    if (typeArgs != null) {
-      result = js.call('#(#)', [result, typeArgs]);
-    }
-    return result;
+    return _maybeQualifiedName(element, _propertyName(name));
   }
 
-  bool _needQualifiedName(Element element) {
-    var lib = element.library;
-    if (lib == null) return false;
-    if (lib != currentLibrary) return true;
-    if (element is ClassElement) return _lazyClass(element.type);
-    if (element is FunctionTypeAliasElement) return _lazyClass(element.type);
-    return false;
+  JS.Expression _maybeQualifiedName(Element e, JS.Expression name,
+      [Map<Element, JS.MaybeQualifiedId> idTable]) {
+    var libName = _libraryName(e.library);
+    if (idTable == null) idTable = _qualifiedIds;
+
+    // Mutable top-level fields should always be qualified.
+    bool mutableTopLevel = e is TopLevelVariableElement && !e.isConst;
+    if (e.library != currentLibrary || mutableTopLevel) {
+      return new JS.PropertyAccess(libName, name);
+    }
+
+    return idTable.putIfAbsent(e, () => new JS.MaybeQualifiedId(libName, name));
   }
 
   @override
@@ -1488,25 +1356,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    var body = <JS.Statement>[];
-
-    for (var field in node.variables.variables) {
-      if (field.isConst) {
-        // constant fields don't change, so we can generate them as `let`
-        // but add them to the module's exports
-        var name = field.name.name;
-        body.add(js.statement(
-            'let # = #;', [new JS.Identifier(name), _visitInitializer(field)]));
-        if (isPublic(name)) _addExport(name);
-      } else if (_isFieldInitConstant(field)) {
-        body.add(js.statement(
-            '# = #;', [_visit(field.name), _visitInitializer(field)]));
-      } else {
-        _lazyFields.add(field);
-      }
+    for (var v in node.variables.variables) {
+      _loader.loadDeclaration(v, v.element);
     }
-
-    return _statement(body);
   }
 
   _addExport(String name) {
@@ -1535,9 +1387,56 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   }
 
   @override
-  JS.VariableInitialization visitVariableDeclaration(VariableDeclaration node) {
+  visitVariableDeclaration(VariableDeclaration node) {
+    if (node.element is PropertyInducingElement) return _emitStaticField(node);
+
     var name = new JS.Identifier(node.name.name);
     return new JS.VariableInitialization(name, _visitInitializer(node));
+  }
+
+  /// Emits a static or top-level field.
+  JS.Statement _emitStaticField(VariableDeclaration field) {
+    PropertyInducingElement element = field.element;
+    assert(element.isStatic);
+
+    bool eagerInit;
+    JS.Expression jsInit;
+    if (field.isConst || _constField.isFieldInitConstant(field)) {
+      // If the field is constant, try and generate it at the top level.
+      _loader.startTopLevel(element);
+      jsInit = _visitInitializer(field);
+      _loader.finishTopLevel(element);
+      eagerInit = _loader.isLoaded(element);
+    } else {
+      jsInit = _visitInitializer(field);
+      eagerInit = false;
+    }
+
+    var fieldName = field.name.name;
+    if (field.isConst && eagerInit && element is TopLevelVariableElement) {
+      // constant fields don't change, so we can generate them as `let`
+      // but add them to the module's exports. However, make sure we generate
+      // anything they depend on first.
+
+      if (isPublic(fieldName)) _addExport(fieldName);
+      return js.statement('let # = #;', [new JS.Identifier(fieldName), jsInit]);
+    }
+
+    if (eagerInit && !JS.invalidStaticFieldName(fieldName)) {
+      return js.statement('# = #;', [_visit(field.name), jsInit]);
+    }
+
+    var body = [];
+    if (_lazyFields.isNotEmpty) {
+      var existingTarget = _lazyFields[0].element.enclosingElement;
+      if (existingTarget != element.enclosingElement) {
+        _flushLazyFields(body);
+      }
+    }
+
+    _lazyFields.add(field);
+
+    return _statement(body);
   }
 
   JS.Expression _visitInitializer(VariableDeclaration node) {
@@ -1547,27 +1446,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return value != null ? value : new JS.LiteralNull();
   }
 
-  void _flushPendingStatements(List<JS.Statement> body) {
-    if (_pendingStatements.isNotEmpty) {
-      body.addAll(_pendingStatements);
-      _pendingStatements.clear();
-    }
-  }
-
   void _flushLazyFields(List<JS.Statement> body) {
-    var code = _emitLazyFields(_exportsVar, _lazyFields);
-    if (code != null) {
-      // Ensure symbols for private fields are defined.
-      _flushPendingStatements(body);
-      body.add(code);
-    }
+    if (_lazyFields.isEmpty) return;
+    body.add(_emitLazyFields(_lazyFields));
     _lazyFields.clear();
   }
 
-  JS.Statement _emitLazyFields(
-      JS.Expression objExpr, List<VariableDeclaration> fields) {
-    if (fields.isEmpty) return null;
-
+  JS.Statement _emitLazyFields(List<VariableDeclaration> fields) {
     var methods = [];
     for (var node in fields) {
       var name = node.name.name;
@@ -1582,6 +1467,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         methods.add(
             new JS.Method(access, js.call('function(_) {}'), isSetter: true));
       }
+    }
+
+    JS.Expression objExpr = _exportsVar;
+    var target = _lazyFields[0].element.enclosingElement;
+    if (target is ClassElement) {
+      objExpr = new JS.Identifier(target.type.name);
     }
 
     return js.statement(
@@ -1609,10 +1500,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var newExpr = js.call(
+    emitNew() => js.call(
         'new #(#)', [_visit(node.constructorName), _visit(node.argumentList)]);
-    if (node.isConst) return _const(node, newExpr);
-    return newExpr;
+    if (node.isConst) return _emitConst(node, emitNew);
+    return emitNew();
   }
 
   /// True if this type is built-in to JS, and we use the values unwrapped.
@@ -1780,26 +1671,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return id;
   }
 
-  JS.Expression _const(Expression node, JS.Expression expr, [String nameHint]) {
-    var value = js.call('dart.const(#)', expr);
-
-    // If we're inside a method or function, capture the value into a
-    // global temporary, so we don't do the expensive canonicalization step.
-    var ancestor = node.getAncestor((n) => n is FunctionBody ||
-        (n is FieldDeclaration && n.staticKeyword == null));
-    if (ancestor == null) return value;
-
-    if (nameHint == null) {
-      nameHint = 'const_' + getStaticType(node).name;
-    }
-
-    // TODO(jmesserly): enable this once we fix
-    // https://github.com/dart-lang/dev_compiler/issues/131
-    /*var temp = new JSTemporary(nameHint);
-    _pendingStatements.add(js.statement('let # = #;', [temp, value]));
-    return temp;*/
-    assert(nameHint != null); // so it's not marked unused
-    return value;
+  JS.Expression _emitConst(Expression node, JS.Expression expr()) {
+    // TODO(jmesserly): emit the constants at top level if possible.
+    // This wasn't quite working, so disabled for now.
+    return js.call('dart.const(#)', expr());
   }
 
   /// Returns a new expression, which can be be used safely *once* on the
@@ -2277,54 +2152,59 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   visitSymbolLiteral(SymbolLiteral node) {
-    // TODO(vsm): When we canonicalize, we need to treat private symbols
-    // correctly.
-    var name = js.string(node.components.join('.'), "'");
-    var nameHint = 'symbol_' + node.components.join('_');
-    return _const(
-        node, new JS.New(_emitTypeName(types.symbolType), [name]), nameHint);
+    emitSymbol() {
+      // TODO(vsm): When we canonicalize, we need to treat private symbols
+      // correctly.
+      var name = js.string(node.components.join('.'), "'");
+      return new JS.New(_emitTypeName(types.symbolType), [name]);
+    }
+    return _emitConst(node, emitSymbol);
   }
 
   @override
   visitListLiteral(ListLiteral node) {
-    JS.Expression list = new JS.ArrayInitializer(_visitList(node.elements));
-
-    ParameterizedType type = node.staticType;
-    if (type.typeArguments.any((a) => a != types.dynamicType)) {
-      list = js.call('dart.setType(#, #)', [list, _emitTypeName(type)]);
+    emitList() {
+      JS.Expression list = new JS.ArrayInitializer(_visitList(node.elements));
+      ParameterizedType type = node.staticType;
+      if (type.typeArguments.any((a) => a != types.dynamicType)) {
+        list = js.call('dart.setType(#, #)', [list, _emitTypeName(type)]);
+      }
+      return list;
     }
-    if (node.constKeyword != null) return _const(node, list);
-    return list;
+    if (node.constKeyword != null) return _emitConst(node, emitList);
+    return emitList();
   }
 
   @override
   visitMapLiteral(MapLiteral node) {
     // TODO(jmesserly): we can likely make these faster.
-    var entries = node.entries;
-    var mapArguments = null;
-    if (entries.isEmpty) {
-      mapArguments = [];
-    } else if (entries.every((e) => e.key is StringLiteral)) {
-      // Use JS object literal notation if possible, otherwise use an array.
-      // We could do this any time all keys are non-nullable String type.
-      // For now, support StringLiteral as the common non-nullable String case.
-      var props = [];
-      for (var e in entries) {
-        props.add(new JS.Property(_visit(e.key), _visit(e.value)));
+    emitMap() {
+      var entries = node.entries;
+      var mapArguments = null;
+      if (entries.isEmpty) {
+        mapArguments = [];
+      } else if (entries.every((e) => e.key is StringLiteral)) {
+        // Use JS object literal notation if possible, otherwise use an array.
+        // We could do this any time all keys are non-nullable String type.
+        // For now, support StringLiteral as the common non-nullable String case.
+        var props = [];
+        for (var e in entries) {
+          props.add(new JS.Property(_visit(e.key), _visit(e.value)));
+        }
+        mapArguments = new JS.ObjectInitializer(props);
+      } else {
+        var values = [];
+        for (var e in entries) {
+          values.add(_visit(e.key));
+          values.add(_visit(e.value));
+        }
+        mapArguments = new JS.ArrayInitializer(values);
       }
-      mapArguments = new JS.ObjectInitializer(props);
-    } else {
-      var values = [];
-      for (var e in entries) {
-        values.add(_visit(e.key));
-        values.add(_visit(e.value));
-      }
-      mapArguments = new JS.ArrayInitializer(values);
+      // TODO(jmesserly): add generic types args.
+      return js.call('dart.map(#)', [mapArguments]);
     }
-    // TODO(jmesserly): add generic types args.
-    var map = js.call('dart.map(#)', [mapArguments]);
-    if (node.constKeyword != null) return _const(node, map);
-    return map;
+    if (node.constKeyword != null) return _emitConst(node, emitMap);
+    return emitMap();
   }
 
   @override
@@ -2373,29 +2253,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   visitNode(AstNode node) {
     // TODO(jmesserly): verify this is unreachable.
     throw 'Unimplemented ${node.runtimeType}: $node';
-  }
-
-  // TODO(jmesserly): this is used to determine if the field initialization is
-  // side effect free. We should make the check more general, as things like
-  // list/map literals/regexp are also side effect free and fairly common
-  // to use as field initializers.
-  bool _isFieldInitConstant(VariableDeclaration field) =>
-      field.initializer == null || _computeConstant(field).isValid;
-
-  EvaluationResult _computeConstant(VariableDeclaration field) {
-    // If the constant is already computed by ConstantEvaluator, just return it.
-    VariableElementImpl element = field.element;
-    var result = element.evaluationResult;
-    if (result != null) return result;
-
-    // ConstantEvaluator will not compute constants for non-const fields
-    // at least for cases like `int x = 0;`, so run ConstantVisitor for those.
-    // TODO(jmesserly): ideally we'd only do this if we're sure it was skipped
-    // by ConstantEvaluator.
-    var initializer = field.initializer;
-    if (initializer == null) return null;
-
-    return _constEvaluator.evaluate(initializer);
   }
 
   _visit(AstNode node) {

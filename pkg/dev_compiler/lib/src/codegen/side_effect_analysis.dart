@@ -5,7 +5,11 @@
 library dev_compiler.src.codegen.side_effect_analysis;
 
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/error.dart' show ErrorReporter;
+import 'package:analyzer/src/generated/engine.dart' show RecordingErrorListener;
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 
 /// True is the expression can be evaluated multiple times without causing
 /// code execution. This is true for final fields. This can be true for local
@@ -84,5 +88,36 @@ class _AssignmentFinder extends RecursiveAstVisitor {
     if (node.inSetterContext() && node.staticElement == _variable) {
       _potentiallyMutated = true;
     }
+  }
+}
+
+class ConstFieldVisitor {
+  final ConstantVisitor _constantVisitor;
+
+  ConstFieldVisitor(TypeProvider types, CompilationUnit unit)
+      : _constantVisitor = new ConstantVisitor.con1(types,
+          new ErrorReporter(new RecordingErrorListener(), unit.element.source));
+
+  // TODO(jmesserly): this is used to determine if the field initialization is
+  // side effect free. We should make the check more general, as things like
+  // list/map literals/regexp are also side effect free and fairly common
+  // to use as field initializers.
+  bool isFieldInitConstant(VariableDeclaration field) =>
+      field.initializer == null || computeConstant(field) != null;
+
+  DartObjectImpl computeConstant(VariableDeclaration field) {
+    // If the constant is already computed by ConstantEvaluator, just return it.
+    VariableElementImpl element = field.element;
+    var result = element.evaluationResult;
+    if (result != null) return result.value;
+
+    // ConstantEvaluator will not compute constants for non-const fields,
+    // so run ConstantVisitor for those to figure out if the initializer is
+    // actually a constant (and therefore side effect free to evaluate).
+    assert(!field.isConst);
+
+    var initializer = field.initializer;
+    if (initializer == null) return null;
+    return initializer.accept(_constantVisitor);
   }
 }

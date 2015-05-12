@@ -109,7 +109,7 @@ var core = dart.import(core);
         return new (Q$())("hello");
       }
       bar() {
-        let q = Q.foo();
+        let q = Q$().foo();
         return dart.as(q.x, core.String);
       }
       bar2() {

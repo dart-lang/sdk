@@ -475,20 +475,21 @@ const corelibOrder = const [
   'dart.collection',
   'dart._internal',
   'dart.math',
-  'dart._foreign_helper',
-  'dart._js_helper',
-  // TODO(jmesserly): add others
-  /*
   'dart.async',
-  'dart.convert',
-  'dart.isolate',
-  'dart.typed_data',
   'dart._foreign_helper',
-  'dart._interceptors',
-  'dart._isolate_helper',
   'dart._js_embedded_names',
   'dart._js_names',
+  'dart._js_helper',
+  'dart.isolate',
+  'dart.typed_data',
+  'dart._isolate_helper',
   'dart._js_primitives',
+
+  // TODO(jmesserly): add others
+  /*
+  'dart.convert',
+  'dart._foreign_helper',
+  'dart._interceptors',
   'dart._native_typed_data',
   */
 ];

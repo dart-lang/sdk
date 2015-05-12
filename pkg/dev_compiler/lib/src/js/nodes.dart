@@ -1080,6 +1080,9 @@ class LiteralString extends Literal {
    */
   LiteralString(this.value);
 
+  /// Gets the value inside the string without the beginning and end quotes.
+  String get valueWithoutQuotes => value.substring(1, value.length - 1);
+
   accept(NodeVisitor visitor) => visitor.visitLiteralString(this);
   LiteralString _clone() => new LiteralString(value);
 }

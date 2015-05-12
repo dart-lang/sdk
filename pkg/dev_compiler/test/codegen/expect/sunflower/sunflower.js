@@ -91,7 +91,7 @@ var core = dart.import(core);
   exports.querySelector = querySelector;
   exports.main = main;
   exports.draw = draw;
-  exports.SunflowerSeed = SunflowerSeed;
   exports.Circle = Circle;
   exports.CirclePainter = CirclePainter;
+  exports.SunflowerSeed = SunflowerSeed;
 })(sunflower, math, dom, core);

@@ -1048,13 +1048,12 @@ class Printer implements NodeVisitor {
       if (inAccess) out(']');
     } else {
       if (node is LiteralString) {
-        var quotedName = node.value;
-        if (isValidJavaScriptId(quotedName)) {
+        if (isValidJavaScriptId(node.value)) {
           if (inAccess) out('.');
-          out(quotedName.substring(1, quotedName.length - 1));
+          out(node.valueWithoutQuotes);
         } else {
           if (inMethod || inAccess) out("[");
-          out(quotedName);
+          out(node.value);
           if (inMethod || inAccess) out("]");
         }
       } else {

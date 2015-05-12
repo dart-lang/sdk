@@ -1,6 +1,6 @@
 var _native_typed_data = dart.defineLibrary(_native_typed_data, {});
 var core = dart.import(core);
-var typed_data = dart.lazyImport(typed_data);
+var typed_data = dart.import(typed_data);
 var collection = dart.import(collection);
 var _internal = dart.import(_internal);
 var _interceptors = dart.lazyImport(_interceptors);

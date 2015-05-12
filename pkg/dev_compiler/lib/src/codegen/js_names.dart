@@ -17,13 +17,44 @@ class TemporaryId extends Identifier {
   TemporaryId(String name) : super(name);
 }
 
+/// Creates a qualified identifier, without determining for sure if it needs to
+/// be qualified until [setQualified] is called.
+///
+/// This expression is transparent to visiting after [setQualified].
+class MaybeQualifiedId extends Expression {
+  Expression _expr;
+
+  final Identifier qualifier;
+  final Expression name;
+
+  MaybeQualifiedId(this.qualifier, this.name) {
+    _expr = new PropertyAccess(qualifier, name);
+  }
+
+  /// Helper to create an [Identifier] from something that starts as a property.
+  static identifier(LiteralString propertyName) =>
+      new Identifier(propertyName.valueWithoutQuotes);
+
+  void setQualified(bool qualified) {
+    if (!qualified && name is LiteralString) {
+      _expr = identifier(name);
+    }
+  }
+
+  int get precedenceLevel => _expr.precedenceLevel;
+
+  accept(NodeVisitor visitor) => _expr.accept(visitor);
+
+  void visitChildren(NodeVisitor visitor) => _expr.visitChildren(visitor);
+}
+
 /// This class has two purposes:
 ///
 /// * rename JS identifiers to avoid keywords.
 /// * rename temporary variables to avoid colliding with user-specified names,
 ///   or other temporaries
 ///
-/// Each instance of [JSTemporary] is treated as a unique variable, with its
+/// Each instance of [TemporaryId] is treated as a unique variable, with its
 /// `name` field simply the suggestion of what name to use. By contrast
 /// [Identifiers] are never renamed unless they are an invalid identifier, like
 /// `function` or `instanceof`, and their `name` field controls whether they
@@ -115,7 +146,6 @@ class _RenameVisitor extends VariableDeclarationVisitor {
     if (needsRename(node)) {
       usedIn = pendingRenames.putIfAbsent(id, () => new HashSet());
     }
-
     for (var s = scope, end = declScope.parent; s != end; s = s.parent) {
       if (usedIn != null) {
         usedIn.add(s);
@@ -184,7 +214,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
 bool needsRename(Identifier node) =>
     node is TemporaryId || node.allowRename && invalidVariableName(node.name);
 
-Object /*String|JSTemporary*/ identifierKey(Identifier node) =>
+Object /*String|TemporaryId*/ identifierKey(Identifier node) =>
     node is TemporaryId ? node : node.name;
 
 /// Returns true for invalid JS variable names, such as keywords.

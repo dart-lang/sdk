@@ -65,12 +65,24 @@ var core = dart.import(core);
     }
   }
   dart.virtualField(Derived, 'foo');
+  let Generic$ = dart.generic(function(T) {
+    class Generic extends core.Object {
+      foo(t) {
+        dart.as(t, T);
+        return core.print(dart.notNull(Generic$().bar) + dart.notNull(t));
+      }
+    }
+    return Generic;
+  });
+  let Generic = Generic$();
+  Generic.bar = 'hello';
   // Function main: () → void
   function main() {
     let a = new A();
     foo(a);
     bar(a);
     core.print(baz(a));
+    core.print(new (Generic$(core.String))().foo(' world'));
   }
   // Exports:
   exports.A = A;
@@ -82,5 +94,7 @@ var core = dart.import(core);
   exports.compute = compute;
   exports.BaseWithGetter = BaseWithGetter;
   exports.Derived = Derived;
+  exports.Generic$ = Generic$;
+  exports.Generic = Generic;
   exports.main = main;
 })(fieldtest, core);

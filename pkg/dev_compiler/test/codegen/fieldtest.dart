@@ -45,9 +45,17 @@ class Derived extends BaseWithGetter {
   int bar = 3;
 }
 
+class Generic<T> {
+  foo(T t) => print(bar + t);
+
+  static String bar = 'hello';
+}
+
 void main() {
   var a = new A();
   foo(a);
   bar(a);
   print(baz(a));
+
+  print(new Generic<String>().foo(' world'));
 }
