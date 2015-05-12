@@ -179,7 +179,9 @@ main() {
   });
 
   eventTest('WheelEvent',
-      () => new WheelEvent("mousewheel", view: window, deltaX: 1, deltaY: 0,
+      // TODO(alanknight): Can't pass window on Dartium. Add view: window
+      // once going through JS.
+      () => new WheelEvent("mousewheel", deltaX: 1, deltaY: 0,
           detail: 4, screenX: 3, screenY: 4, clientX: 5, clientY: 6,
           ctrlKey: true, altKey: true, shiftKey: true, metaKey: true),
       (ev) {
