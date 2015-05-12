@@ -26,6 +26,8 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
+DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(bool, support_debugger);
 
 // Input parameters:
 //   RSP : points to return address.
@@ -1214,12 +1216,14 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
 // Loads function into 'temp_reg', preserves 'ic_reg'.
 void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
                                              Register temp_reg) {
-  Register ic_reg = RBX;
-  Register func_reg = temp_reg;
-  ASSERT(ic_reg != func_reg);
-  __ Comment("Increment function counter");
-  __ movq(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
-  __ incl(FieldAddress(func_reg, Function::usage_counter_offset()));
+  if (FLAG_optimization_counter_threshold >= 0) {
+    Register ic_reg = RBX;
+    Register func_reg = temp_reg;
+    ASSERT(ic_reg != func_reg);
+    __ Comment("Increment function counter");
+    __ movq(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
+    __ incl(FieldAddress(func_reg, Function::usage_counter_offset()));
+  }
 }
 
 
@@ -1296,13 +1300,15 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ Bind(&ok);
 #endif
 
-  const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-  // Update counter.
-  __ movq(R8, Address(R12, count_offset));
-  __ addq(R8, Immediate(Smi::RawValue(1)));
-  __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
-  __ cmovnoq(R9, R8);
-  __ StoreIntoSmiField(Address(R12, count_offset), R9);
+  if (FLAG_optimization_counter_threshold >= 0) {
+    const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
+    // Update counter.
+    __ movq(R8, Address(R12, count_offset));
+    __ addq(R8, Immediate(Smi::RawValue(1)));
+    __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovnoq(R9, R8);
+    __ StoreIntoSmiField(Address(R12, count_offset), R9);
+  }
 
   __ ret();
 }
@@ -1339,12 +1345,14 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
-  __ Comment("Check single stepping");
   Label stepping, done_stepping;
-  __ LoadIsolate(RAX);
-  __ cmpb(Address(RAX, Isolate::single_step_offset()), Immediate(0));
-  __ j(NOT_EQUAL, &stepping);
-  __ Bind(&done_stepping);
+  if (FLAG_support_debugger) {
+    __ Comment("Check single stepping");
+    __ LoadIsolate(RAX);
+    __ cmpb(Address(RAX, Isolate::single_step_offset()), Immediate(0));
+    __ j(NOT_EQUAL, &stepping);
+    __ Bind(&done_stepping);
+  }
 
   __ Comment("Range feedback collection");
   Label not_smi_or_overflow;
@@ -1453,18 +1461,20 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ jmp(&call_target_function);
 
   __ Bind(&found);
-  __ Comment("Update caller's counter");
   // R12: Pointer to an IC data check group.
   const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
   __ movq(RAX, Address(R12, target_offset));
 
-  // Update counter.
-  __ movq(R8, Address(R12, count_offset));
-  __ addq(R8, Immediate(Smi::RawValue(1)));
-  __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
-  __ cmovnoq(R9, R8);
-  __ StoreIntoSmiField(Address(R12, count_offset), R9);
+  if (FLAG_optimization_counter_threshold >= 0) {
+    // Update counter.
+    __ Comment("Update caller's counter");
+    __ movq(R8, Address(R12, count_offset));
+    __ addq(R8, Immediate(Smi::RawValue(1)));
+    __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovnoq(R9, R8);
+    __ StoreIntoSmiField(Address(R12, count_offset), R9);
+  }
 
   __ Comment("Call target");
   __ Bind(&call_target_function);
@@ -1496,13 +1506,15 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ jmp(RCX);
   }
 
-  __ Bind(&stepping);
-  __ EnterStubFrame();
-  __ pushq(RBX);
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ popq(RBX);
-  __ LeaveStubFrame();
-  __ jmp(&done_stepping);
+  if (FLAG_support_debugger) {
+    __ Bind(&stepping);
+    __ EnterStubFrame();
+    __ pushq(RBX);
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ popq(RBX);
+    __ LeaveStubFrame();
+    __ jmp(&done_stepping);
+  }
 }
 
 
@@ -1652,16 +1664,18 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(RAX);
-  __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
-  __ cmpq(RAX, Immediate(0));
+  if (FLAG_support_debugger) {
+    __ LoadIsolate(RAX);
+    __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
+    __ cmpq(RAX, Immediate(0));
 #if defined(DEBUG)
       static const bool kJumpLength = Assembler::kFarJump;
 #else
       static const bool kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
-  __ j(NOT_EQUAL, &stepping, kJumpLength);
-  __ Bind(&done_stepping);
+    __ j(NOT_EQUAL, &stepping, kJumpLength);
+    __ Bind(&done_stepping);
+  }
 
   // RBX: IC data object (preserved).
   __ movq(R12, FieldAddress(RBX, ICData::ic_data_offset()));
@@ -1671,12 +1685,14 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   const intptr_t target_offset = ICData::TargetIndexFor(0) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
 
-  // Increment count for this call.
-  __ movq(R8, Address(R12, count_offset));
-  __ addq(R8, Immediate(Smi::RawValue(1)));
-  __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
-  __ cmovnoq(R9, R8);
-  __ StoreIntoSmiField(Address(R12, count_offset), R9);
+  if (FLAG_optimization_counter_threshold >= 0) {
+    // Increment count for this call.
+    __ movq(R8, Address(R12, count_offset));
+    __ addq(R8, Immediate(Smi::RawValue(1)));
+    __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovnoq(R9, R8);
+    __ StoreIntoSmiField(Address(R12, count_offset), R9);
+  }
 
   // Load arguments descriptor into R10.
   __ movq(R10, FieldAddress(RBX, ICData::arguments_descriptor_offset()));
@@ -1688,13 +1704,15 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(RCX);
 
-  __ Bind(&stepping);
-  __ EnterStubFrame();
-  __ pushq(RBX);  // Preserve IC data object.
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ popq(RBX);
-  __ LeaveStubFrame();
-  __ jmp(&done_stepping, Assembler::kNearJump);
+  if (FLAG_support_debugger) {
+    __ Bind(&stepping);
+    __ EnterStubFrame();
+    __ pushq(RBX);  // Preserve IC data object.
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ popq(RBX);
+    __ LeaveStubFrame();
+    __ jmp(&done_stepping, Assembler::kNearJump);
+  }
 }
 
 
@@ -2065,11 +2083,13 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(RAX);
-  __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
-  __ cmpq(RAX, Immediate(0));
-  __ j(NOT_EQUAL, &stepping);
-  __ Bind(&done_stepping);
+  if (FLAG_support_debugger) {
+    __ LoadIsolate(RAX);
+    __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
+    __ cmpq(RAX, Immediate(0));
+    __ j(NOT_EQUAL, &stepping);
+    __ Bind(&done_stepping);
+  }
 
   const Register left = RAX;
   const Register right = RDX;
@@ -2079,11 +2099,13 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   GenerateIdenticalWithNumberCheckStub(assembler, left, right);
   __ ret();
 
-  __ Bind(&stepping);
-  __ EnterStubFrame();
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ LeaveStubFrame();
-  __ jmp(&done_stepping);
+  if (FLAG_support_debugger) {
+    __ Bind(&stepping);
+    __ EnterStubFrame();
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ LeaveStubFrame();
+    __ jmp(&done_stepping);
+  }
 }
 
 
@@ -2100,6 +2122,59 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
   __ movq(left, Address(RSP, 2 * kWordSize));
   __ movq(right, Address(RSP, 1 * kWordSize));
   GenerateIdenticalWithNumberCheckStub(assembler, left, right);
+  __ ret();
+}
+
+
+void StubCode::EmitMegamorphicLookup(
+    Assembler* assembler, Register receiver, Register cache, Register target) {
+  ASSERT((cache != RAX) && (cache != RDI));
+  __ LoadTaggedClassIdMayBeSmi(RAX, receiver);
+  // RAX: class ID of the receiver (smi).
+  __ movq(RDI, FieldAddress(cache, MegamorphicCache::buckets_offset()));
+  __ movq(RBX, FieldAddress(cache, MegamorphicCache::mask_offset()));
+  // RDI: cache buckets array.
+  // RBX: mask.
+  __ movq(RCX, RAX);
+
+  Label loop, update, call_target_function;
+  __ jmp(&loop);
+
+  __ Bind(&update);
+  __ AddImmediate(RCX, Immediate(Smi::RawValue(1)), PP);
+  __ Bind(&loop);
+  __ andq(RCX, RBX);
+  const intptr_t base = Array::data_offset();
+  // RCX is smi tagged, but table entries are two words, so TIMES_8.
+  __ movq(RDX, FieldAddress(RDI, RCX, TIMES_8, base));
+
+  ASSERT(kIllegalCid == 0);
+  __ testq(RDX, RDX);
+  __ j(ZERO, &call_target_function, Assembler::kNearJump);
+  __ cmpq(RDX, RAX);
+  __ j(NOT_EQUAL, &update, Assembler::kNearJump);
+
+  __ Bind(&call_target_function);
+  // Call the target found in the cache.  For a class id match, this is a
+  // proper target for the given name and arguments descriptor.  If the
+  // illegal class id was found, the target is a cache miss handler that can
+  // be invoked as a normal Dart function.
+  __ movq(RAX, FieldAddress(RDI, RCX, TIMES_8, base + kWordSize));
+  __ movq(target, FieldAddress(RAX, Function::instructions_offset()));
+  // TODO(srdjan): Evaluate performance impact of moving the instruction below
+  // to the call site, instead of having it here.
+  __ AddImmediate(
+      target, Immediate(Instructions::HeaderSize() - kHeapObjectTag), PP);
+}
+
+
+// Called from megamorphic calls.
+//  RDI: receiver.
+//  RBX: lookup cache.
+// Result:
+//  RCX: entry point.
+void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
+  EmitMegamorphicLookup(assembler, RDI, RBX, RCX);
   __ ret();
 }
 

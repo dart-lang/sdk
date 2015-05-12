@@ -2332,6 +2332,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         checkFixedArray(input);
       }
       return;
+    } else if (element == backend.jsUnmodifiableArrayClass) {
+      if (negative) {
+        checkMutableArray(input);
+      } else {
+        checkImmutableArray(input);
+      }
+      return;
     }
     if (interceptor != null) {
       checkTypeViaProperty(interceptor, type, negative);

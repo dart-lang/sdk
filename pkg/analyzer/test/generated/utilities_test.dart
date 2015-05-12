@@ -611,7 +611,7 @@ class AstClonerTest extends EngineTestCase {
   }
 
   void test_visitForEachStatement_variable() {
-    _assertClone(new ForEachStatement.con2(null,
+    _assertClone(new ForEachStatement.withReference(null,
         TokenFactory.tokenFromKeyword(Keyword.FOR),
         TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
         AstFactory.identifier3("a"), TokenFactory.tokenFromKeyword(Keyword.IN),
@@ -620,7 +620,7 @@ class AstClonerTest extends EngineTestCase {
   }
 
   void test_visitForEachStatement_variable_await() {
-    _assertClone(new ForEachStatement.con2(
+    _assertClone(new ForEachStatement.withReference(
         TokenFactory.tokenFromString("await"),
         TokenFactory.tokenFromKeyword(Keyword.FOR),
         TokenFactory.tokenFromType(TokenType.OPEN_PAREN),

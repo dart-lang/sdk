@@ -60,10 +60,6 @@ handlers:
   static_dir: packages/logging
   secure: always
 
-- url: /packages/matcher
-  static_dir: packages/matcher
-  secure: always
-
 - url: /packages/math
   static_dir: packages/math
   secure: always

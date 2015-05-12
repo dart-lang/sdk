@@ -589,6 +589,20 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
+  js.Expression visitCreateInvocationMirror(
+      tree_ir.CreateInvocationMirror node) {
+    js.Expression name = js.string(node.selector.name);
+    js.Expression internalName = js.string(glue.invocationName(node.selector));
+    js.Expression kind = js.number(node.selector.invocationMirrorKind);
+    js.Expression arguments = new js.ArrayInitializer(
+        node.arguments.map(visitExpression).toList());
+    js.Expression argumentNames = new js.ArrayInitializer(
+        node.selector.namedArguments.map(js.string).toList());
+    return buildStaticHelperInvocation(glue.createInvocationMirrorMethod,
+        [name, internalName, kind, arguments, argumentNames]);
+  }
+
+  @override
   js.Expression visitGetField(tree_ir.GetField node) {
     return new js.PropertyAccess.field(
         visitExpression(node.object),

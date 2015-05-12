@@ -29,10 +29,16 @@ const Map<String, List<String>> WHITE_LIST = const {
       "The method 'error"],
   "lib/src/resolution/semantic_visitor_mixins.dart": const [
       "The method 'error"],
+  "lib/src/cps_ir/cps_ir_builder_task.dart": const [
+      "The method 'error"],
 
   // Uncalled type predicate.  Keep while related predicates are used.
   "lib/src/ssa/nodes.dart": const [
       "The method 'isArray' is never called"],
+
+  // Method in abstract class. Currently only instantiated trough tests.
+  "lib/src/constants/expressions.dart": const [
+      "The method 'readFromEnvironment' is never called"],
 };
 
 void main() {

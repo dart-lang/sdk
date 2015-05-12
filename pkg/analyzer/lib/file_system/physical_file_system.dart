@@ -91,7 +91,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
     if (uri == null) {
       uri = javaFile.toURI();
     }
-    return new FileBasedSource.con2(uri, javaFile);
+    return new FileBasedSource(javaFile, uri);
   }
 
   @override

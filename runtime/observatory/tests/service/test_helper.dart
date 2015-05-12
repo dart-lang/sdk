@@ -151,6 +151,28 @@ Future processServiceEvents(VM vm, ServiceEventHandler handler) {
 }
 
 
+Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
+  if ((isolate.pauseEvent != null) &&
+      (isolate.pauseEvent.eventType == ServiceEvent.kPauseBreakpoint)) {
+    // Already waiting at a breakpoint.
+    print('Breakpoint reached');
+    return new Future.value(isolate);
+  }
+
+  // Set up a listener to wait for breakpoint events.
+  Completer completer = new Completer();
+  var subscription;
+  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
+    if (event.eventType == ServiceEvent.kPauseBreakpoint) {
+      print('Breakpoint reached');
+      subscription.cancel();
+      completer.complete(isolate);
+    }
+  });
+
+  return completer.future;  // Will complete when breakpoint hit.
+}
+
 /// Runs [tests] in sequence, each of which should take an [Isolate] and
 /// return a [Future]. Code for setting up state can run before and/or
 /// concurrently with the tests. Uses [mainArgs] to determine whether

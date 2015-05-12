@@ -12,7 +12,7 @@ import 'codegen_java.dart';
 import 'codegen_tools.dart';
 
 final GeneratedFile target = javaGeneratedFile(
-    '../../../../editor/tools/plugins/com.google.dart.server/src/com/google/dart/server/generated/AnalysisServer.java',
+    'generated/java/AnalysisServer.java',
     (Api api) => new CodegenAnalysisServer(api));
 
 /**

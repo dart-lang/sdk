@@ -369,6 +369,11 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     String value = formatReference(node.value);
     return "NonTailThrow($value)";
   }
+
+  visitCreateInvocationMirror(cps_ir.CreateInvocationMirror node) {
+    String args = node.arguments.map(formatReference).join(', ');
+    return "CreateInvocationMirror(${node.selector.name}, $args)";
+  }
 }
 
 /**
@@ -622,6 +627,10 @@ class BlockCollector implements cps_ir.Visitor {
   }
 
   visitNonTailThrow(cps_ir.NonTailThrow node) {
+    unexpectedNode(node);
+  }
+
+  visitCreateInvocationMirror(cps_ir.CreateInvocationMirror node) {
     unexpectedNode(node);
   }
 }

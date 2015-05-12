@@ -207,14 +207,6 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     return constant;
   }
 
-  ConstantExpression createTypeConstant(TypeDeclarationElement element) {
-    DartType elementType = element.rawType;
-    DartType constantType =
-        compiler.backend.typeImplementation.computeType(compiler);
-    return new TypeConstantExpression(
-        new TypeConstantValue(elementType, constantType), elementType);
-  }
-
   void forgetElement(Element element) {
     super.forgetElement(element);
     const ForgetConstantElementVisitor().visit(element, this);

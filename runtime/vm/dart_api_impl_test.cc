@@ -19,7 +19,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, verify_acquired_data);
 

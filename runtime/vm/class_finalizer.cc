@@ -22,7 +22,6 @@ DEFINE_FLAG(bool, error_on_bad_type, false,
 DEFINE_FLAG(bool, print_classes, false, "Prints details about loaded classes.");
 DEFINE_FLAG(bool, trace_class_finalization, false, "Trace class finalization.");
 DEFINE_FLAG(bool, trace_type_finalization, false, "Trace type finalization.");
-DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, use_cha);
 
 
@@ -184,6 +183,7 @@ void ClassFinalizer::CollectInterfaces(const Class& cls,
 }
 
 
+#if defined(DART_NO_SNAPSHOT)
 void ClassFinalizer::VerifyBootstrapClasses() {
   if (FLAG_trace_class_finalization) {
     OS::Print("VerifyBootstrapClasses START.\n");
@@ -247,6 +247,7 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   }
   Isolate::Current()->heap()->Verify();
 }
+#endif  // defined(DART_NO_SNAPSHOT).
 
 
 // Resolve unresolved_class in the library of cls, or return null.
@@ -1683,6 +1684,13 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
           param ^= mixin_type_args.TypeAt(i);
           param_bound = param.bound();
           if (!param_bound.IsInstantiated()) {
+            // Make sure the bound is finalized before instantiating it.
+            if (!param_bound.IsFinalized() &&
+                !param_bound.IsBeingFinalized()) {
+              param_bound =
+                  FinalizeType(mixin_app_class, param_bound, kCanonicalize);
+              param.set_bound(param_bound);  // In case part of recursive type.
+            }
             param_bound = param_bound.InstantiateFrom(mixin_type_args,
                                                       &bound_error);
             // The instantiator contains only TypeParameter objects and no

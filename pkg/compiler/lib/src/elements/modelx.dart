@@ -6,6 +6,7 @@ library elements.modelx;
 
 import 'elements.dart';
 import '../constants/expressions.dart';
+import '../constants/constructors.dart';
 import '../helpers/helpers.dart';  // Included for debug helpers.
 import '../tree/tree.dart';
 import '../util/util.dart';
@@ -170,7 +171,7 @@ abstract class ElementX extends Element {
 
   Name get memberName => new Name(name, library);
 
-  LibraryElement get implementationLibrary {
+  LibraryElementX get implementationLibrary {
     Element element = this;
     while (!identical(element.kind, ElementKind.LIBRARY)) {
       element = element.enclosingElement;
@@ -283,6 +284,10 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   bool get isSynthesized => true;
 
+  bool get isCyclicRedirection => false;
+
+  PrefixElement get redirectionDeferredPrefix => null;
+
   AbstractFieldElement abstractField;
 
   unsupported() {
@@ -306,6 +311,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   get memberContext => unsupported();
   get executableContext => unsupported();
   get isExternal => unsupported();
+  get constantConstructor => null;
 
   bool get isRedirectingGenerative => unsupported();
   bool get isRedirectingFactory => unsupported();
@@ -329,11 +335,16 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   accept(ElementVisitor visitor, arg) {
     return visitor.visitErroneousElement(this, arg);
   }
+
+  @override
+  bool get isFromEnvironmentConstructor => false;
 }
 
 /// A constructor that was synthesized to recover from a compile-time error.
 class ErroneousConstructorElementX extends ErroneousElementX
-    with PatchMixin<FunctionElement>, AnalyzableElementX
+    with PatchMixin<FunctionElement>,
+         AnalyzableElementX,
+         ConstantConstructorMixin
     implements ConstructorElementX {
   // TODO(ahe): Instead of subclassing [ErroneousElementX], this class should
   // be more like [ErroneousFieldElementX]. In particular, its kind should be
@@ -414,9 +425,9 @@ class ErroneousConstructorElementX extends ErroneousElementX
     throw new UnsupportedError("nestedClosures=");
   }
 
-  bool get hasNoBody => false;
-
-  bool get _hasNoBody => false;
+  set redirectionDeferredPrefix(_) {
+    throw new UnsupportedError("redirectionDeferredPrefix=");
+  }
 
   void set effectiveTarget(_) {
     throw new UnsupportedError("effectiveTarget=");
@@ -608,7 +619,7 @@ class ScopeX {
    * element, they are enclosed by the class or compilation unit, as is the
    * abstract field.
    */
-  void addAccessor(FunctionElementX accessor,
+  void addAccessor(AccessorElementX accessor,
                    Element existing,
                    DiagnosticListener listener) {
     void reportError(Element other) {
@@ -666,13 +677,16 @@ class CompilationUnitElementX extends ElementX
   PartOf partTag;
   Link<Element> localMembers = const Link<Element>();
 
-  CompilationUnitElementX(Script script, LibraryElement library)
+  CompilationUnitElementX(Script script, LibraryElementX library)
     : this.script = script,
       super(script.name,
             ElementKind.COMPILATION_UNIT,
             library) {
     library.addCompilationUnit(this);
   }
+
+  @override
+  LibraryElementX get library => enclosingElement.declaration;
 
   void forEachLocalMember(f(Element element)) {
     localMembers.forEach(f);
@@ -925,6 +939,7 @@ class LibraryElementX
     return tagsCache;
   }
 
+  /// Record which element an import or export tag resolved to.
   void recordResolvedTag(LibraryDependency tag, LibraryElement library) {
     assert(tagMapping[tag] == null);
     tagMapping[tag] = library;
@@ -1255,7 +1270,24 @@ class VariableList implements DeclarationSite {
   DartType computeType(Element element, Compiler compiler) => type;
 }
 
-abstract class VariableElementX extends ElementX with AstElementMixin
+abstract class ConstantVariableMixin implements VariableElement {
+  ConstantExpression _constant;
+
+  ConstantExpression get constant {
+    assert(invariant(this, _constant != null,
+        message: "Constant has not been computed for $this."));
+    return _constant;
+  }
+
+  void set constant(ConstantExpression value) {
+    assert(invariant(this, _constant == null || _constant == value,
+        message: "Constant has already been computed for $this."));
+    _constant = value;
+  }
+}
+
+abstract class VariableElementX extends ElementX
+    with AstElementMixin, ConstantVariableMixin
     implements VariableElement {
   final Token token;
   final VariableList variables;
@@ -1414,7 +1446,8 @@ class FieldElementX extends VariableElementX
 }
 
 /// A field that was synthesized to recover from a compile-time error.
-class ErroneousFieldElementX extends ElementX implements FieldElementX {
+class ErroneousFieldElementX extends ElementX
+    with ConstantVariableMixin implements FieldElementX {
   final VariableList variables;
 
   ErroneousFieldElementX(Identifier name, Element enclosingElement)
@@ -1559,7 +1592,8 @@ class FormalElementX extends ElementX
 /// to ensure that default values on parameters are computed once (on the
 /// origin parameter) but can be found through both the origin and the patch.
 abstract class ParameterElementX extends FormalElementX
-  with PatchMixin<ParameterElement> implements ParameterElement {
+    with PatchMixin<ParameterElement>, ConstantVariableMixin
+    implements ParameterElement {
   final Expression initializer;
   final bool isOptional;
   final bool isNamed;
@@ -1652,8 +1686,8 @@ class ErroneousInitializingFormalElementX extends ParameterElementX
 }
 
 class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
-  FunctionElementX getter;
-  FunctionElementX setter;
+  GetterElementX getter;
+  SetterElementX setter;
 
   AbstractFieldElementX(String name, Element enclosing)
       : super(name, ElementKind.ABSTRACT_FIELD, enclosing);
@@ -1811,25 +1845,17 @@ abstract class BaseFunctionElementX
 
   FunctionSignature functionSignatureCache;
 
-  final bool _hasNoBody;
-
-  AbstractFieldElement abstractField;
-
   AsyncMarker asyncMarker = AsyncMarker.SYNC;
 
   BaseFunctionElementX(String name,
                        ElementKind kind,
                        Modifiers this.modifiers,
-                       Element enclosing,
-                       bool hasNoBody)
-      : super(name, kind, enclosing),
-        _hasNoBody = hasNoBody {
+                       Element enclosing)
+      : super(name, kind, enclosing) {
     assert(modifiers != null);
   }
 
   bool get isExternal => modifiers.isExternal;
-
-  bool get hasNoBody => _hasNoBody;
 
   bool get isInstanceMember {
     return isClassMember
@@ -1885,11 +1911,7 @@ abstract class BaseFunctionElementX
     }
   }
 
-  bool get isAbstract {
-    return !modifiers.isExternal &&
-           (isFunction || isAccessor) &&
-           _hasNoBody;
-  }
+  bool get isAbstract => false;
 
   accept(ElementVisitor visitor, arg) {
     return visitor.visitFunctionElement(this, arg);
@@ -1901,12 +1923,12 @@ abstract class BaseFunctionElementX
 
 abstract class FunctionElementX extends BaseFunctionElementX
     with AnalyzableElementX implements MethodElement {
+
   FunctionElementX(String name,
                    ElementKind kind,
                    Modifiers modifiers,
-                   Element enclosing,
-                   bool hasNoBody)
-      : super(name, kind, modifiers, enclosing, hasNoBody);
+                   Element enclosing)
+      : super(name, kind, modifiers, enclosing);
 
   MemberElement get memberContext => this;
 
@@ -1918,6 +1940,55 @@ abstract class FunctionElementX extends BaseFunctionElementX
   }
 }
 
+abstract class MethodElementX extends FunctionElementX {
+  final bool hasBody;
+
+  MethodElementX(String name,
+                 ElementKind kind,
+                 Modifiers modifiers,
+                 Element enclosing,
+                 // TODO(15101): Make this a named parameter.
+                 this.hasBody)
+      : super(name, kind, modifiers, enclosing);
+
+  @override
+  bool get isAbstract {
+    return !modifiers.isExternal && !hasBody;
+  }
+}
+
+abstract class AccessorElementX extends MethodElementX
+    implements AccessorElement {
+  AbstractFieldElement abstractField;
+
+  AccessorElementX(String name,
+                   ElementKind kind,
+                   Modifiers modifiers,
+                   Element enclosing,
+                   bool hasBody)
+      : super(name, kind, modifiers, enclosing, hasBody);
+}
+
+abstract class GetterElementX extends AccessorElementX
+    implements GetterElement {
+
+  GetterElementX(String name,
+                 Modifiers modifiers,
+                 Element enclosing,
+                 bool hasBody)
+      : super(name, ElementKind.GETTER, modifiers, enclosing, hasBody);
+}
+
+abstract class SetterElementX extends AccessorElementX
+    implements SetterElement {
+
+  SetterElementX(String name,
+                 Modifiers modifiers,
+                 Element enclosing,
+                 bool hasBody)
+      : super(name, ElementKind.SETTER, modifiers, enclosing, hasBody);
+}
+
 class LocalFunctionElementX extends BaseFunctionElementX
     implements LocalFunctionElement {
   final FunctionExpression node;
@@ -1927,7 +1998,7 @@ class LocalFunctionElementX extends BaseFunctionElementX
                         ElementKind kind,
                         Modifiers modifiers,
                         ExecutableElement enclosing)
-      : super(name, kind, modifiers, enclosing, false);
+      : super(name, kind, modifiers, enclosing);
 
   ExecutableElement get executableContext => enclosingElement;
 
@@ -1949,19 +2020,48 @@ class LocalFunctionElementX extends BaseFunctionElementX
   bool get isLocal => true;
 }
 
+abstract class ConstantConstructorMixin implements ConstructorElement {
+  ConstantConstructor _constantConstructor;
+
+  ConstantConstructor get constantConstructor {
+    if (isPatch) {
+      ConstructorElement originConstructor = origin;
+      return originConstructor.constantConstructor;
+    }
+    if (!isConst || isFromEnvironmentConstructor) return null;
+    if (_constantConstructor == null) {
+      _constantConstructor = computeConstantConstructor(resolvedAst);
+    }
+    return _constantConstructor;
+  }
+
+  bool get isFromEnvironmentConstructor {
+    return name == 'fromEnvironment' &&
+           library.isDartCore &&
+           (enclosingClass.name == 'bool' ||
+            enclosingClass.name == 'int' ||
+            enclosingClass.name == 'String');
+  }
+}
+
 abstract class ConstructorElementX extends FunctionElementX
-    implements ConstructorElement {
+    with ConstantConstructorMixin implements ConstructorElement {
   bool isRedirectingGenerative = false;
 
   ConstructorElementX(String name,
                       ElementKind kind,
                       Modifiers modifiers,
                       Element enclosing)
-        : super(name, kind, modifiers, enclosing, false);
+        : super(name, kind, modifiers, enclosing);
 
   FunctionElement immediateRedirectionTarget;
+  PrefixElement redirectionDeferredPrefix;
 
   bool get isRedirectingFactory => immediateRedirectionTarget != null;
+
+  // TODO(johnniwinther): This should also return true for cyclic redirecting
+  // generative constructors.
+  bool get isCyclicRedirection => effectiveTarget.isRedirectingFactory;
 
   /// This field is set by the post process queue when checking for cycles.
   ConstructorElement internalEffectiveTarget;
@@ -1988,20 +2088,25 @@ abstract class ConstructorElementX extends FunctionElementX
     return effectiveTargetType.substByContext(newType);
   }
 
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitConstructorElement(this, arg);
+  }
+
   ConstructorElement get definingConstructor => null;
 
   ClassElement get enclosingClass => enclosingElement;
 }
 
-class DeferredLoaderGetterElementX extends FunctionElementX {
+class DeferredLoaderGetterElementX extends GetterElementX
+    implements GetterElement {
   final PrefixElement prefix;
 
   DeferredLoaderGetterElementX(PrefixElement prefix)
       : this.prefix = prefix,
         super("loadLibrary",
-              ElementKind.FUNCTION,
               Modifiers.EMPTY,
-              prefix, true);
+              prefix,
+              false);
 
   FunctionSignature computeSignature(Compiler compiler) {
     if (functionSignatureCache != null) return functionSignature;
@@ -2018,11 +2123,7 @@ class DeferredLoaderGetterElementX extends FunctionElementX {
 
   bool get isSynthesized => true;
 
-  bool get isFunction => false;
-
   bool get isDeferredLoaderGetter => true;
-
-  bool get isGetter => true;
 
   bool get isTopLevel => true;
   // By having position null, the enclosing elements location is printed in
@@ -2034,18 +2135,21 @@ class DeferredLoaderGetterElementX extends FunctionElementX {
   bool get hasNode => false;
 
   FunctionExpression get node => null;
+
+  @override
+  SetterElement get setter => null;
 }
 
 class ConstructorBodyElementX extends BaseFunctionElementX
     implements ConstructorBodyElement {
-  ConstructorElement constructor;
+  ConstructorElementX constructor;
 
-  ConstructorBodyElementX(FunctionElement constructor)
+  ConstructorBodyElementX(ConstructorElementX constructor)
       : this.constructor = constructor,
         super(constructor.name,
               ElementKind.GENERATIVE_CONSTRUCTOR_BODY,
               Modifiers.EMPTY,
-              constructor.enclosingElement, false) {
+              constructor.enclosingElement) {
     functionSignatureCache = constructor.functionSignature;
   }
 
@@ -2783,18 +2887,14 @@ class EnumConstructorElementX extends ConstructorElementX {
   FunctionExpression parseNode(Compiler compiler) => node;
 }
 
-class EnumMethodElementX extends FunctionElementX {
+class EnumMethodElementX extends MethodElementX {
   final FunctionExpression node;
 
   EnumMethodElementX(String name,
                      EnumClassElementX enumClass,
                      Modifiers modifiers,
                      this.node)
-      : super(name,
-              ElementKind.FUNCTION,
-              modifiers,
-              enumClass,
-              false);
+      : super(name, ElementKind.FUNCTION, modifiers, enumClass, true);
 
   @override
   bool get hasNode => true;

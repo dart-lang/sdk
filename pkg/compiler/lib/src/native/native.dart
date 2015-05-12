@@ -11,7 +11,7 @@ import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
-    show ClassElementX, FunctionElementX, LibraryElementX;
+    show ElementX, BaseClassElementX, FunctionElementX, LibraryElementX;
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;

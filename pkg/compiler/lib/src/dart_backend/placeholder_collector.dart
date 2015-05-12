@@ -369,8 +369,8 @@ class PlaceholderCollector extends Visitor {
       return;
     }
 
-    if (element.isGetter || element.isSetter) {
-      element = (element as FunctionElement).abstractField;
+    if (element.isAccessor) {
+      element = (element as AccessorElement).abstractField;
     }
     elementNodes.putIfAbsent(element, () => new Set<Node>()).add(node);
   }

@@ -348,7 +348,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     DartType type = elements.getType(node);
     return new AstConstant(
         context, node, new ListConstantExpression(
-            new ListConstantValue(type, argumentValues),
+            constantSystem.createList(type, argumentValues),
             type,
             argumentExpressions));
   }
@@ -479,10 +479,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
   }
 
   ConstantExpression makeTypeConstant(DartType elementType) {
-    DartType constantType =
-        compiler.backend.typeImplementation.computeType(compiler);
     return new TypeConstantExpression(
-        new TypeConstantValue(elementType, constantType), elementType);
+        constantSystem.createType(compiler, elementType), elementType);
   }
 
   /// Returns true if the prefix of the send resolves to a deferred import
@@ -827,15 +825,6 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       CallStructure callStructure,
       List<AstConstant> normalizedArguments,
       List<AstConstant> concreteArguments) {
-    AstConstant createEvaluatedConstant(ConstantValue value) {
-      return new AstConstant(
-          context, node, new ConstructedConstantExpression(
-              value,
-              type,
-              constructor,
-              callStructure,
-              concreteArguments.map((e) => e.expression).toList()));
-    }
 
     var firstArgument = normalizedArguments[0].value;
     ConstantValue defaultValue = normalizedArguments[1].value;
@@ -881,8 +870,26 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       return null;
     }
 
+    String name =
+        firstArgument.primitiveValue.slowToString();
     String value =
-        compiler.fromEnvironment(firstArgument.primitiveValue.slowToString());
+        compiler.fromEnvironment(name);
+
+    AstConstant createEvaluatedConstant(ConstantValue value) {
+
+      ConstantExpression expression;
+      if (constructor == compiler.intEnvironment) {
+        expression = new IntFromEnvironmentConstantExpression(
+            value, name, normalizedArguments[1].expression);
+      } else if (constructor == compiler.boolEnvironment) {
+        expression = new BoolFromEnvironmentConstantExpression(
+            value, name, normalizedArguments[1].expression);
+      } else if (constructor == compiler.stringEnvironment) {
+        expression = new StringFromEnvironmentConstantExpression(
+            value, name, normalizedArguments[1].expression);
+      }
+      return new AstConstant(context, node, expression);
+    }
 
     if (value == null) {
       return createEvaluatedConstant(defaultValue);

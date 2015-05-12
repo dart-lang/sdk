@@ -15,6 +15,8 @@
     'collection_patch_cc_file': '<(gen_source_dir)/collection_patch_gen.cc',
     'convert_cc_file': '<(gen_source_dir)/convert_gen.cc',
     'convert_patch_cc_file': '<(gen_source_dir)/convert_patch_gen.cc',
+    'developer_cc_file': '<(gen_source_dir)/developer_gen.cc',
+    'developer_patch_cc_file': '<(gen_source_dir)/developer_patch_gen.cc',
     'internal_cc_file': '<(gen_source_dir)/internal_gen.cc',
     'internal_patch_cc_file': '<(gen_source_dir)/internal_patch_gen.cc',
     'isolate_cc_file': '<(gen_source_dir)/isolate_gen.cc',
@@ -23,14 +25,14 @@
     'math_patch_cc_file': '<(gen_source_dir)/math_patch_gen.cc',
     'mirrors_cc_file': '<(gen_source_dir)/mirrors_gen.cc',
     'mirrors_patch_cc_file': '<(gen_source_dir)/mirrors_patch_gen.cc',
+    'profiler_cc_file': '<(gen_source_dir)/profiler_gen.cc',
+    'profiler_patch_cc_file': '<(gen_source_dir)/profiler_patch_gen.cc',
     'service_cc_file': '<(gen_source_dir)/service_gen.cc',
     'snapshot_test_dat_file': '<(gen_source_dir)/snapshot_test.dat',
     'snapshot_test_in_dat_file': 'snapshot_test_in.dat',
     'snapshot_test_dart_file': 'snapshot_test.dart',
     'typed_data_cc_file': '<(gen_source_dir)/typed_data_gen.cc',
     'typed_data_patch_cc_file': '<(gen_source_dir)/typed_data_patch_gen.cc',
-    'profiler_cc_file': '<(gen_source_dir)/profiler_gen.cc',
-    'profiler_patch_cc_file': '<(gen_source_dir)/profiler_patch_gen.cc',
   },
   'targets': [
     {
@@ -101,7 +103,77 @@
         }]],
     },
     {
-      'target_name': 'libdart_lib_withcore',
+      'target_name': 'libdart_vm_nosnapshot',
+      'type': 'static_library',
+      'toolsets':['host', 'target'],
+      'dependencies': [
+        'generate_service_cc_file#host'
+      ],
+      'includes': [
+        'vm_sources.gypi',
+        '../platform/platform_headers.gypi',
+        '../platform/platform_sources.gypi',
+      ],
+      'sources': [
+        # Include generated source files.
+        '<(service_cc_file)',
+      ],
+      'sources/': [
+        # Exclude all _test.[cc|h] files.
+        ['exclude', '_test\\.(cc|h)$'],
+      ],
+      'include_dirs': [
+        '..',
+      ],
+      'defines': [
+        'DART_NO_SNAPSHOT',
+      ],
+      'conditions': [
+        ['OS=="linux"', {
+          'link_settings': {
+            'libraries': [
+              '-lpthread',
+              '-lrt',
+              '-ldl',
+            ],
+          },
+        }],
+        ['OS=="android" and _toolset=="host"', {
+          'link_settings': {
+            'libraries': [
+              '-lpthread',
+              '-lrt',
+              '-ldl',
+            ],
+          },
+        }],
+        ['OS=="win"', {
+          'sources/' : [
+            ['exclude', 'gdbjit.cc'],
+          ],
+       }],
+       ['dart_vtune_support==0', {
+          'sources/' : [
+            ['exclude', 'vtune\\.(cc|h)$'],
+          ],
+       }],
+       ['dart_vtune_support==1', {
+          'include_dirs': ['<(dart_vtune_root)/include'],
+          'defines': ['DART_VTUNE_SUPPORT'],
+          'link_settings': {
+            'conditions': [
+              ['OS=="linux"', {
+                 'libraries': ['-ljitprofiling'],
+              }],
+              ['OS=="win"', {
+                 'libraries': ['-ljitprofiling.lib'],
+              }],
+            ],
+          },
+        }]],
+    },
+    {
+      'target_name': 'libdart_lib_nosnapshot',
       'type': 'static_library',
       'toolsets':['host', 'target'],
       'dependencies': [
@@ -113,6 +185,8 @@
         'generate_collection_patch_cc_file#host',
         'generate_convert_cc_file#host',
         'generate_convert_patch_cc_file#host',
+        'generate_developer_cc_file#host',
+        'generate_developer_patch_cc_file#host',
         'generate_internal_cc_file#host',
         'generate_internal_patch_cc_file#host',
         'generate_isolate_cc_file#host',
@@ -121,21 +195,22 @@
         'generate_math_patch_cc_file#host',
         'generate_mirrors_cc_file#host',
         'generate_mirrors_patch_cc_file#host',
-        'generate_typed_data_cc_file#host',
-        'generate_typed_data_patch_cc_file#host',
         'generate_profiler_cc_file#host',
         'generate_profiler_patch_cc_file#host',
+        'generate_typed_data_cc_file#host',
+        'generate_typed_data_patch_cc_file#host',
       ],
       'includes': [
         '../lib/async_sources.gypi',
         '../lib/collection_sources.gypi',
         '../lib/core_sources.gypi',
+        '../lib/developer_sources.gypi',
+        '../lib/internal_sources.gypi',
         '../lib/isolate_sources.gypi',
         '../lib/math_sources.gypi',
         '../lib/mirrors_sources.gypi',
-        '../lib/typed_data_sources.gypi',
         '../lib/profiler_sources.gypi',
-        '../lib/internal_sources.gypi',
+        '../lib/typed_data_sources.gypi',
       ],
       'sources': [
         'bootstrap.cc',
@@ -148,6 +223,8 @@
         '<(collection_patch_cc_file)',
         '<(convert_cc_file)',
         '<(convert_patch_cc_file)',
+        '<(developer_cc_file)',
+        '<(developer_patch_cc_file)',
         '<(internal_cc_file)',
         '<(internal_patch_cc_file)',
         '<(isolate_cc_file)',
@@ -156,10 +233,10 @@
         '<(math_patch_cc_file)',
         '<(mirrors_cc_file)',
         '<(mirrors_patch_cc_file)',
-        '<(typed_data_cc_file)',
-        '<(typed_data_patch_cc_file)',
         '<(profiler_cc_file)',
         '<(profiler_patch_cc_file)',
+        '<(typed_data_cc_file)',
+        '<(typed_data_patch_cc_file)',
       ],
       'include_dirs': [
         '..',
@@ -173,12 +250,13 @@
         '../lib/async_sources.gypi',
         '../lib/collection_sources.gypi',
         '../lib/core_sources.gypi',
+        '../lib/developer_sources.gypi',
+        '../lib/internal_sources.gypi',
         '../lib/isolate_sources.gypi',
         '../lib/math_sources.gypi',
         '../lib/mirrors_sources.gypi',
-        '../lib/typed_data_sources.gypi',
         '../lib/profiler_sources.gypi',
-        '../lib/internal_sources.gypi',
+        '../lib/typed_data_sources.gypi',
       ],
       'sources': [
         'bootstrap_nocore.cc',
@@ -983,6 +1061,86 @@
             '<@(_sources)',
           ],
           'message': 'Generating ''<(profiler_patch_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_developer_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'includes': [
+        # Load the shared library sources.
+        '../../sdk/lib/developer/developer_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all .[cc|h] files.
+        # This is only here for reference. Excludes happen after
+        # variable expansion, so the script has to do its own
+        # exclude processing of the sources being passed.
+        ['exclude', '\\.cc|h$'],
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_developer_cc',
+          'inputs': [
+            '../tools/gen_library_src_paths.py',
+            '<(libgen_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(developer_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/gen_library_src_paths.py',
+            '--output', '<(developer_cc_file)',
+            '--input_cc', '<(libgen_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::developer_source_paths_',
+            '--library_name', 'dart:developer',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(developer_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_developer_patch_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'includes': [
+        # Load the runtime implementation sources.
+        '../lib/developer_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all .[cc|h] files.
+        # This is only here for reference. Excludes happen after
+        # variable expansion, so the script has to do its own
+        # exclude processing of the sources being passed.
+        ['exclude', '\\.cc|h$'],
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_developer_patch_cc',
+          'inputs': [
+            '../tools/gen_library_src_paths.py',
+            '<(libgen_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(developer_patch_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/gen_library_src_paths.py',
+            '--output', '<(developer_patch_cc_file)',
+            '--input_cc', '<(libgen_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::developer_patch_paths_',
+            '--library_name', 'dart:developer',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(developer_patch_cc_file)'' file.'
         },
       ]
     },

@@ -54,7 +54,6 @@
           '../../third_party/pkg/http_parser/lib',
           '../../third_party/pkg/intl/lib',
           '../../third_party/pkg/logging/lib',
-          '../../third_party/pkg/matcher/lib',
           '../../third_party/pkg/path/lib',
           '../../third_party/pkg/stack_trace/lib',
           '../../third_party/pkg/string_scanner/lib',

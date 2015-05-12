@@ -5,7 +5,9 @@
 library dart2js.new_js_emitter.emitter;
 
 import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
-    JsBuiltin;
+    JsBuiltin,
+    METADATA,
+    TYPES;
 
 import '../program_builder.dart' show ProgramBuilder;
 import '../model.dart';
@@ -138,6 +140,10 @@ class Emitter implements emitterTask.Emitter {
         return js.js.expressionTemplateYielding(
             typeAccess(_compiler.objectClass));
 
+      case JsBuiltin.classNameFromIsCheckProperty:
+        int isPrefixLength = namer.operatorIsPrefix.length;
+        return js.js.expressionTemplateFor('#.substring($isPrefixLength)');
+
       case JsBuiltin.isFunctionType:
         return _backend.rti.representationGenerator.templateForIsFunctionType;
 
@@ -157,6 +163,18 @@ class Emitter implements emitterTask.Emitter {
       case JsBuiltin.createFunctionType:
         return _backend.rti.representationGenerator
             .templateForCreateFunctionType;
+
+      case JsBuiltin.isSubtype:
+        // TODO(floitsch): move this closer to where is-check properties are
+        // built.
+        String isPrefix = namer.operatorIsPrefix;
+        return js.js.expressionTemplateFor("('$isPrefix' + #) in #.prototype");
+
+      case JsBuiltin.getMetadata:
+        return _emitter.templateForReadMetadata;
+
+      case JsBuiltin.getType:
+        return _emitter.templateForReadType;
 
       default:
         _compiler.internalError(NO_LOCATION_SPANNABLE,

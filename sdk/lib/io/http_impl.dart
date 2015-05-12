@@ -1289,8 +1289,24 @@ class _HttpClientConnection {
                 "Unexpected response (unsolicited response without request).",
                 uri: _currentUri);
           }
-          _nextResponseCompleter.complete(incoming);
-          _nextResponseCompleter = null;
+
+          // Check for status code '100 Continue'. In that case just
+          // consume that response as the final response will follow
+          // it. There is currently no API for the client to wait for
+          // the '100 Continue' response.
+          if (incoming.statusCode == 100) {
+            incoming.drain().then((_) {
+              _subscription.resume();
+            }).catchError((error, [StackTrace stackTrace]) {
+              _nextResponseCompleter.completeError(
+                  new HttpException(error.message, uri: _currentUri),
+                  stackTrace);
+              _nextResponseCompleter = null;
+            });
+          } else {
+            _nextResponseCompleter.complete(incoming);
+            _nextResponseCompleter = null;
+          }
         },
         onError: (error, [StackTrace stackTrace]) {
           if (_nextResponseCompleter != null) {

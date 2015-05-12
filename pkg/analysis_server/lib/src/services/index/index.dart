@@ -224,7 +224,7 @@ class LocationImpl {
   /**
    * An empty array of locations.
    */
-  static const List<LocationImpl> EMPTY_ARRAY = const <LocationImpl>[];
+  static const List<LocationImpl> EMPTY_LIST = const <LocationImpl>[];
 
   /**
    * The element containing this location.

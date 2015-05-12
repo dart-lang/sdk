@@ -53,6 +53,7 @@ main() {
   testSetFrom();
   regressRemoveWhere();
   regressRemoveWhere2();
+  regressFromCompare();
 }
 
 void regressRemoveWhere() {
@@ -92,4 +93,46 @@ void testSetFrom() {
   set1 = new SplayTreeSet<num>()..addAll([0, 1, 2.4, 3.14, 5]);
   set2 = new SplayTreeSet<int>.from(set1.where((x) => x is int));
   Expect.equals(3, set2.length);
+}
+
+
+
+void regressFromCompare() {
+  // Regression test for http://dartbug.com/23387.
+  // The compare and isValidKey arguments to SplayTreeMap.from were ignored.
+
+  int compare(a, b) {
+    if (a is IncomparableKey && b is IncomparableKey) {
+      return b.id - a.id;
+    }
+    throw "isValidKey failure";
+  }
+  bool isValidKey(o) => o is IncomparableKey;
+  IncomparableKey key(int n) => new IncomparableKey(n);
+
+  var entries = {key(0): 0, key(1): 1, key(2): 2, key(0): 0};
+  Expect.equals(4, entries.length);
+  var map = new SplayTreeMap<IncomparableKey, int>.from(
+      entries, compare, isValidKey);
+  Expect.equals(3, map.length);
+  for (int i = 0; i < 3; i++) {
+    Expect.isTrue(map.containsKey(key(i)));
+    Expect.equals(i, map[key(i)]);
+  }
+  Expect.isFalse(map.containsKey(key(5)));
+  Expect.isFalse(map.containsKey(1));
+  Expect.isFalse(map.containsKey("string"));
+  Expect.equals(null, map[key(5)]);
+  Expect.equals(null, map[1]);
+  Expect.equals(null, map["string"]);
+  Expect.throws(() { map[1] = 42; });
+  Expect.throws(() { map["string"] = 42; });
+  map[key(5)] = 42;
+  Expect.equals(4, map.length);
+  Expect.equals(42, map[key(5)]);
+}
+
+class IncomparableKey {
+  final int id;
+  IncomparableKey(this.id);
 }

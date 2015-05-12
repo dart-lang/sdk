@@ -15,7 +15,6 @@ import '../dart2jslib.dart' as leg;
 import '../util/util.dart' show NO_LOCATION_SPANNABLE;
 import '../dump_info.dart' show DumpInfoTask;
 
-
 CodeBuffer prettyPrint(Node node, leg.Compiler compiler,
                        {DumpInfoTask monitor,
                         bool allowVariableMinification: true}) {

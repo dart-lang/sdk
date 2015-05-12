@@ -25,6 +25,7 @@ abstract class WorkItem {
    * Invariant: [element] must be a declaration element.
    */
   final AstElement element;
+
   TreeElements get resolutionTree;
 
   WorkItem(this.element, this.compilationContext) {
@@ -186,15 +187,29 @@ class CodegenRegistry extends Registry {
 /// [WorkItem] used exclusively by the [CodegenEnqueuer].
 class CodegenWorkItem extends WorkItem {
   Registry registry;
-  final TreeElements resolutionTree;
 
-  CodegenWorkItem(AstElement element,
-                  ItemCompilationContext compilationContext)
-      : this.resolutionTree = element.resolvedAst.elements,
-        super(element, compilationContext) {
-    assert(invariant(element, resolutionTree != null,
+  factory CodegenWorkItem(
+      Compiler compiler,
+      AstElement element,
+      ItemCompilationContext compilationContext) {
+    // If this assertion fails, the resolution callbacks of the backend may be
+    // missing call of form registry.registerXXX. Alternatively, the code
+    // generation could spuriously be adding dependencies on things we know we
+    // don't need.
+    assert(invariant(element,
+        compiler.enqueuer.resolution.hasBeenResolved(element),
+        message: "$element has not been resolved."));
+    assert(invariant(element, element.resolvedAst.elements != null,
         message: 'Resolution tree is null for $element in codegen work item'));
+    return new CodegenWorkItem.internal(element, compilationContext);
   }
+
+  CodegenWorkItem.internal(
+      AstElement element,
+      ItemCompilationContext compilationContext)
+      : super(element, compilationContext);
+
+  TreeElements get resolutionTree => element.resolvedAst.elements;
 
   void run(Compiler compiler, CodegenEnqueuer world) {
     if (world.isProcessed(element)) return;
@@ -418,7 +433,7 @@ abstract class Backend {
   /// have special treatment, such as being allowed to extends blacklisted
   /// classes or member being eagerly resolved.
   bool isBackendLibrary(LibraryElement library) {
-    // TODO(johnnwinther): Remove this when patching is only done by the
+    // TODO(johnniwinther): Remove this when patching is only done by the
     // JavaScript backend.
     Uri canonicalUri = library.canonicalUri;
     if (canonicalUri == js_backend.JavaScriptBackend.DART_JS_HELPER ||
@@ -654,7 +669,7 @@ abstract class Compiler implements DiagnosticListener {
   final CacheStrategy cacheStrategy;
 
   /**
-   * Map from token to the first preceeding comment token.
+   * Map from token to the first preceding comment token.
    */
   final TokenMap commentMap = new TokenMap();
 
@@ -852,9 +867,15 @@ abstract class Compiler implements DiagnosticListener {
   Element identicalFunction;
   Element loadLibraryFunction;
   Element functionApplyMethod;
-  Element intEnvironment;
-  Element boolEnvironment;
-  Element stringEnvironment;
+
+  /// The [int.fromEnvironment] constructor.
+  ConstructorElement intEnvironment;
+
+  /// The [bool.fromEnvironment] constructor.
+  ConstructorElement boolEnvironment;
+
+  /// The [String.fromEnvironment] constructor.
+  ConstructorElement stringEnvironment;
 
   /// Tracks elements with compile-time errors.
   final Set<Element> elementsWithCompileTimeErrors = new Set<Element>();
@@ -1053,7 +1074,7 @@ abstract class Compiler implements DiagnosticListener {
       progress = new Stopwatch()..start();
     }
 
-    // TODO(johnniwinther): Separate the dependency tracking from the enqueueing
+    // TODO(johnniwinther): Separate the dependency tracking from the enqueuing
     // for global dependencies.
     globalDependencies =
         new CodegenRegistry(this, new TreeElementMapping(null));
@@ -2420,7 +2441,10 @@ class _CompilerCoreTypes implements CoreTypes {
   InterfaceType get numType => numClass.computeType(compiler);
 
   @override
-  InterfaceType get stringType =>  stringClass.computeType(compiler);
+  InterfaceType get stringType => stringClass.computeType(compiler);
+
+  @override
+  InterfaceType get typeType => typeClass.computeType(compiler);
 
   @override
   InterfaceType iterableType([DartType elementType = const DynamicType()]) {

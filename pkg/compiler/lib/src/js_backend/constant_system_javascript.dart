@@ -240,8 +240,11 @@ class JavaScriptConstantSystem extends ConstantSystem {
     return constant;
   }
 
-  NumConstantValue createInt(int i)
-      => convertToJavaScriptConstant(new IntConstantValue(i));
+  @override
+  NumConstantValue createInt(int i) {
+    return convertToJavaScriptConstant(new IntConstantValue(i));
+  }
+
   NumConstantValue createInt32(int i) => new IntConstantValue(i & BITS32);
   NumConstantValue createDouble(double d)
       => convertToJavaScriptConstant(new DoubleConstantValue(d));
@@ -250,6 +253,19 @@ class JavaScriptConstantSystem extends ConstantSystem {
   }
   BoolConstantValue createBool(bool value) => new BoolConstantValue(value);
   NullConstantValue createNull() => new NullConstantValue();
+
+
+  @override
+  ListConstantValue createList(InterfaceType type,
+                               List<ConstantValue> values) {
+    return new ListConstantValue(type, values);
+  }
+
+  @override
+  ConstantValue createType(Compiler compiler, DartType type) {
+    return new TypeConstantValue(
+        type, compiler.backend.typeImplementation.computeType(compiler));
+  }
 
   // Integer checks don't verify that the number is not -0.0.
   bool isInt(ConstantValue constant) => constant.isInt || constant.isMinusZero;

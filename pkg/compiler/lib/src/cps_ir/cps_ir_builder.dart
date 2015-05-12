@@ -457,6 +457,9 @@ abstract class IrBuilder {
   void _createFunctionParameter(Local parameterElement);
   void _createThisParameter();
 
+  /// Reifies the value of [variable] on the current receiver object.
+  ir.Primitive buildReifyTypeVariable(TypeVariableType variable);
+
   /// Creates an access to the receiver from the current (or enclosing) method.
   ///
   /// If inside a closure class, [buildThis] will redirect access through
@@ -488,9 +491,15 @@ abstract class IrBuilder {
   }
 
   /// Creates a [ir.MutableVariable] for the given local.
-  void makeMutableVariable(Local local) {
-    mutableVariables[local] =
-        new ir.MutableVariable(local.executableContext, local);
+  void makeMutableVariable(Local local, [ClosureClassMap closureMap]) {
+    ExecutableElement owner;
+    if (closureMap == null || closureMap.closureClassElement == null) {
+      owner = local.executableContext;
+    } else {
+      assert(local.executableContext == closureMap.closureElement);
+      owner = closureMap.callElement;
+    }
+    mutableVariables[local] = new ir.MutableVariable(owner, local);
   }
 
   /// Remove an [ir.MutableVariable] for a local.
@@ -1711,7 +1720,8 @@ abstract class IrBuilder {
   void buildTry(
       {TryStatementInfo tryStatementInfo,
        SubbuildFunction buildTryBlock,
-       List<CatchClauseInfo> catchClauseInfos: const <CatchClauseInfo>[]}) {
+       List<CatchClauseInfo> catchClauseInfos: const <CatchClauseInfo>[],
+       ClosureClassMap closureClassMap}) {
     assert(isOpen);
 
     // Catch handlers are in scope for their body.  The CPS translation of
@@ -1753,7 +1763,7 @@ abstract class IrBuilder {
     for (LocalVariableElement variable in tryStatementInfo.boxedOnEntry) {
       assert(!tryCatchBuilder.isInMutableVariable(variable));
       ir.Primitive value = tryCatchBuilder.buildLocalVariableGet(variable);
-      tryCatchBuilder.makeMutableVariable(variable);
+      tryCatchBuilder.makeMutableVariable(variable, closureClassMap);
       tryCatchBuilder.declareLocalVariable(variable, initialValue: value);
     }
 
@@ -1786,39 +1796,78 @@ abstract class IrBuilder {
       catchBuilder.environment.update(variable, value);
     }
 
-    // TODO(kmillikin): Handle multiple catch clauses.
-    assert(catchClauseInfos.length == 1);
-    for (CatchClauseInfo catchClauseInfo in catchClauseInfos) {
-      LocalVariableElement exceptionVariable =
-          catchClauseInfo.exceptionVariable;
-      ir.Parameter exceptionParameter = new ir.Parameter(exceptionVariable);
-      catchBuilder.declareLocalVariable(exceptionVariable,
-                                        initialValue: exceptionParameter);
-      ir.Parameter traceParameter;
-      LocalVariableElement stackTraceVariable =
-          catchClauseInfo.stackTraceVariable;
-      if (stackTraceVariable != null) {
-        traceParameter = new ir.Parameter(stackTraceVariable);
-        catchBuilder.declareLocalVariable(stackTraceVariable,
-                                          initialValue: traceParameter);
-      } else {
-        // Use a dummy continuation parameter for the stack trace parameter.
-        // This will ensure that all handlers have two parameters and so they
-        // can be treated uniformly.
-        traceParameter = new ir.Parameter(null);
+    // Handlers are always translated as having both exception and stack trace
+    // parameters.  Multiple clauses do not have to use the same names for
+    // them.  Choose the first of each as the name hint for the respective
+    // handler parameter.
+    ir.Parameter exceptionParameter =
+        new ir.Parameter(catchClauseInfos.first.exceptionVariable);
+    LocalVariableElement traceVariable;
+    CatchClauseInfo catchAll;
+    for (int i = 0; i < catchClauseInfos.length; ++i) {
+      CatchClauseInfo info = catchClauseInfos[i];
+      if (info.type == null) {
+        catchAll = info;
+        catchClauseInfos.length = i;
+        break;
       }
-      catchClauseInfo.buildCatchBlock(catchBuilder);
-      if (catchBuilder.isOpen) catchBuilder.jumpTo(join);
-      List<ir.Parameter> catchParameters =
-          <ir.Parameter>[exceptionParameter, traceParameter];
-      ir.Continuation catchContinuation = new ir.Continuation(catchParameters);
-      catchContinuation.body = catchBuilder._root;
+      if (traceVariable == null) {
+        traceVariable = info.stackTraceVariable;
+      }
+    }
+    ir.Parameter traceParameter = new ir.Parameter(traceVariable);
+    // Expand multiple catch clauses into an explicit if/then/else.  Iterate
+    // them in reverse so the current block becomes the next else block.
+    ir.Expression catchBody;
+    if (catchAll == null) {
+      catchBody = new ir.Rethrow();
+    } else {
+      IrBuilder clauseBuilder = catchBuilder.makeDelimitedBuilder();
+      clauseBuilder.declareLocalVariable(catchAll.exceptionVariable,
+                                         initialValue: exceptionParameter);
+      if (catchAll.stackTraceVariable != null) {
+        clauseBuilder.declareLocalVariable(catchAll.stackTraceVariable,
+                                           initialValue: traceParameter);
+      }
+      catchAll.buildCatchBlock(clauseBuilder);
+      if (clauseBuilder.isOpen) clauseBuilder.jumpTo(join);
+      catchBody = clauseBuilder._root;
+    }
+    for (CatchClauseInfo clause in catchClauseInfos.reversed) {
+      IrBuilder clauseBuilder = catchBuilder.makeDelimitedBuilder();
+      clauseBuilder.declareLocalVariable(clause.exceptionVariable,
+                                         initialValue: exceptionParameter);
+      if (clause.stackTraceVariable != null) {
+        clauseBuilder.declareLocalVariable(clause.stackTraceVariable,
+                                           initialValue: traceParameter);
+      }
+      clause.buildCatchBlock(clauseBuilder);
+      if (clauseBuilder.isOpen) clauseBuilder.jumpTo(join);
+      ir.Continuation thenContinuation = new ir.Continuation([]);
+      thenContinuation.body = clauseBuilder._root;
+      ir.Continuation elseContinuation = new ir.Continuation([]);
+      elseContinuation.body = catchBody;
 
-      tryCatchBuilder.add(
-          new ir.LetHandler(catchContinuation, tryBuilder._root));
-      tryCatchBuilder._current = null;
+      ir.Parameter typeMatches = new ir.Parameter(null);
+      ir.Continuation checkType = new ir.Continuation([typeMatches]);
+      checkType.body =
+          new ir.LetCont.many([thenContinuation, elseContinuation],
+              new ir.Branch(new ir.IsTrue(typeMatches),
+                            thenContinuation,
+                            elseContinuation));
+      catchBody =
+          new ir.LetCont(checkType,
+              new ir.TypeOperator(exceptionParameter, clause.type, checkType,
+                                  isTypeTest: true));
     }
 
+    List<ir.Parameter> catchParameters =
+        <ir.Parameter>[exceptionParameter, traceParameter];
+    ir.Continuation catchContinuation = new ir.Continuation(catchParameters);
+    catchContinuation.body = catchBody;
+
+    tryCatchBuilder.add(
+        new ir.LetHandler(catchContinuation, tryBuilder._root));
     add(new ir.LetCont(join.continuation, tryCatchBuilder._root));
     environment = join.environment;
   }
@@ -2258,6 +2307,11 @@ class DartIrBuilder extends IrBuilder {
         (k) => new ir.InvokeConstructor(type, element, selector,
             arguments, k));
   }
+
+  @override
+  ir.Primitive buildReifyTypeVariable(TypeVariableType variable) {
+    return addPrimitive(new ir.ReifyTypeVar(variable.element));
+  }
 }
 
 /// State shared between JsIrBuilders within the same function.
@@ -2485,6 +2539,7 @@ class JsIrBuilder extends IrBuilder {
 
   ir.Primitive buildThis() {
     if (jsState.receiver != null) return jsState.receiver;
+    assert(state.thisParameter != null);
     return state.thisParameter;
   }
 
@@ -2554,11 +2609,11 @@ class JsIrBuilder extends IrBuilder {
 
   ir.Primitive buildTypeExpression(DartType type) {
     if (type is TypeVariableType) {
-      return buildTypeVariableAccess(buildThis(), type);
+      return buildTypeVariableAccess(type);
     } else if (type is InterfaceType) {
       List<ir.Primitive> arguments = <ir.Primitive>[];
       type.forEachTypeVariable((TypeVariableType variable) {
-        ir.Primitive value = buildTypeVariableAccess(buildThis(), variable);
+        ir.Primitive value = buildTypeVariableAccess(variable);
         arguments.add(value);
       });
       return addPrimitive(new ir.TypeExpression(type, arguments));
@@ -2568,8 +2623,13 @@ class JsIrBuilder extends IrBuilder {
     }
   }
 
-  ir.Primitive buildTypeVariableAccess(ir.Primitive target,
-                                       TypeVariableType variable) {
+  /// Obtains the internal type representation of the type held in [variable].
+  ///
+  /// The value of [variable] is taken from the current receiver object, or
+  /// if we are currently building a constructor field initializer, from the
+  /// corresponding type argument (field initializers are evaluated before the
+  /// receiver object is created).
+  ir.Primitive buildTypeVariableAccess(TypeVariableType variable) {
     ir.Parameter accessTypeArgumentParameter() {
       for (int i = 0; i < environment.length; i++) {
         Local local = environment.index2variable[i];
@@ -2584,8 +2644,20 @@ class JsIrBuilder extends IrBuilder {
     if (jsState.inInitializers) {
       return accessTypeArgumentParameter();
     } else {
+      ir.Primitive target = buildThis();
       return addPrimitive(new ir.ReadTypeVariable(variable, target));
     }
+  }
+
+  @override
+  ir.Primitive buildReifyTypeVariable(TypeVariableType variable) {
+    ir.Primitive typeArgument = buildTypeVariableAccess(variable);
+    return addPrimitive(new ir.ReifyRuntimeType(typeArgument));
+  }
+
+  ir.Primitive buildInvocationMirror(Selector selector,
+                                     List<ir.Primitive> arguments) {
+    return addPrimitive(new ir.CreateInvocationMirror(selector, arguments));
   }
 }
 
@@ -2648,13 +2720,14 @@ class TryStatementInfo {
       new Set<LocalVariableElement>();
 }
 
-// TODO(johnniwinther): Support passing of [DartType] for the exception.
 class CatchClauseInfo {
+  final DartType type;
   final LocalVariableElement exceptionVariable;
   final LocalVariableElement stackTraceVariable;
   final SubbuildFunction buildCatchBlock;
 
-  CatchClauseInfo({this.exceptionVariable,
+  CatchClauseInfo({this.type,
+                   this.exceptionVariable,
                    this.stackTraceVariable,
                    this.buildCatchBlock});
 }

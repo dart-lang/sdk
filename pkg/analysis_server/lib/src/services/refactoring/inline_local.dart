@@ -69,7 +69,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
     RefactoringStatus result = new RefactoringStatus();
     // prepare variable
     {
-      AstNode offsetNode = new NodeLocator.con1(offset).searchWithin(unit);
+      AstNode offsetNode = new NodeLocator(offset).searchWithin(unit);
       if (offsetNode is SimpleIdentifier) {
         Element element = offsetNode.staticElement;
         if (element is LocalVariableElement) {

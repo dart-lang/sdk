@@ -438,6 +438,13 @@ enum ConditionalSelectOp {
   CSINV = ConditionalSelectFixed | B30,
 };
 
+// C3.5.7
+enum MiscDP1SourceOp {
+  MiscDP1SourceMask = 0x5fe00000,
+  MiscDP1SourceFixed = DPRegisterFixed | B30 | B28 | B23 | B22,
+  CLZ = MiscDP1SourceFixed | B12,
+};
+
 // C3.5.8
 enum MiscDP2SourceOp {
   MiscDP2SourceMask = 0x5fe00000,
@@ -609,6 +616,7 @@ _V(PCRel)                                                                      \
 _V(AddSubShiftExt)                                                             \
 _V(AddSubWithCarry)                                                            \
 _V(ConditionalSelect)                                                          \
+_V(MiscDP1Source)                                                              \
 _V(MiscDP2Source)                                                              \
 _V(MiscDP3Source)                                                              \
 _V(LogicalShift)                                                               \

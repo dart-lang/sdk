@@ -37,7 +37,6 @@ DEFINE_FLAG(bool, ic_range_profiling, true,
     "for binary and unary arithmetic operations");
 DEFINE_FLAG(bool, unbox_numeric_fields, true,
     "Support unboxed double and float32x4 fields.");
-DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);

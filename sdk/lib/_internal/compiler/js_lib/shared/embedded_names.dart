@@ -31,7 +31,6 @@ const MANGLED_NAMES = 'mangledNames';
 const LIBRARIES = 'libraries';
 const FINISHED_CLASSES = 'finishedClasses';
 const ALL_CLASSES = 'allClasses';
-const METADATA = 'metadata';
 const INTERCEPTORS_BY_TAG = 'interceptorsByTag';
 const LEAF_TAGS = 'leafTags';
 const LAZIES = 'lazies';
@@ -46,8 +45,16 @@ const IS_HUNK_INITIALIZED = 'isHunkInitialized';
 const DEFERRED_INITIALIZED = 'deferredInitialized';
 const PRECOMPILED = 'precompiled';
 
+/// The name of the embedded global for metadata.
+///
+/// Use [JsBuiltin.getMetadata] instead of directly accessing this embedded
+/// global.
+const METADATA = 'metadata';
+
 /// A list of types used in the program e.g. for reflection or encoding of
 /// function types.
+///
+/// Use [JsBuiltin.getType] instead of directly accessing this embedded global.
 const TYPES = 'types';
 
 /// Returns a function that creates a new Isolate (its static state).
@@ -89,13 +96,24 @@ enum JsGetName {
 }
 
 enum JsBuiltin {
-   /// Returns the JavaScript constructor function for Dart's Object class.
-   /// This can be used for type tests, as in
-   ///
-   ///     var constructor = JS_BUILTIN('', JsBuiltin.dartObjectContructor);
-   ///     if (JS('bool', '# instanceof #', obj, constructor))
-   ///       ...
+  /// Returns the JavaScript constructor function for Dart's Object class.
+  /// This can be used for type tests, as in
+  ///
+  ///     var constructor = JS_BUILTIN('', JsBuiltin.dartObjectContructor);
+  ///     if (JS('bool', '# instanceof #', obj, constructor))
+  ///       ...
   dartObjectConstructor,
+
+  /// Returns the class name given an [isCheckProperty].
+  ///
+  /// This relies on a deterministic encoding of is-check properties (for
+  /// example `$isFoo` for a class `Foo`). In minified code the returned
+  /// classname is the minified name of the class.
+  ///
+  ///     JS_BUILTIN('returns:String;depends:none;effects:none',
+  ///                JsBuiltin.classNameFromIsCheckProperty,
+  ///                isCheckProperty);
+  classNameFromIsCheckProperty,
 
   /// Returns true if the given type is a function type. Returns false for
   /// the one `Function` type singleton. (See [isFunctionTypeSingleton]).
@@ -124,4 +142,27 @@ enum JsBuiltin {
   ///
   ///     JS_BUILTIN('', JsBuiltin.rawRuntimeType, o)
   rawRuntimeType,
+
+  /// Returns whether the given type is a subtype of other.
+  ///
+  /// The argument `other` is the name of the potential supertype. It is
+  /// computed by `runtimeTypeToString`;
+  ///
+  /// *The `other` name must be passed in before the `type`.*
+  ///
+  ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
+  ///                JsBuiltin.isSubtype, other, type);
+  isSubtype,
+
+  /// Returns the metadata of the given [index].
+  ///
+  ///     JS_BUILTIN('returns:var;effects:none;depends:none',
+  ///                JsBuiltin.getMetadata, index);
+  getMetadata,
+
+  /// Returns the type of the given [index].
+  ///
+  ///     JS_BUILTIN('returns:var;effects:none;depends:none',
+  ///                JsBuiltin.getType, index);
+  getType,
 }

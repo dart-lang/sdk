@@ -72,8 +72,7 @@ class AssistProcessor {
 
   List<Assist> compute() {
     utils = new CorrectionUtils(unit);
-    node =
-        new NodeLocator.con2(selectionOffset, selectionEnd).searchWithin(unit);
+    node = new NodeLocator(selectionOffset, selectionEnd).searchWithin(unit);
     if (node == null) {
       return assists;
     }
@@ -1093,7 +1092,7 @@ class AssistProcessor {
       return;
     }
     int declOffset = element.nameOffset;
-    AstNode declNode = new NodeLocator.con1(declOffset).searchWithin(unit);
+    AstNode declNode = new NodeLocator(declOffset).searchWithin(unit);
     if (declNode != null &&
         declNode.parent is VariableDeclaration &&
         (declNode.parent as VariableDeclaration).name == declNode &&

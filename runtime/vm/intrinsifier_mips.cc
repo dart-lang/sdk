@@ -17,8 +17,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, enable_type_checks);
-
 // When entering intrinsics code:
 // S5: IC Data
 // S4: Arguments descriptor
@@ -788,17 +786,115 @@ void Intrinsifier::Smi_bitNegate(Assembler* assembler) {
 
 
 void Intrinsifier::Smi_bitLength(Assembler* assembler) {
-  // TODO(sra): Implement.
+  __ lw(V0, Address(SP, 0 * kWordSize));
+  __ SmiUntag(V0);
+  // XOR with sign bit to complement bits if value is negative.
+  __ sra(T0, V0, 31);
+  __ xor_(V0, V0, T0);
+  __ clz(V0, V0);
+  __ LoadImmediate(T0, 32);
+  __ subu(V0, T0, V0);
+  __ Ret();
+  __ delay_slot()->SmiTag(V0);
 }
 
 
 void Intrinsifier::Bigint_lsh(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // static void _lsh(Uint32List x_digits, int x_used, int n,
+  //                  Uint32List r_digits)
+
+  // T2 = x_used, T3 = x_digits, x_used > 0, x_used is Smi.
+  __ lw(T2, Address(SP, 2 * kWordSize));
+  __ lw(T3, Address(SP, 3 * kWordSize));
+  // T4 = r_digits, T5 = n, n is Smi, n % _DIGIT_BITS != 0.
+  __ lw(T4, Address(SP, 0 * kWordSize));
+  __ lw(T5, Address(SP, 1 * kWordSize));
+  __ SmiUntag(T5);
+  // T0 = n ~/ _DIGIT_BITS
+  __ sra(T0, T5, 5);
+  // T6 = &x_digits[0]
+  __ addiu(T6, T3, Immediate(TypedData::data_offset() - kHeapObjectTag));
+  // V0 = &x_digits[x_used]
+  __ sll(T2, T2, 1);
+  __ addu(V0, T6, T2);
+  // V1 = &r_digits[1]
+  __ addiu(V1, T4, Immediate(TypedData::data_offset() - kHeapObjectTag +
+                             Bigint::kBytesPerDigit));
+  // V1 = &r_digits[x_used + n ~/ _DIGIT_BITS + 1]
+  __ addu(V1, V1, T2);
+  __ sll(T1, T0, 2);
+  __ addu(V1, V1, T1);
+  // T3 = n % _DIGIT_BITS
+  __ andi(T3, T5, Immediate(31));
+  // T2 = 32 - T3
+  __ subu(T2, ZR, T3);
+  __ addiu(T2, T2, Immediate(32));
+  __ mov(T1, ZR);
+  Label loop;
+  __ Bind(&loop);
+  __ addiu(V0, V0, Immediate(-Bigint::kBytesPerDigit));
+  __ lw(T0, Address(V0, 0));
+  __ srlv(AT, T0, T2);
+  __ or_(T1, T1, AT);
+  __ addiu(V1, V1, Immediate(-Bigint::kBytesPerDigit));
+  __ sw(T1, Address(V1, 0));
+  __ bne(V0, T6, &loop);
+  __ delay_slot()->sllv(T1, T0, T3);
+  __ sw(T1, Address(V1, -Bigint::kBytesPerDigit));
+  // Returning Object::null() is not required, since this method is private.
+  __ Ret();
 }
 
 
 void Intrinsifier::Bigint_rsh(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // static void _lsh(Uint32List x_digits, int x_used, int n,
+  //                  Uint32List r_digits)
+
+  // T2 = x_used, T3 = x_digits, x_used > 0, x_used is Smi.
+  __ lw(T2, Address(SP, 2 * kWordSize));
+  __ lw(T3, Address(SP, 3 * kWordSize));
+  // T4 = r_digits, T5 = n, n is Smi, n % _DIGIT_BITS != 0.
+  __ lw(T4, Address(SP, 0 * kWordSize));
+  __ lw(T5, Address(SP, 1 * kWordSize));
+  __ SmiUntag(T5);
+  // T0 = n ~/ _DIGIT_BITS
+  __ sra(T0, T5, 5);
+  // V1 = &r_digits[0]
+  __ addiu(V1, T4, Immediate(TypedData::data_offset() - kHeapObjectTag));
+  // V0 = &x_digits[n ~/ _DIGIT_BITS]
+  __ addiu(V0, T3, Immediate(TypedData::data_offset() - kHeapObjectTag));
+  __ sll(T1, T0, 2);
+  __ addu(V0, V0, T1);
+  // T6 = &r_digits[x_used - n ~/ _DIGIT_BITS - 1]
+  __ sll(T2, T2, 1);
+  __ addu(T6, V1, T2);
+  __ subu(T6, T6, T1);
+  __ addiu(T6, T6, Immediate(-4));
+  // T3 = n % _DIGIT_BITS
+  __ andi(T3, T5, Immediate(31));
+  // T2 = 32 - T3
+  __ subu(T2, ZR, T3);
+  __ addiu(T2, T2, Immediate(32));
+  // T1 = x_digits[n ~/ _DIGIT_BITS] >> (n % _DIGIT_BITS)
+  __ lw(T1, Address(V0, 0));
+  __ addiu(V0, V0, Immediate(Bigint::kBytesPerDigit));
+  Label loop_exit;
+  __ beq(V1, T6, &loop_exit);
+  __ delay_slot()->srlv(T1, T1, T3);
+  Label loop;
+  __ Bind(&loop);
+  __ lw(T0, Address(V0, 0));
+  __ addiu(V0, V0, Immediate(Bigint::kBytesPerDigit));
+  __ sllv(AT, T0, T2);
+  __ or_(T1, T1, AT);
+  __ sw(T1, Address(V1, 0));
+  __ addiu(V1, V1, Immediate(Bigint::kBytesPerDigit));
+  __ bne(V1, T6, &loop);
+  __ delay_slot()->srlv(T1, T0, T3);
+  __ Bind(&loop_exit);
+  __ sw(T1, Address(V1, 0));
+  // Returning Object::null() is not required, since this method is private.
+  __ Ret();
 }
 
 

@@ -902,6 +902,21 @@ class ReadTypeVariable extends Expression implements JsSpecificNode {
   }
 }
 
+class CreateInvocationMirror extends Expression implements JsSpecificNode {
+  final Selector selector;
+  final List<Expression> arguments;
+
+  CreateInvocationMirror(this.selector, this.arguments);
+
+  accept(ExpressionVisitor visitor) {
+    return visitor.visitCreateInvocationMirror(this);
+  }
+
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitCreateInvocationMirror(this, arg);
+  }
+}
+
 /// Denotes the internal representation of [dartType], where all type variables
 /// are replaced by the values in [arguments].
 /// (See documentation on the TypeExpression CPS node for more details.)
@@ -946,6 +961,7 @@ abstract class ExpressionVisitor<E> {
   E visitReadTypeVariable(ReadTypeVariable node);
   E visitTypeExpression(TypeExpression node);
   E visitSetField(SetField node);
+  E visitCreateInvocationMirror(CreateInvocationMirror node);
 }
 
 abstract class ExpressionVisitor1<E, A> {
@@ -974,6 +990,7 @@ abstract class ExpressionVisitor1<E, A> {
   E visitReadTypeVariable(ReadTypeVariable node, A arg);
   E visitTypeExpression(TypeExpression node, A arg);
   E visitSetField(SetField node, A arg);
+  E visitCreateInvocationMirror(CreateInvocationMirror node, A arg);
 }
 
 abstract class StatementVisitor<S> {
@@ -1199,6 +1216,10 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   visitTypeExpression(TypeExpression node) {
     node.arguments.forEach(visitExpression);
   }
+
+  visitCreateInvocationMirror(CreateInvocationMirror node) {
+    node.arguments.forEach(visitExpression);
+  }
 }
 
 abstract class Transformer implements ExpressionVisitor<Expression>,
@@ -1392,6 +1413,11 @@ class RecursiveTransformer extends Transformer {
   }
 
   visitTypeExpression(TypeExpression node) {
+    _replaceExpressions(node.arguments);
+    return node;
+  }
+
+  visitCreateInvocationMirror(CreateInvocationMirror node) {
     _replaceExpressions(node.arguments);
     return node;
   }

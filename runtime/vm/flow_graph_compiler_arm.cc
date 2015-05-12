@@ -26,8 +26,8 @@ namespace dart {
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 DEFINE_FLAG(bool, unbox_doubles, true, "Optimize double arithmetic.");
-DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, enable_simd_inline);
+DECLARE_FLAG(bool, use_megamorphic_stub);
 
 
 FlowGraphCompiler::~FlowGraphCompiler() {
@@ -1288,47 +1288,21 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
-  __ LoadFromOffset(kWord, R0, SP, (argument_count - 1) * kWordSize);
-  __ LoadTaggedClassIdMayBeSmi(R0, R0);
+  const Register receiverR = R0;
+  const Register cacheR = R1;
+  const Register targetR = R1;
+  __ LoadFromOffset(kWord, receiverR, SP, (argument_count - 1) * kWordSize);
+  __ LoadObject(cacheR, cache);
 
-  // R0: class ID of the receiver (smi).
-  __ LoadObject(R1, cache);
-  __ ldr(R2, FieldAddress(R1, MegamorphicCache::buckets_offset()));
-  __ ldr(R1, FieldAddress(R1, MegamorphicCache::mask_offset()));
-  // R2: cache buckets array.
-  // R1: mask.
-  __ mov(R3, Operand(R0));
-
-  Label loop, update, call_target_function;
-  __ b(&loop);
-
-  __ Bind(&update);
-  __ add(R3, R3, Operand(Smi::RawValue(1)));
-  __ Bind(&loop);
-  __ and_(R3, R3, Operand(R1));
-  const intptr_t base = Array::data_offset();
-  // R3 is smi tagged, but table entries are two words, so LSL 2.
-  __ add(IP, R2, Operand(R3, LSL, 2));
-  __ ldr(R4, FieldAddress(IP, base));
-
-  ASSERT(kIllegalCid == 0);
-  __ tst(R4, Operand(R4));
-  __ b(&call_target_function, EQ);
-  __ cmp(R4, Operand(R0));
-  __ b(&update, NE);
-
-  __ Bind(&call_target_function);
-  // Call the target found in the cache.  For a class id match, this is a
-  // proper target for the given name and arguments descriptor.  If the
-  // illegal class id was found, the target is a cache miss handler that can
-  // be invoked as a normal Dart function.
-  __ add(IP, R2, Operand(R3, LSL, 2));
-  __ ldr(R0, FieldAddress(IP, base + kWordSize));
-  __ ldr(R1, FieldAddress(R0, Function::instructions_offset()));
+  if (FLAG_use_megamorphic_stub) {
+    StubCode* stub_code = isolate()->stub_code();
+    __ BranchLink(&stub_code->MegamorphicLookupLabel());
+  } else  {
+    StubCode::EmitMegamorphicLookup(assembler(), receiverR, cacheR, targetR);
+  }
   __ LoadObject(R5, ic_data);
   __ LoadObject(R4, arguments_descriptor);
-  __ AddImmediate(R1, Instructions::HeaderSize() - kHeapObjectTag);
-  __ blx(R1);
+  __ blx(targetR);
   AddCurrentDescriptor(RawPcDescriptors::kOther,
       Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);

@@ -283,7 +283,7 @@ class IndexNode {
     // find LocationData(s)
     List<LocationData> locationDatas = _relations[key];
     if (locationDatas == null) {
-      return LocationImpl.EMPTY_ARRAY;
+      return LocationImpl.EMPTY_LIST;
     }
     // convert to Location(s)
     List<LocationImpl> locations = <LocationImpl>[];
@@ -733,7 +733,7 @@ class SplitIndexStore implements InternalIndexStore {
       Future<List<LocationImpl>> locationsFuture = nodeFuture.then((node) {
         if (node == null) {
           // TODO(scheglov) remove node
-          return LocationImpl.EMPTY_ARRAY;
+          return LocationImpl.EMPTY_LIST;
         }
         return node.getRelationships(element, relationship);
       });

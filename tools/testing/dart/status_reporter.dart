@@ -19,12 +19,6 @@ List<Map> LINUX_COMBINATIONS = [
       'compiler' : 'none'
     },
     {
-      'runtimes' : ['vm'],
-      'modes' : ['release'],
-      'archs' : ['ia32', 'x64'],
-      'compiler' : 'dart2dart'
-    },
-    {
       'runtimes' : ['d8', 'jsshell', 'chrome', 'ff'],
       'modes' : ['release'],
       'archs' : ['ia32'],

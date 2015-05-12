@@ -66,7 +66,6 @@ DEFINE_FLAG(bool, use_field_guards, true, "Guard field cids.");
 DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
 DEFINE_FLAG(bool, trace_field_guards, false, "Trace changes in field's cids.");
 
-DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, error_on_bad_override);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_deoptimization);
@@ -627,11 +626,9 @@ void Object::InitOnce(Isolate* isolate) {
 
   // Allocate and initialize the empty_descriptors instance.
   {
-    uword address = heap->Allocate(
-        PcDescriptors::InstanceSize(0, RawPcDescriptors::kCompressedRecSize),
-        Heap::kOld);
+    uword address = heap->Allocate(PcDescriptors::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kPcDescriptorsCid,
-        PcDescriptors::InstanceSize(0, RawPcDescriptors::kCompressedRecSize));
+                     PcDescriptors::InstanceSize(0));
     PcDescriptors::initializeHandle(
         empty_descriptors_,
         reinterpret_cast<RawPcDescriptors*>(address + kHeapObjectTag));
@@ -928,6 +925,10 @@ void Object::RegisterPrivateClass(const Class& cls,
 
 RawError* Object::Init(Isolate* isolate) {
   TIMERSCOPE(isolate, time_bootstrap);
+
+#if defined(DART_NO_SNAPSHOT)
+  // Object::Init version when we are running in a version of dart that does
+  // not have a full snapshot linked in.
   ObjectStore* object_store = isolate->object_store();
 
   Class& cls = Class::Handle(isolate);
@@ -1427,11 +1428,10 @@ RawError* Object::Init(Isolate* isolate) {
   isolate->object_store()->InitKnownObjects();
 
   return Error::null();
-}
-
-
-void Object::InitFromSnapshot(Isolate* isolate) {
-  TIMERSCOPE(isolate, time_bootstrap);
+#else  // defined(DART_NO_SNAPSHOT).
+  // Object::Init version when we are running in a version of dart that has
+  // a full snapshot linked in and an isolate is initialized using the full
+  // snapshot.
   ObjectStore* object_store = isolate->object_store();
 
   Class& cls = Class::Handle();
@@ -1541,6 +1541,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   object_store->set_empty_context(context);
 
   StubCode::InitBootstrapStubs(isolate);
+#endif  // defined(DART_NO_SNAPSHOT).
+
+  return Error::null();
 }
 
 
@@ -6973,8 +6976,6 @@ void RedirectionData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 RawString* Field::GetterName(const String& field_name) {
   CompilerStats::make_accessor_name++;
-  // TODO(koda): Avoid most of these allocations by adding prefix-based lookup
-  // to Class::Lookup*.
   return String::Concat(Symbols::GetterPrefix(), field_name);
 }
 
@@ -6986,8 +6987,6 @@ RawString* Field::GetterSymbol(const String& field_name) {
 
 RawString* Field::SetterName(const String& field_name) {
   CompilerStats::make_accessor_name++;
-  // TODO(koda): Avoid most of these allocations by adding prefix-based lookup
-  // to Class::Lookup*.
   return String::Concat(Symbols::SetterPrefix(), field_name);
 }
 
@@ -8914,6 +8913,19 @@ RawObject* Library::GetMetadata(const Object& obj) const {
 }
 
 
+static bool ShouldBePrivate(const String& name) {
+  return
+      (name.Length() >= 1 &&
+       name.CharAt(0) == '_') ||
+      (name.Length() >= 5 &&
+       (name.CharAt(4) == '_' &&
+        (name.CharAt(0) == 'g' || name.CharAt(0) == 's') &&
+        name.CharAt(1) == 'e' &&
+        name.CharAt(2) == 't' &&
+        name.CharAt(3) == ':'));
+}
+
+
 RawObject* Library::ResolveName(const String& name) const {
   Object& obj = Object::Handle();
   if (FLAG_use_lib_cache && LookupResolvedNamesCache(name, &obj)) {
@@ -8930,7 +8942,7 @@ RawObject* Library::ResolveName(const String& name) const {
   if (obj.IsNull()) {
     accessor_name = Field::SetterName(name);
     obj = LookupLocalObject(accessor_name);
-    if (obj.IsNull()) {
+    if (obj.IsNull() && !ShouldBePrivate(name)) {
       obj = LookupImportedObject(name);
     }
   }
@@ -9266,19 +9278,6 @@ RawObject* Library::LookupLocalObject(const String& name) const {
 }
 
 
-static bool ShouldBePrivate(const String& name) {
-  return
-      (name.Length() >= 1 &&
-       name.CharAt(0) == '_') ||
-      (name.Length() >= 5 &&
-       (name.CharAt(4) == '_' &&
-        (name.CharAt(0) == 'g' || name.CharAt(0) == 's') &&
-        name.CharAt(1) == 'e' &&
-        name.CharAt(2) == 't' &&
-        name.CharAt(3) == ':'));
-}
-
-
 RawField* Library::LookupFieldAllowPrivate(const String& name) const {
   Object& obj = Object::Handle(LookupObjectAllowPrivate(name));
   if (obj.IsField()) {
@@ -9352,6 +9351,7 @@ RawObject* Library::LookupImportedObject(const String& name) const {
   String& first_import_lib_url = String::Handle();
   Object& found_obj = Object::Handle();
   String& found_obj_name = String::Handle();
+  ASSERT(!ShouldBePrivate(name));
   for (intptr_t i = 0; i < num_imports(); i++) {
     import ^= ImportAt(i);
     obj = import.Lookup(name);
@@ -9841,6 +9841,11 @@ RawLibrary* Library::CollectionLibrary() {
 }
 
 
+RawLibrary* Library::DeveloperLibrary() {
+  return Isolate::Current()->object_store()->developer_library();
+}
+
+
 RawLibrary* Library::InternalLibrary() {
   return Isolate::Current()->object_store()->internal_library();
 }
@@ -9866,13 +9871,13 @@ RawLibrary* Library::NativeWrappersLibrary() {
 }
 
 
-RawLibrary* Library::TypedDataLibrary() {
-  return Isolate::Current()->object_store()->typed_data_library();
+RawLibrary* Library::ProfilerLibrary() {
+  return Isolate::Current()->object_store()->profiler_library();
 }
 
 
-RawLibrary* Library::ProfilerLibrary() {
-  return Isolate::Current()->object_store()->profiler_library();
+RawLibrary* Library::TypedDataLibrary() {
+  return Isolate::Current()->object_store()->typed_data_library();
 }
 
 
@@ -10356,18 +10361,13 @@ RawObject* Namespace::Lookup(const String& name) const {
   intptr_t ignore = 0;
 
   // Lookup the name in the library's symbols.
-  const String* filter_name = &name;
   Object& obj = Object::Handle(isolate, lib.LookupEntry(name, &ignore));
-  if (Field::IsGetterName(name)) {
-    filter_name = &String::Handle(Field::NameFromGetter(name));
-  } else if (Field::IsSetterName(name)) {
-    filter_name = &String::Handle(Field::NameFromSetter(name));
-  } else {
-    if (obj.IsNull() || obj.IsLibraryPrefix()) {
-      obj = lib.LookupEntry(String::Handle(Field::GetterName(name)), &ignore);
-      if (obj.IsNull()) {
-        obj = lib.LookupEntry(String::Handle(Field::SetterName(name)), &ignore);
-      }
+  if (!Field::IsGetterName(name) &&
+      !Field::IsSetterName(name) &&
+      (obj.IsNull() || obj.IsLibraryPrefix())) {
+    obj = lib.LookupEntry(String::Handle(Field::GetterName(name)), &ignore);
+    if (obj.IsNull()) {
+      obj = lib.LookupEntry(String::Handle(Field::SetterName(name)), &ignore);
     }
   }
 
@@ -10376,7 +10376,7 @@ RawObject* Namespace::Lookup(const String& name) const {
     // Lookup in the re-exported symbols.
     obj = lib.LookupReExport(name);
   }
-  if (obj.IsNull() || HidesName(*filter_name) || obj.IsLibraryPrefix()) {
+  if (obj.IsNull() || HidesName(name) || obj.IsLibraryPrefix()) {
     return Object::null();
   }
   return obj.raw();
@@ -10492,12 +10492,12 @@ void Library::CheckFunctionFingerprints() {
   MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
   all_libs.Clear();
-  all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
-  TYPED_DATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
-
-  all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::ProfilerLibrary()));
   PROFILER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+
+  all_libs.Clear();
+  all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
+  TYPED_DATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
 #undef CHECK_FINGERPRINTS
 
@@ -10554,6 +10554,45 @@ void Instructions::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
+// Encode integer in SLEB128 format.
+void PcDescriptors::EncodeInteger(GrowableArray<uint8_t>* data,
+                                  intptr_t value) {
+  bool is_last_part = false;
+  while (!is_last_part) {
+    intptr_t part = value & 0x7f;
+    value >>= 7;
+    if ((value == 0 && (part & 0x40) == 0) ||
+        (value == -1 && (part & 0x40) != 0)) {
+      is_last_part = true;
+    } else {
+      part |= 0x80;
+    }
+    data->Add(part);
+  }
+}
+
+
+// Decode SLEB128 encoded integer. Update byte_index to the next integer.
+intptr_t PcDescriptors::DecodeInteger(intptr_t* byte_index) const {
+  NoSafepointScope no_safepoint;
+  const uint8_t* data = raw_ptr()->data();
+  ASSERT(*byte_index < Length());
+  uword shift = 0;
+  intptr_t value = 0;
+  intptr_t part = 0;
+  do {
+    part = data[(*byte_index)++];
+    value |= (part & 0x7f) << shift;
+    shift += 7;
+  } while ((part & 0x80) != 0);
+
+  if (shift < sizeof(value) * 8 && (part & 0x40) != 0) {
+    value |= -(1 << shift);
+  }
+  return value;
+}
+
+
 intptr_t PcDescriptors::Length() const {
   return raw_ptr()->length_;
 }
@@ -10564,35 +10603,27 @@ void PcDescriptors::SetLength(intptr_t value) const {
 }
 
 
-intptr_t PcDescriptors::RecordSizeInBytes() const {
-  return raw_ptr()->record_size_in_bytes_;
-}
-
-
-void PcDescriptors::SetRecordSizeInBytes(intptr_t value) const {
-  StoreNonPointer(&raw_ptr()->record_size_in_bytes_, value);
-}
-
-
-RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors,
-                                     bool has_try_index) {
-  ASSERT(Object::pc_descriptors_class() != Class::null());
-  if (num_descriptors < 0 || num_descriptors > kMaxElements) {
-    // This should be caught before we reach here.
-    FATAL1("Fatal error in PcDescriptors::New: "
-           "invalid num_descriptors %" Pd "\n", num_descriptors);
+void PcDescriptors::CopyData(GrowableArray<uint8_t>* delta_encoded_data) {
+  NoSafepointScope no_safepoint;
+  uint8_t* data = UnsafeMutableNonPointer(&raw_ptr()->data()[0]);
+  for (intptr_t i = 0; i < delta_encoded_data->length(); ++i) {
+    data[i] = (*delta_encoded_data)[i];
   }
+}
+
+
+RawPcDescriptors* PcDescriptors::New(GrowableArray<uint8_t>* data) {
+  ASSERT(Object::pc_descriptors_class() != Class::null());
   PcDescriptors& result = PcDescriptors::Handle();
   {
-    const intptr_t rec_size =  RawPcDescriptors::RecordSize(has_try_index);
-    uword size = PcDescriptors::InstanceSize(num_descriptors, rec_size);
+    uword size = PcDescriptors::InstanceSize(data->length());
     RawObject* raw = Object::Allocate(PcDescriptors::kClassId,
                                       size,
                                       Heap::kOld);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.SetLength(num_descriptors);
-    result.SetRecordSizeInBytes(rec_size);
+    result.SetLength(data->length());
+    result.CopyData(data);
   }
   return result.raw();
 }
@@ -12047,6 +12078,18 @@ void Code::Comments::SetCommentAt(intptr_t idx, const String& comment) {
 
 Code::Comments::Comments(const Array& comments)
     : comments_(comments) {
+}
+
+
+RawLocalVarDescriptors* Code::GetLocalVarDescriptors() const {
+  const LocalVarDescriptors& v = LocalVarDescriptors::Handle(var_descriptors());
+  if (v.IsNull()) {
+    ASSERT(!is_optimized());
+    const Function& f = Function::Handle(function());
+    ASSERT(!f.IsIrregexpFunction());  // Not yet implemented.
+    Compiler::ComputeLocalVarDescriptors(*this);
+  }
+  return var_descriptors();
 }
 
 
@@ -15093,41 +15136,39 @@ void Type::set_type_state(int8_t state) const {
 
 
 const char* Type::ToCString() const {
-  if (IsResolved()) {
-    const TypeArguments& type_arguments = TypeArguments::Handle(arguments());
-    const char* class_name;
-    if (HasResolvedTypeClass()) {
-      class_name = String::Handle(
-          Class::Handle(type_class()).Name()).ToCString();
-    } else {
-      class_name = UnresolvedClass::Handle(unresolved_class()).ToCString();
-    }
-    if (type_arguments.IsNull()) {
-      const char* format = "Type: class '%s'";
-      const intptr_t len = OS::SNPrint(NULL, 0, format, class_name) + 1;
-      char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-      OS::SNPrint(chars, len, format, class_name);
-      return chars;
-    } else if (IsFinalized() && IsRecursive()) {
-      const char* format = "Type: (@%" Px " H%" Px ") class '%s', args:[%s]";
-      const intptr_t hash = Hash();
-      const char* args_cstr = TypeArguments::Handle(arguments()).ToCString();
-      const intptr_t len =
-          OS::SNPrint(NULL, 0, format, raw(), hash, class_name, args_cstr) + 1;
-      char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-      OS::SNPrint(chars, len, format, raw(), hash, class_name, args_cstr);
-      return chars;
-    } else {
-      const char* format = "Type: class '%s', args:[%s]";
-      const char* args_cstr = TypeArguments::Handle(arguments()).ToCString();
-      const intptr_t len =
-          OS::SNPrint(NULL, 0, format, class_name, args_cstr) + 1;
-      char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-      OS::SNPrint(chars, len, format, class_name, args_cstr);
-      return chars;
-    }
+  const char* unresolved = IsResolved() ? "" : "Unresolved ";
+  const TypeArguments& type_arguments = TypeArguments::Handle(arguments());
+  const char* class_name;
+  if (HasResolvedTypeClass()) {
+    class_name = String::Handle(
+        Class::Handle(type_class()).Name()).ToCString();
   } else {
-    return "Unresolved Type";
+    class_name = UnresolvedClass::Handle(unresolved_class()).ToCString();
+  }
+  if (type_arguments.IsNull()) {
+    const char* format = "%sType: class '%s'";
+    const intptr_t len =
+        OS::SNPrint(NULL, 0, format, unresolved, class_name) + 1;
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, unresolved, class_name);
+    return chars;
+  } else if (IsResolved() && IsFinalized() && IsRecursive()) {
+    const char* format = "Type: (@%" Px " H%" Px ") class '%s', args:[%s]";
+    const intptr_t hash = Hash();
+    const char* args_cstr = TypeArguments::Handle(arguments()).ToCString();
+    const intptr_t len =
+        OS::SNPrint(NULL, 0, format, raw(), hash, class_name, args_cstr) + 1;
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, raw(), hash, class_name, args_cstr);
+    return chars;
+  } else {
+    const char* format = "%sType: class '%s', args:[%s]";
+    const char* args_cstr = TypeArguments::Handle(arguments()).ToCString();
+    const intptr_t len =
+        OS::SNPrint(NULL, 0, format, unresolved, class_name, args_cstr) + 1;
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, unresolved, class_name, args_cstr);
+    return chars;
   }
 }
 

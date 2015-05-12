@@ -12,6 +12,7 @@ transformers:
     commandLineOptions: [--show-package-warnings]
 dependencies:
   args: any
+  charted: any
   polymer: any
-  unittest: any
+  unittest: < 0.12.0
   usage: any

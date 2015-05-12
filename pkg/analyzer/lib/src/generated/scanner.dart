@@ -1163,8 +1163,8 @@ class Scanner {
    * needed to complete the error message
    */
   void _reportError(ScannerErrorCode errorCode, [List<Object> arguments]) {
-    _errorListener.onError(new AnalysisError.con2(
-        source, _reader.offset, 1, errorCode, arguments));
+    _errorListener.onError(
+        new AnalysisError(source, _reader.offset, 1, errorCode, arguments));
   }
 
   int _select(int choice, TokenType yesType, TokenType noType) {

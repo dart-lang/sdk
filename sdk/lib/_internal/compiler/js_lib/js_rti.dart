@@ -271,14 +271,9 @@ bool checkSubtype(Object object, String isField, List checks, String asField) {
 ///
 /// In minified mode, uses the unminified names if available.
 String computeTypeName(String isField, List arguments) {
-  // Shorten the field name to the class name and append the textual
+  // Extract the class name from the is field and append the textual
   // representation of the type arguments.
-  // TODO(floitsch): change this to:
-  // String className = JS_BUILTIN('depends:none;effects:none;returns:String',
-  //                               JsBuiltin.classNameFroIsCheckProperty,
-  //                               isField);
-  int prefixLength = JS_OPERATOR_IS_PREFIX().length;
-  return Primitives.formatType(isField.substring(prefixLength, isField.length),
+  return Primitives.formatType(classNameFromIsCheckProperty(isField),
                                arguments);
 }
 
@@ -456,20 +451,15 @@ bool isSubtype(var s, var t) {
   // constructed from the type of [t].
   var typeOfS = isJsArray(s) ? getIndex(s, 0) : s;
   var typeOfT = isJsArray(t) ? getIndex(t, 0) : t;
+
   // Check for a subtyping flag.
-  var name = runtimeTypeToString(typeOfT);
   // Get the necessary substitution of the type arguments, if there is one.
   var substitution;
   if (isNotIdentical(typeOfT, typeOfS)) {
-    // TODO(floitsch): change this to:
-    // if (!JS_BUILTIN('depends:none;effects:none;returns:bool',
-    //                JsBuiltin.implementsType,
-    //                typeOfSPrototype, name)) {
-    //  return false;
-    // }
-    var test = '${JS_OPERATOR_IS_PREFIX()}${name}';
+    if (!builtinIsSubtype(typeOfS, runtimeTypeToString(typeOfT))) {
+      return false;
+    }
     var typeOfSPrototype = JS('', '#.prototype', typeOfS);
-    if (hasNoField(typeOfSPrototype, test)) return false;
     var field = '${JS_OPERATOR_AS_PREFIX()}${runtimeTypeToString(typeOfT)}';
     substitution = getField(typeOfSPrototype, field);
   }

@@ -24,7 +24,6 @@ DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
-DECLARE_FLAG(bool, enable_type_checks);
 
 bool Intrinsifier::CanIntrinsify(const Function& function) {
   if (!FLAG_intrinsify) return false;
@@ -35,6 +34,7 @@ bool Intrinsifier::CanIntrinsify(const Function& function) {
 }
 
 
+#if defined(DART_NO_SNAPSHOT)
 void Intrinsifier::InitializeState() {
   Isolate* isolate = Isolate::Current();
   Library& lib = Library::Handle(isolate);
@@ -91,6 +91,7 @@ void Intrinsifier::InitializeState() {
 
 #undef SETUP_FUNCTION
 }
+#endif  // defined(DART_NO_SNAPSHOT).
 
 
 static void EmitCodeFor(FlowGraphCompiler* compiler,
@@ -144,7 +145,6 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
   switch (function.recognized_kind()) {
 #define EMIT_CASE(class_name, function_name, enum_name, fp)                    \
     case MethodRecognizer::k##enum_name:                                       \
-      CHECK_FINGERPRINT3(function, class_name, function_name, enum_name, fp);  \
       if (!Build_##enum_name(graph)) return false;                             \
       break;
 
@@ -188,23 +188,21 @@ void Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
 
 #define EMIT_CASE(class_name, function_name, enum_name, fp)                    \
     case MethodRecognizer::k##enum_name:                                       \
-      CHECK_FINGERPRINT3(function, class_name, function_name, enum_name, fp);  \
       compiler->assembler()->Comment("Intrinsic");                             \
       enum_name(compiler->assembler());                                        \
       break;
 
-  if (FLAG_throw_on_javascript_int_overflow && (Smi::kBits >= 32)) {
-    // Integer intrinsics are in the core library, but we don't want to
-    // intrinsify when Smi > 32 bits if we are looking for javascript integer
-    // overflow.
+  switch (function.recognized_kind()) {
+    ALL_INTRINSICS_NO_INTEGER_LIB_LIST(EMIT_CASE);
+    default:
+      break;
+  }
+  // Integer intrinsics are in the core library, but we don't want to
+  // intrinsify when Smi > 32 bits if we are looking for javascript integer
+  // overflow.
+  if (!(FLAG_throw_on_javascript_int_overflow && (Smi::kBits >= 32))) {
     switch (function.recognized_kind()) {
-      ALL_INTRINSICS_NO_INTEGER_LIB_LIST(EMIT_CASE);
-      default:
-        break;
-    }
-  } else {
-    switch (function.recognized_kind()) {
-      ALL_INTRINSICS_LIST(EMIT_CASE);
+      CORE_INTEGER_LIB_INTRINSIC_LIST(EMIT_CASE)
       default:
         break;
     }

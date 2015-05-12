@@ -6,15 +6,18 @@ library analyzer.src.context.cache;
 
 import 'dart:collection';
 
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, CacheState, InternalAnalysisContext, RetentionPriority;
-import 'package:analyzer/src/generated/html.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/task/model.dart';
+
+/**
+ * Return `true` if the given [target] is a priority one.
+ */
+typedef bool IsPriorityAnalysisTarget(AnalysisTarget target);
 
 /**
  * An LRU cache of results produced by analysis.
@@ -39,12 +42,6 @@ class AnalysisCache {
    */
   AnalysisCache(this._partitions);
 
-  /**
-   * Return the number of entries in this cache that have an AST associated with
-   * them.
-   */
-  int get astSize => _partitions[_partitions.length - 1].astSize;
-
   // TODO(brianwilkerson) Implement or delete this.
 //  /**
 //   * Return information about each of the partitions in this cache.
@@ -63,29 +60,14 @@ class AnalysisCache {
 //  }
 
   /**
-   * Record that the AST associated with the given [target] was just read from
-   * the cache.
-   */
-  void accessedAst(AnalysisTarget target) {
-    // TODO(brianwilkerson) Extract this logic to a helper method (here and
-    // elsewhere)
-    int count = _partitions.length;
-    for (int i = 0; i < count; i++) {
-      if (_partitions[i].contains(target)) {
-        _partitions[i].accessedAst(target);
-        return;
-      }
-    }
-  }
-
-  /**
    * Return the entry associated with the given [target].
    */
   CacheEntry get(AnalysisTarget target) {
     int count = _partitions.length;
     for (int i = 0; i < count; i++) {
-      if (_partitions[i].contains(target)) {
-        return _partitions[i].get(target);
+      CachePartition partition = _partitions[i];
+      if (partition.isResponsibleFor(target)) {
+        return partition.get(target);
       }
     }
     //
@@ -102,8 +84,9 @@ class AnalysisCache {
   InternalAnalysisContext getContextFor(AnalysisTarget target) {
     int count = _partitions.length;
     for (int i = 0; i < count; i++) {
-      if (_partitions[i].contains(target)) {
-        return _partitions[i].context;
+      CachePartition partition = _partitions[i];
+      if (partition.isResponsibleFor(target)) {
+        return partition.context;
       }
     }
     //
@@ -116,6 +99,34 @@ class AnalysisCache {
         'Could not find context for $target',
         new CaughtException(new AnalysisException(), null));
     return null;
+  }
+
+  /**
+   * Return the state of the given [result] for the given [target].
+   *
+   * It does not update the cache, if the corresponding [CacheEntry] does not
+   * exist, then [CacheState.INVALID] is returned.
+   */
+  CacheState getState(AnalysisTarget target, ResultDescriptor result) {
+    CacheEntry entry = get(target);
+    if (entry == null) {
+      return CacheState.INVALID;
+    }
+    return entry.getState(result);
+  }
+
+  /**
+   * Return the value of the given [result] for the given [target].
+   *
+   * It does not update the cache, if the corresponding [CacheEntry] does not
+   * exist, then the default value is returned.
+   */
+  Object getValue(AnalysisTarget target, ResultDescriptor result) {
+    CacheEntry entry = get(target);
+    if (entry == null) {
+      return result.defaultValue;
+    }
+    return entry.getValue(result);
   }
 
   /**
@@ -132,17 +143,17 @@ class AnalysisCache {
   }
 
   /**
-   * Associate the given [entry] with the given [target].
+   * Puts the given [entry] into the cache.
    */
-  void put(AnalysisTarget target, CacheEntry entry) {
-    entry._cache = this;
-    entry._target = target;
+  void put(CacheEntry entry) {
+    AnalysisTarget target = entry.target;
     entry.fixExceptionState();
     int count = _partitions.length;
     for (int i = 0; i < count; i++) {
-      if (_partitions[i].contains(target)) {
+      CachePartition partition = _partitions[i];
+      if (partition.isResponsibleFor(target)) {
         if (_TRACE_CHANGES) {
-          CacheEntry oldEntry = _partitions[i].get(target);
+          CacheEntry oldEntry = partition.get(target);
           if (oldEntry == null) {
             AnalysisEngine.instance.logger
                 .logInformation('Added a cache entry for $target.');
@@ -152,7 +163,7 @@ class AnalysisCache {
 //                'Diff = ${entry.getDiff(oldEntry)}');
           }
         }
-        _partitions[i].put(target, entry);
+        partition.put(entry);
         return;
       }
     }
@@ -166,26 +177,13 @@ class AnalysisCache {
   void remove(AnalysisTarget target) {
     int count = _partitions.length;
     for (int i = 0; i < count; i++) {
-      if (_partitions[i].contains(target)) {
+      CachePartition partition = _partitions[i];
+      if (partition.isResponsibleFor(target)) {
         if (_TRACE_CHANGES) {
           AnalysisEngine.instance.logger
               .logInformation('Removed the cache entry for $target.');
         }
-        _partitions[i].remove(target);
-        return;
-      }
-    }
-  }
-
-  /**
-   * Record that the AST associated with the given [target] was just removed
-   * from the cache.
-   */
-  void removedAst(AnalysisTarget target) {
-    int count = _partitions.length;
-    for (int i = 0; i < count; i++) {
-      if (_partitions[i].contains(target)) {
-        _partitions[i].removedAst(target);
+        partition.remove(target);
         return;
       }
     }
@@ -202,32 +200,6 @@ class AnalysisCache {
     }
     return size;
   }
-
-  /**
-   * Record that the AST associated with the given [target] was just stored to
-   * the cache.
-   */
-  void storedAst(AnalysisTarget target) {
-    int count = _partitions.length;
-    for (int i = 0; i < count; i++) {
-      if (_partitions[i].contains(target)) {
-        _partitions[i].storedAst(target);
-        return;
-      }
-    }
-  }
-
-  ResultData _getDataFor(TargetedResult result) {
-    AnalysisTarget target = result.target;
-    int count = _partitions.length;
-    for (int i = 0; i < count; i++) {
-      if (_partitions[i].contains(target)) {
-        CacheEntry entry = _partitions[i].get(target);
-        return entry._getResultData(result.result);
-      }
-    }
-    return null;
-  }
 }
 
 /**
@@ -242,14 +214,14 @@ class CacheEntry {
   static int _EXPLICITLY_ADDED_FLAG = 0;
 
   /**
-   * The cache that contains this entry.
-   */
-  AnalysisCache _cache;
-
-  /**
    * The target this entry is about.
    */
-  AnalysisTarget _target;
+  final AnalysisTarget target;
+
+  /**
+   * The partition that is responsible for this entry.
+   */
+  CachePartition _partition;
 
   /**
    * The most recent time at which the state of the target matched the state
@@ -274,6 +246,8 @@ class CacheEntry {
   Map<ResultDescriptor, ResultData> _resultMap =
       new HashMap<ResultDescriptor, ResultData>();
 
+  CacheEntry(this.target);
+
   /**
    * The exception that caused one or more values to have a state of
    * [CacheState.ERROR].
@@ -296,49 +270,12 @@ class CacheEntry {
   }
 
   /**
-   * Return `true` if this entry contains at least one result whose value is an
-   * AST structure.
-   */
-  bool get hasAstStructure {
-    for (ResultData data in _resultMap.values) {
-      if (data.value is AstNode || data.value is XmlNode) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
    * Fix the state of the [exception] to match the current state of the entry.
    */
   void fixExceptionState() {
     if (!hasErrorState()) {
       _exception = null;
     }
-  }
-
-  /**
-   * Mark any AST structures associated with this cache entry as being flushed.
-   */
-  void flushAstStructures() {
-    _resultMap.forEach((ResultDescriptor descriptor, ResultData data) {
-      if (data.value is AstNode || data.value is XmlNode) {
-        _validateStateChange(descriptor, CacheState.FLUSHED);
-        data.state = CacheState.FLUSHED;
-        data.value = descriptor.defaultValue;
-      }
-    });
-  }
-
-  /**
-   * Return the memento of the result represented by the given [descriptor].
-   */
-  Object getMemento(ResultDescriptor descriptor) {
-    ResultData data = _resultMap[descriptor];
-    if (data == null) {
-      return null;
-    }
-    return data.memento;
   }
 
   /**
@@ -360,6 +297,9 @@ class CacheEntry {
     ResultData data = _resultMap[descriptor];
     if (data == null) {
       return descriptor.defaultValue;
+    }
+    if (_partition != null) {
+      _partition.resultAccessed(target, descriptor);
     }
     return data.value;
   }
@@ -413,9 +353,7 @@ class CacheEntry {
     }
     this._exception = exception;
     for (ResultDescriptor descriptor in descriptors) {
-      ResultData data = _getResultData(descriptor);
-      TargetedResult thisResult = new TargetedResult(_target, descriptor);
-      data.invalidate(_cache, thisResult, CacheState.ERROR);
+      _setErrorState(descriptor, exception);
     }
   }
 
@@ -434,8 +372,7 @@ class CacheEntry {
     if (state == CacheState.INVALID) {
       ResultData data = _resultMap[descriptor];
       if (data != null) {
-        TargetedResult thisResult = new TargetedResult(_target, descriptor);
-        data.invalidate(_cache, thisResult, CacheState.INVALID);
+        _invalidate(descriptor, true);
       }
     } else {
       ResultData data = _getResultData(descriptor);
@@ -452,21 +389,20 @@ class CacheEntry {
 
   /**
    * Set the value of the result represented by the given [descriptor] to the
-   * given [value]. The optional [memento] may help to recompute [value] more
-   * efficiently after invalidation.
+   * given [value].
    */
   /*<V>*/ void setValue(ResultDescriptor /*<V>*/ descriptor, dynamic /*V*/
-      value, List<TargetedResult> dependedOn, Object memento) {
+      value, List<TargetedResult> dependedOn) {
     _validateStateChange(descriptor, CacheState.VALID);
-    ResultData data = _getResultData(descriptor);
-    {
-      TargetedResult thisResult = new TargetedResult(_target, descriptor);
-      data.invalidate(_cache, thisResult, CacheState.INVALID);
-      data.setDependedOnResults(_cache, thisResult, dependedOn);
+    TargetedResult thisResult = new TargetedResult(target, descriptor);
+    if (_partition != null) {
+      _partition.resultStored(thisResult, value);
     }
+    _invalidate(descriptor, false);
+    ResultData data = _getResultData(descriptor);
+    _setDependedOnResults(data, thisResult, dependedOn);
     data.state = CacheState.VALID;
     data.value = value == null ? descriptor.defaultValue : value;
-    data.memento = memento;
   }
 
   @override
@@ -487,6 +423,81 @@ class CacheEntry {
    */
   ResultData _getResultData(ResultDescriptor descriptor) {
     return _resultMap.putIfAbsent(descriptor, () => new ResultData(descriptor));
+  }
+
+  /**
+   * Invalidate the result represented by the given [descriptor] if
+   * [includeThis] is true. Propagate invalidation to other results that
+   * depend on it.
+   */
+  void _invalidate(ResultDescriptor descriptor, bool includeThis) {
+    ResultData thisData;
+    if (includeThis) {
+      thisData = _resultMap.remove(descriptor);
+    } else {
+      thisData = _resultMap[descriptor];
+    }
+    if (thisData == null) {
+      return;
+    }
+    // Stop depending on other results.
+    TargetedResult thisResult = new TargetedResult(target, descriptor);
+    thisData.dependedOnResults.forEach((TargetedResult dependedOnResult) {
+      ResultData data = _partition._getDataFor(dependedOnResult, orNull: true);
+      if (data != null) {
+        data.dependentResults.remove(thisResult);
+      }
+    });
+    // Invalidate results that depend on this result.
+    List<TargetedResult> dependentResults = thisData.dependentResults;
+    thisData.dependentResults = <TargetedResult>[];
+    dependentResults.forEach((TargetedResult dependentResult) {
+      CacheEntry entry = _partition.get(dependentResult.target);
+      entry._invalidate(dependentResult.result, true);
+    });
+    // If empty, remove the entry altogether.
+    if (_resultMap.isEmpty) {
+      _partition._targetMap.remove(target);
+    }
+  }
+
+  /**
+   * Invalidates all the results of this entry, with propagation.
+   */
+  void _invalidateAll() {
+    List<ResultDescriptor> results = _resultMap.keys.toList();
+    for (ResultDescriptor result in results) {
+      _invalidate(result, true);
+    }
+  }
+
+  /**
+   * Set the [dependedOn] on which this result depends.
+   */
+  void _setDependedOnResults(ResultData thisData, TargetedResult thisResult,
+      List<TargetedResult> dependedOn) {
+    thisData.dependedOnResults = dependedOn;
+    thisData.dependedOnResults.forEach((TargetedResult dependentResult) {
+      ResultData data = _partition._getDataFor(dependentResult);
+      data.dependentResults.add(thisResult);
+    });
+  }
+
+  /**
+   * Set states of the given and dependent results to [CacheState.ERROR] and
+   * their values to the corresponding default values
+   */
+  void _setErrorState(ResultDescriptor descriptor, CaughtException exception) {
+    ResultData thisData = _getResultData(descriptor);
+    // Set the error state.
+    _exception = exception;
+    thisData.state = CacheState.ERROR;
+    thisData.value = descriptor.defaultValue;
+    // Propagate the error state.
+    thisData.dependentResults.forEach((TargetedResult dependentResult) {
+      CacheEntry entry = _partition.get(dependentResult.target);
+      entry._setErrorState(dependentResult.result, exception);
+    });
   }
 
   /**
@@ -540,6 +551,134 @@ class CacheEntry {
 }
 
 /**
+ * An object that controls flushing of analysis results from the cache.
+ */
+class CacheFlushManager<T> {
+  final IsPriorityAnalysisTarget isPriorityAnalysisTarget;
+  final ResultCachingPolicy<T> policy;
+  final int maxActiveSize;
+  final int maxIdleSize;
+
+  /**
+   * A map of the stored [TargetedResult] to their sizes.
+   */
+  final HashMap<TargetedResult, int> resultSizeMap =
+      new HashMap<TargetedResult, int>();
+
+  /**
+   * A linked set containing the most recently accessed results with the most
+   * recently used at the end of the list. When more results are added than the
+   * maximum size allowed then the least recently used results will be flushed
+   * from the cache.
+   */
+  final LinkedHashSet<TargetedResult> recentlyUsed =
+      new LinkedHashSet<TargetedResult>();
+
+  /**
+   * The current size of stored results.
+   */
+  int currentSize = 0;
+
+  /**
+   * The current maximum cache size.
+   */
+  int maxSize;
+
+  CacheFlushManager(
+      ResultCachingPolicy<T> policy, this.isPriorityAnalysisTarget)
+      : policy = policy,
+        maxActiveSize = policy.maxActiveSize,
+        maxIdleSize = policy.maxIdleSize,
+        maxSize = policy.maxIdleSize;
+
+  /**
+   * If [currentSize] is already less than [maxSize], returns an empty list.
+   * Otherwise returns [TargetedResult]s to flush from the cache to make
+   * [currentSize] less or equal to [maxSize].
+   *
+   * Results for priority files are never flushed, so this method might leave
+   * [currentSize] greater than [maxSize].
+   */
+  List<TargetedResult> flushToSize() {
+    // If still under the cap, done.
+    if (maxSize == -1 || currentSize <= maxSize) {
+      return TargetedResult.EMPTY_LIST;
+    }
+    // Flush results until we are under the cap.
+    List<TargetedResult> resultsToFlush = <TargetedResult>[];
+    for (TargetedResult result in recentlyUsed) {
+      if (isPriorityAnalysisTarget(result.target)) {
+        continue;
+      }
+      resultsToFlush.add(result);
+      int size = resultSizeMap.remove(result);
+      assert(size != null);
+      currentSize -= size;
+      if (currentSize <= maxSize) {
+        break;
+      }
+    }
+    recentlyUsed.removeAll(resultsToFlush);
+    return resultsToFlush;
+  }
+
+  /**
+   * Notifies this manager that the corresponding analysis context is active.
+   */
+  void madeActive() {
+    maxSize = maxActiveSize;
+  }
+
+  /**
+   * Notifies this manager that the corresponding analysis context is idle.
+   * Returns [TargetedResult]s that should be flushed from the cache.
+   */
+  List<TargetedResult> madeIdle() {
+    maxSize = maxIdleSize;
+    return flushToSize();
+  }
+
+  /**
+   * Records that the given [result] was just read from the cache.
+   */
+  void resultAccessed(TargetedResult result) {
+    if (recentlyUsed.remove(result)) {
+      recentlyUsed.add(result);
+    }
+  }
+
+  /**
+   * Records that the given [newResult] and [newValue] were stored to the cache.
+   * Returns [TargetedResult]s that should be flushed from the cache.
+   */
+  List<TargetedResult> resultStored(TargetedResult newResult, T newValue) {
+    if (!recentlyUsed.remove(newResult)) {
+      int size = policy.measure(newValue);
+      resultSizeMap[newResult] = size;
+      currentSize += size;
+    }
+    recentlyUsed.add(newResult);
+    return flushToSize();
+  }
+
+  /**
+   * Records that the given [target] was just removed from to the cache.
+   */
+  void targetRemoved(AnalysisTarget target) {
+    List<TargetedResult> resultsToRemove = <TargetedResult>[];
+    for (TargetedResult result in recentlyUsed) {
+      if (result.target == target) {
+        resultsToRemove.add(result);
+        int size = resultSizeMap.remove(result);
+        assert(size != null);
+        currentSize -= size;
+      }
+    }
+    recentlyUsed.removeAll(resultsToRemove);
+  }
+}
+
+/**
  * A single partition in an LRU cache of information related to analysis.
  */
 abstract class CachePartition {
@@ -550,15 +689,10 @@ abstract class CachePartition {
   final InternalAnalysisContext context;
 
   /**
-   * The maximum number of sources for which AST structures should be kept in
-   * the cache.
+   * A table mapping caching policies to the cache flush managers.
    */
-  int _maxCacheSize = 0;
-
-  /**
-   * The policy used to determine which results to remove from the cache.
-   */
-  final CacheRetentionPolicy _retentionPolicy;
+  final HashMap<ResultCachingPolicy, CacheFlushManager> _flushManagerMap =
+      new HashMap<ResultCachingPolicy, CacheFlushManager>();
 
   /**
    * A table mapping the targets belonging to this partition to the information
@@ -568,37 +702,10 @@ abstract class CachePartition {
       new HashMap<AnalysisTarget, CacheEntry>();
 
   /**
-   * A list containing the most recently accessed targets with the most recently
-   * used at the end of the list. When more targets are added than the maximum
-   * allowed then the least recently used target will be removed and will have
-   * it's cached AST structure flushed.
-   */
-  List<AnalysisTarget> _recentlyUsed = <AnalysisTarget>[];
-
-  /**
    * Initialize a newly created cache partition, belonging to the given
-   * [context]. The partition will maintain at most [_maxCacheSize] AST
-   * structures in the cache, using the [_retentionPolicy] to determine which
-   * AST structures to flush.
+   * [context].
    */
-  CachePartition(this.context, this._maxCacheSize, this._retentionPolicy);
-
-  /**
-   * Return the number of entries in this partition that have an AST associated
-   * with them.
-   */
-  int get astSize {
-    int astSize = 0;
-    int count = _recentlyUsed.length;
-    for (int i = 0; i < count; i++) {
-      AnalysisTarget target = _recentlyUsed[i];
-      CacheEntry entry = _targetMap[target];
-      if (entry.hasAstStructure) {
-        astSize++;
-      }
-    }
-    return astSize;
-  }
+  CachePartition(this.context);
 
   /**
    * Return a table mapping the targets known to the context to the information
@@ -610,50 +717,14 @@ abstract class CachePartition {
   Map<AnalysisTarget, CacheEntry> get map => _targetMap;
 
   /**
-   * Return the maximum size of the cache.
-   */
-  int get maxCacheSize => _maxCacheSize;
-
-  /**
-   * Set the maximum size of the cache to the given [size].
-   */
-  void set maxCacheSize(int size) {
-    _maxCacheSize = size;
-    while (_recentlyUsed.length > _maxCacheSize) {
-      if (!_flushAstFromCache()) {
-        break;
-      }
-    }
-  }
-
-  /**
-   * Record that the AST associated with the given [target] was just read from
-   * the cache.
-   */
-  void accessedAst(AnalysisTarget target) {
-    if (_recentlyUsed.remove(target)) {
-      _recentlyUsed.add(target);
-      return;
-    }
-    while (_recentlyUsed.length >= _maxCacheSize) {
-      if (!_flushAstFromCache()) {
-        break;
-      }
-    }
-    _recentlyUsed.add(target);
-  }
-
-  /**
-   * Return `true` if the given [target] is contained in this partition.
-   */
-  // TODO(brianwilkerson) Rename this to something more meaningful, such as
-  // isResponsibleFor.
-  bool contains(AnalysisTarget target);
-
-  /**
    * Return the entry associated with the given [target].
    */
   CacheEntry get(AnalysisTarget target) => _targetMap[target];
+
+  /**
+   * Return `true` if this partition is responsible for the given [target].
+   */
+  bool isResponsibleFor(AnalysisTarget target);
 
   /**
    * Return an iterator returning all of the map entries mapping targets to
@@ -663,9 +734,15 @@ abstract class CachePartition {
       new SingleMapIterator<AnalysisTarget, CacheEntry>(_targetMap);
 
   /**
-   * Associate the given [entry] with the given [target].
+   * Puts the given [entry] into the partition.
    */
-  void put(AnalysisTarget target, CacheEntry entry) {
+  void put(CacheEntry entry) {
+    AnalysisTarget target = entry.target;
+    if (entry._partition != null) {
+      throw new StateError(
+          'The entry for $target is already in ${entry._partition}');
+    }
+    entry._partition = this;
     entry.fixExceptionState();
     _targetMap[target] = entry;
   }
@@ -674,16 +751,41 @@ abstract class CachePartition {
    * Remove all information related to the given [target] from this cache.
    */
   void remove(AnalysisTarget target) {
-    _recentlyUsed.remove(target);
-    _targetMap.remove(target);
+    for (CacheFlushManager flushManager in _flushManagerMap.values) {
+      flushManager.targetRemoved(target);
+    }
+    CacheEntry entry = _targetMap.remove(target);
+    if (entry != null) {
+      entry._invalidateAll();
+    }
   }
 
   /**
-   * Record that the AST associated with the given [target] was just removed
-   * from the cache.
+   * Records that a value of the result described by the given [descriptor]
+   * for the given [target] was just read from the cache.
    */
-  void removedAst(AnalysisTarget target) {
-    _recentlyUsed.remove(target);
+  void resultAccessed(AnalysisTarget target, ResultDescriptor descriptor) {
+    CacheFlushManager flushManager = _getFlushManager(descriptor);
+    TargetedResult result = new TargetedResult(target, descriptor);
+    flushManager.resultAccessed(result);
+  }
+
+  /**
+   * Records that the given [result] was just stored into the cache.
+   */
+  void resultStored(TargetedResult result, Object value) {
+    CacheFlushManager flushManager = _getFlushManager(result.result);
+    List<TargetedResult> resultsToFlush =
+        flushManager.resultStored(result, value);
+    for (TargetedResult result in resultsToFlush) {
+      CacheEntry entry = get(result.target);
+      if (entry != null) {
+        ResultData data = entry._resultMap[result.result];
+        if (data != null) {
+          data.flush();
+        }
+      }
+    }
   }
 
   /**
@@ -691,123 +793,26 @@ abstract class CachePartition {
    */
   int size() => _targetMap.length;
 
-  /**
-   * Record that the AST associated with the given [target] was just stored to
-   * the cache.
-   */
-  void storedAst(AnalysisTarget target) {
-    if (_recentlyUsed.contains(target)) {
-      return;
+  ResultData _getDataFor(TargetedResult result, {bool orNull: false}) {
+    CacheEntry entry = context.analysisCache.get(result.target);
+    if (orNull) {
+      return entry != null ? entry._resultMap[result.result] : null;
+    } else {
+      return entry._getResultData(result.result);
     }
-    while (_recentlyUsed.length >= _maxCacheSize) {
-      if (!_flushAstFromCache()) {
-        break;
-      }
-    }
-    _recentlyUsed.add(target);
   }
 
   /**
-   * Attempt to flush one AST structure from the cache. Return `true` if a
-   * structure was flushed.
+   * Return the [CacheFlushManager] for the given [descriptor], not `null`.
    */
-  bool _flushAstFromCache() {
-    AnalysisTarget removedTarget = _removeAstToFlush();
-    if (removedTarget == null) {
-      return false;
-    }
-    CacheEntry entry = _targetMap[removedTarget];
-    entry.flushAstStructures();
-    return true;
+  CacheFlushManager _getFlushManager(ResultDescriptor descriptor) {
+    ResultCachingPolicy policy = descriptor.cachingPolicy;
+    return _flushManagerMap.putIfAbsent(
+        policy, () => new CacheFlushManager(policy, _isPriorityAnalysisTarget));
   }
 
-  /**
-   * Remove and return one target from the list of recently used targets whose
-   * AST structure can be flushed from the cache,  or `null` if none of the
-   * targets can be removed. The target that will be returned will be the target
-   * that has been unreferenced for the longest period of time but that is not a
-   * priority for analysis.
-   */
-  AnalysisTarget _removeAstToFlush() {
-    int targetToRemove = -1;
-    for (int i = 0; i < _recentlyUsed.length; i++) {
-      AnalysisTarget target = _recentlyUsed[i];
-      RetentionPriority priority =
-          _retentionPolicy.getAstPriority(target, _targetMap[target]);
-      if (priority == RetentionPriority.LOW) {
-        return _recentlyUsed.removeAt(i);
-      } else if (priority == RetentionPriority.MEDIUM && targetToRemove < 0) {
-        targetToRemove = i;
-      }
-    }
-    if (targetToRemove < 0) {
-      // This happens if the retention policy returns a priority of HIGH for all
-      // of the targets that have been recently used. This is the case, for
-      // example, when the list of priority sources is bigger than the current
-      // cache size.
-      return null;
-    }
-    return _recentlyUsed.removeAt(targetToRemove);
-  }
-}
-
-/**
- * A policy objecy that determines how important it is for data to be retained
- * in the analysis cache.
- */
-abstract class CacheRetentionPolicy {
-  /**
-   * Return the priority of retaining the AST structure for the given [target]
-   * in the given [entry].
-   */
-  // TODO(brianwilkerson) Find a more general mechanism, probably based on task
-  // descriptors, to determine which data is still needed for analysis and which
-  // can be removed from the cache. Ideally we could (a) remove the need for
-  // this class and (b) be able to flush all result data (not just AST's).
-  RetentionPriority getAstPriority(AnalysisTarget target, CacheEntry entry);
-}
-
-/**
- * A retention policy that will keep AST's in the cache if there is analysis
- * information that needs to be computed for a source, where the computation is
- * dependent on having the AST.
- */
-class DefaultRetentionPolicy implements CacheRetentionPolicy {
-  /**
-   * An instance of this class that can be shared.
-   */
-  static const DefaultRetentionPolicy POLICY = const DefaultRetentionPolicy();
-
-  /**
-   * Initialize a newly created instance of this class.
-   */
-  const DefaultRetentionPolicy();
-
-  // TODO(brianwilkerson) Implement or delete this.
-//  /**
-//   * Return `true` if there is analysis information in the given entry that needs to be
-//   * computed, where the computation is dependent on having the AST.
-//   *
-//   * @param dartEntry the entry being tested
-//   * @return `true` if there is analysis information that needs to be computed from the AST
-//   */
-//  bool astIsNeeded(DartEntry dartEntry) =>
-//      dartEntry.hasInvalidData(DartEntry.HINTS) ||
-//          dartEntry.hasInvalidData(DartEntry.LINTS) ||
-//          dartEntry.hasInvalidData(DartEntry.VERIFICATION_ERRORS) ||
-//          dartEntry.hasInvalidData(DartEntry.RESOLUTION_ERRORS);
-
-  @override
-  RetentionPriority getAstPriority(AnalysisTarget target, CacheEntry entry) {
-    // TODO(brianwilkerson) Implement or replace this.
-//    if (sourceEntry is DartEntry) {
-//      DartEntry dartEntry = sourceEntry;
-//      if (astIsNeeded(dartEntry)) {
-//        return RetentionPriority.MEDIUM;
-//      }
-//    }
-//    return RetentionPriority.LOW;
-    return RetentionPriority.MEDIUM;
+  bool _isPriorityAnalysisTarget(AnalysisTarget target) {
+    return context.priorityTargets.contains(target);
   }
 }
 
@@ -834,12 +839,6 @@ class ResultData {
   Object value;
 
   /**
-   * The optional data that is remembered with [value] and, when [value] is
-   * invalidated, may help to recompute it more efficiently.
-   */
-  Object memento;
-
-  /**
    * A list of the results on which this result depends.
    */
   List<TargetedResult> dependedOnResults = <TargetedResult>[];
@@ -859,58 +858,11 @@ class ResultData {
   }
 
   /**
-   * Add the given [result] to the list of dependent results.
+   * Flush this value.
    */
-  void addDependentResult(TargetedResult result) {
-    dependentResults.add(result);
-  }
-
-  /**
-   * Invalidate this [ResultData] that corresponds to [thisResult] and
-   * propagate invalidation to the results that depend on this one.
-   */
-  void invalidate(
-      AnalysisCache cache, TargetedResult thisResult, CacheState newState) {
-    // Invalidate this result.
-    state = newState;
+  void flush() {
+    state = CacheState.FLUSHED;
     value = descriptor.defaultValue;
-    // Stop depending on other results.
-    List<TargetedResult> dependedOnResults = this.dependedOnResults;
-    this.dependedOnResults = <TargetedResult>[];
-    dependedOnResults.forEach((TargetedResult dependedOnResult) {
-      ResultData data = cache._getDataFor(dependedOnResult);
-      data.removeDependentResult(thisResult);
-    });
-    // Invalidate results that depend on this result.
-    List<TargetedResult> dependentResults = this.dependentResults;
-    this.dependentResults = <TargetedResult>[];
-    dependentResults.forEach((TargetedResult dependentResult) {
-      ResultData data = cache._getDataFor(dependentResult);
-      data.invalidate(cache, dependentResult, newState);
-    });
-  }
-
-  /**
-   * Remove the given [result] from the list of dependent results.
-   */
-  void removeDependentResult(TargetedResult result) {
-    dependentResults.remove(result);
-  }
-
-  /**
-   * Set the [dependedOn] on which this result depends.
-   */
-  void setDependedOnResults(AnalysisCache cache, TargetedResult thisResult,
-      List<TargetedResult> dependedOn) {
-    dependedOnResults.forEach((TargetedResult dependedOnResult) {
-      ResultData data = cache._getDataFor(dependedOnResult);
-      data.removeDependentResult(thisResult);
-    });
-    dependedOnResults = dependedOn;
-    dependedOnResults.forEach((TargetedResult dependentResult) {
-      ResultData data = cache._getDataFor(dependentResult);
-      data.addDependentResult(thisResult);
-    });
   }
 }
 
@@ -920,14 +872,15 @@ class ResultData {
 class SdkCachePartition extends CachePartition {
   /**
    * Initialize a newly created cache partition, belonging to the given
-   * [context]. The partition will maintain at most [maxCacheSize] AST
-   * structures in the cache.
+   * [context].
    */
-  SdkCachePartition(InternalAnalysisContext context, int maxCacheSize)
-      : super(context, maxCacheSize, DefaultRetentionPolicy.POLICY);
+  SdkCachePartition(InternalAnalysisContext context) : super(context);
 
   @override
-  bool contains(AnalysisTarget target) {
+  bool isResponsibleFor(AnalysisTarget target) {
+    if (target is AnalysisContextTarget) {
+      return true;
+    }
     Source source = target.source;
     return source != null && source.isInSystemLibrary;
   }
@@ -979,14 +932,10 @@ class TargetedResult {
 class UniversalCachePartition extends CachePartition {
   /**
    * Initialize a newly created cache partition, belonging to the given
-   * [context]. The partition will maintain at most [maxCacheSize] AST
-   * structures in the cache, using the [retentionPolicy] to determine which
-   * AST structures to flush.
+   * [context].
    */
-  UniversalCachePartition(InternalAnalysisContext context, int maxCacheSize,
-      CacheRetentionPolicy retentionPolicy)
-      : super(context, maxCacheSize, retentionPolicy);
+  UniversalCachePartition(InternalAnalysisContext context) : super(context);
 
   @override
-  bool contains(AnalysisTarget target) => true;
+  bool isResponsibleFor(AnalysisTarget target) => true;
 }

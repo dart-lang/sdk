@@ -8,19 +8,18 @@ import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 import 'dart:async';
 import 'dart:isolate' as isolate;
+import 'dart:developer' as developer;
 
 int counter = 0;
 const stoppedAtLine = 23;
 var port = new isolate.RawReceivePort(msgHandler);
 
 // This name is used in a test below.
-void msgHandler(_) {
-}
+void msgHandler(_) { }
 
 void periodicTask(_) {
-  counter++;
   port.sendPort.send(34);
-  counter++;  // Line 23.  We set our breakpoint here.
+  developer.debugger(msg: "foo", when: true); // We will be at the next line.
   counter++;
   if (counter % 300 == 0) {
     print('counter = $counter');
@@ -33,34 +32,14 @@ void startTimer() {
 
 var tests = [
 
-// Add breakpoint
+// Initial data fetch and verify we've hit the breakpoint.
 (Isolate isolate) async {
   await isolate.rootLib.load();
-
-  // Set up a listener to wait for breakpoint events.
-  Completer completer = new Completer();
-  var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.eventType == ServiceEvent.kPauseBreakpoint) {
-      print('Breakpoint reached');
-      subscription.cancel();
-      completer.complete();
-    }
-  });
-
   var script = isolate.rootLib.scripts[0];
   await script.load();
-
-  // Add the breakpoint.
-  var result = await isolate.addBreakpoint(script, stoppedAtLine);
-  expect(result is Breakpoint, isTrue);
-  Breakpoint bpt = result;
-  expect(bpt.type, equals('Breakpoint'));
-  expect(bpt.script.id, equals(script.id));
-  expect(bpt.script.tokenToLine(bpt.tokenPos), equals(stoppedAtLine));
-  expect(isolate.breakpoints.length, equals(1));
-
-  await completer.future;  // Wait for breakpoint events.
+  await hasStoppedAtBreakpoint(isolate);
+  // Sanity check.
+  expect(isolate.pauseEvent.eventType, equals(ServiceEvent.kPauseBreakpoint));
 },
 
 // Get stack

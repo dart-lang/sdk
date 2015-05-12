@@ -38,8 +38,6 @@ namespace dart {
 
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, trace_service_pause_events);
-DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(bool, enable_asserts);
 
 // TODO(johnmccutchan): Unify embedder service handler lists and their APIs.
 EmbedderServiceHandler* Service::isolate_service_handler_head_ = NULL;
@@ -2253,6 +2251,13 @@ void Service::SendGraphEvent(Isolate* isolate) {
   }
   const String& message = String::Handle(String::New(js.ToCString()));
   SendEvent(message, buffer, stream.bytes_written());
+}
+
+
+void Service::SendInspectEvent(Isolate* isolate, const Object& inspectee) {
+  ServiceEvent event(isolate, ServiceEvent::kInspect);
+  event.set_inspectee(&inspectee);
+  Service::HandleEvent(&event);
 }
 
 

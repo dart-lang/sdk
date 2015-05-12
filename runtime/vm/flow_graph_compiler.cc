@@ -31,6 +31,8 @@ DEFINE_FLAG(bool, always_megamorphic_calls, false,
     "Instance call always as megamorphic.");
 DEFINE_FLAG(bool, trace_inlining_intervals, false,
     "Inlining interval diagnostics");
+DEFINE_FLAG(bool, eager_info_computation, false,
+    "TRANSITIONAL: Eagerly compute local var descriptors.");
 DEFINE_FLAG(bool, enable_simd_inline, true,
     "Enable inlining of SIMD related method calls.");
 DEFINE_FLAG(int, min_optimization_counter_threshold, 5000,
@@ -38,6 +40,7 @@ DEFINE_FLAG(int, min_optimization_counter_threshold, 5000,
 DEFINE_FLAG(int, optimization_counter_scale, 2000,
     "The scale of invocation count, by size of the function.");
 DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
+DEFINE_FLAG(bool, use_megamorphic_stub, true, "Out of line megamorphic lookup");
 
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(int, deoptimize_every);
@@ -45,7 +48,6 @@ DECLARE_FLAG(charp, deoptimize_filter);
 DECLARE_FLAG(bool, disassemble);
 DECLARE_FLAG(bool, disassemble_optimized);
 DECLARE_FLAG(bool, emit_edge_counters);
-DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, propagate_ic_data);
@@ -53,10 +55,12 @@ DECLARE_FLAG(int, regexp_optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(int, stacktrace_every);
 DECLARE_FLAG(charp, stacktrace_filter);
+DECLARE_FLAG(bool, support_debugger);
 DECLARE_FLAG(bool, use_cha);
 DECLARE_FLAG(bool, use_field_guards);
 DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
+DECLARE_FLAG(bool, ic_range_profiling);
 
 static void NooptModeHandler(bool value) {
   if (value) {
@@ -65,6 +69,9 @@ static void NooptModeHandler(bool value) {
     FLAG_use_field_guards = false;
     FLAG_use_osr = false;
     FLAG_emit_edge_counters = false;
+    FLAG_support_debugger = false;
+    FLAG_ic_range_profiling = false;
+    FLAG_collect_code = false;
   }
 }
 
@@ -657,6 +664,8 @@ void FlowGraphCompiler::SetNeedsStacktrace(intptr_t try_index) {
 void FlowGraphCompiler::AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                                              intptr_t deopt_id,
                                              intptr_t token_pos) {
+  // When running with optimizations disabled, don't emit deopt-descriptors.
+  if (!CanOptimize() && (kind == RawPcDescriptors::kDeopt)) return;
   pc_descriptors_list()->AddDescriptor(kind,
                                        assembler()->CodeSize(),
                                        deopt_id,
@@ -920,6 +929,10 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
   }
   LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle();
   if (parsed_function().node_sequence() == NULL) {
+    // Eager local var descriptors computation for Irregexp function as it is
+    // complicated to factor out.
+    // TODO(srdjan): Consider canonicalizing and reusing the local var
+    // descriptor for IrregexpFunction.
     ASSERT(flow_graph().IsIrregexpFunction());
     var_descs = LocalVarDescriptors::New(1);
     RawLocalVarDescriptors::VarInfo info;
@@ -929,10 +942,6 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
     info.end_pos = 0;
     info.set_index(parsed_function().current_context_var()->index());
     var_descs.SetVar(0, Symbols::CurrentContextVar(), &info);
-  } else {
-    var_descs =
-        parsed_function_.node_sequence()->scope()->GetVarDescriptors(
-            parsed_function_.function());
   }
   code.set_var_descriptors(var_descs);
 }

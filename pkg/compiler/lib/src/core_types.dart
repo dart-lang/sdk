@@ -33,6 +33,9 @@ abstract class CoreTypes {
   /// The `Null` type defined in 'dart:core'.
   InterfaceType get nullType;
 
+  /// The `Type` type defined in 'dart:core'.
+  InterfaceType get typeType;
+
   /// Returns an instance of the `List` type defined in 'dart:core' with
   /// [elementType] as its type argument.
   InterfaceType listType([DartType elementType = const DynamicType()]);

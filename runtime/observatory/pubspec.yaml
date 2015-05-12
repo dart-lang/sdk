@@ -7,13 +7,14 @@ transformers:
     inline_stylesheets:
       lib/src/elements/css/shared.css: false
 - $dart2js:
+    $include: "**/*.polymer.bootstrap.dart"
     suppressWarnings: false
-    $exclude: web/main.dart
     commandLineOptions: [--show-package-warnings]
 dependencies:
   args: any
+  charted: any
   polymer: any
-  unittest: any
+  unittest: < 0.12.0
   usage: any
 dependency_overrides:
   analyzer:
@@ -24,6 +25,8 @@ dependency_overrides:
     path: ../../third_party/observatory_pub_packages/barback
   browser:
     path: ../../third_party/observatory_pub_packages/browser
+  charted:
+    path: ../../third_party/observatory_pub_packages/charted
   cli_util:
     path: ../../third_party/observatory_pub_packages/cli_util
   code_transformers:
@@ -36,10 +39,12 @@ dependency_overrides:
     path: ../../third_party/observatory_pub_packages/dart_style
   glob:
     path: ../../third_party/observatory_pub_packages/glob
-  html5lib:
-    path: ../../third_party/observatory_pub_packages/html5lib
+  html:
+    path: ../../third_party/observatory_pub_packages/html
   initialize:
     path: ../../third_party/observatory_pub_packages/initialize
+  intl:
+    path: ../../third_party/observatory_pub_packages/intl
   logging:
     path: ../../third_party/observatory_pub_packages/logging
   matcher:
@@ -48,12 +53,18 @@ dependency_overrides:
     path: ../../third_party/observatory_pub_packages/observe
   path:
     path: ../../third_party/observatory_pub_packages/path
+  petitparser:
+    path: ../../third_party/observatory_pub_packages/petitparser
   polymer:
     path: ../../third_party/observatory_pub_packages/polymer
   polymer_expressions:
     path: ../../third_party/observatory_pub_packages/polymer_expressions
+  polymer_interop:
+    path: ../../third_party/observatory_pub_packages/polymer_interop
   pool:
     path: ../../third_party/observatory_pub_packages/pool
+  quiver:
+    path: ../../third_party/observatory_pub_packages/quiver
   smoke:
     path: ../../third_party/observatory_pub_packages/smoke
   source_maps:

@@ -896,6 +896,10 @@ class _TypePropagationVisitor<T> implements Visitor {
     // real constants of type [Type].
     setValue(node, nonConstant());
   }
+
+  void visitCreateInvocationMirror(CreateInvocationMirror node) {
+    setValue(node, nonConstant());
+  }
 }
 
 /// Represents the abstract value of a primitive value at some point in the

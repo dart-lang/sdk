@@ -1250,6 +1250,42 @@ const Map<String, List<Test>> SEND_TESTS = const {
     const Test.clazz(
         '''
         class B {
+          operator []=(a, b) {}
+        }
+        class C extends B {
+          m() => ++super[42];
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_INDEX_PREFIX,
+                    index: '42',
+                    operator: '++')),
+    const Test.clazz(
+        '''
+        class B {
+        }
+        class C extends B {
+          m() => ++super[42];
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_INDEX_PREFIX,
+                    index: '42',
+                    operator: '++')),
+    const Test.clazz(
+        '''
+        class B {
+          operator [](_) => null;
+        }
+        class C extends B {
+          m() => ++super[42];
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_INDEX_PREFIX,
+                    getter: 'function(B#[])',
+                    index: '42',
+                    operator: '++')),
+    const Test.clazz(
+        '''
+        class B {
           operator [](_) => null;
           operator []=(a, b) {}
         }
@@ -1260,6 +1296,42 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_SUPER_INDEX_POSTFIX,
                     getter: 'function(B#[])',
                     setter: 'function(B#[]=)',
+                    index: '42',
+                    operator: '--')),
+    const Test.clazz(
+        '''
+        class B {
+          operator []=(a, b) {}
+        }
+        class C extends B {
+          m() => super[42]--;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_INDEX_POSTFIX,
+                    index: '42',
+                    operator: '--')),
+    const Test.clazz(
+        '''
+        class B {
+        }
+        class C extends B {
+          m() => super[42]--;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_INDEX_POSTFIX,
+                    index: '42',
+                    operator: '--')),
+    const Test.clazz(
+        '''
+        class B {
+          operator [](_) => null;
+        }
+        class C extends B {
+          m() => super[42]--;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_INDEX_POSTFIX,
+                    getter: 'function(B#[])',
                     index: '42',
                     operator: '--')),
   ],
@@ -1377,6 +1449,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_SUPER_INDEX_SET,
             element: 'function(B#[]=)', index: '1', rhs: '2')),
+    const Test.clazz(
+        '''
+        class B {
+        }
+        class C extends B {
+          m() => super[1] = 2;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INDEX_SET,
+            index: '1', rhs: '2')),
   ],
   'Compound assignment': const [
     // Compound assignment
@@ -1705,8 +1787,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_COMPOUND_INDEX_SET,
             receiver: '0', index: '1', operator: '+=', rhs: '42')),
-    // TODO(johnniwinther): Enable this when the getter element is stored.
-    /*const Test.clazz(
+    const Test.clazz(
         '''
         class B {
           operator [](_) {}
@@ -1718,7 +1799,40 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_SUPER_COMPOUND_INDEX_SET,
             getter: 'function(B#[])', setter: 'function(B#[]=)',
-            index: '1', operator: '+=', rhs: '42')),*/
+            index: '1', operator: '+=', rhs: '42')),
+    const Test.clazz(
+        '''
+        class B {
+          operator []=(a, b) {}
+        }
+        class C extends B {
+          m() => super[1] += 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_COMPOUND_INDEX_SET,
+            index: '1', operator: '+=', rhs: '42')),
+    const Test.clazz(
+        '''
+        class B {
+        }
+        class C extends B {
+          m() => super[1] += 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_COMPOUND_INDEX_SET,
+            index: '1', operator: '+=', rhs: '42')),
+    const Test.clazz(
+        '''
+        class B {
+          operator [](_) {}
+        }
+        class C extends B {
+          m() => super[1] += 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_COMPOUND_INDEX_SET,
+            getter: 'function(B#[])',
+            index: '1', operator: '+=', rhs: '42')),
   ],
   'Prefix expression': const [
     // Prefix expression
@@ -2268,16 +2382,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new Class.unresolved(true, 42);
         ''',
         const Visit(
-            VisitKind.ERROR_UNRESOLVED_CONSTRUCTOR_INVOKE,
+            VisitKind.VISIT_UNRESOLVED_CONSTRUCTOR_INVOKE,
             arguments: '(true,42)')),
     const Test(
         '''
         m() => new Unresolved(true, 42);
         ''',
         const Visit(
-            // TODO(johnniwinther): Update this to
-            // `VisitKind.ERROR_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE`.
-            VisitKind.ERROR_UNRESOLVED_CONSTRUCTOR_INVOKE,
+            VisitKind.VISIT_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
             arguments: '(true,42)')),
     const Test(
         '''
@@ -2285,7 +2397,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new AbstractClass();
         ''',
         const Visit(
-            VisitKind.ERROR_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
+            VisitKind.VISIT_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
             element: 'generative_constructor(AbstractClass#)',
             type: 'AbstractClass',
             arguments: '()',
@@ -2298,11 +2410,11 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new Class(true, 42);
         ''',
         const Visit(
-            VisitKind.ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+            VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
             element: 'function(Class#)',
             arguments: '(true,42)',
             type: 'Class',
-            selector: 'Selector(call, , arity=2)')),
+            selector: 'CallStructure(arity=2)')),
     const Test(
         '''
         class Class {
@@ -2311,11 +2423,11 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new Class(true, 42);
         ''',
         const Visit(
-            VisitKind.ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+            VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
             element: 'function(Class#)',
             arguments: '(true,42)',
             type: 'Class',
-            selector: 'Selector(call, , arity=2)')),
+            selector: 'CallStructure(arity=2)')),
     const Test(
         '''
         class Class {
@@ -2325,11 +2437,11 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new Class(true, 42);
         ''',
         const Visit(
-            VisitKind.ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+            VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
             element: 'function(Class#)',
             arguments: '(true,42)',
             type: 'Class',
-            selector: 'Selector(call, , arity=2)')),
+            selector: 'CallStructure(arity=2)')),
     const Test(
         '''
         abstract class AbstractClass {
@@ -2341,11 +2453,11 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new Class(true, 42);
         ''',
         const Visit(
-            VisitKind.ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+            VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
             element: 'function(Class#)',
             arguments: '(true,42)',
             type: 'Class',
-            selector: 'Selector(call, , arity=2)')),
+            selector: 'CallStructure(arity=2)')),
   ],
 };
 
@@ -2381,7 +2493,8 @@ const Map<String, List<Test>> DECL_TESTS = const {
               index: 0),
           const Visit(VisitKind.VISIT_OPTIONAL_PARAMETER_DECL,
               element: 'parameter(m#b)',
-              index: 1),
+              index: 1,
+              constant: 'null'),
         ]),
     const Test(
         '''
@@ -2430,7 +2543,8 @@ const Map<String, List<Test>> DECL_TESTS = const {
               element: 'parameter(m#a)',
               index: 0),
           const Visit(VisitKind.VISIT_NAMED_PARAMETER_DECL,
-              element: 'parameter(m#b)'),
+              element: 'parameter(m#b)',
+              constant: 'null'),
         ]),
     const Test(
         '''
@@ -5184,44 +5298,97 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorUnresolvedSuperCompoundIndexSet(
+  visitUnresolvedSuperGetterCompoundIndexSet(
       Send node,
-      ErroneousElement element,
+      Element element,
       Node index,
       AssignmentOperator operator,
       Node rhs,
       arg) {
-    // TODO: implement errorUnresolvedSuperCompoundIndexSet
+    visits.add(new Visit(
+        VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_COMPOUND_INDEX_SET,
+        index: index, operator: operator, rhs: rhs));
+    apply(index, arg);
+    apply(rhs, arg);
   }
 
   @override
-  errorUnresolvedSuperIndexSet(
+  visitUnresolvedSuperSetterCompoundIndexSet(
+      Send node,
+      MethodElement getter,
+      Element element,
+      Node index,
+      AssignmentOperator operator,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_COMPOUND_INDEX_SET,
+        getter: getter, index: index, operator: operator, rhs: rhs));
+    apply(index, arg);
+    apply(rhs, arg);
+  }
+
+  @override
+  visitUnresolvedSuperIndexSet(
       Send node,
       ErroneousElement element,
       Node index,
       Node rhs,
       arg) {
-    // TODO: implement errorUnresolvedSuperIndexSet
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INDEX_SET,
+               index: index, rhs: rhs));
+    apply(index, arg);
+    apply(rhs, arg);
   }
 
   @override
-  errorUnresolvedSuperIndexPostfix(
+  visitUnresolvedSuperGetterIndexPostfix(
       Send node,
-      Element function,
+      Element element,
       Node index,
       IncDecOperator operator,
       arg) {
-    // TODO: implement errorUnresolvedSuperIndexPostfix
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_INDEX_POSTFIX,
+               index: index, operator: operator));
+    apply(index, arg);
   }
 
   @override
-  errorUnresolvedSuperIndexPrefix(
+  visitUnresolvedSuperSetterIndexPostfix(
       Send node,
-      Element function,
+      MethodElement getter,
+      Element element,
       Node index,
       IncDecOperator operator,
       arg) {
-    // TODO: implement errorUnresolvedSuperIndexPrefix
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_INDEX_POSTFIX,
+               getter: getter, index: index, operator: operator));
+    apply(index, arg);
+  }
+
+  @override
+  visitUnresolvedSuperGetterIndexPrefix(
+      Send node,
+      Element element,
+      Node index,
+      IncDecOperator operator,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_INDEX_PREFIX,
+               index: index, operator: operator));
+    apply(index, arg);
+  }
+
+  @override
+  visitUnresolvedSuperSetterIndexPrefix(
+      Send node,
+      MethodElement getter,
+      Element element,
+      Node index,
+      IncDecOperator operator,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_INDEX_PREFIX,
+               getter: getter, index: index, operator: operator));
+    apply(index, arg);
   }
 
   @override
@@ -5279,31 +5446,31 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorUnresolvedClassConstructorInvoke(
-      NewExpression node,
-      Element constructor,
-      MalformedType type,
-      NodeList arguments,
-      Selector selector,
-      arg) {
-    // TODO(johnniwinther): Test [type] and [selector].
-    visits.add(new Visit(
-        VisitKind.ERROR_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
-        arguments: arguments));
-    apply(arguments, arg);
-  }
-
-  @override
-  errorUnresolvedConstructorInvoke(
+  visitUnresolvedClassConstructorInvoke(
       NewExpression node,
       Element constructor,
       DartType type,
       NodeList arguments,
       Selector selector,
       arg) {
-    // TODO(johnniwinther): Test [type] and [selector].
+    // TODO(johnniwinther): Test [type] when it is not `dynamic`.
     visits.add(new Visit(
-        VisitKind.ERROR_UNRESOLVED_CONSTRUCTOR_INVOKE,
+        VisitKind.VISIT_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
+        arguments: arguments));
+    apply(arguments, arg);
+  }
+
+  @override
+  visitUnresolvedConstructorInvoke(
+      NewExpression node,
+      Element constructor,
+      DartType type,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    // TODO(johnniwinther): Test [type] when it is not `dynamic`.
+    visits.add(new Visit(
+        VisitKind.VISIT_UNRESOLVED_CONSTRUCTOR_INVOKE,
         arguments: arguments));
     apply(arguments, arg);
   }
@@ -5390,7 +5557,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorAbstractClassConstructorInvoke(
+  visitAbstractClassConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
       InterfaceType type,
@@ -5398,7 +5565,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       CallStructure callStructure,
       arg) {
     visits.add(new Visit(
-        VisitKind.ERROR_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
+        VisitKind.VISIT_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
         element: constructor,
         type: type,
         arguments: arguments,
@@ -5407,19 +5574,19 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorUnresolvedRedirectingFactoryConstructorInvoke(
+  visitUnresolvedRedirectingFactoryConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(
-        VisitKind.ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+        VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
         element: constructor,
         type: type,
         arguments: arguments,
-        selector: selector));
+        selector: callStructure));
     apply(arguments, arg);
   }
 }
@@ -5902,7 +6069,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorUnresolvedClassConstructorInvoke(
+  visitUnresolvedClassConstructorInvoke(
       NewExpression node,
       Element constructor,
       MalformedType type,
@@ -5911,13 +6078,13 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       arg) {
     // TODO(johnniwinther): Test [type] and [selector].
     visits.add(new Visit(
-        VisitKind.ERROR_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
+        VisitKind.VISIT_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
         arguments: arguments));
     apply(arguments, arg);
   }
 
   @override
-  errorUnresolvedConstructorInvoke(
+  visitUnresolvedConstructorInvoke(
       NewExpression node,
       Element constructor,
       DartType type,
@@ -5926,7 +6093,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       arg) {
     // TODO(johnniwinther): Test [type] and [selector].
     visits.add(new Visit(
-        VisitKind.ERROR_UNRESOLVED_CONSTRUCTOR_INVOKE,
+        VisitKind.VISIT_UNRESOLVED_CONSTRUCTOR_INVOKE,
         arguments: arguments));
     apply(arguments, arg);
   }
@@ -6013,7 +6180,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorAbstractClassConstructorInvoke(
+  visitAbstractClassConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
       InterfaceType type,
@@ -6021,7 +6188,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       CallStructure callStructure,
       arg) {
     visits.add(new Visit(
-        VisitKind.ERROR_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
+        VisitKind.VISIT_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
         element: constructor,
         type: type,
         arguments: arguments,
@@ -6030,19 +6197,19 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorUnresolvedRedirectingFactoryConstructorInvoke(
+  visitUnresolvedRedirectingFactoryConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(
-        VisitKind.ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+        VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
         element: constructor,
         type: type,
         arguments: arguments,
-        selector: selector));
+        selector: callStructure));
     apply(arguments, arg);
   }
 }
@@ -6176,7 +6343,11 @@ enum VisitKind {
   VISIT_SUPER_EQUALS,
   VISIT_SUPER_NOT_EQUALS,
   VISIT_SUPER_INDEX_PREFIX,
+  VISIT_UNRESOLVED_SUPER_GETTER_INDEX_PREFIX,
+  VISIT_UNRESOLVED_SUPER_SETTER_INDEX_PREFIX,
   VISIT_SUPER_INDEX_POSTFIX,
+  VISIT_UNRESOLVED_SUPER_GETTER_INDEX_POSTFIX,
+  VISIT_UNRESOLVED_SUPER_SETTER_INDEX_POSTFIX,
 
   VISIT_UNARY,
   VISIT_SUPER_UNARY,
@@ -6220,7 +6391,10 @@ enum VisitKind {
   VISIT_INDEX_SET,
   VISIT_COMPOUND_INDEX_SET,
   VISIT_SUPER_INDEX_SET,
+  VISIT_UNRESOLVED_SUPER_INDEX_SET,
   VISIT_SUPER_COMPOUND_INDEX_SET,
+  VISIT_UNRESOLVED_SUPER_GETTER_COMPOUND_INDEX_SET,
+  VISIT_UNRESOLVED_SUPER_SETTER_COMPOUND_INDEX_SET,
 
   VISIT_ASSERT,
   VISIT_LOGICAL_AND,
@@ -6239,10 +6413,10 @@ enum VisitKind {
   VISIT_THIS_CONSTRUCTOR_INVOKE,
   VISIT_FIELD_INITIALIZER,
 
-  ERROR_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
-  ERROR_UNRESOLVED_CONSTRUCTOR_INVOKE,
-  ERROR_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
-  ERROR_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+  VISIT_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
+  VISIT_UNRESOLVED_CONSTRUCTOR_INVOKE,
+  VISIT_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
+  VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
 
   VISIT_INSTANCE_GETTER_DECL,
   VISIT_INSTANCE_SETTER_DECL,

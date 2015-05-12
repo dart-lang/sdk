@@ -34,12 +34,14 @@ TypeMask jsReadableArray;
 TypeMask jsMutableArray;
 TypeMask jsFixedArray;
 TypeMask jsExtendableArray;
+TypeMask jsUnmodifiableArray;
 TypeMask jsString;
 TypeMask jsStringOrNull;
 TypeMask jsArrayOrNull;
 TypeMask jsMutableArrayOrNull;
 TypeMask jsFixedArrayOrNull;
 TypeMask jsExtendableArrayOrNull;
+TypeMask jsUnmodifiableArrayOrNull;
 TypeMask jsIndexableOrNull;
 TypeMask jsInterceptorOrNull;
 
@@ -113,6 +115,7 @@ void testUnion(MockCompiler compiler) {
   rule(emptyType, jsReadableArray, jsReadableArray);
   rule(emptyType, jsMutableArray, jsMutableArray);
   rule(emptyType, jsExtendableArray, jsExtendableArray);
+  rule(emptyType, jsUnmodifiableArray, jsUnmodifiableArray);
   rule(emptyType, nonPrimitive1, nonPrimitive1);
   rule(emptyType, nonPrimitive2, nonPrimitive2);
   rule(emptyType, potentialArray, potentialArray);
@@ -135,6 +138,7 @@ void testUnion(MockCompiler compiler) {
   rule(dynamicType, jsReadableArray, dynamicType);
   rule(dynamicType, jsMutableArray, dynamicType);
   rule(dynamicType, jsExtendableArray, dynamicType);
+  rule(dynamicType, jsUnmodifiableArray, dynamicType);
   rule(dynamicType, nonPrimitive1, dynamicType);
   rule(dynamicType, nonPrimitive2, dynamicType);
   rule(dynamicType, potentialArray, dynamicType);
@@ -156,6 +160,7 @@ void testUnion(MockCompiler compiler) {
   rule(jsBoolean, jsReadableArray, jsInterceptor);
   rule(jsBoolean, jsMutableArray, jsInterceptor);
   rule(jsBoolean, jsExtendableArray, jsInterceptor);
+  rule(jsBoolean, jsUnmodifiableArray, jsInterceptor);
   rule(jsBoolean, nonPrimitive1, objectType);
   rule(jsBoolean, nonPrimitive2, objectType);
   rule(jsBoolean, potentialArray, dynamicType);
@@ -176,6 +181,7 @@ void testUnion(MockCompiler compiler) {
   rule(jsNumber, jsReadableArray, jsInterceptor);
   rule(jsNumber, jsMutableArray, jsInterceptor);
   rule(jsNumber, jsExtendableArray, jsInterceptor);
+  rule(jsNumber, jsUnmodifiableArray, jsInterceptor);
   rule(jsNumber, nonPrimitive1, objectType);
   rule(jsNumber, nonPrimitive2, objectType);
   rule(jsNumber, potentialArray, dynamicType);
@@ -195,6 +201,7 @@ void testUnion(MockCompiler compiler) {
   rule(jsInteger, jsReadableArray, jsInterceptor);
   rule(jsInteger, jsMutableArray, jsInterceptor);
   rule(jsInteger, jsExtendableArray, jsInterceptor);
+  rule(jsInteger, jsUnmodifiableArray, jsInterceptor);
   rule(jsInteger, nonPrimitive1, objectType);
   rule(jsInteger, nonPrimitive2, objectType);
   rule(jsInteger, potentialArray, dynamicType);
@@ -213,6 +220,7 @@ void testUnion(MockCompiler compiler) {
   rule(jsDouble, jsReadableArray, jsInterceptor);
   rule(jsDouble, jsMutableArray, jsInterceptor);
   rule(jsDouble, jsExtendableArray, jsInterceptor);
+  rule(jsDouble, jsUnmodifiableArray, jsInterceptor);
   rule(jsDouble, nonPrimitive1, objectType);
   rule(jsDouble, nonPrimitive2, objectType);
   rule(jsDouble, potentialArray, dynamicType);
@@ -230,6 +238,7 @@ void testUnion(MockCompiler compiler) {
   rule(jsIndexable, jsReadableArray, jsIndexable);
   rule(jsIndexable, jsMutableArray, jsIndexable);
   rule(jsIndexable, jsExtendableArray, jsIndexable);
+  rule(jsIndexable, jsUnmodifiableArray, jsIndexable);
   rule(jsIndexable, nonPrimitive1, objectType);
   rule(jsIndexable, nonPrimitive2, objectType);
   rule(jsIndexable, potentialArray, dynamicType);
@@ -246,6 +255,7 @@ void testUnion(MockCompiler compiler) {
   rule(jsString, jsReadableArray, jsIndexable);
   rule(jsString, jsMutableArray, jsIndexable);
   rule(jsString, jsExtendableArray, jsIndexable);
+  rule(jsString, jsUnmodifiableArray, jsIndexable);
   rule(jsString, nonPrimitive1, objectType);
   rule(jsString, nonPrimitive2, objectType);
   rule(jsString, potentialArray, dynamicType);
@@ -261,6 +271,7 @@ void testUnion(MockCompiler compiler) {
   rule(jsReadableArray, jsReadableArray, jsReadableArray);
   rule(jsReadableArray, jsMutableArray, jsReadableArray);
   rule(jsReadableArray, jsExtendableArray, jsReadableArray);
+  rule(jsReadableArray, jsUnmodifiableArray, jsReadableArray);
   rule(jsReadableArray, nonPrimitive1, objectType);
   rule(jsReadableArray, nonPrimitive2, objectType);
   rule(jsReadableArray, potentialArray, potentialArray);
@@ -275,6 +286,7 @@ void testUnion(MockCompiler compiler) {
 
   rule(jsMutableArray, jsMutableArray, jsMutableArray);
   rule(jsMutableArray, jsExtendableArray, jsMutableArray);
+  rule(jsMutableArray, jsUnmodifiableArray, jsReadableArray);
   rule(jsMutableArray, nonPrimitive1, objectType);
   rule(jsMutableArray, nonPrimitive2, objectType);
   rule(jsMutableArray, potentialArray, potentialArray);
@@ -288,6 +300,7 @@ void testUnion(MockCompiler compiler) {
   rule(jsMutableArray, jsFixedArray, jsMutableArray);
 
   rule(jsExtendableArray, jsExtendableArray, jsExtendableArray);
+  rule(jsExtendableArray, jsUnmodifiableArray, jsReadableArray);
   rule(jsExtendableArray, nonPrimitive1, objectType);
   rule(jsExtendableArray, nonPrimitive2, objectType);
   rule(jsExtendableArray, potentialArray, potentialArray);
@@ -299,6 +312,19 @@ void testUnion(MockCompiler compiler) {
   rule(jsExtendableArray, jsStringOrNull, jsIndexableOrNull);
   rule(jsExtendableArray, nullType, jsExtendableArrayOrNull);
   rule(jsExtendableArray, jsFixedArray, jsMutableArray);
+
+  rule(jsUnmodifiableArray, jsUnmodifiableArray, jsUnmodifiableArray);
+  rule(jsUnmodifiableArray, nonPrimitive1, objectType);
+  rule(jsUnmodifiableArray, nonPrimitive2, objectType);
+  rule(jsUnmodifiableArray, potentialArray, potentialArray);
+  rule(jsUnmodifiableArray, potentialString, dynamicType);
+  rule(jsUnmodifiableArray, jsBooleanOrNull, jsInterceptorOrNull);
+  rule(jsUnmodifiableArray, jsNumberOrNull, jsInterceptorOrNull);
+  rule(jsUnmodifiableArray, jsIntegerOrNull, jsInterceptorOrNull);
+  rule(jsUnmodifiableArray, jsDoubleOrNull, jsInterceptorOrNull);
+  rule(jsUnmodifiableArray, jsStringOrNull, jsIndexableOrNull);
+  rule(jsUnmodifiableArray, nullType, jsUnmodifiableArrayOrNull);
+  rule(jsUnmodifiableArray, jsFixedArray, jsReadableArray);
 
   rule(nonPrimitive1, nonPrimitive1, nonPrimitive1);
   rule(nonPrimitive1, nonPrimitive2, objectType);
@@ -400,6 +426,7 @@ void testIntersection(MockCompiler compiler) {
   rule(emptyType, jsReadableArray, emptyType);
   rule(emptyType, jsMutableArray, emptyType);
   rule(emptyType, jsExtendableArray, emptyType);
+  rule(emptyType, jsUnmodifiableArray, emptyType);
   rule(emptyType, nonPrimitive1, emptyType);
   rule(emptyType, nonPrimitive2, emptyType);
   rule(emptyType, potentialArray, emptyType);
@@ -422,6 +449,7 @@ void testIntersection(MockCompiler compiler) {
   rule(dynamicType, jsReadableArray, jsReadableArray);
   rule(dynamicType, jsMutableArray, jsMutableArray);
   rule(dynamicType, jsExtendableArray, jsExtendableArray);
+  rule(dynamicType, jsUnmodifiableArray, jsUnmodifiableArray);
   rule(dynamicType, nonPrimitive1, nonPrimitive1);
   rule(dynamicType, nonPrimitive2, nonPrimitive2);
   rule(dynamicType, potentialArray, potentialArray);
@@ -443,6 +471,7 @@ void testIntersection(MockCompiler compiler) {
   rule(jsBoolean, jsReadableArray, emptyType);
   rule(jsBoolean, jsMutableArray, emptyType);
   rule(jsBoolean, jsExtendableArray, emptyType);
+  rule(jsBoolean, jsUnmodifiableArray, emptyType);
   rule(jsBoolean, nonPrimitive1, emptyType);
   rule(jsBoolean, nonPrimitive2, emptyType);
   rule(jsBoolean, potentialArray, emptyType);
@@ -463,6 +492,7 @@ void testIntersection(MockCompiler compiler) {
   rule(jsNumber, jsReadableArray, emptyType);
   rule(jsNumber, jsMutableArray, emptyType);
   rule(jsNumber, jsExtendableArray, emptyType);
+  rule(jsNumber, jsUnmodifiableArray, emptyType);
   rule(jsNumber, nonPrimitive1, emptyType);
   rule(jsNumber, nonPrimitive2, emptyType);
   rule(jsNumber, potentialArray, emptyType);
@@ -482,6 +512,7 @@ void testIntersection(MockCompiler compiler) {
   rule(jsInteger, jsReadableArray, emptyType);
   rule(jsInteger, jsMutableArray, emptyType);
   rule(jsInteger, jsExtendableArray, emptyType);
+  rule(jsInteger, jsUnmodifiableArray, emptyType);
   rule(jsInteger, nonPrimitive1, emptyType);
   rule(jsInteger, nonPrimitive2, emptyType);
   rule(jsInteger, potentialArray, emptyType);
@@ -500,6 +531,7 @@ void testIntersection(MockCompiler compiler) {
   rule(jsDouble, jsReadableArray, emptyType);
   rule(jsDouble, jsMutableArray, emptyType);
   rule(jsDouble, jsExtendableArray, emptyType);
+  rule(jsDouble, jsUnmodifiableArray, emptyType);
   rule(jsDouble, nonPrimitive1, emptyType);
   rule(jsDouble, nonPrimitive2, emptyType);
   rule(jsDouble, potentialArray, emptyType);
@@ -517,6 +549,7 @@ void testIntersection(MockCompiler compiler) {
   rule(jsIndexable, jsReadableArray, jsReadableArray);
   rule(jsIndexable, jsMutableArray, jsMutableArray);
   rule(jsIndexable, jsExtendableArray, jsExtendableArray);
+  rule(jsIndexable, jsUnmodifiableArray, jsUnmodifiableArray);
   rule(jsIndexable, nonPrimitive1, emptyType);
   rule(jsIndexable, nonPrimitive2, emptyType);
   rule(jsIndexable, potentialArray, new TypeMask.nonNullSubtype(
@@ -535,6 +568,7 @@ void testIntersection(MockCompiler compiler) {
   rule(jsString, jsReadableArray, emptyType);
   rule(jsString, jsMutableArray, emptyType);
   rule(jsString, jsExtendableArray, emptyType);
+  rule(jsString, jsUnmodifiableArray, emptyType);
   rule(jsString, nonPrimitive1, emptyType);
   rule(jsString, nonPrimitive2, emptyType);
   rule(jsString, potentialArray, emptyType);
@@ -550,6 +584,7 @@ void testIntersection(MockCompiler compiler) {
   rule(jsReadableArray, jsReadableArray, jsReadableArray);
   rule(jsReadableArray, jsMutableArray, jsMutableArray);
   rule(jsReadableArray, jsExtendableArray, jsExtendableArray);
+  rule(jsReadableArray, jsUnmodifiableArray, jsUnmodifiableArray);
   rule(jsReadableArray, nonPrimitive1, emptyType);
   rule(jsReadableArray, nonPrimitive2, emptyType);
   rule(jsReadableArray, potentialArray, jsReadableArray);
@@ -564,6 +599,7 @@ void testIntersection(MockCompiler compiler) {
 
   rule(jsMutableArray, jsMutableArray, jsMutableArray);
   rule(jsMutableArray, jsExtendableArray, jsExtendableArray);
+  rule(jsMutableArray, jsUnmodifiableArray, emptyType);
   rule(jsMutableArray, nonPrimitive1, emptyType);
   rule(jsMutableArray, nonPrimitive2, emptyType);
   rule(jsMutableArray, potentialArray, jsMutableArray);
@@ -577,6 +613,7 @@ void testIntersection(MockCompiler compiler) {
   rule(jsMutableArray, jsFixedArray, jsFixedArray);
 
   rule(jsExtendableArray, jsExtendableArray, jsExtendableArray);
+  rule(jsExtendableArray, jsUnmodifiableArray, emptyType);
   rule(jsExtendableArray, nonPrimitive1, emptyType);
   rule(jsExtendableArray, nonPrimitive2, emptyType);
   rule(jsExtendableArray, potentialArray, jsExtendableArray);
@@ -588,6 +625,19 @@ void testIntersection(MockCompiler compiler) {
   rule(jsExtendableArray, jsStringOrNull, emptyType);
   rule(jsExtendableArray, nullType, emptyType);
   rule(jsExtendableArray, jsFixedArray, emptyType);
+
+  rule(jsUnmodifiableArray, jsUnmodifiableArray, jsUnmodifiableArray);
+  rule(jsUnmodifiableArray, nonPrimitive1, emptyType);
+  rule(jsUnmodifiableArray, nonPrimitive2, emptyType);
+  rule(jsUnmodifiableArray, potentialArray, jsUnmodifiableArray);
+  rule(jsUnmodifiableArray, potentialString, emptyType);
+  rule(jsUnmodifiableArray, jsBooleanOrNull, emptyType);
+  rule(jsUnmodifiableArray, jsNumberOrNull, emptyType);
+  rule(jsUnmodifiableArray, jsIntegerOrNull, emptyType);
+  rule(jsUnmodifiableArray, jsDoubleOrNull, emptyType);
+  rule(jsUnmodifiableArray, jsStringOrNull, emptyType);
+  rule(jsUnmodifiableArray, nullType, emptyType);
+  rule(jsUnmodifiableArray, jsFixedArray, emptyType);
 
   rule(nonPrimitive1, nonPrimitive1, nonPrimitive1);
   rule(nonPrimitive1, nonPrimitive2, emptyType);
@@ -717,6 +767,10 @@ void main() {
         world);
     jsExtendableArray = new TypeMask.nonNullExact(
         backend.jsExtendableArrayClass, world);
+    jsUnmodifiableArrayOrNull =
+        new TypeMask.exact(backend.jsUnmodifiableArrayClass, world);
+    jsUnmodifiableArray =
+        new TypeMask.nonNullExact(backend.jsUnmodifiableArrayClass, world);
     jsIndexableOrNull = new TypeMask.subtype(backend.jsIndexableClass, world);
     jsIndexable = new TypeMask.nonNullSubtype(backend.jsIndexableClass, world);
     jsInterceptorOrNull = new TypeMask.subclass(backend.jsInterceptorClass,

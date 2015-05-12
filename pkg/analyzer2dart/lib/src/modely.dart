@@ -420,7 +420,7 @@ class LocalFunctionElementY extends ElementY
 }
 
 class ParameterElementY extends ElementY
-    with AnalyzableElementY, AstElementY
+    with AnalyzableElementY, AstElementY, VariableElementMixin
     implements dart2js.ParameterElement {
 
   analyzer.ParameterElement get element => super.element;
@@ -457,12 +457,6 @@ class ParameterElementY extends ElementY
 
   @override
   get functionDeclaration => unsupported('functionDeclaration');
-
-  @override
-  get initializer => unsupported('initializer');
-
-  @override
-  get memberContext => unsupported('memberContext');
 
   @override
   get functionSignature => unsupported('functionSignature');
@@ -718,6 +712,9 @@ abstract class VariableElementMixin
 
   @override
   get memberContext => unsupported('memberContext');
+
+  @override
+  get constant => unsupported('constant');
 }
 
 class TopLevelVariableElementY extends ElementY
@@ -861,6 +858,21 @@ class ConstructorElementY extends ElementY
 
   @override
   get nestedClosures => unsupported('nestedClosures');
+
+  @override
+  get constantConstructor => unsupported('constantConstructor');
+
+  @override
+  get isFromEnvironmentConstructor {
+    unsupported('isFromEnvironmentConstructor');
+  }
+
+  @override
+  bool get isCyclicRedirection => effectiveTarget.isRedirectingFactory;
+
+  // TODO(johnniwinther): implement redirectionDeferredPrefix
+  @override
+  dart2js.PrefixElement get redirectionDeferredPrefix => null;
 }
 
 class InstanceMethodElementY extends ElementY

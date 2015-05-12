@@ -290,6 +290,7 @@ class JavaScriptBackend extends Backend {
   ClassElement jsMutableArrayClass;
   ClassElement jsFixedArrayClass;
   ClassElement jsExtendableArrayClass;
+  ClassElement jsUnmodifiableArrayClass;
   ClassElement jsPositiveIntClass;
   ClassElement jsUInt32Class;
   ClassElement jsUInt31Class;
@@ -384,6 +385,15 @@ class JavaScriptBackend extends Backend {
           new TypeMask.nonNullExact(jsExtendableArrayClass, compiler.world);
     }
     return _extendableArrayTypeCache;
+  }
+
+  TypeMask _unmodifiableArrayTypeCache;
+  TypeMask get unmodifiableArrayType {
+    if (_unmodifiableArrayTypeCache == null) {
+      _unmodifiableArrayTypeCache =
+          new TypeMask.nonNullExact(jsUnmodifiableArrayClass, compiler.world);
+    }
+    return _fixedArrayTypeCache;
   }
 
   TypeMask _nonNullTypeCache;
@@ -1055,11 +1065,13 @@ class JavaScriptBackend extends Backend {
     } else if (cls == compiler.listClass ||
                cls == jsArrayClass ||
                cls == jsFixedArrayClass ||
-               cls == jsExtendableArrayClass) {
+               cls == jsExtendableArrayClass ||
+               cls == jsUnmodifiableArrayClass) {
       addInterceptors(jsArrayClass, enqueuer, registry);
       addInterceptors(jsMutableArrayClass, enqueuer, registry);
       addInterceptors(jsFixedArrayClass, enqueuer, registry);
       addInterceptors(jsExtendableArrayClass, enqueuer, registry);
+      addInterceptors(jsUnmodifiableArrayClass, enqueuer, registry);
     } else if (cls == compiler.intClass || cls == jsIntClass) {
       addInterceptors(jsIntClass, enqueuer, registry);
       addInterceptors(jsPositiveIntClass, enqueuer, registry);
@@ -1639,7 +1651,8 @@ class JavaScriptBackend extends Backend {
         element == jsArrayClass ||
         element == jsMutableArrayClass ||
         element == jsExtendableArrayClass ||
-        element == jsFixedArrayClass;
+        element == jsFixedArrayClass ||
+        element == jsUnmodifiableArrayClass;
   }
 
   /// Return [true] if the class is represented by a native JavaSCript type in
@@ -1871,7 +1884,7 @@ class JavaScriptBackend extends Backend {
   ClassElement get numImplementation => jsNumberClass;
   ClassElement get stringImplementation => jsStringClass;
   ClassElement get listImplementation => jsArrayClass;
-  ClassElement get constListImplementation => jsArrayClass;
+  ClassElement get constListImplementation => jsUnmodifiableArrayClass;
   ClassElement get fixedListImplementation => jsFixedArrayClass;
   ClassElement get growableListImplementation => jsExtendableArrayClass;
   ClassElement get mapImplementation => mapLiteralClass;
@@ -2032,6 +2045,7 @@ class JavaScriptBackend extends Backend {
           jsMutableArrayClass = findClass('JSMutableArray'),
           jsFixedArrayClass = findClass('JSFixedArray'),
           jsExtendableArrayClass = findClass('JSExtendableArray'),
+          jsUnmodifiableArrayClass = findClass('JSUnmodifiableArray'),
           jsPlainJavaScriptObjectClass = findClass('PlainJavaScriptObject'),
           jsUnknownJavaScriptObjectClass = findClass('UnknownJavaScriptObject'),
         ];
@@ -2114,6 +2128,9 @@ class JavaScriptBackend extends Backend {
     }
     if (jsExtendableArrayClass != null) {
       jsExtendableArrayClass.ensureResolved(compiler);
+    }
+    if (jsUnmodifiableArrayClass != null) {
+      jsUnmodifiableArrayClass.ensureResolved(compiler);
     }
 
     jsIndexableClass.ensureResolved(compiler);

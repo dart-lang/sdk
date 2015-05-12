@@ -185,20 +185,17 @@ def main():
   # The buildbot will set a BUILDBOT_JAVA_HOME relative to the dart
   # root directory, set JAVA_HOME based on that.
   FixJavaHome()
-  if name.startswith('dart-editor'):
-    # Run the old annotated steps script
-    status = ProcessTools('release', name, version)
-  elif name.startswith('pub-'):
+  if name.startswith('pub-'):
     status = ProcessBot(name, 'pub')
   elif name.startswith('vm-android'):
     status = ProcessBot(name, 'android')
+  elif name.startswith('dart-sdk'):
+    status = ProcessBot(name, 'dart_sdk')
   elif name.startswith('cross') or name.startswith('target'):
     status = ProcessBot(name, 'cross-vm',
                         custom_env=EnvironmentWithoutBotoConfig())
   elif name.startswith('linux-distribution-support'):
     status = ProcessBot(name, 'linux_distribution_support')
-  elif name.startswith('ft'):
-    status = ProcessBot(name, 'functional_testing')
   elif name.startswith('version-checker'):
     status = ProcessBot(name, 'version_checker')
   elif name.startswith('dart2js-dump-info'):

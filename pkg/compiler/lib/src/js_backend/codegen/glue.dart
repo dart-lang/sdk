@@ -76,6 +76,10 @@ class Glue {
     return _namer.invocationName(selector);
   }
 
+  FunctionElement get createInvocationMirrorMethod {
+    return _backend.getCreateInvocationMirror();
+  }
+
   void registerUseInterceptorInCodegen() {
     _backend.registerUseInterceptor(_enqueuer);
   }
@@ -113,7 +117,6 @@ class Glue {
     return _emitter.prototypeAccess(e,
         hasBeenInstantiated: hasBeenInstantiated);
   }
-
 
   String getInterceptorName(Set<ClassElement> interceptedClasses) {
     return _backend.namer.nameForGetInterceptor(interceptedClasses);
@@ -206,5 +209,9 @@ class Glue {
 
   String getTypeTestTag(DartType type) {
     return _backend.namer.operatorIsType(type);
+  }
+
+  bool operatorEqHandlesNullArgument(FunctionElement element) {
+    return _backend.operatorEqHandlesNullArgument(element);
   }
 }

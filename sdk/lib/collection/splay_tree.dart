@@ -274,7 +274,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
   factory SplayTreeMap.from(Map other,
                             [int compare(K key1, K key2),
                              bool isValidKey(potentialKey)]) {
-    SplayTreeMap<K, V> result = new SplayTreeMap<K, V>();
+    SplayTreeMap<K, V> result = new SplayTreeMap<K, V>(compare, isValidKey);
     other.forEach((k, v) { result[k] = v; });
     return result;
   }
@@ -600,7 +600,7 @@ abstract class _SplayTreeIterator<T> implements Iterator<T> {
 }
 
 class _SplayTreeKeyIterable<K> extends Iterable<K>
-                               implements EfficientLength {
+                               implements EfficientLengthIterable<K> {
   _SplayTree<K> _tree;
   _SplayTreeKeyIterable(this._tree);
   int get length => _tree._count;
@@ -618,7 +618,7 @@ class _SplayTreeKeyIterable<K> extends Iterable<K>
 }
 
 class _SplayTreeValueIterable<K, V> extends Iterable<V>
-                                    implements EfficientLength {
+                                    implements EfficientLengthIterable<V> {
   SplayTreeMap<K, V> _map;
   _SplayTreeValueIterable(this._map);
   int get length => _map._count;

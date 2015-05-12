@@ -173,6 +173,36 @@ class SecurityConfiguration {
   }
 
 
+  void testCloseNoListen() {
+    createServer().then((server) {
+      server.transform(new WebSocketTransformer()).listen((webSocket) {
+        server.close();
+        webSocket.close();
+      });
+
+      createClient(server.port).then((webSocket) {
+        webSocket.close();
+      });
+    });
+  }
+
+
+  void testListenAfterClose() {
+    createServer().then((server) {
+      server.transform(new WebSocketTransformer()).listen((webSocket) {
+        server.close();
+        webSocket.close();
+        Expect.throws(() => webSocket.drain());
+      });
+
+      createClient(server.port).then((webSocket) {
+        webSocket.close();
+        Expect.throws(() => webSocket.drain());
+      });
+    });
+  }
+
+
   void testDoubleCloseClient() {
     createServer().then((server) {
       server.transform(new WebSocketTransformer()).listen((webSocket) {
@@ -208,10 +238,10 @@ class SecurityConfiguration {
       server.listen((request) {
         WebSocketTransformer.upgrade(request)
             .then((webSocket) {
-              webSocket.close();
               webSocket.listen(
                   (_) { Expect.fail("Unexpected message"); },
                   onDone: server.close);
+              webSocket.close();
             });
       });
 
@@ -239,10 +269,10 @@ class SecurityConfiguration {
       });
 
       createClient(server.port).then((webSocket) {
-          webSocket.close();
           webSocket.listen(
               (_) { Expect.fail("Unexpected message"); },
               onDone: webSocket.close);
+          webSocket.close();
         });
     });
   }
@@ -512,6 +542,8 @@ class SecurityConfiguration {
     testMessageLength(127);
     testMessageLength(65535);
     testMessageLength(65536);
+    testCloseNoListen();
+    testListenAfterClose();
     testDoubleCloseClient();
     testDoubleCloseServer();
     testImmediateCloseServer();

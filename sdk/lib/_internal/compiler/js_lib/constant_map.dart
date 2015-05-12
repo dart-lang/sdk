@@ -23,8 +23,7 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
   void addAll(Map<K, V> other) => _throwUnmodifiable();
 }
 
-class ConstantStringMap<K, V> extends ConstantMap<K, V>
-                              implements _symbol_dev.EfficientLength {
+class ConstantStringMap<K, V> extends ConstantMap<K, V> {
 
   // This constructor is not used.  The instantiation is shortcut by the
   // compiler. It is here to make the uninitialized final fields legal.

@@ -294,7 +294,7 @@ class InterfaceTypeSuggestionBuilder {
    * Add a suggestion based upon the given element, provided that it is not
    * shadowed by a previously added suggestion.
    */
-  void addSuggestion(Element element) {
+  void addSuggestion(Element element, {int relevance: DART_RELEVANCE_DEFAULT}) {
     if (element.isPrivate) {
       LibraryElement elementLibrary = element.library;
       LibraryElement unitLibrary = request.unit.element.library;
@@ -339,22 +339,35 @@ class InterfaceTypeSuggestionBuilder {
       assert(false);
       return;
     }
-    CompletionSuggestion suggestion = createSuggestion(element, kind: kind);
+    CompletionSuggestion suggestion =
+        createSuggestion(element, kind: kind, relevance: relevance);
     if (suggestion != null) {
       request.addSuggestion(suggestion);
     }
   }
 
-  void _buildSuggestions(InterfaceType type, LibraryElement library) {
+  void _buildSuggestions(InterfaceType type, LibraryElement library,
+      bool isSuper, String containingMethodName) {
+    if (isSuper) {
+      // Suggest members from superclass if the target is "super"
+      type = type.superclass;
+      if (type == null) {
+        return;
+      }
+    }
     // Visit all of the types in the class hierarchy, collecting possible
     // completions.  If multiple elements are found that complete to the same
     // identifier, addSuggestion will discard all but the first (with a few
     // exceptions to handle getter/setter pairs).
-    for (InterfaceType targetType in _getTypeOrdering(type)) {
+    List<InterfaceType> types = _getTypeOrdering(type);
+    for (InterfaceType targetType in types) {
       for (MethodElement method in targetType.methods) {
         // Exclude static methods when completion on an instance
         if (!method.isStatic) {
-          addSuggestion(method);
+          addSuggestion(method,
+              relevance: method.name == containingMethodName
+                  ? DART_RELEVANCE_HIGH
+                  : DART_RELEVANCE_DEFAULT);
         }
       }
       for (PropertyAccessorElement propertyAccessor in targetType.accessors) {
@@ -412,7 +425,8 @@ class InterfaceTypeSuggestionBuilder {
   /**
    * Add suggestions for the visible members in the given interface
    */
-  static void suggestionsFor(DartCompletionRequest request, DartType type) {
+  static void suggestionsFor(DartCompletionRequest request, DartType type,
+      {bool isSuper: false, String containingMethodName: null}) {
     CompilationUnit compilationUnit =
         request.target.containingNode.getAncestor((n) => n is CompilationUnit);
     LibraryElement library = compilationUnit.element.library;
@@ -421,7 +435,7 @@ class InterfaceTypeSuggestionBuilder {
     }
     if (type is InterfaceType) {
       return new InterfaceTypeSuggestionBuilder(request)._buildSuggestions(
-          type, library);
+          type, library, isSuper, containingMethodName);
     }
   }
 }

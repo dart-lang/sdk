@@ -24,8 +24,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, enable_type_checks);
-
 // When entering intrinsics code:
 // ECX: IC Data
 // EDX: Arguments descriptor
@@ -789,7 +787,7 @@ void Intrinsifier::Integer_sar(Assembler* assembler) {
 
 // Argument is Smi (receiver).
 void Intrinsifier::Smi_bitNegate(Assembler* assembler) {
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Index.
+  __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Receiver.
   __ notl(EAX);
   __ andl(EAX, Immediate(~kSmiTagMask));  // Remove inverted smi-tag.
   __ ret();
@@ -798,7 +796,7 @@ void Intrinsifier::Smi_bitNegate(Assembler* assembler) {
 
 void Intrinsifier::Smi_bitLength(Assembler* assembler) {
   ASSERT(kSmiTagShift == 1);
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Index.
+  __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Receiver.
   // XOR with sign bit to complement bits if value is negative.
   __ movl(ECX, EAX);
   __ sarl(ECX, Immediate(31));  // All 0 or all 1.

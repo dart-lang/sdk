@@ -58,7 +58,6 @@ DEFINE_FLAG(bool, enable_inlining_annotations, false,
             "Enable inlining annotations");
 
 DECLARE_FLAG(bool, compiler_stats);
-DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, deoptimization_counter_threshold);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);

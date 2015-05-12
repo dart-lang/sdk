@@ -17,8 +17,8 @@ import 'test_support.dart';
 main() {
   groupSep = ' | ';
   runReflectiveTests(AnalysisTaskTest);
-  runReflectiveTests(ContributionPointImplTest);
   runReflectiveTests(ResultDescriptorImplTest);
+  runReflectiveTests(SimpleResultCachingPolicyTest);
   runReflectiveTests(TaskDescriptorImplTest);
 }
 
@@ -56,52 +56,20 @@ class AnalysisTaskTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class ContributionPointImplTest extends EngineTestCase {
-  test_contributors_empty() {
-    CompositeResultDescriptorImpl point =
-        new CompositeResultDescriptorImpl('point');
-    List<ResultDescriptor> contributors = point.contributors;
-    expect(contributors, isEmpty);
-  }
-
-  test_contributors_nonEmpty() {
-    ResultDescriptorImpl result1 = new ResultDescriptorImpl('result1', null);
-    ResultDescriptorImpl result2 = new ResultDescriptorImpl('result2', null);
-    CompositeResultDescriptorImpl point =
-        new CompositeResultDescriptorImpl('point');
-    point.recordContributor(result1);
-    point.recordContributor(result2);
-    List<ResultDescriptor> contributors = point.contributors;
-    expect(contributors, isNotNull);
-    expect(contributors, hasLength(2));
-    if (!(contributors[0] == result1 && contributors[1] == result2) ||
-        (contributors[0] == result2 && contributors[1] == result1)) {
-      fail("Invalid contributors: $contributors");
-    }
-  }
-
-  test_create() {
-    expect(new CompositeResultDescriptorImpl('name'), isNotNull);
-  }
-
-  test_name() {
-    String name = 'point';
-    CompositeResultDescriptorImpl point =
-        new CompositeResultDescriptorImpl(name);
-    expect(point.name, name);
-  }
-}
-
-@reflectiveTest
 class ResultDescriptorImplTest extends EngineTestCase {
-  test_create_withContribution() {
-    CompositeResultDescriptorImpl point =
-        new CompositeResultDescriptorImpl('point');
+  test_create_withCachingPolicy() {
+    ResultCachingPolicy policy = new SimpleResultCachingPolicy(128, 16);
     ResultDescriptorImpl result =
-        new ResultDescriptorImpl('result', null, contributesTo: point);
-    expect(result, isNotNull);
-    List<ResultDescriptor> contributors = point.contributors;
-    expect(contributors, unorderedEquals([result]));
+        new ResultDescriptorImpl('result', null, cachingPolicy: policy);
+    expect(result.cachingPolicy, same(policy));
+  }
+
+  test_create_withoutCachingPolicy() {
+    ResultDescriptorImpl result = new ResultDescriptorImpl('result', null);
+    ResultCachingPolicy cachingPolicy = result.cachingPolicy;
+    expect(cachingPolicy, isNotNull);
+    expect(cachingPolicy.maxActiveSize, -1);
+    expect(cachingPolicy.maxIdleSize, -1);
   }
 
   test_create_withoutContribution() {
@@ -119,6 +87,16 @@ class ResultDescriptorImplTest extends EngineTestCase {
     String name = 'result';
     ResultDescriptorImpl result = new ResultDescriptorImpl(name, null);
     expect(result.name, name);
+  }
+}
+
+@reflectiveTest
+class SimpleResultCachingPolicyTest extends EngineTestCase {
+  test_create() {
+    ResultCachingPolicy policy = new SimpleResultCachingPolicy(256, 32);
+    expect(policy.maxActiveSize, 256);
+    expect(policy.maxIdleSize, 32);
+    expect(policy.measure(null), 1);
   }
 }
 
@@ -148,13 +126,10 @@ class TaskDescriptorImplTest extends EngineTestCase {
     AnalysisContext context = null;
     AnalysisTarget target = new TestSource();
     Map<String, dynamic> inputs = {};
-    String inputMemento = 'main() {}';
-    AnalysisTask createTask =
-        descriptor.createTask(context, target, inputs, inputMemento);
+    AnalysisTask createTask = descriptor.createTask(context, target, inputs);
     expect(createTask, isNotNull);
     expect(createTask.context, context);
     expect(createTask.inputs, inputs);
-    expect(createTask.inputMemento, inputMemento);
     expect(createTask.target, target);
   }
 }

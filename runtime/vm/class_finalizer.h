@@ -93,9 +93,11 @@ class ClassFinalizer : public AllStatic {
   // Finalize the class including its fields and functions.
   static void FinalizeClass(const Class& cls);
 
+#if defined(DART_NO_SNAPSHOT)
   // Verify that the classes have been properly prefinalized. This is
   // needed during bootstrapping where the classes have been preloaded.
   static void VerifyBootstrapClasses();
+#endif  // defined(DART_NO_SNAPSHOT).
 
   // Resolve the class of the type, but not the type's type arguments.
   static void ResolveTypeClass(const Class& cls, const AbstractType& type);

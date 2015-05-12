@@ -723,6 +723,38 @@ ASSEMBLER_TEST_RUN(EorImm, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Clz, assembler) {
+  Label error;
+
+  __ clz(R1, ZR);
+  __ cmp(R1, Operand(64));
+  __ b(&error, NE);
+  __ LoadImmediate(R2, 42, kNoPP);
+  __ clz(R2, R2);
+  __ cmp(R2, Operand(58));
+  __ b(&error, NE);
+  __ LoadImmediate(R0, -1, kNoPP);
+  __ clz(R1, R0);
+  __ cmp(R1, Operand(0));
+  __ b(&error, NE);
+  __ add(R0, ZR, Operand(R0, LSR, 3));
+  __ clz(R1, R0);
+  __ cmp(R1, Operand(3));
+  __ b(&error, NE);
+  __ mov(R0, ZR);
+  __ ret();
+  __ Bind(&error);
+  __ LoadImmediate(R0, 1, kNoPP);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Clz, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+
 // Comparisons, branching.
 ASSEMBLER_TEST_GENERATE(BranchALForward, assembler) {
   Label l;

@@ -41,7 +41,6 @@ final STATUS_TUPLES = [
      "tests/benchmark_smoke/benchmark_smoke.status"],
     ["co19", "tests/co19/src", "tests/co19/co19-analyzer2.status"],
     ["co19", "tests/co19/src", "tests/co19/co19-analyzer.status"],
-    ["co19", "tests/co19/src", "tests/co19/co19-dart2dart.status"],
     ["co19", "tests/co19/src", "tests/co19/co19-dart2js.status"],
     ["co19", "tests/co19/src", "tests/co19/co19-co19.status"],
     ["co19", "tests/co19/src", "tests/co19/co19-dartium.status"],

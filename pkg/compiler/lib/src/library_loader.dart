@@ -371,7 +371,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
    * the import/export scopes are not set up.
    */
   Future processLibraryTags(LibraryDependencyHandler handler,
-                            LibraryElement library) {
+                            LibraryElementX library) {
     TagState tagState = new TagState();
 
     bool importsDartCore = false;
@@ -499,13 +499,23 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   /**
    * Handle an import/export tag by loading the referenced library and
    * registering its dependency in [handler] for the computation of the import/
-   * export scope.
+   * export scope. If the tag does not contain a valid URI, then its dependency
+   * is not registered in [handler].
    */
-  Future registerLibraryFromTag(LibraryDependencyHandler handler,
-                                LibraryElement library,
-                                LibraryDependency tag) {
+  Future<Null> registerLibraryFromTag(LibraryDependencyHandler handler,
+                                      LibraryElement library,
+                                      LibraryDependency tag) {
     Uri base = library.canonicalUri;
-    Uri resolvedUri = base.resolve(tag.uri.dartString.slowToString());
+    String tagUriString = tag.uri.dartString.slowToString();
+    Uri resolvedUri;
+    try {
+      resolvedUri = base.resolve(tagUriString);
+    } on FormatException {
+      compiler.reportError(
+          tag.uri, MessageKind.INVALID_URI, {'uri': tagUriString});
+      // 'reportError' does not stop necessarily stop compilation
+      return new Future.value();
+    }
     return createLibrary(handler, library, resolvedUri, tag.uri)
         .then((LibraryElement loadedLibrary) {
           if (loadedLibrary == null) return;
@@ -649,7 +659,7 @@ class ImportLink {
   /**
    * Imports the library into the [importingLibrary].
    */
-  void importLibrary(Compiler compiler, LibraryElement importingLibrary) {
+  void importLibrary(Compiler compiler, LibraryElementX importingLibrary) {
     assert(invariant(importingLibrary,
                      importedLibrary.exportsHandled,
                      message: 'Exports not handled on $importedLibrary'));
@@ -722,7 +732,7 @@ class ExportLink {
  * exports performed in [LibraryDependencyHandler.computeExports].
  */
 class LibraryDependencyNode {
-  final LibraryElement library;
+  final LibraryElementX library;
 
   // TODO(ahe): Remove [hashCodeCounter] and [hashCode] when
   // VM implementation of Object.hashCode is not slow.
@@ -765,7 +775,7 @@ class LibraryDependencyNode {
   Map<Element, Link<Export>> pendingExportMap =
       new Map<Element, Link<Export>>();
 
-  LibraryDependencyNode(LibraryElement this.library);
+  LibraryDependencyNode(this.library);
 
   /**
    * Registers that the library of this node imports [importLibrary] through the
@@ -1015,7 +1025,7 @@ class LibraryDependencyHandler implements LibraryLoader {
   /**
    * Registers that [library] depends on [loadedLibrary] through [tag].
    */
-  void registerDependency(LibraryElement library,
+  void registerDependency(LibraryElementX library,
                           LibraryDependency tag,
                           LibraryElement loadedLibrary) {
     if (tag != null) {

@@ -258,6 +258,25 @@ class KeywordContributorTest extends AbstractCompletionTest {
         relevance: DART_RELEVANCE_HIGH);
   }
 
+  test_anonymous_function_async() {
+    addTestSource('main() {foo(() ^ {}}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([],
+        pseudoKeywords: ['async'], relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_anonymous_function_async2() {
+    addTestSource('main() {foo(() a^ {}}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS, pseudoKeywords: ['async']);
+  }
+
+  test_anonymous_function_async3() {
+    addTestSource('main() {foo(() async ^ {}}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
   test_argument() {
     addTestSource('main() {foo(^);}');
     expect(computeFast(), isTrue);
@@ -878,6 +897,24 @@ class A {
     addTestSource('class A { foo() async => ^;}');
     expect(computeFast(), isTrue);
     assertSuggestKeywords(EXPRESSION_START_INSTANCE, pseudoKeywords: ['await']);
+  }
+
+  test_method_body_expression1() {
+    addTestSource('class A { foo() {return b == true ? ^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_INSTANCE);
+  }
+
+  test_method_body_expression2() {
+    addTestSource('class A { foo() {return b == true ? 1 : ^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_INSTANCE);
+  }
+
+  test_method_body_return() {
+    addTestSource('class A { foo() {return ^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_INSTANCE);
   }
 
   test_method_param() {

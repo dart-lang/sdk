@@ -329,6 +329,9 @@ class InvokeMethod extends Expression implements Invoke {
 /// invocations to intercepted methods, where the effective receiver is instead
 /// passed as a formal parameter.
 ///
+/// TODO(sra): Review. A direct call to a method that is mixed into a native
+/// class will still require an explicit argument.
+///
 /// When targeting Dart, this instruction is used to represent super calls.
 /// Here, [receiver] must always be a reference to `this`, and [target] must be
 /// a method that is available in the super class.
@@ -665,6 +668,17 @@ class Interceptor extends Primitive implements JsSpecificNode {
   Interceptor(Primitive input, this.interceptedClasses)
       : this.input = new Reference<Primitive>(input);
   accept(Visitor visitor) => visitor.visitInterceptor(this);
+}
+
+/// Create an instance of [Invocation] for use in a call to `noSuchMethod`.
+class CreateInvocationMirror extends Primitive implements JsSpecificNode {
+  final Selector selector;
+  final List<Reference<Primitive>> arguments;
+
+  CreateInvocationMirror(this.selector, List<Primitive> arguments)
+      : this.arguments = _referenceList(arguments);
+
+  accept(Visitor visitor) => visitor.visitCreateInvocationMirror(this);
 }
 
 class Constant extends Primitive {
@@ -1021,6 +1035,7 @@ abstract class Visitor<T> {
   T visitReifyRuntimeType(ReifyRuntimeType node);
   T visitReadTypeVariable(ReadTypeVariable node);
   T visitTypeExpression(TypeExpression node);
+  T visitCreateInvocationMirror(CreateInvocationMirror node);
 }
 
 /// Recursively visits the entire CPS term, and calls abstract `process*`
@@ -1325,5 +1340,11 @@ class RecursiveVisitor implements Visitor {
   visitNonTailThrow(NonTailThrow node) {
     processNonTailThrow(node);
     processReference(node.value);
+  }
+
+  processCreateInvocationMirror(CreateInvocationMirror node) {}
+  visitCreateInvocationMirror(CreateInvocationMirror node) {
+    processCreateInvocationMirror(node);
+    node.arguments.forEach(processReference);
   }
 }

@@ -67,7 +67,7 @@ Dart_Isolate VmServiceServer::CreateIsolate() {
 
   // Prepare for script loading by setting up the 'print' and 'timer'
   // closures and setting up 'package root' for URI resolution.
-  result = DartUtils::PrepareForScriptLoading(NULL, true, builtin_lib);
+  result = DartUtils::PrepareForScriptLoading(NULL, true, false, builtin_lib);
   CHECK_RESULT(result);
 
   ASSERT(Dart_IsServiceIsolate(isolate));

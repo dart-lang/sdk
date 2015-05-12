@@ -5,19 +5,23 @@
 library test.src.task.driver_test;
 
 import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    hide AnalysisContextImpl, AnalysisTask;
+    hide
+        AnalysisCache,
+        AnalysisContextImpl,
+        AnalysisTask,
+        UniversalCachePartition,
+        WorkManager;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
-import '../context/abstract_context.dart';
 import 'test_support.dart';
 
 main() {
@@ -27,10 +31,41 @@ main() {
   runReflectiveTests(WorkItemTest);
 }
 
+class AbstractDriverTest {
+  TaskManager taskManager = new TaskManager();
+  List<WorkManager> workManagers = <WorkManager>[];
+  InternalAnalysisContext context = new _InternalAnalysisContextMock();
+  AnalysisDriver analysisDriver;
+
+  void setUp() {
+    context = new _InternalAnalysisContextMock();
+    analysisDriver = new AnalysisDriver(taskManager, workManagers, context);
+  }
+}
+
 @reflectiveTest
-class AnalysisDriverTest extends AbstractContextTest {
-  AnalysisContextImpl createAnalysisContext() {
-    return new _TestContext();
+class AnalysisDriverTest extends AbstractDriverTest {
+  WorkManager workManager1 = new _WorkManagerMock();
+  WorkManager workManager2 = new _WorkManagerMock();
+
+  AnalysisTarget target1 = new TestSource('/1.dart');
+  AnalysisTarget target2 = new TestSource('/2.dart');
+
+  ResultDescriptor result1 = new ResultDescriptor('result1', -1);
+  ResultDescriptor result2 = new ResultDescriptor('result2', -2);
+
+  TaskDescriptor descriptor1;
+  TaskDescriptor descriptor2;
+
+  void setUp() {
+    super.setUp();
+    when(workManager1.getNextResultPriority())
+        .thenReturn(WorkOrderPriority.NONE);
+    when(workManager2.getNextResultPriority())
+        .thenReturn(WorkOrderPriority.NONE);
+
+    workManagers.add(workManager1);
+    workManagers.add(workManager2);
   }
 
   test_computeResult() {
@@ -53,75 +88,43 @@ class AnalysisDriverTest extends AbstractContextTest {
     expect(analysisDriver.taskManager, taskManager);
   }
 
-  test_createNextWorkOrder_complete() {
-    AnalysisTarget priorityTarget = new TestSource();
-    AnalysisTarget normalTarget = new TestSource();
-    ResultDescriptor result = new ResultDescriptor('result', null);
-    TaskDescriptor descriptor = new TaskDescriptor('task',
-        (context, target) => new TestAnalysisTask(context, target),
-        (target) => {}, [result]);
-    taskManager.addGeneralResult(result);
-    taskManager.addTaskDescriptor(descriptor);
-    context.priorityTargets.add(priorityTarget);
-    context.getCacheEntry(priorityTarget).setValue(
-        result, '', TargetedResult.EMPTY_LIST, null);
-    context.explicitTargets.add(normalTarget);
-    context.getCacheEntry(priorityTarget).setValue(
-        result, '', TargetedResult.EMPTY_LIST, null);
-
-    expect(analysisDriver.createNextWorkOrder(), isNull);
-  }
-
-  test_createNextWorkOrder_normalTarget() {
-    AnalysisTarget priorityTarget = new TestSource();
-    AnalysisTarget normalTarget = new TestSource();
-    ResultDescriptor result = new ResultDescriptor('result', null);
-    TaskDescriptor descriptor = new TaskDescriptor('task',
-        (context, target) => new TestAnalysisTask(context, target),
-        (target) => {}, [result]);
-    taskManager.addGeneralResult(result);
-    taskManager.addTaskDescriptor(descriptor);
-    context.priorityTargets.add(priorityTarget);
-    context.getCacheEntry(priorityTarget).setValue(
-        result, '', TargetedResult.EMPTY_LIST, null);
-    context.explicitTargets.add(normalTarget);
-    context.getCacheEntry(normalTarget).setState(result, CacheState.INVALID);
-
+  test_createNextWorkOrder_highLow() {
+    _configureDescriptors12();
+    when(workManager1.getNextResultPriority())
+        .thenReturn(WorkOrderPriority.PRIORITY);
+    when(workManager2.getNextResultPriority())
+        .thenReturn(WorkOrderPriority.NORMAL);
+    when(workManager1.getNextResult())
+        .thenReturn(new TargetedResult(target1, result1));
     WorkOrder workOrder = analysisDriver.createNextWorkOrder();
     expect(workOrder, isNotNull);
     expect(workOrder.moveNext(), true);
-    expect(workOrder.currentItem.target, normalTarget);
+    expect(workOrder.currentItem.target, target1);
+    expect(workOrder.currentItem.descriptor, descriptor1);
   }
 
-  test_createNextWorkOrder_noTargets() {
-    ResultDescriptor result = new ResultDescriptor('result', null);
-    TaskDescriptor descriptor = new TaskDescriptor('task',
-        (context, target) => new TestAnalysisTask(context, target),
-        (target) => {}, [result]);
-    taskManager.addGeneralResult(result);
-    taskManager.addTaskDescriptor(descriptor);
-
-    expect(analysisDriver.createNextWorkOrder(), isNull);
-  }
-
-  test_createNextWorkOrder_priorityTarget() {
-    AnalysisTarget priorityTarget = new TestSource();
-    AnalysisTarget normalTarget = new TestSource();
-    ResultDescriptor result = new ResultDescriptor('result', null);
-    TaskDescriptor descriptor = new TaskDescriptor('task',
-        (context, target) => new TestAnalysisTask(context, target),
-        (target) => {}, [result]);
-    taskManager.addGeneralResult(result);
-    taskManager.addTaskDescriptor(descriptor);
-    context.priorityTargets.add(priorityTarget);
-    context.getCacheEntry(priorityTarget).setState(result, CacheState.INVALID);
-    context.explicitTargets.add(normalTarget);
-    context.getCacheEntry(normalTarget).setState(result, CacheState.INVALID);
-
+  test_createNextWorkOrder_lowHigh() {
+    _configureDescriptors12();
+    when(workManager1.getNextResultPriority())
+        .thenReturn(WorkOrderPriority.NORMAL);
+    when(workManager2.getNextResultPriority())
+        .thenReturn(WorkOrderPriority.PRIORITY);
+    when(workManager2.getNextResult())
+        .thenReturn(new TargetedResult(target1, result1));
     WorkOrder workOrder = analysisDriver.createNextWorkOrder();
     expect(workOrder, isNotNull);
     expect(workOrder.moveNext(), true);
-    expect(workOrder.currentItem.target, priorityTarget);
+    expect(workOrder.currentItem.target, target1);
+    expect(workOrder.currentItem.descriptor, descriptor1);
+  }
+
+  test_createNextWorkOrder_none() {
+    _configureDescriptors12();
+    when(workManager1.getNextResultPriority())
+        .thenReturn(WorkOrderPriority.NONE);
+    when(workManager2.getNextResultPriority())
+        .thenReturn(WorkOrderPriority.NONE);
+    expect(analysisDriver.createNextWorkOrder(), isNull);
   }
 
   test_createWorkOrderForResult_error() {
@@ -160,7 +163,7 @@ class AnalysisDriverTest extends AbstractContextTest {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('result', null);
     context.getCacheEntry(target).setValue(
-        result, '', TargetedResult.EMPTY_LIST, null);
+        result, '', TargetedResult.EMPTY_LIST);
 
     expect(analysisDriver.createWorkOrderForResult(target, result), isNull);
   }
@@ -198,15 +201,11 @@ class AnalysisDriverTest extends AbstractContextTest {
   }
 
   test_performAnalysisTask() {
-    AnalysisTarget target = new TestSource();
-    ResultDescriptor result = new ResultDescriptor('result', null);
-    TestAnalysisTask task;
-    TaskDescriptor descriptor = new TaskDescriptor(
-        'task', (context, target) => task, (target) => {}, [result]);
-    task = new TestAnalysisTask(context, target, descriptor: descriptor);
-    taskManager.addTaskDescriptor(descriptor);
-    taskManager.addGeneralResult(result);
-    context.priorityTargets.add(target);
+    _configureDescriptors12();
+    when(workManager1.getNextResultPriority()).thenReturnList(
+        <WorkOrderPriority>[WorkOrderPriority.NORMAL, WorkOrderPriority.NONE]);
+    when(workManager1.getNextResult())
+        .thenReturn(new TargetedResult(target1, result1));
 
     expect(analysisDriver.performAnalysisTask(), true);
     expect(analysisDriver.performAnalysisTask(), true);
@@ -232,8 +231,11 @@ class AnalysisDriverTest extends AbstractContextTest {
     task2 = new TestAnalysisTask(context, target, descriptor: descriptor2);
     taskManager.addTaskDescriptor(descriptor1);
     taskManager.addTaskDescriptor(descriptor2);
-    context.explicitTargets.add(target);
-    taskManager.addGeneralResult(resultB);
+    // configure WorkManager
+    when(workManager1.getNextResultPriority()).thenReturnList(
+        <WorkOrderPriority>[WorkOrderPriority.NORMAL, WorkOrderPriority.NONE]);
+    when(workManager1.getNextResult())
+        .thenReturn(new TargetedResult(target, resultB));
     // prepare work order
     expect(analysisDriver.performAnalysisTask(), true);
     expect(analysisDriver.performAnalysisTask(), true);
@@ -261,8 +263,11 @@ class AnalysisDriverTest extends AbstractContextTest {
         descriptor: descriptor2, value: 20);
     taskManager.addTaskDescriptor(descriptor1);
     taskManager.addTaskDescriptor(descriptor2);
-    context.explicitTargets.add(target);
-    taskManager.addGeneralResult(resultB);
+    // configure WorkManager
+    when(workManager1.getNextResultPriority()).thenReturnList(
+        <WorkOrderPriority>[WorkOrderPriority.NORMAL, WorkOrderPriority.NONE]);
+    when(workManager1.getNextResult())
+        .thenReturn(new TargetedResult(target, resultB));
     // prepare work order
     expect(analysisDriver.performAnalysisTask(), true);
     expect(context.getCacheEntry(target).getValue(resultA), -1);
@@ -279,32 +284,6 @@ class AnalysisDriverTest extends AbstractContextTest {
     expect(analysisDriver.performAnalysisTask(), false);
   }
 
-  test_performAnalysisTask_recordMemento() {
-    AnalysisTarget target = new TestSource();
-    ResultDescriptor result = new ResultDescriptor('result', -1);
-    // configure tasks
-    TestAnalysisTask task;
-    TaskDescriptor descriptor = new TaskDescriptor(
-        'task', (context, target) => task, (target) => {}, [result]);
-    task = new TestAnalysisTask(context, target,
-        descriptor: descriptor,
-        memento: 'my mem',
-        results: [result],
-        value: 10);
-    taskManager.addTaskDescriptor(descriptor);
-    context.explicitTargets.add(target);
-    taskManager.addGeneralResult(result);
-    // prepare work order
-    expect(analysisDriver.performAnalysisTask(), true);
-    expect(context.getCacheEntry(target).getValue(result), -1);
-    // compute result
-    expect(analysisDriver.performAnalysisTask(), true);
-    expect(context.getCacheEntry(target).getValue(result), 10);
-    expect(context.getCacheEntry(target).getMemento(result), 'my mem');
-    // done
-    expect(analysisDriver.performAnalysisTask(), false);
-  }
-
   test_performWorkItem_exceptionInTask() {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('result', null);
@@ -315,7 +294,7 @@ class AnalysisDriverTest extends AbstractContextTest {
         'task', (context, target) => task, (target) => {}, [result]);
     task = new TestAnalysisTask(context, target,
         descriptor: descriptor, exception: exception);
-    WorkItem item = new WorkItem(context, target, descriptor, null);
+    WorkItem item = new WorkItem(context, target, descriptor);
 
     analysisDriver.performWorkItem(item);
     CacheEntry targetEntry = context.getCacheEntry(item.target);
@@ -330,7 +309,7 @@ class AnalysisDriverTest extends AbstractContextTest {
     TaskDescriptor descriptor = new TaskDescriptor(
         'task', (context, target) => task, (target) => {}, [result]);
     task = new TestAnalysisTask(context, target, descriptor: descriptor);
-    WorkItem item = new WorkItem(context, target, descriptor, null);
+    WorkItem item = new WorkItem(context, target, descriptor);
 
     analysisDriver.performWorkItem(item);
     CacheEntry targetEntry = context.getCacheEntry(item.target);
@@ -346,7 +325,7 @@ class AnalysisDriverTest extends AbstractContextTest {
         (target) => {}, [result]);
     CaughtException exception =
         new CaughtException(new AnalysisException(), null);
-    WorkItem item = new WorkItem(context, target, descriptor, null);
+    WorkItem item = new WorkItem(context, target, descriptor);
     item.exception = exception;
 
     analysisDriver.performWorkItem(item);
@@ -362,10 +341,22 @@ class AnalysisDriverTest extends AbstractContextTest {
         (target) => {'one': inputResult.of(target)},
         [new ResultDescriptor('output', null)]);
     analysisDriver.currentWorkOrder =
-        new WorkOrder(taskManager, new WorkItem(null, null, descriptor, null));
+        new WorkOrder(taskManager, new WorkItem(null, null, descriptor));
 
     analysisDriver.reset();
     expect(analysisDriver.currentWorkOrder, isNull);
+  }
+
+  void _configureDescriptors12() {
+    descriptor1 = new TaskDescriptor('task1', (context, target) =>
+            new TestAnalysisTask(context, target, descriptor: descriptor1),
+        (target) => {}, [result1]);
+    taskManager.addTaskDescriptor(descriptor1);
+
+    descriptor2 = new TaskDescriptor('task2', (context, target) =>
+            new TestAnalysisTask(context, target, descriptor: descriptor1),
+        (target) => {}, [result2]);
+    taskManager.addTaskDescriptor(descriptor2);
   }
 
   /**
@@ -395,7 +386,7 @@ class AnalysisDriverTest extends AbstractContextTest {
     }
     if (complete) {
       context.getCacheEntry(target).setValue(
-          result, '', TargetedResult.EMPTY_LIST, null);
+          result, '', TargetedResult.EMPTY_LIST);
     } else {
       context.getCacheEntry(target).setState(result, CacheState.INVALID);
     }
@@ -413,22 +404,18 @@ class AnalysisDriverTest extends AbstractContextTest {
 }
 
 @reflectiveTest
-class WorkItemTest extends EngineTestCase {
+class WorkItemTest extends AbstractDriverTest {
   test_buildTask_complete() {
-    AnalysisContext context = new AnalysisContextImpl();
     AnalysisTarget target = new TestSource();
     TaskDescriptor descriptor = new TaskDescriptor('task',
         (context, target) => new TestAnalysisTask(context, target),
         (target) => {}, [new ResultDescriptor('output', null)]);
-    Object memento = new Object();
-    WorkItem item = new WorkItem(context, target, descriptor, memento);
+    WorkItem item = new WorkItem(context, target, descriptor);
     AnalysisTask task = item.buildTask();
     expect(task, isNotNull);
-    expect(task.inputMemento, memento);
   }
 
   test_buildTask_incomplete() {
-    AnalysisContext context = new AnalysisContextImpl();
     AnalysisTarget target = new TestSource();
     ResultDescriptor inputResult = new ResultDescriptor('input', null);
     List<ResultDescriptor> outputResults =
@@ -436,40 +423,33 @@ class WorkItemTest extends EngineTestCase {
     TaskDescriptor descriptor = new TaskDescriptor('task', (context, target) =>
             new TestAnalysisTask(context, target, results: outputResults),
         (target) => {'one': inputResult.of(target)}, outputResults);
-    WorkItem item = new WorkItem(context, target, descriptor, null);
+    WorkItem item = new WorkItem(context, target, descriptor);
     expect(() => item.buildTask(), throwsStateError);
   }
 
   test_create() {
-    AnalysisContext context = new AnalysisContextImpl();
     AnalysisTarget target = new TestSource();
-    Object memento = new Object();
     TaskDescriptor descriptor = new TaskDescriptor(
         'task', null, (target) => {}, [new ResultDescriptor('result', null)]);
-    WorkItem item = new WorkItem(context, target, descriptor, memento);
+    WorkItem item = new WorkItem(context, target, descriptor);
     expect(item, isNotNull);
     expect(item.context, context);
     expect(item.descriptor, descriptor);
-    expect(item.inputMemento, memento);
     expect(item.target, target);
   }
 
   test_gatherInputs_complete() {
-    TaskManager manager = new TaskManager();
-    AnalysisContext context = new AnalysisContextImpl();
     AnalysisTarget target = new TestSource();
     TaskDescriptor descriptor = new TaskDescriptor('task',
         (context, target) => new TestAnalysisTask(context, target),
         (target) => {}, [new ResultDescriptor('output', null)]);
-    WorkItem item = new WorkItem(context, target, descriptor, null);
-    WorkItem result = item.gatherInputs(manager);
+    WorkItem item = new WorkItem(context, target, descriptor);
+    WorkItem result = item.gatherInputs(taskManager);
     expect(result, isNull);
     expect(item.exception, isNull);
   }
 
   test_gatherInputs_incomplete() {
-    TaskManager manager = new TaskManager();
-    AnalysisContextImpl context = new AnalysisContextImpl();
     AnalysisTarget target = new TestSource();
     ResultDescriptor resultA = new ResultDescriptor('resultA', null);
     ResultDescriptor resultB = new ResultDescriptor('resultB', null);
@@ -480,33 +460,23 @@ class WorkItemTest extends EngineTestCase {
     TaskDescriptor task2 = new TaskDescriptor('task',
         (context, target) => new TestAnalysisTask(context, target),
         (target) => {'one': resultA.of(target)}, [resultB]);
-    manager.addTaskDescriptor(task1);
-    manager.addTaskDescriptor(task2);
-    // configure memento for "resultA"
-    dynamic memento = 'main() {}';
-    {
-      CacheEntry cacheEntry = context.getCacheEntry(target);
-      cacheEntry.setValue(resultA, null, TargetedResult.EMPTY_LIST, memento);
-      cacheEntry.setState(resultA, CacheState.INVALID);
-    }
+    taskManager.addTaskDescriptor(task1);
+    taskManager.addTaskDescriptor(task2);
     // gather inputs
-    WorkItem item = new WorkItem(context, target, task2, null);
-    WorkItem inputItem = item.gatherInputs(manager);
+    WorkItem item = new WorkItem(context, target, task2);
+    WorkItem inputItem = item.gatherInputs(taskManager);
     expect(inputItem, isNotNull);
-    expect(inputItem.inputMemento, memento);
   }
 
   test_gatherInputs_invalid() {
-    TaskManager manager = new TaskManager();
-    AnalysisContext context = new AnalysisContextImpl();
     AnalysisTarget target = new TestSource();
     ResultDescriptor inputResult = new ResultDescriptor('input', null);
     TaskDescriptor descriptor = new TaskDescriptor('task',
         (context, target) => new TestAnalysisTask(context, target),
         (target) => {'one': inputResult.of(target)},
         [new ResultDescriptor('output', null)]);
-    WorkItem item = new WorkItem(context, target, descriptor, null);
-    WorkItem result = item.gatherInputs(manager);
+    WorkItem item = new WorkItem(context, target, descriptor);
+    WorkItem result = item.gatherInputs(taskManager);
     expect(result, isNull);
     expect(item.exception, isNotNull);
   }
@@ -519,7 +489,7 @@ class WorkOrderTest extends EngineTestCase {
     TaskDescriptor descriptor = new TaskDescriptor(
         'task', null, (_) => {}, [new ResultDescriptor('result', null)]);
     WorkOrder order =
-        new WorkOrder(manager, new WorkItem(null, null, descriptor, null));
+        new WorkOrder(manager, new WorkItem(null, null, descriptor));
     expect(order, isNotNull);
     expect(order.currentItem, isNull);
     expect(order.pendingItems, hasLength(1));
@@ -530,7 +500,7 @@ class WorkOrderTest extends EngineTestCase {
     TaskManager manager = new TaskManager();
     TaskDescriptor descriptor = new TaskDescriptor(
         'task', null, (_) => {}, [new ResultDescriptor('result', null)]);
-    WorkItem workItem = new WorkItem(null, null, descriptor, null);
+    WorkItem workItem = new WorkItem(null, null, descriptor);
     WorkOrder order = new WorkOrder(manager, workItem);
     // "item" has no child items
     expect(order.moveNext(), isTrue);
@@ -542,13 +512,36 @@ class WorkOrderTest extends EngineTestCase {
 }
 
 /**
- * An [AnalysisContextImpl] which allows to set explicit and implicit targets
- * directly.
+ * A dummy [InternalAnalysisContext] that does not use [AnalysisDriver] itself,
+ * but provides enough implementation for it to function.
  */
-class _TestContext extends AnalysisContextImpl {
+class _InternalAnalysisContextMock extends TypedMock
+    implements InternalAnalysisContext {
+  AnalysisCache analysisCache;
+
   @override
   List<AnalysisTarget> explicitTargets = <AnalysisTarget>[];
 
   @override
   List<AnalysisTarget> priorityTargets = <AnalysisTarget>[];
+
+  _InternalAnalysisContextMock() {
+    analysisCache = new AnalysisCache([new UniversalCachePartition(this)]);
+  }
+
+  @override
+  CacheEntry getCacheEntry(AnalysisTarget target) {
+    CacheEntry entry = analysisCache.get(target);
+    if (entry == null) {
+      entry = new CacheEntry(target);
+      analysisCache.put(entry);
+    }
+    return entry;
+  }
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _WorkManagerMock extends TypedMock implements WorkManager {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

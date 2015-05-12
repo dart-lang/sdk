@@ -13,12 +13,11 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
-import 'package:analyzer/src/task/driver.dart';
-import 'package:analyzer/src/task/manager.dart';
 import 'package:plugin/manager.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
+import 'package:analyzer/src/task/driver.dart';
 
 class AbstractContextTest {
   MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
@@ -26,10 +25,18 @@ class AbstractContextTest {
   ExtensionManager extensionManager = new ExtensionManager();
 
   DartSdk sdk = new MockSdk();
+  SourceFactory sourceFactory;
   AnalysisContextImpl context;
-
-  TaskManager taskManager = new TaskManager();
   AnalysisDriver analysisDriver;
+
+  Source addSource(String path, String contents) {
+    Source source = newSource(path, contents);
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.addedSource(source);
+    context.applyChanges(changeSet);
+    context.setContents(source, contents);
+    return source;
+  }
 
   /**
    * Assert that the given [elements] has the same number of items as the number
@@ -82,17 +89,18 @@ class AbstractContextTest {
     // configure TaskManager
     {
       EnginePlugin plugin = AnalysisEngine.instance.enginePlugin;
-      extensionManager.processPlugins([plugin]);
-      taskManager.addTaskDescriptors(plugin.taskDescriptors);
+      if (plugin.taskExtensionPoint == null) {
+        extensionManager.processPlugins([plugin]);
+      }
     }
     // prepare AnalysisContext
-    context = createAnalysisContext();
-    context.sourceFactory = new SourceFactory(<UriResolver>[
+    sourceFactory = new SourceFactory(<UriResolver>[
       new DartUriResolver(sdk),
       new ResourceUriResolver(resourceProvider)
     ]);
-    // prepare AnalysisDriver
-    analysisDriver = new AnalysisDriver(taskManager, context);
+    context = createAnalysisContext();
+    context.sourceFactory = sourceFactory;
+    analysisDriver = context.driver;
   }
 
   void tearDown() {}

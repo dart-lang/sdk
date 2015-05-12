@@ -294,6 +294,8 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
        }''',
   'JSMutableArray':
       'class JSMutableArray extends JSArray implements JSMutableIndexable {}',
+  'JSUnmodifiableArray':
+      'class JSUnmodifiableArray extends JSArray {}',
   'JSMutableIndexable':
       'abstract class JSMutableIndexable extends JSIndexable {}',
       'JSPositiveInt': 'class JSPositiveInt extends JSInt {}',

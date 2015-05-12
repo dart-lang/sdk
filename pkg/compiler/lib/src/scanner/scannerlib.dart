@@ -10,6 +10,7 @@ import '../dart_types.dart' show DynamicType;
 import '../elements/elements.dart';
 
 import '../elements/modelx.dart' show
+    BaseFunctionElementX,
     ClassElementX,
     CompilationUnitElementX,
     ConstructorElementX,
@@ -17,9 +18,12 @@ import '../elements/modelx.dart' show
     ElementX,
     EnumClassElementX,
     FieldElementX,
-    FunctionElementX,
+    GetterElementX,
+    MethodElementX,
+    LibraryElementX,
     MetadataAnnotationX,
     MixinApplicationElementX,
+    SetterElementX,
     TypedefElementX,
     VariableElementX,
     VariableList;

@@ -68,7 +68,7 @@ void set exitCode(int code) {
   _ProcessUtils._setExitCode(code);
 }
 
-/*
+/**
  * Get the global exit code for the Dart VM.
  *
  * The exit code is global for the Dart VM and the last assignment to

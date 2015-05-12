@@ -63,7 +63,7 @@
           ],
           'outputs': [
             '<(PRODUCT_DIR)/observatory/build/web/index.html',
-            '<(PRODUCT_DIR)/observatory/build/web/index.html_bootstrap.dart.js',
+            '<(PRODUCT_DIR)/observatory/build/web/index.html.polymer.bootstrap.dart.js',
           ],
           'action': [
             'python',
@@ -81,11 +81,11 @@
           'inputs': [
             '../../tools/observatory_tool.py',
             '<(PRODUCT_DIR)/observatory/build/web/index.html',
-            '<(PRODUCT_DIR)/observatory/build/web/index.html_bootstrap.dart.js',
+            '<(PRODUCT_DIR)/observatory/build/web/index.html.polymer.bootstrap.dart.js',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/observatory/deployed/web/index.html',
-            '<(PRODUCT_DIR)/observatory/deployed/web/index.html_bootstrap.dart.js',
+            '<(PRODUCT_DIR)/observatory/deployed/web/index.html.polymer.bootstrap.dart.js',
           ],
           'action': [
             'python',

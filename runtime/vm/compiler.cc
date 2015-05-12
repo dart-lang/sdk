@@ -890,7 +890,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
   ISL_Print("Variable Descriptors for function '%s' {\n",
             function_fullname);
   const LocalVarDescriptors& var_descriptors =
-      LocalVarDescriptors::Handle(code.var_descriptors());
+      LocalVarDescriptors::Handle(code.GetLocalVarDescriptors());
   intptr_t var_desc_length =
       var_descriptors.IsNull() ? 0 : var_descriptors.Length();
   String& var_name = String::Handle();
@@ -1129,6 +1129,26 @@ RawError* Compiler::CompileParsedFunction(
 }
 
 
+void Compiler::ComputeLocalVarDescriptors(const Code& code) {
+  ASSERT(!code.is_optimized());
+  const Function& function = Function::Handle(code.function());
+  ParsedFunction* parsed_function = new ParsedFunction(
+      Thread::Current(), Function::ZoneHandle(function.raw()));
+  LocalVarDescriptors& var_descs =
+      LocalVarDescriptors::Handle(code.var_descriptors());
+  ASSERT(var_descs.IsNull());
+  // IsIrregexpFunction have eager var descriptors generation.
+  ASSERT(!function.IsIrregexpFunction());
+  // Parser should not produce any errors, therefore no LongJumpScope needed.
+  Parser::ParseFunction(parsed_function);
+  parsed_function->AllocateVariables();
+  var_descs = parsed_function->node_sequence()->scope()->
+      GetVarDescriptors(function);
+  ASSERT(!var_descs.IsNull());
+  code.set_var_descriptors(var_descs);
+}
+
+
 RawError* Compiler::CompileAllFunctions(const Class& cls) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -1176,6 +1196,14 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
 }
 
 
+static void CreateLocalVarDescriptors(const ParsedFunction& parsed_function) {
+  const Function& func = parsed_function.function();
+  LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle();
+  var_descs = parsed_function.node_sequence()->scope()->GetVarDescriptors(func);
+  Code::Handle(func.unoptimized_code()).set_var_descriptors(var_descs);
+}
+
+
 RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
   ASSERT(field.is_static());
   // The VM sets the field's value to transiton_sentinel prior to
@@ -1195,6 +1223,8 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
                                 parsed_function,
                                 false,
                                 Isolate::kNoDeoptId);
+    // Eagerly create local var descriptors.
+    CreateLocalVarDescriptors(*parsed_function);
 
     // Invoke the function to evaluate the expression.
     const Function& initializer = parsed_function->function();
@@ -1264,6 +1294,8 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
                                 false,
                                 Isolate::kNoDeoptId);
 
+    // Eagerly create local var descriptors.
+    CreateLocalVarDescriptors(*parsed_function);
     const Object& result = PassiveObject::Handle(
         DartEntry::InvokeFunction(func, Object::empty_array()));
     return result.raw();

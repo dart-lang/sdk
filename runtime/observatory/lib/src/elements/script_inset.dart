@@ -9,6 +9,7 @@ import 'dart:html';
 import 'observatory_element.dart';
 import 'service_ref.dart';
 import 'package:observatory/service.dart';
+import 'package:observatory/utils.dart';
 import 'package:polymer/polymer.dart';
 
 const nbsp = "\u00A0";
@@ -92,6 +93,24 @@ class CurrentExecutionAnnotation extends Annotation {
     }
     element.classes.add("currentCol");
     element.title = "Current execution";
+  }
+}
+
+class LocalVariableAnnotation extends Annotation {
+  final value;
+
+  LocalVariableAnnotation(LocalVarLocation location, this.value) {
+    line = location.line;
+    columnStart = location.column;
+    columnStop = location.endColumn;
+  }
+
+  void applyStyleTo(element) {
+    if (element == null) {
+      return;  // TODO(rmacnak): Handling overlapping annotations.
+    }
+    element.style.fontWeight = "bold";
+    element.title = "${value.shortName}";
   }
 }
 
@@ -219,6 +238,7 @@ class ScriptInsetElement extends ObservatoryElement {
   @published int startPos;
   @published int endPos;
   @published bool inDebuggerContext = false;
+  @published ObservableList variables;
 
   int _currentLine;
   int _currentCol;
@@ -251,20 +271,24 @@ class ScriptInsetElement extends ObservatoryElement {
   }
 
   void currentPosChanged(oldValue) {
-    update();
+    _updateTask.queue();
     _scrollToCurrentPos();
   }
 
   void startPosChanged(oldValue) {
-    update();
+    _updateTask.queue();
   }
 
   void endPosChanged(oldValue) {
-    update();
+    _updateTask.queue();
   }
 
   void scriptChanged(oldValue) {
-    update();
+    _updateTask.queue();
+  }
+
+  void variablesChanged(oldValue) {
+    _updateTask.queue();
   }
 
   Element a(String text) => new AnchorElement()..text = text;
@@ -288,7 +312,9 @@ class ScriptInsetElement extends ObservatoryElement {
 
   Element container;
 
+  Task _updateTask;
   void update() {
+    assert(_updateTask != null);
     if (script == null) {
       // We may have previously had a script.
       if (container != null) {
@@ -315,6 +341,7 @@ class ScriptInsetElement extends ObservatoryElement {
     }
     container.children.clear();
     container.children.add(table);
+    makeCssClassUncopyable(table, "noCopy");
   }
 
   void loadFunctionsOf(Library lib) {
@@ -373,6 +400,22 @@ class ScriptInsetElement extends ObservatoryElement {
 
       for (var callSite in script.callSites) {
         annotations.add(new CallSiteAnnotation(callSite));
+      }
+    }
+
+    // We have local variable information.
+    if (variables != null) {
+      // For each variable.
+      for (var variable in variables) {
+        // Find variable usage locations.
+        var locations = script.scanForLocalVariableLocations(
+              variable['name'], variable['tokenPos'], variable['endTokenPos']);
+
+        // Annotate locations.
+        for (var location in locations) {
+          annotations.add(new LocalVariableAnnotation(location,
+                                                      variable['value']));
+        }
       }
     }
 
@@ -449,25 +492,25 @@ class ScriptInsetElement extends ObservatoryElement {
     var busy = false;
     if (line == null || !line.possibleBpt) {
       e.classes.add("emptyBreakpoint");
+      e.classes.add('noCopy');
       e.text = nbsp;
       return e;
     }
     e.text = 'B';
     update() {
+      e.classes.clear();
+      e.classes.add('noCopy');
+
       if (busy) {
-        e.classes.clear();
         e.classes.add("busyBreakpoint");
       } else {
         if (line.breakpoints != null) {
           if (line.breakpointResolved) {
-            e.classes.clear();
             e.classes.add("resolvedBreakpoint");
           } else {
-            e.classes.clear();
             e.classes.add("unresolvedBreakpoint");
           }
         } else {
-          e.classes.clear();
           e.classes.add("possibleBreakpoint");
         }
       }
@@ -504,6 +547,7 @@ class ScriptInsetElement extends ObservatoryElement {
   Element lineNumberElement(ScriptLine line) {
     var lineNumber = line == null ? "..." : line.line;
     var e = span("$nbsp$lineNumber$nbsp");
+    e.classes.add('noCopy');
 
     if ((line == null) || (line.hits == null)) {
       hitsUnknown(e);
@@ -553,8 +597,14 @@ class ScriptInsetElement extends ObservatoryElement {
       consumeUntil(line.text.length);
     }
 
+    // So blank lines are included when copying script to the clipboard.
+    e.append(span('\n'));
+
     return e;
   }
 
-  ScriptInsetElement.created() : super.created();
+  ScriptInsetElement.created()
+      : super.created() {
+    _updateTask = new Task(update);
+  }
 }

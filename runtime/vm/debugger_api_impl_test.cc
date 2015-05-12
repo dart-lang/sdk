@@ -2147,7 +2147,6 @@ TEST_CASE(Debug_GetSupertype) {
   Dart_Handle object_name = Dart_NewStringFromCString("Object");
   Dart_Handle int_name = Dart_NewStringFromCString("int");
   Dart_Handle set_name = Dart_NewStringFromCString("Set");
-  Dart_Handle iterable_name = Dart_NewStringFromCString("Iterable");
   Dart_Handle list_name = Dart_NewStringFromCString("List");
 
   Dart_Handle object_type = Dart_GetType(core_lib, object_name, 0, NULL);
@@ -2208,7 +2207,7 @@ TEST_CASE(Debug_GetSupertype) {
   {
     Dart_Handle set_type = Dart_GetType(core_lib, set_name, 0, NULL);
     Dart_Handle super_type = Dart_GetSupertype(set_type);
-    Dart_Handle iterable_type = Dart_GetType(core_lib, iterable_name, 0, NULL);
+    Dart_Handle iterable_type = Dart_GetType(core_lib, object_name, 0, NULL);
     const Type& expected_type = Api::UnwrapTypeHandle(isolate, iterable_type);
     const Type& actual_type = Api::UnwrapTypeHandle(isolate, super_type);
     EXPECT(expected_type.raw() == actual_type.raw());

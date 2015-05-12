@@ -6,12 +6,12 @@ library json_pretty_test;
 
 import 'dart:convert';
 
-import 'package:matcher/matcher.dart';
+import "package:expect/expect.dart";
 
 void _testIndentWithNullChar() {
   var encoder = const JsonEncoder.withIndent('\x00');
   var encoded = encoder.convert([[],[[]]]);
-  expect(encoded, "[\n\x00[],\n\x00[\n\x00\x00[]\n\x00]\n]");
+  Expect.equals("[\n\x00[],\n\x00[\n\x00\x00[]\n\x00]\n]", encoded);
 }
 
 void main() {
@@ -91,7 +91,7 @@ void _expect(Object object, String expected) {
   var encoder = const JsonEncoder.withIndent('  ');
   var prettyOutput = encoder.convert(object);
 
-  expect(prettyOutput, expected);
+  Expect.equals(expected, prettyOutput);
 
   encoder = const JsonEncoder.withIndent('');
 
@@ -101,14 +101,14 @@ void _expect(Object object, String expected) {
       .map((line) => line.trimLeft())
       .join('\n');
 
-  expect(flatOutput, flatExpected);
+  Expect.equals(flatExpected, flatOutput);
 
   var compactOutput = JSON.encode(object);
 
   encoder = const JsonEncoder.withIndent(null);
-  expect(encoder.convert(object), compactOutput);
+  Expect.equals(compactOutput, encoder.convert(object));
 
   var prettyDecoded = JSON.decode(prettyOutput);
 
-  expect(JSON.encode(prettyDecoded), compactOutput);
+  Expect.equals(compactOutput, JSON.encode(prettyDecoded));
 }

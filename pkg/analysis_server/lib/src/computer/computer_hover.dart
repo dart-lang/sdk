@@ -65,7 +65,7 @@ class DartUnitHoverComputer {
    * Returns the computed hover, maybe `null`.
    */
   HoverInformation compute() {
-    AstNode node = new NodeLocator.con1(_offset).searchWithin(_unit);
+    AstNode node = new NodeLocator(_offset).searchWithin(_unit);
     if (node == null) {
       return null;
     }

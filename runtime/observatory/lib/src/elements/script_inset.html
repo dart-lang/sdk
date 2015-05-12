@@ -7,50 +7,51 @@
       .sourceInset {
       }
       .sourceTable {
-      display: table;
-      background-color: #f5f5f5;
-      border: 1px solid #ccc;
-      padding: 10px;
-      overflow-y: auto;
-      width: 100%;
-      box-sizing: border-box;
+        display: table;
+        background-color: #f5f5f5;
+        border: 1px solid #ccc;
+        padding: 10px;
+        width: 100%;
+        box-sizing: border-box;
       }
       .sourceRow {
-      display: table-row;
+        display: table-row;
       }
       .sourceItem, .sourceItemCurrent {
-      display: table-cell;
-      vertical-align: top;
-      font: 400 14px consolas, courier, monospace;
-      line-height: 125%;
-      white-space: pre;
+        display: table-cell;
+        vertical-align: top;
+        font: 400 14px consolas, courier, monospace;
+        line-height: 125%;
+        white-space: pre;
+        max-width: 0;
+	overflow-x: hidden;
       }
       .currentLine {
-      background-color: #fff;
+        background-color: #fff;
       }
       .currentCol {
-      background-color: #6cf;
+        background-color: #6cf;
       }
       .hitsNone, .hitsNotExecuted, .hitsExecuted {
-      display: table-cell;
-      vertical-align: top;
-      font: 400 14px consolas, courier, monospace;
-      min-width: 32px;
-      text-align: right;
-      color: #a8a8a8;
+        display: table-cell;
+        vertical-align: top;
+        font: 400 14px consolas, courier, monospace;
+        width: 4em;
+        text-align: right;
+        color: #a8a8a8;
       }
       .hitsNotExecuted {
-      background-color: #EEA7A7;
+        background-color: #EEA7A7;
       }
       .hitsExecuted {
-      background-color: #9BDD9B;
+        background-color: #9BDD9B;
       }
-
+      .noCopy {}
       .emptyBreakpoint, .possibleBreakpoint, .busyBreakpoint, .unresolvedBreakpoint, .resolvedBreakpoint  {
         display: table-cell;
         vertical-align: top;
         font: 400 14px consolas, courier, monospace;
-        min-width: 1em;
+        width: 1em;
         text-align: center;
         cursor: pointer;
       }

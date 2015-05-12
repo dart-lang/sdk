@@ -280,7 +280,7 @@ static void SetupDart2JSPackagePath() {
   const char* path_separator = File::PathSeparator();
   OS::SNPrint(buffer, 2048, packages_path,
               executable_path, path_separator, path_separator);
-  bin::DartUtils::PrepareForScriptLoading(buffer, false, builtin_lib);
+  bin::DartUtils::PrepareForScriptLoading(buffer, false, false, builtin_lib);
 }
 
 BENCHMARK(Dart2JSCompileAll) {

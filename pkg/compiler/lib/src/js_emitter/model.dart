@@ -43,7 +43,7 @@ class Program {
     assert(hasIsolateSupport != null);
   }
 
-  /// A list of pretty-printed JavaScript expressions.
+  /// A list of metadata expressions.
   ///
   /// This list must be emitted in the `METADATA` embedded global.
   /// The list references constants and must hence be emitted after constants
@@ -53,9 +53,9 @@ class Program {
   /// list must not be emitted before all operations on it are done. For
   /// example, the old emitter generates metadata when emitting reflection
   /// data.
-  List<String> get metadata => _metadataCollector.globalMetadata;
+  List<js.Expression> get metadata => _metadataCollector.globalMetadata;
 
-  /// A map with lists of pretty-printed JavaScript expressions.
+  /// A map with lists of type expressions.
   ///
   /// There is one list for each output unit. The list belonging to the main
   /// unit must be emitted in the `TYPES` embedded global. The list references
@@ -65,7 +65,7 @@ class Program {
   /// list must not be emitted before all operations on it are done. For
   /// example, the old emitter generates metadata when emitting reflection
   /// data.
-  Map<OutputUnit, List<String>> get metadataTypes
+  Map<OutputUnit, List<js.Expression>> get metadataTypes
       => _metadataCollector.types;
 
 

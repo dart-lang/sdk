@@ -200,7 +200,7 @@
               '-fno-omit-frame-pointer',
             ],
             'defines': [
-              'PROFILE_NATIVE_CODE'
+              'NATIVE_CODE_HAS_FRAME_POINTERS'
             ],
           }],
         ],
@@ -217,7 +217,7 @@
               '-fno-omit-frame-pointer',
             ],
             'defines': [
-              'PROFILE_NATIVE_CODE'
+              'NATIVE_CODE_HAS_FRAME_POINTERS'
             ],
           }],
         ],

@@ -213,7 +213,7 @@ static void SaveVars(Dart_IsolateId isolate_id,
   LocalVarDescriptors& var_desc = LocalVarDescriptors::Handle();
   for (intptr_t i = 0; i < num_frames; i++) {
     ActivationFrame* frame = stack->FrameAt(i);
-    var_desc = frame->code().var_descriptors();
+    var_desc = frame->code().GetLocalVarDescriptors();
     const char* var_str = SkipIndex(var_desc.ToCString());
     const char* function_str = String::Handle(
         frame->function().QualifiedUserVisibleName()).ToCString();

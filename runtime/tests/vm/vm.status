@@ -69,20 +69,11 @@ dart/inline_stack_frame_test: RuntimeError # Issue 7953
 # Data uri's not supported by dart2js or the analyzer.
 dart/data_uri*test: Skip
 
-[ $compiler == dart2js && $cps_ir ]
-dart/error_stacktrace_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-dart/inline_stack_frame_test: Crash # (throw new ExpectException(message)): Unhandled node
-dart/optimized_stacktrace_test: Crash # (throw new ExpectException(message)): Unhandled node
-
 [ $runtime == vm ]
 dart/data_uri_failures_test/wrongmime: RuntimeError, OK # VM is more restrictive than the browser
 dart/data_uri_failures_test/nomime: RuntimeError, OK
 dart/data_uri_failures_test/nocharset: RuntimeError, OK
 dart/data_uri_failures_test/base64: RuntimeError, OK
-
-[ $compiler == dart2dart ]
-# Skip until we stabilize language tests.
-*: Skip
 
 [ $arch == mips ]
 cc/StaticNonNullSumCallCodegen: Crash, Pass # Issue 17440
@@ -99,3 +90,6 @@ dart/snapshot_version_test: SkipByDesign  # Spawns processes
 
 [ $runtime == vm && $mode == debug && $builder_tag == asan ]
 cc/Dart2JSCompileAll: Skip  # Timeout.
+
+[ $compiler == dart2js && $cps_ir ]
+dart/error_stacktrace_test: RuntimeError # Please triage this failure.

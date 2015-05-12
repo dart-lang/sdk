@@ -1036,6 +1036,23 @@ void ARM64Decoder::DecodeLogicalShift(Instr* instr) {
 }
 
 
+void ARM64Decoder::DecodeMiscDP1Source(Instr* instr) {
+  if (instr->Bit(29) != 0) {
+    Unknown(instr);
+  }
+
+  const int op = instr->Bits(10, 10);
+  switch (op) {
+    case 4:
+      Format(instr, "clz'sf 'rd, 'rn");
+      break;
+    default:
+      Unknown(instr);
+      break;
+  }
+}
+
+
 void ARM64Decoder::DecodeMiscDP2Source(Instr* instr) {
   if (instr->Bit(29) != 0) {
     Unknown(instr);
@@ -1111,6 +1128,8 @@ void ARM64Decoder::DecodeDPRegister(Instr* instr) {
     DecodeAddSubWithCarry(instr);
   } else if (instr->IsLogicalShiftOp()) {
     DecodeLogicalShift(instr);
+  } else if (instr->IsMiscDP1SourceOp()) {
+    DecodeMiscDP1Source(instr);
   } else if (instr->IsMiscDP2SourceOp()) {
     DecodeMiscDP2Source(instr);
   } else if (instr->IsMiscDP3SourceOp()) {

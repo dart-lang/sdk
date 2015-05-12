@@ -26,6 +26,12 @@ class AnalysisDriver {
   final TaskManager taskManager;
 
   /**
+   * The list of [WorkManager] used to figure out which analysis results to
+   * compute.
+   */
+  final List<WorkManager> workManagers;
+
+  /**
    * The context in which analysis is to be performed.
    */
   final InternalAnalysisContext context;
@@ -50,7 +56,7 @@ class AnalysisDriver {
    * Initialize a newly created driver to use the tasks know to the given
    * [taskManager] to perform analysis in the given [context].
    */
-  AnalysisDriver(this.taskManager, this.context) {
+  AnalysisDriver(this.taskManager, this.workManagers, this.context) {
     _onTaskStartedController = new StreamController.broadcast();
     _onTaskCompletedController = new StreamController.broadcast();
   }
@@ -85,28 +91,31 @@ class AnalysisDriver {
    * or `null` if there is currently no work to be done.
    */
   WorkOrder createNextWorkOrder() {
-    //
-    // TODO(brianwilkerson) This is an inefficient implementation. We need to
-    // port over the concept of the WorkManager to manage the list of sources
-    // for which some work needs to be performed so that we do not waste time
-    // repeatedly looking at the same completed sources to see whether there is
-    // work that needs to be done.
-    //
-    for (AnalysisTarget target in context.priorityTargets) {
-      WorkOrder workOrder = createWorkOrderForTarget(target, true);
-      if (workOrder != null) {
-        return workOrder;
+    while (true) {
+      // Find the WorkManager with the highest priority.
+      WorkOrderPriority highestPriority = null;
+      WorkManager highestManager = null;
+      for (WorkManager manager in workManagers) {
+        WorkOrderPriority priority = manager.getNextResultPriority();
+        if (highestPriority == null || highestPriority.index > priority.index) {
+          highestPriority = priority;
+          highestManager = manager;
+        }
+      }
+      // Nothing to do.
+      if (highestPriority == WorkOrderPriority.NONE) {
+        return null;
+      }
+      // Create a new WorkOrder.
+      TargetedResult request = highestManager.getNextResult();
+      if (request != null) {
+        WorkOrder workOrder =
+            createWorkOrderForResult(request.target, request.result);
+        if (workOrder != null) {
+          return workOrder;
+        }
       }
     }
-    // TODO(brianwilkerson) Add a third priority, corresponding to
-    // AnalysisContextImpl._pendingFutureSources to support code completion.
-    for (AnalysisTarget target in context.explicitTargets) {
-      WorkOrder workOrder = createWorkOrderForTarget(target, false);
-      if (workOrder != null) {
-        return workOrder;
-      }
-    }
-    return null;
   }
 
   /**
@@ -125,9 +134,7 @@ class AnalysisDriver {
     }
     try {
       TaskDescriptor taskDescriptor = taskManager.findTask(target, result);
-      Object memento = entry.getMemento(result);
-      WorkItem workItem =
-          new WorkItem(context, target, taskDescriptor, memento);
+      WorkItem workItem = new WorkItem(context, target, taskDescriptor);
       return new WorkOrder(taskManager, workItem);
     } catch (exception, stackTrace) {
       throw new AnalysisException(
@@ -218,7 +225,10 @@ class AnalysisDriver {
       for (ResultDescriptor result in task.descriptor.results) {
         // TODO(brianwilkerson) We could check here that a value was produced
         // and throw an exception if not (unless we want to allow null values).
-        entry.setValue(result, outputs[result], dependedOn, task.outputMemento);
+        entry.setValue(result, outputs[result], dependedOn);
+      }
+      for (WorkManager manager in workManagers) {
+        manager.resultsComputed(task.target, outputs);
       }
     } else {
       entry.setErrorState(task.caughtException, item.descriptor.results);
@@ -283,12 +293,6 @@ class WorkItem {
   final TaskDescriptor descriptor;
 
   /**
-   * The optional data that the task associated with [target] last time.
-   * This data may help to compute outputs more efficiently.
-   */
-  final Object inputMemento;
-
-  /**
    * An iterator used to iterate over the descriptors of the inputs to the task,
    * or `null` if all of the inputs have been collected and the task can be
    * created.
@@ -318,7 +322,7 @@ class WorkItem {
    * Initialize a newly created work item to compute the inputs for the task
    * described by the given descriptor.
    */
-  WorkItem(this.context, this.target, this.descriptor, this.inputMemento) {
+  WorkItem(this.context, this.target, this.descriptor) {
     AnalysisTarget actualTarget = identical(
             target, AnalysisContextTarget.request)
         ? new AnalysisContextTarget(context)
@@ -339,7 +343,7 @@ class WorkItem {
     if (builder != null) {
       throw new StateError("some inputs have not been computed");
     }
-    return descriptor.createTask(context, target, inputs, inputMemento);
+    return descriptor.createTask(context, target, inputs);
   }
 
   /**
@@ -384,8 +388,7 @@ class WorkItem {
         try {
           TaskDescriptor descriptor =
               taskManager.findTask(inputTarget, inputResult);
-          Object memento = inputEntry.getMemento(inputResult);
-          return new WorkItem(context, inputTarget, descriptor, memento);
+          return new WorkItem(context, inputTarget, descriptor);
         } on AnalysisException catch (exception, stackTrace) {
           this.exception = new CaughtException(exception, stackTrace);
           return null;
@@ -402,6 +405,67 @@ class WorkItem {
 
   @override
   String toString() => 'Run $descriptor on $target';
+}
+
+/**
+ * [AnalysisDriver] uses [WorkManager]s to select results to compute.
+ *
+ * They know specific of the targets and results they care about,
+ * so they can request analysis results in optimal order.
+ */
+abstract class WorkManager {
+  /**
+   * Notifies the managers that the given set of priority [targets] was set.
+   */
+  void applyPriorityTargets(List<AnalysisTarget> targets);
+
+  /**
+   * Return the next [TargetedResult] that this work manager wants to be
+   * computed, or `null` if this manager doesn't need any new results.
+   */
+  TargetedResult getNextResult();
+
+  /**
+   * Return the priority if the next work order this work manager want to be
+   * computed. The [AnalysisDriver] will perform the work order with
+   * the highest priority.
+   *
+   * Even if the returned value is [WorkOrderPriority.NONE], it still does not
+   * guarantee that [getNextResult] will return not `null`.
+   */
+  WorkOrderPriority getNextResultPriority();
+
+  /**
+   * Notifies the manager that the given [outputs] were produced for
+   * the given [target].
+   */
+  void resultsComputed(
+      AnalysisTarget target, Map<ResultDescriptor, dynamic> outputs);
+}
+
+/**
+ * The priorities of work orders returned by [WorkManager]s.
+ */
+enum WorkOrderPriority {
+  /**
+   * Responding to an user's action.
+   */
+  INTERACTIVE,
+
+  /**
+   * Computing information for priority sources.
+   */
+  PRIORITY,
+
+  /**
+   * A work should be done, but without any special urgency.
+   */
+  NORMAL,
+
+  /**
+   * Nothing to do.
+   */
+  NONE
 }
 
 /**

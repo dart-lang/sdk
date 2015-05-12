@@ -373,6 +373,12 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     String value = access(node.value);
     return '(NonTailThrow $value)';
   }
+
+  String visitCreateInvocationMirror(CreateInvocationMirror node) {
+    String selector = node.selector.name;
+    String args = node.arguments.map(access).join(', ');
+    return '(CreateInvocationMirror $selector $args)';
+  }
 }
 
 class ConstantStringifier extends ConstantValueVisitor<String, Null> {

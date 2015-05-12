@@ -25,6 +25,8 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
+DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(bool, support_debugger);
 
 // Input parameters:
 //   RA : return address.
@@ -1337,15 +1339,17 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
 // Loads function into 'temp_reg'.
 void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
                                              Register temp_reg) {
-  __ Comment("UsageCounterIncrement");
-  Register ic_reg = S5;
-  Register func_reg = temp_reg;
-  ASSERT(temp_reg == T0);
-  __ Comment("Increment function counter");
-  __ lw(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
-  __ lw(T1, FieldAddress(func_reg, Function::usage_counter_offset()));
-  __ addiu(T1, T1, Immediate(1));
-  __ sw(T1, FieldAddress(func_reg, Function::usage_counter_offset()));
+  if (FLAG_optimization_counter_threshold >= 0) {
+    __ Comment("UsageCounterIncrement");
+    Register ic_reg = S5;
+    Register func_reg = temp_reg;
+    ASSERT(temp_reg == T0);
+    __ Comment("Increment function counter");
+    __ lw(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
+    __ lw(T1, FieldAddress(func_reg, Function::usage_counter_offset()));
+    __ addiu(T1, T1, Immediate(1));
+    __ sw(T1, FieldAddress(func_reg, Function::usage_counter_offset()));
+  }
 }
 
 
@@ -1404,14 +1408,16 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ Stop("Incorrect IC data");
   __ Bind(&ok);
 #endif
-  // Update counter.
-  const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-  __ lw(T4, Address(T0, count_offset));
-  __ AddImmediateDetectOverflow(T7, T4, Smi::RawValue(1), T5, T6);
-  __ slt(CMPRES1, T5, ZR);  // T5 is < 0 if there was overflow.
-  __ LoadImmediate(T4, Smi::RawValue(Smi::kMaxValue));
-  __ movz(T4, T7, CMPRES1);
-  __ sw(T4, Address(T0, count_offset));
+  if (FLAG_optimization_counter_threshold >= 0) {
+    // Update counter.
+    const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
+    __ lw(T4, Address(T0, count_offset));
+    __ AddImmediateDetectOverflow(T7, T4, Smi::RawValue(1), T5, T6);
+    __ slt(CMPRES1, T5, ZR);  // T5 is < 0 if there was overflow.
+    __ LoadImmediate(T4, Smi::RawValue(Smi::kMaxValue));
+    __ movz(T4, T7, CMPRES1);
+    __ sw(T4, Address(T0, count_offset));
+  }
 
   __ Ret();
 }
@@ -1449,12 +1455,14 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 #endif  // DEBUG
 
 
-  __ Comment("Check single stepping");
   Label stepping, done_stepping;
-  __ LoadIsolate(T0);
-  __ lbu(T0, Address(T0, Isolate::single_step_offset()));
-  __ BranchNotEqual(T0, Immediate(0), &stepping);
-  __ Bind(&done_stepping);
+  if (FLAG_support_debugger) {
+    __ Comment("Check single stepping");
+    __ LoadIsolate(T0);
+    __ lbu(T0, Address(T0, Isolate::single_step_offset()));
+    __ BranchNotEqual(T0, Immediate(0), &stepping);
+    __ Bind(&done_stepping);
+  }
 
   __ Comment("Range feedback collection");
   Label not_smi_or_overflow;
@@ -1593,13 +1601,15 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
   __ lw(T3, Address(T0, target_offset));
 
-  // Update counter.
-  __ lw(T4, Address(T0, count_offset));
-  __ AddImmediateDetectOverflow(T7, T4, Smi::RawValue(1), T5, T6);
-  __ slt(CMPRES1, T5, ZR);  // T5 is < 0 if there was overflow.
-  __ LoadImmediate(T4, Smi::RawValue(Smi::kMaxValue));
-  __ movz(T4, T7, CMPRES1);
-  __ sw(T4, Address(T0, count_offset));
+  if (FLAG_optimization_counter_threshold >= 0) {
+    // Update counter.
+    __ lw(T4, Address(T0, count_offset));
+    __ AddImmediateDetectOverflow(T7, T4, Smi::RawValue(1), T5, T6);
+    __ slt(CMPRES1, T5, ZR);  // T5 is < 0 if there was overflow.
+    __ LoadImmediate(T4, Smi::RawValue(Smi::kMaxValue));
+    __ movz(T4, T7, CMPRES1);
+    __ sw(T4, Address(T0, count_offset));
+  }
 
   __ Comment("Call target");
   __ Bind(&call_target_function);
@@ -1636,17 +1646,19 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 
   // Call single step callback in debugger.
-  __ Bind(&stepping);
-  __ EnterStubFrame();
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
-  __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ lw(RA, Address(SP, 0 * kWordSize));
-  __ lw(S5, Address(SP, 1 * kWordSize));
-  __ addiu(SP, SP, Immediate(2 * kWordSize));
-  __ LeaveStubFrame();
-  __ b(&done_stepping);
+  if (FLAG_support_debugger) {
+    __ Bind(&stepping);
+    __ EnterStubFrame();
+    __ addiu(SP, SP, Immediate(-2 * kWordSize));
+    __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
+    __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ lw(RA, Address(SP, 0 * kWordSize));
+    __ lw(S5, Address(SP, 1 * kWordSize));
+    __ addiu(SP, SP, Immediate(2 * kWordSize));
+    __ LeaveStubFrame();
+    __ b(&done_stepping);
+  }
 }
 
 
@@ -1776,10 +1788,12 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(T0);
-  __ lbu(T0, Address(T0, Isolate::single_step_offset()));
-  __ BranchNotEqual(T0, Immediate(0), &stepping);
-  __ Bind(&done_stepping);
+  if (FLAG_support_debugger) {
+    __ LoadIsolate(T0);
+    __ lbu(T0, Address(T0, Isolate::single_step_offset()));
+    __ BranchNotEqual(T0, Immediate(0), &stepping);
+    __ Bind(&done_stepping);
+  }
 
   // S5: IC data object (preserved).
   __ lw(T0, FieldAddress(S5, ICData::ic_data_offset()));
@@ -1789,13 +1803,15 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   const intptr_t target_offset = ICData::TargetIndexFor(0) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
 
-  // Increment count for this call.
-  __ lw(T4, Address(T0, count_offset));
-  __ AddImmediateDetectOverflow(T7, T4, Smi::RawValue(1), T5, T6);
-  __ slt(CMPRES1, T5, ZR);  // T5 is < 0 if there was overflow.
-  __ LoadImmediate(T4, Smi::RawValue(Smi::kMaxValue));
-  __ movz(T4, T7, CMPRES1);
-  __ sw(T4, Address(T0, count_offset));
+  if (FLAG_optimization_counter_threshold >= 0) {
+    // Increment count for this call.
+    __ lw(T4, Address(T0, count_offset));
+    __ AddImmediateDetectOverflow(T7, T4, Smi::RawValue(1), T5, T6);
+    __ slt(CMPRES1, T5, ZR);  // T5 is < 0 if there was overflow.
+    __ LoadImmediate(T4, Smi::RawValue(Smi::kMaxValue));
+    __ movz(T4, T7, CMPRES1);
+    __ sw(T4, Address(T0, count_offset));
+  }
 
   // Load arguments descriptor into S4.
   __ lw(S4,  FieldAddress(S5, ICData::arguments_descriptor_offset()));
@@ -1809,17 +1825,19 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ jr(T4);
 
   // Call single step callback in debugger.
-  __ Bind(&stepping);
-  __ EnterStubFrame();
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
-  __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ lw(RA, Address(SP, 0 * kWordSize));
-  __ lw(S5, Address(SP, 1 * kWordSize));
-  __ addiu(SP, SP, Immediate(2 * kWordSize));
-  __ LeaveStubFrame();
-  __ b(&done_stepping);
+  if (FLAG_support_debugger) {
+    __ Bind(&stepping);
+    __ EnterStubFrame();
+    __ addiu(SP, SP, Immediate(-2 * kWordSize));
+    __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
+    __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ lw(RA, Address(SP, 0 * kWordSize));
+    __ lw(S5, Address(SP, 1 * kWordSize));
+    __ addiu(SP, SP, Immediate(2 * kWordSize));
+    __ LeaveStubFrame();
+    __ b(&done_stepping);
+  }
 }
 
 
@@ -2212,10 +2230,12 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(T0);
-  __ lbu(T0, Address(T0, Isolate::single_step_offset()));
-  __ BranchNotEqual(T0, Immediate(0), &stepping);
-  __ Bind(&done_stepping);
+  if (FLAG_support_debugger) {
+    __ LoadIsolate(T0);
+    __ lbu(T0, Address(T0, Isolate::single_step_offset()));
+    __ BranchNotEqual(T0, Immediate(0), &stepping);
+    __ Bind(&done_stepping);
+  }
 
   const Register temp1 = T2;
   const Register temp2 = T3;
@@ -2227,15 +2247,17 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   __ Ret();
 
   // Call single step callback in debugger.
-  __ Bind(&stepping);
-  __ EnterStubFrame();
-  __ addiu(SP, SP, Immediate(-1 * kWordSize));
-  __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ lw(RA, Address(SP, 0 * kWordSize));
-  __ addiu(SP, SP, Immediate(1 * kWordSize));
-  __ LeaveStubFrame();
-  __ b(&done_stepping);
+  if (FLAG_support_debugger) {
+    __ Bind(&stepping);
+    __ EnterStubFrame();
+    __ addiu(SP, SP, Immediate(-1 * kWordSize));
+    __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ lw(RA, Address(SP, 0 * kWordSize));
+    __ addiu(SP, SP, Immediate(1 * kWordSize));
+    __ LeaveStubFrame();
+    __ b(&done_stepping);
+  }
 }
 
 
@@ -2252,6 +2274,61 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
   __ lw(left, Address(SP, 1 * kWordSize));
   __ lw(right, Address(SP, 0 * kWordSize));
   GenerateIdenticalWithNumberCheckStub(assembler, left, right, temp1, temp2);
+  __ Ret();
+}
+
+
+void StubCode::EmitMegamorphicLookup(
+    Assembler* assembler, Register receiver, Register cache, Register target) {
+  ASSERT((cache != T0) && (cache != T2));
+  __ LoadTaggedClassIdMayBeSmi(T0, receiver);
+  // T0: class ID of the receiver (smi).
+  __ lw(T2, FieldAddress(cache, MegamorphicCache::buckets_offset()));
+  __ lw(T1, FieldAddress(cache, MegamorphicCache::mask_offset()));
+  // T2: cache buckets array.
+  // T1: mask.
+  __ mov(T3, T0);
+
+  Label loop, update, call_target_function;
+  __ b(&loop);
+
+  __ Bind(&update);
+  __ addiu(T3, T3, Immediate(Smi::RawValue(1)));
+  __ Bind(&loop);
+  __ and_(T3, T3, T1);
+  const intptr_t base = Array::data_offset();
+  // T3 is smi tagged, but table entries are two words, so LSL 2.
+  __ sll(TMP, T3, 2);
+  __ addu(TMP, T2, TMP);
+  __ lw(T4, FieldAddress(TMP, base));
+
+  ASSERT(kIllegalCid == 0);
+  __ beq(T4, ZR, &call_target_function);
+  __ bne(T4, T0, &update);
+
+  __ Bind(&call_target_function);
+  // Call the target found in the cache.  For a class id match, this is a
+  // proper target for the given name and arguments descriptor.  If the
+  // illegal class id was found, the target is a cache miss handler that can
+  // be invoked as a normal Dart function.
+  __ sll(T1, T3, 2);
+  __ addu(T1, T2, T1);
+  __ lw(T0, FieldAddress(T1, base + kWordSize));
+
+  __ lw(target, FieldAddress(T0, Function::instructions_offset()));
+  // TODO(srdjan): Evaluate performance impact of moving the instruction below
+  // to the call site, instead of having it here.
+  __ AddImmediate(target, Instructions::HeaderSize() - kHeapObjectTag);
+}
+
+
+// Called from megamorphic calls.
+//  T0: receiver.
+//  T1: lookup cache.
+// Result:
+//  T1: entry point.
+void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
+  EmitMegamorphicLookup(assembler, T0, T1, T1);
   __ Ret();
 }
 

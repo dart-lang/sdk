@@ -12,8 +12,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, enable_type_checks);
-
 #define DEFINE_VISIT_FUNCTION(BaseName)                                        \
 void BaseName##Node::Visit(AstNodeVisitor* visitor) {                          \
   visitor->Visit##BaseName##Node(this);                                        \

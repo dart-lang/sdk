@@ -27,7 +27,8 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
-DEFINE_FLAG(bool, verify_incoming_contexts, false, "");
+DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(bool, support_debugger);
 
 #define INT32_SIZEOF(x) static_cast<int32_t>(sizeof(x))
 
@@ -1185,12 +1186,14 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
 // Loads function into 'temp_reg'.
 void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
                                              Register temp_reg) {
-  Register ic_reg = ECX;
-  Register func_reg = temp_reg;
-  ASSERT(ic_reg != func_reg);
-  __ Comment("Increment function counter");
-  __ movl(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
-  __ incl(FieldAddress(func_reg, Function::usage_counter_offset()));
+  if (FLAG_optimization_counter_threshold >= 0) {
+    Register ic_reg = ECX;
+    Register func_reg = temp_reg;
+    ASSERT(ic_reg != func_reg);
+    __ Comment("Increment function counter");
+    __ movl(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
+    __ incl(FieldAddress(func_reg, Function::usage_counter_offset()));
+  }
 }
 
 
@@ -1258,14 +1261,15 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ Stop("Incorrect IC data");
   __ Bind(&ok);
 #endif
-  // Update counter.
-  const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-  __ movl(ECX, Address(EBX, count_offset));
-  __ addl(ECX, Immediate(Smi::RawValue(1)));
-  __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
-  __ cmovno(EDI, ECX);
-  __ StoreIntoSmiField(Address(EBX, count_offset), EDI);
-
+  if (FLAG_optimization_counter_threshold >= 0) {
+    // Update counter.
+    const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
+    __ movl(ECX, Address(EBX, count_offset));
+    __ addl(ECX, Immediate(Smi::RawValue(1)));
+    __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovno(EDI, ECX);
+    __ StoreIntoSmiField(Address(EBX, count_offset), EDI);
+  }
   __ ret();
 }
 
@@ -1301,14 +1305,15 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
-  __ Comment("Check single stepping");
   Label stepping, done_stepping;
-  uword single_step_address = reinterpret_cast<uword>(Isolate::Current()) +
-      Isolate::single_step_offset();
-  __ cmpb(Address::Absolute(single_step_address), Immediate(0));
-  __ j(NOT_EQUAL, &stepping);
-  __ Bind(&done_stepping);
-
+  if (FLAG_support_debugger) {
+    __ Comment("Check single stepping");
+    uword single_step_address = reinterpret_cast<uword>(Isolate::Current()) +
+        Isolate::single_step_offset();
+    __ cmpb(Address::Absolute(single_step_address), Immediate(0));
+    __ j(NOT_EQUAL, &stepping);
+    __ Bind(&done_stepping);
+  }
   __ Comment("Range feedback collection");
   Label not_smi_or_overflow;
   if (range_collection_mode == kCollectRanges) {
@@ -1422,13 +1427,14 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // EBX: Pointer to an IC data check group.
   const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-
-  __ Comment("Update caller's counter");
-  __ movl(EAX, Address(EBX, count_offset));
-  __ addl(EAX, Immediate(Smi::RawValue(1)));
-  __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
-  __ cmovno(EDI, EAX);
-  __ StoreIntoSmiField(Address(EBX, count_offset), EDI);
+  if (FLAG_optimization_counter_threshold >= 0) {
+    __ Comment("Update caller's counter");
+    __ movl(EAX, Address(EBX, count_offset));
+    __ addl(EAX, Immediate(Smi::RawValue(1)));
+    __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovno(EDI, EAX);
+    __ StoreIntoSmiField(Address(EBX, count_offset), EDI);
+  }
 
   __ movl(EAX, Address(EBX, target_offset));
   __ Bind(&call_target_function);
@@ -1459,13 +1465,15 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ jmp(EBX);
   }
 
-  __ Bind(&stepping);
-  __ EnterStubFrame();
-  __ pushl(ECX);
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ popl(ECX);
-  __ LeaveFrame();
-  __ jmp(&done_stepping);
+  if (FLAG_support_debugger) {
+    __ Bind(&stepping);
+    __ EnterStubFrame();
+    __ pushl(ECX);
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ popl(ECX);
+    __ LeaveFrame();
+    __ jmp(&done_stepping);
+  }
 }
 
 
@@ -1615,11 +1623,13 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 #endif  // DEBUG
   // Check single stepping.
   Label stepping, done_stepping;
-  uword single_step_address = reinterpret_cast<uword>(Isolate::Current()) +
-      Isolate::single_step_offset();
-  __ cmpb(Address::Absolute(single_step_address), Immediate(0));
-  __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
-  __ Bind(&done_stepping);
+  if (FLAG_support_debugger) {
+    uword single_step_address = reinterpret_cast<uword>(Isolate::Current()) +
+        Isolate::single_step_offset();
+    __ cmpb(Address::Absolute(single_step_address), Immediate(0));
+    __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
+    __ Bind(&done_stepping);
+  }
 
   // ECX: IC data object (preserved).
   __ movl(EBX, FieldAddress(ECX, ICData::ic_data_offset()));
@@ -1629,12 +1639,14 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   const intptr_t target_offset = ICData::TargetIndexFor(0) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
 
-  // Increment count for this call.
-  __ movl(EAX, Address(EBX, count_offset));
-  __ addl(EAX, Immediate(Smi::RawValue(1)));
-  __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
-  __ cmovno(EDI, EAX);
-  __ StoreIntoSmiField(Address(EBX, count_offset), EDI);
+  if (FLAG_optimization_counter_threshold >= 0) {
+    // Increment count for this call.
+    __ movl(EAX, Address(EBX, count_offset));
+    __ addl(EAX, Immediate(Smi::RawValue(1)));
+    __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovno(EDI, EAX);
+    __ StoreIntoSmiField(Address(EBX, count_offset), EDI);
+  }
 
   // Load arguments descriptor into EDX.
   __ movl(EDX, FieldAddress(ECX, ICData::arguments_descriptor_offset()));
@@ -1647,13 +1659,15 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(EBX);
 
-  __ Bind(&stepping);
-  __ EnterStubFrame();
-  __ pushl(ECX);
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ popl(ECX);
-  __ LeaveFrame();
-  __ jmp(&done_stepping, Assembler::kNearJump);
+  if (FLAG_support_debugger) {
+    __ Bind(&stepping);
+    __ EnterStubFrame();
+    __ pushl(ECX);
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ popl(ECX);
+    __ LeaveFrame();
+    __ jmp(&done_stepping, Assembler::kNearJump);
+  }
 }
 
 
@@ -2016,11 +2030,13 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(EAX);
-  __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
-  __ cmpl(EAX, Immediate(0));
-  __ j(NOT_EQUAL, &stepping);
-  __ Bind(&done_stepping);
+  if (FLAG_support_debugger) {
+    __ LoadIsolate(EAX);
+    __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
+    __ cmpl(EAX, Immediate(0));
+    __ j(NOT_EQUAL, &stepping);
+    __ Bind(&done_stepping);
+  }
 
   const Register left = EAX;
   const Register right = EDX;
@@ -2030,11 +2046,13 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   GenerateIdenticalWithNumberCheckStub(assembler, left, right, temp);
   __ ret();
 
-  __ Bind(&stepping);
-  __ EnterStubFrame();
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ LeaveFrame();
-  __ jmp(&done_stepping);
+  if (FLAG_support_debugger) {
+    __ Bind(&stepping);
+    __ EnterStubFrame();
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ LeaveFrame();
+    __ jmp(&done_stepping);
+  }
 }
 
 
@@ -2053,6 +2071,60 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
   GenerateIdenticalWithNumberCheckStub(assembler, left, right, temp);
   __ ret();
 }
+
+
+void StubCode::EmitMegamorphicLookup(
+    Assembler* assembler, Register receiver, Register cache, Register target) {
+  ASSERT((cache != EAX) && (cache != EDI));
+  __ LoadTaggedClassIdMayBeSmi(EAX, receiver);
+
+  // EAX: class ID of the receiver (smi).
+  __ movl(EDI, FieldAddress(cache, MegamorphicCache::buckets_offset()));
+  __ movl(EBX, FieldAddress(cache, MegamorphicCache::mask_offset()));
+  // EDI: cache buckets array.
+  // EBX: mask.
+  __ movl(ECX, EAX);
+
+  Label loop, update, call_target_function;
+  __ jmp(&loop);
+
+  __ Bind(&update);
+  __ addl(ECX, Immediate(Smi::RawValue(1)));
+  __ Bind(&loop);
+  __ andl(ECX, EBX);
+  const intptr_t base = Array::data_offset();
+  // ECX is smi tagged, but table entries are two words, so TIMES_4.
+  __ movl(EDX, FieldAddress(EDI, ECX, TIMES_4, base));
+
+  ASSERT(kIllegalCid == 0);
+  __ testl(EDX, EDX);
+  __ j(ZERO, &call_target_function, Assembler::kNearJump);
+  __ cmpl(EDX, EAX);
+  __ j(NOT_EQUAL, &update, Assembler::kNearJump);
+
+  __ Bind(&call_target_function);
+  // Call the target found in the cache.  For a class id match, this is a
+  // proper target for the given name and arguments descriptor.  If the
+  // illegal class id was found, the target is a cache miss handler that can
+  // be invoked as a normal Dart function.
+  __ movl(EAX, FieldAddress(EDI, ECX, TIMES_4, base + kWordSize));
+  __ movl(target, FieldAddress(EAX, Function::instructions_offset()));
+  // TODO(srdjan): Evaluate performance impact of moving the instruction below
+  // to the call site, instead of having it here.
+  __ addl(target, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+}
+
+
+// Called from megamorphic calls.
+//  EDI: receiver.
+//  EBX: lookup cache.
+// Result:
+//  EBX: entry point.
+void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
+  EmitMegamorphicLookup(assembler, EDI, EBX, EBX);
+  __ ret();
+}
+
 
 }  // namespace dart
 

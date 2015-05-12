@@ -24,8 +24,8 @@ namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
-DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, enable_simd_inline);
+DECLARE_FLAG(bool, use_megamorphic_stub);
 
 
 FlowGraphCompiler::~FlowGraphCompiler() {
@@ -1311,53 +1311,28 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     intptr_t deopt_id,
     intptr_t token_pos,
     LocationSummary* locs) {
-  MegamorphicCacheTable* table = Isolate::Current()->megamorphic_cache_table();
+  MegamorphicCacheTable* table = isolate()->megamorphic_cache_table();
   const String& name = String::Handle(ic_data.target_name());
   const Array& arguments_descriptor =
       Array::ZoneHandle(ic_data.arguments_descriptor());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
-  __ movq(RBX, Address(RSP, (argument_count - 1) * kWordSize));
-  __ LoadTaggedClassIdMayBeSmi(RAX, RBX);
+  const Register receiverR = RDI;
+  const Register cacheR = RBX;
+  const Register targetR = RCX;
+  __ movq(receiverR, Address(RSP, (argument_count - 1) * kWordSize));
+  __ LoadObject(cacheR, cache, PP);
 
-  // RAX: class ID of the receiver (smi).
-  __ LoadObject(RBX, cache, PP);
-  __ movq(RDI, FieldAddress(RBX, MegamorphicCache::buckets_offset()));
-  __ movq(RBX, FieldAddress(RBX, MegamorphicCache::mask_offset()));
-  // RDI: cache buckets array.
-  // RBX: mask.
-  __ movq(RCX, RAX);
-
-  Label loop, update, call_target_function;
-  __ jmp(&loop);
-
-  __ Bind(&update);
-  __ AddImmediate(RCX, Immediate(Smi::RawValue(1)), PP);
-  __ Bind(&loop);
-  __ andq(RCX, RBX);
-  const intptr_t base = Array::data_offset();
-  // RCX is smi tagged, but table entries are two words, so TIMES_8.
-  __ movq(RDX, FieldAddress(RDI, RCX, TIMES_8, base));
-
-  ASSERT(kIllegalCid == 0);
-  __ testq(RDX, RDX);
-  __ j(ZERO, &call_target_function, Assembler::kNearJump);
-  __ cmpq(RDX, RAX);
-  __ j(NOT_EQUAL, &update, Assembler::kNearJump);
-
-  __ Bind(&call_target_function);
-  // Call the target found in the cache.  For a class id match, this is a
-  // proper target for the given name and arguments descriptor.  If the
-  // illegal class id was found, the target is a cache miss handler that can
-  // be invoked as a normal Dart function.
-  __ movq(RAX, FieldAddress(RDI, RCX, TIMES_8, base + kWordSize));
-  __ movq(RCX, FieldAddress(RAX, Function::instructions_offset()));
+  if (FLAG_use_megamorphic_stub) {
+    StubCode* stub_code = isolate()->stub_code();
+    __ call(&stub_code->MegamorphicLookupLabel());
+  } else  {
+    StubCode::EmitMegamorphicLookup(assembler(), receiverR, cacheR, targetR);
+  }
   __ LoadObject(RBX, ic_data, PP);
   __ LoadObject(R10, arguments_descriptor, PP);
-  __ AddImmediate(
-      RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag), PP);
-  __ call(RCX);
+  __ call(targetR);
   AddCurrentDescriptor(RawPcDescriptors::kOther,
       Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);

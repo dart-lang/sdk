@@ -83,8 +83,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     // to know if the property exists.
     JS('void', r'#.fixed$length = Array', list);
     JS('void', r'#.immutable$list = Array', list);
-    // TODO(23309): Make it detectable that the list has fixed length.
-    return JS('JSArray', '#', list);
+    return JS('JSUnmodifiableArray', '#', list);
   }
 
   checkMutable(reason) {
@@ -125,7 +124,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   void insertAll(int index, Iterable<E> iterable) {
     checkGrowable('insertAll');
     RangeError.checkValueInInterval(index, 0, this.length, "index");
-    if (iterable is! EfficientLength) {
+    if (iterable is! EfficientLengthIterable) {
       iterable = iterable.toList();
     }
     int insertionLength = iterable.length;
@@ -440,7 +439,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   void replaceRange(int start, int end, Iterable<E> replacement) {
     checkGrowable('replace range');
     RangeError.checkValidRange(start, end, this.length);
-    if (replacement is! EfficientLength) {
+    if (replacement is! EfficientLengthIterable) {
       replacement = replacement.toList();
     }
     int removeLength = end - start;
@@ -613,6 +612,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 class JSMutableArray<E> extends JSArray<E> implements JSMutableIndexable {}
 class JSFixedArray<E> extends JSMutableArray<E> {}
 class JSExtendableArray<E> extends JSMutableArray<E> {}
+class JSUnmodifiableArray<E> extends JSArray<E> {} // Already is JSIndexable.
 
 
 /// An [Iterator] that iterates a JSArray.

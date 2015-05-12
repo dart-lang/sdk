@@ -17,7 +17,7 @@ part of dart.collection;
  * This goes both for using the [iterator] directly, or for iterating an
  * `Iterable` returned by a method like [map] or [where].
  */
-abstract class Queue<E> implements Iterable<E>, EfficientLength {
+abstract class Queue<E> implements EfficientLengthIterable<E> {
 
   /**
    * Creates a queue.
@@ -482,7 +482,7 @@ class ListQueue<E> extends Iterable<E> implements Queue<E> {
       return queue;
     } else {
       int capacity = _INITIAL_CAPACITY;
-      if (elements is EfficientLength) {
+      if (elements is EfficientLengthIterable) {
         capacity = elements.length;
       }
       ListQueue<E> result = new ListQueue<E>(capacity);

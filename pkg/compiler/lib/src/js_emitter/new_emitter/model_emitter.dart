@@ -66,8 +66,12 @@ class ModelEmitter {
   }
 
   js.Expression generateEmbeddedGlobalAccess(String global) {
-    // TODO(floitsch): We should not use "init" for globals.
-    return js.js("init.$global");
+    return js.js(generateEmbeddedGlobalAccessString(global));
+  }
+
+  String generateEmbeddedGlobalAccessString(String global) {
+    // TODO(floitsch): don't use 'init' as global embedder storage.
+    return 'init.$global';
   }
 
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
@@ -134,7 +138,8 @@ class ModelEmitter {
     // deferred hash (which depends on the output) when emitting the main
     // fragment.
     fragments.skip(1).forEach((DeferredFragment deferredUnit) {
-      List<String> types = program.metadataTypes[deferredUnit.outputUnit];
+      List<js.Expression> types =
+          program.metadataTypes[deferredUnit.outputUnit];
       js.Expression ast = emitDeferredFragment(types, deferredUnit,
                                                program.holders);
       String code = js.prettyPrint(ast, compiler).getText();
@@ -155,13 +160,21 @@ class ModelEmitter {
     return totalSize;
   }
 
-  js.LiteralString unparse(Compiler compiler, js.Node value) {
+  /// Unparses the given [value].
+  ///
+  /// Pretty-prints the given [value] and, if [protectForEval] is
+  /// true, wraps the resulting string in parenthesis. The result is escaped
+  /// and returned.
+  js.LiteralString unparse(Compiler compiler, js.Node value,
+                           {bool protectForEval: true}) {
     String text = js.prettyPrint(value, compiler).getText();
-    if (value is js.Fun) text = '($text)';
-    if (value is js.LiteralExpression &&
-        (value.template.startsWith("function ") ||
-         value.template.startsWith("{"))) {
-      text = '($text)';
+    if (protectForEval) {
+      if (value is js.Fun) text = '($text)';
+      if (value is js.LiteralExpression &&
+      (value.template.startsWith("function ") ||
+      value.template.startsWith("{"))) {
+        text = '($text)';
+      }
     }
     return js.js.escapedString(text);
   }
@@ -196,6 +209,7 @@ class ModelEmitter {
            backend.emitter.staticFunctionAccess(backend.getCyclicThrowHelper()),
        'outputContainsConstantList': program.outputContainsConstantList,
        'embeddedGlobals': emitEmbeddedGlobals(program),
+       'readMetadataTypeFunction': readMetadataTypeFunction,
        'staticNonFinals':
             emitStaticNonFinalFields(fragment.staticNonFinalFields),
        'operatorIsPrefix': js.string(namer.operatorIsPrefix),
@@ -416,27 +430,83 @@ class ModelEmitter {
     return new js.Property(js.string(GET_TYPE_FROM_NAME), function);
   }
 
+  static final String readMetadataTypeName = "readMetadataType";
+
+  js.Statement get readMetadataTypeFunction {
+    // Types are non-evaluated and must be compiled at first use.
+    // Compiled strings are guaranteed not to be strings, and it's thus safe
+    // to use a type-test to determine if a type has already been compiled.
+    return js.js.statement('''function $readMetadataTypeName(index) {
+      var type = #typesAccess[index];
+      if (typeof type == 'string') {
+        type = expressionCompile(type);
+        #typesAccess[index] = type;
+      }
+      return type;
+    }''', {"typesAccess": generateEmbeddedGlobalAccess(TYPES)});
+  }
+
+  js.Template get templateForReadType {
+    // TODO(floitsch): make sure that no local variable shadows the access to
+    // the readMetadataType function.
+    return js.js.expressionTemplateFor('$readMetadataTypeName(#)');
+  }
+
+  static final String readMetadataName = "readLazyMetadata";
+  static final String lazyMetadataName = "lazy_$METADATA";
+
+  js.Statement get readMetadataFunction {
+    // Types are non-evaluated and must be compiled at first use.
+    // Compiled strings are guaranteed not to be strings, and it's thus safe
+    // to use a type-test to determine if a type has already been compiled.
+    return js.js.statement('''function $readMetadataName(index) {
+      var lazyMetadata = #lazyMetadataAccess[index];
+      if (typeof lazyMetadata == 'string') {
+        #metadataAccess[index] = expressionCompile(lazyMetadata);
+        #lazyMetadataAccess[index] = null;
+      }
+      return #metadataAccess[index];
+    }''', {
+      "lazyMetadataAccess": generateEmbeddedGlobalAccess(lazyMetadataName),
+      "metadataAccess": generateEmbeddedGlobalAccess(METADATA)
+    });
+  }
+
+  js.Template get templateForReadMetadata {
+    // TODO(floitsch): make sure that no local variable shadows the access to
+    // the readMetadata function.
+    return js.js.expressionTemplateFor('$readMetadataName(#)');
+  }
+
   List<js.Property> emitMetadata(Program program) {
+    // Unparses all given js-expressions (suitable for `expressionCompile`) and
+    // returns the result in a js-array.
+    // If the given [expressions] is null returns the empty js-array.
+    js.ArrayInitializer unparseExpressions(List<js.Expression> expressions) {
+      if (expressions == null) expressions = <js.Expression>[];
+      List<js.LiteralString> unparsedExpressions = expressions
+          .map((expr) => unparse(compiler, expr, protectForEval: false))
+          .toList();
+      return new js.ArrayInitializer(unparsedExpressions);
+    }
 
     List<js.Property> metadataGlobals = <js.Property>[];
 
-    js.Property createGlobal(List<String> list, String global) {
-      String listAsString = "[${list.join(",")}]";
-      js.Expression metadata =
-                js.js.uncachedExpressionTemplate(listAsString).instantiate([]);
-      return new js.Property(js.string(global), metadata);
-    }
+    js.ArrayInitializer unparsedMetadata = unparseExpressions(program.metadata);
+    metadataGlobals.add(new js.Property(js.string(lazyMetadataName),
+                                        unparsedMetadata));
+    metadataGlobals.add(new js.Property(js.string(METADATA),
+                                        new js.ArrayInitializer([])));
 
-    metadataGlobals.add(createGlobal(program.metadata, METADATA));
-    List<String> types =
+    List<js.Expression> types =
         program.metadataTypes[program.fragments.first.outputUnit];
-    if (types == null) types = <String>[];
-    metadataGlobals.add(createGlobal(types, TYPES));
+    metadataGlobals.add(new js.Property(js.string(TYPES),
+                                        unparseExpressions(types)));
 
     return metadataGlobals;
   }
 
-  js.Expression emitDeferredFragment(List<String> types,
+  js.Expression emitDeferredFragment(List<js.Expression> types,
                                      DeferredFragment fragment,
                                      List<Holder> holders) {
     // TODO(floitsch): initialize eager classes.
@@ -460,9 +530,9 @@ class ModelEmitter {
 
     js.LiteralString immediateString = unparse(compiler, immediateCode);
 
-    js.Expression deferredTypes = types == null
+    js.Expression deferredTypes = (types == null)
         ? js.string("[]")
-        : js.string("[${types.join(",")}]");
+        : unparse(compiler, new js.ArrayInitializer(types));
 
     js.ArrayInitializer hunk =
         new js.ArrayInitializer([deferredArray, immediateString,
@@ -1157,6 +1227,13 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
 
   // Initialize globals.
   #embeddedGlobals;
+
+  function expressionCompile(__s__) {
+    'use strict';
+    return eval('(' + __s__ + ')');
+  }
+
+  #readMetadataTypeFunction;
 
   // TODO(floitsch): this order means that native classes may not be
   // referenced from constants. I'm mostly afraid of things like using them as

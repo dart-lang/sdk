@@ -19,6 +19,7 @@ import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/src/task/task_dart.dart';
+import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
 
 import '../../instrumentation/instrumentation.dart';
@@ -919,7 +920,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * A list containing sources for which data should not be flushed.
    */
-  List<Source> _priorityOrder = Source.EMPTY_ARRAY;
+  List<Source> _priorityOrder = Source.EMPTY_LIST;
 
   /**
    * A map from all sources for which there are futures pending to a list of
@@ -1033,6 +1034,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  AnalysisCache get analysisCache => _cache;
+
+  @override
   AnalysisOptions get analysisOptions => _options;
 
   @override
@@ -1090,13 +1094,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void set analysisPriorityOrder(List<Source> sources) {
     if (sources == null || sources.isEmpty) {
-      _priorityOrder = Source.EMPTY_ARRAY;
+      _priorityOrder = Source.EMPTY_LIST;
     } else {
       while (sources.remove(null)) {
         // Nothing else to do.
       }
       if (sources.isEmpty) {
-        _priorityOrder = Source.EMPTY_ARRAY;
+        _priorityOrder = Source.EMPTY_LIST;
       }
       //
       // Cap the size of the priority list to being less than the cache size.
@@ -1461,14 +1465,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  void addSourceInfo(Source source, SourceEntry info) {
-    // This implementation assumes that the access to the cache does not need to
-    // be synchronized because no other object can have access to this context
-    // while this method is being invoked.
-    _cache.put(source, info);
-  }
-
-  @override
   void applyAnalysisDelta(AnalysisDelta delta) {
     ChangeSet changeSet = new ChangeSet();
     delta.analysisLevels.forEach((Source source, AnalysisLevel level) {
@@ -1539,7 +1535,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (unit == null) {
       return null;
     }
-    NodeLocator locator = new NodeLocator.con1(element.nameOffset);
+    NodeLocator locator = new NodeLocator(element.nameOffset);
     AstNode nameNode = locator.searchWithin(unit);
     while (nameNode != null) {
       if (nameNode is AnnotatedNode) {
@@ -1639,7 +1635,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> computeExportedLibraries(Source source) => _getDartParseData2(
-      source, DartEntry.EXPORTED_LIBRARIES, Source.EMPTY_ARRAY);
+      source, DartEntry.EXPORTED_LIBRARIES, Source.EMPTY_LIST);
 
   @override
   HtmlElement computeHtmlElement(Source source) =>
@@ -1647,7 +1643,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> computeImportedLibraries(Source source) => _getDartParseData2(
-      source, DartEntry.IMPORTED_LIBRARIES, Source.EMPTY_ARRAY);
+      source, DartEntry.IMPORTED_LIBRARIES, Source.EMPTY_LIST);
 
   @override
   SourceKind computeKindOf(Source source) {
@@ -1801,26 +1797,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return source.exists();
   }
 
-  Element findElementById(int id) {
-    _ElementByIdFinder finder = new _ElementByIdFinder(id);
-    try {
-      MapIterator<Source, SourceEntry> iterator = _cache.iterator();
-      while (iterator.moveNext()) {
-        SourceEntry sourceEntry = iterator.value;
-        if (sourceEntry.kind == SourceKind.LIBRARY) {
-          DartEntry dartEntry = sourceEntry;
-          LibraryElement library = dartEntry.getValue(DartEntry.ELEMENT);
-          if (library != null) {
-            library.accept(finder);
-          }
-        }
-      }
-    } on _ElementByIdFinderException {
-      return finder.result;
-    }
-    return null;
-  }
-
   @override
   cache.CacheEntry getCacheEntry(AnalysisTarget target) {
     return null;
@@ -1919,7 +1895,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   List<Source> getHtmlFilesReferencing(Source source) {
     SourceKind sourceKind = getKindOf(source);
     if (sourceKind == null) {
-      return Source.EMPTY_ARRAY;
+      return Source.EMPTY_LIST;
     }
     List<Source> htmlSources = new List<Source>();
     while (true) {
@@ -1952,7 +1928,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       break;
     }
     if (htmlSources.isEmpty) {
-      return Source.EMPTY_ARRAY;
+      return Source.EMPTY_LIST;
     }
     return htmlSources;
   }
@@ -1972,7 +1948,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (sourceEntry is DartEntry) {
       return sourceEntry.containingLibraries;
     }
-    return Source.EMPTY_ARRAY;
+    return Source.EMPTY_LIST;
   }
 
   @override
@@ -1995,7 +1971,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     if (dependentLibraries.isEmpty) {
-      return Source.EMPTY_ARRAY;
+      return Source.EMPTY_LIST;
     }
     return dependentLibraries;
   }
@@ -2007,7 +1983,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       HtmlEntry htmlEntry = sourceEntry;
       return htmlEntry.getValue(HtmlEntry.REFERENCED_LIBRARIES);
     }
-    return Source.EMPTY_ARRAY;
+    return Source.EMPTY_LIST;
   }
 
   @override
@@ -2301,9 +2277,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         dartEntry.setState(SourceEntry.CONTENT, CacheState.FLUSHED);
         dartEntry.setValue(SourceEntry.LINE_INFO, new LineInfo(<int>[0]));
         // DartEntry.ELEMENT - set in recordElementData
-        dartEntry.setValue(DartEntry.EXPORTED_LIBRARIES, Source.EMPTY_ARRAY);
-        dartEntry.setValue(DartEntry.IMPORTED_LIBRARIES, Source.EMPTY_ARRAY);
-        dartEntry.setValue(DartEntry.INCLUDED_PARTS, Source.EMPTY_ARRAY);
+        dartEntry.setValue(DartEntry.EXPORTED_LIBRARIES, Source.EMPTY_LIST);
+        dartEntry.setValue(DartEntry.IMPORTED_LIBRARIES, Source.EMPTY_LIST);
+        dartEntry.setValue(DartEntry.INCLUDED_PARTS, Source.EMPTY_LIST);
         // DartEntry.IS_CLIENT - set in recordElementData
         // DartEntry.IS_LAUNCHABLE - set in recordElementData
         dartEntry.setValue(DartEntry.PARSE_ERRORS, AnalysisError.NO_ERRORS);
@@ -3278,7 +3254,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (nullIfEmpty) {
         return null;
       }
-      return ChangeNoticeImpl.EMPTY_ARRAY;
+      return ChangeNoticeImpl.EMPTY_LIST;
     }
     List<ChangeNotice> notices = new List.from(_pendingNotices.values);
     _pendingNotices.clear();
@@ -4057,28 +4033,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
-  /**
-   * Record the results produced by performing a [task] and return the cache
-   * entry associated with the results.
-   */
-  DartEntry _recordBuildUnitElementTask(BuildUnitElementTask task) {
-    Source source = task.source;
-    Source library = task.library;
-    DartEntry dartEntry = _cache.get(source);
-    CaughtException thrownException = task.exception;
-    if (thrownException != null) {
-      dartEntry.recordBuildElementErrorInLibrary(library, thrownException);
-      throw new AnalysisException('<rethrow>', thrownException);
-    }
-    dartEntry.setValueInLibrary(DartEntry.BUILT_UNIT, library, task.unit);
-    dartEntry.setValueInLibrary(
-        DartEntry.BUILT_ELEMENT, library, task.unitElement);
-    ChangeNoticeImpl notice = _getNotice(source);
-    LineInfo lineInfo = dartEntry.getValue(SourceEntry.LINE_INFO);
-    notice.setErrors(dartEntry.allErrors, lineInfo);
-    return dartEntry;
-  }
-
 //  /**
 //   * Notify all of the analysis listeners that the given source is no longer included in the set of
 //   * sources that are being analyzed.
@@ -4156,6 +4110,28 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //      _listeners[i].resolvedHtml(this, source, unit);
 //    }
 //  }
+
+  /**
+   * Record the results produced by performing a [task] and return the cache
+   * entry associated with the results.
+   */
+  DartEntry _recordBuildUnitElementTask(BuildUnitElementTask task) {
+    Source source = task.source;
+    Source library = task.library;
+    DartEntry dartEntry = _cache.get(source);
+    CaughtException thrownException = task.exception;
+    if (thrownException != null) {
+      dartEntry.recordBuildElementErrorInLibrary(library, thrownException);
+      throw new AnalysisException('<rethrow>', thrownException);
+    }
+    dartEntry.setValueInLibrary(DartEntry.BUILT_UNIT, library, task.unit);
+    dartEntry.setValueInLibrary(
+        DartEntry.BUILT_ELEMENT, library, task.unitElement);
+    ChangeNoticeImpl notice = _getNotice(source);
+    LineInfo lineInfo = dartEntry.getValue(SourceEntry.LINE_INFO);
+    notice.setErrors(dartEntry.allErrors, lineInfo);
+    return dartEntry;
+  }
 
   /**
    * Given a [dartEntry] and a [library] element, record the library element and
@@ -5347,17 +5323,17 @@ class AnalysisContextImpl_CycleBuilder {
   List<Source> _getSources(Source source, DartEntry dartEntry,
       DataDescriptor<List<Source>> descriptor) {
     if (dartEntry == null) {
-      return Source.EMPTY_ARRAY;
+      return Source.EMPTY_LIST;
     }
     CacheState exportState = dartEntry.getState(descriptor);
     if (exportState == CacheState.ERROR) {
-      return Source.EMPTY_ARRAY;
+      return Source.EMPTY_LIST;
     } else if (exportState != CacheState.VALID) {
       if (_taskData == null) {
         _taskData =
             AnalysisContextImpl_this._createParseDartTask(source, dartEntry);
       }
-      return Source.EMPTY_ARRAY;
+      return Source.EMPTY_LIST;
     }
     return dartEntry.getValue(descriptor);
   }
@@ -5798,6 +5774,9 @@ class AnalysisEngine {
     if (_taskManager == null) {
       _taskManager = new TaskManager();
       _taskManager.addTaskDescriptors(enginePlugin.taskDescriptors);
+      // TODO(brianwilkerson) Create a way to associate different results with
+      // different file suffixes, then make this pluggable.
+      _taskManager.addGeneralResult(DART_ERRORS);
     }
     return _taskManager;
   }
@@ -6106,7 +6085,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * The default value for enabling enum support.
    */
   @deprecated
-  static bool DEFAULT_ENABLE_ENUM = false;
+  static bool DEFAULT_ENABLE_ENUM = true;
 
   /**
    * A predicate indicating whether analysis is to parse and analyze function
@@ -6193,7 +6172,28 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * Initialize a newly created set of analysis options to have the same values
    * as those in the given set of analysis [options].
    */
+  @deprecated // Use new AnalysisOptionsImpl.from(options)
   AnalysisOptionsImpl.con1(AnalysisOptions options) {
+    analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
+    cacheSize = options.cacheSize;
+    dart2jsHint = options.dart2jsHint;
+    enableNullAwareOperators = options.enableNullAwareOperators;
+    enableStrictCallChecks = options.enableStrictCallChecks;
+    generateImplicitErrors = options.generateImplicitErrors;
+    generateSdkErrors = options.generateSdkErrors;
+    hint = options.hint;
+    incremental = options.incremental;
+    incrementalApi = options.incrementalApi;
+    incrementalValidation = options.incrementalValidation;
+    lint = options.lint;
+    preserveComments = options.preserveComments;
+  }
+
+  /**
+   * Initialize a newly created set of analysis options to have the same values
+   * as those in the given set of analysis [options].
+   */
+  AnalysisOptionsImpl.from(AnalysisOptions options) {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
@@ -6861,7 +6861,7 @@ class ChangeNoticeImpl implements ChangeNotice {
   /**
    * An empty list of change notices.
    */
-  static const List<ChangeNoticeImpl> EMPTY_ARRAY = const <ChangeNoticeImpl>[];
+  static const List<ChangeNoticeImpl> EMPTY_LIST = const <ChangeNoticeImpl>[];
 
   /**
    * The source for which the result is being reported.
@@ -7252,7 +7252,7 @@ class DartEntry extends SourceEntry {
    */
   static final DataDescriptor<List<Source>> CONTAINING_LIBRARIES =
       new DataDescriptor<List<Source>>(
-          "DartEntry.CONTAINING_LIBRARIES", Source.EMPTY_ARRAY);
+          "DartEntry.CONTAINING_LIBRARIES", Source.EMPTY_LIST);
 
   /**
    * The data descriptor representing the library element for the library. This
@@ -7269,7 +7269,7 @@ class DartEntry extends SourceEntry {
    */
   static final DataDescriptor<List<Source>> EXPORTED_LIBRARIES =
       new DataDescriptor<List<Source>>(
-          "DartEntry.EXPORTED_LIBRARIES", Source.EMPTY_ARRAY);
+          "DartEntry.EXPORTED_LIBRARIES", Source.EMPTY_LIST);
 
   /**
    * The data descriptor representing the hints resulting from auditing the
@@ -7286,7 +7286,7 @@ class DartEntry extends SourceEntry {
    */
   static final DataDescriptor<List<Source>> IMPORTED_LIBRARIES =
       new DataDescriptor<List<Source>>(
-          "DartEntry.IMPORTED_LIBRARIES", Source.EMPTY_ARRAY);
+          "DartEntry.IMPORTED_LIBRARIES", Source.EMPTY_LIST);
 
   /**
    * The data descriptor representing the list of included parts. This data is
@@ -7295,7 +7295,7 @@ class DartEntry extends SourceEntry {
    */
   static final DataDescriptor<List<Source>> INCLUDED_PARTS =
       new DataDescriptor<List<Source>>(
-          "DartEntry.INCLUDED_PARTS", Source.EMPTY_ARRAY);
+          "DartEntry.INCLUDED_PARTS", Source.EMPTY_LIST);
 
   /**
    * The data descriptor representing the client flag. This data is only
@@ -8270,9 +8270,9 @@ class GenerateDartErrorsTask extends AnalysisTask {
       }
     }
     StringLiteral uriLiteral = directive.uri;
-    errorListener.onError(new AnalysisError.con2(librarySource,
-        uriLiteral.offset, uriLiteral.length,
-        CompileTimeErrorCode.URI_DOES_NOT_EXIST, [directive.uriContent]));
+    errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
+        uriLiteral.length, CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+        [directive.uriContent]));
   }
 }
 
@@ -8496,8 +8496,8 @@ class GetContentTask extends AnalysisTask {
       AnalysisEngine.instance.instrumentationService.logFileRead(
           source.fullName, _modificationTime, _content);
     } catch (exception, stackTrace) {
-      errors.add(new AnalysisError.con1(
-          source, ScannerErrorCode.UNABLE_GET_CONTENT, [exception]));
+      errors.add(new AnalysisError(
+          source, 0, 0, ScannerErrorCode.UNABLE_GET_CONTENT, [exception]));
       throw new AnalysisException("Could not get contents of $source",
           new CaughtException(exception, stackTrace));
     }
@@ -8547,7 +8547,7 @@ class HtmlEntry extends SourceEntry {
    */
   static final DataDescriptor<List<Source>> REFERENCED_LIBRARIES =
       new DataDescriptor<List<Source>>(
-          "HtmlEntry.REFERENCED_LIBRARIES", Source.EMPTY_ARRAY);
+          "HtmlEntry.REFERENCED_LIBRARIES", Source.EMPTY_LIST);
 
   /**
    * The data descriptor representing the errors resulting from resolving the
@@ -9019,6 +9019,14 @@ class IncrementalAnalysisTask extends AnalysisTask {
  */
 abstract class InternalAnalysisContext implements AnalysisContext {
   /**
+   * A table mapping the sources known to the context to the information known
+   * about the source.
+   *
+   * TODO(scheglov) add the type, once we have only one cache.
+   */
+  dynamic get analysisCache;
+
+  /**
    * Allow the client to supply its own content cache.  This will take the
    * place of the content cache created by default, allowing clients to share
    * the content cache between contexts.
@@ -9065,11 +9073,6 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * A factory to override how [TypeResolverVisitor] is created.
    */
   TypeResolverVisitorFactory get typeResolverVisitorFactory;
-
-  /**
-   * Add the given [source] with the given [information] to this context.
-   */
-  void addSourceInfo(Source source, SourceEntry information);
 
   /**
    * Return a list containing the sources of the libraries that are exported by
@@ -9184,7 +9187,7 @@ abstract class Logger {
    * Log the given [exception] as one representing an error. The [message] is an
    * explanation of why the error occurred or what it means.
    */
-  @deprecated
+  @deprecated // Use logError(message, exception)
   void logError2(String message, Object exception);
 
   /**
@@ -9198,7 +9201,7 @@ abstract class Logger {
    * Log the given [exception] as one representing an informational message. The
    * [message] is an explanation of why the error occurred or what it means.
    */
-  @deprecated
+  @deprecated // Use logInformation(message, exception)
   void logInformation2(String message, Object exception);
 }
 
@@ -9427,7 +9430,7 @@ class ParseDartTask extends AnalysisTask {
   List<Source> _toArray(HashSet<Source> sources) {
     int size = sources.length;
     if (size == 0) {
-      return Source.EMPTY_ARRAY;
+      return Source.EMPTY_LIST;
     }
     return new List.from(sources);
   }
@@ -9466,15 +9469,13 @@ class ParseDartTask extends AnalysisTask {
       return null;
     }
     if (code == UriValidationCode.URI_WITH_INTERPOLATION) {
-      errorListener.onError(new AnalysisError.con2(librarySource,
-          uriLiteral.offset, uriLiteral.length,
-          CompileTimeErrorCode.URI_WITH_INTERPOLATION));
+      errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
+          uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION));
       return null;
     }
     if (code == UriValidationCode.INVALID_URI) {
-      errorListener.onError(new AnalysisError.con2(librarySource,
-          uriLiteral.offset, uriLiteral.length,
-          CompileTimeErrorCode.INVALID_URI, [uriContent]));
+      errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
+          uriLiteral.length, CompileTimeErrorCode.INVALID_URI, [uriContent]));
       return null;
     }
     throw new RuntimeException(
@@ -9524,7 +9525,7 @@ class ParseHtmlTask extends AnalysisTask {
   /**
    * A list containing the sources of the libraries that are referenced within the HTML.
    */
-  List<Source> _referencedLibraries = Source.EMPTY_ARRAY;
+  List<Source> _referencedLibraries = Source.EMPTY_LIST;
 
   /**
    * Initialize a newly created task to perform analysis within the given context.
@@ -9560,7 +9561,7 @@ class ParseHtmlTask extends AnalysisTask {
     List<Source> libraries = new List<Source>();
     _unit.accept(new ParseHtmlTask_getLibrarySources(this, libraries));
     if (libraries.isEmpty) {
-      return Source.EMPTY_ARRAY;
+      return Source.EMPTY_LIST;
     }
     return libraries;
   }
@@ -11689,21 +11690,3 @@ class _AnalysisFutureHelper<T> {
     return pendingFuture.future;
   }
 }
-
-class _ElementByIdFinder extends GeneralizingElementVisitor {
-  final int _id;
-  Element result;
-
-  _ElementByIdFinder(this._id);
-
-  @override
-  visitElement(Element element) {
-    if (element.id == _id) {
-      result = element;
-      throw new _ElementByIdFinderException();
-    }
-    super.visitElement(element);
-  }
-}
-
-class _ElementByIdFinderException {}

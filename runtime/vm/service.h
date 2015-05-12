@@ -47,6 +47,7 @@ class Service : public AllStatic {
 
   static void SendEchoEvent(Isolate* isolate, const char* text);
   static void SendGraphEvent(Isolate* isolate);
+  static void SendInspectEvent(Isolate* isolate, const Object& inspectee);
 
  private:
   static void InvokeMethod(Isolate* isolate, const Array& message);

@@ -37,43 +37,48 @@ class HostedSource extends CachedSource {
 
   /// Downloads a list of all versions of a package that are available from the
   /// site.
-  Future<List<Version>> getVersions(String name, description) {
+  Future<List<Pubspec>> getVersions(String name, description) async {
     var url = _makeUrl(description,
         (server, package) => "$server/api/packages/$package");
 
     log.io("Get versions from $url.");
-    return httpClient.read(url, headers: PUB_API_HEADERS).then((body) {
-      var doc = JSON.decode(body);
-      return doc['versions']
-          .map((version) => new Version.parse(version['version']))
-          .toList();
-    }).catchError((ex, stackTrace) {
+
+    var body;
+    try {
+      body = await httpClient.read(url, headers: PUB_API_HEADERS);
+    } catch (error, stackTrace) {
       var parsed = _parseDescription(description);
-      _throwFriendlyError(ex, stackTrace, parsed.first, parsed.last);
-    });
+      _throwFriendlyError(error, stackTrace, parsed.first, parsed.last);
+    }
+
+    var doc = JSON.decode(body);
+    return doc['versions'].map((map) {
+      return new Pubspec.fromMap(
+          map['pubspec'], systemCache.sources,
+          expectedName: name, location: url);
+    }).toList();
   }
 
   /// Downloads and parses the pubspec for a specific version of a package that
   /// is available from the site.
-  Future<Pubspec> describeUncached(PackageId id) {
+  Future<Pubspec> describeUncached(PackageId id) async {
     // Request it from the server.
     var url = _makeVersionUrl(id, (server, package, version) =>
         "$server/api/packages/$package/versions/$version");
 
     log.io("Describe package at $url.");
-    return httpClient.read(url, headers: PUB_API_HEADERS).then((version) {
-      version = JSON.decode(version);
-
-      // TODO(rnystrom): After this is pulled down, we could place it in
-      // a secondary cache of just pubspecs. This would let us have a
-      // persistent cache for pubspecs for packages that haven't actually
-      // been downloaded.
-      return new Pubspec.fromMap(version['pubspec'], systemCache.sources,
-          expectedName: id.name, location: url);
-    }).catchError((ex, stackTrace) {
+    var version;
+    try {
+      version = JSON.decode(
+          await httpClient.read(url, headers: PUB_API_HEADERS));
+    } catch (error, stackTrace) {
       var parsed = _parseDescription(id.description);
-      _throwFriendlyError(ex, stackTrace, id.name, parsed.last);
-    });
+      _throwFriendlyError(error, stackTrace, id.name, parsed.last);
+    }
+
+    return new Pubspec.fromMap(
+        version['pubspec'], systemCache.sources,
+        expectedName: id.name, location: url);
   }
 
   /// Downloads the package identified by [id] to the system cache.
@@ -236,22 +241,20 @@ class HostedSource extends CachedSource {
 /// no network access.
 class OfflineHostedSource extends HostedSource {
   /// Gets the list of all versions of [name] that are in the system cache.
-  Future<List<Version>> getVersions(String name, description) {
-    return newFuture(() {
-      var parsed = _parseDescription(description);
-      var server = parsed.last;
-      log.io("Finding versions of $name in "
-             "$systemCacheRoot/${_urlToDirectory(server)}");
-      return _getCachedPackagesInDirectory(_urlToDirectory(server))
-          .where((package) => package.name == name)
-          .map((package) => package.version)
-          .toList();
-    }).then((versions) {
-      // If there are no versions in the cache, report a clearer error.
-      if (versions.isEmpty) fail("Could not find package $name in cache.");
+  Future<List<Pubspec>> getVersions(String name, description) async {
+    var parsed = _parseDescription(description);
+    var server = parsed.last;
+    log.io("Finding versions of $name in "
+        "$systemCacheRoot/${_urlToDirectory(server)}");
+    var versions = await _getCachedPackagesInDirectory(_urlToDirectory(server))
+        .where((package) => package.name == name)
+        .map((package) => package.pubspec)
+        .toList();
 
-      return versions;
-    });
+    // If there are no versions in the cache, report a clearer error.
+    if (versions.isEmpty) fail("Could not find package $name in cache.");
+
+    return versions;
   }
 
   Future<bool> _download(String server, String package, Version version,

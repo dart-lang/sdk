@@ -900,7 +900,9 @@ abstract class HInstruction implements Spannable {
     JavaScriptBackend backend = compiler.backend;
     return instructionType.contains(backend.jsArrayClass, classWorld)
         || instructionType.contains(backend.jsFixedArrayClass, classWorld)
-        || instructionType.contains(backend.jsExtendableArrayClass, classWorld);
+        || instructionType.contains(backend.jsExtendableArrayClass, classWorld)
+        || instructionType.contains(
+            backend.jsUnmodifiableArrayClass, classWorld);
   }
 
   bool isIndexablePrimitive(Compiler compiler) {
@@ -912,7 +914,9 @@ abstract class HInstruction implements Spannable {
 
   bool isFixedArray(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    return instructionType.containsOnly(backend.jsFixedArrayClass);
+    // TODO(sra): Recognize the union of these types as well.
+    return instructionType.containsOnly(backend.jsFixedArrayClass)
+        || instructionType.containsOnly(backend.jsUnmodifiableArrayClass);
   }
 
   bool isExtendableArray(Compiler compiler) {

@@ -56,15 +56,32 @@ abstract class HashMap<K, V> implements Map<K, V> {
    * The [isValidKey] function defaults to just testing if the object is a
    * [K] instance.
    *
+   * Example:
+   *
+   *     new HashMap<int,int>(equals: (int a, int b) => (b - a) % 5 == 0,
+   *                          hashCode: (int e) => e % 5)
+   *
+   * This example map does not need an `isValidKey` function to be passed.
+   * The default function accepts only `int` values, which can safely be
+   * passed to both the `equals` and `hashCode` functions.
+   *
+   * If neither `equals`, `hashCode`, nor `isValidKey` is provided,
+   * the default `isValidKey` instead accepts all keys.
+   * The default equality and hashcode operations are assumed to work on all
+   * objects.
+   *
+   * Likewise, if `equals` is [identical], `hashCode` is [identityHashCode]
+   * and `isValidKey` is omitted, the resulting map is identity based,
+   * and the `isValidKey` defaults to accepting all keys.
+   * Such a map can be created directly using [HashMap.identity].
+   *
    * The used `equals` and `hashCode` method should always be consistent,
    * so that if `equals(a, b)` then `hashCode(a) == hashCode(b)`. The hash
    * of an object, or what it compares equal to, should not change while the
-   * object is in the table. If it does change, the result is unpredictable.
+   * object is a key in the map. If it does change, the result is unpredictable.
    *
    * If you supply one of [equals] and [hashCode],
    * you should generally also to supply the other.
-   * An example would be using [identical] and [identityHashCode],
-   * which is equivalent to using the shorthand [HashMap.identity]).
    */
   external factory HashMap({bool equals(K key1, K key2),
                             int hashCode(K key),
@@ -75,7 +92,8 @@ abstract class HashMap<K, V> implements Map<K, V> {
    *
    * Effectively a shorthand for:
    *
-   *     new HashMap(equals: identical, hashCode: identityHashCodeOf)
+   *     new HashMap(equals: identical,
+   *                 hashCode: identityHashCodeOf)
    */
   external factory HashMap.identity();
 

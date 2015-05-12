@@ -127,6 +127,7 @@ class DartUtils {
   static void PrepareBuiltinLibrary(Dart_Handle builtin_lib,
                                     Dart_Handle internal_lib,
                                     bool is_service_isolate,
+                                    bool trace_loading,
                                     const char* package_root);
   static void PrepareCoreLibrary(Dart_Handle core_lib,
                                  Dart_Handle builtin_lib,
@@ -137,6 +138,7 @@ class DartUtils {
   static void PrepareIsolateLibrary(Dart_Handle isolate_lib);
   static Dart_Handle PrepareForScriptLoading(const char* package_root,
                                              bool is_service_isolate,
+                                             bool trace_loading,
                                              Dart_Handle builtin_lib);
   static void SetupIOLibrary(const char* script_uri);
 
@@ -181,8 +183,8 @@ class DartUtils {
 
   static Dart_Handle SetWorkingDirectory(Dart_Handle builtin_lib);
 
-  static Dart_Handle ResolveScriptUri(Dart_Handle script_uri,
-                                      Dart_Handle builtin_lib);
+  static Dart_Handle ResolveUriInWorkingDirectory(Dart_Handle script_uri,
+                                                  Dart_Handle builtin_lib);
 
   static Dart_Handle FilePathFromUri(Dart_Handle script_uri,
                                      Dart_Handle builtin_lib);

@@ -964,16 +964,16 @@ class IncrementalResolver {
     // compute values
     {
       CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
-      ConstantValueComputer computer =
-          new ConstantValueComputer(_typeProvider, _context.declaredVariables);
-      computer.add(unit);
+      ConstantValueComputer computer = new ConstantValueComputer(
+          _context, _typeProvider, _context.declaredVariables);
+      computer.add(unit, _source, _librarySource);
       computer.computeValues();
     }
     // validate
     {
       ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
-      ConstantVerifier constantVerifier =
-          new ConstantVerifier(errorReporter, _definingLibrary, _typeProvider);
+      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter,
+          _definingLibrary, _typeProvider, _context.declaredVariables);
       node.accept(constantVerifier);
     }
   }
@@ -1546,7 +1546,7 @@ class PoorMansIncrementalResolver {
   }
 
   static AstNode _findNodeCovering(AstNode root, int offset, int end) {
-    NodeLocator nodeLocator = new NodeLocator.con2(offset, end);
+    NodeLocator nodeLocator = new NodeLocator(offset, end);
     return nodeLocator.searchWithin(root);
   }
 

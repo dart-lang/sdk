@@ -15,7 +15,8 @@
     'version_in_cc_file': 'vm/version_in.cc',
     'version_cc_file': '<(gen_source_dir)/version.cc',
 
-    'libdart_deps': ['libdart_lib_withcore', 'libdart_lib', 'libdart_vm',
+    'libdart_deps': ['libdart_lib_nosnapshot', 'libdart_lib',
+                     'libdart_vm_nosnapshot', 'libdart_vm',
                      'libdouble_conversion',],
   },
   'targets': [
@@ -93,7 +94,7 @@
       'type': 'executable',
       'toolsets':['target'],
       # The dependencies here are the union of the dependencies of libdart and
-      # libdart_withcore.
+      # libdart_nosnapshot.
       'dependencies': ['<@(libdart_deps)'],
       'sources': [
         'vm/libdart_dependency_helper.cc',
@@ -104,7 +105,7 @@
       'type': 'executable',
       'toolsets':['host'],
       # The dependencies here are the union of the dependencies of libdart and
-      # libdart_withcore.
+      # libdart_nosnapshot.
       'dependencies': ['<@(libdart_deps)'],
       'sources': [
         'vm/libdart_dependency_helper.cc',

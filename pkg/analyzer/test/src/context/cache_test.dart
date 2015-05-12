@@ -5,17 +5,21 @@
 library test.src.task.driver_test;
 
 import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, CacheState, RetentionPriority;
+    show
+        AnalysisContext,
+        CacheState,
+        InternalAnalysisContext,
+        RetentionPriority;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../generated/engine_test.dart';
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
 
@@ -23,6 +27,7 @@ main() {
   groupSep = ' | ';
   runReflectiveTests(AnalysisCacheTest);
   runReflectiveTests(CacheEntryTest);
+  runReflectiveTests(CacheFlushManagerTest);
   runReflectiveTests(SdkCachePartitionTest);
   runReflectiveTests(UniversalCachePartitionTest);
   runReflectiveTests(ResultDataTest);
@@ -30,57 +35,81 @@ main() {
 
 AnalysisCache createCache({AnalysisContext context,
     RetentionPriority policy: RetentionPriority.LOW}) {
-  CachePartition partition = new UniversalCachePartition(
-      context, 8, new TestCacheRetentionPolicy(policy));
+  CachePartition partition = new UniversalCachePartition(context);
   return new AnalysisCache(<CachePartition>[partition]);
 }
 
+class AbstractCacheTest {
+  InternalAnalysisContext context;
+  AnalysisCache cache;
+
+  void setUp() {
+    context = new _InternalAnalysisContextMock();
+    when(context.priorityTargets).thenReturn([]);
+    cache = createCache(context: context);
+    when(context.analysisCache).thenReturn(cache);
+  }
+}
+
 @reflectiveTest
-class AnalysisCacheTest extends EngineTestCase {
-  void test_astSize_empty() {
-    AnalysisCache cache = createCache();
-    expect(cache.astSize, 0);
-  }
-
-  void test_astSize_nonEmpty() {
-    ResultDescriptor result = new ResultDescriptor('test', null);
-    AstNode node = new NullLiteral(null);
-    AnalysisCache cache = createCache();
-    AnalysisTarget target1 = new TestSource('/test1.dart');
-    CacheEntry entry1 = new CacheEntry();
-    entry1.setValue(result, node, TargetedResult.EMPTY_LIST, null);
-    AnalysisTarget target2 = new TestSource('/test2.dart');
-    CacheEntry entry2 = new CacheEntry();
-    entry2.setValue(result, node, TargetedResult.EMPTY_LIST, null);
-    cache.put(target1, entry1);
-    cache.accessedAst(target1);
-    cache.put(target2, entry2);
-    cache.accessedAst(target2);
-    expect(cache.astSize, 2);
-  }
-
+class AnalysisCacheTest extends AbstractCacheTest {
   void test_creation() {
-    expect(createCache(), isNotNull);
+    expect(cache, isNotNull);
   }
 
   void test_get() {
-    AnalysisCache cache = createCache();
     AnalysisTarget target = new TestSource();
     expect(cache.get(target), isNull);
   }
 
   void test_getContextFor() {
-    AnalysisContext context = new TestAnalysisContext();
-    AnalysisCache cache = createCache(context: context);
     AnalysisTarget target = new TestSource();
     expect(cache.getContextFor(target), context);
   }
 
-  void test_iterator() {
-    AnalysisCache cache = createCache();
+  void test_getState_hasEntry_flushed() {
+    ResultDescriptor result = new ResultDescriptor('result', -1);
     AnalysisTarget target = new TestSource();
-    CacheEntry entry = new CacheEntry();
-    cache.put(target, entry);
+    CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
+    entry.setState(result, CacheState.FLUSHED);
+    expect(cache.getState(target, result), CacheState.FLUSHED);
+  }
+
+  void test_getState_hasEntry_valid() {
+    ResultDescriptor result = new ResultDescriptor('result', -1);
+    AnalysisTarget target = new TestSource();
+    CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
+    entry.setValue(result, '', []);
+    expect(cache.getState(target, result), CacheState.VALID);
+  }
+
+  void test_getState_noEntry() {
+    ResultDescriptor result = new ResultDescriptor('result', -1);
+    AnalysisTarget target = new TestSource();
+    expect(cache.getState(target, result), CacheState.INVALID);
+  }
+
+  void test_getValue_hasEntry_valid() {
+    ResultDescriptor result = new ResultDescriptor('result', -1);
+    AnalysisTarget target = new TestSource();
+    CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
+    entry.setValue(result, 111, []);
+    expect(cache.getValue(target, result), 111);
+  }
+
+  void test_getValue_noEntry() {
+    ResultDescriptor result = new ResultDescriptor('result', -1);
+    AnalysisTarget target = new TestSource();
+    expect(cache.getValue(target, result), -1);
+  }
+
+  void test_iterator() {
+    AnalysisTarget target = new TestSource();
+    CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     MapIterator<AnalysisTarget, CacheEntry> iterator = cache.iterator();
     expect(iterator.moveNext(), isTrue);
     expect(iterator.key, same(target));
@@ -89,76 +118,69 @@ class AnalysisCacheTest extends EngineTestCase {
   }
 
   void test_put() {
-    AnalysisCache cache = createCache();
     AnalysisTarget target = new TestSource();
-    CacheEntry entry = new CacheEntry();
+    CacheEntry entry = new CacheEntry(target);
     expect(cache.get(target), isNull);
-    cache.put(target, entry);
+    cache.put(entry);
     expect(cache.get(target), entry);
   }
 
   void test_remove() {
-    AnalysisCache cache = createCache();
-    AnalysisTarget target = new TestSource();
-    cache.remove(target);
-  }
-
-  void test_setMaxCacheSize() {
-    CachePartition partition = new UniversalCachePartition(
-        null, 8, new TestCacheRetentionPolicy(RetentionPriority.MEDIUM));
-    AnalysisCache cache = new AnalysisCache(<CachePartition>[partition]);
-    ResultDescriptor result = new ResultDescriptor('test', null);
-    AstNode node = new NullLiteral(null);
-    int size = 6;
-    for (int i = 0; i < size; i++) {
-      AnalysisTarget target = new TestSource("/test$i.dart");
-      CacheEntry entry = new CacheEntry();
-      entry.setValue(result, node, TargetedResult.EMPTY_LIST, null);
-      cache.put(target, entry);
-      cache.accessedAst(target);
-    }
-
-    void _assertNonFlushedCount(int expectedCount, AnalysisCache cache) {
-      int nonFlushedCount = 0;
-      MapIterator<AnalysisTarget, CacheEntry> iterator = cache.iterator();
-      while (iterator.moveNext()) {
-        if (iterator.value.getState(result) != CacheState.FLUSHED) {
-          nonFlushedCount++;
-        }
-      }
-      expect(nonFlushedCount, expectedCount);
-    }
-
-    _assertNonFlushedCount(size, cache);
-    int newSize = size - 2;
-    partition.maxCacheSize = newSize;
-    _assertNonFlushedCount(newSize, cache);
+    AnalysisTarget target1 = new TestSource('/a.dart');
+    AnalysisTarget target2 = new TestSource('/b.dart');
+    AnalysisTarget target3 = new TestSource('/c.dart');
+    CacheEntry entry1 = new CacheEntry(target1);
+    CacheEntry entry2 = new CacheEntry(target2);
+    CacheEntry entry3 = new CacheEntry(target3);
+    cache.put(entry1);
+    cache.put(entry2);
+    cache.put(entry3);
+    ResultDescriptor result1 = new ResultDescriptor('result1', -1);
+    ResultDescriptor result2 = new ResultDescriptor('result2', -2);
+    ResultDescriptor result3 = new ResultDescriptor('result3', -3);
+    // set results, all of them are VALID
+    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry2.setValue(result2, 222, [new TargetedResult(target1, result1)]);
+    entry3.setValue(result3, 333, []);
+    expect(entry1.getState(result1), CacheState.VALID);
+    expect(entry2.getState(result2), CacheState.VALID);
+    expect(entry3.getState(result3), CacheState.VALID);
+    expect(entry1.getValue(result1), 111);
+    expect(entry2.getValue(result2), 222);
+    expect(entry3.getValue(result3), 333);
+    // remove entry1, invalidate result2 and remove empty entry2
+    cache.remove(target1);
+    expect(cache.get(target1), isNull);
+    expect(cache.get(target2), isNull);
+    expect(cache.get(target3), entry3);
+    expect(entry3.getState(result3), CacheState.VALID);
   }
 
   void test_size() {
-    AnalysisCache cache = createCache();
     int size = 4;
     for (int i = 0; i < size; i++) {
       AnalysisTarget target = new TestSource("/test$i.dart");
-      cache.put(target, new CacheEntry());
+      cache.put(new CacheEntry(target));
     }
     expect(cache.size(), size);
   }
 }
 
 @reflectiveTest
-class CacheEntryTest extends EngineTestCase {
+class CacheEntryTest extends AbstractCacheTest {
   test_explicitlyAdded() {
-    CacheEntry entry = new CacheEntry();
+    AnalysisTarget target = new TestSource();
+    CacheEntry entry = new CacheEntry(target);
     expect(entry.explicitlyAdded, false);
     entry.explicitlyAdded = true;
     expect(entry.explicitlyAdded, true);
   }
 
   test_fixExceptionState_error_exception() {
+    AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
     CaughtException exception = new CaughtException(null, null);
-    CacheEntry entry = new CacheEntry();
+    CacheEntry entry = new CacheEntry(target);
     entry.setErrorState(exception, <ResultDescriptor>[result]);
     entry.fixExceptionState();
     expect(entry.getState(result), CacheState.ERROR);
@@ -166,100 +188,109 @@ class CacheEntryTest extends EngineTestCase {
   }
 
   test_fixExceptionState_noError_exception() {
+    AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
-    CacheEntry entry = new CacheEntry();
+    CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     // set one result to ERROR
     CaughtException exception = new CaughtException(null, null);
     entry.setErrorState(exception, <ResultDescriptor>[result]);
     // set the same result to VALID
-    entry.setValue(result, 1, TargetedResult.EMPTY_LIST, null);
+    entry.setValue(result, 1, TargetedResult.EMPTY_LIST);
     // fix the exception state
     entry.fixExceptionState();
     expect(entry.exception, isNull);
   }
 
   test_fixExceptionState_noError_noException() {
+    AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
-    CacheEntry entry = new CacheEntry();
+    CacheEntry entry = new CacheEntry(target);
     entry.fixExceptionState();
     expect(entry.getState(result), CacheState.INVALID);
     expect(entry.exception, isNull);
   }
 
-  test_flushAstStructures() {
-    ResultDescriptor result = new ResultDescriptor('test', null);
-    CacheEntry entry = new CacheEntry();
-    entry.setValue(
-        result, new NullLiteral(null), TargetedResult.EMPTY_LIST, null);
-    expect(entry.hasAstStructure, true);
-    entry.flushAstStructures();
-    expect(entry.hasAstStructure, false);
-  }
-
   test_getState() {
+    AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
-    CacheEntry entry = new CacheEntry();
+    CacheEntry entry = new CacheEntry(target);
     expect(entry.getState(result), CacheState.INVALID);
   }
 
-  test_getValue() {
+  test_getValue_default() {
+    AnalysisTarget target = new TestSource();
     String defaultValue = 'value';
     ResultDescriptor result = new ResultDescriptor('test', defaultValue);
-    CacheEntry entry = new CacheEntry();
+    CacheEntry entry = new CacheEntry(target);
     expect(entry.getValue(result), defaultValue);
   }
 
-  test_getMemento_noResult() {
-    String defaultValue = 'value';
-    ResultDescriptor result = new ResultDescriptor('test', defaultValue);
-    CacheEntry entry = new CacheEntry();
-    expect(entry.getMemento(result), null);
-  }
-
-  test_hasAstStructure_false() {
-    CacheEntry entry = new CacheEntry();
-    expect(entry.hasAstStructure, false);
-  }
-
-  test_hasAstStructure_true() {
-    ResultDescriptor result = new ResultDescriptor('test', null);
-    CacheEntry entry = new CacheEntry();
-    entry.setValue(
-        result, new NullLiteral(null), TargetedResult.EMPTY_LIST, null);
-    expect(entry.hasAstStructure, true);
+  test_getValue_flushResults() {
+    ResultCachingPolicy cachingPolicy = new SimpleResultCachingPolicy(2, 2);
+    ResultDescriptor descriptor1 =
+        new ResultDescriptor('result1', null, cachingPolicy: cachingPolicy);
+    ResultDescriptor descriptor2 =
+        new ResultDescriptor('result2', null, cachingPolicy: cachingPolicy);
+    ResultDescriptor descriptor3 =
+        new ResultDescriptor('result3', null, cachingPolicy: cachingPolicy);
+    AnalysisTarget target = new TestSource();
+    CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
+    {
+      entry.setValue(descriptor1, 1, TargetedResult.EMPTY_LIST);
+      expect(entry.getState(descriptor1), CacheState.VALID);
+    }
+    {
+      entry.setValue(descriptor2, 2, TargetedResult.EMPTY_LIST);
+      expect(entry.getState(descriptor1), CacheState.VALID);
+      expect(entry.getState(descriptor2), CacheState.VALID);
+    }
+    // get descriptor1, so that descriptor2 will be flushed
+    entry.getValue(descriptor1);
+    {
+      entry.setValue(descriptor3, 3, TargetedResult.EMPTY_LIST);
+      expect(entry.getState(descriptor1), CacheState.VALID);
+      expect(entry.getState(descriptor2), CacheState.FLUSHED);
+      expect(entry.getState(descriptor3), CacheState.VALID);
+    }
   }
 
   test_hasErrorState_false() {
-    CacheEntry entry = new CacheEntry();
+    AnalysisTarget target = new TestSource();
+    CacheEntry entry = new CacheEntry(target);
     expect(entry.hasErrorState(), false);
   }
 
   test_hasErrorState_true() {
+    AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
     CaughtException exception = new CaughtException(null, null);
-    CacheEntry entry = new CacheEntry();
+    CacheEntry entry = new CacheEntry(target);
     entry.setErrorState(exception, <ResultDescriptor>[result]);
     expect(entry.hasErrorState(), true);
   }
 
   test_invalidateAllInformation() {
+    AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
-    CacheEntry entry = new CacheEntry();
-    entry.setValue(result, 'value', TargetedResult.EMPTY_LIST, null);
+    CacheEntry entry = new CacheEntry(target);
+    entry.setValue(result, 'value', TargetedResult.EMPTY_LIST);
     entry.invalidateAllInformation();
     expect(entry.getState(result), CacheState.INVALID);
     expect(entry.getValue(result), isNull);
   }
 
   test_setErrorState() {
+    AnalysisTarget target = new TestSource();
     ResultDescriptor result1 = new ResultDescriptor('res1', 1);
     ResultDescriptor result2 = new ResultDescriptor('res2', 2);
     ResultDescriptor result3 = new ResultDescriptor('res3', 3);
     // prepare some good state
-    CacheEntry entry = new CacheEntry();
-    entry.setValue(result1, 10, TargetedResult.EMPTY_LIST, null);
-    entry.setValue(result2, 20, TargetedResult.EMPTY_LIST, null);
-    entry.setValue(result3, 30, TargetedResult.EMPTY_LIST, null);
+    CacheEntry entry = new CacheEntry(target);
+    entry.setValue(result1, 10, TargetedResult.EMPTY_LIST);
+    entry.setValue(result2, 20, TargetedResult.EMPTY_LIST);
+    entry.setValue(result3, 30, TargetedResult.EMPTY_LIST);
     // set error state
     CaughtException exception = new CaughtException(null, null);
     entry.setErrorState(exception, <ResultDescriptor>[result1, result2]);
@@ -274,69 +305,77 @@ class CacheEntryTest extends EngineTestCase {
   }
 
   test_setErrorState_invalidateDependent() {
-    AnalysisCache cache = createCache();
-    AnalysisTarget target = new TestSource();
-    CacheEntry entry = new CacheEntry();
-    cache.put(target, entry);
+    AnalysisTarget target1 = new TestSource('/a.dart');
+    AnalysisTarget target2 = new TestSource('/b.dart');
+    CacheEntry entry1 = new CacheEntry(target1);
+    CacheEntry entry2 = new CacheEntry(target2);
+    cache.put(entry1);
+    cache.put(entry2);
     ResultDescriptor result1 = new ResultDescriptor('result1', -1);
     ResultDescriptor result2 = new ResultDescriptor('result2', -2);
     ResultDescriptor result3 = new ResultDescriptor('result3', -3);
     ResultDescriptor result4 = new ResultDescriptor('result4', -4);
     // set results, all of them are VALID
-    entry.setValue(result1, 111, TargetedResult.EMPTY_LIST, null);
-    entry.setValue(result2, 222, [new TargetedResult(target, result1)], null);
-    entry.setValue(result3, 333, [new TargetedResult(target, result2)], null);
-    entry.setValue(result4, 444, [], null);
-    expect(entry.getState(result1), CacheState.VALID);
-    expect(entry.getState(result2), CacheState.VALID);
-    expect(entry.getState(result3), CacheState.VALID);
-    expect(entry.getState(result4), CacheState.VALID);
-    expect(entry.getValue(result1), 111);
-    expect(entry.getValue(result2), 222);
-    expect(entry.getValue(result3), 333);
-    expect(entry.getValue(result4), 444);
+    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry2.setValue(result2, 222, [new TargetedResult(target1, result1)]);
+    entry2.setValue(result3, 333, [new TargetedResult(target2, result2)]);
+    entry2.setValue(result4, 444, []);
+    expect(entry1.getState(result1), CacheState.VALID);
+    expect(entry2.getState(result2), CacheState.VALID);
+    expect(entry2.getState(result3), CacheState.VALID);
+    expect(entry2.getState(result4), CacheState.VALID);
+    expect(entry1.getValue(result1), 111);
+    expect(entry2.getValue(result2), 222);
+    expect(entry2.getValue(result3), 333);
+    expect(entry2.getValue(result4), 444);
     // set error state
     CaughtException exception = new CaughtException(null, null);
-    entry.setErrorState(exception, <ResultDescriptor>[result1]);
+    entry1.setErrorState(exception, <ResultDescriptor>[result1]);
     // result2 and result3 are invalidated, result4 is intact
-    expect(entry.getState(result1), CacheState.ERROR);
-    expect(entry.getState(result2), CacheState.ERROR);
-    expect(entry.getState(result3), CacheState.ERROR);
-    expect(entry.getState(result4), CacheState.VALID);
-    expect(entry.getValue(result1), -1);
-    expect(entry.getValue(result2), -2);
-    expect(entry.getValue(result3), -3);
-    expect(entry.getValue(result4), 444);
+    expect(entry1.getState(result1), CacheState.ERROR);
+    expect(entry2.getState(result2), CacheState.ERROR);
+    expect(entry2.getState(result3), CacheState.ERROR);
+    expect(entry2.getState(result4), CacheState.VALID);
+    expect(entry1.getValue(result1), -1);
+    expect(entry2.getValue(result2), -2);
+    expect(entry2.getValue(result3), -3);
+    expect(entry2.getValue(result4), 444);
+    expect(entry1.exception, exception);
+    expect(entry2.exception, exception);
   }
 
   test_setErrorState_noDescriptors() {
+    AnalysisTarget target = new TestSource();
     CaughtException exception = new CaughtException(null, null);
-    CacheEntry entry = new CacheEntry();
+    CacheEntry entry = new CacheEntry(target);
     expect(() {
       entry.setErrorState(exception, <ResultDescriptor>[]);
     }, throwsArgumentError);
   }
 
   test_setErrorState_noException() {
+    AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
-    CacheEntry entry = new CacheEntry();
+    CacheEntry entry = new CacheEntry(target);
     expect(() {
       entry.setErrorState(null, <ResultDescriptor>[result]);
     }, throwsArgumentError);
   }
 
   test_setErrorState_nullDescriptors() {
+    AnalysisTarget target = new TestSource();
     CaughtException exception = new CaughtException(null, null);
-    CacheEntry entry = new CacheEntry();
+    CacheEntry entry = new CacheEntry(target);
     expect(() {
       entry.setErrorState(exception, null);
     }, throwsArgumentError);
   }
 
   test_setState_error() {
+    AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
-    CacheEntry entry = new CacheEntry();
-    entry.setValue(result, 42, TargetedResult.EMPTY_LIST, null);
+    CacheEntry entry = new CacheEntry(target);
+    entry.setValue(result, 42, TargetedResult.EMPTY_LIST);
     // an invalid state change
     expect(() {
       entry.setState(result, CacheState.ERROR);
@@ -347,10 +386,11 @@ class CacheEntryTest extends EngineTestCase {
   }
 
   test_setState_flushed() {
+    AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', 1);
-    CacheEntry entry = new CacheEntry();
+    CacheEntry entry = new CacheEntry(target);
     // set VALID
-    entry.setValue(result, 10, TargetedResult.EMPTY_LIST, null);
+    entry.setValue(result, 10, TargetedResult.EMPTY_LIST);
     expect(entry.getState(result), CacheState.VALID);
     expect(entry.getValue(result), 10);
     // set FLUSHED
@@ -360,10 +400,11 @@ class CacheEntryTest extends EngineTestCase {
   }
 
   test_setState_inProcess() {
+    AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', 1);
-    CacheEntry entry = new CacheEntry();
+    CacheEntry entry = new CacheEntry(target);
     // set VALID
-    entry.setValue(result, 10, TargetedResult.EMPTY_LIST, null);
+    entry.setValue(result, 10, TargetedResult.EMPTY_LIST);
     expect(entry.getState(result), CacheState.VALID);
     expect(entry.getValue(result), 10);
     // set IN_PROCESS
@@ -373,34 +414,33 @@ class CacheEntryTest extends EngineTestCase {
   }
 
   test_setState_invalid() {
+    AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', 1);
-    CacheEntry entry = new CacheEntry();
+    CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     // set VALID
-    String memento = 'main() {}';
-    entry.setValue(result, 10, TargetedResult.EMPTY_LIST, memento);
+    entry.setValue(result, 10, TargetedResult.EMPTY_LIST);
     expect(entry.getState(result), CacheState.VALID);
     expect(entry.getValue(result), 10);
     // set INVALID
     entry.setState(result, CacheState.INVALID);
     expect(entry.getState(result), CacheState.INVALID);
     expect(entry.getValue(result), 1);
-    expect(entry.getMemento(result), memento);
   }
 
   test_setState_invalid_invalidateDependent() {
-    AnalysisCache cache = createCache();
     AnalysisTarget target = new TestSource();
-    CacheEntry entry = new CacheEntry();
-    cache.put(target, entry);
+    CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     ResultDescriptor result1 = new ResultDescriptor('result1', -1);
     ResultDescriptor result2 = new ResultDescriptor('result2', -2);
     ResultDescriptor result3 = new ResultDescriptor('result3', -3);
     ResultDescriptor result4 = new ResultDescriptor('result4', -4);
     // set results, all of them are VALID
-    entry.setValue(result1, 111, TargetedResult.EMPTY_LIST, null);
-    entry.setValue(result2, 222, [new TargetedResult(target, result1)], null);
-    entry.setValue(result3, 333, [new TargetedResult(target, result2)], null);
-    entry.setValue(result4, 444, [], null);
+    entry.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry.setValue(result2, 222, [new TargetedResult(target, result1)]);
+    entry.setValue(result3, 333, [new TargetedResult(target, result2)]);
+    entry.setValue(result4, 444, []);
     expect(entry.getState(result1), CacheState.VALID);
     expect(entry.getState(result2), CacheState.VALID);
     expect(entry.getState(result3), CacheState.VALID);
@@ -419,39 +459,94 @@ class CacheEntryTest extends EngineTestCase {
     expect(entry.getValue(result2), -2);
     expect(entry.getValue(result3), -3);
     expect(entry.getValue(result4), 444);
+    // result4 is still valid, so the entry is still in the cache
+    expect(cache.get(target), entry);
+  }
+
+  test_setState_invalid_removeEmptyEntry() {
+    AnalysisTarget target1 = new TestSource('/a.dart');
+    AnalysisTarget target2 = new TestSource('/b.dart');
+    CacheEntry entry1 = new CacheEntry(target1);
+    CacheEntry entry2 = new CacheEntry(target2);
+    cache.put(entry1);
+    cache.put(entry2);
+    ResultDescriptor result1 = new ResultDescriptor('result1', -1);
+    ResultDescriptor result2 = new ResultDescriptor('result2', -2);
+    ResultDescriptor result3 = new ResultDescriptor('result3', -3);
+    // set results, all of them are VALID
+    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry2.setValue(result2, 222, [new TargetedResult(target1, result1)]);
+    entry2.setValue(result3, 333, [new TargetedResult(target2, result2)]);
+    expect(entry1.getState(result1), CacheState.VALID);
+    expect(entry2.getState(result2), CacheState.VALID);
+    expect(entry2.getState(result3), CacheState.VALID);
+    expect(entry1.getValue(result1), 111);
+    expect(entry2.getValue(result2), 222);
+    expect(entry2.getValue(result3), 333);
+    // invalidate result1, remove entry1 & entry2
+    entry1.setState(result1, CacheState.INVALID);
+    expect(cache.get(target1), isNull);
+    expect(cache.get(target2), isNull);
   }
 
   test_setState_valid() {
+    AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
-    CacheEntry entry = new CacheEntry();
+    CacheEntry entry = new CacheEntry(target);
     expect(() => entry.setState(result, CacheState.VALID), throwsArgumentError);
   }
 
   test_setValue() {
+    AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
     String value = 'value';
-    String memento = 'main() {}';
-    CacheEntry entry = new CacheEntry();
-    entry.setValue(result, value, TargetedResult.EMPTY_LIST, memento);
+    CacheEntry entry = new CacheEntry(target);
+    entry.setValue(result, value, TargetedResult.EMPTY_LIST);
     expect(entry.getState(result), CacheState.VALID);
     expect(entry.getValue(result), value);
-    expect(entry.getMemento(result), memento);
+  }
+
+  test_setValue_flushResults() {
+    ResultCachingPolicy cachingPolicy = new SimpleResultCachingPolicy(2, 2);
+    ResultDescriptor descriptor1 =
+        new ResultDescriptor('result1', null, cachingPolicy: cachingPolicy);
+    ResultDescriptor descriptor2 =
+        new ResultDescriptor('result2', null, cachingPolicy: cachingPolicy);
+    ResultDescriptor descriptor3 =
+        new ResultDescriptor('result3', null, cachingPolicy: cachingPolicy);
+    AnalysisTarget target = new TestSource();
+    CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
+    {
+      entry.setValue(descriptor1, 1, TargetedResult.EMPTY_LIST);
+      expect(entry.getState(descriptor1), CacheState.VALID);
+    }
+    {
+      entry.setValue(descriptor2, 2, TargetedResult.EMPTY_LIST);
+      expect(entry.getState(descriptor1), CacheState.VALID);
+      expect(entry.getState(descriptor2), CacheState.VALID);
+    }
+    {
+      entry.setValue(descriptor3, 3, TargetedResult.EMPTY_LIST);
+      expect(entry.getState(descriptor1), CacheState.FLUSHED);
+      expect(entry.getState(descriptor2), CacheState.VALID);
+      expect(entry.getState(descriptor3), CacheState.VALID);
+    }
   }
 
   test_setValue_invalidateDependent() {
-    AnalysisCache cache = createCache();
     AnalysisTarget target = new TestSource();
-    CacheEntry entry = new CacheEntry();
-    cache.put(target, entry);
+    CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     ResultDescriptor result1 = new ResultDescriptor('result1', -1);
     ResultDescriptor result2 = new ResultDescriptor('result2', -2);
     ResultDescriptor result3 = new ResultDescriptor('result3', -3);
     ResultDescriptor result4 = new ResultDescriptor('result4', -4);
     // set results, all of them are VALID
-    entry.setValue(result1, 111, TargetedResult.EMPTY_LIST, null);
-    entry.setValue(result2, 222, [new TargetedResult(target, result1)], null);
-    entry.setValue(result3, 333, [new TargetedResult(target, result2)], null);
-    entry.setValue(result4, 444, [], null);
+    entry.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry.setValue(result2, 222, [new TargetedResult(target, result1)]);
+    entry.setValue(result3, 333, [new TargetedResult(target, result2)]);
+    entry.setValue(result4, 444, []);
     expect(entry.getState(result1), CacheState.VALID);
     expect(entry.getState(result2), CacheState.VALID);
     expect(entry.getState(result3), CacheState.VALID);
@@ -461,7 +556,7 @@ class CacheEntryTest extends EngineTestCase {
     expect(entry.getValue(result3), 333);
     expect(entry.getValue(result4), 444);
     // set result1, invalidates result2 and result3, result4 is intact
-    entry.setValue(result1, 1111, TargetedResult.EMPTY_LIST, null);
+    entry.setValue(result1, 1111, TargetedResult.EMPTY_LIST);
     expect(entry.getState(result1), CacheState.VALID);
     expect(entry.getState(result2), CacheState.INVALID);
     expect(entry.getState(result3), CacheState.INVALID);
@@ -473,20 +568,19 @@ class CacheEntryTest extends EngineTestCase {
   }
 
   test_setValue_invalidateDependent2() {
-    AnalysisCache cache = createCache();
     AnalysisTarget target1 = new TestSource('a');
     AnalysisTarget target2 = new TestSource('b');
-    CacheEntry entry1 = new CacheEntry();
-    CacheEntry entry2 = new CacheEntry();
-    cache.put(target1, entry1);
-    cache.put(target2, entry2);
+    CacheEntry entry1 = new CacheEntry(target1);
+    CacheEntry entry2 = new CacheEntry(target2);
+    cache.put(entry1);
+    cache.put(entry2);
     ResultDescriptor result1 = new ResultDescriptor('result1', -1);
     ResultDescriptor result2 = new ResultDescriptor('result2', -2);
     ResultDescriptor result3 = new ResultDescriptor('result3', -3);
     // set results, all of them are VALID
-    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST, null);
-    entry1.setValue(result2, 222, [new TargetedResult(target1, result1)], null);
-    entry2.setValue(result3, 333, [new TargetedResult(target1, result2)], null);
+    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry1.setValue(result2, 222, [new TargetedResult(target1, result1)]);
+    entry2.setValue(result3, 333, [new TargetedResult(target1, result2)]);
     expect(entry1.getState(result1), CacheState.VALID);
     expect(entry1.getState(result2), CacheState.VALID);
     expect(entry2.getState(result3), CacheState.VALID);
@@ -494,7 +588,7 @@ class CacheEntryTest extends EngineTestCase {
     expect(entry1.getValue(result2), 222);
     expect(entry2.getValue(result3), 333);
     // set result1, invalidates result2 and result3
-    entry1.setValue(result1, 1111, TargetedResult.EMPTY_LIST, null);
+    entry1.setValue(result1, 1111, TargetedResult.EMPTY_LIST);
     expect(entry1.getState(result1), CacheState.VALID);
     expect(entry1.getState(result2), CacheState.INVALID);
     expect(entry2.getState(result3), CacheState.INVALID);
@@ -503,22 +597,186 @@ class CacheEntryTest extends EngineTestCase {
     expect(entry2.getValue(result3), -3);
   }
 
+  test_setValue_keepEntry() {
+    AnalysisTarget target1 = new TestSource('/a.dart');
+    AnalysisTarget target2 = new TestSource('/b.dart');
+    CacheEntry entry1 = new CacheEntry(target1);
+    CacheEntry entry2 = new CacheEntry(target2);
+    cache.put(entry1);
+    cache.put(entry2);
+    ResultDescriptor result1 = new ResultDescriptor('result1', -1);
+    ResultDescriptor result2 = new ResultDescriptor('result2', -2);
+    // set results, all of them are VALID
+    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry2.setValue(result2, 222, [new TargetedResult(target1, result1)]);
+    expect(entry1.getState(result1), CacheState.VALID);
+    expect(entry2.getState(result2), CacheState.VALID);
+    expect(entry1.getValue(result1), 111);
+    expect(entry2.getValue(result2), 222);
+    // set result2, entry2 is still in the cache
+    entry2.setValue(result2, 2222, []);
+    expect(cache.get(target1), entry1);
+    expect(cache.get(target2), entry2);
+  }
+
   test_toString_empty() {
-    CacheEntry entry = new CacheEntry();
+    AnalysisTarget target = new TestSource();
+    CacheEntry entry = new CacheEntry(target);
     expect(entry.toString(), isNotNull);
   }
 
   test_toString_nonEmpty() {
-    String value = 'value';
+    AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
-    CacheEntry entry = new CacheEntry();
-    entry.setValue(result, value, TargetedResult.EMPTY_LIST, null);
+    CacheEntry entry = new CacheEntry(target);
+    entry.setValue(result, 42, TargetedResult.EMPTY_LIST);
     expect(entry.toString(), isNotNull);
   }
 }
 
+@reflectiveTest
+class CacheFlushManagerTest {
+  CacheFlushManager manager = new CacheFlushManager(
+      new SimpleResultCachingPolicy(15, 3), (AnalysisTarget target) => false);
+
+  test_madeActive() {
+    manager.madeActive();
+    expect(manager.maxSize, 15);
+  }
+
+  test_madeIdle() {
+    manager.madeActive();
+    AnalysisTarget target = new TestSource();
+    // prepare TargetedResult(s)
+    List<TargetedResult> results = <TargetedResult>[];
+    for (int i = 0; i < 15; i++) {
+      ResultDescriptor descriptor = new ResultDescriptor('result$i', null);
+      results.add(new TargetedResult(target, descriptor));
+    }
+    // notify about storing TargetedResult(s)
+    for (TargetedResult result in results) {
+      manager.resultStored(result, null);
+    }
+    expect(manager.recentlyUsed, results);
+    expect(manager.currentSize, 15);
+    // make idle
+    List<TargetedResult> resultsToFlush = manager.madeIdle();
+    expect(manager.maxSize, 3);
+    expect(manager.recentlyUsed, results.skip(15 - 3));
+    expect(resultsToFlush, results.take(15 - 3));
+  }
+
+  test_new() {
+    expect(manager.maxActiveSize, 15);
+    expect(manager.maxIdleSize, 3);
+    expect(manager.maxSize, 3);
+    expect(manager.currentSize, 0);
+    expect(manager.recentlyUsed, isEmpty);
+  }
+
+  test_resultAccessed() {
+    ResultDescriptor descriptor1 = new ResultDescriptor('result1', null);
+    ResultDescriptor descriptor2 = new ResultDescriptor('result2', null);
+    ResultDescriptor descriptor3 = new ResultDescriptor('result3', null);
+    AnalysisTarget target = new TestSource();
+    TargetedResult result1 = new TargetedResult(target, descriptor1);
+    TargetedResult result2 = new TargetedResult(target, descriptor2);
+    TargetedResult result3 = new TargetedResult(target, descriptor3);
+    manager.resultStored(result1, null);
+    manager.resultStored(result2, null);
+    manager.resultStored(result3, null);
+    expect(manager.currentSize, 3);
+    expect(manager.recentlyUsed, orderedEquals([result1, result2, result3]));
+    // access result2
+    manager.resultAccessed(result2);
+    expect(manager.currentSize, 3);
+    expect(manager.recentlyUsed, orderedEquals([result1, result3, result2]));
+  }
+
+  test_resultAccessed_noSuchResult() {
+    ResultDescriptor descriptor1 = new ResultDescriptor('result1', null);
+    ResultDescriptor descriptor2 = new ResultDescriptor('result2', null);
+    ResultDescriptor descriptor3 = new ResultDescriptor('result3', null);
+    AnalysisTarget target = new TestSource();
+    TargetedResult result1 = new TargetedResult(target, descriptor1);
+    TargetedResult result2 = new TargetedResult(target, descriptor2);
+    TargetedResult result3 = new TargetedResult(target, descriptor3);
+    manager.resultStored(result1, null);
+    manager.resultStored(result2, null);
+    expect(manager.currentSize, 2);
+    expect(manager.recentlyUsed, orderedEquals([result1, result2]));
+    // access result3, no-op
+    manager.resultAccessed(result3);
+    expect(manager.currentSize, 2);
+    expect(manager.recentlyUsed, orderedEquals([result1, result2]));
+  }
+
+  test_resultStored() {
+    ResultDescriptor descriptor1 = new ResultDescriptor('result1', null);
+    ResultDescriptor descriptor2 = new ResultDescriptor('result2', null);
+    ResultDescriptor descriptor3 = new ResultDescriptor('result3', null);
+    ResultDescriptor descriptor4 = new ResultDescriptor('result4', null);
+    AnalysisTarget target = new TestSource();
+    TargetedResult result1 = new TargetedResult(target, descriptor1);
+    TargetedResult result2 = new TargetedResult(target, descriptor2);
+    TargetedResult result3 = new TargetedResult(target, descriptor3);
+    TargetedResult result4 = new TargetedResult(target, descriptor4);
+    manager.resultStored(result1, null);
+    manager.resultStored(result2, null);
+    manager.resultStored(result3, null);
+    expect(manager.currentSize, 3);
+    expect(manager.recentlyUsed, orderedEquals([result1, result2, result3]));
+    // store result2 again
+    {
+      List<TargetedResult> resultsToFlush = manager.resultStored(result2, null);
+      expect(resultsToFlush, isEmpty);
+      expect(manager.currentSize, 3);
+      expect(manager.recentlyUsed, orderedEquals([result1, result3, result2]));
+    }
+    // store result4
+    {
+      List<TargetedResult> resultsToFlush = manager.resultStored(result4, null);
+      expect(resultsToFlush, [result1]);
+      expect(manager.currentSize, 3);
+      expect(manager.recentlyUsed, orderedEquals([result3, result2, result4]));
+      expect(manager.resultSizeMap, {result3: 1, result2: 1, result4: 1});
+    }
+  }
+
+  test_targetRemoved() {
+    ResultDescriptor descriptor1 = new ResultDescriptor('result1', null);
+    ResultDescriptor descriptor2 = new ResultDescriptor('result2', null);
+    ResultDescriptor descriptor3 = new ResultDescriptor('result3', null);
+    AnalysisTarget target1 = new TestSource('a.dart');
+    AnalysisTarget target2 = new TestSource('b.dart');
+    TargetedResult result1 = new TargetedResult(target1, descriptor1);
+    TargetedResult result2 = new TargetedResult(target2, descriptor2);
+    TargetedResult result3 = new TargetedResult(target1, descriptor3);
+    manager.resultStored(result1, null);
+    manager.resultStored(result2, null);
+    manager.resultStored(result3, null);
+    expect(manager.currentSize, 3);
+    expect(manager.recentlyUsed, orderedEquals([result1, result2, result3]));
+    expect(manager.resultSizeMap, {result1: 1, result2: 1, result3: 1});
+    // remove target1
+    {
+      manager.targetRemoved(target1);
+      expect(manager.currentSize, 1);
+      expect(manager.recentlyUsed, orderedEquals([result2]));
+      expect(manager.resultSizeMap, {result2: 1});
+    }
+    // remove target2
+    {
+      manager.targetRemoved(target2);
+      expect(manager.currentSize, 0);
+      expect(manager.recentlyUsed, isEmpty);
+      expect(manager.resultSizeMap, isEmpty);
+    }
+  }
+}
+
 abstract class CachePartitionTest extends EngineTestCase {
-  CachePartition createPartition([CacheRetentionPolicy policy = null]);
+  CachePartition createPartition();
 
   void test_creation() {
     expect(createPartition(), isNotNull);
@@ -527,8 +785,8 @@ abstract class CachePartitionTest extends EngineTestCase {
   void test_entrySet() {
     CachePartition partition = createPartition();
     AnalysisTarget target = new TestSource();
-    CacheEntry entry = new CacheEntry();
-    partition.put(target, entry);
+    CacheEntry entry = new CacheEntry(target);
+    partition.put(entry);
     Map<AnalysisTarget, CacheEntry> entryMap = partition.map;
     expect(entryMap, hasLength(1));
     AnalysisTarget entryKey = entryMap.keys.first;
@@ -542,64 +800,31 @@ abstract class CachePartitionTest extends EngineTestCase {
     expect(partition.get(target), isNull);
   }
 
+  void test_put_alreadyInPartition() {
+    CachePartition partition1 = createPartition();
+    CachePartition partition2 = createPartition();
+    AnalysisTarget target = new TestSource();
+    CacheEntry entry = new CacheEntry(target);
+    partition1.put(entry);
+    expect(() => partition2.put(entry), throwsStateError);
+  }
+
   void test_put_noFlush() {
     CachePartition partition = createPartition();
     AnalysisTarget target = new TestSource();
-    CacheEntry entry = new CacheEntry();
-    partition.put(target, entry);
+    CacheEntry entry = new CacheEntry(target);
+    partition.put(entry);
     expect(partition.get(target), entry);
   }
 
   void test_remove() {
     CachePartition partition = createPartition();
     AnalysisTarget target = new TestSource();
-    CacheEntry entry = new CacheEntry();
-    partition.put(target, entry);
+    CacheEntry entry = new CacheEntry(target);
+    partition.put(entry);
     expect(partition.get(target), entry);
     partition.remove(target);
     expect(partition.get(target), isNull);
-  }
-
-  void test_setMaxCacheSize() {
-    CachePartition partition =
-        createPartition(new TestCacheRetentionPolicy(RetentionPriority.LOW));
-    ResultDescriptor result = new ResultDescriptor('result', null);
-    NullLiteral node = new NullLiteral(null);
-    int size = 6; // Must be <= partition.maxCacheSize
-    for (int i = 0; i < size; i++) {
-      AnalysisTarget target = new TestSource("/test$i.dart");
-      CacheEntry entry = new CacheEntry();
-      entry.setValue(result, node, TargetedResult.EMPTY_LIST, null);
-      partition.put(target, entry);
-      partition.accessedAst(target);
-    }
-
-    void assertNonFlushedCount(int expectedCount, CachePartition partition) {
-      int nonFlushedCount = 0;
-      Map<AnalysisTarget, CacheEntry> entryMap = partition.map;
-      entryMap.values.forEach((CacheEntry entry) {
-        if (entry.getState(result) != CacheState.FLUSHED) {
-          nonFlushedCount++;
-        }
-      });
-      expect(nonFlushedCount, expectedCount);
-    }
-
-    assertNonFlushedCount(size, partition);
-    int newSize = size - 2;
-    partition.maxCacheSize = newSize;
-    assertNonFlushedCount(newSize, partition);
-  }
-
-  void test_size() {
-    CachePartition partition = createPartition();
-    int size = 4;
-    for (int i = 0; i < size; i++) {
-      AnalysisTarget target = new TestSource("/test$i.dart");
-      partition.put(target, new CacheEntry());
-      partition.accessedAst(target);
-    }
-    expect(partition.size(), size);
   }
 }
 
@@ -612,50 +837,53 @@ class ResultDataTest extends EngineTestCase {
     expect(data.state, CacheState.INVALID);
     expect(data.value, value);
   }
+
+  test_flush() {
+    ResultDescriptor result = new ResultDescriptor('test', -1);
+    ResultData data = new ResultData(result);
+    data.state = CacheState.VALID;
+    data.value = 123;
+    data.flush();
+    expect(data.state, CacheState.FLUSHED);
+    expect(data.value, -1);
+  }
 }
 
 @reflectiveTest
 class SdkCachePartitionTest extends CachePartitionTest {
-  CachePartition createPartition([CacheRetentionPolicy policy = null]) {
-    return new SdkCachePartition(null, 8);
+  CachePartition createPartition() {
+    return new SdkCachePartition(null);
   }
 
   void test_contains_false() {
     CachePartition partition = createPartition();
     AnalysisTarget target = new TestSource();
-    expect(partition.contains(target), isFalse);
+    expect(partition.isResponsibleFor(target), isFalse);
   }
 
   void test_contains_true() {
-    SdkCachePartition partition = new SdkCachePartition(null, 8);
+    SdkCachePartition partition = new SdkCachePartition(null);
     SourceFactory factory = new SourceFactory(
         [new DartUriResolver(DirectoryBasedDartSdk.defaultSdk)]);
     AnalysisTarget target = factory.forUri("dart:core");
-    expect(partition.contains(target), isTrue);
+    expect(partition.isResponsibleFor(target), isTrue);
   }
-}
-
-@reflectiveTest
-class TestCacheRetentionPolicy extends CacheRetentionPolicy {
-  final RetentionPriority policy;
-
-  TestCacheRetentionPolicy([this.policy = RetentionPriority.MEDIUM]);
-
-  @override
-  RetentionPriority getAstPriority(AnalysisTarget target, CacheEntry entry) =>
-      policy;
 }
 
 @reflectiveTest
 class UniversalCachePartitionTest extends CachePartitionTest {
-  CachePartition createPartition([CacheRetentionPolicy policy = null]) {
-    return new UniversalCachePartition(null, 8, policy);
+  CachePartition createPartition() {
+    return new UniversalCachePartition(null);
   }
 
   void test_contains() {
-    UniversalCachePartition partition =
-        new UniversalCachePartition(null, 8, null);
+    UniversalCachePartition partition = new UniversalCachePartition(null);
     TestSource source = new TestSource();
-    expect(partition.contains(source), isTrue);
+    expect(partition.isResponsibleFor(source), isTrue);
   }
+}
+
+class _InternalAnalysisContextMock extends TypedMock
+    implements InternalAnalysisContext {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -853,7 +853,7 @@ class CodegenEnqueuer extends Enqueuer {
           "Codegen work list is closed. Trying to add $element");
     }
     CodegenWorkItem workItem = new CodegenWorkItem(
-        element, itemCompilationContextCreator());
+        compiler, element, itemCompilationContextCreator());
     queue.add(workItem);
     return true;
   }

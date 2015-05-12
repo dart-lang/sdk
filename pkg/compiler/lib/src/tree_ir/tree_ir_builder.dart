@@ -329,6 +329,9 @@ class Builder implements cps_ir.Visitor<Node> {
   visitCreateInstance(cps_ir.CreateInstance node) => unexpectedNode(node);
   visitGetField(cps_ir.GetField node) => unexpectedNode(node);
   visitCreateBox(cps_ir.CreateBox node) => unexpectedNode(node);
+  visitCreateInvocationMirror(cps_ir.CreateInvocationMirror node) {
+    return unexpectedNode(node);
+  }
 
   // Executable definitions are not visited directly.  They have 'build'
   // functions as entry points.

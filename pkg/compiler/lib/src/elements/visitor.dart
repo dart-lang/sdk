@@ -29,6 +29,7 @@ abstract class ElementVisitor<R, A> {
   R visitFieldParameterElement(InitializingFormalElement e, A arg) => null;
   R visitAbstractFieldElement(AbstractFieldElement e, A arg) => null;
   R visitFunctionElement(FunctionElement e, A arg) => null;
+  R visitConstructorElement(ConstructorElement e, A arg) => null;
   R visitConstructorBodyElement(ConstructorBodyElement e, A arg) => null;
   R visitClassElement(ClassElement e, A arg) => null;
   R visitMixinApplicationElement(MixinApplicationElement e, A arg) => null;
@@ -47,7 +48,7 @@ abstract class BaseElementVisitor<R, A> extends ElementVisitor<R, A> {
 
   @override
   R visitErroneousElement(ErroneousElement e, A arg) {
-    return visitFunctionElement(e, arg);
+    return visitElement(e, arg);
   }
 
   @override
@@ -117,6 +118,11 @@ abstract class BaseElementVisitor<R, A> extends ElementVisitor<R, A> {
   @override
   R visitFunctionElement(FunctionElement e, A arg) {
     return visitElement(e, arg);
+  }
+
+  @override
+  R visitConstructorElement(ConstructorElement e, A arg) {
+    return visitFunctionElement(e, arg);
   }
 
   @override

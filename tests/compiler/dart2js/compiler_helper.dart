@@ -75,7 +75,7 @@ Future<String> compile(String code,
         new leg.ResolutionWorkItem(element, context);
     resolutionWork.run(compiler, compiler.enqueuer.resolution);
     leg.CodegenWorkItem work =
-        new leg.CodegenWorkItem(element, context);
+        new leg.CodegenWorkItem(compiler, element, context);
     compiler.phase = Compiler.PHASE_COMPILING;
     work.run(compiler, compiler.enqueuer.codegen);
     js.JavaScriptBackend backend = compiler.backend;

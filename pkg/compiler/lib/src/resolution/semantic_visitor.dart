@@ -5,7 +5,7 @@
 library dart2js.semantics_visitor;
 
 import '../constants/expressions.dart';
-import '../dart2jslib.dart' show invariant;
+import '../dart2jslib.dart' show invariant, MessageKind;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../helpers/helpers.dart';
@@ -1223,6 +1223,22 @@ abstract class SemanticSendVisitor<R, A> {
       Node argument,
       A arg);
 
+  /// Binary operation on the unresolved super [element].
+  ///
+  /// For instance
+  ///     class B {
+  ///     }
+  ///     class C extends B {
+  ///       m() => super + 42;
+  ///     }
+  ///
+  R visitUnresolvedSuperBinary(
+      Send node,
+      Element element,
+      BinaryOperator operator,
+      Node argument,
+      A arg);
+
   /// Index expression `receiver[index]`.
   ///
   /// For instance:
@@ -1277,6 +1293,20 @@ abstract class SemanticSendVisitor<R, A> {
       Node index,
       A arg);
 
+  /// Index expression `super[index]` where 'operator []' is unresolved.
+  ///
+  /// For instance:
+  ///     class B {}
+  ///     class C extends B {
+  ///       m(a) => super[a];
+  ///     }
+  ///
+  R visitUnresolvedSuperIndex(
+      Send node,
+      Element element,
+      Node index,
+      A arg);
+
   /// Prefix operation on an index expression `operator super[index]` where
   /// 'operator []' is implemented on a superclass by [indexFunction] and
   /// 'operator []=' is implemented on by [indexSetFunction] and the operation
@@ -1293,8 +1323,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R visitSuperIndexPrefix(
       Send node,
-      FunctionElement indexFunction,
-      FunctionElement indexSetFunction,
+      MethodElement indexFunction,
+      MethodElement indexSetFunction,
       Node index,
       IncDecOperator operator,
       A arg);
@@ -1315,29 +1345,15 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R visitSuperIndexPostfix(
       Send node,
-      FunctionElement indexFunction,
-      FunctionElement indexSetFunction,
+      MethodElement indexFunction,
+      MethodElement indexSetFunction,
       Node index,
       IncDecOperator operator,
       A arg);
 
-  /// Index expression `super[index]` where 'operator []' is unresolved.
-  ///
-  /// For instance:
-  ///     class B {}
-  ///     class C extends B {
-  ///       m(a) => super[a];
-  ///     }
-  ///
-  R visitUnresolvedSuperIndex(
-      Send node,
-      Element element,
-      Node index,
-      A arg);
-
   /// Prefix operation on an index expression `operator super[index]` where
-  /// 'operator []' or 'operator []=' is unresolved and the operation
-  /// is defined by [operator].
+  /// 'operator []' and maybe also 'operator []=' is unresolved and the
+  /// operation is defined by [operator].
   ///
   /// For instance:
   ///     class B {}
@@ -1345,16 +1361,16 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(a) => --super[a];
   ///     }
   ///
-  R errorUnresolvedSuperIndexPrefix(
+  R visitUnresolvedSuperGetterIndexPrefix(
       Send node,
-      Element function,
+      Element element,
       Node index,
       IncDecOperator operator,
       A arg);
 
   /// Postfix operation on an index expression `super[index] operator` where
-  /// 'operator []' or 'operator []=' is unresolved and the operation
-  /// is defined by [operator].
+  /// 'operator []' and maybe also 'operator []=' is unresolved and the
+  /// operation is defined by [operator].
   ///
   /// For instance:
   ///     class B {}
@@ -1362,9 +1378,45 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(a) => super[a]++;
   ///     }
   ///
-  R errorUnresolvedSuperIndexPostfix(
+  R visitUnresolvedSuperGetterIndexPostfix(
       Send node,
-      Element function,
+      Element element,
+      Node index,
+      IncDecOperator operator,
+      A arg);
+
+  /// Prefix operation on an index expression `operator super[index]` where
+  /// 'operator []' is implemented on a superclass by [indexFunction] and
+  /// 'operator []=' is unresolved and the operation is defined by [operator].
+  ///
+  /// For instance:
+  ///     class B {}
+  ///     class C extends B {
+  ///       m(a) => --super[a];
+  ///     }
+  ///
+  R visitUnresolvedSuperSetterIndexPrefix(
+      Send node,
+      MethodElement indexFunction,
+      Element element,
+      Node index,
+      IncDecOperator operator,
+      A arg);
+
+  /// Postfix operation on an index expression `super[index] operator` where
+  /// 'operator []' is implemented on a superclass by [indexFunction] and
+  /// 'operator []=' is unresolved and the operation is defined by [operator].
+  ///
+  /// For instance:
+  ///     class B {}
+  ///     class C extends B {
+  ///       m(a) => super[a]++;
+  ///     }
+  ///
+  R visitUnresolvedSuperSetterIndexPostfix(
+      Send node,
+      MethodElement indexFunction,
+      Element element,
       Node index,
       IncDecOperator operator,
       A arg);
@@ -1455,6 +1507,21 @@ abstract class SemanticSendVisitor<R, A> {
       FunctionElement function,
       A arg);
 
+  /// Unary operation on the unresolved super [element].
+  ///
+  /// For instance
+  ///     class B {
+  ///     }
+  ///     class C extends B {
+  ///       m() => -super;
+  ///     }
+  ///
+  R visitUnresolvedSuperUnary(
+      Send node,
+      UnaryOperator operator,
+      Element element,
+      A arg);
+
   /// Unary expression `!expression`.
   ///
   /// For instance:
@@ -1491,6 +1558,23 @@ abstract class SemanticSendVisitor<R, A> {
   R visitSuperIndexSet(
       SendSet node,
       FunctionElement function,
+      Node index,
+      Node rhs,
+      A arg);
+
+  /// Index set expression `super[index] = rhs` where `operator []=` is
+  /// undefined.
+  ///
+  /// For instance
+  ///     class B {
+  ///     }
+  ///     class C extends B {
+  ///       m() => super[1] = 42;
+  ///     }
+  ///
+  R visitUnresolvedSuperIndexSet(
+      Send node,
+      Element element,
       Node index,
       Node rhs,
       A arg);
@@ -1970,8 +2054,8 @@ abstract class SemanticSendVisitor<R, A> {
       Node rhs,
       A arg);
 
-  /// Compound assignment expression of [rhs] with [operator] on the index
-  /// operators of [receiver] whose getter and setter are defined by
+  /// Compound index assignment of [rhs] with [operator] to [index] on the
+  /// index operators of [receiver] whose getter and setter are defined by
   /// [getterSelector] and [setterSelector], respectively.
   ///
   /// For instance:
@@ -1985,7 +2069,7 @@ abstract class SemanticSendVisitor<R, A> {
       Node rhs,
       A arg);
 
-  /// Compound assignment expression of [rhs] with [operator] on the index
+  /// Compound index assignment of [rhs] with [operator] to [index] on the index
   /// operators of a super class defined by [getter] and [setter].
   ///
   /// For instance:
@@ -1999,8 +2083,48 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R visitSuperCompoundIndexSet(
       SendSet node,
-      FunctionElement getter,
-      FunctionElement setter,
+      MethodElement getter,
+      MethodElement setter,
+      Node index,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg);
+
+  /// Compound index assignment of [rhs] with [operator] to [index] on a super
+  /// super class where the index getter is undefined. The index setter might
+  /// also be undefined.
+  ///
+  /// For instance
+  ///     class B {
+  ///     }
+  ///     class C extends B {
+  ///       m() => super[1] += 42;
+  ///     }
+  ///
+  R visitUnresolvedSuperGetterCompoundIndexSet(
+      Send node,
+      Element element,
+      Node index,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg);
+
+  /// Compound index assignment of [rhs] with [operator] to [index] on a super
+  /// super class where the index getter is defined by [getter] but the index
+  /// setter is undefined.
+  ///
+  /// For instance
+  ///     class B {
+  ///       operator [](index) => 42;
+  ///     }
+  ///     class C extends B {
+  ///       m() => super[1] += 42;
+  ///     }
+  ///
+  R visitUnresolvedSuperSetterCompoundIndexSet(
+      Send node,
+      MethodElement getter,
+      Element element,
       Node index,
       AssignmentOperator operator,
       Node rhs,
@@ -2842,71 +2966,6 @@ abstract class SemanticSendVisitor<R, A> {
       IncDecOperator operator,
       A arg);
 
-  /// Index set operation on the unresolved super [element].
-  ///
-  /// For instance
-  ///     class B {
-  ///     }
-  ///     class C extends B {
-  ///       m() => super[1] = 42;
-  ///     }
-  ///
-  R errorUnresolvedSuperIndexSet(
-      Send node,
-      Element element,
-      Node index,
-      Node rhs,
-      A arg);
-
-  /// Compound index set operation on the unresolved super [element].
-  ///
-  /// For instance
-  ///     class B {
-  ///     }
-  ///     class C extends B {
-  ///       m() => super[1] += 42;
-  ///     }
-  ///
-  // TODO(johnniwinther): Split this case into unresolved getter/setter cases.
-  R errorUnresolvedSuperCompoundIndexSet(
-      Send node,
-      Element element,
-      Node index,
-      AssignmentOperator operator,
-      Node rhs,
-      A arg);
-
-  /// Unary operation on the unresolved super [element].
-  ///
-  /// For instance
-  ///     class B {
-  ///     }
-  ///     class C extends B {
-  ///       m() => -super;
-  ///     }
-  ///
-  R visitUnresolvedSuperUnary(
-      Send node,
-      UnaryOperator operator,
-      Element element,
-      A arg);
-
-  /// Binary operation on the unresolved super [element].
-  ///
-  /// For instance
-  ///     class B {
-  ///     }
-  ///     class C extends B {
-  ///       m() => super + 42;
-  ///     }
-  ///
-  R visitUnresolvedSuperBinary(
-      Send node,
-      Element element,
-      BinaryOperator operator,
-      Node argument,
-      A arg);
-
   /// Invocation of an undefined unary [operator] on [expression].
   R errorUndefinedUnaryExpression(
       Send node,
@@ -3028,9 +3087,9 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   /// where [type] is `C<int>`.
   ///
-  // TODO(johnniwinther): Update [type] to be [InterfaceType] when this is no
-  // longer a catch-all clause for the erroneous constructor invocations.
-  R errorUnresolvedConstructorInvoke(
+  // TODO(johnniwinther): Change [type] to [InterfaceType] when is it not
+  // `dynamic`.
+  R visitUnresolvedConstructorInvoke(
       NewExpression node,
       Element constructor,
       DartType type,
@@ -3045,12 +3104,30 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   /// where [type] is the malformed type `Unresolved`.
   ///
-  R errorUnresolvedClassConstructorInvoke(
+  // TODO(johnniwinther): Change [type] to [MalformedType] when is it not
+  // `dynamic`.
+  R visitUnresolvedClassConstructorInvoke(
       NewExpression node,
       Element element,
-      MalformedType type,
+      DartType type,
       NodeList arguments,
       Selector selector,
+      A arg);
+
+  /// Constant invocation of a non-constant constructor.
+  ///
+  /// For instance
+  ///   class C {
+  ///     C(a, b);
+  ///   }
+  ///   m() => const C(true, 42);
+  ///
+  R errorNonConstantConstructorInvoke(
+      NewExpression node,
+      Element element,
+      InterfaceType type,
+      NodeList arguments,
+      CallStructure callStructure,
       A arg);
 
   /// Invocation of a constructor on an abstract [type] with [arguments].
@@ -3060,7 +3137,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   /// where [type] is the malformed type `Unresolved`.
   ///
-  R errorAbstractClassConstructorInvoke(
+  R visitAbstractClassConstructorInvoke(
       NewExpression node,
       ConstructorElement element,
       InterfaceType type,
@@ -3080,12 +3157,12 @@ abstract class SemanticSendVisitor<R, A> {
   ///   m1() => new C(true, 42);
   ///   m2() => new C.a(true, 42);
   ///
-  R errorUnresolvedRedirectingFactoryConstructorInvoke(
+  R visitUnresolvedRedirectingFactoryConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 }
 

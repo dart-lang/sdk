@@ -681,6 +681,10 @@ class ParentVisitor extends RecursiveVisitor {
   processTypeExpression(TypeExpression node) {
     node.arguments.forEach((Reference ref) => ref.parent = node);
   }
+
+  processCreateInvocationMirror(CreateInvocationMirror node) {
+    node.arguments.forEach((Reference ref) => ref.parent = node);
+  }
 }
 
 class _ReductionKind {

@@ -53,8 +53,6 @@ main() {
       expect(paths, unorderedEquals([
         // Bar should be requested because it's new, but not foo.
         "api/packages/bar",
-        // Should only request the most recent version.
-        "api/packages/bar/versions/1.2.0",
         // Need to download it.
         "packages/bar/versions/1.2.0.tar.gz"
       ]));

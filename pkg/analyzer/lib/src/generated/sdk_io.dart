@@ -397,7 +397,7 @@ class DirectoryBasedDartSdk implements DartSdk {
       if (filePath.replaceAll('\\', '/') == libraryPath) {
         String path = library.shortName;
         try {
-          return new FileBasedSource.con2(parseUriWithException(path), file);
+          return new FileBasedSource(file, parseUriWithException(path));
         } on URISyntaxException catch (exception, stackTrace) {
           AnalysisEngine.instance.logger.logInformation(
               "Failed to create URI: $path",
@@ -410,7 +410,7 @@ class DirectoryBasedDartSdk implements DartSdk {
         String path =
             "${library.shortName}/${filePath.substring(libraryPath.length + 1)}";
         try {
-          return new FileBasedSource.con2(parseUriWithException(path), file);
+          return new FileBasedSource(file, parseUriWithException(path));
         } on URISyntaxException catch (exception, stackTrace) {
           AnalysisEngine.instance.logger.logInformation(
               "Failed to create URI: $path",
@@ -494,7 +494,7 @@ class DirectoryBasedDartSdk implements DartSdk {
         file = file.getParentFile();
         file = new JavaFile.relative(file, relativePath);
       }
-      return new FileBasedSource.con2(parseUriWithException(dartUri), file);
+      return new FileBasedSource(file, parseUriWithException(dartUri));
     } on URISyntaxException {
       return null;
     }
@@ -548,7 +548,7 @@ class SdkLibrariesReader {
    * of the file is already known to be [libraryFileContents].
    */
   LibraryMap readFromFile(JavaFile file, String libraryFileContents) =>
-      readFromSource(new FileBasedSource.con1(file), libraryFileContents);
+      readFromSource(new FileBasedSource(file), libraryFileContents);
 
   /**
    * Return the library map read from the given [source], given that the content

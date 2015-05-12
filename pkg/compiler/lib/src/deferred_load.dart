@@ -25,6 +25,7 @@ import 'js_backend/js_backend.dart' show
     JavaScriptBackend;
 
 import 'elements/elements.dart' show
+    AccessorElement,
     AstElement,
     ClassElement,
     Element,
@@ -201,9 +202,16 @@ class DeferredLoadTask extends CompilerTask {
     return outputUnitForElement(element) != mainOutputUnit;
   }
 
-  /// Returns true if e1 and e2 are in the same output unit.
-  bool inSameOutputUnit(Element e1, Element e2) {
-    return outputUnitForElement(e1) == outputUnitForElement(e2);
+  /// Returns `true` if element [to] is reachable from element [from] without
+  /// crossing a deferred import.
+  ///
+  /// For example, if we have two deferred libraries `A` and `B` that both
+  /// import a library `C`, then even though elements from `A` and `C` end up in
+  /// different output units, there is a non-deferred path between `A` and `C`.
+  bool hasOnlyNonDeferredImportPaths(Element from, Element to) {
+    OutputUnit outputUnitFrom = outputUnitForElement(from);
+    OutputUnit outputUnitTo = outputUnitForElement(to);
+    return outputUnitTo.imports.containsAll(outputUnitFrom.imports);
   }
 
   void registerConstantDeferredUse(DeferredConstantValue constant,
@@ -233,7 +241,7 @@ class DeferredLoadTask extends CompilerTask {
       element = element.enclosingClass;
     }
     if (element.isAccessor) {
-      element = (element as FunctionElement).abstractField;
+      element = (element as AccessorElement).abstractField;
     }
     return library.getImportsFor(element);
   }

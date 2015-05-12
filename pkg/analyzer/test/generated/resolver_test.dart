@@ -118,7 +118,7 @@ class AnalysisContextFactory {
         new CompilationUnitElementImpl("core.dart");
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
     coreContext.setContents(coreSource, "");
-    coreUnit.source = coreSource;
+    coreUnit.librarySource = coreUnit.source = coreSource;
     ClassElementImpl proxyClassElement = ElementFactory.classElement2("_Proxy");
     coreUnit.types = <ClassElement>[
       provider.boolType.element,
@@ -171,7 +171,7 @@ class AnalysisContextFactory {
         new CompilationUnitElementImpl("async.dart");
     Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
     coreContext.setContents(asyncSource, "");
-    asyncUnit.source = asyncSource;
+    asyncUnit.librarySource = asyncUnit.source = asyncSource;
     // Future
     ClassElementImpl futureElement =
         ElementFactory.classElement2("Future", ["T"]);
@@ -197,7 +197,7 @@ class AnalysisContextFactory {
     aliasElement.parameters = parameters;
     aliasElement.returnType = provider.dynamicType;
     aliasElement.enclosingElement = asyncUnit;
-    FunctionTypeImpl aliasType = new FunctionTypeImpl.con2(aliasElement);
+    FunctionTypeImpl aliasType = new FunctionTypeImpl.forTypedef(aliasElement);
     aliasElement.shareTypeParameters(futureElement.typeParameters);
     aliasType.typeArguments = futureElement.type.typeArguments;
     MethodElement thenMethod = ElementFactory.methodElementWithParameters(
@@ -229,7 +229,7 @@ class AnalysisContextFactory {
         new CompilationUnitElementImpl("html_dartium.dart");
     Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
     coreContext.setContents(htmlSource, "");
-    htmlUnit.source = htmlSource;
+    htmlUnit.librarySource = htmlUnit.source = htmlSource;
     ClassElementImpl elementElement = ElementFactory.classElement2("Element");
     InterfaceType elementType = elementElement.type;
     ClassElementImpl canvasElement =
@@ -290,7 +290,7 @@ class AnalysisContextFactory {
         new CompilationUnitElementImpl("math.dart");
     Source mathSource = sourceFactory.forUri(_DART_MATH);
     coreContext.setContents(mathSource, "");
-    mathUnit.source = mathSource;
+    mathUnit.librarySource = mathUnit.source = mathSource;
     FunctionElement cosElement = ElementFactory.functionElement3("cos",
         provider.doubleType.element, <ClassElement>[provider.numType.element],
         ClassElement.EMPTY_LIST);
@@ -417,13 +417,13 @@ class AnalysisContextHelper {
   AnalysisContextHelper() {
     context = AnalysisContextFactory.contextWithCore();
     AnalysisOptionsImpl options =
-        new AnalysisOptionsImpl.con1(context.analysisOptions);
+        new AnalysisOptionsImpl.from(context.analysisOptions);
     options.cacheSize = 256;
     context.analysisOptions = options;
   }
 
   Source addSource(String path, String code) {
-    Source source = new FileBasedSource.con1(FileUtilities2.createFile(path));
+    Source source = new FileBasedSource(FileUtilities2.createFile(path));
     if (path.endsWith(".dart") || path.endsWith(".html")) {
       ChangeSet changeSet = new ChangeSet();
       changeSet.addedSource(source);
@@ -1893,10 +1893,11 @@ class ElementResolverTest extends EngineTestCase {
         [new DartUriResolver(DirectoryBasedDartSdk.defaultSdk)]);
     context.sourceFactory = sourceFactory;
     FileBasedSource source =
-        new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
+        new FileBasedSource(FileUtilities2.createFile("/test.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
         new CompilationUnitElementImpl("test.dart");
-    definingCompilationUnit.source = source;
+    definingCompilationUnit.librarySource =
+        definingCompilationUnit.source = source;
     _definingLibrary = ElementFactory.library(context, "test");
     _definingLibrary.definingCompilationUnit = definingCompilationUnit;
     Library library = new Library(context, _listener, source);
@@ -5710,10 +5711,11 @@ class InheritanceManagerTest extends EngineTestCase {
   InheritanceManager _createInheritanceManager() {
     AnalysisContextImpl context = AnalysisContextFactory.contextWithCore();
     FileBasedSource source =
-        new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
+        new FileBasedSource(FileUtilities2.createFile("/test.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
         new CompilationUnitElementImpl("test.dart");
-    definingCompilationUnit.source = source;
+    definingCompilationUnit.librarySource =
+        definingCompilationUnit.source = source;
     _definingLibrary = ElementFactory.library(context, "test");
     _definingLibrary.definingCompilationUnit = definingCompilationUnit;
     return new InheritanceManager(_definingLibrary);
@@ -5735,8 +5737,7 @@ class LibraryElementBuilderTest extends EngineTestCase {
    * @return the source object representing the added file
    */
   Source addSource(String filePath, String contents) {
-    Source source =
-        new FileBasedSource.con1(FileUtilities2.createFile(filePath));
+    Source source = new FileBasedSource(FileUtilities2.createFile(filePath));
     _context.setContents(source, contents);
     return source;
   }
@@ -6330,7 +6331,7 @@ class LibraryTest extends EngineTestCase {
   }
 
   Library _createLibrary(String definingCompilationUnitPath) => new Library(
-      _analysisContext, _errorListener, new FileBasedSource.con1(
+      _analysisContext, _errorListener, new FileBasedSource(
           FileUtilities2.createFile(definingCompilationUnitPath)));
 }
 
@@ -6353,7 +6354,7 @@ class MemberMapTest {
     map.put(m1.name, m1);
     map.put(m2.name, m2);
     map.put(m3.name, m3);
-    MemberMap copy = new MemberMap.con2(map);
+    MemberMap copy = new MemberMap.from(map);
     expect(copy.size, map.size);
     expect(copy.get(m1.name), m1);
     expect(copy.get(m2.name), m2);
@@ -7379,13 +7380,13 @@ class PubSuggestionCodeTest extends ResolverTestCase {
 }
 
 /**
- * Instances of the class `ResolutionVerifier` verify that all of the nodes in an AST
- * structure that should have been resolved were resolved.
+ * An AST visitor used to verify that all of the nodes in an AST structure that
+ * should have been resolved were resolved.
  */
 class ResolutionVerifier extends RecursiveAstVisitor<Object> {
   /**
-   * A set containing nodes that are known to not be resolvable and should therefore not cause the
-   * test to fail.
+   * A set containing nodes that are known to not be resolvable and should
+   * therefore not cause the test to fail.
    */
   final Set<AstNode> _knownExceptions;
 
@@ -7395,26 +7396,19 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
   List<AstNode> _unresolvedNodes = new List<AstNode>();
 
   /**
-   * A list containing all of the AST nodes that were resolved to an element of the wrong type.
+   * A list containing all of the AST nodes that were resolved to an element of
+   * the wrong type.
    */
   List<AstNode> _wrongTypedNodes = new List<AstNode>();
 
   /**
-   * Initialize a newly created verifier to verify that all of the nodes in the visited AST
-   * structures that are expected to have been resolved have an element associated with them.
+   * Initialize a newly created verifier to verify that all of the identifiers
+   * in the visited AST structures that are expected to have been resolved have
+   * an element associated with them. Nodes in the set of [_knownExceptions] are
+   * not expected to have been resolved, even if they normally would have been
+   * expected to have been resolved.
    */
-  ResolutionVerifier() : this.con1(null);
-
-  /**
-   * Initialize a newly created verifier to verify that all of the identifiers in the visited AST
-   * structures that are expected to have been resolved have an element associated with them. Nodes
-   * in the set of known exceptions are not expected to have been resolved, even if they normally
-   * would have been expected to have been resolved.
-   *
-   * @param knownExceptions a set containing nodes that are known to not be resolvable and should
-   *          therefore not cause the test to fail
-   **/
-  ResolutionVerifier.con1(this._knownExceptions);
+  ResolutionVerifier([this._knownExceptions]);
 
   /**
    * Assert that all of the visited identifiers were resolved.
@@ -7755,8 +7749,7 @@ class ResolverTestCase extends EngineTestCase {
    * @return the source object representing the cached file
    */
   Source cacheSource(String filePath, String contents) {
-    Source source =
-        new FileBasedSource.con1(FileUtilities2.createFile(filePath));
+    Source source = new FileBasedSource(FileUtilities2.createFile(filePath));
     analysisContext2.setContents(source, contents);
     return source;
   }
@@ -7779,6 +7772,9 @@ class ResolverTestCase extends EngineTestCase {
    */
   LibraryElementImpl createTestLibrary(
       AnalysisContext context, String libraryName, [List<String> typeNames]) {
+    String fileName = "$libraryName.dart";
+    FileBasedSource definingCompilationUnitSource =
+        _createNamedSource(fileName);
     List<CompilationUnitElement> sourcedCompilationUnits;
     if (typeNames == null) {
       sourcedCompilationUnits = CompilationUnitElement.EMPTY_LIST;
@@ -7793,14 +7789,15 @@ class ResolverTestCase extends EngineTestCase {
         CompilationUnitElementImpl compilationUnit =
             new CompilationUnitElementImpl(fileName);
         compilationUnit.source = _createNamedSource(fileName);
+        compilationUnit.librarySource = definingCompilationUnitSource;
         compilationUnit.types = <ClassElement>[type];
         sourcedCompilationUnits[i] = compilationUnit;
       }
     }
-    String fileName = "$libraryName.dart";
     CompilationUnitElementImpl compilationUnit =
         new CompilationUnitElementImpl(fileName);
-    compilationUnit.source = _createNamedSource(fileName);
+    compilationUnit.librarySource =
+        compilationUnit.source = definingCompilationUnitSource;
     LibraryElementImpl library = new LibraryElementImpl.forNode(
         context, AstFactory.libraryIdentifier2([libraryName]));
     library.definingCompilationUnit = compilationUnit;
@@ -7952,7 +7949,7 @@ class ResolverTestCase extends EngineTestCase {
    */
   FileBasedSource _createNamedSource(String fileName) {
     FileBasedSource source =
-        new FileBasedSource.con1(FileUtilities2.createFile(fileName));
+        new FileBasedSource(FileUtilities2.createFile(fileName));
     analysisContext2.setContents(source, "");
     return source;
   }
@@ -10488,7 +10485,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(classElement, constructorName);
     constructor.returnType = classElement.type;
-    FunctionTypeImpl constructorType = new FunctionTypeImpl.con1(constructor);
+    FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
     constructor.type = constructorType;
     classElement.constructors = <ConstructorElement>[constructor];
     InstanceCreationExpression node = AstFactory.instanceCreationExpression2(
@@ -10507,7 +10504,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
         ElementFactory.constructorElement2(elementC, null);
     elementC.constructors = <ConstructorElement>[constructor];
     constructor.returnType = elementC.type;
-    FunctionTypeImpl constructorType = new FunctionTypeImpl.con1(constructor);
+    FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
     constructor.type = constructorType;
     TypeName typeName =
         AstFactory.typeName(elementC, [AstFactory.typeName(elementI)]);
@@ -10528,7 +10525,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(classElement, null);
     constructor.returnType = classElement.type;
-    FunctionTypeImpl constructorType = new FunctionTypeImpl.con1(constructor);
+    FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
     constructor.type = constructorType;
     classElement.constructors = <ConstructorElement>[constructor];
     InstanceCreationExpression node = AstFactory.instanceCreationExpression2(
@@ -10992,10 +10989,11 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
         [new DartUriResolver(DirectoryBasedDartSdk.defaultSdk)]);
     context.sourceFactory = sourceFactory;
     FileBasedSource source =
-        new FileBasedSource.con1(FileUtilities2.createFile("/lib.dart"));
+        new FileBasedSource(FileUtilities2.createFile("/lib.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
         new CompilationUnitElementImpl("lib.dart");
-    definingCompilationUnit.source = source;
+    definingCompilationUnit.librarySource =
+        definingCompilationUnit.source = source;
     LibraryElementImpl definingLibrary =
         new LibraryElementImpl.forNode(context, null);
     definingLibrary.definingCompilationUnit = definingCompilationUnit;
@@ -11050,7 +11048,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FunctionExpression node = AstFactory.functionExpression2(parameters, body);
     FunctionElementImpl element = new FunctionElementImpl.forNode(null);
     element.parameters = parameterElements;
-    element.type = new FunctionTypeImpl.con1(element);
+    element.type = new FunctionTypeImpl(element);
     node.element = element;
     return node;
   }
@@ -11496,9 +11494,10 @@ class SubtypeManagerTest extends EngineTestCase {
     super.setUp();
     AnalysisContextImpl context = AnalysisContextFactory.contextWithCore();
     FileBasedSource source =
-        new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
+        new FileBasedSource(FileUtilities2.createFile("/test.dart"));
     _definingCompilationUnit = new CompilationUnitElementImpl("test.dart");
-    _definingCompilationUnit.source = source;
+    _definingCompilationUnit.librarySource =
+        _definingCompilationUnit.source = source;
     LibraryElementImpl definingLibrary =
         ElementFactory.library(context, "test");
     definingLibrary.definingCompilationUnit = _definingCompilationUnit;
@@ -13219,7 +13218,7 @@ class TypeProviderImplTest extends EngineTestCase {
     ClassElementImpl element =
         new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
     element.supertype = superclassType;
-    InterfaceTypeImpl type = new InterfaceTypeImpl.con1(element);
+    InterfaceTypeImpl type = new InterfaceTypeImpl(element);
     element.type = type;
     if (parameterNames != null) {
       int count = parameterNames.length;
@@ -13314,7 +13313,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     context.sourceFactory = factory;
     Source librarySource =
-        new FileBasedSource.con1(FileUtilities2.createFile("/lib.dart"));
+        new FileBasedSource(FileUtilities2.createFile("/lib.dart"));
     _library = new Library(context, _listener, librarySource);
     LibraryElementImpl element = new LibraryElementImpl.forNode(
         context, AstFactory.libraryIdentifier2(["lib"]));

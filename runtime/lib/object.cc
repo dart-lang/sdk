@@ -16,7 +16,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_type_checks);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 

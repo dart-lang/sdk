@@ -368,15 +368,16 @@ class AstFactory {
       fieldFormalParameter(null, null, identifier);
 
   static ForEachStatement forEachStatement(DeclaredIdentifier loopVariable,
-      Expression iterator, Statement body) => new ForEachStatement.con1(null,
-      TokenFactory.tokenFromKeyword(Keyword.FOR),
-      TokenFactory.tokenFromType(TokenType.OPEN_PAREN), loopVariable,
-      TokenFactory.tokenFromKeyword(Keyword.IN), iterator,
-      TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
+          Expression iterator, Statement body) =>
+      new ForEachStatement.withDeclaration(null,
+          TokenFactory.tokenFromKeyword(Keyword.FOR),
+          TokenFactory.tokenFromType(TokenType.OPEN_PAREN), loopVariable,
+          TokenFactory.tokenFromKeyword(Keyword.IN), iterator,
+          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
 
   static ForEachStatement forEachStatement2(
           SimpleIdentifier identifier, Expression iterator, Statement body) =>
-      new ForEachStatement.con2(null,
+      new ForEachStatement.withReference(null,
           TokenFactory.tokenFromKeyword(Keyword.FOR),
           TokenFactory.tokenFromType(TokenType.OPEN_PAREN), identifier,
           TokenFactory.tokenFromKeyword(Keyword.IN), iterator,

@@ -75,6 +75,7 @@ class RawCode;
   V(UnoptimizedIdenticalWithNumberCheck)                                       \
   V(OptimizedIdenticalWithNumberCheck)                                         \
   V(DebugStepCheck)                                                            \
+  V(MegamorphicLookup)                                                         \
 
 #define STUB_CODE_LIST(V)                                                      \
   BOOTSTRAP_STUB_CODE_LIST(V)                                                  \
@@ -182,6 +183,9 @@ class StubCode {
   uword UnoptimizedStaticCallEntryPoint(intptr_t num_args_tested);
 
   static const intptr_t kNoInstantiator = 0;
+
+  static void EmitMegamorphicLookup(
+      Assembler*, Register recv, Register cache, Register target);
 
  private:
   void GenerateBootstrapStubsFor(Isolate* isolate);

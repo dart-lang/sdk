@@ -333,6 +333,13 @@
         <a class="boxclose" on-click="{{ closeItem }}">&times;</a>
       </div>
     </template>
+    <template if="{{ event.eventType == 'Inspect' }}">
+      <div class="item">
+        Inspect <any-service-ref ref="{{ event.inspectee }}"></any-service-ref>
+        <br><br>
+        <a class="boxclose" on-click="{{ closeItem }}">&times;</a>
+      </div>
+    </template>
   </template>
 </polymer-element>
 

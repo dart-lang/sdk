@@ -396,13 +396,13 @@ class Symbols : public AllStatic {
 
 #define DEFINE_SYMBOL_INDEX(symbol, literal)                                   \
     k##symbol##Id,
-PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
+    PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
 #undef DEFINE_SYMBOL_INDEX
 
     kKwTableStart,  // First keyword at kKwTableStart + 1.
 
-#define DEFINE_KEYWORD_SYMBOL_INDEX(token, chars, ignore1, ignore2)            \
-    token##Id,
+#define DEFINE_KEYWORD_SYMBOL_INDEX(t, s, p, a)                            \
+    t##Id,
     DART_KEYWORD_LIST(DEFINE_KEYWORD_SYMBOL_INDEX)
 #undef DEFINE_KEYWORD_SYMBOL_INDEX
 
@@ -514,10 +514,17 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
   static const String& True() { return *(symbol_handles_[kTRUEId]); }
   static const String& Void() { return *(symbol_handles_[kVOIDId]); }
 
-  // Access methods for symbol handles stored in the vm isolate.
+  // Access methods for symbol handles stored in the vm isolate for predefined
+  // symbols.
 #define DEFINE_SYMBOL_HANDLE_ACCESSOR(symbol, literal)                         \
   static const String& symbol() { return *(symbol_handles_[k##symbol##Id]); }
-PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
+  PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
+#undef DEFINE_SYMBOL_HANDLE_ACCESSOR
+
+  // Access methods for symbol handles stored in the vm isolate for keywords.
+#define DEFINE_SYMBOL_HANDLE_ACCESSOR(t, s, p, a)                              \
+  static const String& t() { return *(symbol_handles_[t##Id]); }
+  DART_KEYWORD_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
 #undef DEFINE_SYMBOL_HANDLE_ACCESSOR
 
   // Get symbol for scanner keyword.

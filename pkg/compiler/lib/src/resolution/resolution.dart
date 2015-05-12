@@ -35,6 +35,7 @@ import '../elements/modelx.dart' show
     LocalParameterElementX,
     LocalVariableElementX,
     MetadataAnnotationX,
+    MethodElementX,
     MixinApplicationElementX,
     ParameterElementX,
     ParameterMetadataAnnotation,

@@ -139,7 +139,7 @@ class SolveResult {
 class PubspecCache {
   final SourceRegistry _sources;
 
-  /// The already-requested cached version lists.
+  /// The already-requested cached pubspec lists.
   final _versions = new Map<PackageRef, List<PackageId>>();
 
   /// The errors from failed version list requests.
@@ -147,6 +147,12 @@ class PubspecCache {
 
   /// The already-requested cached pubspecs.
   final _pubspecs = new Map<PackageId, Pubspec>();
+
+  // TODO(nweiz): Currently, if [getCachedPubspec] returns pubspecs cached via
+  // [getVersions], the "complex backtrack" test case in version_solver_test
+  // fails. Fix that. See also [BacktrackingSolver._getTransitiveDependers].
+  /// The set of package ids for which [getPubspec] has been explicitly called.
+  final _explicitlyCached = new Set<PackageId>();
 
   /// The type of version resolution that was run.
   final SolveType _type;
@@ -175,25 +181,27 @@ class PubspecCache {
   }
 
   /// Loads the pubspec for the package identified by [id].
-  Future<Pubspec> getPubspec(PackageId id) {
+  Future<Pubspec> getPubspec(PackageId id) async {
+    _explicitlyCached.add(id);
+
     // Complete immediately if it's already cached.
     if (_pubspecs.containsKey(id)) {
       _pubspecCacheHits++;
-      return new Future<Pubspec>.value(_pubspecs[id]);
+      return _pubspecs[id];
     }
 
     _pubspecCacheMisses++;
 
     var source = _sources[id.source];
-    return source.describe(id).then((pubspec) {
-      _pubspecs[id] = pubspec;
-      return pubspec;
-    });
+    var pubspec = await source.describe(id);
+    _pubspecs[id] = pubspec;
+    return pubspec;
   }
 
   /// Returns the previously cached pubspec for the package identified by [id]
   /// or returns `null` if not in the cache.
-  Pubspec getCachedPubspec(PackageId id) => _pubspecs[id];
+  Pubspec getCachedPubspec(PackageId id) =>
+      _explicitlyCached.contains(id) ? _pubspecs[id] : null;
 
   /// Gets the list of versions for [package].
   ///
@@ -201,7 +209,7 @@ class PubspecCache {
   /// versions (i.e. ones without a prerelease suffix) before pre-release
   /// versions. This ensures that the solver prefers stable packages over
   /// unstable ones.
-  Future<List<PackageId>> getVersions(PackageRef package) {
+  Future<List<PackageId>> getVersions(PackageRef package) async {
     if (package.isRoot) {
       throw new StateError("Cannot get versions for root package $package.");
     }
@@ -210,36 +218,45 @@ class PubspecCache {
     var versions = _versions[package];
     if (versions != null) {
       _versionCacheHits++;
-      return new Future.value(versions);
+      return versions;
     }
 
     // See if we cached a failure.
     var error = _versionErrors[package];
     if (error != null) {
       _versionCacheHits++;
-      return new Future.error(error.first, error.last);
+      await new Future.error(error.first, error.last);
     }
 
     _versionCacheMisses++;
 
     var source = _sources[package.source];
-    return source.getVersions(package.name, package.description)
-        .then((versions) {
-      // Sort by priority so we try preferred versions first.
-      versions.sort(_type == SolveType.DOWNGRADE ? Version.antiprioritize :
-          Version.prioritize);
-
-      var ids = versions.reversed.map(
-          (version) => package.atVersion(version)).toList();
-      _versions[package] = ids;
-      return ids;
-    }).catchError((error, trace) {
+    var pubspecs;
+    try {
+      pubspecs = await source.getVersions(package.name, package.description);
+    } catch (error, stackTrace) {
       // If an error occurs, cache that too. We only want to do one request
       // for any given package, successful or not.
-      log.solver("Could not get versions for $package:\n$error\n\n$trace");
-      _versionErrors[package] = new Pair(error, new Chain.forTrace(trace));
+      log.solver("Could not get versions for $package:\n$error\n\n$stackTrace");
+      _versionErrors[package] = new Pair(error, new Chain.forTrace(stackTrace));
       throw error;
+    }
+
+    // Sort by priority so we try preferred versions first.
+    pubspecs.sort((pubspec1, pubspec2) {
+      return _type == SolveType.DOWNGRADE
+          ? Version.antiprioritize(pubspec1.version, pubspec2.version)
+          : Version.prioritize(pubspec1.version, pubspec2.version);
     });
+
+    var ids = pubspecs.reversed.map((pubspec) {
+      var id = package.atVersion(pubspec.version);
+      // Eagerly cache the pubspec now since we have it.
+      _pubspecs[id] = pubspec;
+      return id;
+    }).toList();
+    _versions[package] = ids;
+    return ids;
   }
 
   /// Returns the previously cached list of versions for the package identified

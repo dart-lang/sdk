@@ -18,8 +18,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, enable_type_checks);
-
 // When entering intrinsics code:
 // R5: IC Data
 // R4: Arguments descriptor
@@ -793,7 +791,14 @@ void Intrinsifier::Smi_bitNegate(Assembler* assembler) {
 
 
 void Intrinsifier::Smi_bitLength(Assembler* assembler) {
-  // TODO(sra): Implement as word-length - CLZ.
+  __ ldr(R0, Address(SP, 0 * kWordSize));
+  __ SmiUntag(R0);
+  // XOR with sign bit to complement bits if value is negative.
+  __ eor(R0, R0, Operand(R0, ASR, 31));
+  __ clz(R0, R0);
+  __ rsb(R0, R0, Operand(32));
+  __ SmiTag(R0);
+  __ Ret();
 }
 
 
@@ -875,7 +880,7 @@ void Intrinsifier::Bigint_rsh(Assembler* assembler) {
   __ Bind(&loop_entry);
   __ teq(R8, Operand(R6));
   __ b(&loop, NE);
-  __ str(R1, Address(R8, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ str(R1, Address(R8, 0));
   // Returning Object::null() is not required, since this method is private.
   __ Ret();
 }

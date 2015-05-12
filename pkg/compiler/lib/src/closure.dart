@@ -4,20 +4,20 @@
 
 library closureToClassMapper;
 
-import "elements/elements.dart";
-import "dart2jslib.dart";
-import "dart_types.dart";
-import "js_backend/js_backend.dart" show JavaScriptBackend;
-import "scanner/scannerlib.dart" show Token;
-import "tree/tree.dart";
-import "util/util.dart";
-import "elements/modelx.dart"
+import 'constants/expressions.dart';
+import 'dart2jslib.dart';
+import 'dart_types.dart';
+import 'elements/elements.dart';
+import 'elements/modelx.dart'
     show BaseFunctionElementX,
          ClassElementX,
          ElementX,
          LocalFunctionElementX;
-import "elements/visitor.dart" show ElementVisitor;
-
+import 'elements/visitor.dart' show ElementVisitor;
+import 'js_backend/js_backend.dart' show JavaScriptBackend;
+import 'scanner/scannerlib.dart' show Token;
+import 'tree/tree.dart';
+import 'util/util.dart';
 import 'universe/universe.dart' show
     Universe;
 
@@ -151,6 +151,9 @@ class ClosureFieldElement extends ElementX
 
   @override
   List<FunctionElement> get nestedClosures => const <FunctionElement>[];
+
+  @override
+  ConstantExpression get constant => null;
 }
 
 // TODO(ahe): These classes continuously cause problems.  We need to find
@@ -276,6 +279,9 @@ class BoxFieldElement extends ElementX
   ResolvedAst get resolvedAst {
     throw new UnsupportedError("BoxFieldElement.resolvedAst");
   }
+
+  @override
+  ConstantExpression get constant => null;
 }
 
 /// A local variable used encode the direct (uncaptured) references to [this].
@@ -298,7 +304,7 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
                                 LocalFunctionElementX other,
                                 ClosureClassElement enclosing)
       : expression = other,
-        super(name, other.kind, other.modifiers, enclosing, false) {
+        super(name, other.kind, other.modifiers, enclosing) {
     asyncMarker = other.asyncMarker;
     functionSignatureCache = other.functionSignature;
   }

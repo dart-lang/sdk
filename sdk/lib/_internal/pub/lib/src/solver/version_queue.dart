@@ -56,16 +56,13 @@ class VersionQueue {
   /// synchronously. If there is no locked version, we need to get the list of
   /// versions asynchronously before we can determine what the first one is.
   static Future<VersionQueue> create(PackageId locked,
-      PackageIdGenerator allowedGenerator) {
+      PackageIdGenerator allowedGenerator) async {
     var versions = new VersionQueue._(locked, allowedGenerator);
 
-    // If there is a locked version, it's the current one so it's synchronously
-    // available now.
-    if (locked != null) return new Future.value(versions);
-
-    // Otherwise, the current version needs to be calculated before we can
+    // If there isn't a locked version, it needs to be calculated before we can
     // return.
-    return versions._calculateAllowed().then((_) => versions);
+    if (locked == null) await versions._calculateAllowed();
+    return versions;
   }
 
   VersionQueue._(this._locked, this._allowedGenerator);
@@ -74,7 +71,7 @@ class VersionQueue {
   ///
   /// Returns `true` if it moved to a new version (which can be accessed from
   /// [current]. Returns `false` if there are no more versions.
-  Future<bool> advance() {
+  Future<bool> advance() async {
     // Any failure was the fault of the previous version, not necessarily the
     // new one.
     _hasFailed = false;
@@ -83,15 +80,14 @@ class VersionQueue {
     if (_locked != null) {
       // Advancing past the locked version, so need to load the others now
       // so that [current] is available.
-      return _calculateAllowed().then((_) {
-        _locked = null;
-        return _allowed.isNotEmpty;
-      });
+      await _calculateAllowed();
+      _locked = null;
+    } else {
+      // Move to the next allowed version.
+      _allowed.removeFirst();
     }
 
-    // Move to the next allowed version.
-    _allowed.removeFirst();
-    return new Future.value(_allowed.isNotEmpty);
+    return _allowed.isNotEmpty;
   }
 
   /// Marks the selected version as being directly or indirectly responsible
@@ -102,9 +98,8 @@ class VersionQueue {
 
   /// Determines the list of allowed versions matching its constraint and places
   /// them in [_allowed].
-  Future _calculateAllowed() {
-    return _allowedGenerator().then((allowed) {
-      _allowed = new Queue<PackageId>.from(allowed);
-    });
+  Future _calculateAllowed() async {
+    var allowed = await _allowedGenerator();
+    _allowed = new Queue<PackageId>.from(allowed);
   }
 }

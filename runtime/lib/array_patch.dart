@@ -33,7 +33,7 @@ patch class List<E> {
   }
 
   /* patch */ factory List.from(Iterable elements, { bool growable: true }) {
-    if (elements is EfficientLength) {
+    if (elements is EfficientLengthIterable) {
       int length = elements.length;
       var list = growable ? new _GrowableList<E>(length) : new _List<E>(length);
       int i = 0;

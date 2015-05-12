@@ -73,6 +73,10 @@ class Compiler : public AllStatic {
   // on compilation failure.
   static RawObject* EvaluateStaticInitializer(const Field& field);
 
+  // Generates local var descriptors and sets it in 'code'. Do not call if the
+  // local var descriptor already exists.
+  static void ComputeLocalVarDescriptors(const Code& code);
+
   // Eagerly compiles all functions in a class.
   //
   // Returns Error::null() if there is no compilation error.

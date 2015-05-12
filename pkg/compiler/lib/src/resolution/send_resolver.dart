@@ -340,11 +340,24 @@ abstract class SendResolverMixin {
       }
     } else if (node.isSuperCall) {
       if (Elements.isUnresolved(element)) {
-        return new StaticAccess.unresolvedSuper(element);
+        if (isCompound) {
+          if (Elements.isUnresolved(getter)) {
+            // TODO(johnniwinther): Ensure that [getter] is not null. This
+            // happens in the case of missing super getter.
+            return new CompoundAccessSemantics(
+                CompoundAccessKind.UNRESOLVED_SUPER_GETTER, getter, element);
+          } else {
+            return new CompoundAccessSemantics(
+                CompoundAccessKind.UNRESOLVED_SUPER_SETTER, getter, element);
+          }
+        } else {
+          return new StaticAccess.unresolvedSuper(element);
+        }
       } else if (isCompound && Elements.isUnresolved(getter)) {
         // TODO(johnniwinther): Ensure that [getter] is not null. This happens
         // in the case of missing super getter.
-        return new StaticAccess.unresolved(getter);
+        return new CompoundAccessSemantics(
+            CompoundAccessKind.UNRESOLVED_SUPER_GETTER, getter, element);
       } else if (element.isField) {
         if (getter != null && getter != element) {
           CompoundAccessKind accessKind;
@@ -419,8 +432,15 @@ abstract class SendResolverMixin {
         ConstructorElement constructor,
         DartType type) {
     if (constructor.isErroneous) {
+      if (constructor is ErroneousElement) {
+        ErroneousElement error = constructor;
+        if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
+          return new ConstructorAccessSemantics(
+              ConstructorAccessKind.UNRESOLVED_CONSTRUCTOR, constructor, type);
+        }
+      }
       return new ConstructorAccessSemantics(
-          ConstructorAccessKind.ERRONEOUS, constructor, type);
+          ConstructorAccessKind.UNRESOLVED_TYPE, constructor, type);
     } else if (constructor.isRedirectingFactory) {
       ConstructorElement effectiveTarget = constructor.effectiveTarget;
       if (effectiveTarget == constructor ||
@@ -482,7 +502,7 @@ abstract class SendResolverMixin {
       // This is a non-constant constant constructor invocation, like
       // `const Const(method())`.
       constructorAccessSemantics = new ConstructorAccessSemantics(
-          ConstructorAccessKind.ERRONEOUS, element, type);
+          ConstructorAccessKind.NON_CONSTANT_CONSTRUCTOR, element, type);
     } else {
       constructorAccessSemantics =
           computeConstructorAccessSemantics(element, type);
@@ -753,16 +773,15 @@ abstract class DeclarationResolverMixin {
       return new RequiredParameterStructure(
           definitions, node, element, index);
     } else {
-      ConstantExpression defaultValue;
-      if (element.initializer != null) {
-        defaultValue = elements.getConstant(element.initializer);
-      }
+      // TODO(johnniwinther): Should we differentiate between implicit (null)
+      // and explicit values? What about optional parameters on redirecting
+      // factories?
       if (isNamed) {
         return new NamedParameterStructure(
-            definitions, node, element, defaultValue);
+            definitions, node, element, element.constant);
       } else {
         return new OptionalParameterStructure(
-            definitions, node, element, defaultValue, index);
+            definitions, node, element, element.constant, index);
       }
     }
   }

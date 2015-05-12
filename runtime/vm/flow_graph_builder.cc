@@ -35,11 +35,10 @@ DEFINE_FLAG(bool, eliminate_type_checks, true,
             "Eliminate type checks when allowed by static type analysis.");
 DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
+DEFINE_FLAG(bool, support_debugger, true, "Emit code needed for debugging");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
 
-DECLARE_FLAG(bool, enable_asserts);
-DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(bool, use_field_guards);
@@ -1042,7 +1041,8 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   // No debugger check is done in native functions or for return
   // statements for which there is no associated source position.
   const Function& function = owner()->function();
-  if ((node->token_pos() != Scanner::kNoSourcePos) && !function.is_native()) {
+  if (FLAG_support_debugger &&
+      (node->token_pos() != Scanner::kNoSourcePos) && !function.is_native()) {
     AddInstruction(new(Z) DebugStepCheckInstr(node->token_pos(),
                                               RawPcDescriptors::kRuntimeCall));
   }
@@ -3268,6 +3268,23 @@ LoadLocalInstr* EffectGraphVisitor::BuildLoadThisVar(LocalScope* scope) {
 }
 
 
+LoadFieldInstr* EffectGraphVisitor::BuildNativeGetter(
+    NativeBodyNode* node,
+    MethodRecognizer::Kind kind,
+    intptr_t offset,
+    const Type& type,
+    intptr_t class_id) {
+  Value* receiver = Bind(BuildLoadThisVar(node->scope()));
+  LoadFieldInstr* load = new(Z) LoadFieldInstr(receiver,
+                                               offset,
+                                               type,
+                                               node->token_pos());
+  load->set_result_cid(class_id);
+  load->set_recognized_kind(kind);
+  return load;
+}
+
+
 void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
   const Function& function = owner()->function();
   if (!function.IsClosureFunction()) {
@@ -3291,18 +3308,13 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
       }
       case MethodRecognizer::kStringBaseLength:
       case MethodRecognizer::kStringBaseIsEmpty: {
-        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
         // Treat length loads as mutable (i.e. affected by side effects) to
         // avoid hoisting them since we can't hoist the preceding class-check.
         // This is because of externalization of strings that affects their
         // class-id.
-        LoadFieldInstr* load = new(Z) LoadFieldInstr(
-            receiver,
-            String::length_offset(),
-            Type::ZoneHandle(Z, Type::SmiType()),
-            node->token_pos());
-        load->set_result_cid(kSmiCid);
-        load->set_recognized_kind(MethodRecognizer::kStringBaseLength);
+        LoadFieldInstr* load = BuildNativeGetter(
+            node, MethodRecognizer::kStringBaseLength, String::length_offset(),
+            Type::ZoneHandle(Z, Type::SmiType()), kSmiCid);
         if (kind == MethodRecognizer::kStringBaseLength) {
           return ReturnDefinition(load);
         }
@@ -3322,15 +3334,10 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
       case MethodRecognizer::kObjectArrayLength:
       case MethodRecognizer::kImmutableArrayLength:
       case MethodRecognizer::kTypedDataLength: {
-        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
-        LoadFieldInstr* load = new(Z) LoadFieldInstr(
-            receiver,
-            OffsetForLengthGetter(kind),
-            Type::ZoneHandle(Z, Type::SmiType()),
-            node->token_pos());
+        LoadFieldInstr* load = BuildNativeGetter(
+            node, kind, OffsetForLengthGetter(kind),
+            Type::ZoneHandle(Z, Type::SmiType()), kSmiCid);
         load->set_is_immutable(kind != MethodRecognizer::kGrowableArrayLength);
-        load->set_result_cid(kSmiCid);
-        load->set_recognized_kind(kind);
         return ReturnDefinition(load);
       }
       case MethodRecognizer::kClassIDgetID: {
@@ -3371,37 +3378,20 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         return ReturnDefinition(create_array);
       }
       case MethodRecognizer::kBigint_getDigits: {
-        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
-        LoadFieldInstr* load = new(Z) LoadFieldInstr(
-            receiver,
-            Bigint::digits_offset(),
+        return ReturnDefinition(BuildNativeGetter(
+            node, kind, Bigint::digits_offset(),
             Type::ZoneHandle(Z, Type::DynamicType()),
-            node->token_pos());
-        load->set_result_cid(kTypedDataUint32ArrayCid);
-        load->set_recognized_kind(kind);
-        return ReturnDefinition(load);
+            kTypedDataUint32ArrayCid));
       }
       case MethodRecognizer::kBigint_getUsed: {
-        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
-        LoadFieldInstr* load = new(Z) LoadFieldInstr(
-            receiver,
-            Bigint::used_offset(),
-            Type::ZoneHandle(Z, Type::SmiType()),
-            node->token_pos());
-        load->set_result_cid(kSmiCid);
-        load->set_recognized_kind(kind);
-        return ReturnDefinition(load);
+        return ReturnDefinition(BuildNativeGetter(
+            node, kind, Bigint::used_offset(),
+            Type::ZoneHandle(Z, Type::SmiType()), kSmiCid));
       }
       case MethodRecognizer::kBigint_getNeg: {
-        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
-        LoadFieldInstr* load = new(Z) LoadFieldInstr(
-            receiver,
-            Bigint::neg_offset(),
-            Type::ZoneHandle(Z, Type::BoolType()),
-            node->token_pos());
-        load->set_result_cid(kBoolCid);
-        load->set_recognized_kind(kind);
-        return ReturnDefinition(load);
+        return ReturnDefinition(BuildNativeGetter(
+            node, kind, Bigint::neg_offset(),
+            Type::ZoneHandle(Z, Type::BoolType()), kBoolCid));
       }
       default:
         break;
@@ -3438,14 +3428,16 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
   // a safe point for the debugger to stop, add an explicit stub
   // call. Exception: don't do this when assigning to or from internal
   // variables, or for generated code that has no source position.
-  if ((node->value()->IsLiteralNode() ||
-      (node->value()->IsLoadLocalNode() &&
-          !node->value()->AsLoadLocalNode()->local().IsInternal()) ||
-      node->value()->IsClosureNode()) &&
-      !node->local().IsInternal() &&
-      (node->token_pos() != Scanner::kNoSourcePos)) {
-    AddInstruction(new(Z) DebugStepCheckInstr(
-        node->token_pos(), RawPcDescriptors::kRuntimeCall));
+  if (FLAG_support_debugger) {
+    if ((node->value()->IsLiteralNode() ||
+        (node->value()->IsLoadLocalNode() &&
+            !node->value()->AsLoadLocalNode()->local().IsInternal()) ||
+        node->value()->IsClosureNode()) &&
+        !node->local().IsInternal() &&
+        (node->token_pos() != Scanner::kNoSourcePos)) {
+      AddInstruction(new(Z) DebugStepCheckInstr(
+          node->token_pos(), RawPcDescriptors::kRuntimeCall));
+    }
   }
 
   ValueGraphVisitor for_value(owner());
@@ -4249,11 +4241,13 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
 
 
 void EffectGraphVisitor::BuildThrowNode(ThrowNode* node) {
-  if (node->exception()->IsLiteralNode() ||
-      node->exception()->IsLoadLocalNode() ||
-      node->exception()->IsClosureNode()) {
-    AddInstruction(new(Z) DebugStepCheckInstr(
-        node->token_pos(), RawPcDescriptors::kRuntimeCall));
+  if (FLAG_support_debugger) {
+    if (node->exception()->IsLiteralNode() ||
+        node->exception()->IsLoadLocalNode() ||
+        node->exception()->IsClosureNode()) {
+      AddInstruction(new(Z) DebugStepCheckInstr(
+          node->token_pos(), RawPcDescriptors::kRuntimeCall));
+    }
   }
   ValueGraphVisitor for_exception(owner());
   node->exception()->Visit(&for_exception);

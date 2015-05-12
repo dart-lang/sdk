@@ -2800,7 +2800,7 @@ class B {
 
   static AstNode _findNodeAt(
       CompilationUnit oldUnit, int offset, Predicate<AstNode> predicate) {
-    NodeLocator locator = new NodeLocator.con1(offset);
+    NodeLocator locator = new NodeLocator(offset);
     AstNode node = locator.searchWithin(oldUnit);
     return node.getAncestor(predicate);
   }

@@ -714,7 +714,7 @@ class ResolverTask extends CompilerTask {
     if (Elements.isStaticOrTopLevelField(element)) {
       visitor.addDeferredAction(element, () {
         if (element.modifiers.isConst) {
-          constantCompiler.compileConstant(element);
+          element.constant = constantCompiler.compileConstant(element);
         } else {
           constantCompiler.compileVariable(element);
         }
@@ -1156,9 +1156,9 @@ class ResolverTask extends CompilerTask {
     }
     AbstractFieldElement field = lookupElement;
 
-    FunctionElementX getter = field.getter;
+    MethodElementX getter = field.getter;
     if (getter == null) return;
-    FunctionElementX setter = field.setter;
+    MethodElementX setter = field.setter;
     if (setter == null) return;
     int getterFlags = getter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
     int setterFlags = setter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
@@ -2427,8 +2427,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       parameterNodes = parameterNodes.tail;
     });
     addDeferredAction(enclosingElement, () {
-      functionParameters.forEachOptionalParameter((Element parameter) {
-        compiler.resolver.constantCompiler.compileConstant(parameter);
+      functionParameters.forEachOptionalParameter(
+          (ParameterElementX parameter) {
+        parameter.constant =
+            compiler.resolver.constantCompiler.compileConstant(parameter);
       });
     });
     if (inCheckContext) {
@@ -3227,6 +3229,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     ConstructorElement redirectionTarget = resolveRedirectingFactory(
         node, inConstContext: isConstConstructor);
     constructor.immediateRedirectionTarget = redirectionTarget;
+
+    Node constructorReference = node.constructorReference;
+    if (constructorReference is Send) {
+      constructor.redirectionDeferredPrefix =
+          compiler.deferredLoadTask.deferredPrefixElement(constructorReference,
+                                                          registry.mapping);
+    }
+
     registry.setRedirectingTargetConstructor(node, redirectionTarget);
     if (Elements.isUnresolved(redirectionTarget)) {
       registry.registerThrowNoSuchMethod();
@@ -4869,14 +4879,15 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
       Identifier name = visit(link.head);
-      LocalVariableElement element = new LocalVariableElementX(
+      LocalVariableElementX element = new LocalVariableElementX(
           name.source, resolver.enclosingElement,
           variables, name.token);
       resolver.defineLocalVariable(link.head, element);
       resolver.addToScope(element);
       if (definitions.modifiers.isConst) {
         compiler.enqueuer.resolution.addDeferredAction(element, () {
-          compiler.resolver.constantCompiler.compileConstant(element);
+          element.constant =
+              compiler.resolver.constantCompiler.compileConstant(element);
         });
       }
     }

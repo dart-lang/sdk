@@ -26,6 +26,9 @@ var blacklist = [
   // Don't kill random other processes.
   'dart.io.Process.killPid',
 
+  // Don't break into the debugger.
+  'dart.developer.debugger',
+
   // Don't run blocking io calls.
   new RegExp(r".*Sync$"),
 

@@ -411,9 +411,6 @@ abstract class Element implements Entity {
   bool get isAbstract;
   bool isForeign(Backend backend);
 
-  void addMetadata(MetadataAnnotation annotation);
-  void setNative(String name);
-
   Scope buildScope();
 
   void diagnose(Element context, DiagnosticListener listener);
@@ -840,12 +837,14 @@ abstract class ScopeContainerElement implements Element {
 }
 
 abstract class CompilationUnitElement extends Element {
+  /// Use [library] instead.
+  @deprecated
+  get enclosingElement;
+
   Script get script;
   PartOf get partTag;
 
   void forEachLocalMember(f(Element element));
-  void addMember(Element element, DiagnosticListener listener);
-  void setPartOf(PartOf tag, DiagnosticListener listener);
   bool get hasMembers;
 
   int compareTo(CompilationUnitElement other);
@@ -887,32 +886,14 @@ abstract class LibraryElement extends Element
    * an underscore.
    */
   bool get isInternalLibrary;
+
   bool get canUseNative;
   bool get exportsHandled;
 
-  // TODO(kasperl): We should try to get rid of these.
-  void set libraryTag(LibraryName value);
-
   LibraryElement get implementation;
-
-  void addCompilationUnit(CompilationUnitElement element);
-  void addTag(LibraryTag tag, DiagnosticListener listener);
-  void addImport(Element element, Import import, DiagnosticListener listener);
-
-  /// Record which element an import or export tag resolved to.
-  /// (Belongs on builder object).
-  void recordResolvedTag(LibraryDependency tag, LibraryElement library);
 
   /// Return the library element corresponding to an import or export.
   LibraryElement getLibraryFromTag(LibraryDependency tag);
-
-  void addMember(Element element, DiagnosticListener listener);
-  void addToScope(Element element, DiagnosticListener listener);
-
-  // TODO(kasperl): Get rid of this method.
-  Iterable<Element> getNonPrivateElementsInScope();
-
-  void setExports(Iterable<Element> exportedElements);
 
   Element find(String elementName);
   Element findLocal(String elementName);
@@ -998,6 +979,10 @@ abstract class LocalElement extends Element implements TypedElement, Local {
 /// A top level, static or instance field, a formal parameter or local variable.
 abstract class VariableElement extends ExecutableElement {
   Expression get initializer;
+
+  /// The constant expression defining the value of the variable if `const`,
+  /// `null` otherwise.
+  ConstantExpression get constant;
 }
 
 /// An entity that defines a local entity (memory slot) in generated code.
@@ -1135,10 +1120,6 @@ abstract class FunctionElement extends Element
   FunctionElement get patch;
   FunctionElement get origin;
 
-  /// Used to retrieve a link to the abstract field element representing this
-  /// element.
-  AbstractFieldElement get abstractField;
-
   /// Do not use [computeSignature] outside of the resolver; instead retrieve
   /// the signature through the [functionSignature] field.
   /// Trying to access a function signature that has not been computed in
@@ -1160,6 +1141,25 @@ abstract class FunctionElement extends Element
 
   /// `true` if this function is external.
   bool get isExternal;
+}
+
+/// A getter or setter.
+abstract class AccessorElement extends MethodElement {
+  /// Used to retrieve a link to the abstract field element representing this
+  /// element.
+  AbstractFieldElement get abstractField;
+}
+
+/// A getter.
+abstract class GetterElement extends AccessorElement {
+  /// The setter corresponding to this getter, if any.
+  SetterElement get setter;
+}
+
+/// A setter.
+abstract class SetterElement extends AccessorElement {
+  /// The getter corresponding to this setter, if any.
+  GetterElement get getter;
 }
 
 /// Enum for the synchronous/asynchronous function body modifiers.
@@ -1232,6 +1232,12 @@ abstract class ConstructorElement extends FunctionElement
   /// constructor so its immediate redirection target is `null`.
   ConstructorElement get immediateRedirectionTarget;
 
+  bool get isCyclicRedirection;
+
+  /// The prefix of the immediateRedirectionTarget, if it is deferred.
+  /// [null] if it is not deferred.
+  PrefixElement get redirectionDeferredPrefix;
+
   /// Is `true` if this constructor is a redirecting generative constructor.
   bool get isRedirectingGenerative;
 
@@ -1255,6 +1261,13 @@ abstract class ConstructorElement extends FunctionElement
   /// Class `E` has a synthesized constructor, `E.c`, whose defining constructor
   /// is `C.c`.
   ConstructorElement get definingConstructor;
+
+  /// The constant constructor defining the binding of fields if `const`,
+  /// `null` otherwise.
+  ConstantConstructor get constantConstructor;
+
+  /// `true` if this constructor is either `bool.fromEnviroment`
+  bool get isFromEnvironmentConstructor;
 
   /// Use [enclosingClass] instead.
   @deprecated

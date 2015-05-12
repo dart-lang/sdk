@@ -1019,8 +1019,7 @@ class IndexSetStructure<R, A> implements SendStructure<R, A> {
             arg);
       case AccessKind.UNRESOLVED_SUPER:
       case AccessKind.UNRESOLVED:
-        // TODO(johnniwinther): Support these through [AccessKind.COMPOUND].
-        return visitor.errorUnresolvedSuperIndexSet(
+        return visitor.visitUnresolvedSuperIndexSet(
             node,
             semantics.element,
             node.arguments.first,
@@ -1068,20 +1067,26 @@ class IndexPrefixStructure<R, A> implements SendStructure<R, A> {
             node.arguments.single,
             operator,
             arg);
-      case AccessKind.UNRESOLVED_SUPER:
-      case AccessKind.UNRESOLVED:
-        // TODO(johnniwinther): Support these through [AccessKind.COMPOUND].
-        return visitor.errorUnresolvedSuperIndexPrefix(
-            node,
-            semantics.element,
-            node.arguments.single,
-            operator,
-            arg);
       case AccessKind.COMPOUND:
         CompoundAccessSemantics compoundSemantics = semantics;
         switch (compoundSemantics.compoundAccessKind) {
           case CompoundAccessKind.SUPER_GETTER_SETTER:
             return visitor.visitSuperIndexPrefix(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                operator,
+                arg);
+          case CompoundAccessKind.UNRESOLVED_SUPER_GETTER:
+            return visitor.visitUnresolvedSuperGetterIndexPrefix(
+                node,
+                compoundSemantics.getter,
+                node.arguments.single,
+                operator,
+                arg);
+          case CompoundAccessKind.UNRESOLVED_SUPER_SETTER:
+            return visitor.visitUnresolvedSuperSetterIndexPrefix(
                 node,
                 compoundSemantics.getter,
                 compoundSemantics.setter,
@@ -1133,20 +1138,26 @@ class IndexPostfixStructure<R, A> implements SendStructure<R, A> {
             node.arguments.single,
             operator,
             arg);
-      case AccessKind.UNRESOLVED_SUPER:
-      case AccessKind.UNRESOLVED:
-        // TODO(johnniwinther): Support these through [AccessKind.COMPOUND].
-        return visitor.errorUnresolvedSuperIndexPostfix(
-            node,
-            semantics.element,
-            node.arguments.single,
-            operator,
-            arg);
       case AccessKind.COMPOUND:
         CompoundAccessSemantics compoundSemantics = semantics;
         switch (compoundSemantics.compoundAccessKind) {
           case CompoundAccessKind.SUPER_GETTER_SETTER:
             return visitor.visitSuperIndexPostfix(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                operator,
+                arg);
+          case CompoundAccessKind.UNRESOLVED_SUPER_GETTER:
+            return visitor.visitUnresolvedSuperGetterIndexPostfix(
+                node,
+                compoundSemantics.getter,
+                node.arguments.single,
+                operator,
+                arg);
+          case CompoundAccessKind.UNRESOLVED_SUPER_SETTER:
+            return visitor.visitUnresolvedSuperSetterIndexPostfix(
                 node,
                 compoundSemantics.getter,
                 compoundSemantics.setter,
@@ -1391,6 +1402,16 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
                 operator,
                 node.arguments.single,
                 arg);
+          case CompoundAccessKind.UNRESOLVED_SUPER_GETTER:
+          case CompoundAccessKind.UNRESOLVED_SUPER_SETTER:
+            // TODO(johnniwinther): Handle these separately.
+            return visitor.errorUnresolvedCompound(
+                node,
+                semantics.element,
+                operator,
+                node.arguments.single,
+                arg);
+            break;
         }
         break;
     }
@@ -1430,21 +1451,28 @@ class CompoundIndexSetStructure<R, A> implements SendStructure<R, A> {
             operator,
             node.arguments.tail.head,
             arg);
-      case AccessKind.UNRESOLVED_SUPER:
-      case AccessKind.UNRESOLVED:
-        // TODO(johnniwinther): Support these through [AccessKind.COMPOUND].
-        return visitor.errorUnresolvedSuperCompoundIndexSet(
-            node,
-            semantics.element,
-            node.arguments.first,
-            operator,
-            node.arguments.tail.head,
-            arg);
       case AccessKind.COMPOUND:
         CompoundAccessSemantics compoundSemantics = semantics;
         switch (compoundSemantics.compoundAccessKind) {
           case CompoundAccessKind.SUPER_GETTER_SETTER:
             return visitor.visitSuperCompoundIndexSet(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.first,
+                operator,
+                node.arguments.tail.head,
+                arg);
+          case CompoundAccessKind.UNRESOLVED_SUPER_GETTER:
+            return visitor.visitUnresolvedSuperGetterCompoundIndexSet(
+                node,
+                compoundSemantics.getter,
+                node.arguments.first,
+                operator,
+                node.arguments.tail.head,
+                arg);
+          case CompoundAccessKind.UNRESOLVED_SUPER_SETTER:
+            return visitor.visitUnresolvedSuperSetterCompoundIndexSet(
                 node,
                 compoundSemantics.getter,
                 compoundSemantics.setter,
@@ -1675,6 +1703,14 @@ class PrefixStructure<R, A> implements SendStructure<R, A> {
                 compoundSemantics.setter,
                 operator,
                 arg);
+          case CompoundAccessKind.UNRESOLVED_SUPER_GETTER:
+          case CompoundAccessKind.UNRESOLVED_SUPER_SETTER:
+            // TODO(johnniwinther): Handle these directly.
+            return visitor.errorUnresolvedPrefix(
+                node,
+                semantics.element,
+                operator,
+                arg);
         }
     }
     throw new SpannableAssertionFailure(node,
@@ -1891,6 +1927,14 @@ class PostfixStructure<R, A> implements SendStructure<R, A> {
                 compoundSemantics.setter,
                 operator,
                 arg);
+          case CompoundAccessKind.UNRESOLVED_SUPER_GETTER:
+          case CompoundAccessKind.UNRESOLVED_SUPER_SETTER:
+            // TODO(johnniwinther): Handle these directly.
+            return visitor.errorUnresolvedPostfix(
+                node,
+                semantics.element,
+                operator,
+                arg);
         }
     }
     throw new SpannableAssertionFailure(node,
@@ -1937,17 +1981,25 @@ class NewInvokeStructure<R, A> extends NewStructure<R, A> {
             semantics.effectiveTargetSemantics.type,
             node.send.argumentsNode, callStructure, arg);
       case ConstructorAccessKind.ABSTRACT:
-        return visitor.errorAbstractClassConstructorInvoke(
+        return visitor.visitAbstractClassConstructorInvoke(
             node, semantics.element, semantics.type,
             node.send.argumentsNode, callStructure, arg);
-      case ConstructorAccessKind.ERRONEOUS:
-        return visitor.errorUnresolvedConstructorInvoke(
+      case ConstructorAccessKind.UNRESOLVED_CONSTRUCTOR:
+        return visitor.visitUnresolvedConstructorInvoke(
             node, semantics.element, semantics.type,
             node.send.argumentsNode, selector, arg);
+      case ConstructorAccessKind.UNRESOLVED_TYPE:
+        return visitor.visitUnresolvedClassConstructorInvoke(
+            node, semantics.element, semantics.type,
+            node.send.argumentsNode, selector, arg);
+      case ConstructorAccessKind.NON_CONSTANT_CONSTRUCTOR:
+        return visitor.errorNonConstantConstructorInvoke(
+            node, semantics.element, semantics.type,
+            node.send.argumentsNode, callStructure, arg);
       case ConstructorAccessKind.ERRONEOUS_REDIRECTING_FACTORY:
-        return visitor.errorUnresolvedRedirectingFactoryConstructorInvoke(
+        return visitor.visitUnresolvedRedirectingFactoryConstructorInvoke(
             node, semantics.element, semantics.type,
-            node.send.argumentsNode, selector, arg);
+            node.send.argumentsNode, callStructure, arg);
     }
     throw new SpannableAssertionFailure(node,
         "Unhandled constructor invocation kind: ${semantics.kind}");

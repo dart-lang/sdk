@@ -360,17 +360,7 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
   }
 
   String formatArguments(Invoke node) {
-    List<String> args = new List<String>();
-    int positionalArgumentCount = node.selector.positionalArgumentCount;
-    for (int i = 0; i < positionalArgumentCount; ++i) {
-      args.add(node.arguments[i].accept(this));
-    }
-    for (int i = 0; i < node.selector.namedArgumentCount; ++i) {
-      String name = node.selector.namedArguments[i];
-      String arg = node.arguments[positionalArgumentCount + i].accept(this);
-      args.add("$name: $arg");
-    }
-    return args.join(', ');
+    return node.arguments.map(visitExpression).join(', ');
   }
 
   String visitInvokeStatic(InvokeStatic node) {
@@ -534,6 +524,12 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
   @override
   String visitTypeExpression(TypeExpression node) {
     return node.dartType.toString();
+  }
+
+  @override
+  String visitCreateInvocationMirror(CreateInvocationMirror node) {
+    String args = node.arguments.map(visitExpression).join(', ');
+    return 'CreateInvocationMirror(${node.selector.name}, $args)';
   }
 }
 

@@ -523,4 +523,46 @@ void test(Derived d) {
       assertSuggestMethod('f', 'Base', 'void');
     });
   }
+
+  test_super() {
+    // SimpleIdentifier  MethodInvocation  ExpressionStatement
+    addTestSource('''
+class C3 {
+  int fi3;
+  static int fs3;
+  m() {}
+  mi3() {}
+  static ms3() {}
+}
+class C2 {
+  int fi2;
+  static int fs2;
+  m() {}
+  mi2() {}
+  static ms2() {}
+}
+class C1 extends C2 implements C3 {
+  int fi1;
+  static int fs1;
+  m() {super.^}
+  mi1() {}
+  static ms1() {}
+}''');
+    return computeFull((bool result) {
+      assertNotSuggested('fi1');
+      assertNotSuggested('fs1');
+      assertNotSuggested('mi1');
+      assertNotSuggested('ms1');
+      assertSuggestInvocationField('fi2', 'int');
+      assertNotSuggested('fs2');
+      assertSuggestInvocationMethod('mi2', 'C2', null);
+      assertNotSuggested('ms2');
+      assertSuggestInvocationMethod('m', 'C2', null,
+          relevance: DART_RELEVANCE_HIGH);
+      assertNotSuggested('fi3');
+      assertNotSuggested('fs3');
+      assertNotSuggested('mi3');
+      assertNotSuggested('ms3');
+    });
+  }
 }

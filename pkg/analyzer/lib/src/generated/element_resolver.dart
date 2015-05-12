@@ -2009,8 +2009,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       // Class(args)
       if (element1 is ClassElement) {
         ClassElement classElement = element1;
-        constructor = new InterfaceTypeImpl.con1(classElement)
-            .lookUpConstructor(null, _definingLibrary);
+        constructor = new InterfaceTypeImpl(classElement).lookUpConstructor(
+            null, _definingLibrary);
       }
     }
     //
@@ -2038,8 +2038,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       // Class.constructor(args)
       if (element1 is ClassElement) {
         ClassElement classElement = element1;
-        constructor = new InterfaceTypeImpl.con1(classElement)
-            .lookUpConstructor(nameNode2.name, _definingLibrary);
+        constructor = new InterfaceTypeImpl(classElement).lookUpConstructor(
+            nameNode2.name, _definingLibrary);
         nameNode2.staticElement = constructor;
       }
     }
@@ -2062,8 +2062,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           return;
         }
         // prefix.Class.constructor(args)
-        constructor = new InterfaceTypeImpl.con1(classElement)
-            .lookUpConstructor(name3, _definingLibrary);
+        constructor = new InterfaceTypeImpl(classElement).lookUpConstructor(
+            name3, _definingLibrary);
         nameNode3.staticElement = constructor;
       }
     }

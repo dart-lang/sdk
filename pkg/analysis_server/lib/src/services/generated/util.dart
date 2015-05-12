@@ -83,8 +83,7 @@ class AssistContext {
    */
   AstNode get coveredNode {
     if (_coveredNode == null) {
-      NodeLocator locator =
-          new NodeLocator.con2(selectionOffset, selectionOffset);
+      NodeLocator locator = new NodeLocator(selectionOffset, selectionOffset);
       _coveredNode = locator.searchWithin(compilationUnit);
     }
     return _coveredNode;
@@ -95,8 +94,8 @@ class AssistContext {
    */
   AstNode get coveringNode {
     if (_coveringNode == null) {
-      NodeLocator locator = new NodeLocator.con2(
-          selectionOffset, selectionOffset + selectionLength);
+      NodeLocator locator =
+          new NodeLocator(selectionOffset, selectionOffset + selectionLength);
       _coveringNode = locator.searchWithin(compilationUnit);
     }
     return _coveringNode;
@@ -935,8 +934,7 @@ class CorrectionUtils {
   /**
    * @return the [AstNode] that encloses the given offset.
    */
-  AstNode findNode(int offset) =>
-      new NodeLocator.con1(offset).searchWithin(unit);
+  AstNode findNode(int offset) => new NodeLocator(offset).searchWithin(unit);
 
   /**
    * TODO(scheglov) replace with nodes once there will be [CompilationUnit.comments].

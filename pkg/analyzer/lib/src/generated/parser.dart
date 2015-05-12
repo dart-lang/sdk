@@ -1681,10 +1681,9 @@ class IncrementalParser {
     // tokens.
     //
     if (originalEnd < originalStart) {
-      oldNode =
-          new NodeLocator.con1(originalStart).searchWithin(originalStructure);
+      oldNode = new NodeLocator(originalStart).searchWithin(originalStructure);
     } else {
-      oldNode = new NodeLocator.con2(originalStart, originalEnd)
+      oldNode = new NodeLocator(originalStart, originalEnd)
           .searchWithin(originalStructure);
     }
     //
@@ -5580,11 +5579,11 @@ class Parser {
           Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
           Statement body = parseStatement2();
           if (loopVariable == null) {
-            return new ForEachStatement.con2(awaitKeyword, forKeyword,
+            return new ForEachStatement.withReference(awaitKeyword, forKeyword,
                 leftParenthesis, identifier, inKeyword, iterator,
                 rightParenthesis, body);
           }
-          return new ForEachStatement.con1(awaitKeyword, forKeyword,
+          return new ForEachStatement.withDeclaration(awaitKeyword, forKeyword,
               leftParenthesis, loopVariable, inKeyword, iterator,
               rightParenthesis, body);
         }
@@ -7663,7 +7662,7 @@ class Parser {
    */
   void _reportErrorForNode(ParserErrorCode errorCode, AstNode node,
       [List<Object> arguments]) {
-    _reportError(new AnalysisError.con2(
+    _reportError(new AnalysisError(
         _source, node.offset, node.length, errorCode, arguments));
   }
 
@@ -7676,7 +7675,7 @@ class Parser {
     if (token.type == TokenType.EOF) {
       token = token.previous;
     }
-    _reportError(new AnalysisError.con2(_source, token.offset,
+    _reportError(new AnalysisError(_source, token.offset,
         math.max(token.length, 1), errorCode, arguments));
   }
 

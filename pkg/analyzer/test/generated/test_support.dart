@@ -124,7 +124,7 @@ class EngineTestCase {
     if (offset == -1) {
       throw new IllegalArgumentException("Not found '$prefix'.");
     }
-    AstNode node = new NodeLocator.con1(offset).searchWithin(root);
+    AstNode node = new NodeLocator(offset).searchWithin(root);
     return node.getAncestor(predicate);
   }
 }
@@ -594,6 +594,8 @@ class TestSource extends Source {
   UriKind get uriKind {
     throw new UnsupportedOperationException();
   }
+  @override
+  String toString() => '$_name';
   bool operator ==(Object other) {
     if (other is TestSource) {
       return other._name == _name;

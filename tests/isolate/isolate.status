@@ -9,7 +9,7 @@ isolate_stress_test: Fail # Issue 12588: This should be able to pass when we hav
 [ $runtime == vm && $arch == mips && $mode == debug ]
 mandel_isolate_test: Skip # Uses 600 MB Ram on our 1 GB test device.
 
-[ $compiler == none || $compiler == dart2dart ]
+[ $compiler == none ]
 compile_time_error_test/01: Skip # Issue 12587
 ping_test: Skip           # Resolve test issues
 ping_pause_test: Skip     # Resolve test issues
@@ -31,7 +31,8 @@ compile_time_error_test/none: Pass, Slow
 browser/*: SkipByDesign  # Browser specific tests
 
 [ $compiler == dart2js && $runtime == jsshell ]
-pause_test: Fail  # non-zero timer not supported.
+pause_test: Fail, OK  # non-zero timer not supported.
+timer_isolate_test: Fail, OK # Needs Timer to run.
 
 [ $compiler == dart2js && $runtime == safari ]
 cross_isolate_message_test: Skip # Issue 12627
@@ -50,6 +51,7 @@ message3_test/constList_identical: RuntimeError # Issue 21817
 message3_test/constMap: RuntimeError  # Issue 21817
 message3_test/constInstance: RuntimeError # Issue 21817
 browser/issue_12474_test: CompileTimeError # Issue 22529
+enum_const_test/02: RuntimeError # Issue 21817
 
 [ $compiler == dart2js && $jscl ]
 spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
@@ -58,17 +60,6 @@ spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
 isolate_stress_test: Pass, Slow # TODO(kasperl): Please triage.
 
 mandel_isolate_test: Pass, Timeout # TODO(kasperl): Please triage.
-
-[ $compiler == dart2dart ]
-illegal_msg_mirror_test: RuntimeError    # Issue 16548
-spawn_uri_multi_test/none: RuntimeError  # Issue 16549
-spawn_uri_nested_vm_test: RuntimeError   # Issue 16549
-spawn_uri_test: RuntimeError             # Issue 16549
-spawn_uri_vm_test: RuntimeError          # Issue 16549
-spawn_uri_exported_main_test: RuntimeError # Issue 16549
-issue_21398_parent_isolate_test: RuntimeError  # Issue 16549
-issue_21398_parent_isolate1_test: RuntimeError # Issue 16549
-issue_21398_parent_isolate2_test: Skip # Not implemented yet
 
 [ $compiler == dart2js && ( $runtime == ff || $runtime == safari || $runtime == drt || $runtime == chrome || $runtime == chromeOnAndroid) ]
 isolate_stress_test: Pass, Slow # Issue 10697
@@ -82,7 +73,7 @@ spawn_uri_nested_vm_test: Skip # Issue 14463
 [ $jscl ]
 spawn_uri_multi_test/none: RuntimeError # Issue 13544
 
-[ ($compiler == none || $compiler == dart2dart) && ($runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
+[ $compiler == none && ($runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
 pause_test: Fail         # Not implemented yet
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
@@ -92,6 +83,7 @@ nested_spawn2_test: Skip # Issue 19127: This test is timing out.
 spawn_uri_nested_vm_test: Skip # Issue 14479: This test is timing out.
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
+typed_message_test: Crash, Fail # Issue 13921, 14400
 message_enum_test: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
 compile_time_error_test/none: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
 isolate_import_test/none: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
@@ -114,6 +106,11 @@ kill_self_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
 handle_error_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
 handle_error2_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
 handle_error3_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
+timer_isolate_test: Fail, Pass # Issue 15487. Issue 13921: Dom isolates don't support spawnFunction
+deferred_in_isolate2_test: Fail, OK  # Issue 16209, 13921 Dom isolates don't support spawnFunction
+bool_from_environment_default_value_test: Skip
+int_from_environment_default_value_test: Skip
+string_from_environment_default_value_test: Skip
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
@@ -123,58 +120,62 @@ mint_maker_test: StaticWarning
 package_root_test: SkipByDesign # Uses dart:io.
 
 [ $compiler == dart2js && $cps_ir ]
-capability_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-compile_time_error_test/01: Crash # handleStaticFunctionGet: function(entry)
-compile_time_error_test/none: Crash # handleStaticFunctionGet: function(entry)
-count_test: Crash # cannot compile methods that need interceptor calling convention.
-cross_isolate_message_test: Crash # cannot compile methods that need interceptor calling convention.
-function_send_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-handle_error2_test: Crash #  Unhandled node
-handle_error3_test: Crash #  Unhandled node
-handle_error_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-illegal_msg_function_test: Crash # cannot compile methods that need interceptor calling convention.
-illegal_msg_mirror_test: Crash # cannot compile methods that need interceptor calling convention.
-isolate_complex_messages_test: Crash # cannot compile methods that need interceptor calling convention.
-isolate_current_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-isolate_import_test/01: Crash # (Isolate): Error expression `Isolate` unhandled.
-isolate_import_test/none: Crash # handleStaticFunctionGet: function(entry)
-isolate_stress_test: Crash # handleStaticFunctionGet: function(worker)
-issue_22778_test: Crash # (throw new ExpectException(message)): Unhandled node
-kill2_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-kill_self_test: Crash # handleStaticFunctionGet: function(isomain1)
-kill_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-mandel_isolate_test: Crash # cannot compile methods that need interceptor calling convention.
-message2_test: Crash # cannot compile methods that need interceptor calling convention.
-message3_test/byteBuffer: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-message3_test/constInstance: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-message3_test/constList: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-message3_test/constList_identical: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-message3_test/constMap: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-message3_test/fun: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-message3_test/int32x4: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-message3_test/none: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-message_enum_test: Crash # Instance of 'TypeOperator': unimplemented in CodeGenerator
-message_test: Crash # cannot compile methods that need interceptor calling convention.
-mint_maker_test: Crash # cannot compile methods that need interceptor calling convention.
-nested_spawn2_test: Crash # cannot compile methods that need interceptor calling convention.
-nested_spawn_test: Crash # cannot compile methods that need interceptor calling convention.
-object_leak_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-ondone_test: Crash # handleStaticFunctionGet: function(isomain)
-pause_test: Crash # handleStaticFunctionGet: function(isomain1)
-ping_pause_test: Crash # (throw new ExpectException(message)): Unhandled node
-ping_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-port_test: Crash # (throw new ExpectException(message)): Unhandled node
-raw_port_test: Crash # cannot compile methods that need interceptor calling convention.
-request_reply_test: Crash # cannot compile methods that need interceptor calling convention.
-simple_message_test/01: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-simple_message_test/none: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-spawn_function_custom_class_test: Crash # cannot compile methods that need interceptor calling convention.
-spawn_function_test: Crash # cannot compile methods that need interceptor calling convention.
-spawn_uri_missing_from_isolate_test: Crash # handleStaticFunctionGet: function(isolate)
-spawn_uri_missing_test: Crash # handleStaticFunctionGet: function(doTest)
-spawn_uri_multi_test/01: Crash # cannot compile methods that need interceptor calling convention.
-spawn_uri_multi_test/none: Crash # cannot compile methods that need interceptor calling convention.
-stacktrace_message_test: Crash # cannot compile methods that need interceptor calling convention.
-start_paused_test: Crash # (throw _buildException('asyncEnd() was called before asyncStart().')): Unhandled node
-static_function_test: Crash # cannot compile methods that need interceptor calling convention.
-unresolved_ports_test: Crash # cannot compile methods that need interceptor calling convention.
+bool_from_environment_default_value_test: Crash # (test): handleStaticFunctionGet: function(test)
+compile_time_error_test/01: Crash # (entry): handleStaticFunctionGet: function(entry)
+compile_time_error_test/none: Crash # (entry): handleStaticFunctionGet: function(entry)
+count_test: Crash # (main): handleStaticFunctionGet: function(main)
+cross_isolate_message_test: Crash # (main): handleStaticFunctionGet: function(main)
+function_send_test: Crash # (toplevel): handleStaticFunctionGet: function(toplevel)
+handle_error2_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
+handle_error3_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
+handle_error_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
+illegal_msg_function_test: Crash # (main): handleStaticFunctionGet: function(main)
+illegal_msg_mirror_test: Crash # (main): handleStaticFunctionGet: function(main)
+int_from_environment_default_value_test: Crash # (test): handleStaticFunctionGet: function(test)
+isolate_complex_messages_test: Crash # (main): handleStaticFunctionGet: function(main)
+isolate_current_test: Crash # (i2l): handleStaticFunctionGet: function(i2l)
+isolate_import_test/01: Crash # (entry): handleStaticFunctionGet: function(entry)
+isolate_import_test/none: Crash # (entry): handleStaticFunctionGet: function(entry)
+isolate_stress_test: Crash # (worker): handleStaticFunctionGet: function(worker)
+issue_22778_test: Crash # (func): handleStaticFunctionGet: function(func)
+kill2_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
+kill_self_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
+kill_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
+mandel_isolate_test: Crash # (main): handleStaticFunctionGet: function(main)
+message2_test: Crash # (main): handleStaticFunctionGet: function(main)
+message3_test/byteBuffer: Crash # (echoMain): handleStaticFunctionGet: function(echoMain)
+message3_test/constInstance: Crash # (echoMain): handleStaticFunctionGet: function(echoMain)
+message3_test/constList: Crash # (echoMain): handleStaticFunctionGet: function(echoMain)
+message3_test/constList_identical: Crash # (echoMain): handleStaticFunctionGet: function(echoMain)
+message3_test/constMap: Crash # (echoMain): handleStaticFunctionGet: function(echoMain)
+message3_test/fun: Crash # (echoMain): handleStaticFunctionGet: function(echoMain)
+message3_test/int32x4: Crash # (echoMain): handleStaticFunctionGet: function(echoMain)
+message3_test/none: Crash # (echoMain): handleStaticFunctionGet: function(echoMain)
+message_enum_test: Crash # (sendIt): handleStaticFunctionGet: function(sendIt)
+message_test: Crash # (main): handleStaticFunctionGet: function(main)
+mint_maker_test: Crash # (main): handleStaticFunctionGet: function(main)
+nested_spawn2_test: Crash # (main): handleStaticFunctionGet: function(main)
+nested_spawn_test: Crash # (main): handleStaticFunctionGet: function(main)
+object_leak_test: Crash # (fun): handleStaticFunctionGet: function(fun)
+ondone_test: Crash # (isomain): handleStaticFunctionGet: function(isomain)
+pause_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
+ping_pause_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
+ping_test: Crash # (isomain1): handleStaticFunctionGet: function(isomain1)
+raw_port_test: Crash # (main): handleStaticFunctionGet: function(main)
+request_reply_test: Crash # (main): handleStaticFunctionGet: function(main)
+simple_message_test/01: Crash # (entry): handleStaticFunctionGet: function(entry)
+simple_message_test/none: Crash # (entry): handleStaticFunctionGet: function(entry)
+spawn_function_custom_class_test: Crash # (main): handleStaticFunctionGet: function(main)
+spawn_function_test: Crash # (main): handleStaticFunctionGet: function(main)
+spawn_uri_missing_from_isolate_test: Crash # (isolate): handleStaticFunctionGet: function(isolate)
+spawn_uri_missing_test: Crash # (doTest): handleStaticFunctionGet: function(doTest)
+spawn_uri_multi_test/01: Crash # unsupported element kind: _defaultEnvironment:field
+spawn_uri_multi_test/none: Crash # unsupported element kind: _defaultEnvironment:field
+stacktrace_message_test: Crash # (main): handleStaticFunctionGet: function(main)
+start_paused_test: Crash # (notyet): handleStaticFunctionGet: function(notyet)
+static_function_test: Crash # (main): handleStaticFunctionGet: function(main)
+string_from_environment_default_value_test: Crash # (test): handleStaticFunctionGet: function(test)
+timer_isolate_test: Crash # cannot compile methods that need interceptor calling convention.
+typed_message_test: Crash # (logMessages): handleStaticFunctionGet: function(logMessages)
+unresolved_ports_test: Crash # (main): handleStaticFunctionGet: function(main)
+

@@ -107,8 +107,8 @@ class FixProcessor {
     errorLength = error.length;
     errorEnd = errorOffset + errorLength;
     errorRange = new SourceRange(errorOffset, errorLength);
-    node = new NodeLocator.con1(errorOffset).searchWithin(unit);
-    coveredNode = new NodeLocator.con2(errorOffset, errorOffset + errorLength)
+    node = new NodeLocator(errorOffset).searchWithin(unit);
+    coveredNode = new NodeLocator(errorOffset, errorOffset + errorLength)
         .searchWithin(unit);
     // analyze ErrorCode
     ErrorCode errorCode = error.errorCode;
@@ -813,7 +813,7 @@ class FixProcessor {
       DartType parameterType = parameterElement.type;
       if (parameterType is InterfaceType && parameterType.isDartCoreFunction) {
         ExecutableElement element = new MethodElementImpl('', -1);
-        parameterType = new FunctionTypeImpl.con1(element);
+        parameterType = new FunctionTypeImpl(element);
       }
       if (parameterType is! FunctionType) {
         return;

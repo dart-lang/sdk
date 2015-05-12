@@ -137,7 +137,9 @@ class _ImportUriSuggestionBuilder extends SimpleAstVisitor {
         String prefix = 'package:$pkgName/';
         _addSuggestion(prefix);
         for (Folder folder in folders) {
-          _addPackageFolderSuggestions(partial, prefix, folder);
+          if (folder.exists) {
+            _addPackageFolderSuggestions(partial, prefix, folder);
+          }
         }
       });
     }

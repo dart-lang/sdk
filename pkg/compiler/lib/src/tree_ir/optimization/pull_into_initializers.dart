@@ -314,4 +314,9 @@ class BodyRewriter extends ExpressionVisitor<Expression> {
   Expression visitVariableUse(VariableUse node) {
     return node;
   }
+
+  Expression visitCreateInvocationMirror(CreateInvocationMirror node) {
+    rewriteList(node.arguments);
+    return node;
+  }
 }

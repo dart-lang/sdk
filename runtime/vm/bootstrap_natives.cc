@@ -95,12 +95,7 @@ void Bootstrap::SetupNativeResolver() {
   library.set_native_entry_resolver(resolver);
   library.set_native_entry_symbol_resolver(symbol_resolver);
 
-  library = Library::MathLibrary();
-  ASSERT(!library.IsNull());
-  library.set_native_entry_resolver(resolver);
-  library.set_native_entry_symbol_resolver(symbol_resolver);
-
-  library = Library::MirrorsLibrary();
+  library = Library::DeveloperLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
   library.set_native_entry_symbol_resolver(symbol_resolver);
@@ -115,12 +110,22 @@ void Bootstrap::SetupNativeResolver() {
   library.set_native_entry_resolver(resolver);
   library.set_native_entry_symbol_resolver(symbol_resolver);
 
-  library = Library::TypedDataLibrary();
+  library = Library::MathLibrary();
+  ASSERT(!library.IsNull());
+  library.set_native_entry_resolver(resolver);
+  library.set_native_entry_symbol_resolver(symbol_resolver);
+
+  library = Library::MirrorsLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
   library.set_native_entry_symbol_resolver(symbol_resolver);
 
   library = Library::ProfilerLibrary();
+  ASSERT(!library.IsNull());
+  library.set_native_entry_resolver(resolver);
+  library.set_native_entry_symbol_resolver(symbol_resolver);
+
+  library = Library::TypedDataLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
   library.set_native_entry_symbol_resolver(symbol_resolver);

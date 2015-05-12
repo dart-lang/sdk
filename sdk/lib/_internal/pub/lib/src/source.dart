@@ -57,7 +57,7 @@ abstract class Source {
     this._systemCache = systemCache;
   }
 
-  /// Get the list of all versions that exist for the package described by
+  /// Get the pubspecs of all versions that exist for the package described by
   /// [description].
   ///
   /// [name] is the expected name of the package.
@@ -69,9 +69,9 @@ abstract class Source {
   ///
   /// By default, this assumes that each description has a single version and
   /// uses [describe] to get that version.
-  Future<List<Version>> getVersions(String name, description) {
+  Future<List<Pubspec>> getVersions(String name, description) async {
     var id = new PackageId(name, this.name, Version.none, description);
-    return describe(id).then((pubspec) => [pubspec.version]);
+    return [await describe(id)];
   }
 
   /// Loads the (possibly remote) pubspec for the package version identified by

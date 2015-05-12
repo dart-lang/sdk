@@ -39,6 +39,9 @@ abstract class ConstantValueVisitor<R, A> {
 abstract class ConstantValue {
   const ConstantValue();
 
+  /// `true` if this is a valid constant value.
+  bool get isConstant => true;
+
   bool get isNull => false;
   bool get isBool => false;
   bool get isTrue => false;
@@ -482,9 +485,11 @@ class ListConstantValue extends ObjectConstantValue {
 
   String toStructuredString() {
     StringBuffer sb = new StringBuffer();
-    sb.write('ListConstant([');
+    sb.write('ListConstant(');
+    _unparseTypeArguments(sb);
+    sb.write('[');
     for (int i = 0 ; i < length ; i++) {
-      if (i > 0) sb.write(',');
+      if (i > 0) sb.write(', ');
       sb.write(entries[i].toStructuredString());
     }
     sb.write('])');
@@ -551,11 +556,13 @@ class MapConstantValue extends ObjectConstantValue {
 
   String toStructuredString() {
     StringBuffer sb = new StringBuffer();
-    sb.write('MapConstant({');
+    sb.write('MapConstant(');
+    _unparseTypeArguments(sb);
+    sb.write('{');
     for (int i = 0; i < length; i++) {
-      if (i > 0) sb.write(',');
+      if (i > 0) sb.write(', ');
       sb.write(keys[i].toStructuredString());
-      sb.write(':');
+      sb.write(': ');
       sb.write(values[i].toStructuredString());
     }
     sb.write('})');
@@ -716,4 +723,28 @@ class DeferredConstantValue extends ConstantValue {
   String unparse() => 'deferred(${referenced.unparse()})';
 
   String toStructuredString() => 'DeferredConstant($referenced)';
+}
+
+/// A constant value resulting from a non constant or erroneous constant
+/// expression.
+// TODO(johnniwinther): Expand this to contain the error kind.
+class NonConstantValue extends ConstantValue {
+  bool get isConstant => false;
+
+  @override
+  accept(ConstantValueVisitor visitor, arg) {
+    // TODO(johnniwinther): Should this be part of the visiting?
+  }
+
+  @override
+  List<ConstantValue> getDependencies() => const <ConstantValue>[];
+
+  @override
+  DartType getType(CoreTypes types) => const DynamicType();
+
+  @override
+  String toStructuredString() => 'NonConstant';
+
+  @override
+  String unparse() => '>>non-constant<<';
 }

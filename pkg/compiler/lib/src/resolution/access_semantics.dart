@@ -143,6 +143,11 @@ enum CompoundAccessKind {
   SUPER_METHOD_SETTER,
   /// Read from a superclass getter and write to a superclass field.
   SUPER_GETTER_FIELD,
+
+  /// Read from a superclass where the getter (and maybe setter) is unresolved.
+  UNRESOLVED_SUPER_GETTER,
+  /// Read from a superclass getter and write to an unresolved setter.
+  UNRESOLVED_SUPER_SETTER,
 }
 
 /**
@@ -388,17 +393,32 @@ enum ConstructorAccessKind {
   ///
   ABSTRACT,
 
-  /// An invocation of an unresolved constructor or an unresolved type.
+  /// An invocation of a constructor on an unresolved type.
+  ///
+  /// For instance
+  ///     m() => new Unresolved();
+  ///
+  UNRESOLVED_TYPE,
+
+  /// An invocation of an unresolved constructor.
   ///
   /// For instance
   ///     class C {
   ///       C();
   ///     }
-  ///     m1() => new C.unresolved();
-  ///     m2() => new Unresolved();
+  ///     m() => new C.unresolved();
   ///
-  // TODO(johnniwinther): Differentiate between error types.
-  ERRONEOUS,
+  UNRESOLVED_CONSTRUCTOR,
+
+  /// An const invocation of an non-constant constructor.
+  ///
+  /// For instance
+  ///     class C {
+  ///       C();
+  ///     }
+  ///     m() => const C();
+  ///
+  NON_CONSTANT_CONSTRUCTOR,
 
   /// An invocation of an ill-defined redirecting factory constructor.
   ///
@@ -431,7 +451,9 @@ class ConstructorAccessSemantics {
   /// `true` if this invocation is erroneous.
   bool get isErroneous {
     return kind == ConstructorAccessKind.ABSTRACT ||
-           kind == ConstructorAccessKind.ERRONEOUS ||
+           kind == ConstructorAccessKind.UNRESOLVED_TYPE ||
+           kind == ConstructorAccessKind.UNRESOLVED_CONSTRUCTOR ||
+           kind == ConstructorAccessKind.NON_CONSTANT_CONSTRUCTOR ||
            kind == ConstructorAccessKind.ERRONEOUS_REDIRECTING_FACTORY;
   }
 }

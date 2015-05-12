@@ -24,7 +24,6 @@ namespace dart {
 
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(bool, enable_asserts);
-DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, use_osr);
@@ -2101,7 +2100,8 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(1).reg() == kLengthReg);
 
   Label slow_path, done;
-  if (num_elements()->BindsToConstant() &&
+  if (compiler->is_optimizing() &&
+      num_elements()->BindsToConstant() &&
       num_elements()->BoundConstant().IsSmi()) {
     const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();
     if ((length >= 0) && (length <= Array::kMaxElements)) {
