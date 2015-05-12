@@ -275,6 +275,17 @@ class BodyRewriter extends ExpressionVisitor<Expression> {
     return node;
   }
 
+  Expression visitGetStatic(GetStatic node) {
+    seenImpure = true;
+    return node;
+  }
+
+  Expression visitSetStatic(SetStatic node) {
+    node.value = visitExpression(node.value);
+    seenImpure = true;
+    return node;
+  }
+
   Expression visitCreateBox(CreateBox node) {
     return node;
   }

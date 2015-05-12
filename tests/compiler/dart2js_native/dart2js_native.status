@@ -46,7 +46,6 @@ fixup_get_tag_test: Crash # unsupported element kind: token:function
 foreign_test: Crash # (JS('bool','isNaN(#)',isNaN)): handleStaticFunctionInvoke: foreign: function(JS)
 hash_code_test: Crash # unsupported element kind: makeA:function
 inference_of_helper_methods_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-internal_library_test: Crash # (startRootIsolate): handleStaticFunctionGet: function(startRootIsolate)
 issue9182_test: Crash # unsupported element kind: makeA:function
 js_const_test: Crash # (JS('String',r'#.replace(#, #)',s1,re,fToUpper)): handleStaticFunctionInvoke: foreign: function(JS)
 jsobject_test: Crash # unsupported element kind: makeQ:function
@@ -133,6 +132,5 @@ subclassing_super_field_2_test: Crash # (JS('','#(#)',constructor,b)): handleSta
 subclassing_type_test: Crash # (isA): handleStaticFunctionGet: function(isA)
 super_call_test: Crash # unsupported element kind: makeD:function
 super_property_test: Crash # (testThing): handleStaticFunctionGet: function(testThing)
-type_error_decode_test: Crash # (isNullError): handleStaticFunctionGet: function(isNullError)
 undefined_bailout_test: Crash # (JS('','void 0')): handleStaticFunctionInvoke: foreign: function(JS)
 uninstantiated_type_parameter_test: Crash # Instance of 'TypeOperator': type check unimplemented for C<int>.

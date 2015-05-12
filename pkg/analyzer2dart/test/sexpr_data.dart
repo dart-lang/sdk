@@ -1298,9 +1298,8 @@ main(args) {
 ''', const {
       'main': '''
 (FunctionDefinition main () (args) return
-  (LetCont ((k0 (v0)
-      (InvokeContinuation return (v0))))
-    (InvokeStatic field () k0)))
+  (LetPrim (v0 (GetStatic field))
+    (InvokeContinuation return (v0))))
 ''',
       'field': '''
 (FieldDefinition field)
@@ -1314,9 +1313,8 @@ main(args) {
 ''', const {
       'main': '''
 (FunctionDefinition main () (args) return
-  (LetCont ((k0 (v0)
-      (InvokeContinuation return (v0))))
-    (InvokeStatic field () k0)))
+  (LetPrim (v0 (GetStatic field))
+    (InvokeContinuation return (v0))))
 ''',
       'field': '''
 (FieldDefinition field () return
@@ -1332,9 +1330,8 @@ main(args) {
 ''', const {
       'main': '''
 (FunctionDefinition main () (args) return
-  (LetCont ((k0 (v0)
-      (InvokeContinuation return (v0))))
-    (InvokeStatic field () k0)))
+  (LetPrim (v0 (GetStatic field))
+    (InvokeContinuation return (v0))))
 ''',
       'field': '''
 (FieldDefinition field () return
@@ -1351,11 +1348,9 @@ main(args) {
 ''', '''
 (FunctionDefinition main () (args) return
   (LetCont ((k0 (v0)
-      (LetCont ((k1 (v1)
-          (LetCont ((k2 (v2)
-              (InvokeContinuation return (v2))))
-            (InvokeStatic field () k2))))
-        (InvokeStatic field (v0) k1))))
+      (SetStatic field v0)
+        (LetPrim (v1 (GetStatic field))
+          (InvokeContinuation return (v1)))))
     (InvokeMethod args length () k0)))
 '''),
   ]),

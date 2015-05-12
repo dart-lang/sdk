@@ -316,6 +316,19 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return 'GetField($object.$field)';
   }
 
+  visitGetStatic(cps_ir.GetStatic node) {
+    String element = node.element.name;
+    return 'GetStatic($element)';
+  }
+
+  visitSetStatic(cps_ir.SetStatic node) {
+    String dummy = names.name(node);
+    String element = node.element.name;
+    String value = formatReference(node.value);
+    printStmt(dummy, 'SetStatic $element = $value');
+    visit(node.body);
+  }
+
   visitCreateBox(cps_ir.CreateBox node) {
     return 'CreateBox';
   }
@@ -539,6 +552,10 @@ class BlockCollector implements cps_ir.Visitor {
     visit(exp.body);
   }
 
+  visitSetStatic(cps_ir.SetStatic exp) {
+    visit(exp.body);
+  }
+
   visitDeclareFunction(cps_ir.DeclareFunction exp) {
     visit(exp.body);
   }
@@ -596,6 +613,9 @@ class BlockCollector implements cps_ir.Visitor {
     unexpectedNode(node);
   }
   visitGetField(cps_ir.GetField node) {
+    unexpectedNode(node);
+  }
+  visitGetStatic(cps_ir.GetStatic node) {
     unexpectedNode(node);
   }
   visitCreateBox(cps_ir.CreateBox node) {

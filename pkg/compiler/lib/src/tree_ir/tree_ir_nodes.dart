@@ -873,6 +873,28 @@ class SetField extends Expression implements JsSpecificNode {
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitSetField(this, arg);
 }
 
+class GetStatic extends Expression {
+  Element element;
+  SourceInformation sourceInformation;
+
+  GetStatic(this.element, this.sourceInformation);
+
+  accept(ExpressionVisitor visitor) => visitor.visitGetStatic(this);
+  accept1(ExpressionVisitor1 visitor, arg) => visitor.visitGetStatic(this, arg);
+}
+
+
+class SetStatic extends Expression {
+  Element element;
+  Expression value;
+  SourceInformation sourceInformation;
+
+  SetStatic(this.element, this.value, this.sourceInformation);
+
+  accept(ExpressionVisitor visitor) => visitor.visitSetStatic(this);
+  accept1(ExpressionVisitor1 visitor, arg) => visitor.visitSetStatic(this, arg);
+}
+
 class ReifyRuntimeType extends Expression implements JsSpecificNode {
   Expression value;
 
@@ -955,12 +977,14 @@ abstract class ExpressionVisitor<E> {
   E visitTypeOperator(TypeOperator node);
   E visitFunctionExpression(FunctionExpression node);
   E visitGetField(GetField node);
+  E visitSetField(SetField node);
+  E visitGetStatic(GetStatic node);
+  E visitSetStatic(SetStatic node);
   E visitCreateBox(CreateBox node);
   E visitCreateInstance(CreateInstance node);
   E visitReifyRuntimeType(ReifyRuntimeType node);
   E visitReadTypeVariable(ReadTypeVariable node);
   E visitTypeExpression(TypeExpression node);
-  E visitSetField(SetField node);
   E visitCreateInvocationMirror(CreateInvocationMirror node);
 }
 
@@ -984,12 +1008,14 @@ abstract class ExpressionVisitor1<E, A> {
   E visitTypeOperator(TypeOperator node, A arg);
   E visitFunctionExpression(FunctionExpression node, A arg);
   E visitGetField(GetField node, A arg);
+  E visitSetField(SetField node, A arg);
+  E visitGetStatic(GetStatic node, A arg);
+  E visitSetStatic(SetStatic node, A arg);
   E visitCreateBox(CreateBox node, A arg);
   E visitCreateInstance(CreateInstance node, A arg);
   E visitReifyRuntimeType(ReifyRuntimeType node, A arg);
   E visitReadTypeVariable(ReadTypeVariable node, A arg);
   E visitTypeExpression(TypeExpression node, A arg);
-  E visitSetField(SetField node, A arg);
   E visitCreateInvocationMirror(CreateInvocationMirror node, A arg);
 }
 
@@ -1197,6 +1223,13 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
     visitExpression(node.value);
   }
 
+  visitGetStatic(GetStatic node) {
+  }
+
+  visitSetStatic(SetStatic node) {
+    visitExpression(node.value);
+  }
+
   visitCreateBox(CreateBox node) {
   }
 
@@ -1391,6 +1424,13 @@ class RecursiveTransformer extends Transformer {
 
   visitSetField(SetField node) {
     node.object = visitExpression(node.object);
+    node.value = visitExpression(node.value);
+    return node;
+  }
+
+  visitGetStatic(GetStatic node) => node;
+
+  visitSetStatic(SetStatic node) {
     node.value = visitExpression(node.value);
     return node;
   }
