@@ -1411,7 +1411,6 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
                 operator,
                 node.arguments.single,
                 arg);
-            break;
         }
         break;
     }
