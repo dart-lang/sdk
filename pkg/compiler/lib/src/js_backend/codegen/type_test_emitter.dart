@@ -32,13 +32,28 @@ abstract class TypeTestEmitter {
     }
   }
 
+  js.Expression _emitNativeListCheck(js.Expression value) {
+        return identical(
+            new js.PropertyAccess.field(value, 'constructor'),
+            new js.VariableUse('Array'));
+  }
+
+  js.Expression emitPropertyTypeTest(tree_ir.Node node,
+                                     js.Expression value,
+                                     InterfaceType type) {
+    return and(
+        boolify(value),
+        boolify(new js.PropertyAccess.field(value, glue.getTypeTestTag(type))));
+  }
+
   js.Expression emitGeneralSubtypeTest(tree_ir.Node node,
                                        js.Expression value,
                                        InterfaceType type) {
-    return new js.Binary('&&',
-        new js.Prefix('!!', value),
-        new js.Prefix('!!',
-            new js.PropertyAccess.field(value, glue.getTypeTestTag(type))));
+    if (glue.isListClass(type.element)) {
+      return or(_emitNativeListCheck(value),
+          emitPropertyTypeTest(node, value, type));
+    }
+    return emitPropertyTypeTest(node, value, type);
   }
 
   js.Expression _emitNumCheck(js.Expression value) {
@@ -50,14 +65,28 @@ abstract class TypeTestEmitter {
   }
 
   js.Expression _emitIntCheck(js.Expression value) {
-    return new js.Binary('&&',
-        _emitNumCheck(value),
-        _emitBigIntCheck(value));
+    return and(_emitNumCheck(value), _emitBigIntCheck(value));
   }
 
   js.Expression _emitTypeofCheck(js.Expression value, String type) {
-    return new js.Binary('===',
-        new js.Prefix("typeof", value),
-        js.string(type));
+    return identical(new js.Prefix("typeof", value), js.string(type));
+  }
+
+  // Static helpers to generate common JavaScript expressions.
+
+  static js.Expression or(js.Expression left, js.Expression right) {
+    return new js.Binary('||', left, right);
+  }
+
+  static js.Expression and(js.Expression left, js.Expression right) {
+    return new js.Binary('&&', left, right);
+  }
+
+  static js.Expression identical(js.Expression left, js.Expression right) {
+    return new js.Binary('===', left, right);
+  }
+
+  static js.Expression boolify(js.Expression value) {
+    return new js.Prefix('!!', value);
   }
 }

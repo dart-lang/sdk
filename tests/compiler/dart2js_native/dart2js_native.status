@@ -29,15 +29,15 @@ compute_this_script_test: Skip # Issue 17458
 
 [ $compiler == dart2js && $cps_ir ]
 abstract_class_test: Crash # unsupported element kind: foo:function
-bound_closure_super_test: Crash # (makeCC): handleStaticFunctionGet: function(makeCC)
-bound_closure_test: Crash # (makeCC): handleStaticFunctionGet: function(makeCC)
+bound_closure_super_test: Crash # unsupported element kind: inscrutable:function
+bound_closure_test: Crash # unsupported element kind: inscrutable:function
 browser_compat_1_prepatched_test: Crash # unsupported element kind: getTagCallCount:function
 browser_compat_1_unpatched_test: Crash # unsupported element kind: getTagCallCount:function
 browser_compat_2_test: Crash # unsupported element kind: getTagCallCount:function
 catch_javascript_null_stack_trace_test: Crash # (JS('','(function () {throw null;})()')): handleStaticFunctionInvoke: foreign: function(JS)
-core_type_check_native_test: Crash # (checkTest): handleStaticFunctionGet: function(checkTest)
+core_type_check_native_test: Crash # unsupported element kind: inscrutable:field
 downcast_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-event_loop_test: Crash # (asyncEnd): handleStaticFunctionGet: function(asyncEnd)
+event_loop_test: Crash # unsupported element kind: foo:function
 fake_thing_2_test: Crash # unsupported element kind: make3:function
 fake_thing_test: Crash # unsupported element kind: make2:function
 field_type2_test: Crash # unsupported element kind: makeNode:function
@@ -66,7 +66,7 @@ native_class_inheritance4_frog_test: Crash # unsupported element kind: makeB:fun
 native_class_is_check1_frog_test: Crash # unsupported element kind: makeA:function
 native_class_is_check3_frog_test: Crash # unsupported element kind: makeB:function
 native_class_with_dart_methods_frog_test: Crash # unsupported element kind: makeA:function
-native_closure_identity_frog_test: Crash # (staticMethod): handleStaticFunctionGet: function(staticMethod)
+native_closure_identity_frog_test: Crash # unsupported element kind: invoke:function
 native_constructor_name_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 native_equals_frog_test: Crash # unsupported element kind: makeA:function
 native_exception2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -79,7 +79,7 @@ native_field_invocation5_test: Crash # unsupported element kind: nativeFirst:fun
 native_field_invocation6_test: Crash # unsupported element kind: nativeFirst:function
 native_field_invocation_test: Crash # unsupported element kind: nativeId:function
 native_field_name_test: Crash # unsupported element kind: makeA:function
-native_field_optimization_test: Crash # (test1): handleStaticFunctionGet: function(test1)
+native_field_optimization_test: Crash # unsupported element kind: makeFoo:function
 native_field_rename_1_frog_test: Crash # unsupported element kind: native_key_method:function
 native_field_rename_2_frog_test: Crash # unsupported element kind: native_key_method:function
 native_library_same_name_used_frog_test: Crash # (JS('creates:Impl; returns:I;','makeI()')): handleStaticFunctionInvoke: foreign: function(JS)
@@ -93,10 +93,10 @@ native_missing_method1_frog_test: Crash # Instance of 'TypeOperator': type check
 native_missing_method2_frog_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 native_mixin_field_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 native_mixin_multiple2_test: Crash # unsupported element kind: makeB:function
-native_mixin_multiple3_test: Crash # (callFoo): handleStaticFunctionGet: function(callFoo)
+native_mixin_multiple3_test: Crash # unsupported element kind: makeC:function
 native_mixin_multiple_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 native_mixin_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-native_mixin_with_plain_test: Crash # (makeA): handleStaticFunctionGet: function(makeA)
+native_mixin_with_plain_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 native_named_constructors2_frog_test: Crash # unsupported element kind: foo:function
 native_named_constructors3_frog_test: Crash # unsupported element kind: foo:function
 native_no_such_method_exception2_frog_test: Crash # unsupported element kind: makeB:function
@@ -116,21 +116,21 @@ native_wrapping_function3_frog_test: Crash # unsupported element kind: foo2:func
 native_wrapping_function_frog_test: Crash # unsupported element kind: foo2:function
 oddly_named_fields_test: Crash # unsupported element kind: makeNativeClassWithOddNames:function
 optimization_hints_test: Crash # (JS('','String("in main function")')): handleStaticFunctionInvoke: foreign: function(JS)
-rti_only_native_test: Crash # (main): handleStaticFunctionGet: function(main)
+rti_only_native_test: Crash #  try/finally
 runtimetype_test: Crash # (JS('A','#',makeA())): handleStaticFunctionInvoke: foreign: function(JS)
-static_methods_test: Crash # (main): handleStaticFunctionGet: function(main)
+static_methods_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 subclassing_1_test: Crash # unsupported element kind: makeC:function
 subclassing_2_test: Crash # unsupported element kind: makeB:function
 subclassing_3_test: Crash # unsupported element kind: makeB:function
 subclassing_4_test: Crash # unsupported element kind: makeB:function
-subclassing_5_test: Crash # (testIsB): handleStaticFunctionGet: function(testIsB)
+subclassing_5_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 subclassing_constructor_1_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 subclassing_constructor_2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 subclassing_super_call_test: Crash # (JS('','#(#)',constructor,b1)): handleStaticFunctionInvoke: foreign: function(JS)
 subclassing_super_field_1_test: Crash # (JS('','#(#)',constructor,b)): handleStaticFunctionInvoke: foreign: function(JS)
 subclassing_super_field_2_test: Crash # (JS('','#(#)',constructor,b)): handleStaticFunctionInvoke: foreign: function(JS)
-subclassing_type_test: Crash # (isA): handleStaticFunctionGet: function(isA)
+subclassing_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 super_call_test: Crash # unsupported element kind: makeD:function
-super_property_test: Crash # (testThing): handleStaticFunctionGet: function(testThing)
+super_property_test: Crash # unsupported element kind: makeB:function
 undefined_bailout_test: Crash # (JS('','void 0')): handleStaticFunctionInvoke: foreign: function(JS)
 uninstantiated_type_parameter_test: Crash # Instance of 'TypeOperator': type check unimplemented for C<int>.

@@ -123,41 +123,41 @@ mint_maker_test: StaticWarning
 package_root_test: SkipByDesign # Uses dart:io.
 
 [ $compiler == dart2js && $cps_ir ]
-bool_from_environment_default_value_test : RuntimeError
-count_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-cross_isolate_message_test : Crash # bailout: (switch (msg[0]){case "ready1":SendPort toIsolate1=msg[1];Isolate.spawn(crossIsolate2,toIsolate1);break;case "fromIsolate1":expect(msg[1],100);fromIsolate1.close();break;default:fail("unreachable! Tag: ${msg[0]}");}): Unhandled node
-deferred_in_isolate2_test : Crash # bailout: unsupported element kind: _defaultEnvironment:field
-function_send_test : Crash # bailout: (try {p.send(func);}finally {p.send(0);}): try/finally
-handle_error2_test : Crash # bailout: (switch (state){case 1:Expect.equals(new ArgumentError("whoops").toString(),"${error}");state++ ;break;case 2:Expect.equals(new RangeError.value(37).toString(),"${error}");state++ ;reply.close();subscription.cancel();asyncEnd();break;default:throw "Bad state for error: ${state}: ${error}";}): Unhandled node
-handle_error3_test : Crash # bailout: (switch (state2){case 1:Expect.equals(new ArgumentError("whoops").toString(),"${error}");state2++ ;break;case 2:Expect.equals(new RangeError.value(37).toString(),"${error}");state2++ ;reply2.close();isolate2.removeErrorListener(errorPort2.sendPort);errorPort2.close();asyncEnd();break;default:throw "Bad state-2 for error: ${state}: ${error}";}): Unhandled node
-handle_error_test : Crash # bailout: (switch (state){case 1:Expect.equals(new ArgumentError("whoops").toString(),"${error}");state++ ;sendPort.send(state);break;case 2:Expect.equals(new RangeError.value(37).toString(),"${error}");state++ ;sendPort.send(state);reply.close();subscription.cancel();asyncEnd();break;default:throw "Bad state for error: ${state}: ${error}";}): Unhandled node
-illegal_msg_function_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-illegal_msg_mirror_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-int_from_environment_default_value_test : RuntimeError
-isolate_complex_messages_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-isolate_current_test : Crash # bailout: (switch (state){case 0:response.complete(v);state++ ;break;case 1:p.close();Expect.isTrue(v);asyncEnd();}): Unhandled node
-mandel_isolate_test : Crash # bailout: unsupported element kind: _defaultEnvironment:field
-message2_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-message3_test/byteBuffer : Crash # Instance of 'TypeOperator': type check unimplemented for Map.
-message3_test/constInstance : Crash # Assertion failure: Unknown variable: variable(runTests#constF).
-message3_test/constList : Crash # Instance of 'TypeOperator': type check unimplemented for Map.
-message3_test/constList_identical : Crash # Instance of 'TypeOperator': type check unimplemented for Map.
-message3_test/constMap : Crash # Instance of 'TypeOperator': type check unimplemented for Map.
-message3_test/fun : Crash # Instance of 'TypeOperator': type check unimplemented for Map.
-message3_test/int32x4 : Crash # Instance of 'TypeOperator': type check unimplemented for Map.
-message3_test/none : Crash # Instance of 'TypeOperator': type check unimplemented for Map.
-message_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-mint_maker_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-nested_spawn2_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-nested_spawn_test : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable.
-raw_port_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-request_reply_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-spawn_function_custom_class_test : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable.
-spawn_function_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-spawn_uri_multi_test/01 : Crash # bailout: unsupported element kind: _defaultEnvironment:field
-spawn_uri_multi_test/none : Crash # bailout: unsupported element kind: _defaultEnvironment:field
-stacktrace_message_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-static_function_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-string_from_environment_default_value_test : RuntimeError
-timer_isolate_test : Crash # bailout: unsupported element kind: _defaultEnvironment:field
-unresolved_ports_test : Crash # bailout: unsupported element kind: _defaultEnvironment:field
+bool_from_environment_default_value_test: RuntimeError # Please triage this failure.
+count_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+cross_isolate_message_test: Crash #  Unhandled node
+deferred_in_isolate2_test: Crash # unsupported element kind: _defaultEnvironment:field
+function_send_test: Crash # (try {p.send(func);}finally {p.send(0);}): try/finally
+handle_error2_test: Crash #  Unhandled node
+handle_error3_test: Crash #  Unhandled node
+handle_error_test: Crash #  Unhandled node
+illegal_msg_function_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+illegal_msg_mirror_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+int_from_environment_default_value_test: RuntimeError # Please triage this failure.
+isolate_complex_messages_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+isolate_current_test: Crash #  Unhandled node
+mandel_isolate_test: Crash # unsupported element kind: _defaultEnvironment:field
+message2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+message3_test/byteBuffer: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+message3_test/constInstance: Crash # Please triage this failure.
+message3_test/constList: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+message3_test/constList_identical: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+message3_test/constMap: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+message3_test/fun: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+message3_test/int32x4: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+message3_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+message_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+mint_maker_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+nested_spawn2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+nested_spawn_test: Crash # unsupported element kind: _defaultEnvironment:field
+raw_port_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+request_reply_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+spawn_function_custom_class_test: Crash # unsupported element kind: _defaultEnvironment:field
+spawn_function_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+spawn_uri_multi_test/01: Crash # unsupported element kind: _defaultEnvironment:field
+spawn_uri_multi_test/none: Crash # unsupported element kind: _defaultEnvironment:field
+stacktrace_message_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+static_function_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+string_from_environment_default_value_test: RuntimeError # Please triage this failure.
+timer_isolate_test: Crash # unsupported element kind: _defaultEnvironment:field
+unresolved_ports_test: Crash # unsupported element kind: _defaultEnvironment:field

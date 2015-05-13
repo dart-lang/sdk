@@ -165,96 +165,96 @@ io/test_runner_test: Skip  # Timeout.
 io/http_client_stays_alive_test: Skip  # Timeout.
 
 [ $compiler == dart2js && $cps_ir ]
-array_bounds_check_generalization_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-constant_left_shift_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-coverage_test : Crash # bailout: unsupported element kind: context:field
-io/addlatexhash_test : Crash # bailout: (try {test(tempDir.path);}finally {tempDir.delete(recursive:true);}): try/finally
-io/async_catch_errors_test : Crash # bailout: unsupported element kind: events:field
-io/create_recursive_test : Crash # bailout: unsupported element kind: context:field
-io/dependency_graph_test : Crash # bailout: unsupported element kind: UnableToRun:field
-io/directory_chdir_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/directory_error_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/directory_fuzz_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/directory_invalid_arguments_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/directory_list_nonexistent_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/directory_list_pause_test : Crash # Assertion failure: Unknown variable: variable(testListIsEmpty#TOTAL).
-io/directory_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/directory_uri_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/file_copy_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/file_error_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/file_invalid_arguments_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/file_lock_test : Crash # bailout: unsupported element kind: context:field
-io/file_read_encoded_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/file_stat_test : Crash # bailout: unsupported element kind: context:field
-io/file_system_delete_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/file_system_links_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/file_system_watcher_test : Crash # bailout: unsupported element kind: context:field
-io/file_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/file_typed_data_test : Crash # Assertion failure: Unknown variable: variable(testWriteUint64ListAndView#LIST_LENGTH_IN_BYTES).
-io/file_uri_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/http_bind_test : Crash # bailout: (testBindShared(String host,bool v6Only)async{asyncStart();Future singleRequest(host,port,statusCode)async{var client=new HttpClient();var request=await client.open('GET',host,port,'/');var response=await request.close();await response.drain();Expect.equals(statusCode,response.statusCode);client.close(force:true);}Completer server1Request=new Completer();Completer server2Request=new Completer();var server1=await HttpServer.bind(host,0,v6Only:v6Only,shared:true);var port=server1.port;Expect.isTrue(port>0);var server2=await HttpServer.bind(host,port,v6Only:v6Only,shared:true);Expect.equals(server1.address.address,server2.address.address);Expect.equals(port,server2.port);server1.listen((request){server1Request.complete();request.response.statusCode=501;request.response.close();});await singleRequest(host,port,501);await server1.close();server2.listen((request){server2Request.complete();request.response.statusCode=502;request.response.close();});await singleRequest(host,port,502);await server2.close();await server1Request.future;await server2Request.future;asyncEnd();}): cannot handle async/sync*/async* functions
-io/http_client_exception_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/http_content_length_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/http_cookie_date_test : Crash # Assertion failure: Unknown variable: variable(_parseCookieDate#monthsLowerCase).
-io/http_date_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/http_detach_socket_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/http_headers_state_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/http_headers_test : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable.
-io/http_parser_test : Crash # bailout: (switch (_state){case _State.START:if(byte==_Const.HTTP[0]){_httpVersionIndex=1;_state=_State.METHOD_OR_RESPONSE_HTTP_VERSION;}else{if(!_isTokenChar(byte)){throw new HttpException("Invalid request method");}_method.add(byte);if(!_requestParser){throw new HttpException("Invalid response line");}_state=_State.REQUEST_LINE_METHOD;}break;case _State.METHOD_OR_RESPONSE_HTTP_VERSION:if(_httpVersionIndex<_Const.HTTP.length&&byte==_Const.HTTP[_httpVersionIndex]){_httpVersionIndex++ ;}else if(_httpVersionIndex==_Const.HTTP.length&&byte==_CharCode.SLASH){_httpVersionIndex++ ;if(_requestParser){throw new HttpException("Invalid request line");}_state=_State.RESPONSE_HTTP_VERSION;}else{for(int i=0;i<_httpVersionIndex;i++ ){_method.add(_Const.HTTP[i]);}if(byte==_CharCode.SP){_state=_State.REQUEST_LINE_URI;}else{_method.add(byte);_httpVersion=_HttpVersion.UNDETERMINED;if(!_requestParser){throw new HttpException("Invalid response line");}_state=_State.REQUEST_LINE_METHOD;}}break;case _State.RESPONSE_HTTP_VERSION:if(_httpVersionIndex<_Const.HTTP1DOT.length){_expect(byte,_Const.HTTP1DOT[_httpVersionIndex]);_httpVersionIndex++ ;}else if(_httpVersionIndex==_Const.HTTP1DOT.length&&byte==_CharCode.ONE){_httpVersion=_HttpVersion.HTTP11;_persistentConnection=true;_httpVersionIndex++ ;}else if(_httpVersionIndex==_Const.HTTP1DOT.length&&byte==_CharCode.ZERO){_httpVersion=_HttpVersion.HTTP10;_persistentConnection=false;_httpVersionIndex++ ;}else if(_httpVersionIndex==_Const.HTTP1DOT.length+1){_expect(byte,_CharCode.SP);_state=_State.RESPONSE_LINE_STATUS_CODE;}else{throw new HttpException("Invalid response line");}break;case _State.REQUEST_LINE_METHOD:if(byte==_CharCode.SP){_state=_State.REQUEST_LINE_URI;}else{if(_Const.SEPARATOR_MAP[byte]||byte==_CharCode.CR||byte==_CharCode.LF){throw new HttpException("Invalid request method");}_method.add(byte);}break;case _State.REQUEST_LINE_URI:if(byte==_CharCode.SP){if(_uri_or_reason_phrase.length==0){throw new HttpException("Invalid request URI");}_state=_State.REQUEST_LINE_HTTP_VERSION;_httpVersionIndex=0;}else{if(byte==_CharCode.CR||byte==_CharCode.LF){throw new HttpException("Invalid request URI");}_uri_or_reason_phrase.add(byte);}break;case _State.REQUEST_LINE_HTTP_VERSION:if(_httpVersionIndex<_Const.HTTP1DOT.length){_expect(byte,_Const.HTTP11[_httpVersionIndex]);_httpVersionIndex++ ;}else if(_httpVersionIndex==_Const.HTTP1DOT.length){if(byte==_CharCode.ONE){_httpVersion=_HttpVersion.HTTP11;_persistentConnection=true;_httpVersionIndex++ ;}else if(byte==_CharCode.ZERO){_httpVersion=_HttpVersion.HTTP10;_persistentConnection=false;_httpVersionIndex++ ;}else{throw new HttpException("Invalid response line");}}else{if(byte==_CharCode.CR){_state=_State.REQUEST_LINE_ENDING;}else{_expect(byte,_CharCode.LF);_messageType=_MessageType.REQUEST;_state=_State.HEADER_START;}}break;case _State.REQUEST_LINE_ENDING:_expect(byte,_CharCode.LF);_messageType=_MessageType.REQUEST;_state=_State.HEADER_START;break;case _State.RESPONSE_LINE_STATUS_CODE:if(byte==_CharCode.SP){_state=_State.RESPONSE_LINE_REASON_PHRASE;}else if(byte==_CharCode.CR){_state=_State.RESPONSE_LINE_ENDING;}else{_statusCodeLength++ ;if((byte<0x30&&0x39<byte)||_statusCodeLength>3){throw new HttpException("Invalid response status code");}else{_statusCode=_statusCode*10+byte-0x30;}}break;case _State.RESPONSE_LINE_REASON_PHRASE:if(byte==_CharCode.CR){_state=_State.RESPONSE_LINE_ENDING;}else{if(byte==_CharCode.CR||byte==_CharCode.LF){throw new HttpException("Invalid response reason phrase");}_uri_or_reason_phrase.add(byte);}break;case _State.RESPONSE_LINE_ENDING:_expect(byte,_CharCode.LF);_messageType==_MessageType.RESPONSE;if(_statusCode<100||_statusCode>599){throw new HttpException("Invalid response status code");}else{if(_statusCode<=199||_statusCode==204||_statusCode==304){_noMessageBody=true;}}_state=_State.HEADER_START;break;case _State.HEADER_START:_headers=new _HttpHeaders(version);if(byte==_CharCode.CR){_state=_State.HEADER_ENDING;}else if(byte==_CharCode.LF){_state=_State.HEADER_ENDING;_index-- ;}else{_headerField.add(_toLowerCaseByte(byte));_state=_State.HEADER_FIELD;}break;case _State.HEADER_FIELD:if(byte==_CharCode.COLON){_state=_State.HEADER_VALUE_START;}else{if(!_isTokenChar(byte)){throw new HttpException("Invalid header field name");}_headerField.add(_toLowerCaseByte(byte));}break;case _State.HEADER_VALUE_START:if(byte==_CharCode.CR){_state=_State.HEADER_VALUE_FOLDING_OR_ENDING;}else if(byte==_CharCode.LF){_state=_State.HEADER_VALUE_FOLD_OR_END;}else if(byte!=_CharCode.SP&&byte!=_CharCode.HT){_headerValue.add(byte);_state=_State.HEADER_VALUE;}break;case _State.HEADER_VALUE:if(byte==_CharCode.CR){_state=_State.HEADER_VALUE_FOLDING_OR_ENDING;}else if(byte==_CharCode.LF){_state=_State.HEADER_VALUE_FOLD_OR_END;}else{_headerValue.add(byte);}break;case _State.HEADER_VALUE_FOLDING_OR_ENDING:_expect(byte,_CharCode.LF);_state=_State.HEADER_VALUE_FOLD_OR_END;break;case _State.HEADER_VALUE_FOLD_OR_END:if(byte==_CharCode.SP||byte==_CharCode.HT){_state=_State.HEADER_VALUE_START;}else{String headerField=new String.fromCharCodes(_headerField);String headerValue=new String.fromCharCodes(_headerValue);if(headerField=="transfer-encoding"&&_caseInsensitiveCompare("chunked".codeUnits,_headerValue)){_chunked=true;}if(headerField=="connection"){List<String> tokens=_tokenizeFieldValue(headerValue);for(int i=0;i<tokens.length;i++ ){if(_caseInsensitiveCompare("upgrade".codeUnits,tokens[i].codeUnits)){_connectionUpgrade=true;}_headers._add(headerField,tokens[i]);}}else{_headers._add(headerField,headerValue);}_headerField.clear();_headerValue.clear();if(byte==_CharCode.CR){_state=_State.HEADER_ENDING;}else if(byte==_CharCode.LF){_state=_State.HEADER_ENDING;_index-- ;}else{_headerField.add(_toLowerCaseByte(byte));_state=_State.HEADER_FIELD;}}break;case _State.HEADER_ENDING:_expect(byte,_CharCode.LF);if(_headersEnd()){return;}else{break;}return;case _State.CHUNK_SIZE_STARTING_CR:_expect(byte,_CharCode.CR);_state=_State.CHUNK_SIZE_STARTING_LF;break;case _State.CHUNK_SIZE_STARTING_LF:_expect(byte,_CharCode.LF);_state=_State.CHUNK_SIZE;break;case _State.CHUNK_SIZE:if(byte==_CharCode.CR){_state=_State.CHUNK_SIZE_ENDING;}else if(byte==_CharCode.SEMI_COLON){_state=_State.CHUNK_SIZE_EXTENSION;}else{int value=_expectHexDigit(byte);_remainingContent=_remainingContent*16+value;}break;case _State.CHUNK_SIZE_EXTENSION:if(byte==_CharCode.CR){_state=_State.CHUNK_SIZE_ENDING;}break;case _State.CHUNK_SIZE_ENDING:_expect(byte,_CharCode.LF);if(_remainingContent>0){_state=_State.BODY;}else{_state=_State.CHUNKED_BODY_DONE_CR;}break;case _State.CHUNKED_BODY_DONE_CR:_expect(byte,_CharCode.CR);_state=_State.CHUNKED_BODY_DONE_LF;break;case _State.CHUNKED_BODY_DONE_LF:_expect(byte,_CharCode.LF);_reset();_closeIncoming();break;case _State.BODY:_index-- ;int dataAvailable=_buffer.length-_index;if(_remainingContent>=0&&dataAvailable>_remainingContent){dataAvailable=_remainingContent;}List<int> data=new Uint8List.view(_buffer.buffer,_buffer.offsetInBytes+_index,dataAvailable);_bodyController.add(data);if(_remainingContent!=-1){_remainingContent-= data.length;}_index+= data.length;if(_remainingContent==0){if(!_chunked){_reset();_closeIncoming();}else{_state=_State.CHUNK_SIZE_STARTING_CR;}}break;case _State.FAILURE:assert(false);break;default:assert(false);break;}): Unhandled node
-io/http_proxy_test : Crash # Assertion failure: Unknown variable: variable(#loopCount).
-io/http_server_early_client_close_test : Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
-io/http_server_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/https_bad_certificate_test : Crash # bailout: (main()async{var clientScript=Platform.script.resolve('https_bad_certificate_client.dart').toFilePath();Future clientProcess(int port,String acceptCertificate){return Process.run(Platform.executable,[clientScript,port.toString(),acceptCertificate]).then((ProcessResult result){if(result.exitCode!=0||!result.stdout.contains('SUCCESS')){print("Client failed, acceptCertificate: ${acceptCertificate}");print("  stdout:");print(result.stdout);print("  stderr:");print(result.stderr);Expect.fail('Client subprocess exit code: ${result.exitCode}');}});}var server=await runServer();await clientProcess(server.port,'true');await clientProcess(server.port,'false');await clientProcess(server.port,'fisk');await clientProcess(server.port,'exception');server.close();}): cannot handle async/sync*/async* functions
-io/https_server_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/internet_address_invalid_arguments_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/internet_address_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/issue_22636_test : Crash # bailout: (test()async{server=await RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4,0);server.listen(serverListen);client=await RawSocket.connect(InternetAddress.LOOPBACK_IP_V4,server.port);client.shutdown(SocketDirection.SEND);client.listen((RawSocketEvent event){if(event==RawSocketEvent.READ){client.read();}});}): cannot handle async/sync*/async* functions
-io/issue_22637_test : Crash # bailout: (test()async{server=await RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4,0);server.listen(serverListen);client=await RawSocket.connect(InternetAddress.LOOPBACK_IP_V4,server.port);client.listen(clientListen);}): cannot handle async/sync*/async* functions
-io/link_async_test : Crash # bailout: unsupported element kind: context:field
-io/link_test : Crash # bailout: unsupported element kind: context:field
-io/link_uri_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/observatory_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/parent_test : Crash # bailout: unsupported element kind: context:field
-io/platform_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/process_invalid_arguments_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/process_run_test : Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
-io/raw_datagram_socket_test : Crash # bailout: (switch (event){case RawSocketEvent.READ:var datagram=receiver.receive();if(datagram!=null){Expect.equals(datagram.port,sender.port);if(!bindAddress.isMulticast){Expect.equals(receiver.address,datagram.address);}var seq=packageSeq(datagram);if(seq==receivedSeq+1){receivedSeq=seq;sendAck(bindAddress,sender.port);}}break;case RawSocketEvent.WRITE:throw "Unexpected WRITE";break;case RawSocketEvent.CLOSED:break;default:throw "Unexpected event ${event}";}): Unhandled node
-io/raw_secure_server_closing_test : Crash # Assertion failure: Unknown variable: variable(testPauseServerSocket#socketCount).
-io/raw_secure_server_socket_argument_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/raw_secure_server_socket_test : Crash # Assertion failure: Unknown variable: variable(testSimpleReadWrite#messageSize).
-io/raw_secure_socket_pause_test : Crash # bailout: (switch (event){case RawSocketEvent.READ:Expect.isFalse(readEventsPaused);runReadEventTest();body.addAll(socket.read());break;case RawSocketEvent.WRITE:written+= socket.write(message,written,message.length-written);if(written<message.length){socket.writeEventsEnabled=true;}else{socket.shutdown(SocketDirection.SEND);runPauseTest();}break;case RawSocketEvent.READ_CLOSED:Expect.isTrue(body.length>100);Expect.equals(72,body[0]);Expect.equals(9,body[body.length-1]);server.close();break;default:throw "Unexpected event ${event}";}): Unhandled node
-io/raw_secure_socket_test : Crash # bailout: (switch (event){case RawSocketEvent.READ:body.addAll(socket.read());break;case RawSocketEvent.WRITE:written+= socket.write(message,written,message.length-written);if(written<message.length){socket.writeEventsEnabled=true;}else{socket.shutdown(SocketDirection.SEND);}break;case RawSocketEvent.READ_CLOSED:Expect.isTrue(body.length>100,"${body}\n${body.length}");Expect.equals(72,body[0]);Expect.equals(9,body[body.length-1]);server.close();break;default:throw "Unexpected event ${event}";}): Unhandled node
-io/raw_server_socket_cancel_test : Crash # bailout: (switch (event){case RawSocketEvent.READ:Expect.fail("No read event expected");break;case RawSocketEvent.READ_CLOSED:done=true;doneCount++ ;checkDone();break;case RawSocketEvent.WRITE:socket.write([1,2,3]);socket.shutdown(SocketDirection.SEND);break;}): Unhandled node
-io/raw_socket_cross_process_test : Crash # bailout: (switch (event){case RawSocketEvent.READ:Expect.fail("No read event expected");break;case RawSocketEvent.READ_CLOSED:connection.shutdown(SocketDirection.SEND);break;case RawSocketEvent.WRITE:Expect.fail("No write event expected");break;}): Unhandled node
-io/raw_socket_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/raw_socket_typed_data_test : Crash # Assertion failure: Unknown variable: variable(testSimpleReadWrite#messageSize).
-io/regress_21160_test : Crash # bailout: (switch (event){case RawSocketEvent.READ:body.addAll(socket.read(3));break;case RawSocketEvent.WRITE:break;case RawSocketEvent.READ_CLOSED:break;default:throw "Unexpected event ${event}";}): Unhandled node
-io/resolve_symbolic_links_test : Crash # bailout: unsupported element kind: context:field
-io/secure_client_raw_server_test : Crash # bailout: (switch (event){case RawSocketEvent.READ:Expect.isTrue(bytesWritten==0);Expect.isTrue(client.available()>0);readChunks.add(client.read());break;case RawSocketEvent.WRITE:Expect.isFalse(client.writeEventsEnabled);Expect.isNotNull(dataToWrite);bytesWritten+= client.write(dataToWrite,bytesWritten,dataToWrite.length-bytesWritten);if(bytesWritten<dataToWrite.length){client.writeEventsEnabled=true;}if(bytesWritten==dataToWrite.length){client.shutdown(SocketDirection.SEND);}break;case RawSocketEvent.READ_CLOSED:dataToWrite=readChunks.fold(<int>[] ,(list,x){list.addAll(x);return list;});client.writeEventsEnabled=true;break;}): Unhandled node
-io/secure_server_closing_test : Crash # Assertion failure: Unknown variable: variable(testCloseServer#socketCount).
-io/secure_server_socket_test : Crash # Assertion failure: Unknown variable: variable(testSimpleReadWrite#messageSize).
-io/secure_socket_alpn_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-io/secure_socket_argument_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/secure_socket_bad_data_test : Crash # bailout: (switch (event){case RawSocketEvent.READ:Expect.fail('READ event received');break;case RawSocketEvent.WRITE:if(bytesWritten<data.length){bytesWritten+= socket.write(data,bytesWritten);}if(bytesWritten<data.length){socket.writeEventsEnabled=true;}if(bytesWritten==data.length){baseSocket.write(data,0,300);socket.shutdown(SocketDirection.SEND);}break;case RawSocketEvent.READ_CLOSED:tryComplete();break;}): Unhandled node
-io/skipping_dart2js_compilations_test : Crash # bailout: unsupported element kind: currentWorkingDirectory:field
-io/sleep_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/socket_bind_test : Crash # bailout: (testListenCloseListenClose(String host)async{asyncStart();ServerSocket socket=await ServerSocket.bind(host,0,shared:true);ServerSocket socket2=await ServerSocket.bind(host,socket.port,shared:true);var subscription=socket.listen((_){throw 'error';});subscription.cancel();await socket.close();asyncStart();socket2.first.then((socket)async{await socket.drain();await socket.close();asyncEnd();});Socket client=await Socket.connect(host,socket2.port);await client.close();await client.drain();asyncEnd();}): cannot handle async/sync*/async* functions
-io/socket_close_test : Crash # bailout: (switch (_mode){case 0:case 1:Expect.equals(0,_dataEvents);Expect.equals(ITERATIONS,_closeEvents);break;case 2:Expect.equals(0,_dataEvents);Expect.equals(ITERATIONS,_closeEvents);break;case 3:case 4:Expect.isTrue(_dataEvents<=ITERATIONS);Expect.isTrue(_dataEvents>=0);Expect.equals(ITERATIONS,_closeEvents);break;case 5:case 6:Expect.equals(ITERATIONS,_dataEvents);Expect.equals(ITERATIONS,_closeEvents);break;default:Expect.fail("Unknown test mode");}): Unhandled node
-io/socket_exception_test : Crash # Assertion failure: Unknown variable: variable(#SIZE).
-io/socket_source_address_test : Crash # bailout: (Future testConnect(InternetAddress bindAddress,bool v6Only,Function connectFunction,Function closeDestroyFunction)async{var successCount=0;if(!v6Only)successCount+= ipV4SourceAddresses.length;if(bindAddress.type==InternetAddressType.IP_V6){successCount+= ipV6SourceAddresses.length;}var count=0;var allConnected=new Completer();if(successCount==0)allConnected.complete();asyncStart();var server=await ServerSocket.bind(bindAddress,0,v6Only:v6Only);server.listen((s){s.destroy();count++ ;if(count==successCount)allConnected.complete();},onDone:()=>asyncEnd());asyncStart();for(var sourceAddress in ipV4SourceAddresses){if(!v6Only){var s=await connectFunction(InternetAddress.LOOPBACK_IP_V4,server.port,sourceAddress:sourceAddress);closeDestroyFunction(s);}else{await throws(()=>connectFunction(InternetAddress.LOOPBACK_IP_V4,server.port,sourceAddress:sourceAddress),(e)=>e is SocketException);}}for(var sourceAddress in ipV6SourceAddresses){if(bindAddress.type==InternetAddressType.IP_V6){var s=await connectFunction(InternetAddress.LOOPBACK_IP_V6,server.port,sourceAddress:sourceAddress);closeDestroyFunction(s);}else{await throws(()=>connectFunction(InternetAddress.LOOPBACK_IP_V6,server.port,sourceAddress:sourceAddress),(e)=>e is SocketException);}}await allConnected.future;await server.close();asyncEnd();}): cannot handle async/sync*/async* functions
-io/socket_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/socket_upgrade_to_secure_test : Crash # Assertion failure: Unknown variable: variable(test#messageSize).
-io/status_file_parser_test : Crash # bailout: unsupported element kind: IssueNumberPattern:field
-io/stdout_stderr_terminal_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/test_extension_fail_test : Crash # bailout: unsupported element kind: context:field
-io/test_extension_test : Crash # bailout: unsupported element kind: context:field
-io/test_runner_test : Crash # bailout: (switch (arguments[0]){case 'pass':return;case 'fail-unexpected':case 'fail':throw "This test always fails, to test the test scripts.";break;case 'timeout':new Timer(new Duration(hours:42),(){});break;default:throw "Unknown option ${arguments[0]} passed to test_runner_test";}): Unhandled node
-io/uri_platform_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/web_socket_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/windows_environment_test : Crash # bailout: unsupported element kind: context:field
-io/windows_file_system_links_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/zlib_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-priority_queue_stress_test : RuntimeError
-status_expression_test : Crash # bailout: unsupported element kind: regexp:field
-typed_array_test : Crash # bailout: unsupported element kind: float64:field
-verified_mem_test : Crash # bailout: unsupported element kind: a:field
+array_bounds_check_generalization_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+constant_left_shift_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+coverage_test: Crash # unsupported element kind: context:field
+io/addlatexhash_test: Crash # (try {test(tempDir.path);}finally {tempDir.delete(recursive:true);}): try/finally
+io/async_catch_errors_test: Crash # unsupported element kind: events:field
+io/create_recursive_test: Crash # unsupported element kind: context:field
+io/dependency_graph_test: Crash # unsupported element kind: UnableToRun:field
+io/directory_chdir_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/directory_error_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/directory_fuzz_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/directory_invalid_arguments_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/directory_list_nonexistent_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/directory_list_pause_test: Crash # Please triage this failure.
+io/directory_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/directory_uri_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/file_copy_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/file_error_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/file_invalid_arguments_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/file_lock_test: Crash # unsupported element kind: context:field
+io/file_read_encoded_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/file_stat_test: Crash # unsupported element kind: context:field
+io/file_system_delete_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/file_system_links_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/file_system_watcher_test: Crash # unsupported element kind: context:field
+io/file_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/file_typed_data_test: Crash # Please triage this failure.
+io/file_uri_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/http_bind_test: Crash #  cannot handle async/sync*/async* functions
+io/http_client_exception_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/http_content_length_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/http_cookie_date_test: Crash # Please triage this failure.
+io/http_date_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/http_detach_socket_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/http_headers_state_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/http_headers_test: Crash #  Unhandled node
+io/http_parser_test: Crash #  Unhandled node
+io/http_proxy_test: Crash # Please triage this failure.
+io/http_server_early_client_close_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
+io/http_server_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/https_bad_certificate_test: Crash #  cannot handle async/sync*/async* functions
+io/https_server_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/internet_address_invalid_arguments_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/internet_address_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/issue_22636_test: Crash #  cannot handle async/sync*/async* functions
+io/issue_22637_test: Crash #  cannot handle async/sync*/async* functions
+io/link_async_test: Crash # unsupported element kind: context:field
+io/link_test: Crash # unsupported element kind: context:field
+io/link_uri_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/observatory_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/parent_test: Crash # unsupported element kind: context:field
+io/platform_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/process_invalid_arguments_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/process_run_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
+io/raw_datagram_socket_test: Crash #  Unhandled node
+io/raw_secure_server_closing_test: Crash # Please triage this failure.
+io/raw_secure_server_socket_argument_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/raw_secure_server_socket_test: Crash # Please triage this failure.
+io/raw_secure_socket_pause_test: Crash #  Unhandled node
+io/raw_secure_socket_test: Crash #  Unhandled node
+io/raw_server_socket_cancel_test: Crash #  Unhandled node
+io/raw_socket_cross_process_test: Crash #  Unhandled node
+io/raw_socket_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/raw_socket_typed_data_test: Crash # Please triage this failure.
+io/regress_21160_test: Crash #  Unhandled node
+io/resolve_symbolic_links_test: Crash # unsupported element kind: context:field
+io/secure_client_raw_server_test: Crash #  Unhandled node
+io/secure_server_closing_test: Crash # Please triage this failure.
+io/secure_server_socket_test: Crash # Please triage this failure.
+io/secure_socket_alpn_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+io/secure_socket_argument_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/secure_socket_bad_data_test: Crash #  Unhandled node
+io/skipping_dart2js_compilations_test: Crash # unsupported element kind: currentWorkingDirectory:field
+io/sleep_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/socket_bind_test: Crash #  cannot handle async/sync*/async* functions
+io/socket_close_test: Crash #  Unhandled node
+io/socket_exception_test: Crash # Please triage this failure.
+io/socket_source_address_test: Crash #  cannot handle async/sync*/async* functions
+io/socket_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/socket_upgrade_to_secure_test: Crash # Please triage this failure.
+io/status_file_parser_test: Crash # unsupported element kind: IssueNumberPattern:field
+io/stdout_stderr_terminal_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/test_extension_fail_test: Crash # unsupported element kind: context:field
+io/test_extension_test: Crash # unsupported element kind: context:field
+io/test_runner_test: Crash #  Unhandled node
+io/uri_platform_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/web_socket_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/windows_environment_test: Crash # unsupported element kind: context:field
+io/windows_file_system_links_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/zlib_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+priority_queue_stress_test: RuntimeError # Please triage this failure.
+status_expression_test: Crash # unsupported element kind: regexp:field
+typed_array_test: Crash # unsupported element kind: float64:field
+verified_mem_test: Crash # unsupported element kind: a:field

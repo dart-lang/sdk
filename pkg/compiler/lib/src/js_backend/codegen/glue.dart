@@ -218,4 +218,6 @@ class Glue {
   bool operatorEqHandlesNullArgument(FunctionElement element) {
     return _backend.operatorEqHandlesNullArgument(element);
   }
+
+  bool isListClass(ClassElement cls) => cls == _compiler.listClass;
 }

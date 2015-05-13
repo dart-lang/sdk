@@ -358,7 +358,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
       giveup(node, 'type casts not implemented.');
     }
     DartType type = node.type;
-    if (type is InterfaceType && type.typeArguments.isEmpty) {
+    if (type is InterfaceType && type.isRaw) {
       glue.registerIsCheck(type, registry);
       js.Expression value = visitExpression(node.receiver);
       return emitSubtypeTest(node, value, type);

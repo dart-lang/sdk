@@ -210,158 +210,146 @@ int_parse_radix_test/*: Pass, Slow
 big_integer_parsed_mul_div_vm_test: Pass, Slow
 
 [ $compiler == dart2js && $cps_ir ]
-apply2_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-apply_test : Crash # unimplemented translation of type expression dynamic
-bool_from_environment_test : RuntimeError
-collection_removes_test : RuntimeError
-collection_to_string_test : Crash # Instance of 'TypeOperator': type check unimplemented for List.
-compare_to2_test : Crash # Instance of 'TypeOperator': type check unimplemented for List.
-const_list_remove_range_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-const_list_set_range_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-core_runtime_types_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-date_time9_test : Crash # Instance of 'TypeOperator': type check unimplemented for Comparable.
-date_time_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-double_ceil2_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-double_ceil_test : RuntimeError
-double_floor2_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-double_floor_test : RuntimeError
-double_parse_test/01 : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-double_parse_test/none : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-double_round2_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-double_round4_test : RuntimeError
-double_round_test : RuntimeError
-double_truncate2_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-double_truncate_test : RuntimeError
-duration2_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-duration_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-error_stack_trace1_test : Pass
-error_stack_trace2_test : Crash # bailout: unsupported element kind: cyclicStatic:field
-error_stack_trace_test : Crash # bailout: (switch (5){case 5:nested();default:Expect.fail("Should not reach");}): Unhandled node
-expando_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-growable_list_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-has_next_iterator_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-hash_map2_test : Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, String>.
-hash_set_test/01 : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-hash_set_test/none : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-hash_set_type_check_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-hashcode_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-int_from_environment_test : RuntimeError
-int_parse_radix_test/01 : Crash # Assertion failure: Unknown variable: variable(main#oneByteWhiteSpace).
-int_parse_radix_test/02 : Crash # Assertion failure: Unknown variable: variable(main#oneByteWhiteSpace).
-int_parse_radix_test/none : Crash # Assertion failure: Unknown variable: variable(main#oneByteWhiteSpace).
-is_operator_basic_types_test : Crash # Instance of 'TypeOperator': type check unimplemented for List.
-iterable_element_at_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-iterable_expand_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-iterable_first_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-iterable_first_where_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-iterable_fold_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-iterable_generate_test : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable<int>.
-iterable_last_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-iterable_last_where_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-iterable_mapping_test : Crash # Instance of 'TypeOperator': type check unimplemented for List.
-iterable_reduce_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-iterable_return_type_test/01 : Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, int>.
-iterable_return_type_test/02 : Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, int>.
-iterable_return_type_test/none : Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, int>.
-iterable_single_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-iterable_single_where_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-iterable_skip_test : Crash # Instance of 'TypeOperator': type check unimplemented for List.
-iterable_take_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-iterable_to_list_test : Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
-iterable_to_set_test : Crash # Instance of 'TypeOperator': type check unimplemented for Set<int>.
-json_map_test : Crash # Instance of 'TypeOperator': type check unimplemented for Map.
-linked_hash_map_from_iterable_test : Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, String>.
-linked_hash_map_from_iterables_test : Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, String>.
-list_as_map_test : Crash # Instance of 'TypeOperator': type check unimplemented for List.
-list_fill_range_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_filled_type_argument_test : Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
-list_first_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_fixed_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_for_each_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_get_range_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_growable_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_insert_all_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_insert_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_iterators_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_last_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_map_test : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable.
-list_remove_range_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_removeat_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_replace_range_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_reversed_test : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable.
-list_set_all_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_set_range_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_sublist_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_test/01 : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_test/none : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_to_string2_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_to_string_test : RuntimeError
-list_unmodifiable_test : Crash # Instance of 'TypeOperator': type check unimplemented for List<E>.
-map_from_iterable_test : Crash # Instance of 'TypeOperator': type check unimplemented for Map<String, String>.
-map_from_iterables_test : Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, String>.
-map_from_test : Crash # Instance of 'TypeOperator': type check unimplemented for Map.
-map_keys2_test : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable<String>.
-map_keys_test : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable.
-map_test : Crash # unimplemented translation of type expression dynamic
-map_to_string_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-map_values2_test : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable<int>.
-map_values3_test : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable<String>.
-map_values4_test : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable<String>.
-map_values_test : Crash # Instance of 'TypeOperator': type check unimplemented for Iterable.
-null_nosuchmethod_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-null_test : Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
-num_clamp_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-num_parse_test/01 : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-num_parse_test/none : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-num_sign_test : Crash # bailout: unsupported element kind: numbers:field
-queue_first_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-queue_last_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-queue_single_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-queue_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-regexp/compile-crash_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-regexp/compile_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-regexp/early-acid3-86_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-regexp/invalid-range-in-class_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-regexp/multiline_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-regexp/no-extensions_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-regexp/pcre_test : Crash # Stack Overflow
-regexp/range-out-of-order_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-regexp/regexp_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-set_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-set_to_string_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-shuffle_test : RuntimeError
-splay_tree_from_iterable_test : Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, String>.
-splay_tree_from_iterables_test : Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, String>.
-splay_tree_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-string_buffer_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-string_codeunits_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-string_from_environment2_test : RuntimeError
-string_from_environment_test : RuntimeError
-string_fromcharcode_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-string_fromcharcodes_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-string_operations_with_null_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-string_pattern_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-string_replace_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-string_runes_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-string_source_test : Crash # Instance of 'TypeOperator': type casts not implemented.
-string_substring_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-string_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-symbol_operator_test/03 : Crash # bailout: unsupported element kind: $:field
-symbol_operator_test/none : Crash # bailout: unsupported element kind: $:field
-symbol_reserved_word_test/03 : Pass
-symbol_reserved_word_test/06 : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-symbol_reserved_word_test/09 : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-symbol_reserved_word_test/12 : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-symbol_test/none : Crash # t: Failed assertion: line 534 pos 14: 'catchClause.exception != null' is not true.
-uri_file_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-uri_ipv4_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-uri_ipv6_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-uri_normalize_path_test : RuntimeError
-uri_path_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-uri_query_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-uri_scheme_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-uri_test : Crash # t: Failed assertion: line 534 pos 14: 'catchClause.exception != null' is not true.
-int_from_environment_test : Crash # t: Failed assertion: line 1960 pos 12: 'compiler.compilationFailed' is not true.
-bool_from_environment_test : Crash # t: Failed assertion: line 1960 pos 12: 'compiler.compilationFailed' is not true.
-string_from_environment_test : Crash # t: Failed assertion: line 1960 pos 12: 'compiler.compilationFailed' is not true.
-string_from_environment2_test : Crash # t: Failed assertion: line 1960 pos 12: 'compiler.compilationFailed' is not true.
+apply2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+apply_test: Crash # Please triage this failure.
+bool_from_environment_test: RuntimeError # Please triage this failure.
+collection_removes_test: RuntimeError # Please triage this failure.
+const_list_remove_range_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+const_list_set_range_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+core_runtime_types_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+date_time_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+double_ceil2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+double_ceil_test: RuntimeError # Please triage this failure.
+double_floor2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+double_floor_test: RuntimeError # Please triage this failure.
+double_parse_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+double_parse_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+double_round2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+double_round4_test: RuntimeError # Please triage this failure.
+double_round_test: RuntimeError # Please triage this failure.
+double_truncate2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+double_truncate_test: RuntimeError # Please triage this failure.
+duration2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+duration_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+error_stack_trace1_test: Pass # Please triage this failure.
+error_stack_trace2_test: Crash # unsupported element kind: cyclicStatic:field
+error_stack_trace_test: Crash # (switch (5){case 5:nested();default:Expect.fail("Should not reach");}): Unhandled node
+expando_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+growable_list_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+has_next_iterator_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+hash_map2_test: Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, String>.
+hash_set_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+hash_set_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+hash_set_type_check_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+hashcode_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+int_from_environment_test: RuntimeError # Please triage this failure.
+int_parse_radix_test/01: Crash # Please triage this failure.
+int_parse_radix_test/02: Crash # Please triage this failure.
+int_parse_radix_test/none: Crash # Please triage this failure.
+is_operator_basic_types_test: RuntimeError # Please triage this failure.
+iterable_element_at_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+iterable_expand_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+iterable_first_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+iterable_first_where_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+iterable_fold_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+iterable_generate_test: Crash # Instance of 'TypeOperator': type check unimplemented for Iterable<int>.
+iterable_last_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+iterable_last_where_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+iterable_mapping_test: RuntimeError # Please triage this failure.
+iterable_reduce_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+iterable_return_type_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, int>.
+iterable_return_type_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, int>.
+iterable_return_type_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, int>.
+iterable_single_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+iterable_single_where_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+iterable_skip_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+iterable_take_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+iterable_to_list_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
+iterable_to_set_test: Crash # Instance of 'TypeOperator': type check unimplemented for Set<int>.
+json_map_test: Crash # Instance of 'TypeOperator': type check unimplemented for Map<String, dynamic>.
+linked_hash_map_from_iterable_test: Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, String>.
+linked_hash_map_from_iterables_test: Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, String>.
+list_as_map_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+list_fill_range_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+list_filled_type_argument_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
+list_first_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+list_fixed_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+list_for_each_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+list_get_range_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+list_growable_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+list_insert_all_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+list_insert_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+list_iterators_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+list_last_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+list_remove_range_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+list_removeat_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+list_replace_range_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+list_set_all_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+list_set_range_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+list_sublist_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+list_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+list_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+list_to_string2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+list_to_string_test: RuntimeError # Please triage this failure.
+list_unmodifiable_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<E>.
+map_from_iterable_test: Crash # Instance of 'TypeOperator': type check unimplemented for Map<String, String>.
+map_from_iterables_test: Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, String>.
+map_keys2_test: Crash # Instance of 'TypeOperator': type check unimplemented for Iterable<String>.
+map_test: Crash # Please triage this failure.
+map_to_string_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+map_values2_test: Crash # Instance of 'TypeOperator': type check unimplemented for Iterable<int>.
+map_values3_test: Crash # Instance of 'TypeOperator': type check unimplemented for Iterable<String>.
+map_values4_test: Crash # Instance of 'TypeOperator': type check unimplemented for Iterable<String>.
+null_nosuchmethod_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+null_test: Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
+num_clamp_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+num_parse_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+num_parse_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+num_sign_test: Crash # unsupported element kind: numbers:field
+queue_first_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+queue_last_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+queue_single_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+queue_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+regexp/compile-crash_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+regexp/compile_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+regexp/early-acid3-86_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+regexp/invalid-range-in-class_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+regexp/multiline_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+regexp/no-extensions_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+regexp/pcre_test: Crash # Please triage this failure.
+regexp/range-out-of-order_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+regexp/regexp_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+set_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+set_to_string_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+shuffle_test: RuntimeError # Please triage this failure.
+splay_tree_from_iterable_test: Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, String>.
+splay_tree_from_iterables_test: Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, String>.
+splay_tree_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+string_buffer_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+string_codeunits_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+string_from_environment2_test: RuntimeError # Please triage this failure.
+string_from_environment_test: RuntimeError # Please triage this failure.
+string_fromcharcode_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+string_fromcharcodes_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+string_operations_with_null_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+string_pattern_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+string_replace_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+string_runes_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+string_source_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+string_substring_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+string_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+symbol_operator_test/03: Crash # unsupported element kind: $:field
+symbol_operator_test/none: Crash # unsupported element kind: $:field
+symbol_reserved_word_test/03: Pass # Please triage this failure.
+symbol_reserved_word_test/06: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+symbol_reserved_word_test/09: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+symbol_reserved_word_test/12: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+symbol_test/none: Crash # Please triage this failure.
+uri_file_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+uri_ipv4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+uri_ipv6_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+uri_normalize_path_test: RuntimeError # Please triage this failure.
+uri_path_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+uri_query_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+uri_scheme_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+uri_test: Crash # Please triage this failure.
