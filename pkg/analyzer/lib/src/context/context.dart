@@ -746,27 +746,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   AnalysisErrorInfo getErrors(Source source) {
-    // TODO(brianwilkerson) Figure out how to implement this cleanly. The
-    // problem is that _getResult doesn't know to go into the individual inputs
-    // for the task to get their values for tasks that are just merging other
-    // result values. Therefore, if some, but not all, of the error lists have
-    // been computed, no errors will be returned by it.
-    List<List<AnalysisError>> errorLists = <List<AnalysisError>>[];
-    errorLists.add(_cache.getValue(source, BUILD_DIRECTIVES_ERRORS));
-    errorLists.add(_cache.getValue(source, BUILD_LIBRARY_ERRORS));
-    errorLists.add(_cache.getValue(source, PARSE_ERRORS));
-    errorLists.add(_cache.getValue(source, SCAN_ERRORS));
-    for (Source library in getLibrariesContaining(source)) {
-      LibrarySpecificUnit unit = new LibrarySpecificUnit(library, source);
-      errorLists.add(_cache.getValue(unit, BUILD_FUNCTION_TYPE_ALIASES_ERRORS));
-      errorLists.add(_cache.getValue(unit, HINTS));
-      errorLists.add(_cache.getValue(unit, RESOLVE_REFERENCES_ERRORS));
-      errorLists.add(_cache.getValue(unit, RESOLVE_TYPE_NAMES_ERRORS));
-      errorLists.add(_cache.getValue(unit, VERIFY_ERRORS));
-    }
-    LineInfo lineInfo = _cache.getValue(source, LINE_INFO);
-    return new AnalysisErrorInfoImpl(
-        AnalysisError.mergeLists(errorLists), lineInfo);
+    return dartWorkManager.getErrors(source);
   }
 
   @override

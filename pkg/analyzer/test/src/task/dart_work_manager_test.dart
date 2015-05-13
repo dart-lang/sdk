@@ -7,14 +7,21 @@ library test.src.task.dart_work_manager_test;
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show CacheState, ChangeNoticeImpl, InternalAnalysisContext;
+    show
+        AnalysisErrorInfo,
+        CacheState,
+        ChangeNoticeImpl,
+        InternalAnalysisContext;
+import 'package:analyzer/src/generated/error.dart' show AnalysisError;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
+import 'package:analyzer/src/generated/scanner.dart' show ScannerErrorCode;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
@@ -163,6 +170,23 @@ class DartWorkManagerTest {
     expect(request.result, LIBRARY_ERRORS_READY);
   }
 
+  void test_getErrors() {
+    AnalysisError error1 =
+        new AnalysisError(source1, 1, 0, ScannerErrorCode.MISSING_DIGIT);
+    AnalysisError error2 =
+        new AnalysisError(source1, 2, 0, ScannerErrorCode.MISSING_DIGIT);
+    when(context.getLibrariesContaining(source1)).thenReturn([source2]);
+    LineInfo lineInfo = new LineInfo([0]);
+    entry1.setValue(LINE_INFO, lineInfo, []);
+    entry1.setValue(SCAN_ERRORS, <AnalysisError>[error1], []);
+    context.getCacheEntry(new LibrarySpecificUnit(source2, source1)).setValue(
+        VERIFY_ERRORS, <AnalysisError>[error2], []);
+    AnalysisErrorInfo errorInfo = manager.getErrors(source1);
+    expect(errorInfo.errors, unorderedEquals([error1, error2]));
+    expect(errorInfo.lineInfo, lineInfo);
+    print(errorInfo);
+  }
+
   void test_getNextResult_hasLibraries_firstIsError() {
     entry1.setErrorState(caughtException, [LIBRARY_ERRORS_READY]);
     manager.librarySourceQueue.addAll([source1, source2]);
@@ -283,6 +307,46 @@ class DartWorkManagerTest {
     expect(manager.getNextResultPriority(), WorkOrderPriority.NONE);
   }
 
+  void test_resultsComputed_errors_forLibrarySpecificUnit() {
+    AnalysisError error1 =
+        new AnalysisError(source1, 1, 0, ScannerErrorCode.MISSING_DIGIT);
+    AnalysisError error2 =
+        new AnalysisError(source1, 2, 0, ScannerErrorCode.MISSING_DIGIT);
+    when(context.getLibrariesContaining(source1)).thenReturn([source2]);
+    LineInfo lineInfo = new LineInfo([0]);
+    entry1.setValue(LINE_INFO, lineInfo, []);
+    entry1.setValue(SCAN_ERRORS, <AnalysisError>[error1], []);
+    AnalysisTarget unitTarget = new LibrarySpecificUnit(source2, source1);
+    context.getCacheEntry(unitTarget).setValue(
+        VERIFY_ERRORS, <AnalysisError>[error2], []);
+    // notify about LibrarySpecificUnit specific errors
+    manager.resultsComputed(unitTarget, {VERIFY_ERRORS: []});
+    // all of the errors are included
+    ChangeNoticeImpl notice = context.getNotice(source1);
+    expect(notice.errors, unorderedEquals([error1, error2]));
+    expect(notice.lineInfo, lineInfo);
+  }
+
+  void test_resultsComputed_errors_forSource() {
+    AnalysisError error1 =
+        new AnalysisError(source1, 1, 0, ScannerErrorCode.MISSING_DIGIT);
+    AnalysisError error2 =
+        new AnalysisError(source1, 2, 0, ScannerErrorCode.MISSING_DIGIT);
+    when(context.getLibrariesContaining(source1)).thenReturn([source2]);
+    LineInfo lineInfo = new LineInfo([0]);
+    entry1.setValue(LINE_INFO, lineInfo, []);
+    entry1.setValue(SCAN_ERRORS, <AnalysisError>[error1], []);
+    AnalysisTarget unitTarget = new LibrarySpecificUnit(source2, source1);
+    context.getCacheEntry(unitTarget).setValue(
+        VERIFY_ERRORS, <AnalysisError>[error2], []);
+    // notify about Source specific errors
+    manager.resultsComputed(source1, {SCAN_ERRORS: []});
+    // all of the errors are included
+    ChangeNoticeImpl notice = context.getNotice(source1);
+    expect(notice.errors, unorderedEquals([error1, error2]));
+    expect(notice.lineInfo, lineInfo);
+  }
+
   void test_resultsComputed_noSourceKind() {
     manager.unknownSourceQueue.addAll([source1, source2]);
     manager.resultsComputed(source1, {});
@@ -300,16 +364,18 @@ class DartWorkManagerTest {
   void test_resultsComputed_parsedUnit() {
     CompilationUnit unit = AstFactory.compilationUnit();
     manager.resultsComputed(source1, {PARSED_UNIT: unit});
-    expect(context.getNotice(source1).parsedDartUnit, unit);
-    expect(context.getNotice(source1).resolvedDartUnit, isNull);
+    ChangeNoticeImpl notice = context.getNotice(source1);
+    expect(notice.parsedDartUnit, unit);
+    expect(notice.resolvedDartUnit, isNull);
   }
 
   void test_resultsComputed_resolvedUnit() {
     CompilationUnit unit = AstFactory.compilationUnit();
     manager.resultsComputed(
         new LibrarySpecificUnit(source1, source2), {RESOLVED_UNIT: unit});
-    expect(context.getNotice(source2).parsedDartUnit, isNull);
-    expect(context.getNotice(source2).resolvedDartUnit, unit);
+    ChangeNoticeImpl notice = context.getNotice(source2);
+    expect(notice.parsedDartUnit, isNull);
+    expect(notice.resolvedDartUnit, unit);
   }
 
   void test_resultsComputed_sourceKind_isLibrary() {

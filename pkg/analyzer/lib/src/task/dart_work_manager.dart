@@ -7,20 +7,47 @@ library analyzer.src.task.dart_work_manager;
 import 'dart:collection';
 
 import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/generated/ast.dart' show CompilationUnit;
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisEngine, CacheState, InternalAnalysisContext;
+    show
+        AnalysisEngine,
+        AnalysisErrorInfo,
+        AnalysisErrorInfoImpl,
+        CacheState,
+        InternalAnalysisContext;
+import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 
 /**
  * The manager for Dart specific analysis.
  */
 class DartWorkManager implements WorkManager {
+  /**
+   * The list of errors that are reported for raw Dart [Source]s.
+   */
+  static final List<ResultDescriptor> _SOURCE_ERRORS = <ResultDescriptor>[
+    BUILD_DIRECTIVES_ERRORS,
+    BUILD_LIBRARY_ERRORS,
+    PARSE_ERRORS,
+    SCAN_ERRORS
+  ];
+
+  /**
+   * The list of errors that are reported for raw Dart [LibrarySpecificUnit]s.
+   */
+  static final List<ResultDescriptor> _UNIT_ERRORS = <ResultDescriptor>[
+    BUILD_FUNCTION_TYPE_ALIASES_ERRORS,
+    HINTS,
+    RESOLVE_REFERENCES_ERRORS,
+    RESOLVE_TYPE_NAMES_ERRORS,
+    VERIFY_ERRORS
+  ];
+
   final InternalAnalysisContext context;
 
   /**
@@ -115,6 +142,27 @@ class DartWorkManager implements WorkManager {
     }
   }
 
+  /**
+   * Return an [AnalysisErrorInfo] containing the list of all of the errors and
+   * the line info associated with the given [source]. The list of errors will
+   * be empty if the source is not known to the context or if there are no
+   * errors in the source. The errors contained in the list can be incomplete.
+   */
+  AnalysisErrorInfo getErrors(Source source) {
+    List<AnalysisError> errors = <AnalysisError>[];
+    for (ResultDescriptor descriptor in _SOURCE_ERRORS) {
+      errors.addAll(analysisCache.getValue(source, descriptor));
+    }
+    for (Source library in context.getLibrariesContaining(source)) {
+      LibrarySpecificUnit unit = new LibrarySpecificUnit(library, source);
+      for (ResultDescriptor descriptor in _UNIT_ERRORS) {
+        errors.addAll(analysisCache.getValue(unit, descriptor));
+      }
+    }
+    LineInfo lineInfo = analysisCache.getValue(source, LINE_INFO);
+    return new AnalysisErrorInfoImpl(errors, lineInfo);
+  }
+
   @override
   TargetedResult getNextResult() {
     // Try to find a priority result to compute.
@@ -180,23 +228,32 @@ class DartWorkManager implements WorkManager {
     }
     // Update notice.
     if (_isDartSource(target)) {
-      CompilationUnit unit = outputs[PARSED_UNIT];
-      if (unit != null) {
-        context.getNotice(target).parsedDartUnit = unit;
+      bool hasErrorResult = false;
+      outputs.forEach((ResultDescriptor descriptor, value) {
+        if (descriptor == PARSED_UNIT && value != null) {
+          context.getNotice(target).parsedDartUnit = value;
+        }
+        hasErrorResult = hasErrorResult || _isErrorResult(descriptor);
+      });
+      if (hasErrorResult) {
+        AnalysisErrorInfo info = getErrors(target);
+        context.getNotice(target).setErrors(info.errors, info.lineInfo);
       }
     }
     if (target is LibrarySpecificUnit) {
-      CompilationUnit unit = outputs[RESOLVED_UNIT];
-      if (unit != null) {
-        context.getNotice(target.source).resolvedDartUnit = unit;
+      Source source = target.source;
+      bool hasErrorResult = false;
+      outputs.forEach((ResultDescriptor descriptor, value) {
+        if (descriptor == RESOLVED_UNIT && value != null) {
+          context.getNotice(source).resolvedDartUnit = value;
+        }
+        hasErrorResult = hasErrorResult || _isErrorResult(descriptor);
+      });
+      if (hasErrorResult) {
+        AnalysisErrorInfo info = getErrors(source);
+        context.getNotice(source).setErrors(info.errors, info.lineInfo);
       }
     }
-    // TODO(scheglov) Move getError() implementation into DWM.
-    // Set errors into notice on any error result change.
-  }
-
-  bool _isDartSource(AnalysisTarget target) {
-    return target is Source && AnalysisEngine.isDartFileName(target.fullName);
   }
 
   /**
@@ -206,5 +263,14 @@ class DartWorkManager implements WorkManager {
   bool _needsComputing(AnalysisTarget target, ResultDescriptor result) {
     CacheState state = analysisCache.getState(target, result);
     return state != CacheState.VALID && state != CacheState.ERROR;
+  }
+
+  static bool _isDartSource(AnalysisTarget target) {
+    return target is Source && AnalysisEngine.isDartFileName(target.fullName);
+  }
+
+  static bool _isErrorResult(ResultDescriptor descriptor) {
+    return _SOURCE_ERRORS.contains(descriptor) ||
+        _UNIT_ERRORS.contains(descriptor);
   }
 }
