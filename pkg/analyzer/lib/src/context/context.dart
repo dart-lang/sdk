@@ -885,6 +885,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  ChangeNoticeImpl getNotice(Source source) {
+    ChangeNoticeImpl notice = _pendingNotices[source];
+    if (notice == null) {
+      notice = new ChangeNoticeImpl(source);
+      _pendingNotices[source] = notice;
+    }
+    return notice;
+  }
+
+  @override
   Namespace getPublicNamespace(LibraryElement library) {
     // TODO(brianwilkerson) Rename this to not start with 'get'.
     // Note that this is not part of the API of the interface.
@@ -1394,16 +1404,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     List<ChangeNotice> notices = new List.from(_pendingNotices.values);
     _pendingNotices.clear();
     return notices;
-  }
-
-  @override
-  ChangeNoticeImpl getNotice(Source source) {
-    ChangeNoticeImpl notice = _pendingNotices[source];
-    if (notice == null) {
-      notice = new ChangeNoticeImpl(source);
-      _pendingNotices[source] = notice;
-    }
-    return notice;
   }
 
   /**
@@ -1966,6 +1966,26 @@ class PendingFuture<T> {
 
   void _onCancel() {
     _context._cancelFuture(this);
+  }
+}
+
+/**
+ * An [AnalysisContext] that only contains sources for a Dart SDK.
+ */
+class SdkAnalysisContext extends AnalysisContextImpl {
+  @override
+  AnalysisCache createCacheFromSourceFactory(SourceFactory factory) {
+    if (factory == null) {
+      return super.createCacheFromSourceFactory(factory);
+    }
+    DartSdk sdk = factory.dartSdk;
+    if (sdk == null) {
+      throw new IllegalArgumentException(
+          "The source factory for an SDK analysis context must have a DartUriResolver");
+    }
+    return new AnalysisCache(<CachePartition>[
+      AnalysisEngine.instance.partitionManager_new.forSdk(sdk)
+    ]);
   }
 }
 
