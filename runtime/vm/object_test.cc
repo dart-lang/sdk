@@ -15,7 +15,6 @@
 #include "vm/simulator.h"
 #include "vm/symbols.h"
 #include "vm/unit_test.h"
-#include "vm/code_descriptors.h"
 
 namespace dart {
 
@@ -2866,18 +2865,16 @@ TEST_CASE(ExceptionHandlers) {
 
 
 TEST_CASE(PcDescriptors) {
-  DescriptorList* builder = new DescriptorList(0);
-
-  // kind, pc_offset, deopt_id, token_pos, try_index
-  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 1, 20, 1);
-  builder->AddDescriptor(RawPcDescriptors::kDeopt, 20, 2, 30, 0);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 30, 3, 40, 1);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 4, 40, 2);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 5, 80, 3);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 80, 6, 150, 3);
-
+  const int kNumEntries = 6;
+  // Add PcDescriptors to the code.
   PcDescriptors& descriptors = PcDescriptors::Handle();
-  descriptors ^= builder->FinalizePcDescriptors(0);
+  descriptors ^= PcDescriptors::New(kNumEntries, true);
+  descriptors.AddDescriptor(0, 10, RawPcDescriptors::kOther, 1, 20, 1);
+  descriptors.AddDescriptor(1, 20, RawPcDescriptors::kDeopt, 2, 30, 0);
+  descriptors.AddDescriptor(2, 30, RawPcDescriptors::kOther, 3, 40, 1);
+  descriptors.AddDescriptor(3, 10, RawPcDescriptors::kOther, 4, 40, 2);
+  descriptors.AddDescriptor(4, 10, RawPcDescriptors::kOther, 5, 80, 3);
+  descriptors.AddDescriptor(5, 80, RawPcDescriptors::kOther, 6, 150, 3);
 
   extern void GenerateIncrement(Assembler* assembler);
   Assembler _assembler_;
@@ -2922,19 +2919,18 @@ TEST_CASE(PcDescriptors) {
 }
 
 
-TEST_CASE(PcDescriptorsLargeDeltas) {
-  DescriptorList* builder = new DescriptorList(0);
-
-  // kind, pc_offset, deopt_id, token_pos, try_index
-  builder->AddDescriptor(RawPcDescriptors::kOther, 100, 1, 200, 1);
-  builder->AddDescriptor(RawPcDescriptors::kDeopt, 200, 2, 300, 0);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 300, 3, 400, 1);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 100, 4, 0, 2);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 100, 5, 800, 3);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 800, 6, 150, 3);
-
+TEST_CASE(PcDescriptorsCompressed) {
+  const int kNumEntries = 6;
+  // Add PcDescriptors to the code.
   PcDescriptors& descriptors = PcDescriptors::Handle();
-  descriptors ^= builder->FinalizePcDescriptors(0);
+  // PcDescriptors have no try-index.
+  descriptors ^= PcDescriptors::New(kNumEntries, false);
+  descriptors.AddDescriptor(0, 10, RawPcDescriptors::kOther, 1, 20, -1);
+  descriptors.AddDescriptor(1, 20, RawPcDescriptors::kDeopt, 2, 30, -1);
+  descriptors.AddDescriptor(2, 30, RawPcDescriptors::kOther, 3, 40, -1);
+  descriptors.AddDescriptor(3, 10, RawPcDescriptors::kOther, 4, 40, -1);
+  descriptors.AddDescriptor(4, 10, RawPcDescriptors::kOther, 5, 80, -1);
+  descriptors.AddDescriptor(5, 80, RawPcDescriptors::kOther, 6, 150, -1);
 
   extern void GenerateIncrement(Assembler* assembler);
   Assembler _assembler_;
@@ -2948,35 +2944,24 @@ TEST_CASE(PcDescriptorsLargeDeltas) {
   PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(200, iter.TokenPos());
-  EXPECT_EQ(1, iter.TryIndex());
-  EXPECT_EQ(static_cast<uword>(100), iter.PcOffset());
+  EXPECT_EQ(static_cast<uword>(10), iter.PcOffset());
+  EXPECT_EQ(-1, iter.TryIndex());
   EXPECT_EQ(1, iter.DeoptId());
-  EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
+  EXPECT_EQ(20, iter.TokenPos());
 
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(300, iter.TokenPos());
-  EXPECT_EQ(RawPcDescriptors::kDeopt, iter.Kind());
-
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(400, iter.TokenPos());
-
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(0, iter.TokenPos());
-
   EXPECT_EQ(true, iter.MoveNext());
-  EXPECT_EQ(800, iter.TokenPos());
-
   EXPECT_EQ(true, iter.MoveNext());
+
+  EXPECT_EQ(-1, iter.TryIndex());
+  EXPECT_EQ(static_cast<uword>(80), iter.PcOffset());
   EXPECT_EQ(150, iter.TokenPos());
-
-  EXPECT_EQ(3, iter.TryIndex());
-  EXPECT_EQ(static_cast<uword>(800), iter.PcOffset());
-  EXPECT_EQ(150, iter.TokenPos());
-  EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
 
   EXPECT_EQ(false, iter.MoveNext());
 }
+
 
 
 static RawClass* CreateTestClass(const char* name) {

@@ -625,9 +625,11 @@ void Object::InitOnce(Isolate* isolate) {
 
   // Allocate and initialize the empty_descriptors instance.
   {
-    uword address = heap->Allocate(PcDescriptors::InstanceSize(0), Heap::kOld);
+    uword address = heap->Allocate(
+        PcDescriptors::InstanceSize(0, RawPcDescriptors::kCompressedRecSize),
+        Heap::kOld);
     InitializeObject(address, kPcDescriptorsCid,
-                     PcDescriptors::InstanceSize(0));
+        PcDescriptors::InstanceSize(0, RawPcDescriptors::kCompressedRecSize));
     PcDescriptors::initializeHandle(
         empty_descriptors_,
         reinterpret_cast<RawPcDescriptors*>(address + kHeapObjectTag));
@@ -10546,45 +10548,6 @@ void Instructions::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-// Encode integer in SLEB128 format.
-void PcDescriptors::EncodeInteger(GrowableArray<uint8_t>* data,
-                                  intptr_t value) {
-  bool is_last_part = false;
-  while (!is_last_part) {
-    intptr_t part = value & 0x7f;
-    value >>= 7;
-    if ((value == 0 && (part & 0x40) == 0) ||
-        (value == -1 && (part & 0x40) != 0)) {
-      is_last_part = true;
-    } else {
-      part |= 0x80;
-    }
-    data->Add(part);
-  }
-}
-
-
-// Decode SLEB128 encoded integer. Update byte_index to the next integer.
-intptr_t PcDescriptors::DecodeInteger(intptr_t* byte_index) const {
-  NoSafepointScope no_safepoint;
-  const uint8_t* data = raw_ptr()->data();
-  ASSERT(*byte_index < Length());
-  uword shift = 0;
-  intptr_t value = 0;
-  intptr_t part = 0;
-  do {
-    part = data[(*byte_index)++];
-    value |= (part & 0x7f) << shift;
-    shift += 7;
-  } while ((part & 0x80) != 0);
-
-  if (shift < sizeof(value) * 8 && (part & 0x40) != 0) {
-    value |= -(1 << shift);
-  }
-  return value;
-}
-
-
 intptr_t PcDescriptors::Length() const {
   return raw_ptr()->length_;
 }
@@ -10595,21 +10558,29 @@ void PcDescriptors::SetLength(intptr_t value) const {
 }
 
 
-void PcDescriptors::CopyData(GrowableArray<uint8_t>* delta_encoded_data) {
-  NoSafepointScope no_safepoint;
-  uint8_t* data = UnsafeMutableNonPointer(&raw_ptr()->data()[0]);
-  for (intptr_t i = 0; i < delta_encoded_data->length(); ++i) {
-    data[i] = (*delta_encoded_data)[i];
-  }
+intptr_t PcDescriptors::RecordSizeInBytes() const {
+  return raw_ptr()->record_size_in_bytes_;
 }
 
 
-RawPcDescriptors* PcDescriptors::New(GrowableArray<uint8_t>* data) {
+void PcDescriptors::SetRecordSizeInBytes(intptr_t value) const {
+  StoreNonPointer(&raw_ptr()->record_size_in_bytes_, value);
+}
+
+
+RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors,
+                                     bool has_try_index) {
   ASSERT(Object::pc_descriptors_class() != Class::null());
+  if (num_descriptors < 0 || num_descriptors > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in PcDescriptors::New: "
+           "invalid num_descriptors %" Pd "\n", num_descriptors);
+  }
   Isolate* isolate = Isolate::Current();
   PcDescriptors& result = PcDescriptors::Handle(isolate);
   {
-    uword size = PcDescriptors::InstanceSize(data->length());
+    const intptr_t rec_size =  RawPcDescriptors::RecordSize(has_try_index);
+    uword size = PcDescriptors::InstanceSize(num_descriptors, rec_size);
     RawObject* raw = Object::Allocate(PcDescriptors::kClassId,
                                       size,
                                       Heap::kOld);
@@ -10617,8 +10588,8 @@ RawPcDescriptors* PcDescriptors::New(GrowableArray<uint8_t>* data) {
     INC_STAT(isolate, pc_desc_size, size);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.SetLength(data->length());
-    result.CopyData(data);
+    result.SetLength(num_descriptors);
+    result.SetRecordSizeInBytes(rec_size);
   }
   return result.raw();
 }
