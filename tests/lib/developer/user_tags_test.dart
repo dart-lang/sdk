@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
-import 'dart:profiler';
+import 'dart:developer';
 import 'package:expect/expect.dart';
 
 // Test that the default tag is set.

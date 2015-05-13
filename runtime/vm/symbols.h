@@ -321,12 +321,12 @@ class ObjectPointerVisitor;
   V(DartNativeWrappersLibName, "dart.nativewrappers")                          \
   V(DartCore, "dart:core")                                                     \
   V(DartCollection, "dart:collection")                                         \
+  V(DartDeveloper, "dart:developer")                                           \
   V(DartInternal, "dart:_internal")                                            \
   V(DartIsolate, "dart:isolate")                                               \
   V(DartMirrors, "dart:mirrors")                                               \
   V(DartTypedData, "dart:typed_data")                                          \
   V(DartVMService, "dart:vmservice")                                           \
-  V(DartProfiler, "dart:profiler")                                             \
   V(DartIOLibName, "dart.io")                                                  \
   V(EvalSourceUri, "evaluate:source")                                          \
   V(_Random, "_Random")                                                        \

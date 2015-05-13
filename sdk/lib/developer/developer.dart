@@ -11,6 +11,10 @@
 ///
 library dart.developer;
 
+import 'dart:convert';
+
+part 'profiler.dart';
+
 /// If [when] is true, stop the program as if a breakpoint where hit at the
 /// following statement. Returns the value of [when]. Some debuggers may
 /// display [msg].

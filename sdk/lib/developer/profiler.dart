@@ -3,9 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Instrument your code with counters, gauges, and more.
-library dart.profiler;
-
-import 'dart:convert';
+part of dart.developer;
 
 /// A UserTag can be used to group samples in the Observatory profiler.
 abstract class UserTag {

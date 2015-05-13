@@ -25,8 +25,6 @@
     'math_patch_cc_file': '<(gen_source_dir)/math_patch_gen.cc',
     'mirrors_cc_file': '<(gen_source_dir)/mirrors_gen.cc',
     'mirrors_patch_cc_file': '<(gen_source_dir)/mirrors_patch_gen.cc',
-    'profiler_cc_file': '<(gen_source_dir)/profiler_gen.cc',
-    'profiler_patch_cc_file': '<(gen_source_dir)/profiler_patch_gen.cc',
     'service_cc_file': '<(gen_source_dir)/service_gen.cc',
     'snapshot_test_dat_file': '<(gen_source_dir)/snapshot_test.dat',
     'snapshot_test_in_dat_file': 'snapshot_test_in.dat',
@@ -195,8 +193,6 @@
         'generate_math_patch_cc_file#host',
         'generate_mirrors_cc_file#host',
         'generate_mirrors_patch_cc_file#host',
-        'generate_profiler_cc_file#host',
-        'generate_profiler_patch_cc_file#host',
         'generate_typed_data_cc_file#host',
         'generate_typed_data_patch_cc_file#host',
       ],
@@ -209,7 +205,6 @@
         '../lib/isolate_sources.gypi',
         '../lib/math_sources.gypi',
         '../lib/mirrors_sources.gypi',
-        '../lib/profiler_sources.gypi',
         '../lib/typed_data_sources.gypi',
       ],
       'sources': [
@@ -233,8 +228,6 @@
         '<(math_patch_cc_file)',
         '<(mirrors_cc_file)',
         '<(mirrors_patch_cc_file)',
-        '<(profiler_cc_file)',
-        '<(profiler_patch_cc_file)',
         '<(typed_data_cc_file)',
         '<(typed_data_patch_cc_file)',
       ],
@@ -255,7 +248,6 @@
         '../lib/isolate_sources.gypi',
         '../lib/math_sources.gypi',
         '../lib/mirrors_sources.gypi',
-        '../lib/profiler_sources.gypi',
         '../lib/typed_data_sources.gypi',
       ],
       'sources': [
@@ -981,86 +973,6 @@
             '<@(_sources)',
           ],
           'message': 'Generating ''<(typed_data_patch_cc_file)'' file.'
-        },
-      ]
-    },
-    {
-      'target_name': 'generate_profiler_cc_file',
-      'type': 'none',
-      'toolsets':['host'],
-      'includes': [
-        # Load the shared library sources.
-        '../../sdk/lib/profiler/profiler_sources.gypi',
-      ],
-      'sources/': [
-        # Exclude all .[cc|h] files.
-        # This is only here for reference. Excludes happen after
-        # variable expansion, so the script has to do its own
-        # exclude processing of the sources being passed.
-        ['exclude', '\\.cc|h$'],
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_profiler_cc',
-          'inputs': [
-            '../tools/gen_library_src_paths.py',
-            '<(libgen_in_cc_file)',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(profiler_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/gen_library_src_paths.py',
-            '--output', '<(profiler_cc_file)',
-            '--input_cc', '<(libgen_in_cc_file)',
-            '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::profiler_source_paths_',
-            '--library_name', 'dart:profiler',
-            '<@(_sources)',
-          ],
-          'message': 'Generating ''<(profiler_cc_file)'' file.'
-        },
-      ]
-    },
-    {
-      'target_name': 'generate_profiler_patch_cc_file',
-      'type': 'none',
-      'toolsets':['host'],
-      'includes': [
-        # Load the runtime implementation sources.
-        '../lib/profiler_sources.gypi',
-      ],
-      'sources/': [
-        # Exclude all .[cc|h] files.
-        # This is only here for reference. Excludes happen after
-        # variable expansion, so the script has to do its own
-        # exclude processing of the sources being passed.
-        ['exclude', '\\.cc|h$'],
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_profiler_patch_cc',
-          'inputs': [
-            '../tools/gen_library_src_paths.py',
-            '<(libgen_in_cc_file)',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(profiler_patch_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/gen_library_src_paths.py',
-            '--output', '<(profiler_patch_cc_file)',
-            '--input_cc', '<(libgen_in_cc_file)',
-            '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::profiler_patch_paths_',
-            '--library_name', 'dart:profiler',
-            '<@(_sources)',
-          ],
-          'message': 'Generating ''<(profiler_patch_cc_file)'' file.'
         },
       ]
     },

@@ -7,7 +7,7 @@ import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
-import 'dart:profiler';
+import 'dart:developer';
 
 void script() {
   var counter = new Counter('a.b.c', 'description');

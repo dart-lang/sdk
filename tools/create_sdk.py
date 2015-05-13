@@ -210,7 +210,7 @@ def Main():
                   join('html', 'dart2js'), join('html', 'dartium'),
                   join('html', 'html_common'),
                   join('indexed_db', 'dart2js'), join('indexed_db', 'dartium'),
-                  'js', 'math', 'mirrors', 'profiler', 'typed_data',
+                  'js', 'math', 'mirrors', 'typed_data',
                   join('svg', 'dart2js'), join('svg', 'dartium'),
                   join('web_audio', 'dart2js'), join('web_audio', 'dartium'),
                   join('web_gl', 'dart2js'), join('web_gl', 'dartium'),
