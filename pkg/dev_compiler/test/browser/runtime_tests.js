@@ -116,10 +116,10 @@ suite('instanceOf', () => {
   let BB = BB$();
   class CC extends BB$(String, List) {}
 
-  let Func2 = typedef('Func2', () => functionType(dynamic, [dynamic, dynamic]));
-  let Foo = typedef('Foo', () => functionType(B, [B, String]));
+  let Func2 = typedef('Func2', functionType(dynamic, [dynamic, dynamic]));
+  let Foo = typedef('Foo', functionType(B, [B, String]));
 
-  let FuncG$ = generic((T, U) => typedef('FuncG', () => functionType(T, [T, U])))
+  let FuncG$ = generic((T, U) => typedef('FuncG', functionType(T, [T, U])))
   let FuncG = FuncG$();
 
   // TODO(vsm): Revisit when we encode types on functions properly.
