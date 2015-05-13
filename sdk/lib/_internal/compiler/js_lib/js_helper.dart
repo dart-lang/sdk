@@ -194,7 +194,7 @@ String S(value) {
     return 'null';
   }
   var res = value.toString();
-  if (res is !String) throw new ArgumentError(value);
+  if (res is !String) throw _argumentError(value);
   return res;
 }
 
@@ -690,9 +690,11 @@ class Primitives {
       return _parseIntError(source, handleError);
     }
 
-    if (radix is! int) throw new ArgumentError("Radix is not an integer");
+    if (radix is! int) {
+      throw new ArgumentError.value(radix, 'radix', 'is not an integer');
+    }
     if (radix < 2 || radix > 36) {
-      throw new RangeError.range(radix, 2, 36, "radix");
+      throw new RangeError.range(radix, 2, 36, 'radix');
     }
     if (radix == 10 && decimalMatch != null) {
       // Cannot fail because we know that the digits are all decimal.
@@ -737,7 +739,7 @@ class Primitives {
   static double _parseDoubleError(String source,
                                   double handleError(String source)) {
     if (handleError == null) {
-      throw new FormatException("Invalid double", source);
+      throw new FormatException('Invalid double', source);
     }
     return handleError(source);
   }
@@ -860,14 +862,14 @@ class Primitives {
   static String stringFromCodePoints(codePoints) {
     List<int> a = <int>[];
     for (var i in codePoints) {
-      if (i is !int) throw new ArgumentError(i);
+      if (i is !int) throw _argumentError(i);
       if (i <= 0xffff) {
         a.add(i);
       } else if (i <= 0x10ffff) {
         a.add(0xd800 + ((((i - 0x10000) >> 10) & 0x3ff)));
         a.add(0xdc00 + (i & 0x3ff));
       } else {
-        throw new ArgumentError(i);
+        throw _argumentError(i);
       }
     }
     return _fromCharCodeApply(a);
@@ -875,8 +877,8 @@ class Primitives {
 
   static String stringFromCharCodes(charCodes) {
     for (var i in charCodes) {
-      if (i is !int) throw new ArgumentError(i);
-      if (i < 0) throw new ArgumentError(i);
+      if (i is !int) throw _argumentError(i);
+      if (i < 0) throw _argumentError(i);
       if (i > 0xffff) return stringFromCodePoints(charCodes);
     }
     return _fromCharCodeApply(charCodes);
@@ -1065,22 +1067,22 @@ class Primitives {
   }
 
   static valueFromDateString(str) {
-    if (str is !String) throw new ArgumentError(str);
+    if (str is !String) throw _argumentError(str);
     var value = JS('num', r'Date.parse(#)', str);
-    if (value.isNaN) throw new ArgumentError(str);
+    if (value.isNaN) throw _argumentError(str);
     return value;
   }
 
   static getProperty(object, key) {
     if (object == null || object is bool || object is num || object is String) {
-      throw new ArgumentError(object);
+      throw _argumentError(object);
     }
     return JS('var', '#[#]', object, key);
   }
 
   static void setProperty(object, key, value) {
     if (object == null || object is bool || object is num || object is String) {
-      throw new ArgumentError(object);
+      throw _argumentError(object);
     }
     JS('void', '#[#] = #', object, key, value);
   }
@@ -1372,7 +1374,7 @@ class JsCache {
  * indexed access.
  */
 iae(argument) {
-  throw new ArgumentError(argument);
+  throw _argumentError(argument);
 }
 
 /**
@@ -1392,36 +1394,34 @@ stringLastIndexOfUnchecked(receiver, element, start)
   => JS('int', r'#.lastIndexOf(#, #)', receiver, element, start);
 
 
+/// 'factory' for constructing ArgumentError.value to keep the call sites small.
+@NoInline()
+ArgumentError _argumentError(object) {
+  return new ArgumentError.value(object);
+}
+
 checkNull(object) {
-  if (object == null) throw new ArgumentError(null);
+  if (object == null) throw _argumentError(object);
   return object;
 }
 
 checkNum(value) {
-  if (value is !num) {
-    throw new ArgumentError(value);
-  }
+  if (value is !num) throw _argumentError(value);
   return value;
 }
 
 checkInt(value) {
-  if (value is !int) {
-    throw new ArgumentError(value);
-  }
+  if (value is !int) throw _argumentError(value);
   return value;
 }
 
 checkBool(value) {
-  if (value is !bool) {
-    throw new ArgumentError(value);
-  }
+  if (value is !bool) throw _argumentError(value);
   return value;
 }
 
 checkString(value) {
-  if (value is !String) {
-    throw new ArgumentError(value);
-  }
+  if (value is !String) throw _argumentError(value);
   return value;
 }
 

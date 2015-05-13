@@ -13,6 +13,10 @@ main() {
                 new ArgumentError("message").toString());
   Expect.equals("Invalid argument: null",
                 new ArgumentError.value(null).toString());
+  Expect.equals("Invalid argument: 42",
+                new ArgumentError.value(42).toString());
+  Expect.equals("Invalid argument: \"bad\"",
+                new ArgumentError.value("bad").toString());
   Expect.equals("Invalid argument (foo): null",
                 new ArgumentError.value(null, "foo").toString());
   Expect.equals("Invalid argument (foo): 42",
