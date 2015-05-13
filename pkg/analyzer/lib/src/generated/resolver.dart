@@ -1174,7 +1174,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
               CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH)) {
         _errorReporter.reportError(data);
       } else if (errorCode != null) {
-        _errorReporter.reportError(new AnalysisError.con2(
+        _errorReporter.reportError(new AnalysisError(
             data.source, data.offset, data.length, errorCode));
       }
     }
@@ -3702,7 +3702,7 @@ class EnclosedScope extends Scope {
     if (_hasHiddenName) {
       Element hiddenElement = _hiddenElements[name];
       if (hiddenElement != null) {
-        errorListener.onError(new AnalysisError.con2(getSource(identifier),
+        errorListener.onError(new AnalysisError(getSource(identifier),
             identifier.offset, identifier.length,
             CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, []));
         return hiddenElement;
@@ -5107,7 +5107,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
    */
   void _reportErrorForOffset(
       ErrorCode errorCode, int offset, int length, List<Object> arguments) {
-    _errorListener.onError(new AnalysisError.con2(
+    _errorListener.onError(new AnalysisError(
         _htmlElement.source, offset, length, errorCode, arguments));
   }
 
@@ -5321,7 +5321,7 @@ class ImplicitConstructorBuilder extends SimpleElementVisitor {
         }
         if (_findForwardedConstructors(classElement, superType, callback)) {
           if (implicitConstructors.isEmpty) {
-            errorListener.onError(new AnalysisError.con2(classElement.source,
+            errorListener.onError(new AnalysisError(classElement.source,
                 classElement.nameOffset, classElement.name.length,
                 CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
                 [superElement.name]));
@@ -7078,9 +7078,8 @@ class Library {
   Source getSource(UriBasedDirective directive) {
     StringLiteral uriLiteral = directive.uri;
     if (uriLiteral is StringInterpolation) {
-      _errorListener.onError(new AnalysisError.con2(librarySource,
-          uriLiteral.offset, uriLiteral.length,
-          CompileTimeErrorCode.URI_WITH_INTERPOLATION));
+      _errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
+          uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION));
       return null;
     }
     String uriContent = uriLiteral.stringValue.trim();
