@@ -225,9 +225,9 @@ class CacheEntry {
 
   /**
    * The most recent time at which the state of the target matched the state
-   * represented by this entry.
+   * represented by this entry, `-1` if the target does not exist.
    */
-  int modificationTime = 0;
+  int modificationTime = -1;
 
   /**
    * The exception that caused one or more values to have a state of

@@ -38,9 +38,9 @@ class GetContentTask extends SourceBasedAnalysisTask {
       TimestampedData<String> data = context.getContents(source);
       outputs[CONTENT] = data.data;
       outputs[MODIFICATION_TIME] = data.modificationTime;
-    } catch (exception, stackTrace) {
-      throw new AnalysisException('Could not get contents of $source',
-          new CaughtException(exception, stackTrace));
+    } catch (exception) {
+      outputs[CONTENT] = '';
+      outputs[MODIFICATION_TIME] = -1;
     }
   }
 

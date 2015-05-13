@@ -3108,6 +3108,10 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     CompilationUnitElement unitElement = unit.element;
     LibraryElement libraryElement = unitElement.library;
     //
+    // Validate the directives.
+    //
+    validateDirectives(unit);
+    //
     // Use the ErrorVerifier to compute errors.
     //
     ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter,
@@ -3117,6 +3121,39 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     // Record outputs.
     //
     outputs[VERIFY_ERRORS] = errorListener.errors;
+  }
+
+  /**
+   * Check each directive in the given [unit] to see if the referenced source
+   * exists and report an error if it does not.
+   */
+  void validateDirectives(CompilationUnit unit) {
+    for (Directive directive in unit.directives) {
+      if (directive is UriBasedDirective) {
+        validateReferencedSource(directive);
+      }
+    }
+  }
+
+  /**
+   * Check the given [directive] to see if the referenced source exists and
+   * report an error if it does not.
+   */
+  void validateReferencedSource(UriBasedDirective directive) {
+    Source source = directive.source;
+    if (source != null) {
+      if (context.exists(source)) {
+        return;
+      }
+    } else {
+      // Don't report errors already reported by ParseDartTask.resolveDirective
+      if (directive.validate() != null) {
+        return;
+      }
+    }
+    StringLiteral uriLiteral = directive.uri;
+    errorReporter.reportErrorForNode(CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+        uriLiteral, [directive.uriContent]);
   }
 
   /**

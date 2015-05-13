@@ -1025,6 +1025,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (!AnalysisEngine.isDartFileName(source.shortName)) {
       return null;
     }
+    try {
+      getContents(source);
+    } catch (exception, stackTrace) {
+      throw new AnalysisException('Could not get contents of $source',
+          new CaughtException(exception, stackTrace));
+    }
     return _computeResult(source, PARSED_UNIT);
   }
 

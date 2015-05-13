@@ -686,7 +686,7 @@ void g() { f(null); }''');
     expect(error.errorCode, ScannerErrorCode.UNABLE_GET_CONTENT);
   }
 
-  void fail_performAnalysisTask_importedLibraryAdd() {
+  void test_performAnalysisTask_importedLibraryAdd() {
     Source libASource =
         addSource("/libA.dart", "library libA; import 'libB.dart';");
     _analyzeAll_assertFinished();
@@ -704,8 +704,8 @@ void g() { f(null); }''');
     expect(
         context.getResolvedCompilationUnit2(libBSource, libBSource), isNotNull,
         reason: "libB resolved 2");
-    expect(!_hasAnalysisErrorWithErrorSeverity(context.getErrors(libASource)),
-        isTrue, reason: "libA doesn't have errors");
+    expect(_hasAnalysisErrorWithErrorSeverity(context.getErrors(libASource)),
+        isFalse, reason: "libA doesn't have errors");
   }
 
   void fail_performAnalysisTask_importedLibraryAdd_html() {

@@ -73,8 +73,10 @@ class GetContentTaskTest extends EngineTestCase {
     GetContentTask task = new GetContentTask(context, target);
     when(context.getContents(target)).thenThrow('My exception!');
     task.perform();
-    expect(task.caughtException, isNotNull);
-    expect(task.outputs, isEmpty);
+    expect(task.caughtException, isNull);
+    expect(task.outputs, hasLength(2));
+    expect(task.outputs[CONTENT], '');
+    expect(task.outputs[MODIFICATION_TIME], -1);
   }
 }
 

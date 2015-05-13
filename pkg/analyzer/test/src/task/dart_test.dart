@@ -2315,6 +2315,19 @@ class ScanDartTaskTest extends _AbstractDartTaskTest {
 
 @reflectiveTest
 class VerifyUnitTaskTest extends _AbstractDartTaskTest {
+  test_perform_directiveError() {
+    Source source = newSource('/test.dart', '''
+import 'no-such-file.dart';
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    _computeResult(target, VERIFY_ERRORS);
+    expect(task, new isInstanceOf<VerifyUnitTask>());
+    // validate
+    _fillErrorListener(VERIFY_ERRORS);
+    errorListener.assertErrorsWithCodes(
+        <ErrorCode>[CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+  }
+
   test_perform_verifyError() {
     Source source = newSource('/test.dart', '''
 main() {
