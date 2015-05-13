@@ -594,14 +594,14 @@ class RequestDecoder extends JsonDecoder {
 
   @override
   dynamic mismatch(String jsonPath, String expected) {
-    return new RequestFailure(
-        new Response.invalidParameter(_request, jsonPath, 'be $expected'));
+    return new RequestFailure(new Response.invalidParameter(
+        _request, jsonPath, 'Expected to be $expected'));
   }
 
   @override
   dynamic missingKey(String jsonPath, String key) {
     return new RequestFailure(new Response.invalidParameter(
-        _request, jsonPath, 'contain key ${JSON.encode(key)}'));
+        _request, jsonPath, 'Expected to contain key ${JSON.encode(key)}'));
   }
 }
 
