@@ -829,18 +829,6 @@ class Primitives {
   static int timerFrequency;
   static Function timerTicks;
 
-  static bool get isD8 {
-    return JS('bool',
-              'typeof version == "function"'
-              ' && typeof os == "object" && "setenv" in os');
-  }
-
-  static bool get isJsshell {
-    return JS('bool',
-              'typeof version == "function" '
-              ' && typeof os == "object" && "getenv" in os');
-  }
-
   static String currentUri() {
     requiresPreamble();
     // In a browser return self.location.href.
