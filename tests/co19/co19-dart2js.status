@@ -5185,7 +5185,7 @@ LibTest/html/Element/isTagSupported_A01_t01: RuntimeError # Please triage this f
 LibTest/html/Element/isTagSupported_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/Element/leftView_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/marginEdge_A01_t01: RuntimeError # Please triage this failure
-LibTest/html/Element/mouseWheelEvent_A01_t01: RuntimeError # Safari mobile sim does not support WheelEvent
+LibTest/html/Element/mouseWheelEvent_A01_t01: Skip # Safari mobile sim does not support WheelEvent
 LibTest/html/Element/onMouseWheel_A01_t01: Skip # Safari mobile sim does not support WheelEvent
 LibTest/html/Element/onTransitionEnd_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/paddingEdge_A01_t01: RuntimeError # Please triage this failure
@@ -5226,8 +5226,8 @@ LibTest/html/IFrameElement/innerHtml_A01_t01: RuntimeError # Please triage this 
 LibTest/html/IFrameElement/isContentEditable_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/leftView_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/marginEdge_A01_t01: RuntimeError # Please triage this failure
-LibTest/html/Element/mouseWheelEvent_A01_t01: RuntimeError # Safari mobile sim does not support WheelEvent
-LibTest/html/Element/onMouseWheel_A01_t01: Skip # Safari mobile sim does not support WheelEvent
+LibTest/html/IFrameElement/mouseWheelEvent_A01_t01: Skip # Safari mobile sim does not support WheelEvent
+LibTest/html/IFrameElement/onMouseWheel_A01_t01: Skip # Safari mobile sim does not support WheelEvent
 LibTest/html/IFrameElement/offsetTo_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/onTransitionEnd_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/outerHtml_setter_A01_t01: RuntimeError # Please triage this failure
