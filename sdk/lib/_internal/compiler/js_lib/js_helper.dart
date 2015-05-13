@@ -3331,7 +3331,7 @@ RuntimeFunctionType buildNamedFunctionType(returnType,
 }
 
 RuntimeType buildInterfaceType(rti, typeArguments) {
-  String name = JS('String|Null', r'#.name', rti);
+  String name = JS('String', r'#.name', rti);
   if (typeArguments == null || typeArguments.isEmpty) {
     return new RuntimeTypePlain(name);
   }
@@ -3388,7 +3388,7 @@ RuntimeType convertRtiToRuntimeType(rti) {
   if (rti == null) {
     return getDynamicRuntimeType();
   } else if (JS('bool', 'typeof # == "function"', rti)) {
-    return new RuntimeTypePlain(JS('String', r'rti.name'));
+    return new RuntimeTypePlain(JS('String', r'#.name', rti));
   } else if (JS('bool', '#.constructor == Array', rti)) {
     List list = JS('JSFixedArray', '#', rti);
     String name = JS('String', r'#.name', list[0]);
