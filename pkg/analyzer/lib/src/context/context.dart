@@ -1108,6 +1108,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       entry.setState(RESOLVED_UNIT3, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT4, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT5, CacheState.FLUSHED);
+      entry.setState(RESOLVED_UNIT6, CacheState.FLUSHED);
       // USED_IMPORTED_ELEMENTS
       // USED_LOCAL_ELEMENTS
       setValue(VERIFY_ERRORS, AnalysisError.NO_ERRORS);

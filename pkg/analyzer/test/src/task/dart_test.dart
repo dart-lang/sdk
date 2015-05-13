@@ -1560,9 +1560,9 @@ f() {}
 const x = const C();
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    _computeResult(target, CONSTANT_RESOLVED_UNIT);
+    _computeResult(target, RESOLVED_UNIT);
     expect(task, new isInstanceOf<EvaluateUnitConstantsTask>());
-    CompilationUnit unit = outputs[CONSTANT_RESOLVED_UNIT];
+    CompilationUnit unit = outputs[RESOLVED_UNIT];
     CompilationUnitElement unitElement = unit.element;
     expect((unitElement.types[0].constructors[
         0] as ConstructorElementImpl).isCycleFree, isTrue);
@@ -2121,15 +2121,15 @@ main(A a) {
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     // prepare unit and "a.m()" invocation
-    _computeResult(target, RESOLVED_UNIT);
-    CompilationUnit unit = outputs[RESOLVED_UNIT];
+    _computeResult(target, RESOLVED_UNIT6);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
     // walk the AST
     FunctionDeclaration function = unit.declarations[1];
     BlockFunctionBody body = function.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
     MethodInvocation invocation = statement.expression;
     expect(task, new isInstanceOf<ResolveReferencesTask>());
-    expect(unit, same(outputs[RESOLVED_UNIT]));
+    expect(unit, same(outputs[RESOLVED_UNIT6]));
     // a.m() is resolved now
     expect(invocation.methodName.staticElement, isNotNull);
   }
@@ -2143,7 +2143,7 @@ main(A a) {
 }
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    _computeResult(target, RESOLVED_UNIT);
+    _computeResult(target, RESOLVED_UNIT6);
     expect(task, new isInstanceOf<ResolveReferencesTask>());
     // validate
     _fillErrorListener(RESOLVE_REFERENCES_ERRORS);
