@@ -41,7 +41,7 @@ DEFINE_FLAG(int, profile_depth, 8,
 DEFINE_FLAG(bool, profile_vm, true,
             "Always collect native stack traces.");
 #else
-DEFINE_FLAG(bool, profile_vm, false,
+DEFINE_FLAG(bool, profile_vm, true,
             "Always collect native stack traces.");
 #endif
 
@@ -897,17 +897,6 @@ static void CopyPCMarkerIfSafe(Sample* sample) {
 
   // If FP == SP, the pc marker hasn't been pushed.
   if (fp > sp) {
-#if defined(TARGET_OS_WINDOWS)
-    COMPILE_ASSERT(kPcMarkerSlotFromFp < 0);
-    // If the fp is at the beginning of a page, it may be unsafe to access
-    // the pc marker, because we are reading it from a different thread on
-    // Windows. The marker is below fp and the previous page may be a guard
-    // page.
-    const intptr_t kPageMask = VirtualMemory::PageSize() - 1;
-    if ((sample->fp() & kPageMask) == 0) {
-      return;
-    }
-#endif
     uword* pc_marker_ptr = fp + kPcMarkerSlotFromFp;
     // MSan/ASan are unaware of frames initialized by generated code.
     MSAN_UNPOISON(pc_marker_ptr, kWordSize);
@@ -934,6 +923,92 @@ static void CopyStackBuffer(Sample* sample) {
       sp++;
     }
   }
+}
+
+
+#if defined(TARGET_OS_WINDOWS)
+// On Windows this code is synchronously executed from the thread interrupter
+// thread. This means we can safely have a static fault_address.
+static uword fault_address = 0;
+static LONG GuardPageExceptionFilter(EXCEPTION_POINTERS* ep) {
+  fault_address = 0;
+  if (ep->ExceptionRecord->ExceptionCode != STATUS_GUARD_PAGE_VIOLATION) {
+    return EXCEPTION_CONTINUE_SEARCH;
+  }
+  // https://goo.gl/p5Fe10
+  fault_address = ep->ExceptionRecord->ExceptionInformation[1];
+  // Read access.
+  ASSERT(ep->ExceptionRecord->ExceptionInformation[0] == 0);
+  return EXCEPTION_EXECUTE_HANDLER;
+}
+#endif
+
+// All memory access done to collect the sample is performed in CollectSample.
+static void CollectSample(Isolate* isolate,
+                          bool exited_dart_code,
+                          bool in_dart_code,
+                          Sample* sample,
+                          uword stack_lower,
+                          uword stack_upper,
+                          uword pc,
+                          uword fp,
+                          uword sp) {
+#if defined(TARGET_OS_WINDOWS)
+  // Use structured exception handling to trap guard page access on Windows.
+  __try {
+#endif
+
+  CopyStackBuffer(sample);
+  CopyPCMarkerIfSafe(sample);
+
+  if (FLAG_profile_vm) {
+    // Always walk the native stack collecting both native and Dart frames.
+    ProfilerNativeStackWalker stackWalker(sample,
+                                          stack_lower,
+                                          stack_upper,
+                                          pc,
+                                          fp,
+                                          sp);
+    stackWalker.walk();
+  } else if (exited_dart_code) {
+    // We have a valid exit frame info, use the Dart stack walker.
+    ProfilerDartExitStackWalker stackWalker(isolate, sample);
+    stackWalker.walk();
+  } else if (in_dart_code) {
+    // We are executing Dart code. We have frame pointers.
+    ProfilerDartStackWalker stackWalker(isolate,
+                                        sample,
+                                        stack_lower,
+                                        stack_upper,
+                                        pc,
+                                        fp,
+                                        sp);
+    stackWalker.walk();
+  } else {
+    sample->set_vm_tag(VMTag::kEmbedderTagId);
+    sample->SetAt(0, pc);
+  }
+
+#if defined(TARGET_OS_WINDOWS)
+  // Use structured exception handling to trap guard page access.
+  } __except(GuardPageExceptionFilter(GetExceptionInformation())) {
+    // Sample collection triggered a guard page fault:
+    // 1) discard entire sample.
+    sample->set_ignore_sample(true);
+
+    // 2) Reenable guard bit on page that triggered the fault.
+    // https://goo.gl/5mCsXW
+    DWORD new_protect = PAGE_READWRITE | PAGE_GUARD;
+    DWORD old_protect = 0;
+    BOOL success = VirtualProtect(reinterpret_cast<void*>(fault_address),
+                                  sizeof(fault_address),
+                                  new_protect,
+                                  &old_protect);
+    USE(success);
+    ASSERT(success);
+    ASSERT(old_protect == PAGE_READWRITE);
+  }
+#endif
 }
 
 
@@ -1075,36 +1150,17 @@ void Profiler::RecordSampleInterruptCallback(
   sample->set_sp(sp);
   sample->set_fp(fp);
   sample->set_lr(lr);
-  CopyStackBuffer(sample);
-  CopyPCMarkerIfSafe(sample);
 
-  if (FLAG_profile_vm) {
-    // Always walk the native stack collecting both native and Dart frames.
-    ProfilerNativeStackWalker stackWalker(sample,
-                                          stack_lower,
-                                          stack_upper,
-                                          pc,
-                                          fp,
-                                          sp);
-    stackWalker.walk();
-  } else if (exited_dart_code) {
-    // We have a valid exit frame info, use the Dart stack walker.
-    ProfilerDartExitStackWalker stackWalker(isolate, sample);
-    stackWalker.walk();
-  } else if (in_dart_code) {
-    // We are executing Dart code. We have frame pointers.
-    ProfilerDartStackWalker stackWalker(isolate,
-                                        sample,
-                                        stack_lower,
-                                        stack_upper,
-                                        pc,
-                                        fp,
-                                        sp);
-    stackWalker.walk();
-  } else {
-    sample->set_vm_tag(VMTag::kEmbedderTagId);
-    sample->SetAt(0, pc);
-  }
+  // All memory access is done inside CollectSample.
+  CollectSample(isolate,
+                exited_dart_code,
+                in_dart_code,
+                sample,
+                stack_lower,
+                stack_upper,
+                pc,
+                fp,
+                sp);
 }
 
 }  // namespace dart
