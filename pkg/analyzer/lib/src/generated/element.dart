@@ -5769,6 +5769,11 @@ abstract class InterfaceType implements ParameterizedType {
    */
   List<PropertyAccessorElement> get accessors;
 
+  /**
+   * Return a list containing all of the constructors declared in this type.
+   */
+  List<ConstructorElement> get constructors;
+
   @override
   ClassElement get element;
 
@@ -6122,6 +6127,17 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         new List<PropertyAccessorElement>(accessors.length);
     for (int i = 0; i < accessors.length; i++) {
       members[i] = PropertyAccessorMember.from(accessors[i], this);
+    }
+    return members;
+  }
+
+  @override
+  List<ConstructorElement> get constructors {
+    List<ConstructorElement> constructors = element.constructors;
+    List<ConstructorElement> members =
+        new List<ConstructorElement>(constructors.length);
+    for (int i = 0; i < constructors.length; i++) {
+      members[i] = ConstructorMember.from(constructors[i], this);
     }
     return members;
   }

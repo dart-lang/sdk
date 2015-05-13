@@ -2550,6 +2550,20 @@ class InterfaceTypeImplTest extends EngineTestCase {
     expect(typeA.getMethod("m"), isNull);
   }
 
+  void test_getConstructors() {
+    ClassElementImpl typeElement = ElementFactory.classElement2("A");
+    ConstructorElementImpl constructorOne =
+        ElementFactory.constructorElement(typeElement, 'one', false);
+    ConstructorElementImpl constructorTwo =
+        ElementFactory.constructorElement(typeElement, 'two', false);
+    typeElement.constructors = <ConstructorElement>[
+      constructorOne,
+      constructorTwo
+    ];
+    InterfaceTypeImpl type = new InterfaceTypeImpl(typeElement);
+    expect(type.constructors, hasLength(2));
+  }
+
   void test_getMethods() {
     ClassElementImpl typeElement = ElementFactory.classElement2("A");
     MethodElementImpl methodOne = ElementFactory.methodElement("one", null);
@@ -2563,6 +2577,12 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElementImpl typeElement = ElementFactory.classElement2("A");
     InterfaceTypeImpl type = new InterfaceTypeImpl(typeElement);
     expect(type.methods.length, 0);
+  }
+
+  void test_getConstructors_empty() {
+    ClassElementImpl typeElement = ElementFactory.classElement2("A");
+    InterfaceTypeImpl type = new InterfaceTypeImpl(typeElement);
+    expect(type.constructors, isEmpty);
   }
 
   void test_getMixins_nonParameterized() {

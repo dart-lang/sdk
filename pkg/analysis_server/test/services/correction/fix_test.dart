@@ -517,6 +517,25 @@ class B extends A {
     assertNoFix(DartFixKind.ADD_SUPER_CONSTRUCTOR_INVOCATION);
   }
 
+  void test_createConstructorSuperExplicit_typeArgument() {
+    resolveTestUnit('''
+class A<T> {
+  A(T p);
+}
+class B extends A<int> {
+  B();
+}
+''');
+    assertHasFix(DartFixKind.ADD_SUPER_CONSTRUCTOR_INVOCATION, '''
+class A<T> {
+  A(T p);
+}
+class B extends A<int> {
+  B() : super(0);
+}
+''');
+  }
+
   void test_createConstructorSuperImplicit() {
     resolveTestUnit('''
 class A {
@@ -629,6 +648,24 @@ class B extends A {
 }
 ''');
     assertNoFix(DartFixKind.CREATE_CONSTRUCTOR_SUPER);
+  }
+
+  void test_createConstructorSuperImplicit_typeArgument() {
+    resolveTestUnit('''
+class C<T> {
+  final T x;
+  C(this.x);
+}
+class D extends C<int> {
+}''');
+    assertHasFix(DartFixKind.CREATE_CONSTRUCTOR_SUPER, '''
+class C<T> {
+  final T x;
+  C(this.x);
+}
+class D extends C<int> {
+  D(int x) : super(x);
+}''');
   }
 
   void test_createField_BAD_inEnum() {
