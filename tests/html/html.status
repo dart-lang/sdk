@@ -135,6 +135,9 @@ localstorage_test: Pass, RuntimeError # Issue 22166
 storage_test: Pass, RuntimeError # Issue 22166
 postmessage_structured_test/more_primitives: Fail # Does not support the MessageEvent constructor.
 notification_test/supported_notification: Fail # Notification not supported on IE
+event_test: RuntimeError # Issue 23437. Only three failures, but hard to break them out.
+wheelevent_test: RuntimeError # Issue 23437
+text_event_test: RuntimeError # Issue 23437
 
 [$runtime == ie10 || $runtime == ie11 || ($runtime == chrome && $system == macos)]
 transition_event_test/functional: Skip # Times out. Issue 22167
@@ -198,7 +201,6 @@ custom/document_register_type_extensions_test/single-parameter: Fail # Issue 131
 canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
 worker_test/functional: Pass, Fail # Issues 20659.
 transferables_test: Pass, Fail # Issues 20659.
-text_event_test: Fail # Issue 23437
 
 # IE11 Feature support statuses-
 # These results not yet noted in platform support annotations.
@@ -247,8 +249,6 @@ xsltprocessor_test/supported: Fail
 custom/document_register_type_extensions_test/construction: Fail # Issue 13193
 custom/element_upgrade_test: Fail # Issue 18247
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
-event_test: RuntimeError # Issue 23437. Only three failures, but hard to break them out.
-wheelevent_test: RuntimeError # Issue 23437
 
 [ $compiler == dart2js && $runtime == drt && $unchecked ]
 audiocontext_test/functional: Pass, Fail
@@ -282,6 +282,8 @@ element_types_test/supported_template: Fail
 xhr_test/json: Fail # Safari doesn't support JSON response type
 notification_test/constructors: Pass # Safari mobile will pass this test on the basis that notifications aren't supported at all.
 notification_test/supported_notification: RuntimeError # Issue 22869
+wheelevent_test: RuntimeError # Safarimobilesim does not support WheelEvent
+event_test: RuntimeError # Safarimobilesim does not support WheelEvent
 
 [ $runtime == safari ]
 input_element_test/supported_month: RuntimeError

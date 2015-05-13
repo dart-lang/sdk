@@ -4822,6 +4822,7 @@ LayoutTests/fast/events/mutation-during-replace-child-2_t01: RuntimeError # Plea
 LayoutTests/fast/events/mutation-during-replace-child_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/scroll-event-does-not-bubble_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/scroll-event-phase_t01: Skip # Times out. Please triage this failure
+LayoutTests/fast/events/wheelevent-constructor_t01: RuntimeError # Safarimobilesim does not support WheelEvent
 LayoutTests/fast/events/tabindex-removal-from-focused-element_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/exclusions/parsing/parsing-wrap-flow_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/exclusions/parsing/parsing-wrap-through_t01: RuntimeError # Please triage this failure
@@ -5184,6 +5185,8 @@ LibTest/html/Element/isTagSupported_A01_t01: RuntimeError # Please triage this f
 LibTest/html/Element/isTagSupported_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/Element/leftView_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/marginEdge_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/Element/mouseWheelEvent_A01_t01: RuntimeError # Safari mobile sim does not support WheelEvent
+LibTest/html/Element/onMouseWheel_A01_t01: Skip # Safari mobile sim does not support WheelEvent
 LibTest/html/Element/onTransitionEnd_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/paddingEdge_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/querySelectorAll_A01_t02: RuntimeError # Please triage this failure
@@ -5223,6 +5226,8 @@ LibTest/html/IFrameElement/innerHtml_A01_t01: RuntimeError # Please triage this 
 LibTest/html/IFrameElement/isContentEditable_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/leftView_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/marginEdge_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/Element/mouseWheelEvent_A01_t01: RuntimeError # Safari mobile sim does not support WheelEvent
+LibTest/html/Element/onMouseWheel_A01_t01: Skip # Safari mobile sim does not support WheelEvent
 LibTest/html/IFrameElement/offsetTo_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/onTransitionEnd_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/outerHtml_setter_A01_t01: RuntimeError # Please triage this failure
@@ -6475,7 +6480,7 @@ LayoutTests/fast/events/scroll-event-does-not-bubble_t01: RuntimeError # Please 
 LayoutTests/fast/events/selectstart-prevent-selectall_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/submit-reset-nested-bubble_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/tabindex-removal-from-focused-element_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/events/wheelevent-constructor: RuntimeError # Issue 23437
+LayoutTests/fast/events/wheelevent-constructor_t01: RuntimeError # Issue 23437
 LayoutTests/fast/eventsource/eventsource-attribute-listeners_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/eventsource/eventsource-constructor_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/exclusions/parsing/parsing-wrap-flow_t01: RuntimeError # Please triage this failure
@@ -7029,6 +7034,7 @@ LibTest/html/Element/isTagSupported_A01_t01: RuntimeError # Please triage this f
 LibTest/html/Element/isTagSupported_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/Element/leftView_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/loadEvent_A01_t01: Skip # Times out. Please triage this failure
+LibTest/html/Element/mouseWheelEvent_A01_t01: Skip # Times out, Issue 23437
 LibTest/html/Element/onMouseWheel_A01_t01: Skip # Times out, Issue 23437
 LibTest/html/Element/onFocus_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/html/Element/onLoad_A01_t01: Skip # Times out. Please triage this failure
@@ -9028,6 +9034,7 @@ LibTest/html/Element/leftView_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/loadEvent_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Element/marginEdge_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/mouseWheelEvent_A01_t01: Skip # Times out, Issue 23437
+LibTest/html/Element/onMouseWheel_A01_t01: Skip # Times out, Issue 23437
 LibTest/html/Element/onError_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Element/onFocus_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/html/Element/onLoad_A01_t01: Skip # Times out. Please triage this failure
