@@ -26,6 +26,8 @@ void addInfoBox(Element content, Function infoBoxGenerator) {
     infoBox.style.zIndex = '10';
     infoBox.style.backgroundColor = 'white';
     infoBox.style.cursor = 'auto';
+    // Don't inherit pre formating from the script lines.
+    infoBox.style.whiteSpace = 'normal';
     content.append(infoBox);
   }
   content.onClick.listen((event) {
@@ -136,7 +138,7 @@ class CallSiteAnnotation extends Annotation {
     addInfoBox(element, () {
       var details = table();
       if (callSite.entries.isEmpty) {
-        details.append(row('Did not execute'));
+        details.append(row('Call of "${callSite.name}" did not execute'));
       } else {
         var r = row();
         r.append(cell("Container"));
@@ -157,15 +159,12 @@ class CallSiteAnnotation extends Annotation {
   }
 }
 
-
-class FunctionDeclarationAnnotation extends Annotation {
-  ServiceFunction function;
-
-  FunctionDeclarationAnnotation(this.function) {
-    assert(function.loaded);
-    var script = function.script;
-    line = script.tokenToLine(function.tokenPos);
-    columnStart = script.tokenToCol(function.tokenPos);
+class DeclarationAnnotation extends Annotation {
+  DeclarationAnnotation(decl) {
+    assert(decl.loaded);
+    var script = decl.script;
+    line = script.tokenToLine(decl.tokenPos);
+    columnStart = script.tokenToCol(decl.tokenPos);
     if ((line == null) || (columnStart == null)) {
       line = 0;
       columnStart = 0;
@@ -178,20 +177,99 @@ class FunctionDeclarationAnnotation extends Annotation {
       // modifier, etc. Try to scan forward to position this annotation on the
       // function's name instead.
       var lineSource = script.getLine(line).text;
-      var betterStart = lineSource.indexOf(function.name, columnStart);
+      var betterStart = lineSource.indexOf(decl.name, columnStart);
       if (betterStart != -1) {
         columnStart = betterStart;
       }
-      columnStop = columnStart + function.name.length;
+      columnStop = columnStart + decl.name.length;
     }
   }
+}
+
+class ClassDeclarationAnnotation extends DeclarationAnnotation {
+  Class klass;
+
+  ClassDeclarationAnnotation(Class cls) : klass = cls, super(cls);
 
   void applyStyleTo(element) {
     if (element == null) {
       return;  // TODO(rmacnak): Handling overlapping annotations.
     }
     element.style.fontWeight = "bold";
-    element.title = "Function declaration: ${function.name}";
+    element.title = "class ${klass.name}";
+
+    addInfoBox(element, () {
+      var details = table();
+      var r = row();
+      r.append(cell("Class"));
+      r.append(cell(serviceRef(klass)));
+      details.append(r);
+
+      return details;
+    });
+  }
+}
+
+class FieldDeclarationAnnotation extends DeclarationAnnotation {
+  Field field;
+
+  FieldDeclarationAnnotation(Field fld) : field = fld, super(fld);
+
+  void applyStyleTo(element) {
+    if (element == null) {
+      return;  // TODO(rmacnak): Handling overlapping annotations.
+    }
+    element.style.fontWeight = "bold";
+    element.title = "field ${field.name}";
+
+    addInfoBox(element, () {
+      var details = table();
+      var r = row();
+      r.append(cell("Field"));
+      r.append(cell(serviceRef(field)));
+      details.append(r);
+
+      if (field.isStatic) {
+        r = row();
+        r.append(cell("Value"));
+        r.append(cell(serviceRef(field.value)));
+        details.append(r);
+      } else {
+        r = row();
+        r.append(cell("Nullable"));
+        r.append(cell(field.guardNullable ? "null observed"
+                                          : "null not observed"));
+        details.append(r);
+
+        r = row();
+        r.append(cell("Types"));
+        if (field.guardClass == "dynamic") {
+          r.append(cell("various"));
+        } else if (field.guardClass == "unknown") {
+          r.append(cell("none"));
+        } else {
+          r.append(cell(serviceRef(field.guardClass)));
+        }
+        details.append(r);
+      }
+
+      return details;
+    });
+  }
+}
+
+class FunctionDeclarationAnnotation extends DeclarationAnnotation {
+  ServiceFunction function;
+
+  FunctionDeclarationAnnotation(ServiceFunction func)
+    : function = func, super(func);
+
+  void applyStyleTo(element) {
+    if (element == null) {
+      return;  // TODO(rmacnak): Handling overlapping annotations.
+    }
+    element.style.fontWeight = "bold";
+    element.title = "method ${function.name}";
 
     if (function.isOptimizable == false ||
         function.isInlinable == false ||
@@ -344,21 +422,6 @@ class ScriptInsetElement extends ObservatoryElement {
     makeCssClassUncopyable(table, "noCopy");
   }
 
-  void loadFunctionsOf(Library lib) {
-    lib.load().then((lib) {
-      for (var func in lib.functions) {
-        func.load();
-      }
-      for (var cls in lib.classes) {
-        cls.load().then((cls) {
-          for (var func in cls.functions) {
-            func.load();
-          }
-        });
-      }
-    });
-  }
-
   void computeAnnotations() {
     _startLine = (startPos != null
                   ? script.tokenToLine(startPos)
@@ -374,6 +437,26 @@ class ScriptInsetElement extends ObservatoryElement {
                 : script.lines.length + script.lineOffset);
 
     annotations.clear();
+
+    addCurrentExecutionAnnotation();
+
+    if (!inDebuggerContext) {
+      loadDeclarationsOfLibrary(script.library);
+
+      // Add fields before functions so they beat out conflicting
+      // implicit g/setters.
+      addClassAnnotations();
+      addFieldAnnotations();
+      addFunctionAnnotations();
+      addCallSiteAnnotations();
+    }
+
+    addLocalVariableAnnotations();
+
+    annotations.sort();
+  }
+
+  void addCurrentExecutionAnnotation() {
     if (_currentLine != null) {
       var a = new CurrentExecutionAnnotation();
       a.line = _currentLine;
@@ -381,28 +464,74 @@ class ScriptInsetElement extends ObservatoryElement {
       a.columnStop = _currentCol + 1;
       annotations.add(a);
     }
+  }
 
-    if (!inDebuggerContext) {
-      loadFunctionsOf(script.library);
+  void loadDeclarationsOfLibrary(Library lib) {
+    lib.load().then((lib) {
+      for (var func in lib.functions) {
+        func.load();
+      }
+      for (var field in lib.variables) {
+        field.load();
+      }
+      for (var cls in lib.classes) {
+        cls.load().then((cls) {
+          for (var func in cls.functions) {
+            func.load();
+          }
+          for (var field in cls.fields) {
+            field.load();
+          }
+        });
+      }
+    });
+  }
 
-      for (var func in script.library.functions) {
+  void addClassAnnotations() {
+    for (var cls in script.library.classes) {
+      if (cls.script == script) {
+        annotations.add(new ClassDeclarationAnnotation(cls));
+      }
+    }
+  }
+
+  void addFieldAnnotations() {
+    for (var field in script.library.variables) {
+      if (field.script == script) {
+        annotations.add(new FieldDeclarationAnnotation(field));
+      }
+    }
+    for (var cls in script.library.classes) {
+      for (var field in cls.fields) {
+        if (field.script == script) {
+          annotations.add(new FieldDeclarationAnnotation(field));
+        }
+      }
+    }
+  }
+
+  void addFunctionAnnotations() {
+    for (var func in script.library.functions) {
+      if (func.script == script) {
+        annotations.add(new FunctionDeclarationAnnotation(func));
+      }
+    }
+    for (var cls in script.library.classes) {
+      for (var func in cls.functions) {
         if (func.script == script) {
           annotations.add(new FunctionDeclarationAnnotation(func));
         }
       }
-      for (var cls in script.library.classes) {
-        for (var func in cls.functions) {
-          if (func.script == script) {
-            annotations.add(new FunctionDeclarationAnnotation(func));
-          }
-        }
-      }
-
-      for (var callSite in script.callSites) {
-        annotations.add(new CallSiteAnnotation(callSite));
-      }
     }
+  }
 
+  void addCallSiteAnnotations() {
+    for (var callSite in script.callSites) {
+      annotations.add(new CallSiteAnnotation(callSite));
+    }
+  }
+
+  void addLocalVariableAnnotations() {
     // We have local variable information.
     if (variables != null) {
       // For each variable.
@@ -418,8 +547,6 @@ class ScriptInsetElement extends ObservatoryElement {
         }
       }
     }
-
-    annotations.sort();
   }
 
   Element linesTable() {

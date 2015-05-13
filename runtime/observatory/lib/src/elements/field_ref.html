@@ -11,11 +11,9 @@
       <template if="{{ ref.isFinal }}">final</template>
       <template if="{{ ref.isConst }}">const</template>
       <template if="{{ (ref.declaredType.name == 'dynamic' &&
-                        !ref.isFinal && !ref.isConst) }}">
-        var
-      </template>
+                        !ref.isFinal && !ref.isConst) }}">var</template>
       <template if="{{ (ref.declaredType.name != 'dynamic') }}">
-        <instance-ref ref="{{ ref.declaredType }}"></instance-ref>
+      <instance-ref ref="{{ ref.declaredType }}"></instance-ref>
       </template>
       <a on-click="{{ goto }}" title="{{ hoverText }}" _href="{{ url }}">{{ name }}</a>
     </span>
