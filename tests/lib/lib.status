@@ -5,10 +5,6 @@
 [ $unchecked ]
 mirrors/redirecting_factory_different_type_test: SkipByDesign # Tests type checks.
 
-[ $csp ]
-# Deferred loading does not work from an isolate in CSP-mode
-async/deferred/deferred_in_isolate_test: Skip # Issue 16898
-
 [ $compiler == dart2js ]
 async/schedule_microtask6_test: RuntimeError # global error handling is not supported. Issue 5958
 
@@ -325,7 +321,6 @@ mirrors/immutable_collections_test: SkipSlow  # Timeout.
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Timeout.
 
 [ $compiler == dart2js && $cps_ir ]
-async/deferred/deferred_in_isolate_test: Crash # (loadDeferred): handleStaticFunctionGet: function(loadDeferred)
 async/first_regression_test : Crash # Instance of 'TypeOperator': type casts not implemented.
 async/future_timeout_test : Crash # Instance of 'TypeOperator': type casts not implemented.
 async/future_value_chain4_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

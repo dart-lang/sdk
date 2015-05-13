@@ -56,8 +56,8 @@ enum_const_test/02: RuntimeError # Issue 21817
 [ $compiler == dart2js && $jscl ]
 spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
 
-[ $compiler == dart2js && $runtime == drt && $csp ]
-deferred_in_isolate2_test: RuntimeError # TODO(floitsch): Please triage this failure.
+[ $csp ]
+deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 isolate_stress_test: Pass, Slow # TODO(kasperl): Please triage.
