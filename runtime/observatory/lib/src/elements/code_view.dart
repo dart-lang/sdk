@@ -4,6 +4,7 @@
 
 library code_view_element;
 
+import 'dart:async';
 import 'dart:html';
 import 'observatory_element.dart';
 import 'package:observatory/app.dart';
@@ -60,19 +61,19 @@ class CodeViewElement extends ObservatoryElement {
     });
   }
 
-  void refresh(var done) {
-    code.reload().whenComplete(done);
+  Future refresh() {
+    return code.reload();
   }
 
-  void refreshTicks(var done) {
+  Future refreshTicks() {
     var isolate = code.isolate;
-    isolate.invokeRpc('getCpuProfile', { 'tags': 'None' })
-      .then((ServiceMap response) {
-        var cpuProfile = new CpuProfile();
-        cpuProfile.load(isolate, response);
-        _updateDisassembly();
-        _updateInline();
-      }).whenComplete(done);
+    return isolate.invokeRpc('getCpuProfile', { 'tags': 'None' })
+        .then((ServiceMap response) {
+            var cpuProfile = new CpuProfile();
+            cpuProfile.load(isolate, response);
+            _updateDisassembly();
+            _updateInline();
+          });
   }
 
   String formattedAddress(CodeInstruction instruction) {

@@ -42,7 +42,10 @@ class EvalBoxElement extends ObservatoryElement {
       map['expr'] = expr;
       results.insert(0, map);
       callback(expr).then((result) {
-          map['value'] = result;
+        map['value'] = result;
+      }).catchError((e, st) {
+        map['error'] = e.message;
+        app.handleException(e, st);
       });
     }
   }

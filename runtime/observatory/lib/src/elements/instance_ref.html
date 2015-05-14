@@ -19,7 +19,7 @@
     </style>
     <span>
       <template if="{{ ref.isSentinel }}">
-        <div title="{{ hoverText }}">{{ ref.valueAsString }}</div>
+        <span title="{{ hoverText }}">{{ ref.valueAsString }}</span>
       </template>
 
       <template if="{{ ref.isBool || ref.isInt ||

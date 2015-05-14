@@ -4,6 +4,7 @@
 
 library context_view_element;
 
+import 'dart:async';
 import 'observatory_element.dart';
 import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
@@ -14,7 +15,7 @@ class ContextViewElement extends ObservatoryElement {
 
   ContextViewElement.created() : super.created();
 
-  void refresh(Function onDone) {
-    context.reload().whenComplete(onDone);
+  Future refresh() {
+    return context.reload();
   }
 }

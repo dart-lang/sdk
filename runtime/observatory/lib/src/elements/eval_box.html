@@ -74,11 +74,16 @@
                expr="{{ result['expr'] }}">{{ result['expr'] }}</a>
           </td>
           <td class="historyValue">
-            <template if="{{ result['value'] == null }}">
-              <div style="color:#aaa;cursor:wait;">&lt;pending&gt;</div>
+            <template if="{{ result['error'] != null}}">
+              <div style="color:red">{{ result['error'] }}</div>
             </template>
-            <template if="{{ result['value'] != null }}">
-              <any-service-ref ref="{{ result['value'] }}"></any-service-ref>
+            <template if="{{ result['error'] == null}}">
+              <template if="{{ result['value'] != null }}">
+                <any-service-ref ref="{{ result['value'] }}"></any-service-ref>
+              </template>
+              <template if="{{ result['value'] == null }}">
+                <div style="color:#aaa;cursor:wait;">&lt;pending&gt;</div>
+              </template>
             </template>
           </td>
         </tr>

@@ -16,8 +16,8 @@ class IOViewElement extends ObservatoryElement {
 
   IOViewElement.created() : super.created();
 
-  void refresh(var done) {
-    io.reload().whenComplete(done);
+  Future refresh() {
+    return io.reload();
   }
 }
 
@@ -32,8 +32,8 @@ class IOHttpServerListViewElement extends ObservatoryElement {
 
   IOHttpServerListViewElement.created() : super.created();
 
-  void refresh(var done) {
-    list.reload().whenComplete(done);
+  Future refresh() {
+    return list.reload();
   }
 }
 
@@ -50,12 +50,12 @@ class IOHttpServerViewElement extends ObservatoryElement {
 
   IOHttpServerViewElement.created() : super.created();
 
-  void refresh(var done) {
-    httpServer.reload().whenComplete(done);
+  Future refresh() {
+    return httpServer.reload();
   }
 
   void _updateHttpServer() {
-    refresh(() {
+    refresh().then((_) {
       if (_updateTimer != null) {
         _updateTimer = new Timer(new Duration(seconds: 1), _updateHttpServer);
       }
@@ -86,12 +86,12 @@ class IOHttpServerConnectionViewElement extends ObservatoryElement {
 
   IOHttpServerConnectionViewElement.created() : super.created();
 
-  void refresh(var done) {
-    connection.reload().whenComplete(done);
+  Future refresh() {
+    return connection.reload();
   }
 
   void _updateHttpServer() {
-    refresh(() {
+    refresh().then((_) {
       if (_updateTimer != null) {
         _updateTimer = new Timer(new Duration(seconds: 1), _updateHttpServer);
       }
@@ -131,8 +131,8 @@ class IOSocketListViewElement extends ObservatoryElement {
 
   IOSocketListViewElement.created() : super.created();
 
-  void refresh(var done) {
-    list.reload().whenComplete(done);
+  Future refresh() {
+    return list.reload();
   }
 }
 
@@ -142,8 +142,8 @@ class IOSocketViewElement extends ObservatoryElement {
 
   IOSocketViewElement.created() : super.created();
 
-  void refresh(var done) {
-    socket.reload().whenComplete(done);
+  Future refresh() {
+    return socket.reload();
   }
 }
 
@@ -158,8 +158,8 @@ class IOWebSocketListViewElement extends ObservatoryElement {
 
   IOWebSocketListViewElement.created() : super.created();
 
-  void refresh(var done) {
-    list.reload().whenComplete(done);
+  Future refresh() {
+    return list.reload();
   }
 }
 
@@ -169,8 +169,8 @@ class IOWebSocketViewElement extends ObservatoryElement {
 
   IOWebSocketViewElement.created() : super.created();
 
-  void refresh(var done) {
-    webSocket.reload().whenComplete(done);
+  Future refresh() {
+    return webSocket.reload();
   }
 }
 
@@ -180,8 +180,8 @@ class IORandomAccessFileListViewElement extends ObservatoryElement {
 
   IORandomAccessFileListViewElement.created() : super.created();
 
-  void refresh(var done) {
-    list.reload().whenComplete(done);
+  Future refresh() {
+    return list.reload();
   }
 }
 
@@ -198,16 +198,16 @@ class IORandomAccessFileViewElement extends ObservatoryElement {
 
   IORandomAccessFileViewElement.created() : super.created();
 
-  void refresh(var done) {
-    file.reload().whenComplete(done);
+  Future refresh() {
+    return file.reload();
   }
 
   void _updateFile() {
-    refresh(() {
+    refresh().then((_) {
       if (_updateTimer != null) {
         _updateTimer = new Timer(new Duration(seconds: 1), _updateFile);
       }
-    });
+    }).catchError(app.handleException);
   }
 
   @override
@@ -233,8 +233,8 @@ class IOProcessListViewElement extends ObservatoryElement {
 
   IOProcessListViewElement.created() : super.created();
 
-  void refresh(var done) {
-    list.reload().whenComplete(done);
+  Future refresh() {
+    return list.reload();
   }
 }
 
@@ -253,16 +253,16 @@ class IOProcessViewElement extends ObservatoryElement {
 
   IOProcessViewElement.created() : super.created();
 
-  void refresh(var done) {
-    process.reload().whenComplete(done);
+  Future refresh() {
+    return process.reload();
   }
 
   void _updateFile() {
-    refresh(() {
+    refresh().then((_) {
       if (_updateTimer != null) {
         _updateTimer = new Timer(new Duration(seconds: 1), _updateFile);
       }
-    });
+    }).catchError(app.handleException);
   }
 
   @override

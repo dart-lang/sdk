@@ -108,7 +108,7 @@ var tests = [
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Sentinel'));
-    expect(result['id'], startsWith('objects/expired'));
+    expect(result['kind'], startsWith('Expired'));
     expect(result['valueAsString'], equals('<expired>'));
     expect(result['class'], isNull);
     expect(result['size'], isNull);
@@ -142,9 +142,17 @@ var tests = [
     var params = {
       'objectId': 'libraries/9999999',
     };
-    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
-    expect(result['type'], equals('Error'));
-    expect(result['message'], startsWith('Unrecognized object id'));
+    bool caughtException;
+    try {
+      await isolate.invokeRpcNoUpgrade('getObject', params);
+      expect(false, isTrue, reason:'Unreachable');
+    } on ServerRpcException catch(e) {
+      caughtException = true;
+      expect(e.code, equals(ServerRpcException.kInvalidParams));
+      expect(e.message,
+             "getObject: invalid 'objectId' parameter: libraries/9999999");
+    }
+    expect(caughtException, isTrue);
   },
 
   // script.
@@ -177,9 +185,17 @@ var tests = [
     var params = {
       'objectId': 'scripts/9999999',
     };
-    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
-    expect(result['type'], equals('Error'));
-    expect(result['message'], startsWith('Unrecognized object id'));
+    bool caughtException;
+    try {
+      await isolate.invokeRpcNoUpgrade('getObject', params);
+      expect(false, isTrue, reason:'Unreachable');
+    } on ServerRpcException catch(e) {
+      caughtException = true;
+      expect(e.code, equals(ServerRpcException.kInvalidParams));
+      expect(e.message,
+             "getObject: invalid 'objectId' parameter: scripts/9999999");
+    }
+    expect(caughtException, isTrue);
   },
 
   // class
@@ -216,9 +232,17 @@ var tests = [
     var params = {
       'objectId': 'classes/9999999',
     };
-    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
-    expect(result['type'], equals('Error'));
-    expect(result['message'], startsWith('Unrecognized object id'));
+    bool caughtException;
+    try {
+      await isolate.invokeRpcNoUpgrade('getObject', params);
+      expect(false, isTrue, reason:'Unreachable');
+    } on ServerRpcException catch(e) {
+      caughtException = true;
+      expect(e.code, equals(ServerRpcException.kInvalidParams));
+      expect(e.message,
+             "getObject: invalid 'objectId' parameter: classes/9999999");
+    }
+    expect(caughtException, isTrue);
   },
 
   // type.
@@ -247,9 +271,17 @@ var tests = [
     var params = {
       'objectId': id,
     };
-    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
-    expect(result['type'], equals('Error'));
-    expect(result['message'], startsWith('Unrecognized object id'));
+    bool caughtException;
+    try {
+      await isolate.invokeRpcNoUpgrade('getObject', params);
+      expect(false, isTrue, reason:'Unreachable');
+    } on ServerRpcException catch(e) {
+      caughtException = true;
+      expect(e.code, equals(ServerRpcException.kInvalidParams));
+      expect(e.message,
+             startsWith("getObject: invalid 'objectId' parameter: "));
+    }
+    expect(caughtException, isTrue);
   },
 
   // function.
@@ -285,9 +317,17 @@ var tests = [
     var params = {
       'objectId': id,
     };
-    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
-    expect(result['type'], equals('Error'));
-    expect(result['message'], startsWith('Unrecognized object id'));
+    bool caughtException;
+    try {
+      await isolate.invokeRpcNoUpgrade('getObject', params);
+      expect(false, isTrue, reason:'Unreachable');
+    } on ServerRpcException catch(e) {
+      caughtException = true;
+      expect(e.code, equals(ServerRpcException.kInvalidParams));
+      expect(e.message,
+             startsWith("getObject: invalid 'objectId' parameter: "));
+    }
+    expect(caughtException, isTrue);
   },
 
   // field
@@ -321,9 +361,17 @@ var tests = [
     var params = {
       'objectId': id,
     };
-    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
-    expect(result['type'], equals('Error'));
-    expect(result['message'], startsWith('Unrecognized object id'));
+    bool caughtException;
+    try {
+      await isolate.invokeRpcNoUpgrade('getObject', params);
+      expect(false, isTrue, reason:'Unreachable');
+    } on ServerRpcException catch(e) {
+      caughtException = true;
+      expect(e.code, equals(ServerRpcException.kInvalidParams));
+      expect(e.message,
+             startsWith("getObject: invalid 'objectId' parameter: "));
+    }
+    expect(caughtException, isTrue);
   },
 
   // code.
@@ -356,13 +404,20 @@ var tests = [
 
   // invalid code.
   (Isolate isolate) async {
-    // Call eval to get a class id.
     var params = {
       'objectId': 'code/0',
     };
-    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
-    expect(result['type'], equals('Error'));
-    expect(result['message'], startsWith('Unrecognized object id'));
+    bool caughtException;
+    try {
+      await isolate.invokeRpcNoUpgrade('getObject', params);
+      expect(false, isTrue, reason:'Unreachable');
+    } on ServerRpcException catch(e) {
+      caughtException = true;
+      expect(e.code, equals(ServerRpcException.kInvalidParams));
+      expect(e.message,
+             "getObject: invalid 'objectId' parameter: code/0");
+    }
+    expect(caughtException, isTrue);
   },
 ];
 

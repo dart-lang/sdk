@@ -83,6 +83,74 @@ void JSONStream::SetupError() {
 }
 
 
+static const char* GetJSONRpcErrorMessage(intptr_t code) {
+  switch (code) {
+    case kParseError:
+      return "Parse error";
+    case kInvalidRequest:
+      return "Invalid Request";
+    case kMethodNotFound:
+      return "Method not found";
+    case kInvalidParams:
+      return "Invalid params";
+    case kInternalError:
+      return "Internal error";
+    case kVMMustBePaused:
+      return "VM must be paused";
+    case kNoBreakAtLine:
+      return "Cannot set breakpoint at line";
+    case kNoBreakAtFunction:
+      return "Cannot set breakpoint at function";
+    case kProfilingDisabled:
+      return "Profiling is disabled";
+    default:
+      UNIMPLEMENTED();
+      return "Unexpected rpc error code";
+  }
+}
+
+
+static void PrintRequest(JSONObject* obj, JSONStream* js) {
+  JSONObject jsobj(obj, "request");
+  jsobj.AddProperty("method", js->method());
+  {
+    JSONObject params(&jsobj, "params");
+    for (intptr_t i = 0; i < js->num_params(); i++) {
+      params.AddProperty(js->GetParamKey(i), js->GetParamValue(i));
+    }
+  }
+}
+
+
+void JSONStream::PrintError(intptr_t code,
+                            const char* details_format, ...) {
+  SetupError();
+  JSONObject jsobj(this);
+  jsobj.AddProperty("code", code);
+  jsobj.AddProperty("message", GetJSONRpcErrorMessage(code));
+  {
+    JSONObject data(&jsobj, "data");
+    PrintRequest(&data, this);
+    if (details_format != NULL) {
+      Isolate* isolate = Isolate::Current();
+
+      va_list args;
+      va_start(args, details_format);
+      intptr_t len = OS::VSNPrint(NULL, 0, details_format, args);
+      va_end(args);
+
+      char* buffer = isolate->current_zone()->Alloc<char>(len + 1);
+      va_list args2;
+      va_start(args2, details_format);
+      OS::VSNPrint(buffer, (len + 1), details_format, args2);
+      va_end(args2);
+
+      data.AddProperty("details", buffer);
+    }
+  }
+}
+
+
 static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
   return reinterpret_cast<uint8_t*>(new_ptr);

@@ -79,81 +79,23 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   return reinterpret_cast<uint8_t*>(new_ptr);
 }
 
-static void PrintRequest(const JSONObject& obj, JSONStream* js) {
-  JSONObject jsobj(&obj, "request");
-  jsobj.AddProperty("method", js->method());
-  {
-    JSONObject params(&jsobj, "params");
-    for (intptr_t i = 0; i < js->num_params(); i++) {
-      params.AddProperty(js->GetParamKey(i), js->GetParamValue(i));
-    }
-  }
-}
-
-
-static void PrintError(JSONStream* js,
-                       const char* format, ...) {
-  Isolate* isolate = Isolate::Current();
-
-  va_list args;
-  va_start(args, format);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
-  va_end(args);
-
-  char* buffer = isolate->current_zone()->Alloc<char>(len + 1);
-  va_list args2;
-  va_start(args2, format);
-  OS::VSNPrint(buffer, (len + 1), format, args2);
-  va_end(args2);
-
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "Error");
-  jsobj.AddProperty("message", buffer);
-  PrintRequest(jsobj, js);
-}
-
-
 static void PrintMissingParamError(JSONStream* js,
                                    const char* param) {
-  PrintError(js, "%s expects the '%s' parameter",
-             js->method(), param);
+  js->PrintError(kInvalidParams,
+                 "%s expects the '%s' parameter", js->method(), param);
 }
 
 
 static void PrintInvalidParamError(JSONStream* js,
                                    const char* param) {
-  PrintError(js, "%s: invalid '%s' parameter: %s",
-             js->method(), param, js->LookupParam(param));
+  js->PrintError(kInvalidParams,
+                 "%s: invalid '%s' parameter: %s",
+                 js->method(), param, js->LookupParam(param));
 }
 
 
 static void PrintUnrecognizedMethodError(JSONStream* js) {
-  PrintError(js, "unrecognized method: %s", js->method());
-}
-
-
-static void PrintErrorWithKind(JSONStream* js,
-                               const char* kind,
-                               const char* format, ...) {
-  Isolate* isolate = Isolate::Current();
-
-  va_list args;
-  va_start(args, format);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
-  va_end(args);
-
-  char* buffer = isolate->current_zone()->Alloc<char>(len + 1);
-  va_list args2;
-  va_start(args2, format);
-  OS::VSNPrint(buffer, (len + 1), format, args2);
-  va_end(args2);
-
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "Error");
-  jsobj.AddProperty("id", "");
-  jsobj.AddProperty("kind", kind);
-  jsobj.AddProperty("message", buffer);
-  PrintRequest(jsobj, js);
+  js->PrintError(kMethodNotFound, NULL);
 }
 
 
@@ -1224,13 +1166,33 @@ static RawObject* LookupHeapObject(Isolate* isolate,
 }
 
 
-static void PrintSentinel(JSONStream* js,
-                          const char* id,
-                          const char* preview) {
+enum SentinelType {
+  kCollectedSentinel,
+  kExpiredSentinel,
+  kFreeSentinel,
+};
+
+
+static void PrintSentinel(JSONStream* js, SentinelType sentinel_type) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Sentinel");
-  jsobj.AddProperty("id", id);
-  jsobj.AddProperty("valueAsString", preview);
+  switch (sentinel_type) {
+    case kCollectedSentinel:
+      jsobj.AddProperty("kind", "Collected");
+      jsobj.AddProperty("valueAsString", "<collected>");
+      break;
+    case kExpiredSentinel:
+      jsobj.AddProperty("kind", "Expired");
+      jsobj.AddProperty("valueAsString", "<expired>");
+      break;
+    case kFreeSentinel:
+      jsobj.AddProperty("kind", "Free");
+      jsobj.AddProperty("valueAsString", "<free>");
+      break;
+    default:
+      UNIMPLEMENTED();
+      break;
+  }
 }
 
 
@@ -1268,9 +1230,10 @@ static bool PrintMessage(JSONStream* js, Isolate* isolate, const char* id) {
       isolate->message_handler()->AcquireQueues(&aq);
       Message* message = aq.queue()->FindMessageById(message_id);
       if (message == NULL) {
-        printf("Could not find message %" Px "\n", message_id);
-        // Not found.
-        return false;
+        // The user may try to load an expired message, so we treat
+        // unrecognized ids as if they are expired.
+        PrintSentinel(js, kExpiredSentinel);
+        return true;
       }
       SnapshotReader reader(message->data(),
                             message->len(),
@@ -1280,8 +1243,6 @@ static bool PrintMessage(JSONStream* js, Isolate* isolate, const char* id) {
       const Object& msg_obj = Object::Handle(reader.ReadObject());
       msg_obj.PrintJSON(js);
       return true;
-    } else {
-      printf("Could not get id from %s\n", rest);
     }
   }
   return false;
@@ -1349,7 +1310,7 @@ static bool GetInboundReferences(Isolate* isolate, JSONStream* js) {
     return true;
   }
   const char* limit_cstr = js->LookupParam("limit");
-  if (target_id == NULL) {
+  if (limit_cstr == NULL) {
     PrintMissingParamError(js, "limit");
     return true;
   }
@@ -1367,17 +1328,12 @@ static bool GetInboundReferences(Isolate* isolate, JSONStream* js) {
   }
   if (obj.raw() == Object::sentinel().raw()) {
     if (lookup_result == ObjectIdRing::kCollected) {
-      PrintErrorWithKind(
-          js, "InboundReferencesCollected",
-          "attempt to find a retaining path for a collected object\n");
-      return true;
+      PrintSentinel(js, kCollectedSentinel);
     } else if (lookup_result == ObjectIdRing::kExpired) {
-      PrintErrorWithKind(
-          js, "InboundReferencesExpired",
-          "attempt to find a retaining path for an expired object\n");
-      return true;
+      PrintSentinel(js, kExpiredSentinel);
+    } else {
+      PrintInvalidParamError(js, "targetId");
     }
-    PrintInvalidParamError(js, "targetId");
     return true;
   }
   return PrintInboundReferences(isolate, &obj, limit, js);
@@ -1453,7 +1409,7 @@ static bool GetRetainingPath(Isolate* isolate, JSONStream* js) {
     return true;
   }
   const char* limit_cstr = js->LookupParam("limit");
-  if (target_id == NULL) {
+  if (limit_cstr == NULL) {
     PrintMissingParamError(js, "limit");
     return true;
   }
@@ -1471,17 +1427,12 @@ static bool GetRetainingPath(Isolate* isolate, JSONStream* js) {
   }
   if (obj.raw() == Object::sentinel().raw()) {
     if (lookup_result == ObjectIdRing::kCollected) {
-      PrintErrorWithKind(
-          js, "RetainingPathCollected",
-          "attempt to find a retaining path for a collected object\n");
-      return true;
+      PrintSentinel(js, kCollectedSentinel);
     } else if (lookup_result == ObjectIdRing::kExpired) {
-      PrintErrorWithKind(
-          js, "RetainingPathExpired",
-          "attempt to find a retaining path for an expired object\n");
-      return true;
+      PrintSentinel(js, kExpiredSentinel);
+    } else {
+      PrintInvalidParamError(js, "targetId");
     }
-    PrintInvalidParamError(js, "targetId");
     return true;
   }
   return PrintRetainingPath(isolate, &obj, limit, js);
@@ -1505,17 +1456,12 @@ static bool GetRetainedSize(Isolate* isolate, JSONStream* js) {
                                                 &lookup_result));
   if (obj.raw() == Object::sentinel().raw()) {
     if (lookup_result == ObjectIdRing::kCollected) {
-      PrintErrorWithKind(
-          js, "RetainedCollected",
-          "attempt to calculate size retained by a collected object\n");
-      return true;
+      PrintSentinel(js, kCollectedSentinel);
     } else if (lookup_result == ObjectIdRing::kExpired) {
-      PrintErrorWithKind(
-          js, "RetainedExpired",
-          "attempt to calculate size retained by an expired object\n");
-      return true;
+      PrintSentinel(js, kExpiredSentinel);
+    } else {
+      PrintInvalidParamError(js, "targetId");
     }
-    PrintInvalidParamError(js, "targetId");
     return true;
   }
   if (obj.IsClass()) {
@@ -1534,9 +1480,10 @@ static bool GetRetainedSize(Isolate* isolate, JSONStream* js) {
     result.PrintJSON(js, true);
     return true;
   }
-  PrintError(js, "%s: Invalid 'targetId' parameter value: "
-             "id '%s' does not correspond to a "
-             "library, class, or instance", js->method(), target_id);
+  js->PrintError(kInvalidParams,
+                 "%s: invalid 'targetId' parameter: "
+                 "id '%s' does not correspond to a "
+                 "library, class, or instance", js->method(), target_id);
   return true;
 }
 
@@ -1564,9 +1511,9 @@ static bool Eval(Isolate* isolate, JSONStream* js) {
                                                 &lookup_result));
   if (obj.raw() == Object::sentinel().raw()) {
     if (lookup_result == ObjectIdRing::kCollected) {
-      PrintSentinel(js, "objects/collected", "<collected>");
+      PrintSentinel(js, kCollectedSentinel);
     } else if (lookup_result == ObjectIdRing::kExpired) {
-      PrintSentinel(js, "objects/expired", "<expired>");
+      PrintSentinel(js, kExpiredSentinel);
     } else {
       PrintInvalidParamError(js, "targetId");
     }
@@ -1600,9 +1547,10 @@ static bool Eval(Isolate* isolate, JSONStream* js) {
     result.PrintJSON(js, true);
     return true;
   }
-  PrintError(js, "%s: Invalid 'targetId' parameter value: "
-             "id '%s' does not correspond to a "
-             "library, class, or instance", js->method(), target_id);
+  js->PrintError(kInvalidParams,
+                 "%s: invalid 'targetId' parameter: "
+                 "id '%s' does not correspond to a "
+                 "library, class, or instance", js->method(), target_id);
   return true;
 }
 
@@ -1678,7 +1626,7 @@ static bool GetInstances(Isolate* isolate, JSONStream* js) {
     return true;
   }
   const char* limit_cstr = js->LookupParam("limit");
-  if (target_id == NULL) {
+  if (limit_cstr == NULL) {
     PrintMissingParamError(js, "limit");
     return true;
   }
@@ -1809,9 +1757,11 @@ static bool GetHitsOrSites(Isolate* isolate, JSONStream* js, bool as_sites) {
     CodeCoverage::PrintJSON(isolate, js, &ff, as_sites);
     return true;
   }
-  PrintError(js, "%s: Invalid 'targetId' parameter value: "
-             "id '%s' does not correspond to a "
-             "script, library, class, or function", js->method(), target_id);
+  js->PrintError(kInvalidParams,
+                 "%s: invalid 'targetId' parameter: "
+                 "id '%s' does not correspond to a "
+                 "script, library, class, or function",
+                 js->method(), target_id);
   return true;
 }
 
@@ -1862,7 +1812,7 @@ static bool AddBreakpoint(Isolate* isolate, JSONStream* js) {
   SourceBreakpoint* bpt =
       isolate->debugger()->SetBreakpointAtLine(script_url, line);
   if (bpt == NULL) {
-    PrintError(js, "Unable to set breakpoint at line %s", line_param);
+    js->PrintError(kNoBreakAtLine, NULL);
     return true;
   }
   bpt->PrintJSON(js);
@@ -1888,9 +1838,7 @@ static bool AddBreakpointAtEntry(Isolate* isolate, JSONStream* js) {
   SourceBreakpoint* bpt =
       isolate->debugger()->SetBreakpointAtEntry(function);
   if (bpt == NULL) {
-    const String& funcName = String::Handle(function.PrettyName());
-    PrintError(js, "Unable to set breakpoint at function '%s'",
-               funcName.ToCString());
+    js->PrintError(kNoBreakAtFunction, NULL);
     return true;
   }
   bpt->PrintJSON(js);
@@ -1968,7 +1916,7 @@ static bool HandleNativeMetric(Isolate* isolate,
     }
     current = current->next();
   }
-  PrintError(js, "Native Metric %s not found\n", id);
+  PrintInvalidParamError(js, "metricId");
   return true;
 }
 
@@ -2015,7 +1963,7 @@ static bool HandleDartMetric(Isolate* isolate, JSONStream* js, const char* id) {
     buffer->AddString(String::Cast(result).ToCString());
     return true;
   }
-  PrintError(js, "Dart Metric %s not found\n", id);
+  PrintInvalidParamError(js, "metricId");
   return true;
 }
 
@@ -2064,7 +2012,8 @@ static bool GetIsolateMetric(Isolate* isolate, JSONStream* js) {
   static const char* kMetricIdPrefix = "metrics/";
   static intptr_t kMetricIdPrefixLen = strlen(kMetricIdPrefix);
   if (strncmp(metric_id, kMetricIdPrefix, kMetricIdPrefixLen) != 0) {
-    PrintError(js, "Metric %s not found\n", metric_id);
+    PrintInvalidParamError(js, "metricId");
+    return true;
   }
   // Check if id begins with "metrics/native/".
   static const char* kNativeMetricIdPrefix = "metrics/native/";
@@ -2150,7 +2099,7 @@ static bool Resume(Isolate* isolate, JSONStream* js) {
     return true;
   }
 
-  PrintError(js, "VM was not paused");
+  js->PrintError(kVMMustBePaused, NULL);
   return true;
 }
 
@@ -2376,7 +2325,7 @@ static bool GetObjectByAddress(Isolate* isolate, JSONStream* js) {
     object = isolate->heap()->FindObject(&visitor);
   }
   if (object.IsNull()) {
-    PrintSentinel(js, "objects/free", "<free>");
+    PrintSentinel(js, kFreeSentinel);
   } else {
     object.PrintJSON(js, ref);
   }
@@ -2428,10 +2377,10 @@ static bool GetObject(Isolate* isolate, JSONStream* js) {
     obj.PrintJSON(js, false);
     return true;
   } else if (lookup_result == ObjectIdRing::kCollected) {
-    PrintSentinel(js, "objects/collected", "<collected>");
+    PrintSentinel(js, kCollectedSentinel);
     return true;
   } else if (lookup_result == ObjectIdRing::kExpired) {
-    PrintSentinel(js, "objects/expired", "<expired>");
+    PrintSentinel(js, kExpiredSentinel);
     return true;
   }
 
@@ -2446,7 +2395,7 @@ static bool GetObject(Isolate* isolate, JSONStream* js) {
     return true;
   }
 
-  PrintError(js, "Unrecognized object id: %s\n", id);
+  PrintInvalidParamError(js, "objectId");
   return true;
 }
 

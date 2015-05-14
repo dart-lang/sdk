@@ -108,7 +108,7 @@
     </style>
 
     <div class="container">
-      <nav-bar id="navbarDiv" showNotify="{{ false }}">
+      <nav-bar id="navbarDiv" notifyOnPause="{{ false }}">
         <top-nav-menu></top-nav-menu>
 	<vm-nav-menu vm="{{ isolate.vm }}"></vm-nav-menu>
         <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
@@ -146,9 +146,9 @@
         font-size: 1px;
         border-bottom: 1px dashed #888;
       }
-      .noMessages .noStack {
-        margin: 0px 20px 10px 20px;
-        font: normal 14px consolas, courier, monospace;
+      .noMessages, .noStack {
+        margin: 10px 0px 10px 25px;
+        font: bold 14px 'Montserrat', sans-serif;
         line-height: 125%;
       }
     </style>
@@ -173,7 +173,7 @@
     </ul>
     <hr>
     <template if="{{ !hasMessages }}">
-      <div class="noMessages">No messages</div>
+      <div class="noMessages">No pending messages</div>
     </template>
     <ul id="messageList" class="list-group">
       <!-- debugger-message elements are added programmatically -->
@@ -226,6 +226,16 @@
         bottom: 5px;
         display: inline-block;
       }
+      .flex-item-script {
+        flex-grow: 1;
+        flex-shrink: 1;
+        flex-basis: 765px;
+      }
+      .flex-item-vars {
+        flex-grow: 5;
+        flex-shrink: 0;
+        flex-basis: 225px;
+      }
     </style>
     <div id="frameOuter" class="frameOuter">
       <a on-click="{{ toggleExpand }}">
@@ -247,8 +257,8 @@
 
       <template if="{{expanded}}">
         <div class="frameDetails">
-          <div class="flex-row">
-            <div class="flex-item-60-percent">
+          <div class="flex-row-wrap">
+            <div class="flex-item-script">
               <script-inset height="{{ scriptHeight }}"
                             script="{{ frame['function'].script }}"
                             startPos="{{ frame['function'].tokenPos }}"
@@ -258,7 +268,7 @@
                             variables="{{ frame['vars'] }}">
               </script-inset>
             </div>
-            <div class="flex-item-40-percent">
+            <div class="flex-item-vars">
               <div style="padding:10px;" class="memberList">
                 <template repeat="{{ v in frame['vars'] }}">
                   <div class="memberItem">
@@ -330,6 +340,16 @@
         bottom: 5px;
         display: inline-block;
       }
+      .flex-item-script {
+        flex-grow: 1;
+        flex-shrink: 1;
+        flex-basis: 765px;
+      }
+      .flex-item-vars {
+        flex-grow: 5;
+        flex-shrink: 0;
+        flex-basis: 225px;
+      }
     </style>
     <div id="messageOuter" class="messageOuter">
       <a on-click="{{ toggleExpand }}">
@@ -351,8 +371,8 @@
 
       <template if="{{expanded}}">
         <div class="messageDetails">
-          <div class="flex-row">
-            <div class="flex-item-60-percent">
+          <div class="flex-row-wrap">
+            <div class="flex-item-script">
               <template if="{{ message['handlerFunction'] != null }}">
               <script-inset height="{{ scriptHeight }}"
                             script="{{ message['handlerFunction'].script }}"
@@ -362,7 +382,7 @@
               </script-inset>
               </template>
             </div>
-            <div class="flex-item-40-percent">
+            <div class="flex-item-vars">
               <div class="memberItem">
                 <div class="memberName"></div>
                 <div class="memberValue">
@@ -400,6 +420,12 @@
         font: bold 14px consolas, courier, monospace;
         white-space: pre;
         line-height: 125%;
+      }
+      .red {
+        font: normal 14px consolas, courier, monospace;
+        white-space: pre;
+        line-height: 125%;
+        color: red;
       }
       .spacer {
         height: 20px;

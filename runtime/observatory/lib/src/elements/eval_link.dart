@@ -5,17 +5,19 @@
 library eval_link_element;
 
 import 'package:observatory/service.dart';
+import 'observatory_element.dart';
 import 'package:polymer/polymer.dart';
 
 @CustomTag('eval-link')
-class EvalLinkElement extends PolymerElement {
+class EvalLinkElement extends ObservatoryElement {
   EvalLinkElement.created() : super.created();
 
   @observable bool busy = false;
   @published String label = "[evaluate]";
   @published var callback = null;
   @published var expr = '';
-  @published ServiceObject result = null;
+  @published var result = null;
+  @published var error = null;
 
   void evalNow(var a, var b, var c) {
     if (busy) {
@@ -25,10 +27,13 @@ class EvalLinkElement extends PolymerElement {
       busy = true;
       result = null;
       callback(expr).then((ServiceObject obj) {
-          result = obj;
-        }).whenComplete(() {
-          busy = false;
-        });
+        result = obj;
+      }).catchError((e, st) {
+        error = e.message;
+        app.handleException(e, st);
+      }).whenComplete(() {
+        busy = false;
+      });
     }
   }
 }

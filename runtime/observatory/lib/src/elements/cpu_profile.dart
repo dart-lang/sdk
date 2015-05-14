@@ -465,11 +465,11 @@ class CpuProfileElement extends ObservatoryElement {
   }
 
   void isolateChanged(oldValue) {
-    _getCpuProfile();
+    _getCpuProfile().catchError(app.handleException);
   }
 
   void tagSelectorChanged(oldValue) {
-    _getCpuProfile();
+    _getCpuProfile().catchError(app.handleException);
   }
 
   void modeSelectorChanged(oldValue) {
@@ -480,11 +480,7 @@ class CpuProfileElement extends ObservatoryElement {
     _updateView();
   }
 
-  void clear(var done) {
-    _clearCpuProfile().whenComplete(done);
-  }
-
-  Future _clearCpuProfile() {
+  Future clearCpuProfile() {
     profile.clear();
     if (isolate == null) {
       return new Future.value(null);
@@ -495,8 +491,8 @@ class CpuProfileElement extends ObservatoryElement {
         });
   }
 
-  void refresh(var done) {
-    _getCpuProfile().whenComplete(done);
+  Future refresh() {
+    return _getCpuProfile();
   }
 
   _onFetchStarted() {
@@ -523,7 +519,7 @@ class CpuProfileElement extends ObservatoryElement {
     state = 'Loaded';
   }
 
-  Future _getCpuProfile() {
+  Future _getCpuProfile() async {
     profile.clear();
     if (functionTree != null) {
       functionTree.clear();
@@ -537,24 +533,30 @@ class CpuProfileElement extends ObservatoryElement {
       return new Future.value(null);
     }
     _onFetchStarted();
-    return isolate.invokeRpc('getCpuProfile', { 'tags': tagSelector })
-        .then((response) async {
+    try {
+      var params = { 'tags': tagSelector };
+      var response = await isolate.invokeRpc('getCpuProfile', params);
       _onFetchFinished();
       await _onLoadStarted();
-      try {
-        profile.load(isolate, response);
-        _onLoadFinished();
-        _updateView();
-      } catch (e, st) {
+      profile.load(isolate, response);
+      _onLoadFinished();
+      _updateView();
+    } catch (e, st) {
+      bool handled = false;
+      if (e is ServerRpcException) {
+        ServerRpcException se = e;
+        if (se.code == ServerRpcException.kProfilingDisabled) {
+          state = 'Disabled';
+          handled = true;
+        }
+      }
+      if (!handled) {
         state = 'Exception';
         exception = e;
         stackTrace = st;
+        rethrow;
       }
-    }).catchError((e, st) {
-      state = 'Exception';
-      exception = e;
-      stackTrace = st;
-    });
+    }
   }
 
   void _updateView() {
@@ -794,7 +796,9 @@ class CpuProfileTableElement extends ObservatoryElement {
   }
 
   isolateChanged() {
-    _getCpuProfile().whenComplete(checkParameters);
+    _getCpuProfile()
+      .catchError(app.handleException)
+      .whenComplete(checkParameters);
   }
 
   checkParameters() {
@@ -813,12 +817,8 @@ class CpuProfileTableElement extends ObservatoryElement {
     _updateFunctionTreeView();
   }
 
-  void refresh(var done) {
-    _getCpuProfile().whenComplete(done);
-  }
-
-  void clear(var done) {
-    _clearCpuProfile().whenComplete(done);
+  Future refresh() {
+    return _getCpuProfile();
   }
 
   _onFetchStarted() {
@@ -844,7 +844,7 @@ class CpuProfileTableElement extends ObservatoryElement {
     state = 'Loaded';
   }
 
-  Future _clearCpuProfile() {
+  Future clearCpuProfile() {
     profile.clear();
     _clearView();
     if (isolate == null) {
@@ -856,32 +856,38 @@ class CpuProfileTableElement extends ObservatoryElement {
     });
   }
 
-  Future _getCpuProfile() {
+  Future _getCpuProfile() async {
     profile.clear();
     _clearView();
     if (isolate == null) {
       return new Future.value(null);
     }
     _onFetchStarted();
-    return isolate.invokeRpc('getCpuProfile', { 'tags': 'None' })
-    .then((response) {
+    try {
+      var params = { 'tags': 'None' };
+      var response = await isolate.invokeRpc('getCpuProfile', params);
       _onFetchFinished();
       _onLoadStarted();
-      try {
-        profile.load(isolate, response);
-        profile.buildFunctionCallerAndCallees();
-        _onLoadFinished();
-        _updateView();
-      } catch (e, st) {
+      profile.load(isolate, response);
+      profile.buildFunctionCallerAndCallees();
+      _onLoadFinished();
+      _updateView();
+    } catch (e, st) {
+      bool handled = false;
+      if (e is ServerRpcException) {
+        ServerRpcException se = e;
+        if (se.code == ServerRpcException.kProfilingDisabled) {
+          state = 'Disabled';
+          handled = true;
+        }
+      }
+      if (!handled) {
         state = 'Exception';
         exception = e;
         stackTrace = st;
+        rethrow;
       }
-    }).catchError((e, st) {
-      state = 'Exception';
-      exception = e;
-      stackTrace = st;
-    });
+    }
   }
 
   _clearView() {

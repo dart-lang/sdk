@@ -159,7 +159,7 @@ class CallSiteAnnotation extends Annotation {
   }
 }
 
-class DeclarationAnnotation extends Annotation {
+abstract class DeclarationAnnotation extends Annotation {
   DeclarationAnnotation(decl) {
     assert(decl.loaded);
     var script = decl.script;
@@ -628,7 +628,10 @@ class ScriptInsetElement extends ObservatoryElement {
       e.classes.clear();
       e.classes.add('noCopy');
 
-      if (busy) {
+      if (!line.possibleBpt) {
+        e.classes.add("emptyBreakpoint");
+        e.text = nbsp;
+      } else if (busy) {
         e.classes.add("busyBreakpoint");
       } else {
         if (line.breakpoints != null) {
@@ -650,10 +653,17 @@ class ScriptInsetElement extends ObservatoryElement {
       busy = true;
       if (line.breakpoints == null) {
         // No breakpoint.  Add it.
-        line.script.isolate.addBreakpoint(line.script, line.line).then((_) {
-          busy = false;
-          update();
-        });
+        line.script.isolate.addBreakpoint(line.script, line.line)
+          .catchError((e, st) {
+            if (e is! ServerRpcException ||
+                (e as ServerRpcException).code !=
+                ServerRpcException.kNoBreakAtLine) {
+              app.handleException(e, st);
+            }})
+          .whenComplete(() {
+            busy = false;
+            update();
+          });
       } else {
         // Existing breakpoint.  Remove it.
         List pending = [];

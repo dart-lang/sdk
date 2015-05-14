@@ -4,6 +4,15 @@
 
 part of app;
 
+class Notification {
+  Notification.fromEvent(this.event);
+  Notification.fromException(this.exception, this.stacktrace);
+
+  ServiceEvent event;
+  var exception;
+  var stacktrace;
+}
+
 /// The observatory application. Instances of this are created and owned
 /// by the observatory_application custom element.
 class ObservatoryApplication extends Observable {
@@ -39,12 +48,12 @@ class ObservatoryApplication extends Observable {
           // This disconnect event occured *after* a new VM was installed.
           return;
         }
-        notifications.add(new ServiceEvent.connectionClosed(reason));
+        notifications.add(
+            new Notification.fromEvent(
+                new ServiceEvent.connectionClosed(reason)));
       });
 
-      vm.errors.stream.listen(_onError);
       vm.events.stream.listen(_onEvent);
-      vm.exceptions.stream.listen(_onException);
     }
     _vm = vm;
   }
@@ -54,8 +63,8 @@ class ObservatoryApplication extends Observable {
   TraceViewElement _traceView = null;
 
   @reflectable ServiceObject lastErrorOrException;
-  @observable ObservableList<ServiceEvent> notifications =
-      new ObservableList<ServiceEvent>();
+  @observable ObservableList<Notification> notifications =
+      new ObservableList<Notification>();
 
   void _initOnce() {
     assert(app == null);
@@ -67,17 +76,11 @@ class ObservatoryApplication extends Observable {
   }
 
   void removePauseEvents(Isolate isolate) {
-    bool isPauseEvent(var event) {
-      return (event.eventType == ServiceEvent.kPauseStart ||
-              event.eventType == ServiceEvent.kPauseExit ||
-              event.eventType == ServiceEvent.kPauseBreakpoint ||
-              event.eventType == ServiceEvent.kPauseInterrupted ||
-              event.eventType == ServiceEvent.kPauseException);
-    }
-
-    notifications.removeWhere((oldEvent) {
-        return (oldEvent.isolate == isolate &&
-                isPauseEvent(oldEvent));
+    notifications.removeWhere((notification) {
+        var event = notification.event;
+        return (event != null &&
+                event.isolate == isolate &&
+                event.isPauseEvent);
       });
   }
 
@@ -104,11 +107,11 @@ class ObservatoryApplication extends Observable {
       case ServiceEvent.kPauseInterrupted:
       case ServiceEvent.kPauseException:
         removePauseEvents(event.isolate);
-        notifications.add(event);
+        notifications.add(new Notification.fromEvent(event));
         break;
 
       case ServiceEvent.kInspect:
-        notifications.add(event);
+        notifications.add(new Notification.fromEvent(event));
         break;
 
       default:
@@ -135,22 +138,6 @@ class ObservatoryApplication extends Observable {
     // Note that ErrorPage must be the last entry in the list as it is
     // the catch all.
     _pageRegistry.add(new ErrorPage(this));
-  }
-
-  void _onError(ServiceError error) {
-    lastErrorOrException = error;
-    _visit(Uri.parse('error/'), null);
-  }
-
-  void _onException(ServiceException exception) {
-    lastErrorOrException = exception;
-    if (exception.kind == 'NetworkException') {
-      // Got a network exception, visit the vm-connect page.
-      this.vm = null;
-      locationManager.go(locationManager.makeLink('/vm-connect'));
-    } else {
-      _visit(Uri.parse('error/'), {});
-    }
   }
 
   void _visit(Uri uri, Map internalArguments) {
@@ -218,13 +205,21 @@ class ObservatoryApplication extends Observable {
   }
 
   void _removeDisconnectEvents() {
-    notifications.removeWhere((oldEvent) {
-        return (oldEvent.eventType == ServiceEvent.kConnectionClosed);
+    notifications.removeWhere((notification) {
+        var event = notification.event;
+        return (event != null &&
+                event.eventType == ServiceEvent.kConnectionClosed);
       });
   }
 
   loadCrashDump(Map crashDump) {
     this.vm = new FakeVM(crashDump['result']);
     app.locationManager.go('#/vm');
+  }
+
+  void handleException(e, st) {
+    // TODO(turnidge): Report this failure via analytics.
+    Logger.root.warning('Caught exception: ${e}\n${st}');
+    notifications.add(new Notification.fromException(e, st));
   }
 }

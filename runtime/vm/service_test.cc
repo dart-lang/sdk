@@ -192,7 +192,7 @@ TEST_CASE(Service_Code) {
       Eval(lib, "[0, port, '0', 'getObject', ['objectId'], ['code/0']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
+  EXPECT_SUBSTRING("\"error\"", handler.msg());
 
   // The following test checks that a code object can be found only
   // at compile_timestamp()-code.EntryPoint().
@@ -222,7 +222,7 @@ TEST_CASE(Service_Code) {
                       address);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
+  EXPECT_SUBSTRING("\"error\"", handler.msg());
 
   // Request code object at (compile_timestamp - 1)-code.EntryPoint()
   // Expect this to fail because the timestamp is wrong.
@@ -233,7 +233,7 @@ TEST_CASE(Service_Code) {
                       address);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
+  EXPECT_SUBSTRING("\"error\"", handler.msg());
 
   // Request native code at address. Expect the null code object back.
   address = last;
@@ -252,7 +252,7 @@ TEST_CASE(Service_Code) {
                       address);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
+  EXPECT_SUBSTRING("\"error\"", handler.msg());
 }
 
 
@@ -474,7 +474,7 @@ TEST_CASE(Service_Address) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // TODO(turnidge): Should this be a ServiceException instead?
-  EXPECT_SUBSTRING("{\"type\":\"Sentinel\",\"id\":\"objects\\/free\","
+  EXPECT_SUBSTRING("{\"type\":\"Sentinel\",\"kind\":\"Free\","
                    "\"valueAsString\":\"<free>\"",
                handler.msg());
 }
@@ -607,7 +607,7 @@ TEST_CASE(Service_Profile) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // Expect error (tags required).
-  EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
+  EXPECT_SUBSTRING("\"error\"", handler.msg());
 
   service_msg =
       Eval(lib, "[0, port, '0', 'getCpuProfile', ['tags'], ['None']]");
@@ -621,7 +621,7 @@ TEST_CASE(Service_Profile) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // Expect error.
-  EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
+  EXPECT_SUBSTRING("\"error\"", handler.msg());
 }
 
 #endif  // !defined(TARGET_ARCH_ARM64)

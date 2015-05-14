@@ -4,6 +4,7 @@
 
 library function_view_element;
 
+import 'dart:async';
 import 'observatory_element.dart';
 import 'package:observatory/service.dart';
 
@@ -14,11 +15,11 @@ class FunctionViewElement extends ObservatoryElement {
   @published ServiceFunction function;
   FunctionViewElement.created() : super.created();
 
-  void refresh(var done) {
-    function.reload().whenComplete(done);
+  Future refresh() {
+    return function.reload();
   }
 
-  void refreshCoverage(var done) {
-    function.refreshCoverage().whenComplete(done);
+  Future refreshCoverage() {
+    return function.refreshCoverage();
   }
 }

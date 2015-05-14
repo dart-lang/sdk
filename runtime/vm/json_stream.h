@@ -26,6 +26,22 @@ class SourceBreakpoint;
 class String;
 class Zone;
 
+
+enum JSONRpcErrorCode {
+  kParseError     = -32700,
+  kInvalidRequest = -32600,
+  kMethodNotFound = -32601,
+  kInvalidParams  = -32602,
+  kInternalError  = -32603,
+
+  kVMMustBePaused    = 100,
+  kNoBreakAtLine     = 101,
+  kNoBreakAtFunction = 102,
+
+  kProfilingDisabled = 200,
+};
+
+
 class JSONStream : ValueObject {
  public:
   explicit JSONStream(intptr_t buf_size = 256);
@@ -38,6 +54,8 @@ class JSONStream : ValueObject {
              const Array& param_keys,
              const Array& param_values);
   void SetupError();
+
+  void PrintError(intptr_t code, const char* details_format, ...);
 
   void PostReply();
 

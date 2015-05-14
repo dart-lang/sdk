@@ -13,7 +13,7 @@ import 'package:polymer/polymer.dart';
 
 @CustomTag('nav-bar')
 class NavBarElement extends ObservatoryElement {
-  @published bool showNotify = true;
+  @published bool notifyOnPause = true;
   @published bool pad = true;
 
   NavBarElement.created() : super.created();
@@ -36,9 +36,11 @@ class NavMenuItemElement extends ObservatoryElement {
   NavMenuItemElement.created() : super.created();
 }
 
+typedef Future RefreshCallback();
+
 @CustomTag('nav-refresh')
 class NavRefreshElement extends ObservatoryElement {
-  @published var callback;
+  @published RefreshCallback callback;
   @published bool active = false;
   @published String label = 'Refresh';
 
@@ -50,7 +52,9 @@ class NavRefreshElement extends ObservatoryElement {
     }
     active = true;
     if (callback != null) {
-      callback(refreshDone);
+      callback()
+        .catchError(app.handleException)
+        .whenComplete(refreshDone);
     }
   }
 
@@ -100,36 +104,49 @@ class ClassNavMenuElement extends ObservatoryElement {
 
 @CustomTag('nav-notify')
 class NavNotifyElement extends ObservatoryElement {
-  @published ObservableList<ServiceEvent> events;
+  @published ObservableList<Notification> notifications;
+  @published bool notifyOnPause = true;
 
   NavNotifyElement.created() : super.created();
 }
 
-@CustomTag('nav-notify-item')
-class NavNotifyItemElement extends ObservatoryElement {
-  @published ObservableList<ServiceEvent> events;
+@CustomTag('nav-notify-event')
+class NavNotifyEventElement extends ObservatoryElement {
+  @published ObservableList<Notification> notifications;
+  @published Notification notification;
   @published ServiceEvent event;
+  @published bool notifyOnPause = true;
 
-  Future resume(_) {
-    app.removePauseEvents(event.isolate);
-    return event.isolate.resume();
+  void closeItem(MouseEvent e, var detail, Element target) {
+    notifications.remove(notification);
   }
-  Future stepInto(_) {
-    app.removePauseEvents(event.isolate);
-    return event.isolate.stepInto();
+
+  NavNotifyEventElement.created() : super.created();
+}
+
+@CustomTag('nav-notify-exception')
+class NavNotifyExceptionElement extends ObservatoryElement {
+  @published ObservableList<Notification> notifications;
+  @published Notification notification;
+  @published var exception;
+  @published var stacktrace;
+
+  exceptionChanged() {
+    notifyPropertyChange(#isNetworkError, true, false);
+    notifyPropertyChange(#isUnexpectedError, true, false);
   }
-  Future stepOver(_) {
-    app.removePauseEvents(event.isolate);
-    return event.isolate.stepOver();
+
+  @observable get isNetworkError {
+    return (exception is NetworkRpcException);
   }
-  Future stepOut(_) {
-    app.removePauseEvents(event.isolate);
-    return event.isolate.stepOut();
+
+  @observable get isUnexpectedError {
+    return (exception is! NetworkRpcException);
   }
 
   void closeItem(MouseEvent e, var detail, Element target) {
-    events.remove(event);
+    notifications.remove(notification);
   }
 
-  NavNotifyItemElement.created() : super.created();
+  NavNotifyExceptionElement.created() : super.created();
 }

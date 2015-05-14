@@ -4,6 +4,7 @@
 
 library field_view_element;
 
+import 'dart:async';
 import 'observatory_element.dart';
 import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
@@ -13,7 +14,7 @@ class FieldViewElement extends ObservatoryElement {
   @published Field field;
   FieldViewElement.created() : super.created();
 
-  void refresh(var done) {
-    field.reload().whenComplete(done);
+  Future refresh() {
+    return field.reload();
   }
 }

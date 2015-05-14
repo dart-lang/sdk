@@ -15,7 +15,7 @@
       <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
       <nav-menu link="{{ makeLink('/profiler-table', isolate) }}" anchor="cpu profile (table)" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
-      <nav-refresh callback="{{ clear }}" label="Clear"></nav-refresh>
+      <nav-refresh callback="{{ clearCpuProfile }}" label="Clear"></nav-refresh>
     </nav-bar>
     <style>
       /* general */
@@ -150,10 +150,22 @@
           <div class="statusMessage">Loading profile...</div>
         </div>
       </template>
+      <template if="{{ state == 'Disabled' }}">
+        <div class="statusBox shadow center">
+          <div>
+            <h1>Profiling is disabled</h1>
+            <br>
+            Perhaps the <b>profile</b> flag has been disabled for this VM.
+            <br><br>
+            See all
+            <a on-click="{{ goto }}" _href="{{ gotoLink('/flags') }}">vm flags</a>
+          </div>
+        </div>
+      </template>
       <template if="{{ state == 'Exception' }}">
         <div class="statusBox shadow center">
           <div class="statusMessage">
-            <h1>Exception:</h1>
+            <h1>Profiling is disabled due to unexpected exception:</h1>
             <br>
             <pre>{{ exception.toString() }}</pre>
             <br>
@@ -281,7 +293,7 @@
       <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
       <nav-menu link="{{ makeLink('/profiler', isolate) }}" anchor="cpu profile" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
-      <nav-refresh callback="{{ clear }}" label="Clear"></nav-refresh>
+      <nav-refresh callback="{{ clearCpuProfile }}" label="Clear"></nav-refresh>
     </nav-bar>
     <style>
       .tableWell {
@@ -372,10 +384,22 @@
           <div class="statusMessage">Loading profile...</div>
         </div>
       </template>
+      <template if="{{ state == 'Disabled' }}">
+        <div class="statusBox shadow center">
+          <div>
+            <h1>Profiling is disabled</h1>
+            <br>
+            Perhaps the <b>profile</b> flag has been disabled for this VM.
+            <br><br>
+            See all
+            <a on-click="{{ goto }}" _href="{{ gotoLink('/flags') }}">vm flags</a>
+          </div>
+        </div>
+      </template>
       <template if="{{ state == 'Exception' }}">
         <div class="statusBox shadow center">
           <div class="statusMessage">
-            <h1>Exception:</h1>
+            <h1>Profiling is disabled due to unexpected exception:</h1>
             <br>
             <pre>{{ exception.toString() }}</pre>
             <br>

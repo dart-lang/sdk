@@ -4,6 +4,7 @@
 
 library flag_list_element;
 
+import 'dart:async';
 import 'package:polymer/polymer.dart';
 import 'observatory_element.dart';
 import 'package:observatory/service.dart';
@@ -14,8 +15,8 @@ class FlagListElement extends ObservatoryElement {
 
   FlagListElement.created() : super.created();
 
-  void refresh(var done) {
-    flagList.reload().whenComplete(done);
+  Future refresh() {
+    return flagList.reload();
   }
 }
 

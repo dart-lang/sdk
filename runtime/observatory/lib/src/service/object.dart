@@ -4,6 +4,70 @@
 
 part of service;
 
+/// An RpcException represents an exceptional event that happened
+/// while invoking an rpc.
+abstract class RpcException implements Exception {
+  RpcException(this.message);
+
+  String message;
+}
+
+/// A ServerRpcException represents an error returned by the VM.
+class ServerRpcException extends RpcException {
+  /// A list of well-known server error codes.
+  static const kParseError     = -32700;
+  static const kInvalidRequest = -32600;
+  static const kMethodNotFound = -32601;
+  static const kInvalidParams  = -32602;
+  static const kInternalError  = -32603;
+  static const kVMMustBePaused    = 100;
+  static const kNoBreakAtLine     = 101;
+  static const kNoBreakAtFunction = 102;
+  static const kProfilingDisabled = 200;
+
+  int code;
+  Map data;
+
+  static _getMessage(Map errorMap) {
+    Map data = errorMap['data'];
+    if (data != null && data['details'] != null) {
+      return data['details'];
+    } else {
+      return errorMap['message'];
+    }
+  }
+
+  ServerRpcException.fromMap(Map errorMap) : super(_getMessage(errorMap)) {
+    code = errorMap['code'];
+    data = errorMap['data'];
+  }
+
+  String toString() => 'ServerRpcException(${message})';
+}
+
+/// A NetworkRpcException is used to indicate that an rpc has
+/// been canceled due to network error.
+class NetworkRpcException extends RpcException {
+  NetworkRpcException(String message) : super(message);
+
+  String toString() => 'NetworkRpcException(${message})';
+}
+
+class MalformedResponseRpcException extends RpcException {
+  MalformedResponseRpcException(String message, this.response)
+      : super(message);
+
+  Map response;
+
+  String toString() => 'MalformedResponseRpcException(${message})';
+}
+
+class FakeVMRpcException extends RpcException {
+  FakeVMRpcException(String message) : super(message);
+
+  String toString() => 'FakeVMRpcException(${message})';
+}
+
 /// A [ServiceObject] represents a persistent object within the vm.
 abstract class ServiceObject extends Observable {
   static int LexicalSortName(ServiceObject o1, ServiceObject o2) {
@@ -170,14 +234,8 @@ abstract class ServiceObject extends Observable {
             break;
         }
         break;
-      case 'ServiceError':
-        obj = new ServiceError._empty(owner);
-        break;
       case 'ServiceEvent':
         obj = new ServiceEvent._empty(owner);
-        break;
-      case 'ServiceException':
-        obj = new ServiceException._empty(owner);
         break;
       case 'Script':
         obj = new Script._empty(owner);
@@ -219,32 +277,38 @@ abstract class ServiceObject extends Observable {
   }
 
   /// Reload [this]. Returns a future which completes to [this] or
-  /// a [ServiceError].
+  /// an exception.
   Future<ServiceObject> reload() {
-    if (id == '') {
-      // Errors don't have ids.
-      assert(type == 'Error');
+    // TODO(turnidge): Checking for a null id should be part of the
+    // "immmutable" check.
+    if (id == null || id == '') {
       return new Future.value(this);
     }
     if (loaded && immutable) {
       return new Future.value(this);
     }
     if (_inProgressReload == null) {
-      _inProgressReload = _fetchDirect().then((ObservableMap map) {
-          var mapType = _stripRef(map['type']);
-          if (mapType != _type) {
-            // If the type changes, return a new object instead of
-            // updating the existing one.
-            //
-            // TODO(turnidge): Check for vmType changing as well?
-            assert(mapType == 'Error' || mapType == 'Sentinel');
-            return new ServiceObject._fromMap(owner, map);
-          }
+      var completer = new Completer<ServiceObject>();
+      _inProgressReload = completer.future;
+      _fetchDirect().then((ObservableMap map) {
+        var mapType = _stripRef(map['type']);
+        if (mapType == 'Sentinel') {
+          // An object may have been collected, etc.
+          completer.complete(new ServiceObject._fromMap(owner, map));
+        } else {
+          // TODO(turnidge): Check for vmType changing as well?
+          assert(mapType == _type);
           update(map);
-          return this;
+          completer.complete(this);
+        }
+
+      }).catchError((e, st) {
+        Logger.root.severe("Unable to reload object: $e\n$st");
+        _inProgressReload = null;
+        completer.completeError(e, st);
       }).whenComplete(() {
-          // This reload is complete.
-          _inProgressReload = null;
+        // This reload is complete.
+        _inProgressReload = null;
       });
     }
     return _inProgressReload;
@@ -255,7 +319,6 @@ abstract class ServiceObject extends Observable {
     assert(_isServiceMap(map));
 
     // Don't allow the type to change on an object update.
-    // TODO(turnidge): Make this a ServiceError?
     var mapIsRef = _hasRef(map['type']);
     var mapType = _stripRef(map['type']);
     assert(_type == null || _type == mapType);
@@ -338,6 +401,9 @@ abstract class VM extends ServiceObjectOwner {
   @reflectable VM get vm => this;
   @reflectable Isolate get isolate => null;
 
+  // TODO(turnidge): The connection should not be stored in the VM object.
+  bool get isDisconnected;
+
   // TODO(johnmccutchan): Ensure that isolates do not end up in _cache.
   Map<String,ServiceObject> _cache = new Map<String,ServiceObject>();
   final ObservableMap<String,Isolate> _isolateCache =
@@ -363,10 +429,6 @@ abstract class VM extends ServiceObjectOwner {
     update(toObservable({'id':'vm', 'type':'@VM'}));
   }
 
-  final StreamController<ServiceException> exceptions =
-      new StreamController.broadcast();
-  final StreamController<ServiceError> errors =
-      new StreamController.broadcast();
   final StreamController<ServiceEvent> events =
       new StreamController.broadcast();
 
@@ -460,27 +522,6 @@ abstract class VM extends ServiceObjectOwner {
     return new Future.value(_isolateCache[isolateId]);
   }
 
-  Future<ObservableMap> _processMap(ObservableMap map) {
-    // Verify that the top level response is a service map.
-    if (!_isServiceMap(map)) {
-      return new Future.error(
-            new ServiceObject._fromMap(this, toObservable({
-        'type': 'ServiceException',
-        'kind': 'ResponseFormatException',
-        'response': map,
-        'message': "Response is missing the 'type' field.",
-      })));
-    }
-    // Preemptively capture ServiceError and ServiceExceptions.
-    if (map['type'] == 'ServiceError') {
-      return new Future.error(new ServiceObject._fromMap(this, map));
-    } else if (map['type'] == 'ServiceException') {
-      return new Future.error(new ServiceObject._fromMap(this, map));
-    }
-    // map is now guaranteed to be a non-error/exception ServiceObject.
-    return new Future.value(map);
-  }
-
   // Implemented in subclass.
   Future<Map> invokeRpcRaw(String method, Map params);
 
@@ -491,20 +532,17 @@ abstract class VM extends ServiceObjectOwner {
         Tracer.current.trace("Received response for ${method}/${params}}",
                              map:map);
       }
-
-      // Check for ill-formed responses.
-      return _processMap(map);
-    }).catchError((error) {
-
-      // ServiceError, forward to VM's ServiceError stream.
-      errors.add(error);
-      return new Future.error(error);
-    }, test: (e) => e is ServiceError).catchError((exception) {
-
-      // ServiceException, forward to VM's ServiceException stream.
-      exceptions.add(exception);
-      return new Future.error(exception);
-    }, test: (e) => e is ServiceException);
+      if (!_isServiceMap(map)) {
+        var exception =
+            new MalformedResponseRpcException(
+                "Response is missing the 'type' field", map);
+        return new Future.error(exception);
+      }
+      return new Future.value(map);
+    }).catchError((e) {
+      // Errors pass through.
+      return new Future.error(e);
+    });
   }
 
   Future<ServiceObject> invokeRpc(String method, Map params) {
@@ -519,6 +557,7 @@ abstract class VM extends ServiceObjectOwner {
   }
 
   Future<ObservableMap> _fetchDirect() {
+    print("FETCH DIRECT VM");
     return invokeRpcNoUpgrade('getVM', {});
   }
 
@@ -617,6 +656,7 @@ class FakeVM extends VM {
   // Only complete when requested.
   Completer _onDisconnect = new Completer();
   Future get onDisconnect => _onDisconnect.future;
+  bool get isDisconnected => _onDisconnect.isCompleted;
 
   Future<Map> invokeRpcRaw(String method, Map params) {
     if (params.isEmpty) {
@@ -625,11 +665,8 @@ class FakeVM extends VM {
     var key = _canonicalizeUri(new Uri(path: method, queryParameters: params));
     var response = _responses[key];
     if (response == null) {
-      return new Future.error({
-        'type': 'ServiceException',
-        'kind': 'NotContainedInResponses',
-        'key': key
-      });
+      return new Future.error(new FakeVMRpcException(
+          "Unable to find key '${key}' in cached response set"));
     }
     return new Future.value(response);
   }
@@ -1106,25 +1143,28 @@ class Isolate extends ServiceObjectOwner with Coverage {
     }
   }
 
-  Future<ServiceObject> addBreakpoint(Script script, int line) {
+  Future<ServiceObject> addBreakpoint(Script script, int line) async {
     // TODO(turnidge): Pass line as an int instead of a string.
-    Map params = {
-      'scriptId': script.id,
-      'line': '$line',
-    };
-    return invokeRpc('addBreakpoint', params).then((result) {
-      if (result is DartError) {
-        return result;
-      }
-      Breakpoint bpt = result;
+    try {
+      Map params = {
+        'scriptId': script.id,
+        'line': '$line',
+      };
+      Breakpoint bpt = await invokeRpc('addBreakpoint', params);
       if (bpt.resolved &&
           script.loaded &&
-          script.tokenToLine(result.tokenPos) != line) {
-        // Unable to set a breakpoint at desired line.
-        script.lines[line - 1].possibleBpt = false;
+          script.tokenToLine(bpt.tokenPos) != line) {
+        // TODO(turnidge): Can this still happen?
+        script.getLine(line).possibleBpt = false;
       }
-      return result;
-    });
+      return bpt;
+    } on ServerRpcException catch(e) {
+      if (e.code == ServerRpcException.kNoBreakAtLine) {
+        // Unable to set a breakpoint at the desired line.
+        script.getLine(line).possibleBpt = false;
+      }
+      rethrow;
+    }
   }
 
   Future<ServiceObject> addBreakpointAtEntry(ServiceFunction function) {
@@ -1138,70 +1178,31 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   Future pause() {
-    return invokeRpc('pause', {}).then((result) {
-        if (result is DartError) {
-          // TODO(turnidge): Handle this more gracefully.
-          Logger.root.severe(result.message);
-        }
-        return result;
-      });
+    return invokeRpc('pause', {});
   }
 
   Future resume() {
-    return invokeRpc('resume', {}).then((result) {
-        if (result is DartError) {
-          // TODO(turnidge): Handle this more gracefully.
-          Logger.root.severe(result.message);
-        }
-        return result;
-      });
+    return invokeRpc('resume', {});
   }
 
   Future stepInto() {
-    return invokeRpc('resume', {'step': 'into'}).then((result) {
-        if (result is DartError) {
-          // TODO(turnidge): Handle this more gracefully.
-          Logger.root.severe(result.message);
-        }
-        return result;
-      });
+    return invokeRpc('resume', {'step': 'into'});
   }
 
   Future stepOver() {
-    return invokeRpc('resume', {'step': 'over'}).then((result) {
-        if (result is DartError) {
-          // TODO(turnidge): Handle this more gracefully.
-          Logger.root.severe(result.message);
-        }
-        return result;
-      });
+    return invokeRpc('resume', {'step': 'over'});
   }
 
   Future stepOut() {
-    return invokeRpc('resume', {'step': 'out'}).then((result) {
-        if (result is DartError) {
-          // TODO(turnidge): Handle this more gracefully.
-          Logger.root.severe(result.message);
-        }
-        return result;
-      });
+    return invokeRpc('resume', {'step': 'out'});
   }
 
   Future setName(String newName) {
-    Map params = {
-      'name': newName,
-    };
-    return invokeRpc('setName', params);
+    return invokeRpc('setName', {'name': newName});
   }
 
   Future<ServiceMap> getStack() {
-    return invokeRpc('getStack', {}).then((result) {
-        if (result is DartError) {
-          // TODO(turnidge): Handle this more gracefully.
-          Logger.root.severe(result.message);
-        }
-        return result;
-      });
+    return invokeRpc('getStack', {});
   }
 
   Future<ServiceObject> eval(ServiceObject target,
@@ -1279,11 +1280,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
       ObservableMap<String, ServiceMetric> metricsMap) {
     return invokeRpc('getIsolateMetricList',
                      { 'type': metricType }).then((result) {
-      if (result is DartError) {
-        // TODO(turnidge): Handle this more gracefully.
-        Logger.root.severe(result.message);
-        return null;
-      }
       // Clear metrics map.
       metricsMap.clear();
       // Repopulate metrics map.
@@ -1394,48 +1390,6 @@ class DartError extends ServiceObject {
   String toString() => 'DartError($message)';
 }
 
-/// A [ServiceError] is an error that was triggered in the service
-/// server or client. Errors are prorammer mistakes that could have
-/// been prevented, for example, requesting a non-existant path over the
-/// service.
-class ServiceError extends ServiceObject {
-  ServiceError._empty(ServiceObjectOwner owner) : super._empty(owner);
-
-  @observable String kind;
-  @observable String message;
-
-  void _update(ObservableMap map, bool mapIsRef) {
-    _loaded = true;
-    kind = map['kind'];
-    message = map['message'];
-    name = 'ServiceError $kind';
-    vmName = name;
-  }
-
-  String toString() => 'ServiceError($message)';
-}
-
-/// A [ServiceException] is an exception that was triggered in the service
-/// server or client. Exceptions are events that should be handled,
-/// for example, an isolate went away or the connection to the VM was lost.
-class ServiceException extends ServiceObject {
-  ServiceException._empty(ServiceObject owner) : super._empty(owner);
-
-  @observable String kind;
-  @observable String message;
-  @observable dynamic response;
-
-  void _update(ObservableMap map, bool mapIsRef) {
-    kind = map['kind'];
-    message = map['message'];
-    response = map['response'];
-    name = 'ServiceException $kind';
-    vmName = name;
-  }
-
-  String toString() => 'ServiceException($message)';
-}
-
 /// A [ServiceEvent] is an asynchronous event notification from the vm.
 class ServiceEvent extends ServiceObject {
   /// The possible 'eventType' values.
@@ -1471,11 +1425,20 @@ class ServiceEvent extends ServiceObject {
   @observable int count;
   @observable String reason;
 
+  @observable bool get isPauseEvent {
+    return (eventType == kPauseStart ||
+            eventType == kPauseExit ||
+            eventType == kPauseBreakpoint ||
+            eventType == kPauseInterrupted ||
+            eventType == kPauseException);
+  }
+
   void _update(ObservableMap map, bool mapIsRef) {
     _loaded = true;
     _upgradeCollection(map, owner);
     assert(map['isolate'] == null || owner == map['isolate']);
     eventType = map['eventType'];
+    notifyPropertyChange(#isPauseEvent, 0, 1);
     name = 'ServiceEvent $eventType';
     vmName = name;
     if (map['breakpoint'] != null) {
@@ -1680,7 +1643,7 @@ class Class extends ServiceObject with Coverage {
   final Allocations oldSpace = new Allocations();
   final AllocationCount promotedByLastNewGC = new AllocationCount();
 
-  bool get hasNoAllocations => newSpace.empty && oldSpace.empty;
+  @observable bool get hasNoAllocations => newSpace.empty && oldSpace.empty;
 
   @reflectable final fields = new ObservableList<Field>();
   @reflectable final functions = new ObservableList<ServiceFunction>();
@@ -1756,6 +1719,7 @@ class Class extends ServiceObject with Coverage {
     if (allocationStats != null) {
       newSpace.update(allocationStats['new']);
       oldSpace.update(allocationStats['old']);
+      notifyPropertyChange(#hasNoAllocations, 0, 1);
       promotedByLastNewGC.instances = allocationStats['promotedInstances'];
       promotedByLastNewGC.bytes = allocationStats['promotedBytes'];
     }
@@ -2212,6 +2176,7 @@ class Script extends ServiceObject with Coverage {
   Script._empty(ServiceObjectOwner owner) : super._empty(owner);
 
   ScriptLine getLine(int line) {
+    assert(_loaded);
     assert(line >= 1);
     return lines[line - lineOffset - 1];
   }
@@ -2672,7 +2637,7 @@ class CodeKind {
     } else if (s == 'Stub') {
       return Stub;
     }
-    Logger.root.severe('Unrecognized code kind: $s');
+    Logger.root.severe("Unrecognized code kind: '$s'");
     throw new FallThroughError();
   }
   static const Collected = const CodeKind._internal('Collected');
@@ -2746,8 +2711,8 @@ class Code extends ServiceObject {
     function.script.load().then(_updateDescriptors);
   }
 
-  /// Reload [this]. Returns a future which completes to [this] or
-  /// a [ServiceError].
+  /// Reload [this]. Returns a future which completes to [this] or an
+  /// exception.
   Future<ServiceObject> reload() {
     assert(kind != null);
     if (isDartCode) {

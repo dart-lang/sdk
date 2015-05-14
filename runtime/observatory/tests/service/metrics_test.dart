@@ -17,26 +17,36 @@ void script() {
 
 var tests = [
 
-(Isolate isolate) =>
-  isolate.refreshDartMetrics().then((Map metrics) {
+  (Isolate isolate) async {
+    Map metrics = await isolate.refreshDartMetrics();
     expect(metrics.length, equals(1));
     var counter = metrics['metrics/a.b.c'];
     expect(counter.name, equals('a.b.c'));
     expect(counter.value, equals(1234.5));
-}),
+  },
 
-(Isolate isolate) =>
-  isolate.invokeRpc('getIsolateMetric', { 'metricId': 'metrics/a.b.c' })
-      .then((ServiceMetric counter) {
+  (Isolate isolate) async {
+    var params =  { 'metricId': 'metrics/a.b.c' };
+    ServiceMetric counter =
+      await isolate.invokeRpc('getIsolateMetric', params);
     expect(counter.name, equals('a.b.c'));
     expect(counter.value, equals(1234.5));
-  }),
+  },
 
-(Isolate isolate) =>
-  isolate.invokeRpc('getIsolateMetric', { 'metricId': 'metrics/a.b.d' })
-      .then((DartError err) {
-    expect(err is DartError, isTrue);
-  }),
+  (Isolate isolate) async {
+    bool caughtException;
+    try {
+      await isolate.invokeRpc('getIsolateMetric',
+                              { 'metricId': 'metrics/a.b.d' });
+      expect(false, isTrue, reason:'Unreachable');
+    } on ServerRpcException catch (e) {
+      caughtException = true;
+      expect(e.code, equals(ServerRpcException.kInvalidParams));
+      expect(e.message,
+             "getIsolateMetric: invalid 'metricId' parameter: metrics/a.b.d");
+    }
+    expect(caughtException, isTrue);
+  },
 ];
 
 main(args) => runIsolateTests(args, tests, testeeBefore: script);

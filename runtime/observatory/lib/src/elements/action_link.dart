@@ -4,10 +4,11 @@
 
 library action_link_element;
 
+import 'observatory_element.dart';
 import 'package:polymer/polymer.dart';
 
 @CustomTag('action-link')
-class ActionLinkElement extends PolymerElement {
+class ActionLinkElement extends ObservatoryElement {
   ActionLinkElement.created() : super.created();
 
   @observable bool busy = false;
@@ -21,9 +22,9 @@ class ActionLinkElement extends PolymerElement {
     }
     if (callback != null) {
       busy = true;
-      // TODO(turnidge): Track down why adding a dummy argument makes
-      // this work but having a no-argument callback doesn't.
-      callback(null).whenComplete(() {
+      callback()
+        .catchError(app.handleException)
+        .whenComplete(() {
           busy = false;
         });
     }

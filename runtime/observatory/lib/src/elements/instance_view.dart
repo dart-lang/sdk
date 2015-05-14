@@ -19,7 +19,7 @@ class InstanceViewElement extends ObservatoryElement {
     return instance.isolate.eval(instance, expression);
   }
 
-  void refresh(Function onDone) {
-    instance.reload().whenComplete(onDone);
+  Future refresh() {
+    return instance.reload();
   }
 }

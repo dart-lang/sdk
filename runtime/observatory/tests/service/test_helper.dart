@@ -11,10 +11,7 @@ import 'dart:io';
 import 'package:observatory/service_io.dart';
 
 bool _isWebSocketDisconnect(e) {
-  if (e is! ServiceException) {
-    return false;
-  }
-  return (e as ServiceException).message == 'WebSocket closed';
+  return e is NetworkRpcException;
 }
 
 // This invocation should set up the state being tested.

@@ -4,6 +4,7 @@
 
 library heap_profile_element;
 
+import 'dart:async';
 import 'dart:html';
 import 'observatory_element.dart';
 import 'package:observatory/app.dart';
@@ -99,7 +100,7 @@ class HeapProfileElement extends ObservatoryElement {
 
   @override
   void detached() {
-    _subscription.cancel((){});
+    _subscription.cancel();
     super.detached();
   }
   
@@ -121,13 +122,13 @@ class HeapProfileElement extends ObservatoryElement {
   void refreshAuto() {
     refreshAutoPending = true;
     refreshAutoQueued = false;
-    refresh(() {
+    refresh().then((_) {
       refreshAutoPending = false;
       // Keep refreshing if at least one GC event was received while waiting.
       if (refreshAutoQueued) {
         refreshAuto();
       }
-    });
+    }).catchError(app.handleException);
   }
 
   void _updatePieCharts() {
@@ -284,31 +285,33 @@ class HeapProfileElement extends ObservatoryElement {
       profile = null;
       return;
     }
-    isolate.invokeRpc('_getAllocationProfile', {}).then(_update);
-  }
-
-  void refresh(var done) {
-    if (isolate == null) {
-      return;
-    }
     isolate.invokeRpc('_getAllocationProfile', {})
-        .then(_update).whenComplete(done);
+      .then(_update)
+      .catchError(app.handleException);
   }
 
-  void refreshGC(var done) {
+  Future refresh() {
     if (isolate == null) {
-      return;
+      return new Future.value(null);
     }
-    isolate.invokeRpc('_getAllocationProfile', { 'gc': 'full' })
-        .then(_update).whenComplete(done);
+    return isolate.invokeRpc('_getAllocationProfile', {})
+        .then(_update);
   }
 
-  void resetAccumulator(var done) {
+  Future refreshGC() {
     if (isolate == null) {
-      return;
+      return new Future.value(null);
     }
-    isolate.invokeRpc('_getAllocationProfile', { 'reset': 'true' })
-        .then(_update).whenComplete(done);
+    return isolate.invokeRpc('_getAllocationProfile', { 'gc': 'full' })
+        .then(_update);
+  }
+
+  Future resetAccumulator() {
+    if (isolate == null) {
+      return new Future.value(null);
+    }
+    return isolate.invokeRpc('_getAllocationProfile', { 'reset': 'true' })
+        .then(_update);
   }
 
   void _update(ServiceMap newProfile) {

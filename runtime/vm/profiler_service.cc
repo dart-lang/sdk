@@ -2166,9 +2166,7 @@ void ProfilerService::PrintJSON(JSONStream* stream, TagOrder tag_order) {
   MutexLocker profiler_data_lock(isolate->profiler_data_mutex());
   IsolateProfilerData* profiler_data = isolate->profiler_data();
   if (profiler_data == NULL) {
-    JSONObject error(stream);
-    error.AddProperty("type", "Error");
-    error.AddProperty("text", "Isolate does not have profiling enabled.");
+    stream->PrintError(kProfilingDisabled, NULL);
     return;
   }
   SampleBuffer* sample_buffer = profiler_data->sample_buffer();

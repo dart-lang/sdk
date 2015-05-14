@@ -4,11 +4,8 @@
 
 library isolate_reconnect_element;
 
-import 'dart:html';
 import 'package:polymer/polymer.dart';
 import 'observatory_element.dart';
-import 'package:observatory/app.dart';
-import 'package:observatory/service_html.dart';
 
 @CustomTag('isolate-reconnect')
 class IsolateReconnectElement extends ObservatoryElement {

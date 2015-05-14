@@ -117,13 +117,13 @@ class PrintCommand extends DebuggerCommand {
     }
     var expr = args.join('');
     return debugger.isolate.evalFrame(debugger.currentFrame, expr)
-      .then((response) {
-          if (response is DartError) {
-            debugger.console.print(response.message);
-          } else {
-            debugger.console.print('= ', newline:false);
-            debugger.console.printRef(response);
-          }
+      .then((ServiceObject response) {
+        if (response is DartError) {
+          debugger.console.print(response.message);
+        } else {
+          debugger.console.print('= ', newline:false);
+          debugger.console.printRef(response);
+        }
       });
   }
 
@@ -369,43 +369,45 @@ class FinishCommand extends DebuggerCommand {
 class BreakCommand extends DebuggerCommand {
   BreakCommand(Debugger debugger) : super(debugger, 'break', []);
 
-  Future run(List<String> args) {
+  Future run(List<String> args) async {
     if (args.length > 1) {
       debugger.console.print('not implemented');
       return new Future.value(null);
     }
     var arg = (args.length == 0 ? '' : args[0]);
-    return SourceLocation.parse(debugger, arg).then((loc) {
-      if (loc.valid) {
-        if (loc.function != null) {
-          return debugger.isolate.addBreakpointAtEntry(loc.function)
-            .then((result) => _handleBreakpointResult(loc, result));
-        } else {
-          assert(loc.script != null);
-          if (loc.col != null) {
-            // TODO(turnidge): Add tokenPos breakpoint support.
-            debugger.console.print(
-                'Ignoring column: '
-                'adding breakpoint at a specific column not yet implemented');
+    var loc = await SourceLocation.parse(debugger, arg);
+    if (loc.valid) {
+      if (loc.function != null) {
+        try {
+          await debugger.isolate.addBreakpointAtEntry(loc.function);
+        } on ServerRpcException catch(e) {
+          if (e.code == ServerRpcException.kNoBreakAtFunction) {
+            debugger.console.print('Unable to set breakpoint at ${loc}');
+          } else {
+            rethrow;
           }
-          return debugger.isolate.addBreakpoint(loc.script, loc.line)
-            .then((result) => _handleBreakpointResult(loc, result));
         }
       } else {
-        debugger.console.print(loc.errorMessage);
+        assert(loc.script != null);
+        if (loc.col != null) {
+          // TODO(turnidge): Add tokenPos breakpoint support.
+          debugger.console.print(
+              'Ignoring column: '
+              'adding breakpoint at a specific column not yet implemented');
+          }
+        try {
+          await debugger.isolate.addBreakpoint(loc.script, loc.line);
+        } on ServerRpcException catch(e) {
+          if (e.code == ServerRpcException.kNoBreakAtLine) {
+            debugger.console.print('Unable to set breakpoint at ${loc}');
+          } else {
+            rethrow;
+          }
+        }
       }
-    });
-  }
-
-  Future _handleBreakpointResult(loc, result) {
-    if (result is DartError) {
-      debugger.console.print('Unable to set breakpoint at ${loc}');
     } else {
-      // TODO(turnidge): Adding a duplicate breakpoint is
-      // currently ignored.  May want to change the protocol to
-      // inform us when this happens.
+      debugger.console.print(loc.errorMessage);
     }
-    return new Future.value(null);
   }
 
   Future<List<String>> complete(List<String> args) {
@@ -968,6 +970,7 @@ class ObservatoryDebugger extends Debugger {
     } else {
       console.print('Isolate is in unknown state');
     }
+    warnOutOfDate();
   }
 
   void _reportPause(ServiceEvent event) {
@@ -986,11 +989,12 @@ class ObservatoryDebugger extends Debugger {
         var col = script.tokenToCol(frame['tokenPos']);
         if (event.breakpoint != null) {
           var bpId = event.breakpoint.number;
-          console.print('Breakpoint ${bpId} at ${script.name}:${line}:${col}');
+          console.print('Paused at breakpoint ${bpId} at '
+                        '${script.name}:${line}:${col}');
         } else if (event.exception != null) {
           // TODO(turnidge): Test this.
-          console.print(
-              'Exception ${event.exception} at ${script.name}:${line}:${col}');
+          console.print('Paused due to exception ${event.exception} at '
+                        '${script.name}:${line}:${col}');
         } else {
           console.print('Paused at ${script.name}:${line}:${col}');
         }
@@ -1145,7 +1149,16 @@ class ObservatoryDebugger extends Debugger {
     return cmd.runCommand(command).then((_) {
       lastCommand = command;
     }).catchError((e, s) {
-      console.print('ERROR $e\n$s');
+      if (e is NetworkRpcException) {
+        console.printRed('Unable to execute command because the connection '
+                      'to the VM has been closed');
+      } else {
+        if (s != null) {
+          console.printRed('Internal error: $e\n$s');
+        } else {
+          console.printRed('Internal error: $e\n');
+        }
+      }
     });
   }
 
@@ -1351,7 +1364,7 @@ class DebuggerStackElement extends ObservatoryElement {
     return s;
   }
 
-  doPauseIsolate(_) {
+  Future doPauseIsolate() {
     if (debugger != null) {
       return debugger.isolate.pause();
     } else {
@@ -1359,7 +1372,7 @@ class DebuggerStackElement extends ObservatoryElement {
     }
   }
 
-  doRefreshStack(_) {
+  Future doRefreshStack() {
     if (debugger != null) {
       return debugger.refreshStack();
     } else {
@@ -1564,6 +1577,17 @@ class DebuggerConsoleElement extends ObservatoryElement {
   void printBold(String line, { bool newline:true }) {
     var span = new SpanElement();
     span.classes.add('bold');
+    span.appendText(line);
+    if (newline) {
+      span.appendText('\n');
+    }
+    $['consoleText'].children.add(span);
+    span.scrollIntoView();
+  }
+
+  void printRed(String line, { bool newline:true }) {
+    var span = new SpanElement();
+    span.classes.add('red');
     span.appendText(line);
     if (newline) {
       span.appendText('\n');

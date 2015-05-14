@@ -21,6 +21,7 @@ class ObjectCommonElement extends ObservatoryElement {
   // TODO(koda): Add no-arg "calculate-link" instead of reusing "eval-link".
   Future<ServiceObject> retainedSize(var dummy) {
     return object.isolate.getRetainedSize(object).then((Instance obj) {
+      // TODO(turnidge): Handle collected/expired objects gracefully.
       retainedBytes = int.parse(obj.valueAsString);
     });
   }
@@ -38,7 +39,7 @@ class ObjectCommonElement extends ObservatoryElement {
         });
   }
 
-  void refresh(Function onDone) {
-    object.reload().whenComplete(onDone);
+  Future refresh() {
+    return object.reload();
   }
 }

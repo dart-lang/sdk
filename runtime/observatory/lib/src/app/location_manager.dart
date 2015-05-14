@@ -82,7 +82,8 @@ class LocationManager extends Observable {
     runZoned(() => _app._visit(_uri, internalArguments),
              onError: (e, st) {
       if (e is IsolateNotFound) {
-        var newPath = _app.vm == null ? '/vm-connect' : '/isolate-reconnect';
+        var newPath = ((_app.vm == null || _app.vm.isDisconnected)
+                       ? '/vm-connect' : '/isolate-reconnect');
         var parameters = {};
         parameters.addAll(_uri.queryParameters);
         parameters['originalPath'] = _uri.path;
@@ -91,19 +92,27 @@ class LocationManager extends Observable {
         go(makeLink(generatedUri.toString()), true);
         return;
       }
-      throw e;
+      // Surface any uncaught exceptions.
+      _app.handleException(e, st);
     });
   }
 
   /// Navigate to [url].
   void go(String url, [bool addToBrowserHistory = true]) {
-    if ((url != makeLink('/vm-connect')) && _app.vm == null) {
+    if ((url != makeLink('/vm-connect')) &&
+        (_app.vm == null || _app.vm.isDisconnected)) {
       if (!window.confirm('Connection with VM has been lost. '
                           'Proceeding will lose current page.')) {
         return;
       }
-      url = makeLink('/vm-connect/');
+      url = makeLink('/vm-connect');
     }
+
+    if (url == makeLink('/vm-connect')) {
+      // When we go to the vm-connect page, drop all notifications.
+      _app.notifications.clear();
+    }
+
     if (addToBrowserHistory) {
       _addToBrowserHistory(url);
     }

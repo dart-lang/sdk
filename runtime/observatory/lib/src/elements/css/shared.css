@@ -117,6 +117,12 @@ hr {
   flex-direction: row;
 }
 
+.flex-row-wrap {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
 .inline-flex-row {
   display: inline-flex;
   flex-direction: row;

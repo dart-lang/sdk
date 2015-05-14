@@ -116,6 +116,7 @@ abstract class CommonWebSocketVM extends VM {
     }
   }
   Future get onDisconnect => _disconnected.future;
+  bool get isDisconnected => _disconnected.isCompleted;
 
   void disconnect({String reason : 'WebSocket closed'}) {
     if (_hasInitiatedConnect) {
@@ -134,6 +135,11 @@ abstract class CommonWebSocketVM extends VM {
       _hasInitiatedConnect = true;
       _webSocket.connect(
           target.networkAddress, _onOpen, _onMessage, _onError, _onClose);
+    }
+    if (_disconnected.isCompleted) {
+      // This connection was closed already.
+      var exception = new NetworkRpcException('WebSocket closed');
+      return new Future.error(exception);
     }
     String serial = (_requestSerial++).toString();
     var request = new _WebSocketRequest(method, params);
@@ -173,12 +179,12 @@ abstract class CommonWebSocketVM extends VM {
       map = JSON.decode(message);
     } catch (e, st) {
       Logger.root.severe('Disconnecting: Error decoding message: $e\n$st');
-      disconnect(reason:'Error decoding JSON message: $e');
+      disconnect(reason:'Connection saw corrupt JSON message: $e');
       return null;
     }
     if (map == null) {
       Logger.root.severe("Disconnecting: Unable to decode 'null' message");
-      disconnect(reason:"Unable to decode 'null' message");
+      disconnect(reason:"Connection saw 'null' message");
       return null;
     }
     return map;
@@ -221,7 +227,6 @@ abstract class CommonWebSocketVM extends VM {
 
     // Extract serial and result.
     var serial = map['id'];
-    var result = map['result'];
 
     // Complete request.
     var request = _pendingRequests.remove(serial);
@@ -235,7 +240,14 @@ abstract class CommonWebSocketVM extends VM {
       Logger.root.info(
           'RESPONSE [${serial}] ${request.method}');
     }
-    request.completer.complete(result);
+
+    var result = map['result'];
+    if (result != null) {
+      request.completer.complete(result);
+    } else {
+      var exception = new ServerRpcException.fromMap(map['error']);
+      request.completer.completeError(exception);
+    }
   }
 
   // WebSocket message event handler.
@@ -247,33 +259,25 @@ abstract class CommonWebSocketVM extends VM {
     }
   }
 
-  Map _generateNetworkError(String userMessage) {
-    var response = {
-      'type': 'ServiceException',
-      'kind': 'ConnectionClosed',
-      'message': userMessage,
-    };
-    return response;
-  }
-
   void _cancelRequests(Map<String,_WebSocketRequest> requests,
-                       String reason) {
+                       String message) {
     requests.forEach((_, _WebSocketRequest request) {
-      request.completer.complete(
-          _generateNetworkError(reason));
+      var exception = new NetworkRpcException(message);
+      request.completer.completeError(exception);
     });
     requests.clear();
   }
 
   /// Cancel all pending and delayed requests by completing them with an error.
   void _cancelAllRequests(String reason) {
+    String message = 'Canceling request: $reason';
     if (_pendingRequests.length > 0) {
-      Logger.root.info('Cancelling all pending requests.');
-      _cancelRequests(_pendingRequests, reason);
+      Logger.root.info('Canceling all pending requests.');
+      _cancelRequests(_pendingRequests, message);
     }
     if (_delayedRequests.length > 0) {
-      Logger.root.info('Cancelling all delayed requests.');
-      _cancelRequests(_delayedRequests, reason);
+      Logger.root.info('Canceling all delayed requests.');
+      _cancelRequests(_delayedRequests, message);
     }
   }
 

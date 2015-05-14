@@ -9,23 +9,31 @@ import 'test_helper.dart';
 
 var tests = [
   (Isolate isolate) async {
-    await isolate.invokeRpc('_respondWithMalformedObject', {}).then((result) {
+    bool caughtException;
+    try {
+      await isolate.invokeRpc('_respondWithMalformedObject', {});
       expect(false, isTrue, reason:'Unreachable');
-    }).catchError((ServiceException exception) {
-      expect(exception.kind, equals('ResponseFormatException'));
-      expect(exception.message,
-             startsWith("Response is missing the 'type' field"));
-    });
+    } on MalformedResponseRpcException catch (e) {
+      caughtException = true;
+      expect(e.message, equals("Response is missing the 'type' field"));
+    }
+    expect(caughtException, isTrue);
   },
 
   // Do this test last... it kills the vm connection.
   (Isolate isolate) async {
-    await isolate.invokeRpc('_respondWithMalformedJson', {}).then((result) {
+    bool caughtException;
+    try {
+      await isolate.invokeRpc('_respondWithMalformedJson', {});
       expect(false, isTrue, reason:'Unreachable');
-    }).catchError((ServiceException exception) {
-      expect(exception.kind, equals('ConnectionClosed'));
-      expect(exception.message, startsWith('Error decoding JSON message'));
-    });
+    } on NetworkRpcException catch (e) {
+      caughtException = true;
+      expect(e.message,
+             startsWith("Canceling request: "
+                        "Connection saw corrupt JSON message: "
+                        "FormatException: Unexpected character"));
+    }
+    expect(caughtException, isTrue);
   },
 ];
 

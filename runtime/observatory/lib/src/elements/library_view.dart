@@ -20,11 +20,11 @@ class LibraryViewElement extends ObservatoryElement {
     return library.isolate.eval(library, expression);
   }
 
-  void refresh(var done) {
-    library.reload().whenComplete(done);
+  Future refresh() {
+    return library.reload();
   }
 
-  void refreshCoverage(var done) {
-    library.refreshCoverage().whenComplete(done);
+  Future refreshCoverage() {
+    return library.refreshCoverage();
   }
 }

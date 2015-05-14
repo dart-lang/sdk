@@ -161,9 +161,7 @@ class HeapMapElement extends ObservatoryElement {
   void _handleClick(MouseEvent event) {
     var address = _objectAt(event.offset).address.toRadixString(16);
     isolate.getObjectByAddress(address).then((result) {
-      if (result is DartError) {
-        Logger.root.severe(result.message);
-      } else if (result.type != 'Sentinel') {
+      if (result.type != 'Sentinel') {
         app.locationManager.go(gotoLink('/inspect', result));
       }
     });
@@ -234,16 +232,14 @@ class HeapMapElement extends ObservatoryElement {
     });
   }
 
-  void refresh(var done) {
+  Future refresh() {
     if (isolate == null) {
-      return;
+      return new Future.value(null);
     }
-    isolate.invokeRpc('getHeapMap', {}).then((ServiceMap response) {
+    return isolate.invokeRpc('getHeapMap', {}).then((ServiceMap response) {
       assert(response['type'] == 'HeapMap');
       fragmentation = response;
-    }).catchError((e, st) {
-      Logger.root.info('$e $st');
-    }).whenComplete(done);
+    });
   }
 
   void fragmentationChanged(oldValue) {

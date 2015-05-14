@@ -4,6 +4,7 @@
 
 library metrics;
 
+import 'dart:async';
 import 'dart:html';
 import 'observatory_element.dart';
 import 'package:observatory/app.dart';
@@ -51,8 +52,8 @@ class MetricsPageElement extends ObservatoryElement {
     }
   }
 
-  void refresh(var done) {
-    isolate.refreshMetrics().whenComplete(done);
+  Future refresh() {
+    return isolate.refreshMetrics();
   }
 
   void selectMetric(Event e, var detail, Element target) {

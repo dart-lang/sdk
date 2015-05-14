@@ -39,7 +39,9 @@ class VMConnectTargetElement extends ObservatoryElement {
     }
     event.preventDefault();
     WebSocketVM currentVM = app.vm;
-    if ((currentVM == null) || (currentVM.target != target)) {
+    if ((currentVM == null) ||
+        currentVM.isDisconnected ||
+        (currentVM.target != target)) {
       _connectToVM(app, target);
     }
     var href = node.attributes['href'];

@@ -56,8 +56,17 @@ var tests = [
     var params = {
       'targetId': obj['id'],
     };
-    var result = await isolate.invokeRpcNoUpgrade('_getRetainingPath', params);
-    expect(result['message'], contains("invalid 'limit' parameter"));
+    bool caughtException;
+    try {
+      await isolate.invokeRpcNoUpgrade('_getRetainingPath', params);
+      expect(false, isTrue, reason:'Unreachable');
+    } on ServerRpcException catch (e) {
+      caughtException = true;
+      expect(e.code, equals(ServerRpcException.kInvalidParams));
+      expect(e.data['details'],
+             "_getRetainingPath expects the \'limit\' parameter");
+    }
+    expect(caughtException, isTrue);
   },
 
   (Isolate isolate) async {

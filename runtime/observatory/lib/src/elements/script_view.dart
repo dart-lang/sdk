@@ -4,6 +4,7 @@
 
 library script_view_element;
 
+import 'dart:async';
 import 'observatory_element.dart';
 import 'package:observatory/elements.dart';
 import 'package:observatory/service.dart';
@@ -16,11 +17,11 @@ class ScriptViewElement extends ObservatoryElement {
 
   ScriptViewElement.created() : super.created();
 
-  void refresh(var done) {
-    script.reload().whenComplete(done);
+  Future refresh() {
+    return script.reload();
   }
 
-  void refreshCoverage(var done) {
-    script.refreshCoverage().whenComplete(done);
+  Future refreshCoverage() {
+    return script.refreshCoverage();
   }
 }

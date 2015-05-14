@@ -42,8 +42,6 @@ export 'package:observatory/src/elements/observatory_element.dart';
 export 'package:observatory/src/elements/script_inset.dart';
 export 'package:observatory/src/elements/script_ref.dart';
 export 'package:observatory/src/elements/script_view.dart';
-export 'package:observatory/src/elements/service_error_view.dart';
-export 'package:observatory/src/elements/service_exception_view.dart';
 export 'package:observatory/src/elements/service_ref.dart';
 export 'package:observatory/src/elements/service_view.dart';
 export 'package:observatory/src/elements/sliding_checkbox.dart';

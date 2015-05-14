@@ -1,8 +1,9 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
 <link rel="import" href="instance_ref.html">
 <link rel="import" href="error_ref.html">
+<link rel="import" href="observatory_element.html">
 
-<polymer-element name="eval-link">
+<polymer-element name="eval-link" extends="observatory-element">
   <template>
     <style>
       .idle {
@@ -21,8 +22,13 @@
     <template if="{{ !busy }}">
       <span class="idle"><a on-click="{{ evalNow }}">{{ label }}</a></span>
     </template>
-    <template if="{{ result != null }}">
-      = <any-service-ref ref="{{ result }}"></any-service-ref>
+    <template if="{{ error != null }}">
+      = <span style="color:red">{{ error }}</span>
+    </template>
+    <template if="{{ error == null }}">
+      <template if="{{ result != null }}">
+        = <any-service-ref ref="{{ result }}"></any-service-ref>
+      </template>
     </template>
   </template>
 </polymer-element>
