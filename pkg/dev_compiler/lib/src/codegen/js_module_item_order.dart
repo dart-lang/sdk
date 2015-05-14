@@ -46,7 +46,9 @@ class ModuleItemLoadOrder {
 
   ModuleItemLoadOrder(this._emitModuleItem);
 
-  bool isLoaded(Element e) => _loaded[e] == true;
+  bool isLoaded(Element e) => (e.library == _currentLibrary)
+      ? _loaded[e] == true
+      : libraryIsLoaded(e.library);
 
   /// Collect top-level elements and nodes we need to emit.
   void collectElements(
