@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
-import 'dart:developer';
+import 'dart:profiler';
 import 'package:expect/expect.dart';
 
 testGaugeDouble() {

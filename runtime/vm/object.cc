@@ -1211,19 +1211,19 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterPrivateClass(cls, Symbols::_LinkedHashMap(), lib);
   pending_classes.Add(cls);
 
-  // Pre-register the developer library so we can place the vm class
+  // Pre-register the profiler library so we can place the vm class
   // UserTag there rather than the core library.
-  lib = Library::LookupLibrary(Symbols::DartDeveloper());
+  lib = Library::LookupLibrary(Symbols::DartProfiler());
   if (lib.IsNull()) {
-    lib = Library::NewLibraryHelper(Symbols::DartDeveloper(), true);
+    lib = Library::NewLibraryHelper(Symbols::DartProfiler(), true);
     lib.SetLoadRequested();
     lib.Register();
-    object_store->set_bootstrap_library(ObjectStore::kDeveloper, lib);
+    object_store->set_bootstrap_library(ObjectStore::kProfiler, lib);
   }
   ASSERT(!lib.IsNull());
-  ASSERT(lib.raw() == Library::DeveloperLibrary());
+  ASSERT(lib.raw() == Library::ProfilerLibrary());
 
-  lib = Library::LookupLibrary(Symbols::DartDeveloper());
+  lib = Library::LookupLibrary(Symbols::DartProfiler());
   ASSERT(!lib.IsNull());
   cls = Class::New<UserTag>();
   RegisterPrivateClass(cls, Symbols::_UserTag(), lib);
@@ -9863,6 +9863,11 @@ RawLibrary* Library::NativeWrappersLibrary() {
 }
 
 
+RawLibrary* Library::ProfilerLibrary() {
+  return Isolate::Current()->object_store()->profiler_library();
+}
+
+
 RawLibrary* Library::TypedDataLibrary() {
   return Isolate::Current()->object_store()->typed_data_library();
 }
@@ -10476,12 +10481,12 @@ void Library::CheckFunctionFingerprints() {
   POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);
 
   all_libs.Clear();
-  all_libs.Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
-  DEVELOPER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
-
-  all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+
+  all_libs.Clear();
+  all_libs.Add(&Library::ZoneHandle(Library::ProfilerLibrary()));
+  PROFILER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
   all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));

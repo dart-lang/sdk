@@ -84,10 +84,10 @@ void Intrinsifier::InitializeState() {
   TYPED_DATA_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
   GRAPH_TYPED_DATA_INTRINSICS_LIST(SETUP_FUNCTION);
 
-  // Setup all dart:developer lib functions that can be intrinsified.
-  lib = Library::DeveloperLibrary();
+  // Setup all dart:profiler lib functions that can be intrinsified.
+  lib = Library::ProfilerLibrary();
   ASSERT(!lib.IsNull());
-  DEVELOPER_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
+  PROFILER_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
 
 #undef SETUP_FUNCTION
 }

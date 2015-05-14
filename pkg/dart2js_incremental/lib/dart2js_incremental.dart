@@ -8,7 +8,7 @@ import 'dart:async' show
     EventSink,
     Future;
 
-import 'dart:developer' show
+import 'dart:profiler' show
     UserTag;
 
 import 'package:compiler/src/apiimpl.dart' show

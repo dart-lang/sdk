@@ -3051,6 +3051,7 @@ class Library : public Object {
   static RawLibrary* MathLibrary();
   static RawLibrary* MirrorsLibrary();
   static RawLibrary* NativeWrappersLibrary();
+  static RawLibrary* ProfilerLibrary();
   static RawLibrary* TypedDataLibrary();
 
   // Eagerly compile all classes and functions in the library.
