@@ -652,12 +652,10 @@ class _EventLoop {
   void _runHelper() {
     if (globalWindow != null) {
       // Run each iteration from the browser's top event loop.
-      // TODO(vsm): Revert to original pattern.
-      // See: https://github.com/dart-lang/dev_compiler/issues/177
-      Function next = () {
+      next() {
         if (!runIteration()) return;
         Timer.run(next);
-      };
+      }
       next();
     } else {
       // Run synchronously until no more iterations are available.

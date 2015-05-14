@@ -778,12 +778,13 @@ var async = dart.import(async);
     }
     [_runHelper]() {
       if (exports.globalWindow != null) {
+        // Function next: () → dynamic
         let next = (() => {
           if (!dart.notNull(this.runIteration()))
             return;
-          async.Timer.run(dart.as(next, __CastType2));
+          async.Timer.run(next);
         }).bind(this);
-        dart.dcall(next);
+        next();
       } else {
         while (this.runIteration()) {
         }
@@ -1381,7 +1382,6 @@ var async = dart.import(async);
   }
   CapabilityImpl[dart.implements] = () => [isolate.Capability];
   dart.defineNamedConstructor(CapabilityImpl, '_internal');
-  let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(dart.void, []));
   // Exports:
   exports.enterJsAsync = enterJsAsync;
   exports.leaveJsAsync = leaveJsAsync;
