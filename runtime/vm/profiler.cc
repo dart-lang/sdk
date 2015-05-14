@@ -948,28 +948,10 @@ static void CollectSample(Isolate* isolate,
                           bool exited_dart_code,
                           bool in_dart_code,
                           Sample* sample,
-                          uword stack_lower,
-                          uword stack_upper,
-                          uword pc,
-                          uword fp,
-                          uword sp) {
-  ProfilerNativeStackWalker nativeStackWalker(sample,
-                                              stack_lower,
-                                              stack_upper,
-                                              pc,
-                                              fp,
-                                              sp);
-
-  ProfilerDartExitStackWalker dartExitStackWalker(isolate, sample);
-
-  ProfilerDartStackWalker dartStackWalker(isolate,
-                                          sample,
-                                          stack_lower,
-                                          stack_upper,
-                                          pc,
-                                          fp,
-                                          sp);
-
+                          ProfilerNativeStackWalker* native_stack_walker,
+                          ProfilerDartExitStackWalker* dart_exit_stack_walker,
+                          ProfilerDartStackWalker* dart_stack_walker,
+                          uword pc) {
 #if defined(TARGET_OS_WINDOWS)
   // Use structured exception handling to trap guard page access on Windows.
   __try {
@@ -980,13 +962,13 @@ static void CollectSample(Isolate* isolate,
 
   if (FLAG_profile_vm) {
     // Always walk the native stack collecting both native and Dart frames.
-    nativeStackWalker.walk();
+    native_stack_walker->walk();
   } else if (exited_dart_code) {
     // We have a valid exit frame info, use the Dart stack walker.
-    dartExitStackWalker.walk();
+    dart_exit_stack_walker->walk();
   } else if (in_dart_code) {
     // We are executing Dart code. We have frame pointers.
-    dartStackWalker.walk();
+    dart_stack_walker->walk();
   } else {
     sample->set_vm_tag(VMTag::kEmbedderTagId);
     sample->SetAt(0, pc);
@@ -1154,16 +1136,32 @@ void Profiler::RecordSampleInterruptCallback(
   sample->set_fp(fp);
   sample->set_lr(lr);
 
+  ProfilerNativeStackWalker native_stack_walker(sample,
+                                                stack_lower,
+                                                stack_upper,
+                                                pc,
+                                                fp,
+                                                sp);
+
+  ProfilerDartExitStackWalker dart_exit_stack_walker(isolate, sample);
+
+  ProfilerDartStackWalker dart_stack_walker(isolate,
+                                            sample,
+                                            stack_lower,
+                                            stack_upper,
+                                            pc,
+                                            fp,
+                                            sp);
+
   // All memory access is done inside CollectSample.
   CollectSample(isolate,
                 exited_dart_code,
                 in_dart_code,
                 sample,
-                stack_lower,
-                stack_upper,
-                pc,
-                fp,
-                sp);
+                &native_stack_walker,
+                &dart_exit_stack_walker,
+                &dart_stack_walker,
+                pc);
 }
 
 }  // namespace dart
