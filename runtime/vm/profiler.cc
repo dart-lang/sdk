@@ -953,6 +953,23 @@ static void CollectSample(Isolate* isolate,
                           uword pc,
                           uword fp,
                           uword sp) {
+  ProfilerNativeStackWalker nativeStackWalker(sample,
+                                              stack_lower,
+                                              stack_upper,
+                                              pc,
+                                              fp,
+                                              sp);
+
+  ProfilerDartExitStackWalker dartExitStackWalker(isolate, sample);
+
+  ProfilerDartStackWalker dartStackWalker(isolate,
+                                          sample,
+                                          stack_lower,
+                                          stack_upper,
+                                          pc,
+                                          fp,
+                                          sp);
+
 #if defined(TARGET_OS_WINDOWS)
   // Use structured exception handling to trap guard page access on Windows.
   __try {
@@ -963,27 +980,13 @@ static void CollectSample(Isolate* isolate,
 
   if (FLAG_profile_vm) {
     // Always walk the native stack collecting both native and Dart frames.
-    ProfilerNativeStackWalker stackWalker(sample,
-                                          stack_lower,
-                                          stack_upper,
-                                          pc,
-                                          fp,
-                                          sp);
-    stackWalker.walk();
+    nativeStackWalker.walk();
   } else if (exited_dart_code) {
     // We have a valid exit frame info, use the Dart stack walker.
-    ProfilerDartExitStackWalker stackWalker(isolate, sample);
-    stackWalker.walk();
+    dartExitStackWalker.walk();
   } else if (in_dart_code) {
     // We are executing Dart code. We have frame pointers.
-    ProfilerDartStackWalker stackWalker(isolate,
-                                        sample,
-                                        stack_lower,
-                                        stack_upper,
-                                        pc,
-                                        fp,
-                                        sp);
-    stackWalker.walk();
+    dartStackWalker.walk();
   } else {
     sample->set_vm_tag(VMTag::kEmbedderTagId);
     sample->SetAt(0, pc);
