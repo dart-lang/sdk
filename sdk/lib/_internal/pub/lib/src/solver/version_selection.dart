@@ -61,7 +61,7 @@ class VersionSelection {
     // Add all of [id]'s dependencies to [_dependencies], as well as to
     // [_unselected] if necessary.
     await Future.forEach(await _solver.depsFor(id), (dep) async {
-      var deps = getDependencies(dep.name);
+      var deps = getDependenciesOn(dep.name);
       deps.add(new Dependency(id, dep));
 
       // If this is the first dependency on this package, add it to the
@@ -84,7 +84,7 @@ class VersionSelection {
     await _unselected.add(id.toRef());
 
     for (var dep in await _solver.depsFor(id)) {
-      var deps = getDependencies(dep.name);
+      var deps = getDependenciesOn(dep.name);
       deps.removeLast();
 
       if (deps.isEmpty) {
@@ -116,13 +116,13 @@ class VersionSelection {
   /// can have a bunch of dependencies back onto the root package as long as
   /// they all agree with each other.
   Dependency getRequiredDependency(String name) {
-    return getDependencies(name)
+    return getDependenciesOn(name)
         .firstWhere((dep) => !dep.dep.isRoot, orElse: () => null);
   }
 
   /// Gets the combined [VersionConstraint] currently placed on package [name].
   VersionConstraint getConstraint(String name) {
-    var constraint = getDependencies(name)
+    var constraint = getDependenciesOn(name)
         .map((dep) => dep.dep.constraint)
         .fold(VersionConstraint.any, (a, b) => a.intersect(b));
 
@@ -135,11 +135,11 @@ class VersionSelection {
 
   /// Returns a string description of the dependencies on [name].
   String describeDependencies(String name) =>
-      getDependencies(name).map((dep) => "  $dep").join('\n');
+      getDependenciesOn(name).map((dep) => "  $dep").join('\n');
 
   /// Gets the list of known dependencies on package [name].
   ///
   /// Creates an empty list if needed.
-  List<Dependency> getDependencies(String name) =>
+  List<Dependency> getDependenciesOn(String name) =>
       _dependencies.putIfAbsent(name, () => <Dependency>[]);
 }
