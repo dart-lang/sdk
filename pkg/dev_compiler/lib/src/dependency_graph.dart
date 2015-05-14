@@ -25,12 +25,10 @@ import 'package:html/dom.dart' show Document, Node;
 import 'package:html/parser.dart' as html;
 import 'package:logging/logging.dart' show Logger, Level;
 import 'package:path/path.dart' as path;
-import 'package:source_span/source_span.dart' show SourceSpan;
 
 import 'info.dart';
 import 'options.dart';
 import 'report.dart';
-import 'utils.dart';
 
 /// Holds references to all source nodes in the import graph. This is mainly
 /// used as a level of indirection to ensure that each source has a canonical
@@ -70,11 +68,11 @@ class SourceGraph {
       var source = _context.sourceFactory.forUri(uriString);
       var extension = path.extension(uriString);
       if (extension == '.html') {
-        return new HtmlSourceNode(uri, source, this);
+        return new HtmlSourceNode(this, uri, source);
       } else if (extension == '.dart' || uriString.startsWith('dart:')) {
-        return new DartSourceNode(uri, source);
+        return new DartSourceNode(this, uri, source);
       } else {
-        return new ResourceSourceNode(uri, source);
+        return new ResourceSourceNode(this, uri, source);
       }
     });
   }
@@ -82,6 +80,8 @@ class SourceGraph {
 
 /// A node in the import graph representing a source file.
 abstract class SourceNode {
+  final SourceGraph graph;
+
   /// Resolved URI for this node.
   final Uri uri;
 
@@ -89,6 +89,8 @@ abstract class SourceNode {
   /// for modifications to the source files.
   Source _source;
   Source get source => _source;
+
+  String get contents => graph._context.getContents(source).data;
 
   /// Last stamp read from `source.modificationStamp`.
   int _lastStamp = 0;
@@ -113,21 +115,26 @@ abstract class SourceNode {
   /// parts are excluded from this list.
   Iterable<SourceNode> get depsWithoutParts => const [];
 
-  SourceNode(this.uri, this._source);
+  SourceNode(this.graph, this.uri, this._source);
 
   /// Check for whether the file has changed and, if so, mark [needsRebuild] and
   /// [structureChanged] as necessary.
-  void update(SourceGraph graph) {
+  void update() {
     if (_source == null) {
       _source = graph._context.sourceFactory.forUri(Uri.encodeFull('$uri'));
       if (_source == null) return;
     }
     int newStamp = _source.modificationStamp;
     if (newStamp > _lastStamp) {
+      // If the timestamp changed, read the file from disk and cache it.
+      // We don't want the source text to change during compilation.
+      saveUpdatedContents();
       _lastStamp = newStamp;
       needsRebuild = true;
     }
   }
+
+  void saveUpdatedContents() {}
 
   String toString() {
     var simpleUri = uri.scheme == 'file' ? path.relative(uri.path) : "$uri";
@@ -156,15 +163,16 @@ class HtmlSourceNode extends SourceNode {
   /// Parsed document, updated whenever [update] is invoked.
   Document document;
 
-  HtmlSourceNode(Uri uri, Source source, SourceGraph graph)
+  HtmlSourceNode(SourceGraph graph, Uri uri, Source source)
       : runtimeDeps = graph.runtimeDeps,
-        super(uri, source);
+        super(graph, uri, source);
 
-  void update(SourceGraph graph) {
-    super.update(graph);
+  @override
+  void update() {
+    super.update();
     if (needsRebuild) {
       graph._reporter.clearHtml(uri);
-      document = html.parse(source.contents.data, generateSpans: true);
+      document = html.parse(contents, generateSpans: true);
       var newScripts = new Set<DartSourceNode>();
       var tags = document.querySelectorAll('script[type="application/dart"]');
       for (var script in tags) {
@@ -204,7 +212,9 @@ class HtmlSourceNode extends SourceNode {
 
   void _reportError(SourceGraph graph, String message, Node node) {
     graph._reporter.enterHtml(source.uri);
-    graph._reporter.log(new DependencyGraphError(message, node.sourceSpan));
+    var span = node.sourceSpan;
+    graph._reporter.log(
+        new Message(message, Level.SEVERE, span.start.offset, span.end.offset));
     graph._reporter.leaveHtml();
   }
 }
@@ -223,7 +233,7 @@ class DartSourceNode extends SourceNode {
   /// How many times this file is included as a part.
   int includedAsPart = 0;
 
-  DartSourceNode(uri, source) : super(uri, source);
+  DartSourceNode(graph, uri, source) : super(graph, uri, source);
 
   @override
   Iterable<SourceNode> get allDeps =>
@@ -235,14 +245,25 @@ class DartSourceNode extends SourceNode {
 
   LibraryInfo info;
 
-  void update(SourceGraph graph) {
-    super.update(graph);
+  // TODO(jmesserly): it would be nice to not keep all sources in memory at
+  // once, but how else can we ensure a consistent view across a given
+  // compile? One different from dev_compiler vs analyzer is that our
+  // messages later in the compiler need the original source text to print
+  // spans. We also read source text ourselves to parse directives.
+  // But we could discard it after that point.
+  void saveUpdatedContents() {
+    graph._context.setContents(source, source.contents.data);
+  }
 
-    if (needsRebuild && source.contents.data != null) {
+  @override
+  void update() {
+    super.update();
+
+    if (needsRebuild && contents != null) {
       graph._reporter.clearLibrary(uri);
       // If the defining compilation-unit changed, the structure might have
       // changed.
-      var unit = parseDirectives(source.contents.data, name: source.fullName);
+      var unit = parseDirectives(contents, name: source.fullName);
       var newImports = new Set<DartSourceNode>();
       var newExports = new Set<DartSourceNode>();
       var newParts = new Set<DartSourceNode>();
@@ -262,7 +283,7 @@ class DartSourceNode extends SourceNode {
           if (targetUri != target.uri) print(">> ${target.uri} $targetUri");
         }
         var node = graph.nodes.putIfAbsent(
-            targetUri, () => new DartSourceNode(targetUri, target));
+            targetUri, () => new DartSourceNode(graph, targetUri, target));
         //var node = graph.nodeFromUri(targetUri);
         if (node.source == null || !node.source.exists()) {
           _reportError(graph, 'File $targetUri not found', unit, d);
@@ -314,24 +335,26 @@ class DartSourceNode extends SourceNode {
       // contain imports, exports, or parts, we'll ignore them in our crawling.
       // However we do a full update to make it easier to adjust when users
       // switch a file from a part to a library.
-      p.update(graph);
+      p.update();
       if (p.needsRebuild) needsRebuild = true;
     }
   }
 
   void _reportError(
       SourceGraph graph, String message, CompilationUnit unit, AstNode node) {
-    graph._reporter.enterLibrary(source.uri);
-    graph._reporter.log(
-        new DependencyGraphError(message, spanForNode(unit, source, node)));
-    graph._reporter.leaveLibrary();
+    graph._reporter
+      ..enterLibrary(source.uri)
+      ..enterCompilationUnit(unit, source)
+      ..log(new Message(message, Level.SEVERE, node.offset, node.end))
+      ..leaveCompilationUnit()
+      ..leaveLibrary();
   }
 }
 
 /// Represents a runtime resource from our compiler that is needed to run an
 /// application.
 class ResourceSourceNode extends SourceNode {
-  ResourceSourceNode(uri, source) : super(uri, source);
+  ResourceSourceNode(graph, uri, source) : super(graph, uri, source);
 }
 
 /// Updates the structure and `needsRebuild` marks in nodes of [graph] reachable
@@ -345,8 +368,8 @@ class ResourceSourceNode extends SourceNode {
 /// contained local changes. Rebuild decisions that derive from transitive
 /// changes (e.g. when the API of a dependency changed) are handled later in
 /// [rebuild].
-void refreshStructureAndMarks(SourceNode start, SourceGraph graph) {
-  visitInPreOrder(start, (n) => n.update(graph), includeParts: false);
+void refreshStructureAndMarks(SourceNode start) {
+  visitInPreOrder(start, (n) => n.update(), includeParts: false);
 }
 
 /// Clears all the `needsRebuild` and `structureChanged` marks in nodes
@@ -382,8 +405,8 @@ void clearMarks(SourceNode start) {
 ///     whether other nodes need to be rebuilt. The function [build] is expected
 ///     to return `true` on a node `n` if it detemines other nodes that import
 ///     `n` may need to be rebuilt as well.
-rebuild(SourceNode start, SourceGraph graph, bool build(SourceNode node)) {
-  refreshStructureAndMarks(start, graph);
+rebuild(SourceNode start, bool build(SourceNode node)) {
+  refreshStructureAndMarks(start);
   // Hold which source nodes may have changed their public API, this includes
   // libraries that were modified or libraries that export other modified APIs.
   // TODO(sigmund): consider removing this special support for exports? Many
@@ -453,12 +476,6 @@ visitInPostOrder(SourceNode start, void action(SourceNode node),
 }
 
 bool _same(Set a, Set b) => a.length == b.length && a.containsAll(b);
-
-/// An error message discovered while parsing the dependencies between files.
-class DependencyGraphError extends MessageWithSpan {
-  const DependencyGraphError(String message, SourceSpan span)
-      : super(message, Level.SEVERE, span);
-}
 
 /// Runtime files added to all applications when running the compiler in the
 /// command line.

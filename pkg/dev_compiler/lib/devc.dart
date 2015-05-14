@@ -9,7 +9,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analyzer/src/generated/engine.dart' show ChangeSet;
+import 'package:analyzer/src/generated/error.dart' as analyzer;
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisContext, ChangeSet;
+import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:logging/logging.dart' show Level, Logger, LogRecord;
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
@@ -25,7 +28,8 @@ import 'src/codegen/dart_codegen.dart';
 import 'src/codegen/html_codegen.dart';
 import 'src/codegen/js_codegen.dart';
 import 'src/dependency_graph.dart';
-import 'src/info.dart' show LibraryInfo, CheckerResults, LibraryUnit;
+import 'src/info.dart'
+    show AnalyzerError, CheckerResults, LibraryInfo, LibraryUnit;
 import 'src/options.dart';
 import 'src/report.dart';
 import 'src/utils.dart';
@@ -39,19 +43,25 @@ StreamSubscription setupLogger(Level level, printFn) {
   });
 }
 
+abstract class AbstractCompiler {
+  CompilerOptions get options;
+  AnalysisContext get context;
+  TypeRules get rules;
+  Uri get entryPointUri;
+}
+
 /// Encapsulates the logic to do a one-off compilation or a partial compilation
 /// when the compiler is run as a development server.
-class Compiler {
-  final CompilerOptions _options;
-  final TypeResolver _resolver;
+class Compiler implements AbstractCompiler {
+  final CompilerOptions options;
+  final AnalysisContext context;
   final CheckerReporter _reporter;
-  final TypeRules _rules;
+  final TypeRules rules;
   final CodeChecker _checker;
-  final SourceGraph _graph;
   final SourceNode _entryNode;
   List<LibraryInfo> _libraries = <LibraryInfo>[];
-  final List<CodeGenerator> _generators;
-  final bool _hashing;
+  final _generators = <CodeGenerator>[];
+  bool _hashing;
   bool _failure = false;
 
   factory Compiler(CompilerOptions options,
@@ -61,15 +71,15 @@ class Compiler {
           ? new TypeResolver.fromMock(mockSdkSources, options)
           : new TypeResolver.fromDir(options.dartSdkPath, options);
     }
+    var context = resolver.context;
 
     if (reporter == null) {
       reporter = options.dumpInfo
-          ? new SummaryReporter(options.logLevel)
-          : new LogReporter(options.useColors);
+          ? new SummaryReporter(context, options.logLevel)
+          : new LogReporter(context, useColors: options.useColors);
     }
-    var graph = new SourceGraph(resolver.context, reporter, options);
-    var rules =
-        new RestrictedRules(resolver.context.typeProvider, options: options);
+    var graph = new SourceGraph(context, reporter, options);
+    var rules = new RestrictedRules(context.typeProvider, options: options);
     var checker = new CodeChecker(rules, reporter, options);
 
     var inputFile = options.entryPointFile;
@@ -80,26 +90,26 @@ class Compiler {
             ? ResolverOptions.implicitHtmlFile
             : inputFile));
     var entryNode = graph.nodeFromUri(inputUri);
-    var outputDir = options.outputDir;
-    var generators = <CodeGenerator>[];
-    if (options.dumpSrcDir != null) {
-      generators.add(new EmptyDartGenerator(
-          options.dumpSrcDir, entryNode.uri, rules, options));
-    }
-    if (outputDir != null) {
-      generators.add(options.outputDart
-          ? new DartGenerator(outputDir, entryNode.uri, rules, options)
-          : new JSGenerator(outputDir, entryNode.uri, rules, options));
-    }
-    return new Compiler._(options, resolver, reporter, rules, checker, graph,
-        entryNode, generators,
-        // TODO(sigmund): refactor to support hashing of the dart output?
-        options.enableHashing && generators.length == 1 && !options.outputDart);
+
+    return new Compiler._(
+        options, context, reporter, rules, checker, entryNode);
   }
 
-  Compiler._(this._options, this._resolver, this._reporter, this._rules,
-      this._checker, this._graph, this._entryNode, this._generators,
-      this._hashing);
+  Compiler._(this.options, this.context, this._reporter, this.rules,
+      this._checker, this._entryNode) {
+    if (options.dumpSrcDir != null) {
+      _generators.add(new EmptyDartGenerator(this));
+    }
+    if (options.outputDir != null) {
+      _generators.add(
+          options.outputDart ? new DartGenerator(this) : new JSGenerator(this));
+    }
+    // TODO(sigmund): refactor to support hashing of the dart output?
+    _hashing =
+        options.enableHashing && _generators.length == 1 && !options.outputDart;
+  }
+
+  Uri get entryPointUri => _entryNode.uri;
 
   bool _buildSource(SourceNode node) {
     if (node is HtmlSourceNode) {
@@ -118,30 +128,30 @@ class Compiler {
   }
 
   void _buildHtmlFile(HtmlSourceNode node) {
-    if (_options.outputDir == null) return;
+    if (options.outputDir == null) return;
     var uri = node.source.uri;
     _reporter.enterHtml(uri);
-    var output = generateEntryHtml(node, _options);
+    var output = generateEntryHtml(node, options);
     if (output == null) {
       _failure = true;
       return;
     }
     _reporter.leaveHtml();
     var filename = path.basename(node.uri.path);
-    String outputFile = path.join(_options.outputDir, filename);
+    String outputFile = path.join(options.outputDir, filename);
     new File(outputFile).writeAsStringSync(output);
 
-    if (_options.outputDart) return;
+    if (options.outputDart) return;
   }
 
   void _buildResourceFile(ResourceSourceNode node) {
     // ResourceSourceNodes files that just need to be copied over to the output
     // location. These can be external dependencies or pieces of the
     // dev_compiler runtime.
-    if (_options.outputDir == null || _options.outputDart) return;
+    if (options.outputDir == null || options.outputDart) return;
     var filepath = resourceOutputPath(node.uri, _entryNode.uri);
     assert(filepath != null);
-    filepath = path.join(_options.outputDir, filepath);
+    filepath = path.join(options.outputDir, filepath);
     var dir = path.dirname(filepath);
     new Directory(dir).createSync(recursive: true);
     new File.fromUri(node.source.uri).copySync(filepath);
@@ -156,10 +166,10 @@ class Compiler {
   void _buildDartLibrary(DartSourceNode node) {
     var source = node.source;
     // TODO(sigmund): find out from analyzer team if there is a better way
-    _resolver.context.applyChanges(new ChangeSet()..changedSource(source));
-    var entryUnit = _resolver.context.resolveCompilationUnit2(source, source);
+    context.applyChanges(new ChangeSet()..changedSource(source));
+    var entryUnit = context.resolveCompilationUnit2(source, source);
     var lib = entryUnit.element.enclosingElement;
-    if (!_options.checkSdk && lib.isInSdk) return;
+    if (!options.checkSdk && lib.isInSdk) return;
     var current = node.info;
     if (current != null) {
       assert(current.library == lib);
@@ -168,25 +178,25 @@ class Compiler {
     }
     _reporter.enterLibrary(source.uri);
     _libraries.add(current);
-    _rules.currentLibraryInfo = current;
+    rules.currentLibraryInfo = current;
 
     var resolvedParts = node.parts
-        .map((p) => _resolver.context.resolveCompilationUnit2(p.source, source))
+        .map((p) => context.resolveCompilationUnit2(p.source, source))
         .toList(growable: false);
     var libraryUnit = new LibraryUnit(entryUnit, resolvedParts);
     bool failureInLib = false;
     for (var unit in libraryUnit.libraryThenParts) {
       var unitSource = unit.element.source;
-      _reporter.enterSource(unitSource);
+      _reporter.enterCompilationUnit(unit);
       // TODO(sigmund): integrate analyzer errors with static-info (issue #6).
-      failureInLib = _resolver.logErrors(unitSource, _reporter) || failureInLib;
+      failureInLib = logErrors(unitSource) || failureInLib;
       _checker.visitCompilationUnit(unit);
       if (_checker.failure) failureInLib = true;
-      _reporter.leaveSource();
+      _reporter.leaveCompilationUnit();
     }
     if (failureInLib) {
       _failure = true;
-      if (!_options.forceCompile) return;
+      if (!options.forceCompile) return;
     }
 
     for (var cg in _generators) {
@@ -194,6 +204,21 @@ class Compiler {
       if (_hashing) node.cachingHash = hash;
     }
     _reporter.leaveLibrary();
+  }
+
+  /// Log any errors encountered when resolving [source] and return whether any
+  /// errors were found.
+  bool logErrors(Source source) {
+    List<analyzer.AnalysisError> errors = context.getErrors(source).errors;
+    bool failure = false;
+    if (errors.isNotEmpty) {
+      for (var error in errors) {
+        var message = new AnalyzerError.from(error);
+        if (message.level == Level.SEVERE) failure = true;
+        _reporter.log(message);
+      }
+    }
+    return failure;
   }
 
   CheckerResults run() {
@@ -204,13 +229,13 @@ class Compiler {
     // like more than one script tag (see .severe messages in
     // dependency_graph.dart). Such failures should be reported back
     // here so we can mark failure=true in the CheckerResutls.
-    rebuild(_entryNode, _graph, _buildSource);
+    rebuild(_entryNode, _buildSource);
     _dumpInfoIfRequested();
     clock.stop();
     var time = (clock.elapsedMilliseconds / 1000).toStringAsFixed(2);
     _log.fine('Compiled ${_libraries.length} libraries in ${time} s\n');
     return new CheckerResults(
-        _libraries, _rules, _failure || _options.forceCompile);
+        _libraries, rules, _failure || options.forceCompile);
   }
 
   void _runAgain() {
@@ -219,7 +244,7 @@ class Compiler {
     int changed = 0;
 
     // TODO(sigmund): propagate failures here (see TODO in run).
-    rebuild(_entryNode, _graph, (n) {
+    rebuild(_entryNode, (n) {
       changed++;
       return _buildSource(n);
     });
@@ -230,12 +255,12 @@ class Compiler {
   }
 
   _dumpInfoIfRequested() {
-    if (!_options.dumpInfo || _reporter is! SummaryReporter) return;
+    if (!options.dumpInfo || _reporter is! SummaryReporter) return;
     var result = (_reporter as SummaryReporter).result;
-    if (!_options.serverMode) print(summaryToString(result));
-    var filepath = _options.serverMode
-        ? path.join(_options.outputDir, 'messages.json')
-        : _options.dumpInfoFile;
+    if (!options.serverMode) print(summaryToString(result));
+    var filepath = options.serverMode
+        ? path.join(options.outputDir, 'messages.json')
+        : options.dumpInfoFile;
     if (filepath == null) return;
     new File(filepath).writeAsStringSync(JSON.encode(result.toJsonMap()));
   }
@@ -272,7 +297,7 @@ class CompilerServer {
   CompilerServer._(
       Compiler compiler, this.outDir, this.host, this.port, String entryPath)
       : this.compiler = compiler,
-        this._entryPath = compiler._options.useImplicitHtml
+        this._entryPath = compiler.options.useImplicitHtml
             ? ResolverOptions.implicitHtmlFile
             : entryPath;
 

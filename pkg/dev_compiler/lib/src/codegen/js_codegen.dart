@@ -23,6 +23,7 @@ import 'package:dev_compiler/src/codegen/reify_coercions.dart'
 import 'package:dev_compiler/src/js/js_ast.dart' as JS;
 import 'package:dev_compiler/src/js/js_ast.dart' show js;
 
+import 'package:dev_compiler/devc.dart' show AbstractCompiler;
 import 'package:dev_compiler/src/checker/rules.dart';
 import 'package:dev_compiler/src/info.dart';
 import 'package:dev_compiler/src/options.dart';
@@ -49,6 +50,7 @@ const DCALL = 'dcall';
 const DSEND = 'dsend';
 
 class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
+  final AbstractCompiler compiler;
   final CompilerOptions options;
   final TypeRules rules;
   final LibraryInfo libraryInfo;
@@ -87,8 +89,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   ModuleItemLoadOrder _loader;
 
-  JSCodegenVisitor(this.options, this.rules, this.libraryInfo,
-      this._extensionMethods, this._fieldsNeedingStorage) {
+  JSCodegenVisitor(AbstractCompiler compiler, this.libraryInfo,
+      this._extensionMethods, this._fieldsNeedingStorage)
+      : compiler = compiler,
+        options = compiler.options,
+        rules = compiler.rules {
     _loader = new ModuleItemLoadOrder(_emitModuleItem);
   }
 
@@ -99,7 +104,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     String jsDefaultValue = null;
 
     // Modify the AST to make coercions explicit.
-    new CoercionReifier(library, rules, options).reify();
+    new CoercionReifier(library, compiler).reify();
 
     var unit = library.library;
     if (unit.directives.isNotEmpty) {
@@ -2386,15 +2391,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 }
 
 class JSGenerator extends CodeGenerator {
-  final CompilerOptions options;
-
   /// For fast lookup of extension methods, we first check the name, then do a
   /// (possibly expensive) subtype test to see if it matches one of the types
   /// that declares that method.
   final _extensionMethods = new HashMap<String, List<InterfaceType>>();
 
-  JSGenerator(String outDir, Uri root, TypeRules rules, this.options)
-      : super(outDir, root, rules) {
+  JSGenerator(AbstractCompiler context) : super(context) {
 
     // TODO(jacobr): determine the the set of types with extension methods from
     // the annotations rather than hard coding the list once the analyzer
@@ -2417,7 +2419,7 @@ class JSGenerator extends CodeGenerator {
   String generateLibrary(LibraryUnit unit, LibraryInfo info) {
     var fields = findFieldsNeedingStorage(unit);
     var codegen =
-        new JSCodegenVisitor(options, rules, info, _extensionMethods, fields);
+        new JSCodegenVisitor(compiler, info, _extensionMethods, fields);
     var module = codegen.emitLibrary(unit);
     var dir = path.join(outDir, jsOutputPath(info, root));
     return writeJsLibrary(module, dir, emitSourceMaps: options.emitSourceMaps);

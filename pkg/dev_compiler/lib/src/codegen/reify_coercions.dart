@@ -7,9 +7,10 @@ library dev_compiler.src.codegen.reify_coercions;
 import 'package:analyzer/analyzer.dart' as analyzer;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:logging/logging.dart' as logger;
-import 'package:source_span/source_span.dart' show SourceFile;
 
+import 'package:dev_compiler/devc.dart' show AbstractCompiler;
 import 'package:dev_compiler/src/checker/rules.dart';
 import 'package:dev_compiler/src/info.dart';
 import 'package:dev_compiler/src/options.dart' show CompilerOptions;
@@ -108,30 +109,34 @@ class _Inference extends DownwardsInference {
 // abstract coercion nodes with their dart implementations.
 class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
     with ConversionVisitor<Object> {
+  final AnalysisContext _context;
   final CoercionManager _cm;
   final TypeManager _tm;
   final VariableManager _vm;
   final LibraryUnit _library;
-  SourceFile _file;
   bool _skipCoercions = false;
   final TypeRules _rules;
   final _Inference _inferrer;
   final InstrumentedRuntime _runtime;
   final CompilerOptions _options;
 
-  CoercionReifier._(this._cm, this._tm, this._vm, this._library, this._rules,
-      this._inferrer, this._runtime, this._options);
+  CompilationUnit _unit;
 
-  factory CoercionReifier(
-      LibraryUnit library, TypeRules rules, CompilerOptions options,
+  CoercionReifier._(this._cm, this._tm, this._vm, this._library, this._rules,
+      this._inferrer, this._runtime, this._context, this._options);
+
+  factory CoercionReifier(LibraryUnit library, AbstractCompiler compiler,
       [InstrumentedRuntime runtime]) {
     var vm = new VariableManager();
     var tm =
         new TypeManager(library.library.element.enclosingElement, vm, runtime);
+    var rules = compiler.rules;
     var cm = new CoercionManager(vm, tm, rules, runtime);
     var inferrer = new _Inference(rules, tm);
+    var context = compiler.context;
+    var options = compiler.options;
     return new CoercionReifier._(
-        cm, tm, vm, library, rules, inferrer, runtime, options);
+        cm, tm, vm, library, rules, inferrer, runtime, context, options);
   }
 
   // This should be the entry point for this class.  Entering via the
@@ -144,21 +149,20 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
   }
 
   void generateUnit(CompilationUnit unit) {
-    _file = new SourceFile(unit.element.source.contents.data,
-        url: unit.element.source.uri);
+    _unit = unit;
     visitCompilationUnit(unit);
-    _file = null;
+    _unit = null;
   }
 
   ///////////////// Private //////////////////////////////////
 
   String _locationInfo(Expression e) {
-    if (_file != null) {
+    if (_unit != null) {
       final begin = e is AnnotatedNode
           ? (e as AnnotatedNode).firstTokenAfterCommentAndMetadata.offset
           : e.offset;
       if (begin != 0 && e.end > begin) {
-        var span = _file.span(begin, e.end);
+        var span = utils.createSpan(_context, _unit, begin, e.end);
         var s = span.message("Cast");
         return s.substring(0, s.indexOf("Cast"));
       }

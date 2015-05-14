@@ -85,7 +85,7 @@ RangeError.checkValueInInterval(rawIndex, 0, string.length, "rawIndex");
  _position = _nextPosition = rawIndex;
  _currentCodePoint = null;
 }
- int get current => DEVC$RT.cast(_currentCodePoint, num, int, "ImplicitCast", """line 702, column 23 of dart:core/string.dart: """, _currentCodePoint is int, true);
+ int get current => DEVC$RT.cast(_currentCodePoint, num, int, "ImplicitCast", """line 702, column 22 of dart:core/string.dart: """, _currentCodePoint is int, true);
  int get currentSize => _nextPosition - _position;
  String get currentAsString {
 if (_position == _nextPosition) return null;

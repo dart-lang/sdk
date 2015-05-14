@@ -10,7 +10,6 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart' as analyzer;
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
@@ -25,7 +24,6 @@ import 'package:path/path.dart' as path;
 
 import 'package:dev_compiler/src/in_memory.dart';
 import 'package:dev_compiler/src/options.dart';
-import 'package:dev_compiler/src/report.dart';
 import 'package:dev_compiler/src/utils.dart';
 import 'dart_sdk.dart';
 import 'multi_package_resolver.dart';
@@ -40,11 +38,11 @@ String _implicitEntryHtml(String src) => '''
 </html>
 ''';
 
+// TODO(jmesserly): this class can be removed, and converted to some top-level
+// methods that create the AnalysisContext.
 /// Encapsulates a resolver from the analyzer package.
 class TypeResolver {
   final InternalAnalysisContext context;
-
-  final Map<Uri, Source> _sources = <Uri, Source>{};
 
   TypeResolver(DartUriResolver sdkResolver, ResolverOptions options,
       {List otherResolvers})
@@ -77,49 +75,13 @@ class TypeResolver {
       : this(
           new DartUriResolver(new DirectoryBasedDartSdk(new JavaFile(sdkPath))),
           options, otherResolvers: otherResolvers);
-
-  UriResolver _createImplicitEntryResolver(ResolverOptions options) {
-    var entry = path.absolute(ResolverOptions.implicitHtmlFile);
-    var src = path.absolute(options.entryPointFile);
-    var index = <String, String>{'$entry': _implicitEntryHtml(src)};
-    return new InMemoryUriResolver(index, representNonExistingFiles: false);
-  }
-
-  /// Find the corresponding [Source] for [uri].
-  Source findSource(Uri uri) {
-    var source = _sources[uri];
-    if (source != null) return source;
-    return _sources[uri] = context.sourceFactory.forUri('$uri');
-  }
-
-  /// Log any errors encountered when resolving [source] and return whether any
-  /// errors were found.
-  bool logErrors(Source source, CheckerReporter reporter) {
-    List<analyzer.AnalysisError> errors = context.getErrors(source).errors;
-    bool failure = false;
-    if (errors.isNotEmpty) {
-      for (var error in errors) {
-        var message = new AnalyzerError.from(error);
-        if (message.level == logger.Level.SEVERE) failure = true;
-        reporter.log(message);
-      }
-    }
-    return failure;
-  }
 }
 
-class AnalyzerError extends Message {
-  factory AnalyzerError.from(analyzer.AnalysisError error) {
-    var severity = error.errorCode.type.severity;
-    var isError = severity == analyzer.ErrorSeverity.ERROR;
-    var level = isError ? logger.Level.SEVERE : logger.Level.WARNING;
-    int begin = error.offset;
-    int end = begin + error.length;
-    return new AnalyzerError(error.message, level, begin, end);
-  }
-
-  const AnalyzerError(String message, logger.Level level, int begin, int end)
-      : super('[from analyzer]: $message', level, begin, end);
+UriResolver _createImplicitEntryResolver(ResolverOptions options) {
+  var entry = path.absolute(ResolverOptions.implicitHtmlFile);
+  var src = path.absolute(options.entryPointFile);
+  var index = <String, String>{'$entry': _implicitEntryHtml(src)};
+  return new InMemoryUriResolver(index, representNonExistingFiles: false);
 }
 
 /// Creates an analysis context that contains our restricted typing rules.

@@ -7,6 +7,8 @@ library dev_compiler.src.report;
 
 import 'dart:math' show max;
 
+import 'package:analyzer/src/generated/ast.dart' show AstNode, CompilationUnit;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
@@ -22,7 +24,7 @@ import 'summary.dart';
 /// Currently the location information includes only the offsets within a file
 /// where the error occurs. This is used in the context of a [CheckerReporter],
 /// where the current file is being tracked.
-abstract class Message {
+class Message {
   // Message description.
   final String message;
 
@@ -38,22 +40,14 @@ abstract class Message {
   const Message(this.message, this.level, this.begin, this.end);
 }
 
-/// Like [Message], but with a precomputed source span.
-abstract class MessageWithSpan implements Message {
-  final String message;
-
-  final Level level;
-
-  final SourceSpan span;
-
-  int get begin => span.start.offset;
-  int get end => span.end.offset;
-
-  const MessageWithSpan(this.message, this.level, this.span);
-}
-
 // Interface used to report error messages from the checker.
 abstract class CheckerReporter {
+  final AnalysisContext _context;
+  CompilationUnit _unit;
+  Source _unitSource;
+
+  CheckerReporter(this._context);
+
   /// Called when starting to process a library.
   void enterLibrary(Uri uri);
   void leaveLibrary();
@@ -64,25 +58,35 @@ abstract class CheckerReporter {
 
   /// Called when starting to process a source. All subsequent log entries must
   /// belong to this source until the next call to enterSource.
-  void enterSource(Source source);
-  void leaveSource();
+  void enterCompilationUnit(CompilationUnit unit, [Source source]) {
+    _unit = unit;
+    _unitSource = source;
+  }
+  void leaveCompilationUnit() {
+    _unit = null;
+    _unitSource = null;
+  }
+
   void log(Message message);
 
   // Called in server-mode.
   void clearLibrary(Uri uri);
   void clearHtml(Uri uri);
   void clearAll();
+
+  SourceSpanWithContext _createSpan(int start, int end) =>
+      createSpan(_context, _unit, start, end, _unitSource);
 }
 
 final _checkerLogger = new Logger('dev_compiler.checker');
 
 /// Simple reporter that logs checker messages as they are seen.
-class LogReporter implements CheckerReporter {
+class LogReporter extends CheckerReporter {
   final bool useColors;
-  SourceFile _file;
   Source _current;
 
-  LogReporter([this.useColors = false]);
+  LogReporter(AnalysisContext context, {this.useColors: false})
+      : super(context);
 
   void enterLibrary(Uri uri) {}
   void leaveLibrary() {}
@@ -90,24 +94,12 @@ class LogReporter implements CheckerReporter {
   void enterHtml(Uri uri) {}
   void leaveHtml() {}
 
-  void enterSource(Source source) {
-    _file = new SourceFile(source.contents.data, url: source.uri);
-    _current = source;
-  }
-
-  void leaveSource() {
-    _file = null;
-    _current = null;
-  }
-
   void log(Message message) {
     if (message is StaticInfo) {
-      assert((message.node as dynamic).root.element.source == _current);
+      assert(message.node.root == _unit);
     }
     // TODO(sigmund): convert to use span information from AST (issue #73)
-    final span = message is MessageWithSpan
-        ? message.span
-        : _file.span(message.begin, message.end);
+    final span = _createSpan(message.begin, message.end);
     final level = message.level;
     final color = useColors ? colorOf(level.name) : null;
     final text = '[${message.runtimeType}] ${message.message}';
@@ -120,13 +112,13 @@ class LogReporter implements CheckerReporter {
 }
 
 /// A reporter that gathers all the information in a [GlobalSummary].
-class SummaryReporter implements CheckerReporter {
+class SummaryReporter extends CheckerReporter {
   GlobalSummary result = new GlobalSummary();
   IndividualSummary _current;
-  SourceFile _file;
   final Level _level;
 
-  SummaryReporter([this._level = Level.ALL]);
+  SummaryReporter(AnalysisContext context, [this._level = Level.ALL])
+      : super(context);
 
   void enterLibrary(Uri uri) {
     var container;
@@ -154,25 +146,19 @@ class SummaryReporter implements CheckerReporter {
     _current = null;
   }
 
-  void enterSource(Source source) {
-    _file = new SourceFile(source.contents.data, url: source.uri);
+  @override
+  void enterCompilationUnit(CompilationUnit unit, [Source source]) {
+    super.enterCompilationUnit(unit, source);
     if (_current is LibrarySummary) {
-      (_current as LibrarySummary).lines += _file.lines;
+      int lines = _unit.lineInfo.getLocation(_unit.endToken.end).lineNumber;
+      (_current as LibrarySummary).lines += lines;
     }
-  }
-
-  void leaveSource() {
-    _file = null;
   }
 
   void log(Message message) {
     // Only summarize messages per configured logging level
     if (message.level < _level) return;
-    assert(message is MessageWithSpan || _file != null);
-    // TODO(sigmund): convert to use span information from AST (issue #73)
-    final span = message is MessageWithSpan
-        ? message.span
-        : _file.span(message.begin, message.end);
+    final span = _createSpan(message.begin, message.end);
     _current.messages.add(new MessageSummary('${message.runtimeType}',
         message.level.name.toLowerCase(), span, message.message));
   }

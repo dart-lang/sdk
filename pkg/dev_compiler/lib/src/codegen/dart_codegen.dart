@@ -15,8 +15,8 @@ import 'package:dart_style/dart_style.dart';
 import 'package:logging/logging.dart' as logger;
 import 'package:path/path.dart' as path;
 
+import 'package:dev_compiler/devc.dart' show AbstractCompiler;
 import 'package:dev_compiler/src/info.dart';
-import 'package:dev_compiler/src/checker/rules.dart';
 import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/utils.dart' as utils;
 import 'ast_builder.dart';
@@ -385,13 +385,9 @@ class UnitGenerator extends UnitGeneratorCommon with ConversionVisitor<Object> {
 }
 
 class DartGenerator extends codegenerator.CodeGenerator {
-  final CompilerOptions options;
-  TypeRules _rules;
   final DevCompilerRuntime _runtime = new DevCompilerRuntime();
 
-  DartGenerator(String outDir, Uri root, TypeRules rules, this.options)
-      : _rules = rules,
-        super(outDir, root, rules);
+  DartGenerator(AbstractCompiler compiler) : super(compiler);
 
   Set<LibraryElement> computeExtraImports(Map<Identifier, NewTypeIdDesc> ids) {
     var imports = new Set<LibraryElement>();
@@ -410,7 +406,7 @@ class DartGenerator extends codegenerator.CodeGenerator {
   }
 
   String generateLibrary(LibraryUnit library, LibraryInfo info) {
-    var r = new CoercionReifier(library, rules, options, _runtime);
+    var r = new CoercionReifier(library, compiler, _runtime);
     var ids = r.reify();
     var extraImports = computeExtraImports(ids);
 
@@ -448,10 +444,7 @@ class EmptyUnitGenerator extends UnitGeneratorCommon {
 
 // This class emits the code unchanged, for comparison purposes.
 class EmptyDartGenerator extends codegenerator.CodeGenerator {
-  final CompilerOptions options;
-
-  EmptyDartGenerator(String outDir, Uri root, TypeRules rules, this.options)
-      : super(outDir, root, rules);
+  EmptyDartGenerator(AbstractCompiler compiler) : super(compiler);
 
   String generateLibrary(LibraryUnit library, LibraryInfo info) {
     for (var unit in library.partsThenLibrary) {

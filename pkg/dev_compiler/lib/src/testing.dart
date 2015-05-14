@@ -6,7 +6,8 @@ library dev_compiler.src.testing;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisContext, TimestampedData;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
@@ -51,7 +52,8 @@ import 'dependency_graph.dart' show runtimeFilesForServerMode;
 ///     });
 ///
 CheckerResults testChecker(Map<String, String> testFiles,
-    {bool allowConstCasts: true, String sdkDir, CheckerReporter reporter,
+    {bool allowConstCasts: true, String sdkDir,
+    CheckerReporter createReporter(AnalysisContext context),
     covariantGenerics: true, relaxedCasts: true,
     inferDownwards: RulesOptions.inferDownwardsDefault,
     inferFromOverrides: ResolverOptions.inferFromOverridesDefault,
@@ -81,11 +83,14 @@ CheckerResults testChecker(Map<String, String> testFiles,
           otherResolvers: [testUriResolver])
       : new TypeResolver.fromDir(sdkDir, options,
           otherResolvers: [testUriResolver]);
+  var context = resolver.context;
 
   // Run the checker on /main.dart.
   var mainFile = new Uri.file('/main.dart');
-  var checkExpectations = reporter == null;
-  if (reporter == null) reporter = new TestReporter();
+  var checkExpectations = createReporter == null;
+  var reporter = (createReporter == null)
+      ? new TestReporter(context)
+      : createReporter(context);
   var results =
       new Compiler(options, resolver: resolver, reporter: reporter).run();
 
@@ -146,6 +151,8 @@ CheckerResults testChecker(Map<String, String> testFiles,
 class TestReporter extends SummaryReporter {
   Map<Uri, Map<AstNode, List<StaticInfo>>> infoMap = {};
   Uri _current;
+
+  TestReporter(AnalysisContext context) : super(context);
 
   void enterLibrary(Uri uri) {
     super.enterLibrary(uri);

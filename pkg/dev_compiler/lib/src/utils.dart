@@ -113,7 +113,8 @@ Iterable<Source> reachableSources(Source start, AnalysisContext context) {
 /// Returns sources that are imported or exported in [source] (parts are
 /// excluded).
 Iterable<Source> _importsAndExportsOf(Source source, AnalysisContext context) {
-  var unit = parseDirectives(source.contents.data, name: source.fullName);
+  var unit =
+      parseDirectives(context.getContents(source).data, name: source.fullName);
   return unit.directives
       .where((d) => d is ImportDirective || d is ExportDirective)
       .map((d) {
@@ -291,19 +292,6 @@ SourceLocation locationForOffset(CompilationUnit unit, Uri uri, int offset) {
       column: lineInfo.columnNumber - 1);
 }
 
-// TODO(sigmund): change to show the span from the beginning of the line (#73)
-SourceSpan spanForNode(CompilationUnit unit, Source source, AstNode node) {
-  var currentToken = node is AnnotatedNode
-      ? node.firstTokenAfterCommentAndMetadata
-      : node.beginToken;
-  var begin = currentToken.offset;
-  var end = node.end;
-  var text = source.contents.data.substring(begin, end);
-  var uri = source.uri;
-  return new SourceSpan(locationForOffset(unit, uri, begin),
-      locationForOffset(unit, uri, end), '$text');
-}
-
 /// Computes a hash for the given contents.
 String computeHash(String contents) {
   if (contents == null || contents == '') return null;
@@ -438,4 +426,29 @@ InterfaceType findSupertype(InterfaceType type, bool match(InterfaceType t)) {
 
   if (match(s)) return type;
   return findSupertype(s, match);
+}
+
+SourceSpanWithContext createSpan(
+    AnalysisContext context, CompilationUnit unit, int start, int end,
+    [Source source]) {
+  if (source == null) source = unit.element.source;
+  var content = context.getContents(source).data;
+  var startLoc = locationForOffset(unit, source.uri, start);
+  var endLoc = locationForOffset(unit, source.uri, end);
+
+  var lineStart = startLoc.offset - startLoc.column;
+  // Find the end of the line. This is not exposed directly on LineInfo, but
+  // we can find it pretty easily.
+  // TODO(jmesserly): for now we do the simple linear scan. Ideally we can get
+  // some help from the LineInfo API.
+  var lineInfo = unit.lineInfo;
+  int lineEnd = endLoc.offset;
+  int unitEnd = unit.endToken.end;
+  int lineNum = lineInfo.getLocation(lineEnd).lineNumber;
+  while (lineEnd < unitEnd &&
+      lineInfo.getLocation(++lineEnd).lineNumber == lineNum);
+
+  var text = content.substring(start, end);
+  var lineText = content.substring(lineStart, lineEnd);
+  return new SourceSpanWithContext(startLoc, endLoc, text, lineText);
 }

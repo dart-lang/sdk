@@ -64,7 +64,7 @@ void main() {
     testUriResolver = new InMemoryUriResolver(testFiles);
     context = new TypeResolver.fromMock(mockSdkSources, options,
         otherResolvers: [testUriResolver]).context;
-    graph = new SourceGraph(context, new LogReporter(), options);
+    graph = new SourceGraph(context, new LogReporter(context), options);
   });
 
   group('HTML deps', () {
@@ -73,8 +73,8 @@ void main() {
       var i2 = nodeOf('/index2.html');
       expect(i1.scripts.length, 0);
       expect(i2.scripts.length, 0);
-      i1.update(graph);
-      i2.update(graph);
+      i1.update();
+      i2.update();
       expect(i1.scripts.length, 0);
       expect(i2.scripts.length, 1);
       expect(i2.scripts.first, nodeOf('/a1.dart'));
@@ -83,7 +83,7 @@ void main() {
     test('add a dep', () {
       // After initial load, dependencies are 0:
       var node = nodeOf('/index1.html');
-      node.update(graph);
+      node.update();
       expect(node.scripts.length, 0);
 
       // Adding the dependency is discovered on the next round of updates:
@@ -91,7 +91,7 @@ void main() {
       node.source.contents.data =
           '<script type="application/dart" src="a2.dart"></script>';
       expect(node.scripts.length, 0);
-      node.update(graph);
+      node.update();
       expect(node.scripts.length, 1);
       expect(node.scripts.first, nodeOf('/a2.dart'));
     });
@@ -99,7 +99,7 @@ void main() {
     test('add more deps', () {
       // After initial load, dependencies are 1:
       var node = nodeOf('/index2.html');
-      node.update(graph);
+      node.update();
       expect(node.scripts.length, 1);
       expect(node.scripts.first, nodeOf('/a1.dart'));
 
@@ -107,7 +107,7 @@ void main() {
       node.source.contents.data +=
           '<script type="application/dart" src="a2.dart"></script>';
       expect(node.scripts.length, 1);
-      node.update(graph);
+      node.update();
       expect(node.scripts.length, 2);
       expect(node.scripts.first, nodeOf('/a1.dart'));
       expect(node.scripts.last, nodeOf('/a2.dart'));
@@ -116,7 +116,7 @@ void main() {
     test('remove all deps', () {
       // After initial load, dependencies are 1:
       var node = nodeOf('/index2.html');
-      node.update(graph);
+      node.update();
       expect(node.scripts.length, 1);
       expect(node.scripts.first, nodeOf('/a1.dart'));
 
@@ -124,7 +124,7 @@ void main() {
       node.source.contents.modificationTime++;
       node.source.contents.data = '';
       expect(node.scripts.length, 1);
-      node.update(graph);
+      node.update();
       expect(node.scripts.length, 0);
     });
   });
@@ -140,8 +140,8 @@ void main() {
       expect(a2.exports.length, 0);
       expect(a2.parts.length, 0);
 
-      a1.update(graph);
-      a2.update(graph);
+      a1.update();
+      a2.update();
 
       expect(a1.imports.length, 0);
       expect(a1.exports.length, 0);
@@ -157,7 +157,7 @@ void main() {
 
     test('add deps', () {
       var node = nodeOf('/a1.dart');
-      node.update(graph);
+      node.update();
       expect(node.imports.length, 0);
       expect(node.exports.length, 0);
       expect(node.parts.length, 0);
@@ -165,7 +165,7 @@ void main() {
       node.source.contents.modificationTime++;
       node.source.contents.data =
           'import "a3.dart"; export "a5.dart"; part "a8.dart";';
-      node.update(graph);
+      node.update();
 
       expect(node.imports.length, 1);
       expect(node.exports.length, 1);
@@ -177,7 +177,7 @@ void main() {
 
     test('remove deps', () {
       var node = nodeOf('/a2.dart');
-      node.update(graph);
+      node.update();
       expect(node.imports.length, 2);
       expect(node.exports.length, 1);
       expect(node.parts.length, 1);
@@ -189,7 +189,7 @@ void main() {
       node.source.contents.modificationTime++;
       node.source.contents.data =
           'import "a3.dart"; export "a7.dart"; part "a8.dart";';
-      node.update(graph);
+      node.update();
 
       expect(node.imports.length, 1);
       expect(node.exports.length, 1);
@@ -201,7 +201,7 @@ void main() {
 
     test('change part to library', () {
       var node = nodeOf('/a2.dart');
-      node.update(graph);
+      node.update();
       expect(node.imports.length, 2);
       expect(node.exports.length, 1);
       expect(node.parts.length, 1);
@@ -221,7 +221,7 @@ void main() {
       var a6 = nodeOf('/a6.dart');
       a6.source.contents.modificationTime++;
       a6.source.contents.data = '';
-      node.update(graph);
+      node.update();
 
       expect(node.imports.length, 3);
       expect(node.exports.length, 1);
@@ -239,7 +239,7 @@ void main() {
     test('change library to part', () {
       var node = nodeOf('/a2.dart');
       var a4 = nodeOf('/a4.dart');
-      node.update(graph);
+      node.update();
       expect(node.imports.length, 2);
       expect(node.exports.length, 1);
       expect(node.parts.length, 1);
@@ -248,7 +248,7 @@ void main() {
       expect(node.exports.contains(nodeOf('/a5.dart')), isTrue);
       expect(node.parts.contains(nodeOf('/a6.dart')), isTrue);
 
-      a4.update(graph);
+      a4.update();
       expect(a4.imports.length, 0);
       expect(a4.exports.length, 1);
       expect(a4.parts.length, 0);
@@ -261,7 +261,7 @@ void main() {
           export 'a5.dart';
           part 'a6.dart';
         ''';
-      node.update(graph);
+      node.update();
 
       expect(node.imports.length, 1);
       expect(node.exports.length, 1);
@@ -287,7 +287,7 @@ void main() {
           export 'a5.dart';
           part 'a6.dart';
         ''';
-      node.update(graph);
+      node.update();
       expect(node.imports.contains(a4), isTrue);
       expect(a4.imports.length, 0);
       expect(a4.exports.length, 1);
@@ -299,35 +299,35 @@ void main() {
     group('needs rebuild', () {
       test('in HTML', () {
         var node = nodeOf('/index1.html');
-        node.update(graph);
+        node.update();
         expect(node.needsRebuild, isTrue);
         node.needsRebuild = false;
 
-        node.update(graph);
+        node.update();
         expect(node.needsRebuild, isFalse);
 
         // For now, an empty modification is enough to trigger a rebuild
         node.source.contents.modificationTime++;
         expect(node.needsRebuild, isFalse);
-        node.update(graph);
+        node.update();
         expect(node.needsRebuild, isTrue);
       });
 
       test('main library in Dart', () {
         var node = nodeOf('/a2.dart');
         var partNode = nodeOf('/a6.dart');
-        node.update(graph);
+        node.update();
         expect(node.needsRebuild, isTrue);
         node.needsRebuild = false;
         partNode.needsRebuild = false;
 
-        node.update(graph);
+        node.update();
         expect(node.needsRebuild, isFalse);
 
         // For now, an empty modification is enough to trigger a rebuild
         node.source.contents.modificationTime++;
         expect(node.needsRebuild, isFalse);
-        node.update(graph);
+        node.update();
         expect(node.needsRebuild, isTrue);
       });
 
@@ -336,19 +336,19 @@ void main() {
         var importNode = nodeOf('/a3.dart');
         var exportNode = nodeOf('/a5.dart');
         var partNode = nodeOf('/a6.dart');
-        node.update(graph);
+        node.update();
         expect(node.needsRebuild, isTrue);
         node.needsRebuild = false;
         partNode.needsRebuild = false;
 
-        node.update(graph);
+        node.update();
         expect(node.needsRebuild, isFalse);
 
         // Modification in imported/exported node makes no difference for local
         // rebuild label (globally that's tested elsewhere)
         importNode.source.contents.modificationTime++;
         exportNode.source.contents.modificationTime++;
-        node.update(graph);
+        node.update();
         expect(node.needsRebuild, isFalse);
         expect(partNode.needsRebuild, isFalse);
 
@@ -356,7 +356,7 @@ void main() {
         partNode.source.contents.modificationTime++;
         expect(node.needsRebuild, isFalse);
         expect(partNode.needsRebuild, isFalse);
-        node.update(graph);
+        node.update();
         expect(node.needsRebuild, isTrue);
         expect(partNode.needsRebuild, isTrue);
       });
@@ -365,35 +365,35 @@ void main() {
     group('structure change', () {
       test('no mod in HTML', () {
         var node = nodeOf('/index2.html');
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isTrue);
         node.structureChanged = false;
 
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isFalse);
 
         // An empty modification will not trigger a structural change
         node.source.contents.modificationTime++;
         expect(node.structureChanged, isFalse);
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isFalse);
       });
 
       test('added scripts in HTML', () {
         var node = nodeOf('/index2.html');
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isTrue);
         expect(node.scripts.length, 1);
 
         node.structureChanged = false;
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isFalse);
 
         // This change will not include new script tags:
         node.source.contents.modificationTime++;
         node.source.contents.data += '<div></div>';
         expect(node.structureChanged, isFalse);
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isFalse);
         expect(node.scripts.length, 1);
 
@@ -401,7 +401,7 @@ void main() {
         node.source.contents.data +=
             '<script type="application/dart" src="a4.dart"></script>';
         expect(node.structureChanged, isFalse);
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isTrue);
         expect(node.scripts.length, 2);
       });
@@ -411,11 +411,11 @@ void main() {
         var importNode = nodeOf('/a3.dart');
         var exportNode = nodeOf('/a5.dart');
         var partNode = nodeOf('/a6.dart');
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isTrue);
         node.structureChanged = false;
 
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isFalse);
 
         // These modifications make no difference at all.
@@ -425,37 +425,37 @@ void main() {
         node.source.contents.modificationTime++;
 
         expect(node.structureChanged, isFalse);
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isFalse);
       });
 
       test('same directives, different order', () {
         var node = nodeOf('/a2.dart');
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isTrue);
         node.structureChanged = false;
 
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isFalse);
 
         // modified order of imports, but structure stays the same:
         node.source.contents.modificationTime++;
         node.source.contents.data = 'import "a4.dart"; import "a3.dart"; '
             'export "a5.dart"; part "a6.dart";';
-        node.update(graph);
+        node.update();
 
         expect(node.structureChanged, isFalse);
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isFalse);
       });
 
       test('changed parts', () {
         var node = nodeOf('/a2.dart');
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isTrue);
         node.structureChanged = false;
 
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isFalse);
 
         // added one.
@@ -463,13 +463,13 @@ void main() {
         node.source.contents.data = 'import "a4.dart"; import "a3.dart"; '
             'export "a5.dart"; part "a6.dart"; part "a7.dart";';
         expect(node.structureChanged, isFalse);
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isTrue);
 
         // no change
         node.structureChanged = false;
         node.source.contents.modificationTime++;
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isFalse);
 
         // removed one
@@ -477,17 +477,17 @@ void main() {
         node.source.contents.data = 'import "a4.dart"; import "a3.dart"; '
             'export "a5.dart"; part "a7.dart";';
         expect(node.structureChanged, isFalse);
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isTrue);
       });
 
       test('changed import', () {
         var node = nodeOf('/a2.dart');
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isTrue);
         node.structureChanged = false;
 
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isFalse);
 
         // added one.
@@ -496,13 +496,13 @@ void main() {
             'import "a4.dart"; import "a3.dart"; import "a7.dart";'
             'export "a5.dart"; part "a6.dart";';
         expect(node.structureChanged, isFalse);
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isTrue);
 
         // no change
         node.structureChanged = false;
         node.source.contents.modificationTime++;
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isFalse);
 
         // removed one
@@ -510,17 +510,17 @@ void main() {
         node.source.contents.data = 'import "a4.dart"; import "a7.dart"; '
             'export "a5.dart"; part "a6.dart";';
         expect(node.structureChanged, isFalse);
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isTrue);
       });
 
       test('changed exports', () {
         var node = nodeOf('/a2.dart');
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isTrue);
         node.structureChanged = false;
 
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isFalse);
 
         // added one.
@@ -528,13 +528,13 @@ void main() {
         node.source.contents.data = 'import "a4.dart"; import "a3.dart";'
             'export "a5.dart"; export "a9.dart"; part "a6.dart";';
         expect(node.structureChanged, isFalse);
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isTrue);
 
         // no change
         node.structureChanged = false;
         node.source.contents.modificationTime++;
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isFalse);
 
         // removed one
@@ -542,7 +542,7 @@ void main() {
         node.source.contents.data = 'import "a4.dart"; import "a3.dart"; '
             'export "a5.dart"; part "a6.dart";';
         expect(node.structureChanged, isFalse);
-        node.update(graph);
+        node.update();
         expect(node.structureChanged, isTrue);
       });
     });
@@ -555,7 +555,7 @@ void main() {
           index3.html
           $_RUNTIME_GRAPH
           ''');
-      refreshStructureAndMarks(node, graph);
+      refreshStructureAndMarks(node);
       expectGraph(node, '''
           index3.html [needs-rebuild] [structure-changed]
           |-- a2.dart [needs-rebuild] [structure-changed]
@@ -570,7 +570,7 @@ void main() {
 
     test('cleared marks stay clear', () {
       var node = nodeOf('/index3.html');
-      refreshStructureAndMarks(node, graph);
+      refreshStructureAndMarks(node);
       expectGraph(node, '''
           index3.html [needs-rebuild] [structure-changed]
           |-- a2.dart [needs-rebuild] [structure-changed]
@@ -593,7 +593,7 @@ void main() {
           $_RUNTIME_GRAPH
           ''');
 
-      refreshStructureAndMarks(node, graph);
+      refreshStructureAndMarks(node);
       expectGraph(node, '''
           index3.html
           |-- a2.dart
@@ -608,12 +608,12 @@ void main() {
 
     test('needsRebuild mark updated on local modifications', () {
       var node = nodeOf('/index3.html');
-      refreshStructureAndMarks(node, graph);
+      refreshStructureAndMarks(node);
       clearMarks(node);
       var a3 = nodeOf('/a3.dart');
       a3.source.contents.modificationTime++;
 
-      refreshStructureAndMarks(node, graph);
+      refreshStructureAndMarks(node);
       expectGraph(node, '''
           index3.html
           |-- a2.dart
@@ -628,13 +628,13 @@ void main() {
 
     test('structuredChanged mark updated on structure modifications', () {
       var node = nodeOf('/index3.html');
-      refreshStructureAndMarks(node, graph);
+      refreshStructureAndMarks(node);
       clearMarks(node);
       var a5 = nodeOf('/a5.dart');
       a5.source.contents.modificationTime++;
       a5.source.contents.data = 'import "a8.dart";';
 
-      refreshStructureAndMarks(node, graph);
+      refreshStructureAndMarks(node);
       expectGraph(node, '''
           index3.html
           |-- a2.dart
@@ -656,7 +656,7 @@ void main() {
           runtimeDir: '/dev_compiler_runtime/', serverMode: true);
       context = new TypeResolver.fromMock(mockSdkSources, options2,
           otherResolvers: [testUriResolver]).context;
-      graph = new SourceGraph(context, new LogReporter(), options2);
+      graph = new SourceGraph(context, new LogReporter(context), options2);
     });
 
     test('messages widget is automatically included', () {
@@ -667,7 +667,7 @@ void main() {
           |-- messages_widget.js
           |-- messages.css
           ''');
-      refreshStructureAndMarks(node, graph);
+      refreshStructureAndMarks(node);
       expectGraph(node, '''
           index3.html [needs-rebuild] [structure-changed]
           |-- a2.dart [needs-rebuild] [structure-changed]
@@ -703,7 +703,7 @@ void main() {
 
     test('everything build on first run', () {
       var node = nodeOf('/index3.html');
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
       // Note: a6.dart is not included because it built as part of a2.dart
       expect(results, ['a3.dart', 'a10.dart', 'a4.dart', 'a5.dart', 'a2.dart']
         ..addAll(runtimeFilesWithoutPath)
@@ -724,95 +724,95 @@ void main() {
 
     test('nothing to do after build', () {
       var node = nodeOf('/index3.html');
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
 
       results = [];
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
       expect(results, []);
     });
 
     test('modified part triggers building library', () {
       var node = nodeOf('/index3.html');
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
       results = [];
 
       var a6 = nodeOf('/a6.dart');
       a6.source.contents.modificationTime++;
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
       expect(results, ['a2.dart']);
 
       results = [];
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
       expect(results, []);
     });
 
     test('non-API change triggers build stays local', () {
       var node = nodeOf('/index3.html');
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
       results = [];
 
       var a3 = nodeOf('/a3.dart');
       a3.source.contents.modificationTime++;
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
       expect(results, ['a3.dart']);
 
       results = [];
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
       expect(results, []);
     });
 
     test('no-API change in exported file stays local', () {
       var node = nodeOf('/index3.html');
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
       results = [];
 
       // similar to the test above, but a10 is exported from a4.
       var a3 = nodeOf('/a10.dart');
       a3.source.contents.modificationTime++;
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
       expect(results, ['a10.dart']);
 
       results = [];
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
       expect(results, []);
     });
 
     test('API change in lib, triggers build on imports', () {
       var node = nodeOf('/index3.html');
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
       results = [];
 
       var a3 = nodeOf('/a3.dart');
       a3.source.contents.modificationTime++;
-      rebuild(node, graph, buildWithTransitiveChange);
+      rebuild(node, buildWithTransitiveChange);
       expect(results, ['a3.dart', 'a2.dart']);
 
       results = [];
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
       expect(results, []);
     });
 
     test('API change in export, triggers build on imports', () {
       var node = nodeOf('/index3.html');
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
       results = [];
 
       var a3 = nodeOf('/a10.dart');
       a3.source.contents.modificationTime++;
-      rebuild(node, graph, buildWithTransitiveChange);
+      rebuild(node, buildWithTransitiveChange);
 
       // Node: a4.dart reexports a10.dart, but it doesn't import it, so we don't
       // need to rebuild it.
       expect(results, ['a10.dart', 'a2.dart']);
 
       results = [];
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
       expect(results, []);
     });
 
     test('structural change rebuilds HTML, but skips unreachable code', () {
       var node = nodeOf('/index3.html');
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
       results = [];
 
       var a2 = nodeOf('/a2.dart');
@@ -821,30 +821,30 @@ void main() {
 
       var a3 = nodeOf('/a3.dart');
       a3.source.contents.modificationTime++;
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
 
       // a3 will become unreachable, index3 reflects structural changes.
       expect(results, ['a2.dart', 'index3.html']);
 
       results = [];
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
       expect(results, []);
     });
 
     test('newly discovered files get built too', () {
       var node = nodeOf('/index3.html');
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
       results = [];
 
       var a2 = nodeOf('/a2.dart');
       a2.source.contents.modificationTime++;
       a2.source.contents.data = 'import "a9.dart";';
 
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
       expect(results, ['a8.dart', 'a9.dart', 'a2.dart', 'index3.html']);
 
       results = [];
-      rebuild(node, graph, buildNoTransitiveChange);
+      rebuild(node, buildNoTransitiveChange);
       expect(results, []);
     });
 
@@ -859,7 +859,7 @@ void main() {
         var node = nodeOf('/index3.html');
         var a2 = nodeOf('/a2.dart');
         var a6 = nodeOf('/a6.dart');
-        rebuild(node, graph, buildNoTransitiveChange);
+        rebuild(node, buildNoTransitiveChange);
 
         expectGraph(node, '''
             index3.html
@@ -876,7 +876,7 @@ void main() {
         a6.source.contents.modificationTime++;
         a6.source.contents.data = 'library a6; import "a5.dart";';
         results = [];
-        rebuild(node, graph, buildNoTransitiveChange);
+        rebuild(node, buildNoTransitiveChange);
 
         // Looks to us like a change in a part, we'll report errors that the
         // part is not really a part-file. Note that a6.dart is not included
@@ -902,14 +902,14 @@ void main() {
             export 'a5.dart';
           ''';
         results = [];
-        rebuild(node, graph, buildNoTransitiveChange);
+        rebuild(node, buildNoTransitiveChange);
         // Note that a6 is now included, because we haven't built it as a
         // library until now:
         expect(results, ['a6.dart', 'a2.dart', 'index3.html']);
 
         a6.source.contents.modificationTime++;
         results = [];
-        rebuild(node, graph, buildNoTransitiveChange);
+        rebuild(node, buildNoTransitiveChange);
         expect(results, ['a6.dart']);
 
         expectGraph(node, '''
@@ -929,7 +929,7 @@ void main() {
         var node = nodeOf('/index3.html');
         var a2 = nodeOf('/a2.dart');
         var a6 = nodeOf('/a6.dart');
-        rebuild(node, graph, buildNoTransitiveChange);
+        rebuild(node, buildNoTransitiveChange);
 
         expectGraph(node, '''
             index3.html
@@ -951,7 +951,7 @@ void main() {
             export 'a5.dart';
           ''';
         results = [];
-        rebuild(node, graph, buildNoTransitiveChange);
+        rebuild(node, buildNoTransitiveChange);
         expect(results, ['a6.dart', 'a2.dart', 'index3.html']);
         expectGraph(node, '''
             index3.html
@@ -967,7 +967,7 @@ void main() {
         a6.source.contents.modificationTime++;
         a6.source.contents.data = 'library a6; import "a5.dart";';
         results = [];
-        rebuild(node, graph, buildNoTransitiveChange);
+        rebuild(node, buildNoTransitiveChange);
         expect(results, ['a6.dart', 'index3.html']);
         expectGraph(node, '''
             index3.html
@@ -986,7 +986,7 @@ void main() {
         var node = nodeOf('/index3.html');
         var a2 = nodeOf('/a2.dart');
         var a6 = nodeOf('/a6.dart');
-        rebuild(node, graph, buildNoTransitiveChange);
+        rebuild(node, buildNoTransitiveChange);
 
         expectGraph(node, '''
             index3.html
@@ -1009,7 +1009,7 @@ void main() {
         a6.source.contents.modificationTime++;
         a6.source.contents.data = 'library a6; import "a5.dart";';
         results = [];
-        rebuild(node, graph, buildNoTransitiveChange);
+        rebuild(node, buildNoTransitiveChange);
         // a6 is not here, it's not reachable so we don't build it.
         expect(results, ['a2.dart', 'index3.html']);
         expectGraph(node, '''
@@ -1027,7 +1027,7 @@ void main() {
         var node = nodeOf('/index3.html');
         var a2 = nodeOf('/a2.dart');
         var a5 = nodeOf('/a5.dart');
-        rebuild(node, graph, buildNoTransitiveChange);
+        rebuild(node, buildNoTransitiveChange);
 
         expectGraph(node, '''
             index3.html
@@ -1049,7 +1049,7 @@ void main() {
             part 'a6.dart';
           ''';
         results = [];
-        rebuild(node, graph, buildNoTransitiveChange);
+        rebuild(node, buildNoTransitiveChange);
         expect(results, ['a2.dart', 'index3.html']);
         expectGraph(node, '''
             index3.html
@@ -1065,7 +1065,7 @@ void main() {
         a5.source.contents.modificationTime++;
         a5.source.contents.data = 'part of a2;';
         results = [];
-        rebuild(node, graph, buildNoTransitiveChange);
+        rebuild(node, buildNoTransitiveChange);
         expect(results, ['a2.dart']);
         expectGraph(node, '''
             index3.html
@@ -1095,14 +1095,14 @@ void main() {
       test('non-existing files are tracked in dependencies', () {
         var node = nodeOf('/foo.dart');
         node.source.contents.data = "import 'bar.dart';";
-        rebuild(node, graph, buildNoTransitiveChange);
+        rebuild(node, buildNoTransitiveChange);
         expect(node.allDeps.contains(nodeOf('/bar.dart')), isTrue);
 
         var source = nodeOf('/bar.dart').source;
         source.contents.data = "hi";
         source.contents.modificationTime++;
         results = [];
-        rebuild(node, graph, buildWithTransitiveChange);
+        rebuild(node, buildWithTransitiveChange);
         expect(results, ['bar.dart', 'foo.dart']);
       });
     });
@@ -1113,7 +1113,7 @@ void main() {
             representNonExistingFiles: false);
         context = new TypeResolver.fromMock(mockSdkSources, options,
             otherResolvers: [testUriResolver]).context;
-        graph = new SourceGraph(context, new LogReporter(), options);
+        graph = new SourceGraph(context, new LogReporter(context), options);
       });
 
       test('recognize locally change between existing and not-existing', () {
@@ -1122,7 +1122,7 @@ void main() {
         var source = new InMemorySource(new Uri.file('/foo.dart'), "hi");
         testUriResolver.files[source.uri] = source;
         expect(n.source, isNull);
-        n.update(graph);
+        n.update();
         expect(n.source, source);
         expect(n.source.exists(), isTrue);
         expect(n.needsRebuild, isTrue);
@@ -1133,7 +1133,7 @@ void main() {
             new InMemorySource(new Uri.file('/foo.dart'), "import 'bar.dart';");
         testUriResolver.files[s1.uri] = s1;
         var node = nodeOf('/foo.dart');
-        rebuild(node, graph, buildNoTransitiveChange);
+        rebuild(node, buildNoTransitiveChange);
         expect(node.allDeps.length, 1);
         expect(node.allDeps.contains(nodeOf('/bar.dart')), isTrue);
         expect(nodeOf('/bar.dart').source, isNull);
@@ -1141,7 +1141,7 @@ void main() {
         var s2 = new InMemorySource(new Uri.file('/bar.dart'), "hi");
         testUriResolver.files[s2.uri] = s2;
         results = [];
-        rebuild(node, graph, buildWithTransitiveChange);
+        rebuild(node, buildWithTransitiveChange);
         expect(results, ['bar.dart', 'foo.dart']);
       });
     });

@@ -13,6 +13,7 @@ library dev_compiler.bin.edit_files;
 import 'dart:io';
 import 'dart:convert';
 
+import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:args/args.dart';
 import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:source_maps/refactor.dart';
@@ -63,6 +64,8 @@ class EditFileSummaryVisitor extends RecursiveSummaryVisitor {
   RegExp includePattern;
   RegExp excludePattern;
 
+  final Map<Uri, Source> _sources = <Uri, Source>{};
+
   EditFileSummaryVisitor(this.typeResolver, this.level,
       this.checkoutFilesExecutable, this.checkoutFilesArg, this.includePattern,
       this.excludePattern);
@@ -71,6 +74,13 @@ class EditFileSummaryVisitor extends RecursiveSummaryVisitor {
     var fileContents = new File(name).readAsStringSync();
     return new TextEditTransaction(fileContents, new SourceFile(fileContents));
   });
+
+  /// Find the corresponding [Source] for [uri].
+  Source findSource(Uri uri) {
+    var source = _sources[uri];
+    if (source != null) return source;
+    return _sources[uri] = typeResolver.context.sourceFactory.forUri('$uri');
+  }
 
   @override
   void visitMessage(MessageSummary message) {
@@ -88,7 +98,7 @@ class EditFileSummaryVisitor extends RecursiveSummaryVisitor {
           break;
       }
     }
-    var fullName = typeResolver.findSource(uri).fullName;
+    var fullName = findSource(uri).fullName;
     if (includePattern != null && !includePattern.hasMatch(fullName)) return;
     if (excludePattern != null && excludePattern.hasMatch(fullName)) return;
     var edits = getEdits(fullName);

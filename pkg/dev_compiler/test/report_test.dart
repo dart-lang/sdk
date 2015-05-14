@@ -33,8 +33,10 @@ void main() {
       '''.replaceAll('\n          ', '\n'),
     };
     testChecker(files);
-    var reporter = new SummaryReporter();
-    testChecker(files, reporter: reporter);
+
+    SummaryReporter reporter;
+    testChecker(files,
+        createReporter: (x) => reporter = new SummaryReporter(x));
 
     _verifySummary(GlobalSummary summary) {
       var mainLib = summary.loose['file:///main.dart'];

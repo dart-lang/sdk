@@ -10,6 +10,7 @@ import 'dart:mirrors';
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/error.dart' as analyzer;
 import 'package:analyzer/src/generated/scanner.dart'
     show Token, TokenType, SyntheticStringToken;
 import 'package:logging/logging.dart' show Level;
@@ -730,3 +731,17 @@ final List<Type> infoTypes = () {
   return new List<Type>.from(allTypes.map((mirror) => mirror.reflectedType))
     ..sort((t1, t2) => '$t1'.compareTo('$t2'));
 }();
+
+class AnalyzerError extends Message {
+  factory AnalyzerError.from(analyzer.AnalysisError error) {
+    var severity = error.errorCode.type.severity;
+    var isError = severity == analyzer.ErrorSeverity.ERROR;
+    var level = isError ? Level.SEVERE : Level.WARNING;
+    int begin = error.offset;
+    int end = begin + error.length;
+    return new AnalyzerError(error.message, level, begin, end);
+  }
+
+  const AnalyzerError(String message, Level level, int begin, int end)
+      : super('[from analyzer]: $message', level, begin, end);
+}
