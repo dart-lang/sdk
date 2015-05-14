@@ -24,10 +24,6 @@ namespace bin {
 
 
 
-// isolate_snapshot_buffer points to a snapshot if we link in a snapshot
-// otherwise it is initialized to NULL.
-extern const uint8_t* isolate_snapshot_buffer;
-
 static const char* DEFAULT_VM_SERVICE_SERVER_IP = "127.0.0.1";
 static const int DEFAULT_VM_SERVICE_SERVER_PORT = 0;
 
@@ -41,13 +37,13 @@ void VmServiceServer::Bootstrap() {
 }
 
 
-Dart_Isolate VmServiceServer::CreateIsolate() {
-  ASSERT(isolate_snapshot_buffer != NULL);
+Dart_Isolate VmServiceServer::CreateIsolate(const uint8_t* snapshot_buffer) {
+  ASSERT(snapshot_buffer != NULL);
   // Create the isolate.
   char* error = 0;
   Dart_Isolate isolate = Dart_CreateIsolate(DART_VM_SERVICE_ISOLATE_NAME,
                                             "main",
-                                            dart::bin::isolate_snapshot_buffer,
+                                            snapshot_buffer,
                                             NULL,
                                             &error);
   if (!isolate) {
@@ -56,12 +52,14 @@ Dart_Isolate VmServiceServer::CreateIsolate() {
   }
 
   Dart_EnterScope();
-  Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
-  Builtin::SetNativeResolver(Builtin::kIOLibrary);
 
+  Dart_SetLibraryTagHandler(DartUtils::LibraryTagHandler);
   Dart_Handle builtin_lib =
       Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
   CHECK_RESULT(builtin_lib);
+  Dart_Handle io_lib =
+      Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
+  CHECK_RESULT(io_lib);
 
   Dart_Handle result;
 

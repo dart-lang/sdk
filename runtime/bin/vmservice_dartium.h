@@ -16,7 +16,7 @@ namespace bin {
 class VmServiceServer {
  public:
   static void Bootstrap();
-  static Dart_Isolate CreateIsolate();
+  static Dart_Isolate CreateIsolate(const uint8_t* snapshot_buffer);
 
   static const char* GetServerIP();
   static intptr_t GetServerPort();

@@ -196,13 +196,12 @@
         'generate_builtin_cc_file#host',
         'generate_io_cc_file#host',
         'generate_io_patch_cc_file#host',
-        'generate_snapshot_file#host',
         'generate_resources_cc_file#host',
       ],
       'sources': [
         'builtin_common.cc',
         'builtin_natives.cc',
-        'builtin_nolib.cc',
+        'builtin.cc',
         'builtin.h',
         'dartutils.cc',
         'dartutils.h',
@@ -217,7 +216,10 @@
         'vmservice_impl.cc',
         'vmservice_impl.h',
         '<(resources_cc_file)',
-        '<(snapshot_cc_file)',
+        # Include generated source files.
+        '<(builtin_cc_file)',
+        '<(io_cc_file)',
+        '<(io_patch_cc_file)',
       ],
       'sources/': [
         ['exclude', '_test\\.(cc|h)$'],
