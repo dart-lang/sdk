@@ -1010,6 +1010,7 @@ void main(int argc, char** argv) {
     // lookup the main entry point exported from the root library.
     Dart_Handle builtin_lib =
         Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
+    ASSERT(!Dart_IsError(builtin_lib));
     result = Dart_LibraryImportLibrary(builtin_lib, root_lib, Dart_Null());
 
     if (has_compile_all) {

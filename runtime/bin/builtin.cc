@@ -114,7 +114,6 @@ Dart_Handle Builtin::LoadAndCheckLibrary(BuiltinLibraryId id) {
   if (Dart_IsError(library)) {
     library = LoadLibrary(url, id);
   }
-  DART_CHECK_VALID(library);
   return library;
 }
 

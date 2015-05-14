@@ -66,7 +66,6 @@ Dart_Handle Builtin::LoadAndCheckLibrary(BuiltinLibraryId id) {
   ASSERT(id >= kBuiltinLibrary && id < kInvalidLibrary);
   Dart_Handle url = DartUtils::NewString(builtin_libraries_[id].url_);
   Dart_Handle library = Dart_LookupLibrary(url);
-  DART_CHECK_VALID(library);
   return library;
 }
 
