@@ -61,7 +61,7 @@ main() {
 
       pubCommand(command, args: ['--offline'], error:
           "Package foo has no versions that match >2.0.0 derived from:\n"
-          "- myapp 0.0.0 depends on version >2.0.0");
+          "- myapp depends on version >2.0.0");
     });
   });
 }

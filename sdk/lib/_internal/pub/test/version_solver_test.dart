@@ -139,6 +139,26 @@ void basicGraph() {
     'foo': '1.0.0',
     'bar': '1.0.0'
   });
+
+  testResolve('removed dependency', {
+    'myapp 1.0.0': {
+      'foo': '1.0.0',
+      'bar': 'any'
+    },
+    'foo 1.0.0': {},
+    'foo 2.0.0': {},
+    'bar 1.0.0': {},
+    'bar 2.0.0': {
+      'baz': '1.0.0'
+    },
+    'baz 1.0.0': {
+      'foo': '2.0.0'
+    }
+  }, result: {
+    'myapp from root': '1.0.0',
+    'foo': '1.0.0',
+    'bar': '1.0.0'
+  }, maxTries: 2);
 }
 
 withLockFile() {
@@ -224,7 +244,7 @@ withLockFile() {
     'baz': '2.0.0',
     'qux': '1.0.0',
     'newdep': '2.0.0'
-  }, maxTries: 3);
+  }, maxTries: 4);
 }
 
 rootDependency() {
@@ -403,7 +423,7 @@ unsolvable() {
     'b 2.0.0': {
       'a': '1.0.0'
     }
-  }, error: couldNotSolve, maxTries: 4);
+  }, error: couldNotSolve, maxTries: 2);
 
   // This is a regression test for #15550.
   testResolve('no version that matches while backtracking', {
@@ -439,7 +459,7 @@ unsolvable() {
     "collection 0.9.1": {},
     "di 0.0.37": {"analyzer": ">=0.13.0 <0.14.0"},
     "di 0.0.36": {"analyzer": ">=0.13.0 <0.14.0"}
-  }, error: noVersion(['myapp', 'angular', 'collection']), maxTries: 9);
+  }, error: noVersion(['analyzer', 'di']), maxTries: 2);
 }
 
 badSource() {
@@ -754,7 +774,7 @@ backtracking() {
     'foo': '0.9.0',
     'bar': '9.0.0',
     'baz': '0.0.0'
-  }, maxTries: 100);
+  }, maxTries: 10);
 
   // If there's a disjoint constraint on a package, then selecting other
   // versions of it is a waste of time: no possible versions can match. We need
@@ -1260,7 +1280,7 @@ class SolveSuccessMatcher implements Matcher {
 
     // Allow 1 here because the greedy solver will only make one attempt.
     if (result.attemptedSolutions != 1 &&
-        result.attemptedSolutions != _maxTries) {
+        result.attemptedSolutions > _maxTries) {
       failures.writeln('Took ${result.attemptedSolutions} attempts');
     }
 
@@ -1328,7 +1348,7 @@ class SolveFailMatcher implements Matcher {
 
       // Allow 1 here because the greedy solver will only make one attempt.
       if (result.attemptedSolutions != 1 &&
-          result.attemptedSolutions != _maxTries) {
+          result.attemptedSolutions > _maxTries) {
         failures.writeln('Took ${result.attemptedSolutions} attempts');
       }
     }

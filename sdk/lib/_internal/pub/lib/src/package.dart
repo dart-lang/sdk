@@ -271,7 +271,13 @@ class Package {
 /// so that from outside of this library, there is no type relationship between
 /// those three types.
 class _PackageName {
-  _PackageName(this.name, this.source, this.description);
+  _PackageName(this.name, this.source, this.description)
+      : isMagic = false;
+
+  _PackageName.magic(this.name)
+      : source = null,
+        description = null,
+        isMagic = true;
 
   /// The name of the package being identified.
   final String name;
@@ -289,17 +295,29 @@ class _PackageName {
   /// by the URL "git://github.com/dart/uilib.git".
   final description;
 
+  /// Whether this is a name for a magic package.
+  ///
+  /// Magic packages are unversioned pub constructs that have special semantics.
+  /// For example, a magic package named "pub itself" is inserted into the
+  /// dependency graph when any package depends on barback. This packages has
+  /// dependencies that represent the versions of barback and related packages
+  /// that pub is compatible with.
+  final bool isMagic;
+
   /// Whether this package is the root package.
-  bool get isRoot => source == null;
+  bool get isRoot => source == null && !isMagic;
 
   String toString() {
     if (isRoot) return "$name (root)";
+    if (isMagic) return name;
     return "$name from $source";
   }
 
   /// Returns a [PackageRef] with this one's [name], [source], and
   /// [description].
-  PackageRef toRef() => new PackageRef(name, source, description);
+  PackageRef toRef() => isMagic
+      ? new PackageRef.magic(name)
+      : new PackageRef(name, source, description);
 
   /// Returns a [PackageId] for this package with the given concrete version.
   PackageId atVersion(Version version) =>
@@ -314,6 +332,10 @@ class _PackageName {
 class PackageRef extends _PackageName {
   PackageRef(String name, String source, description)
       : super(name, source, description);
+
+  /// Creates a reference to a magic package (see [isMagic]).
+  PackageRef.magic(String name)
+      : super.magic(name);
 
   int get hashCode => name.hashCode ^ source.hashCode;
 
@@ -341,6 +363,11 @@ class PackageId extends _PackageName {
   PackageId(String name, String source, this.version, description)
       : super(name, source, description);
 
+  /// Creates an ID for a magic package (see [isMagic]).
+  PackageId.magic(String name)
+      : super.magic(name),
+        version = Version.none;
+
   /// Creates an ID for the given root package.
   PackageId.root(Package package)
       : version = package.version,
@@ -359,6 +386,7 @@ class PackageId extends _PackageName {
 
   String toString() {
     if (isRoot) return "$name $version (root)";
+    if (isMagic) return name;
     return "$name $version from $source";
   }
 }

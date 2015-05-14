@@ -22,7 +22,7 @@ main() {
     pubGet(error: """
         Could not find package foo at "$badPath".
         Depended on by:
-        - myapp 0.0.0""",
+        - myapp""",
         exitCode: exit_codes.UNAVAILABLE);
   });
 }

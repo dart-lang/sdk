@@ -214,6 +214,8 @@ class PubspecCache {
       throw new StateError("Cannot get versions for root package $package.");
     }
 
+    if (package.isMagic) return [new PackageId.magic(package.name)];
+
     // See if we have it cached.
     var versions = _versions[package];
     if (versions != null) {
@@ -237,8 +239,10 @@ class PubspecCache {
     } catch (error, stackTrace) {
       // If an error occurs, cache that too. We only want to do one request
       // for any given package, successful or not.
-      log.solver("Could not get versions for $package:\n$error\n\n$stackTrace");
-      _versionErrors[package] = new Pair(error, new Chain.forTrace(stackTrace));
+      var chain = new Chain.forTrace(stackTrace);
+      log.solver("Could not get versions for $package:\n$error\n\n" +
+          chain.terse.toString());
+      _versionErrors[package] = new Pair(error, chain);
       throw error;
     }
 
@@ -280,23 +284,15 @@ class PubspecCache {
 
 /// A reference from a depending package to a package that it depends on.
 class Dependency {
-  /// The name of the package that has this dependency.
-  final String depender;
-
-  /// The version of the depender that has this dependency.
-  final Version dependerVersion;
+  /// The package that has this dependency.
+  final PackageId depender;
 
   /// The package being depended on.
   final PackageDep dep;
 
-  /// Whether [depender] is a magic dependency (e.g. "pub itself" or "pub global
-  /// activate").
-  bool get isMagic => depender.contains(" ");
+  Dependency(this.depender, this.dep);
 
-
-  Dependency(this.depender, this.dependerVersion, this.dep);
-
-  String toString() => '$depender $dependerVersion -> $dep';
+  String toString() => '$depender -> $dep';
 }
 
 /// An enum for types of version resolution.
@@ -349,12 +345,14 @@ abstract class SolveFailure implements ApplicationException {
     buffer.write("$_message:");
 
     var sorted = dependencies.toList();
-    sorted.sort((a, b) => a.depender.compareTo(b.depender));
+    sorted.sort((a, b) => a.depender.name.compareTo(b.depender.name));
 
     for (var dep in sorted) {
       buffer.writeln();
-      buffer.write("- ${log.bold(dep.depender)}");
-      if (!dep.isMagic) buffer.write(" ${dep.dependerVersion}");
+      buffer.write("- ${log.bold(dep.depender.name)}");
+      if (!dep.depender.isMagic && !dep.depender.isRoot) {
+        buffer.write(" ${dep.depender.version}");
+      }
       buffer.write(" ${_describeDependency(dep.dep)}");
     }
 
@@ -450,8 +448,8 @@ class UnknownSourceException extends SolveFailure {
 
   String toString() {
     var dep = dependencies.single;
-    return 'Package ${dep.depender} depends on ${dep.dep.name} from unknown '
-           'source "${dep.dep.source}".';
+    return 'Package ${dep.depender.name} depends on ${dep.dep.name} from '
+           'unknown source "${dep.dep.source}".';
   }
 }
 
