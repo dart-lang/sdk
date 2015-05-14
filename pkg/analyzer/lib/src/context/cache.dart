@@ -372,7 +372,7 @@ class CacheEntry {
     if (state == CacheState.INVALID) {
       ResultData data = _resultMap[descriptor];
       if (data != null) {
-        _invalidate(descriptor, true);
+        _invalidate(descriptor);
       }
     } else {
       ResultData data = _getResultData(descriptor);
@@ -398,7 +398,6 @@ class CacheEntry {
     if (_partition != null) {
       _partition.resultStored(thisResult, value);
     }
-    _invalidate(descriptor, false);
     ResultData data = _getResultData(descriptor);
     _setDependedOnResults(data, thisResult, dependedOn);
     data.state = CacheState.VALID;
@@ -426,17 +425,11 @@ class CacheEntry {
   }
 
   /**
-   * Invalidate the result represented by the given [descriptor] if
-   * [includeThis] is true. Propagate invalidation to other results that
-   * depend on it.
+   * Invalidate the result represented by the given [descriptor] and propagate
+   * invalidation to other results that depend on it.
    */
-  void _invalidate(ResultDescriptor descriptor, bool includeThis) {
-    ResultData thisData;
-    if (includeThis) {
-      thisData = _resultMap.remove(descriptor);
-    } else {
-      thisData = _resultMap[descriptor];
-    }
+  void _invalidate(ResultDescriptor descriptor) {
+    ResultData thisData = _resultMap.remove(descriptor);
     if (thisData == null) {
       return;
     }
@@ -454,7 +447,7 @@ class CacheEntry {
     dependentResults.forEach((TargetedResult dependentResult) {
       CacheEntry entry = _partition.get(dependentResult.target);
       if (entry != null) {
-        entry._invalidate(dependentResult.result, true);
+        entry._invalidate(dependentResult.result);
       }
     });
     // If empty, remove the entry altogether.
@@ -469,7 +462,7 @@ class CacheEntry {
   void _invalidateAll() {
     List<ResultDescriptor> results = _resultMap.keys.toList();
     for (ResultDescriptor result in results) {
-      _invalidate(result, true);
+      _invalidate(result);
     }
   }
 
@@ -478,10 +471,18 @@ class CacheEntry {
    */
   void _setDependedOnResults(ResultData thisData, TargetedResult thisResult,
       List<TargetedResult> dependedOn) {
+    thisData.dependedOnResults.forEach((TargetedResult dependedOnResult) {
+      ResultData data = _partition._getDataFor(dependedOnResult, orNull: true);
+      if (data != null) {
+        data.dependentResults.remove(thisResult);
+      }
+    });
     thisData.dependedOnResults = dependedOn;
-    thisData.dependedOnResults.forEach((TargetedResult dependentResult) {
-      ResultData data = _partition._getDataFor(dependentResult);
-      data.dependentResults.add(thisResult);
+    thisData.dependedOnResults.forEach((TargetedResult dependedOnResult) {
+      ResultData data = _partition._getDataFor(dependedOnResult, orNull: true);
+      if (data != null) {
+        data.dependentResults.add(thisResult);
+      }
     });
   }
 

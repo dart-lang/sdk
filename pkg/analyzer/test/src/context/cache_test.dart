@@ -553,89 +553,25 @@ class CacheEntryTest extends AbstractCacheTest {
     }
   }
 
-  test_setValue_invalidateDependent() {
+  test_setValue_keepDependent() {
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry(target);
     cache.put(entry);
     ResultDescriptor result1 = new ResultDescriptor('result1', -1);
     ResultDescriptor result2 = new ResultDescriptor('result2', -2);
-    ResultDescriptor result3 = new ResultDescriptor('result3', -3);
-    ResultDescriptor result4 = new ResultDescriptor('result4', -4);
     // set results, all of them are VALID
     entry.setValue(result1, 111, TargetedResult.EMPTY_LIST);
     entry.setValue(result2, 222, [new TargetedResult(target, result1)]);
-    entry.setValue(result3, 333, [new TargetedResult(target, result2)]);
-    entry.setValue(result4, 444, []);
     expect(entry.getState(result1), CacheState.VALID);
     expect(entry.getState(result2), CacheState.VALID);
-    expect(entry.getState(result3), CacheState.VALID);
-    expect(entry.getState(result4), CacheState.VALID);
     expect(entry.getValue(result1), 111);
     expect(entry.getValue(result2), 222);
-    expect(entry.getValue(result3), 333);
-    expect(entry.getValue(result4), 444);
-    // set result1, invalidates result2 and result3, result4 is intact
+    // set result1; result2 is intact
     entry.setValue(result1, 1111, TargetedResult.EMPTY_LIST);
     expect(entry.getState(result1), CacheState.VALID);
-    expect(entry.getState(result2), CacheState.INVALID);
-    expect(entry.getState(result3), CacheState.INVALID);
-    expect(entry.getState(result4), CacheState.VALID);
+    expect(entry.getState(result2), CacheState.VALID);
     expect(entry.getValue(result1), 1111);
-    expect(entry.getValue(result2), -2);
-    expect(entry.getValue(result3), -3);
-    expect(entry.getValue(result4), 444);
-  }
-
-  test_setValue_invalidateDependent2() {
-    AnalysisTarget target1 = new TestSource('a');
-    AnalysisTarget target2 = new TestSource('b');
-    CacheEntry entry1 = new CacheEntry(target1);
-    CacheEntry entry2 = new CacheEntry(target2);
-    cache.put(entry1);
-    cache.put(entry2);
-    ResultDescriptor result1 = new ResultDescriptor('result1', -1);
-    ResultDescriptor result2 = new ResultDescriptor('result2', -2);
-    ResultDescriptor result3 = new ResultDescriptor('result3', -3);
-    // set results, all of them are VALID
-    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST);
-    entry1.setValue(result2, 222, [new TargetedResult(target1, result1)]);
-    entry2.setValue(result3, 333, [new TargetedResult(target1, result2)]);
-    expect(entry1.getState(result1), CacheState.VALID);
-    expect(entry1.getState(result2), CacheState.VALID);
-    expect(entry2.getState(result3), CacheState.VALID);
-    expect(entry1.getValue(result1), 111);
-    expect(entry1.getValue(result2), 222);
-    expect(entry2.getValue(result3), 333);
-    // set result1, invalidates result2 and result3
-    entry1.setValue(result1, 1111, TargetedResult.EMPTY_LIST);
-    expect(entry1.getState(result1), CacheState.VALID);
-    expect(entry1.getState(result2), CacheState.INVALID);
-    expect(entry2.getState(result3), CacheState.INVALID);
-    expect(entry1.getValue(result1), 1111);
-    expect(entry1.getValue(result2), -2);
-    expect(entry2.getValue(result3), -3);
-  }
-
-  test_setValue_keepEntry() {
-    AnalysisTarget target1 = new TestSource('/a.dart');
-    AnalysisTarget target2 = new TestSource('/b.dart');
-    CacheEntry entry1 = new CacheEntry(target1);
-    CacheEntry entry2 = new CacheEntry(target2);
-    cache.put(entry1);
-    cache.put(entry2);
-    ResultDescriptor result1 = new ResultDescriptor('result1', -1);
-    ResultDescriptor result2 = new ResultDescriptor('result2', -2);
-    // set results, all of them are VALID
-    entry1.setValue(result1, 111, TargetedResult.EMPTY_LIST);
-    entry2.setValue(result2, 222, [new TargetedResult(target1, result1)]);
-    expect(entry1.getState(result1), CacheState.VALID);
-    expect(entry2.getState(result2), CacheState.VALID);
-    expect(entry1.getValue(result1), 111);
-    expect(entry2.getValue(result2), 222);
-    // set result2, entry2 is still in the cache
-    entry2.setValue(result2, 2222, []);
-    expect(cache.get(target1), entry1);
-    expect(cache.get(target2), entry2);
+    expect(entry.getValue(result2), 222);
   }
 
   test_toString_empty() {
