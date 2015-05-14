@@ -157,10 +157,14 @@ void startRootIsolate(entry, args) {
 // TODO(eub, sigmund): move the "manager" to be entirely in JS.
 // Running any Dart code outside the context of an isolate gives it
 // the chance to break the isolate abstraction.
-_Manager get _globalState => JS("_Manager", "init.globalState");
+// TODO(vsm): This was changed from init.globalState.
+// See: https://github.com/dart-lang/dev_compiler/issues/164
+_Manager get _globalState => JS("_Manager", "dart.globalState");
 
 set _globalState(_Manager val) {
-  JS("void", "init.globalState = #", val);
+  // TODO(vsm): This was changed from init.globalState.
+  // See: https://github.com/dart-lang/dev_compiler/issues/164
+  JS("void", "dart.globalState = #", val);
 }
 
 /** State associated with the current manager. See [globalState]. */
@@ -648,10 +652,12 @@ class _EventLoop {
   void _runHelper() {
     if (globalWindow != null) {
       // Run each iteration from the browser's top event loop.
-      void next() {
+      // TODO(vsm): Revert to original pattern.
+      // See: https://github.com/dart-lang/dev_compiler/issues/177
+      Function next = () {
         if (!runIteration()) return;
         Timer.run(next);
-      }
+      };
       next();
     } else {
       // Run synchronously until no more iterations are available.
@@ -751,7 +757,9 @@ class IsolateNatives {
    * JavaScript workers.
    */
   static String computeThisScript() {
-    var currentScript = JS_EMBEDDED_GLOBAL('', CURRENT_SCRIPT);
+    // See: https://github.com/dart-lang/dev_compiler/issues/164
+    // var currentScript = JS_EMBEDDED_GLOBAL('', CURRENT_SCRIPT);
+    var currentScript = JS('var', 'document.currentScript');
     if (currentScript != null) {
       return JS('String', 'String(#.src)', currentScript);
     }

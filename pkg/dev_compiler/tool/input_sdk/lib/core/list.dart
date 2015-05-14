@@ -243,11 +243,9 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
   String toString() => ListBase.listToString(this);
 
   List<E> toList({ bool growable: true }) {
-    if (growable) {
-      return new JSArray<E>.markGrowable(JS('', '#.slice()', this));
-    } else {
-      return new JSArray<E>.markFixed(JS('', '#.slice()', this));
-    }
+    // TODO(vsm): Enforce growable / non-growable.
+    // See: https://github.com/dart-lang/dev_compiler/issues/175
+    return JS('', 'dart.setType(#.slice(), core.List\$(#))', this, E);
   }
 
   Set<E> toSet() => new Set<E>.from(this);

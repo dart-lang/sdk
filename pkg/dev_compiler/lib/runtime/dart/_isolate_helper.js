@@ -412,10 +412,10 @@ var async = dart.import(async);
   }
   dart.copyProperties(exports, {
     get _globalState() {
-      return dart.as(init.globalState, _Manager);
+      return dart.as(dart.globalState, _Manager);
     },
     set _globalState(val) {
-      init.globalState = val;
+      dart.globalState = val;
     }
   });
   let _nativeDetectEnvironment = Symbol('_nativeDetectEnvironment');
@@ -778,13 +778,12 @@ var async = dart.import(async);
     }
     [_runHelper]() {
       if (exports.globalWindow != null) {
-        // Function next: () → void
         let next = (() => {
           if (!dart.notNull(this.runIteration()))
             return;
-          async.Timer.run(next);
+          async.Timer.run(dart.as(next, __CastType2));
         }).bind(this);
-        next();
+        dart.dcall(next);
       } else {
         while (this.runIteration()) {
         }
@@ -845,7 +844,7 @@ var async = dart.import(async);
   let _MainFunctionArgsMessage = dart.typedef('_MainFunctionArgsMessage', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
   class IsolateNatives extends core.Object {
     static computeThisScript() {
-      let currentScript = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.CURRENT_SCRIPT);
+      let currentScript = document.currentScript;
       if (currentScript != null) {
         return String(currentScript.src);
       }
@@ -1382,6 +1381,7 @@ var async = dart.import(async);
   }
   CapabilityImpl[dart.implements] = () => [isolate.Capability];
   dart.defineNamedConstructor(CapabilityImpl, '_internal');
+  let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(dart.void, []));
   // Exports:
   exports.enterJsAsync = enterJsAsync;
   exports.leaveJsAsync = leaveJsAsync;

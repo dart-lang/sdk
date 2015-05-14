@@ -274,7 +274,7 @@ part of dart.core;
   bool windows}
 ) {
   windows = windows == null ? Uri._isWindows : windows;
-   return windows ? ((__x20) => DEVC$RT.cast(__x20, dynamic, Uri, "DynamicCast", """line 698, column 22 of dart:core/uri.dart: """, __x20 is Uri, true))(_makeWindowsFileUrl(path)) : ((__x21) => DEVC$RT.cast(__x21, dynamic, Uri, "DynamicCast", """line 698, column 50 of dart:core/uri.dart: """, __x21 is Uri, true))(_makeFileUri(path));
+   return windows ? ((__x21) => DEVC$RT.cast(__x21, dynamic, Uri, "DynamicCast", """line 698, column 22 of dart:core/uri.dart: """, __x21 is Uri, true))(_makeWindowsFileUrl(path)) : ((__x22) => DEVC$RT.cast(__x22, dynamic, Uri, "DynamicCast", """line 698, column 50 of dart:core/uri.dart: """, __x22 is Uri, true))(_makeFileUri(path));
   }
  external static Uri get base;
  external static bool get _isWindows;
@@ -391,7 +391,7 @@ part of dart.core;
     port = _makePort(port, scheme);
     }
    else {
-    port = ((__x22) => DEVC$RT.cast(__x22, num, int, "ImplicitCast", """line 889, column 14 of dart:core/uri.dart: """, __x22 is int, true))(this._port);
+    port = ((__x23) => DEVC$RT.cast(__x23, num, int, "ImplicitCast", """line 889, column 14 of dart:core/uri.dart: """, __x23 is int, true))(this._port);
      if (schemeChanged) {
       port = _makePort(port, scheme);
       }
@@ -670,8 +670,8 @@ part of dart.core;
    if (char < 0x80) {
     codeUnits = new List(3);
      codeUnits[0] = _PERCENT;
-     codeUnits[1] = hexDigits.codeUnitAt(((__x23) => DEVC$RT.cast(__x23, dynamic, int, "DynamicCast", """line 1249, column 43 of dart:core/uri.dart: """, __x23 is int, true))(char >> 4));
-     codeUnits[2] = hexDigits.codeUnitAt(((__x24) => DEVC$RT.cast(__x24, dynamic, int, "DynamicCast", """line 1250, column 43 of dart:core/uri.dart: """, __x24 is int, true))(char & 0xf));
+     codeUnits[1] = hexDigits.codeUnitAt(((__x24) => DEVC$RT.cast(__x24, dynamic, int, "DynamicCast", """line 1249, column 43 of dart:core/uri.dart: """, __x24 is int, true))(char >> 4));
+     codeUnits[2] = hexDigits.codeUnitAt(((__x25) => DEVC$RT.cast(__x25, dynamic, int, "DynamicCast", """line 1250, column 43 of dart:core/uri.dart: """, __x25 is int, true))(char & 0xf));
     }
    else {
     int flag = 0xc0;
@@ -687,7 +687,7 @@ part of dart.core;
      codeUnits = new List(3 * encodedBytes);
      int index = 0;
      while (--encodedBytes >= 0) {
-      int byte = ((__x25) => DEVC$RT.cast(__x25, dynamic, int, "DynamicCast", """line 1266, column 20 of dart:core/uri.dart: """, __x25 is int, true))(((char >> (6 * encodedBytes)) & 0x3f) | flag);
+      int byte = ((__x26) => DEVC$RT.cast(__x26, dynamic, int, "DynamicCast", """line 1266, column 20 of dart:core/uri.dart: """, __x26 is int, true))(((char >> (6 * encodedBytes)) & 0x3f) | flag);
        codeUnits[index] = _PERCENT;
        codeUnits[index + 1] = hexDigits.codeUnitAt(byte >> 4);
        codeUnits[index + 2] = hexDigits.codeUnitAt(byte & 0xf);
@@ -865,7 +865,7 @@ part of dart.core;
         }
        targetUserInfo = this._userInfo;
        targetHost = this._host;
-       targetPort = ((__x26) => DEVC$RT.cast(__x26, num, int, "ImplicitCast", """line 1490, column 22 of dart:core/uri.dart: """, __x26 is int, true))(this._port);
+       targetPort = ((__x27) => DEVC$RT.cast(__x27, num, int, "ImplicitCast", """line 1490, column 22 of dart:core/uri.dart: """, __x27 is int, true))(this._port);
       }
     }
    String fragment = reference.hasFragment ? reference.fragment : null;
@@ -970,7 +970,7 @@ part of dart.core;
   }
  int get hashCode {
   int combine(part, current) {
-    return ((__x27) => DEVC$RT.cast(__x27, dynamic, int, "DynamicCast", """line 1715, column 14 of dart:core/uri.dart: """, __x27 is int, true))((current * 31 + part.hashCode) & 0x3FFFFFFF);
+    return ((__x28) => DEVC$RT.cast(__x28, dynamic, int, "DynamicCast", """line 1715, column 14 of dart:core/uri.dart: """, __x28 is int, true))((current * 31 + part.hashCode) & 0x3FFFFFFF);
     }
    return combine(scheme, combine(userInfo, combine(host, combine(port, combine(path, combine(query, combine(fragment, 1)))))));
   }
@@ -1017,12 +1017,12 @@ part of dart.core;
  static Map<String, String> splitQueryString(String query, {
   Encoding encoding : UTF8}
 ) {
-  return ((__x28) => DEVC$RT.cast(__x28, dynamic, DEVC$RT.type((Map<String, String> _) {
+  return ((__x29) => DEVC$RT.cast(__x29, dynamic, DEVC$RT.type((Map<String, String> _) {
     }
-  ), "CompositeCast", """line 1865, column 12 of dart:core/uri.dart: """, __x28 is Map<String, String>, false))(query.split("&").fold({
+  ), "CompositeCast", """line 1865, column 12 of dart:core/uri.dart: """, __x29 is Map<String, String>, false))(query.split("&").fold({
     }
   , (map, element) {
-    int index = ((__x29) => DEVC$RT.cast(__x29, dynamic, int, "DynamicCast", """line 1866, column 19 of dart:core/uri.dart: """, __x29 is int, true))(element.indexOf("="));
+    int index = ((__x30) => DEVC$RT.cast(__x30, dynamic, int, "DynamicCast", """line 1866, column 19 of dart:core/uri.dart: """, __x30 is int, true))(element.indexOf("="));
      if (index == -1) {
       if (element != "") {
         map[decodeQueryComponent(DEVC$RT.cast(element, dynamic, String, "DynamicCast", """line 1869, column 36 of dart:core/uri.dart: """, element is String, true), encoding: encoding)] = "";
@@ -1045,11 +1045,11 @@ part of dart.core;
    if (bytes.length != 4) {
     error('IPv4 address should contain exactly 4 parts');
     }
-   return ((__x30) => DEVC$RT.cast(__x30, DEVC$RT.type((List<dynamic> _) {
+   return ((__x31) => DEVC$RT.cast(__x31, DEVC$RT.type((List<dynamic> _) {
     }
   ), DEVC$RT.type((List<int> _) {
     }
-  ), "CompositeCast", """line 1897, column 12 of dart:core/uri.dart: """, __x30 is List<int>, false))(bytes.map((byteString) {
+  ), "CompositeCast", """line 1897, column 12 of dart:core/uri.dart: """, __x31 is List<int>, false))(bytes.map((byteString) {
     int byte = int.parse(DEVC$RT.cast(byteString, dynamic, String, "DynamicCast", """line 1899, column 32 of dart:core/uri.dart: """, byteString is String, true));
      if (byte < 0 || byte > 255) {
       error('each part must be in the range of `0..255`');
@@ -1181,8 +1181,8 @@ part of dart.core;
 ) {
   byteToHex(byte, buffer) {
     const String hex = '0123456789ABCDEF';
-     buffer.writeCharCode(hex.codeUnitAt(((__x31) => DEVC$RT.cast(__x31, dynamic, int, "DynamicCast", """line 2060, column 43 of dart:core/uri.dart: """, __x31 is int, true))(byte >> 4)));
-     buffer.writeCharCode(hex.codeUnitAt(((__x32) => DEVC$RT.cast(__x32, dynamic, int, "DynamicCast", """line 2061, column 43 of dart:core/uri.dart: """, __x32 is int, true))(byte & 0x0f)));
+     buffer.writeCharCode(hex.codeUnitAt(((__x32) => DEVC$RT.cast(__x32, dynamic, int, "DynamicCast", """line 2060, column 43 of dart:core/uri.dart: """, __x32 is int, true))(byte >> 4)));
+     buffer.writeCharCode(hex.codeUnitAt(((__x33) => DEVC$RT.cast(__x33, dynamic, int, "DynamicCast", """line 2061, column 43 of dart:core/uri.dart: """, __x33 is int, true))(byte & 0x0f)));
     }
    StringBuffer result = new StringBuffer();
    var bytes = encoding.encode(text);

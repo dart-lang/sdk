@@ -1927,15 +1927,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       ]);
     }
 
-    if (_isJSBuiltinType(type)) {
-      // static call pattern for builtins.
-      return js.call('#.#(#, #)', [
-        _emitTypeName(type),
-        memberName,
-        _visit(target),
-        _visitList(args)
-      ]);
-    }
     // Generic dispatch to a statically known method.
     return js.call('#.#(#)', [_visit(target), memberName, _visitList(args)]);
   }

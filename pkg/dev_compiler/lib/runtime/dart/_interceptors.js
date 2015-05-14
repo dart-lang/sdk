@@ -84,7 +84,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       }
     }
     get isNegative() {
-      return dart.equals(this, 0) ? core.int['/'](1, this) < 0 : this['<'](0);
+      return dart.equals(this, 0) ? (1)['/'](this) < 0 : this['<'](0);
     }
     get isNaN() {
       return isNaN(this);
@@ -220,7 +220,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
         result = result + dart.dindex(match, 2);
         exponent = dart.notNull(exponent) - dart.dindex(match, 2).length;
       }
-      return dart.notNull(result) + core.String['*']("0", exponent);
+      return dart.notNull(result) + "0"['*'](exponent);
     }
     toString() {
       if (dart.notNull(dart.equals(this, 0)) && 1 / this < 0) {
@@ -388,8 +388,8 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }
     static _bitCount(i) {
       i = dart.as(dart.dsend(JSInt._shru(i, 0), '-', dart.dsend(JSInt._shru(i, 1), '&', 1431655765)), core.int);
-      i = core.int['+'](dart.notNull(i) & 858993459, dart.dsend(JSInt._shru(i, 2), '&', 858993459));
-      i = 252645135 & core.int['+'](i, JSInt._shru(i, 4));
+      i = (dart.notNull(i) & 858993459)['+'](dart.dsend(JSInt._shru(i, 2), '&', 858993459));
+      i = 252645135 & i['+'](JSInt._shru(i, 4));
       i = dart.notNull(i) + dart.notNull(dart.as(JSInt._shru(i, 8), core.int));
       i = dart.notNull(i) + dart.notNull(dart.as(JSInt._shru(i, 16), core.int));
       return dart.notNull(i) & 63;
@@ -742,7 +742,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       let delta = dart.notNull(width) - dart.notNull(this.length);
       if (dart.notNull(delta) <= 0)
         return this;
-      return core.String['*'](padding, delta) + this;
+      return padding['*'](delta) + this;
     }
     padRight(width, padding) {
       if (padding === void 0)
@@ -750,7 +750,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       let delta = dart.notNull(width) - dart.notNull(this.length);
       if (dart.notNull(delta) <= 0)
         return this;
-      return this['+'](core.String['*'](padding, delta));
+      return this['+'](padding['*'](delta));
     }
     get codeUnits() {
       return new _CodeUnits(this);

@@ -934,7 +934,7 @@ var convert = dart.lazyImport(convert);
         }
         return report;
       }
-      if (offset != -1 && (dart.notNull(offset) < 0 || int['>'](offset, dart.dload(this.source, 'length')))) {
+      if (offset != -1 && (dart.notNull(offset) < 0 || offset['>'](dart.dload(this.source, 'length')))) {
         offset = -1;
       }
       if (offset == -1) {
@@ -967,7 +967,7 @@ var convert = dart.lazyImport(convert);
         report = dart.notNull(report) + ` (at character ${dart.notNull(offset) + 1})\n`;
       }
       let lineEnd = dart.as(dart.dload(this.source, 'length'), int);
-      for (let i = offset; int['<'](i, dart.dload(this.source, 'length')); i = dart.notNull(i) + 1) {
+      for (let i = offset; i['<'](dart.dload(this.source, 'length')); i = dart.notNull(i) + 1) {
         let char = dart.as(dart.dsend(this.source, 'codeUnitAt', i), int);
         if (char == 10 || char == 13) {
           lineEnd = i;
@@ -995,7 +995,7 @@ var convert = dart.lazyImport(convert);
       }
       let slice = dart.as(dart.dsend(this.source, 'substring', start, end), String);
       let markOffset = dart.notNull(offset) - dart.notNull(start) + dart.notNull(prefix.length);
-      return `${report}${prefix}${slice}${postfix}\n${String['*'](" ", markOffset)}^\n`;
+      return `${report}${prefix}${slice}${postfix}\n${" "['*'](markOffset)}^\n`;
     }
   }
   FormatException[dart.implements] = () => [Exception];
@@ -1054,7 +1054,7 @@ var convert = dart.lazyImport(convert);
     static apply(f, positionalArguments, namedArguments) {
       if (namedArguments === void 0)
         namedArguments = null;
-      return _js_helper.Primitives.applyFunction(f, positionalArguments, namedArguments == null ? null : Function._toMangledNames(namedArguments));
+      return dart.dcall.apply(null, [f].concat(positionalArguments));
     }
     static _toMangledNames(namedArguments) {
       let result = dart.map();
@@ -1293,8 +1293,8 @@ var convert = dart.lazyImport(convert);
       from(elements, opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
         let list = new (List$(E))();
-        for (let e of dart.as(elements, Iterable$(E))) {
-          list[$add](e);
+        for (let e of elements) {
+          list[$add](dart.as(e, E));
         }
         if (growable)
           return list;
@@ -1431,11 +1431,7 @@ var convert = dart.lazyImport(convert);
       }
       [$toList](opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
-        if (growable) {
-          return new (_interceptors.JSArray$(E)).markGrowable(this.slice());
-        } else {
-          return new (_interceptors.JSArray$(E)).markFixed(this.slice());
-        }
+        return dart.as(dart.setType(this.slice(), core.List$(E)), List$(E));
       }
       [$toSet]() {
         return new (exports.Set$(E)).from(this);
@@ -1926,7 +1922,7 @@ var convert = dart.lazyImport(convert);
       if (this[_position] == this[_nextPosition])
         return null;
       if (dart.notNull(this[_position]) + 1 == this[_nextPosition])
-        return String.get(this.string, this[_position]);
+        return this.string.get(this[_position]);
       return this.string.substring(this[_position], this[_nextPosition]);
     }
     moveNext() {
@@ -2419,7 +2415,7 @@ var convert = dart.lazyImport(convert);
         path = path.replaceAll("/", "\\");
       }
       let sep = "\\";
-      if (dart.notNull(path.length) > 1 && String.get(path, 1) == ":") {
+      if (dart.notNull(path.length) > 1 && path.get(1) == ":") {
         Uri._checkWindowsDriveLetter(path.codeUnitAt(0), true);
         if (path.length == 2 || path.codeUnitAt(2) != Uri._BACKSLASH) {
           throw new ArgumentError("Windows paths with drive letter must be absolute");
@@ -2428,8 +2424,8 @@ var convert = dart.lazyImport(convert);
         Uri._checkWindowsPathReservedCharacters(pathSegments, true, 1);
         return new Uri({scheme: "file", pathSegments: pathSegments});
       }
-      if (dart.notNull(path.length) > 0 && String.get(path, 0) == sep) {
-        if (dart.notNull(path.length) > 1 && String.get(path, 1) == sep) {
+      if (dart.notNull(path.length) > 0 && path.get(0) == sep) {
+        if (dart.notNull(path.length) > 1 && path.get(1) == sep) {
           let pathStart = path.indexOf("\\", 2);
           let hostPart = pathStart == -1 ? path.substring(2) : path.substring(2, pathStart);
           let pathPart = pathStart == -1 ? "" : path.substring(dart.notNull(pathStart) + 1);

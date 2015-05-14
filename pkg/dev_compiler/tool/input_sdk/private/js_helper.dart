@@ -754,7 +754,8 @@ class Primitives {
 
   /// In minified mode, uses the unminified names if available.
   static String objectToString(Object object) {
-    String name = objectTypeName(object);
+    // String name = objectTypeName(object);
+    String name = JS('String', 'dart.typeName(dart.realRuntimeType(#))', object); 
     return "Instance of '$name'";
   }
 
@@ -1919,28 +1920,12 @@ invokeClosure(Function closure,
  * closure when the Dart closure is passed to the DOM.
  */
 convertDartClosureToJS(closure, int arity) {
-  if (closure == null) return null;
-  var function = JS('var', r'#.$identity', closure);
-  if (JS('bool', r'!!#', function)) return function;
-
-  // We use $0 and $1 to not clash with variable names used by the
-  // compiler and/or minifier.
-  function = JS('var',
-                '(function(closure, arity, context, invoke) {'
-                '  return function(a1, a2, a3, a4) {'
-                '     return invoke(closure, context, arity, a1, a2, a3, a4);'
-                '  };'
-                '})(#,#,#,#)',
-                closure,
-                arity,
-                // Capture the current isolate now.  Remember that "#"
-                // in JS is simply textual substitution of compiled
-                // expressions.
-                JS_CURRENT_ISOLATE_CONTEXT(),
-                DART_CLOSURE_TO_JS(invokeClosure));
-
-  JS('void', r'#.$identity = #', closure, function);
-  return function;
+  // TODO(vsm): Dart2JS wraps closures to:
+  // (a) adjust the calling convention, and
+  // (b) record the source isolate
+  // Do we need either?
+  // See: https://github.com/dart-lang/dev_compiler/issues/164
+  return closure;
 }
 
 /**

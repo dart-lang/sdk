@@ -36,9 +36,9 @@ abstract class Function {
   static apply(Function f,
                List positionalArguments,
                [Map<Symbol, dynamic> namedArguments]) {
-    return Primitives.applyFunction(
-        f, positionalArguments,
-        namedArguments == null ? null : _toMangledNames(namedArguments));
+    // TODO(vsm): Handle named args.
+    // See: https://github.com/dart-lang/dev_compiler/issues/176
+    return JS('', 'dart.dcall.apply(null, [#].concat(#))', f, positionalArguments);
   }
 
   /**

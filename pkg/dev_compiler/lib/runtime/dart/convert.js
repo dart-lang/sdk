@@ -519,7 +519,7 @@ var collection = dart.import(collection);
     [_convert](text, start, end) {
       let result = null;
       for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
-        let ch = core.String.get(text, i);
+        let ch = text.get(i);
         let replace = null;
         switch (ch) {
           case '&':

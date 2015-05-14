@@ -6,6 +6,11 @@ var dart, _js_helper, _js_primitives;
 (function (dart) {
   'use strict';
 
+  // TODO(vsm): This is referenced (as init.globalState) from
+  // isolate_helper.dart.  Where should it go?
+  // See: https://github.com/dart-lang/dev_compiler/issues/164
+  dart.globalState = null;
+
   let defineProperty = Object.defineProperty;
   let getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
   let getOwnPropertyNames = Object.getOwnPropertyNames;
@@ -37,18 +42,28 @@ var dart, _js_helper, _js_primitives;
   }
 
   function dload(obj, field) {
-    if (!(field in obj)) {
-      throw new core.NoSuchMethodError(obj, field);
-    }
+    // TODO(vsm): Implement NSM robustly.  An 'in' check breaks on certain
+    // types.  hasOwnProperty doesn't chase the proto chain.
+    // Also, do we want an NSM on regular JS objects?
+    // See: https://github.com/dart-lang/dev_compiler/issues/169
     var result = obj[field];
-    if (typeof result == "function") {
-      // We can't tell if the result needs binding. Fortunately binding the
-      // same function twice has no effect, so we can simply attempt to bind.
+
+    // TODO(vsm): Check this more robustly.
+    if (typeof result == "function" &&
+        !Object.prototype.hasOwnProperty.call(obj, field)) {
+      // This appears to be a method tearoff.  Bind this.
       return result.bind(obj);
     }
     return result;
   }
   dart.dload = dload;
+
+  function dput(obj, field, value) {
+    // TODO(vsm): Implement NSM and type checks.
+    // See: https://github.com/dart-lang/dev_compiler/issues/170
+    obj[field] = value;
+  }
+  dart.dput = dput;
 
   // TODO(jmesserly): this should call noSuchMethod, not throw.
   function throwNoSuchMethod(obj, name, args, opt_func) {
@@ -87,9 +102,25 @@ var dart, _js_helper, _js_primitives;
   }
   dart.dcall = dcall;
 
+  // TODO(vsm): Automatically build this.
+  // All dynamic methods should check for these.
+  // See: https://github.com/dart-lang/dev_compiler/issues/142
+  var _extensionMethods = {
+    // Lazy - as these symbols may not be loaded yet.
+    // TODO(vsm): This should record / check the receiver type
+    // as well.  E.g., only look for core.$map if the receiver
+    // is an Iterable.
+    'map': () => core.$map,
+  };
+
   function dsend(obj, method/*, ...args*/) {
     let args = Array.prototype.slice.call(arguments, 2);
-    return checkAndCall(obj[method], obj, args, method);
+    var f = obj[method];
+    if (f === void 0) {
+      var symbol = _extensionMethods[method]();
+      f = obj[symbol];
+    }
+    return checkAndCall(f, obj, args, method);
   }
   dart.dsend = dsend;
 
@@ -119,11 +150,39 @@ var dart, _js_helper, _js_primitives;
   }
   dart.bind = bind;
 
+  function typeToString(type) {
+    if (typeof(type) == "function") {
+      var name = type.name;
+      var args = type[dart.typeArguments];
+      if (args) {
+        name += '<';
+        for (var i = 0; i < args.length; ++i) {
+          if (i > 0) name += ', ';
+          name += typeToString(args[i]);
+        }
+        name += '>';
+      }
+      return name;
+    } else {
+      return type.toString();
+    }
+  }
+  dart.typeName = typeToString;
+
   function cast(obj, type) {
     // TODO(vsm): handle non-nullable types
     if (obj == null) return obj;
     let actual = realRuntimeType(obj);
     if (isSubtype(actual, type)) return obj;
+    // TODO(vsm): Remove this hack ... due to
+    // lack of generic methods.
+    if (isSubtype(type, core.Iterable) && isSubtype(actual, core.Iterable) ||
+        isSubtype(type, async.Future) && isSubtype(actual, async.Future) ||
+        isSubtype(type, core.Map) && isSubtype(actual, core.Map)) {
+      console.log('Warning: ignoring cast fail from ' + typeToString(actual) + ' to ' + typeToString(type));
+      return obj;
+    }
+    // console.log('Error: cast fail from ' + typeToString(actual) + ' to ' + typeToString(type));
     throw new _js_helper.CastErrorImplementation(actual, type);
   }
   dart.as = cast;
@@ -781,7 +840,7 @@ var dart, _js_helper, _js_primitives;
   dart.defineNamedConstructor = defineNamedConstructor;
 
   function stackTrace(exception) {
-    throw new core.UnimplementedError();
+    return _js_helper.getTraceFromException(exception);
   }
   dart.stackTrace = stackTrace;
 
@@ -883,6 +942,12 @@ var dart, _js_helper, _js_primitives;
   }
   dart.const = constant;
 
+  // TODO(vsm): Rationalize these type methods.  We're currently using the
+  // setType / proto scheme for nominal types (e.g., classes) and the
+  // setRuntimeType / field scheme for structural types (e.g., functions
+  // - and only in tests for now).
+  // See: https://github.com/dart-lang/dev_compiler/issues/172
+
   /** Sets the type of `obj` to be `type` */
   function setType(obj, type) {
     obj.__proto__ = type.prototype;
@@ -969,8 +1034,12 @@ var dart, _js_helper, _js_primitives;
   dart.JsSymbol = Symbol;
 
   function import_(value) {
-    // TODO(jmesserly): throw once we're loading all of core libs.
-    if (!value && console) console.warn('missing required module');
+    // TODO(vsm): Change this to a hard throw.
+    // For now, we're missing some libraries.  E.g., dart:js:
+    // https://github.com/dart-lang/dev_compiler/issues/168
+    if (!value) {
+      console.log('missing required module');
+    }
     return value;
   }
   dart.import = import_;
@@ -991,5 +1060,45 @@ var dart, _js_helper, _js_primitives;
 
   _js_primitives = _js_primitives || {};
   _js_primitives.printString = (s) => console.log(s);
+
+  // TODO(vsm): Plumb this correctly.
+  // See: https://github.com/dart-lang/dev_compiler/issues/40
+  String.prototype.contains = function(sub) { return this.indexOf(sub) >= 0; }
+  let _split = String.prototype.split;
+  String.prototype.split = function() {
+    let result = _split.apply(this, arguments);
+    dart.setType(result, core.List$(core.String));
+    return result;
+  }
+  String.prototype.get = function(i) {
+    return this[i];
+  }
+  String.prototype.codeUnitAt = function(i) {
+    return this.charCodeAt(i);
+  }
+  String.prototype.replaceAllMapped =  function(from, cb) {
+    return this.replace(from.multiple, function() {
+      // Remove offset & string from the result array
+      var matches = arguments;
+      matches.splice(-2, 2);
+      // The callback receives match, p1, ..., pn
+      return cb(matches);
+    });
+  }
+  String.prototype['+'] = function(arg) { return this.valueOf() + arg; };
+
+  Boolean.prototype['!'] = function() { return !this.valueOf(); };
+  Boolean.prototype['&&'] = function(arg) { return this.valueOf() && arg; };
+  Boolean.prototype['||'] = function(arg) { return this.valueOf() || arg; };
+  Number.prototype['<'] = function(arg) { return this.valueOf() < arg; };
+  Number.prototype['<='] = function(arg) { return this.valueOf() <= arg; };
+  Number.prototype['>'] = function(arg) { return this.valueOf() > arg; };
+  Number.prototype['+'] = function(arg) { return this.valueOf() + arg; };
+
+  // TODO(vsm): DOM facades?
+  // See: https://github.com/dart-lang/dev_compiler/issues/173
+  NodeList.prototype.get = function(i) { return this[i]; };
+  NamedNodeMap.prototype.get = function(i) { return this[i]; };
+  DOMTokenList.prototype.get = function(i) { return this[i]; };
 
 })(dart || (dart = {}));

@@ -124,7 +124,7 @@ var _js_helper = dart.lazyImport(_js_helper);
         return dart.notNull(this.left['<='](another.left)) && dart.notNull(this.left['+'](this.width)) >= dart.notNull(another.left) + dart.notNull(another.width) && dart.notNull(this.top['<='](another.top)) && dart.notNull(this.top['+'](this.height)) >= dart.notNull(another.top) + dart.notNull(another.height);
       }
       containsPoint(another) {
-        return core.num['>='](another.x, this.left) && dart.notNull(another.x) <= dart.notNull(this.left['+'](this.width)) && core.num['>='](another.y, this.top) && dart.notNull(another.y) <= dart.notNull(this.top['+'](this.height));
+        return another.x['>='](this.left) && dart.notNull(another.x) <= dart.notNull(this.left['+'](this.width)) && another.y['>='](this.top) && dart.notNull(another.y) <= dart.notNull(this.top['+'](this.height));
       }
       get topLeft() {
         return new (Point$(T))(this.left, this.top);
@@ -153,9 +153,9 @@ var _js_helper = dart.lazyImport(_js_helper);
       }
       fromPoints(a, b) {
         let left = dart.as(min(a.x, b.x), T);
-        let width = dart.as(core.num['-'](max(a.x, b.x), left), T);
+        let width = dart.as(max(a.x, b.x)['-'](left), T);
         let top = dart.as(min(a.y, b.y), T);
-        let height = dart.as(core.num['-'](max(a.y, b.y), top), T);
+        let height = dart.as(max(a.y, b.y)['-'](top), T);
         return new (Rectangle$(T))(left, top, width, height);
       }
     }
@@ -176,9 +176,9 @@ var _js_helper = dart.lazyImport(_js_helper);
       }
       fromPoints(a, b) {
         let left = dart.as(min(a.x, b.x), T);
-        let width = dart.as(core.num['-'](max(a.x, b.x), left), T);
+        let width = dart.as(max(a.x, b.x)['-'](left), T);
         let top = dart.as(min(a.y, b.y), T);
-        let height = dart.as(core.num['-'](max(a.y, b.y), top), T);
+        let height = dart.as(max(a.y, b.y)['-'](top), T);
         return new (MutableRectangle$(T))(left, top, width, height);
       }
       get width() {

@@ -27,7 +27,7 @@ part of dart.core;
   if (_start == null) {
     return 0;
     }
-   return ((__x19) => DEVC$RT.cast(__x19, num, int, "ImplicitCast", """line 102, column 12 of dart:core/stopwatch.dart: """, __x19 is int, true))((_stop == null) ? (_now() - _start) : (_stop - _start));
+   return ((__x20) => DEVC$RT.cast(__x20, num, int, "ImplicitCast", """line 102, column 12 of dart:core/stopwatch.dart: """, __x20 is int, true))((_stop == null) ? (_now() - _start) : (_stop - _start));
   }
  Duration get elapsed {
   return new Duration(microseconds: elapsedMicroseconds);

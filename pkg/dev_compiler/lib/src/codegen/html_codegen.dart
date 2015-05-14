@@ -90,7 +90,9 @@ Node _cssInclude(String cssUrl) =>
 Node _invokeMain(String mainLibraryName) {
   var code = mainLibraryName == null
       ? 'console.error("dev_compiler error: main was not generated");'
-      : '$mainLibraryName.main();';
+      // TODO(vsm): Can we simplify this?
+      // See: https://github.com/dart-lang/dev_compiler/issues/164
+      : '_isolate_helper.startRootIsolate($mainLibraryName.main, []);';
   return parseFragment('<script>$code</script>\n');
 }
 
