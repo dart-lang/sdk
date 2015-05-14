@@ -27,6 +27,7 @@ import 'test_support.dart';
 main() {
   groupSep = ' | ';
   runReflectiveTests(AnalysisDriverTest);
+  runReflectiveTests(CycleAwareDependencyWalkerTest);
   runReflectiveTests(WorkOrderTest);
   runReflectiveTests(WorkItemTest);
 }
@@ -99,8 +100,8 @@ class AnalysisDriverTest extends AbstractDriverTest {
     WorkOrder workOrder = analysisDriver.createNextWorkOrder();
     expect(workOrder, isNotNull);
     expect(workOrder.moveNext(), true);
-    expect(workOrder.currentItem.target, target1);
-    expect(workOrder.currentItem.descriptor, descriptor1);
+    expect(workOrder.current.target, target1);
+    expect(workOrder.current.descriptor, descriptor1);
   }
 
   test_createNextWorkOrder_lowHigh() {
@@ -114,8 +115,8 @@ class AnalysisDriverTest extends AbstractDriverTest {
     WorkOrder workOrder = analysisDriver.createNextWorkOrder();
     expect(workOrder, isNotNull);
     expect(workOrder.moveNext(), true);
-    expect(workOrder.currentItem.target, target1);
-    expect(workOrder.currentItem.descriptor, descriptor1);
+    expect(workOrder.current.target, target1);
+    expect(workOrder.current.descriptor, descriptor1);
   }
 
   test_createNextWorkOrder_none() {
@@ -404,6 +405,58 @@ class AnalysisDriverTest extends AbstractDriverTest {
 }
 
 @reflectiveTest
+class CycleAwareDependencyWalkerTest {
+  void checkGraph(Map<int, List<int>> graph, int startingNode,
+      List<List<int>> expectedResults) {
+    List<Set<int>> expectedResultsDisregardingOrder =
+        expectedResults.map((nodes) => nodes.toSet()).toList();
+    List<Set<int>> results = <Set<int>>[];
+    _TestCycleAwareDependencyWalker walker =
+        new _TestCycleAwareDependencyWalker(graph, startingNode);
+    while (true) {
+      List<int> nextResult = walker.getNextStronglyConnectedComponent();
+      if (nextResult == null) {
+        break;
+      }
+      results.add(nextResult.toSet());
+      walker.evaluatedNodes.addAll(nextResult);
+    }
+    expect(results, expectedResultsDisregardingOrder);
+  }
+
+  void test_complex_graph() {
+    checkGraph({
+      1: [2, 3],
+      2: [3, 4],
+      3: [],
+      4: [3, 5],
+      5: [2, 6],
+      6: [3, 4]
+    }, 1, [[3], [2, 4, 5, 6], [1]]);
+  }
+
+  void test_cycle_depends_on_other_nodes() {
+    checkGraph({1: [2, 3], 2: [4, 1], 3: [], 4: []}, 1, [[4], [3], [1, 2]]);
+  }
+
+  void test_initial_node_depends_on_cycle() {
+    checkGraph({1: [2], 2: [3], 3: [2]}, 1, [[2, 3], [1]]);
+  }
+
+  void test_simple_cycle() {
+    checkGraph({1: [2], 2: [1]}, 1, [[1, 2]]);
+  }
+
+  void test_simple_dependency_chain() {
+    checkGraph({1: [2], 2: []}, 1, [[2], [1]]);
+  }
+
+  void test_single_node() {
+    checkGraph({1: []}, 1, [[1]]);
+  }
+}
+
+@reflectiveTest
 class WorkItemTest extends AbstractDriverTest {
   test_buildTask_complete() {
     AnalysisTarget target = new TestSource();
@@ -491,9 +544,8 @@ class WorkOrderTest extends EngineTestCase {
     WorkOrder order =
         new WorkOrder(manager, new WorkItem(null, null, descriptor));
     expect(order, isNotNull);
-    expect(order.currentItem, isNull);
-    expect(order.pendingItems, hasLength(1));
-    expect(order.taskManager, manager);
+    expect(order.currentItems, isNull);
+    expect(order.current, isNull);
   }
 
   test_moveNext() {
@@ -540,6 +592,29 @@ class _InternalAnalysisContextMock extends TypedMock
   }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/**
+ * Concrete class for testing [CycleAwareDependencyWalker] behavior.
+ */
+class _TestCycleAwareDependencyWalker extends CycleAwareDependencyWalker<int> {
+  final Map<int, List<int>> graph;
+
+  Set<int> evaluatedNodes = new Set<int>();
+
+  _TestCycleAwareDependencyWalker(this.graph, int startingNode)
+      : super(startingNode);
+
+  @override
+  int getNextInput(int node, List<int> skipInputs) {
+    for (int dependency in graph[node]) {
+      if (!skipInputs.contains(dependency) &&
+          !evaluatedNodes.contains(dependency)) {
+        return dependency;
+      }
+    }
+    return null;
+  }
 }
 
 class _WorkManagerMock extends TypedMock implements WorkManager {
