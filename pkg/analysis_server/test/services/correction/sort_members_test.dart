@@ -479,6 +479,36 @@ class B {}
 ''');
   }
 
+  void test_unitMembers_enum() {
+    _parseTestUnit(r'''
+enum C {x, y}
+enum A {x, y}
+enum B {x, y}
+''');
+    // validate change
+    _assertSort(r'''
+enum A {x, y}
+enum B {x, y}
+enum C {x, y}
+''');
+  }
+
+  void test_unitMembers_enumClass() {
+    _parseTestUnit(r'''
+enum C {x, y}
+class A {}
+class D {}
+enum B {x, y}
+''');
+    // validate change
+    _assertSort(r'''
+class A {}
+enum B {x, y}
+enum C {x, y}
+class D {}
+''');
+  }
+
   void test_unitMembers_function() {
     _parseTestUnit(r'''
 fc() {}

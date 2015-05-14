@@ -270,6 +270,10 @@ class MemberSorter {
         kind = _MemberKind.UNIT_CLASS;
         name = member.name.name;
       }
+      if (member is EnumDeclaration) {
+        kind = _MemberKind.UNIT_CLASS;
+        name = member.name.name;
+      }
       if (member is FunctionDeclaration) {
         FunctionDeclaration function = member;
         name = function.name.name;
