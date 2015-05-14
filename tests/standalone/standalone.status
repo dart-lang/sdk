@@ -52,6 +52,7 @@ javascript_compatibility_errors_test: Skip
 javascript_compatibility_warnings_test: Skip
 oom_error_stacktrace_test: Skip
 out_of_memory_test: Skip
+verbose_gc_to_bmu_test: Skip
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 javascript_int_overflow_literal_test/01: Fail, OK
@@ -154,6 +155,7 @@ package/package_test: CompileTimeError
 
 [ $system == windows ]
 io/skipping_dart2js_compilations_test: Fail # Issue 19551.
+verbose_gc_to_bmu_test: Skip
 
 [ $arch != ia32 && $arch != x64 && $arch != simarm && $arch != simarmv5te && $mode == debug ]
 verified_mem_test: Skip  # Not yet implemented.
