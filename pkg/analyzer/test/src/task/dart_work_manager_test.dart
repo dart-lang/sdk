@@ -184,7 +184,6 @@ class DartWorkManagerTest {
     AnalysisErrorInfo errorInfo = manager.getErrors(source1);
     expect(errorInfo.errors, unorderedEquals([error1, error2]));
     expect(errorInfo.lineInfo, lineInfo);
-    print(errorInfo);
   }
 
   void test_getNextResult_hasLibraries_firstIsError() {

@@ -34,7 +34,6 @@ class AbstractContextTest {
     ChangeSet changeSet = new ChangeSet();
     changeSet.addedSource(source);
     context.applyChanges(changeSet);
-    context.setContents(source, contents);
     return source;
   }
 

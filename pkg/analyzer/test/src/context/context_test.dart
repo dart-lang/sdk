@@ -34,7 +34,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:unittest/unittest.dart';
 import 'package:watcher/src/utils.dart';
@@ -735,7 +734,7 @@ void g() { f(null); }''');
 //        reason: "htmlSource doesn't have errors");
   }
 
-  void fail_performAnalysisTask_importedLibraryDelete() {
+  void test_performAnalysisTask_importedLibraryDelete() {
     Source libASource =
         addSource("/libA.dart", "library libA; import 'libB.dart';");
     Source libBSource = addSource("/libB.dart", "library libB;");
@@ -748,8 +747,8 @@ void g() { f(null); }''');
         reason: "libB resolved 1");
     expect(!_hasAnalysisErrorWithErrorSeverity(context.getErrors(libASource)),
         isTrue, reason: "libA doesn't have errors");
-    // remove libB.dart content and analyze
-    context.setContents(libBSource, null);
+    // remove libB.dart and analyze
+    _removeSource(libBSource);
     _analyzeAll_assertFinished();
     expect(
         context.getResolvedCompilationUnit2(libASource, libASource), isNotNull,
@@ -800,7 +799,7 @@ void g() { f(null); }''');
     expect(source.readCount, 2);
   }
 
-  void fail_performAnalysisTask_missingPart() {
+  void test_performAnalysisTask_missingPart() {
     Source source =
         addSource("/test.dart", "library lib; part 'no-such-file.dart';");
     _analyzeAll_assertFinished();
@@ -917,6 +916,7 @@ int ya = 0;''';
   void test_setContents_unchanged_consistentModificationTime() {
     String contents = "// foo";
     Source source = addSource("/test.dart", contents);
+    context.setContents(source, contents);
     // do all, no tasks
     _analyzeAll_assertFinished();
     {
@@ -1063,9 +1063,7 @@ int b = aa;''';
         same(declarationElement));
     return pumpEventQueue().then((_) {
       listener.assertEvent(wereSourcesAdded: true);
-      listener.assertEvent(changedSources: [librarySource]);
       listener.assertEvent(wereSourcesAdded: true);
-      listener.assertEvent(changedSources: [partSource]);
       listener.assertEvent(changedSources: [librarySource]);
       listener.assertEvent(changedSources: [partSource]);
       listener.assertNoMoreEvents();
@@ -1858,9 +1856,7 @@ int aa = 0;''';
     expect(_getIncrementalAnalysisCache(context), isNull);
     return pumpEventQueue().then((_) {
       listener.assertEvent(wereSourcesAdded: true);
-      listener.assertEvent(changedSources: [librarySource]);
       listener.assertEvent(wereSourcesAdded: true);
-      listener.assertEvent(changedSources: [partSource]);
       listener.assertEvent(changedSources: [librarySource]);
       listener.assertNoMoreEvents();
     });
@@ -1870,6 +1866,7 @@ int aa = 0;''';
     Source librarySource = addSource("/lib.dart", r'''
 library lib;
 int a = 0;''');
+    context.setContents(librarySource, '// different');
     context.computeLibraryElement(librarySource);
     IncrementalAnalysisCache incrementalCache = new IncrementalAnalysisCache(
         librarySource, librarySource, null, null, null, 0, 0, 0);
@@ -2051,6 +2048,7 @@ int a = 0;''');
   }
 
   void _removeSource(Source source) {
+    resourceProvider.deleteFile(source.fullName);
     ChangeSet changeSet = new ChangeSet();
     changeSet.removedSource(source);
     context.applyChanges(changeSet);

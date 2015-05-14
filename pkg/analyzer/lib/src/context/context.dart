@@ -1656,8 +1656,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (entry == null) {
       _createCacheEntry(source, true);
     } else {
-      // TODO(brianwilkerson) Implement this.
-//      _propagateInvalidation(source, entry);
+      entry.modificationTime = getModificationStamp(source);
+      entry.setState(CONTENT, CacheState.INVALID);
     }
   }
 
@@ -1688,8 +1688,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       } catch (e) {}
     }
     // We need to invalidate the cache.
-    // TODO(brianwilkerson) Implement this.
-//    _propagateInvalidation(source, entry);
+    entry.setState(CONTENT, CacheState.INVALID);
   }
 
   /**

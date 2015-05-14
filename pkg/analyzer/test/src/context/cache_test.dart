@@ -156,6 +156,25 @@ class AnalysisCacheTest extends AbstractCacheTest {
     expect(entry3.getState(result3), CacheState.VALID);
   }
 
+  void test_remove_invalidateResults_sameTarget() {
+    AnalysisTarget target = new TestSource('/a.dart');
+    CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
+    ResultDescriptor result1 = new ResultDescriptor('result1', -1);
+    ResultDescriptor result2 = new ResultDescriptor('result2', -2);
+    // set results, all of them are VALID
+    entry.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry.setValue(result2, 222, [new TargetedResult(target, result1)]);
+    expect(entry.getState(result1), CacheState.VALID);
+    expect(entry.getState(result2), CacheState.VALID);
+    expect(entry.getValue(result1), 111);
+    expect(entry.getValue(result2), 222);
+    // remove target, invalidate result2
+    cache.remove(target);
+    expect(cache.get(target), isNull);
+    expect(entry.getState(result2), CacheState.INVALID);
+  }
+
   void test_size() {
     int size = 4;
     for (int i = 0; i < size; i++) {

@@ -932,6 +932,17 @@ main() {
     expect(libraryElement.entryPoint, isNotNull);
   }
 
+  test_perform_noSuchFilePart() {
+    _performBuildTask({
+      '/lib.dart': '''
+library lib;
+part 'no-such-file.dart';
+'''
+    });
+    expect(libraryElement.parts, hasLength(1));
+    expect(libraryElement.parts[0].library, same(libraryElement));
+  }
+
   test_perform_patchTopLevelAccessors() {
     _performBuildTask({
       '/lib.dart': '''

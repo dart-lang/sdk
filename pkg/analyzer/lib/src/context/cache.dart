@@ -453,7 +453,9 @@ class CacheEntry {
     thisData.dependentResults = <TargetedResult>[];
     dependentResults.forEach((TargetedResult dependentResult) {
       CacheEntry entry = _partition.get(dependentResult.target);
-      entry._invalidate(dependentResult.result, true);
+      if (entry != null) {
+        entry._invalidate(dependentResult.result, true);
+      }
     });
     // If empty, remove the entry altogether.
     if (_resultMap.isEmpty) {
