@@ -39,58 +39,6 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_LITERAL)
 DEFINE_FLAG(bool, dump_symbol_stats, false, "Dump symbol table statistics");
 
 
-const char* Symbols::Name(SymbolId symbol) {
-  ASSERT((symbol > kIllegal) && (symbol < kNullCharId));
-  return names[symbol];
-}
-
-
-const String& Symbols::Keyword(Token::Kind keyword) {
-  const int kw_index = keyword - Token::kFirstKeyword;
-  ASSERT((0 <= kw_index) && (kw_index < Token::kNumKeywords));
-  // First keyword symbol is in symbol_handles_[kKwTableStart + 1].
-  const intptr_t keyword_id = Symbols::kKwTableStart + 1 + kw_index;
-  ASSERT(symbol_handles_[keyword_id] != NULL);
-  return *symbol_handles_[keyword_id];
-}
-
-
-void Symbols::InitOnce(Isolate* isolate) {
-  // Should only be run by the vm isolate.
-  ASSERT(isolate == Dart::vm_isolate());
-
-  // Create and setup a symbol table in the vm isolate.
-  SetupSymbolTable(isolate);
-
-  // Create all predefined symbols.
-  ASSERT((sizeof(names) / sizeof(const char*)) == Symbols::kNullCharId);
-
-  // Set up all the predefined string symbols and create symbols for language
-  // keywords. We don't expect to find any overlaps between the predefined
-  // string symbols and the language keywords. If an overlap is introduced
-  // inadvertantly the ASSERT in AddToVMIsolate while fail.
-  for (intptr_t i = 1; i < Symbols::kNullCharId; i++) {
-    String* str = String::ReadOnlyHandle();
-    *str = OneByteString::New(names[i], Heap::kOld);
-    AddToVMIsolate(*str);
-    symbol_handles_[i] = str;
-  }
-
-  // Add Latin1 characters as Symbols, so that Symbols::FromCharCode is fast.
-  for (intptr_t c = 0; c < kNumberOfOneCharCodeSymbols; c++) {
-    intptr_t idx = (kNullCharId + c);
-    ASSERT(idx < kMaxPredefinedId);
-    ASSERT(Utf::IsLatin1(c));
-    uint8_t ch = static_cast<uint8_t>(c);
-    String* str = String::ReadOnlyHandle();
-    *str = OneByteString::New(&ch, 1, Heap::kOld);
-    AddToVMIsolate(*str);
-    predefined_[c] = str->raw();
-    symbol_handles_[idx] = str;
-  }
-}
-
-
 RawString* StringFrom(const uint8_t* data, intptr_t len, Heap::Space space) {
   return String::FromLatin1(data, len, space);
 }
@@ -229,6 +177,144 @@ class SymbolTraits {
 typedef UnorderedHashSet<SymbolTraits> SymbolTable;
 
 
+const char* Symbols::Name(SymbolId symbol) {
+  ASSERT((symbol > kIllegal) && (symbol < kNullCharId));
+  return names[symbol];
+}
+
+
+const String& Symbols::Keyword(Token::Kind keyword) {
+  const int kw_index = keyword - Token::kFirstKeyword;
+  ASSERT((0 <= kw_index) && (kw_index < Token::kNumKeywords));
+  // First keyword symbol is in symbol_handles_[kKwTableStart + 1].
+  const intptr_t keyword_id = Symbols::kKwTableStart + 1 + kw_index;
+  ASSERT(symbol_handles_[keyword_id] != NULL);
+  return *symbol_handles_[keyword_id];
+}
+
+
+void Symbols::InitOnce(Isolate* vm_isolate) {
+  // Should only be run by the vm isolate.
+  ASSERT(Isolate::Current() == Dart::vm_isolate());
+  ASSERT(vm_isolate == Dart::vm_isolate());
+
+  // Create and setup a symbol table in the vm isolate.
+  SetupSymbolTable(vm_isolate);
+
+  // Create all predefined symbols.
+  ASSERT((sizeof(names) / sizeof(const char*)) == Symbols::kNullCharId);
+
+  SymbolTable table(vm_isolate, vm_isolate->object_store()->symbol_table());
+
+  // First set up all the predefined string symbols.
+  // Create symbols for language keywords. Some keywords are equal to
+  // symbols we already created, so use New() instead of Add() to ensure
+  // that the symbols are canonicalized.
+  for (intptr_t i = 1; i < Symbols::kNullCharId; i++) {
+    String* str = String::ReadOnlyHandle();
+    *str = OneByteString::New(names[i], Heap::kOld);
+    str->Hash();
+    str->SetCanonical();
+    bool present = table.Insert(*str);
+    ASSERT(!present);
+    symbol_handles_[i] = str;
+  }
+
+  // Add Latin1 characters as Symbols, so that Symbols::FromCharCode is fast.
+  for (intptr_t c = 0; c < kNumberOfOneCharCodeSymbols; c++) {
+    intptr_t idx = (kNullCharId + c);
+    ASSERT(idx < kMaxPredefinedId);
+    ASSERT(Utf::IsLatin1(c));
+    uint8_t ch = static_cast<uint8_t>(c);
+    String* str = String::ReadOnlyHandle();
+    *str = OneByteString::New(&ch, 1, Heap::kOld);
+    str->Hash();
+    str->SetCanonical();
+    bool present = table.Insert(*str);
+    ASSERT(!present);
+    predefined_[c] = str->raw();
+    symbol_handles_[idx] = str;
+  }
+
+  vm_isolate->object_store()->set_symbol_table(table.Release());
+}
+
+
+void Symbols::InitOnceFromSnapshot(Isolate* vm_isolate) {
+  // Should only be run by the vm isolate.
+  ASSERT(Isolate::Current() == Dart::vm_isolate());
+  ASSERT(vm_isolate == Dart::vm_isolate());
+
+  SymbolTable table(vm_isolate, vm_isolate->object_store()->symbol_table());
+
+  // Lookup all the predefined string symbols and language keyword symbols
+  // and cache them in the read only handles for fast access.
+  for (intptr_t i = 1; i < Symbols::kNullCharId; i++) {
+    String* str = String::ReadOnlyHandle();
+    const unsigned char* name =
+        reinterpret_cast<const unsigned char*>(names[i]);
+    *str ^= table.GetOrNull(Latin1Array(name, strlen(names[i])));
+    ASSERT(!str->IsNull());
+    ASSERT(str->HasHash());
+    ASSERT(str->IsCanonical());
+    symbol_handles_[i] = str;
+  }
+
+  // Lookup Latin1 character Symbols and cache them in read only handles,
+  // so that Symbols::FromCharCode is fast.
+  for (intptr_t c = 0; c < kNumberOfOneCharCodeSymbols; c++) {
+    intptr_t idx = (kNullCharId + c);
+    ASSERT(idx < kMaxPredefinedId);
+    ASSERT(Utf::IsLatin1(c));
+    uint8_t ch = static_cast<uint8_t>(c);
+    String* str = String::ReadOnlyHandle();
+    *str ^= table.GetOrNull(Latin1Array(&ch, 1));
+    ASSERT(!str->IsNull());
+    ASSERT(str->HasHash());
+    ASSERT(str->IsCanonical());
+    predefined_[c] = str->raw();
+    symbol_handles_[idx] = str;
+  }
+
+  vm_isolate->object_store()->set_symbol_table(table.Release());
+}
+
+
+void Symbols::AddPredefinedSymbolsToIsolate() {
+  // Should only be run by regular Dart isolates.
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != Dart::vm_isolate());
+  String& str = String::Handle(isolate);
+
+  SymbolTable table(isolate, isolate->object_store()->symbol_table());
+
+  // Set up all the predefined string symbols and create symbols for
+  // language keywords.
+  for (intptr_t i = 1; i < Symbols::kNullCharId; i++) {
+    str = OneByteString::New(names[i], Heap::kOld);
+    str.Hash();
+    str.SetCanonical();
+    bool present = table.Insert(str);
+    ASSERT(!present);
+  }
+
+  // Add Latin1 characters as Symbols, so that Symbols::FromCharCode is fast.
+  for (intptr_t c = 0; c < kNumberOfOneCharCodeSymbols; c++) {
+    intptr_t idx = (kNullCharId + c);
+    ASSERT(idx < kMaxPredefinedId);
+    ASSERT(Utf::IsLatin1(c));
+    uint8_t ch = static_cast<uint8_t>(c);
+    str = OneByteString::New(&ch, 1, Heap::kOld);
+    str.Hash();
+    str.SetCanonical();
+    bool present = table.Insert(str);
+    ASSERT(!present);
+  }
+
+  isolate->object_store()->set_symbol_table(table.Release());
+}
+
+
 void Symbols::SetupSymbolTable(Isolate* isolate) {
   ASSERT(isolate != NULL);
 
@@ -247,18 +333,6 @@ void Symbols::GetStats(Isolate* isolate, intptr_t* size, intptr_t* capacity) {
   *size = table.NumOccupied();
   *capacity = table.NumEntries();
   table.Release();
-}
-
-
-void Symbols::AddToVMIsolate(const String& str) {
-  // Should only be run by the vm isolate.
-  ASSERT(Isolate::Current() == Dart::vm_isolate());
-  Isolate* isolate = Dart::vm_isolate();
-  SymbolTable table(isolate, isolate->object_store()->symbol_table());
-  bool present = table.Insert(str);
-  str.SetCanonical();
-  ASSERT(!present);
-  isolate->object_store()->set_symbol_table(table.Release());
 }
 
 

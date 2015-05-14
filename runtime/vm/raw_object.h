@@ -534,6 +534,7 @@ class RawObject {
 #endif  // DEBUG
 
   friend class Api;
+  friend class ApiMessageReader;  // GetClassId
   friend class Array;
   friend class ByteBuffer;
   friend class Code;

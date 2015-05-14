@@ -1425,10 +1425,8 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   TIMERSCOPE(isolate, time_creating_snapshot);
-  if (vm_isolate_snapshot_buffer == NULL) {
-    RETURN_NULL_ERROR(vm_isolate_snapshot_buffer);
-  }
-  if (vm_isolate_snapshot_size == NULL) {
+  if (vm_isolate_snapshot_buffer != NULL &&
+      vm_isolate_snapshot_size == NULL) {
     RETURN_NULL_ERROR(vm_isolate_snapshot_size);
   }
   if (isolate_snapshot_buffer == NULL) {
@@ -5076,11 +5074,11 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
   }
   CHECK_CALLBACK_STATE(isolate);
 
-  SnapshotReader reader(snapshot->content(),
-                        snapshot->length(),
-                        snapshot->kind(),
-                        isolate,
-                        zone.GetZone());
+  ASSERT(snapshot->kind() == Snapshot::kScript);
+  ScriptSnapshotReader reader(snapshot->content(),
+                              snapshot->length(),
+                              isolate,
+                              zone.GetZone());
   const Object& tmp = Object::Handle(isolate, reader.ReadScriptSnapshot());
   if (tmp.IsError()) {
     return Api::NewHandle(isolate, tmp.raw());

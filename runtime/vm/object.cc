@@ -109,6 +109,7 @@ Bool* Object::bool_false_ = NULL;
 Smi* Object::smi_illegal_cid_ = NULL;
 LanguageError* Object::snapshot_writer_error_ = NULL;
 LanguageError* Object::branch_offset_error_ = NULL;
+Array* Object::vm_isolate_snapshot_object_table_ = NULL;
 
 RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -416,6 +417,7 @@ void Object::InitOnce(Isolate* isolate) {
   smi_illegal_cid_ = Smi::ReadOnlyHandle();
   snapshot_writer_error_ = LanguageError::ReadOnlyHandle();
   branch_offset_error_ = LanguageError::ReadOnlyHandle();
+  vm_isolate_snapshot_object_table_ = Array::ReadOnlyHandle();
 
 
   // Allocate and initialize the null instance.
@@ -667,6 +669,10 @@ void Object::InitOnce(Isolate* isolate) {
         &empty_exception_handlers_->raw_ptr()->num_entries_, 0);
   }
 
+  // The VM isolate snapshot object table is initialized to an empty array
+  // as we do not have any VM isolate snapshot at this time.
+  *vm_isolate_snapshot_object_table_ = Object::empty_array().raw();
+
   cls = Class::New<Instance>(kDynamicCid);
   cls.set_is_abstract();
   cls.set_num_type_arguments(0);
@@ -746,6 +752,8 @@ void Object::InitOnce(Isolate* isolate) {
   ASSERT(snapshot_writer_error_->IsLanguageError());
   ASSERT(!branch_offset_error_->IsSmi());
   ASSERT(branch_offset_error_->IsLanguageError());
+  ASSERT(!vm_isolate_snapshot_object_table_->IsSmi());
+  ASSERT(vm_isolate_snapshot_object_table_->IsArray());
 }
 
 
@@ -832,6 +840,12 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
   isolate->heap()->old_space()->VisitObjects(&premarker);
   isolate->heap()->WriteProtect(true);
+}
+
+
+void Object::InitVmIsolateSnapshotObjectTable(intptr_t len) {
+  ASSERT(Isolate::Current() == Dart::vm_isolate());
+  *vm_isolate_snapshot_object_table_ = Array::New(len, Heap::kOld);
 }
 
 

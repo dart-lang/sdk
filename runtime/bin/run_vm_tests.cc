@@ -15,6 +15,10 @@
 // TODO(iposva, asiva): This is a placeholder for the real unittest framework.
 namespace dart {
 
+// vm_isolate_snapshot_buffer points to a snapshot for the vm isolate if we
+// link in a snapshot otherwise it is initialized to NULL.
+extern const uint8_t* bin::vm_isolate_snapshot_buffer;
+
 // Only run tests that match the filter string. The default does not match any
 // tests.
 static const char* const kNone = "No Test or Benchmarks";
@@ -97,7 +101,7 @@ static int Main(int argc, const char** argv) {
   bool set_vm_flags_success = Flags::ProcessCommandLineFlags(dart_argc,
                                                              dart_argv);
   ASSERT(set_vm_flags_success);
-  const char* err_msg = Dart::InitOnce(NULL,
+  const char* err_msg = Dart::InitOnce(dart::bin::vm_isolate_snapshot_buffer,
                                        NULL, NULL, NULL, NULL,
                                        dart::bin::DartUtils::OpenFile,
                                        dart::bin::DartUtils::ReadFile,

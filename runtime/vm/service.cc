@@ -1235,11 +1235,10 @@ static bool PrintMessage(JSONStream* js, Isolate* isolate, const char* id) {
         PrintSentinel(js, kExpiredSentinel);
         return true;
       }
-      SnapshotReader reader(message->data(),
-                            message->len(),
-                            Snapshot::kMessage,
-                            isolate,
-                            isolate->current_zone());
+      MessageSnapshotReader reader(message->data(),
+                                   message->len(),
+                                   isolate,
+                                   isolate->current_zone());
       const Object& msg_obj = Object::Handle(reader.ReadObject());
       msg_obj.PrintJSON(js);
       return true;

@@ -537,6 +537,13 @@ class Symbols : public AllStatic {
 
   // Initialize frequently used symbols in the vm isolate.
   static void InitOnce(Isolate* isolate);
+  static void InitOnceFromSnapshot(Isolate* isolate);
+
+  // Add all the symbols that were cached in the VM isolate to this isolate,
+  // we do this when an Isolate is not created from the snapshot so that
+  // we get a unified symbol table that can be be dumped into the VM isolate
+  // snapshot.
+  static void AddPredefinedSymbolsToIsolate();
 
   // Initialize and setup a symbol table for the isolate.
   static void SetupSymbolTable(Isolate* isolate);
@@ -592,9 +599,6 @@ class Symbols : public AllStatic {
   template<typename StringType>
   static RawString* NewSymbol(const StringType& str);
 
-  // Add the string into the VM isolate symbol table.
-  static void AddToVMIsolate(const String& str);
-
   static intptr_t LookupVMSymbol(RawObject* obj);
   static RawObject* GetVMSymbol(intptr_t object_id);
   static bool IsVMSymbolId(intptr_t object_id) {
@@ -610,6 +614,7 @@ class Symbols : public AllStatic {
   // List of handles for predefined symbols.
   static String* symbol_handles_[kMaxPredefinedId];
 
+  friend class Dart;
   friend class String;
   friend class SnapshotReader;
   friend class SnapshotWriter;

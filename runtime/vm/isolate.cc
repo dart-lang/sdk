@@ -57,7 +57,6 @@ DEFINE_FLAG(charp, isolate_log_filter, NULL,
 // Quick access to the locally defined isolate() method.
 #define I (isolate())
 
-
 #if defined(DEBUG)
 // Helper class to ensure that a live origin_id is never reused
 // and assigned to an isolate.
@@ -371,8 +370,9 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   }
 
   // Parse the message.
-  SnapshotReader reader(message->data(), message->len(), Snapshot::kMessage,
-                        I, zone.GetZone());
+  MessageSnapshotReader reader(message->data(),
+                               message->len(),
+                               I, zone.GetZone());
   const Object& msg_obj = Object::Handle(I, reader.ReadObject());
   if (msg_obj.IsError()) {
     // An error occurred while reading the message.
@@ -676,6 +676,7 @@ Isolate::Isolate(Isolate* original)
       tag_table_(GrowableObjectArray::null()),
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
+      deoptimized_code_array_(GrowableObjectArray::null()),
       metrics_list_head_(NULL),
       cha_(NULL),
       next_(NULL),
@@ -1864,7 +1865,10 @@ static RawInstance* DeserializeObject(Isolate* isolate,
   if (obj_data == NULL) {
     return Instance::null();
   }
-  SnapshotReader reader(obj_data, obj_len, Snapshot::kMessage, isolate, zone);
+  MessageSnapshotReader reader(obj_data,
+                               obj_len,
+                               isolate,
+                               zone);
   const Object& obj = Object::Handle(isolate, reader.ReadObject());
   ASSERT(!obj.IsError());
   Instance& instance = Instance::Handle(isolate);

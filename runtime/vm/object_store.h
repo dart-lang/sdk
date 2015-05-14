@@ -520,6 +520,7 @@ class ObjectStore {
   }
 
   friend class SnapshotReader;
+  friend class VmIsolateSnapshotReader;
 
   DISALLOW_COPY_AND_ASSIGN(ObjectStore);
 };

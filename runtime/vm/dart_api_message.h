@@ -46,7 +46,10 @@ class ApiMessageReader : public BaseReader {
   // memory allocated as there is no way to run through the resulting C
   // structure and free the individual pieces. Using a zone based allocator is
   // recommended.
-  ApiMessageReader(const uint8_t* buffer, intptr_t length, ReAlloc alloc);
+  ApiMessageReader(const uint8_t* buffer,
+                   intptr_t length,
+                   ReAlloc alloc,
+                   bool use_vm_isolate_snapshot = true);
   ~ApiMessageReader() { }
 
   Dart_CObject* ReadMessage();
@@ -94,6 +97,8 @@ class ApiMessageReader : public BaseReader {
       Dart_TypedData_Type type, intptr_t length);
   // Allocates a C array of Dart_CObject objects.
   Dart_CObject* AllocateDartCObjectArray(intptr_t length);
+  // Allocate a C Dart_CObject object for a VM isolate object.
+  Dart_CObject* AllocateDartCObjectVmIsolateObj(intptr_t id);
   // Allocates a Dart_CObject_Internal object with the specified type.
   Dart_CObject_Internal* AllocateDartCObjectInternal(
       Dart_CObject_Internal::Type type);
@@ -127,12 +132,19 @@ class ApiMessageReader : public BaseReader {
     return reinterpret_cast<Dart_CObject_Internal*>(object);
   }
 
+  RawObject* VmIsolateSnapshotObject(intptr_t index) const {
+    return Object::vm_isolate_snapshot_object_table().At(index);
+  }
+
+  Dart_CObject* CreateDartCObjectString(RawObject* raw);
+
   // Allocation of the structures for the decoded message happens
   // either in the supplied zone or using the supplied allocation
   // function.
   ReAlloc alloc_;
   ApiGrowableArray<BackRefNode*> backward_references_;
   Dart_CObject** vm_symbol_references_;
+  intptr_t max_vm_isolate_object_id_;
 
   Dart_CObject type_arguments_marker;
   Dart_CObject dynamic_type_marker;
@@ -187,6 +199,7 @@ class ApiMessageWriter : public BaseWriter {
   Dart_CObject** forward_list_;
   intptr_t forward_list_length_;
   intptr_t forward_id_;
+  intptr_t max_vm_isolate_object_id_;
 
   DISALLOW_COPY_AND_ASSIGN(ApiMessageWriter);
 };

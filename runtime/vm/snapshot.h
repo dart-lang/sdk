@@ -239,16 +239,29 @@ class BaseReader {
 };
 
 
+class BackRefNode : public ValueObject {
+ public:
+  BackRefNode(Object* reference, DeserializeState state)
+      : reference_(reference), state_(state) {}
+  Object* reference() const { return reference_; }
+  bool is_deserialized() const { return state_ == kIsDeserialized; }
+  void set_state(DeserializeState state) { state_ = state; }
+
+  BackRefNode& operator=(const BackRefNode& other) {
+    reference_ = other.reference_;
+    state_ = other.state_;
+    return *this;
+  }
+
+ private:
+  Object* reference_;
+  DeserializeState state_;
+};
+
+
 // Reads a snapshot into objects.
 class SnapshotReader : public BaseReader {
  public:
-  SnapshotReader(const uint8_t* buffer,
-                 intptr_t size,
-                 Snapshot::Kind kind,
-                 Isolate* isolate,
-                 Zone* zone);
-  ~SnapshotReader() { }
-
   Zone* zone() const { return zone_; }
   Isolate* isolate() const { return isolate_; }
   Heap* heap() const { return heap_; }
@@ -262,6 +275,7 @@ class SnapshotReader : public BaseReader {
   Array* TokensHandle() { return &tokens_; }
   TokenStream* StreamHandle() { return &stream_; }
   ExternalTypedData* DataHandle() { return &data_; }
+  Snapshot::Kind kind() const { return kind_; }
 
   // Reads an object.
   RawObject* ReadObject();
@@ -323,28 +337,22 @@ class SnapshotReader : public BaseReader {
   RawObject* NewInteger(int64_t value);
   RawStacktrace* NewStacktrace();
 
- private:
-  class BackRefNode : public ValueObject {
-   public:
-    BackRefNode(Object* reference, DeserializeState state)
-        : reference_(reference), state_(state) {}
-    Object* reference() const { return reference_; }
-    bool is_deserialized() const { return state_ == kIsDeserialized; }
-    void set_state(DeserializeState state) { state_ = state; }
+ protected:
+  SnapshotReader(const uint8_t* buffer,
+                 intptr_t size,
+                 Snapshot::Kind kind,
+                 ZoneGrowableArray<BackRefNode>* backward_references,
+                 Isolate* isolate,
+                 Zone* zone);
+  ~SnapshotReader() { }
 
-    BackRefNode& operator=(const BackRefNode& other) {
-      reference_ = other.reference_;
-      state_ = other.state_;
-      return *this;
-    }
-
-   private:
-    Object* reference_;
-    DeserializeState state_;
-  };
-
+  ZoneGrowableArray<BackRefNode>* GetBackwardReferenceTable() const {
+    return backward_references_;
+  }
+  void ResetBackwardReferenceTable() { backward_references_ = NULL; }
   PageSpace* old_space() const { return old_space_; }
 
+ private:
   // Allocate uninitialized objects, this is used when reading a full snapshot.
   RawObject* AllocateUninitialized(intptr_t class_id, intptr_t size);
 
@@ -373,6 +381,8 @@ class SnapshotReader : public BaseReader {
 
   void SetReadException(const char* msg);
 
+  RawObject* VmIsolateSnapshotObject(intptr_t index) const;
+
   Snapshot::Kind kind_;  // Indicates type of snapshot(full, script, message).
   Isolate* isolate_;  // Current isolate.
   Zone* zone_;  // Zone for allocations while reading snapshot.
@@ -391,7 +401,8 @@ class SnapshotReader : public BaseReader {
   TokenStream& stream_;  // Temporary token stream handle.
   ExternalTypedData& data_;  // Temporary stream data handle.
   UnhandledException& error_;  // Error handle.
-  GrowableArray<BackRefNode> backward_references_;
+  intptr_t max_vm_isolate_object_id_;
+  ZoneGrowableArray<BackRefNode>* backward_references_;
 
   friend class ApiError;
   friend class Array;
@@ -427,6 +438,57 @@ class SnapshotReader : public BaseReader {
   friend class WeakProperty;
   friend class MirrorReference;
   DISALLOW_COPY_AND_ASSIGN(SnapshotReader);
+};
+
+
+class VmIsolateSnapshotReader : public SnapshotReader {
+ public:
+  VmIsolateSnapshotReader(const uint8_t* buffer, intptr_t size, Zone* zone);
+  ~VmIsolateSnapshotReader();
+
+  RawApiError* ReadVmIsolateSnapshot();
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(VmIsolateSnapshotReader);
+};
+
+
+class IsolateSnapshotReader : public SnapshotReader {
+ public:
+  IsolateSnapshotReader(const uint8_t* buffer,
+                        intptr_t size,
+                        Isolate* isolate,
+                        Zone* zone);
+  ~IsolateSnapshotReader();
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(IsolateSnapshotReader);
+};
+
+
+class ScriptSnapshotReader : public SnapshotReader {
+ public:
+  ScriptSnapshotReader(const uint8_t* buffer,
+                       intptr_t size,
+                       Isolate* isolate,
+                       Zone* zone);
+  ~ScriptSnapshotReader();
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(ScriptSnapshotReader);
+};
+
+
+class MessageSnapshotReader : public SnapshotReader {
+ public:
+  MessageSnapshotReader(const uint8_t* buffer,
+                        intptr_t size,
+                        Isolate* isolate,
+                        Zone* zone);
+  ~MessageSnapshotReader();
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(MessageSnapshotReader);
 };
 
 
@@ -565,6 +627,7 @@ class ForwardList {
   GrowableArray<Node*> nodes_;
   intptr_t first_unprocessed_object_id_;
 
+  friend class FullSnapshotWriter;
   DISALLOW_COPY_AND_ASSIGN(ForwardList);
 };
 
@@ -575,6 +638,7 @@ class SnapshotWriter : public BaseWriter {
                  uint8_t** buffer,
                  ReAlloc alloc,
                  intptr_t initial_size,
+                 ForwardList* forward_list,
                  bool can_send_any_object);
 
  public:
@@ -602,10 +666,12 @@ class SnapshotWriter : public BaseWriter {
   // Write a version string for the snapshot.
   void WriteVersion();
 
+  static intptr_t FirstObjectId();
+
  protected:
   void UnmarkAll() {
-    if (!unmarked_objects_) {
-      forward_list_.UnmarkAll();
+    if (!unmarked_objects_ && forward_list_ != NULL) {
+      forward_list_->UnmarkAll();
       unmarked_objects_ = true;
     }
   }
@@ -637,6 +703,16 @@ class SnapshotWriter : public BaseWriter {
                      intptr_t tags);
   void WriteInstanceRef(RawObject* raw, RawClass* cls);
   bool AllowObjectsInDartLibrary(RawLibrary* library);
+  intptr_t FindVmSnapshotObject(RawObject* rawobj);
+
+  void InitializeForwardList(ForwardList* forward_list) {
+    ASSERT(forward_list_ == NULL);
+    forward_list_ = forward_list;
+  }
+  void ResetForwardList() {
+    ASSERT(forward_list_ != NULL);
+    forward_list_ = NULL;
+  }
 
   Isolate* isolate() const { return isolate_; }
   ObjectStore* object_store() const { return object_store_; }
@@ -646,12 +722,13 @@ class SnapshotWriter : public BaseWriter {
   Isolate* isolate_;
   ObjectStore* object_store_;  // Object store for common classes.
   ClassTable* class_table_;  // Class table for the class index to class lookup.
-  ForwardList forward_list_;
+  ForwardList* forward_list_;
   Exceptions::ExceptionType exception_type_;  // Exception type.
   const char* exception_msg_;  // Message associated with exception.
   bool unmarked_objects_;  // True if marked objects have been unmarked.
   bool can_send_any_object_;  // True if any Dart instance can be sent.
 
+  friend class FullSnapshotWriter;
   friend class RawArray;
   friend class RawClass;
   friend class RawClosureData;
@@ -674,30 +751,46 @@ class SnapshotWriter : public BaseWriter {
 };
 
 
-class FullSnapshotWriter : public SnapshotWriter {
+class FullSnapshotWriter {
  public:
   static const intptr_t kInitialSize = 64 * KB;
   FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
                      uint8_t** isolate_snapshot_buffer,
-                     ReAlloc alloc)
-      : SnapshotWriter(Snapshot::kFull,
-                       isolate_snapshot_buffer,
-                       alloc,
-                       kInitialSize,
-                       true) {
-    ASSERT(vm_isolate_snapshot_buffer != NULL);
-    ASSERT(isolate_snapshot_buffer != NULL);
-    ASSERT(alloc != NULL);
-  }
+                     ReAlloc alloc);
   ~FullSnapshotWriter() { }
+
+  uint8_t** vm_isolate_snapshot_buffer() {
+    return vm_isolate_snapshot_buffer_;
+  }
+
+  uint8_t** isolate_snapshot_buffer() {
+    return isolate_snapshot_buffer_;
+  }
 
   // Writes a full snapshot of the Isolate.
   void WriteFullSnapshot();
 
-  intptr_t VmIsolateSnapshotSize() const { return 0; }
-  intptr_t IsolateSnapshotSize() const { return BytesWritten(); }
+  intptr_t VmIsolateSnapshotSize() const {
+    return vm_isolate_snapshot_size_;
+  }
+  intptr_t IsolateSnapshotSize() const {
+    return isolate_snapshot_size_;
+  }
 
  private:
+  // Writes a snapshot of the VM Isolate.
+  void WriteVmIsolateSnapshot();
+
+  // Writes a full snapshot of a regular Dart Isolate.
+  void WriteIsolateFullSnapshot();
+
+  uint8_t** vm_isolate_snapshot_buffer_;
+  uint8_t** isolate_snapshot_buffer_;
+  ReAlloc alloc_;
+  intptr_t vm_isolate_snapshot_size_;
+  intptr_t isolate_snapshot_size_;
+  ForwardList forward_list_;
+
   DISALLOW_COPY_AND_ASSIGN(FullSnapshotWriter);
 };
 
@@ -705,17 +798,15 @@ class FullSnapshotWriter : public SnapshotWriter {
 class ScriptSnapshotWriter : public SnapshotWriter {
  public:
   static const intptr_t kInitialSize = 64 * KB;
-  ScriptSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
-      : SnapshotWriter(Snapshot::kScript, buffer, alloc, kInitialSize, true) {
-    ASSERT(buffer != NULL);
-    ASSERT(alloc != NULL);
-  }
+  ScriptSnapshotWriter(uint8_t** buffer, ReAlloc alloc);
   ~ScriptSnapshotWriter() { }
 
   // Writes a partial snapshot of the script.
   void WriteScriptSnapshot(const Library& lib);
 
  private:
+  ForwardList forward_list_;
+
   DISALLOW_COPY_AND_ASSIGN(ScriptSnapshotWriter);
 };
 
@@ -723,20 +814,14 @@ class ScriptSnapshotWriter : public SnapshotWriter {
 class MessageWriter : public SnapshotWriter {
  public:
   static const intptr_t kInitialSize = 512;
-  MessageWriter(uint8_t** buffer, ReAlloc alloc, bool can_send_any_object)
-      : SnapshotWriter(Snapshot::kMessage,
-                       buffer,
-                       alloc,
-                       kInitialSize,
-                       can_send_any_object) {
-    ASSERT(buffer != NULL);
-    ASSERT(alloc != NULL);
-  }
+  MessageWriter(uint8_t** buffer, ReAlloc alloc, bool can_send_any_object);
   ~MessageWriter() { }
 
   void WriteMessage(const Object& obj);
 
  private:
+  ForwardList forward_list_;
+
   DISALLOW_COPY_AND_ASSIGN(MessageWriter);
 };
 

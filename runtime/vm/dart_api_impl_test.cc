@@ -8541,7 +8541,7 @@ TEST_CASE(MakeExternalString) {
     EXPECT_EQ(reinterpret_cast<void*>(&canonical_str_peer), peer);
 
     // Test with a one byte ascii string.
-    const char* ascii = "string";
+    const char* ascii = "?unseen";
     expected_length = strlen(ascii);
     Dart_Handle ascii_str = NewString(ascii);
     EXPECT_VALID(ascii_str);
@@ -8607,7 +8607,7 @@ TEST_CASE(MakeExternalString) {
     }
 
     // Test with a symbol (hash value should be preserved on externalization).
-    const char* symbol_ascii = "string";
+    const char* symbol_ascii = "?unseen";
     expected_length = strlen(symbol_ascii);
     Dart_Handle symbol_str =
         Api::NewHandle(isolate, Symbols::New(symbol_ascii, expected_length));

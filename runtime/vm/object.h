@@ -479,6 +479,12 @@ class Object {
     return *branch_offset_error_;
   }
 
+  static const Array& vm_isolate_snapshot_object_table() {
+    ASSERT(vm_isolate_snapshot_object_table_ != NULL);
+    return *vm_isolate_snapshot_object_table_;
+  }
+  static void InitVmIsolateSnapshotObjectTable(intptr_t len);
+
   static RawClass* class_class() { return class_class_; }
   static RawClass* dynamic_class() { return dynamic_class_; }
   static RawClass* void_class() { return void_class_; }
@@ -790,6 +796,7 @@ class Object {
   static Smi* smi_illegal_cid_;
   static LanguageError* snapshot_writer_error_;
   static LanguageError* branch_offset_error_;
+  static Array* vm_isolate_snapshot_object_table_;
 
   friend void ClassTable::Register(const Class& cls);
   friend void RawObject::Validate(Isolate* isolate) const;

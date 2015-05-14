@@ -131,7 +131,34 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     StubCode::InitOnce();
     // Now that the needed stub has been generated, set the stack limit.
     vm_isolate_->InitializeStackLimit();
-    Symbols::InitOnce(vm_isolate_);
+    if (vm_isolate_snapshot != NULL) {
+      const Snapshot* snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
+      if (snapshot == NULL) {
+        return "Invalid vm isolate snapshot seen.";
+      }
+      ASSERT(snapshot->kind() == Snapshot::kFull);
+      VmIsolateSnapshotReader reader(snapshot->content(),
+                                     snapshot->length(),
+                                     zone.GetZone());
+      const Error& error = Error::Handle(reader.ReadVmIsolateSnapshot());
+      if (!error.IsNull()) {
+        return error.ToCString();
+      }
+      if (FLAG_trace_isolates) {
+        OS::Print("Size of vm isolate snapshot = %" Pd "\n",
+                  snapshot->length());
+        vm_isolate_->heap()->PrintSizes();
+        vm_isolate_->megamorphic_cache_table()->PrintSizes();
+        intptr_t size;
+        intptr_t capacity;
+        Symbols::GetStats(vm_isolate_, &size, &capacity);
+        OS::Print("VM Isolate: Number of symbols : %" Pd "\n", size);
+        OS::Print("VM Isolate: Symbol table capacity : %" Pd "\n", capacity);
+      }
+      Symbols::InitOnceFromSnapshot(vm_isolate_);
+    } else {
+      Symbols::InitOnce(vm_isolate_);
+    }
     Scanner::InitOnce();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     // Dart VM requires at least SSE2.
@@ -139,11 +166,10 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       return "SSE2 is required.";
     }
 #endif
-    if (vm_isolate_snapshot != NULL) {
-      // Initializing the VM isolate from a snapshot is not implemented yet.
-      USE(vm_isolate_snapshot);
-    }
     Object::FinalizeVMIsolate(vm_isolate_);
+#if defined(DEBUG)
+    vm_isolate_->heap()->Verify(kRequireMarked);
+#endif
   }
   // There is a planned and known asymmetry here: We enter one scope for the VM
   // isolate so that we can allocate the "persistent" scoped handles for the
@@ -241,8 +267,10 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     if (FLAG_trace_isolates) {
       OS::Print("Size of isolate snapshot = %" Pd "\n", snapshot->length());
     }
-    SnapshotReader reader(snapshot->content(), snapshot->length(),
-                          Snapshot::kFull, isolate, zone.GetZone());
+    IsolateSnapshotReader reader(snapshot->content(),
+                                 snapshot->length(),
+                                 isolate,
+                                 zone.GetZone());
     const Error& error = Error::Handle(reader.ReadFullSnapshot());
     if (!error.IsNull()) {
       return error.raw();
@@ -251,6 +279,12 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
       isolate->heap()->PrintSizes();
       isolate->megamorphic_cache_table()->PrintSizes();
     }
+  } else {
+    // Populate the isolate's symbol table with all symbols from the
+    // VM isolate. We do this so that when we generate a full snapshot
+    // for the isolate we have a unified symbol table that we can then
+    // read into the VM isolate.
+    Symbols::AddPredefinedSymbolsToIsolate();
   }
 
   Object::VerifyBuiltinVtables();

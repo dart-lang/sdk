@@ -14,11 +14,15 @@ static const int kNumInitialReferences = 4;
 
 ApiMessageReader::ApiMessageReader(const uint8_t* buffer,
                                    intptr_t length,
-                                   ReAlloc alloc)
+                                   ReAlloc alloc,
+                                   bool use_vm_isolate_snapshot)
     : BaseReader(buffer, length),
       alloc_(alloc),
       backward_references_(kNumInitialReferences),
-      vm_symbol_references_(NULL) {
+      vm_symbol_references_(NULL),
+      max_vm_isolate_object_id_(
+          use_vm_isolate_snapshot ?
+          Object::vm_isolate_snapshot_object_table().Length() : 0) {
   Init();
 }
 
@@ -192,6 +196,11 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectArray(intptr_t length) {
     value->value.as_array.values = NULL;
   }
   return value;
+}
+
+
+Dart_CObject* ApiMessageReader::AllocateDartCObjectVmIsolateObj(intptr_t id) {
+  return CreateDartCObjectString(VmIsolateSnapshotObject(id));
 }
 
 
@@ -369,13 +378,7 @@ Dart_CObject* ApiMessageReader::ReadVMSymbol(intptr_t object_id) {
     memset(vm_symbol_references_, 0, size);
   }
 
-  RawOneByteString* str =
-      reinterpret_cast<RawOneByteString*>(Symbols::GetVMSymbol(object_id));
-  intptr_t len = Smi::Value(str->ptr()->length_);
-  object = AllocateDartCObjectString(len);
-  char* p = object->value.as_string;
-  memmove(p, str->ptr()->data(), len);
-  p[len] = '\0';
+  object = CreateDartCObjectString(Symbols::GetVMSymbol(object_id));
   ASSERT(vm_symbol_references_[symbol_id] == NULL);
   vm_symbol_references_[symbol_id] = object;
   return object;
@@ -383,7 +386,20 @@ Dart_CObject* ApiMessageReader::ReadVMSymbol(intptr_t object_id) {
 
 
 intptr_t ApiMessageReader::NextAvailableObjectId() const {
-  return backward_references_.length() + kMaxPredefinedObjectIds;
+  return backward_references_.length() +
+      kMaxPredefinedObjectIds + max_vm_isolate_object_id_;
+}
+
+
+Dart_CObject* ApiMessageReader::CreateDartCObjectString(RawObject* raw) {
+  ASSERT(RawObject::IsOneByteStringClassId(raw->GetClassId()));
+  RawOneByteString* raw_str = reinterpret_cast<RawOneByteString*>(raw);
+  intptr_t len = Smi::Value(raw_str->ptr()->length_);
+  Dart_CObject* object = AllocateDartCObjectString(len);
+  char* p = object->value.as_string;
+  memmove(p, raw_str->ptr()->data(), len);
+  p[len] = '\0';
+  return object;
 }
 
 
@@ -735,6 +751,10 @@ Dart_CObject* ApiMessageReader::ReadIndexedObject(intptr_t object_id) {
     return &dynamic_type_marker;
   }
   intptr_t index = object_id - kMaxPredefinedObjectIds;
+  if (index < max_vm_isolate_object_id_) {
+    return AllocateDartCObjectVmIsolateObj(index);
+  }
+  index -= max_vm_isolate_object_id_;
   ASSERT((0 <= index) && (index < backward_references_.length()));
   ASSERT(backward_references_[index]->reference() != NULL);
   return backward_references_[index]->reference();
@@ -785,6 +805,8 @@ void ApiMessageReader::AddBackRef(intptr_t id,
                                   Dart_CObject* obj,
                                   DeserializeState state) {
   intptr_t index = (id - kMaxPredefinedObjectIds);
+  ASSERT(index >= max_vm_isolate_object_id_);
+  index -= max_vm_isolate_object_id_;
   ASSERT(index == backward_references_.length());
   BackRefNode* node = AllocateBackRefNode(obj, state);
   ASSERT(node != NULL);
@@ -795,6 +817,8 @@ void ApiMessageReader::AddBackRef(intptr_t id,
 Dart_CObject* ApiMessageReader::GetBackRef(intptr_t id) {
   ASSERT(id >= kMaxPredefinedObjectIds);
   intptr_t index = (id - kMaxPredefinedObjectIds);
+  ASSERT(index >= max_vm_isolate_object_id_);
+  index -= max_vm_isolate_object_id_;
   if (index < backward_references_.length()) {
     return backward_references_[index]->reference();
   }
@@ -932,7 +956,7 @@ void ApiMessageWriter::WriteInt64(Dart_CObject* object) {
 
 void ApiMessageWriter::WriteInlinedHeader(Dart_CObject* object) {
   // Write out the serialization header value for this object.
-  WriteInlinedObjectHeader(kMaxPredefinedObjectIds + object_id_);
+  WriteInlinedObjectHeader(SnapshotWriter::FirstObjectId() + object_id_);
   // Mark object with its object id.
   MarkCObject(object, object_id_);
   // Advance object id.
@@ -943,7 +967,7 @@ void ApiMessageWriter::WriteInlinedHeader(Dart_CObject* object) {
 bool ApiMessageWriter::WriteCObject(Dart_CObject* object) {
   if (IsCObjectMarked(object)) {
     intptr_t object_id = GetMarkedCObjectMark(object);
-    WriteIndexedObject(kMaxPredefinedObjectIds + object_id);
+    WriteIndexedObject(SnapshotWriter::FirstObjectId() + object_id);
     return true;
   }
 
@@ -978,7 +1002,7 @@ bool ApiMessageWriter::WriteCObject(Dart_CObject* object) {
 bool ApiMessageWriter::WriteCObjectRef(Dart_CObject* object) {
   if (IsCObjectMarked(object)) {
     intptr_t object_id = GetMarkedCObjectMark(object);
-    WriteIndexedObject(kMaxPredefinedObjectIds + object_id);
+    WriteIndexedObject(SnapshotWriter::FirstObjectId() + object_id);
     return true;
   }
 
@@ -1016,7 +1040,7 @@ bool ApiMessageWriter::WriteForwardedCObject(Dart_CObject* object) {
 
   // Write out the serialization header value for this object.
   intptr_t object_id = GetMarkedCObjectMark(object);
-  WriteInlinedObjectHeader(kMaxPredefinedObjectIds + object_id);
+  WriteInlinedObjectHeader(SnapshotWriter::FirstObjectId() + object_id);
   // Write out the class and tags information.
   WriteIndexedObject(kArrayCid);
   WriteTags(0);

@@ -541,8 +541,10 @@ BENCHMARK(SerializeNull) {
     intptr_t buffer_len = writer.BytesWritten();
 
     // Read object back from the snapshot.
-    SnapshotReader reader(buffer, buffer_len, Snapshot::kMessage, isolate,
-                          zone.GetZone());
+    MessageSnapshotReader reader(buffer,
+                                 buffer_len,
+                                 isolate,
+                                 zone.GetZone());
     reader.ReadObject();
   }
   timer.Stop();
@@ -565,8 +567,10 @@ BENCHMARK(SerializeSmi) {
     intptr_t buffer_len = writer.BytesWritten();
 
     // Read object back from the snapshot.
-    SnapshotReader reader(buffer, buffer_len, Snapshot::kMessage, isolate,
-                          zone.GetZone());
+    MessageSnapshotReader reader(buffer,
+                                 buffer_len,
+                                 isolate,
+                                 zone.GetZone());
     reader.ReadObject();
   }
   timer.Stop();
@@ -591,8 +595,10 @@ BENCHMARK(SimpleMessage) {
     intptr_t buffer_len = writer.BytesWritten();
 
     // Read object back from the snapshot.
-    SnapshotReader reader(buffer, buffer_len, Snapshot::kMessage, isolate,
-                          zone.GetZone());
+    MessageSnapshotReader reader(buffer,
+                                 buffer_len,
+                                 isolate,
+                                 zone.GetZone());
     reader.ReadObject();
     free(buffer);
   }
