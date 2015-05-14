@@ -1664,6 +1664,23 @@ main() {}''');
 //    assertLength(0, statistics.getSources());
   }
 
+  void test_handleContentsChanged() {
+    ContentCache contentCache = new ContentCache();
+    context.contentCache = contentCache;
+    String oldContents = 'foo() {}';
+    String newContents = 'bar() {}';
+    // old contents
+    Source source = addSource("/test.dart", oldContents);
+    _analyzeAll_assertFinished();
+    expect(context.getResolvedCompilationUnit2(source, source), isNotNull);
+    // new contents
+    contentCache.setContents(source, newContents);
+    context.handleContentsChanged(source, oldContents, newContents, true);
+    // there is some work to do
+    AnalysisResult analysisResult = context.performAnalysisTask();
+    expect(analysisResult.changeNotices, isNotNull);
+  }
+
   void test_isClientLibrary_dart() {
     Source source = addSource("/test.dart", r'''
 import 'dart:html';

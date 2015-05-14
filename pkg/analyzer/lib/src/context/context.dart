@@ -1171,8 +1171,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void setContents(Source source, String contents) {
     _contentsChanged(source, contents, true);
-    dartWorkManager.applyChange(
-        Source.EMPTY_LIST, <Source>[source], Source.EMPTY_LIST);
   }
 
   @override
@@ -1693,6 +1691,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     // We need to invalidate the cache.
     entry.setState(CONTENT, CacheState.INVALID);
+    dartWorkManager.applyChange(
+        Source.EMPTY_LIST, <Source>[source], Source.EMPTY_LIST);
   }
 
   /**
