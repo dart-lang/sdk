@@ -137,6 +137,24 @@ main() {
 
       validateNodeTree(template.content, expectedContent);
     });
+
+    test("appendHtml is sanitized", () {
+      var html = '<body background="s"></body><div></div>';
+      document.body.appendHtml('<div id="stuff"></div>');
+      var stuff = document.querySelector("#stuff");
+      stuff.appendHtml(html);
+      expect(stuff.childNodes.length, 1);
+      stuff.remove();
+    });
+
+    test("documentFragment.appendHtml is sanitized", () {
+      var html = '<div id="things></div>';
+      var fragment = new DocumentFragment.html(html);
+      fragment.appendHtml('<div id="bad"><script></script></div>');
+      expect(fragment.childNodes.length, 1);
+      expect(fragment.childNodes[0].id, "bad");
+      expect(fragment.childNodes[0].childNodes.length, 0);
+    });    
   });
 
   group('URI_sanitization', () {
