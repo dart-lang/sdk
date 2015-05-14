@@ -259,7 +259,7 @@ CompilerOptions parseOptions(List<String> argv) {
   if (enableHashing == null) {
     enableHashing = serverMode;
   }
-  var logLevel = serverMode ? Level.ALL : Level.SEVERE;
+  var logLevel = serverMode ? Level.WARNING : Level.SEVERE;
   var levelName = args['log'];
   if (levelName != null) {
     levelName = levelName.toUpperCase();

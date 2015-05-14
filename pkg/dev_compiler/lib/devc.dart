@@ -64,7 +64,7 @@ class Compiler {
 
     if (reporter == null) {
       reporter = options.dumpInfo
-          ? new SummaryReporter()
+          ? new SummaryReporter(options.logLevel)
           : new LogReporter(options.useColors);
     }
     var graph = new SourceGraph(resolver.context, reporter, options);

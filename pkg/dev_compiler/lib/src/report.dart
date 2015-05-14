@@ -124,6 +124,9 @@ class SummaryReporter implements CheckerReporter {
   GlobalSummary result = new GlobalSummary();
   IndividualSummary _current;
   SourceFile _file;
+  final Level _level;
+
+  SummaryReporter([this._level = Level.ALL]);
 
   void enterLibrary(Uri uri) {
     var container;
@@ -163,6 +166,8 @@ class SummaryReporter implements CheckerReporter {
   }
 
   void log(Message message) {
+    // Only summarize messages per configured logging level
+    if (message.level < _level) return;
     assert(message is MessageWithSpan || _file != null);
     // TODO(sigmund): convert to use span information from AST (issue #73)
     final span = message is MessageWithSpan
