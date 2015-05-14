@@ -17,6 +17,7 @@ import 'package:dev_compiler/src/checker/dart_sdk.dart'
     show mockSdkSources, dartSdkDirectory;
 import 'package:dev_compiler/src/checker/resolver.dart' show TypeResolver;
 import 'package:dev_compiler/src/utils.dart';
+import 'package:dev_compiler/src/in_memory.dart';
 import 'package:dev_compiler/src/info.dart';
 import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/report.dart';
@@ -61,7 +62,7 @@ CheckerResults testChecker(Map<String, String> testFiles,
       reason: '`/main.dart` is missing in testFiles');
 
   // Create a resolver that can load test files from memory.
-  var testUriResolver = new TestUriResolver(testFiles);
+  var testUriResolver = new InMemoryUriResolver(testFiles);
   var options = new CompilerOptions(
       allowConstCasts: allowConstCasts,
       covariantGenerics: covariantGenerics,
@@ -85,7 +86,8 @@ CheckerResults testChecker(Map<String, String> testFiles,
   var mainFile = new Uri.file('/main.dart');
   var checkExpectations = reporter == null;
   if (reporter == null) reporter = new TestReporter();
-  var results = new Compiler(options, resolver, reporter).run();
+  var results =
+      new Compiler(options, resolver: resolver, reporter: reporter).run();
 
   // Extract expectations from the comments in the test files.
   var expectedErrors = <AstNode, List<_ErrorExpectation>>{};
@@ -189,7 +191,7 @@ String _messageWithSpan(StaticInfo info) {
 
 SourceSpan _spanFor(AstNode node) {
   var root = node.root as CompilationUnit;
-  TestSource source = (root.element as CompilationUnitElementImpl).source;
+  InMemorySource source = (root.element as CompilationUnitElementImpl).source;
   return source.spanFor(node);
 }
 
@@ -269,81 +271,4 @@ class _ErrorExpectation {
   }
 
   String toString() => '$level $type';
-}
-
-/// Uri resolver that can load test files from memory.
-class TestUriResolver extends UriResolver {
-  final Map<Uri, TestSource> files = <Uri, TestSource>{};
-
-  /// Whether to represent a non-existing file with a [TestSource] (default
-  /// behavior from analyzer), or to use null (possible when overriding the
-  /// package-url-resolvers.)
-  final bool representNonExistingFiles;
-
-  TestUriResolver(Map<String, String> allFiles,
-      {this.representNonExistingFiles: true}) {
-    allFiles.forEach((key, value) {
-      var uri = key.startsWith('package:') ? Uri.parse(key) : new Uri.file(key);
-      files[uri] = new TestSource(uri, value);
-    });
-
-    runtimeFilesForServerMode.forEach((filepath) {
-      var uri = Uri.parse('/dev_compiler_runtime/$filepath');
-      files[uri] = new TestSource(uri, '/* test contents of $filepath */');
-    });
-  }
-
-  Source resolveAbsolute(Uri uri) {
-    if (uri.scheme != 'file' && uri.scheme != 'package') return null;
-    if (!representNonExistingFiles) return files[uri];
-    return files.putIfAbsent(uri, () => new TestSource(uri, null));
-  }
-}
-
-class TestContents implements TimestampedData<String> {
-  int modificationTime;
-  String data;
-
-  TestContents(this.modificationTime, this.data);
-}
-
-/// An in memory source file.
-class TestSource implements Source {
-  final Uri uri;
-  TestContents contents;
-  final SourceFile _file;
-  final UriKind uriKind;
-
-  TestSource(uri, contents)
-      : uri = uri,
-        contents = new TestContents(1, contents),
-        _file = contents != null ? new SourceFile(contents, url: uri) : null,
-        uriKind = uri.scheme == 'file' ? UriKind.FILE_URI : UriKind.PACKAGE_URI;
-
-  bool exists() => contents.data != null;
-
-  Source get source => this;
-
-  String _encoding;
-  String get encoding => _encoding != null ? _encoding : (_encoding = '$uri');
-
-  String get fullName => uri.path;
-
-  int get modificationStamp => contents.modificationTime;
-  String get shortName => path.basename(uri.path);
-
-  operator ==(other) => other is TestSource && uri == other.uri;
-  int get hashCode => uri.hashCode;
-  bool get isInSystemLibrary => false;
-
-  Uri resolveRelativeUri(Uri relativeUri) => uri.resolveUri(relativeUri);
-
-  SourceSpan spanFor(AstNode node) {
-    final begin = node is AnnotatedNode
-        ? node.firstTokenAfterCommentAndMetadata.offset
-        : node.offset;
-    return _file.span(begin, node.end);
-  }
-
-  String toString() => '[$runtimeType: $uri]';
 }

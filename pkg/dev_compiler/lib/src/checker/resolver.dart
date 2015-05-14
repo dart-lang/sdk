@@ -21,7 +21,9 @@ import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart'
     show DirectedGraph;
 import 'package:logging/logging.dart' as logger;
+import 'package:path/path.dart' as path;
 
+import 'package:dev_compiler/src/in_memory.dart';
 import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/report.dart';
 import 'package:dev_compiler/src/utils.dart';
@@ -29,6 +31,14 @@ import 'dart_sdk.dart';
 import 'multi_package_resolver.dart';
 
 final _log = new logger.Logger('dev_compiler.src.resolver');
+
+String _implicitEntryHtml(String src) => '''
+<html>
+  <body>
+    <script type="application/dart" src="$src"></script>
+  </body>
+</html>
+''';
 
 /// Encapsulates a resolver from the analyzer package.
 class TypeResolver {
@@ -39,7 +49,9 @@ class TypeResolver {
   TypeResolver(DartUriResolver sdkResolver, ResolverOptions options,
       {List otherResolvers})
       : context = _initContext(options) {
-    var resolvers = [sdkResolver];
+    var resolvers = options.useImplicitHtml
+        ? [_createImplicitEntryResolver(options), sdkResolver]
+        : [sdkResolver];
     if (otherResolvers == null) {
       resolvers.add(new FileUriResolver());
       resolvers.add(options.useMultiPackage
@@ -54,17 +66,24 @@ class TypeResolver {
   /// Creates a [TypeResolver] that uses a mock 'dart:' library contents.
   TypeResolver.fromMock(
       Map<String, String> mockSources, ResolverOptions options,
-      {List otherResolvers})
+      {UriResolver entryResolver, List otherResolvers})
       : this(
           new MockDartSdk(mockSources, reportMissing: true).resolver, options,
           otherResolvers: otherResolvers);
 
   /// Creates a [TypeResolver] that uses the SDK at the given [sdkPath].
   TypeResolver.fromDir(String sdkPath, ResolverOptions options,
-      {List otherResolvers})
+      {UriResolver entryResolver, List otherResolvers})
       : this(
           new DartUriResolver(new DirectoryBasedDartSdk(new JavaFile(sdkPath))),
           options, otherResolvers: otherResolvers);
+
+  UriResolver _createImplicitEntryResolver(ResolverOptions options) {
+    var entry = path.absolute(ResolverOptions.implicitHtmlFile);
+    var src = path.absolute(options.entryPointFile);
+    var index = <String, String>{'$entry': _implicitEntryHtml(src)};
+    return new InMemoryUriResolver(index, representNonExistingFiles: false);
+  }
 
   /// Find the corresponding [Source] for [uri].
   Source findSource(Uri uri) {

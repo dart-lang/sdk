@@ -51,11 +51,19 @@ class ResolverOptions {
   final bool onlyInferConstsAndFinalFields;
   static const onlyInferConstAndFinalFieldsDefault = false;
 
+  /// File where to start compilation from.
+  final String entryPointFile;
+
+  // True if the resolver should implicitly provide an html entry point.
+  final bool useImplicitHtml;
+  static const String implicitHtmlFile = 'index.html';
+
   ResolverOptions({this.useMultiPackage: false, this.packageRoot: 'packages/',
       this.packagePaths: const <String>[],
       this.inferFromOverrides: inferFromOverridesDefault,
       this.inferTransitively: inferTransitivelyDefault,
-      this.onlyInferConstsAndFinalFields: onlyInferConstAndFinalFieldsDefault});
+      this.onlyInferConstsAndFinalFields: onlyInferConstAndFinalFieldsDefault,
+      this.entryPointFile: null, this.useImplicitHtml: false});
 }
 
 // TODO(vsm): Merge RulesOptions and TypeOptions
@@ -151,6 +159,9 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   /// Whether to run as a development server.
   final bool serverMode;
 
+  /// Whether to create an implicit HTML entry file in server mode.
+  final bool useImplicitHtml;
+
   /// Whether to enable hash-based caching of files.
   final bool enableHashing;
 
@@ -235,8 +246,9 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
       this.nonnullableTypes: TypeOptions.NONNULLABLE_TYPES, this.help: false,
       this.useMockSdk: false, this.dartSdkPath, this.logLevel: Level.SEVERE,
       this.emitSourceMaps: true, this.entryPointFile: null,
-      this.serverMode: false, this.enableHashing: false, this.host: 'localhost',
-      this.port: 8080, this.runtimeDir});
+      this.serverMode: false, this.useImplicitHtml: false,
+      this.enableHashing: false, this.host: 'localhost', this.port: 8080,
+      this.runtimeDir});
 }
 
 /// Parses options from the command-line
@@ -270,6 +282,8 @@ CompilerOptions parseOptions(List<String> argv) {
   var dumpInfo = args['dump-info'];
   if (dumpInfo == null) dumpInfo = serverMode;
 
+  var entryPointFile = args.rest.length == 0 ? null : args.rest.first;
+
   return new CompilerOptions(
       allowConstCasts: args['allow-const-casts'],
       checkSdk: args['sdk-check'],
@@ -299,8 +313,9 @@ CompilerOptions parseOptions(List<String> argv) {
       dartSdkPath: sdkPath,
       logLevel: logLevel,
       emitSourceMaps: args['source-maps'],
-      entryPointFile: args.rest.length == 0 ? null : args.rest.first,
+      entryPointFile: entryPointFile,
       serverMode: serverMode,
+      useImplicitHtml: serverMode && entryPointFile.endsWith('.dart'),
       enableHashing: enableHashing,
       host: args['host'],
       port: int.parse(args['port']),

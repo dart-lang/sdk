@@ -55,7 +55,7 @@ class Compiler {
   bool _failure = false;
 
   factory Compiler(CompilerOptions options,
-      [TypeResolver resolver, CheckerReporter reporter]) {
+      {TypeResolver resolver, CheckerReporter reporter}) {
     if (resolver == null) {
       resolver = options.useMockSdk
           ? new TypeResolver.fromMock(mockSdkSources, options)
@@ -71,12 +71,15 @@ class Compiler {
     var rules =
         new RestrictedRules(resolver.context.typeProvider, options: options);
     var checker = new CodeChecker(rules, reporter, options);
-    var inputFile = options.entryPointFile;
-    var uri = inputFile.startsWith('dart:') || inputFile.startsWith('package:')
-        ? Uri.parse(inputFile)
-        : new Uri.file(path.absolute(inputFile));
-    var entryNode = graph.nodeFromUri(uri);
 
+    var inputFile = options.entryPointFile;
+    var inputUri = inputFile.startsWith('dart:') ||
+            inputFile.startsWith('package:')
+        ? Uri.parse(inputFile)
+        : new Uri.file(path.absolute(options.useImplicitHtml
+            ? ResolverOptions.implicitHtmlFile
+            : inputFile));
+    var entryNode = graph.nodeFromUri(inputUri);
     var outputDir = options.outputDir;
     var generators = <CodeGenerator>[];
     if (options.dumpSrcDir != null) {
@@ -247,8 +250,9 @@ class CompilerServer {
 
   factory CompilerServer(CompilerOptions options) {
     var entryPath = path.basename(options.entryPointFile);
-    if (path.extension(entryPath) != '.html') {
-      print('error: devc in server mode requires an HTML entry point.');
+    var extension = path.extension(entryPath);
+    if (extension != '.html' && !options.useImplicitHtml) {
+      print('error: devc in server mode requires an HTML or Dart entry point.');
       exit(1);
     }
 
@@ -266,7 +270,11 @@ class CompilerServer {
   }
 
   CompilerServer._(
-      this.compiler, this.outDir, this.host, this.port, this._entryPath);
+      Compiler compiler, this.outDir, this.host, this.port, String entryPath)
+      : this.compiler = compiler,
+        this._entryPath = compiler._options.useImplicitHtml
+            ? ResolverOptions.implicitHtmlFile
+            : entryPath;
 
   Future start() async {
     // Create output directory if needed. shelf_static will fail otherwise.

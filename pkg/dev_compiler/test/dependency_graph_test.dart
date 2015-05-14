@@ -8,7 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import 'package:dev_compiler/src/checker/dart_sdk.dart'
     show mockSdkSources, dartSdkDirectory;
-import 'package:dev_compiler/src/testing.dart';
+import 'package:dev_compiler/src/in_memory.dart';
 import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/checker/resolver.dart';
 import 'package:dev_compiler/src/dependency_graph.dart';
@@ -61,7 +61,7 @@ void main() {
   setUp(() {
     /// We completely reset the TestUriResolver to avoid interference between
     /// tests (since some tests modify the state of the files).
-    testUriResolver = new TestUriResolver(testFiles);
+    testUriResolver = new InMemoryUriResolver(testFiles);
     context = new TypeResolver.fromMock(mockSdkSources, options,
         otherResolvers: [testUriResolver]).context;
     graph = new SourceGraph(context, new LogReporter(), options);
@@ -1109,8 +1109,8 @@ void main() {
 
     group('null for non-existing files', () {
       setUp(() {
-        testUriResolver =
-            new TestUriResolver(testFiles, representNonExistingFiles: false);
+        testUriResolver = new InMemoryUriResolver(testFiles,
+            representNonExistingFiles: false);
         context = new TypeResolver.fromMock(mockSdkSources, options,
             otherResolvers: [testUriResolver]).context;
         graph = new SourceGraph(context, new LogReporter(), options);
@@ -1119,7 +1119,7 @@ void main() {
       test('recognize locally change between existing and not-existing', () {
         var n = nodeOf('/foo.dart');
         expect(n.source, isNull);
-        var source = new TestSource(new Uri.file('/foo.dart'), "hi");
+        var source = new InMemorySource(new Uri.file('/foo.dart'), "hi");
         testUriResolver.files[source.uri] = source;
         expect(n.source, isNull);
         n.update(graph);
@@ -1130,7 +1130,7 @@ void main() {
 
       test('non-existing files are tracked in dependencies', () {
         var s1 =
-            new TestSource(new Uri.file('/foo.dart'), "import 'bar.dart';");
+            new InMemorySource(new Uri.file('/foo.dart'), "import 'bar.dart';");
         testUriResolver.files[s1.uri] = s1;
         var node = nodeOf('/foo.dart');
         rebuild(node, graph, buildNoTransitiveChange);
@@ -1138,7 +1138,7 @@ void main() {
         expect(node.allDeps.contains(nodeOf('/bar.dart')), isTrue);
         expect(nodeOf('/bar.dart').source, isNull);
 
-        var s2 = new TestSource(new Uri.file('/bar.dart'), "hi");
+        var s2 = new InMemorySource(new Uri.file('/bar.dart'), "hi");
         testUriResolver.files[s2.uri] = s2;
         results = [];
         rebuild(node, graph, buildWithTransitiveChange);
