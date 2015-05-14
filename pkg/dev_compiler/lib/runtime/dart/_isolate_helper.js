@@ -356,7 +356,7 @@ var async = dart.import(async);
       return initializeObject(classId, emptyInstance, fields);
     }
   }
-  let __CastType0 = dart.typedef('__CastType0', dart.functionType(dart.dynamic, [dart.dynamic]));
+  let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   // Function _callInIsolate: (_IsolateContext, Function) → dynamic
   function _callInIsolate(isolate, func) {
     let result = isolate.eval(func);
@@ -840,9 +840,9 @@ var async = dart.import(async);
       return !!self.postMessage;
     }
   });
-  let _MainFunction = dart.typedef('_MainFunction', dart.functionType(dart.dynamic, []));
-  let _MainFunctionArgs = dart.typedef('_MainFunctionArgs', dart.functionType(dart.dynamic, [dart.dynamic]));
-  let _MainFunctionArgsMessage = dart.typedef('_MainFunctionArgsMessage', dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
+  let _MainFunction = dart.typedef('_MainFunction', () => dart.functionType(dart.dynamic, []));
+  let _MainFunctionArgs = dart.typedef('_MainFunctionArgs', () => dart.functionType(dart.dynamic, [dart.dynamic]));
+  let _MainFunctionArgsMessage = dart.typedef('_MainFunctionArgsMessage', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
   class IsolateNatives extends core.Object {
     static computeThisScript() {
       let currentScript = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.CURRENT_SCRIPT);

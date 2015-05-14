@@ -3723,7 +3723,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     let isolateTagGetter = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.GET_ISOLATE_TAG);
     return isolateTagGetter(name);
   }
-  let LoadLibraryFunctionType = dart.typedef('LoadLibraryFunctionType', dart.functionType(async.Future$(core.Null), []));
+  let LoadLibraryFunctionType = dart.typedef('LoadLibraryFunctionType', () => dart.functionType(async.Future$(core.Null), []));
   // Function _loadLibraryWrapper: (String) → () → Future<Null>
   function _loadLibraryWrapper(loadId) {
     return () => loadDeferredLibrary(loadId);
@@ -3736,7 +3736,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return new (core.Set$(core.String))();
     }
   });
-  let DeferredLoadCallback = dart.typedef('DeferredLoadCallback', dart.functionType(dart.void, []));
+  let DeferredLoadCallback = dart.typedef('DeferredLoadCallback', () => dart.functionType(dart.void, []));
   exports.deferredLoadHook = null;
   // Function loadDeferredLibrary: (String) → Future<Null>
   function loadDeferredLibrary(loadId) {
@@ -3855,8 +3855,8 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
   function mainHasTooManyParameters() {
     throw new MainError("'main' expects too many parameters.");
   }
-  let __CastType0 = dart.typedef('__CastType0', dart.functionType(core.int, [core.String]));
-  let __CastType2 = dart.typedef('__CastType2', dart.functionType(core.double, [core.String]));
+  let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.int, [core.String]));
+  let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(core.double, [core.String]));
   // Exports:
   exports.NoSideEffects = NoSideEffects;
   exports.NoThrows = NoThrows;

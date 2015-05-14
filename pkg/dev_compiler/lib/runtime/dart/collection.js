@@ -30,12 +30,12 @@ var math = dart.lazyImport(math);
     return dart.hashCode(a);
   }
   let _Equality$ = dart.generic(function(K) {
-    let _Equality = dart.typedef('_Equality', dart.functionType(core.bool, [K, K]));
+    let _Equality = dart.typedef('_Equality', () => dart.functionType(core.bool, [K, K]));
     return _Equality;
   });
   let _Equality = _Equality$();
   let _Hasher$ = dart.generic(function(K) {
-    let _Hasher = dart.typedef('_Hasher', dart.functionType(core.int, [K]));
+    let _Hasher = dart.typedef('_Hasher', () => dart.functionType(core.int, [K]));
     return _Hasher;
   });
   let _Hasher = _Hasher$();
@@ -2759,7 +2759,7 @@ var math = dart.lazyImport(math);
   });
   let _ListQueueIterator = _ListQueueIterator$();
   let _Predicate$ = dart.generic(function(T) {
-    let _Predicate = dart.typedef('_Predicate', dart.functionType(core.bool, [T]));
+    let _Predicate = dart.typedef('_Predicate', () => dart.functionType(core.bool, [T]));
     return _Predicate;
   });
   let _Predicate = _Predicate$();
@@ -3489,11 +3489,11 @@ var math = dart.lazyImport(math);
   });
   let SplayTreeSet = SplayTreeSet$();
   let __CastType0$ = dart.generic(function(K) {
-    let __CastType0 = dart.typedef('__CastType0', dart.functionType(core.int, [K, K]));
+    let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.int, [K, K]));
     return __CastType0;
   });
   let __CastType0 = __CastType0$();
-  let __CastType3 = dart.typedef('__CastType3', dart.functionType(core.bool, [core.Object]));
+  let __CastType3 = dart.typedef('__CastType3', () => dart.functionType(core.bool, [core.Object]));
   let _strings = Symbol('_strings');
   let _nums = Symbol('_nums');
   let _rest = Symbol('_rest');

@@ -76,47 +76,8 @@ var convert = dart.lazyImport(convert);
     }
   }
   dart.defineNamedConstructor(bool, 'fromEnvironment');
-  class num extends Object {
-    static parse(input, onError) {
-      if (onError === void 0)
-        onError = null;
-      let source = input.trim();
-      num._parseError = false;
-      let result = int.parse(source, {onError: num._onParseErrorInt});
-      if (!dart.notNull(num._parseError))
-        return result;
-      num._parseError = false;
-      result = double.parse(source, num._onParseErrorDouble);
-      if (!dart.notNull(num._parseError))
-        return result;
-      if (onError == null)
-        throw new FormatException(input);
-      return onError(input);
-    }
-    static _onParseErrorInt(_) {
-      num._parseError = true;
-      return 0;
-    }
-    static _onParseErrorDouble(_) {
-      num._parseError = true;
-      return 0.0;
-    }
-  }
-  num[dart.implements] = () => [Comparable$(num)];
-  class int extends num {
-    fromEnvironment(name, opts) {
-      let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : null;
-      throw new UnsupportedError('int.fromEnvironment can only be used as a const constructor');
-    }
-    static parse(source, opts) {
-      let radix = opts && 'radix' in opts ? opts.radix : null;
-      let onError = opts && 'onError' in opts ? opts.onError : null;
-      return _js_helper.Primitives.parseInt(source, radix, onError);
-    }
-  }
-  dart.defineNamedConstructor(int, 'fromEnvironment');
   let Comparator$ = dart.generic(function(T) {
-    let Comparator = dart.typedef('Comparator', dart.functionType(int, [T, T]));
+    let Comparator = dart.typedef('Comparator', () => dart.functionType(int, [T, T]));
     return Comparator;
   });
   let Comparator = Comparator$();
@@ -401,6 +362,33 @@ var convert = dart.lazyImport(convert);
   DateTime.DECEMBER = 12;
   DateTime.MONTHS_PER_YEAR = 12;
   DateTime._MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
+  class num extends Object {
+    static parse(input, onError) {
+      if (onError === void 0)
+        onError = null;
+      let source = input.trim();
+      num._parseError = false;
+      let result = int.parse(source, {onError: num._onParseErrorInt});
+      if (!dart.notNull(num._parseError))
+        return result;
+      num._parseError = false;
+      result = double.parse(source, num._onParseErrorDouble);
+      if (!dart.notNull(num._parseError))
+        return result;
+      if (onError == null)
+        throw new FormatException(input);
+      return onError(input);
+    }
+    static _onParseErrorInt(_) {
+      num._parseError = true;
+      return 0;
+    }
+    static _onParseErrorDouble(_) {
+      num._parseError = true;
+      return 0.0;
+    }
+  }
+  num[dart.implements] = () => [Comparable$(num)];
   class double extends num {
     static parse(source, onError) {
       if (onError === void 0)
@@ -1084,6 +1072,18 @@ var convert = dart.lazyImport(convert);
   function identityHashCode(object) {
     return _js_helper.objectHashCode(object);
   }
+  class int extends num {
+    fromEnvironment(name, opts) {
+      let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : null;
+      throw new UnsupportedError('int.fromEnvironment can only be used as a const constructor');
+    }
+    static parse(source, opts) {
+      let radix = opts && 'radix' in opts ? opts.radix : null;
+      let onError = opts && 'onError' in opts ? opts.onError : null;
+      return _js_helper.Primitives.parseInt(source, radix, onError);
+    }
+  }
+  dart.defineNamedConstructor(int, 'fromEnvironment');
   class Invocation extends Object {
     get isAccessor() {
       return dart.notNull(this.isGetter) || dart.notNull(this.isSetter);
@@ -1118,7 +1118,7 @@ var convert = dart.lazyImport(convert);
   });
   let Iterable = Iterable$();
   let _Generator$ = dart.generic(function(E) {
-    let _Generator = dart.typedef('_Generator', dart.functionType(E, [int]));
+    let _Generator = dart.typedef('_Generator', () => dart.functionType(E, [int]));
     return _Generator;
   });
   let _Generator = _Generator$();
@@ -3371,13 +3371,12 @@ var convert = dart.lazyImport(convert);
   exports.override = override;
   exports.proxy = proxy;
   exports.bool = bool;
-  exports.num = num;
-  exports.int = int;
   exports.Comparator$ = Comparator$;
   exports.Comparator = Comparator;
   exports.Comparable$ = Comparable$;
   exports.Comparable = Comparable;
   exports.DateTime = DateTime;
+  exports.num = num;
   exports.double = double;
   exports.Duration = Duration;
   exports.Error = Error;
@@ -3408,6 +3407,7 @@ var convert = dart.lazyImport(convert);
   exports.Function = Function;
   exports.identical = identical;
   exports.identityHashCode = identityHashCode;
+  exports.int = int;
   exports.Invocation = Invocation;
   exports.$iterator = $iterator;
   exports.$join = $join;

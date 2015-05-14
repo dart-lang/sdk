@@ -52,7 +52,7 @@ var collection = dart.import(collection);
       return result;
     }
   }
-  let __CastType0 = dart.typedef('__CastType0', dart.functionType(dart.dynamic, [dart.dynamic]));
+  let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   let _add = Symbol('_add');
   let _closeUnchecked = Symbol('_closeUnchecked');
   let _addError = Symbol('_addError');
@@ -1714,7 +1714,7 @@ var collection = dart.import(collection);
   });
   let _DoneSubscription = _DoneSubscription$();
   let __CastType2$ = dart.generic(function(T) {
-    let __CastType2 = dart.typedef('__CastType2', dart.functionType(dart.void, [_BufferingStreamSubscription$(T)]));
+    let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(dart.void, [_BufferingStreamSubscription$(T)]));
     return __CastType2;
   });
   let __CastType2 = __CastType2$();
@@ -1951,14 +1951,14 @@ var collection = dart.import(collection);
   function _nonNullError(error) {
     return error != null ? error : new core.NullThrownError();
   }
-  let __CastType4 = dart.typedef('__CastType4', dart.functionType(dart.dynamic, [dart.dynamic]));
+  let __CastType4 = dart.typedef('__CastType4', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   let _FutureOnValue$ = dart.generic(function(T) {
-    let _FutureOnValue = dart.typedef('_FutureOnValue', dart.functionType(dart.dynamic, [T]));
+    let _FutureOnValue = dart.typedef('_FutureOnValue', () => dart.functionType(dart.dynamic, [T]));
     return _FutureOnValue;
   });
   let _FutureOnValue = _FutureOnValue$();
-  let _FutureErrorTest = dart.typedef('_FutureErrorTest', dart.functionType(core.bool, [dart.dynamic]));
-  let _FutureAction = dart.typedef('_FutureAction', dart.functionType(dart.dynamic, []));
+  let _FutureErrorTest = dart.typedef('_FutureErrorTest', () => dart.functionType(core.bool, [dart.dynamic]));
+  let _FutureAction = dart.typedef('_FutureAction', () => dart.functionType(dart.dynamic, []));
   let _Completer$ = dart.generic(function(T) {
     class _Completer extends core.Object {
       _Completer() {
@@ -2550,13 +2550,13 @@ var collection = dart.import(collection);
   _Future._VALUE = 4;
   _Future._ERROR = 8;
   let __CastType6$ = dart.generic(function(T) {
-    let __CastType6 = dart.typedef('__CastType6', dart.functionType(dart.dynamic, [T]));
+    let __CastType6 = dart.typedef('__CastType6', () => dart.functionType(dart.dynamic, [T]));
     return __CastType6;
   });
   let __CastType6 = __CastType6$();
-  let __CastType8 = dart.typedef('__CastType8', dart.functionType(core.bool, [dart.dynamic]));
-  let __CastType10 = dart.typedef('__CastType10', dart.functionType(dart.dynamic, [dart.dynamic]));
-  let _AsyncCallback = dart.typedef('_AsyncCallback', dart.functionType(dart.void, []));
+  let __CastType8 = dart.typedef('__CastType8', () => dart.functionType(core.bool, [dart.dynamic]));
+  let __CastType10 = dart.typedef('__CastType10', () => dart.functionType(dart.dynamic, [dart.dynamic]));
+  let _AsyncCallback = dart.typedef('_AsyncCallback', () => dart.functionType(dart.void, []));
   class _AsyncCallbackEntry extends core.Object {
     _AsyncCallbackEntry(callback) {
       this.callback = callback;
@@ -2787,10 +2787,10 @@ var collection = dart.import(collection);
     return _ControllerEventSinkWrapper;
   });
   let _ControllerEventSinkWrapper = _ControllerEventSinkWrapper$();
-  let __CastType12 = dart.typedef('__CastType12', dart.functionType(dart.void, [StreamSubscription]));
-  let __CastType14 = dart.typedef('__CastType14', dart.functionType(dart.dynamic, [dart.dynamic, core.StackTrace]));
-  let __CastType17 = dart.typedef('__CastType17', dart.functionType(dart.void, []));
-  let __CastType18 = dart.typedef('__CastType18', dart.functionType(dart.void, [EventSink]));
+  let __CastType12 = dart.typedef('__CastType12', () => dart.functionType(dart.void, [StreamSubscription]));
+  let __CastType14 = dart.typedef('__CastType14', () => dart.functionType(dart.dynamic, [dart.dynamic, core.StackTrace]));
+  let __CastType17 = dart.typedef('__CastType17', () => dart.functionType(dart.void, []));
+  let __CastType18 = dart.typedef('__CastType18', () => dart.functionType(dart.void, [EventSink]));
   let StreamController$ = dart.generic(function(T) {
     class StreamController extends core.Object {
       StreamController(opts) {
@@ -3147,7 +3147,7 @@ var collection = dart.import(collection);
   }
   class _NoCallbackAsyncStreamController extends dart.mixin(_StreamController, _AsyncStreamControllerDispatch, _NoCallbacks) {}
   class _NoCallbackSyncStreamController extends dart.mixin(_StreamController, _SyncStreamControllerDispatch, _NoCallbacks) {}
-  let _NotificationHandler = dart.typedef('_NotificationHandler', dart.functionType(dart.dynamic, []));
+  let _NotificationHandler = dart.typedef('_NotificationHandler', () => dart.functionType(dart.dynamic, []));
   // Function _runGuarded: (() → dynamic) → Future<dynamic>
   function _runGuarded(notificationHandler) {
     if (notificationHandler == null)
@@ -3261,6 +3261,30 @@ var collection = dart.import(collection);
   _BufferingStreamSubscription._STATE_HAS_PENDING = 64;
   _BufferingStreamSubscription._STATE_PAUSE_COUNT = 128;
   _BufferingStreamSubscription._STATE_PAUSE_COUNT_SHIFT = 7;
+  let _EventGenerator = dart.typedef('_EventGenerator', () => dart.functionType(_PendingEvents, []));
+  let _isUsed = Symbol('_isUsed');
+  let _GeneratedStreamImpl$ = dart.generic(function(T) {
+    class _GeneratedStreamImpl extends _StreamImpl$(T) {
+      _GeneratedStreamImpl(pending) {
+        this[_pending] = pending;
+        this[_isUsed] = false;
+      }
+      [_createSubscription](onData, onError, onDone, cancelOnError) {
+        dart.as(onData, dart.functionType(dart.void, [T]));
+        dart.as(onDone, dart.functionType(dart.void, []));
+        if (this[_isUsed])
+          throw new core.StateError("Stream has already been listened to.");
+        this[_isUsed] = true;
+        return dart.as((() => {
+          let _ = new _BufferingStreamSubscription(onData, onError, onDone, cancelOnError);
+          _[_setPendingEvents](this[_pending]());
+          return _;
+        }).bind(this)(), StreamSubscription$(T));
+      }
+    }
+    return _GeneratedStreamImpl;
+  });
+  let _GeneratedStreamImpl = _GeneratedStreamImpl$();
   let _eventScheduled = Symbol('_eventScheduled');
   class _PendingEvents extends core.Object {
     _PendingEvents() {
@@ -3295,30 +3319,6 @@ var collection = dart.import(collection);
         this[_state] = _PendingEvents._STATE_CANCELED;
     }
   }
-  let _EventGenerator = dart.typedef('_EventGenerator', dart.functionType(_PendingEvents, []));
-  let _isUsed = Symbol('_isUsed');
-  let _GeneratedStreamImpl$ = dart.generic(function(T) {
-    class _GeneratedStreamImpl extends _StreamImpl$(T) {
-      _GeneratedStreamImpl(pending) {
-        this[_pending] = pending;
-        this[_isUsed] = false;
-      }
-      [_createSubscription](onData, onError, onDone, cancelOnError) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
-        dart.as(onDone, dart.functionType(dart.void, []));
-        if (this[_isUsed])
-          throw new core.StateError("Stream has already been listened to.");
-        this[_isUsed] = true;
-        return dart.as((() => {
-          let _ = new _BufferingStreamSubscription(onData, onError, onDone, cancelOnError);
-          _[_setPendingEvents](this[_pending]());
-          return _;
-        }).bind(this)(), StreamSubscription$(T));
-      }
-    }
-    return _GeneratedStreamImpl;
-  });
-  let _GeneratedStreamImpl = _GeneratedStreamImpl$();
   let _iterator = Symbol('_iterator');
   let _IterablePendingEvents$ = dart.generic(function(T) {
     class _IterablePendingEvents extends _PendingEvents {
@@ -3360,11 +3360,11 @@ var collection = dart.import(collection);
   });
   let _IterablePendingEvents = _IterablePendingEvents$();
   let _DataHandler$ = dart.generic(function(T) {
-    let _DataHandler = dart.typedef('_DataHandler', dart.functionType(dart.void, [T]));
+    let _DataHandler = dart.typedef('_DataHandler', () => dart.functionType(dart.void, [T]));
     return _DataHandler;
   });
   let _DataHandler = _DataHandler$();
-  let _DoneHandler = dart.typedef('_DoneHandler', dart.functionType(dart.void, []));
+  let _DoneHandler = dart.typedef('_DoneHandler', () => dart.functionType(dart.void, []));
   // Function _nullDataHandler: (dynamic) → void
   function _nullDataHandler(value) {
   }
@@ -3478,7 +3478,7 @@ var collection = dart.import(collection);
       this[_previous] = newPrevious;
     }
   }
-  let _broadcastCallback = dart.typedef('_broadcastCallback', dart.functionType(dart.void, [StreamSubscription]));
+  let _broadcastCallback = dart.typedef('_broadcastCallback', () => dart.functionType(dart.void, [StreamSubscription]));
   let _schedule = Symbol('_schedule');
   let _isSent = Symbol('_isSent');
   let _isScheduled = Symbol('_isScheduled');
@@ -3799,12 +3799,12 @@ var collection = dart.import(collection);
   _StreamIteratorImpl._STATE_EXTRA_ERROR = 4;
   _StreamIteratorImpl._STATE_EXTRA_DONE = 5;
   let __CastType20$ = dart.generic(function(T) {
-    let __CastType20 = dart.typedef('__CastType20', dart.functionType(dart.void, [T]));
+    let __CastType20 = dart.typedef('__CastType20', () => dart.functionType(dart.void, [T]));
     return __CastType20;
   });
   let __CastType20 = __CastType20$();
-  let __CastType22 = dart.typedef('__CastType22', dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
-  let __CastType25 = dart.typedef('__CastType25', dart.functionType(dart.dynamic, [dart.dynamic]));
+  let __CastType22 = dart.typedef('__CastType22', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
+  let __CastType25 = dart.typedef('__CastType25', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   // Function _runUserCode: (() → dynamic, (dynamic) → dynamic, (dynamic, StackTrace) → dynamic) → dynamic
   function _runUserCode(userCode, onSuccess, onError) {
     try {
@@ -3949,7 +3949,7 @@ var collection = dart.import(collection);
   });
   let _ForwardingStreamSubscription = _ForwardingStreamSubscription$();
   let _Predicate$ = dart.generic(function(T) {
-    let _Predicate = dart.typedef('_Predicate', dart.functionType(core.bool, [T]));
+    let _Predicate = dart.typedef('_Predicate', () => dart.functionType(core.bool, [T]));
     return _Predicate;
   });
   let _Predicate = _Predicate$();
@@ -3990,7 +3990,7 @@ var collection = dart.import(collection);
   });
   let _WhereStream = _WhereStream$();
   let _Transformation$ = dart.generic(function(S, T) {
-    let _Transformation = dart.typedef('_Transformation', dart.functionType(T, [S]));
+    let _Transformation = dart.typedef('_Transformation', () => dart.functionType(T, [S]));
     return _Transformation;
   });
   let _Transformation = _Transformation$();
@@ -4043,7 +4043,7 @@ var collection = dart.import(collection);
     return _ExpandStream;
   });
   let _ExpandStream = _ExpandStream$();
-  let _ErrorTest = dart.typedef('_ErrorTest', dart.functionType(core.bool, [dart.dynamic]));
+  let _ErrorTest = dart.typedef('_ErrorTest', () => dart.functionType(core.bool, [dart.dynamic]));
   let _HandleErrorStream$ = dart.generic(function(T) {
     class _HandleErrorStream extends _ForwardingStream$(T, T) {
       _HandleErrorStream(source, onError, test) {
@@ -4194,7 +4194,7 @@ var collection = dart.import(collection);
   });
   let _SkipWhileStream = _SkipWhileStream$();
   let _Equality$ = dart.generic(function(T) {
-    let _Equality = dart.typedef('_Equality', dart.functionType(core.bool, [T, T]));
+    let _Equality = dart.typedef('_Equality', () => dart.functionType(core.bool, [T, T]));
     return _Equality;
   });
   let _Equality = _Equality$();
@@ -4354,7 +4354,7 @@ var collection = dart.import(collection);
   });
   let _SinkTransformerStreamSubscription = _SinkTransformerStreamSubscription$();
   let _SinkMapper$ = dart.generic(function(S, T) {
-    let _SinkMapper = dart.typedef('_SinkMapper', dart.functionType(EventSink$(S), [EventSink$(T)]));
+    let _SinkMapper = dart.typedef('_SinkMapper', () => dart.functionType(EventSink$(S), [EventSink$(T)]));
     return _SinkMapper;
   });
   let _SinkMapper = _SinkMapper$();
@@ -4398,17 +4398,17 @@ var collection = dart.import(collection);
   });
   let _BoundSinkStream = _BoundSinkStream$();
   let _TransformDataHandler$ = dart.generic(function(S, T) {
-    let _TransformDataHandler = dart.typedef('_TransformDataHandler', dart.functionType(dart.void, [S, EventSink$(T)]));
+    let _TransformDataHandler = dart.typedef('_TransformDataHandler', () => dart.functionType(dart.void, [S, EventSink$(T)]));
     return _TransformDataHandler;
   });
   let _TransformDataHandler = _TransformDataHandler$();
   let _TransformErrorHandler$ = dart.generic(function(T) {
-    let _TransformErrorHandler = dart.typedef('_TransformErrorHandler', dart.functionType(dart.void, [core.Object, core.StackTrace, EventSink$(T)]));
+    let _TransformErrorHandler = dart.typedef('_TransformErrorHandler', () => dart.functionType(dart.void, [core.Object, core.StackTrace, EventSink$(T)]));
     return _TransformErrorHandler;
   });
   let _TransformErrorHandler = _TransformErrorHandler$();
   let _TransformDoneHandler$ = dart.generic(function(T) {
-    let _TransformDoneHandler = dart.typedef('_TransformDoneHandler', dart.functionType(dart.void, [EventSink$(T)]));
+    let _TransformDoneHandler = dart.typedef('_TransformDoneHandler', () => dart.functionType(dart.void, [EventSink$(T)]));
     return _TransformDoneHandler;
   });
   let _TransformDoneHandler = _TransformDoneHandler$();
@@ -4472,7 +4472,7 @@ var collection = dart.import(collection);
   });
   let _StreamHandlerTransformer = _StreamHandlerTransformer$();
   let _SubscriptionTransformer$ = dart.generic(function(S, T) {
-    let _SubscriptionTransformer = dart.typedef('_SubscriptionTransformer', dart.functionType(StreamSubscription$(T), [Stream$(S), core.bool]));
+    let _SubscriptionTransformer = dart.typedef('_SubscriptionTransformer', () => dart.functionType(StreamSubscription$(T), [Stream$(S), core.bool]));
     return _SubscriptionTransformer;
   });
   let _SubscriptionTransformer = _SubscriptionTransformer$();
@@ -4516,12 +4516,12 @@ var collection = dart.import(collection);
   });
   let _BoundSubscriptionStream = _BoundSubscriptionStream$();
   let __CastType27$ = dart.generic(function(S, T) {
-    let __CastType27 = dart.typedef('__CastType27', dart.functionType(dart.void, [S, EventSink$(T)]));
+    let __CastType27 = dart.typedef('__CastType27', () => dart.functionType(dart.void, [S, EventSink$(T)]));
     return __CastType27;
   });
   let __CastType27 = __CastType27$();
   let __CastType30$ = dart.generic(function(T) {
-    let __CastType30 = dart.typedef('__CastType30', dart.functionType(dart.void, [core.Object, core.StackTrace, EventSink$(T)]));
+    let __CastType30 = dart.typedef('__CastType30', () => dart.functionType(dart.void, [core.Object, core.StackTrace, EventSink$(T)]));
     return __CastType30;
   });
   let __CastType30 = __CastType30$();
@@ -4555,42 +4555,29 @@ var collection = dart.import(collection);
     }
   }
   dart.defineNamedConstructor(Timer, 'periodic');
-  let __CastType34 = dart.typedef('__CastType34', dart.functionType(dart.void, [Timer]));
-  let ZoneCallback = dart.typedef('ZoneCallback', dart.functionType(dart.dynamic, []));
-  let ZoneUnaryCallback = dart.typedef('ZoneUnaryCallback', dart.functionType(dart.dynamic, [dart.dynamic]));
-  let ZoneBinaryCallback = dart.typedef('ZoneBinaryCallback', dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
-  class Zone extends core.Object {
-    _() {
-    }
-    static get current() {
-      return Zone._current;
-    }
-    static _enter(zone) {
-      dart.assert(zone != null);
-      dart.assert(!dart.notNull(core.identical(zone, Zone._current)));
-      let previous = Zone._current;
-      Zone._current = zone;
-      return previous;
-    }
-    static _leave(previous) {
-      dart.assert(previous != null);
-      Zone._current = previous;
+  let __CastType34 = dart.typedef('__CastType34', () => dart.functionType(dart.void, [Timer]));
+  let ZoneCallback = dart.typedef('ZoneCallback', () => dart.functionType(dart.dynamic, []));
+  let ZoneUnaryCallback = dart.typedef('ZoneUnaryCallback', () => dart.functionType(dart.dynamic, [dart.dynamic]));
+  let ZoneBinaryCallback = dart.typedef('ZoneBinaryCallback', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
+  let HandleUncaughtErrorHandler = dart.typedef('HandleUncaughtErrorHandler', () => dart.functionType(dart.dynamic, [Zone, ZoneDelegate, Zone, dart.dynamic, core.StackTrace]));
+  let RunHandler = dart.typedef('RunHandler', () => dart.functionType(dart.dynamic, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [])]));
+  let RunUnaryHandler = dart.typedef('RunUnaryHandler', () => dart.functionType(dart.dynamic, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [dart.dynamic]), dart.dynamic]));
+  let RunBinaryHandler = dart.typedef('RunBinaryHandler', () => dart.functionType(dart.dynamic, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]), dart.dynamic, dart.dynamic]));
+  let RegisterCallbackHandler = dart.typedef('RegisterCallbackHandler', () => dart.functionType(ZoneCallback, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [])]));
+  let RegisterUnaryCallbackHandler = dart.typedef('RegisterUnaryCallbackHandler', () => dart.functionType(ZoneUnaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [dart.dynamic])]));
+  let RegisterBinaryCallbackHandler = dart.typedef('RegisterBinaryCallbackHandler', () => dart.functionType(ZoneBinaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]));
+  let ErrorCallbackHandler = dart.typedef('ErrorCallbackHandler', () => dart.functionType(AsyncError, [Zone, ZoneDelegate, Zone, core.Object, core.StackTrace]));
+  let ScheduleMicrotaskHandler = dart.typedef('ScheduleMicrotaskHandler', () => dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [])]));
+  let CreateTimerHandler = dart.typedef('CreateTimerHandler', () => dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [])]));
+  let CreatePeriodicTimerHandler = dart.typedef('CreatePeriodicTimerHandler', () => dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [Timer])]));
+  let PrintHandler = dart.typedef('PrintHandler', () => dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, core.String]));
+  let ForkHandler = dart.typedef('ForkHandler', () => dart.functionType(Zone, [Zone, ZoneDelegate, Zone, ZoneSpecification, core.Map]));
+  class _ZoneFunction extends core.Object {
+    _ZoneFunction(zone, func) {
+      this.zone = zone;
+      this.function = func;
     }
   }
-  dart.defineNamedConstructor(Zone, '_');
-  class ZoneDelegate extends core.Object {}
-  let HandleUncaughtErrorHandler = dart.typedef('HandleUncaughtErrorHandler', dart.functionType(dart.dynamic, [Zone, ZoneDelegate, Zone, dart.dynamic, core.StackTrace]));
-  let RunHandler = dart.typedef('RunHandler', dart.functionType(dart.dynamic, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [])]));
-  let RunUnaryHandler = dart.typedef('RunUnaryHandler', dart.functionType(dart.dynamic, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [dart.dynamic]), dart.dynamic]));
-  let RunBinaryHandler = dart.typedef('RunBinaryHandler', dart.functionType(dart.dynamic, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]), dart.dynamic, dart.dynamic]));
-  let RegisterCallbackHandler = dart.typedef('RegisterCallbackHandler', dart.functionType(ZoneCallback, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [])]));
-  let RegisterUnaryCallbackHandler = dart.typedef('RegisterUnaryCallbackHandler', dart.functionType(ZoneUnaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [dart.dynamic])]));
-  let RegisterBinaryCallbackHandler = dart.typedef('RegisterBinaryCallbackHandler', dart.functionType(ZoneBinaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]));
-  let ErrorCallbackHandler = dart.typedef('ErrorCallbackHandler', dart.functionType(AsyncError, [Zone, ZoneDelegate, Zone, core.Object, core.StackTrace]));
-  let ScheduleMicrotaskHandler = dart.typedef('ScheduleMicrotaskHandler', dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [])]));
-  let CreateTimerHandler = dart.typedef('CreateTimerHandler', dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [])]));
-  let CreatePeriodicTimerHandler = dart.typedef('CreatePeriodicTimerHandler', dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [Timer])]));
-  let PrintHandler = dart.typedef('PrintHandler', dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, core.String]));
   class ZoneSpecification extends core.Object {
     ZoneSpecification(opts) {
       return new _ZoneSpecification(opts);
@@ -4613,13 +4600,6 @@ var collection = dart.import(collection);
     }
   }
   dart.defineNamedConstructor(ZoneSpecification, 'from');
-  let ForkHandler = dart.typedef('ForkHandler', dart.functionType(Zone, [Zone, ZoneDelegate, Zone, ZoneSpecification, core.Map]));
-  class _ZoneFunction extends core.Object {
-    _ZoneFunction(zone, func) {
-      this.zone = zone;
-      this.function = func;
-    }
-  }
   class _ZoneSpecification extends core.Object {
     _ZoneSpecification(opts) {
       let handleUncaughtError = opts && 'handleUncaughtError' in opts ? opts.handleUncaughtError : null;
@@ -4651,6 +4631,26 @@ var collection = dart.import(collection);
     }
   }
   _ZoneSpecification[dart.implements] = () => [ZoneSpecification];
+  class ZoneDelegate extends core.Object {}
+  class Zone extends core.Object {
+    _() {
+    }
+    static get current() {
+      return Zone._current;
+    }
+    static _enter(zone) {
+      dart.assert(zone != null);
+      dart.assert(!dart.notNull(core.identical(zone, Zone._current)));
+      let previous = Zone._current;
+      Zone._current = zone;
+      return previous;
+    }
+    static _leave(previous) {
+      dart.assert(previous != null);
+      Zone._current = previous;
+    }
+  }
+  dart.defineNamedConstructor(Zone, '_');
   class _Zone extends core.Object {
     _Zone() {
     }
@@ -5310,8 +5310,8 @@ var collection = dart.import(collection);
       return zone.run(body);
     }
   }
-  let __CastType36 = dart.typedef('__CastType36', dart.functionType(dart.void, [Timer]));
-  let __CastType38 = dart.typedef('__CastType38', dart.functionType(dart.dynamic, [dart.dynamic]));
+  let __CastType36 = dart.typedef('__CastType36', () => dart.functionType(dart.void, [Timer]));
+  let __CastType38 = dart.typedef('__CastType38', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   dart.copyProperties(exports, {
     get _hasDocument() {
       return typeof document == 'object';
@@ -5349,8 +5349,6 @@ var collection = dart.import(collection);
   exports.ZoneCallback = ZoneCallback;
   exports.ZoneUnaryCallback = ZoneUnaryCallback;
   exports.ZoneBinaryCallback = ZoneBinaryCallback;
-  exports.Zone = Zone;
-  exports.ZoneDelegate = ZoneDelegate;
   exports.HandleUncaughtErrorHandler = HandleUncaughtErrorHandler;
   exports.RunHandler = RunHandler;
   exports.RunUnaryHandler = RunUnaryHandler;
@@ -5363,7 +5361,9 @@ var collection = dart.import(collection);
   exports.CreateTimerHandler = CreateTimerHandler;
   exports.CreatePeriodicTimerHandler = CreatePeriodicTimerHandler;
   exports.PrintHandler = PrintHandler;
-  exports.ZoneSpecification = ZoneSpecification;
   exports.ForkHandler = ForkHandler;
+  exports.ZoneSpecification = ZoneSpecification;
+  exports.ZoneDelegate = ZoneDelegate;
+  exports.Zone = Zone;
   exports.runZoned = runZoned;
 })(async, core, _internal, _js_helper, _isolate_helper, collection);

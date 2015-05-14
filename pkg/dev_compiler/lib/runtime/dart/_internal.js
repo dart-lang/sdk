@@ -366,7 +366,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
   });
   let ListIterator = ListIterator$();
   let _Transformation$ = dart.generic(function(S, T) {
-    let _Transformation = dart.typedef('_Transformation', dart.functionType(T, [S]));
+    let _Transformation = dart.typedef('_Transformation', () => dart.functionType(T, [S]));
     return _Transformation;
   });
   let _Transformation = _Transformation$();
@@ -463,7 +463,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
   });
   let MappedListIterable = MappedListIterable$();
   let _ElementPredicate$ = dart.generic(function(E) {
-    let _ElementPredicate = dart.typedef('_ElementPredicate', dart.functionType(core.bool, [E]));
+    let _ElementPredicate = dart.typedef('_ElementPredicate', () => dart.functionType(core.bool, [E]));
     return _ElementPredicate;
   });
   let _ElementPredicate = _ElementPredicate$();
@@ -503,7 +503,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
   });
   let WhereIterator = WhereIterator$();
   let _ExpandFunction$ = dart.generic(function(S, T) {
-    let _ExpandFunction = dart.typedef('_ExpandFunction', dart.functionType(core.Iterable$(T), [S]));
+    let _ExpandFunction = dart.typedef('_ExpandFunction', () => dart.functionType(core.Iterable$(T), [S]));
     return _ExpandFunction;
   });
   let _ExpandFunction = _ExpandFunction$();
@@ -1299,22 +1299,22 @@ var _js_primitives = dart.lazyImport(_js_primitives);
     }
   }
   let __CastType0$ = dart.generic(function(S, T) {
-    let __CastType0 = dart.typedef('__CastType0', dart.functionType(core.Iterable$(T), [S]));
+    let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.Iterable$(T), [S]));
     return __CastType0;
   });
   let __CastType0 = __CastType0$();
   let __CastType2$ = dart.generic(function(E) {
-    let __CastType2 = dart.typedef('__CastType2', dart.functionType(core.bool, [E]));
+    let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(core.bool, [E]));
     return __CastType2;
   });
   let __CastType2 = __CastType2$();
   let __CastType4$ = dart.generic(function(E) {
-    let __CastType4 = dart.typedef('__CastType4', dart.functionType(core.bool, [E]));
+    let __CastType4 = dart.typedef('__CastType4', () => dart.functionType(core.bool, [E]));
     return __CastType4;
   });
   let __CastType4 = __CastType4$();
   let __CastType6$ = dart.generic(function(T) {
-    let __CastType6 = dart.typedef('__CastType6', dart.functionType(core.bool, [T]));
+    let __CastType6 = dart.typedef('__CastType6', () => dart.functionType(core.bool, [T]));
     return __CastType6;
   });
   let __CastType6 = __CastType6$();

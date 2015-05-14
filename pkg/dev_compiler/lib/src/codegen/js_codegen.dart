@@ -282,13 +282,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var type = element.type;
     var name = element.name;
 
-    _loader.startTopLevel(element);
-    var fnType = js.statement('let # = dart.typedef(#, #);', [
+    var fnType = js.statement('let # = dart.typedef(#, () => #);', [
       name,
       js.string(name, "'"),
       _emitTypeName(type, lowerTypedef: true)
     ]);
-    _loader.finishTopLevel(element);
 
     return _finishClassDef(type, fnType);
   }

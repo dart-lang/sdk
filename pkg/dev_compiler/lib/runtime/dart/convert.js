@@ -375,7 +375,7 @@ var collection = dart.import(collection);
   }
   _ByteCallbackSink._INITIAL_BUFFER_SIZE = 1024;
   let _ChunkedConversionCallback$ = dart.generic(function(T) {
-    let _ChunkedConversionCallback = dart.typedef('_ChunkedConversionCallback', dart.functionType(dart.void, [T]));
+    let _ChunkedConversionCallback = dart.typedef('_ChunkedConversionCallback', () => dart.functionType(dart.void, [T]));
     return _ChunkedConversionCallback;
   });
   let _ChunkedConversionCallback = _ChunkedConversionCallback$();
@@ -683,8 +683,8 @@ var collection = dart.import(collection);
   }
   dart.defineNamedConstructor(JsonCodec, 'withReviver');
   let JSON = dart.const(new JsonCodec());
-  let _Reviver = dart.typedef('_Reviver', dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
-  let _ToEncodable = dart.typedef('_ToEncodable', dart.functionType(dart.dynamic, [dart.dynamic]));
+  let _Reviver = dart.typedef('_Reviver', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
+  let _ToEncodable = dart.typedef('_ToEncodable', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   class JsonEncoder extends Converter$(core.Object, core.String) {
     JsonEncoder(toEncodable) {
       if (toEncodable === void 0)
@@ -1274,9 +1274,9 @@ var collection = dart.import(collection);
       }
     }
   }
-  let __CastType0 = dart.typedef('__CastType0', dart.functionType(core.Object, [core.Object]));
-  let __CastType2 = dart.typedef('__CastType2', dart.functionType(dart.dynamic, [dart.dynamic]));
-  let __CastType4 = dart.typedef('__CastType4', dart.functionType(dart.dynamic, [core.Object]));
+  let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.Object, [core.Object]));
+  let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(dart.dynamic, [dart.dynamic]));
+  let __CastType4 = dart.typedef('__CastType4', () => dart.functionType(dart.dynamic, [core.Object]));
   class Latin1Codec extends Encoding {
     Latin1Codec(opts) {
       let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : false;
@@ -1478,7 +1478,7 @@ var collection = dart.import(collection);
     }
   }
   dart.defineNamedConstructor(ClosableStringSink, 'fromStringSink');
-  let _StringSinkCloseCallback = dart.typedef('_StringSinkCloseCallback', dart.functionType(dart.void, []));
+  let _StringSinkCloseCallback = dart.typedef('_StringSinkCloseCallback', () => dart.functionType(dart.void, []));
   class _ClosableStringSink extends core.Object {
     _ClosableStringSink(sink, callback) {
       this[_sink] = sink;
