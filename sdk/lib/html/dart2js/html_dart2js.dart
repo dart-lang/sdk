@@ -9941,10 +9941,8 @@ class DocumentFragment extends Node implements ParentNode {
    * Parses the specified text as HTML and adds the resulting node after the
    * last child of this document fragment.
    */
-  void appendHtml(String text, {NodeValidator validator,
-      NodeTreeSanitizer, treeSanitizer}) {
-    this.append(new DocumentFragment.html(text, validator: validator,
-        treeSanitizer: treeSanitizer));
+  void appendHtml(String text) {
+    this.append(new DocumentFragment.html(text));
   }
 
   /** 
@@ -12621,10 +12619,8 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    * Parses the specified text as HTML and adds the resulting node after the
    * last child of this element.
    */
-  void appendHtml(String text, {NodeValidator validator,
-      NodeTreeSanitizer treeSanitizer}) {
-    this.insertAdjacentHtml('beforeend', text, validator: validator,
-        treeSanitizer: treeSanitizer);
+  void appendHtml(String text) {
+    this.insertAdjacentHtml('beforeend', text);
   }
 
   /**
@@ -12892,10 +12888,12 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    * * [insertAdjacentText]
    * * [insertAdjacentElement]
    */
-  void insertAdjacentHtml(String where, String html, {NodeValidator validator,
-      NodeTreeSanitizer treeSanitizer}) {
-      _insertAdjacentNode(where, new DocumentFragment.html(html,
-          validator: validator, treeSanitizer: treeSanitizer));
+  void insertAdjacentHtml(String where, String html) {
+    if (JS('bool', '!!#.insertAdjacentHTML', this)) {
+      _insertAdjacentHtml(where, html);
+    } else {
+      _insertAdjacentNode(where, new DocumentFragment.html(html));
+    }
   }
 
   @JSName('insertAdjacentHTML')
