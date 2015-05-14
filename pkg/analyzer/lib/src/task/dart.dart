@@ -1678,6 +1678,11 @@ class ComputeConstantDependenciesTask extends ConstantEvaluationAnalysisTask {
    */
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
+  /**
+   * The name of the [TYPE_PROVIDER] input.
+   */
+  static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
+
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'ComputeConstantDependenciesTask', createTask, buildInputs,
       <ResultDescriptor>[CONSTANT_DEPENDENCIES]);
@@ -1700,7 +1705,7 @@ class ComputeConstantDependenciesTask extends ConstantEvaluationAnalysisTask {
     //
     ConstantEvaluationTarget constant = target;
     AnalysisContext context = constant.context;
-    TypeProvider typeProvider = context.typeProvider;
+    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     //
     // Compute dependencies.
     //
@@ -1724,12 +1729,14 @@ class ComputeConstantDependenciesTask extends ConstantEvaluationAnalysisTask {
           .getAncestor((Element element) => element is CompilationUnitElement);
       return <String, TaskInput>{
         UNIT_INPUT: RESOLVED_UNIT6
-            .of(new LibrarySpecificUnit(unit.librarySource, target.source))
+            .of(new LibrarySpecificUnit(unit.librarySource, target.source)),
+        TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
       };
     } else if (target is ConstantEvaluationTarget_Annotation) {
       return <String, TaskInput>{
         UNIT_INPUT: RESOLVED_UNIT6
-            .of(new LibrarySpecificUnit(target.librarySource, target.source))
+            .of(new LibrarySpecificUnit(target.librarySource, target.source)),
+        TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
       };
     } else {
       // Should never happen.
@@ -1759,6 +1766,11 @@ class ComputeConstantValueTask extends ConstantEvaluationAnalysisTask {
    */
   static const String DEPENDENCIES_INPUT = 'DEPENDENCIES_INPUT';
 
+  /**
+   * The name of the [TYPE_PROVIDER] input.
+   */
+  static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
+
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'ComputeConstantValueTask', createTask, buildInputs,
       <ResultDescriptor>[CONSTANT_VALUE]);
@@ -1780,7 +1792,7 @@ class ComputeConstantValueTask extends ConstantEvaluationAnalysisTask {
     // are computed first.
     ConstantEvaluationTarget constant = target;
     AnalysisContext context = constant.context;
-    TypeProvider typeProvider = context.typeProvider;
+    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     //
     // Compute the value of the constant.
     //
@@ -1800,7 +1812,8 @@ class ComputeConstantValueTask extends ConstantEvaluationAnalysisTask {
   static Map<String, TaskInput> buildInputs(ConstantEvaluationTarget target) {
     return <String, TaskInput>{
       DEPENDENCIES_INPUT:
-          CONSTANT_DEPENDENCIES.of(target).toListOf(CONSTANT_VALUE)
+          CONSTANT_DEPENDENCIES.of(target).toListOf(CONSTANT_VALUE),
+      TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
   }
 
@@ -2285,6 +2298,11 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
   static const String USED_IMPORTED_ELEMENTS_INPUT = 'USED_IMPORTED_ELEMENTS';
 
   /**
+   * The name of the [TYPE_PROVIDER] input.
+   */
+  static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
+
+  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
@@ -2338,7 +2356,7 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
     // Dart best practices.
     InheritanceManager inheritanceManager =
         new InheritanceManager(libraryElement);
-    TypeProvider typeProvider = context.typeProvider;
+    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     unit.accept(new BestPracticesVerifier(errorReporter, typeProvider));
     unit.accept(new OverrideVerifier(errorReporter, inheritanceManager));
     // Find to-do comments.
@@ -2365,7 +2383,8 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
       USED_IMPORTED_ELEMENTS_INPUT: UNITS.of(libSource).toList((unit) {
         LibrarySpecificUnit target = new LibrarySpecificUnit(libSource, unit);
         return USED_IMPORTED_ELEMENTS.of(target);
-      })
+      }),
+      TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
   }
 
@@ -2800,6 +2819,11 @@ class ResolveReferencesTask extends SourceBasedAnalysisTask {
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
   /**
+   * The name of the [TYPE_PROVIDER] input.
+   */
+  static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
+
+  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
@@ -2823,7 +2847,7 @@ class ResolveReferencesTask extends SourceBasedAnalysisTask {
     LibraryElement libraryElement = getRequiredInput(LIBRARY_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     CompilationUnitElement unitElement = unit.element;
-    TypeProvider typeProvider = unitElement.context.typeProvider;
+    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     //
     // Resolve references.
     //
@@ -2847,7 +2871,8 @@ class ResolveReferencesTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(LibrarySpecificUnit target) {
     return <String, TaskInput>{
       LIBRARY_INPUT: LIBRARY_ELEMENT.of(target.library),
-      UNIT_INPUT: RESOLVED_UNIT5.of(target)
+      UNIT_INPUT: RESOLVED_UNIT5.of(target),
+      TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
   }
 
@@ -2869,6 +2894,11 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
    * The name of the [RESOLVED_UNIT3] input.
    */
   static const String UNIT_INPUT = 'UNIT_INPUT';
+
+  /**
+   * The name of the [TYPE_PROVIDER] input.
+   */
+  static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
 
   /**
    * The task descriptor describing this kind of task.
@@ -2894,12 +2924,12 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
     //
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     CompilationUnitElement unitElement = unit.element;
+    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     //
     // Resolve TypeName nodes.
     //
     TypeResolverVisitor visitor = new TypeResolverVisitor.con2(
-        unitElement.library, unitElement.source, context.typeProvider,
-        errorListener);
+        unitElement.library, unitElement.source, typeProvider, errorListener);
     unit.accept(visitor);
     //
     // Record outputs.
@@ -2914,7 +2944,10 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
    * given [target].
    */
   static Map<String, TaskInput> buildInputs(LibrarySpecificUnit target) {
-    return <String, TaskInput>{UNIT_INPUT: RESOLVED_UNIT3.of(target)};
+    return <String, TaskInput>{
+      UNIT_INPUT: RESOLVED_UNIT3.of(target),
+      TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
+    };
   }
 
   /**
@@ -2942,6 +2975,11 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
   /**
+   * The name of the [TYPE_PROVIDER] input.
+   */
+  static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
+
+  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
@@ -2967,7 +3005,7 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
     //
     // Resolve local variables.
     //
-    TypeProvider typeProvider = unitElement.context.typeProvider;
+    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     Scope nameScope = new LibraryScope(libraryElement, errorListener);
     AstVisitor visitor = new VariableResolverVisitor.con2(libraryElement,
         unitElement.source, typeProvider, nameScope, errorListener);
@@ -2986,7 +3024,8 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(LibrarySpecificUnit target) {
     return <String, TaskInput>{
       LIBRARY_INPUT: LIBRARY_ELEMENT.of(target.library),
-      UNIT_INPUT: RESOLVED_UNIT4.of(target)
+      UNIT_INPUT: RESOLVED_UNIT4.of(target),
+      TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
   }
 
@@ -3077,6 +3116,11 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
   /**
+   * The name of the [TYPE_PROVIDER] input.
+   */
+  static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
+
+  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor('VerifyUnitTask',
@@ -3098,7 +3142,7 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     Source source = getRequiredSource();
     errorReporter = new ErrorReporter(errorListener, source);
-    TypeProvider typeProvider = context.typeProvider;
+    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     //
     // Prepare inputs.
     //
@@ -3160,7 +3204,10 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
    * given [target].
    */
   static Map<String, TaskInput> buildInputs(LibrarySpecificUnit target) {
-    return <String, TaskInput>{UNIT_INPUT: RESOLVED_UNIT.of(target)};
+    return <String, TaskInput>{
+      UNIT_INPUT: RESOLVED_UNIT.of(target),
+      TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
+    };
   }
 
   /**

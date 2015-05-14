@@ -2391,6 +2391,7 @@ class _AbstractDartTaskTest extends AbstractContextTest {
   void _computeResult(AnalysisTarget target, ResultDescriptor result) {
     oldOutputs = outputs;
     task = analysisDriver.computeResult(target, result);
+    expect(task, isNotNull);
     expect(task.caughtException, isNull);
     outputs = task.outputs;
   }

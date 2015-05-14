@@ -8,7 +8,9 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
+import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
+import 'package:analyzer/src/generated/engine.dart'
+    hide AnalysisTask, AnalysisContextImpl;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/task/inputs.dart';
@@ -41,6 +43,13 @@ class AnalysisDriver {
    * completed.
    */
   WorkOrder currentWorkOrder;
+
+  /**
+   * Indicates whether any tasks are currently being performed (or building
+   * their inputs).  In debug builds, we use this to ensure that tasks don't
+   * try to make use of the task manager in reentrant fashion.
+   */
+  bool isTaskRunning = false;
 
   /**
    * The controller that is notified when a task is started.
@@ -76,14 +85,20 @@ class AnalysisDriver {
    * [target]. Return the last [AnalysisTask] that was performed.
    */
   AnalysisTask computeResult(AnalysisTarget target, ResultDescriptor result) {
-    AnalysisTask task;
-    WorkOrder workOrder = createWorkOrderForResult(target, result);
-    if (workOrder != null) {
-      while (workOrder.moveNext()) {
-        task = performWorkItem(workOrder.current);
+    assert(!isTaskRunning);
+    try {
+      isTaskRunning = true;
+      AnalysisTask task;
+      WorkOrder workOrder = createWorkOrderForResult(target, result);
+      if (workOrder != null) {
+        while (workOrder.moveNext()) {
+          task = performWorkItem(workOrder.current);
+        }
       }
+      return task;
+    } finally {
+      isTaskRunning = false;
     }
-    return task;
   }
 
   /**
@@ -192,14 +207,20 @@ class AnalysisDriver {
     // simply says "do some work", and the engine chooses the best thing to do
     // next regardless of what context it's in.
     //
-    if (currentWorkOrder == null) {
-      currentWorkOrder = createNextWorkOrder();
-    } else if (currentWorkOrder.moveNext()) {
-      performWorkItem(currentWorkOrder.current);
-    } else {
-      currentWorkOrder = createNextWorkOrder();
+    assert(!isTaskRunning);
+    try {
+      isTaskRunning = true;
+      if (currentWorkOrder == null) {
+        currentWorkOrder = createNextWorkOrder();
+      } else if (currentWorkOrder.moveNext()) {
+        performWorkItem(currentWorkOrder.current);
+      } else {
+        currentWorkOrder = createNextWorkOrder();
+      }
+      return currentWorkOrder != null;
+    } finally {
+      isTaskRunning = false;
     }
-    return currentWorkOrder != null;
   }
 
   /**

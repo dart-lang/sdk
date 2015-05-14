@@ -420,6 +420,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   TypeProvider get typeProvider {
+    // Make sure a task didn't accidentally try to call back into the context
+    // to retrieve the type provider.
+    assert(!driver.isTaskRunning);
+
     if (_typeProvider != null) {
       return _typeProvider;
     }
