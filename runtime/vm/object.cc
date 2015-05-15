@@ -7964,21 +7964,14 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
   for (intptr_t i = 0; i < len; i++) {
     Scanner::TokenDescriptor token = tokens[i];
     if (token.kind == Token::kIDENT) {  // Identifier token.
-      if (FLAG_compiler_stats) {
-        INC_STAT(isolate, num_ident_tokens_total, 1);
-      }
       data.AddIdentToken(token.literal);
     } else if (Token::NeedsLiteralToken(token.kind)) {  // Literal token.
-      if (FLAG_compiler_stats) {
-        INC_STAT(isolate, num_literal_tokens_total, 1);
-      }
       data.AddLiteralToken(token);
     } else {  // Keyword, pseudo keyword etc.
       ASSERT(token.kind < Token::kNumTokens);
       data.AddSimpleToken(token.kind);
     }
   }
-  INC_STAT(isolate, num_tokens_total, len);
   data.AddSimpleToken(Token::kEOS);  // End of stream.
 
   // Create and setup the token stream object.

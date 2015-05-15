@@ -1418,6 +1418,10 @@ void Isolate::Shutdown() {
     StackZone stack_zone(this);
     HandleScope handle_scope(this);
 
+    if (compiler_stats_ != NULL) {
+      compiler_stats()->Print();
+    }
+
     // Notify exit listeners that this isolate is shutting down.
     if (object_store() != NULL) {
       NotifyExitListeners();
@@ -1444,9 +1448,6 @@ void Isolate::Shutdown() {
     api_state()->weak_persistent_handles().VisitHandles(&visitor);
     api_state()->prologue_weak_persistent_handles().VisitHandles(&visitor);
 
-    if (compiler_stats_ != NULL) {
-      compiler_stats()->Print();
-    }
     if (FLAG_trace_isolates) {
       heap()->PrintSizes();
       megamorphic_cache_table()->PrintSizes();

@@ -443,9 +443,6 @@ void Parser::set_current_class(const Class& value) {
 
 
 void Parser::SetPosition(intptr_t position) {
-  if (position < TokenPos() && position != 0) {
-    INC_STAT(I, num_tokens_rewind, (TokenPos() - position));
-  }
   tokens_iterator_.SetCurrentPosition(position);
   token_kind_ = Token::kILLEGAL;
 }

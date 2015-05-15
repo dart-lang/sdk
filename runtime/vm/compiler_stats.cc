@@ -5,12 +5,50 @@
 #include "vm/compiler_stats.h"
 
 #include "vm/flags.h"
+#include "vm/object_graph.h"
 #include "vm/timer.h"
 
 
 namespace dart {
 
 DEFINE_FLAG(bool, compiler_stats, false, "Compiler stat counters.");
+
+
+class TokenStreamVisitor : public ObjectGraph::Visitor {
+ public:
+  explicit TokenStreamVisitor(CompilerStats* compiler_stats)
+      : obj_(Object::Handle()), stats_(compiler_stats) {
+  }
+
+  virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
+    RawObject* raw_obj = it->Get();
+    if (raw_obj->IsFreeListElement()) {
+      return kProceed;
+    }
+    obj_ = raw_obj;
+    if (obj_.GetClassId() == TokenStream::kClassId) {
+      TokenStream::Iterator tkit(TokenStream::Cast(obj_),
+                                 0,
+                                 TokenStream::Iterator::kNoNewlines);
+      Token::Kind kind = tkit.CurrentTokenKind();
+      while (kind != Token::kEOS) {
+        ++stats_->num_tokens_total;
+        if (kind == Token::kIDENT) {
+          ++stats_->num_ident_tokens_total;
+        } else if (Token::NeedsLiteralToken(kind)) {
+          ++stats_->num_literal_tokens_total;
+        }
+        tkit.Advance();
+        kind = tkit.CurrentTokenKind();
+      }
+    }
+    return kProceed;
+  }
+
+ private:
+  Object& obj_;
+  CompilerStats* stats_;
+};
 
 
 CompilerStats::CompilerStats(Isolate* isolate)
@@ -34,7 +72,6 @@ CompilerStats::CompilerStats(Isolate* isolate)
       num_ident_tokens_total(0),
       num_tokens_consumed(0),
       num_token_checks(0),
-      num_tokens_rewind(0),
       num_tokens_lookahead(0),
       num_classes_compiled(0),
       num_functions_compiled(0),
@@ -51,6 +88,16 @@ void CompilerStats::Print() {
   if (!FLAG_compiler_stats) {
     return;
   }
+
+  // Traverse the heap and compute number of tokens in all
+  // TokenStream objects.
+  num_tokens_total = 0;
+  num_literal_tokens_total = 0;
+  num_ident_tokens_total = 0;
+  TokenStreamVisitor visitor(this);
+  ObjectGraph graph(isolate_);
+  graph.IterateObjects(&visitor);
+
   OS::Print("==== Compiler Stats for isolate '%s' ====\n",
             isolate_->debugger_name());
   OS::Print("Number of tokens:   %" Pd64 "\n", num_tokens_total);
@@ -61,8 +108,6 @@ void CompilerStats::Print() {
             (1.0 * num_tokens_consumed) / num_tokens_total);
   OS::Print("Tokens checked:     %" Pd64 "  (%.2f times tokens consumed)\n",
             num_token_checks, (1.0 * num_token_checks) / num_tokens_consumed);
-  OS::Print("Token rewind:       %" Pd64 " (%" Pd64 "%% of tokens checked)\n",
-            num_tokens_rewind, (100 * num_tokens_rewind) / num_token_checks);
   OS::Print("Token lookahead:    %" Pd64 " (%" Pd64 "%% of tokens checked)\n",
             num_tokens_lookahead,
             (100 * num_tokens_lookahead) / num_token_checks);
