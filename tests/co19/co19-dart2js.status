@@ -408,6 +408,7 @@ LayoutTests/fast/multicol/newmulticol/balance_t07: Pass, RuntimeError
 LayoutTests/fast/multicol/newmulticol/balance_t08: Pass, RuntimeError
 LayoutTests/fast/multicol/newmulticol/balance_t09: Pass, RuntimeError
 LayoutTests/fast/multicol/newmulticol/balance_t10: Pass, RuntimeError # I don't understand how, but sometimes passes.
+LayoutTests/fast/multicol/newmulticol/balance-images_t01: Pass, RuntimeError
 LayoutTests/fast/multicol/column-width-zero_t01: Pass, RuntimeError
 LayoutTests/fast/multicol/widows_t01: Pass, RuntimeError
 LayoutTests/fast/multicol/vertical-lr/break-properties_t01: RuntimeError
@@ -455,6 +456,7 @@ LayoutTests/fast/text-autosizing/text-removal_t01: RuntimeError
 LayoutTests/fast/text-autosizing/table-inline-width_t01: RuntimeError
 LayoutTests/fast/text/container-align-with-inlines_t01: RuntimeError
 LayoutTests/fast/text/font-fallback-synthetic-italics_t01: RuntimeError
+LayoutTests/fast/text/font-ligatures-linebreak_t01: Skip
 LayoutTests/fast/text/font-ligatures-linebreak-word_t01: Skip
 LayoutTests/fast/text/ipa-tone-letters_t01: Pass, RuntimeError
 LayoutTests/fast/text/pre-wrap-trailing-tab_t01: RuntimeError
@@ -526,7 +528,8 @@ LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-table-
 LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-anonymous-table-cell_t01: RuntimeError, Pass # Spurious intermittent pass.
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-cell-and-fixed-ancestor_t01: RuntimeError, Pass # Spurious intermittent pass
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-cell-and-fixed-ancestor-vertical-lr_t01: RuntimeError, Pass # Spurious intermittent pass
-LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor_t01: RuntimeError
+LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor_t01: Pass, RuntimeError
+LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor-vertical-lr_t01: Pass, RuntimeError
 LayoutTests/fast/parser/stray-param_t01: RuntimeError
 LayoutTests/fast/replaced/available-height-for-content_t01: RuntimeError
 LayoutTests/fast/parser/parse-wbr_t01: Pass, RuntimeError
@@ -996,7 +999,7 @@ LayoutTests/fast/masking/parsing-clip-path-shape_t01: RuntimeError # Please tria
 LayoutTests/fast/masking/parsing-mask-source-type_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/masking/parsing-mask_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/media/media-query-list-syntax_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/mediastream/RTCPeerConnection-AddRemoveStream_t01: RuntimeError # Issue 23475
+LayoutTests/fast/mediastream/RTCPeerConnection-AddRemoveStream_t01: Skip # Issue 23475
 LayoutTests/fast/multicol/balance-short-trailing-empty-block_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/balance-trailing-border_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/balance-trailing-border_t02: RuntimeError # Please triage this failure
@@ -2545,7 +2548,7 @@ LayoutTests/fast/media/media-query-list-syntax_t01: RuntimeError # Please triage
 LayoutTests/fast/media/media-query-serialization_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/media/mq-append-delete_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/mediastream/RTCPeerConnection-AddRemoveStream_t01: Skip # Issue 23475
-LayoutTests/fast/mediastream/RTCPeerConnection_t01: RuntimeError # Issue 23475
+LayoutTests/fast/mediastream/RTCPeerConnection_t01: Skip # Issue 23475
 LayoutTests/fast/multicol/balance-short-trailing-empty-block_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/balance-trailing-border_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/balance-trailing-border_t02: RuntimeError # Please triage this failure
@@ -3829,8 +3832,8 @@ LayoutTests/fast/media/mq-append-delete_t01: RuntimeError # Please triage this f
 LayoutTests/fast/media/mq-js-media-except_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/media/mq-js-media-except_t03: RuntimeError # Please triage this failure
 LayoutTests/fast/media/mq-parsing_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/mediastream/RTCIceCandidate_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/mediastream/RTCPeerConnection_t01: RuntimeError # Issue 23475
+LayoutTests/fast/mediastream/RTCIceCandidate_t01: Skip # Please triage this failure
+LayoutTests/fast/mediastream/RTCPeerConnection_t01: Skip # Issue 23475
 LayoutTests/fast/mediastream/constructors_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/balance-short-trailing-empty-block_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/balance-trailing-border_t01: RuntimeError # Please triage this failure
@@ -5119,8 +5122,8 @@ LayoutTests/fast/media/mq-append-delete_t01: RuntimeError # Please triage this f
 LayoutTests/fast/media/mq-js-media-except_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/media/mq-js-media-except_t03: RuntimeError # Please triage this failure
 LayoutTests/fast/media/mq-parsing_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/mediastream/RTCIceCandidate_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/mediastream/RTCPeerConnection_t01: RuntimeError #  Issue 23475
+LayoutTests/fast/mediastream/RTCIceCandidate_t01: Skip # Please triage this failure
+LayoutTests/fast/mediastream/RTCPeerConnection_t01: Skip #  Issue 23475
 LayoutTests/fast/mediastream/constructors_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/balance-short-trailing-empty-block_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/balance-trailing-border_t01: RuntimeError # Please triage this failure
@@ -6886,8 +6889,8 @@ LayoutTests/fast/media/media-query-serialization_t01: RuntimeError # Please tria
 LayoutTests/fast/media/mq-append-delete_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/media/mq-js-update-media_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/media/mq-parsing_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/mediastream/RTCIceCandidate_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/mediastream/RTCPeerConnection_t01: RuntimeError # Issue 23475
+LayoutTests/fast/mediastream/RTCIceCandidate_t01: Skip # Please triage this failure
+LayoutTests/fast/mediastream/RTCPeerConnection_t01: Skip # Issue 23475
 LayoutTests/fast/mediastream/constructors_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/balance-short-trailing-empty-block_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/balance-trailing-border_t01: RuntimeError # Please triage this failure
@@ -8874,8 +8877,8 @@ LayoutTests/fast/media/media-query-serialization_t01: RuntimeError # Please tria
 LayoutTests/fast/media/mq-append-delete_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/media/mq-js-update-media_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/media/mq-parsing_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/mediastream/RTCIceCandidate_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/mediastream/RTCPeerConnection_t01: RuntimeError # Issue 23475
+LayoutTests/fast/mediastream/RTCIceCandidate_t01: Skip # Please triage this failure
+LayoutTests/fast/mediastream/RTCPeerConnection_t01: Skip # Issue 23475
 LayoutTests/fast/mediastream/constructors_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/balance-short-trailing-empty-block_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/balance-trailing-border_t01: RuntimeError # Please triage this failure

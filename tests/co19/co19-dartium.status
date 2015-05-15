@@ -1054,7 +1054,8 @@ LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-table-
 LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-anonymous-table-cell_t01: RuntimeError, Pass # Spurious intermittent pass.
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-cell-and-fixed-ancestor_t01: RuntimeError, Pass # Spurious intermittent pass
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-cell-and-fixed-ancestor-vertical-lr_t01: RuntimeError, Pass # Spurious intermittent pass
-LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor_t01: RuntimeError
+LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor_t01: Pass, RuntimeError
+LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor-vertical-lr_t01: Pass, RuntimeError
 LayoutTests/fast/parser/stray-param_t01: RuntimeError
 LayoutTests/fast/replaced/available-height-for-content_t01: RuntimeError
 LayoutTests/fast/parser/parse-wbr_t01: Pass, RuntimeError
@@ -1083,6 +1084,8 @@ WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName
 #
 # End of Issue 747
 #
+LibTest/html/IFrameElement/appendHtml_A01_t01: Pass, RuntimeError # Issue 23462
+LibTest/html/IFrameElement/appendHtml_A01_t02: Pass, RuntimeError # Issue 23462
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid ) && $checked ]
 LayoutTests/fast/html/article-element_t01: RuntimeError # co19-roll r706.  Please triage this failure.
