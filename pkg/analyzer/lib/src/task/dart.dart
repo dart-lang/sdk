@@ -29,7 +29,7 @@ import 'package:analyzer/task/model.dart';
  * The [ResultCachingPolicy] for ASTs.
  */
 const ResultCachingPolicy AST_CACHING_POLICY =
-    const SimpleResultCachingPolicy(256, 64);
+    const SimpleResultCachingPolicy(1024, 512);
 
 /**
  * The errors produced while resolving a library directives.
@@ -713,6 +713,11 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
  */
 class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
   /**
+   * The name of the input whose value is the defining [LIBRARY_ELEMENT1].
+   */
+  static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
+
+  /**
    * The name of the input for [RESOLVED_UNIT1] of a library unit.
    */
   static const String UNIT_INPUT_NAME = 'UNIT_INPUT_NAME';
@@ -763,6 +768,7 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
     //
     // Prepare inputs.
     //
+    LibraryElementImpl libraryElement = getRequiredInput(LIBRARY_INPUT);
     CompilationUnit libraryUnit = getRequiredInput(UNIT_INPUT_NAME);
     Map<Source, LibraryElement> importLibraryMap =
         getRequiredInput(IMPORTS_LIBRARY_ELEMENT_INPUT_NAME);
@@ -772,10 +778,6 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
         getRequiredInput(IMPORTS_SOURCE_KIND_INPUT_NAME);
     Map<Source, SourceKind> exportSourceKindMap =
         getRequiredInput(EXPORTS_SOURCE_KIND_INPUT_NAME);
-    //
-    // Process inputs.
-    //
-    LibraryElementImpl libraryElement = libraryUnit.element.library;
     Source librarySource = libraryElement.source;
     //
     // Resolve directives.
@@ -890,7 +892,7 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
    */
   static Map<String, TaskInput> buildInputs(Source libSource) {
     return <String, TaskInput>{
-      'defining_LIBRARY_ELEMENT1': LIBRARY_ELEMENT1.of(libSource),
+      LIBRARY_INPUT: LIBRARY_ELEMENT1.of(libSource),
       UNIT_INPUT_NAME:
           RESOLVED_UNIT1.of(new LibrarySpecificUnit(libSource, libSource)),
       IMPORTS_LIBRARY_ELEMENT_INPUT_NAME:
@@ -2891,6 +2893,11 @@ class ResolveReferencesTask extends SourceBasedAnalysisTask {
  */
 class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
   /**
+   * The name of the input whose value is the defining [LIBRARY_ELEMENT4].
+   */
+  static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
+
+  /**
    * The name of the [RESOLVED_UNIT3] input.
    */
   static const String UNIT_INPUT = 'UNIT_INPUT';
@@ -2922,6 +2929,7 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
     //
     // Prepare inputs.
     //
+    LibraryElement library = getRequiredInput(LIBRARY_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     CompilationUnitElement unitElement = unit.element;
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
@@ -2929,7 +2937,7 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
     // Resolve TypeName nodes.
     //
     TypeResolverVisitor visitor = new TypeResolverVisitor.con2(
-        unitElement.library, unitElement.source, typeProvider, errorListener);
+        library, unitElement.source, typeProvider, errorListener);
     unit.accept(visitor);
     //
     // Record outputs.
@@ -2945,6 +2953,7 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
    */
   static Map<String, TaskInput> buildInputs(LibrarySpecificUnit target) {
     return <String, TaskInput>{
+      LIBRARY_INPUT: LIBRARY_ELEMENT4.of(target.library),
       UNIT_INPUT: RESOLVED_UNIT3.of(target),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };

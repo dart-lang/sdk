@@ -163,6 +163,12 @@ Location newLocation_fromElement(engine.Element element) {
   engine.AnalysisContext context = element.context;
   engine.Source source = element.source;
   if (context == null || source == null) {
+    print('element=$element context=$context source=$source');
+    engine.Element e = element;
+    while (e != null) {
+      print('  (${e.runtimeType}) $e');
+      e = e.enclosingElement;
+    }
     return null;
   }
   String name = element.displayName;
