@@ -93,8 +93,10 @@ $endif
    * Parses the specified text as HTML and adds the resulting node after the
    * last child of this document fragment.
    */
-  void appendHtml(String text) {
-    this.append(new DocumentFragment.html(text));
+  void appendHtml(String text, {NodeValidator validator,
+      NodeTreeSanitizer, treeSanitizer}) {
+    this.append(new DocumentFragment.html(text, validator: validator,
+        treeSanitizer: treeSanitizer));
   }
 
   /** 

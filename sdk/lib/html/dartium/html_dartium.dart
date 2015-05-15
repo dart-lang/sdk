@@ -9412,8 +9412,10 @@ class DocumentFragment extends Node implements ParentNode {
    * Parses the specified text as HTML and adds the resulting node after the
    * last child of this document fragment.
    */
-  void appendHtml(String text) {
-    this.append(new DocumentFragment.html(text));
+  void appendHtml(String text, {NodeValidator validator,
+      NodeTreeSanitizer, treeSanitizer}) {
+    this.append(new DocumentFragment.html(text, validator: validator,
+        treeSanitizer: treeSanitizer));
   }
 
   /** 
@@ -12255,8 +12257,10 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    * Parses the specified text as HTML and adds the resulting node after the
    * last child of this element.
    */
-  void appendHtml(String text) {
-    this.insertAdjacentHtml('beforeend', text);
+  void appendHtml(String text, {NodeValidator validator,
+      NodeTreeSanitizer treeSanitizer}) {
+    this.insertAdjacentHtml('beforeend', text, validator: validator,
+        treeSanitizer: treeSanitizer);
   }
 
   /**
@@ -12392,6 +12396,39 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
     } else {
       this._scrollIntoView();
     }
+  }
+
+
+  /**
+   * Parses text as an HTML fragment and inserts it into the DOM at the
+   * specified location.
+   *
+   * The [where] parameter indicates where to insert the HTML fragment:
+   *
+   * * 'beforeBegin': Immediately before this element.
+   * * 'afterBegin': As the first child of this element.
+   * * 'beforeEnd': As the last child of this element.
+   * * 'afterEnd': Immediately after this element.
+   *
+   *     var html = '<div class="something">content</div>';
+   *     // Inserts as the first child
+   *     document.body.insertAdjacentHtml('afterBegin', html);
+   *     var createdElement = document.body.children[0];
+   *     print(createdElement.classes[0]); // Prints 'something'
+   *
+   * See also:
+   *
+   * * [insertAdjacentText]
+   * * [insertAdjacentElement]
+   */
+  void insertAdjacentHtml(String where, String html, {NodeValidator validator,
+      NodeTreeSanitizer treeSanitizer}) {
+      _insertAdjacentNode(where, new DocumentFragment.html(html,
+          validator: validator, treeSanitizer: treeSanitizer));
+  }
+
+  void _insertAdjacentNode(String where, Node node) {
+    insertAdjacentElement(where, node);
   }
 
 
@@ -13649,7 +13686,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DomName('Element.insertAdjacentHTML')
   @DocsEditable()
   @Experimental() // untriaged
-  void insertAdjacentHtml(String where, String html) => _blink.BlinkElement.instance.insertAdjacentHTML_Callback_2_(this, where, html);
+  void _insertAdjacentHtml(String where, String html) => _blink.BlinkElement.instance.insertAdjacentHTML_Callback_2_(this, where, html);
 
   @DomName('Element.insertAdjacentText')
   @DocsEditable()
