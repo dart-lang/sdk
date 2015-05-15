@@ -38,9 +38,6 @@ void Thread::EnsureInit() {
 
 
 void Thread::CleanUp() {
-  // We currently deallocate the Thread, to ensure that embedder threads don't
-  // leak the Thread structure. An alternative approach would be to clear and
-  // reuse it, but register a destructor at the OS level.
   Thread* current = Current();
   if (current != NULL) {
     delete current;
@@ -74,9 +71,8 @@ void Thread::EnterIsolate(Isolate* isolate) {
 void Thread::ExitIsolate() {
   Thread* thread = Thread::Current();
   // TODO(koda): Audit callers; they should know whether they're in an isolate.
-  if (thread == NULL) return;
+  if (thread == NULL || thread->isolate() == NULL) return;
   Isolate* isolate = thread->isolate();
-  ASSERT(isolate != NULL);
   if (isolate->is_runnable()) {
     isolate->set_vm_tag(VMTag::kIdleTagId);
   } else {
@@ -87,7 +83,26 @@ void Thread::ExitIsolate() {
   isolate->set_mutator_thread(NULL);
   thread->isolate_ = NULL;
   ASSERT(Isolate::Current() == NULL);
-  CleanUp();
+}
+
+
+void Thread::EnterIsolateAsHelper(Isolate* isolate) {
+  EnsureInit();
+  Thread* thread = Thread::Current();
+  ASSERT(thread->isolate() == NULL);
+  thread->isolate_ = isolate;
+  // Do not update isolate->mutator_thread, but perform sanity check:
+  // this thread should not be both the main mutator and helper.
+  ASSERT(isolate->mutator_thread() != thread);
+}
+
+
+void Thread::ExitIsolateAsHelper() {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate != NULL);
+  thread->isolate_ = NULL;
+  ASSERT(isolate->mutator_thread() != thread);
 }
 
 

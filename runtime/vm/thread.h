@@ -17,7 +17,12 @@ class Isolate;
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation. The Thread structure associated with
 // a thread is allocated when the thread enters an isolate, and destroyed
-// upon exiting an isolate or an explicit call to CleanUp.
+// upon an explicit call to CleanUp.
+//
+// NOTE: When the underlying OS thread is started by the embedder, i.e., not
+// part of a ThreadPool managed by the VM, we currently leak the Thread
+// structure after its last isolate exit. We could add an explicit cleanup API,
+// or, on platforms that support it, register a cleanup callback.
 class Thread {
  public:
   // The currently executing thread, or NULL if not yet initialized.
@@ -27,8 +32,15 @@ class Thread {
 
   // Makes the current thread enter 'isolate'. Also calls EnsureInit.
   static void EnterIsolate(Isolate* isolate);
-  // Makes the current thread exit its isolate. Also calls CleanUp.
+  // Makes the current thread exit its isolate.
   static void ExitIsolate();
+
+  // A VM thread other than the main mutator thread can enter an isolate as a
+  // "helper" to gain limited concurrent access to the isolate. One example is
+  // SweeperTask (which uses the class table, which is copy-on-write).
+  // TODO(koda): Properly synchronize heap access to expand allowed operations.
+  static void EnterIsolateAsHelper(Isolate* isolate);
+  static void ExitIsolateAsHelper();
 
   // Initializes the current thread as a VM thread, if not already done.
   static void EnsureInit();

@@ -113,7 +113,7 @@ class SweeperTask : public ThreadPool::Task {
   }
 
   virtual void Run() {
-    Thread::EnterIsolate(task_isolate_);
+    Thread::EnterIsolateAsHelper(task_isolate_);
     GCSweeper sweeper;
 
     HeapPage* page = first_;
@@ -143,8 +143,7 @@ class SweeperTask : public ThreadPool::Task {
       old_space_->set_tasks(old_space_->tasks() - 1);
       ml.Notify();
     }
-    Thread::ExitIsolate();
-    delete task_isolate_;
+    Thread::ExitIsolateAsHelper();
   }
 
  private:
@@ -161,7 +160,7 @@ void GCSweeper::SweepConcurrent(Isolate* isolate,
                                 HeapPage* last,
                                 FreeList* freelist) {
   SweeperTask* task =
-      new SweeperTask(isolate->ShallowCopy(),
+      new SweeperTask(isolate,
                       isolate->heap()->old_space(),
                       first, last,
                       freelist);
