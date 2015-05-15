@@ -922,7 +922,6 @@ class FixProcessor {
           String libName = removeEnd(source.shortName, '.dart');
           libName = libName.replaceAll('_', '.');
           SourceEdit edit = new SourceEdit(0, 0, 'library $libName;$eol$eol');
-          change.addEdit(file, -1, edit);
           doSourceChange_addSourceEdit(change, context, source, edit);
         }
         _addFix(DartFixKind.CREATE_FILE, [file]);
@@ -1127,7 +1126,6 @@ class FixProcessor {
         String file = source.fullName;
         String libName = unitLibraryElement.name;
         SourceEdit edit = new SourceEdit(0, 0, 'part of $libName;$eol$eol');
-        change.addEdit(file, -1, edit);
         doSourceChange_addSourceEdit(change, context, source, edit);
         _addFix(DartFixKind.CREATE_FILE, [file]);
       }

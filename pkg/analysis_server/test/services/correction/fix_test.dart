@@ -1055,6 +1055,7 @@ import 'my_file.dart';
     SourceFileEdit fileEdit = change.edits[0];
     expect(fileEdit.file, '/my/project/bin/my_file.dart');
     expect(fileEdit.fileStamp, -1);
+    expect(fileEdit.edits, hasLength(1));
     expect(fileEdit.edits[0].replacement, contains('library my.file;'));
   }
 
@@ -1073,6 +1074,7 @@ part 'my_part.dart';
     SourceFileEdit fileEdit = change.edits[0];
     expect(fileEdit.file, '/my/project/bin/my_part.dart');
     expect(fileEdit.fileStamp, -1);
+    expect(fileEdit.edits, hasLength(1));
     expect(fileEdit.edits[0].replacement, contains('part of my.lib;'));
   }
 
