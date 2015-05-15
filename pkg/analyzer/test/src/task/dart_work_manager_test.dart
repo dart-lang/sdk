@@ -361,20 +361,28 @@ class DartWorkManagerTest {
   }
 
   void test_resultsComputed_parsedUnit() {
+    when(context.getLibrariesContaining(source1)).thenReturn([]);
+    LineInfo lineInfo = new LineInfo([0]);
+    entry1.setValue(LINE_INFO, lineInfo, []);
     CompilationUnit unit = AstFactory.compilationUnit();
     manager.resultsComputed(source1, {PARSED_UNIT: unit});
     ChangeNoticeImpl notice = context.getNotice(source1);
     expect(notice.parsedDartUnit, unit);
     expect(notice.resolvedDartUnit, isNull);
+    expect(notice.lineInfo, lineInfo);
   }
 
   void test_resultsComputed_resolvedUnit() {
+    when(context.getLibrariesContaining(source2)).thenReturn([]);
+    LineInfo lineInfo = new LineInfo([0]);
+    entry2.setValue(LINE_INFO, lineInfo, []);
     CompilationUnit unit = AstFactory.compilationUnit();
     manager.resultsComputed(
         new LibrarySpecificUnit(source1, source2), {RESOLVED_UNIT: unit});
     ChangeNoticeImpl notice = context.getNotice(source2);
     expect(notice.parsedDartUnit, isNull);
     expect(notice.resolvedDartUnit, unit);
+    expect(notice.lineInfo, lineInfo);
   }
 
   void test_resultsComputed_sourceKind_isLibrary() {

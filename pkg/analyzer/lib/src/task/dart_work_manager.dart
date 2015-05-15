@@ -228,28 +228,34 @@ class DartWorkManager implements WorkManager {
     }
     // Update notice.
     if (_isDartSource(target)) {
-      bool hasErrorResult = false;
+      bool shouldSetErrors = false;
       outputs.forEach((ResultDescriptor descriptor, value) {
         if (descriptor == PARSED_UNIT && value != null) {
           context.getNotice(target).parsedDartUnit = value;
+          shouldSetErrors = true;
         }
-        hasErrorResult = hasErrorResult || _isErrorResult(descriptor);
+        if (_isErrorResult(descriptor)) {
+          shouldSetErrors = true;
+        }
       });
-      if (hasErrorResult) {
+      if (shouldSetErrors) {
         AnalysisErrorInfo info = getErrors(target);
         context.getNotice(target).setErrors(info.errors, info.lineInfo);
       }
     }
     if (target is LibrarySpecificUnit) {
       Source source = target.source;
-      bool hasErrorResult = false;
+      bool shouldSetErrors = false;
       outputs.forEach((ResultDescriptor descriptor, value) {
         if (descriptor == RESOLVED_UNIT && value != null) {
           context.getNotice(source).resolvedDartUnit = value;
+          shouldSetErrors = true;
         }
-        hasErrorResult = hasErrorResult || _isErrorResult(descriptor);
+        if (_isErrorResult(descriptor)) {
+          shouldSetErrors = true;
+        }
       });
-      if (hasErrorResult) {
+      if (shouldSetErrors) {
         AnalysisErrorInfo info = getErrors(source);
         context.getNotice(source).setErrors(info.errors, info.lineInfo);
       }
