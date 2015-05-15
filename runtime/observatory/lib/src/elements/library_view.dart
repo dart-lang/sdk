@@ -16,8 +16,8 @@ class LibraryViewElement extends ObservatoryElement {
 
   LibraryViewElement.created() : super.created();
 
-  Future<ServiceObject> eval(String expression) {
-    return library.isolate.eval(library, expression);
+  Future<ServiceObject> evaluate(String expression) {
+    return library.evaluate(expression);
   }
 
   Future refresh() {

@@ -42,8 +42,8 @@ testeeDo() {
 }
 
 testAsync(Isolate isolate) async {
-  await isolate.rootLib.load();
-  var script = isolate.rootLib.scripts[0];
+  await isolate.rootLibrary.load();
+  var script = isolate.rootLibrary.scripts[0];
 
   var bp1 = await isolate.addBreakpoint(script, 10);
   expect(bp1, isNotNull);
@@ -64,7 +64,7 @@ testAsync(Isolate isolate) async {
 
   var hits = [];
 
-  isolate.eval(isolate.rootLib, 'testerReady = true;')
+  isolate.rootLibrary.evaluate('testerReady = true;')
       .then((Instance result) {
         expect(result.valueAsString, equals('true'));
       });

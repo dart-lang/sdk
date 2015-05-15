@@ -29,7 +29,7 @@ void script() {
 var tests = [
 
 (Isolate isolate) =>
-  isolate.rootLib.load().then((Library lib) {
+  isolate.rootLibrary.load().then((Library lib) {
     Instance e = lib.variables.where((v) => v.name == 'e').single.value;
     return isolate.getInboundReferences(e, 100).then(
         (ServiceMap response) {

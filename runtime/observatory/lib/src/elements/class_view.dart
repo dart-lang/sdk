@@ -17,8 +17,8 @@ class ClassViewElement extends ObservatoryElement {
   @observable ObservableList mostRetained;
   ClassViewElement.created() : super.created();
 
-  Future<ServiceObject> eval(String expression) {
-    return cls.isolate.eval(cls, expression);
+  Future<ServiceObject> evaluate(String expression) {
+    return cls.evaluate(expression);
   }
 
   Future<ServiceObject> reachable(var limit) {
@@ -26,7 +26,7 @@ class ClassViewElement extends ObservatoryElement {
       instances = obj;
     });
   }
-  
+
   Future<ServiceObject> retainedToplist(var limit) {
     return cls.isolate.fetchHeapSnapshot()
       .then((HeapSnapshot snapshot) =>

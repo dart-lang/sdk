@@ -53,7 +53,7 @@ var tests = [
 
 // Bring the isolate to a breakpoint at line 15.
 (Isolate isolate) {
-  return isolate.rootLib.load().then((_) {
+  return isolate.rootLibrary.load().then((_) {
       // Listen for breakpoint event.
       Completer completer = new Completer();
       isolate.vm.events.stream.listen((ServiceEvent event) {
@@ -63,7 +63,7 @@ var tests = [
       });
 
       // Add the breakpoint.
-      var script = isolate.rootLib.scripts[0];
+      var script = isolate.rootLibrary.scripts[0];
       return isolate.addBreakpoint(script, 15).then((ServiceObject bpt) {
           return completer.future;  // Wait for breakpoint events.
       });

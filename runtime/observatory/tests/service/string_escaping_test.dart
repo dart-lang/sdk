@@ -51,7 +51,7 @@ void script() {
 var tests = [
 
 (Isolate isolate) =>
-  isolate.rootLib.load().then((Library lib) {
+  isolate.rootLibrary.load().then((Library lib) {
     expectFullString(String varName, String varValueAsString) {
       Field field = lib.variables.singleWhere((v) => v.name == varName);
       Instance value = field.value;

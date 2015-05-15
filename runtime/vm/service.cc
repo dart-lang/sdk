@@ -1487,13 +1487,13 @@ static bool GetRetainedSize(Isolate* isolate, JSONStream* js) {
 }
 
 
-static const MethodParameter* eval_params[] = {
+static const MethodParameter* evaluate_params[] = {
   ISOLATE_PARAMETER,
   NULL,
 };
 
 
-static bool Eval(Isolate* isolate, JSONStream* js) {
+static bool Evaluate(Isolate* isolate, JSONStream* js) {
   const char* target_id = js->LookupParam("targetId");
   if (target_id == NULL) {
     PrintMissingParamError(js, "targetId");
@@ -1554,7 +1554,7 @@ static bool Eval(Isolate* isolate, JSONStream* js) {
 }
 
 
-static const MethodParameter* eval_frame_params[] = {
+static const MethodParameter* evaluate_in_frame_params[] = {
   ISOLATE_PARAMETER,
   new UIntParameter("frame", true),
   new MethodParameter("expression", true),
@@ -1562,7 +1562,7 @@ static const MethodParameter* eval_frame_params[] = {
 };
 
 
-static bool EvalFrame(Isolate* isolate, JSONStream* js) {
+static bool EvaluateInFrame(Isolate* isolate, JSONStream* js) {
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   intptr_t framePos = UIntParameter::Parse(js->LookupParam("frame"));
   if (framePos > stack->Length()) {
@@ -2576,10 +2576,10 @@ static ServiceMethodDescriptor service_methods_[] = {
     add_breakpoint_at_entry_params },
   { "clearCpuProfile", ClearCpuProfile,
     clear_cpu_profile_params },
-  { "eval", Eval,
-    eval_params },
-  { "evalFrame", EvalFrame,
-    eval_frame_params },
+  { "evaluate", Evaluate,
+    evaluate_params },
+  { "evaluateInFrame", EvaluateInFrame,
+    evaluate_in_frame_params },
   { "_getAllocationProfile", GetAllocationProfile,
     get_allocation_profile_params },
   { "_getCallSiteData", GetCallSiteData,

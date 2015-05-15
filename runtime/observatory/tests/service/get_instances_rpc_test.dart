@@ -22,10 +22,10 @@ void warmup() {
 
 eval(Isolate isolate, String expression) async {
   Map params = {
-    'targetId': isolate.rootLib.id,
+    'targetId': isolate.rootLibrary.id,
     'expression': expression,
   };
-  return await isolate.invokeRpcNoUpgrade('eval', params);
+  return await isolate.invokeRpcNoUpgrade('evaluate', params);
 }
 
 var tests = [

@@ -51,7 +51,7 @@ void script() {
 var tests = [
 
 (Isolate isolate) =>
-  isolate.rootLib.load().then((Library lib) {
+  isolate.rootLibrary.load().then((Library lib) {
     Field field = lib.variables.singleWhere((v) => v.name == 'cleanBlock');
     return field.value.load().then((Instance block) {
       expect(block.isClosure, isTrue);
@@ -64,7 +64,7 @@ var tests = [
   }),
 
 (Isolate isolate) =>
-  isolate.rootLib.load().then((Library lib) {
+  isolate.rootLibrary.load().then((Library lib) {
     Field field = lib.variables.singleWhere((v) => v.name == 'copyingBlock');
     return field.value.load().then((Instance block) {
       expect(block.isClosure, isTrue);
@@ -83,7 +83,7 @@ var tests = [
   }),
 
 (Isolate isolate) =>
-  isolate.rootLib.load().then((Library lib) {
+  isolate.rootLibrary.load().then((Library lib) {
     Field field = lib.variables.singleWhere((v) => v.name == 'fullBlock');
     return field.value.load().then((Instance block) {
       expect(block.isClosure, isTrue);
@@ -102,7 +102,7 @@ var tests = [
   }),
 
 (Isolate isolate) =>
-  isolate.rootLib.load().then((Library lib) {
+  isolate.rootLibrary.load().then((Library lib) {
     Field field = lib.variables.singleWhere((v) => v.name == 'fullBlockWithChain');
     return field.value.load().then((Instance block) {
       expect(block.isClosure, isTrue);

@@ -90,7 +90,7 @@
             <div class="memberItem">
               <div class="memberName">root library</div>
               <div class="memberValue">
-                <library-ref ref="{{ isolate.rootLib }}"></library-ref>
+                <library-ref ref="{{ isolate.rootLibrary }}"></library-ref>
               </div>
             </div>
             <div class="memberItem">
@@ -136,7 +136,7 @@
     <hr>
 
     <div class="content">
-      <eval-box callback="{{ eval }}"></eval-box>
+      <eval-box callback="{{ evaluate }}"></eval-box>
     </div>
     <view-footer></view-footer>
   </template>

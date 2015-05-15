@@ -26,7 +26,7 @@ hasSomeCoverageData(Script script) {
 
 var tests = [
 (Isolate isolate) async {
-  Library lib = await isolate.rootLib.load();
+  Library lib = await isolate.rootLibrary.load();
   Script script = await lib.scripts.single.load();
   expect(hasSomeCoverageData(script), isFalse);
   Script script2 = await script.refreshCoverage();

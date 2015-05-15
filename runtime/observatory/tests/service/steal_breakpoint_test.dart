@@ -25,7 +25,7 @@ var tests = [
 
 // Add a breakpoint and wait for it to be reached.
 (Isolate isolate) async {
-  await isolate.rootLib.load();
+  await isolate.rootLibrary.load();
 
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
@@ -39,7 +39,7 @@ var tests = [
   });
 
   // Add the breakpoint.
-  var script = isolate.rootLib.scripts[0];
+  var script = isolate.rootLibrary.scripts[0];
   var result = await isolate.addBreakpoint(script, 14);
   expect(result is Breakpoint, isTrue);
 

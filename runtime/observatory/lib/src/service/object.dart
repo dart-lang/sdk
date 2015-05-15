@@ -939,7 +939,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   @observable Class objectClass;
   @observable final rootClasses = new ObservableList<Class>();
 
-  @observable Library rootLib;
+  @observable Library rootLibrary;
   @observable ObservableList<Library> libraries =
       new ObservableList<Library>();
   @observable ObservableMap topFrame;
@@ -997,7 +997,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
       Logger.root.severe("Malformed 'Isolate' response: $map");
       return;
     }
-    rootLib = map['rootLib'];
+    rootLibrary = map['rootLib'];
     if (map['entry'] != null) {
       entry = map['entry'];
     }
@@ -1205,13 +1205,13 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return invokeRpc('getStack', {});
   }
 
-  Future<ServiceObject> eval(ServiceObject target,
-                             String expression) {
+  Future<ServiceObject> _eval(ServiceObject target,
+                              String expression) {
     Map params = {
       'targetId': target.id,
       'expression': expression,
     };
-    return invokeRpc('eval', params);
+    return invokeRpc('evaluate', params);
   }
 
   Future<ServiceObject> evalFrame(int framePos,
@@ -1220,7 +1220,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
       'frame': framePos,
       'expression': expression,
     };
-    return invokeRpc('evalFrame', params);
+    return invokeRpc('evaluateInFrame', params);
   }
 
   Future<ServiceObject> getRetainedSize(ServiceObject target) {
@@ -1584,6 +1584,10 @@ class Library extends ServiceObject with Coverage {
     functions.sort(ServiceObject.LexicalSortName);
   }
 
+  Future<ServiceObject> evaluate(String expression) {
+    return isolate._eval(this, expression);
+  }
+
   String toString() => "Library($url)";
 }
 
@@ -1733,6 +1737,10 @@ class Class extends ServiceObject with Coverage {
     subclasses.sort(ServiceObject.LexicalSortName);
   }
 
+  Future<ServiceObject> evaluate(String expression) {
+    return isolate._eval(this, expression);
+  }
+
   String toString() => 'Class($vmName)';
 }
 
@@ -1799,6 +1807,10 @@ class Instance extends ServiceObject {
       return valueAsString;
     }
     return 'a ${clazz.name}';
+  }
+
+  Future<ServiceObject> evaluate(String expression) {
+    return isolate._eval(this, expression);
   }
 
   String toString() => 'Instance($shortName)';

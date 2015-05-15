@@ -35,7 +35,7 @@ void script() {
 var tests = [
 
 (Isolate isolate) =>
-  isolate.rootLib.load().then((Library lib) {
+  isolate.rootLibrary.load().then((Library lib) {
     Field keyField = lib.variables.singleWhere((v) => v.name == 'key');
     Instance key = keyField.value;
     Field valueField = lib.variables.singleWhere((v) => v.name == 'value');

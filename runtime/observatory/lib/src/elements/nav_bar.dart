@@ -5,9 +5,10 @@
 library nav_bar_element;
 
 import 'dart:async';
-import 'dart:html';
+import 'dart:html' hide Notification;
 import 'observatory_element.dart';
 import 'package:observatory/service.dart';
+import 'package:observatory/app.dart' show Notification;
 import 'package:polymer/polymer.dart';
 
 

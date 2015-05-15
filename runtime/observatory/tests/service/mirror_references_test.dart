@@ -26,7 +26,7 @@ void script() {
 var tests = [
 
 (Isolate isolate) =>
-  isolate.rootLib.load().then((Library lib) {
+  isolate.rootLibrary.load().then((Library lib) {
     Field fooField = lib.variables.singleWhere((v) => v.name == 'foo');
     Instance foo = fooField.value;
     Field refField = lib.variables.singleWhere((v) => v.name == 'ref');

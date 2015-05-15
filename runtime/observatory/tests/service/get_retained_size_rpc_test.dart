@@ -20,10 +20,10 @@ eval(Isolate isolate, String expression) async {
   // Silence analyzer.
   new _TestClass(null, null);
   Map params = {
-    'targetId': isolate.rootLib.id,
+    'targetId': isolate.rootLibrary.id,
     'expression': expression,
   };
-  return await isolate.invokeRpcNoUpgrade('eval', params);
+  return await isolate.invokeRpcNoUpgrade('evaluate', params);
 }
 
 var tests = [

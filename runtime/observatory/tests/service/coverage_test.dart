@@ -54,7 +54,7 @@ var tests = [
 
 // Go to breakpoint at line 14.
 (Isolate isolate) {
-  return isolate.rootLib.load().then((_) {
+  return isolate.rootLibrary.load().then((_) {
       // Set up a listener to wait for breakpoint events.
       Completer completer = new Completer();
       isolate.vm.events.stream.listen((ServiceEvent event) {
@@ -68,7 +68,7 @@ var tests = [
       new Timer(new Duration(milliseconds: 2000), () {
         // Add the breakpoint.
         print('Setting breakpoint.');
-        var script = isolate.rootLib.scripts[0];
+        var script = isolate.rootLibrary.scripts[0];
         var line = 14;
         isolate.addBreakpoint(script, line);
       });
@@ -86,7 +86,7 @@ var tests = [
       expect(stack['frames'][0]['function'].name, equals('myFunction'));
       expect(stack['frames'][0]['function'].dartOwner.name, equals('MyClass'));
 
-      var lib = isolate.rootLib;
+      var lib = isolate.rootLibrary;
       var func = stack['frames'][0]['function'];
       expect(func.name, equals('myFunction'));
       var cls = stack['frames'][0]['function'].dartOwner;

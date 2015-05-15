@@ -85,7 +85,7 @@ class Dominator {
   void _link(_Vertex v, _Vertex w) {
     w.ancestor = v;
   }
-  
+
   void computeDominatorTree(Object root) {
     _Vertex r = _asVertex(root);
     int n = _idToVertex.length;

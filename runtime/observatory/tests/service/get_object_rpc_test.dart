@@ -27,10 +27,10 @@ void warmup() {
 
 eval(Isolate isolate, String expression) async {
   Map params = {
-    'targetId': isolate.rootLib.id,
+    'targetId': isolate.rootLibrary.id,
     'expression': expression,
   };
-  return await isolate.invokeRpcNoUpgrade('eval', params);
+  return await isolate.invokeRpcNoUpgrade('evaluate', params);
 }
 
 var tests = [
@@ -117,7 +117,7 @@ var tests = [
   // library.
   (Isolate isolate) async {
     var params = {
-      'objectId': isolate.rootLib.id,
+      'objectId': isolate.rootLibrary.id,
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Library'));
@@ -159,7 +159,7 @@ var tests = [
   (Isolate isolate) async {
     // Get the library first.
     var params = {
-      'objectId': isolate.rootLib.id,
+      'objectId': isolate.rootLibrary.id,
     };
     var libResult = await isolate.invokeRpcNoUpgrade('getObject', params);
     // Get the first script.

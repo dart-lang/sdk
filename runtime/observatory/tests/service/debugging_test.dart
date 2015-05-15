@@ -55,7 +55,7 @@ var tests = [
 
 // Add breakpoint
 (Isolate isolate) async {
-  await isolate.rootLib.load();
+  await isolate.rootLibrary.load();
 
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
@@ -68,7 +68,7 @@ var tests = [
     }
   });
 
-  var script = isolate.rootLib.scripts[0];
+  var script = isolate.rootLibrary.scripts[0];
   await script.load();
 
   // Add the breakpoint.
@@ -170,7 +170,7 @@ var tests = [
   });
 
   // Find a specific function.
-  ServiceFunction function = isolate.rootLib.functions.firstWhere(
+  ServiceFunction function = isolate.rootLibrary.functions.firstWhere(
       (f) => f.name == 'periodicTask');
   expect(function, isNotNull);
 

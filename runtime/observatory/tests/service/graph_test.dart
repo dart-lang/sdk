@@ -85,7 +85,7 @@ var tests = [
       completer.complete();
     }
   });
-  return isolate.rootLib.load().then((Library lib) {
+  return isolate.rootLibrary.load().then((Library lib) {
     expect(lib.classes.length, equals(1));
     Class fooClass = lib.classes.first;
     fooId = fooClass.vmCid;

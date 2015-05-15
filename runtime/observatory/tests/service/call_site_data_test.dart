@@ -86,7 +86,7 @@ Set<String> stringifyCacheEntries(Map callSite) {
 
 
 testMonomorphic(Isolate isolate) async {
-  Library lib = await isolate.rootLib.load();
+  Library lib = await isolate.rootLibrary.load();
   ServiceFunction func =
      lib.functions.singleWhere((f) => f.name == 'monomorphic');
   Map response = await isolate.invokeRpcNoUpgrade('_getCallSiteData',
@@ -99,7 +99,7 @@ testMonomorphic(Isolate isolate) async {
 }
 
 testPolymorphic(Isolate isolate) async {
-  Library lib = await isolate.rootLib.load();
+  Library lib = await isolate.rootLibrary.load();
   ServiceFunction func =
      lib.functions.singleWhere((f) => f.name == 'polymorphic');
   Map response = await isolate.invokeRpcNoUpgrade('_getCallSiteData',
@@ -112,7 +112,7 @@ testPolymorphic(Isolate isolate) async {
 }
 
 testMegamorphic(Isolate isolate) async {
-  Library lib = await isolate.rootLib.load();
+  Library lib = await isolate.rootLibrary.load();
   ServiceFunction func =
      lib.functions.singleWhere((f) => f.name == 'megamorphic');
   Map response = await isolate.invokeRpcNoUpgrade('_getCallSiteData',
@@ -126,7 +126,7 @@ testMegamorphic(Isolate isolate) async {
 }
 
 testStaticCall(Isolate isolate) async {
-  Library lib = await isolate.rootLib.load();
+  Library lib = await isolate.rootLibrary.load();
   ServiceFunction func =
      lib.functions.singleWhere((f) => f.name == 'staticCall');
   Map response = await isolate.invokeRpcNoUpgrade('_getCallSiteData',
@@ -139,7 +139,7 @@ testStaticCall(Isolate isolate) async {
 }
 
 testConstructorCall(Isolate isolate) async {
-  Library lib = await isolate.rootLib.load();
+  Library lib = await isolate.rootLibrary.load();
   ServiceFunction func =
      lib.functions.singleWhere((f) => f.name == 'constructorCall');
   Map response = await isolate.invokeRpcNoUpgrade('_getCallSiteData',
@@ -152,7 +152,7 @@ testConstructorCall(Isolate isolate) async {
 }
 
 testTopLevelCall(Isolate isolate) async {
-  Library lib = await isolate.rootLib.load();
+  Library lib = await isolate.rootLibrary.load();
   ServiceFunction func =
      lib.functions.singleWhere((f) => f.name == 'topLevelCall');
   Map response = await isolate.invokeRpcNoUpgrade('_getCallSiteData',
@@ -165,7 +165,7 @@ testTopLevelCall(Isolate isolate) async {
 }
 
 testSuperCall(Isolate isolate) async {
-  Library lib = await isolate.rootLib.load();
+  Library lib = await isolate.rootLibrary.load();
   Class cls = await lib.classes.singleWhere((f) => f.name == 'Sub').load();
   ServiceFunction func = cls.functions.singleWhere((f) => f.name == 'bar');
   Map response = await isolate.invokeRpcNoUpgrade('_getCallSiteData',

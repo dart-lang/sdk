@@ -70,7 +70,7 @@ class C {
 testMethod(Isolate isolate) async {
   // silence analyzer.
   expect(math.sqrt(4), equals(2));
-  Library rootLib = await isolate.rootLib.load();
+  Library rootLib = await isolate.rootLibrary.load();
   ServiceFunction function =
       rootLib.functions.singleWhere((f) => f.name == 'breakHere');
   Breakpoint bpt = await isolate.addBreakpointAtEntry(function);
@@ -112,13 +112,13 @@ testMethod(Isolate isolate) async {
     }
   });
 
-  var result = await isolate.eval(rootLib, 'new C().method(3);');
+  var result = await rootLib.evaluate('new C().method(3);');
   print("Result $result");
   expect(hitBreakpoint, isTrue);
 }
 
 testMethod2(Isolate isolate) async {
-  Library rootLib = await isolate.rootLib.load();
+  Library rootLib = await isolate.rootLibrary.load();
   ServiceFunction function =
       rootLib.functions.singleWhere((f) => f.name == 'breakHere');
   Breakpoint bpt = await isolate.addBreakpointAtEntry(function);
@@ -160,13 +160,13 @@ testMethod2(Isolate isolate) async {
     }
   });
 
-  var result = await isolate.eval(rootLib, 'C.method2(3);');
+  var result = await rootLib.evaluate('C.method2(3);');
   print("Result $result");
   expect(hitBreakpoint, isTrue);
 }
 
 testMethod3(Isolate isolate) async {
-  Library rootLib = await isolate.rootLib.load();
+  Library rootLib = await isolate.rootLibrary.load();
   ServiceFunction function =
       rootLib.functions.singleWhere((f) => f.name == 'breakHere');
   Breakpoint bpt = await isolate.addBreakpointAtEntry(function);
@@ -200,14 +200,14 @@ testMethod3(Isolate isolate) async {
     }
   });
 
-  var result = await isolate.eval(rootLib, 'new C().method3(3);');
+  var result = await rootLib.evaluate('new C().method3(3);');
   print("Result $result");
   expect(hitBreakpoint, isTrue);
 }
 
 
 testMethod4(Isolate isolate) async {
-  Library rootLib = await isolate.rootLib.load();
+  Library rootLib = await isolate.rootLibrary.load();
   ServiceFunction function =
       rootLib.functions.singleWhere((f) => f.name == 'breakHere');
   Breakpoint bpt = await isolate.addBreakpointAtEntry(function);
@@ -249,7 +249,7 @@ testMethod4(Isolate isolate) async {
     }
   });
 
-  var result = await isolate.eval(rootLib,
+  var result = await rootLib.evaluate(
       '(){ new C().method4(3); C.closureWithReturnedHome(7); }()');
   print("Result $result");
   expect(hitBreakpoint, isTrue);

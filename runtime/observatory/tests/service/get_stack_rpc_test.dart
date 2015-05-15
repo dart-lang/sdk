@@ -34,8 +34,8 @@ var tests = [
 
 // Initial data fetch and verify we've hit the breakpoint.
 (Isolate isolate) async {
-  await isolate.rootLib.load();
-  var script = isolate.rootLib.scripts[0];
+  await isolate.rootLibrary.load();
+  var script = isolate.rootLibrary.scripts[0];
   await script.load();
   await hasStoppedAtBreakpoint(isolate);
   // Sanity check.

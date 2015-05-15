@@ -28,7 +28,7 @@ class EvalBoxElement extends ObservatoryElement {
     }
   }
 
-  void eval(Event e, var detail, Node target) {
+  void evaluate(Event e, var detail, Node target) {
     // Prevent any form action.
     e.preventDefault();
 

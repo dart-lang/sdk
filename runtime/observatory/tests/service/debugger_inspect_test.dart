@@ -34,7 +34,7 @@ var tests = [
   });
 
   // Start listening for events first.
-  await isolate.eval(isolate.rootLib, 'testeeDo();');
+  await isolate.rootLibrary.evaluate('testeeDo();');
   return completer.future;
 },
 

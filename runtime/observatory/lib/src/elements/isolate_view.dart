@@ -83,8 +83,8 @@ class IsolateViewElement extends ObservatoryElement {
   TagProfileChart tagProfileChart = new TagProfileChart();
   IsolateViewElement.created() : super.created();
 
-  Future<ServiceObject> eval(String expression) {
-    return isolate.eval(isolate.rootLib, expression);
+  Future<ServiceObject> evaluate(String expression) {
+    return isolate.rootLibrary.evaluate(expression);
   }
 
   void _updateTagProfile() {

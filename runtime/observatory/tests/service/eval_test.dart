@@ -31,7 +31,7 @@ var tests = [
 
 // Go to breakpoint at line 16.
 (Isolate isolate) {
-  return isolate.rootLib.load().then((_) {
+  return isolate.rootLibrary.load().then((_) {
       // Set up a listener to wait for breakpoint events.
       Completer completer = new Completer();
       isolate.vm.events.stream.listen((ServiceEvent event) {
@@ -42,7 +42,7 @@ var tests = [
       });
 
       // Add the breakpoint.
-      var script = isolate.rootLib.scripts[0];
+      var script = isolate.rootLibrary.scripts[0];
       var line = 16;
       return isolate.addBreakpoint(script, line).then((ServiceObject bpt) {
           return completer.future;  // Wait for breakpoint reached.
@@ -59,30 +59,30 @@ var tests = [
       expect(stack['frames'][0]['function'].name, equals('printValue'));
       expect(stack['frames'][0]['function'].dartOwner.name, equals('MyClass'));
 
-      var lib = isolate.rootLib;
+      var lib = isolate.rootLibrary;
       var cls = stack['frames'][0]['function'].dartOwner;
       var instance = stack['frames'][0]['vars'][0]['value'];
 
       List evals = [];
-      evals.add(isolate.eval(lib, 'globalVar + 5').then((result) {
+      evals.add(lib.evaluate('globalVar + 5').then((result) {
             print(result);
             expect(result.valueAsString, equals('105'));
           }));
-      evals.add(isolate.eval(lib, 'globalVar + staticVar + 5').then((result) {
+      evals.add(lib.evaluate('globalVar + staticVar + 5').then((result) {
             expect(result.type, equals('Error'));
           }));
-      evals.add(isolate.eval(cls, 'globalVar + staticVar + 5').then((result) {
+      evals.add(cls.evaluate('globalVar + staticVar + 5').then((result) {
             print(result);
             expect(result.valueAsString, equals('1105'));
           }));
-      evals.add(isolate.eval(cls, 'this + 5').then((result) {
+      evals.add(cls.evaluate('this + 5').then((result) {
             expect(result.type, equals('Error'));
           }));
-      evals.add(isolate.eval(instance, 'this + 5').then((result) {
+      evals.add(instance.evaluate('this + 5').then((result) {
             print(result);
             expect(result.valueAsString, equals('10005'));
           }));
-      evals.add(isolate.eval(instance, 'this + frog').then((result) {
+      evals.add(instance.evaluate('this + frog').then((result) {
             expect(result.type, equals('Error'));
           }));
       return Future.wait(evals);
