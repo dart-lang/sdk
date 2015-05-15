@@ -51,6 +51,7 @@ void Thread::EnterIsolate(Isolate* isolate) {
   Thread* thread = Thread::Current();
   ASSERT(thread->isolate() == NULL);
   ASSERT(isolate->mutator_thread() == NULL);
+  thread->isolate_ = isolate;
   isolate->set_mutator_thread(thread);
   // TODO(koda): Migrate thread_state_ and profile_data_ to Thread, to allow
   // helper threads concurrent with mutator.
@@ -64,7 +65,6 @@ void Thread::EnterIsolate(Isolate* isolate) {
   Profiler::BeginExecution(isolate);
   isolate->set_thread_state(thread_state);
   isolate->set_vm_tag(VMTag::kVMTagId);
-  thread->isolate_ = isolate;
 }
 
 
