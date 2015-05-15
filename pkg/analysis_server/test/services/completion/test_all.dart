@@ -15,7 +15,9 @@ import 'completion_target_test.dart' as completion_target_test;
 import 'import_uri_contributor_test.dart' as import_uri_test;
 import 'imported_reference_contributor_test.dart' as imported_test;
 import 'keyword_contributor_test.dart' as keyword_test;
-import 'local_reference_contributor_test.dart' as local_test;
+import 'local_declaration_visitor_test.dart' as local_declaration_visitor_test;
+import 'local_reference_contributor_test.dart'
+    as local_reference_contributor_test;
 import 'optype_test.dart' as optype_test;
 import 'prefixed_element_contributor_test.dart' as invocation_test;
 
@@ -31,9 +33,10 @@ main() {
     completion_target_test.main();
     import_uri_test.main();
     imported_test.main();
-    keyword_test.main();
     invocation_test.main();
-    local_test.main();
+    keyword_test.main();
+    local_declaration_visitor_test.main();
+    local_reference_contributor_test.main();
     optype_test.main();
   });
 }

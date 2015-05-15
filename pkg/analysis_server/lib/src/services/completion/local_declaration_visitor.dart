@@ -160,7 +160,10 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
       id = node.identifier;
       type = null;
     }
-    declaredLocalVar(id, type);
+    if (id != null) {
+      // If there is no loop variable, don't declare it.
+      declaredLocalVar(id, type);
+    }
     visitNode(node);
   }
 
