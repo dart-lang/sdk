@@ -274,11 +274,8 @@ void ThreadPool::Worker::Loop() {
 
     // Release monitor while handling the task.
     monitor_.Exit();
-    Thread::EnsureInit();
     task->Run();
     ASSERT(Isolate::Current() == NULL);
-    // Prevent unintended sharing of state between tasks.
-    Thread::CleanUp();
     delete task;
     monitor_.Enter();
 
@@ -318,6 +315,7 @@ void ThreadPool::Worker::Shutdown() {
 
 // static
 void ThreadPool::Worker::Main(uword args) {
+  Thread::EnsureInit();
   Worker* worker = reinterpret_cast<Worker*>(args);
   worker->Loop();
 
@@ -333,6 +331,9 @@ void ThreadPool::Worker::Main(uword args) {
     ml.Notify();
   }
   delete worker;
+#if defined(TARGET_OS_WINDOWS)
+  Thread::CleanUp();
+#endif
 }
 
 }  // namespace dart

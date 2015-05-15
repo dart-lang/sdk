@@ -1290,6 +1290,7 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
                                             char** error) {
   CHECK_NO_ISOLATE(Isolate::Current());
   char* isolate_name = BuildIsolateName(script_uri, main);
+  Thread::EnsureInit();
   Isolate* isolate = Dart::CreateIsolate(isolate_name);
   free(isolate_name);
   {
@@ -1365,6 +1366,7 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   if (iso->mutator_thread() != NULL) {
     FATAL("Multiple mutators within one isolate is not supported.");
   }
+  Thread::EnsureInit();
   Thread::EnterIsolate(iso);
 }
 

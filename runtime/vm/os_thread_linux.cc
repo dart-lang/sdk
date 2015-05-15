@@ -117,9 +117,9 @@ ThreadLocalKey OSThread::kUnsetThreadLocalKey =
     static_cast<pthread_key_t>(-1);
 ThreadId OSThread::kInvalidThreadId = static_cast<ThreadId>(0);
 
-ThreadLocalKey OSThread::CreateThreadLocal() {
+ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
   pthread_key_t key = kUnsetThreadLocalKey;
-  int result = pthread_key_create(&key, NULL);
+  int result = pthread_key_create(&key, destructor);
   VALIDATE_PTHREAD_RESULT(result);
   ASSERT(key != kUnsetThreadLocalKey);
   return key;

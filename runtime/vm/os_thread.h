@@ -30,13 +30,15 @@ class OSThread : AllStatic {
   static ThreadId kInvalidThreadId;
 
   typedef void (*ThreadStartFunction) (uword parameter);
+  typedef void (*ThreadDestructor) (void* parameter);
 
   // Start a thread running the specified function. Returns 0 if the
   // thread started successfuly and a system specific error code if
   // the thread failed to start.
   static int Start(ThreadStartFunction function, uword parameters);
 
-  static ThreadLocalKey CreateThreadLocal();
+  // NOTE: Destructor currently ignored on Windows (issue 23474).
+  static ThreadLocalKey CreateThreadLocal(ThreadDestructor destructor = NULL);
   static void DeleteThreadLocal(ThreadLocalKey key);
   static uword GetThreadLocal(ThreadLocalKey key) {
     return ThreadInlineImpl::GetThreadLocal(key);

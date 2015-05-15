@@ -72,7 +72,7 @@ int OSThread::Start(ThreadStartFunction function, uword parameter) {
 ThreadLocalKey OSThread::kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
 ThreadId OSThread::kInvalidThreadId = 0;
 
-ThreadLocalKey OSThread::CreateThreadLocal() {
+ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor unused) {
   ThreadLocalKey key = TlsAlloc();
   if (key == kUnsetThreadLocalKey) {
     FATAL1("TlsAlloc failed %d", GetLastError());

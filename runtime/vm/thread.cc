@@ -18,9 +18,14 @@ namespace dart {
 ThreadLocalKey Thread::thread_key_ = OSThread::kUnsetThreadLocalKey;
 
 
+static void DeleteThread(void* thread) {
+  delete reinterpret_cast<Thread*>(thread);
+}
+
+
 void Thread::InitOnce() {
   ASSERT(thread_key_ == OSThread::kUnsetThreadLocalKey);
-  thread_key_ = OSThread::CreateThreadLocal();
+  thread_key_ = OSThread::CreateThreadLocal(DeleteThread);
   ASSERT(thread_key_ != OSThread::kUnsetThreadLocalKey);
 }
 
@@ -37,6 +42,7 @@ void Thread::EnsureInit() {
 }
 
 
+#if defined(TARGET_OS_WINDOWS)
 void Thread::CleanUp() {
   Thread* current = Current();
   if (current != NULL) {
@@ -44,11 +50,12 @@ void Thread::CleanUp() {
   }
   SetCurrent(NULL);
 }
+#endif
 
 
 void Thread::EnterIsolate(Isolate* isolate) {
-  EnsureInit();
   Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
   ASSERT(thread->isolate() == NULL);
   ASSERT(isolate->mutator_thread() == NULL);
   thread->isolate_ = isolate;
@@ -87,8 +94,8 @@ void Thread::ExitIsolate() {
 
 
 void Thread::EnterIsolateAsHelper(Isolate* isolate) {
-  EnsureInit();
   Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
   ASSERT(thread->isolate() == NULL);
   thread->isolate_ = isolate;
   // Do not update isolate->mutator_thread, but perform sanity check:

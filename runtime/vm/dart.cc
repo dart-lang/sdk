@@ -117,6 +117,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     ASSERT(vm_isolate_ == NULL);
     ASSERT(Flags::Initialized());
     const bool is_vm_isolate = true;
+    Thread::EnsureInit();
     vm_isolate_ = Isolate::Init("vm-isolate", is_vm_isolate);
     StackZone zone(vm_isolate_);
     HandleScope handle_scope(vm_isolate_);
@@ -206,6 +207,7 @@ const char* Dart::Cleanup() {
   thread_pool_ = NULL;
 
   // Set the VM isolate as current isolate.
+  Thread::EnsureInit();
   Thread::EnterIsolate(vm_isolate_);
 
   // There is a planned and known asymmetry here: We exit one scope for the VM
