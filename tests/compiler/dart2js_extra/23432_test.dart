@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Regression test for http://dartbug.com/23432
+// Regression test for http://dartbug.com/23432.  Test that the receiver of a
+// NoSuchMethodError is correct on an intercepted method.  The bug (issue 23432)
+// is that the interceptor is captured instead of the receiver.
 
 import 'package:expect/expect.dart';
 
@@ -10,7 +12,8 @@ class N {
   noSuchMethod(i) { print('x'); return 42; }
 }
 
-get NEVER => new DateTime.now().millisecondsSinceEpoch < 42;
+@NoInline() @AssumeDynamic()
+get NEVER => false;
 
 main() {
   var c = 12345;
