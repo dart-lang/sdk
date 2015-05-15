@@ -52,14 +52,12 @@ Dart_Isolate VmServiceServer::CreateIsolate(const uint8_t* snapshot_buffer) {
   }
 
   Dart_EnterScope();
+  Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
+  Builtin::SetNativeResolver(Builtin::kIOLibrary);
 
-  Dart_SetLibraryTagHandler(DartUtils::LibraryTagHandler);
   Dart_Handle builtin_lib =
       Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
   CHECK_RESULT(builtin_lib);
-  Dart_Handle io_lib =
-      Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
-  CHECK_RESULT(io_lib);
 
   Dart_Handle result;
 
