@@ -727,8 +727,10 @@ $(ANNOTATIONS)$(NATIVESPEC)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * Parses the specified text as HTML and adds the resulting node after the
    * last child of this element.
    */
-  void appendHtml(String text) {
-    this.insertAdjacentHtml('beforeend', text);
+  void appendHtml(String text, {NodeValidator validator,
+      NodeTreeSanitizer treeSanitizer}) {
+    this.insertAdjacentHtml('beforeend', text, validator: validator,
+        treeSanitizer: treeSanitizer);
   }
 
   /**
@@ -984,6 +986,9 @@ $if DART2JS
 
   @JSName('insertAdjacentText')
   void _insertAdjacentText(String where, String text) native;
+  
+$else
+$endif
 
   /**
    * Parses text as an HTML fragment and inserts it into the DOM at the
@@ -1007,13 +1012,13 @@ $if DART2JS
    * * [insertAdjacentText]
    * * [insertAdjacentElement]
    */
-  void insertAdjacentHtml(String where, String html) {
-    if (JS('bool', '!!#.insertAdjacentHTML', this)) {
-      _insertAdjacentHtml(where, html);
-    } else {
-      _insertAdjacentNode(where, new DocumentFragment.html(html));
-    }
+  void insertAdjacentHtml(String where, String html, {NodeValidator validator,
+      NodeTreeSanitizer treeSanitizer}) {
+      _insertAdjacentNode(where, new DocumentFragment.html(html,
+          validator: validator, treeSanitizer: treeSanitizer));
   }
+
+$if DART2JS
 
   @JSName('insertAdjacentHTML')
   void _insertAdjacentHtml(String where, String text) native;
@@ -1039,6 +1044,8 @@ $if DART2JS
 
   @JSName('insertAdjacentElement')
   void _insertAdjacentElement(String where, Element element) native;
+$else
+$endif
 
   void _insertAdjacentNode(String where, Node node) {
     switch (where.toLowerCase()) {
@@ -1060,6 +1067,7 @@ $if DART2JS
     }
   }
 
+$if DART2JS
   /**
    * Checks if this element matches the CSS selectors.
    */

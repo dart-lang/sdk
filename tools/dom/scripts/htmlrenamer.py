@@ -237,6 +237,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Element.childElementCount',
   'Element.firstElementChild',
   'Element.getElementsByTagName',
+  'Element.insertAdjacentHTML',
   'Element.scrollIntoView',
   'Element.scrollIntoViewIfNeeded',
   'Element.removeAttribute',
