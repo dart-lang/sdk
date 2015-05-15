@@ -399,6 +399,7 @@ LayoutTests/fast/multicol/image-inside-nested-blocks-with-border_t01: RuntimeErr
 LayoutTests/fast/multicol/inherit-column-values_t01: RuntimeError
 LayoutTests/fast/multicol/inline-getclientrects_t01: RuntimeError
 LayoutTests/fast/multicol/newmulticol/balance_t01: Pass, RuntimeError
+LayoutTests/fast/multicol/newmulticol/balance-maxheight_t01: Pass, RuntimeError
 LayoutTests/fast/multicol/newmulticol/balance-maxheight_t02: RuntimeError
 LayoutTests/fast/multicol/newmulticol/balance_t02: Pass, RuntimeError
 LayoutTests/fast/multicol/newmulticol/balance_t04: Pass, RuntimeError
@@ -477,6 +478,7 @@ LayoutTests/fast/writing-mode/percentage-padding_t01: RuntimeError
 LayoutTests/fast/writing-mode/relative-positioning-percentages_t01: RuntimeError
 LayoutTests/fast/writing-mode/block-formatting-context_t01: RuntimeError
 LayoutTests/fast/writing-mode/percentage-margins-absolute-replaced_t01: Pass, RuntimeError
+LayoutTests/fast/writing-mode/positionForPoint_t01: Pass, RuntimeError
 LayoutTests/fast/text/font-ligatures-linebreak-word_t01: Skip
 LayoutTests/fast/html/adjacent-html-context-element_t01:RuntimeError
 LayoutTests/fast/dom/HTMLElement/insertAdjacentHTML-errors_t01: RuntimeError
@@ -487,6 +489,7 @@ LayoutTests/fast/transforms/bounding-rect-zoom_t01: RuntimeError, Pass # Erratic
 LayoutTests/fast/transforms/topmost-becomes-bottomost-for-scrolling_t01: RuntimeError
 LayoutTests/fast/table/anonymous-table-section-removed_t01: Skip
 LayoutTests/fast/table/hittest-tablecell-bottom-edge_t01: Skip
+LayoutTests/fast/table/hittest-tablecell-with-borders-bottom-edge_t01: Skip
 LayoutTests/fast/table/table-width-exceeding-max-width_t01: Pass, RuntimeError
 LayoutTests/fast/table/table-size-integer-overflow_t01: RuntimeError
 LayoutTests/fast/table/table-sections-border-spacing_t01: RuntimeError
