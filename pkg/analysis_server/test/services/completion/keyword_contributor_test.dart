@@ -217,7 +217,11 @@ class KeywordContributorTest extends AbstractCompletionTest {
           expect(s.relevance, equals(importRelevance), reason: s.completion);
           expect(s.selectionOffset, equals(Keyword.IMPORT.syntax.length + 2));
         } else {
-          expect(s.relevance, equals(relevance), reason: s.completion);
+          if (s.completion == Keyword.RETHROW.syntax) {
+            expect(s.relevance, equals(relevance - 1), reason: s.completion);
+          } else {
+            expect(s.relevance, equals(relevance), reason: s.completion);
+          }
           expect(s.selectionOffset, equals(s.completion.length));
         }
         expect(s.selectionLength, equals(0));
