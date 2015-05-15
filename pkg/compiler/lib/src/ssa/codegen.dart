@@ -1284,7 +1284,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitShiftRight(HShiftRight node) => visitBitInvokeBinary(node, '>>>');
 
   visitTruncatingDivide(HTruncatingDivide node) {
-    assert(node.left.isUInt31(compiler));
+    assert(node.isUInt31(compiler));
+    assert(node.left.isUInt32(compiler));
     assert(node.right.isPositiveInteger(compiler));
     use(node.left);
     js.Expression jsLeft = pop();
