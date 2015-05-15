@@ -31,7 +31,7 @@ class IdMapper<T>{
   Map<int, T> _idToElement = {};
   Map<T, int> _elementToId = {};
   int _idCounter = 0;
-  String name;
+  final String name;
 
   IdMapper(this.name);
 
@@ -96,7 +96,7 @@ class ElementToJsonVisitor
 
     dart2jsVersion = compiler.hasBuildId ? compiler.buildId : null;
 
-    for (var library in compiler.libraryLoader.libraries.toList()) {
+    for (LibraryElement library in compiler.libraryLoader.libraries.toList()) {
       visit(library);
     }
   }
@@ -165,7 +165,8 @@ class ElementToJsonVisitor
       'name': libname,
       'size': size,
       'id': id,
-      'children': children
+      'children': children,
+      'canonicalUri': element.canonicalUri.toString()
     };
   }
 
@@ -399,7 +400,7 @@ class DumpInfoTask extends CompilerTask {
   DumpInfoTask(Compiler compiler)
       : super(compiler);
 
-  String name = "Dump Info";
+  String get name => "Dump Info";
 
   ElementToJsonVisitor infoCollector;
 
@@ -624,7 +625,7 @@ class DumpInfoTask extends CompilerTask {
       'deferredFiles': compiler.deferredLoadTask.computeDeferredMap(),
       // This increases when new information is added to the map, but the viewer
       // still is compatible.
-      'dump_minor_version': '1'
+      'dump_minor_version': '2'
     };
 
     Duration toJsonDuration = new DateTime.now().difference(startToJsonTime);
@@ -636,7 +637,8 @@ class DumpInfoTask extends CompilerTask {
       'compilationDuration': compiler.totalCompileTime.elapsed.toString(),
       'toJsonDuration': 0,
       'dumpInfoDuration': this.timing.toString(),
-      'noSuchMethodEnabled': backend.enabledNoSuchMethod
+      'noSuchMethodEnabled': backend.enabledNoSuchMethod,
+      'minified': compiler.enableMinification
     };
 
     outJson['program'] = generalProgramInfo;
