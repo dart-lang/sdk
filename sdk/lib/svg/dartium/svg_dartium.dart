@@ -5498,12 +5498,11 @@ class SvgElement extends Element implements GlobalEventHandlers {
   }
 
   @DomName('Element.insertAdjacentHTML')
-  void insertAdjacentHtml(String where, String text, {NodeValidator validator,
-      NodeTreeSanitizer treeSanitizer}) {
+  void insertAdjacentHtml(String where, String text) {
     throw new UnsupportedError("Cannot invoke insertAdjacentHtml on SVG.");
   }
 
-  @DomName('Element.insertAdjacentElement')
+  @DomName('Element.insertAdjacentHTML')
   Element insertAdjacentElement(String where, Element element) {
     throw new UnsupportedError("Cannot invoke insertAdjacentElement on SVG.");
   }
