@@ -10,7 +10,8 @@ import 'package:dev_compiler/config.dart';
 import 'package:dev_compiler/runtime/dart_runtime.dart';
 
 final bool intIsNonNullable = TypeOptions.NONNULLABLE_TYPES.contains('int');
-final bool doubleIsNonNullable = TypeOptions.NONNULLABLE_TYPES.contains('double');
+final bool doubleIsNonNullable =
+    TypeOptions.NONNULLABLE_TYPES.contains('double');
 
 class A {
   int x;
@@ -57,9 +58,11 @@ class Baz {
 
 class Checker<T> {
   void isGround(bool expected) => expect(isGroundType(T), equals(expected));
-  void isGroundList(bool expected) => expect(isGroundType(new List<T>().runtimeType), equals(expected));
+  void isGroundList(bool expected) =>
+      expect(isGroundType(new List<T>().runtimeType), equals(expected));
   void check(x, bool expected) => checkType(x, T, expected);
-  void checkList(x, bool expected) => checkType(x, type((List<T> _) {}), expected);
+  void checkList(x, bool expected) =>
+      checkType(x, type((List<T> _) {}), expected);
 }
 
 bool dartIs(expr, Type type) {

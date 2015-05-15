@@ -4,13 +4,12 @@
 
 library dev_compiler.src.testing;
 
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, TimestampedData;
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:logging/logging.dart';
-import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
 
@@ -18,7 +17,6 @@ import 'package:dev_compiler/src/checker/dart_sdk.dart'
     show mockSdkSources, dartSdkDirectory;
 import 'package:dev_compiler/src/checker/resolver.dart' show TypeResolver;
 import 'package:dev_compiler/src/utils.dart';
-import 'package:dev_compiler/src/in_memory.dart';
 import 'package:dev_compiler/src/info.dart';
 import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/report.dart';
@@ -63,8 +61,9 @@ CheckerResults testChecker(Map<String, String> testFiles,
   expect(testFiles.containsKey('/main.dart'), isTrue,
       reason: '`/main.dart` is missing in testFiles');
 
-  // Create a resolver that can load test files from memory.
-  var testUriResolver = new InMemoryUriResolver(testFiles);
+  var provider = createTestResourceProvider(testFiles);
+  var uriResolver = new TestUriResolver(provider);
+
   var options = new CompilerOptions(
       allowConstCasts: allowConstCasts,
       covariantGenerics: covariantGenerics,
@@ -80,17 +79,20 @@ CheckerResults testChecker(Map<String, String> testFiles,
       entryPointFile: '/main.dart');
   var resolver = sdkDir == null
       ? new TypeResolver.fromMock(mockSdkSources, options,
-          otherResolvers: [testUriResolver])
+          otherResolvers: [uriResolver])
       : new TypeResolver.fromDir(sdkDir, options,
-          otherResolvers: [testUriResolver]);
+          otherResolvers: [uriResolver]);
   var context = resolver.context;
 
   // Run the checker on /main.dart.
   var mainFile = new Uri.file('/main.dart');
-  var checkExpectations = createReporter == null;
-  var reporter = (createReporter == null)
-      ? new TestReporter(context)
-      : createReporter(context);
+  TestReporter testReporter;
+  CheckerReporter reporter;
+  if (createReporter == null) {
+    reporter = testReporter = new TestReporter(context);
+  } else {
+    reporter = createReporter(context);
+  }
   var results =
       new Compiler(options, resolver: resolver, reporter: reporter).run();
 
@@ -98,20 +100,20 @@ CheckerResults testChecker(Map<String, String> testFiles,
   var expectedErrors = <AstNode, List<_ErrorExpectation>>{};
   var visitor = new _ErrorMarkerVisitor(expectedErrors);
   var initialLibrary =
-      resolver.context.getLibraryElement(testUriResolver.files[mainFile]);
+      resolver.context.getLibraryElement(uriResolver.resolveAbsolute(mainFile));
   for (var lib in reachableLibraries(initialLibrary)) {
     for (var unit in lib.units) {
       unit.unit.accept(visitor);
     }
   }
 
-  if (!checkExpectations) return results;
+  if (testReporter == null) return results;
 
   var total = expectedErrors.values.fold(0, (p, l) => p + l.length);
   // Check that all errors we emit are included in the expected map.
   for (var lib in results.libraries) {
     var uri = lib.library.source.uri;
-    (reporter as TestReporter).infoMap[uri].forEach((node, actual) {
+    testReporter.infoMap[uri].forEach((node, actual) {
       var expected = expectedErrors[node];
       var expectedTotal = expected == null ? 0 : expected.length;
       if (actual.length != expectedTotal) {
@@ -148,22 +150,53 @@ CheckerResults testChecker(Map<String, String> testFiles,
   return results;
 }
 
+/// Creates a [MemoryResourceProvider] with test data
+MemoryResourceProvider createTestResourceProvider(
+    Map<String, String> testFiles) {
+  var provider = new MemoryResourceProvider();
+  runtimeFilesForServerMode.forEach((filepath) {
+    testFiles['/dev_compiler_runtime/$filepath'] =
+        '/* test contents of $filepath */';
+  });
+  testFiles.forEach((key, value) {
+    var scheme = 'package:';
+    if (key.startsWith(scheme)) {
+      key = '/packages/${key.substring(scheme.length)}';
+    }
+    provider.newFile(key, value);
+  });
+  return provider;
+}
+
+class TestUriResolver extends ResourceUriResolver {
+  final MemoryResourceProvider provider;
+  TestUriResolver(provider)
+      : provider = provider,
+        super(provider);
+  resolveAbsolute(Uri uri) {
+    if (uri.scheme == 'package') {
+      return (provider.getResource('/packages/' + uri.path) as File)
+          .createSource(uri);
+    }
+    return super.resolveAbsolute(uri);
+  }
+}
+
 class TestReporter extends SummaryReporter {
   Map<Uri, Map<AstNode, List<StaticInfo>>> infoMap = {};
-  Uri _current;
+  Map<AstNode, List<StaticInfo>> _current;
 
   TestReporter(AnalysisContext context) : super(context);
 
   void enterLibrary(Uri uri) {
     super.enterLibrary(uri);
-    infoMap[uri] = {};
-    _current = uri;
+    infoMap[uri] = _current = {};
   }
 
   void log(Message info) {
     super.log(info);
     if (info is StaticInfo) {
-      infoMap[_current].putIfAbsent(info.node, () => []).add(info);
+      _current.putIfAbsent(info.node, () => []).add(info);
     }
   }
 }
@@ -197,9 +230,11 @@ String _messageWithSpan(StaticInfo info) {
 }
 
 SourceSpan _spanFor(AstNode node) {
-  var root = node.root as CompilationUnit;
-  InMemorySource source = (root.element as CompilationUnitElementImpl).source;
-  return source.spanFor(node);
+  var unit = node.root as CompilationUnit;
+  var source = unit.element.source;
+  // This reads the file. Only safe in tests, because they use MemoryFileSystem.
+  var content = source.contents.data;
+  return createSpanHelper(unit, node.offset, node.end, source, content);
 }
 
 /// Visitor that extracts expected errors from comments.

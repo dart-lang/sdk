@@ -7,6 +7,8 @@
 library dev_compiler.src.checker.resolver;
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -22,7 +24,6 @@ import 'package:analyzer/src/generated/utilities_collection.dart'
 import 'package:logging/logging.dart' as logger;
 import 'package:path/path.dart' as path;
 
-import 'package:dev_compiler/src/in_memory.dart';
 import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/utils.dart';
 import 'dart_sdk.dart';
@@ -80,8 +81,9 @@ class TypeResolver {
 UriResolver _createImplicitEntryResolver(ResolverOptions options) {
   var entry = path.absolute(ResolverOptions.implicitHtmlFile);
   var src = path.absolute(options.entryPointFile);
-  var index = <String, String>{'$entry': _implicitEntryHtml(src)};
-  return new InMemoryUriResolver(index, representNonExistingFiles: false);
+  var provider = new MemoryResourceProvider();
+  provider.newFile(entry, _implicitEntryHtml(src));
+  return new ResourceUriResolver(provider);
 }
 
 /// Creates an analysis context that contains our restricted typing rules.

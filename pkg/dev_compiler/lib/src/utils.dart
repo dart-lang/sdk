@@ -433,6 +433,11 @@ SourceSpanWithContext createSpan(
     [Source source]) {
   if (source == null) source = unit.element.source;
   var content = context.getContents(source).data;
+  return createSpanHelper(unit, start, end, source, content);
+}
+
+SourceSpanWithContext createSpanHelper(
+    CompilationUnit unit, int start, int end, Source source, String content) {
   var startLoc = locationForOffset(unit, source.uri, start);
   var endLoc = locationForOffset(unit, source.uri, end);
 

@@ -90,10 +90,11 @@ abstract class SourceNode {
   Source _source;
   Source get source => _source;
 
-  String get contents => graph._context.getContents(source).data;
+  String get contents => graph._context.getContents(_source).data;
 
   /// Last stamp read from `source.modificationStamp`.
-  int _lastStamp = 0;
+  /// This starts at -1, because analyzer uses that for files that don't exist.
+  int _lastStamp = -1;
 
   /// A hash used to help browsers cache the output that would be produced from
   /// building this node.
@@ -124,8 +125,9 @@ abstract class SourceNode {
       _source = graph._context.sourceFactory.forUri(Uri.encodeFull('$uri'));
       if (_source == null) return;
     }
-    int newStamp = _source.modificationStamp;
-    if (newStamp > _lastStamp) {
+
+    int newStamp = _source.exists() ? _source.modificationStamp : -1;
+    if (newStamp > _lastStamp || newStamp == -1 && _lastStamp != -1) {
       // If the timestamp changed, read the file from disk and cache it.
       // We don't want the source text to change during compilation.
       saveUpdatedContents();
@@ -211,7 +213,7 @@ class HtmlSourceNode extends SourceNode {
   }
 
   void _reportError(SourceGraph graph, String message, Node node) {
-    graph._reporter.enterHtml(source.uri);
+    graph._reporter.enterHtml(_source.uri);
     var span = node.sourceSpan;
     graph._reporter.log(
         new Message(message, Level.SEVERE, span.start.offset, span.end.offset));
@@ -252,18 +254,18 @@ class DartSourceNode extends SourceNode {
   // spans. We also read source text ourselves to parse directives.
   // But we could discard it after that point.
   void saveUpdatedContents() {
-    graph._context.setContents(source, source.contents.data);
+    graph._context.setContents(_source, _source.contents.data);
   }
 
   @override
   void update() {
     super.update();
 
-    if (needsRebuild && contents != null) {
+    if (needsRebuild) {
       graph._reporter.clearLibrary(uri);
       // If the defining compilation-unit changed, the structure might have
       // changed.
-      var unit = parseDirectives(contents, name: source.fullName);
+      var unit = parseDirectives(contents, name: _source.fullName);
       var newImports = new Set<DartSourceNode>();
       var newExports = new Set<DartSourceNode>();
       var newParts = new Set<DartSourceNode>();
@@ -278,14 +280,14 @@ class DartSourceNode extends SourceNode {
             ? Uri.parse('$uri/').resolve(d.uri.stringValue)
             : uri.resolve(d.uri.stringValue);
         var target =
-            ParseDartTask.resolveDirective(graph._context, source, d, null);
+            ParseDartTask.resolveDirective(graph._context, _source, d, null);
         if (target != null) {
           if (targetUri != target.uri) print(">> ${target.uri} $targetUri");
         }
         var node = graph.nodes.putIfAbsent(
             targetUri, () => new DartSourceNode(graph, targetUri, target));
         //var node = graph.nodeFromUri(targetUri);
-        if (node.source == null || !node.source.exists()) {
+        if (node._source == null || !node._source.exists()) {
           _reportError(graph, 'File $targetUri not found', unit, d);
         }
 
@@ -343,8 +345,8 @@ class DartSourceNode extends SourceNode {
   void _reportError(
       SourceGraph graph, String message, CompilationUnit unit, AstNode node) {
     graph._reporter
-      ..enterLibrary(source.uri)
-      ..enterCompilationUnit(unit, source)
+      ..enterLibrary(_source.uri)
+      ..enterCompilationUnit(unit, _source)
       ..log(new Message(message, Level.SEVERE, node.offset, node.end))
       ..leaveCompilationUnit()
       ..leaveLibrary();
