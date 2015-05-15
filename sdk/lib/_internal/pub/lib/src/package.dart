@@ -399,8 +399,13 @@ class PackageDep extends _PackageName {
   PackageDep(String name, String source, this.constraint, description)
       : super(name, source, description);
 
+  PackageDep.magic(String name)
+      : super.magic(name),
+        constraint = Version.none;
+
   String toString() {
     if (isRoot) return "$name $constraint (root)";
+    if (isMagic) return name;
     return "$name $constraint from $source ($description)";
   }
 

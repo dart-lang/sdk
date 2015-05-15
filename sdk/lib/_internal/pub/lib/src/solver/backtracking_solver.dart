@@ -486,6 +486,8 @@ class BacktrackingSolver {
     _validateSdkConstraint(pubspec);
 
     for (var dep in await depsFor(id)) {
+      if (dep.isMagic) continue;
+
       var dependency = new Dependency(id, dep);
       var allDeps = _selection.getDependenciesOn(dep.name).toList();
       allDeps.add(dependency);
@@ -591,9 +593,13 @@ class BacktrackingSolver {
     }
 
     // Make sure the package doesn't have any bad dependencies.
-    for (var dep in deps) {
+    for (var dep in deps.toSet()) {
       if (!dep.isRoot && sources[dep.source] is UnknownSource) {
         throw new UnknownSourceException(id.name, [new Dependency(id, dep)]);
+      }
+
+      if (dep.name == 'barback') {
+        deps.add(new PackageDep.magic('pub itself'));
       }
     }
 

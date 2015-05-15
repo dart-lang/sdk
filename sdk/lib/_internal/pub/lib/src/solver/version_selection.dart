@@ -68,12 +68,6 @@ class VersionSelection {
       // unselected queue.
       if (deps.length == 1 && dep.name != _solver.root.name) {
         await _unselected.add(dep.toRef());
-
-        // If the package depends on barback, add pub's implicit dependency on
-        // barback and related packages as well.
-        if (dep.name == 'barback') {
-          await _unselected.add(new PackageRef.magic('pub itself'));
-        }
       }
     });
   }
@@ -89,12 +83,6 @@ class VersionSelection {
 
       if (deps.isEmpty) {
         _unselected.remove(dep.toRef());
-
-        // If this was the last package that depended on barback, get rid of
-        // pub's implicit dependency.
-        if (dep.name == 'barback') {
-          _unselected.remove(new PackageRef.magic('pub itself'));
-        }
       }
     }
   }
