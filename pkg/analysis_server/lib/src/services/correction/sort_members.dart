@@ -195,7 +195,7 @@ class MemberSorter {
         int offset = directive.offset;
         int length = directive.length;
         String text = code.substring(offset, offset + length);
-        directives.add(new _DirectiveInfo(directive, kind, text));
+        directives.add(new _DirectiveInfo(directive, kind, uriContent, text));
       }
     }
     // nothing to do
@@ -360,20 +360,42 @@ class MemberSorter {
 class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   final Directive directive;
   final _DirectivePriority priority;
+  final String uri;
   final String text;
 
-  _DirectiveInfo(this.directive, this.priority, this.text);
+  _DirectiveInfo(this.directive, this.priority, this.uri, this.text);
 
   @override
   int compareTo(_DirectiveInfo other) {
     if (priority == other.priority) {
-      return text.compareTo(other.text);
+      return _compareUri(uri, other.uri);
     }
     return priority.ordinal - other.priority.ordinal;
   }
 
   @override
   String toString() => '(priority=$priority; text=$text)';
+
+  static int _compareUri(String a, String b) {
+    List<String> aList = _splitUri(a);
+    List<String> bList = _splitUri(b);
+    int result;
+    if ((result = aList[0].compareTo(bList[0])) != 0) return result;
+    if ((result = aList[1].compareTo(bList[1])) != 0) return result;
+    return 0;
+  }
+
+  /**
+   * Split the given [uri] like `package:some.name/and/path.dart` into a list
+   * like `[package:some.name, and/path.dart]`.
+   */
+  static List<String> _splitUri(String uri) {
+    int index = uri.indexOf('/');
+    if (index == -1) {
+      return <String>[uri, ''];
+    }
+    return <String>[uri.substring(0, index), uri.substring(index + 1)];
+  }
 }
 
 class _DirectivePriority {
