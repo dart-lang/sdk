@@ -2,14 +2,6 @@
 
 ### Core library changes
 
-* In dart:html, appendHtml and insertAdjacentHtml now take validator
-  and treeSanitizer parameters, and the inputs are consistently sanitized.
-* List iterators may not throw ConcurrentModificationError as eagerly in
-  release mode. In checked mode, the modification check is still as eager
-  as possible.
-  [r45198](https://code.google.com/p/dart/source/detail?r=45198),
-* Update experimental Isolate API:
-  - Make priority parameters of `Isolate.ping` and `Isolate.kill` methods
 * `dart:core`
   * Add `unmodifiable` constructor to `List` -
     [r45334](https://code.google.com/p/dart/source/detail?r=45334)
