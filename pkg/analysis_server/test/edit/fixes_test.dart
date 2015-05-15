@@ -6,6 +6,7 @@ library test.edit.fixes;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart';
@@ -14,6 +15,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
+import '../mocks.dart';
 
 main() {
   groupSep = ' | ';
@@ -74,6 +76,28 @@ bar() {
         _isSyntacticErrorWithSingleFix(errorFixes[0]);
         _isSyntacticErrorWithSingleFix(errorFixes[1]);
       }
+    });
+  }
+
+  Future test_overlayOnlyFile() {
+    // add an overlay-only file
+    {
+      testCode = '''
+main() {
+  print(1)
+}
+''';
+      Request request = new AnalysisUpdateContentParams(
+          {testFile: new AddContentOverlay(testCode)}).toRequest('0');
+      Response response =
+          new AnalysisDomainHandler(server).handleRequest(request);
+      expect(response, isResponseSuccess('0'));
+    }
+    // ask for fixes
+    return waitForTasksFinished().then((_) {
+      List<AnalysisErrorFixes> errorFixes = _getFixesAt('print(1)');
+      expect(errorFixes, hasLength(1));
+      _isSyntacticErrorWithSingleFix(errorFixes[0]);
     });
   }
 

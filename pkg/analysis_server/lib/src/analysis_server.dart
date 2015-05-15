@@ -532,7 +532,7 @@ class AnalysisServer {
     if (context == null) {
       return null;
     }
-    if (!source.exists()) {
+    if (!context.exists(source)) {
       return null;
     }
     return context.getErrors(source);
