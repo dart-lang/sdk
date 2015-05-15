@@ -2718,7 +2718,7 @@ LayoutTests/fast/xmlhttprequest/xmlhttprequest-responseXML-invalid-xml_t01: Runt
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responseXML-xml-text-responsetype_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-abort_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-arraybuffer_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open-sync-request_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open-sync-request_t01: Pass, RuntimeError # Issue 23479. Unsuppress once bots are all updated.
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/cz_20030217_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/namespace-nodes_t01: RuntimeError # Please triage this failure
