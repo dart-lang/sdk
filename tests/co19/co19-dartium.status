@@ -198,8 +198,8 @@ LibTest/html/HttpRequest/responseType_A01_t01: RuntimeError # co19-roll r706.  P
 LibTest/html/HttpRequest/responseType_A01_t03: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/HttpRequest/statusText_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/IFrameElement/IFrameElement.created_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
-LibTest/html/IFrameElement/appendHtml_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
-LibTest/html/IFrameElement/appendHtml_A01_t02: RuntimeError # co19-roll r706.  Please triage this failure.
+LibTest/html/IFrameElement/appendHtml_A01_t01: RuntimeError # Issue 23462
+LibTest/html/IFrameElement/appendHtml_A01_t02: RuntimeError # Issue 23462
 LibTest/html/IFrameElement/attributeChanged_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/IFrameElement/attributes_setter_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/IFrameElement/borderEdge_A01_t01: RuntimeError # co19-roll r706.  Issue 16574
@@ -915,6 +915,132 @@ LayoutTests/fast/shapes/shape-outside-floats/shape-outside-rounded-boxes_t02: Ru
 LayoutTests/fast/table/nested-tables-with-div-offset_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/dom/getElementsByClassName/011_t01: RuntimeError # Chrome 39 roll. Please triage this failure
 
+#
+# Everything below this point is associated with co19 Issue 747
+#
+LayoutTests/fast/multicol/balance-unbreakable_t01: RuntimeError
+LayoutTests/fast/multicol/fixed-column-percent-logical-height-orthogonal-writing-mode_t01: RuntimeError
+LayoutTests/fast/multicol/image-inside-nested-blocks-with-border_t01: RuntimeError
+LayoutTests/fast/multicol/inherit-column-values_t01: RuntimeError
+LayoutTests/fast/multicol/inline-getclientrects_t01: RuntimeError
+LayoutTests/fast/multicol/newmulticol/balance_t01: RuntimeError
+LayoutTests/fast/multicol/newmulticol/balance-maxheight_t02: RuntimeError
+LayoutTests/fast/multicol/newmulticol/balance_t02: RuntimeError
+LayoutTests/fast/multicol/newmulticol/balance_t05: RuntimeError
+LayoutTests/fast/multicol/newmulticol/balance_t06: RuntimeError
+LayoutTests/fast/multicol/newmulticol/balance_t10: RuntimeError, Pass # I don't understand how, but sometimes passes.
+LayoutTests/fast/multicol/vertical-lr/break-properties_t01: RuntimeError
+LayoutTests/fast/multicol/orphans-relayout_t01: RuntimeError
+LayoutTests/fast/multicol/zeroColumnCount_t01: RuntimeError
+LayoutTests/fast/media/media-query-serialization_t01: RuntimeError
+LayoutTests/fast/media/color-does-not-include-alpha_t01: RuntimeError
+LayoutTests/fast/media/mq-append-delete_t01: RuntimeError
+LayoutTests/fast/media/mq-color-index_t02: RuntimeError
+LayoutTests/fast/media/mq-js-media-except_t02: RuntimeError
+LayoutTests/fast/media/mq-js-media-except_t01: RuntimeError
+LayoutTests/fast/media/mq-js-media-except_t03: RuntimeError
+LayoutTests/fast/media/mq-js-update-media_t01: RuntimeError
+LayoutTests/fast/media/mq-parsing_t01: RuntimeError
+LayoutTests/fast/mediastream/RTCPeerConnection-AddRemoveStream_t01: RuntimeError
+LayoutTests/fast/loader/local-css-allowed-in-strict-mode_t01: RuntimeError
+LayoutTests/fast/lists/marker-preferred-margins_t01: RuntimeError
+LayoutTests/fast/lists/item-not-in-list-line-wrapping_t01: RuntimeError
+LayoutTests/fast/innerHTML/innerHTML-special-elements_t01: RuntimeError
+LayoutTests/fast/inline/fixed-pos-moves-with-abspos-inline-parent_t01: RuntimeError
+LayoutTests/fast/inline/fixed-pos-moves-with-abspos-parent-relative-ancestor_t01: RuntimeError
+LayoutTests/fast/inline/inline-relative-offset-boundingbox_t01: RuntimeError
+LayoutTests/fast/inline/fixed-pos-moves-with-abspos-parent_t01: RuntimeError
+LayoutTests/fast/inline/fixed-pos-with-transform-container-moves-with-abspos-parent_t01: RuntimeError
+LayoutTests/fast/inline/empty-inline-before-collapsed-space_t01: RuntimeError
+LayoutTests/fast/inline/reattach-inlines-in-anonymous-blocks-with-out-of-flow-siblings_t01: RuntimeError
+LayoutTests/fast/text/container-align-with-inlines_t01: RuntimeError
+LayoutTests/fast/text/font-fallback-synthetic-italics_t01: RuntimeError
+LayoutTests/fast/text/international/listbox-width-rtl_t01: RuntimeError
+LayoutTests/fast/text/glyph-reordering_t01: Pass # This is a false pass. All the content gets sanitized, so there's nothing to assert fail on. If the code did anything it would fail.
+LayoutTests/fast/text/international/rtl-text-wrapping_t01: Pass # This is a false pass. All the content gets sanitized, so there's nothing to assert fail on. If the code did anything it would fail.
+LayoutTests/fast/text/line-break-after-empty-inline-hebrew_t01: RuntimeError
+LayoutTests/fast/text/line-break-after-inline-latin1_t01: RuntimeError
+LayoutTests/fast/text/line-breaks-after-closing-punctuations_t01: RuntimeError
+LayoutTests/fast/text/line-breaks-after-hyphen-before-number_t01: RuntimeError
+LayoutTests/fast/text/line-breaks-after-ideographic-comma-or-full-stop_t01: RuntimeError
+LayoutTests/fast/text-autosizing/inline-width_t01: RuntimeError
+LayoutTests/fast/text-autosizing/text-removal_t01: RuntimeError
+LayoutTests/fast/text-autosizing/table-inline-width_t01: RuntimeError
+LayoutTests/fast/text/container-align-with-inlines_t01: RuntimeError
+LayoutTests/fast/text/font-fallback-synthetic-italics_t01: RuntimeError
+LayoutTests/fast/text/pre-wrap-trailing-tab_t01: RuntimeError
+LayoutTests/fast/text-autosizing/display-type-change-lineHeight_t01: RuntimeError
+LayoutTests/fast/url/trivial_t01: RuntimeError
+LayoutTests/fast/url/trivial-segments_t01: RuntimeError
+LayoutTests/fast/url/scheme_t01: RuntimeError
+LayoutTests/fast/url/host-lowercase-per-scheme_t01: RuntimeError
+LayoutTests/fast/url/safari-extension_t01: RuntimeError
+LayoutTests/fast/url/safari-extension_t01: RuntimeError
+LayoutTests/fast/url/port_t01: RuntimeError
+LayoutTests/fast/url/mailto_t01: RuntimeError
+LayoutTests/fast/url/path-url_t01: RuntimeError
+LayoutTests/fast/url/anchor_t01: RuntimeError
+LayoutTests/fast/writing-mode/auto-margins-across-boundaries_t01: RuntimeError
+LayoutTests/fast/writing-mode/display-mutation_t01: RuntimeError
+LayoutTests/fast/writing-mode/percentage-padding_t01: RuntimeError
+LayoutTests/fast/writing-mode/relative-positioning-percentages_t01: RuntimeError
+LayoutTests/fast/writing-mode/block-formatting-context_t01: RuntimeError
+LayoutTests/fast/html/adjacent-html-context-element_t01:RuntimeError
+LayoutTests/fast/canvas/canvas-transforms-fillRect-shadow_t01: RuntimeError
+LayoutTests/fast/dom/HTMLElement/insertAdjacentHTML-errors_t01: RuntimeError
+LayoutTests/fast/transforms/transform-inside-overflow-scroll_t01: RuntimeError
+LayoutTests/fast/transforms/transform-hit-test-flipped_t01: RuntimeError
+LayoutTests/fast/transforms/scrollIntoView-transformed_t01: RuntimeError
+LayoutTests/fast/transforms/bounding-rect-zoom_t01: RuntimeError, Pass # Erratic, but only passes because divs have been entirely removed.
+LayoutTests/fast/transforms/topmost-becomes-bottomost-for-scrolling_t01: RuntimeError
+LayoutTests/fast/table/table-width-exceeding-max-width_t01: RuntimeError
+LayoutTests/fast/table/table-size-integer-overflow_t01: RuntimeError
+LayoutTests/fast/table/table-sections-border-spacing_t01: RuntimeError
+LayoutTests/fast/table/switch-table-layout_t01: RuntimeError
+LayoutTests/fast/table/switch-table-layout-multiple-section_t01: RuntimeError
+LayoutTests/fast/table/switch-table-layout-dynamic-cells_t01: RuntimeError
+LayoutTests/fast/table/resize-table-row_t01: RuntimeError
+LayoutTests/fast/table/resize-table-cell_t01: RuntimeError
+LayoutTests/fast/table/resize-table-binding-cell_t01: RuntimeError
+LayoutTests/fast/table/min-max-width-preferred-size_t01: RuntimeError
+LayoutTests/fast/table/margins-flipped-text-direction_t01: RuntimeError
+LayoutTests/fast/table/html-table-width-max-width-constrained_t01: RuntimeError
+LayoutTests/fast/table/fixed-table-layout-width-change_t01: RuntimeError
+LayoutTests/fast/table/fixed-table-with-percent-width-inside-extra-large-div_t01: RuntimeError
+LayoutTests/fast/table/absolute-table-percent-lengths_t01: RuntimeError
+LayoutTests/fast/svg/whitespace-length_t01: RuntimeError
+LayoutTests/fast/svg/whitespace-number_t01: RuntimeError
+LayoutTests/fast/svg/whitespace-length-invalid_t01: RuntimeError
+LayoutTests/fast/svg/whitespace-angle_t01: RuntimeError
+LayoutTests/fast/svg/tabindex-focus_t01: RuntimeError
+LayoutTests/fast/svg/whitespace-integer_t01: RuntimeError
+LayoutTests/fast/sub-pixel/shadows-computed-style_t01: RuntimeError
+LayoutTests/fast/sub-pixel/tiled-canvas-elements_t01: RuntimeError
+LayoutTests/fast/sub-pixel/float-list-inside_t01: RuntimeError
+LayoutTests/fast/sub-pixel/float-with-margin-in-container_t01: RuntimeError
+LayoutTests/fast/sub-pixel/float-percentage-widths_t01: RuntimeError
+LayoutTests/fast/sub-pixel/computedstylemargin_t01: RuntimeError
+LayoutTests/fast/sub-pixel/block-preferred-widths-with-sub-pixel-floats_t01: RuntimeError
+LayoutTests/fast/sub-pixel/auto-table-layout-should-avoid-text-wrapping_t01: RuntimeError
+LayoutTests/fast/selectors/style-sharing-last-child_t01: RuntimeError
+LayoutTests/fast/selectors/specificity-overflow_t01: RuntimeError
+LayoutTests/fast/scrolling/scroll-element-into-view_t01: RuntimeError
+LayoutTests/fast/ruby/parse-rp_t01: RuntimeError
+LayoutTests/fast/replaced/table-replaced-element_t01: RuntimeError
+LayoutTests/fast/replaced/table-percent-height-text-controls_t01: RuntimeError
+LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-table-cell-ignore-height_t01: RuntimeError, Pass # Spurious intermittent pass
+LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-anonymous-table-cell_t01: RuntimeError, Pass # Spurious intermittent pass.
+LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-cell-and-fixed-ancestor_t01: RuntimeError, Pass # Spurious intermittent pass
+LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-cell-and-fixed-ancestor-vertical-lr_t01: RuntimeError, Pass # Spurious intermittent pass
+LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor_t01: RuntimeError
+LayoutTests/fast/parser/stray-param_t01: RuntimeError
+LayoutTests/fast/replaced/available-height-for-content_t01: RuntimeError
+LayoutTests/fast/parser/parse-wbr_t01: RuntimeError
+LayoutTests/fast/overflow/height-during-simplified-layout_t01: RuntimeError
+LayoutTests/fast/overflow/child-100percent-height-inside-fixed-container-with-overflow-auto_t01: RuntimeError
+#
+# End of Issue 747
+#
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid ) && $checked ]
 LayoutTests/fast/html/article-element_t01: RuntimeError # co19-roll r706.  Please triage this failure.
