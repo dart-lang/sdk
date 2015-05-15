@@ -735,7 +735,7 @@ final List<Type> infoTypes = () {
 class AnalyzerError extends Message {
   factory AnalyzerError.from(analyzer.AnalysisError error) {
     var severity = error.errorCode.type.severity;
-    var isError = severity == analyzer.ErrorSeverity.ERROR;
+    var isError = severity == analyzer.ErrorSeverity.WARNING;
     var level = isError ? Level.SEVERE : Level.WARNING;
     int begin = error.offset;
     int end = begin + error.length;
@@ -743,5 +743,5 @@ class AnalyzerError extends Message {
   }
 
   const AnalyzerError(String message, Level level, int begin, int end)
-      : super('[from analyzer]: $message', level, begin, end);
+      : super(message, level, begin, end);
 }
