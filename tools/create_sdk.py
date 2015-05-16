@@ -257,7 +257,7 @@ def Main():
 
   if revision is not None:
     with open(os.path.join(SDK_tmp, 'revision'), 'w') as f:
-      f.write(revision + '\n')
+      f.write('%s\n' % revision)
       f.close()
 
   Copy(join(HOME, 'README.dart-sdk'), join(SDK_tmp, 'README'))
