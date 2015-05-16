@@ -1,0 +1,7 @@
+name: js_todomvc
+description: A snapshot of https://github.com/Polymer/todomvc
+version: 0.00.1
+dependencies:
+  browser_controller: ">=0.00.2-dev <0.0.2"
+environment:
+  sdk: ">=1.2.0 <2.0.0"

@@ -1,0 +1,58 @@
+<!doctype html>
+
+<!--
+Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->	
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+    <script type="application/javascript">
+
+      // TODO(efortuna): Revisit in a bit -- should we use
+      // performance.timing.navigationStart?
+      // navigationStart may be a bit noisy. Re-evaluate after we have more
+      // data. Note: performance.timing.domLoading would be nice, but
+      // performance.timing seems to be null on Safari 7.0.2. (Issue 17923)
+      var startTime = new Date().getTime();
+      function onReceive(e) {
+        // Listen for a timestamp signifying when app startup is complete.
+        var endTime = e.data;
+        var startupTime = endTime - startTime;
+        document.body.innerHTML = 'The startup time is ' + startupTime + 
+            ' milliseconds.';
+        reportPerformanceTestDone();
+      }
+      window.addEventListener('message', onReceive, true);
+    </script>
+
+    <script src="packages/browser_controller/perf_test_controller.js"></script>
+    <title> TodoMVC • Startup Performance </title>
+    <link rel="stylesheet" href="app/app.css">
+    <link rel="import" href="packages/polymer/polymer.html">
+    <link rel="import" href="lib-elements/polymer_localstorage.html">
+    <link rel="import" href="elements/td_model.html">
+    <link rel="import" href="elements/td_todos.html">
+  </head>
+  <body>
+    <header>
+      <h1>todos</h1>
+    </header>
+    <polymer-localstorage id="storage" name="todos-polymer">
+    </polymer-localstorage>
+    <td-model id="model" storageId="storage"></td-model>
+    <td-todos modelId="model"></td-todos>
+    <script type="application/dart" src="performance.dart"></script> 
+    <footer id="info">
+      <p>Double-click to edit a todo</p>
+      <p>Created by <a href="https://www.dartlang.org/polymer-dart/">
+          The Polymer.dart Authors</a></p>
+      <p>This example was built using a pre-alpha version of Polymer.dart.</p>
+      <p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
+    </footer>
+  </body>
+</html>

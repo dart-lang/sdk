@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<title>Polymer • TodoMVC</title>
+		<link rel="stylesheet" href="app/app.css">
+		<script src="components/platform/platform.js"></script>
+		<link rel="import" href="components/polymer-localstorage/polymer-localstorage.html">
+		<link rel="import" href="elements/td-model.html">
+		<link rel="import" href="elements/td-todos.html">
+    <script src="packages/browser_controller/perf_test_controller.js"></script>
+    <script type="application/javascript">
+      var startTime = new Date().getTime();
+
+      window.addEventListener('polymer-ready', function(e) {
+        var endTime = new Date().getTime();
+        var startupTime = endTime - startTime;
+        document.body.innerHTML = 'The startup time is ' + startupTime + ' milliseconds.';
+        reportPerformanceTestDone();
+      });
+    </script>
+	</head>
+	<body>
+		<header>
+			<h1>todos</h1>
+		</header>
+		<polymer-localstorage id="storage" name="todos-polymer"></polymer-localstorage>
+		<td-model id="model" storageId="storage"></td-model>
+		<td-todos modelId="model"></td-todos>
+		<footer id="info">
+			<p>Double-click to edit a todo</p>
+			<p>Created by <a href="http://www.polymer-project.org">The Polymer Authors</a></p>
+			<p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
+		</footer>
+	</body>
+</html>

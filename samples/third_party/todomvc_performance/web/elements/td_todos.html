@@ -1,0 +1,51 @@
+<link rel="import" href="../lib-elements/polymer-selector.html">
+<link rel="import" href="../lib-elements/simple_router.html">
+<link rel="import" href="td_input.html">
+<link rel="import" href="td_item.html">
+
+<polymer-element name="td-todos">
+  <template>
+    <link rel="stylesheet" href="td_todos.css">
+    <simple-router on-route="{{routeAction}}"></simple-router>
+    <section id="todoapp">
+      <header id="header">
+        <input is="td-input" id="new-todo" placeholder="What needs to be done?"
+            autofocus on-td-input-commit="{{addTodoAction}}"
+            on-td-input-cancel="{{cancelAddTodoAction}}">
+      </header>
+      <section id="main" hidden?="{{model.items.length == 0}}">
+        <input id="toggle-all" type="checkbox"
+            on-change="{{toggleAllCompletedAction}}"
+            checked="{{model.allCompleted}}">
+        <label for="toggle-all">Mark all as complete</label>
+        <ul id="todo-list" on-td-item-changed="{{itemChangedAction}}"
+            on-td-destroy-item="{{destroyItemAction}}">
+          <template repeat="{{model.filtered}}">
+            <li is="td-item" item="{{}}"></li>
+          </template>
+        </ul>
+      </section>
+      <footer id="footer" hidden?="{{model.items.length == 0}}">
+        <span id="todo-count"><strong>{{model.activeCount}}</strong>
+            {{model.activeItemWord}} left</span>
+        <polymer-selector id="filters" selected="{{activeRoute}}">
+          <li label="all">
+            <a href="{{baseUri}}#/">All</a>
+          </li>
+          <li label="active">
+            <a href="{{baseUri}}#/active">Active</a>
+          </li>
+          <li label="completed">
+            <a href="{{baseUri}}#/completed">Completed</a>
+          </li>
+        </polymer-selector>
+        <button hidden?="{{model.completedCount == 0}}" id="clear-completed"
+            on-click="{{clearCompletedAction}}">Clear completed
+            ({{model.completedCount}})</button>
+      </footer>
+    </section>
+  </template>
+
+  <script type="application/dart" src="td_todos.dart"></script>
+
+</polymer-element>

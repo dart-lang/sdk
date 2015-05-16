@@ -1,0 +1,17 @@
+name: dromaeo
+version: 0.00.1-dev
+authors: ["Dart Team <misc@dartlang.org>"]
+homepage: http://www.dartlang.org
+description: >
+ Dromaeo test suite, written in Dart.
+dependencies:
+  browser_controller: ">=0.00.1-dev <0.0.2"
+  barback: ">=0.13.0 <0.14.0"
+  browser: ">=0.10.0 <0.10.1"
+environment:
+  sdk: any
+transformers:
+- dromaeo
+- $dart2js:
+    checked: false
+    minify: true #TODO: How do you minify for Dart, too? The docs say you indent two spaces less...

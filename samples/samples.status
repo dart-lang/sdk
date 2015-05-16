@@ -1,0 +1,28 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $browser ]
+# Skip tests that uses dart:io
+build_dart: Skip
+build_dart_simple: Skip
+sample_extension: Skip
+
+[ $compiler == dart2js && $runtime == none ]
+*: Fail, Pass # TODO(ahe): Triage these tests.
+
+[ $compiler == dart2analyzer ]
+build_dart: Skip
+
+[ $compiler == dart2dart ]
+# Skip until we stabilize language tests.
+*: Skip
+
+[ $arch == arm ]
+sample_extension/test/sample_extension_test: Skip # Issue 14705
+
+[ $arch == simarm64 ]
+*: Skip
+
+[ $compiler == dart2js && $cps_ir ]
+sample_extension/test/sample_extension_test: Crash # unsupported element kind: context:field

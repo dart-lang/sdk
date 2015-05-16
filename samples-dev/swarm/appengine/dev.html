@@ -1,0 +1,86 @@
+<!-- Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<!-- TODO(jimhug): This could be a lot prettier -->
+<html>
+<body>
+  <h1>Getting started with Swarm development.</h1>
+
+  <p>First, get a copy of an up-to-date CannedData.dart so that you can work
+    against relatively live data directly while running the app off of the
+    local filesystem.</p>
+
+  <p>Put this file <a href='/data/CannedData.dart'>CannedData.dart</a> in your
+    working tree as <pre>dart/samples/swarm/CannedData.dart</pre></p>
+
+  <p>You should now be able to run your app out of your local filesystem
+    for UI development using something like: <pre>file:///Users/jimhug/dart-all/dart/samples/swarm/swarm.html</pre>.</p>
+
+  <p>When you are ready to test your new UI on this live server, first you
+    need to run <pre>python update.py</pre> from your
+    <pre>dart/samples/swarm</pre> directory.  This will build
+    both a self-contained html file for both js and dart code.  Then,
+    use the link below to upload your files to this server.  If you are
+    uploading for testing, keep the version as shown and you will be able
+    to access the js version at
+    <a href="http://dart.googleplex.com/{{user.nickname}}-swarm-js.html">
+      http://dart.googleplex.com/{{user.nickname}}-swarm-js.html</a>.
+
+    By submitting with no prefix, you will update the default demo
+    version of the app.
+  </p>
+
+  <form action="/update/html" method="POST" enctype="multipart/form-data">
+    Upload File: <input type="file" multiple="" name="files"><br>
+    Version: <input type="text" value="{{user.nickname}}" name="version"><br>
+    <input type="submit" name="submit" value="Submit">
+  </form>
+
+ <br />
+
+<h2>Fully offline mode</h2>
+<p>Download <a href='/data/CannedData.zip'>CannedData.zip</a> (right click, save as) and extract it to a location that your static file webserver serves. You'll want to run the following steps on Mac:
+<ol>
+<li>In Sharing Preferences, enable Web Sharing.</li>
+<li>Open this file in a text editor:<pre>/private/etc/apache2/httpd.conf</pre></li>
+<li>Find the code like this, change "Deny from all" to "Allow from all":
+<pre>
+	&lt;Directory /&gt;
+	    Options FollowSymLinks
+	    AllowOverride None
+	    Order deny,allow
+	    Allow from all
+	&lt;/Directory&gt;
+
+        AddType text/html .data
+</pre>
+</li>
+<li>
+<pre>
+sudo apachectl restart
+pushd /Library/WebServer/Document
+# If you are replacing old data:
+# rm -rf data/
+unzip ~/Downloads/CannedData.zip
+chmod -R +rw data
+# Warning: this step takes a while
+# It downloads all images from all of the stories and inlines them in the HTML
+# You can skip this if you're iterating on the app, it's only needed for
+# "full offline" demo mode
+path/to/dart/dart/samples/swarm/cacheimages.py data/
+</pre>
+<li>Download a copy of swarm-js.html from this server (or create with update.py) and save it as: /Library/WebServer/Document/index.html</li>
+<li>Try out your app at: <a href="http://localhost/">http://localhost/</a></li>
+</ol>
+</p>
+
+<h2>Development tools</h2>
+
+<ul>
+<li><a href="https://appengine.google.com/dashboard?app_id=google.com:dart">
+    AppEngine dashboard</a></li>
+</ul>
+
+</body>
+</html>

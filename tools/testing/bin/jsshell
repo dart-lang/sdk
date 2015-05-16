@@ -1,0 +1,19 @@
+#!/bin/bash
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+
+case $OSTYPE in
+    *[Dd]arwin*)
+        exec ${0%/*}/../../../third_party/firefox_jsshell/macos/js "$@"
+        ;;
+    *[Ll]inux*)
+        LD_LIBRARY_PATH=${0%/*}/../../../third_party/firefox_jsshell/linux/ \
+            exec ${0%/*}/../../../third_party/firefox_jsshell/linux/js "$@"
+        ;;
+    *)
+        echo No jsshell binary for $(uname) >2
+        exit 1
+        ;;
+esac

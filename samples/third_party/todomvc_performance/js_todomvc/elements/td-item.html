@@ -1,0 +1,47 @@
+<link rel="import" href="../components/polymer/polymer.html">
+<link rel="import" href="td-input.html">
+
+<polymer-element name="td-item" extends="li" attributes="item editing" on-blur="{{commitAction}}">
+	<template>
+		<link rel="stylesheet" href="td-item.css">
+		<div class="view {{ {completed: item.completed, editing: editing} | tokenList }}" hidden?="{{editing}}" on-dblclick="{{editAction}}">
+			<input type="checkbox" class="toggle" checked="{{item.completed}}" on-click="{{itemChangeAction}}">
+			<label>{{item.title}}</label>
+			<button class="destroy" on-click="{{destroyAction}}"></button>
+		</div>
+		<input is="td-input" id="edit" class="edit" value="{{item.title}}" hidden?="{{!editing}}" on-td-input-commit="{{commitAction}}" on-td-input-cancel="{{cancelAction}}">
+	</template>
+	<script>
+		(function() {
+			Polymer('td-item', {
+				editing: false,
+				editAction: function() {
+					this.editing = true;
+					// schedule focus for the end of microtask, when the input will be visible
+					this.asyncMethod(function() {
+						this.$.edit.focus();
+					});
+				},
+				commitAction: function() {
+					if (this.editing) {
+						this.editing = false;
+						this.item.title = this.item.title.trim();
+						if (this.item.title === '') {
+							this.destroyAction();
+						}
+						this.fire('td-item-changed');
+					}
+				},
+				cancelAction: function() {
+					this.editing = false;
+				},
+				itemChangeAction: function() {
+					this.fire('td-item-changed');
+				},
+				destroyAction: function() {
+					this.fire('td-destroy-item', this.item);
+				}
+			});
+		})();
+	</script>
+</polymer-element>

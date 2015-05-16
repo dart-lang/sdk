@@ -367,44 +367,9 @@ def GetSVNRevision():
   except:
     pass
 
-  # FIXME(kustermann): Make this work for newer SVN versions as well (where
-  # we've got only one '.svn' directory)
-  custom_env = dict(os.environ)
-  custom_env['LC_MESSAGES'] = 'en_GB'
-  p = subprocess.Popen(['svn', 'info'], stdout = subprocess.PIPE,
-                       stderr = subprocess.STDOUT, shell=IsWindows(),
-                       env = custom_env,
-                       cwd = DART_DIR)
-  output, _ = p.communicate()
-  revision = ParseSvnInfoOutput(output)
-  if revision:
-    return revision
-
-  # Check for revision using git (Note: we can't use git-svn because in a
-  # pure-git checkout, "git-svn anyCommand" just hangs!). We look an arbitrary
-  # number of commits backwards (100) to get past any local commits.
-  p = subprocess.Popen(['git', 'log', '-100'], stdout = subprocess.PIPE,
-      stderr = subprocess.STDOUT, shell=IsWindows(), cwd = DART_DIR)
-  output, _ = p.communicate()
-  revision = ParseGitInfoOutput(output)
-  if revision:
-    return revision
-
-  # In the rare off-chance that git log -100 doesn't have a svn repo number,
-  # attempt to use "git svn info."
-  p = subprocess.Popen(['git', 'svn', 'info'], stdout = subprocess.PIPE,
-      stderr = subprocess.STDOUT, shell=IsWindows(), cwd = DART_DIR)
-  output, _ = p.communicate()
-  revision = ParseSvnInfoOutput(output)
-  if revision:
-    return revision
-
-  # Only fail on the buildbot in case of a SVN client version mismatch.
-  user = GetUserName()
-  if user != 'chrome-bot':
-    return '0'
-
-  return None
+  # TODO(ricow): Remove all calls to GetSVNRevision.
+  # For now, simply forward call to GetArchiveVersion
+  return GetArchiveVersion();
 
 # Our schema for releases and archiving is based on an increasing
 # sequence of numbers. In the svn world this was simply the revision of a

@@ -1,0 +1,36 @@
+# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+application: google.com:dart
+version: 1
+runtime: python
+api_version: 1
+default_expiration: 0m 1s
+
+builtins:
+- datastore_admin: on
+
+handlers:
+- url: /data/.*
+  script: main.py
+
+- url: /update/.*
+  script: main.py
+
+- url: /oauth2callback
+  script: main.py
+
+
+- url: /dev
+  script: main.py
+
+# This static_dir is only used at dev time.
+- url: /dev
+  static_dir: ../../../
+  login: required
+
+- url: /.*
+  script: main.py
+
+

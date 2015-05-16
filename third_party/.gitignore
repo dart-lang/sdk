@@ -1,0 +1,5 @@
+# ignore everything
+*
+# except for items in the pkg directory and self
+!.gitignore
+!pkg

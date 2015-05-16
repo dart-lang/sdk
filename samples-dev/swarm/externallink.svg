@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1"
+   xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="1000">
+  <path
+     d="m 50,350 600,0 0,600 -600,0 0,-600 z"
+     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:100;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+  <path
+     d="m 450,150 0,-100 500,0 0,500 -100,0 L 750,450 450,750 250,550 550,250 450,150 z"
+     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:100;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+ </svg>

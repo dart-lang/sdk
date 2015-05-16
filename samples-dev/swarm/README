@@ -1,0 +1,31 @@
+Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+
+A sample news reader application.
+
+Running in the Editor with demo data (demo only, no feeds):
+
+1. open the Dart Editor
+
+2. from the menu, click File / Open Folder and load this directory
+
+3. click the green run button
+
+4. alternatively, to run as javascript:
+  - compile (under the Tools / Generate JavaScript menu option)
+  - load the same url shown in Dartium in step 3 in any other browser
+
+Running in Dartium from the file system (demo only, no feeds):
+
+1. run the Dartium Chrome binary from the command line with the following flag: --allow-file-access-from-files
+
+2. navigate to the swarm.html file in this directory
+
+Running from App Engine (TODO: these are stale instructions):
+
+1. To run on App Engine, install the App Engine SDK for your platform, then
+  $ easy_install --upgrade google-api-python-client per http://code.google.com/p/google-api-python-client/wiki/Installation
+  $ cd samples/swarm/appengine
+  $ enable-app-engine-project . per http://code.google.com/p/google-api-python-client/wiki/GoogleAppEngine
+  Start the App Engine dev server and browse to /swarm-js.html

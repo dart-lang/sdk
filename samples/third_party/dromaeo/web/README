@@ -1,0 +1,57 @@
+This is a port of the Dromaeo benchmark (http://dromaeo.com/) to Dart.
+See the attached LICENSE file in this directory.
+
+To run the native Dart versions on Dartium: 
+
+(1) Use a Dartium chrome binary to open index.html in this directory.
+By default, this will run JS vs a native Dart version (dart:html)
+designed to match the JS for speed.
+
+To run compiled versions on standard browsers:
+
+(1) Execute python ./generate_dart2js_tests.py to create frog
+and dart2js variants.
+
+(2) Use a standard browser to open index-js.html in this directory.
+By default, this will run JS vs a dart2js compiled Dart version
+(dart2js:html) designed to match the JS for speed.
+
+-------------------------------------------------------
+
+Note, you can run more variants and at a finer granularity.  Dart
+Dromaeo includes the following modes:
+
+- js : The original JS.
+- dart : Dart, running natively (Dartium only).
+- frog : Dart, compiled to JS with Frog.
+- dart2js : Dart, compiled to JS with dart2js.
+
+It also includes the following versions for Dart modes:
+
+- dom : The old deprecated dart:dom.
+- html : The new dart:html, using fast path APIs to match JS.
+
+Finally, Dart Dromaeo runs the following suites of benchmarks:
+- attributes : Setting and getting DOM node attributes.
+- modify : Creating and injecting DOM nodes into a document.
+- query : Querying DOM elements in a document.
+- traverse : Traversing a DOM structure.
+
+You can specify a disjunction of conjunctions from the three buckets
+above.  Examples:
+
+To run the attributes suite on JS, Dartium, and Dart2JS, load:
+
+- index.html?js&attributes|dart&attributes&html|dart2js&attributes&html
+
+To run the query suite with Dart2JS, load:
+
+- index-js.html?dart&query&html
+
+To run all tests in Dartium, load:
+
+- index.html?js|dart|frog|dart2js
+
+To run all tests (except the native Dart) in a regular browser, load:
+
+- index-js.html?js|frog|dart2js
