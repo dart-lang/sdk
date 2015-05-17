@@ -81,7 +81,7 @@ def main():
                                        os.path.join('tools', 'utils.py'))
     dart_revision = dart_tools_utils.GetSVNRevision()
 
-  version = dart_revision + '.0'
+  version = '%s.0' % dart_revision
   info = upload_steps.BuildInfo(dart_revision, version)
 
   result = 0
