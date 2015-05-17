@@ -80,9 +80,6 @@ deps.update({
     Var("dartium_base") + Var("dartium_webkit_branch") + "@" +
         Var("dartium_webkit_revision"),
 
-  "src/dart":
-      "git@github.com:dart-lang/sdk.git",
-
   # Needed to run pub.
   "src/dart/third_party/pkg/barback":
       "https://github.com/dart-lang/barback.git" + Var("barback_rev"),
