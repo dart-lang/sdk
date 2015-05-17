@@ -3,3 +3,4 @@
 # except for items in the pkg directory and self
 !.gitignore
 !pkg
+!pkg_tested
