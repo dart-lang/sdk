@@ -32,7 +32,7 @@ void maybeEnableNative(Compiler compiler,
                        LibraryElementX library) {
   String libraryName = library.canonicalUri.toString();
   if (library.entryCompilationUnit.script.name.contains(
-          'dart/tests/compiler/dart2js_native')
+          'sdk/tests/compiler/dart2js_native')
       || libraryName == 'dart:async'
       || libraryName == 'dart:html'
       || libraryName == 'dart:html_common'

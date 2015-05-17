@@ -290,7 +290,7 @@ class Compiler extends leg.Compiler {
         if (importingLibrary.isPlatformLibrary || importingLibrary.isPatch) {
           allowInternalLibraryAccess = true;
         } else if (importingLibrary.canonicalUri.path.contains(
-                       'dart/tests/compiler/dart2js_native')) {
+                       'sdk/tests/compiler/dart2js_native')) {
           allowInternalLibraryAccess = true;
         }
       }
