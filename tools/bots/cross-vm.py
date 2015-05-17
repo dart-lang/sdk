@@ -33,7 +33,7 @@ def record_names(name, arch, mode):
 
 def cross_compiling_builder(arch, mode):
   build_py = os.path.join('tools', 'build.py')
-  revision = int(os.environ['BUILDBOT_GOT_REVISION'])
+  revision = os.environ['BUILDBOT_GOT_REVISION']
   tarball = tarball_name(arch, mode, revision)
   temporary_files = [tarball]
   bot.Clobber()
@@ -72,7 +72,7 @@ def target_builder(arch, mode):
                '--write-test-outcome-log', '--mode=' + mode, '--arch=' + arch,
                '--exclude-suite=pkg']
 
-  revision = int(os.environ['BUILDBOT_GOT_REVISION'])
+  revision = os.environ['BUILDBOT_GOT_REVISION']
   tarball = tarball_name(arch, mode, revision)
   temporary_files = [tarball]
   bot.Clobber()
