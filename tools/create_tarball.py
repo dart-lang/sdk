@@ -104,7 +104,7 @@ def GenerateChangeLog(filename, version):
 
 def GenerateSvnRevision(filename, svn_revision):
   with open(filename, 'w') as f:
-    f.write(svn_revision)
+    f.write(str(svn_revision))
 
 
 def CreateTarball(tarfilename):
