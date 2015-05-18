@@ -124,7 +124,6 @@ docgen/test/*: SkipByDesign # Uses dart:io.
 http_server/test/*: Fail, OK # Uses dart:io.
 observe/test/transformer_test: Fail, OK # Uses dart:io.
 observe/test/unique_message_test: SkipByDesign  # Uses dart:io.
-stub_core_library/test/*: Fail, OK # Uses dart:io.
 
 [ $runtime == vm && ($arch == simarm64 || $arch == simarm || $arch == simarmv5te || $arch == simmips || $arch == armv5te) ]
 # Timeout. These are not unit tests. They do not run efficiently on our
@@ -187,7 +186,6 @@ analyzer2dart/test/tree_shaker_test: Crash # unsupported element kind: _escapeRe
 fixnum/test/int_32_test: Crash #  try/finally
 fixnum/test/int_64_test: Crash #  try/finally
 js_ast/test/printer_callback_test: Crash # unsupported element kind: templateManager:field
-stub_core_library/test/stub_test: Crash #  try/finally
 typed_data/test/typed_buffers_test/01: Crash # unsupported element kind: _escapeRegExp:field
 typed_data/test/typed_buffers_test/none: Crash # unsupported element kind: _escapeRegExp:field
 typed_mock/test/typed_mock_test: Crash #  try/finally
