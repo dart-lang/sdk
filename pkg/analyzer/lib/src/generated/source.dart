@@ -7,12 +7,13 @@
 
 library engine.source;
 
-import "dart:math" as math;
 import 'dart:collection';
+import "dart:math" as math;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:path/path.dart' as pathos;
 
 import 'engine.dart';
 import 'java_core.dart';
@@ -353,12 +354,11 @@ class NonExistingSource extends Source {
   int get modificationStamp => -1;
 
   @override
-  String get shortName => fullName;
+  String get shortName => pathos.basename(fullName);
 
   @override
-  bool operator ==(Object obj) {
-    if (obj is NonExistingSource) {
-      NonExistingSource other = obj;
+  bool operator ==(Object other) {
+    if (other is NonExistingSource) {
       return other.uriKind == uriKind && other.fullName == fullName;
     }
     return false;

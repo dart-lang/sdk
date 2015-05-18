@@ -923,8 +923,8 @@ class FixProcessor {
           libName = libName.replaceAll('_', '.');
           SourceEdit edit = new SourceEdit(0, 0, 'library $libName;$eol$eol');
           doSourceChange_addSourceEdit(change, context, source, edit);
+          _addFix(DartFixKind.CREATE_FILE, [source.shortName]);
         }
-        _addFix(DartFixKind.CREATE_FILE, [file]);
       }
     }
   }
@@ -1123,11 +1123,10 @@ class FixProcessor {
       PartDirective partDirective = node.parent;
       Source source = partDirective.source;
       if (source != null) {
-        String file = source.fullName;
         String libName = unitLibraryElement.name;
         SourceEdit edit = new SourceEdit(0, 0, 'part of $libName;$eol$eol');
         doSourceChange_addSourceEdit(change, context, source, edit);
-        _addFix(DartFixKind.CREATE_FILE, [file]);
+        _addFix(DartFixKind.CREATE_FILE, [source.shortName]);
       }
     }
   }
