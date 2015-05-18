@@ -42,7 +42,7 @@ def cross_compiling_builder(arch, mode):
     if num_run == 1:
       with bot.BuildStep('Build %s %s' % (arch, mode)):
         run([sys.executable, build_py,
-             '-m%s' % mode, '--arch=%s' % arch])
+             '-m%s' % mode, '--arch=%s' % arch, 'runtime'])
 
       with bot.BuildStep('Create build tarball'):
         run(['tar', '-cjf', tarball, '--exclude=**/obj',
