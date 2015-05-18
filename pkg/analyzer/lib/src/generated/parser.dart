@@ -5066,7 +5066,9 @@ class Parser {
           externalKeyword == null) {
         _reportErrorForToken(ParserErrorCode.CONST_FACTORY, factoryKeyword);
       } else if (body is EmptyFunctionBody) {
-        if (factoryKeyword != null && externalKeyword == null) {
+        if (factoryKeyword != null &&
+            externalKeyword == null &&
+            _parseFunctionBodies) {
           _reportErrorForToken(
               ParserErrorCode.FACTORY_WITHOUT_BODY, factoryKeyword);
         }
