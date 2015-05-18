@@ -1078,6 +1078,35 @@ part 'my_part.dart';
     expect(fileEdit.edits[0].replacement, contains('part of my.lib;'));
   }
 
+  void test_createFile_forPart_inPackageLib() {
+    provider.newFile('/my/pubspec.yaml', r'''
+name: my_test
+''');
+    testFile = '/my/lib/test.dart';
+    addTestSource('''
+library my.lib;
+part 'my_part.dart';
+''', Uri.parse('package:my/test.dart'));
+    // configure SourceFactory
+    UriResolver pkgResolver = new PackageMapUriResolver(
+        provider, {'my': [provider.getResource('/my/lib')],});
+    context.sourceFactory = new SourceFactory(
+        [AbstractContextTest.SDK_RESOLVER, pkgResolver, resourceResolver]);
+    // prepare fix
+    testUnit = resolveLibraryUnit(testSource);
+    AnalysisError error = _findErrorToFix();
+    fix = _assertHasFix(DartFixKind.CREATE_FILE, error);
+    change = fix.change;
+    // validate change
+    List<SourceFileEdit> fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    SourceFileEdit fileEdit = change.edits[0];
+    expect(fileEdit.file, '/my/lib/my_part.dart');
+    expect(fileEdit.fileStamp, -1);
+    expect(fileEdit.edits, hasLength(1));
+    expect(fileEdit.edits[0].replacement, contains('part of my.lib;'));
+  }
+
   void test_createGetter_BAD_inSDK() {
     resolveTestUnit('''
 main(List p) {

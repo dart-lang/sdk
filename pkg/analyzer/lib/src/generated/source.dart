@@ -323,45 +323,43 @@ class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
  * An implementation of an non-existing [Source].
  */
 class NonExistingSource extends Source {
-  final String _name;
+  @override
+  final String fullName;
+
+  @override
+  final Uri uri;
 
   final UriKind uriKind;
 
-  NonExistingSource(this._name, this.uriKind);
+  NonExistingSource(this.fullName, this.uri, this.uriKind);
 
   @override
   TimestampedData<String> get contents {
-    throw new UnsupportedOperationException("${_name}does not exist.");
+    throw new UnsupportedOperationException('$fullName does not exist.');
   }
 
   @override
   String get encoding {
-    throw new UnsupportedOperationException("${_name}does not exist.");
+    throw new UnsupportedOperationException('$fullName does not exist.');
   }
 
   @override
-  String get fullName => _name;
-
-  @override
-  int get hashCode => _name.hashCode;
+  int get hashCode => fullName.hashCode;
 
   @override
   bool get isInSystemLibrary => false;
 
   @override
-  int get modificationStamp => 0;
+  int get modificationStamp => -1;
 
   @override
-  String get shortName => _name;
-
-  @override
-  Uri get uri => null;
+  String get shortName => fullName;
 
   @override
   bool operator ==(Object obj) {
     if (obj is NonExistingSource) {
       NonExistingSource other = obj;
-      return other.uriKind == uriKind && (other._name == _name);
+      return other.uriKind == uriKind && other.fullName == fullName;
     }
     return false;
   }
@@ -371,7 +369,7 @@ class NonExistingSource extends Source {
 
   @override
   Uri resolveRelativeUri(Uri relativeUri) {
-    throw new UnsupportedOperationException("${_name}does not exist.");
+    throw new UnsupportedOperationException('$fullName does not exist.');
   }
 }
 

@@ -8,6 +8,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -144,7 +145,8 @@ class _PackageMapUriResolverTest {
     Source result = resolver.resolveAbsolute(uri);
     expect(result, isNotNull);
     expect(result.exists(), isFalse);
-    expect(result.fullName, 'package:analyzer/analyzer.dart');
+    expect(result.fullName, 'analyzer.dart');
+    expect(result.uri.toString(), 'package:analyzer/analyzer.dart');
   }
 
   void test_restoreAbsolute() {
@@ -229,6 +231,6 @@ class _PackageMapUriResolverTest {
   }
 
   Source _createFileSource(String path) {
-    return new NonExistingSource(path, UriKind.FILE_URI);
+    return new NonExistingSource(path, toUri(path), UriKind.FILE_URI);
   }
 }

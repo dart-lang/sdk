@@ -35,6 +35,7 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/task/task_dart.dart';
 import 'package:analyzer/task/model.dart' hide AnalysisTask;
+import 'package:path/path.dart' as pathos;
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 import 'package:watcher/src/utils.dart';
@@ -6587,7 +6588,7 @@ class _AnalysisContextImplTest_test_applyChanges_removeContainer
 
 class _Source_getContent_throwException extends NonExistingSource {
   _Source_getContent_throwException(String name)
-      : super(name, UriKind.FILE_URI);
+      : super(name, pathos.toUri(name), UriKind.FILE_URI);
 
   @override
   TimestampedData<String> get contents {

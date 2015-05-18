@@ -71,7 +71,10 @@ class PackageMapUriResolver extends UriResolver {
     // Return a NonExistingSource instance.
     // This helps provide more meaningful error messages to users
     // (a missing file error, as opposed to an invalid URI error).
-    return new NonExistingSource(uri.toString(), UriKind.PACKAGE_URI);
+    String fullPath = packageDirs != null && packageDirs.isNotEmpty
+        ? packageDirs.first.canonicalizePath(relPath)
+        : relPath;
+    return new NonExistingSource(fullPath, uri, UriKind.PACKAGE_URI);
   }
 
   @override
