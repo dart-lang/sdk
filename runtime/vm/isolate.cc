@@ -1668,7 +1668,8 @@ void Isolate::TrackDeoptimizedCode(const Code& code) {
 
 
 void Isolate::WakePauseEventHandler(Dart_Isolate isolate) {
-  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
+  Isolate* iso = FindIsolateInList(isolate);
+  ASSERT(iso != NULL);
   MonitorLocker ml(iso->pause_loop_monitor_);
   ml.Notify();
 }
@@ -1734,6 +1735,20 @@ intptr_t Isolate::IsolateListLength() {
     current = current->next_;
   }
   return count;
+}
+
+
+Isolate* Isolate::FindIsolateInList(Dart_Isolate isolate) {
+  MonitorLocker ml(isolates_list_monitor_);
+  Isolate* current = isolates_list_head_;
+  while (current != NULL) {
+    if (Api::CastIsolate(current) == isolate) {
+      // We've found the isolate.
+      return current;
+    }
+    current = current->next_;
+  }
+  return NULL;
 }
 
 
