@@ -3281,43 +3281,20 @@ class LocalVarDescriptors : public Object {
 
 class PcDescriptors : public Object {
  public:
-  void AddDescriptor(intptr_t index,
-                     uword pc_offset,
-                     RawPcDescriptors::Kind kind,
-                     int64_t deopt_id,
-                     int64_t token_pos,  // Or deopt reason.
-                     intptr_t try_index) const {  // Or deopt index.
-    NoSafepointScope no_safepoint;
-    RawPcDescriptors::PcDescriptorRec* rec = recAt(index);
-    rec->set_pc_offset(pc_offset);
-    rec->set_kind(kind);
-    ASSERT(Utils::IsInt(32, deopt_id));
-    rec->set_deopt_id(static_cast<int32_t>(deopt_id));
-    ASSERT(Utils::IsInt(32, token_pos));
-    rec->set_token_pos(static_cast<int32_t>(token_pos),
-        RecordSizeInBytes() == RawPcDescriptors::kCompressedRecSize);
-    ASSERT(Utils::IsInt(16, try_index));
-    rec->set_try_index(try_index);
-    ASSERT(rec->try_index() == try_index);
-    ASSERT(rec->token_pos() == token_pos);
-  }
-
-  static const intptr_t kMaxBytesPerElement =
-      sizeof(RawPcDescriptors::PcDescriptorRec);
-  static const intptr_t kMaxElements = kMaxInt32 / kMaxBytesPerElement;
+  static const intptr_t kBytesPerElement = 1;
+  static const intptr_t kMaxElements = kMaxInt32 / kBytesPerElement;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawPcDescriptors) ==
            OFFSET_OF_RETURNED_VALUE(RawPcDescriptors, data));
     return 0;
   }
-  static intptr_t InstanceSize(intptr_t len, intptr_t record_size_in_bytes) {
+  static intptr_t InstanceSize(intptr_t len) {
     ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(
-        sizeof(RawPcDescriptors) + (len * record_size_in_bytes));
+    return RoundedAllocationSize(sizeof(RawPcDescriptors) + len);
   }
 
-  static RawPcDescriptors* New(intptr_t num_descriptors, bool has_try_index);
+  static RawPcDescriptors* New(GrowableArray<uint8_t>* delta_encoded_data);
 
   // Verify (assert) assumptions about pc descriptors in debug mode.
   void Verify(const Function& function) const;
@@ -3325,6 +3302,12 @@ class PcDescriptors : public Object {
   static void PrintHeaderString();
 
   void PrintToJSONObject(JSONObject* jsobj, bool ref) const;
+
+  // Encode integer in SLEB128 format.
+  static void EncodeInteger(GrowableArray<uint8_t>* data, intptr_t value);
+
+  // Decode SLEB128 encoded integer. Update byte_index to the next integer.
+  intptr_t DecodeInteger(intptr_t* byte_index) const;
 
   // We would have a VisitPointers function here to traverse the
   // pc descriptors table to visit objects if any in the table.
@@ -3335,73 +3318,66 @@ class PcDescriptors : public Object {
     Iterator(const PcDescriptors& descriptors, intptr_t kind_mask)
         : descriptors_(descriptors),
           kind_mask_(kind_mask),
-          next_ix_(0),
-          current_ix_(-1) {
-      MoveToMatching();
+          byte_index_(0),
+          cur_pc_offset_(0),
+          cur_kind_(0),
+          cur_deopt_id_(0),
+          cur_token_pos_(0),
+          cur_try_index_(0) {
     }
 
     bool MoveNext() {
-      if (HasNext()) {
-        current_ix_ = next_ix_++;
-        MoveToMatching();
-        return true;
-      } else {
-        return false;
+      // Moves to record that matches kind_mask_.
+      while (byte_index_ < descriptors_.Length()) {
+        int32_t merged_kind_try = descriptors_.DecodeInteger(&byte_index_);
+        cur_kind_ =
+            RawPcDescriptors::MergedKindTry::DecodeKind(merged_kind_try);
+        cur_try_index_ =
+            RawPcDescriptors::MergedKindTry::DecodeTryIndex(merged_kind_try);
+
+        cur_pc_offset_ += descriptors_.DecodeInteger(&byte_index_);
+        cur_deopt_id_ += descriptors_.DecodeInteger(&byte_index_);
+        cur_token_pos_ += descriptors_.DecodeInteger(&byte_index_);
+
+        if ((cur_kind_ & kind_mask_) != 0) {
+          return true;  // Current is valid.
+        }
       }
+      return false;
     }
 
-    uword PcOffset() const {
-      NoSafepointScope no_safepoint;
-      return descriptors_.recAt(current_ix_)->pc_offset();
-    }
-    intptr_t DeoptId() const {
-      NoSafepointScope no_safepoint;
-      return descriptors_.recAt(current_ix_)->deopt_id();
-    }
-    intptr_t TokenPos() const {
-      NoSafepointScope no_safepoint;
-      return descriptors_.recAt(current_ix_)->token_pos();
-    }
-    intptr_t TryIndex() const {
-      NoSafepointScope no_safepoint;
-      return descriptors_.recAt(current_ix_)->try_index();
-    }
+    uword PcOffset() const { return cur_pc_offset_; }
+    intptr_t DeoptId() const { return cur_deopt_id_; }
+    intptr_t TokenPos() const { return cur_token_pos_; }
+    intptr_t TryIndex() const { return cur_try_index_; }
     RawPcDescriptors::Kind Kind() const {
-      NoSafepointScope no_safepoint;
-      return descriptors_.recAt(current_ix_)->kind();
+      return static_cast<RawPcDescriptors::Kind>(cur_kind_);
     }
 
    private:
     friend class PcDescriptors;
-
-    bool HasNext() const { return next_ix_ < descriptors_.Length(); }
 
     // For nested iterations, starting at element after.
     explicit Iterator(const Iterator& iter)
         : ValueObject(),
           descriptors_(iter.descriptors_),
           kind_mask_(iter.kind_mask_),
-          next_ix_(iter.next_ix_),
-          current_ix_(iter.current_ix_) {}
-
-    // Moves to record that matches kind_mask_.
-    void MoveToMatching() {
-      NoSafepointScope no_safepoint;
-      while (next_ix_ < descriptors_.Length()) {
-        const RawPcDescriptors::PcDescriptorRec& rec =
-            *descriptors_.recAt(next_ix_);
-        if ((rec.kind() & kind_mask_) != 0) {
-          return;  // Current is valid.
-        } else {
-          ++next_ix_;
-        }
-      }
-    }
+          byte_index_(iter.byte_index_),
+          cur_pc_offset_(iter.cur_pc_offset_),
+          cur_kind_(iter.cur_kind_),
+          cur_deopt_id_(iter.cur_deopt_id_),
+          cur_token_pos_(iter.cur_token_pos_),
+          cur_try_index_(iter.cur_try_index_) {}
 
     const PcDescriptors& descriptors_;
     const intptr_t kind_mask_;
-    intptr_t next_ix_;
-    intptr_t current_ix_;
+    intptr_t byte_index_;
+
+    intptr_t cur_pc_offset_;
+    intptr_t cur_kind_;
+    intptr_t cur_deopt_id_;
+    intptr_t cur_token_pos_;
+    intptr_t cur_try_index_;
   };
 
  private:
@@ -3409,16 +3385,7 @@ class PcDescriptors : public Object {
 
   intptr_t Length() const;
   void SetLength(intptr_t value) const;
-
-  void SetRecordSizeInBytes(intptr_t value) const;
-  intptr_t RecordSizeInBytes() const;
-
-  RawPcDescriptors::PcDescriptorRec* recAt(intptr_t ix) const {
-    ASSERT((0 <= ix) && (ix < Length()));
-    uint8_t* d = UnsafeMutableNonPointer(raw_ptr()->data()) +
-        (ix * RecordSizeInBytes());
-    return reinterpret_cast<RawPcDescriptors::PcDescriptorRec*>(d);
-  }
+  void CopyData(GrowableArray<uint8_t>* data);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors, Object);
   friend class Class;

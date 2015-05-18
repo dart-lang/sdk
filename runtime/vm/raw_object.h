@@ -1032,76 +1032,44 @@ class RawPcDescriptors : public RawObject {
     kRuntimeCall     = kClosureCall << 1,  // Runtime call.
     kOsrEntry        = kRuntimeCall << 1,  // OSR entry point in unopt. code.
     kOther           = kOsrEntry << 1,
-    kAnyKind         = 0xFF
+    kLastKind        = kOther,
+    kAnyKind         = -1
   };
 
-  // Compressed version assumes try_index is always -1 and does not store it.
-  struct PcDescriptorRec {
-    uword pc_offset() const { return pc_offset_; }
-    void set_pc_offset(uword value) {
-      // Some C compilers warn about the comparison always being true when using
-      // <= due to limited range of data type.
-      ASSERT((value == static_cast<uword>(kMaxUint32)) ||
-             (value < static_cast<uword>(kMaxUint32)));
-      pc_offset_ = value;
+  class MergedKindTry {
+   public:
+    // Most of the time try_index will be small and merged field will fit into
+    // one byte.
+    static intptr_t Encode(intptr_t kind, intptr_t try_index) {
+      intptr_t kind_shift = Utils::ShiftForPowerOfTwo(kind);
+      ASSERT(Utils::IsUint(kKindShiftSize, kind_shift));
+      ASSERT(Utils::IsInt(kTryIndexSize, try_index));
+      return (try_index << kTryIndexPos) | (kind_shift << kKindShiftPos);
     }
 
-    Kind kind() const {
-      return static_cast<Kind>(deopt_id_and_kind_ & kAnyKind);
-    }
-    void set_kind(Kind kind) {
-      deopt_id_and_kind_ = (deopt_id_and_kind_ & 0xFFFFFF00) | kind;
+    static intptr_t DecodeKind(intptr_t merged_kind_try) {
+      const intptr_t kKindShiftMask = (1 << kKindShiftSize) - 1;
+      return 1 << (merged_kind_try & kKindShiftMask);
     }
 
-    int16_t try_index() const { return is_compressed() ? -1 : try_index_; }
-    void set_try_index(int16_t value) {
-      if (is_compressed()) {
-        ASSERT(value == -1);
-        return;
-      }
-      try_index_ = value;
-    }
-
-    intptr_t token_pos() const { return token_pos_ >> 1; }
-    void set_token_pos(int32_t value, bool compressed) {
-      int32_t bit = compressed ? 0x1 : 0x0;
-      token_pos_ = (value << 1) | bit;
-    }
-
-    intptr_t deopt_id() const { return deopt_id_and_kind_ >> 8; }
-    void set_deopt_id(int32_t value) {
-      ASSERT(Utils::IsInt(24, value));
-      deopt_id_and_kind_ = (deopt_id_and_kind_ & 0xFF) | (value << 8);
+    static intptr_t DecodeTryIndex(intptr_t merged_kind_try) {
+      // Arithmetic shift.
+      return merged_kind_try >> kTryIndexPos;
     }
 
    private:
-    bool is_compressed() const {
-      return (token_pos_ & 0x1) == 1;
-    }
+    static const intptr_t kKindShiftPos = 0;
+    static const intptr_t kKindShiftSize = 3;
+    // Is kKindShiftSize enough bits?
+    COMPILE_ASSERT(kLastKind <= 1 << ((1 << kKindShiftSize) - 1));
 
-    uint32_t pc_offset_;
-    int32_t deopt_id_and_kind_;  // Bits 31..8 -> deopt_id, bits 7..0 kind.
-    int32_t token_pos_;  // Bits 31..1 -> token_pos, bit 1 -> compressed flag;
-    int16_t try_index_;
+    static const intptr_t kTryIndexPos = kKindShiftSize;
+    static const intptr_t kTryIndexSize = kBitsPerWord - kKindShiftSize;
   };
-
-  // This structure is only used to compute what the size of PcDescriptorRec
-  // should be when the try_index_ field is omitted.
-  struct CompressedPcDescriptorRec {
-    uint32_t pc_offset_;
-    int32_t deopt_id_and_kind_;
-    int32_t token_pos_;
-  };
-
-  static intptr_t RecordSize(bool has_try_index);
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors);
 
-  static const intptr_t kFullRecSize;
-  static const intptr_t kCompressedRecSize;
-
-  int32_t record_size_in_bytes_;
   int32_t length_;  // Number of descriptors.
 
   // Variable length data follows here.

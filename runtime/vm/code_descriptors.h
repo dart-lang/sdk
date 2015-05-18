@@ -15,59 +15,29 @@ namespace dart {
 
 class DescriptorList : public ZoneAllocated {
  public:
-  struct PcDesc {
-    intptr_t pc_offset;        // PC offset value of the descriptor.
-    RawPcDescriptors::Kind kind;  // Descriptor kind (kDeopt, kOther).
-    intptr_t deopt_id;         // Deoptimization id.
-    intptr_t data;             // Token position or deopt reason.
-    intptr_t try_index;        // Try block index of PC or deopt array index.
-    void SetTokenPos(intptr_t value) { data = value; }
-    intptr_t TokenPos() const { return data; }
-    void SetDeoptReason(ICData::DeoptReasonId value) { data = value; }
-    ICData::DeoptReasonId DeoptReason() const {
-      ASSERT((0 <= data) && (data < ICData::kDeoptNumReasons));
-      return static_cast<ICData::DeoptReasonId>(data);
-    }
-  };
-
   explicit DescriptorList(intptr_t initial_capacity)
-      : list_(initial_capacity), has_try_index_(false) {}
+    : encoded_data_(initial_capacity),
+      prev_pc_offset(0),
+      prev_deopt_id(0),
+      prev_token_pos(0) {}
+
   ~DescriptorList() { }
-
-  intptr_t Length() const {
-    return list_.length();
-  }
-
-  intptr_t PcOffset(intptr_t index) const {
-    return list_[index].pc_offset;
-  }
-  RawPcDescriptors::Kind Kind(intptr_t index) const {
-    return list_[index].kind;
-  }
-  intptr_t DeoptId(intptr_t index) const {
-    return list_[index].deopt_id;
-  }
-  intptr_t TokenPos(intptr_t index) const {
-    return list_[index].TokenPos();
-  }
-  ICData::DeoptReasonId DeoptReason(intptr_t index) const {
-    return list_[index].DeoptReason();
-  }
-  intptr_t TryIndex(intptr_t index) const {
-    return (has_try_index_) ? list_[index].try_index : -1;
-  }
 
   void AddDescriptor(RawPcDescriptors::Kind kind,
                      intptr_t pc_offset,
                      intptr_t deopt_id,
-                     intptr_t token_index,
+                     intptr_t token_pos,
                      intptr_t try_index);
 
   RawPcDescriptors* FinalizePcDescriptors(uword entry_point);
 
  private:
-  GrowableArray<struct PcDesc> list_;
-  bool has_try_index_;
+  GrowableArray<uint8_t> encoded_data_;
+
+  intptr_t prev_pc_offset;
+  intptr_t prev_deopt_id;
+  intptr_t prev_token_pos;
+
   DISALLOW_COPY_AND_ASSIGN(DescriptorList);
 };
 
