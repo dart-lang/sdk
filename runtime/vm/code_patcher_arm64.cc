@@ -12,23 +12,6 @@
 
 namespace dart {
 
-uword CodePatcher::GetStaticCallTargetAt(uword return_address,
-                                         const Code& code) {
-  ASSERT(code.ContainsInstructionAt(return_address));
-  CallPattern call(return_address, code);
-  return call.TargetAddress();
-}
-
-
-void CodePatcher::PatchStaticCallAt(uword return_address,
-                                    const Code& code,
-                                    uword new_target) {
-  ASSERT(code.ContainsInstructionAt(return_address));
-  CallPattern call(return_address, code);
-  call.SetTargetAddress(new_target);
-}
-
-
 void CodePatcher::PatchInstanceCallAt(uword return_address,
                                       const Code& code,
                                       uword new_target) {
@@ -40,41 +23,60 @@ void CodePatcher::PatchInstanceCallAt(uword return_address,
 
 class PoolPointerCall : public ValueObject {
  public:
-  explicit PoolPointerCall(uword pc) : end_(pc) {
+  PoolPointerCall(uword pc, const Code& code)
+      : end_(pc),
+        object_pool_(Array::Handle(code.ObjectPool())) {
     // Last instruction: blr ip0.
     ASSERT(*(reinterpret_cast<uint32_t*>(end_) - 1) == 0xd63f0200);
     InstructionPattern::DecodeLoadWordFromPool(
         end_ - Instr::kInstrSize, &reg_, &index_);
   }
 
-  int32_t pp_offset() const {
-    return InstructionPattern::OffsetFromPPIndex(index_);
+  intptr_t pp_index() const {
+    return index_;
   }
 
-  void set_pp_offset(int32_t offset) const {
-    InstructionPattern::EncodeLoadWordFromPoolFixed(
-      end_ - Instr::kInstrSize, offset);
-    CPU::FlushICache(end_ - kCallPatternSize, kCallPatternSize);
+  uword Target() const {
+    return reinterpret_cast<uword>(object_pool_.At(pp_index()));
+  }
+
+  void SetTarget(uword target) const {
+    const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(target));
+    object_pool_.SetAt(pp_index(), smi);
+    // No need to flush the instruction cache, since the code is not modified.
   }
 
  private:
   static const int kCallPatternSize = 3 * Instr::kInstrSize;
   uword end_;
+  const Array& object_pool_;
   Register reg_;
   intptr_t index_;
   DISALLOW_IMPLICIT_CONSTRUCTORS(PoolPointerCall);
 };
 
 
-int32_t CodePatcher::GetPoolOffsetAt(uword return_address) {
-  PoolPointerCall call(return_address);
-  return call.pp_offset();
+uword CodePatcher::GetStaticCallTargetAt(uword return_address,
+                                         const Code& code) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  PoolPointerCall call(return_address, code);
+  return call.Target();
 }
 
 
-void CodePatcher::SetPoolOffsetAt(uword return_address, int32_t offset) {
-  PoolPointerCall call(return_address);
-  call.set_pp_offset(offset);
+void CodePatcher::PatchStaticCallAt(uword return_address,
+                                    const Code& code,
+                                    uword new_target) {
+  PatchPoolPointerCallAt(return_address, code, new_target);
+}
+
+
+void CodePatcher::PatchPoolPointerCallAt(uword return_address,
+                                         const Code& code,
+                                         uword new_target) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  PoolPointerCall call(return_address, code);
+  call.SetTarget(new_target);
 }
 
 

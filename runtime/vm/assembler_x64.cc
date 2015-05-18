@@ -57,29 +57,6 @@ Assembler::Assembler(bool use_far_branches)
     } else {
       object_pool_.AddObject(vacant, kNotPatchable);
     }
-
-    // Create fixed object pool entries for debugger stubs.
-    if (stub_code->ICCallBreakpoint_entry() != NULL) {
-      index = object_pool_.AddExternalLabel(
-          &stub_code->ICCallBreakpointLabel(), kNotPatchable);
-      ASSERT(index == kICCallBreakpointCPIndex);
-    } else {
-      object_pool_.AddObject(vacant, kNotPatchable);
-    }
-    if (stub_code->ClosureCallBreakpoint_entry() != NULL) {
-      index = object_pool_.AddExternalLabel(
-          &stub_code->ClosureCallBreakpointLabel(), kNotPatchable);
-      ASSERT(index == kClosureCallBreakpointCPIndex);
-    } else {
-      object_pool_.AddObject(vacant, kNotPatchable);
-    }
-    if (stub_code->RuntimeCallBreakpoint_entry() != NULL) {
-      index = object_pool_.AddExternalLabel(
-          &stub_code->RuntimeCallBreakpointLabel(), kNotPatchable);
-      ASSERT(index == kRuntimeCallBreakpointCPIndex);
-    } else {
-      object_pool_.AddObject(vacant, kNotPatchable);
-    }
   }
 }
 

@@ -14,59 +14,32 @@
 namespace dart {
 
 uword CodeBreakpoint::OrigStubAddress() const {
-  const Code& code = Code::Handle(code_);
-  const Array& object_pool = Array::Handle(code.ObjectPool());
-  const uword offset = saved_value_;
-  ASSERT((offset % kWordSize) == 0);
-  const intptr_t index = (offset - Array::data_offset()) / kWordSize;
-  const uword stub_address = reinterpret_cast<uword>(object_pool.At(index));
-  ASSERT(stub_address % kWordSize == 0);
-  return stub_address;
+  return saved_value_;
 }
 
 
 void CodeBreakpoint::PatchCode() {
   ASSERT(!is_enabled_);
-  const Code& code = Code::Handle(code_);
-  const Instructions& instrs = Instructions::Handle(code.instructions());
-  {
-    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
-    switch (breakpoint_kind_) {
-      case RawPcDescriptors::kIcCall:
-      case RawPcDescriptors::kUnoptStaticCall: {
-        int32_t offset = CodePatcher::GetPoolOffsetAt(pc_);
-        ASSERT((offset > 0) && ((offset & 0x7) == 0));
-        saved_value_ = static_cast<uword>(offset);
-        const uint32_t stub_offset =
-            InstructionPattern::OffsetFromPPIndex(
-                Assembler::kICCallBreakpointCPIndex);
-        CodePatcher::SetPoolOffsetAt(pc_, stub_offset);
-        break;
-      }
-      case RawPcDescriptors::kClosureCall: {
-        int32_t offset = CodePatcher::GetPoolOffsetAt(pc_);
-        ASSERT((offset > 0) && ((offset & 0x7) == 0));
-        saved_value_ = static_cast<uword>(offset);
-        const uint32_t stub_offset =
-            InstructionPattern::OffsetFromPPIndex(
-                Assembler::kClosureCallBreakpointCPIndex);
-        CodePatcher::SetPoolOffsetAt(pc_, stub_offset);
-        break;
-      }
-      case RawPcDescriptors::kRuntimeCall: {
-        int32_t offset = CodePatcher::GetPoolOffsetAt(pc_);
-        ASSERT((offset > 0) && ((offset & 0x7) == 0));
-        saved_value_ = static_cast<uword>(offset);
-        const uint32_t stub_offset =
-            InstructionPattern::OffsetFromPPIndex(
-                Assembler::kRuntimeCallBreakpointCPIndex);
-        CodePatcher::SetPoolOffsetAt(pc_, stub_offset);
-        break;
-      }
-      default:
-        UNREACHABLE();
+  StubCode* stub_code = Isolate::Current()->stub_code();
+  uword stub_target = 0;
+  switch (breakpoint_kind_) {
+    case RawPcDescriptors::kIcCall:
+    case RawPcDescriptors::kUnoptStaticCall:
+      stub_target = stub_code->ICCallBreakpointEntryPoint();
+      break;
+    case RawPcDescriptors::kClosureCall:
+      stub_target = stub_code->ClosureCallBreakpointEntryPoint();
+      break;
+    case RawPcDescriptors::kRuntimeCall: {
+      stub_target = stub_code->RuntimeCallBreakpointEntryPoint();
+      break;
     }
+    default:
+      UNREACHABLE();
   }
+  const Code& code = Code::Handle(code_);
+  saved_value_ =  CodePatcher::GetStaticCallTargetAt(pc_, code);
+  CodePatcher::PatchPoolPointerCallAt(pc_, code, stub_target);
   is_enabled_ = true;
 }
 
@@ -74,20 +47,16 @@ void CodeBreakpoint::PatchCode() {
 void CodeBreakpoint::RestoreCode() {
   ASSERT(is_enabled_);
   const Code& code = Code::Handle(code_);
-  const Instructions& instrs = Instructions::Handle(code.instructions());
-  {
-    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
-    switch (breakpoint_kind_) {
-      case RawPcDescriptors::kIcCall:
-      case RawPcDescriptors::kUnoptStaticCall:
-      case RawPcDescriptors::kClosureCall:
-      case RawPcDescriptors::kRuntimeCall: {
-        CodePatcher::SetPoolOffsetAt(pc_, static_cast<int32_t>(saved_value_));
-        break;
-      }
-      default:
-        UNREACHABLE();
+  switch (breakpoint_kind_) {
+    case RawPcDescriptors::kIcCall:
+    case RawPcDescriptors::kUnoptStaticCall:
+    case RawPcDescriptors::kClosureCall:
+    case RawPcDescriptors::kRuntimeCall: {
+      CodePatcher::PatchPoolPointerCallAt(pc_, code, saved_value_);
+      break;
     }
+    default:
+      UNREACHABLE();
   }
   is_enabled_ = false;
 }

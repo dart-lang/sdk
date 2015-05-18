@@ -102,8 +102,9 @@ class UnoptimizedStaticCall : public UnoptimizedCall {
 //   7: <- return address
 class PoolPointerCall : public ValueObject {
  public:
-  explicit PoolPointerCall(uword return_address)
-      : start_(return_address - kCallPatternSize) {
+  explicit PoolPointerCall(uword return_address, const Code& code)
+      : start_(return_address - kCallPatternSize),
+        object_pool_(Array::Handle(code.ObjectPool())) {
     ASSERT(IsValid(return_address));
   }
 
@@ -116,79 +117,50 @@ class PoolPointerCall : public ValueObject {
            (code_bytes[2] == 0x97);
   }
 
-  int32_t pp_offset() const {
-    return *reinterpret_cast<int32_t*>(start_ + 3);
+  intptr_t pp_index() const {
+    return InstructionPattern::IndexFromPPLoad(start_ + 3);
   }
 
-  void set_pp_offset(int32_t offset) const {
-    *reinterpret_cast<int32_t*>(start_ + 3) = offset;
-    CPU::FlushICache(start_, kCallPatternSize);
+  uword Target() const {
+    return reinterpret_cast<uword>(object_pool_.At(pp_index()));
+  }
+
+  void SetTarget(uword target) const {
+    const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(target));
+    object_pool_.SetAt(pp_index(), smi);
+    // No need to flush the instruction cache, since the code is not modified.
   }
 
  protected:
   uword start_;
+  const Array& object_pool_;
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(PoolPointerCall);
 };
 
 
-// The expected pattern of a dart static call:
-//   0: 41 ff 97 imm32  call [PP + off]
-//   7: <- return address
-class StaticCall : public PoolPointerCall {
- public:
-  StaticCall(uword return_address, const Code& code)
-      : PoolPointerCall(return_address),
-        object_pool_(Array::Handle(code.ObjectPool())) {
-    ASSERT(IsValid(return_address));
-    ASSERT(kCallPatternSize == Assembler::kCallExternalLabelSize);
-  }
-
-  uword target() const {
-    intptr_t index = InstructionPattern::IndexFromPPLoad(start_ + 3);
-    return reinterpret_cast<uword>(object_pool_.At(index));
-  }
-
-  void set_target(uword target) const {
-    intptr_t index = InstructionPattern::IndexFromPPLoad(start_ + 3);
-    const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(target));
-    object_pool_.SetAt(index, smi);
-    // No need to flush the instruction cache, since the code is not modified.
-  }
-
- private:
-  const Array& object_pool_;
-  DISALLOW_IMPLICIT_CONSTRUCTORS(StaticCall);
-};
-
-
 uword CodePatcher::GetStaticCallTargetAt(uword return_address,
                                          const Code& code) {
   ASSERT(code.ContainsInstructionAt(return_address));
-  StaticCall call(return_address, code);
-  return call.target();
+  PoolPointerCall call(return_address, code);
+  return call.Target();
 }
 
 
 void CodePatcher::PatchStaticCallAt(uword return_address,
                                     const Code& code,
                                     uword new_target) {
+  PatchPoolPointerCallAt(return_address, code, new_target);
+}
+
+
+void CodePatcher::PatchPoolPointerCallAt(uword return_address,
+                                         const Code& code,
+                                         uword new_target) {
   ASSERT(code.ContainsInstructionAt(return_address));
-  StaticCall call(return_address, code);
-  call.set_target(new_target);
-}
-
-
-int32_t CodePatcher::GetPoolOffsetAt(uword return_address) {
-  PoolPointerCall call(return_address);
-  return call.pp_offset();
-}
-
-
-void CodePatcher::SetPoolOffsetAt(uword return_address, int32_t offset) {
-  PoolPointerCall call(return_address);
-  call.set_pp_offset(offset);
+  PoolPointerCall call(return_address, code);
+  call.SetTarget(new_target);
 }
 
 

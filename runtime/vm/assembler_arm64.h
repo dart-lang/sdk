@@ -1301,11 +1301,6 @@ class Assembler : public ValueObject {
   // Object pool, loading from pool, etc.
   void LoadPoolPointer(Register pp);
 
-  // Index of constant pool entries pointing to debugger stubs.
-  static const int kICCallBreakpointCPIndex = 5;
-  static const int kClosureCallBreakpointCPIndex = 6;
-  static const int kRuntimeCallBreakpointCPIndex = 7;
-
   bool allow_constant_pool() const {
     return allow_constant_pool_;
   }

@@ -90,6 +90,9 @@ class CodePatcher : public AllStatic {
 
   static int32_t GetPoolOffsetAt(uword return_address);
   static void SetPoolOffsetAt(uword return_address, int32_t offset);
+  static void PatchPoolPointerCallAt(uword return_address,
+                                     const Code& code,
+                                     uword new_target);
 };
 
 }  // namespace dart
