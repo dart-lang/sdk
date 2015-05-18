@@ -978,14 +978,14 @@ DART_EXPORT Dart_Handle Dart_SetLibraryDebuggable(intptr_t library_id,
 DART_EXPORT Dart_Isolate Dart_GetIsolate(Dart_IsolateId isolate_id) {
   // Dart_Isolate is now the same as Dart_IsolateId.
   // TODO(johnmccutchan): Kill Dart_IsolateId.
-  return reinterpret_cast<Dart_Isolate>(isolate_id);
+  return static_cast<Dart_Isolate>(isolate_id);
 }
 
 
 DART_EXPORT Dart_IsolateId Dart_GetIsolateId(Dart_Isolate dart_isolate) {
   // Dart_Isolate is now the same as Dart_IsolateId.
   // TODO(johnmccutchan): Kill Dart_IsolateId.
-  return reinterpret_cast<Dart_IsolateId>(dart_isolate);
+  return static_cast<Dart_IsolateId>(dart_isolate);
 }
 
 }  // namespace dart
