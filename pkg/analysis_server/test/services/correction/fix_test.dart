@@ -162,6 +162,36 @@ class Test {
 ''');
   }
 
+  void test_addPartOfDirective() {
+    String partCode = r'''
+// Comment first.
+// Comment second.
+
+class A {}
+''';
+    addSource('/part.dart', partCode);
+    resolveTestUnit('''
+library my.lib;
+part 'part.dart';
+''');
+    AnalysisError error = _findErrorToFix();
+    fix = _assertHasFix(DartFixKind.ADD_PART_OF, error);
+    change = fix.change;
+    // apply to "file"
+    List<SourceFileEdit> fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    SourceFileEdit fileEdit = change.edits[0];
+    expect(fileEdit.file, '/part.dart');
+    expect(SourceEdit.applySequence(partCode, fileEdit.edits), r'''
+// Comment first.
+// Comment second.
+
+part of my.lib;
+
+class A {}
+''');
+  }
+
   void test_addSync_BAD_nullFunctionBody() {
     resolveTestUnit('''
 var F = await;

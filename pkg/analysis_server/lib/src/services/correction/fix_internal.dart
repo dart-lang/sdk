@@ -143,6 +143,9 @@ class FixProcessor {
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT) {
       _addFix_createConstructorSuperImplicit();
     }
+    if (errorCode == CompileTimeErrorCode.PART_OF_NON_PART) {
+      _addFix_addPartOfDirective();
+    }
     if (errorCode ==
         CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT) {
       _addFix_createConstructorSuperExplicit();
@@ -342,6 +345,24 @@ class FixProcessor {
       }
     }
     return false;
+  }
+
+  void _addFix_addPartOfDirective() {
+    if (node is SimpleStringLiteral && node.parent is PartDirective) {
+      PartDirective directive = node.parent;
+      Source partSource = directive.source;
+      CompilationUnit partUnit =
+          context.getResolvedCompilationUnit2(partSource, unitSource);
+      if (partUnit != null) {
+        CorrectionUtils partUtils = new CorrectionUtils(partUnit);
+        CorrectionUtils_InsertDesc desc = partUtils.getInsertDescTop();
+        String libraryName = unitLibraryElement.name;
+        _addInsertEdit(desc.offset,
+            '${desc.prefix}part of $libraryName;$eol${desc.suffix}',
+            partUnit.element);
+        _addFix(DartFixKind.ADD_PART_OF, []);
+      }
+    }
   }
 
   void _addFix_boolInsteadOfBoolean() {
