@@ -2345,8 +2345,7 @@ RawFunction* Debugger::FindInnermostClosure(const Function& function,
   Function& best_fit = Function::Handle(isolate_);
   for (intptr_t i = 0; i < num_closures; i++) {
     closure ^= closures.At(i);
-    if (closure.is_debuggable() &&
-        (function.token_pos() < closure.token_pos()) &&
+    if ((function.token_pos() < closure.token_pos()) &&
         (closure.end_token_pos() < function.end_token_pos()) &&
         (closure.token_pos() <= token_pos) &&
         (token_pos <= closure.end_token_pos()) &&
