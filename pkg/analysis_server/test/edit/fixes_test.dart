@@ -34,26 +34,25 @@ class FixesTest extends AbstractAnalysisTest {
     handler = new EditDomainHandler(server, plugin);
   }
 
-  Future test_fixUndefinedClass() {
+  Future test_fixUndefinedClass() async {
     addTestFile('''
 main() {
   Future<String> x = null;
 }
 ''');
-    return waitForTasksFinished().then((_) {
-      List<AnalysisErrorFixes> errorFixes = _getFixesAt('Future<String>');
-      expect(errorFixes, hasLength(1));
-      AnalysisError error = errorFixes[0].error;
-      expect(error.severity, AnalysisErrorSeverity.WARNING);
-      expect(error.type, AnalysisErrorType.STATIC_WARNING);
-      List<SourceChange> fixes = errorFixes[0].fixes;
-      expect(fixes, hasLength(2));
-      expect(fixes[0].message, matches('Import library'));
-      expect(fixes[1].message, matches('Create class'));
-    });
+    await waitForTasksFinished();
+    List<AnalysisErrorFixes> errorFixes = _getFixesAt('Future<String>');
+    expect(errorFixes, hasLength(1));
+    AnalysisError error = errorFixes[0].error;
+    expect(error.severity, AnalysisErrorSeverity.WARNING);
+    expect(error.type, AnalysisErrorType.STATIC_WARNING);
+    List<SourceChange> fixes = errorFixes[0].fixes;
+    expect(fixes, hasLength(2));
+    expect(fixes[0].message, matches('Import library'));
+    expect(fixes[1].message, matches('Create class'));
   }
 
-  Future test_hasFixes() {
+  Future test_hasFixes() async {
     addTestFile('''
 foo() {
   print(1)
@@ -62,24 +61,23 @@ bar() {
   print(10) print(20)
 }
 ''');
-    return waitForTasksFinished().then((_) {
-      // print(1)
-      {
-        List<AnalysisErrorFixes> errorFixes = _getFixesAt('print(1)');
-        expect(errorFixes, hasLength(1));
-        _isSyntacticErrorWithSingleFix(errorFixes[0]);
-      }
-      // print(10)
-      {
-        List<AnalysisErrorFixes> errorFixes = _getFixesAt('print(10)');
-        expect(errorFixes, hasLength(2));
-        _isSyntacticErrorWithSingleFix(errorFixes[0]);
-        _isSyntacticErrorWithSingleFix(errorFixes[1]);
-      }
-    });
+    await waitForTasksFinished();
+    // print(1)
+    {
+      List<AnalysisErrorFixes> errorFixes = _getFixesAt('print(1)');
+      expect(errorFixes, hasLength(1));
+      _isSyntacticErrorWithSingleFix(errorFixes[0]);
+    }
+    // print(10)
+    {
+      List<AnalysisErrorFixes> errorFixes = _getFixesAt('print(10)');
+      expect(errorFixes, hasLength(2));
+      _isSyntacticErrorWithSingleFix(errorFixes[0]);
+      _isSyntacticErrorWithSingleFix(errorFixes[1]);
+    }
   }
 
-  Future test_overlayOnlyFile() {
+  Future test_overlayOnlyFile() async {
     // add an overlay-only file
     {
       testCode = '''
@@ -94,11 +92,10 @@ main() {
       expect(response, isResponseSuccess('0'));
     }
     // ask for fixes
-    return waitForTasksFinished().then((_) {
-      List<AnalysisErrorFixes> errorFixes = _getFixesAt('print(1)');
-      expect(errorFixes, hasLength(1));
-      _isSyntacticErrorWithSingleFix(errorFixes[0]);
-    });
+    await waitForTasksFinished();
+    List<AnalysisErrorFixes> errorFixes = _getFixesAt('print(1)');
+    expect(errorFixes, hasLength(1));
+    _isSyntacticErrorWithSingleFix(errorFixes[0]);
   }
 
   List<AnalysisErrorFixes> _getFixes(int offset) {

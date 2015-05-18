@@ -47,51 +47,49 @@ class AssistsTest extends AbstractAnalysisTest {
     handler = new EditDomainHandler(server, plugin);
   }
 
-  Future test_removeTypeAnnotation() {
+  Future test_removeTypeAnnotation() async {
     addTestFile('''
 main() {
   int v = 1;
 }
 ''');
-    return waitForTasksFinished().then((_) {
-      prepareAssists('v =');
-      _assertHasChange('Remove type annotation', '''
+    await waitForTasksFinished();
+    prepareAssists('v =');
+    _assertHasChange('Remove type annotation', '''
 main() {
   var v = 1;
 }
 ''');
-    });
   }
 
-  Future test_splitVariableDeclaration() {
+  Future test_splitVariableDeclaration() async {
     addTestFile('''
 main() {
   int v = 1;
 }
 ''');
-    return waitForTasksFinished().then((_) {
-      prepareAssists('v =');
-      _assertHasChange('Split variable declaration', '''
+    await waitForTasksFinished();
+    prepareAssists('v =');
+    _assertHasChange('Split variable declaration', '''
 main() {
   int v;
   v = 1;
 }
 ''');
-    });
   }
 
-  Future test_surroundWithIf() {
+  Future test_surroundWithIf() async {
     addTestFile('''
 main() {
   print(1);
   print(2);
 }
 ''');
-    return waitForTasksFinished().then((_) {
-      int offset = findOffset('  print(1)');
-      int length = findOffset('}') - offset;
-      prepareAssistsAt(offset, length);
-      _assertHasChange("Surround with 'if'", '''
+    await waitForTasksFinished();
+    int offset = findOffset('  print(1)');
+    int length = findOffset('}') - offset;
+    prepareAssistsAt(offset, length);
+    _assertHasChange("Surround with 'if'", '''
 main() {
   if (condition) {
     print(1);
@@ -99,7 +97,6 @@ main() {
   }
 }
 ''');
-    });
   }
 
   void _assertHasChange(String message, String expectedCode) {
