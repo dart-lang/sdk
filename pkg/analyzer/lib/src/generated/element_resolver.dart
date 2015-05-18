@@ -651,7 +651,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         if (target == null) {
           classElementContext = _resolver.enclosingClass;
         } else {
-          DartType type = target.bestType;
+          DartType type = _getBestType(target);
           if (type != null) {
             if (type.element is ClassElement) {
               classElementContext = type.element as ClassElement;
@@ -1190,7 +1190,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             // Compute and use the propagated type, if it is null, then it may
             // be the case that static type is some type, in which the static
             // type should be used.
-            targetType = target.bestType;
+            targetType = _getBestType(target);
           }
           if (targetType == null) {
             return StaticTypeWarningCode.UNDEFINED_FUNCTION;
@@ -1389,6 +1389,22 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     } else {
       return operator.lexeme;
     }
+  }
+
+  /**
+   * Return the best type of the given [expression] that is to be used for
+   * type analysis.
+   */
+  DartType _getBestType(Expression expression) {
+    DartType bestType = _resolveTypeParameter(expression.bestType);
+    if (bestType is FunctionType) {
+      //
+      // All function types are subtypes of 'Function', which is itself a
+      // subclass of 'Object'.
+      //
+      bestType = _resolver.typeProvider.functionType;
+    }
+    return bestType;
   }
 
   /**

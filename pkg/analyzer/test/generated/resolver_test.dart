@@ -6901,6 +6901,16 @@ f(var a, var a2) {
     assertNoErrors(source);
   }
 
+  void test_undefinedMethod_dynamic() {
+    Source source = addSource(r'''
+class D<T extends dynamic> {
+  fieldAccess(T t) => t.abc;
+  methodAccess(T t) => t.xyz(1, 2, 'three');
+}''');
+    resolve(source);
+    assertNoErrors(source);
+  }
+
   void test_undefinedMethod_inSubtype() {
     Source source = addSource(r'''
 class A {}
