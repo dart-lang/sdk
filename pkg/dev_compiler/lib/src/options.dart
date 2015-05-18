@@ -14,7 +14,8 @@ import 'package:logging/logging.dart' show Level;
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
-/// Options used by our TypeResolver.
+/// Options used by our checker.
+// TODO(jmesserly): move useMultiPackage/packageRoot to CompilerOptions.
 class ResolverOptions {
   /// Whether to resolve 'package:' uris using the multi-package resolver.
   final bool useMultiPackage;

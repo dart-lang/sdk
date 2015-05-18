@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dev_compiler.src.checker.multi_package_resolver;
+library dev_compiler.src.multi_package_resolver;
 
 import 'dart:io';
 

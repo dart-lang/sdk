@@ -19,9 +19,8 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf;
 import 'package:shelf_static/shelf_static.dart' as shelf_static;
 
+import 'src/analysis_context.dart';
 import 'src/checker/checker.dart';
-import 'src/checker/dart_sdk.dart' show mockSdkSources;
-import 'src/checker/resolver.dart';
 import 'src/checker/rules.dart';
 import 'src/codegen/code_generator.dart' show CodeGenerator;
 import 'src/codegen/dart_codegen.dart';
@@ -65,13 +64,8 @@ class Compiler implements AbstractCompiler {
   bool _failure = false;
 
   factory Compiler(CompilerOptions options,
-      {TypeResolver resolver, CheckerReporter reporter}) {
-    if (resolver == null) {
-      resolver = options.useMockSdk
-          ? new TypeResolver.fromMock(mockSdkSources, options)
-          : new TypeResolver.fromDir(options.dartSdkPath, options);
-    }
-    var context = resolver.context;
+      {AnalysisContext context, CheckerReporter reporter}) {
+    if (context == null) context = createAnalysisContext(options);
 
     if (reporter == null) {
       reporter = options.dumpInfo

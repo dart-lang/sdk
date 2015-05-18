@@ -9,10 +9,8 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
-import 'package:dev_compiler/src/checker/dart_sdk.dart'
-    show mockSdkSources, dartSdkDirectory;
+import 'package:dev_compiler/src/analysis_context.dart';
 import 'package:dev_compiler/src/options.dart';
-import 'package:dev_compiler/src/checker/resolver.dart';
 import 'package:dev_compiler/src/dependency_graph.dart';
 import 'package:dev_compiler/src/report.dart';
 import 'package:dev_compiler/src/testing.dart';
@@ -23,7 +21,8 @@ import 'test_util.dart';
 void main() {
   configureTest();
 
-  var options = new CompilerOptions(runtimeDir: '/dev_compiler_runtime/');
+  var options = new CompilerOptions(
+      runtimeDir: '/dev_compiler_runtime/', useMockSdk: true);
   MemoryResourceProvider testResourceProvider;
   ResourceUriResolver testUriResolver;
   var context;
@@ -67,8 +66,7 @@ void main() {
     /// tests (since some tests modify the state of the files).
     testResourceProvider = createTestResourceProvider(testFiles);
     testUriResolver = new ResourceUriResolver(testResourceProvider);
-    context = new TypeResolver.fromMock(mockSdkSources, options,
-        otherResolvers: [testUriResolver]).context;
+    context = createAnalysisContext(options, fileResolvers: [testUriResolver]);
     graph = new SourceGraph(context, new LogReporter(context), options);
   });
 
@@ -646,9 +644,11 @@ void main() {
   group('server-mode', () {
     setUp(() {
       var options2 = new CompilerOptions(
-          runtimeDir: '/dev_compiler_runtime/', serverMode: true);
-      context = new TypeResolver.fromMock(mockSdkSources, options2,
-          otherResolvers: [testUriResolver]).context;
+          runtimeDir: '/dev_compiler_runtime/',
+          useMockSdk: true,
+          serverMode: true);
+      context =
+          createAnalysisContext(options2, fileResolvers: [testUriResolver]);
       graph = new SourceGraph(context, new LogReporter(context), options2);
     });
 
@@ -1090,8 +1090,8 @@ void main() {
 
     group('null for non-existing files', () {
       setUp(() {
-        context = new TypeResolver.fromMock(mockSdkSources, options,
-            otherResolvers: [testUriResolver]).context;
+        context =
+            createAnalysisContext(options, fileResolvers: [testUriResolver]);
         graph = new SourceGraph(context, new LogReporter(context), options);
       });
 

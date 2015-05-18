@@ -7,94 +7,20 @@
 library dev_compiler.src.checker.resolver;
 
 import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
-import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart'
     show DirectedGraph;
 import 'package:logging/logging.dart' as logger;
-import 'package:path/path.dart' as path;
 
 import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/utils.dart';
-import 'dart_sdk.dart';
-import 'multi_package_resolver.dart';
 
 final _log = new logger.Logger('dev_compiler.src.resolver');
-
-String _implicitEntryHtml(String src) => '''
-<html>
-  <body>
-    <script type="application/dart" src="$src"></script>
-  </body>
-</html>
-''';
-
-// TODO(jmesserly): this class can be removed, and converted to some top-level
-// methods that create the AnalysisContext.
-/// Encapsulates a resolver from the analyzer package.
-class TypeResolver {
-  final InternalAnalysisContext context;
-
-  TypeResolver(DartUriResolver sdkResolver, ResolverOptions options,
-      {List otherResolvers})
-      : context = _initContext(options) {
-    var resolvers = options.useImplicitHtml
-        ? [_createImplicitEntryResolver(options), sdkResolver]
-        : [sdkResolver];
-    if (otherResolvers == null) {
-      resolvers.add(new FileUriResolver());
-      resolvers.add(options.useMultiPackage
-          ? new MultiPackageResolver(options.packagePaths)
-          : new PackageUriResolver([new JavaFile(options.packageRoot)]));
-    } else {
-      resolvers.addAll(otherResolvers);
-    }
-    context.sourceFactory = new SourceFactory(resolvers);
-  }
-
-  /// Creates a [TypeResolver] that uses a mock 'dart:' library contents.
-  TypeResolver.fromMock(
-      Map<String, String> mockSources, ResolverOptions options,
-      {UriResolver entryResolver, List otherResolvers})
-      : this(
-          new MockDartSdk(mockSources, reportMissing: true).resolver, options,
-          otherResolvers: otherResolvers);
-
-  /// Creates a [TypeResolver] that uses the SDK at the given [sdkPath].
-  TypeResolver.fromDir(String sdkPath, ResolverOptions options,
-      {UriResolver entryResolver, List otherResolvers})
-      : this(
-          new DartUriResolver(new DirectoryBasedDartSdk(new JavaFile(sdkPath))),
-          options, otherResolvers: otherResolvers);
-}
-
-UriResolver _createImplicitEntryResolver(ResolverOptions options) {
-  var entry = path.absolute(ResolverOptions.implicitHtmlFile);
-  var src = path.absolute(options.entryPointFile);
-  var provider = new MemoryResourceProvider();
-  provider.newFile(entry, _implicitEntryHtml(src));
-  return new ResourceUriResolver(provider);
-}
-
-/// Creates an analysis context that contains our restricted typing rules.
-InternalAnalysisContext _initContext(ResolverOptions options) {
-  var analysisOptions = new AnalysisOptionsImpl()..cacheSize = 512;
-  AnalysisContextImpl res = AnalysisEngine.instance.createAnalysisContext();
-  res.analysisOptions = analysisOptions;
-  res.libraryResolverFactory =
-      (context) => new LibraryResolverWithInference(context, options);
-  return res;
-}
 
 /// A [LibraryResolver] that performs inference on top-levels and fields based
 /// on the value of the initializer, and on fields and methods based on

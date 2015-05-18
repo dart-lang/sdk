@@ -7,23 +7,20 @@ library dev_compiler.src.testing;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:logging/logging.dart';
 import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
 
-import 'package:dev_compiler/src/checker/dart_sdk.dart'
-    show mockSdkSources, dartSdkDirectory;
-import 'package:dev_compiler/src/checker/resolver.dart' show TypeResolver;
-import 'package:dev_compiler/src/utils.dart';
-import 'package:dev_compiler/src/info.dart';
-import 'package:dev_compiler/src/options.dart';
-import 'package:dev_compiler/src/report.dart';
 import 'package:dev_compiler/config.dart';
 import 'package:dev_compiler/devc.dart' show Compiler;
 
+import 'analysis_context.dart';
 import 'dependency_graph.dart' show runtimeFilesForServerMode;
+import 'info.dart';
+import 'options.dart';
+import 'report.dart';
+import 'utils.dart';
 
 /// Run the checker on a program with files contents as indicated in
 /// [testFiles].
@@ -77,12 +74,8 @@ CheckerResults testChecker(Map<String, String> testFiles,
       dartSdkPath: sdkDir,
       runtimeDir: '/dev_compiler_runtime/',
       entryPointFile: '/main.dart');
-  var resolver = sdkDir == null
-      ? new TypeResolver.fromMock(mockSdkSources, options,
-          otherResolvers: [uriResolver])
-      : new TypeResolver.fromDir(sdkDir, options,
-          otherResolvers: [uriResolver]);
-  var context = resolver.context;
+
+  var context = createAnalysisContext(options, fileResolvers: [uriResolver]);
 
   // Run the checker on /main.dart.
   var mainFile = new Uri.file('/main.dart');
@@ -94,13 +87,13 @@ CheckerResults testChecker(Map<String, String> testFiles,
     reporter = createReporter(context);
   }
   var results =
-      new Compiler(options, resolver: resolver, reporter: reporter).run();
+      new Compiler(options, context: context, reporter: reporter).run();
 
   // Extract expectations from the comments in the test files.
   var expectedErrors = <AstNode, List<_ErrorExpectation>>{};
   var visitor = new _ErrorMarkerVisitor(expectedErrors);
   var initialLibrary =
-      resolver.context.getLibraryElement(uriResolver.resolveAbsolute(mainFile));
+      context.getLibraryElement(uriResolver.resolveAbsolute(mainFile));
   for (var lib in reachableLibraries(initialLibrary)) {
     for (var unit in lib.units) {
       unit.unit.accept(visitor);

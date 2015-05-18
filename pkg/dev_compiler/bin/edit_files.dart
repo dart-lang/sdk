@@ -13,15 +13,16 @@ library dev_compiler.bin.edit_files;
 import 'dart:io';
 import 'dart:convert';
 
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:args/args.dart';
 import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:source_maps/refactor.dart';
 import 'package:source_span/source_span.dart';
 
+import 'package:dev_compiler/src/analysis_context.dart';
 import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/summary.dart';
-import 'package:dev_compiler/src/checker/resolver.dart' show TypeResolver;
 
 final ArgParser argParser = new ArgParser()
   ..addOption('level', help: 'Minimum error level', defaultsTo: "info")
@@ -57,7 +58,7 @@ void _showUsageAndExit() {
 
 class EditFileSummaryVisitor extends RecursiveSummaryVisitor {
   var _files = new Map<String, TextEditTransaction>();
-  TypeResolver typeResolver;
+  AnalysisContext context;
   String level;
   String checkoutFilesExecutable;
   String checkoutFilesArg;
@@ -66,9 +67,8 @@ class EditFileSummaryVisitor extends RecursiveSummaryVisitor {
 
   final Map<Uri, Source> _sources = <Uri, Source>{};
 
-  EditFileSummaryVisitor(this.typeResolver, this.level,
-      this.checkoutFilesExecutable, this.checkoutFilesArg, this.includePattern,
-      this.excludePattern);
+  EditFileSummaryVisitor(this.context, this.level, this.checkoutFilesExecutable,
+      this.checkoutFilesArg, this.includePattern, this.excludePattern);
 
   TextEditTransaction getEdits(String name) => _files.putIfAbsent(name, () {
     var fileContents = new File(name).readAsStringSync();
@@ -79,7 +79,7 @@ class EditFileSummaryVisitor extends RecursiveSummaryVisitor {
   Source findSource(Uri uri) {
     var source = _sources[uri];
     if (source != null) return source;
-    return _sources[uri] = typeResolver.context.sourceFactory.forUri('$uri');
+    return _sources[uri] = context.sourceFactory.forUri('$uri');
   }
 
   @override
@@ -135,12 +135,11 @@ void main(List<String> argv) {
   }
 
   var filename = args.rest.first;
-  var options = new ResolverOptions(
+  var options = new CompilerOptions(
+      dartSdkPath: sdkDir.path,
       useMultiPackage: args['use-multi-package'],
       packageRoot: args['package-root'],
       packagePaths: args['package-paths'].split(','));
-
-  var typeResolver = new TypeResolver.fromDir(sdkDir.path, options);
 
   Map json = JSON.decode(new File(filename).readAsStringSync());
   var summary = GlobalSummary.parse(json);
@@ -151,7 +150,8 @@ void main(List<String> argv) {
       ? new RegExp(args['include-pattern'])
       : null;
 
-  var visitor = new EditFileSummaryVisitor(typeResolver, args['level'],
+  var context = createAnalysisContext(options);
+  var visitor = new EditFileSummaryVisitor(context, args['level'],
       args['checkout-files-executable'], args['checkout-files-arg'],
       includePattern, excludePattern);
   summary.accept(visitor);
