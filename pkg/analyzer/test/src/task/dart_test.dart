@@ -1382,6 +1382,20 @@ const y = 1;
     expect(evaluationResult.value.intValue, 2);
   }
 
+  test_external_const_factory() {
+    EvaluationResultImpl evaluationResult = _computeTopLevelVariableConstValue(
+        'x', '''
+const x = const C.foo();
+
+class C extends B {
+  external const factory C.foo();
+}
+
+class B {}
+''');
+    expect(evaluationResult, isNotNull);
+  }
+
   test_simple_constant() {
     EvaluationResultImpl evaluationResult = _computeTopLevelVariableConstValue(
         'x', '''

@@ -427,6 +427,15 @@ class ConstantEvaluationEngine {
             ConstantEvaluationEngine._getConstructorBase(redirectedConstructor);
         callback(redirectedConstructorBase);
         return;
+      } else if (constant.isFactory) {
+        // Factory constructor, but getConstRedirectedConstructor returned
+        // null.  This can happen if we're visiting one of the special external
+        // const factory constructors in the SDK, or if the code contains
+        // errors (such as delegating to a non-const constructor, or delegating
+        // to a constructor that can't be resolved).  In any of these cases,
+        // we'll evaluate calls to this constructor without having to refer to
+        // any other constants.  So we don't need to report any dependencies.
+        return;
       }
       bool superInvocationFound = false;
       List<ConstructorInitializer> initializers = constant.constantInitializers;
