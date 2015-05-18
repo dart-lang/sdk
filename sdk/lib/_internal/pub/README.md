@@ -1,4 +1,4 @@
-# Contibuting to pub
+# Contributing to pub
 
 Thanks for being interested in contributing to pub! Contributing to a new
 project can be hard: there's a lot of new code and practices to learn. This
