@@ -65,11 +65,19 @@ typedef unsigned __int64 uint64_t;
 
 #include <assert.h>
 
+
 /*
- * =======
- * Handles
- * =======
+ * ========
+ * Isolates
+ * ========
  */
+
+/**
+ * A port is used to send or receive inter-isolate messages. It is also used
+ * to identify an isolate (see Dart_Isolate).
+ */
+typedef int64_t Dart_Port;
+
 
 /**
  * An isolate is the unit of concurrency in Dart. Each isolate has
@@ -78,12 +86,24 @@ typedef unsigned __int64 uint64_t;
  *
  * Each thread keeps track of its current isolate, which is the
  * isolate which is ready to execute on the current thread. The
- * current isolate may be NULL, in which case no isolate is ready to
- * execute. Most of the Dart apis require there to be a current
+ * current isolate may be DART_ILLEGAL_ISOLATE, in which case no isolate is
+ * ready to execute. Most of the Dart apis require there to be a current
  * isolate in order to function without error. The current isolate is
  * set by any call to Dart_CreateIsolate or Dart_EnterIsolate.
  */
-typedef struct _Dart_Isolate* Dart_Isolate;
+typedef Dart_Port Dart_Isolate;
+
+/**
+ * DART_ILLEGAL_ISOLATE is an isolate id that is  guaranteed never to be associated
+ * with a valid isolate.
+ */
+#define DART_ILLEGAL_ISOLATE ((Dart_Isolate) 0)
+
+/*
+ * =======
+ * Handles
+ * =======
+ */
 
 /**
  * An object reference managed by the Dart VM garbage collector.
@@ -937,6 +957,8 @@ DART_EXPORT void* Dart_CurrentIsolateData();
  * was passed to the isolate when it was created.
  * The embedder is responsible for ensuring the consistency of this data
  * with respect to the lifecycle of an Isolate.
+ *
+ * \return pointer to data or NULL if the isolate could not be found.
  */
 DART_EXPORT void* Dart_IsolateData(Dart_Isolate isolate);
 
@@ -954,8 +976,10 @@ DART_EXPORT Dart_Handle Dart_DebugName();
  *
  * Requires there to be no current isolate. Multiple threads may not be in
  * the same isolate at once.
+ *
+ * \return true if isolate was entered, false otherwise.
  */
-DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate);
+DART_EXPORT bool Dart_EnterIsolate(Dart_Isolate isolate);
 
 /**
  * Notifies the VM that the current isolate is about to make a blocking call.
@@ -1040,8 +1064,10 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
  * Dart_IsolateInterruptCallback).
  *
  * \param isolate The isolate to be interrupted.
+ *
+ * \return true if isolate is scheduled to be be interrupted, false otherwise.
  */
-DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate);
+DART_EXPORT bool Dart_InterruptIsolate(Dart_Isolate isolate);
 
 /**
  * Make isolate runnable.
@@ -1052,6 +1078,8 @@ DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate);
  * This function does not expect there to be a current isolate.
  *
  * \param isolate The isolate to be made runnable.
+ *
+ * \return true if isolate was made runnable, false otherwise.
  */
 DART_EXPORT bool Dart_IsolateMakeRunnable(Dart_Isolate isolate);
 
@@ -1063,15 +1091,10 @@ DART_EXPORT bool Dart_IsolateMakeRunnable(Dart_Isolate isolate);
  */
 
 /**
- * A port is used to send or receive inter-isolate messages
+ * DART_ILLEGAL_PORT is a port number guaranteed never to be associated with a
+ * valid port.
  */
-typedef int64_t Dart_Port;
-
-/**
- * ILLEGAL_PORT is a port number guaranteed never to be associated with a valid
- * port.
- */
-#define ILLEGAL_PORT ((Dart_Port) 0)
+#define DART_ILLEGAL_PORT ((Dart_Port) 0)
 
 /**
  * A message notification callback.
@@ -2786,8 +2809,8 @@ DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate);
 /**
  * Returns the port that script load requests should be sent on.
  *
- * \return Returns the port for load requests or ILLEGAL_PORT if the service
- * isolate failed to startup or does not support load requests.
+ * \return Returns the port for load requests or DART_ILLEGAL_PORT if the
+ * service isolate failed to startup or does not support load requests.
  */
 DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort();
 

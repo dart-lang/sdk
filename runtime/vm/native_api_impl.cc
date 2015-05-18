@@ -44,7 +44,7 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
   if (handler == NULL) {
     OS::PrintErr("%s expects argument 'handler' to be non-null.\n",
                  CURRENT_FUNC);
-    return ILLEGAL_PORT;
+    return DART_ILLEGAL_PORT;
   }
   // Start the native port without a current isolate.
   IsolateSaver saver(Isolate::Current());

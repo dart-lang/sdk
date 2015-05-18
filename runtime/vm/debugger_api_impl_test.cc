@@ -1354,11 +1354,11 @@ TEST_CASE(Debug_InspectObject) {
 }
 
 
-static Dart_IsolateId test_isolate_id = ILLEGAL_ISOLATE_ID;
+static Dart_IsolateId test_isolate_id = DART_ILLEGAL_ISOLATE_ID;
 static int verify_callback = 0;
 static void TestIsolateID(Dart_IsolateId isolate_id, Dart_IsolateEvent kind) {
   if (kind == kCreated) {
-    EXPECT(test_isolate_id == ILLEGAL_ISOLATE_ID);
+    EXPECT(test_isolate_id == DART_ILLEGAL_ISOLATE_ID);
     test_isolate_id = isolate_id;
     Dart_Isolate isolate = Dart_GetIsolate(isolate_id);
     EXPECT(isolate == Dart_CurrentIsolate());
@@ -1391,12 +1391,12 @@ UNIT_TEST_CASE(Debug_IsolateID) {
 
   Dart_SetIsolateEventHandler(&TestIsolateID);
   Dart_Isolate isolate = TestCase::CreateTestIsolate();
-  ASSERT(isolate != NULL);
+  ASSERT(isolate != DART_ILLEGAL_ISOLATE);
   Dart_EnterScope();
   LoadScript(kScriptChars);
   Dart_Handle retval = Invoke("main");
   EXPECT_VALID(retval);
-  EXPECT(test_isolate_id != ILLEGAL_ISOLATE_ID);
+  EXPECT(test_isolate_id != DART_ILLEGAL_ISOLATE_ID);
   EXPECT(Dart_GetIsolate(test_isolate_id) == isolate);
   EXPECT(Dart_GetIsolateId(isolate) == test_isolate_id);
   Dart_ExitScope();
@@ -1408,7 +1408,7 @@ UNIT_TEST_CASE(Debug_IsolateID) {
 static Monitor* sync = NULL;
 static bool isolate_interrupted = false;
 static bool pause_event_handled = false;
-static Dart_IsolateId interrupt_isolate_id = ILLEGAL_ISOLATE_ID;
+static Dart_IsolateId interrupt_isolate_id = DART_ILLEGAL_ISOLATE_ID;
 static volatile bool continue_isolate_loop = true;
 
 
@@ -1423,7 +1423,7 @@ static void InterruptIsolateHandler(Dart_IsolateId isolateId,
 static void TestInterruptIsolate(Dart_IsolateId isolate_id,
                                  Dart_IsolateEvent kind) {
   if (kind == kCreated) {
-    EXPECT(interrupt_isolate_id == ILLEGAL_ISOLATE_ID);
+    EXPECT(interrupt_isolate_id == DART_ILLEGAL_ISOLATE_ID);
     // Indicate that the isolate has been created.
     {
       MonitorLocker ml(sync);
@@ -1441,7 +1441,7 @@ static void TestInterruptIsolate(Dart_IsolateId isolate_id,
   } else if (kind == kShutdown) {
     if (interrupt_isolate_id == isolate_id) {
       MonitorLocker ml(sync);
-      interrupt_isolate_id = ILLEGAL_ISOLATE_ID;
+      interrupt_isolate_id = DART_ILLEGAL_ISOLATE_ID;
       ml.Notify();
     }
   }
@@ -1483,7 +1483,7 @@ static void InterruptIsolateRun(uword unused) {
       "}                            \n";
 
   Dart_Isolate isolate = TestCase::CreateTestIsolate();
-  ASSERT(isolate != NULL);
+  ASSERT(isolate != DART_ILLEGAL_ISOLATE);
   Dart_EnterScope();
   LoadScript(kScriptChars);
 
@@ -1502,7 +1502,7 @@ static void InterruptIsolateRun(uword unused) {
 TEST_CASE(Debug_InterruptIsolate) {
   Dart_SetIsolateEventHandler(&TestInterruptIsolate);
   sync = new Monitor();
-  EXPECT(interrupt_isolate_id == ILLEGAL_ISOLATE_ID);
+  EXPECT(interrupt_isolate_id == DART_ILLEGAL_ISOLATE_ID);
   Dart_SetPausedEventHandler(InterruptIsolateHandler);
   int result = OSThread::Start(InterruptIsolateRun, 0);
   EXPECT_EQ(0, result);
@@ -1510,14 +1510,14 @@ TEST_CASE(Debug_InterruptIsolate) {
   // Wait for the test isolate to be created.
   {
     MonitorLocker ml(sync);
-    while (interrupt_isolate_id == ILLEGAL_ISOLATE_ID) {
+    while (interrupt_isolate_id == DART_ILLEGAL_ISOLATE_ID) {
       ml.Wait();
     }
   }
-  EXPECT(interrupt_isolate_id != ILLEGAL_ISOLATE_ID);
+  EXPECT(interrupt_isolate_id != DART_ILLEGAL_ISOLATE_ID);
 
   Dart_Isolate isolate = Dart_GetIsolate(interrupt_isolate_id);
-  EXPECT(isolate != NULL);
+  EXPECT(isolate != DART_ILLEGAL_ISOLATE);
   Dart_InterruptIsolate(isolate);
 
   // Wait for the test isolate to be interrupted.
@@ -1533,11 +1533,11 @@ TEST_CASE(Debug_InterruptIsolate) {
   // Wait for the test isolate to shutdown.
   {
     MonitorLocker ml(sync);
-    while (interrupt_isolate_id != ILLEGAL_ISOLATE_ID) {
+    while (interrupt_isolate_id != DART_ILLEGAL_ISOLATE_ID) {
       ml.Wait();
     }
   }
-  EXPECT(interrupt_isolate_id == ILLEGAL_ISOLATE_ID);
+  EXPECT(interrupt_isolate_id == DART_ILLEGAL_ISOLATE_ID);
 }
 
 

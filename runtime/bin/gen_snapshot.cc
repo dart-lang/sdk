@@ -171,7 +171,7 @@ static void WriteSnapshotFile(const char* filename,
 class UriResolverIsolateScope {
  public:
   UriResolverIsolateScope() {
-    ASSERT(isolate != NULL);
+    ASSERT(isolate != DART_ILLEGAL_ISOLATE);
     snapshotted_isolate_ = Dart_CurrentIsolate();
     Dart_ExitIsolate();
     Dart_EnterIsolate(isolate);
@@ -179,7 +179,7 @@ class UriResolverIsolateScope {
   }
 
   ~UriResolverIsolateScope() {
-    ASSERT(snapshotted_isolate_ != NULL);
+    ASSERT(snapshotted_isolate_ != DART_ILLEGAL_ISOLATE);
     Dart_ExitScope();
     Dart_ExitIsolate();
     Dart_EnterIsolate(snapshotted_isolate_);
@@ -193,7 +193,7 @@ class UriResolverIsolateScope {
   DISALLOW_COPY_AND_ASSIGN(UriResolverIsolateScope);
 };
 
-Dart_Isolate UriResolverIsolateScope::isolate = NULL;
+Dart_Isolate UriResolverIsolateScope::isolate = DART_ILLEGAL_ISOLATE;
 
 
 static Dart_Handle ResolveUriInWorkingDirectory(const char* script_uri) {
@@ -552,7 +552,7 @@ int main(int argc, char** argv) {
 
   char* error;
   Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, NULL, NULL, &error);
-  if (isolate == NULL) {
+  if (isolate == DART_ILLEGAL_ISOLATE) {
     Log::PrintErr("Error: %s", error);
     free(error);
     exit(255);
@@ -597,7 +597,8 @@ int main(int argc, char** argv) {
 
     // Now we create an isolate into which we load all the code that needs to
     // be in the snapshot.
-    if (Dart_CreateIsolate(NULL, NULL, NULL, NULL, &error) == NULL) {
+    if (Dart_CreateIsolate(
+        NULL, NULL, NULL, NULL, &error) == DART_ILLEGAL_ISOLATE) {
       fprintf(stderr, "%s", error);
       free(error);
       exit(255);

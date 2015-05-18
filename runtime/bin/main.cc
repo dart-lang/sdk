@@ -591,8 +591,8 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
                                isolate_data,
                                error);
 
-  if (isolate == NULL) {
-    return NULL;
+  if (isolate == DART_ILLEGAL_ISOLATE) {
+    return DART_ILLEGAL_ISOLATE;
   }
 
   Dart_EnterScope();
@@ -964,7 +964,7 @@ void main(int argc, char** argv) {
                                                      commandline_package_root,
                                                      &error,
                                                      &exit_code);
-  if (isolate == NULL) {
+  if (isolate == DART_ILLEGAL_ISOLATE) {
     Log::PrintErr("%s\n", error);
     free(error);
     delete [] isolate_name;
@@ -974,7 +974,7 @@ void main(int argc, char** argv) {
 
   Dart_EnterIsolate(isolate);
   ASSERT(isolate == Dart_CurrentIsolate());
-  ASSERT(isolate != NULL);
+  ASSERT(isolate != DART_ILLEGAL_ISOLATE);
   Dart_Handle result;
 
   Dart_EnterScope();

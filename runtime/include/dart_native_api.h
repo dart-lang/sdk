@@ -123,7 +123,7 @@ typedef void (*Dart_NativeMessageHandler)(Dart_Port dest_port_id,
  *                            native port concurrently?
  *
  * \return If successful, returns the port id for the native port.  In
- *   case of error, returns ILLEGAL_PORT.
+ *   case of error, returns DART_ILLEGAL_PORT.
  */
 DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
                                          Dart_NativeMessageHandler handler,

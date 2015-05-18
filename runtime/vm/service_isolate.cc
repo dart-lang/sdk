@@ -109,7 +109,7 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 static Dart_Port ExtractPort(Isolate* isolate, Dart_Handle receivePort) {
   const ReceivePort& rp = Api::UnwrapReceivePortHandle(isolate, receivePort);
   if (rp.IsNull()) {
-    return ILLEGAL_PORT;
+    return DART_ILLEGAL_PORT;
   }
   return rp.Id();
 }
@@ -147,9 +147,9 @@ static RawArray* MakeServiceExitMessage() {
 
 const char* ServiceIsolate::kName = "vm-service";
 Isolate* ServiceIsolate::isolate_ = NULL;
-Dart_Port ServiceIsolate::port_ = ILLEGAL_PORT;
-Dart_Port ServiceIsolate::load_port_ = ILLEGAL_PORT;
-Dart_Port ServiceIsolate::origin_ = ILLEGAL_PORT;
+Dart_Port ServiceIsolate::port_ = DART_ILLEGAL_PORT;
+Dart_Port ServiceIsolate::load_port_ = DART_ILLEGAL_PORT;
+Dart_Port ServiceIsolate::origin_ = DART_ILLEGAL_PORT;
 Dart_IsolateCreateCallback ServiceIsolate::create_callback_ = NULL;
 uint8_t* ServiceIsolate::exit_message_ = NULL;
 intptr_t ServiceIsolate::exit_message_length_ = 0;
@@ -270,7 +270,7 @@ class ServiceIsolateNatives : public AllStatic {
           Dart_Invoke(library, Dart_NewStringFromCString("boot"), 0, NULL);
       ASSERT(!Dart_IsError(result));
       Dart_Port port = ExtractPort(isolate, result);
-      ASSERT(port != ILLEGAL_PORT);
+      ASSERT(port != DART_ILLEGAL_PORT);
       ServiceIsolate::SetServicePort(port);
       Dart_ExitScope();
     }
@@ -356,7 +356,7 @@ bool ServiceIsolate::Exists() {
 
 bool ServiceIsolate::IsRunning() {
   MonitorLocker ml(monitor_);
-  return (port_ != ILLEGAL_PORT) && (isolate_ != NULL);
+  return (port_ != DART_ILLEGAL_PORT) && (isolate_ != NULL);
 }
 
 
@@ -381,7 +381,7 @@ Dart_Port ServiceIsolate::Port() {
 Dart_Port ServiceIsolate::WaitForLoadPort() {
   MonitorLocker ml(monitor_);
 
-  while (initializing_ && (load_port_ == ILLEGAL_PORT)) {
+  while (initializing_ && (load_port_ == DART_ILLEGAL_PORT)) {
     ml.Wait();
   }
 
@@ -487,7 +487,7 @@ void ServiceIsolate::SetServiceIsolate(Isolate* isolate) {
     isolate_->is_service_isolate_ = true;
     origin_ = isolate_->origin_id();
   } else {
-    origin_ = ILLEGAL_PORT;
+    origin_ = DART_ILLEGAL_PORT;
   }
 }
 
@@ -601,12 +601,11 @@ class RunServiceTask : public ThreadPool::Task {
       return;
     }
 
-    isolate =
-        reinterpret_cast<Isolate*>(create_callback(ServiceIsolate::kName,
-                                                   NULL,
-                                                   NULL,
-                                                   NULL,
-                                                   &error));
+    isolate = Api::CastIsolate(create_callback(ServiceIsolate::kName,
+                                               NULL,
+                                               NULL,
+                                               NULL,
+                                               &error));
     if (isolate == NULL) {
       OS::PrintErr("vm-service: Isolate creation error: %s\n", error);
       ServiceIsolate::FinishedInitializing();
@@ -650,7 +649,7 @@ class RunServiceTask : public ThreadPool::Task {
       Dart::ShutdownIsolate();
     }
     ServiceIsolate::SetServiceIsolate(NULL);
-    ServiceIsolate::SetServicePort(ILLEGAL_PORT);
+    ServiceIsolate::SetServicePort(DART_ILLEGAL_PORT);
     if (FLAG_trace_service) {
       OS::Print("vm-service: Shutdown.\n");
     }
@@ -728,7 +727,7 @@ void ServiceIsolate::Shutdown() {
   SendServiceExitMessage();
   {
     MonitorLocker ml(monitor_);
-    while (shutting_down_ && (port_ != ILLEGAL_PORT)) {
+    while (shutting_down_ && (port_ != DART_ILLEGAL_PORT)) {
       ml.Wait();
     }
   }

@@ -20,7 +20,7 @@ Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
     DartUtils::kIOLibPatchURL, io_patch_paths_, true },
 };
 
-Dart_Port Builtin::load_port_ = ILLEGAL_PORT;
+Dart_Port Builtin::load_port_ = DART_ILLEGAL_PORT;
 
 // Patch all the specified patch files in the array 'patch_files' into the
 // library specified in 'library'.

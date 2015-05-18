@@ -11,6 +11,7 @@
 
 #include "vm/ast.h"
 #include "vm/dart.h"
+#include "vm/dart_api_impl.h"
 #include "vm/globals.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
@@ -287,11 +288,11 @@ class TestCase : TestCaseBase {
                                     const char* name) {
     char* err;
     Dart_Isolate isolate = Dart_CreateIsolate(name, NULL, buffer, NULL, &err);
-    if (isolate == NULL) {
+    if (isolate == DART_ILLEGAL_ISOLATE) {
       OS::Print("Creation of isolate failed '%s'\n", err);
       free(err);
     }
-    EXPECT(isolate != NULL);
+    EXPECT(isolate != DART_ILLEGAL_ISOLATE);
     return isolate;
   }
 
@@ -302,19 +303,19 @@ class TestCase : TestCaseBase {
 class TestIsolateScope {
  public:
   TestIsolateScope() {
-    isolate_ = reinterpret_cast<Isolate*>(TestCase::CreateTestIsolate());
+    isolate_ = TestCase::CreateTestIsolate();
     Dart_EnterScope();  // Create a Dart API scope for unit tests.
   }
   ~TestIsolateScope() {
     Dart_ExitScope();  // Exit the Dart API scope created for unit tests.
-    ASSERT(isolate_ == Isolate::Current());
+    ASSERT(isolate_ == Api::CastIsolate(Isolate::Current()));
     Dart_ShutdownIsolate();
-    isolate_ = NULL;
+    isolate_ = DART_ILLEGAL_ISOLATE;
   }
-  Isolate* isolate() const { return isolate_; }
+  Isolate* isolate() const { return Api::CastIsolate(isolate_); }
 
  private:
-  Isolate* isolate_;
+  Dart_Isolate isolate_;
 
   DISALLOW_COPY_AND_ASSIGN(TestIsolateScope);
 };

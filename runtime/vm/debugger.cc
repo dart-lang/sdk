@@ -263,7 +263,7 @@ void Debugger::InvokeEventHandler(DebuggerEvent* event) {
 void Debugger::SignalIsolateEvent(DebuggerEvent::EventType type) {
   if (HasEventHandler()) {
     DebuggerEvent event(isolate_, type);
-    ASSERT(event.isolate_id() != ILLEGAL_ISOLATE_ID);
+    ASSERT(event.isolate_id() != DART_ILLEGAL_ISOLATE_ID);
     if (type == DebuggerEvent::kIsolateInterrupted) {
       DebuggerStackTrace* trace = CollectStackTrace();
       ASSERT(trace->Length() > 0);
@@ -1039,7 +1039,7 @@ RawObject* RemoteObjectCache::GetObj(intptr_t obj_id) const {
 
 Debugger::Debugger()
     : isolate_(NULL),
-      isolate_id_(ILLEGAL_ISOLATE_ID),
+      isolate_id_(DART_ILLEGAL_ISOLATE_ID),
       initialized_(false),
       next_id_(1),
       latent_breakpoints_(NULL),
@@ -1056,7 +1056,7 @@ Debugger::Debugger()
 
 
 Debugger::~Debugger() {
-  isolate_id_ = ILLEGAL_ISOLATE_ID;
+  isolate_id_ = DART_ILLEGAL_ISOLATE_ID;
   ASSERT(!IsPaused());
   ASSERT(latent_breakpoints_ == NULL);
   ASSERT(src_breakpoints_ == NULL);

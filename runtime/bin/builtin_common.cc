@@ -15,7 +15,7 @@ namespace bin {
 
 void Builtin::SetLoadPort(Dart_Port port) {
   load_port_ = port;
-  ASSERT(load_port_ != ILLEGAL_PORT);
+  ASSERT(load_port_ != DART_ILLEGAL_PORT);
   Dart_Handle field_name = DartUtils::NewString("_loadPort");
   ASSERT(!Dart_IsError(field_name));
   Dart_Handle builtin_lib =
