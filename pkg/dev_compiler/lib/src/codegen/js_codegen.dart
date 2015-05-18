@@ -991,6 +991,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     var name = element.name;
 
+    // type literal
+    if (element is ClassElement ||
+        element is DynamicElementImpl ||
+        element is FunctionTypeAliasElement) {
+      return _emitTypeName(fillDynamicTypeArgs(element.type, types));
+    }
+
     // library member
     if (element.enclosingElement is CompilationUnitElement) {
       return _maybeQualifiedName(

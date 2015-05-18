@@ -375,9 +375,12 @@ Object getConstantField(
   return (f == null || f.type != expectedType) ? null : f.value;
 }
 
-ParameterizedType fillDynamicTypeArgs(ParameterizedType t, TypeProvider types) {
-  var dyn = new List.filled(t.typeArguments.length, types.dynamicType);
-  return t.substitute2(dyn, t.typeArguments);
+DartType fillDynamicTypeArgs(DartType t, TypeProvider types) {
+  if (t is ParameterizedType) {
+    var dyn = new List.filled(t.typeArguments.length, types.dynamicType);
+    return t.substitute2(dyn, t.typeArguments);
+  }
+  return t;
 }
 
 /// Similar to [SimpleIdentifier] inGetterContext, inSetterContext, and
