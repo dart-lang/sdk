@@ -209,8 +209,6 @@ class Isolate {
   /**
    * Requests the isolate to pause.
    *
-   * WARNING: This method is experimental and not handled on every platform yet.
-   *
    * The isolate should stop handling events by pausing its event queue.
    * The request will eventually make the isolate stop doing anything.
    * It will be handled before any other messages that are later sent to the
@@ -243,8 +241,6 @@ class Isolate {
   /**
    * Resumes a paused isolate.
    *
-   * WARNING: This method is experimental and not handled on every platform yet.
-   *
    * Sends a message to an isolate requesting that it ends a pause
    * that was requested using the [resumeCapability].
    *
@@ -258,8 +254,6 @@ class Isolate {
 
   /**
    * Asks the isolate to send [response] on [responsePort] when it terminates.
-   *
-   * WARNING: This method is experimental and not handled on every platform yet.
    *
    * The isolate will send a `response` message on `responsePort` as the last
    * thing before it terminates. It will run no further code after the message
@@ -281,8 +275,6 @@ class Isolate {
   /**
    * Stop listening on exit messages from the isolate.
    *
-   * WARNING: This method is experimental and not handled on every platform yet.
-   *
    * If a call has previously been made to [addOnExitListener] with the same
    * send-port, this will unregister the port, and it will no longer receive
    * a message when the isolate terminates.
@@ -294,8 +286,6 @@ class Isolate {
   /**
    * Set whether uncaught errors will terminate the isolate.
    *
-   * WARNING: This method is experimental and not handled on every platform yet.
-   *
    * If errors are fatal, any uncaught error will terminate the isolate
    * event loop and shut down the isolate.
    *
@@ -306,8 +296,6 @@ class Isolate {
 
   /**
    * Requests the isolate to shut down.
-   *
-   * WARNING: This method is experimental and not handled on every platform yet.
    *
    * The isolate is requested to terminate itself.
    * The [priority] argument specifies when this must happen.
@@ -331,8 +319,6 @@ class Isolate {
 
   /**
    * Request that the isolate send [response] on the [responsePort].
-   *
-   * WARNING: This method is experimental and not handled on every platform yet.
    *
    * If the isolate is alive, it will eventually send `response`
    * (defaulting to `null`) on the response port.
@@ -359,8 +345,6 @@ class Isolate {
   /**
    * Requests that uncaught errors of the isolate are sent back to [port].
    *
-   * WARNING: This method is experimental and not handled on every platform yet.
-   *
    * The errors are sent back as two elements lists.
    * The first element is a `String` representation of the error, usually
    * created by calling `toString` on the error.
@@ -375,8 +359,6 @@ class Isolate {
 
   /**
    * Stop listening for uncaught errors through [port].
-   *
-   * WARNING: This method is experimental and not handled on every platform yet.
    *
    * The `port` should be a port that is listening for errors through
    * [addErrorListener]. This call requests that the isolate stops sending
