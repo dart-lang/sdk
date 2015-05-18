@@ -1223,19 +1223,19 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterPrivateClass(cls, Symbols::_LinkedHashMap(), lib);
   pending_classes.Add(cls);
 
-  // Pre-register the profiler library so we can place the vm class
+  // Pre-register the developer library so we can place the vm class
   // UserTag there rather than the core library.
-  lib = Library::LookupLibrary(Symbols::DartProfiler());
+  lib = Library::LookupLibrary(Symbols::DartDeveloper());
   if (lib.IsNull()) {
-    lib = Library::NewLibraryHelper(Symbols::DartProfiler(), true);
+    lib = Library::NewLibraryHelper(Symbols::DartDeveloper(), true);
     lib.SetLoadRequested();
     lib.Register();
-    object_store->set_bootstrap_library(ObjectStore::kProfiler, lib);
+    object_store->set_bootstrap_library(ObjectStore::kDeveloper, lib);
   }
   ASSERT(!lib.IsNull());
-  ASSERT(lib.raw() == Library::ProfilerLibrary());
+  ASSERT(lib.raw() == Library::DeveloperLibrary());
 
-  lib = Library::LookupLibrary(Symbols::DartProfiler());
+  lib = Library::LookupLibrary(Symbols::DartDeveloper());
   ASSERT(!lib.IsNull());
   cls = Class::New<UserTag>();
   RegisterPrivateClass(cls, Symbols::_UserTag(), lib);
@@ -10486,12 +10486,12 @@ void Library::CheckFunctionFingerprints() {
   POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);
 
   all_libs.Clear();
-  all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
-  MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+  all_libs.Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
+  DEVELOPER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
   all_libs.Clear();
-  all_libs.Add(&Library::ZoneHandle(Library::ProfilerLibrary()));
-  PROFILER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+  all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
+  MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
   all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));

@@ -44,7 +44,6 @@ class Bootstrap : public AllStatic {
   static const char* isolate_patch_paths_[];
   static const char* math_patch_paths_[];
   static const char* mirrors_patch_paths_[];
-  static const char* profiler_patch_paths_[];
   static const char* typed_data_patch_paths_[];
 };
 

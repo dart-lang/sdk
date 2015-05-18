@@ -1874,7 +1874,7 @@ static bool RemoveBreakpoint(Isolate* isolate, JSONStream* js) {
 
 static RawClass* GetMetricsClass(Isolate* isolate) {
   const Library& prof_lib =
-      Library::Handle(isolate, Library::ProfilerLibrary());
+      Library::Handle(isolate, Library::DeveloperLibrary());
   ASSERT(!prof_lib.IsNull());
   const String& metrics_cls_name =
       String::Handle(isolate, String::New("Metrics"));

@@ -9,7 +9,7 @@ import 'dart:async';
 
 import 'dart:io';
 
-import 'dart:profiler' show
+import 'dart:developer' show
     UserTag;
 
 import 'package:dart2js_incremental/dart2js_incremental.dart' show

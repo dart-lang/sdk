@@ -293,16 +293,17 @@ namespace dart {
   GRAPH_CORE_INTRINSICS_LIST(V)                                                \
   GRAPH_TYPED_DATA_INTRINSICS_LIST(V)                                          \
 
-#define PROFILER_LIB_INTRINSIC_LIST(V)                                         \
-  V(_UserTag, makeCurrent, UserTag_makeCurrent, 370414636)                     \
-  V(::, _getDefaultTag, UserTag_defaultTag, 1159885970)                        \
-  V(::, _getCurrentTag, Profiler_getCurrentTag, 1182126114)                    \
+#define DEVELOPER_LIB_INTRINSIC_LIST(V)                                        \
+  V(_UserTag, makeCurrent, UserTag_makeCurrent, 788201614)                     \
+  V(::, _getDefaultTag, UserTag_defaultTag, 1080704381)                        \
+  V(::, _getCurrentTag, Profiler_getCurrentTag, 2048029229)                    \
 
 #define ALL_INTRINSICS_NO_INTEGER_LIB_LIST(V)                                  \
   CORE_LIB_INTRINSIC_LIST(V)                                                   \
+  DEVELOPER_LIB_INTRINSIC_LIST(V)                                              \
   MATH_LIB_INTRINSIC_LIST(V)                                                   \
   TYPED_DATA_LIB_INTRINSIC_LIST(V)                                             \
-  PROFILER_LIB_INTRINSIC_LIST(V)
+
 
 #define ALL_INTRINSICS_LIST(V)                                                 \
   ALL_INTRINSICS_NO_INTEGER_LIB_LIST(V)                                        \
