@@ -12,17 +12,13 @@ import 'package:analyzer/src/generated/engine.dart'
     hide AnalysisContextImpl, AnalysisTask;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/plugin/engine_plugin.dart';
-import 'package:plugin/manager.dart';
+import 'package:analyzer/src/task/driver.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
-import 'package:analyzer/src/task/driver.dart';
 
 class AbstractContextTest {
   MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-
-  ExtensionManager extensionManager = new ExtensionManager();
 
   DartSdk sdk = new MockSdk();
   SourceFactory sourceFactory;
@@ -85,13 +81,6 @@ class AbstractContextTest {
   }
 
   void setUp() {
-    // configure TaskManager
-    {
-      EnginePlugin plugin = AnalysisEngine.instance.enginePlugin;
-      if (plugin.taskExtensionPoint == null) {
-        extensionManager.processPlugins([plugin]);
-      }
-    }
     // prepare AnalysisContext
     sourceFactory = new SourceFactory(<UriResolver>[
       new DartUriResolver(sdk),

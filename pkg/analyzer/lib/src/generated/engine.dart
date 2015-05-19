@@ -7,9 +7,9 @@
 
 library engine;
 
-import "dart:math" as math;
 import 'dart:async';
 import 'dart:collection';
+import 'dart:math' as math;
 
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart' as cache;
@@ -21,6 +21,7 @@ import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/src/task/task_dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:plugin/manager.dart';
 
 import '../../instrumentation/instrumentation.dart';
 import 'ast.dart';
@@ -5769,6 +5770,10 @@ class AnalysisEngine {
    */
   TaskManager get taskManager {
     if (_taskManager == null) {
+      if (enginePlugin.taskExtensionPoint == null) {
+        // The plugin wasn't used, so tasks are not registered.
+        new ExtensionManager().processPlugins([enginePlugin]);
+      }
       _taskManager = new TaskManager();
       _taskManager.addTaskDescriptors(enginePlugin.taskDescriptors);
       // TODO(brianwilkerson) Create a way to associate different results with
