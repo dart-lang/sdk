@@ -1137,9 +1137,7 @@ printReachable(SourceNode node) {
   var sb = new StringBuffer();
   helper(n, {indent: 0}) {
     if (indent > 0) {
-      sb
-        ..write("|   " * (indent - 1))
-        ..write("|-- ");
+      sb..write("|   " * (indent - 1))..write("|-- ");
     }
     sb.write(nameFor(n));
     if (seen.contains(n)) {
