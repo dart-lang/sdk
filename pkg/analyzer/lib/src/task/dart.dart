@@ -19,6 +19,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/dart.dart';
@@ -1785,6 +1786,9 @@ class ComputeConstantValueTask extends ConstantEvaluationAnalysisTask {
   TaskDescriptor get descriptor => DESCRIPTOR;
 
   @override
+  bool get handlesDependencyCycles => true;
+
+  @override
   void internalPerform() {
     //
     // Prepare inputs.
@@ -1796,10 +1800,24 @@ class ComputeConstantValueTask extends ConstantEvaluationAnalysisTask {
     AnalysisContext context = constant.context;
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     //
-    // Compute the value of the constant.
+    // Compute the value of the constant, or report an error if there was a
+    // cycle.
     //
-    new ConstantEvaluationEngine(typeProvider, context.declaredVariables)
-        .computeConstantValue(constant);
+    ConstantEvaluationEngine constantEvaluationEngine =
+        new ConstantEvaluationEngine(typeProvider, context.declaredVariables);
+    if (dependencyCycle == null) {
+      constantEvaluationEngine.computeConstantValue(constant);
+    } else {
+      List<ConstantEvaluationTarget> constantsInCycle =
+          <ConstantEvaluationTarget>[];
+      for (WorkItem workItem in dependencyCycle) {
+        if (workItem.descriptor == DESCRIPTOR) {
+          constantsInCycle.add(workItem.target);
+        }
+      }
+      assert(constantsInCycle.isNotEmpty);
+      constantEvaluationEngine.generateCycleError(constantsInCycle, constant);
+    }
     //
     // Record outputs.
     //
@@ -3244,11 +3262,6 @@ class _ExportSourceClosureTaskInput implements TaskInput<List<Source>> {
 }
 
 /**
- * The kind of the source closure to build.
- */
-enum _SourceClosureKind { IMPORT, EXPORT, IMPORT_EXPORT }
-
-/**
  * A [TaskInput] whose value is a list of library sources imported or exported,
  * directly or indirectly by the target [Source].
  */
@@ -3276,6 +3289,11 @@ class _ImportSourceClosureTaskInput implements TaskInput<List<Source>> {
   TaskInputBuilder<List<Source>> createBuilder() =>
       new _SourceClosureTaskInputBuilder(target, _SourceClosureKind.IMPORT);
 }
+
+/**
+ * The kind of the source closure to build.
+ */
+enum _SourceClosureKind { IMPORT, EXPORT, IMPORT_EXPORT }
 
 /**
  * A [TaskInputBuilder] to build values for [_ImportSourceClosureTaskInput].
@@ -3317,6 +3335,12 @@ class _SourceClosureTaskInputBuilder implements TaskInputBuilder<List<Source>> {
   @override
   List<Source> get inputValue {
     return _libraries.map((LibraryElement library) => library.source).toList();
+  }
+
+  @override
+  void currentValueNotAvailable() {
+    // Nothing needs to be done.  moveNext() will simply go on to the next new
+    // source.
   }
 
   @override

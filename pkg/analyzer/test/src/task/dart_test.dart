@@ -1312,18 +1312,9 @@ class ComputeConstantValueTaskTest extends _AbstractDartTaskTest {
     return null;
   }
 
-  fail_circular_reference() {
-    // TODO(paulberry): get this to work.
-    EvaluationResultImpl evaluationResult = _computeTopLevelVariableConstValue(
-        'x', '''
-const x = y + 1;
-const y = x + 1;
-''');
-    expect(evaluationResult, isNotNull);
-    expect(evaluationResult.value, isNull);
-    expect(evaluationResult.errors, hasLength(1));
-    expect(evaluationResult.errors[0].errorCode,
-        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT);
+  fail_circular_reference_one_element() {
+    // See dartbug.com/23490.
+    _checkCircularities('x', [], 'const x = x;');
   }
 
   test_annotation_with_args() {
@@ -1371,6 +1362,24 @@ const x = 1;
     expect(evaluationResult.value.intValue, 1);
   }
 
+  test_circular_reference() {
+    _checkCircularities('x', ['y'], '''
+const x = y + 1;
+const y = x + 1;
+''');
+  }
+
+  test_circular_reference_strongly_connected_component() {
+    // When there is a circularity, all elements in the strongly connected
+    // component should be marked as having an error.
+    _checkCircularities('a', ['b', 'c', 'd'], '''
+const a = b;
+const b = c + d;
+const c = a;
+const d = a;
+''');
+  }
+
   test_dependency() {
     EvaluationResultImpl evaluationResult = _computeTopLevelVariableConstValue(
         'x', '''
@@ -1406,26 +1415,61 @@ const x = 1;
     expect(evaluationResult.value.intValue, 1);
   }
 
+  void _checkCircularities(
+      String variableName, List<String> otherVariables, String content) {
+    // Evaluating the first constant should produce an error.
+    CompilationUnit unit = _resolveUnit(content);
+    _expectCircularityError(_evaluateConstant(unit, variableName));
+    // And all the other constants involved in the strongly connected component
+    // should be set to the same error state.
+    for (String otherVariableName in otherVariables) {
+      PropertyInducingElement otherVariableElement =
+          _findVariable(unit, otherVariableName);
+      _expectCircularityError(
+          (otherVariableElement as TopLevelVariableElementImpl).evaluationResult);
+    }
+  }
+
   EvaluationResultImpl _computeTopLevelVariableConstValue(
       String variableName, String content) {
-    Source source = newSource('/test.dart', content);
-    // First compute the resolved unit for the source.
-    LibrarySpecificUnit librarySpecificUnit =
-        new LibrarySpecificUnit(source, source);
-    _computeResult(librarySpecificUnit, RESOLVED_UNIT1);
-    CompilationUnit unit = outputs[RESOLVED_UNIT1];
+    return _evaluateConstant(_resolveUnit(content), variableName);
+  }
+
+  EvaluationResultImpl _evaluateConstant(
+      CompilationUnit unit, String variableName) {
     // Find the element for the given constant.
-    List<PropertyAccessorElement> accessors = unit.element.accessors;
-    Element variableElement = accessors
-        .firstWhere((PropertyAccessorElement accessor) {
-      return accessor.isGetter && accessor.name == variableName;
-    }).variable;
+    PropertyInducingElement variableElement = _findVariable(unit, variableName);
     // Now compute the value of the constant.
     _computeResult(variableElement, CONSTANT_VALUE);
     expect(outputs[CONSTANT_VALUE], same(variableElement));
     EvaluationResultImpl evaluationResult =
         (variableElement as TopLevelVariableElementImpl).evaluationResult;
     return evaluationResult;
+  }
+
+  void _expectCircularityError(EvaluationResultImpl evaluationResult) {
+    expect(evaluationResult, isNotNull);
+    expect(evaluationResult.value, isNull);
+    expect(evaluationResult.errors, hasLength(1));
+    expect(evaluationResult.errors[0].errorCode,
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT);
+  }
+
+  PropertyInducingElement _findVariable(
+      CompilationUnit unit, String variableName) {
+    // Find the element for the given constant.
+    return unit.element.topLevelVariables.firstWhere(
+        (TopLevelVariableElement variable) => variable.name == variableName);
+  }
+
+  CompilationUnit _resolveUnit(String content) {
+    Source source = newSource('/test.dart', content);
+    // First compute the resolved unit for the source.
+    LibrarySpecificUnit librarySpecificUnit =
+        new LibrarySpecificUnit(source, source);
+    _computeResult(librarySpecificUnit, RESOLVED_UNIT1);
+    CompilationUnit unit = outputs[RESOLVED_UNIT1];
+    return unit;
   }
 }
 

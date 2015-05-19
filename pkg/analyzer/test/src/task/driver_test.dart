@@ -213,7 +213,54 @@ class AnalysisDriverTest extends AbstractDriverTest {
     expect(analysisDriver.performAnalysisTask(), false);
   }
 
-  test_performAnalysisTask_infiniteLoop() {
+  test_performAnalysisTask_infiniteLoop_handled() {
+    AnalysisTarget target = new TestSource();
+    ResultDescriptor resultA = new ResultDescriptor('resultA', -1);
+    ResultDescriptor resultB = new ResultDescriptor('resultB', -2);
+    // configure tasks
+    TestAnalysisTask task1;
+    TestAnalysisTask task2;
+    TaskDescriptor descriptor1 = new TaskDescriptor('task1',
+        (context, target) => task1, (target) => {
+      'inputB': new SimpleTaskInput<int>(target, resultB)
+    }, [resultA]);
+    TaskDescriptor descriptor2 = new TaskDescriptor('task2',
+        (context, target) => task2, (target) => {
+      'inputA': new SimpleTaskInput<int>(target, resultA)
+    }, [resultB]);
+    task1 = new TestAnalysisTask(context, target,
+        descriptor: descriptor1,
+        results: [resultA],
+        value: 10,
+        handlesDependencyCycles: true);
+    task2 = new TestAnalysisTask(context, target,
+        descriptor: descriptor2,
+        results: [resultB],
+        value: 20,
+        handlesDependencyCycles: true);
+    taskManager.addTaskDescriptor(descriptor1);
+    taskManager.addTaskDescriptor(descriptor2);
+    // configure WorkManager
+    when(workManager1.getNextResultPriority()).thenReturnList(
+        <WorkOrderPriority>[WorkOrderPriority.NORMAL, WorkOrderPriority.NONE]);
+    when(workManager1.getNextResult())
+        .thenReturn(new TargetedResult(target, resultB));
+    // prepare work order
+    while (analysisDriver.performAnalysisTask()) {}
+    Set<TaskDescriptor> expectedCycle = [descriptor1, descriptor2].toSet();
+    expect(task1.dependencyCycle, isNotNull);
+    expect(task1.dependencyCycle.map((workItem) => workItem.descriptor).toSet(),
+        expectedCycle);
+    expect(task2.dependencyCycle, isNotNull);
+    expect(task2.dependencyCycle.map((workItem) => workItem.descriptor).toSet(),
+        expectedCycle);
+    CaughtException exception = context.getCacheEntry(target).exception;
+    expect(exception, isNull);
+    expect(context.getCacheEntry(target).getValue(resultA), 10);
+    expect(context.getCacheEntry(target).getValue(resultB), 20);
+  }
+
+  test_performAnalysisTask_infiniteLoop_unhandled() {
     AnalysisTarget target = new TestSource();
     ResultDescriptor resultA = new ResultDescriptor('resultA', -1);
     ResultDescriptor resultB = new ResultDescriptor('resultB', -2);
@@ -295,7 +342,7 @@ class AnalysisDriverTest extends AbstractDriverTest {
         'task', (context, target) => task, (target) => {}, [result]);
     task = new TestAnalysisTask(context, target,
         descriptor: descriptor, exception: exception);
-    WorkItem item = new WorkItem(context, target, descriptor);
+    WorkItem item = new WorkItem(context, target, descriptor, null);
 
     analysisDriver.performWorkItem(item);
     CacheEntry targetEntry = context.getCacheEntry(item.target);
@@ -310,7 +357,7 @@ class AnalysisDriverTest extends AbstractDriverTest {
     TaskDescriptor descriptor = new TaskDescriptor(
         'task', (context, target) => task, (target) => {}, [result]);
     task = new TestAnalysisTask(context, target, descriptor: descriptor);
-    WorkItem item = new WorkItem(context, target, descriptor);
+    WorkItem item = new WorkItem(context, target, descriptor, null);
 
     analysisDriver.performWorkItem(item);
     CacheEntry targetEntry = context.getCacheEntry(item.target);
@@ -326,7 +373,7 @@ class AnalysisDriverTest extends AbstractDriverTest {
         (target) => {}, [result]);
     CaughtException exception =
         new CaughtException(new AnalysisException(), null);
-    WorkItem item = new WorkItem(context, target, descriptor);
+    WorkItem item = new WorkItem(context, target, descriptor, null);
     item.exception = exception;
 
     analysisDriver.performWorkItem(item);
@@ -342,7 +389,7 @@ class AnalysisDriverTest extends AbstractDriverTest {
         (target) => {'one': inputResult.of(target)},
         [new ResultDescriptor('output', null)]);
     analysisDriver.currentWorkOrder =
-        new WorkOrder(taskManager, new WorkItem(null, null, descriptor));
+        new WorkOrder(taskManager, new WorkItem(null, null, descriptor, null));
 
     analysisDriver.reset();
     expect(analysisDriver.currentWorkOrder, isNull);
@@ -463,7 +510,7 @@ class WorkItemTest extends AbstractDriverTest {
     TaskDescriptor descriptor = new TaskDescriptor('task',
         (context, target) => new TestAnalysisTask(context, target),
         (target) => {}, [new ResultDescriptor('output', null)]);
-    WorkItem item = new WorkItem(context, target, descriptor);
+    WorkItem item = new WorkItem(context, target, descriptor, null);
     AnalysisTask task = item.buildTask();
     expect(task, isNotNull);
   }
@@ -476,7 +523,7 @@ class WorkItemTest extends AbstractDriverTest {
     TaskDescriptor descriptor = new TaskDescriptor('task', (context, target) =>
             new TestAnalysisTask(context, target, results: outputResults),
         (target) => {'one': inputResult.of(target)}, outputResults);
-    WorkItem item = new WorkItem(context, target, descriptor);
+    WorkItem item = new WorkItem(context, target, descriptor, null);
     expect(() => item.buildTask(), throwsStateError);
   }
 
@@ -484,7 +531,7 @@ class WorkItemTest extends AbstractDriverTest {
     AnalysisTarget target = new TestSource();
     TaskDescriptor descriptor = new TaskDescriptor(
         'task', null, (target) => {}, [new ResultDescriptor('result', null)]);
-    WorkItem item = new WorkItem(context, target, descriptor);
+    WorkItem item = new WorkItem(context, target, descriptor, null);
     expect(item, isNotNull);
     expect(item.context, context);
     expect(item.descriptor, descriptor);
@@ -496,8 +543,8 @@ class WorkItemTest extends AbstractDriverTest {
     TaskDescriptor descriptor = new TaskDescriptor('task',
         (context, target) => new TestAnalysisTask(context, target),
         (target) => {}, [new ResultDescriptor('output', null)]);
-    WorkItem item = new WorkItem(context, target, descriptor);
-    WorkItem result = item.gatherInputs(taskManager);
+    WorkItem item = new WorkItem(context, target, descriptor, null);
+    WorkItem result = item.gatherInputs(taskManager, []);
     expect(result, isNull);
     expect(item.exception, isNull);
   }
@@ -516,8 +563,8 @@ class WorkItemTest extends AbstractDriverTest {
     taskManager.addTaskDescriptor(task1);
     taskManager.addTaskDescriptor(task2);
     // gather inputs
-    WorkItem item = new WorkItem(context, target, task2);
-    WorkItem inputItem = item.gatherInputs(taskManager);
+    WorkItem item = new WorkItem(context, target, task2, null);
+    WorkItem inputItem = item.gatherInputs(taskManager, []);
     expect(inputItem, isNotNull);
   }
 
@@ -528,8 +575,8 @@ class WorkItemTest extends AbstractDriverTest {
         (context, target) => new TestAnalysisTask(context, target),
         (target) => {'one': inputResult.of(target)},
         [new ResultDescriptor('output', null)]);
-    WorkItem item = new WorkItem(context, target, descriptor);
-    WorkItem result = item.gatherInputs(taskManager);
+    WorkItem item = new WorkItem(context, target, descriptor, null);
+    WorkItem result = item.gatherInputs(taskManager, []);
     expect(result, isNull);
     expect(item.exception, isNotNull);
   }
@@ -542,7 +589,7 @@ class WorkOrderTest extends EngineTestCase {
     TaskDescriptor descriptor = new TaskDescriptor(
         'task', null, (_) => {}, [new ResultDescriptor('result', null)]);
     WorkOrder order =
-        new WorkOrder(manager, new WorkItem(null, null, descriptor));
+        new WorkOrder(manager, new WorkItem(null, null, descriptor, null));
     expect(order, isNotNull);
     expect(order.currentItems, isNull);
     expect(order.current, isNull);
@@ -552,7 +599,7 @@ class WorkOrderTest extends EngineTestCase {
     TaskManager manager = new TaskManager();
     TaskDescriptor descriptor = new TaskDescriptor(
         'task', null, (_) => {}, [new ResultDescriptor('result', null)]);
-    WorkItem workItem = new WorkItem(null, null, descriptor);
+    WorkItem workItem = new WorkItem(null, null, descriptor, null);
     WorkOrder order = new WorkOrder(manager, workItem);
     // "item" has no child items
     expect(order.moveNext(), isTrue);

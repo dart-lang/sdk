@@ -835,6 +835,37 @@ class ConstantEvaluationEngine {
   }
 
   /**
+   * Generate an error indicating that the given [constant] is not a valid
+   * compile-time constant because it references at least one of the constants
+   * in the given [cycle], each of which directly or indirectly references the
+   * constant.
+   */
+  void generateCycleError(Iterable<ConstantEvaluationTarget> cycle,
+      ConstantEvaluationTarget constant) {
+    if (constant is VariableElement) {
+      RecordingErrorListener errorListener = new RecordingErrorListener();
+      ErrorReporter errorReporter =
+          new ErrorReporter(errorListener, constant.source);
+      // TODO(paulberry): It would be really nice if we could extract enough
+      // information from the 'cycle' argument to provide the user with a
+      // description of the cycle.
+      errorReporter.reportErrorForElement(
+          CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, constant, []);
+      (constant as VariableElementImpl).evaluationResult =
+          new EvaluationResultImpl(null, errorListener.errors);
+    } else if (constant is ConstructorElement) {
+      // We don't report cycle errors on constructor declarations since there
+      // is nowhere to put the error information.
+    } else {
+      // Should not happen.  Formal parameter defaults and annotations should
+      // never appear as part of a cycle because they can't be referred to.
+      assert(false);
+      AnalysisEngine.instance.logger.logError(
+          "Constant value computer trying to report a cycle error for a node of type ${constant.runtimeType}");
+    }
+  }
+
+  /**
    * If [constructor] redirects to another const constructor, return the
    * const constructor it redirects to.  Otherwise return `null`.
    */
@@ -1245,7 +1276,7 @@ class ConstantValueComputer {
         _computeValueFor(constantsInCycle[0]);
       } else {
         for (ConstantEvaluationTarget constant in constantsInCycle) {
-          _generateCycleError(constantsInCycle, constant);
+          evaluationEngine.generateCycleError(constantsInCycle, constant);
         }
       }
     }
@@ -1265,37 +1296,6 @@ class ConstantValueComputer {
       return;
     }
     evaluationEngine.computeConstantValue(constant);
-  }
-
-  /**
-   * Generate an error indicating that the given [constant] is not a valid
-   * compile-time constant because it references at least one of the constants
-   * in the given [cycle], each of which directly or indirectly references the
-   * constant.
-   */
-  void _generateCycleError(
-      List<ConstantEvaluationTarget> cycle, ConstantEvaluationTarget constant) {
-    if (constant is VariableElement) {
-      RecordingErrorListener errorListener = new RecordingErrorListener();
-      ErrorReporter errorReporter =
-          new ErrorReporter(errorListener, constant.source);
-      // TODO(paulberry): It would be really nice if we could extract enough
-      // information from the 'cycle' argument to provide the user with a
-      // description of the cycle.
-      errorReporter.reportErrorForElement(
-          CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, constant, []);
-      (constant as VariableElementImpl).evaluationResult =
-          new EvaluationResultImpl(null, errorListener.errors);
-    } else if (constant is ConstructorElement) {
-      // We don't report cycle errors on constructor declarations since there
-      // is nowhere to put the error information.
-    } else {
-      // Should not happen.  Formal parameter defaults and annotations should
-      // never appear as part of a cycle because they can't be referred to.
-      assert(false);
-      AnalysisEngine.instance.logger.logError(
-          "Constant value computer trying to report a cycle error for a node of type ${constant.runtimeType}");
-    }
   }
 }
 
