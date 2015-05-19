@@ -305,12 +305,12 @@ class CompilerServer {
         .addHandler(shelf_static.createStaticHandler(outDir,
             defaultDocument: _entryPath));
     await shelf.serve(handler, host, port);
-    _log.fine('Serving $_entryPath at http://$host:$port/');
+    print('Serving $_entryPath at http://$host:$port/');
     compiler.run();
   }
 
   shelf.Handler rebuildAndCache(shelf.Handler handler) => (request) {
-    _log.fine('requested $GREEN_COLOR${request.url}$NO_COLOR');
+    print('requested $GREEN_COLOR${request.url}$NO_COLOR');
     // Trigger recompile only when requesting the HTML page.
     var segments = request.url.pathSegments;
     bool isEntryPage = segments.length == 0 || segments[0] == _entryPath;

@@ -63,7 +63,21 @@ UriResolver _createImplicitEntryResolver(ResolverOptions options) {
   var provider = new MemoryResourceProvider();
   provider.newFile(
       entry, '<body><script type="application/dart" src="$src"></script>');
-  return new ResourceUriResolver(provider);
+  return new ExistingSourceUriResolver(new ResourceUriResolver(provider));
+}
+
+/// A UriResolver that continues to the next one if it fails to find an existing
+/// source file. This is unlike normal URI resolvers, that always return
+/// something, even if it is a non-existing file.
+class ExistingSourceUriResolver implements UriResolver {
+  final UriResolver resolver;
+  ExistingSourceUriResolver(this.resolver);
+
+  Source resolveAbsolute(Uri uri) {
+    var src = resolver.resolveAbsolute(uri);
+    return src.exists() ? src : null;
+  }
+  Uri restoreAbsolute(Source source) => resolver.restoreAbsolute(source);
 }
 
 /// Creates an analysis context that contains our restricted typing rules.

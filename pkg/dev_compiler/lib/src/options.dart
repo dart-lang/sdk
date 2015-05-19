@@ -260,6 +260,7 @@ CompilerOptions parseOptions(List<String> argv) {
   if (enableHashing == null) {
     enableHashing = serverMode;
   }
+  // TODO(jmesserly): shouldn't level always default to warning?
   var logLevel = serverMode ? Level.WARNING : Level.SEVERE;
   var levelName = args['log'];
   if (levelName != null) {
