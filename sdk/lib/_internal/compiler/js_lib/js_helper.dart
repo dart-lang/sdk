@@ -57,8 +57,6 @@ import 'dart:_foreign_helper' show
     JS_GET_NAME,
     JS_HAS_EQUALS,
     JS_IS_INDEXABLE_FIELD_NAME,
-    JS_NULL_CLASS_NAME,
-    JS_OBJECT_CLASS_NAME,
     JS_OPERATOR_AS_PREFIX,
     JS_SIGNATURE_NAME,
     JS_STRING_CONCAT,
@@ -115,14 +113,6 @@ createDartFunctionType() {
                     JsBuiltin.createFunctionType);
 }
 
-/// Returns true if the given [type] is _the_ `Function` type.
-// TODO(floitsch): move this to foreign_helper.dart or similar.
-@ForceInline()
-bool isDartFunctionTypeLiteral(Object type) {
-  return JS_BUILTIN('returns:bool;effects:none;depends:none',
-                    JsBuiltin.isFunctionTypeLiteral, type);
-}
-
 /// Retrieves the class name from type information stored on the constructor of
 /// [type].
 // TODO(floitsch): move this to foreign_helper.dart or similar.
@@ -147,9 +137,34 @@ Object getRawRuntimeType(Object o) {
 ///
 /// The argument [other] is the name of the other type, as computed by
 /// [runtimeTypeToString].
+@ForceInline()
 bool builtinIsSubtype(type, String other) {
   return JS_BUILTIN('returns:bool;effects:none;depends:none',
                     JsBuiltin.isSubtype, other, type);
+}
+
+/// Returns true if the given [type] is _the_ `Function` type.
+// TODO(floitsch): move this to foreign_helper.dart or similar.
+@ForceInline()
+bool isDartFunctionTypeRti(Object type) {
+  return JS_BUILTIN('returns:bool;effects:none;depends:none',
+                    JsBuiltin.isFunctionTypeRti, type);
+}
+
+/// Returns whether the given type is _the_ Dart Object type.
+// TODO(floitsch): move this to foreign_helper.dart or similar.
+@ForceInline()
+bool isDartObjectTypeRti(type) {
+  return JS_BUILTIN('returns:bool;effects:none;depends:none',
+                    JsBuiltin.isDartObjectTypeRti, type);
+}
+
+/// Returns whether the given type is _the_ null type.
+// TODO(floitsch): move this to foreign_helper.dart or similar.
+@ForceInline()
+bool isNullTypeRti(type) {
+  return JS_BUILTIN('returns:bool;effects:none;depends:none',
+                    JsBuiltin.isNullTypeRti, type);
 }
 
 /// Returns the metadata of the given [index].

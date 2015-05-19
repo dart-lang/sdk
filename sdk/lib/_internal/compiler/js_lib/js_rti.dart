@@ -364,8 +364,7 @@ computeSignature(var signature, var context, var contextName) {
  */
 bool isSupertypeOfNull(var type) {
   // `null` means `dynamic`.
-  return type == null || getDartTypeName(type) == JS_OBJECT_CLASS_NAME()
-                      || getDartTypeName(type) == JS_NULL_CLASS_NAME();
+  return type == null || isDartObjectTypeRti(type) || isNullTypeRti(type);
 }
 
 /**
@@ -444,7 +443,7 @@ bool isSubtype(var s, var t) {
   }
   // Check function types against the Function class.
   if (isDartFunctionType(s)) {
-    return isDartFunctionTypeLiteral(t);
+    return isDartFunctionTypeRti(t);
   }
 
   // Get the object describing the class and check for the subtyping flag

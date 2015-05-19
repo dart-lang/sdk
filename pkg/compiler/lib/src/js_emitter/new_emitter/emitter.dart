@@ -147,13 +147,6 @@ class Emitter implements emitterTask.Emitter {
       case JsBuiltin.isFunctionType:
         return _backend.rti.representationGenerator.templateForIsFunctionType;
 
-      case JsBuiltin.isFunctionTypeLiteral:
-        String functionClassName =
-            _backend.namer.runtimeTypeName(_compiler.functionClass);
-
-        return js.js.expressionTemplateFor(
-            '#.$typeNameProperty === "$functionClassName"');
-
       case JsBuiltin.typeName:
         return js.js.expressionTemplateFor("#.$typeNameProperty");
 
@@ -169,6 +162,24 @@ class Emitter implements emitterTask.Emitter {
         // built.
         String isPrefix = namer.operatorIsPrefix;
         return js.js.expressionTemplateFor("('$isPrefix' + #) in #.prototype");
+
+      case JsBuiltin.isFunctionTypeRti:
+        String functionClassName =
+            _backend.namer.runtimeTypeName(_compiler.functionClass);
+        return js.js.expressionTemplateFor(
+            '#.$typeNameProperty === "$functionClassName"');
+
+      case JsBuiltin.isNullTypeRti:
+        String nullClassName =
+            _backend.namer.runtimeTypeName(_compiler.nullClass);
+        return js.js.expressionTemplateFor(
+            '#.$typeNameProperty === "$nullClassName"');
+
+      case JsBuiltin.isDartObjectTypeRti:
+        String dartObjectClassName =
+            _backend.namer.runtimeTypeName(_compiler.objectClass);
+        return js.js.expressionTemplateFor(
+            '#.$typeNameProperty === "$dartObjectClassName"');
 
       case JsBuiltin.getMetadata:
         return _emitter.templateForReadMetadata;

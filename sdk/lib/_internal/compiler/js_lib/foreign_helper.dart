@@ -202,12 +202,6 @@ JS_INTERCEPTOR_CONSTANT(Type type) {}
  */
 String JS_OPERATOR_AS_PREFIX() {}
 
-/// Returns the name of the class `Object` in the generated code.
-String JS_OBJECT_CLASS_NAME() {}
-
-/// Returns the name of the class `Null` in the generated code.
-String JS_NULL_CLASS_NAME() {}
-
 /**
  * Returns the field name used for determining if an object or its
  * interceptor has JavaScript indexing behavior.

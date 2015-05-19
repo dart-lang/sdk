@@ -121,12 +121,6 @@ enum JsBuiltin {
   ///     JS_BUILTIN('bool', JsBuiltin.isFunctionType, o)
   isFunctionType,
 
-  /// Returns true if the given type is the `Function` type literal.
-  ///
-  ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
-  ///                JsBuiltin.isFunctionTypeLiteral, type);
-  isFunctionTypeLiteral,
-
   /// Returns a new function type object.
   ///
   ///     JS_BUILTIN('=Object', JsBuiltin.createFunctionType)
@@ -153,6 +147,26 @@ enum JsBuiltin {
   ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
   ///                JsBuiltin.isSubtype, other, type);
   isSubtype,
+
+  /// Returns true if the given type is _the_ `Function` type.
+  /// That is, it returns true if the given [type] is exactly the `Function`
+  /// type rti-encoding.
+  ///
+  ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
+  ///                JsBuiltin.isFunctionTypeLiteral, type);
+  isFunctionTypeRti,
+
+  /// Returns whether the given type is _the_ null-type..
+  ///
+  ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
+  ///                JsBuiltin.isNullType, type);
+  isNullTypeRti,
+
+  /// Returns whether the given type is _the_ Dart Object type.
+  ///
+  ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
+  ///                JsBuiltin.isDartObjectType, type);
+  isDartObjectTypeRti,
 
   /// Returns the metadata of the given [index].
   ///

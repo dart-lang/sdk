@@ -4165,14 +4165,6 @@ class SsaBuilder extends NewResolvedVisitor {
       handleForeignRawFunctionRef(node, 'RAW_DART_FUNCTION_REF');
     } else if (name == 'JS_SET_CURRENT_ISOLATE') {
       handleForeignSetCurrentIsolate(node);
-    } else if (name == 'JS_OBJECT_CLASS_NAME') {
-      // TODO(floitsch): this should be a JS_NAME.
-      String name = backend.namer.runtimeTypeName(compiler.objectClass);
-      stack.add(addConstantString(name));
-    } else if (name == 'JS_NULL_CLASS_NAME') {
-      // TODO(floitsch): this should be a JS_NAME.
-      String name = backend.namer.runtimeTypeName(compiler.nullClass);
-      stack.add(addConstantString(name));
     } else if (name == 'JS_OPERATOR_AS_PREFIX') {
       // TODO(floitsch): this should be a JS_NAME.
       stack.add(addConstantString(backend.namer.operatorAsPrefix));

@@ -283,12 +283,6 @@ class OldEmitter implements Emitter {
       case JsBuiltin.isFunctionType:
         return backend.rti.representationGenerator.templateForIsFunctionType;
 
-      case JsBuiltin.isFunctionTypeLiteral:
-        String functionClassName =
-            backend.namer.runtimeTypeName(compiler.functionClass);
-        return jsAst.js.expressionTemplateFor(
-          '#.$typeNameProperty === "$functionClassName"');
-
       case JsBuiltin.typeName:
         return jsAst.js.expressionTemplateFor("#.$typeNameProperty");
 
@@ -305,6 +299,24 @@ class OldEmitter implements Emitter {
         String isPrefix = namer.operatorIsPrefix;
         return jsAst.js.expressionTemplateFor(
             "('$isPrefix' + #) in #.prototype");
+
+      case JsBuiltin.isFunctionTypeRti:
+        String functionClassName =
+            backend.namer.runtimeTypeName(compiler.functionClass);
+        return jsAst.js.expressionTemplateFor(
+            '#.$typeNameProperty === "$functionClassName"');
+
+      case JsBuiltin.isDartObjectTypeRti:
+        String objectClassName =
+            backend.namer.runtimeTypeName(compiler.objectClass);
+        return jsAst.js.expressionTemplateFor(
+            '#.$typeNameProperty === "$objectClassName"');
+
+      case JsBuiltin.isNullTypeRti:
+        String nullClassName =
+            backend.namer.runtimeTypeName(compiler.nullClass);
+        return jsAst.js.expressionTemplateFor(
+            '#.$typeNameProperty === "$nullClassName"');
 
       case JsBuiltin.getMetadata:
         String metadataAccess =
