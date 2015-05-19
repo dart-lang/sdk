@@ -290,7 +290,7 @@ abstract class Interceptor {
 
   int get hashCode => Primitives.objectHashCode(this);
 
-  String toString() => Primitives.objectToString(this);
+  String toString() => Primitives.objectToHumanReadableString(this);
 
   dynamic noSuchMethod(Invocation invocation) {
     throw new NoSuchMethodError(

@@ -104,16 +104,16 @@ enum JsBuiltin {
   ///       ...
   dartObjectConstructor,
 
-  /// Returns the class name given an [isCheckProperty].
+  /// Returns the JavaScript-constructor name given an [isCheckProperty].
   ///
   /// This relies on a deterministic encoding of is-check properties (for
   /// example `$isFoo` for a class `Foo`). In minified code the returned
   /// classname is the minified name of the class.
   ///
   ///     JS_BUILTIN('returns:String;depends:none;effects:none',
-  ///                JsBuiltin.classNameFromIsCheckProperty,
+  ///                JsBuiltin.isCheckPropertyToJsConstructorName,
   ///                isCheckProperty);
-  classNameFromIsCheckProperty,
+  isCheckPropertyToJsConstructorName,
 
   /// Returns true if the given type is a function type. Returns false for
   /// the one `Function` type singleton. (See [isFunctionTypeSingleton]).
@@ -124,12 +124,12 @@ enum JsBuiltin {
   /// Returns a new function type object.
   ///
   ///     JS_BUILTIN('=Object', JsBuiltin.createFunctionType)
-  createFunctionType,
+  createFunctionTypeRti,
 
-  /// Returns the class name of the given type.
+  /// Returns the JavaScript-constructor name given an rti encoding.
   ///
-  ///     JS_BUILTIN('String', JsBuiltin.typeName, type)
-  typeName,
+  ///     JS_BUILTIN('String', JsBuiltin.rawRtiToJsConstructorName, rti)
+  rawRtiToJsConstructorName,
 
   /// Returns the raw runtime type of the given object. The given argument
   /// [o] should be the interceptor (for non-Dart objects).
