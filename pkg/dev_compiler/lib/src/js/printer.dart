@@ -861,8 +861,14 @@ class Printer implements NodeVisitor {
     out("=>");
     if (fun.body is Expression) {
       spaceOut();
+      // Object initializers require parenthesis to disambiguate
+      // AssignmentExpression from FunctionBody. See:
+      // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-arrow-function-definitions
+      var needsParen = fun.body is ObjectInitializer;
+      if (needsParen) out("(");
       visitNestedExpression(fun.body, ASSIGNMENT,
           newInForInit: false, newAtStatementBegin: false);
+      if (needsParen) out(")");
     } else {
       blockBody(fun.body, needsSeparation: false, needsNewline: false);
     }
@@ -920,14 +926,11 @@ class Printer implements NodeVisitor {
   }
 
   visitObjectInitializer(ObjectInitializer node) {
-    // Print all the properties on one line until we see a function-valued
-    // property.  Ideally, we would use a proper pretty-printer to make the
-    // decision based on layout.
     List<Property> properties = node.properties;
     out("{");
     indentMore();
 
-    var isOneLiner = !properties.any((p) => p.value is FunctionExpression);
+    var isOneLiner = !node.vertical;
     for (int i = 0; i < properties.length; i++) {
       if (i != 0) {
         out(",");

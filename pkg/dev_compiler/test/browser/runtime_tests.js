@@ -92,7 +92,6 @@ suite('instanceOf', () => {
   let cast = dart.as;
   let instanceOf = dart.is;
   let runtimeType = dart.realRuntimeType;
-  let setRuntimeType = dart.setRuntimeType;
   let functionType = dart.functionType;
   let typedef = dart.typedef;
 
@@ -125,35 +124,52 @@ suite('instanceOf', () => {
   // TODO(vsm): Revisit when we encode types on functions properly.
   // A bar1(C c, String s) => null;
   function bar1(c, s) { return null; }
-  setRuntimeType(bar1, functionType(A, [C, String]));
+  dart.fn(bar1, A, [C, String]);
 
   // bar2(B b, String s) => null;
   function bar2(b, s) { return null; }
-  setRuntimeType(bar2, functionType(dynamic, [B, String]));
+  dart.fn(bar2, dynamic, [B, String]);
 
   // B bar3(B b, Object o) => null;
   function bar3(b, o) { return null; }
-  setRuntimeType(bar3, functionType(B, [B, Object]));
+  dart.fn(bar3, B, [B, Object]);
 
   // B bar4(B b, o) => null;
   function bar4(b, o) { return null; }
-  setRuntimeType(bar4, functionType(B, [B, dynamic]));
+  dart.fn(bar4, B, [B, dynamic]);
 
   // C bar5(A a, Object o) => null;
   function bar5(a, o) { return null; }
-  setRuntimeType(bar5, functionType(C, [A, Object]));
+  dart.fn(bar5, C, [A, Object]);
 
   // B bar6(B b, String s, String o) => null;
   function bar6(b, s, o) { return null; }
-  setRuntimeType(bar6, functionType(B, [B, String, String]));
+  dart.fn(bar6, B, [B, String, String]);
 
   // B bar7(B b, String s, [Object o]) => null;
   function bar7(b, s, o) { return null; }
-  setRuntimeType(bar7, functionType(B, [B, String], [Object]));
+  dart.fn(bar7, B, [B, String], [Object]);
 
   // B bar8(B b, String s, {Object p}) => null;
   function bar8(b, s, o) { return null; }
-  setRuntimeType(bar8, functionType(B, [B, String], {p: Object}));
+  dart.fn(bar8, B, [B, String], {p: Object});
+
+  let cls1 = dart.fn((c, s) => { return null; }, A, [C, String]);
+
+  let cls2 = dart.fn((b, s) => { return null; }, dynamic, [B, String]);
+
+  let cls3 = dart.fn((b, o) => { return null; }, B, [B, Object]);
+
+  let cls4 = dart.fn((b, o) => { return null; }, B, [B, dynamic]);
+
+  let cls5 = dart.fn((a, o) => { return null; }, C, [A, Object]);
+
+  let cls6 = dart.fn((b, s, o) => { return null; }, B, [B, String, String]);
+
+  let cls7 = dart.fn((b, s, o) => { return null; }, B, [B, String], [Object]);
+
+  let cls8 =
+    dart.fn((b, s, o) => { return null; }, B, [B, String], {p: Object});
 
   function checkType(x, type, expectedTrue) {
     if (expectedTrue === undefined) expectedTrue = true;
@@ -331,32 +347,278 @@ suite('instanceOf', () => {
     expect(isGroundType(Foo), false);
     expect(isGroundType(functionType(B, [B, String])), false);
     checkType(bar1, Foo, false);
+    checkType(cls1, Foo, false);
     checkType(bar1, functionType(B, [B, String]), false);
+    checkType(cls1, functionType(B, [B, String]), false);
     checkType(bar2, Foo, false);
+    checkType(cls2, Foo, false);
     checkType(bar2, functionType(B, [B, String]), false);
+    checkType(cls2, functionType(B, [B, String]), false);
     checkType(bar3, Foo);
+    checkType(cls3, Foo);
     checkType(bar3, functionType(B, [B, String]));
+    checkType(cls3, functionType(B, [B, String]));
     checkType(bar4, Foo, false);
+    checkType(cls4, Foo, false);
     // TODO(vsm): Revisit.  bar4 is (B, *) -> B.  Perhaps it should be treated as top for a reified object.
     checkType(bar4, functionType(B, [B, String]), false);
+    checkType(cls4, functionType(B, [B, String]), false);
     checkType(bar5, Foo);
+    checkType(cls5, Foo);
     checkType(bar5, functionType(B, [B, String]));
+    checkType(cls5, functionType(B, [B, String]));
     checkType(bar6, Foo, false);
+    checkType(cls6, Foo, false);
     checkType(bar6, functionType(B, [B, String]), false);
+    checkType(cls6, functionType(B, [B, String]), false);
     checkType(bar7, Foo);
+    checkType(cls7, Foo);
     checkType(bar7, functionType(B, [B, String]));
+    checkType(cls7, functionType(B, [B, String]));
     checkType(bar7, runtimeType(bar6));
+    checkType(cls7, runtimeType(bar6));
     checkType(bar8, Foo);
+    checkType(cls8, Foo);
     checkType(bar8, functionType(B, [B, String]));
+    checkType(cls8, functionType(B, [B, String]));
     checkType(bar8, runtimeType(bar6), false);
+    checkType(cls8, runtimeType(bar6), false);
     checkType(bar7, runtimeType(bar8), false);
+    checkType(cls7, runtimeType(bar8), false);
     checkType(bar8, runtimeType(bar7), false);
+    checkType(cls8, runtimeType(bar7), false);
 
     // Parameterized typedefs
     expect(isGroundType(FuncG), true);
     expect(isGroundType(FuncG$(B, String)), false);
     checkType(bar1, FuncG$(B, String), false);
+    checkType(cls1, FuncG$(B, String), false);
     checkType(bar3, FuncG$(B, String));
+    checkType(cls3, FuncG$(B, String));
+  });
+
+  test('dcall', () => {
+    function dd2d(x, y) {return x};
+    dart.fn(dd2d);
+    function ii2i(x, y) {return x};
+    dart.fn(ii2i, core.int, [core.int, core.int]);
+    function ii_2i(x, y) {return x};
+    dart.fn(ii_2i, core.int, [core.int], [core.int]);
+    function i_i2i(x, opts) {return x};
+    dart.fn(i_i2i, core.int, [core.int], {extra: core.int});
+
+    assert.equal(dart.dcall(dd2d, 0, 1), 0);
+    assert.equal(dart.dcall(dd2d, "hello", "world"), "hello");
+    assert.throws(() => dart.dcall(dd2d, 0));
+    assert.throws(() => dart.dcall(dd2d, 0, 1, 2));
+    assert.throws(() => dart.dcall(dd2d, 0, 1, {extra : 3}));
+    // This should throw but currently doesn't.
+    //    assert.throws(() => dart.dcall(dd2d, 0, {extra:3}));
+
+    assert.equal(dart.dcall(ii2i, 0, 1), 0);
+    assert.throws(() => dart.dcall(ii2i, "hello", "world"));
+    assert.throws(() => dart.dcall(ii2i, 0));
+    assert.throws(() => dart.dcall(ii2i, 0, 1, 2));
+
+    assert.equal(dart.dcall(ii_2i, 0, 1), 0);
+    assert.throws(() => dart.dcall(ii_2i, "hello", "world"));
+    assert.equal(dart.dcall(ii_2i, 0), 0);
+    assert.throws(() => dart.dcall(ii_2i, 0, 1, 2));
+
+    assert.throws(() => dart.dcall(i_i2i, 0, 1));
+    assert.throws(() => dart.dcall(i_i2i, "hello", "world"));
+    assert.equal(dart.dcall(i_i2i, 0), 0);
+    assert.throws(() => dart.dcall(i_i2i, 0, 1, 2));
+    assert.equal(dart.dcall(i_i2i, 0, {extra: 3}), 0);
+  });
+
+  test('dsend', () => {
+    class Tester extends core.Object {
+      Tester() {
+        this.f = dart.fn(x => x, core.int, [core.int]);
+        this.me = this;
+      }
+      m(x, y) {return x;}
+      call(x) {return x;}
+      static s(x, y) { return x;}
+    }
+    dart.setSignature(Tester, {
+      methods: () => ({
+        m: dart.functionType(core.int, [core.int, core.int]),
+        call: dart.functionType(core.int, [core.int])
+      }),
+      statics: () => ({
+        s: dart.functionType(core.String, [core.String])
+      }),
+      names: ['s']
+    })
+    let o = new Tester();
+
+    // Method send
+    assert.equal(dart.dsend(o, 'm', 3, 4), 3);
+    assert.throws(() => dart.dsend(o, 'm', 3));
+    assert.throws(() => dart.dsend(o, 'm', "hello", "world"));
+    assert.throws(() => dart.dsend(o, 'q', 3));
+
+    // Method send through a field
+    assert.equal(dart.dsend(o, 'f', 3), 3);
+    assert.throws(() => dart.dsend(o, 'f', "hello"));
+    assert.throws(() => dart.dsend(o, 'f', 3, 4));
+
+    // Static method call
+    assert.equal(dart.dcall(Tester.s, "hello"), "hello");
+    assert.throws(() => dart.dcall(Tester.s, "hello", "world"));
+    assert.throws(() => dart.dcall(Tester.s, 0, 1));
+
+    // Calling an object with a call method
+    assert.equal(dart.dcall(o, 3), 3);
+    assert.throws(() => dart.dcall(o, "hello"));
+    assert.throws(() => dart.dcall(o, 3, 4));
+
+    // Calling through a field containing an object with a call method
+    assert.equal(dart.dsend(o, 'me', 3), 3);
+    assert.throws(() => dart.dsend(o, 'me', "hello"));
+    assert.throws(() => dart.dsend(o, 'me', 3, 4));
+  });
+
+  test('Types on top level functions', () => {
+    // Test some generated code
+    // Test the lazy path
+    checkType(core.identityHashCode,
+              dart.functionType(core.int, [core.Object]));
+    // Test the normal path
+    checkType(core.identical,
+              dart.functionType(core.bool,
+                                [core.Object, core.Object]));
+
+    // Hand crafted tests
+    // All dynamic
+    function dd2d(x, y) {return x};
+    dart.fn(dd2d);
+    checkType(dd2d, dart.functionType(dart.dynamic,
+                                      [dart.dynamic, dart.dynamic]));
+
+    // Set the type eagerly
+    function ii2i(x, y) {return x};
+    dart.fn(ii2i, core.int, [core.int, core.int]);
+    checkType(ii2i, dart.functionType(core.int,
+                                      [core.int, core.int]));
+
+    // Set the type lazily
+    function ss2s(x, y) {return x};
+    var coreString;
+    dart.fn(ss2s, () => dart.functionType(coreString,
+                                          [coreString, coreString]));
+    coreString = core.String;
+    checkType(ss2s, dart.functionType(core.String,
+                                      [core.String, core.String]));
+
+    // Optional types
+    function ii_2i(x, y) {return x};
+    dart.fn(ii_2i, core.int, [core.int], [core.int]);
+    checkType(ii_2i, dart.functionType(core.int, [core.int],
+                                       [core.int]));
+    checkType(ii_2i, dart.functionType(core.int, [core.int,
+                                                  core.int]));
+    checkType(ii_2i, dart.functionType(core.int, [], [core.int,
+                                                      core.int]),
+              false);
+    checkType(ii_2i, dart.functionType(core.int, [core.int],
+                                       {extra: core.int}), false);
+
+    // Named types
+    function i_i2i(x, opts) {return x};
+    dart.fn(i_i2i, core.int, [core.int], {extra: core.int});
+    checkType(i_i2i, dart.functionType(core.int, [core.int],
+                                       {extra: core.int}));
+    checkType(i_i2i, dart.functionType(core.int,
+                                       [core.int, core.int]), false);
+    checkType(i_i2i, dart.functionType(core.int, [core.int], {}));
+    checkType(i_i2i,
+        dart.functionType(core.int, [], {extra: core.int,
+                                         also: core.int}), false);
+    checkType(i_i2i,
+        dart.functionType(core.int, [core.int], [core.int]), false);
+  });
+
+  test('Method tearoffs', () => {
+    let c = collection;
+    // Tear off of an inherited method
+    let map = new (Map$(core.int, core.String))();
+    checkType(dart.tearoff(map, 'toString'),
+        dart.functionType(String, []));
+    checkType(dart.tearoff(map, 'toString'),
+        dart.functionType(int, []), false);
+
+    // Tear off of a method directly on the object
+    let smap = new (c.SplayTreeMap$(core.int, core.String))();
+    checkType(dart.tearoff(smap, 'forEach'),
+        dart.functionType(dart.void,
+            [dart.functionType(dart.void, [core.int, core.String])]));
+    checkType(dart.tearoff(smap, 'forEach'),
+        dart.functionType(dart.void,
+            [dart.functionType(dart.void,
+                [core.String, core.String])]), false);
+
+    // Tear off of a mixed in method
+    let mapB = new (c.MapBase$(core.int, core.int))();
+    checkType(dart.tearoff(mapB, 'forEach'),
+        dart.functionType(dart.void, [
+            dart.functionType(dart.void, [core.int, core.int])]));
+    checkType(dart.tearoff(mapB, 'forEach'),
+        dart.functionType(dart.void, [
+            dart.functionType(dart.void, [core.int, core.String])]),
+              false);
+
+    // Tear off of a method with a symbol name
+    let listB = new (c.ListBase$(core.int))();
+    checkType(dart.tearoff(listB, core.$add),
+              dart.functionType(dart.void, [core.int]));
+    checkType(dart.tearoff(listB, core.$add),
+              dart.functionType(dart.void, [core.String]), false);
+
+    // Tear off of a static method
+    checkType(c.ListBase.listToString,
+              dart.functionType(core.String, [core.List]));
+    checkType(c.ListBase.listToString,
+              dart.functionType(core.String, [core.String]), false);
+
+    // Tear off a mixin method
+    class Base {
+      m(x) {return x;}
+    };
+    dart.setSignature(Base, {
+      methods: () => ({
+        m: dart.functionType(core.int, [core.int]),
+      })
+    });
+
+    class M1 {
+      m(x) {return x;}
+    };
+    dart.setSignature(M1, {
+      methods: () => ({
+        m: dart.functionType(core.num, [core.int]),
+      })
+    });
+
+    class M2 {
+      m(x) {return x;}
+    };
+    dart.setSignature(M2, {
+      methods: () => ({
+        m: dart.functionType(core.Object, [core.int]),
+      })
+    });
+
+    class O extends dart.mixin(Base, M1, M2) {
+      O() {};
+    };
+    dart.setSignature(O, {});
+    var obj = new O();
+    var m = dart.tearoff(obj, 'm');
+    checkType(m, dart.functionType(core.Object, [core.int]));
+    checkType(m, dart.functionType(core.int, [core.int]), false);
   });
 
   test('Object members', () => {

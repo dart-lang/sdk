@@ -17,6 +17,12 @@ var core = dart.import(core);
         fn(this[_t]);
       }
     }
+    dart.setSignature(Foo, {
+      methods: () => ({
+        add: dart.functionType(dart.dynamic, [T]),
+        forEach: dart.functionType(dart.dynamic, [dart.functionType(dart.void, [T])])
+      })
+    });
     return Foo;
   });
   let Foo = Foo$();
@@ -29,11 +35,14 @@ var core = dart.import(core);
       super.add(x);
     }
   }
-  // Function main: () → dynamic
+  dart.setSignature(Bar, {
+    methods: () => ({add: dart.functionType(dart.dynamic, [core.int])})
+  });
   function main() {
     let foo = new Bar();
     foo.add('hi');
   }
+  dart.fn(main);
   // Exports:
   exports.Foo$ = Foo$;
   exports.Foo = Foo;

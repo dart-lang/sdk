@@ -2,7 +2,6 @@ var try_catch = dart.defineLibrary(try_catch, {});
 var core = dart.import(core);
 (function(exports, core) {
   'use strict';
-  // Function foo: () → dynamic
   function foo() {
     try {
       throw "hi there";
@@ -18,7 +17,7 @@ var core = dart.import(core);
     }
 
   }
-  // Function bar: () → dynamic
+  dart.fn(foo);
   function bar() {
     try {
       throw "hi there";
@@ -28,7 +27,7 @@ var core = dart.import(core);
     }
 
   }
-  // Function baz: () → dynamic
+  dart.fn(bar);
   function baz() {
     try {
       throw "finally only";
@@ -36,7 +35,7 @@ var core = dart.import(core);
       return true;
     }
   }
-  // Function qux: () → dynamic
+  dart.fn(baz);
   function qux() {
     try {
       throw "on only";
@@ -49,7 +48,7 @@ var core = dart.import(core);
     }
 
   }
-  // Function wub: () → dynamic
+  dart.fn(qux);
   function wub() {
     try {
       throw "on without exception parameter";
@@ -60,7 +59,7 @@ var core = dart.import(core);
     }
 
   }
-  // Function main: () → dynamic
+  dart.fn(wub);
   function main() {
     foo();
     bar();
@@ -68,6 +67,7 @@ var core = dart.import(core);
     qux();
     wub();
   }
+  dart.fn(main);
   // Exports:
   exports.foo = foo;
   exports.bar = bar;

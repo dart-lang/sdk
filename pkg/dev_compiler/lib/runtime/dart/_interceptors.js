@@ -14,16 +14,19 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       }
     }
     JSMutableArray[dart.implements] = () => [JSMutableIndexable];
+    dart.setSignature(JSMutableArray, {});
     return JSMutableArray;
   });
   let JSMutableArray = JSMutableArray$();
   let JSFixedArray$ = dart.generic(function(E) {
     class JSFixedArray extends JSMutableArray$(E) {}
+    dart.setSignature(JSFixedArray, {});
     return JSFixedArray;
   });
   let JSFixedArray = JSFixedArray$();
   let JSExtendableArray$ = dart.generic(function(E) {
     class JSExtendableArray extends JSMutableArray$(E) {}
+    dart.setSignature(JSExtendableArray, {});
     return JSExtendableArray;
   });
   let JSExtendableArray = JSExtendableArray$();
@@ -46,6 +49,13 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       return _js_helper.getRuntimeType(this);
     }
   }
+  dart.setSignature(Interceptor, {
+    methods: () => ({
+      '==': dart.functionType(core.bool, [core.Object]),
+      toString: dart.functionType(core.String, []),
+      noSuchMethod: dart.functionType(dart.dynamic, [core.Invocation])
+    })
+  });
   let _isInt32 = Symbol('_isInt32');
   let _tdivFast = Symbol('_tdivFast');
   let _tdivSlow = Symbol('_tdivSlow');
@@ -359,6 +369,54 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }
   }
   JSNumber[dart.implements] = () => [core.num];
+  dart.setSignature(JSNumber, {
+    methods: () => ({
+      compareTo: dart.functionType(core.int, [core.num]),
+      remainder: dart.functionType(core.num, [core.num]),
+      abs: dart.functionType(core.num, []),
+      toInt: dart.functionType(core.int, []),
+      truncate: dart.functionType(core.int, []),
+      ceil: dart.functionType(core.int, []),
+      floor: dart.functionType(core.int, []),
+      round: dart.functionType(core.int, []),
+      ceilToDouble: dart.functionType(core.double, []),
+      floorToDouble: dart.functionType(core.double, []),
+      roundToDouble: dart.functionType(core.double, []),
+      truncateToDouble: dart.functionType(core.double, []),
+      clamp: dart.functionType(core.num, [core.num, core.num]),
+      toDouble: dart.functionType(core.double, []),
+      toStringAsFixed: dart.functionType(core.String, [core.int]),
+      toStringAsExponential: dart.functionType(core.String, [], [core.int]),
+      toStringAsPrecision: dart.functionType(core.String, [core.int]),
+      toRadixString: dart.functionType(core.String, [core.int]),
+      toString: dart.functionType(core.String, []),
+      'unary-': dart.functionType(core.num, []),
+      '+': dart.functionType(core.num, [core.num]),
+      '-': dart.functionType(core.num, [core.num]),
+      '/': dart.functionType(core.double, [core.num]),
+      '*': dart.functionType(core.num, [core.num]),
+      '%': dart.functionType(core.num, [core.num]),
+      [_isInt32]: dart.functionType(core.bool, [dart.dynamic]),
+      '~/': dart.functionType(core.int, [core.num]),
+      [_tdivFast]: dart.functionType(core.int, [core.num]),
+      [_tdivSlow]: dart.functionType(core.int, [core.num]),
+      '<<': dart.functionType(core.num, [core.num]),
+      [_shlPositive]: dart.functionType(core.num, [core.num]),
+      '>>': dart.functionType(core.num, [core.num]),
+      [_shrOtherPositive]: dart.functionType(core.num, [core.num]),
+      [_shrReceiverPositive]: dart.functionType(core.num, [core.num]),
+      [_shrBothPositive]: dart.functionType(core.num, [core.num]),
+      '&': dart.functionType(core.num, [core.num]),
+      '|': dart.functionType(core.num, [core.num]),
+      '^': dart.functionType(core.num, [core.num]),
+      '<': dart.functionType(core.bool, [core.num]),
+      '>': dart.functionType(core.bool, [core.num]),
+      '<=': dart.functionType(core.bool, [core.num]),
+      '>=': dart.functionType(core.bool, [core.num])
+    }),
+    statics: () => ({_handleIEtoString: dart.functionType(core.String, [core.String])}),
+    names: ['_handleIEtoString']
+  });
   JSNumber._MIN_INT32 = -2147483648;
   JSNumber._MAX_INT32 = 2147483647;
   class JSInt extends JSNumber {
@@ -419,6 +477,21 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }
   }
   JSInt[dart.implements] = () => [core.int, core.double];
+  dart.setSignature(JSInt, {
+    methods: () => ({
+      toUnsigned: dart.functionType(core.int, [core.int]),
+      toSigned: dart.functionType(core.int, [core.int]),
+      '~': dart.functionType(core.int, [])
+    }),
+    statics: () => ({
+      _bitCount: dart.functionType(core.int, [core.int]),
+      _shru: dart.functionType(dart.dynamic, [core.int, core.int]),
+      _shrs: dart.functionType(dart.dynamic, [core.int, core.int]),
+      _ors: dart.functionType(dart.dynamic, [core.int, core.int]),
+      _spread: dart.functionType(core.int, [core.int])
+    }),
+    names: ['_bitCount', '_shru', '_shrs', '_ors', '_spread']
+  });
   class JSDouble extends JSNumber {
     JSDouble() {
       super.JSNumber();
@@ -428,13 +501,17 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }
   }
   JSDouble[dart.implements] = () => [core.double];
+  dart.setSignature(JSDouble, {});
   class JSPositiveInt extends JSInt {
     JSPositiveInt() {
       super.JSInt();
     }
   }
+  dart.setSignature(JSPositiveInt, {});
   class JSUInt32 extends JSPositiveInt {}
+  dart.setSignature(JSUInt32, {});
   class JSUInt31 extends JSUInt32 {}
+  dart.setSignature(JSUInt31, {});
   let _defaultSplit = Symbol('_defaultSplit');
   class JSString extends Interceptor {
     JSString() {
@@ -854,6 +931,43 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }
   }
   JSString[dart.implements] = () => [core.String, JSIndexable];
+  dart.setSignature(JSString, {
+    methods: () => ({
+      codeUnitAt: dart.functionType(core.int, [core.int]),
+      allMatches: dart.functionType(core.Iterable$(core.Match), [core.String], [core.int]),
+      matchAsPrefix: dart.functionType(core.Match, [core.String], [core.int]),
+      '+': dart.functionType(core.String, [core.String]),
+      endsWith: dart.functionType(core.bool, [core.String]),
+      replaceAll: dart.functionType(core.String, [core.Pattern, core.String]),
+      replaceAllMapped: dart.functionType(core.String, [core.Pattern, dart.functionType(core.String, [core.Match])]),
+      splitMapJoin: dart.functionType(core.String, [core.Pattern], {nMatc: dart.functionType(core.String, [core.Match]), nNonMatc: dart.functionType(core.String, [core.String])}),
+      replaceFirst: dart.functionType(core.String, [core.Pattern, core.String], [core.int]),
+      split: dart.functionType(core.List$(core.String), [core.Pattern]),
+      [_defaultSplit]: dart.functionType(core.List$(core.String), [core.Pattern]),
+      startsWith: dart.functionType(core.bool, [core.Pattern], [core.int]),
+      substring: dart.functionType(core.String, [core.int], [core.int]),
+      toLowerCase: dart.functionType(core.String, []),
+      toUpperCase: dart.functionType(core.String, []),
+      trim: dart.functionType(core.String, []),
+      trimLeft: dart.functionType(core.String, []),
+      trimRight: dart.functionType(core.String, []),
+      '*': dart.functionType(core.String, [core.int]),
+      padLeft: dart.functionType(core.String, [core.int], [core.String]),
+      padRight: dart.functionType(core.String, [core.int], [core.String]),
+      indexOf: dart.functionType(core.int, [core.Pattern], [core.int]),
+      lastIndexOf: dart.functionType(core.int, [core.Pattern], [core.int]),
+      contains: dart.functionType(core.bool, [core.Pattern], [core.int]),
+      compareTo: dart.functionType(core.int, [core.String]),
+      toString: dart.functionType(core.String, []),
+      get: dart.functionType(core.String, [core.int])
+    }),
+    statics: () => ({
+      _isWhitespace: dart.functionType(core.bool, [core.int]),
+      _skipLeadingWhitespace: dart.functionType(core.int, [core.String, core.int]),
+      _skipTrailingWhitespace: dart.functionType(core.int, [core.String, core.int])
+    }),
+    names: ['_isWhitespace', '_skipLeadingWhitespace', '_skipTrailingWhitespace']
+  });
   let _string = Symbol('_string');
   class _CodeUnits extends _internal.UnmodifiableListBase$(core.int) {
     _CodeUnits(string) {
@@ -866,53 +980,55 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       return this[_string].codeUnitAt(i);
     }
   }
-  // Function _symbolToString: (Symbol) → String
+  dart.setSignature(_CodeUnits, {
+    methods: () => ({[core.$get]: dart.functionType(core.int, [core.int])})
+  });
   function _symbolToString(symbol) {
     return _internal.Symbol.getName(dart.as(symbol, _internal.Symbol));
   }
-  // Function _symbolMapToStringMap: (Map<Symbol, dynamic>) → dynamic
+  dart.fn(_symbolToString, core.String, [core.Symbol]);
   function _symbolMapToStringMap(map) {
     if (map == null)
       return null;
     let result = new (core.Map$(core.String, dart.dynamic))();
-    map.forEach((key, value) => {
+    map.forEach(dart.fn((key, value) => {
       result.set(_symbolToString(key), value);
-    });
+    }, dart.dynamic, [core.Symbol, dart.dynamic]));
     return result;
   }
-  // Function getInterceptor: (dynamic) → dynamic
+  dart.fn(_symbolMapToStringMap, dart.dynamic, [core.Map$(core.Symbol, dart.dynamic)]);
   function getInterceptor(object) {
     return void 0;
   }
-  // Function getDispatchProperty: (dynamic) → dynamic
+  dart.fn(getInterceptor);
   function getDispatchProperty(object) {
     return object[_foreign_helper.JS_EMBEDDED_GLOBAL('String', _js_embedded_names.DISPATCH_PROPERTY_NAME)];
   }
-  // Function setDispatchProperty: (dynamic, dynamic) → dynamic
+  dart.fn(getDispatchProperty);
   function setDispatchProperty(object, value) {
     _js_helper.defineProperty(object, dart.as(_foreign_helper.JS_EMBEDDED_GLOBAL('String', _js_embedded_names.DISPATCH_PROPERTY_NAME), core.String), value);
   }
-  // Function makeDispatchRecord: (dynamic, dynamic, dynamic, dynamic) → dynamic
+  dart.fn(setDispatchProperty);
   function makeDispatchRecord(interceptor, proto, extension, indexability) {
     return {i: interceptor, p: proto, e: extension, x: indexability};
   }
-  // Function dispatchRecordInterceptor: (dynamic) → dynamic
+  dart.fn(makeDispatchRecord);
   function dispatchRecordInterceptor(record) {
     return record.i;
   }
-  // Function dispatchRecordProto: (dynamic) → dynamic
+  dart.fn(dispatchRecordInterceptor);
   function dispatchRecordProto(record) {
     return record.p;
   }
-  // Function dispatchRecordExtension: (dynamic) → dynamic
+  dart.fn(dispatchRecordProto);
   function dispatchRecordExtension(record) {
     return record.e;
   }
-  // Function dispatchRecordIndexability: (dynamic) → dynamic
+  dart.fn(dispatchRecordExtension);
   function dispatchRecordIndexability(record) {
     return record.x;
   }
-  // Function getNativeInterceptor: (dynamic) → dynamic
+  dart.fn(dispatchRecordIndexability);
   function getNativeInterceptor(object) {
     let record = getDispatchProperty(object);
     if (record == null) {
@@ -948,12 +1064,12 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }
     return interceptor;
   }
+  dart.fn(getNativeInterceptor);
   dart.copyProperties(exports, {
     get mapTypeToInterceptor() {
       return _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.MAP_TYPE_TO_INTERCEPTOR);
     }
   });
-  // Function findIndexForNativeSubclassType: (Type) → int
   function findIndexForNativeSubclassType(type) {
     if (exports.mapTypeToInterceptor == null)
       return null;
@@ -965,7 +1081,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }
     return null;
   }
-  // Function findInterceptorConstructorForType: (Type) → dynamic
+  dart.fn(findIndexForNativeSubclassType, core.int, [core.Type]);
   function findInterceptorConstructorForType(type) {
     let index = findIndexForNativeSubclassType(type);
     if (index == null)
@@ -973,7 +1089,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     let map = dart.as(exports.mapTypeToInterceptor, core.List);
     return map[core.$get](dart.notNull(index) + 1);
   }
-  // Function findConstructorForNativeSubclassType: (Type, String) → dynamic
+  dart.fn(findInterceptorConstructorForType, dart.dynamic, [core.Type]);
   function findConstructorForNativeSubclassType(type, name) {
     let index = findIndexForNativeSubclassType(type);
     if (index == null)
@@ -983,13 +1099,14 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     let constructorFn = constructorMap[name];
     return constructorFn;
   }
-  // Function findInterceptorForType: (Type) → dynamic
+  dart.fn(findConstructorForNativeSubclassType, dart.dynamic, [core.Type, core.String]);
   function findInterceptorForType(type) {
     let constructor = findInterceptorConstructorForType(type);
     if (constructor == null)
       return null;
     return constructor.prototype;
   }
+  dart.fn(findInterceptorForType, dart.dynamic, [core.Type]);
   class JSBool extends Interceptor {
     JSBool() {
       super.Interceptor();
@@ -1005,6 +1122,9 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }
   }
   JSBool[dart.implements] = () => [core.bool];
+  dart.setSignature(JSBool, {
+    methods: () => ({toString: dart.functionType(core.String, [])})
+  });
   class JSNull extends Interceptor {
     JSNull() {
       super.Interceptor();
@@ -1026,9 +1146,19 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }
   }
   JSNull[dart.implements] = () => [core.Null];
+  dart.setSignature(JSNull, {
+    methods: () => ({
+      '==': dart.functionType(core.bool, [dart.dynamic]),
+      toString: dart.functionType(core.String, []),
+      noSuchMethod: dart.functionType(dart.dynamic, [core.Invocation])
+    })
+  });
   class JSIndexable extends core.Object {}
+  dart.setSignature(JSIndexable, {});
   class JSMutableIndexable extends JSIndexable {}
+  dart.setSignature(JSMutableIndexable, {});
   class JSObject extends core.Object {}
+  dart.setSignature(JSObject, {});
   class JavaScriptObject extends Interceptor {
     JavaScriptObject() {
       super.Interceptor();
@@ -1041,11 +1171,13 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }
   }
   JavaScriptObject[dart.implements] = () => [JSObject];
+  dart.setSignature(JavaScriptObject, {});
   class PlainJavaScriptObject extends JavaScriptObject {
     PlainJavaScriptObject() {
       super.JavaScriptObject();
     }
   }
+  dart.setSignature(PlainJavaScriptObject, {});
   class UnknownJavaScriptObject extends JavaScriptObject {
     UnknownJavaScriptObject() {
       super.JavaScriptObject();
@@ -1054,6 +1186,9 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       return String(this);
     }
   }
+  dart.setSignature(UnknownJavaScriptObject, {
+    methods: () => ({toString: dart.functionType(core.String, [])})
+  });
   // Exports:
   exports.JSArray = JSArray;
   exports.JSMutableArray$ = JSMutableArray$;

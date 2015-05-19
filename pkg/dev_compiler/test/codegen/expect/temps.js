@@ -12,6 +12,7 @@ var core = dart.import(core);
       this[_function] = func;
     }
   }
+  dart.setSignature(FormalCollision, {});
   let _opt = Symbol('_opt');
   class OptionalArg extends core.Object {
     OptionalArg(opt) {
@@ -25,12 +26,13 @@ var core = dart.import(core);
     }
   }
   dart.defineNamedConstructor(OptionalArg, 'named');
-  // Function main: () → dynamic
+  dart.setSignature(OptionalArg, {});
   function main() {
-    core.print(new FormalCollision(1, 2, x => x));
+    core.print(new FormalCollision(1, 2, dart.fn(x => x)));
     core.print(new OptionalArg()[_opt]);
     core.print(new OptionalArg.named()[_opt]);
   }
+  dart.fn(main);
   // Exports:
   exports.FormalCollision = FormalCollision;
   exports.OptionalArg = OptionalArg;

@@ -20,6 +20,14 @@ var core = dart.import(core);
       throw message;
     }
   }
+  dart.setSignature(Expect, {
+    methods: () => ({fail: dart.functionType(dart.dynamic, [dart.dynamic])}),
+    statics: () => ({
+      equals: dart.functionType(dart.void, [dart.dynamic, dart.dynamic]),
+      listEquals: dart.functionType(dart.void, [core.List, core.List])
+    }),
+    names: ['equals', 'listEquals']
+  });
   class BenchmarkBase extends core.Object {
     BenchmarkBase(name) {
       this.name = name;
@@ -50,12 +58,12 @@ var core = dart.import(core);
     }
     measure() {
       this.setup();
-      BenchmarkBase.measureFor((() => {
+      BenchmarkBase.measureFor(dart.fn((() => {
         this.warmup();
-      }).bind(this), 100);
-      let result = BenchmarkBase.measureFor((() => {
+      }).bind(this)), 100);
+      let result = BenchmarkBase.measureFor(dart.fn((() => {
         this.exercise();
-      }).bind(this), 2000);
+      }).bind(this)), 2000);
       this.teardown();
       return result;
     }
@@ -64,6 +72,19 @@ var core = dart.import(core);
       core.print(`${this.name}(RunTime): ${score} us.`);
     }
   }
+  dart.setSignature(BenchmarkBase, {
+    methods: () => ({
+      run: dart.functionType(dart.void, []),
+      warmup: dart.functionType(dart.void, []),
+      exercise: dart.functionType(dart.void, []),
+      setup: dart.functionType(dart.void, []),
+      teardown: dart.functionType(dart.void, []),
+      measure: dart.functionType(core.double, []),
+      report: dart.functionType(dart.void, [])
+    }),
+    statics: () => ({measureFor: dart.functionType(core.double, [core.Function, core.int])}),
+    names: ['measureFor']
+  });
   // Exports:
   exports.Expect = Expect;
   exports.BenchmarkBase = BenchmarkBase;

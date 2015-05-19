@@ -9,10 +9,13 @@ var core = dart.import(core);
       return 123;
     }
   }
-  // Function _foo: () → dynamic
+  dart.setSignature(Foo, {
+    methods: () => ({[_foo$]: dart.functionType(dart.dynamic, [])})
+  });
   function _foo() {
     return 456;
   }
+  dart.fn(_foo);
   class Frame extends core.Object {
     caller(arguments$) {
       this.arguments = arguments$;
@@ -22,7 +25,12 @@ var core = dart.import(core);
     }
   }
   dart.defineNamedConstructor(Frame, 'caller');
+  dart.setSignature(Frame, {
+    statics: () => ({callee: dart.functionType(dart.dynamic, [])}),
+    names: ['callee']
+  });
   class Frame2 extends core.Object {}
+  dart.setSignature(Frame2, {});
   dart.defineLazyProperties(Frame2, {
     get caller() {
       return 100;
@@ -33,7 +41,6 @@ var core = dart.import(core);
     },
     set arguments(_) {}
   });
-  // Function main: () → dynamic
   function main() {
     core.print(exports.exports);
     core.print(new Foo()[_foo$]());
@@ -43,6 +50,7 @@ var core = dart.import(core);
     core.print(eval$);
     core.print(dart.notNull(Frame2.caller) + dart.notNull(Frame2.arguments));
   }
+  dart.fn(main);
   // Exports:
   exports.Foo = Foo;
   exports.Frame = Frame;

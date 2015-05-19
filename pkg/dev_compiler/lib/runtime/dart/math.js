@@ -21,6 +21,15 @@ var _js_helper = dart.lazyImport(_js_helper);
       return _JenkinsSmiHash.finish(_JenkinsSmiHash.combine(_JenkinsSmiHash.combine(_JenkinsSmiHash.combine(_JenkinsSmiHash.combine(0, dart.as(a, core.int)), dart.as(b, core.int)), dart.as(c, core.int)), dart.as(d, core.int)));
     }
   }
+  dart.setSignature(_JenkinsSmiHash, {
+    statics: () => ({
+      combine: dart.functionType(core.int, [core.int, core.int]),
+      finish: dart.functionType(core.int, [core.int]),
+      hash2: dart.functionType(core.int, [dart.dynamic, dart.dynamic]),
+      hash4: dart.functionType(core.int, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic])
+    }),
+    names: ['combine', 'finish', 'hash2', 'hash4']
+  });
   let Point$ = dart.generic(function(T) {
     class Point extends core.Object {
       Point(x, y) {
@@ -65,6 +74,17 @@ var _js_helper = dart.lazyImport(_js_helper);
         return dart.as(dart.notNull(dx) * dart.notNull(dx) + dart.notNull(dy) * dart.notNull(dy), T);
       }
     }
+    dart.setSignature(Point, {
+      methods: () => ({
+        toString: dart.functionType(core.String, []),
+        '==': dart.functionType(core.bool, [dart.dynamic]),
+        '+': dart.functionType(Point$(T), [Point$(T)]),
+        '-': dart.functionType(Point$(T), [Point$(T)]),
+        '*': dart.functionType(Point$(T), [core.num]),
+        distanceTo: dart.functionType(core.double, [Point$(T)]),
+        squaredDistanceTo: dart.functionType(T, [Point$(T)])
+      })
+    });
     return Point;
   });
   let Point = Point$();
@@ -75,6 +95,7 @@ var _js_helper = dart.lazyImport(_js_helper);
       return seed == null ? dart.const(new _JSRandom()) : new _Random(seed);
     }
   }
+  dart.setSignature(Random, {});
   let _RectangleBase$ = dart.generic(function(T) {
     class _RectangleBase extends core.Object {
       _RectangleBase() {
@@ -139,6 +160,17 @@ var _js_helper = dart.lazyImport(_js_helper);
         return new (Point$(T))(this.left, dart.as(this.top['+'](this.height), T));
       }
     }
+    dart.setSignature(_RectangleBase, {
+      methods: () => ({
+        toString: dart.functionType(core.String, []),
+        '==': dart.functionType(core.bool, [dart.dynamic]),
+        intersection: dart.functionType(Rectangle$(T), [Rectangle$(T)]),
+        intersects: dart.functionType(core.bool, [Rectangle$(core.num)]),
+        boundingBox: dart.functionType(Rectangle$(T), [Rectangle$(T)]),
+        containsRectangle: dart.functionType(core.bool, [Rectangle$(core.num)]),
+        containsPoint: dart.functionType(core.bool, [Point$(core.num)])
+      })
+    });
     return _RectangleBase;
   });
   let _RectangleBase = _RectangleBase$();
@@ -160,6 +192,7 @@ var _js_helper = dart.lazyImport(_js_helper);
       }
     }
     dart.defineNamedConstructor(Rectangle, 'fromPoints');
+    dart.setSignature(Rectangle, {});
     return Rectangle;
   });
   let Rectangle = Rectangle$();
@@ -202,14 +235,15 @@ var _js_helper = dart.lazyImport(_js_helper);
     }
     MutableRectangle[dart.implements] = () => [Rectangle$(T)];
     dart.defineNamedConstructor(MutableRectangle, 'fromPoints');
+    dart.setSignature(MutableRectangle, {});
     return MutableRectangle;
   });
   let MutableRectangle = MutableRectangle$();
-  // Function _clampToZero: (num) → num
   function _clampToZero(value) {
     dart.assert(dart.notNull(value) < 0);
     return -dart.notNull(value) * 0;
   }
+  dart.fn(_clampToZero, core.num, [core.num]);
   let E = 2.718281828459045;
   let LN10 = 2.302585092994046;
   let LN2 = 0.6931471805599453;
@@ -218,7 +252,6 @@ var _js_helper = dart.lazyImport(_js_helper);
   let PI = 3.141592653589793;
   let SQRT1_2 = 0.7071067811865476;
   let SQRT2 = 1.4142135623730951;
-  // Function min: (num, num) → num
   function min(a, b) {
     if (!dart.is(a, core.num))
       throw new core.ArgumentError(a);
@@ -240,7 +273,7 @@ var _js_helper = dart.lazyImport(_js_helper);
     }
     return a;
   }
-  // Function max: (num, num) → num
+  dart.fn(min, core.num, [core.num, core.num]);
   function max(a, b) {
     if (!dart.is(a, core.num))
       throw new core.ArgumentError(a);
@@ -264,52 +297,53 @@ var _js_helper = dart.lazyImport(_js_helper);
       return b;
     return a;
   }
-  // Function atan2: (num, num) → double
+  dart.fn(max, core.num, [core.num, core.num]);
   function atan2(a, b) {
     return Math.atan2(_js_helper.checkNum(a), _js_helper.checkNum(b));
   }
-  // Function pow: (num, num) → num
+  dart.fn(atan2, core.double, [core.num, core.num]);
   function pow(x, exponent) {
     _js_helper.checkNum(x);
     _js_helper.checkNum(exponent);
     return Math.pow(x, exponent);
   }
-  // Function sin: (num) → double
+  dart.fn(pow, core.num, [core.num, core.num]);
   function sin(x) {
     return Math.sin(_js_helper.checkNum(x));
   }
-  // Function cos: (num) → double
+  dart.fn(sin, core.double, [core.num]);
   function cos(x) {
     return Math.cos(_js_helper.checkNum(x));
   }
-  // Function tan: (num) → double
+  dart.fn(cos, core.double, [core.num]);
   function tan(x) {
     return Math.tan(_js_helper.checkNum(x));
   }
-  // Function acos: (num) → double
+  dart.fn(tan, core.double, [core.num]);
   function acos(x) {
     return Math.acos(_js_helper.checkNum(x));
   }
-  // Function asin: (num) → double
+  dart.fn(acos, core.double, [core.num]);
   function asin(x) {
     return Math.asin(_js_helper.checkNum(x));
   }
-  // Function atan: (num) → double
+  dart.fn(asin, core.double, [core.num]);
   function atan(x) {
     return Math.atan(_js_helper.checkNum(x));
   }
-  // Function sqrt: (num) → double
+  dart.fn(atan, core.double, [core.num]);
   function sqrt(x) {
     return Math.sqrt(_js_helper.checkNum(x));
   }
-  // Function exp: (num) → double
+  dart.fn(sqrt, core.double, [core.num]);
   function exp(x) {
     return Math.exp(_js_helper.checkNum(x));
   }
-  // Function log: (num) → double
+  dart.fn(exp, core.double, [core.num]);
   function log(x) {
     return Math.log(_js_helper.checkNum(x));
   }
+  dart.fn(log, core.double, [core.num]);
   let _POW2_32 = 4294967296;
   class _JSRandom extends core.Object {
     _JSRandom() {
@@ -328,6 +362,13 @@ var _js_helper = dart.lazyImport(_js_helper);
     }
   }
   _JSRandom[dart.implements] = () => [Random];
+  dart.setSignature(_JSRandom, {
+    methods: () => ({
+      nextInt: dart.functionType(core.int, [core.int]),
+      nextDouble: dart.functionType(core.double, []),
+      nextBool: dart.functionType(core.bool, [])
+    })
+  });
   let _lo = Symbol('_lo');
   let _hi = Symbol('_hi');
   let _nextState = Symbol('_nextState');
@@ -430,6 +471,14 @@ var _js_helper = dart.lazyImport(_js_helper);
     }
   }
   _Random[dart.implements] = () => [Random];
+  dart.setSignature(_Random, {
+    methods: () => ({
+      [_nextState]: dart.functionType(dart.void, []),
+      nextInt: dart.functionType(core.int, [core.int]),
+      nextDouble: dart.functionType(core.double, []),
+      nextBool: dart.functionType(core.bool, [])
+    })
+  });
   _Random._POW2_53_D = 1.0 * 9007199254740992;
   _Random._POW2_27_D = 1.0 * (1 << 27);
   _Random._MASK32 = 4294967295;

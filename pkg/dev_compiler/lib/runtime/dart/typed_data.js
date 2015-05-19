@@ -4,7 +4,9 @@ var _native_typed_data = dart.lazyImport(_native_typed_data);
 (function(exports, core, _native_typed_data) {
   'use strict';
   class ByteBuffer extends core.Object {}
+  dart.setSignature(ByteBuffer, {});
   class TypedData extends core.Object {}
+  dart.setSignature(TypedData, {});
   let _littleEndian = Symbol('_littleEndian');
   class Endianness extends core.Object {
     _(littleEndian) {
@@ -12,6 +14,7 @@ var _native_typed_data = dart.lazyImport(_native_typed_data);
     }
   }
   dart.defineNamedConstructor(Endianness, '_');
+  dart.setSignature(Endianness, {});
   Endianness.BIG_ENDIAN = dart.const(new Endianness._(false));
   Endianness.LITTLE_ENDIAN = dart.const(new Endianness._(true));
   dart.defineLazyProperties(Endianness, {
@@ -33,6 +36,7 @@ var _native_typed_data = dart.lazyImport(_native_typed_data);
   }
   ByteData[dart.implements] = () => [TypedData];
   dart.defineNamedConstructor(ByteData, 'view');
+  dart.setSignature(ByteData, {});
   class Int8List extends core.Object {
     Int8List(length) {
       return new _native_typed_data.NativeInt8List(length);
@@ -51,6 +55,7 @@ var _native_typed_data = dart.lazyImport(_native_typed_data);
   Int8List[dart.implements] = () => [core.List$(core.int), TypedData];
   dart.defineNamedConstructor(Int8List, 'fromList');
   dart.defineNamedConstructor(Int8List, 'view');
+  dart.setSignature(Int8List, {});
   Int8List.BYTES_PER_ELEMENT = 1;
   class Uint8List extends core.Object {
     Uint8List(length) {
@@ -70,6 +75,7 @@ var _native_typed_data = dart.lazyImport(_native_typed_data);
   Uint8List[dart.implements] = () => [core.List$(core.int), TypedData];
   dart.defineNamedConstructor(Uint8List, 'fromList');
   dart.defineNamedConstructor(Uint8List, 'view');
+  dart.setSignature(Uint8List, {});
   Uint8List.BYTES_PER_ELEMENT = 1;
   class Uint8ClampedList extends core.Object {
     Uint8ClampedList(length) {
@@ -89,6 +95,7 @@ var _native_typed_data = dart.lazyImport(_native_typed_data);
   Uint8ClampedList[dart.implements] = () => [core.List$(core.int), TypedData];
   dart.defineNamedConstructor(Uint8ClampedList, 'fromList');
   dart.defineNamedConstructor(Uint8ClampedList, 'view');
+  dart.setSignature(Uint8ClampedList, {});
   Uint8ClampedList.BYTES_PER_ELEMENT = 1;
   class Int16List extends core.Object {
     Int16List(length) {
@@ -108,6 +115,7 @@ var _native_typed_data = dart.lazyImport(_native_typed_data);
   Int16List[dart.implements] = () => [core.List$(core.int), TypedData];
   dart.defineNamedConstructor(Int16List, 'fromList');
   dart.defineNamedConstructor(Int16List, 'view');
+  dart.setSignature(Int16List, {});
   Int16List.BYTES_PER_ELEMENT = 2;
   class Uint16List extends core.Object {
     Uint16List(length) {
@@ -127,6 +135,7 @@ var _native_typed_data = dart.lazyImport(_native_typed_data);
   Uint16List[dart.implements] = () => [core.List$(core.int), TypedData];
   dart.defineNamedConstructor(Uint16List, 'fromList');
   dart.defineNamedConstructor(Uint16List, 'view');
+  dart.setSignature(Uint16List, {});
   Uint16List.BYTES_PER_ELEMENT = 2;
   class Int32List extends core.Object {
     Int32List(length) {
@@ -146,6 +155,7 @@ var _native_typed_data = dart.lazyImport(_native_typed_data);
   Int32List[dart.implements] = () => [core.List$(core.int), TypedData];
   dart.defineNamedConstructor(Int32List, 'fromList');
   dart.defineNamedConstructor(Int32List, 'view');
+  dart.setSignature(Int32List, {});
   Int32List.BYTES_PER_ELEMENT = 4;
   class Uint32List extends core.Object {
     Uint32List(length) {
@@ -165,6 +175,7 @@ var _native_typed_data = dart.lazyImport(_native_typed_data);
   Uint32List[dart.implements] = () => [core.List$(core.int), TypedData];
   dart.defineNamedConstructor(Uint32List, 'fromList');
   dart.defineNamedConstructor(Uint32List, 'view');
+  dart.setSignature(Uint32List, {});
   Uint32List.BYTES_PER_ELEMENT = 4;
   class Int64List extends core.Object {
     Int64List(length) {
@@ -184,6 +195,7 @@ var _native_typed_data = dart.lazyImport(_native_typed_data);
   Int64List[dart.implements] = () => [core.List$(core.int), TypedData];
   dart.defineNamedConstructor(Int64List, 'fromList');
   dart.defineNamedConstructor(Int64List, 'view');
+  dart.setSignature(Int64List, {});
   Int64List.BYTES_PER_ELEMENT = 8;
   class Uint64List extends core.Object {
     Uint64List(length) {
@@ -203,6 +215,7 @@ var _native_typed_data = dart.lazyImport(_native_typed_data);
   Uint64List[dart.implements] = () => [core.List$(core.int), TypedData];
   dart.defineNamedConstructor(Uint64List, 'fromList');
   dart.defineNamedConstructor(Uint64List, 'view');
+  dart.setSignature(Uint64List, {});
   Uint64List.BYTES_PER_ELEMENT = 8;
   class Float32List extends core.Object {
     Float32List(length) {
@@ -222,6 +235,7 @@ var _native_typed_data = dart.lazyImport(_native_typed_data);
   Float32List[dart.implements] = () => [core.List$(core.double), TypedData];
   dart.defineNamedConstructor(Float32List, 'fromList');
   dart.defineNamedConstructor(Float32List, 'view');
+  dart.setSignature(Float32List, {});
   Float32List.BYTES_PER_ELEMENT = 4;
   class Float64List extends core.Object {
     Float64List(length) {
@@ -241,6 +255,7 @@ var _native_typed_data = dart.lazyImport(_native_typed_data);
   Float64List[dart.implements] = () => [core.List$(core.double), TypedData];
   dart.defineNamedConstructor(Float64List, 'fromList');
   dart.defineNamedConstructor(Float64List, 'view');
+  dart.setSignature(Float64List, {});
   Float64List.BYTES_PER_ELEMENT = 8;
   class Float32x4List extends core.Object {
     Float32x4List(length) {
@@ -260,6 +275,7 @@ var _native_typed_data = dart.lazyImport(_native_typed_data);
   Float32x4List[dart.implements] = () => [core.List$(Float32x4), TypedData];
   dart.defineNamedConstructor(Float32x4List, 'fromList');
   dart.defineNamedConstructor(Float32x4List, 'view');
+  dart.setSignature(Float32x4List, {});
   Float32x4List.BYTES_PER_ELEMENT = 16;
   class Int32x4List extends core.Object {
     Int32x4List(length) {
@@ -279,6 +295,7 @@ var _native_typed_data = dart.lazyImport(_native_typed_data);
   Int32x4List[dart.implements] = () => [core.List$(Int32x4), TypedData];
   dart.defineNamedConstructor(Int32x4List, 'fromList');
   dart.defineNamedConstructor(Int32x4List, 'view');
+  dart.setSignature(Int32x4List, {});
   Int32x4List.BYTES_PER_ELEMENT = 16;
   class Float64x2List extends core.Object {
     Float64x2List(length) {
@@ -298,6 +315,7 @@ var _native_typed_data = dart.lazyImport(_native_typed_data);
   Float64x2List[dart.implements] = () => [core.List$(Float64x2), TypedData];
   dart.defineNamedConstructor(Float64x2List, 'fromList');
   dart.defineNamedConstructor(Float64x2List, 'view');
+  dart.setSignature(Float64x2List, {});
   Float64x2List.BYTES_PER_ELEMENT = 16;
   class Float32x4 extends core.Object {
     Float32x4(x, y, z, w) {
@@ -320,6 +338,7 @@ var _native_typed_data = dart.lazyImport(_native_typed_data);
   dart.defineNamedConstructor(Float32x4, 'zero');
   dart.defineNamedConstructor(Float32x4, 'fromInt32x4Bits');
   dart.defineNamedConstructor(Float32x4, 'fromFloat64x2');
+  dart.setSignature(Float32x4, {});
   Float32x4.XXXX = 0;
   Float32x4.XXXY = 64;
   Float32x4.XXXZ = 128;
@@ -589,6 +608,7 @@ var _native_typed_data = dart.lazyImport(_native_typed_data);
   }
   dart.defineNamedConstructor(Int32x4, 'bool');
   dart.defineNamedConstructor(Int32x4, 'fromFloat32x4Bits');
+  dart.setSignature(Int32x4, {});
   Int32x4.XXXX = 0;
   Int32x4.XXXY = 64;
   Int32x4.XXXZ = 128;
@@ -862,6 +882,7 @@ var _native_typed_data = dart.lazyImport(_native_typed_data);
   dart.defineNamedConstructor(Float64x2, 'splat');
   dart.defineNamedConstructor(Float64x2, 'zero');
   dart.defineNamedConstructor(Float64x2, 'fromFloat32x4');
+  dart.setSignature(Float64x2, {});
   // Exports:
   exports.ByteBuffer = ByteBuffer;
   exports.TypedData = TypedData;

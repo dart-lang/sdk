@@ -748,6 +748,7 @@ class TypeManager {
     // The name of the typedef (unresolved at this point)
     // TODO(leafp): better naming.
     SimpleIdentifier t = freshTypeDefVariable("CastType");
+
     // The element for the new typedef
     var element = new FunctionTypeAliasElementImpl(t.name, 0);
 

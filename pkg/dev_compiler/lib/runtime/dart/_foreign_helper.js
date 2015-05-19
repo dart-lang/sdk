@@ -2,7 +2,6 @@ var _foreign_helper = dart.defineLibrary(_foreign_helper, {});
 var core = dart.import(core);
 (function(exports, core) {
   'use strict';
-  // Function JS: (String, String, [dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic]) → dynamic
   function JS(typeDescription, codeTemplate, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11) {
     if (arg0 === void 0)
       arg0 = null;
@@ -29,98 +28,101 @@ var core = dart.import(core);
     if (arg11 === void 0)
       arg11 = null;
   }
-  // Function JS_CURRENT_ISOLATE_CONTEXT: () → IsolateContext
+  dart.fn(JS, dart.dynamic, [core.String, core.String], [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]);
   function JS_CURRENT_ISOLATE_CONTEXT() {
   }
+  dart.fn(JS_CURRENT_ISOLATE_CONTEXT, () => dart.functionType(IsolateContext, []));
   class IsolateContext extends core.Object {}
-  // Function JS_CALL_IN_ISOLATE: (dynamic, Function) → dynamic
+  dart.setSignature(IsolateContext, {});
   function JS_CALL_IN_ISOLATE(isolate, func) {
   }
-  // Function DART_CLOSURE_TO_JS: (Function) → dynamic
+  dart.fn(JS_CALL_IN_ISOLATE, dart.dynamic, [dart.dynamic, core.Function]);
   function DART_CLOSURE_TO_JS(func) {
   }
-  // Function RAW_DART_FUNCTION_REF: (Function) → dynamic
+  dart.fn(DART_CLOSURE_TO_JS, dart.dynamic, [core.Function]);
   function RAW_DART_FUNCTION_REF(func) {
   }
-  // Function JS_SET_CURRENT_ISOLATE: (dynamic) → void
+  dart.fn(RAW_DART_FUNCTION_REF, dart.dynamic, [core.Function]);
   function JS_SET_CURRENT_ISOLATE(isolate) {
   }
-  // Function JS_CREATE_ISOLATE: () → dynamic
+  dart.fn(JS_SET_CURRENT_ISOLATE, dart.void, [dart.dynamic]);
   function JS_CREATE_ISOLATE() {
   }
-  // Function JS_DART_OBJECT_CONSTRUCTOR: () → dynamic
+  dart.fn(JS_CREATE_ISOLATE);
   function JS_DART_OBJECT_CONSTRUCTOR() {
   }
-  // Function JS_INTERCEPTOR_CONSTANT: (Type) → dynamic
+  dart.fn(JS_DART_OBJECT_CONSTRUCTOR);
   function JS_INTERCEPTOR_CONSTANT(type) {
   }
-  // Function JS_OPERATOR_IS_PREFIX: () → String
+  dart.fn(JS_INTERCEPTOR_CONSTANT, dart.dynamic, [core.Type]);
   function JS_OPERATOR_IS_PREFIX() {
   }
-  // Function JS_OPERATOR_AS_PREFIX: () → String
+  dart.fn(JS_OPERATOR_IS_PREFIX, core.String, []);
   function JS_OPERATOR_AS_PREFIX() {
   }
-  // Function JS_OBJECT_CLASS_NAME: () → String
+  dart.fn(JS_OPERATOR_AS_PREFIX, core.String, []);
   function JS_OBJECT_CLASS_NAME() {
   }
-  // Function JS_NULL_CLASS_NAME: () → String
+  dart.fn(JS_OBJECT_CLASS_NAME, core.String, []);
   function JS_NULL_CLASS_NAME() {
   }
-  // Function JS_FUNCTION_CLASS_NAME: () → String
+  dart.fn(JS_NULL_CLASS_NAME, core.String, []);
   function JS_FUNCTION_CLASS_NAME() {
   }
-  // Function JS_IS_INDEXABLE_FIELD_NAME: () → String
+  dart.fn(JS_FUNCTION_CLASS_NAME, core.String, []);
   function JS_IS_INDEXABLE_FIELD_NAME() {
   }
-  // Function JS_CURRENT_ISOLATE: () → dynamic
+  dart.fn(JS_IS_INDEXABLE_FIELD_NAME, core.String, []);
   function JS_CURRENT_ISOLATE() {
   }
-  // Function JS_SIGNATURE_NAME: () → String
+  dart.fn(JS_CURRENT_ISOLATE);
   function JS_SIGNATURE_NAME() {
   }
-  // Function JS_TYPEDEF_TAG: () → String
+  dart.fn(JS_SIGNATURE_NAME, core.String, []);
   function JS_TYPEDEF_TAG() {
   }
-  // Function JS_FUNCTION_TYPE_TAG: () → String
+  dart.fn(JS_TYPEDEF_TAG, core.String, []);
   function JS_FUNCTION_TYPE_TAG() {
   }
-  // Function JS_FUNCTION_TYPE_VOID_RETURN_TAG: () → String
+  dart.fn(JS_FUNCTION_TYPE_TAG, core.String, []);
   function JS_FUNCTION_TYPE_VOID_RETURN_TAG() {
   }
-  // Function JS_FUNCTION_TYPE_RETURN_TYPE_TAG: () → String
+  dart.fn(JS_FUNCTION_TYPE_VOID_RETURN_TAG, core.String, []);
   function JS_FUNCTION_TYPE_RETURN_TYPE_TAG() {
   }
-  // Function JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG: () → String
+  dart.fn(JS_FUNCTION_TYPE_RETURN_TYPE_TAG, core.String, []);
   function JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG() {
   }
-  // Function JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG: () → String
+  dart.fn(JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG, core.String, []);
   function JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG() {
   }
-  // Function JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG: () → String
+  dart.fn(JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG, core.String, []);
   function JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG() {
   }
-  // Function JS_GET_NAME: (String) → String
+  dart.fn(JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG, core.String, []);
   function JS_GET_NAME(name) {
   }
-  // Function JS_EMBEDDED_GLOBAL: (String, String) → dynamic
+  dart.fn(JS_GET_NAME, core.String, [core.String]);
   function JS_EMBEDDED_GLOBAL(typeDescription, name) {
   }
-  // Function JS_GET_FLAG: (String) → bool
+  dart.fn(JS_EMBEDDED_GLOBAL, dart.dynamic, [core.String, core.String]);
   function JS_GET_FLAG(name) {
   }
-  // Function JS_EFFECT: (Function) → void
+  dart.fn(JS_GET_FLAG, core.bool, [core.String]);
   function JS_EFFECT(code) {
     dart.dcall(code, null);
   }
+  dart.fn(JS_EFFECT, dart.void, [core.Function]);
   class JS_CONST extends core.Object {
     JS_CONST(code) {
       this.code = code;
     }
   }
-  // Function JS_STRING_CONCAT: (String, String) → String
+  dart.setSignature(JS_CONST, {});
   function JS_STRING_CONCAT(a, b) {
     return a + b;
   }
+  dart.fn(JS_STRING_CONCAT, core.String, [core.String, core.String]);
   // Exports:
   exports.JS = JS;
   exports.JS_CURRENT_ISOLATE_CONTEXT = JS_CURRENT_ISOLATE_CONTEXT;

@@ -14,24 +14,29 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     NoSideEffects() {
     }
   }
+  dart.setSignature(NoSideEffects, {});
   class NoThrows extends core.Object {
     NoThrows() {
     }
   }
+  dart.setSignature(NoThrows, {});
   class NoInline extends core.Object {
     NoInline() {
     }
   }
+  dart.setSignature(NoInline, {});
   class IrRepresentation extends core.Object {
     IrRepresentation(value) {
       this.value = value;
     }
   }
+  dart.setSignature(IrRepresentation, {});
   class Native extends core.Object {
     Native(name) {
       this.name = name;
     }
   }
+  dart.setSignature(Native, {});
   let _throwUnmodifiable = Symbol('_throwUnmodifiable');
   let ConstantMap$ = dart.generic(function(K, V) {
     class ConstantMap extends core.Object {
@@ -72,6 +77,17 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     ConstantMap[dart.implements] = () => [core.Map$(K, V)];
     dart.defineNamedConstructor(ConstantMap, '_');
+    dart.setSignature(ConstantMap, {
+      methods: () => ({
+        toString: dart.functionType(core.String, []),
+        [_throwUnmodifiable]: dart.functionType(dart.dynamic, []),
+        set: dart.functionType(dart.void, [K, V]),
+        putIfAbsent: dart.functionType(V, [K, dart.functionType(V, [])]),
+        remove: dart.functionType(V, [core.Object]),
+        clear: dart.functionType(dart.void, []),
+        addAll: dart.functionType(dart.void, [core.Map$(K, V)])
+      })
+    });
     return ConstantMap;
   });
   let ConstantMap = ConstantMap$();
@@ -87,7 +103,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         super._();
       }
       containsValue(needle) {
-        return this.values[core.$any](value => dart.equals(value, needle));
+        return this.values[core.$any](dart.fn(value => dart.equals(value, needle), core.bool, [V]));
       }
       containsKey(key) {
         if (!(typeof key == 'string'))
@@ -116,11 +132,20 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         return new (_ConstantMapKeyIterable$(K))(this);
       }
       get values() {
-        return new (_internal.MappedIterable$(K, V))(this[_keys], (key => dart.as(this[_fetch](key), V)).bind(this));
+        return new (_internal.MappedIterable$(K, V))(this[_keys], dart.fn((key => dart.as(this[_fetch](key), V)).bind(this), V, [dart.dynamic]));
       }
     }
     ConstantStringMap[dart.implements] = () => [_internal.EfficientLength];
     dart.defineNamedConstructor(ConstantStringMap, '_');
+    dart.setSignature(ConstantStringMap, {
+      methods: () => ({
+        containsValue: dart.functionType(core.bool, [core.Object]),
+        containsKey: dart.functionType(core.bool, [core.Object]),
+        get: dart.functionType(V, [core.Object]),
+        [_fetch]: dart.functionType(dart.dynamic, [dart.dynamic]),
+        forEach: dart.functionType(dart.void, [dart.functionType(dart.void, [K, V])])
+      })
+    });
     return ConstantStringMap;
   });
   let ConstantStringMap = ConstantStringMap$();
@@ -143,6 +168,12 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       }
     }
     dart.defineNamedConstructor(ConstantProtoMap, '_');
+    dart.setSignature(ConstantProtoMap, {
+      methods: () => ({
+        containsKey: dart.functionType(core.bool, [core.Object]),
+        [_fetch]: dart.functionType(dart.dynamic, [dart.dynamic])
+      })
+    });
     return ConstantProtoMap;
   });
   let ConstantProtoMap = ConstantProtoMap$();
@@ -160,6 +191,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         return this[_map][_keys][core.$length];
       }
     }
+    dart.setSignature(_ConstantMapKeyIterable, {});
     return _ConstantMapKeyIterable;
   });
   let _ConstantMapKeyIterable = _ConstantMapKeyIterable$();
@@ -201,61 +233,70 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         return this[_getMap]().length;
       }
     }
+    dart.setSignature(GeneralConstantMap, {
+      methods: () => ({
+        [_getMap]: dart.functionType(core.Map$(K, V), []),
+        containsValue: dart.functionType(core.bool, [core.Object]),
+        containsKey: dart.functionType(core.bool, [core.Object]),
+        get: dart.functionType(V, [core.Object]),
+        forEach: dart.functionType(dart.void, [dart.functionType(dart.void, [K, V])])
+      })
+    });
     return GeneralConstantMap;
   });
   let GeneralConstantMap = GeneralConstantMap$();
-  // Function contains: (String, String) → bool
   function contains(userAgent, name) {
     return userAgent.indexOf(name) != -1;
   }
-  // Function arrayLength: (List<dynamic>) → int
+  dart.fn(contains, core.bool, [core.String, core.String]);
   function arrayLength(array) {
     return array.length;
   }
-  // Function arrayGet: (List<dynamic>, int) → dynamic
+  dart.fn(arrayLength, core.int, [core.List]);
   function arrayGet(array, index) {
     return array[index];
   }
-  // Function arraySet: (List<dynamic>, int, dynamic) → void
+  dart.fn(arrayGet, dart.dynamic, [core.List, core.int]);
   function arraySet(array, index, value) {
     array[index] = value;
   }
-  // Function propertyGet: (dynamic, String) → dynamic
+  dart.fn(arraySet, dart.void, [core.List, core.int, dart.dynamic]);
   function propertyGet(object, property) {
     return object[property];
   }
-  // Function callHasOwnProperty: (dynamic, dynamic, String) → bool
+  dart.fn(propertyGet, dart.dynamic, [dart.dynamic, core.String]);
   function callHasOwnProperty(func, object, property) {
     return func.call(object, property);
   }
-  // Function propertySet: (dynamic, String, dynamic) → void
+  dart.fn(callHasOwnProperty, core.bool, [dart.dynamic, dart.dynamic, core.String]);
   function propertySet(object, property, value) {
     object[property] = value;
   }
-  // Function getPropertyFromPrototype: (dynamic, String) → dynamic
+  dart.fn(propertySet, dart.void, [dart.dynamic, core.String, dart.dynamic]);
   function getPropertyFromPrototype(object, name) {
     return Object.getPrototypeOf(object)[name];
   }
+  dart.fn(getPropertyFromPrototype, dart.dynamic, [dart.dynamic, core.String]);
   exports.getTagFunction = null;
   exports.alternateTagFunction = null;
   exports.prototypeForTagFunction = null;
-  // Function toStringForNativeObject: (dynamic) → String
   function toStringForNativeObject(obj) {
     let name = exports.getTagFunction == null ? '<Unknown>' : dart.dcall(exports.getTagFunction, obj);
     return `Instance of ${name}`;
   }
-  // Function hashCodeForNativeObject: (dynamic) → int
+  dart.fn(toStringForNativeObject, core.String, [dart.dynamic]);
   function hashCodeForNativeObject(object) {
     return Primitives.objectHashCode(object);
   }
-  // Function defineProperty: (dynamic, String, dynamic) → void
+  dart.fn(hashCodeForNativeObject, core.int, [dart.dynamic]);
   function defineProperty(obj, property, value) {
     Object.defineProperty(obj, property, {value: value, enumerable: false, writable: true, configurable: true});
   }
-  // Function isDartObject: (dynamic) → bool
+  dart.fn(defineProperty, dart.void, [dart.dynamic, core.String, dart.dynamic]);
   function isDartObject(obj) {
     return obj instanceof _foreign_helper.JS_DART_OBJECT_CONSTRUCTOR();
   }
+  dart.fn(isDartObject, core.bool, [dart.dynamic]);
   dart.copyProperties(exports, {
     get interceptorsByTag() {
       return _foreign_helper.JS_EMBEDDED_GLOBAL('=Object', _js_embedded_names.INTERCEPTORS_BY_TAG);
@@ -264,22 +305,21 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return _foreign_helper.JS_EMBEDDED_GLOBAL('=Object', _js_embedded_names.LEAF_TAGS);
     }
   });
-  // Function findDispatchTagForInterceptorClass: (dynamic) → String
   function findDispatchTagForInterceptorClass(interceptorClassConstructor) {
     return dart.as(interceptorClassConstructor[_js_embedded_names.NATIVE_SUPERCLASS_TAG_NAME], core.String);
   }
+  dart.fn(findDispatchTagForInterceptorClass, core.String, [dart.dynamic]);
   exports.dispatchRecordsForInstanceTags = null;
   exports.interceptorsForUncacheableTags = null;
-  // Function lookupInterceptor: (String) → dynamic
   function lookupInterceptor(tag) {
     return propertyGet(exports.interceptorsByTag, tag);
   }
+  dart.fn(lookupInterceptor, dart.dynamic, [core.String]);
   let UNCACHED_MARK = '~';
   let INSTANCE_CACHED_MARK = '!';
   let LEAF_MARK = '-';
   let INTERIOR_MARK = '+';
   let DISCRIMINATED_MARK = '*';
-  // Function lookupAndCacheInterceptor: (dynamic) → dynamic
   function lookupAndCacheInterceptor(obj) {
     dart.assert(!dart.notNull(isDartObject(obj)));
     let tag = dart.as(dart.dcall(exports.getTagFunction, obj), core.String);
@@ -332,30 +372,30 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return patchInteriorProto(obj, interceptor);
     }
   }
-  // Function patchInstance: (dynamic, dynamic) → dynamic
+  dart.fn(lookupAndCacheInterceptor);
   function patchInstance(obj, record) {
     _interceptors.setDispatchProperty(obj, record);
     return _interceptors.dispatchRecordInterceptor(record);
   }
-  // Function patchProto: (dynamic, dynamic) → dynamic
+  dart.fn(patchInstance);
   function patchProto(obj, record) {
     _interceptors.setDispatchProperty(Object.getPrototypeOf(obj), record);
     return _interceptors.dispatchRecordInterceptor(record);
   }
-  // Function patchInteriorProto: (dynamic, dynamic) → dynamic
+  dart.fn(patchProto);
   function patchInteriorProto(obj, interceptor) {
     let proto = Object.getPrototypeOf(obj);
     let record = _interceptors.makeDispatchRecord(interceptor, proto, null, null);
     _interceptors.setDispatchProperty(proto, record);
     return interceptor;
   }
-  // Function makeLeafDispatchRecord: (dynamic) → dynamic
+  dart.fn(patchInteriorProto);
   function makeLeafDispatchRecord(interceptor) {
     let fieldName = _foreign_helper.JS_IS_INDEXABLE_FIELD_NAME();
     let indexability = !!interceptor[fieldName];
     return _interceptors.makeDispatchRecord(interceptor, false, null, indexability);
   }
-  // Function makeDefaultDispatchRecord: (dynamic, dynamic, dynamic) → dynamic
+  dart.fn(makeLeafDispatchRecord);
   function makeDefaultDispatchRecord(tag, interceptorClass, proto) {
     let interceptor = interceptorClass.prototype;
     let isLeaf = exports.leafTags[tag] === true;
@@ -365,23 +405,23 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return _interceptors.makeDispatchRecord(interceptor, proto, null, null);
     }
   }
-  // Function setNativeSubclassDispatchRecord: (dynamic, dynamic) → dynamic
+  dart.fn(makeDefaultDispatchRecord);
   function setNativeSubclassDispatchRecord(proto, interceptor) {
     _interceptors.setDispatchProperty(proto, makeLeafDispatchRecord(interceptor));
   }
-  // Function constructorNameFallback: (dynamic) → String
+  dart.fn(setNativeSubclassDispatchRecord);
   function constructorNameFallback(object) {
     return _constructorNameFallback(object);
   }
+  dart.fn(constructorNameFallback, core.String, [dart.dynamic]);
   exports.initNativeDispatchFlag = null;
-  // Function initNativeDispatch: () → void
   function initNativeDispatch() {
     if (dart.equals(true, exports.initNativeDispatchFlag))
       return;
     exports.initNativeDispatchFlag = true;
     initNativeDispatchContinue();
   }
-  // Function initNativeDispatchContinue: () → void
+  dart.fn(initNativeDispatch, dart.void, []);
   function initNativeDispatchContinue() {
     exports.dispatchRecordsForInstanceTags = Object.create(null);
     exports.interceptorsForUncacheableTags = Object.create(null);
@@ -417,7 +457,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       }
     }
   }
-  // Function initHooks: () → void
+  dart.fn(initNativeDispatchContinue, dart.void, []);
   function initHooks() {
     let hooks = _baseHooks();
     let _fallbackConstructorHooksTransformer = _fallbackConstructorHooksTransformerGenerator(_constructorNameFallback);
@@ -445,15 +485,16 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     let getTag = hooks.getTag;
     let getUnknownTag = hooks.getUnknownTag;
     let prototypeForTag = hooks.prototypeForTag;
-    exports.getTagFunction = o => getTag(o);
-    exports.alternateTagFunction = (o, tag) => getUnknownTag(o, tag);
-    exports.prototypeForTagFunction = tag => prototypeForTag(tag);
+    exports.getTagFunction = dart.fn(o => getTag(o));
+    exports.alternateTagFunction = dart.fn((o, tag) => getUnknownTag(o, tag), dart.dynamic, [dart.dynamic, core.String]);
+    exports.prototypeForTagFunction = dart.fn(tag => prototypeForTag(tag), dart.dynamic, [core.String]);
   }
-  // Function applyHooksTransformer: (dynamic, dynamic) → dynamic
+  dart.fn(initHooks, dart.void, []);
   function applyHooksTransformer(transformer, hooks) {
     let newHooks = transformer(hooks);
     return newHooks || hooks;
   }
+  dart.fn(applyHooksTransformer);
   let _baseHooks = dart.const(new _foreign_helper.JS_CONST('function() {\n  function typeNameInChrome(o) {\n    var constructor = o.constructor;\n    if (constructor) {\n      var name = constructor.name;\n      if (name) return name;\n    }\n    var s = Object.prototype.toString.call(o);\n    return s.substring(8, s.length - 1);\n  }\n  function getUnknownTag(object, tag) {\n    // This code really belongs in [getUnknownTagGenericBrowser] but having it\n    // here allows [getUnknownTag] to be tested on d8.\n    if (/^HTML[A-Z].*Element$/.test(tag)) {\n      // Check that it is not a simple JavaScript object.\n      var name = Object.prototype.toString.call(object);\n      if (name == "[object Object]") return null;\n      return "HTMLElement";\n    }\n  }\n  function getUnknownTagGenericBrowser(object, tag) {\n    if (self.HTMLElement && object instanceof HTMLElement) return "HTMLElement";\n    return getUnknownTag(object, tag);\n  }\n  function prototypeForTag(tag) {\n    if (typeof window == "undefined") return null;\n    if (typeof window[tag] == "undefined") return null;\n    var constructor = window[tag];\n    if (typeof constructor != "function") return null;\n    return constructor.prototype;\n  }\n  function discriminator(tag) { return null; }\n\n  var isBrowser = typeof navigator == "object";\n\n  return {\n    getTag: typeNameInChrome,\n    getUnknownTag: isBrowser ? getUnknownTagGenericBrowser : getUnknownTag,\n    prototypeForTag: prototypeForTag,\n    discriminator: discriminator };\n}'));
   let _constructorNameFallback = dart.const(new _foreign_helper.JS_CONST('function getTagFallback(o) {\n  var constructor = o.constructor;\n  if (typeof constructor == "function") {\n    var name = constructor.name;\n    // If the name is a non-empty string, we use that as the type name of this\n    // object.  There are various cases where that does not work, so we have to\n    // detect them and fall through to the toString() based implementation.\n\n    if (typeof name == "string" &&\n\n        // Sometimes the string is empty.  This test also catches minified\n        // shadow dom polyfil wrapper for Window on Firefox where the faked\n        // constructor name does not \'stick\'.  The shortest real DOM object\n        // names have three characters (e.g. URL, CSS).\n        name.length > 2 &&\n\n        // On Firefox we often get "Object" as the constructor name, even for\n        // more specialized DOM objects.\n        name !== "Object" &&\n\n        // This can happen in Opera.\n        name !== "Function.prototype") {\n      return name;\n    }\n  }\n  var s = Object.prototype.toString.call(o);\n  return s.substring(8, s.length - 1);\n}'));
   let _fallbackConstructorHooksTransformerGenerator = dart.const(new _foreign_helper.JS_CONST('function(getTagFallback) {\n  return function(hooks) {\n    // If we are not in a browser, assume we are in d8.\n    // TODO(sra): Recognize jsshell.\n    if (typeof navigator != "object") return hooks;\n\n    var ua = navigator.userAgent;\n    // TODO(antonm): remove a reference to DumpRenderTree.\n    if (ua.indexOf("DumpRenderTree") >= 0) return hooks;\n    if (ua.indexOf("Chrome") >= 0) {\n      // Confirm constructor name is usable for dispatch.\n      function confirm(p) {\n        return typeof window == "object" && window[p] && window[p].name == p;\n      }\n      if (confirm("Window") && confirm("HTMLElement")) return hooks;\n    }\n\n    hooks.getTag = getTagFallback;\n  };\n}'));
@@ -464,24 +505,24 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
   let _safariHooksTransformer = dart.const(new _foreign_helper.JS_CONST('function(hooks) { return hooks; }\n'));
   let _dartExperimentalFixupGetTagHooksTransformer = dart.const(new _foreign_helper.JS_CONST('function(hooks) {\n  if (typeof dartExperimentalFixupGetTag != "function") return hooks;\n  hooks.getTag = dartExperimentalFixupGetTag(hooks.getTag);\n}'));
   let _nativeRegExp = Symbol('_nativeRegExp');
-  // Function regExpGetNative: (JSSyntaxRegExp) → dynamic
   function regExpGetNative(regexp) {
     return regexp[_nativeRegExp];
   }
+  dart.fn(regExpGetNative, () => dart.functionType(dart.dynamic, [JSSyntaxRegExp]));
   let _nativeGlobalVersion = Symbol('_nativeGlobalVersion');
-  // Function regExpGetGlobalNative: (JSSyntaxRegExp) → dynamic
   function regExpGetGlobalNative(regexp) {
     let nativeRegexp = regexp[_nativeGlobalVersion];
     nativeRegexp.lastIndex = 0;
     return nativeRegexp;
   }
+  dart.fn(regExpGetGlobalNative, () => dart.functionType(dart.dynamic, [JSSyntaxRegExp]));
   let _nativeAnchoredVersion = Symbol('_nativeAnchoredVersion');
-  // Function regExpCaptureCount: (JSSyntaxRegExp) → int
   function regExpCaptureCount(regexp) {
     let nativeAnchoredRegExp = regexp[_nativeAnchoredVersion];
     let match = nativeAnchoredRegExp.exec('');
     return dart.as(dart.dsend(dart.dload(match, 'length'), '-', 2), core.int);
   }
+  dart.fn(regExpCaptureCount, () => dart.functionType(core.int, [JSSyntaxRegExp]));
   let _nativeGlobalRegExp = Symbol('_nativeGlobalRegExp');
   let _nativeAnchoredRegExp = Symbol('_nativeAnchoredRegExp');
   let _isMultiLine = Symbol('_isMultiLine');
@@ -594,6 +635,20 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
   }
   JSSyntaxRegExp[dart.implements] = () => [core.RegExp];
+  dart.setSignature(JSSyntaxRegExp, {
+    methods: () => ({
+      toString: dart.functionType(core.String, []),
+      firstMatch: dart.functionType(core.Match, [core.String]),
+      hasMatch: dart.functionType(core.bool, [core.String]),
+      stringMatch: dart.functionType(core.String, [core.String]),
+      allMatches: dart.functionType(core.Iterable$(core.Match), [core.String], [core.int]),
+      [_execGlobal]: dart.functionType(core.Match, [core.String, core.int]),
+      [_execAnchored]: dart.functionType(core.Match, [core.String, core.int]),
+      matchAsPrefix: dart.functionType(core.Match, [core.String], [core.int])
+    }),
+    statics: () => ({makeNative: dart.functionType(dart.dynamic, [core.String, core.bool, core.bool, core.bool])}),
+    names: ['makeNative']
+  });
   let _match = Symbol('_match');
   class _MatchImplementation extends core.Object {
     _MatchImplementation(pattern, match) {
@@ -629,6 +684,13 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
   }
   _MatchImplementation[dart.implements] = () => [core.Match];
+  dart.setSignature(_MatchImplementation, {
+    methods: () => ({
+      group: dart.functionType(core.String, [core.int]),
+      get: dart.functionType(core.String, [core.int]),
+      groups: dart.functionType(core.List$(core.String), [core.List$(core.int)])
+    })
+  });
   let _re = Symbol('_re');
   let _string = Symbol('_string');
   let _start = Symbol('_start');
@@ -643,6 +705,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return new _AllMatchesIterator(this[_re], this[_string], this[_start]);
     }
   }
+  dart.setSignature(_AllMatchesIterable, {});
   let _regExp = Symbol('_regExp');
   let _nextIndex = Symbol('_nextIndex');
   let _current = Symbol('_current');
@@ -677,10 +740,13 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
   }
   _AllMatchesIterator[dart.implements] = () => [core.Iterator$(core.Match)];
-  // Function firstMatchAfter: (JSSyntaxRegExp, String, int) → Match
+  dart.setSignature(_AllMatchesIterator, {
+    methods: () => ({moveNext: dart.functionType(core.bool, [])})
+  });
   function firstMatchAfter(regExp, string, start) {
     return regExp[_execGlobal](string, start);
   }
+  dart.fn(firstMatchAfter, core.Match, [JSSyntaxRegExp, core.String, core.int]);
   class StringMatch extends core.Object {
     StringMatch(start, input, pattern) {
       this.start = start;
@@ -711,7 +777,13 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
   }
   StringMatch[dart.implements] = () => [core.Match];
-  // Function allMatchesInStringUnchecked: (String, String, int) → List<Match>
+  dart.setSignature(StringMatch, {
+    methods: () => ({
+      get: dart.functionType(core.String, [core.int]),
+      group: dart.functionType(core.String, [core.int]),
+      groups: dart.functionType(core.List$(core.String), [core.List$(core.int)])
+    })
+  });
   function allMatchesInStringUnchecked(needle, haystack, startIndex) {
     let result = new (core.List$(core.Match))();
     let length = haystack.length;
@@ -733,7 +805,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     return result;
   }
-  // Function stringContainsUnchecked: (dynamic, dynamic, dynamic) → dynamic
+  dart.fn(allMatchesInStringUnchecked, core.List$(core.Match), [core.String, core.String, core.int]);
   function stringContainsUnchecked(receiver, other, startIndex) {
     if (typeof other == 'string') {
       return !dart.equals(dart.dsend(receiver, 'indexOf', other, startIndex), -1);
@@ -744,12 +816,12 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return dart.dload(dart.dsend(other, 'allMatches', substr), 'isNotEmpty');
     }
   }
-  // Function stringReplaceJS: (dynamic, dynamic, dynamic) → dynamic
+  dart.fn(stringContainsUnchecked);
   function stringReplaceJS(receiver, replacer, to) {
     to = to.replace(/\$/g, "$$$$");
     return receiver.replace(replacer, to);
   }
-  // Function stringReplaceFirstRE: (dynamic, dynamic, dynamic, dynamic) → dynamic
+  dart.fn(stringReplaceJS);
   function stringReplaceFirstRE(receiver, regexp, to, startIndex) {
     let match = dart.dsend(regexp, _execGlobal, receiver, startIndex);
     if (match == null)
@@ -758,8 +830,8 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     let end = dart.dload(match, 'end');
     return `${dart.dsend(receiver, 'substring', 0, start)}${to}${dart.dsend(receiver, 'substring', end)}`;
   }
+  dart.fn(stringReplaceFirstRE);
   let ESCAPE_REGEXP = '[[\\]{}()*+?.\\\\^$|]';
-  // Function stringReplaceAllUnchecked: (dynamic, dynamic, dynamic) → dynamic
   function stringReplaceAllUnchecked(receiver, from, to) {
     checkString(to);
     if (typeof from == 'string') {
@@ -790,15 +862,15 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       throw "String.replaceAll(Pattern) UNIMPLEMENTED";
     }
   }
-  // Function _matchString: (Match) → String
+  dart.fn(stringReplaceAllUnchecked);
   function _matchString(match) {
     return match.get(0);
   }
-  // Function _stringIdentity: (String) → String
+  dart.fn(_matchString, core.String, [core.Match]);
   function _stringIdentity(string) {
     return string;
   }
-  // Function stringReplaceAllFuncUnchecked: (dynamic, dynamic, dynamic, dynamic) → dynamic
+  dart.fn(_stringIdentity, core.String, [core.String]);
   function stringReplaceAllFuncUnchecked(receiver, pattern, onMatch, onNonMatch) {
     if (!dart.is(pattern, core.Pattern)) {
       throw new core.ArgumentError(`${pattern} is not a Pattern`);
@@ -820,7 +892,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     buffer.write(dart.dcall(onNonMatch, dart.dsend(receiver, 'substring', startIndex)));
     return dart.toString(buffer);
   }
-  // Function stringReplaceAllEmptyFuncUnchecked: (dynamic, dynamic, dynamic) → dynamic
+  dart.fn(stringReplaceAllFuncUnchecked);
   function stringReplaceAllEmptyFuncUnchecked(receiver, onMatch, onNonMatch) {
     let buffer = new core.StringBuffer();
     let length = dart.as(dart.dload(receiver, 'length'), core.int);
@@ -844,7 +916,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     buffer.write(dart.dcall(onNonMatch, ""));
     return dart.toString(buffer);
   }
-  // Function stringReplaceAllStringFuncUnchecked: (dynamic, dynamic, dynamic, dynamic) → dynamic
+  dart.fn(stringReplaceAllEmptyFuncUnchecked);
   function stringReplaceAllStringFuncUnchecked(receiver, pattern, onMatch, onNonMatch) {
     let patternLength = dart.as(dart.dload(pattern, 'length'), core.int);
     if (patternLength == 0) {
@@ -865,7 +937,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     buffer.write(dart.dcall(onNonMatch, dart.dsend(receiver, 'substring', startIndex)));
     return dart.toString(buffer);
   }
-  // Function stringReplaceFirstUnchecked: (dynamic, dynamic, dynamic, [int]) → dynamic
+  dart.fn(stringReplaceAllStringFuncUnchecked);
   function stringReplaceFirstUnchecked(receiver, from, to, startIndex) {
     if (startIndex === void 0)
       startIndex = 0;
@@ -881,14 +953,15 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       throw "String.replace(Pattern) UNIMPLEMENTED";
     }
   }
-  // Function stringJoinUnchecked: (dynamic, dynamic) → dynamic
+  dart.fn(stringReplaceFirstUnchecked, dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic], [core.int]);
   function stringJoinUnchecked(array, separator) {
     return array.join(separator);
   }
-  // Function createRuntimeType: (String) → Type
+  dart.fn(stringJoinUnchecked);
   function createRuntimeType(name) {
     return new TypeImpl(name);
   }
+  dart.fn(createRuntimeType, core.Type, [core.String]);
   let _typeName = Symbol('_typeName');
   let _unmangledName = Symbol('_unmangledName');
   class TypeImpl extends core.Object {
@@ -910,6 +983,12 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
   }
   TypeImpl[dart.implements] = () => [core.Type];
+  dart.setSignature(TypeImpl, {
+    methods: () => ({
+      toString: dart.functionType(core.String, []),
+      '==': dart.functionType(core.bool, [dart.dynamic])
+    })
+  });
   class TypeVariable extends core.Object {
     TypeVariable(owner, name, bound) {
       this.owner = owner;
@@ -917,58 +996,58 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       this.bound = bound;
     }
   }
-  // Function getMangledTypeName: (TypeImpl) → dynamic
+  dart.setSignature(TypeVariable, {});
   function getMangledTypeName(type) {
     return type[_typeName];
   }
-  // Function setRuntimeTypeInfo: (Object, dynamic) → Object
+  dart.fn(getMangledTypeName, dart.dynamic, [TypeImpl]);
   function setRuntimeTypeInfo(target, typeInfo) {
     dart.assert(dart.notNull(typeInfo == null) || dart.notNull(isJsArray(typeInfo)));
     if (target != null)
       target.$builtinTypeInfo = typeInfo;
     return target;
   }
-  // Function getRuntimeTypeInfo: (Object) → dynamic
+  dart.fn(setRuntimeTypeInfo, core.Object, [core.Object, dart.dynamic]);
   function getRuntimeTypeInfo(target) {
     if (target == null)
       return null;
     return target.$builtinTypeInfo;
   }
-  // Function getRuntimeTypeArguments: (dynamic, dynamic) → dynamic
+  dart.fn(getRuntimeTypeInfo, dart.dynamic, [core.Object]);
   function getRuntimeTypeArguments(target, substitutionName) {
     let substitution = getField(target, `${_foreign_helper.JS_OPERATOR_AS_PREFIX()}${substitutionName}`);
     return substitute(substitution, getRuntimeTypeInfo(target));
   }
-  // Function getRuntimeTypeArgument: (Object, String, int) → dynamic
+  dart.fn(getRuntimeTypeArguments);
   function getRuntimeTypeArgument(target, substitutionName, index) {
     let arguments$ = getRuntimeTypeArguments(target, substitutionName);
     return arguments$ == null ? null : getIndex(arguments$, index);
   }
-  // Function getTypeArgumentByIndex: (Object, int) → dynamic
+  dart.fn(getRuntimeTypeArgument, dart.dynamic, [core.Object, core.String, core.int]);
   function getTypeArgumentByIndex(target, index) {
     let rti = getRuntimeTypeInfo(target);
     return rti == null ? null : getIndex(rti, index);
   }
-  // Function copyTypeArguments: (Object, Object) → void
+  dart.fn(getTypeArgumentByIndex, dart.dynamic, [core.Object, core.int]);
   function copyTypeArguments(source, target) {
     target.$builtinTypeInfo = source.$builtinTypeInfo;
   }
-  // Function getClassName: (dynamic) → String
+  dart.fn(copyTypeArguments, dart.void, [core.Object, core.Object]);
   function getClassName(object) {
     return _interceptors.getInterceptor(object).constructor.builtin$cls;
   }
-  // Function getRuntimeTypeAsString: (dynamic, {onTypeVariable: (int) → String}) → String
+  dart.fn(getClassName, core.String, [dart.dynamic]);
   function getRuntimeTypeAsString(runtimeType, opts) {
     let onTypeVariable = opts && 'onTypeVariable' in opts ? opts.onTypeVariable : null;
     dart.assert(isJsArray(runtimeType));
     let className = getConstructorName(getIndex(runtimeType, 0));
     return `${className}` + `${joinArguments(runtimeType, 1, {onTypeVariable: onTypeVariable})}`;
   }
-  // Function getConstructorName: (dynamic) → String
+  dart.fn(getRuntimeTypeAsString, core.String, [dart.dynamic], {nTypeVariabl: dart.functionType(core.String, [core.int])});
   function getConstructorName(type) {
     return type.builtin$cls;
   }
-  // Function runtimeTypeToString: (dynamic, {onTypeVariable: (int) → String}) → String
+  dart.fn(getConstructorName, core.String, [dart.dynamic]);
   function runtimeTypeToString(type, opts) {
     let onTypeVariable = opts && 'onTypeVariable' in opts ? opts.onTypeVariable : null;
     if (type == null) {
@@ -987,7 +1066,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return null;
     }
   }
-  // Function joinArguments: (dynamic, int, {onTypeVariable: (int) → String}) → String
+  dart.fn(runtimeTypeToString, core.String, [dart.dynamic], {nTypeVariabl: dart.functionType(core.String, [core.int])});
   function joinArguments(types, startIndex, opts) {
     let onTypeVariable = opts && 'onTypeVariable' in opts ? opts.onTypeVariable : null;
     if (types == null)
@@ -1010,7 +1089,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     return allDynamic ? '' : `<${buffer}>`;
   }
-  // Function getRuntimeTypeString: (dynamic) → String
+  dart.fn(joinArguments, core.String, [dart.dynamic, core.int], {nTypeVariabl: dart.functionType(core.String, [core.int])});
   function getRuntimeTypeString(object) {
     let className = getClassName(object);
     if (object == null)
@@ -1018,12 +1097,12 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     let typeInfo = object.$builtinTypeInfo;
     return `${className}${joinArguments(typeInfo, 0)}`;
   }
-  // Function getRuntimeType: (dynamic) → Type
+  dart.fn(getRuntimeTypeString, core.String, [dart.dynamic]);
   function getRuntimeType(object) {
     let type = getRuntimeTypeString(object);
     return new TypeImpl(type);
   }
-  // Function substitute: (dynamic, dynamic) → dynamic
+  dart.fn(getRuntimeType, core.Type, [dart.dynamic]);
   function substitute(substitution, arguments$) {
     dart.assert(dart.notNull(substitution == null) || dart.notNull(isJsFunction(substitution)));
     dart.assert(dart.notNull(arguments$ == null) || dart.notNull(isJsArray(arguments$)));
@@ -1037,7 +1116,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     return arguments$;
   }
-  // Function checkSubtype: (Object, String, List<dynamic>, String) → bool
+  dart.fn(substitute);
   function checkSubtype(object, isField, checks, asField) {
     if (object == null)
       return false;
@@ -1049,12 +1128,12 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     let substitution = getField(interceptor, asField);
     return checkArguments(substitution, arguments$, checks);
   }
-  // Function computeTypeName: (String, List<dynamic>) → String
+  dart.fn(checkSubtype, core.bool, [core.Object, core.String, core.List, core.String]);
   function computeTypeName(isField, arguments$) {
     let prefixLength = _foreign_helper.JS_OPERATOR_IS_PREFIX().length;
     return Primitives.formatType(isField.substring(prefixLength, isField.length), arguments$);
   }
-  // Function subtypeCast: (Object, String, List<dynamic>, String) → Object
+  dart.fn(computeTypeName, core.String, [core.String, core.List]);
   function subtypeCast(object, isField, checks, asField) {
     if (dart.notNull(object != null) && !dart.notNull(checkSubtype(object, isField, checks, asField))) {
       let actualType = Primitives.objectTypeName(object);
@@ -1063,7 +1142,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     return object;
   }
-  // Function assertSubtype: (Object, String, List<dynamic>, String) → Object
+  dart.fn(subtypeCast, core.Object, [core.Object, core.String, core.List, core.String]);
   function assertSubtype(object, isField, checks, asField) {
     if (dart.notNull(object != null) && !dart.notNull(checkSubtype(object, isField, checks, asField))) {
       let typeName = computeTypeName(isField, checks);
@@ -1071,21 +1150,21 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     return object;
   }
-  // Function assertIsSubtype: (dynamic, dynamic, String) → dynamic
+  dart.fn(assertSubtype, core.Object, [core.Object, core.String, core.List, core.String]);
   function assertIsSubtype(subtype, supertype, message) {
     if (!dart.notNull(isSubtype(subtype, supertype))) {
       throwTypeError(message);
     }
   }
-  // Function throwTypeError: (dynamic) → dynamic
+  dart.fn(assertIsSubtype, dart.dynamic, [dart.dynamic, dart.dynamic, core.String]);
   function throwTypeError(message) {
     throw new TypeErrorImplementation.fromMessage(dart.as(message, core.String));
   }
-  // Function checkArguments: (dynamic, dynamic, dynamic) → bool
+  dart.fn(throwTypeError);
   function checkArguments(substitution, arguments$, checks) {
     return areSubtypes(substitute(substitution, arguments$), checks);
   }
-  // Function areSubtypes: (dynamic, dynamic) → bool
+  dart.fn(checkArguments, core.bool, [dart.dynamic, dart.dynamic, dart.dynamic]);
   function areSubtypes(s, t) {
     if (dart.notNull(s == null) || dart.notNull(t == null))
       return true;
@@ -1100,16 +1179,16 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     return true;
   }
-  // Function computeSignature: (dynamic, dynamic, dynamic) → dynamic
+  dart.fn(areSubtypes, core.bool, [dart.dynamic, dart.dynamic]);
   function computeSignature(signature, context, contextName) {
     let typeArguments = getRuntimeTypeArguments(context, contextName);
     return invokeOn(signature, context, typeArguments);
   }
-  // Function isSupertypeOfNull: (dynamic) → bool
+  dart.fn(computeSignature);
   function isSupertypeOfNull(type) {
     return dart.notNull(type == null) || getConstructorName(type) == _foreign_helper.JS_OBJECT_CLASS_NAME() || getConstructorName(type) == _foreign_helper.JS_NULL_CLASS_NAME();
   }
-  // Function checkSubtypeOfRuntimeType: (dynamic, dynamic) → bool
+  dart.fn(isSupertypeOfNull, core.bool, [dart.dynamic]);
   function checkSubtypeOfRuntimeType(o, t) {
     if (o == null)
       return isSupertypeOfNull(t);
@@ -1134,7 +1213,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     return isSubtype(type, t);
   }
-  // Function subtypeOfRuntimeTypeCast: (Object, dynamic) → Object
+  dart.fn(checkSubtypeOfRuntimeType, core.bool, [dart.dynamic, dart.dynamic]);
   function subtypeOfRuntimeTypeCast(object, type) {
     if (dart.notNull(object != null) && !dart.notNull(checkSubtypeOfRuntimeType(object, type))) {
       let actualType = Primitives.objectTypeName(object);
@@ -1142,18 +1221,18 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     return object;
   }
-  // Function assertSubtypeOfRuntimeType: (Object, dynamic) → Object
+  dart.fn(subtypeOfRuntimeTypeCast, core.Object, [core.Object, dart.dynamic]);
   function assertSubtypeOfRuntimeType(object, type) {
     if (dart.notNull(object != null) && !dart.notNull(checkSubtypeOfRuntimeType(object, type))) {
       throw new TypeErrorImplementation(object, runtimeTypeToString(type));
     }
     return object;
   }
-  // Function getArguments: (dynamic) → dynamic
+  dart.fn(assertSubtypeOfRuntimeType, core.Object, [core.Object, dart.dynamic]);
   function getArguments(type) {
     return isJsArray(type) ? type.slice(1) : null;
   }
-  // Function isSubtype: (dynamic, dynamic) → bool
+  dart.fn(getArguments);
   function isSubtype(s, t) {
     if (isIdentical(s, t))
       return true;
@@ -1182,11 +1261,11 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     return checkArguments(substitution, getArguments(s), getArguments(t));
   }
-  // Function isAssignable: (dynamic, dynamic) → bool
+  dart.fn(isSubtype, core.bool, [dart.dynamic, dart.dynamic]);
   function isAssignable(s, t) {
     return dart.notNull(isSubtype(s, t)) || dart.notNull(isSubtype(t, s));
   }
-  // Function areAssignable: (List<dynamic>, List, bool) → bool
+  dart.fn(isAssignable, core.bool, [dart.dynamic, dart.dynamic]);
   function areAssignable(s, t, allowShorter) {
     if (dart.notNull(t == null) && dart.notNull(s == null))
       return true;
@@ -1212,7 +1291,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     return true;
   }
-  // Function areAssignableMaps: (dynamic, dynamic) → bool
+  dart.fn(areAssignable, core.bool, [core.List, core.List, core.bool]);
   function areAssignableMaps(s, t) {
     if (t == null)
       return true;
@@ -1233,7 +1312,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     return true;
   }
-  // Function isFunctionSubtype: (dynamic, dynamic) → bool
+  dart.fn(areAssignableMaps, core.bool, [dart.dynamic, dart.dynamic]);
   function isFunctionSubtype(s, t) {
     dart.assert(hasField(t, `${_foreign_helper.JS_FUNCTION_TYPE_TAG()}`));
     if (hasNoField(s, `${_foreign_helper.JS_FUNCTION_TYPE_TAG()}`))
@@ -1293,80 +1372,82 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     let tNamedParameters = getField(t, `${_foreign_helper.JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG()}`);
     return areAssignableMaps(sNamedParameters, tNamedParameters);
   }
-  // Function invoke: (dynamic, dynamic) → dynamic
+  dart.fn(isFunctionSubtype, core.bool, [dart.dynamic, dart.dynamic]);
   function invoke(func, arguments$) {
     return invokeOn(func, null, arguments$);
   }
-  // Function invokeOn: (dynamic, dynamic, dynamic) → Object
+  dart.fn(invoke);
   function invokeOn(func, receiver, arguments$) {
     dart.assert(isJsFunction(func));
     dart.assert(dart.notNull(arguments$ == null) || dart.notNull(isJsArray(arguments$)));
     return func.apply(receiver, arguments$);
   }
-  // Function call: (dynamic, String) → dynamic
+  dart.fn(invokeOn, core.Object, [dart.dynamic, dart.dynamic, dart.dynamic]);
   function call(object, name) {
     return object[name]();
   }
-  // Function getField: (dynamic, String) → dynamic
+  dart.fn(call, dart.dynamic, [dart.dynamic, core.String]);
   function getField(object, name) {
     return object[name];
   }
-  // Function getIndex: (dynamic, int) → dynamic
+  dart.fn(getField, dart.dynamic, [dart.dynamic, core.String]);
   function getIndex(array, index) {
     dart.assert(isJsArray(array));
     return array[index];
   }
-  // Function getLength: (dynamic) → int
+  dart.fn(getIndex, dart.dynamic, [dart.dynamic, core.int]);
   function getLength(array) {
     dart.assert(isJsArray(array));
     return array.length;
   }
-  // Function isJsArray: (dynamic) → bool
+  dart.fn(getLength, core.int, [dart.dynamic]);
   function isJsArray(value) {
     return dart.is(value, _interceptors.JSArray);
   }
-  // Function hasField: (dynamic, dynamic) → dynamic
+  dart.fn(isJsArray, core.bool, [dart.dynamic]);
   function hasField(object, name) {
     return name in object;
   }
-  // Function hasNoField: (dynamic, dynamic) → dynamic
+  dart.fn(hasField);
   function hasNoField(object, name) {
     return dart.dsend(hasField(object, name), '!');
   }
-  // Function isJsFunction: (dynamic) → bool
+  dart.fn(hasNoField);
   function isJsFunction(o) {
     return typeof o == "function";
   }
-  // Function isJsObject: (dynamic) → bool
+  dart.fn(isJsFunction, core.bool, [dart.dynamic]);
   function isJsObject(o) {
     return typeof o == 'object';
   }
-  // Function isIdentical: (dynamic, dynamic) → bool
+  dart.fn(isJsObject, core.bool, [dart.dynamic]);
   function isIdentical(s, t) {
     return s === t;
   }
-  // Function isNotIdentical: (dynamic, dynamic) → bool
+  dart.fn(isIdentical, core.bool, [dart.dynamic, dart.dynamic]);
   function isNotIdentical(s, t) {
     return s !== t;
   }
-  // Function unmangleGlobalNameIfPreservedAnyways: (String) → String
+  dart.fn(isNotIdentical, core.bool, [dart.dynamic, dart.dynamic]);
   function unmangleGlobalNameIfPreservedAnyways(str) {
     return str;
   }
-  // Function unmangleAllIdentifiersIfPreservedAnyways: (String) → String
+  dart.fn(unmangleGlobalNameIfPreservedAnyways, core.String, [core.String]);
   function unmangleAllIdentifiersIfPreservedAnyways(str) {
     return str;
   }
+  dart.fn(unmangleAllIdentifiersIfPreservedAnyways, core.String, [core.String]);
   class _Patch extends core.Object {
     _Patch() {
     }
   }
+  dart.setSignature(_Patch, {});
   let patch = dart.const(new _Patch());
   class InternalMap extends core.Object {}
-  // Function requiresPreamble: () → dynamic
+  dart.setSignature(InternalMap, {});
   function requiresPreamble() {
   }
-  // Function isJsIndexable: (dynamic, dynamic) → bool
+  dart.fn(requiresPreamble);
   function isJsIndexable(object, record) {
     if (record != null) {
       let result = _interceptors.dispatchRecordIndexability(record);
@@ -1375,7 +1456,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     return dart.is(object, exports.JavaScriptIndexingBehavior);
   }
-  // Function S: (dynamic) → String
+  dart.fn(isJsIndexable, core.bool, [dart.dynamic, dart.dynamic]);
   function S(value) {
     if (typeof value == 'string')
       return dart.as(value, core.String);
@@ -1395,19 +1476,19 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       throw new core.ArgumentError(value);
     return res;
   }
-  // Function createInvocationMirror: (String, dynamic, dynamic, dynamic, dynamic) → dynamic
+  dart.fn(S, core.String, [dart.dynamic]);
   function createInvocationMirror(name, internalName, kind, arguments$, argumentNames) {
     return new JSInvocationMirror(name, dart.as(internalName, core.String), dart.as(kind, core.int), dart.as(arguments$, core.List), dart.as(argumentNames, core.List));
   }
-  // Function createUnmangledInvocationMirror: (Symbol, dynamic, dynamic, dynamic, dynamic) → dynamic
+  dart.fn(createInvocationMirror, dart.dynamic, [core.String, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]);
   function createUnmangledInvocationMirror(symbol, internalName, kind, arguments$, argumentNames) {
     return new JSInvocationMirror(symbol, dart.as(internalName, core.String), dart.as(kind, core.int), dart.as(arguments$, core.List), dart.as(argumentNames, core.List));
   }
-  // Function throwInvalidReflectionError: (String) → void
+  dart.fn(createUnmangledInvocationMirror, dart.dynamic, [core.Symbol, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]);
   function throwInvalidReflectionError(memberName) {
     throw new core.UnsupportedError(`Can't use '${memberName}' in reflection ` + "because it is not included in a @MirrorsUsed annotation.");
   }
-  // Function traceHelper: (String) → void
+  dart.fn(throwInvalidReflectionError, dart.void, [core.String]);
   function traceHelper(method) {
     if (!this.cache) {
       this.cache = Object.create(null);
@@ -1417,6 +1498,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       this.cache[method] = true;
     }
   }
+  dart.fn(traceHelper, dart.void, [core.String]);
   let _memberName = Symbol('_memberName');
   let _internalName = Symbol('_internalName');
   let _kind = Symbol('_kind');
@@ -1540,6 +1622,14 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
   }
   JSInvocationMirror[dart.implements] = () => [core.Invocation];
+  dart.setSignature(JSInvocationMirror, {
+    methods: () => ({[_getCachedInvocation]: dart.functionType(dart.dynamic, [core.Object])}),
+    statics: () => ({
+      invokeFromMirror: dart.functionType(dart.dynamic, [JSInvocationMirror, core.Object]),
+      getCachedInvocation: dart.functionType(dart.dynamic, [JSInvocationMirror, core.Object])
+    }),
+    names: ['invokeFromMirror', 'getCachedInvocation']
+  });
   JSInvocationMirror.METHOD = 0;
   JSInvocationMirror.GETTER = 1;
   JSInvocationMirror.SETTER = 2;
@@ -1571,6 +1661,9 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return this.jsFunction.apply(receiver, arguments$);
     }
   }
+  dart.setSignature(CachedInvocation, {
+    methods: () => ({invokeOn: dart.functionType(dart.dynamic, [core.Object, core.List])})
+  });
   class CachedCatchAllInvocation extends CachedInvocation {
     CachedCatchAllInvocation(name, jsFunction, isIntercepted, cachedInterceptor) {
       this.info = new ReflectionInfo(jsFunction);
@@ -1614,6 +1707,9 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return this.jsFunction.apply(receiver, arguments$);
     }
   }
+  dart.setSignature(CachedCatchAllInvocation, {
+    methods: () => ({invokeOn: dart.functionType(dart.dynamic, [core.Object, core.List])})
+  });
   class CachedNoSuchMethodInvocation extends core.Object {
     CachedNoSuchMethodInvocation(interceptor) {
       this.interceptor = interceptor;
@@ -1629,6 +1725,9 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return dart.dsend(receiver, 'noSuchMethod', invocation);
     }
   }
+  dart.setSignature(CachedNoSuchMethodInvocation, {
+    methods: () => ({invokeOn: dart.functionType(dart.dynamic, [core.Object, core.Invocation])})
+  });
   class ReflectionInfo extends core.Object {
     internal(jsFunction, data, isAccessor, requiredParameterCount, optionalParameterCount, areOptionalParametersNamed, functionType) {
       this.jsFunction = jsFunction;
@@ -1707,13 +1806,13 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
           let _ = positions.keys[core.$toList]();
           _[core.$sort]();
           return _;
-        })()[core.$forEach]((name => {
+        })()[core.$forEach](dart.fn((name => {
           this.cachedSortedIndices[core.$set]((() => {
             let x = index;
             index = dart.notNull(x) + 1;
             return x;
           })(), positions.get(name));
-        }).bind(this));
+        }).bind(this), dart.dynamic, [core.String]));
       }
       return dart.as(this.cachedSortedIndices[core.$get](unsortedIndex), core.int);
     }
@@ -1733,15 +1832,26 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
   }
   dart.defineNamedConstructor(ReflectionInfo, 'internal');
+  dart.setSignature(ReflectionInfo, {
+    methods: () => ({
+      parameterName: dart.functionType(core.String, [core.int]),
+      parameterMetadataAnnotations: dart.functionType(core.List$(core.int), [core.int]),
+      defaultValue: dart.functionType(core.int, [core.int]),
+      defaultValueInOrder: dart.functionType(core.int, [core.int]),
+      parameterNameInOrder: dart.functionType(core.String, [core.int]),
+      sortedIndex: dart.functionType(core.int, [core.int]),
+      computeFunctionRti: dart.functionType(dart.dynamic, [dart.dynamic])
+    })
+  });
   ReflectionInfo.REQUIRED_PARAMETERS_INFO = 0;
   ReflectionInfo.OPTIONAL_PARAMETERS_INFO = 1;
   ReflectionInfo.FUNCTION_TYPE_INDEX = 2;
   ReflectionInfo.FIRST_DEFAULT_ARGUMENT = 3;
-  // Function getMetadata: (int) → dynamic
   function getMetadata(index) {
     let metadata = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.METADATA);
     return metadata[index];
   }
+  dart.fn(getMetadata, dart.dynamic, [core.int]);
   class Primitives extends core.Object {
     static initializeStatics(id) {
       Primitives.mirrorFunctionCacheName = dart.notNull(Primitives.mirrorFunctionCacheName) + `_${id}`;
@@ -1862,7 +1972,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       if (typeof performance.now != "function")
         return;
       Primitives.timerFrequency = 1000000;
-      Primitives.timerTicks = () => (1000 * performance.now()).floor();
+      Primitives.timerTicks = dart.fn(() => (1000 * performance.now()).floor(), core.int, []);
     }
     static get isD8() {
       return typeof version == "function" && typeof os == "object" && "system" in os;
@@ -2049,12 +2159,12 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       }
       let names = '';
       if (dart.notNull(namedArguments != null) && !dart.notNull(namedArguments.isEmpty)) {
-        namedArguments.forEach((name, argument) => {
+        namedArguments.forEach(dart.fn((name, argument) => {
           names = `${names}$${name}`;
           namedArgumentList[core.$add](name);
           arguments$[core.$add](argument);
           argumentCount = dart.notNull(argumentCount) + 1;
-        });
+        }, dart.dynamic, [core.String, dart.dynamic]));
       }
       let selectorName = `${_foreign_helper.JS_GET_NAME("CALL_PREFIX")}$${argumentCount}${names}`;
       return dart.dsend(func, 'noSuchMethod', createUnmangledInvocationMirror(dart.const(new core.Symbol('call')), selectorName, JSInvocationMirror.METHOD, arguments$, namedArgumentList));
@@ -2112,13 +2222,13 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         defaultArguments.set(parameterName, defaultValue);
       }
       let bad = false;
-      namedArguments.forEach((parameter, value) => {
+      namedArguments.forEach(dart.fn((parameter, value) => {
         if (defaultArguments.containsKey(parameter)) {
           defaultArguments.set(parameter, value);
         } else {
           bad = true;
         }
-      });
+      }, dart.dynamic, [core.String, dart.dynamic]));
       if (bad) {
         return Primitives.functionNoSuchMethod(func, positionalArguments, namedArguments);
       }
@@ -2135,6 +2245,51 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return getTraceFromException(error.$thrownJsError);
     }
   }
+  dart.setSignature(Primitives, {
+    statics: () => ({
+      initializeStatics: dart.functionType(dart.void, [core.int]),
+      objectHashCode: dart.functionType(core.int, [dart.dynamic]),
+      _throwFormatException: dart.functionType(dart.dynamic, [core.String]),
+      parseInt: dart.functionType(core.int, [core.String, core.int, dart.functionType(core.int, [core.String])]),
+      parseDouble: dart.functionType(core.double, [core.String, dart.functionType(core.double, [core.String])]),
+      formatType: dart.functionType(core.String, [core.String, core.List]),
+      objectTypeName: dart.functionType(core.String, [core.Object]),
+      objectToString: dart.functionType(core.String, [core.Object]),
+      dateNow: dart.functionType(core.num, []),
+      initTicker: dart.functionType(dart.void, []),
+      currentUri: dart.functionType(core.String, []),
+      _fromCharCodeApply: dart.functionType(core.String, [core.List$(core.int)]),
+      stringFromCodePoints: dart.functionType(core.String, [dart.dynamic]),
+      stringFromCharCodes: dart.functionType(core.String, [dart.dynamic]),
+      stringFromCharCode: dart.functionType(core.String, [dart.dynamic]),
+      stringConcatUnchecked: dart.functionType(core.String, [core.String, core.String]),
+      flattenString: dart.functionType(core.String, [core.String]),
+      getTimeZoneName: dart.functionType(core.String, [dart.dynamic]),
+      getTimeZoneOffsetInMinutes: dart.functionType(core.int, [dart.dynamic]),
+      valueFromDecomposedDate: dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]),
+      patchUpY2K: dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic]),
+      lazyAsJsDate: dart.functionType(dart.dynamic, [dart.dynamic]),
+      getYear: dart.functionType(dart.dynamic, [dart.dynamic]),
+      getMonth: dart.functionType(dart.dynamic, [dart.dynamic]),
+      getDay: dart.functionType(dart.dynamic, [dart.dynamic]),
+      getHours: dart.functionType(dart.dynamic, [dart.dynamic]),
+      getMinutes: dart.functionType(dart.dynamic, [dart.dynamic]),
+      getSeconds: dart.functionType(dart.dynamic, [dart.dynamic]),
+      getMilliseconds: dart.functionType(dart.dynamic, [dart.dynamic]),
+      getWeekday: dart.functionType(dart.dynamic, [dart.dynamic]),
+      valueFromDateString: dart.functionType(dart.dynamic, [dart.dynamic]),
+      getProperty: dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]),
+      setProperty: dart.functionType(dart.void, [dart.dynamic, dart.dynamic, dart.dynamic]),
+      functionNoSuchMethod: dart.functionType(dart.dynamic, [dart.dynamic, core.List, core.Map$(core.String, dart.dynamic)]),
+      applyFunction: dart.functionType(dart.dynamic, [core.Function, core.List, core.Map$(core.String, dart.dynamic)]),
+      applyFunctionWithPositionalArguments: dart.functionType(dart.dynamic, [core.Function, core.List]),
+      applyFunctionWithNamedArguments: dart.functionType(dart.dynamic, [core.Function, core.List, core.Map$(core.String, dart.dynamic)]),
+      _mangledNameMatchesType: dart.functionType(dart.dynamic, [core.String, TypeImpl]),
+      identicalImplementation: dart.functionType(core.bool, [dart.dynamic, dart.dynamic]),
+      extractStackTrace: dart.functionType(core.StackTrace, [core.Error])
+    }),
+    names: ['initializeStatics', 'objectHashCode', '_throwFormatException', 'parseInt', 'parseDouble', 'formatType', 'objectTypeName', 'objectToString', 'dateNow', 'initTicker', 'currentUri', '_fromCharCodeApply', 'stringFromCodePoints', 'stringFromCharCodes', 'stringFromCharCode', 'stringConcatUnchecked', 'flattenString', 'getTimeZoneName', 'getTimeZoneOffsetInMinutes', 'valueFromDecomposedDate', 'patchUpY2K', 'lazyAsJsDate', 'getYear', 'getMonth', 'getDay', 'getHours', 'getMinutes', 'getSeconds', 'getMilliseconds', 'getWeekday', 'valueFromDateString', 'getProperty', 'setProperty', 'functionNoSuchMethod', 'applyFunction', 'applyFunctionWithPositionalArguments', 'applyFunctionWithNamedArguments', '_mangledNameMatchesType', 'identicalImplementation', 'extractStackTrace']
+  });
   Primitives.mirrorFunctionCacheName = '$cachedFunction';
   Primitives.mirrorInvokeCacheName = '$cachedInvocation';
   Primitives.DOLLAR_CHAR_VALUE = 36;
@@ -2170,11 +2325,18 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       cache[key] = value;
     }
   }
-  // Function iae: (dynamic) → dynamic
+  dart.setSignature(JsCache, {
+    statics: () => ({
+      allocate: dart.functionType(dart.dynamic, []),
+      fetch: dart.functionType(dart.dynamic, [dart.dynamic, core.String]),
+      update: dart.functionType(dart.void, [dart.dynamic, core.String, dart.dynamic])
+    }),
+    names: ['allocate', 'fetch', 'update']
+  });
   function iae(argument) {
     throw new core.ArgumentError(argument);
   }
-  // Function ioore: (dynamic, dynamic) → dynamic
+  dart.fn(iae);
   function ioore(receiver, index) {
     if (receiver == null)
       dart.dload(receiver, 'length');
@@ -2182,45 +2344,45 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       iae(index);
     throw new core.RangeError.value(dart.as(index, core.num));
   }
-  // Function stringLastIndexOfUnchecked: (dynamic, dynamic, dynamic) → dynamic
+  dart.fn(ioore);
   function stringLastIndexOfUnchecked(receiver, element, start) {
     return receiver.lastIndexOf(element, start);
   }
-  // Function checkNull: (dynamic) → dynamic
+  dart.fn(stringLastIndexOfUnchecked);
   function checkNull(object) {
     if (object == null)
       throw new core.ArgumentError(null);
     return object;
   }
-  // Function checkNum: (dynamic) → dynamic
+  dart.fn(checkNull);
   function checkNum(value) {
     if (!dart.is(value, core.num)) {
       throw new core.ArgumentError(value);
     }
     return value;
   }
-  // Function checkInt: (dynamic) → dynamic
+  dart.fn(checkNum);
   function checkInt(value) {
     if (!(typeof value == 'number')) {
       throw new core.ArgumentError(value);
     }
     return value;
   }
-  // Function checkBool: (dynamic) → dynamic
+  dart.fn(checkInt);
   function checkBool(value) {
     if (!(typeof value == 'boolean')) {
       throw new core.ArgumentError(value);
     }
     return value;
   }
-  // Function checkString: (dynamic) → dynamic
+  dart.fn(checkBool);
   function checkString(value) {
     if (!(typeof value == 'string')) {
       throw new core.ArgumentError(value);
     }
     return value;
   }
-  // Function wrapException: (dynamic) → dynamic
+  dart.fn(checkString);
   function wrapException(ex) {
     if (ex == null)
       ex = new core.NullThrownError();
@@ -2234,28 +2396,29 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     return wrapper;
   }
-  // Function toStringWrapper: () → dynamic
+  dart.fn(wrapException);
   function toStringWrapper() {
     return dart.toString(this.dartException);
   }
-  // Function throwExpression: (dynamic) → dynamic
+  dart.fn(toStringWrapper);
   function throwExpression(ex) {
     throw wrapException(ex);
   }
-  // Function makeLiteralListConst: (dynamic) → dynamic
+  dart.fn(throwExpression);
   function makeLiteralListConst(list) {
     list.immutable$list = true;
     list.fixed$length = true;
     return list;
   }
-  // Function throwRuntimeError: (dynamic) → dynamic
+  dart.fn(makeLiteralListConst);
   function throwRuntimeError(message) {
     throw new RuntimeError(message);
   }
-  // Function throwAbstractClassInstantiationError: (dynamic) → dynamic
+  dart.fn(throwRuntimeError);
   function throwAbstractClassInstantiationError(className) {
     throw new core.AbstractClassInstantiationError(dart.as(className, core.String));
   }
+  dart.fn(throwAbstractClassInstantiationError);
   let _argumentsExpr = Symbol('_argumentsExpr');
   let _expr = Symbol('_expr');
   let _method = Symbol('_method');
@@ -2391,6 +2554,21 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return func();
     }
   }
+  dart.setSignature(TypeErrorDecoder, {
+    methods: () => ({matchTypeError: dart.functionType(dart.dynamic, [dart.dynamic])}),
+    statics: () => ({
+      buildJavaScriptObject: dart.functionType(dart.dynamic, []),
+      buildJavaScriptObjectWithNonClosure: dart.functionType(dart.dynamic, []),
+      extractPattern: dart.functionType(dart.dynamic, [core.String]),
+      provokeCallErrorOn: dart.functionType(core.String, [dart.dynamic]),
+      provokeCallErrorOnNull: dart.functionType(core.String, []),
+      provokeCallErrorOnUndefined: dart.functionType(core.String, []),
+      provokePropertyErrorOn: dart.functionType(core.String, [dart.dynamic]),
+      provokePropertyErrorOnNull: dart.functionType(core.String, []),
+      provokePropertyErrorOnUndefined: dart.functionType(core.String, [])
+    }),
+    names: ['buildJavaScriptObject', 'buildJavaScriptObjectWithNonClosure', 'extractPattern', 'provokeCallErrorOn', 'provokeCallErrorOnNull', 'provokeCallErrorOnUndefined', 'provokePropertyErrorOn', 'provokePropertyErrorOnNull', 'provokePropertyErrorOnUndefined']
+  });
   dart.defineLazyProperties(TypeErrorDecoder, {
     get noSuchMethodPattern() {
       return dart.as(TypeErrorDecoder.extractPattern(TypeErrorDecoder.provokeCallErrorOn(TypeErrorDecoder.buildJavaScriptObject())), TypeErrorDecoder);
@@ -2437,6 +2615,9 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
   }
   NullError[dart.implements] = () => [core.NoSuchMethodError];
+  dart.setSignature(NullError, {
+    methods: () => ({toString: dart.functionType(core.String, [])})
+  });
   class JsNoSuchMethodError extends core.Error {
     JsNoSuchMethodError(message, match) {
       this[_message] = message;
@@ -2454,6 +2635,9 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
   }
   JsNoSuchMethodError[dart.implements] = () => [core.NoSuchMethodError];
+  dart.setSignature(JsNoSuchMethodError, {
+    methods: () => ({toString: dart.functionType(core.String, [])})
+  });
   class UnknownJsTypeError extends core.Error {
     UnknownJsTypeError(message) {
       this[_message] = message;
@@ -2463,9 +2647,10 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return this[_message].isEmpty ? 'Error' : `Error: ${this[_message]}`;
     }
   }
-  // Function unwrapException: (dynamic) → dynamic
+  dart.setSignature(UnknownJsTypeError, {
+    methods: () => ({toString: dart.functionType(core.String, [])})
+  });
   function unwrapException(ex) {
-    // Function saveStackTrace: (dynamic) → dynamic
     let saveStackTrace = error => {
       if (dart.is(error, core.Error)) {
         let thrownStackTrace = error.$thrownJsError;
@@ -2475,6 +2660,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       }
       return error;
     };
+    dart.fn(saveStackTrace);
     if (ex == null)
       return null;
     if (typeof ex !== "object")
@@ -2538,10 +2724,11 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     return ex;
   }
-  // Function getTraceFromException: (dynamic) → StackTrace
+  dart.fn(unwrapException);
   function getTraceFromException(exception) {
     return new _StackTrace(exception);
   }
+  dart.fn(getTraceFromException, core.StackTrace, [dart.dynamic]);
   let _exception = Symbol('_exception');
   let _trace = Symbol('_trace');
   class _StackTrace extends core.Object {
@@ -2560,7 +2747,9 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
   }
   _StackTrace[dart.implements] = () => [core.StackTrace];
-  // Function objectHashCode: (dynamic) → int
+  dart.setSignature(_StackTrace, {
+    methods: () => ({toString: dart.functionType(core.String, [])})
+  });
   function objectHashCode(object) {
     if (dart.notNull(object == null) || typeof object != 'object') {
       return dart.hashCode(object);
@@ -2568,7 +2757,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return Primitives.objectHashCode(object);
     }
   }
-  // Function fillLiteralMap: (dynamic, Map<dynamic, dynamic>) → dynamic
+  dart.fn(objectHashCode, core.int, [dart.dynamic]);
   function fillLiteralMap(keyValuePairs, result) {
     let index = 0;
     let length = getLength(keyValuePairs);
@@ -2587,34 +2776,35 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     return result;
   }
-  // Function invokeClosure: (Function, dynamic, int, dynamic, dynamic, dynamic, dynamic) → dynamic
+  dart.fn(fillLiteralMap, dart.dynamic, [dart.dynamic, core.Map]);
   function invokeClosure(closure, isolate, numberOfArguments, arg1, arg2, arg3, arg4) {
     if (numberOfArguments == 0) {
-      return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, () => dart.dcall(closure));
+      return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, dart.fn(() => dart.dcall(closure)));
     } else if (numberOfArguments == 1) {
-      return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, () => dart.dcall(closure, arg1));
+      return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, dart.fn(() => dart.dcall(closure, arg1)));
     } else if (numberOfArguments == 2) {
-      return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, () => dart.dcall(closure, arg1, arg2));
+      return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, dart.fn(() => dart.dcall(closure, arg1, arg2)));
     } else if (numberOfArguments == 3) {
-      return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, () => dart.dcall(closure, arg1, arg2, arg3));
+      return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, dart.fn(() => dart.dcall(closure, arg1, arg2, arg3)));
     } else if (numberOfArguments == 4) {
-      return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, () => dart.dcall(closure, arg1, arg2, arg3, arg4));
+      return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, dart.fn(() => dart.dcall(closure, arg1, arg2, arg3, arg4)));
     } else {
       throw new core.Exception('Unsupported number of arguments for wrapped closure');
     }
   }
-  // Function convertDartClosureToJS: (dynamic, int) → dynamic
+  dart.fn(invokeClosure, dart.dynamic, [core.Function, dart.dynamic, core.int, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]);
   function convertDartClosureToJS(closure, arity) {
     return closure;
   }
+  dart.fn(convertDartClosureToJS, dart.dynamic, [dart.dynamic, core.int]);
   class Closure extends core.Object {
     Closure() {
     }
     static fromTearOff(receiver, functions, reflectionInfo, isStatic, jsArguments, propertyName) {
-      _foreign_helper.JS_EFFECT(() => {
+      _foreign_helper.JS_EFFECT(dart.fn(() => {
         BoundClosure.receiverOf(dart.as(void 0, BoundClosure));
         BoundClosure.selfOf(dart.as(void 0, BoundClosure));
-      });
+      }));
       let func = functions[0];
       let name = dart.as(func.$stubName, core.String);
       let callName = dart.as(func.$callName, core.String);
@@ -2867,6 +3057,17 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
   }
   Closure[dart.implements] = () => [core.Function];
+  dart.setSignature(Closure, {
+    methods: () => ({toString: dart.functionType(core.String, [])}),
+    statics: () => ({
+      fromTearOff: dart.functionType(dart.dynamic, [dart.dynamic, core.List, core.List, core.bool, dart.dynamic, core.String]),
+      cspForwardCall: dart.functionType(dart.dynamic, [core.int, core.bool, core.String, dart.dynamic]),
+      forwardCallTo: dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic, core.bool]),
+      cspForwardInterceptedCall: dart.functionType(dart.dynamic, [core.int, core.bool, core.String, dart.dynamic]),
+      forwardInterceptedCallTo: dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])
+    }),
+    names: ['fromTearOff', 'cspForwardCall', 'forwardCallTo', 'cspForwardInterceptedCall', 'forwardInterceptedCallTo']
+  });
   Closure.FUNCTION_INDEX = 0;
   Closure.NAME_INDEX = 1;
   Closure.CALL_NAME_INDEX = 2;
@@ -2874,15 +3075,16 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
   Closure.OPTIONAL_PARAMETER_INDEX = 4;
   Closure.DEFAULT_ARGUMENTS_INDEX = 5;
   Closure.functionCounter = 0;
-  // Function closureFromTearOff: (dynamic, dynamic, dynamic, dynamic, dynamic, dynamic) → dynamic
   function closureFromTearOff(receiver, functions, reflectionInfo, isStatic, jsArguments, name) {
     return Closure.fromTearOff(receiver, _interceptors.JSArray.markFixedList(dart.as(functions, core.List)), _interceptors.JSArray.markFixedList(dart.as(reflectionInfo, core.List)), !!isStatic, jsArguments, name);
   }
+  dart.fn(closureFromTearOff);
   class TearOffClosure extends Closure {
     TearOffClosure() {
       super.Closure();
     }
   }
+  dart.setSignature(TearOffClosure, {});
   let _self = Symbol('_self');
   let _target = Symbol('_target');
   let _name = Symbol('_name');
@@ -2946,36 +3148,51 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       }
     }
   }
+  dart.setSignature(BoundClosure, {
+    methods: () => ({'==': dart.functionType(core.bool, [dart.dynamic])}),
+    statics: () => ({
+      selfOf: dart.functionType(dart.dynamic, [BoundClosure]),
+      targetOf: dart.functionType(dart.dynamic, [BoundClosure]),
+      receiverOf: dart.functionType(dart.dynamic, [BoundClosure]),
+      nameOf: dart.functionType(dart.dynamic, [BoundClosure]),
+      selfFieldName: dart.functionType(core.String, []),
+      receiverFieldName: dart.functionType(core.String, []),
+      computeFieldNamed: dart.functionType(core.String, [core.String])
+    }),
+    names: ['selfOf', 'targetOf', 'receiverOf', 'nameOf', 'selfFieldName', 'receiverFieldName', 'computeFieldNamed']
+  });
   BoundClosure.selfFieldNameCache = null;
   BoundClosure.receiverFieldNameCache = null;
-  // Function jsHasOwnProperty: (dynamic, String) → bool
   function jsHasOwnProperty(jsObject, property) {
     return jsObject.hasOwnProperty(property);
   }
-  // Function jsPropertyAccess: (dynamic, String) → dynamic
+  dart.fn(jsHasOwnProperty, core.bool, [dart.dynamic, core.String]);
   function jsPropertyAccess(jsObject, property) {
     return jsObject[property];
   }
-  // Function getFallThroughError: () → dynamic
+  dart.fn(jsPropertyAccess, dart.dynamic, [dart.dynamic, core.String]);
   function getFallThroughError() {
     return new FallThroughErrorImplementation();
   }
+  dart.fn(getFallThroughError);
   class Creates extends core.Object {
     Creates(types) {
       this.types = types;
     }
   }
+  dart.setSignature(Creates, {});
   class Returns extends core.Object {
     Returns(types) {
       this.types = types;
     }
   }
+  dart.setSignature(Returns, {});
   class JSName extends core.Object {
     JSName(name) {
       this.name = name;
     }
   }
-  // Function boolConversionCheck: (dynamic) → dynamic
+  dart.setSignature(JSName, {});
   function boolConversionCheck(value) {
     if (typeof value == 'boolean')
       return value;
@@ -2983,7 +3200,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     dart.assert(value != null);
     return false;
   }
-  // Function stringTypeCheck: (dynamic) → dynamic
+  dart.fn(boolConversionCheck);
   function stringTypeCheck(value) {
     if (value == null)
       return value;
@@ -2991,13 +3208,13 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return value;
     throw new TypeErrorImplementation(value, 'String');
   }
-  // Function stringTypeCast: (dynamic) → dynamic
+  dart.fn(stringTypeCheck);
   function stringTypeCast(value) {
     if (typeof value == 'string' || dart.notNull(value == null))
       return value;
     throw new CastErrorImplementation(Primitives.objectTypeName(value), 'String');
   }
-  // Function doubleTypeCheck: (dynamic) → dynamic
+  dart.fn(stringTypeCast);
   function doubleTypeCheck(value) {
     if (value == null)
       return value;
@@ -3005,13 +3222,13 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return value;
     throw new TypeErrorImplementation(value, 'double');
   }
-  // Function doubleTypeCast: (dynamic) → dynamic
+  dart.fn(doubleTypeCheck);
   function doubleTypeCast(value) {
     if (typeof value == 'number' || dart.notNull(value == null))
       return value;
     throw new CastErrorImplementation(Primitives.objectTypeName(value), 'double');
   }
-  // Function numTypeCheck: (dynamic) → dynamic
+  dart.fn(doubleTypeCast);
   function numTypeCheck(value) {
     if (value == null)
       return value;
@@ -3019,13 +3236,13 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return value;
     throw new TypeErrorImplementation(value, 'num');
   }
-  // Function numTypeCast: (dynamic) → dynamic
+  dart.fn(numTypeCheck);
   function numTypeCast(value) {
     if (dart.is(value, core.num) || dart.notNull(value == null))
       return value;
     throw new CastErrorImplementation(Primitives.objectTypeName(value), 'num');
   }
-  // Function boolTypeCheck: (dynamic) → dynamic
+  dart.fn(numTypeCast);
   function boolTypeCheck(value) {
     if (value == null)
       return value;
@@ -3033,13 +3250,13 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return value;
     throw new TypeErrorImplementation(value, 'bool');
   }
-  // Function boolTypeCast: (dynamic) → dynamic
+  dart.fn(boolTypeCheck);
   function boolTypeCast(value) {
     if (typeof value == 'boolean' || dart.notNull(value == null))
       return value;
     throw new CastErrorImplementation(Primitives.objectTypeName(value), 'bool');
   }
-  // Function intTypeCheck: (dynamic) → dynamic
+  dart.fn(boolTypeCast);
   function intTypeCheck(value) {
     if (value == null)
       return value;
@@ -3047,24 +3264,24 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return value;
     throw new TypeErrorImplementation(value, 'int');
   }
-  // Function intTypeCast: (dynamic) → dynamic
+  dart.fn(intTypeCheck);
   function intTypeCast(value) {
     if (typeof value == 'number' || dart.notNull(value == null))
       return value;
     throw new CastErrorImplementation(Primitives.objectTypeName(value), 'int');
   }
-  // Function propertyTypeError: (dynamic, dynamic) → void
+  dart.fn(intTypeCast);
   function propertyTypeError(value, property) {
     let name = dart.as(dart.dsend(property, 'substring', 3, dart.dload(property, 'length')), core.String);
     throw new TypeErrorImplementation(value, name);
   }
-  // Function propertyTypeCastError: (dynamic, dynamic) → void
+  dart.fn(propertyTypeError, dart.void, [dart.dynamic, dart.dynamic]);
   function propertyTypeCastError(value, property) {
     let actualType = Primitives.objectTypeName(value);
     let expectedType = dart.as(dart.dsend(property, 'substring', 3, dart.dload(property, 'length')), core.String);
     throw new CastErrorImplementation(actualType, expectedType);
   }
-  // Function propertyTypeCheck: (dynamic, dynamic) → dynamic
+  dart.fn(propertyTypeCastError, dart.void, [dart.dynamic, dart.dynamic]);
   function propertyTypeCheck(value, property) {
     if (value == null)
       return value;
@@ -3072,13 +3289,13 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return value;
     propertyTypeError(value, property);
   }
-  // Function propertyTypeCast: (dynamic, dynamic) → dynamic
+  dart.fn(propertyTypeCheck);
   function propertyTypeCast(value, property) {
     if (dart.notNull(value == null) || !!value[property])
       return value;
     propertyTypeCastError(value, property);
   }
-  // Function interceptedTypeCheck: (dynamic, dynamic) → dynamic
+  dart.fn(propertyTypeCast);
   function interceptedTypeCheck(value, property) {
     if (value == null)
       return value;
@@ -3087,14 +3304,14 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     propertyTypeError(value, property);
   }
-  // Function interceptedTypeCast: (dynamic, dynamic) → dynamic
+  dart.fn(interceptedTypeCheck);
   function interceptedTypeCast(value, property) {
     if (dart.notNull(value == null) || typeof value === "object" && _interceptors.getInterceptor(value)[property]) {
       return value;
     }
     propertyTypeCastError(value, property);
   }
-  // Function numberOrStringSuperTypeCheck: (dynamic, dynamic) → dynamic
+  dart.fn(interceptedTypeCast);
   function numberOrStringSuperTypeCheck(value, property) {
     if (value == null)
       return value;
@@ -3106,7 +3323,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return value;
     propertyTypeError(value, property);
   }
-  // Function numberOrStringSuperTypeCast: (dynamic, dynamic) → dynamic
+  dart.fn(numberOrStringSuperTypeCheck);
   function numberOrStringSuperTypeCast(value, property) {
     if (typeof value == 'string')
       return value;
@@ -3114,7 +3331,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return value;
     return propertyTypeCast(value, property);
   }
-  // Function numberOrStringSuperNativeTypeCheck: (dynamic, dynamic) → dynamic
+  dart.fn(numberOrStringSuperTypeCast);
   function numberOrStringSuperNativeTypeCheck(value, property) {
     if (value == null)
       return value;
@@ -3126,7 +3343,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return value;
     propertyTypeError(value, property);
   }
-  // Function numberOrStringSuperNativeTypeCast: (dynamic, dynamic) → dynamic
+  dart.fn(numberOrStringSuperNativeTypeCheck);
   function numberOrStringSuperNativeTypeCast(value, property) {
     if (value == null)
       return value;
@@ -3138,7 +3355,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return value;
     propertyTypeCastError(value, property);
   }
-  // Function stringSuperTypeCheck: (dynamic, dynamic) → dynamic
+  dart.fn(numberOrStringSuperNativeTypeCast);
   function stringSuperTypeCheck(value, property) {
     if (value == null)
       return value;
@@ -3148,13 +3365,13 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return value;
     propertyTypeError(value, property);
   }
-  // Function stringSuperTypeCast: (dynamic, dynamic) → dynamic
+  dart.fn(stringSuperTypeCheck);
   function stringSuperTypeCast(value, property) {
     if (typeof value == 'string')
       return value;
     return propertyTypeCast(value, property);
   }
-  // Function stringSuperNativeTypeCheck: (dynamic, dynamic) → dynamic
+  dart.fn(stringSuperTypeCast);
   function stringSuperNativeTypeCheck(value, property) {
     if (value == null)
       return value;
@@ -3164,7 +3381,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return value;
     propertyTypeError(value, property);
   }
-  // Function stringSuperNativeTypeCast: (dynamic, dynamic) → dynamic
+  dart.fn(stringSuperNativeTypeCheck);
   function stringSuperNativeTypeCast(value, property) {
     if (typeof value == 'string' || dart.notNull(value == null))
       return value;
@@ -3172,7 +3389,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return value;
     propertyTypeCastError(value, property);
   }
-  // Function listTypeCheck: (dynamic) → dynamic
+  dart.fn(stringSuperNativeTypeCast);
   function listTypeCheck(value) {
     if (value == null)
       return value;
@@ -3180,13 +3397,13 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return value;
     throw new TypeErrorImplementation(value, 'List');
   }
-  // Function listTypeCast: (dynamic) → dynamic
+  dart.fn(listTypeCheck);
   function listTypeCast(value) {
     if (dart.is(value, core.List) || dart.notNull(value == null))
       return value;
     throw new CastErrorImplementation(Primitives.objectTypeName(value), 'List');
   }
-  // Function listSuperTypeCheck: (dynamic, dynamic) → dynamic
+  dart.fn(listTypeCast);
   function listSuperTypeCheck(value, property) {
     if (value == null)
       return value;
@@ -3196,13 +3413,13 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return value;
     propertyTypeError(value, property);
   }
-  // Function listSuperTypeCast: (dynamic, dynamic) → dynamic
+  dart.fn(listSuperTypeCheck);
   function listSuperTypeCast(value, property) {
     if (dart.is(value, core.List))
       return value;
     return propertyTypeCast(value, property);
   }
-  // Function listSuperNativeTypeCheck: (dynamic, dynamic) → dynamic
+  dart.fn(listSuperTypeCast);
   function listSuperNativeTypeCheck(value, property) {
     if (value == null)
       return value;
@@ -3212,7 +3429,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return value;
     propertyTypeError(value, property);
   }
-  // Function listSuperNativeTypeCast: (dynamic, dynamic) → dynamic
+  dart.fn(listSuperNativeTypeCheck);
   function listSuperNativeTypeCast(value, property) {
     if (dart.is(value, core.List) || dart.notNull(value == null))
       return value;
@@ -3220,27 +3437,29 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return value;
     propertyTypeCastError(value, property);
   }
-  // Function voidTypeCheck: (dynamic) → dynamic
+  dart.fn(listSuperNativeTypeCast);
   function voidTypeCheck(value) {
     if (value == null)
       return value;
     throw new TypeErrorImplementation(value, 'void');
   }
-  // Function checkMalformedType: (dynamic, dynamic) → dynamic
+  dart.fn(voidTypeCheck);
   function checkMalformedType(value, message) {
     if (value == null)
       return value;
     throw new TypeErrorImplementation.fromMessage(dart.as(message, core.String));
   }
-  // Function checkDeferredIsLoaded: (String, String) → void
+  dart.fn(checkMalformedType);
   function checkDeferredIsLoaded(loadId, uri) {
     if (!dart.notNull(exports._loadedLibraries[core.$contains](loadId))) {
       throw new DeferredNotLoadedError(uri);
     }
   }
+  dart.fn(checkDeferredIsLoaded, dart.void, [core.String, core.String]);
   dart.defineLazyClass(exports, {
     get JavaScriptIndexingBehavior() {
       class JavaScriptIndexingBehavior extends _interceptors.JSMutableIndexable {}
+      dart.setSignature(JavaScriptIndexingBehavior, {});
       return JavaScriptIndexingBehavior;
     }
   });
@@ -3259,6 +3478,9 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
   }
   TypeErrorImplementation[dart.implements] = () => [core.TypeError];
   dart.defineNamedConstructor(TypeErrorImplementation, 'fromMessage');
+  dart.setSignature(TypeErrorImplementation, {
+    methods: () => ({toString: dart.functionType(core.String, [])})
+  });
   class CastErrorImplementation extends core.Error {
     CastErrorImplementation(actualType, expectedType) {
       this.message = `CastError: Casting value of type ${actualType} to` + ` incompatible type ${expectedType}`;
@@ -3269,6 +3491,9 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
   }
   CastErrorImplementation[dart.implements] = () => [core.CastError];
+  dart.setSignature(CastErrorImplementation, {
+    methods: () => ({toString: dart.functionType(core.String, [])})
+  });
   class FallThroughErrorImplementation extends core.FallThroughError {
     FallThroughErrorImplementation() {
       super.FallThroughError();
@@ -3277,7 +3502,9 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return "Switch case fall-through.";
     }
   }
-  // Function assertHelper: (dynamic) → void
+  dart.setSignature(FallThroughErrorImplementation, {
+    methods: () => ({toString: dart.functionType(core.String, [])})
+  });
   function assertHelper(condition) {
     if (!(typeof condition == 'boolean')) {
       if (dart.is(condition, core.Function))
@@ -3289,15 +3516,16 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     if (!dart.equals(true, condition))
       throw new core.AssertionError();
   }
-  // Function throwNoSuchMethod: (dynamic, dynamic, dynamic, dynamic) → void
+  dart.fn(assertHelper, dart.void, [dart.dynamic]);
   function throwNoSuchMethod(obj, name, arguments$, expectedArgumentNames) {
     let memberName = new _internal.Symbol.unvalidated(dart.as(name, core.String));
     throw new core.NoSuchMethodError(obj, memberName, dart.as(arguments$, core.List), new (core.Map$(core.Symbol, dart.dynamic))(), dart.as(expectedArgumentNames, core.List));
   }
-  // Function throwCyclicInit: (String) → void
+  dart.fn(throwNoSuchMethod, dart.void, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]);
   function throwCyclicInit(staticName) {
     throw new core.CyclicInitializationError(`Cyclic initialization for static ${staticName}`);
   }
+  dart.fn(throwCyclicInit, dart.void, [core.String]);
   class RuntimeError extends core.Error {
     RuntimeError(message) {
       this.message = message;
@@ -3307,6 +3535,9 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return `RuntimeError: ${this.message}`;
     }
   }
+  dart.setSignature(RuntimeError, {
+    methods: () => ({toString: dart.functionType(core.String, [])})
+  });
   class DeferredNotLoadedError extends core.Error {
     DeferredNotLoadedError(libraryName) {
       this.libraryName = libraryName;
@@ -3317,10 +3548,14 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
   }
   DeferredNotLoadedError[dart.implements] = () => [core.NoSuchMethodError];
+  dart.setSignature(DeferredNotLoadedError, {
+    methods: () => ({toString: dart.functionType(core.String, [])})
+  });
   class RuntimeType extends core.Object {
     RuntimeType() {
     }
   }
+  dart.setSignature(RuntimeType, {});
   let _isTest = Symbol('_isTest');
   let _extractFunctionTypeObjectFrom = Symbol('_extractFunctionTypeObjectFrom');
   let _asCheck = Symbol('_asCheck');
@@ -3462,16 +3697,28 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return result;
     }
   }
+  dart.setSignature(RuntimeFunctionType, {
+    methods: () => ({
+      [_isTest]: dart.functionType(core.bool, [dart.dynamic]),
+      [_asCheck]: dart.functionType(dart.dynamic, [dart.dynamic]),
+      [_assertCheck]: dart.functionType(dart.dynamic, [dart.dynamic]),
+      [_check]: dart.functionType(dart.dynamic, [dart.dynamic, core.bool]),
+      [_extractFunctionTypeObjectFrom]: dart.functionType(dart.dynamic, [dart.dynamic]),
+      toRti: dart.functionType(dart.dynamic, []),
+      toString: dart.functionType(core.String, [])
+    }),
+    statics: () => ({listToRti: dart.functionType(dart.dynamic, [dart.dynamic])}),
+    names: ['listToRti']
+  });
   RuntimeFunctionType.inAssert = false;
-  // Function buildFunctionType: (dynamic, dynamic, dynamic) → RuntimeFunctionType
   function buildFunctionType(returnType, parameterTypes, optionalParameterTypes) {
     return new RuntimeFunctionType(dart.as(returnType, RuntimeType), dart.as(parameterTypes, core.List$(RuntimeType)), dart.as(optionalParameterTypes, core.List$(RuntimeType)), null);
   }
-  // Function buildNamedFunctionType: (dynamic, dynamic, dynamic) → RuntimeFunctionType
+  dart.fn(buildFunctionType, RuntimeFunctionType, [dart.dynamic, dart.dynamic, dart.dynamic]);
   function buildNamedFunctionType(returnType, parameterTypes, namedParameters) {
     return new RuntimeFunctionType(dart.as(returnType, RuntimeType), dart.as(parameterTypes, core.List$(RuntimeType)), null, namedParameters);
   }
-  // Function buildInterfaceType: (dynamic, dynamic) → RuntimeType
+  dart.fn(buildNamedFunctionType, RuntimeFunctionType, [dart.dynamic, dart.dynamic, dart.dynamic]);
   function buildInterfaceType(rti, typeArguments) {
     let name = dart.as(rti.name, core.String);
     if ((typeArguments == null)['||'](dart.dload(typeArguments, 'isEmpty'))) {
@@ -3479,6 +3726,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     return new RuntimeTypeGeneric(name, dart.as(typeArguments, core.List$(RuntimeType)), null);
   }
+  dart.fn(buildInterfaceType, RuntimeType, [dart.dynamic, dart.dynamic]);
   class DynamicRuntimeType extends RuntimeType {
     DynamicRuntimeType() {
       super.RuntimeType();
@@ -3490,10 +3738,16 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return null;
     }
   }
-  // Function getDynamicRuntimeType: () → RuntimeType
+  dart.setSignature(DynamicRuntimeType, {
+    methods: () => ({
+      toString: dart.functionType(core.String, []),
+      toRti: dart.functionType(dart.dynamic, [])
+    })
+  });
   function getDynamicRuntimeType() {
     return dart.const(new DynamicRuntimeType());
   }
+  dart.fn(getDynamicRuntimeType, RuntimeType, []);
   class VoidRuntimeType extends RuntimeType {
     VoidRuntimeType() {
       super.RuntimeType();
@@ -3505,11 +3759,16 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return dart.throw_('internal error');
     }
   }
-  // Function getVoidRuntimeType: () → RuntimeType
+  dart.setSignature(VoidRuntimeType, {
+    methods: () => ({
+      toString: dart.functionType(core.String, []),
+      toRti: dart.functionType(dart.dynamic, [])
+    })
+  });
   function getVoidRuntimeType() {
     return dart.const(new VoidRuntimeType());
   }
-  // Function functionTypeTestMetaHelper: () → dynamic
+  dart.fn(getVoidRuntimeType, RuntimeType, []);
   function functionTypeTestMetaHelper() {
     let dyn = x;
     let dyn2 = x;
@@ -3527,7 +3786,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     dart.dsend(dyn, _asCheck, dyn2);
     dart.dsend(dyn, _assertCheck, dyn2);
   }
-  // Function convertRtiToRuntimeType: (dynamic) → RuntimeType
+  dart.fn(functionTypeTestMetaHelper);
   function convertRtiToRuntimeType(rti) {
     if (rti == null) {
       return getDynamicRuntimeType();
@@ -3547,6 +3806,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       throw new RuntimeError("Cannot convert " + `'${JSON.stringify(rti)}' to RuntimeType.`);
     }
   }
+  dart.fn(convertRtiToRuntimeType, RuntimeType, [dart.dynamic]);
   class RuntimeTypePlain extends RuntimeType {
     RuntimeTypePlain(name) {
       this.name = name;
@@ -3563,6 +3823,12 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return this.name;
     }
   }
+  dart.setSignature(RuntimeTypePlain, {
+    methods: () => ({
+      toRti: dart.functionType(dart.dynamic, []),
+      toString: dart.functionType(core.String, [])
+    })
+  });
   class RuntimeTypeGeneric extends RuntimeType {
     RuntimeTypeGeneric(name, arguments$, rti) {
       this.name = name;
@@ -3587,6 +3853,12 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return `${this.name}<${this.arguments[core.$join](", ")}>`;
     }
   }
+  dart.setSignature(RuntimeTypeGeneric, {
+    methods: () => ({
+      toRti: dart.functionType(dart.dynamic, []),
+      toString: dart.functionType(core.String, [])
+    })
+  });
   let _typeData = Symbol('_typeData');
   let _cachedToString = Symbol('_cachedToString');
   let _hasReturnType = Symbol('_hasReturnType');
@@ -3687,6 +3959,13 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return this[_cachedToString] = `${s}`;
     }
   }
+  dart.setSignature(FunctionTypeInfoDecoderRing, {
+    methods: () => ({
+      toRuntimeType: dart.functionType(RuntimeType, []),
+      [_convert]: dart.functionType(core.String, [dart.dynamic]),
+      toString: dart.functionType(core.String, [])
+    })
+  });
   class UnimplementedNoSuchMethodError extends core.Error {
     UnimplementedNoSuchMethodError(message) {
       this[_message] = message;
@@ -3697,26 +3976,29 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
   }
   UnimplementedNoSuchMethodError[dart.implements] = () => [core.NoSuchMethodError];
-  // Function random64: () → int
+  dart.setSignature(UnimplementedNoSuchMethodError, {
+    methods: () => ({toString: dart.functionType(core.String, [])})
+  });
   function random64() {
     let int32a = Math.random() * 0x100000000 >>> 0;
     let int32b = Math.random() * 0x100000000 >>> 0;
     return dart.notNull(int32a) + dart.notNull(int32b) * 4294967296;
   }
-  // Function jsonEncodeNative: (String) → String
+  dart.fn(random64, core.int, []);
   function jsonEncodeNative(string) {
     return JSON.stringify(string);
   }
-  // Function getIsolateAffinityTag: (String) → String
+  dart.fn(jsonEncodeNative, core.String, [core.String]);
   function getIsolateAffinityTag(name) {
     let isolateTagGetter = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.GET_ISOLATE_TAG);
     return isolateTagGetter(name);
   }
+  dart.fn(getIsolateAffinityTag, core.String, [core.String]);
   let LoadLibraryFunctionType = dart.typedef('LoadLibraryFunctionType', () => dart.functionType(async.Future$(core.Null), []));
-  // Function _loadLibraryWrapper: (String) → () → Future<Null>
   function _loadLibraryWrapper(loadId) {
-    return () => loadDeferredLibrary(loadId);
+    return dart.fn(() => loadDeferredLibrary(loadId), async.Future$(core.Null), []);
   }
+  dart.fn(_loadLibraryWrapper, LoadLibraryFunctionType, [core.String]);
   dart.defineLazyProperties(exports, {
     get _loadingLibraries() {
       return dart.map();
@@ -3727,7 +4009,6 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
   });
   let DeferredLoadCallback = dart.typedef('DeferredLoadCallback', () => dart.functionType(dart.void, []));
   exports.deferredLoadHook = null;
-  // Function loadDeferredLibrary: (String) → Future<Null>
   function loadDeferredLibrary(loadId) {
     let urisMap = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.DEFERRED_LIBRARY_URIS);
     let uris = dart.as(urisMap[loadId], core.List$(core.String));
@@ -3735,12 +4016,12 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     let hashes = dart.as(hashesMap[loadId], core.List$(core.String));
     if (uris == null)
       return new (async.Future$(core.Null)).value(null);
-    let indices = new (core.List$(core.int)).generate(uris[core.$length], i => dart.as(i, core.int));
+    let indices = new (core.List$(core.int)).generate(uris[core.$length], dart.fn(i => dart.as(i, core.int), core.int, [dart.dynamic]));
     let isHunkLoaded = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.IS_HUNK_LOADED);
     let isHunkInitialized = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.IS_HUNK_INITIALIZED);
-    let indicesToLoad = indices[core.$where](i => !isHunkLoaded(hashes[core.$get](i)))[core.$toList]();
-    return dart.as(async.Future.wait(dart.as(indicesToLoad[core.$map](i => _loadHunk(uris[core.$get](i))), core.Iterable$(async.Future))).then(_ => {
-      let indicesToInitialize = indices[core.$where](i => !isHunkInitialized(hashes[core.$get](i)))[core.$toList]();
+    let indicesToLoad = indices[core.$where](dart.fn(i => !isHunkLoaded(hashes[core.$get](i)), core.bool, [core.int]))[core.$toList]();
+    return dart.as(async.Future.wait(dart.as(indicesToLoad[core.$map](dart.fn(i => _loadHunk(uris[core.$get](i)), async.Future$(core.Null), [core.int])), core.Iterable$(async.Future))).then(dart.fn(_ => {
+      let indicesToInitialize = indices[core.$where](dart.fn(i => !isHunkInitialized(hashes[core.$get](i)), core.bool, [core.int]))[core.$toList]();
       for (let i of indicesToInitialize) {
         let initializer = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.INITIALIZE_LOADED_HUNK);
         initializer(hashes[core.$get](i));
@@ -3749,19 +4030,19 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       if (dart.notNull(updated) && dart.notNull(exports.deferredLoadHook != null)) {
         exports.deferredLoadHook();
       }
-    }), async.Future$(core.Null));
+    })), async.Future$(core.Null));
   }
-  // Function _loadHunk: (String) → Future<Null>
+  dart.fn(loadDeferredLibrary, async.Future$(core.Null), [core.String]);
   function _loadHunk(hunkName) {
     let future = exports._loadingLibraries.get(hunkName);
     if (future != null) {
-      return dart.as(future.then(_ => null), async.Future$(core.Null));
+      return dart.as(future.then(dart.fn(_ => null, dart.bottom, [dart.dynamic])), async.Future$(core.Null));
     }
     let uri = _isolate_helper.IsolateNatives.thisScript;
     let index = uri.lastIndexOf('/');
     uri = `${uri.substring(0, dart.notNull(index) + 1)}${hunkName}`;
     if (dart.notNull(Primitives.isJsshell) || dart.notNull(Primitives.isD8)) {
-      return exports._loadingLibraries.set(hunkName, new (async.Future$(core.Null))(() => {
+      return exports._loadingLibraries.set(hunkName, new (async.Future$(core.Null))(dart.fn(() => {
         try {
           new Function(`load("${uri}")`)();
         } catch (error) {
@@ -3770,19 +4051,19 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         }
 
         return null;
-      }));
+      })));
     } else if (_isolate_helper.isWorker()) {
-      return exports._loadingLibraries.set(hunkName, new (async.Future$(core.Null))(() => {
+      return exports._loadingLibraries.set(hunkName, new (async.Future$(core.Null))(dart.fn(() => {
         let completer = new (async.Completer$(core.Null))();
         _isolate_helper.enterJsAsync();
-        let leavingFuture = dart.as(completer.future.whenComplete(() => {
+        let leavingFuture = dart.as(completer.future.whenComplete(dart.fn(() => {
           _isolate_helper.leaveJsAsync();
-        }), async.Future$(core.Null));
+        })), async.Future$(core.Null));
         let index = uri.lastIndexOf('/');
         uri = `${uri.substring(0, dart.notNull(index) + 1)}${hunkName}`;
         let xhr = new XMLHttpRequest();
         xhr.open("GET", uri);
-        xhr.addEventListener("load", convertDartClosureToJS(event => {
+        xhr.addEventListener("load", convertDartClosureToJS(dart.fn(event => {
           if (xhr.status != 200) {
             completer.completeError(new async.DeferredLoadException(`Loading ${uri} failed.`));
             return;
@@ -3797,31 +4078,32 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
           }
 
           completer.complete(null);
-        }, 1), false);
-        let fail = convertDartClosureToJS(event => {
+        }), 1), false);
+        let fail = convertDartClosureToJS(dart.fn(event => {
           new async.DeferredLoadException(`Loading ${uri} failed.`);
-        }, 1);
+        }), 1);
         xhr.addEventListener("error", fail, false);
         xhr.addEventListener("abort", fail, false);
         xhr.send();
         return leavingFuture;
-      }));
+      })));
     }
-    return exports._loadingLibraries.set(hunkName, new (async.Future$(core.Null))(() => {
+    return exports._loadingLibraries.set(hunkName, new (async.Future$(core.Null))(dart.fn(() => {
       let completer = new (async.Completer$(core.Null))();
       let script = document.createElement("script");
       script.type = "text/javascript";
       script.src = uri;
-      script.addEventListener("load", convertDartClosureToJS(event => {
+      script.addEventListener("load", convertDartClosureToJS(dart.fn(event => {
         completer.complete(null);
-      }, 1), false);
-      script.addEventListener("error", convertDartClosureToJS(event => {
+      }), 1), false);
+      script.addEventListener("error", convertDartClosureToJS(dart.fn(event => {
         completer.completeError(new async.DeferredLoadException(`Loading ${uri} failed.`));
-      }, 1), false);
+      }), 1), false);
       document.body.appendChild(script);
       return completer.future;
-    }));
+    })));
   }
+  dart.fn(_loadHunk, async.Future$(core.Null), [core.String]);
   class MainError extends core.Error {
     MainError(message) {
       this[_message] = message;
@@ -3832,18 +4114,21 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
   }
   MainError[dart.implements] = () => [core.NoSuchMethodError];
-  // Function missingMain: () → void
+  dart.setSignature(MainError, {
+    methods: () => ({toString: dart.functionType(core.String, [])})
+  });
   function missingMain() {
     throw new MainError("No top-level function named 'main'.");
   }
-  // Function badMain: () → void
+  dart.fn(missingMain, dart.void, []);
   function badMain() {
     throw new MainError("'main' is not a function.");
   }
-  // Function mainHasTooManyParameters: () → void
+  dart.fn(badMain, dart.void, []);
   function mainHasTooManyParameters() {
     throw new MainError("'main' expects too many parameters.");
   }
+  dart.fn(mainHasTooManyParameters, dart.void, []);
   let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.int, [core.String]));
   let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(core.double, [core.String]));
   // Exports:

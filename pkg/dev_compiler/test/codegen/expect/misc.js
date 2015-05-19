@@ -6,6 +6,7 @@ var core = dart.import(core);
     _Uninitialized() {
     }
   }
+  dart.setSignature(_Uninitialized, {});
   let UNINITIALIZED = dart.const(new _Uninitialized());
   let Generic$ = dart.generic(function(T) {
     class Generic extends core.Object {
@@ -13,10 +14,10 @@ var core = dart.import(core);
         return Generic$();
       }
     }
+    dart.setSignature(Generic, {});
     return Generic;
   });
   let Generic = Generic$();
-  // Function main: () → dynamic
   function main() {
     core.print(dart.toString(1));
     core.print(dart.toString(1.0));
@@ -26,6 +27,7 @@ var core = dart.import(core);
     core.print(dart.equals(x, Generic));
     core.print(new (Generic$(core.int))().type);
   }
+  dart.fn(main);
   // Exports:
   exports.UNINITIALIZED = UNINITIALIZED;
   exports.Generic$ = Generic$;

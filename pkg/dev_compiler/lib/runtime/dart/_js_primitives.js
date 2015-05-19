@@ -1,7 +1,7 @@
 var _js_primitives = dart.defineLibrary(_js_primitives, {});
-(function(exports) {
+var core = dart.import(core);
+(function(exports, core) {
   'use strict';
-  // Function printString: (String) → void
   function printString(string) {
     if (typeof dartPrint == "function") {
       dartPrint(string);
@@ -20,6 +20,7 @@ var _js_primitives = dart.defineLibrary(_js_primitives, {});
     }
     throw "Unable to print message: " + String(string);
   }
+  dart.fn(printString, dart.void, [core.String]);
   // Exports:
   exports.printString = printString;
-})(_js_primitives);
+})(_js_primitives, core);

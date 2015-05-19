@@ -7,29 +7,29 @@ var core = dart.import(core);
       this.x = null;
     }
   }
-  // Function test_closure_with_mutate: () → void
+  dart.setSignature(A, {});
   function test_closure_with_mutate() {
     let a = new A();
-    a.x = () => {
+    a.x = dart.fn(() => {
       core.print("hi");
       a = null;
-    };
+    });
     let _ = a;
     dart.dcall(_.x);
     dart.dcall(_.x);
     core.print(a);
   }
-  // Function test_closure_without_mutate: () → void
+  dart.fn(test_closure_with_mutate, dart.void, []);
   function test_closure_without_mutate() {
     let a = new A();
-    a.x = () => {
+    a.x = dart.fn(() => {
       core.print(a);
-    };
+    });
     dart.dcall(a.x);
     dart.dcall(a.x);
     core.print(a);
   }
-  // Function test_mutate_inside_cascade: () → void
+  dart.fn(test_closure_without_mutate, dart.void, []);
   function test_mutate_inside_cascade() {
     let a = null;
     let _ = new A();
@@ -38,7 +38,7 @@ var core = dart.import(core);
     a = _;
     core.print(a);
   }
-  // Function test_mutate_outside_cascade: () → void
+  dart.fn(test_mutate_inside_cascade, dart.void, []);
   function test_mutate_outside_cascade() {
     let a = null, b = null;
     a = new A();
@@ -47,14 +47,14 @@ var core = dart.import(core);
     a = null;
     core.print(a);
   }
-  // Function test_VariableDeclaration_single: () → void
+  dart.fn(test_mutate_outside_cascade, dart.void, []);
   function test_VariableDeclaration_single() {
     let a = [];
     a[core.$length] = 2;
     a[core.$add](42);
     core.print(a);
   }
-  // Function test_VariableDeclaration_last: () → void
+  dart.fn(test_VariableDeclaration_single, dart.void, []);
   function test_VariableDeclaration_last() {
     let a = 42, b = (() => {
       let _ = [];
@@ -64,7 +64,7 @@ var core = dart.import(core);
     })();
     core.print(b);
   }
-  // Function test_VariableDeclaration_first: () → void
+  dart.fn(test_VariableDeclaration_last, dart.void, []);
   function test_VariableDeclaration_first() {
     let a = (() => {
       let _ = [];
@@ -74,7 +74,7 @@ var core = dart.import(core);
     })(), b = 2;
     core.print(a);
   }
-  // Function test_increment: () → void
+  dart.fn(test_VariableDeclaration_first, dart.void, []);
   function test_increment() {
     let a = new A();
     let y = ((() => {
@@ -83,12 +83,14 @@ var core = dart.import(core);
       return a;
     })());
   }
+  dart.fn(test_increment, dart.void, []);
   let Base$ = dart.generic(function(T) {
     class Base extends core.Object {
       Base() {
         this.x = dart.setType([], core.List$(T));
       }
     }
+    dart.setSignature(Base, {});
     return Base;
   });
   let Base = Base$();
@@ -103,6 +105,9 @@ var core = dart.import(core);
       this.x[core.$add](4);
     }
   }
+  dart.setSignature(Foo, {
+    methods: () => ({test_final_field_generic: dart.functionType(dart.void, [dart.dynamic])})
+  });
   // Exports:
   exports.A = A;
   exports.test_closure_with_mutate = test_closure_with_mutate;

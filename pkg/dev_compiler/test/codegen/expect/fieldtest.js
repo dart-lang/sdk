@@ -7,6 +7,7 @@ var core = dart.import(core);
       this.x = 42;
     }
   }
+  dart.setSignature(A, {});
   let B$ = dart.generic(function(T) {
     class B extends core.Object {
       B() {
@@ -15,27 +16,28 @@ var core = dart.import(core);
         this.z = null;
       }
     }
+    dart.setSignature(B, {});
     return B;
   });
   let B = B$();
-  // Function foo: (A) → int
   function foo(a) {
     core.print(a.x);
     return a.x;
   }
-  // Function bar: (dynamic) → int
+  dart.fn(foo, core.int, [A]);
   function bar(a) {
     core.print(dart.dload(a, 'x'));
     return dart.as(dart.dload(a, 'x'), core.int);
   }
-  // Function baz: (A) → dynamic
+  dart.fn(bar, core.int, [dart.dynamic]);
   function baz(a) {
     return a.x;
   }
-  // Function compute: () → int
+  dart.fn(baz, dart.dynamic, [A]);
   function compute() {
     return 123;
   }
+  dart.fn(compute, core.int, []);
   dart.defineLazyProperties(exports, {
     get y() {
       return dart.notNull(compute()) + 444;
@@ -58,6 +60,7 @@ var core = dart.import(core);
       return 1;
     }
   }
+  dart.setSignature(BaseWithGetter, {});
   class Derived extends BaseWithGetter {
     Derived() {
       this.foo = 2;
@@ -65,6 +68,7 @@ var core = dart.import(core);
     }
   }
   dart.virtualField(Derived, 'foo');
+  dart.setSignature(Derived, {});
   let Generic$ = dart.generic(function(T) {
     class Generic extends core.Object {
       foo(t) {
@@ -72,11 +76,13 @@ var core = dart.import(core);
         return core.print(dart.notNull(Generic$().bar) + dart.notNull(t));
       }
     }
+    dart.setSignature(Generic, {
+      methods: () => ({foo: dart.functionType(dart.dynamic, [T])})
+    });
     return Generic;
   });
   let Generic = Generic$();
   Generic.bar = 'hello';
-  // Function main: () → void
   function main() {
     let a = new A();
     foo(a);
@@ -84,6 +90,7 @@ var core = dart.import(core);
     core.print(baz(a));
     core.print(new (Generic$(core.String))().foo(' world'));
   }
+  dart.fn(main, dart.void, []);
   // Exports:
   exports.A = A;
   exports.B$ = B$;

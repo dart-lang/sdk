@@ -24,7 +24,7 @@ var core = dart.import(core);
       this.x = 100;
     }
   }
-  // Function main: () → dynamic
+  dart.setSignature(Foo, {});
   function main() {
     let f = dart.map([0, 40]);
     core.print('should only call "index" 2 times:');
@@ -47,9 +47,10 @@ var core = dart.import(core);
     let i$ = exports.index;
     f.set(i$, dart.dsend(f.get(i$), '+', f.get(exports.index)));
   }
-  // Function forcePostfix: (dynamic) → dynamic
+  dart.fn(main);
   function forcePostfix(x) {
   }
+  dart.fn(forcePostfix);
   // Exports:
   exports.Foo = Foo;
   exports.main = main;

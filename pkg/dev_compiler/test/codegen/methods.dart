@@ -47,4 +47,12 @@ test() {
   // looks like a method but is actually f.bar.call(...)
   var f = new Foo();
   f.bar("Bar's call method!");
+
+  // Tear-off
+  A a = new A();
+  var g = a.x;
+
+  // Dynamic Tear-off
+  dynamic aa = new A();
+  var h = aa.x;
 }

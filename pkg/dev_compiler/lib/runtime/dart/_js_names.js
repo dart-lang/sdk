@@ -6,9 +6,9 @@ var _interceptors = dart.import(_interceptors);
 var _js_helper = dart.lazyImport(_js_helper);
 (function(exports, _foreign_helper, _js_embedded_names, core, _interceptors, _js_helper) {
   'use strict';
-  // Function preserveNames: () → dynamic
   function preserveNames() {
   }
+  dart.fn(preserveNames);
   dart.defineLazyProperties(exports, {
     get mangledNames() {
       return computeMangledNames(_foreign_helper.JS_EMBEDDED_GLOBAL('=Object', _js_embedded_names.MANGLED_NAMES), false);
@@ -23,7 +23,6 @@ var _js_helper = dart.lazyImport(_js_helper);
       return computeReflectiveNames(exports.mangledGlobalNames);
     }
   });
-  // Function computeMangledNames: (dynamic, bool) → Map<String, String>
   function computeMangledNames(jsMangledNames, isGlobal) {
     preserveNames();
     let keys = extractKeys(jsMangledNames);
@@ -42,16 +41,16 @@ var _js_helper = dart.lazyImport(_js_helper);
     }
     return result;
   }
-  // Function computeReflectiveNames: (Map<String, String>) → Map
+  dart.fn(computeMangledNames, core.Map$(core.String, core.String), [dart.dynamic, core.bool]);
   function computeReflectiveNames(map) {
     preserveNames();
     let result = dart.map();
-    map.forEach((mangledName, reflectiveName) => {
+    map.forEach(dart.fn((mangledName, reflectiveName) => {
       result.set(reflectiveName, mangledName);
-    });
+    }, dart.dynamic, [core.String, core.String]));
     return result;
   }
-  // Function extractKeys: (dynamic) → List<dynamic>
+  dart.fn(computeReflectiveNames, core.Map$(core.String, core.String), [core.Map$(core.String, core.String)]);
   function extractKeys(victim) {
     let result = function(victim, hasOwnProperty) {
       var result = [];
@@ -63,17 +62,18 @@ var _js_helper = dart.lazyImport(_js_helper);
     }(victim, Object.prototype.hasOwnProperty);
     return new _interceptors.JSArray.markFixed(result);
   }
-  // Function unmangleGlobalNameIfPreservedAnyways: (String) → String
+  dart.fn(extractKeys, core.List, [dart.dynamic]);
   function unmangleGlobalNameIfPreservedAnyways(name) {
     let names = _foreign_helper.JS_EMBEDDED_GLOBAL('=Object', _js_embedded_names.MANGLED_GLOBAL_NAMES);
     return dart.as(_js_helper.JsCache.fetch(names, name), core.String);
   }
-  // Function unmangleAllIdentifiersIfPreservedAnyways: (String) → String
+  dart.fn(unmangleGlobalNameIfPreservedAnyways, core.String, [core.String]);
   function unmangleAllIdentifiersIfPreservedAnyways(str) {
     return str.replace(/[^<,> ]+/g, function(m) {
       return _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.MANGLED_GLOBAL_NAMES)[m] || m;
     });
   }
+  dart.fn(unmangleAllIdentifiersIfPreservedAnyways, core.String, [core.String]);
   // Exports:
   exports.preserveNames = preserveNames;
   exports.computeMangledNames = computeMangledNames;

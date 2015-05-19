@@ -3,7 +3,6 @@ var core = dart.import(core);
 var math = dart.import(math);
 (function(exports, core, math) {
   'use strict';
-  // Function main: () → dynamic
   function main() {
     core.print(dart.map({'1': 2, '3': 4, '5': 6}));
     core.print(dart.map([1, 2, 3, 4, 5, 6]));
@@ -12,6 +11,7 @@ var math = dart.import(math);
     core.print(dart.map(['1', 2, x, 4, '5', 6]));
     core.print(dart.map(['1', 2, null, 4, '5', 6]));
   }
+  dart.fn(main);
   // Exports:
   exports.main = main;
 })(map_keys, core, math);

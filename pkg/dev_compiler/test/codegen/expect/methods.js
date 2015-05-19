@@ -42,21 +42,39 @@ var core = dart.import(core);
       this[_c] = c;
     }
   }
+  dart.setSignature(A, {
+    methods: () => ({
+      x: dart.functionType(core.int, []),
+      y: dart.functionType(core.int, [core.int]),
+      z: dart.functionType(core.int, [], [core.num]),
+      zz: dart.functionType(core.int, [], [core.int]),
+      w: dart.functionType(core.int, [core.int], {b: core.num}),
+      ww: dart.functionType(core.int, [core.int], {b: core.int})
+    })
+  });
   class Bar extends core.Object {
     call(x) {
       return core.print(`hello from ${x}`);
     }
   }
+  dart.setSignature(Bar, {
+    methods: () => ({call: dart.functionType(dart.dynamic, [dart.dynamic])})
+  });
   class Foo extends core.Object {
     Foo() {
       this.bar = new Bar();
     }
   }
-  // Function test: () → dynamic
+  dart.setSignature(Foo, {});
   function test() {
     let f = new Foo();
     dart.dcall(f.bar, "Bar's call method!");
+    let a = new A();
+    let g = a.x.bind(a);
+    let aa = new A();
+    let h = dart.dload(aa, 'x');
   }
+  dart.fn(test);
   // Exports:
   exports.A = A;
   exports.Bar = Bar;

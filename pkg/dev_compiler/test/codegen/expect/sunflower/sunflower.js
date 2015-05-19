@@ -11,10 +11,10 @@ var core = dart.import(core);
   let MAX_D = 300;
   let centerX = dart.notNull(MAX_D) / 2;
   let centerY = centerX;
-  // Function querySelector: (String) → Element
   function querySelector(selector) {
     return dom.document.querySelector(selector);
   }
+  dart.fn(querySelector, dom.Element, [core.String]);
   exports.seeds = 0;
   dart.defineLazyProperties(exports, {
     get slider() {
@@ -30,12 +30,11 @@ var core = dart.import(core);
       return dart.as(dart.as(querySelector("#canvas"), dom.CanvasElement).getContext('2d'), dom.CanvasRenderingContext2D);
     }
   });
-  // Function main: () → void
   function main() {
-    exports.slider.addEventListener('change', e => draw());
+    exports.slider.addEventListener('change', dart.fn(e => draw(), dart.void, [dart.dynamic]));
     draw();
   }
-  // Function draw: () → void
+  dart.fn(main, dart.void, []);
   function draw() {
     exports.seeds = core.int.parse(exports.slider.value);
     exports.context.clearRect(0, 0, MAX_D, MAX_D);
@@ -48,6 +47,7 @@ var core = dart.import(core);
     }
     exports.notes.textContent = `${exports.seeds} seeds`;
   }
+  dart.fn(draw, dart.void, []);
   class Circle extends core.Object {
     Circle(x, y, radius) {
       this.x = x;
@@ -55,6 +55,7 @@ var core = dart.import(core);
       this.radius = radius;
     }
   }
+  dart.setSignature(Circle, {});
   class CirclePainter extends core.Object {
     CirclePainter() {
       this.color = ORANGE;
@@ -71,6 +72,9 @@ var core = dart.import(core);
     }
   }
   CirclePainter[dart.implements] = () => [Circle];
+  dart.setSignature(CirclePainter, {
+    methods: () => ({draw: dart.functionType(dart.void, [])})
+  });
   class SunflowerSeed extends dart.mixin(Circle, CirclePainter) {
     SunflowerSeed(x, y, radius, color) {
       if (color === void 0)
@@ -80,6 +84,7 @@ var core = dart.import(core);
         this.color = color;
     }
   }
+  dart.setSignature(SunflowerSeed, {});
   // Exports:
   exports.ORANGE = ORANGE;
   exports.SEED_RADIUS = SEED_RADIUS;

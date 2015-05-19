@@ -1134,11 +1134,20 @@ class ArrayHole extends Expression {
 
 class ObjectInitializer extends Expression {
   final List<Property> properties;
+  /**
+   * If set to true, forces a vertical layout when using the [Printer].
+   * Otherwise, layout will be vertical if and only if any [properties]
+   * are [FunctionExpression]s.
+   */
+  final bool _vertical;
+  bool get vertical {
+    return _vertical || properties.any((p) => p.value is FunctionExpression);
+  }
 
   /**
    * Constructs a new object-initializer containing the given [properties].
    */
-  ObjectInitializer(this.properties);
+  ObjectInitializer(this.properties, {vertical: false}) : _vertical = vertical;
 
   accept(NodeVisitor visitor) => visitor.visitObjectInitializer(this);
 

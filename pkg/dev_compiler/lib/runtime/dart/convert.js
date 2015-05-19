@@ -26,6 +26,13 @@ var collection = dart.import(collection);
         return new (_InvertedCodec$(T, S))(this);
       }
     }
+    dart.setSignature(Codec, {
+      methods: () => ({
+        encode: dart.functionType(T, [S]),
+        decode: dart.functionType(S, [T]),
+        fuse: dart.functionType(Codec$(S, dart.dynamic), [Codec$(T, dart.dynamic)])
+      })
+    });
     return Codec;
   });
   let Codec = Codec$();
@@ -34,10 +41,10 @@ var collection = dart.import(collection);
       super.Codec();
     }
     decodeStream(byteStream) {
-      return dart.as(byteStream.transform(this.decoder).fold(new core.StringBuffer(), (buffer, string) => ((() => {
+      return dart.as(byteStream.transform(this.decoder).fold(new core.StringBuffer(), dart.fn((buffer, string) => ((() => {
         dart.dsend(buffer, 'write', string);
         return buffer;
-      })())).then(buffer => dart.toString(buffer)), async.Future$(core.String));
+      })()))).then(dart.fn(buffer => dart.toString(buffer), core.String, [dart.dynamic])), async.Future$(core.String));
     }
     static getByName(name) {
       if (name == null)
@@ -46,6 +53,11 @@ var collection = dart.import(collection);
       return Encoding._nameToEncoding.get(name);
     }
   }
+  dart.setSignature(Encoding, {
+    methods: () => ({decodeStream: dart.functionType(async.Future$(core.String), [async.Stream$(core.List$(core.int))])}),
+    statics: () => ({getByName: dart.functionType(Encoding, [core.String])}),
+    names: ['getByName']
+  });
   let _allowInvalid = Symbol('_allowInvalid');
   class AsciiCodec extends Encoding {
     AsciiCodec(opts) {
@@ -73,6 +85,9 @@ var collection = dart.import(collection);
       return this[_allowInvalid] ? dart.const(new AsciiDecoder({allowInvalid: true})) : dart.const(new AsciiDecoder({allowInvalid: false}));
     }
   }
+  dart.setSignature(AsciiCodec, {
+    methods: () => ({decode: dart.functionType(core.String, [core.List$(core.int)], {llowInvali: core.bool})})
+  });
   let ASCII = dart.const(new AsciiCodec());
   let _ASCII_MASK = 127;
   let Converter$ = dart.generic(function(S, T) {
@@ -89,10 +104,17 @@ var collection = dart.import(collection);
       }
       bind(source) {
         dart.as(source, async.Stream$(S));
-        return new (async.Stream$(T)).eventTransformed(source, (sink => new _ConverterStreamEventSink(this, sink)).bind(this));
+        return new (async.Stream$(T)).eventTransformed(source, dart.fn((sink => new _ConverterStreamEventSink(this, sink)).bind(this), _ConverterStreamEventSink, [async.EventSink]));
       }
     }
     Converter[dart.implements] = () => [async.StreamTransformer$(S, T)];
+    dart.setSignature(Converter, {
+      methods: () => ({
+        fuse: dart.functionType(Converter$(S, dart.dynamic), [Converter$(T, dart.dynamic)]),
+        startChunkedConversion: dart.functionType(ChunkedConversionSink, [core.Sink$(T)]),
+        bind: dart.functionType(async.Stream$(T), [async.Stream$(S)])
+      })
+    });
     return Converter;
   });
   let Converter = Converter$();
@@ -132,11 +154,19 @@ var collection = dart.import(collection);
       return super.bind(stream);
     }
   }
+  dart.setSignature(_UnicodeSubsetEncoder, {
+    methods: () => ({
+      convert: dart.functionType(core.List$(core.int), [core.String], [core.int, core.int]),
+      startChunkedConversion: dart.functionType(StringConversionSink, [core.Sink$(core.List$(core.int))]),
+      bind: dart.functionType(async.Stream$(core.List$(core.int)), [async.Stream$(core.String)])
+    })
+  });
   class AsciiEncoder extends _UnicodeSubsetEncoder {
     AsciiEncoder() {
       super._UnicodeSubsetEncoder(_ASCII_MASK);
     }
   }
+  dart.setSignature(AsciiEncoder, {});
   class StringConversionSinkMixin extends core.Object {
     add(str) {
       return this.addSlice(str, 0, str.length, false);
@@ -149,7 +179,15 @@ var collection = dart.import(collection);
     }
   }
   StringConversionSinkMixin[dart.implements] = () => [StringConversionSink];
+  dart.setSignature(StringConversionSinkMixin, {
+    methods: () => ({
+      add: dart.functionType(dart.void, [core.String]),
+      asUtf8Sink: dart.functionType(ByteConversionSink, [core.bool]),
+      asStringSink: dart.functionType(ClosableStringSink, [])
+    })
+  });
   class StringConversionSinkBase extends StringConversionSinkMixin {}
+  dart.setSignature(StringConversionSinkBase, {});
   let _sink = Symbol('_sink');
   class _UnicodeSubsetEncoderSink extends StringConversionSinkBase {
     _UnicodeSubsetEncoderSink(subsetMask, sink) {
@@ -173,6 +211,12 @@ var collection = dart.import(collection);
       }
     }
   }
+  dart.setSignature(_UnicodeSubsetEncoderSink, {
+    methods: () => ({
+      close: dart.functionType(dart.void, []),
+      addSlice: dart.functionType(dart.void, [core.String, core.int, core.int, core.bool])
+    })
+  });
   let _convertInvalid = Symbol('_convertInvalid');
   class _UnicodeSubsetDecoder extends Converter$(core.List$(core.int), core.String) {
     _UnicodeSubsetDecoder(allowInvalid, subsetMask) {
@@ -215,6 +259,13 @@ var collection = dart.import(collection);
       return super.bind(stream);
     }
   }
+  dart.setSignature(_UnicodeSubsetDecoder, {
+    methods: () => ({
+      convert: dart.functionType(core.String, [core.List$(core.int)], [core.int, core.int]),
+      [_convertInvalid]: dart.functionType(core.String, [core.List$(core.int), core.int, core.int]),
+      bind: dart.functionType(async.Stream$(core.String), [async.Stream$(core.List$(core.int))])
+    })
+  });
   class AsciiDecoder extends _UnicodeSubsetDecoder {
     AsciiDecoder(opts) {
       let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : false;
@@ -234,6 +285,9 @@ var collection = dart.import(collection);
       }
     }
   }
+  dart.setSignature(AsciiDecoder, {
+    methods: () => ({startChunkedConversion: dart.functionType(ByteConversionSink, [core.Sink$(core.String)])})
+  });
   let ChunkedConversionSink$ = dart.generic(function(T) {
     class ChunkedConversionSink extends core.Object {
       ChunkedConversionSink() {
@@ -244,6 +298,7 @@ var collection = dart.import(collection);
     }
     ChunkedConversionSink[dart.implements] = () => [core.Sink$(T)];
     dart.defineNamedConstructor(ChunkedConversionSink, 'withCallback');
+    dart.setSignature(ChunkedConversionSink, {});
     return ChunkedConversionSink;
   });
   let ChunkedConversionSink = ChunkedConversionSink$();
@@ -260,6 +315,7 @@ var collection = dart.import(collection);
   }
   dart.defineNamedConstructor(ByteConversionSink, 'withCallback');
   dart.defineNamedConstructor(ByteConversionSink, 'from');
+  dart.setSignature(ByteConversionSink, {});
   class ByteConversionSinkBase extends ByteConversionSink {
     ByteConversionSinkBase() {
       super.ByteConversionSink();
@@ -270,6 +326,9 @@ var collection = dart.import(collection);
         this.close();
     }
   }
+  dart.setSignature(ByteConversionSinkBase, {
+    methods: () => ({addSlice: dart.functionType(dart.void, [core.List$(core.int), core.int, core.int, core.bool])})
+  });
   let _utf8Sink = Symbol('_utf8Sink');
   class _ErrorHandlingAsciiDecoderSink extends ByteConversionSinkBase {
     _ErrorHandlingAsciiDecoderSink(utf8Sink) {
@@ -298,6 +357,13 @@ var collection = dart.import(collection);
       }
     }
   }
+  dart.setSignature(_ErrorHandlingAsciiDecoderSink, {
+    methods: () => ({
+      close: dart.functionType(dart.void, []),
+      add: dart.functionType(dart.void, [core.List$(core.int)]),
+      addSlice: dart.functionType(dart.void, [core.List$(core.int), core.int, core.int, core.bool])
+    })
+  });
   class _SimpleAsciiDecoderSink extends ByteConversionSinkBase {
     _SimpleAsciiDecoderSink(sink) {
       this[_sink] = sink;
@@ -326,6 +392,13 @@ var collection = dart.import(collection);
         this.close();
     }
   }
+  dart.setSignature(_SimpleAsciiDecoderSink, {
+    methods: () => ({
+      close: dart.functionType(dart.void, []),
+      add: dart.functionType(dart.void, [core.List$(core.int)]),
+      addSlice: dart.functionType(dart.void, [core.List$(core.int), core.int, core.int, core.bool])
+    })
+  });
   class _ByteAdapterSink extends ByteConversionSinkBase {
     _ByteAdapterSink(sink) {
       this[_sink] = sink;
@@ -337,6 +410,12 @@ var collection = dart.import(collection);
       return this[_sink].close();
     }
   }
+  dart.setSignature(_ByteAdapterSink, {
+    methods: () => ({
+      add: dart.functionType(dart.void, [core.List$(core.int)]),
+      close: dart.functionType(dart.void, [])
+    })
+  });
   let _buffer = Symbol('_buffer');
   let _callback = Symbol('_callback');
   let _bufferIndex = Symbol('_bufferIndex');
@@ -373,6 +452,14 @@ var collection = dart.import(collection);
       this[_callback](this[_buffer][core.$sublist](0, this[_bufferIndex]));
     }
   }
+  dart.setSignature(_ByteCallbackSink, {
+    methods: () => ({
+      add: dart.functionType(dart.void, [core.Iterable$(core.int)]),
+      close: dart.functionType(dart.void, [])
+    }),
+    statics: () => ({_roundToPowerOf2: dart.functionType(core.int, [core.int])}),
+    names: ['_roundToPowerOf2']
+  });
   _ByteCallbackSink._INITIAL_BUFFER_SIZE = 1024;
   let _ChunkedConversionCallback$ = dart.generic(function(T) {
     let _ChunkedConversionCallback = dart.typedef('_ChunkedConversionCallback', () => dart.functionType(dart.void, [T]));
@@ -395,6 +482,12 @@ var collection = dart.import(collection);
         this[_callback](this[_accumulated]);
       }
     }
+    dart.setSignature(_SimpleCallbackSink, {
+      methods: () => ({
+        add: dart.functionType(dart.void, [T]),
+        close: dart.functionType(dart.void, [])
+      })
+    });
     return _SimpleCallbackSink;
   });
   let _SimpleCallbackSink = _SimpleCallbackSink$();
@@ -412,6 +505,12 @@ var collection = dart.import(collection);
       }
     }
     _EventSinkAdapter[dart.implements] = () => [ChunkedConversionSink$(T)];
+    dart.setSignature(_EventSinkAdapter, {
+      methods: () => ({
+        add: dart.functionType(dart.void, [T]),
+        close: dart.functionType(dart.void, [])
+      })
+    });
     return _EventSinkAdapter;
   });
   let _EventSinkAdapter = _EventSinkAdapter$();
@@ -437,6 +536,13 @@ var collection = dart.import(collection);
       }
     }
     _ConverterStreamEventSink[dart.implements] = () => [async.EventSink$(S)];
+    dart.setSignature(_ConverterStreamEventSink, {
+      methods: () => ({
+        add: dart.functionType(dart.void, [S]),
+        addError: dart.functionType(dart.void, [core.Object], [core.StackTrace]),
+        close: dart.functionType(dart.void, [])
+      })
+    });
     return _ConverterStreamEventSink;
   });
   let _ConverterStreamEventSink = _ConverterStreamEventSink$();
@@ -456,6 +562,7 @@ var collection = dart.import(collection);
         super.Codec();
       }
     }
+    dart.setSignature(_FusedCodec, {});
     return _FusedCodec;
   });
   let _FusedCodec = _FusedCodec$();
@@ -476,6 +583,7 @@ var collection = dart.import(collection);
         return this[_codec];
       }
     }
+    dart.setSignature(_InvertedCodec, {});
     return _InvertedCodec;
   });
   let _InvertedCodec = _InvertedCodec$();
@@ -495,6 +603,12 @@ var collection = dart.import(collection);
         return this[_first].startChunkedConversion(this[_second].startChunkedConversion(sink));
       }
     }
+    dart.setSignature(_FusedConverter, {
+      methods: () => ({
+        convert: dart.functionType(T, [S]),
+        startChunkedConversion: dart.functionType(ChunkedConversionSink, [core.Sink$(T)])
+      })
+    });
     return _FusedConverter;
   });
   let _FusedConverter = _FusedConverter$();
@@ -580,6 +694,13 @@ var collection = dart.import(collection);
       return new _HtmlEscapeSink(this, dart.as(sink, StringConversionSink));
     }
   }
+  dart.setSignature(HtmlEscape, {
+    methods: () => ({
+      convert: dart.functionType(core.String, [core.String]),
+      [_convert]: dart.functionType(core.String, [core.String, core.int, core.int]),
+      startChunkedConversion: dart.functionType(StringConversionSink, [core.Sink$(core.String)])
+    })
+  });
   let HTML_ESCAPE = dart.const(new HtmlEscape());
   let _name = Symbol('_name');
   class HtmlEscapeMode extends core.Object {
@@ -595,6 +716,9 @@ var collection = dart.import(collection);
     }
   }
   dart.defineNamedConstructor(HtmlEscapeMode, '_');
+  dart.setSignature(HtmlEscapeMode, {
+    methods: () => ({toString: dart.functionType(core.String, [])})
+  });
   HtmlEscapeMode.UNKNOWN = dart.const(new HtmlEscapeMode._('unknown', true, true, true, true));
   HtmlEscapeMode.ATTRIBUTE = dart.const(new HtmlEscapeMode._('attribute', false, true, false, false));
   HtmlEscapeMode.ELEMENT = dart.const(new HtmlEscapeMode._('element', true, false, false, true));
@@ -618,6 +742,12 @@ var collection = dart.import(collection);
       return this[_sink].close();
     }
   }
+  dart.setSignature(_HtmlEscapeSink, {
+    methods: () => ({
+      addSlice: dart.functionType(dart.void, [core.String, core.int, core.int, core.bool]),
+      close: dart.functionType(dart.void, [])
+    })
+  });
   class JsonUnsupportedObjectError extends core.Error {
     JsonUnsupportedObjectError(unsupportedObject, opts) {
       let cause = opts && 'cause' in opts ? opts.cause : null;
@@ -633,6 +763,9 @@ var collection = dart.import(collection);
       }
     }
   }
+  dart.setSignature(JsonUnsupportedObjectError, {
+    methods: () => ({toString: dart.functionType(core.String, [])})
+  });
   class JsonCyclicError extends JsonUnsupportedObjectError {
     JsonCyclicError(object) {
       super.JsonUnsupportedObjectError(object);
@@ -641,6 +774,9 @@ var collection = dart.import(collection);
       return "Cyclic error in JSON stringify";
     }
   }
+  dart.setSignature(JsonCyclicError, {
+    methods: () => ({toString: dart.functionType(core.String, [])})
+  });
   let _reviver = Symbol('_reviver');
   let _toEncodable$ = Symbol('_toEncodable');
   class JsonCodec extends Codec$(core.Object, core.String) {
@@ -682,6 +818,12 @@ var collection = dart.import(collection);
     }
   }
   dart.defineNamedConstructor(JsonCodec, 'withReviver');
+  dart.setSignature(JsonCodec, {
+    methods: () => ({
+      decode: dart.functionType(dart.dynamic, [core.String], {evive: dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])}),
+      encode: dart.functionType(core.String, [core.Object], {oEncodabl: dart.functionType(dart.dynamic, [dart.dynamic])})
+    })
+  });
   let JSON = dart.const(new JsonCodec());
   let _Reviver = dart.typedef('_Reviver', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
   let _ToEncodable = dart.typedef('_ToEncodable', () => dart.functionType(dart.dynamic, [dart.dynamic]));
@@ -722,6 +864,14 @@ var collection = dart.import(collection);
     }
   }
   dart.defineNamedConstructor(JsonEncoder, 'withIndent');
+  dart.setSignature(JsonEncoder, {
+    methods: () => ({
+      convert: dart.functionType(core.String, [core.Object]),
+      startChunkedConversion: dart.functionType(ChunkedConversionSink$(core.Object), [core.Sink$(core.String)]),
+      bind: dart.functionType(async.Stream$(core.String), [async.Stream$(core.Object)]),
+      fuse: dart.functionType(Converter$(core.Object, dart.dynamic), [Converter$(core.String, dart.dynamic)])
+    })
+  });
   let _indent = Symbol('_indent');
   let _bufferSize = Symbol('_bufferSize');
   class JsonUtf8Encoder extends Converter$(core.Object, core.List$(core.int)) {
@@ -753,7 +903,6 @@ var collection = dart.import(collection);
     }
     convert(object) {
       let bytes = dart.setType([], core.List$(core.List$(core.int)));
-      // Function addChunk: (Uint8List, int, int) → void
       let addChunk = (chunk, start, end) => {
         if (dart.notNull(start) > 0 || dart.notNull(end) < dart.notNull(chunk[core.$length])) {
           let length = dart.notNull(end) - dart.notNull(start);
@@ -761,6 +910,7 @@ var collection = dart.import(collection);
         }
         bytes[core.$add](chunk);
       };
+      dart.fn(addChunk, dart.void, [typed_data.Uint8List, core.int, core.int]);
       _JsonUtf8Stringifier.stringify(object, this[_indent], dart.as(this[_toEncodable$], dart.functionType(dart.dynamic, [core.Object])), this[_bufferSize], addChunk);
       if (bytes[core.$length] == 1)
         return bytes[core.$get](0);
@@ -793,6 +943,16 @@ var collection = dart.import(collection);
       return super.fuse(other);
     }
   }
+  dart.setSignature(JsonUtf8Encoder, {
+    methods: () => ({
+      convert: dart.functionType(core.List$(core.int), [core.Object]),
+      startChunkedConversion: dart.functionType(ChunkedConversionSink$(core.Object), [core.Sink$(core.List$(core.int))]),
+      bind: dart.functionType(async.Stream$(core.List$(core.int)), [async.Stream$(core.Object)]),
+      fuse: dart.functionType(Converter$(core.Object, dart.dynamic), [Converter$(core.List$(core.int), dart.dynamic)])
+    }),
+    statics: () => ({_utf8Encode: dart.functionType(core.List$(core.int), [core.String])}),
+    names: ['_utf8Encode']
+  });
   JsonUtf8Encoder.DEFAULT_BUFFER_SIZE = 256;
   let _isDone = Symbol('_isDone');
   class _JsonEncoderSink extends ChunkedConversionSink$(core.Object) {
@@ -814,6 +974,12 @@ var collection = dart.import(collection);
     }
     close() {}
   }
+  dart.setSignature(_JsonEncoderSink, {
+    methods: () => ({
+      add: dart.functionType(dart.void, [core.Object]),
+      close: dart.functionType(dart.void, [])
+    })
+  });
   let _addChunk = Symbol('_addChunk');
   class _JsonUtf8EncoderSink extends ChunkedConversionSink$(core.Object) {
     _JsonUtf8EncoderSink(sink, toEncodable, indent, bufferSize) {
@@ -842,6 +1008,13 @@ var collection = dart.import(collection);
       }
     }
   }
+  dart.setSignature(_JsonUtf8EncoderSink, {
+    methods: () => ({
+      [_addChunk]: dart.functionType(dart.void, [typed_data.Uint8List, core.int, core.int]),
+      add: dart.functionType(dart.void, [core.Object]),
+      close: dart.functionType(dart.void, [])
+    })
+  });
   class JsonDecoder extends Converter$(core.String, core.Object) {
     JsonDecoder(reviver) {
       if (reviver === void 0)
@@ -859,7 +1032,13 @@ var collection = dart.import(collection);
       return super.bind(stream);
     }
   }
-  // Function _parseJson: (String, (dynamic, dynamic) → dynamic) → dynamic
+  dart.setSignature(JsonDecoder, {
+    methods: () => ({
+      convert: dart.functionType(dart.dynamic, [core.String]),
+      startChunkedConversion: dart.functionType(StringConversionSink, [core.Sink$(core.Object)]),
+      bind: dart.functionType(async.Stream$(core.Object), [async.Stream$(core.String)])
+    })
+  });
   function _parseJson(source, reviver) {
     if (!(typeof source == 'string'))
       throw new core.ArgumentError(source);
@@ -876,10 +1055,11 @@ var collection = dart.import(collection);
       return _convertJsonToDart(parsed, reviver);
     }
   }
-  // Function _defaultToEncodable: (dynamic) → Object
+  dart.fn(_parseJson, dart.dynamic, [core.String, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]);
   function _defaultToEncodable(object) {
     return dart.dsend(object, 'toJson');
   }
+  dart.fn(_defaultToEncodable, core.Object, [dart.dynamic]);
   let _seen = Symbol('_seen');
   let _checkCycle = Symbol('_checkCycle');
   let _removeSeen = Symbol('_removeSeen');
@@ -1029,16 +1209,29 @@ var collection = dart.import(collection);
     writeMap(map) {
       this.writeString('{');
       let separator = '"';
-      map.forEach(((key, value) => {
+      map.forEach(dart.fn(((key, value) => {
         this.writeString(separator);
         separator = ',"';
         this.writeStringContent(key);
         this.writeString('":');
         this.writeObject(value);
-      }).bind(this));
+      }).bind(this), dart.dynamic, [core.String, dart.dynamic]));
       this.writeString('}');
     }
   }
+  dart.setSignature(_JsonStringifier, {
+    methods: () => ({
+      writeStringContent: dart.functionType(dart.void, [core.String]),
+      [_checkCycle]: dart.functionType(dart.void, [dart.dynamic]),
+      [_removeSeen]: dart.functionType(dart.void, [dart.dynamic]),
+      writeObject: dart.functionType(dart.void, [dart.dynamic]),
+      writeJsonValue: dart.functionType(core.bool, [dart.dynamic]),
+      writeList: dart.functionType(dart.void, [core.List]),
+      writeMap: dart.functionType(dart.void, [core.Map$(core.String, core.Object)])
+    }),
+    statics: () => ({hexDigit: dart.functionType(core.int, [core.int])}),
+    names: ['hexDigit']
+  });
   _JsonStringifier.BACKSPACE = 8;
   _JsonStringifier.TAB = 9;
   _JsonStringifier.NEWLINE = 10;
@@ -1084,7 +1277,7 @@ var collection = dart.import(collection);
         this.writeString('{\n');
         this[_indentLevel] = dart.notNull(this[_indentLevel]) + 1;
         let first = true;
-        map.forEach(((key, value) => {
+        map.forEach(dart.fn(((key, value) => {
           if (!dart.notNull(first)) {
             this.writeString(",\n");
           }
@@ -1094,7 +1287,7 @@ var collection = dart.import(collection);
           this.writeString('": ');
           this.writeObject(value);
           first = false;
-        }).bind(this));
+        }).bind(this), dart.dynamic, [core.String, core.Object]));
         this.writeString('\n');
         this[_indentLevel] = dart.notNull(this[_indentLevel]) - 1;
         this.writeIndentation(this[_indentLevel]);
@@ -1103,6 +1296,12 @@ var collection = dart.import(collection);
     }
   }
   _JsonPrettyPrintMixin[dart.implements] = () => [_JsonStringifier];
+  dart.setSignature(_JsonPrettyPrintMixin, {
+    methods: () => ({
+      writeList: dart.functionType(dart.void, [core.List]),
+      writeMap: dart.functionType(dart.void, [core.Map])
+    })
+  });
   class _JsonStringStringifier extends _JsonStringifier {
     _JsonStringStringifier(sink, _toEncodable) {
       this[_sink] = sink;
@@ -1135,6 +1334,19 @@ var collection = dart.import(collection);
       this[_sink].writeCharCode(charCode);
     }
   }
+  dart.setSignature(_JsonStringStringifier, {
+    methods: () => ({
+      writeNumber: dart.functionType(dart.void, [core.num]),
+      writeString: dart.functionType(dart.void, [core.String]),
+      writeStringSlice: dart.functionType(dart.void, [core.String, core.int, core.int]),
+      writeCharCode: dart.functionType(dart.void, [core.int])
+    }),
+    statics: () => ({
+      stringify: dart.functionType(core.String, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic]), core.String]),
+      printOn: dart.functionType(dart.void, [dart.dynamic, core.StringSink, dart.functionType(dart.dynamic, [dart.dynamic]), core.String])
+    }),
+    names: ['stringify', 'printOn']
+  });
   class _JsonStringStringifierPretty extends dart.mixin(_JsonStringStringifier, _JsonPrettyPrintMixin) {
     _JsonStringStringifierPretty(sink, toEncodable, indent) {
       this[_indent] = indent;
@@ -1145,6 +1357,9 @@ var collection = dart.import(collection);
         this.writeString(this[_indent]);
     }
   }
+  dart.setSignature(_JsonStringStringifierPretty, {
+    methods: () => ({writeIndentation: dart.functionType(dart.void, [core.int])})
+  });
   class _JsonUtf8Stringifier extends _JsonStringifier {
     _JsonUtf8Stringifier(toEncodable, bufferSize, addChunk) {
       this.addChunk = addChunk;
@@ -1244,6 +1459,21 @@ var collection = dart.import(collection);
       }).bind(this)(), byte);
     }
   }
+  dart.setSignature(_JsonUtf8Stringifier, {
+    methods: () => ({
+      flush: dart.functionType(dart.void, []),
+      writeNumber: dart.functionType(dart.void, [core.num]),
+      writeAsciiString: dart.functionType(dart.void, [core.String]),
+      writeString: dart.functionType(dart.void, [core.String]),
+      writeStringSlice: dart.functionType(dart.void, [core.String, core.int, core.int]),
+      writeCharCode: dart.functionType(dart.void, [core.int]),
+      writeMultiByteCharCode: dart.functionType(dart.void, [core.int]),
+      writeFourByteCharCode: dart.functionType(dart.void, [core.int]),
+      writeByte: dart.functionType(dart.void, [core.int])
+    }),
+    statics: () => ({stringify: dart.functionType(dart.void, [core.Object, core.List$(core.int), dart.functionType(dart.dynamic, [core.Object]), core.int, dart.functionType(dart.void, [typed_data.Uint8List, core.int, core.int])])}),
+    names: ['stringify']
+  });
   class _JsonUtf8StringifierPretty extends dart.mixin(_JsonUtf8Stringifier, _JsonPrettyPrintMixin) {
     _JsonUtf8StringifierPretty(toEncodableFunction, indent, bufferSize, addChunk) {
       this.indent = indent;
@@ -1274,6 +1504,9 @@ var collection = dart.import(collection);
       }
     }
   }
+  dart.setSignature(_JsonUtf8StringifierPretty, {
+    methods: () => ({writeIndentation: dart.functionType(dart.void, [core.int])})
+  });
   let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.Object, [core.Object]));
   let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   let __CastType4 = dart.typedef('__CastType4', () => dart.functionType(dart.dynamic, [core.Object]));
@@ -1303,6 +1536,9 @@ var collection = dart.import(collection);
       return this[_allowInvalid] ? dart.const(new Latin1Decoder({allowInvalid: true})) : dart.const(new Latin1Decoder({allowInvalid: false}));
     }
   }
+  dart.setSignature(Latin1Codec, {
+    methods: () => ({decode: dart.functionType(core.String, [core.List$(core.int)], {llowInvali: core.bool})})
+  });
   let LATIN1 = dart.const(new Latin1Codec());
   let _LATIN1_MASK = 255;
   class Latin1Encoder extends _UnicodeSubsetEncoder {
@@ -1310,6 +1546,7 @@ var collection = dart.import(collection);
       super._UnicodeSubsetEncoder(_LATIN1_MASK);
     }
   }
+  dart.setSignature(Latin1Encoder, {});
   class Latin1Decoder extends _UnicodeSubsetDecoder {
     Latin1Decoder(opts) {
       let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : false;
@@ -1327,6 +1564,9 @@ var collection = dart.import(collection);
       return new _Latin1AllowInvalidDecoderSink(stringSink);
     }
   }
+  dart.setSignature(Latin1Decoder, {
+    methods: () => ({startChunkedConversion: dart.functionType(ByteConversionSink, [core.Sink$(core.String)])})
+  });
   let _addSliceToSink = Symbol('_addSliceToSink');
   class _Latin1DecoderSink extends ByteConversionSinkBase {
     _Latin1DecoderSink(sink) {
@@ -1359,6 +1599,14 @@ var collection = dart.import(collection);
       }
     }
   }
+  dart.setSignature(_Latin1DecoderSink, {
+    methods: () => ({
+      close: dart.functionType(dart.void, []),
+      add: dart.functionType(dart.void, [core.List$(core.int)]),
+      [_addSliceToSink]: dart.functionType(dart.void, [core.List$(core.int), core.int, core.int, core.bool]),
+      addSlice: dart.functionType(dart.void, [core.List$(core.int), core.int, core.int, core.bool])
+    })
+  });
   class _Latin1AllowInvalidDecoderSink extends _Latin1DecoderSink {
     _Latin1AllowInvalidDecoderSink(sink) {
       super._Latin1DecoderSink(sink);
@@ -1382,6 +1630,9 @@ var collection = dart.import(collection);
       }
     }
   }
+  dart.setSignature(_Latin1AllowInvalidDecoderSink, {
+    methods: () => ({addSlice: dart.functionType(dart.void, [core.List$(core.int), core.int, core.int, core.bool])})
+  });
   class LineSplitter extends Converter$(core.String, core.List$(core.String)) {
     LineSplitter() {
       super.Converter();
@@ -1398,6 +1649,12 @@ var collection = dart.import(collection);
       return new _LineSplitterSink(dart.as(sink, StringConversionSink));
     }
   }
+  dart.setSignature(LineSplitter, {
+    methods: () => ({
+      convert: dart.functionType(core.List$(core.String), [core.String]),
+      startChunkedConversion: dart.functionType(StringConversionSink, [core.Sink])
+    })
+  });
   let _carry = Symbol('_carry');
   class _LineSplitterSink extends StringConversionSinkBase {
     _LineSplitterSink(sink) {
@@ -1453,6 +1710,14 @@ var collection = dart.import(collection);
       return null;
     }
   }
+  dart.setSignature(_LineSplitterSink, {
+    methods: () => ({
+      addSlice: dart.functionType(dart.void, [core.String, core.int, core.int, core.bool]),
+      close: dart.functionType(dart.void, [])
+    }),
+    statics: () => ({_addSlice: dart.functionType(core.String, [core.String, core.int, core.int, core.bool, dart.functionType(dart.void, [core.String])])}),
+    names: ['_addSlice']
+  });
   _LineSplitterSink._LF = 10;
   _LineSplitterSink._CR = 13;
   class StringConversionSink extends ChunkedConversionSink$(core.String) {
@@ -1472,12 +1737,14 @@ var collection = dart.import(collection);
   dart.defineNamedConstructor(StringConversionSink, 'withCallback');
   dart.defineNamedConstructor(StringConversionSink, 'from');
   dart.defineNamedConstructor(StringConversionSink, 'fromStringSink');
+  dart.setSignature(StringConversionSink, {});
   class ClosableStringSink extends core.StringSink {
     fromStringSink(sink, onClose) {
       return new _ClosableStringSink(sink, onClose);
     }
   }
   dart.defineNamedConstructor(ClosableStringSink, 'fromStringSink');
+  dart.setSignature(ClosableStringSink, {});
   let _StringSinkCloseCallback = dart.typedef('_StringSinkCloseCallback', () => dart.functionType(dart.void, []));
   class _ClosableStringSink extends core.Object {
     _ClosableStringSink(sink, callback) {
@@ -1505,6 +1772,15 @@ var collection = dart.import(collection);
     }
   }
   _ClosableStringSink[dart.implements] = () => [ClosableStringSink];
+  dart.setSignature(_ClosableStringSink, {
+    methods: () => ({
+      close: dart.functionType(dart.void, []),
+      writeCharCode: dart.functionType(dart.void, [core.int]),
+      write: dart.functionType(dart.void, [core.Object]),
+      writeln: dart.functionType(dart.void, [], [core.Object]),
+      writeAll: dart.functionType(dart.void, [core.Iterable], [core.String])
+    })
+  });
   let _flush = Symbol('_flush');
   class _StringConversionSinkAsStringSinkAdapter extends core.Object {
     _StringConversionSinkAsStringSinkAdapter(chunkedSink) {
@@ -1561,6 +1837,16 @@ var collection = dart.import(collection);
     }
   }
   _StringConversionSinkAsStringSinkAdapter[dart.implements] = () => [ClosableStringSink];
+  dart.setSignature(_StringConversionSinkAsStringSinkAdapter, {
+    methods: () => ({
+      close: dart.functionType(dart.void, []),
+      writeCharCode: dart.functionType(dart.void, [core.int]),
+      write: dart.functionType(dart.void, [core.Object]),
+      writeln: dart.functionType(dart.void, [], [core.Object]),
+      writeAll: dart.functionType(dart.void, [core.Iterable], [core.String]),
+      [_flush]: dart.functionType(dart.void, [])
+    })
+  });
   _StringConversionSinkAsStringSinkAdapter._MIN_STRING_SIZE = 16;
   let _stringSink = Symbol('_stringSink');
   class _StringSinkConversionSink extends StringConversionSinkBase {
@@ -1589,6 +1875,15 @@ var collection = dart.import(collection);
       return new ClosableStringSink.fromStringSink(this[_stringSink], this.close.bind(this));
     }
   }
+  dart.setSignature(_StringSinkConversionSink, {
+    methods: () => ({
+      close: dart.functionType(dart.void, []),
+      addSlice: dart.functionType(dart.void, [core.String, core.int, core.int, core.bool]),
+      add: dart.functionType(dart.void, [core.String]),
+      asUtf8Sink: dart.functionType(ByteConversionSink, [core.bool]),
+      asStringSink: dart.functionType(ClosableStringSink, [])
+    })
+  });
   class _StringCallbackSink extends _StringSinkConversionSink {
     _StringCallbackSink(callback) {
       this[_callback] = callback;
@@ -1604,6 +1899,12 @@ var collection = dart.import(collection);
       return new _Utf8StringSinkAdapter(this, this[_stringSink], allowMalformed);
     }
   }
+  dart.setSignature(_StringCallbackSink, {
+    methods: () => ({
+      close: dart.functionType(dart.void, []),
+      asUtf8Sink: dart.functionType(ByteConversionSink, [core.bool])
+    })
+  });
   class _StringAdapterSink extends StringConversionSinkBase {
     _StringAdapterSink(sink) {
       this[_sink] = sink;
@@ -1624,6 +1925,13 @@ var collection = dart.import(collection);
       return this[_sink].close();
     }
   }
+  dart.setSignature(_StringAdapterSink, {
+    methods: () => ({
+      add: dart.functionType(dart.void, [core.String]),
+      addSlice: dart.functionType(dart.void, [core.String, core.int, core.int, core.bool]),
+      close: dart.functionType(dart.void, [])
+    })
+  });
   let _decoder = Symbol('_decoder');
   class _Utf8StringSinkAdapter extends ByteConversionSink {
     _Utf8StringSinkAdapter(sink, stringSink, allowMalformed) {
@@ -1645,6 +1953,13 @@ var collection = dart.import(collection);
         this.close();
     }
   }
+  dart.setSignature(_Utf8StringSinkAdapter, {
+    methods: () => ({
+      close: dart.functionType(dart.void, []),
+      add: dart.functionType(dart.void, [core.List$(core.int)]),
+      addSlice: dart.functionType(dart.void, [core.List$(core.int), core.int, core.int, core.bool])
+    })
+  });
   class _Utf8ConversionSink extends ByteConversionSink {
     _Utf8ConversionSink(sink, allowMalformed) {
       this._(sink, new core.StringBuffer(), allowMalformed);
@@ -1681,6 +1996,13 @@ var collection = dart.import(collection);
     }
   }
   dart.defineNamedConstructor(_Utf8ConversionSink, '_');
+  dart.setSignature(_Utf8ConversionSink, {
+    methods: () => ({
+      close: dart.functionType(dart.void, []),
+      add: dart.functionType(dart.void, [core.List$(core.int)]),
+      addSlice: dart.functionType(dart.void, [core.List$(core.int), core.int, core.int, core.bool])
+    })
+  });
   let UNICODE_REPLACEMENT_CHARACTER_RUNE = 65533;
   let UNICODE_BOM_CHARACTER_RUNE = 65279;
   let _allowMalformed = Symbol('_allowMalformed');
@@ -1706,6 +2028,9 @@ var collection = dart.import(collection);
       return new Utf8Decoder({allowMalformed: this[_allowMalformed]});
     }
   }
+  dart.setSignature(Utf8Codec, {
+    methods: () => ({decode: dart.functionType(core.String, [core.List$(core.int)], {llowMalforme: core.bool})})
+  });
   let UTF8 = dart.const(new Utf8Codec());
   let _fillBuffer = Symbol('_fillBuffer');
   let _writeSurrogate = Symbol('_writeSurrogate');
@@ -1746,6 +2071,13 @@ var collection = dart.import(collection);
       return super.bind(stream);
     }
   }
+  dart.setSignature(Utf8Encoder, {
+    methods: () => ({
+      convert: dart.functionType(core.List$(core.int), [core.String], [core.int, core.int]),
+      startChunkedConversion: dart.functionType(StringConversionSink, [core.Sink$(core.List$(core.int))]),
+      bind: dart.functionType(async.Stream$(core.List$(core.int)), [async.Stream$(core.String)])
+    })
+  });
   class _Utf8Encoder extends core.Object {
     _Utf8Encoder() {
       this.withBufferSize(_Utf8Encoder._DEFAULT_BYTE_BUFFER_SIZE);
@@ -1867,6 +2199,14 @@ var collection = dart.import(collection);
     }
   }
   dart.defineNamedConstructor(_Utf8Encoder, 'withBufferSize');
+  dart.setSignature(_Utf8Encoder, {
+    methods: () => ({
+      [_writeSurrogate]: dart.functionType(core.bool, [core.int, core.int]),
+      [_fillBuffer]: dart.functionType(core.int, [core.String, core.int, core.int])
+    }),
+    statics: () => ({_createBuffer: dart.functionType(core.List$(core.int), [core.int])}),
+    names: ['_createBuffer']
+  });
   _Utf8Encoder._DEFAULT_BYTE_BUFFER_SIZE = 1024;
   class _Utf8EncoderSink extends dart.mixin(_Utf8Encoder, StringConversionSinkMixin) {
     _Utf8EncoderSink(sink) {
@@ -1918,6 +2258,12 @@ var collection = dart.import(collection);
         this.close();
     }
   }
+  dart.setSignature(_Utf8EncoderSink, {
+    methods: () => ({
+      close: dart.functionType(dart.void, []),
+      addSlice: dart.functionType(dart.void, [core.String, core.int, core.int, core.bool])
+    })
+  });
   class Utf8Decoder extends Converter$(core.List$(core.int), core.String) {
     Utf8Decoder(opts) {
       let allowMalformed = opts && 'allowMalformed' in opts ? opts.allowMalformed : false;
@@ -1955,6 +2301,14 @@ var collection = dart.import(collection);
       return super.fuse(next);
     }
   }
+  dart.setSignature(Utf8Decoder, {
+    methods: () => ({
+      convert: dart.functionType(core.String, [core.List$(core.int)], [core.int, core.int]),
+      startChunkedConversion: dart.functionType(ByteConversionSink, [core.Sink$(core.String)]),
+      bind: dart.functionType(async.Stream$(core.String), [async.Stream$(core.List$(core.int))]),
+      fuse: dart.functionType(Converter$(core.List$(core.int), dart.dynamic), [Converter$(core.String, dart.dynamic)])
+    })
+  });
   let _ONE_BYTE_LIMIT = 127;
   let _TWO_BYTE_LIMIT = 2047;
   let _THREE_BYTE_LIMIT = 65535;
@@ -1964,22 +2318,22 @@ var collection = dart.import(collection);
   let _SURROGATE_VALUE_MASK = 1023;
   let _LEAD_SURROGATE_MIN = 55296;
   let _TAIL_SURROGATE_MIN = 56320;
-  // Function _isSurrogate: (int) → bool
   function _isSurrogate(codeUnit) {
     return (dart.notNull(codeUnit) & dart.notNull(_SURROGATE_MASK)) == _LEAD_SURROGATE_MIN;
   }
-  // Function _isLeadSurrogate: (int) → bool
+  dart.fn(_isSurrogate, core.bool, [core.int]);
   function _isLeadSurrogate(codeUnit) {
     return (dart.notNull(codeUnit) & dart.notNull(_SURROGATE_TAG_MASK)) == _LEAD_SURROGATE_MIN;
   }
-  // Function _isTailSurrogate: (int) → bool
+  dart.fn(_isLeadSurrogate, core.bool, [core.int]);
   function _isTailSurrogate(codeUnit) {
     return (dart.notNull(codeUnit) & dart.notNull(_SURROGATE_TAG_MASK)) == _TAIL_SURROGATE_MIN;
   }
-  // Function _combineSurrogatePair: (int, int) → int
+  dart.fn(_isTailSurrogate, core.bool, [core.int]);
   function _combineSurrogatePair(lead, tail) {
     return 65536 + ((dart.notNull(lead) & dart.notNull(_SURROGATE_VALUE_MASK)) << 10) | dart.notNull(tail) & dart.notNull(_SURROGATE_VALUE_MASK);
   }
+  dart.fn(_combineSurrogatePair, core.int, [core.int, core.int]);
   let _isFirstCharacter = Symbol('_isFirstCharacter');
   let _value = Symbol('_value');
   let _expectedUnits = Symbol('_expectedUnits');
@@ -2017,7 +2371,6 @@ var collection = dart.import(collection);
       this[_value] = 0;
       this[_expectedUnits] = 0;
       this[_extraUnits] = 0;
-      // Function scanOneByteCharacters: (dynamic, int) → int
       let scanOneByteCharacters = (units, from) => {
         let to = endIndex;
         let mask = _ONE_BYTE_LIMIT;
@@ -2028,12 +2381,13 @@ var collection = dart.import(collection);
         }
         return dart.notNull(to) - dart.notNull(from);
       };
-      // Function addSingleBytes: (int, int) → void
+      dart.fn(scanOneByteCharacters, core.int, [dart.dynamic, core.int]);
       let addSingleBytes = ((from, to) => {
         dart.assert(dart.notNull(from) >= dart.notNull(startIndex) && dart.notNull(from) <= dart.notNull(endIndex));
         dart.assert(dart.notNull(to) >= dart.notNull(startIndex) && dart.notNull(to) <= dart.notNull(endIndex));
         this[_stringSink].write(new core.String.fromCharCodes(codeUnits, from, to));
       }).bind(this);
+      dart.fn(addSingleBytes, dart.void, [core.int, core.int]);
       let i = startIndex;
       loop:
         while (true) {
@@ -2130,14 +2484,19 @@ var collection = dart.import(collection);
       }
     }
   }
+  dart.setSignature(_Utf8Decoder, {
+    methods: () => ({
+      close: dart.functionType(dart.void, []),
+      flush: dart.functionType(dart.void, []),
+      convert: dart.functionType(dart.void, [core.List$(core.int), core.int, core.int])
+    })
+  });
   _Utf8Decoder._LIMITS = dart.const(dart.setType([_ONE_BYTE_LIMIT, _TWO_BYTE_LIMIT, _THREE_BYTE_LIMIT, _FOUR_BYTE_LIMIT], core.List$(core.int)));
   let _processed = Symbol('_processed');
   let _computeKeys = Symbol('_computeKeys');
   let _original = Symbol('_original');
-  // Function _convertJsonToDart: (dynamic, (dynamic, dynamic) → dynamic) → dynamic
   function _convertJsonToDart(json, reviver) {
     dart.assert(reviver != null);
-    // Function walk: (dynamic) → dynamic
     let walk = e => {
       if (e == null || typeof e != "object") {
         return e;
@@ -2160,9 +2519,10 @@ var collection = dart.import(collection);
       map[_original] = processed;
       return map;
     };
+    dart.fn(walk);
     return dart.dcall(reviver, null, walk(json));
   }
-  // Function _convertJsonToDartLazy: (dynamic) → dynamic
+  dart.fn(_convertJsonToDart, dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]);
   function _convertJsonToDartLazy(object) {
     if (object == null)
       return null;
@@ -2178,6 +2538,7 @@ var collection = dart.import(collection);
     }
     return object;
   }
+  dart.fn(_convertJsonToDartLazy);
   let _data = Symbol('_data');
   let _isUpgraded = Symbol('_isUpgraded');
   let _upgradedMap = Symbol('_upgradedMap');
@@ -2218,7 +2579,7 @@ var collection = dart.import(collection);
     get values() {
       if (this[_isUpgraded])
         return this[_upgradedMap].values;
-      return new _internal.MappedIterable(this[_computeKeys](), (each => this.get(each)).bind(this));
+      return new _internal.MappedIterable(this[_computeKeys](), dart.fn((each => this.get(each)).bind(this)));
     }
     set(key, value) {
       if (this[_isUpgraded]) {
@@ -2235,9 +2596,9 @@ var collection = dart.import(collection);
       }
     }
     addAll(other) {
-      other.forEach(((key, value) => {
+      other.forEach(dart.fn(((key, value) => {
         this.set(key, value);
-      }).bind(this));
+      }).bind(this)));
     }
     containsValue(value) {
       if (this[_isUpgraded])
@@ -2360,6 +2721,32 @@ var collection = dart.import(collection);
     }
   }
   _JsonMap[dart.implements] = () => [collection.LinkedHashMap];
+  dart.setSignature(_JsonMap, {
+    methods: () => ({
+      get: dart.functionType(dart.dynamic, [core.Object]),
+      set: dart.functionType(dart.void, [dart.dynamic, dart.dynamic]),
+      addAll: dart.functionType(dart.void, [core.Map]),
+      containsValue: dart.functionType(core.bool, [core.Object]),
+      containsKey: dart.functionType(core.bool, [core.Object]),
+      putIfAbsent: dart.functionType(dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [])]),
+      remove: dart.functionType(dart.dynamic, [core.Object]),
+      clear: dart.functionType(dart.void, []),
+      forEach: dart.functionType(dart.void, [dart.functionType(dart.void, [dart.dynamic, dart.dynamic])]),
+      toString: dart.functionType(core.String, []),
+      [_computeKeys]: dart.functionType(core.List$(core.String), []),
+      [_upgrade]: dart.functionType(core.Map, []),
+      [_process]: dart.functionType(dart.dynamic, [core.String])
+    }),
+    statics: () => ({
+      _hasProperty: dart.functionType(core.bool, [dart.dynamic, core.String]),
+      _getProperty: dart.functionType(dart.dynamic, [dart.dynamic, core.String]),
+      _setProperty: dart.functionType(dart.dynamic, [dart.dynamic, core.String, dart.dynamic]),
+      _getPropertyNames: dart.functionType(core.List, [dart.dynamic]),
+      _isUnprocessed: dart.functionType(core.bool, [dart.dynamic]),
+      _newJavaScriptObject: dart.functionType(dart.dynamic, [])
+    }),
+    names: ['_hasProperty', '_getProperty', '_setProperty', '_getPropertyNames', '_isUnprocessed', '_newJavaScriptObject']
+  });
   let _parent = Symbol('_parent');
   class _JsonMapKeyIterable extends _internal.ListIterable {
     _JsonMapKeyIterable(parent) {
@@ -2379,6 +2766,12 @@ var collection = dart.import(collection);
       return this[_parent].containsKey(key);
     }
   }
+  dart.setSignature(_JsonMapKeyIterable, {
+    methods: () => ({
+      [core.$elementAt]: dart.functionType(core.String, [core.int]),
+      [core.$contains]: dart.functionType(core.bool, [core.Object])
+    })
+  });
   class _JsonDecoderSink extends _StringSinkConversionSink {
     _JsonDecoderSink(reviver, sink) {
       this[_reviver] = reviver;
@@ -2395,6 +2788,9 @@ var collection = dart.import(collection);
       this[_sink].close();
     }
   }
+  dart.setSignature(_JsonDecoderSink, {
+    methods: () => ({close: dart.functionType(dart.void, [])})
+  });
   // Exports:
   exports.Codec$ = Codec$;
   exports.Codec = Codec;

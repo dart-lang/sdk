@@ -3,8 +3,9 @@ var _js_helper = dart.lazyImport(_js_helper);
 var _internal = dart.lazyImport(_internal);
 var collection = dart.lazyImport(collection);
 var _interceptors = dart.lazyImport(_interceptors);
+var math = dart.lazyImport(math);
 var convert = dart.lazyImport(convert);
-(function(exports, _js_helper, _internal, collection, _interceptors, convert) {
+(function(exports, _js_helper, _internal, collection, _interceptors, math, convert) {
   'use strict';
   class Object {
     constructor() {
@@ -31,22 +32,32 @@ var convert = dart.lazyImport(convert);
       return dart.realRuntimeType(this);
     }
   }
+  dart.setSignature(Object, {
+    methods: () => ({
+      '==': dart.functionType(bool, [dart.dynamic]),
+      toString: dart.functionType(String, []),
+      noSuchMethod: dart.functionType(dart.dynamic, [Invocation])
+    })
+  });
   class JsName extends Object {
     JsName(opts) {
       let name = opts && 'name' in opts ? opts.name : null;
       this.name = name;
     }
   }
+  dart.setSignature(JsName, {});
   class JsPeerInterface extends Object {
     JsPeerInterface(opts) {
       let name = opts && 'name' in opts ? opts.name : null;
       this.name = name;
     }
   }
+  dart.setSignature(JsPeerInterface, {});
   class SupportJsExtensionMethod extends Object {
     SupportJsExtensionMethod() {
     }
   }
+  dart.setSignature(SupportJsExtensionMethod, {});
   class Deprecated extends Object {
     Deprecated(expires) {
       this.expires = expires;
@@ -55,16 +66,21 @@ var convert = dart.lazyImport(convert);
       return `Deprecated feature. Will be removed ${this.expires}`;
     }
   }
+  dart.setSignature(Deprecated, {
+    methods: () => ({toString: dart.functionType(String, [])})
+  });
   class _Override extends Object {
     _Override() {
     }
   }
+  dart.setSignature(_Override, {});
   let deprecated = dart.const(new Deprecated("next release"));
   let override = dart.const(new _Override());
   class _Proxy extends Object {
     _Proxy() {
     }
   }
+  dart.setSignature(_Proxy, {});
   let proxy = dart.const(new _Proxy());
   class bool extends Object {
     fromEnvironment(name, opts) {
@@ -76,6 +92,9 @@ var convert = dart.lazyImport(convert);
     }
   }
   dart.defineNamedConstructor(bool, 'fromEnvironment');
+  dart.setSignature(bool, {
+    methods: () => ({toString: dart.functionType(String, [])})
+  });
   let Comparator$ = dart.generic(function(T) {
     let Comparator = dart.typedef('Comparator', () => dart.functionType(int, [T, T]));
     return Comparator;
@@ -87,6 +106,10 @@ var convert = dart.lazyImport(convert);
         return a.compareTo(b);
       }
     }
+    dart.setSignature(Comparable, {
+      statics: () => ({compare: dart.functionType(int, [Comparable$(), Comparable$()])}),
+      names: ['compare']
+    });
     return Comparable;
   });
   let Comparable = Comparable$();
@@ -128,18 +151,18 @@ var convert = dart.lazyImport(convert);
       let re = new RegExp('^([+-]?\\d{4,6})-?(\\d\\d)-?(\\d\\d)' + '(?:[ T](\\d\\d)(?::?(\\d\\d)(?::?(\\d\\d)(.\\d{1,6})?)?)?' + '( ?[zZ]| ?([-+])(\\d\\d)(?::?(\\d\\d))?)?)?$');
       let match = re.firstMatch(formattedString);
       if (match != null) {
-        // Function parseIntOrZero: (String) → int
         let parseIntOrZero = matched => {
           if (matched == null)
             return 0;
           return int.parse(matched);
         };
-        // Function parseDoubleOrZero: (String) → double
+        dart.fn(parseIntOrZero, int, [String]);
         let parseDoubleOrZero = matched => {
           if (matched == null)
             return 0.0;
           return double.parse(matched);
         };
+        dart.fn(parseDoubleOrZero, double, [String]);
         let years = int.parse(match.get(1));
         let month = int.parse(match.get(2));
         let day = int.parse(match.get(3));
@@ -340,6 +363,31 @@ var convert = dart.lazyImport(convert);
   dart.defineNamedConstructor(DateTime, 'fromMillisecondsSinceEpoch');
   dart.defineNamedConstructor(DateTime, '_internal');
   dart.defineNamedConstructor(DateTime, '_now');
+  dart.setSignature(DateTime, {
+    methods: () => ({
+      '==': dart.functionType(bool, [dart.dynamic]),
+      isBefore: dart.functionType(bool, [DateTime]),
+      isAfter: dart.functionType(bool, [DateTime]),
+      isAtSameMomentAs: dart.functionType(bool, [DateTime]),
+      compareTo: dart.functionType(int, [DateTime]),
+      toLocal: dart.functionType(DateTime, []),
+      toUtc: dart.functionType(DateTime, []),
+      toString: dart.functionType(String, []),
+      toIso8601String: dart.functionType(String, []),
+      add: dart.functionType(DateTime, [Duration]),
+      subtract: dart.functionType(DateTime, [Duration]),
+      difference: dart.functionType(Duration, [DateTime])
+    }),
+    statics: () => ({
+      parse: dart.functionType(DateTime, [String]),
+      _fourDigits: dart.functionType(String, [int]),
+      _sixDigits: dart.functionType(String, [int]),
+      _threeDigits: dart.functionType(String, [int]),
+      _twoDigits: dart.functionType(String, [int]),
+      _brokenDownDateToMillisecondsSinceEpoch: dart.functionType(int, [int, int, int, int, int, int, int, bool])
+    }),
+    names: ['parse', '_fourDigits', '_sixDigits', '_threeDigits', '_twoDigits', '_brokenDownDateToMillisecondsSinceEpoch']
+  });
   DateTime.MONDAY = 1;
   DateTime.TUESDAY = 2;
   DateTime.WEDNESDAY = 3;
@@ -389,6 +437,14 @@ var convert = dart.lazyImport(convert);
     }
   }
   num[dart.implements] = () => [Comparable$(num)];
+  dart.setSignature(num, {
+    statics: () => ({
+      parse: dart.functionType(num, [String], [dart.functionType(num, [String])]),
+      _onParseErrorInt: dart.functionType(int, [String]),
+      _onParseErrorDouble: dart.functionType(double, [String])
+    }),
+    names: ['parse', '_onParseErrorInt', '_onParseErrorDouble']
+  });
   class double extends num {
     static parse(source, onError) {
       if (onError === void 0)
@@ -396,6 +452,10 @@ var convert = dart.lazyImport(convert);
       return _js_helper.Primitives.parseDouble(source, onError);
     }
   }
+  dart.setSignature(double, {
+    statics: () => ({parse: dart.functionType(double, [String], [dart.functionType(double, [String])])}),
+    names: ['parse']
+  });
   double.NAN = 0.0 / 0.0;
   double.INFINITY = 1.0 / 0.0;
   double.NEGATIVE_INFINITY = -dart.notNull(double.INFINITY);
@@ -471,7 +531,6 @@ var convert = dart.lazyImport(convert);
       return this[_duration].compareTo(other[_duration]);
     }
     toString() {
-      // Function sixDigits: (int) → String
       let sixDigits = n => {
         if (dart.notNull(n) >= 100000)
           return `${n}`;
@@ -485,12 +544,13 @@ var convert = dart.lazyImport(convert);
           return `0000${n}`;
         return `00000${n}`;
       };
-      // Function twoDigits: (int) → String
+      dart.fn(sixDigits, String, [int]);
       let twoDigits = n => {
         if (dart.notNull(n) >= 10)
           return `${n}`;
         return `0${n}`;
       };
+      dart.fn(twoDigits, String, [int]);
       if (dart.notNull(this.inMicroseconds) < 0) {
         return `-${this['unary-']()}`;
       }
@@ -511,6 +571,23 @@ var convert = dart.lazyImport(convert);
   }
   Duration[dart.implements] = () => [Comparable$(Duration)];
   dart.defineNamedConstructor(Duration, '_microseconds');
+  dart.setSignature(Duration, {
+    methods: () => ({
+      '+': dart.functionType(Duration, [Duration]),
+      '-': dart.functionType(Duration, [Duration]),
+      '*': dart.functionType(Duration, [num]),
+      '~/': dart.functionType(Duration, [int]),
+      '<': dart.functionType(bool, [Duration]),
+      '>': dart.functionType(bool, [Duration]),
+      '<=': dart.functionType(bool, [Duration]),
+      '>=': dart.functionType(bool, [Duration]),
+      '==': dart.functionType(bool, [dart.dynamic]),
+      compareTo: dart.functionType(int, [Duration]),
+      toString: dart.functionType(String, []),
+      abs: dart.functionType(Duration, []),
+      'unary-': dart.functionType(Duration, [])
+    })
+  });
   Duration.MICROSECONDS_PER_MILLISECOND = 1000;
   Duration.MILLISECONDS_PER_SECOND = 1000;
   Duration.SECONDS_PER_MINUTE = 60;
@@ -549,17 +626,28 @@ var convert = dart.lazyImport(convert);
       return _js_helper.Primitives.extractStackTrace(this);
     }
   }
+  dart.setSignature(Error, {
+    statics: () => ({
+      safeToString: dart.functionType(String, [Object]),
+      _stringToSafeString: dart.functionType(String, [String]),
+      _objectToString: dart.functionType(String, [Object])
+    }),
+    names: ['safeToString', '_stringToSafeString', '_objectToString']
+  });
   class AssertionError extends Error {
     AssertionError() {
       super.Error();
     }
   }
+  dart.setSignature(AssertionError, {});
   class TypeError extends AssertionError {}
+  dart.setSignature(TypeError, {});
   class CastError extends Error {
     CastError() {
       super.Error();
     }
   }
+  dart.setSignature(CastError, {});
   class NullThrownError extends Error {
     NullThrownError() {
       super.Error();
@@ -568,6 +656,9 @@ var convert = dart.lazyImport(convert);
       return "Throw of null.";
     }
   }
+  dart.setSignature(NullThrownError, {
+    methods: () => ({toString: dart.functionType(String, [])})
+  });
   let _hasValue = dart.JsSymbol('_hasValue');
   class ArgumentError extends Error {
     ArgumentError(message) {
@@ -612,6 +703,9 @@ var convert = dart.lazyImport(convert);
   }
   dart.defineNamedConstructor(ArgumentError, 'value');
   dart.defineNamedConstructor(ArgumentError, 'notNull');
+  dart.setSignature(ArgumentError, {
+    methods: () => ({toString: dart.functionType(String, [])})
+  });
   class RangeError extends ArgumentError {
     RangeError(message) {
       this.start = null;
@@ -713,6 +807,16 @@ var convert = dart.lazyImport(convert);
   dart.defineNamedConstructor(RangeError, 'value');
   dart.defineNamedConstructor(RangeError, 'range');
   dart.defineNamedConstructor(RangeError, 'index');
+  dart.setSignature(RangeError, {
+    methods: () => ({toString: dart.functionType(String, [])}),
+    statics: () => ({
+      checkValueInInterval: dart.functionType(dart.void, [int, int, int], [String, String]),
+      checkValidIndex: dart.functionType(dart.void, [int, dart.dynamic], [String, int, String]),
+      checkValidRange: dart.functionType(dart.void, [int, int, int], [String, String, String]),
+      checkNotNegative: dart.functionType(dart.void, [int], [String, String])
+    }),
+    names: ['checkValueInInterval', 'checkValidIndex', 'checkValidRange', 'checkNotNegative']
+  });
   class IndexError extends ArgumentError {
     IndexError(invalidValue, indexable, name, message, length) {
       if (name === void 0)
@@ -742,11 +846,15 @@ var convert = dart.lazyImport(convert);
     }
   }
   IndexError[dart.implements] = () => [RangeError];
+  dart.setSignature(IndexError, {
+    methods: () => ({toString: dart.functionType(String, [])})
+  });
   class FallThroughError extends Error {
     FallThroughError() {
       super.Error();
     }
   }
+  dart.setSignature(FallThroughError, {});
   let _className = dart.JsSymbol('_className');
   class AbstractClassInstantiationError extends Error {
     AbstractClassInstantiationError(className) {
@@ -757,6 +865,9 @@ var convert = dart.lazyImport(convert);
       return `Cannot instantiate abstract class: '${this[_className]}'`;
     }
   }
+  dart.setSignature(AbstractClassInstantiationError, {
+    methods: () => ({toString: dart.functionType(String, [])})
+  });
   let _receiver = dart.JsSymbol('_receiver');
   let _memberName = dart.JsSymbol('_memberName');
   let _arguments = dart.JsSymbol('_arguments');
@@ -787,7 +898,7 @@ var convert = dart.lazyImport(convert);
         }
       }
       if (this[_namedArguments] != null) {
-        this[_namedArguments].forEach((key, value) => {
+        this[_namedArguments].forEach(dart.fn((key, value) => {
           if (dart.notNull(i) > 0) {
             sb.write(", ");
           }
@@ -795,7 +906,7 @@ var convert = dart.lazyImport(convert);
           sb.write(": ");
           sb.write(Error.safeToString(value));
           i = dart.notNull(i) + 1;
-        });
+        }, dart.dynamic, [Symbol, dart.dynamic]));
       }
       if (this[_existingArgumentNames] == null) {
         return `NoSuchMethodError : method not found: '${this[_memberName]}'\n` + `Receiver: ${Error.safeToString(this[_receiver])}\n` + `Arguments: [${sb}]`;
@@ -813,6 +924,9 @@ var convert = dart.lazyImport(convert);
       }
     }
   }
+  dart.setSignature(NoSuchMethodError, {
+    methods: () => ({toString: dart.functionType(String, [])})
+  });
   class UnsupportedError extends Error {
     UnsupportedError(message) {
       this.message = message;
@@ -822,6 +936,9 @@ var convert = dart.lazyImport(convert);
       return `Unsupported operation: ${this.message}`;
     }
   }
+  dart.setSignature(UnsupportedError, {
+    methods: () => ({toString: dart.functionType(String, [])})
+  });
   class UnimplementedError extends Error {
     UnimplementedError(message) {
       if (message === void 0)
@@ -834,6 +951,9 @@ var convert = dart.lazyImport(convert);
     }
   }
   UnimplementedError[dart.implements] = () => [UnsupportedError];
+  dart.setSignature(UnimplementedError, {
+    methods: () => ({toString: dart.functionType(String, [])})
+  });
   class StateError extends Error {
     StateError(message) {
       this.message = message;
@@ -843,6 +963,9 @@ var convert = dart.lazyImport(convert);
       return `Bad state: ${this.message}`;
     }
   }
+  dart.setSignature(StateError, {
+    methods: () => ({toString: dart.functionType(String, [])})
+  });
   class ConcurrentModificationError extends Error {
     ConcurrentModificationError(modifiedObject) {
       if (modifiedObject === void 0)
@@ -857,6 +980,9 @@ var convert = dart.lazyImport(convert);
       return "Concurrent modification during iteration: " + `${Error.safeToString(this.modifiedObject)}.`;
     }
   }
+  dart.setSignature(ConcurrentModificationError, {
+    methods: () => ({toString: dart.functionType(String, [])})
+  });
   class OutOfMemoryError extends Object {
     OutOfMemoryError() {
     }
@@ -868,6 +994,9 @@ var convert = dart.lazyImport(convert);
     }
   }
   OutOfMemoryError[dart.implements] = () => [Error];
+  dart.setSignature(OutOfMemoryError, {
+    methods: () => ({toString: dart.functionType(String, [])})
+  });
   class StackOverflowError extends Object {
     StackOverflowError() {
     }
@@ -879,6 +1008,9 @@ var convert = dart.lazyImport(convert);
     }
   }
   StackOverflowError[dart.implements] = () => [Error];
+  dart.setSignature(StackOverflowError, {
+    methods: () => ({toString: dart.functionType(String, [])})
+  });
   class CyclicInitializationError extends Error {
     CyclicInitializationError(variableName) {
       if (variableName === void 0)
@@ -890,6 +1022,9 @@ var convert = dart.lazyImport(convert);
       return this.variableName == null ? "Reading static variable during its initialization" : `Reading static variable '${this.variableName}' during its initialization`;
     }
   }
+  dart.setSignature(CyclicInitializationError, {
+    methods: () => ({toString: dart.functionType(String, [])})
+  });
   class Exception extends Object {
     Exception(message) {
       if (message === void 0)
@@ -897,6 +1032,7 @@ var convert = dart.lazyImport(convert);
       return new _ExceptionImplementation(message);
     }
   }
+  dart.setSignature(Exception, {});
   class _ExceptionImplementation extends Object {
     _ExceptionImplementation(message) {
       if (message === void 0)
@@ -910,6 +1046,9 @@ var convert = dart.lazyImport(convert);
     }
   }
   _ExceptionImplementation[dart.implements] = () => [Exception];
+  dart.setSignature(_ExceptionImplementation, {
+    methods: () => ({toString: dart.functionType(String, [])})
+  });
   class FormatException extends Object {
     FormatException(message, source, offset) {
       if (message === void 0)
@@ -999,6 +1138,9 @@ var convert = dart.lazyImport(convert);
     }
   }
   FormatException[dart.implements] = () => [Exception];
+  dart.setSignature(FormatException, {
+    methods: () => ({toString: dart.functionType(String, [])})
+  });
   class IntegerDivisionByZeroException extends Object {
     IntegerDivisionByZeroException() {
     }
@@ -1007,6 +1149,9 @@ var convert = dart.lazyImport(convert);
     }
   }
   IntegerDivisionByZeroException[dart.implements] = () => [Exception];
+  dart.setSignature(IntegerDivisionByZeroException, {
+    methods: () => ({toString: dart.functionType(String, [])})
+  });
   let _getKey = dart.JsSymbol('_getKey');
   let Expando$ = dart.generic(function(T) {
     class Expando extends Object {
@@ -1044,6 +1189,14 @@ var convert = dart.lazyImport(convert);
         return key;
       }
     }
+    dart.setSignature(Expando, {
+      methods: () => ({
+        toString: dart.functionType(String, []),
+        get: dart.functionType(T, [Object]),
+        set: dart.functionType(dart.void, [Object, T]),
+        [_getKey]: dart.functionType(String, [])
+      })
+    });
     return Expando;
   });
   let Expando = Expando$();
@@ -1058,20 +1211,27 @@ var convert = dart.lazyImport(convert);
     }
     static _toMangledNames(namedArguments) {
       let result = dart.map();
-      namedArguments.forEach((symbol, value) => {
+      namedArguments.forEach(dart.fn((symbol, value) => {
         result.set(_symbolToString(dart.as(symbol, Symbol)), value);
-      });
+      }));
       return result;
     }
   }
-  // Function identical: (Object, Object) → bool
+  dart.setSignature(Function, {
+    statics: () => ({
+      apply: dart.functionType(dart.dynamic, [Function, List], [Map$(Symbol, dart.dynamic)]),
+      _toMangledNames: dart.functionType(Map$(String, dart.dynamic), [Map$(Symbol, dart.dynamic)])
+    }),
+    names: ['apply', '_toMangledNames']
+  });
   function identical(a, b) {
     return _js_helper.Primitives.identicalImplementation(a, b);
   }
-  // Function identityHashCode: (Object) → int
+  dart.fn(identical, bool, [Object, Object]);
   function identityHashCode(object) {
     return _js_helper.objectHashCode(object);
   }
+  dart.fn(identityHashCode, () => dart.functionType(int, [Object]));
   class int extends num {
     fromEnvironment(name, opts) {
       let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : null;
@@ -1084,11 +1244,16 @@ var convert = dart.lazyImport(convert);
     }
   }
   dart.defineNamedConstructor(int, 'fromEnvironment');
+  dart.setSignature(int, {
+    statics: () => ({parse: dart.functionType(int, [String], {adi: int, nErro: dart.functionType(int, [String])})}),
+    names: ['parse']
+  });
   class Invocation extends Object {
     get isAccessor() {
       return dart.notNull(this.isGetter) || dart.notNull(this.isSetter);
     }
   }
+  dart.setSignature(Invocation, {});
   let $iterator = dart.JsSymbol('$iterator');
   let $join = dart.JsSymbol('$join');
   let Iterable$ = dart.generic(function(E) {
@@ -1114,6 +1279,9 @@ var convert = dart.lazyImport(convert);
       }
     }
     dart.defineNamedConstructor(Iterable, 'generate');
+    dart.setSignature(Iterable, {
+      methods: () => ({[$join]: dart.functionType(String, [], [String])})
+    });
     return Iterable;
   });
   let Iterable = Iterable$();
@@ -1171,6 +1339,14 @@ var convert = dart.lazyImport(convert);
     }
     _GeneratorIterable[dart.implements] = () => [_internal.EfficientLength];
     dart.defineNamedConstructor(_GeneratorIterable, 'slice');
+    dart.setSignature(_GeneratorIterable, {
+      methods: () => ({
+        [$skip]: dart.functionType(Iterable$(E), [int]),
+        [$take]: dart.functionType(Iterable$(E), [int])
+      }),
+      statics: () => ({_id: dart.functionType(int, [int])}),
+      names: ['_id']
+    });
     return _GeneratorIterable;
   });
   dart.defineLazyClassGeneric(exports, '_GeneratorIterable', {get: _GeneratorIterable$});
@@ -1199,17 +1375,22 @@ var convert = dart.lazyImport(convert);
       }
     }
     _GeneratorIterator[dart.implements] = () => [Iterator$(E)];
+    dart.setSignature(_GeneratorIterator, {
+      methods: () => ({moveNext: dart.functionType(bool, [])})
+    });
     return _GeneratorIterator;
   });
   let _GeneratorIterator = _GeneratorIterator$();
   let BidirectionalIterator$ = dart.generic(function(E) {
     class BidirectionalIterator extends Object {}
     BidirectionalIterator[dart.implements] = () => [Iterator$(E)];
+    dart.setSignature(BidirectionalIterator, {});
     return BidirectionalIterator;
   });
   let BidirectionalIterator = BidirectionalIterator$();
   let Iterator$ = dart.generic(function(E) {
     class Iterator extends Object {}
+    dart.setSignature(Iterator, {});
     return Iterator;
   });
   let Iterator = Iterator$();
@@ -1561,7 +1742,7 @@ var convert = dart.lazyImport(convert);
       }
       [$retainWhere](test) {
         dart.as(test, dart.functionType(bool, [E]));
-        _internal.IterableMixinWorkaround.removeWhereList(this, element => !dart.notNull(test(element)));
+        _internal.IterableMixinWorkaround.removeWhereList(this, dart.fn(element => !dart.notNull(test(element)), bool, [E]));
       }
       [$sublist](start, end) {
         if (end === void 0)
@@ -1628,6 +1809,57 @@ var convert = dart.lazyImport(convert);
     dart.defineNamedConstructor(List, 'filled');
     dart.defineNamedConstructor(List, 'from');
     dart.defineNamedConstructor(List, 'generate');
+    dart.setSignature(List, {
+      methods: () => ({
+        [$checkMutable]: dart.functionType(dart.dynamic, [dart.dynamic]),
+        [$checkGrowable]: dart.functionType(dart.dynamic, [dart.dynamic]),
+        [$where]: dart.functionType(Iterable$(E), [dart.functionType(bool, [E])]),
+        [$expand]: dart.functionType(Iterable, [dart.functionType(Iterable, [E])]),
+        [$forEach]: dart.functionType(dart.void, [dart.functionType(dart.void, [E])]),
+        [$map]: dart.functionType(Iterable, [dart.functionType(dart.dynamic, [E])]),
+        [$join]: dart.functionType(String, [], [String]),
+        [$take]: dart.functionType(Iterable$(E), [int]),
+        [$takeWhile]: dart.functionType(Iterable$(E), [dart.functionType(bool, [E])]),
+        [$skip]: dart.functionType(Iterable$(E), [int]),
+        [$skipWhile]: dart.functionType(Iterable$(E), [dart.functionType(bool, [E])]),
+        [$reduce]: dart.functionType(E, [dart.functionType(E, [E, E])]),
+        [$fold]: dart.functionType(dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, E])]),
+        [$firstWhere]: dart.functionType(E, [dart.functionType(bool, [E])], {rEls: dart.functionType(E, [])}),
+        [$lastWhere]: dart.functionType(E, [dart.functionType(bool, [E])], {rEls: dart.functionType(E, [])}),
+        [$singleWhere]: dart.functionType(E, [dart.functionType(bool, [E])]),
+        [$elementAt]: dart.functionType(E, [int]),
+        [$any]: dart.functionType(bool, [dart.functionType(bool, [E])]),
+        [$every]: dart.functionType(bool, [dart.functionType(bool, [E])]),
+        [$contains]: dart.functionType(bool, [Object]),
+        [$toString]: dart.functionType(String, []),
+        [$toList]: dart.functionType(List$(E), [], {rowabl: bool}),
+        [$toSet]: dart.functionType(exports.Set$(E), []),
+        [$get]: dart.functionType(E, [int]),
+        [$set]: dart.functionType(dart.void, [int, E]),
+        [$add]: dart.functionType(dart.void, [E]),
+        [$addAll]: dart.functionType(dart.void, [Iterable$(E)]),
+        [$sort]: dart.functionType(dart.void, [], [dart.functionType(int, [E, E])]),
+        [$shuffle]: dart.functionType(dart.void, [], [math.Random]),
+        [$indexOf]: dart.functionType(int, [E], [int]),
+        [$lastIndexOf]: dart.functionType(int, [E], [int]),
+        [$clear]: dart.functionType(dart.void, []),
+        [$insert]: dart.functionType(dart.void, [int, E]),
+        [$insertAll]: dart.functionType(dart.void, [int, Iterable$(E)]),
+        [$setAll]: dart.functionType(dart.void, [int, Iterable$(E)]),
+        [$remove]: dart.functionType(bool, [Object]),
+        [$removeAt]: dart.functionType(E, [int]),
+        [$removeLast]: dart.functionType(E, []),
+        [$removeWhere]: dart.functionType(dart.void, [dart.functionType(bool, [E])]),
+        [$retainWhere]: dart.functionType(dart.void, [dart.functionType(bool, [E])]),
+        [$sublist]: dart.functionType(List$(E), [int], [int]),
+        [$getRange]: dart.functionType(Iterable$(E), [int, int]),
+        [$setRange]: dart.functionType(dart.void, [int, int, Iterable$(E)], [int]),
+        [$removeRange]: dart.functionType(dart.void, [int, int]),
+        [$fillRange]: dart.functionType(dart.void, [int, int], [E]),
+        [$replaceRange]: dart.functionType(dart.void, [int, int, Iterable$(E)]),
+        [$asMap]: dart.functionType(Map$(int, E), [])
+      })
+    });
     return List;
   });
   let List = List$();
@@ -1654,6 +1886,7 @@ var convert = dart.lazyImport(convert);
     dart.defineNamedConstructor(Map, 'identity');
     dart.defineNamedConstructor(Map, 'fromIterable');
     dart.defineNamedConstructor(Map, 'fromIterables');
+    dart.setSignature(Map, {});
     return Map;
   });
   let Map = Map$();
@@ -1666,9 +1899,12 @@ var convert = dart.lazyImport(convert);
     }
   }
   dart.defineNamedConstructor(Null, '_uninstantiable');
+  dart.setSignature(Null, {
+    methods: () => ({toString: dart.functionType(String, [])})
+  });
   num._parseError = false;
   class Pattern extends Object {}
-  // Function print: (Object) → void
+  dart.setSignature(Pattern, {});
   function print(object) {
     let line = `${object}`;
     if (_internal.printToZone == null) {
@@ -1677,7 +1913,9 @@ var convert = dart.lazyImport(convert);
       dart.dcall(_internal.printToZone, line);
     }
   }
+  dart.fn(print, dart.void, [Object]);
   class Match extends Object {}
+  dart.setSignature(Match, {});
   class RegExp extends Object {
     RegExp(source, opts) {
       let multiLine = opts && 'multiLine' in opts ? opts.multiLine : false;
@@ -1686,6 +1924,7 @@ var convert = dart.lazyImport(convert);
     }
   }
   RegExp[dart.implements] = () => [Pattern];
+  dart.setSignature(RegExp, {});
   let Set$ = dart.generic(function(E) {
     class Set extends collection.IterableBase$(E) {
       Set() {
@@ -1701,15 +1940,18 @@ var convert = dart.lazyImport(convert);
     Set[dart.implements] = () => [_internal.EfficientLength];
     dart.defineNamedConstructor(Set, 'identity');
     dart.defineNamedConstructor(Set, 'from');
+    dart.setSignature(Set, {});
     return Set;
   });
   dart.defineLazyClassGeneric(exports, 'Set', {get: Set$});
   let Sink$ = dart.generic(function(T) {
     class Sink extends Object {}
+    dart.setSignature(Sink, {});
     return Sink;
   });
   let Sink = Sink$();
   class StackTrace extends Object {}
+  dart.setSignature(StackTrace, {});
   let _stop = dart.JsSymbol('_stop');
   class Stopwatch extends Object {
     get frequency() {
@@ -1769,6 +2011,18 @@ var convert = dart.lazyImport(convert);
       return dart.as(dart.dcall(_js_helper.Primitives.timerTicks), int);
     }
   }
+  dart.setSignature(Stopwatch, {
+    methods: () => ({
+      start: dart.functionType(dart.void, []),
+      stop: dart.functionType(dart.void, []),
+      reset: dart.functionType(dart.void, [])
+    }),
+    statics: () => ({
+      _initTicker: dart.functionType(dart.void, []),
+      _now: dart.functionType(int, [])
+    }),
+    names: ['_initTicker', '_now']
+  });
   Stopwatch._frequency = null;
   class String extends Object {
     fromCharCodes(charCodes, start, end) {
@@ -1832,6 +2086,10 @@ var convert = dart.lazyImport(convert);
   dart.defineNamedConstructor(String, 'fromCharCodes');
   dart.defineNamedConstructor(String, 'fromCharCode');
   dart.defineNamedConstructor(String, 'fromEnvironment');
+  dart.setSignature(String, {
+    statics: () => ({_stringFromIterable: dart.functionType(String, [Iterable$(int), int, int])}),
+    names: ['_stringFromIterable']
+  });
   dart.defineLazyClass(exports, {
     get Runes() {
       class Runes extends collection.IterableBase$(int) {
@@ -1857,21 +2115,22 @@ var convert = dart.lazyImport(convert);
           return code;
         }
       }
+      dart.setSignature(Runes, {});
       return Runes;
     }
   });
-  // Function _isLeadSurrogate: (int) → bool
   function _isLeadSurrogate(code) {
     return (dart.notNull(code) & 64512) == 55296;
   }
-  // Function _isTrailSurrogate: (int) → bool
+  dart.fn(_isLeadSurrogate, bool, [int]);
   function _isTrailSurrogate(code) {
     return (dart.notNull(code) & 64512) == 56320;
   }
-  // Function _combineSurrogatePair: (int, int) → int
+  dart.fn(_isTrailSurrogate, bool, [int]);
   function _combineSurrogatePair(start, end) {
     return 65536 + ((dart.notNull(start) & 1023) << 10) + (dart.notNull(end) & 1023);
   }
+  dart.fn(_combineSurrogatePair, int, [int, int]);
   let _position = dart.JsSymbol('_position');
   let _nextPosition = dart.JsSymbol('_nextPosition');
   let _currentCodePoint = dart.JsSymbol('_currentCodePoint');
@@ -1968,6 +2227,14 @@ var convert = dart.lazyImport(convert);
   }
   RuneIterator[dart.implements] = () => [BidirectionalIterator$(int)];
   dart.defineNamedConstructor(RuneIterator, 'at');
+  dart.setSignature(RuneIterator, {
+    methods: () => ({
+      [_checkSplitSurrogate]: dart.functionType(dart.void, [int]),
+      reset: dart.functionType(dart.void, [], [int]),
+      moveNext: dart.functionType(bool, []),
+      movePrevious: dart.functionType(bool, [])
+    })
+  });
   let _contents = dart.JsSymbol('_contents');
   let _writeString = dart.JsSymbol('_writeString');
   class StringBuffer extends Object {
@@ -2026,13 +2293,27 @@ var convert = dart.lazyImport(convert);
     }
   }
   StringBuffer[dart.implements] = () => [StringSink];
+  dart.setSignature(StringBuffer, {
+    methods: () => ({
+      write: dart.functionType(dart.void, [Object]),
+      writeCharCode: dart.functionType(dart.void, [int]),
+      writeAll: dart.functionType(dart.void, [Iterable], [String]),
+      writeln: dart.functionType(dart.void, [], [Object]),
+      clear: dart.functionType(dart.void, []),
+      toString: dart.functionType(String, []),
+      [_writeString]: dart.functionType(dart.void, [dart.dynamic])
+    })
+  });
   class StringSink extends Object {}
+  dart.setSignature(StringSink, {});
   class Symbol extends Object {
     Symbol(name) {
       return new _internal.Symbol(name);
     }
   }
+  dart.setSignature(Symbol, {});
   class Type extends Object {}
+  dart.setSignature(Type, {});
   let _writeAuthority = dart.JsSymbol('_writeAuthority');
   let _userInfo = dart.JsSymbol('_userInfo');
   let _host = dart.JsSymbol('_host');
@@ -2089,10 +2370,10 @@ var convert = dart.lazyImport(convert);
       return this[_fragment] == null ? "" : this[_fragment];
     }
     static parse(uri) {
-      // Function isRegName: (int) → bool
       let isRegName = ch => {
         return dart.notNull(ch) < 128 && dart.notNull(!dart.equals(dart.dsend(Uri._regNameTable[$get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
       };
+      dart.fn(isRegName, bool, [int]);
       let EOI = -1;
       let scheme = "";
       let userinfo = "";
@@ -2104,7 +2385,6 @@ var convert = dart.lazyImport(convert);
       let index = 0;
       let pathStart = 0;
       let char = EOI;
-      // Function parseAuth: () → void
       let parseAuth = () => {
         if (index == uri.length) {
           char = EOI;
@@ -2164,6 +2444,7 @@ var convert = dart.lazyImport(convert);
           char = uri.codeUnitAt(index);
         }
       };
+      dart.fn(parseAuth, dart.void, []);
       let NOT_IN_PATH = 0;
       let IN_PATH = 1;
       let ALLOW_AUTH = 2;
@@ -2360,7 +2641,7 @@ var convert = dart.lazyImport(convert);
       return false;
     }
     static _checkNonWindowsPathReservedCharacters(segments, argumentError) {
-      segments[$forEach](segment => {
+      segments[$forEach](dart.fn(segment => {
         if (dart.dsend(segment, 'contains', "/")) {
           if (argumentError) {
             throw new ArgumentError(`Illegal path character ${segment}`);
@@ -2368,12 +2649,12 @@ var convert = dart.lazyImport(convert);
             throw new UnsupportedError(`Illegal path character ${segment}`);
           }
         }
-      });
+      }));
     }
     static _checkWindowsPathReservedCharacters(segments, argumentError, firstSegment) {
       if (firstSegment === void 0)
         firstSegment = 0;
-      segments[$skip](firstSegment)[$forEach](segment => {
+      segments[$skip](firstSegment)[$forEach](dart.fn(segment => {
         if (dart.dsend(segment, 'contains', new RegExp('["*/:<>?\\\\|]'))) {
           if (argumentError) {
             throw new ArgumentError("Illegal character in path");
@@ -2381,7 +2662,7 @@ var convert = dart.lazyImport(convert);
             throw new UnsupportedError("Illegal character in path");
           }
         }
-      });
+      }));
     }
     static _checkWindowsDriveLetter(charCode, argumentError) {
       if (dart.notNull(Uri._UPPER_CASE_A) <= dart.notNull(charCode) && dart.notNull(charCode) <= dart.notNull(Uri._UPPER_CASE_Z) || dart.notNull(Uri._LOWER_CASE_A) <= dart.notNull(charCode) && dart.notNull(charCode) <= dart.notNull(Uri._LOWER_CASE_Z)) {
@@ -2655,7 +2936,7 @@ var convert = dart.lazyImport(convert);
       if (path != null) {
         result = Uri._normalize(path, start, end, dart.as(Uri._pathCharOrSlashTable, List$(int)));
       } else {
-        result = pathSegments[$map](s => Uri._uriEncode(dart.as(Uri._pathCharTable, List$(int)), dart.as(s, String)))[$join]("/");
+        result = pathSegments[$map](dart.fn(s => Uri._uriEncode(dart.as(Uri._pathCharTable, List$(int)), dart.as(s, String)), String, [dart.dynamic]))[$join]("/");
       }
       if (dart.dload(result, 'isEmpty')) {
         if (isFile)
@@ -2675,7 +2956,7 @@ var convert = dart.lazyImport(convert);
         return Uri._normalize(query, start, end, dart.as(Uri._queryCharTable, List$(int)));
       let result = new StringBuffer();
       let first = true;
-      queryParameters.forEach((key, value) => {
+      queryParameters.forEach(dart.fn((key, value) => {
         if (!dart.notNull(first)) {
           result.write("&");
         }
@@ -2685,7 +2966,7 @@ var convert = dart.lazyImport(convert);
           result.write("=");
           result.write(Uri.encodeQueryComponent(dart.as(value, String)));
         }
-      });
+      }));
       return dart.toString(result);
     }
     static _makeFragment(fragment, start, end) {
@@ -3050,10 +3331,10 @@ var convert = dart.lazyImport(convert);
       return this.scheme == uri.scheme && this.hasAuthority == uri.hasAuthority && this.userInfo == uri.userInfo && this.host == uri.host && this.port == uri.port && this.path == uri.path && this.hasQuery == uri.hasQuery && this.query == uri.query && this.hasFragment == uri.hasFragment && this.fragment == uri.fragment;
     }
     get hashCode() {
-      // Function combine: (dynamic, dynamic) → int
       let combine = (part, current) => {
         return dart.as(dart.dsend(dart.dsend(dart.dsend(current, '*', 31), '+', dart.hashCode(part)), '&', 1073741823), int);
       };
+      dart.fn(combine, int, [dart.dynamic, dart.dynamic]);
       return combine(this.scheme, combine(this.userInfo, combine(this.host, combine(this.port, combine(this.path, combine(this.query, combine(this.fragment, 1)))))));
     }
     static _addIfNonEmpty(sb, test, first, second) {
@@ -3084,7 +3365,7 @@ var convert = dart.lazyImport(convert);
     }
     static splitQueryString(query, opts) {
       let encoding = opts && 'encoding' in opts ? opts.encoding : convert.UTF8;
-      return dart.as(query.split("&")[$fold](dart.map(), (map, element) => {
+      return dart.as(query.split("&")[$fold](dart.map(), dart.fn((map, element) => {
         let index = dart.as(dart.dsend(element, 'indexOf', "="), int);
         if (index == -1) {
           if (!dart.equals(element, "")) {
@@ -3096,24 +3377,24 @@ var convert = dart.lazyImport(convert);
           dart.dsetindex(map, Uri.decodeQueryComponent(dart.as(key, String), {encoding: encoding}), Uri.decodeQueryComponent(dart.as(value, String), {encoding: encoding}));
         }
         return map;
-      }), Map$(String, String));
+      })), Map$(String, String));
     }
     static parseIPv4Address(host) {
-      // Function error: (String) → void
       let error = msg => {
         throw new FormatException(`Illegal IPv4 address, ${msg}`);
       };
+      dart.fn(error, dart.void, [String]);
       let bytes = host.split('.');
       if (bytes[$length] != 4) {
         error('IPv4 address should contain exactly 4 parts');
       }
-      return dart.as(bytes[$map](byteString => {
+      return dart.as(bytes[$map](dart.fn(byteString => {
         let byte = int.parse(dart.as(byteString, String));
         if (dart.notNull(byte) < 0 || dart.notNull(byte) > 255) {
           error('each part must be in the range of `0..255`');
         }
         return byte;
-      })[$toList](), List$(int));
+      }))[$toList](), List$(int));
     }
     static parseIPv6Address(host, start, end) {
       if (start === void 0)
@@ -3122,13 +3403,12 @@ var convert = dart.lazyImport(convert);
         end = null;
       if (end == null)
         end = host.length;
-      // Function error: (String, [dynamic]) → void
       let error = (msg, position) => {
         if (position === void 0)
           position = null;
         throw new FormatException(`Illegal IPv6 address, ${msg}`, host, dart.as(position, int));
       };
-      // Function parseHex: (int, int) → int
+      dart.fn(error, dart.void, [String], [dart.dynamic]);
       let parseHex = (start, end) => {
         if (dart.notNull(end) - dart.notNull(start) > 4) {
           error('an IPv6 part can only contain a maximum of 4 hex digits', start);
@@ -3139,6 +3419,7 @@ var convert = dart.lazyImport(convert);
         }
         return value;
       };
+      dart.fn(parseHex, int, [int, int]);
       if (dart.notNull(host.length) < 2)
         error('address is too short');
       let parts = dart.setType([], List$(int));
@@ -3215,12 +3496,12 @@ var convert = dart.lazyImport(convert);
     static _uriEncode(canonicalTable, text, opts) {
       let encoding = opts && 'encoding' in opts ? opts.encoding : convert.UTF8;
       let spaceToPlus = opts && 'spaceToPlus' in opts ? opts.spaceToPlus : false;
-      // Function byteToHex: (dynamic, dynamic) → dynamic
       let byteToHex = (byte, buffer) => {
         let hex = '0123456789ABCDEF';
         dart.dsend(buffer, 'writeCharCode', hex.codeUnitAt(dart.as(dart.dsend(byte, '>>', 4), int)));
         dart.dsend(buffer, 'writeCharCode', hex.codeUnitAt(dart.as(dart.dsend(byte, '&', 15), int)));
       };
+      dart.fn(byteToHex);
       let result = new StringBuffer();
       let bytes = encoding.encode(text);
       for (let i = 0; dart.notNull(i) < dart.notNull(bytes[$length]); i = dart.notNull(i) + 1) {
@@ -3298,6 +3579,66 @@ var convert = dart.lazyImport(convert);
   dart.defineNamedConstructor(Uri, 'http');
   dart.defineNamedConstructor(Uri, 'https');
   dart.defineNamedConstructor(Uri, 'file');
+  dart.setSignature(Uri, {
+    methods: () => ({
+      replace: dart.functionType(Uri, [], {chem: String, serInf: String, os: String, or: int, at: String, athSegment: Iterable$(String), uer: String, ueryParameter: Map$(String, String), ragmen: String}),
+      [_merge]: dart.functionType(String, [String, String]),
+      [_hasDotSegments]: dart.functionType(bool, [String]),
+      [_removeDotSegments]: dart.functionType(String, [String]),
+      resolve: dart.functionType(Uri, [String]),
+      resolveUri: dart.functionType(Uri, [Uri]),
+      toFilePath: dart.functionType(String, [], {indow: bool}),
+      [_toFilePath]: dart.functionType(String, []),
+      [_toWindowsFilePath]: dart.functionType(String, []),
+      [_writeAuthority]: dart.functionType(dart.void, [StringSink]),
+      toString: dart.functionType(String, []),
+      '==': dart.functionType(bool, [dart.dynamic])
+    }),
+    statics: () => ({
+      _defaultPort: dart.functionType(int, [String]),
+      parse: dart.functionType(Uri, [String]),
+      _fail: dart.functionType(dart.void, [String, int, String]),
+      _makeHttpUri: dart.functionType(Uri, [String, String, String, Map$(String, String)]),
+      _checkNonWindowsPathReservedCharacters: dart.functionType(dart.dynamic, [List$(String), bool]),
+      _checkWindowsPathReservedCharacters: dart.functionType(dart.dynamic, [List$(String), bool], [int]),
+      _checkWindowsDriveLetter: dart.functionType(dart.dynamic, [int, bool]),
+      _makeFileUri: dart.functionType(dart.dynamic, [String]),
+      _makeWindowsFileUrl: dart.functionType(dart.dynamic, [String]),
+      _makePort: dart.functionType(int, [int, String]),
+      _makeHost: dart.functionType(String, [String, int, int, bool]),
+      _isRegNameChar: dart.functionType(bool, [int]),
+      _normalizeRegName: dart.functionType(String, [String, int, int]),
+      _makeScheme: dart.functionType(String, [String, int]),
+      _makeUserInfo: dart.functionType(String, [String, int, int]),
+      _makePath: dart.functionType(String, [String, int, int, Iterable$(String), bool, bool]),
+      _makeQuery: dart.functionType(String, [String, int, int, Map$(String, String)]),
+      _makeFragment: dart.functionType(String, [String, int, int]),
+      _stringOrNullLength: dart.functionType(int, [String]),
+      _isHexDigit: dart.functionType(bool, [int]),
+      _hexValue: dart.functionType(int, [int]),
+      _normalizeEscape: dart.functionType(String, [String, int, bool]),
+      _isUnreservedChar: dart.functionType(bool, [int]),
+      _escapeChar: dart.functionType(String, [dart.dynamic]),
+      _normalize: dart.functionType(String, [String, int, int, List$(int)]),
+      _isSchemeCharacter: dart.functionType(bool, [int]),
+      _isGeneralDelimiter: dart.functionType(bool, [int]),
+      _addIfNonEmpty: dart.functionType(dart.void, [StringBuffer, String, String, String]),
+      encodeComponent: dart.functionType(String, [String]),
+      encodeQueryComponent: dart.functionType(String, [String], {ncodin: convert.Encoding}),
+      decodeComponent: dart.functionType(String, [String]),
+      decodeQueryComponent: dart.functionType(String, [String], {ncodin: convert.Encoding}),
+      encodeFull: dart.functionType(String, [String]),
+      decodeFull: dart.functionType(String, [String]),
+      splitQueryString: dart.functionType(Map$(String, String), [String], {ncodin: convert.Encoding}),
+      parseIPv4Address: dart.functionType(List$(int), [String]),
+      parseIPv6Address: dart.functionType(List$(int), [String], [int, int]),
+      _uriEncode: dart.functionType(String, [List$(int), String], {ncodin: convert.Encoding, paceToPlu: bool}),
+      _hexCharPairToByte: dart.functionType(int, [String, int]),
+      _uriDecode: dart.functionType(String, [String], {lusToSpac: bool, ncodin: convert.Encoding}),
+      _isAlphabeticCharacter: dart.functionType(bool, [int])
+    }),
+    names: ['_defaultPort', 'parse', '_fail', '_makeHttpUri', '_checkNonWindowsPathReservedCharacters', '_checkWindowsPathReservedCharacters', '_checkWindowsDriveLetter', '_makeFileUri', '_makeWindowsFileUrl', '_makePort', '_makeHost', '_isRegNameChar', '_normalizeRegName', '_makeScheme', '_makeUserInfo', '_makePath', '_makeQuery', '_makeFragment', '_stringOrNullLength', '_isHexDigit', '_hexValue', '_normalizeEscape', '_isUnreservedChar', '_escapeChar', '_normalize', '_isSchemeCharacter', '_isGeneralDelimiter', '_addIfNonEmpty', 'encodeComponent', 'encodeQueryComponent', 'decodeComponent', 'decodeQueryComponent', 'encodeFull', 'decodeFull', 'splitQueryString', 'parseIPv4Address', 'parseIPv6Address', '_uriEncode', '_hexCharPairToByte', '_uriDecode', '_isAlphabeticCharacter']
+  });
   Uri._SPACE = 32;
   Uri._DOUBLE_QUOTE = 34;
   Uri._NUMBER_SIGN = 35;
@@ -3335,28 +3676,30 @@ var convert = dart.lazyImport(convert);
   Uri._pathCharTable = dart.const([0, 0, 32722, 12287, 65535, 34815, 65534, 18431]);
   Uri._pathCharOrSlashTable = dart.const([0, 0, 65490, 12287, 65535, 34815, 65534, 18431]);
   Uri._queryCharTable = dart.const([0, 0, 65490, 45055, 65535, 34815, 65534, 18431]);
-  // Function _symbolToString: (Symbol) → String
   function _symbolToString(symbol) {
     return _internal.Symbol.getName(dart.as(symbol, _internal.Symbol));
   }
-  // Function _symbolMapToStringMap: (Map<Symbol, dynamic>) → dynamic
+  dart.fn(_symbolToString, String, [Symbol]);
   function _symbolMapToStringMap(map) {
     if (map == null)
       return null;
     let result = new (Map$(String, dart.dynamic))();
-    map.forEach((key, value) => {
+    map.forEach(dart.fn((key, value) => {
       result.set(_symbolToString(key), value);
-    });
+    }, dart.dynamic, [Symbol, dart.dynamic]));
     return result;
   }
+  dart.fn(_symbolMapToStringMap, dart.dynamic, [Map$(Symbol, dart.dynamic)]);
   class SupportJsExtensionMethods extends Object {
     SupportJsExtensionMethods() {
     }
   }
+  dart.setSignature(SupportJsExtensionMethods, {});
   class _ListConstructorSentinel extends Object {
     _ListConstructorSentinel() {
     }
   }
+  dart.setSignature(_ListConstructorSentinel, {});
   // Exports:
   exports.Object = Object;
   exports.JsName = JsName;
@@ -3487,4 +3830,4 @@ var convert = dart.lazyImport(convert);
   exports.Type = Type;
   exports.Uri = Uri;
   exports.SupportJsExtensionMethods = SupportJsExtensionMethods;
-})(core, _js_helper, _internal, collection, _interceptors, convert);
+})(core, _js_helper, _internal, collection, _interceptors, math, convert);

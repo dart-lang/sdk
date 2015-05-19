@@ -335,11 +335,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     var ctors = <ConstructorDeclaration>[];
     var fields = <FieldDeclaration>[];
+    var methods = <MethodDeclaration>[];
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
         ctors.add(member);
       } else if (member is FieldDeclaration && !member.isStatic) {
         fields.add(member);
+      } else if (member is MethodDeclaration) {
+        methods.add(member);
       }
     }
 
@@ -352,8 +355,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       jsPeerName = getConstantField(jsPeer, 'name', types.stringType);
     }
 
-    var body =
-        _finishClassMembers(classElem, classExpr, ctors, fields, jsPeerName);
+    var body = _finishClassMembers(
+        classElem, classExpr, ctors, fields, methods, jsPeerName);
 
     var result = _finishClassDef(type, body);
 
@@ -536,7 +539,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// inside the ES6 `class { ... }` node.
   JS.Statement _finishClassMembers(ClassElement classElem,
       JS.ClassExpression cls, List<ConstructorDeclaration> ctors,
-      List<FieldDeclaration> fields, String jsPeerName) {
+      List<FieldDeclaration> fields, List<MethodDeclaration> methods,
+      String jsPeerName) {
     var name = classElem.name;
     var body = <JS.Statement>[];
     body.add(new JS.ClassDeclaration(cls));
@@ -576,6 +580,49 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
           body.add(_overrideField(field));
         }
       }
+    }
+
+    // Emit the signature on the class recording the runtime type information
+    {
+      var tStatics = [];
+      var tMethods = [];
+      var sNames = [];
+      var cType = classElem.type;
+      for (MethodDeclaration node in methods) {
+        if (!(node.isSetter || node.isGetter || node.isAbstract)) {
+          var name = node.name.name;
+          var element = node.element;
+          var unary = node.parameters.parameters.isEmpty;
+          var memberName = _emitMemberName(name,
+              type: cType, unary: unary, isStatic: node.isStatic);
+          var property =
+              new JS.Property(memberName, _emitTypeName(element.type));
+          if (node.isStatic) {
+            tStatics.add(property);
+            sNames.add(memberName);
+          } else tMethods.add(property);
+        }
+      }
+      build(name, elements) {
+        var o =
+            new JS.ObjectInitializer(elements, vertical: elements.length > 1);
+        var e = js.call('() => #', o);
+        var p = new JS.Property(_propertyName(name), e);
+        return p;
+      }
+      var sigFields = [];
+      if (!tMethods.isEmpty) sigFields.add(build('methods', tMethods));
+      if (!tStatics.isEmpty) {
+        assert(!sNames.isEmpty);
+        var aNames = new JS.Property(
+            _propertyName('names'), new JS.ArrayInitializer(sNames));
+        sigFields.add(build('statics', tStatics));
+        sigFields.add(aNames);
+      }
+
+      var sig = new JS.ObjectInitializer(sigFields);
+      var classExpr = new JS.Identifier(name);
+      body.add(js.statement('dart.setSignature(#, #);', [classExpr, sig]));
     }
 
     return _statement(body);
@@ -915,10 +962,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     _flushLibraryProperties(body);
 
     var name = node.name.name;
-    body.add(js.comment('Function $name: ${node.element.type}'));
 
-    body.add(new JS.FunctionDeclaration(
-        new JS.Identifier(name), _visit(node.functionExpression)));
+    var id = new JS.Identifier(name);
+    body.add(new JS.FunctionDeclaration(id, _visit(node.functionExpression)));
+    body.add(_emitFunctionTagged(id, node.element.type, topLevel: true)
+        .toStatement());
 
     if (isPublic(name)) _addExport(name);
     return _statement(body);
@@ -930,14 +978,53 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         isGetter: node.isGetter, isSetter: node.isSetter);
   }
 
+  bool _executesAtTopLevel(AstNode node) {
+    var ancestor = node.getAncestor((n) => n is FunctionBody ||
+        (n is FieldDeclaration && n.staticKeyword == null) ||
+        (n is ConstructorDeclaration && n.constKeyword == null));
+    return ancestor == null;
+  }
+
+  bool _typeIsLoaded(DartType type) {
+    if (type is FunctionType && (type.name == '' || type.name == null)) {
+      return (_typeIsLoaded(type.returnType) &&
+          type.optionalParameterTypes.every(_typeIsLoaded) &&
+          type.namedParameterTypes.values.every(_typeIsLoaded) &&
+          type.normalParameterTypes.every(_typeIsLoaded));
+    }
+    if (type.isDynamic || type.isVoid || type.isBottom) return true;
+    return _loader.isLoaded(type.element);
+  }
+
+  JS.Expression _emitFunctionTagged(JS.Expression clos, DartType type,
+      {topLevel: false}) {
+    var name = type.name;
+    var lazy = topLevel && !_typeIsLoaded(type);
+
+    if (type is FunctionType && (name == '' || name == null)) {
+      if (type.returnType.isDynamic &&
+          type.optionalParameterTypes.isEmpty &&
+          type.namedParameterTypes.isEmpty &&
+          type.normalParameterTypes.every((t) => t.isDynamic)) {
+        return js.call('dart.fn(#)', [clos]);
+      }
+      if (lazy) {
+        return js.call('dart.fn(#, () => #)', [clos, _emitTypeName(type)]);
+      }
+      return js.call('dart.fn(#, #)', [clos, _emitFunctionTypeParts(type)]);
+    }
+    throw 'Function has non function type: $type';
+  }
+
   @override
   JS.Expression visitFunctionExpression(FunctionExpression node) {
     var params = _visit(node.parameters);
     if (params == null) params = [];
 
     var parent = node.parent;
-    if (parent is FunctionDeclaration &&
-        parent.parent is! FunctionDeclarationStatement) {
+    var inDecl = parent is FunctionDeclaration;
+    var inStmt = parent.parent is FunctionDeclarationStatement;
+    if (inDecl && !inStmt) {
       return new JS.Fun(params, _visit(node.body));
     } else {
       String code;
@@ -950,7 +1037,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         code = '(#) => { #; }';
         body = nodeBody;
       }
-      return js.call(code, [params, _visit(body)]);
+      var clos = js.call(code, [params, _visit(body)]);
+      if (!inStmt) {
+        var type = getStaticType(node);
+        return _emitFunctionTagged(clos, type,
+            topLevel: _executesAtTopLevel(node));
+      }
+      return clos;
     }
   }
 
@@ -967,8 +1060,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // `this`, but it seems harmless enough to just do it always.
     var name = new JS.Identifier(func.name.name);
     return new JS.Block([
-      js.comment("// Function ${func.name.name}: ${func.element.type}\n"),
-      js.statement('let # = #;', [name, _visit(func.functionExpression)])
+      js.statement('let # = #;', [name, _visit(func.functionExpression)]),
+      _emitFunctionTagged(name, func.element.type).toStatement()
     ]);
   }
 
@@ -1066,6 +1159,26 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     return new JS.ObjectInitializer(properties);
   }
 
+  List<JS.Expression> _emitFunctionTypeParts(FunctionType type) {
+    var returnType = type.returnType;
+    var parameterTypes = type.normalParameterTypes;
+    var optionalTypes = type.optionalParameterTypes;
+    var namedTypes = type.namedParameterTypes;
+    var rt = _emitTypeName(returnType);
+    var ra = _emitTypeNames(parameterTypes);
+    if (!namedTypes.isEmpty) {
+      assert(optionalTypes.isEmpty);
+      var na = _emitTypeProperties(namedTypes);
+      return [rt, ra, na];
+    }
+    if (!optionalTypes.isEmpty) {
+      assert(namedTypes.isEmpty);
+      var oa = _emitTypeNames(optionalTypes);
+      return [rt, ra, oa];
+    }
+    return [rt, ra];
+  }
+
   /// Emits a Dart [type] into code.
   ///
   /// If [lowerTypedef] is set, a typedef will be expanded as if it were a
@@ -1080,6 +1193,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       return js.call('dart.void');
     } else if (type.isDynamic) {
       return js.call('dart.dynamic');
+    } else if (type.isBottom) {
+      return js.call('dart.bottom');
     }
 
     _loader.declareBeforeUse(type.element);
@@ -1089,33 +1204,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // to canonicalize them too, at least when inside the same library.
     var name = type.name;
     var element = type.element;
-    if (name == '' || lowerTypedef) {
-      var fnType = type as FunctionType;
-      var returnType = fnType.returnType;
-      var parameterTypes = fnType.normalParameterTypes;
-      var optionalTypes = fnType.optionalParameterTypes;
-      var namedTypes = fnType.namedParameterTypes;
-      if (namedTypes.isEmpty) {
-        if (optionalTypes.isEmpty) {
-          return js.call('dart.functionType(#, #)', [
-            _emitTypeName(returnType),
-            _emitTypeNames(parameterTypes)
-          ]);
-        } else {
-          return js.call('dart.functionType(#, #, #)', [
-            _emitTypeName(returnType),
-            _emitTypeNames(parameterTypes),
-            _emitTypeNames(optionalTypes)
-          ]);
-        }
-      } else {
-        assert(optionalTypes.isEmpty);
-        return js.call('dart.functionType(#, #, #)', [
-          _emitTypeName(returnType),
-          _emitTypeNames(parameterTypes),
-          _emitTypeProperties(namedTypes)
-        ]);
-      }
+    if (name == '' || name == null || lowerTypedef) {
+      var parts = _emitFunctionTypeParts(type as FunctionType);
+      return js.call('dart.functionType(#)', [parts]);
     }
 
     if (type is TypeParameterType) {

@@ -42,13 +42,18 @@ var dart, _js_helper, _js_primitives;
   }
 
   function dload(obj, field) {
+    field = _canonicalFieldName(obj, field);
+    if (_getMethodType(obj, field) !== void 0) {
+      return dart.tearoff(obj, field);
+    }
     // TODO(vsm): Implement NSM robustly.  An 'in' check breaks on certain
     // types.  hasOwnProperty doesn't chase the proto chain.
     // Also, do we want an NSM on regular JS objects?
     // See: https://github.com/dart-lang/dev_compiler/issues/169
     var result = obj[field];
 
-    // TODO(vsm): Check this more robustly.
+    // TODO(leafp): Decide whether to keep this for javascript
+    // objects, or just use the javascript semantics.
     if (typeof result == "function" &&
         !Object.prototype.hasOwnProperty.call(obj, field)) {
       // This appears to be a method tearoff.  Bind this.
@@ -59,6 +64,7 @@ var dart, _js_helper, _js_primitives;
   dart.dload = dload;
 
   function dput(obj, field, value) {
+    field = _canonicalFieldName(obj, field);
     // TODO(vsm): Implement NSM and type checks.
     // See: https://github.com/dart-lang/dev_compiler/issues/170
     obj[field] = value;
@@ -71,34 +77,38 @@ var dart, _js_helper, _js_primitives;
     throw new core.NoSuchMethodError(obj, name, args);
   }
 
-  function checkAndCall(f, obj, args, name) {
+  function checkAndCall(f, ftype, obj, args, name) {
     if (!(f instanceof Function)) {
+      // We're not a function (and hence not a method either)
       // Grab the `call` method if it's not a function.
-      if (f !== null) f = f.call;
+      if (f !== null) {
+        ftype = _getMethodType(f, 'call');
+        f = f.call;
+      }
       if (!(f instanceof Function)) {
         throwNoSuchMethod(obj, name, args);
       }
     }
-    // TODO(jmesserly): enable this when we can fix => and methods.
-    /*
-    let formals = formalParameterList(f);
-    // TODO(vsm): Type check args!  We need to encode sufficient type info on f.
-    if (formals.length < args.length) {
-      throwNoSuchMethod(obj, name, args, f);
-    } else if (formals.length > args.length) {
-      for (let i = args.length; i < formals.length; ++i) {
-        if (formals[i].indexOf("opt$") != 0) {
-          throwNoSuchMethod(obj, name, args, f);
-        }
-      }
+    // If f is a function, but not a method (no method type)
+    // then it should have been a function valued field, so
+    // get the type from the function.
+    if (ftype === void 0) {
+      ftype = _getFunctionType(f);
     }
-    */
-    return f.apply(obj, args);
+
+    // TODO(leafp): Allow JS objects to go through?
+    if (!ftype) throw "Unable to find a type for applicand";
+
+    if (ftype.checkApply(args)) return f.apply(obj, args);
+    // TODO(leafp): throw a type error (rather than NSM)
+    // if the arity matches but the types are wrong.
+    throwNoSuchMethod(obj, name, args, f);
   }
 
   function dcall(f/*, ...args*/) {
     let args = Array.prototype.slice.call(arguments, 1);
-    return checkAndCall(f, void 0, args, 'call');
+    let ftype = _getFunctionType(f);
+    return checkAndCall(f, ftype, void 0, args, 'call');
   }
   dart.dcall = dcall;
 
@@ -113,14 +123,19 @@ var dart, _js_helper, _js_primitives;
     'map': () => core.$map,
   };
 
+  // TODO(leafp): Integrate this with the eventual proper extension
+  // method system.
+  function _canonicalFieldName(obj, name) {
+    if (obj[name] === void 0) return _extensionMethods[name]();
+    return name;
+  }
+
   function dsend(obj, method/*, ...args*/) {
     let args = Array.prototype.slice.call(arguments, 2);
-    var f = obj[method];
-    if (f === void 0) {
-      var symbol = _extensionMethods[method]();
-      f = obj[symbol];
-    }
-    return checkAndCall(f, obj, args, method);
+    let symbol = _canonicalFieldName(obj, method);
+    let f = obj[symbol];
+    let ftype = _getMethodType(obj, symbol);
+    return checkAndCall(f, ftype, obj, args, method);
   }
   dart.dsend = dsend;
 
@@ -444,6 +459,7 @@ var dart, _js_helper, _js_primitives;
   dart.notNull = notNull;
 
   function _typeName(type) {
+    if (type === void 0) throw "Undefined type";
     var name = type.name;
     if (!name) throw 'Unexpected type: ' + type;
     return name;
@@ -452,6 +468,46 @@ var dart, _js_helper, _js_primitives;
   class AbstractFunctionType {
     constructor() {
       this._stringValue = null;
+    }
+
+    /// Check that a function of this type can be applied to 
+    /// actuals.
+    checkApply(actuals) {
+      if (actuals.length < this.args.length) return false;
+      var index = 0;
+      for(let i = 0; i < this.args.length; ++i) {
+        let t = realRuntimeType(actuals[i]);
+        if (!isSubtype(t, this.args[i])) return false;
+        ++index;
+      }
+      if (actuals.length == this.args.length) return true;
+      let extras = actuals.length - this.args.length;
+      if (this.optionals.length > 0) {
+        if (extras > this.optionals.length) return false;
+        for(let i = 0; i < extras; ++i) {
+          let t = realRuntimeType(actuals[index + i]);
+          if (!isSubtype(t, this.optionals[i])) return false;
+        }
+        return true;
+      }
+      // TODO(leafp): We can't tell when someone might be calling
+      // something expecting an optional argument with named arguments
+
+      if (extras != 1) return false;
+      // An empty named list means no named arguments
+      if (getOwnPropertyNames(this.named).length == 0) return false;
+      let opts = actuals[index];
+      let names = getOwnPropertyNames(opts);
+      // This is something other than a map
+      if (names.length == 0) return false;
+      for (name of names) {
+        if (!(Object.prototype.hasOwnProperty.call(this.named, name))) {
+          return false;
+        }
+        let t = realRuntimeType(opts[name]);
+        if (!isSubtype(t, this.named[name])) return false;
+      }
+      return true;
     }
 
     get name() {
@@ -474,7 +530,7 @@ var dart, _js_helper, _js_primitives;
           buffer += _typeName(this.optionals[i]);
         }
         buffer += ']';
-      } else if (this.named.length > 0) {
+      } else if (Object.keys(this.named).length > 0) {
         if (this.args.length > 0) buffer += ', ';
         buffer += '{';
         let names = getOwnPropertyNames(this.named).sort();
@@ -502,6 +558,36 @@ var dart, _js_helper, _js_primitives;
       this.named = named;
     }
   }
+
+  /// Tag a closure with a type, using one of three forms:
+  /// dart.fn(cls) marks cls has having no optional or named
+  ///  parameters, with all argument and return types as dynamic
+  /// dart.fn(cls, func) marks cls with the lazily computed
+  ///  runtime type as computed by func()
+  /// dart.fn(cls, rType, argsT, extras) marks cls as having the
+  ///  runtime type dart.functionType(rType, argsT, extras)
+  function fn(closure/* ...args*/) {
+    // Closure and a lazy type constructor
+    if (arguments.length == 2) {
+      defineLazyProperty(closure, _runtimeType, {get : arguments[1]});
+      return closure;
+    }
+    var t;
+    if (arguments.length == 1) {
+      // No type arguments, it's all dynamic
+      let len = closure.length;
+      let args = Array.apply(null, new Array(len)).map(() => dart.dynamic);
+      t = functionType(dart.dynamic, args);
+    } else {
+      // We're passed the piecewise components of the function type,
+      // construct it.
+      let args = Array.prototype.slice.call(arguments, 1);
+      t = functionType.apply(functionType, args);
+    }
+    setRuntimeType(closure, t);
+    return closure;
+  }
+  dart.fn = fn;
 
   function functionType(returnType, args, extra) {
     // TODO(vsm): Cache / memomize?
@@ -685,6 +771,17 @@ var dart, _js_helper, _js_primitives;
   dart.defineLazyProperties = defineLazy;
   dart.defineLazyClassGeneric = defineLazyProperty;
 
+  function defineMemoizedGetter(obj, name, get) {
+    let cache = null;
+    function getter() {
+      if (cache != null) return cache;
+      cache = get();
+      get = null;
+      return cache;
+    }
+    defineProperty(obj, name, {get : getter});
+  }
+
   function copyPropertiesHelper(to, from, names) {
     for (let name of names) {
       defineProperty(to, name, getOwnPropertyDescriptor(from, name));
@@ -778,6 +875,19 @@ var dart, _js_helper, _js_primitives;
     for (let m of mixins) {
       copyProperties(Mixin.prototype, m.prototype);
     }
+
+    // Set the signature of the Mixin class to be the composition
+    // of the signatures of the mixins.
+    dart.setSignature(Mixin, {
+      methods : () => {
+        let s = {};
+        for (let m of mixins) {
+          copyProperties(s, m[_methodSig]);
+        }
+        return s;
+      }
+    });
+
     // Save mixins for reflection
     Mixin[dart.mixins] = mixins;
     return Mixin;
@@ -888,6 +998,82 @@ var dart, _js_helper, _js_primitives;
     return makeGenericType;
   }
   dart.generic = generic;
+
+  let _methodSig = Symbol("sig");
+  let _staticSig = Symbol("sigStatic");
+
+  /// Get the type of a function using the store runtime type
+  function _getFunctionType(f) {
+    return f[_runtimeType];
+  }
+
+  /// Get the type of a method using the stored signature
+  function _getMethodType(obj, name) {
+    if (obj === void 0) return void 0;
+    if (obj == null) return void 0;
+    let sigObj = obj.__proto__.constructor[_methodSig];
+    if (sigObj === void 0) return void 0;
+    let sig = sigObj[name];
+    return sig;
+  }
+
+  /// Given an object and a method name, tear off the method.
+  /// Sets the runtime type of the torn off method appropriately,
+  /// and also binds the object.
+  /// TODO(leafp): Consider caching the tearoff on the object?
+  function tearoff(obj, name) {
+    let f = obj[name].bind(obj);
+    let sig = _getMethodType(obj, name)
+    assert(sig);
+    setRuntimeType(f, sig);
+    return f;
+  }
+  dart.tearoff = tearoff;
+
+  // Set up the method signature field on the constructor
+  function _setMethodSignature(f, sigF) {
+    defineMemoizedGetter(f, _methodSig, () => {
+      let sigObj = sigF();
+      sigObj.__proto__ = f.__proto__[_methodSig];
+      return sigObj;
+    });
+  }
+
+  // Set up the static signature field on the constructor
+  function _setStaticSignature(f, sigF) {
+    defineMemoizedGetter(f, _staticSig, sigF);
+  }
+
+  // Set the lazily computed runtime type field on static methods
+  function _setStaticTypes(f, names) {
+    for (let name of names) {
+      function getT() { return f[_staticSig][name];};
+      defineProperty(f[name], _runtimeType, {get : getT});
+    }
+  }
+
+  /// Set up the type signature of a class (constructor object)
+  /// f is a constructor object
+  /// signature is an object containing optional properties as follows:
+  ///  methods: A function returning an object mapping method names
+  ///   to method types.  The function is evaluated lazily and cached.
+  ///  statics: A function returning an object mapping static method
+  ///   names to types.  The function is evalutated lazily and cached.
+  ///  names: An array of the names of the static methods.  Used to
+  ///   permit eagerly setting the runtimeType field on the methods
+  ///   while still lazily computing the type descriptor object.
+  function setSignature(f, signature) {
+    let methods =
+      ('methods' in signature) ? signature.methods : () => ({});
+    let statics =
+      ('statics' in signature) ? signature.statics : () => ({});
+    let names =
+      ('names' in signature) ? signature.names : [];
+    _setMethodSignature(f, methods);
+    _setStaticSignature(f, statics);
+    _setStaticTypes(f, names);
+  };
+  dart.setSignature = setSignature;
 
   let _value = Symbol('_value');
   /**
@@ -1026,9 +1212,9 @@ var dart, _js_helper, _js_primitives;
 
   // TODO(jmesserly): right now this is a sentinel. It should be a type object
   // of some sort, assuming we keep around `dynamic` at runtime.
-  dart.dynamic = { toString() { return 'dynamic'; } };
-  dart.void = { toString() { return 'void'; } };
-  dart.bottom = { toString() { return 'bottom'; } };
+  dart.dynamic = { toString() { return 'dynamic'; }, get name() {return toString();}};
+  dart.void = { toString() { return 'void'; }, get name() {return toString();}};
+  dart.bottom = { toString() { return 'bottom'; }, get name() {return toString();}};
 
   dart.global = window || global;
   dart.JsSymbol = Symbol;
