@@ -372,37 +372,41 @@ class FixProcessor {
   }
 
   void _addFix_createClass() {
-    if (_mayBeTypeIdentifier(node)) {
-      String name = (node as SimpleIdentifier).name;
-      // prepare environment
-      CompilationUnitMember enclosingMember =
-          node.getAncestor((node) => node is CompilationUnitMember);
-      int offset = enclosingMember.end;
-      String prefix = '';
-      // prepare source
-      SourceBuilder sb = new SourceBuilder(file, offset);
-      {
-        sb.append('$eol$eol');
-        sb.append(prefix);
-        // "class"
-        sb.append('class ');
-        // append name
-        {
-          sb.startPosition('NAME');
-          sb.append(name);
-          sb.endPosition();
-        }
-        // no members
-        sb.append(' {');
-        sb.append(eol);
-        sb.append('}');
-      }
-      // insert source
-      _insertBuilder(sb, unitElement);
-      _addLinkedPosition('NAME', sb, rf.rangeNode(node));
-      // add proposal
-      _addFix(DartFixKind.CREATE_CLASS, [name]);
+    if (!_mayBeTypeIdentifier(node)) {
+      return;
     }
+    String name = (node as SimpleIdentifier).name;
+    // prepare environment
+    CompilationUnitMember enclosingMember =
+        node.getAncestor((node) => node is CompilationUnitMember);
+    if (enclosingMember == null) {
+      return;
+    }
+    int offset = enclosingMember.end;
+    String prefix = '';
+    // prepare source
+    SourceBuilder sb = new SourceBuilder(file, offset);
+    {
+      sb.append('$eol$eol');
+      sb.append(prefix);
+      // "class"
+      sb.append('class ');
+      // append name
+      {
+        sb.startPosition('NAME');
+        sb.append(name);
+        sb.endPosition();
+      }
+      // no members
+      sb.append(' {');
+      sb.append(eol);
+      sb.append('}');
+    }
+    // insert source
+    _insertBuilder(sb, unitElement);
+    _addLinkedPosition('NAME', sb, rf.rangeNode(node));
+    // add proposal
+    _addFix(DartFixKind.CREATE_CLASS, [name]);
   }
 
   /**
