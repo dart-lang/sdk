@@ -2458,6 +2458,57 @@ const Map<String, List<Test>> SEND_TESTS = const {
             arguments: '(true,42)',
             type: 'Class',
             selector: 'CallStructure(arity=2)')),
+    const Test(
+        '''
+        class Class {}
+        m() => const Class();
+        ''',
+        const Visit(VisitKind.ERROR_NON_CONSTANT_CONSTRUCTOR_INVOKE,
+            arguments: '()',
+            type: 'Class',
+            selector: 'CallStructure(arity=0)')),
+    const Test(
+        '''
+        class Class {
+          const Class() // Delibrate syntax error.
+        }
+        m() => const Class();
+        ''',
+        const Visit(VisitKind.ERROR_NON_CONSTANT_CONSTRUCTOR_INVOKE,
+            arguments: '()',
+            type: 'dynamic',
+            selector: 'CallStructure(arity=0)')),
+    const Test(
+        '''
+        class Target {}
+        class Class {
+          const factory Class() = Target;
+        }
+        m() => const Class();
+        ''',
+        const Visit(VisitKind.ERROR_NON_CONSTANT_CONSTRUCTOR_INVOKE,
+            arguments: '()',
+            type: 'Class',
+            selector: 'CallStructure(arity=0)')),
+    /* Enable this when constness is handled consistently.
+    const Test(
+        '''
+        class Target {
+          const Target();
+        }
+        class Redirection {
+          factory Redirection() = Target;
+        }
+        class Class {
+          const factory Class() = Redirection;
+        }
+        m() => const Class();
+        ''',
+        const Visit(VisitKind.ERROR_NON_CONSTANT_CONSTRUCTOR_INVOKE,
+            arguments: '()',
+            type: 'Class',
+            selector: 'CallStructure(arity=0)')),
+    */
   ],
 };
 
@@ -3324,6 +3375,7 @@ Future test(List<String> arguments,
       index++;
     });
   });
+
   mainSource.writeln("main() {}");
   sourceFiles['main.dart'] = mainSource.toString();
 
@@ -5589,6 +5641,22 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
         selector: callStructure));
     apply(arguments, arg);
   }
+
+  @override
+  errorNonConstantConstructorInvoke(
+      NewExpression node,
+      Element element,
+      DartType type,
+      NodeList arguments,
+      CallStructure callStructure,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.ERROR_NON_CONSTANT_CONSTRUCTOR_INVOKE,
+        type: type,
+        arguments: arguments,
+        selector: callStructure));
+    apply(arguments, arg);
+  }
 }
 
 class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
@@ -6417,6 +6485,7 @@ enum VisitKind {
   VISIT_UNRESOLVED_CONSTRUCTOR_INVOKE,
   VISIT_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
   VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+  ERROR_NON_CONSTANT_CONSTRUCTOR_INVOKE,
 
   VISIT_INSTANCE_GETTER_DECL,
   VISIT_INSTANCE_SETTER_DECL,

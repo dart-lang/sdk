@@ -3125,7 +3125,7 @@ abstract class SemanticSendVisitor<R, A> {
   R errorNonConstantConstructorInvoke(
       NewExpression node,
       Element element,
-      InterfaceType type,
+      DartType type,
       NodeList arguments,
       CallStructure callStructure,
       A arg);

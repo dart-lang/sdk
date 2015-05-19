@@ -1954,7 +1954,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive errorNonConstantConstructorInvoke(
       ast.NewExpression node,
       Element element,
-      InterfaceType type,
+      DartType type,
       ast.NodeList arguments,
       CallStructure callStructure, _) {
     assert(compiler.compilationFailed);

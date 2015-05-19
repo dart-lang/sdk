@@ -430,7 +430,12 @@ abstract class SendResolverMixin {
 
   ConstructorAccessSemantics computeConstructorAccessSemantics(
         ConstructorElement constructor,
-        DartType type) {
+        DartType type,
+        {bool mustBeConstant: false}) {
+    if (mustBeConstant && !constructor.isConst) {
+      return new ConstructorAccessSemantics(
+          ConstructorAccessKind.NON_CONSTANT_CONSTRUCTOR, constructor, type);
+    }
     if (constructor.isErroneous) {
       if (constructor is ErroneousElement) {
         ErroneousElement error = constructor;
@@ -444,7 +449,8 @@ abstract class SendResolverMixin {
     } else if (constructor.isRedirectingFactory) {
       ConstructorElement effectiveTarget = constructor.effectiveTarget;
       if (effectiveTarget == constructor ||
-          effectiveTarget.isErroneous) {
+          effectiveTarget.isErroneous ||
+          (mustBeConstant && !effectiveTarget.isConst)) {
         return new ConstructorAccessSemantics(
             ConstructorAccessKind.ERRONEOUS_REDIRECTING_FACTORY,
             constructor,
@@ -486,26 +492,24 @@ abstract class SendResolverMixin {
   }
 
   NewStructure computeNewStructure(NewExpression node) {
-    if (node.isConst) {
-      ConstantExpression constant = elements.getConstant(node);
-      if (constant is ConstructedConstantExpression) {
-        return new ConstInvokeStructure(constant);
-      }
-    }
-
     Element element = elements[node.send];
     Selector selector = elements.getSelector(node.send);
     DartType type = elements.getType(node);
 
-    ConstructorAccessSemantics constructorAccessSemantics;
+    ConstructorAccessSemantics constructorAccessSemantics =
+        computeConstructorAccessSemantics(
+            element, type, mustBeConstant: node.isConst);
     if (node.isConst) {
-      // This is a non-constant constant constructor invocation, like
-      // `const Const(method())`.
-      constructorAccessSemantics = new ConstructorAccessSemantics(
-          ConstructorAccessKind.NON_CONSTANT_CONSTRUCTOR, element, type);
-    } else {
-      constructorAccessSemantics =
-          computeConstructorAccessSemantics(element, type);
+      ConstantExpression constant = elements.getConstant(node);
+      if (constructorAccessSemantics.isErroneous ||
+          constant is! ConstructedConstantExpression) {
+        // This is a non-constant constant constructor invocation, like
+        // `const Const(method())`.
+        constructorAccessSemantics = new ConstructorAccessSemantics(
+            ConstructorAccessKind.NON_CONSTANT_CONSTRUCTOR, element, type);
+      } else {
+        return new ConstInvokeStructure(constant);
+      }
     }
     return new NewInvokeStructure(constructorAccessSemantics, selector);
   }
