@@ -999,12 +999,16 @@ class IncrementalResolver {
   void _generateLints(AstNode node) {
     LoggingTimer timer = logger.startTimer();
     try {
-      RecordingErrorListener errorListener = new RecordingErrorListener();
-      CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
-      LintGenerator lintGenerator =
-          new LintGenerator(<CompilationUnit>[unit], errorListener);
-      lintGenerator.generate();
-      _lints = errorListener.getErrorsForSource(_source);
+      if (_context.analysisOptions.lint) {
+        RecordingErrorListener errorListener = new RecordingErrorListener();
+        CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
+        LintGenerator lintGenerator =
+            new LintGenerator(<CompilationUnit>[unit], errorListener);
+        lintGenerator.generate();
+        _lints = errorListener.getErrorsForSource(_source);
+      } else {
+        _lints = AnalysisError.NO_ERRORS;
+      }
     } finally {
       timer.stop('generate lints');
     }
