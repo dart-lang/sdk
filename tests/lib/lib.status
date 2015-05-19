@@ -285,6 +285,8 @@ mirrors/deferred_mirrors_metadata_test: Fail # Issue 17522
 
 developer/metrics_test: Fail # Issue 20309
 developer/metrics_num_test: Fail # Issue 20309
+profiler/metrics_test: Fail # Issue 20309
+profiler/metrics_num_test: Fail # Issue 20309
 
 async/future_test: StaticWarning, OK # Deliberately broken implementation.
 
