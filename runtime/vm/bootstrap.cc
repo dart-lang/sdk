@@ -234,10 +234,10 @@ static RawError* LoadPatchFiles(Isolate* isolate,
     patch_file_uri = String::New(patch_files[j]);
     source = GetLibrarySource(lib, patch_file_uri, true);
     if (source.IsNull()) {
-      return Api::UnwrapErrorHandle(
-          isolate,
-          Api::NewError("Unable to find dart patch source for %s",
-                        patch_file_uri.ToCString())).raw();
+      const String& message = String::Handle(
+          String::NewFormatted("Unable to find dart patch source for %s",
+                               patch_file_uri.ToCString()));
+      return ApiError::New(message);
     }
     // Prepend the patch library URI to form a unique script URI for the patch.
     strings.SetAt(2, patch_file_uri);
@@ -292,9 +292,10 @@ RawError* Bootstrap::LoadandCompileScripts() {
     ASSERT(!lib.IsNull());
     source = GetLibrarySource(lib, uri, false);
     if (source.IsNull()) {
-      error ^= Api::UnwrapErrorHandle(
-          isolate, Api::NewError("Unable to find dart source for %s",
-                                 uri.ToCString())).raw();
+      const String& message = String::Handle(
+          String::NewFormatted("Unable to find dart source for %s",
+                               uri.ToCString()));
+      error ^= ApiError::New(message);
       break;
     }
     script = Script::New(uri, source, RawScript::kLibraryTag);
