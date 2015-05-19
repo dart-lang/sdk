@@ -2719,7 +2719,6 @@ LayoutTests/fast/xmlhttprequest/xmlhttprequest-responseXML-xml-text-responsetype
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-abort_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-arraybuffer_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open-sync-request_t01: Pass, RuntimeError # Issue 23479. Unsuppress once bots are all updated.
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/cz_20030217_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/namespace-nodes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Core/test_core_functions_t01: RuntimeError # Please triage this failure
@@ -2788,7 +2787,6 @@ LibTest/html/HttpRequest/overrideMimeType_A01_t01: RuntimeError # Please triage 
 LibTest/html/HttpRequest/request_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/HttpRequest/responseText_A01_t02: Skip # Times out. Please triage this failure
 LibTest/html/HttpRequest/responseType_A01_t01: RuntimeError # Please triage this failure
-LibTest/html/HttpRequest/responseType_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/HttpRequest/setRequestHeader_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/HttpRequest/statusText_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/HttpRequest/status_A01_t01: RuntimeError # Please triage this failure
@@ -3126,6 +3124,8 @@ LayoutTests/fast/css/parsing-object-fit_t01: RuntimeError # Please triage this f
 LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyle-text-decoration-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/MutationObserver/observe-options-attributes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/MutationObserver/observe-options-character-data_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open_t01: RuntimeError # Please triage this failure
+LibTest/html/HttpRequest/responseType_A01_t02: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == safari ]
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
