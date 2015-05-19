@@ -9643,19 +9643,8 @@ RawObject* Library::Evaluate(const String& expr,
   // as a static function of the class.
   Class& top_level_class = Class::Handle();
   Array& top_level_classes = Array::Handle(anonymous_classes());
-  if (top_level_classes.Length() > 0) {
-    top_level_class ^= top_level_classes.At(0);
-  } else {
-    // A library may have no top-level classes if it has no top-level
-    // variables or methods.
-    Script& script = Script::Handle(Script::New(Symbols::Empty(),
-                                                Symbols::Empty(),
-                                                RawScript::kSourceTag));
-    top_level_class = Class::New(Symbols::TopLevel(), script, 0);
-    top_level_class.set_is_finalized();
-    top_level_class.set_library(*this);
-    AddAnonymousClass(top_level_class);
-  }
+  ASSERT(top_level_classes.Length() > 0);
+  top_level_class ^= top_level_classes.At(0);
   ASSERT(top_level_class.is_finalized());
   return top_level_class.Evaluate(expr, param_names, param_values);
 }

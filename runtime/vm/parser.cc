@@ -5970,7 +5970,9 @@ void Parser::ParseTopLevel() {
       }
     }
   }
-  if ((top_level.fields.Length() > 0) || (top_level.functions.Length() > 0)) {
+
+  if ((library_.num_anonymous_classes() == 0) ||
+    (top_level.fields.Length() > 0) || (top_level.functions.Length() > 0)) {
     toplevel_class.AddFields(top_level.fields);
 
     const Array& array = Array::Handle(Z,
