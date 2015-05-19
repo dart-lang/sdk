@@ -21,6 +21,12 @@
     `Isolate.addOnExitListener` -
     [r45092](https://code.google.com/p/dart/source/detail?r=45092)
 
+### Tool changes
+
+* This is the last release that ships the (unsupported)
+  dart2dart (aka `dart2js --output-type=dart`) utility as part
+  of dart2js
+
 ## 1.10.0 – 2015-04-29
 
 ### Core library changes
