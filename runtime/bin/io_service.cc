@@ -27,7 +27,7 @@ namespace bin {
 
 void IOServiceCallback(Dart_Port dest_port_id,
                        Dart_CObject* message) {
-  Dart_Port reply_port_id = DART_ILLEGAL_PORT;
+  Dart_Port reply_port_id = ILLEGAL_PORT;
   CObject* response = CObject::IllegalArgumentError();
   CObjectArray request(message);
   if (message->type == Dart_CObject_kArray &&
@@ -51,7 +51,7 @@ void IOServiceCallback(Dart_Port dest_port_id,
   CObjectArray result(CObject::NewArray(2));
   result.SetAt(0, request[0]);
   result.SetAt(1, response);
-  ASSERT(reply_port_id != DART_ILLEGAL_PORT);
+  ASSERT(reply_port_id != ILLEGAL_PORT);
   Dart_PostCObject(reply_port_id, result.AsApiCObject());
 }
 
@@ -67,7 +67,7 @@ Dart_Port IOService::GetServicePort() {
 void FUNCTION_NAME(IOService_NewServicePort)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_Null());
   Dart_Port service_port = IOService::GetServicePort();
-  if (service_port != DART_ILLEGAL_PORT) {
+  if (service_port != ILLEGAL_PORT) {
     // Return a send port for the service port.
     Dart_Handle send_port = Dart_NewSendPort(service_port);
     Dart_SetReturnValue(args, send_port);

@@ -25,7 +25,7 @@ JSONStream::JSONStream(intptr_t buf_size)
       default_id_zone_(Isolate::Current()->object_id_ring(),
                        ObjectIdRing::kAllocateId),
       id_zone_(&default_id_zone_),
-      reply_port_(DART_ILLEGAL_PORT),
+      reply_port_(ILLEGAL_PORT),
       seq_(""),
       method_(""),
       param_keys_(NULL),
@@ -159,8 +159,8 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 
 void JSONStream::PostReply() {
   Dart_Port port = reply_port();
-  ASSERT(port != DART_ILLEGAL_PORT);
-  set_reply_port(DART_ILLEGAL_PORT);  // Prevent double replies.
+  ASSERT(port != ILLEGAL_PORT);
+  set_reply_port(ILLEGAL_PORT);  // Prevent double replies.
   int64_t process_delta_micros = 0;
   if (FLAG_trace_service) {
     process_delta_micros = OS::GetCurrentTimeMicros() - setup_time_micros_;

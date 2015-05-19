@@ -976,16 +976,14 @@ DART_EXPORT Dart_Handle Dart_SetLibraryDebuggable(intptr_t library_id,
 
 
 DART_EXPORT Dart_Isolate Dart_GetIsolate(Dart_IsolateId isolate_id) {
-  // Dart_Isolate is now the same as Dart_IsolateId.
-  // TODO(johnmccutchan): Kill Dart_IsolateId.
-  return static_cast<Dart_Isolate>(isolate_id);
+  Isolate* isolate = PortMap::GetIsolate(isolate_id);
+  return Api::CastIsolate(isolate);
 }
 
 
 DART_EXPORT Dart_IsolateId Dart_GetIsolateId(Dart_Isolate dart_isolate) {
-  // Dart_Isolate is now the same as Dart_IsolateId.
-  // TODO(johnmccutchan): Kill Dart_IsolateId.
-  return static_cast<Dart_IsolateId>(dart_isolate);
+  Isolate* isolate = reinterpret_cast<Isolate*>(dart_isolate);
+  return isolate->debugger()->GetIsolateId();
 }
 
 }  // namespace dart

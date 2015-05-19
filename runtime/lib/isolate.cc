@@ -172,11 +172,12 @@ static bool CreateIsolate(Isolate* parent_isolate,
   }
 
   void* init_data = parent_isolate->init_callback_data();
-  Isolate* child_isolate = Api::CastIsolate((callback)(state->script_url(),
-                                                       state->function_name(),
-                                                       state->package_root(),
-                                                       init_data,
-                                                       error));
+  Isolate* child_isolate = reinterpret_cast<Isolate*>(
+      (callback)(state->script_url(),
+                 state->function_name(),
+                 state->package_root(),
+                 init_data,
+                 error));
   if (child_isolate == NULL) {
     return false;
   }

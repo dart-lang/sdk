@@ -482,7 +482,7 @@ Dart_Handle DartUtils::LoadScript(const char* script_uri,
   Dart_Handle uri = Dart_NewStringFromCString(script_uri);
 
   Dart_Port load_port = Dart_ServiceWaitForLoadPort();
-  if (load_port == DART_ILLEGAL_PORT) {
+  if (load_port == ILLEGAL_PORT) {
     return NewDartUnsupportedError("Service did not return load port.");
   }
   Builtin::SetLoadPort(load_port);

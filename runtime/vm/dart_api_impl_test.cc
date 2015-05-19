@@ -3674,43 +3674,40 @@ UNIT_TEST_CASE(LocalZoneMemory) {
 
 
 UNIT_TEST_CASE(Isolates) {
+  // This test currently assumes that the Dart_Isolate type is an opaque
+  // representation of Isolate*.
   Dart_Isolate iso_1 = TestCase::CreateTestIsolate();
   EXPECT_EQ(iso_1, Api::CastIsolate(Isolate::Current()));
   Dart_Isolate isolate = Dart_CurrentIsolate();
   EXPECT_EQ(iso_1, isolate);
   Dart_ExitIsolate();
-  EXPECT(DART_ILLEGAL_ISOLATE == Dart_CurrentIsolate());
-  // Test that Dart_EnterIsolate returns an error when passed a bad isolate id.
-  EXPECT(!Dart_EnterIsolate(DART_ILLEGAL_ISOLATE));
+  EXPECT(NULL == Dart_CurrentIsolate());
   Dart_Isolate iso_2 = TestCase::CreateTestIsolate();
   EXPECT_EQ(iso_2, Dart_CurrentIsolate());
   Dart_ExitIsolate();
-  EXPECT(DART_ILLEGAL_ISOLATE == Dart_CurrentIsolate());
+  EXPECT(NULL == Dart_CurrentIsolate());
   Dart_EnterIsolate(iso_2);
   EXPECT_EQ(iso_2, Dart_CurrentIsolate());
   Dart_ShutdownIsolate();
-  EXPECT(DART_ILLEGAL_ISOLATE == Dart_CurrentIsolate());
+  EXPECT(NULL == Dart_CurrentIsolate());
   Dart_EnterIsolate(iso_1);
   EXPECT_EQ(iso_1, Dart_CurrentIsolate());
   Dart_ShutdownIsolate();
-  EXPECT(DART_ILLEGAL_ISOLATE == Dart_CurrentIsolate());
+  EXPECT(NULL == Dart_CurrentIsolate());
 }
 
 
 UNIT_TEST_CASE(CurrentIsolateData) {
   intptr_t mydata = 12345;
   char* err;
-  // We expect that Dart_Port and Dart_Isolate are the same size.
-  EXPECT_EQ(sizeof(Dart_Port), sizeof(Dart_Isolate));
   Dart_Isolate isolate =
       Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer,
                          reinterpret_cast<void*>(mydata),
                          &err);
-  EXPECT(isolate != DART_ILLEGAL_ISOLATE);
+  EXPECT(isolate != NULL);
   EXPECT_EQ(mydata, reinterpret_cast<intptr_t>(Dart_CurrentIsolateData()));
   EXPECT_EQ(mydata, reinterpret_cast<intptr_t>(Dart_IsolateData(isolate)));
   Dart_ShutdownIsolate();
-  EXPECT(Dart_IsolateData(DART_ILLEGAL_ISOLATE) == NULL);
 }
 
 
@@ -3759,7 +3756,7 @@ static void MyMessageNotifyCallback(Dart_Isolate dest_isolate) {
 UNIT_TEST_CASE(SetMessageCallbacks) {
   Dart_Isolate dart_isolate = TestCase::CreateTestIsolate();
   Dart_SetMessageNotifyCallback(&MyMessageNotifyCallback);
-  Isolate* isolate = Api::CastIsolate(dart_isolate);
+  Isolate* isolate = reinterpret_cast<Isolate*>(dart_isolate);
   EXPECT_EQ(&MyMessageNotifyCallback, isolate->message_notify_callback());
   Dart_ShutdownIsolate();
 }
@@ -7227,7 +7224,7 @@ void NewNativePort_send321(Dart_Port dest_port_id,
 
 
 TEST_CASE(IllegalNewSendPort) {
-  Dart_Handle error = Dart_NewSendPort(DART_ILLEGAL_PORT);
+  Dart_Handle error = Dart_NewSendPort(ILLEGAL_PORT);
   EXPECT(Dart_IsError(error));
   EXPECT(Dart_IsApiError(error));
 }
@@ -7235,7 +7232,7 @@ TEST_CASE(IllegalNewSendPort) {
 
 TEST_CASE(IllegalPost) {
   Dart_Handle message = Dart_True();
-  bool success = Dart_Post(DART_ILLEGAL_PORT, message);
+  bool success = Dart_Post(ILLEGAL_PORT, message);
   EXPECT(!success);
 }
 
@@ -7243,7 +7240,7 @@ TEST_CASE(IllegalPost) {
 UNIT_TEST_CASE(NewNativePort) {
   // Create a port with a bogus handler.
   Dart_Port error_port = Dart_NewNativePort("Foo", NULL, true);
-  EXPECT_EQ(DART_ILLEGAL_PORT, error_port);
+  EXPECT_EQ(ILLEGAL_PORT, error_port);
 
   // Create the port w/o a current isolate, just to make sure that works.
   Dart_Port port_id1 =
@@ -7329,11 +7326,11 @@ static Dart_Isolate RunLoopTestCallback(const char* script_name,
       "  };\n"
       "}\n";
 
-  if (Dart_CurrentIsolate() != DART_ILLEGAL_ISOLATE) {
+  if (Dart_CurrentIsolate() != NULL) {
     Dart_ExitIsolate();
   }
   Dart_Isolate isolate = TestCase::CreateTestIsolate(script_name);
-  ASSERT(isolate != DART_ILLEGAL_ISOLATE);
+  ASSERT(isolate != NULL);
   if (Dart_IsServiceIsolate(isolate)) {
     return isolate;
   }
@@ -7479,7 +7476,7 @@ void BusyLoop_start(uword unused) {
     shared_isolate = Dart_CreateIsolate(NULL, NULL,
                                         bin::isolate_snapshot_buffer,
                                         NULL, &error);
-    EXPECT(shared_isolate != DART_ILLEGAL_ISOLATE);
+    EXPECT(shared_isolate != NULL);
     Dart_EnterScope();
     Dart_Handle url = NewString(TestCase::url());
     Dart_Handle source = NewString(kScriptChars);
@@ -7558,10 +7555,6 @@ TEST_CASE(IsolateInterrupt) {
     }
   }
 
-  // Test that Dart_InterruptIsolate returns false when passed an illegal
-  // isolate.
-  EXPECT(!Dart_InterruptIsolate(DART_ILLEGAL_ISOLATE));
-
   // Send a number of interrupts to the other isolate. All but the
   // last allow execution to continue. The last causes an exception in
   // the isolate.
@@ -7582,7 +7575,7 @@ TEST_CASE(IsolateInterrupt) {
   {
     MonitorLocker ml(sync);
     // Wait for our isolate to finish.
-    while (shared_isolate != DART_ILLEGAL_ISOLATE) {
+    while (shared_isolate != NULL) {
       ml.Wait();
     }
   }
@@ -7611,11 +7604,11 @@ UNIT_TEST_CASE(IsolateShutdown) {
   Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL,
                                             bin::isolate_snapshot_buffer,
                                             my_data, &err);
-  if (isolate == DART_ILLEGAL_ISOLATE) {
+  if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);
     free(err);
   }
-  EXPECT(isolate != DART_ILLEGAL_ISOLATE);
+  EXPECT(isolate != NULL);
 
   // The shutdown callback has not been called.
   EXPECT_EQ(0, reinterpret_cast<intptr_t>(saved_callback_data));
@@ -7661,11 +7654,11 @@ UNIT_TEST_CASE(IsolateShutdownRunDartCode) {
   Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL,
                                             bin::isolate_snapshot_buffer,
                                             NULL, &err);
-  if (isolate == DART_ILLEGAL_ISOLATE) {
+  if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);
     free(err);
   }
-  EXPECT(isolate != DART_ILLEGAL_ISOLATE);
+  EXPECT(isolate != NULL);
 
   Isolate::SetShutdownCallback(IsolateShutdownRunDartCodeTestCallback);
 
@@ -7688,7 +7681,7 @@ UNIT_TEST_CASE(IsolateShutdownRunDartCode) {
   // The shutdown callback has not been called.
   EXPECT_EQ(0, add_result);
 
-  EXPECT(isolate != DART_ILLEGAL_ISOLATE);
+  EXPECT(isolate != NULL);
 
   // Shutdown the isolate.
   Dart_ShutdownIsolate();

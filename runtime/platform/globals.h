@@ -272,6 +272,7 @@ typedef simd128_value_t fpu_register_t;
 #define Pu64 PRIu64
 #define Px64 PRIx64
 
+
 // Suffixes for 64-bit integer literals.
 #ifdef _MSC_VER
 #define DART_INT64_C(x) x##I64

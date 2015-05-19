@@ -18,7 +18,7 @@ class MessageHandler;
 class Mutex;
 class PortMapTestPeer;
 
-class PortMap : public AllStatic {
+class PortMap: public AllStatic {
  public:
   enum PortState {
     kNewPort = 0,      // a newly allocated port

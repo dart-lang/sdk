@@ -20,10 +20,10 @@ typedef struct _Dart_ActivationFrame* Dart_ActivationFrame;
 typedef Dart_Port Dart_IsolateId;
 
 /**
- * DART_ILLEGAL_ISOLATE_ID is a number guaranteed never to be associated with a
+ * ILLEGAL_ISOLATE_ID is a number guaranteed never to be associated with a
  * valid isolate.
  */
-#define DART_ILLEGAL_ISOLATE_ID DART_ILLEGAL_PORT
+#define ILLEGAL_ISOLATE_ID ILLEGAL_PORT
 
 
 /**
@@ -477,7 +477,7 @@ DART_EXPORT Dart_Handle Dart_GetLocalVariables(
  * Returns origin class of a function.
  *
  * Requires there to be a current isolate.
- *
+ * 
  * \return Returns the class id (a handle to an integer) of the class in
  * which \function is defined. Returns a null handle if \function is defined
  * at the top level. Returns an error object otherwise.
@@ -520,7 +520,7 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameEvaluate(
  * were a static method of that class.
  * If \target is a Library, the expression is evaluated as if it
  * were a top-level function in that library.
- *
+ * 
  * \return A handle to the computed value, or an error object if
  * the compilation of the expression fails, or if the evaluation throws
  * an error.

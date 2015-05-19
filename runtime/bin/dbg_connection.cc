@@ -455,8 +455,7 @@ void DebuggerConnectionHandler::HandleInterruptCmd(DbgMessage* in_msg) {
   MessageParser msg_parser(in_msg->buffer(), in_msg->buffer_len());
   int msg_id = msg_parser.MessageId();
   Dart_IsolateId isolate_id = msg_parser.GetInt64Param("isolateId");
-  if (isolate_id == DART_ILLEGAL_ISOLATE_ID ||
-      Dart_GetIsolate(isolate_id) == DART_ILLEGAL_ISOLATE) {
+  if (isolate_id == ILLEGAL_ISOLATE_ID || Dart_GetIsolate(isolate_id) == NULL) {
     in_msg->SendErrorReply(msg_id, "Invalid isolate specified");
     return;
   }

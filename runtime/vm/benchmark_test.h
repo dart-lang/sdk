@@ -8,7 +8,6 @@
 #include "include/dart_api.h"
 
 #include "vm/dart.h"
-#include "vm/dart_api_impl.h"
 #include "vm/globals.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
@@ -78,12 +77,12 @@ class Benchmark {
   const char* score_kind() const { return score_kind_; }
   void set_score(int64_t value) { score_ = value; }
   int64_t score() const { return score_; }
-  Isolate* isolate() const { return Api::CastIsolate(isolate_); }
+  Isolate* isolate() const { return reinterpret_cast<Isolate*>(isolate_); }
 
   Dart_Isolate CreateIsolate(const uint8_t* buffer) {
     char* err = NULL;
     isolate_ = Dart_CreateIsolate(NULL, NULL, buffer, NULL, &err);
-    EXPECT(isolate_ != DART_ILLEGAL_ISOLATE);
+    EXPECT(isolate_ != NULL);
     free(err);
     return isolate_;
   }

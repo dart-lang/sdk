@@ -147,7 +147,7 @@ class DbgMsgQueue {
       msg = msglist_head_;
     }
     msglist_tail_ = NULL;
-    isolate_id_ = DART_ILLEGAL_ISOLATE_ID;
+    isolate_id_ = ILLEGAL_ISOLATE_ID;
     next_ = NULL;
   }
 

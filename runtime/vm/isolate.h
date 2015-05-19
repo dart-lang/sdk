@@ -819,7 +819,6 @@ class Isolate : public BaseIsolate {
   static void WakePauseEventHandler(Dart_Isolate isolate);
 
   // Manage list of existing isolates.
-  static Isolate* FindIsolateInList(Dart_Isolate isolate);
   static void AddIsolateTolist(Isolate* isolate);
   static void RemoveIsolateFromList(Isolate* isolate);
   static void CheckForDuplicateThreadState(InterruptableThreadState* state);

@@ -25,14 +25,14 @@ Random* PortMap::prng_ = NULL;
 
 
 intptr_t PortMap::FindPort(Dart_Port port) {
-  // DART_ILLEGAL_PORT (0) is used as a sentinel value in Entry.port. The loop
-  // below could return the index to a deleted port when we are searching for
-  // port id DART_ILLEGAL_PORT. Return -1 immediately to indicate the port
+  // ILLEGAL_PORT (0) is used as a sentinel value in Entry.port. The loop below
+  // could return the index to a deleted port when we are searching for
+  // port id ILLEGAL_PORT. Return -1 immediately to indicate the port
   // does not exist.
-  if (port == DART_ILLEGAL_PORT) {
+  if (port == ILLEGAL_PORT) {
     return -1;
   }
-  ASSERT(port != DART_ILLEGAL_PORT);
+  ASSERT(port != ILLEGAL_PORT);
   intptr_t index = port % capacity_;
   intptr_t start_index = index;
   Entry entry = map_[index];

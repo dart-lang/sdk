@@ -392,15 +392,7 @@ Dart_Handle Api::CheckAndFinalizePendingClasses(Isolate* isolate) {
 
 
 Dart_Isolate Api::CastIsolate(Isolate* isolate) {
-  if (isolate == NULL) {
-    return DART_ILLEGAL_ISOLATE;
-  }
-  return static_cast<Dart_Isolate>(isolate->main_port());
-}
-
-
-Isolate* Api::CastIsolate(Dart_Isolate isolate) {
-  return PortMap::GetIsolate(static_cast<Dart_Port>(isolate));
+  return reinterpret_cast<Dart_Isolate>(isolate);
 }
 
 
@@ -1324,7 +1316,7 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
   // We exit the API scope entered above.
   Dart_ExitScope();
   Dart::ShutdownIsolate();
-  return DART_ILLEGAL_ISOLATE;
+  return reinterpret_cast<Dart_Isolate>(NULL);
 }
 
 
@@ -1355,10 +1347,11 @@ DART_EXPORT void* Dart_CurrentIsolateData() {
 
 DART_EXPORT void* Dart_IsolateData(Dart_Isolate isolate) {
   TRACE_API_CALL(CURRENT_FUNC);
-  Isolate* iso = Api::CastIsolate(isolate);
-  if (iso == NULL) {
-    return NULL;
+  if (isolate == NULL) {
+    FATAL1("%s expects argument 'isolate' to be non-null.",  CURRENT_FUNC);
   }
+  // TODO(16615): Validate isolate parameter.
+  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   return iso->init_callback_data();
 }
 
@@ -1371,19 +1364,15 @@ DART_EXPORT Dart_Handle Dart_DebugName() {
 
 
 
-DART_EXPORT bool Dart_EnterIsolate(Dart_Isolate isolate) {
+DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   CHECK_NO_ISOLATE(Isolate::Current());
-  Isolate* iso = Api::CastIsolate(isolate);
-  if (iso == NULL) {
-    return false;
-  }
+  // TODO(16615): Validate isolate parameter.
+  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   if (iso->mutator_thread() != NULL) {
     FATAL("Multiple mutators within one isolate is not supported.");
-    return false;
   }
   Thread::EnsureInit();
   Thread::EnterIsolate(iso);
-  return true;
 }
 
 
@@ -1500,25 +1489,27 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
 }
 
 
-DART_EXPORT bool Dart_InterruptIsolate(Dart_Isolate isolate) {
+DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate) {
   TRACE_API_CALL(CURRENT_FUNC);
-  Isolate* iso = Api::CastIsolate(isolate);
-  if (iso == NULL) {
-    return false;
+  if (isolate == NULL) {
+    FATAL1("%s expects argument 'isolate' to be non-null.",  CURRENT_FUNC);
   }
+  // TODO(16615): Validate isolate parameter.
+  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   iso->ScheduleInterrupts(Isolate::kApiInterrupt);
   // Can't use Dart_Post() since there isn't a current isolate.
   Dart_CObject api_null = { Dart_CObject_kNull , { 0 } };
-  return Dart_PostCObject(iso->main_port(), &api_null);
+  Dart_PostCObject(iso->main_port(), &api_null);
 }
 
 
 DART_EXPORT bool Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
   CHECK_NO_ISOLATE(Isolate::Current());
-  Isolate* iso = Api::CastIsolate(isolate);
-  if (iso == NULL) {
-    return false;
+  if (isolate == NULL) {
+    FATAL1("%s expects argument 'isolate' to be non-null.",  CURRENT_FUNC);
   }
+  // TODO(16615): Validate isolate parameter.
+  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   if (iso->object_store()->root_library() == Library::null()) {
     // The embedder should have called Dart_LoadScript by now.
     return false;
@@ -1633,7 +1624,7 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  if (port_id == DART_ILLEGAL_PORT) {
+  if (port_id == ILLEGAL_PORT) {
     return false;
   }
   const Object& object = Object::Handle(isolate, Api::UnwrapHandle(handle));
@@ -1650,7 +1641,7 @@ DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
-  if (port_id == DART_ILLEGAL_PORT) {
+  if (port_id == ILLEGAL_PORT) {
     return Api::NewError("%s: illegal port_id %" Pd64 ".",
                          CURRENT_FUNC,
                          port_id);
@@ -5565,10 +5556,7 @@ DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
 // --- Service support ---
 
 DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate) {
-  Isolate* iso = Api::CastIsolate(isolate);
-  if (iso == NULL) {
-    return false;
-  }
+  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   return ServiceIsolate::IsServiceIsolate(iso);
 }
 

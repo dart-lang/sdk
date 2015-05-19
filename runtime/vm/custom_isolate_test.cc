@@ -166,7 +166,7 @@ class StartEvent : public Event {
 
 
 void StartEvent::Process() {
-  OS::Print(">> StartEvent with isolate(%" PRId64 ")--\n", isolate());
+  OS::Print(">> StartEvent with isolate(%p)--\n", isolate());
   Dart_EnterIsolate(isolate());
   Dart_EnterScope();
   Dart_Handle result;
@@ -197,7 +197,7 @@ class MessageEvent : public Event {
 
 
 void MessageEvent::Process() {
-  OS::Print("$$ MessageEvent with isolate(%" PRId64 ")\n", isolate());
+  OS::Print("$$ MessageEvent with isolate(%p)\n", isolate());
   Dart_EnterIsolate(isolate());
   Dart_EnterScope();
 
@@ -205,20 +205,19 @@ void MessageEvent::Process() {
   EXPECT_VALID(result);
 
   if (!Dart_HasLivePorts()) {
-    OS::Print("<< Shutting down isolate(%" PRId64 ")\n", isolate());
+    OS::Print("<< Shutting down isolate(%p)\n", isolate());
     event_queue->RemoveEventsForIsolate(isolate());
     Dart_ShutdownIsolate();
   } else {
     Dart_ExitScope();
     Dart_ExitIsolate();
   }
-  ASSERT(Dart_CurrentIsolate() == DART_ILLEGAL_ISOLATE);
+  ASSERT(Dart_CurrentIsolate() == NULL);
 }
 
 
 static void NotifyMessage(Dart_Isolate dest_isolate) {
-  OS::Print("-- Notify isolate(%" PRId64 ") of pending message --\n",
-            dest_isolate);
+  OS::Print("-- Notify isolate(%p) of pending message --\n", dest_isolate);
   OS::Print("-- Adding MessageEvent to queue --\n");
   event_queue->Add(new MessageEvent(dest_isolate));
 }
@@ -253,7 +252,7 @@ static void native_echo(Dart_NativeArguments args) {
     free(const_cast<char*>(saved_echo));
   }
   saved_echo = strdup(c_str);
-  OS::Print("-- (isolate=%" PRId64 ") %s\n", Dart_CurrentIsolate(), c_str);
+  OS::Print("-- (isolate=%p) %s\n", Dart_CurrentIsolate(), c_str);
   Dart_ExitScope();
 }
 
@@ -278,7 +277,7 @@ static void CustomIsolateImpl_start(Dart_NativeArguments args) {
 
   // Create a new Dart_Isolate.
   Dart_Isolate new_isolate = TestCase::CreateTestIsolate();
-  EXPECT(new_isolate != DART_ILLEGAL_ISOLATE);
+  EXPECT(new_isolate != NULL);
   Dart_SetMessageNotifyCallback(&NotifyMessage);
   Dart_EnterScope();
   // Reload all the test classes here.
@@ -316,7 +315,7 @@ UNIT_TEST_CASE(CustomIsolates) {
   event_queue = new EventQueue();
 
   Dart_Isolate dart_isolate = TestCase::CreateTestIsolate();
-  EXPECT(dart_isolate != DART_ILLEGAL_ISOLATE);
+  EXPECT(dart_isolate != NULL);
   Dart_SetMessageNotifyCallback(&NotifyMessage);
   Dart_EnterScope();
   Dart_Handle result;

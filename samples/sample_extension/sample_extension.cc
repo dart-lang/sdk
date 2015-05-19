@@ -81,7 +81,7 @@ uint8_t* randomArray(int seed, int length) {
 
 void wrappedRandomArray(Dart_Port dest_port_id,
                         Dart_CObject* message) {
-  Dart_Port reply_port_id = DART_ILLEGAL_PORT;
+  Dart_Port reply_port_id = ILLEGAL_PORT;
   if (message->type == Dart_CObject_kArray &&
       3 == message->value.as_array.length) {
     // Use .as_array and .as_int32 to access the data in the Dart_CObject.
@@ -121,7 +121,7 @@ void randomArrayServicePort(Dart_NativeArguments arguments) {
   Dart_SetReturnValue(arguments, Dart_Null());
   Dart_Port service_port =
       Dart_NewNativePort("RandomArrayService", wrappedRandomArray, true);
-  if (service_port != DART_ILLEGAL_PORT) {
+  if (service_port != ILLEGAL_PORT) {
     Dart_Handle send_port = HandleError(Dart_NewSendPort(service_port));
     Dart_SetReturnValue(arguments, send_port);
   }

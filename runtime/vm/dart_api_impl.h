@@ -149,8 +149,6 @@ class Api : AllStatic {
 
   // Casts the internal Isolate* type to the external Dart_Isolate type.
   static Dart_Isolate CastIsolate(Isolate* isolate);
-  // Casts the external Dart_Isolate type to the internal Isolate* type.
-  static Isolate* CastIsolate(Dart_Isolate);
 
   // Gets the handle used to designate successful return.
   static Dart_Handle Success() { return Api::True(); }

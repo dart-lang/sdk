@@ -161,7 +161,7 @@ intptr_t VmService::server_port_ = 0;
 
 bool VmService::Setup(const char* server_ip, intptr_t server_port) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
-  ASSERT(isolate != DART_ILLEGAL_ISOLATE);
+  ASSERT(isolate != NULL);
   SetServerIPAndPort("", 0);
 
   Dart_Handle result;
