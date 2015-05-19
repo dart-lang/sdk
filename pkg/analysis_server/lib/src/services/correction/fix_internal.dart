@@ -378,7 +378,7 @@ class FixProcessor {
     String name = (node as SimpleIdentifier).name;
     // prepare environment
     CompilationUnitMember enclosingMember =
-        node.getAncestor((node) => node is CompilationUnitMember);
+        node.getAncestor((node) => node.parent is CompilationUnit);
     if (enclosingMember == null) {
       return;
     }

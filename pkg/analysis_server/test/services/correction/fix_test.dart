@@ -389,6 +389,27 @@ class Test {
     _assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
   }
 
+  void test_createClass_innerLocalFunction() {
+    resolveTestUnit('''
+f() {
+  g() {
+    Test v = null;
+  }
+}
+''');
+    assertHasFix(DartFixKind.CREATE_CLASS, '''
+f() {
+  g() {
+    Test v = null;
+  }
+}
+
+class Test {
+}
+''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
+  }
+
   void test_createConstructor_forFinalFields() {
     errorFilter = (AnalysisError error) {
       return error.message.contains("'a'");
