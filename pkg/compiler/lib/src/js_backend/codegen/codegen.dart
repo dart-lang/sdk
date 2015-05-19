@@ -590,13 +590,20 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   js.Expression visitGetStatic(tree_ir.GetStatic node) {
     assert(node.element is FieldElement || node.element is FunctionElement);
-    if (node.element is FieldElement) {
-      registry.registerStaticUse(node.element.declaration);
-      return glue.staticFieldAccess(node.element);
-    } else {
+    if (node.element is FunctionElement) {
+      // Tear off a method.
       registry.registerGetOfStaticFunction(node.element.declaration);
       return glue.isolateStaticClosureAccess(node.element);
     }
+    if (glue.isLazilyInitialized(node.element)) {
+      // Read a lazily initialized field.
+      registry.registerStaticUse(node.element.declaration);
+      js.Expression getter = glue.isolateLazyInitializerAccess(node.element);
+      return new js.Call(getter, [], sourceInformation: node.sourceInformation);
+    }
+    // Read an eagerly initialized field.
+    registry.registerStaticUse(node.element.declaration);
+    return glue.staticFieldAccess(node.element);
   }
 
   @override

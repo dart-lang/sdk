@@ -1298,8 +1298,9 @@ main(args) {
 ''', const {
       'main': '''
 (FunctionDefinition main () (args) return
-  (LetPrim (v0 (GetStatic field))
-    (InvokeContinuation return (v0))))
+  (LetCont ((k0 (v0)
+      (InvokeContinuation return (v0))))
+    (GetLazyStatic field k0)))
 ''',
       'field': '''
 (FieldDefinition field)
@@ -1313,8 +1314,9 @@ main(args) {
 ''', const {
       'main': '''
 (FunctionDefinition main () (args) return
-  (LetPrim (v0 (GetStatic field))
-    (InvokeContinuation return (v0))))
+  (LetCont ((k0 (v0)
+      (InvokeContinuation return (v0))))
+    (GetLazyStatic field k0)))
 ''',
       'field': '''
 (FieldDefinition field () return
@@ -1330,8 +1332,9 @@ main(args) {
 ''', const {
       'main': '''
 (FunctionDefinition main () (args) return
-  (LetPrim (v0 (GetStatic field))
-    (InvokeContinuation return (v0))))
+  (LetCont ((k0 (v0)
+      (InvokeContinuation return (v0))))
+    (GetLazyStatic field k0)))
 ''',
       'field': '''
 (FieldDefinition field () return
@@ -1349,8 +1352,9 @@ main(args) {
 (FunctionDefinition main () (args) return
   (LetCont ((k0 (v0)
       (SetStatic field v0
-        (LetPrim (v1 (GetStatic field))
-          (InvokeContinuation return (v1))))))
+        (LetCont ((k1 (v1)
+            (InvokeContinuation return (v1))))
+          (GetLazyStatic field k1)))))
     (InvokeMethod args length () k0)))
 '''),
   ]),

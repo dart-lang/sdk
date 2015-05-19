@@ -347,6 +347,12 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     return '$indentation(SetStatic $element $value\n$body)';
   }
 
+  String visitGetLazyStatic(GetLazyStatic node) {
+    String element = node.element.name;
+    String cont = access(node.continuation);
+    return '$indentation(GetLazyStatic $element $cont)';
+  }
+
   String visitCreateBox(CreateBox node) {
     return '(CreateBox)';
   }

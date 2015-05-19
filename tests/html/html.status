@@ -444,7 +444,6 @@ custom/element_upgrade_test: Crash # unsupported element kind: _escapeRegExp:fie
 custom/entered_left_view_test: Crash #  try/finally
 custom/js_custom_test: Crash # unsupported element kind: _escapeRegExp:field
 custom/mirrors_test: Crash # unsupported element kind: _escapeRegExp:field
-custom/regress_194523002_test: Crash # unsupported element kind: _defaultEnvironment:field
 custom_element_method_clash_test: Crash #  try/finally
 custom_element_name_clash_test: Crash #  try/finally
 custom_elements_23127_test: Crash #  try/finally

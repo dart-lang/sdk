@@ -104,8 +104,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   cps.FunctionDefinition compileToCpsIR(AstElement element) {
     // TODO(sigurdm): Support these constructs.
-    if (element.isNative ||
-        element.isField) {
+    if (element.isNative) {
       giveUp('unsupported element kind: ${element.name}:${element.kind}');
     }
 

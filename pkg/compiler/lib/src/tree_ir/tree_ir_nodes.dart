@@ -391,9 +391,7 @@ class Not extends Expression {
 class FunctionExpression extends Expression implements DartSpecificNode {
   final FunctionDefinition definition;
 
-  FunctionExpression(this.definition) {
-    assert(definition.element.type.returnType.treatAsDynamic);
-  }
+  FunctionExpression(this.definition);
 
   accept(ExpressionVisitor visitor) => visitor.visitFunctionExpression(this);
   accept1(ExpressionVisitor1 visitor, arg) {
@@ -706,7 +704,7 @@ class FieldDefinition extends RootNode implements DartSpecificNode {
 }
 
 class FunctionDefinition extends RootNode {
-  final FunctionElement element;
+  final ExecutableElement element;
   final List<Variable> parameters;
   Statement body;
   final List<ConstDeclaration> localConstants;
@@ -873,6 +871,8 @@ class SetField extends Expression implements JsSpecificNode {
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitSetField(this, arg);
 }
 
+/// Read the value of a field, possibly provoking its initializer to evaluate,
+/// or tear off a static method.
 class GetStatic extends Expression {
   Element element;
   SourceInformation sourceInformation;
@@ -882,7 +882,6 @@ class GetStatic extends Expression {
   accept(ExpressionVisitor visitor) => visitor.visitGetStatic(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitGetStatic(this, arg);
 }
-
 
 class SetStatic extends Expression {
   Element element;

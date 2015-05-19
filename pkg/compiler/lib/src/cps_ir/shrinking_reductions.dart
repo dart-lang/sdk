@@ -605,6 +605,10 @@ class ParentVisitor extends RecursiveVisitor {
     node.value.parent = node;
   }
 
+  processGetLazyStatic(GetLazyStatic node) {
+    node.continuation.parent = node;
+  }
+
   // Definitions.
 
   processLiteralList(LiteralList node) {

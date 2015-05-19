@@ -232,7 +232,6 @@ double_truncate_test: RuntimeError # Please triage this failure.
 duration2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 duration_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 error_stack_trace1_test: Pass # Please triage this failure.
-error_stack_trace2_test: Crash # unsupported element kind: cyclicStatic:field
 error_stack_trace_test: Crash # (switch (5){case 5:nested();default:Expect.fail("Should not reach");}): Unhandled node
 expando_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 growable_list_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -305,7 +304,6 @@ null_test: Crash # Instance of 'TypeOperator': type check unimplemented for dyna
 num_clamp_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 num_parse_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 num_parse_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-num_sign_test: Crash # unsupported element kind: numbers:field
 queue_first_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 queue_last_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 queue_single_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -338,8 +336,7 @@ string_runes_test: Crash # Instance of 'TypeOperator': type check unimplemented 
 string_source_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 string_substring_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-symbol_operator_test/03: Crash # unsupported element kind: $:field
-symbol_operator_test/none: Crash # unsupported element kind: $:field
+symbol_operator_test/03 : RuntimeError
 symbol_reserved_word_test/03: Pass # Please triage this failure.
 symbol_reserved_word_test/06: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 symbol_reserved_word_test/09: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

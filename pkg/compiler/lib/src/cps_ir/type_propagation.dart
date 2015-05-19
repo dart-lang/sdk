@@ -829,6 +829,23 @@ class _TypePropagationVisitor<T> implements Visitor {
     }
   }
 
+  void visitGetStatic(GetStatic node) {
+    setValue(node, nonConstant());
+  }
+
+  void visitSetStatic(SetStatic node) {
+    setReachable(node.body);
+  }
+
+  void visitGetLazyStatic(GetLazyStatic node) {
+    Continuation cont = node.continuation.definition;
+    setReachable(cont);
+
+    assert(cont.parameters.length == 1);
+    Parameter returnValue = cont.parameters[0];
+    setValue(returnValue, nonConstant());
+  }
+
   // Conditions.
 
   void visitIsTrue(IsTrue node) {
@@ -869,14 +886,6 @@ class _TypePropagationVisitor<T> implements Visitor {
   }
 
   void visitSetField(SetField node) {
-    setReachable(node.body);
-  }
-
-  void visitGetStatic(GetStatic node) {
-    setValue(node, nonConstant());
-  }
-
-  void visitSetStatic(SetStatic node) {
     setReachable(node.body);
   }
 

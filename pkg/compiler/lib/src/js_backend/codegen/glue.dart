@@ -60,6 +60,14 @@ class Glue {
     return _backend.emitter.staticFieldAccess(element);
   }
 
+  js.Expression isolateLazyInitializerAccess(FieldElement element) {
+    return _backend.emitter.isolateLazyInitializerAccess(element);
+  }
+
+  bool isLazilyInitialized(FieldElement element) {
+    return _backend.constants.lazyStatics.contains(element);
+  }
+
   String safeVariableName(String name) {
     return _namer.safeVariableName(name);
   }

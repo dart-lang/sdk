@@ -909,6 +909,12 @@ abstract class IrBuilder {
         state.localConstants, defaults);
   }
 
+  ir.FunctionDefinition makeLazyFieldInitializer() {
+    ir.Body body = makeBody();
+    FieldElement element = state.currentElement;
+    return new ir.FunctionDefinition(element, null, [], body, [], []);
+  }
+
   /// Create a invocation of the [method] on the super class where the call
   /// structure is defined [callStructure] and the argument values are defined
   /// by [arguments].
@@ -1084,8 +1090,16 @@ abstract class IrBuilder {
 
   /// Create a read access of the static [field].
   ir.Primitive buildStaticFieldGet(FieldElement field,
-                                   {SourceInformation sourceInformation}) {
+                                   SourceInformation sourceInformation) {
     return addPrimitive(new ir.GetStatic(field, sourceInformation));
+  }
+
+  /// Create a read access of a static [field] that might not have been
+  /// initialized yet.
+  ir.Primitive buildStaticFieldLazyGet(FieldElement field,
+                                       SourceInformation sourceInformation) {
+    return _continueWithExpression(
+        (k) => new ir.GetLazyStatic(field, k, sourceInformation));
   }
 
   /// Create a getter invocation of the static [getter].
@@ -1106,7 +1120,7 @@ abstract class IrBuilder {
   /// Create a write access to the static [field] with the [value].
   ir.Primitive buildStaticFieldSet(FieldElement field,
                                    ir.Primitive value,
-                                   {SourceInformation sourceInformation}) {
+                                   [SourceInformation sourceInformation]) {
     add(new ir.SetStatic(field, value, sourceInformation));
     return value;
   }

@@ -329,6 +329,12 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     visit(node.body);
   }
 
+  visitGetLazyStatic(cps_ir.GetLazyStatic node) {
+    String dummy = names.name(node);
+    String kont = formatReference(node.continuation);
+    printStmt(dummy, "GetLazyStatic $kont");
+  }
+
   visitCreateBox(cps_ir.CreateBox node) {
     return 'CreateBox';
   }
@@ -554,6 +560,10 @@ class BlockCollector implements cps_ir.Visitor {
 
   visitSetStatic(cps_ir.SetStatic exp) {
     visit(exp.body);
+  }
+
+  visitGetLazyStatic(cps_ir.GetLazyStatic exp) {
+    addEdgeToContinuation(exp.continuation);
   }
 
   visitDeclareFunction(cps_ir.DeclareFunction exp) {

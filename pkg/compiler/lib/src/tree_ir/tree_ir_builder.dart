@@ -667,6 +667,13 @@ class Builder implements cps_ir.Visitor<Node> {
     return new GetStatic(node.element, node.sourceInformation);
   }
 
+  Statement visitGetLazyStatic(cps_ir.GetLazyStatic node) {
+    // In the tree IR, GetStatic handles lazy fields because tree
+    // expressions are allowed to have side effects.
+    GetStatic value = new GetStatic(node.element, node.sourceInformation);
+    return continueWithExpression(node.continuation, value);
+  }
+
   Statement visitSetStatic(cps_ir.SetStatic node) {
     SetStatic setStatic = new SetStatic(
         node.element,

@@ -652,6 +652,25 @@ class SetStatic extends Expression implements InteriorNode {
   accept(Visitor visitor) => visitor.visitSetStatic(this);
 }
 
+/// Reads the value of a lazily initialized static field.
+///
+/// If the field has not yet been initialized, its initializer is evaluated
+/// and assigned to the field.
+///
+/// [continuation] is then invoked with the value of the field as argument.
+class GetLazyStatic extends Expression {
+  final FieldElement element;
+  final Reference<Continuation> continuation;
+  final SourceInformation sourceInformation;
+
+  GetLazyStatic(this.element,
+                Continuation cont,
+                this.sourceInformation)
+      : continuation = new Reference<Continuation>(cont);
+
+  accept(Visitor visitor) => visitor.visitGetLazyStatic(this);
+}
+
 /// Creates an object for holding boxed variables captured by a closure.
 class CreateBox extends Primitive implements JsSpecificNode {
   accept(Visitor visitor) => visitor.visitCreateBox(this);
@@ -863,7 +882,7 @@ class Body extends InteriorNode {
 /// A function definition, consisting of parameters and a body.  The parameters
 /// include a distinguished continuation parameter (held by the body).
 class FunctionDefinition extends RootNode {
-  final FunctionElement element;
+  final ExecutableElement element;
   final Parameter thisParameter;
   /// Mixed list of [Parameter]s and [MutableVariable]s.
   final List<Definition> parameters;
@@ -1034,6 +1053,7 @@ abstract class Visitor<T> {
   T visitSetMutableVariable(SetMutableVariable node);
   T visitDeclareFunction(DeclareFunction node);
   T visitSetStatic(SetStatic node);
+  T visitGetLazyStatic(GetLazyStatic node);
 
   // Definitions.
   T visitLiteralList(LiteralList node);
@@ -1242,6 +1262,12 @@ class RecursiveVisitor implements Visitor {
     visit(node.variable);
     visit(node.definition);
     visit(node.body);
+  }
+
+  processGetLazyStatic(GetLazyStatic node) {}
+  visitGetLazyStatic(GetLazyStatic node) {
+    processGetLazyStatic(node);
+    processReference(node.continuation);
   }
 
   // Definitions.

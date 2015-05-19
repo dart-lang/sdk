@@ -222,6 +222,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       CallStructure callStructure,
       List<ir.Primitive> arguments);
 
+  /// Read the value of [field].
+  ir.Primitive buildStaticFieldGet(FieldElement field, SourceInformation src);
+
   /// Creates a [TypedSelector] variant of [newSelector] using the type of
   /// [oldSelector], if available.
   ///
@@ -755,14 +758,6 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive handleStaticFieldGet(ast.Send node, FieldElement field, _) {
-    return field.isConst
-        ? irBuilder.buildConstant(getConstantForVariable(field))
-        : irBuilder.buildStaticFieldGet(field,
-              sourceInformation: sourceInformationBuilder.buildGet(node));
-  }
-
-  @override
   ir.Primitive handleStaticFunctionGet(
       ast.Send node,
       MethodElement function,
@@ -1088,13 +1083,19 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
+  ir.Primitive handleStaticFieldGet(ast.Send node, FieldElement field, _) {
+    return buildStaticFieldGet(field, sourceInformationBuilder.buildGet(node));
+  }
+
+  @override
   ir.Primitive handleStaticFieldInvoke(
       ast.Send node,
       FieldElement field,
       ast.NodeList arguments,
       CallStructure callStructure,
       _) {
-    ir.Primitive target = irBuilder.buildStaticFieldGet(field);
+    SourceInformation src = sourceInformationBuilder.buildGet(node);
+    ir.Primitive target = buildStaticFieldGet(field, src);
     return irBuilder.buildCallInvocation(target,
         callStructure,
         translateDynamicArguments(arguments, callStructure));
@@ -1425,8 +1426,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       op.AssignmentOperator operator,
       ast.Node rhs,
       _) {
+    SourceInformation src = sourceInformationBuilder.buildGet(node);
     return translateCompound(
-        getValue: () => irBuilder.buildStaticFieldGet(field),
+        getValue: () => buildStaticFieldGet(field, src),
         operator: operator,
         rhs: rhs,
         setValue: (ir.Primitive result) {
@@ -1441,8 +1443,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       op.IncDecOperator operator,
       arg,
       {bool isPrefix}) {
+    SourceInformation src = sourceInformationBuilder.buildGet(node);
     return translatePrefixPostfix(
-        getValue: () => irBuilder.buildStaticFieldGet(field),
+        getValue: () => buildStaticFieldGet(field, src),
         operator: operator,
         setValue: (ir.Primitive result) {
           irBuilder.buildStaticFieldSet(field, result);
@@ -2326,8 +2329,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       FieldElement field,
       op.AssignmentOperator operator,
       ast.Node rhs, _) {
+    SourceInformation src = sourceInformationBuilder.buildGet(node);
     return translateCompound(
-        getValue: () => irBuilder.buildStaticFieldGet(field),
+        getValue: () => buildStaticFieldGet(field, src),
         operator: operator,
         rhs: rhs,
         setValue: (value) => buildStaticNoSuchMethod(
@@ -2378,8 +2382,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       FieldElement field,
       op.AssignmentOperator operator,
       ast.Node rhs, _) {
+    SourceInformation src = sourceInformationBuilder.buildGet(node);
     return translateCompound(
-        getValue: () => irBuilder.buildStaticFieldGet(field),
+        getValue: () => buildStaticFieldGet(field, src),
         operator: operator,
         rhs: rhs,
         setValue: (value) => buildStaticNoSuchMethod(
@@ -2974,6 +2979,10 @@ class DartIrBuilderVisitor extends IrBuilderVisitor {
   ir.Primitive buildAbstractClassInstantiationError(ClassElement element) {
     return giveup(null, 'Abstract class instantiation: ${element.name}');
   }
+
+  ir.Primitive buildStaticFieldGet(FieldElement field, SourceInformation src) {
+    return irBuilder.buildStaticFieldLazyGet(field, src);
+  }
 }
 
 /// The [IrBuilder]s view on the information about the program that has been
@@ -3112,11 +3121,39 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           root = buildFunction(element);
           break;
 
+        case ElementKind.FIELD:
+          if (Elements.isStaticOrTopLevel(element)) {
+            root = buildStaticFieldInitializer(element);
+          } else {
+            // Instance field initializers are inlined in the constructor,
+            // so we shouldn't need to build anything here.
+            // TODO(asgerf): But what should we return?
+            return null;
+          }
+          break;
+
         default:
           compiler.internalError(element, "Unexpected element type $element");
       }
       new CleanupPass().visit(root);
       return root;
+    });
+  }
+
+  ir.FunctionDefinition buildStaticFieldInitializer(FieldElement element) {
+    if (!backend.constants.lazyStatics.contains(element)) {
+      return null; // Nothing to do.
+    }
+    closureClassMap =
+        compiler.closureToClassMapper.computeClosureToClassMapping(
+            element,
+            element.node,
+            elements);
+    IrBuilder builder = getBuilderFor(element);
+    return withBuilder(builder, () {
+      ir.Primitive initialValue = visit(element.initializer);
+      irBuilder.buildReturn(initialValue);
+      return irBuilder.makeLazyFieldInitializer();
     });
   }
 
@@ -3636,6 +3673,24 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         backend.getThrowAbstractClassInstantiationError(),
         new CallStructure.unnamed(1),
         [irBuilder.buildStringConstant(element.name)]);
+  }
+
+  @override
+  ir.Primitive handleStaticFieldGet(ast.Send node, FieldElement field, _) {
+    SourceInformation src = sourceInformationBuilder.buildGet(node);
+    return buildStaticFieldGet(field, src);
+  }
+
+  ir.Primitive buildStaticFieldGet(FieldElement field, SourceInformation src) {
+    ConstantExpression constant =
+        backend.constants.getConstantForVariable(field);
+    if (constant != null && !field.isAssignable) {
+      return irBuilder.buildConstant(constant);
+    } else if (backend.constants.lazyStatics.contains(field)) {
+      return irBuilder.buildStaticFieldLazyGet(field, src);
+    } else {
+      return irBuilder.buildStaticFieldGet(field, src);
+    }
   }
 }
 
