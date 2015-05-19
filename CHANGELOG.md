@@ -23,8 +23,9 @@
 
 ### Tool changes
 
-* This is the last release that will ship the (unsupported)
-  dart2dart (aka `dart2js --output-type=dart`)
+* This is the last release that ships the (unsupported)
+  dart2dart (aka `dart2js --output-type=dart`) utility as part
+  of dart2js
 
 ## 1.10.0 – 2015-04-29
 
