@@ -973,7 +973,8 @@ abstract class MemberElement extends Element implements ExecutableElement {
 }
 
 /// A function, variable or parameter defined in an executable context.
-abstract class LocalElement extends Element implements TypedElement, Local {
+abstract class LocalElement extends Element
+    implements AstElement, TypedElement, Local {
 }
 
 /// A top level, static or instance field, a formal parameter or local variable.

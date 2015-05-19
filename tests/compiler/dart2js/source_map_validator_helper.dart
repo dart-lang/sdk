@@ -11,11 +11,16 @@ import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart' hide SourceFile;
 import 'package:compiler/src/apiimpl.dart';
 import 'package:compiler/src/elements/elements.dart'
-    show LibraryElement,
-         CompilationUnitElement,
+    show AstElement,
          ClassElement,
-         AstElement;
+         CompilationUnitElement,
+         Element,
+         FunctionElement,
+         LibraryElement,
+         MemberElement;
 import 'package:compiler/src/io/source_file.dart' show SourceFile;
+import 'package:compiler/src/io/source_information.dart'
+    show computeElementNameForSourceMaps;
 
 validateSourceMap(Uri targetUri,
                   {Uri mainUri,
@@ -143,16 +148,58 @@ checkNames(Uri targetUri, Uri mapUri,
                               positionFromOffset(end));
         }
 
+        AstElement findInnermost(AstElement element) {
+          bool isInsideElement(FunctionElement closure) {
+            Element enclosing = closure;
+            while (enclosing != null) {
+              if (enclosing == element) return true;
+              enclosing = enclosing.enclosingElement;
+            }
+            return false;
+          }
+
+          if (element is MemberElement) {
+            MemberElement member = element;
+            member.nestedClosures.forEach((closure) {
+              var localFunction = closure.expression;
+              Interval interval = intervalFromElement(localFunction);
+              if (interval != null &&
+                  interval.contains(sourcePosition) &&
+                  isInsideElement(localFunction)) {
+                element = localFunction;
+              }
+            });
+          }
+          return element;
+        }
+
         void match(AstElement element) {
           Interval interval = intervalFromElement(element);
           if (interval != null && interval.contains(sourcePosition)) {
-            if (name != 'call') {
-              // TODO(johnniwinther): Check closures.
-              Expect.equals(element.name, name);
-            } else if (name != element.name) {
-              print("${targetUri}$targetPosition:\n"
-                    "Name '$name' does not match element $element in "
-                    "${sourceFile.filename}$sourcePosition.");
+            AstElement innerElement = findInnermost(element);
+            String expectedName =
+                computeElementNameForSourceMaps(innerElement);
+            if (name != expectedName) {
+              // For the code
+              //    (){}();
+              //    ^
+              // the indicated position is within the scope of the local
+              // function but it is also the position for the invocation of it.
+              // Allow name to be either from the local or from its calling
+              // context.
+              if (innerElement.isLocal && innerElement.isFunction) {
+                var enclosingElement = innerElement.enclosingElement;
+                String expectedName2 =
+                    computeElementNameForSourceMaps(enclosingElement);
+                Expect.isTrue(name == expectedName2,
+                    "Unexpected name '${name}', "
+                    "expected '${expectedName}' for $innerElement "
+                    "or '${expectedName2}' for $enclosingElement.");
+              } else {
+                Expect.equals(expectedName, name,
+                    "Unexpected name '${name}', "
+                    "expected '${expectedName}' or for $innerElement.");
+              }
             }
           }
         }
@@ -266,7 +313,7 @@ class Position {
            line == other.line && column <= other.column;
   }
 
-  String toString() => '[$line,$column]';
+  String toString() => '[${line + 1},${column + 1}]';
 }
 
 class Interval {
