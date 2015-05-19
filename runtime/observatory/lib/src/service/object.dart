@@ -281,10 +281,13 @@ abstract class ServiceObject extends Observable {
   Future<ServiceObject> reload() {
     // TODO(turnidge): Checking for a null id should be part of the
     // "immmutable" check.
-    if (id == null || id == '') {
-      return new Future.value(this);
-    }
-    if (loaded && immutable) {
+    bool hasId = (id != null) && (id != '');
+    bool isVM = this is VM;
+    // We should always reload the VM.
+    // We can't reload objects without an id.
+    // We shouldn't reload an immutable and already loaded object.
+    bool skipLoad = !isVM && (!hasId || (immutable && loaded));
+    if (skipLoad) {
       return new Future.value(this);
     }
     if (_inProgressReload == null) {
@@ -2369,7 +2372,7 @@ class Script extends ServiceObject with Coverage {
     if (lastLine == null) {
       return r;
     }
-    
+
     final lastColumn = tokenToCol(endTokenPos);
     if (lastColumn == null) {
       return r;
