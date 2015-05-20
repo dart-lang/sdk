@@ -7,7 +7,6 @@ var core = dart.import(core);
       this.x = 42;
     }
   }
-  dart.setSignature(A, {});
   let B$ = dart.generic(function(T) {
     class B extends core.Object {
       B() {
@@ -16,7 +15,6 @@ var core = dart.import(core);
         this.z = null;
       }
     }
-    dart.setSignature(B, {});
     return B;
   });
   let B = B$();
@@ -60,7 +58,6 @@ var core = dart.import(core);
       return 1;
     }
   }
-  dart.setSignature(BaseWithGetter, {});
   class Derived extends BaseWithGetter {
     Derived() {
       this.foo = 2;
@@ -68,7 +65,6 @@ var core = dart.import(core);
     }
   }
   dart.virtualField(Derived, 'foo');
-  dart.setSignature(Derived, {});
   let Generic$ = dart.generic(function(T) {
     class Generic extends core.Object {
       foo(t) {
@@ -84,13 +80,11 @@ var core = dart.import(core);
   let Generic = Generic$();
   Generic.bar = 'hello';
   class StaticFieldOrder1 extends core.Object {}
-  dart.setSignature(StaticFieldOrder1, {});
   StaticFieldOrder1.d = 4;
   StaticFieldOrder1.c = dart.notNull(StaticFieldOrder1.d) + 2;
   StaticFieldOrder1.b = dart.notNull(StaticFieldOrder1.c) + 3;
   StaticFieldOrder1.a = dart.notNull(StaticFieldOrder1.b) + 1;
   class StaticFieldOrder2 extends core.Object {}
-  dart.setSignature(StaticFieldOrder2, {});
   StaticFieldOrder2.d = 4;
   StaticFieldOrder2.c = dart.notNull(StaticFieldOrder2.d) + 2;
   StaticFieldOrder2.b = dart.notNull(StaticFieldOrder2.c) + 3;

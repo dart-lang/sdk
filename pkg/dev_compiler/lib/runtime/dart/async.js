@@ -32,9 +32,6 @@ var collection = dart.import(collection);
     }
   }
   AsyncError[dart.implements] = () => [core.Error];
-  dart.setSignature(AsyncError, {
-    methods: () => ({toString: dart.functionType(core.String, [])})
-  });
   class _UncaughtAsyncError extends AsyncError {
     _UncaughtAsyncError(error, stackTrace) {
       super.AsyncError(error, _UncaughtAsyncError._getBestStackTrace(error, stackTrace));
@@ -56,7 +53,6 @@ var collection = dart.import(collection);
     }
   }
   dart.setSignature(_UncaughtAsyncError, {
-    methods: () => ({toString: dart.functionType(core.String, [])}),
     statics: () => ({_getBestStackTrace: dart.functionType(core.StackTrace, [dart.dynamic, core.StackTrace])}),
     names: ['_getBestStackTrace']
   });
@@ -835,7 +831,6 @@ var collection = dart.import(collection);
         return true;
       }
     }
-    dart.setSignature(_BroadcastStream, {});
     return _BroadcastStream;
   });
   let _BroadcastStream = _BroadcastStream$();
@@ -847,7 +842,6 @@ var collection = dart.import(collection);
       this[_previous] = null;
     }
   }
-  dart.setSignature(_BroadcastSubscriptionLink, {});
   let _zone = Symbol('_zone');
   let _state = Symbol('_state');
   let _onData = Symbol('_onData');
@@ -1231,13 +1225,6 @@ var collection = dart.import(collection);
         this[_controller][_recordResume](this);
       }
     }
-    dart.setSignature(_ControllerSubscription, {
-      methods: () => ({
-        [_onCancel]: dart.functionType(Future, []),
-        [_onPause]: dart.functionType(dart.void, []),
-        [_onResume]: dart.functionType(dart.void, [])
-      })
-    });
     return _ControllerSubscription;
   });
   let _ControllerSubscription = _ControllerSubscription$();
@@ -1283,9 +1270,7 @@ var collection = dart.import(collection);
       methods: () => ({
         [_expectsEvent]: dart.functionType(core.bool, [core.int]),
         [_toggleEventId]: dart.functionType(dart.void, []),
-        [_setRemoveAfterFiring]: dart.functionType(dart.void, []),
-        [_onPause]: dart.functionType(dart.void, []),
-        [_onResume]: dart.functionType(dart.void, [])
+        [_setRemoveAfterFiring]: dart.functionType(dart.void, [])
       })
     });
     return _BroadcastSubscription;
@@ -1703,10 +1688,7 @@ var collection = dart.import(collection);
     dart.setSignature(_AsBroadcastStreamController, {
       methods: () => ({
         [_addPendingEvent]: dart.functionType(dart.void, [_DelayedEvent]),
-        add: dart.functionType(dart.void, [T]),
-        addError: dart.functionType(dart.void, [core.Object], [core.StackTrace]),
-        close: dart.functionType(Future, []),
-        [_callOnCancel]: dart.functionType(dart.void, [])
+        add: dart.functionType(dart.void, [T])
       })
     });
     return _AsBroadcastStreamController;
@@ -1797,9 +1779,6 @@ var collection = dart.import(collection);
     }
   }
   DeferredLoadException[dart.implements] = () => [core.Exception];
-  dart.setSignature(DeferredLoadException, {
-    methods: () => ({toString: dart.functionType(core.String, [])})
-  });
   let _completeWithValue = Symbol('_completeWithValue');
   let Future$ = dart.generic(function(T) {
     class Future extends core.Object {
@@ -1995,9 +1974,6 @@ var collection = dart.import(collection);
     }
   }
   TimeoutException[dart.implements] = () => [core.Exception];
-  dart.setSignature(TimeoutException, {
-    methods: () => ({toString: dart.functionType(core.String, [])})
-  });
   let Completer$ = dart.generic(function(T) {
     class Completer extends core.Object {
       Completer() {
@@ -2008,7 +1984,6 @@ var collection = dart.import(collection);
       }
     }
     dart.defineNamedConstructor(Completer, 'sync');
-    dart.setSignature(Completer, {});
     return Completer;
   });
   let Completer = Completer$();
@@ -2181,7 +2156,6 @@ var collection = dart.import(collection);
   dart.defineNamedConstructor(_FutureListener, 'catchError');
   dart.defineNamedConstructor(_FutureListener, 'whenComplete');
   dart.defineNamedConstructor(_FutureListener, 'chain');
-  dart.setSignature(_FutureListener, {});
   _FutureListener.MASK_VALUE = 1;
   _FutureListener.MASK_ERROR = 2;
   _FutureListener.MASK_TEST_ERROR = 4;
@@ -2673,7 +2647,6 @@ var collection = dart.import(collection);
       this.next = null;
     }
   }
-  dart.setSignature(_AsyncCallbackEntry, {});
   exports._nextCallback = null;
   exports._lastCallback = null;
   exports._lastPriorityCallback = null;
@@ -2815,14 +2788,12 @@ var collection = dart.import(collection);
   });
   let StreamSubscription$ = dart.generic(function(T) {
     class StreamSubscription extends core.Object {}
-    dart.setSignature(StreamSubscription, {});
     return StreamSubscription;
   });
   let StreamSubscription = StreamSubscription$();
   let EventSink$ = dart.generic(function(T) {
     class EventSink extends core.Object {}
     EventSink[dart.implements] = () => [core.Sink$(T)];
-    dart.setSignature(EventSink, {});
     return EventSink;
   });
   let EventSink = EventSink$();
@@ -2863,14 +2834,12 @@ var collection = dart.import(collection);
   let StreamView = StreamView$();
   let StreamConsumer$ = dart.generic(function(S) {
     class StreamConsumer extends core.Object {}
-    dart.setSignature(StreamConsumer, {});
     return StreamConsumer;
   });
   let StreamConsumer = StreamConsumer$();
   let StreamSink$ = dart.generic(function(S) {
     class StreamSink extends core.Object {}
     StreamSink[dart.implements] = () => [StreamConsumer$(S), EventSink$(S)];
-    dart.setSignature(StreamSink, {});
     return StreamSink;
   });
   let StreamSink = StreamSink$();
@@ -2884,7 +2853,6 @@ var collection = dart.import(collection);
       }
     }
     dart.defineNamedConstructor(StreamTransformer, 'fromHandlers');
-    dart.setSignature(StreamTransformer, {});
     return StreamTransformer;
   });
   let StreamTransformer = StreamTransformer$();
@@ -2894,7 +2862,6 @@ var collection = dart.import(collection);
         return new (_StreamIteratorImpl$(T))(stream);
       }
     }
-    dart.setSignature(StreamIterator, {});
     return StreamIterator;
   });
   let StreamIterator = StreamIterator$();
@@ -2953,7 +2920,6 @@ var collection = dart.import(collection);
     }
     StreamController[dart.implements] = () => [StreamSink$(T)];
     dart.defineNamedConstructor(StreamController, 'broadcast');
-    dart.setSignature(StreamController, {});
     return StreamController;
   });
   let StreamController = StreamController$();
@@ -3296,7 +3262,6 @@ var collection = dart.import(collection);
         super._StreamController();
       }
     }
-    dart.setSignature(_AsyncStreamController, {});
     return _AsyncStreamController;
   });
   let _AsyncStreamController = _AsyncStreamController$();
@@ -3310,7 +3275,6 @@ var collection = dart.import(collection);
         super._StreamController();
       }
     }
-    dart.setSignature(_SyncStreamController, {});
     return _SyncStreamController;
   });
   let _SyncStreamController = _SyncStreamController$();
@@ -3328,7 +3292,6 @@ var collection = dart.import(collection);
       return null;
     }
   }
-  dart.setSignature(_NoCallbacks, {});
   class _NoCallbackAsyncStreamController extends dart.mixin(_StreamController, _AsyncStreamControllerDispatch, _NoCallbacks) {}
   class _NoCallbackSyncStreamController extends dart.mixin(_StreamController, _SyncStreamControllerDispatch, _NoCallbacks) {}
   let _NotificationHandler = dart.typedef('_NotificationHandler', () => dart.functionType(dart.dynamic, []));
@@ -3441,19 +3404,16 @@ var collection = dart.import(collection);
         }
       }
     }
-    dart.setSignature(_StreamControllerAddStreamState, {});
     return _StreamControllerAddStreamState;
   });
   let _StreamControllerAddStreamState = _StreamControllerAddStreamState$();
   let _EventSink$ = dart.generic(function(T) {
     class _EventSink extends core.Object {}
-    dart.setSignature(_EventSink, {});
     return _EventSink;
   });
   let _EventSink = _EventSink$();
   let _EventDispatch$ = dart.generic(function(T) {
     class _EventDispatch extends core.Object {}
-    dart.setSignature(_EventDispatch, {});
     return _EventDispatch;
   });
   let _EventDispatch = _EventDispatch$();
@@ -3603,7 +3563,6 @@ var collection = dart.import(collection);
         this.next = null;
       }
     }
-    dart.setSignature(_DelayedEvent, {});
     return _DelayedEvent;
   });
   let _DelayedEvent = _DelayedEvent$();
@@ -4244,10 +4203,6 @@ var collection = dart.import(collection);
     dart.setSignature(_ForwardingStreamSubscription, {
       methods: () => ({
         [_add]: dart.functionType(dart.void, [T]),
-        [_addError]: dart.functionType(dart.void, [core.Object, core.StackTrace]),
-        [_onPause]: dart.functionType(dart.void, []),
-        [_onResume]: dart.functionType(dart.void, []),
-        [_onCancel]: dart.functionType(Future, []),
         [_handleData]: dart.functionType(dart.void, [S]),
         [_handleError]: dart.functionType(dart.void, [dart.dynamic, core.StackTrace]),
         [_handleDone]: dart.functionType(dart.void, [])
@@ -4695,11 +4650,6 @@ var collection = dart.import(collection);
     dart.setSignature(_SinkTransformerStreamSubscription, {
       methods: () => ({
         [_add]: dart.functionType(dart.void, [T]),
-        [_addError]: dart.functionType(dart.void, [core.Object, core.StackTrace]),
-        [_close]: dart.functionType(dart.void, []),
-        [_onPause]: dart.functionType(dart.void, []),
-        [_onResume]: dart.functionType(dart.void, []),
-        [_onCancel]: dart.functionType(Future, []),
         [_handleData]: dart.functionType(dart.void, [S]),
         [_handleError]: dart.functionType(dart.void, [dart.dynamic], [dart.dynamic]),
         [_handleDone]: dart.functionType(dart.void, [])
@@ -4969,7 +4919,6 @@ var collection = dart.import(collection);
       this.function = func;
     }
   }
-  dart.setSignature(_ZoneFunction, {});
   class ZoneSpecification extends core.Object {
     ZoneSpecification(opts) {
       return new _ZoneSpecification(opts);
@@ -4992,7 +4941,6 @@ var collection = dart.import(collection);
     }
   }
   dart.defineNamedConstructor(ZoneSpecification, 'from');
-  dart.setSignature(ZoneSpecification, {});
   class _ZoneSpecification extends core.Object {
     _ZoneSpecification(opts) {
       let handleUncaughtError = opts && 'handleUncaughtError' in opts ? opts.handleUncaughtError : null;
@@ -5024,9 +4972,7 @@ var collection = dart.import(collection);
     }
   }
   _ZoneSpecification[dart.implements] = () => [ZoneSpecification];
-  dart.setSignature(_ZoneSpecification, {});
   class ZoneDelegate extends core.Object {}
-  dart.setSignature(ZoneDelegate, {});
   class Zone extends core.Object {
     _() {
     }
@@ -5737,7 +5683,6 @@ var collection = dart.import(collection);
     }
   }
   _RootZoneSpecification[dart.implements] = () => [ZoneSpecification];
-  dart.setSignature(_RootZoneSpecification, {});
   _RootZone._rootDelegate = null;
   dart.defineLazyProperties(_RootZone, {
     get _rootMap() {

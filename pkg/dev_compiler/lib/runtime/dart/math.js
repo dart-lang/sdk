@@ -76,8 +76,6 @@ var _js_helper = dart.lazyImport(_js_helper);
     }
     dart.setSignature(Point, {
       methods: () => ({
-        toString: dart.functionType(core.String, []),
-        '==': dart.functionType(core.bool, [dart.dynamic]),
         '+': dart.functionType(Point$(T), [Point$(T)]),
         '-': dart.functionType(Point$(T), [Point$(T)]),
         '*': dart.functionType(Point$(T), [core.num]),
@@ -95,7 +93,6 @@ var _js_helper = dart.lazyImport(_js_helper);
       return seed == null ? dart.const(new _JSRandom()) : new _Random(seed);
     }
   }
-  dart.setSignature(Random, {});
   let _RectangleBase$ = dart.generic(function(T) {
     class _RectangleBase extends core.Object {
       _RectangleBase() {
@@ -162,8 +159,6 @@ var _js_helper = dart.lazyImport(_js_helper);
     }
     dart.setSignature(_RectangleBase, {
       methods: () => ({
-        toString: dart.functionType(core.String, []),
-        '==': dart.functionType(core.bool, [dart.dynamic]),
         intersection: dart.functionType(Rectangle$(T), [Rectangle$(T)]),
         intersects: dart.functionType(core.bool, [Rectangle$(core.num)]),
         boundingBox: dart.functionType(Rectangle$(T), [Rectangle$(T)]),
@@ -192,7 +187,6 @@ var _js_helper = dart.lazyImport(_js_helper);
       }
     }
     dart.defineNamedConstructor(Rectangle, 'fromPoints');
-    dart.setSignature(Rectangle, {});
     return Rectangle;
   });
   let Rectangle = Rectangle$();
@@ -235,7 +229,6 @@ var _js_helper = dart.lazyImport(_js_helper);
     }
     MutableRectangle[dart.implements] = () => [Rectangle$(T)];
     dart.defineNamedConstructor(MutableRectangle, 'fromPoints');
-    dart.setSignature(MutableRectangle, {});
     return MutableRectangle;
   });
   let MutableRectangle = MutableRectangle$();

@@ -592,6 +592,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         if (!(node.isSetter || node.isGetter || node.isAbstract)) {
           var name = node.name.name;
           var element = node.element;
+          var inheritedElement =
+              classElem.lookUpInheritedConcreteMethod(name, currentLibrary);
+          if (inheritedElement != null &&
+              inheritedElement.type == element.type) continue;
           var unary = node.parameters.parameters.isEmpty;
           var memberName = _emitMemberName(name,
               type: cType, unary: unary, isStatic: node.isStatic);
@@ -620,9 +624,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         sigFields.add(aNames);
       }
 
-      var sig = new JS.ObjectInitializer(sigFields);
-      var classExpr = new JS.Identifier(name);
-      body.add(js.statement('dart.setSignature(#, #);', [classExpr, sig]));
+      if (!sigFields.isEmpty) {
+        var sig = new JS.ObjectInitializer(sigFields);
+        var classExpr = new JS.Identifier(name);
+        body.add(js.statement('dart.setSignature(#, #);', [classExpr, sig]));
+      }
     }
 
     return _statement(body);

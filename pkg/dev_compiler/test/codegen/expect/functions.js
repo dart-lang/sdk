@@ -16,7 +16,6 @@ var core = dart.import(core);
   }
   dart.fn(id, () => dart.functionType(A2B$(Foo, Foo), [A2B$(Foo, Foo)]));
   class Foo extends core.Object {}
-  dart.setSignature(Foo, {});
   function main() {
     core.print(bootstrap()[core.$get](0));
   }

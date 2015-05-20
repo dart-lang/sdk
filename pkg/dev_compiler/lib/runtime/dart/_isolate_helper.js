@@ -1287,10 +1287,7 @@ var async = dart.import(async);
   }
   _NativeJsSendPort[dart.implements] = () => [isolate.SendPort];
   dart.setSignature(_NativeJsSendPort, {
-    methods: () => ({
-      send: dart.functionType(dart.void, [dart.dynamic]),
-      '==': dart.functionType(core.bool, [dart.dynamic])
-    })
+    methods: () => ({send: dart.functionType(dart.void, [dart.dynamic])})
   });
   class _WorkerSendPort extends _BaseSendPort {
     _WorkerSendPort(workerId, isolateId, receivePortId) {
@@ -1318,10 +1315,7 @@ var async = dart.import(async);
   }
   _WorkerSendPort[dart.implements] = () => [isolate.SendPort];
   dart.setSignature(_WorkerSendPort, {
-    methods: () => ({
-      send: dart.functionType(dart.void, [dart.dynamic]),
-      '==': dart.functionType(core.bool, [dart.dynamic])
-    })
+    methods: () => ({send: dart.functionType(dart.void, [dart.dynamic])})
   });
   let _handler = Symbol('_handler');
   class RawReceivePortImpl extends core.Object {

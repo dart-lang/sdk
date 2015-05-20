@@ -7,7 +7,6 @@ var core = dart.import(core);
       this.x = null;
     }
   }
-  dart.setSignature(A, {});
   function test_closure_with_mutate() {
     let a = new A();
     a.x = dart.fn(() => {
@@ -90,7 +89,6 @@ var core = dart.import(core);
         this.x = dart.setType([], core.List$(T));
       }
     }
-    dart.setSignature(Base, {});
     return Base;
   });
   let Base = Base$();

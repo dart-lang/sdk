@@ -65,7 +65,6 @@ var core = dart.import(core);
       this.bar = new Bar();
     }
   }
-  dart.setSignature(Foo, {});
   function test() {
     let f = new Foo();
     dart.dcall(f.bar, "Bar's call method!");

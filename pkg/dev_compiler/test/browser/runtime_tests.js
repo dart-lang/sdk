@@ -619,6 +619,17 @@ suite('instanceOf', () => {
     var m = dart.bind(obj, 'm');
     checkType(m, dart.functionType(core.Object, [core.int]));
     checkType(m, dart.functionType(core.int, [core.int]), false);
+
+    // Test inherited signatures
+    class P extends O {
+      P() {};
+      m(x) {return x;};
+    };
+    dart.setSignature(P, {});
+    var obj = new P();
+    var m = dart.bind(obj, 'm');
+    checkType(m, dart.functionType(core.Object, [core.int]));
+    checkType(m, dart.functionType(core.int, [core.int]), false);
   });
 
   test('Object members', () => {

@@ -6,7 +6,6 @@ var core = dart.import(core);
     _Uninitialized() {
     }
   }
-  dart.setSignature(_Uninitialized, {});
   let UNINITIALIZED = dart.const(new _Uninitialized());
   let Generic$ = dart.generic(function(T) {
     class Generic extends core.Object {
@@ -14,7 +13,6 @@ var core = dart.import(core);
         return Generic$();
       }
     }
-    dart.setSignature(Generic, {});
     return Generic;
   });
   let Generic = Generic$();

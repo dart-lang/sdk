@@ -7,7 +7,6 @@ var _js_primitives = dart.lazyImport(_js_primitives);
 (function(exports, core, collection, math, _interceptors, _js_primitives) {
   'use strict';
   class EfficientLength extends core.Object {}
-  dart.setSignature(EfficientLength, {});
   let ListIterable$ = dart.generic(function(E) {
     class ListIterable extends collection.IterableBase$(E) {
       ListIterable() {
@@ -242,13 +241,11 @@ var _js_primitives = dart.lazyImport(_js_primitives);
     dart.setSignature(ListIterable, {
       methods: () => ({
         [core.$forEach]: dart.functionType(dart.void, [dart.functionType(dart.void, [E])]),
-        [core.$contains]: dart.functionType(core.bool, [core.Object]),
         [core.$every]: dart.functionType(core.bool, [dart.functionType(core.bool, [E])]),
         [core.$any]: dart.functionType(core.bool, [dart.functionType(core.bool, [E])]),
         [core.$firstWhere]: dart.functionType(E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}),
         [core.$lastWhere]: dart.functionType(E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}),
         [core.$singleWhere]: dart.functionType(E, [dart.functionType(core.bool, [E])]),
-        [core.$join]: dart.functionType(core.String, [], [core.String]),
         [core.$where]: dart.functionType(core.Iterable$(E), [dart.functionType(core.bool, [E])]),
         [core.$map]: dart.functionType(core.Iterable, [dart.functionType(dart.dynamic, [E])]),
         [core.$reduce]: dart.functionType(E, [dart.functionType(E, [dart.dynamic, E])]),
@@ -454,7 +451,6 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       }
     }
     EfficientLengthMappedIterable[dart.implements] = () => [EfficientLength];
-    dart.setSignature(EfficientLengthMappedIterable, {});
     return EfficientLengthMappedIterable;
   });
   let EfficientLengthMappedIterable = EfficientLengthMappedIterable$();
@@ -522,7 +518,6 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         return new (WhereIterator$(E))(this[_iterable][core.$iterator], this[_f]);
       }
     }
-    dart.setSignature(WhereIterable, {});
     return WhereIterable;
   });
   let WhereIterable = WhereIterable$();
@@ -566,7 +561,6 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         return new (ExpandIterator$(S, T))(this[_iterable][core.$iterator], dart.as(this[_f], __CastType0));
       }
     }
-    dart.setSignature(ExpandIterable, {});
     return ExpandIterable;
   });
   let ExpandIterable = ExpandIterable$();
@@ -632,7 +626,6 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       }
     }
     dart.defineNamedConstructor(TakeIterable, '_');
-    dart.setSignature(TakeIterable, {});
     return TakeIterable;
   });
   let TakeIterable = TakeIterable$();
@@ -649,7 +642,6 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       }
     }
     EfficientLengthTakeIterable[dart.implements] = () => [EfficientLength];
-    dart.setSignature(EfficientLengthTakeIterable, {});
     return EfficientLengthTakeIterable;
   });
   let EfficientLengthTakeIterable = EfficientLengthTakeIterable$();
@@ -692,7 +684,6 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         return new (TakeWhileIterator$(E))(this[_iterable][core.$iterator], dart.as(this[_f], __CastType2));
       }
     }
-    dart.setSignature(TakeWhileIterable, {});
     return TakeWhileIterable;
   });
   let TakeWhileIterable = TakeWhileIterable$();
@@ -774,7 +765,6 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       }
     }
     EfficientLengthSkipIterable[dart.implements] = () => [EfficientLength];
-    dart.setSignature(EfficientLengthSkipIterable, {});
     return EfficientLengthSkipIterable;
   });
   let EfficientLengthSkipIterable = EfficientLengthSkipIterable$();
@@ -812,7 +802,6 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         return new (SkipWhileIterator$(E))(this[_iterable][core.$iterator], dart.as(this[_f], __CastType4));
       }
     }
-    dart.setSignature(SkipWhileIterable, {});
     return SkipWhileIterable;
   });
   let SkipWhileIterable = SkipWhileIterable$();
@@ -958,13 +947,11 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       methods: () => ({
         [core.$forEach]: dart.functionType(dart.void, [dart.functionType(dart.void, [E])]),
         [core.$elementAt]: dart.functionType(E, [core.int]),
-        [core.$contains]: dart.functionType(core.bool, [core.Object]),
         [core.$every]: dart.functionType(core.bool, [dart.functionType(core.bool, [E])]),
         [core.$any]: dart.functionType(core.bool, [dart.functionType(core.bool, [E])]),
         [core.$firstWhere]: dart.functionType(E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}),
         [core.$lastWhere]: dart.functionType(E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}),
         [core.$singleWhere]: dart.functionType(E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}),
-        [core.$join]: dart.functionType(core.String, [], [core.String]),
         [core.$where]: dart.functionType(core.Iterable$(E), [dart.functionType(core.bool, [E])]),
         [core.$map]: dart.functionType(core.Iterable, [dart.functionType(dart.dynamic, [E])]),
         [core.$reduce]: dart.functionType(E, [dart.functionType(E, [E, E])]),
@@ -1001,7 +988,6 @@ var _js_primitives = dart.lazyImport(_js_primitives);
   let BidirectionalIterator$ = dart.generic(function(T) {
     class BidirectionalIterator extends core.Object {}
     BidirectionalIterator[dart.implements] = () => [core.Iterator$(T)];
-    dart.setSignature(BidirectionalIterator, {});
     return BidirectionalIterator;
   });
   let BidirectionalIterator = BidirectionalIterator$();
@@ -1752,8 +1738,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         putIfAbsent: dart.functionType(E, [core.int, dart.functionType(E, [])]),
         remove: dart.functionType(E, [core.Object]),
         clear: dart.functionType(dart.void, []),
-        addAll: dart.functionType(dart.void, [core.Map$(core.int, E)]),
-        toString: dart.functionType(core.String, [])
+        addAll: dart.functionType(dart.void, [core.Map$(core.int, E)])
       })
     });
     return ListMapView;
@@ -2216,10 +2201,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
   dart.defineNamedConstructor(Symbol, 'unvalidated');
   dart.defineNamedConstructor(Symbol, 'validated');
   dart.setSignature(Symbol, {
-    methods: () => ({
-      '==': dart.functionType(core.bool, [core.Object]),
-      toString: dart.functionType(core.String, [])
-    }),
+    methods: () => ({'==': dart.functionType(core.bool, [core.Object])}),
     statics: () => ({
       getName: dart.functionType(core.String, [Symbol]),
       validatePublicSymbol: dart.functionType(core.String, [core.String]),

@@ -45,19 +45,16 @@ var convert = dart.lazyImport(convert);
       this.name = name;
     }
   }
-  dart.setSignature(JsName, {});
   class JsPeerInterface extends Object {
     JsPeerInterface(opts) {
       let name = opts && 'name' in opts ? opts.name : null;
       this.name = name;
     }
   }
-  dart.setSignature(JsPeerInterface, {});
   class SupportJsExtensionMethod extends Object {
     SupportJsExtensionMethod() {
     }
   }
-  dart.setSignature(SupportJsExtensionMethod, {});
   class Deprecated extends Object {
     Deprecated(expires) {
       this.expires = expires;
@@ -66,21 +63,16 @@ var convert = dart.lazyImport(convert);
       return `Deprecated feature. Will be removed ${this.expires}`;
     }
   }
-  dart.setSignature(Deprecated, {
-    methods: () => ({toString: dart.functionType(String, [])})
-  });
   class _Override extends Object {
     _Override() {
     }
   }
-  dart.setSignature(_Override, {});
   let deprecated = dart.const(new Deprecated("next release"));
   let override = dart.const(new _Override());
   class _Proxy extends Object {
     _Proxy() {
     }
   }
-  dart.setSignature(_Proxy, {});
   let proxy = dart.const(new _Proxy());
   class bool extends Object {
     fromEnvironment(name, opts) {
@@ -92,9 +84,6 @@ var convert = dart.lazyImport(convert);
     }
   }
   dart.defineNamedConstructor(bool, 'fromEnvironment');
-  dart.setSignature(bool, {
-    methods: () => ({toString: dart.functionType(String, [])})
-  });
   let Comparator$ = dart.generic(function(T) {
     let Comparator = dart.typedef('Comparator', () => dart.functionType(int, [T, T]));
     return Comparator;
@@ -365,14 +354,12 @@ var convert = dart.lazyImport(convert);
   dart.defineNamedConstructor(DateTime, '_now');
   dart.setSignature(DateTime, {
     methods: () => ({
-      '==': dart.functionType(bool, [dart.dynamic]),
       isBefore: dart.functionType(bool, [DateTime]),
       isAfter: dart.functionType(bool, [DateTime]),
       isAtSameMomentAs: dart.functionType(bool, [DateTime]),
       compareTo: dart.functionType(int, [DateTime]),
       toLocal: dart.functionType(DateTime, []),
       toUtc: dart.functionType(DateTime, []),
-      toString: dart.functionType(String, []),
       toIso8601String: dart.functionType(String, []),
       add: dart.functionType(DateTime, [Duration]),
       subtract: dart.functionType(DateTime, [Duration]),
@@ -581,9 +568,7 @@ var convert = dart.lazyImport(convert);
       '>': dart.functionType(bool, [Duration]),
       '<=': dart.functionType(bool, [Duration]),
       '>=': dart.functionType(bool, [Duration]),
-      '==': dart.functionType(bool, [dart.dynamic]),
       compareTo: dart.functionType(int, [Duration]),
-      toString: dart.functionType(String, []),
       abs: dart.functionType(Duration, []),
       'unary-': dart.functionType(Duration, [])
     })
@@ -639,15 +624,12 @@ var convert = dart.lazyImport(convert);
       super.Error();
     }
   }
-  dart.setSignature(AssertionError, {});
   class TypeError extends AssertionError {}
-  dart.setSignature(TypeError, {});
   class CastError extends Error {
     CastError() {
       super.Error();
     }
   }
-  dart.setSignature(CastError, {});
   class NullThrownError extends Error {
     NullThrownError() {
       super.Error();
@@ -656,9 +638,6 @@ var convert = dart.lazyImport(convert);
       return "Throw of null.";
     }
   }
-  dart.setSignature(NullThrownError, {
-    methods: () => ({toString: dart.functionType(String, [])})
-  });
   let _hasValue = dart.JsSymbol('_hasValue');
   class ArgumentError extends Error {
     ArgumentError(message) {
@@ -703,9 +682,6 @@ var convert = dart.lazyImport(convert);
   }
   dart.defineNamedConstructor(ArgumentError, 'value');
   dart.defineNamedConstructor(ArgumentError, 'notNull');
-  dart.setSignature(ArgumentError, {
-    methods: () => ({toString: dart.functionType(String, [])})
-  });
   class RangeError extends ArgumentError {
     RangeError(message) {
       this.start = null;
@@ -808,7 +784,6 @@ var convert = dart.lazyImport(convert);
   dart.defineNamedConstructor(RangeError, 'range');
   dart.defineNamedConstructor(RangeError, 'index');
   dart.setSignature(RangeError, {
-    methods: () => ({toString: dart.functionType(String, [])}),
     statics: () => ({
       checkValueInInterval: dart.functionType(dart.void, [int, int, int], [String, String]),
       checkValidIndex: dart.functionType(dart.void, [int, dart.dynamic], [String, int, String]),
@@ -846,15 +821,11 @@ var convert = dart.lazyImport(convert);
     }
   }
   IndexError[dart.implements] = () => [RangeError];
-  dart.setSignature(IndexError, {
-    methods: () => ({toString: dart.functionType(String, [])})
-  });
   class FallThroughError extends Error {
     FallThroughError() {
       super.Error();
     }
   }
-  dart.setSignature(FallThroughError, {});
   let _className = dart.JsSymbol('_className');
   class AbstractClassInstantiationError extends Error {
     AbstractClassInstantiationError(className) {
@@ -865,9 +836,6 @@ var convert = dart.lazyImport(convert);
       return `Cannot instantiate abstract class: '${this[_className]}'`;
     }
   }
-  dart.setSignature(AbstractClassInstantiationError, {
-    methods: () => ({toString: dart.functionType(String, [])})
-  });
   let _receiver = dart.JsSymbol('_receiver');
   let _memberName = dart.JsSymbol('_memberName');
   let _arguments = dart.JsSymbol('_arguments');
@@ -924,9 +892,6 @@ var convert = dart.lazyImport(convert);
       }
     }
   }
-  dart.setSignature(NoSuchMethodError, {
-    methods: () => ({toString: dart.functionType(String, [])})
-  });
   class UnsupportedError extends Error {
     UnsupportedError(message) {
       this.message = message;
@@ -936,9 +901,6 @@ var convert = dart.lazyImport(convert);
       return `Unsupported operation: ${this.message}`;
     }
   }
-  dart.setSignature(UnsupportedError, {
-    methods: () => ({toString: dart.functionType(String, [])})
-  });
   class UnimplementedError extends Error {
     UnimplementedError(message) {
       if (message === void 0)
@@ -951,9 +913,6 @@ var convert = dart.lazyImport(convert);
     }
   }
   UnimplementedError[dart.implements] = () => [UnsupportedError];
-  dart.setSignature(UnimplementedError, {
-    methods: () => ({toString: dart.functionType(String, [])})
-  });
   class StateError extends Error {
     StateError(message) {
       this.message = message;
@@ -963,9 +922,6 @@ var convert = dart.lazyImport(convert);
       return `Bad state: ${this.message}`;
     }
   }
-  dart.setSignature(StateError, {
-    methods: () => ({toString: dart.functionType(String, [])})
-  });
   class ConcurrentModificationError extends Error {
     ConcurrentModificationError(modifiedObject) {
       if (modifiedObject === void 0)
@@ -980,9 +936,6 @@ var convert = dart.lazyImport(convert);
       return "Concurrent modification during iteration: " + `${Error.safeToString(this.modifiedObject)}.`;
     }
   }
-  dart.setSignature(ConcurrentModificationError, {
-    methods: () => ({toString: dart.functionType(String, [])})
-  });
   class OutOfMemoryError extends Object {
     OutOfMemoryError() {
     }
@@ -994,9 +947,6 @@ var convert = dart.lazyImport(convert);
     }
   }
   OutOfMemoryError[dart.implements] = () => [Error];
-  dart.setSignature(OutOfMemoryError, {
-    methods: () => ({toString: dart.functionType(String, [])})
-  });
   class StackOverflowError extends Object {
     StackOverflowError() {
     }
@@ -1008,9 +958,6 @@ var convert = dart.lazyImport(convert);
     }
   }
   StackOverflowError[dart.implements] = () => [Error];
-  dart.setSignature(StackOverflowError, {
-    methods: () => ({toString: dart.functionType(String, [])})
-  });
   class CyclicInitializationError extends Error {
     CyclicInitializationError(variableName) {
       if (variableName === void 0)
@@ -1022,9 +969,6 @@ var convert = dart.lazyImport(convert);
       return this.variableName == null ? "Reading static variable during its initialization" : `Reading static variable '${this.variableName}' during its initialization`;
     }
   }
-  dart.setSignature(CyclicInitializationError, {
-    methods: () => ({toString: dart.functionType(String, [])})
-  });
   class Exception extends Object {
     Exception(message) {
       if (message === void 0)
@@ -1032,7 +976,6 @@ var convert = dart.lazyImport(convert);
       return new _ExceptionImplementation(message);
     }
   }
-  dart.setSignature(Exception, {});
   class _ExceptionImplementation extends Object {
     _ExceptionImplementation(message) {
       if (message === void 0)
@@ -1046,9 +989,6 @@ var convert = dart.lazyImport(convert);
     }
   }
   _ExceptionImplementation[dart.implements] = () => [Exception];
-  dart.setSignature(_ExceptionImplementation, {
-    methods: () => ({toString: dart.functionType(String, [])})
-  });
   class FormatException extends Object {
     FormatException(message, source, offset) {
       if (message === void 0)
@@ -1138,9 +1078,6 @@ var convert = dart.lazyImport(convert);
     }
   }
   FormatException[dart.implements] = () => [Exception];
-  dart.setSignature(FormatException, {
-    methods: () => ({toString: dart.functionType(String, [])})
-  });
   class IntegerDivisionByZeroException extends Object {
     IntegerDivisionByZeroException() {
     }
@@ -1149,9 +1086,6 @@ var convert = dart.lazyImport(convert);
     }
   }
   IntegerDivisionByZeroException[dart.implements] = () => [Exception];
-  dart.setSignature(IntegerDivisionByZeroException, {
-    methods: () => ({toString: dart.functionType(String, [])})
-  });
   let _getKey = dart.JsSymbol('_getKey');
   let Expando$ = dart.generic(function(T) {
     class Expando extends Object {
@@ -1191,7 +1125,6 @@ var convert = dart.lazyImport(convert);
     }
     dart.setSignature(Expando, {
       methods: () => ({
-        toString: dart.functionType(String, []),
         get: dart.functionType(T, [Object]),
         set: dart.functionType(dart.void, [Object, T]),
         [_getKey]: dart.functionType(String, [])
@@ -1253,7 +1186,6 @@ var convert = dart.lazyImport(convert);
       return dart.notNull(this.isGetter) || dart.notNull(this.isSetter);
     }
   }
-  dart.setSignature(Invocation, {});
   let $iterator = dart.JsSymbol('$iterator');
   let $join = dart.JsSymbol('$join');
   let Iterable$ = dart.generic(function(E) {
@@ -1384,13 +1316,11 @@ var convert = dart.lazyImport(convert);
   let BidirectionalIterator$ = dart.generic(function(E) {
     class BidirectionalIterator extends Object {}
     BidirectionalIterator[dart.implements] = () => [Iterator$(E)];
-    dart.setSignature(BidirectionalIterator, {});
     return BidirectionalIterator;
   });
   let BidirectionalIterator = BidirectionalIterator$();
   let Iterator$ = dart.generic(function(E) {
     class Iterator extends Object {}
-    dart.setSignature(Iterator, {});
     return Iterator;
   });
   let Iterator = Iterator$();
@@ -1831,7 +1761,6 @@ var convert = dart.lazyImport(convert);
         [$any]: dart.functionType(bool, [dart.functionType(bool, [E])]),
         [$every]: dart.functionType(bool, [dart.functionType(bool, [E])]),
         [$contains]: dart.functionType(bool, [Object]),
-        [$toString]: dart.functionType(String, []),
         [$toList]: dart.functionType(List$(E), [], {rowabl: bool}),
         [$toSet]: dart.functionType(exports.Set$(E), []),
         [$get]: dart.functionType(E, [int]),
@@ -1886,7 +1815,6 @@ var convert = dart.lazyImport(convert);
     dart.defineNamedConstructor(Map, 'identity');
     dart.defineNamedConstructor(Map, 'fromIterable');
     dart.defineNamedConstructor(Map, 'fromIterables');
-    dart.setSignature(Map, {});
     return Map;
   });
   let Map = Map$();
@@ -1899,12 +1827,8 @@ var convert = dart.lazyImport(convert);
     }
   }
   dart.defineNamedConstructor(Null, '_uninstantiable');
-  dart.setSignature(Null, {
-    methods: () => ({toString: dart.functionType(String, [])})
-  });
   num._parseError = false;
   class Pattern extends Object {}
-  dart.setSignature(Pattern, {});
   function print(object) {
     let line = `${object}`;
     if (_internal.printToZone == null) {
@@ -1915,7 +1839,6 @@ var convert = dart.lazyImport(convert);
   }
   dart.fn(print, dart.void, [Object]);
   class Match extends Object {}
-  dart.setSignature(Match, {});
   class RegExp extends Object {
     RegExp(source, opts) {
       let multiLine = opts && 'multiLine' in opts ? opts.multiLine : false;
@@ -1924,7 +1847,6 @@ var convert = dart.lazyImport(convert);
     }
   }
   RegExp[dart.implements] = () => [Pattern];
-  dart.setSignature(RegExp, {});
   let Set$ = dart.generic(function(E) {
     class Set extends collection.IterableBase$(E) {
       Set() {
@@ -1940,18 +1862,15 @@ var convert = dart.lazyImport(convert);
     Set[dart.implements] = () => [_internal.EfficientLength];
     dart.defineNamedConstructor(Set, 'identity');
     dart.defineNamedConstructor(Set, 'from');
-    dart.setSignature(Set, {});
     return Set;
   });
   dart.defineLazyClassGeneric(exports, 'Set', {get: Set$});
   let Sink$ = dart.generic(function(T) {
     class Sink extends Object {}
-    dart.setSignature(Sink, {});
     return Sink;
   });
   let Sink = Sink$();
   class StackTrace extends Object {}
-  dart.setSignature(StackTrace, {});
   let _stop = dart.JsSymbol('_stop');
   class Stopwatch extends Object {
     get frequency() {
@@ -2115,7 +2034,6 @@ var convert = dart.lazyImport(convert);
           return code;
         }
       }
-      dart.setSignature(Runes, {});
       return Runes;
     }
   });
@@ -2300,20 +2218,16 @@ var convert = dart.lazyImport(convert);
       writeAll: dart.functionType(dart.void, [Iterable], [String]),
       writeln: dart.functionType(dart.void, [], [Object]),
       clear: dart.functionType(dart.void, []),
-      toString: dart.functionType(String, []),
       [_writeString]: dart.functionType(dart.void, [dart.dynamic])
     })
   });
   class StringSink extends Object {}
-  dart.setSignature(StringSink, {});
   class Symbol extends Object {
     Symbol(name) {
       return new _internal.Symbol(name);
     }
   }
-  dart.setSignature(Symbol, {});
   class Type extends Object {}
-  dart.setSignature(Type, {});
   let _writeAuthority = dart.JsSymbol('_writeAuthority');
   let _userInfo = dart.JsSymbol('_userInfo');
   let _host = dart.JsSymbol('_host');
@@ -3590,9 +3504,7 @@ var convert = dart.lazyImport(convert);
       toFilePath: dart.functionType(String, [], {indow: bool}),
       [_toFilePath]: dart.functionType(String, []),
       [_toWindowsFilePath]: dart.functionType(String, []),
-      [_writeAuthority]: dart.functionType(dart.void, [StringSink]),
-      toString: dart.functionType(String, []),
-      '==': dart.functionType(bool, [dart.dynamic])
+      [_writeAuthority]: dart.functionType(dart.void, [StringSink])
     }),
     statics: () => ({
       _defaultPort: dart.functionType(int, [String]),
@@ -3694,12 +3606,10 @@ var convert = dart.lazyImport(convert);
     SupportJsExtensionMethods() {
     }
   }
-  dart.setSignature(SupportJsExtensionMethods, {});
   class _ListConstructorSentinel extends Object {
     _ListConstructorSentinel() {
     }
   }
-  dart.setSignature(_ListConstructorSentinel, {});
   // Exports:
   exports.Object = Object;
   exports.JsName = JsName;

@@ -100,7 +100,6 @@ var math = dart.lazyImport(math);
     dart.defineNamedConstructor(HashMap, 'from');
     dart.defineNamedConstructor(HashMap, 'fromIterable');
     dart.defineNamedConstructor(HashMap, 'fromIterables');
-    dart.setSignature(HashMap, {});
     return HashMap;
   });
   let HashMap = HashMap$();
@@ -388,7 +387,6 @@ var math = dart.lazyImport(math);
         difference: dart.functionType(core.Set$(E), [core.Set$(core.Object)]),
         [core.$toList]: dart.functionType(core.List$(E), [], {rowabl: core.bool}),
         [core.$map]: dart.functionType(core.Iterable, [dart.functionType(dart.dynamic, [E])]),
-        toString: dart.functionType(core.String, []),
         [core.$where]: dart.functionType(core.Iterable$(E), [dart.functionType(core.bool, [E])]),
         [core.$expand]: dart.functionType(core.Iterable, [dart.functionType(core.Iterable, [E])]),
         [core.$forEach]: dart.functionType(dart.void, [dart.functionType(dart.void, [E])]),
@@ -506,7 +504,6 @@ var math = dart.lazyImport(math);
     HashSet[dart.implements] = () => [core.Set$(E)];
     dart.defineNamedConstructor(HashSet, 'identity');
     dart.defineNamedConstructor(HashSet, 'from');
-    dart.setSignature(HashSet, {});
     return HashSet;
   });
   let HashSet = HashSet$();
@@ -742,8 +739,7 @@ var math = dart.lazyImport(math);
         [core.$firstWhere]: dart.functionType(E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}),
         [core.$lastWhere]: dart.functionType(E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}),
         [core.$singleWhere]: dart.functionType(E, [dart.functionType(core.bool, [E])]),
-        [core.$elementAt]: dart.functionType(E, [core.int]),
-        toString: dart.functionType(core.String, [])
+        [core.$elementAt]: dart.functionType(E, [core.int])
       })
     });
     return IterableMixin;
@@ -1113,8 +1109,7 @@ var math = dart.lazyImport(math);
         [core.$firstWhere]: dart.functionType(E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}),
         [core.$lastWhere]: dart.functionType(E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}),
         [core.$singleWhere]: dart.functionType(E, [dart.functionType(core.bool, [E])]),
-        [core.$elementAt]: dart.functionType(E, [core.int]),
-        toString: dart.functionType(core.String, [])
+        [core.$elementAt]: dart.functionType(E, [core.int])
       }),
       statics: () => ({
         iterableToShortString: dart.functionType(core.String, [core.Iterable], [core.String, core.String]),
@@ -1240,7 +1235,6 @@ var math = dart.lazyImport(math);
     dart.defineNamedConstructor(LinkedHashMap, 'fromIterables');
     dart.defineNamedConstructor(LinkedHashMap, '_literal');
     dart.defineNamedConstructor(LinkedHashMap, '_empty');
-    dart.setSignature(LinkedHashMap, {});
     return LinkedHashMap;
   });
   let LinkedHashMap = LinkedHashMap$();
@@ -1291,7 +1285,6 @@ var math = dart.lazyImport(math);
     LinkedHashSet[dart.implements] = () => [HashSet$(E)];
     dart.defineNamedConstructor(LinkedHashSet, 'identity');
     dart.defineNamedConstructor(LinkedHashSet, 'from');
-    dart.setSignature(LinkedHashSet, {});
     return LinkedHashSet;
   });
   let LinkedHashSet = LinkedHashSet$();
@@ -1462,7 +1455,6 @@ var math = dart.lazyImport(math);
       this[_previous] = null;
     }
   }
-  dart.setSignature(_LinkedListLink, {});
   let LinkedListEntry$ = dart.generic(function(E) {
     class LinkedListEntry extends core.Object {
       LinkedListEntry() {
@@ -2034,8 +2026,7 @@ var math = dart.lazyImport(math);
         [core.$insert]: dart.functionType(dart.void, [core.int, E]),
         [core.$removeAt]: dart.functionType(E, [core.int]),
         [core.$insertAll]: dart.functionType(dart.void, [core.int, core.Iterable$(E)]),
-        [core.$setAll]: dart.functionType(dart.void, [core.int, core.Iterable$(E)]),
-        [core.$toString]: dart.functionType(core.String, [])
+        [core.$setAll]: dart.functionType(dart.void, [core.int, core.Iterable$(E)])
       }),
       statics: () => ({_filter: dart.functionType(dart.void, [core.List, dart.functionType(core.bool, [dart.dynamic]), core.bool])}),
       names: ['_filter']
@@ -2111,8 +2102,7 @@ var math = dart.lazyImport(math);
         addAll: dart.functionType(dart.void, [core.Map$(K, V)]),
         containsValue: dart.functionType(core.bool, [core.Object]),
         putIfAbsent: dart.functionType(V, [K, dart.functionType(V, [])]),
-        containsKey: dart.functionType(core.bool, [core.Object]),
-        toString: dart.functionType(core.String, [])
+        containsKey: dart.functionType(core.bool, [core.Object])
       })
     });
     return MapMixin;
@@ -2194,7 +2184,6 @@ var math = dart.lazyImport(math);
       }
     }
     _MapBaseValueIterable[dart.implements] = () => [_internal.EfficientLength];
-    dart.setSignature(_MapBaseValueIterable, {});
     return _MapBaseValueIterable;
   });
   let _MapBaseValueIterable = _MapBaseValueIterable$();
@@ -2293,8 +2282,7 @@ var math = dart.lazyImport(math);
         containsKey: dart.functionType(core.bool, [core.Object]),
         containsValue: dart.functionType(core.bool, [core.Object]),
         forEach: dart.functionType(dart.void, [dart.functionType(dart.void, [K, V])]),
-        remove: dart.functionType(V, [core.Object]),
-        toString: dart.functionType(core.String, [])
+        remove: dart.functionType(V, [core.Object])
       })
     });
     return MapView;
@@ -2436,7 +2424,6 @@ var math = dart.lazyImport(math);
     }
     Queue[dart.implements] = () => [core.Iterable$(E), _internal.EfficientLength];
     dart.defineNamedConstructor(Queue, 'from');
-    dart.setSignature(Queue, {});
     return Queue;
   });
   let Queue = Queue$();
@@ -2677,8 +2664,7 @@ var math = dart.lazyImport(math);
         lastEntry: dart.functionType(DoubleLinkedQueueEntry$(E), []),
         firstEntry: dart.functionType(DoubleLinkedQueueEntry$(E), []),
         clear: dart.functionType(dart.void, []),
-        forEachEntry: dart.functionType(dart.void, [dart.functionType(dart.void, [DoubleLinkedQueueEntry$(E)])]),
-        toString: dart.functionType(core.String, [])
+        forEachEntry: dart.functionType(dart.void, [dart.functionType(dart.void, [DoubleLinkedQueueEntry$(E)])])
       })
     });
     return DoubleLinkedQueue;
@@ -3021,7 +3007,6 @@ var math = dart.lazyImport(math);
         removeWhere: dart.functionType(dart.void, [dart.functionType(core.bool, [E])]),
         retainWhere: dart.functionType(dart.void, [dart.functionType(core.bool, [E])]),
         clear: dart.functionType(dart.void, []),
-        toString: dart.functionType(core.String, []),
         addLast: dart.functionType(dart.void, [E]),
         addFirst: dart.functionType(dart.void, [E]),
         removeFirst: dart.functionType(E, []),
@@ -3089,7 +3074,6 @@ var math = dart.lazyImport(math);
         this.right = null;
       }
     }
-    dart.setSignature(_SplayTreeNode, {});
     return _SplayTreeNode;
   });
   let _SplayTreeNode = _SplayTreeNode$();
@@ -3100,7 +3084,6 @@ var math = dart.lazyImport(math);
         super._SplayTreeNode(key);
       }
     }
-    dart.setSignature(_SplayTreeMapNode, {});
     return _SplayTreeMapNode;
   });
   let _SplayTreeMapNode = _SplayTreeMapNode$();
@@ -3501,7 +3484,6 @@ var math = dart.lazyImport(math);
         clear: dart.functionType(dart.void, []),
         containsKey: dart.functionType(core.bool, [core.Object]),
         containsValue: dart.functionType(core.bool, [core.Object]),
-        toString: dart.functionType(core.String, []),
         firstKey: dart.functionType(K, []),
         lastKey: dart.functionType(K, []),
         lastKeyBefore: dart.functionType(K, [K]),
@@ -3641,7 +3623,6 @@ var math = dart.lazyImport(math);
       }
     }
     _SplayTreeValueIterable[dart.implements] = () => [_internal.EfficientLength];
-    dart.setSignature(_SplayTreeValueIterable, {});
     return _SplayTreeValueIterable;
   });
   let _SplayTreeValueIterable = _SplayTreeValueIterable$();
@@ -3861,17 +3842,13 @@ var math = dart.lazyImport(math);
         add: dart.functionType(core.bool, [E]),
         remove: dart.functionType(core.bool, [core.Object]),
         addAll: dart.functionType(dart.void, [core.Iterable$(E)]),
-        removeAll: dart.functionType(dart.void, [core.Iterable$(core.Object)]),
-        retainAll: dart.functionType(dart.void, [core.Iterable$(core.Object)]),
         lookup: dart.functionType(E, [core.Object]),
         intersection: dart.functionType(core.Set$(E), [core.Set$(core.Object)]),
         difference: dart.functionType(core.Set$(E), [core.Set$(core.Object)]),
         union: dart.functionType(core.Set$(E), [core.Set$(E)]),
         [_clone]: dart.functionType(SplayTreeSet$(E), []),
         [_copyNode]: dart.functionType(_SplayTreeNode$(E), [_SplayTreeNode$(E)]),
-        clear: dart.functionType(dart.void, []),
-        [core.$toSet]: dart.functionType(core.Set$(E), []),
-        toString: dart.functionType(core.String, [])
+        [core.$toSet]: dart.functionType(core.Set$(E), [])
       })
     });
     return SplayTreeSet;
@@ -4222,12 +4199,6 @@ var math = dart.lazyImport(math);
         return -1;
       }
     }
-    dart.setSignature(_IdentityHashMap, {
-      methods: () => ({
-        [_computeHashCode]: dart.functionType(core.int, [dart.dynamic]),
-        [_findBucketIndex]: dart.functionType(core.int, [dart.dynamic, dart.dynamic])
-      })
-    });
     return _IdentityHashMap;
   });
   let _IdentityHashMap = _IdentityHashMap$();
@@ -4282,11 +4253,7 @@ var math = dart.lazyImport(math);
       methods: () => ({
         get: dart.functionType(V, [core.Object]),
         set: dart.functionType(dart.void, [K, V]),
-        containsKey: dart.functionType(core.bool, [core.Object]),
-        remove: dart.functionType(V, [core.Object]),
-        [_computeHashCode]: dart.functionType(core.int, [dart.dynamic]),
-        [_findBucketIndex]: dart.functionType(core.int, [dart.dynamic, dart.dynamic]),
-        toString: dart.functionType(core.String, [])
+        remove: dart.functionType(V, [core.Object])
       })
     });
     return _CustomHashMap;
@@ -4323,10 +4290,7 @@ var math = dart.lazyImport(math);
     }
     HashMapKeyIterable[dart.implements] = () => [_internal.EfficientLength];
     dart.setSignature(HashMapKeyIterable, {
-      methods: () => ({
-        [core.$contains]: dart.functionType(core.bool, [core.Object]),
-        [core.$forEach]: dart.functionType(dart.void, [dart.functionType(dart.void, [E])])
-      })
+      methods: () => ({[core.$forEach]: dart.functionType(dart.void, [dart.functionType(dart.void, [E])])})
     });
     return HashMapKeyIterable;
   });
@@ -4672,8 +4636,7 @@ var math = dart.lazyImport(math);
         [_unlinkCell]: dart.functionType(dart.void, [LinkedHashMapCell]),
         [_computeHashCode]: dart.functionType(core.int, [dart.dynamic]),
         [_getBucket]: dart.functionType(core.List, [dart.dynamic, dart.dynamic]),
-        [_findBucketIndex]: dart.functionType(core.int, [dart.dynamic, dart.dynamic]),
-        toString: dart.functionType(core.String, [])
+        [_findBucketIndex]: dart.functionType(core.int, [dart.dynamic, dart.dynamic])
       }),
       statics: () => ({
         _isStringKey: dart.functionType(core.bool, [dart.dynamic]),
@@ -4708,12 +4671,6 @@ var math = dart.lazyImport(math);
         return -1;
       }
     }
-    dart.setSignature(_LinkedIdentityHashMap, {
-      methods: () => ({
-        [_computeHashCode]: dart.functionType(core.int, [dart.dynamic]),
-        [_findBucketIndex]: dart.functionType(core.int, [dart.dynamic, dart.dynamic])
-      })
-    });
     return _LinkedIdentityHashMap;
   });
   let _LinkedIdentityHashMap = _LinkedIdentityHashMap$();
@@ -4764,10 +4721,7 @@ var math = dart.lazyImport(math);
       methods: () => ({
         get: dart.functionType(V, [core.Object]),
         set: dart.functionType(dart.void, [K, V]),
-        containsKey: dart.functionType(core.bool, [core.Object]),
-        remove: dart.functionType(V, [core.Object]),
-        [_computeHashCode]: dart.functionType(core.int, [dart.dynamic]),
-        [_findBucketIndex]: dart.functionType(core.int, [dart.dynamic, dart.dynamic])
+        remove: dart.functionType(V, [core.Object])
       })
     });
     return _LinkedCustomHashMap;
@@ -4781,7 +4735,6 @@ var math = dart.lazyImport(math);
       this[_previous] = null;
     }
   }
-  dart.setSignature(LinkedHashMapCell, {});
   let LinkedHashMapKeyIterable$ = dart.generic(function(E) {
     class LinkedHashMapKeyIterable extends IterableBase$(E) {
       LinkedHashMapKeyIterable(map) {
@@ -4815,10 +4768,7 @@ var math = dart.lazyImport(math);
     }
     LinkedHashMapKeyIterable[dart.implements] = () => [_internal.EfficientLength];
     dart.setSignature(LinkedHashMapKeyIterable, {
-      methods: () => ({
-        [core.$contains]: dart.functionType(core.bool, [core.Object]),
-        [core.$forEach]: dart.functionType(dart.void, [dart.functionType(dart.void, [E])])
-      })
+      methods: () => ({[core.$forEach]: dart.functionType(dart.void, [dart.functionType(dart.void, [E])])})
     });
     return LinkedHashMapKeyIterable;
   });
@@ -5103,7 +5053,6 @@ var math = dart.lazyImport(math);
         addAll: dart.functionType(dart.void, [core.Iterable$(E)]),
         remove: dart.functionType(core.bool, [core.Object]),
         [_remove]: dart.functionType(core.bool, [core.Object]),
-        clear: dart.functionType(dart.void, []),
         [_computeElements]: dart.functionType(core.List, []),
         [_addHashTableEntry]: dart.functionType(core.bool, [dart.dynamic, E]),
         [_removeHashTableEntry]: dart.functionType(core.bool, [dart.dynamic, core.Object]),
@@ -5147,11 +5096,7 @@ var math = dart.lazyImport(math);
       }
     }
     dart.setSignature(_IdentityHashSet, {
-      methods: () => ({
-        [_newSet]: dart.functionType(core.Set$(E), []),
-        [_computeHashCode]: dart.functionType(core.int, [dart.dynamic]),
-        [_findBucketIndex]: dart.functionType(core.int, [dart.dynamic, dart.dynamic])
-      })
+      methods: () => ({[_newSet]: dart.functionType(core.Set$(E), [])})
     });
     return _IdentityHashSet;
   });
@@ -5205,12 +5150,8 @@ var math = dart.lazyImport(math);
     dart.setSignature(_CustomHashSet, {
       methods: () => ({
         [_newSet]: dart.functionType(core.Set$(E), []),
-        [_findBucketIndex]: dart.functionType(core.int, [dart.dynamic, dart.dynamic]),
-        [_computeHashCode]: dart.functionType(core.int, [dart.dynamic]),
         add: dart.functionType(core.bool, [E]),
-        [core.$contains]: dart.functionType(core.bool, [core.Object]),
-        lookup: dart.functionType(E, [core.Object]),
-        remove: dart.functionType(core.bool, [core.Object])
+        lookup: dart.functionType(E, [core.Object])
       })
     });
     return _CustomHashSet;
@@ -5541,7 +5482,6 @@ var math = dart.lazyImport(math);
         removeWhere: dart.functionType(dart.void, [dart.functionType(core.bool, [E])]),
         retainWhere: dart.functionType(dart.void, [dart.functionType(core.bool, [E])]),
         [_filterWhere]: dart.functionType(dart.void, [dart.functionType(core.bool, [E]), core.bool]),
-        clear: dart.functionType(dart.void, []),
         [_addHashTableEntry]: dart.functionType(core.bool, [dart.dynamic, E]),
         [_removeHashTableEntry]: dart.functionType(core.bool, [dart.dynamic, core.Object]),
         [_modified]: dart.functionType(dart.void, []),
@@ -5588,11 +5528,7 @@ var math = dart.lazyImport(math);
       }
     }
     dart.setSignature(_LinkedIdentityHashSet, {
-      methods: () => ({
-        [_newSet]: dart.functionType(core.Set$(E), []),
-        [_computeHashCode]: dart.functionType(core.int, [dart.dynamic]),
-        [_findBucketIndex]: dart.functionType(core.int, [dart.dynamic, dart.dynamic])
-      })
+      methods: () => ({[_newSet]: dart.functionType(core.Set$(E), [])})
     });
     return _LinkedIdentityHashSet;
   });
@@ -5659,14 +5595,8 @@ var math = dart.lazyImport(math);
     dart.setSignature(_LinkedCustomHashSet, {
       methods: () => ({
         [_newSet]: dart.functionType(core.Set$(E), []),
-        [_findBucketIndex]: dart.functionType(core.int, [dart.dynamic, dart.dynamic]),
-        [_computeHashCode]: dart.functionType(core.int, [dart.dynamic]),
         add: dart.functionType(core.bool, [E]),
-        [core.$contains]: dart.functionType(core.bool, [core.Object]),
-        lookup: dart.functionType(E, [core.Object]),
-        remove: dart.functionType(core.bool, [core.Object]),
-        containsAll: dart.functionType(core.bool, [core.Iterable$(core.Object)]),
-        removeAll: dart.functionType(dart.void, [core.Iterable$(core.Object)])
+        lookup: dart.functionType(E, [core.Object])
       })
     });
     return _LinkedCustomHashSet;
@@ -5679,7 +5609,6 @@ var math = dart.lazyImport(math);
       this[_previous] = null;
     }
   }
-  dart.setSignature(LinkedHashSetCell, {});
   let LinkedHashSetIterator$ = dart.generic(function(E) {
     class LinkedHashSetIterator extends core.Object {
       LinkedHashSetIterator(set, modifications) {

@@ -30,7 +30,6 @@ var core = dart.import(core);
     names: ['callee']
   });
   class Frame2 extends core.Object {}
-  dart.setSignature(Frame2, {});
   dart.defineLazyProperties(Frame2, {
     get caller() {
       return 100;

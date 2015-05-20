@@ -16,9 +16,6 @@ var core = dart.import(core);
       projectionTest(100);
     }
   }
-  dart.setSignature(DeltaBlue, {
-    methods: () => ({run: dart.functionType(dart.void, [])})
-  });
   class Strength extends core.Object {
     Strength(value, name) {
       this.value = value;
@@ -172,10 +169,7 @@ var core = dart.import(core);
     execute() {}
   }
   dart.setSignature(EditConstraint, {
-    methods: () => ({
-      isInput: dart.functionType(core.bool, []),
-      execute: dart.functionType(dart.void, [])
-    })
+    methods: () => ({execute: dart.functionType(dart.void, [])})
   });
   let NONE = 1;
   let FORWARD = 2;
@@ -292,13 +286,7 @@ var core = dart.import(core);
     }
   }
   dart.setSignature(ScaleConstraint, {
-    methods: () => ({
-      addToGraph: dart.functionType(dart.void, []),
-      removeFromGraph: dart.functionType(dart.void, []),
-      markInputs: dart.functionType(dart.void, [core.int]),
-      execute: dart.functionType(dart.void, []),
-      recalculate: dart.functionType(dart.void, [])
-    })
+    methods: () => ({execute: dart.functionType(dart.void, [])})
   });
   class EqualityConstraint extends BinaryConstraint {
     EqualityConstraint(v1, v2, strength) {

@@ -55,7 +55,6 @@ var core = dart.import(core);
       this.radius = radius;
     }
   }
-  dart.setSignature(Circle, {});
   class CirclePainter extends core.Object {
     CirclePainter() {
       this.color = ORANGE;
@@ -84,7 +83,6 @@ var core = dart.import(core);
         this.color = color;
     }
   }
-  dart.setSignature(SunflowerSeed, {});
   // Exports:
   exports.ORANGE = ORANGE;
   exports.SEED_RADIUS = SEED_RADIUS;

@@ -1465,7 +1465,6 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeFloat32x4, '_truncated');
   dart.setSignature(NativeFloat32x4, {
     methods: () => ({
-      toString: dart.functionType(core.String, []),
       '+': dart.functionType(typed_data.Float32x4, [typed_data.Float32x4]),
       'unary-': dart.functionType(typed_data.Float32x4, []),
       '-': dart.functionType(typed_data.Float32x4, [typed_data.Float32x4]),
@@ -1683,7 +1682,6 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeInt32x4, '_truncated');
   dart.setSignature(NativeInt32x4, {
     methods: () => ({
-      toString: dart.functionType(core.String, []),
       '|': dart.functionType(typed_data.Int32x4, [typed_data.Int32x4]),
       '&': dart.functionType(typed_data.Int32x4, [typed_data.Int32x4]),
       '^': dart.functionType(typed_data.Int32x4, [typed_data.Int32x4]),
@@ -1804,7 +1802,6 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeFloat64x2, '_doubles');
   dart.setSignature(NativeFloat64x2, {
     methods: () => ({
-      toString: dart.functionType(core.String, []),
       '+': dart.functionType(typed_data.Float64x2, [typed_data.Float64x2]),
       'unary-': dart.functionType(typed_data.Float64x2, []),
       '-': dart.functionType(typed_data.Float64x2, [typed_data.Float64x2]),

@@ -33,7 +33,6 @@ var core = dart.import(core);
   }
   dart.fn(JS_CURRENT_ISOLATE_CONTEXT, () => dart.functionType(IsolateContext, []));
   class IsolateContext extends core.Object {}
-  dart.setSignature(IsolateContext, {});
   function JS_CALL_IN_ISOLATE(isolate, func) {
   }
   dart.fn(JS_CALL_IN_ISOLATE, dart.dynamic, [dart.dynamic, core.Function]);
@@ -118,7 +117,6 @@ var core = dart.import(core);
       this.code = code;
     }
   }
-  dart.setSignature(JS_CONST, {});
   function JS_STRING_CONCAT(a, b) {
     return a + b;
   }

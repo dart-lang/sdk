@@ -24,7 +24,6 @@ var core = dart.import(core);
       this.x = 100;
     }
   }
-  dart.setSignature(Foo, {});
   function main() {
     let f = dart.map([0, 40]);
     core.print('should only call "index" 2 times:');

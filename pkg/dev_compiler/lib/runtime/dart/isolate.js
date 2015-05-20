@@ -9,7 +9,6 @@ var async = dart.import(async);
       return new _isolate_helper.CapabilityImpl();
     }
   }
-  dart.setSignature(Capability, {});
   class IsolateSpawnException extends core.Object {
     IsolateSpawnException(message) {
       this.message = message;
@@ -19,9 +18,6 @@ var async = dart.import(async);
     }
   }
   IsolateSpawnException[dart.implements] = () => [core.Exception];
-  dart.setSignature(IsolateSpawnException, {
-    methods: () => ({toString: dart.functionType(core.String, [])})
-  });
   let _pause = Symbol('_pause');
   class Isolate extends core.Object {
     Isolate(controlPort, opts) {
@@ -182,7 +178,6 @@ var async = dart.import(async);
   });
   class SendPort extends core.Object {}
   SendPort[dart.implements] = () => [Capability];
-  dart.setSignature(SendPort, {});
   class ReceivePort extends core.Object {
     ReceivePort() {
       return new _isolate_helper.ReceivePortImpl();
@@ -193,7 +188,6 @@ var async = dart.import(async);
   }
   ReceivePort[dart.implements] = () => [async.Stream];
   dart.defineNamedConstructor(ReceivePort, 'fromRawReceivePort');
-  dart.setSignature(ReceivePort, {});
   class RawReceivePort extends core.Object {
     RawReceivePort(handler) {
       if (handler === void 0)
@@ -201,7 +195,6 @@ var async = dart.import(async);
       return new _isolate_helper.RawReceivePortImpl(handler);
     }
   }
-  dart.setSignature(RawReceivePort, {});
   class _IsolateUnhandledException extends core.Object {
     _IsolateUnhandledException(message, source, stackTrace) {
       this.message = message;
@@ -213,9 +206,6 @@ var async = dart.import(async);
     }
   }
   _IsolateUnhandledException[dart.implements] = () => [core.Exception];
-  dart.setSignature(_IsolateUnhandledException, {
-    methods: () => ({toString: dart.functionType(core.String, [])})
-  });
   let _description = Symbol('_description');
   class RemoteError extends core.Object {
     RemoteError(description, stackDescription) {
@@ -227,9 +217,6 @@ var async = dart.import(async);
     }
   }
   RemoteError[dart.implements] = () => [core.Error];
-  dart.setSignature(RemoteError, {
-    methods: () => ({toString: dart.functionType(core.String, [])})
-  });
   let _trace = Symbol('_trace');
   class _RemoteStackTrace extends core.Object {
     _RemoteStackTrace(trace) {
@@ -240,9 +227,6 @@ var async = dart.import(async);
     }
   }
   _RemoteStackTrace[dart.implements] = () => [core.StackTrace];
-  dart.setSignature(_RemoteStackTrace, {
-    methods: () => ({toString: dart.functionType(core.String, [])})
-  });
   // Exports:
   exports.Capability = Capability;
   exports.IsolateSpawnException = IsolateSpawnException;

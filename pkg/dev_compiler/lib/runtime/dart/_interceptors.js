@@ -14,19 +14,16 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       }
     }
     JSMutableArray[dart.implements] = () => [JSMutableIndexable];
-    dart.setSignature(JSMutableArray, {});
     return JSMutableArray;
   });
   let JSMutableArray = JSMutableArray$();
   let JSFixedArray$ = dart.generic(function(E) {
     class JSFixedArray extends JSMutableArray$(E) {}
-    dart.setSignature(JSFixedArray, {});
     return JSFixedArray;
   });
   let JSFixedArray = JSFixedArray$();
   let JSExtendableArray$ = dart.generic(function(E) {
     class JSExtendableArray extends JSMutableArray$(E) {}
-    dart.setSignature(JSExtendableArray, {});
     return JSExtendableArray;
   });
   let JSExtendableArray = JSExtendableArray$();
@@ -50,11 +47,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }
   }
   dart.setSignature(Interceptor, {
-    methods: () => ({
-      '==': dart.functionType(core.bool, [core.Object]),
-      toString: dart.functionType(core.String, []),
-      noSuchMethod: dart.functionType(dart.dynamic, [core.Invocation])
-    })
+    methods: () => ({'==': dart.functionType(core.bool, [core.Object])})
   });
   let _isInt32 = Symbol('_isInt32');
   let _tdivFast = Symbol('_tdivFast');
@@ -389,7 +382,6 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       toStringAsExponential: dart.functionType(core.String, [], [core.int]),
       toStringAsPrecision: dart.functionType(core.String, [core.int]),
       toRadixString: dart.functionType(core.String, [core.int]),
-      toString: dart.functionType(core.String, []),
       'unary-': dart.functionType(core.num, []),
       '+': dart.functionType(core.num, [core.num]),
       '-': dart.functionType(core.num, [core.num]),
@@ -501,17 +493,13 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }
   }
   JSDouble[dart.implements] = () => [core.double];
-  dart.setSignature(JSDouble, {});
   class JSPositiveInt extends JSInt {
     JSPositiveInt() {
       super.JSInt();
     }
   }
-  dart.setSignature(JSPositiveInt, {});
   class JSUInt32 extends JSPositiveInt {}
-  dart.setSignature(JSUInt32, {});
   class JSUInt31 extends JSUInt32 {}
-  dart.setSignature(JSUInt31, {});
   let _defaultSplit = Symbol('_defaultSplit');
   class JSString extends Interceptor {
     JSString() {
@@ -958,7 +946,6 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       lastIndexOf: dart.functionType(core.int, [core.Pattern], [core.int]),
       contains: dart.functionType(core.bool, [core.Pattern], [core.int]),
       compareTo: dart.functionType(core.int, [core.String]),
-      toString: dart.functionType(core.String, []),
       get: dart.functionType(core.String, [core.int])
     }),
     statics: () => ({
@@ -1122,9 +1109,6 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }
   }
   JSBool[dart.implements] = () => [core.bool];
-  dart.setSignature(JSBool, {
-    methods: () => ({toString: dart.functionType(core.String, [])})
-  });
   class JSNull extends Interceptor {
     JSNull() {
       super.Interceptor();
@@ -1147,18 +1131,11 @@ var _js_embedded_names = dart.import(_js_embedded_names);
   }
   JSNull[dart.implements] = () => [core.Null];
   dart.setSignature(JSNull, {
-    methods: () => ({
-      '==': dart.functionType(core.bool, [dart.dynamic]),
-      toString: dart.functionType(core.String, []),
-      noSuchMethod: dart.functionType(dart.dynamic, [core.Invocation])
-    })
+    methods: () => ({'==': dart.functionType(core.bool, [dart.dynamic])})
   });
   class JSIndexable extends core.Object {}
-  dart.setSignature(JSIndexable, {});
   class JSMutableIndexable extends JSIndexable {}
-  dart.setSignature(JSMutableIndexable, {});
   class JSObject extends core.Object {}
-  dart.setSignature(JSObject, {});
   class JavaScriptObject extends Interceptor {
     JavaScriptObject() {
       super.Interceptor();
@@ -1171,13 +1148,11 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }
   }
   JavaScriptObject[dart.implements] = () => [JSObject];
-  dart.setSignature(JavaScriptObject, {});
   class PlainJavaScriptObject extends JavaScriptObject {
     PlainJavaScriptObject() {
       super.JavaScriptObject();
     }
   }
-  dart.setSignature(PlainJavaScriptObject, {});
   class UnknownJavaScriptObject extends JavaScriptObject {
     UnknownJavaScriptObject() {
       super.JavaScriptObject();
@@ -1186,9 +1161,6 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       return String(this);
     }
   }
-  dart.setSignature(UnknownJavaScriptObject, {
-    methods: () => ({toString: dart.functionType(core.String, [])})
-  });
   // Exports:
   exports.JSArray = JSArray;
   exports.JSMutableArray$ = JSMutableArray$;
