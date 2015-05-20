@@ -8,6 +8,7 @@ import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart' show CacheState;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -162,6 +163,7 @@ class C = B with M;
 @reflectiveTest
 class BuildCompilationUnitElementTaskTest extends _AbstractDartTaskTest {
   Source source;
+  LibrarySpecificUnit target;
 
   test_buildInputs() {
     LibrarySpecificUnit target =
@@ -244,9 +246,28 @@ class B = Object with A;
     expect(outputs[COMPILATION_UNIT_CONSTANTS], isNotNull);
   }
 
+  test_perform_reuseElement() {
+    _performBuildTask(r'''
+library lib;
+class A {}
+class B = Object with A;
+''');
+    CompilationUnit unit = outputs[RESOLVED_UNIT1];
+    CompilationUnitElement unitElement = outputs[COMPILATION_UNIT_ELEMENT];
+    expect(unit, isNotNull);
+    expect(unitElement, isNotNull);
+    // invalidate RESOLVED_UNIT1
+    CacheEntry cacheEntry = analysisCache.get(target);
+    cacheEntry.setState(RESOLVED_UNIT1, CacheState.INVALID);
+    // compute again
+    _computeResult(target, RESOLVED_UNIT1);
+    expect(outputs[COMPILATION_UNIT_ELEMENT], same(unitElement));
+    expect(outputs[RESOLVED_UNIT1], isNot(same(unit)));
+  }
+
   void _performBuildTask(String content) {
     source = newSource('/test.dart', content);
-    AnalysisTarget target = new LibrarySpecificUnit(source, source);
+    target = new LibrarySpecificUnit(source, source);
     _computeResult(target, RESOLVED_UNIT1);
     expect(task, new isInstanceOf<BuildCompilationUnitElementTask>());
   }

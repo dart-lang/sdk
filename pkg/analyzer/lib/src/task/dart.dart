@@ -7,10 +7,12 @@ library analyzer.src.task.dart;
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
+import 'package:analyzer/src/generated/engine.dart'
+    hide AnalysisCache, AnalysisTask;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -668,12 +670,23 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     Source source = getRequiredSource();
     CompilationUnit unit = getRequiredInput(PARSED_UNIT_INPUT_NAME);
     //
-    // Process inputs.
+    // Build or reuse CompilationUnitElement.
     //
     unit = AstCloner.clone(unit);
-    CompilationUnitBuilder builder = new CompilationUnitBuilder();
+    AnalysisCache analysisCache =
+        (context as InternalAnalysisContext).analysisCache;
     CompilationUnitElement element =
-        builder.buildCompilationUnit(source, unit, librarySpecificUnit.library);
+        analysisCache.getValue(target, COMPILATION_UNIT_ELEMENT);
+    if (element == null) {
+      CompilationUnitBuilder builder = new CompilationUnitBuilder();
+      element = builder.buildCompilationUnit(
+          source, unit, librarySpecificUnit.library);
+    } else {
+      new DeclarationResolver().resolve(unit, element);
+    }
+    //
+    // Prepare constants.
+    //
     ConstantFinder constantFinder =
         new ConstantFinder(context, source, librarySpecificUnit.library);
     unit.accept(constantFinder);
