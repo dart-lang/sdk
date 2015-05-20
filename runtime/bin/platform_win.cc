@@ -80,6 +80,26 @@ void Platform::FreeEnvironment(char** env, intptr_t count) {
   delete[] env;
 }
 
+
+char* Platform::ResolveExecutablePath() {
+  // GetModuleFileNameW cannot directly provide information on the
+  // required buffer size, so start out with a buffer large enough to
+  // hold any Windows path.
+  const int kTmpBufferSize = 32768;
+  wchar_t* tmp_buffer = reinterpret_cast<wchar_t*>(malloc(kTmpBufferSize));
+  // Ensure no last error before calling GetModuleFileNameW.
+  SetLastError(ERROR_SUCCESS);
+  // Get the required length of the buffer.
+  int path_length = GetModuleFileNameW(NULL, tmp_buffer, kTmpBufferSize);
+  if (GetLastError() != ERROR_SUCCESS) {
+    free(tmp_buffer);
+    return NULL;
+  }
+  char* path = StringUtils::WideToUtf8(tmp_buffer);
+  free(tmp_buffer);
+  return path;
+}
+
 }  // namespace bin
 }  // namespace dart
 

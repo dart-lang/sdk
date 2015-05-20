@@ -39,7 +39,7 @@ part of dart.io;
  *       Map<String, String> envVars = Platform.environment;
  *       print(envVars['PATH']);
  *     }
- * 
+ *
  * ## Determine the OS
  *
  * You can get the name of the operating system as a string with the
@@ -53,7 +53,7 @@ part of dart.io;
  *       String os = Platform.operatingSystem;
  *       // Or, use a predicate getter.
  *       if (Platform.isMacOS) {
- *         Print('is a Mac'); 
+ *         Print('is a Mac');
  *       } else {
  *        print('is not a Mac');
  *       }
@@ -62,7 +62,7 @@ part of dart.io;
  * ## Other resources
  *
  * [Dart by Example](https://www.dartlang.org/dart-by-example/#dart-io-and-command-line-apps)
- * provides additional task-oriented code samples that show how to use 
+ * provides additional task-oriented code samples that show how to use
  * various API from the [dart:io] library.
  */
 class Platform {
@@ -130,6 +130,8 @@ class Platform {
   /**
    * Returns the path of the executable used to run the script in this
    * isolate.
+   *
+   * If supported by the platform the returned path will be absolute.
    *
    * If the execution environment does not support [executable] an empty
    * string is returned.

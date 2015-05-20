@@ -71,6 +71,11 @@ void Platform::FreeEnvironment(char** env, intptr_t count) {
   delete[] env;
 }
 
+
+char* Platform::ResolveExecutablePath() {
+  return File::LinkTarget("/proc/self/exe");
+}
+
 }  // namespace bin
 }  // namespace dart
 

@@ -5,6 +5,7 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_LINUX)
 
+#include "bin/file.h"
 #include "bin/platform.h"
 
 #include <signal.h>  // NOLINT
@@ -69,6 +70,11 @@ char** Platform::Environment(intptr_t* count) {
 
 void Platform::FreeEnvironment(char** env, intptr_t count) {
   delete[] env;
+}
+
+
+char* Platform::ResolveExecutablePath() {
+  return File::LinkTarget("/proc/self/exe");
 }
 
 }  // namespace bin
