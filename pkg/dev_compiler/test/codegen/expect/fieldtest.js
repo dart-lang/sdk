@@ -73,7 +73,7 @@ var core = dart.import(core);
       }
     }
     dart.setSignature(Generic, {
-      methods: () => ({foo: dart.functionType(dart.dynamic, [T])})
+      methods: () => ({foo: [dart.dynamic, [T]]})
     });
     return Generic;
   });

@@ -127,21 +127,21 @@ var math = dart.import(math);
   NativeByteBuffer[dart.implements] = () => [typed_data.ByteBuffer];
   dart.setSignature(NativeByteBuffer, {
     methods: () => ({
-      asUint8List: dart.functionType(typed_data.Uint8List, [], [core.int, core.int]),
-      asInt8List: dart.functionType(typed_data.Int8List, [], [core.int, core.int]),
-      asUint8ClampedList: dart.functionType(typed_data.Uint8ClampedList, [], [core.int, core.int]),
-      asUint16List: dart.functionType(typed_data.Uint16List, [], [core.int, core.int]),
-      asInt16List: dart.functionType(typed_data.Int16List, [], [core.int, core.int]),
-      asUint32List: dart.functionType(typed_data.Uint32List, [], [core.int, core.int]),
-      asInt32List: dart.functionType(typed_data.Int32List, [], [core.int, core.int]),
-      asUint64List: dart.functionType(typed_data.Uint64List, [], [core.int, core.int]),
-      asInt64List: dart.functionType(typed_data.Int64List, [], [core.int, core.int]),
-      asInt32x4List: dart.functionType(typed_data.Int32x4List, [], [core.int, core.int]),
-      asFloat32List: dart.functionType(typed_data.Float32List, [], [core.int, core.int]),
-      asFloat64List: dart.functionType(typed_data.Float64List, [], [core.int, core.int]),
-      asFloat32x4List: dart.functionType(typed_data.Float32x4List, [], [core.int, core.int]),
-      asFloat64x2List: dart.functionType(typed_data.Float64x2List, [], [core.int, core.int]),
-      asByteData: dart.functionType(typed_data.ByteData, [], [core.int, core.int])
+      asUint8List: [typed_data.Uint8List, [], [core.int, core.int]],
+      asInt8List: [typed_data.Int8List, [], [core.int, core.int]],
+      asUint8ClampedList: [typed_data.Uint8ClampedList, [], [core.int, core.int]],
+      asUint16List: [typed_data.Uint16List, [], [core.int, core.int]],
+      asInt16List: [typed_data.Int16List, [], [core.int, core.int]],
+      asUint32List: [typed_data.Uint32List, [], [core.int, core.int]],
+      asInt32List: [typed_data.Int32List, [], [core.int, core.int]],
+      asUint64List: [typed_data.Uint64List, [], [core.int, core.int]],
+      asInt64List: [typed_data.Int64List, [], [core.int, core.int]],
+      asInt32x4List: [typed_data.Int32x4List, [], [core.int, core.int]],
+      asFloat32List: [typed_data.Float32List, [], [core.int, core.int]],
+      asFloat64List: [typed_data.Float64List, [], [core.int, core.int]],
+      asFloat32x4List: [typed_data.Float32x4List, [], [core.int, core.int]],
+      asFloat64x2List: [typed_data.Float64x2List, [], [core.int, core.int]],
+      asByteData: [typed_data.ByteData, [], [core.int, core.int]]
     })
   });
   let _storage = Symbol('_storage');
@@ -242,12 +242,12 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeFloat32x4List, 'fromList');
   dart.setSignature(NativeFloat32x4List, {
     methods: () => ({
-      [_invalidIndex]: dart.functionType(dart.void, [core.int, core.int]),
-      [_checkIndex]: dart.functionType(dart.void, [core.int, core.int]),
-      [_checkSublistArguments]: dart.functionType(core.int, [core.int, core.int, core.int]),
-      [core.$get]: dart.functionType(typed_data.Float32x4, [core.int]),
-      [core.$set]: dart.functionType(dart.void, [core.int, typed_data.Float32x4]),
-      [core.$sublist]: dart.functionType(core.List$(typed_data.Float32x4), [core.int], [core.int])
+      [_invalidIndex]: [dart.void, [core.int, core.int]],
+      [_checkIndex]: [dart.void, [core.int, core.int]],
+      [_checkSublistArguments]: [core.int, [core.int, core.int, core.int]],
+      [core.$get]: [typed_data.Float32x4, [core.int]],
+      [core.$set]: [dart.void, [core.int, typed_data.Float32x4]],
+      [core.$sublist]: [core.List$(typed_data.Float32x4), [core.int], [core.int]]
     })
   });
   class NativeInt32x4List extends dart.mixin(core.Object, collection.ListMixin$(typed_data.Int32x4), _internal.FixedLengthListMixin$(typed_data.Int32x4)) {
@@ -344,12 +344,12 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeInt32x4List, 'fromList');
   dart.setSignature(NativeInt32x4List, {
     methods: () => ({
-      [_invalidIndex]: dart.functionType(dart.void, [core.int, core.int]),
-      [_checkIndex]: dart.functionType(dart.void, [core.int, core.int]),
-      [_checkSublistArguments]: dart.functionType(core.int, [core.int, core.int, core.int]),
-      [core.$get]: dart.functionType(typed_data.Int32x4, [core.int]),
-      [core.$set]: dart.functionType(dart.void, [core.int, typed_data.Int32x4]),
-      [core.$sublist]: dart.functionType(core.List$(typed_data.Int32x4), [core.int], [core.int])
+      [_invalidIndex]: [dart.void, [core.int, core.int]],
+      [_checkIndex]: [dart.void, [core.int, core.int]],
+      [_checkSublistArguments]: [core.int, [core.int, core.int, core.int]],
+      [core.$get]: [typed_data.Int32x4, [core.int]],
+      [core.$set]: [dart.void, [core.int, typed_data.Int32x4]],
+      [core.$sublist]: [core.List$(typed_data.Int32x4), [core.int], [core.int]]
     })
   });
   class NativeFloat64x2List extends dart.mixin(core.Object, collection.ListMixin$(typed_data.Float64x2), _internal.FixedLengthListMixin$(typed_data.Float64x2)) {
@@ -440,12 +440,12 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeFloat64x2List, 'fromList');
   dart.setSignature(NativeFloat64x2List, {
     methods: () => ({
-      [_invalidIndex]: dart.functionType(dart.void, [core.int, core.int]),
-      [_checkIndex]: dart.functionType(dart.void, [core.int, core.int]),
-      [_checkSublistArguments]: dart.functionType(core.int, [core.int, core.int, core.int]),
-      [core.$get]: dart.functionType(typed_data.Float64x2, [core.int]),
-      [core.$set]: dart.functionType(dart.void, [core.int, typed_data.Float64x2]),
-      [core.$sublist]: dart.functionType(core.List$(typed_data.Float64x2), [core.int], [core.int])
+      [_invalidIndex]: [dart.void, [core.int, core.int]],
+      [_checkIndex]: [dart.void, [core.int, core.int]],
+      [_checkSublistArguments]: [core.int, [core.int, core.int, core.int]],
+      [core.$get]: [typed_data.Float64x2, [core.int]],
+      [core.$set]: [dart.void, [core.int, typed_data.Float64x2]],
+      [core.$sublist]: [core.List$(typed_data.Float64x2), [core.int], [core.int]]
     })
   });
   class NativeTypedData extends core.Object {
@@ -486,9 +486,9 @@ var math = dart.import(math);
   NativeTypedData[dart.implements] = () => [typed_data.TypedData];
   dart.setSignature(NativeTypedData, {
     methods: () => ({
-      [_invalidIndex]: dart.functionType(dart.void, [core.int, core.int]),
-      [_checkIndex]: dart.functionType(dart.void, [core.int, core.int]),
-      [_checkSublistArguments]: dart.functionType(core.int, [core.int, core.int, core.int])
+      [_invalidIndex]: [dart.void, [core.int, core.int]],
+      [_checkIndex]: [dart.void, [core.int, core.int]],
+      [_checkSublistArguments]: [core.int, [core.int, core.int, core.int]]
     })
   });
   function _checkLength(length) {
@@ -639,43 +639,43 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeByteData, 'view');
   dart.setSignature(NativeByteData, {
     methods: () => ({
-      getFloat32: dart.functionType(core.double, [core.int], [typed_data.Endianness]),
-      [_getFloat32]: dart.functionType(core.double, [core.int], [core.bool]),
-      getFloat64: dart.functionType(core.double, [core.int], [typed_data.Endianness]),
-      [_getFloat64]: dart.functionType(core.double, [core.int], [core.bool]),
-      getInt16: dart.functionType(core.int, [core.int], [typed_data.Endianness]),
-      [_getInt16]: dart.functionType(core.int, [core.int], [core.bool]),
-      getInt32: dart.functionType(core.int, [core.int], [typed_data.Endianness]),
-      [_getInt32]: dart.functionType(core.int, [core.int], [core.bool]),
-      getInt64: dart.functionType(core.int, [core.int], [typed_data.Endianness]),
-      getInt8: dart.functionType(core.int, [core.int]),
-      getUint16: dart.functionType(core.int, [core.int], [typed_data.Endianness]),
-      [_getUint16]: dart.functionType(core.int, [core.int], [core.bool]),
-      getUint32: dart.functionType(core.int, [core.int], [typed_data.Endianness]),
-      [_getUint32]: dart.functionType(core.int, [core.int], [core.bool]),
-      getUint64: dart.functionType(core.int, [core.int], [typed_data.Endianness]),
-      getUint8: dart.functionType(core.int, [core.int]),
-      setFloat32: dart.functionType(dart.void, [core.int, core.num], [typed_data.Endianness]),
-      [_setFloat32]: dart.functionType(dart.void, [core.int, core.num], [core.bool]),
-      setFloat64: dart.functionType(dart.void, [core.int, core.num], [typed_data.Endianness]),
-      [_setFloat64]: dart.functionType(dart.void, [core.int, core.num], [core.bool]),
-      setInt16: dart.functionType(dart.void, [core.int, core.int], [typed_data.Endianness]),
-      [_setInt16]: dart.functionType(dart.void, [core.int, core.int], [core.bool]),
-      setInt32: dart.functionType(dart.void, [core.int, core.int], [typed_data.Endianness]),
-      [_setInt32]: dart.functionType(dart.void, [core.int, core.int], [core.bool]),
-      setInt64: dart.functionType(dart.void, [core.int, core.int], [typed_data.Endianness]),
-      setInt8: dart.functionType(dart.void, [core.int, core.int]),
-      setUint16: dart.functionType(dart.void, [core.int, core.int], [typed_data.Endianness]),
-      [_setUint16]: dart.functionType(dart.void, [core.int, core.int], [core.bool]),
-      setUint32: dart.functionType(dart.void, [core.int, core.int], [typed_data.Endianness]),
-      [_setUint32]: dart.functionType(dart.void, [core.int, core.int], [core.bool]),
-      setUint64: dart.functionType(dart.void, [core.int, core.int], [typed_data.Endianness]),
-      setUint8: dart.functionType(dart.void, [core.int, core.int])
+      getFloat32: [core.double, [core.int], [typed_data.Endianness]],
+      [_getFloat32]: [core.double, [core.int], [core.bool]],
+      getFloat64: [core.double, [core.int], [typed_data.Endianness]],
+      [_getFloat64]: [core.double, [core.int], [core.bool]],
+      getInt16: [core.int, [core.int], [typed_data.Endianness]],
+      [_getInt16]: [core.int, [core.int], [core.bool]],
+      getInt32: [core.int, [core.int], [typed_data.Endianness]],
+      [_getInt32]: [core.int, [core.int], [core.bool]],
+      getInt64: [core.int, [core.int], [typed_data.Endianness]],
+      getInt8: [core.int, [core.int]],
+      getUint16: [core.int, [core.int], [typed_data.Endianness]],
+      [_getUint16]: [core.int, [core.int], [core.bool]],
+      getUint32: [core.int, [core.int], [typed_data.Endianness]],
+      [_getUint32]: [core.int, [core.int], [core.bool]],
+      getUint64: [core.int, [core.int], [typed_data.Endianness]],
+      getUint8: [core.int, [core.int]],
+      setFloat32: [dart.void, [core.int, core.num], [typed_data.Endianness]],
+      [_setFloat32]: [dart.void, [core.int, core.num], [core.bool]],
+      setFloat64: [dart.void, [core.int, core.num], [typed_data.Endianness]],
+      [_setFloat64]: [dart.void, [core.int, core.num], [core.bool]],
+      setInt16: [dart.void, [core.int, core.int], [typed_data.Endianness]],
+      [_setInt16]: [dart.void, [core.int, core.int], [core.bool]],
+      setInt32: [dart.void, [core.int, core.int], [typed_data.Endianness]],
+      [_setInt32]: [dart.void, [core.int, core.int], [core.bool]],
+      setInt64: [dart.void, [core.int, core.int], [typed_data.Endianness]],
+      setInt8: [dart.void, [core.int, core.int]],
+      setUint16: [dart.void, [core.int, core.int], [typed_data.Endianness]],
+      [_setUint16]: [dart.void, [core.int, core.int], [core.bool]],
+      setUint32: [dart.void, [core.int, core.int], [typed_data.Endianness]],
+      [_setUint32]: [dart.void, [core.int, core.int], [core.bool]],
+      setUint64: [dart.void, [core.int, core.int], [typed_data.Endianness]],
+      setUint8: [dart.void, [core.int, core.int]]
     }),
     statics: () => ({
-      _create1: dart.functionType(NativeByteData, [dart.dynamic]),
-      _create2: dart.functionType(NativeByteData, [dart.dynamic, dart.dynamic]),
-      _create3: dart.functionType(NativeByteData, [dart.dynamic, dart.dynamic, dart.dynamic])
+      _create1: [NativeByteData, [dart.dynamic]],
+      _create2: [NativeByteData, [dart.dynamic, dart.dynamic]],
+      _create3: [NativeByteData, [dart.dynamic, dart.dynamic, dart.dynamic]]
     }),
     names: ['_create1', '_create2', '_create3']
   });
@@ -705,7 +705,7 @@ var math = dart.import(math);
   }
   NativeTypedArray[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior];
   dart.setSignature(NativeTypedArray, {
-    methods: () => ({[_setRangeFast]: dart.functionType(dart.void, [core.int, core.int, NativeTypedArray, core.int])})
+    methods: () => ({[_setRangeFast]: [dart.void, [core.int, core.int, NativeTypedArray, core.int]]})
   });
   class NativeTypedArrayOfDouble extends dart.mixin(NativeTypedArray, collection.ListMixin$(core.double), _internal.FixedLengthListMixin$(core.double)) {
     get [core.$length]() {
@@ -731,9 +731,9 @@ var math = dart.import(math);
   }
   dart.setSignature(NativeTypedArrayOfDouble, {
     methods: () => ({
-      [core.$get]: dart.functionType(core.double, [core.int]),
-      [core.$set]: dart.functionType(dart.void, [core.int, core.num]),
-      [core.$setRange]: dart.functionType(dart.void, [core.int, core.int, core.Iterable$(core.double)], [core.int])
+      [core.$get]: [core.double, [core.int]],
+      [core.$set]: [dart.void, [core.int, core.num]],
+      [core.$setRange]: [dart.void, [core.int, core.int, core.Iterable$(core.double)], [core.int]]
     })
   });
   class NativeTypedArrayOfInt extends dart.mixin(NativeTypedArray, collection.ListMixin$(core.int), _internal.FixedLengthListMixin$(core.int)) {
@@ -757,8 +757,8 @@ var math = dart.import(math);
   NativeTypedArrayOfInt[dart.implements] = () => [core.List$(core.int)];
   dart.setSignature(NativeTypedArrayOfInt, {
     methods: () => ({
-      [core.$set]: dart.functionType(dart.void, [core.int, core.int]),
-      [core.$setRange]: dart.functionType(dart.void, [core.int, core.int, core.Iterable$(core.int)], [core.int])
+      [core.$set]: [dart.void, [core.int, core.int]],
+      [core.$setRange]: [dart.void, [core.int, core.int, core.Iterable$(core.int)], [core.int]]
     })
   });
   class NativeFloat32List extends NativeTypedArrayOfDouble {
@@ -796,11 +796,11 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeFloat32List, 'fromList');
   dart.defineNamedConstructor(NativeFloat32List, 'view');
   dart.setSignature(NativeFloat32List, {
-    methods: () => ({[core.$sublist]: dart.functionType(core.List$(core.double), [core.int], [core.int])}),
+    methods: () => ({[core.$sublist]: [core.List$(core.double), [core.int], [core.int]]}),
     statics: () => ({
-      _create1: dart.functionType(NativeFloat32List, [dart.dynamic]),
-      _create2: dart.functionType(NativeFloat32List, [dart.dynamic, dart.dynamic]),
-      _create3: dart.functionType(NativeFloat32List, [dart.dynamic, dart.dynamic, dart.dynamic])
+      _create1: [NativeFloat32List, [dart.dynamic]],
+      _create2: [NativeFloat32List, [dart.dynamic, dart.dynamic]],
+      _create3: [NativeFloat32List, [dart.dynamic, dart.dynamic, dart.dynamic]]
     }),
     names: ['_create1', '_create2', '_create3']
   });
@@ -839,11 +839,11 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeFloat64List, 'fromList');
   dart.defineNamedConstructor(NativeFloat64List, 'view');
   dart.setSignature(NativeFloat64List, {
-    methods: () => ({[core.$sublist]: dart.functionType(core.List$(core.double), [core.int], [core.int])}),
+    methods: () => ({[core.$sublist]: [core.List$(core.double), [core.int], [core.int]]}),
     statics: () => ({
-      _create1: dart.functionType(NativeFloat64List, [dart.dynamic]),
-      _create2: dart.functionType(NativeFloat64List, [dart.dynamic, dart.dynamic]),
-      _create3: dart.functionType(NativeFloat64List, [dart.dynamic, dart.dynamic, dart.dynamic])
+      _create1: [NativeFloat64List, [dart.dynamic]],
+      _create2: [NativeFloat64List, [dart.dynamic, dart.dynamic]],
+      _create3: [NativeFloat64List, [dart.dynamic, dart.dynamic, dart.dynamic]]
     }),
     names: ['_create1', '_create2', '_create3']
   });
@@ -887,13 +887,13 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeInt16List, 'view');
   dart.setSignature(NativeInt16List, {
     methods: () => ({
-      [core.$get]: dart.functionType(core.int, [core.int]),
-      [core.$sublist]: dart.functionType(core.List$(core.int), [core.int], [core.int])
+      [core.$get]: [core.int, [core.int]],
+      [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
     }),
     statics: () => ({
-      _create1: dart.functionType(NativeInt16List, [dart.dynamic]),
-      _create2: dart.functionType(NativeInt16List, [dart.dynamic, dart.dynamic]),
-      _create3: dart.functionType(NativeInt16List, [dart.dynamic, dart.dynamic, dart.dynamic])
+      _create1: [NativeInt16List, [dart.dynamic]],
+      _create2: [NativeInt16List, [dart.dynamic, dart.dynamic]],
+      _create3: [NativeInt16List, [dart.dynamic, dart.dynamic, dart.dynamic]]
     }),
     names: ['_create1', '_create2', '_create3']
   });
@@ -937,13 +937,13 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeInt32List, 'view');
   dart.setSignature(NativeInt32List, {
     methods: () => ({
-      [core.$get]: dart.functionType(core.int, [core.int]),
-      [core.$sublist]: dart.functionType(core.List$(core.int), [core.int], [core.int])
+      [core.$get]: [core.int, [core.int]],
+      [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
     }),
     statics: () => ({
-      _create1: dart.functionType(NativeInt32List, [dart.dynamic]),
-      _create2: dart.functionType(NativeInt32List, [dart.dynamic, dart.dynamic]),
-      _create3: dart.functionType(NativeInt32List, [dart.dynamic, dart.dynamic, dart.dynamic])
+      _create1: [NativeInt32List, [dart.dynamic]],
+      _create2: [NativeInt32List, [dart.dynamic, dart.dynamic]],
+      _create3: [NativeInt32List, [dart.dynamic, dart.dynamic, dart.dynamic]]
     }),
     names: ['_create1', '_create2', '_create3']
   });
@@ -987,13 +987,13 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeInt8List, 'view');
   dart.setSignature(NativeInt8List, {
     methods: () => ({
-      [core.$get]: dart.functionType(core.int, [core.int]),
-      [core.$sublist]: dart.functionType(core.List$(core.int), [core.int], [core.int])
+      [core.$get]: [core.int, [core.int]],
+      [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
     }),
     statics: () => ({
-      _create1: dart.functionType(NativeInt8List, [dart.dynamic]),
-      _create2: dart.functionType(NativeInt8List, [dart.dynamic, dart.dynamic]),
-      _create3: dart.functionType(typed_data.Int8List, [dart.dynamic, dart.dynamic, dart.dynamic])
+      _create1: [NativeInt8List, [dart.dynamic]],
+      _create2: [NativeInt8List, [dart.dynamic, dart.dynamic]],
+      _create3: [typed_data.Int8List, [dart.dynamic, dart.dynamic, dart.dynamic]]
     }),
     names: ['_create1', '_create2', '_create3']
   });
@@ -1037,13 +1037,13 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeUint16List, 'view');
   dart.setSignature(NativeUint16List, {
     methods: () => ({
-      [core.$get]: dart.functionType(core.int, [core.int]),
-      [core.$sublist]: dart.functionType(core.List$(core.int), [core.int], [core.int])
+      [core.$get]: [core.int, [core.int]],
+      [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
     }),
     statics: () => ({
-      _create1: dart.functionType(NativeUint16List, [dart.dynamic]),
-      _create2: dart.functionType(NativeUint16List, [dart.dynamic, dart.dynamic]),
-      _create3: dart.functionType(NativeUint16List, [dart.dynamic, dart.dynamic, dart.dynamic])
+      _create1: [NativeUint16List, [dart.dynamic]],
+      _create2: [NativeUint16List, [dart.dynamic, dart.dynamic]],
+      _create3: [NativeUint16List, [dart.dynamic, dart.dynamic, dart.dynamic]]
     }),
     names: ['_create1', '_create2', '_create3']
   });
@@ -1087,13 +1087,13 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeUint32List, 'view');
   dart.setSignature(NativeUint32List, {
     methods: () => ({
-      [core.$get]: dart.functionType(core.int, [core.int]),
-      [core.$sublist]: dart.functionType(core.List$(core.int), [core.int], [core.int])
+      [core.$get]: [core.int, [core.int]],
+      [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
     }),
     statics: () => ({
-      _create1: dart.functionType(NativeUint32List, [dart.dynamic]),
-      _create2: dart.functionType(NativeUint32List, [dart.dynamic, dart.dynamic]),
-      _create3: dart.functionType(NativeUint32List, [dart.dynamic, dart.dynamic, dart.dynamic])
+      _create1: [NativeUint32List, [dart.dynamic]],
+      _create2: [NativeUint32List, [dart.dynamic, dart.dynamic]],
+      _create3: [NativeUint32List, [dart.dynamic, dart.dynamic, dart.dynamic]]
     }),
     names: ['_create1', '_create2', '_create3']
   });
@@ -1140,13 +1140,13 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeUint8ClampedList, 'view');
   dart.setSignature(NativeUint8ClampedList, {
     methods: () => ({
-      [core.$get]: dart.functionType(core.int, [core.int]),
-      [core.$sublist]: dart.functionType(core.List$(core.int), [core.int], [core.int])
+      [core.$get]: [core.int, [core.int]],
+      [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
     }),
     statics: () => ({
-      _create1: dart.functionType(NativeUint8ClampedList, [dart.dynamic]),
-      _create2: dart.functionType(NativeUint8ClampedList, [dart.dynamic, dart.dynamic]),
-      _create3: dart.functionType(NativeUint8ClampedList, [dart.dynamic, dart.dynamic, dart.dynamic])
+      _create1: [NativeUint8ClampedList, [dart.dynamic]],
+      _create2: [NativeUint8ClampedList, [dart.dynamic, dart.dynamic]],
+      _create3: [NativeUint8ClampedList, [dart.dynamic, dart.dynamic, dart.dynamic]]
     }),
     names: ['_create1', '_create2', '_create3']
   });
@@ -1193,13 +1193,13 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeUint8List, 'view');
   dart.setSignature(NativeUint8List, {
     methods: () => ({
-      [core.$get]: dart.functionType(core.int, [core.int]),
-      [core.$sublist]: dart.functionType(core.List$(core.int), [core.int], [core.int])
+      [core.$get]: [core.int, [core.int]],
+      [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
     }),
     statics: () => ({
-      _create1: dart.functionType(NativeUint8List, [dart.dynamic]),
-      _create2: dart.functionType(NativeUint8List, [dart.dynamic, dart.dynamic]),
-      _create3: dart.functionType(NativeUint8List, [dart.dynamic, dart.dynamic, dart.dynamic])
+      _create1: [NativeUint8List, [dart.dynamic]],
+      _create2: [NativeUint8List, [dart.dynamic, dart.dynamic]],
+      _create3: [NativeUint8List, [dart.dynamic, dart.dynamic, dart.dynamic]]
     }),
     names: ['_create1', '_create2', '_create3']
   });
@@ -1465,33 +1465,33 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeFloat32x4, '_truncated');
   dart.setSignature(NativeFloat32x4, {
     methods: () => ({
-      '+': dart.functionType(typed_data.Float32x4, [typed_data.Float32x4]),
-      'unary-': dart.functionType(typed_data.Float32x4, []),
-      '-': dart.functionType(typed_data.Float32x4, [typed_data.Float32x4]),
-      '*': dart.functionType(typed_data.Float32x4, [typed_data.Float32x4]),
-      '/': dart.functionType(typed_data.Float32x4, [typed_data.Float32x4]),
-      lessThan: dart.functionType(typed_data.Int32x4, [typed_data.Float32x4]),
-      lessThanOrEqual: dart.functionType(typed_data.Int32x4, [typed_data.Float32x4]),
-      greaterThan: dart.functionType(typed_data.Int32x4, [typed_data.Float32x4]),
-      greaterThanOrEqual: dart.functionType(typed_data.Int32x4, [typed_data.Float32x4]),
-      equal: dart.functionType(typed_data.Int32x4, [typed_data.Float32x4]),
-      notEqual: dart.functionType(typed_data.Int32x4, [typed_data.Float32x4]),
-      scale: dart.functionType(typed_data.Float32x4, [core.double]),
-      abs: dart.functionType(typed_data.Float32x4, []),
-      clamp: dart.functionType(typed_data.Float32x4, [typed_data.Float32x4, typed_data.Float32x4]),
-      shuffle: dart.functionType(typed_data.Float32x4, [core.int]),
-      shuffleMix: dart.functionType(typed_data.Float32x4, [typed_data.Float32x4, core.int]),
-      withX: dart.functionType(typed_data.Float32x4, [core.double]),
-      withY: dart.functionType(typed_data.Float32x4, [core.double]),
-      withZ: dart.functionType(typed_data.Float32x4, [core.double]),
-      withW: dart.functionType(typed_data.Float32x4, [core.double]),
-      min: dart.functionType(typed_data.Float32x4, [typed_data.Float32x4]),
-      max: dart.functionType(typed_data.Float32x4, [typed_data.Float32x4]),
-      sqrt: dart.functionType(typed_data.Float32x4, []),
-      reciprocal: dart.functionType(typed_data.Float32x4, []),
-      reciprocalSqrt: dart.functionType(typed_data.Float32x4, [])
+      '+': [typed_data.Float32x4, [typed_data.Float32x4]],
+      'unary-': [typed_data.Float32x4, []],
+      '-': [typed_data.Float32x4, [typed_data.Float32x4]],
+      '*': [typed_data.Float32x4, [typed_data.Float32x4]],
+      '/': [typed_data.Float32x4, [typed_data.Float32x4]],
+      lessThan: [typed_data.Int32x4, [typed_data.Float32x4]],
+      lessThanOrEqual: [typed_data.Int32x4, [typed_data.Float32x4]],
+      greaterThan: [typed_data.Int32x4, [typed_data.Float32x4]],
+      greaterThanOrEqual: [typed_data.Int32x4, [typed_data.Float32x4]],
+      equal: [typed_data.Int32x4, [typed_data.Float32x4]],
+      notEqual: [typed_data.Int32x4, [typed_data.Float32x4]],
+      scale: [typed_data.Float32x4, [core.double]],
+      abs: [typed_data.Float32x4, []],
+      clamp: [typed_data.Float32x4, [typed_data.Float32x4, typed_data.Float32x4]],
+      shuffle: [typed_data.Float32x4, [core.int]],
+      shuffleMix: [typed_data.Float32x4, [typed_data.Float32x4, core.int]],
+      withX: [typed_data.Float32x4, [core.double]],
+      withY: [typed_data.Float32x4, [core.double]],
+      withZ: [typed_data.Float32x4, [core.double]],
+      withW: [typed_data.Float32x4, [core.double]],
+      min: [typed_data.Float32x4, [typed_data.Float32x4]],
+      max: [typed_data.Float32x4, [typed_data.Float32x4]],
+      sqrt: [typed_data.Float32x4, []],
+      reciprocal: [typed_data.Float32x4, []],
+      reciprocalSqrt: [typed_data.Float32x4, []]
     }),
-    statics: () => ({_truncate: dart.functionType(dart.dynamic, [dart.dynamic])}),
+    statics: () => ({_truncate: [dart.dynamic, [dart.dynamic]]}),
     names: ['_truncate']
   });
   dart.defineLazyProperties(NativeFloat32x4, {
@@ -1682,25 +1682,25 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeInt32x4, '_truncated');
   dart.setSignature(NativeInt32x4, {
     methods: () => ({
-      '|': dart.functionType(typed_data.Int32x4, [typed_data.Int32x4]),
-      '&': dart.functionType(typed_data.Int32x4, [typed_data.Int32x4]),
-      '^': dart.functionType(typed_data.Int32x4, [typed_data.Int32x4]),
-      '+': dart.functionType(typed_data.Int32x4, [typed_data.Int32x4]),
-      '-': dart.functionType(typed_data.Int32x4, [typed_data.Int32x4]),
-      'unary-': dart.functionType(typed_data.Int32x4, []),
-      shuffle: dart.functionType(typed_data.Int32x4, [core.int]),
-      shuffleMix: dart.functionType(typed_data.Int32x4, [typed_data.Int32x4, core.int]),
-      withX: dart.functionType(typed_data.Int32x4, [core.int]),
-      withY: dart.functionType(typed_data.Int32x4, [core.int]),
-      withZ: dart.functionType(typed_data.Int32x4, [core.int]),
-      withW: dart.functionType(typed_data.Int32x4, [core.int]),
-      withFlagX: dart.functionType(typed_data.Int32x4, [core.bool]),
-      withFlagY: dart.functionType(typed_data.Int32x4, [core.bool]),
-      withFlagZ: dart.functionType(typed_data.Int32x4, [core.bool]),
-      withFlagW: dart.functionType(typed_data.Int32x4, [core.bool]),
-      select: dart.functionType(typed_data.Float32x4, [typed_data.Float32x4, typed_data.Float32x4])
+      '|': [typed_data.Int32x4, [typed_data.Int32x4]],
+      '&': [typed_data.Int32x4, [typed_data.Int32x4]],
+      '^': [typed_data.Int32x4, [typed_data.Int32x4]],
+      '+': [typed_data.Int32x4, [typed_data.Int32x4]],
+      '-': [typed_data.Int32x4, [typed_data.Int32x4]],
+      'unary-': [typed_data.Int32x4, []],
+      shuffle: [typed_data.Int32x4, [core.int]],
+      shuffleMix: [typed_data.Int32x4, [typed_data.Int32x4, core.int]],
+      withX: [typed_data.Int32x4, [core.int]],
+      withY: [typed_data.Int32x4, [core.int]],
+      withZ: [typed_data.Int32x4, [core.int]],
+      withW: [typed_data.Int32x4, [core.int]],
+      withFlagX: [typed_data.Int32x4, [core.bool]],
+      withFlagY: [typed_data.Int32x4, [core.bool]],
+      withFlagZ: [typed_data.Int32x4, [core.bool]],
+      withFlagW: [typed_data.Int32x4, [core.bool]],
+      select: [typed_data.Float32x4, [typed_data.Float32x4, typed_data.Float32x4]]
     }),
-    statics: () => ({_truncate: dart.functionType(dart.dynamic, [dart.dynamic])}),
+    statics: () => ({_truncate: [dart.dynamic, [dart.dynamic]]}),
     names: ['_truncate']
   });
   dart.defineLazyProperties(NativeInt32x4, {
@@ -1802,19 +1802,19 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeFloat64x2, '_doubles');
   dart.setSignature(NativeFloat64x2, {
     methods: () => ({
-      '+': dart.functionType(typed_data.Float64x2, [typed_data.Float64x2]),
-      'unary-': dart.functionType(typed_data.Float64x2, []),
-      '-': dart.functionType(typed_data.Float64x2, [typed_data.Float64x2]),
-      '*': dart.functionType(typed_data.Float64x2, [typed_data.Float64x2]),
-      '/': dart.functionType(typed_data.Float64x2, [typed_data.Float64x2]),
-      scale: dart.functionType(typed_data.Float64x2, [core.double]),
-      abs: dart.functionType(typed_data.Float64x2, []),
-      clamp: dart.functionType(typed_data.Float64x2, [typed_data.Float64x2, typed_data.Float64x2]),
-      withX: dart.functionType(typed_data.Float64x2, [core.double]),
-      withY: dart.functionType(typed_data.Float64x2, [core.double]),
-      min: dart.functionType(typed_data.Float64x2, [typed_data.Float64x2]),
-      max: dart.functionType(typed_data.Float64x2, [typed_data.Float64x2]),
-      sqrt: dart.functionType(typed_data.Float64x2, [])
+      '+': [typed_data.Float64x2, [typed_data.Float64x2]],
+      'unary-': [typed_data.Float64x2, []],
+      '-': [typed_data.Float64x2, [typed_data.Float64x2]],
+      '*': [typed_data.Float64x2, [typed_data.Float64x2]],
+      '/': [typed_data.Float64x2, [typed_data.Float64x2]],
+      scale: [typed_data.Float64x2, [core.double]],
+      abs: [typed_data.Float64x2, []],
+      clamp: [typed_data.Float64x2, [typed_data.Float64x2, typed_data.Float64x2]],
+      withX: [typed_data.Float64x2, [core.double]],
+      withY: [typed_data.Float64x2, [core.double]],
+      min: [typed_data.Float64x2, [typed_data.Float64x2]],
+      max: [typed_data.Float64x2, [typed_data.Float64x2]],
+      sqrt: [typed_data.Float64x2, []]
     })
   });
   dart.defineLazyProperties(NativeFloat64x2, {

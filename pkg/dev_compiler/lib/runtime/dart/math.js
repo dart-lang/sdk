@@ -23,10 +23,10 @@ var _js_helper = dart.lazyImport(_js_helper);
   }
   dart.setSignature(_JenkinsSmiHash, {
     statics: () => ({
-      combine: dart.functionType(core.int, [core.int, core.int]),
-      finish: dart.functionType(core.int, [core.int]),
-      hash2: dart.functionType(core.int, [dart.dynamic, dart.dynamic]),
-      hash4: dart.functionType(core.int, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic])
+      combine: [core.int, [core.int, core.int]],
+      finish: [core.int, [core.int]],
+      hash2: [core.int, [dart.dynamic, dart.dynamic]],
+      hash4: [core.int, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]]
     }),
     names: ['combine', 'finish', 'hash2', 'hash4']
   });
@@ -76,11 +76,11 @@ var _js_helper = dart.lazyImport(_js_helper);
     }
     dart.setSignature(Point, {
       methods: () => ({
-        '+': dart.functionType(Point$(T), [Point$(T)]),
-        '-': dart.functionType(Point$(T), [Point$(T)]),
-        '*': dart.functionType(Point$(T), [core.num]),
-        distanceTo: dart.functionType(core.double, [Point$(T)]),
-        squaredDistanceTo: dart.functionType(T, [Point$(T)])
+        '+': [Point$(T), [Point$(T)]],
+        '-': [Point$(T), [Point$(T)]],
+        '*': [Point$(T), [core.num]],
+        distanceTo: [core.double, [Point$(T)]],
+        squaredDistanceTo: [T, [Point$(T)]]
       })
     });
     return Point;
@@ -159,11 +159,11 @@ var _js_helper = dart.lazyImport(_js_helper);
     }
     dart.setSignature(_RectangleBase, {
       methods: () => ({
-        intersection: dart.functionType(Rectangle$(T), [Rectangle$(T)]),
-        intersects: dart.functionType(core.bool, [Rectangle$(core.num)]),
-        boundingBox: dart.functionType(Rectangle$(T), [Rectangle$(T)]),
-        containsRectangle: dart.functionType(core.bool, [Rectangle$(core.num)]),
-        containsPoint: dart.functionType(core.bool, [Point$(core.num)])
+        intersection: [Rectangle$(T), [Rectangle$(T)]],
+        intersects: [core.bool, [Rectangle$(core.num)]],
+        boundingBox: [Rectangle$(T), [Rectangle$(T)]],
+        containsRectangle: [core.bool, [Rectangle$(core.num)]],
+        containsPoint: [core.bool, [Point$(core.num)]]
       })
     });
     return _RectangleBase;
@@ -357,9 +357,9 @@ var _js_helper = dart.lazyImport(_js_helper);
   _JSRandom[dart.implements] = () => [Random];
   dart.setSignature(_JSRandom, {
     methods: () => ({
-      nextInt: dart.functionType(core.int, [core.int]),
-      nextDouble: dart.functionType(core.double, []),
-      nextBool: dart.functionType(core.bool, [])
+      nextInt: [core.int, [core.int]],
+      nextDouble: [core.double, []],
+      nextBool: [core.bool, []]
     })
   });
   let _lo = Symbol('_lo');
@@ -466,10 +466,10 @@ var _js_helper = dart.lazyImport(_js_helper);
   _Random[dart.implements] = () => [Random];
   dart.setSignature(_Random, {
     methods: () => ({
-      [_nextState]: dart.functionType(dart.void, []),
-      nextInt: dart.functionType(core.int, [core.int]),
-      nextDouble: dart.functionType(core.double, []),
-      nextBool: dart.functionType(core.bool, [])
+      [_nextState]: [dart.void, []],
+      nextInt: [core.int, [core.int]],
+      nextDouble: [core.double, []],
+      nextBool: [core.bool, []]
     })
   });
   _Random._POW2_53_D = 1.0 * 9007199254740992;

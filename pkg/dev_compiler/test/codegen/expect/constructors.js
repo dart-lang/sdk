@@ -123,12 +123,12 @@ var core = dart.import(core);
     }
     dart.setSignature(Q, {
       methods: () => ({
-        bar: dart.functionType(core.String, []),
-        bar2: dart.functionType(core.String, [])
+        bar: [core.String, []],
+        bar2: [core.String, []]
       }),
       statics: () => ({
-        foo: dart.functionType(Q$(), []),
-        baz: dart.functionType(core.String, [])
+        foo: [Q$(), []],
+        baz: [core.String, []]
       }),
       names: ['foo', 'baz']
     });

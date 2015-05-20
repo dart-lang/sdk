@@ -38,12 +38,12 @@ var core = dart.import(core);
     }
   }
   dart.setSignature(Strength, {
-    methods: () => ({nextWeaker: dart.functionType(Strength, [])}),
+    methods: () => ({nextWeaker: [Strength, []]}),
     statics: () => ({
-      stronger: dart.functionType(core.bool, [Strength, Strength]),
-      weaker: dart.functionType(core.bool, [Strength, Strength]),
-      weakest: dart.functionType(Strength, [Strength, Strength]),
-      strongest: dart.functionType(Strength, [Strength, Strength])
+      stronger: [core.bool, [Strength, Strength]],
+      weaker: [core.bool, [Strength, Strength]],
+      weakest: [Strength, [Strength, Strength]],
+      strongest: [Strength, [Strength, Strength]]
     }),
     names: ['stronger', 'weaker', 'weakest', 'strongest']
   });
@@ -92,10 +92,10 @@ var core = dart.import(core);
   }
   dart.setSignature(Constraint, {
     methods: () => ({
-      addConstraint: dart.functionType(dart.void, []),
-      satisfy: dart.functionType(Constraint, [dart.dynamic]),
-      destroyConstraint: dart.functionType(dart.void, []),
-      isInput: dart.functionType(core.bool, [])
+      addConstraint: [dart.void, []],
+      satisfy: [Constraint, [dart.dynamic]],
+      destroyConstraint: [dart.void, []],
+      isInput: [core.bool, []]
     })
   });
   class UnaryConstraint extends Constraint {
@@ -139,15 +139,15 @@ var core = dart.import(core);
   }
   dart.setSignature(UnaryConstraint, {
     methods: () => ({
-      addToGraph: dart.functionType(dart.void, []),
-      chooseMethod: dart.functionType(dart.void, [core.int]),
-      isSatisfied: dart.functionType(core.bool, []),
-      markInputs: dart.functionType(dart.void, [core.int]),
-      output: dart.functionType(Variable, []),
-      recalculate: dart.functionType(dart.void, []),
-      markUnsatisfied: dart.functionType(dart.void, []),
-      inputsKnown: dart.functionType(core.bool, [core.int]),
-      removeFromGraph: dart.functionType(dart.void, [])
+      addToGraph: [dart.void, []],
+      chooseMethod: [dart.void, [core.int]],
+      isSatisfied: [core.bool, []],
+      markInputs: [dart.void, [core.int]],
+      output: [Variable, []],
+      recalculate: [dart.void, []],
+      markUnsatisfied: [dart.void, []],
+      inputsKnown: [core.bool, [core.int]],
+      removeFromGraph: [dart.void, []]
     })
   });
   class StayConstraint extends UnaryConstraint {
@@ -157,7 +157,7 @@ var core = dart.import(core);
     execute() {}
   }
   dart.setSignature(StayConstraint, {
-    methods: () => ({execute: dart.functionType(dart.void, [])})
+    methods: () => ({execute: [dart.void, []]})
   });
   class EditConstraint extends UnaryConstraint {
     EditConstraint(v, str) {
@@ -169,7 +169,7 @@ var core = dart.import(core);
     execute() {}
   }
   dart.setSignature(EditConstraint, {
-    methods: () => ({execute: dart.functionType(dart.void, [])})
+    methods: () => ({execute: [dart.void, []]})
   });
   let NONE = 1;
   let FORWARD = 2;
@@ -236,16 +236,16 @@ var core = dart.import(core);
   }
   dart.setSignature(BinaryConstraint, {
     methods: () => ({
-      chooseMethod: dart.functionType(dart.void, [core.int]),
-      addToGraph: dart.functionType(dart.void, []),
-      isSatisfied: dart.functionType(core.bool, []),
-      markInputs: dart.functionType(dart.void, [core.int]),
-      input: dart.functionType(Variable, []),
-      output: dart.functionType(Variable, []),
-      recalculate: dart.functionType(dart.void, []),
-      markUnsatisfied: dart.functionType(dart.void, []),
-      inputsKnown: dart.functionType(core.bool, [core.int]),
-      removeFromGraph: dart.functionType(dart.void, [])
+      chooseMethod: [dart.void, [core.int]],
+      addToGraph: [dart.void, []],
+      isSatisfied: [core.bool, []],
+      markInputs: [dart.void, [core.int]],
+      input: [Variable, []],
+      output: [Variable, []],
+      recalculate: [dart.void, []],
+      markUnsatisfied: [dart.void, []],
+      inputsKnown: [core.bool, [core.int]],
+      removeFromGraph: [dart.void, []]
     })
   });
   class ScaleConstraint extends BinaryConstraint {
@@ -286,7 +286,7 @@ var core = dart.import(core);
     }
   }
   dart.setSignature(ScaleConstraint, {
-    methods: () => ({execute: dart.functionType(dart.void, [])})
+    methods: () => ({execute: [dart.void, []]})
   });
   class EqualityConstraint extends BinaryConstraint {
     EqualityConstraint(v1, v2, strength) {
@@ -297,7 +297,7 @@ var core = dart.import(core);
     }
   }
   dart.setSignature(EqualityConstraint, {
-    methods: () => ({execute: dart.functionType(dart.void, [])})
+    methods: () => ({execute: [dart.void, []]})
   });
   class Variable extends core.Object {
     Variable(name, value) {
@@ -320,8 +320,8 @@ var core = dart.import(core);
   }
   dart.setSignature(Variable, {
     methods: () => ({
-      addConstraint: dart.functionType(dart.void, [Constraint]),
-      removeConstraint: dart.functionType(dart.void, [Constraint])
+      addConstraint: [dart.void, [Constraint]],
+      removeConstraint: [dart.void, [Constraint]]
     })
   });
   class Planner extends core.Object {
@@ -422,14 +422,14 @@ var core = dart.import(core);
   }
   dart.setSignature(Planner, {
     methods: () => ({
-      incrementalAdd: dart.functionType(dart.void, [Constraint]),
-      incrementalRemove: dart.functionType(dart.void, [Constraint]),
-      newMark: dart.functionType(core.int, []),
-      makePlan: dart.functionType(Plan, [core.List$(Constraint)]),
-      extractPlanFromConstraints: dart.functionType(Plan, [core.List$(Constraint)]),
-      addPropagate: dart.functionType(core.bool, [Constraint, core.int]),
-      removePropagateFrom: dart.functionType(core.List$(Constraint), [Variable]),
-      addConstraintsConsumingTo: dart.functionType(dart.void, [Variable, core.List$(Constraint)])
+      incrementalAdd: [dart.void, [Constraint]],
+      incrementalRemove: [dart.void, [Constraint]],
+      newMark: [core.int, []],
+      makePlan: [Plan, [core.List$(Constraint)]],
+      extractPlanFromConstraints: [Plan, [core.List$(Constraint)]],
+      addPropagate: [core.bool, [Constraint, core.int]],
+      removePropagateFrom: [core.List$(Constraint), [Variable]],
+      addConstraintsConsumingTo: [dart.void, [Variable, core.List$(Constraint)]]
     })
   });
   class Plan extends core.Object {
@@ -450,9 +450,9 @@ var core = dart.import(core);
   }
   dart.setSignature(Plan, {
     methods: () => ({
-      addConstraint: dart.functionType(dart.void, [Constraint]),
-      size: dart.functionType(core.int, []),
-      execute: dart.functionType(dart.void, [])
+      addConstraint: [dart.void, [Constraint]],
+      size: [core.int, []],
+      execute: [dart.void, []]
     })
   });
   function chainTest(n) {

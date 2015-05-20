@@ -571,7 +571,7 @@ var dart, _js_helper, _js_primitives;
       // We're passed the piecewise components of the function type,
       // construct it.
       let args = Array.prototype.slice.call(arguments, 1);
-      t = functionType.apply(functionType, args);
+      t = functionType.apply(null, args);
     }
     setRuntimeType(closure, t);
     return closure;
@@ -1002,7 +1002,9 @@ var dart, _js_helper, _js_primitives;
     if (obj == null) return void 0;
     let sigObj = obj.__proto__.constructor[_methodSig];
     if (sigObj === void 0) return void 0;
-    let sig = sigObj[name];
+    let parts = sigObj[name];
+    if (parts === void 0) return void 0;
+    let sig = functionType.apply(null, parts);
     return sig;
   }
 
@@ -1036,7 +1038,10 @@ var dart, _js_helper, _js_primitives;
   // Set the lazily computed runtime type field on static methods
   function _setStaticTypes(f, names) {
     for (let name of names) {
-      function getT() { return f[_staticSig][name];};
+      function getT() {
+        let parts = f[_staticSig][name];
+        return functionType.apply(null, parts);
+      };
       defineProperty(f[name], _runtimeType, {get : getT});
     }
   }

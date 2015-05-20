@@ -47,7 +47,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }
   }
   dart.setSignature(Interceptor, {
-    methods: () => ({'==': dart.functionType(core.bool, [core.Object])})
+    methods: () => ({'==': [core.bool, [core.Object]]})
   });
   let _isInt32 = Symbol('_isInt32');
   let _tdivFast = Symbol('_tdivFast');
@@ -364,49 +364,49 @@ var _js_embedded_names = dart.import(_js_embedded_names);
   JSNumber[dart.implements] = () => [core.num];
   dart.setSignature(JSNumber, {
     methods: () => ({
-      compareTo: dart.functionType(core.int, [core.num]),
-      remainder: dart.functionType(core.num, [core.num]),
-      abs: dart.functionType(core.num, []),
-      toInt: dart.functionType(core.int, []),
-      truncate: dart.functionType(core.int, []),
-      ceil: dart.functionType(core.int, []),
-      floor: dart.functionType(core.int, []),
-      round: dart.functionType(core.int, []),
-      ceilToDouble: dart.functionType(core.double, []),
-      floorToDouble: dart.functionType(core.double, []),
-      roundToDouble: dart.functionType(core.double, []),
-      truncateToDouble: dart.functionType(core.double, []),
-      clamp: dart.functionType(core.num, [core.num, core.num]),
-      toDouble: dart.functionType(core.double, []),
-      toStringAsFixed: dart.functionType(core.String, [core.int]),
-      toStringAsExponential: dart.functionType(core.String, [], [core.int]),
-      toStringAsPrecision: dart.functionType(core.String, [core.int]),
-      toRadixString: dart.functionType(core.String, [core.int]),
-      'unary-': dart.functionType(core.num, []),
-      '+': dart.functionType(core.num, [core.num]),
-      '-': dart.functionType(core.num, [core.num]),
-      '/': dart.functionType(core.double, [core.num]),
-      '*': dart.functionType(core.num, [core.num]),
-      '%': dart.functionType(core.num, [core.num]),
-      [_isInt32]: dart.functionType(core.bool, [dart.dynamic]),
-      '~/': dart.functionType(core.int, [core.num]),
-      [_tdivFast]: dart.functionType(core.int, [core.num]),
-      [_tdivSlow]: dart.functionType(core.int, [core.num]),
-      '<<': dart.functionType(core.num, [core.num]),
-      [_shlPositive]: dart.functionType(core.num, [core.num]),
-      '>>': dart.functionType(core.num, [core.num]),
-      [_shrOtherPositive]: dart.functionType(core.num, [core.num]),
-      [_shrReceiverPositive]: dart.functionType(core.num, [core.num]),
-      [_shrBothPositive]: dart.functionType(core.num, [core.num]),
-      '&': dart.functionType(core.num, [core.num]),
-      '|': dart.functionType(core.num, [core.num]),
-      '^': dart.functionType(core.num, [core.num]),
-      '<': dart.functionType(core.bool, [core.num]),
-      '>': dart.functionType(core.bool, [core.num]),
-      '<=': dart.functionType(core.bool, [core.num]),
-      '>=': dart.functionType(core.bool, [core.num])
+      compareTo: [core.int, [core.num]],
+      remainder: [core.num, [core.num]],
+      abs: [core.num, []],
+      toInt: [core.int, []],
+      truncate: [core.int, []],
+      ceil: [core.int, []],
+      floor: [core.int, []],
+      round: [core.int, []],
+      ceilToDouble: [core.double, []],
+      floorToDouble: [core.double, []],
+      roundToDouble: [core.double, []],
+      truncateToDouble: [core.double, []],
+      clamp: [core.num, [core.num, core.num]],
+      toDouble: [core.double, []],
+      toStringAsFixed: [core.String, [core.int]],
+      toStringAsExponential: [core.String, [], [core.int]],
+      toStringAsPrecision: [core.String, [core.int]],
+      toRadixString: [core.String, [core.int]],
+      'unary-': [core.num, []],
+      '+': [core.num, [core.num]],
+      '-': [core.num, [core.num]],
+      '/': [core.double, [core.num]],
+      '*': [core.num, [core.num]],
+      '%': [core.num, [core.num]],
+      [_isInt32]: [core.bool, [dart.dynamic]],
+      '~/': [core.int, [core.num]],
+      [_tdivFast]: [core.int, [core.num]],
+      [_tdivSlow]: [core.int, [core.num]],
+      '<<': [core.num, [core.num]],
+      [_shlPositive]: [core.num, [core.num]],
+      '>>': [core.num, [core.num]],
+      [_shrOtherPositive]: [core.num, [core.num]],
+      [_shrReceiverPositive]: [core.num, [core.num]],
+      [_shrBothPositive]: [core.num, [core.num]],
+      '&': [core.num, [core.num]],
+      '|': [core.num, [core.num]],
+      '^': [core.num, [core.num]],
+      '<': [core.bool, [core.num]],
+      '>': [core.bool, [core.num]],
+      '<=': [core.bool, [core.num]],
+      '>=': [core.bool, [core.num]]
     }),
-    statics: () => ({_handleIEtoString: dart.functionType(core.String, [core.String])}),
+    statics: () => ({_handleIEtoString: [core.String, [core.String]]}),
     names: ['_handleIEtoString']
   });
   JSNumber._MIN_INT32 = -2147483648;
@@ -471,16 +471,16 @@ var _js_embedded_names = dart.import(_js_embedded_names);
   JSInt[dart.implements] = () => [core.int, core.double];
   dart.setSignature(JSInt, {
     methods: () => ({
-      toUnsigned: dart.functionType(core.int, [core.int]),
-      toSigned: dart.functionType(core.int, [core.int]),
-      '~': dart.functionType(core.int, [])
+      toUnsigned: [core.int, [core.int]],
+      toSigned: [core.int, [core.int]],
+      '~': [core.int, []]
     }),
     statics: () => ({
-      _bitCount: dart.functionType(core.int, [core.int]),
-      _shru: dart.functionType(dart.dynamic, [core.int, core.int]),
-      _shrs: dart.functionType(dart.dynamic, [core.int, core.int]),
-      _ors: dart.functionType(dart.dynamic, [core.int, core.int]),
-      _spread: dart.functionType(core.int, [core.int])
+      _bitCount: [core.int, [core.int]],
+      _shru: [dart.dynamic, [core.int, core.int]],
+      _shrs: [dart.dynamic, [core.int, core.int]],
+      _ors: [dart.dynamic, [core.int, core.int]],
+      _spread: [core.int, [core.int]]
     }),
     names: ['_bitCount', '_shru', '_shrs', '_ors', '_spread']
   });
@@ -921,37 +921,37 @@ var _js_embedded_names = dart.import(_js_embedded_names);
   JSString[dart.implements] = () => [core.String, JSIndexable];
   dart.setSignature(JSString, {
     methods: () => ({
-      codeUnitAt: dart.functionType(core.int, [core.int]),
-      allMatches: dart.functionType(core.Iterable$(core.Match), [core.String], [core.int]),
-      matchAsPrefix: dart.functionType(core.Match, [core.String], [core.int]),
-      '+': dart.functionType(core.String, [core.String]),
-      endsWith: dart.functionType(core.bool, [core.String]),
-      replaceAll: dart.functionType(core.String, [core.Pattern, core.String]),
-      replaceAllMapped: dart.functionType(core.String, [core.Pattern, dart.functionType(core.String, [core.Match])]),
-      splitMapJoin: dart.functionType(core.String, [core.Pattern], {nMatc: dart.functionType(core.String, [core.Match]), nNonMatc: dart.functionType(core.String, [core.String])}),
-      replaceFirst: dart.functionType(core.String, [core.Pattern, core.String], [core.int]),
-      split: dart.functionType(core.List$(core.String), [core.Pattern]),
-      [_defaultSplit]: dart.functionType(core.List$(core.String), [core.Pattern]),
-      startsWith: dart.functionType(core.bool, [core.Pattern], [core.int]),
-      substring: dart.functionType(core.String, [core.int], [core.int]),
-      toLowerCase: dart.functionType(core.String, []),
-      toUpperCase: dart.functionType(core.String, []),
-      trim: dart.functionType(core.String, []),
-      trimLeft: dart.functionType(core.String, []),
-      trimRight: dart.functionType(core.String, []),
-      '*': dart.functionType(core.String, [core.int]),
-      padLeft: dart.functionType(core.String, [core.int], [core.String]),
-      padRight: dart.functionType(core.String, [core.int], [core.String]),
-      indexOf: dart.functionType(core.int, [core.Pattern], [core.int]),
-      lastIndexOf: dart.functionType(core.int, [core.Pattern], [core.int]),
-      contains: dart.functionType(core.bool, [core.Pattern], [core.int]),
-      compareTo: dart.functionType(core.int, [core.String]),
-      get: dart.functionType(core.String, [core.int])
+      codeUnitAt: [core.int, [core.int]],
+      allMatches: [core.Iterable$(core.Match), [core.String], [core.int]],
+      matchAsPrefix: [core.Match, [core.String], [core.int]],
+      '+': [core.String, [core.String]],
+      endsWith: [core.bool, [core.String]],
+      replaceAll: [core.String, [core.Pattern, core.String]],
+      replaceAllMapped: [core.String, [core.Pattern, dart.functionType(core.String, [core.Match])]],
+      splitMapJoin: [core.String, [core.Pattern], {nMatc: dart.functionType(core.String, [core.Match]), nNonMatc: dart.functionType(core.String, [core.String])}],
+      replaceFirst: [core.String, [core.Pattern, core.String], [core.int]],
+      split: [core.List$(core.String), [core.Pattern]],
+      [_defaultSplit]: [core.List$(core.String), [core.Pattern]],
+      startsWith: [core.bool, [core.Pattern], [core.int]],
+      substring: [core.String, [core.int], [core.int]],
+      toLowerCase: [core.String, []],
+      toUpperCase: [core.String, []],
+      trim: [core.String, []],
+      trimLeft: [core.String, []],
+      trimRight: [core.String, []],
+      '*': [core.String, [core.int]],
+      padLeft: [core.String, [core.int], [core.String]],
+      padRight: [core.String, [core.int], [core.String]],
+      indexOf: [core.int, [core.Pattern], [core.int]],
+      lastIndexOf: [core.int, [core.Pattern], [core.int]],
+      contains: [core.bool, [core.Pattern], [core.int]],
+      compareTo: [core.int, [core.String]],
+      get: [core.String, [core.int]]
     }),
     statics: () => ({
-      _isWhitespace: dart.functionType(core.bool, [core.int]),
-      _skipLeadingWhitespace: dart.functionType(core.int, [core.String, core.int]),
-      _skipTrailingWhitespace: dart.functionType(core.int, [core.String, core.int])
+      _isWhitespace: [core.bool, [core.int]],
+      _skipLeadingWhitespace: [core.int, [core.String, core.int]],
+      _skipTrailingWhitespace: [core.int, [core.String, core.int]]
     }),
     names: ['_isWhitespace', '_skipLeadingWhitespace', '_skipTrailingWhitespace']
   });
@@ -968,7 +968,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }
   }
   dart.setSignature(_CodeUnits, {
-    methods: () => ({[core.$get]: dart.functionType(core.int, [core.int])})
+    methods: () => ({[core.$get]: [core.int, [core.int]]})
   });
   function _symbolToString(symbol) {
     return _internal.Symbol.getName(dart.as(symbol, _internal.Symbol));
@@ -1131,7 +1131,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
   }
   JSNull[dart.implements] = () => [core.Null];
   dart.setSignature(JSNull, {
-    methods: () => ({'==': dart.functionType(core.bool, [dart.dynamic])})
+    methods: () => ({'==': [core.bool, [dart.dynamic]]})
   });
   class JSIndexable extends core.Object {}
   class JSMutableIndexable extends JSIndexable {}

@@ -10,7 +10,7 @@ var core = dart.import(core);
     }
   }
   dart.setSignature(Foo, {
-    methods: () => ({[_foo$]: dart.functionType(dart.dynamic, [])})
+    methods: () => ({[_foo$]: [dart.dynamic, []]})
   });
   function _foo() {
     return 456;
@@ -26,7 +26,7 @@ var core = dart.import(core);
   }
   dart.defineNamedConstructor(Frame, 'caller');
   dart.setSignature(Frame, {
-    statics: () => ({callee: dart.functionType(dart.dynamic, [])}),
+    statics: () => ({callee: [dart.dynamic, []]}),
     names: ['callee']
   });
   class Frame2 extends core.Object {}

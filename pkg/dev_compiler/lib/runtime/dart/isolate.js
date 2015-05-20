@@ -151,20 +151,20 @@ var async = dart.import(async);
   }
   dart.setSignature(Isolate, {
     methods: () => ({
-      pause: dart.functionType(Capability, [], [Capability]),
-      [_pause]: dart.functionType(dart.void, [Capability]),
-      resume: dart.functionType(dart.void, [Capability]),
-      addOnExitListener: dart.functionType(dart.void, [SendPort]),
-      removeOnExitListener: dart.functionType(dart.void, [SendPort]),
-      setErrorsFatal: dart.functionType(dart.void, [core.bool]),
-      kill: dart.functionType(dart.void, [], [core.int]),
-      ping: dart.functionType(dart.void, [SendPort], [core.int]),
-      addErrorListener: dart.functionType(dart.void, [SendPort]),
-      removeErrorListener: dart.functionType(dart.void, [SendPort])
+      pause: [Capability, [], [Capability]],
+      [_pause]: [dart.void, [Capability]],
+      resume: [dart.void, [Capability]],
+      addOnExitListener: [dart.void, [SendPort]],
+      removeOnExitListener: [dart.void, [SendPort]],
+      setErrorsFatal: [dart.void, [core.bool]],
+      kill: [dart.void, [], [core.int]],
+      ping: [dart.void, [SendPort], [core.int]],
+      addErrorListener: [dart.void, [SendPort]],
+      removeErrorListener: [dart.void, [SendPort]]
     }),
     statics: () => ({
-      spawn: dart.functionType(async.Future$(Isolate), [dart.functionType(dart.void, [dart.dynamic]), dart.dynamic], {ause: core.bool}),
-      spawnUri: dart.functionType(async.Future$(Isolate), [core.Uri, core.List$(core.String), dart.dynamic], {ause: core.bool, ackageRoo: core.Uri})
+      spawn: [async.Future$(Isolate), [dart.functionType(dart.void, [dart.dynamic]), dart.dynamic], {ause: core.bool}],
+      spawnUri: [async.Future$(Isolate), [core.Uri, core.List$(core.String), dart.dynamic], {ause: core.bool, ackageRoo: core.Uri}]
     }),
     names: ['spawn', 'spawnUri']
   });

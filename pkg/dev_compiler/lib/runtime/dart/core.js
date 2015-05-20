@@ -34,9 +34,9 @@ var convert = dart.lazyImport(convert);
   }
   dart.setSignature(Object, {
     methods: () => ({
-      '==': dart.functionType(bool, [dart.dynamic]),
-      toString: dart.functionType(String, []),
-      noSuchMethod: dart.functionType(dart.dynamic, [Invocation])
+      '==': [bool, [dart.dynamic]],
+      toString: [String, []],
+      noSuchMethod: [dart.dynamic, [Invocation]]
     })
   });
   class JsName extends Object {
@@ -96,7 +96,7 @@ var convert = dart.lazyImport(convert);
       }
     }
     dart.setSignature(Comparable, {
-      statics: () => ({compare: dart.functionType(int, [Comparable$(), Comparable$()])}),
+      statics: () => ({compare: [int, [Comparable$(), Comparable$()]]}),
       names: ['compare']
     });
     return Comparable;
@@ -354,24 +354,24 @@ var convert = dart.lazyImport(convert);
   dart.defineNamedConstructor(DateTime, '_now');
   dart.setSignature(DateTime, {
     methods: () => ({
-      isBefore: dart.functionType(bool, [DateTime]),
-      isAfter: dart.functionType(bool, [DateTime]),
-      isAtSameMomentAs: dart.functionType(bool, [DateTime]),
-      compareTo: dart.functionType(int, [DateTime]),
-      toLocal: dart.functionType(DateTime, []),
-      toUtc: dart.functionType(DateTime, []),
-      toIso8601String: dart.functionType(String, []),
-      add: dart.functionType(DateTime, [Duration]),
-      subtract: dart.functionType(DateTime, [Duration]),
-      difference: dart.functionType(Duration, [DateTime])
+      isBefore: [bool, [DateTime]],
+      isAfter: [bool, [DateTime]],
+      isAtSameMomentAs: [bool, [DateTime]],
+      compareTo: [int, [DateTime]],
+      toLocal: [DateTime, []],
+      toUtc: [DateTime, []],
+      toIso8601String: [String, []],
+      add: [DateTime, [Duration]],
+      subtract: [DateTime, [Duration]],
+      difference: [Duration, [DateTime]]
     }),
     statics: () => ({
-      parse: dart.functionType(DateTime, [String]),
-      _fourDigits: dart.functionType(String, [int]),
-      _sixDigits: dart.functionType(String, [int]),
-      _threeDigits: dart.functionType(String, [int]),
-      _twoDigits: dart.functionType(String, [int]),
-      _brokenDownDateToMillisecondsSinceEpoch: dart.functionType(int, [int, int, int, int, int, int, int, bool])
+      parse: [DateTime, [String]],
+      _fourDigits: [String, [int]],
+      _sixDigits: [String, [int]],
+      _threeDigits: [String, [int]],
+      _twoDigits: [String, [int]],
+      _brokenDownDateToMillisecondsSinceEpoch: [int, [int, int, int, int, int, int, int, bool]]
     }),
     names: ['parse', '_fourDigits', '_sixDigits', '_threeDigits', '_twoDigits', '_brokenDownDateToMillisecondsSinceEpoch']
   });
@@ -426,9 +426,9 @@ var convert = dart.lazyImport(convert);
   num[dart.implements] = () => [Comparable$(num)];
   dart.setSignature(num, {
     statics: () => ({
-      parse: dart.functionType(num, [String], [dart.functionType(num, [String])]),
-      _onParseErrorInt: dart.functionType(int, [String]),
-      _onParseErrorDouble: dart.functionType(double, [String])
+      parse: [num, [String], [dart.functionType(num, [String])]],
+      _onParseErrorInt: [int, [String]],
+      _onParseErrorDouble: [double, [String]]
     }),
     names: ['parse', '_onParseErrorInt', '_onParseErrorDouble']
   });
@@ -440,7 +440,7 @@ var convert = dart.lazyImport(convert);
     }
   }
   dart.setSignature(double, {
-    statics: () => ({parse: dart.functionType(double, [String], [dart.functionType(double, [String])])}),
+    statics: () => ({parse: [double, [String], [dart.functionType(double, [String])]]}),
     names: ['parse']
   });
   double.NAN = 0.0 / 0.0;
@@ -560,17 +560,17 @@ var convert = dart.lazyImport(convert);
   dart.defineNamedConstructor(Duration, '_microseconds');
   dart.setSignature(Duration, {
     methods: () => ({
-      '+': dart.functionType(Duration, [Duration]),
-      '-': dart.functionType(Duration, [Duration]),
-      '*': dart.functionType(Duration, [num]),
-      '~/': dart.functionType(Duration, [int]),
-      '<': dart.functionType(bool, [Duration]),
-      '>': dart.functionType(bool, [Duration]),
-      '<=': dart.functionType(bool, [Duration]),
-      '>=': dart.functionType(bool, [Duration]),
-      compareTo: dart.functionType(int, [Duration]),
-      abs: dart.functionType(Duration, []),
-      'unary-': dart.functionType(Duration, [])
+      '+': [Duration, [Duration]],
+      '-': [Duration, [Duration]],
+      '*': [Duration, [num]],
+      '~/': [Duration, [int]],
+      '<': [bool, [Duration]],
+      '>': [bool, [Duration]],
+      '<=': [bool, [Duration]],
+      '>=': [bool, [Duration]],
+      compareTo: [int, [Duration]],
+      abs: [Duration, []],
+      'unary-': [Duration, []]
     })
   });
   Duration.MICROSECONDS_PER_MILLISECOND = 1000;
@@ -613,9 +613,9 @@ var convert = dart.lazyImport(convert);
   }
   dart.setSignature(Error, {
     statics: () => ({
-      safeToString: dart.functionType(String, [Object]),
-      _stringToSafeString: dart.functionType(String, [String]),
-      _objectToString: dart.functionType(String, [Object])
+      safeToString: [String, [Object]],
+      _stringToSafeString: [String, [String]],
+      _objectToString: [String, [Object]]
     }),
     names: ['safeToString', '_stringToSafeString', '_objectToString']
   });
@@ -785,10 +785,10 @@ var convert = dart.lazyImport(convert);
   dart.defineNamedConstructor(RangeError, 'index');
   dart.setSignature(RangeError, {
     statics: () => ({
-      checkValueInInterval: dart.functionType(dart.void, [int, int, int], [String, String]),
-      checkValidIndex: dart.functionType(dart.void, [int, dart.dynamic], [String, int, String]),
-      checkValidRange: dart.functionType(dart.void, [int, int, int], [String, String, String]),
-      checkNotNegative: dart.functionType(dart.void, [int], [String, String])
+      checkValueInInterval: [dart.void, [int, int, int], [String, String]],
+      checkValidIndex: [dart.void, [int, dart.dynamic], [String, int, String]],
+      checkValidRange: [dart.void, [int, int, int], [String, String, String]],
+      checkNotNegative: [dart.void, [int], [String, String]]
     }),
     names: ['checkValueInInterval', 'checkValidIndex', 'checkValidRange', 'checkNotNegative']
   });
@@ -1125,9 +1125,9 @@ var convert = dart.lazyImport(convert);
     }
     dart.setSignature(Expando, {
       methods: () => ({
-        get: dart.functionType(T, [Object]),
-        set: dart.functionType(dart.void, [Object, T]),
-        [_getKey]: dart.functionType(String, [])
+        get: [T, [Object]],
+        set: [dart.void, [Object, T]],
+        [_getKey]: [String, []]
       })
     });
     return Expando;
@@ -1152,8 +1152,8 @@ var convert = dart.lazyImport(convert);
   }
   dart.setSignature(Function, {
     statics: () => ({
-      apply: dart.functionType(dart.dynamic, [Function, List], [Map$(Symbol, dart.dynamic)]),
-      _toMangledNames: dart.functionType(Map$(String, dart.dynamic), [Map$(Symbol, dart.dynamic)])
+      apply: [dart.dynamic, [Function, List], [Map$(Symbol, dart.dynamic)]],
+      _toMangledNames: [Map$(String, dart.dynamic), [Map$(Symbol, dart.dynamic)]]
     }),
     names: ['apply', '_toMangledNames']
   });
@@ -1178,7 +1178,7 @@ var convert = dart.lazyImport(convert);
   }
   dart.defineNamedConstructor(int, 'fromEnvironment');
   dart.setSignature(int, {
-    statics: () => ({parse: dart.functionType(int, [String], {adi: int, nErro: dart.functionType(int, [String])})}),
+    statics: () => ({parse: [int, [String], {adi: int, nErro: dart.functionType(int, [String])}]}),
     names: ['parse']
   });
   class Invocation extends Object {
@@ -1212,7 +1212,7 @@ var convert = dart.lazyImport(convert);
     }
     dart.defineNamedConstructor(Iterable, 'generate');
     dart.setSignature(Iterable, {
-      methods: () => ({[$join]: dart.functionType(String, [], [String])})
+      methods: () => ({[$join]: [String, [], [String]]})
     });
     return Iterable;
   });
@@ -1273,10 +1273,10 @@ var convert = dart.lazyImport(convert);
     dart.defineNamedConstructor(_GeneratorIterable, 'slice');
     dart.setSignature(_GeneratorIterable, {
       methods: () => ({
-        [$skip]: dart.functionType(Iterable$(E), [int]),
-        [$take]: dart.functionType(Iterable$(E), [int])
+        [$skip]: [Iterable$(E), [int]],
+        [$take]: [Iterable$(E), [int]]
       }),
-      statics: () => ({_id: dart.functionType(int, [int])}),
+      statics: () => ({_id: [int, [int]]}),
       names: ['_id']
     });
     return _GeneratorIterable;
@@ -1308,7 +1308,7 @@ var convert = dart.lazyImport(convert);
     }
     _GeneratorIterator[dart.implements] = () => [Iterator$(E)];
     dart.setSignature(_GeneratorIterator, {
-      methods: () => ({moveNext: dart.functionType(bool, [])})
+      methods: () => ({moveNext: [bool, []]})
     });
     return _GeneratorIterator;
   });
@@ -1741,52 +1741,52 @@ var convert = dart.lazyImport(convert);
     dart.defineNamedConstructor(List, 'generate');
     dart.setSignature(List, {
       methods: () => ({
-        [$checkMutable]: dart.functionType(dart.dynamic, [dart.dynamic]),
-        [$checkGrowable]: dart.functionType(dart.dynamic, [dart.dynamic]),
-        [$where]: dart.functionType(Iterable$(E), [dart.functionType(bool, [E])]),
-        [$expand]: dart.functionType(Iterable, [dart.functionType(Iterable, [E])]),
-        [$forEach]: dart.functionType(dart.void, [dart.functionType(dart.void, [E])]),
-        [$map]: dart.functionType(Iterable, [dart.functionType(dart.dynamic, [E])]),
-        [$join]: dart.functionType(String, [], [String]),
-        [$take]: dart.functionType(Iterable$(E), [int]),
-        [$takeWhile]: dart.functionType(Iterable$(E), [dart.functionType(bool, [E])]),
-        [$skip]: dart.functionType(Iterable$(E), [int]),
-        [$skipWhile]: dart.functionType(Iterable$(E), [dart.functionType(bool, [E])]),
-        [$reduce]: dart.functionType(E, [dart.functionType(E, [E, E])]),
-        [$fold]: dart.functionType(dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, E])]),
-        [$firstWhere]: dart.functionType(E, [dart.functionType(bool, [E])], {rEls: dart.functionType(E, [])}),
-        [$lastWhere]: dart.functionType(E, [dart.functionType(bool, [E])], {rEls: dart.functionType(E, [])}),
-        [$singleWhere]: dart.functionType(E, [dart.functionType(bool, [E])]),
-        [$elementAt]: dart.functionType(E, [int]),
-        [$any]: dart.functionType(bool, [dart.functionType(bool, [E])]),
-        [$every]: dart.functionType(bool, [dart.functionType(bool, [E])]),
-        [$contains]: dart.functionType(bool, [Object]),
-        [$toList]: dart.functionType(List$(E), [], {rowabl: bool}),
-        [$toSet]: dart.functionType(exports.Set$(E), []),
-        [$get]: dart.functionType(E, [int]),
-        [$set]: dart.functionType(dart.void, [int, E]),
-        [$add]: dart.functionType(dart.void, [E]),
-        [$addAll]: dart.functionType(dart.void, [Iterable$(E)]),
-        [$sort]: dart.functionType(dart.void, [], [dart.functionType(int, [E, E])]),
-        [$shuffle]: dart.functionType(dart.void, [], [math.Random]),
-        [$indexOf]: dart.functionType(int, [E], [int]),
-        [$lastIndexOf]: dart.functionType(int, [E], [int]),
-        [$clear]: dart.functionType(dart.void, []),
-        [$insert]: dart.functionType(dart.void, [int, E]),
-        [$insertAll]: dart.functionType(dart.void, [int, Iterable$(E)]),
-        [$setAll]: dart.functionType(dart.void, [int, Iterable$(E)]),
-        [$remove]: dart.functionType(bool, [Object]),
-        [$removeAt]: dart.functionType(E, [int]),
-        [$removeLast]: dart.functionType(E, []),
-        [$removeWhere]: dart.functionType(dart.void, [dart.functionType(bool, [E])]),
-        [$retainWhere]: dart.functionType(dart.void, [dart.functionType(bool, [E])]),
-        [$sublist]: dart.functionType(List$(E), [int], [int]),
-        [$getRange]: dart.functionType(Iterable$(E), [int, int]),
-        [$setRange]: dart.functionType(dart.void, [int, int, Iterable$(E)], [int]),
-        [$removeRange]: dart.functionType(dart.void, [int, int]),
-        [$fillRange]: dart.functionType(dart.void, [int, int], [E]),
-        [$replaceRange]: dart.functionType(dart.void, [int, int, Iterable$(E)]),
-        [$asMap]: dart.functionType(Map$(int, E), [])
+        [$checkMutable]: [dart.dynamic, [dart.dynamic]],
+        [$checkGrowable]: [dart.dynamic, [dart.dynamic]],
+        [$where]: [Iterable$(E), [dart.functionType(bool, [E])]],
+        [$expand]: [Iterable, [dart.functionType(Iterable, [E])]],
+        [$forEach]: [dart.void, [dart.functionType(dart.void, [E])]],
+        [$map]: [Iterable, [dart.functionType(dart.dynamic, [E])]],
+        [$join]: [String, [], [String]],
+        [$take]: [Iterable$(E), [int]],
+        [$takeWhile]: [Iterable$(E), [dart.functionType(bool, [E])]],
+        [$skip]: [Iterable$(E), [int]],
+        [$skipWhile]: [Iterable$(E), [dart.functionType(bool, [E])]],
+        [$reduce]: [E, [dart.functionType(E, [E, E])]],
+        [$fold]: [dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, E])]],
+        [$firstWhere]: [E, [dart.functionType(bool, [E])], {rEls: dart.functionType(E, [])}],
+        [$lastWhere]: [E, [dart.functionType(bool, [E])], {rEls: dart.functionType(E, [])}],
+        [$singleWhere]: [E, [dart.functionType(bool, [E])]],
+        [$elementAt]: [E, [int]],
+        [$any]: [bool, [dart.functionType(bool, [E])]],
+        [$every]: [bool, [dart.functionType(bool, [E])]],
+        [$contains]: [bool, [Object]],
+        [$toList]: [List$(E), [], {rowabl: bool}],
+        [$toSet]: [exports.Set$(E), []],
+        [$get]: [E, [int]],
+        [$set]: [dart.void, [int, E]],
+        [$add]: [dart.void, [E]],
+        [$addAll]: [dart.void, [Iterable$(E)]],
+        [$sort]: [dart.void, [], [dart.functionType(int, [E, E])]],
+        [$shuffle]: [dart.void, [], [math.Random]],
+        [$indexOf]: [int, [E], [int]],
+        [$lastIndexOf]: [int, [E], [int]],
+        [$clear]: [dart.void, []],
+        [$insert]: [dart.void, [int, E]],
+        [$insertAll]: [dart.void, [int, Iterable$(E)]],
+        [$setAll]: [dart.void, [int, Iterable$(E)]],
+        [$remove]: [bool, [Object]],
+        [$removeAt]: [E, [int]],
+        [$removeLast]: [E, []],
+        [$removeWhere]: [dart.void, [dart.functionType(bool, [E])]],
+        [$retainWhere]: [dart.void, [dart.functionType(bool, [E])]],
+        [$sublist]: [List$(E), [int], [int]],
+        [$getRange]: [Iterable$(E), [int, int]],
+        [$setRange]: [dart.void, [int, int, Iterable$(E)], [int]],
+        [$removeRange]: [dart.void, [int, int]],
+        [$fillRange]: [dart.void, [int, int], [E]],
+        [$replaceRange]: [dart.void, [int, int, Iterable$(E)]],
+        [$asMap]: [Map$(int, E), []]
       })
     });
     return List;
@@ -1932,13 +1932,13 @@ var convert = dart.lazyImport(convert);
   }
   dart.setSignature(Stopwatch, {
     methods: () => ({
-      start: dart.functionType(dart.void, []),
-      stop: dart.functionType(dart.void, []),
-      reset: dart.functionType(dart.void, [])
+      start: [dart.void, []],
+      stop: [dart.void, []],
+      reset: [dart.void, []]
     }),
     statics: () => ({
-      _initTicker: dart.functionType(dart.void, []),
-      _now: dart.functionType(int, [])
+      _initTicker: [dart.void, []],
+      _now: [int, []]
     }),
     names: ['_initTicker', '_now']
   });
@@ -2006,7 +2006,7 @@ var convert = dart.lazyImport(convert);
   dart.defineNamedConstructor(String, 'fromCharCode');
   dart.defineNamedConstructor(String, 'fromEnvironment');
   dart.setSignature(String, {
-    statics: () => ({_stringFromIterable: dart.functionType(String, [Iterable$(int), int, int])}),
+    statics: () => ({_stringFromIterable: [String, [Iterable$(int), int, int]]}),
     names: ['_stringFromIterable']
   });
   dart.defineLazyClass(exports, {
@@ -2147,10 +2147,10 @@ var convert = dart.lazyImport(convert);
   dart.defineNamedConstructor(RuneIterator, 'at');
   dart.setSignature(RuneIterator, {
     methods: () => ({
-      [_checkSplitSurrogate]: dart.functionType(dart.void, [int]),
-      reset: dart.functionType(dart.void, [], [int]),
-      moveNext: dart.functionType(bool, []),
-      movePrevious: dart.functionType(bool, [])
+      [_checkSplitSurrogate]: [dart.void, [int]],
+      reset: [dart.void, [], [int]],
+      moveNext: [bool, []],
+      movePrevious: [bool, []]
     })
   });
   let _contents = dart.JsSymbol('_contents');
@@ -2213,12 +2213,12 @@ var convert = dart.lazyImport(convert);
   StringBuffer[dart.implements] = () => [StringSink];
   dart.setSignature(StringBuffer, {
     methods: () => ({
-      write: dart.functionType(dart.void, [Object]),
-      writeCharCode: dart.functionType(dart.void, [int]),
-      writeAll: dart.functionType(dart.void, [Iterable], [String]),
-      writeln: dart.functionType(dart.void, [], [Object]),
-      clear: dart.functionType(dart.void, []),
-      [_writeString]: dart.functionType(dart.void, [dart.dynamic])
+      write: [dart.void, [Object]],
+      writeCharCode: [dart.void, [int]],
+      writeAll: [dart.void, [Iterable], [String]],
+      writeln: [dart.void, [], [Object]],
+      clear: [dart.void, []],
+      [_writeString]: [dart.void, [dart.dynamic]]
     })
   });
   class StringSink extends Object {}
@@ -3495,59 +3495,59 @@ var convert = dart.lazyImport(convert);
   dart.defineNamedConstructor(Uri, 'file');
   dart.setSignature(Uri, {
     methods: () => ({
-      replace: dart.functionType(Uri, [], {chem: String, serInf: String, os: String, or: int, at: String, athSegment: Iterable$(String), uer: String, ueryParameter: Map$(String, String), ragmen: String}),
-      [_merge]: dart.functionType(String, [String, String]),
-      [_hasDotSegments]: dart.functionType(bool, [String]),
-      [_removeDotSegments]: dart.functionType(String, [String]),
-      resolve: dart.functionType(Uri, [String]),
-      resolveUri: dart.functionType(Uri, [Uri]),
-      toFilePath: dart.functionType(String, [], {indow: bool}),
-      [_toFilePath]: dart.functionType(String, []),
-      [_toWindowsFilePath]: dart.functionType(String, []),
-      [_writeAuthority]: dart.functionType(dart.void, [StringSink])
+      replace: [Uri, [], {chem: String, serInf: String, os: String, or: int, at: String, athSegment: Iterable$(String), uer: String, ueryParameter: Map$(String, String), ragmen: String}],
+      [_merge]: [String, [String, String]],
+      [_hasDotSegments]: [bool, [String]],
+      [_removeDotSegments]: [String, [String]],
+      resolve: [Uri, [String]],
+      resolveUri: [Uri, [Uri]],
+      toFilePath: [String, [], {indow: bool}],
+      [_toFilePath]: [String, []],
+      [_toWindowsFilePath]: [String, []],
+      [_writeAuthority]: [dart.void, [StringSink]]
     }),
     statics: () => ({
-      _defaultPort: dart.functionType(int, [String]),
-      parse: dart.functionType(Uri, [String]),
-      _fail: dart.functionType(dart.void, [String, int, String]),
-      _makeHttpUri: dart.functionType(Uri, [String, String, String, Map$(String, String)]),
-      _checkNonWindowsPathReservedCharacters: dart.functionType(dart.dynamic, [List$(String), bool]),
-      _checkWindowsPathReservedCharacters: dart.functionType(dart.dynamic, [List$(String), bool], [int]),
-      _checkWindowsDriveLetter: dart.functionType(dart.dynamic, [int, bool]),
-      _makeFileUri: dart.functionType(dart.dynamic, [String]),
-      _makeWindowsFileUrl: dart.functionType(dart.dynamic, [String]),
-      _makePort: dart.functionType(int, [int, String]),
-      _makeHost: dart.functionType(String, [String, int, int, bool]),
-      _isRegNameChar: dart.functionType(bool, [int]),
-      _normalizeRegName: dart.functionType(String, [String, int, int]),
-      _makeScheme: dart.functionType(String, [String, int]),
-      _makeUserInfo: dart.functionType(String, [String, int, int]),
-      _makePath: dart.functionType(String, [String, int, int, Iterable$(String), bool, bool]),
-      _makeQuery: dart.functionType(String, [String, int, int, Map$(String, String)]),
-      _makeFragment: dart.functionType(String, [String, int, int]),
-      _stringOrNullLength: dart.functionType(int, [String]),
-      _isHexDigit: dart.functionType(bool, [int]),
-      _hexValue: dart.functionType(int, [int]),
-      _normalizeEscape: dart.functionType(String, [String, int, bool]),
-      _isUnreservedChar: dart.functionType(bool, [int]),
-      _escapeChar: dart.functionType(String, [dart.dynamic]),
-      _normalize: dart.functionType(String, [String, int, int, List$(int)]),
-      _isSchemeCharacter: dart.functionType(bool, [int]),
-      _isGeneralDelimiter: dart.functionType(bool, [int]),
-      _addIfNonEmpty: dart.functionType(dart.void, [StringBuffer, String, String, String]),
-      encodeComponent: dart.functionType(String, [String]),
-      encodeQueryComponent: dart.functionType(String, [String], {ncodin: convert.Encoding}),
-      decodeComponent: dart.functionType(String, [String]),
-      decodeQueryComponent: dart.functionType(String, [String], {ncodin: convert.Encoding}),
-      encodeFull: dart.functionType(String, [String]),
-      decodeFull: dart.functionType(String, [String]),
-      splitQueryString: dart.functionType(Map$(String, String), [String], {ncodin: convert.Encoding}),
-      parseIPv4Address: dart.functionType(List$(int), [String]),
-      parseIPv6Address: dart.functionType(List$(int), [String], [int, int]),
-      _uriEncode: dart.functionType(String, [List$(int), String], {ncodin: convert.Encoding, paceToPlu: bool}),
-      _hexCharPairToByte: dart.functionType(int, [String, int]),
-      _uriDecode: dart.functionType(String, [String], {lusToSpac: bool, ncodin: convert.Encoding}),
-      _isAlphabeticCharacter: dart.functionType(bool, [int])
+      _defaultPort: [int, [String]],
+      parse: [Uri, [String]],
+      _fail: [dart.void, [String, int, String]],
+      _makeHttpUri: [Uri, [String, String, String, Map$(String, String)]],
+      _checkNonWindowsPathReservedCharacters: [dart.dynamic, [List$(String), bool]],
+      _checkWindowsPathReservedCharacters: [dart.dynamic, [List$(String), bool], [int]],
+      _checkWindowsDriveLetter: [dart.dynamic, [int, bool]],
+      _makeFileUri: [dart.dynamic, [String]],
+      _makeWindowsFileUrl: [dart.dynamic, [String]],
+      _makePort: [int, [int, String]],
+      _makeHost: [String, [String, int, int, bool]],
+      _isRegNameChar: [bool, [int]],
+      _normalizeRegName: [String, [String, int, int]],
+      _makeScheme: [String, [String, int]],
+      _makeUserInfo: [String, [String, int, int]],
+      _makePath: [String, [String, int, int, Iterable$(String), bool, bool]],
+      _makeQuery: [String, [String, int, int, Map$(String, String)]],
+      _makeFragment: [String, [String, int, int]],
+      _stringOrNullLength: [int, [String]],
+      _isHexDigit: [bool, [int]],
+      _hexValue: [int, [int]],
+      _normalizeEscape: [String, [String, int, bool]],
+      _isUnreservedChar: [bool, [int]],
+      _escapeChar: [String, [dart.dynamic]],
+      _normalize: [String, [String, int, int, List$(int)]],
+      _isSchemeCharacter: [bool, [int]],
+      _isGeneralDelimiter: [bool, [int]],
+      _addIfNonEmpty: [dart.void, [StringBuffer, String, String, String]],
+      encodeComponent: [String, [String]],
+      encodeQueryComponent: [String, [String], {ncodin: convert.Encoding}],
+      decodeComponent: [String, [String]],
+      decodeQueryComponent: [String, [String], {ncodin: convert.Encoding}],
+      encodeFull: [String, [String]],
+      decodeFull: [String, [String]],
+      splitQueryString: [Map$(String, String), [String], {ncodin: convert.Encoding}],
+      parseIPv4Address: [List$(int), [String]],
+      parseIPv6Address: [List$(int), [String], [int, int]],
+      _uriEncode: [String, [List$(int), String], {ncodin: convert.Encoding, paceToPlu: bool}],
+      _hexCharPairToByte: [int, [String, int]],
+      _uriDecode: [String, [String], {lusToSpac: bool, ncodin: convert.Encoding}],
+      _isAlphabeticCharacter: [bool, [int]]
     }),
     names: ['_defaultPort', 'parse', '_fail', '_makeHttpUri', '_checkNonWindowsPathReservedCharacters', '_checkWindowsPathReservedCharacters', '_checkWindowsDriveLetter', '_makeFileUri', '_makeWindowsFileUrl', '_makePort', '_makeHost', '_isRegNameChar', '_normalizeRegName', '_makeScheme', '_makeUserInfo', '_makePath', '_makeQuery', '_makeFragment', '_stringOrNullLength', '_isHexDigit', '_hexValue', '_normalizeEscape', '_isUnreservedChar', '_escapeChar', '_normalize', '_isSchemeCharacter', '_isGeneralDelimiter', '_addIfNonEmpty', 'encodeComponent', 'encodeQueryComponent', 'decodeComponent', 'decodeQueryComponent', 'encodeFull', 'decodeFull', 'splitQueryString', 'parseIPv4Address', 'parseIPv6Address', '_uriEncode', '_hexCharPairToByte', '_uriDecode', '_isAlphabeticCharacter']
   });

@@ -44,12 +44,12 @@ var core = dart.import(core);
   }
   dart.setSignature(A, {
     methods: () => ({
-      x: dart.functionType(core.int, []),
-      y: dart.functionType(core.int, [core.int]),
-      z: dart.functionType(core.int, [], [core.num]),
-      zz: dart.functionType(core.int, [], [core.int]),
-      w: dart.functionType(core.int, [core.int], {b: core.num}),
-      ww: dart.functionType(core.int, [core.int], {b: core.int})
+      x: [core.int, []],
+      y: [core.int, [core.int]],
+      z: [core.int, [], [core.num]],
+      zz: [core.int, [], [core.int]],
+      w: [core.int, [core.int], {b: core.num}],
+      ww: [core.int, [core.int], {b: core.int}]
     })
   });
   class Bar extends core.Object {
@@ -58,7 +58,7 @@ var core = dart.import(core);
     }
   }
   dart.setSignature(Bar, {
-    methods: () => ({call: dart.functionType(dart.dynamic, [dart.dynamic])})
+    methods: () => ({call: [dart.dynamic, [dart.dynamic]]})
   });
   class Foo extends core.Object {
     Foo() {

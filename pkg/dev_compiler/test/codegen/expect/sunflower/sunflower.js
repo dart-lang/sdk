@@ -72,7 +72,7 @@ var core = dart.import(core);
   }
   CirclePainter[dart.implements] = () => [Circle];
   dart.setSignature(CirclePainter, {
-    methods: () => ({draw: dart.functionType(dart.void, [])})
+    methods: () => ({draw: [dart.void, []]})
   });
   class SunflowerSeed extends dart.mixin(Circle, CirclePainter) {
     SunflowerSeed(x, y, radius, color) {

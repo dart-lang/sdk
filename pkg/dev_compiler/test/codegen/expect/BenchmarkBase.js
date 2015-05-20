@@ -21,10 +21,10 @@ var core = dart.import(core);
     }
   }
   dart.setSignature(Expect, {
-    methods: () => ({fail: dart.functionType(dart.dynamic, [dart.dynamic])}),
+    methods: () => ({fail: [dart.dynamic, [dart.dynamic]]}),
     statics: () => ({
-      equals: dart.functionType(dart.void, [dart.dynamic, dart.dynamic]),
-      listEquals: dart.functionType(dart.void, [core.List, core.List])
+      equals: [dart.void, [dart.dynamic, dart.dynamic]],
+      listEquals: [dart.void, [core.List, core.List]]
     }),
     names: ['equals', 'listEquals']
   });
@@ -74,15 +74,15 @@ var core = dart.import(core);
   }
   dart.setSignature(BenchmarkBase, {
     methods: () => ({
-      run: dart.functionType(dart.void, []),
-      warmup: dart.functionType(dart.void, []),
-      exercise: dart.functionType(dart.void, []),
-      setup: dart.functionType(dart.void, []),
-      teardown: dart.functionType(dart.void, []),
-      measure: dart.functionType(core.double, []),
-      report: dart.functionType(dart.void, [])
+      run: [dart.void, []],
+      warmup: [dart.void, []],
+      exercise: [dart.void, []],
+      setup: [dart.void, []],
+      teardown: [dart.void, []],
+      measure: [core.double, []],
+      report: [dart.void, []]
     }),
-    statics: () => ({measureFor: dart.functionType(core.double, [core.Function, core.int])}),
+    statics: () => ({measureFor: [core.double, [core.Function, core.int]]}),
     names: ['measureFor']
   });
   // Exports:

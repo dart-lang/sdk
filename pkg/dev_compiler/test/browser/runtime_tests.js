@@ -444,11 +444,11 @@ suite('instanceOf', () => {
     }
     dart.setSignature(Tester, {
       methods: () => ({
-        m: dart.functionType(core.int, [core.int, core.int]),
-        call: dart.functionType(core.int, [core.int])
+        m: [core.int, [core.int, core.int]],
+        call: [core.int, [core.int]]
       }),
       statics: () => ({
-        s: dart.functionType(core.String, [core.String])
+        s: [core.String, [core.String]]
       }),
       names: ['s']
     })
@@ -589,7 +589,7 @@ suite('instanceOf', () => {
     };
     dart.setSignature(Base, {
       methods: () => ({
-        m: dart.functionType(core.int, [core.int]),
+        m: [core.int, [core.int]],
       })
     });
 
@@ -598,7 +598,7 @@ suite('instanceOf', () => {
     };
     dart.setSignature(M1, {
       methods: () => ({
-        m: dart.functionType(core.num, [core.int]),
+        m: [core.num, [core.int]],
       })
     });
 
@@ -607,7 +607,7 @@ suite('instanceOf', () => {
     };
     dart.setSignature(M2, {
       methods: () => ({
-        m: dart.functionType(core.Object, [core.int]),
+        m: [core.Object, [core.int]],
       })
     });
 

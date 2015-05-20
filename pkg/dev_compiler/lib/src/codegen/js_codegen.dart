@@ -599,8 +599,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
           var unary = node.parameters.parameters.isEmpty;
           var memberName = _emitMemberName(name,
               type: cType, unary: unary, isStatic: node.isStatic);
+          var parts = _emitFunctionTypeParts(element.type);
           var property =
-              new JS.Property(memberName, _emitTypeName(element.type));
+              new JS.Property(memberName, new JS.ArrayInitializer(parts));
           if (node.isStatic) {
             tStatics.add(property);
             sNames.add(memberName);
