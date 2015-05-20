@@ -27,29 +27,17 @@ enum AccessKind {
   /// an enclosing function or method.
   LOCAL_FUNCTION,
 
-  /// The destination of the access is a non-final variable that is defined
-  /// locally within an enclosing function or method.
+  /// The destination of the access is a variable that is defined locally within
+  /// an enclosing function or method.
   LOCAL_VARIABLE,
 
-  /// The destination of the access is a final variable that is defined locally
-  /// within an enclosing function or method.
-  FINAL_LOCAL_VARIABLE,
-
-  /// The destination of the access is a variable that is defined as a non-final
-  /// parameter to an enclosing function or method.
+  /// The destination of the access is a variable that is defined as a parameter
+  /// to an enclosing function or method.
   PARAMETER,
 
-  /// The destination of the access is a variable that is defined as a final
-  /// parameter to an enclosing function or method.
-  FINAL_PARAMETER,
-
-  /// The destination of the access is a non-final field that is defined
-  /// statically within a class.
+  /// The destination of the access is a field that is defined statically within
+  /// a class.
   STATIC_FIELD,
-
-  /// The destination of the access is a final field that is defined statically
-  /// within a class.
-  FINAL_STATIC_FIELD,
 
   /// The destination of the access is a method that is defined statically
   /// within a class.
@@ -63,13 +51,9 @@ enum AccessKind {
   /// statically within a class.
   STATIC_SETTER,
 
-  /// The destination of the access is a non-final top level variable defined
-  /// within a library.
+  /// The destination of the access is a top level variable defined within a
+  /// library.
   TOPLEVEL_FIELD,
-
-  /// The destination of the access is a final top level variable defined within
-  /// a library.
-  FINAL_TOPLEVEL_FIELD,
 
   /// The destination of the access is a top level method defined within a
   /// library.
@@ -107,13 +91,9 @@ enum AccessKind {
   /// of the enclosing class.
   THIS_PROPERTY,
 
-  /// The destination of the access is a non-final field of the super class of
-  /// the enclosing class.
-  SUPER_FIELD,
-
-  /// The destination of the access is a final field of the super class of the
+  /// The destination of the access is a field of the super class of the
   /// enclosing class.
-  SUPER_FINAL_FIELD,
+  SUPER_FIELD,
 
   /// The destination of the access is a method of the super class of the
   /// enclosing class.
@@ -142,25 +122,15 @@ enum AccessKind {
 }
 
 enum CompoundAccessKind {
-  /// Read from a static getter and write to a static setter.
+  /// Read from a static getter and write to static setter.
   STATIC_GETTER_SETTER,
-  /// Read from a static method (closurize) and write to a static setter.
+  /// Read from a static method (closurize) and write to static setter.
   STATIC_METHOD_SETTER,
-
-  /// Read from an unresolved static getter and write to a static setter.
-  UNRESOLVED_STATIC_GETTER,
-  /// Read from a static getter and write to an unresolved static setter.
-  UNRESOLVED_STATIC_SETTER,
 
   /// Read from a top level getter and write to a top level setter.
   TOPLEVEL_GETTER_SETTER,
   /// Read from a top level method (closurize) and write to top level setter.
   TOPLEVEL_METHOD_SETTER,
-
-  /// Read from an unresolved top level getter and write to a top level setter.
-  UNRESOLVED_TOPLEVEL_GETTER,
-  /// Read from a top level getter and write to an unresolved top level setter.
-  UNRESOLVED_TOPLEVEL_SETTER,
 
   /// Read from one superclass field and write to another.
   SUPER_FIELD_FIELD,
@@ -288,9 +258,6 @@ class StaticAccess extends AccessSemantics {
   StaticAccess.superField(FieldElement this.element)
       : super._(AccessKind.SUPER_FIELD);
 
-  StaticAccess.superFinalField(FieldElement this.element)
-      : super._(AccessKind.SUPER_FINAL_FIELD);
-
   StaticAccess.superMethod(MethodElement this.element)
       : super._(AccessKind.SUPER_METHOD);
 
@@ -306,20 +273,11 @@ class StaticAccess extends AccessSemantics {
   StaticAccess.localVariable(LocalVariableElement this.element)
       : super._(AccessKind.LOCAL_VARIABLE);
 
-  StaticAccess.finalLocalVariable(LocalVariableElement this.element)
-      : super._(AccessKind.FINAL_LOCAL_VARIABLE);
-
   StaticAccess.parameter(ParameterElement this.element)
       : super._(AccessKind.PARAMETER);
 
-  StaticAccess.finalParameter(ParameterElement this.element)
-      : super._(AccessKind.FINAL_PARAMETER);
-
   StaticAccess.staticField(FieldElement this.element)
       : super._(AccessKind.STATIC_FIELD);
-
-  StaticAccess.finalStaticField(FieldElement this.element)
-      : super._(AccessKind.FINAL_STATIC_FIELD);
 
   StaticAccess.staticMethod(MethodElement this.element)
       : super._(AccessKind.STATIC_METHOD);
@@ -332,9 +290,6 @@ class StaticAccess extends AccessSemantics {
 
   StaticAccess.topLevelField(FieldElement this.element)
       : super._(AccessKind.TOPLEVEL_FIELD);
-
-  StaticAccess.finalTopLevelField(FieldElement this.element)
-      : super._(AccessKind.FINAL_TOPLEVEL_FIELD);
 
   StaticAccess.topLevelMethod(MethodElement this.element)
       : super._(AccessKind.TOPLEVEL_METHOD);

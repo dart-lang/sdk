@@ -394,7 +394,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R visitLocalFunctionPostfix(
+  R errorLocalFunctionPostfix(
       Send node,
       LocalFunctionElement function,
       op.IncDecOperator operator,
@@ -403,7 +403,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R visitLocalFunctionPrefix(
+  R errorLocalFunctionPrefix(
       Send node,
       LocalFunctionElement function,
       op.IncDecOperator operator,
@@ -503,7 +503,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R visitUnresolvedPostfix(
+  R errorUnresolvedPostfix(
       Send node,
       Element element,
       op.IncDecOperator operator,
@@ -512,7 +512,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R visitUnresolvedPrefix(
+  R errorUnresolvedPrefix(
       Send node,
       Element element,
       op.IncDecOperator operator,
