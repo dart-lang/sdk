@@ -106,7 +106,7 @@ main() {
   print(new Set.from([1, 2, 3]));
 }""", r"""
 function() {
-  P.print(P.LinkedHashSet_LinkedHashSet(null));
+  P.print(P.LinkedHashSet_LinkedHashSet(null, null, null, null));
   P.print(P.LinkedHashSet_LinkedHashSet$from([1, 2, 3], null));
   return null;
 }"""),
